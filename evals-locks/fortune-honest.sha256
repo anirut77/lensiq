@@ -1,0 +1,12 @@
+# evals-locks/fortune-honest.sha256 — owner rule 2026-11-13: every locked test / eval set used on this branch, hashed in the repo
+# BEFORE any further measurement. Branch crisis-flow-v2 (crisis flow v2 + detection v2). Repo test files (path from the repo root):
+cff3ef3445a4ee5df2cb71d47d241193dd4b9ce3f836336ebe3bd7c0db26fb7e  tests/unit/fortune-crisis-flow-v2.test.js
+9c033d51371d5e8eba0ddef934eeac6f8e7035b13feb16e82f95e32d8f9100e6  tests/e2e/fortune-crisis-flow-v2.e2e.mjs
+8806d1126d5189b9054916a3be0a5307731013458c474f586c99b4879b286085  tests/e2e/fortune-crisis-flow-v2-pages.e2e.mjs
+aece1c6aa162199cc328b58a91ad5d131e6bbf4be6f6b5266ff7be0eac60a688  tests/e2e/crisis-flow-lib.mjs
+988abf5cafd854c1a0063d55bafa8fb2862d1852c09929ba6b01be5cb009db0f  tests/unit/fortune-crisis-detect-v2.test.js
+5aee9ecee7ad22c7c78243e66cc7e901160108e8a17d1e4efceacbd143d0fbde  tests/unit/fortune-helpline.test.js
+c8421600a895e5332448a2a29e9244c75e09c2f0452000e355429fe9dd87a46e  tests/e2e/fortune-helpline.e2e.mjs
+# dev data outside the repo (path from ~/LENSIQ-field/evals/; the 2026-11-13 fresh review set, SPENT, dev data only):
+3df729f4d8706611c45cff71469f78a0d43ae878eb98bca63676aa9c302f4366  fortune-honest/fresh-2026-11-13/set.json
+3e737cba6f19b8c213c1acf0ff0b111bb627a9506a2a71c45b09e491de45c8d6  fortune-honest/fresh-2026-11-13/run1/runs.jsonl

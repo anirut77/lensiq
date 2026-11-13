@@ -82,7 +82,8 @@ export default async function ({ base, launch, check, repo }) {
       await a.goto(`${base}/zodiac.html`);
       await readZodiac(a);
       await a.waitFor("!!document.querySelector('.lq-merit-paid form')", 8000);
-      assert(await a.evaluate(() => document.querySelector(".lq-merit").getAttribute("data-lq-remedy") === "merit"), "panel is a data-lq-remedy block");
+      // re-lock 2026-11-13 (crisis flow v2 §3): the panel is free belief guidance, marked data-lq-belief (was data-lq-remedy)
+      assert(await a.evaluate(() => document.querySelector(".lq-merit").getAttribute("data-lq-belief") === "merit"), "panel is a data-lq-belief block");
       const before = await a.evaluate(() => Object.keys(localStorage).sort());
       // the shared path every fortune page uses: FortuneAI's support card puts the page into the crisis state
       await a.evaluate(() => { const box = document.createElement("div"); document.querySelector("main").appendChild(box); FortuneAI.crisis.render(box, FortuneAI.crisis.result({ lang: "th" })); });
