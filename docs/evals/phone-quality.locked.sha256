@@ -4,3 +4,7 @@ e6b6b0f33fe94c4e121ba418e273fed5e5f168be101bf08ca52d7e6fb2337542  tests/e2e/phon
 ace43a2cca68f155bb8a3cd87736bb411f2bd148442f1560ec8ea5777acbdba2  tests/e2e/phone-webkit-b.e2e.mjs
 6af9753764d9747deb7883765b873f5aac61a8744eac1b1c7e927b514442633b  tests/unit/crashguard.test.js
 641d7684f6fa545aca15c74d9a8d09309b3755531988a5151e095f17846205e3  tests/e2e/crash-guard.e2e.mjs
+# v2 2026-11-13T14:52:05Z: set-up only — crash-guard.e2e.mjs: the crash is reproduced by copying the dying page's real sessionStorage into a fresh tab before any script runs (CDP Page.crash left the tab's DevTools session unanswered at random: page load timeouts / hangs). No assertion, page, expected text or threshold changed.
+5f97bbcdcb0504d3d5b3ffd6f5c7f8752edfbbd50bdbad56d23a3ceddd2b589e  tests/e2e/crash-guard.e2e.mjs
+# memory procedure 2026-11-13T14:58:57Z: phone-memory.e2e.mjs locked BEFORE measuring (pages, 60 s, sampling, metrics fixed). BUDGET values are 0 placeholders: they are set ONLY from the measured peaks (headroom rule in docs/PHONE-QUALITY.md) in the next lock entry; nothing else may change.
+1baaa367522ea5bd31286892c82529acf3bb2d57fa0feb24547ea8fadd914055  tests/e2e/phone-memory.e2e.mjs

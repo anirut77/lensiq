@@ -1,8 +1,8 @@
 // tests/e2e/crash-guard.e2e.mjs — crash guard on a camera page (stream B "real-phone quality", 2026-11-13). iOS Safari
-// reloads a tab whose page was killed for memory; Chrome's Page.crash kills the renderer the same way (no pagehide, the
-// tab's sessionStorage survives) and the test then reloads the tab like Safari does. FIXED TEST written and locked
-// (~/LENSIQ-field/evals/phone-quality/locked.sha256) before lensiq-crashguard.js existed.
-//   1. while the camera runs, sessionStorage holds "lq-heavy" = "1" (one boolean); stopping the camera clears it;
+// reloads a tab whose page was killed for memory: no pagehide runs and the tab's sessionStorage is what the dying page
+// left in it. The test reproduces that state (see crashAndReload) and loads the page again. FIXED TEST written and locked
+// (~/LENSIQ-field/evals/phone-quality/locked.sha256) before lensiq-crashguard.js existed (v2: set-up only, see there).
+//   1. while the camera runs, sessionStorage holds "lq-heavy" = "1" (one boolean); pausing the camera clears it;
 //   2. a normal reload with the camera on is NOT a crash: no note, full camera size;
 //   3. crash + reload: a short note (role=status) in Thai, the page runs light: the camera is asked for <= 640 px wide;
 //      the note closes with a >= 44 px button; the marker is consumed (the next normal load has no note);
@@ -16,7 +16,7 @@ const NOTE = `(() => { const n = document.querySelector(".lq-crash-note"); if (!
 // the user switches to another app: LQCam pauses the camera (faceread has no stop button)
 const HIDE = `(() => { Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
   Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "hidden" }); document.dispatchEvent(new Event("visibilitychange")); })()`;
-const lastWidth =`(() => { const q = window.__LQ_FAKE.requests; const v = q[q.length - 1]; return v && v.width ? (v.width.ideal || v.width) : 0; })()`;
+const lastWidth = `(() => { const q = window.__LQ_FAKE.requests; const v = q[q.length - 1]; return v && v.width ? (v.width.ideal || v.width) : 0; })()`;
 
 async function startCam(page) {
   await page.evaluate(() => document.getElementById("frStartCam").click());
@@ -27,20 +27,35 @@ export default async function ({ base, launch, check, fakeCams }) {
   const browser = await launch();
   const url = `${base}/faceread.html?cpu&fakedet`;
   const open = async lang => {
-    const page = await browser.newPage(null, { initScripts: [fakeCams, `window.__LQ_FAKE_CAMS = { n: 1, mode: "ok" }; try { localStorage.setItem("lq-lang", ${JSON.stringify(lang)}); } catch (e) {}`] });
+    const init = [fakeCams, `window.__LQ_FAKE_CAMS = { n: 1, mode: "ok" }; try { localStorage.setItem("lq-lang", ${JSON.stringify(lang)}); } catch (e) {}`];
+    const page = await browser.newPage(null, { initScripts: init });
+    page.__init = init;
     await page.goto(url);
     await page.waitFor(`!!window.LQCrashGuard && !!window.LQCam`, 8000);
     return page;
   };
-  /** kill the renderer (like iOS jetsam) and load the tab again */
+  /**
+   * The tab "dies" with the camera on and comes back, as iOS Safari does after killing a page for memory: no pagehide
+   * runs, and the tab's sessionStorage is what the running page left in it. Reproduced by copying the dying page's REAL
+   * sessionStorage (written by the product while the camera ran) into a fresh tab before any page script runs, then
+   * loading the camera page there. (A real renderer kill via CDP Page.crash was tried first: the crashed tab's DevTools
+   * session stopped answering at random, so that set-up could not run reliably; see locked.sha256 v2.)
+   * @returns {Promise<any>} the page after the restart (the dying page is closed)
+   */
   const crashAndReload = async page => {
-    await page.send("Page.crash").catch(() => { /* the session may report the crash as an error */ });
-    await sleep(500);
-    await page.goto(url);
-    await page.waitFor(`!!window.LQCrashGuard`, 8000);
+    const snap = await page.evaluate(() => JSON.stringify(Object.entries(sessionStorage)));
+    assert(JSON.parse(snap).some(([k, v]) => k === "lq-heavy" && v === "1"), "the dying page left the marker " + snap);
+    const restore = `if (window.name !== "lq-restarted") { window.name = "lq-restarted"; try { for (const [k, v] of ${snap}) sessionStorage.setItem(k, v); } catch (e) {} }`;
+    const init = [restore, ...page.__init];
+    await page.close();
+    const p2 = await browser.newPage(null, { initScripts: init });
+    p2.__init = init;
+    await p2.goto(url);
+    await p2.waitFor(`!!window.LQCrashGuard && !!window.LQCam`, 8000);
+    return p2;
   };
   try {
-    await check("camera on -> one boolean in sessionStorage; camera off -> cleared", async () => {
+    await check("camera on -> one boolean in sessionStorage; camera paused -> cleared", async () => {
       const page = await open("th");
       try {
         await page.evaluate(() => sessionStorage.clear());
@@ -67,10 +82,10 @@ export default async function ({ base, launch, check, fakeCams }) {
     });
 
     await check("crash + reload (TH): note shown, light mode (camera <= 640 px), closes, next load clean", async () => {
-      const page = await open("th");
+      let page = await open("th");
       try {
         await startCam(page);
-        await crashAndReload(page);
+        page = await crashAndReload(page);
         const n = await page.evaluate(NOTE);
         assert(n && /เริ่มใหม่/.test(n.text) && /โหมดเบา/.test(n.text) && n.role === "status", "Thai note " + JSON.stringify(n));
         assert(n.bw >= 44 && n.bh >= 44, "close button >= 44 px " + JSON.stringify(n));
@@ -90,10 +105,10 @@ export default async function ({ base, launch, check, fakeCams }) {
 
     for (const [lang, re, word] of [["en", /restarted/i, /lighter mode/i], ["zh", /重新/, /轻量模式/]]) {
       await check(`crash + reload (${lang.toUpperCase()}): note in ${lang}, no Thai`, async () => {
-        const page = await open(lang);
+        let page = await open(lang);
         try {
           await startCam(page);
-          await crashAndReload(page);
+          page = await crashAndReload(page);
           const n = await page.evaluate(NOTE);
           assert(n && re.test(n.text) && word.test(n.text) && !/[฀-๿]/.test(n.text), `${lang} note ` + JSON.stringify(n));
           await page.evaluate(() => window.LQI18N.setLang("th"));

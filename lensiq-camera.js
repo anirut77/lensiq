@@ -67,6 +67,10 @@
 (function (root) {
   "use strict";
   const hasDOM = typeof document !== "undefined";
+  /* crash guard (lensiq-crashguard.js, when the page loads it): a live camera counts as heavy work; after a crash restart
+     (LQCrashGuard.lite) every camera is asked for at most 640 px wide */
+  const guard = () => (hasDOM && root && /** @type {any} */ (root).LQCrashGuard) || null;
+  let camSeq = 0;
   const SLOTS = ["c1", "c2", "c3", "c4"];
   const CAP_KEY = "lq-camcap";
   const BACK = /back|rear|environment|world|หลัง/i, FRONT = /front|user|facetime|face|หน้า/i;
@@ -315,6 +319,8 @@
     const uis = [], offs = [], listeners = new Set();
     let offlineSince = null, retryTimer = 0, retryN = 0;
     const offlineLog = [];
+    const camId = "cam" + (++camSeq);
+    const heavy = on => { const g = guard(); if (g) { try { on ? g.begin(camId) : g.end(camId); } catch { /* guard is optional */ } } };
     const emit = (type, extra) => {
       const ev = { type, ...(extra || {}) };
       try { opt.onChange && opt.onChange(api, ev); } catch (e) { console.error(e); }
@@ -354,12 +360,15 @@
       gen++;
       if (stream) stream.getTracks().forEach(t => t.stop());
       stream = null;
+      heavy(false);
       if (video && video.srcObject) video.srcObject = null;
     }
     function chainFor(id, face) {
-      const want = { deviceId: id, facing: face, ideal: opt.ideal, frameRate: opt.frameRate };
+      const g = guard();
+      const ideal = g && g.lite && typeof g.liteIdeal === "function" ? g.liteIdeal(opt.ideal) : opt.ideal;
+      const want = { deviceId: id, facing: face, ideal, frameRate: opt.frameRate };
       if (id && opt.strictDevice) {
-        return idealRungs(opt.ideal).map(r => ({ deviceId: { exact: id }, ...idealC(r, opt.frameRate) })).concat([{ deviceId: { exact: id }, ...idealC({ width: 640, height: 480 }, 15) }]);
+        return idealRungs(ideal).map(r => ({ deviceId: { exact: id }, ...idealC(r, opt.frameRate) })).concat([{ deviceId: { exact: id }, ...idealC({ width: 640, height: 480 }, 15) }]);
       }
       return fallbackChain(want);
     }
@@ -403,7 +412,7 @@
       try { s = await open(want, face || facing || opt.facing); }
       catch (e) { api.lastError = e; emit("error", { error: e }); throw e; }
       if (my !== gen || destroyed) { s.getTracks().forEach(t => t.stop()); throw named("AbortError", "superseded"); }
-      stream = s; api.lastError = null;
+      stream = s; api.lastError = null; heavy(true);
       const tr = s.getVideoTracks()[0];
       const st = (tr && tr.getSettings && tr.getSettings()) || {};
       deviceId = st.deviceId || want || "";
@@ -412,7 +421,7 @@
       if (tr) {
         const onEnd = () => {
           if (stream !== s) return;
-          stream = null; const e = named("Ended", "track ended"); api.lastError = e;
+          stream = null; heavy(false); const e = named("Ended", "track ended"); api.lastError = e;
           // offlineSince is set before "ended" is emitted, so listeners can tell "reconnecting" from "gone for good"
           const rc = wantReconnect(); if (rc && offlineSince == null) { offlineSince = Date.now(); retryN = 0; }
           emit("ended", { error: e, reconnecting: rc });

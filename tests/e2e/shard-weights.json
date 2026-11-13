@@ -59,6 +59,7 @@
   "numbers.e2e.mjs": 1,
   "omr.e2e.mjs": 5,
   "palm-hands.e2e.mjs": 21,
+  "phone-memory.e2e.mjs": 700,
   "phone-webkit-a.e2e.mjs": 45,
   "phone-webkit-b.e2e.mjs": 60,
   "planner.e2e.mjs": 4,
