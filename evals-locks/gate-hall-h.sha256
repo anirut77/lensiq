@@ -1,10 +1,14 @@
 # gate-hall-h (stream H) locked 2026-11-13, before product code and before any measurement. Format: sha256  path (repo-relative)
-# Re-locked 2026-11-13 after a line-wrap-only change (format-check: max 200 chars) in 4 test files: git diff -w of that change is empty, no assertion changed, nothing had been measured. Earlier hashes: commits 585d5cb, 77c8ab8.
+# Re-locked 2026-11-13 after a line-wrap-only change (format-check: max 200 chars) in 4 test files:
+# git diff -w of that change is empty, no assertion changed, nothing had been measured.
+# Earlier hashes: commits 585d5cb, 77c8ab8, 3cccfd4.
+# plate-train-owner-1113.test.js re-locked: a test bug fixed (plain.files.f0 -> plain.files["f0.jpg"]: the key is the file name);
+# the assertion is the same, nothing measured.
 b1e7284f51b0b3db5976ca8c9ef808adfb90ebc580859ed093545f21a333cca9  tests/unit/exam-hall-placement.test.js
 268d28bf3167aa86d79dddaca07fb750f8bb350bfa56eb096e6a458e478668fe  tests/e2e/exam-hall-placement.e2e.mjs
 985bf4711f312eb92bbb0a4b2153bc27b13538979ea3998b88de566ddd4d720f  tests/unit/hall-seatwatch-score.test.js
 63d7376146d046935b2239d8d0307b2ae0bdbdb4d2ef1a8a39dd7e18d1edf5dd  tests/unit/plate-train-prep.test.js
 752de5c52cc16e48352fd3b5de5ee44322002012ca6c0bd5ee10a20cbc0b4365  tests/unit/hall-seatwatch-replay.test.js
 b5bd0417f9d4f0eb8cb2abe0f77bb7f384ffbcf0ba28b802c9fbf48bc0b6eeab  tests/python/test_plate_train.py
-2bffc5135b0efb7c2e3018a78626fce777c73a7b35ea2d6d4bb01af392af9f46  tests/unit/plate-train-owner-1113.test.js
+df07fd0c6dca2943a6a1ae064d8518a5f2b68450cc634dfd0ba84f800f4800e2  tests/unit/plate-train-owner-1113.test.js
 a39eea0ae7341532127fcc04166113f801ec8172b0d5ce58e9f9da4ab1b73ec9  tests/python/test_plate_train_busy.py

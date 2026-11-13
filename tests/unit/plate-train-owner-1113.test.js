@@ -60,7 +60,7 @@ test("split: the dev batch is locked under its own label; a later split can forc
   assert.notEqual(forced.sha256, plain.sha256);
   assert.equal(forced.trainOnly, testFiles.length);
   // the default split is unchanged by the new option (locked rule plate-split-v1)
-  assert.equal(plain.files.f0, bucket("กข1000"));
+  assert.equal(plain.files["f0.jpg"], bucket("กข1000"));
   assert.equal(devBatchRule(plain).rule, "plate-split-v1-devbatch");
   assert.equal(devBatchRule(plain).devBatch, true);
   assert.equal(devBatchRule(plain).sha256, plain.sha256);
