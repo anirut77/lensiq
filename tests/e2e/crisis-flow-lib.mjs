@@ -124,6 +124,8 @@ export const RUN = {
     await p.waitFor(() => window.__rp && document.getElementById("rpMode").textContent.length > 10, 8000);
     await p.evaluate(n => {
       document.getElementById("rpName").value = n; document.querySelector('[data-rp-type="report_basic"]').click();
+      // re-lock 2026-11-13: 2533 is a Buddhist-era year; English / 中文 default to the Common Era, so choose พ.ศ. explicitly
+      document.querySelector('input[name="rpAEra"][value="be"]').click();
       document.getElementById("rpAYear").value = "2533"; document.getElementById("rpGo").click();
     }, t || "Somchai");
   } },

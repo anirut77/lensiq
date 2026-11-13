@@ -26,7 +26,9 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       await check(`1. ${lang}: calm tab on every fortune page (360 px): gentle reading + hope frame, pinned help bar in view, no straight / paid / lucky content`, async () => {
         const bad = [];
         for (const name of PAGES) {
-          const pg = await open(browser, base, name, lang, { init: INIT, fakeCams });
+          // re-lock 2026-11-13: no merit server stub on the report page (its API base switches the report into the paid,
+          // sign-in-only mode, which is not what this check is about; the report has no merit panel)
+          const pg = await open(browser, base, name, lang, { init: name === "report" ? INIT.slice(0, 3) : INIT, fakeCams });
           try {
             await ask(pg, name, "");
             const s = await pg.evaluate(SNAP);
