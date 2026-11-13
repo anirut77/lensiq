@@ -108,3 +108,28 @@ I3 misses: 5 of 7 are Thai panels at 2° tilt and 2 are Japanese; in every case 
 ("ข้อมูลสำหรับผู้พ้อาหาร" for "ผู้แพ้อาหาร"; "アレルギ一物質" with the kanji 一 for the long-vowel mark ー), so the statement was not
 recognised and the card said "no allergen text found … that does not mean there is none". No false statement. Candidate
 fix (not built: it needs a fourth fresh set): accept those keyword misreads.
+
+## Round 4 (2026-11-13): allergen-keyword misreads (I3 option 1), measured on a FOURTH locked set (v4)
+
+Fix: the statement keyword also matches the OCR misreads seen on v3 (Thai vowel / tone marks dropped or swapped,
+Japanese long-vowel mark read as 一, -, ―, －). Measured ONCE on v4: `~/LENSIQ-field/evals/nutrition/v4/` (348 new PNGs;
+allergen statements on 80 % of Thai and Japanese panels, 203 in all; 8 labels per condition for th-new, th-old, th-gda,
+cn, jp, 12 at the 2° tilt for th-new, th-old, jp; `locked.sha256` sha256
+`99614def468cea3b94fc940909948cdafa0cbe77e6866c91535e48ea8b4a8f5e`, locked before the fix with
+tests/unit/nut-allergen4.test.js). Source: synthetic.
+
+| # | Target | v4 result | Met? |
+|---|---|---|---|
+| I1 | Thai new: energy, sugar, sodium, fat >= 90 % each | 60 / 60 each; every condition 100 % | yes |
+| I2 | silent wrong, Wilson upper <= 3 % pooled | 1 / 1584 = 0.1 % [0.0–0.4] | yes |
+| I2 | per format / condition | th-new 0 / 301, th-old 0 / 324, th-gda 0 / 138, eu 0 / 254, cn 0 / 204, jp 0 / 228 (all upper <= 2.7 %) yes; **us 1 / 135 [0.1–4.1] no**; every condition yes (tilt 2° 1 / 377, upper 1.5 %; 4° and 6° all "please check") | us no |
+| I3 | allergen statement found >= 95 %, 0 false | **186 / 203 = 91.6 % [87.0–94.7]**, 0 false | **no** |
+| I4 | exact match | all 91.2 %; th-new 98.1, th-old 93.5, th-gda 95.1, us 86.2, eu 90.8, cn 84.4, jp 87.5 %; clean 92.9, blur 89.9, glare 93.1, small 94.3, rotate 4° 85.6, tilt 2° 91.5, tilt 6° 90.8 % | reported |
+
+Why I3 still misses (17 statements): (1) 12 Thai + 1 EU statements on 2°-tilted pictures are read as garbled text
+("ข้อมลสำหรัผ้าหาร …"): below 3° the detector gives a level box, so a long statement line drifts out of the 48-px strip
+the reader sees. No keyword rule can recover that text. (2) 9 Japanese statements were found but the OCR changed 2–3
+characters ("ー部" for "一部", "アレルギ一"), so the verbatim match is 85–89 %, under the 90 % bar; 4 lost the "ギ" entirely
+("アレル一物質") and were not found. The single US silent wrong value (carbohydrate 229 g for 22 g, 2° tilt) is the same
+reading problem. Candidate fix (not built: it needs a fifth fresh set): straighten the picture by the estimated tilt
+before reading when it is between about 1° and 3°; accept "アレル.?物質".
