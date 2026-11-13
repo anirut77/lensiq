@@ -1,4 +1,4 @@
--- 0017_accounts.sql — stream G (owner decisions 2026-11-13): accounts + billing groundwork. Additive only: nothing
+-- 0018_accounts.sql (written as 0017, renumbered after 0017_tryon.sql merged first) — stream G (owner decisions 2026-11-13): accounts + billing groundwork. Additive only: nothing
 -- existing is dropped, renamed or rewritten.
 --   * LINE Login next to Google sign-in: linked sign-in identities + short-lived LINE sign-in flows
 --   * organisation account LITE: organisation name, billing details, admins and staff, invitations, a per-organisation

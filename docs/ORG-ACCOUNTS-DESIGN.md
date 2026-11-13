@@ -6,13 +6,13 @@
 >
 > **Update 2026-11-13 (owner decision):** the first version of organisation accounts is the **lite** one, planned and not built: organisation name, billing details, admins and staff, invitations, and **no syncing of the customer's people data**. The sync design below (sections on sync, data model for synced records, and the PDPA analysis for central storage) stays on file as a later option and is not the next build. A licence works offline for 14 days (planned).
 >
-> **Built 2026-11-13 (stream G, branch `accounts-g`, not deployed):** the lite version — migration `0017_accounts.sql`
+> **Built 2026-11-13 (stream G, branch `accounts-g`, not deployed):** the lite version — migration `0018_accounts.sql`
 > (`orgs` with billing columns, `org_members`, `org_invites`, `org_audit`, `licence_plans` without prices, `org_licences`),
 > `backend/src/orgs.js`, the account-page section (`account-org.js`) and the back-office tab (`admin-orgs.js`). Differences
 > from §2: no `org_sites`, `org_devices`, `org_enrol_codes`, `sync_*`, `org_dsr` or `org_exports` (sync not built); roles are
 > admin / staff with one owner; Google **or LINE** sign-in; the audit log stores pseudonymous refs instead of user ids;
 > the LENSIQ owner creates organisations (no self-service); licence orders replace §2.1's plan rows. See `docs/BACKEND.md`
-> "Stream G" and `docs/PDPA-NOTES-FOR-COUNSEL.md` §H2.
+> "Stream G" and `docs/PDPA-NOTES-FOR-COUNSEL.md` §I2.
 >
 > Written 2026-11-08 from the code as it is today: `backend/migrations/0001–0009`, `docs/BACKEND.md`, `docs/EXAM.md`,
 > `docs/GATE.md`, `docs/ATTENDANCE-READINESS.md`, `docs/pdpa/*`, `docs/PDPA-NOTES-FOR-COUNSEL.md`, `gate-kit.js`,

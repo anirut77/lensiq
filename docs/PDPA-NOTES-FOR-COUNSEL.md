@@ -29,9 +29,10 @@ controller only for its own website, member accounts, billing and the optional b
   E3 organisation accounts (design only — the main PDPA change)
 - **F. Round 17** — F1 Product Check + AI Gateway (design approved; cloud AI providers, image mode, cross-border
   processing, Thai FDA data) · F2 AI Gateway core as built in P5 (consent screen, remembered consent, image mode, logs)
-- **H. Accounts groundwork (2026-11-13)** — H1 LINE Login · H2 organisation account lite (no customer people data) ·
-  H3 free-tier counting on the device
+- **I. Accounts groundwork (2026-11-13)** — I1 LINE Login · I2 organisation account lite (no customer people data) ·
+  I3 free-tier counting on the device
 - **D. Questions that cut across products**
+- **H. Camera pages: device-only technical keys** — `lq-heavy` (crash guard, sessionStorage) and `lq-camcap` (localStorage)
 
 ---
 
@@ -951,12 +952,25 @@ accountability for published belief guidance), and should a reviewer contract / 
 (c) **Reviewer notes from the drafts file** (`review_meta`: draft id, discipline names, source links, "uncertain" notes)
 are internal working notes about content, not personal data, and are never served to users.
 
-## H. Accounts and billing groundwork (stream G, owner decisions 2026-11-13; branch `accounts-g`)
+## H. Camera pages: device-only technical keys (stream B, 2026-11-13)
+
+Two technical keys written by the shared camera code on the user's own device. Neither holds personal data, an image or
+an identifier; nothing is sent anywhere. `privacy.html` is not changed yet (owner decision pending).
+
+| Key | Where | Content | When written / removed | Pages |
+|---|---|---|---|---|
+| `lq-heavy` | `sessionStorage` (this tab only; gone when the tab closes) | the single value `"1"` | set while a camera stream is live (crash guard, `lensiq-crashguard.js`); removed when the camera stops, pauses or is lost, when the page is left normally, and on the next load after a crash (read once, then deleted) | the 24 camera pages that load the crash guard; NOT interview, qc, store, teamface (they promise that nothing is stored) |
+| `lq-camcap` | `localStorage` (this browser; note: not sessionStorage) | `{v:1, maxLive, at}`: how many cameras this device could run at once, and when that was learned | written only when a multi-camera page proves the device cannot open one more camera; expires after 7 days; the camera "reset" deletes it | multi-camera pages (camera hub of `lensiq-camera.js`) |
+
+Question for counsel: do these purely technical keys need to be named in the privacy notice (storage section), or is a
+general sentence ("the site keeps technical settings on your device") enough?
+
+## I. Accounts and billing groundwork (stream G, owner decisions 2026-11-13; branch `accounts-g`)
 
 Built, **off until the owner switches it on**, not deployed. Detail: `docs/BACKEND.md` "Stream G". Migration
-`0017_accounts.sql`. Not legal advice; questions for counsel at the end of each part.
+`0018_accounts.sql`. Not legal advice; questions for counsel at the end of each part.
 
-### H1. LINE Login next to Google sign-in
+### I1. LINE Login next to Google sign-in
 
 (a) **Data held.** For a member who signs in with LINE: the LINE user id (`U` + 32 hex, the provider's stable id, kept
 only to recognise the sign-in), the LINE display name (first 40 characters, used as the account name when there is no
@@ -982,7 +996,7 @@ also has LINE, the Google account id **and the e-mail that came from Google** ar
 then has no e-mail. Receipts already issued keep their own buyer fields (tax records). Linking or unlinking a sign-in
 method always needs a fresh confirmation with the account's current method.
 
-### H2. Organisation account (lite)
+### I2. Organisation account (lite)
 
 (a) **Data held** (Cloudflare D1, outside Thailand): organisation name; billing details (name on documents, 13-digit tax
 id, address, branch, e-mail for quotations and receipts — personal data when the customer is a natural person or sole
@@ -1013,7 +1027,7 @@ does not delete anything yet). (3) Does an e-mail-bound invitation (HMAC only) s
 e-mail (we compute the HMAC from the address the admin types)? (4) Contract wording: the organisation account does not
 store the customer's people data; if sync is added later, a DPA is required (design §9).
 
-### H3. Free-tier counting on the device
+### I3. Free-tier counting on the device
 
 Counts only numbers per product (Gate plate reads per Bangkok day and trial start date, Attendance active staff count,
 Exam candidates on the dashboard, Crowd running seconds per day) in the browser's localStorage (`lq-ft-*`). No plate,

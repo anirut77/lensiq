@@ -438,15 +438,52 @@
     ST.parse = T("studio.js.p.colorCluster", "จัดกลุ่มสี");
     return { P: SC.heuristicParse(ST.px, ST.alpha, W, H, face), crop: null };
   }
-  function autoTargets() {
-    const F = ST.fitAuto;
-    return { chin: { ...F.chin }, l: { ...F.l }, r: { ...F.r } };
+  // ---------- จุดยึดชุด 7 จุด (item 24): คอ ปกคอ ×2 ปลายไหล่ ×2 ชายเสื้อ ×2 — ลากได้ทุกจุด ชุดดัดตามจุด (thin-plate spline) ----------
+  const FIT_KEYS = ["chin", "cl", "cr", "l", "r", "hl", "hr"];
+  const STD_UV = () => {
+    const C = /** @type {any} */ (window).PBOutfits.CANON;
+    return { chin: [0, 0], cl: [-.33, C.collarY], cr: [.33, C.collarY], l: [C.L.x, C.L.y], r: [C.R.x, C.R.y], hl: [-1.5, 2.6], hr: [1.5, 2.6] }; };
+  /** ตำแหน่งมาตรฐานของ 7 จุดตาม fit (N, s, theta) — ชุดสำเร็จรูปและชุดที่ไม่มีจุดยึด */
+  function canonPts(fit) {
+    const cs = Math.cos(fit.theta || 0), sn = Math.sin(fit.theta || 0), o = {}, U = STD_UV();
+    for (const k of FIT_KEYS) { const [u, v] = U[k]; o[k] = { x: fit.N.x + fit.s * (cs * u - sn * v), y: fit.N.y + fit.s * (sn * u + cs * v) }; }
+    return o;
   }
-  function adjustedTargets() {
-    const T = ST.manual || autoTargets(), f = ST.face, s = val("aScale") / 100, rot = val("aRot") * Math.PI / 180;
-    const dx = val("aX") / 100 * f.fw * 2, dy = val("aY") / 100 * f.fw * 2, c = T.chin, cos = Math.cos(rot), sin = Math.sin(rot);
+  const hasAnchors = g => !!g && g.kind !== "vector" && Array.isArray(g.anchors) && g.anchors.length >= 5;
+  /** จุดอัตโนมัติ: ชุดที่มีจุดยึด = จุดที่วัดจากตัวคนรายจุด (SC.personTargets); อื่น ๆ = ตำแหน่งมาตรฐานตามแนวไหล่ที่วัดได้ */
+  function autoHandles(g) {
+    const F = ST.fitAuto, fit3 = { chin: { ...F.chin }, l: { ...F.l }, r: { ...F.r } }, key = (g ? g.key : "") + "|" + JSON.stringify(g && g.anchors || null);
+    if (ST.cache.ahKey === key) return ST.cache.ah;
+    const fit = SC.fitFromTargets(fit3, /** @type {any} */ (window).PBOutfits.CANON), handles = canonPts(fit);
+    ST.fitSrc = "canon";
+    if (hasAnchors(g)) {
+      const Ly = ST.layers || {}, pt = SC.personTargets(g.anchors, fit, ST.alpha, ST.W, ST.H, ST.face, { side: F.side, hair: Ly.hair || null, keep: Ly.keep || null });
+      pt.targets.forEach(t => { handles[t.k === "neck" ? "chin" : t.k] = { x: t.x, y: t.y }; });
+      ST.fitSrc = pt.targets.map(t => t.k + ":" + t.src).join(" ");
+    }
+    ST.cache.ahKey = key; ST.cache.ah = { handles, fit3 };
+    return ST.cache.ah;
+  }
+  /** จุดที่ใช้จริง (ลากเอง หรืออัตโนมัติ) หลังแถบ ขนาด/หมุน/เลื่อน + fit3 = จุด คอ/ไหล่ สำหรับวางทั้งชุด (similarity) */
+  function adjustedTargets(g) {
+    const A = autoHandles(g), H0 = ST.manual || A.handles, f = ST.face, s = val("aScale") / 100, rot = val("aRot") * Math.PI / 180;
+    const dx = val("aX") / 100 * f.fw * 2, dy = val("aY") / 100 * f.fw * 2, c = H0.chin, cos = Math.cos(rot), sin = Math.sin(rot);
     const tf = p => { const x = (p.x - c.x) * s, y = (p.y - c.y) * s; return { x: c.x + x * cos - y * sin + dx, y: c.y + x * sin + y * cos + dy }; };
-    return { chin: tf(T.chin), l: tf(T.l), r: tf(T.r) };
+    const T = {}; for (const k of FIT_KEYS) T[k] = tf(H0[k] || A.handles[k]);
+    // วางทั้งชุด: ย้ายจุดคอ/ไหล่อัตโนมัติด้วย similarity จากปลายไหล่อัตโนมัติ -> ปลายไหล่ที่ใช้ แล้วเลื่อนตามจุดคอ (ไม่ลาก ไม่ปรับ = เหมือนเดิม)
+    const sim = SC.similarity(A.handles.l, A.handles.r, T.l, T.r), m = p => sim.map(p.x, p.y), c0 = m(A.handles.chin), ex = { x: T.chin.x - c0.x, y: T.chin.y - c0.y };
+    const mv = p => { const q = m(p); return { x: q.x + ex.x, y: q.y + ex.y }; };
+    T.fit3 = { chin: mv(A.fit3.chin), l: mv(A.fit3.l), r: mv(A.fit3.r) };
+    return T;
+  }
+  /** ลากจุดเอง (ชุดสำเร็จรูป / ชุดไม่มีจุดยึด): ดัดชั้นชุดที่วาดแล้วจากตำแหน่งมาตรฐานไปยังจุดที่ลาก — ไม่ลาก = ไม่แตะภาพ */
+  function postWarp(layers, fit, T) {
+    if (!ST.manual) return layers;
+    const from = canonPts(fit), F = [], Tt = [];
+    let moved = false; for (const k of FIT_KEYS) { F.push(from[k]); Tt.push(T[k]); if (Math.hypot(T[k].x - from[k].x, T[k].y - from[k].y) > 1) moved = true; }
+    if (!moved) return layers;
+    const tps = SC.tpsFit(Tt, F, .02 * fit.s * fit.s / 1e4), inv = (x, y) => tps.map(x, y), W = ST.W, H = ST.H;
+    return layers.map(d => d ? SC.warpRGBA(d, W, H, W, H, inv, { step: 4 }) : d);
   }
   const pixels = c => ctx2(c).getImageData(0, 0, c.width, c.height).data;
   /** ทิศแสงจากความสว่างแก้มซ้าย/ขวา (ใช้ให้แสงเงาผ้าตรงกับใบหน้า) */
@@ -456,7 +493,7 @@
    * ชุดจากรูปจริง (tpl) ใช้ similarity จากจุดไหล่ของเทมเพลตไปยังจุดไหล่ของผู้ถ่าย
    */
   function fitGarment(g) {
-    const W = ST.W, H = ST.H, T = adjustedTargets(), fit = SC.fitFromTargets(T, PBOutfits.CANON);
+    const W = ST.W, H = ST.H, T = adjustedTargets(g), fit = SC.fitFromTargets(T.fit3, PBOutfits.CANON);
     if (g.kind === "vector") {
       const f = ST.face, cs = Math.cos(fit.theta), sn = Math.sin(fit.theta), NM = ST.neckM;
       // ขอบบนคอเสื้อข้างคอ = ขอบบนของเสื้อเดิมข้างคอ (คลุมเสื้อเดิมพอดี ไม่มีเศษเสื้อเดิม/ช่องว่างที่คอ) จำกัดช่วง 0.12–0.6 เท่าหน้าใต้คาง
@@ -479,14 +516,14 @@
       ST.handsUsed = C.hands;
       fit.nw = nwU || .33;
       const L = PBOutfits.layers(g.vk, { W, H, s: fit.s, theta: fit.theta, N: fit.N, light: lightDir(), seed: 7, drop: fit.drop, clip: C.clip, form: C.form, nw: nwU, side: fit.side, arms: C.arms });
-      return { front: pixels(L.front), back: pixels(L.back), targets: T, fit };
+      const [fr, bk] = postWarp([pixels(L.front), pixels(L.back)], fit, T); return { front: fr, back: bk, targets: T, fit };
     }
     prepGarment(g);
     if (g.anchors && g.anchors.length >= 5) {
       // เทมเพลตจากรูปถ่าย: ดัดด้วย thin-plate spline จากจุดยึดของชุด (ช่องคอ ปก ไหล่ ชายเสื้อ) ไปยังตำแหน่งบนตัวคน
       // ตามแนวไหล่จริง (เอียง/ไหล่สองข้างไม่เท่ากัน) — คางและผมวางทับภายหลัง (ลำดับชั้นเดียวกับชุดสำเร็จรูป)
       fit.side = ST.manual ? null : ST.fitAuto.side;
-      const tw = SC.templateWarp(g.anchors, fit, { side: fit.side }), cs = Math.cos(fit.theta), sn = Math.sin(fit.theta), s = fit.s;
+      const tw = SC.templateWarpTo(g.anchors, g.anchors.map(a => T[a.k === "neck" ? "chin" : a.k] || T.chin)), cs = Math.cos(fit.theta), sn = Math.sin(fit.theta), s = fit.s;
       const ext = [[-2.3, -.7], [2.3, -.7], [-2.3, 9], [2.3, 9]].map(([u, v]) => ({ x: fit.N.x + s * (cs * u - sn * v), y: fit.N.y + s * (sn * u + cs * v) }));
       const xs = [...tw.targets, ...ext].map(p => p.x), ys = [...tw.targets, ...ext].map(p => p.y);
       const box = { x0: Math.max(0, Math.min(...xs)), y0: Math.max(0, Math.min(...ys)), x1: Math.min(W, Math.max(...xs)), y1: Math.min(H, Math.max(...ys)) };
@@ -523,7 +560,7 @@
     const A = garmentAnchors(g), sim = SC.similarity(A.l, A.r, T.l, T.r), c = mk(W, H), x = c.getContext("2d");
     x.imageSmoothingQuality = "high"; x.setTransform(sim.a, sim.b, -sim.b, sim.a, T.l.x - sim.a * A.l.x + sim.b * A.l.y, T.l.y - sim.b * A.l.x - sim.a * A.l.y);
     x.drawImage(g.canvas, 0, 0);
-    return { front: pixels(c), back: null, targets: T, fit };
+    return { front: postWarp([pixels(c)], fit, T)[0], back: null, targets: T, fit };
   }
 
   // ---------- รีทัช ----------
@@ -811,7 +848,12 @@
     mode = b.dataset.m; $("#stMode").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
     $("#stBrushRow").hidden = !(mode === "restore" || mode === "erase");
     $("#stCompare").dataset.mode = mode;
-    $("#stHint").textContent = mode === "fit" ? T("studio.js.hint.fit", "ลากจุดม่วง = คาง, จุดฟ้า = ปลายไหล่ เพื่อให้ชุดเข้ารูป") : mode === "view" ? T("studio.js.hint.view", "เลื่อนแถบ ก่อน | หลัง เพื่อเทียบภาพ") : mode === "restore" ? T("studio.js.hint.restore", "ระบายบนภาพ: คืนส่วนของตัวคนที่ถูกตัดหาย") : T("studio.js.hint.erase", "ระบายบนภาพ: ลบพื้นหลังที่ติดมา");
+    // the hem points are named only when their handles are inside the picture (a tight crop hides them)
+    const hemShown = mode === "fit" && fitHandleKeys().some(k => k === "hl" || k === "hr");
+    $("#stHint").textContent = mode === "fit" && hemShown ? T("studio.js.hint.fitPts", "ลากจุดเพื่อให้ชุดเข้ารูป: ม่วง = โคนคอ, ชมพู = ปกคอ, ฟ้า = ปลายไหล่, ส้ม = ชายเสื้อ (ชุดดัดตามทุกจุด)")
+      : mode === "fit" ? T("studio.js.hint.fitPtsNoHem", "ลากจุดเพื่อให้ชุดเข้ารูป: ม่วง = โคนคอ, ชมพู = ปกคอ, ฟ้า = ปลายไหล่ (ชุดดัดตามทุกจุด)")
+      : mode === "view" ? T("studio.js.hint.view", "เลื่อนแถบ ก่อน | หลัง เพื่อเทียบภาพ")
+      : mode === "restore" ? T("studio.js.hint.restore", "ระบายบนภาพ: คืนส่วนของตัวคนที่ถูกตัดหาย") : T("studio.js.hint.erase", "ระบายบนภาพ: ลบพื้นหลังที่ติดมา");
     drawOverlay();
   });
   function drawOverlay(cursor) {
@@ -819,8 +861,9 @@
     const r = Math.max(8, ST.W / 70);
     if (mode === "fit" && ST.targets) {
       const T = ST.targets; x.lineWidth = Math.max(2, r * .25); x.strokeStyle = "rgba(255,255,255,.85)"; x.setLineDash([r, r * .6]);
-      x.beginPath(); x.moveTo(T.l.x, T.l.y); x.lineTo(T.chin.x, T.chin.y); x.lineTo(T.r.x, T.r.y); x.stroke(); x.setLineDash([]);
-      [["chin", "#674ff2"], ["l", "#0891b2"], ["r", "#0891b2"]].forEach(([k, col]) => { x.fillStyle = col; x.strokeStyle = "#fff"; x.beginPath(); x.arc(T[k].x, T[k].y, r, 0, 7); x.fill(); x.stroke(); });
+      x.beginPath(); ["hl", "l", "cl", "chin", "cr", "r", "hr"].forEach((k, i) => x[i ? "lineTo" : "moveTo"](T[k].x, T[k].y)); x.stroke(); x.setLineDash([]);
+      const col = { chin: "#674ff2", cl: "#db2777", cr: "#db2777", l: "#0891b2", r: "#0891b2", hl: "#ea580c", hr: "#ea580c" };
+      fitHandleKeys().forEach(k => { x.fillStyle = col[k]; x.strokeStyle = "#fff"; x.beginPath(); x.arc(T[k].x, T[k].y, k === "cl" || k === "cr" ? r * .75 : r, 0, 7); x.fill(); x.stroke(); });
     }
     // round 12: กรอบสีแดงตรงจุดที่การตรวจแบบไม่ใส่ชุดพบ (เหมือนขั้นตรวจก่อนพิมพ์ของตู้ถ่ายรูป)
     if (ST.noq && !ST.noq.pass && ST.noq.marks && (ST.shown === "none" || ST.shown === "safe" || ST.shown === "plain")) {
@@ -830,6 +873,9 @@
     }
     if (cursor && (mode === "restore" || mode === "erase")) { x.strokeStyle = mode === "restore" ? "#22c55e" : "#ef4444"; x.lineWidth = Math.max(2, ST.W / 400); x.beginPath(); x.arc(cursor.x, cursor.y, brushR(), 0, 7); x.stroke(); }
   }
+  /** จุดที่ลากได้: ทั้ง 7 จุด ["chin", "cl", "cr", "l", "r", "hl", "hr"] ที่อยู่ในภาพ (ชายเสื้อที่ตกนอกภาพครอปไม่แสดง) */
+  const inView = p => !!p && p.x >= 0 && p.y >= 0 && p.x < ST.W && p.y < ST.H;
+  const fitHandleKeys = () => ["chin", "cl", "cr", "l", "r", "hl", "hr"].filter(k => ST.targets && inView(ST.targets[k]));
   const brushR = () => val("stBrush") / 400 * Math.max(ST.W, ST.H);
   let drag = null;
   const ov = $("#stOverlay");
@@ -837,8 +883,10 @@
     if (mode === "view" || !ST.alpha) return;
     const p = cvPt(ov, e);
     if (mode === "fit" && ST.targets) {
-      let best = null, bd = Math.max(24, ST.W / 25);
-      for (const k of ["chin", "l", "r"]) { const d = Math.hypot(ST.targets[k].x - p.x, ST.targets[k].y - p.y); if (d < bd) { bd = d; best = k; } }
+      // touch radius: at least 24 CSS px on screen, whatever the canvas is scaled to (a phone shows a 900-px photo at ~360 px)
+      const box = ov.getBoundingClientRect(), k = box.width > 0 ? ST.W / box.width : 1;
+      let best = null, bd = Math.max(24 * k, ST.W / 25);
+      for (const k of fitHandleKeys()) { const d = Math.hypot(ST.targets[k].x - p.x, ST.targets[k].y - p.y); if (d < bd) { bd = d; best = k; } }
       if (!best) return;
       drag = { k: best }; ov.setPointerCapture(e.pointerId); e.preventDefault();
     } else if (mode === "restore" || mode === "erase") {
@@ -855,7 +903,7 @@
     if (!drag) return;
     if (drag.k) {
       // แปลงจุดที่ลาก (หลังปรับ ขนาด/หมุน/เลื่อน) กลับเป็นจุดอ้างอิง แล้วรีเซ็ตแถบเลื่อน
-      ST.manual = { chin: { ...ST.targets.chin }, l: { ...ST.targets.l }, r: { ...ST.targets.r } };
+      ST.manual = {}; for (const k of FIT_KEYS) ST.manual[k] = { x: ST.targets[k].x, y: ST.targets[k].y };
       ["aScale"].forEach(id => document.getElementById(id).value = 100); ["aRot", "aX", "aY"].forEach(id => document.getElementById(id).value = 0);
       schedule("fit");
     } else schedule("matte");

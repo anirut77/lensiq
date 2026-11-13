@@ -96,6 +96,8 @@
     "studio.js.bg.grad": "Studio gradient",
     "studio.js.bg.custom": "Custom color",
     "studio.js.hint.fit": "Drag the purple point = chin, blue points = shoulder tips, to fit the outfit",
+    "studio.js.hint.fitPts": "Drag the points to fit the outfit: purple = neck base, pink = collar, blue = shoulder tips, orange = hem (the outfit bends to every point)",
+    "studio.js.hint.fitPtsNoHem": "Drag the points to fit the outfit: purple = neck base, pink = collar, blue = shoulder tips (the outfit bends to every point)",
     "studio.js.hint.view": "Drag the Before | After slider to compare",
     "studio.js.hint.restore": "Paint on the image to restore parts of the person removed by mistake",
     "studio.js.hint.erase": "Paint on the image to erase leftover background",

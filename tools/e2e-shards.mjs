@@ -2,7 +2,11 @@
 // tools/e2e-shards.mjs — splits tests/e2e/*.e2e.mjs into N CI shards and proves afterwards that every file ran exactly once.
 //   assign(files, seconds, n) -> string[][]   deterministic: longest file first onto the lightest shard (ties: lower shard),
 //                                             weights from tests/e2e/shard-weights.json (a missing file gets the median)
-//   node tools/e2e-shards.mjs --list i/n       the files of shard i (for a quick look)
+//   assign(files, seconds, n, {macLast: true}) the WebKit files (name contains "webkit", see isMacFile) go to shard n
+//                                             ONLY, the rest is balanced over shards 1..n-1 exactly as assign(rest, n-1).
+//                                             CI runs shard n on macOS: Linux WebKit plays no camera video (stream B,
+//                                             coordinator decision 2026-11-14, option 1). Every file still runs exactly once.
+//   node tools/e2e-shards.mjs --list i/n [--mac-last]   the files of shard i (for a quick look)
 //   node tools/e2e-shards.mjs --check <dir>    reads every e2e-shard-*.json manifest under <dir> (written by
 //                                             tests/e2e/run.mjs --shard=i/n --manifest=…) and FAILS (exit 1) unless: all N
 //                                             manifests are there, each shard once, every *.e2e.mjs file in the checkout
@@ -23,9 +27,21 @@ export function weights() {
   try { return JSON.parse(readFileSync(join(E2E, "shard-weights.json"), "utf8")).seconds || {}; } catch { return {}; }
 }
 
-/** @param {string[]} files @param {Record<string, number>} sec @param {number} n @returns {string[][]} */
-export function assign(files, sec, n) {
+/** WebKit (iOS engine) e2e files: they run on the macOS shard when the split is made with {macLast: true}
+ * @param {string} f @returns {boolean} */
+export const isMacFile = f => /webkit/i.test(f);
+
+/**
+ * @param {string[]} files @param {Record<string, number>} sec @param {number} n
+ * @param {{macLast?: boolean}} [o] @returns {string[][]}
+ */
+export function assign(files, sec, n, o = {}) {
   if (!Number.isInteger(n) || n < 1) throw new Error("shard count must be a whole number >= 1");
+  if (o.macLast) {
+    if (n < 2) throw new Error("--mac-last needs at least 2 shards (the last one is the macOS shard)");
+    const uniq = [...new Set(files)];
+    return [...assign(uniq.filter(f => !isMacFile(f)), sec, n - 1), uniq.filter(isMacFile).sort()];
+  }
   const known = Object.values(sec).filter(v => typeof v === "number" && v > 0).sort((a, b) => a - b);
   const med = known.length ? known[Math.floor(known.length / 2)] : 1;
   const w = f => (typeof sec[f] === "number" && sec[f] > 0 ? sec[f] : med);
@@ -92,7 +108,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const a = process.argv.slice(2);
   if (a[0] === "--list") {
     const { i, n } = parseShard(a[1]);
-    console.log(assign(allFiles(), weights(), n)[i - 1].join("\n"));
+    console.log(assign(allFiles(), weights(), n, { macLast: a.includes("--mac-last") })[i - 1].join("\n"));
   } else if (a[0] === "--check" && a[1] && existsSync(a[1])) {
     const paths = manifests(a[1]);
     const list = paths.map(p => { try { return JSON.parse(readFileSync(p, "utf8")); } catch { return { bad: p }; } });
@@ -102,6 +118,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const n = list[0].total, ran = list.reduce((s, m) => s + m.ran.length, 0);
     console.log(`e2e shards: OK — ${n} shard(s), ${ran} file(s), each of the ${allFiles().length} test files ran exactly once`);
   } else {
-    console.error("usage: e2e-shards.mjs --list i/n | --check <dir>"); process.exit(2);
+    console.error("usage: e2e-shards.mjs --list i/n [--mac-last] | --check <dir>"); process.exit(2);
   }
 }

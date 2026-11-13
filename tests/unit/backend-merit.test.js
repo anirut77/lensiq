@@ -15,6 +15,8 @@
 //      minimum fields only, crisis text refused with the support code and never stored, published item only, date window
 //   B7 retention: interest requests purged after MERIT_INTEREST_DAYS (default 90); admin can list and erase (re-auth, audited)
 const test = require("node:test");
+// test-bug re-lock 2026-11-14: one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js; CI run 43464554484)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { readFileSync, existsSync, readdirSync } = require("node:fs");
 const { join } = require("node:path");

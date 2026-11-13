@@ -457,7 +457,7 @@ in admin → Members (D1 `settings.membership`; paid-plan AI quotas update `enti
 
 ### Stream G (owner decisions 2026-11-13): LINE Login, organisation account lite, licences, free tiers — groundwork
 
-Built on branch `accounts-g`; migration `0017_accounts.sql` (additive). **Nothing changes for visitors until the owner
+Built on branch `accounts-g`; migration `0018_accounts.sql` (additive; renumbered from 0017 after `0017_tryon.sql`). **Nothing changes for visitors until the owner
 switches it on**: LINE Login answers `503 line_not_configured` until the three LINE settings below exist; organisation
 accounts exist only when the owner creates one in the back office; free-tier limits are counted on the device and are
 **not enforced** (code constant `FREE_TIER_ENFORCE = false`).
@@ -496,8 +496,9 @@ accounts exist only when the owner creates one in the back office; free-tier lim
   Google Identity Services cannot force Google to ask for the password, so a Google confirmation proves control of the
   Google account in that browser now; removing a sign-in method is one conditional write; unlinking Google also removes
   the Google e-mail; creating an organisation (which issues an owner link) needs the owner's re-auth, and an accepted owner
-  link revokes the other open owner links and logs `org.owner_replaced` when it replaces an owner. Migration 0017 adds
-  `auth_nonces.purpose`.
+  link revokes the other open owner links and logs `org.owner_replaced` when it replaces an owner. Migration 0018 adds
+  `auth_nonces.purpose`. In practice a Google confirmation may need only one click on an account that is already
+  signed in to Google: it shows that someone can act in that browser now, not who is at the device.
 
 **Organisation account lite** (`backend/src/orgs.js`, `backend/src/orgaudit.js`; tests `tests/unit/backend-orgs.test.js`,
 `tests/e2e/admin-orgs.e2e.mjs`): organisation name, billing details (name, 13-digit tax id, address, branch, e-mail),
@@ -556,6 +557,13 @@ Local dev with the Turnstile bypass: put `GO_LIVE_GATE=report` in `.dev.vars` (t
 > D1), `D1_WRITE_BUDGET` (approximate daily budget of write statements; 429 `d1_budget`), `ADMIN_UNAUTH_WRITES_HOUR` (failed admin
 > sign-ins stop writing over this many statements an hour; a correct sign-in is never refused). All are unset in the default configuration, where nothing changes. `POST /v1/tester/check`
 > answers `{ok:true}` for a valid code. The generic steps below describe a fresh install on an account of its own.
+
+> **Try-On MVP (2026-11-14): apply migration `0017_tryon.sql` BEFORE deploying this Worker.** From this version on,
+> creating any restricted back-office account writes `admin_reviewers.role` and the try-on routes read `tryon_items` /
+> `tryon_assets`; a Worker deployed on a database without 0017 refuses new reviewer accounts and `/health/deep` names
+> the missing migration. Order: `npm run backend:migrate` (or `wrangler d1 migrations apply`) first, then deploy. The
+> try-on public routes (`/v1/tryon/catalog`, `/v1/tryon/asset/*`) must be added to `PUBLIC_ROUTES` where that list is set.
+> Images: R2 binding `TRYON_BUCKET` when the owner enables R2 (not today); otherwise the D1 fallback (≤ 1 MB per image).
 
 1. `cd backend && npm install`
 2. `npx wrangler login`

@@ -1,0 +1,5 @@
+# evals-locks/hall-detector.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/hall-detector/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/hall-detector/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+a5c857ab0822e7d50666ad7a7d2db3da93290d059d9b464d69f6c37a334633ab  manifest.jsonl
+5f94c128392ceeced01ec48b7d18c949abe0ef8debaab5da639c718498d6aca0  CREDITS.tsv
+9cf389cb664e2af45a9faa60ba11f124f37ac550524168d513af7f69ff0492c6  images/*.jpg (323 files, sorted by name, concatenated; deleted after the run)

@@ -22,7 +22,7 @@
 //   L13 export lists the sign-in methods, never the provider account ids
 //   L14 go-live gate also covers new LINE sign-ins
 //   L15 retention purges expired LINE sign-in flows
-//   L16 migration 0017 listed and probed
+//   L16 migration 0018 (0017 before the tryon-fit merge) listed and probed
 //   L17 a disabled account cannot sign in with LINE
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -470,17 +470,18 @@ test("L15: the daily purge deletes expired LINE sign-in flows", async () => {
 });
 
 /* ---------------- L16 migration ---------------- */
-test("L16: migration 0017_accounts.sql is listed in health.js and probed (user_identities, line_auth_flows)", async () => {
-  assert.ok(existsSync(join(ROOT, "backend", "migrations", "0017_accounts.sql")));
+// re-lock 2026-11-14: migration ordering after tryon-fit (0017_tryon.sql landed first; this one is now 0018)
+test("L16: migration 0018_accounts.sql is listed in health.js and probed (user_identities, line_auth_flows)", async () => {
+  assert.ok(existsSync(join(ROOT, "backend", "migrations", "0018_accounts.sql")));
   const { MIGRATIONS, deepHealth } = await import(B + "health.js");
-  assert.ok(MIGRATIONS.includes("0017_accounts.sql"));
+  assert.ok(MIGRATIONS.includes("0018_accounts.sql"));
   const src = readFileSync(join(ROOT, "backend", "src", "health.js"), "utf8");
-  assert.match(src, /\["0017_accounts\.sql", "SELECT [^"]*FROM user_identities/);
-  assert.match(src, /\["0017_accounts\.sql", "SELECT [^"]*FROM line_auth_flows/);
+  assert.match(src, /\["0018_accounts\.sql", "SELECT [^"]*FROM user_identities/);
+  assert.match(src, /\["0018_accounts\.sql", "SELECT [^"]*FROM line_auth_flows/);
   const env = createEnv();
   assert.equal((await deepHealth(env)).ok, true);
   await env.DB.exec("DROP TABLE line_auth_flows");
-  assert.ok((await deepHealth(env)).migrations.missing.includes("0017_accounts.sql"));
+  assert.ok((await deepHealth(env)).migrations.missing.includes("0018_accounts.sql"));
 });
 
 /* ---------------- L17 disabled ---------------- */

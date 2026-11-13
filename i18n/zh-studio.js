@@ -97,6 +97,8 @@
     "studio.js.bg.grad": "影棚渐变",
     "studio.js.bg.custom": "自选颜色",
     "studio.js.hint.fit": "拖动紫点 = 下巴，蓝点 = 肩端，使服装贴合",
+    "studio.js.hint.fitPts": "拖动各点使服装贴合：紫色 = 颈根，粉色 = 领口，蓝色 = 肩端，橙色 = 下摆（服装随每个点变形）",
+    "studio.js.hint.fitPtsNoHem": "拖动各点使服装贴合：紫色 = 颈根，粉色 = 领口，蓝色 = 肩端（服装随每个点变形）",
     "studio.js.hint.view": "拖动 前 | 后 滑块对比图片",
     "studio.js.hint.restore": "在图片上涂抹：恢复被误删的人物部分",
     "studio.js.hint.erase": "在图片上涂抹：擦除残留的背景",

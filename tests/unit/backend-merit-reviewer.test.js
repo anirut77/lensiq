@@ -19,6 +19,8 @@
 //   RV10 owner disables / enables / resets / deletes a reviewer (re-auth); disable signs the reviewer out at once
 //   RV11 a reviewer's trusted device does not skip the owner's sign-in slow-down; reviewer failures never count on the owner
 const test = require("node:test");
+// test-bug re-lock 2026-11-14: one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js; CI run 43464554484)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { readFileSync, existsSync } = require("node:fs");
 const { join } = require("node:path");
@@ -85,8 +87,10 @@ async function setup(vars = {}) {
 test("RV1: migration 0016_merit_review.sql is listed, probed, and named exactly when missing", async () => {
   assert.ok(existsSync(join(ROOT, "backend", "migrations", "0016_merit_review.sql")));
   const { MIGRATIONS, deepHealth } = await import(B + "health.js");
-  // amended 2026-11-13 (stream G): 0017_accounts.sql now follows; 0016 must still directly follow 0015 (was: "is the last one")
-  assert.equal(MIGRATIONS[MIGRATIONS.indexOf("0015_merit.sql") + 1], "0016_merit_review.sql");
+  // re-lock 2026-11-13 (forced by 0017_tryon.sql, same intent): 0016 sits right after 0015 and right before the next file on disk
+  const onDisk = require("node:fs").readdirSync(join(ROOT, "backend", "migrations")).filter(f => f.endsWith(".sql")).sort(), i = MIGRATIONS.indexOf("0016_merit_review.sql");
+  assert.equal(MIGRATIONS[i - 1], "0015_merit.sql");
+  assert.equal(MIGRATIONS[i + 1], onDisk[onDisk.indexOf("0016_merit_review.sql") + 1]);
   const src = readFileSync(join(ROOT, "backend", "src", "health.js"), "utf8");
   assert.match(src, /\["0016_merit_review\.sql", "SELECT [^"]*FROM admin_reviewers/);
   assert.match(src, /\["0016_merit_review\.sql", "SELECT [^"]*FROM merit_revisions/);

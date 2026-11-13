@@ -384,6 +384,17 @@
       L.submit(lead, { subject: "LENSIQ — notify me when sales open" }).then(function (/** @type {any} */ r) {
         btn.disabled = false; out.textContent = "";
         if (r.ok) { f.reset(); out.textContent = T("pr.off.sent", "บันทึกแล้ว เราจะแจ้งทางอีเมลเมื่อเปิดขาย"); return; }
+        if (r.via === "api") {
+          // the server form failed (review of lead-form-fix): keep the e-mail, say why, offer LINE (same wording as the home form)
+          out.appendChild(doc.createTextNode(r.reason === "turnstile"
+            ? T("home.err.ts", "ยังไม่ได้ส่ง: ยืนยันว่าเป็นคนไม่สำเร็จ ข้อความของคุณยังอยู่ในแบบฟอร์ม กดส่งอีกครั้ง หรือติดต่อเราทาง LINE {id}", { id: r.lineId || "" })
+            : T("home.err.send", "ส่งไม่สำเร็จ (ระบบหรือเครือข่ายขัดข้อง) ข้อความของคุณยังอยู่ในแบบฟอร์ม กดส่งอีกครั้ง หรือติดต่อเราทาง LINE {id}", { id: r.lineId || "" })));
+          if (r.line) {
+            out.appendChild(doc.createTextNode(" "));
+            out.appendChild(h("a", { href: r.line, target: "_blank", rel: "noopener", text: T("home.ok.line", "แชตทาง LINE {id}", { id: r.lineId || "" }) }));
+          }
+          return;
+        }
         if (r.href || r.line) {
           out.appendChild(doc.createTextNode(T("pr.off.fallback", "ยังไม่ได้ส่ง: ระบบรับคำขอออนไลน์ยังไม่เปิด ส่งต่อทางอีเมลหรือ LINE ได้ที่นี่") + " "));
           if (r.href) out.appendChild(h("a", { href: r.href, text: T("home.ok.mailto", "ส่งทางอีเมล") }));

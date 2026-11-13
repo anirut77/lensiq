@@ -1,0 +1,13 @@
+# evals-locks/capture-hints.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/capture-hints/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/capture-hints/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# capture hints (owner request 2026-11-13) — tests locked 2026-11-13T04:19:25Z before any product code (lensiq-capture-hint.js did not exist yet)
+3e40ad84696e6021d747b6bc0fa169dc2432cac515a0f21c73d3c2296aef29dd  tests/unit/capture-hint.test.js  # repo file
+2c0af62543aa6f0729960edd467fc3d3ef435a0f40d46e078f2d0f3e5bc45cb7  tests/e2e/capture-hints.e2e.mjs  # repo file
+# v2 (superseded by v3, never committed) 2026-11-13T04:36:09Z: tests/e2e/capture-hints.e2e.mjs — darkStill() set-up made robust under CPU load (one failure in a 9-file run while typecheck ran in parallel; 6/6 passes alone or with 2 parallel runs). The set-up now re-freezes until the still frame the <video> shows is dark in the subject area. No assertion, threshold, input box or expected text changed. Unit test unchanged.
+ba7dce9567779076232c610dc5cb0c7baa9c0ddc1f9f17795bcf58f91219b1ee  tests/e2e/capture-hints.e2e.mjs  # repo file
+# v3 2026-11-13T04:45:29Z: tests/e2e/capture-hints.e2e.mjs — darkStill() set-up only: the freeze approach (v1/v2) left stale frames on the <video> (flaky: 1/9-file run, then 1/3 runs with v2). v3 feeds the page's <video> from a canvas painted near-black. No assertion, threshold, input box or expected text changed. Product fix found by the same runs: the frame outline had a 0.2 s colour transition, so 'green when ok' could be read mid-transition — the transition was removed (product, not test). Unit test unchanged (line 2).
+beab49d3711c34f8fc086b28a274d6eb6552b0d67d22d7a8c9a26b7e38296c48  tests/e2e/capture-hints.e2e.mjs  # repo file
+# B1/B2 gate (independent review 2026-11-13) — new test locked 2026-11-13T10:40:03Z BEFORE the page fix on capture-hints (2e67463). Existing unit + e2e v3 unchanged.
+55e747735842a0021ead550cc6f7fbc3aa46c7c93360a0cca82fea1bcce02078  tests/e2e/capture-hints-gate.e2e.mjs  # repo file
+# gate re-lock 2026-11-13T10:41:27Z: the per-case 'Read disabled' check was my wrong assumption — with the face off-centre (FACE_OUT) the page's existing, unchanged rule keeps Read enabled. Now asserted only for two faces (as in e2e v3). The safety assertion (no ok/green sample while Read is disabled, every 30 ms for 1.5 s, all 3 cases) is unchanged; it passed in all 3 cases in the run that failed.
+fdae2e9c5c4924e315dfaa6e76e20530bbb180a46dc2f26268d8110999f94b0f  tests/e2e/capture-hints-gate.e2e.mjs  # repo file

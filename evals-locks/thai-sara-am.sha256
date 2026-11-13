@@ -1,0 +1,19 @@
+# thai-sara-am (Thai sara am ำ safety / privacy fix, branch thai-sara-am-safety): fixed tests locked 2026-11-14 BEFORE the fix
+# (base origin/main bf8ff76; owner rule 2026-11-13 "Locked sets persist"). Examples are the independent review's of 2026-11-14,
+# each in composed, decomposed (NFKC), nikhahit-before-tone, tone-after-ำ, zero-width and spaced shapes, plus benign controls.
+# Paths without "# repo file" are relative to ~/LENSIQ-field/evals/thai-sara-am/ (copies in dev/). On main bf8ff76: 14 of 20
+# tests fail (log: before-main-bf8ff76.log). A changed hash means the test was edited after locking.
+fc6ed49c96164d6a37f579e6785ff838513640e2ac1bf16da3318f19a06043e7  dev/thai-sara-am-forms.js
+ced965a2dccc10b349a16d8ac4a6d4517572ec982cf16d55822d8c2a1f335235  dev/thai-sara-am-canon.test.js
+6507764b3a19b1b601f49d850089e00e602f7c49204ce8c8c36cbcf662d3aea6  dev/thai-sara-am-crisis.test.js
+e5835f3066ad6f62d5975b2841edb08c658d5917ce131c66a6b90261755ad556  dev/thai-sara-am-fortune-safe.test.js
+a7fdbbfe6c7da686b5eaaa198557917c8e2d4963cbbf19e88006196fbeec1c5c  dev/thai-sara-am-med.test.js
+86b02f4c3099eb8c9143f652334f06547b9e96a5b6e78c95d254105a5c2984cc  dev/thai-sara-am-pc.test.js
+9ce9dcab7e184640c35329df4cd61734317ea251e93fb6c59d445971dbb2c998  dev/thai-sara-am-travel.test.js
+fc6ed49c96164d6a37f579e6785ff838513640e2ac1bf16da3318f19a06043e7  tests/fixtures/thai-sara-am-forms.js  # repo file
+ced965a2dccc10b349a16d8ac4a6d4517572ec982cf16d55822d8c2a1f335235  tests/unit/thai-sara-am-canon.test.js  # repo file
+6507764b3a19b1b601f49d850089e00e602f7c49204ce8c8c36cbcf662d3aea6  tests/unit/thai-sara-am-crisis.test.js  # repo file
+e5835f3066ad6f62d5975b2841edb08c658d5917ce131c66a6b90261755ad556  tests/unit/thai-sara-am-fortune-safe.test.js  # repo file
+a7fdbbfe6c7da686b5eaaa198557917c8e2d4963cbbf19e88006196fbeec1c5c  tests/unit/thai-sara-am-med.test.js  # repo file
+86b02f4c3099eb8c9143f652334f06547b9e96a5b6e78c95d254105a5c2984cc  tests/unit/thai-sara-am-pc.test.js  # repo file
+9ce9dcab7e184640c35329df4cd61734317ea251e93fb6c59d445971dbb2c998  tests/unit/thai-sara-am-travel.test.js  # repo file

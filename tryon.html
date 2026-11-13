@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';
+  script-src 'self' 'wasm-unsafe-eval';
+  style-src 'self' 'unsafe-inline';
+  font-src 'self' data:;
+  img-src 'self' data: blob:;
+  media-src 'self' data: blob:;
+  connect-src 'self' data: blob:;
+  worker-src 'self' blob:;
+  manifest-src 'self';
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E
+  %3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E
+  %3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E
+  %3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="to.title">ลองสินค้าบนตัวคุณด้วยกล้อง (ภาพจำลอง) | LENSIQ</title>
+<meta name="description" content="ลองแว่น หมวก ต่างหู และเสื้อจากแคตตาล็อกร้านค้าบนภาพกล้องสด ประมวลผลบนเครื่องนี้ ไม่ส่งและไม่เก็บภาพ
+  เป็นภาพจำลอง ไม่ใช่ภาพการสวมใส่จริง">
+<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="tryon.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=16"></script>
+<script src="i18n/zh-tryon.js?v=2"></script>
+
+<main class="to-page" id="main">
+  <p class="eyebrow" data-i18n="to.eyebrow">LENSIQ · ลองสินค้า (ทดลอง)</p>
+  <h1 data-i18n="to.h1">ลองสินค้าบนตัวคุณด้วยกล้อง</h1>
+  <p class="lead" data-i18n="to.lead">เลือกสินค้าจากแคตตาล็อกของร้าน แล้วดูบนภาพกล้องสดของคุณ เป็นภาพจำลองเพื่อดูแนวทาง ไม่ใช่ภาพการสวมใส่จริง
+    ขนาด ทรง และการทิ้งตัวของผ้าอาจต่างจากของจริง</p>
+
+  <section class="card to-consent" id="toConsentCard" aria-labelledby="toConsentH">
+    <h2 id="toConsentH" data-i18n="to.consent.h">ก่อนเปิดกล้อง</h2>
+    <ul class="to-list">
+      <li data-i18n="to.consent.device">กล้องทำงานบนเครื่องนี้เท่านั้น ไม่ส่งภาพออกนอกเครื่องและไม่เก็บภาพ</li>
+      <li data-i18n="to.consent.preview">ภาพที่เห็นเป็นภาพจำลอง ทุกภาพที่บันทึกมีป้าย "ภาพจำลอง" ติดอยู่</li>
+      <li data-i18n="to.consent.save">ภาพจะถูกบันทึกลงเครื่องเฉพาะเมื่อคุณกดปุ่มบันทึกเอง</li>
+      <li data-i18n="to.consent.one">ใช้กับตัวคุณเองเท่านั้น หน้านี้ไม่มีช่องอัปโหลดรูปของผู้อื่น</li>
+    </ul>
+    <label class="to-check"><input type="checkbox" id="toConsent"> <span data-i18n="to.consent.ok">เข้าใจแล้ว เปิดกล้องบนเครื่องนี้</span></label>
+    <button class="btn primary" id="toStart" type="button" disabled data-i18n="to.start">เปิดกล้อง</button>
+  </section>
+
+  <section class="card to-stage-card" aria-labelledby="toStageH">
+    <h2 id="toStageH" data-i18n="to.stage.h">ภาพกล้อง</h2>
+    <div class="to-stage" id="toStage">
+      <video id="toVideo" playsinline muted aria-hidden="true"></video>
+      <canvas id="toCanvas" aria-label="ภาพกล้องพร้อมสินค้าที่เลือก" data-i18n-attr="aria-label:to.canvasAria"></canvas>
+      <div class="to-mark" id="toMark" translate="no">ภาพจำลอง · Virtual try-on preview · 虚拟试穿预览</div>
+    </div>
+    <p class="to-status" id="toStatus" role="status" data-i18n="to.st.idle">ยังไม่ได้เปิดกล้อง</p>
+    <div class="to-actions">
+      <button class="btn ghost sm" id="toSnap" type="button" disabled data-i18n="to.snap">บันทึกภาพลงเครื่อง</button>
+      <button class="btn ghost sm" id="toClear" type="button" data-i18n="to.clear">ถอดทั้งหมด</button>
+      <button class="btn ghost sm" id="toStop" type="button" disabled data-i18n="to.stop">ปิดกล้อง</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="toItemsH">
+    <h2 id="toItemsH" data-i18n="to.items.h">สินค้า</h2>
+    <p class="to-src" id="toSrc" data-i18n="to.items.demo">สินค้าตัวอย่าง (ภาพวาด) — ยังไม่ได้เชื่อมแคตตาล็อกของร้าน</p>
+    <div class="to-items" id="toItems" role="list"></div>
+  </section>
+
+  <section class="card to-help" aria-labelledby="toHelpH">
+    <h2 id="toHelpH" data-i18n="to.help.h">ข้อจำกัดที่ควรรู้</h2>
+    <ul class="to-list">
+      <li data-i18n="to.help.face">แว่น หมวก และต่างหู วางตามจุดบนใบหน้า 478 จุด (MediaPipe Face Landmarker) ใช้เฉพาะตำแหน่ง ไม่ระบุตัวตน ไม่อ่านอารมณ์</li>
+      <li data-i18n="to.help.top">เสื้อวางตามคอ ไหล่ และชายเสื้อที่วัดจากรูปทรงตัวคนในภาพ เป็นภาพ 2 มิติ ไม่แสดงการทิ้งตัวหรือขนาดที่พอดีจริง</li>
+      <li data-i18n="to.help.acc">ความแม่นยำบนภาพจริงยังไม่ได้วัด ตัวเลขที่มีอยู่มาจากชุดทดสอบสังเคราะห์เท่านั้น</li>
+      <li data-i18n="to.help.misuse">ระบบลดโอกาสการลองบนรูปของผู้อื่นได้ (ไม่มีช่องอัปโหลด) แต่พิสูจน์ไม่ได้ว่าคนหน้ากล้องคือผู้ที่ยินยอม</li>
+    </ul>
+  </section>
+</main>
+
+<script src="lensiq-config.js?v=10"></script>
+<script src="lensiq-api.js?v=2"></script>
+<script src="lensiq-camera.js?v=4"></script>
+<script src="studio-core.js?v=7"></script>
+<script src="lensiq-tryon-core.js?v=2"></script>
+<script src="tryon.js?v=2"></script>
+</body>
+</html>

@@ -1,20 +1,25 @@
+# evals-locks/accounts-g.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/accounts-g/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/accounts-g/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
 # Stream G (accounts + billing groundwork, owner decisions 2026-11-13) — fixed tests, locked 2026-11-13T14:16:31Z BEFORE
 # backend/src/line.js, backend/src/orgs.js, backend/src/freetier.js, migration 0017_accounts.sql, lensiq-freetier.js and the
 # UI / site-copy changes were written. Branch accounts-g, base 1ef19c6. Paths relative to the repo root.
 # A changed hash means a test was edited after locking.
-841de39ed7647d545647066b89a0d0cae1bf0d2b8043a7245518fdff911a68f1  tests/unit/backend-line-signin.test.js
-ba5cd100be2c06f47774597acc0a6355cbddff146dc429efac8a43d12fdcf086  tests/unit/backend-orgs.test.js
-48a8d708ffa5ade21c635e1fa7594c4bf3e09373ecb16adf9293727da9de9e18  tests/unit/free-tier.test.js
-116a6bd8b5d9356e54f71000d8c2e7e15251094049c994724549263f1ed3afda  tests/e2e/accounts.e2e.mjs
-0dade3257920c3d67f3e9622d78f3ef37929ef0cab8b58864919e45e5b61659e  tests/e2e/admin-orgs.e2e.mjs
-28e9b4820245b9da3a066312560fa4450ede3481539b1a7453edd9c462059d4f  tests/unit/backend-merit-reviewer.test.js
+841de39ed7647d545647066b89a0d0cae1bf0d2b8043a7245518fdff911a68f1  tests/unit/backend-line-signin.test.js  # repo file
+ba5cd100be2c06f47774597acc0a6355cbddff146dc429efac8a43d12fdcf086  tests/unit/backend-orgs.test.js  # repo file
+48a8d708ffa5ade21c635e1fa7594c4bf3e09373ecb16adf9293727da9de9e18  tests/unit/free-tier.test.js  # repo file
+116a6bd8b5d9356e54f71000d8c2e7e15251094049c994724549263f1ed3afda  tests/e2e/accounts.e2e.mjs  # repo file
+0dade3257920c3d67f3e9622d78f3ef37929ef0cab8b58864919e45e5b61659e  tests/e2e/admin-orgs.e2e.mjs  # repo file
+28e9b4820245b9da3a066312560fa4450ede3481539b1a7453edd9c462059d4f  tests/unit/backend-merit-reviewer.test.js  # repo file
 # Amendment A-G1 (made before this lock, to an EXISTING test locked in ../merit/locked.sha256): RV1 asserted that
 # 0016_merit_review.sql is the LAST migration; it now asserts 0016 directly follows 0015, because 0017_accounts.sql is
 # added after it. Every probe / "named exactly when missing" assertion is unchanged. Not a loosening: the order check stays.
+# --- from ~/LENSIQ-field/evals/accounts-g/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
 # 2026-11-13T14:19:34Z amendment A-G2: tests/unit/free-tier.test.js F3 — 7 strict deepEqual comparisons of the 'over' list now wrap it in Array.from(): arrays created inside the vm context carry another realm's prototype, so deepStrictEqual against [] could never pass (test harness defect found on the first run). Values compared are unchanged. New hash:
-8c4d10b5d2eb51b28d1d6b9cddeb7d938102acab8893ea0c99f2d1de83bcb70d  tests/unit/free-tier.test.js
+8c4d10b5d2eb51b28d1d6b9cddeb7d938102acab8893ea0c99f2d1de83bcb70d  tests/unit/free-tier.test.js  # repo file
 # 2026-11-13T15:05:45Z amendments A-G3 + A-G4 to tests/e2e/accounts.e2e.mjs after its first run (test-harness defects, no expectation changed): A-G3 'location.origin' is undefined in Node -> new URL(base).origin (still: the invitation link is absolute on this site); A-G4 the staff check first navigated to account.html and then to account.html#org_invite=..., a hash-only same-document navigation that never fires 'load' (page load timeout) -> the session is now set on help.html first. Product fixes from the same run, without test changes: unlinked providers that are switched off now show a disabled 'Link' button; stale feedback lines are cleared on a language switch. New hash:
-9d55634da68d0dee462a8d64e07ca87e6e498b90c6f239c85cace3399019c37b  tests/e2e/accounts.e2e.mjs
+9d55634da68d0dee462a8d64e07ca87e6e498b90c6f239c85cace3399019c37b  tests/e2e/accounts.e2e.mjs  # repo file
+# 2026-11-14 TEST-BUG RE-LOCK (append-only): TOTP clock frozen via tests/unit/totp-clock.js (one added require line, no assertion changed); see evals-locks/totp-deterministic.sha256 (CI run 43464554484).
+638742da3cb716349042c5a4c2254aab2190edbe2492fe310be2f876899e6213  tests/unit/backend-merit-reviewer.test.js  # repo file
 # 2026-11-13T17:46:02Z security-review round (accounts-g @ c3de620: H1, M1, L1-L4, L6). Locked BEFORE the fixes.
 # NEW test file (added, nothing loosened): tests/unit/backend-accounts-security.test.js S1-S9.
 # Amendment A-G5 (tightening): the fresh-confirmation fixtures of backend-members / backend-hardening /
@@ -22,13 +27,20 @@ ba5cd100be2c06f47774597acc0a6355cbddff146dc429efac8a43d12fdcf086  tests/unit/bac
 #   {purpose:"reauth"}): after M1 a Google re-auth token without auth_time is accepted only with such a nonce.
 # Amendment A-G6 (tightening): backend-line-signin L8/L9/L13 take a fresh confirmation before linking (H1);
 #   backend-orgs and admin-orgs.e2e give the admin password when an org (and its owner link) is created (L2).
-145d07f395940353529b9f22f6f2b0a17e973b9ea5e529e0a4ca04600d9a3866  tests/unit/backend-accounts-security.test.js
-ac117c9520fdaac062c036739abc6383303dc7ef27344d85ea24f9068ae2f7ac  tests/unit/backend-line-signin.test.js
-0e41724e0ed27b1a6e6fb77fb97e669b7dd17c75b0404b205b6b539f0cd42b14  tests/unit/backend-orgs.test.js
-40407da068dde192cd20d29b0aedb2f19e4ccac5b613c63b67f9b2244e0fa99c  tests/e2e/admin-orgs.e2e.mjs
-8235d2460b601fcf995f2e725f7dc5490c1cedd75f1f04e46bbd0868cb3e7793  tests/unit/backend-members.test.js
-a124e785524f7eb888b36c2e7f03c39946db19da08caeb835d6db1b1ab7f72a2  tests/unit/backend-hardening.test.js
-f88eab4fb9bc20c57730d9e98b27ad727dc4236dfa91fa0197fae6ebd94656b7  tests/unit/backend-fulfilment-refunds.test.js
-32ccb42bd0ed19f0164a0b3d15db15993026c9c74eec87d856ba17db39dd4ede  tests/unit/backend-billing-receipts.test.js
+145d07f395940353529b9f22f6f2b0a17e973b9ea5e529e0a4ca04600d9a3866  tests/unit/backend-accounts-security.test.js  # repo file
+ac117c9520fdaac062c036739abc6383303dc7ef27344d85ea24f9068ae2f7ac  tests/unit/backend-line-signin.test.js  # repo file
+0e41724e0ed27b1a6e6fb77fb97e669b7dd17c75b0404b205b6b539f0cd42b14  tests/unit/backend-orgs.test.js  # repo file
+40407da068dde192cd20d29b0aedb2f19e4ccac5b613c63b67f9b2244e0fa99c  tests/e2e/admin-orgs.e2e.mjs  # repo file
+8235d2460b601fcf995f2e725f7dc5490c1cedd75f1f04e46bbd0868cb3e7793  tests/unit/backend-members.test.js  # repo file
+a124e785524f7eb888b36c2e7f03c39946db19da08caeb835d6db1b1ab7f72a2  tests/unit/backend-hardening.test.js  # repo file
+f88eab4fb9bc20c57730d9e98b27ad727dc4236dfa91fa0197fae6ebd94656b7  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+32ccb42bd0ed19f0164a0b3d15db15993026c9c74eec87d856ba17db39dd4ede  tests/unit/backend-billing-receipts.test.js  # repo file
 # 2026-11-13T17:56:38Z amendment A-G7: tests/e2e/admin-orgs.e2e.mjs — after A-G6 the org creation asks for the password and opens the 5-minute re-auth window, so the licence step closed the window first (reauth_at = 0) to keep proving that an order asks for the password. Expectation unchanged.
-e1035fde0a54207bc9f5a86890a758137440dc0ad517b377fd829d18f59bac84  tests/e2e/admin-orgs.e2e.mjs
+e1035fde0a54207bc9f5a86890a758137440dc0ad517b377fd829d18f59bac84  tests/e2e/admin-orgs.e2e.mjs  # repo file
+# 2026-11-13T20:44:16Z re-lock: migration ordering after tryon-fit (0017_tryon.sql merged first; accounts migration renumbered 0017_accounts.sql -> 0018_accounts.sql). tests/unit/backend-line-signin.test.js L16 now names 0018_accounts.sql; nothing else changed. tests/unit/backend-merit-reviewer.test.js: taken unchanged from main (tryon-fit's RV1 + the totp-clock re-lock); our amendment A-G1 is superseded by it.
+db68b2ff7d800029df99b933aad888d4b61bac1f9b05063ee1a8c6af3979f205  tests/unit/backend-line-signin.test.js  # repo file
+50209f2c402bb4009c8cbe6d5f8bde802ddcff5c0524bb1c7f25ec899c019d68  tests/unit/backend-merit-reviewer.test.js  # repo file
+# 2026-11-13T20:50:00Z merge of origin/main (3ba4b8a) into accounts-g: these files now carry BOTH main's TOTP-clock re-lock (one require line) and stream G's A-G5 re-auth-nonce fixture; no assertion changed by the merge. Combined hashes:
+bea9de2a0c405108b42b04714427b1f8aa10466245e597ff9ac25335f710fd7c  tests/unit/backend-hardening.test.js  # repo file
+aa124f53be41e62426c4dfdf04473d8b6f8cd6125d7830ca7dca0c092c77e28a  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+ed6a7100d900a6b54afbe919d045b251041028228f0bc1d6f8d6d841d693691c  tests/unit/backend-billing-receipts.test.js  # repo file
