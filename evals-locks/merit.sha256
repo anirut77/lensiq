@@ -91,3 +91,9 @@ b1a5419c4b3508d65246571dc8da494976c83e0dbd11c97156e0dcf159e255b9  tests/e2e/meri
 # RE-LOCK 2026-11-13 (2) crisis flow v2 §3: merit-crisis.e2e.mjs test 1, the one marker assertion missed in the first re-lock: the panel carries data-lq-belief="merit" (was data-lq-remedy="merit"). The rest of test 1 (panel, cards and paid offer withdrawn while a card is on screen; nothing stored) is unchanged.
 b4da3cdfb31bec1a5ff8d53554e293783631238f0942f470fa10874a63f67b9d  tests/e2e/merit-crisis.e2e.mjs  # repo file
 # 2026-11-13T14:16:31Z stream G amendment A-G1 to tests/unit/backend-merit-reviewer.test.js (RV1: 'last migration' -> '0016 directly follows 0015', because 0017_accounts.sql follows). New hash 28e9b4820245b9da3a066312560fa4450ede3481539b1a7453edd9c462059d4f; recorded in ../accounts-g/locked.sha256.
+# --- from ~/LENSIQ-field/evals/merit/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+# Re-lock 2026-11-13 (FORCED BY A NEW MIGRATION, same intent; branch tryon-fit, Try-On MVP team): backend-merit-reviewer.test.js
+# RV1 asserted 0016_merit_review.sql is the LAST entry of MIGRATIONS; 0017_tryon.sql now ends the list. RV1 now asserts 0016
+# directly follows 0015_merit.sql and is directly followed by the next migration file on disk; the probes and the
+# /health/deep check are unchanged. Hash d92a8a87… is superseded.
+9b2bb401ce3f94411e0b293cd6e7bc5633ec6e8e7c4151ebd541598624e0df67  tests/unit/backend-merit-reviewer.test.js  # repo file

@@ -7,3 +7,5 @@
 # (the fortune-hint hook at line 643, which lists fortune|planner|luckycolor) instead of meritHook(); it now searches
 # only after "function meritHook()". The assertion itself is unchanged (the 14 pages must equal the merit hook's list).
 f03c6b97cdd706f634ce5567c03afe575bf413e18e3fe56523160812f4ad6471  tests/unit/merit-enable-route.test.js  # repo file
+# --- from ~/LENSIQ-field/evals/merit-e/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+# (reportHook at line 643, which lists fortune|planner|luckycolor) instead of meritHook(); it now searches
