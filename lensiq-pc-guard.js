@@ -726,6 +726,10 @@
   const ZW = /[\u200b-\u200d\u2060\ufeff\u00ad]/g;
   /** NFKC, Thai / full-width digits folded, zero-width removed, lower case. @param {any} x */
   const pnorm = x => fold(String(x == null ? "" : x).normalize("NFKC")).replace(ZW, "").toLowerCase();
+  /* thai-canon-2 (review 2026-11-14): NFKC puts the nikhahit after a tone mark typed before ำ but before one typed after it, so
+     "นำ้" from the OCR never matched "น้ำ" in the preview (a short word was struck); provenance compares canonical copies */
+  /** @param {any} x */
+  const prnorm = x => pnorm(canon(x));
   /** Levenshtein distance, stopping early above `max`. @param {string} a @param {string} b @param {number} max */
   function lev(a, b, max) {
     if (Math.abs(a.length - b.length) > max) return max + 1;
@@ -753,13 +757,13 @@
    */
   function provenance(text, ocr) {
     const t = String(text == null ? "" : text);
-    const src = pnorm(ocr), flat = src.replace(/\s+/g, " "), nospace = src.replace(/\s+/g, "");
+    const src = prnorm(ocr), flat = src.replace(/\s+/g, " "), nospace = src.replace(/\s+/g, "");
     const toks = [...new Set(flat.split(" ").filter(x => x.length >= 3))];
     const core = (/** @type {string} */ x) => x.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
     const exact = new Set(flat.split(" ").map(core).filter(Boolean));
     const ph = pnorm(PLACEHOLDER);
     const ok = (/** @type {string} */ w) => {
-      const n = pnorm(w).split(ph).join("");
+      const n = prnorm(w).split(ph).join("");
       if (!n || !/[\p{L}\p{N}]/u.test(n)) return true;
       // a token with a digit (phone, ID, number) must be an OCR token EXACTLY: no substring, no edit tolerance
       // (typing 02-315-4422 next to a label's 02-315-4421 is dropped)
