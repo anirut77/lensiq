@@ -68,6 +68,7 @@ import { LEGACY_KEY_UNUSED, getGateway, legacyKeyUnused } from "./ai/settings.js
 import { medRoute } from "./med.js";
 import * as merit from "./merit.js";
 import * as reviewers from "./reviewers.js";
+import * as tryon from "./tryon.js";
 import { adminPcLookup, pcRoute, putPcSettings } from "./pc.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
@@ -139,6 +140,14 @@ async function publicRoute(request, env, url, deps) {
   if (p === "/v1/leads" && m === "POST") {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
     return reply(await leads.submitLead(env, request, await readJson(request, 8192), deps), 201);
+  }
+  // Try-On MVP (tryon.js): published catalogue + garment cut-outs; nothing about the visitor is read or stored
+  if (p === "/v1/tryon/catalog" && m === "GET") return json(await tryon.publicCatalog(env), 200, { ...cors, "Cache-Control": "public, max-age=120" });
+  const ta = /^\/v1\/tryon\/asset\/([^/]{1,40})$/.exec(p);
+  if (ta && m === "GET") {
+    const a = await tryon.publicAsset(env, ta[1]);
+    if (!a) return reply({ error: "not found", code: "not_found" }, 404);
+    return withHeaders(new Response(a.bytes, { status: 200 }), { ...cors, "Content-Type": a.mime, "X-Content-Type-Options": "nosniff", "Cache-Control": "public, max-age=300" });
   }
   if (p === "/v1/merit/guidance" && m === "GET") {
     // Merit MVP: every published item; no query is read (the device filters by its own tradition choice and reading)
@@ -333,16 +342,19 @@ async function adminRoute(request, env, url, deps) {
   const sess = await auth.requireAdmin(env, request);
   const ipHash = await callerHash(env, request, "admin");
   const isReviewer = sess.role === "reviewer";
-  const who = isReviewer ? { actor: "reviewer:" + sess.reviewerId, name: String(sess.reviewerName), role: "reviewer" } : { actor: "owner", name: "owner", role: "owner" };
+  // restricted accounts (admin_reviewers): role "merit" = the merit reviewer; "tryon_admin" / "tryon_editor" = try-on catalogue (0017)
+  const accRole = isReviewer ? String(sess.accountRole || "merit") : "owner";
+  const who = isReviewer ? { actor: "reviewer:" + sess.reviewerId, name: String(sess.reviewerName), role: accRole === "merit" ? "reviewer" : accRole }
+    : { actor: "owner", name: "owner", role: "owner" };
   const act = (action, detail) => audit(env, who.actor, action, detail, ipHash);
   if (isReviewer) {
     // enforced here, on the Worker, for every request (the page only hides what it cannot use)
-    if (!reviewerAllowed(m, route)) {
+    if (!(accRole === "merit" ? reviewerAllowed(m, route) : tryon.roleAllowed(accRole, m, route))) {
       await act("role.denied", { route: (m + " " + route).slice(0, 80) });
       throw new HttpError(403, "not allowed for a reviewer account (forbidden_role)", { code: "forbidden_role" });
     }
     if (m === "GET" && route === "/me") {
-      return reply({ role: "reviewer", username: sess.reviewerName, totp_enabled: true, csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null });
+      return reply({ role: accRole === "merit" ? "reviewer" : accRole, username: sess.reviewerName, totp_enabled: true, csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null });
     }
   }
   /** Sensitive action: body {password, totp} (auth.reauthOwner — rate limited per session, failures audited there) or
@@ -610,6 +622,38 @@ async function adminRoute(request, env, url, deps) {
     return reply(r);
   }
   if (ld && m === "DELETE" && !ld[2]) { await reauthed(); const r = await leads.deleteLead(env.DB, ld[1]); await act("lead.deleted", { lead: ld[1] }); return reply(r); }
+  // Try-On MVP catalogue (tryon.js): owner + tryon_admin everything; tryon_editor create / edit / upload only (the role
+  // matrix above already refused the rest). Audit: ids, field names, statuses and image size only (never the image, a price
+  // value or a name).
+  if (route === "/tryon/items" && m === "GET") return reply(await tryon.adminList(env));
+  if (route === "/tryon/items" && m === "POST") {
+    const it = await tryon.adminCreate(env, await body(), who);
+    await act("tryon.item.created", { id: it.id, category: it.category, status: it.status });
+    return reply({ item: it }, 201);
+  }
+  const ti = /^\/tryon\/items\/([a-f0-9]{12})(\/status|\/asset)?$/.exec(route);
+  if (ti && !ti[2] && m === "PUT") {
+    const r = await tryon.adminUpdate(env, ti[1], await body(), who);
+    await act("tryon.item.updated", { id: ti[1], changed: r.changed, from: r.from, to: r.to });
+    return reply({ item: r.item });
+  }
+  if (ti && ti[2] === "/status" && m === "POST") {
+    const r = await tryon.adminSetStatus(env, ti[1], await body(), who);
+    await act("tryon.item.status", r);
+    return reply(r);
+  }
+  if (ti && ti[2] === "/asset" && m === "PUT") {
+    const raw = await readJson(request, tryon.ASSET_MAX_BODY);
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new HttpError(400, "invalid request body", { code: "bad_body" });
+    const r = await tryon.adminSetAsset(env, ti[1], raw, who);
+    await act("tryon.asset.set", { id: ti[1], mime: r.asset.mime, bytes: r.asset.bytes, w: r.asset.w, h: r.asset.h, store: r.asset.store, faces_blurred: r.faces, status: r.status });
+    return reply(r);
+  }
+  if (ti && !ti[2] && m === "DELETE") {
+    const r = await tryon.adminDelete(env, ti[1]);
+    await act("tryon.item.deleted", { id: ti[1] });
+    return reply(r);
+  }
   // Merit MVP: belief-guidance items + the (switched-off) interest inbox. Audit details carry ids, field names and review
   // decisions only (comments live in the item history, merit_revisions). Deletes need re-auth (reauthedOptional).
   if (route === "/merit/items" && m === "GET") return reply(await merit.adminListItems(env));

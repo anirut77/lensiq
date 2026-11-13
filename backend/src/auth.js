@@ -284,7 +284,7 @@ export async function requireAdmin(env, request) {
     if (!csrf || !timingSafeEqual(await sha256Hex(csrf), s.csrf_hash)) throw new HttpError(403, "CSRF token missing or invalid");
   }
   // a reviewer's session: the account must still be active on every request (disable / reset / delete sign out at once)
-  let role = "owner", reviewerId = null, reviewerName = null;
+  let role = "owner", reviewerId = null, reviewerName = null, accountRole = "owner";
   if (s.reviewer_id) {
     const r = await reviewerById(env.DB, s.reviewer_id);
     if (!r || r.status !== "active" || !r.totp_enabled) {
@@ -292,9 +292,10 @@ export async function requireAdmin(env, request) {
       throw new HttpError(401, "session expired");
     }
     role = "reviewer"; reviewerId = String(r.id); reviewerName = String(r.username);
+    accountRole = r.role || "merit"; // migration 0017: merit | tryon_admin | tryon_editor (index.js decides the routes)
   }
   await env.DB.prepare("UPDATE admin_sessions SET last_seen = ?1 WHERE id_hash = ?2").bind(t, idHash).run();
-  return { idHash, viaCookie: !bearer, reauthAt: Number(s.reauth_at) || 0, role, reviewerId, reviewerName };
+  return { idHash, viaCookie: !bearer, reauthAt: Number(s.reauth_at) || 0, role, reviewerId, reviewerName, accountRole };
 }
 
 /** Fresh CSRF token for the current session (e.g. after a page reload). Readable only by allowlisted origins (CORS). */

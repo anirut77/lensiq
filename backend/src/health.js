@@ -13,7 +13,7 @@ export const MIGRATIONS = [
   "0006_consumer_pricing.sql", "0007_member_session_labels.sql", "0008_round11_backend.sql",
   "0009_round12_backend.sql", "0010_ai_gateway.sql", "0011_admin_recovery.sql", "0012_ai_keys.sql", "0013_recovery_slow_hash.sql",
   "0014_leads_viewed.sql",
-  "0015_merit.sql", "0016_merit_review.sql"
+  "0015_merit.sql", "0016_merit_review.sql", "0017_tryon.sql"
 ];
 /** Columns / tables added by migrations 0008 and later, with the migration that adds each (schema probe): a failing
  *  probe names exactly the migration that is missing. */
@@ -36,7 +36,10 @@ const PROBES = [
   ["0016_merit_review.sql", "SELECT id, username, password_hash, setup_hash, setup_expires, totp_secret_enc, totp_enabled, status FROM admin_reviewers LIMIT 0"],
   ["0016_merit_review.sql", "SELECT id, item_id, ts, actor, actor_name, action, decision, fields, comment, from_status, to_status FROM merit_revisions LIMIT 0"],
   ["0016_merit_review.sql", "SELECT reviewer_id FROM admin_sessions LIMIT 0"],
-  ["0016_merit_review.sql", "SELECT review_comment, reviewed_by, reviewed_at, source, review_meta FROM merit_items LIMIT 0"]
+  ["0016_merit_review.sql", "SELECT review_comment, reviewed_by, reviewed_at, source, review_meta FROM merit_items LIMIT 0"],
+  ["0017_tryon.sql", "SELECT role FROM admin_reviewers LIMIT 0"],
+  ["0017_tryon.sql", "SELECT id, shop, category, anchor, name_th, name_en, name_zh, price, sale_price, vat_included, sizes, colours, product_url, notes, status FROM tryon_items LIMIT 0"],
+  ["0017_tryon.sql", "SELECT id, item_id, mime, bytes, w, h, sha256, store, data, face_check FROM tryon_assets LIMIT 0"]
 ];
 
 /** @param {Env} env */
