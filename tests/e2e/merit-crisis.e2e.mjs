@@ -31,7 +31,9 @@ async function tarotReading(page, question, { afterCrisis = false } = {}) {
   await page.evaluate(() => document.getElementById("trAuto").click());
   await sleep(900);
   await page.evaluate(() => document.getElementById("trReveal").click());
-  await page.waitFor(afterCrisis ? "[...document.querySelectorAll('.fa-support')].some(s => !s.hasAttribute('data-e2e-old') && !s.closest('.lq-merit') && s.getClientRects().length > 0 && /1323/.test(s.textContent))" : "document.querySelectorAll('.fa-section').length >= 3", 25000);
+  const helpShown = "[...document.querySelectorAll('.fa-support')].some(s => !s.hasAttribute('data-e2e-old')"
+    + " && !s.closest('.lq-merit') && s.getClientRects().length > 0 && /1323/.test(s.textContent))";
+  await page.waitFor(afterCrisis ? helpShown : "document.querySelectorAll('.fa-section').length >= 3", 25000);
 }
 const meritShown = `(() => ({ panels: [...document.querySelectorAll(".lq-merit")].filter(p => !p.hidden && p.getBoundingClientRect().height > 0).length,
   cards: document.querySelectorAll(".lq-merit-card").length, paid: document.querySelectorAll(".lq-merit-paid").length }))()`;

@@ -31,7 +31,9 @@ async function readZodiac(page, kind, { afterCrisis = false } = {}) {
     const y = +document.getElementById("zdYear").value, ya = ((y - 4) % 12 + 12) % 12, a = k === "chong" ? ya : (ya + 4) % 12;
     document.querySelector(`input[name="zdAnimal"][value="${a}"]`).click(); document.getElementById("zdForm").requestSubmit();
   }, kind);
-  await page.waitFor(afterCrisis ? "[...document.querySelectorAll('.fa-support')].some(s => !s.hasAttribute('data-e2e-old') && !s.closest('.lq-merit') && s.getClientRects().length > 0 && /1323/.test(s.textContent))" : "document.querySelectorAll('.fa-section').length >= 3", 15000);
+  const helpShown = "[...document.querySelectorAll('.fa-support')].some(s => !s.hasAttribute('data-e2e-old')"
+    + " && !s.closest('.lq-merit') && s.getClientRects().length > 0 && /1323/.test(s.textContent))";
+  await page.waitFor(afterCrisis ? helpShown : "document.querySelectorAll('.fa-section').length >= 3", 15000);
 }
 const panelOpen = `(() => { const p = ${PANEL}; return !!p && !p.hidden && p.getBoundingClientRect().height > 0 && p.querySelectorAll('.lq-merit-card').length > 0; })()`;
 const cards = page => page.evaluate(() => [...document.querySelectorAll(".lq-merit .lq-merit-card")].map(c => ({
