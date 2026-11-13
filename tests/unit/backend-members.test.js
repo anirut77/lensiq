@@ -320,7 +320,7 @@ test("export (portability) and deletion (erasure): payments kept but unlinked fo
   assert.equal(noFresh.status, 401); assert.equal(noFresh.j.code, "reauth_required");
   assert.equal((await call("/api/me", { method: "DELETE", token, body: { confirm: "DELETE" } })).status, 401, "erasure needs a fresh confirmation");
   const cred = async over => {
-    const n = await call("/api/auth/nonce", { method: "POST", body: {} });
+    const n = await call("/api/auth/nonce", { method: "POST", body: { purpose: "reauth" } }); // amendment A-G5 (security review 2026-11-14): a fresh confirmation uses a re-auth nonce
     return { credential: jwt(claims({ nonce: n.j.nonce, ...over }), K1), nonce: n.j.nonce };
   };
   const wrong = await call("/api/auth/reauth", { method: "POST", token, body: await cred({ sub: "999" }) });

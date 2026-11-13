@@ -87,7 +87,7 @@ async function setup(vars = {}) {
     return { ...r.j, sub, status: r.status, code: r.j && r.j.code };
   };
   const fresh = async s => {
-    const n = await call("/api/auth/nonce", { method: "POST", body: {} });
+    const n = await call("/api/auth/nonce", { method: "POST", body: { purpose: "reauth" } }); // amendment A-G5 (security review 2026-11-14): a fresh confirmation uses a re-auth nonce
     return { credential: jwt(claims({ nonce: n.j.nonce, sub: s.sub })), nonce: n.j.nonce };
   };
   let adminTok = null;

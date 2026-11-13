@@ -83,7 +83,7 @@ async function setup(vars = {}) {
   const inviteToken = link => { const m = /#org_invite=([A-Za-z0-9_-]{43})$/.exec(link); assert.ok(m, "invite link: " + link); return m[1]; };
   /** org + owner (accepted) */
   const orgWithOwner = async (name = "Wat Pho School", sub = "100", email = "owner@example.test") => {
-    const c = await admin("/orgs", { method: "POST", body: { name } });
+    const c = await admin("/orgs", { method: "POST", body: { name, password: ADMIN_PW } }); // A-G6: owner link needs re-auth (S5)
     assert.equal(c.status, 201, JSON.stringify(c.j));
     const owner = await signIn(sub, email, "Anan");
     const a = await call("/api/org-invites/accept", { method: "POST", token: owner.token, body: { token: inviteToken(c.j.owner_invite.link_path) } });
@@ -103,9 +103,9 @@ async function setup(vars = {}) {
 test("O1: the LENSIQ owner creates an organisation; the owner invitation link carries a one-time token stored as a hash only", async () => {
   const t = await setup();
   assert.equal((await t.call("/admin/api/orgs", { method: "POST", body: { name: "X" } })).status, 401, "back office needs the admin session");
-  const bad = await t.admin("/orgs", { method: "POST", body: { name: "" } });
+  const bad = await t.admin("/orgs", { method: "POST", body: { name: "", password: ADMIN_PW } }); // A-G6
   assert.equal(bad.status, 400);
-  const c = await t.admin("/orgs", { method: "POST", body: { name: "Wat Pho School" } });
+  const c = await t.admin("/orgs", { method: "POST", body: { name: "Wat Pho School", password: ADMIN_PW } }); // A-G6
   assert.equal(c.status, 201, JSON.stringify(c.j));
   assert.match(c.j.org.id, /^[a-f0-9]{32}$/);
   assert.equal(c.j.org.name, "Wat Pho School");
@@ -128,7 +128,7 @@ test("O1: the LENSIQ owner creates an organisation; the owner invitation link ca
 /* ---------------- O2 ---------------- */
 test("O2: accepting the owner invitation makes an owner-admin; invitations are single-use, expire and can be revoked", async () => {
   const t = await setup();
-  const c = await t.admin("/orgs", { method: "POST", body: { name: "Condo A" } });
+  const c = await t.admin("/orgs", { method: "POST", body: { name: "Condo A", password: ADMIN_PW } }); // A-G6
   const tok = t.inviteToken(c.j.owner_invite.link_path);
   assert.equal((await t.call("/api/org-invites/accept", { method: "POST", body: { token: tok } })).status, 401, "sign-in required");
   const owner = await t.signIn("100", "owner@example.test", "Anan");

@@ -319,6 +319,7 @@ test("L8: a signed-in Google member links LINE; LINE then signs into the same ac
   const t = await setup();
   const g = await t.googleSignIn();
   assert.equal(g.status, 200, JSON.stringify(g.j));
+  assert.equal((await t.freshGoogle(g.j.token)).status, 200); // amendment A-G6: linking needs a fresh confirmation (S1)
   const noBearer = await t.call("/api/auth/line/start", { method: "POST", body: { mode: "link" } });
   assert.equal(noBearer.status, 401); assert.equal(noBearer.j.code, "member_required");
   const l = await t.lineSignIn({ token: g.j.token, body: { mode: "link" } });
@@ -330,6 +331,7 @@ test("L8: a signed-in Google member links LINE; LINE then signs into the same ac
   assert.equal(viaLine.j.user.id, g.j.user.id, "LINE sign-in reaches the linked account");
   // finishing a link flow needs the same member's bearer
   const other = await t.googleSignIn({ sub: "222", email: "other@example.test" });
+  assert.equal((await t.freshGoogle(other.j.token, { sub: "222" })).status, 200); // A-G6
   const wrong = await t.lineSignIn({ token: g.j.token, finishToken: other.j.token, body: { mode: "link" }, sub: LINE_SUB2 });
   assert.equal(wrong.status, 403); assert.equal(wrong.j.code, "line_wrong_session");
   const none = await t.lineSignIn({ token: g.j.token, finishToken: null, body: { mode: "link" }, sub: LINE_SUB2 });
@@ -353,6 +355,12 @@ test("L9: a LINE-only member links Google (fresh ID token + nonce); a Google acc
     return t.call("/api/auth/link/google", { method: "POST", token, body: { credential: googleJwt(googleClaims({ nonce: n.j.nonce, ...over })), nonce: n.j.nonce } });
   };
   assert.equal((await t.call("/api/auth/link/google", { method: "POST", body: {} })).status, 401);
+  const lineReauth = async token => { // A-G6: adding Google needs a fresh LINE confirmation (S2)
+    const s = await t.start({ mode: "reauth" }, { token });
+    const a = t.net.authorize(s.j.authorize_url, { claims: { auth_time: nowS() - 5 } });
+    assert.equal((await t.call("/api/auth/line/finish", { method: "POST", token, body: { ...a, binding: s.j.binding } })).status, 200);
+  };
+  await lineReauth(l.j.token);
   const ok = await link(l.j.token);
   assert.equal(ok.status, 200, JSON.stringify(ok.j));
   const me = await t.call("/api/me", { token: l.j.token });
@@ -361,6 +369,8 @@ test("L9: a LINE-only member links Google (fresh ID token + nonce); a Google acc
   const g = await t.googleSignIn();
   assert.equal(g.j.user.id, l.j.user.id, "Google now reaches the same account");
   const l2 = await t.lineSignIn({ sub: LINE_SUB2 });
+  { const s = await t.start({ mode: "reauth" }, { token: l2.j.token }); const a = t.net.authorize(s.j.authorize_url, { sub: LINE_SUB2, claims: { auth_time: nowS() - 5 } });
+    assert.equal((await t.call("/api/auth/line/finish", { method: "POST", token: l2.j.token, body: { ...a, binding: s.j.binding } })).status, 200); } // A-G6
   const taken = await link(l2.j.token);
   assert.equal(taken.status, 409); assert.equal(taken.j.code, "google_already_linked");
   const already = await link(l.j.token, { sub: "999" });
@@ -426,8 +436,8 @@ test("L12: erasure of a LINE-only account removes the LINE link, sessions and th
 test("L13: export lists sign-in methods with dates, never the Google or LINE account id", async () => {
   const t = await setup();
   const g = await t.googleSignIn();
+  await t.freshGoogle(g.j.token); // A-G6: before linking
   await t.lineSignIn({ token: g.j.token, body: { mode: "link" } });
-  await t.freshGoogle(g.j.token);
   const e = await t.call("/api/me/export", { token: g.j.token });
   assert.equal(e.status, 200);
   assert.deepEqual(e.j.sign_in_methods.map(m => m.provider).sort(), ["google", "line"]);

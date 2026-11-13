@@ -37,6 +37,9 @@ export default async function ({ launch, check, repo }) {
       await page.evaluate(() => document.querySelector("[data-tab=orgs]").click());
       await page.waitFor("!!document.getElementById('adoCreate')", 5000);
       await page.evaluate(() => { const f = document.getElementById("adoCreate"); f.elements.name.value = "Example Academy"; f.requestSubmit(); });
+      // amendment A-G6 (security review L2): issuing the owner link asks for the password
+      await page.waitFor("!!document.querySelector('dialog.ad-reauth[open]')", 5000);
+      await reauth(PW);
       await page.waitFor("/#org_invite=[A-Za-z0-9_-]{43}$/.test((document.getElementById('adoInviteLink') || {}).value || '')", 6000);
       await page.waitFor("document.querySelectorAll('#adoList [data-org]').length === 1", 6000);
     });

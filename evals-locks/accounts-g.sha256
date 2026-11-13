@@ -15,3 +15,18 @@ ba5cd100be2c06f47774597acc0a6355cbddff146dc429efac8a43d12fdcf086  tests/unit/bac
 8c4d10b5d2eb51b28d1d6b9cddeb7d938102acab8893ea0c99f2d1de83bcb70d  tests/unit/free-tier.test.js
 # 2026-11-13T15:05:45Z amendments A-G3 + A-G4 to tests/e2e/accounts.e2e.mjs after its first run (test-harness defects, no expectation changed): A-G3 'location.origin' is undefined in Node -> new URL(base).origin (still: the invitation link is absolute on this site); A-G4 the staff check first navigated to account.html and then to account.html#org_invite=..., a hash-only same-document navigation that never fires 'load' (page load timeout) -> the session is now set on help.html first. Product fixes from the same run, without test changes: unlinked providers that are switched off now show a disabled 'Link' button; stale feedback lines are cleared on a language switch. New hash:
 9d55634da68d0dee462a8d64e07ca87e6e498b90c6f239c85cace3399019c37b  tests/e2e/accounts.e2e.mjs
+# 2026-11-13T17:46:02Z security-review round (accounts-g @ c3de620: H1, M1, L1-L4, L6). Locked BEFORE the fixes.
+# NEW test file (added, nothing loosened): tests/unit/backend-accounts-security.test.js S1-S9.
+# Amendment A-G5 (tightening): the fresh-confirmation fixtures of backend-members / backend-hardening /
+#   backend-fulfilment-refunds / backend-billing-receipts now request a re-auth nonce (POST /api/auth/nonce
+#   {purpose:"reauth"}): after M1 a Google re-auth token without auth_time is accepted only with such a nonce.
+# Amendment A-G6 (tightening): backend-line-signin L8/L9/L13 take a fresh confirmation before linking (H1);
+#   backend-orgs and admin-orgs.e2e give the admin password when an org (and its owner link) is created (L2).
+145d07f395940353529b9f22f6f2b0a17e973b9ea5e529e0a4ca04600d9a3866  tests/unit/backend-accounts-security.test.js
+ac117c9520fdaac062c036739abc6383303dc7ef27344d85ea24f9068ae2f7ac  tests/unit/backend-line-signin.test.js
+0e41724e0ed27b1a6e6fb77fb97e669b7dd17c75b0404b205b6b539f0cd42b14  tests/unit/backend-orgs.test.js
+40407da068dde192cd20d29b0aedb2f19e4ccac5b613c63b67f9b2244e0fa99c  tests/e2e/admin-orgs.e2e.mjs
+8235d2460b601fcf995f2e725f7dc5490c1cedd75f1f04e46bbd0868cb3e7793  tests/unit/backend-members.test.js
+a124e785524f7eb888b36c2e7f03c39946db19da08caeb835d6db1b1ab7f72a2  tests/unit/backend-hardening.test.js
+f88eab4fb9bc20c57730d9e98b27ad727dc4236dfa91fa0197fae6ebd94656b7  tests/unit/backend-fulfilment-refunds.test.js
+32ccb42bd0ed19f0164a0b3d15db15993026c9c74eec87d856ba17db39dd4ede  tests/unit/backend-billing-receipts.test.js
