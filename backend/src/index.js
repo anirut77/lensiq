@@ -734,9 +734,15 @@ export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin
   // first-run setup: QR code of the 2-step verification secret, drawn in the browser (no request carries the secret)
   "/attendance-qr.js",
   // fortune citation list (back office only; fortune pages no longer show citations, owner order 2026-11-12)
-  "/fortune-sources.js"]);
+  "/fortune-sources.js",
+  // Try-On catalogue tab: face blur of product photos on the merchant's device before upload (Product Check detector,
+  // BlazeFace short range + MediaPipe Tasks runtime, Apache-2.0) and the plain-background cut-out (studio-core.js)
+  "/admin-tryon.js", "/lensiq-pc.js", "/lensiq-pc-run.js", "/studio-core.js", "/vendor/mediapipe/vision_bundle.mjs",
+  "/vendor/mediapipe/wasm/vision_wasm_internal.js", "/vendor/mediapipe/wasm/vision_wasm_internal.wasm",
+  "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.js", "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
+  "/vendor/models/face-gate/blaze_face_short_range.tflite"]);
 export const ADMIN_PAGE_HEADERS = {
-  "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
+  "Content-Security-Policy": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
     "font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; report-uri /v1/csp-report; report-to csp",
   "Reporting-Endpoints": 'csp="/v1/csp-report"',
   "X-Frame-Options": "DENY",
