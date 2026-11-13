@@ -33,3 +33,5 @@ c8a6aa2fe220ef481c675162f4c9efbde2285de8975cf02de12752fccff3593e  tests/e2e/look
 #   on the set copies in ~/LENSIQ-field/evals/beauty-look/set/ (protocol + face generator, same hashes as above). Guard only;
 #   no scoring change. New harness hash:
 30f9556122eb80b82eda19ea9aee8a26c205343fb49b6a3e31bd40b1481095f8  tools/look-preview-eval.mjs
+# 2026-11-13 review fixes (independent review S1-S4), locked before the fixes:
+4be55fb7e6f67e590cafc52a60a9de7ba5c44dff4bfeb4664c35f2e92a256fe5  tests/unit/look-review-fixes.test.js
