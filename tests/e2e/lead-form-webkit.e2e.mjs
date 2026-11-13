@@ -19,7 +19,9 @@ export default async function ({ base, repo, check }) {
   const browser = await webkit.launch();
   /** a fresh iPhone tab on index.html#contact with the given Turnstile key and API behaviour */
   async function open({ key = KEYS.pass, api = [201], lang = "th" } = {}) {
-    const ctx = await browser.newContext({ ...devices["iPhone 13"] });
+    // service workers blocked: nav.js registers sw.js on localhost, and WebKit sends a controlled page's fetches past
+    // Playwright's routing, so the fake API would never answer (set-up only, re-lock v2)
+    const ctx = await browser.newContext({ ...devices["iPhone 13"], serviceWorkers: "block" });
     const page = await ctx.newPage();
     const cfg = { apiBase: API, turnstileSiteKey: key, pages: ["index.html"], analytics: false, member: false, testerGate: false };
     const st = { posts: [], navs: 0, errors: [], apiQueue: api.slice() };

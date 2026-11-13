@@ -100,7 +100,7 @@
   var quoteLine = function () { var s = sellerOf(W.LENSIQ_SELLER); return W.LENSIQ_LEADS_FORM === true && /^@?[A-Za-z0-9._-]{2,40}$/.test(s.quote_line || "") ? s.quote_line : ""; };
   /**
    * Sends a lead (see the header). Never rejects.
-   * @param {any} lead @param {{subject?: string}} [opts]
+   * @param {any} lead @param {{subject?: string, turnstile?: any}} [opts]
    * @returns {Promise<{via: string, ok: boolean, href?: string, line?: string, lineId?: string, status?: number}>}
    */
   function submit(lead, opts) {
@@ -121,8 +121,9 @@
       var A = W.LQApi;
       if (!serverOn()) return fb(0);
       return Promise.resolve(A.turnstile ? A.turnstile("lead", o.turnstile) : "").then(function (/** @type {string} */ tok) {
-        if (!tok) return failApi("turnstile", 0);
-        return Promise.resolve(A.call("/v1/leads", { method: "POST", body: body, headers: { "X-Turnstile-Token": tok } })).then(function (/** @type {any} */ r) {
+        // with a site key (every real deployment) no token = no send; without one (local development) the Worker decides
+        if (!tok && String(W.LENSIQ_TURNSTILE_SITEKEY || "").trim()) return failApi("turnstile", 0);
+        return Promise.resolve(A.call("/v1/leads", { method: "POST", body: body, headers: tok ? { "X-Turnstile-Token": tok } : {} })).then(function (/** @type {any} */ r) {
           return r && r.ok ? { via: "api", ok: true, status: r.status } : failApi(r && r.status === 403 ? "turnstile" : r && r.status ? "server" : "network", r ? r.status : 0);
         }, function () { return failApi("network", 0); });
       });

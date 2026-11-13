@@ -285,8 +285,19 @@
     // owner bug report 2026-11-13 (iPhone): one send at a time; the notice with the LINE contact next to the form
     var sending = false;
     var notice = document.getElementById("leadNotice");
-    // on unless lensiq-config.js (loaded after this file) or the page set LENSIQ_LEADS_NOTICE = false
-    var showNotice = function () { if (notice) notice.hidden = (/** @type {any} */ (window)).LENSIQ_LEADS_NOTICE === false; };
+    // shown while the quote form is on (LENSIQ_LEADS_FORM), unless LENSIQ_LEADS_NOTICE = false; lensiq-config.js loads
+    // after this file, so it is checked again on load
+    var showNotice = function () {
+      var w = /** @type {any} */ (window);
+      if (!notice) return;
+      // the LINE ID comes from the one place it is configured (LENSIQ_SELLER.quote_line, via lensiq-leads.js)
+      var L = w.LQLeads, id = L && typeof L.quoteLine === "function" ? L.quoteLine() : "", url = id && L.lineUrl ? L.lineUrl(id) : "";
+      notice.hidden = w.LENSIQ_LEADS_NOTICE === false || w.LENSIQ_LEADS_FORM === false || !url;
+      var tx = document.getElementById("leadNoticeText"), a = document.getElementById("leadNoticeLine");
+      if (tx) tx.textContent = T("home.notice.text", "หากส่งแบบฟอร์มไม่ได้ ติดต่อเราทาง LINE {id} ได้ทันที", { id: id });
+      if (a && url) a.setAttribute("href", url);
+    };
+    window.addEventListener("lq-lang", showNotice);
     showNotice(); window.addEventListener("load", showNotice);
     var tsBox = document.getElementById("lqTurnstile"), tsHint = document.getElementById("lqTurnstileHint");
     form.addEventListener("submit", function (e) {

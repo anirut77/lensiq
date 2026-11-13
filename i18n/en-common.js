@@ -472,7 +472,7 @@
   "home.ok.fallback": "Not sent yet: online requests are not open. Use e-mail or LINE below to reach the team",
   "home.ok.mailto": "Send by e-mail",
   "home.ok.line": "Chat on LINE {id}",
-  "home.notice.text": "If the form does not send, contact us on LINE @632yliiw right away",
+  "home.notice.text": "If the form does not send, contact us on LINE {id} right away",
   "home.notice.line": "Chat on LINE",
   "home.ts.hint": "Please tap the check box above to confirm you are human; your request will then be sent automatically",
   "home.err.ts": "Not sent yet: the human check did not succeed. Your message is still in the form. Press send again, or contact us on LINE {id}",

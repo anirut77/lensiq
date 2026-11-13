@@ -475,7 +475,7 @@
   "home.ok.fallback": "尚未发送：在线申请系统尚未开放，请通过下方的邮件或 LINE 发送给团队",
   "home.ok.mailto": "通过邮件发送",
   "home.ok.line": "通过 LINE 联系 {id}",
-  "home.notice.text": "如果表单无法发送，请直接通过 LINE @632yliiw 联系我们",
+  "home.notice.text": "如果表单无法发送，请直接通过 LINE {id} 联系我们",
   "home.notice.line": "通过 LINE 聊天",
   "home.ts.hint": "请点击上方的验证框，确认您是真人；之后申请会自动发送",
   "home.err.ts": "尚未发送：真人验证未成功。您填写的内容仍在表单中。请再次点击发送，或通过 LINE {id} 联系我们",
