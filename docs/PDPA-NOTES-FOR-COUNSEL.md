@@ -895,6 +895,11 @@ member token) and filters and matches on the device; the reading result never le
 Worker therefore never learns the tradition or the reading. Residual point for counsel: the Worker's normal request
 log (method, URL, Cloudflare metadata) shows that a device opened a fortune page and fetched the guidance list; it
 carries nothing about belief.
+Test-site note (prepared, not yet applied; `tools/merit-enable-guidance-route.mjs`): applying it sets `LENSIQ_API_BASE` on the
+14 merit pages of the closed test site, so each page load also makes one empty `GET <api>/api/fortune/status` (the page's AI
+availability probe; default browser fetch: no cross-origin cookies, origin-only referrer). The Worker answers 404 `route_off`
+(that route is not public in the test deployment), so no AI is offered. Like the guidance request it shows the caller's IP to
+the Worker host and carries no reading, tradition or other user data. Test site only.
 
 (b) **Admin content.** Items have no field for a person, contact, price or shop link; a place name and an area
 (province) only. An admin save is refused when the automated wording check (TH / EN / ZH, `lensiq-merit-lint.js`) finds

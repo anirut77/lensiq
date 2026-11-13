@@ -44,13 +44,13 @@
 
 **ห้องสอบที่มีกล้องเป็นรุ่นทดลอง (เจ้าของตัดสินใจ 2026-11-10):** ยังไม่เปิดขายจนกว่าจะแก้ปัญหาใบหน้าเล็กในภาพมุมกว้างของห้องสอบ (`docs/exam/FACE-ENGINE-RESULTS.md` §7) ราคาในแถวนั้นใช้เมื่อเปิดขายแล้วเท่านั้น ห้องคอมพิวเตอร์ (`exam-lab.html`) พร้อมโครงการนำร่อง
 
-| แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
+| แพ็กเกจ | ราคานำร่อง (ใช้ตอนนี้) | ราคาปกติหลังผ่านเกณฑ์นำร่อง |
 |---|---|---|
 | ห้องคอมพิวเตอร์ / ออนไลน์ (ต่อผู้สอบ) | 10 บาท ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7% (ขั้นต่ำ 300 บาทต่อรอบ ไม่รวม VAT 7%) หรือ 990 บาท/เดือน/ห้องคอมพิวเตอร์ ไม่รวม VAT 7% | 15–30 บาท ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7% หรือ 990–1,490 บาท/เดือน ไม่รวม VAT 7% |
 | ห้องสอบที่มีกล้อง (ต่อห้อง จำนวนกล้องขึ้นกับขนาดห้อง ดูคู่มือวางกล้อง) **— รุ่นทดลอง ยังไม่เปิดขาย** | 290 บาท ต่อห้องต่อวันสอบ ไม่รวม VAT 7% หรือ 990 บาท/เดือน/ห้อง ไม่รวม VAT 7% | 300–600 บาท ต่อห้องต่อวันสอบ ไม่รวม VAT 7% หรือ 1,990 บาท/เดือน/ห้อง ไม่รวม VAT 7% |
 | ใบอนุญาตทั้งสถาบัน | เริ่ม 19,900 บาท/ปี ไม่รวม VAT 7% (≤ 1,000 ผู้สอบ) | 30,000–120,000 บาท/ปี ไม่รวม VAT 7% |
 
-ราคาหลังผ่านเกณฑ์ใช้เมื่อสถานที่ผ่านเกณฑ์ใน `docs/pilot/PILOT-EXAM.md` แล้วเท่านั้น โครงการนำร่องภาคสนาม (1 สถาบัน ≤ 4 สัปดาห์ ≤ 3 ห้อง) ฟรี
+ราคาปกติหลังผ่านเกณฑ์นำร่องใช้เมื่อสถานที่ผ่านเกณฑ์ใน `docs/pilot/PILOT-EXAM.md` แล้วเท่านั้น โครงการนำร่องภาคสนาม (1 สถาบัน ≤ 4 สัปดาห์ ≤ 3 ห้อง) ฟรี
 
 **ระดับฟรี (เจ้าของตัดสินใจ 2026-11-13):** ห้องคอมพิวเตอร์ฟรีถึง 5 ผู้สอบต่อรอบสอบ เกินกว่านั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มใช้ตั้งแต่วันที่จะประกาศล่วงหน้าอย่างน้อย 30 วัน เจ้าของบังคับใช้ผ่านสัญญา ข้อจำกัดบนเครื่องผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน ลูกค้าส่งออกข้อมูลของตนได้เสมอ ชำระโดยโอนผ่านธนาคารเท่านั้น
 
@@ -113,13 +113,13 @@ online exams are priced per candidate, camera halls per room:**
 exam-room view are detected well enough (`docs/exam/FACE-ENGINE-RESULTS.md` §7); its row applies only once it is on
 sale. The computer-room mode (`exam-lab.html`) is ready for a field pilot.
 
-| Package | Pilot stage (now) | After pilot |
+| Package | Pilot price (now) | Regular price after the pilot thresholds are met |
 |---|---|---|
 | Computer room / online (per candidate) | 10 THB per candidate per exam excl. 7% VAT (minimum 300 THB per session excl. 7% VAT), or 990 THB / month per lab excl. 7% VAT | 15–30 THB per candidate per exam excl. 7% VAT, or 990–1,490 THB / month excl. 7% VAT |
 | Camera hall (per room; number of cameras depends on room size, see the guide), **experimental, not on sale yet** | 290 THB per room per exam day excl. 7% VAT, or 990 THB / month per room excl. 7% VAT | 300–600 THB per room per exam day excl. 7% VAT, or 1,990 THB / month per room excl. 7% VAT |
 | Institution licence | from 19,900 THB / year excl. 7% VAT | 30,000–120,000 THB / year excl. 7% VAT |
 
-The "after pilot" price applies only once the site has passed `docs/pilot/PILOT-EXAM.md`. The field pilot (1
+The regular price after the pilot thresholds are met applies only once the site has passed `docs/pilot/PILOT-EXAM.md`. The field pilot (1
 institution, ≤ 4 weeks, ≤ 3 rooms) is free.
 
 **Free tier (owner decision 2026-11-13):** the computer room is free up to 5 candidates per session; beyond that a licence is needed. Not enforced in the product yet: the limit applies from a date to be announced at least 30 days ahead, and the owner enforces it by contract. A limit on the user's device can be bypassed by someone who edits the code; the contract is what binds. Customers can always export their data. Payment is by bank transfer only.

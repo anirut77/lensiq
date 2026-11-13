@@ -4,6 +4,8 @@
 > `docs/ATTENDANCE-READINESS.md`, `docs/PILOT-PLAN.md` §3.2, `docs/DEPLOYMENT-CHECKLIST.md`, `docs/SUPPORT.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
 > ช่อง [วงเล็บ] เจ้าของกรอก ห้ามแต่งข้อมูลติดต่อ ตัวเลือกใบหน้ารอข้อสรุปใบอนุญาตโมเดล (OP-14) คู่มือนี้เริ่มจาก PIN/QR เสมอ
 
+> ระดับฟรี: Attendance ถึง 5 คน (PIN/QR 1 เครื่อง) เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ (ไม่มีตัวนับหรือตัวจับเวลาในโค้ด) ข้อจำกัดเริ่มตามวันที่จะประกาศ ประกาศล่วงหน้าอย่างน้อย 30 วันและเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับผ่านสัญญา ลูกค้าส่งออกข้อมูลของตนได้เสมอ (OP-20, OP-26)
+
 ## 1. ก่อนติดตั้ง: สิ่งที่ลูกค้าต้องมี
 
 | หัวข้อ | รายละเอียด |
@@ -75,6 +77,8 @@
 > **DRAFT 2026-11-11.** For customers after purchase or at the start of a pilot, for `attendance.html?mode=employee`. Based on `docs/ATTENDANCE-READINESS.md`, `docs/PILOT-PLAN.md` §3.2,
 > `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`. Open points (OP-xx) are in `docs/sales/README.md`. Fields in [brackets] are for the owner. This guide always starts with PIN / QR; the face
 > option waits for the model-licence decision (OP-14).
+
+> Free tier: Attendance up to 5 people (PIN / QR, 1 device); beyond it a licence is needed. Not enforced in the product yet (no counter or timer in the code). The limits start on a date to be announced at least 30 days ahead and begin 30 days after the announcement; the owner enforces them by contract. Customers can always export their own data (OP-20, OP-26).
 
 ## 1. Before installing
 
