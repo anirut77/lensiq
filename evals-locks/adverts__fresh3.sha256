@@ -1,0 +1,5 @@
+# evals-locks/adverts__fresh3.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/adverts/fresh3/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/adverts/fresh3/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+7b8748b4ec2070ac15d39c5ca4c3de5919cea22bd506009dca164ff29938c6a3  blind-input.jsonl
+ecb521ba9300dd94838ed98af60419a88005771472c22c7ef8266a4075de92ae  labels-A.jsonl
+c884f074e64a7f5026959d85c84e496d23974f1d0b9f80d58362bec74bbe1ae8  labels-B.jsonl

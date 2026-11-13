@@ -7,6 +7,8 @@
 //    R5 without SECRETS_KEK a new code is refused cleanly (no 500). R6 turning 2-step off removes every code.
 //    R7 migration 0013 is probed by /health/deep. R8 the security tab tells the owner to issue a new set (TH/EN/ZH).
 const test = require("node:test");
+// test-bug re-lock 2026-11-14: one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js; CI run 43464554484)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 const { join } = require("node:path");

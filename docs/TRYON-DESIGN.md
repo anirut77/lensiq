@@ -1,5 +1,9 @@
 # Virtual Try-On for clothing shops: design (build order: second, after Product Check and Nutrition Lens)
 
+> **Payment path (owner decision 2026-11-13):** bank transfer against a quotation and invoice only, for now; no PromptPay QR, no card and no Opn checkout. Where this document describes PromptPay push or the Opn fee for credit top-ups, read it as the design for a later online checkout, which is on hold (Opn KYC pending); it is not how LENSIQ is paid today.
+
+> **ช่องทางชำระเงิน (เจ้าของตัดสิน 2026-11-13):** ตอนนี้รับโอนผ่านธนาคารตามใบเสนอราคาและใบแจ้งหนี้เท่านั้น ไม่มี PromptPay QR บัตร หรือ Opn ข้อความด้านล่างที่พูดถึง PromptPay หรือค่าธรรมเนียม Opn ของการเติมเครดิต เป็นแบบสำหรับระบบชำระเงินออนไลน์ในอนาคต ซึ่งพักไว้ (รอ KYC ของ Opn) ไม่ใช่วิธีรับชำระในปัจจุบัน
+
 > **Build status 2026-11-13 (branch `tryon-fit`, not merged, nothing deployed, migration not applied).**
 > Built: studio garment fit (item 24: per-point warp to neck / shoulder tips / hem + 7 draggable handles); T2 subset
 > (back-office tab in `admin.html` + `admin-tryon.js` on the existing admin login with roles owner / `tryon_admin` /

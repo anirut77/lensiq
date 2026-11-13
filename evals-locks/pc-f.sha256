@@ -15,3 +15,22 @@ f91d003ee9976c85a2b748ceab9d3f57c0a8c1d78f98497267855ec4e36c8b8d  holdout-p9/p9-
 081b774ed1c025b1dd977b6898d6064cb04aac128a15aeaee5fc31c6ca44c2bb  tools/pc-travel-score.mjs  # repo file
 6ad187b934e3a3d6a64449ecbd28a58871a04f8a4ee874b7a9ada497d40cfd5a  tests/unit/pc-guard-jako.test.js  # repo file
 ec63d49b104e7c8b9083363b26d6946e8deb8c582da3a9e17c04e330a807e5a9  live/live-latency.mjs  # live-scan on-device latency harness (synthetic label, with / without barcode), locked 2026-11-13T15:00:57Z before the live-scan change
+# stream F2 (branch pc-f2, 2026-11-13), appended; earlier lines unchanged
+57c98929a3290194b35cd1eabf6531ea51455768be6f34bbfc39a90d15b20928  holdout-jako-3/pcf-jako-holdout-3.json  # THIRD independent JA/KO hold-out (names without cue words), locked 2026-11-13T16:42:37Z, before the F2 guard round
+898cf1fb75d92072bd2e6ea3aa1f5256681412bd92ebdee76611361227186c93  dev2/pc-guard-complexity.test.js  # relative complexity test, locked 2026-11-13T16:46:29Z (written with the phone-scan fix; shown to fail on main 5ef01b5)
+898cf1fb75d92072bd2e6ea3aa1f5256681412bd92ebdee76611361227186c93  tests/unit/pc-guard-complexity.test.js  # repo file
+a5a02ca8f2b5438e97f16cbcd53a05a6f43695242fcb0ca76ae481020fb7dec7  dev2/pc-guard-complexity.test.js  # RE-LOCK 2026-11-13T16:53:24Z: measurement method only (one warm-up run, median of 5 instead of 3, comment fix); the bounds 24x / 25x / 30 ms floor are unchanged. Reason: one GC pause made a 3-run median exceed 24x on a loaded machine while 1,000 -> 8,000 chars measured 9 -> 65 ms
+a5a02ca8f2b5438e97f16cbcd53a05a6f43695242fcb0ca76ae481020fb7dec7  tests/unit/pc-guard-complexity.test.js  # repo file, re-lock above
+9e1edb8d0815d3ae910978763b0be11f59720747eb2d3639487acdc394bd963d  live/live-latency.mjs  # RE-LOCK v2 2026-11-13T16:54:48Z: harness wait bug only (the wait for the 'point at the label' hint between trials was 30 s while the previous view's readings still ran; now 120 s / 240 s at 4x, as for the reading). What is measured, the conditions and the label are unchanged; v1 kept as live/live-latency-v1-locked.mjs. Not run yet: needs a quiet machine.
+725372ab685b57084edeea832b928b87ea356910c3d2aeaa9f3f9a0c8073cba2  dev2/pc-guard-complexity.test.js  # RE-LOCK 2 2026-11-13T17:33:21Z: STRICTER (5 shapes added from the independent review: spaces, spaces + new lines, road words, class / family / to lines, OCR phones + member numbers) and the measurement now uses this process's CPU time, the two texts interleaved, fastest of 7 (wall-clock runs spread 5-176 ms at load 10-40). Bounds unchanged (24x, 25x, 30 ms floor)
+725372ab685b57084edeea832b928b87ea356910c3d2aeaa9f3f9a0c8073cba2  tests/unit/pc-guard-complexity.test.js  # repo file, re-lock 2 above
+# evals-locks/pc-f.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/pc-f/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- from ~/LENSIQ-field/evals/pc-f/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+7df58ddd4748e65a4fddbab4e0a7f59908d4125661c14d940a6287fe5c5232ec  docs/product-check/pcf-jako-testset.json  # repo file  # repo file
+0f1c2341656f492ae4996abd6915d1dbb6e22018439263d1bd19df3c5e41bb37  tools/pc-jako-testset.mjs  # repo file  # repo file
+138e5583473d8ddd8c92806e9f1ac0aa5a8b1f0ce6367f8c7c5fce19875ea71d  tools/pc-guard-jako-score.mjs  # repo file  # repo file
+081b774ed1c025b1dd977b6898d6064cb04aac128a15aeaee5fc31c6ca44c2bb  tools/pc-travel-score.mjs  # repo file  # repo file
+6ad187b934e3a3d6a64449ecbd28a58871a04f8a4ee874b7a9ada497d40cfd5a  tests/unit/pc-guard-jako.test.js  # repo file  # repo file
+# locked 2026-11-13T18:10:27Z — RE-LOCK of the two scorers after merging eval-guard: each now calls assertLocked() on a set under ~/LENSIQ-field/evals before scoring (refuses unlocked sets and sets outside the evals folder / repo); the scoring code is unchanged
+fec2a67a961b2ce39270d29a5bd725be72e3aa78f471574a81f37e562315ffbf  tools/pc-guard-jako-score.mjs
+ca5454a5ee67ec5a3b8434bfe5942030d166e18d75ecd1ed38a2c085f64ffbed  tools/pc-travel-score.mjs

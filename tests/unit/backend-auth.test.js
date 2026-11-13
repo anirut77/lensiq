@@ -2,6 +2,8 @@
 // tests/unit/backend-auth.test.js — backend/src/auth.js + crypto.js: bootstrap, PBKDF2, sessions, CSRF, lockout, TOTP,
 // Origin allowlist on the admin API, audit log.
 const test = require("node:test");
+// test-bug re-lock 2026-11-14: one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js; CI run 43464554484)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { createEnv, req } = require("./backend-d1-shim.js");
 
