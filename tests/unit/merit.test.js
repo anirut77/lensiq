@@ -232,9 +232,12 @@ test("R5: Merit writes nothing about a crisis to device storage (only the tradit
 
 // added 2026-11-12 (coordinator check): every free belief-guidance block is a data-lq-remedy block, so the page-wide crisis
 // rule hides it. lensiq-merit.js draws the one panel used on all 14 fortune pages nav.js loads it on.
-test("R5: the merit panel carries data-lq-remedy on every fortune page it is loaded on; the crisis rule hides such blocks", () => {
+// RE-LOCK 2026-11-13 (owner decision 2026-11-13 crisis flow v2 §3: free belief guidance may be shown while calm): the panel is
+// marked data-lq-belief (not hidden by the crisis rule); its lucky-item cards carry data-lq-remedy, so the crisis rule hides them.
+test("R5: the merit panel carries data-lq-belief on every fortune page it is loaded on; lucky-item cards are data-lq-remedy; the crisis rule hides such blocks", () => {
   const pageSrc = readFileSync(join(ROOT, "lensiq-merit.js"), "utf8");
-  assert.match(pageSrc, /panel = el\("section", "lq-merit"\);[^\n]*\n\s*\/\/[^\n]*\n\s*panel\.setAttribute\("data-lq-remedy", "merit"\)/);
+  assert.match(pageSrc, /panel = el\("section", "lq-merit"\);[^\n]*\n\s*\/\/[^\n]*\n\s*panel\.setAttribute\("data-lq-belief", "merit"\)/);
+  assert.match(pageSrc, /lucky_item[^\n]{0,120}setAttribute\("data-lq-remedy", "lucky"\)/, "lucky-item cards are remedy blocks");
   assert.equal((pageSrc.match(/el\("section", "lq-merit"\)/g) || []).length, 1, "one panel constructor");
   assert.match(readFileSync(join(ROOT, "styles.css"), "utf8"), /html\[data-lq-crisis\] \[data-lq-remedy\]\{display:none!important\}/);
   const nav = readFileSync(join(ROOT, "nav.js"), "utf8");
