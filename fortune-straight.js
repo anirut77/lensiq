@@ -173,14 +173,19 @@
   };
   /* owner decision 2026-11-12: while the crisis state (FortuneAI.crisis.active), the soft step or the support card is active, readings are
      gentle and carry no remedy or lucky-item text (fortune-crisis.js: the fields and the soft words; the DOM: a card or a step) */
-  const CRM = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis.js") : root.LQFortuneCrisis) || null;
+  /* crisis fix 4: LQFortuneCrisis is looked up at CALL time. On horoscope, numbers, tarot, palm, faceread and fengshui this file
+     loads before fortune-crisis.js, and a copy taken at load time was null there (calm() could not see the typed text). */
+  const CRM_NODE = typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis.js") : null;
+  const crm = () => CRM_NODE || /** @type {any} */ (root).LQFortuneCrisis || null;
   /** @param {any} [doc] */
   function calm(doc) {
     try {
-      const d = doc || root.document, t = CRM && d ? CRM.fields(d) : "";
-      // one crisis state: the page-level state (fortune-crisis.js active(), <html data-lq-crisis>) plus the field checks
-      if (CRM && CRM.active && CRM.active(d)) return true;
-      return !!((t && CRM && (CRM.check(t) || CRM.soft(t))) || (d && typeof d.querySelector === "function" && d.querySelector(".fa-support, .fa-soft")));
+      const CRM = crm(), d = doc || root.document;
+      if (!CRM) return !!(d && typeof d.querySelector === "function" && d.querySelector(".fa-support, .fa-soft"));
+      // one crisis state: the page (active()), the tab's session flag and the soft step answered here (calmOn()), the field checks
+      if (CRM.calmOn ? CRM.calmOn(d) : CRM.active && CRM.active(d)) return true;
+      if (d && CRM.distress ? CRM.distress(d) : (() => { const t = d ? CRM.fields(d) : ""; return !!(t && (CRM.check(t) || CRM.soft(t))); })()) return true;
+      return !!(d && typeof d.querySelector === "function" && d.querySelector(".fa-support, .fa-soft"));
     } catch (e) { return false; }
   }
   // ข้อความของตัวเลือก (ไทย / อังกฤษ / จีน)
@@ -232,6 +237,7 @@
   function mount(container, frag, res) {
     try {
       container.setAttribute("data-fa-mode", res.mode === "straight" ? "straight" : "gentle");
+      if (calm(container.ownerDocument)) return; // calm session: gentle only, the choice is not offered
       frag.insertBefore(straightControl(container, res.lang), frag.firstChild);
     } catch (e) { /* no DOM */ }
   }

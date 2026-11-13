@@ -27,3 +27,23 @@ runs inside `interpret()`.
    fortune page in the same tab stays calm.
 4. After "Just the reading" on the soft step: gentle wording only, no straight reading or remedies for that session.
 5. The help line shown in view next to any reading that follows a soft step.
+
+## Fix 4 (branch crisis-fix-4, 2026-11-13; straight mode stays OFF)
+
+Fixed tests locked first (`tests/unit/fortune-crisis-session.test.js`, `tests/e2e/fortune-crisis-session.e2e.mjs`; sha256 in
+`~/LENSIQ-field/evals/fortune-honest/locked.sha256`). Before the change on 5f89d03: unit 0/5, e2e 1/5. After: unit 5/5, e2e 5/5.
+Source of the 12 inputs: the reviewer's fresh set, which is now **spent** (dev data only; no number from it counts as a result).
+
+1. `fortune-straight.js` looks `LQFortuneCrisis` up at call time; `calm()` also counts the tab's session flag, the answered soft
+   step and name fields that hold more than a name.
+2. One sessionStorage boolean (`lq-fortune-calm` = `1`; no timestamp, no text) is set when the support card is shown or the soft
+   step is answered with "Just the reading". Every later fortune page in the tab is calm: gentle wording only, no straight control
+   or reading, `data-lq-remedy` and paid (`data-lq-upsell`) blocks hidden, `allow()` refuses remedy / lucky / paid / merit /
+   straight. Storage blocked: page-level behaviour as before.
+3. On a calm page the help line is sticky at the bottom of the viewport while the reading's result section is on screen.
+4. New patterns for the 12 misses (pills by the bottle, burden, farewell letter, sleeping forever, "tomorrow I won't be here", gas in
+   a car, mixed EN + TH, "kil myself", "sucide", 生无可恋, 想紫砂, 伤害自己); the "dying of laughter" idiom (อยากตายเพราะหัวเราะ)
+   no longer shows the card but still gets the soft step.
+
+Not covered: planner, luckycolor and the fortune hub do not load `fortune-crisis.js` (no free-text field there), so their
+lucky-item content is not hidden in a calm session.

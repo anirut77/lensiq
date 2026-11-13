@@ -30,6 +30,15 @@
     new RegExp("(?:แฟน|สามี|ภรรยา|ผัว|เมีย|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง|ลุง|น้า|อา|พี่ชาย|ครู|ญาติ)[^\\s]{0,16}?" +
       "(?:ตบ(?!มุก)|ตี(?!กอล์ฟ|เทนนิส|ลูกบอล|กลอง|ราคา|ความ)|ทุบ|ต่อย|เตะ|กระทืบ|ชก|ฟาด|หวด|เฆี่ยน|ทำร้าย|ซ้อม|บีบคอ|" +
       "ข่มขืน|ลวนลาม|ล่วงละเมิด|จับ(?:หน้าอก|ของสงวน))[^\\s]{0,8}?(?:ฉัน|หนู|ผม|เรา|ดิฉัน|กู)"),
+    // crisis fix 4 (fresh review 2026-11-12 misses, dev data): pills by the bottle, a burden, farewell letters, sleeping forever,
+    // "tomorrow I won't be here", gas in a car, mixed English + Thai
+    /(?:กิน|ทาน|กลืน)ยา[^\s]{0,6}(?:ให้หมด|ทั้ง)(?:ขวด|แผง|กระปุก|กล่อง)|(?:จะ|อยาก)(?:กิน|ทาน|กลืน)ยา[^\s]{0,6}หมด(?:ขวด|แผง|กระปุก|กล่อง)(?!ตาม)/,
+    /อยู่ไป(?:ก็)?(?:เป็นภาระ|ไม่มีประโยชน์|เปล่าประโยชน์|ไร้ค่า)|เป็นภาระ[^\s]{0,10}(?:ไปให้พ้น|หายไป|ตายไป|ไม่อยู่)/,
+    /จดหมายลา(?!ออก|ป่วย|งาน|กิจ|พัก|บวช|คลอด|เรียน|หยุด|ศึกษา|ไปเรียน|เที่ยว)|เขียน(?:จดหมาย|โน้ต)?ลา(?:ทุกคน|โลก|ครั้งสุดท้าย)/,
+    /อยาก(?:หลับ|นอน)(?:ไป|ยาว)?(?:ตลอดกาล|ตลอดไป|ชั่วนิรันดร์|ไม่ต้องตื่น)/,
+    /(?:พรุ่งนี้|คืนนี้|วันนี้|ต่อไป|หลังจากนี้)(?:ก็)?(?:จะ)?ไม่มี(?:ฉัน|หนู|ผม|เรา|กู|ดิฉัน)(?:อยู่)?(?:แล้ว|อีก(?:แล้ว|ต่อไป)?|บนโลก)/,
+    /(?:ดูด|สูด|ดม)(?:แก๊ส|แก็ส|ก๊าซ|ควันท่อ|ควันรถ|ควันถ่าน)[^\s]{0,8}(?:ตาย|ในรถ|ให้หมด)|รมควัน(?:ตัวเอง)?ในรถ/,
+    /(?:want|wanna|gonna|goingto)(?:to|2)?(?:ตาย|ตุย|ม่องเท่ง|จบชีวิต|ฆ่าตัวตาย)/i,
   ].map(toneless);
   const EN = [
     /\b(?:want(?:s|ed|ing)?|wanna|going) (?:to|2) die\b|\bwanna die\b|\bkill (?:my ?self|myself)\b|\bkms\b|\bunalive\b|\bend (?:my|my own) life\b|\bsuicidal\b/i,
@@ -44,6 +53,8 @@
     /\bgoodbye (?:letters?|notes?)\b|\bsuicide note\b|\bplanning my exit\b|\b(?:bought|got|have) (?:a )?rope\b|\b(?:how many|how much)\b[^.?]{0,40}\b(?:to|2) die\b/i,
     /\bthreaten\w* to kill me\b|\bforced (?:himself|herself|themselves) on me\b|\bcomes? into my (?:room|bed) at night\b|\bnudes?\b[^.]{0,40}\bsecret\b|\bsends? me nudes?\b/i,
     /\bSA'?d\b|\bgot SA\b|\bnude pics\b/,
+    // crisis fix 4: misspellings ("kil myself", "sucide")
+    /\bk[i1!]l{1,2} ?(?:my ?self|myslef|mysefl|meself)\b|\b(?:sucide|sucid\w+|suicde\w*|suiside\w*|suicied|sucicid\w*|suiscid\w*|suisid\w*|sooicid\w*)\b/i,
     new RegExp("\\b(?:my )?(?:bf|gf|boyfriend|girlfriend|husband|wife|partner|dad|father|mom|mum|mother|step-?dad|step-?father|step-?mom|step-?mother|uncle|brother|teacher|coach|cousin|grandpa)" +
       " (?:\\w+ )?(?:hits|hit|beats|beat|punches|punched|kicks|kicked|slaps|slapped|chokes|choked|abuses|abused|rapes|raped|touches|touched) me\\b(?!\\s+(?:at|in|to|up|on|off)\\b)" +
       "(?!\\s+with (?:a |an |the )?(?:surprise|news|question|idea|joke|gift|compliment|party))", "i"),
@@ -58,12 +69,14 @@
     /죽고\s?싶|자살|\b(?:nak|mahu|ingin) mati\b|bunuh diri|muốn chết|tự tử|tự sát|消えて(?:しまい)?たい/i,
     /没有我[^。]{0,8}更好/,
     /死にたい|消えたい|自殺したい|生きていたくない|死のう/,
+    // crisis fix 4: "nothing left to live for", the homophone slang 紫砂 (= 自杀; not the teapot), hurting oneself
+    /生无可恋(?!脸|表情|的表情)|(?:想|要|去|准备|打算)紫砂(?!壶|杯|锅|陶)|伤害自己|弄伤自己|划伤自己|伤自己/,
   ];
   // traditional → simplified for the characters these patterns use
   /** @type {Record<string, string>} */
   const T2S = { 殺: "杀", 殘: "残", 結: "结", 輕: "轻", 樓: "楼", 從: "从", 經: "经", 繼: "继", 離: "离", 開: "开", 這: "这", 個: "个", 傷: "伤", 為: "为", 對: "对",
     媽: "妈", 強: "强", 姦: "奸", 藥: "药", 過: "过", 會: "会", 沒: "没", 義: "义", 時: "时", 讓: "让", 動: "动", 橋: "桥", 頂: "顶", 後: "后", 來: "来", 說: "说",
-    話: "话", 毆: "殴", 決: "决", 斷: "断", 盡: "尽", 尋: "寻", 燒: "烧", 掛: "挂", 臥: "卧", 軌: "轨", 師: "师", 褻: "亵", 跡: "迹", 剎: "刹", 襲: "袭", 擊: "击",
+    話: "话", 無: "无", 戀: "恋", 毆: "殴", 決: "决", 斷: "断", 盡: "尽", 尋: "寻", 燒: "烧", 掛: "挂", 臥: "卧", 軌: "轨", 師: "师", 褻: "亵", 跡: "迹", 剎: "刹", 襲: "袭", 擊: "击",
     著: "着", 撐: "撑", 遺: "遗", 書: "书", 發: "发", 關: "关", 係: "系", 間: "间", 帶: "带", 頸: "颈", 腳: "脚" };
   const T2S_RE = new RegExp("[" + Object.keys(T2S).join("") + "]", "g");
   /** true when the text shows a crisis signal @param {any} text */
@@ -88,9 +101,14 @@
     }
     return out.join(" ");
   }
+  /* crisis fix 4: "อยากตายเพราะหัวเราะ" (dying of laughter) is a joke idiom, not a crisis signal: that exact idiom is taken out
+     before the hard net; the rest of the text is still checked, and the soft step still sees "ตาย" */
+  const JOKE = /อยาก\s*(?:จะ\s*)?ตาย\s*(?:เพราะ\s*|จน\s*)?(?:หัวเราะ|ขำ|ตลก)(?!\s*ไม่)/g;
+  /** the text without the dying-of-laughter idiom @param {any} text */
+  const unjoke = text => String(text == null ? "" : text).normalize("NFC").replace(JOKE, " ");
   /** true when the text shows a crisis signal @param {any} text */
   function check(text) {
-    const t = String(text == null ? "" : text).normalize("NFC");
+    const t = unjoke(text);
     if (!t.trim()) return false;
     const th = t.replace(/(?:บ่|มะ|หม่าย|ม่าย)(?=\s*(?:อยาก|ไหว|อยู่|มี))/g, "ไม่").replace(/\s+/g, "").replace(TONE, "");
     const zh = t.replace(T2S_RE, c => T2S[c]).replace(/\s+/g, "");
@@ -114,9 +132,9 @@
      Fortune vocabulary (the Death card, 死神牌, dreams about a death, "kill time") is removed first; otherwise it errs on
      the side of asking. */
   const SOFT = [
-    toneless(/ตาย|ตุย|ลาโลก|เหนื่อย[^\s]{0,12}ไม่ไหว|ทน[^\s]{0,8}ไม่ไหว|ไม่ไหวแล้ว|กลัว|ทำร้าย|จับ[^\s]{0,6}หนู|เบื่อโลก|ไร้ค่า|อยากหายไป|เจ็บปวด/),
-    /\b(?:die|died|dying|dead|death|kill\w*|suicid\w*|end it|can'?t do this|hurts? me|touch(?:es|ed)? me|rope|pills|secret|hopeless|worthless|pointless)\b/i,
-    /死|自杀|走了|结束|打我|摸我|强迫|遗书|撑不下去|活着|没意义|죽|消え|\bmati\b|chết/i,
+    toneless(/ตาย|ตุย|ลาโลก|เป็นภาระ|ลาก่อน|จดหมายลา|หลับไปตลอด|แก๊ส|เหนื่อย[^\s]{0,12}ไม่ไหว|ทน[^\s]{0,8}ไม่ไหว|ไม่ไหวแล้ว|กลัว|ทำร้าย|จับ[^\s]{0,6}หนู|เบื่อโลก|ไร้ค่า|อยากหายไป|เจ็บปวด/),
+    /\b(?:die|died|dying|dead|death|kill\w*|suicid\w*|end it|can'?t do this|hurts? me|touch(?:es|ed)? me|rope|pills|secret|hopeless|worthless|pointless|kil|sucid\w*|only way out|goodbye forever)\b/i,
+    /死|自杀|走了|结束|生无可恋|紫砂|伤害自己|打我|摸我|强迫|遗书|撑不下去|活着|没意义|죽|消え|\bmati\b|chết/i,
   ];
   const FORTUNE_CTX = [/ไพ่(?:ใบ)?ความตาย|ไพ่\s*Death|ฝัน[^\n]{0,30}/g,
     /\b(?:the )?Death(?=[^.?]{0,25}\bcards?\b)|\bDeath card\b|\bDeath (?:reversed|upright)\b|\bdream\w*\b[^.?]{0,50}|\bdead tired\b|\bkill(?:ing)? (?:time|it)\b/gi,
@@ -156,7 +174,7 @@
   }
   let answered = "";
   /** the reader chose "Just the reading" for the current field values @param {any} [doc] */
-  const ack = doc => { answered = fields(doc); };
+  const ack = doc => { answered = fields(doc); setCalm(doc); };
   /** @type {Record<string, Record<string, string>>} */
   const SOFT_TEXT = {
     th: { title: "ข้อความนี้ฟังดูหนักใจ คุณโอเคไหม?", body: "ถ้ามีเรื่องหนักใจ มีคนพร้อมรับฟังเสมอ ถ้าแค่อยากดูดวง เลือกด้านล่างได้เลย",
@@ -224,7 +242,11 @@
     const L = HELP[i18n ? "th" : helpLang(lang)];
     /** @param {string} tag @param {string} [c] @param {string} [t] */
     const el = (tag, c, t) => { const e = d.createElement(tag); if (c) e.className = c; if (t != null) e.textContent = t; return e; };
-    const box = el("aside", "lq-helpline" + (cls ? " " + cls : ""));
+    // crisis fix 4: under a reading on a calm page (crisis state, calm session, soft step answered or distress typed) the line is
+    // sticky, so it stays in the viewport next to the reading
+    const calmHere = !!cls && /lq-helpline-result/.test(cls) && (calmOn(d) || distress(d));
+    if (calmHere) markCalm(d);
+    const box = el("aside", "lq-helpline" + (cls ? " " + cls : "") + (calmHere ? " lq-helpline-calm" : ""));
     box.setAttribute("role", "note"); box.setAttribute("aria-label", L.label); box.setAttribute("data-i18n-attr", "aria-label:help.line.label");
     for (const [k, v] of HELP_PARTS) {
       if (k === "tel") { const a = el("a", "lq-helpline-tel", v); a.setAttribute("href", "tel:" + v); box.appendChild(a); }
@@ -251,7 +273,48 @@
      state until it is reloaded: FortuneAI shows the support card instead of any later reading, hooks (member, merit,
      paid services) do not run, and <html data-lq-crisis="1"> hides every block marked data-lq-remedy (lucky items,
      remedies, recommendations, lead forms, share cards) through styles.css. Any renderer of remedies, lucky items, paid
-     or merit services or straight-mode readings must ask allow(kind) first. Page-level only: nothing is stored. */
+     or merit services or straight-mode readings must ask allow(kind) first.
+     Crisis fix 4 (owner decision 2026-11-12): the state also holds for the browser session (this tab). ONE sessionStorage
+     boolean ("lq-fortune-calm" = "1"; no timestamp, no text) is set when the support card is shown or the soft step is
+     answered with "Just the reading". Every fortune page opened later in the same tab is then calm: gentle wording only, no
+     straight reading, no remedy / lucky-item / paid / merit block (<html data-lq-calm>), and the help line stays in view next
+     to the reading. Closing the tab clears it. Without storage the page-level behaviour stays. */
+  const SESSION_KEY = "lq-fortune-calm";
+  /** the tab's session flag (false when storage is unavailable) */
+  function sessionOn() { try { const st = root.sessionStorage; return !!(st && st.getItem(SESSION_KEY) === "1"); } catch (e) { return false; } }
+  function sessionSet() { try { const st = root.sessionStorage; if (st) st.setItem(SESSION_KEY, "1"); } catch (e) { /* private mode: page-level only */ } }
+  const CALM_CSS = "html[data-lq-calm] [data-lq-remedy],html[data-lq-calm] [data-lq-upsell],html[data-lq-crisis] [data-lq-upsell]{display:none!important}" +
+    "html[data-lq-calm] .fa-straight{display:none!important}" +
+    ".lq-helpline-calm,.lq-helpline-dock{position:sticky;bottom:0;z-index:5;box-shadow:0 -2px 10px rgba(20,50,74,.18)}";
+  /** mark this page calm (attribute + styles; page-level, nothing stored) @param {any} [doc] */
+  function markCalm(doc) {
+    const d = doc || root.document;
+    if (!d || typeof d !== "object") return;
+    try { if (d.documentElement && d.documentElement.setAttribute) d.documentElement.setAttribute("data-lq-calm", "1"); } catch (e) { /* no DOM */ }
+    try {
+      if (d.getElementById && !d.getElementById("lq-calm-style") && d.head) { const st = d.createElement("style"); st.id = "lq-calm-style"; st.textContent = CALM_CSS; d.head.appendChild(st); }
+    } catch (e) { /* no DOM */ }
+  }
+  /** calm page: one sticky help line docked in the reading's result section (the section can start with large images, so the
+   *  reading's own line may be below the fold); it stays at the bottom of the viewport while that section is on screen
+   *  @param {any} container the reading's container @param {string} [lang] */
+  function calmDock(container, lang) {
+    try {
+      const d = container && container.ownerDocument;
+      if (!d || !(calmOn(d) || distress(d))) return null;
+      // the page's result section (#trResult, #hsResult, …), else the outermost section around the reading
+      const up = container.parentElement;
+      let sec = up && up.closest ? up.closest('[id$="Result"]') : null;
+      for (let e = up; !sec && e && e !== d.body; e = e.parentElement) if (e.tagName === "SECTION" && !(e.parentElement && e.parentElement.closest("section"))) sec = e;
+      if (!sec) return null;
+      let dock = sec.querySelector(":scope > .lq-helpline-dock");
+      if (!dock) { dock = helpLine(d, lang, "lq-helpline-result lq-helpline-dock"); sec.appendChild(dock); }
+      Array.from(container.querySelectorAll(".lq-helpline-calm")).forEach(e => e.classList.remove("lq-helpline-calm")); // one sticky line
+      return dock;
+    } catch (e) { return null; }
+  }
+  /** the reader answered the soft step with "Just the reading" (or saw the card): calm for the rest of the session @param {any} [doc] */
+  function setCalm(doc) { sessionSet(); markCalm(doc); }
   /** @type {WeakSet<object>|null} */
   const ACTIVE = typeof WeakSet !== "undefined" ? new WeakSet() : null;
   const CRISIS_CSS = "html[data-lq-crisis] [data-lq-remedy]{display:none!important}";
@@ -269,6 +332,7 @@
     const d = docOf(doc);
     if (!d || typeof d !== "object") return;
     if (ACTIVE) ACTIVE.add(d);
+    setCalm(d); // the session flag: every later fortune page in this tab is calm
     try { if (d.documentElement && d.documentElement.setAttribute) d.documentElement.setAttribute("data-lq-crisis", "1"); } catch (e) { /* no DOM */ }
     try {
       if (d.getElementById && !d.getElementById("lq-crisis-style") && d.head) { const st = d.createElement("style"); st.id = "lq-crisis-style"; st.textContent = CRISIS_CSS; d.head.appendChild(st); }
@@ -278,8 +342,24 @@
   /** may a renderer show this kind of content ("remedy" | "lucky" | "paid" | "merit" | "straight" | "reco" | "lead" | "share")?
    *  false while the page is in the crisis state @param {string} kind @param {any} [doc] */
   // eslint-disable-next-line no-unused-vars
-  const allow = (kind, doc) => !active(doc);
+  const allow = (kind, doc) => !active(doc) && !calmOn(doc);
+  /** true when this page is calm: the crisis state, the tab's session flag, or the soft step answered here @param {any} [doc] */
+  function calmOn(doc) {
+    if (active(doc) || sessionOn()) return true;
+    const d = docOf(doc);
+    try { return !!(d && d.documentElement && d.documentElement.getAttribute && d.documentElement.getAttribute("data-lq-calm") === "1"); } catch (e) { return false; }
+  }
+  /** the page's free-text fields hold crisis or distress words (or a name field holds more than a name); ignores ack()
+   *  @param {any} [doc] */
+  function distress(doc) {
+    const all = fields(doc);
+    if (all && (check(all) || soft(all))) return true;
+    try { const d = docOf(doc); return !!d && Array.from(d.querySelectorAll(NAME_FIELDS)).some(e => softName(e && e.value)); } catch (e) { return false; }
+  }
+  // a fortune page opened later in a calm session is calm from the start
+  try { if (root.document && sessionOn()) markCalm(root.document); } catch (e) { /* no DOM */ }
 
-  const api = { check, fields, soft, softName, plainName, pageSoft, ack, renderSoft, softGate, softText, HELP, helpLine, helpHTML, active, setActive, allow };
+  const api = { check, unjoke, fields, soft, softName, plainName, pageSoft, ack, renderSoft, softGate, softText, HELP, helpLine, helpHTML, active, setActive, allow,
+    calmOn, setCalm, markCalm, calmDock, distress, SESSION_KEY };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQFortuneCrisis = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -4113,8 +4113,7 @@
   const pageText = doc => (CR ? CR.fields(doc) : "");
   function crisisCheck() {
     for (let i = 0; i < arguments.length; i++) {
-      const t = String(arguments[i] == null ? "" : arguments[i]).normalize("NFC");
-      if (!t) continue;
+      const t = (CR && CR.unjoke ? CR.unjoke(arguments[i]) : String(arguments[i] == null ? "" : arguments[i])).normalize("NFC"); if (!t.trim()) continue;
       if (CRISIS_TH.test(t.replace(/\s+/g, "")) || CRISIS_EN.test(t) || CRISIS_ZH.test(t) || (CR && CR.check(t))) return true;
     }
     return false;
@@ -4353,8 +4352,9 @@
     // ส่วน C: ตัวเลือก "ดูตรง ๆ" — วาดเฉพาะเมื่อเปิดสวิตช์ (ปิดอยู่ในไฟล์ที่ส่งมอบ จึงไม่มีอะไรเปลี่ยนบนหน้า)
     if (straightEnabled() && opts.straightControl !== false && FS.mount) FS.mount(container, frag, res);
     // the help line under every reading (owner order 2026-11-12): calm, verified numbers, no detection needed
+    // (crisis fix 4: on a calm page fortune-crisis.js makes it sticky, in view next to the reading)
     if (CR && CR.helpLine) { try { frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ } }
-    container.appendChild(frag);
+    container.appendChild(frag); if (CR && CR.calmDock) CR.calmDock(container, res.lang); // crisis fix 4: help line in view when calm
     try { if (root.LQI18N && typeof root.LQI18N.apply === "function") root.LQI18N.apply(container); } catch (e) { /* i18n ไม่พร้อม */ }
     return container;
   }
@@ -4395,13 +4395,15 @@
   }
   /* crisis state (owner order 2026-11-12): once the support card was shown on this page, every later reading is the card
      again: no reading, plan, remedy or lucky item, and no hook runs (member light reading, merit or paid offers) */
-  const crisisOn = container => !!(CR && CR.active && CR.active(container && container.ownerDocument));
+  const crisisOn = container => !!(CR && CR.active && CR.active(container && container.ownerDocument)), calmAt = c => !!(FS.calm && FS.calm(c && c.ownerDocument));
   function renderWithHooks(container, result, opts) {
     // crisis net first: any free-text field of the page (name, question, dream …) with a crisis signal → support card, never a reading
     if (!(result && result.crisis) && (crisisOn(container) || crisisCheck(pageText(container && container.ownerDocument)))) result = supportResult({ lang: result && result.lang });
     // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step first, never a reading first
     const sl = result && result.lang, card = box => renderSupport(box, supportResult({ lang: sl }));
     if (!(result && result.crisis) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
+    // crisis fix 4 (fail-safe): in a calm page a straight reading composed earlier is never shown (the card instead), nor a plan
+    if (result && !result.crisis && calmAt(container)) result = result.mode === "straight" ? supportResult({ lang: result.lang }) : Object.assign({}, result, { plan: undefined });
     if (!HOOKS.length || (result && result.crisis)) return renderSections(container, result, opts); // a support card never goes through hooks
     let shown = result;
     for (const h of HOOKS) if (typeof h.gate === "function") { try { shown = h.gate(shown, opts, container); } catch (e) { /* keep the reading */ } }
@@ -4413,7 +4415,7 @@
 
   const api = {
     crisis: { check: crisisCheck, result: supportResult, render: renderSupport, fields: doc => pageText(doc),
-      active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => !(CR && CR.active && CR.active(doc)) },
+      active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => (CR && CR.allow ? CR.allow(kind, doc) : !(CR && CR.active && CR.active(doc))) },
     straight: Object.assign({}, FS, { isSafe: isSafeStraight, hardLimit }),
     compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,
     rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT, DOMAIN_NAMES,
