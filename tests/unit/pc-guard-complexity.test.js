@@ -3,8 +3,8 @@
 // characters (MAX_TEXT). Independent review 2026-11-13 (stream F): a line of phone numbers or a long digit run made it
 // quadratic or worse (8,000 characters: 88 s on main). This test is RELATIVE, not absolute, so a slow or busy CI machine
 // does not fail it: for each adversarial shape, 8x more text must cost at most 24x more time (linear = 8x, quadratic = 64x),
-// and the 8,000-character adversarial text must cost at most 25x an ordinary label text of the same length. Medians of 3.
-// Locked in evals-locks/pc-f2.sha256 (stream F2).
+// and the 8,000-character adversarial text must cost at most 25x an ordinary label text of the same length. Medians of 5.
+// Locked in evals-locks/pc-f.sha256 (stream F2).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const G = require("../../lensiq-pc-guard.js");
@@ -25,10 +25,13 @@ const SHAPES = {
 };
 const LABEL = n => rep("ส่วนประกอบ: พาราเซตามอล 500 มก.\nเลขทะเบียน 1A 15/50\nผลิตโดย บริษัท ทดสอบ จำกัด โทร 02-123-4567\nEXP 01/2028 LOT 2611A\n", n);
 const run = s => { G.scan(s); G.aiGate(s); G.imageCheck(s); G.possibleNames(s); G.autoBlock(s); };
+// one untimed warm-up run of the same text, then the median of 5 (re-lock 2026-11-13: a single GC pause on a busy machine
+// made one of 3 runs count; the bounds are unchanged)
 const time = s => {
+  run(s);
   const xs = [];
-  for (let i = 0; i < 3; i++) { const a = process.hrtime.bigint(); run(s); xs.push(Number(process.hrtime.bigint() - a) / 1e6); }
-  return xs.sort((a, b) => a - b)[1];
+  for (let i = 0; i < 5; i++) { const a = process.hrtime.bigint(); run(s); xs.push(Number(process.hrtime.bigint() - a) / 1e6); }
+  return xs.sort((a, b) => a - b)[2];
 };
 const FLOOR = 30; // ms: below this, timer noise dominates and nothing is compared
 
