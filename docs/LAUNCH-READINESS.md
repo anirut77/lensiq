@@ -46,7 +46,7 @@ every figure is copied from the file named next to it. Where two sources disagre
 | Customer build | Customer mode is the default on every host; an installer locks the research models off with `LENSIQ_RESEARCH_DEMO = false`. Checklist items `config.profile` and `config.age_gender` are still open | `docs/CTO-BRIEF.md` §2; `tools/check-legal.mjs` output |
 | Field accuracy | Not measured for any product. No field pilot has run | `docs/FIELD-PILOT.md` "Status per round" (round 16: not started) |
 | Legal review | Planned before sale; has not happened | `docs/CTO-BRIEF.md` §4 |
-| Real-phone quality (stream B, 2026-11-13) | WebKit (iOS engine) e2e at iPhone width for the main flow of every product; crash guard on all 28 camera pages (restart note TH/EN/ZH + lighter camera); a JS-heap / renderer-memory budget per camera page (synthetic, headless). **Not measured on a real phone yet**: the owner's 15-minute checklists per product are ready | `docs/PHONE-QUALITY.md`; `docs/owner-checklists/` |
+| Real-phone quality (stream B, 2026-11-13) | WebKit (iOS engine) e2e at iPhone width for the main flow of every product; crash guard on 24 camera pages (not on interview, qc, store, teamface: they store nothing at all) (restart note TH/EN/ZH + lighter camera); a JS-heap / renderer-memory budget per camera page (synthetic, headless). **Not measured on a real phone yet**: the owner's 15-minute checklists per product are ready | `docs/PHONE-QUALITY.md`; `docs/owner-checklists/` |
 
 ## 2. LENSIQ Exam — lab mode (computer room / online, Mode B)
 

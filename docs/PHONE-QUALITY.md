@@ -39,7 +39,7 @@ object (`MD_SHIM`) and every camera flow asserts that the page opened the test c
 
 ## 2. Crash guard
 
-`lensiq-crashguard.js`, loaded before `lensiq-camera.js` on every page that uses the camera (28 pages). iOS Safari
+`lensiq-crashguard.js`, loaded before `lensiq-camera.js` on 24 of the 28 camera pages. Not on interview, qc, store and teamface: they promise that nothing at all is stored (their locked privacy tests check that sessionStorage stays empty), so they keep that promise and get no restart note. iOS Safari
 reloads a tab whose page was killed for memory; no `pagehide` runs then.
 
 - While a camera stream is live, LQCam marks heavy work: sessionStorage `lq-heavy` = `"1"` (one boolean, nothing
@@ -92,10 +92,10 @@ for reloads, the crash-guard note, heat and battery on a real iPhone instead.
 | Check | Mac (local, WebKit 26 / Chrome) | CI ubuntu-latest |
 |---|---|---|
 | WebKit flows part A (home + 4 fortune) | 5 / 5 pass | 5 / 5 pass |
-| WebKit flows part B (9 work flows) | 9 / 9 pass | attendance failed before the LQCam fix (see below); studio and photobooth fail: Linux WebKit plays no camera video at all |
-| Crash guard unit / e2e | 10 / 10, 5 / 5 | see the CI run in the stream report |
-| Camera with no frames (`camera-noframes.e2e.mjs`) | fails before the fix, passes after | see the CI run |
-| Memory budgets | measured (table above) | measured (table above) |
+| WebKit flows part B (9 work flows) | 9 / 9 pass | run 43455270399: 6 / 9; attendance passes since the LQCam fix; exam-lab, studio and photobooth fail because Linux WebKit plays no camera video at all (they need frames) |
+| Crash guard unit / e2e | 10 / 10, 5 / 5 | pass (run 43455270399) |
+| Camera with no frames (`camera-noframes.e2e.mjs`) | fails before the fix, passes after | pass (run 43455270399) |
+| Memory budgets | measured (table above) | all 9 within budget in run 43455270399 (second CI run: photobooth RSS 868 MB, product check 571 MB, faceread 525 MB) |
 
 **Product finding 1 (fixed):** a camera that opens but never delivers a frame made `LQCam.start()` wait for ever on
 `video.play()`. attendance.html then stayed on "opening the camera" and even the PIN / QR clock (which needs no camera)
