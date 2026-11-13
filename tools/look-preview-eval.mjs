@@ -61,7 +61,8 @@ async function PAGE() {
   const d2 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   function densify(ps, closed) {
     const out = [], n = ps.length, m = closed ? n : n - 1;
-    for (let i = 0; i < m; i++) { const a = ps[i], b = ps[(i + 1) % n], k = Math.max(1, Math.ceil(d2(a, b))); for (let j = 0; j < k; j++) out.push([a[0] + (b[0] - a[0]) * j / k, a[1] + (b[1] - a[1]) * j / k]); }
+    for (let i = 0; i < m; i++) { const a = ps[i], b = ps[(i + 1) % n], k = Math.max(1, Math.ceil(d2(a, b))); for (let j = 0; j < k; j++) out.push([a[0] + (b[0] - a[0]) * j / k,
+      a[1] + (b[1] - a[1]) * j / k]); }
     if (!closed) out.push(ps[n - 1]);
     return out;
   }
@@ -70,8 +71,10 @@ async function PAGE() {
     const one = (P, Q) => P.reduce((s, p) => s + Math.min(...Q.map(q => d2(p, q))), 0) / P.length;
     return (one(a, b) + one(b, a)) / 2;
   }
-  function mask(poly) { const c = canvas(), g = c.getContext("2d"); g.fillStyle = "#fff"; g.beginPath(); poly.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.fill(); return g.getImageData(0, 0, W, H).data; }
-  function iou(A, B) { const a = mask(A), b = mask(B); let i = 0, u = 0, cb = 0; for (let k = 0; k < a.length; k += 4) { const x = a[k] > 127, y = b[k] > 127; if (x && y) i++; if (x || y) u++; if (y) cb++; } return { iou: u ? i / u : 0, cover: cb ? i / cb : 0 }; }
+  function mask(poly) { const c = canvas(), g = c.getContext("2d"); g.fillStyle = "#fff"; g.beginPath(); poly.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0],
+    p[1])); g.closePath(); g.fill(); return g.getImageData(0, 0, W, H).data; }
+  function iou(A, B) { const a = mask(A), b = mask(B); let i = 0, u = 0, cb = 0; for (let k = 0; k < a.length; k += 4) { const x = a[k] > 127,
+    y = b[k] > 127; if (x && y) i++; if (x || y) u++; if (y) cb++; } return { iou: u ? i / u : 0, cover: cb ? i / cb : 0 }; }
   const centroid = ps => ps.reduce((s, p) => [s[0] + p[0] / ps.length, s[1] + p[1] / ps.length], [0, 0]);
   const pair = (preds, gts) => gts.map(g => preds.slice().sort((x, y) => d2(centroid(x), centroid(g)) - d2(centroid(y), centroid(g)))[0]);
   const lab = (r, g, b) => {
@@ -142,7 +145,8 @@ async function PAGE() {
         seq.push(pts); raw.push(rpts);
         if (f === 0) seq.ipd = gt.ipd;
       }
-      const rms = arr => { let s = 0, k = 0; for (let f = 6; f < arr.length; f++) { if (!arr[f] || !arr[f - 1]) return null; for (let i = 0; i < arr[f].length; i++) { s += Math.pow(d2(arr[f][i], arr[f - 1][i]), 2); k++; } } return Math.sqrt(s / k); };
+      const rms = arr => { let s = 0, k = 0; for (let f = 6; f < arr.length; f++) { if (!arr[f] || !arr[f - 1]) return null; for (let i = 0; i < arr[f].length; i++) { s += Math.pow(d2(arr[f][i],
+        arr[f - 1][i]), 2); k++; } } return Math.sqrt(s / k); };
       const js = rms(seq), jr = rms(raw);
       return { seed, t, jitter: js == null ? null : js / seq.ipd, jitterRaw: jr == null ? null : jr / seq.ipd, msPerFrame: ms / frames };
     }
@@ -165,7 +169,8 @@ try {
   const devOnly = seeds.filter(x => x.split === "dev"), todo = LIMIT ? devOnly.filter((x, i) => i % Math.ceil(devOnly.length / LIMIT) === 0) : seeds;
   for (const { s, split } of todo) { const r = await page.evaluate(sd => window.__lp.face(sd), s); r.split = split; out.faces.push(r); process.stdout.write("."); }
   let t = 0;
-  for (const { s, split } of todo.filter(x => x.split === (LIMIT ? "dev" : "held"))) { const r = await page.evaluate((sd, t0) => window.__lp.jitter(sd, t0), s, t); t = r.t + 10000; r.split = split; out.jitter.push(r); process.stdout.write("j"); }
+  for (const { s, split } of todo.filter(x => x.split === (LIMIT ? "dev" : "held"))) { const r = await page.evaluate((sd, t0) => window.__lp.jitter(sd, t0), s,
+    t); t = r.t + 10000; r.split = split; out.jitter.push(r); process.stdout.write("j"); }
   console.log("");
 } finally { await browser.close(); srv.close && srv.close(); }
 

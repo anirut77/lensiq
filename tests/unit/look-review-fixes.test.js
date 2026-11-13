@@ -58,7 +58,8 @@ test("R2 render() closes an open preview dialog when the page is calm or in cris
         getElementById: () => ({}), createElement: () => ({}), head: { appendChild: () => {} } };
       const box = { ownerDocument: doc, hidden: false, innerHTML: "x", setAttribute() {}, querySelector: () => null };
       const before = closed;
-      L.render(box, { cls: { brow: { cat: "straight" }, eye: { cat: "soft" }, nose: { cat: "balanced" }, mouth: { cat: "small", note: "level" }, yintang: { cat: "balanced" }, chin: { cat: "balanced" }, zones: { dominant: null } }, el: { top: { id: "fire" } } });
+      L.render(box, { cls: { brow: { cat: "straight" }, eye: { cat: "soft" }, nose: { cat: "balanced" }, mouth: { cat: "small", note: "level" }, yintang: { cat: "balanced" },
+        chin: { cat: "balanced" }, zones: { dominant: null } }, el: { top: { id: "fire" } } });
       assert.equal(box.hidden, true, attr + ": block hidden");
       assert.ok(closed > before, attr + ": preview closed");
     }
@@ -68,7 +69,8 @@ test("R2 render() closes an open preview dialog when the page is calm or in cris
 test("R3 fail closed without the lint: no generated item and no salon item", () => {
   const L = look();
   assert.equal(typeof L.__setLintForTest, "function");
-  const c = { brow: { cat: "straight" }, eye: { cat: "soft" }, nose: { cat: "balanced" }, mouth: { cat: "small", note: "level" }, yintang: { cat: "balanced" }, chin: { cat: "balanced" }, zones: { dominant: null } };
+  const c = { brow: { cat: "straight" }, eye: { cat: "soft" }, nose: { cat: "balanced" }, mouth: { cat: "small", note: "level" }, yintang: { cat: "balanced" }, chin: { cat: "balanced" },
+    zones: { dominant: null } };
   try {
     L.__setLintForTest(null);
     assert.deepEqual(L.suggest(c, { el: "fire", lang: "th" }), [], "no generated items");

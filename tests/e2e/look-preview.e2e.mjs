@@ -53,8 +53,10 @@ export default async function ({ base, launch, check, fakeCams }) {
           if (!s.items.some(i => i.btn)) return; // this reading has no item with a live kind
           await page.evaluate(() => document.querySelector("#frLook [data-look-try]").click());
           await page.waitFor(() => { const d = document.getElementById("lqLookPreview"); return d && d.open; }, 5000);
-          await page.waitFor(() => { const d = document.getElementById("lqLookPreview"); return !!(d.querySelector("[data-look-live] canvas") || d.querySelector("[data-look-unavailable]:not([hidden])")); }, 15000);
-          const d = await page.evaluate(() => { const x = document.getElementById("lqLookPreview"); return { text: x.textContent, role: x.getAttribute("aria-labelledby") || x.getAttribute("aria-label") || "" }; });
+          await page.waitFor(() => { const d = document.getElementById("lqLookPreview");
+            return !!(d.querySelector("[data-look-live] canvas") || d.querySelector("[data-look-unavailable]:not([hidden])")); }, 15000);
+          const d = await page.evaluate(() => { const x = document.getElementById("lqLookPreview"); return { text: x.textContent,
+            role: x.getAttribute("aria-labelledby") || x.getAttribute("aria-label") || "" }; });
           assert(NOTE[l].test(d.text), l + ": privacy note: " + d.text.slice(0, 200));
           if (l !== "th") assert(!/[฀-๿]/.test(d.text), l + ": Thai in the dialog");
           assert(d.role, "dialog labelled");

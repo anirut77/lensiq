@@ -69,13 +69,15 @@
     path(ctx, TP(hairBack), true); ctx.fillStyle = rgb(p.hair, 1, 0, p.bright); ctx.fill();
     // face oval with shading (light from the left or right)
     var face = [];
-    for (var j = 0; j < 64; j++) { var b = j / 64 * Math.PI * 2; var yy = Math.sin(b), sx = yy > 0 ? 1 - 0.28 * yy * yy : 1; face.push([Math.cos(b) * p.faceW * sx, 0.35 + yy * p.faceH * (yy > 0 ? 1.5 : 1.3)]); }
+    for (var j = 0; j < 64; j++) { var b = j / 64 * Math.PI * 2; var yy = Math.sin(b), sx = yy > 0 ? 1 - 0.28 * yy * yy : 1; face.push([Math.cos(b) * p.faceW * sx,
+      0.35 + yy * p.faceH * (yy > 0 ? 1.5 : 1.3)]); }
     path(ctx, TP(face), true);
     var c0 = T(-p.light * 0.6, 0.2), g = ctx.createRadialGradient(c0[0], c0[1], u * 0.1, c0[0], c0[1], u * 1.6);
     g.addColorStop(0, K(1.04)); g.addColorStop(0.7, K(0.94)); g.addColorStop(1, K(0.78));
     ctx.fillStyle = g; ctx.fill();
     // ears
-    [-1, 1].forEach(function (s) { path(ctx, TP([[s * p.faceW * 0.98, -0.05], [s * (p.faceW + 0.12), 0.05], [s * (p.faceW + 0.1), 0.45], [s * p.faceW * 0.96, 0.55]]), true); ctx.fillStyle = K(0.88); ctx.fill(); });
+    [-1, 1].forEach(function (s) { path(ctx, TP([[s * p.faceW * 0.98, -0.05], [s * (p.faceW + 0.12), 0.05], [s * (p.faceW + 0.1), 0.45], [s * p.faceW * 0.96, 0.55]]),
+      true); ctx.fillStyle = K(0.88); ctx.fill(); });
     // hair fringe line (hairline), the hair polygon for ground truth = back hair minus face is approximated by the cap
     var cap = [];
     for (var k = 0; k <= 30; k++) { var c = Math.PI + k / 30 * Math.PI; cap.push([Math.cos(c) * p.faceW * 1.02, -0.72 + Math.sin(c) * 0.55]); }
