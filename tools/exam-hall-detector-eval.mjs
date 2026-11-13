@@ -15,6 +15,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
+import { assertLocked, phaseOf } from "./eval-guard.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -346,6 +347,12 @@ if (main) {
       console.log(`deleted ${n} images in ${IMG} (manifest.jsonl, CREDITS.tsv and results/ kept)`);
     } else console.log("no images to delete");
   } else if (has("--run") || has("--from")) {
+    // eval-guard (owner rule 2026-11-13): the locked manifest must be in ~/LENSIQ-field/evals/<phase>/ and committed in evals-locks/.
+    // The images share one aggregate hash (the images folder) and are deleted after the run; manifest.jsonl names them.
+    try {
+      const g = assertLocked(phaseOf(DIR), ["manifest.jsonl"]);
+      console.error(`eval-guard OK: phase ${g.phase}, manifest.jsonl ${g.files[0].sha256} in ${g.lockFile} (commit ${g.lockCommit})`);
+    } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(2); }
     const out = has("--from") ? JSON.parse(readFileSync(resolve(opt("--from")), "utf8")) : await run();
     const s = summarise(out);
     console.log(s.text);

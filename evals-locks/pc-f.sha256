@@ -15,3 +15,10 @@ f91d003ee9976c85a2b748ceab9d3f57c0a8c1d78f98497267855ec4e36c8b8d  holdout-p9/p9-
 081b774ed1c025b1dd977b6898d6064cb04aac128a15aeaee5fc31c6ca44c2bb  tools/pc-travel-score.mjs  # repo file
 6ad187b934e3a3d6a64449ecbd28a58871a04f8a4ee874b7a9ada497d40cfd5a  tests/unit/pc-guard-jako.test.js  # repo file
 ec63d49b104e7c8b9083363b26d6946e8deb8c582da3a9e17c04e330a807e5a9  live/live-latency.mjs  # live-scan on-device latency harness (synthetic label, with / without barcode), locked 2026-11-13T15:00:57Z before the live-scan change
+# evals-locks/pc-f.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/pc-f/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- from ~/LENSIQ-field/evals/pc-f/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+7df58ddd4748e65a4fddbab4e0a7f59908d4125661c14d940a6287fe5c5232ec  docs/product-check/pcf-jako-testset.json  # repo file  # repo file
+0f1c2341656f492ae4996abd6915d1dbb6e22018439263d1bd19df3c5e41bb37  tools/pc-jako-testset.mjs  # repo file  # repo file
+138e5583473d8ddd8c92806e9f1ac0aa5a8b1f0ce6367f8c7c5fce19875ea71d  tools/pc-guard-jako-score.mjs  # repo file  # repo file
+081b774ed1c025b1dd977b6898d6064cb04aac128a15aeaee5fc31c6ca44c2bb  tools/pc-travel-score.mjs  # repo file  # repo file
+6ad187b934e3a3d6a64449ecbd28a58871a04f8a4ee874b7a9ada497d40cfd5a  tests/unit/pc-guard-jako.test.js  # repo file  # repo file

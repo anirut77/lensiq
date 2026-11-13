@@ -12,6 +12,7 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
 - **Receipts:** the owner issues receipts from the template; the system does not number them yet.
 - **Accountant:** questions on the numbering series (one series `LQ-YYYYMM-000001` shared with the system, or a separate series for transfers) and on tax invoices (VAT status, full vs abbreviated, s.86/4 fields, timing) are in `docs/sales/ACCOUNTANT-QUESTIONS-TH.md`.
 - **After the accountant confirms:** switch to system numbering `LQ-YYYYMM-000001`.
+- **Price labels (OP-10, option B, decided 2026-11-13):** every document shows both price levels, clearly labelled, excl. 7 % VAT: the "pilot price" (ราคานำร่อง, the approved list, used now) and the "regular price after the pilot thresholds are met" (ราคาปกติหลังผ่านเกณฑ์นำร่อง, the after-pilot column of `docs/PRICING-RESEARCH.md` §3: Gate 990-1,490, Attendance 29, Crowd 990, Exam 15-30 / 990-1,490 / 30,000-120,000). Quotations charge the pilot price and show the regular price beside it. No number changed. Still open: the contract wording on when a site has "passed" the thresholds and who decides. Live pages follow in a separate stream.
 - **Free tiers (option B):** Fortune and general tools stay free (signed-out users keep the full fortune reading); the four business products get a limited free tier and need a licence beyond it.
 - **Gate:** 30-day trial, 1 lane, 100 plates per day. **Attendance:** free up to 5 people. **Exam:** free up to 5 candidates per session. **Crowd:** free 2 hours per device per day.
 - **Approved prices (excl. 7 % VAT):** Gate 490-790 THB per lane per month; Attendance 19 THB per person per month (minimum 190); Exam 10 THB per candidate (minimum 300 per session) or 990 THB per room per month; Crowd 590 THB per device per day.
@@ -235,8 +236,9 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 **Round 16, owner decisions and what is still open**
 - Page-status table (`docs/PAGE-STATUS.md`): approved as proposed on 2026-11-09; the category packaging is published.
-- Draft price levels (`docs/PRICING-RESEARCH.md`, open questions 1–6): still open; the document is committed as a
-  draft. Decided 2026-11-09: B2B prices are quoted excluding VAT ("excl. 7% VAT" on every price, now also on the live
+- Price levels (`docs/PRICING-RESEARCH.md`, open questions 1–6): **approved 2026-11-09** (not on sale yet); on 2026-11-13 (OP-10, option B) the owner decided
+  that both levels stay and are labelled "pilot price" and "regular price after the pilot thresholds are met" everywhere (see "Owner decisions 2026-11-13").
+  Decided 2026-11-09: B2B prices are quoted excluding VAT ("excl. 7% VAT" on every price, now also on the live
   gate.html and exam.html in TH / EN / ZH and in BILLING-PLAN §4.1); the Gate free tier is a free 30-day trial (live
   text updated; no trial timer is enforced in code); Gate pilot targets are judged on the Wilson 95 % lower bound with
   the plain average beside it. Still open: the self-serve checkout plans on pricing.html (Plus, Creator, Business, and

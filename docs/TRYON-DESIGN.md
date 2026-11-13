@@ -1,5 +1,9 @@
 # Virtual Try-On for clothing shops: design (build order: second, after Product Check and Nutrition Lens)
 
+> **Payment path (owner decision 2026-11-13):** bank transfer against a quotation and invoice only, for now; no PromptPay QR, no card and no Opn checkout. Where this document describes PromptPay push or the Opn fee for credit top-ups, read it as the design for a later online checkout, which is on hold (Opn KYC pending); it is not how LENSIQ is paid today.
+
+> **ช่องทางชำระเงิน (เจ้าของตัดสิน 2026-11-13):** ตอนนี้รับโอนผ่านธนาคารตามใบเสนอราคาและใบแจ้งหนี้เท่านั้น ไม่มี PromptPay QR บัตร หรือ Opn ข้อความด้านล่างที่พูดถึง PromptPay หรือค่าธรรมเนียม Opn ของการเติมเครดิต เป็นแบบสำหรับระบบชำระเงินออนไลน์ในอนาคต ซึ่งพักไว้ (รอ KYC ของ Opn) ไม่ใช่วิธีรับชำระในปัจจุบัน
+
 > **Status: DESIGN ONLY, waiting for owner approval.** This document adds no code, no migration and no deploy, and
 > nothing in it has been committed. It builds on the existing try-on relay (`tryon.py`, `/api/tryon`, the
 > `photobooth.js` AI panel) and the on-device studio (`studio.html`, `studio-core.js`, `photobooth-outfits.js`), and

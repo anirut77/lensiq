@@ -1,5 +1,9 @@
 # LENSIQ ดูดวง — 15 ศาสตร์ไทย–จีน อ่านได้ 3 ภาษา สำหรับผู้ใช้ทั่วไปและครีเอเตอร์สายดูดวง
 
+> **Payment path (owner decision 2026-11-13):** bank transfer against a quotation and invoice only, for now; no PromptPay QR, no card and no Opn checkout. Where this document describes the paid one-time reports and plans (checkout by PromptPay or card), read it as the design for a later online checkout, which is on hold (Opn KYC pending); it is not how LENSIQ is paid today.
+
+> **ช่องทางชำระเงิน (เจ้าของตัดสิน 2026-11-13):** ตอนนี้รับโอนผ่านธนาคารตามใบเสนอราคาและใบแจ้งหนี้เท่านั้น ไม่มี PromptPay QR บัตร หรือ Opn ข้อความด้านล่างที่พูดถึง รายงานครั้งเดียวและแพ็กเกจที่ชำระด้วย PromptPay หรือบัตร เป็นแบบสำหรับระบบชำระเงินออนไลน์ในอนาคต ซึ่งพักไว้ (รอ KYC ของ Opn) ไม่ใช่วิธีรับชำระในปัจจุบัน
+
 **คำทำนายที่อ่านลื่น อ่อนโยน และอ้างอิงตำรา — เพื่อความบันเทิง ไม่ขู่ ไม่ฟันธง**
 
 หนึ่งใน 4 ผลิตภัณฑ์ของ LENSIQ (ดูดวง · กล้องร้านค้า · ชุดสัมภาษณ์ HR · Creative Suite) ที่ใช้เอนจินเดียวกัน
