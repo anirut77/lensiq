@@ -1,0 +1,6 @@
+# evals-locks/fortune-wheels.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-wheels/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/fortune-wheels/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+6b03fed0ce7c0013cba342fc90cbeb78eb0f48b767b409e2f7f36109d71850d5  tests/e2e/fortune-wheel-labels.e2e.mjs  # repo file
+# line 1 = the test exactly as it ran on the unfixed code (2026-11-12, before-fails.json: 2702 problems).
+# line 4 = the same test after a format-only reflow of 2 long lines (format-check max 200 chars); no logic, threshold or input change.
+d913aa8420d92620ae3c8c836db29126313bd9f3e828f432b70d76b8c774e241  tests/e2e/fortune-wheel-labels.e2e.mjs  # repo file

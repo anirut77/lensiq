@@ -30,6 +30,7 @@ import { createRequire } from "node:module";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertLocked, phaseOf } from "./eval-guard.mjs";
 import { assertOutsideRepo, REPO, score, sha256File, wilson } from "./pc-claims-eval.mjs";
 
 const req = createRequire(import.meta.url);
@@ -210,7 +211,13 @@ function mainFresh(args, opt, log) {
   const next = args[i + 1];
   const dir = resolve(next && !next.startsWith("--") ? next : join(homedir(), "LENSIQ-field", "evals", "adverts", "fresh"));
   /** @type {any} */ let res;
-  try { assertOutsideRepo(log); res = runFresh(dir); } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(2); }
+  try {
+    assertOutsideRepo(log);
+    // eval-guard (owner rule 2026-11-13): the set is in ~/LENSIQ-field/evals/<phase>/ and its hashes are committed in evals-locks/
+    const g = assertLocked(phaseOf(dir), ["blind-input.jsonl", "labels-A.jsonl", "labels-B.jsonl"]);
+    console.error(`eval-guard OK: phase ${g.phase}, ${g.files.length} files in ${g.lockFile} (commit ${g.lockCommit})`);
+    res = runFresh(dir);
+  } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(2); }
   const hashes = { rules_sha256: sha256File(join(REPO, "lensiq-claims-rules.js")), engine_sha256: sha256File(join(REPO, "lensiq-claims.js")),
     advert_sha256: sha256File(join(REPO, "lensiq-pc-advert.js")) };
   const src = `dev: SPENT advert set ${basename(dir)} (its one independent run is done), consensus of labellers A and B; tuning data now, not independent`;

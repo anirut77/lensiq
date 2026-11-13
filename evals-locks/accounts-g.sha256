@@ -1,0 +1,15 @@
+# evals-locks/accounts-g.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/accounts-g/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/accounts-g/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# Stream G (accounts + billing groundwork, owner decisions 2026-11-13) — fixed tests, locked 2026-11-13T14:16:31Z BEFORE
+# backend/src/line.js, backend/src/orgs.js, backend/src/freetier.js, migration 0017_accounts.sql, lensiq-freetier.js and the
+# UI / site-copy changes were written. Branch accounts-g, base 1ef19c6. Paths relative to the repo root.
+# A changed hash means a test was edited after locking.
+841de39ed7647d545647066b89a0d0cae1bf0d2b8043a7245518fdff911a68f1  tests/unit/backend-line-signin.test.js  # repo file
+ba5cd100be2c06f47774597acc0a6355cbddff146dc429efac8a43d12fdcf086  tests/unit/backend-orgs.test.js  # repo file
+48a8d708ffa5ade21c635e1fa7594c4bf3e09373ecb16adf9293727da9de9e18  tests/unit/free-tier.test.js  # repo file
+116a6bd8b5d9356e54f71000d8c2e7e15251094049c994724549263f1ed3afda  tests/e2e/accounts.e2e.mjs  # repo file
+0dade3257920c3d67f3e9622d78f3ef37929ef0cab8b58864919e45e5b61659e  tests/e2e/admin-orgs.e2e.mjs  # repo file
+28e9b4820245b9da3a066312560fa4450ede3481539b1a7453edd9c462059d4f  tests/unit/backend-merit-reviewer.test.js  # repo file
+# Amendment A-G1 (made before this lock, to an EXISTING test locked in ../merit/locked.sha256): RV1 asserted that
+# 0016_merit_review.sql is the LAST migration; it now asserts 0016 directly follows 0015, because 0017_accounts.sql is
+# added after it. Every probe / "named exactly when missing" assertion is unchanged. Not a loosening: the order check stays.
