@@ -10,3 +10,4 @@ c8421600a895e5332448a2a29e9244c75e09c2f0452000e355429fe9dd87a46e  tests/e2e/fort
 # dev data outside the repo (path from ~/LENSIQ-field/evals/; the 2026-11-13 fresh review set, SPENT, dev data only):
 3df729f4d8706611c45cff71469f78a0d43ae878eb98bca63676aa9c302f4366  fortune-honest/fresh-2026-11-13/set.json
 3e737cba6f19b8c213c1acf0ff0b111bb627a9506a2a71c45b09e491de45c8d6  fortune-honest/fresh-2026-11-13/run1/runs.jsonl
+eefb2c196acbe2a39e0ecac3f27e608699e06726004395a428586bfb1c0912e4  tests/e2e/fortune-crisis-one-bar.e2e.mjs
