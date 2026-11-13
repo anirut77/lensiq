@@ -1,0 +1,11 @@
+# Studio garment fit (owner-approved item 24) — fixed tests, locked 2026-11-13 BEFORE SC.personTargets, SC.templateWarpTo
+# and the seven fit handles in studio.js were written. Branch tryon-fit, base 1ef19c6. Source label: synthetic.
+# Paths relative to the repo root. A changed hash means the set, the scorer or the targets changed after locking.
+2c892e47ffedb5795f123756ccaf1823a146ac418387037c80836f6974c06684  tests/unit/fixtures/studio-fit-set.js
+1fa3423bc04ffc5c86e5871f7a309c8536b17a8c1bf3b6ef746387ad44ed0e47  tests/unit/studio-fit-warp.test.js
+cdc086de37f4c8e49046a2d6ed06d8581b3d8f09d7bd8f6108e4ca2110fffda7  tools/studio-fit-eval.mjs
+#
+# evals-locks note 2026-11-13 (owner rule of 2026-11-13, received after this set was locked): the three files above were
+# committed unchanged in 9353f72 before any measurement; the first measurement ran after that commit. This file was added
+# when the rule arrived; the hashes are identical to ~/LENSIQ-field/evals/tryon-fit/locked.sha256. Copies of the set,
+# test and scorer: ~/LENSIQ-field/evals/tryon-fit/set/.
