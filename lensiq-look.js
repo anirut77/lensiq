@@ -44,7 +44,8 @@
       card: "brow-arch", preview: "brow", look: { brow: "arch" },
       reading: { th: "คิ้วตรง — ตามตำรา: ตรงไปตรงมา จริงใจ มั่นคง", en: "Straight brows — by tradition: direct, sincere and steady", zh: "一字眉——按传统：直率、真诚、稳重" },
       text: { th: "ถ้าอยากเพิ่มความนุ่มนวลในการพูดคุยตามตำรา ลองใช้ดินสอเขียนคิ้วสีใกล้สีผม เติมกลางคิ้วให้โค้งขึ้นเล็กน้อย (ในตำรา คิ้วโค้งสื่อถึงความอ่อนโยน)",
-        en: "For a softer touch in conversation, as the tradition puts it, try pencilling a slight curve into the middle of the brow in a shade close to your hair colour (a curved brow stands for gentleness)",
+        en: "For a softer touch in conversation, as the tradition puts it, try pencilling a slight curve into the middle of the brow " +
+          "in a shade close to your hair colour (a curved brow stands for gentleness)",
         zh: "如果想在交谈中多一分柔和，可以用接近发色的眉笔把眉毛中段画得稍微弯一点（面相中弯眉象征温柔）" } },
     { id: "brow-short-extend", cat: "brows", slot: "brows", prio: 30, when: function (c) { return c.brow.cat === "short"; },
       card: "brow-extend", preview: "brow", look: { brow: "extend" },
@@ -66,7 +67,8 @@
         zh: "眉形本来就符合传统看重的特点，只需用透明或有色眉胶把眉毛梳顺，让原本的眉线更清晰" } },
     { id: "brow-fill", cat: "brows", slot: "brows", prio: 10, when: function () { return true; },
       card: "brow-fill", preview: "brow", look: { brow: "fill" },
-      reading: { th: "คิ้วโก่ง คิ้วใบหลิว หรือคิ้วสมส่วน — ตามตำรา: อ่อนโยน มีเสน่ห์ด้านมิตรภาพ", en: "Arched, willow-leaf or balanced brows — by tradition: gentle and good with friends", zh: "新月眉、柳叶眉或匀称的眉——按传统：温和，人缘好" },
+      reading: { th: "คิ้วโก่ง คิ้วใบหลิว หรือคิ้วสมส่วน — ตามตำรา: อ่อนโยน มีเสน่ห์ด้านมิตรภาพ",
+        en: "Arched, willow-leaf or balanced brows — by tradition: gentle and good with friends", zh: "新月眉、柳叶眉或匀称的眉——按传统：温和，人缘好" },
       text: { th: "ลองเติมช่องว่างในคิ้วด้วยฝุ่นหรือดินสอเขียนคิ้วสีใกล้สีผม ให้เส้นคิ้วต่อเนื่อง ในตำรา คิ้วที่เส้นต่อเนื่องสื่อถึงมิตรภาพที่ราบรื่น",
         en: "Try filling any sparse spots with brow powder or pencil close to your hair colour so the line runs evenly; in face reading an even brow line stands for smooth friendships",
         zh: "可以用接近发色的眉粉或眉笔把稀疏处补满，让眉线连贯，面相中连贯的眉线象征人际关系顺畅" } },
@@ -79,13 +81,15 @@
     // ---------------- eyeliner ----------------
     { id: "liner-lift", cat: "makeup", slot: "liner", prio: 30, when: function (c) { return c.eye.cat === "soft" || c.eye.cat === "elephant"; },
       card: "liner-wing-short", preview: "liner", look: { liner: "wing-short" },
-      reading: { th: "หางตาลาด (ตาอ่อนโยนหรือตาช้าง) — ตามตำรา: ใจดี เป็นผู้ฟังที่ดี", en: "Softly sloping eyes (kind or elephant eyes) — by tradition: warm and a good listener", zh: "眼尾下垂（慈眼或象眼）——按传统：温和、善于倾听" },
+      reading: { th: "หางตาลาด (ตาอ่อนโยนหรือตาช้าง) — ตามตำรา: ใจดี เป็นผู้ฟังที่ดี",
+        en: "Softly sloping eyes (kind or elephant eyes) — by tradition: warm and a good listener", zh: "眼尾下垂（慈眼或象眼）——按传统：温和、善于倾听" },
       text: { th: "ลองอายไลเนอร์เส้นบางตามแนวขนตาบน แล้วตวัดปลายขึ้นสั้น ๆ ที่หางตา ในตำรา หางตาที่ยกขึ้นสื่อถึงความกระตือรือร้น",
         en: "Try a thin eyeliner along the upper lash line with a short upward flick at the outer corner; in face reading a lifted eye tail stands for enthusiasm",
         zh: "沿上睫毛根画一条细眼线，在眼尾轻轻上挑一小段，面相中眼尾上扬象征积极热情" } },
     { id: "liner-thin", cat: "makeup", slot: "liner", prio: 30, when: function (c) { return c.eye.cat === "phoenix" || c.eye.cat === "deer"; },
       card: "liner-thin", preview: "liner", look: { liner: "thin" },
-      reading: { th: "หางตาชี้ขึ้น (ตาหงส์หรือตากวาง) — ตามตำรา: เรียนรู้ไว มีชีวิตชีวา", en: "Upturned eyes (phoenix or deer eyes) — by tradition: quick to learn and lively", zh: "眼尾上扬（丹凤眼或鹿眼）——按传统：学得快、有活力" },
+      reading: { th: "หางตาชี้ขึ้น (ตาหงส์หรือตากวาง) — ตามตำรา: เรียนรู้ไว มีชีวิตชีวา",
+        en: "Upturned eyes (phoenix or deer eyes) — by tradition: quick to learn and lively", zh: "眼尾上扬（丹凤眼或鹿眼）——按传统：学得快、有活力" },
       text: { th: "แนวหางตาเดิมยกอยู่แล้วตามตำรา ลองอายไลเนอร์เส้นบางชิดโคนขนตา ลากตามแนวตาเดิมโดยไม่ต้องตวัด",
         en: "Your eye line already lifts the way the tradition values; a thin liner close to the lashes that simply follows your natural line is enough",
         zh: "眼尾本来就上扬，只需贴着睫毛根画一条细眼线，顺着原本的眼形画，不必上挑" } },
@@ -104,25 +108,29 @@
     // ---------------- lip colour ----------------
     { id: "lip-moon-gloss", cat: "makeup", slot: "lip", prio: 30, when: function (c) { return c.mouth.cat === "moon"; },
       card: "lip-gloss", preview: "lip", look: { lip: ["#d9707e", "#e58f86", "#c9677a"], finish: "gloss" },
-      reading: { th: "ปากจันทร์หงาย (มุมปากยก) — ตามตำรา: มองโลกแง่ดี พูดแล้วคนฟังสบายใจ", en: "Upturned 'moon' mouth — by tradition: optimistic and pleasant to listen to", zh: "仰月口（嘴角上扬）——按传统：乐观，说话让人舒服" },
+      reading: { th: "ปากจันทร์หงาย (มุมปากยก) — ตามตำรา: มองโลกแง่ดี พูดแล้วคนฟังสบายใจ",
+        en: "Upturned 'moon' mouth — by tradition: optimistic and pleasant to listen to", zh: "仰月口（嘴角上扬）——按传统：乐观，说话让人舒服" },
       text: { th: "มุมปากยกอยู่แล้วตามตำรา ลองลิปกลอสหรือลิปทินต์สีใส ๆ ให้แนวปากเดิมเด่น",
         en: "Your mouth corners already lift the way the tradition values; a sheer gloss or tint lets that natural line show",
         zh: "嘴角本来就上扬，用透明感的唇彩或染唇液，让原本的唇形更显眼" } },
     { id: "lip-center", cat: "makeup", slot: "lip", prio: 30, when: function (c) { return c.mouth.cat === "small" || c.mouth.cat === "cherry"; },
       card: "lip-center", preview: "lip", look: { lip: ["#c2455a", "#b23a48", "#d0626b"], finish: "satin" },
-      reading: { th: "ปากกะทัดรัดหรือปากเชอร์รี่ — ตามตำรา: คิดก่อนพูด มีเสน่ห์ในการพูด", en: "Compact or cherry mouth — by tradition: thinks before speaking, charming in conversation", zh: "小巧的嘴或樱桃口——按传统：说话前先思考，言谈有魅力" },
+      reading: { th: "ปากกะทัดรัดหรือปากเชอร์รี่ — ตามตำรา: คิดก่อนพูด มีเสน่ห์ในการพูด",
+        en: "Compact or cherry mouth — by tradition: thinks before speaking, charming in conversation", zh: "小巧的嘴或樱桃口——按传统：说话前先思考，言谈有魅力" },
       text: { th: "ลองลิปสีชัดแตะกลางริมฝีปากแล้วเกลี่ยออกด้านข้าง ในตำรา ริมฝีปากอิ่มสื่อถึงความโอบอ้อมอารี",
         en: "Try a clear lip colour dabbed in the centre of the lips and blended outward; in face reading full lips stand for generosity",
         zh: "把颜色明显的口红点在唇中央再向两侧晕开，面相中丰润的嘴唇象征待人宽厚" } },
     { id: "lip-matte", cat: "makeup", slot: "lip", prio: 30, when: function (c) { return c.mouth.cat === "wide" || c.mouth.cat === "square" || c.mouth.cat === "full"; },
       card: "lip-matte", preview: "lip", look: { lip: ["#b5646a", "#a6575f", "#c07a73"], finish: "matte" },
-      reading: { th: "ปากกว้าง ปากสี่เหลี่ยม หรือริมฝีปากอิ่ม — ตามตำรา: สื่อสารเก่ง ใจกว้าง", en: "Wide, square or full mouth — by tradition: a good communicator, generous", zh: "大嘴、四字口或丰唇——按传统：善于沟通、心胸开阔" },
+      reading: { th: "ปากกว้าง ปากสี่เหลี่ยม หรือริมฝีปากอิ่ม — ตามตำรา: สื่อสารเก่ง ใจกว้าง",
+        en: "Wide, square or full mouth — by tradition: a good communicator, generous", zh: "大嘴、四字口或丰唇——按传统：善于沟通、心胸开阔" },
       text: { th: "ลองลิปเนื้อแมตต์หรือซาตินสีกลาง ๆ เช่น กุหลาบหม่นหรือน้ำตาลอมชมพู ทาเต็มริมฝีปาก ให้ลักษณะเด่นตามตำราได้แสดงออก",
         en: "Try a matte or satin lip in a mid shade such as dusty rose or pinkish brown across the full lip, so the feature the tradition values shows",
         zh: "可以选哑光或缎光质地的中间色，比如豆沙玫瑰或粉棕色，涂满整个唇部，让传统看重的特点展现出来" } },
     { id: "lip-warm", cat: "makeup", slot: "lip", prio: 10, when: function () { return true; },
       card: "lip-warm", preview: "lip", look: { lip: ["#e0735f", "#c8584a", "#e48a7a"], finish: "satin" },
-      reading: { th: "มุมปากเรียบหรือปากสมส่วน — ตามตำรา: พูดจาหนักแน่น น่าไว้วางใจ", en: "Level mouth corners or a balanced mouth — by tradition: steady and trustworthy in speech", zh: "嘴角平或嘴形匀称——按传统：说话稳重、值得信赖" },
+      reading: { th: "มุมปากเรียบหรือปากสมส่วน — ตามตำรา: พูดจาหนักแน่น น่าไว้วางใจ",
+        en: "Level mouth corners or a balanced mouth — by tradition: steady and trustworthy in speech", zh: "嘴角平或嘴形匀称——按传统：说话稳重、值得信赖" },
       text: { th: "ในตำรา มุมปากที่ยกขึ้นสื่อถึงความเป็นมิตร ลองลิปสีโทนอุ่น เช่น คอรัล อิฐ หรือพีช ทาให้ชัดถึงมุมปาก",
         en: "In face reading, lifted mouth corners stand for friendliness; try a warm lip colour such as coral, brick or peach, defined right to the corners",
         zh: "面相中嘴角上扬象征友善，可以用珊瑚色、砖红色或蜜桃色等暖色调口红，把嘴角也涂清楚" } },
@@ -135,13 +143,15 @@
         zh: "面相中额头是官禄宫，可以选露出额头的发型，比如往后梳、侧分，或在见长辈的日子把头发扎起来" } },
     { id: "hair-cheek-frame", cat: "hair", slot: "hair", prio: 30, when: function (c) { return c.zones.dominant === "middle"; },
       card: "hair-cheek", preview: null, look: null,
-      reading: { th: "ส่วนกลางเด่น (คิ้วถึงฐานจมูก) — ตามตำรา: ความมุ่งมั่น การสร้างฐานะ", en: "Middle zone prominent (brows to nose base) — by tradition: drive and building a career", zh: "中停突出（眉到鼻底）——按传统：进取心、成家立业" },
+      reading: { th: "ส่วนกลางเด่น (คิ้วถึงฐานจมูก) — ตามตำรา: ความมุ่งมั่น การสร้างฐานะ",
+        en: "Middle zone prominent (brows to nose base) — by tradition: drive and building a career", zh: "中停突出（眉到鼻底）——按传统：进取心、成家立业" },
       text: { th: "ลองทรงผมซอยปลายระดับโหนกแก้ม หรือปล่อยผมด้านหน้าเล็กน้อยให้เป็นกรอบใบหน้าช่วงกลาง",
         en: "Try layers that end at cheekbone level, or a few face-framing strands at the front around the middle of the face",
         zh: "可以剪到颧骨位置的层次发型，或在前面留几缕修饰脸型的碎发" } },
     { id: "hair-chin-volume", cat: "hair", slot: "hair", prio: 25, when: function (c) { return c.chin.cat === "pointed" || c.zones.dominant === "lower"; },
       card: "hair-chin", preview: null, look: null,
-      reading: { th: "คางเรียวหรือส่วนล่างเด่น — ตามตำรา: ไหวพริบดี หรือมีความมั่นคงในวัยหลัง", en: "Tapered chin or prominent lower zone — by tradition: quick-witted, or steady in later life", zh: "下巴尖或下停突出——按传统：机敏，或晚年安稳" },
+      reading: { th: "คางเรียวหรือส่วนล่างเด่น — ตามตำรา: ไหวพริบดี หรือมีความมั่นคงในวัยหลัง",
+        en: "Tapered chin or prominent lower zone — by tradition: quick-witted, or steady in later life", zh: "下巴尖或下停突出——按传统：机敏，或晚年安稳" },
       text: { th: "ลองทรงผมยาวประบ่า หรือดัดลอนปลายผมช่วงคาง ในตำรา ช่วงล่างของใบหน้าที่อิ่มสื่อถึงความมั่นคงในวัยหลัง",
         en: "Try shoulder-length hair or soft waves around chin level; in face reading a full lower face stands for stability in later life",
         zh: "可以留及肩长发，或在下巴位置烫出柔和的卷度，面相中下庭丰满象征晚年安稳" } },
@@ -308,7 +318,8 @@
       from: "จากผลอ่าน:", adult: "ฉันอายุ 18 ปีขึ้นไป และอยากดูข้อแนะนำการแต่งลุคตามโหงวเฮ้ง", adultWhy: "ส่วนนี้สำหรับผู้ใหญ่เท่านั้น",
       hide: "ซ่อนส่วนนี้", off: "คุณซ่อนข้อแนะนำการแต่งลุคไว้ในเครื่องนี้", show: "แสดงอีกครั้ง", privacy: "ไม่เก็บภาพ ภาพไม่ออกจากเครื่อง",
       cats: { brows: "คิ้ว", makeup: "แต่งหน้า", hair: "ทรงผมและสีผม", facial_hair: "หนวดเครา", accessories: "เครื่องประดับและแว่น" } },
-    en: { title: "Look suggestions", intro: "Reversible styling ideas (brows, hair, make-up, accessories) based on the reading above. They are belief, not fact; no procedures, and not tied to any product.",
+    en: { title: "Look suggestions",
+      intro: "Reversible styling ideas (brows, hair, make-up, accessories) based on the reading above. They are belief, not fact; no procedures, and not tied to any product.",
       from: "From your reading:", adult: "I am 18 or older and would like look suggestions based on my face reading", adultWhy: "This section is for adults only",
       hide: "Hide this section", off: "You have hidden look suggestions on this device", show: "Show again", privacy: "No photos are stored; images never leave your device",
       cats: { brows: "Brows", makeup: "Make-up", hair: "Hairstyle and hair colour", facial_hair: "Facial hair", accessories: "Accessories and glasses" } },
@@ -386,6 +397,11 @@
     ".lq-look-label{font-size:.82em;font-style:italic;opacity:.8}.lq-look-adult label{display:flex;gap:.5em;align-items:flex-start;cursor:pointer;min-height:44px}" +
     ".lq-look-actions{margin-top:.6em}.lq-look .btn{min-height:44px}" +
     "@media (max-width:420px){.lq-look-item{flex-direction:column}.lq-look-card{flex:none}}" +
+    ".lq-look-dialog{width:min(94vw,680px);max-height:94vh;border:0;border-radius:16px;padding:1em;background:var(--bg,#fff);color:inherit}" +
+    ".lq-look-dialog::backdrop{background:rgba(10,20,30,.6)}.lq-look-canvas{width:100%;height:auto;border-radius:12px;background:#222}" +
+    ".lq-look-styles{display:flex;flex-wrap:wrap;gap:.4em;margin:.6em 0}.lq-look-styles .btn[aria-pressed=true]{outline:2px solid var(--look-accent,#a0466e)}" +
+    ".lq-look-sw{display:inline-block;width:1.1em;height:1.1em;border-radius:50%;vertical-align:middle;margin-right:.3em}" +
+    ".lq-look-dnote{font-size:.86em;opacity:.85}.lq-look-try{margin-top:.4em}" +
     (ART ? ART.CSS : "");
 
   function css(/** @type {any} */ d) {
@@ -441,6 +457,7 @@
     } catch (e) { /* no observer: the CSS still hides the block */ }
   }
 
-  var api = { RULES: RULES, LABEL: LABEL, SALON_LABEL: SALON_LABEL, SALON_TEXT: SALON_TEXT, salonItem: salonItem, salonHTML: salonHTML, CSS: CSS, SLOTS: SLOTS, suggest: suggest, canShow: canShow, confirmAdult: confirmAdult, html: html, render: render, TEXT: TXT };
+  var api = { RULES: RULES, LABEL: LABEL, SALON_LABEL: SALON_LABEL, SALON_TEXT: SALON_TEXT, salonItem: salonItem, salonHTML: salonHTML, CSS: CSS, SLOTS: SLOTS,
+    suggest: suggest, canShow: canShow, confirmAdult: confirmAdult, html: html, render: render, TEXT: TXT };
   if (NODE) module.exports = api; else /** @type {any} */ (root).LQLook = api;
 })(typeof window !== "undefined" ? window : globalThis);

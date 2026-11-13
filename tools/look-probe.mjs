@@ -28,7 +28,8 @@ try {
     await load("tools/look-synth-face.js");
     const { FilesetResolver, FaceLandmarker } = await import("/vendor/mediapipe/vision_bundle.mjs");
     const files = await FilesetResolver.forVisionTasks("/vendor/mediapipe/wasm");
-    const lm = await FaceLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath: "/vendor/models/face-landmarker/face_landmarker_lm.task", delegate: "CPU" }, runningMode: "IMAGE", numFaces: 1 });
+    const model = "/vendor/models/face-landmarker/face_landmarker_lm.task";
+    const lm = await FaceLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath: model, delegate: "CPU" }, runningMode: "IMAGE", numFaces: 1 });
     const out = []; let png = "";
     for (let s = 9000; s < 9014; s++) {
       const c = document.createElement("canvas"); c.width = 640; c.height = 480;

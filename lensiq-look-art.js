@@ -48,7 +48,8 @@
     "ear-stud": '<path d="M50 14q-14 0-14 18q0 12 10 16" class="t w"/><circle cx="47" cy="50" r="4" class="a fill"/>',
     "ear-angular": '<path d="M50 14q-14 0-14 18q0 12 10 16" class="t w"/><path d="M48 52l-6 12h12z" class="a w"/>',
     "glasses-round": '<circle cx="38" cy="40" r="14" class="a w"/><circle cx="82" cy="40" r="14" class="a w"/><path d="M52 38q8-4 16 0M24 38l-12-4M96 38l12-4" class="a"/>',
-    "glasses-rect": '<rect x="22" y="30" width="32" height="22" rx="5" class="a w"/><rect x="66" y="30" width="32" height="22" rx="5" class="a w"/><path d="M54 38q6-3 12 0M22 36l-10-3M98 36l10-3" class="a"/>',
+    "glasses-rect": '<rect x="22" y="30" width="32" height="22" rx="5" class="a w"/><rect x="66" y="30" width="32" height="22" rx="5" class="a w"/>' +
+      '<path d="M54 38q6-3 12 0M22 36l-10-3M98 36l10-3" class="a"/>',
     "glasses-cat": '<path d="M22 36q2 16 16 16q14 0 16-14q-14-8-32-10zM98 36q-2 16-16 16q-14 0-16-14q14-8 32-10z" class="a w"/><path d="M54 40q6-3 12 0" class="a"/>',
     "necklace-long": '<path d="M30 10q0 40 30 56q30-16 30-56" class="a w"/><circle cx="60" cy="68" r="4" class="a fill"/>'
   };

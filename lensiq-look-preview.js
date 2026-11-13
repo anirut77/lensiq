@@ -31,7 +31,9 @@
   var MP_OPTIONS = Object.freeze({ runningMode: "VIDEO", numFaces: 1, outputFaceBlendshapes: false, outputFacialTransformationMatrixes: false,
     minFaceDetectionConfidence: 0.5, minFacePresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
   /** kinds that passed the fixed synthetic measurement (tools/look-preview-results.json) */
-  var LIVE = [];
+  // measured 2026-11-13 on held-out synthetic faces (tools/look-preview-results.json, docs/LOOK-PREVIEW-RESULTS.md);
+  // brow-arch and glasses passed there too but stay off until a field check (no skin texture / head turns in the set)
+  var LIVE = ["lip", "liner", "brow"];
 
   var px = function (/** @type {any[]} */ lms, /** @type {number} */ i, /** @type {number} */ W, /** @type {number} */ H) { return [lms[i].x * W, lms[i].y * H]; };
   var ring = function (/** @type {any[]} */ lms, /** @type {number[]} */ idx, /** @type {number} */ W, /** @type {number} */ H) { return idx.map(function (i) { return px(lms, i, W, H); }); };
@@ -177,8 +179,11 @@
     th: { title: "ลองดูผ่านกล้อง", note: "ไม่เก็บภาพ ภาพไม่ออกจากเครื่อง ปิดหน้าต่างนี้แล้วกล้องหยุดทันที ภาพตัวอย่างเป็นการวาดทับโดยประมาณ สีบนจอเพี้ยนตามแสงและกล้อง",
       close: "ปิด", tryBtn: "ลองดูผ่านกล้อง", unavailable: "อุปกรณ์นี้แสดงภาพตัวอย่างสดไม่ได้ (ต้องใช้กล้องและการประมวลผลกราฟิกของเบราว์เซอร์) ดูภาพวาดประกอบแทนได้",
       measured: "ความแม่นยำวัดจากใบหน้าสังเคราะห์ (วาดขึ้น) ยังไม่ได้วัดกับคนจริง", styles: "แบบ", loading: "กำลังเปิดกล้อง…" },
-    en: { title: "Try with camera", note: "No photos are stored; images never leave your device, and the camera stops when you close this window. The preview is an approximate overlay; screen colours vary with light and camera.",
-      close: "Close", tryBtn: "Try with camera", unavailable: "Live preview is not available on this device (it needs a camera and the browser's graphics processing). The illustration shows the idea instead.",
+    en: { title: "Try with camera",
+      note: "No photos are stored; images never leave your device, and the camera stops when you close this window. " +
+        "The preview is an approximate overlay; screen colours vary with light and camera.",
+      close: "Close", tryBtn: "Try with camera",
+      unavailable: "Live preview is not available on this device (it needs a camera and the browser's graphics processing). The illustration shows the idea instead.",
       measured: "Accuracy measured on synthetic (drawn) faces only, not yet on real people", styles: "Style", loading: "Starting the camera…" },
     zh: { title: "用相机试试", note: "不保存照片，图像不会离开你的设备，关闭此窗口后相机立即停止。预览为近似叠加效果，屏幕颜色会随光线和相机而不同。",
       close: "关闭", tryBtn: "用相机试试", unavailable: "此设备无法显示实时预览（需要相机和浏览器的图形处理功能），可以参考示意图。",
@@ -186,7 +191,8 @@
   };
   var STYLES = /** @type {Record<string, string[]>} */ ({ brow: ["fill", "define", "extend", "lift"], liner: ["thin", "tight", "wing-short", "wing-long"] });
   var STYLE_NAME = /** @type {Record<string, Record<string, string>>} */ ({
-    th: { fill: "เติมให้เต็ม", define: "เน้นเส้นเดิม", extend: "ต่อหางคิ้ว", lift: "ยกหางคิ้ว", arch: "โค้งขึ้น", thin: "เส้นบาง", tight: "ชิดโคนขนตา", "wing-short": "ปีกสั้น", "wing-long": "ปีกยาว" },
+    th: { fill: "เติมให้เต็ม", define: "เน้นเส้นเดิม", extend: "ต่อหางคิ้ว", lift: "ยกหางคิ้ว", arch: "โค้งขึ้น",
+      thin: "เส้นบาง", tight: "ชิดโคนขนตา", "wing-short": "ปีกสั้น", "wing-long": "ปีกยาว" },
     en: { fill: "Fill", define: "Define", extend: "Longer tail", lift: "Lifted tail", arch: "Arch", thin: "Thin", tight: "Tight line", "wing-short": "Short wing", "wing-long": "Long wing" },
     zh: { fill: "补满", define: "勾勒原眉", extend: "延长眉尾", lift: "眉尾上扬", arch: "弯眉", thin: "细线", tight: "内眼线", "wing-short": "短眼尾", "wing-long": "长眼尾" }
   });
@@ -219,7 +225,8 @@
     var base = new URL(".", root.location.href).href;
     var V = await import(base + "vendor/mediapipe/vision_bundle.mjs");
     var files = await V.FilesetResolver.forVisionTasks(base + "vendor/mediapipe/wasm");
-    S.lm = await V.FaceLandmarker.createFromOptions(files, Object.assign({ baseOptions: { modelAssetPath: base + "vendor/models/face-landmarker/face_landmarker_lm.task", delegate: "CPU" } }, MP_OPTIONS));
+    var model = base + "vendor/models/face-landmarker/face_landmarker_lm.task";
+    S.lm = await V.FaceLandmarker.createFromOptions(files, Object.assign({ baseOptions: { modelAssetPath: model, delegate: "CPU" } }, MP_OPTIONS));
     return S.lm;
   }
   function stop() {
@@ -245,7 +252,8 @@
     }
     dlg.setAttribute("lang", l === "zh" ? "zh-Hans" : l);
     dlg.innerHTML = '<h3 id="lqLookPreviewTitle">' + esc(t.title) + "</h3>" +
-      '<div data-look-live><video playsinline muted hidden></video><canvas width="640" height="480" class="lq-look-canvas"></canvas><div class="lq-look-styles" role="group" aria-label="' + esc(t.styles) + '"></div></div>' +
+      '<div data-look-live><video playsinline muted hidden></video><canvas width="640" height="480" class="lq-look-canvas"></canvas>' +
+      '<div class="lq-look-styles" role="group" aria-label="' + esc(t.styles) + '"></div></div>' +
       '<p data-look-unavailable hidden>' + esc(t.unavailable) + "</p>" +
       '<p class="lq-look-dnote">' + esc(t.note) + '</p><p class="lq-look-dnote">' + esc(t.measured) + "</p>" +
       '<button type="button" class="btn primary" data-look-close>' + esc(t.close) + "</button>";
@@ -273,7 +281,7 @@
   }
   /** open the dialog for one suggestion @param {any} it @param {string} lang */
   async function open(it, lang) {
-    var l = langOf(lang), dlg = dialog(l), k = kindOf(it);
+    var l = langOf(lang), dlg = /** @type {any} */ (dialog(l)), k = kindOf(it);
     S.look = Object.assign({ kind: k, shade: 0 }, it.look || {});
     if (k === "brow" && S.look.brow === "arch") S.look.brow = "fill"; // arch change only when brow-arch itself passed
     styleChips(dlg, it, l);

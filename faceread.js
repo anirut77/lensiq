@@ -1441,7 +1441,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
     renderReco(R);
     // แนะนำการแต่งลุค (lensiq-look.js): ผู้ใหญ่เท่านั้น ซ่อนเมื่อระบบดูแลภาวะวิกฤตทำงาน ไม่เก็บภาพ ไม่ผูกกับสินค้า
-    if (window.LQLook) window.LQLook.render($("#frLook"), R);
+    var W8 = /** @type {any} */ (window); if (W8.LQLook) W8.LQLook.render($("#frLook"), R);
     renderLeadForm();
 
     // วิธีคำนวณ
