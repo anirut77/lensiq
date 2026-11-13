@@ -23,8 +23,8 @@
      e-Tax Invoice by Email และเลขที่เอกสารไม่ขาดตอน (R2) การหักภาษี ณ ที่จ่าย 3% ของลูกค้านิติบุคคล (R4)
      การเก็บเอกสาร 5 ปี (R5) **[ต้องยืนยัน / to confirm] OP-02, OP-03, OP-04, OP-05**
    - ตอนนี้ **เจ้าของออกเลขที่เอกสารและใบเสร็จเองจากแม่แบบ ระบบไม่ออกเลขให้** (2026-11-13) คำถามถึงนักบัญชีอยู่ที่ `ACCOUNTANT-QUESTIONS-TH.md`
-3. ราคา: ใช้ **ราคาช่วงนำร่อง** ไปก่อน ราคา "หลังนำร่อง" ใช้ได้เมื่อไซต์นั้นผ่านเกณฑ์ในชุดนำร่องของตัวเองแล้วเท่านั้น
-   (`docs/PRICING-RESEARCH.md` §3) ข้อความในสัญญาเรื่องนี้ **[ต้องยืนยัน / to confirm] OP-10**
+3. ราคา (เจ้าของตัดสิน 2026-11-13 ทางเลือก ข): ใบเสนอราคา **คิดเงินตามราคานำร่อง** และ **แสดงราคาปกติหลังผ่านเกณฑ์นำร่องไว้ข้างกัน** ทุกบรรทัด (คอลัมน์ "เพื่อเปรียบเทียบ ไม่คิดเงิน") ราคาปกติใช้คิดเงินได้เมื่อไซต์นั้นผ่านเกณฑ์ในชุดนำร่องของตัวเองแล้วเท่านั้น
+   (`docs/PRICING-RESEARCH.md` §3) ไม่มีตัวเลขเปลี่ยน ข้อความในสัญญาว่าเมื่อใดถือว่า "ผ่านเกณฑ์" และใครตัดสิน **[ต้องยืนยัน / to confirm] OP-10**
 4. หน้าเว็บยังติดป้าย "ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย" (`PRICING-RESEARCH.md` หัวเรื่อง) เจ้าของต้องยืนยันว่าเสนอราคาได้แล้ว
    **[ต้องยืนยัน / to confirm] OP-09**
 
@@ -57,10 +57,10 @@
 
 ### รายการ
 
-| # | รายการ | หน่วย | จำนวน | ราคาต่อหน่วย (บาท ไม่รวม VAT 7%) | จำนวนเงิน (บาท) |
-|---|---|---|---|---|---|
-| 1 | [ชื่อผลิตภัณฑ์ — แพ็กเกจ — ช่วง "นำร่อง"] | [หน่วยตามตารางราคา §2] | [จำนวน] | [ราคา] | [จำนวน × ราคา] |
-| 2 | ... | | | | |
+| # | รายการ | หน่วย | จำนวน | ราคานำร่องต่อหน่วย (บาท ไม่รวม VAT 7%) | จำนวนเงิน (บาท) ตามราคานำร่อง | ราคาปกติหลังผ่านเกณฑ์นำร่องต่อหน่วย (บาท ไม่รวม VAT 7%) เพื่อเปรียบเทียบ ไม่คิดเงิน |
+|---|---|---|---|---|---|---|
+| 1 | [ชื่อผลิตภัณฑ์ — แพ็กเกจ — ตามราคานำร่อง] | [หน่วยตามตารางราคา §2] | [จำนวน] | [ราคานำร่อง] | [จำนวน × ราคานำร่อง] | [ราคาปกติหลังผ่านเกณฑ์ จากตาราง §2] |
+| 2 | ... | | | | | |
 
 ### ยอดรวม
 
@@ -95,9 +95,9 @@
 ## 2. ตารางราคาที่ใช้ในรายการได้ (อนุมัติแล้ว 2026-11-09 ไม่รวม VAT 7%)
 
 แหล่ง: `docs/PRICING-RESEARCH.md` §3.1–3.4 และ `docs/BILLING-PLAN.md` §4.1 อย่าใช้ตัวเลขนอกตารางนี้
-คอลัมน์ "นำร่อง" ใช้ตอนนี้ คอลัมน์ "หลังนำร่อง" ใช้เมื่อไซต์ผ่านเกณฑ์แล้วเท่านั้น (OP-10)
+คอลัมน์ "ราคานำร่อง" ใช้คิดเงินตอนนี้ คอลัมน์ "ราคาปกติหลังผ่านเกณฑ์นำร่อง" แสดงข้างกันทุกใบเสนอราคาและใช้คิดเงินได้เมื่อไซต์ผ่านเกณฑ์แล้วเท่านั้น (OP-10: ป้ายราคาตัดสินแล้ว เหลือข้อความสัญญา)
 
-| ผลิตภัณฑ์ | รายการ (รหัสแผน) | หน่วย | นำร่อง (บาท) | หลังนำร่อง (บาท) |
+| ผลิตภัณฑ์ | รายการ (รหัสแผน) | หน่วย | ราคานำร่อง (บาท) | ราคาปกติหลังผ่านเกณฑ์นำร่อง (บาท) |
 |---|---|---|---|---|
 | Exam | โครงการนำร่องภาคสนาม (`exam_pilot`) 1 สถาบัน ≤ 4 สัปดาห์ ≤ 3 ห้อง | โครงการ | ฟรี (แลกกับการจดผลของผู้คุมสอบ) | — |
 | Exam | ระดับฟรี: ไม่เกิน 5 ผู้สอบต่อรอบสอบ (เกินนั้นต้องมีใบอนุญาต; ข้อจำกัดเริ่มตามวันที่จะประกาศ) | รอบสอบ | ฟรี | ฟรี |
@@ -135,42 +135,42 @@ VAT = ยอดก่อน VAT × 0.07 ปัดเป็นสตางค์ 
 
 ### ตัวอย่าง Exam (ห้องคอมพิวเตอร์ 1 การสอบ 40 ผู้สอบ)
 
-| # | รายการ | จำนวน | ราคาต่อหน่วย | จำนวนเงิน |
-|---|---|---|---|---|
-| 1 | Exam ห้องคอมพิวเตอร์ ต่อผู้สอบ ช่วงนำร่อง | 40 ผู้สอบ | 10.00 | 400.00 |
+| # | รายการ | จำนวน | ราคานำร่องต่อหน่วย | จำนวนเงิน | ราคาปกติหลังผ่านเกณฑ์นำร่องต่อหน่วย (เปรียบเทียบ ไม่คิดเงิน) |
+|---|---|---|---|---|---|
+| 1 | Exam ห้องคอมพิวเตอร์ ต่อผู้สอบ ราคานำร่อง | 40 ผู้สอบ | 10.00 | 400.00 | 15–30 |
 
 ยอดก่อน VAT 400.00 (มากกว่าขั้นต่ำ 300 ต่อรอบ) · แบบ V: VAT 28.00 → **รวม 428.00** · แบบ N: **รวม 400.00**
 (ตรงกับตัวอย่างใน `PRICING-RESEARCH.md` §3.1: 10 × 40 = 400)
 
 ### ตัวอย่าง Attendance (ร้าน 12 คน เดือนแรก พร้อมช่วยตั้งค่า)
 
-| # | รายการ | จำนวน | ราคาต่อหน่วย | จำนวนเงิน |
-|---|---|---|---|---|
-| 1 | Attendance มาตรฐาน ช่วงนำร่อง | 12 คน × 1 เดือน | 19.00 | 228.00 |
-| 2 | Attendance ช่วยตั้งค่า (ครั้งเดียว) | 1 | 2,900.00 | 2,900.00 |
+| # | รายการ | จำนวน | ราคานำร่องต่อหน่วย | จำนวนเงิน | ราคาปกติหลังผ่านเกณฑ์นำร่องต่อหน่วย (เปรียบเทียบ ไม่คิดเงิน) |
+|---|---|---|---|---|---|
+| 1 | Attendance มาตรฐาน ราคานำร่อง | 12 คน × 1 เดือน | 19.00 | 228.00 | 29 (ขั้นต่ำ 290 ต่อเดือน) |
+| 2 | Attendance ช่วยตั้งค่า (ครั้งเดียว) | 1 | 2,900.00 | 2,900.00 | 4,900 |
 
 ยอดก่อน VAT 3,128.00 (228 มากกว่าขั้นต่ำ 190 ต่อเดือน) · แบบ V: VAT 218.96 → **รวม 3,346.96** · แบบ N: **รวม 3,128.00**
 
 ### ตัวอย่าง Gate (หมู่บ้าน 2 ช่องทาง เดือนแรก พร้อมติดตั้งหน้างาน)
 
-| # | รายการ | จำนวน | ราคาต่อหน่วย | จำนวนเงิน |
-|---|---|---|---|---|
-| 1 | Gate หมู่บ้าน/คอนโด ช่วงนำร่อง | 2 ช่องทาง × 1 เดือน | 490.00 | 980.00 |
-| 2 | Gate ติดตั้งหน้างาน ช่วงนำร่อง | 1 ครั้ง | 2,500.00 | 2,500.00 |
+| # | รายการ | จำนวน | ราคานำร่องต่อหน่วย | จำนวนเงิน | ราคาปกติหลังผ่านเกณฑ์นำร่องต่อหน่วย (เปรียบเทียบ ไม่คิดเงิน) |
+|---|---|---|---|---|---|
+| 1 | Gate หมู่บ้าน/คอนโด ราคานำร่อง | 2 ช่องทาง × 1 เดือน | 490.00 | 980.00 | 990 ต่อช่องทาง (1,990 สำหรับ 3 ช่องทาง) |
+| 2 | Gate ติดตั้งหน้างาน ราคานำร่อง | 1 ครั้ง | 2,500.00 | 2,500.00 | 3,000–5,000 |
 
 ยอดก่อน VAT 3,480.00 · แบบ V: VAT 243.60 → **รวม 3,723.60** · แบบ N: **รวม 3,480.00**
 (ทดลองใช้ฟรี 30 วันก่อนหน้านี้ไม่ต้องใส่เป็นบรรทัดราคา หรือใส่ 0.00 ได้)
 
 ### ตัวอย่าง Crowd (งาน 2 วัน 2 เครื่อง)
 
-| # | รายการ | จำนวน | ราคาต่อหน่วย | จำนวนเงิน |
-|---|---|---|---|---|
-| 1 | Crowd วันงาน ช่วงนำร่อง (ประมาณความหนาแน่น ไม่ใช่จำนวนที่แน่นอน) | 2 เครื่อง × 2 วัน = 4 หน่วย | 590.00 | 2,360.00 |
+| # | รายการ | จำนวน | ราคานำร่องต่อหน่วย | จำนวนเงิน | ราคาปกติหลังผ่านเกณฑ์นำร่องต่อหน่วย (เปรียบเทียบ ไม่คิดเงิน) |
+|---|---|---|---|---|---|
+| 1 | Crowd วันงาน ราคานำร่อง (ประมาณความหนาแน่น ไม่ใช่จำนวนที่แน่นอน) | 2 เครื่อง × 2 วัน = 4 หน่วย | 590.00 | 2,360.00 | 990 |
 
 ยอดก่อน VAT 2,360.00 · แบบ V: VAT 165.20 → **รวม 2,525.20** · แบบ N: **รวม 2,360.00**
 หมายเหตุในใบเสนอราคา Crowd: เหมาะกับฝูงชนเบาบางถึงปานกลาง ยังไม่เหมาะกับฝูงชนหนาแน่น ห้ามใช้ตัดสินความปลอดภัยของฝูงชน
 
-### ตัวอย่างแพ็กเกจรวม — **ร่าง ยังไม่อนุมัติ** (สถาบันการศึกษา ปีแรก ช่วงนำร่อง)
+### ตัวอย่างแพ็กเกจรวม — **ร่าง ยังไม่อนุมัติ** (สถาบันการศึกษา ปีแรก ราคานำร่อง)
 
 ที่มา: `docs/SALES-PACKAGES.md` §A.2 ตัวอย่าง S (ไม่มีส่วนลดบันเดิล ส่วนลดเป็นคำถามของเจ้าของ B-1) (OP-11)
 
@@ -182,7 +182,7 @@ VAT = ยอดก่อน VAT × 0.07 ปัดเป็นสตางค์ 
 | 4 | Crowd วันงาน 4 วัน | 4 × 590 | 2,360.00 |
 
 ยอดก่อน VAT **32,940.00** · แบบ V: VAT 2,305.80 → **รวม 35,245.80** · แบบ N: **รวม 32,940.00**
-ตัวเลขตรงกับ `SALES-PACKAGES.md` §A.2 บรรทัด "Yearly total" ช่วงนำร่อง ป้าย "ร่าง" ต้องอยู่บนใบเสนอราคาจนกว่าเจ้าของอนุมัติแพ็กเกจ
+ตัวเลขตรงกับ `SALES-PACKAGES.md` §A.2 บรรทัด "Yearly total" ราคานำร่อง ป้าย "ร่าง" ต้องอยู่บนใบเสนอราคาจนกว่าเจ้าของอนุมัติแพ็กเกจ
 
 ---
 
@@ -209,8 +209,7 @@ Never invent seller details, prices or document numbers. Fields in [brackets] ar
      e-Tax Invoice by Email, and gap-free numbering (R2); the 3% withholding of juristic customers (R4); record keeping for 5 years (R5).
      **[to confirm] OP-02, OP-03, OP-04, OP-05**
    - For now **the owner numbers documents and issues receipts by hand from the templates; the system does not number them** (2026-11-13). The questions for the accountant are in `ACCOUNTANT-QUESTIONS-TH.md` (Thai).
-3. Price stage: use the **pilot-stage price** now. The "after pilot" price applies only after that site passes the thresholds of its own
-   pilot kit (`PRICING-RESEARCH.md` §3). Contract wording: **[to confirm] OP-10**.
+3. Price levels (owner decision 2026-11-13, option B): the quotation **charges the pilot price** and **shows the regular price after the pilot thresholds are met beside it** on every line (column "for comparison, not charged"). The regular price becomes chargeable only after that site passes the thresholds of its own pilot kit (`PRICING-RESEARCH.md` §3). No number changed. Contract wording on when a site has "passed" and who decides: **[to confirm] OP-10**.
 4. The product pages still say "approved price list, not on sale yet". The owner must confirm that quotations may go out **[to confirm] OP-09**.
 
 ## 1. Template
@@ -218,7 +217,7 @@ Never invent seller details, prices or document numbers. Fields in [brackets] ar
 Header: seller name, tax ID, address, head office or branch, contact, VAT status, quotation number (OP-04), issue date, valid until
 ([30] days; SALES-PACKAGES A.5 says 30–60 days, unverified, OP-06). Customer: organisation, tax ID, billing address, branch, contact, site.
 
-Items table: `# | item | unit | quantity | unit price (THB, excl. 7% VAT) | amount (THB)`.
+Items table: `# | item | unit | quantity | pilot price per unit (THB, excl. 7% VAT) | amount at the pilot price (THB) | regular price after the pilot thresholds are met, per unit (THB, excl. 7% VAT; shown for comparison, not charged)`.
 Totals: subtotal; VAT 7% (Form V only, rounded to the satang); **grand total**; amount in words.
 
 Conditions:
@@ -243,7 +242,7 @@ Signature blocks: seller and accepting customer, with name, position and date.
 
 Source: `docs/PRICING-RESEARCH.md` §3.1–3.4 and `BILLING-PLAN.md` §4.1. Use no number outside this table.
 
-| Product | Item (plan id) | Unit | Pilot stage (THB) | After pilot (THB) |
+| Product | Item (plan id) | Unit | Pilot price (THB) | Regular price after the pilot thresholds are met (THB) |
 |---|---|---|---|---|
 | Exam | Field pilot (`exam_pilot`), 1 institution, up to 4 weeks, up to 3 rooms | project | free (in exchange for invigilator tallies) | — |
 | Exam | Free tier: up to 5 candidates per session (beyond it a licence is needed; limits apply from a date to be announced) | session | free | free |
@@ -273,17 +272,17 @@ Yearly = 10 × monthly (BILLING-PLAN rule) for monthly lines sold yearly.
 Definitions still missing: "exam session" and "lab" (Exam), "active person" (Attendance), "day" (Crowd), "lane" (Gate) **[to confirm]** (OP-08, OP-18).
 Travel and out-of-area installation are not in the approved prices. Do not add a line yourself (OP-19).
 
-## 3. Worked examples (approved pilot-stage prices; they show the method, they are not real quotations)
+## 3. Worked examples (approved pilot prices; they show the method, they are not real quotations)
 
 VAT = subtotal x 0.07, rounded to the satang (Form V). Form N has no VAT; total = subtotal.
 
-| Example | Lines | Subtotal | Form V: VAT / total | Form N: total |
-|---|---|---|---|---|
-| Exam: one computer-room exam, 40 candidates | 40 x 10.00 = 400.00 (above the 300 minimum) | 400.00 | 28.00 / **428.00** | 400.00 |
-| Attendance: shop with 12 people, month 1, with set-up | 12 x 19.00 = 228.00 (above the 190 minimum) + set-up 2,900.00 | 3,128.00 | 218.96 / **3,346.96** | 3,128.00 |
-| Gate: village, 2 lanes, month 1, with on-site set-up | 2 x 490.00 = 980.00 + set-up 2,500.00 | 3,480.00 | 243.60 / **3,723.60** | 3,480.00 |
-| Crowd: 2-day event, 2 devices | 2 devices x 2 days = 4 units x 590.00 | 2,360.00 | 165.20 / **2,525.20** | 2,360.00 |
-| **Draft package** (not approved): institution, year 1, pilot stage | Exam licence 19,900 + Attendance 30 x 19 x 10 = 5,700 + Crowd 2 event weeks 4,980 + Crowd 4 event days 2,360 | 32,940.00 | 2,305.80 / **35,245.80** | 32,940.00 |
+| Example | Lines (pilot price) | Subtotal | Form V: VAT / total | Form N: total | Regular price after the pilot thresholds are met, per unit (comparison only, not charged) |
+|---|---|---|---|---|---|
+| Exam: one computer-room exam, 40 candidates | 40 x 10.00 = 400.00 (above the 300 minimum) | 400.00 | 28.00 / **428.00** | 400.00 | 15–30 per candidate |
+| Attendance: shop with 12 people, month 1, with set-up | 12 x 19.00 = 228.00 (above the 190 minimum) + set-up 2,900.00 | 3,128.00 | 218.96 / **3,346.96** | 3,128.00 | 29 per person (minimum 290 per month); set-up 4,900 |
+| Gate: village, 2 lanes, month 1, with on-site set-up | 2 x 490.00 = 980.00 + set-up 2,500.00 | 3,480.00 | 243.60 / **3,723.60** | 3,480.00 | 990 per lane (1,990 for 3 lanes); set-up 3,000–5,000 |
+| Crowd: 2-day event, 2 devices | 2 devices x 2 days = 4 units x 590.00 | 2,360.00 | 165.20 / **2,525.20** | 2,360.00 | 990 per device per day |
+| **Draft package** (not approved): institution, year 1, pilot price | Exam licence 19,900 + Attendance 30 x 19 x 10 = 5,700 + Crowd 2 event weeks 4,980 + Crowd 4 event days 2,360 | 32,940.00 | 2,305.80 / **35,245.80** | 32,940.00 | see the table in section 2 |
 
 The draft package follows `docs/SALES-PACKAGES.md` §A.2 example S, with no bundle discount (owner question B-1, OP-11).
 Crowd quotations must say: suited to sparse and medium crowds, not yet suitable for dense crowds, not for crowd-safety decisions.

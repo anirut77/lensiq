@@ -27,7 +27,7 @@
 
 ## 3. ผลิตภัณฑ์ที่สั่ง (ติ๊กและกรอกเฉพาะที่ใช้)
 
-ราคาทุกรายการ: ตามใบเสนอราคาที่อ้างถึง ไม่รวม VAT 7% ช่วงราคา: [นำร่อง / หลังนำร่อง] (OP-10)
+ราคาทุกรายการ: ตามใบเสนอราคาที่อ้างถึง ไม่รวม VAT 7% ช่วงราคา: [ราคานำร่อง / ราคาปกติหลังผ่านเกณฑ์นำร่อง] (OP-10)
 
 ### ☐ Exam (ห้องคอมพิวเตอร์/ออนไลน์ `exam-lab.html`)
 
@@ -139,7 +139,7 @@ For each: name, e-mail, phone or LINE.
 
 ## 3. Products ordered (tick and fill only what applies)
 
-Prices: as in the quoted quotation, excluding 7% VAT. Price stage: [pilot / after pilot] (OP-10).
+Prices: as in the quoted quotation, excluding 7% VAT. Price stage: [pilot price / regular price after the pilot thresholds are met] (OP-10).
 
 - **Exam (computer room / online, `exam-lab.html`):** order type (per candidate, monthly per lab, institution licence, free pilot); candidates per exam and
   number of labs; exam level (the pilot kit is for low-stakes exams only); any minors among candidates (if yes, a parental-consent step and counsel's

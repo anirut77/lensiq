@@ -145,8 +145,8 @@ month; an event activation agency budgets per booth-day, so a day pass priced be
 ### 4.1 Round 13 product lines: approved price list (not on sale yet; not on the plan registry)
 
 Plans live in the D1 `plans` table (backend/migrations) and the pricing page's built-in `DRAFT` copy mirrors those
-migrations, so adding a plan needs a new migration. **Owner decision 2026-11-09:** the price levels below (pilot stage
-and after pilot, `docs/PRICING-RESEARCH.md` §3) are **approved**. They are still **not on sale**: nothing below is
+migrations, so adding a plan needs a new migration. **Owner decision 2026-11-09:** the price levels below (pilot price
+and regular price after the pilot thresholds are met, `docs/PRICING-RESEARCH.md` §3) are **approved**. They are still **not on sale**: nothing below is
 sold, listed on pricing.html or enforced, and no migration has been written. Each product page shows them as
 "approved price list (not on sale yet)". A migration for any line needs its own owner decision.
 
@@ -155,10 +155,10 @@ sold, listed on pricing.html or enforced, and no migration has been written. Eac
 Every price in this table is **excluding 7 % VAT** (the customer pays price + 7 %), and the Gate free tier is a **free
 30-day trial**, not a permanent free plan. The checkout plans above (§3) stay VAT-inclusive because that is the amount
 `pricing.html` actually charges; moving them to excl. VAT would change what customers pay and needs a separate owner
-decision and a migration. "After pilot" applies only once that site has passed its pilot thresholds
-(`docs/pilot/PILOT-*.md`); until then the pilot-stage price stays.
+decision and a migration. The "regular price after the pilot thresholds are met" applies only once that site has passed its pilot thresholds
+(`docs/pilot/PILOT-*.md`); until then the pilot price stays. **Owner decision 2026-11-13 (option B):** both price levels are shown everywhere, clearly labelled, excl. 7 % VAT; quotations use the pilot price and show the regular price beside it. No number changed.
 
-| Proposed plan id | Product | Contents | Pilot stage (now; excl. 7 % VAT) | After pilot (excl. 7 % VAT) |
+| Proposed plan id | Product | Contents | Pilot price (now; excl. 7 % VAT) | Regular price after the pilot thresholds are met (excl. 7 % VAT) |
 |---|---|---|---|---|
 | `exam_pilot` | LENSIQ Exam field pilot | 1 institution, ≤ 4 weeks, ≤ 3 rooms, invigilator tallies | free | — |
 | `exam_lab` | LENSIQ Exam: computer room / online exam (exam-lab.html), **per candidate** | candidate page, signals log, invigilator dashboard | 10 THB per candidate per exam (min. 300 THB per session), or 990 THB / month per lab | 15–30 THB per candidate per exam, or 990–1,490 THB / month |

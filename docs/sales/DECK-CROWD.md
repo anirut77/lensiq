@@ -101,7 +101,7 @@
 # 8. ราคา (ราคาที่อนุมัติแล้ว · ไม่รวม VAT 7% · ไม่รวมอุปกรณ์)
 *Price (approved list, excl. 7% VAT, hardware not included)*
 
-| แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
+| แพ็กเกจ | ราคานำร่อง (ใช้ตอนนี้) | ราคาปกติหลังผ่านเกณฑ์นำร่อง |
 |---|---|---|
 | วันงาน (1 กล้อง/เครื่อง) | 590 บาท/วัน | 990 บาท/วัน |
 | สัปดาห์งาน (7 วัน, 1 กล้อง) | 2,490 บาท | 3,900 บาท |
@@ -110,8 +110,8 @@
 
 - ตัวอย่าง: 2 เครื่อง × 2 วัน × 590 = 2,360 บาท ก่อน VAT (VAT 165.20 รวม 2,525.20)
 - ระดับฟรี: 2 ชั่วโมงต่อเครื่องต่อวัน เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มตามวันที่จะประกาศ โดยประกาศล่วงหน้าอย่างน้อย 30 วันและเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับผ่านสัญญา (OP-26)
-- ลูกค้าชำระราคา + VAT 7% ผ่านใบเสนอราคาและโอนธนาคารเท่านั้น (OP-02) · นิยาม "วัน" รอเจ้าของยืนยัน (OP-18) · ราคา "หลังนำร่อง" ใช้เมื่อผ่านเกณฑ์เท่านั้น (OP-10)
-- ราคาช่วงนำร่องอยู่ล่างสุดของช่วงตลาด เพราะระบบนับต่ำกว่าจริง 26–59% และยังไม่มีผลหน้างานจริง
+- ลูกค้าชำระราคา + VAT 7% ผ่านใบเสนอราคาและโอนธนาคารเท่านั้น (OP-02) · นิยาม "วัน" รอเจ้าของยืนยัน (OP-18) · ราคาปกติหลังผ่านเกณฑ์นำร่อง ใช้เมื่อผ่านเกณฑ์เท่านั้น (OP-10)
+- ราคานำร่องอยู่ล่างสุดของช่วงตลาด เพราะระบบนับต่ำกว่าจริง 26–59% และยังไม่มีผลหน้างานจริง
 - ไฟล์: `docs/PRICING-RESEARCH.md` §3.3 · การเสนอขายต้องเจ้าของยืนยัน (OP-09)
 
 ---
@@ -134,5 +134,5 @@ LENSIQ Crowd estimates the density of people in a zone and counts entries and ex
 **not yet suitable for dense crowds**; it gives an estimate, not an exact count, and must never be used for crowd-safety decisions. All figures are preliminary against an AI reference counter (final human count pending):
 15–22 people filling the view undercount 26% (n = 12 frames); 30–50 people, many far, undercount 58% (n = 20 frames); small or far people 37–59% (n = 29 frames); near zone of 0–13 people off by 1.2 people per frame, 31%
 (n = 20 frames); entry / exit line 1 / 1 (n = 1); about 300 people counted as about 1 per frame (n = 2 + 7 frames). All from public datasets (`docs/CROWD-ACCURACY.md`). At a real customer site: not measured. Speed on a
-real phone: not measured (the 355 ms figure is emulated). No age, gender or expression estimate in customer builds. Free 2 hours per device per day (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot stage: 590 THB per device per day, 2,490 THB per device per
+real phone: not measured (the 355 ms figure is emulated). No age, gender or expression estimate in customer builds. Free 2 hours per device per day (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot price: 590 THB per device per day, 2,490 THB per device per
 week; monthly at a fixed site and dense crowds are not sold. Sold by quotation and bank transfer.

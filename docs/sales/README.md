@@ -12,6 +12,7 @@
 - **ใบเสร็จ:** เจ้าของออกเองจากแม่แบบ ระบบไม่ออกเลขที่ให้ คำถามถึงนักบัญชี (ชุดเลขและใบกำกับภาษี): [`ACCOUNTANT-QUESTIONS-TH.md`](ACCOUNTANT-QUESTIONS-TH.md) หลังนักบัญชียืนยัน แผนคือเปลี่ยนไปใช้เลขจากระบบ `LQ-YYYYMM-000001`
 - **ระดับฟรี (ทางเลือก ข):** ดูดวงและเครื่องมือทั่วไปยังฟรี (ผู้ไม่ได้ลงชื่อเข้าใช้ยังได้คำทำนายเต็ม) ผลิตภัณฑ์ธุรกิจทั้งสี่มีระดับฟรีแบบจำกัด เกินกว่านั้นต้องมีใบอนุญาต:
   Gate ทดลอง 30 วัน (1 ช่องทาง 100 ป้ายต่อวัน) · Attendance ฟรีถึง 5 คน · Exam ฟรีถึง 5 ผู้สอบต่อรอบสอบ · Crowd ฟรี 2 ชั่วโมงต่อเครื่องต่อวัน
+- **ป้ายราคา (ตัดสิน 2026-11-13 ทางเลือก ข):** ทุกเอกสารแสดงสองระดับ ไม่รวม VAT 7% คือ "ราคานำร่อง" (รายการที่อนุมัติ ใช้ตอนนี้) และ "ราคาปกติหลังผ่านเกณฑ์นำร่อง" (คอลัมน์หลังนำร่องใน `PRICING-RESEARCH.md` §3 ใช้เมื่อไซต์ผ่านเกณฑ์ของตัวเอง) ใบเสนอราคาใช้ราคานำร่องและแสดงราคาปกติไว้ข้างกัน ไม่มีตัวเลขเปลี่ยน
 - **ราคาที่อนุมัติ (ไม่รวม VAT 7%):** Gate 490–790 บาทต่อช่องทางต่อเดือน · Attendance 19 บาทต่อคนต่อเดือน (ขั้นต่ำ 190) · Exam 10 บาทต่อผู้สอบ (ขั้นต่ำ 300 ต่อรอบสอบ) หรือ 990 บาทต่อห้องต่อเดือน · Crowd 590 บาทต่อเครื่องต่อวัน
 - **ข้อจำกัดยังไม่ถูกบังคับในระบบ:** ระบบสมาชิกและการเรียกเก็บเงินจะสร้างภายหลัง ข้อจำกัดเริ่มใช้ตั้งแต่วันที่จะประกาศ โดยประกาศล่วงหน้าอย่างน้อย 30 วัน
   และเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับใช้ผ่านสัญญา **ข้อจำกัดที่ทำงานบนเครื่องของผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน** ลูกค้าส่งออกข้อมูลของตนได้เสมอ
@@ -67,7 +68,7 @@
 | OP-07 | A | ใบเสร็จและใบกำกับภาษีของผู้ขายที่จด VAT: ออกเป็นฉบับเดียวหรือแยก ออกเมื่อใด | ใบแจ้งหนี้ ใบเสร็จ | `BILLING-PLAN.md` §5 (ระบุฟิลด์ที่ต้องมี ไม่ระบุเวลา) |
 | OP-08 | O | นิยาม "คนที่ใช้งาน" (Attendance ขั้นต่ำ 190 บาท/เดือน) | ใบเสนอราคา สไลด์ Attendance | `PRICING-RESEARCH.md` §3.4 ไม่นิยามไว้ |
 | OP-09 | O | หน้าเว็บและเอกสารต้นทางยังเขียนว่า "ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย" เจ้าของยืนยันว่าเสนอราคาได้แล้ว และอัปเดตป้ายเมื่อพร้อม | ใบเสนอราคา เดโม สไลด์ | `PRICING-RESEARCH.md` หัวเรื่อง · คำสั่งประจำ 2026-11-11 ขายด้วยใบเสนอราคา |
-| OP-10 | O, L | ราคาช่วงนำร่อง vs หลังนำร่อง: ข้อความในสัญญาว่าเมื่อใดไซต์ "ผ่านเกณฑ์" และใครตัดสิน | ใบเสนอราคา ใบแจ้งหนี้ ใบสั่งซื้อ สไลด์ | `PRICING-RESEARCH.md` §3 · `docs/pilot/PILOT-*.md` (เกณฑ์ยังเป็น "ข้อเสนอ") |
+| OP-10 | O, L | **ตัดสินแล้วเรื่องป้ายราคา** (ทางเลือก ข 2026-11-13): แสดง "ราคานำร่อง" และ "ราคาปกติหลังผ่านเกณฑ์นำร่อง" คู่กันทุกเอกสาร ใบเสนอราคาใช้ราคานำร่อง **ยังเปิดอยู่เฉพาะ** ข้อความในสัญญาว่าเมื่อใดไซต์ "ผ่านเกณฑ์" และใครตัดสิน | ใบเสนอราคา ใบแจ้งหนี้ ใบสั่งซื้อ สไลด์ | `PRICING-RESEARCH.md` §3 · `docs/pilot/PILOT-*.md` (เกณฑ์ยังเป็น "ข้อเสนอ") |
 | OP-11 | O | แพ็กเกจรวมเป็นร่างยังไม่อนุมัติ: ส่วนลดบันเดิล (คำถาม B-1) ขนาดของใบอนุญาต Exam ในช่วง 30,000–120,000 (B-2) | ใบเสนอราคา ใบแจ้งหนี้ ใบเสร็จ | `SALES-PACKAGES.md` ท้ายเอกสาร |
 | OP-12 | L | ร่าง DPA อยู่ที่ `docs/legal/customer/DPA-TEMPLATE.md` (ร่างสำหรับทนายตรวจ) ต้องให้ทนายตรวจก่อนขายครั้งแรก | ใบเสนอราคา ใบสั่งซื้อ | LENSIQ จะเป็นผู้ประมวลผล (ม.40) เมื่อเข้าถึงอุปกรณ์ระยะไกลหรือซิงก์ |
 | OP-13 | O, L | ข้อกำหนดการใช้บริการ การยกเลิก การคืนเงิน ความรับผิด สำหรับการขายด้วยใบเสนอราคา มีเป็นร่างสำหรับทนายตรวจที่ `docs/legal/customer/TERMS-OF-SERVICE-B2B.md` (ยังไม่ใช่ฉบับใช้จริง) และสัญญานำร่อง `docs/pilot/AGREEMENT-TH.md` | ใบเสนอราคา ใบเสร็จ ใบสั่งซื้อ | `SUPPORT.md` §10.4 เป็นแม่แบบคืนเงินของผู้ใช้ทั่วไป |
@@ -105,6 +106,7 @@
 - **Receipts:** the owner issues them from the template; the system does not number them. Questions for the accountant (numbering series and tax invoice): `ACCOUNTANT-QUESTIONS-TH.md` (Thai). After the accountant confirms, the plan is to switch to system numbering `LQ-YYYYMM-000001`.
 - **Free tiers (option B):** Fortune and the general tools stay free (signed-out users keep the full fortune reading). The four business products have a limited free tier; beyond it a licence is needed:
   Gate 30-day trial (1 lane, 100 plates per day) · Attendance free up to 5 people · Exam free up to 5 candidates per session · Crowd free 2 hours per device per day.
+- **Price labels (decided 2026-11-13, option B):** every document shows both levels, excl. 7% VAT: the "pilot price" (approved list, used now) and the "regular price after the pilot thresholds are met" (the after-pilot column of `PRICING-RESEARCH.md` §3, used once a site passes its own thresholds). Quotations use the pilot price and show the regular price beside it. No number changed.
 - **Approved prices (excl. 7% VAT):** Gate 490-790 THB per lane per month · Attendance 19 THB per person per month (minimum 190) · Exam 10 THB per candidate (minimum 300 per session) or 990 THB per room per month · Crowd 590 THB per device per day.
 - **The limits are not enforced in the product yet:** membership and billing come later. The limits apply from a date to be announced, with at least 30 days' notice, and start 30 days after the announcement. The owner enforces them by contract.
   **A limit that runs on the user's device can be bypassed by someone who edits the code; the contract is what binds.** Customers can always export their own data.
@@ -137,7 +139,7 @@ Deciders: owner (O), accountant (A), lawyer (L), product team (P). The table abo
 - **OP-07 (A)** For a VAT-registered seller: one combined receipt / tax invoice or two documents, and when.
 - **OP-08 (O)** Definition of "active person" (Attendance minimum 190 THB per month).
 - **OP-09 (O)** Product pages and source docs still say "approved price list, not on sale yet"; the owner confirms quoting may start and updates the labels.
-- **OP-10 (O, L)** Pilot-stage versus after-pilot price: contract wording on when a site "passed" and who decides.
+- **OP-10 (O, L)** **Decided 2026-11-13 (option B):** both price levels are shown everywhere, clearly labelled, excl. 7% VAT: the "pilot price" (the approved list) and the "regular price after the pilot thresholds are met" (the after-pilot column of `docs/PRICING-RESEARCH.md` §3). Quotations use the pilot price and show the regular price beside it. No number changed. Still open: the contract wording on when a site has "passed" the pilot thresholds and who decides.
 - **OP-11 (O)** Combined packages are draft: bundle discount (B-1) and Exam licence size bands inside 30,000–120,000 (B-2).
 - **OP-12 (L)** A DPA draft exists at `docs/legal/customer/DPA-TEMPLATE.md` ("draft for legal review", not final); the order form also points to `SUPPORT.md` §5 and `PDPA-NOTES-FOR-COUNSEL.md` E3. Counsel must review it before the first sale.
 - **OP-13 (O, L)** Sales terms (service, cancellation, refund, liability) exist as a draft for legal review, `docs/legal/customer/TERMS-OF-SERVICE-B2B.md` (not final), besides the pilot agreement.

@@ -105,7 +105,7 @@
 # 9. ราคา (ราคาที่อนุมัติแล้ว · ไม่รวม VAT 7%)
 *Price (approved list, excl. 7% VAT)*
 
-| แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
+| แพ็กเกจ | ราคานำร่อง (ใช้ตอนนี้) | ราคาปกติหลังผ่านเกณฑ์นำร่อง |
 |---|---|---|
 | ห้องคอมพิวเตอร์/ออนไลน์ ต่อผู้สอบ | 10 บาทต่อผู้สอบต่อการสอบ (ขั้นต่ำ 300 บาทต่อรอบ) | 15–30 บาท |
 | ห้องคอมพิวเตอร์ รายเดือน | 990 บาท/เดือน/ห้องปฏิบัติการ | 990–1,490 บาท/เดือน |
@@ -114,7 +114,7 @@
 
 - ลูกค้าชำระราคา + VAT 7% ผ่านใบเสนอราคาและโอนธนาคารเท่านั้น (OP-02: ถ้าผู้ขายไม่จดทะเบียน VAT ไม่มีบรรทัด VAT)
 - ระดับฟรี: ถึง 5 ผู้สอบต่อรอบสอบ เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มตามวันที่จะประกาศ โดยประกาศล่วงหน้าอย่างน้อย 30 วันและเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับผ่านสัญญา (OP-26)
-- ราคา "หลังนำร่อง" ใช้เมื่อไซต์ผ่านเกณฑ์ใน `docs/pilot/PILOT-EXAM.md` แล้วเท่านั้น (OP-10)
+- ราคาปกติหลังผ่านเกณฑ์นำร่อง ใช้เมื่อไซต์ผ่านเกณฑ์ใน `docs/pilot/PILOT-EXAM.md` แล้วเท่านั้น (OP-10)
 - ห้องสอบที่มีกล้อง: **รุ่นทดลอง ไม่ขาย**
 - ตัวอย่าง: 40 ผู้สอบ × 10 = 400 บาท ก่อน VAT (VAT 28.00 รวม 428.00)
 - ไฟล์: `docs/PRICING-RESEARCH.md` §3.1 · สถานะการเสนอขาย: เจ้าของยืนยัน (OP-09)
@@ -140,4 +140,4 @@ Computer-room mode is pilot-ready; the camera hall is experimental and not for s
 and age / gender / expression models are not part of customer builds. Measured so far (all public dataset, none from real exam rooms): face not found 15% (n = 26 frames, `docs/exam/FACE-ENGINE-RESULTS.md`);
 the "more than one person" signal fires on 28.8% (15 / 52) of frames with a second person with 0 / 17 false alarms, an aid and not complete detection (§7.2). Not measured: accuracy in real exam rooms,
 phone and book detection, skin tone, low light. The published Twente trial (AI-only proctoring caught 0 of 6 instructed cheaters) is research, not a LENSIQ measurement. Free pilot: 1 institution, up to 4 weeks, up to 3 rooms.
-Free up to 5 candidates per session (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot stage: 10 THB per candidate per exam (minimum 300 THB per session), 990 THB per lab per month, institution licence from 19,900 THB per year. Sold by quotation and bank transfer.
+Free up to 5 candidates per session (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot price: 10 THB per candidate per exam (minimum 300 THB per session), 990 THB per lab per month, institution licence from 19,900 THB per year. Sold by quotation and bank transfer.
