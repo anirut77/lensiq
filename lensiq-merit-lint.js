@@ -7,7 +7,7 @@
  *
  * Before matching, the text is normalised so that disguises do not slip through (independent review 2026-11-12):
  * NFKC (fullwidth letters), zero-width / soft-hyphen / word-joiner / BOM removed, Cyrillic and Greek look-alikes mapped to
- * Latin, Thai digits to 0-9. Thai and Chinese rules run on a "squashed" form (spaces and punctuation removed, so
+ * Latin, Thai digits to 0-9, and SARA AM re-joined (NFKC turns "ำ" into U+0E4D U+0E32, which no rule below would match). Thai and Chinese rules run on a "squashed" form (spaces and punctuation removed, so
  * "แก้-ดวง" or "รับ ประกัน" count); English rules run on the lower-cased text (word boundaries kept), plus a squashed
  * check for "guarant…" ("g u a r a n t e e d"). Phone numbers are found by counting digits in a run (>= 9).
  */
@@ -21,11 +21,18 @@
   var THAI_NUM = "(?:หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า|สิบ|ยี่สิบ|ร้อย|พัน|หมื่น|แสน|ล้าน)";
   var TLD = "(?:com|net|org|co|me|ly|io|gl|th|shop|app|link|xyz|info|biz|cc|gg|tk|ws|page|site|online|store)";
 
+  /** @param {string} t @returns {string} */
+  function joinSaraAm(t) { return t.replace(/\u0E4D([\u0E48-\u0E4B]?)\u0E32/g, "$1\u0E33"); }
+
   /** @param {any} text @returns {string} */
   function normalise(text) {
     var t = String(text == null ? "" : text);
     try { t = t.normalize("NFKC"); } catch (e) { /* very old engines */ }
     t = t.replace(ZW, "");
+    // NFKC splits Thai SARA AM (U+0E33 "ำ") into NIKHAHIT (U+0E4D) + SARA AA (U+0E32); the rules below are written with U+0E33, so
+    // join it back (also when the tone mark sits between the two, "น" + "ํ" + "้" + "า"). Done after the zero-width strip so that
+    // "จ" + "ํ" + ZWSP + "า" is joined too. Patterns and input are now normalised the same way (found by stream D1, 2026-11-13).
+    t = joinSaraAm(t);
     t = t.replace(/[Ͱ-ϿЀ-ԯɡ]/g, function (c) { return HOMO[c] || c; });
     t = t.replace(/[๐-๙]/g, function (d) { return String(d.charCodeAt(0) - 0x0E50); });
     return t;
@@ -112,7 +119,8 @@
     var t = normalise(text);
     if (!t.trim()) return [];
     var lower = t.toLowerCase();
-    var squash = lower.replace(/[^\p{L}\p{M}\p{N}]+/gu, "");
+    // squashing can bring a nikhahit and a sara aa together that were typed apart ("ท ํ า"), so join again
+    var squash = joinSaraAm(lower.replace(/[^\p{L}\p{M}\p{N}]+/gu, ""));
     /** @type {{code: string, match: string}[]} */
     var out = [];
     for (var i = 0; i < CODES.length; i++) {
