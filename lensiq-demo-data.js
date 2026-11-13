@@ -71,7 +71,7 @@
         [4, "3", "object", "watch", "lab", null, null], [3, "12", "lean", "watch", "hall", null, null], [2, "", "aisle", "watch", "hall", null, null]
       ];
       for (const [min, seat, sig, lvl, src, verdict, out] of rows) {
-        const t = now - min * MIN, r = b.ingest({ v: 1, type: "ev", room: ROOM, node: src === "hall" ? HALL : LAB, src, seat, sig, lvl, t }, now);
+        const t = now - Number(min) * MIN, r = b.ingest({ v: 1, type: "ev", room: ROOM, node: src === "hall" ? HALL : LAB, src, seat, sig, lvl, t }, now);
         if (!r.ok || r.kind !== "alert") continue;
         if (out) {
           b.act(r.id, "going", { who: NAME }, t + 25000);
