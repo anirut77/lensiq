@@ -36,11 +36,15 @@
  */
 (function (root, factory) {
   const node = typeof module !== "undefined" && module.exports;
-  const m = factory(node ? require("./lensiq-pc.js") : /** @type {any} */ (root).LQPC);
+  const m = factory(node ? require("./lensiq-pc.js") : /** @type {any} */ (root).LQPC, root, node ? require("./lensiq-thai-canon.js") : null);
   if (node) module.exports = m;
   else { /** @type {any} */ (root).LQPCTravel = m; m.mount(root); }
-})(typeof self !== "undefined" ? self : this, function (/** @type {any} */ LQPC) {
+})(typeof self !== "undefined" ? self : this, function (/** @type {any} */ LQPC, /** @type {any} */ root, /** @type {any} */ TC) {
   "use strict";
+  /* review 2026-11-14: NFKC decomposes sara am ำ (nikhahit + sara aa), and the Thai headings below are written with ำ
+     ("คำเตือน"); a line is classified on its canonical copy (lensiq-thai-canon.js) */
+  /** @param {any} s @returns {string} */
+  const canon = s => { const C = TC || (root && root.LQThaiCanon); return C ? C.canon(s) : String(s == null ? "" : s).normalize("NFC"); };
 
   /* ---------------- INN hand table (LENSIQ's own; names are facts) ----------------
    * [INN as LENSIQ shows it, Latin-script names as printed (US / BP / local spellings), Chinese (simplified and
@@ -367,7 +371,7 @@
     "liver warning", "side effects?", "drowsiness", "孕妇", "孕婦", "慎用", "禁用", "过敏", "過敏", "妊娠", "授乳", "임부", "임산부", "ห้าม", "ตั้งครรภ์", "แพ้ยา", "เด็กเล็ก"]);
   /** @param {any} line */
   function classifyLine(line) {
-    const t = String(line || "").normalize("NFKC").trim();
+    const t = canon(String(line || "").normalize("NFKC")).trim();
     if (!t) return "other";
     if (DOSE_HEAD.test(t)) return "dose";
     if (WARN_HEAD.test(t)) return "warning";

@@ -33,9 +33,10 @@
  *     already-sent, session-cap; "ok" = send. Anything refused behaves as today (manual "ask AI" with the preview).
  */
 (function (root, factory) {
-  const m = factory();
-  if (typeof module !== "undefined" && module.exports) module.exports = m; else /** @type {any} */ (root).LQPCLive = m;
-})(typeof self !== "undefined" ? self : this, function () {
+  const node = typeof module !== "undefined" && module.exports;
+  const m = factory(root, node ? require("./lensiq-thai-canon.js") : null);
+  if (node) module.exports = m; else /** @type {any} */ (root).LQPCLive = m;
+})(typeof self !== "undefined" ? self : this, function (/** @type {any} */ root, /** @type {any} */ TC) {
   "use strict";
   const CFG = Object.freeze({
     fps: 4, side: 320, cell: 20, edgeT: 60, cellDensity: 0.06, thumbW: 64, thumbH: 48,
@@ -158,7 +159,11 @@
   }
 
   /* ---------------- reading merged across frames ---------------- */
-  const normLine = s => String(s == null ? "" : s).normalize("NFKC").replace(/[​-‍﻿]/g, "").replace(/\s+/g, " ").trim();
+  /* NFKC (full-width forms) DECOMPOSES sara am ำ into nikhahit + sara aa (review 2026-11-14: the guard then missed a home
+     address and took คำเตือน for a name), so the line is put back into the canonical Thai shape (lensiq-thai-canon.js) */
+  /** @param {any} s @returns {string} */
+  const canon = s => { const C = TC || (root && root.LQThaiCanon); return C ? C.canon(s) : String(s == null ? "" : s).normalize("NFC"); };
+  const normLine = (/** @type {any} */ s) => canon(String(s == null ? "" : s).normalize("NFKC")).replace(/[​-‍﻿]/g, "").replace(/\s+/g, " ").trim();
   function lev(a, b) {
     const A = [...a], B = [...b], m = A.length, n = B.length;
     if (!m) return n; if (!n) return m;
