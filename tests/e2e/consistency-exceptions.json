@@ -1,0 +1,12 @@
+{
+ "note": "Known exceptions of the consistency gate (tests/e2e/consistency-kit.mjs). APPEND-ONLY: entries are never edited or removed; when an exception is fixed, the gate passes anyway and the entry stays as history. Each entry: page, category (overflow | header | untranslated | states), a text the finding contains, the reason it needs the owner, and the date added.",
+ "exceptions": [
+  {
+   "page": "admin.html",
+   "category": "header",
+   "contains": "no #siteNav header",
+   "reason": "Owner-only console (not linked from the site, sign-in with the admin key). It has its own header without the public menu on purpose (tools/zh-coverage.mjs lists it as INTERNAL). Adding the public site menu and language switch to it changes what the owner's admin screen shows: owner decision.",
+   "added": "2026-11-14"
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+# locked 2026-11-14T12:34:59Z (tools/eval-guard.mjs lock, 10 files)
+# consistency pass (owner order 2026-11-14 B): site-wide probe + gate locked before any product fix. Baseline measured on origin/main 4413bc3 (before.log, before-rest.log in ~/LENSIQ-field/evals/consistency). Exceptions list is append-only; the buttons ratchet is only ever lowered.
+c5cd983f59235f621a1ca3bbff912fd324a9720f0211b3b9152a06c274f1e579  tools/consistency-probe.mjs
+eae6d563488804312134d939a42ddcd3debd6b389829a6d7292636c21d1d2984  tests/e2e/consistency-kit.mjs
+e74b2b79e431cf4de2fd1916a643c80b23a60dfdd53fc57398c584223fb134a0  tests/e2e/consistency-1.e2e.mjs
+76fd5693fb2380ac10c4b3d889f5745a7544550f409b1ee84c679ba4ddb5496e  tests/e2e/consistency-2.e2e.mjs
+12a4912d069fd33feebfd7db72edd0e31a1b196d83404933ba9ee5fbe1988769  tests/e2e/consistency-3.e2e.mjs
+f646c4507e5291cde4bfc141b8179127422ae71b085d1fc35c38526adea24396  tests/e2e/consistency-4.e2e.mjs
+89bbc1644a6aee72cce86b7da52c9f6bbbaba5f6319afecb6746c619fa6061cd  tests/e2e/consistency-5.e2e.mjs
+0cf294e83eadd0e7ffbd1ae7e47b6b62e33d3433ae077b67c8a0ad64dc6f3e3c  tests/e2e/consistency-6.e2e.mjs
+94d0b071202b32b4fe9055cdba6482e3b6955ff0c20a3551545b854c598c872f  tests/e2e/consistency-exceptions.json
+7d1b8575f2bf71594982e4552152d4c72dd6c85143d40ebad0232f337f413f72  tests/e2e/consistency-buttons-max.json
