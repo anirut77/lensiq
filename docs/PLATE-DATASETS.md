@@ -9,6 +9,9 @@
 We cannot train here (no GPU / torch, and Roboflow blocks automated downloads). The owner downloads the data by hand,
 checks every licence, and runs the notebook. Research notes: round-15 research (kept outside the repo).
 
+**Owner's own photos (stream H, 2026-11-13):** labeller, fixed split, face blur, local training and the comparison rule
+are in `docs/PLATE-TRAINING.md` (Thai + English). The notebook below stays the path for public datasets.
+
 ## 1. Datasets found (as listed; VERIFY EACH ONE BY HAND)
 
 Roboflow Universe pages could not be loaded by our tools (Cloudflare), so the licences and counts below come from

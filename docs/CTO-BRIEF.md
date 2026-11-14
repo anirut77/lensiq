@@ -549,3 +549,19 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
 | L60 | Claude Haiku via Google Vertex for the live label scan (legal list, owner 2026-11-13) | Google's terms forbid use on sites likely used by people under 18 and as a substitute for medical advice. Current approach: adult testers only (closed tester group); counsel reviews before any public use. Related: L48, L50, L57 | `backend/src/ai/*`, `docs/product-check/LIVE-SCAN-RESULTS.md`, `docs/LEGAL-PACKET.md` §3.11 (sub-section "ช่องทางอื่นที่ประเมินแล้ว": other routes (Anthropic direct, Bedrock, Azure, OpenRouter, OpenAI) read on 2026-11-13, not legal advice, nothing changed) | open | 2026-11-13 |
 | L61 | Privacy contact: separate DPO e-mail pending (owner 2026-11-13) | A separate privacy-contact (DPO) e-mail will be added; the owner will send the address. Until then documents show LINE @632yliiw and the placeholder `[อีเมลติดต่อเรื่องข้อมูลส่วนบุคคล — เจ้าของจะแจ้ง]`. Counsel: whether LENSIQ needs a DPO under s.41 (see LRP-P8, ORG-Q3) | `lensiq-config.js` `LENSIQ_SELLER`, `docs/legal/customer/*`, `docs/LEGAL-PACKET.md` §1.19 | open | 2026-11-13 |
 | L62 | Free-tier limits and the change from "free, every feature" (owner 2026-11-13) | Fortune and general tools stay free; Gate 30-day trial (1 lane, 100 plates per day), Attendance free up to 5 people, Exam free up to 5 candidates per session, Crowd free 2 hours per device per day, licence beyond. Not enforced in the product; limits apply from a date announced at least 30 days ahead and start 30 days after the announcement; enforced by contract; customers can always export their data; a licence works offline for 14 days (planned). Counsel: notice period, consumer-protection angle (existing users who had every feature free), contract wording, honest note that a limit on the user's device can be bypassed. Related: L25 | `docs/PRICING-RESEARCH.md`, `docs/BILLING-PLAN.md` §4.1, `docs/legal/customer/TERMS-OF-SERVICE-B2B.md` 8.6, `docs/sales/*`, `docs/LEGAL-PACKET.md` §4.7 | open | 2026-11-13 |
+
+### Stream H (2026-11-13): Gate training path, Exam hall seat-watch kit, hall placement check
+- Gate: owner-photo training path (`docs/PLATE-TRAINING.md`): local labeller (127.0.0.1, BlazeFace face-box proposals +
+  mandatory human "checked"; export blurs irreversibly, drops EXIF), locked split `plate-split-v1` (plate-group union,
+  70/15/15), boxes-only training files, local YOLOX-nano training (Apache-2.0, pinned 0.3.0, not vendored; CPU / MPS),
+  locked comparison `plate-compare-v1` vs the shipped detector on the field test split. No model trained (no photos).
+  Owner 2026-11-13: Mac-only training, overnight, refused automatically when the machine is busy; no Colab for owner photos;
+  basis B (vehicle owners who agree) for a ~170-photo first batch at the owner's factory (dev only), basis A (site-owner
+  permission + PDPA sign + no people) for the main set after counsel (PDPA notes J(c)). Per-type results under 20 test photos
+  are UNMEASURED. Measured: nothing (smoke runs only).
+- Exam hall mock session: variant B with 8 adult volunteers; no date until counsel clears the consent form.
+- Exam hall: `tools/hall-seatwatch-score.mjs` (locked rule `seatwatch-score-v1`), `tools/hall-seatwatch-replay.mjs`
+  (consented recordings only), Thai steps `docs/pilot/SEATWATCH-SCORING-TH.md`; on-page camera placement check
+  (`LQExam.hallPlacement`, TH / EN / ZH; minimum person height per detector from the public-dataset numbers: COCO-SSD 288 px,
+  tiles / YOLOX 144 px) and seat-layout export. Hall mode stays experimental; field: not measured.
+- Locks: `evals-locks/gate-hall-h.sha256` (tests committed before product code).

@@ -357,6 +357,12 @@ WASM, one thread; not a phone). Extra reads happen only when the top box's read 
 - Real-photo detection stays low (44 % top box, 14 / 32, labels v3). A detector trained on Thai plates with a clean licence remains the fix
   (`docs/PLATE-DATASETS.md`); the guard only makes misses safe (no false auto-read) and uses the next candidates.
 
+### Training on the owner's photos (stream H, 2026-11-13)
+`docs/PLATE-TRAINING.md`: what to photograph (main set ~635 plate + 100 plate-less photos; ~170-photo first factory batch, dev only), conditions, basis A / B for the photos, folder
+layout), local labeller with face-blur proposals and a mandatory "checked" tick, the locked split `plate-split-v1`, local
+YOLOX-nano training (`tools/plate_train.py`), and the locked comparison `plate-compare-v1`
+(`tools/plate-det-compare.mjs`, `plate-field-eval.mjs --det-model`). No model trained yet (no owner photos yet).
+
 ### Owner field set (`tools/plate-field-eval.mjs`)
 For the owner's ~100 phone photos: folder outside the repo (default `~/LENSIQ-field/plates/`; inside the repo only
 `field-data/`, git-ignored — the tool refuses any other repo folder), labelling sheet

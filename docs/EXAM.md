@@ -367,6 +367,31 @@ face, more people than faces, no people count, the face limit, never OK in those
 higher sizes, a chosen camera that cannot start at 4K, every state in Thai / English / Chinese, nothing stored or sent,
 off while monitoring, clip source 1,280 px or no clip, the seat shape warning).
 
+### Hall camera placement check (stream H, 2026-11-13): seats seen and person size against the detector's measured minimum
+
+A second panel under the camera view ("ตรวจตำแหน่งกล้อง: ที่นั่งและขนาดคน" / "Camera placement check" / "摄像头位置检查"), used
+**before monitoring**, after the seats are drawn and with someone in every seat. `LQExam.hallPlacement` (pure, numbers only)
+reads the loop's own person boxes and the seat polygons:
+
+- **seats seen**: seats whose polygon holds a person-box centre (`seatOf`, as the monitor does);
+- **person size**: the tallest box of each seat, in px of the **1,280 x 720 frame** the hall detector was measured on
+  (`h x frameH x min(1280 / W, 720 / H)`), so a 4K or 4:3 camera reads the same;
+- **detector minimum** (`LQExam.HALL_PLACE.minPx`), a FIXED rule: the lower edge of the smallest size band in which the
+  active detector found at least half of the people in `docs/exam/HALL-DETECTOR-RESULTS.md` §2 (source: **public dataset**,
+  Open Images V7 still images, not exam rooms): COCO-SSD **288 px** (it found 46.2 % at 144–288 px, n = 247; 75.3 % at
+  ≥ 288 px, n = 275), COCO-SSD with 2 x 2 tiles **144 px** (56.3 %), YOLOX-Nano **144 px** (65.2 %), YOLOX-Nano tiles 144 px;
+- **hidden**: more than half of a seat's polygon covered by the people of seats in the rows in front (camera too low or
+  too flat: raise it to ≥ 2.6 m and tilt down); **edge**: a seat polygon within 2 % of the frame edge (coverage).
+
+Verdict: `noseats` → `nocount` (no fresh people count, never "good") → `fix` (a seat under the minimum, hidden or at the
+edge; with COCO-SSD and no tiles it also says when the tiles option's 144 px minimum would cover those seats) → `partial`
+(seats with nobody seen) → `good`. The panel always prints the measured recall at the smallest person's size with n and
+"public dataset, not a real exam room", and "a pass is not a guarantee". It cannot measure camera height or angle
+directly: "hidden" and "person size" are the proxies. Nothing is stored or sent; off during monitoring. Tests:
+`tests/unit/exam-hall-placement.test.js`, `tests/e2e/exam-hall-placement.e2e.mjs` (locked before the code,
+`evals-locks/gate-hall-h.sha256`). Not measured in a real room: the seat-watch pilot records the panel's result per block
+(`docs/pilot/SEATWATCH-SCORING-TH.md`). "Export seat layout" (JSON, seat ids + polygons) is next to the seat list.
+
 v2: pose landmarker (head down to lap, hand at ear, arm crossing seats), phone detection on cycled seat crops,
 blurring the other seats in a kept hall clip (the evidence clip itself shipped in round 14 — see below).
 

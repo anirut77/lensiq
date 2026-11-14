@@ -1035,3 +1035,35 @@ name or other personal data, nothing sent to LENSIQ, nothing enforced (`FREE_TIE
 (free-tier limits) covers the announcement (≥ 30 days ahead, start 30 days after) and the "export is always available"
 promise. Question for counsel: wording of the announcement and whether the contract (not the device) is the binding
 limit, as the CTO brief notes.
+
+## J. Stream H (2026-11-13): plate training photos and seat-watch recordings (was "H" on branch gate-hall-h; renamed at the merge with main, where "H" is the camera-pages section)
+
+(a) **Owner photos of vehicles to train the plate detector** (`docs/PLATE-TRAINING.md`): taken at sites with the site
+owner's written permission and the PDPA camera sign posted; faces and other personal text blurred and checked by a person
+before training; training files hold boxes only (no plate text); plate text kept only in the held-out evaluation labels;
+originals deleted within 30 days of export (proposal); everything on the owner's computer. Questions: legal basis for
+using plate images to train a model that is sold (legitimate interest?), whether the sign is enough notice, the retention
+period, and whether the trained weights carry any obligation. Uploading these photos to Google Colab is **not done at all** (owner decision 2026-11-13: training on the owner's Mac only).
+
+(b) **Replay of a consented seat-watch recording** (`tools/hall-seatwatch-replay.mjs`): only when every person in the
+room ticked consent option B; frames are extracted to a temporary folder and deleted at the end of the run; the output is
+an event log (seat numbers, times, signal names). Same retention as the consent form (proposal ≤ 14 days for the video).
+
+(c) **Basis for the plate photos: whose agreement (owner decision 2026-11-13).** Per-driver consent for ~600 vehicles is not
+workable. Two bases, one per photo batch, recorded in the batch's `CONSENT.md` (no names in the training folder):
+- **A — site-owner permission + notice + no people:** the site owner's written permission; the PDPA camera notice sign
+  (`gate-notice.html`) at the entrance for the whole shoot; no people photographed (any caught are blurred and checked by a
+  person); legal basis legitimate interest (s. 24(5)). Scales to the main set (~735 photos, several sites).
+- **B — only vehicles whose owner agreed:** the vehicle owner (or regular driver) agrees before the photo, e.g. staff at the
+  owner's factory; basis consent (s. 19); paper agreement sheets kept in the office; withdrawal = delete that vehicle's
+  photos; staff must be free to refuse. Small (tens of vehicles).
+- **Recommendation:** B for the first factory batch now (~170 photos, dev only); A for the main set once counsel confirms.
+- **Questions for counsel:** (1) Is legitimate interest a valid basis for photographing parked vehicles' plates (no people)
+  at a third-party site, with the site owner's written permission and a PDPA sign, to train a detector that LENSIQ sells?
+  What must the legitimate-interest assessment contain? (2) Is the sign enough notice, or must the sign / a QR privacy
+  notice name the training purpose and the retention? (3) Under B, is an employee's agreement "freely given" when the
+  employer asks; what wording and withdrawal process are needed? (4) Does the trained model (weights) carry any obligation
+  once the photos are deleted? (5) Is a 30-day retention of originals (then only blurred photos until the model card is
+  done) acceptable? Affected documents: `docs/PLATE-TRAINING.md` §2.1, the `CONSENT.md` template (`tools/plate-train-prep.mjs`),
+  `gate-notice.html` wording.
+(d) Colab / any cloud training for these photos: not used (owner decision 2026-11-13: Mac only).
