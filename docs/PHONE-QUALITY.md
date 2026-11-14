@@ -5,6 +5,8 @@ Every number below states its source. **No number here is from a real phone**: t
 measurements (CI `ubuntu-latest` and a Mac). Field checks on real iPhones and Android phones are the owner checklists in
 [`docs/owner-checklists/`](owner-checklists/README.md).
 
+Page load speed and weight on an emulated mid-range phone: [`docs/SPEED.md`](SPEED.md) (speed pass 2026-11-14).
+
 Locked test set: `evals-locks/phone-quality.sha256` (copy of `~/LENSIQ-field/evals/phone-quality/locked.sha256`),
 written before any product change of this stream.
 
