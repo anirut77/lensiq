@@ -38,3 +38,7 @@ e3109a00358d50e26cea79227f2da6e861549a926304f40beebdd171f2ebcf90  walkfix.test.j
 # re-walk round (coordinator 2026-11-14, re-walk of a86b02c: N1, N2, N6, N7, W-006), locked BEFORE the fixes. walkfix-n.test.js is new. walkfix.test.js amendment 5: W-027 placeholders per language ([เจ้าของจะแจ้ง] / [to be provided by the owner] / [由业主提供], the coordinator's N6 instruction) and EN / ZH sections now allow no Thai at all (stricter).
 12718471c30c439f6ab4af46088fa77b8cefa073fb45c2983d1526b139736870  tests/unit/walkfix-n.test.js (re-walk round)  # repo file
 e3109a00358d50e26cea79227f2da6e861549a926304f40beebdd171f2ebcf90  tests/unit/walkfix.test.js (re-walk round)  # repo file
+# locked 2026-11-14T16:09:54Z (tools/eval-guard.mjs lock, 1 file)
+29f11e9ab43da29312f1fbfe7bf5570923709c2dba93e2e11f64a60c6b837610  walkfix-n.test.js
+# walkfix-n.test.js amendment 1: the N1 check exempted only the cat-hr .sl-go, although its header names solutions.test.js's existing-file rule, which also pins the hr1 card's .sl-go to a bare file; hr1 must still carry the explicit PIN / QR link (unchanged check).
+29f11e9ab43da29312f1fbfe7bf5570923709c2dba93e2e11f64a60c6b837610  tests/unit/walkfix-n.test.js (amendment 1)  # repo file

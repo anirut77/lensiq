@@ -28,6 +28,9 @@ test("N1: buyer-facing Attendance links open employee mode (PIN / QR)", () => {
       const before = src.slice(0, m.index);
       const card = (before.match(/<article class="sl-card" data-status="\w+" id="sol-(\w+)">(?![\s\S]*<\/article>)/) || [])[1];
       if (f === "solutions.html" && ["edu2", "f3", "e4"].includes(card)) continue;
+      // amendment 1: as the header says, solutions.test.js requires each card's .sl-go to name an existing file, so hr1 keeps a
+      // bare .sl-go next to its explicit PIN / QR link (checked below)
+      if (f === "solutions.html" && card === "hr1" && /class="sl-go"/.test(m[0])) continue;
       const catCard = (before.match(/<article class="pd-card cat-tool" data-page="([a-z0-9-]+)"(?![\s\S]*<\/article>)/) || [])[1];
       if (f === "cat-hr.html" && catCard === "attendance" && /class="sl-go"/.test(m[0])) continue;
       bad.push(f + ": " + m[0].slice(0, 90));
