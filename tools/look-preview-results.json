@@ -1,0 +1,134 @@
+{
+  "protocol": "docs/LOOK-PREVIEW-EVAL.md",
+  "tool": "tools/look-preview-eval.mjs",
+  "date": "2026-11-13",
+  "source": "synthetic",
+  "note": "Drawn synthetic faces (no real people): frontal, closed mouth, no glasses. Not a claim about real faces; field numbers need >= 20 consenting adult volunteers. fps is headless desktop Chrome (SwiftShader), not a phone.",
+  "targets": {
+    "lip": {
+      "contourMedian": 0.05,
+      "contourP90": 0.08,
+      "iouMedian": 0.8
+    },
+    "liner": {
+      "contourMedian": 0.04,
+      "contourP90": 0.06
+    },
+    "brow": {
+      "iouMedian": 0.6,
+      "coverageMedian": 0.85
+    },
+    "brow-arch": {
+      "deltaEMedian": 8
+    },
+    "jitter": 0.008,
+    "glasses": {
+      "anchorMedian": 0.05,
+      "anchorP90": 0.08
+    }
+  },
+  "heldOut": {
+    "n": 60,
+    "detected": 60,
+    "lip": {
+      "contourMedian": 0.012,
+      "contourP90": 0.024,
+      "iouMedian": 0.879
+    },
+    "liner": {
+      "contourMedian": 0.01,
+      "contourP90": 0.013
+    },
+    "brow": {
+      "iouMedian": 0.606,
+      "coverageMedian": 0.858
+    },
+    "brow-arch": {
+      "deltaEMedian": 0.791
+    },
+    "glasses": {
+      "anchorMedian": 0.036,
+      "anchorP90": 0.043
+    },
+    "jitter": {
+      "median": 0.001,
+      "rawMedian": 0.003,
+      "n": 60
+    },
+    "fpsHeadless": 45.3
+  },
+  "dev": {
+    "n": 60,
+    "detected": 60,
+    "lip": {
+      "contourMedian": 0.011,
+      "contourP90": 0.026,
+      "iouMedian": 0.895
+    },
+    "liner": {
+      "contourMedian": 0.009,
+      "contourP90": 0.014
+    },
+    "brow": {
+      "iouMedian": 0.629,
+      "coverageMedian": 0.885
+    },
+    "brow-arch": {
+      "deltaEMedian": 0.706
+    },
+    "glasses": {
+      "anchorMedian": 0.035,
+      "anchorP90": 0.042
+    },
+    "jitter": {
+      "median": null,
+      "rawMedian": null,
+      "n": 0
+    },
+    "fpsHeadless": null
+  },
+  "kinds": {
+    "lip": {
+      "pass": true,
+      "source": "synthetic",
+      "split": "held-out",
+      "n": 60
+    },
+    "liner": {
+      "pass": true,
+      "source": "synthetic",
+      "split": "held-out",
+      "n": 60
+    },
+    "brow": {
+      "pass": true,
+      "source": "synthetic",
+      "split": "held-out",
+      "n": 60
+    },
+    "brow-arch": {
+      "pass": true,
+      "source": "synthetic",
+      "split": "held-out",
+      "n": 60
+    },
+    "glasses": {
+      "pass": true,
+      "source": "synthetic",
+      "split": "held-out",
+      "n": 60
+    }
+  },
+  "hairColour": {
+    "measured": false,
+    "why": "the hair segmentation model is not wired into the eval page in this round; hair colour stays an illustration card"
+  },
+  "machine": {
+    "cpu": "Apple M1",
+    "cores": 8,
+    "os": "darwin 25.5.0",
+    "browser": "headless Chrome + SwiftShader WebGL (CPU)",
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36"
+  },
+  "limited": null
+}

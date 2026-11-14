@@ -44,3 +44,8 @@ db68b2ff7d800029df99b933aad888d4b61bac1f9b05063ee1a8c6af3979f205  tests/unit/bac
 bea9de2a0c405108b42b04714427b1f8aa10466245e597ff9ac25335f710fd7c  tests/unit/backend-hardening.test.js  # repo file
 aa124f53be41e62426c4dfdf04473d8b6f8cd6125d7830ca7dca0c092c77e28a  tests/unit/backend-fulfilment-refunds.test.js  # repo file
 ed6a7100d900a6b54afbe919d045b251041028228f0bc1d6f8d6d841d693691c  tests/unit/backend-billing-receipts.test.js  # repo file
+# 2026-11-14T11:43:43Z amendments A-P1-1..3 (org-p1, fixture only: switch the new org off switches on in these suites; no assertion changed). New hashes are locked in evals-locks/org-p1.sha256:
+0fdec63cbb6e561bedc15a8b47aa159682d77609612494d8051a555b4e7159e9  tests/unit/backend-orgs.test.js  # repo file
+392996a94d9e149afd46887bb864a308c72823923f1cf397a9d8cdd095b32afe  tests/unit/backend-accounts-security.test.js  # repo file
+2aebb07cfc5b5dd3039971fc9a53ca4cc70db585ca2c37dd53dd5668005fb967  tests/e2e/accounts.e2e.mjs  # repo file
+e7327d22e7c51cac247c537423496c5012111e77a1509d454c41c151b43a52ce  tests/e2e/admin-orgs.e2e.mjs  # repo file
