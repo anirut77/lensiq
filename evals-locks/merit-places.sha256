@@ -3,3 +3,8 @@ d1ff3e71a076259dc22f269f2cc71889150d123adb0ad5be7bb4231281ed6197  backend-merit-
 # merit-places (team C, owner order 2026-11-14 Part C) locked 2026-11-14 on branch merit-places-c (base ea509e0) BEFORE the product change
 # (backend/src/merit.js review notes purposes / province / verification, lensiq-merit-lint.js "แก้ชงได้", tools/merit-drafts-check.mjs, admin.js).
 d1ff3e71a076259dc22f269f2cc71889150d123adb0ad5be7bb4231281ed6197  tests/unit/backend-merit-places.test.js  # repo file
+# Re-lock 2026-11-14 (TEST DEFECT, arithmetic in the expectation): PL4 expected "purpose barami: 2" but the fixture has barami in
+# one entry only (place() default; wom() and the third entry override purposes), so the right count is 1. No other line changed;
+# the product output was not changed to fit. Earlier hash d1ff3e71... superseded.
+6ec6e53008f5d7372f6f4d7a83d83028f1bc92689e790f0c241a71496292f16f  backend-merit-places.test.js
+6ec6e53008f5d7372f6f4d7a83d83028f1bc92689e790f0c241a71496292f16f  tests/unit/backend-merit-places.test.js  # repo file

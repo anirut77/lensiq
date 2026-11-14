@@ -114,7 +114,7 @@ test("PL4: tools/merit-drafts-check.mjs checks a places file offline and prints 
   const run = f => spawnSync(process.execPath, [join(ROOT, "tools", "merit-drafts-check.mjs"), f], { encoding: "utf8" });
   const g = run(good), b = run(bad);
   assert.equal(g.status, 0, g.stdout + g.stderr); assert.match(g.stdout, /3 of 3 item\(s\) pass/);
-  assert.match(g.stdout, /purpose work: 2\b/); assert.match(g.stdout, /purpose barami: 2\b/); assert.match(g.stdout, /purpose love: 1\b/);
+  assert.match(g.stdout, /purpose work: 2\b/); assert.match(g.stdout, /purpose barami: 1\b/); assert.match(g.stdout, /purpose love: 1\b/);
   assert.match(g.stdout, /verification official: 2\b/); assert.match(g.stdout, /verification word_of_mouth: 1\b/);
   assert.equal(b.status, 1); assert.match(b.stdout, /#2/);
 });
