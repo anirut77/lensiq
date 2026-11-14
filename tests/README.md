@@ -212,7 +212,8 @@ merge. A round is done when CI is green on the pushed commit, not before.
 
 - Unit: `research-switch.test.js` (default = customer, toggle, operator / profile lock, licence label and F5 link),
   `camera-unattended.test.js` / `camera-liveness-wipe.test.js` (new default asserted), `commercial-collateral.test.js`
-  (go-live `config.profile` / `config.age_gender` done only with the operator lock), `gate-guard.test.js` (plate check:
+  (go-live `config.profile` / `config.age_gender` done only with the operator lock), `build-site.test.js` (`--customer`
+  bundle: lock prepended to the output `lensiq-config.js`, both go-live items verified "ok", fails closed), `gate-guard.test.js` (plate check:
   aspect, text lines, Thai pattern, partials), `gate-field-eval.test.js` (owner photo tool on a tiny generated folder:
   HEIC / renamed / unreadable photos, labels sheet refused inside the repo), `accuracy-claims.test.js` (every claim has
   value · n · source in TH/EN/ZH, evidence still in its source doc, tuning-set caveats), `crowd-report.test.js` (+ crowd-eval
