@@ -10,6 +10,9 @@
 //      "free" are claimed only where that row says so; a scheduled workflow re-checks the official pages (no secrets, not
 //      part of the CI gate).
 //  B4  the new wording is on the professional-review list (docs/LEGAL-PACKET.md L63, docs/CRISIS-RESOURCES.md).
+// RE-LOCK 2026-11-14 (owner addition after testing on a phone, relayed by the coordinator): each help line is ONE compact
+//      row: a short label, then the call button with the number ("โทร 1323"), so label + button read as the owner's wording
+//      ("อยากมีคนรับฟัง" + "โทร 1323"); the link's accessible name is the whole wording. The second line wraps under the label.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync, readdirSync, existsSync } = require("node:fs");
@@ -84,9 +87,12 @@ test("component table: five lines in order, digits-only tel, the number in every
     assert.equal(x.tel, TELS[id], id + " tel");
     assert.equal(digits(x.n), x.tel, id + ": shown number = tel digits");
     for (const lang of LANGS) {
-      for (const f of ["btn", "sub", "org"]) assert.ok(x[lang] && typeof x[lang][f] === "string" && x[lang][f].trim(), id + " " + lang + "." + f);
+      for (const f of ["btn", "label", "go", "sub", "org"]) assert.ok(x[lang] && typeof x[lang][f] === "string" && x[lang][f].trim(), id + " " + lang + "." + f);
       assert.ok(x[lang].btn.includes(x.n), id + " " + lang + ": the button shows " + x.n + ": " + x[lang].btn);
-      if (lang !== "th") for (const f of ["btn", "sub", "org"]) assert.doesNotMatch(x[lang][f], THAI, id + " " + lang + "." + f + " has Thai");
+      assert.ok(x[lang].go.includes(x.n), id + " " + lang + ": the call button itself shows " + x.n);
+      assert.ok(x[lang].btn.startsWith(x[lang].label) && x[lang].btn.endsWith(x[lang].go), id + " " + lang + ": wording = short label … call button");
+      assert.ok([...x[lang].label].length <= 24, id + " " + lang + ": short label (<= 24 characters): " + x[lang].label);
+      if (lang !== "th") for (const f of ["btn", "label", "go", "sub", "org"]) assert.doesNotMatch(x[lang][f], THAI, id + " " + lang + "." + f + " has Thai");
     }
   }
 });
@@ -94,13 +100,14 @@ test("component table: five lines in order, digits-only tel, the number in every
 test("B2: 1323 Thai wording is exactly the owner's", () => {
   const x = H().LINES["1323"].th;
   assert.equal(x.btn, OWNER_1323.btn); assert.equal(x.sub, OWNER_1323.sub); assert.equal(x.org, OWNER_1323.org);
+  assert.equal(x.label + " " + x.go, OWNER_1323.btn, "the row reads exactly the owner's wording");
 });
 
 test("B2: forbidden words (owner lists, TH / EN / ZH) are absent from every button and second line", () => {
   const L = H();
   for (const lang of LANGS) for (const w of OWNER_FORBIDDEN[lang]) assert.ok(L.FORBIDDEN[lang].includes(w), "component forbids " + lang + " '" + w + "'");
   const bad = [];
-  for (const id of IDS) for (const lang of LANGS) for (const f of ["btn", "sub"]) {
+  for (const id of IDS) for (const lang of LANGS) for (const f of ["btn", "label", "go", "sub"]) {
     const t = L.LINES[id][lang][f];
     for (const l2 of LANGS) for (const w of L.FORBIDDEN[l2]) if (hasWord(t, w, l2)) bad.push(id + " " + lang + "." + f + " has '" + w + "': " + t);
   }
@@ -124,11 +131,15 @@ test("B1: the component's HTML: tel link = the line's number, phone icon, text s
     assert.match(h, /<svg\b[^>]*class="[^"]*\blq-call-ico\b[^"]*"[^>]*aria-hidden="true"/, id + " " + lang + ": phone icon");
     const a = /<a\b[\s\S]*?<\/a>/.exec(h)[0];
     assert.ok(stripTags(a).includes(L.LINES[id].n), id + " " + lang + ": the link text shows the number");
-    assert.ok(stripTags(a).includes(L.LINES[id][lang].btn), id + " " + lang + ": the link text is the button wording");
+    assert.equal(stripTags(a), L.LINES[id][lang].go, id + " " + lang + ": the link text is the call button");
+    assert.ok(a.includes('aria-label="' + L.LINES[id][lang].btn + '"'), id + " " + lang + ": the link's name is the whole wording");
+    const lab = /<span class="lq-call-t"[^>]*>([^<]*)<\/span>/.exec(h);
+    assert.ok(lab && lab[1] === L.LINES[id][lang].label && lab.index < h.indexOf("<a "), id + " " + lang + ": the short label comes first");
     assert.match(h, /class="[^"]*\blq-call-num\b[^"]*"[^>]*>[^<]*<\/span>/, id + " " + lang + ": large number for computers");
     assert.ok(stripTags(h).includes(L.LINES[id][lang].sub), id + " " + lang + ": second line");
     assert.ok(stripTags(h).includes(L.LINES[id][lang].org), id + " " + lang + ": small print");
-    if (lang === "th") for (const f of ["btn", "sub", "org"]) assert.ok(h.includes('data-i18n="call.' + id + "." + f + '"'), id + ": key call." + id + "." + f);
+    if (lang === "th") for (const f of ["label", "go", "sub", "org"]) assert.ok(h.includes('data-i18n="call.' + id + "." + f + '"'), id + ": key call." + id + "." + f);
+    if (lang === "th") assert.ok(h.includes('data-i18n-attr="aria-label:call.' + id + '.btn"'), id + ": name key");
     else assert.doesNotMatch(h, /data-i18n=/, id + " " + lang + ": fixed language, no keys");
   }
   // an extra class goes on the link (old hooks: lq-helpline-tel, fa-tel); compact drops the second line except for 1323
@@ -142,7 +153,7 @@ test("i18n: en-common / zh-common carry every call.* key and equal the component
   const L = H();
   for (const lang of ["en", "zh"]) {
     const src = read("i18n/" + lang + "-common.js");
-    for (const id of IDS) for (const f of ["btn", "sub", "org"]) {
+    for (const id of IDS) for (const f of ["btn", "label", "go", "sub", "org"]) {
       const m = new RegExp('"call\\.' + id + "\\." + f + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"').exec(src);
       assert.ok(m, lang + "-common call." + id + "." + f);
       assert.equal(JSON.parse('"' + m[1] + '"'), L.LINES[id][lang][f], lang + " call." + id + "." + f);
