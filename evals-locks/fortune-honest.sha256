@@ -103,3 +103,6 @@ a7b505d7f5051f4b3b030fa1aa4ccee573711d31bd34626384f2a35ede3ad258  tests/unit/for
 33dab0b7892448f4cc391aaea9b6c8ef6dd8de305a933fe6455d0708bac75bf9  tests/e2e/fortune-crisis-calm-text.e2e.mjs  # repo file  # re-locked 2026-11-13T19:55:12Z
 # RE-LOCK 2026-11-13T20:01:59Z fortune-crisis-flow-v2.e2e.mjs (after merging origin/main): the 'one new sessionStorage key' check ignores 'lq-heavy', the camera crash guard from main (lensiq-crashguard.js, PDPA notes H), which faceread / palm set while the camera runs; the crisis flow must still add exactly lq-fortune-calm=1.
 dd183b210f34a502a88be0588bebd81b71da22da100b2b0cc0f486d0b5834bf9  tests/e2e/fortune-crisis-flow-v2.e2e.mjs  # repo file  # re-locked 2026-11-13T20:01:59Z
+# help line RE-LOCK 2026-11-14T15:55:22Z (owner order 2026-11-14 Part B, before the build on branch helpline-b, base ea509e0): expected wording changed to the owner's warm 1323 wording in the shared tap-to-call component (unit: KEYS and wording assertions; e2e: WANT). No placement, size, fit, tel-link, no-JS, verified-claim or crisis assertion removed or weakened.
+301457788df27bf6a832f7c2964b4bdf1de350fc242980176e1fe1b66d8af203  tests/unit/fortune-helpline.test.js  # repo file
+d0757311abf286431f89ba7d471ca3ef2bb11a6405119231ed6b42279b43cfbf  tests/e2e/fortune-helpline.e2e.mjs  # repo file

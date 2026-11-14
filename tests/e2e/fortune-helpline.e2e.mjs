@@ -15,9 +15,11 @@ const S = JSON.stringify;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const PAGES = ["fortune", "cat-fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui",
   "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report"];
-const WANT = { th: /สายด่วนสุขภาพจิต[\s\S]*1323[\s\S]*ฟรี ตลอด 24 ชั่วโมง[\s\S]*เจ็บป่วยฉุกเฉิน[\s\S]*1669/,
-  en: /mental health hotline[\s\S]*1323[\s\S]*free, 24 hours[\s\S]*Medical emergency[\s\S]*1669/i,
-  zh: /心理健康热线[\s\S]*1323[\s\S]*免费，24 小时[\s\S]*医疗急救[\s\S]*1669[\s\S]*没有经核实的泰国中文热线/ };
+// AMENDED 2026-11-14 (owner order Part B, re-locked before the build on branch helpline-b): the expected wording is the owner's
+// warm 1323 wording in the shared tap-to-call component; every other check (sizes, fit, tel links, no JS, crisis) is unchanged.
+const WANT = { th: /อยากมีคนรับฟัง โทร 1323[\s\S]*พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง[\s\S]*บริการของกรมสุขภาพจิต[\s\S]*เจ็บป่วยฉุกเฉิน โทร 1669/,
+  en: /someone to listen[\s\S]*1323[\s\S]*24 hours[\s\S]*Department of Mental Health[\s\S]*Medical emergency[\s\S]*1669[\s\S]*local emergency number/i,
+  zh: /倾听[\s\S]*1323[\s\S]*24 小时[\s\S]*心理健康司[\s\S]*医疗急救[\s\S]*1669[\s\S]*没有经核实的泰国中文热线/ };
 const HTML_LANG = { th: "th", en: "en", zh: "zh-Hans" };
 // (re-lock 2026-11-13, crisis flow v2: the old marker list, which also counted ทำบุญ and colour words, is replaced by MARKERS_V2 below)
 const vis = `(e => { if (!e) return false; const s = getComputedStyle(e), r = e.getBoundingClientRect(); return s.display !== "none" && s.visibility !== "hidden" && r.width > 0 && r.height > 0; })`;
