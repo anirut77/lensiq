@@ -85,3 +85,9 @@ f84cc9b66dfb8571f89c499b0bcaaf9caed58391639b5ce38bc6adaea22fa05d  tests/unit/loo
 438bd353a2d22339b45528249368389d38e1df04831d7d1aacd17dc0dde68147  salon-off/look-salon-off.e2e.mjs
 # 2026-11-14 owner decision (look option ga: salon mode OFF until the human-approval step exists): salon-off tests, locked before
 #   the switch was added. Repo copies (same bytes): tests/unit/look-salon-off.test.js, tests/e2e/look-salon-off.e2e.mjs
+# 2026-11-14 re-lock of look-salon-off.test.js (test bug, found on the first run before the e2e or any measurement): O1 requires
+#   the line window.LENSIQ_LOOK_SALON = false in lensiq-config.js, but O4 (no shipped file mentions a salon) matched that switch
+#   name itself, so O1 and O4 could never both pass. Only change: O4 removes the token LENSIQ_LOOK_SALON before matching. No
+#   other assertion changed; every other salon word still fails O4. Old copy kept in salon-off/, new copy in salon-off-v2/.
+# locked 2026-11-14T11:42:04Z (tools/eval-guard.mjs lock, 1 file)
+98689a887dd06cf6fe53dd43a109572055a8010a0b8dc7e856166c32fe4d1640  salon-off-v2/look-salon-off.test.js

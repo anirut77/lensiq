@@ -101,7 +101,8 @@ test("O3 no shipped page or script calls the salon renderers or carries the salo
 test("O4 no free-text salon input anywhere: no shipped file outside the look modules mentions a salon", () => {
   // (not "แคตตาล็อกของร้าน" alone: Try-On uses it for a SHOP's product catalogue, which is not salon mode)
   const RE = /salon|ซาลอน|ร้านเสริมสวย|ร้านทำคิ้ว|美容院|发廊|店家目录/i;
-  const hits = shipped().filter(f => !/^lensiq-look(-lint)?\.js$/.test(f.rel) && RE.test(f.src)).map(f => f.rel);
+  // the switch's own name (required by O1 in lensiq-config.js) is not a salon input; re-lock 2026-11-14, see the lock file
+  const hits = shipped().filter(f => !/^lensiq-look(-lint)?\.js$/.test(f.rel) && RE.test(f.src.replace(/LENSIQ_LOOK_SALON/g, ""))).map(f => f.rel);
   assert.deepEqual(hits, []);
 });
 
