@@ -450,7 +450,9 @@ test("E2: export is always available — suspended, closed, no licence, expired 
   assert.equal(c.j.org.status, "closed");
   // a closed organisation is still hidden everywhere else
   assert.equal((await t.call(`/api/orgs/${o.id}`, { token: o.owner.token })).status, 404);
-  assert.deepEqual((await t.call("/api/me/orgs", { token: o.owner.token })).j.orgs, []);
+  // amendment A-P1b-1 (review L1, coordinator 2026-11-14): listed for its admins as export-only (was: not listed), so the
+  // export of a closed organisation is reachable from the page; see backend-org-p1b.test.js B1
+  assert.deepEqual((await t.call("/api/me/orgs", { token: o.owner.token })).j.orgs.map(x => [x.status, x.export_only]), [["closed", true]]);
 });
 
 /* ---------------- E3 ---------------- */
