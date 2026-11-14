@@ -71,3 +71,42 @@ test("CLI: exit 1 without --allow-no-git, builds with it (copy of the tool in a 
     assert.match(r2.stdout, /8 file\(s\)/);
   } finally { rmSync(d, { recursive: true, force: true }); }
 });
+
+test("--customer: the output lensiq-config.js is locked and passes go-live config.profile / config.age_gender", async () => {
+  const { lockCustomerConfig, customerConfigProblems, applyCustomerLock, CUSTOMER_LOCK } = await tool();
+  const { readFileSync } = require("node:fs");
+  const vm = require("node:vm");
+  const src = readFileSync(join(ROOT, "lensiq-config.js"), "utf8");
+  // the repo file (public demo site) stays unlocked on purpose: both items are open there
+  assert.deepEqual((await customerConfigProblems(src)).filter(x => /^config\./.test(x)).sort(), ["config.age_gender is warn", "config.profile is warn"]);
+  const locked = lockCustomerConfig(src);
+  assert.equal(lockCustomerConfig(locked), locked, "idempotent");
+  assert.ok(locked.startsWith(CUSTOMER_LOCK) && locked.endsWith(src), "repo text kept, lock prepended");
+  assert.deepEqual(await customerConfigProblems(locked), []);
+  // a device whose user switched the research demo on (localStorage) still gets customer mode, models off
+  const run = store => {
+    const window = {};
+    const localStorage = { getItem: k => (k in store ? store[k] : null), setItem() {} };
+    vm.runInNewContext(locked, { window, localStorage, location: { pathname: "/" } }, { timeout: 1000 });
+    return window;
+  };
+  for (const store of [{}, { "lq-research-demo": "on" }]) {
+    const w = run(store);
+    assert.equal(w.LENSIQ_PROFILE, "commercial");
+    assert.equal(w.LENSIQ_RESEARCH.locked, "operator");
+    assert.equal(w.LENSIQ_RESEARCH.on, false);
+    assert.equal(w.LENSIQ_AGE_GENDER, false); assert.equal(w.LENSIQ_EXPRESSION, false); assert.equal(w.LENSIQ_FACEPARSE, false);
+  }
+  // a later line that turns a model back on is caught
+  assert.ok((await customerConfigProblems(locked + "\nwindow.LENSIQ_AGE_GENDER = true;\n")).some(x => /age_gender|AGE_GENDER/.test(x)));
+  // applyCustomerLock on a site folder: writes the locked copy, fails closed without lensiq-config.js
+  const d = mkdtempSync(join(tmpdir(), "lq-cust-"));
+  try {
+    await assert.rejects(applyCustomerLock(d), /lensiq-config\.js is not in the site/);
+    writeFileSync(join(d, "lensiq-config.js"), src);
+    await applyCustomerLock(d);
+    assert.equal(readFileSync(join(d, "lensiq-config.js"), "utf8"), locked);
+    writeFileSync(join(d, "lensiq-config.js"), src + "\nwindow.LENSIQ_FACEPARSE = true;\n");
+    await assert.rejects(applyCustomerLock(d), /customer lock check failed/);
+  } finally { rmSync(d, { recursive: true, force: true }); }
+});

@@ -47,7 +47,7 @@ every figure is copied from the file named next to it. Where two sources disagre
 | Seller details | **Missing:** name, tax_id, address, email, effective_date, dpo_email; Worker `SELLER_NAME`, `SELLER_TAX_ID`, `SELLER_ADDRESS` missing; counsel not confirmed. Go-live checklist 0 done, 11 open | `node tools/check-legal.mjs` output, 2026-11-11 |
 | Tax invoices | e-Tax Invoice by Email not built; VAT only if the seller is VAT-registered (mandatory above 1.8 M THB a year). The owner issues receipts from the template and the system does not number them (2026-11-13); numbering series and tax-invoice content are questions for the accountant (`docs/sales/ACCOUNTANT-QUESTIONS-TH.md`) | `docs/BILLING-PLAN.md` §5; `docs/CTO-BRIEF.md` §3 item 7 |
 | Where data lives | On the customer's device (browser storage). No organisation accounts, no sync, no backup; clearing the browser loses records | `docs/CTO-BRIEF.md` §3 item 5; `docs/ORG-ACCOUNTS-DESIGN.md` (design only) |
-| Customer build | Customer mode is the default on every host; an installer locks the research models off with `LENSIQ_RESEARCH_DEMO = false`. Checklist items `config.profile` and `config.age_gender` are still open | `docs/CTO-BRIEF.md` §2; `tools/check-legal.mjs` output |
+| Customer build | Customer mode is the default on every host. A customer bundle is built with `node tools/build-site.mjs --customer --out <folder>`: it locks the research models off in the output `lensiq-config.js` (`LENSIQ_RESEARCH_DEMO = false`, `LENSIQ_PROFILE = "commercial"`, age/gender, expression and face parsing off) and fails (exit 1) unless the go-live items `config.profile` and `config.age_gender` read "ok" on that file. `npm run check:legal` on the repo still lists both as open: the public demo site stays unlocked on purpose | `docs/CTO-BRIEF.md` §2; `tools/build-site.mjs` `--customer`; `tests/unit/build-site.test.js` |
 | Field accuracy | Not measured for any product. No field pilot has run | `docs/FIELD-PILOT.md` "Status per round" (round 16: not started) |
 | Legal review | Planned before sale; has not happened | `docs/CTO-BRIEF.md` §4 |
 | Real-phone quality (stream B, 2026-11-13) | WebKit (iOS engine) e2e at iPhone width for the main flow of every product; crash guard on 24 camera pages (not on interview, qc, store, teamface: they store nothing at all) (restart note TH/EN/ZH + lighter camera); a JS-heap / renderer-memory budget per camera page (synthetic, headless). **Not measured on a real phone yet**: the owner's 15-minute checklists per product are ready | `docs/PHONE-QUALITY.md`; `docs/owner-checklists/` |
@@ -83,7 +83,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | — | Hall mode labelled "experimental, not on sale yet" consistently everywhere | **done 2026-11-11.** Evidence: commit `72d733b`; name and status pins in `docs/claim-rules.json` (`tests/unit/claim-rules.test.js`) |
 | — | No page claims more than was measured | **done 2026-11-11.** Evidence: commit `72d733b`; `docs/claim-rules.json` applied by `npm run accuracy:check` and `tests/unit/claim-rules.test.js` |
 | — | Retention cron confirmed on | **done 2026-11-11.** Evidence: deploy record `4653700` (ran 03:17 UTC on `lensiq-api-test`; audit event `retention.run`) |
-| L23 | Face model licences. For Exam: resolved by the switch to MediaPipe (`docs/CTO-BRIEF.md` §5 "L23: Exam resolved"), but the L23 row still says "open" and `docs/PAGE-STATUS.md` still names F5/F6 for the Exam pages ⚠ | open (row); resolved for Exam (text) |
+| L23 | Face model licences (face-api.js, flags F5 / F6 in `LICENSES/THIRD_PARTY.md`). Exam no longer uses face-api.js: `exam-lab.html` and `exam-hall.html` run MediaPipe Face Landmarker and COCO-SSD (both Apache-2.0), `exam.html` and `exam-dashboard.html` load no model; face-api.js is injected only with the research-demo switch on and `?faceengine=faceapi` (`lensiq-exam-face.js` `pickEngine`), never in a customer build (`docs/CTO-BRIEF.md` §5 "L23: Exam resolved"; checked 2026-11-14, `docs/PAGE-STATUS.md` point 2) | **resolved for Exam** (2026-11-10). Still open for Attendance face mode and the other face-api pages (§3) |
 | L25 | Pricing terms and VAT, refund and contract terms | open (counsel) |
 | L62 | Free-tier limits and the change from "free, every feature" (notice period, consumer-protection angle, contract wording) | open (counsel) |
 | L26, L27 | Public procurement fit; vendor-neutral TOR wording (schools and universities) | open (counsel) |
@@ -94,9 +94,9 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | None open. The four code items (L51, retention cron, labels, claims) are done (evidence above); C5 is set per customer install |
+| code | None open. The four code items (L51, retention cron, labels, claims) are done (evidence above); C5 is handled by the customer build (`node tools/build-site.mjs --customer`) |
 | owner | Seller details and VAT decision (section 1); one pilot institution; confirm the pilot targets (`docs/pilot/PILOT-EXAM.md` §6) |
-| legal | Notice and consent text (`exam.html#notice`, `i18n/*-exam.js`); lawful basis public vs private institution and minors (`docs/PDPA-NOTES-FOR-COUNSEL.md` B1); evidence-clip questions if clips are offered (C2); MediaPipe mesh and human-oversight wording (F5); L25–L27 |
+| legal | Notice and consent text (`exam.html#notice`, `i18n/*-exam.js`); lawful basis public vs private institution and minors (`docs/PDPA-NOTES-FOR-COUNSEL.md` B1); evidence-clip questions if clips are offered (C2); MediaPipe mesh and human-oversight wording (`docs/PDPA-NOTES-FOR-COUNSEL.md` F5, not the licence flag F5); L25–L27 |
 
 ## 3. LENSIQ Attendance — employee time attendance (PIN / QR default, face optional)
 
@@ -133,7 +133,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | None open. The code items above are done (evidence above); C5 is set per customer install |
+| code | None open. The code items above are done (evidence above); C5 is handled by the customer build (`node tools/build-site.mjs --customer`) |
 | owner | Seller details and VAT decision; one pilot site with 5–20 staff; decide whether face mode is quoted before L23 is answered (`docs/ATTENDANCE-READINESS.md` B10) |
 | legal | Employee notice and consent text; whether biometric consent is free in employment with the PIN / QR alternative (`docs/PDPA-NOTES-FOR-COUNSEL.md` B2; DPIA-L1; LRP-P2, LRP-L5); s.114 wording and 2-year minimum; works-rules wording for lateness beyond grace and OT rounding; 13-holiday text (`docs/ATTENDANCE-READINESS.md` "Needs outside resources"); L23 for face mode; L25 |
 
@@ -175,7 +175,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | None open. The code items above are done (evidence above); C5 is set per customer install |
+| code | None open. The code items above are done (evidence above); C5 is handled by the customer build (`node tools/build-site.mjs --customer`) |
 | owner | Seller details and VAT decision; ~100 phone photos for phase 0; one car park and one village for phase 1; the Thai YOLOX-nano ONNX file |
 | legal | L24 (sign, basis, retention); visitor names / phones typed by guards and the deny list (`docs/PDPA-NOTES-FOR-COUNSEL.md` B3, E2); L25–L28 |
 
@@ -216,7 +216,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | None open. The code items above are done (evidence above); C5 is set per customer install |
+| code | None open. The code items above are done (evidence above); C5 is handled by the customer build (`node tools/build-site.mjs --customer`) |
 | owner | Seller details and VAT decision; two people for the human count (about 1–2 hours, `docs/CROWD-ACCURACY.md` "Deferred"); one event site; a real mid-range phone for timing; confirm the status label |
 | legal | Lawful basis for anonymous counting at events (notice + legitimate interest, or also ticket terms) and the default retention of day records (`docs/PDPA-NOTES-FOR-COUNSEL.md` C1); sign A wording; L25, L28 |
 
@@ -226,11 +226,11 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | # | Blocker | Products | Status |
 |---|---|---|---|
-| C1 | L51: admin recovery codes stored with a slow, salted hash; existing codes re-issued | all (back office) | **done 2026-11-11** |
+| C1 | L51: admin recovery codes stored with a slow, salted hash; existing codes re-issued | all (back office) | **done 2026-11-11**; code re-read 2026-11-14 (`backend/src/auth.js` `issueRecoveryCodes` / `claimRecovery`: random row id, 16-byte salt, PBKDF2-SHA256 × 2,000 of an HMAC keyed from `SECRETS_KEK`, constant-time compare) and a whole-database check added (`tests/unit/backend-recovery-storage.test.js`). The pre-0013 SHA-256 path still accepts old rows; the test Worker has 0 of them (deploy record `4653700`) |
 | C2 | Retention cron confirmed on | all (backend) | **done 2026-11-11** (audit `retention.run` 03:17 UTC) |
 | C3 | Hall mode and Crowd labels consistent on every page, category page, catalogue and one-pager | Exam, Crowd | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
 | C4 | No page claims more than was measured (candidates found while writing this file: section 7 items 1, 2, 4) | all | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
-| C5 | Customer install locks the research models off (`LENSIQ_RESEARCH_DEMO = false`); checklist items `config.profile`, `config.age_gender` open | all | open (set per install) |
+| C5 | Customer install locks the research models off (`LENSIQ_RESEARCH_DEMO = false`); go-live items `config.profile`, `config.age_gender` | all | **closed by code 2026-11-14** for bundles built with `node tools/build-site.mjs --customer` (sets the lock and verifies both items "ok" on the output, else exit 1; `tests/unit/build-site.test.js`). Per install the owner only has to ship that output folder, not a copy of the repo or of the public site. Both items stay open in `npm run check:legal` for the repo by design (public demo site) |
 
 Not blockers by owner decision: the Gate trial timer (deferred to org accounts and billing, `docs/CTO-BRIEF.md` §5);
 organisation accounts and sync (not sold; `docs/PRICING-RESEARCH.md` §3.4); e-Tax invoice (quotation sales can use the
@@ -280,9 +280,7 @@ accountant's invoices; see owner item O3).
 5. **Gate field target.** `docs/GATE.md:51`: "≥ 95 % from ≥ 100 vehicles incl. ≥ 30 at night" (also
    `docs/ACCURACY-CLAIMS.md:77`); `docs/pilot/PILOT-GATE.md` §5 and `docs/FIELD-PILOT.md` §5: ≥ 200 reads, night ≥ 40.
 6. **Crowd status.** `docs/CTO-BRIEF.md:22`: experimental; `docs/PAGE-STATUS.md:100`: pilot-ready.
-7. **Exam face licence.** `docs/CTO-BRIEF.md:285`: "L23: Exam resolved"; the L23 row (`docs/CTO-BRIEF.md:453`) says
-   "open" with no note, and `docs/PAGE-STATUS.md:90–93` still give "the face-model licence is still open (F5/F6)" as a
-   reason for the Exam pages.
+7. ~~**Exam face licence.**~~ Fixed 2026-11-14: the L23 rows here, in `docs/CTO-BRIEF.md` §8 and in `docs/LEGAL-PACKET.md` §9.1 now say "resolved for Exam, open for Attendance face mode and the other face-api pages", and `docs/PAGE-STATUS.md` names the models the Exam pages actually load instead of F5/F6.
 8. **Page-status approval.** `docs/PAGE-STATUS.md:3` says "DRAFT — awaiting owner approval"; `docs/CTO-BRIEF.md:198`
    says it was approved on 2026-11-09 and published.
 9. **Price levels approval.** `docs/CTO-BRIEF.md:199` says the draft price levels are "still open … committed as a

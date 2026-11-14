@@ -572,6 +572,10 @@
   ImageNet backbone (ความเสี่ยงต่ำกว่า) การฟิตตัวเลข 7 ตัวบน MIT1003 สร้างภาระไหม
 - **ตอนนี้:** Exam เปลี่ยนเป็น MediaPipe (Apache-2.0) แล้ว อายุ / เพศ / สีหน้า ปิดใน customer build Attendance ใช้ PIN / QR เป็นค่าเริ่มต้น
   การจดจำใบหน้ายังใช้ face-api.js จดหมายขอสิทธิ์ A / B / C ร่างแล้ว ยังไม่ส่ง
+- **สถานะ:** Exam ปิดประเด็นแล้ว (2026-11-10) หน้า `exam-lab.html` และ `exam-hall.html` ใช้ MediaPipe Face Landmarker และ COCO-SSD
+  (Apache-2.0 ทั้งคู่) หน้า `exam.html` และ `exam-dashboard.html` ไม่โหลดโมเดล face-api.js โหลดเฉพาะเมื่อเปิดสวิตช์สาธิตงานวิจัยและมี
+  `?faceengine=faceapi` เท่านั้น ไม่มีใน customer build (ตรวจซ้ำ 2026-11-14) **ยังเปิดอยู่** สำหรับ Attendance โหมดใบหน้า Customers Booth
+  และหน้าอื่นที่ยังโหลด face-api.js (ตัวตรวจ / จุดใบหน้า F5 และการจดจำ F6)
 - **เอกสาร / หน้า:** `LICENSES/THIRD_PARTY.md`, `docs/LICENCE-REQUESTS.md`, `docs/ATTENDANCE-READINESS.md` Part B, `docs/LEGAL-REVIEW-PACK.md` §4
 - **รหัส:** L23, LRP-M1, LRP-M2, LRP-M3, DPIA-L8
 
