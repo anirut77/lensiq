@@ -31,6 +31,9 @@ test("N1: buyer-facing Attendance links open employee mode (PIN / QR)", () => {
       // amendment 1: as the header says, solutions.test.js requires each card's .sl-go to name an existing file, so hr1 keeps a
       // bare .sl-go next to its explicit PIN / QR link (checked below)
       if (f === "solutions.html" && card === "hr1" && /class="sl-go"/.test(m[0])) continue;
+      // amendment 2: the home page use case "องค์กร" describes training check-in by face (home.uc.org.p), a training link that
+      // stays bare; tests/e2e/products.e2e.mjs (older, locked) also requires index.html to keep a bare attendance.html link
+      if (f === "index.html" && /data-i18n="home\.uc\.att"/.test(m[0])) continue;
       const catCard = (before.match(/<article class="pd-card cat-tool" data-page="([a-z0-9-]+)"(?![\s\S]*<\/article>)/) || [])[1];
       if (f === "cat-hr.html" && catCard === "attendance" && /class="sl-go"/.test(m[0])) continue;
       bad.push(f + ": " + m[0].slice(0, 90));

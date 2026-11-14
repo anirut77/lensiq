@@ -42,3 +42,7 @@ e3109a00358d50e26cea79227f2da6e861549a926304f40beebdd171f2ebcf90  tests/unit/wal
 29f11e9ab43da29312f1fbfe7bf5570923709c2dba93e2e11f64a60c6b837610  walkfix-n.test.js
 # walkfix-n.test.js amendment 1: the N1 check exempted only the cat-hr .sl-go, although its header names solutions.test.js's existing-file rule, which also pins the hr1 card's .sl-go to a bare file; hr1 must still carry the explicit PIN / QR link (unchanged check).
 29f11e9ab43da29312f1fbfe7bf5570923709c2dba93e2e11f64a60c6b837610  tests/unit/walkfix-n.test.js (amendment 1)  # repo file
+# locked 2026-11-14T17:10:54Z (tools/eval-guard.mjs lock, 1 file)
+a6e5a9ee22c6ba57d1d3fd550eab8089099a7b4faf444b5399054c53a93c88e5  walkfix-n.test.js
+# walkfix-n.test.js amendment 2: products.e2e.mjs (older, locked) requires index.html to keep a bare attendance.html link (CI run 43616191465 shard 2 failed on it); the home use case 'องค์กร' that carries it describes training check-in by face, so it stays bare and is exempted. Footer and every other buyer link keep ?mode=employee.
+a6e5a9ee22c6ba57d1d3fd550eab8089099a7b4faf444b5399054c53a93c88e5  tests/unit/walkfix-n.test.js (amendment 2)  # repo file
