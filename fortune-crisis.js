@@ -219,32 +219,31 @@
     renderSoft(container, lang, () => { ack(doc); proceed(); }, () => card(container));
     return true;
   }
-  /* ---------------- help line (owner order 2026-11-12) ----------------
+  /* ---------------- help line (owner order 2026-11-12; tap-to-call buttons 2026-11-14) ----------------
      A calm line with real help resources on every fortune page and under every reading; it needs no detection.
-     Numbers, hours and cost are only what docs/CRISIS-RESOURCES.md verified from official sources (checked 2026-11-12):
-     1323 (Department of Mental Health: free, 24 hours) and 1669 (medical emergency; hours and cost not shown, not read
-     directly on niems.go.th). No verified Chinese-language line exists in Thailand: the Chinese text says so.
-     HELP is the canonical wording: tools/helpline.mjs writes the static Thai line into every fortune page (it shows
-     without JavaScript), i18n/{en,zh}-common.js carry the same English / Chinese text under help.line.* (unit-tested). */
+     Numbers, hours and cost are only what docs/CRISIS-RESOURCES.md verified on the agency's own page (checked 2026-11-14).
+     Owner order 2026-11-14 (Part B): the numbers are the shared tap-to-call component (lensiq-helpline.js): 1323 with the
+     owner's warm wording ("อยากมีคนรับฟัง โทร 1323" / "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง" / "บริการของกรมสุขภาพจิต"),
+     then 1669 (medical emergency; no hours or cost: not stated on niems.go.th). No verified Chinese-language line exists in
+     Thailand: the note says so in Chinese. HELP keeps the line's own text (label, note); tools/helpline.mjs writes the
+     static line into every fortune page (it shows without JavaScript); i18n/{en,zh}-common.js carry help.line.* and call.*. */
+  const LQH = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : null);
+  /** the shared component (lensiq-helpline.js), looked up at call time in the browser @returns {any} */
+  const callKit = () => LQH || /** @type {any} */ (root).LQHelpline || null;
   /** @type {{tel: string[], th: Record<string, string>, en: Record<string, string>, zh: Record<string, string>}} */
   const HELP = {
     tel: ["1323", "1669"],
-    th: { label: "สายด่วนช่วยเหลือ", lead: "ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต", free: "ฟรี ตลอด 24 ชั่วโมง", emerg: "เจ็บป่วยฉุกเฉิน",
-      note: "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น" },
-    en: { label: "Help lines", lead: "If things feel like too much, you can talk to someone: Thai mental health hotline", free: "free, 24 hours",
-      emerg: "Medical emergency", note: "Outside Thailand, call your local emergency number." },
-    zh: { label: "求助热线", lead: "如果你感觉撑不下去，可以打电话找人聊聊：泰国心理健康热线", free: "免费，24 小时", emerg: "医疗急救",
-      note: "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。" },
+    th: { label: "สายด่วนช่วยเหลือ", note: "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น" },
+    en: { label: "Help lines", note: "Outside Thailand, call your local emergency number." },
+    zh: { label: "求助热线", note: "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。" },
   };
-  /** the help line's parts in order: [kind, field or number] */
-  const HELP_PARTS = [["t", "lead"], ["tel", "1323"], ["t", "free"], ["sep", ""], ["t", "emerg"], ["tel", "1669"], ["note", "note"]];
   const helpLang = (/** @type {any} */ l) => (l === "en" || l === "zh" ? l : "th");
   /** the help line as an element (textContent only). With the page's i18n present it is built in Thai with data-i18n keys
    *  and translated by LQI18N (so it follows later language switches); without it, in the given language.
    *  @param {any} [doc] @param {string} [lang] @param {string} [cls] extra class */
   function helpLine(doc, lang, cls) {
     const d = doc || root.document, I = /** @type {any} */ (root).LQI18N, i18n = !!(I && typeof I.apply === "function");
-    const L = HELP[i18n ? "th" : helpLang(lang)];
+    const l = i18n ? "th" : helpLang(lang), L = HELP[l], K = callKit();
     /** @param {string} tag @param {string} [c] @param {string} [t] */
     const el = (tag, c, t) => { const e = d.createElement(tag); if (c) e.className = c; if (t != null) e.textContent = t; return e; };
     // crisis fix 4: under a reading on a calm page (crisis state, calm session, soft step answered or distress typed) the line is
@@ -253,24 +252,23 @@
     if (calmHere) markCalm(d);
     const box = el("aside", "lq-helpline" + (cls ? " " + cls : "") + (calmHere ? " lq-helpline-calm" : ""));
     box.setAttribute("role", "note"); box.setAttribute("aria-label", L.label); box.setAttribute("data-i18n-attr", "aria-label:help.line.label");
-    for (const [k, v] of HELP_PARTS) {
-      if (k === "tel") { const a = el("a", "lq-helpline-tel", v); a.setAttribute("href", "tel:" + v); box.appendChild(a); }
-      else if (k === "sep") { const x = el("span", "lq-helpline-sep", "·"); x.setAttribute("aria-hidden", "true"); box.appendChild(x); }
-      else { const x = el("span", k === "note" ? "lq-helpline-note" : "", L[v]); x.setAttribute("data-i18n", "help.line." + v); box.appendChild(x); }
-      if (k !== "note") box.appendChild(d.createTextNode(" "));
+    for (const n of HELP.tel) {
+      if (K) box.appendChild(K.el(d, n, { lang: l, cls: "lq-helpline-tel", compact: n !== "1323", keys: i18n }));
+      else { const a = el("a", "lq-call-btn lq-helpline-tel", n); a.setAttribute("href", "tel:" + n); box.appendChild(a); } // component missing: the number still calls
     }
+    const note = el("span", "lq-helpline-note", L.note); note.setAttribute("data-i18n", "help.line.note"); box.appendChild(note);
     if (i18n) { try { I.apply(box); } catch (e) { /* i18n not ready: Thai stays */ } }
     return box;
   }
   const escH = (/** @type {any} */ s) => String(s).replace(/[&<>"]/g, c => (/** @type {Record<string, string>} */ ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }))[c]);
   /** the help line as HTML in one language (Thai carries the data-i18n keys) @param {string} [lang] @param {string} [cls] */
   function helpHTML(lang, cls) {
-    const l = helpLang(lang), L = HELP[l], key = (/** @type {string} */ k) => (l === "th" ? ' data-i18n="help.line.' + k + '"' : "");
-    const parts = HELP_PARTS.map(([k, v]) => k === "tel" ? '<a class="lq-helpline-tel" href="tel:' + v + '">' + v + "</a>"
-      : k === "sep" ? '<span class="lq-helpline-sep" aria-hidden="true">·</span>'
-      : "<span" + (k === "note" ? ' class="lq-helpline-note"' : "") + key(v) + ">" + escH(L[v]) + "</span>");
+    const l = helpLang(lang), L = HELP[l], K = callKit();
+    const calls = HELP.tel.map(n => K ? K.html(n, { lang: l, cls: "lq-helpline-tel", compact: n !== "1323" })
+      : '<a class="lq-call-btn lq-helpline-tel" href="tel:' + n + '">' + n + "</a>");
+    const note = '<span class="lq-helpline-note"' + (l === "th" ? ' data-i18n="help.line.note"' : "") + ">" + escH(L.note) + "</span>";
     return '<aside class="lq-helpline' + (cls ? " " + escH(cls) : "") + '" role="note" aria-label="' + escH(L.label) + '"' +
-      (l === "th" ? ' data-i18n-attr="aria-label:help.line.label"' : "") + ">" + parts.join(" ") + "</aside>";
+      (l === "th" ? ' data-i18n-attr="aria-label:help.line.label"' : "") + ">" + calls.join(" ") + " " + note + "</aside>";
   }
 
   /* ---------------- crisis state (owner order 2026-11-12) ----------------

@@ -36,7 +36,6 @@
   "nut.help.l3": "A value that is not found on the label is shown as not found, never as zero.",
   "nut.help.l4": "The allergen statement is shown word for word. If the system finds no statement, the food may still contain allergens.",
   "nut.help.support": "If food or eating worries or distresses you, call the mental health hotline",
-  "nut.help.supportT": "free, 24 hours",
   "nut.help.accH": "Accuracy",
   "nut.help.acc": "Not yet measured on photos of real labels. The only test figures come from labels we generated ourselves (synthetic data). Always compare with the actual label.",
   "nut.help.srcH": "Sources and licences",
@@ -133,5 +132,11 @@
   "nut.st.noimg": "Open the camera and take a picture, or choose a picture first.",
   "nut.st.reading": "Reading the label on this device…",
   "nut.st.done": "Read in {s} seconds on this device; {n} values found on the label. Always compare with the actual label.",
-  "nut.st.fileerr": "This picture could not be opened. Try a JPEG or PNG."
+  "nut.st.fileerr": "This picture could not be opened. Try a JPEG or PNG.",
+  // tap-to-call help lines (lensiq-helpline.js LINES; tools/helpline.mjs --check keeps them equal)
+  "call.1323.btn": "Want someone to listen? Call 1323",
+  "call.1323.label": "Want someone to listen?",
+  "call.1323.go": "Call 1323",
+  "call.1323.sub": "Talk any time, 24 hours a day, with someone ready to listen",
+  "call.1323.org": "A service of the Department of Mental Health, Thailand"
 } });

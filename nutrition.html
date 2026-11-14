@@ -23,13 +23,13 @@
 <title data-i18n="nut.title">อ่านฉลากโภชนาการบนเครื่องของคุณ | LENSIQ</title>
 <meta name="description" content="อ่านค่าบนฉลากโภชนาการบนเครื่องของคุณ แสดงตามที่พิมพ์บนฉลากพร้อมบรรทัดที่มา คำนวณตามปริมาณที่กินจริง
   และแสดงข้อความสำหรับผู้แพ้อาหารตามต้นฉบับ ไม่ใช่คำแนะนำทางการแพทย์">
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="styles.css?v=14">
 <link rel="stylesheet" href="nutrition.css?v=1">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=15"></script>
-<script src="i18n/zh-nut.js?v=1"></script>
+<script src="i18n/zh-nut.js?v=2"></script>
 
 <main class="nut-page" id="main">
   <p class="eyebrow" data-i18n="nut.eyebrow">LENSIQ · อ่านฉลากโภชนาการ</p>
@@ -99,7 +99,13 @@
       <li data-i18n="nut.help.l4">ข้อความเรื่องสารก่อภูมิแพ้แสดงตามต้นฉบับ ถ้าระบบไม่พบข้อความนี้ อาหารก็ยังอาจมีสารก่อภูมิแพ้อยู่</li>
     </ul>
     <p class="nut-support"><span data-i18n="nut.help.support">หากเรื่องอาหารหรือการกินทำให้คุณกังวลหรือทุกข์ใจ ปรึกษาสายด่วนสุขภาพจิต</span>
-      <a class="btn ghost nut-call" href="tel:1323"><b>1323</b> <span data-i18n="nut.help.supportT">โทรฟรี ตลอด 24 ชั่วโมง</span></a></p>
+      <span class="lq-call" data-lq-call="1323"><span class="lq-call-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span>
+        <a class="lq-call-btn" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
+        <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
+        <span class="lq-call-go" data-i18n="call.1323.go">โทร 1323</span></a><span class="lq-call-num">1323</span>
+        <span class="lq-call-sub" data-i18n="call.1323.sub">พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง</span>
+        <small class="lq-call-org" data-i18n="call.1323.org">บริการของกรมสุขภาพจิต</small></span></p>
     <h3 data-i18n="nut.help.accH">ความแม่นยำ</h3>
     <p class="hint" id="nutAcc" data-i18n="nut.help.acc">ยังไม่ได้วัดกับภาพฉลากจริง ตัวเลขทดสอบมีเฉพาะจากฉลากที่สร้างขึ้นเอง (ข้อมูลสังเคราะห์) ตรวจค่ากับฉลากจริงทุกครั้ง</p>
     <h3 data-i18n="nut.help.srcH">แหล่งที่มาและสัญญาอนุญาต</h3>

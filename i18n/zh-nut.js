@@ -36,7 +36,6 @@
   "nut.help.l3": "标签上找不到的数值显示为未找到，绝不显示为零。",
   "nut.help.l4": "过敏原说明逐字显示。如果系统没有找到这段说明，食品仍可能含有过敏原。",
   "nut.help.support": "如果饮食问题让您担心或痛苦，请拨打心理健康热线",
-  "nut.help.supportT": "免费，24 小时",
   "nut.help.accH": "准确率",
   "nut.help.acc": "尚未用真实标签的照片测量。目前的测试数据只来自我们自己生成的标签（合成数据）。请务必与实际标签核对。",
   "nut.help.srcH": "来源与许可",
@@ -133,5 +132,11 @@
   "nut.st.noimg": "请先打开摄像头拍照，或选择一张图片。",
   "nut.st.reading": "正在本设备上读取标签…",
   "nut.st.done": "在本设备上用 {s} 秒读完；在标签上找到 {n} 个数值。请务必与实际标签核对。",
-  "nut.st.fileerr": "无法打开这张图片。请试试 JPEG 或 PNG。"
+  "nut.st.fileerr": "无法打开这张图片。请试试 JPEG 或 PNG。",
+  // tap-to-call help lines (lensiq-helpline.js LINES; tools/helpline.mjs --check keeps them equal)
+  "call.1323.btn": "想找人倾听？拨打 1323",
+  "call.1323.label": "想找人倾听？",
+  "call.1323.go": "拨打 1323",
+  "call.1323.sub": "24 小时随时可以聊，有人愿意倾听",
+  "call.1323.org": "泰国心理健康司提供的服务"
 } });

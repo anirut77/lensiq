@@ -19,13 +19,13 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="md.title">ตรวจข้อมูลยา: อ่านฉลากและเลขทะเบียน | LENSIQ</title>
 <meta name="description" content="ตรวจข้อมูลยาจากเลขทะเบียน อย. บาร์โค้ด หรือชื่อยา และหาเม็ดยาที่มีลักษณะตรงกับที่คุณเห็น แสดงข้อความฉลากตามต้นฉบับพร้อมแหล่งที่มา ยืนยันกับเภสัชกรทุกครั้ง">
-<link rel="stylesheet" href="styles.css?v=13">
-<link rel="stylesheet" href="medicine.css?v=5">
+<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="medicine.css?v=6">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=16"></script>
-<script src="i18n/zh-med.js?v=2"></script>
+<script src="i18n/zh-med.js?v=3"></script>
 
 <main class="md-page" id="main">
   <p class="eyebrow" data-i18n="md.eyebrow">LENSIQ · ตรวจข้อมูลยา</p>
@@ -35,7 +35,11 @@
   <div class="md-safety" role="note" aria-labelledby="mdSafeH">
     <p class="md-safety-h" id="mdSafeH" data-i18n="md.safe.h">ยืนยันกับเภสัชกรทุกครั้งก่อนใช้ยา</p>
     <div class="md-tel">
-      <a class="btn md-call" href="tel:1669"><b>1669</b> <span data-i18n="md.safe.1669">เจ็บป่วยฉุกเฉิน</span></a>
+      <span class="lq-call" data-lq-call="1669"><span class="lq-call-t" data-i18n="call.1669.label">เจ็บป่วยฉุกเฉิน</span>
+        <a class="lq-call-btn" href="tel:1669" aria-label="เจ็บป่วยฉุกเฉิน โทร 1669" data-i18n-attr="aria-label:call.1669.btn">
+        <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
+        <span class="lq-call-go" data-i18n="call.1669.go">โทร 1669</span></a><span class="lq-call-num">1669</span></span>
       <a class="btn md-call" href="tel:1367"><b>1367</b> <span data-i18n="md.safe.1367">ศูนย์พิษวิทยา (กินยาผิด / เกินขนาด)</span></a>
     </div>
   </div>
@@ -43,9 +47,22 @@
   <section class="md-emerg" id="mdEmerg" hidden tabindex="-1" role="alert" aria-labelledby="mdEmergH">
     <h2 id="mdEmergH" data-i18n="md.em.h">ถ้ามีคนกินยาเกินขนาด กินยาผิด หรือหมดสติ โทรขอความช่วยเหลือตอนนี้</h2>
     <ul class="md-list">
-      <li><a href="tel:1669"><b>1669</b></a> <span data-i18n="md.em.1669">หน่วยแพทย์ฉุกเฉิน — หมดสติ หายใจลำบาก ชัก</span></li>
+      <li>
+        <span class="lq-call" data-lq-call="1669"><span class="lq-call-t" data-i18n="call.1669.label">เจ็บป่วยฉุกเฉิน</span>
+          <a class="lq-call-btn" href="tel:1669" aria-label="เจ็บป่วยฉุกเฉิน โทร 1669" data-i18n-attr="aria-label:call.1669.btn">
+          <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
+          <span class="lq-call-go" data-i18n="call.1669.go">โทร 1669</span></a><span class="lq-call-num">1669</span></span>
+        <span data-i18n="md.em.1669">หน่วยแพทย์ฉุกเฉิน — หมดสติ หายใจลำบาก ชัก</span></li>
       <li><a href="tel:1367"><b>1367</b></a> <span data-i18n="md.em.1367">ศูนย์พิษวิทยา โรงพยาบาลรามาธิบดี — ปรึกษาเรื่องได้รับยาหรือสารพิษ ตลอด 24 ชั่วโมง</span></li>
-      <li id="mdEmSelf" hidden><a href="tel:1323"><b>1323</b></a> <span data-i18n="md.em.1323">สายด่วนสุขภาพจิต กรมสุขภาพจิต — โทรฟรี ตลอด 24 ชั่วโมง</span></li>
+      <li id="mdEmSelf" hidden>
+        <span class="lq-call" data-lq-call="1323"><span class="lq-call-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span>
+          <a class="lq-call-btn" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
+          <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
+          <span class="lq-call-go" data-i18n="call.1323.go">โทร 1323</span></a><span class="lq-call-num">1323</span>
+          <span class="lq-call-sub" data-i18n="call.1323.sub">พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง</span>
+          <small class="lq-call-org" data-i18n="call.1323.org">บริการของกรมสุขภาพจิต</small></span></li>
     </ul>
     <p data-i18n="md.em.t">เก็บกล่องหรือแผงยาไว้ให้เจ้าหน้าที่ดู อย่าทำให้อาเจียนเองถ้าไม่ได้รับคำแนะนำ ระบบนี้ช่วยในเหตุฉุกเฉินไม่ได้</p>
   </section>
@@ -217,7 +234,11 @@
     <div class="md-safety pc-bottom" role="note">
       <p class="md-safety-h" data-i18n="md.pc.bottom">ไม่ใช่การยืนยันขั้นสุดท้าย ยืนยันกับเภสัชกร</p>
       <div class="md-tel">
-        <a class="btn md-call" href="tel:1669"><b>1669</b> <span data-i18n="md.safe.1669">เจ็บป่วยฉุกเฉิน</span></a>
+        <span class="lq-call" data-lq-call="1669"><span class="lq-call-t" data-i18n="call.1669.label">เจ็บป่วยฉุกเฉิน</span>
+          <a class="lq-call-btn" href="tel:1669" aria-label="เจ็บป่วยฉุกเฉิน โทร 1669" data-i18n-attr="aria-label:call.1669.btn">
+          <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
+          <span class="lq-call-go" data-i18n="call.1669.go">โทร 1669</span></a><span class="lq-call-num">1669</span></span>
         <a class="btn md-call" href="tel:1367"><b>1367</b> <span data-i18n="md.safe.1367">ศูนย์พิษวิทยา (กินยาผิด / เกินขนาด)</span></a>
       </div>
     </div>

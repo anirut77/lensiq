@@ -46,12 +46,24 @@ export const MERIT_CONSENT_VERSION = "m1";
    so a pattern change there applies to the interest form automatically ---------------- */
 /** @param {...any} texts */
 export function crisisCheck(...texts) { return !!FortuneAIModule.crisis.check(...texts); }
-/** Help lines returned with a refused request (same numbers as the fortune pages' support card). */
+/** Help lines returned with a refused request (same numbers and wording as the shared component lensiq-helpline.js). */
 export const SUPPORT_LINES = [
-  { n: "1323", th: "สายด่วนสุขภาพจิต กรมสุขภาพจิต — โทรฟรี ตลอด 24 ชั่วโมง", en: "Thai Department of Mental Health hotline — free, 24 hours", zh: "泰国心理健康热线 — 免费，24 小时" },
-  { n: "1669", th: "เจ็บป่วยฉุกเฉิน / ต้องการรถพยาบาล", en: "Medical emergency / ambulance", zh: "医疗急救 / 救护车" },
-  { n: "191", th: "เหตุด่วนเหตุร้าย / แจ้งตำรวจ", en: "Police emergency", zh: "报警（泰国警察）" },
-  { n: "1300", th: "ศูนย์ช่วยเหลือสังคม — ความรุนแรงในครอบครัวและการถูกทำร้าย", en: "Social Assistance Center — domestic violence and abuse", zh: "泰国社会援助中心 — 家庭暴力和受虐求助" }
+  { n: "1323",
+    th: "อยากมีคนรับฟัง โทร 1323 — พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง",
+    en: "Want someone to listen? Call 1323 — Talk any time, 24 hours a day, with someone ready to listen",
+    zh: "想找人倾听？拨打 1323 — 24 小时随时可以聊，有人愿意倾听" },
+  { n: "1669",
+    th: "เจ็บป่วยฉุกเฉิน โทร 1669 — ขอรถพยาบาลและความช่วยเหลือทางการแพทย์ฉุกเฉิน",
+    en: "Medical emergency? Call 1669 — Ambulance and emergency medical help",
+    zh: "医疗急救 拨打 1669 — 救护车和紧急医疗援助" },
+  { n: "191",
+    th: "แจ้งเหตุด่วนเหตุร้าย โทร 191 — แจ้งตำรวจได้ตลอด 24 ชั่วโมง",
+    en: "Police emergency? Call 191 — Reach the police, 24 hours a day",
+    zh: "报警 拨打 191 — 24 小时联系警察" },
+  { n: "1300",
+    th: "ศูนย์ช่วยเหลือสังคม โทร 1300 — ความรุนแรงในครอบครัว เด็กและเยาวชน ตลอด 24 ชั่วโมง 7 วัน",
+    en: "Social Assistance Center: Call 1300 — Domestic violence, children and young people; 24 hours, 7 days",
+    zh: "社会援助中心 拨打 1300 — 家庭暴力、儿童和青少年求助，每周 7 天 24 小时" }
 ];
 
 /* ---------------- wording lint: one module shared with the page (lensiq-merit-lint.js) ---------------- */
