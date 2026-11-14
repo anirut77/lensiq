@@ -320,6 +320,9 @@ input. Rows without ground truth are skipped and counted.
 
 ## Changelog / last reviewed
 
+- **2026-11-14 (tap-to-call help lines)**: no change to the pilots. Every help number (fortune pages, medicine,
+  nutrition, terms) is now a one-row tap-to-call button; on a booth computer the number shows as large text instead of
+  relying on a phone. Numbers and hours re-checked 2026-11-14 (`docs/CRISIS-RESOURCES.md`).
 - **2026-11-14 (fortune layout, branch `fortune-a`, not merged)**: no change to the plate, exam, gate or crowd pilots.
   The fortune pages (not a field-pilot product) replace "for entertainment" with the owner's one-line notice, show readings
   as short groups with "read more", and show advice icons and colour swatches. If fortune runs at a booth, staff can tell

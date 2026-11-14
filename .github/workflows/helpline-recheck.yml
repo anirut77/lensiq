@@ -1,0 +1,32 @@
+# Help line re-check (owner order 2026-11-14, Part B): every day, fetch each agency's own page and fail when the number or
+# hours we show (docs/CRISIS-RESOURCES.md) are no longer stated there, so GitHub alerts the owner. No secrets, read-only
+# token, changes nothing. Not part of the CI gate (ci.yml): it never runs on pushes or pull requests.
+name: Help line re-check
+
+on:
+  schedule:
+    - cron: "17 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: helpline-recheck
+  cancel-in-progress: true
+
+jobs:
+  recheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          lfs: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Self-test of the text extraction
+        run: node tools/helpline-recheck.mjs --selftest
+      - name: Re-check the official pages
+        run: node tools/helpline-recheck.mjs

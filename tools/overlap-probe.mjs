@@ -17,6 +17,16 @@
 //             control that can never be cleared is blocked: the last controls of a page under a bottom bar without
 //             page padding, a control under a floating button or prompt that moves with the viewport, a control inside a
 //             bar that another bar sits on. tests/e2e/overlap-kit.mjs gates "blocking" at 0.
+// Stricter rules (overlap-d2, coordinator order 2026-11-15 after the independent review of overlap-d):
+//   prompt     a control covered by the analytics consent prompt ([data-lq-analytics-banner]) is BLOCKING even when a
+//              scroll would clear it: paying, reading or any other action must never depend on answering the prompt
+//   protected  a PINNED help line (.lq-helpline, its tel links) or crisis support card (.fa-support), i.e. fixed, or sticky
+//              and stuck at its top / bottom offset (the calm help line docked under a reading), must stay reachable at all
+//              times: covered at the top, at the bottom OR at any of STEPS evenly spaced scroll positions in between (each
+//              viewport) is BLOCKING, never excused by a scroll. A help line in the page flow may scroll under the site
+//              header like any content (normal rule), but under the consent prompt it is always blocking (prompt rule)
+//   targets    + checkout.html with the API and analytics on (the pay bar and the prompt together) and tarot.html after a
+//              three-card reading in a calm session with the API and analytics on (the sticky calm help line)
 // Not counted: controls behind a full-screen overlay (>= 85 % of the viewport, a modal by design) or outside an open
 // modal <dialog>, inert subtrees, controls whose centre is outside the viewport, pointer-events:none overlays (they do not
 // block a tap; elementFromPoint passes through them).
@@ -27,7 +37,10 @@
 //   node tools/overlap-probe.mjs exam gate            only targets whose id contains a word
 //   node tools/overlap-probe.mjs --json out.json      full result as JSON
 //   node tools/overlap-probe.mjs --details            list the covered controls
+// The command line measures only with the locked probe (tools/eval-guard.mjs assertLocked, phase overlap-d2): the repo
+// copies of the probe and the gate must equal the locked copies in ~/LENSIQ-field/evals/overlap-d2/.
 // Library: import { TARGETS, LANGS, VIEWPORTS, probeTarget } from "./overlap-probe.mjs" (tests/e2e/overlap-kit.mjs).
+import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -46,19 +59,31 @@ export const INIT = "window.alert=()=>{};window.confirm=()=>false;window.prompt=
 // API on (as on the pages listed in deploy/public-site.json, with analytics switched on): loads lensiq-api.js, the
 // analytics consent prompt and the member chip; the address is unreachable on purpose (nothing is sent anywhere)
 const API_INIT = "window.LENSIQ_API_BASE='http://127.0.0.1:9';";
+// calm session of the fortune pages (fortune-crisis.js, crisis fix 4): the reading's help line is docked (sticky)
+const CALM_INIT = "try { sessionStorage.setItem('lq-fortune-calm', '1'); } catch (e) {}";
+export const STEPS = 40;
+const PROTECTED = ".lq-helpline, .fa-support";
+// "stuck" = a fixed help line / card, or a sticky one at its top / bottom offset (the calm help line docked at the bottom of
+// the viewport while its reading is on screen); a help line in the page flow may scroll under the site header like any
+// other content, but is never excused under the consent prompt
+const PROMPT = "[data-lq-analytics-banner]";
 const HTML = readdirSync(repo).filter(f => f.endsWith(".html")).sort();
 const DEMO = HTML.filter(f => /lensiq-demo\.js/.test(readFileSync(join(repo, f), "utf8")));
 // targets: every page as served, every page with the sales demo (?demo=1: the fixed sample-data bar), and the pages
 // that carry the API on the live site (deploy/public-site.json) with the API and analytics on (consent prompt)
 export const EXTRA = [
   ...DEMO.map(f => ({ id: `${f}?demo=1`, page: f, query: "&demo=1", init: [] })),
-  ...["index.html", "medicine.html"].map(f => ({ id: `${f}+api`, page: f, query: "", init: [API_INIT] }))
+  ...["index.html", "medicine.html"].map(f => ({ id: `${f}+api`, page: f, query: "", init: [API_INIT] })),
+  // overlap-d2: the pay bar with the consent prompt; the sticky calm help line after a reading, with the consent prompt
+  { id: "checkout.html+api", page: "checkout.html", query: "", init: [API_INIT] },
+  { id: "tarot.html+calm+api", page: "tarot.html", query: "", init: [API_INIT, CALM_INIT], act: "tarot-reading" }
 ];
 export const TARGETS = [...HTML.map(f => ({ id: f, page: f, query: f === "insights.html" ? "&demo" : "", init: [] })), ...EXTRA];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// Runs inside the page: covered controls in the current state.
-function inPage() {
+// Runs inside the page: covered controls in the current state (o.steps: also scan STEPS scroll positions for the
+// protected help line / crisis card and for the prompt; the scroll is restored afterwards).
+function inPage(o) {
   const W = document.documentElement.clientWidth, H = window.innerHeight;
   const SEL = "a[href],button,input:not([type=hidden]),select,textarea,summary,[role=button],label";
   const cs = el => getComputedStyle(el);
@@ -75,7 +100,23 @@ function inPage() {
     return r.width >= 1 && r.height >= 1;
   };
   const modal = document.querySelector("dialog:modal");
-  const controls = [...document.querySelectorAll(SEL)].filter(el => {
+  // a help line / crisis card that is pinned and currently stuck at its offset (fixed, or sticky at its top / bottom
+  // edge): it must never be covered; a help line in the page flow follows the normal rule (and never the prompt)
+  const prot = el => {
+    const box = el.closest(o.protectedSel);
+    if (!box) return false;
+    for (let p = el; p && p.nodeType === 1; p = p.parentElement) {
+      const s2 = getComputedStyle(p);
+      if (s2.position === "fixed") return true;
+      if (s2.position === "sticky") {
+        const r = p.getBoundingClientRect(), b = parseFloat(s2.bottom), t = parseFloat(s2.top);
+        if ((!isNaN(b) && Math.abs(r.bottom - (H - b)) < 2) || (!isNaN(t) && Math.abs(r.top - t) < 2)) return true;
+      }
+      if (p === box) break;
+    }
+    return false;
+  };
+  const controls = [...document.querySelectorAll(SEL + "," + o.protectedSel + ",.lq-helpline-tel")].filter(el => {
     if (el.tagName === "LABEL" && !el.control) return false;
     if (el.closest("[inert]") || (modal && !modal.contains(el))) return false;
     return visible(el);
@@ -121,6 +162,8 @@ function inPage() {
     if (cov === "modal") { modals++; continue; }
     const item = `${name(el)} under ${name(cov.bar)}`;
     literal.push(item);
+    // the consent prompt and the help line / crisis card: never excused by a scroll
+    if (cov.bar.matches(o.promptSel) || cov.bar.closest(o.promptSel) || prot(el)) { blocking.push(item + (prot(el) ? " [help line / crisis card]" : " [consent prompt]")); continue; }
     // try to scroll it clear (window + scrolling ancestors), then restore every scroll position
     const sx = window.scrollX, sy = window.scrollY, inner = scrollers(el).map(p => [p, p.scrollTop, p.scrollLeft]);
     let clear = false;
@@ -139,6 +182,26 @@ function inPage() {
     window.scrollTo({ left: sx, top: sy, behavior: "instant" });
     if (!clear) blocking.push(item);
   }
+  if (o.steps && document.querySelector(o.protectedSel + "," + o.promptSel)) {
+    // every STEPS-th of the page: the help line / crisis card and every control under the prompt, at each scroll position
+    const sx = window.scrollX, sy = window.scrollY;
+    const max = Math.max(0, document.documentElement.scrollHeight - H);
+    const seen = new Set(blocking);
+    for (let i = 0; i <= o.steps; i++) {
+      window.scrollTo({ left: 0, top: Math.round(max * i / o.steps), behavior: "instant" });
+      for (const el of controls) {
+        const cov = coverOf(el);
+        if (!cov || cov === "out" || cov === "modal") continue;
+        const byPrompt = !!cov.bar.closest(o.promptSel);
+        if (!prot(el) && !byPrompt) continue;
+        const item = `${name(el)} under ${name(cov.bar)}` + (prot(el) ? " [help line / crisis card]" : " [consent prompt]");
+        if (seen.has(item)) continue;
+        seen.add(item);
+        blocking.push(item + ` (scroll step ${i}/${o.steps})`);
+      }
+    }
+    window.scrollTo({ left: sx, top: sy, behavior: "instant" });
+  }
   return { checked, modals, literal, blocking };
 }
 
@@ -155,6 +218,17 @@ export async function probeTarget(browser, base, target, lang) {
     const ready = `document.readyState === "complete" && (!document.getElementById("siteNav") || (window.LQI18N && document.documentElement.lang === ${JSON.stringify(htmlLang)}))`;
     await p.waitFor(ready, 10000).catch(() => null);
     await sleep(900);
+    if (target.act === "tarot-reading") {
+      // a three-card love reading, as tests/e2e/fortune-en.e2e.mjs; in the calm session its help line is docked (sticky)
+      await p.evaluate(() => { document.querySelector('input[value="three"]').click(); document.querySelector('input[value="love"]').click(); document.getElementById("trStart").click(); });
+      await sleep(600);
+      await p.evaluate(() => document.getElementById("trAuto").click());
+      await sleep(900);
+      await p.evaluate(() => document.getElementById("trReveal").click());
+      await p.waitFor(`document.querySelectorAll(".fa-section").length >= 3 && !document.querySelector(".fa-loading, [aria-busy=true] .fa-section")`, 25000);
+      await sleep(400);
+    }
+    const opts = { protectedSel: PROTECTED, promptSel: PROMPT, steps: 0 };
     for (const vp of VIEWPORTS) {
       if (vp !== v0) {
         await p.send("Emulation.setDeviceMetricsOverride", { width: vp.width, height: vp.height, deviceScaleFactor: 1, mobile: vp.mobile });
@@ -162,18 +236,31 @@ export async function probeTarget(browser, base, target, lang) {
       }
       await p.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: "instant" }));
       await sleep(120);
-      res[`${vp.id}/top`] = await p.evaluate(inPage);
+      res[`${vp.id}/top`] = await p.evaluate(inPage, { ...opts, steps: STEPS });
       await p.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, left: 0, behavior: "instant" }));
       await sleep(250);
       await p.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, left: 0, behavior: "instant" }));
       await sleep(60);
-      res[`${vp.id}/bottom`] = await p.evaluate(inPage);
+      res[`${vp.id}/bottom`] = await p.evaluate(inPage, opts);
     }
   } finally { await p.close(); }
   return res;
 }
 
+// the files of the locked set (evals-locks/overlap-d2.sha256); the command line refuses to measure with any other copy
+export const LOCKED = ["tools/overlap-probe.mjs", "tests/e2e/overlap-kit.mjs", "tests/e2e/overlap-exceptions.json"];
+
 async function main() {
+  const { assertLocked } = await import("./eval-guard.mjs");
+  try {
+    const g = assertLocked("overlap-d2", LOCKED);
+    const sha = f => createHash("sha256").update(readFileSync(f)).digest("hex");
+    for (const f of LOCKED) {
+      const want = g.files.find(x => x.path.endsWith("/" + f));
+      if (!want || sha(join(repo, f)) !== want.sha256) throw new Error(`eval-guard: ${f} in the repo differs from the locked copy (${g.lockFile}); re-lock before measuring`);
+    }
+    console.error(`eval-guard OK: phase overlap-d2, ${LOCKED.length} files (commit ${g.lockCommit})`);
+  } catch (e) { console.error(String((e && e.message) || e)); process.exit(2); }
   const { launch } = await import("../tests/e2e/cdp.mjs");
   const { serve } = await import("./static-server.mjs");
   const argv = process.argv.slice(2);

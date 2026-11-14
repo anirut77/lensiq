@@ -62,7 +62,7 @@
     "fk.src.ai": "由写作助手（Anthropic 的 Claude）撰写",
     "fk.src.local": "在本机撰写 · 每次说法都不同",
     "fk.card.foot": "属于个人信仰，请自行判断，不保证预测准确",
-    "fk.card.help": "如果你感觉撑不下去，请拨打泰国心理健康热线 1323：免费，24 小时",
+    "fk.card.help": "想找人倾听？拨打 1323 · 24 小时随时可以聊，有人愿意倾听",
     "fk.share.text": "属于个人信仰，请自行判断，不保证预测准确",
     "fk.card.saved": "卡片已保存",
     "fk.card.fail": "卡片生成失败",

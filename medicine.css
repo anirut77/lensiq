@@ -34,7 +34,7 @@
 .md-call b{font-size:1.15rem}
 .md-emerg{border:3px solid #a12b20;background:#fdecea;color:#5c140b;border-radius:16px;padding:16px;margin:0 0 16px}
 .md-emerg h2{color:#7a1f12}
-.md-emerg a{color:#7a1f12;display:inline-block;min-height:44px;min-width:56px;line-height:44px;font-size:1.2rem}
+.md-emerg a:not(.lq-call-btn){color:#7a1f12;display:inline-block;min-height:44px;min-width:56px;line-height:44px;font-size:1.2rem}
 /* tabs */
 .md-tabs{display:flex;gap:2px 6px;flex-wrap:wrap;margin:0 0 14px;border-bottom:1px solid var(--line)}
 .md-tabs .tab{max-width:100%;white-space:normal}
@@ -105,3 +105,6 @@
 
 /* 375 px (consistency review): the tab bar stays one row and scrolls sideways, so inactive tabs still read as tabs */
 @media (max-width:640px){.md-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.md-tabs>.tab{flex:0 0 auto;white-space:nowrap;max-width:none}}
+/* help lines are the shared tap-to-call component (lensiq-helpline.js, styles.css .lq-call*) */
+.md-tel .lq-call{flex:1 1 220px;margin:0}
+.md-emerg .lq-call{margin:0}

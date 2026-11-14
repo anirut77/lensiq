@@ -1,0 +1,24 @@
+# overlap-d2 (coordinator order 2026-11-15, after the independent review of overlap-d: M1, M2, L3, probe coverage): STRICTER rules only, locked before any fix.
+# The consent prompt never excuses a covered control by a scroll; a pinned (fixed, or sticky and stuck) help line / crisis card is checked at top, bottom and 40 scroll steps per viewport and is never excused;
+# two more targets: checkout.html+api and tarot.html+calm+api (after a reading in a calm session). The command line refuses to measure unless the repo copies equal these locked copies.
+# overlap-d.sha256 stays as history. Baseline on origin/main d174532: ~/LENSIQ-field/evals/overlap-d2/baseline.*
+# locked 2026-11-14T17:24:51Z (tools/eval-guard.mjs lock, 19 files)
+c66bee2066883641d3e797b1384bf9a3f0f6a9a2bc6c38fe71c754e1ce07b26c  tools/overlap-probe.mjs
+b1bae944caa343bc3f73b4ae699318b0f4c33923549206c127b13dd95edacd1f  tests/e2e/overlap-kit.mjs
+ecc7663038887ebbbfa94483210c5c02c892857fe9cc2e18e63359e20ec14464  tests/e2e/overlap-exceptions.json
+c71642ad7843774bce48592cac04c865fc478e766914c90167480d24034c7a8a  tests/e2e/overlap-1.e2e.mjs
+857bf1f49d17cc50324e17280ad820712fa5ee31292b7c14867a000e7fd7a886  tests/e2e/overlap-2.e2e.mjs
+dc1d92bd40604f9ddf596d84a4f5466390910521446da8da7b771c16c20cf16a  tests/e2e/overlap-3.e2e.mjs
+fce9f575c0b21a74cc5c22db58ee9b423008d32ea2726f79e8eaf6f5d5116fea  tests/e2e/overlap-4.e2e.mjs
+389ffde1f018c026b591d9d8031842258d7af97128d0b3288bb0d4ef64a215a5  tests/e2e/overlap-5.e2e.mjs
+82dcdd4da53195ad14b18abf1c600fe261eb560d775a2fd16647f42100da8d7c  tests/e2e/overlap-6.e2e.mjs
+cd5822750566433096daabb278d42b42e1f9928294e1aa22809db053dde9a458  tests/e2e/overlap-7.e2e.mjs
+44c451883f7e1ac4b6232854c7d2b1a28317eff84a52e1ecb2a92897d9c26c09  tests/e2e/overlap-8.e2e.mjs
+2392adc9d83ca13fc5c8238157bedf659f418dc44db218e3516abf589de0471f  tests/e2e/overlap-9.e2e.mjs
+e068bc2becd565b1667808436b645372c8dc0e7d81d3e70a1bcaa3d972ef764c  tests/e2e/overlap-10.e2e.mjs
+ffb962ff579d806d702b0314bc1ed6f4f902ca28ad249fc542e8a41b2d824406  tests/e2e/overlap-11.e2e.mjs
+f44646d3ddef95b329add2124eb2c48519329bb7a43d442e26b316b33541111a  tests/e2e/overlap-12.e2e.mjs
+20e994e2b6dd89337df3aa87d36fdba697a4ea9b351f6dbe97dcbae377f02095  tests/e2e/overlap-13.e2e.mjs
+513e32cf8f58bb8d8ad2d7f4c46e271fb42ad7a714c9fb206b21eb556b4df230  tests/e2e/overlap-14.e2e.mjs
+7581c34f27b352f467555e9251e0b2a3bfa2ef21e6d0e8ce2530f59ce72166e8  tests/e2e/overlap-15.e2e.mjs
+fe0cb9839f0d369954728cec1b2f2aa7eaa8750e424e496ea72e2583d51de5bf  tests/e2e/overlap-16.e2e.mjs

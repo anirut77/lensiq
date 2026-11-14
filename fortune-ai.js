@@ -4136,9 +4136,6 @@
       title: "ขอหยุดคำทำนายไว้ก่อน",
       lead: "ขอบคุณที่เล่าให้ฟัง สิ่งที่คุณพิมพ์มาฟังดูหนักใจ และสำคัญกว่าคำทำนายใด ๆ ตอนนี้เราจึงขอไม่อ่านดวงให้",
       body: "ถ้าคุณกำลังคิดทำร้ายตัวเอง รู้สึกไม่ปลอดภัย หรือมีคนทำร้ายคุณ คุณไม่ต้องเผชิญเรื่องนี้คนเดียว มีคนพร้อมรับฟังและช่วยเหลือ",
-      lines: [["1323", "สายด่วนสุขภาพจิต กรมสุขภาพจิต — โทรฟรี ตลอด 24 ชั่วโมง"], ["1669", "เจ็บป่วยฉุกเฉิน / ต้องการรถพยาบาล"], ["191", "เหตุด่วนเหตุร้าย / แจ้งตำรวจ"],
-        ["1300", "ศูนย์ช่วยเหลือสังคม กระทรวง พม. — ความรุนแรงในครอบครัว ปัญหาเด็กและเยาวชน ตลอด 24 ชั่วโมง"],
-        ["02 113 6789", "สมาคมสะมาริตันส์แห่งประเทศไทย — รับฟังทุกเรื่อง 12:00–22:00 น.", "021136789"]],
       after: "ถ้าทำได้ ลองบอกคนที่คุณไว้ใจสักคนว่ากำลังรู้สึกอย่างไร หรือไปที่โรงพยาบาลใกล้บ้าน ถ้าอยู่นอกประเทศไทย โทรเบอร์ฉุกเฉินของประเทศนั้น",
       foot: "ข้อความนี้ไม่ได้บันทึกหรือส่งไปที่ใด · ถ้อยคำบนการ์ดนี้กำลังรอผู้เชี่ยวชาญด้านสุขภาพจิตตรวจทาน",
       call: "โทร",
@@ -4147,9 +4144,6 @@
       title: "Let's pause the reading",
       lead: "Thank you for telling us. What you wrote sounds heavy, and it matters more than any reading, so we will not give a fortune right now.",
       body: "If you are thinking about hurting yourself, feel unsafe, or someone is hurting you, you do not have to face this alone. People are ready to listen and help.",
-      lines: [["1323", "Thai Department of Mental Health hotline — free, 24 hours"], ["1669", "Medical emergency / ambulance"], ["191", "Police emergency"],
-        ["1300", "Social Assistance Center (Ministry of Social Development and Human Security) — domestic violence, children and young people; 24 hours"],
-        ["02 113 6789", "Samaritans of Thailand — listening line, 12:00–22:00", "021136789"]],
       after: "If you can, tell someone you trust how you feel, or go to the nearest hospital. Outside Thailand, call your local emergency number.",
       foot: "Nothing you typed was saved or sent anywhere · The wording on this card is awaiting review by a mental-health professional",
       call: "Call",
@@ -4158,23 +4152,25 @@
       title: "先暂停这次解读",
       lead: "谢谢你愿意说出来。你写下的内容听起来很沉重，这比任何解读都重要，所以现在我们先不做占卜。",
       body: "如果你正在想伤害自己、觉得不安全，或者有人在伤害你，你不需要独自面对。有人愿意倾听并提供帮助。",
-      lines: [["1323", "泰国心理健康热线（泰国卫生部心理健康司）— 免费，24 小时"], ["1669", "医疗急救 / 救护车"], ["191", "报警（泰国警察）"], ["1300", "泰国社会援助中心（社会发展与人类安全部）— 家庭暴力、儿童和青少年问题，24 小时"],
-        ["02 113 6789", "泰国撒玛利亚会（Samaritans of Thailand）倾听热线 — 12:00–22:00", "021136789"]],
       after: "如果可以，请告诉一位你信任的人你现在的感受，或者去最近的医院。如果你不在泰国，请拨打当地的紧急电话。",
       foot: "你输入的内容没有被保存或发送 · 这张卡片的措辞正在等待心理健康专业人士审阅",
       call: "拨打",
     },
   };
+  // help lines on the card: the shared tap-to-call component (lensiq-helpline.js, owner order 2026-11-14 Part B), in its order
+  // 1323, 1669, 191, 1300, Samaritans; numbers and hours verified in docs/CRISIS-RESOURCES.md (checked 2026-11-14)
+  const callKit = () => (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : root.LQHelpline) || null;
+  const supportLines = lang => (callKit() ? callKit().cardLines(lang) : ["1323", "1669", "191", "1300", "021136789"].map(n => ({ id: n.length > 4 ? "samaritans" : n, n, tel: n, btn: n, t: "" })));
   function supportResult(opts) {
-    const lang = langOf(opts), S0 = SUPPORT[lang] || SUPPORT.th;
+    const lang = langOf(opts), S0 = Object.assign({}, SUPPORT[lang] || SUPPORT.th, { lines: supportLines(lang) });
     try { const ls = root.localStorage; if (ls) ls.setItem("lq-support-n", String((parseInt(ls.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }
     return {
       source: "support", crisis: true, lang, reviewStatus: "pending-professional-review",
-      support: { title: S0.title, lead: S0.lead, body: S0.body, lines: S0.lines.map(([n, t, tel]) => ({ n, t, tel: tel || n })), after: S0.after, foot: S0.foot, call: S0.call },
-      sections: [{ id: "support", title: S0.title, paragraphs: [S0.lead, S0.body].concat(S0.lines.map(([n, t]) => n + " — " + t), [S0.after]) }],
+      support: { title: S0.title, lead: S0.lead, body: S0.body, lines: S0.lines, after: S0.after, foot: S0.foot, call: S0.call },
+      sections: [{ id: "support", title: S0.title, paragraphs: [S0.lead, S0.body].concat(S0.lines.map(l => l.btn + " — " + l.t), [S0.after]) }],
     };
   }
-  const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support h3{margin:0 0 .4em}.fa-support ul{list-style:none;padding:0;margin:.6em 0}.fa-support li{margin:.45em 0;display:flex;gap:.6em;align-items:center;flex-wrap:wrap}.fa-support a.fa-tel{display:inline-flex;align-items:center;justify-content:center;min-width:72px;min-height:44px;padding:0 14px;border-radius:12px;font-weight:700;font-size:1.15em;background:#0ea5e9;color:#fff;text-decoration:none}.fa-support .fa-support-foot{font-size:.85em;opacity:.75}";
+  const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support-foot{font-size:.85em;opacity:.75}";
   /** วาดการ์ดช่วยเหลือ (ใช้ textContent ทั้งหมด) — container จะถูกล้างก่อน */
   function renderSupport(container, res) {
     if (!container) return null;
@@ -4186,10 +4182,9 @@
     const box = el("section", "fa-support"), h = el("h3", null, s.title);
     h.id = "fa-h-" + (++uid); box.setAttribute("aria-labelledby", h.id); box.setAttribute("role", "region"); box.setAttribute("data-review", "pending-professional-review");
     box.appendChild(h); box.appendChild(el("p", null, s.lead)); box.appendChild(el("p", null, s.body));
-    const ul = el("ul");
+    const ul = el("ul"), K = callKit(), lng = res && (res.lang === "en" || res.lang === "zh") ? res.lang : "th";
     for (const l of s.lines) {
-      const li = el("li"), a = el("a", "fa-tel", l.n); a.href = "tel:" + (l.tel || l.n); a.setAttribute("aria-label", s.call + " " + l.n);
-      li.appendChild(a); li.appendChild(el("span", null, l.t)); ul.appendChild(li);
+      ul.appendChild(el("li")).appendChild(K && K.LINES[l.id] ? K.el(doc, l.id, { lang: lng, cls: "fa-tel" }) : Object.assign(el("a", "lq-call-btn fa-tel", l.n), { href: "tel:" + l.tel }));
     }
     box.appendChild(ul); box.appendChild(el("p", null, s.after)); box.appendChild(el("p", "fa-support-foot", s.foot));
     container.appendChild(box);
@@ -4268,7 +4263,7 @@
     if (res.crisis && res.support) {
       const sp = res.support;
       return '<section class="fa-support" role="region" data-review="pending-professional-review"><h3>' + escapeHtml(sp.title) + "</h3><p>" + escapeHtml(sp.lead) + "</p><p>" + escapeHtml(sp.body) + "</p><ul>" +
-        sp.lines.map(l => '<li><a class="fa-tel" href="tel:' + escapeHtml(l.tel || l.n) + '">' + escapeHtml(l.n) + "</a> <span>" + escapeHtml(l.t) + "</span></li>").join("") +
+        sp.lines.map(l => "<li>" + (callKit() ? callKit().html(l.id, { lang: res.lang, cls: "fa-tel", keys: false }) : '<a href="tel:' + l.tel + '">' + l.n + "</a>") + "</li>").join("") +
         "</ul><p>" + escapeHtml(sp.after) + '</p><p class="fa-support-foot">' + escapeHtml(sp.foot) + "</p></section>";
     }
     let h = "";
