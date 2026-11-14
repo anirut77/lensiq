@@ -188,9 +188,11 @@ if (typeof document !== "undefined") (() => {
     engine("กำลังเปิดกล้องและโหลดโมเดล...");
     try {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure"), { name: "Insecure" });
+      // speed pass 2026-11-14: the face models are fetched only once the camera is open (nothing if it is refused)
+      const camP = camera.start();
       const [, backend] = await Promise.all([
-        camera.start(),
-        TEST ? Promise.resolve("test") : LQDetect.tfBackend().then(async b => {
+        camP,
+        TEST ? Promise.resolve("test") : camP.then(() => LQDetect.tfBackend()).then(async b => {
           await Promise.all([
             faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
             faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),

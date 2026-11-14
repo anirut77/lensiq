@@ -66,6 +66,7 @@
     "palm.err.cam": "无法打开相机：{msg}",
     "palm.err.file": "无法打开图片文件",
     "palm.eng.loading": "正在加载手部关键点模型...",
+    "palm.eng.idle": "就绪 — 打开摄像头或选择照片时才加载模型",
     "palm.eng.ready": "准备就绪{slow}",
     "palm.eng.slow": "（此设备可能稍慢一些）",
     "palm.eng.readyFake": "准备就绪（测试用模拟检测器）",

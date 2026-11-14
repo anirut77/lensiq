@@ -45,6 +45,7 @@
     /* ---------- status / engine ---------- */
     "faceread.eng.prep": "Preparing the system...",
     "faceread.eng.loading": "Loading the face analysis model...",
+    "faceread.eng.idle": "Ready — the model loads when you open the camera or choose a photo",
     "faceread.eng.fake": "Ready (mock detector for testing)",
     "faceread.eng.ready": "Ready",
     "faceread.eng.readySlow": "Ready (this device may take a little longer)",

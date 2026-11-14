@@ -48,6 +48,7 @@
     /* ---------- 状态 / 引擎 ---------- */
     "faceread.eng.prep": "正在准备系统...",
     "faceread.eng.loading": "正在加载人脸分析模型...",
+    "faceread.eng.idle": "就绪 — 打开摄像头或选择照片时才加载模型",
     "faceread.eng.fake": "已就绪（测试用模拟检测器）",
     "faceread.eng.ready": "已就绪",
     "faceread.eng.readySlow": "已就绪（此设备可能稍慢一些）",

@@ -77,6 +77,8 @@
   "sitecheck.e2e.mjs": 105,
   "smoke.e2e.mjs": 76,
   "solutions.e2e.mjs": 4,
+  "speed-budget.e2e.mjs": 420,
+  "speed-models.e2e.mjs": 360,
   "store-reid.e2e.mjs": 33,
   "store.e2e.mjs": 13,
   "studio.e2e.mjs": 28,

@@ -18,6 +18,7 @@
   "ขนาดข้อมูลตัวอย่างไม่ตรงกัน": "Sample data size mismatch",
   "พื้นที่จัดเก็บในเบราว์เซอร์เต็ม กรุณาส่งออกข้อมูลแล้วล้างรายงานขาย": "Browser storage is full; export the data, then clear the sales report",
   "กำลังโหลดโมเดลจำสินค้า": "Loading product recognition model",
+  "โมเดลจำสินค้าจะโหลดเมื่อเปิดกล้อง": "The product recognition model loads when you open the camera",
   "บันทึกข้อมูลลงเครื่องไม่สำเร็จ": "Could not save data on this device",
   "ข้อมูลอาจหายเมื่อปิดหน้า กรุณาส่งออกโมเดลเก็บไว้": "Data may be lost when the page closes; please export the model",
   "เบราว์เซอร์นี้บันทึกข้อมูลถาวรไม่ได้": "This browser cannot store data persistently",

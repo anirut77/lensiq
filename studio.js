@@ -37,6 +37,7 @@
     r.textContent = err ? err.t
       : eng.run ? (eng.run.c === "warn" ? T("studio.js.ready.doneWarn", "เสร็จแล้ว ({s} วินาที) · ไม่พบจุดบนใบหน้า ปรับจุดคอและไหล่ได้", { s: status.secs || "?" }) : T("studio.js.ready.done", "เสร็จแล้ว ({s} วินาที)", { s: status.secs || "?" }))
       : all.some(x => x.c === "") ? T("studio.js.ready.loading", "กำลังเตรียมระบบ...")
+      : all.some(x => x.c === "idle") ? T("studio.js.ready.idle", "พร้อม — โมเดลจะโหลดเมื่อเปิดกล้องหรือเลือกรูป")
       : all.some(x => x.c === "warn") ? T("studio.js.ready.fallback", "พร้อมใช้งาน (บางส่วนใช้วิธีสำรอง ดูรายละเอียดทางเทคนิค)")
       : T("studio.js.ready.ok", "พร้อมใช้งาน");
     r.className = "engine " + cls;
@@ -66,13 +67,24 @@
     faceP.then(() => status("face", T("studio.js.st.faceOk", "ตรวจจุดบนใบหน้าพร้อม"), "ok"), e => status("face", e.message === "skip" ? T("studio.js.st.faceSkip", "ประมาณใบหน้าจากรูปทรง") : T("studio.js.st.faceFail", "ตรวจจุดบนใบหน้าไม่ได้ (ประมาณจากรูปทรงแทน)"), e.message === "skip" ? "ok" : "warn"));
     return faceP;
   }
-  function init() {
+  // speed pass 2026-11-14: no model download at page load (MODNet ~25 MB + Multiclass + face detector). The models are
+  // fetched when the camera opens or the first photo is processed; the status lines say so ("idle") until then.
+  let modelsP = null;
+  function loadModels() {
+    if (modelsP) return modelsP;
     status("matte", T("studio.js.st.matteLoading", "กำลังโหลดโมเดลตัดพื้นหลัง (MODNet)..."), "");
-    PBHQ.loadMatting().then(() => status("matte", T("studio.js.st.matteOk", "ตัดพื้นหลัง MODNet พร้อม"), "ok"), e => { console.warn(e); status("matte", T("studio.js.st.matteFail", "MODNet ใช้ไม่ได้ (ใช้การแยกสีฉากแทน)"), "warn"); });
+    const a = PBHQ.loadMatting().then(() => status("matte", T("studio.js.st.matteOk", "ตัดพื้นหลัง MODNet พร้อม"), "ok"), e => { console.warn(e); status("matte", T("studio.js.st.matteFail", "MODNet ใช้ไม่ได้ (ใช้การแยกสีฉากแทน)"), "warn"); });
     status("parse", T("studio.js.st.parseLoading", "กำลังโหลดโมเดลแยกผม/คอ/เสื้อ..."), "");
-    PBHQ.loadMulticlass().then(() => status("parse", T("studio.js.st.parseOk", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass) พร้อม"), "ok"), e => { console.warn(e); status("parse", T("studio.js.st.parseFail", "โหลดโมเดลแยกผม/คอไม่ได้ (ใช้การจัดกลุ่มสีแทน)"), "warn"); });
+    const b = PBHQ.loadMulticlass().then(() => status("parse", T("studio.js.st.parseOk", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass) พร้อม"), "ok"), e => { console.warn(e); status("parse", T("studio.js.st.parseFail", "โหลดโมเดลแยกผม/คอไม่ได้ (ใช้การจัดกลุ่มสีแทน)"), "warn"); });
     status("face", T("studio.js.st.faceLoading", "กำลังโหลดตัวตรวจใบหน้า..."), "");
-    loadFace().catch(() => {});
+    const c = loadFace().catch(() => {});
+    modelsP = Promise.allSettled([a, b, c]);
+    return modelsP;
+  }
+  function init() {
+    status("matte", T("studio.js.st.matteIdle", "ตัดพื้นหลัง MODNet: โหลดเมื่อเปิดกล้องหรือเลือกรูป"), "idle");
+    status("parse", T("studio.js.st.parseIdle", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass): โหลดเมื่อเปิดกล้องหรือเลือกรูป"), "idle");
+    status("face", T("studio.js.st.faceIdle", "ตัวตรวจใบหน้า: โหลดเมื่อเปิดกล้องหรือเลือกรูป"), "idle");
     loadGarments();
     renderBgChoices(); renderIdSizes();
   }
@@ -296,7 +308,7 @@
       cam.attach($("#stCamCtl")); // ปุ่มสลับกล้อง/เลือกกล้อง (ซ่อนเมื่อมีกล้องเดียว)
     }
     $("#stCam").hidden = false;
-    try { await cam.start(); v.classList.toggle("mirror", !!cam.mirrored); }
+    try { await cam.start(); v.classList.toggle("mirror", !!cam.mirrored); loadModels(); } // speed pass: models load now
     catch (e) { console.warn(e); toast(LQCam.errorText ? LQCam.errorText(e) : T("studio.js.camFail", "เปิดกล้องไม่ได้")); $("#stCam").hidden = true; }
   };
   $("#stCamClose").onclick = () => { if (cam) cam.stop(); $("#stCam").hidden = true; };
@@ -324,6 +336,8 @@
   }
 
   async function load(canvas) {
+    if (!modelsP) busy(true, T("studio.js.busy.models", "กำลังโหลดโมเดล (ครั้งแรกเท่านั้น)..."));
+    await loadModels(); // speed pass: the first photo waits for the models (already loading when the camera was opened)
     ST.phase = "analyzing"; ST.err = null; ST.cache = {}; ST.manual = null; ST.timings = {}; ST.qa = null; ST.draftOK = new Set(); ST.shown = null; ST.draft = null; ST.noq = null; ST.noqAnyway = false; ST.origFallback = false; ST.reviewed = new Set(); $("#stQa").hidden = true;
     const T0 = now();
     ST.src = canvas; ST.W = canvas.width; ST.H = canvas.height; ST.hi = canvas._hi || null; ST.idSpec = null; if ($("#stIdSpec")) $("#stIdSpec").innerHTML = "";

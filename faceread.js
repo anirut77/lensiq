@@ -1036,7 +1036,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     btnCam.disabled = true;
     engineT("faceread.eng.opening", "กำลังเปิดกล้องและโหลดโมเดล...");
     try {
-      await Promise.all([camera.start(), loadModels()]);
+      // speed pass 2026-11-14: models are fetched only once the camera is open (nothing is downloaded if the camera is refused)
+      await camera.start();
+      engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
+      await loadModels();
       $("#frCamHint").hidden = true;
       engineT("faceread.eng.camReady", "กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี มองตรง แล้วกด อ่านโหงวเฮ้ง", null, "ok");
       btnCam.hidden = true; btnRead.hidden = false;
@@ -1716,9 +1719,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }
   });
 
-  // โหลดโมเดลล่วงหน้า (ไม่ขอสิทธิ์กล้องจนกว่าจะกดปุ่ม)
+  // speed pass 2026-11-14: no model download at page load; the models load when the camera opens or a photo is chosen
+  // (test mode ?fakedet loads no model at all, so it is ready at once)
   if (!window.isSecureContext) showHttpsNote($("#frEngine"));
-  engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
-  loadModels().catch(function () {});
+  if (FAKE) loadModels().catch(function () {});
+  else engineT("faceread.eng.idle", "พร้อม — โมเดลจะโหลดเมื่อเปิดกล้องหรือเลือกรูป", null, "ok");
   window.__fr = { get current() { return current; }, makeCard: makeCard, reset: reset, narrate: narrate, keySentences: keySentences }; // ใช้ทดสอบ
 })();

@@ -194,7 +194,7 @@ export function pageHtml(cat, nav = navEntries()) {
     `<meta name="description" data-i18n-attr="content:cat.${cat.slug}.intro" content="${esc(cat.intro.th)}">`,
     '<link rel="stylesheet" href="styles.css?v=12">',
     '<link rel="stylesheet" href="products.css?v=2">',
-    '<link rel="stylesheet" href="solutions.css?v=1">',
+    '<link rel="stylesheet" href="solutions.css?v=2">', // speed pass: same version as solutions.html (one cached copy)
     '<link rel="stylesheet" href="cat.css?v=1">',
     "</head>",
     "<body>",

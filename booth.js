@@ -528,6 +528,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       if (!anyActive()) throw hub.cams.find(c => c.lastError)?.lastError || Object.assign(new Error("no camera"), { name: "NotFoundError" });
       const n = hub.cams.filter(c => c.active).length;
       engine(`กล้องพร้อม${n > 1 ? ` ${n} ตัว` : ""}${ready ? " — กด เริ่มนับผู้เข้าชม" : " กำลังโหลดโมเดล..."}`, ready ? "ok" : "");
+      if (!ready) loadOnce(); // speed pass 2026-11-14: the face models are fetched once a camera is open
     } catch (e) { camErr(e); }
     finally { camBtn.disabled = false; camState(); }
   };
@@ -550,7 +551,9 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     hub.remove(c.slot); applyRoles(); render(inFrameNow());
   }
 
-  let backendName = "";
+  let backendName = "", initP = null;
+  /** first camera open (or test mode): start loading the models once; a failed load can be retried (button) */
+  function loadOnce() { if (!initP) initP = init().finally(() => { if (!ready) initP = null; }); return initP; }
   async function init() {
     engine("กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
     try {
@@ -997,7 +1000,9 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   // ทดสอบ: camera = มุมมองของกล้องหลัก (เข้ากันกับชุดทดสอบเดิม) · cams = กล้องทั้งหมดใน hub
   const camera = { get active() { return anyActive(); }, get mirrored() { return mirrored(primaryCam()); }, get deviceId() { return primaryCam()?.deviceId || ""; } };
   if (TEST) window.__booth = { get S() { return S; }, get lastFrame() { return lastFrameAll(); }, get frames() { return frames; }, get ready() { return ready; }, get running() { return running; }, persist, camera, get overlay() { return primaryCam()?.overlay; }, get cams() { return orderedCams(); }, hub, sched };
-  render(0); init();
+  // speed pass 2026-11-14: no model download at page load; test mode (?fakedet) loads no model, so it is ready at once
+  render(0);
+  if (TEST) loadOnce(); else engine("กด เริ่มกล้อง — โมเดลจะโหลดเมื่อเปิดกล้อง");
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = { CFG, EMO, qualityFlags, dayKey, dist, blend, newState, newRuntime, runtime, dropRuntime, nearest, nearestCand, observe, noteTimeline, inFrameCount, inFrameUnion, normalizeRoles, camStats, hourlyByCam, buildStatsCsv, touchVisitor, hitBox, visitorStats, aggregate, markActivity, purgeFaces, autoPurge, serializeState, restoreState };

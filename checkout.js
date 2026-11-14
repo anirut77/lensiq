@@ -327,7 +327,9 @@ if (typeof document !== "undefined") (() => {
   const codeGates = { pay: mkCodeGates("pay"), stock: mkCodeGates("stock") };
 
   // ---------- สถานะระบบ ----------
-  let modelMsg = { text: "กำลังโหลดโมเดลจำสินค้า...", cls: "" }, camMsg = null;
+  // speed pass 2026-11-14: the product model (MobileNetV2, ~14 MB) is fetched only once the camera is open
+  let modelMsg = { text: "โมเดลจำสินค้าจะโหลดเมื่อเปิดกล้อง", cls: "" }, camMsg = null, modelP = null;
+  const ensureModel = () => modelP || (modelP = loadModel());
   function engine(text, cls = "", retry) {
     const e = $("#engine");
     e.textContent = text; e.className = "engine " + cls;
@@ -535,6 +537,7 @@ if (typeof document !== "undefined") (() => {
       if (ts.facingMode) { mirror.checked = ts.facingMode === "user"; applyMirror(); }
       track.addEventListener("ended", () => { if (document.hidden) return; stopCam(); camMsg = { text: "กล้องถูกถอดหรือหยุดทำงาน", cls: "err" }; showStatus(); });
       camOn = true; $("#camBtn").textContent = "ปิดกล้อง";
+      ensureModel();
       camMsg = { text: `กล้อง: ${track.label || "พร้อม"} (${video.videoWidth}×${video.videoHeight})`, cls: "ok" };
       payGate = gateInit(true); stockGate = gateInit(true);
       await listCams();
@@ -1103,7 +1106,6 @@ if (typeof document !== "undefined") (() => {
     renderAll();
     setTab(location.hash.slice(1) || "pay");
     initBarcode();
-    loadModel();
     await listCams();
     startCam();
     requestAnimationFrame(loop);

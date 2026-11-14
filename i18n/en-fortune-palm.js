@@ -64,6 +64,7 @@
     "palm.err.cam": "Could not open the camera: {msg}",
     "palm.err.file": "Could not open the image file",
     "palm.eng.loading": "Loading the hand landmark model...",
+    "palm.eng.idle": "Ready — the model loads when you open the camera or choose a photo",
     "palm.eng.ready": "Ready{slow}",
     "palm.eng.slow": " (this device may take a little longer)",
     "palm.eng.readyFake": "Ready (simulated detector for testing)",

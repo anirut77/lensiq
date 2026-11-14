@@ -484,9 +484,11 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     engine("กำลังเปิดกล้องและโหลดโมเดล...");
     try {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure"), { name: "Insecure" });
+      // speed pass 2026-11-14: the face models are fetched only once the camera is open (nothing if it is refused)
+      const camP = cam.start();
       const [, backend] = await Promise.all([
-        cam.start(),
-        TEST ? Promise.resolve("test") : modelsReady ? LQDetect.tfBackend() : LQDetect.tfBackend().then(async b => {
+        camP,
+        TEST ? Promise.resolve("test") : modelsReady ? LQDetect.tfBackend() : camP.then(() => LQDetect.tfBackend()).then(async b => {
           await Promise.all(["tinyFaceDetector", "faceLandmark68Net"].map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
           modelsReady = true; return b;
         })
