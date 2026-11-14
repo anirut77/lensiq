@@ -3,3 +3,6 @@
 18938b24fc65ae7ca30d032d25e4e25e563acd6ef6722c3c49e9161a5f3b6463  tests/e2e/speed-models.e2e.mjs
 a1edfd5f33261db23896fbb4fbac29099fd14e42588e6a8cf401c9668ab08249  tests/e2e/speed-budget.e2e.mjs
 b4cf875bc0d89f2aad9ca673511632da9f2c0f0008e6cb1474567a152449230f  tools/perf-measure.mjs
+# budgets 2026-11-14T12:52:48Z: speed-budget.e2e.mjs BUDGET set from the measured baseline ONLY (baseline/bytes.json, origin/main 4413bc3, 3 unthrottled cold loads per page, median; runs agreed to the KB; machine load 2-17 during the run, bytes do not depend on load). Rule baseline x1.10, KB to next 10, requests up. No page, procedure or metric changed. Earlier throttled timings taken at load avg 30-460 discarded (coordinator order).
+e351ddd8b21f6bbab1c54fcb18ce2e7d87b9b560b60e173ec0610e7fa8308089  tests/e2e/speed-budget.e2e.mjs
+97a1b23ab884cfc0324b61e17bb058ff11701cfbbea5398d7b5c0dfb8d4ff942  baseline/bytes.json  # field file
