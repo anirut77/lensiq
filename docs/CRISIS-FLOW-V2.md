@@ -160,3 +160,37 @@ Names: one-token distress names (wanttodie, killme) and 最后一天 give the so
 Thai words containing ตาย (ตายตะวัน, ตายใจ) do not. Hyperbole removed before the soft check: "X จะตาย" not said of oneself and
 not with a time (คืนนี้ …), ปลาหมอตายเพราะปาก, "show killed me", "feet are killing me", "the death of me", killer …, kill two
 birds, could murder a …, battery died, 吓死 / 热死.
+
+### Detection v5 (branch crisis-detect-v5; review 4 on fresh-2026-11-14c FAILED, that set is now dev data)
+
+Class rules, not sentences (fortune-crisis.js `v5()`): each is a concept, or two concepts that must both be present, written
+for Thai (spaces and tone marks removed), Chinese (traditional folded to simplified) and English / mixed / romanised text
+(lower case, leetspeak undone). All of them go to the card:
+farewell (someone left in another person's care + "we won't see each other again" / a goodbye, unless it is for a trip;
+giving everything away + "won't need it"; an apology to a parent + "I'm going first"; "if I'm not here, don't be sad";
+"this is my last message"); plan + means + time or place (charcoal + a sealed room, not a barbecue; a rope + a place to hang
+it, not a hammock or swing; walking into the sea / a river + not coming back; on a bridge / roof / cliff now; lying on the
+tracks; pills + a plan or "after everyone leaves"); overdose already taken (a whole / half bottle, box, strip, "OD", 一整盒药,
+not "as the doctor ordered" or "overdosed on coffee"); "which day is good to die" and "should I die?" asked as a fortune
+question; "my family would be better off / happier if I were gone"; sexual abuse of a child by a relative, coach, teacher or
+tutor incl. grooming ("makes me send pics", 要我传照片 + secrecy, 对我做奇怪的事, ลวนลาม, ส่งรูปโป๊) and a coach / teacher
+hitting a child with a threat; self-harm with a razor / blade / glass or scratching until it bleeds; romanised Thai
+("yak tai", "mai yak mee chee wit", "kha tua tai", leet "4yak t4y"); Thai lakkhangyao ๅ typed for า (อยากตๅย); three or more
+repeated Thai letters; misspellings ("want to dye" without an object, "wnat to die", "end my lyfe", "wish i was ded").
+
+False soft steps removed: ตายสนิท, deaths in a game (ตายไปสิบรอบ), "deadline … ตายแน่", ตายาย, plants / fish that died, film
+and game titles (Kill Bill, Death Stranding …), dyeing hair, devices that died, 死机 / 卡死 / 死党 / 死线 / 枯死; homework photos
+sent to a teacher, a pet-sitter for a trip.
+
+Name field: each free-text field is judged on its own; a NAME field only through softName(). A name shaped like a name
+(1-3 tokens, each a capitalised Latin word, a Thai word or up to 4 Chinese characters, no Thai pronoun or verb) is judged
+without the name syllables ตาย / Kill… / Death… / Dead… (บุญตาย ศรีสุข, ตายาย, Killian สมชาย, Killua). Crisis text in a
+name field still gets the card.
+
+Rule b: plainName() refuses anything the combined net (fortune-crisis.js + fortune-ai.js's older patterns) flags, so the
+tarot / I Ching question echo is the neutral placeholder while the card shows ("กินยา overdose ไปเมื่อคืน").
+Rule f: the soft step's "Just the reading" and the card's "continue" are remembered per field VALUE in memory (never stored);
+a field the reading adds itself (horoscope's name-number box, the partner form) no longer brings the soft step back, so the
+reading is always reached; a new distress value asks again.
+Tests locked before the change: tests/unit/fortune-crisis-detect-v5.test.js, tests/e2e/fortune-crisis-v5.e2e.mjs.
+REVIEW: the patterns and wording still need a Thai mental-health professional (L63).

@@ -71,7 +71,7 @@
     toneless(new RegExp(String.raw`(?:แฟน|สามี|ผัว|เมีย|ภรรยา|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง)[^\s]{0,10}(?:ตบหน้า|บีบคอ)|บีบคอ[^\s]{0,8}หายใจไม่ออก|` +
       String.raw`(?:พ่อ|แม่|สามี|ผัว|แฟน|พ่อเลี้ยง|แม่เลี้ยง|ลุง|ป้า|ครู)เอา(?:เข็มขัด|ไม้แขวนเสื้อ|ไม้เรียว|ไม้|สายไฟ)(?:ตี|ฟาด|หวด|เฆี่ยน)|` +
       String.raw`(?:พ่อเลี้ยง|แม่เลี้ยง|ลุง|น้า|อา|ญาติ|พี่ชาย)[^\s]{0,6}(?:เข้า(?:มา)?(?:ใน)?ห้อง|มานอน)[^\s]{0,8}(?:กลางคืน|ดึก)|` +
-      String.raw`(?:ครู|อาจารย์|ติวเตอร์|โค้ช)[^\s]{0,10}(?:ส่งรูป|ลวนลาม|แตะต้อง|จับตัว|จับหน้าอก)|ขู่[^\s]{0,6}ห้ามบอก`, "i")),
+      String.raw`(?:ครู|อาจารย์|ติวเตอร์|โค้ช)[^\s]{0,10}(?:ส่งรูป(?!การบ้าน|งาน|ใบงาน|ผลงาน|รายงาน|ชุด|ทีม|หมู่|กลุ่ม|บัตร|ตาราง)|ลวนลาม|แตะต้อง|จับตัว|จับหน้าอก)|ขู่[^\s]{0,6}ห้ามบอก`, "i")),
     toneless(new RegExp(String.raw`(?:จะ|ขอ)ตาย(?:คืนนี้|วันนี้|พรุ่งนี้|ตอนนี้)|ไม่เหลือเหตุผล(?:ให้|ที่จะ)?(?:อยู่|มีชีวิต)|อยากให้ทุกอย่างจบ(?:วันนี้|คืนนี้)|` +
       String.raw`(?:แฟน|สามี|ผัว|พ่อ|แม่)(?:hits?|beats?|chokes?|choked|hit)(?:me|us)`, "i")),
   ].map(toneless);
@@ -84,7 +84,8 @@
       String.raw`\b(?:tied|tie|hung|knotted) (?:the |a |my )?(?:cord|rope|belt|noose)\b[^.]{0,30}\b(?:rail|beam` +
       String.raw`|ceiling|fan|door|closet|already)\b|\b(?:rope|cord|noose) is (?:already )?(?:tied|ready|up)\b` +
       String.raw`|` +
-      String.raw`\bdriv(?:e|ing) (?:my car )?(?:into|off) (?:the |a )?(?:river|bridge|cliff|lake|sea|wall|truck|traffic)\b|\bbought charcoal\b`, "i"),
+      String.raw`\bdriv(?:e|ing) (?:my car )?(?:into|off) (?:the |a )?(?:river|bridge|cliff|lake|sea|wall|truck|traffic)\b|\bbought charcoal\b(?![^.]{0,40}\b` +
+      String.raw`(?:bbq|barbecue|grill\w*|cookout|camping|picnic)\b)`, "i"),
     new RegExp(String.raw`\b(?:cut|sliced|slashed|carved)\b[^.]{0,6}\b(?:my )?(?:forearm|arms?|wrists?|thighs?|legs?|stomach|skin)\b[^.]{0,24}\b(?:again|deeper|open|on purpose|bleed\w*|myself)\b|` +
       String.raw`\b(?:husband|wife|boyfriend|girlfriend|partner|dad|father|mom|mum|mother|stepdad|stepmom|stepfather` +
       String.raw`|stepmother)\b[^.]{0,20}\b(?:hit|choked|strangled|slapped|punched|kicked|beat) (?:me|us)\b(?! (?:at` +
@@ -98,7 +99,9 @@
     /\bno (?:reason|point) (?:to|in) (?:keep(?:ing)? )?(?:living|live|go(?:ing)? on|be(?:ing)? alive|stay(?:ing)? alive)\b|\bnothing (?:left )?to live for\b/i,
     /\b(?:life|living) (?:is ?n['’]?t|is not|ain['’]?t) worth (?:living|it)\b|\bnot worth living\b|\bdone with (?:life|living)\b/i,
     /\b(?:shoot|hang|drown|stab|poison|gas|electrocute) myself\b|\bend (?:my|this) (?:suffering|pain)\b/i,
-    /\b(?:bought|got|have|saved(?: up)?|collected|stocked up on|ready) (?:a |the |some |enough |all the )?(?:rope|pills)\b|\bwan(?:t(?:ed)?|na) (?:to |2 )?di+e+\b/i,
+    new RegExp(String.raw`\b(?:bought|got|have|saved(?: up)?|collected|stocked up on|ready) (?:a |the |some |enough |all the )?(?:rope\b(?![^.]{0,40}\b(?:hammock|swin` +
+      String.raw`g|tent|boat|kite|climb\w*|laundry|clothes ?line|camping|jump\w*|leash)\b)|pills\b(?! (?:for|to help with) (?:my |the |a )?(?:migraine|headac` +
+      String.raw`he|cold|flu|allerg\w+|pain|period|cramps|blood pressure|heart|stomach|back|acne|hay ?fever)\b))|\bwan(?:t(?:ed)?|na) (?:to |2 )?di+e+\b`, "i"),
     // detection v3 (review 2026-11-14, spent set as dev data)
     /\bend(?:ing)? (?:it all|everything)\b|\bdone for good\b|\bno point anymore\b|\bctb\b|\bcheck(?:ing)? out (?:of life|for good|permanently)\b/i,
     /\b(?:standing |sitting )?(?:on|at) (?:the )?(?:edge of (?:the )?)?(?:bridge|roof|rooftop|ledge)\b.{0,24}\b(?:right now|tonight|jump)\b|\bstanding on the (?:bridge|roof|rooftop|ledge)\b/i,
@@ -120,7 +123,8 @@
     /\bmakes? me do things\b|\bwo xiang (?:qu )?si\b|\bbu xiang huo\b/i,
     /\bsuicid\w*|\bunaliv\w*|\bsewer ?slide\b|\boff myself\b|\bdon'?t (?:want to|wanna) (?:be alive|live|exist|be here)\b/i,
     /\b(?:no|don'?t see the|what'?s the) point (?:in |of )?(?:living|being alive|life|going on)\b|\bsleep forever\b|\bnever wake up\b/i,
-    /\bgoodbye (?:letters?|notes?)\b|\bsuicide note\b|\bplanning my exit\b|\b(?:bought|got|have) (?:a )?rope\b|\b(?:how many|how much)\b[^.?]{0,40}\b(?:to|2) die\b/i,
+    new RegExp(String.raw`\bgoodbye (?:letters?|notes?)\b|\bsuicide note\b|\bplanning my exit\b|\b(?:bought|got|have) (?:a )?rope\b(?![^.]{0,40}\b(?:hammock|swing|ten` +
+      String.raw`t|boat|kite|climb\w*|laundry|clothes ?line|camping|jump\w*|leash)\b)|\b(?:how many|how much)\b[^.?]{0,40}\b(?:to|2) die\b`, "i"),
     /\bthreaten\w* to kill me\b|\bforced (?:himself|herself|themselves) on me\b|\bcomes? into my (?:room|bed) at night\b|\bnudes?\b[^.]{0,40}\bsecret\b|\bsends? me nudes?\b/i,
     /\bSA'?d\b|\bgot SA\b|\bnude pics\b/,
     // crisis fix 4: misspellings ("kil myself", "sucide")
@@ -132,7 +136,7 @@
   const ZH = [
     // detection v4 (review 3): at the edge, charcoal, blades on a body part, burns, a stepparent at night, a whole bottle swallowed,
     // the rope tied, a teacher groping + threats, threats to kill, how to die, ending it today
-    new RegExp(String.raw`(?:天台|楼顶|桥|楼)(?:的)?(?:边上|边缘|栏杆外)|(?:买|准备)(?:了|好)?(?:木)?炭[^。]{0,10}(?:烧|车里|房间)|` +
+    new RegExp(String.raw`(?:天台|楼顶|桥|楼)(?:的)?(?:边上|边缘|栏杆外)|(?:买|准备)(?:了|好)?(?:木)?炭[^。]{0,10}(?:烧(?!烤)|车里|房间)|` +
       String.raw`(?:刀片|美工刀|刀|剪刀)[^。]{0,3}(?:划|割|刺)(?:了)?(?:手腕|手臂|大腿|腿|胳膊|自己)|(?:烟头|打火机)[^。]{0,3}烫(?:伤)?自己|` +
       String.raw`(?:继父|继母|叔叔|舅舅|姑父)[^。]{0,4}(?:晚上|半夜)?(?:进|来)(?:我|我的)?房间|(?:整瓶|整盒|一瓶|一盒)[^。]{0,4}(?:药|安眠药)[^。]{0,3}(?:都|全)?(?:吞|吃)|` +
       String.raw`绳子[^。]{0,4}(?:绑|系|挂)好|(?:老师|教练|补习)[^。]{0,8}(?:毛手毛脚|摸我|偷拍|威胁我不(?:准|许)说)|(?:说|威胁)[^。]{0,10}杀(?:了)?我|` +
@@ -159,7 +163,13 @@
     媽: "妈", 強: "强", 姦: "奸", 藥: "药", 過: "过", 會: "会", 沒: "没", 義: "义", 時: "时", 讓: "让", 動: "动", 橋: "桥", 頂: "顶", 後: "后", 來: "来", 說: "说",
     話: "话", 無: "无", 戀: "恋", 毆: "殴", 決: "决", 斷: "断", 盡: "尽", 尋: "寻", 燒: "烧", 掛: "挂", 臥: "卧", 軌: "轨", 師: "师", 褻: "亵", 跡: "迹", 剎: "刹", 襲: "袭", 擊: "击",
     著: "着", 撐: "撑", 遺: "遗", 書: "书", 發: "发", 關: "关", 係: "系", 間: "间", 帶: "带", 頸: "颈", 腳: "脚",
-    脅: "胁", 劃: "划", 煙: "烟", 燙: "烫", 補: "补", 習: "习", 樣: "样", 較: "较", 嚇: "吓", 熱: "热", 綁: "绑", 繫: "系", 準: "准", 備: "备", 繩: "绳", 別: "别", 條: "条", 訊: "讯", 見: "见", 們: "们", 麼: "么", 夢: "梦", 歡: "欢" };
+    顧: "顾", 寵: "宠", 貓: "猫", 魚: "鱼", 鳥: "鸟", 餵: "喂", 錢: "钱", 轉: "转", 給: "给", 東: "东", 難: "难", 幫: "帮", 機: "机", 遊: "游", 戲: "戏", 戶: "户", 緊: "紧", 門: "门",
+    膠: "胶", 鬍: "胡", 傳: "传", 頭: "头", 暈: "晕", 邊: "边", 進: "进", 裡: "里", 裏: "里", 欄: "栏", 樑: "梁", 歲: "岁", 噁: "恶", 惡: "恶", 贅: "赘", 負: "负", 擔: "担", 鬆: "松",
+    嗎: "吗", 適: "适", 練: "练", 隊: "队", 場: "场", 當: "当", 鎖: "锁", 黨: "党", 記: "记", 線: "线", 樹: "树", 爺: "爷", 現: "现", 買: "买", 親: "亲", 脫: "脱", 視: "视", 頻: "频",
+    課: "课", 學: "学", 業: "业", 報: "报", 訴: "诉", 許: "许", 鄰: "邻", 攢: "攒", 剛: "刚", 膚: "肤", 針: "针", 規: "规", 撓: "挠", 臺: "台", 懸: "悬", 鐵: "铁", 積: "积", 產: "产",
+    託: "托", 謝: "谢", 嘔: "呕", 該: "该", 種: "种", 處: "处", 帳: "帐", 篷: "篷", 鞦: "秋", 韆: "千", 晾: "晾", 烤: "烤", 營: "营", 風: "风", 箏: "筝", 燈: "灯", 罐: "罐", 脅: "胁",
+    劃: "划", 煙: "烟", 燙: "烫", 補: "补", 習: "习", 樣: "样", 較: "较", 嚇: "吓", 熱: "热", 綁: "绑", 繫: "系", 準: "准", 備: "备", 繩: "绳", 別: "别", 條: "条", 訊: "讯", 見: "见",
+    們: "们", 麼: "么", 夢: "梦", 歡: "欢" };
   const T2S_RE = new RegExp("[" + Object.keys(T2S).join("") + "]", "g");
   /** true when the text shows a crisis signal @param {any} text */
   // English copies: leetspeak undone (0→o 1→i 3→e 4→a @→a $→s), spaces collapsed; letter-spaced runs ("I w a n t t o d i e") joined
@@ -187,17 +197,227 @@
      before the hard net; the rest of the text is still checked, and the soft step still sees "ตาย" */
   const JOKE = /อยาก\s*(?:จะ\s*)?ตาย\s*(?:เพราะ\s*|จน\s*)?(?:หัวเราะ|ขำ|ตลก)(?!\s*ไม่)/g;
   /** the text without the dying-of-laughter idiom @param {any} text */
-  const unjoke = text => canon(text).replace(JOKE, " ");
+  // detection v5: "overdosed on coffee / chocolate / Netflix" is hyperbole; it is taken out before every hard net (fortune-ai.js runs its
+  // own older patterns on unjoke() too)
+  const OD_JOKE = /\boverdos(?:e|ed|ing)\s+on\s+(?:coffee|caffeine|sugar|chocolate|candy|sweets|carbs|netflix|tv|love|cuteness|k-?pop|anime|work|food|memes)\b/gi;
+  const unjoke = text => canon(text).replace(JOKE, " ").replace(OD_JOKE, " ");
+  /* ---------------- detection v5 (independent review 4 on fresh-2026-11-14c, now dev data) ----------------
+     Classes, not sentences: each rule is a CONCEPT (or two concepts that must both be present) written for TH (spaces and tone
+     marks removed), zh (traditional folded to simplified, spaces removed) and EN / mixed / romanised text (lower case, spaces
+     collapsed, leetspeak undone). All of these go to the card (hard net). Everyday plans that share a word (a barbecue with
+     charcoal, a hammock rope, a holiday pet-sitter, homework photos) are kept out by the second concept or an exclusion list,
+     and tested as controls (tests/unit/fortune-crisis-detect-v5.test.js). REVIEW: pending a Thai mental-health professional. */
+  /** a concept: one regex per script, tested on every copy @param {RegExp[]} list */
+  const CPT = (...list) => list.map(re => (/[ก-๛]/.test(re.source) ? toneless(re) : re));
+  const C5 = {
+    // someone / something left in another person's care
+    care: CPT(/ฝาก(?:ดูแล|เลี้ยง|ให้อาหาร|ป้อนข้าว)?(?:แมว|หมา|สุนัข|ลูก|แม่|พ่อ|น้อง|ยาย|ครอบครัว|ปลา|นก|กระต่าย|ทุกคน)/,
+      new RegExp(String.raw`\b(?:look after|take care of|care for|feed|watch over|keep an eye on)\b(?: \w+)?(?: for me)? (?:my|our)? ?(?:dogs?|cats?|pets?|puppy|kitten|` +
+        String.raw`bunny|rabbit|fish|bird|hamster|kids?|mum|mom|mother|dad|father|family|little (?:brother|sister))\b`),
+      /(?:照顾|照看|喂|养)好?(?:我的|我家的?)?(?:猫|狗|宠物|兔子|鱼|鸟|孩子|妈妈|妈|爸爸|爸|家人|弟弟|妹妹)/),
+    // never seeing each other again, not being here / around any more
+    gone: CPT(/คงไม่ได้(?:เจอ|เห็นหน้า|กลับ|อยู่)|ไม่ได้(?:เจอ|เห็นหน้า)(?:กัน)?อีก|(?:จะ)?ไม่(?:ได้)?กลับ(?:มา|ขึ้นมา)(?:อีก|แล้ว)|ไม่อยู่แล้ว(?:นะ)?$|ต่อไป(?:จะ)?ไม่มี(?:ฉัน|หนู|ผม|เรา)|ลาก่อน/,
+      new RegExp(String.raw`\b(?:won'?t|will not|wont) be (?:here|around|back|alive)\b|\bwon'?t (?:see|be seeing) (?:you|anyone|them) (?:again|anymore)\b|\b(?:after|whe` +
+        String.raw`n|once) i'?m gone\b|\bwhere i'?m going\b|\bfinal goodbye\b|\bgoodbye (?:forever|for good)\b`),
+      /见不到了|再也见不到|不会再见|以后见不到|永别|我要走了|我先走了|我走了以后/),
+    // a trip: the pet-sitter / goodbye is for a holiday
+    trip: CPT(/เที่ยว|ต่างจังหวัด|ต่างประเทศ|ไปทำงาน|ประชุม|สัมมนา|ธุระ|(?:\d+|หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด)(?:วัน|คืน|อาทิตย์|สัปดาห์)/,
+      new RegExp(String.raw`\b(?:holiday|vacation|trip|travel\w*|business|conference|away for|while i'?m (?:away|out|at)|for (?:the|a|\d+|two|three|few) (?:weekend|days` +
+        String.raw`?|weeks?|nights?))\b`), /出差|旅游|旅行|度假|出国|回老家|几天|(?:一|两|三|四|五|\d)(?:天|周|个星期|晚)/),
+    // a goodbye to everyone
+    bye: CPT(/ลาก่อน/, /\b(?:good ?bye|bye)\b/, /再见了|大家再见|永别/),
+    // giving everything away / transferring the savings
+    give: CPT(/(?:แจก|ยก|โอน)(?:ของ|ข้าวของ|ของรัก|สมบัติ|ทรัพย์สิน|เงิน|เงินเก็บ)|ให้(?:ของรัก|ข้าวของ|เงินเก็บ|สมบัติ)/,
+      new RegExp(String.raw`\bgiv(?:e|ing|en) away (?:all )?(?:of )?(?:my|our) (?:things|stuff|belongings|possessions)\b|\bgave away (?:all )?(?:of )?my (?:things|stuff` +
+        String.raw`|belongings|possessions)\b|\bgave (?:away )?all my (?:things|stuff|belongings|savings|money)\b|\btransferr?(?:ed|ing)? (?:all )?my (?:saving` +
+        String.raw`s|money)\b|\bgave (?:away )?all my stuff\b`),
+      /把(?:存款|钱|东西|所有东西|积蓄|全部东西|所有的东西)[^。]{0,8}(?:给|转给|送给|留给)|(?:东西|存款|钱|积蓄)都(?:送|转|给)/),
+    // not needing it any more
+    noNeed: CPT(/ไม่(?:จำเป็น)?(?:ต้อง)?(?:ได้)?ใช้(?:มัน)?(?:อีก(?:ต่อไป|แล้ว)?|แล้ว)|ต่อไปไม่ได้ใช้/, /\b(?:won'?t|will not|wont) (?:need|be needing|be using)\b/, /用不着|用不到|不需要了|以后不用/),
+    // an apology to family, and leaving
+    sorry: CPT(/ขอโทษ(?:นะ|ด้วย|ที)?(?:แม่|พ่อ|ทุกคน|ยาย|พี่|น้อง|ลูก)|(?:แม่|พ่อ|ทุกคน)[^\n]{0,4}ขอโทษ/,
+      /\bsorry,? (?:mum|mom|mother|dad|father|everyone|guys)\b/,
+      /对不起(?:妈妈|妈|爸爸|爸|大家|家人)|(?:妈妈|爸爸|大家)[^。]{0,3}对不起/),
+    leave: CPT(/(?:หนู|ผม|ฉัน|เรา|กู|ขอ)ไปก่อน(?:นะ|แล้ว|น่ะ)?(?:$|[^\n]{0,20}(?:ลาก่อน|รักทุกคน|ไม่ต้องห่วง|ดูแลตัวเอง))|(?:หนู|ผม|ฉัน|เรา|กู)ไปแล้ว(?:นะ)?$/,
+      /\bi(?:'m| am) (?:leaving|going) (?:forever|for good)\b/, /我?先走了|我要走了/),
+    // charcoal / a closed room
+    coal: CPT(/ถ่าน/, /\bcharcoal\b|\bcoal briquettes?\b/, /炭/),
+    seal: CPT(/ปิด(?:ห้อง|ประตู|หน้าต่าง|กระจก)|ห้องปิด|อุด(?:ช่อง|รู|ประตู)|เทปกาว|ซีล(?:ห้อง|ประตู)|ในรถ/,
+      new RegExp(String.raw`\b(?:seal(?:ed|ing)?|tap(?:e|ed|ing)(?: up)?|clos(?:e|ed|ing)|shut(?:ting)?)\b[^.]{0,20}\b(?:room|doors?|windows?|gaps?|vents?|bathroom|car)` +
+        String.raw`\b|\btaped up\b|\bin (?:my|the) car\b|\bclosed room\b`),
+      /(?:关上?|关好|关紧|封(?:住|好|上)?|堵(?:住|上)?|密封|胶带)[^。]{0,4}(?:门|窗|房间|车)|门窗|门缝|车里|(?:门|窗|窗户|房间)[^。]{0,4}(?:关上|关好|关紧|关死|封好|封住|锁上)/),
+    grill: CPT(/ปิ้ง|ย่าง|หมูกระทะ|บาร์บีคิว|หุงข้าว|เตาถ่านทำกับข้าว/, /\b(?:barbecue|bbq|grill\w*|cookout|camping|campfire)\b/, /烧烤|烤肉|烤串|露营/),
+    // a rope and a place to hang it
+    rope: CPT(/เชือก(?![ะ-ฺ])/, // not เชื่อ + กัน / การ (tone marks are removed: ความเชื่อการ…)
+      /\b(?:rope|noose|cord)\b/, /绳/),
+    hangAt: CPT(/แขวน|ผูกคอ|คาน|ขื่อ|พัดลม|ต้นไม้|ห้องน้ำ|ราวบันได/, /\b(?:tree|beam|rafters?|ceiling|fan|garage|closet|door ?frame|banister|railing|stairwell|hang\w*)\b/, /房梁|横梁|吊扇|树上|挂|上吊|吊/),
+    ropeOk: CPT(/เปล|ตากผ้า|ผูกเรือ|เต็นท์|ชิงช้า|มัดของ|กระโดดเชือก|รองเท้า|ว่าว|จูงหมา|ปีน/,
+      /\b(?:hammock|swing|laundry|clothes ?line|tent|boat|kite|jump ?rope|skipping|climb\w*|leash|shoelaces?|camping|decorations?|lights)\b/,
+      /晾衣|秋千|吊床|帐篷|跳绳|风筝|船|彩灯/),
+    // walking into water and not coming back
+    water: CPT(/(?:เดินลง|ลงไปใน|กระโดด(?:ลง)?|โดด(?:ลง)?|จม(?:ลง)?|ว่ายออกไป)(?:ใน)?(?:ทะเล|แม่น้ำ|คลอง|เขื่อน|บึง|สระน้ำ|เจ้าพระยา)/,
+      /\b(?:walk(?:ing)?|wade|wading|jump(?:ing)?) (?:in)?to the (?:sea|ocean|river|lake|water|waves)\b/, /走进(?:海|河|江|湖|水)/),
+    noReturn: CPT(/ไม่(?:กลับ|ขึ้น)(?:มา|ขึ้นมา|ฝั่ง)?(?:อีก|แล้ว)?|ให้จม|จม(?:ไป|หาย|ลงไป)|ให้ตาย|ไม่ต้องหา|ไม่ต้องตาม|คืนนี้|ตอนนี้/,
+      /\b(?:not|never) (?:come|coming) back\b|\btonight\b|\bright now\b|\bforever\b/, /不回来|不再回来|今晚|现在/),
+    // pills with a plan or a time
+    pills: CPT(/ยา(?:นอนหลับ|แก้ปวด|พารา|ระงับประสาท)/, /\b(?:pills|meds|tablets|painkillers|sleeping pills|medication|paracetamol|tylenol)\b/, /安眠药|止痛药/),
+    plan: CPT(/รอให้ทุกคน(?:หลับ|ออกไป)|มีแผน/,
+      new RegExp(String.raw`\b(?:a|the|my) plan\b|\bn a plan\b|\btaking (?:them|it|all of them) (?:all|tonight|after|when)\b|\btake (?:them|it) (?:all )?(?:tonight|afte` +
+      String.raw`r|when)\b|\b(?:after|when) (?:everyone|my parents|they|mom|mum|dad) (?:is |are |has |have )?(?:asleep|leaves?|left|goes|gone|sleeps?|out)\b`),
+      /等(?:家里人|大家|爸妈)?(?:睡了|睡着|出门)/),
+    // a fortune question about the day to die; family better off without me
+    when: CPT(/(?:วัน|เดือน|ปี|เวลา|ฤกษ์|ช่วง)(?:ไหน|ใด|อะไร)|เมื่อไหร่|เมื่อไร|ฤกษ์/,
+      /\b(?:which|what|best|good|right|lucky|auspicious|ideal)\b[^.?]{0,14}\b(?:day|date|time|month|week|year|hour)\b|\bwhen (?:should|can|could|would|is it best for) i\b|\bwhen is (?:the )?best\b/,
+      /哪(?:一)?天|哪个(?:日子|时候|月|时辰)|什么时候|几时|何时|吉日|日子/),
+  };
+  /** @param {RegExp[]} c @param {string[]} copies */
+  const has = (c, copies) => c.some(re => copies.some(x => re.test(x)));
+  const TH5 = [
+    // day to die as a fortune question
+    new RegExp(String.raw`(?:วัน|เดือน|ปี|เวลา|ฤกษ์|ช่วง)(?:ไหน|ใด)?[^\n]{0,12}(?:เหมาะ|ดี|ควร|มงคล)[^\n]{0,8}(?:ที่จะ|จะ|กับการ|สำหรับการ)?(?:ฆ่าตัวตาย|ตาย|จบชีวิต|ล` +
+      String.raw`าโลก)|(?:ฆ่าตัวตาย|ตาย|จบชีวิต)(?:วัน|เดือน|ปี|เวลา|ฤกษ์|ตอน)(?:ไหน|ใด|อะไร)(?:ดี|เหมาะ)`),
+    // family better off without me; not wanting to burden anyone
+    new RegExp(String.raw`(?:ไม่มี(?:ฉัน|หนู|ผม|เรา|กู)|(?:ฉัน|หนู|ผม|เรา|กู)(?:ไม่อยู่(?!บ้าน|ที่|ใน|กรุง)|หายไป|ตาย|จากไป))(?:แล้ว)?[^\n]{0,24}(?:ครอบครัว|ทุกคน|พ่อ` +
+      String.raw`แม่|พ่อ|แม่|ที่บ้าน|คนอื่น)[^\n]{0,12}(?:ดีขึ้น|สบาย|มีความสุข|โล่ง|ง่ายขึ้น)|` +
+      String.raw`(?:ครอบครัว|ทุกคน|พ่อแม่|ที่บ้าน)[^\n]{0,16}(?:ดีขึ้น|สบาย|มีความสุข)[^\n]{0,12}(?:ไม่มี(?:ฉัน|หนู|ผม|เรา)|(?:ฉัน|หนู|ผม|เรา)(?:ไม่อยู่(?!บ้` +
+      String.raw`าน|ที่|ใน)|หายไป|ตาย))|ไม่อยากอยู่ให้(?:ใคร|ทุกคน|คนอื่น|ครอบครัว|พ่อแม่)?(?:ต้อง)?(?:เดือดร้อน|ลำบาก|เป็นภาระ|เหนื่อย)`),
+    // "should I die?" asked as a question
+    /(?:จะ|ควร)(?:ฆ่าตัว)?ตาย(?:ดี)?(?:ไหม|มั้ย|มั๊ย|หรือเปล่า|หรือไม่|ดีกว่า)|(?:จะ|ควร)ตายหรือ(?:จะ)?อยู่/,
+    // "if I'm not here any more, don't be sad"
+    /ถ้า[^\n]{0,14}(?:ไม่อยู่(?!บ้าน|ที่|ใน)|ไม่มี(?:ฉัน|หนู|ผม|เรา|กู)|หายไป|ตาย|จากไป)(?:แล้ว)?[^\n]{0,24}(?:อย่า|ไม่ต้อง)(?:เสียใจ|ร้องไห้|เศร้า|โทษ|ห่วง)/,
+    // overdose already taken
+    new RegExp(String.raw`(?:กิน|ทาน|กลืน)ยา[^\n]{0,14}(?:ไป)?(?:ทั้ง|หมด|ครึ่ง|เกือบหมด)(?:แผง|ขวด|กล่อง|กระปุก|ซอง)(?![^\n]{0,12}(?:ตาม(?:ที่)?(?:หมอ|แพทย์|เภสัช)|ต` +
+      String.raw`าม(?:ใบ)?สั่ง|ครบ(?:คอร์ส|ตามกำหนด)|หมอสั่ง))|(?:กิน|ทาน|กลืน)ยา[^\n]{0,10}(?:ไป)?(?:เป็นกำ|กำมือ|หลายสิบเม็ด|\d{2,}เม็ด)`),
+    // plan with a time; ending everything; lying on the road or tracks; dying out quietly
+    new RegExp(String.raw`(?:จะ|ขอ)จบ(?:ทุกอย่าง|ทุกสิ่ง)(?!ให้|งาน|ที่|เรื่อง|ก่อน)[^\n]{0,4}(?:สัปดาห์นี้|อาทิตย์นี้|เดือนนี้|คืนนี้|วันนี้|พรุ่งนี้|เร็วๆนี้|ปีนี้|` +
+      String.raw`วัน(?:ศุกร์|เสาร์|อาทิตย์|จันทร์|อังคาร|พุธ|พฤหัส))|` +
+      String.raw`ไม่มีทางออก[^\n]{0,20}จบ(?:ทุกอย่าง|ชีวิต)|นอนให้รถ(?:ไฟ)?(?:ทับ|ชน)|นอน(?:บน|ขวาง)ราง(?:รถไฟ)?|(?:อยาก|จะ)(?:ให้)?รถ(?:ไฟ)?(?:ทับ|ชน)(?:ตาย` +
+      String.raw`)?|อยาก(?:จะ)?ดับ(?:ไป|สูญ|ๆ)?(?!ไฟ|เครื่อง|กระหาย|ร้อน|กลิ่น|ความ|เสียง|ทุกข์)`),
+    // standing on a bridge / roof now
+    /(?:ตอนนี้|คืนนี้)(?:กำลัง)?(?:ยืน|นั่ง)(?:อยู่)?(?:บน|ริม|ขอบ)(?:ดาดฟ้า|สะพาน|ตึก|ระเบียง|หลังคา|หน้าผา)/,
+    // sexual abuse of a child, grooming, a coach / teacher / relative hurting a child
+    new RegExp(String.raw`ลวนลาม|ล่วงละเมิด|ข่มขืน|อนาจาร|ขืนใจ|จับ(?:หน้าอก|นม(?!แม่)|ก้น|ของสงวน|อวัยวะเพศ)|(?:ส่ง|ขอ|ถ่าย)รูป(?:โป๊|เปลือย|ไม่ใส่เสื้อ|ไม่ใส่อะไร|ตอนอาบน้ำ|ลับ|วาบหวิว)|` +
+      String.raw`ทำ(?:เรื่อง|อะไร)(?:ไม่ดี|แปลกๆ|แปลก|ลามก)(?:กับ|ใส่)?(?:หนู|ผม|ฉัน)|(?:บังคับ|สั่ง)(?:ให้)?(?:หนู|ผม|ฉัน)?(?:จับ|ถอด|อม|เลีย|ส่งรูป)|` +
+      String.raw`(?:โค้ช|ครู|อาจารย์|ติวเตอร์|พี่เลี้ยง|ลุง|ปู่|พี่ชาย|พ่อเลี้ยง|เขา)[^\n]{0,10}(?:ทำร้าย|ตี|ต่อย|เตะ|ตบ)(?:ผม|หนู|ฉัน|เรา|พวกเรา)|ขู่[^\n]{0` +
+      String.raw`,8}(?:ถ้า)?บอก(?:ใคร|แม่|พ่อ|ครู)[^\n]{0,30}(?:ทำร้าย|ตี|ต่อย|จับ)|` +
+      String.raw`(?:ทำร้าย|ตี|ต่อย|จับตัว)[^\n]{0,30}ขู่[^\n]{0,8}(?:ถ้า)?บอก`),
+    // self-harm with a tool or by scratching
+    new RegExp(String.raw`(?:มีดโกน|ใบมีด|คัตเตอร์|เศษแก้ว|แก้วแตก|เข็ม|กรรไกร|ตะปู|ลวด|razor|blade)[^\n]{0,8}(?:กรีด|ขีด|ข่วน|เฉือน|ปาด|แทง|จิ้ม)[^\n]{0,6}(?:แขน|ขา|` +
+      String.raw`ต้นขา|ข้อมือ|ผิว|ท้อง|ตัวเอง|มือ)|` +
+      String.raw`(?:ข่วน|ขีด|เกา|จิก|ทึ้ง|กรีด)(?:แขน|ขา|ผิว|หน้า|มือ|ข้อมือ|ต้นขา)?ตัวเอง`, "i"),
+  ].map(toneless);
+  const EN5 = [
+    // overdose taken
+    new RegExp(String.raw`\b(?:took|swallowed|downed|popped|taken|have taken|'ve taken)\b (?:a |an |the )?(?:whole|entire|full|half (?:a|the)|all (?:of )?(?:my|the|he` +
+      String.raw`r|his)|a bunch of|a handful of|a lot of|loads of|\d{2,})\b[^.]{0,24}` +
+      String.raw`\b(?:pills|tablets|meds|medication|medicine|paracetamol|tylenol|panadol|ibuprofen|advil|aspirin|sleeping|painkillers|antidepressants|xanax|v` +
+      String.raw`alium|insulin|(?:bottle|box|pack|packet|strip|jar) of (?:my |her |his |\w+'s )?(?:pain|sleeping|heart|blood|anxiety|allergy|cold)?\s?(?:pills|tablets|meds|medicine|killers))\b` +
+      String.raw`|\boverdos(?:e|ed|ing)\b(?! on (?:coffee|caffeine|sugar|chocolate|candy|sweets|carbs|netflix|tv|love|cuteness|kpop|anime|work|food|memes))|(` +
+      String.raw`?:\b(?:pills?|meds?|drugs?)|ยา) ?(?:an )?od\b|\bod'?(?:d|ed)\b|\bdid an od\b|ยาod`),
+    // pills with a plan; ending it on a day; method + myself
+    new RegExp(String.raw`\b(?:i'?m|i am|i will|i'll|im|gonna|going to) end(?:ing)? it\b(?! (?:with|between|off))|\b(?:hang|hanging|hanged|drown|drowning|shoot|shooti` +
+      String.raw`ng|stab|stabbing|poison|poisoning|gas|gassing|electrocut\w*) myself\b`),
+    // on a bridge / roof / ledge now
+    new RegExp(String.raw`\b(?:i'?m|i am|im)(?: (?:standing|sitting|up))? (?:on|at|by|atop) (?:the |a |top of the )?(?:edge of (?:the |a )?)?(?:[a-z0-9]+ ){0,3}(?:bri` +
+      String.raw`dge|roof|rooftop|ledge|cliff|overpass|railing|tracks)\b` +
+      String.raw`(?![^.]{0,40}\b(?:traffic|bus|taxi|late|cafe|café|photo|selfie|view|sunset|tour|walk(?:ing)? (?:home|to)|driv\w+)\b)[^.]{0,40}(?:\bright now` +
+      String.raw`\b|\bnow\b|\btonight\b|\blooking down\b|ตอนนี้)` +
+      String.raw`|\bstanding (?:at|on) the edge of (?:the |a )?(?:cliff|roof|bridge|building|platform)\b`),
+    // in front of traffic / a train
+    new RegExp(String.raw`\b(?:lie|lay|lying|laying) (?:down )?on the (?:train |railway )?tracks\b|\bwalk(?:ing)? into (?:traffic|the road|a truck|a train)\b|\bstep(?` +
+      String.raw`:ping)? in front of (?:a |the )?(?:train|bus|truck|car)\b`),
+    // the day to die; family better off without me
+    new RegExp(String.raw`\b(?:which|what|best|good|right|lucky|auspicious|ideal)\b[^.?]{0,14}\b(?:day|date|time|month|week|year|hour)\b[^.?]{0,24}\b(?:for me to|shou` +
+      String.raw`ld i|to|i should|can i|i can) (?:die|dye|end it|end my life|kill myself)\b(?! (?:my|the|her|his|it|a|an|some|them|our|your|hair|clothes))|` +
+      String.raw`\bwhen (?:should|can|could|would|is it best for) i (?:die|end it|end my life|kill myself)\b|\bbest (?:day|date|time) (?:for me )?to die\b|` +
+      String.raw`(?:วัน|เดือน|ฤกษ์|เวลา|ช่วง)(?:ไหน|ใด)[^\n]{0,16}(?:die|end it|end my life|kill myself)\b`),
+    new RegExp(String.raw`\b(?:family|parents|mum|mom|dad|everyone|everybody|friends|people|they|kids|wife|husband|sister|brother)\b[^.?]{0,30}\b(?:better off|happier` +
+      String.raw`|relieved|easier|lighter|free)\b[^.?]{0,20}` +
+      String.raw`\b(?:if|when|once|after) i(?:'m| am| was| were)? ?(?:gone|dead|died|die|not here|not around|disappeared|no longer here|killed myself)\b|` +
+      String.raw`\bif i (?:was|were|am|'m) (?:gone|dead|not here|not around)\b[^.?]{0,40}\b(?:better off|happier|relieved|easier)\b|\bif i'?m (?:not (?:here|` +
+      String.raw`around|alive)|no longer (?:here|around|alive)|gone)\b[^.]{0,30}\b(?:don'?t|do not|please don'?t|dont) ?(?:be sad|cry|worry|blame|miss|grieve` +
+      String.raw`)\b`),
+    // sexual abuse of a child, grooming, an adult hurting a child and threatening them
+    new RegExp(String.raw`\bmolest\w*|\bgroom(?:ed|ing|s)? me\b|\b(?:makes?|made|forces?|forced|forcing|asks?|asked|asking|tells?|told|wants?|wanted|pressur\w*|begs?|` +
+      String.raw`keeps? asking) me (?:to )?(?:send|take|show) (?:him|her|them)\b[^.]{0,20}\b(?:pics|pictures|photos|nudes|selfies|videos)\b|` +
+      // photos asked for with nudity, secrecy or a threat (not "photos of my training log")
+      String.raw`\b(?:makes?|made|forces?|forced|asks?|asked|tells?|told|wants?|pressur\w*|keeps? asking) me (?:to )?send\b[^.]{0,20}\b(?:pics|pictures|photos|nudes|selfies)\b` +
+      String.raw`[^.]{0,40}\b(?:without|naked|nude|shirt|clothes|underwear|body|private|secret|don'?t tell|not to tell|or (?:i'?m|he'?ll|she'?ll|i'?ll)|cut me|kick me)\b|` +
+      String.raw`\b(?:makes?|made|forces?|forced|forcing) me (?:to )?(?:touch|kiss|undress|strip|do (?:things|stuff|sexual)|watch porn|sit on)\b|\btouch(?:es` +
+      String.raw`|ed)? me (?:there|down there|under|inappropriately)\b|` +
+      String.raw`\b(?:uncle|cousin|stepbrother|brother|grandpa|grandfather|coach|teacher|tutor|neighbou?r|pastor|priest|babysitter|stepdad|stepfather|dad'?s ` +
+      String.raw`friend|mom'?s boyfriend|mum'?s boyfriend)\b[^.]{0,30}\b(?:touch(?:es|ed)?|kiss(?:es|ed)?|grop\w+|rap\w+|abus\w+|undress\w*) (?:me|my)\b|` +
+      String.raw`\b(?:coach|teacher|tutor|trainer|instructor|uncle|aunt|cousin|grandpa|grandma|stepbrother|babysitter|nanny|neighbou?r)\b[^.]{0,12}\b(?:hits|` +
+      String.raw`hit|beats|beat|slaps|slapped|punches|punched|kicks|kicked|whips|chokes) (?:me|us)\b|` +
+      String.raw`\bthreaten\w* (?:me|us)\b[^.]{0,20}\bif (?:i|we) (?:tell|talk|say)\b|\b(?:send|sends) (?:him|her|them) (?:\w+ )?(?:pics|pictures|photos|nude` +
+      String.raw`s)\b[^.]{0,30}\b(?:or (?:i'?m|he|she)|without|naked|shirt|clothes|underwear)\b`),
+    // self-harm with a tool or until it bleeds
+    new RegExp(String.raw`\b(?:razor|razors|blade|blades|box cutter|knife|scissors|broken glass|compass|safety pin)\b[^.]{0,25}\b(?:my )?(?:arms?|wrists?|thighs?|legs?|skin|stomach|hips?)\b|` +
+      String.raw`\b(?:scratch\w*|scrap\w*|cut\w*|slic\w*|carv\w*|stab\w*|pick\w*)\b (?:at )?(?:my|myself)(?: own)? (?:arms?|wrists?|thighs?|legs?|skin|stomac` +
+      String.raw`h)\b[^.]{0,30}\b(?:razor|blade|knife|glass|scissors|compass|until|till|til|bleed\w*|blood|raw|on purpose)\b`),
+    // "should I die?" asked as a question
+    /\bshould i (?:just )?(?:die|end it|kill myself|end my life)\b(?! (?:with|between))/,
+    // misspellings
+    new RegExp(String.raw`\b(?:want|wnat|wan|wamt|whant|wanna|wana|wish|going|gonna|ready|wnt)\b ?(?:to|too|2|t)? ?(?:die|dye|dei|diee)\b(?! (?:my|the|her|his|it|a|an` +
+      String.raw`|some|them|those|these|our|your|their|hair|clothes|shirt|fabric|eggs?|wool|yarn)\b)|\bwish i (?:was|were) (?:ded|deaad)\b|\bend (?:my|this) ` +
+      String.raw`(?:lyfe|lif|lfe)\b|\bk[i1!]l+ ?my ?sl?e?l?f\b|\bk[i1!]l+ myslf\b`),
+  ];
+  // romanised Thai (also after leetspeak is undone: 4yak t4y -> ayak tay)
+  const ROMAN5 = [/\b(?:a?ya+r?k|yhak)\s*(?:ja\s*)?(?:ta+i|ta+y|tie)\b/,
+    /\bmai\s*ya+r?k\s*(?:mee|mi)\s*(?:chee|chi)\s*(?:wit|wid|vit)\b|\bmai\s*ya+r?k\s*(?:yoo|yu+|u+)\s*(?:laew|leaw|laeo|lao|tor|ler)\b/,
+    /\bkh?a+\s*tua\s*ta+[iy]\b/, /\bya+r?k\s*ha+i\s*pai\b/];
+  const ZH5 = [
+    /(?:哪(?:一)?天|哪个日子|什么时候|几时|何时|哪个时辰|哪个月)[^。]{0,4}(?:去)?(?:死|自杀|结束生命)[^。]{0,4}(?:比较好|最好|好|合适|最合适|适合)|(?:死|自杀)的(?:吉日|好日子|最好时间)/,
+    new RegExp(String.raw`(?:我死了|我不在了|没有我|我消失|我走了|死了)(?:以后|之后|的话)?[^。]{0,10}(?:家人|大家|爸妈|父母|妈妈|爸爸|家里|他们)[^。]{0,8}(?:会不会)?(?:比较|更|就)?(?:开心|好过|轻松|幸福|解脱)|` +
+      String.raw`(?:家人|大家|爸妈|父母)[^。]{0,10}(?:没有我|我不在)[^。]{0,6}(?:更|比较|会)?(?:好|开心|幸福|轻松)|(?:累赘|拖累|负担)[^。]{0,10}(?:消失|不在了?|死了?|走了)|(?:消失|不在了?)[^。]{0,4}(?:就好了?|大家都好|更好)`),
+    /(?:要不要|该不该|应不应该|应该)(?:去)?(?:死|自杀)(?!机|党)|死了算了吗/,
+    /如果[^。]{0,6}(?:我不在了|没有我|我死了|我走了|我消失)[^。]{0,10}(?:不要|别)(?:难过|伤心|哭|怪)/,
+    /(?:吃|吞|服)了?[^。，]{0,3}(?:一整|整|一大)(?:盒|瓶|罐|板|包|把)[^。，]{0,6}药|(?:吃|吞|服)了?(?:很多|好多|一堆|大量)(?:的)?药[^。]{0,12}(?:吐|晕|难受|想睡|心跳)/,
+    /(?:海|河|江|湖|水)边?[^。]{0,10}(?:走进去|跳下去|跳进去|走下去)|走进(?:海|河|江|湖|水)|跳(?:进)?(?:海|江|湖)|投(?:河|江|海|湖)/,
+    /(?:站|坐)在[^。]{0,10}(?:桥|天桥|大桥|楼顶|天台|楼上|栏杆|窗台|悬崖|铁轨)(?:上|上面|边|外)?(?![^。]{0,12}(?:拍|看风景|等人|散步|旅游|观光|照相|自拍|夜景))/,
+    new RegExp(String.raw`侵犯我|猥亵我|性侵我|强奸我|摸我(?:下面|胸|身体|私处)|乱摸|让我(?:脱|摸|亲)|逼我(?:脱|摸|发|拍)|裸照|私照|(?:要我|逼我|让我)(?:发|传|拍)(?!作业|功课|报告|课本)[^。]{0,6}(?:照片|视频)[^。]{0,16}(?:不能|不准|不许|别|不要)(?:告诉|说)|` +
+      String.raw`对我做[^。]{0,4}(?:奇怪|恶心|不好|那种|不舒服)的事|(?:叔叔|舅舅|伯伯|姑父|姨父|表哥|堂哥|哥哥|爷爷|外公|继父|老师|班主任|教练|邻居|补习)[^。]{0,12}(?:摸我|亲我|脱我)|` +
+      String.raw`(?:教练|老师|班主任|叔叔|舅舅|继父)[^。，]{0,8}(?:打|揍|踢|扇)(?:我|我们)(?!电话)`),
+    new RegExp(String.raw`(?:刀片|剃刀|刮胡刀|美工刀|小刀|碎玻璃|玻璃|圆规|针)[^。]{0,4}(?:划|割|刮|刺|扎)(?:了)?(?:自己的?)?(?:手臂|胳膊|大腿|腿|手腕|皮肤|手|肚子|自己)|(?<!猫|狗)(?:手臂|胳膊|大腿|腿|手腕|皮肤|自己)[^。]{0,3}(?` +
+      String.raw`:抓|挠|掐|划|割)[^。]{0,3}(?:到|得|出)?(?:流血|出血)|(?:抓|挠|掐)(?:破|伤)自己`),
+  ];
+  /** detection v5 on the prepared copies @param {string} th @param {string} zh @param {string[]} en lower-case English / mixed copies */
+  function v5(th, zh, en) {
+    const all = [th, zh, ...en];
+    if (TH5.some(re => re.test(th)) || ZH5.some(re => re.test(zh)) || EN5.some(re => en.some(x => re.test(x))) || ROMAN5.some(re => en.some(x => re.test(x)))) return true;
+    if (has(C5.care, all) && (has(C5.gone, all) || has(C5.bye, all)) && !has(C5.trip, all)) return true;
+    if (has(C5.give, all) && (has(C5.noNeed, all) || has(C5.gone, all))) return true;
+    if (has(C5.sorry, all) && has(C5.leave, all)) return true;
+    if (has(C5.coal, all) && has(C5.seal, all) && !has(C5.grill, all)) return true;
+    if (has(C5.rope, all) && has(C5.hangAt, all) && !has(C5.ropeOk, all)) return true;
+    if (has(C5.water, all) && has(C5.noReturn, all)) return true;
+    if (has(C5.pills, all) && has(C5.plan, all)) return true;
+    return false;
+  }
+  const LAST5 = /\b(?:this is )?my (?:last|final) (?:message|post|words|text|goodbye)\b|ข้อความสุดท้าย|โพสต์สุดท้าย|คำลาสุดท้าย|最后一条(?:消息|信息|留言)|最后的话|遗言/;
   /** true when the text shows a crisis signal @param {any} text */
   function check(text) {
-    const t = unjoke(text);
+    // detection v5: the Thai lakkhangyao ๅ typed for sara aa (อยากตๅย) is read as า
+    const t = unjoke(text).replace(/\u0e45/g, "\u0e32");
     if (!t.trim()) return false;
     const th = t.replace(/(?:บ่|มะ|หม่าย|ม่าย)(?=\s*(?:อยาก|ไหว|อยู่|มี))/g, "ไม่").replace(/\s+/g, "").replace(TONE, "");
     const zh = t.replace(T2S_RE, c => T2S[c]).replace(/\s+/g, "");
     const leet = t.replace(/[0134@$]/g, c => LEET[c]).replace(/\s+/g, " ");
     const en2 = enCopy(t);
-    return TH.some(re => re.test(th)) || EN.some(re => re.test(t) || re.test(leet) || re.test(en2)) || ZH.some(re => re.test(zh)) || ZH.some(re => re.test(t)) ||
-      letterRuns(t.replace(/[0134@$]/g, c => LEET[c])).some(r => COMPACT.test(r));
+    if (TH.some(re => re.test(th)) || EN.some(re => re.test(t) || re.test(leet) || re.test(en2)) || ZH.some(re => re.test(zh)) || ZH.some(re => re.test(t)) ||
+      letterRuns(t.replace(/[0134@$]/g, c => LEET[c])).some(r => COMPACT.test(r))) return true;
+    // detection v5: stretched Thai letters (อยากตายยยย) and the class rules above
+    const th1 = th.replace(/([ก-๛])\1{2,}/g, "$1"); // three or more of one letter (ออก stays)
+    if (th1 !== th && TH.some(re => re.test(th1))) return true;
+    const lo = t.toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, " ");
+    const en = [lo, leet.toLowerCase().replace(/[’‘]/g, "'"), en2.toLowerCase().replace(/[’‘]/g, "'")];
+    return v5(th, zh, en) || (th1 !== th && v5(th1, zh, [])) || LAST5.test(lo) || LAST5.test(zh);
+  }
+  /** the hard net, plus FortuneAI's own older patterns when the page has them (detection v5, rule b: plainName() and distress()
+   *  must never disagree with the card the page shows) @param {any} t */
+  function hardAny(t) {
+    if (check(t)) return true;
+    try { const F = /** @type {any} */ (root).FortuneAI; return !!(F && F.crisis && typeof F.crisis.check === "function" && F.crisis.check(t)); } catch (e) { return false; }
   }
   const FREE_TEXT = 'textarea, input:not([type]), input[type="text"], input[type="search"]';
   /** the raw text of every free-text field on the page (empty without a DOM) @param {any} [doc] */
@@ -215,7 +435,9 @@
      the side of asking. */
   const SOFT = [
     toneless(/ตาย|ตุย|ลาโลก|เป็นภาระ|ลาก่อน|จดหมายลา|หลับไปตลอด|แก๊ส|เหนื่อย[^\s]{0,12}ไม่ไหว|ทน[^\s]{0,8}ไม่ไหว|ไม่ไหวแล้ว|กลัว|ทำร้าย|จับ[^\s]{0,6}หนู|เบื่อโลก|ไร้ค่า|อยากหายไป|เจ็บปวด/),
-    /\b(?:die|died|dying|dead|death|kill\w*|suicid\w*|end it|can'?t do this|hurts? me|touch(?:es|ed)? me|rope|pills|secret|hopeless|worthless|pointless|kil|sucid\w*|only way out|goodbye forever)\b/i,
+    new RegExp(String.raw`\b(?:die|died|dying|dead|death|kill\w*|suicid\w*|end it|can'?t do this|hurts? me|touch(?:es|ed)? me|rope|pills|secret|hopeless|worthless|poi` +
+      String.raw`ntless|kil|sucid\w*|only way out|goodbye forever|everything hurts|(?:so )?tired of (?:trying|everything|it all|fighting|pretending)|can'?t (` +
+      String.raw`?:take|handle) (?:it|this) anymore)\b`, "i"),
     /死|自杀|走了|结束|生无可恋|紫砂|伤害自己|打我|摸我|强迫|遗书|撑不下去|活着|没意义|죽|消え|\bmati\b|chết/i,
   ];
   /* detection v2 (2026-11-13): everyday hyperbole is taken out before the soft check (หิวจะตาย, dying of laughter, 笑死了 …);
@@ -235,7 +457,26 @@
     new RegExp(String.raw`\bdying (?:of|from) (?:laughter|laughing)\b|\bdying to (?:know|see|try|hear|meet|go|find out|read|get)\b|` +
       String.raw`\b(?:traffic|heat|weather|work|job|homework|exams?|commute|deadlines?|this|it|wait(?:ing)?|suspense|boss|cold|noise|joke|cramp)\b[^.?!]{0,12}\b(?:is|are|was) killing me\b|` +
       String.raw`\b(?:could|would|'d) kill for\b|\bkilling it\b|\bdead tired\b|\b(?:bored|scared|worried|tickled|freezing) to death\b|\b(?:this|that) joke killed me\b`, "gi"),
-    /(?:笑|饿|热|困|冷|忙|吓|气|渴|烦|累)死(?:了|我了|人了|啦)?|想死(?:你|您|你们|妳)(?:了|啦)?/g];
+    /(?:笑|饿|热|困|冷|忙|吓|气|渴|烦|累)死(?:了|我了|人了|啦)?|想死(?:你|您|你们|妳)(?:了|啦)?/g,
+    // detection v5 (review 4 controls): ตายสนิท of a team / a scolding, deaths in a game, "deadline ตายแน่", a flat battery, grandparents
+    // (ตายาย), plants / fish that died; plants dying, film and game titles, Latin names that start with Kill, dyeing hair,
+    // devices that died; 死机 / 卡死 / 死党 / 死线 and plants that died
+    toneless(new RegExp(String.raw`(?<!อยาก|จะ|ขอ)ตายสนิท|ตาย(?:ไป)?(?:\d+|หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า|สิบ|ร้อย|หลาย)[^\s]{0,4}(?:รอบ|ครั้ง|ที|หน|ตา)|` +
+      String.raw`(?:เกม|ตัวละคร|บอส|ด่าน)[^\s]{0,10}ตาย|(?:deadline|เดดไลน์|งาน|สอบ|การบ้าน|รายงาน|ส่งงาน|หัวหน้า|บอส|โดนด่า)[^\n]{0,24}ตายแน่(?:ๆ|แล้ว)?|` +
+      String.raw`ตายแน่(?:ๆ)?[^\n]{0,24}(?:งาน|สอบ|deadline|เดดไลน์|การบ้าน|ไม่ทัน|ไม่เสร็จ|ยังไม่ได้อ่าน)|แบต(?:เตอรี่)?(?:มือถือ)?(?:หมด)?ตาย|ปู่ย่าตายาย|ตายาย|ยายตา|` +
+      String.raw`(?:ปลา|ต้นไม้|ดอกไม้|ไม้ดอก|กุ้ง)[^\s]{0,10}ตาย(?:หมด)?`, "gi")),
+    new RegExp(String.raw`\b(?:house ?)?(?:plants?|succulents?|flowers?|orchids?|garden|trees?|grass|lawn|basil|herbs?|crops|cactus|cacti|roses?|fish|goldfish|bonsai|` +
+      String.raw`seedlings?|tomatoes)\b[^.?!]{0,30}` +
+      String.raw`\b(?:dying|dead|died|die)\b|\b(?:Death Stranding|Death Note|Deadpool|Dead Space|The Walking Dead|Dead Poets Society|Kill la Kill|Killing Eve|Killers of the Flower Moon|` +
+      String.raw`To Kill a Mockingbird|Day of the Dead|Dead by Daylight|Red Dead \w+|Mortal Kombat|Kill Bill)\b|\bdy(?:e|es|ed|eing|ing)\b (?:(?:my|the|her|his|our|your|their|a|an|some) )?(?:\w+ )?` +
+      String.raw`(?:hair|beard|brows?|eyebrows|clothes|shirt|t-?shirt|dress|fabric|jeans|eggs?|wool|yarn|roots|tips|bangs|highlights)\b|\bhair dye\b|` +
+      String.raw`\b(?:laptop|computer|pc|tablet|ipad|screen|router|charger|engine|console|headphones|earbuds|camera|mouse|keyboard)s? (?:just |has |have |had` +
+      String.raw` )?(?:died|is dead|is dying|dead)\b`, "gi"),
+    /\bKill(?!(?:s|ed|ing|er|ers|able)\b)[a-z]{2,}\b/g,
+    new RegExp(String.raw`\b(?:ropes?|cords?)\b[^.]{0,40}\b(?:hammock|swing|tent|boat|kite|climbing|laundry|clothes ?line|camping|jump\w*)\b|\b(?:hammock|swing|tent|b` +
+      String.raw`oat|kite|climbing|laundry|clothes ?line|camping)\b[^.]{0,40}\bropes?\b|\bpills?\b (?:for|to help with) (?:my |the |a )?(?:migraine|headache|` +
+      String.raw`cold|flu|allerg\w+|pain|period|cramps|blood pressure|heart|stomach|back|acne|hay ?fever)\b`, "gi"),
+    /死机|当机|宕机|卡死|死循环|死锁|死角|死党|死忠|死板|死胡同|死记硬背|死线|枯死|(?:花|草|树|植物|鱼|金鱼)[^。]{0,4}(?:都)?(?:死|枯死)了?/g];
   /** the text without everyday hyperbole (for the soft checks) @param {string} t */
   const idiomBase = (/** @type {string} */ t) => { const x = /[\u4e00-\u9fff]/.test(t) ? t.replace(T2S_RE, c => T2S[c]) : t; return x.replace(/\s+(?=[ก-๛])|(?<=[ก-๛])\s+/g, "").replace(TONE, ""); };
   const unidiom = (/** @type {string} */ t) => { let x = idiomBase(t); for (const re of IDIOMS) x = x.replace(re, " "); return x; };
@@ -260,7 +501,8 @@
       String.raw`\bschedul\w* (?:them|it|messages?|letters?) to (?:send|go out)\b|\bmy (?:last|final) reading\b|\b(?:wasn'?t|was not|isn'?t) (?:his|her|their|your) fault\b|` +
       String.raw`\bwhen (?:i'?m|im|i am) gone\b|\bdone after tonight\b|\bif i jump\b|\bbetter off without me\b`, "i"),
     /不用醒来|醒不来就好|没有我[^。]{0,4}(?:会)?(?:比较|更)好|不想再撑/,
-    toneless(new RegExp(String.raw`คงไม่ได้(?:เจอ(?:กัน)?|กลับมา)(?:อีก)?แล้ว|ฝาก(?:ดูแล|เลี้ยง)(?:แมว|หมา|สุนัข|ลูก)|คงไม่ได้เจอ(?:กัน)?อีก|` +
+    toneless(new RegExp(String.raw`คงไม่ได้(?:เจอ(?:กัน)?|กลับมา)(?:อีก)?แล้ว|ฝาก(?:ดูแล|เลี้ยง)(?:แมว|หมา|สุนัข|ลูก)(?![^\n]{0,40}(?:เที่ยว|ต่างจังหวัด|ต่างประเทศ|ทำงาน|ประชุ` +
+      String.raw`ม|สัมมนา|ธุระ|กลับบ้าน|(?:\d+|หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด)(?:วัน|คืน|อาทิตย์|สัปดาห์)))|คงไม่ได้เจอ(?:กัน)?อีก|` +
     String.raw`ครั้งสุดท้าย(?:ก่อน|ที่ได้)|สุดท้ายก่อนไป|จดหมายถึง[^\s]{0,12}ไว้แล้ว`)),
     new RegExp(String.raw`\b(?:this is )?my (?:last|final) (?:message|goodbye|post|words|note)\b|\b(?:good)?bye (?:everyone|everybody` +
       String.raw`|world|all)\b|\bfinal goodbye\b|\b(?:look after|take care of) my (?:dog|cat|pets?|kids?) (?:when|after) I'?m gone\b`, "i"),
@@ -286,6 +528,18 @@
     if (!n) return false;
     if (NAME_COMPACT.test(n.replace(/[\s_.-]+/g, ""))) return true;
     if (PROPER_LATIN.test(n) && !NAME_DISTRESS[1].test(n.replace(/\b(?:kill\w+|death)\b/gi, " "))) return false;
+    // detection v5 (review 4 name controls): a name SHAPED like a name (1-3 tokens, each a capitalised Latin word, a Thai word or
+    // 1-4 Chinese characters, no Thai pronoun / verb) is judged without the name syllables ตาย / Kill… / Death… / Dead…
+    // (บุญตาย ศรีสุข, ตายาย, Killian สมชาย); the rest of it still has to pass every check below
+    const toks = n.split(/\s+/);
+    if (toks.length <= 3 && toks.every(w => /^(?:[A-Z][a-z'’-]+|[ก-๛]+|[\u4e00-\u9fff]{1,4})$/.test(w)) && !NAME_TH.test(n.replace(/\s+/g, "").replace(TONE, ""))) {
+      const rest = n.replace(/ตาย/g, "").replace(/\b(?:Kill|Death|Dead)[a-z'’-]*/g, "").trim();
+      return !!rest && rest !== n && /\p{L}/u.test(rest) ? softName(rest) : rest === n ? softRest(n) : false;
+    }
+    return softRest(n);
+  }
+  /** the rest of softName() @param {string} n */
+  function softRest(n) {
     if (soft(n)) return true;
     let n0 = unjoke(n);
     for (const re of FORTUNE_CTX) n0 = n0.replace(re, " ");
@@ -300,22 +554,32 @@
   /** (A) the text if it is a plain name, else "" (never echo anything else) @param {any} name */
   function plainName(name) {
     const n = String(name == null ? "" : name).trim();
-    return n && n.length <= 40 && !softName(n) && !check(n) ? n : "";
+    return n && n.length <= 40 && !softName(n) && !hardAny(n) ? n : "";
   }
-  const NAME_FIELDS = "#hsName, #hsPName, #hsNameNum, #frNick, #plNick, #nmName, #rpName";
-  /** the page's fields need the soft step (and it has not been answered for exactly these values) @param {any} [doc] */
-  function pageSoft(doc) {
-    const all = fields(doc);
-    if (!all || all === answered) return false;
-    if (soft(all)) return true;
+  const NAME_IDS = /^(?:hsName|hsPName|hsNameNum|frNick|plNick|nmName|rpName)$/;
+  /* detection v5 (review 4, rule f + name controls): each free-text field is judged on its own: a NAME field only through
+     softName() (an ordinary name with ตาย / Kill in it is not distress), any other field through soft(). The soft step's
+     answer is remembered per field VALUE (memory only), so fields a reading adds itself (horoscope's name-number box, the
+     partner form) do not bring the step back; a new distress value asks again. */
+  /** the page's non-empty free-text fields as {v, name} @param {any} [doc] @returns {Array<{v: string, name: boolean}>} */
+  function entries(doc) {
     try {
       const d = doc || root.document;
-      return Array.from(d.querySelectorAll(NAME_FIELDS)).some(e => softName(e && e.value));
-    } catch (e) { return false; }
+      if (!d || typeof d.querySelectorAll !== "function") return [];
+      return Array.from(d.querySelectorAll(FREE_TEXT)).map(e => ({ v: String((e && e.value) || ""), name: !!(e && typeof e.id === "string" && NAME_IDS.test(e.id)) }))
+        .filter(x => x.v.trim());
+    } catch (e) { return []; }
   }
-  let answered = "";
+  /** one field value needs the soft step @param {{v: string, name: boolean}} x */
+  const softField = x => (x.name ? softName(x.v) : soft(x.v));
+  /** @type {Set<string>} field values the reader answered "Just the reading" for (memory only, never stored) */
+  const answered = new Set();
+  /** the page's fields need the soft step (and it has not been answered for these values) @param {any} [doc] */
+  function pageSoft(doc) {
+    return entries(doc).some(x => !answered.has(x.v) && softField(x));
+  }
   /** the reader chose "Just the reading" for the current field values @param {any} [doc] */
-  const ack = doc => { answered = fields(doc); setCalm(doc); };
+  const ack = doc => { for (const x of entries(doc)) answered.add(x.v); setCalm(doc); };
   /** @type {Record<string, Record<string, string>>} */
   const SOFT_TEXT = {
     th: { title: "ข้อความนี้ฟังดูหนักใจ คุณโอเคไหม?", body: "ถ้ามีเรื่องหนักใจ มีคนพร้อมรับฟังเสมอ ถ้าแค่อยากดูดวง เลือกด้านล่างได้เลย",
@@ -497,8 +761,8 @@
    *  @param {any} [doc] */
   function distress(doc) {
     const all = fields(doc);
-    if (all && (check(all) || soft(all))) return true;
-    try { const d = docOf(doc); return !!d && Array.from(d.querySelectorAll(NAME_FIELDS)).some(e => softName(e && e.value)); } catch (e) { return false; }
+    if (all && hardAny(all)) return true;
+    return entries(docOf(doc)).some(softField);
   }
 
   /* ---------------- crisis flow v2 (owner decision 2026-11-13, docs/CRISIS-FLOW-V2.md) ----------------
@@ -754,23 +1018,26 @@
     delete out.question;
     return out;
   }
-  /** @type {WeakMap<object, string>|null} the field values the reader continued past, per page (memory only) */
+  /** @type {WeakMap<object, {all: string, vals: Set<string>}>|null} the field values the reader continued past, per page (memory only) */
   const CONTINUED = typeof WeakMap !== "undefined" ? new WeakMap() : null;
   /** the reader pressed "continue" on the card: these field values do not show the card (or the soft step) again
    *  @param {any} [doc] */
   function continued(doc) {
     const d = docOf(doc);
     if (!d || typeof d !== "object") return;
-    const f = fields(d);
-    if (CONTINUED) CONTINUED.set(d, f);
-    answered = f;
+    const es = entries(d);
+    if (CONTINUED) CONTINUED.set(d, { all: fields(d), vals: new Set(es.map(x => x.v)) });
+    for (const x of es) answered.add(x.v);
     setCalm(d);
   }
-  /** the page's current field values are the ones the reader continued past @param {any} [doc] */
+  /** the page's hard-net field values are all ones the reader continued past (detection v5: per value, so a field the reading
+   *  adds itself does not bring the card back; a signal only across joined fields falls back to the whole text) @param {any} [doc] */
   function acked(doc) {
     const d = docOf(doc);
     if (!d || typeof d !== "object" || !CONTINUED || !CONTINUED.has(d)) return false;
-    return fields(d) === CONTINUED.get(d);
+    const c = /** @type {any} */ (CONTINUED.get(d)), hits = entries(d).filter(x => hardAny(x.v));
+    if (!hits.length) return fields(d) === c.all;
+    return hits.every(x => c.vals.has(x.v));
   }
   /** a hard-net signal in the page's fields that the reader has not continued past @param {any} [doc] */
   function pending(doc) { const f = fields(doc); return !!f && check(f) && !acked(doc); }
