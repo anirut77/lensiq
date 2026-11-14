@@ -17,7 +17,7 @@
 - **ตัวเลข (สังเคราะห์)**
   - กรณีทดสอบหนักแบบกว้าง (25 ฉลาก × 308 เอกสารส่วนตัว × 2 ลำดับ = 15,400): **ส่ง 0 ครั้ง 0 รายการ** (ก่อนแก้ 22 ครั้ง 22 รายการ จากโน้ตไทยชิ้นเดียว)
   - กรณีทดสอบของผู้ตรวจ (ฉลาก P001 + 308 เอกสาร): **0/308**
-  - ชุดล็อก P7 / P7b: ข้อมูลส่วนตัวถึง AI **0/260 และ 0/614** ทั้งโหมดข้อความและภาพ
+  - ชุดล็อก P7 / P7b: ข้อมูลส่วนตัวถึง AI **0/260 และ 0/614** ทั้งโหมดข้อความและภาพ (ภาษาที่วัด ชุดสังเคราะห์: ไทย 78 อังกฤษ 79 จีน 63 ญี่ปุ่น 28 เกาหลี 12 รายการ, p7b: ไทย 319 อังกฤษ 161 จีน 51 ญี่ปุ่น 56 เกาหลี 27; ไม่ใช่ข้อยืนยันสำหรับชื่อภาษาญี่ปุ่น / เกาหลีที่ไม่มีคำบอก ซึ่งยังหลุดถึง AI ในชุดทดสอบ JA / KO ดู `docs/product-check/PC-JK-RESULTS.md`)
   - ฉลากสินค้าที่ส่งแบบแตะครั้งเดียวได้: **217/360 เท่าเดิม** (ผ่านตัวกรองแบบกดเอง 299/360 เท่าเดิม)
 - เทสต์: unit ที่เกี่ยวข้อง 89/89 (รวมไฟล์ใหม่ tests/unit/pc-guard-onetap-notes.test.js), e2e product-check-live + product-check-ai 18/18
 - log: ~/LENSIQ-field/evals/live-scan/stress-sameframe-2026-11-12-notes.log, live-leak-run-2026-11-12T16-03-09-672Z.log
@@ -188,7 +188,7 @@ Final log (after the review fixes, §5a): `~/LENSIQ-field/evals/live-scan/live-l
 counts are the same (0), the product auto-send rate was 230/360 before the stricter block list. Image mode counts every personal item on a capture whose photo
 would be sent (worst case; auto-send sends no photo at all now).
 
-| Set | Flow | Text mode: personal items reaching the AI | Image mode: captures with personal data whose photo is sent |
+| Set | Flow | Text mode: personal items reaching the AI (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`) (p7b languages: Thai 319, English 161, Chinese 51, Japanese 56, Korean 27 items) | Image mode: captures with personal data whose photo is sent |
 |---|---|---|---|
 | p7 (`470d3e7b…`, 260 items on 94 captures) | auto, single reading | **0/260** [0.0–1.5] | **0/94** |
 | p7 | auto, merged from 3 damaged readings | **0/260** | **0/94** |
@@ -410,7 +410,7 @@ word or a surname + 先生 / 女士 / 小姐 / 老师. It removes nothing. Commi
 |---|---|---|
 | Wider stress: 25 one-tap-eligible labels x 308 personal captures x 2 orders = 15,400 readings | 22 sent, 22 items | **0 sent, 0 items** |
 | Reviewer's stress case: P001-clean + each of 308 personal captures | 0/308 | **0/308** |
-| Locked P7 / P7b: personal items reaching AI, text and image mode | 0/260; 0/614 | **0/260; 0/614** |
+| Locked P7 / P7b: personal items reaching AI, text and image mode (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`) (p7b languages: Thai 319, English 161, Chinese 51, Japanese 56, Korean 27 items) | 0/260; 0/614 | **0/260; 0/614** |
 | One-tap-eligible product labels (p7) | 217/360 | **217/360** |
 | Old vs new guard on 1,773 fixed texts (redaction, gate, photo, dispensing) | — | 0 changed |
 

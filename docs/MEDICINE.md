@@ -106,7 +106,7 @@ button only appears when a server is configured.**
 - Before anything is sent: one consent screen (provider, model, country per task; text only by default, photo with
   faces blurred as a choice), names / patient numbers / phones / IDs removed on the device, and a mandatory preview of
   the exact text. Maker phones and e-mails are kept (`companyPhones: "keep"`).
-- Measured (independent agent, locked synthetic set, 2026-11-10): 0 of 260 personal-data items reached the AI; 19.2 %
+- Measured (independent agent, locked synthetic set, 2026-11-10): 0 of 260 personal-data items reached the AI (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`); 19.2 %
   of real product labels were refused (front panel 38.9 %, short capture 28.9 %, long label 7.8 %, back panel 1.1 %;
   5.0 % when the device had read a barcode or a registration number). Field: not measured.
 

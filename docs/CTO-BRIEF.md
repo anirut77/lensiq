@@ -304,7 +304,7 @@ No module is production-ready. None has completed a field pilot, and the backend
   on-screen guidance when a capture is refused for lack of evidence (photograph the side with the registration number
   or the ingredients list, or scan the barcode), fix the misclassified cases, commit with AI off and budget 0.
   Official figures (independent agent, locked synthetic set sha256 `470d3e7b…`, scored once): personal-data items
-  reaching the AI **0/260** in text and in image mode (target 0: met); real product labels refused **69/360 = 19.2 %**
+  reaching the AI **0/260** in text and in image mode (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`) (target 0: met); real product labels refused **69/360 = 19.2 %**
   (target < 5 %: **not met**): clean 12.5 %, low-quality OCR 22.5 %, Thai 25.0 %, foreign 16.7 %, with barcode /
   registration facts 5.0 %, without 28.2 %, front panel 38.9 %, short capture 28.9 %, long 7.8 %, back 1.1 %. 61 of
   the 69 had no evidence (front panels, 2–4 lines); 8 were misclassified and are fixed. After the fixes, on the same
@@ -566,3 +566,14 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
   (`LQExam.hallPlacement`, TH / EN / ZH; minimum person height per detector from the public-dataset numbers: COCO-SSD 288 px,
   tiles / YOLOX 144 px) and seat-layout export. Hall mode stays experimental; field: not measured.
 - Locks: `evals-locks/gate-hall-h.sha256` (tests committed before product code).
+
+### Stream JK (2026-11-14): Japanese / Korean text never goes to AI by itself; claim wording; "turn the pack" hint
+
+Owner decisions 2026-11-14 (1, 2, 3, 4), branch `pc-jk`. Text with Japanese / Korean script is never sent automatically
+(tester one-tap refused, reason `jako`), never as a photo when the device OCR shows the script, and only after an always-open
+preview; the Worker refuses unpreviewed (`ai_off_jako_preview`), photo (`ai_off_jako_photo`) and auto requests; fortune
+drops JA / KO strings on the page and in the Worker. Fresh locked hold-out 4 (synthetic, scored once): values reaching the AI
+without the user's own send 23 → 0, photo 33 → 0, explicit send if the user removes nothing 42 → 29 (target 0 missed), recall
+0.624 → 0.714, product false removals 9 → 10 / 110. Open: photo of a JA / KO label read by an OCR model without that script
+(only with `imageModeAllowed` on, default off) — owner decision. Every "0 personal data reached AI" claim names its languages.
+Live scan: a side read with nothing on the checklist says "turn the pack". `docs/product-check/PC-JK-RESULTS.md`.
