@@ -208,8 +208,7 @@ h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:600;line-height:1.3;text-align
 /* nav.js puts <wbr> between Thai words and Chrome breaks at <wbr> even under nowrap, so a tab label wrapped one word per line
    (walkthrough W-026); a tab label keeps its words together, and a tab bar too wide for the screen scrolls sideways */
 .tab wbr{display:none}
-@media (max-width:640px){.tabs,.gk-tabs,.md-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-  .tabs>.tab,.gk-tabs>.tab,.md-tabs>.tab{flex:0 0 auto;white-space:nowrap;max-width:none}}
+@media (max-width:640px){.tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.tabs>.tab{flex:0 0 auto}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px}
 .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s,border-color .25s}
 .tag{font-size:.72rem;color:var(--gold);letter-spacing:.1em;font-weight:600}
