@@ -364,6 +364,8 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
   font-variant-numeric:tabular-nums}
 .lq-call-sub{grid-column:1;grid-row:2;font-size:.9rem;min-width:0;overflow-wrap:break-word}
 .lq-call-org{grid-column:1;grid-row:3;font-size:.78rem;opacity:.85;min-width:0;overflow-wrap:break-word}
+/* crisis card layout (fortune-ai.js draws the card; its border and colours are injected with the card) */
+.fa-support h3{margin:0 0 .4em}.fa-support ul{list-style:none;padding:0;margin:.6em 0}.fa-support li{margin:.45em 0}
 @media (min-width:1024px),(hover:hover) and (pointer:fine) and (min-width:600px){
   .lq-call{grid-template-columns:auto auto auto;justify-content:start;column-gap:14px}
   .lq-call-num{display:block}

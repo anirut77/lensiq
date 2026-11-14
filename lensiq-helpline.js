@@ -120,6 +120,9 @@
     return box;
   }
 
-  const api = { LINES, ORDER, FORBIDDEN, forbiddenIn, html, el, ICON };
+  /** the crisis card's lines in order: {id, n, tel, btn, t (second line), org} @param {string} [lang] */
+  const cardLines = lang => ORDER.map(id => { const x = LINES[id], W = x[langOf(lang)]; return { id, n: x.n, tel: x.tel, btn: W.btn, t: W.sub, org: W.org }; });
+
+  const api = { LINES, ORDER, FORBIDDEN, forbiddenIn, html, el, ICON, cardLines };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQHelpline = api;
 })(typeof window !== "undefined" ? window : globalThis);

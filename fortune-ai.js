@@ -4149,12 +4149,8 @@
   };
   // help lines on the card: the shared tap-to-call component (lensiq-helpline.js, owner order 2026-11-14 Part B), in its order
   // 1323, 1669, 191, 1300, Samaritans; numbers and hours verified in docs/CRISIS-RESOURCES.md (checked 2026-11-14)
-  const LQH = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : null);
-  const callKit = () => LQH || root.LQHelpline || null;
-  /** the card's lines {id, n, tel, btn, t (second line), org}; without the component, the bare numbers (they still call) */
-  const supportLines = (lang, K = callKit()) => K
-    ? K.ORDER.map(id => { const x = K.LINES[id], W = x[lang] || x.th; return { id, n: x.n, tel: x.tel, btn: W.btn, t: W.sub, org: W.org }; })
-    : ["1323", "1669", "191", "1300", "021136789"].map(n => ({ id: n === "021136789" ? "samaritans" : n, n, tel: n, btn: n, t: "", org: "" }));
+  const callKit = () => (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : root.LQHelpline) || null;
+  const supportLines = lang => (callKit() ? callKit().cardLines(lang) : ["1323", "1669", "191", "1300", "021136789"].map(n => ({ id: n.length > 4 ? "samaritans" : n, n, tel: n, btn: n, t: "" })));
   function supportResult(opts) {
     const lang = langOf(opts), S0 = Object.assign({}, SUPPORT[lang] || SUPPORT.th, { lines: supportLines(lang) });
     try { const ls = root.localStorage; if (ls) ls.setItem("lq-support-n", String((parseInt(ls.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }
@@ -4164,8 +4160,7 @@
       sections: [{ id: "support", title: S0.title, paragraphs: [S0.lead, S0.body].concat(S0.lines.map(l => l.btn + " — " + l.t), [S0.after]) }],
     };
   }
-  const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}" +
-    ".fa-support h3{margin:0 0 .4em}.fa-support ul{list-style:none;padding:0;margin:.6em 0}" + ".fa-support li{margin:.45em 0}.fa-support .fa-support-foot{font-size:.85em;opacity:.75}";
+  const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support-foot{font-size:.85em;opacity:.75}";
   /** วาดการ์ดช่วยเหลือ (ใช้ textContent ทั้งหมด) — container จะถูกล้างก่อน */
   function renderSupport(container, res) {
     if (!container) return null;
@@ -4177,12 +4172,9 @@
     const box = el("section", "fa-support"), h = el("h3", null, s.title);
     h.id = "fa-h-" + (++uid); box.setAttribute("aria-labelledby", h.id); box.setAttribute("role", "region"); box.setAttribute("data-review", "pending-professional-review");
     box.appendChild(h); box.appendChild(el("p", null, s.lead)); box.appendChild(el("p", null, s.body));
-    const ul = el("ul");
-    const K = callKit(), lng = res && (res.lang === "en" || res.lang === "zh") ? res.lang : "th";
+    const ul = el("ul"), K = callKit(), lng = res && (res.lang === "en" || res.lang === "zh") ? res.lang : "th";
     for (const l of s.lines) {
-      const li = el("li"), a = K && l.id && K.LINES[l.id] ? null : el("a", "lq-call-btn fa-tel", l.n);
-      if (a) { a.href = "tel:" + (l.tel || l.n); a.setAttribute("aria-label", s.call + " " + l.n); }
-      li.appendChild(a || K.el(doc, l.id, { lang: lng, cls: "fa-tel" })); ul.appendChild(li);
+      ul.appendChild(el("li")).appendChild(K && K.LINES[l.id] ? K.el(doc, l.id, { lang: lng, cls: "fa-tel" }) : Object.assign(el("a", "lq-call-btn fa-tel", l.n), { href: "tel:" + l.tel }));
     }
     box.appendChild(ul); box.appendChild(el("p", null, s.after)); box.appendChild(el("p", "fa-support-foot", s.foot));
     container.appendChild(box);
@@ -4269,7 +4261,7 @@
     if (res.crisis && res.support) {
       const sp = res.support;
       return '<section class="fa-support" role="region" data-review="pending-professional-review"><h3>' + escapeHtml(sp.title) + "</h3><p>" + escapeHtml(sp.lead) + "</p><p>" + escapeHtml(sp.body) + "</p><ul>" +
-        sp.lines.map(l => '<li><a class="fa-tel" href="tel:' + escapeHtml(l.tel || l.n) + '">' + escapeHtml(l.n) + "</a> <span>" + escapeHtml(l.t) + "</span></li>").join("") +
+        sp.lines.map(l => "<li>" + (callKit() ? callKit().html(l.id, { lang: res.lang, cls: "fa-tel", keys: false }) : '<a href="tel:' + l.tel + '">' + l.n + "</a>") + "</li>").join("") +
         "</ul><p>" + escapeHtml(sp.after) + '</p><p class="fa-support-foot">' + escapeHtml(sp.foot) + "</p></section>";
     }
     let h = "";
