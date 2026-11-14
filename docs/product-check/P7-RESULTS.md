@@ -16,7 +16,7 @@
   - ทางเลือก ก = คงตัวกรองไว้ตามเดิม เพิ่มคำแนะนำบนจอเมื่อถูกปฏิเสธ (ถ่ายด้านที่มีเลขทะเบียนหรือส่วนประกอบ หรือสแกนบาร์โค้ด)
     แก้ 8 กรณีที่จัดประเภทผิด แล้ว commit P7 โดยค่าเริ่มต้น AI ปิดและงบ 0
   - **ตัวเลขทางการ (ผู้ตรวจอิสระ วัดครั้งเดียว ชุดล็อก sha256 470d3e7b… แหล่งที่มา: สังเคราะห์)**
-    - ข้อมูลส่วนบุคคลที่ไปถึง AI: **0/260** ทั้งโหมดข้อความและโหมดภาพ (เป้า 0: ผ่าน)
+    - ข้อมูลส่วนบุคคลที่ไปถึง AI: **0/260** ทั้งโหมดข้อความและโหมดภาพ (ภาษาที่วัด ชุดสังเคราะห์: ไทย 78 อังกฤษ 79 จีน 63 ญี่ปุ่น 28 เกาหลี 12 รายการ; ไม่ใช่ข้อยืนยันสำหรับชื่อภาษาญี่ปุ่น / เกาหลีที่ไม่มีคำบอก ซึ่งยังหลุดถึง AI ในชุดทดสอบ JA / KO ดู `docs/product-check/PC-JK-RESULTS.md`) (เป้า 0: ผ่าน)
     - ฉลากสินค้าจริงถูกปฏิเสธ: **69/360 = 19.2 %** (เป้าต่ำกว่า 5 %: **ไม่ผ่าน**)
     - แยกตามเงื่อนไข: ฉบับสะอาด 12.5 %, OCR คุณภาพต่ำ 22.5 %, ไทย 25.0 %, ต่างประเทศ 16.7 %, มีบาร์โค้ด/เลขทะเบียนที่เครื่องอ่านได้ 5.0 %,
       ไม่มี 28.2 %, ด้านหน้ากล่อง 38.9 %, ภาพที่อ่านได้สั้น 28.9 %, ฉลากยาว 7.8 %, ด้านหลัง 1.1 %
@@ -298,7 +298,7 @@
 
 **Status: measured once by an independent agent (§3.7); the figures in this section are DEV figures only.** The owner's
 targets (0 items from non-product documents reaching the AI; under 5 % of real product labels refused) were measured
-on a fresh locked set kept in `~/LENSIQ-field/evals/p7/` (sha256 `470d3e7b…`): 0/260 personal items reached the AI
+on a fresh locked set kept in `~/LENSIQ-field/evals/p7/` (sha256 `470d3e7b…`): 0/260 personal items reached the AI (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`)
 (met); 19.2 % of real product labels were refused (not met). Owner decision ก and the fixes that followed: §3.7.
 
 **Why.** The independent v5 run found 32 of 100 personal-data items still reaching the AI in text mode and 8 of 22
@@ -491,7 +491,7 @@ dispensing labels; 260 personal-data items. Defaults: `dispensingAI: "off"`, `co
 
 | Measure | Target | Result (95 % Wilson interval) |
 |---|---|---|
-| Personal-data items reaching the AI, text mode | 0 | **0/260 = 0.0 %** [0.0–1.5] |
+| Personal-data items reaching the AI, text mode (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`) | 0 | **0/260 = 0.0 %** [0.0–1.5] |
 | Personal-data items on a photo that is allowed, image mode | 0 | **0/260 = 0.0 %** [0.0–1.5]; captures 0/94 |
 | Non-product documents allowed | 0 | 0/60; dispensing labels allowed 0/30 |
 | **Real product labels refused** | < 5 % | **69/360 = 19.2 %** [15.4–23.5] — **not met** |
@@ -716,7 +716,7 @@ Nothing was loosened.
 | Guard v3 (independent) | ≥ 99 % | **76/100 = 76.0 % [66.8–83.3]** (not met); false redaction 12/201; clean photos blocked 9/32; dispensing-label detection 24/24, 0/32 false | synthetic (independent, new frozen set, sha `1023ef71…`) |
 | Guard v4 (independent) | ≥ 99 % | 73.2 % (not met) | synthetic (independent, fresh frozen set) |
 | **Guard v5: LATEST OFFICIAL** | ≥ 99 % | **62.0 % [52.2–70.9]** (not met); false redaction 2.9 %; dispensing detection 20/22; clean photos blocked 1/32; photos still allowed for personal texts 8/22 | synthetic (independent, fresh frozen set, sha256 `733e812c…`, 100 remove / 136 keep, harder on non-Thai formats) |
-| Product-label evidence filter: personal-data items reaching the AI | 0 | **0/260 [0.0–1.5]** in text mode and in image mode (met); non-product documents allowed 0/60, dispensing labels 0/30 | synthetic (independent, locked set sha256 `470d3e7b…`, scored once) |
+| Product-label evidence filter: personal-data items reaching the AI (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`) | 0 | **0/260 [0.0–1.5]** in text mode and in image mode (met); non-product documents allowed 0/60, dispensing labels 0/30 | synthetic (independent, locked set sha256 `470d3e7b…`, scored once) |
 | Product-label evidence filter: real product labels refused | < 5 % | **69/360 = 19.2 % [15.4–23.5] (not met)**: clean 12.5 %, low-quality OCR 22.5 %, Thai 25.0 %, foreign 16.7 %, with barcode / registration facts 5.0 %, without 28.2 %, front 38.9 %, short 28.9 %, long 7.8 %, back 1.1 % | synthetic (independent, same set) |
 | Same filter after the option ก fixes, **spent set (not an independent figure)** | — | personal items 0/260; product labels refused 61/360 = 16.9 % (all for lack of evidence); person-like labels refused 0/20 | synthetic (spent set, re-scored by the builder) |
 | Same filter, dev sets | — | 0/174 documents and 0/42 dispensing labels allowed; product labels refused 14/335 = 4.2 % | synthetic (dev, tuned on) |
@@ -730,7 +730,7 @@ Nothing was loosened.
 
 0. **Product-label evidence filter (§3.4, §3.7): the refusal target is not met.** Independent figure: 19.2 % of real
    product labels refused (target under 5 %), mostly front panels and short captures; 0/260 personal-data items
-   reached the AI. Owner decision ก accepts this with on-screen guidance. The figures after the fixes come from the
+   reached the AI (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`). Owner decision ก accepts this with on-screen guidance. The figures after the fixes come from the
    spent set and are not independent; the two limits the fixes add (§3.7) are not measured. The Worker repeats only
    the text check; image mode without text, barcode facts and provenance are client-only. The P8 eval tool's claim
    snippets pass the Worker only in local evaluation mode (§3.5).
@@ -780,7 +780,7 @@ note wording). The preview then says that the earlier codes were used. The Worke
 
 **Design data (not an official figure).** On the spent 2026-11-10 set with a scanned barcode added to every capture
 refused for lack of evidence: 51 of 61 product captures become allowed; 0 of the 10 borderline documents allowed;
-0 personal-data items reached the AI. The first rule version (personal spans only) let the two Japanese notes N017 /
+0 personal-data items reached the AI (same languages as the set: Thai, English, Chinese, Japanese, Korean; design data only). The first rule version (personal spans only) let the two Japanese notes N017 /
 N018 through (a phone number and a name with 様 the detectors do not catch), which led to the extra block list.
 
 **Independent figures (scored once, 2026-11-11 04:27 UTC; source: synthetic locked set; log

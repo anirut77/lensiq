@@ -24,12 +24,14 @@
  *     independent review: two objects must never end up in one text)
  * CHECKLIST · PRODUCT KEY
  *   checklist(text, codes, {P, G}) -> {barcode, reg, ingredients}   P = LQPC, G = LQPCGuard
+ *   sideHint(list) -> "turn" | "done"   after a side is read: "turn" when nothing on the checklist was found (likely the front)
  *   productKey({gtins, regs, text}) -> "g:<gtin>" | "r:<reg>" | "t:<8 hex>"   never the label text itself
  * TESTER-ONLY ONE-TAP SEND (no preview, never automatic) (owner order 2026-11-12; public flow unchanged: preview and confirm every time)
- *   autoTextCheck(G, text, facts, opts?) -> {gate, hits, maybe}   LQPCGuard.aiGate (session evidence is never passed on),
- *     guard hits (scan), possible names (possibleNames) + the stricter block list (LQPCGuard.autoBlock)
+ *   autoTextCheck(G, text, facts, opts?) -> {gate, jako, hits, maybe}   LQPCGuard.aiGate (session evidence is never passed on),
+ *     guard hits (scan), possible names (possibleNames) + the stricter block list (LQPCGuard.autoBlock); jako = Japanese /
+ *     Korean script (LQPCGuard.jakoScript): never one-tap (owner decision 2026-11-14)
  *   autoDecision({tester, autoOn, hidden, gate, hits, maybe, face:{ran, faces}, key, sent, count, cap}) -> {send, reason}
- *     reasons, in this order: not-tester, no-auto-consent, hidden, gate:<aiGate reason>, name-guard, face / face-unknown,
+ *     reasons, in this order: not-tester, no-auto-consent, hidden, gate:<aiGate reason>, jako, name-guard, face / face-unknown,
  *     already-sent, session-cap; "ok" = send. Anything refused behaves as today (manual "ask AI" with the preview).
  */
 (function (root, factory) {
@@ -259,14 +261,16 @@
 
   /* ---------------- tester-only one-tap send ---------------- */
   /** The text-side checks of an one-tap send. Session evidence (option ข) is never passed on. @param {any} G LQPCGuard
-   *  @param {string} text @param {{gtins?: string[], regs?: string[]}} facts @param {any} [_opts] ignored on purpose (no session facts) */
+   *  @param {string} text @param {{gtins?: string[], regs?: string[]}} facts @param {any} [_opts] only {script} is read (the user's script choice); session facts are ignored on purpose */
   // eslint-disable-next-line no-unused-vars
   function autoTextCheck(G, text, facts, _opts) {
     const t = String(text || "");
     const gate = G.aiGate(t, { gtins: (facts && facts.gtins) || [], regs: (facts && facts.regs) || [] });
     // possible names are counted on the canonical copy (thai-canon-2: a name split by an invisible character still counts)
     // a possible name, or the stricter block list (phone-like digits, a form of address, letter / note wording), stops it
-    return { gate, hits: G.scan(t).length, maybe: (G.possibleNames ? G.possibleNames(canon(t)).length : 0) + (G.autoBlock && G.autoBlock(t) ? 1 : 0) };
+    // owner decision 2026-11-14: Japanese / Korean script is never sent without the open preview (own reason, shown first)
+    const jako = !!(G.jakoScript && G.jakoScript(t, _opts && _opts.script ? { script: _opts.script } : undefined));
+    return { gate, jako, hits: G.scan(t).length, maybe: (G.possibleNames ? G.possibleNames(canon(t)).length : 0) + (G.autoBlock && G.autoBlock(t) ? 1 : 0) };
   }
   /** @param {any} o */
   function autoDecision(o) {
@@ -275,6 +279,7 @@
     if (!o.autoOn) return no("no-auto-consent");
     if (o.hidden) return no("hidden");
     if (!o.gate || !o.gate.allow) return no("gate:" + ((o.gate && o.gate.reason) || "no-product"));
+    if (o.jako) return no("jako");
     if (o.hits > 0 || o.maybe > 0) return no("name-guard");
     if (!o.face || !o.face.ran) return no("face-unknown");
     if (o.face.faces > 0) return no("face");
@@ -284,5 +289,16 @@
     return { send: true, reason: "ok" };
   }
 
-  return { CFG, frameStats, hintOf, interval, makeStabilizer, makeMerger, similarity, sameObject, checklist, productKey, autoTextCheck, autoDecision };
+  /**
+   * Capture guidance after a side was read (owner decision 2026-11-11 "capture guidance instead of relaxed capture", next
+   * step 2026-11-14): a side read in full with NO barcode, registration number or ingredients ticked is most likely the
+   * front of the pack -> "turn" (show the side with the ingredients, registration number or barcode); otherwise "done".
+   * On-device hint only: nothing is sent, nothing else changes. @param {{barcode?: boolean, reg?: boolean, ingredients?: boolean}} list
+   */
+  function sideHint(list) {
+    const l = list || {};
+    return l.barcode || l.reg || l.ingredients ? "done" : "turn";
+  }
+
+  return { CFG, frameStats, hintOf, interval, makeStabilizer, makeMerger, similarity, sameObject, checklist, productKey, autoTextCheck, autoDecision, sideHint };
 });

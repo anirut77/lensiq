@@ -200,7 +200,8 @@ No module is production-ready. None has completed a field pilot, and the backend
   "hide calories" setting.
 - Measured (synthetic only, `docs/nutrition/NUTRITION-ACCURACY.md`): parser 100 % on ideal text; on-device images 82.2 %
   exact. **Safety target missed:** silent wrong values 3.0 % [2.0–4.3] pooled, all on 4° tilted pictures (22.6 %);
-  waiting for the owner's decision before any fix.
+  this was round 1. Round 5 (v5) met every target; independent review 2026-11-13 OK (synthetic, re-measured on the
+  reviewer's own set); merged as experimental under the standing order (`docs/nutrition/NUTRITION-ACCURACY.md` "Status").
 - Not built (owner decision needed): back-office basics (design N3 / N4) and USDA FDC data, which only the photo mode
   uses; the AI step `nut_label`; the barcode / Open Food Facts cross-check; the Product Check link; the food log; photo mode.
 - Real-label accuracy needs the owner's 200 label photos (design §11).
@@ -304,7 +305,7 @@ No module is production-ready. None has completed a field pilot, and the backend
   on-screen guidance when a capture is refused for lack of evidence (photograph the side with the registration number
   or the ingredients list, or scan the barcode), fix the misclassified cases, commit with AI off and budget 0.
   Official figures (independent agent, locked synthetic set sha256 `470d3e7b…`, scored once): personal-data items
-  reaching the AI **0/260** in text and in image mode (target 0: met); real product labels refused **69/360 = 19.2 %**
+  reaching the AI **0/260** in text and in image mode (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`) (target 0: met); real product labels refused **69/360 = 19.2 %**
   (target < 5 %: **not met**): clean 12.5 %, low-quality OCR 22.5 %, Thai 25.0 %, foreign 16.7 %, with barcode /
   registration facts 5.0 %, without 28.2 %, front panel 38.9 %, short capture 28.9 %, long 7.8 %, back 1.1 %. 61 of
   the 69 had no evidence (front panels, 2–4 lines); 8 were misclassified and are fixed. After the fixes, on the same
@@ -510,7 +511,7 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
 | L20 | Sourcing photos of illegal / warned products for the test set | Buying or photographing listed products lawfully (≥ 75 needed for the 5 % bound) | design §9.1, §13 | open | 2026-11-09 |
 | L21 | Medical-device software classification of Product Check | Does reading labels and checking registrations make LENSIQ medical-device software under Thai law or the EU MDR? | design §15 Q8; `docs/MEDICINE.md` "Regulatory positioning" | open | 2026-11-09 |
 | L22 | Organisation accounts: 16 counsel questions | LENSIQ becomes a processor (s.40) and transfers data abroad once sync is on; DPA template; DPIA R38–R47 | `docs/ORG-ACCOUNTS-DESIGN.md` §9–10; counsel notes E3 | open | 2026-11-09 (raised R16) |
-| L23 | Face model licences F5 / F6 | face-api age/gender trained on UTKFace (non-commercial), expression data licence unclear; detector, landmarks and recognition also need an opinion | §2 above; `LICENSES/THIRD_PARTY.md`; `docs/LEGAL-REVIEW-PACK.md` §4 | open | 2026-11-09 (raised earlier) |
+| L23 | Face model licences F5 / F6 | face-api age/gender trained on UTKFace (non-commercial), expression data licence unclear; detector, landmarks and recognition also need an opinion. Exam is out of scope since 2026-11-10 (MediaPipe Face Landmarker + COCO-SSD, Apache-2.0; face-api.js only in the research demo) | §2 above; §5 "L23: Exam resolved"; `LICENSES/THIRD_PARTY.md`; `docs/LEGAL-REVIEW-PACK.md` §4 | resolved for Exam (2026-11-10); open for Attendance face mode, Customers, Booth and the other pages that load face-api.js; also open: the age/gender and expression weight files are still shipped (locked off) in a customer bundle (`docs/LEGAL-PACKET.md` §9.1) | 2026-11-09 (raised earlier) |
 | L24 | Gate signage and privacy notice | Sign wording, legal basis (s.24(5) / s.24(3)) and retention for plates; owner photos of public streets for testing | `gate-notice.html`; `docs/GATE.md` §5; counsel notes B3, E2 | open | 2026-11-09 (raised R13–R16) |
 | L25 | Pricing terms and VAT | B2B prices excl. 7 % VAT vs VAT-inclusive self-serve plans; Gate 30-day trial wording (not enforced in code); refund and contract terms | `docs/PRICING-RESEARCH.md`, `docs/BILLING-PLAN.md` §4.1, `pricing.html`, `terms.html`; `docs/LEGAL-REVIEW-PACK.md` §3.2–3.5 | open | 2026-11-09 (raised R16) |
 | L26 | Public procurement fit | Specific-method threshold, VAT inside the threshold, multi-year contracts, no splitting, e-GP / SME registration | `docs/SALES-PACKAGES.md` A.5, C1–C3 | open | 2026-11-09 |
@@ -573,3 +574,14 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
   lab-only Exam demo, customer onboarding guides in TH / EN / ZH). Owner items listed in `docs/LAUNCH-READINESS.md` §9.
 - Verified W-001: the built site (`tools/build-site.mjs`) posts the quote form to `<api>/v1/leads` with a Turnstile token; the
   reviewer had served the raw repo.
+
+### Stream JK (2026-11-14): Japanese / Korean text never goes to AI by itself; claim wording; "turn the pack" hint
+
+Owner decisions 2026-11-14 (1, 2, 3, 4), branch `pc-jk`. Text with Japanese / Korean script is never sent automatically
+(tester one-tap refused, reason `jako`), never as a photo when the device OCR shows the script, and only after an always-open
+preview; the Worker refuses unpreviewed (`ai_off_jako_preview`), photo (`ai_off_jako_photo`) and auto requests; fortune
+drops JA / KO strings on the page and in the Worker. Fresh locked hold-out 4 (synthetic, scored once): values reaching the AI
+without the user's own send 23 → 0, photo 33 → 0, explicit send if the user removes nothing 42 → 29 (target 0 missed), recall
+0.624 → 0.714, product false removals 9 → 10 / 110. Open: photo of a JA / KO label read by an OCR model without that script
+(only with `imageModeAllowed` on, default off) — owner decision. Every "0 personal data reached AI" claim names its languages.
+Live scan: a side read with nothing on the checklist says "turn the pack". `docs/product-check/PC-JK-RESULTS.md`.

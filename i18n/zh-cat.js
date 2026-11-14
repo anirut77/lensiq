@@ -70,7 +70,7 @@
   "cat.r.notice": "用于试点的告示与隐私声明模板；销售前需律师审阅",
   "cat.r.directory": "系统目录与设置；本身不做决定",
   "cat.r.zone": "流程可用，但尚未针对此用途测量准确率",
-  "cat.r.exam": "考生页、考场摄像头与看板齐全，每个信号由人判断；准确率尚未测量，试点即为测量；人脸引擎为 MediaPipe Face Landmarker（Apache-2.0），因此 face-api 许可问题（F5/F6）不再涉及 Exam",
+  "cat.r.exam": "考生页、考场摄像头与看板齐全，每个信号由人判断；准确率尚未测量，试点即为测量；考生页与考场摄像头使用 MediaPipe Face Landmarker 和 COCO-SSD（均为 Apache-2.0）；考场摄像头的 YOLOX-Nano 选项（Apache-2.0）默认关闭；仅在研究演示中加载 face-api.js；Exam 介绍页与看板不加载任何模型",
   "cat.r.examHall": "考场摄像头流程可用，但考场广角画面中的小脸仍检测不佳，因此在解决前保持实验性，暂不销售；考生页（机房）可试点",
   "cat.r.omr": "流程可用，但尚未用真实扫描答题卡测量",
   "cat.r.attendance": "默认 PIN/二维码，人脸需同意后可选；有公开数据集数据与现场检查；人脸模型许可仍待确定",

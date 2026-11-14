@@ -42,7 +42,8 @@
  * No verdict words: risk signals only. TH default + i18n/en-med.js, i18n/zh-med.js (md.pc.ai.*).
  *
  *   agreement(aiSignals, deviceClaims) -> {both, aiOnly, deviceOnly}
- *   decide({mode, image, features}) -> {send: "text"|"image"} | {offer: "text"}   image = LQPCGuard.imageCheck(text)
+ *   decide({mode, image, features, jako?}) -> {send: "text"|"image"} | {offer: "text"}   image = LQPCGuard.imageCheck(text);
+ *     jako = Japanese / Korean script (LQPCGuard.jakoScript): never a photo, text only after the open preview (2026-11-14)
  *   gateNote(reason) -> "" | "dispOff" | "personalDoc" | "noProduct"   the notice shown when LQPCGuard.aiGate refuses
  *   NEXT STEP (owner decision 2026-11-10, option ก): only for "no-product" the page adds #pcAiGuide: photograph the side with
  *   the registration number or the ingredients list, or scan the barcode, with one-tap buttons to the page's own camera
@@ -67,7 +68,7 @@
  *   its own filter and a per-caller limit). The text sent is shown (#pcAiAutoText) with "stop one-tap and withdraw"
  *   (#pcAiAutoStop); any withdraw clears the consent AND the one-tap choice at once.
  * SERVER REFUSALS: a refusal with a documented code (ai_off_dispensing / ai_off_personal_doc / ai_off_no_product /
- *   ai_off_personal_data / ai_off_auto_filter) shows its own notice instead of the generic "AI unavailable".
+ *   ai_off_personal_data / ai_off_auto_filter / ai_off_jako_preview / ai_off_jako_photo) shows its own notice instead of the generic "AI unavailable".
  * Test hook: window.__LQ_PCAI = {st, ask(forceText), paint(), auto}.
  */
 (function (root, factory) {
@@ -90,10 +91,11 @@
     return { both: a.filter(x => d.includes(x)), aiOnly: a.filter(x => !d.includes(x)), deviceOnly: d.filter(x => !a.includes(x)) };
   }
   /** Which mode goes out. Image only for pc_fields, only when chosen, and never with personal data on the label.
-   * @param {{mode: string, image: {block: boolean}, features: string[]}} o */
+   * @param {{mode: string, image: {block: boolean}, features: string[], jako?: boolean}} o */
   function decide(o) {
     if (o.mode !== "image" || !o.features.includes("pc_fields")) return { send: "text" };
     if (!o.image || o.image.block) return { offer: "text" }; // no check result = no photo
+    if (o.jako) return { offer: "text" }; // Japanese / Korean label: never a photo (owner decision 2026-11-14)
     return { send: "image" };
   }
   /** Notice key for an aiGate reason ("" = allowed). @param {string} reason */
@@ -184,6 +186,9 @@
     /** @param {string} reason aiGate reason @param {boolean} [capture] the capture itself was refused (not an edit in the preview) */
     const refuse = (reason, capture) => { st.notice = NOTE()[gateNote(reason)] || NOTE().noProduct; st.why = reason; st.ready = false; st.whyCapture = !!capture; };
     const gopt = () => (W.LENSIQ_PC_COMPANY_PHONES === "remove" ? { companyPhones: "remove" } : undefined);
+    const pcScript = () => (W.__LQ_PC && W.__LQ_PC.st ? W.__LQ_PC.st.script : "th");
+    /** Japanese / Korean script in the text, or the user chose Korean (owner decision 2026-11-14) @param {string} t */
+    const jakoOf = t => !!(W.LQPCGuard.jakoScript && W.LQPCGuard.jakoScript(t, { script: pcScript() }));
     const dispPolicy = () => (W.LENSIQ_PC_DISPENSING_AI === "off" || W.LENSIQ_PC_DISPENSING_AI === "text-preview" ? W.LENSIQ_PC_DISPENSING_AI
       : W.LQPCGuard.DEFAULTS.dispensingAI || "off");
     /** The mandatory text preview. Resolves the exact text to send, or null (not sent). @param {any} g redact() result @param {boolean} open */
@@ -195,7 +200,8 @@
       const f = W.LQPCGuard.provenance(g.text, ocr);
       // session: this capture is allowed only through codes scanned earlier in the session (option ข): say so in the preview
       const session = !!gate(ocr || g.text).session;
-      return new Promise(resolve => { st.preview = { text: g.text, ocr, removed: g.removed, open: open || f.dropped.length > 0 || session, warn: "", session, resolve }; paint(); });
+      return new Promise(resolve => { const jako = jakoOf(ocr || g.text);
+      st.preview = { text: g.text, ocr, removed: g.removed, open: open || jako || f.dropped.length > 0 || session, warn: "", session, jako, resolve }; paint(); });
     }
     function closePreview(/** @type {string|null} */ v) {
       const p = st.preview;
@@ -259,6 +265,9 @@
       // nothing sent (text or photo), the on-device results stay
       const g0 = gate(text);
       if (!g0.allow) { refuse(g0.reason, true); st.res = null; paint(); return; }
+      // the device's own OCR output decides, not the editable text box (independent review: deleting the kana lines in the box
+      // must not bring the photo back)
+      const jako = jakoOf(ocrText() || text) || jakoOf(text);
       const g = W.LQPCGuard.redact(text, gopt()), img = W.LQPCGuard.imageCheck(text, gopt());
       st.busy = true; paint();
       try {
@@ -268,11 +277,12 @@
         if (!c) { st.notice = NOTE().declined; return; }
         // a tester who ticked "remember my choice" on the screen that explains one-tap: the next taps send at once
         if (c.saved && tester()) { oneTapRemember(c.info); if (await oneTap(text)) return; }
-        const d = decide({ mode: c.mode, image: img, features: c.info.features });
-        if (d.offer) { st.offer = { c, g, img }; return; } // image blocked: the user chooses text only (after the preview) or nothing
+        const d = decide({ mode: c.mode, image: img, features: c.info.features, jako });
+        if (d.offer) { st.offer = { c, g, img, jako }; return; } // image blocked: the user chooses text only (after the preview) or nothing
         // mandatory text preview: open when anything was removed, the text looks like a dispensing label, or nothing is
         // remembered; collapsed (one tap away) only for a clean product text with a remembered choice
-        const v = await previewText(g, g.count > 0 || disp || !c.remembered);
+        // Japanese / Korean script (owner decision 2026-11-14): the preview is always OPEN, never collapsed
+        const v = await previewText(g, g.count > 0 || disp || jako || !c.remembered);
         if (v == null) { if (!st.notice) st.notice = NOTE().declined; return; }
         let images = null, mode = d.send, via = "";
         if (mode === "image") {
@@ -296,14 +306,17 @@
       const script = W.__LQ_PC && W.__LQ_PC.st ? W.__LQ_PC.st.script : "th";
       const tgt = translateTarget(text, lang());
       const ex = o.auto ? { auto: true } : undefined;
+      // every non-auto send follows the user's own "Send this text" on the preview: the Worker refuses Japanese / Korean text
+      // without this mark (second check, owner decision 2026-11-14); an auto request never carries it
+      const pv = o.auto ? {} : { previewed: true };
       const go = (/** @type {string} */ f, /** @type {string} */ m, /** @type {any} */ inp) => (o.auto && (document.hidden || o.epoch !== auto.epoch)
         ? Promise.resolve({ fallback: true, reason: "consent_required", message: W.LQAI.fallbackMessage("consent_required") }) : W.LQAI.send(f, c.info, m, inp, ex));
       const jobs = [];
-      if (feats.includes("pc_fields")) jobs.push(go("pc_fields", mode, mode === "image" ? { text, script, images, ...fx } : { text, script, ...fx }).then(r => { out.fields = r;
+      if (feats.includes("pc_fields")) jobs.push(go("pc_fields", mode, mode === "image" ? { text, script, images, ...fx, ...pv } : { text, script, ...fx, ...pv }).then(r => { out.fields = r;
         if (o.auto) auto.t.fields = now(); }));
       if (feats.includes("pc_claims") && text.trim()) jobs.push(go("pc_claims", "text", { text,
-        category: (P.local && P.local.category) || undefined, ...fx }).then(r => { out.claims = r; }));
-      if (feats.includes("pc_translate") && tgt && text.trim()) jobs.push(go("pc_translate", "text", { text, target: tgt, ...fx }).then(r => { out.translate = r; }));
+        category: (P.local && P.local.category) || undefined, ...fx, ...pv }).then(r => { out.claims = r; }));
+      if (feats.includes("pc_translate") && tgt && text.trim()) jobs.push(go("pc_translate", "text", { text, target: tgt, ...fx, ...pv }).then(r => { out.translate = r; }));
       await Promise.all(jobs);
       st.res = { ...out, mode, sentText: text, auto: !!o.auto };
       st.removed = removed;
@@ -342,6 +355,7 @@
       "name-guard": T("md.pc.tap.w.name", "ไม่ส่งทันที: พบชื่อ เบอร์โทร หรือถ้อยคำที่อาจเป็นข้อมูลส่วนตัว ตรวจข้อความด้านล่างก่อนส่ง"),
       face: T("md.pc.tap.w.face", "ไม่ส่งทันที: พบใบหน้าในภาพ ตรวจข้อความด้านล่างก่อนส่ง"),
       "face-unknown": T("md.pc.tap.w.faceUnknown", "ไม่ส่งทันที: ตัวหาใบหน้าบนเครื่องนี้ทำงานไม่ได้ ตรวจข้อความด้านล่างก่อนส่ง"),
+      jako: T("md.pc.tap.w.jako", "ไม่ส่งทันที: ข้อความมีอักษรญี่ปุ่นหรือเกาหลี ซึ่งไม่ส่งแบบแตะครั้งเดียวเลย ตรวจข้อความด้านล่างแล้วกดส่งเองได้"),
       edited: T("md.pc.tap.w.edited", "ไม่ส่งทันที: ข้อความถูกแก้ หรือไม่ได้มาจากการอ่านฉลากบนเครื่องนี้ ตรวจข้อความด้านล่างก่อนส่ง")
     });
     const setSkip = (/** @type {string} */ why) => { auto.skip = why; paintAuto(); };
@@ -360,7 +374,7 @@
       const pc = W.__LQ_PC && W.__LQ_PC.st;
       if (!pc || !pc.ocr || String(pc.ocr.text || "").trim() !== text) { setSkip("edited"); return false; } // only the device's own reading
       const fx = facts(), key = LV.productKey({ ...fx, text });
-      const base = () => ({ tester: tester(), autoOn: autoOn(), hidden: !!document.hidden, ...LV.autoTextCheck(W.LQPCGuard, text, fx), key, sent: [], count: 0, cap: 1 });
+      const base = () => ({ tester: tester(), autoOn: autoOn(), hidden: !!document.hidden, ...LV.autoTextCheck(W.LQPCGuard, text, fx, { script: pcScript() }), key, sent: [], count: 0, cap: 1 });
       let d = LV.autoDecision({ ...base(), face: { ran: true, faces: 0 } }); // the face detector runs only when it matters
       if (!d.send) { setSkip(d.reason); return false; }
       const ep = auto.epoch;
@@ -442,7 +456,8 @@
       if (st.offer) {
         const k = KIND();
         h += `<div class="md-cand" id="pcAiOffer"><p class="md-status" data-kind="warn">` +
-          `${esc(st.offer.g.count ? T("md.pc.ai.offerH", "ไม่ส่งภาพนี้: บนฉลากมีชื่อหรือข้อมูลส่วนตัว {n} จุด", { n: st.offer.g.count })
+          `${esc(st.offer.jako && !st.offer.g.count ? T("md.pc.ai.offerJako", "ไม่ส่งภาพนี้: ฉลากมีอักษรญี่ปุ่นหรือเกาหลี ซึ่งระบบหาชื่อคนได้ไม่ครบ จึงไม่ส่งภาพเลย ส่งได้เฉพาะข้อความหลังจากคุณตรวจแล้ว")
+            : st.offer.g.count ? T("md.pc.ai.offerH", "ไม่ส่งภาพนี้: บนฉลากมีชื่อหรือข้อมูลส่วนตัว {n} จุด", { n: st.offer.g.count })
             : T("md.pc.ai.offerLabel", "ไม่ส่งภาพนี้: ดูเหมือนฉลากยาที่จ่ายให้ผู้ป่วยหรือใบสั่งยา ซึ่งอาจมีชื่อคนที่ระบบหาไม่พบ"))}</p>` +
           (st.offer.g.count ? `<ul class="md-list">${st.offer.g.removed.map(r => `<li>${esc(k[r.kind] || r.kind)}: ${raw(r.text)}</li>`).join("")}</ul>` : "") +
           `<p class="hint">${esc(T("md.pc.ai.offerT", "ส่งเฉพาะข้อความโดยลบส่วนเหล่านี้ออกได้ หรือไม่ส่งเลย"))}</p><div class="md-row">` +
@@ -454,6 +469,8 @@
         const p = st.preview, k = KIND();
         h += `<div class="md-cand" id="pcAiPreview" data-open="${p.open ? 1 : 0}"><p class="md-status"${p.removed.length ? ' data-kind="warn"' : ""}>` +
           `${esc(T("md.pc.ai.prevH", "ตรวจข้อความที่จะส่งก่อน ยังไม่มีการส่งจนกว่าจะกด \"ส่งข้อความนี้\""))}</p>` +
+          (p.jako ? `<p class="md-status" data-kind="warn" id="pcAiPrevJako">${esc(T("md.pc.ai.prevJako",
+            "ข้อความนี้มีอักษรญี่ปุ่นหรือเกาหลี ระบบหาชื่อคนที่ไม่มีคำบอกได้ไม่ครบ ตรวจทุกบรรทัดและลบชื่อคนออกเองก่อนส่ง ข้อความแบบนี้ไม่ถูกส่งอัตโนมัติ"))}</p>` : "") +
           `<p class="hint">${esc(T("md.pc.ai.ocrOnly", "ส่งได้เฉพาะข้อความที่อ่านจากฉลากเท่านั้น ลบหรือแก้คำที่อ่านผิดได้ แต่คำที่พิมพ์เพิ่มจะไม่ถูกส่ง"))}</p>` +
           `<details id="pcAiPrevDetails"${p.open ? " open" : ""}><summary>${esc(T("md.pc.ai.prevShow", "ดูและแก้ข้อความที่จะส่ง"))}</summary>` +
           `<p class="hint">${esc(T("md.pc.ai.prevHint", "ส่วนที่ไฮไลต์ถูกลบออกบนเครื่องนี้แล้ว แก้หรือลบเพิ่มได้ก่อนส่ง ข้อความในช่องนี้คือสิ่งที่จะส่งทั้งหมด"))}</p>` +
@@ -511,7 +528,9 @@
     /** a server refusal with a documented code gets its own notice (not the generic "AI unavailable") */
     const CODE_NOTE = () => ({ ai_off_dispensing: NOTE().dispOff, ai_off_personal_doc: NOTE().personalDoc, ai_off_no_product: NOTE().noProduct,
       ai_off_personal_data: T("md.pc.ai.n.personalData", "เซิร์ฟเวอร์ไม่ส่งข้อความนี้ให้ AI เพราะยังพบชื่อหรือข้อมูลส่วนตัว ผลตรวจในเครื่องด้านบนยังใช้ได้ตามเดิม"),
-      ai_off_auto_filter: T("md.pc.ai.n.tapFilter", "เซิร์ฟเวอร์ไม่รับการส่งแบบแตะครั้งเดียวสำหรับข้อความนี้ กด \"ขอความเห็นจาก AI\" อีกครั้งเพื่อดูข้อความก่อนส่ง") });
+      ai_off_auto_filter: T("md.pc.ai.n.tapFilter", "เซิร์ฟเวอร์ไม่รับการส่งแบบแตะครั้งเดียวสำหรับข้อความนี้ กด \"ขอความเห็นจาก AI\" อีกครั้งเพื่อดูข้อความก่อนส่ง"),
+      ai_off_jako_preview: T("md.pc.ai.n.jakoPreview", "เซิร์ฟเวอร์ไม่ส่งข้อความภาษาญี่ปุ่นหรือเกาหลีที่ยังไม่ผ่านการตรวจของคุณ กด \"ขอความเห็นจาก AI\" อีกครั้งเพื่อดูข้อความก่อนส่ง"),
+      ai_off_jako_photo: T("md.pc.ai.n.jakoPhoto", "เซิร์ฟเวอร์ไม่ส่งภาพของฉลากภาษาญี่ปุ่นหรือเกาหลี ส่งได้เฉพาะข้อความหลังจากคุณตรวจแล้ว") });
     function fbLine(x) {
       const own = x && x.code ? CODE_NOTE()[x.code] : "";
       return `<p class="md-status" data-kind="warn" data-fb="${esc(x.reason)}"${own ? ` data-code="${esc(x.code)}"` : ""}>${esc(own || x.message)}</p>`;

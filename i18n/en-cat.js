@@ -70,7 +70,7 @@
   "cat.r.notice": "Sign and privacy-notice template for a pilot; a lawyer reviews it before sale",
   "cat.r.directory": "System directory and settings; it makes no decision itself",
   "cat.r.zone": "Works end to end, but accuracy is not measured for this task",
-  "cat.r.exam": "Candidate page, room camera and dashboard are complete and a person decides every flag; accuracy is unmeasured and the pilot is the measurement; the face engine is MediaPipe Face Landmarker (Apache-2.0), so the face-api licence question (F5/F6) no longer applies to Exam",
+  "cat.r.exam": "Candidate page, room camera and dashboard are complete and a person decides every flag; accuracy is unmeasured and the pilot is the measurement; the candidate page and room camera run MediaPipe Face Landmarker and COCO-SSD (both Apache-2.0); the room camera's YOLOX-Nano option (Apache-2.0) is off by default; face-api.js is loaded only in the research demo; the Exam overview page and the dashboard load no model",
   "cat.r.examHall": "The room camera works end to end, but small faces in the wide exam-room view are still poorly detected, so it stays experimental until that is fixed and is not for sale yet; the candidate page (computer lab) is pilot-ready",
   "cat.r.omr": "Works end to end, but it is not measured on real scanned sheets yet",
   "cat.r.attendance": "PIN/QR by default, face optional with consent; public-dataset numbers and an on-site check exist; the face-model licence is still open",
