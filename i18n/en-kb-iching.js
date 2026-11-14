@@ -1,6 +1,6 @@
 /* i18n/en-kb-iching.js — English reading data (I Ching) for fortune-ai.js (English mode). Mirrors i18n/zh-kb-iching.js key for key.
    Meanings follow iching-kb.js, rewritten in plain modern English (not quotations of the classic text).
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var items = {};

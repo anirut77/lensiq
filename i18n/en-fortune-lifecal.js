@@ -16,7 +16,7 @@
   "lifegraph.title": "Life Graph · Energy by age | LENSIQ", "lifegraph.h1": "Life Graph",
   "lifegraph.lead": "Four energy curves from age 0 to 96, combining three systems: Thai Maha Taksa, BaZi 10-year luck pillars, and the Saturn return and progressed Sun of Western astrology; each turning point names its source system",
   "lifegraph.button": "Draw life graph",
-  "lifegraph.src": "\"Self-care\" is a prompt to look after body and mind, not a prediction of health or illness; curve levels are weights based on traditional texts, for entertainment only, not real measurements",
+  "lifegraph.src": "\"Self-care\" is a prompt to look after body and mind, not a prediction of health or illness; curve levels are weights based on traditional texts, not real measurements",
 
   "lc.disclaimerRest": "Computed on this device; your birth date is not stored. Strengths are shown alongside areas to watch, stated gently",
   "lc.legendBirth": "Birth date", "lc.day": "Day", "lc.month": "Month", "lc.year": "Birth year", "lc.yearPh": "e.g. 1990 (CE)", "lc.era": "Era", "lc.eraBE": "BE", "lc.eraCE": "CE",

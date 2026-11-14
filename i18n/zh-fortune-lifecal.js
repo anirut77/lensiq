@@ -17,7 +17,7 @@
   "lifegraph.title": "人生曲线 · 各年龄段的运势 | LENSIQ", "lifegraph.h1": "人生曲线",
   "lifegraph.lead": "零至九十六岁的四条运势曲线，结合三套体系：泰国塔克萨大运、八字十年大运、西方占星的土星回归与推运太阳；每个转折点都注明来自哪个体系",
   "lifegraph.button": "画出人生曲线",
-  "lifegraph.src": "“自我照顾”只是提醒照顾身心，并不预测健康或疾病；曲线高低是按典籍给出的权重，仅供娱乐，不是实际测量",
+  "lifegraph.src": "“自我照顾”只是提醒照顾身心，并不预测健康或疾病；曲线高低是按典籍给出的权重，不是实际测量",
 
   "lc.disclaimerRest": "在本机计算，不保存生日；既说长处，也温和地说出需要留意的地方",
   "lc.legendBirth": "出生日期", "lc.day": "日", "lc.month": "月", "lc.year": "出生年份", "lc.yearPh": "例如 1990（公历）", "lc.era": "纪年", "lc.eraBE": "佛历", "lc.eraCE": "公历",

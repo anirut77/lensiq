@@ -81,7 +81,7 @@
   "iching.cardTitle": "Hexagram {n} {zh} · {th}",
   "iching.cardSub": "Changing to hexagram {n} · {th}",
   "iching.cardAdvice": "Advice: {a}",
-  "iching.cardFoot": "For entertainment only, based on traditional belief, not science · the I Ching text is in the public domain",
+  "iching.cardFoot": "Personal belief: use your own judgement; predictions are not guaranteed · the I Ching text is in the public domain",
 
   /* Sources */
   "iching.src.0": "James Legge (1882), The I Ching — Sacred Books of the East, vol. 16 (public domain, sacred-texts.com)",

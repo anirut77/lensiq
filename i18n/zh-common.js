@@ -15,7 +15,7 @@
   "nav.crumbs": "当前位置",
   "nav.viewall": "查看全部系统",
   "nav.groupd.tools": "实用工具与全部系统目录",
-  "nav.groupd.fortune": "源自泰国与中国传统的互动活动以及择吉规划。仅供娱乐。",
+  "nav.groupd.fortune": "源自泰国与中国传统的互动活动以及择吉规划。依据传统信仰，请自行判断。",
   "nav.groupd.work": "PIN 或二维码考勤（人脸可选）、结构化面试、案例复盘与团队活动。涉及人员的决定始终由人作出。",
   "nav.groupd.photo": "形象照与证件照影棚、活动拍照亭、展位分析与文档转换。",
   "nav.groupd.ana": "人数与密度、门店、排队、餐桌、车位、广告屏与展位，匿名且在本机处理。",
@@ -240,7 +240,7 @@
   // ---------- footer (shared) ----------
   "foot.tagline": "面向营销与分析的计算机视觉",
   "foot.neuro": "情绪分析",
-  "foot.fortune": "占卜（仅供娱乐）",
+  "foot.fortune": "占卜（依据传统信仰）",
   "foot.checkout": "扫码识别商品",
   "foot.photo": "拍照亭与附加系统",
   "foot.qc": "产品质检",

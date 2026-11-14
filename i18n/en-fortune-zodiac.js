@@ -64,7 +64,7 @@
   "zodiac.dt.support": "Supportive animals",
   "zodiac.dt.clash": "Clashing animal",
   "zodiac.yearVal": "{y} CE · Year of the {a}",
-  "zodiac.powerH": "Yearly energy (for entertainment only)",
+  "zodiac.powerH": "Yearly energy (according to belief)",
   "zodiac.topic.overall": "Overall",
   "zodiac.topic.work": "Career",
   "zodiac.topic.money": "Money",
@@ -75,7 +75,7 @@
   "zodiac.cardKind": "Chinese Zodiac",
   "zodiac.cardTitle": "Year of the {a} · {year}",
   "zodiac.cardLuck": "Lucky colors: {c} · Direction: {d}",
-  "zodiac.cardFoot": "For entertainment only; based on traditional beliefs, not science",
+  "zodiac.cardFoot": "Personal belief: use your own judgement; predictions are not guaranteed",
   "zodiac.shareTitle": "Chinese Zodiac — LENSIQ",
 
   /* Tai Sui table */

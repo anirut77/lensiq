@@ -25,8 +25,8 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=16"></script>
-<script src="i18n/zh-planner.js?v=1"></script>
+<script src="nav.js?v=17"></script>
+<script src="i18n/zh-planner.js?v=2"></script>
 
 <aside class="lq-helpline" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span data-i18n="help.line.lead">ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต</span>
@@ -43,9 +43,12 @@
     <h1 data-i18n="pl.h1">วางแผนฤกษ์มงคล</h1>
     <p class="lead" data-i18n="pl.lead">เลือกงานที่จะทำและช่วงเดือน แล้วใส่วันเกิดของเจ้าของ (ถ้ามี) หน้านี้จะแสดงเฉพาะวันดีพร้อมเหตุผลว่าดีเพราะอะไร เลือกวันที่ชอบแล้วบันทึกลงปฏิทินในมือถือได้</p>
   </div>
-  <p class="fk-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-    <span><b data-i18n="pl.disc.b">เพื่อการวางแผนตามวัฒนธรรม ไม่ใช่การรับประกันผล</b>
-    <span data-i18n="pl.disc.rest">ตำราแต่ละสายต่างกัน ควรสอบถามพระหรือผู้รู้ที่คุณเคารพก่อนกำหนดวันจริง คำนวณในเครื่องนี้ ไม่บันทึกและไม่ส่งวันเกิดไปที่ใด</span></span></p>
+  <p class="fk-disclaimer lq-notice" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+    <span><b class="lq-disc-line"
+      data-i18n="fortune.disc.line">เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย</b>
+    <span class="lq-notice-more">
+      <span data-i18n="pl.disc.b">เพื่อการวางแผนตามวัฒนธรรม ไม่ใช่การรับประกันผล</span>
+      <span data-i18n="pl.disc.rest">ตำราแต่ละสายต่างกัน ควรสอบถามพระหรือผู้รู้ที่คุณเคารพก่อนกำหนดวันจริง คำนวณในเครื่องนี้ ไม่บันทึกและไม่ส่งวันเกิดไปที่ใด</span></span></span></p>
 
   <form class="fk-form fk-stack fk-block" id="plForm" novalidate>
     <fieldset><legend data-i18n="pl.f.event">งานที่จะทำ</legend>
@@ -146,10 +149,11 @@
 </main>
 
 <script src="lensiq-config.js?v=10"></script>
-<script src="horoscope-kb.js?v=4"></script>
-<script src="horoscope.js?v=14"></script>
+<script src="horoscope-kb.js?v=5"></script>
+<script src="horoscope.js?v=15"></script>
 <script src="lensiq-planner.js?v=1"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
+<script src="fortune-read.js?v=1"></script>
 <script src="fortune-crisis.js?v=10"></script>
 <script src="planner.js?v=2"></script>
 </body>

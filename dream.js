@@ -2,7 +2,7 @@
    ส่วนบน: ฟังก์ชันล้วน (หาสัญลักษณ์จากข้อความความฝัน, ประเภทฝัน 4 แบบตามตำราไทย, facts) — ทดสอบใน Node
    ส่วนล่าง: UI ในเบราว์เซอร์ (ทำงานเมื่อพบ #drApp)
    ความเป็นส่วนตัว: ข้อความความฝันประมวลผลในเครื่องเท่านั้น ไม่บันทึก ไม่ส่งออก (AI ได้รับเฉพาะรายการสัญลักษณ์ที่พบ)
-   ไม่มีเลขเด็ด/เลขนำโชค — เพื่อความบันเทิงตามความเชื่อ */
+   ไม่มีเลขเด็ด/เลขนำโชค — ตามความเชื่อ (โปรดใช้วิจารณญาณ) */
 (function (root) {
   "use strict";
   var KB = root.DREAM_KB || (typeof require === "function" ? require("./dream-kb.js") : null);
@@ -33,7 +33,7 @@
     return out.slice(0, max || 8);
   }
   var SACRED = ["monk", "buddha", "temple", "naga", "merit", "ancestor", "candle"];
-  /** ประเภทฝัน 4 แบบตามตำราไทย (ฉบับตีความเพื่อความบันเทิง) */
+  /** ประเภทฝัน 4 แบบตามตำราไทย (ฉบับตีความตามความเชื่อ) */
   function dreamType(ids, mood, time) {
     if (ids.some(function (id) { return SACRED.indexOf(id) >= 0; })) return "thep";
     if (time === "dawn" && ["happy", "excited", "calm"].indexOf(mood) >= 0) return "bupphanimit";

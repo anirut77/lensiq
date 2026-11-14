@@ -33,7 +33,7 @@
     "palm.mountsH": "Mounts that look full ",
     "palm.mountsSmall": "(optional, select any)",
     "palm.read": "Read the palm",
-    "palm.discMini": "For entertainment only, based on traditional belief, not science",
+    "palm.discMini": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We do not guarantee the accuracy of any prediction.",
     "palm.nextHand": "Capture the second hand",
     "palm.resAria": "Palm image with the main lines and mount positions",
     "palm.figcap": "Orange = life line · Blue = head line · Pink = heart line · Purple = fate line",
@@ -238,12 +238,12 @@
     "palm.idle": "Returning to the home screen in {n} s — tap the screen to stay",
 
     /* ---------- Display data from palm-kb.js ---------- */
-    "palm.kb.disclaimerShort": "For entertainment only, based on palmistry tradition, not science",
+    "palm.kb.disclaimerShort": "Personal belief: use your own judgement; predictions are not guaranteed",
     "palm.kb.lifeLineNote": "The life line has nothing to do with lifespan; modern palmistry reads it only as a sign of vitality, enthusiasm and pace of life.",
     "palm.kb.ethics": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals; hand photos are not saved",
     "palm.kb.elementsNote": "Palmistry books assign a hand element from palm shape (square/long) and finger length; criteria differ slightly between schools, and most hands combine traits of several elements.",
     "palm.kb.mountsNote": "It is hard to tell from a photo whether a mount is full (lighting and angle matter), so compare with your real palm and choose yourself, or skip it.",
-    "palm.kb.mountEstNote": "Estimated from the related finger proportions, the shape of lines around each mount and skin smoothness in the photo; for entertainment only. You can add mounts yourself in the adjustment step.",
+    "palm.kb.mountEstNote": "Estimated from the related finger proportions, the shape of lines around each mount and skin smoothness in the photo; a rough estimate. You can add mounts yourself in the adjustment step.",
     "palm.kb.sides.dominant.th": "Dominant hand",
     "palm.kb.sides.dominant.short": "What you have built",
     "palm.kb.sides.dominant.text": "Your dominant hand reflects the path you are building and choosing now; its lines change with experience",

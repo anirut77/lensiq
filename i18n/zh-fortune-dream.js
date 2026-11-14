@@ -40,7 +40,7 @@
     "dream.statSym": "热门梦境",
     "dream.statMood": "梦中心情",
     "dream.cardKind": "解梦",
-    "dream.cardFoot": "仅供娱乐，依据民间信仰，并非科学 · 不提供任何号码",
+    "dream.cardFoot": "属于个人信仰，请自行判断，不保证预测准确 · 不提供任何号码",
     "dream.shareTitle": "解梦 — LENSIQ",
     "dream.src.0": "《艺术与文化》杂志（silpa-mag.com）— 可搜索泰式解梦观念的文章：前兆梦、神示之梦、心绪之梦、体感之梦",
     "dream.src.1": "Wikipedia: Dream interpretation（各文化解梦概览）",

@@ -1,7 +1,7 @@
 /* i18n/en-kb-tarot.js — English reading data (tarot) for fortune-ai.js (English mode). Mirrors i18n/zh-kb-tarot.js key for key.
    78 Rider–Waite–Smith cards (upright .u / reversed .r) + repeated numbers num.N + repeated court ranks court.N.
    Card XIII is read only as "the Transformation card (XIII)": change and closing an old chapter.
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var D = {

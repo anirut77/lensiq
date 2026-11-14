@@ -1,5 +1,5 @@
 /* i18n/zh-kb-siamsee.js — 简体中文解读资料（求签 · 泰式“暹签” 28 签），供 fortune-ai.js 在中文模式下生成解读
-   签文与解读均为原创娱乐内容，不出自任何寺庙或神坛。上上签 / 上签 / 中签 对应 tarot-kb.js 的签级。 */
+   签文与解读均为原创内容，不出自任何寺庙或神坛。上上签 / 上签 / 中签 对应 tarot-kb.js 的签级。 */
 (function (root) {
   "use strict";
   var D = {

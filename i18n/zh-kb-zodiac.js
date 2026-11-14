@@ -1,5 +1,5 @@
 /* i18n/zh-kb-zodiac.js — 简体中文解读资料（十二生肖 · 太岁 · 生肖配对），供 fortune-ai.js 在中文模式下直接生成解读
-   依据 zodiac-kb.js 的泰文含义重新撰写。animal.0 = 鼠 … animal.11 = 猪（与 ANIMALS 顺序一致）。仅供娱乐，依据传统信仰。 */
+   依据 zodiac-kb.js 的泰文含义重新撰写。animal.0 = 鼠 … animal.11 = 猪（与 ANIMALS 顺序一致）。依据传统信仰，请自行判断。 */
 (function (root) {
   "use strict";
   var D = {

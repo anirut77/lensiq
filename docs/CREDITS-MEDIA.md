@@ -129,3 +129,21 @@ each file page's "Author" field via the Wikimedia Commons API on 2026-11-08; re-
 
 Synthetic demo plates and scenes (LENSIQ Gate) are drawn by LENSIQ code with the Prompt font: no third-party image is
 involved.
+
+## 5. Fortune advice icons (owner order 2026-11-14, Part A4)
+
+Small icons beside fortune advice items (colour to wear, what to worship, whom to pay respect to, direction). All four are
+drawn by hand for LENSIQ as inline SVG in `fortune-read.js` (`ICONS`), simple geometric paths with no source image. No
+picture of a deity, a temple or a real place is used, and nothing is copied from the web. Colour swatches are plain CSS
+colour values with the colour name written beside them.
+
+| Icon id | What it shows | Licence | English credit | Thai credit |
+|---|---|---|---|---|
+| `colour` | painter's palette outline | MIT (LENSIQ own work) | Icon drawn by LENSIQ (MIT). | ไอคอนวาดโดย LENSIQ (MIT) |
+| `worship` | lotus outline | MIT (LENSIQ own work) | Icon drawn by LENSIQ (MIT). | ไอคอนวาดโดย LENSIQ (MIT) |
+| `respect` | two raised palms | MIT (LENSIQ own work) | Icon drawn by LENSIQ (MIT). | ไอคอนวาดโดย LENSIQ (MIT) |
+| `direction` | compass | MIT (LENSIQ own work) | Icon drawn by LENSIQ (MIT). | ไอคอนวาดโดย LENSIQ (MIT) |
+
+No credit line is required on the page (own work). A new icon from a third party must be MIT, Apache-2.0, CC0 or CC BY
+(with credit) and must be added to this table, to `LICENSES/THIRD_PARTY.md` and to `ICONS` with its licence and source;
+`tests/unit/fortune-layout.test.js` checks all three.

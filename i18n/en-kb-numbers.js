@@ -1,6 +1,6 @@
 /* i18n/en-kb-numbers.js — English reading data (Thai number reading) for fortune-ai.js (English mode). Mirrors i18n/zh-kb-numbers.js key for key.
    Digit pairs are read in either order (24 and 42 share a meaning); each key still gets its own name n.
-   For entertainment, based on traditional beliefs. Nothing here concerns lotteries or games of chance. */
+   Based on traditional beliefs; readers use their own judgement. Nothing here concerns lotteries or games of chance. */
 (function (root) {
   "use strict";
   // Base meanings: key = smaller digit first (same as the pairs in numbers-kb.js). Pairs "to watch" are worded gently.

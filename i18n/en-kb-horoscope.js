@@ -5,7 +5,7 @@
      bazi.dm.0–9, bazi.strength.<strong|weak>, bazi.excess.<el>, bazi.lack.<el>, bazi.useful.<el>, bazi.god.<BJ…ZY>
      num.lp.<1–9|11|22|33>, num.bday.1–31, num.name.1–9
      today.bhumi.<x> → bhumi.<x>; today.rel.<x> / month.rel.<x> → rel.<x>; today.clash
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var I = {};

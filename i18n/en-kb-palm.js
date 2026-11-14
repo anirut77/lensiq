@@ -2,7 +2,7 @@
    Keys = fact ids produced by palm.js buildFacts (element.* / shape.* / side.* / life|head|heart|fate.* / finger.* / thumb.* /
    thumbangle.* / pinky.* / fingerdom.* / spread.* / minor.*.yes|no / mount.* / bagua.* / compare.*).
    The life line speaks only about energy and daily rhythm, never about lifespan or the body.
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var D = {

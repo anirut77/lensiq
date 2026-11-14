@@ -5,6 +5,8 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
+    "fortune.disc.line": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+    "pd.notAssess": "不是评估",
     "astro.asResTitle": "你的 Big Three",
     "astro.button1": "计算星盘",
     "astro.eyebrow": "西洋星座",
@@ -27,7 +29,7 @@
     "dream.legend2": "在什么时段做的梦（可选）",
     "dream.summary1": "搜索或从所有分类中选择",
     "dream.title": "解梦 | LENSIQ",
-    "fa.disclaimer": "仅供娱乐参考",
+    "fa.disclaimer": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
     "fa.more": "阅读更多",
     "fa.why": "结果依据",
     "fa.plan.title": "三步开运计划",
@@ -59,9 +61,9 @@
     "fk.again": "换一种说法",
     "fk.src.ai": "由写作助手（Anthropic 的 Claude）撰写",
     "fk.src.local": "在本机撰写 · 每次说法都不同",
-    "fk.card.foot": "仅供娱乐参考，并非科学结论",
+    "fk.card.foot": "属于个人信仰，请自行判断，不保证预测准确",
     "fk.card.help": "如果你感觉撑不下去，请拨打泰国心理健康热线 1323：免费，24 小时",
-    "fk.share.text": "仅供娱乐参考",
+    "fk.share.text": "属于个人信仰，请自行判断，不保证预测准确",
     "fk.card.saved": "卡片已保存",
     "fk.card.fail": "卡片生成失败",
     "fk.idle": "{n} 秒后返回首页 — 轻触屏幕继续停留",
@@ -289,14 +291,14 @@
     "zodiac.tabPair": "生肖配对",
     "zodiac.tabYear": "年度运势",
     "zodiac.title": "十二生肖 犯太岁 生肖配对 | LENSIQ",
-    "dream.disclaimer": "仅供娱乐，依据民间信仰，并非科学",
-    "faceread.disclaimer": "仅供娱乐，依据面相传统信仰，并非科学",
-    "fengshui.disclaimer": "仅供娱乐与了解风水文化，并非科学",
-    "fortune.common.disclaimerBelief": "仅供娱乐，依据传统信仰，并非科学预测",
-    "fortune.hub.noteLabel": "仅供娱乐：",
-    "horoscope.disclaimer": "仅供娱乐，依据占星信仰，并非科学",
-    "numbers.disclaimer": "仅供娱乐，依据数字信仰，并非科学",
-    "palm.disclaimer": "仅供娱乐，依据手相传统信仰，并非科学",
+    "dream.disclaimer": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+    "faceread.disclaimer": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+    "fengshui.disclaimer": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+    "fortune.common.disclaimerBelief": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+    "fortune.hub.noteLabel": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+    "horoscope.disclaimer": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+    "numbers.disclaimer": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+    "palm.disclaimer": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
     "fortune.en.note": "本页的解读与参考资料为泰文或中文。"
   } };
   // lensiq-i18n.js: ถ้าโหลดแล้วใช้ LQI18N.add ทันที ถ้ายังไม่โหลด push เข้าคิว LQI18N_Q (ไฟล์หลักจะดึงไปเองตอนโหลด)

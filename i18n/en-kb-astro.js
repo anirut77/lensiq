@@ -1,7 +1,7 @@
 /* i18n/en-kb-astro.js — English reading data (astro: Western Big Three, Sun, Moon and rising sign, tropical zodiac) for fortune-ai.js (English mode).
    Mirrors i18n/zh-kb-astro.js key for key: sun.N, moon.N, asc.N (N = 0 Aries … 11 Pisces), el.*, mode.*, same.sun.moon,
    house.N (N = 0 … 11, the first … twelfth house, the index into astro-kb.js HOUSES).
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var D = {

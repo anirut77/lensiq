@@ -1,6 +1,7 @@
 /* i18n/zh-planner.js — Simplified Chinese for planner.html (planner.js, lensiq-planner.js reasons "pl.r.*").
    Thai lives in the markup / page script / LQPlanner.TH. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "fortune.disc.line": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
   "pl.doc.title": "吉日规划：入宅、开业、开工 | LENSIQ",
   "pl.doc.desc": "根据星期与当日颜色、月相和主人出生的星期几，为入宅、开店或开始新工作挑选吉日。只列出吉日并说明原因，可存入日历。在本设备上计算。",
   "pl.eyebrow": "吉日 · 泰国传统中的好日子",

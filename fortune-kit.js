@@ -6,7 +6,7 @@
  * ชื่อศาสตร์: fortune-ai.js / server.py รับ domain ได้เฉพาะชุดเดิม จึงส่ง domain สำรองที่ใกล้เคียง (FALLBACK)
  * แล้วแทนชื่อศาสตร์ในข้อความที่เรียบเรียงแล้วด้วยชื่อจริง (relabel) — ถ้าภายหลัง fortune-ai.js ส่งออก DOMAIN_NAMES
  * ที่มี domain ใหม่ ระบบจะใช้ domain จริงทันที
- * เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ */
+ * ตามความเชื่อ (โปรดใช้วิจารณญาณ) ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ */
 (function (root) {
   "use strict";
 
@@ -247,7 +247,8 @@
     c.font = "500 24px " + F; c.fillStyle = "#a5f3fc";
     K.wrapTh(c, T("fk.card.help", "ถ้ากำลังรู้สึกไม่ไหว โทร 1323 สายด่วนสุขภาพจิต ฟรี ตลอด 24 ชั่วโมง"), W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1236 + k * 28); });
     c.font = "400 22px " + F; c.fillStyle = "#8f9bc4";
-    K.wrapTh(c, opt.foot || T("fk.card.foot", "เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์"), W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1298 + k * 26); });
+    K.wrapTh(c, opt.foot || T("fk.card.foot", "ตามความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่รับรองความถูกต้องของคำทำนาย"), W - 160).slice(0, 2)
+      .forEach(function (l, k) { c.fillText(l, W / 2, 1298 + k * 26); });
     return cv;
   };
   var cardUrls = {};
@@ -263,7 +264,7 @@
       var file = new File([blob], fileName, { type: "image/jpeg" });
       btn.disabled = false;
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: shareTitle || "LENSIQ", text: T("fk.share.text", "เพื่อความบันเทิงตามความเชื่อ") }); return; }
+        try { await navigator.share({ files: [file], title: shareTitle || "LENSIQ", text: T("fk.share.text", "ตามความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่รับรองความถูกต้องของคำทำนาย") }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = url; a.download = fileName; document.body.append(a); a.click(); a.remove();

@@ -82,7 +82,7 @@
   "iching.cardTitle": "第 {n} 卦 {zh} · {th}",
   "iching.cardSub": "正在变为第 {n} 卦 · {th}",
   "iching.cardAdvice": "建议：{a}",
-  "iching.cardFoot": "仅供娱乐，依据传统信仰，并非科学 · 易经经文属于公有领域",
+  "iching.cardFoot": "属于个人信仰，请自行判断，不保证预测准确 · 易经经文属于公有领域",
 
   /* 参考资料 */
   "iching.src.0": "James Legge（1882），The I Ching — Sacred Books of the East 第16卷（公有领域，sacred-texts.com）",

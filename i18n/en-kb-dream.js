@@ -1,7 +1,7 @@
 /* i18n/en-kb-dream.js — English reading data (dream interpretation) for fortune-ai.js (English mode). Mirrors i18n/zh-kb-dream.js key for key.
    Keys: sym.<id> (all 104 dream-kb.js symbols), theme.<id>, mood.<id>, type.<bupphanimit|thep|jit|that> (the four traditional Thai dream types),
    time.<early|late|dawn|nap>. Dream readings speak only about feelings and folk symbolism: no predictions and no numbers.
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var D = {

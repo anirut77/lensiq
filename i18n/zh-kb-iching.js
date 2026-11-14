@@ -1,5 +1,5 @@
 /* i18n/zh-kb-iching.js — 简体中文解读资料（易经），供 fortune-ai.js 在中文模式下直接生成解读
-   依据 iching-kb.js 的泰文含义，用现代白话重新撰写（不是古文引用）。仅供娱乐，依据传统信仰。 */
+   依据 iching-kb.js 的泰文含义，用现代白话重新撰写（不是古文引用）。依据传统信仰，请自行判断。 */
 (function (root) {
   "use strict";
   var D = {

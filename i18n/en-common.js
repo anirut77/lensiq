@@ -12,7 +12,7 @@
   "nav.crumbs": "Breadcrumb",
   "nav.viewall": "View all solutions",
   "nav.groupd.tools": "Utilities and the full solution directory.",
-  "nav.groupd.fortune": "Engagement activities drawn from Thai and Chinese traditions, plus auspicious-date planning. For entertainment only.",
+  "nav.groupd.fortune": "Engagement activities drawn from Thai and Chinese traditions, plus auspicious-date planning. Based on belief; please use your own judgement.",
   "nav.groupd.work": "Time clock by PIN or QR (face optional), structured interviews, case review and team activities. People always make the decisions about people.",
   "nav.groupd.photo": "Portrait and ID photo studio, event photo booth, booth analytics and document conversion.",
   "nav.groupd.ana": "People counts and density, store, queues, tables, bays, signage and booths, anonymous and processed on the device.",
@@ -237,7 +237,7 @@
   // ---------- footer (shared) ----------
   "foot.tagline": "Computer vision for marketing and analytics",
   "foot.neuro": "Emotion Response",
-  "foot.fortune": "Fortune Readings (for entertainment only)",
+  "foot.fortune": "Fortune Readings (based on belief)",
   "foot.checkout": "Camera Checkout",
   "foot.photo": "Photo Booth and add-ons",
   "foot.qc": "Production Line QC",

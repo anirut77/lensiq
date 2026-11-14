@@ -1,6 +1,6 @@
 /* i18n/zh-kb-dream.js — 简体中文解读资料（解梦），供 fortune-ai.js 在中文模式下直接生成解读
    键名：sym.<id>（dream-kb.js 全部 104 个象征）、theme.<id>、mood.<id>、type.<bupphanimit|thep|jit|that>（泰国传统四类梦）、
-   time.<early|late|dawn|nap>。解梦只讲民间说法和心里在意的事，不做预测，也不给任何号码。仅供娱乐参考 */
+   time.<early|late|dawn|nap>。解梦只讲民间说法和心里在意的事，不做预测，也不给任何号码。仅供参考，请自行判断 */
 (function (root) {
   "use strict";
   var D = {

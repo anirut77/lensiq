@@ -27,7 +27,7 @@
     "fengshui.topic.overall": "总体", "fengshui.topic.work": "事业", "fengshui.topic.money": "财运", "fengshui.topic.love": "感情",
     "fengshui.consent": "让写作助手（Anthropic 的 Claude，美国）协助润色（只发送计算结果，不发送生日或照片）",
     "fengshui.readTitle": "你的风水解读 ",
-    "fengshui.discMini": "仅供娱乐，依据传统信仰，并非科学",
+    "fengshui.discMini": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
     "fengshui.card.alt": "可分享的风水结果卡片",
     "fengshui.stats.chk": "在本设备上统计次数和命卦",
     "fengshui.principle": "原则：选择“直说”（并确认已满 18 岁）后，会按命理规则直接说明不利的结果；否则使用较温和的措辞。不预言死亡、绝症或确定、指定日期的意外；不叫你停止治疗、投资或结束一段关系；不提供彩票号码；不推销付费化解；不推销开运物品或商品",
@@ -111,7 +111,7 @@
     "fengshui.idle": "{n} 秒后为下一位重新开始——轻触屏幕可继续",
 
     /* ---------- fengshui-kb.js ---------- */
-    "fengshui.disclaimerShort": "仅供娱乐，依据传统信仰，并非科学",
+    "fengshui.disclaimerShort": "属于个人信仰，请自行判断，不保证预测准确",
     "fengshui.dir.N": "北方", "fengshui.dir.NE": "东北方", "fengshui.dir.E": "东方", "fengshui.dir.SE": "东南方",
     "fengshui.dir.S": "南方", "fengshui.dir.SW": "西南方", "fengshui.dir.W": "西方", "fengshui.dir.NW": "西北方", "fengshui.dir.C": "中宫",
     "fengshui.zone.N": "北", "fengshui.zone.NE": "东北", "fengshui.zone.E": "东", "fengshui.zone.SE": "东南",

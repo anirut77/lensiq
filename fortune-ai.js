@@ -4421,13 +4421,13 @@
       active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => (CR && CR.allow ? CR.allow(kind, doc) : !(CR && CR.active && CR.active(doc))) },
     straight: Object.assign({}, FS, { isSafe: isSafeStraight, hardLimit }),
     privacy: { jakoScript: s => { canon(s); return TC && TC.jakoScript ? TC.jakoScript(s) : true; }, withoutJaKo: jk }, compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,
-    rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT, DOMAIN_NAMES,
-    lint, lintSemantic, lintZh, lintEn, nearDupPairs, lintRepeats, leadEcho, PHRASE_BUDGET, FILLER_BUDGET,
+    rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT, DOMAIN_NAMES, lint, lintSemantic, lintZh, lintEn, nearDupPairs, lintRepeats, leadEcho, PHRASE_BUDGET, FILLER_BUDGET,
     grammar: { roleOf, grammarIssues, tautology, polesOf, proseLabel, asNoun, RULES: GRAMMAR_RULES.map(x => x[0]) },
     en: { load: enLoad, item: (domain, it) => { enLoad(); return enItem(domain, it); }, data: () => enLoad(), TITLES: EN_TITLES, REMEDY: REMEDY_EN, REMINDER: REMINDER_EN, OPENERS: EN_OPENERS, sentences: enSentences, labelEcho: enLabelEcho, keyLines: enKeyLines },
     zh: { load: zhLoad, keys: zhKeys, item: (domain, it) => { zhLoad(); return zhItem(domain, it); }, data: () => zhLoad(), TITLES: ZH_TITLES }, MAIN_LENGTH: { min: MAIN_MIN, target: MAIN_TARGET, max: MAIN_MAX, full: FULL_MAX },
     safety: { isSafe, filterText, sentences, groundAI, groundUnit, groundCorpus, category: t => unsafeCategory(String(t || "").normalize("NFC")), BANNED: BANNED_TH.slice(), ALLOW: ALLOW_TH.slice(), segmenter: () => !!SEG, _useSegmenter: on => { SEG = on ? SEG0 : null; segCache.clear(); for (const k in ownCuts) delete ownCuts[k]; } },
-    _internal: { factsForAI, normalizeAI, normSentence, dice, bigrams, isImperative, offTopic, phrasesIn, splitMain, banks: { OPENERS, OPENERS_BY_DOMAIN, CONNECTORS, CLOSERS, ADVICE_FRAMES, ADVICE_STATEMENT_FRAMES, INTROS } },
+    _internal: { cautionLeads: lang => (lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH), factsForAI, normalizeAI,
+      normSentence, dice, bigrams, isImperative, offTopic, phrasesIn, splitMain, banks: { OPENERS, OPENERS_BY_DOMAIN, CONNECTORS, CLOSERS, ADVICE_FRAMES, ADVICE_STATEMENT_FRAMES, INTROS } },
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.FortuneAI = api;
 })(typeof window !== "undefined" ? window : globalThis);

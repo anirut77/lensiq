@@ -88,7 +88,7 @@
     "astro.cardSub": "太阳 · 月亮",
     "astro.cardSubAsc": " · 上升",
     "astro.cardDom": "主导元素：{el} — {kw}",
-    "astro.cardFoot": "仅供娱乐，依据传统信仰，并非科学 · 回归黄道（Tropical）",
+    "astro.cardFoot": "属于个人信仰，请自行判断，不保证预测准确 · 回归黄道（Tropical）",
     "astro.shareTitle": "西洋星座 — LENSIQ",
     /* 参考资料 */
     "astro.src.0": "Jean Meeus, Astronomical Algorithms 2nd ed. — 第 13/14 章（上升点）、第 22 章（章动）、第 25 章（太阳）、第 47 章（月亮）",

@@ -333,6 +333,7 @@
     $("rpMode").textContent = st.mode === "sample" ? T("rp.mode.sample", "โหมดตัวอย่าง: ยังไม่เปิดขายรายงาน หน้านี้สร้างรายงานฉบับเต็มในเครื่องให้ดูเป็นตัวอย่างได้ฟรี ไม่มีการชำระเงิน และไม่บันทึกข้อมูลใด")
       : st.mode === "free" ? T("rp.mode.free", "ช่วงนี้ LENSIQ ใช้งานฟรี: สร้างรายงานได้โดยไม่ใช้เครดิต สมาชิกที่เข้าสู่ระบบจะได้รับการบันทึกรายงานไว้ในประวัติอัตโนมัติ")
       : T("rp.mode.paid", "รายงานฉบับนี้ใช้เครดิตรายงาน 1 ครั้ง (ตรวจสิทธิ์ที่เซิร์ฟเวอร์ก่อนแสดงผล) แล้วบันทึกไว้ในประวัติของบัญชีคุณ");
+    if (W.LQRead) { try { W.LQRead.noticeify($("rpMode")); } catch (e) { /* plain text */ } }
     doc.querySelectorAll("[data-rp-credit]").forEach(function (el) {
       var f = el.getAttribute("data-rp-credit"), n = st.credits ? st.credits[f] : null;
       el.textContent = st.mode === "paid" && n != null ? T("rp.credit.left", "เครดิตคงเหลือ {n}", { n: n }) : st.mode === "free" ? T("rp.credit.free", "ฟรีช่วงนี้") : T("rp.credit.sample", "ตัวอย่างฟรี");
@@ -372,7 +373,7 @@
   function sectionsEl(list) {
     var f = doc.createDocumentFragment();
     list.forEach(function (/** @type {any} */ s) {
-      var sec = h("section", { class: "rp-sec" });
+      var sec = h("section", { class: "rp-sec fa-section", "data-section": s.id || "" });
       if (s.title) sec.appendChild(h("h4", { text: s.title }));
       s.paragraphs.forEach(function (/** @type {string} */ p) { sec.appendChild(h("p", { text: p })); });
       f.appendChild(sec);
@@ -406,11 +407,13 @@
     var forName = plainName(String(($("rpName") && $("rpName").value) || "").trim().slice(0, 60));
     if (forName) head.appendChild(h("p", { class: "rp-for", text: T("rp.for", "จัดทำสำหรับ {name}", { name: forName }) }));
     out.appendChild(head);
-    var toc = h("nav", { class: "rp-toc", "aria-label": T("rp.toc", "สารบัญ") }, h("p", { class: "rp-toch", text: T("rp.toc", "สารบัญ") }));
+    var toc = h("nav", { class: "rp-toc lq-toc", "aria-label": T("rp.toc", "สารบัญ") }, h("p", { class: "rp-toch", text: T("rp.toc", "สารบัญ") }));
     var tl = h("ol");
-    rep.parts.forEach(function (/** @type {any} */ p) { tl.appendChild(h("li", { text: p.title })); });
-    if (rep.months) tl.appendChild(h("li", { text: T("rp.part.months", "รายเดือนตลอดปี") }));
-    if (rep.plan30) tl.appendChild(h("li", { text: rep.plan30.title }));
+    // owner order 2026-11-14 A3: the contents list is an in-page menu (links to each part)
+    var tocLink = function (/** @type {string} */ id, /** @type {string} */ text) { return h("li", null, h("a", { href: "#" + id, text: text })); };
+    rep.parts.forEach(function (/** @type {any} */ p) { tl.appendChild(tocLink("rp-p-" + p.id, p.title)); });
+    if (rep.months) tl.appendChild(tocLink("rp-p-months", T("rp.part.months", "รายเดือนตลอดปี")));
+    if (rep.plan30) tl.appendChild(tocLink("rp-p-plan30", rep.plan30.title));
     toc.appendChild(tl);
     if (rep.parts.length + (rep.months ? 1 : 0) + (rep.plan30 ? 1 : 0) > 2) out.appendChild(toc);
     if (rep.summary && rep.summary.lines && rep.summary.lines.length) {
@@ -420,13 +423,14 @@
       sm.appendChild(ul); out.appendChild(sm);
     }
     rep.parts.forEach(function (/** @type {any} */ p) {
-      var part = h("section", { class: "rp-part", "data-part": p.id }, h("h3", { text: p.title }));
+      var part = h("section", { class: "rp-part", id: "rp-p-" + p.id, "data-part": p.id }, h("h3", { text: p.title }));
       if (p.headline) part.appendChild(h("p", { class: "rp-headline", text: p.headline }));
       part.appendChild(sectionsEl(p.sections));
       out.appendChild(part);
     });
     if (rep.months) {
-      var ms = h("section", { class: "rp-part rp-months", "data-part": "months" }, h("h3", { text: T("rp.part.months", "รายเดือนตลอดปี") }), h("p", { class: "rp-small", text: rep.monthNote }));
+      var ms = h("section", { class: "rp-part rp-months", id: "rp-p-months", "data-part": "months" }, h("h3", { text: T("rp.part.months", "รายเดือนตลอดปี") }),
+        h("p", { class: "rp-small", text: rep.monthNote }));
       var grid = h("ol", { class: "rp-mgrid" });
       rep.months.forEach(function (/** @type {any} */ x) {
         grid.appendChild(h("li", { class: "rp-month " + x.tone },
@@ -442,7 +446,7 @@
       pl.appendChild(ol); out.appendChild(pl);
     }
     if (rep.plan30 && rep.plan30.weeks) {
-      var p30 = h("section", { class: "rp-plan rp-plan30", "data-part": "plan30" }, h("h3", { text: rep.plan30.title }), h("p", { class: "rp-small", text: rep.plan30.note }));
+      var p30 = h("section", { class: "rp-plan rp-plan30", id: "rp-p-plan30", "data-part": "plan30" }, h("h3", { text: rep.plan30.title }), h("p", { class: "rp-small", text: rep.plan30.note }));
       var wl = h("ol", { class: "rp-weeks" });
       rep.plan30.weeks.forEach(function (/** @type {any} */ w) {
         var li = h("li", { class: "rp-week" }, h("p", { class: "rp-wlabel", text: w.label }));
@@ -453,7 +457,11 @@
       p30.appendChild(wl); out.appendChild(p30);
     }
     if (rep.reminder) out.appendChild(h("p", { class: "rp-reminder", role: "note", text: rep.reminder }));
-    out.appendChild(h("p", { class: "rp-small", text: T("rp.disclaimer", "เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ ไม่ใช่คำแนะนำทางการแพทย์ การเงิน หรือการจ้างงาน") }));
+    // owner order 2026-11-14 A1 + A5: the one-line notice (fortune.disc.line), the rest behind "อ่านเพิ่มเติม"
+    out.appendChild(h("p", { class: "rp-small lq-notice", role: "note" },
+      h("b", { class: "lq-disc-line", "data-i18n": "fortune.disc.line",
+        text: T("fortune.disc.line", "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย") }), " ",
+      h("span", { class: "lq-notice-more" }, h("span", { text: T("rp.disclaimer", "ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ ไม่ใช่คำแนะนำทางการแพทย์ การเงิน หรือการจ้างงาน") }))));
     // the help line at the end of every report, kept in the print / PDF view (owner order 2026-11-12)
     var CRh = W.LQFortuneCrisis;
     if (CRh && CRh.helpLine) out.appendChild(CRh.helpLine(document, rep.lang, "lq-helpline-result lq-helpline-print"));
@@ -468,6 +476,15 @@
     }
     act.appendChild(h("a", { class: "btn ghost", href: "account.html#history", text: T("rp.toHistory", "ประวัติของฉัน") }));
     out.appendChild(act);
+    // owner order 2026-11-14 Part A: shared layout (headings, main point first, read more, advice icons, short notices)
+    var RD = W.LQRead;
+    if (RD) {
+      try {
+        RD.enhance(out, { lang: rep.lang }, { toc: false });
+        out.querySelectorAll(".rp-reminder").forEach(function (/** @type {any} */ e) { RD.noticeify(e, rep.lang); });
+        RD.notices(out);
+      } catch (e) { /* keep the plain report */ }
+    }
     out.appendChild(h("p", { class: "rp-small no-print", id: "rpSaveMsg", role: "status", "aria-live": "polite" }));
     try { $("rpOutH").focus(); } catch (e) { /* ignore */ }
   }

@@ -18,13 +18,14 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="tarot.title">ไพ่ทาโรต์ &amp; เซียมซี | LENSIQ</title>
-<meta name="description" data-i18n-attr="content:tarot.metaDesc" content="เปิดไพ่ทาโรต์ Rider–Waite–Smith 78 ใบ ไพ่ประจำวัน และเสี่ยงเซียมซี 28 ใบ เพื่อความบันเทิงในบูธและอีเวนต์ ทำงานในเบราว์เซอร์ ไม่บันทึกคำถาม">
+<meta name="description" data-i18n-attr="content:tarot.metaDesc" content="เปิดไพ่ทาโรต์ Rider–Waite–Smith 78 ใบ ไพ่ประจำวัน และเสี่ยงเซียมซี 28 ใบ สำหรับบูธและอีเวนต์ ทำงานในเบราว์เซอร์
+  ไม่บันทึกคำถาม">
 <link rel="stylesheet" href="styles.css?v=12">
 <link rel="stylesheet" href="tarot.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=16"></script>
+<script src="nav.js?v=17"></script>
 
 <aside class="lq-helpline" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span data-i18n="help.line.lead">ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต</span>
@@ -42,7 +43,10 @@
     <p data-i18n="tarot.lead" class="lead">ตั้งคำถาม สับไพ่ เลือกไพ่ด้วยมือคุณเอง แล้วอ่านความหมายไพ่ครบ 78 ใบ หรือเขย่าเซียมซีเสี่ยงทาย สร้างสีสันให้บูธ อีเวนต์ และแคมเปญการตลาด</p>
   </div>
 
-  <p class="tr-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span data-i18n="tarot.disc2"><b data-i18n="fortune.common.disclaimerBelief">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน กฎหมาย หรือความสัมพันธ์ที่สำคัญ</span></p>
+  <p class="tr-disclaimer lq-notice" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+    <span><b class="lq-disc-line"
+      data-i18n="fortune.disc.line">เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย</b>
+    <span class="lq-notice-more"><span data-i18n="tarot.disc2">ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน กฎหมาย หรือความสัมพันธ์ที่สำคัญ</span></span></span></p>
 
   <div class="tr-tabs" role="tablist" data-i18n-attr="aria-label:tarot.tabsAria" aria-label="เลือกโหมด">
     <button data-i18n="tarot.tabTarot" class="tr-tab" role="tab" id="tabTarot" aria-controls="panelTarot" aria-selected="true" type="button">ไพ่ทาโรต์</button>
@@ -98,7 +102,8 @@
     <!-- ขั้น 3 -->
     <section class="tr-result" id="trResult" hidden aria-labelledby="trResTitle">
       <h2 data-i18n="tarot.trResTitle" id="trResTitle" tabindex="-1">ผลการเปิดไพ่</h2>
-      <p class="tr-disc-mini" data-i18n="fortune.common.disclaimerBelief">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</p>
+      <p class="tr-disc-mini lq-disc-mini"
+        data-i18n="fortune.disc.line">เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย</p>
       <p class="tr-res-meta" id="trResMeta"></p>
       <div class="tr-synth" id="trSynth"></div>
       <div class="tr-readings" id="trReadings"></div>
@@ -165,7 +170,7 @@
         <p class="ss-meaning" id="ssMeaning"></p>
         <ul class="ss-cats" id="ssCats"></ul>
         <div id="ssRead"></div>
-        <p class="tr-small" data-i18n="tarot.ssNote">กลอนและคำทำนายแต่งขึ้นใหม่เพื่อความบันเทิง ไม่ได้อ้างอิงเซียมซีของวัดหรือศาลเจ้าใด</p>
+        <p class="tr-small" data-i18n="tarot.ssNote">กลอนและคำทำนายแต่งขึ้นใหม่ ไม่ได้อ้างอิงเซียมซีของวัดหรือศาลเจ้าใด</p>
         <div class="tr-res-actions">
           <button data-i18n="tarot.ssShare" class="btn primary big" id="ssShare" data-lq-remedy type="button">แชร์การ์ดเซียมซี</button>
           <button data-i18n="tarot.ssAgain" class="btn ghost big" id="ssAgain" type="button">เสี่ยงใหม่</button>
@@ -212,16 +217,17 @@
 <button data-i18n="fortune.common.kioskExit" class="btn primary tr-kiosk-exit" id="trKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 <div class="toast" id="trToast" role="status"></div>
 
-<script src="i18n/zh-fortune.js?v=6"></script>
-<script src="i18n/zh-fortune-tarot.js?v=4"></script>
+<script src="i18n/zh-fortune.js?v=7"></script>
+<script src="i18n/zh-fortune-tarot.js?v=5"></script>
 <script src="i18n/zh-kb-tarot.js?v=1"></script>
-<script src="i18n/zh-kb-siamsee.js?v=1"></script>
+<script src="i18n/zh-kb-siamsee.js?v=2"></script>
 <script src="lensiq-config.js?v=10"></script>
 <script src="fortune-straight.js?v=6"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
+<script src="fortune-read.js?v=1"></script>
 <script src="fortune-crisis.js?v=10"></script>
-<script src="fortune-ai.js?v=22"></script>
-<script src="tarot-kb.js?v=3"></script>
-<script src="tarot.js?v=10"></script>
+<script src="fortune-ai.js?v=23"></script>
+<script src="tarot-kb.js?v=4"></script>
+<script src="tarot.js?v=11"></script>
 </body>
 </html>

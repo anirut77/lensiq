@@ -1,11 +1,12 @@
 /* i18n/zh-luckycolor.js — Simplified Chinese for luckycolor.html (luckycolor.js). Thai lives in the markup / page script. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "fortune.disc.line": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
   "lucky.doc.title": "幸运色穿搭镜 | LENSIQ",
   "lucky.doc.desc": "照镜子看看今天的衣服颜色是否符合泰国传统的每日吉祥色（事业、财运或爱情，依据 Taksa 传统）。在设备上处理，不保存图像。",
   "lucky.eyebrow": "泰国每日吉祥色 · Taksa",
   "lucky.h1": "幸运色穿搭镜",
   "lucky.lead": "打开摄像头，让画面拍到从脸部到腰部。页面只看脸部以下的衣服，找出穿搭的主色，并与泰国传统的当日吉祥色比较：事业、财运、爱情或贵人相助。",
-  "lucky.disc.b": "仅供娱乐，依据传统信仰，并非科学预测。",
+  "lucky.disc.b": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
   "lucky.disc.rest": "摄像头画面只在本设备处理：不录制、不发送、不做人脸识别。脸部位置仅用于把衣服与头部分开。",
   "lucky.optH": "今天想加强哪方面？",
   "lucky.goal.work": "事业",

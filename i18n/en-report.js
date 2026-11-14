@@ -1,5 +1,6 @@
 /* en-report.js — English for report.html (Thai lives in the markup / report.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "fortune.disc.line": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We do not guarantee the accuracy of any prediction.",
   "rp.doc.title": "My fortune reports | LENSIQ",
   "rp.doc.desc": "LENSIQ long-form fortune reports: a multi-system basic report, a compatibility report and a month-by-month annual report, computed on your device, saved to your account and printable as PDF",
   "rp.eyebrow": "LENSIQ Fortune · reports",
@@ -113,7 +114,7 @@
   "rp.summary": "Summary",
   "rp.part.months": "Month by month",
   "rp.plan": "Your three-step plan",
-  "rp.disclaimer": "For entertainment, based on traditional beliefs; not a scientific forecast and not medical, financial or employment advice",
+  "rp.disclaimer": "Not a scientific forecast and not medical, financial or employment advice",
   "rp.print": "Print / save as PDF",
   "rp.saveRetry": "Try saving again",
   "rp.toHistory": "My history",

@@ -65,7 +65,7 @@
   "zodiac.dt.support": "助运生肖",
   "zodiac.dt.clash": "相冲生肖",
   "zodiac.yearVal": "公元{y}年 · {a}年",
-  "zodiac.powerH": "年度能量（仅供娱乐）",
+  "zodiac.powerH": "年度能量（依据传统说法）",
   "zodiac.topic.overall": "综合",
   "zodiac.topic.work": "事业",
   "zodiac.topic.money": "财运",
@@ -76,7 +76,7 @@
   "zodiac.cardKind": "十二生肖",
   "zodiac.cardTitle": "属{a} · {year}",
   "zodiac.cardLuck": "开运颜色：{c} · 方位：{d}",
-  "zodiac.cardFoot": "仅供娱乐，依据传统信仰，并非科学",
+  "zodiac.cardFoot": "属于个人信仰，请自行判断，不保证预测准确",
   "zodiac.shareTitle": "十二生肖 — LENSIQ",
 
   /* 犯太岁表 */

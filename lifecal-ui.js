@@ -1,6 +1,6 @@
 /* lifecal-ui.js — หน้า bazi.html · taksa.html · lek7.html · lifegraph.html (ใช้ร่วมกัน เลือกตาม data-page)
    คำนวณด้วย lifecal.js คำอ่านจาก lifecal-kb.js + fortune-ai.js · ภาษาจีนจาก i18n/zh-fortune-lifecal.js และ i18n/zh-kb-lifecal.js
-   ไม่บันทึกวันเกิด · เพื่อความบันเทิงตามความเชื่อ */
+   ไม่บันทึกวันเกิด · ตามความเชื่อ (โปรดใช้วิจารณญาณ) */
 if (typeof window !== "undefined" && typeof document !== "undefined" && document.getElementById("lcApp")) (function () {
   "use strict";
   var LC = window.LifeCal, KB = window.LIFECAL_KB, FK = window.FortuneKit, HS = window.HSCore, $ = FK.$, esc = FK.esc;
