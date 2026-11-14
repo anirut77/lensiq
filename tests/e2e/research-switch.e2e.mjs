@@ -18,7 +18,8 @@ const errorsOf = page => page.consoleErrors.filter(e => !/fonts\.(googleapis|gst
 const PAGES = {
   signage: { start: async p => { await p.evaluate(() => document.getElementById("startFace").click()); }, base: /face_landmark_68_model/ },
   neuro: { start: async () => {}, base: /face_landmark_68_model/ },
-  booth: { start: async () => {}, base: /face_recognition_model/ },
+  // speed pass 2026-11-14: booth loads its models when the camera opens (tests/e2e/speed-models.e2e.mjs), so it is opened
+  booth: { start: async p => { await p.evaluate(() => document.getElementById("camStart").click()); }, base: /face_recognition_model/ },
   photobooth: { start: async () => {}, base: /face_landmark_68_model/ }
 };
 
