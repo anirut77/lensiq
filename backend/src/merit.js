@@ -37,6 +37,11 @@ export const ELEMENTS = ["wood", "fire", "earth", "metal", "water"];
 export const KEYS_ALLOWED = ["any", "chong", "weak"].concat(DOMAINS.map(d => "domain:" + d), Array.from({ length: 12 }, (_, i) => "animal:" + i), ELEMENTS.map(e => "element:" + e));
 const KEY_SET = new Set(KEYS_ALLOWED);
 const LANGS = ["th", "en", "zh"];
+/** Review notes for places (owner order 2026-11-14 Part C; back office only). */
+export const PURPOSES = ["work", "money", "love", "health", "protection", "barami"];
+export const VERIFICATIONS = ["official", "secondary", "word_of_mouth"];
+/** The marker a word-of-mouth item must carry in its user text, per language (C3). */
+const WORD_OF_MOUTH = { th: "ตามที่เล่าต่อกันมา", en: "word of mouth", zh: "民间流传" };
 const ID_RE = /^[a-z0-9][a-z0-9_-]{2,40}$/;
 const REQ_ID_RE = /^[a-f0-9]{24}$/;
 const LIMITS = { title: 120, body: 1200, place: 120, area: 80 };
@@ -191,7 +196,33 @@ export function splitReviewMeta(raw) {
     if (u != null && (typeof u !== "string" || [...u].length > 2000)) throw bad("uncertain: a note of at most 2000 characters");
     if (u) meta.uncertain = cleanText(u);
   }
-  for (const k of ["draft_id", "disciplines", "sources", "uncertain"]) delete rest[k];
+  // places to pay respect (owner order 2026-11-14 Part C): what people visit the place for, its province and how the writer
+  // confirmed it. Back office only, like the notes above; nothing here is served to users.
+  if ("purposes" in rest) {
+    const p = rest.purposes;
+    if (!Array.isArray(p) || p.length < 1 || p.length > PURPOSES.length || !p.every(x => PURPOSES.includes(x)) || new Set(p).size !== p.length) {
+      throw bad("purposes: 1 to " + PURPOSES.length + " of " + PURPOSES.join(", ") + ", no repeats");
+    }
+    meta.purposes = p.slice();
+  }
+  if ("province" in rest) {
+    if (typeof rest.province !== "string" || !/^[A-Za-z][A-Za-z .'()-]{1,59}$/.test(rest.province)) throw bad("province: the English name, 2 to 60 letters");
+    meta.province = rest.province;
+  }
+  if ("verification" in rest) {
+    const v = rest.verification;
+    if (!VERIFICATIONS.includes(v)) throw bad("verification must be one of " + VERIFICATIONS.join(", "));
+    if (v === "word_of_mouth") {
+      const body = rest.body && typeof rest.body === "object" ? rest.body : {};
+      for (const [l, mark] of Object.entries(WORD_OF_MOUTH)) {
+        if (typeof body[l] !== "string" || !body[l].toLowerCase().includes(mark)) {
+          throw bad(`verification word_of_mouth: body.${l} must say "${mark}" so the reader knows it is passed on by word of mouth`);
+        }
+      }
+    }
+    meta.verification = v;
+  }
+  for (const k of ["draft_id", "disciplines", "sources", "uncertain", "purposes", "province", "verification"]) delete rest[k];
   return { meta: Object.keys(meta).length ? meta : null, rest };
 }
 /** One history row. @param {any} env @param {string} itemId @param {any} who @param {string} action

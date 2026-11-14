@@ -1334,6 +1334,19 @@
       srcs.appendChild(h("li", null, (x.publisher ? x.publisher + " · " : "") + (x.title ? x.title + " · " : ""), a, x.accessed ? " (" + x.accessed + ")" : ""));
     });
     $("amViewSourcesBox").hidden = !(meta.sources && meta.sources.length);
+    // place notes (owner order 2026-11-14 Part C): what people visit for, province, how the writer confirmed it
+    var PP = { work: G("am.pp.work", "การงาน"), money: G("am.pp.money", "การเงิน"), love: G("am.pp.love", "ความรัก"), health: G("am.pp.health", "สุขภาพ"),
+      protection: G("am.pp.protection", "คุ้มครอง"), barami: G("am.pp.barami", "เสริมบารมี") };
+    var VF = { official: G("am.vf.official", "ยืนยันจากแหล่งทางการ"), secondary: G("am.vf.secondary", "แหล่งรอง (สื่อ หนังสือ สารานุกรม)"),
+      word_of_mouth: G("am.vf.word_of_mouth", "ตามที่เล่าต่อกันมา") };
+    var notes = [];
+    if (Array.isArray(meta.purposes) && meta.purposes.length) {
+      notes.push(G("am.v.purposes", "จุดประสงค์ที่คนไปไหว้") + ": " + meta.purposes.map(function (/** @type {string} */ x) { return /** @type {any} */ (PP)[x] || x; }).join(", "));
+    }
+    if (meta.province) notes.push(G("am.v.province", "จังหวัด") + ": " + meta.province);
+    if (meta.verification) notes.push(G("am.v.verification", "การยืนยัน") + ": " + (/** @type {any} */ (VF)[meta.verification] || meta.verification));
+    $("amViewPlaceNotes").textContent = notes.join(" · ");
+    $("amViewPlaceNotes").hidden = !notes.length;
     var bodyBox = $("amViewBody"); bodyBox.textContent = "";
     ["th", "en", "zh"].forEach(function (l) {
       bodyBox.appendChild(h("p", { lang: l === "zh" ? "zh-Hans" : l }, (it.title && it.title[l] || "") + "\n" + (it.body && it.body[l] || "")));
