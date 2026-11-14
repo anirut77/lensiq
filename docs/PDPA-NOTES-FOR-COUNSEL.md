@@ -1036,6 +1036,32 @@ name or other personal data, nothing sent to LENSIQ, nothing enforced (`FREE_TIE
 promise. Question for counsel: wording of the announcement and whether the contract (not the device) is the binding
 limit, as the CTO brief notes.
 
+### I4. Organisation accounts phase 1 (org-p1, 2026-11-14): off switches and the organisation export
+
+(a) **Off by default, nothing new collected.** Phase 1 adds no table and no column (migration 0018 is unchanged). Two
+switches, both shipped off: the Worker var `ORG_ACCOUNTS` (only `"on"` switches it on) and `window.LENSIQ_ORG_ACCOUNTS`
+in `lensiq-config.js` (only `true`). While either is off, the pages show no organisation section or invitation card and
+send no organisation request (an invitation link's token is neither read nor kept), and every organisation route on the
+Worker answers 404 `org_accounts_off` before any session or database lookup. Turning them on is the owner's decision.
+
+(b) **Organisation export** (`GET|POST /api/orgs/:id/export`, admins only, fresh Google / LINE confirmation): a JSON file
+`lensiq-org-<id>.json` (format `lensiq-org-export` v1) with the organisation name and status, billing details, members
+(display name, account e-mail, role, owner flag, status, join date), open invitations (role, e-mail-bound yes / no, dates;
+never the link, its hash or the e-mail HMAC), licence status (plan, quantity, dates, status; never the quotation reference,
+amount or note) and the full organisation audit log with its hash chain (pseudonymous refs only), plus a TH / EN / ZH
+readme saying what is and is not inside and how to verify the chain. It is **always available** (owner decision
+2026-11-13 "export always"): also while the organisation is suspended or closed and whatever the licence state; at most 30
+exports per organisation per hour (abuse cap). Every export is logged in the organisation audit log (`org.exported`,
+counts only). The file is generated on request and not stored on the server; once downloaded it is on the admin's device.
+
+(c) **Questions for counsel.** (1) The export puts members' account e-mails in a file the admin keeps; is the invitation
+notice ("admins see your display name and e-mail") enough, or must the notice mention the export? (2) Should a closed
+organisation's export stay available indefinitely, or only for a window after closing (the design proposes 30 days;
+phase 1 has no closing date, so it stays available until the rows are deleted)? (3) Wording for "export always" in the
+contract / terms when an organisation is suspended for non-payment. Affected documents: `terms.html` / `privacy.html`
+(organisation account wording, not yet changed: nothing is visible while the switches are off), the DPA template only if
+sync is ever added.
+
 ## J. Stream H (2026-11-13): plate training photos and seat-watch recordings (was "H" on branch gate-hall-h; renamed at the merge with main, where "H" is the camera-pages section)
 
 (a) **Owner photos of vehicles to train the plate detector** (`docs/PLATE-TRAINING.md`): taken at sites with the site

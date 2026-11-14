@@ -32,6 +32,12 @@ window.LENSIQ_ANALYTICS = window.LENSIQ_ANALYTICS !== false;
  *   (ตั้ง true อย่างเดียวไม่มีผล ถ้าเซิร์ฟเวอร์ไม่ตอบว่าเปิด) และไม่แสดงเลยระหว่างสถานะวิกฤตของหน้าดูดวง (เฉพาะเซสชันเบราว์เซอร์, L59) */
 window.LENSIQ_MERIT_INTEREST_FORM = window.LENSIQ_MERIT_INTEREST_FORM === true;
 
+/* LENSIQ_ORG_ACCOUNTS (org-p1, 2026-11-14): บัญชีองค์กรแบบย่อ (ชื่อองค์กร ข้อมูลออกเอกสาร ผู้ดูแล/เจ้าหน้าที่ ลิงก์เชิญ ส่งออกข้อมูล)
+ *   ในหน้าบัญชี (account-org.js) และแท็บ "บัญชีองค์กร" ในหลังบ้าน
+ *   false (ค่าเริ่มต้น) = ไม่แสดงอะไรเลยและไม่ส่งคำขอเรื่ององค์กรใด ๆ · ห้ามเปิดจนกว่าเจ้าของอนุมัติ
+ *   ต้องเปิดคู่กับ ORG_ACCOUNTS = "on" บน Worker (ตั้ง true อย่างเดียวไม่มีผล ถ้าเซิร์ฟเวอร์ไม่ตอบว่าเปิด) · ต้องเป็น true จริงเท่านั้น */
+window.LENSIQ_ORG_ACCOUNTS = window.LENSIQ_ORG_ACCOUNTS === true;
+
 /* LENSIQ_FACEPARSE: สตูดิโอแต่งชุดใช้ BiSeNet (vendor/models/faceparse-bisenet-r18-q8.onnx) แทนโมเดลค่าเริ่มต้น
  *   false (ค่าเริ่มต้น) = MediaPipe Selfie Multiclass (Apache-2.0, vendor/models/selfie-multiclass-256-f16.onnx — ใช้เชิงพาณิชย์ได้)
  *   true = BiSeNet: น้ำหนักฝึกจาก CelebAMask-HQ (ใช้ได้เฉพาะงานวิจัย/ไม่ใช่เชิงพาณิชย์) ไฟล์ไม่อยู่ใน git

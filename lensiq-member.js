@@ -194,6 +194,11 @@
   /** stream G: LINE Login offered by the Worker (/v1/config membership.line_enabled; the Worker refuses it otherwise) */
   function lineOn() { return !!(st.cfg && st.cfg.membership && st.cfg.membership.line_enabled); }
   function possible() { return googleOn() || lineOn(); }
+  /** org-p1: organisation accounts need BOTH switches: window.LENSIQ_ORG_ACCOUNTS === true and the Worker's
+   *  /v1/config org_accounts === true (ORG_ACCOUNTS = "on"). Off: no organisation request is ever sent. */
+  function orgOn() { return W.LENSIQ_ORG_ACCOUNTS === true && !!(st.cfg && st.cfg.org_accounts === true); }
+  /** @param {() => Promise<any>} fn */
+  function ifOrg(fn) { return orgOn() ? fn() : Promise.resolve({ ok: false, status: 404, j: { code: "org_accounts_off" } }); }
   /** sign-in label for the header / buttons: names the provider(s) that are actually on */
   function signInLabel() {
     return googleOn() && lineOn() ? T("mem.chip.signinAny", "เข้าสู่ระบบ") : lineOn() ? T("mem.chip.signinLine", "เข้าสู่ระบบด้วย LINE") : T("mem.chip.signin", "เข้าสู่ระบบด้วย Google");
@@ -244,7 +249,7 @@
       try { root.dispatchEvent(new CustomEvent("lq-member-ready")); } catch (e) { /* ignore */ }
     };
     Promise.resolve(a.config()).then(function (/** @type {any} */ cfg) {
-      if (cfg) { st.cfg = cfg; ss.set(CFG_KEY, { membership: cfg.membership || null, pricing_enabled: !!cfg.pricing_enabled, billing_enabled: !!cfg.billing_enabled, free_mode: cfg.free_mode }); }
+      if (cfg) { st.cfg = cfg; ss.set(CFG_KEY, { membership: cfg.membership || null, pricing_enabled: !!cfg.pricing_enabled, billing_enabled: !!cfg.billing_enabled, free_mode: cfg.free_mode, org_accounts: cfg.org_accounts === true }); }
       return lineReturn();
     }).then(function () {
       return possible() || token() ? refresh() : null;
@@ -972,20 +977,24 @@
     linkLine: function () { return withFresh(function () { return startLine("link"); }); },
     linkGoogle: function () { return withFresh(linkGoogle); },
     unlink: function (/** @type {string} */ provider) { return withFresh(function () { return call("/api/me/identities/unlink", { method: "POST", body: { provider: provider } }); }); },
-    orgs: function () { return call("/api/me/orgs"); },
-    org: function (/** @type {string} */ id) { return call("/api/orgs/" + encodeURIComponent(id)); },
-    orgProfile: function (/** @type {string} */ id, /** @type {any} */ b) { return call("/api/orgs/" + encodeURIComponent(id) + "/profile", { method: "POST", body: b }); },
-    orgInvite: function (/** @type {string} */ id, /** @type {any} */ b) { return call("/api/orgs/" + encodeURIComponent(id) + "/invites", { method: "POST", body: b }); },
-    orgRevoke: function (/** @type {string} */ id, /** @type {string} */ iid) { return call("/api/orgs/" + encodeURIComponent(id) + "/invites/" + encodeURIComponent(iid), { method: "DELETE" }); },
-    orgAccept: function (/** @type {string} */ tok) { return call("/api/org-invites/accept", { method: "POST", body: { token: tok } }); },
-    orgRole: function (/** @type {string} */ id, /** @type {string} */ uid, /** @type {string} */ role) { return withFresh(function () { return call("/api/orgs/" + encodeURIComponent(id) +
-        "/members/" + encodeURIComponent(uid) + "/role", { method: "POST", body: { role: role } }); }); },
-    orgRemove: function (/** @type {string} */ id, /** @type {string} */ uid) { return withFresh(function () { return call("/api/orgs/" + encodeURIComponent(id) + "/members/" +
-        encodeURIComponent(uid), { method: "DELETE" }); }); },
-    orgTransfer: function (/** @type {string} */ id, /** @type {string} */ uid) { return withFresh(function () { return call("/api/orgs/" + encodeURIComponent(id) + "/transfer",
-        { method: "POST", body: { user_id: uid } }); }); },
-    orgAudit: function (/** @type {string} */ id) { return call("/api/orgs/" + encodeURIComponent(id) + "/audit"); },
-    orgLicences: function (/** @type {string} */ id) { return call("/api/orgs/" + encodeURIComponent(id) + "/licences"); }
+    orgOn: orgOn,
+    orgs: function () { return ifOrg(function () { return call("/api/me/orgs"); }); },
+    org: function (/** @type {string} */ id) { return ifOrg(function () { return call("/api/orgs/" + encodeURIComponent(id)); }); },
+    orgProfile: function (/** @type {string} */ id, /** @type {any} */ b) { return ifOrg(function () { return call("/api/orgs/" + encodeURIComponent(id) + "/profile", { method: "POST", body: b }); }); },
+    orgInvite: function (/** @type {string} */ id, /** @type {any} */ b) { return ifOrg(function () { return call("/api/orgs/" + encodeURIComponent(id) + "/invites", { method: "POST", body: b }); }); },
+    orgRevoke: function (/** @type {string} */ id, /** @type {string} */ iid) { return ifOrg(function () { return call("/api/orgs/" + encodeURIComponent(id) + "/invites/" +
+        encodeURIComponent(iid), { method: "DELETE" }); }); },
+    orgAccept: function (/** @type {string} */ tok) { return ifOrg(function () { return call("/api/org-invites/accept", { method: "POST", body: { token: tok } }); }); },
+    orgRole: function (/** @type {string} */ id, /** @type {string} */ uid, /** @type {string} */ role) { return ifOrg(function () { return withFresh(function () {
+        return call("/api/orgs/" + encodeURIComponent(id) + "/members/" + encodeURIComponent(uid) + "/role", { method: "POST", body: { role: role } }); }); }); },
+    orgRemove: function (/** @type {string} */ id, /** @type {string} */ uid) { return ifOrg(function () { return withFresh(function () {
+        return call("/api/orgs/" + encodeURIComponent(id) + "/members/" + encodeURIComponent(uid), { method: "DELETE" }); }); }); },
+    orgTransfer: function (/** @type {string} */ id, /** @type {string} */ uid) { return ifOrg(function () { return withFresh(function () {
+        return call("/api/orgs/" + encodeURIComponent(id) + "/transfer", { method: "POST", body: { user_id: uid } }); }); }); },
+    orgAudit: function (/** @type {string} */ id) { return ifOrg(function () { return call("/api/orgs/" + encodeURIComponent(id) + "/audit"); }); },
+    orgLicences: function (/** @type {string} */ id) { return ifOrg(function () { return call("/api/orgs/" + encodeURIComponent(id) + "/licences"); }); },
+    /** org-p1: the organisation's own data (admins; fresh confirmation; always available) -> {ok, status, j} */
+    orgExport: function (/** @type {string} */ id) { return ifOrg(function () { return withFresh(function () { return call("/api/orgs/" + encodeURIComponent(id) + "/export"); }); }); }
   };
   W.LQMember = api;
   // UI strings for 中文 / English (Thai is the default in this file); loaded here because this module itself is

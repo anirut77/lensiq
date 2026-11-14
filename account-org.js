@@ -16,6 +16,10 @@
     return String(thai).replace(/\{(\w+)\}/g, function (m, k) { return vars && vars[k] != null ? vars[k] : m; });
   };
   var M = function () { return W.LQMember; };
+  // org-p1: organisation accounts appear only when BOTH switches are on (window.LENSIQ_ORG_ACCOUNTS === true here and
+  // the Worker's ORG_ACCOUNTS = "on", read by LQMember.orgOn() from /v1/config); otherwise no organisation request is sent
+  var clientOrg = W.LENSIQ_ORG_ACCOUNTS === true;
+  var orgOn = function () { var m = M(); return clientOrg && !!m && typeof m.orgOn === "function" && !!m.orgOn(); };
   var lang = function () { return W.LQI18N ? W.LQI18N.lang : "th"; };
   var day = function (/** @type {number} */ t) { return t ? new Date(t * 1000).toLocaleDateString(({ th: "th-TH", en: "en-GB", zh: "zh-CN" })[lang()] || "th-TH", { dateStyle: "medium" }) : "—"; };
   /** @param {string} tag @param {Record<string, any>|null} [attrs] @param {...any} kids */
@@ -67,6 +71,7 @@
     set: function (/** @type {string} */ v) { try { if (v) sessionStorage.setItem(INV_KEY, v); else sessionStorage.removeItem(INV_KEY); } catch (e) { /* blocked */ } }
   };
   (function readInvite() {
+    if (!clientOrg) return; // switched off on this site: the invitation fragment is neither read nor kept
     var m = /(?:^#|&)org_invite=([A-Za-z0-9_-]{43})(?:&|$)/.exec(location.hash || "");
     if (!m) return;
     ss.set(m[1]);
@@ -74,6 +79,7 @@
   })();
   function renderInvite() {
     var tok = ss.get(), box = $("acInvite"), m = M();
+    if (m && m.ready() && !orgOn()) { if (tok) ss.set(""); box.hidden = true; return; } // the Worker has it off: drop the token
     box.hidden = !tok || !m || !m.ready();
     if (box.hidden) return;
     var inn = !!m.signedIn();
@@ -148,6 +154,7 @@
   var cur = /** @type {any} */ ({ list: [], id: "", seq: 0 });
   function loadOrgs() {
     var m = M();
+    if (!orgOn()) { $("org").hidden = true; return; }
     if (!m || !m.signedIn() || typeof m.orgs !== "function") return;
     m.orgs().then(function (/** @type {any} */ r) {
       cur.list = r.ok && r.j && Array.isArray(r.j.orgs) ? r.j.orgs : [];
@@ -187,6 +194,7 @@
       box.appendChild(membersBlock(v));
       box.appendChild(inviteBlock(v));
       box.appendChild(billingBlock(v));
+      box.appendChild(exportBlock(v));
       var au = h("div", { id: "acOrgAudit" });
       box.appendChild(h("h3", { text: T("acct.org.auditH", "บันทึกการเปลี่ยนแปลงขององค์กร") }));
       box.appendChild(au);
@@ -302,6 +310,28 @@
     });
     return h("div", null, h("h3", { text: T("acct.org.billingH", "ข้อมูลออกใบเสนอราคาและใบเสร็จ") }),
       h("p", { class: "acct-muted", text: T("acct.org.billingNote", "ใช้ออกใบเสนอราคา ใบแจ้งหนี้ และใบเสร็จหลังโอนเงินผ่านธนาคาร ไม่มีการชำระเงินออนไลน์") }), f);
+  }
+
+  /** org-p1: export of the organisation's own data (admins; always available, also when suspended) */
+  function exportBlock(/** @type {any} */ v) {
+    var m = M();
+    var b = /** @type {any} */ (h("button", { type: "button", id: "acOrgExport", class: "btn ghost", text: T("acct.org.export", "ส่งออกข้อมูลองค์กร (ไฟล์ JSON)") }));
+    b.addEventListener("click", function () {
+      b.disabled = true;
+      m.orgExport(v.org.id).then(function (/** @type {any} */ r) {
+        b.disabled = false;
+        if (!r.ok || !r.j) { say("acOrgMsg", errText(r), true); return; }
+        var url = URL.createObjectURL(new Blob([JSON.stringify(r.j, null, 2)], { type: "application/json" }));
+        var a = /** @type {any} */ (h("a", { href: url, download: "lensiq-org-" + v.org.id + ".json" }));
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+        say("acOrgMsg", T("acct.org.exportDone", "ส่งออกแล้ว: ไฟล์มีชื่อองค์กร ข้อมูลออกเอกสาร สมาชิก ลิงก์เชิญที่เปิดอยู่ ใบอนุญาต และบันทึกการเปลี่ยนแปลง"));
+      });
+    });
+    return h("div", { id: "acOrgExportBox" }, h("h3", { text: T("acct.org.exportH", "ส่งออกข้อมูลองค์กร") }),
+      h("p", { class: "acct-muted", text: T("acct.org.exportText",
+          "ส่งออกได้เสมอ แม้บัญชีองค์กรถูกระงับหรือใบอนุญาตหมดอายุ ต้องยืนยันตัวตนอีกครั้งก่อนส่งออก ไฟล์ไม่มีข้อมูลพนักงาน ทะเบียนรถ ผู้สอบ หรือภาพใด ๆ") }),
+      h("p", { class: "acct-row" }, b));
   }
 
   /* ---------------- wiring ---------------- */
