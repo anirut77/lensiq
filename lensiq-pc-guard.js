@@ -1321,8 +1321,9 @@
     if (JAKO_SHAPES) return JAKO_SHAPES;
     const NM = "(?:[一-鿿々]{1,4}(?:[ \\t][一-鿿々ぁ-ゖ]{1,3})?|[ぁ-ゖァ-ヺー]{2,6}|[가-힣]{2,4}|[가-힣](?:[ \\t][가-힣]){1,3}|[A-Z][a-z]+(?:[ \\t-][A-Z][a-z]+)?)";
     JAKO_SHAPES = [
-      // room / class / group + a name ("5号室 木村 和夫", "305호 임수빈", "토끼반 하람", "[3-4] 신다온", "2年1組 けんた")
-      new RegExp("^[ \\t]*(?:\\d{1,4}[ \\t]?(?:号室|호실|호|号)|\\d[ \\t]?年[ \\t]?\\d[ \\t]?組|\\d[ \\t]?학년[ \\t]?\\d[ \\t]?반|[가-힣]{1,4}반|[ぁ-ヿ一-鿿]{1,4}組|\\[\\d+[-‐]\\d+\\])[ \\t]+(" + NM + ")[ \\t]*$", "gmu"),
+      // room / class + a name ("5号室 木村 和夫", "305호 임수빈", "[3-4] 신다온", "2年1組 けんた"); a named group ("초코반") is left
+      // to the F2 rules, which need a school / nursery word: "초코반 쿠키" is a product
+      new RegExp("^[ \\t]*(?:\\d{1,4}[ \\t]?(?:号室|호실|호|号)|\\d[ \\t]?年[ \\t]?\\d[ \\t]?組|\\d[ \\t]?학년[ \\t]?\\d[ \\t]?반|\\[\\d+[-‐]\\d+\\])[ \\t]+(" + NM + ")[ \\t]*$", "gmu"),
       // a name spaced character by character on a line of its own ("佐 藤 大 輝", "정 우 진"); must start like a name (below)
       /^[ \t]*((?:[가-힣][ \t]){2,3}[가-힣]|(?:[一-鿿々][ \t]){2,4}[一-鿿々])[ \t]*$/gmu,
       // a Korean name + particle before a note word ("채원이 꺼", "지호가 먹을 것", "예린이 학교")
@@ -1357,8 +1358,10 @@
         if (re === JAKO_SHAPES?.[1] /* spaced */ && !(new RegExp("^" + JA_SUR, "u").test(v.replace(/[ \t]/g, "")) || new RegExp("^" + KO_SUR + "[ \\t]", "u").test(v))) continue;
         if (re === JAKO_SHAPES?.[4] /* surname list */ && /(?:屋|堂|園|庵|亭|舗|社|製|印|館|店|家|式|流)$/u.test(v)) continue;
         if (re === JAKO_SHAPES?.[6] /* Latin + name */ && (LABEL_EN.test(v.split(/[ \t]/)[0]) || PRODUCT_WORDS_EN.test(v.split(/[ \t]/)[0]) || DRUG_LIKE.test(v.split(/[ \t]/)[0]) || notName(v.split(/[ \t]+/)[1] || ""))) continue;
+        // a Korean name with the subject / vocative particle ("하윤이"): the name is the part before it
+        const v2 = /^[가-힣]{3,4}$/u.test(v) && /[이가]$/u.test(v) ? v.slice(0, -1) : v;
         const a = /** @type {number} */ (m.index) + m[0].indexOf(v);
-        out.push({ kind: "name", start: a, end: a + v.length });
+        out.push({ kind: "name", start: a, end: a + v2.length });
       }
     }
     // a name split one character per line by vertical OCR: 3-5 lines of one kanji / hangul, starting with a surname

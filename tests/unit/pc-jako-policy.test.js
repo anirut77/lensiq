@@ -109,7 +109,7 @@ test("bare-name shapes on JA / KO text are removed; the same shapes on product w
   const kh = "원재료명 정제수 설탕\n판매원 한빛식품(주)\n8801234567893\n";
   assert.deepEqual(names(head + "3号室 山口 花子"), ["山口 花子"]);
   assert.deepEqual(names(kh + "102호 박서준"), ["박서준"]);
-  assert.deepEqual(names(kh + "해바라기반 하은"), ["하은"]);
+  assert.deepEqual(names(head + "2年1組 けんた"), ["けんた"]);
   assert.deepEqual(names(head + "高 橋 美 咲"), ["高 橋 美 咲"]);
   assert.deepEqual(names(kh + "김 하 늘"), ["김 하 늘"]);
   assert.deepEqual(names(kh + "다은이 꺼"), ["다은"]);
@@ -122,7 +122,7 @@ test("bare-name shapes on JA / KO text are removed; the same shapes on product w
   assert.deepEqual(names("받는 곳\n" + kh + "부산광역시 해운대구 해운대로 12 3동 405호"), ["부산광역시 해운대구 해운대로 12 3동 405호"]);
   // product words in the same shapes stay
   for (const t of [head + "のどあめ", head + "ミルキー", kh + "유산균 하루 1포", kh + "어린이 하루 2회", kh + "일반의약품", kh + "화장품",
-    head + "中村屋", head + "大人 1日3回", head + "賞味期限 2027.04.21", kh + "위장약 하루 3회", head + "こどもの"]) {
+    head + "中村屋", head + "大人 1日3回", head + "賞味期限 2027.04.21", kh + "위장약 하루 3회", head + "こどもの", kh + "초코반 쿠키", kh + "새싹반 이유식"]) {
     assert.deepEqual(names(t).filter(x => !/^\d{13}$/.test(x)), [], t);
   }
   // nothing new on a text without JA / KO script
