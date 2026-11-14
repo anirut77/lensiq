@@ -97,7 +97,7 @@ async function setup(vars = {}) {
   const line = await import(B + "line.js");
   if (typeof line.resetLineJwksCache === "function") line.resetLineJwksCache();
   const net = fakeNet();
-  const env = createEnv({ GOOGLE_CLIENT_ID: GOOGLE_CLIENT, TURNSTILE_SECRET: "ts", TURNSTILE_HOSTNAMES: "site.example", ADMIN_BOOTSTRAP_TOKEN: ADMIN_TOKEN, SECRETS_KEK: KEK, ...LINE_VARS, ...vars });
+  const env = createEnv({ GOOGLE_CLIENT_ID: GOOGLE_CLIENT, TURNSTILE_SECRET: "ts", TURNSTILE_HOSTNAMES: "site.example", ADMIN_BOOTSTRAP_TOKEN: ADMIN_TOKEN, SECRETS_KEK: KEK, ORG_ACCOUNTS: "on", ...LINE_VARS, ...vars }); // A-P1-1: org-p1 off switch on for this suite
   const call = async (path, o = {}) => {
     const headers = { ...(o.headers || {}) };
     if (o.token) headers.Authorization = "Bearer " + o.token;
