@@ -597,5 +597,16 @@
   "md.pc.tap.w.faceUnknown": "Not sent at once: the face detector cannot run on this device. Check the text below before sending",
   "md.pc.tap.w.hidden": "Nothing is sent while this page is hidden",
   "md.pc.tap.w.name": "Not sent at once: a name, phone number or wording that may be personal was found. Check the text below before sending",
-  "md.pc.tap.w.noProduct": "Not sent at once: no product label details found yet (registration number, barcode or ingredients)"
+  "md.pc.tap.w.noProduct": "Not sent at once: no product label details found yet (registration number, barcode or ingredients)",
+  // tap-to-call help lines (lensiq-helpline.js LINES; tools/helpline.mjs --check keeps them equal)
+  "call.1323.btn": "Want someone to listen? Call 1323",
+  "call.1323.label": "Want someone to listen?",
+  "call.1323.go": "Call 1323",
+  "call.1323.sub": "Talk any time, 24 hours a day, with someone ready to listen",
+  "call.1323.org": "A service of the Department of Mental Health, Thailand",
+  "call.1669.btn": "Medical emergency? Call 1669",
+  "call.1669.label": "Medical emergency?",
+  "call.1669.go": "Call 1669",
+  "call.1669.sub": "Ambulance and emergency medical help",
+  "call.1669.org": "National Institute for Emergency Medicine (NIEM)"
 } });

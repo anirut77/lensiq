@@ -34,7 +34,7 @@
 .md-call b{font-size:1.15rem}
 .md-emerg{border:3px solid #a12b20;background:#fdecea;color:#5c140b;border-radius:16px;padding:16px;margin:0 0 16px}
 .md-emerg h2{color:#7a1f12}
-.md-emerg a{color:#7a1f12;display:inline-block;min-height:44px;min-width:56px;line-height:44px;font-size:1.2rem}
+.md-emerg a:not(.lq-call-btn){color:#7a1f12;display:inline-block;min-height:44px;min-width:56px;line-height:44px;font-size:1.2rem}
 /* tabs */
 .md-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px}
 .md-tabs button{min-height:44px;padding:8px 14px;border-radius:99px;border:1.5px solid var(--line);background:#fff;color:var(--navy);font:inherit;font-size:.9rem;max-width:100%;white-space:normal}
@@ -103,3 +103,6 @@
 @media print{.nav,.md-tabs,.md-set,.md-row,.md-camwrap{display:none!important}}
 .pc-kind{border:0;padding:0;margin:4px 0 8px;min-width:0}.pc-kind legend{font-weight:600;font-size:.92rem;padding:0;margin:0 0 2px}
 .pc-ad{border-left:3px solid #f59e0b;padding:4px 0 4px 12px;margin:0 0 10px}#pcAdList q{font-weight:600}
+/* help lines are the shared tap-to-call component (lensiq-helpline.js, styles.css .lq-call*) */
+.md-tel .lq-call{flex:1 1 220px;margin:0}
+.md-emerg .lq-call{margin:0}

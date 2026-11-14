@@ -597,5 +597,16 @@
   "md.pc.tap.w.faceUnknown": "未立即发送：本设备无法运行人脸检测。请先检查下方文字再发送",
   "md.pc.tap.w.hidden": "页面隐藏时不发送",
   "md.pc.tap.w.name": "未立即发送：发现可能属于个人的姓名、电话号码或措辞。请先检查下方文字再发送",
-  "md.pc.tap.w.noProduct": "未立即发送：尚未找到产品标签信息（注册号、条码或成分）"
+  "md.pc.tap.w.noProduct": "未立即发送：尚未找到产品标签信息（注册号、条码或成分）",
+  // tap-to-call help lines (lensiq-helpline.js LINES; tools/helpline.mjs --check keeps them equal)
+  "call.1323.btn": "想找人倾听？拨打 1323",
+  "call.1323.label": "想找人倾听？",
+  "call.1323.go": "拨打 1323",
+  "call.1323.sub": "24 小时随时可以聊，有人愿意倾听",
+  "call.1323.org": "泰国心理健康司提供的服务",
+  "call.1669.btn": "医疗急救 拨打 1669",
+  "call.1669.label": "医疗急救",
+  "call.1669.go": "拨打 1669",
+  "call.1669.sub": "救护车和紧急医疗援助",
+  "call.1669.org": "泰国国家紧急医疗研究院（NIEM）"
 } });

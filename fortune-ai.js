@@ -4126,21 +4126,25 @@
      talk to someone they trust; nothing is blocked: "continue" shows the reading, with the pinned help bar.
      REVIEW: pending review by a Thai mental-health professional (launch item L63). */
   const SUPPORT = { ...((CR && CR.CARD) || { th: { title: "", lead: "", body: "", lines: [["1323", ""], ["1669", ""]], after: "", foot: "", call: "", cont: "", contNote: "" } }) };
+  // help lines on the card: the shared tap-to-call component (lensiq-helpline.js, owner order 2026-11-14 Part B), in its order
+  // 1323, 1669, 191, 1300, Samaritans; numbers and hours verified in docs/CRISIS-RESOURCES.md (checked 2026-11-14)
+  const callKit = () => (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : root.LQHelpline) || null;
+  const supportLines = lang => (callKit() ? callKit().cardLines(lang) : ["1323", "1669", "191", "1300", "021136789"].map(n => ({ id: n.length > 4 ? "samaritans" : n, n, tel: n, btn: n, t: "" })));
   /** the acknowledgement card; `reading` (optional) is the calm reading shown on "continue" @param {any} [opts] @param {any} [reading] */
   function supportResult(opts, reading) {
-    const lang = langOf(opts), S0 = SUPPORT[lang] || SUPPORT.th;
+    const lang = langOf(opts), S0 = Object.assign({}, SUPPORT[lang] || SUPPORT.th, { lines: supportLines(lang) });
     try { const ls = root.localStorage; if (ls) ls.setItem("lq-support-n", String((parseInt(ls.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }
     return {
       source: "support", crisis: true, lang, reviewStatus: "pending-professional-review",
-      support: { title: S0.title, lead: S0.lead, body: S0.body, lines: S0.lines.map(([n, t, tel]) => ({ n, t, tel: tel || n })), after: S0.after, foot: S0.foot, call: S0.call,
+      support: { title: S0.title, lead: S0.lead, body: S0.body, lines: S0.lines, after: S0.after, foot: S0.foot, call: S0.call,
         cont: S0.cont, contNote: S0.contNote },
-      sections: [{ id: "support", title: S0.title, paragraphs: [S0.lead, S0.body].concat(S0.lines.map(([n, t]) => n + " — " + t), [S0.after]) }],
+      sections: [{ id: "support", title: S0.title, paragraphs: [S0.lead, S0.body].concat(S0.lines.map(l => l.btn + " — " + l.t), [S0.after]) }],
       reading: reading && !reading.crisis ? reading : undefined,
     };
   }
   /** crisis flow v2 §2–§4: a reading for the calm state (fortune-crisis.js calmReading: no plan, calm filter, hope frame) @param {any} res */
   const calmify = res => (CR && CR.calmReading ? CR.calmReading(res) : res);
-  const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support h3{margin:0 0 .4em}.fa-support ul{list-style:none;padding:0;margin:.6em 0}.fa-support li{margin:.45em 0;display:flex;gap:.6em;align-items:center;flex-wrap:wrap}.fa-support a.fa-tel{display:inline-flex;align-items:center;justify-content:center;min-width:72px;min-height:44px;padding:0 14px;border-radius:12px;font-weight:700;font-size:1.15em;background:#0ea5e9;color:#fff;text-decoration:none}.fa-support .fa-support-foot{font-size:.85em;opacity:.75}";
+  const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support-foot{font-size:.85em;opacity:.75}";
   /** วาดการ์ดช่วยเหลือ (ใช้ textContent ทั้งหมด) — container จะถูกล้างก่อน */
   function renderSupport(container, res, opts) {
     if (!container) return null;
@@ -4152,10 +4156,9 @@
     const box = el("section", "fa-support"), h = el("h3", null, s.title);
     h.id = "fa-h-" + (++uid); box.setAttribute("aria-labelledby", h.id); box.setAttribute("role", "region"); box.setAttribute("data-review", "pending-professional-review");
     box.appendChild(h); box.appendChild(el("p", null, s.lead)); box.appendChild(el("p", null, s.body));
-    const ul = el("ul");
+    const ul = el("ul"), K = callKit(), lng = res && (res.lang === "en" || res.lang === "zh") ? res.lang : "th";
     for (const l of s.lines) {
-      const li = el("li"), a = el("a", "fa-tel", l.n); a.href = "tel:" + (l.tel || l.n); a.setAttribute("aria-label", s.call + " " + l.n);
-      li.appendChild(a); li.appendChild(el("span", null, l.t)); ul.appendChild(li);
+      ul.appendChild(el("li")).appendChild(K && K.LINES[l.id] ? K.el(doc, l.id, { lang: lng, cls: "fa-tel" }) : Object.assign(el("a", "lq-call-btn fa-tel", l.n), { href: "tel:" + l.tel }));
     }
     box.appendChild(ul); box.appendChild(el("p", "fa-support-trust", s.after));
     // crisis flow v2: nothing is blocked; "continue" collapses the card into the pinned help bar and shows the reading
@@ -4263,7 +4266,7 @@
     if (res.crisis && res.support) {
       const sp = res.support;
       return '<section class="fa-support" role="region" data-review="pending-professional-review"><h3>' + escapeHtml(sp.title) + "</h3><p>" + escapeHtml(sp.lead) + "</p><p>" + escapeHtml(sp.body) + "</p><ul>" +
-        sp.lines.map(l => '<li><a class="fa-tel" href="tel:' + escapeHtml(l.tel || l.n) + '">' + escapeHtml(l.n) + "</a> <span>" + escapeHtml(l.t) + "</span></li>").join("") +
+        sp.lines.map(l => "<li>" + (callKit() ? callKit().html(l.id, { lang: res.lang, cls: "fa-tel", keys: false }) : '<a href="tel:' + l.tel + '">' + l.n + "</a>") + "</li>").join("") +
         "</ul><p>" + escapeHtml(sp.after) + '</p><p class="fa-support-foot">' + escapeHtml(sp.foot) + "</p></section>";
     }
     let h = "";

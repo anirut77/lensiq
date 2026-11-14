@@ -297,32 +297,31 @@
     renderSoft(container, lang, () => { ack(doc); proceed(); }, () => card(container));
     return true;
   }
-  /* ---------------- help line (owner order 2026-11-12) ----------------
+  /* ---------------- help line (owner order 2026-11-12; tap-to-call buttons 2026-11-14) ----------------
      A calm line with real help resources on every fortune page and under every reading; it needs no detection.
-     Numbers, hours and cost are only what docs/CRISIS-RESOURCES.md verified from official sources (checked 2026-11-12):
-     1323 (Department of Mental Health: free, 24 hours) and 1669 (medical emergency; hours and cost not shown, not read
-     directly on niems.go.th). No verified Chinese-language line exists in Thailand: the Chinese text says so.
-     HELP is the canonical wording: tools/helpline.mjs writes the static Thai line into every fortune page (it shows
-     without JavaScript), i18n/{en,zh}-common.js carry the same English / Chinese text under help.line.* (unit-tested). */
+     Numbers, hours and cost are only what docs/CRISIS-RESOURCES.md verified on the agency's own page (checked 2026-11-14).
+     Owner order 2026-11-14 (Part B): the numbers are the shared tap-to-call component (lensiq-helpline.js): 1323 with the
+     owner's warm wording ("อยากมีคนรับฟัง โทร 1323" / "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง" / "บริการของกรมสุขภาพจิต"),
+     then 1669 (medical emergency; no hours or cost: not stated on niems.go.th). No verified Chinese-language line exists in
+     Thailand: the note says so in Chinese. HELP keeps the line's own text (label, note); tools/helpline.mjs writes the
+     static line into every fortune page (it shows without JavaScript); i18n/{en,zh}-common.js carry help.line.* and call.*. */
+  const LQH = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : null);
+  /** the shared component (lensiq-helpline.js), looked up at call time in the browser @returns {any} */
+  const callKit = () => LQH || /** @type {any} */ (root).LQHelpline || null;
   /** @type {{tel: string[], th: Record<string, string>, en: Record<string, string>, zh: Record<string, string>}} */
   const HELP = {
     tel: ["1323", "1669"],
-    th: { label: "สายด่วนช่วยเหลือ", lead: "ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต", free: "ฟรี ตลอด 24 ชั่วโมง", emerg: "เจ็บป่วยฉุกเฉิน",
-      note: "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น" },
-    en: { label: "Help lines", lead: "If things feel like too much, you can talk to someone: Thai mental health hotline", free: "free, 24 hours",
-      emerg: "Medical emergency", note: "Outside Thailand, call your local emergency number." },
-    zh: { label: "求助热线", lead: "如果你感觉撑不下去，可以打电话找人聊聊：泰国心理健康热线", free: "免费，24 小时", emerg: "医疗急救",
-      note: "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。" },
+    th: { label: "สายด่วนช่วยเหลือ", note: "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น" },
+    en: { label: "Help lines", note: "Outside Thailand, call your local emergency number." },
+    zh: { label: "求助热线", note: "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。" },
   };
-  /** the help line's parts in order: [kind, field or number] */
-  const HELP_PARTS = [["t", "lead"], ["tel", "1323"], ["t", "free"], ["sep", ""], ["t", "emerg"], ["tel", "1669"], ["note", "note"]];
   const helpLang = (/** @type {any} */ l) => (l === "en" || l === "zh" ? l : "th");
   /** the help line as an element (textContent only). With the page's i18n present it is built in Thai with data-i18n keys
    *  and translated by LQI18N (so it follows later language switches); without it, in the given language.
    *  @param {any} [doc] @param {string} [lang] @param {string} [cls] extra class */
   function helpLine(doc, lang, cls) {
     const d = doc || root.document, I = /** @type {any} */ (root).LQI18N, i18n = !!(I && typeof I.apply === "function");
-    const L = HELP[i18n ? "th" : helpLang(lang)];
+    const l = i18n ? "th" : helpLang(lang), L = HELP[l], K = callKit();
     /** @param {string} tag @param {string} [c] @param {string} [t] */
     const el = (tag, c, t) => { const e = d.createElement(tag); if (c) e.className = c; if (t != null) e.textContent = t; return e; };
     // crisis fix 4: under a reading on a calm page (crisis state, calm session, soft step answered or distress typed) the line is
@@ -331,24 +330,23 @@
     if (calmHere) { markCalm(d); pinBar(d, i18n ? I.lang : lang, null); } // crisis flow v2: the page's ONE pinned bar (fixed, in view)
     const box = el("aside", "lq-helpline" + (cls ? " " + cls : ""));
     box.setAttribute("role", "note"); box.setAttribute("aria-label", L.label); box.setAttribute("data-i18n-attr", "aria-label:help.line.label");
-    for (const [k, v] of HELP_PARTS) {
-      if (k === "tel") { const a = el("a", "lq-helpline-tel", v); a.setAttribute("href", "tel:" + v); box.appendChild(a); }
-      else if (k === "sep") { const x = el("span", "lq-helpline-sep", "·"); x.setAttribute("aria-hidden", "true"); box.appendChild(x); }
-      else { const x = el("span", k === "note" ? "lq-helpline-note" : "", L[v]); x.setAttribute("data-i18n", "help.line." + v); box.appendChild(x); }
-      if (k !== "note") box.appendChild(d.createTextNode(" "));
+    for (const n of HELP.tel) {
+      if (K) box.appendChild(K.el(d, n, { lang: l, cls: "lq-helpline-tel", compact: n !== "1323", keys: i18n }));
+      else { const a = el("a", "lq-call-btn lq-helpline-tel", n); a.setAttribute("href", "tel:" + n); box.appendChild(a); } // component missing: the number still calls
     }
+    const note = el("span", "lq-helpline-note", L.note); note.setAttribute("data-i18n", "help.line.note"); box.appendChild(note);
     if (i18n) { try { I.apply(box); } catch (e) { /* i18n not ready: Thai stays */ } }
     return box;
   }
   const escH = (/** @type {any} */ s) => String(s).replace(/[&<>"]/g, c => (/** @type {Record<string, string>} */ ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }))[c]);
   /** the help line as HTML in one language (Thai carries the data-i18n keys) @param {string} [lang] @param {string} [cls] */
   function helpHTML(lang, cls) {
-    const l = helpLang(lang), L = HELP[l], key = (/** @type {string} */ k) => (l === "th" ? ' data-i18n="help.line.' + k + '"' : "");
-    const parts = HELP_PARTS.map(([k, v]) => k === "tel" ? '<a class="lq-helpline-tel" href="tel:' + v + '">' + v + "</a>"
-      : k === "sep" ? '<span class="lq-helpline-sep" aria-hidden="true">·</span>'
-      : "<span" + (k === "note" ? ' class="lq-helpline-note"' : "") + key(v) + ">" + escH(L[v]) + "</span>");
+    const l = helpLang(lang), L = HELP[l], K = callKit();
+    const calls = HELP.tel.map(n => K ? K.html(n, { lang: l, cls: "lq-helpline-tel", compact: n !== "1323" })
+      : '<a class="lq-call-btn lq-helpline-tel" href="tel:' + n + '">' + n + "</a>");
+    const note = '<span class="lq-helpline-note"' + (l === "th" ? ' data-i18n="help.line.note"' : "") + ">" + escH(L.note) + "</span>";
     return '<aside class="lq-helpline' + (cls ? " " + escH(cls) : "") + '" role="note" aria-label="' + escH(L.label) + '"' +
-      (l === "th" ? ' data-i18n-attr="aria-label:help.line.label"' : "") + ">" + parts.join(" ") + "</aside>";
+      (l === "th" ? ' data-i18n-attr="aria-label:help.line.label"' : "") + ">" + calls.join(" ") + " " + note + "</aside>";
   }
 
   /* ---------------- crisis state (owner order 2026-11-12) ----------------
@@ -559,34 +557,32 @@
   const hope = lang => { const L = /** @type {any} */ (HOPE)[helpLang(lang)]; return { open: L.open, close: L.close, reviewStatus: HOPE.reviewStatus }; };
   /** the pinned help bar: 1323 always visible, the other verified lines (docs/CRISIS-RESOURCES.md) behind "more help lines" */
   const BAR = {
-    th: { label: "สายด่วนช่วยเหลือ", lead: "อยากคุยกับใครตอนนี้ โทร", free: "ฟรี ตลอด 24 ชั่วโมง", more: "เบอร์ช่วยเหลืออื่น ๆ",
-      lines: [["02 113 6789", "สมาคมสะมาริตันส์แห่งประเทศไทย รับฟังทุกเรื่อง 12:00–22:00 น.", "021136789"],
-        ["1300", "ศูนย์ช่วยเหลือสังคม กระทรวง พม. ความรุนแรงในครอบครัว ปัญหาเด็กและเยาวชน ตลอด 24 ชั่วโมง"], ["191", "เหตุด่วนเหตุร้าย / แจ้งตำรวจ"],
-        ["1669", "เจ็บป่วยฉุกเฉิน / ต้องการรถพยาบาล"]] },
-    en: { label: "Help lines", lead: "Want to talk to someone now? Call", free: "free, 24 hours", more: "More help lines",
-      lines: [["02 113 6789", "Samaritans of Thailand, listening line, 12:00–22:00", "021136789"],
-        ["1300", "Social Assistance Center (Ministry of Social Development and Human Security): domestic violence, children and young people; 24 hours"],
-        ["191", "Police emergency"], ["1669", "Medical emergency / ambulance"]] },
-    zh: { label: "求助热线", lead: "现在想找人聊聊？请拨打", free: "免费，24 小时", more: "更多求助热线",
-      lines: [["02 113 6789", "泰国撒玛利亚会（Samaritans of Thailand）倾听热线，12:00–22:00", "021136789"],
-        ["1300", "泰国社会援助中心（社会发展与人类安全部）：家庭暴力、儿童和青少年问题，24 小时"], ["191", "报警（泰国警察）"], ["1669", "医疗急救 / 救护车"]] },
+    th: { label: "สายด่วนช่วยเหลือ", more: "เบอร์ช่วยเหลืออื่น ๆ" },
+    en: { label: "Help lines", more: "More help lines" },
+    zh: { label: "求助热线", more: "更多求助热线" },
   };
+  /** the rows behind "more help lines", in order (the 1323 row is always visible above them) */
+  const BAR_MORE = ["samaritans", "1300", "191", "1669"];
   /** the pinned help bar as an element (textContent only) @param {any} [doc] @param {string} [lang] @param {string} [cls] */
   function helpBar(doc, lang, cls) {
     const d = doc || root.document, I = /** @type {any} */ (root).LQI18N;
-    const l = helpLang(lang || (I && I.lang) || "th"), L = BAR[l];
+    const l = helpLang(lang || (I && I.lang) || "th"), L = BAR[l], K = callKit();
     const el = (tag, c, t) => { const e = d.createElement(tag); if (c) e.className = c; if (t != null) e.textContent = t; return e; };
-    const tel = (n, t) => { const a = el("a", "lq-helpline-tel", n); a.setAttribute("href", "tel:" + (t || n).replace(/\s+/g, "")); return a; };
+    // every row is the shared tap-to-call component (lensiq-helpline.js, owner order 2026-11-14 Part B); without it the bare number still calls
+    const call = id => {
+      if (K) return K.el(d, id, { lang: l, cls: "lq-helpline-tel lq-helpbar-tel" });
+      const n = id === "samaritans" ? "021136789" : id, a = el("a", "lq-call-btn lq-helpline-tel lq-helpbar-tel", n); a.setAttribute("href", "tel:" + n); return a;
+    };
     const box = el("aside", "lq-helpline lq-helpbar" + (cls ? " " + cls : ""));
     box.setAttribute("role", "note"); box.setAttribute("aria-label", L.label); box.setAttribute("data-review", "pending-professional-review");
     box.setAttribute("lang", l === "zh" ? "zh-Hans" : l);
-    const row = el("p", "lq-helpbar-main");
-    row.appendChild(el("span", null, L.lead + " ")); row.appendChild(tel("1323")); row.appendChild(el("span", null, " " + L.free));
+    const row = el("div", "lq-helpbar-main");
+    row.appendChild(call("1323"));
     box.appendChild(row);
     const more = el("details", "lq-helpbar-more"); more.setAttribute("data-lq-more", "");
     more.appendChild(el("summary", null, L.more));
     const ul = el("ul");
-    for (const [n, t, x] of L.lines) { const li = el("li"); li.appendChild(tel(n, x)); li.appendChild(el("span", null, " " + t)); ul.appendChild(li); }
+    for (const id of BAR_MORE) { const li = el("li"); li.appendChild(call(id)); ul.appendChild(li); }
     more.appendChild(ul); box.appendChild(more);
     try { ensureBarStyle(d); } catch (e) { /* no DOM */ }
     return box;
@@ -594,9 +590,9 @@
   // only one bar is sticky: the dock in the reading's section (or the line under it until the dock exists); the page bar is fixed
   const BAR_CSS = ".lq-helpbar.lq-helpline-dock,.lq-helpbar.lq-helpline-calm{position:sticky;bottom:0;z-index:6}" +
     ".lq-helpbar{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:#0b3b5a;color:#fff;" +
-    "box-shadow:0 -2px 10px rgba(20,50,74,.25);font-size:.95rem;line-height:1.45}.lq-helpbar p{margin:0}.lq-helpbar a.lq-helpline-tel{color:#fff;font-weight:700;" +
-    "display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 10px;border-radius:10px;background:rgba(255,255,255,.16);" +
-    "text-decoration:none}.lq-helpbar details{margin-top:2px}.lq-helpbar summary{cursor:pointer;min-height:44px;display:flex;align-items:center}" +
+    "box-shadow:0 -2px 10px rgba(20,50,74,.25);font-size:.95rem;line-height:1.45}.lq-helpbar p{margin:0}.lq-helpbar .lq-call{margin:2px 0}" +
+    ".lq-helpbar .lq-call>a.lq-call-btn[href]{background:#fff;color:#0b3b5a}.lq-helpbar .lq-call-sub,.lq-helpbar .lq-call-org{color:#dbeafe}" +
+    ".lq-helpbar details{margin-top:2px}.lq-helpbar summary{cursor:pointer;min-height:44px;display:flex;align-items:center}" +
     ".lq-helpbar ul{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:4px}.lq-helpbar li{display:flex;gap:8px;align-items:center;flex-wrap:wrap}" +
     ".lq-helpbar-page{position:fixed;left:8px;right:8px;bottom:8px;max-width:900px;margin:0 auto}body.lq-has-helpbar{padding-bottom:120px}" +
     ".fa-hope{margin:.4em 0 1em;padding:.7em .9em;border-left:3px solid #38bdf8;background:rgba(56,189,248,.08);border-radius:8px;line-height:1.6}" +
@@ -626,9 +622,6 @@
       title: "เราอยู่ตรงนี้นะ",
       lead: "ขอบคุณที่บอกให้เรารู้ ช่วงนี้คุณอาจกำลังแบกเรื่องหนักใจอยู่ ความรู้สึกแบบนี้เกิดขึ้นได้กับทุกคน และคุณไม่ต้องผ่านมันไปคนเดียว",
       body: "ถ้าอยากคุยกับใครสักคนตอนนี้ มีคนพร้อมรับฟังและช่วยเหลือ แตะที่เบอร์เพื่อโทรได้เลย",
-      lines: [["1323", "สายด่วนสุขภาพจิต กรมสุขภาพจิต — โทรฟรี ตลอด 24 ชั่วโมง"], ["1669", "เจ็บป่วยฉุกเฉิน / ต้องการรถพยาบาล"], ["191", "เหตุด่วนเหตุร้าย / แจ้งตำรวจ"],
-        ["1300", "ศูนย์ช่วยเหลือสังคม กระทรวง พม. — ความรุนแรงในครอบครัว ปัญหาเด็กและเยาวชน ตลอด 24 ชั่วโมง"],
-        ["02 113 6789", "สมาคมสะมาริตันส์แห่งประเทศไทย — รับฟังทุกเรื่อง 12:00–22:00 น.", "021136789"]],
       after: "ถ้าทำได้ ลองบอกคนที่คุณไว้ใจสักคนว่ากำลังรู้สึกอย่างไร ถ้ารู้สึกไม่ปลอดภัยตอนนี้ ไปโรงพยาบาลใกล้บ้านหรือโทร 1669 ถ้าอยู่นอกประเทศไทย โทรเบอร์ฉุกเฉินของประเทศนั้น",
       cont: "ดูคำทำนายต่อ",
       contNote: "คำทำนายยังอยู่ และเบอร์ช่วยเหลือจะอยู่ด้านล่างของหน้าจอตลอด",
@@ -639,9 +632,6 @@
       title: "We're here with you",
       lead: "Thank you for letting us know. You may be carrying something heavy right now. Feelings like this can happen to anyone, and you don't have to go through them alone.",
       body: "If you'd like to talk to someone now, people are ready to listen and help. Tap a number to call.",
-      lines: [["1323", "Thai Department of Mental Health hotline — free, 24 hours"], ["1669", "Medical emergency / ambulance"], ["191", "Police emergency"],
-        ["1300", "Social Assistance Center (Ministry of Social Development and Human Security) — domestic violence, children and young people; 24 hours"],
-        ["02 113 6789", "Samaritans of Thailand — listening line, 12:00–22:00", "021136789"]],
       after: "If you can, tell someone you trust how you are feeling. If you feel unsafe right now, go to the nearest hospital or call 1669. Outside Thailand, call your local emergency number.",
       cont: "Continue to the reading",
       contNote: "Your reading is still here, and the help lines stay at the bottom of the screen.",
@@ -652,8 +642,6 @@
       title: "我们在这里陪着你",
       lead: "谢谢你告诉我们。你现在可能正承受着很沉重的事情。有这样的感受并不奇怪，你不需要独自面对。",
       body: "如果你现在想找人聊聊，有人愿意倾听和帮助。点一下号码就可以拨打。",
-      lines: [["1323", "泰国心理健康热线（泰国卫生部心理健康司）— 免费，24 小时"], ["1669", "医疗急救 / 救护车"], ["191", "报警（泰国警察）"], ["1300", "泰国社会援助中心（社会发展与人类安全部）— 家庭暴力、儿童和青少年问题，24 小时"],
-        ["02 113 6789", "泰国撒玛利亚会（Samaritans of Thailand）倾听热线 — 12:00–22:00", "021136789"]],
       after: "如果可以，请告诉一位你信任的人你现在的感受。如果你现在觉得不安全，请去最近的医院或拨打 1669。如果你不在泰国，请拨打当地的紧急电话。",
       cont: "继续查看解读",
       contNote: "解读还在，求助热线会一直显示在屏幕下方。",

@@ -341,12 +341,32 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 .lq-helpline{display:block;width:calc(100% - 24px);max-width:1120px;margin:10px auto;padding:10px 14px;border:1px solid #bcd3e6;border-radius:14px;
   background:#eef5fb;color:#14324a;font-size:.95rem;line-height:1.7;overflow-wrap:anywhere}
 .lq-helpline-result{width:auto;margin:14px 0 4px}
-.lq-helpline-tel{display:inline-flex;align-items:center;justify-content:center;min-width:56px;min-height:44px;margin:2px;padding:0 12px;border-radius:12px;
-  background:#0b5d8f;color:#fff;font-weight:700;font-size:1.05em;text-decoration:none;vertical-align:middle}
-.lq-helpline-tel:hover{background:#094d77}
-.lq-helpline-tel:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
-.lq-helpline-sep{margin:0 2px;color:#476580}
 .lq-helpline-note{display:block;margin-top:2px;font-size:.85rem;color:#33506a}
+/* ---------- tap-to-call help-line component (lensiq-helpline.js; owner order 2026-11-14 Part B) ----------
+   One compact row on a phone (owner addition 2026-11-14): short label | call button with the number; the second line and
+   the small print wrap under the label, never under the button. Tap target at least 44 px tall. On a computer (no touch,
+   or a wide screen) the number is also shown as large text that can be selected and copied. */
+.lq-call{overflow-wrap:break-word;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:0;align-items:center;margin:6px 0;line-height:1.45;text-align:start}
+.lq-call-t{grid-column:1;grid-row:1;font-weight:700;min-width:0;overflow-wrap:break-word}
+.lq-call>a.lq-call-btn[href]{grid-column:2;grid-row:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;min-width:44px;
+  padding:0 12px;border-radius:12px;background:#0b5d8f;color:#fff;font-weight:700;font-size:1rem;line-height:1.2;text-decoration:none;white-space:nowrap;
+  box-sizing:border-box;touch-action:manipulation}
+.lq-call>a.lq-call-btn[href]:hover{background:#094d77;color:#fff}
+.lq-call>a.lq-call-btn[href]:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+.lq-call>a.lq-call-btn[href]>*{pointer-events:none}
+.lq-call-ico{flex:none;width:20px;height:20px;fill:currentColor}
+.lq-call-num{display:none;grid-column:2;grid-row:1;font-size:1.9rem;font-weight:800;letter-spacing:.02em;user-select:all;-webkit-user-select:all;cursor:text;
+  font-variant-numeric:tabular-nums}
+.lq-call-sub{grid-column:1;grid-row:2;font-size:.9rem;min-width:0;overflow-wrap:break-word}
+.lq-call-org{grid-column:1;grid-row:3;font-size:.78rem;opacity:.85;min-width:0;overflow-wrap:break-word}
+/* crisis card layout (fortune-ai.js draws the card; its border and colours are injected with the card) */
+.fa-support h3{margin:0 0 .4em}.fa-support ul{list-style:none;padding:0;margin:.6em 0}.fa-support li{margin:.45em 0}
+@media (min-width:1024px),(hover:hover) and (pointer:fine) and (min-width:600px){
+  .lq-call{grid-template-columns:auto auto auto;justify-content:start;column-gap:14px}
+  .lq-call-num{display:block}
+  .lq-call>a.lq-call-btn[href]{grid-column:3}
+  .lq-call-sub,.lq-call-org{grid-column:1 / -1}
+}
 /* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
    and share cards stay hidden on that page */
 html[data-lq-crisis] [data-lq-remedy]{display:none!important}
@@ -357,5 +377,7 @@ html[data-lq-calm] a[href*="pricing.html"],html[data-lq-crisis] a[href*="pricing
 html[data-lq-calm] a[href*="terms.html#t9"],html[data-lq-crisis] a[href*="terms.html#t9"]{display:none!important}
 @media print{
   .lq-helpline{background:#fff;border-color:#888;color:#000;break-inside:avoid}
-  .lq-helpline-tel{min-height:0;min-width:0;padding:0;background:none;color:#000;text-decoration:underline}
+  .lq-call>a.lq-call-btn[href]{min-height:0;min-width:0;padding:0;background:none;color:#000;text-decoration:underline}
+  .lq-call-ico{display:none}
+  .lq-call-num{display:block;font-size:1.2rem}
 }

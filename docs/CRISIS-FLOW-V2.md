@@ -145,3 +145,14 @@ Changes in `fortune-crisis.js` (and the same 想死你 exception in `fortune-ai.
   a death dream wished true, 楼顶 / 天台 + 跳, 用刀划自己, 想s / 自sha, 威胁要杀我, 一睡不醒, 消失算了; farewell hand-overs of a pet
   get the soft step. Hyperbole taken out before the soft check: X แทบตาย, ตายแล้ว! + a slip, a pet that died, workload
   หนักจะตาย, starving (to death), killed it, drop-dead …, a phone / laptop that died, 夢到 … dream questions.
+
+### Tap-to-call help lines (owner order 2026-11-14 Part B, branch `helpline-b-v2`)
+
+The acknowledgement card, the pinned help bar and the always-visible help lines draw every number with the shared
+component `lensiq-helpline.js` (the same component as branch `helpline-b`): one compact row per line (short label, then
+the call button with the number, at least 44 px; second line under the label), the owner's warm 1323 wording
+("อยากมีคนรับฟัง โทร 1323" / "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง" / "บริการของกรมสุขภาพจิต"), and the number as large
+selectable text on a computer. The card's lines come from the component (`CARD` keeps only the card text). The pinned
+bar keeps its 1323 row always visible and the other rows (Samaritans, 1300, 191, 1669) behind "more help lines", as
+section 1 decided; the hope frame's closing sentence still mentions 1323 as text inside the reading, next to the bar's
+button. Wording review: L63 (`docs/LEGAL-PACKET.md` 6.9).

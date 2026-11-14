@@ -1,0 +1,12 @@
+{
+  "//": "Official pages re-checked daily by tools/helpline-recheck.mjs (.github/workflows/helpline-recheck.yml). Each phrase is quoted in docs/CRISIS-RESOURCES.md (Verified table, checked 2026-11-14). Change a phrase only after re-checking the page and updating that table and lensiq-helpline.js.",
+  "SOURCES": [
+    { "tel": "1323", "url": "https://dmh.go.th/", "phrases": ["บริการปรึกษาปัญหาสุขภาพจิตฟรีตลอด 24 ชั่วโมง"] },
+    { "tel": "1323", "url": "https://checkin.dmh.go.th/", "phrases": ["สายด่วนสุขภาพจิต 1323 ตลอด 24 ชั่วโมง"] },
+    { "tel": "1669", "url": "https://www.niems.go.th/", "phrases": ["เจ็บป่วยฉุกเฉิน โทร. 1669"] },
+    { "tel": "191", "url": "https://www.191.go.th/", "phrases": ["สายด่วนฉุกเฉิน 191 ตลอด 24 ชั่วโมง"] },
+    { "tel": "1300", "url": "https://1300thailand.m-society.go.th/page/3", "phrases": ["สายด่วน 1300 เปิดให้บริการตลอดเวลา 24 ชั่วโมง 7 วัน"] },
+    { "tel": "1300", "url": "https://1300thailand.m-society.go.th/faq", "phrases": ["ให้บริการ สายด่วน 1300 ตลอด24 ชั่วโมง 7 วัน"] },
+    { "tel": "021136789", "url": "https://www.samaritansthai.com/", "phrases": ["ฟังคุณด้วยใจ โทร. 02-113-6789 เวลา 12:00-22:00 น."] }
+  ]
+}
