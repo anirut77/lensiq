@@ -1050,8 +1050,11 @@ Worker answers 404 `org_accounts_off` before any session or database lookup. Tur
 never the link, its hash or the e-mail HMAC), licence status (plan, quantity, dates, status; never the quotation reference,
 amount or note) and the full organisation audit log with its hash chain (pseudonymous refs only), plus a TH / EN / ZH
 readme saying what is and is not inside and how to verify the chain. It is **always available** (owner decision
-2026-11-13 "export always"): also while the organisation is suspended or closed and whatever the licence state; at most 30
-exports per organisation per hour (abuse cap). Every export is logged in the organisation audit log (`org.exported`,
+2026-11-13 "export always"): also while the organisation is suspended or closed and whatever the licence state (a closed
+organisation stays listed for its admins as "export only"); at most 30 exports per person per organisation per hour
+(abuse cap). **Exception:** while the Worker switch `ORG_ACCOUNTS` is off, the export is unreachable as well, like every
+other organisation route; whether it should stay reachable when the switch is turned off after real organisations exist
+is an open owner decision. Every export is logged in the organisation audit log (`org.exported`,
 counts only). The file is generated on request and not stored on the server; once downloaded it is on the admin's device.
 
 (c) **Questions for counsel.** (1) The export puts members' account e-mails in a file the admin keeps; is the invitation
