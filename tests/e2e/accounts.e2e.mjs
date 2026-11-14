@@ -17,6 +17,7 @@ const API = "https://api.lensiq.test";
 const THAI = /[ก-ฺเ-๛]/;
 
 const MOCK = (role = "admin") => `(() => {
+  window.LENSIQ_ORG_ACCOUNTS = true; // A-P1-2: org-p1 client switch on for this suite
   window.LENSIQ_API_BASE = ${JSON.stringify(API)};
   window.LENSIQ_GOOGLE_CLIENT_ID = "";
   window.LENSIQ_ANALYTICS = false;
@@ -36,7 +37,7 @@ const MOCK = (role = "admin") => `(() => {
     const authed = h.get("Authorization") === "Bearer " + TOKEN;
     const body = init.body ? JSON.parse(init.body) : null;
     log.push({ method, path, authed, body }); keep();
-    if (path === "/v1/config") return json({ analytics: false, free_mode: true, pricing_enabled: false, membership: { required: false, google_client_id: null, line_enabled: true, consent_version: "m1", guest_daily_readings: 3, guest_light_sections: 2, member_ai_daily: 3 } });
+    if (path === "/v1/config") return json({ analytics: false, free_mode: true, pricing_enabled: false, org_accounts: true /* A-P1-2 */, membership: { required: false, google_client_id: null, line_enabled: true, consent_version: "m1", guest_daily_readings: 3, guest_light_sections: 2, member_ai_daily: 3 } });
     if (path === "/api/auth/line/start" && method === "POST") {
       const state = "s".repeat(43), binding = "b".repeat(43);
       return json({ authorize_url: location.origin + "/account.html?code=c0de0001&state=" + state + "&friendship_status_changed=false", binding, expires_in: 600, mode: body.mode }, 201);

@@ -53,7 +53,7 @@ async function setup(vars = {}) {
     }
     throw new Error("unexpected network call in test: " + url);
   };
-  const env = createEnv({ GOOGLE_CLIENT_ID: CLIENT_ID, TURNSTILE_SECRET: "ts", TURNSTILE_HOSTNAMES: "site.example", ADMIN_BOOTSTRAP_TOKEN: ADMIN_TOKEN, SECRETS_KEK: KEK, ...vars });
+  const env = createEnv({ GOOGLE_CLIENT_ID: CLIENT_ID, TURNSTILE_SECRET: "ts", TURNSTILE_HOSTNAMES: "site.example", ADMIN_BOOTSTRAP_TOKEN: ADMIN_TOKEN, SECRETS_KEK: KEK, ORG_ACCOUNTS: "on", ...vars }); // A-P1-1: org-p1 off switch on for this suite
   const call = async (path, o = {}) => {
     const headers = { ...(o.headers || {}) };
     if (o.token) headers.Authorization = "Bearer " + o.token;
