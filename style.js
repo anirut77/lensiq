@@ -226,7 +226,7 @@
   function showPair() {
     const d = content.drapes[drapeIdx];
     if (!d) { finish(); return; }
-    for (const el of document.querySelectorAll("#styDrapes .sty-drape-pair")) el.hidden = el.getAttribute("data-dim") !== d.dim;
+    for (const el of document.querySelectorAll("#styDrapes .sty-drape-pair")) /** @type {HTMLElement} */ (el).hidden = el.getAttribute("data-dim") !== d.dim;
     $("#styDrapeL").style.background = d.a.hex; $("#styDrapeR").style.background = d.b.hex;
   }
   function chooseDrape(dim, side) {

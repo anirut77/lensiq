@@ -79,7 +79,7 @@ export default async function ({ base, launch, check }) {
   try {
     await check("style: flag OFF by default: 'not available yet' in TH / EN / ZH, app hidden, nothing heavy loaded, no camera; URL cannot turn it on", async () => {
       for (const q of ["", "?lang=en", "?lang=zh", "?fakelm=1&fakeseg=1&demo=1&style=1&LENSIQ_STYLE=true"]) {
-        const page = await browser.newPage(null, { initScripts: [SCENE] });
+        const page = await browser.newPage(null, { initScripts: [SCENE], isolated: true });
         await page.goto(`${base}/style.html${q}`);
         await sleep(1200);
         const s = await page.evaluate(() => {
@@ -102,7 +102,7 @@ export default async function ({ base, launch, check }) {
 
     let neutral;
     await check("style: flag ON (init script): start notice, card step finds the grey card, measurement gives two closest seasons + 12-16 swatches + confidence + disclaimer", async () => {
-      const page = await browser.newPage(null, { initScripts: [SCENE, ON, FAKE_LM] });
+      const page = await browser.newPage(null, { initScripts: [SCENE, ON, FAKE_LM], isolated: true });
       await page.goto(`${base}/style.html?fakelm=1&fakeseg=1`);
       await page.waitFor("window.__style && window.__style.state.step === 'start'", 10000);
       const s0 = await page.evaluate(() => ({ off: document.getElementById("styOff").offsetParent !== null, app: document.getElementById("styApp").hidden,
@@ -139,7 +139,7 @@ export default async function ({ base, launch, check }) {
     });
 
     await check("style: white-balance step: the same scene under a strong warm cast gives the same undertone band and top season", async () => {
-      const page = await browser.newPage(null, { initScripts: ["window.__STY_SCENE = { cast: [1.35, 1.0, 0.62] };", SCENE, ON, FAKE_LM] });
+      const page = await browser.newPage(null, { initScripts: ["window.__STY_SCENE = { cast: [1.35, 1.0, 0.62] };", SCENE, ON, FAKE_LM], isolated: true });
       await page.goto(`${base}/style.html?fakelm=1&fakeseg=1`);
       const warm = await measure(page);
       assert(warm.status === "ok", "status " + warm.status);
@@ -153,7 +153,7 @@ export default async function ({ base, launch, check }) {
     });
 
     await check("style: a clipped white card is refused (no result, a clear reason), never a guess", async () => {
-      const page = await browser.newPage(null, { initScripts: ["window.__STY_SCENE = { card: [255, 255, 255] };", SCENE, ON, FAKE_LM] });
+      const page = await browser.newPage(null, { initScripts: ["window.__STY_SCENE = { card: [255, 255, 255] };", SCENE, ON, FAKE_LM], isolated: true });
       await page.goto(`${base}/style.html?fakelm=1&fakeseg=1`);
       await page.waitFor("window.__style && window.__style.state.step === 'start'", 10000);
       await page.evaluate(() => document.getElementById("styGoA").click());
@@ -171,7 +171,7 @@ export default async function ({ base, launch, check }) {
     });
 
     await check("style: card PNG from swatches only, opt-in save of derived colours, entry C, delete; nothing sent", async () => {
-      const page = await browser.newPage(null, { initScripts: [SCENE, ON, FAKE_LM] });
+      const page = await browser.newPage(null, { initScripts: [SCENE, ON, FAKE_LM], isolated: true });
       await page.goto(`${base}/style.html?fakelm=1&fakeseg=1`);
       const before = await page.evaluate(() => Object.keys(localStorage).filter(k => /style|palette|season/i.test(k)));
       assert(!before.length, "nothing stored before " + before);
@@ -214,7 +214,7 @@ export default async function ({ base, launch, check }) {
     await check("style: EN / ZH disclaimer and labels, no overflow at 390 px", async () => {
       for (const [lang, h1, disc] of [["en", /colou?r/i, "Colour seasons are a matter of taste. This is a colour suggestion, not an assessment of you."],
         ["zh", /色/, "色彩季型属于主观偏好。本结果仅为配色建议，并非对您本人的评价。"]]) {
-        const page = await browser.newPage(null, { initScripts: [SCENE, ON, FAKE_LM] });
+        const page = await browser.newPage(null, { initScripts: [SCENE, ON, FAKE_LM], isolated: true });
         await page.goto(`${base}/style.html?fakelm=1&fakeseg=1&lang=${lang}`);
         await page.waitFor("window.__style && window.__style.state.step === 'start'", 10000);
         await sleep(400);

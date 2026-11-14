@@ -28,7 +28,7 @@
   function srgbToLinear(v) { const c = v / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
   /** @param {number} l linear @returns {number} 0..255 (not rounded) */
   function linearToSrgb(l) { const c = Math.max(0, l); return 255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055); }
-  /** @param {number[]} m @param {number[]} v */
+  /** @param {number[][]} m @param {number[]} v */
   const mul = (m, v) => [0, 1, 2].map(i => m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2]);
   /** @param {number[]} lin linear RGB @returns {number[]} XYZ (Y = 1 for white) */
   function linToXyz(lin) { return mul(M, lin); }

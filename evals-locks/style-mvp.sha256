@@ -14,3 +14,10 @@ def2941a2a2f7835da0db07e41cac9cf2cab8f92172eb817c56f95523ce45047  tests/style-co
 7bcd2c124191aab6a84cd7339888f375bb3d186286ebd27febae173d812aca59  tests/style-wording.test.js
 d32d62ce32c8ef8c02f72996f2eed07d1482bf16630bf87107ba023050c01b99  tests/style-flag.test.js
 df2d80c4fff620ded001d96c14a0d01d147a2ee7423d663321453a12b7e31236  tests/style.e2e.mjs
+#
+# Re-lock 2026-11-14 (CI run 43595256145 on ba2d152): tests/e2e/style.e2e.mjs — TEST-ISOLATION ONLY: every newPage gets
+# isolated: true (own browser context). The flag-off loop opened ?lang=zh, and lensiq-i18n.js persists ?lang in
+# localStorage by design, so later pages in the shared context rendered in Chinese. No assertion, step or value changed.
+# Copy: tests/style.e2e.v2.mjs (the first copy tests/style.e2e.mjs is kept unchanged). Hash df2d80c4… superseded.
+# locked 2026-11-14T12:58:27Z (tools/eval-guard.mjs lock, 1 file)
+818608117ff6578a820b4d87113af0cb2163e504c51db5ab59f03ffad99407bc  tests/style.e2e.v2.mjs
