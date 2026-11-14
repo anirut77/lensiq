@@ -34,3 +34,9 @@ d05517c871d320109f4da1903f993f59a0c022d0d6ee63de653783a86d624021  tests/e2e/tryo
 4b4c5805b3c46855b9449b3d0a78f4b8cf7a9db4bd8c4a485f48dc982231fa71  tests/unit/backend-tryon.test.js
 c554b76f47f85eacd240940d5ce47d7d34eb9132f678feb72fb0a73ede72107e  tests/unit/tryon-core.test.js
 e7fd40f572796c2d46f89ea323110e85bfe10a510fc42e472d327b4eae1469f9  tests/unit/tryon-reauth.test.js
+#
+# Amendment 2026-11-14 (tryon-off, see evals-locks/tryon-off.sha256): FIXTURE ONLY — backend-tryon.test.js and
+# tryon-reauth.test.js set TRYON: "on" in the test env because the Worker switch TRYON now ships off; every case and
+# assertion is unchanged. Hashes 4b4c5805… (backend-tryon) and e7fd4…  (tryon-reauth) superseded by:
+274fbb9f7aa0338385b989a9b796fd6e71fa9b74456066dd3b758b09e139cf1d  tests/unit/backend-tryon.test.js
+f7080559bc5003d667c43b60ea5472eed447e424798ee9e2572367d0a4fa4ec4  tests/unit/tryon-reauth.test.js

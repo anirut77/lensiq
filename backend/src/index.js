@@ -41,6 +41,8 @@
 //     GET /api/me/identities, POST /api/me/identities/unlink, GET /api/me/orgs, /api/orgs/:id[/profile|invites|members|
 //     transfer|audit|licences|export], POST /api/org-invites/accept — org-p1: every organisation route (member side and
 //     back office) answers 404 org_accounts_off unless ORG_ACCOUNTS = "on"
+//   Try-On (tryon.js; owner decision 2026-11-14, no R2 and no server deploy): every path under /v1/tryon and
+//     /admin/api/tryon answers 404 tryon_off unless TRYON = "on", before Origin, session, D1 or R2
 // Test deployment switches (tester.js; all unset by default = no change): PUBLIC_ROUTES (allow-list; other public routes
 //   404 route_off before D1), D1_WRITE_BUDGET (429 d1_budget), ADMIN_UNAUTH_WRITES_HOUR, SERVICE_OFF (every public route except /health
 //   -> 503 {off:true}), DAILY_REQUEST_CAP (429 daily_cap), TESTER_GATE + TESTER_ACCESS_CODE (X-Tester-Code on /v1/ai/*,
@@ -106,6 +108,9 @@ export const RECONCILE_CRON = "*/15 * * * *";
 /** Admin test charges per hour (all sessions together); override with the TEST_CHARGE_HOUR var (1–100). */
 export const TEST_CHARGE_HOUR = 10;
 
+/** Try-On reachable for this deployment: the TRYON switch and the public allow-list @param {any} env */
+const tryonOn = env => tryon.tryonEnabled(env) && routeEnabled(env, "/v1/tryon/catalog");
+
 async function publicRoute(request, env, url, deps) {
   const allow = publicOrigins(env);
   const cors = corsHeaders(request, allow, { methods: "GET, POST, DELETE, OPTIONS", headers: "Content-Type, X-Turnstile-Token, Authorization, Idempotency-Key, X-Tester-Code" });
@@ -123,6 +128,8 @@ async function publicRoute(request, env, url, deps) {
   if (!routeEnabled(env, p)) return reply(ROUTE_OFF_BODY, 404);
   // org-p1: organisation accounts OFF unless ORG_ACCOUNTS = "on" — refused before any session or database lookup
   if (orgs.isOrgMemberPath(p) && !orgs.orgsEnabled(env)) return reply(orgs.ORGS_OFF_BODY, 404);
+  // Try-On OFF unless TRYON = "on" (owner decision 2026-11-14) — refused before any database or R2 access
+  if (tryon.isTryonPublicPath(p) && !tryon.tryonEnabled(env)) return reply(tryon.TRYON_OFF_BODY, 404);
   const capped = await countRequest(env);
   if (!capped.ok) return json(capBody(capped.code), capped.code === "config_invalid" ? 503 : 429, { ...cors, "Retry-After": String(capped.retryAfter) });
   // deploy B3: tester access code (TESTER_GATE=required). Checked only on the gated routes below.
@@ -176,11 +183,11 @@ async function publicRoute(request, env, url, deps) {
   }
   if (p === "/v1/config" && m === "GET" && !routeEnabled(env, "/v1/events") && !routeEnabled(env, "/api/auth/nonce") && !routeEnabled(env, "/v1/billing/plans")) {
     // a deployment whose allow-list leaves analytics, sign-in and billing out says so, without touching D1
-    return reply({ analytics: false, free_mode: true, pricing_enabled: false, billing_enabled: false, org_accounts: false, membership: { required: false, google_client_id: null } });
+    return reply({ analytics: false, free_mode: true, pricing_enabled: false, billing_enabled: false, org_accounts: false, tryon: tryonOn(env), membership: { required: false, google_client_id: null } });
   }
   if (p === "/v1/config" && m === "GET") {
     const b = await billing.publicBillingInfo(env);
-    return reply({ analytics: routeEnabled(env, "/v1/events"), free_mode: b.free_mode, pricing_enabled: b.pricing_enabled, org_accounts: orgs.orgsEnabled(env),
+    return reply({ analytics: routeEnabled(env, "/v1/events"), free_mode: b.free_mode, pricing_enabled: b.pricing_enabled, org_accounts: orgs.orgsEnabled(env), tryon: tryonOn(env),
       membership: await members.publicMembership(env) });
   }
   if (p.startsWith("/api/auth/") || p === "/api/me" || p.startsWith("/api/me/")) {
@@ -342,6 +349,8 @@ async function adminRoute(request, env, url, deps) {
   const route = url.pathname.slice("/admin/api".length) || "/";
   // org-p1: the back-office organisation routes are unreachable while ORG_ACCOUNTS is not "on" (before Origin, session, D1)
   if (orgs.isOrgAdminRoute(route) && !orgs.orgsEnabled(env)) return json(orgs.ORGS_OFF_BODY, 404, cors);
+  // Try-On back office unreachable while TRYON is not "on" (owner decision 2026-11-14; before Origin, session, D1, R2)
+  if (tryon.isTryonAdminRoute(route) && !tryon.tryonEnabled(env)) return json(tryon.TRYON_OFF_BODY, 404, cors);
   // Every admin request must come from an allowlisted Origin; unsafe ones must send it explicitly.
   const unsafe = !["GET", "HEAD", "OPTIONS"].includes(m);
   if (!originAllowed(request, allow, { required: unsafe || m === "OPTIONS" })) return json({ error: "origin not allowed" }, 403, cors);
@@ -407,7 +416,7 @@ async function adminRoute(request, env, url, deps) {
       throw new HttpError(403, "not allowed for a reviewer account (forbidden_role)", { code: "forbidden_role" });
     }
     if (m === "GET" && route === "/me") {
-      return reply({ role: accRole === "merit" ? "reviewer" : accRole, username: sess.reviewerName, totp_enabled: true, csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null });
+      return reply({ role: accRole === "merit" ? "reviewer" : accRole, username: sess.reviewerName, totp_enabled: true, tryon: tryon.tryonEnabled(env), csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null });
     }
   }
   /** Sensitive action: body {password, totp} (auth.reauthOwner — rate limited per session, failures audited there) or
@@ -507,7 +516,7 @@ async function adminRoute(request, env, url, deps) {
   switch (`${m} ${route}`) {
     case "GET /me": {
       const o = await auth.getOwner(env.DB);
-      return reply({ role: "owner", username: o.username, totp_enabled: !!o.totp_enabled, org_accounts: orgs.orgsEnabled(env), recovery_left: o.totp_enabled ? await auth.recoveryLeft(env.DB) : 0,
+      return reply({ role: "owner", username: o.username, totp_enabled: !!o.totp_enabled, org_accounts: orgs.orgsEnabled(env), tryon: tryon.tryonEnabled(env), recovery_left: o.totp_enabled ? await auth.recoveryLeft(env.DB) : 0,
         recovery_legacy: o.totp_enabled ? await auth.recoveryLegacy(env.DB) : 0,
         csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null, password_changed_at: o.password_changed_at });
     }

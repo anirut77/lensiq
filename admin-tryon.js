@@ -23,6 +23,7 @@
   const STATUS = { draft: "ร่าง", in_review: "รออนุมัติ", published: "เผยแพร่แล้ว", hidden: "ซ่อน" };
   const catName = c => G("at.cat." + c, CAT[c] || c), stName = s => G("at.st." + s, STATUS[s] || s);
   const ERR = {
+    tryon_off: "ระบบลองสินค้าปิดอยู่บนเซิร์ฟเวอร์นี้",
     bad_body: "คำขอไม่ถูกต้อง ลองใหม่อีกครั้ง",
     unknown_field: "มีช่องข้อมูลที่ระบบไม่รู้จัก",
     invalid_category: "ไม่รู้จักหมวดนี้",

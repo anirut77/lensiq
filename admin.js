@@ -212,9 +212,19 @@
     var only = me.role === "reviewer" ? "merit" : /^tryon_/.test(String(me.role)) ? "tryon" : "";
     // org-p1: the Organisations tab needs both switches (window.LENSIQ_ORG_ACCOUNTS === true and the Worker's ORG_ACCOUNTS = "on")
     var orgsOn = /** @type {any} */ (window).LENSIQ_ORG_ACCOUNTS === true && me.org_accounts === true;
-    document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) { var n = b.getAttribute("data-tab"); /** @type {HTMLElement} */ (b).hidden = (!!only && n !== only) || (n === "orgs" && !orgsOn); });
+    // Try-On: the tab needs the Worker's TRYON = "on" (GET /me tryon; owner decision 2026-11-14, Try-On ships off)
+    var tryonOn = me.tryon === true;
+    document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) {
+      var n = b.getAttribute("data-tab");
+      /** @type {HTMLElement} */ (b).hidden = (!!only && n !== only) || (n === "orgs" && !orgsOn) || (n === "tryon" && !tryonOn);
+    });
     show("adApp");
     msg("");
+    if (only === "tryon" && !tryonOn) {
+      tab("");
+      msg(G("at.off", "ระบบลองสินค้าปิดอยู่บนเซิร์ฟเวอร์นี้ ตอนนี้ยังจัดการแคตตาล็อกไม่ได้ กรุณาติดต่อเจ้าของระบบ"), true);
+      return;
+    }
     tab(only || "analytics");
     if (!only) leadBadge();
   }

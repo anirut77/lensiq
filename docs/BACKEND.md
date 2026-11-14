@@ -582,6 +582,11 @@ Local dev with the Turnstile bypass: put `GO_LIVE_GATE=report` in `.dev.vars` (t
 > the missing migration. Order: `npm run backend:migrate` (or `wrangler d1 migrations apply`) first, then deploy. The
 > try-on public routes (`/v1/tryon/catalog`, `/v1/tryon/asset/*`) must be added to `PUBLIC_ROUTES` where that list is set.
 > Images: R2 binding `TRYON_BUCKET` when the owner enables R2 (not today); otherwise the D1 fallback (≤ 1 MB per image).
+> **Try-On ships OFF (owner decision 2026-11-14: no R2 and no server deploy for Try-On).** The Worker var `TRYON` is
+> `"off"` in `[vars]` and `[env.test.vars]`; only `"on"` (trimmed, any case) enables it. Off: every path under `/v1/tryon`
+> and `/admin/api/tryon` answers `404 {code:"tryon_off"}` before Origin, session, D1 or R2; `/v1/config` and
+> `/admin/api/me` report `tryon: false`; the back office hides the Try-On tab (tryon.html falls back to its drawn demo
+> catalogue). Migration 0017 is still needed: it adds `admin_reviewers.role`, which every reviewer account uses.
 
 1. `cd backend && npm install`
 2. `npx wrangler login`
