@@ -416,12 +416,18 @@
       }
       $("#gkCamBtn").addEventListener("click", () => (st.source === "cam" ? stopCam() : startCam()));
       $("#gkDemoBtn").addEventListener("click", async () => {
-        if (!ackOk()) { status(T("gk.st.ack", "ยืนยันประกาศ PDPA ด้านบนก่อนเปิดกล้อง"), "err"); return; }
+        if (!ackOk()) {
+          // walkthrough W-008: take the user to the PDPA step instead of only showing a red line far from it
+          status(T("gk.st.ackSample", "ก่อนใช้ภาพตัวอย่าง: ติ๊ก 2 ช่องในกล่อง PDPA ด้านบน แล้วกด \"เริ่มใช้งาน\" จากนั้นกด \"ใช้ภาพตัวอย่าง\" อีกครั้ง"), "err");
+          const box = /** @type {HTMLInputElement|null} */ (document.querySelector("#gkAck1"));
+          if (box) { try { box.scrollIntoView({ block: "center" }); } catch { box.scrollIntoView(); } box.focus({ preventScroll: true }); }
+          return;
+        }
         if (st.cam) st.cam.stop();
         // load every subset the drawn plate uses (Thai letters AND the Latin digits) so the demo never falls back to a system font
         try { await Promise.all([document.fonts.load("600 46px Prompt", "กข 0123456789"), document.fonts.load("500 24px Prompt", "กรุงเทพมหานคร")]); } catch { /* fonts API missing */ }
         st.source = "demo"; video.hidden = true; demo.hidden = false; $("#gkCamMsg").hidden = true; $("#gkNextBtn").hidden = false; demoNext();
-        status(T("gk.st.demo", "ภาพตัวอย่าง: ป้ายจำลองที่วาดขึ้น ไม่ใช่รถจริง"), "ok"); ready();
+        status(T("gk.st.demoRead", "ภาพตัวอย่าง: ป้ายจำลองที่วาดขึ้น ไม่ใช่รถจริง · กด \"อ่านป้ายตอนนี้\" ให้ระบบอ่านป้าย (ครั้งแรกโหลดโมเดลประมาณ 12 MB)"), "ok"); ready();
       });
       $("#gkNextBtn").addEventListener("click", demoNext);
 

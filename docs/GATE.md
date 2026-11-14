@@ -48,8 +48,8 @@ guard.
 **Accuracy is not measured on a real site yet.** The e2e test only proves that the model reads the synthetic demo plate.
 Each page has an on-site accuracy check (guard ✓ / ✗ per read, an edited read counts as ✗): plate-level and char-level
 accuracy, day / night split (frame luma < 60 or 18:00–06:00), province agreement, Wilson 95 % intervals and the CI-aware
-verdict of `lensiq-sitecheck.js` (`judge`, `needMoreProp`). Target: plate-level lower bound ≥ 95 % from ≥ 100 vehicles
-incl. ≥ 30 at night. Export = plate text + numbers only.
+verdict of `lensiq-sitecheck.js` (`judge`, `needMoreProp`). Target (pilot, `docs/pilot/PILOT-GATE.md` §5): plate-level lower bound ≥ 95 % by day and ≥ 85 % at night from
+≥ 200 real reads, night ≥ 40, motorcycles ≥ 30. Export = plate text + numbers only.
 
 ## 2. Variant A — car park
 

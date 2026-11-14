@@ -3,7 +3,7 @@
 // sha256 locked in ~/LENSIQ-field/evals/sellable-c/locked.sha256.
 //   1. with ?demo=1 the dashboard opens already joined to room DEMO (12 seats), with no camera and no clicks needed:
 //      - the banner #lqSampleBar and the demo panel [data-lq-demo] (says: the tally is made-up sample data, NOT a measured accuracy);
-//      - a pre-filled on-site tally: phone 3 right / 1 wrong, noface 2 / 3, multiface 1 / 2, fsexit 2 / 0, lean 0 / 1 (all 8 / 15,
+//      - a pre-filled on-site tally: phone 3 right / 1 wrong, noface 2 / 3, multiface 1 / 2, fsexit 2 / 0, object 0 / 1 (all 8 / 15,
 //        53 %), with the 95 % interval shown; 3 flags still open in the queue with no verdict; two sample accommodations
 //        (seats 4 and 9), the sample invigilator name, a log in time order;
 //      - pressing "flag was right / wrong" on an open flag changes the table; "Reload the sample data" restores it;
@@ -18,7 +18,9 @@ import { noThai, phoneAudit, sleep } from "./exam-kit.mjs";
 
 const BAR = { th: "โหมดสาธิต: ข้อมูลตัวอย่าง ไม่ใช่ข้อมูลจริง", en: "Demo mode: sample data, not real data", zh: "演示模式：示例数据，并非真实数据" };
 const FORBIDDEN = /อารมณ์|สีหน้า|โกหก|หลอกลวง|ทุจริต|emotion|expression|deception|\blie\b|\blying\b|cheat|情绪|表情|谎|欺骗|作弊/i;
-const EXPECT = { fsexit: [2, 0], lean: [0, 1], multiface: [1, 2], noface: [2, 3], phone: [3, 1] }; // keys sorted
+// amendment 2 (2026-11-14, buyer walkthrough W-019, branch walk-fix): the lab demo shows lab signals only, so the one reviewed
+// hall-mode flag (lean 0 / 1) became a lab "object" flag 0 / 1; every count, percentage and total is unchanged (8 / 15, 53 %).
+const EXPECT = { fsexit: [2, 0], multiface: [1, 2], noface: [2, 3], object: [0, 1], phone: [3, 1] }; // keys sorted
 
 const initFor = lang => `
   try { localStorage.setItem('lq-lang', '${lang}'); } catch (e) {}

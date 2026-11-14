@@ -54,7 +54,8 @@
       return { ok: r.ok, how: "sent" };
     } catch (e) {
       await new Promise(r => setTimeout(r, 30));
-      if (cspBlocked) { msg.textContent = T("vg.relay.cspErr", "นโยบายความปลอดภัยของหน้าไม่อนุญาตที่อยู่นี้ — ใช้ตัวกลางในวง LAN หรือเพิ่มที่อยู่ใน connect-src (docs/GATE.md) แล้วเปิดที่ตู้ควบคุม"); msg.dataset.kind = "err"; return { ok: false, how: "csp" }; }
+      if (cspBlocked) { msg.textContent = T("vg.relay.cspErr", "นโยบายความปลอดภัยของหน้าไม่อนุญาตที่อยู่นี้ — ใช้ตัวกลางในวง LAN"
+        + " หรือเพิ่มที่อยู่ใน connect-src (ดูคู่มือติดตั้งที่ทีมงานส่งให้) แล้วเปิดที่ตู้ควบคุม"); msg.dataset.kind = "err"; return { ok: false, how: "csp" }; }
       if (req.method === "GET") { // a device without CORS headers: send anyway, the answer cannot be read
         try { await fetch(req.url, { mode: "no-cors", signal: ctl.signal, cache: "no-store", credentials: "omit" }); msg.textContent = T("vg.relay.opaque", "ส่งคำสั่งแล้ว แต่ยืนยันผลจากอุปกรณ์ไม่ได้ — ดูว่าไม้กั้นเปิดจริง"); msg.dataset.kind = ""; return { ok: true, how: "opaque" }; } catch { /* fall through */ }
       }

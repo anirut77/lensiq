@@ -1,0 +1,48 @@
+# locked 2026-11-14T12:58:42Z (tools/eval-guard.mjs lock, 4 files)
+320122ebcae1ef85dbf70bbed910f166126c476221547074850b9d9709afaf30  walkfix.test.js
+a02856c29c59c8e3bbe3b3877f6e55735f37bcab8ed36aaa4fda97476a368c66  walkfix.e2e.mjs
+9f68e3b30576e86170164817f033401d6878f4fb4b50bab9944ba38ee6644be1  walkfix-webkit.e2e.mjs
+cdcc159e34d9e16c94c970dae606afb6054fffb38d167818228cd9e696790526  exam-dashboard-demo.e2e.mjs
+# repo copies (byte-identical to the locked set above), locked 2026-11-14 BEFORE the fixes on branch walk-fix (base 4413bc3); buyer walkthrough W-001..W-038
+320122ebcae1ef85dbf70bbed910f166126c476221547074850b9d9709afaf30  tests/unit/walkfix.test.js  # repo file
+a02856c29c59c8e3bbe3b3877f6e55735f37bcab8ed36aaa4fda97476a368c66  tests/e2e/walkfix.e2e.mjs  # repo file
+9f68e3b30576e86170164817f033401d6878f4fb4b50bab9944ba38ee6644be1  tests/e2e/walkfix-webkit.e2e.mjs  # repo file
+cdcc159e34d9e16c94c970dae606afb6054fffb38d167818228cd9e696790526  tests/e2e/exam-dashboard-demo.e2e.mjs  # repo file
+# locked 2026-11-14T13:23:12Z (tools/eval-guard.mjs lock, 1 file)
+ccb4ac36acc334246443d5b1bea16706a345f0cdb20e32b28ab23dc700844364  walkfix.test.js
+# amendment 1 2026-11-14 (walkfix.test.js, before any other fix was measured): W-002 regexes used capturing groups (lab|dashboard), (village|parking), (amp;)? so the test read the i18n key as the button text; made them non-capturing. No assertion, page, key or expected text changed.
+ccb4ac36acc334246443d5b1bea16706a345f0cdb20e32b28ab23dc700844364  tests/unit/walkfix.test.js (after amendment 1)  # repo file
+# locked 2026-11-14T13:32:33Z (tools/eval-guard.mjs lock, 1 file)
+182a334b3c0bb8af0a2a00cb99b4f967cf3d8702fe0302051d8b310876438220  walkfix.test.js
+# amendment 2 2026-11-14 (walkfix.test.js W-012): the locked test fixed filter code "pilot" = pilot-ready, but docs/claim-rules.json crowd-not-available-now (older, locked) forbids code "now" on the Crowd cards, and solutions.test.js allows only now/pilot/soon, so no page could pass all three. Now: pilot-ready cards and the other cards each share one code and never the same one, AND (new, stricter) the filter buttons of the two groups must read พร้อมนำร่อง / ทดลอง. Badge-vs-page-status, Crowd experimental and no 'available now' checks unchanged.
+182a334b3c0bb8af0a2a00cb99b4f967cf3d8702fe0302051d8b310876438220  tests/unit/walkfix.test.js (after amendment 2)  # repo file
+# locked 2026-11-14T13:33:48Z (tools/eval-guard.mjs lock, 1 file)
+1ac9acb84e48a17df7332450bb0dead5aeb3b1d113248b10593d1a0840fbb7c0  walkfix.test.js
+# amendment 3 2026-11-14 (walkfix.test.js W-012): amendment 2 still could not pass: solutions.test.js (locked) forbids data-status "now" on exam/gate/parking/village cards and the claim rule forbids it on Crowd cards, so pilot-ready and Crowd cards must share data-status. The group a buyer sees and filters by is now the badge class (solutions.js filters by it, checked); data-status keeps its older values. Badge text vs page status, Crowd experimental, disjoint groups and filter-label checks unchanged.
+1ac9acb84e48a17df7332450bb0dead5aeb3b1d113248b10593d1a0840fbb7c0  tests/unit/walkfix.test.js (after amendment 3)  # repo file
+# locked 2026-11-14T13:46:48Z (tools/eval-guard.mjs lock, 2 files)
+b95e28a050a2c41774c29ddd218196c618642da0c81537d3a6663bb64bc6bb1c  walkfix.test.js
+94583d85ea3720cef5ea262234fa16ec70dae18be14461d9235b7afe3a20472e  walkfix.e2e.mjs
+# amendment 4 2026-11-14 (walkfix.test.js + walkfix.e2e.mjs), after running the older affected suites: (a) W-004: attendance-hr.e2e.mjs (older) pins the DOM tab order with PIN last, so PIN / QR comes first ON SCREEN via CSS order in employee mode; the e2e now reads the on-screen order. (b) W-012: solutions.e2e.mjs (older) filters on data-status and the claim rule crowd-not-available-now + its fixture in claim-rules.test.js pin the 3 Crowd cards to data-status="pilot"; so group = data-status = badge class again, pilot-ready cards in "pilot", experimental/demo in "now" except the 3 Crowd cards (badge still ทดลอง, page explains it). Badge-vs-page-status, Crowd-experimental and no-'available now' checks unchanged.
+b95e28a050a2c41774c29ddd218196c618642da0c81537d3a6663bb64bc6bb1c  tests/unit/walkfix.test.js (after amendment 4)  # repo file
+94583d85ea3720cef5ea262234fa16ec70dae18be14461d9235b7afe3a20472e  tests/e2e/walkfix.e2e.mjs (after amendment 4)  # repo file
+# locked 2026-11-14T14:35:03Z (tools/eval-guard.mjs lock, 2 files)
+abdc791b753497e1a64d68a07d2ea4abee8da9255c36ab7b9ce85d2389e70f31  walkfix-cp.test.js
+a11768d1b076b8371b1457ffd23e687f1c4b68446255721823840240575edade  walkfix-cp.e2e.mjs
+# consistency-pass merge items (coordinator 2026-11-14), locked BEFORE merging origin/main with consistency-pass and before the fixes
+abdc791b753497e1a64d68a07d2ea4abee8da9255c36ab7b9ce85d2389e70f31  tests/unit/walkfix-cp.test.js  # repo file
+a11768d1b076b8371b1457ffd23e687f1c4b68446255721823840240575edade  tests/e2e/walkfix-cp.e2e.mjs  # repo file
+# locked 2026-11-14T16:08:41Z (tools/eval-guard.mjs lock, 2 files)
+12718471c30c439f6ab4af46088fa77b8cefa073fb45c2983d1526b139736870  walkfix-n.test.js
+e3109a00358d50e26cea79227f2da6e861549a926304f40beebdd171f2ebcf90  walkfix.test.js
+# re-walk round (coordinator 2026-11-14, re-walk of a86b02c: N1, N2, N6, N7, W-006), locked BEFORE the fixes. walkfix-n.test.js is new. walkfix.test.js amendment 5: W-027 placeholders per language ([เจ้าของจะแจ้ง] / [to be provided by the owner] / [由业主提供], the coordinator's N6 instruction) and EN / ZH sections now allow no Thai at all (stricter).
+12718471c30c439f6ab4af46088fa77b8cefa073fb45c2983d1526b139736870  tests/unit/walkfix-n.test.js (re-walk round)  # repo file
+e3109a00358d50e26cea79227f2da6e861549a926304f40beebdd171f2ebcf90  tests/unit/walkfix.test.js (re-walk round)  # repo file
+# locked 2026-11-14T16:09:54Z (tools/eval-guard.mjs lock, 1 file)
+29f11e9ab43da29312f1fbfe7bf5570923709c2dba93e2e11f64a60c6b837610  walkfix-n.test.js
+# walkfix-n.test.js amendment 1: the N1 check exempted only the cat-hr .sl-go, although its header names solutions.test.js's existing-file rule, which also pins the hr1 card's .sl-go to a bare file; hr1 must still carry the explicit PIN / QR link (unchanged check).
+29f11e9ab43da29312f1fbfe7bf5570923709c2dba93e2e11f64a60c6b837610  tests/unit/walkfix-n.test.js (amendment 1)  # repo file
+# locked 2026-11-14T17:10:54Z (tools/eval-guard.mjs lock, 1 file)
+a6e5a9ee22c6ba57d1d3fd550eab8089099a7b4faf444b5399054c53a93c88e5  walkfix-n.test.js
+# walkfix-n.test.js amendment 2: products.e2e.mjs (older, locked) requires index.html to keep a bare attendance.html link (CI run 43616191465 shard 2 failed on it); the home use case 'องค์กร' that carries it describes training check-in by face, so it stays bare and is exempted. Footer and every other buyer link keep ?mode=employee.
+a6e5a9ee22c6ba57d1d3fd550eab8089099a7b4faf444b5399054c53a93c88e5  tests/unit/walkfix-n.test.js (amendment 2)  # repo file

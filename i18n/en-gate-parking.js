@@ -126,7 +126,7 @@
   "pk.sp.used": "This code has already been used",
   "pk.sp.ok": "Code from {s} applied",
   "pk.del": "Delete",
-  "pk.foot": "All data is kept in this device's browser (no server). Back up regularly with CSV export · Camera and hardware guide: docs/GATE.md",
+  "pk.foot": "All data is kept in this device's browser (no server). Back up regularly with CSV export · Camera and hardware guide: see “Equipment and installation” on the LENSIQ Gate page; the team sends the installer the full guide",
   "pk.st.mpass": "Monthly pass — no parking fee",
   "pk.st.inside": "This car has been in the car park since {t}",
   "pk.st.lookalike": "Similar plate (look-alike letters) — make sure",

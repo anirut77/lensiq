@@ -387,8 +387,8 @@
         if (r.via === "api") {
           // the server form failed (review of lead-form-fix): keep the e-mail, say why, offer LINE (same wording as the home form)
           out.appendChild(doc.createTextNode(r.reason === "turnstile"
-            ? T("home.err.ts", "ยังไม่ได้ส่ง: ยืนยันว่าเป็นคนไม่สำเร็จ ข้อความของคุณยังอยู่ในแบบฟอร์ม กดส่งอีกครั้ง หรือติดต่อเราทาง LINE {id}", { id: r.lineId || "" })
-            : T("home.err.send", "ส่งไม่สำเร็จ (ระบบหรือเครือข่ายขัดข้อง) ข้อความของคุณยังอยู่ในแบบฟอร์ม กดส่งอีกครั้ง หรือติดต่อเราทาง LINE {id}", { id: r.lineId || "" })));
+            ? T("pr.err.ts", "ยังไม่ได้ส่ง: ยืนยันว่าเป็นคนไม่สำเร็จ อีเมลของคุณยังอยู่ในช่อง กดปุ่ม “แจ้งฉัน” ได้อีกครั้ง หรือติดต่อเราทาง LINE {id}", { id: r.lineId || "" })
+            : T("pr.err.send", "ยังไม่ได้ส่ง: ระบบหรือเครือข่ายขัดข้อง อีเมลของคุณยังอยู่ในช่อง กดปุ่ม “แจ้งฉัน” ได้อีกครั้ง หรือติดต่อเราทาง LINE {id}", { id: r.lineId || "" })));
           if (r.line) {
             out.appendChild(doc.createTextNode(" "));
             out.appendChild(h("a", { href: r.line, target: "_blank", rel: "noopener", text: T("home.ok.line", "แชตทาง LINE {id}", { id: r.lineId || "" }) }));

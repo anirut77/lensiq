@@ -357,3 +357,22 @@ accountant's invoices; see owner item O3).
 - **ห้ามเสนอ:** รายเดือนพื้นที่ถาวร (ยังไม่ขายจนกว่าโครงการนำร่องพื้นที่ถาวรผ่าน) ฝูงชนหนาแน่น (ประมาณ 50 คนขึ้นไปในภาพ) การใช้ตัดสินความปลอดภัยของฝูงชน
 - **ต้องบอกลูกค้า:** นับต่ำกว่าจริง 26–59% ในคลิปคนเบาบางถึงปานกลาง (ผลเบื้องต้น เทียบ AI ไม่ใช่คนนับ) ต้องติดป้าย A ที่ทางเข้าพื้นที่ ไม่ประมาณอายุ เพศ หรือสีหน้า
 - **หลังโอน:** `ONBOARDING-CROWD.md`
+
+## 9. Buyer walkthrough 2026-11-14: fixes on branch `walk-fix` (not merged yet)
+
+Defects: `~/LENSIQ-field/review/walkthrough-2026-11-14/DEFECTS.md` (W-001 … W-038). Tests locked first: `evals-locks/walk-fix.sha256`.
+
+- Each product page (exam, attendance, gate, crowd) now ends and starts with "ขอใบเสนอราคา" (form with the product preselected)
+  and "ดูเดโม" (`?demo=1`). Category CTAs preselect their product; `#contact` keeps the form in view while the home page renders.
+- Attendance: employee mode opens on the PIN / QR tab (first tab), h1 and menu name are the PIN / QR time clock, face stays as an
+  option. The bare `attendance.html` still opens in training mode (existing tests depend on it): link buyers to `?mode=employee`.
+- §7 item 5 (Gate field target): `gate.html` now states the PILOT-GATE §5 bar (≥ 200 reads, night ≥ 40, motorcycles ≥ 30;
+  day ≥ 95 %, night ≥ 85 %, Wilson lower bound). Resolved on the page; `docs/GATE.md:51` still has the old wording.
+- §7 item 12 (Exam lab unit): page and one-pager now say "per computer lab" / "ห้องแล็บคอมพิวเตอร์" / "计算机机房". Resolved.
+- Gate figures on `gate.html` follow `docs/accuracy-figures.json` (14 / 32; 0 / 19 with 11 tuning, 0 / 8 held out).
+- Solutions catalogue badges use the category vocabulary (พร้อมนำร่อง / ทดลอง / สาธิต / กำลังพัฒนา) per linked page; Crowd = ทดลอง.
+- Customer onboarding guides (TH / EN / ZH, LINE @632yliiw, e-mail and phone "[เจ้าของจะแจ้ง]"): `docs/sales/customer/`.
+  The internal guides in `docs/sales/` stay for the team.
+- Still with the owner: W-003 / W-007 / W-015 / W-016 (sale-status and price wording), W-013 / W-014 (home emphasis, emotion
+  content), W-030 (Gate retention: code default 90 days, free-trial 7-day log limit not enforced in code), W-035 (leads in
+  localStorage), W-031 (Chinese line on the Gate sign: legal wording, L24).

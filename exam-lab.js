@@ -369,6 +369,8 @@
     link = L.create({ room, onMessage });
     buildMonitor();
     if (DEMO) { // no camera, no models: straight to the exam step; events come from the demo panel's buttons
+      const mon = document.querySelector('#monitor [data-i18n="exam.lab.mon"]'); // walkthrough W-021: never "camera is running" in the demo
+      if (mon) { mon.setAttribute("data-i18n", "demo.exam.mon"); mon.textContent = T("demo.exam.mon", "โหมดสาธิต: ไม่ได้เปิดกล้อง · ไม่มีการส่งภาพ"); }
       show("exam"); wasFs = false;
       engine(() => T("demo.exam.engine", "โหมดสาธิต: ไม่ได้เปิดกล้อง เหตุการณ์ในบันทึกเป็นตัวอย่าง"), "warn");
     } else { show("cam"); startCamera(); }

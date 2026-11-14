@@ -50,7 +50,7 @@
       sq: /guarant/
     },
     fix_luck: {
-      th: /แก้ดวง|เปลี่ยนดวง|แก้เคราะห์|ตัดกรรม|สะเดาะเคราะห์|หายชง|แก้ชงได้ผล|ดวงดีขึ้น|เสริมดวง|รวย|ปลดหนี้|แก้ซวย|พลิกดวง|หายขาด|พ้นเคราะห์|ปัดเป่า|ขจัดเคราะห์|เรียกทรัพย์/,
+      th: /แก้ดวง|เปลี่ยนดวง|แก้เคราะห์|ตัดกรรม|สะเดาะเคราะห์|หายชง|แก้ชงได้ผล|แก้ชงได้|ดวงดีขึ้น|เสริมดวง|รวย|ปลดหนี้|แก้ซวย|พลิกดวง|หายขาด|พ้นเคราะห์|ปัดเป่า|ขจัดเคราะห์|เรียกทรัพย์/,
       en: new RegExp("\\bfix(?:es|ed|ing)? (?:your |the )?(?:bad )?(?:luck|fortune|clash)\\b|\\bremove[sd]? (?:your |the )?(?:bad luck|misfortune|clash|curse)|" +
         "\\bchange (?:your )?(?:luck|fortune|destiny)\\b|\\bturn(?:s|ing)? (?:your )?(?:luck|fortune|life) around\\b|\\b(?:luck|fortune|life) (?:will )?turns? around\\b|" +
         "\\bluck (?:will )?improves?\\b|\\b(?:boost|increase|raise|attract|improve)\\w* (?:your |the )?(?:luck|fortune|wealth)\\b|\\bend (?:your )?bad luck\\b|" +

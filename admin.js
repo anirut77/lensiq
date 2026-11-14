@@ -1224,6 +1224,9 @@
       return G("am.e.wording", "ถ้อยคำในช่อง {field} ใช้ไม่ได้: {why} กรุณาแก้แล้วบันทึกอีกครั้ง", { field: m[1], why: cats.join(", ") });
     }
     if (e && e.code === "merit_invalid") return G("am.e.invalid", "ข้อมูลยังไม่ครบหรือไม่ถูกต้อง: {why}", { why: String(e.message || "").replace(/[{}]/g, "") });
+    if (e && e.code === "batch_exists") {
+      return G("am.e.batch_exists", "ไฟล์ชุด {batch} นำเข้าไปแล้ว แต่ละไฟล์นำเข้าได้ครั้งเดียว ไม่มีอะไรถูกเขียนเพิ่ม", { batch: amImp.batch || "" });
+    }
     if (e && e.code === "reauth_required") return G("am.e.reauth", "ต้องยืนยันรหัสผ่านก่อนลบ");
     return friendly(e);
   }
@@ -1303,7 +1306,7 @@
         h("div", { class: "am-meta" }, q.item_id + " · " + q.date_from + " – " + q.date_to + " · " + when(q.created_at)), h("div", { class: "ad-row" }, del)));
     });
   }
-  function amRender() { amFilterFill(); amSelects(); amKeysPicker(); amRenderList(); amRenderInterest(); if (am.viewing && !$("amView").hidden) amShowView(am.viewing); }
+  function amRender() { amFilterFill(); amSelects(); amKeysPicker(); amRenderList(); amRenderInterest(); amRenderBatches(); if (am.viewing && !$("amView").hidden) amShowView(am.viewing); }
   loaders.merit = function () {
     var rev = isReviewer();
     // a reviewer never asks for the interest inbox (personal data) or the import: the Worker refuses both for them
@@ -1334,6 +1337,23 @@
       srcs.appendChild(h("li", null, (x.publisher ? x.publisher + " · " : "") + (x.title ? x.title + " · " : ""), a, x.accessed ? " (" + x.accessed + ")" : ""));
     });
     $("amViewSourcesBox").hidden = !(meta.sources && meta.sources.length);
+    // place notes (owner order 2026-11-14 Part C): what people visit for, province, how the writer confirmed it
+    var PP = { work: G("am.pp.work", "การงาน"), money: G("am.pp.money", "การเงิน"), love: G("am.pp.love", "ความรัก"), health: G("am.pp.health", "สุขภาพ"),
+      protection: G("am.pp.protection", "คุ้มครอง"), barami: G("am.pp.barami", "เสริมบารมี") };
+    var VF = { official: G("am.vf.official", "ยืนยันจากแหล่งทางการ"),
+      official_unopened: G("am.vf.official_unopened", "แหล่งทางการ (ยังไม่ได้เปิดอ่านหน้าต้นทาง)"), secondary: G("am.vf.secondary", "แหล่งรอง (สื่อ หนังสือ สารานุกรม)"),
+      word_of_mouth: G("am.vf.word_of_mouth", "ตามที่เล่าต่อกันมา") };
+    var notes = [];
+    if (Array.isArray(meta.purposes) && meta.purposes.length) {
+      notes.push(G("am.v.purposes", "จุดประสงค์ที่คนไปไหว้") + ": " + meta.purposes.map(function (/** @type {string} */ x) { return /** @type {any} */ (PP)[x] || x; }).join(", "));
+    }
+    if (meta.province) notes.push(G("am.v.province", "จังหวัด") + ": " + meta.province);
+    if (meta.verification) notes.push(G("am.v.verification", "การยืนยัน") + ": " + (/** @type {any} */ (VF)[meta.verification] || meta.verification));
+    $("amViewPlaceNotes").textContent = notes.join(" · ");
+    $("amViewPlaceNotes").hidden = !notes.length;
+    // official_unopened: the reviewer opens the official link, then raises the level (recorded in the history)
+    $("amViewVerify").hidden = meta.verification !== "official_unopened";
+    $("amViewVerify").textContent = G("am.v.verify", "เปิดอ่านหน้าทางการแล้ว: ยกระดับเป็นแหล่งทางการ");
     var bodyBox = $("amViewBody"); bodyBox.textContent = "";
     ["th", "en", "zh"].forEach(function (l) {
       bodyBox.appendChild(h("p", { lang: l === "zh" ? "zh-Hans" : l }, (it.title && it.title[l] || "") + "\n" + (it.body && it.body[l] || "")));
@@ -1350,7 +1370,8 @@
       (r.history || []).slice().reverse().forEach(function (/** @type {any} */ x) {
         var who = x.actor === "owner" ? G("am.h.owner", "เจ้าของ") : x.actor;
         var what = x.action === "review" ? G("am.h.rv." + x.decision, ({ reviewed: "ตรวจแล้ว", approve: "อนุมัติและเผยแพร่", reject: "ตีกลับ" })[x.decision] || x.decision)
-          : G("am.h." + x.action, ({ create: "สร้าง", edit: "แก้ไข", status: "เปลี่ยนสถานะ", "import": "นำเข้าเป็นร่าง", "delete": "ลบ" })[x.action] || x.action);
+          : G("am.h." + x.action, ({ create: "สร้าง", edit: "แก้ไข", status: "เปลี่ยนสถานะ", "import": "นำเข้าเป็นร่าง", "delete": "ลบ",
+            verify: G("am.h.verify", "ยกระดับเป็นแหล่งทางการ (เปิดอ่านหน้าต้นทางแล้ว)") })[x.action] || x.action);
         var line = when(x.ts) + " · " + who + " · " + what +
           (x.fields && x.fields.length && x.action === "edit" ? " (" + x.fields.join(", ") + ")" : "") +
           (x.from_status && x.to_status && x.from_status !== x.to_status ? " · " + amStatus(x.from_status) + " → " + amStatus(x.to_status) : "");
@@ -1384,8 +1405,25 @@
     });
   });
 
+  /* raise official_unopened -> official after opening the official page (reviewer or owner; in the history) */
+  $("amViewVerify").addEventListener("click", function () {
+    var id = am.viewing;
+    if (!id || !window.confirm(G("am.v.verifyQ", "คุณเปิดอ่านหน้าทางการในแหล่งที่มาแล้ว และเนื้อหาตรงกับรายการนี้ใช่ไหม?"))) return;
+    var c = /** @type {any} */ ($("amComment")).value || "";
+    call("/merit/items/" + id + "/verify", { method: "POST", body: { verification: "official", comment: c } }).then(function () {
+      msg(G("am.v.verified", "บันทึกแล้ว: แหล่งทางการ (เปิดอ่านแล้ว)")); loaders.merit();
+    }, function (/** @type {any} */ e) { msg(amError(e), true); });
+  });
+
   /* import drafts (owner): check the file first (dry run), then import; everything comes in as a draft */
-  var amImp = { items: /** @type {any[]|null} */ (null) };
+  var amImp = { items: /** @type {any[]|null} */ (null), batch: /** @type {string|null} */ (null) };
+  /** batches already imported (merit_batches): which drafts file is already in */
+  function amRenderBatches() {
+    var box = $("amImportBatches"), list = (am.data && am.data.batches) || [];
+    box.textContent = list.length ? G("am.imp.batches", "ไฟล์ที่นำเข้าแล้ว:") + "\n" + list.map(function (/** @type {any} */ b) {
+      return G("am.imp.batchLine", "{batch} · {n} รายการ · {when}", { batch: b.batch, n: b.count, when: when(b.imported_at) });
+    }).join("\n") : G("am.imp.batchesNone", "ยังไม่ได้นำเข้าไฟล์ร่างชุดใด");
+  }
   /** @param {any} r */
   function amImportReport(r) {
     var lines = [G(r.dry_run ? "am.imp.ready" : "am.imp.done", r.dry_run ? "พร้อมนำเข้า {n} รายการ" : "นำเข้าเป็นร่างแล้ว {n} รายการ", { n: r.dry_run ? r.ok_count : r.imported })];
@@ -1395,20 +1433,22 @@
   }
   $("amImport").addEventListener("click", function () {
     var inp = /** @type {any} */ ($("amImportFile")), file = inp.files && inp.files[0];
-    $("amImportGo").hidden = true; amImp.items = null;
+    $("amImportGo").hidden = true; amImp.items = null; amImp.batch = null;
     if (!file) { msg(G("am.imp.pick", "กรุณาเลือกไฟล์ร่างก่อน"), true); return; }
     file.text().then(function (/** @type {string} */ t) {
       var j = JSON.parse(t), items = Array.isArray(j) ? j : j && Array.isArray(j.items) ? j.items : null;
       if (!items) throw new Error("format");
-      amImp.items = items;
-      return call("/merit/import", { method: "POST", body: { items: items, dry_run: true } });
-    }).then(function (/** @type {any} */ r) { amImportReport(r); $("amImportGo").hidden = !r.ok_count; },
+      var batch = j && !Array.isArray(j) && typeof j.batch === "string" ? j.batch : null;
+      if (!batch) { msg(G("am.imp.nobatch", "ไฟล์นี้ไม่มีรหัสชุด (batch) จึงไม่นำเข้า เพื่อกันการนำเข้าไฟล์เดียวกันซ้ำ ส่งไฟล์ให้ผู้ช่วยเพิ่มรหัสชุดก่อน"), true); return null; }
+      amImp.items = items; amImp.batch = batch;
+      return call("/merit/import", { method: "POST", body: { batch: amImp.batch, items: items, dry_run: true } });
+    }).then(function (/** @type {any} */ r) { if (!r) return; amImportReport(r); $("amImportGo").hidden = !r.ok_count; },
       function (/** @type {any} */ e) { msg(e && e.status ? amError(e) : G("am.imp.bad", "อ่านไฟล์ไม่ได้ ต้องเป็นไฟล์ JSON ที่มีรายการ (items)"), true); });
   });
   $("amImportGo").addEventListener("click", function () {
     if (!amImp.items) return;
-    call("/merit/import", { method: "POST", body: { items: amImp.items } }).then(function (/** @type {any} */ r) {
-      amImportReport(r); $("amImportGo").hidden = true; amImp.items = null; /** @type {any} */ ($("amImportFile")).value = "";
+    call("/merit/import", { method: "POST", body: { batch: amImp.batch, items: amImp.items } }).then(function (/** @type {any} */ r) {
+      amImportReport(r); $("amImportGo").hidden = true; amImp.items = null; amImp.batch = null; /** @type {any} */ ($("amImportFile")).value = "";
       $("amFilter").value = "draft"; loaders.merit();
     }, function (/** @type {any} */ e) { msg(amError(e), true); });
   });

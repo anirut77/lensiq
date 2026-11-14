@@ -32,6 +32,9 @@
   // compact group name on the desktop bar (all groups on one line at 1024-1440 px); the drawer, the mega-menu intro and
   // the breadcrumb keep the full name. Group ids are kept from round 14 where the meaning matches (gate, edu, work, ana,
   // fortune, photo) so existing #navsub-<id> selectors keep working.
+  // buyer-facing entry points: the Attendance product is the PIN / QR time clock (employee mode); the bare page keeps
+  // training mode as its default (re-walk N1, 2026-11-14)
+  var ENTRY = { "attendance.html": "attendance.html?mode=employee" };
   var MENU = [
     { label: "ความปลอดภัยและการเข้าออก", short: "เข้าออก", id: "gate", cat: "security",
       intro: "อ่านป้ายทะเบียนรถไทยบนเครื่องสำหรับลานจอดและหมู่บ้าน ป้ายแจ้ง PDPA และแจ้งเตือนพื้นที่หวงห้าม เจ้าหน้าที่ยืนยันทุกครั้ง", items: [
@@ -55,7 +58,7 @@
     { label: "HR และที่ทำงาน", short: "HR", id: "work", cat: "hr",
       intro: "ลงเวลาด้วย PIN หรือ QR (ใบหน้าเป็นทางเลือก) สัมภาษณ์แบบมีโครงสร้าง ทบทวนเคส และกิจกรรมทีม คนตัดสินใจเรื่องคนเสมอ", items: [
       { href: "cat-hr.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
-      { href: "attendance.html", title: "เช็คชื่อด้วยใบหน้า", desc: "เช็คชื่ออบรม · ลงเวลาทำงานพนักงาน" },
+      { href: "attendance.html", title: "ลงเวลาทำงาน PIN / QR", desc: "ใบหน้าเป็นตัวเลือก · เช็คชื่ออบรม" },
       { href: "hr.html", title: "LENSIQ HR ภาพรวม", desc: "ชุดสัมภาษณ์ โหมดฝึกซ้อมผู้สมัคร และกิจกรรมทีม" },
       { href: "interview.html", title: "ชุดสัมภาษณ์แบบมีโครงสร้าง", desc: "คำถาม STAR + เกณฑ์ BARS ให้คะแนนอิสระ สรุปความสอดคล้อง โหมดฝึกซ้อม" },
       { href: "case-review.html", title: "ทบทวนเคสจากคลิปวิดีโอ", desc: "แท็กเวลา บันทึก ล็อกตรวจสอบย้อนหลัง ไม่ตัดสินความจริง" },
@@ -211,7 +214,9 @@
             : '<a class="mega-all" href="cameras.html"><span data-i18n="nav.viewall">ดูระบบทั้งหมด</span>' + arrow + '</a></div>') +
           '<ul class="mega-links' + (g.items.length > 6 ? " cols-3" : g.items.length > 3 ? " cols-2" : "") + '">';
       g.items.forEach(function (i) {
-        html += '<li><a href="' + i.href + '"' + (isCur(i.href) ? ' aria-current="page"' : "") + '><b data-i18n="' + key(i.href) + '.title">' + esc(i.title) + '</b><small data-i18n="' + key(i.href) + '.desc">' + esc(i.desc) + '</small></a></li>';
+        html += '<li><a href="' + (ENTRY[i.href] || i.href) + '"'
+          + (isCur(i.href) ? ' aria-current="page"' : "") + '><b data-i18n="' + key(i.href) + '.title">' + esc(i.title) + '</b>'
+          + '<small data-i18n="' + key(i.href) + '.desc">' + esc(i.desc) + '</small></a></li>';
       });
       html += '</ul></div></div></li>';
     } else {

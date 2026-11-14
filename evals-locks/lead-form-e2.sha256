@@ -1,0 +1,7 @@
+# locked 2026-11-14T17:19:12Z (tools/eval-guard.mjs lock, 4 files)
+f889d7ed069db87e52f4c3bb2ba4ac5f66fe15187e0027209c20169bb27d1d6b  leads-form-e2.test.js
+dcc9681f682c08a1c1b87fb0da3d2d22f89ab11407c9f25b2e605c973510ec31  lead-form-e2-lib.mjs
+9ccbf8c5a55df5a7359b63196c190ab9713deaa26fff14dda9ee4e8ebebf608d  lead-form-e2-chrome.e2e.mjs
+d9fd4a19bbecd4b33f06a9c4f4d820dbd5929ed7d07500e5f39b3d6215802579  lead-form-e2-webkit.e2e.mjs
+# Part E round 2: independent review of form-e @ ba9634c (2026-11-15) — R1 duplicate POST when "send again" / "send now" overlaps the automatic retry (medium), R2 source/lang lost on retry, R3 pricing notify wording, D4 interactive Turnstile hint on a page-load retry. Locked BEFORE the fix; the lead-form-e set is unchanged.
+# The four files are byte-identical copies of tests/unit/leads-form-e2.test.js and tests/e2e/lead-form-e2-{lib.mjs,chrome.e2e.mjs,webkit.e2e.mjs}.

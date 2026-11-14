@@ -8,6 +8,10 @@
  *      in, the visitor's own mail app sends it) and/or the LINE Official Account link (LENSIQ_SELLER.line).
  *      Resolves {via: "mailto" | "line", ok: false, href, line}. Nothing has been sent at that point — the page says so.
  *   3) Neither configured: {via: "none", ok: false} — the page says honestly that the details are not announced yet.
+ *   Part E (owner order 2026-11-14, defect W-001): a request counts as sent ONLY on a 2xx from /v1/leads. A request the
+ *   server did not confirm (network, 403 bot check, 5xx, offline) is kept in the "lq-leads" queue below and retried by
+ *   flushQueue() — on page load, when the device comes back online, and after the next confirmed send — each time with
+ *   its own fresh Turnstile token; it leaves the queue only after the server confirmed it (2xx).
  *   Round 12 — nothing is lost in the static build: a lead that could not be sent is queued in THIS browser only
  *   (localStorage "lq-leads", at most QUEUE_MAX, never sent anywhere by itself). Every [data-lq-pending] box on the page
  *   then shows "n requests not sent yet" with copy / delete, and — once the owner fills LENSIQ_SELLER.email / .line or
@@ -98,12 +102,33 @@
   var serverOn = function () { var A = W.LQApi; return W.LENSIQ_LEADS_FORM === true && !!(A && A.enabled && A.enabled() && typeof A.call === "function"); };
   /** The LINE ID offered on the quote-request confirmation (LENSIQ_SELLER.quote_line), "" while the form is off. */
   var quoteLine = function () { var s = sellerOf(W.LENSIQ_SELLER); return W.LENSIQ_LEADS_FORM === true && /^@?[A-Za-z0-9._-]{2,40}$/.test(s.quote_line || "") ? s.quote_line : ""; };
+  /* one send at a time (the form, the queue box and the automatic retry share one Turnstile widget and its tokens are
+   * single-use); `inflight` = ids being sent right now */
+  /** @type {Promise<any>} */
+  var chain = Promise.resolve();
+  /** @type {Record<string, boolean>} */
+  var inflight = {};
+  /** @param {() => (Promise<any>|undefined)} fn */
+  function serial(fn) { var p = chain.then(fn, fn); chain = p.then(function () { return undefined; }, function () { return undefined; }); return p; }
+  /** the device says it has no network (navigator.onLine === false) */
+  function offline() { return !!(W.navigator && W.navigator.onLine === false); }
   /**
    * Sends a lead (see the header). Never rejects.
    * @param {any} lead @param {{subject?: string, turnstile?: any}} [opts]
    * @returns {Promise<{via: string, ok: boolean, href?: string, line?: string, lineId?: string, status?: number}>}
    */
   function submit(lead, opts) {
+    var id = lead && lead.id ? String(lead.id) : "";
+    return serial(function () {
+      // review of form-e @ ba9634c: "send again" / "send now" pressed while the automatic retry was posting the same
+      // request waited here; the server has confirmed it meanwhile, so it is never posted twice
+      if (id && confirmed[id]) return Promise.resolve({ via: "api", ok: true, status: 200, already: true });
+      if (id) inflight[id] = true;
+      return send(lead, opts).then(function (/** @type {any} */ r) { if (id) delete inflight[id]; return r; });
+    });
+  }
+  /** @param {any} lead @param {{subject?: string, turnstile?: any}} [opts] */
+  function send(lead, opts) {
     var o = opts || {};
     var body = Object.assign(cleanLead(lead), { consent: true });
     var fb = function (/** @type {number} */ status) {
@@ -123,6 +148,8 @@
       // LINE and the text kept, never the browser-only "announced before sales" path
       if (String(W.LENSIQ_API_BASE || "").trim() && W.LENSIQ_LEADS_FORM === true && !(A && typeof A.call === "function")) return failApi("network", 0);
       if (!serverOn()) return fb(0);
+      // no network: say so at once (no bot check, no POST); the page queues it and flushQueue() sends it when back online
+      if (offline()) return failApi("offline", 0);
       return Promise.resolve(A.turnstile ? A.turnstile("lead", o.turnstile) : "").then(function (/** @type {string} */ tok) {
         // with a site key (every real deployment) no token = no send; without one (local development) the Worker decides
         if (!tok && String(W.LENSIQ_TURNSTILE_SITEKEY || "").trim()) return failApi("turnstile", 0);
@@ -148,6 +175,65 @@
   /** Keeps a lead that could not be sent (returns false when storage is blocked). @param {any} lead */
   function queue(lead) { var ok = writeQ(queueAdd(readQ(), lead)); renderPending(); return ok; }
   function clearQueue() { writeQ([]); renderPending(); }
+  /** Removes one request from the queue (after the server confirmed it). @param {string} id */
+  function unqueue(id) { var l = readQ(), k = l.filter(function (x) { return String(x.id) !== String(id); }); if (k.length !== l.length) writeQ(k); renderPending(); }
+  /** Is this request still waiting in the queue? @param {string} id */
+  function isQueued(id) { return readQ().some(function (x) { return String(x.id) === String(id); }); }
+  /** @type {Promise<{sent: string[], left: number}>|null} */
+  var flushing = null;
+  /** @type {Record<string, boolean>} ids the queue delivered (server confirmed) during this page view */
+  var confirmed = {};
+  /** @param {string} id */
+  function wasSent(id) { return !!confirmed[String(id)]; }
+  /**
+   * Sends every queued request (oldest first), each with its own Turnstile token, and removes a request ONLY after the
+   * server confirmed it with a 2xx. Stops at a failed bot check or when the device is offline. Only while the server form
+   * is on. Never rejects. Fires "lq-leads-sent" {detail: {ids}} for what was confirmed.
+   * @param {{turnstile?: any}} [opts] @returns {Promise<{sent: string[], left: number}>}
+   */
+  function flushQueue(opts) {
+    if (flushing) return flushing;
+    var sent = /** @type {string[]} */ ([]);
+    flushing = apiReady().then(function () {
+      if (!serverOn() || !readQ().length || offline()) return;
+      var stop = false;
+      return readQ().reduce(function (p, item) {
+        return p.then(function () {
+          if (stop) return;
+          return serial(function () {
+            var id = String(item.id || "");
+            // sent meanwhile by the form (or deleted by the person): skip
+            if (!id || inflight[id] || !isQueued(id)) return undefined;
+            if (offline()) { stop = true; return undefined; }
+            inflight[id] = true;
+            return send(item, { subject: "LENSIQ demo request", turnstile: opts && opts.turnstile }).then(function (/** @type {any} */ r) {
+              delete inflight[id];
+              if (r && r.via === "api" && r.ok) { unqueue(id); sent.push(id); confirmed[id] = true; }
+              else if (r && (r.reason === "turnstile" || r.reason === "offline")) stop = true;
+            });
+          });
+        });
+      }, Promise.resolve());
+    }).then(function () {
+      flushing = null;
+      renderPending();
+      if (sent.length) {
+        try { if (typeof W.CustomEvent === "function" && W.dispatchEvent) W.dispatchEvent(new W.CustomEvent("lq-leads-sent", { detail: { ids: sent.slice() } })); } catch (e) { /* old browser */ }
+      }
+      return { sent: sent, left: readQ().length };
+    }, function () { flushing = null; return { sent: sent, left: readQ().length }; });
+    return flushing;
+  }
+  /** automatic retry: page load, back online (the page's own Turnstile box when it has one) */
+  function autoFlush() {
+    if (!readQ().length) return;
+    var d = W.document, box = d && d.getElementById ? d.getElementById("lqTurnstile") : null;
+    var hint = d && d.getElementById ? d.getElementById("lqTurnstileHint") : null;
+    // the page's own Turnstile box; when Cloudflare asks the person to tick it, the page's "tap the box" hint shows
+    flushQueue(box ? { turnstile: { container: box,
+      onInteractive: function () { if (hint) hint.hidden = false; },
+      onDone: function () { if (hint) hint.hidden = true; } } } : undefined);
+  }
   (W.LQI18N_Q = W.LQI18N_Q || []).push({
     en: {
       "leads.q.wait": "{n} request(s) not sent yet — kept in this browser only. The contact channel will be announced before sales open; you can copy or delete them",
@@ -183,18 +269,22 @@
       var row = mk("p", "lq-pending-acts"), out = mk("span", "lq-pending-msg");
       out.setAttribute("role", "status");
       if (apiOn()) {
-        var send = /** @type {HTMLButtonElement} */ (mk("button", "btn ghost", T("leads.q.send", "ส่งตอนนี้")));
-        send.type = "button";
-        send.addEventListener("click", function () {
-          send.disabled = true;
-          var left = /** @type {any[]} */ ([]), sent = 0;
-          list.reduce(function (p, l) { return p.then(function () { return submit(l).then(function (r) { if (r.ok) sent++; else left.push(l); }); }); }, Promise.resolve()).then(function () {
-            writeQ(left); renderPending();
-            Array.prototype.forEach.call(W.document.querySelectorAll("[data-lq-pending]"), function (/** @type {HTMLElement} */ b) { if (!left.length) { b.hidden = false; b.textContent = sent ? T("leads.q.sent", "ส่งคำขอ {n} รายการถึงทีมงานแล้ว", { n: sent }) : ""; } });
-            if (left.length) out.textContent = T("leads.q.fail", "ยังส่งไม่ได้ตอนนี้ คำขอยังเก็บไว้ในเบราว์เซอร์นี้");
+        var sendBtn = /** @type {HTMLButtonElement} */ (mk("button", "btn ghost", T("leads.q.send", "ส่งตอนนี้")));
+        sendBtn.type = "button";
+        sendBtn.addEventListener("click", function () {
+          sendBtn.disabled = true;
+          // removed from the queue only after the server confirmed each one (flushQueue)
+          flushQueue().then(function (r) {
+            if (!r.left) {
+              Array.prototype.forEach.call(W.document.querySelectorAll("[data-lq-pending]"), function (/** @type {HTMLElement} */ b) { b.hidden = !r.sent.length; b.textContent = r.sent.length ? T("leads.q.sent", "ส่งคำขอ {n} รายการถึงทีมงานแล้ว", { n: r.sent.length }) : ""; });
+            } else {
+              Array.prototype.forEach.call(W.document.querySelectorAll("[data-lq-pending] .lq-pending-msg"), function (/** @type {HTMLElement} */ o) { o.textContent = T("leads.q.fail", "ยังส่งไม่ได้ตอนนี้ คำขอยังเก็บไว้ในเบราว์เซอร์นี้"); });
+            }
           });
         });
-        row.appendChild(send);
+        row.appendChild(sendBtn);
+        var ql = quoteLine(), qlu = ql ? lineUrl(ql) : "";
+        if (qlu) { var lb = /** @type {HTMLAnchorElement} */ (mk("a", "btn ghost", T("leads.q.line", "แชตทาง LINE"))); lb.href = qlu; lb.target = "_blank"; lb.rel = "noopener"; row.appendChild(lb); }
       } else if (fb.any) {
         list.slice(-3).forEach(function (l) {
           if (fb.email) { var a = /** @type {HTMLAnchorElement} */ (mk("a", "btn ghost", T("leads.q.mail", "ส่งทางอีเมล"))); a.href = mailtoHref(fb.email, l); row.appendChild(a); }
@@ -218,7 +308,10 @@
   if (W.document && W.addEventListener) {
     W.addEventListener("load", renderPending);
     W.addEventListener("lq-lang", renderPending);
+    W.addEventListener("load", autoFlush);
+    W.addEventListener("online", autoFlush);
   }
   W.LQLeads = Object.assign({ submit: submit, serverOn: serverOn, quoteLine: quoteLine, queue: queue, queued: readQ, clearQueue: clearQueue,
+    unqueue: unqueue, isQueued: isQueued, flushQueue: flushQueue, wasSent: wasSent, offline: offline,
     renderPending: renderPending, fallback: function () { return fallbackOf(W.LENSIQ_SELLER); } }, pure);
 })(typeof window !== "undefined" ? window : /** @type {any} */ (globalThis));

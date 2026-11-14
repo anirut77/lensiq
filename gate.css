@@ -116,3 +116,6 @@
   body.gk-printing .gk-print-on{position:absolute;left:0;top:0;width:100%;border:0}
   .nav,.lq-legal-foot{display:none!important}
 }
+
+/* 375 px (consistency review): the tab bar stays one row and scrolls sideways, so inactive tabs still read as tabs */
+@media (max-width:640px){.gk-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.gk-tabs>.tab{flex:0 0 auto;white-space:nowrap;max-width:none}}
