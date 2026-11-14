@@ -3,6 +3,8 @@
 This document has two parts. **Part A** (sections 1–7 below) checks the employee mode against Thai HR needs.
 **Part B** (added 2026-11-10, at the end) compares face-recognition models and SDKs whose licence allows commercial use,
 for the owner's decision. Owner decision in force: PIN/QR stays the default, face stays optional, no swap yet.
+**Update 2026-11-14:** candidates measured on a locked public set (Face Research Lab London Set, CC BY 4.0) in
+`docs/ATTENDANCE-FACE-OPTIONS.md`. No candidate has clean weights and training data together; nothing is switched.
 
 `attendance.html` now runs in two modes. **Training / event check-in** is the original page, unchanged and still the
 default. **Employee time attendance** is new and lives in `attendance-hr.js`, with the maths in `lensiq-timeclock.js`
