@@ -50,7 +50,9 @@ export default async function ({ base, launch, check }) {
           await page.waitFor("window.LQHR && window.LQI18N && document.body.classList.contains('att-emp')", 15000);
           await sleep(900);
           const r = await page.evaluate(() => {
-            const tabs = [...document.querySelectorAll(".tabs .tab")].filter(t => t.offsetParent);
+            // amendment 4: on-screen order (left to right, top to bottom), not DOM order (attendance-hr.e2e.mjs pins the DOM order)
+            const tabs = [...document.querySelectorAll(".tabs .tab")].filter(t => t.offsetParent)
+              .sort((a, b) => { const p = a.getBoundingClientRect(), q = b.getBoundingClientRect(); return Math.round(p.top) - Math.round(q.top) || p.left - q.left; });
             const lines = el => { const rg = document.createRange(); rg.selectNodeContents(el); return new Set([...rg.getClientRects()].filter(x => x.width > 1).map(x => Math.round(x.top))).size; };
             const h1 = document.querySelector("h1");
             return {

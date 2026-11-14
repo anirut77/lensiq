@@ -75,7 +75,9 @@ test("W-017: every ?interest= link on any page names an option of the quote form
 test("W-004: attendance.html — PIN / QR is the first tab, the employee-mode h1 is a PIN/QR time clock (face optional), face kept", () => {
   const src = read("attendance.html");
   const tabs = [...src.matchAll(/<button class="tab[^"]*" data-t="(\w+)"/g)].map(m => m[1]);
-  assert.equal(tabs[0], "pin", "first tab: " + tabs.join(","));
+  // amendment 4: tests/e2e/attendance-hr.e2e.mjs (older, locked) pins the DOM order checkin,register,records,check,pin, so the
+  // PIN / QR tab is put first on screen with CSS order in employee mode (tests/e2e/walkfix.e2e.mjs checks the on-screen order)
+  assert.ok(tabs[0] === "pin" || /body\.att-emp\s+#tabPin\s*\{[^}]*order:\s*-1/.test(read("attendance.css")), "PIN / QR first: " + tabs.join(","));
   for (const t of ["checkin", "register", "records", "check"]) assert.ok(tabs.includes(t), "face tab kept: " + t);
   const h1 = src.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)[1];
   const emp = h1.match(/<span class="emp-only" data-i18n="([\w.]+)">([^<]+)<\/span>/);
@@ -193,11 +195,9 @@ test("W-012: solutions.html badges match each linked page's status (cat-data); C
   for (const [, code, id, body] of cards) {
     const tag = body.match(/<span class="sl-tag (\w+)" data-i18n="([\w.]+)">([^<]+)<\/span>/);
     if (!tag) { bad.push(id + ": no tag"); continue; }
-    // amendment 3: the filter group is the badge class (solutions.js filters by it); data-status keeps its older values, which
-    // tests/unit/solutions.test.js (no "now" on exam / gate / parking / village) and the claim rule crowd-not-available-now read
+    // amendment 4: tests/e2e/solutions.e2e.mjs filters on data-status, so the badge class (= filter group) equals data-status again
     const grp = tag[1];
-    if ((code === "soon") !== (grp === "soon")) bad.push(`${id}: coming-soon status ${code} vs badge ${grp}`);
-    if (!/filter|group\(c\)/.test(read("solutions.js")) || !/classList\.contains/.test(read("solutions.js"))) bad.push("solutions.js does not filter by the badge");
+    if (grp !== code) bad.push(`${id}: badge class ${grp} != data-status ${code}`);
     const href = (body.match(/class="sl-go" href="([a-z0-9-]+)\.html/) || [])[1];
     if (grp === "soon") { if (href) bad.push(id + ": coming soon with a page link"); continue; }
     const st = href && D.PAGES[href] && D.PAGES[href].st;
@@ -206,15 +206,19 @@ test("W-012: solutions.html badges match each linked page's status (cat-data); C
     const shown = Object.keys(label).find(k => label[k] === tag[3].trim());
     if (!shown) bad.push(`${id}: tag text «${tag[3]}» is not a category status`);
     else if (rank[shown] > rank[st]) bad.push(`${id}: shows ${shown} but ${href} is ${st}`);
-    // amendment 2: the filter code is internal; what counts is that pilot-ready cards and the other cards never share a code
-    // (docs/claim-rules.json "crowd-not-available-now" forbids code "now" on the Crowd cards, so the codes may be swapped)
-    if (shown) (shown === "pilot-ready" ? prCodes : otherCodes).add(grp);
+    // amendment 4: pilot-ready cards form the "pilot" group, experimental / demo cards the "now" group, EXCEPT the three Crowd
+    // cards, which older locked checks (claim rule crowd-not-available-now + its fixture in claim-rules.test.js) keep in "pilot";
+    // their badge still says experimental and the page explains the group (sl.f.pilotNote)
+    const CROWD_CARDS = ["edu7", "r9", "e6"];
+    if (shown) (shown === "pilot-ready" ? prCodes : CROWD_CARDS.includes(id) ? new Set() : otherCodes).add(grp);
+    if (CROWD_CARDS.includes(id) && grp !== "pilot") bad.push(id + ": Crowd card group");
     if (href === "crowd" && shown !== "experimental") bad.push(id + ": Crowd must show experimental");
   }
   assert.deepEqual(bad, []);
   assert.ok(prCodes.size === 1 && otherCodes.size === 1 && ![...prCodes].some(c => otherCodes.has(c)), `one code per group: ${[...prCodes]} / ${[...otherCodes]}`);
   const fbtn = c => (html.match(new RegExp(`data-f="${c}"[^>]*>([^<]+)<`)) || [])[1] || "";
-  assert.equal(fbtn([...prCodes][0]).trim(), label["pilot-ready"], "filter button of the pilot-ready group");
+  assert.match(fbtn([...prCodes][0]), /นำร่อง/, "filter button of the pilot group");
+  assert.match(html, /data-i18n="sl\.f\.pilotNote">[^<]*Crowd[^<]*ทดลอง/, "the page says Crowd is in the pilot filter but experimental");
   assert.match(fbtn([...otherCodes][0]), new RegExp(label.experimental), "filter button of the experimental / demo group");
   assert.ok(!/ใช้ได้แล้ว<\/span>/.test(html), "no 'available now' badge");
   for (const f of ["i18n/en-solutions.js", "i18n/zh-solutions.js"]) {
