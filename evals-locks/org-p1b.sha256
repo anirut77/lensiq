@@ -1,0 +1,5 @@
+# locked 2026-11-14T12:51:26Z (tools/eval-guard.mjs lock, 3 files)
+65b50bed5e6a5c48aceadd246828945bed189edb93a76cbe9b7a7690622e8c38  tests/unit/backend-org-p1b.test.js
+4dc89426bf2bf10685ed60581c22c8a40166fec909a52a56546bc47c81b59f68  tests/e2e/org-p1b.e2e.mjs
+3709326faf758a6315828bdd065c34786e8c02bdcc8dd16784d53743af7f0d18  tests/unit/backend-org-p1.test.js
+# org-p1b (fixes for the org-p1 security review: L1 closed orgs export-only in the list, L4 export cap per person, I5 live config only, I6 invite fragment cleared when off): locked BEFORE the fix. Branch org-p1b, base 9bbc147. Amendment A-P1b-1 to tests/unit/backend-org-p1.test.js E2 (spec change ordered by the coordinator for review L1): a closed organisation is now listed in /api/me/orgs for its admins as export_only (was: not listed); the other closed-org assertions (404 on its routes, export 200) are unchanged.

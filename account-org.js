@@ -71,10 +71,10 @@
     set: function (/** @type {string} */ v) { try { if (v) sessionStorage.setItem(INV_KEY, v); else sessionStorage.removeItem(INV_KEY); } catch (e) { /* blocked */ } }
   };
   (function readInvite() {
-    if (!clientOrg) return; // switched off on this site: the invitation fragment is neither read nor kept
     var m = /(?:^#|&)org_invite=([A-Za-z0-9_-]{43})(?:&|$)/.exec(location.hash || "");
     if (!m) return;
-    ss.set(m[1]);
+    // switched off on this site: the token is not kept, but it still leaves the address bar (review I6)
+    if (clientOrg) ss.set(m[1]);
     try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* old browser */ }
   })();
   function renderInvite() {
@@ -164,9 +164,9 @@
       if (!cur.list.some(function (/** @type {any} */ o) { return o.id === cur.id; })) cur.id = cur.list[0].id;
       var ul = h("ul", { class: "acct-saved" });
       cur.list.forEach(function (/** @type {any} */ o) {
-        var li = h("li", { "data-org": o.id },
+        var li = h("li", { "data-org": o.id, "data-export-only": o.export_only ? "" : null },
           h("span", { class: "t" }, h("b", { text: o.name }), " · ", rname(o.role) + (o.is_owner ? " · " + T("acct.org.owner", "เจ้าของบัญชีองค์กร") : "") + (o.status === "suspended"
-              ? " · " + T("acct.org.susp", "ระงับชั่วคราว") : "")));
+              ? " · " + T("acct.org.susp", "ระงับชั่วคราว") : "") + (o.export_only ? " · " + T("acct.org.closedExp", "ปิดแล้ว (ส่งออกข้อมูลได้เท่านั้น)") : "")));
         if (cur.list.length > 1) {
           var b = h("button", { type: "button", "aria-pressed": String(o.id === cur.id), text: T("acct.org.open", "เปิด") });
           b.addEventListener("click", function () { cur.id = o.id; loadOrgs(); });
@@ -182,6 +182,12 @@
   /** @param {string} id */
   function loadDetail(id) {
     var m = M(), box = $("acOrgDetail"), seq = ++cur.seq;
+    var o = cur.list.find(function (/** @type {any} */ x) { return x.id === id; });
+    if (o && o.export_only) { // review L1: a closed organisation offers only the export (its other routes answer 404)
+      box.textContent = "";
+      box.appendChild(exportBlock({ org: { id: o.id, name: o.name, status: o.status } }));
+      return;
+    }
     Promise.all([m.org(id), m.orgLicences(id)]).then(function (/** @type {any[]} */ x) {
       if (seq !== cur.seq) return; // a newer render is on its way
       var r = x[0], lic = x[1];

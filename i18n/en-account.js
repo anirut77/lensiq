@@ -239,6 +239,7 @@
   "acct.org.bBad": "Invalid details: the taxpayer ID needs 13 digits and the e-mail must be valid",
   "acct.org.billingH": "Details for quotations and receipts",
   "acct.org.billingNote": "Used for quotations, invoices and receipts after a bank transfer. There is no online payment",
+  "acct.org.closedExp": "closed (data export only)",
   "acct.org.exportH": "Export organisation data",
   "acct.org.export": "Export organisation data (JSON file)",
   "acct.org.exportText": "Export is always available, also when the organisation account is suspended or a licence has expired. You confirm your identity again first. The file holds no employees, plates, candidates or images",
