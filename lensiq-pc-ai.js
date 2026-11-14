@@ -91,7 +91,7 @@
     return { both: a.filter(x => d.includes(x)), aiOnly: a.filter(x => !d.includes(x)), deviceOnly: d.filter(x => !a.includes(x)) };
   }
   /** Which mode goes out. Image only for pc_fields, only when chosen, and never with personal data on the label.
-   * @param {{mode: string, image: {block: boolean}, features: string[]}} o */
+   * @param {{mode: string, image: {block: boolean}, features: string[], jako?: boolean}} o */
   function decide(o) {
     if (o.mode !== "image" || !o.features.includes("pc_fields")) return { send: "text" };
     if (!o.image || o.image.block) return { offer: "text" }; // no check result = no photo
