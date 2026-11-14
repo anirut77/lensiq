@@ -16,3 +16,5 @@ a7933ea5330113b01c9b60351d8f4c33003f145d8470ac5f0e52ee2effe25c60  models-dl/aura
 df97ebb9f99f6c0566ca5575faa1932abf42c770e9fcf50787afc468f6248e00  harness/page.js
 38dd3d870564d644b684057d7b73743ecdf6e00af5d667dbc8c3ec7bd49dbbb1  harness/page.html
 df4d9b7ecc5e7d05d6bf68b0853da92f4cfd76aef40f5bb3784bf1de5f871907  harness/score.mjs
+# locked 2026-11-14T11:57:08Z (tools/eval-guard.mjs lock, 1 file)
+862333f73bd2a5d2bbbb18dafa2178e3460aaabba4169b5b1fb1b35d55d468d8  harness/run.mjs

@@ -12,13 +12,12 @@
 // Images are read from ~/LENSIQ-field and never copied into the repo.
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
-import { createReadStream, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { cpus, loadavg, platform, release, totalmem } from "node:os";
+import { chmodSync, createReadStream, existsSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { cpus, loadavg, platform, release, tmpdir, totalmem } from "node:os";
 import { dirname, extname, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { assertLocked, phaseDir } from "../eval-guard.mjs";
-import { launch } from "../../tests/e2e/cdp.mjs";
 
 const PHASE = "attendance-face";
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -65,6 +64,16 @@ const srv = await new Promise(ok => {
   s.listen(0, "127.0.0.1", () => ok(s));
 });
 const base = `http://127.0.0.1:${srv.address().port}`;
+// MediaPipe's image input needs WebGL (even with the CPU delegate): run Chrome with SwiftShader WebGL, as
+// tools/exam-face-eval.mjs does. face-api stays on TF.js WASM (?cpu), like tests/bench and the pages without WebGL.
+const realChrome = process.env.LQ_CHROME || ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/usr/bin/google-chrome", "/usr/bin/chromium"].find(p => existsSync(p));
+const wrapper = join(mkdtempSync(join(tmpdir(), "lq-afe-")), "chrome-webgl.sh");
+writeFileSync(wrapper, ["#!/bin/bash", "args=()",
+  `for a in "$@"; do case "$a" in --disable-webgl|--disable-3d-apis|--disable-gpu) ;; *) args+=("$a");; esac; done`,
+  `exec ${JSON.stringify(realChrome)} --use-angle=swiftshader --enable-unsafe-swiftshader "\${args[@]}"`, ""].join("\n"));
+chmodSync(wrapper, 0o755);
+process.env.LQ_CHROME = wrapper;
+const { launch } = await import("../../tests/e2e/cdp.mjs");
 const load0 = loadavg();
 const browser = await launch();
 const page = await browser.newPage(`${base}/__afe.html?cpu`, { timeout: 60000 });
