@@ -1297,9 +1297,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     engine(function () { return T("palm.eng.opening", "กำลังเปิดกล้อง..."); });
     try {
       await camera.start();
-      loadModels().catch(function () {});
       $("#plCamHint").hidden = true;
-      engine(function () { return T("palm.eng.camReady", "กล้องพร้อม — วางฝ่ามือให้อยู่ในกรอบ แล้วกด ถ่ายภาพฝ่ามือ"); }, "ok");
+      var camOk = function () { engine(function () { return T("palm.eng.camReady", "กล้องพร้อม — วางฝ่ามือให้อยู่ในกรอบ แล้วกด ถ่ายภาพฝ่ามือ"); }, "ok"); };
+      // speed pass 2026-11-14: the hand model is fetched now that the camera is open; a loading line until it is ready
+      if (ready) camOk();
+      else { engine(function () { return T("palm.eng.loading", "กำลังโหลดโมเดลจุดบนมือ..."); }); loadModels().then(camOk, function () {}); }
       btnCam.hidden = true; btnSnap.hidden = false;
       drawGuide(null, false);
     } catch (e) { camErr(e); btnCam.disabled = false; }
@@ -1340,10 +1342,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   async function processImage(cv) {
     S.src = cv; S.result = null;
     resultSec.hidden = true;
-    engine(function () { return T("palm.eng.finding", "กำลังหาจุดบนมือ..."); });
+    // speed pass L3: the hand model (4.4 MB) loads on the first photo; say so while it downloads
+    if (!ready) engine(function () { return T("palm.eng.loading", "กำลังโหลดโมเดลจุดบนมือ..."); });
+    else engine(function () { return T("palm.eng.finding", "กำลังหาจุดบนมือ..."); });
     await frame2();
     var det = null, nh = 0;
-    try { await loadModels(); var hs = await detectHands(cv, false); nh = hs.length; det = primaryHand(hs, null, cv.width, cv.height).hand; } catch (e) { console.warn(e); }
+    try {
+      if (!ready) { await loadModels(); engine(function () { return T("palm.eng.finding", "กำลังหาจุดบนมือ..."); }); }
+      await loadModels(); var hs = await detectHands(cv, false); nh = hs.length; det = primaryHand(hs, null, cv.width, cv.height).hand; } catch (e) { console.warn(e); }
     var q = quality(det && det.pts, cv.width, cv.height, cv, nh);
     renderQc(q);
     if (!det) {
@@ -2003,8 +2009,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   renderSources();
 
   if (!window.isSecureContext) showHttpsNote($("#plEngine"));
-  engine(function () { return T("palm.eng.loading", "กำลังโหลดโมเดลจุดบนมือ..."); });
-  loadModels().catch(function () {});
+  // speed pass 2026-11-14: no model download at page load; the hand model loads when the camera opens or a photo is chosen
+  // (test mode ?fakedet loads no model at all, so it is ready at once)
+  if (FAKE) loadModels().catch(function () {});
+  else engine(function () { return T("palm.eng.idle", "พร้อม — โมเดลจะโหลดเมื่อเปิดกล้องหรือเลือกรูป"); }, "ok");
   renderPair();
 
   /* ---------- สลับภาษา (TH | 中文): วาดข้อความที่สร้างจาก JS ใหม่ และเรียบเรียงคำทำนายใหม่จากผลวัดชุดเดิม ---------- */

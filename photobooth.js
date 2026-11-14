@@ -183,17 +183,20 @@ function composeCell(c, shot, x, y, w, h, bgKey) {
 async function init() {
   setStatus("cam", () => tr("photobooth.js.st.camOpening", "กำลังเปิดกล้อง..."), "");
   const camP = camera.start().catch(camErr);
+  // speed pass 2026-11-14: every model below is fetched only after the camera has been opened (or has failed, so that
+  // photo upload still works); nothing is downloaded while the page is only loading
+  const afterCam = fn => camP.then(fn);
 
-  const face = (async () => {
+  const face = afterCam(async () => {
     if (FAKE) return; // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
     await LQDetect.tfBackend();
     await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri("vendor/models/"), faceapi.nets.faceLandmark68Net.loadFromUri("vendor/models/")]);
     // round 16: customer mode (the default) never loads face_expression_model (F5) — research demo toggle only
     if (exprAllowed()) try { await faceapi.nets.faceExpressionNet.loadFromUri("vendor/models/"); exprOK = true; } catch (e) { console.warn("expression model", e); }
-  })().then(() => { faceOK = true; setStatus("face", () => tr("photobooth.js.st.faceOk", "ตรวจจับใบหน้าพร้อม"), "ok"); },
+  }).then(() => { faceOK = true; setStatus("face", () => tr("photobooth.js.st.faceOk", "ตรวจจับใบหน้าพร้อม"), "ok"); },
     e => { console.error(e); setStatus("face", () => tr("photobooth.js.st.faceErr", "ตรวจจับใบหน้าไม่ได้ (โหมดรูปติดบัตรจัดตำแหน่งอัตโนมัติไม่ได้)"), "warn"); });
 
-  const segP = (async () => {
+  const segP = afterCam(async () => {
     // กราฟ ImageSegmenter ของ MediaPipe ต้องใช้ GL แม้เลือก CPU delegate: ไม่มี WebGL (หรือ ?cpu) = ข้ามไปเลย ไม่พ่น error
     if (window.LQDetect && (!LQDetect.hasWebGL() || /[?&](cpu|nogl)\b/.test(location.search))) throw Object.assign(new Error("no WebGL"), { name: "NoWebGL" });
     const { FilesetResolver, ImageSegmenter } = await import(MP_BUNDLE);
@@ -209,12 +212,12 @@ async function init() {
       } catch (e) { last = e; console.warn("segmenter", delegate, e); }
     }
     throw last;
-  })().then(s => { seg = s; setStatus("seg", () => tr("photobooth.js.st.segOk", "เปลี่ยนฉากหลังอัตโนมัติพร้อม"), "ok"); },
+  }).then(s => { seg = s; setStatus("seg", () => tr("photobooth.js.st.segOk", "เปลี่ยนฉากหลังอัตโนมัติพร้อม"), "ok"); },
     e => { if (e.name === "NoWebGL") console.warn("segmenter skipped: no WebGL"); else console.error(e); setStatus("seg", () => tr("photobooth.js.st.segErr", "เปลี่ยนฉากหลังไม่ได้ในเครื่องนี้ (ใช้ภาพต้นฉบับแทน)"), "warn"); renderBgSwatches(); });
 
   // โหลด MODNet ล่วงหน้า (ใช้ตอนกดถ่าย เพื่อขอบผม/ขอบตัวเนียน)
   setStatus("hq", () => tr("photobooth.js.st.hqLoading", "กำลังโหลดโมเดลตัดพื้นหลังความละเอียดสูง..."), "");
-  const hqP = PBHQ.loadMatting().then(() => setStatus("hq", () => tr("photobooth.js.st.hqOk", "ตัดพื้นหลังความละเอียดสูง (MODNet) พร้อม"), "ok"),
+  const hqP = afterCam(() => PBHQ.loadMatting()).then(() => setStatus("hq", () => tr("photobooth.js.st.hqOk", "ตัดพื้นหลังความละเอียดสูง (MODNet) พร้อม"), "ok"),
     e => { console.warn(e); setStatus("hq", () => tr("photobooth.js.st.hqErr", "ตัดพื้นหลังความละเอียดสูงไม่ได้ ใช้แบบมาตรฐาน + เกลาขอบแทน"), "warn"); });
 
   await Promise.allSettled([camP, face, segP, hqP]);

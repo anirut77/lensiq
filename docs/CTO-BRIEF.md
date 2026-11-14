@@ -125,6 +125,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 | Python unittest | 4 files |
 | Gates | lint, typecheck, CSP, ZH/EN coverage, site check, and a mobile audit at 320/360/390 px |
 | Real-phone quality (stream B, 2026-11-13) | WebKit iPhone-width flows (14), crash guard (unit 10 + e2e 5, TH/EN/ZH), memory budget per camera page (9 pages, 60 s, synthetic headless Chrome). Details and numbers: `docs/PHONE-QUALITY.md`. Real-phone checks: `docs/owner-checklists/` |
+| Page speed (speed pass, 2026-11-14) | No model file before the camera opens on any page (locked e2e, 73 pages); page-weight budget per page from the measured baseline (bytes, requests); before/after on an emulated mid-range phone (CPU 4x + Fast 3G, synthetic). Details and numbers: `docs/SPEED.md` |
 
 ### CI
 
