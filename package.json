@@ -22,6 +22,7 @@
     "csp:meta": "node tools/csp-meta.mjs",
     "csp:check": "node tools/csp-meta.mjs --check && node tools/check-csp.mjs --as-is",
     "audit:mobile": "node tools/mobile-audit.mjs",
+    "audit:overlap": "node tools/overlap-probe.mjs",
     "serve": ".venv/bin/python server.py",
     "typecheck": "node tools/typecheck.mjs",
     "typecheck:report": "node tools/typecheck.mjs --report",
