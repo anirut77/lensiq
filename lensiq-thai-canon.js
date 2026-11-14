@@ -37,11 +37,12 @@
      Japanese-only character form (shinjitai such as 薬 剤 様 県 歳 発 売, kokuji such as 働 込 畑), 々 / 〆, or a Japanese era
      date; Chinese text (simplified or traditional) without these does not count. Thai / full-width digits are folded first. */
   const JAKO_RE = new RegExp("[\\u3040-\\u30FF\\u31F0-\\u31FF\\uFF66-\\uFF9F\\u1100-\\u11FF\\u3130-\\u318F\\uA960-\\uA97F\\uAC00-\\uD7AF\\uD7B0-\\uD7FF" +
-    "\\uFFA0-\\uFFDC\\u3200-\\u321E\\u3260-\\u327E\\u32D0-\\u32FE\\u3300-\\u3357\\u3005\\u3006\\u{1B000}-\\u{1B16F}]|" +
-    "[薬剤様県歳発売読済険証検験効処亜歯髪涙塩経続総緑縁説変圧鉄粋渋姫黒恵帯気広辺沢浜栄斎駅図対楽価実単関拡勧権労円働込畑峠枠]|" +
-    "(?:令和|平成|昭和|大正)\\s*(?:\\d|元年)", "u");
+    "\\uFFA0-\\uFFDC\\u3200-\\u321E\\u3260-\\u327E\\u32D0-\\u32FF\\u3300-\\u3357\\u337B-\\u337E\\u3005\\u3006\\u{1AFF0}-\\u{1B16F}\\u{1F200}-\\u{1F202}]|" +
+    "[薬剤様県歳発売読済険証検験効処亜歯髪涙塩経続総緑縁説変圧鉄粋渋姫黒恵帯気広辺沢浜栄斎駅図対楽価実単関拡勧権労円働込畑峠枠" +
+    "桜滝戦蔵毎齢徳穂臓摂乗晩仏伝団両焼鶏豊]|(?:令和|平成|昭和|大正)\\s*(?:\\d|元|[一二三四五六七八九十]{1,3}年)", "u");
   /** @param {any} s @returns {boolean} */
-  const jakoScript = s => JAKO_RE.test(canon(s).replace(/[๐-๙]/g, c => String(c.charCodeAt(0) - 0x0E50)).replace(/[０-９]/g, c => String(c.charCodeAt(0) - 0xFF10)));
+  // tested on the canonical copy and on its NFKC form (squared / circled / compatibility forms), digits folded
+  const jakoScript = s => { const t = canon(s).replace(/[๐-๙]/g, c => String(c.charCodeAt(0) - 0x0E50)); return JAKO_RE.test(t) || JAKO_RE.test(t.normalize("NFKC")); };
   /** a copy of v with every string (and object key) in JA / KO script left out @param {any} v @returns {any} */
   const dropJK = v => (typeof v === "string" ? (jakoScript(v) ? undefined : v) : Array.isArray(v) ? v.map(dropJK).filter(x => x !== undefined)
     : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).filter(([k]) => !jakoScript(k)).map(([k, x]) => [k, dropJK(x)]).filter(([, x]) => x !== undefined)) : v);

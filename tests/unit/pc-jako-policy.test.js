@@ -95,7 +95,12 @@ test("fortune: a JA / KO nickname or fact never reaches the model (page and Work
   assert.deepEqual(out.extras.tips, ["พักผ่อน"]);
   assert.ok(!/[ぁ-ヿ가-힣]/u.test(JSON.stringify(FA._internal.factsForAI(facts))), "factsForAI drops them on the page");
   const w = fs.readFileSync(path.join(ROOT, "backend/src/fortune.js"), "utf8");
-  assert.match(w, /facts = FortuneAI\.privacy\.withoutJaKo\(cleanFacts\(body\.facts\)\)/, "the Worker drops them again");
+  assert.match(w, /import ThaiCanonModule from "\.\.\/\.\.\/lensiq-thai-canon\.js";/, "the Worker imports the rule itself (fails closed)");
+  assert.match(w, /facts = \/\*\* @type \{any\} \*\/ \(ThaiCanonModule\)\.withoutJaKo\(cleanFacts\(body\.facts\)\)/, "the Worker drops them again");
+  // review findings 2026-11-14: compatibility forms and kanji-numeral era dates; the OCR output (not the edited box) decides the photo
+  for (const t of ["㍻", "㋿", "🈀", "平成五年", "毎食後", "桜"]) assert.equal(G.jakoScript(t), true, t);
+  for (const t of ["维生素C 每日", "說明書 每次"]) assert.equal(G.jakoScript(t), false, t);
+  assert.match(fs.readFileSync(path.join(ROOT, "lensiq-pc-ai.js"), "utf8"), /const jako = jakoOf\(ocrText\(\) \|\| text\) \|\| jakoOf\(text\);/);
 });
 
 test("bare-name shapes on JA / KO text are removed; the same shapes on product words and on non-JA/KO text are kept", () => {

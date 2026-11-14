@@ -265,7 +265,9 @@
       // nothing sent (text or photo), the on-device results stay
       const g0 = gate(text);
       if (!g0.allow) { refuse(g0.reason, true); st.res = null; paint(); return; }
-      const jako = jakoOf(text);
+      // the device's own OCR output decides, not the editable text box (independent review: deleting the kana lines in the box
+      // must not bring the photo back)
+      const jako = jakoOf(ocrText() || text) || jakoOf(text);
       const g = W.LQPCGuard.redact(text, gopt()), img = W.LQPCGuard.imageCheck(text, gopt());
       st.busy = true; paint();
       try {
