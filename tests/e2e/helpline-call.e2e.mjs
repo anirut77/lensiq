@@ -51,7 +51,7 @@ const SHOWN = `(e => { if (!e || !e.isConnected) return "missing";
 const BUTTONS = `(async () => { const out = [];
   for (const a of document.querySelectorAll("a.lq-call-btn")) {
     if (!a.getClientRects().length || getComputedStyle(a).visibility === "hidden") continue;
-    a.scrollIntoView({ block: "center", inline: "nearest" }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    a.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     const r = a.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, hit = document.elementFromPoint(cx, cy);
     const c = a.closest("[data-lq-call]"), lab = c && c.querySelector(".lq-call-t"), sub = c && c.querySelector(".lq-call-sub");
     let first = null;
