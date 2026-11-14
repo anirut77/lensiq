@@ -1,0 +1,7 @@
+# locked 2026-11-14T15:50:01Z (tools/eval-guard.mjs lock, 4 files)
+e3d5562c665453985095ac4b8b97ae2d05dcdc287e3c60f655e2738e218aca60  leads-form-e.test.js
+26cb9829433e8c53e9532459c0add2852a6e7719d3f3e520fc48e700a8cdea3c  lead-form-e-lib.mjs
+c56cf1d7b62aa35c7a2a148bcabd37c02321c77dba3157e4436da2da5a3832f4  lead-form-e-chrome.e2e.mjs
+37f8eb2376b1adc608876fbe98b9b02b4a849c62f45ef160f827648f68d976bb  lead-form-e-webkit.e2e.mjs
+# Part E (owner order 2026-11-14, quote form defect W-001: a request that was not sent must never look like success). Locked BEFORE the fix (base origin/main ea509e0).
+# The four files are byte-identical copies of the repo files tests/unit/leads-form-e.test.js, tests/e2e/lead-form-e-lib.mjs, tests/e2e/lead-form-e-chrome.e2e.mjs, tests/e2e/lead-form-e-webkit.e2e.mjs (same sha256 = not edited after locking).
