@@ -120,6 +120,9 @@
   function submit(lead, opts) {
     var id = lead && lead.id ? String(lead.id) : "";
     return serial(function () {
+      // review of form-e @ ba9634c: "send again" / "send now" pressed while the automatic retry was posting the same
+      // request waited here; the server has confirmed it meanwhile, so it is never posted twice
+      if (id && confirmed[id]) return Promise.resolve({ via: "api", ok: true, status: 200, already: true });
       if (id) inflight[id] = true;
       return send(lead, opts).then(function (/** @type {any} */ r) { if (id) delete inflight[id]; return r; });
     });
@@ -224,8 +227,12 @@
   /** automatic retry: page load, back online (the page's own Turnstile box when it has one) */
   function autoFlush() {
     if (!readQ().length) return;
-    var box = W.document && W.document.getElementById ? W.document.getElementById("lqTurnstile") : null;
-    flushQueue(box ? { turnstile: { container: box } } : undefined);
+    var d = W.document, box = d && d.getElementById ? d.getElementById("lqTurnstile") : null;
+    var hint = d && d.getElementById ? d.getElementById("lqTurnstileHint") : null;
+    // the page's own Turnstile box; when Cloudflare asks the person to tick it, the page's "tap the box" hint shows
+    flushQueue(box ? { turnstile: { container: box,
+      onInteractive: function () { if (hint) hint.hidden = false; },
+      onDone: function () { if (hint) hint.hidden = true; } } } : undefined);
   }
   (W.LQI18N_Q = W.LQI18N_Q || []).push({
     en: {

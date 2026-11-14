@@ -378,7 +378,9 @@
         var p0 = pending; pending = null; done(); showSent(p0.name); return;
       }
       // "send again" keeps the id of the request already queued, so the queue never holds it twice
-      var lead = Object.assign({ id: pending ? pending.id : Date.now().toString(36), createdAt: pending ? pending.createdAt : new Date().toISOString() }, fieldsOf());
+      // source and lang go into the request itself, so a queued request keeps them when it is retried later
+      var lead = Object.assign({ id: pending ? pending.id : Date.now().toString(36), createdAt: pending ? pending.createdAt : new Date().toISOString(),
+        source: "index", lang: window.LQI18N ? window.LQI18N.lang : "th" }, fieldsOf());
       var keepLocal = function () {
         // round 12: lensiq-leads.js keeps it in the same "lq-leads" list (capped) and shows the "not sent yet" box
         var LQ = /** @type {any} */ (window).LQLeads;
@@ -399,7 +401,7 @@
       var tsOpts = { container: tsBox || undefined,
         onInteractive: function () { if (tsHint) tsHint.hidden = false; msg.textContent = ""; try { if (tsBox) tsBox.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (err) { /* old browser */ } },
         onDone: function () { if (tsHint) tsHint.hidden = true; } };
-      var sent = L ? L.submit(Object.assign({}, lead, { source: "index", lang: window.LQI18N ? window.LQI18N.lang : "th" }), { subject: "LENSIQ demo request", turnstile: tsOpts }) : Promise.resolve({ via: "none", ok: false });
+      var sent = L ? L.submit(lead, { subject: "LENSIQ demo request", turnstile: tsOpts }) : Promise.resolve({ via: "none", ok: false });
       sent.then(function (/** @type {any} */ r) {
         sending = false;
         if (btn) btn.disabled = false;

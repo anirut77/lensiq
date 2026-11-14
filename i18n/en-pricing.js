@@ -118,6 +118,8 @@
   "pr.off.needConsent": "Please tick the consent box first",
   "pr.off.sending": "Sending…",
   "pr.off.sent": "Saved. We will e-mail you when sales open",
+  "pr.err.ts": "Not sent yet: the human check did not succeed. Your e-mail is still in the box; you can press “Notify me” again, or contact us on LINE {id}",
+  "pr.err.send": "Not sent yet: a system or network problem. Your e-mail is still in the box; you can press “Notify me” again, or contact us on LINE {id}",
   "pr.off.fallback": "Not sent yet: online requests are not open. You can send it by e-mail or LINE here",
   "pr.off.queued": "Not sent yet: online requests and contact details will be announced before sales open. Your request is kept in this browser only (send it once the channel is announced)",
   "pr.off.none": "Not sent yet: online requests and contact details will be announced before sales open",
