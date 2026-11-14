@@ -482,7 +482,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (e && e.name === "Insecure") return T("fengshui.cam.insecure", "เปิดกล้องได้เฉพาะ https:// หรือ localhost — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง");
     var t = window.LQCam && LQCam.errorText ? LQCam.errorText(e) : "";
     // D2-003: EN / ZH never show LQCam's Thai text (pages with the run-time translator get Thai back from LQCam): use the cam.err.* keys
-    if ((isZh() || isEn()) && /[\u0E00-\u0E7F]/.test(t)) t = LQCam.errorKind && window.LQI18N ? LQI18N.t("cam.err." + LQCam.errorKind(e)) : "";
+    if ((isZh() || isEn()) && /[\u0E00-\u0E7F]/.test(t)) { var I = /** @type {any} */ (window).LQI18N; t = LQCam.errorKind && I ? I.t("cam.err." + LQCam.errorKind(e)) : ""; }
     if (/[\u0E00-\u0E7F]/.test(t) && (isZh() || isEn())) t = "";
     return T("fengshui.cam.fail", "เปิดกล้องไม่ได้{t} — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง", { t: t ? ": " + t : " (" + ((e && e.name) || "error") + ")" });
   }
