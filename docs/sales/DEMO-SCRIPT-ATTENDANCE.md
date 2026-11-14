@@ -24,7 +24,7 @@
 | 7:00–8:00 | แท็บ "แก้ไขเวลาและประวัติ" | "ผู้จัดการแก้ได้แต่ไม่แก้ข้อมูลดิบ ทุกการแก้เป็นรายการตรวจสอบย้อนหลัง ต้องใส่ชื่อผู้แก้และเหตุผล ลบหรือสลับลำดับแล้วระบบเตือน" | เพิ่มการลงเวลาที่ลืม แล้วดูรายการประวัติ ลิงก์ส่งออก "ข้อมูลของพนักงานคนนี้" (สิทธิเข้าถึง PDPA) | "ใครอนุมัติการแก้เวลา" |
 | 8:00–9:00 | แท็บ "ตั้งค่าและข้อมูล" | พูดข้อจำกัดตรง ๆ: "พื้นที่ในเบราว์เซอร์ราว 20 คน × 2 ปีต่อเครื่อง ยังไม่มีซิงก์คลาวด์ หลายเครื่องรวมกันด้วยไฟล์ส่งออก/นำเข้า ยังไม่มีกะหมุนเวียน ไม่มีขออนุมัติลาออนไลน์ ไม่คำนวณค่าจ้าง ภาษี ประกันสังคม และเวลาอิงนาฬิกาเครื่อง" | ส่วน "รวมข้อมูลจากหลายจุดลงเวลา" มิเตอร์พื้นที่ | "มีกี่สาขา กี่คน ต้องการซิงก์ทันทีหรือไม่" |
 | 9:00–9:45 | `attendance.html` ส่วน "ตัวเลขและที่มา" | ถ้าลูกค้าถามใบหน้า: "ใบหน้าเป็นตัวเลือก ใช้เมื่อพนักงานยินยอม ใบหน้าเอเชีย จำได้ต่อการสแกน 66–76% (n = 500 คน × 5 ภาพ ชุดข้อมูลสาธารณะ CASIA ชุดทดสอบแยกแต่ไม่ปิดตาสมบูรณ์) คนที่ไม่ได้ลงทะเบียนถูกเช็คชื่ออัตโนมัติโดยไม่มีคนยืนยัน ≤ 0.03% ที่ทำงานจริงในไทย ยังไม่ได้วัด การหันหน้ายืนยันคนจริง ยังไม่ได้วัด PIN/QR ไม่มีความคลาดเคลื่อนจากการจดจำ" | แถว A2 A4 A5 A6 ป้าย "โมเดลใบอนุญาตวิจัย" (รอความเห็นทางกฎหมายก่อนขายเชิงพาณิชย์ OP-14) | "พนักงานจะยินยอมใช้ใบหน้าหรือไม่ หรือ PIN/QR เพียงพอ" |
-| 9:45–10:00 | `attendance.html` ส่วนราคา | "ฟรีไม่เกิน 5 คน PIN/QR 1 เครื่อง มาตรฐานช่วงนำร่อง 19 บาทต่อคนที่ใช้งานต่อเดือน ขั้นต่ำ 190 บาทต่อเดือน ไม่รวม VAT 7% ช่วยตั้งค่า 2,900 บาทครั้งเดียว ไม่บังคับ นำร่อง 2 สัปดาห์ เทียบ CSV เงินเดือนกับของเดิมหนึ่งรอบเดือน" | ตารางราคา (ราคาที่อนุมัติ) | "เริ่มนำร่องได้เมื่อไร" |
+| 9:45–10:00 | `attendance.html` ส่วนราคา | "ฟรีไม่เกิน 5 คน PIN/QR 1 เครื่อง (เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ เริ่มตามวันที่จะประกาศ ล่วงหน้า 30 วันขึ้นไป และเริ่มใช้หลังประกาศ 30 วัน) มาตรฐานราคานำร่อง 19 บาทต่อคนที่ใช้งานต่อเดือน ขั้นต่ำ 190 บาทต่อเดือน ไม่รวม VAT 7% ช่วยตั้งค่า 2,900 บาทครั้งเดียว ไม่บังคับ นำร่อง 2 สัปดาห์ เทียบ CSV เงินเดือนกับของเดิมหนึ่งรอบเดือน" | ตารางราคา (ราคาที่อนุมัติ) | "เริ่มนำร่องได้เมื่อไร" |
 
 ## จุดที่ต้องมีโหมดเดโม (`?demo=1`)
 
@@ -42,7 +42,7 @@
 - ห้ามบอกว่ามีซิงก์หลายสาขา สำรองบนคลาวด์ ขออนุมัติลาออนไลน์ กะหมุนเวียน หรือแอปสำหรับพนักงาน (ยังไม่มี)
 - ห้ามบอกว่าถูกต้องตามกฎหมายแรงงานหรือ PDPA ครบ (รอทนายแรงงานและทนายข้อมูลส่วนบุคคล) ห้ามบอกว่าใช้ใบหน้าเชิงพาณิชย์ได้แล้ว (รอข้อสรุปใบอนุญาตโมเดล)
 - ห้ามพูดถึงการวิเคราะห์อารมณ์ การให้คะแนนพนักงาน หรือการตรวจจับการโกหก ระบบไม่มี ระบบแสดงรายการผิดปกติให้ผู้จัดการตรวจ ไม่ตัดสินให้
-- ห้ามบอกว่า "ราคาเริ่มต้น 29" เป็นราคาปัจจุบัน (หลังนำร่องเท่านั้น)
+- ห้ามบอกว่า "29 บาท" เป็นราคาที่ใช้ตอนนี้ เป็นราคาปกติหลังผ่านเกณฑ์นำร่อง แสดงข้างราคานำร่อง 19 ได้เมื่อติดป้ายครบ (ตัดสิน 2026-11-13)
 
 ## หลังเดโม
 
@@ -70,7 +70,7 @@ Do not switch on the face option during a customer demo; use minute 9 only if as
 | 7:00–8:00 | Tab "Corrections and history" | A manager can correct, but raw punches are never edited. Each correction is an audit entry with the manager's name and a reason; a deleted or reordered entry is flagged. | Add a missed punch and read the history; the per-employee export (PDPA access right) | Who approves time corrections? |
 | 8:00–9:00 | Tab "Settings and data" | State the limits plainly: browser storage holds about 20 people x 2 years per device; no cloud sync; several devices merge by file export / import; no rotating rosters; no online leave approval; no wage, tax or social-security calculation; time follows the device clock. | "Merge data from several clock-in points"; the storage meter | How many branches and people? Do you need instant sync? |
 | 9:00–9:45 | `attendance.html`, "Figures and sources" | Only if asked about faces: the face is optional and used only with consent. Asian faces recognised per scan 66–76% (n = 500 people x 5 photos, public dataset CASIA; held-out but not perfectly blind). Strangers auto-checked-in with no confirmation: at most 0.03%. A real Thai workplace: not measured. The head-turn liveness option: not measured. PIN / QR has no recognition error. | Rows A2, A4, A5, A6; the "research-licence model" label (waiting for legal opinion before commercial sale, OP-14) | Would your staff consent to a face, or is PIN / QR enough? |
-| 9:45–10:00 | `attendance.html`, price | Free up to 5 people (PIN / QR, 1 device). Standard at pilot stage 19 THB per active person per month, minimum 190 THB per month, excl. 7% VAT. Optional set-up help 2,900 THB one-off. A 2-week pilot compares the payroll CSV with your existing record for one month. | Price table (approved list) | When can we start a pilot? |
+| 9:45–10:00 | `attendance.html`, price | Free up to 5 people (PIN / QR, 1 device; beyond that a licence is needed, not enforced in the product yet, starting on a date announced at least 30 days ahead and 30 days after the announcement (enforced by contract, OP-26)). Standard at the pilot price 19 THB per active person per month, minimum 190 THB per month, excl. 7% VAT. Optional set-up help 2,900 THB one-off. A 2-week pilot compares the payroll CSV with your existing record for one month. | Price table (approved list) | When can we start a pilot? |
 
 **Demo mode (`?demo=1`):** available on `attendance.html?mode=employee&demo=1`: eight sample employees with a month of punches, a month summary and a CSV
 labelled SAMPLE; "reset sample data" reloads the page. Real records on the device are never read or changed in demo mode.
@@ -78,6 +78,6 @@ labelled SAMPLE; "reset sample data" reloads the page. Real records on the devic
 **Do NOT claim:** workplace face accuracy (not measured); 85% as the headline (it is a tuning-set figure, optimistic; the headline is 66–76% on Asian faces); that it stops buddy punching (a PIN or badge can be shared; no
 photo on punch by design; liveness unmeasured); wage, tax or social-security calculation; a direct export for any named payroll product (none yet; a sample file is needed); multi-branch sync,
 cloud backup, online leave approval, rotating rosters or an employee app (none exist); labour-law or PDPA compliance (labour lawyer and counsel pending); commercial use of the face option (model licence pending);
-anything about emotion, scoring staff or lie detection; "from 29 THB" as today's price (after pilot only).
+anything about emotion, scoring staff or lie detection; "29 THB" as today's price (it is the regular price after the pilot thresholds are met; show it only beside the pilot price of 19 THB, clearly labelled).
 
 **After the demo:** clear the demo data from the browser; note staff count, clock points, payroll system and views on faces; send the quotation.

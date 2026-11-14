@@ -222,7 +222,7 @@ export const CONSENT_TEMPLATE = `# Photo set record (บันทึกชุด
 Basis for this batch / ฐานของชุดภาพนี้ (tick ONE; docs/PLATE-TRAINING.md §2.1):
 - [ ] A. Site owner's written permission + PDPA camera notice sign posted during shooting + no people photographed
       ได้รับอนุญาตเป็นหนังสือจากเจ้าของสถานที่ + ติดป้ายแจ้ง PDPA ระหว่างถ่าย + ไม่ถ่ายคน
-      (needs counsel's OK before use for a model that is sold: docs/PDPA-NOTES-FOR-COUNSEL.md H(c))
+      (needs counsel's OK before use for a model that is sold: docs/PDPA-NOTES-FOR-COUNSEL.md J(c))
 - [ ] B. Only vehicles whose vehicle owner (or regular driver) agreed before the photo, e.g. staff at our own factory
       ถ่ายเฉพาะรถที่เจ้าของรถ (หรือผู้ขับประจำ) ตกลงก่อนถ่าย เช่น รถพนักงานในโรงงานของเรา
       The signed agreement sheets are kept ON PAPER in the office, not in this folder; write only the count below.

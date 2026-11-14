@@ -1,5 +1,9 @@
 # Support, service levels and incident handling
 
+> **Payment path (owner decision 2026-11-13):** bank transfer against a quotation and invoice only, for now; no PromptPay QR, no card and no Opn checkout. Where this document describes refunds of PromptPay payments (section 10.4), read it as the design for a later online checkout, which is on hold (Opn KYC pending); it is not how LENSIQ is paid today.
+
+> **ช่องทางชำระเงิน (เจ้าของตัดสิน 2026-11-13):** ตอนนี้รับโอนผ่านธนาคารตามใบเสนอราคาและใบแจ้งหนี้เท่านั้น ไม่มี PromptPay QR บัตร หรือ Opn ข้อความด้านล่างที่พูดถึง การคืนเงินของการชำระด้วยพร้อมเพย์ (ข้อ 10.4) เป็นแบบสำหรับระบบชำระเงินออนไลน์ในอนาคต ซึ่งพักไว้ (รอ KYC ของ Opn) ไม่ใช่วิธีรับชำระในปัจจุบัน
+
 Two layers. **Self-serve tiers** (Guest, Member, Plus / one-time report buyers, Creator, Business — §0; Creator was called Pro before round 10) get the published response targets shown on
 `help.html#h-support`. **Contracted customers** (Enterprise, on-prem, pilots) sign the SLA template in §1–§9 with the
 Basic / Standard / Premium plan. Response templates in Thai are in §10, the status page and incident routine in §11.

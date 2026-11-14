@@ -194,6 +194,10 @@ const CLAIMS = {
     th: "ยังไม่ได้วัดกับภาพฉลากจริง ผลทดสอบมีเฉพาะกับฉลากที่สร้างขึ้นเอง ค่าทุกค่าแสดงพร้อมบรรทัดที่มาให้ผู้ใช้ตรวจกับฉลาก",
     en: "Not measured on photos of real labels yet; tested on generated labels only. Every value is shown with its source line for the user to check",
     zh: "尚未用真实标签照片测量，仅用生成的标签测试。每个数值都附来源行，供用户与标签核对" },
+  tryon: { src: "none", ref: "docs/TRYON-DESIGN.md §4 (real-camera measurement not done; garment fit tested on a synthetic set only)",
+    th: "ยังไม่ได้วัดกับภาพกล้องจริง การวางแว่น หมวก ต่างหู และเสื้อทดสอบกับข้อมูลสังเคราะห์เท่านั้น เป็นภาพจำลอง ไม่ใช่ภาพสวมใส่จริง",
+    en: "Not measured on real camera pictures; placing glasses, hats, earrings and tops is tested on synthetic data only. A preview, not a real fit",
+    zh: "尚未用真实摄像头画面测量；眼镜、帽子、耳环和上衣的放置仅用合成数据测试。仅为模拟预览，不代表真实穿着效果" },
   studio: { src: "public", ref: "ACCURACY.md §11 (35 held-out people, AI-rated)",
     ev: { doc: "ACCURACY.md", quote: ["| no-outfit version (new background + retouch) with a defect | 22.9 % [11.4–39.0] (8/35) |"] },
     th:
@@ -313,6 +317,9 @@ const REASONS = {
   fortune: { th: "เพื่อความบันเทิง ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ",
     en: "Entertainment; can draw visitors to a booth; no accuracy claim",
     zh: "娱乐用途；可吸引访客到展位；无准确率声明" },
+  tryon: { th: "ลองแว่น หมวก ต่างหู และเสื้อบนภาพกล้องสดบนเครื่อง พร้อมหลังบ้านแคตตาล็อกร้าน ยังไม่ได้วัดกับภาพจริงและยังไม่ได้เปิดระบบหลังบ้าน",
+    en: "Try glasses, hats, earrings and tops on the live camera picture on the device, with a shop catalogue back office; not measured on real pictures and the backend is not deployed",
+    zh: "在本机实时摄像头画面上试戴眼镜、帽子、耳环和上衣，并配有店铺目录后台；尚未用真实画面测量，后端尚未部署" },
   studio: { th: "แบบไม่เปลี่ยนชุดใช้ได้ แบบเปลี่ยนชุดยังบกพร่องมากจึงปิดเป็นค่าเริ่มต้น",
     en: "The no-outfit version works; outfit renders still have many defects, so they are off by default",
     zh: "不换装版本可用；换装效果仍多瑕疵，因此默认关闭" },
@@ -397,6 +404,7 @@ const PAGES = {
   report: { st: "demo", why: "fortune", claims: ["fortune"] },
   // 7 Studio & Media
   studio: { st: "experimental", why: "studio", claims: ["studio"] },
+  tryon: { st: "experimental", why: "tryon", claims: ["tryon"] },
   photobooth: { st: "pilot-ready", why: "photobooth", claims: ["photobooth"] },
   converter: { st: "experimental", why: "converter", claims: ["converter"] },
   // Platform (not a category)
@@ -473,6 +481,7 @@ const CATEGORIES = [
 /** Platform pages (not a category): nav.js "About" group. admin.html stays unlinked on purpose (owner back office,
  *  noindex; see docs/PAGE-STATUS.md "Not linked"). */
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
-const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9" };
+const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
+  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category" };
 
 module.exports = { STATUS, STATUS_DEF, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };

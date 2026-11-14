@@ -207,13 +207,14 @@
     state.me = me;
     if (me.csrf) state.csrf = me.csrf;
     flow.first = false; flow.pw = ""; flow.back = "";
-    // a merit reviewer sees the merit tab only (the Worker refuses everything else anyway: 403 forbidden_role)
-    var reviewer = me.role === "reviewer";
-    document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) { /** @type {HTMLElement} */ (b).hidden = reviewer && b.getAttribute("data-tab") !== "merit"; });
+    // a merit reviewer sees the merit tab only, a try-on account (tryon_admin / tryon_editor, migration 0017) the try-on tab
+    // only (the Worker refuses everything else anyway: 403 forbidden_role)
+    var only = me.role === "reviewer" ? "merit" : /^tryon_/.test(String(me.role)) ? "tryon" : "";
+    document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) { /** @type {HTMLElement} */ (b).hidden = !!only && b.getAttribute("data-tab") !== only; });
     show("adApp");
     msg("");
-    tab(reviewer ? "merit" : "analytics");
-    if (!reviewer) leadBadge();
+    tab(only || "analytics");
+    if (!only) leadBadge();
   }
   var isReviewer = function () { return !!(state.me && state.me.role === "reviewer"); };
 
@@ -1478,6 +1479,8 @@
   var arStatus = function (st) {
     return G("ar.st." + st, ({ pending: "รอผู้ตรวจตั้งค่าครั้งแรก", active: "ใช้งานได้", disabled: "ปิดการใช้งาน" })[st] || st);
   };
+  /** @param {string} r */
+  var arRole = function (r) { return G("ar.role." + r, ({ merit: "ผู้ตรวจคำแนะนำตามความเชื่อ", tryon_admin: "ผู้ดูแลแคตตาล็อกลองสินค้า", tryon_editor: "ผู้แก้ไขแคตตาล็อกลองสินค้า" })[r] || r); };
   function arRender() {
     var box = $("arList"); box.textContent = "";
     var list = (ar.data && ar.data.reviewers) || [];
@@ -1487,7 +1490,7 @@
       var btn = function (act, key, th) { return h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": act, text: G(key, th) }); };
       box.appendChild(h("div", { class: "ar-row", "data-id": r.id, "data-status": r.status },
         h("div", { class: "am-title", translate: "no" }, r.username),
-        h("div", { class: "am-meta" }, arStatus(r.status) + (r.last_login_at ? " · " + G("ar.last", "เข้าใช้ล่าสุด") + " " + when(r.last_login_at) : "")),
+        h("div", { class: "am-meta" }, arRole(r.role || "merit") + " · " + arStatus(r.status) + (r.last_login_at ? " · " + G("ar.last", "เข้าใช้ล่าสุด") + " " + when(r.last_login_at) : "")),
         h("div", { class: "ad-row" },
           btn("reset", "ar.act.reset", "ออกลิงก์ตั้งค่าใหม่"),
           r.status === "disabled" ? btn("enable", "ar.act.enable", "เปิดใช้งาน") : btn("disable", "ar.act.disable", "ปิดการใช้งาน"),
@@ -1503,7 +1506,8 @@
   $("arCreate").addEventListener("click", function () {
     var f = /** @type {any} */ ($("arForm")), u = String(f.username.value || "").trim();
     if (!u) { msg(G("ar.v.user", "กรุณาใส่ชื่อผู้ใช้ของผู้ตรวจ"), true); return; }
-    call("/reviewers", { method: "POST", body: { username: u } }).then(function (/** @type {any} */ r) {
+    var body = f.role && f.role.value !== "merit" ? { username: u, role: f.role.value } : { username: u };
+    call("/reviewers", { method: "POST", body: body }).then(function (/** @type {any} */ r) {
       f.reset(); arShowLink(r); msg(G("ar.created", "สร้างบัญชีแล้ว ส่งลิงก์ตั้งค่าให้ผู้ตรวจ")); arLoad();
     }, function (/** @type {any} */ e) {
       msg(e && e.code === "username_taken" ? G("ar.e.taken", "ชื่อนี้ถูกใช้แล้ว") : e && e.code === "too_many_reviewers" ? G("ar.e.max", "มีบัญชีผู้ตรวจครบจำนวนสูงสุดแล้ว") : friendly(e), true);
@@ -1539,6 +1543,11 @@
   $("adRetRun").addEventListener("click", function () {
     call("/retention/run", { method: "POST", body: {} }).then(function (/** @type {any} */ r) { $("adRetOut").textContent = JSON.stringify(r, null, 2); }, fail);
   });
+
+  // the try-on catalogue section (admin-tryon.js) uses the same session, request helper and tab loaders
+  /** @type {any} */ (window).__LQAdmin = { call: call, loaders: loaders, h: h, G: G, msg: msg, friendly: friendly, me: function () { return state.me; } };
+  // stream G: the Organisations tab lives in admin-orgs.js (admin.js is at its size cap); it uses these helpers
+  /** @type {any} */ (window).LQAdminKit = { call: call, h: h, G: G, gLang: gLang, msg: msg, fail: fail, baht: baht, loaders: loaders, $: $ };
 
   start();
 })();

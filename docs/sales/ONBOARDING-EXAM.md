@@ -5,6 +5,8 @@
 > `docs/DEPLOYMENT-CHECKLIST.md`, `docs/SUPPORT.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
 > ตัวอย่างข้อความติดต่ออยู่ท้ายเอกสาร ช่อง [วงเล็บ] เจ้าของกรอก ห้ามแต่งข้อมูลติดต่อ
 
+> ระดับฟรี: Exam ถึง 5 ผู้สอบต่อรอบสอบ เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ (ไม่มีตัวนับหรือตัวจับเวลาในโค้ด) ข้อจำกัดเริ่มตามวันที่จะประกาศ ประกาศล่วงหน้าอย่างน้อย 30 วันและเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับผ่านสัญญา ลูกค้าส่งออกข้อมูลของตนได้เสมอ (OP-20, OP-26)
+
 ## 1. ก่อนติดตั้ง: สิ่งที่ลูกค้าต้องมี
 
 | หัวข้อ | รายละเอียด |
@@ -79,6 +81,8 @@
 > **DRAFT 2026-11-11.** For customers after purchase or at the start of a pilot. Covers `exam-lab.html` and `exam-dashboard.html`. The camera exam hall (`exam-hall.html`) is experimental,
 > not sold and not covered. Based on `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md`, `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`. Open points (OP-xx) are in `docs/sales/README.md`.
 > Contact fields in [brackets] are for the owner. Never invent contact details.
+
+> Free tier: Exam up to 5 candidates per session; beyond it a licence is needed. Not enforced in the product yet (no counter or timer in the code). The limits start on a date to be announced at least 30 days ahead and begin 30 days after the announcement; the owner enforces them by contract. Customers can always export their own data (OP-20, OP-26).
 
 ## 1. Before installing
 

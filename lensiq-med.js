@@ -36,9 +36,10 @@
  *   toCSV(rows, cols) — formula-injection safe
  */
 (function (root, factory) {
-  const m = factory();
-  if (typeof module !== "undefined" && module.exports) module.exports = m; else /** @type {any} */ (root).LQMed = m;
-})(typeof self !== "undefined" ? self : this, function () {
+  const node = typeof module !== "undefined" && module.exports;
+  const m = factory(root, node ? require("./lensiq-thai-canon.js") : null);
+  if (node) module.exports = m; else /** @type {any} */ (root).LQMed = m;
+})(typeof self !== "undefined" ? self : this, function (/** @type {any} */ root, /** @type {any} */ TC) {
   "use strict";
 
   /* ---------------- text ---------------- */
@@ -322,9 +323,16 @@
     "过量", "误服", "误食", "吞服", "中毒", "昏迷", "吃了.{0,6}(很多|太多|一整|一大把|整盒|整瓶).{0,4}(药|片)", "吃了.{0,6}([5-9]|\\d{2,})\\s*(片|粒)"
   ].join("|"), "i");
   const SELF = /ฆ่าตัวตาย|อยากตาย|ทำร้ายตัวเอง|จบชีวิต|suicid|kill myself|end my life|self[- ]?harm|自杀|轻生|不想活/i;
+  /* review 2026-11-14: the same Thai self-harm words also match without spaces and tone marks ("อยาก ทำร้าย ตัวเอง",
+     the typo "ทำร้่าย"), and every check runs on the canonical copy (sara am ำ decomposed by NFKC / OCR, a tone mark after
+     ำ, zero-width characters: lensiq-thai-canon.js) */
+  const TH_TONE = /[\u0e47-\u0e4c]/g;
+  const SELF_TH = new RegExp(SELF.source.replace(TH_TONE, ""), "i");
+  /** @param {any} s @returns {string} */
+  const canon = s => { const C = TC || (root && root.LQThaiCanon); return C ? C.canon(s) : String(s == null ? "" : s).normalize("NFC"); };
   function emergency(text) {
-    const t = String(text || "");
-    const self = SELF.test(t);
+    const t = canon(text || "");
+    const self = SELF.test(t) || SELF_TH.test(t.replace(/\s+/g, "").replace(TH_TONE, ""));
     return { poison: POISON.test(t) || self, self };
   }
 

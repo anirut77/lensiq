@@ -54,6 +54,7 @@
         if (dup && !confirm(T("pk.q.dup", "ทะเบียนนี้บันทึกเข้าแล้วเมื่อ {t} และยังไม่ออก บันทึกเข้าซ้ำ?", { t: fmtTime(dup.at) }))) return false;
         const ev = store.put({ id: kit.uid("ev-"), kind: "ev", at: fin.at, dir: "in", key: fin.key, province: fin.province, moto: fin.moto, gate: C().gate || "", by: kit.operator(),
           conf: fin.auto ? fin.auto.conf : null, agree: fin.auto ? fin.auto.agree : null, auto: !!fin.auto, edited: fin.edited });
+        if (/** @type {any} */ (window).LQFreeTier) /** @type {any} */ (window).LQFreeTier.count("gate", "plates", 1); // free-tier counting only (stream G), never blocks
         kit.toast(T("pk.st.inOk", "บันทึกรถเข้า {p} แล้ว", { p: fin.line1 }));
         renderLot();
         return ev;
@@ -61,6 +62,7 @@
       const ev = { id: kit.uid("ev-"), kind: "ev", at: fin.at, dir: "out", key: fin.key, province: fin.province, moto: fin.moto, gate: C().gate || "", by: kit.operator(),
         conf: fin.auto ? fin.auto.conf : null, agree: fin.auto ? fin.auto.agree : null, auto: !!fin.auto, edited: fin.edited, paid: false };
       store.put(ev);
+      if (/** @type {any} */ (window).LQFreeTier) /** @type {any} */ (window).LQFreeTier.count("gate", "plates", 1);
       startPay(ev);
       return ev;
     }

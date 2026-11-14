@@ -1,0 +1,30 @@
+# TOTP tests made deterministic (2026-11-14). TEST-BUG RE-LOCK, append-only: the previous hashes of these files stay valid history.
+# Reason: tests/unit/backend-merit-reviewer.test.js RV6 failed once in CI (run 43464554484) with 400 "invalid TOTP code". The test makes a
+# code with Date.now() (step - 1, so that a later code of the current step is not a replay) and the Worker verifies it with its own Date.now();
+# when the wall clock crosses a 30 s step boundary between the two, step - 1 falls outside the Worker's window (previous / current / next step).
+# Reproduced deterministically by running the unchanged file with Date.now() read 31 s later inside backend/src (RV2-RV8 fail), and gone after the fix.
+# Fix: tests/unit/totp-clock.js freezes the shared clock (node:test mock.timers, Date only) 10 s into a 30 s step for the whole file, so the generator
+# and the Worker see the same instant. One added require line per file; NO assertion, fixture or expectation was changed, removed or weakened.
+# Files that generate TOTP codes from Date.now(): all ten are frozen the same way (the others only use the current step, but two codes "of the current
+# step" can also straddle a boundary and defeat a replay assertion).
+# 20 consecutive runs of the ten files together: 20 of 20 green (132 tests each).
+4608c7a20b562aa74920a4d2acb9371915df73beb0ebdbec98935a4cf85cd974  tests/unit/totp-clock.js
+638742da3cb716349042c5a4c2254aab2190edbe2492fe310be2f876899e6213  tests/unit/backend-merit-reviewer.test.js
+cf9be33a44d0e8893f658f5fd171bfd53c2c5a7d5d29c8f440aaf5b364bd7dfd  tests/unit/backend-merit.test.js
+cbf79873e153870a1b2f9c573063cd2915b1474217edf509b1382ec66178a3ba  tests/unit/backend-billing-receipts.test.js
+27775bce85633507a639b7ae30e5f72680ad27f3b1ade2d4df25b3fd91758486  tests/unit/backend-hardening.test.js
+4d0f632e9a7919be1d82c7c7031e38f4fdfa2de7911707be629d8eb2dc77bbef  tests/unit/backend-fulfilment-refunds.test.js
+bb5d4d7082a49d1d5bbce280da4ea871da7fd157b50937f965c1d340f476db35  tests/unit/backend-auth.test.js
+b46285a43e695d0a80ce00cc2df81aa042c6d65e9ec57c11382a733b476745bc  tests/unit/backend-ai-keys.test.js
+be46661a2dbb9051949b4375bf70fc8ec5da724232ac174b5e809fc4b44ef018  tests/unit/backend-ai-keys-review.test.js
+9a958dbe7e92c3b4abfd842ac959dcadb238a90934053ce912cfa860d8478d22  tests/unit/backend-recovery-slow.test.js
+e0deccc17d439216d4094b36bf50a379a49235f2ed51112fe84a56c64b572735  tests/unit/backend-recovery-transition.test.js
+# --- from ~/LENSIQ-field/evals/totp-deterministic/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+# 2026-11-13T17:46:02Z stream G amendment A-G5 (security review M1): fresh-confirmation fixture requests a re-auth nonce; recorded in ../accounts-g/locked.sha256
+a124e785524f7eb888b36c2e7f03c39946db19da08caeb835d6db1b1ab7f72a2  tests/unit/backend-hardening.test.js  # repo file
+f88eab4fb9bc20c57730d9e98b27ad727dc4236dfa91fa0197fae6ebd94656b7  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+32ccb42bd0ed19f0164a0b3d15db15993026c9c74eec87d856ba17db39dd4ede  tests/unit/backend-billing-receipts.test.js  # repo file
+# 2026-11-13T20:50:00Z merge of origin/main (3ba4b8a) into accounts-g: these files now carry BOTH main's TOTP-clock re-lock (one require line) and stream G's A-G5 re-auth-nonce fixture; no assertion changed by the merge. Combined hashes:
+bea9de2a0c405108b42b04714427b1f8aa10466245e597ff9ac25335f710fd7c  tests/unit/backend-hardening.test.js  # repo file
+aa124f53be41e62426c4dfdf04473d8b6f8cd6125d7830ca7dca0c092c77e28a  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+ed6a7100d900a6b54afbe919d045b251041028228f0bc1d6f8d6d841d693691c  tests/unit/backend-billing-receipts.test.js  # repo file

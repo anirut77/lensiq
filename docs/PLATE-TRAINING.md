@@ -48,7 +48,7 @@ iPhone: ตั้ง การตั้งค่า > กล้อง > รู�
 | **ข. (B) เฉพาะรถของเจ้าของรถที่ตกลง** | ถ่ายเฉพาะรถที่เจ้าของรถ (หรือผู้ขับประจำ) ตกลงก่อนถ่าย เช่น รถพนักงานในโรงงานของเจ้าของ ใบตกลงเก็บเป็นกระดาษในสำนักงาน ในโฟลเดอร์จดแค่จำนวน | ฐานชัดที่สุด (ความยินยอม) ไม่ต้องรอทนายสำหรับชุดเล็ก | ได้ภาพน้อย (หลักสิบคัน) ป้ายสีพิเศษแทบไม่มี ต้องให้ถอนความยินยอมได้ (ลบภาพของรถคันนั้น) พนักงานต้องตกลงได้โดยอิสระ |
 
 **ข้อเสนอ:** ชุดแรกที่โรงงาน (ข้อ 2.2) ใช้ **แบบ ข.** ทันที ชุดหลัก 600+ ภาพใช้ **แบบ ก.** หลังทนายตอบ (คำถามใน
-`docs/PDPA-NOTES-FOR-COUNSEL.md` หัวข้อ H(c)) ถ้าทนายไม่รับแบบ ก. ชุดหลักต้องใช้แบบ ข. ที่หลายสถานที่ ซึ่งใช้เวลานานกว่ามาก
+`docs/PDPA-NOTES-FOR-COUNSEL.md` หัวข้อ J(c)) ถ้าทนายไม่รับแบบ ก. ชุดหลักต้องใช้แบบ ข. ที่หลายสถานที่ ซึ่งใช้เวลานานกว่ามาก
 
 - ทั้งสองแบบ: หลีกเลี่ยงคนในภาพ ถ้ามีใบหน้า คนขับ หรือคนเดินผ่าน **ต้องเบลอทุกคนก่อนฝึก** (ข้อ 4) ไม่ใช้ภาพจากอินเทอร์เน็ต / โซเชียล
 - กรอก `CONSENT.md` (แม่แบบสร้างให้โดย `init`): แบบที่ใช้ หนังสืออนุญาตของเจ้าของสถานที่ (แบบ ก.) ป้าย PDPA ติดที่ไหน ตั้งแต่-ถึง
@@ -197,7 +197,7 @@ the whole shoot + no people photographed (blurred if caught); scales to 600+ car
 basis (consent), no need to wait for counsel, but small (tens of cars), few special plates, withdrawal must be honoured
 (delete that car's photos), and staff must be free to say no. Agreement sheets stay on paper in the office; the folder
 holds the count only, no names. **Recommendation:** B for the first factory batch now; A for the main set once counsel
-answers (`docs/PDPA-NOTES-FOR-COUNSEL.md` H(c)). Retention proposal: originals deleted within 30 days of the export.
+answers (`docs/PDPA-NOTES-FOR-COUNSEL.md` J(c)). Retention proposal: originals deleted within 30 days of the export.
 
 **First batch at the owner's factory (basis B, folder `~/LENSIQ-field/plates-train-batch1/`).** ~30 cars × 3 photos (2 / 4 /
 6 m, or straight / 20–30° from the planned camera spot) ≈ 90, ~15 motorcycles × 2 ≈ 30, ~20 night photos of the same

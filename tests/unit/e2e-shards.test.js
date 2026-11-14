@@ -57,10 +57,47 @@ test("checkManifests: OK only when every file ran exactly once in the shard it w
   }
 });
 
-test("ci.yml: 3 e2e shards with manifests and the check job; site checks once each; audit steps split into two parts", () => {
+// 2026-11-14 (coordinator decision, option 1; re-lock recorded in evals-locks/phone-quality.sha256): the WebKit files
+// form a 4th shard on macOS (Linux WebKit plays no camera video). The guarantees stay: every file in exactly one shard,
+// the Linux shards balanced, all 4 manifests checked by the same job.
+test("assign macLast: WebKit files only in the last shard, the rest exactly as assign(rest, n-1), every file once", async () => {
+  const m = await load();
+  const files = m.allFiles(), w = m.weights();
+  const mac = files.filter(m.isMacFile);
+  assert.ok(mac.length >= 2 && mac.every(f => /webkit/.test(f)), "WebKit files found: " + mac);
+  for (let n = 2; n <= 6; n++) {
+    const a = m.assign(files, w, n, { macLast: true });
+    assert.equal(a.length, n);
+    const flat = a.flat();
+    assert.equal(flat.length, files.length, `n=${n}: no file twice`);
+    assert.deepEqual([...flat].sort(), files, `n=${n}: no file missing`);
+    assert.deepEqual(a[n - 1], [...mac].sort(), `n=${n}: the last shard is exactly the WebKit files`);
+    assert.ok(a.slice(0, -1).flat().every(f => !m.isMacFile(f)), `n=${n}: no WebKit file in a Linux shard`);
+    assert.deepEqual(a.slice(0, -1), m.assign(files.filter(f => !m.isMacFile(f)), w, n - 1), `n=${n}: Linux shards = the plain split`);
+    assert.deepEqual(m.assign(files, w, n, { macLast: true }), a, `n=${n}: same split every time`);
+  }
+  assert.throws(() => m.assign(files, w, 1, { macLast: true }));
+  // a new WebKit file lands on the macOS shard, a new other file on a Linux shard, each exactly once
+  const more = [...files, "zz-new-webkit.e2e.mjs", "zz-new.e2e.mjs"];
+  const b = m.assign(more, w, 4, { macLast: true });
+  assert.ok(b[3].includes("zz-new-webkit.e2e.mjs") && b.flat().filter(f => f.startsWith("zz-new")).length === 2);
+  assert.ok(b.slice(0, 3).flat().includes("zz-new.e2e.mjs"));
+  const sh = m.assign(files, w, 4, { macLast: true });
+  const good = () => sh.map((s, i) => ({ shard: i + 1, total: 4, assigned: [...s], ran: [...s] }));
+  assert.deepEqual(m.checkManifests(good(), files), [], "4 manifests, every file once: OK");
+  const noMac = good().slice(0, 3);
+  assert.ok(m.checkManifests(noMac, files).some(e => /shard 4\/4: no manifest/.test(e)), "a missing macOS manifest fails the check");
+});
+
+test("ci.yml: 3 Linux e2e shards + the macOS WebKit shard with manifests and the check job; site checks once each; audit steps split into two parts", () => {
   assert.match(CI, /shard: \[1, 2, 3\]/);
-  assert.match(CI, /npm run test:e2e:ci -- --shard=\$\{\{ matrix\.shard \}\}\/3 --manifest=e2e-shard-\$\{\{ matrix\.shard \}\}\.json/);
-  assert.match(CI, /e2e-shards:\n[\s\S]*?needs: e2e\n\s+if: always\(\)[\s\S]*?node tools\/e2e-shards\.mjs --check e2e-shards/);
+  assert.match(CI, /npm run test:e2e:ci -- --shard=\$\{\{ matrix\.shard \}\}\/4 --mac-last --manifest=e2e-shard-\$\{\{ matrix\.shard \}\}\.json/);
+  const macJob = CI.slice(CI.indexOf("  e2e-webkit-mac:"), CI.indexOf("  e2e-shards:"));
+  assert.match(macJob, /runs-on: macos-latest/);
+  assert.match(macJob, /npm run test:e2e:ci -- --shard=4\/4 --mac-last --manifest=e2e-shard-4\.json/);
+  assert.match(macJob, /if: always\(\)\n\s+with:\n\s+name: e2e-shard-4\n\s+path: e2e-shard-4\.json/);
+  assert.doesNotMatch(CI.slice(0, CI.indexOf("  e2e-webkit-mac:")), /playwright install/, "no WebKit install in the Linux jobs (no WebKit file runs there)");
+  assert.match(CI, /e2e-shards:\n[\s\S]*?needs: \[e2e, e2e-webkit-mac\]\n\s+if: always\(\)[\s\S]*?node tools\/e2e-shards\.mjs --check e2e-shards/);
   for (const [k, re] of [[1, /check-site\.mjs/], [2, /check-external\.mjs/], [3, /check-csp\.mjs/]]) {
     const block = CI.split("\n      - name: ").find(b => re.test(b) && /matrix\.shard ==/.test(b));
     assert.ok(block && block.includes(`if: matrix.shard == ${k}`), `site check ${re} runs in shard ${k} only`);

@@ -120,6 +120,11 @@ Both switches are needed; either one alone shows nothing. Booking and payment ar
 The test deployment (`[env.test]`) does not list `/v1/merit/*` in `PUBLIC_ROUTES`, so there the page uses the bundled
 samples; adding the guidance route to the test deployment is a deploy decision, not made here.
 
+**Prepared, not applied (stream E, 2026-11-13):** `node tools/merit-enable-guidance-route.mjs` (dry run by default) edits two things when
+run with `--apply --confirm-published`: `/v1/merit/guidance` into `PUBLIC_ROUTES` of `[env.test.vars]`, and the 14 merit pages into
+`deploy/public-site.json` (without this the fortune pages have no API base and never ask the Worker). Apply only after the owner has
+published at least one item; steps in `docs/MERIT-OWNER-STEPS-TH.md` section ง. Test: `tests/unit/merit-enable-route.test.js`.
+
 ## 5. Tests and numbers (all synthetic; fixed sets locked before the product code)
 
 Lock file: `~/LENSIQ-field/evals/merit/locked.sha256` (one documented re-lock of `tests/e2e/admin-merit.e2e.mjs`: a

@@ -1808,6 +1808,63 @@
     const T = tpsFit(targets, anchors.map(a => ({ x: a.x, y: a.y })), lambda * s * s / 1e4);
     return { inv: (x, y) => T.map(x, y), targets };
   }
+  /**
+   * ดัดเทมเพลตไปยังจุดเป้าหมายรายจุด (item 24): targets[i] = ตำแหน่งบนภาพของ anchors[i] (คอ ปก ไหล่ ชายเสื้อ)
+   * ใช้ทั้งจุดที่วัดจากตัวคน (personTargets) และจุดที่ผู้ใช้ลาก — thin-plate spline ผ่านทุกจุด (เรียบเล็กน้อยตาม lambda)
+   * คืน { inv, targets } แบบเดียวกับ templateWarp
+   */
+  function templateWarpTo(anchors, targets, { lambda = .02 } = {}) {
+    const iL = anchors.findIndex(a => a.k === "l"), iR = anchors.findIndex(a => a.k === "r");
+    const s = iL >= 0 && iR >= 0 ? Math.max(1, Math.hypot(targets[iR].x - targets[iL].x, targets[iR].y - targets[iL].y) / 2.9) : 50;
+    const T = tpsFit(targets.map(p => ({ x: p.x, y: p.y })), anchors.map(a => ({ x: a.x, y: a.y })), lambda * s * s / 1e4);
+    return { inv: (x, y) => T.map(x, y), targets };
+  }
+  /**
+   * จุดเป้าหมายของชุดบนตัวคนรายจุด (item 24) แทนการวางแบบ ย่อ/หมุน/เลื่อน อย่างเดียว:
+   *  - ปลายไหล่ซ้าย/ขวา: เดินตามขอบบนของตัวคน (ไม่นับผม) ในแนวไหล่ ออกจากคอ จนขอบเริ่มชันลงเป็นแขน (ความชัน > 2)
+   *    หรือสุดตัวคน — นิยามเดียวกับปลายไหล่ของเทมเพลต (templateAnchors) จึงจับคู่กันได้ ผมบังไหล่ = ใช้ค่าเดิม
+   *  - คอ/ปก: เลื่อนตามแกนกลางคอจริง (เส้นตรงผ่านกึ่งกลางคอทุกแถว ต่อถึงระดับโคนคอ) — ระดับความสูงคงตามแนวไหล่ที่วัดได้
+   *  - มุมชายเสื้อ: ขอบนอกของตัวคนที่แถวเดิมของมุมชายเสื้อ (ภาพครอปจนตัวคนชนขอบภาพ / ชายเสื้อนอกภาพ = ใช้ค่าเดิม)
+   * จุดที่วัดไม่ได้ใช้ตำแหน่งจาก templateWarp(anchors, fit, {side}) (src "canon")
+   * คืน { targets: [{x, y, k, src: "measured" | "canon"}] } เรียงตาม anchors
+   */
+  function personTargets(anchors, fit, alpha, W, H, face, { side = null, hair = null, keep = null } = {}) {
+    const out = templateWarp(anchors, fit, { side }).targets.map((p, i) => ({ x: p.x, y: p.y, k: anchors[i].k, src: "canon" }));
+    const fw = face.fw, th = fit.theta || 0, cs = Math.cos(th), sn = Math.sin(th), N = fit.N, img = (u, v) => ({ x: N.x + cs * u - sn * v, y: N.y + sn * u + cs * v });
+    const idx = (x, y) => { x = Math.round(x); y = Math.round(y); return x < 0 || y < 0 || x >= W || y >= H ? -1 : y * W + x; }, hairAt = i => !!hair && i >= 0 && hair[i] > .5;
+    const body = (x, y) => { const i = idx(x, y); return i >= 0 && alpha[i] > .5 && !hairAt(i) && !(keep && keep[i] > .5); };
+    const at = k => out.find(t => t.k === k), put = (k, x, y) => { const t = at(k); if (t) { t.x = x; t.y = y; t.src = "measured"; } };
+    // คอ: กึ่งกลางคอทุกแถวระหว่างใต้คางถึงเหนือโคนคอ -> เส้นตรง x = a + b·y ที่ระดับโคนคอ (คอ/ปกเลื่อนตามแนวนอน)
+    const cx0 = face.chinX != null ? face.chinX : face.cx, mids = [];
+    for (let y = Math.max(0, Math.round(face.chinY + fw * .12)); y <= Math.min(H - 1, Math.round(N.y - fw * .08)); y++) {
+      const r = runAt(alpha, W, y, cx0); if (r && r.r - r.l + 1 <= fw * .9 && r.l > 0 && r.r < W - 1) mids.push({ y, x: (r.l + r.r + 1) / 2 });
+    }
+    if (mids.length >= 3) {
+      const my = mids.reduce((q, p) => q + p.y, 0) / mids.length, mx = mids.reduce((q, p) => q + p.x, 0) / mids.length;
+      let sxx = 0, sxy = 0; for (const p of mids) { sxx += (p.y - my) ** 2; sxy += (p.y - my) * (p.x - mx); }
+      const dx = mx + (sxx > 0 ? clamp(sxy / sxx, -.3, .3) : 0) * (N.y - my) - N.x;
+      if (Math.abs(dx) < fw * .3) for (const k of ["neck", "cl", "cr"]) { const t = at(k); if (t) put(k, t.x + dx, t.y); }
+    }
+    // ปลายไหล่: ขอบบนในแนวไหล่ (u ออกจากคอ, v ลง) จนชันลงเป็นแขน (> 2) หรือสุดตัวคน; ผมอยู่ติดเหนือขอบบน = วัดไม่ได้ ใช้ค่าเดิม
+    const st = 2, topAt = u => { for (let v = -fw * .6; v <= fw * 1.8; v += 1) { const p = img(u, v); if (body(p.x, p.y)) return v; } return null; };
+    for (const [k, sd] of /** @type {[string, number][]} */ ([["l", -1], ["r", 1]])) {
+      let tip = null;
+      for (let a = fw * .6; a <= fw * 2.6; a += st) {
+        const u = sd * a, t0 = topAt(u); if (t0 == null) break; const t1 = topAt(u + sd * st); tip = { u, v: t0 }; if (t1 == null || t1 - t0 > st * 2) break;
+      }
+      if (!tip || Math.abs(tip.u) < fw * .9) continue;
+      let occ = false; for (let d = 1; d <= 4 && !occ; d++) { const p = img(tip.u, tip.v - d); occ = hairAt(idx(p.x, p.y)); }
+      if (!occ) { const p = img(tip.u, tip.v); put(k, p.x, p.y); }
+    }
+    // มุมชายเสื้อ: ขอบนอกของตัวคนที่แถวเดิม (เดินจากแกนกลางลำตัวออกไป); ตัวคนชนขอบภาพ = ไม่รู้ความกว้างจริง ใช้ค่าเดิม
+    for (const [k, sd] of /** @type {[string, number][]} */ ([["hl", -1], ["hr", 1]])) {
+      const t = at(k), y = t ? Math.round(t.y) : -1; if (y < 0 || y >= H) continue;
+      const xc = N.x - sn * (y - N.y) / cs; if (!body(xc, y)) continue;
+      let x = Math.round(xc); while (x > 0 && x < W - 1 && body(x + sd, y)) x += sd;
+      if (x > 0 && x < W - 1) put(k, x + sd * .5, t.y);
+    }
+    return { targets: out };
+  }
   /** จากจุดยึด 3 จุด (chin = โคนคอ N, l/r = บนไหล่) -> {N, s, theta} (ใช้กับจุดที่ผู้ใช้ลาก) */
   function fitFromTargets(T, canon = null) {
     const C = canon || { L: { x: -1.4, y: .24 }, R: { x: 1.4, y: .24 } };
@@ -2229,7 +2286,8 @@
     fillPoly, skinLikelihood, skinKeepMask, faceMasks, smoothSkin, adjustRegion, sharpen,
     estimateNoise, rng, addGrain, harmonizeGarment, contactShadow, lightWrap, blurredBackground,
     PARSE_LABELS, PARSE_GROUPS, parseCrop, parseGroups, cropToImage, multiclassGroups, headwearExtend, hairCleanup, parsePersonProb, fillMatteFromParse, minFilter, dilate01, blur3Rows, clothShading, faceFromParse, fillFaceMatte, distanceInside, canonShoulder, garmentClip, edt, dilateR, erodeR, closeR, openR, fillHoles, componentFrom, shoulderTop, neckMeasure, handsMask, handsNearGarment, armModel, heuristicParse, personLayers,
-    SHOULDER_PRIOR, measureShoulders, sideOffsets, removeStrayIslands, fillNeckGaps, restoreNeckSides, WEAR, templateAnchors, templateWarp, fitFromTargets, synthNeck, hairShadow, composeLayers, coverLayer, mergeCover, crc32, pngWithText, pngTexts, jpegWithComment,
+    SHOULDER_PRIOR, measureShoulders, sideOffsets, removeStrayIslands, fillNeckGaps, restoreNeckSides, WEAR, templateAnchors, templateWarp,
+    templateWarpTo, personTargets, fitFromTargets, synthNeck, hairShadow, composeLayers, coverLayer, mergeCover, crc32, pngWithText, pngTexts, jpegWithComment,
     applyMatteEdits, brush
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

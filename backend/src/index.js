@@ -36,6 +36,10 @@
 //   POST /v1/tester/check               closed test (tester.js): {ok:true} when X-Tester-Code is valid (or no gate is set)
 //   GET  /v1/merit/guidance              Merit MVP (merit.js): every published belief-guidance item (the device filters)
 //   POST /v1/merit/interest              "request interest" form — OFF unless MERIT_INTEREST_FORM=on (404 merit_interest_off)
+//   Stream G (owner decisions 2026-11-13; identities.js, orgs.js): POST /api/auth/line/start|finish (LINE Login, refused
+//     with 503 line_not_configured until LINE_LOGIN_CHANNEL_ID / _SECRET / _REDIRECT_URI are set), POST /api/auth/link/google,
+//     GET /api/me/identities, POST /api/me/identities/unlink, GET /api/me/orgs, /api/orgs/:id[/profile|invites|members|
+//     transfer|audit|licences], POST /api/org-invites/accept
 // Test deployment switches (tester.js; all unset by default = no change): PUBLIC_ROUTES (allow-list; other public routes
 //   404 route_off before D1), D1_WRITE_BUDGET (429 d1_budget), ADMIN_UNAUTH_WRITES_HOUR, SERVICE_OFF (every public route except /health
 //   -> 503 {off:true}), DAILY_REQUEST_CAP (429 daily_cap), TESTER_GATE + TESTER_ACCESS_CODE (X-Tester-Code on /v1/ai/*,
@@ -68,6 +72,7 @@ import { LEGACY_KEY_UNUSED, getGateway, legacyKeyUnused } from "./ai/settings.js
 import { medRoute } from "./med.js";
 import * as merit from "./merit.js";
 import * as reviewers from "./reviewers.js";
+import * as tryon from "./tryon.js";
 import { adminPcLookup, pcRoute, putPcSettings } from "./pc.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
@@ -77,6 +82,8 @@ import {
 } from "./tester.js";
 import { runMaintenance, retentionConfig } from "./retention.js";
 import * as members from "./members.js";
+import * as identities from "./identities.js";
+import * as orgs from "./orgs.js";
 import * as settings from "./settings.js";
 import { audit, callerHash, hit } from "./store.js";
 import {
@@ -140,6 +147,14 @@ async function publicRoute(request, env, url, deps) {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
     return reply(await leads.submitLead(env, request, await readJson(request, 8192), deps), 201);
   }
+  // Try-On MVP (tryon.js): published catalogue + garment cut-outs; nothing about the visitor is read or stored
+  if (p === "/v1/tryon/catalog" && m === "GET") return json(await tryon.publicCatalog(env), 200, { ...cors, "Cache-Control": "public, max-age=120" });
+  const ta = /^\/v1\/tryon\/asset\/([^/]{1,40})$/.exec(p);
+  if (ta && m === "GET") {
+    const a = await tryon.publicAsset(env, ta[1]);
+    if (!a) return reply({ error: "not found", code: "not_found" }, 404);
+    return withHeaders(new Response(a.bytes, { status: 200 }), { ...cors, "Content-Type": a.mime, "X-Content-Type-Options": "nosniff", "Cache-Control": "public, max-age=300" });
+  }
   if (p === "/v1/merit/guidance" && m === "GET") {
     // Merit MVP: every published item; no query is read (the device filters by its own tradition choice and reading)
     return json(await merit.publicGuidance(env), 200, { ...cors, "Cache-Control": "public, max-age=300" });
@@ -166,9 +181,20 @@ async function publicRoute(request, env, url, deps) {
   if (p.startsWith("/api/auth/") || p === "/api/me" || p.startsWith("/api/me/")) {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
     const body = async () => readJson(request, 8192);
-    if (p === "/api/auth/nonce" && m === "POST") return reply(await members.issueNonce(env, request), 201);
+    if (p === "/api/auth/nonce" && m === "POST") {
+      let nb = null;
+      try { nb = request.headers.get("Content-Type") ? await readJson(request, 1024) : null; } catch { nb = null; }
+      return reply(await members.issueNonce(env, request, nb), 201);
+    }
     if (p === "/api/auth/google" && m === "POST") return reply(await members.signInGoogle(env, request, await readJson(request, 8192), deps));
+    // stream G: LINE Login (start checks the member itself for link / reauth; finish reads the optional bearer)
+    if (p === "/api/auth/line/start" && m === "POST") return reply(await identities.startLine(env, request, await readJson(request, 4096), deps), 201);
+    if (p === "/api/auth/line/finish" && m === "POST") return reply(await identities.finishLine(env, request, await readJson(request, 4096), deps));
     const mem = await members.requireMember(env, request);
+    if (p === "/api/auth/link/google" && m === "POST") return reply(await identities.linkGoogle(env, mem, await body(), deps));
+    if (p === "/api/me/identities" && m === "GET") return reply(await identities.listIdentities(env, mem));
+    if (p === "/api/me/identities/unlink" && m === "POST") return reply(await identities.unlinkIdentity(env, mem, await body(), deps));
+    if (p === "/api/me/orgs" && m === "GET") return reply(await orgs.myOrgs(env, mem));
     if (p === "/api/auth/logout" && m === "POST") return reply(await members.logout(env, mem));
     if (p === "/api/auth/refresh" && m === "POST") return reply(await members.refreshSession(env, mem));
     if (p === "/api/me" && m === "GET") return reply(await members.me(env, mem));
@@ -203,6 +229,30 @@ async function publicRoute(request, env, url, deps) {
     const sm = /^\/api\/me\/saved\/([a-f0-9]{32})$/.exec(p);
     if (sm && m === "GET") return reply(await members.getSaved(env, mem, sm[1]));
     if (sm && m === "DELETE") return reply(await members.deleteSaved(env, mem, sm[1]));
+    return reply({ error: "not found" }, 404);
+  }
+  if (p.startsWith("/api/orgs/") || p === "/api/org-invites/accept") {
+    // stream G: organisation account lite (orgs.js). Member bearer required; no customer people data is accepted.
+    if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
+    const mem = await members.requireMember(env, request);
+    const body = async () => {
+      const b = request.headers.get("Content-Type") ? await readJson(request, 8192) : {};
+      if (!b || typeof b !== "object" || Array.isArray(b)) throw new HttpError(400, "invalid request body");
+      return b;
+    };
+    if (p === "/api/org-invites/accept" && m === "POST") return reply(await orgs.acceptInvite(env, mem, await body()));
+    const om = /^\/api\/orgs\/([a-f0-9]{32})(?:\/(profile|invites|members|transfer|audit|licences)(?:\/([a-f0-9]{32}))?(?:\/(role))?)?$/.exec(p);
+    if (!om) return reply({ error: "not found" }, 404);
+    const [, id, sub, sid, leaf] = om;
+    if (!sub && m === "GET") return reply(await orgs.orgView(env, mem, id));
+    if (sub === "profile" && !sid && m === "POST") return reply(await orgs.updateProfile(env, mem, id, await body()));
+    if (sub === "invites" && !sid && m === "POST") return reply(await orgs.createInvite(env, mem, id, await body()), 201);
+    if (sub === "invites" && sid && !leaf && m === "DELETE") return reply(await orgs.revokeInvite(env, mem, id, sid));
+    if (sub === "members" && sid && leaf === "role" && m === "POST") return reply(await orgs.setRole(env, mem, id, sid, await body(), deps));
+    if (sub === "members" && sid && !leaf && m === "DELETE") return reply(await orgs.removeMember(env, mem, id, sid, await body(), deps));
+    if (sub === "transfer" && !sid && m === "POST") return reply(await orgs.transferOwner(env, mem, id, await body(), deps));
+    if (sub === "audit" && !sid && m === "GET") return reply(await orgs.orgAuditView(env, mem, id));
+    if (sub === "licences" && !sid && m === "GET") return reply(await orgs.orgLicences(env, mem, id));
     return reply({ error: "not found" }, 404);
   }
   if (p.startsWith("/api/med/")) {
@@ -333,16 +383,19 @@ async function adminRoute(request, env, url, deps) {
   const sess = await auth.requireAdmin(env, request);
   const ipHash = await callerHash(env, request, "admin");
   const isReviewer = sess.role === "reviewer";
-  const who = isReviewer ? { actor: "reviewer:" + sess.reviewerId, name: String(sess.reviewerName), role: "reviewer" } : { actor: "owner", name: "owner", role: "owner" };
+  // restricted accounts (admin_reviewers): role "merit" = the merit reviewer; "tryon_admin" / "tryon_editor" = try-on catalogue (0017)
+  const accRole = isReviewer ? String(sess.accountRole || "merit") : "owner";
+  const who = isReviewer ? { actor: "reviewer:" + sess.reviewerId, name: String(sess.reviewerName), role: accRole === "merit" ? "reviewer" : accRole }
+    : { actor: "owner", name: "owner", role: "owner" };
   const act = (action, detail) => audit(env, who.actor, action, detail, ipHash);
   if (isReviewer) {
     // enforced here, on the Worker, for every request (the page only hides what it cannot use)
-    if (!reviewerAllowed(m, route)) {
+    if (!(accRole === "merit" ? reviewerAllowed(m, route) : tryon.roleAllowed(accRole, m, route))) {
       await act("role.denied", { route: (m + " " + route).slice(0, 80) });
       throw new HttpError(403, "not allowed for a reviewer account (forbidden_role)", { code: "forbidden_role" });
     }
     if (m === "GET" && route === "/me") {
-      return reply({ role: "reviewer", username: sess.reviewerName, totp_enabled: true, csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null });
+      return reply({ role: accRole === "merit" ? "reviewer" : accRole, username: sess.reviewerName, totp_enabled: true, csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null });
     }
   }
   /** Sensitive action: body {password, totp} (auth.reauthOwner — rate limited per session, failures audited there) or
@@ -414,6 +467,29 @@ async function adminRoute(request, env, url, deps) {
     });
     if (r.status === "OK" || r.status === "FAIL") await act("ai.provider_key.tested", { provider: id, last4: used, status: r.status });
     return reply(r);
+  }
+
+  // stream G: one organisation (orgs.js). Status changes, owner invitations and licence orders need the owner's re-auth.
+  const og = /^\/orgs\/([a-f0-9]{32})(?:\/(owner-invite|licences|audit)(?:\/([a-f0-9]{32}))?)?$/.exec(route);
+  if (og) {
+    const [, oid, sub, lid] = og;
+    if (!sub && m === "GET") return reply(await orgs.adminOrg(env, oid));
+    if (!sub && m === "PUT") {
+      const b = await body();
+      let rest;
+      if ("status" in b) {
+        try { rest = await auth.requireReauth(env, sess, b); } catch (e) {
+          if (e && e.extra && e.extra.code === "reauth_required") await act("reauth.failed", { route, missing: true });
+          throw e;
+        }
+      } else { const { password: _p, totp: _t, ...r } = b; rest = r; }
+      return reply(await orgs.adminUpdateOrg(env, oid, rest));
+    }
+    if (sub === "owner-invite" && !lid && m === "POST") { await reauthed(); return reply(await orgs.adminOwnerInvite(env, oid), 201); }
+    if (sub === "licences" && !lid && m === "POST") return reply(await orgs.adminAddLicence(env, oid, await reauthed()), 201);
+    if (sub === "licences" && lid && m === "PUT") return reply(await orgs.adminSetLicence(env, oid, lid, await reauthed()));
+    if (sub === "audit" && !lid && m === "GET") return reply(await orgs.adminOrgAudit(env, oid));
+    return reply({ error: "not found" }, 404);
   }
 
   switch (`${m} ${route}`) {
@@ -534,6 +610,10 @@ async function adminRoute(request, env, url, deps) {
       return reply({ audit: rows });
     }
     case "GET /members": return reply(await members.adminMembers(env, Object.fromEntries(url.searchParams)));
+    // stream G: organisation accounts (lite) and back-office licence orders (orgs.js)
+    case "GET /orgs": return reply(await orgs.adminListOrgs(env));
+    case "POST /orgs": return reply(await orgs.adminCreateOrg(env, await reauthed()), 201); // issues an owner link: re-auth (review L2)
+    case "GET /licence-plans": return reply(await orgs.adminLicencePlans(env));
     case "GET /membership": return reply({ ...(await members.adminMembershipInfo(env)), turnstile: turnstileStatus(env) });
     case "PUT /membership": {
       const input = await reauthed();
@@ -610,6 +690,47 @@ async function adminRoute(request, env, url, deps) {
     return reply(r);
   }
   if (ld && m === "DELETE" && !ld[2]) { await reauthed(); const r = await leads.deleteLead(env.DB, ld[1]); await act("lead.deleted", { lead: ld[1] }); return reply(r); }
+  // Try-On MVP catalogue (tryon.js): owner + tryon_admin everything; tryon_editor create / edit / upload only (the role
+  // matrix above already refused the rest). Audit: ids, field names, statuses and image size only (never the image, a price
+  // value or a name).
+  if (route === "/tryon/items" && m === "GET") return reply(await tryon.adminList(env));
+  if (route === "/tryon/items" && m === "POST") {
+    const it = await tryon.adminCreate(env, await body(), who);
+    await act("tryon.item.created", { id: it.id, category: it.category, status: it.status });
+    return reply({ item: it }, 201);
+  }
+  const ti = /^\/tryon\/items\/([a-f0-9]{12})(\/status|\/asset)?$/.exec(route);
+  if (ti && !ti[2] && m === "PUT") {
+    const r = await tryon.adminUpdate(env, ti[1], await body(), who);
+    await act("tryon.item.updated", { id: ti[1], changed: r.changed, from: r.from, to: r.to });
+    return reply({ item: r.item });
+  }
+  if (ti && ti[2] === "/status" && m === "POST") {
+    const r = await tryon.adminSetStatus(env, ti[1], await body(), who);
+    await act("tryon.item.status", r);
+    return reply(r);
+  }
+  if (ti && ti[2] === "/asset" && m === "PUT") {
+    const raw = await readJson(request, tryon.ASSET_MAX_BODY);
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new HttpError(400, "invalid request body", { code: "bad_body" });
+    const r = await tryon.adminSetAsset(env, ti[1], raw, who);
+    await act("tryon.asset.set", { id: ti[1], mime: r.asset.mime, bytes: r.asset.bytes, w: r.asset.w, h: r.asset.h, store: r.asset.store, faces_blurred: r.faces, status: r.status });
+    return reply(r);
+  }
+  if (ti && !ti[2] && m === "DELETE") {
+    // fresh re-auth like lead / merit deletes: the owner (password + code, or the sudo window); a try-on admin confirms
+    // their OWN password + 6-digit code in this request (restricted accounts cannot open the owner's sudo window)
+    if (isReviewer) {
+      const b = request.headers.get("Content-Type") ? await body() : {};
+      try { await auth.reauthReviewerInline(env, sess, b); } catch (e) {
+        if (e && e.extra && e.extra.code === "reauth_inline_required") await act("reauth.failed", { route, missing: true, inline: true });
+        throw e;
+      }
+    } else await reauthedOptional();
+    const r = await tryon.adminDelete(env, ti[1]);
+    await act("tryon.item.deleted", { id: ti[1] });
+    return reply(r);
+  }
   // Merit MVP: belief-guidance items + the (switched-off) interest inbox. Audit details carry ids, field names and review
   // decisions only (comments live in the item history, merit_revisions). Deletes need re-auth (reauthedOptional).
   if (route === "/merit/items" && m === "GET") return reply(await merit.adminListItems(env));
@@ -684,15 +805,21 @@ async function adminRoute(request, env, url, deps) {
 
 /** Static admin shell served from the Worker's own origin (Workers Static Assets binding ASSETS, built by
  *  backend/scripts/build-admin.mjs). HTTP headers a <meta> cannot carry: frame-ancestors 'none' + X-Frame-Options. */
-export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js",
+export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin-orgs.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js",
   // round 17 P5: AI Gateway section text in English / Chinese (Thai stays the default)
   "/lensiq-i18n.js", "/i18n/zh-admin.js", "/i18n/en-admin.js",
   // first-run setup: QR code of the 2-step verification secret, drawn in the browser (no request carries the secret)
   "/attendance-qr.js",
   // fortune citation list (back office only; fortune pages no longer show citations, owner order 2026-11-12)
-  "/fortune-sources.js"]);
+  "/fortune-sources.js",
+  // Try-On catalogue tab: face blur of product photos on the merchant's device before upload (Product Check detector,
+  // BlazeFace short range + MediaPipe Tasks runtime, Apache-2.0) and the plain-background cut-out (studio-core.js)
+  "/admin-tryon.js", "/lensiq-tryon-core.js", "/lensiq-pc.js", "/lensiq-pc-run.js", "/studio-core.js", "/vendor/mediapipe/vision_bundle.mjs",
+  "/vendor/mediapipe/wasm/vision_wasm_internal.js", "/vendor/mediapipe/wasm/vision_wasm_internal.wasm",
+  "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.js", "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
+  "/vendor/models/face-gate/blaze_face_short_range.tflite"]);
 export const ADMIN_PAGE_HEADERS = {
-  "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
+  "Content-Security-Policy": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
     "font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; report-uri /v1/csp-report; report-to csp",
   "Reporting-Endpoints": 'csp="/v1/csp-report"',
   "X-Frame-Options": "DENY",

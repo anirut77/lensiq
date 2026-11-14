@@ -196,3 +196,9 @@ fieldset { border: 1px solid var(--ad-line); border-radius: 10px; padding: 8px 1
 #amViewSources a { overflow-wrap: anywhere; }
 #amImportFile { max-width: 100%; min-width: 0; width: 100%; }
 #amImportBox label { min-width: 0; max-width: 100%; }
+/* stream G: organisation accounts (lite) */
+.ado-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ado-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; overflow-wrap: anywhere; }
+.ado-list li > span { flex: 1 1 240px; min-width: 0; }
+.ado-link { box-sizing: border-box; width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid var(--ad-line); border-radius: 10px; font: inherit; }
+#adoDetail h4 { margin: 18px 0 8px; }

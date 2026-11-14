@@ -1,0 +1,104 @@
+# evals-locks/merit.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/merit/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/merit/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# Merit MVP (owner order 2026-11-12) — fixed tests, locked 2026-11-12 BEFORE lensiq-merit-core.js, lensiq-merit.js,
+# lensiq-merit-seed.js, backend/src/merit.js, migration 0014_merit.sql and the admin section were written.
+# Branch worktree-agent-a1b9f7dece48d592e, base commit fed446b. Paths relative to the repo root.
+# A changed hash means the test was edited after locking.
+d98ce233602bb14c01cebe542dd1e9b8fb0a2a09ebf98fb7cacdc853660cb55f  tests/unit/merit.test.js  # repo file
+1b6f4ee877a6cb9857d899eacf5e054dfa2fe239ee99e18d78dd0ccd2769292c  tests/unit/backend-merit.test.js  # repo file
+11bfc0b47205bff2e7d7f257c864751095f3b47d47d808bd2dfcd065d1dce420  tests/e2e/merit.e2e.mjs  # repo file
+14f0803b7c6e8552c166357f3aacd548d9fae14313142c84ff766879d41fe450  tests/e2e/admin-merit.e2e.mjs   (superseded, see re-lock below)  # repo file
+#
+# Re-lock 2026-11-12 (TEST DEFECT, no assertion changed): step 3 filled the re-auth dialog with
+# document.querySelector("dialog.ad-reauth"), which returns the static AI-keys dialog #adkDlg (also class ad-reauth,
+# earlier in admin.html) instead of the open re-auth dialog, so the password was never typed into the real dialog.
+# Fix: the selector is now "dialog.ad-reauth[open]". Same steps, same assertions (row removed, DB row gone, 1 audit row).
+b54f116602eb9eac844bfe1aa305e681d818c439280977b49f729e8c975bd6ba  tests/e2e/admin-merit.e2e.mjs  # repo file
+#
+# Review amendment 2026-11-12 (independent review of 4252648; STRICTER ONLY), locked BEFORE the fixes:
+#  - new tests/unit/merit-review.test.js: the reviewer's 70 lint cases (65 must be caught, 5 clean) + 26 ordinary
+#    phrases with 0 false flags; one shared lint for Worker and page (page drops failing items); crisis check imported
+#    from fortune-ai.js; crisis state kept in memory when storage is blocked; retention days in the notice; page count.
+#  - new tests/e2e/merit-crisis.e2e.mjs: second tab, submit-time crisis check, blocked storage, horoscope placement.
+#  - tests/unit/merit.test.js amended: R5 now expects the crisis state to SURVIVE blocked storage (was: lost); R5 resets
+#    the in-memory flag between steps; R8 now checks that the Worker uses FortuneAI.crisis.check itself (requested by
+#    the coordinator so a pattern change in fortune-ai.js applies automatically) instead of a copied-regex equality.
+#    Same phrase checks as before. The earlier hash of merit.test.js (d98ce233…) is superseded.
+4140e1f0d7e2a9beb178679d16ce60a17a4521fef1899ec7bb7acec81f56fe40  tests/unit/merit.test.js  # repo file
+75df0d602feeb42282dce60d723983f68d26aa65ce806d56b12e5a573c3b5481  tests/unit/merit-review.test.js  # repo file
+a8e02463273419a8943a01349b5b470729d373ce97b1fc88f5dafdd922c02167  tests/e2e/merit-crisis.e2e.mjs  # repo file
+#
+# Re-lock 2026-11-12 (COUNT ONLY, no case and no assertion removed): merit-review.test.js asserted MUST_CATCH.length
+# === 65 and named "70 cases"; the reviewer's lint-fuzz.mjs actually holds 78 cases (73 must-catch + 5 clean) and the
+# list in the test already carried all 73. The count and titles now say 73 / 78. Hash 75df0d60… is superseded.
+f1d5a202a9670bdc9de40e5cbf2724c760a0101f7f1616fa5d987a6c4c04b8de  tests/unit/merit-review.test.js  # repo file
+#
+# Reviewer role + review queue (owner decision 2026-11-12), locked 2026-11-12 BEFORE the role, the queue, the import,
+# migration 0015 and the admin screens were written (branch rebased onto main 5c5779d):
+346523ceb129f7b86a7ceac764ed1ac9da3507932c52decc92aa609e0453c318  tests/unit/backend-merit-reviewer.test.js  # repo file
+a2088212dc2aa5e3397a11e9e57355c285b1a226852dbd3920d024a6776aaf53  tests/e2e/admin-merit-review.e2e.mjs  # repo file
+#
+# Re-lock 2026-11-12 (FORCED BY A NEW MIGRATION, same intent): backend-merit.test.js B1 asserted 0014_merit.sql is the LAST
+# entry of MIGRATIONS; 0015_merit_review.sql now ends the list. B1 now asserts 0014 directly follows 0013; the schema
+# probe and the /health/deep checks are unchanged. Hash 1b6f4ee8… is superseded.
+76b8731dd5a915fd7c855f2ba6c6014c776da44fc10e8ffc7bd41d9d97e6a98f  tests/unit/backend-merit.test.js  # repo file
+#
+# Drafts import with reviewer notes (coordinator request 2026-11-12, mid-task). NOTE: written AFTER splitReviewMeta and
+# tools/merit-drafts-check.mjs (the request arrived while they were being built); recorded here so later edits show.
+fbed4cd3072e607b717778253b5687b60c2734c0ed16ca2110a63ff801249127  tests/unit/backend-merit-drafts.test.js  # repo file
+#
+# Re-lock 2026-11-12 (REBASE onto main 3d37445; no assertion removed or weakened):
+#  - migrations renumbered 0014_merit -> 0015_merit, 0015_merit_review -> 0016_merit_review (quote-form's 0014_leads_viewed.sql
+#    merges first). backend-merit.test.js B1: 0015 must directly follow the migration file numbered just below it on disk
+#    and be directly followed by 0016 (was: directly after 0013). backend-merit-reviewer.test.js: names only.
+#  - main (4061cfe) never renders a reading again on a page in the crisis state; the next result is a fresh support card.
+#    merit.e2e 4a and merit-crisis.e2e 3 now wait for that NEW support card (not a reading) before the same assertions.
+fb25b5d263684adba80357d239f445ad9616041a7725428598e836f89ec6fecb  tests/unit/backend-merit.test.js  # repo file
+d92a8a8793b337395248057d15cd0c8db611d0bc2c346120d7b7c106963ae79b  tests/unit/backend-merit-reviewer.test.js  # repo file
+d7bad4ddeffdb15f2d6635fe3a0ee287e1bfc965083a410c387d87f918684786  tests/e2e/merit.e2e.mjs  # repo file
+0e8a6591f984ca5ffb6808120f0a9df10fc1def552e7417745e841dd1a9e982a  tests/e2e/merit-crisis.e2e.mjs  # repo file
+#
+# Re-lock 2026-11-13 — reason: owner decision 2026-11-12, session-only, L59. Merit keeps no crisis state of its own and
+# writes nothing about a crisis; it reads the shared fortune crisis state (FortuneAI.crisis.allow("merit") / LQFortuneCrisis).
+#  - merit.test.js R5: 24 h lq-crisis-at test replaced by: asks allow("merit", doc), falls back to fortune-crisis.js, real
+#    shared state on/off per page, no markCrisis / CRISIS_KEY / window; no lq-crisis-at, no sessionStorage, no storage-event
+#    channel, one storage write in core (tradition choice) and none in the page. NEW (stricter): panel carries data-lq-remedy,
+#    the crisis CSS rule exists, nav.js loads Merit on 14 fortune pages.
+#  - merit-review.test.js V4: blocked storage -> the shared state still holds (was: Merit's in-memory copy).
+#  - merit-crisis.e2e 1: was 'another tab's support card withdraws the panel' (needs a cross-tab stored flag, now not allowed);
+#    now: a support card on the page withdraws panel + paid offer, shared state on, panel is data-lq-remedy, nothing about
+#    the crisis written to localStorage. 2: state set under the drawn form via the shared attribute (was lq-crisis-at).
+#    3: also asserts the shared state is on with storage blocked. 4: also asserts data-lq-remedy and that
+#    html[data-lq-crisis] alone hides the panel.
+#  - merit.e2e 4a / 4b: shared state checked instead of lq-crisis-at; 4a also asserts lq-crisis-at is never stored.
+051c8d9acc73f5914970c92886664cb5988745d6346ae6b39efec571d9d6be72  tests/unit/merit.test.js  # repo file
+234c973835f3945d8fced5749d02d13494e9008353e28a57d15291d228225f51  tests/unit/merit-review.test.js  # repo file
+c25977b046e1396d6a69f45872ef86918bfffa460af5910abcb02416b2dd2d62  tests/e2e/merit.e2e.mjs  # repo file
+c1657611fd9d79046afbe9247b94cde4bcc0ab61bb759a99934a28e65112475d  tests/e2e/merit-crisis.e2e.mjs  # repo file
+#
+# FORMAT-ONLY re-lock 2026-11-13 on integ-2: two wait expressions wrapped onto two lines (string concatenation, identical expression); no assertion changed.
+dc30e46f3f0aa84d1688f6a0b07148fc717eebc105b08313ebb5394c85961db6  tests/e2e/merit-crisis.e2e.mjs  # repo file
+8e6e8f2fbff3e0a4dce5f798a95cb9a0d7062ed2fc207a0dabf6b78f55f33c96  tests/e2e/merit.e2e.mjs  # repo file
+#
+# RE-LOCK 2026-11-13 (owner decision 2026-11-13 crisis flow v2 rule 3: free belief guidance may be shown while calm; rule 4: no paid / lucky items), before the product change on crisis-flow-v2:
+#  - merit.test.js R5: the panel carries data-lq-belief="merit" (was data-lq-remedy="merit"); new: lucky-item cards carry data-lq-remedy="lucky". Kept: one constructor, styles.css crisis rule, 14 pages. (R5 'crisis hides the whole panel' for panelModel crisis:true is unchanged.)
+#  - merit-crisis.e2e.mjs 3: after the card, a plain tarot question gets a reading (was: the card again); asserts no paid section and no lucky-item card (was: no panel at all). 4: the panel is data-lq-belief and stays under html[data-lq-crisis]; lucky-item cards hidden there (was: the whole panel hidden). Tests 1 and 2 unchanged (panel withdrawn while a card is on screen; submit-time check).
+#  - merit.e2e.mjs 4a: the next zodiac reading after the form's card is a calm reading (was: a new card); asserts no paid section and no lucky-item card (was: no merit card at all). 4b: on zodiac after a card on tarot: no paid section, no lucky-item card, no form (was: no panel, no card at all).
+4aef66bfb72eae841e7e2a20d9ead68084db460aee2cece945db4f2084819aa7  tests/unit/merit.test.js  # repo file
+5bc994ed44ffd93130f26f817a377a722453e3eff1c9ec0dd52037c9c450b563  tests/e2e/merit-crisis.e2e.mjs  # repo file
+b1a5419c4b3508d65246571dc8da494976c83e0dbd11c97156e0dcf159e255b9  tests/e2e/merit.e2e.mjs  # repo file
+#
+# RE-LOCK 2026-11-13 (2) crisis flow v2 §3: merit-crisis.e2e.mjs test 1, the one marker assertion missed in the first re-lock: the panel carries data-lq-belief="merit" (was data-lq-remedy="merit"). The rest of test 1 (panel, cards and paid offer withdrawn while a card is on screen; nothing stored) is unchanged.
+b4da3cdfb31bec1a5ff8d53554e293783631238f0942f470fa10874a63f67b9d  tests/e2e/merit-crisis.e2e.mjs  # repo file
+# 2026-11-13T14:16:31Z stream G amendment A-G1 to tests/unit/backend-merit-reviewer.test.js (RV1: 'last migration' -> '0016 directly follows 0015', because 0017_accounts.sql follows). New hash 28e9b4820245b9da3a066312560fa4450ede3481539b1a7453edd9c462059d4f; recorded in ../accounts-g/locked.sha256.
+# --- from ~/LENSIQ-field/evals/merit/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+# Re-lock 2026-11-13 (FORCED BY A NEW MIGRATION, same intent; branch tryon-fit, Try-On MVP team): backend-merit-reviewer.test.js
+# RV1 asserted 0016_merit_review.sql is the LAST entry of MIGRATIONS; 0017_tryon.sql now ends the list. RV1 now asserts 0016
+# directly follows 0015_merit.sql and is directly followed by the next migration file on disk; the probes and the
+# /health/deep check are unchanged. Hash d92a8a87… is superseded.
+9b2bb401ce3f94411e0b293cd6e7bc5633ec6e8e7c4151ebd541598624e0df67  tests/unit/backend-merit-reviewer.test.js  # repo file
+# 2026-11-14 TEST-BUG RE-LOCK (append-only; earlier hashes stay as history): TOTP clock frozen via tests/unit/totp-clock.js (one added require line, no assertion changed); reason and full list in evals-locks/totp-deterministic.sha256 (CI run 43464554484, RV6 step-boundary race).
+638742da3cb716349042c5a4c2254aab2190edbe2492fe310be2f876899e6213  tests/unit/backend-merit-reviewer.test.js  # repo file
+cf9be33a44d0e8893f658f5fd171bfd53c2c5a7d5d29c8f440aaf5b364bd7dfd  tests/unit/backend-merit.test.js  # repo file
+# 2026-11-13T20:44:16Z stream G: accounts-g merged main and takes tryon-fit's RV1 (0016 right after 0015 and before the next file; with the totp-clock re-lock); amendment A-G1 superseded. Hash = main's file.
+50209f2c402bb4009c8cbe6d5f8bde802ddcff5c0524bb1c7f25ec899c019d68  tests/unit/backend-merit-reviewer.test.js  # repo file

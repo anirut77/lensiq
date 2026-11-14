@@ -22,7 +22,7 @@
 <title data-i18n="acct.doc.title">บัญชีของฉัน | LENSIQ</title>
 <meta name="description" data-i18n-attr="content:acct.doc.desc" content="บัญชีสมาชิก LENSIQ: แพ็กเกจ โควตา ประวัติการใช้งาน ดาวน์โหลดข้อมูล และลบบัญชี">
 <link rel="stylesheet" href="styles.css?v=12">
-<link rel="stylesheet" href="account.css?v=4">
+<link rel="stylesheet" href="account.css?v=5">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -63,6 +63,16 @@
     <p><button type="button" class="btn primary" id="acSignIn" data-i18n="acct.out.cta">เข้าสู่ระบบฟรีด้วย Google</button></p>
   </section>
 
+  <!-- stream G: invitation link account.html#org_invite=<token> (account-org.js reads it once and clears the address bar) -->
+  <section class="section acct-card" id="acInvite" aria-labelledby="acInviteH" hidden>
+    <h2 id="acInviteH" data-i18n="acct.inv.title">คำเชิญเข้าร่วมบัญชีองค์กร</h2>
+    <p data-i18n="acct.inv.text">คุณได้รับลิงก์เชิญให้เข้าร่วมบัญชีองค์กรบน LENSIQ เมื่อรับคำเชิญ ผู้ดูแลขององค์กรจะเห็นชื่อที่แสดงและอีเมลของบัญชีคุณ (ถ้ามี)</p>
+    <p class="acct-muted" id="acInviteNeed" data-i18n="acct.inv.need" hidden>เข้าสู่ระบบก่อน แล้วกดรับคำเชิญ</p>
+    <p class="acct-row"><button type="button" class="btn primary" id="acInviteAccept" data-i18n="acct.inv.accept">รับคำเชิญ</button>
+      <button type="button" class="btn ghost" id="acInviteDrop" data-i18n="acct.inv.drop">ไม่รับ</button></p>
+    <p class="acct-inline" id="acInviteMsg" role="status" aria-live="polite"></p>
+  </section>
+
   <div id="acApp" hidden>
     <section class="section acct-card acct-renew" id="acRenew" role="status" hidden aria-labelledby="acRenewH">
       <h2 id="acRenewH" data-i18n="acct.renew.title">ถึงเวลาต่ออายุแพ็กเกจ</h2>
@@ -75,6 +85,23 @@
       <label class="acct-check"><input type="checkbox" id="acMarketing"> <span data-i18n="acct.profile.marketing">รับข่าวสารและข้อเสนอจาก LENSIQ ทางอีเมล (ไม่บังคับ)</span></label>
       <p class="acct-inline" id="acMarketingMsg" role="status" aria-live="polite"></p>
       <p class="acct-row"><button type="button" class="btn ghost" id="acSignOut" data-i18n="acct.signout">ออกจากระบบ</button></p>
+    </section>
+
+    <!-- stream G: sign-in methods (Google + LINE) and the organisation account (lite), rendered by account-org.js -->
+    <section class="section acct-card" id="methods" aria-labelledby="acMethH">
+      <h2 id="acMethH" data-i18n="acct.meth.title">วิธีเข้าสู่ระบบ</h2>
+      <p class="acct-muted" data-i18n="acct.meth.text">เชื่อม Google และ LINE ไว้กับบัญชีเดียวกันได้ เราไม่รวมสองบัญชีที่มีอยู่แล้วเข้าด้วยกัน และยกเลิกวิธีสุดท้ายที่เหลืออยู่ไม่ได้</p>
+      <div id="acMethods"></div>
+      <p class="acct-inline" id="acMethMsg" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="section acct-card" id="org" aria-labelledby="acOrgH" hidden>
+      <h2 id="acOrgH" data-i18n="acct.org.title">บัญชีองค์กร</h2>
+      <p class="acct-muted" data-i18n="acct.org.text">บัญชีองค์กรเก็บเฉพาะชื่อองค์กร ข้อมูลออกเอกสาร และรายชื่อผู้ดูแลกับเจ้าหน้าที่ ข้อมูลพนักงาน ทะเบียนรถ
+        และผู้สอบของคุณอยู่ในเครื่องของคุณเท่านั้น ไม่ซิงก์มาที่ LENSIQ</p>
+      <div id="acOrgs"></div>
+      <div id="acOrgDetail"></div>
+      <p class="acct-inline" id="acOrgMsg" role="status" aria-live="polite"></p>
     </section>
 
     <section class="section acct-card" id="sessions" aria-labelledby="acSessH">
@@ -147,6 +174,7 @@
   <p class="foot-legal foot-docs"><a href="terms.html" data-i18n="foot.terms">ข้อกำหนดการใช้บริการ</a> <a href="terms.html#t9" data-i18n="acct.foot.refund">การยกเลิกและคืนเงิน</a> <a href="privacy.html" data-i18n="foot.privacy">ความเป็นส่วนตัว</a> <a href="help.html" data-i18n="foot.help">ช่วยเหลือ</a></p>
 </footer>
 <script src="lensiq-config.js?v=10"></script>
-<script src="account.js?v=4"></script>
+<script src="account.js?v=5"></script>
+<script src="account-org.js?v=1"></script>
 </body>
 </html>

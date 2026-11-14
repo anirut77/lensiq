@@ -1,0 +1,7 @@
+# evals-locks/e2e-profile-cleanup.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/e2e-profile-cleanup/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/e2e-profile-cleanup/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# e2e profile cleanup (owner request 2026-11-13: disk filled by 41 left-over Chrome test profiles, 1.5 GB) — tests locked 2026-11-13T10:31:31Z before any product code (sweepStale / b.dir did not exist yet in tests/e2e/cdp.mjs)
+2e592d3460af7ba9d261e0f89ba28f7858bb3fa937aeccbdea5f8d6106dbf8e4  tests/unit/e2e-profile-sweep.test.js  # repo file
+1506c82e81f7c590166fc766c86c1fd7e14496a013cf37e7897a18fb6ca3c4ba  tests/e2e/profile-cleanup.e2e.mjs  # repo file
+# v2 2026-11-13T10:32:25Z: tests/unit/e2e-profile-sweep.test.js — module loading only: tests/unit/*.js are CommonJS, so the ES import lines became require() + a before() hook that imports cdp.mjs (same as about-i18n.test.js). No test case, input or assertion changed. e2e file unchanged.
+dea0cfa6e4ea2daa37322427dbdf7aa0d233cfa2781ca5ed1ca46383bc24df99  tests/unit/e2e-profile-sweep.test.js  # repo file
