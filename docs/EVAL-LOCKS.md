@@ -86,6 +86,14 @@ node "<repo>/tools/eval-guard.mjs" check <phase> <every input file>
 
 If the guard does not print `eval-guard OK`, there is no measurement. Report the refusal instead.
 
+## Known issues in locked files
+
+Locked files are not edited. Known problems are recorded here and fixed in the next set.
+
+- `fortune-honest__fresh-2026-11-14c`: 14c analyze.mjs crashes on rule-f fails without `where`; review 4 used a
+  null-safe copy differing in two lines; fixed in 14d. (`fortune-honest__fresh-2026-11-14d/analyze.mjs` shows such a
+  fail as `flow`; the pass logic is unchanged.)
+
 ## ภาษาไทย
 
 กฎของเจ้าของ (13 พ.ย. 2026): ชุดทดสอบหรือชุดวัดผลที่ล็อกแล้วทุกชุดต้องเก็บไว้ที่ `~/LENSIQ-field/evals/<phase>/`
