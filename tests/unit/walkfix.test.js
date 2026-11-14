@@ -38,9 +38,9 @@ const FORM_OPTIONS = [...read("index.html").matchAll(/<option value="([a-z]*)"/g
 
 // ---------------------------------------------------------------- W-002 / W-017: quote + demo from every product page
 const PRODUCTS = [
-  { page: "exam.html", interest: "exam", demo: /href="exam-(lab|dashboard)\.html\?demo=1"/ },
-  { page: "attendance.html", interest: "attendance", demo: /href="attendance\.html\?mode=employee&(amp;)?demo=1"/ },
-  { page: "gate.html", interest: "gate", demo: /href="(village|parking)\.html\?demo=1"/ },
+  { page: "exam.html", interest: "exam", demo: /href="exam-(?:lab|dashboard)\.html\?demo=1"/ },
+  { page: "attendance.html", interest: "attendance", demo: /href="attendance\.html\?mode=employee&(?:amp;)?demo=1"/ },
+  { page: "gate.html", interest: "gate", demo: /href="(?:village|parking)\.html\?demo=1"/ },
   { page: "crowd.html", interest: "crowd", demo: /href="crowd\.html\?demo=1"/ }
 ];
 
