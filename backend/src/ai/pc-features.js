@@ -31,7 +31,7 @@
 import GuardModule from "../../../lensiq-pc-guard.js";
 
 /** @type {{scan: (t: string) => any[], isDispensingLabel: (t: string) => boolean, DEFAULTS: {dispensingAI: string}, PLACEHOLDER: string,
- *   possibleNames: (t: string) => any[], autoBlock: (t: string) => boolean, aiGate: (t: string, facts?: {gtins?: string[], regs?: string[]}, opts?: any) => {allow: boolean, reason: string}}} */
+ *   possibleNames: (t: string) => any[], autoBlock: (t: string) => boolean, jakoScript: (t: string, o?: {script?: string}) => boolean, aiGate: (t: string, facts?: {gtins?: string[], regs?: string[]}, opts?: any) => {allow: boolean, reason: string}}} */
 const Guard = GuardModule;
 export const MAX_TEXT = 8000;
 const S = (n = 200) => ({ type: ["string", "null"], maxLength: n });
@@ -144,22 +144,35 @@ const strList = v => (Array.isArray(v) ? v.filter(x => typeof x === "string" && 
  */
 export const INPUT_REFUSAL_CODES = Object.freeze(["ai_off_personal_data", "ai_off_dispensing", "ai_off_personal_doc", "ai_off_no_product"]);
 /**
+ * Japanese / Korean script (owner decision 2026-11-14, option ข and stricter; second check behind the page): text with
+ * Japanese script (kana, or kanji in a Japanese context) or Korean script (hangul), or a request whose script is "ko", is
+ *   ai_off_jako_photo     refused with a photo (image mode): a name with no cue would be in the picture
+ *   ai_off_jako_preview   refused unless the request is marked previewed: true (the page sets it only after the user's own
+ *                         "Send this text" on the open preview, never on an auto request; autoCheck refuses auto requests
+ *                         with JA / KO script even when they carry the mark)
+ * The mark is the page's statement, not a proof: it stops a page path that forgot the preview, not a hostile caller (who
+ * could send their own text anyway).
+ */
+export const JAKO_REFUSAL_CODES = Object.freeze(["ai_off_jako_preview", "ai_off_jako_photo"]);
+/**
  * Tester-only one-tap send of the live scan (owner order 2026-11-12; autoCheck(input) below, called by the gateway only for a
  * valid tester with the gate on): after every check above, an auto request is also refused when
  *   ai_off_auto_filter    the text holds the placeholder (the device removed something: one-tap send needs a capture where the
  *                         guard found nothing), a POSSIBLE name (LQPCGuard.possibleNames, underlined in the manual
  *                         preview), session evidence (option ข), no text at all, or a photo (one-tap send is text only:
- *                         a photo needs the user's own preview and confirmation)
+ *                         a photo needs the user's own preview and confirmation), or Japanese / Korean script (owner
+ *                         decision 2026-11-14: never one-tap)
  */
 export const AUTO_REFUSAL_CODES = Object.freeze(["ai_off_auto_filter"]);
 const GATE_CODE = /** @type {Record<string, string>} */ ({ dispensing: "ai_off_dispensing", "personal-doc": "ai_off_personal_doc", "no-product": "ai_off_no_product" });
 /** @param {string} code one of INPUT_REFUSAL_CODES @param {string} message */
 function refusal(code, message) { return Object.assign(new Error(message), { code }); }
 /** The documented refusal code of a build error, or null (any other error). @param {any} e @returns {string|null} */
-export const refusalCode = e => (e && typeof e.code === "string" && (INPUT_REFUSAL_CODES.includes(e.code) || AUTO_REFUSAL_CODES.includes(e.code)) ? e.code : null);
+export const refusalCode = e => (e && typeof e.code === "string" && (INPUT_REFUSAL_CODES.includes(e.code) || AUTO_REFUSAL_CODES.includes(e.code) || JAKO_REFUSAL_CODES.includes(e.code)) ? e.code : null);
 
 /** @param {any} input @param {{images?: boolean, evalLocal?: boolean}} [o] */
 function cleanText(input, o = {}) {
+  const jako = typeof input.text === "string" && Guard.jakoScript(input.text, { script: typeof input.script === "string" ? input.script : "" });
   const t = typeof input.text === "string" ? input.text.normalize("NFC").replace(/\r\n?/g, "\n").trim() : "";
   if (t.length > MAX_TEXT) throw new Error("text too long");
   if (!t && !o.images) throw new Error("no text");
@@ -177,6 +190,11 @@ function cleanText(input, o = {}) {
     const skip = o.evalLocal === true && (g.reason === "no-product" || g.reason === "personal-doc");
     if (!g.allow && !skip) throw refusal(GATE_CODE[g.reason] || "ai_off_no_product", "AI off for this text: " + g.reason);
   }
+  // owner decision 2026-11-14: never a photo of a Japanese / Korean label, never JA / KO text without the open preview
+  if (jako || input.script === "ko") {
+    if (o.images) throw refusal("ai_off_jako_photo", "no photo of a Japanese / Korean label");
+    if (input.previewed !== true) throw refusal("ai_off_jako_preview", "Japanese / Korean text needs the user's preview");
+  }
   return t;
 }
 
@@ -190,7 +208,8 @@ export function autoCheck(input) {
   const t = typeof input.text === "string" ? input.text.normalize("NFC").replace(/\r\n?/g, "\n").trim() : "";
   const session = strList(input.sessionGtins).length > 0 || strList(input.sessionRegs).length > 0;
   const photo = Array.isArray(input.images) && input.images.length > 0;
-  if (!t || photo || t.includes(Guard.PLACEHOLDER) || Guard.possibleNames(t).length > 0 || Guard.autoBlock(t) || session) {
+  const jako = Guard.jakoScript(t, { script: typeof input.script === "string" ? input.script : "" });
+  if (!t || photo || jako || t.includes(Guard.PLACEHOLDER) || Guard.possibleNames(t).length > 0 || Guard.autoBlock(t) || session) {
     throw refusal("ai_off_auto_filter", "one-tap send filter");
   }
 }

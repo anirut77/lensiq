@@ -641,7 +641,7 @@
   /* review 2026-11-14: sara am ำ decomposed (nikhahit + sara aa), a tone mark after ำ or zero-width characters inside a word
      slipped past the filters and the crisis patterns; they all run on the canonical copy (lensiq-thai-canon.js) */
   /** @param {any} s @returns {string} */
-  const canon = s => { const C = TC || (TC = typeof require === "function" ? require("./lensiq-thai-canon.js") : root.LQThaiCanon); return C ? C.canon(s) : String(s ?? "").normalize("NFC"); };
+  const canon = s => { const C = TC || (TC = typeof require === "function" ? require("./lensiq-thai-canon.js") : root.LQThaiCanon); return C ? C.canon(s) : String(s ?? "").normalize("NFC"); }, /* owner decision 2026-11-14: no JA / KO script to AI (LQThaiCanon.withoutJaKo; the Worker drops it again) */ jk = f => { canon(""); return TC && TC.withoutJaKo ? TC.withoutJaKo(f) : f; };
   let STRAIGHT = false, CALM = false, /** @type {any} */ TC = null; // CALM: crisis net / soft step / support card active on the page (no straight, no remedies)
   const preHL = t => canon(t || "").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
   const hardLimit = text => FS.hardLimit(preHL(text));
@@ -3510,10 +3510,10 @@
   }
   function factsForAI(facts) {
     for (const [perTag, maxItems] of [[2, 60], [1, 60], [1, 40], [1, 25], [1, 15]]) {
-      const c = compactFacts(facts, perTag, maxItems);
+      const c = jk(compactFacts(facts, perTag, maxItems));
       if (byteLen(JSON.stringify(c)) <= MAX_FACTS_BYTES) return c;
     }
-    return compactFacts(facts, 1, 8);
+    return jk(compactFacts(facts, 1, 8));
   }
   function normalizeAI(j) {
     if (!j || !Array.isArray(j.sections)) return null;
@@ -4420,7 +4420,7 @@
     crisis: { check: crisisCheck, result: supportResult, render: renderSupport, fields: doc => pageText(doc),
       active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => (CR && CR.allow ? CR.allow(kind, doc) : !(CR && CR.active && CR.active(doc))) },
     straight: Object.assign({}, FS, { isSafe: isSafeStraight, hardLimit }),
-    compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,
+    privacy: { jakoScript: s => (canon(), TC.jakoScript(s)), withoutJaKo: jk }, compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,
     rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT, DOMAIN_NAMES,
     lint, lintSemantic, lintZh, lintEn, nearDupPairs, lintRepeats, leadEcho, PHRASE_BUDGET, FILLER_BUDGET,
     grammar: { roleOf, grammarIssues, tautology, polesOf, proseLabel, asNoun, RULES: GRAMMAR_RULES.map(x => x[0]) },

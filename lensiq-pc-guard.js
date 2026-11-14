@@ -433,7 +433,7 @@
     { kind: "id", group: 1, re: /(?:会員番号|利用者番号|交付番号|受付番号|인정\s?번호|쿠폰\s?번호|헌혈\s?번호|회원\s?번호|주민\s?번호\s?앞자리)[\s:：#]*(?:第\s?)?([A-Z0-9][A-Z0-9\-]{1,15}(?:[ ][0-9]{2,6}){0,3})/gu },
     { kind: "id", group: 1, re: /(?:LINE\s?ID|ライン\s?ID|카톡\s?(?:아이디|ID)|카카오톡\s?(?:아이디|ID)|kakao\s?(?:talk\s?)?id)\s*[:：]?\s*([A-Za-z0-9._\-]{3,30})/giu },
     { kind: "id", group: 1, re: /(?:個人番号|マイナンバー)[\s:：]*(\d{4}[\s-]?\d{4}[\s-]?\d{4})(?!\d)/gu },
-    { kind: "email", re: /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gu },
+    { kind: "email", re: /(?<![A-Za-z0-9._%+\-_])[A-Za-z0-9._%+\-_]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gu },
     { kind: "id", group: 1, re: /(?:\bPassport(?:\s*(?:No\.?|number|#))?|หนังสือเดินทาง(?:เลขที่)?|护照(?:号码?)?|パスポート)\s*[:：.#]?\s*([A-Z]{1,2}\d{6,9}|\d{7,9})\b/giu },
     { kind: "dob", group: 1, re: DOB_RE },
     { kind: "dob", group: 1, re: DOB_AFTER }
@@ -732,6 +732,8 @@
     for (const h of cjkHonorificNames(t)) hits.push({ kind: "name", ...h });
     // 2b. on a dispensing label, a line that is only a name (no cue, no title) is removed too
     if (disp) for (const h of nameLines(t).concat(cjkNameLines(t))) hits.push({ kind: "name", ...h });
+    // 2c. Japanese / Korean text only (stream pc-jk, owner decision 2026-11-14): bare-name shapes, past birth dates, home addresses
+    if (jakoScript(t)) for (const h of jakoBareNames(t)) hits.push(h);
     // 3. numbers, e-mail, birth dates
     for (const r of RULES) {
       r.re.lastIndex = 0;
@@ -1293,7 +1295,123 @@
     /\b(?:for|to)\s+(?:my\s+|your\s+|dear\s+)?(?:grand(?:ma|pa|mother|father|son|daughter)|granny|nana|mum|mom|mother|dad|father|son|daughter|sister|brother|aunt(?:ie)?|uncle|mr|mrs|ms|miss)\b/iu,
     /给(?:奶奶|爷爷|外婆|外公|姥姥|姥爷|妈妈|爸爸|母亲|父亲|儿子|女儿|孙子|孙女|宝宝|孩子|哥哥|姐姐|弟弟|妹妹|叔叔|阿姨|舅舅|姑姑|伯伯|老公|老婆|老人|[一-鿿]{1,2}(?:先生|女士|小姐|老师))|給(?:奶奶|爺爺|外婆|外公|媽媽|爸爸|兒子|女兒|寶寶|孩子)/u
   ];
-  const autoBlock = input => { const t = canon(input); return AUTO_BLOCK.some(re => re.test(t)); };
+  /* ---------------- bare names on Japanese / Korean text (stream pc-jk, 2026-11-14) ----------------
+     Owner decision 2026-11-14: keep working the JA / KO guard toward 0 leaks. On a text with Japanese / Korean script ONLY
+     (jakoScript), the shapes below are REMOVED (kind name / dob / address); on any other text nothing changes. Tuned on the
+     dev sets (hold-outs 1-3 of stream F, all spent); measured once on the fresh hold-out 4. They cost some false removals on
+     JA / KO packs (shown in the preview; the photo of a JA / KO label is never sent anyway). */
+  const JA_SUR = "(?:佐々木|長谷川|久保田|佐藤|鈴木|高橋|田中|伊藤|渡辺|渡邊|渡部|山本|中村|小林|加藤|吉田|山田|山口|松本|井上|木村|斎藤|斉藤|清水|山崎|池田|橋本|阿部|" +
+    "石川|山下|中島|石井|小川|前田|岡田|藤田|後藤|近藤|村上|遠藤|青木|坂本|福田|太田|西村|藤井|金子|岡本|藤原|中野|三浦|原田|中川|松田|竹内|小野|田村|中山|和田|" +
+    "石田|森田|上田|柴田|酒井|工藤|横山|宮崎|宮本|内田|高木|安藤|島田|谷口|大野|高田|丸山|今井|河野|藤本|村田|武田|上野|杉山|増田|小山|大塚|平野|菅原|久保|松井|" +
+    "千葉|岩崎|桜井|木下|野口|松尾|菊地|野村|新井|北川|佐野|浅野|大橋|荒木|吉川|西田|森本|星野|永井|川口|本田|服部|松下|市川|片山|中田|早川|小島|大西|秋山|" +
+    "水野|宮田|小松|熊谷|菅野|吉村|上原|小池|森川|北村|西川|黒田|岩田|安田|川村|飯田|樋口|辻|内藤|中西|松岡|田口|原|森|林|堀|関)";
+  // product words that the shapes below must never take as a name (packs, foods, cosmetics, medicines)
+  const JAKO_PROD = new RegExp("^(?:유산균|홍삼|홍삼정|비타민|오메가|루테인|콜라겐|프로폴리스|녹용|녹차|홍차|영양제|아연|철분|칼슘|마그네슘|정제수|감기약|두통약|진통제|소화제|" +
+    "연고|크림|로션|세럼|샴푸|치약|사탕|젤리|캔디|과자|우유|두유|주스|커피|쌍화탕|시럽|파스|밴드|마스크|선크림|토너|에센스|앰플|클렌징|폼|린스|바디|핸드|립밤|" +
+    "大人|成人|小児|子供|子ども|幼児|乳児|高齢者|妊婦|화장품|의약품|일반의약품|전문의약품|의약외품|건강기능식품|기능식품|일반|전문|견과|견과류|어린|어린이|어른|성인|소아|유아|청소년|노인|아기|임산부|공복|식후|식전|취침|매일|제품|본품|정품|한정|신제품|특가|증정|무료|국산|수입|원료|원산지|" +
+    "のどあめ|あめ|ぐみ|ぜりー|ゼリー|グミ|キャンディ|ドロップ|タブレット|カプセル|サプリ|ビタミン|ミネラル|コラーゲン|ヒアルロン|プラセンタ|ローヤル|" +
+    "クリーム|ローション|ミルク|ジェル|オイル|バーム|ミスト|パック|マスク|シート|せっけん|石けん|シャンプー|リンス|はちみつ|みつ|まっちゃ|おちゃ|" +
+    "こども|おとな|あかちゃん|ベビー|キッズ|ファミリー|おくすり|くすり|おやつ|おかし|ごはん|みそ|しょうゆ|だし|ふりかけ|のり|うめ|ゆず|みかん|りんご|いちご|もも|" +
+    "くま|うさぎ|ぱんだ|ねこ|いぬ|ぞう|うし|ぶた|ひよこ|りす|きつね|たぬき|ことり|さる|"+
+    "さくら|もみじ|ひのき|すみれ|ばら|ゆり|つばき|よもぎ|どくだみ|しょうが|にんにく|ごま|きなこ|あずき|くず|わかめ|こんぶ|ひじき)$", "u");
+  const notName = (/** @type {string} */ v) => { const w = v.replace(/[ \t]+/g, "").replace(/の$/u, ""); return !w || JAKO_PROD.test(w) || NOTE_NOT.test(w) || KO_NOT.test(w) || JA_NOT.test(w) ||
+    /^([ぁ-ゖ]{2})\1$/u.test(w) || /[가-힣]약$|[薬剤]$/u.test(w) || /っ/u.test(w) || (/^[ぁ-ゖ]{4,}$/u.test(w) && /い$/u.test(w)); };
+  /** @type {RegExp[]|null} */ let JAKO_SHAPES = null;
+  function jakoShapes() {
+    if (JAKO_SHAPES) return JAKO_SHAPES;
+    const NM = "(?:[一-鿿々]{1,4}(?:[ \\t][一-鿿々ぁ-ゖ]{1,3})?|[ぁ-ゖァ-ヺー]{2,6}|[가-힣]{2,4}|[가-힣](?:[ \\t][가-힣]){1,3}|[A-Z][a-z]+(?:[ \\t-][A-Z][a-z]+)?)";
+    JAKO_SHAPES = [
+      // room / class / group + a name ("5号室 木村 和夫", "305호 임수빈", "토끼반 하람", "[3-4] 신다온", "2年1組 けんた")
+      new RegExp("^[ \\t]*(?:\\d{1,4}[ \\t]?(?:号室|호실|호|号)|\\d[ \\t]?年[ \\t]?\\d[ \\t]?組|\\d[ \\t]?학년[ \\t]?\\d[ \\t]?반|[가-힣]{1,4}반|[ぁ-ヿ一-鿿]{1,4}組|\\[\\d+[-‐]\\d+\\])[ \\t]+(" + NM + ")[ \\t]*$", "gmu"),
+      // a name spaced character by character on a line of its own ("佐 藤 大 輝", "정 우 진"); must start like a name (below)
+      /^[ \t]*((?:[가-힣][ \t]){2,3}[가-힣]|(?:[一-鿿々][ \t]){2,4}[一-鿿々])[ \t]*$/gmu,
+      // a Korean name + particle before a note word ("채원이 꺼", "지호가 먹을 것", "예린이 학교")
+      new RegExp("^[ \\t]*([가-힣]{2,3})(?:(?:이|가)(?=꺼|거|것|용)|(?:이|가|의|이의|는|은)[ \\t]+(?=꺼|거|것|용|먹|아침|저녁|점심|학교|유치원|어린이집|간식|하루|자기|가방|냉장고|도시락))", "gmu"),
+      // a kana name + の ("whose") alone on a line, or before a medicine word ("ゆいの", "そうたの おくすり")
+      new RegExp("^[ \\t]*([ぁ-ゖ]{2,4})(?=の(?:[ \\t]*$|[ \\t]*(?:おくすり|くすり|薬|分)))", "gmu"),
+      // a surname-list name alone on a line ("木下 莉了", "渡辺 翔大"; not 中村屋 / 小林製薬)
+      new RegExp("^[ \\t]*(" + JA_SUR + "[ \\t]?(?:[一-鿿々]{1,2}|[ぁ-ゖ]{2,4}))[ \\t]*$", "gmu"),
+      // a short name before a dose or a time of day on a note line ("けんた 夕食後1包", "恵美 就寝前", "건우 저녁 먹고 1포")
+      new RegExp("^[ \\t]*([一-鿿々]{1,4}|[ぁ-ゖ]{2,5}|[가-힣]{2,3})(?:이|가|는|の)?[ \\t]+(?=(?:朝|昼|夕|夜|晩|就寝|寝る前|毎食|食後|食前|朝食|昼食|夕食|1日|\\d+[ \\t]?(?:錠|包|粒|回|カプセル|mL|ml))|" +
+        "(?:아침|점심|저녁|자기|취침|식후|식전|하루|\\d+[ \\t]?(?:번|회|알|정|포|캡슐|mL|ml)))", "gmu"),
+      // a Latin + kanji / kana / hangul name alone on a line ("Tanaka 悠真")
+      new RegExp("^[ \\t]*([A-Z][a-z]{2,12}[ \\t]+(?:[一-鿿々]{1,3}|[ぁ-ゖ]{2,4}|[가-힣]{2,3}))[ \\t]*$", "gmu")
+    ];
+    return JAKO_SHAPES;
+  }
+  const JAKO_DOB = /^[ \t]*((?:19[2-9]\d|20[01]\d|202[0-5])[./\-年][ \t]?\d{1,2}[./\-月][ \t]?\d{1,2}日?|[HSRT][ \t]?\d{1,2}[./]\d{1,2}[./]\d{1,2}|(?:令和|平成|昭和)[ \t]?(?:\d{1,2}|元)年[ \t]?\d{1,2}月[ \t]?\d{1,2}日)[ \t]*$/gmu;
+  const JAKO_ADDR = [
+    /[가-힣]{1,5}(?:특별시|광역시|시|도)[ \t]+[가-힣]{1,5}(?:구|군|시)[ \t]+[가-힣0-9 \t]{1,20}(?:로|길)[ \t]*\d+(?:-\d+)?(?:[ \t]*\d+길[ \t]*\d+)?(?:,?[ \t]*\d+동)?,?[ \t]*\d+호/gu,
+    /[一-鿿]{1,4}(?:都|道|府|県)[^\n]{2,30}?\d+[-－‐]\d+(?:[-－‐]\d+)?[^\n]{0,20}?\d+号室/gu
+  ];
+  /** spans of the shapes above on a JA / KO text @param {string} t folded text */
+  function jakoBareNames(t) {
+    /** @type {{kind: string, start: number, end: number}[]} */ const out = [];
+    const lines = t.split("\n");
+    for (const re of jakoShapes()) {
+      re.lastIndex = 0;
+      for (const m of t.matchAll(re)) {
+        const v = m[1];
+        if (!v || notName(v) || v.includes(PLACEHOLDER)) continue;
+        // a spaced line must start like a name: a Japanese surname or a Korean surname syllable
+        if (re === JAKO_SHAPES?.[1] /* spaced */ && !(new RegExp("^" + JA_SUR, "u").test(v.replace(/[ \t]/g, "")) || new RegExp("^" + KO_SUR + "[ \\t]", "u").test(v))) continue;
+        if (re === JAKO_SHAPES?.[4] /* surname list */ && /(?:屋|堂|園|庵|亭|舗|社|製|印|館|店|家|式|流)$/u.test(v)) continue;
+        if (re === JAKO_SHAPES?.[6] /* Latin + name */ && (LABEL_EN.test(v.split(/[ \t]/)[0]) || PRODUCT_WORDS_EN.test(v.split(/[ \t]/)[0]) || DRUG_LIKE.test(v.split(/[ \t]/)[0]) || notName(v.split(/[ \t]+/)[1] || ""))) continue;
+        const a = /** @type {number} */ (m.index) + m[0].indexOf(v);
+        out.push({ kind: "name", start: a, end: a + v.length });
+      }
+    }
+    // a name split one character per line by vertical OCR: 3-5 lines of one kanji / hangul, starting with a surname
+    {
+      let at = 0;
+      for (let i = 0; i < lines.length; i++) {
+        let j = i;
+        while (j < lines.length && /^[ \t]*[一-鿿々가-힣][ \t]*$/u.test(lines[j]) && j - i < 5) j++;
+        if (j - i >= 3) {
+          const word = lines.slice(i, j).map(x => x.trim()).join("");
+          if (new RegExp("^(?:" + JA_SUR + "|" + KO_SUR + ")", "u").test(word) && !notName(word)) {
+            const len = lines.slice(i, j).join("\n").length;
+            out.push({ kind: "name", start: at, end: at + len });
+          }
+          for (let k = i; k < j; k++) at += lines[k].length + 1;
+          i = j - 1;
+          continue;
+        }
+        at += lines[i].length + 1;
+      }
+    }
+    // POSSIBLE names (the preview highlight) that hold kana, hangul or Latin letters are removed on a JA / KO text
+    for (const p of possibleNames(t)) {
+      const v = t.slice(p.start, p.end);
+      // (not a katakana-only word: product names such as "ミルキー" are written that way)
+      if (/[ぁ-ゖ가-힣A-Za-z]/u.test(v) && !notName(v) && !/(?:の|ちゃん|くん)[ぁ-ゖ]{1,4}$|^[ぁ-ゖ]+の[ぁ-ゖ]+$/u.test(v.trim())) out.push({ kind: "name", start: p.start, end: p.end });
+    }
+    // a short name and a phone on a line of their own ("北川 03-5550-2814", "유나 010-3320-9918"): the phone is a person's even
+    // under a maker block, and so is the name (not a contact-desk word)
+    for (const m of t.matchAll(/^[ \t]*([一-鿿々]{1,4}|[ぁ-ゖ]{2,5}|[가-힣]{1,4})[ \t]+(0\d{1,3}[-‐ ]?\d{2,4}[-‐ ]?\d{3,4})[ \t]*$/gmu)) {
+      if (notName(m[1]) || /お客|相談|窓口|센터|상담|전화|代表|本社|支店|営業|事業|工場|문의|고객|대표|番号|番|号|電話|携帯|連絡|住所|번호|연락|등록|휴대|주소|生年|생년|ID/iu.test(m[1])) continue;
+      const a = /** @type {number} */ (m.index) + m[0].indexOf(m[1]), b = /** @type {number} */ (m.index) + m[0].lastIndexOf(m[2]);
+      out.push({ kind: "name", start: a, end: a + m[1].length }, { kind: "phone", start: b, end: b + m[2].length });
+    }
+    JAKO_DOB.lastIndex = 0;
+    for (const m of t.matchAll(JAKO_DOB)) { const a = /** @type {number} */ (m.index) + m[0].indexOf(m[1]); out.push({ kind: "dob", start: a, end: a + m[1].length }); }
+    for (const re of JAKO_ADDR) { re.lastIndex = 0; for (const m of t.matchAll(re)) out.push({ kind: "address", start: /** @type {number} */ (m.index), end: /** @type {number} */ (m.index) + m[0].length }); }
+    return out;
+  }
+
+  /* ---------------- Japanese / Korean script (owner decision 2026-11-14, option ข and stricter) ----------------
+     Text with Japanese script (hiragana, katakana, or kanji in a Japanese context) or Korean script (hangul) is NEVER sent
+     to AI automatically, on any path (tester one-tap, live scan, Worker auto requests: autoBlock below) and never as a photo
+     (lensiq-pc-ai.js decide() and the Worker; imageCheck itself is unchanged); the user may still send the TEXT explicitly
+     after the open preview. Rules rather than finding the name, because names without a cue
+     on a pack cannot be found reliably (hold-out 3: 107 of 140 missed). Kanji in a Japanese context = a Japanese-only
+     character form (shinjitai such as 薬 剤 様 県 歳 発 売, kokuji such as 働 込 畑), 々 / 〆, or a Japanese era date.
+     Chinese labels (simplified or traditional) without these stay as before. The rule itself is LQThaiCanon.jakoScript
+     (lensiq-thai-canon.js, shared with fortune); without that module every text counts (fails closed). */
+  /** true = the text carries Japanese or Korean script (see above); opts.script "ko" (the user's own choice) counts too.
+   * @param {any} input @param {{script?: string}} [opts] */
+  const jakoScript = (input, opts) => { const C = TC || (root && root.LQThaiCanon); return (!!opts && opts.script === "ko") || (C && C.jakoScript ? C.jakoScript(input) : true); };
+  const autoBlock = input => { const t = canon(input); return jakoScript(t) || AUTO_BLOCK.some(re => re.test(t)); };
   /** Session evidence usable for option ข: a barcode with a valid check digit, or a registration number of 5+ letters
    *  and digits, scanned earlier in the session by the page. @param {any} sf {gtins?, regs?} */
   function sessionOk(sf) {
@@ -1329,5 +1447,5 @@
   }
 
   return { scan, scanAll, redact, imageCheck, isDispensingLabel, fold, thaiIdOk, DEFAULTS, PLACEHOLDER, KINDS: ["name", "hn", "phone", "id", "email", "dob", "address"], possibleNames, provenance,
-    productEvidence, aiGate, autoBlock, twIdOk, gtinOk, nameLineCount: (/** @type {any} */ t) => nameLines(fold(String(t == null ? "" : t))).length };
+    productEvidence, aiGate, autoBlock, jakoScript, twIdOk, gtinOk, nameLineCount: (/** @type {any} */ t) => nameLines(fold(String(t == null ? "" : t))).length };
 });

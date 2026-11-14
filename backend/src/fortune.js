@@ -297,7 +297,8 @@ export async function fortuneRun(env, request, deps = {}) {
   if (body.consent !== true) return [{ error: "ต้องได้รับความยินยอมก่อนส่งข้อมูลให้ AI", fallback: true }, 400];
   if (byteLen(JSON.stringify(body.facts ?? null)) > MAX_FACTS_BYTES) return [{ error: "ข้อมูลผลวิเคราะห์ใหญ่เกิน 20KB", fallback: true }, 413];
   let facts;
-  try { facts = cleanFacts(body.facts); } catch (e) { return [{ error: e.message, fallback: true }, e.status || 400]; }
+  // owner decision 2026-11-14: no Japanese / Korean script reaches the model (second check behind fortune-ai.js factsForAI)
+  try { facts = FortuneAI.privacy.withoutJaKo(cleanFacts(body.facts)); } catch (e) { return [{ error: e.message, fallback: true }, e.status || 400]; }
   if (!facts.items.length) return [{ error: "ไม่มีผลวิเคราะห์ให้เรียบเรียง", fallback: true }, 400];
   if (settings.domains[facts.domain] === false) return [{ error: "ปิดผู้ช่วยเขียน AI สำหรับศาสตร์นี้", fallback: true }, 403];
   let modelFacts;
