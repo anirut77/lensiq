@@ -7,7 +7,8 @@
 // the known exceptions in tests/e2e/overlap-exceptions.json (APPEND-ONLY: each entry names the target, a text the finding
 // contains, why it cannot be fixed without the owner, and the date added). The literal count (controls only scrolled
 // under a docked bar) is printed, not gated.
-// Locked before any product fix: evals-locks/overlap-d.sha256.
+// Locked before any product fix: evals-locks/overlap-d.sha256. Stricter rules and two more targets (consent prompt and
+// help line / crisis card never excused by a scroll; checkout and calm tarot with the prompt): evals-locks/overlap-d2.sha256.
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
