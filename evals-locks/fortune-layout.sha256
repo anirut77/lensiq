@@ -4,3 +4,7 @@ c6cb0dd780e1b60edef60304a171972970b9f3fc0a683c51960462f684e453a6  tests/e2e/fort
 # RE-LOCK 2026-11-14 (first run after the build, 3 passed / 4 failed): test-setup fix only. STRUCT inspected reading groups inside a page tab that is not selected (horoscope "today", hidden by the page), where nothing can be visible; those groups are now checked after their tab is opened (stricter: every group is checked visible). No assertion, input or threshold removed or loosened. The Enter-key failure was a product bug (fixed in fortune-read.js), not changed in the test.
 # locked 2026-11-14T16:26:10Z (tools/eval-guard.mjs lock, 1 file)
 a167d0487ae02d8c655148d045ff1409dab77b9ea1486464241f55748ff8bc03  tests/e2e/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-14 (2): expected EN wording only. The repo-wide fortune safety filter (planner.test.js "fortune hard bans", category en:certainty) blocks the word "guarantee" in any EN fortune string, so the EN line now says "We cannot vouch for the accuracy of any prediction." The EN check accepts "do not / cannot + guarantee / vouch for / promise"; every other assertion unchanged.
+# locked 2026-11-14T16:39:56Z (tools/eval-guard.mjs lock, 2 files)
+9071ba8178caecec0b72c1fd2df3eb94fdb76ac136e8c56838b51928261905c8  tests/unit/fortune-layout.test.js
+9916298f3c7b9d5bb1fbc30debe129a13b59951a406afeabf685653eb2d9bcfe  tests/e2e/fortune-layout.e2e.mjs

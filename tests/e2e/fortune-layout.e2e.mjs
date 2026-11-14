@@ -26,7 +26,7 @@ const OLD = {
 };
 const LINE = {
   th: "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย",
-  en: "judg(?:e)?ment[\\s\\S]*(?:do not|don't) guarantee", zh: "判断[\\s\\S]*不保证",
+  en: "judg(?:e)?ment[\\s\\S]*(?:do not|don't|cannot|can't) (?:guarantee|vouch for|promise)", zh: "判断[\\s\\S]*不保证",
 };
 const MORE = { th: "อ่านเพิ่มเติม", en: "Read more", zh: "阅读更多" };
 const NOTE_MAX = { th: 140, en: 210, zh: 80 };

@@ -44,7 +44,7 @@ const LANGS = ["th", "en", "zh"];
 /* ---------------- A1 wording ---------------- */
 test("A1: the new line in TH / EN / ZH (TH verbatim from the owner; EN / ZH say the same: belief, use judgement, no guarantee)", () => {
   assert.equal(RD.LINE.th, LINE_TH);
-  assert.match(RD.LINE.en, /belief/i); assert.match(RD.LINE.en, /judg(?:e)?ment/i); assert.match(RD.LINE.en, /(?:do not|don't) guarantee/i);
+  assert.match(RD.LINE.en, /belief/i); assert.match(RD.LINE.en, /judg(?:e)?ment/i); assert.match(RD.LINE.en, /(?:do not|don't|cannot|can't) (?:guarantee|vouch for|promise)/i);
   assert.match(RD.LINE.zh, /信仰|信念/); assert.match(RD.LINE.zh, /判断/); assert.match(RD.LINE.zh, /不保证/);
   for (const l of LANGS) for (const o of LANGS) assert.doesNotMatch(RD.LINE[l], OLD[o], l + " line has old wording");
   // the dictionaries carry the same text under one key
