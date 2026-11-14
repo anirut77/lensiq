@@ -1342,10 +1342,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   async function processImage(cv) {
     S.src = cv; S.result = null;
     resultSec.hidden = true;
-    engine(function () { return T("palm.eng.finding", "กำลังหาจุดบนมือ..."); });
+    // speed pass L3: the hand model (4.4 MB) loads on the first photo; say so while it downloads
+    if (!ready) engine(function () { return T("palm.eng.loading", "กำลังโหลดโมเดลจุดบนมือ..."); });
+    else engine(function () { return T("palm.eng.finding", "กำลังหาจุดบนมือ..."); });
     await frame2();
     var det = null, nh = 0;
-    try { await loadModels(); var hs = await detectHands(cv, false); nh = hs.length; det = primaryHand(hs, null, cv.width, cv.height).hand; } catch (e) { console.warn(e); }
+    try {
+      if (!ready) { await loadModels(); engine(function () { return T("palm.eng.finding", "กำลังหาจุดบนมือ..."); }); }
+      await loadModels(); var hs = await detectHands(cv, false); nh = hs.length; det = primaryHand(hs, null, cv.width, cv.height).hand; } catch (e) { console.warn(e); }
     var q = quality(det && det.pts, cv.width, cv.height, cv, nh);
     renderQc(q);
     if (!det) {

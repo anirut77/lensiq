@@ -163,7 +163,10 @@ async function main() {
   const only = arg("only", "");
   const out = arg("out", "");
   const fast = argv.includes("--fast"); // no throttling: bytes / requests / model list only (timings are NOT the profile)
-  const pages = only ? only.split(",") : readdirSync(dir).filter(f => f.endsWith(".html")).sort();
+  const all = readdirSync(dir).filter(f => f.endsWith(".html")).sort();
+  const pages = only ? only.split(",") : all;
+  const unknown = pages.filter(p => !all.includes(p));
+  if (unknown.length) { console.error(`--only: unknown page(s) in ${dir}: ${unknown.join(", ")}`); process.exit(2); }
   const srv = await serve(dir);
   const loadStart = loadavg().map(v => +v.toFixed(2));
   console.log(`perf-measure — ${fast ? "UNTHROTTLED (bytes / requests / models only)" : PROFILE.name} — ${pages.length} page(s) x ${runs} run(s) — dir ${dir} — load avg ${loadStart.join(" ")}`);

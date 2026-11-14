@@ -43,8 +43,9 @@ Found by the unthrottled pass (every root page, no user action) and confirmed by
 | checkout | MobileNetV2 + TF.js WASM (14.2 MB), started before the page opened its camera | after the camera is open |
 
 Pages that open the camera by themselves at load (attendance, customers, driver, photobooth) fetched their models in
-parallel with the camera start. They now start the download only after the camera is open, so a refused or missing
-camera downloads nothing. Their bytes with an allowed camera are unchanged (the camera opens by itself).
+parallel with the camera start. They now start the download only after the camera is open. On attendance, customers and
+driver a refused or missing camera downloads nothing; photobooth still loads its models after a refused camera, because
+photo upload needs them. Their bytes with an allowed camera are unchanged (the camera opens by itself).
 **Decision for the owner (not changed here):** attendance is "PIN / QR by default, face optional", yet it opens the
 camera and downloads 7.3 MB of face models on every visit; photobooth downloads 37 MB the same way. Making the camera
 wait for a tap would cut that to zero for PIN / QR users, but it changes what users see, so it is left for the owner.
@@ -70,7 +71,8 @@ While the models download, every changed page shows a loading line (TH / EN / ZH
 `tests/e2e/speed-budget.e2e.mjs`: every page, cold, no user action, unthrottled (bytes and requests do not depend on
 the profile): bytes <= budget and requests <= budget. Budget = baseline x 1.10 (KB up to the next 10, requests up), from
 `~/LENSIQ-field/evals/speed/baseline/bytes.json` (3 runs per page, identical to the KB). The 10 % covers text edits other
-teams make in parallel. A budget may only be lowered.
+teams make in parallel. A budget may only be lowered. Lowered 2026-11-15 to lock in the measured gain: studio 2,550 KB, booth 2,260 KB,
+palm 3,390 KB, faceread 3,650 KB (measured after-weight x 1.10, same rounding).
 
 ## Before / after per page
 
@@ -175,7 +177,8 @@ in parallel: consistency-pass, beauty-look, org-p1, stale-docs, pc-jk; a few KB 
   Exception: faceread's load event moved from 29.6 to 33.1 s; that page gained 5 look-suggestion scripts (beauty-look,
   merged from main in parallel), not from this pass. Studio and photobooth were not timed (load >= 20).
 - Pages that open the camera by themselves (attendance, customers, driver, photobooth, checkout) are unchanged with an
-  allowed camera; with a refused camera they now download no model.
+  allowed camera; with a refused camera attendance, customers, driver and checkout download no model (photobooth still
+  does, for photo upload).
 - Every other page: within run-to-run noise (FCP +-0.5 s at load 15 to 20; bytes +-1 %).
 - Heaviest pages left: photobooth 39.5 MB and attendance / customers 9.5 MB (auto camera), checkout 15.5 MB (auto
   camera), then the camera pages that load face-api.js before the camera (about 1.8 MB each, load event 19 to 25 s on

@@ -15,6 +15,9 @@ import { measureOnce } from "../../tools/perf-measure.mjs";
 // page -> { kb, req }. Set 2026-11-14 from the measured baseline only (~/LENSIQ-field/evals/speed/baseline/bytes.json:
 // origin/main 4413bc3, 3 cold unthrottled loads per page, median; the 3 runs agreed to the KB): baseline x 1.10, KB up to
 // the next 10 KB, requests rounded up.
+// Lowered 2026-11-15 (lock in measured gain): studio, booth, palm, faceread = their measured weight after the speed pass
+// (CI ubuntu run 43611756050, d78ba51) x 1.10 by the same rule. checkout keeps its baseline budget (its run is cut at 60 s
+// while MobileNetV2 still downloads, so the measured figure is not a stable floor).
 export const BUDGET = {
   "about.html": { kb: 300, req: 15 },
   "account.html": { kb: 400, req: 20 },
@@ -24,7 +27,7 @@ export const BUDGET = {
   "attendance.html": { kb: 10430, req: 47 },
   "bays.html": { kb: 2040, req: 30 },
   "bazi.html": { kb: 1420, req: 36 },
-  "booth.html": { kb: 10260, req: 40 },
+  "booth.html": { kb: 2260, req: 32 },
   "camera-notice.html": { kb: 390, req: 20 },
   "cameras.html": { kb: 470, req: 21 },
   "case-review.html": { kb: 410, req: 20 },
@@ -47,7 +50,7 @@ export const BUDGET = {
   "exam-hall.html": { kb: 2170, req: 35 },
   "exam-lab.html": { kb: 2170, req: 36 },
   "exam.html": { kb: 450, req: 22 },
-  "faceread.html": { kb: 4570, req: 47 },
+  "faceread.html": { kb: 3650, req: 47 },
   "fengshui.html": { kb: 1380, req: 36 },
   "fortune.html": { kb: 440, req: 24 },
   "gate-notice.html": { kb: 320, req: 18 },
@@ -67,7 +70,7 @@ export const BUDGET = {
   "numbers.html": { kb: 1310, req: 33 },
   "nutrition.html": { kb: 550, req: 26 },
   "omr.html": { kb: 480, req: 24 },
-  "palm.html": { kb: 8280, req: 47 },
+  "palm.html": { kb: 3390, req: 41 },
   "parking.html": { kb: 960, req: 36 },
   "photobooth.html": { kb: 43500, req: 43 },
   "planner.html": { kb: 780, req: 28 },
@@ -80,7 +83,7 @@ export const BUDGET = {
   "signage.html": { kb: 2320, req: 35 },
   "solutions.html": { kb: 490, req: 20 },
   "store.html": { kb: 2370, req: 32 },
-  "studio.html": { kb: 52330, req: 42 },
+  "studio.html": { kb: 2550, req: 32 },
   "tables.html": { kb: 2040, req: 30 },
   "taksa.html": { kb: 1420, req: 36 },
   "tarot.html": { kb: 1620, req: 35 },
