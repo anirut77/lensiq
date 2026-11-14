@@ -168,7 +168,23 @@
   }
 
   var bannerEl = /** @type {HTMLElement|null} */ (null);
-  function hideBanner() { if (bannerEl && bannerEl.parentNode) bannerEl.parentNode.removeChild(bannerEl); bannerEl = null; }
+  // nothing may cover a button (owner order 2026-11-14, D1; tests/e2e/overlap-*.e2e.mjs): while the prompt is shown the
+  // page gets extra bottom padding of the prompt's height, so the last links and buttons can be scrolled clear of it
+  var padSaved = /** @type {string|null} */ (null);
+  function fitPad() {
+    if (!bannerEl || !doc || !doc.body || !root.getComputedStyle) return;
+    var b = doc.body;
+    if (padSaved === null) padSaved = b.style.paddingBottom || "";
+    b.style.paddingBottom = "";
+    var base = parseFloat(root.getComputedStyle(b).paddingBottom) || 0;
+    b.style.paddingBottom = Math.ceil(base + bannerEl.getBoundingClientRect().height + 24) + "px";
+  }
+  function hideBanner() {
+    if (bannerEl && bannerEl.parentNode) bannerEl.parentNode.removeChild(bannerEl);
+    bannerEl = null;
+    if (padSaved !== null && doc && doc.body) { doc.body.style.paddingBottom = padSaved; padSaved = null; }
+    if (root.removeEventListener) root.removeEventListener("resize", fitPad);
+  }
   function showBanner() {
     if (!doc || !doc.body || !api() || dnt()) return null;
     hideBanner();
@@ -202,6 +218,8 @@
     box.appendChild(btns);
     doc.body.appendChild(box);
     bannerEl = box;
+    fitPad();
+    if (root.addEventListener) root.addEventListener("resize", fitPad);
     return box;
   }
 

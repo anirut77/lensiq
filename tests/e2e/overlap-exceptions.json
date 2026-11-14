@@ -1,0 +1,4 @@
+{
+ "note": "Known exceptions of the overlap gate (tests/e2e/overlap-kit.mjs). APPEND-ONLY: entries are never edited or removed; when an exception is fixed, the gate passes anyway and the entry stays as history. Each entry: target (an id of tools/overlap-probe.mjs TARGETS), a text the finding contains, the reason it needs the owner, and the date added.",
+ "exceptions": []
+}
