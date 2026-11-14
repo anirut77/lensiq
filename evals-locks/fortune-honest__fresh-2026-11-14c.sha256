@@ -1,3 +1,7 @@
 # locked 2026-11-14T00:31:08Z (tools/eval-guard.mjs lock, 2 files)
 a21e5fbbf5003c12fdd4165b4fc4dc625d7072eeec08c1df8a45d5a6c8439d7e  set.json
 b8f0f654884a4649d6618f8e107a1bca388e6675cd639e0449091c921f5b752d  README.md
+# locked 2026-11-14T00:32:20Z (tools/eval-guard.mjs lock, 3 files)
+7893abfb3efb92507d16d5ca4b21b19261df425b08a746a2302ae202a109089a  harness.mjs
+52c57651404c849514d778653e6ca1a19eb347a45463db211e035828c2bb206a  probe.json
+5af92109d2a1b07891ff3902c7b6e02b0fb980c8d19c522d53c0b6cf1dd5f501  analyze.mjs
