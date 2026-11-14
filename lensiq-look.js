@@ -375,6 +375,14 @@
      with a neutral note that it is the salon's own name in Thai; we never translate or rewrite salon text. The back office may
      later ask for EN / ZH names, but does not require them. */
   var SALON_TH_NOTE = { th: "", en: "(the salon's own name, in Thai)", zh: "（店家自己的名称，泰文）" };
+  /* salon mode switch (owner decision 2026-11-14, option ก): salon mode stays OFF until the human-approval step for
+     salon-typed text exists (docs/BEAUTY-IMAGE-DESIGN.md §4: owner or LENSIQ admin approves each entry in the back office,
+     re-approval after an edit, audit log). That step is NOT built, so SALON_APPROVAL_STEP is false and salonEnabled() is
+     false whatever window.LENSIQ_LOOK_SALON says (lensiq-config.js also ships it hard off). render() has no salon path; the
+     pure helpers salonItem() / salonHTML() are not called by any page (tests/unit/look-salon-off.test.js O3).
+     Only the change that builds the approval step may set SALON_APPROVAL_STEP, with a new locked test set. */
+  var SALON_APPROVAL_STEP = false;
+  function salonEnabled() { return SALON_APPROVAL_STEP && /** @type {any} */ (root).LENSIQ_LOOK_SALON === true; }
   function salonItem(entry, lang) {
     var l = langOf(lang), names = (entry && entry.name) || {};
     var own = names[l] ? String(names[l]) : "", name = own || String(names.th || ""), nameLang = own ? l : "th";
@@ -474,7 +482,7 @@
   }
 
   var api = { __setLintForTest: function (/** @type {any} */ L) { LINT_OVR = L; },
-    RULES: RULES, LABEL: LABEL, SALON_LABEL: SALON_LABEL, SALON_TEXT: SALON_TEXT, salonItem: salonItem, salonHTML: salonHTML, CSS: CSS, SLOTS: SLOTS,
+    RULES: RULES, LABEL: LABEL, SALON_LABEL: SALON_LABEL, SALON_TEXT: SALON_TEXT, salonItem: salonItem, salonHTML: salonHTML, salonEnabled: salonEnabled, CSS: CSS, SLOTS: SLOTS,
     suggest: suggest, canShow: canShow, confirmAdult: confirmAdult, html: html, render: render, TEXT: TXT };
   if (NODE) module.exports = api; else /** @type {any} */ (root).LQLook = api;
 })(typeof window !== "undefined" ? window : globalThis);
