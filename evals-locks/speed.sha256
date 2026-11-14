@@ -1,0 +1,5 @@
+# evals-locks/speed.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/speed/ (owner rule 2026-11-13, locked sets persist). Append-only.
+# speed pass (owner order 2026-11-14 C) — locked 2026-11-14T11:54:07Z BEFORE any product change on branch speed-pass (base origin/main 4413bc3). speed-models: no model file before the camera opens on every page + the 9 baseline-eager pages still load models after camera open with a loading line. speed-budget: procedure only, BUDGET is an empty placeholder, set ONLY from the measured baseline in the next entry. perf-measure: the measuring tool (profile: CPU 4x + DevTools Fast 3G 180000 B/s down / 84375 B/s up / 562.5 ms, 390x844 mobile, cold cache).
+18938b24fc65ae7ca30d032d25e4e25e563acd6ef6722c3c49e9161a5f3b6463  tests/e2e/speed-models.e2e.mjs
+a1edfd5f33261db23896fbb4fbac29099fd14e42588e6a8cf401c9668ab08249  tests/e2e/speed-budget.e2e.mjs
+b4cf875bc0d89f2aad9ca673511632da9f2c0f0008e6cb1474567a152449230f  tools/perf-measure.mjs
