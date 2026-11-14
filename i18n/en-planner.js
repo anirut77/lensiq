@@ -1,7 +1,7 @@
 /* i18n/en-planner.js — English for planner.html (planner.js, lensiq-planner.js reasons "pl.r.*").
    Thai lives in the markup / page script / LQPlanner.TH. Loaded on demand by lensiq-i18n.js (sibling of zh-planner.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
-  "fortune.disc.line": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We do not guarantee the accuracy of any prediction.",
+  "fortune.disc.line": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We cannot vouch for the accuracy of any prediction.",
   "pl.doc.title": "Auspicious date planner: moving house, opening a shop, starting work | LENSIQ",
   "pl.doc.desc": "Find good days to move into a new home, open a shop or start a new job, based on the weekday and its colour, the lunar phase and the owner's birth weekday. Good days only, each with its reasons; save to your calendar. Calculated on this device.",
   "pl.eyebrow": "Auspicious dates · good days in Thai tradition",

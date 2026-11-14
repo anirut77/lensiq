@@ -163,7 +163,7 @@
     "tarot.card.adv": "Advice: ",
     "tarot.card.footSs": " · verses are original content",
     "tarot.card.footTarot": " · card images are public-domain RWS 1909 artwork",
-    "tarot.discShort": "Personal belief: use your own judgement; predictions are not guaranteed",
+    "tarot.discShort": "Personal belief: use your own judgement; we cannot vouch for any prediction",
     "tarot.shareTitle": "Tarot & Siam Si — LENSIQ",
     "tarot.stats.empty": "No draws recorded on this device yet",
     "tarot.stats.times": "draws",

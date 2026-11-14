@@ -26,7 +26,7 @@
     "fengshui.topic.overall": "Overall", "fengshui.topic.work": "Career", "fengshui.topic.money": "Money", "fengshui.topic.love": "Relationships",
     "fengshui.consent": "Let the writing assistant (Claude by Anthropic) phrase the reading (only the computed results are sent, not your birth date or photos)",
     "fengshui.readTitle": "Your feng shui reading ",
-    "fengshui.discMini": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We do not guarantee the accuracy of any prediction.",
+    "fengshui.discMini": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We cannot vouch for the accuracy of any prediction.",
     "fengshui.card.alt": "Shareable feng shui result card",
     "fengshui.stats.chk": "Count uses and Kua numbers on this device",
     "fengshui.principle": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals; no lucky items or products are sold",
@@ -110,7 +110,7 @@
     "fengshui.idle": "Restarting for the next person in {n} s — tap the screen to continue",
 
     /* ---------- fengshui-kb.js ---------- */
-    "fengshui.disclaimerShort": "Personal belief: use your own judgement; predictions are not guaranteed",
+    "fengshui.disclaimerShort": "Personal belief: use your own judgement; we cannot vouch for any prediction",
     "fengshui.dir.N": "North", "fengshui.dir.NE": "Northeast", "fengshui.dir.E": "East", "fengshui.dir.SE": "Southeast",
     "fengshui.dir.S": "South", "fengshui.dir.SW": "Southwest", "fengshui.dir.W": "West", "fengshui.dir.NW": "Northwest", "fengshui.dir.C": "Center",
     "fengshui.zone.N": "North", "fengshui.zone.NE": "Northeast", "fengshui.zone.E": "East", "fengshui.zone.SE": "Southeast",

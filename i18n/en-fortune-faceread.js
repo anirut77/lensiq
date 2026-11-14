@@ -19,7 +19,7 @@
     "faceread.nick.ph": "e.g. Alex",
     "faceread.topicL": "What would you most like to know about",
     "faceread.privacy": "Everything is processed in your browser; photos are not uploaded or stored",
-    "faceread.discMini": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We do not guarantee the accuracy of any prediction.",
+    "faceread.discMini": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We cannot vouch for the accuracy of any prediction.",
     "faceread.resCanvas": "Face image with the three-zone dividers and key areas marked",
     "faceread.ovlGroup": "Choose a face overlay",
     "faceread.elK": "Face-shape element",
@@ -257,8 +257,8 @@
   /* ---------- English version of faceread-kb.js (only the fields shown on the page); faceread.js overlays it on the KB in
      English mode, same as FR_KB_ZH in zh-fortune-faceread.js (same structure as FR_KB, translated fields only) ---------- */
   root.FR_KB_EN = {
-    disclaimer: "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We do not guarantee the accuracy of any prediction. Not for hiring, financial or relationship decisions, or for judging others",
-    disclaimerShort: "Personal belief: use your own judgement; predictions are not guaranteed",
+    disclaimer: "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We cannot vouch for the accuracy of any prediction. Not for hiring, financial or relationship decisions, or for judging others",
+    disclaimerShort: "Personal belief: use your own judgement; we cannot vouch for any prediction",
     sources: [
       { label: "Wikipedia — Mien Shiang" },
       { label: "Chinese Wikipedia — 面相 (twelve palaces, five mountains, four rivers, three zones)" },

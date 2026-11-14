@@ -33,7 +33,7 @@
     "palm.mountsH": "Mounts that look full ",
     "palm.mountsSmall": "(optional, select any)",
     "palm.read": "Read the palm",
-    "palm.discMini": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We do not guarantee the accuracy of any prediction.",
+    "palm.discMini": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We cannot vouch for the accuracy of any prediction.",
     "palm.nextHand": "Capture the second hand",
     "palm.resAria": "Palm image with the main lines and mount positions",
     "palm.figcap": "Orange = life line · Blue = head line · Pink = heart line · Purple = fate line",
@@ -238,7 +238,7 @@
     "palm.idle": "Returning to the home screen in {n} s — tap the screen to stay",
 
     /* ---------- Display data from palm-kb.js ---------- */
-    "palm.kb.disclaimerShort": "Personal belief: use your own judgement; predictions are not guaranteed",
+    "palm.kb.disclaimerShort": "Personal belief: use your own judgement; we cannot vouch for any prediction",
     "palm.kb.lifeLineNote": "The life line has nothing to do with lifespan; modern palmistry reads it only as a sign of vitality, enthusiasm and pace of life.",
     "palm.kb.ethics": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals; hand photos are not saved",
     "palm.kb.elementsNote": "Palmistry books assign a hand element from palm shape (square/long) and finger length; criteria differ slightly between schools, and most hands combine traits of several elements.",

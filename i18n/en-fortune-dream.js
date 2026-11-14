@@ -38,7 +38,7 @@
     "dream.statSym": "Popular dreams",
     "dream.statMood": "Dream mood",
     "dream.cardKind": "Dream Interpretation",
-    "dream.cardFoot": "Personal belief: use your own judgement; predictions are not guaranteed · no numbers given",
+    "dream.cardFoot": "Personal belief: use your own judgement; we cannot vouch for any prediction · no numbers given",
     "dream.shareTitle": "Dream Interpretation — LENSIQ",
     "dream.src.0": "Silpa Wattanatham magazine (silpa-mag.com) — searchable articles on Thai dream concepts: omen, divine, mind and body dreams",
     "dream.src.1": "Wikipedia: Dream interpretation (overview across cultures)",

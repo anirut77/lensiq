@@ -26,7 +26,7 @@
     "numbers.lbl.topic": "Area of interest",
     "numbers.topic.overall": "Overall", "numbers.topic.work": "Career", "numbers.topic.money": "Money", "numbers.topic.love": "Love",
     "numbers.privacy": "Calculated in your browser; your numbers and name are not sent or saved",
-    "numbers.discMini": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We do not guarantee the accuracy of any prediction.",
+    "numbers.discMini": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We cannot vouch for the accuracy of any prediction.",
     "numbers.ring.aria": "Score",
     "numbers.consent": "Let the writing assistant (Claude by Anthropic, USA) phrase the reading (only the computed digit pairs and sums are sent, not the full number or name)",
     "numbers.words.small": "This number's strongest energy, distilled into a few encouraging words",
@@ -133,7 +133,7 @@
     "numbers.idle": "Returning to start in {n} s — tap the screen to continue",
 
     /* ---------- numbers-kb.js ---------- */
-    "numbers.disclaimerShort": "Personal belief: use your own judgement; predictions are not guaranteed",
+    "numbers.disclaimerShort": "Personal belief: use your own judgement; we cannot vouch for any prediction",
     "numbers.grade.G": "Excellent", "numbers.grade.g": "Good", "numbers.grade.n": "Moderate", "numbers.grade.c": "Watch",
     "numbers.dp.0": "Void", "numbers.dp.1": "Sun", "numbers.dp.2": "Moon", "numbers.dp.3": "Mars", "numbers.dp.4": "Mercury",
     "numbers.dp.5": "Jupiter", "numbers.dp.6": "Venus", "numbers.dp.7": "Saturn", "numbers.dp.8": "Rahu", "numbers.dp.9": "Ketu",

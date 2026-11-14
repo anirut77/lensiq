@@ -1,12 +1,12 @@
 /* i18n/en-luckycolor.js — English for luckycolor.html (luckycolor.js). Thai lives in the markup / page script. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
-  "fortune.disc.line": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We do not guarantee the accuracy of any prediction.",
+  "fortune.disc.line": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We cannot vouch for the accuracy of any prediction.",
   "lucky.doc.title": "Lucky-colour outfit mirror | LENSIQ",
   "lucky.doc.desc": "Check in a mirror whether the colour you are wearing matches the Thai lucky colours of the day for work, money or love (Taksa tradition). Processed on the device; no images are kept.",
   "lucky.eyebrow": "Thai lucky colours of the day · Taksa",
   "lucky.h1": "Lucky-colour outfit mirror",
   "lucky.lead": "Turn on the camera and stand so it sees you from face to waist. The page looks only at the clothing below your face, finds the main colour of your outfit and compares it with the day's lucky colours in Thai tradition for work, money, love or support from mentors.",
-  "lucky.disc.b": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We do not guarantee the accuracy of any prediction.",
+  "lucky.disc.b": "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. We cannot vouch for the accuracy of any prediction.",
   "lucky.disc.rest": "Camera images are processed on this device only: not recorded, not sent anywhere, no face recognition. The face position is used only to separate clothing from the head.",
   "lucky.optH": "What would you like a boost for today?",
   "lucky.goal.work": "Work",
