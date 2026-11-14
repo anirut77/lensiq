@@ -12,7 +12,7 @@
 // "status", "sample" and "id" are ignored on import (everything comes in as a draft). Reviewer notes "draft_id",
 // "disciplines", "sources" [{url, publisher, title, accessed}] and "uncertain" are kept for the review screen only (never
 // shown to users). Place notes "purposes" [work|money|love|health|protection|barami], "province" (English name) and
-// "verification" (official|secondary|word_of_mouth; word_of_mouth needs the marker in the TH / EN / ZH body) are kept the same
+// "verification" (official|official_unopened|secondary|word_of_mouth; word_of_mouth needs the marker in the TH / EN / ZH body) are kept the same
 // way (owner order 2026-11-14 Part C); the count per purpose and per verification is printed. Any other field is refused.
 // Exit 0 when every item passes, 1 otherwise (the list of problems is printed).
 import { readFileSync } from "node:fs";
@@ -25,9 +25,13 @@ if (!file) { console.error("usage: node tools/merit-drafts-check.mjs <drafts.jso
 const { cleanItem, splitReviewMeta } = await import(pathToFileURL(join(repo, "backend", "src", "merit.js")).href);
 let data;
 try { data = JSON.parse(readFileSync(file, "utf8")); } catch (e) { console.error("cannot read JSON: " + e.message); process.exit(2); }
+let bad = 0;
 const items = Array.isArray(data) ? data : data && Array.isArray(data.items) ? data.items : null;
 if (!items) { console.error("expected a list of items or {\"items\": [...]}"); process.exit(2); }
-let bad = 0;
+// batch id (0019): {"batch": "places-2026-11-14", "items": [...]} — the admin page imports a file with a batch id once only
+const batch = data && !Array.isArray(data) && typeof data.batch === "string" ? data.batch : null;
+if (batch && !/^[a-z0-9][a-z0-9._-]{2,59}$/.test(batch)) { console.log(`batch: ${batch.slice(0, 80)} is not a valid batch id (3 to 60 of a-z 0-9 . _ -)`); bad = 1; }
+console.log(batch ? `batch: ${batch}` : "warning: no batch id in this file; the admin page refuses a file without one (add \"batch\": \"<name>\" next to \"items\")");
 /** @type {Record<string, number>} */
 const count = {};
 items.forEach((raw, i) => {

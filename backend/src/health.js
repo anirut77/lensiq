@@ -13,7 +13,8 @@ export const MIGRATIONS = [
   "0006_consumer_pricing.sql", "0007_member_session_labels.sql", "0008_round11_backend.sql",
   "0009_round12_backend.sql", "0010_ai_gateway.sql", "0011_admin_recovery.sql", "0012_ai_keys.sql", "0013_recovery_slow_hash.sql",
   "0014_leads_viewed.sql",
-  "0015_merit.sql", "0016_merit_review.sql", "0017_tryon.sql", "0018_accounts.sql"
+  "0015_merit.sql", "0016_merit_review.sql", "0017_tryon.sql", "0018_accounts.sql",
+  "0019_merit_batches.sql"
 ];
 /** Columns / tables added by migrations 0008 and later, with the migration that adds each (schema probe): a failing
  *  probe names exactly the migration that is missing. */
@@ -48,7 +49,8 @@ const PROBES = [
   ["0018_accounts.sql", "SELECT id, token_hash, email_hmac, owner_invite FROM org_invites LIMIT 0"],
   ["0018_accounts.sql", "SELECT id, org_id, actor_ref, prev_hash, hash FROM org_audit LIMIT 0"],
   ["0018_accounts.sql", "SELECT id, product, unit FROM licence_plans LIMIT 0"],
-  ["0018_accounts.sql", "SELECT id, org_id, plan_id, quantity, amount_satang FROM org_licences LIMIT 0"]
+  ["0018_accounts.sql", "SELECT id, org_id, plan_id, quantity, amount_satang FROM org_licences LIMIT 0"],
+  ["0019_merit_batches.sql", "SELECT batch, count, imported_at, actor FROM merit_batches LIMIT 0"]
 ];
 
 /** @param {Env} env */

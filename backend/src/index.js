@@ -97,7 +97,8 @@ const MERIT_ITEM = "\\/merit\\/items\\/[a-z0-9][a-z0-9_-]{2,40}";
 /** The only admin routes a reviewer session may use (merit content). Everything else: 403 forbidden_role (default deny). */
 export const REVIEWER_ROUTES = [
   ["GET", /^\/me$/], ["POST", /^\/logout$/], ["GET", /^\/merit\/items$/], ["POST", /^\/merit\/items$/],
-  ["PUT", new RegExp("^" + MERIT_ITEM + "$")], ["POST", new RegExp("^" + MERIT_ITEM + "\\/review$")], ["GET", new RegExp("^" + MERIT_ITEM + "\\/history$")]
+  ["PUT", new RegExp("^" + MERIT_ITEM + "$")], ["POST", new RegExp("^" + MERIT_ITEM + "\\/review$")],
+  ["POST", new RegExp("^" + MERIT_ITEM + "\\/verify$")], ["GET", new RegExp("^" + MERIT_ITEM + "\\/history$")]
 ];
 /** @param {string} m @param {string} route */
 export const reviewerAllowed = (m, route) => REVIEWER_ROUTES.some(([rm, re]) => rm === m && /** @type {RegExp} */ (re).test(route));
@@ -750,7 +751,7 @@ async function adminRoute(request, env, url, deps) {
     await act("merit.item.created", { id: item.id, type: item.type, tradition: item.tradition, status: item.status });
     return reply({ item }, 201);
   }
-  const mi = /^\/merit\/items\/([a-z0-9][a-z0-9_-]{2,40})(\/review|\/history)?$/.exec(route);
+  const mi = /^\/merit\/items\/([a-z0-9][a-z0-9_-]{2,40})(\/review|\/history|\/verify)?$/.exec(route);
   if (mi && !mi[2] && m === "PUT") {
     const r = await merit.adminUpdateItem(env, mi[1], await body(), who);
     await act("merit.item.updated", { id: mi[1], changed: r.changed, status: r.item.status });
@@ -759,6 +760,11 @@ async function adminRoute(request, env, url, deps) {
   if (mi && mi[2] === "/review" && m === "POST") {
     const r = await merit.reviewItem(env, mi[1], await body(), who);
     await act("merit.item.reviewed", { id: mi[1], decision: r.decision, from: r.from, to: r.to });
+    return reply(r);
+  }
+  if (mi && mi[2] === "/verify" && m === "POST") {
+    const r = await merit.verifyItem(env, mi[1], await body(), who);
+    await act("merit.item.verified", { id: mi[1], from: r.from, to: r.to });
     return reply(r);
   }
   if (mi && mi[2] === "/history" && m === "GET") return reply(await merit.itemHistory(env, mi[1]));
@@ -778,7 +784,7 @@ async function adminRoute(request, env, url, deps) {
       throw e;
     }
     const r = await merit.importItems(env, b, who);
-    if (!r.dry_run) await act("merit.import", { imported: r.imported, refused: r.refused.length });
+    if (!r.dry_run) await act("merit.import", { imported: r.imported, refused: r.refused.length, batch: r.batch || null });
     return reply(r);
   }
   // reviewer accounts (owner only; REVIEWER_ROUTES keeps reviewers out)

@@ -39,7 +39,12 @@ const KEY_SET = new Set(KEYS_ALLOWED);
 const LANGS = ["th", "en", "zh"];
 /** Review notes for places (owner order 2026-11-14 Part C; back office only). */
 export const PURPOSES = ["work", "money", "love", "health", "protection", "barami"];
-export const VERIFICATIONS = ["official", "secondary", "word_of_mouth"];
+// official = an official page was opened and read (by the writer, or by a reviewer who raised the level on the review
+// screen); official_unopened = an official page was found (for example through a search summary) but nobody has opened it
+// at the source yet. Only a reviewer / the owner raises official_unopened to official (verifyItem, in the history).
+export const VERIFICATIONS = ["official", "official_unopened", "secondary", "word_of_mouth"];
+/** Batch id of a drafts file (one row per import in merit_batches, 0019). */
+const BATCH_RE = /^[a-z0-9][a-z0-9._-]{2,59}$/;
 /** The marker a word-of-mouth item must carry in its user text, per language (C3). */
 const WORD_OF_MOUTH = { th: "ตามที่เล่าต่อกันมา", en: "word of mouth", zh: "民间流传" };
 const ID_RE = /^[a-z0-9][a-z0-9_-]{2,40}$/;
@@ -165,6 +170,17 @@ function adminRow(r) {
     source: r.source || (r.sample ? "sample" : "admin"), review_meta: meta };
 }
 
+/** A word_of_mouth item must say so to the reader in every language (C3); checked on import AND on every update.
+ *  @param {any} body */
+function checkWordOfMouth(body) {
+  const b = body && typeof body === "object" ? body : {};
+  for (const [l, mark] of Object.entries(WORD_OF_MOUTH)) {
+    if (typeof b[l] !== "string" || !b[l].toLowerCase().includes(mark)) {
+      throw bad(`verification word_of_mouth: body.${l} must say "${mark}" so the reader knows it is passed on by word of mouth`);
+    }
+  }
+}
+
 /** Reviewer notes that a drafts file may carry next to an item: draft_id, disciplines, sources, uncertain. They are kept
  *  for the review screen only (sources are where the writer found the belief; links are allowed here and nowhere else).
  *  Returns {meta (null when none), rest (the item without these fields)}; throws 400 on a malformed note.
@@ -212,14 +228,7 @@ export function splitReviewMeta(raw) {
   if ("verification" in rest) {
     const v = rest.verification;
     if (!VERIFICATIONS.includes(v)) throw bad("verification must be one of " + VERIFICATIONS.join(", "));
-    if (v === "word_of_mouth") {
-      const body = rest.body && typeof rest.body === "object" ? rest.body : {};
-      for (const [l, mark] of Object.entries(WORD_OF_MOUTH)) {
-        if (typeof body[l] !== "string" || !body[l].toLowerCase().includes(mark)) {
-          throw bad(`verification word_of_mouth: body.${l} must say "${mark}" so the reader knows it is passed on by word of mouth`);
-        }
-      }
-    }
+    if (v === "word_of_mouth") checkWordOfMouth(rest.body);
     meta.verification = v;
   }
   for (const k of ["draft_id", "disciplines", "sources", "uncertain", "purposes", "province", "verification"]) delete rest[k];
@@ -243,7 +252,9 @@ async function rowOr404(env, id) {
 /** @param {any} env */
 export async function adminListItems(env) {
   const rows = (await env.DB.prepare("SELECT * FROM merit_items ORDER BY tradition, type, sort, id").all()).results || [];
-  return { items: rows.map(adminRow), types: TYPES, traditions: TRADITIONS, statuses: STATUSES, keys_allowed: KEYS_ALLOWED, interest_form: interestEnabled(env) };
+  const batches = ((await env.DB.prepare("SELECT batch, count, imported_at FROM merit_batches ORDER BY imported_at, batch").all()).results || [])
+    .map(b => ({ batch: String(b.batch), count: Number(b.count) || 0, imported_at: Number(b.imported_at) || 0 }));
+  return { items: rows.map(adminRow), batches, types: TYPES, traditions: TRADITIONS, statuses: STATUSES, keys_allowed: KEYS_ALLOWED, interest_form: interestEnabled(env) };
 }
 
 /** @param {any} env @param {any} item @param {number} t @param {string} source @param {any} [meta] */
@@ -283,6 +294,10 @@ export async function adminUpdateItem(env, id, body, who) {
   if (!("status" in body)) merged.status = OWNER_SETS.includes(cur.status) ? cur.status : "draft"; // validated below, restored after
   const item = cleanItem(merged);
   item.id = cur.id;
+  /** @type {any} */
+  let curMeta = null;
+  try { curMeta = row.review_meta ? JSON.parse(row.review_meta) : null; } catch { curMeta = null; }
+  if (curMeta && curMeta.verification === "word_of_mouth") checkWordOfMouth(item.body); // owner and reviewer edits alike
   const content = changed.filter(k => CONTENT.includes(k));
   item.status = "status" in body ? item.status : who.role === "reviewer" && content.length ? "draft" : cur.status;
   const t = now(), j = (/** @type {any} */ v) => (v == null ? null : JSON.stringify(v));
@@ -318,6 +333,30 @@ export async function reviewItem(env, id, body, who) {
   return { item: adminRow(await env.DB.prepare("SELECT * FROM merit_items WHERE id = ?1").bind(id).first()), decision, from: row.status, to };
 }
 
+/** Raise an item's verification from official_unopened to official after a reviewer (or the owner) opened the official
+ *  page. Back-office note only; the item status is not changed. Recorded in the history (action "verify").
+ *  @param {any} env @param {string} id @param {any} body @param {any} who */
+export async function verifyItem(env, id, body, who) {
+  const row = await rowOr404(env, id);
+  if (!body || body.verification !== "official") throw bad("verification: only a raise to official is possible here");
+  const comment = body.comment == null ? "" : cleanText(String(body.comment));
+  if ([...comment].length > 1000) throw bad("comment: at most 1000 characters");
+  /** @type {any} */
+  let meta = null;
+  try { meta = row.review_meta ? JSON.parse(row.review_meta) : null; } catch { meta = null; }
+  const from = meta && meta.verification;
+  if (from !== "official_unopened") {
+    throw new HttpError(409, `only official_unopened can be raised to official (this item is ${from || "not set"}) (bad_transition)`, { code: "bad_transition" });
+  }
+  const next = JSON.stringify({ ...meta, verification: "official" }), t = now();
+  const r = await env.DB.batch([
+    env.DB.prepare("UPDATE merit_items SET review_meta = ?1, updated_at = ?2 WHERE id = ?3 AND review_meta = ?4").bind(next, t, id, row.review_meta),
+    revision(env, id, who, "verify", { fields: ["verification"], comment: "official_unopened → official" + (comment ? " · " + comment : ""), from: row.status, to: row.status })
+  ]);
+  if (!r[0].meta || !r[0].meta.changes) throw new HttpError(409, "the item changed meanwhile — reload (bad_transition)", { code: "bad_transition" });
+  return { item: adminRow(await env.DB.prepare("SELECT * FROM merit_items WHERE id = ?1").bind(id).first()), from, to: "official" };
+}
+
 /** @param {any} env @param {string} id */
 export async function itemHistory(env, id) {
   await rowOr404(env, id);
@@ -348,6 +387,11 @@ export async function importItems(env, body, who) {
   const list = body && Array.isArray(body.items) ? body.items : null;
   if (!list || !list.length) throw bad("items: a non-empty list is needed");
   if (list.length > IMPORT_MAX) throw bad(`at most ${IMPORT_MAX} items per import`);
+  // batch id (0019): a file that says which batch it is can be imported once only; files without one import as before
+  const batch = "batch" in body && body.batch !== undefined ? body.batch : null;
+  if (batch !== null && (typeof batch !== "string" || !BATCH_RE.test(batch))) throw bad("batch: 3 to 60 lower-case letters, digits, . _ - (for example places-2026-11-14)");
+  const exists = () => new HttpError(409, `batch ${batch} was already imported; each drafts file is imported once only (batch_exists)`, { code: "batch_exists" });
+  if (batch !== null && await env.DB.prepare("SELECT batch FROM merit_batches WHERE batch = ?1").bind(batch).first()) throw exists();
   const ok = [], refused = [];
   for (let i = 0; i < list.length; i++) {
     const raw = list[i];
@@ -364,14 +408,20 @@ export async function importItems(env, body, who) {
       refused.push({ index: i, error: String((e && e.message) || "invalid").slice(0, 300), code: (e && e.extra && e.extra.code) || "merit_invalid" });
     }
   }
-  if (body.dry_run === true) return { dry_run: true, ok_count: ok.length, imported: 0, refused };
+  if (body.dry_run === true) return { dry_run: true, ok_count: ok.length, imported: 0, refused, batch };
   const t = now(), stmts = [];
+  if (batch !== null) {
+    // the batch row first: a second import of the same file (double click, two tabs) fails on the primary key here
+    try {
+      await env.DB.prepare("INSERT INTO merit_batches (batch, count, imported_at, actor) VALUES (?1, ?2, ?3, ?4)").bind(batch, ok.length, t, who.name).run();
+    } catch { throw exists(); }
+  }
   for (const { item, meta } of ok) {
     item.id = "mi-" + randomId(6);
-    stmts.push(insertStmt(env, item, t, "import", meta), revision(env, item.id, who, "import", { fields: CONTENT, to: "draft" }));
+    stmts.push(insertStmt(env, item, t, "import", batch !== null ? { ...(meta || {}), batch } : meta), revision(env, item.id, who, "import", { fields: CONTENT, to: "draft" }));
   }
   for (let i = 0; i < stmts.length; i += 100) await env.DB.batch(stmts.slice(i, i + 100));
-  return { dry_run: false, ok_count: ok.length, imported: ok.length, refused, ids: ok.map(x => x.item.id) };
+  return { dry_run: false, ok_count: ok.length, imported: ok.length, refused, ids: ok.map(x => x.item.id), batch };
 }
 
 /** @param {any} env @param {Record<string, string>} q */
