@@ -300,11 +300,13 @@ test("W-027 / W-028 / W-029: customer onboarding guides in TH / EN / ZH, LINE su
     for (const [n, part] of [["th", th], ["en", en], ["zh", zh]]) {
       assert.ok(part.length > 1500, `${f} ${n}: too short (${part.length})`);
       assert.match(part, /@632yliiw/, `${f} ${n}: LINE support`);
-      assert.match(part, /\[เจ้าของจะแจ้ง\]/, `${f} ${n}: owner placeholder for e-mail / phone`);
+      // amendment 5 (coordinator re-walk N6, 2026-11-14): each language has its own owner placeholder
+      const PH = { th: /\[เจ้าของจะแจ้ง\]/, en: /\[to be provided by the owner\]/, zh: /\[由业主提供\]/ }[n];
+      assert.match(part, PH, `${f} ${n}: owner placeholder for e-mail / phone`);
     }
     assert.ok((th.match(/[฀-๿]/g) || []).length > 800, f + ": Thai section in Thai");
     assert.ok((zh.match(CJK) || []).length > 500, f + ": Chinese section in Chinese");
-    for (const [n, part] of [["en", en], ["zh", zh]]) assert.ok(!THAI.test(part.replace(/\[เจ้าของจะแจ้ง\]/g, "")), `${f} ${n}: no Thai outside the placeholder`);
+    for (const [n, part] of [["en", en], ["zh", zh]]) assert.ok(!THAI.test(part), `${f} ${n}: no Thai at all (amendment 5)`);
     const BAD = [/docs\//, /\.md\b/, /\bOP-\d/, /PILOT-/, /§/, /READINESS/, /\[อีเมลสนับสนุน\]/, /\[LINE OA\]/, /\[เบอร์โทร\]/, /to confirm/i,
       /ต้องยืนยัน/, /ห้ามแต่ง/, /เจ้าของกรอก/, /DRAFT/, /\bL\d{1,2}\b/];
     for (const re of BAD) assert.ok(!re.test(s), `${f}: internal text ${re}`);
