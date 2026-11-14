@@ -1711,7 +1711,7 @@
   }
   // "คนที่มีเส้นนี้มีความคิด…" → "คุณมีความคิด…" (ตัวเรียบเรียงเอ่ยชื่อสิ่งที่พบไว้แล้ว ไม่ต้องอ้างซ้ำ)
   const PEOPLE_WITH = /^(?:คน|ผู้)ที่มี\S{1,14}(?:นี้|แบบนี้|ลักษณะนี้)(?:มัก)?(?=\S)/;
-  function itemSentence(ctx, it, m, mode) {
+  function itemSentence(ctx, it, m, mode) { return crecU(it, itemSentence0(ctx, it, m, mode)); } function itemSentence0(ctx, it, m, mode) {
     const r = ctx.r;
     if (PEOPLE_WITH.test(m)) m = m.replace(PEOPLE_WITH, "คุณ");
     let R0 = null;
@@ -1982,12 +1982,12 @@
     return { text, fixed: true, sub: true };
   }
 
-  function cautionLead(ctx, it, sec) {
+  function cautionLead(ctx, it, sec) { return crecU(true, cautionLead0(ctx, it, sec)); } function cautionLead0(ctx, it, sec) {
     const area = cautionArea(it, sec);
     return { text: pick(ctx.r, leadPool("th", it)[area]), fixed: true, sub: true, noConn: true };
   }
   // สิ่งที่ทำได้หลังจุดที่ควรระวัง: คำแนะนำของสิ่งที่พบเอง (ถ้าตรงหัวข้อ) ไม่งั้นคำแนะนำกลางของหัวข้อ
-  function cautionAction(ctx, it, sec) {
+  function cautionAction(ctx, it, sec) { return crecU(true, cautionAction0(ctx, it, sec)); } function cautionAction0(ctx, it, sec) {
     const area = cautionArea(it, sec);
     const rm = remedyFor(ctx.F, it, sec);
     // "ตามตำรา" เฉพาะวิธีที่ตำรากำหนดจริง (สี ธาตุ ทิศ); นิสัยทั่วไปบอกตรง ๆ ว่าเป็น "ข้อแนะนำทั่วไป"
@@ -2006,6 +2006,16 @@
   // ถ้าทั้งหน่วยไม่ผ่านด่าน ใช้ประโยคนำ + สิ่งที่ทำได้ (alt)
   // ส่วน C: ในโหมดตรง สิ่งที่พบซึ่งตำราเรียกชื่อเองว่าไม่ดี (คู่อุปสรรค กาลกิณี ชง …) นับเป็นจุดที่ต้องระวังด้วย; โหมดนุ่มนวลเหมือนเดิม
   const cautS = it => toneOf(it) === "caution" || (STRAIGHT && FS.LABEL_NEG.test(String(it.label || "")));
+  // review round 2 (F1): the composer marks caution paragraphs itself. Every sentence built from an unfavourable item and every
+  // caution lead / action is recorded while composing; compose() then sets section.caution[i] for each final paragraph holding one
+  const crec = (it, t) => { if (CREC && t && (it === true || (it && cautS(it)))) CREC.push(String(t)); return t; };
+  let CREC = null; const crecU = (it, u) => { if (u) [u.text].concat(u.alt || []).forEach(t => crec(it, t)); return u; };
+  const cautMeanings = (F, lang) => ((F && F.items) || []).filter(cautS).flatMap(it => { // + every meaning of such an item
+    const x = (lang === "en" ? (enLoad(), enItem(F.domain, it)) : lang === "zh" ? (zhLoad(), zhItem(F.domain, it)) : it) || {}; return Object.values(x.meanings || {}).flat(); });
+  function markCaution(out, lang, rec) { const en = lang === "en", lc = t => (en ? t.toLowerCase() : t);
+    const frags = [...new Set(rec.map(lc).flatMap(t => (lang === "zh" ? t.split(/[，。；！？]/) : en ? t.split(/[,.;:!?]\s+/) : t.split(" ")).concat([t]))
+      .map(x => x.trim()).filter(x => x.length >= (lang === "zh" ? 6 : 12)))];
+    for (const s of out.sections || []) s.caution = (s.paragraphs || []).map(p => frags.some(x => lc(p).includes(x))); }
   // จุดที่ต้องระวังจุดถัดไปในหัวข้อเดียวกัน (โหมดตรง): ไม่มีประโยคนำซ้ำ แต่มีสิ่งที่ทำได้ต่อท้ายเสมอ
   function stepAfter(ctx, it, sec, iu) { const act = cautionAction(ctx, it, sec).text; return Object.assign({}, iu, { text: iu.text + " " + act, alt: [act], noConn: true }); }
   function cautionUnit(ctx, it, sec, iu) {
@@ -2387,14 +2397,14 @@
   function compose(facts, opts = {}) {
     const calm = FS.calm ? FS.calm() : false, straight = !calm && (opts.straight != null ? !!opts.straight : straightActive());
     if (straight && crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
-    const prev = STRAIGHT, prevC = CALM;
-    STRAIGHT = straight; CALM = calm;
+    const prev = STRAIGHT, prevC = CALM, prevR = CREC;
+    STRAIGHT = straight; CALM = calm; CREC = [];
     try {
       const out = composeBase(calm && facts ? Object.assign({}, facts, { extras: {} }) : facts, opts);
-      if (out && out.source !== "support") out.mode = straight ? "straight" : "gentle";
+      if (out && out.source !== "support") { out.mode = straight ? "straight" : "gentle"; markCaution(out, out.lang || langOf(opts), CREC.concat(cautMeanings(facts, out.lang || langOf(opts)))); }
       if (calm && out) delete out.plan;
       return out;
-    } finally { STRAIGHT = prev; CALM = prevC; }
+    } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; }
   }
   function composeBase(facts, opts = {}) {
     if (langOf(opts) === "zh") return composeZh(facts, opts);
@@ -2629,8 +2639,8 @@
     // 需要留意的地方：温和地说清楚，并马上给出能做的事（先用该项目自己的建议，否则用该主题的通用建议）
     const zCaut = {}, zLeadUsed = new Set(), zActUsed = new Set(), zRemedy = new Set();
     const zIsCaut = it => it.polarity === "challenge" || (STRAIGHT && toneOf(it) === "caution"); // 直说模式也看 tone
-    const zLead = (area, it) => { const L = leadPool("zh", it), c = shuffle(r, L[area] || L.overview).find(x => !zLeadUsed.has(x)); if (!c) return null; zLeadUsed.add(c); return zhEnd(c); };
-    function zhCautionAction(it, area) {
+    const zLead = (area, it) => { const L = leadPool("zh", it), c = shuffle(r, L[area] || L.overview).find(x => !zLeadUsed.has(x)); return c ? (zLeadUsed.add(c), crec(true, zhEnd(c))) : null; };
+    function zhCautionAction(it, area) { return crec(true, zhCautionAction0(it, area)); } function zhCautionAction0(it, area) {
       const rm = remedyFor(F, it, area);
       if (rm && !zRemedy.has(rm.key)) { zRemedy.add(rm.key); lastSubj = null; return zhEnd((STRAIGHT ? "建议这样调整：" : "调整的方法是：") + rm.zh); }
       const own = (it.meanings.advice || []).find(m => !used.has(m) && isSafe(m) && !adviceOffTopic(m, area));
@@ -2639,7 +2649,7 @@
       const pool = CAUTION_ACTION_ZH[area] || CAUTION_ACTION_ZH.overview, a = shuffle(r, pool).find(x => !zActUsed.has(x)) || shuffle(r, CAUTION_ACTION_ZH.overview).find(x => !zActUsed.has(x)) || pool[0];
       zActUsed.add(a); return zhEnd(a);
     }
-    function sentence(it, m, sec) {
+    function sentence(it, m, sec) { return crec(sec !== "advice" && it, sentence0(it, m, sec)); } function sentence0(it, m, sec) {
       let t;
       const afterHead = head && head.ids[head.at] === it.id && it.kind !== "plain";
       if (head && !afterHead) head = null;
@@ -2969,12 +2979,12 @@
     const eCaut = {}, eLeadUsed = new Set(), eActUsed = new Set(), eRemedy = new Set();
     const EN_DO = /\b(?:try|plan|set aside|check|rest|talk|listen|keep|review|make|take|ask|leave|note|pause|break)\b/i; // straight: the step after a caution names something to do
     const eIsCaut = it => it.polarity === "challenge" || (STRAIGHT && toneOf(it) === "caution"); // straight mode also reads the tone
-    const eLead = (area, it) => { const L = leadPool("en", it), c = shuffle(r, L[area] || L.overview).find(x => !eLeadUsed.has(x)); if (!c) return null; eLeadUsed.add(c); return enEnd(c); };
+    const eLead = (area, it) => { const L = leadPool("en", it), c = shuffle(r, L[area] || L.overview).find(x => !eLeadUsed.has(x)); return c ? (eLeadUsed.add(c), crec(true, enEnd(c))) : null; };
     // the first time an item with a gloss is named, explain the concept in one sentence (at most three per reading)
     // glosses that open the same way ("In Taksa, the Thai system of …") are shown once; at most three per reading
     const glossKey = g => String(g).toLowerCase().split(/\s+/).slice(0, 4).join(" ");
     const glossFor = it => { if (!it.gloss || glossShown.has(glossKey(it.gloss)) || glossShown.size >= 3 || !isSafe(it.gloss)) return ""; glossShown.add(glossKey(it.gloss)); return " " + enEnd(it.gloss); };
-    function cautionAction(it, area) {
+    function cautionAction(it, area) { return crec(true, cautionAction0(it, area)); } function cautionAction0(it, area) {
       const rm = remedyFor(F, it, area);
       const frame = STRAIGHT ? "Try this simple adjustment: " : "A simple adjustment: ";
       if (rm && rm.en && !eRemedy.has(rm.key)) { eRemedy.add(rm.key); lastSubj = null; return enEnd(frame + lcFirst(rm.en.replace(/[.]+$/, ""))); }
@@ -2984,7 +2994,7 @@
       const pool = CAUTION_ACTION_EN[area] || CAUTION_ACTION_EN.overview, a = shuffle(r, pool).find(x => !eActUsed.has(x)) || shuffle(r, CAUTION_ACTION_EN.overview).find(x => !eActUsed.has(x)) || pool[0];
       eActUsed.add(a); return enEnd(a);
     }
-    function sentence(it, m, sec) {
+    function sentence(it, m, sec) { return crec(sec !== "advice" && it, sentence0(it, m, sec)); } function sentence0(it, m, sec) {
       let t, firstName = false;
       const afterHead = head && head.ids[head.at] === it.id && it.kind !== "plain";
       if (head && !afterHead) head = null;
@@ -4246,18 +4256,10 @@
     : res && res.lang === "zh" ? "阅读更多 · 另外 " + list.length + " 个主题（" + list.map(s => s.title || ZH_TITLES[s.id] || "").join("、") + "）"
     : MORE_LABEL + " · อีก " + list.length + " หัวข้อ (" + list.map(s => s.title || SECTION_TITLES[s.id] || "").join(", ") + ")");
   const shownCount = s => (typeof s.main === "number" && s.main > 0 && s.main < (s.paragraphs || []).length ? s.main : (s.paragraphs || []).length);
-  const MORE_CSS = ".fa-more{margin:.5em 0 .2em}.fa-more>summary{cursor:pointer;font-weight:600;opacity:.85;padding:.4em 0;min-height:44px;box-sizing:border-box;display:list-item}" +
-    ".fa-more>summary:hover{opacity:1}.fa-more>summary:focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:4px}.fa-more[open]>summary{margin-bottom:.3em}" +
-    ".fa-summary{border:1px solid rgba(103,79,242,.28);background:rgba(103,79,242,.06);border-radius:14px;padding:.75em 1em;margin:.3em 0 1.1em}" +
-    ".fa-summary h3{margin:0 0 .4em;font-size:1rem}.fa-summary ul{list-style:none;margin:0;padding:0;display:grid;gap:.45em}" +
-    ".fa-summary li{line-height:1.55}.fa-summary li b{display:inline-block;min-width:5.5em;margin-right:.4em;color:#4b36c9;font-weight:600}" +
-    ".fa-plan{border:1px solid rgba(34,160,90,.3);background:rgba(34,160,90,.06);border-radius:14px;padding:.75em 1em;margin:.3em 0 1.1em}.fa-plan h3{margin:0 0 .4em;font-size:1rem}.fa-plan ol{margin:0;padding-left:1.2em;display:grid;gap:.4em;line-height:1.55}" +
-    ".fa-reminder{margin:1.1em 0 .3em;padding:.7em .9em;border-left:3px solid rgba(103,79,242,.45);font-size:.92em;line-height:1.6;opacity:.9}" +
-    "@media (prefers-color-scheme:dark){.fa-summary li b{color:#b9abff}}";
   function ensureMoreStyle(doc) {
     try {
       if (!doc || !doc.head || doc.getElementById("fa-more-style")) return;
-      const st = doc.createElement("style"); st.id = "fa-more-style"; st.textContent = MORE_CSS; doc.head.appendChild(st);
+      const st = doc.createElement("style"); st.id = "fa-more-style"; st.textContent = (root.LQRead && root.LQRead.FA_CSS) || ""; doc.head.appendChild(st);
     } catch (e) { /* ไม่มี DOM */ }
   }
   function toHTML(result, opts = {}) {

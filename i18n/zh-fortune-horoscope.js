@@ -216,7 +216,7 @@
     "horoscope.x.cRasi": "星座",
     "horoscope.x.compatAria": "契合度 {s}%",
     "horoscope.x.compatWho": "你与{who}（{day} · {date}）——{desc}",
-    "horoscope.x.compatNote": "娱乐性分数（55–98%），综合多种命理得出；好的关系来自理解与用心，而不是数字",
+    "horoscope.x.compatNote": "依典籍得出的分数（属信仰，55–98%），综合多种命理得出；好的关系来自理解与用心，而不是数字",
     "horoscope.x.sub": "{day}出生 · {date}{time}",
     "horoscope.x.noTimeSub": "（未填写时间）",
     "horoscope.x.cardTitle": "生辰运势",

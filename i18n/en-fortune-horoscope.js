@@ -214,7 +214,7 @@
     "horoscope.x.cRasi": "Sign",
     "horoscope.x.compatAria": "Compatibility {s}%",
     "horoscope.x.compatWho": "You and {who} ({day} · {date}): {desc}",
-    "horoscope.x.compatNote": "An entertainment score (55–98%) combined from several traditions; good relationships come from understanding and care, not numbers",
+    "horoscope.x.compatNote": "A score by the traditional texts (belief, 55–98%) combined from several traditions; good relationships come from understanding and care, not numbers",
     "horoscope.x.sub": "Born on {day} · {date}{time}",
     "horoscope.x.noTimeSub": " (no time given)",
     "horoscope.x.cardTitle": "Birth-date Horoscope",

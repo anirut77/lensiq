@@ -75,16 +75,29 @@
     out.push(p.slice(start));
     return out.filter((x, i) => x.length || i === 0);
   }
-  /** parts of a section: [{ text, para, visible, caution }]; first part (the main point) and caution paragraphs are shown */
+  /** parts of a section: [{ text, para, visible, caution }]; the first part (the main point) and caution paragraphs are shown.
+   *  opts.flags = the composer's marks (section.caution, one per paragraph): a marked paragraph is never cut or folded.
+   *  Without opts.flags nothing is folded (every part visible): the layout never guesses which text is a caution.
+   *  opts.leads (older callers / tests) also marks a paragraph holding a whole lead; it never makes anything less visible. */
   function plan(paragraphs, lang, opts) {
     lang = langOf(lang);
-    const leads = (opts && opts.leads) || [], parts = [];
+    const leads = (opts && opts.leads) || [], flags = opts && Array.isArray(opts.flags) ? opts.flags : null, parts = [];
     (paragraphs || []).forEach((p, k) => {
-      const caution = leads.some(l => l && String(p).includes(l));
+      const caution = !!(flags && flags[k]) || leads.some(l => l && String(p).includes(l));
       const chunks = caution ? [String(p)] : split(p, lang);
-      chunks.forEach((t, j) => parts.push({ text: t, para: k, caution, visible: caution || (k === 0 && j === 0) }));
+      chunks.forEach((t, j) => parts.push({ text: t, para: k, caution, visible: !flags || caution || (k === 0 && j === 0) }));
     });
     return parts;
+  }
+  /** the composer's marks of one section, or null when they are missing or do not line up with the paragraphs */
+  const marksOf = s => (s && Array.isArray(s.caution) && Array.isArray(s.paragraphs) && s.caution.length === s.paragraphs.length ? s.caution : null);
+  /** plan of one composed section (what the page shows): folds only when the composer marked the section */
+  function planSection(s, lang) { return plan((s && s.paragraphs) || [], lang, { flags: marksOf(s) }); }
+  /** marks for a rendered section, found by id and identical paragraph texts; null on any mismatch (then nothing folds) */
+  function sectionFlags(res, id, texts) {
+    const same = x => x && x.id === id && Array.isArray(x.paragraphs) && x.paragraphs.length === texts.length && x.paragraphs.every((p, i) => p === texts[i]);
+    const s = ((res && res.sections) || []).find(same);
+    return marksOf(s);
   }
 
   /* ---------- A5: one short line + the rest ---------- */
@@ -204,6 +217,16 @@
   };
 
   /* ---------- DOM ---------- */
+  // reading styles used by fortune-ai.js renderSections (moved here from fortune-ai.js, review round 2)
+  const FA_CSS = ".fa-more{margin:.5em 0 .2em}.fa-more>summary{cursor:pointer;font-weight:600;opacity:.85;padding:.4em 0;min-height:44px;box-sizing:border-box;display:list-item}" +
+    ".fa-more>summary:hover{opacity:1}.fa-more>summary:focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:4px}.fa-more[open]>summary{margin-bottom:.3em}" +
+    ".fa-summary{border:1px solid rgba(103,79,242,.28);background:rgba(103,79,242,.06);border-radius:14px;padding:.75em 1em;margin:.3em 0 1.1em}" +
+    ".fa-summary h3{margin:0 0 .4em;font-size:1rem}.fa-summary ul{list-style:none;margin:0;padding:0;display:grid;gap:.45em}" +
+    ".fa-summary li{line-height:1.55}.fa-summary li b{display:inline-block;min-width:5.5em;margin-right:.4em;color:#4b36c9;font-weight:600}" +
+    ".fa-plan{border:1px solid rgba(34,160,90,.3);background:rgba(34,160,90,.06);border-radius:14px;padding:.75em 1em;margin:.3em 0 1.1em}" +
+    ".fa-plan h3{margin:0 0 .4em;font-size:1rem}.fa-plan ol{margin:0;padding-left:1.2em;display:grid;gap:.4em;line-height:1.55}" +
+    ".fa-reminder{margin:1.1em 0 .3em;padding:.7em .9em;border-left:3px solid rgba(103,79,242,.45);font-size:.92em;line-height:1.6;opacity:.9}" +
+    "@media (prefers-color-scheme:dark){.fa-summary li b{color:#b9abff}}";
   const CSS = ".fa-section{scroll-margin-top:96px}.fa-section>p,.fa-section .lq-more-body>p{margin:.55em 0;line-height:1.75}" +
     ".fa-section .lq-gist{font-weight:500}.fa-section .lq-caution{border-left:3px solid rgba(214,120,0,.55);padding-left:.7em}" +
     ".lq-more-body{display:none}.lq-more-body.lq-open{display:block}" +
@@ -248,15 +271,6 @@
     b.addEventListener("keydown", e => { if (e.key === "Enter" && !e.repeat) { e.preventDefault(); toggle(); } });
     return b;
   }
-  function leadsFor(lang) {
-    const FA = root.FortuneAI, out = [];
-    const flat = x => (Array.isArray(x) ? x.flatMap(flat) : x && typeof x === "object" ? Object.values(x).flatMap(flat) : typeof x === "string" ? [x] : []);
-    try {
-      if (FA && FA.straight) out.push(...flat(FA.straight.LEADS && FA.straight.LEADS[lang]), ...flat(FA.straight.NATAL_LEADS && FA.straight.NATAL_LEADS[lang]));
-      if (FA && FA._internal && FA._internal.cautionLeads) out.push(...flat(FA._internal.cautionLeads(lang)));
-    } catch (e) { /* no composer */ }
-    return [...new Set(out.map(s => s.replace(/[.。]$/, "")).filter(s => s.length >= 6))];
-  }
   const STD_TITLES = () => {
     const FA = root.FortuneAI, t = {};
     try { for (const src of [FA.SECTION_TITLES, FA.en && FA.en.TITLES, FA.zh && FA.zh.TITLES]) if (src) for (const k in src) (t[k] = t[k] || []).push(src[k]); } catch (e) { /* none */ }
@@ -278,7 +292,7 @@
     const b = doc.createElement("span"); b.className = "lq-belief"; b.textContent = BELIEF[lang]; box.appendChild(b);
     return box;
   }
-  function group(sec, lang, leads, titles) {
+  function group(sec, lang, res, titles) {
     const doc = sec.ownerDocument;
     if (sec.getAttribute("data-lq-grouped")) return;
     sec.setAttribute("data-lq-grouped", "1");
@@ -291,7 +305,7 @@
       if (n.tagName === "P") { ps.push(n.textContent); n.remove(); }
       else if (n.tagName === "DETAILS" && n.classList.contains("fa-more")) { for (const p of n.querySelectorAll("p")) ps.push(p.textContent); n.remove(); }
     }
-    const parts = plan(ps, lang, { leads });
+    const parts = plan(ps, lang, { flags: sectionFlags(res, id, ps) }); // review round 2 (F1): the composer's marks only
     const isAdvice = id === "advice";
     let body = null; const ids = [];
     for (const [i, x] of parts.entries()) {
@@ -333,8 +347,8 @@
     if (res && res.crisis) return container;
     for (const d of [...container.querySelectorAll("details.fa-more-sections")]) { for (const s of [...d.querySelectorAll(":scope > .fa-section")]) d.parentNode.insertBefore(s, d); d.remove(); }
     const groups = [...container.querySelectorAll(".fa-section")].filter(g => !never(g));
-    const leads = leadsFor(lang), titles = STD_TITLES();
-    for (const g of groups) group(g, lang, leads, titles);
+    const titles = STD_TITLES();
+    for (const g of groups) group(g, lang, res, titles);
     for (const li of container.querySelectorAll(".fa-plan li")) { if (li.querySelector(".lq-advice")) continue; const box = adviceBox(doc, li.textContent, lang); if (box) li.appendChild(box); }
     const old = container.querySelector(":scope > nav.lq-toc[data-lq-toc]"); if (old) old.remove(); // only a menu this file made
     if (groups.length >= 4 && !(opts && opts.toc === false)) toc(container, groups, lang, groups[0]);
@@ -383,7 +397,7 @@
     root.addEventListener("lq-lang", run);
   }
 
-  const api = { LINE, MORE, LESS, TOC, BELIEF, HEADINGS, SEP, MAXLEN, NOTE_MAX, NEVER_COLLAPSE, ICONS, COLOURS,
-    split, plan, noticeSplit, colours, adviceKinds, enhance, noticeify, notices, ensureStyle };
+  const api = { FA_CSS, LINE, MORE, LESS, TOC, BELIEF, HEADINGS, SEP, MAXLEN, NOTE_MAX, NEVER_COLLAPSE, ICONS, COLOURS,
+    split, plan, planSection, sectionFlags, noticeSplit, colours, adviceKinds, enhance, noticeify, notices, ensureStyle };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQRead = api;
 })(typeof window !== "undefined" ? window : globalThis);

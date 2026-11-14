@@ -464,7 +464,7 @@
     return "neutral";
   }
   var lpRoot = function (n) { return n > 9 ? reduceNum(n, false) : n; };
-  /** p1/p2: ผลจาก analyze() — คืนคะแนนเชิงบันเทิง 55–98 พร้อมเหตุผล */
+  /** p1/p2: ผลจาก analyze() — คืนคะแนนตามตำรา (ความเชื่อ) 55–98 พร้อมเหตุผล */
   function compatibility(p1, p2) {
     var score = 62, why = [];
     var br = branchRel(p1.zodiac.chinese.animal, p2.zodiac.chinese.animal);
@@ -1132,7 +1132,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     };
     var R = 54, L = 2 * Math.PI * R;
     $("#hsCompat").innerHTML = '<section class="hs-block compat"><div class="ring"><svg viewBox="0 0 140 140" role="img" aria-label="' + esc(T("horoscope.x.compatAria", "ความเข้ากัน {s}%", { s: C.score })) + '"><circle cx="70" cy="70" r="' + R + '" fill="none" stroke="#eceffa" stroke-width="14"/><circle cx="70" cy="70" r="' + R + '" fill="none" stroke="#674ff2" stroke-width="14" stroke-linecap="round" stroke-dasharray="' + (L * C.score / 100).toFixed(1) + " " + L.toFixed(1) + '" transform="rotate(-90 70 70)"/><text x="70" y="76" text-anchor="middle" font-size="30" font-weight="700" fill="#0e1430">' + C.score + '%</text></svg></div>' +
-      "<div><h3>" + esc(lv[1]) + "</h3><p>" + esc(T("horoscope.x.compatWho", "คุณกับ{who} ({day} · {date}) — {desc}", { who: who, day: DAYS[P2.thaiDay.planet].name, date: thDate(P2.input.y, P2.input.m, P2.input.d), desc: lv[2] })) + '</p><ul class="why">' + C.why.map(line).join("") + '</ul><p class="hs-small">' + esc(T("horoscope.x.compatNote", "คะแนนเชิงบันเทิง (55–98%) รวมจากหลายศาสตร์ ความสัมพันธ์ที่ดีมาจากความเข้าใจและการใส่ใจกัน ไม่ใช่ตัวเลข")) + "</p></div></section>";
+      "<div><h3>" + esc(lv[1]) + "</h3><p>" + esc(T("horoscope.x.compatWho", "คุณกับ{who} ({day} · {date}) — {desc}", { who: who, day: DAYS[P2.thaiDay.planet].name, date: thDate(P2.input.y, P2.input.m, P2.input.d), desc: lv[2] })) + '</p><ul class="why">' + C.why.map(line).join("") + '</ul><p class="hs-small">' + esc(T("horoscope.x.compatNote", "คะแนนตามตำรา (ความเชื่อ) (55–98%) รวมจากหลายศาสตร์ ความสัมพันธ์ที่ดีมาจากความเข้าใจและการใส่ใจกัน ไม่ใช่ตัวเลข")) + "</p></div></section>";
   }
 
   /* ---------- แสดงผล ---------- */

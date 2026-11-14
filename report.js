@@ -72,7 +72,11 @@
   /** age in full years on date (y, m, d) @param {any} b @param {number} y @param {number} m @param {number} d */
   function ageOn(b, y, m, d) { var a = y - b.y; if (m < b.m || (m === b.m && d < b.d)) a--; return Math.max(0, a); }
   /** composed reading -> plain sections [{id, title, paragraphs}] (collapsed sections included, "main" ignored) @param {any} r */
-  function plainSections(r) { return (r && r.sections || []).map(function (/** @type {any} */ s) { return { id: s.id, title: s.title || "", paragraphs: (s.paragraphs || []).slice() }; }); }
+  function plainSections(r) {
+    return (r && r.sections || []).map(function (/** @type {any} */ s) {
+      return { id: s.id, title: s.title || "", paragraphs: (s.paragraphs || []).slice(), caution: Array.isArray(s.caution) ? s.caution.slice() : undefined };
+    });
+  }
   /** @param {any} b */
   var withDefaults = function (b) { return Object.assign({ h: 12, mi: 0, tz: 7, noTime: false, gender: "female" }, b, { h: b.noTime ? 12 : b.h == null ? 12 : b.h, mi: b.noTime ? 0 : b.mi || 0 }); };
 
@@ -480,7 +484,8 @@
     var RD = W.LQRead;
     if (RD) {
       try {
-        RD.enhance(out, { lang: rep.lang }, { toc: false });
+        // the composer's caution marks of every part (a section without marks is never folded)
+        RD.enhance(out, { lang: rep.lang, sections: rep.parts.reduce(function (/** @type {any[]} */ a, /** @type {any} */ p) { return a.concat(p.sections || []); }, []) }, { toc: false });
         out.querySelectorAll(".rp-reminder").forEach(function (/** @type {any} */ e) { RD.noticeify(e, rep.lang); });
         RD.notices(out);
       } catch (e) { /* keep the plain report */ }
