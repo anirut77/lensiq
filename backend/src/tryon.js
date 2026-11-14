@@ -18,6 +18,9 @@
 // garment cut-outs made on the merchant's device after the Product Check face blur; the editor confirms "no visible face
 // remains" (face_check) — the Worker refuses an upload without it. Customer photos are never sent here (tryon.html has no
 // upload path at all).
+// Switch (owner decision 2026-11-14: Try-On gets no R2 and no server deploy): OFF unless the Worker var TRYON = "on"
+// (trimmed, any case; tryonEnabled). Off: every path under /v1/tryon and /admin/api/tryon answers 404 tryon_off in
+// index.js before Origin, session, D1 or R2; /v1/config and /admin/api/me report tryon: false (admin.js hides the tab).
 import { randomId, sha256Hex, fromB64 } from "./crypto.js";
 import { assetStore, storeFor } from "./tryon-store.js";
 import { HttpError, now } from "./util.js";
@@ -36,6 +39,14 @@ export const MAX_PX = 2048;
 const ID_RE = /^[a-f0-9]{12}$/;
 const FIELDS = ["category", "name_th", "name_en", "name_zh", "price", "sale_price", "vat_included", "sizes", "colours", "product_url", "notes", "status"];
 const SHOP = "demo";
+
+/** @param {any} env */
+export const tryonEnabled = env => String((env && env.TRYON) || "").trim().toLowerCase() === "on";
+export const TRYON_OFF_BODY = Object.freeze({ error: "try-on is not enabled on this server (tryon_off)", code: "tryon_off" });
+/** public paths of this module (any method): /v1/tryon and everything under it @param {string} p */
+export const isTryonPublicPath = p => p === "/v1/tryon" || p.startsWith("/v1/tryon/");
+/** back-office routes (after /admin/api): /tryon and everything under it @param {string} route */
+export const isTryonAdminRoute = route => route === "/tryon" || route.startsWith("/tryon/");
 
 const ITEM = "\\/tryon\\/items\\/[a-f0-9]{12}";
 const EDITOR_ROUTES = [["GET", /^\/me$/], ["POST", /^\/logout$/], ["GET", /^\/tryon\/items$/], ["POST", /^\/tryon\/items$/], ["PUT", new RegExp("^" + ITEM + "$")],
