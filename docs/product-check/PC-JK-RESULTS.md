@@ -54,7 +54,8 @@ from Chinese by script; HK forms 説 / 証 and 円 make some Chinese texts count
 | Product labels: false removal / gate refused | 9 / 0 of 110 | 10 / 0 | 10 / 0 | 0 added (1 added) |
 | Product labels losing one-tap / photo (policy) | 39 / 9 | 87 / 75 | 87 / 75 | by design (all JA / KO labels) |
 
-Hold-out 3 (now dev, used for the rules): explicit-text leaks 55 → 15. Fixed texts (1,773, P7 / P7b / fixed sets) vs main: 6
+Hold-out 3 (now dev, used for the rules): explicit-text leaks 55 → 14. After the CI fix `8d7b6fc` (the room / class rule no
+longer takes a named group such as "초코반", a locked F2 test) hold-out 4 gives the same numbers as `87bef2f` (re-run, logged). Fixed texts (1,773, P7 / P7b / fixed sets) vs main: 6
 changed, all added removals on personal documents, **0 gate decisions changed, 0 detections lost**; P7 / P7b stay 0/260, 0/614.
 Scorers: `tools/pc-guard-jako-score.mjs` (locked pc-f) and `tools/pc-jako-policy-score.mjs` (locked pc-jk before its first run).
 
