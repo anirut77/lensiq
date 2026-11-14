@@ -36,15 +36,11 @@
 .iq .card:hover{transform:none}
 .card-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-bottom:10px}
 
-.btn-p,.btn-s{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border-radius:99px;padding:8px 18px;font-size:.88rem;border:1.5px solid var(--navy);font-weight:500;cursor:pointer;text-align:center}
-.btn-p{background:var(--navy);color:#fff}
-.btn-p:hover{background:var(--navy2)}
-.btn-s{background:transparent;color:var(--navy)}
-.btn-s:hover{background:var(--alt)}
-.btn-s.danger{border-color:#c0392b;color:#a12b20}
-.btn-s.file{position:relative}
-.btn-s.file input{position:absolute;width:1px;height:1px;opacity:0}
-.btn-s.file:focus-within{outline:2px solid var(--aqua);outline-offset:2px}
+.iq .btn{padding:8px 18px;font-size:.88rem;text-align:center}
+.btn.ghost.danger{border-color:#c0392b;color:#a12b20}
+.btn.file{position:relative}
+.btn.file input{position:absolute;width:1px;height:1px;opacity:0}
+.btn.file:focus-within{outline:2px solid var(--aqua);outline-offset:2px}
 
 /* empty state */
 .iq-empty h2{font-size:1.2rem;margin-bottom:6px}
@@ -358,7 +354,7 @@
 .ins-sure b{color:var(--iq-ink);font-weight:600}
 /* ---------- จอสัมผัส / มือถือ: เป้ากดอย่างน้อย 44px ---------- */
 @media (max-width:760px),(pointer:coarse){
-  .iq button,.iq select,.iq summary,.iq .btn-p,.iq .btn-s,.iq input[type=date],.iq input[type=number],.range button,.kx summary{min-height:44px}
+  .iq button,.iq select,.iq summary,.iq .btn,.iq input[type=date],.iq input[type=number],.range button,.kx summary{min-height:44px}
   .iq summary{display:flex;align-items:center}
   .iq .ins-more,.iq .open,.iq .src,.iq .mods-list a,.iq .ins-stat a,.iq a.kpi-main + *{display:inline-flex;align-items:center;min-height:44px}
   .iq .mods-list a{min-width:44px}

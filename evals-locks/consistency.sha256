@@ -10,3 +10,6 @@ f646c4507e5291cde4bfc141b8179127422ae71b085d1fc35c38526adea24396  tests/e2e/cons
 0cf294e83eadd0e7ffbd1ae7e47b6b62e33d3433ae077b67c8a0ad64dc6f3e3c  tests/e2e/consistency-6.e2e.mjs
 94d0b071202b32b4fe9055cdba6482e3b6955ff0c20a3551545b854c598c872f  tests/e2e/consistency-exceptions.json
 7d1b8575f2bf71594982e4552152d4c72dd6c85143d40ebad0232f337f413f72  tests/e2e/consistency-buttons-max.json
+# re-lock 2026-11-14T13:29:46Z after the product fixes: tests/e2e/consistency-buttons-max.json TIGHTENED only (ratchet lowered to the measured counts: attendance 36->12, checkout 33->9, customers 87->63, insights 60->36, photobooth 96->78; creative, interview, medicine, neuro, parking, signage, village -> 0). No other value, rule, page or exception changed.
+# locked 2026-11-14T13:29:46Z (tools/eval-guard.mjs lock, 1 file)
+7db7a84707b18c6e12b78981afb311cfb985756f27dacda549d666f8bcfcc750  tests/e2e/consistency-buttons-max.json
