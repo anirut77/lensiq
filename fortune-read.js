@@ -33,7 +33,7 @@
   const SEP = { th: " ", en: " ", zh: "" };
   const MAXLEN = { th: 220, en: 320, zh: 110 };
   const NOTE_MAX = { th: 140, en: 200, zh: 60 };
-  const NEVER_COLLAPSE = [".lq-helpline", ".fa-support", ".lq-support", "[data-lq-crisis-card]"];
+  const NEVER_COLLAPSE = [".lq-helpline", ".lq-call", ".fa-support", ".lq-support", "[data-lq-crisis-card]"];
   const langOf = l => (l === "en" || l === "zh" ? l : "th");
 
   /* ---------- A2: cut a paragraph into short parts (rejoined with SEP[lang] = the paragraph, word for word) ---------- */
