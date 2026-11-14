@@ -124,8 +124,10 @@ const needActive = ms => { if (ms.org.status !== "active") throw new HttpError(4
 
 export async function myOrgs(env, mem) {
   const rows = (await env.DB.prepare("SELECT o.id, o.name, o.status, m.role, m.is_owner FROM org_members m JOIN orgs o ON o.id = m.org_id " +
-    "WHERE m.user_id = ?1 AND m.status = 'active' AND o.status != 'closed' ORDER BY o.name").bind(mem.user.id).all()).results || [];
-  return { orgs: rows.map(r => ({ id: r.id, name: r.name, status: r.status, role: r.role, is_owner: r.is_owner === 1 })) };
+    "WHERE m.user_id = ?1 AND m.status = 'active' AND (o.status != 'closed' OR m.role = 'admin') ORDER BY o.name").bind(mem.user.id).all()).results || [];
+  // org-p1b (review L1): a closed organisation stays listed for its admins as export-only (export is always available);
+  // every other route of it answers 404
+  return { orgs: rows.map(r => ({ id: r.id, name: r.name, status: r.status, role: r.role, is_owner: r.is_owner === 1, export_only: r.status === "closed" })) };
 }
 
 async function membersOf(db, orgId) {
@@ -328,7 +330,8 @@ export async function exportOrg(env, mem, orgId, body, deps = {}) {
   }
   await requireFreshMember(env, mem, body, deps);
   const t = now();
-  const rl = await hit(env.DB, `orgexp:${orgId}`, EXPORT_PER_HOUR, 3600, t);
+  // org-p1b (review L4): per organisation AND per person, so one admin at the cap never locks the other admins out
+  const rl = await hit(env.DB, `orgexp:${orgId}:${mem.user.id}`, EXPORT_PER_HOUR, 3600, t);
   if (!rl.ok) throw new HttpError(429, "too many exports this hour — try again later", { retryAfter: rl.retryAfter });
   const db = env.DB, o = ms.org;
   const members = (await membersOf(db, orgId)).map(m => ({ display_name: m.display_name, email: m.email, role: m.role, is_owner: m.is_owner, status: m.status, joined_at: m.created_at }));

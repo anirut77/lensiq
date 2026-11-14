@@ -520,12 +520,16 @@ ships `"off"` in `[vars]` and `[env.test.vars]`) AND the page sets `window.LENSI
 and the back-office `/admin/api/orgs*` and `/admin/api/licence-plans` answer 404 `org_accounts_off` before Origin, session
 or D1; `/v1/config` and `/admin/api/me` report `org_accounts`. Pages: `LQMember.orgOn()` needs both; off = no organisation
 request, the account section and invitation card stay hidden (the invitation token is not kept), the admin tab is
-hidden. Export: `GET|POST /api/orgs/:id/export` (admin, fresh confirmation, 30 per organisation per hour) returns
+hidden. Export: `GET|POST /api/orgs/:id/export` (admin, fresh confirmation, 30 per person per organisation per hour) returns
 `lensiq-org-export` v1 (`Content-Disposition: attachment; filename="lensiq-org-<id>.json"`): org, billing, members
 (display name, e-mail, role, owner, status, joined_at), open invitations (no link / hash / HMAC), licences (no reference,
 amount or note), the full audit chain (verifiable offline: `hash = SHA-256(prev_hash + "|" + JSON([org_id, ts,
 actor_kind, actor_ref, action, ref, detail]))`, genesis 64 zeros) and a TH / EN / ZH readme. Always available, also for a
-suspended or closed organisation and any licence state; logged as `org.exported`.
+suspended or closed organisation and any licence state (`GET /api/me/orgs` keeps a closed organisation listed for its
+admins with `export_only: true`; its other routes answer 404); logged as `org.exported`. While `ORG_ACCOUNTS` is off the
+export is unreachable as well (pending an owner decision on keeping it reachable when the switch is off). The pages trust
+`org_accounts` only from the `/v1/config` fetched live on that page load (a failed fetch clears the cached value), and an
+`#org_invite` fragment is always removed from the address bar (kept only when the client switch is on).
 
 **Licences (back-office orders, bank transfer only).** `licence_plans` seeds only Gate (`gate_trial`, `gate_lane`),
 Attendance (`attendance_person`), Exam lab (`exam_lab_candidate`, `exam_lab_room`) and Crowd report (`crowd_report`),

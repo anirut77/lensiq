@@ -196,7 +196,8 @@
   function possible() { return googleOn() || lineOn(); }
   /** org-p1: organisation accounts need BOTH switches: window.LENSIQ_ORG_ACCOUNTS === true and the Worker's
    *  /v1/config org_accounts === true (ORG_ACCOUNTS = "on"). Off: no organisation request is ever sent. */
-  function orgOn() { return W.LENSIQ_ORG_ACCOUNTS === true && !!(st.cfg && st.cfg.org_accounts === true); }
+  //  org-p1b (review I5): only a /v1/config fetched live on THIS page load counts (st.orgLive), never the cached copy
+  function orgOn() { return W.LENSIQ_ORG_ACCOUNTS === true && st.orgLive === true; }
   /** @param {() => Promise<any>} fn */
   function ifOrg(fn) { return orgOn() ? fn() : Promise.resolve({ ok: false, status: 404, j: { code: "org_accounts_off" } }); }
   /** sign-in label for the header / buttons: names the provider(s) that are actually on */
@@ -249,6 +250,8 @@
       try { root.dispatchEvent(new CustomEvent("lq-member-ready")); } catch (e) { /* ignore */ }
     };
     Promise.resolve(a.config()).then(function (/** @type {any} */ cfg) {
+      st.orgLive = !!(cfg && cfg.org_accounts === true);
+      if (!cfg && st.cfg && st.cfg.org_accounts) { st.cfg = Object.assign({}, st.cfg, { org_accounts: false }); ss.set(CFG_KEY, st.cfg); } // live fetch failed: forget it
       if (cfg) { st.cfg = cfg; ss.set(CFG_KEY, { membership: cfg.membership || null, pricing_enabled: !!cfg.pricing_enabled, billing_enabled: !!cfg.billing_enabled, free_mode: cfg.free_mode, org_accounts: cfg.org_accounts === true }); }
       return lineReturn();
     }).then(function () {

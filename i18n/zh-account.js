@@ -239,6 +239,7 @@
   "acct.org.bBad": "信息无效：纳税人识别号必须是 13 位，电子邮件必须有效",
   "acct.org.billingH": "报价单和收据信息",
   "acct.org.billingNote": "用于报价单、发票以及银行转账后的收据。没有在线付款",
+  "acct.org.closedExp": "已关闭（仅可导出数据）",
   "acct.org.exportH": "导出机构数据",
   "acct.org.export": "导出机构数据（JSON 文件）",
   "acct.org.exportText": "导出始终可用，即使机构账户被暂停或许可证已过期。导出前需再次确认身份。文件中不含员工、车牌、考生或任何图像",

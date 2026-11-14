@@ -13,8 +13,6 @@
 
 .iv .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
 .iv .tabs::-webkit-scrollbar{display:none}
-.iv .tab{background:none;border:0;padding:10px 14px;min-height:44px;white-space:nowrap;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;font:inherit}
-.iv .tab.active{color:var(--navy);border-color:var(--gold);font-weight:500}
 
 .iv .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);margin-bottom:18px;min-width:0}
 .iv .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-bottom:18px;align-items:start}
