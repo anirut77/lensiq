@@ -8,3 +8,10 @@ d1ff3e71a076259dc22f269f2cc71889150d123adb0ad5be7bb4231281ed6197  tests/unit/bac
 # the product output was not changed to fit. Earlier hash d1ff3e71... superseded.
 6ec6e53008f5d7372f6f4d7a83d83028f1bc92689e790f0c241a71496292f16f  backend-merit-places.test.js
 6ec6e53008f5d7372f6f4d7a83d83028f1bc92689e790f0c241a71496292f16f  tests/unit/backend-merit-places.test.js  # repo file
+# locked 2026-11-14T16:44:59Z (tools/eval-guard.mjs lock, 1 file)
+ab2d8bd9ce5cc9ecd03f9eec806986b795daad56ca126ed30e49b557593b6f86  backend-merit-batches.test.js
+# Amendment 2026-11-14 (owner review of the 35 place drafts + independent review of 12297d4; STRICTER ONLY), locked BEFORE the
+# product change: new tests/unit/backend-merit-batches.test.js MB1-MB7 (batch ids, refuse a batch already imported,
+# official_unopened + reviewer raise to official with history, word-of-mouth marker re-checked on every edit).
+# backend-merit-places.test.js is unchanged (its hash above still holds); official_unopened is covered by MB3 / MB4 / MB6.
+ab2d8bd9ce5cc9ecd03f9eec806986b795daad56ca126ed30e49b557593b6f86  tests/unit/backend-merit-batches.test.js  # repo file
