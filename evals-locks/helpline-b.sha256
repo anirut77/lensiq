@@ -1,0 +1,4 @@
+# evals-locks/helpline-b.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/helpline-b/ (owner rule 2026-11-13, locked sets persist). Append-only.
+# helpline-b (owner order 2026-11-14 Part B: tap-to-call help lines, warm 1323 wording, verified hours, re-check cron) — locked 2026-11-14T15:55:22Z BEFORE any product code on branch helpline-b (base ea509e0). Before the build the new unit file fails (no lensiq-helpline.js).
+a927e6d8e5f2edf3c5e90d61f233913736325abbd82c8dbc6b0d717054918046  tests/unit/helpline-call.test.js  # repo file
+e5ea01dc3375b404ffa83cb854181fc51a663137fce2d2471522adfee75727eb  tests/e2e/helpline-call.e2e.mjs  # repo file

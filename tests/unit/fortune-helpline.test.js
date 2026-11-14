@@ -12,6 +12,10 @@
 //    affected. A normal reading carries the help line under it.
 // 5) Blocks that show lucky items, recommendations, lead forms or share cards on pages where the net can trigger are
 //    marked data-lq-remedy, and styles.css hides them while <html data-lq-crisis> is set.
+// AMENDED 2026-11-14 (owner order Part B, re-locked before the build on branch helpline-b): the line is now the shared
+//    tap-to-call component (lensiq-helpline.js) with the owner's warm 1323 wording ("อยากมีคนรับฟัง โทร 1323" /
+//    "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง" / "บริการของกรมสุขภาพจิต"); the expected wording and i18n keys follow it.
+//    Every other assertion (placement, no-JS, tel links and their order, EN / ZH without Thai, verified claims) is unchanged.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
@@ -22,7 +26,7 @@ const read = f => readFileSync(join(ROOT, f), "utf8");
 const PAGES = ["fortune", "cat-fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui",
   "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report"];
 const THAI = /[\u0E00-\u0E7F]/;
-const KEYS = ["help.line.label", "help.line.lead", "help.line.free", "help.line.emerg", "help.line.note"];
+const KEYS = ["help.line.label", "call.1323.btn", "call.1323.sub", "call.1323.org", "call.1669.btn", "help.line.note"];
 
 /** the outer HTML of the element with this id (balanced on its own tag name) */
 function block(html, id) {
@@ -83,7 +87,8 @@ test("every fortune page has the help line in the HTML: top (before <main>) and 
       const tels = [...b.html.matchAll(/href="tel:([^"]+)"/g)].map(m => m[1]);
       assert.deepEqual(tels, ["1323", "1669"], p + " #" + id + " tel links");
       const t = text(b.html);
-      for (const w of ["ถ้ากำลังรู้สึกไม่ไหว", "สายด่วนสุขภาพจิต", "1323", "ฟรี ตลอด 24 ชั่วโมง", "เจ็บป่วยฉุกเฉิน", "1669"]) assert.ok(t.includes(w), p + " #" + id + " has '" + w + "': " + t);
+      for (const w of ["อยากมีคนรับฟัง โทร 1323", "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง", "บริการของกรมสุขภาพจิต", "เจ็บป่วยฉุกเฉิน โทร 1669",
+        "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น"]) assert.ok(t.includes(w), p + " #" + id + " has '" + w + "': " + t);
       for (const k of KEYS.slice(1)) assert.ok(b.html.includes('data-i18n="' + k + '"'), p + " #" + id + " key " + k);
     }
   }
@@ -95,18 +100,22 @@ test("EN / ZH wording: complete, no Thai, verified claims only; the ZH line says
     assert.ok(en[k], "en " + k); assert.ok(zh[k], "zh " + k);
     assert.doesNotMatch(en[k], THAI, "en " + k + " has Thai"); assert.doesNotMatch(zh[k], THAI, "zh " + k + " has Thai");
   }
-  assert.match(en["help.line.lead"], /mental health hotline/i); assert.match(en["help.line.free"], /free, 24 hours/);
-  assert.match(en["help.line.emerg"], /medical emergency/i); assert.match(en["help.line.note"], /local emergency number/);
-  assert.match(zh["help.line.lead"], /心理健康热线/); assert.match(zh["help.line.free"], /免费，24 小时/);
-  assert.match(zh["help.line.emerg"], /医疗急救/); assert.match(zh["help.line.note"], /没有经核实的泰国中文热线/); assert.match(zh["help.line.note"], /当地紧急电话/);
+  assert.match(en["call.1323.btn"], /someone to listen[\s\S]*1323/i); assert.match(en["call.1323.sub"], /24 hours/);
+  assert.match(en["call.1323.org"], /Department of Mental Health/); assert.match(en["call.1669.btn"], /medical emergency[\s\S]*1669/i);
+  assert.match(en["help.line.note"], /local emergency number/);
+  assert.match(zh["call.1323.btn"], /倾听[\s\S]*1323/); assert.match(zh["call.1323.sub"], /24 小时/); assert.match(zh["call.1323.org"], /心理健康司/);
+  assert.match(zh["call.1669.btn"], /医疗急救[\s\S]*1669/); assert.match(zh["help.line.note"], /没有经核实的泰国中文热线/); assert.match(zh["help.line.note"], /当地紧急电话/);
   // canonical table in fortune-crisis.js
   delete require.cache[require.resolve(join(ROOT, "fortune-crisis.js"))];
   const CR = require(join(ROOT, "fortune-crisis.js"));
   assert.ok(CR.HELP && CR.HELP.th && CR.HELP.en && CR.HELP.zh, "LQFortuneCrisis.HELP");
-  const short = { "help.line.label": "label", "help.line.lead": "lead", "help.line.free": "free", "help.line.emerg": "emerg", "help.line.note": "note" };
-  for (const k of KEYS) { assert.equal(CR.HELP.en[short[k]], en[k], "HELP.en = en-common " + k); assert.equal(CR.HELP.zh[short[k]], zh[k], "HELP.zh = zh-common " + k); }
+  // the line's own text (label, note) is HELP; the call buttons' text is the shared component's (lensiq-helpline.js)
+  const LQH = require(join(ROOT, "lensiq-helpline.js"));
+  const own = { "help.line.label": "label", "help.line.note": "note" };
+  const val = (lang, k) => own[k] ? CR.HELP[lang][own[k]] : LQH.LINES[k.split(".")[1]][lang][k.split(".")[2]];
+  for (const k of KEYS) { assert.equal(val("en", k), en[k], "HELP.en = en-common " + k); assert.equal(val("zh", k), zh[k], "HELP.zh = zh-common " + k); }
   const topTh = text(block(read("dream.html"), "lqHelpTop").html);
-  for (const f of ["lead", "free", "emerg", "note"]) assert.ok(topTh.includes(CR.HELP.th[f]), "static Thai = HELP.th." + f);
+  for (const k of KEYS.slice(1)) assert.ok(topTh.includes(val("th", k)), "static Thai = " + k);
   assert.deepEqual(CR.HELP.tel, ["1323", "1669"]);
 });
 
