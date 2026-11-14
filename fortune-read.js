@@ -236,7 +236,7 @@
   const never = el => !!(el && el.closest && el.closest(NEVER_COLLAPSE.join(",")));
   function moreButton(doc, lang, ids, onToggle) {
     const b = doc.createElement("button");
-    b.type = "button"; b.className = "lq-more"; b.textContent = MORE[lang];
+    b.type = "button"; b.className = "chip lq-more"; b.textContent = MORE[lang]; // "chip" = the shared button class
     b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-controls", ids.join(" ")); b.setAttribute("data-lq-lang", lang);
     const toggle = () => {
       const open = b.getAttribute("aria-expanded") !== "true", L = b.getAttribute("data-lq-lang") || lang;
