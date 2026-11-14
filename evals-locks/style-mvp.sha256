@@ -21,3 +21,10 @@ df2d80c4fff620ded001d96c14a0d01d147a2ee7423d663321453a12b7e31236  tests/style.e2
 # Copy: tests/style.e2e.v2.mjs (the first copy tests/style.e2e.mjs is kept unchanged). Hash df2d80c4… superseded.
 # locked 2026-11-14T12:58:27Z (tools/eval-guard.mjs lock, 1 file)
 818608117ff6578a820b4d87113af0cb2163e504c51db5ab59f03ffad99407bc  tests/style.e2e.v2.mjs
+#
+# Re-lock 2026-11-14 (CI run 43597416767 on 70563be): tests/e2e/style.e2e.mjs — SERIALISATION ONLY: the 'undertone marker'
+# check returned element.dataset (a DOMStringMap), which CDP returnByValue serialises as {} (checked in headless Chrome), so
+# it could never pass. It now returns Object.assign({}, dataset); same assertion (marker band === result band).
+# Copy: tests/style.e2e.v3.mjs. Hash 81860811… superseded.
+# locked 2026-11-14T13:32:20Z (tools/eval-guard.mjs lock, 1 file)
+169b900490dcee5826897a5a7b4a7515466afd4da77d9dc805a1500b5ae0ae5e  tests/style.e2e.v3.mjs

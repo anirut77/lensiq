@@ -119,7 +119,7 @@ export default async function ({ base, launch, check }) {
       const ui = await page.evaluate(() => ({
         seasons: [...document.querySelectorAll("#stySeasons [data-season]")].map(e => e.dataset.season),
         swatches: document.querySelectorAll("#styPalette [data-hex]").length,
-        band: (document.querySelector("#styUndertone [data-band]") || {}).dataset,
+        band: Object.assign({}, (document.querySelector("#styUndertone [data-band]") || {}).dataset),
         conf: document.getElementById("styConf").textContent.trim(),
         disc: document.getElementById("styDisclaimer").textContent,
         away: document.getElementById("styResult").textContent,
