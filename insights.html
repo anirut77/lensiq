@@ -18,8 +18,8 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="iq.title">แดชบอร์ดรวม | LENSIQ</title>
-<link rel="stylesheet" href="styles.css?v=12">
-<link rel="stylesheet" href="insights.css?v=5">
+<link rel="stylesheet" href="styles.css?v=13">
+<link rel="stylesheet" href="insights.css?v=6">
 </head>
 <body>
 <header class="nav" id="siteNav"></header><script src="nav.js?v=16"></script>
@@ -48,7 +48,7 @@
 
   <div class="banner" id="demoBanner" hidden>
     <span data-i18n="iq.banner">กำลังแสดงข้อมูลตัวอย่างปนอยู่ (รายการที่มีป้าย “(ตัวอย่าง)”)</span>
-    <button type="button" class="btn-s" id="removeDemoBanner" data-i18n="iq.s.13">ลบข้อมูลตัวอย่าง</button>
+    <button type="button" class="btn ghost" id="removeDemoBanner" data-i18n="iq.s.13">ลบข้อมูลตัวอย่าง</button>
   </div>
 
   <section class="card iq-empty" id="empty" hidden>
@@ -58,7 +58,7 @@
       <li data-i18n="iq.s.16">เปิดระบบใดระบบหนึ่งด้านล่าง ใช้งานกล้องสักครู่ แล้วกลับมาที่หน้านี้</li>
       <li><span data-i18n="iq.s.75">หรือกด</span> <b data-i18n="iq.s.17">สร้างข้อมูลตัวอย่าง</b> <span data-i18n="iq.s.76">เพื่อดูหน้าตาแดชบอร์ด (ลบออกได้ภายหลัง ไม่ทับข้อมูลจริง)</span></li>
     </ol>
-    <button type="button" class="btn-p" id="seedDemoEmpty" data-i18n="iq.s.18">สร้างข้อมูลตัวอย่าง</button>
+    <button type="button" class="btn primary" id="seedDemoEmpty" data-i18n="iq.s.18">สร้างข้อมูลตัวอย่าง</button>
     <ul class="mods-list" id="emptyList"></ul>
   </section>
 
@@ -68,7 +68,7 @@
     <section class="card summary" id="summary" aria-labelledby="sumTitle">
       <div class="card-h"><h2 id="sumTitle" data-i18n="iq.s.19">สรุปผลอัตโนมัติ</h2><span class="muted" id="insightSub"></span></div>
       <div class="ins-grid" id="insightCards"></div>
-      <button type="button" class="btn-s more" id="insightMore" aria-expanded="false" aria-controls="insightCards" hidden></button>
+      <button type="button" class="btn ghost more" id="insightMore" aria-expanded="false" aria-controls="insightCards" hidden></button>
       <p class="note" data-i18n="iq.s.20">ทุกข้อความสร้างจากตัวเลขในเบราว์เซอร์นี้ ไม่ใช้โมเดลภาษา และไม่ส่งข้อมูลออกนอกเครื่อง · “ความมั่นใจ” มาจากการทดสอบทางสถิติ ข้อมูลน้อยจะบอกตรง ๆ ว่ายังสรุปไม่ได้</p>
       <details class="method" id="methodHelp">
         <summary data-i18n="iq.s.21">วิธีคำนวณ</summary>
@@ -177,7 +177,7 @@
         <div id="goalBody"></div>
         <details class="setup">
           <summary data-i18n="iq.s.54">ตั้งเป้า</summary>
-          <form id="goalForm" class="rules"><div class="fields"></div><button type="submit" class="btn-p" data-i18n="iq.s.55">บันทึกเป้า</button></form>
+          <form id="goalForm" class="rules"><div class="fields"></div><button type="submit" class="btn primary" data-i18n="iq.s.55">บันทึกเป้า</button></form>
         </details>
         <p class="iq-msg" id="goalMsg" role="status" aria-live="polite"></p>
         <p class="note" id="goalNote"></p>
@@ -186,7 +186,7 @@
       <section class="card" id="alertCard" aria-labelledby="alertTitle">
         <div class="card-h"><h2 id="alertTitle" data-i18n="iq.s.56">กฎแจ้งเตือน</h2><span class="muted" data-i18n="iq.s.57">ตรวจเมื่อเปิดหน้านี้</span></div>
         <form id="alertForm" class="rules"><div class="fields"></div>
-          <div class="actions"><button type="submit" class="btn-p" data-i18n="iq.s.58">บันทึกกฎ</button><button type="button" class="btn-s" id="notifyPerm" hidden data-i18n="iq.s.59">อนุญาตแจ้งเตือนเบราว์เซอร์</button></div>
+          <div class="actions"><button type="submit" class="btn primary" data-i18n="iq.s.58">บันทึกกฎ</button><button type="button" class="btn ghost" id="notifyPerm" hidden data-i18n="iq.s.59">อนุญาตแจ้งเตือนเบราว์เซอร์</button></div>
         </form>
         <p class="iq-msg" id="alertMsg" role="status" aria-live="polite"></p>
         <p class="note" id="alertNote"></p>
@@ -201,12 +201,12 @@
     <h2 id="reportTitle" data-i18n="iq.s.61">รายงานและส่งออก</h2>
     <p class="muted" data-i18n="iq.s.62">รายงานสรุปพร้อมพิมพ์หรือบันทึกเป็น PDF จากหน้าต่างพิมพ์ของเบราว์เซอร์</p>
     <div class="actions">
-      <button type="button" class="btn-p" id="reportDay" data-i18n="iq.s.63">รายงานประจำวัน</button>
-      <button type="button" class="btn-p" id="reportWeek" data-i18n="iq.s.64">รายงานประจำสัปดาห์</button>
+      <button type="button" class="btn primary" id="reportDay" data-i18n="iq.s.63">รายงานประจำวัน</button>
+      <button type="button" class="btn primary" id="reportWeek" data-i18n="iq.s.64">รายงานประจำสัปดาห์</button>
     </div>
     <div class="actions">
-      <button type="button" class="btn-s" id="exportAnalysis" data-i18n="iq.s.65">ส่งออกผลวิเคราะห์ (JSON)</button>
-      <button type="button" class="btn-s" id="exportDaily" data-i18n="iq.s.66">ส่งออกรายวัน + พยากรณ์ (CSV)</button>
+      <button type="button" class="btn ghost" id="exportAnalysis" data-i18n="iq.s.65">ส่งออกผลวิเคราะห์ (JSON)</button>
+      <button type="button" class="btn ghost" id="exportDaily" data-i18n="iq.s.66">ส่งออกรายวัน + พยากรณ์ (CSV)</button>
     </div>
     <p class="iq-msg" id="reportMsg" role="status" aria-live="polite"></p>
   </section>
@@ -215,13 +215,13 @@
     <h2 id="dataTitle" data-i18n="iq.s.67">จัดการข้อมูล</h2>
     <p class="muted" id="dataInfo"></p>
     <div class="actions">
-      <button type="button" class="btn-p" id="exportJson" data-i18n="iq.s.68">สำรองข้อมูลทั้งหมด (JSON)</button>
-      <label class="btn-s file"><span data-i18n="iq.s.82">กู้คืนจากไฟล์สำรอง</span><input type="file" id="importFile" accept="application/json,.json"></label>
-      <button type="button" class="btn-s" id="exportCsv" data-i18n="iq.s.69">ส่งออกสรุป (CSV)</button>
+      <button type="button" class="btn primary" id="exportJson" data-i18n="iq.s.68">สำรองข้อมูลทั้งหมด (JSON)</button>
+      <label class="btn ghost file"><span data-i18n="iq.s.82">กู้คืนจากไฟล์สำรอง</span><input type="file" id="importFile" accept="application/json,.json"></label>
+      <button type="button" class="btn ghost" id="exportCsv" data-i18n="iq.s.69">ส่งออกสรุป (CSV)</button>
     </div>
     <div class="actions">
-      <button type="button" class="btn-s" id="seedDemo" data-i18n="iq.s.70">สร้างข้อมูลตัวอย่าง</button>
-      <button type="button" class="btn-s danger" id="removeDemo" hidden data-i18n="iq.s.71">ลบข้อมูลตัวอย่าง</button>
+      <button type="button" class="btn ghost" id="seedDemo" data-i18n="iq.s.70">สร้างข้อมูลตัวอย่าง</button>
+      <button type="button" class="btn ghost danger" id="removeDemo" hidden data-i18n="iq.s.71">ลบข้อมูลตัวอย่าง</button>
     </div>
     <p class="iq-msg" id="dataMsg" role="status" aria-live="polite"></p>
     <p class="note" data-i18n="iq.s.72">ไฟล์สำรองรวมข้อมูลทุกระบบในเบราว์เซอร์นี้ รวมถึงสินค้าและตัวอย่างที่สอนของระบบสแกนสินค้า แต่ไม่รวมรูปโฆษณาที่อัปโหลดและเทมเพลตตู้ถ่ายรูป ไฟล์อาจมีชื่อลูกค้าและข้อมูลใบหน้า (ค่าตัวเลข) โปรดเก็บอย่างปลอดภัย · ข้อมูลตัวอย่างทุกรายการมีป้าย “(ตัวอย่าง)” และไม่ทับข้อมูลจริง</p>

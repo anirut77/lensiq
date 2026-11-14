@@ -15,8 +15,6 @@
 
 .cr .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
 .cr .tabs::-webkit-scrollbar{display:none}
-.cr .tab{background:none;border:0;padding:10px 16px;min-height:44px;white-space:nowrap;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
-.cr .tab.active{color:var(--navy);border-color:var(--gold);font-weight:500}
 .cr .engine{font-size:.85rem;padding:8px 14px;border-radius:10px;background:var(--alt);color:var(--muted);margin-bottom:16px}
 .cr .engine.ok{background:var(--okbg);color:var(--ok)}.cr .engine.err{background:var(--badbg);color:var(--bad)}
 
