@@ -71,7 +71,7 @@ iPhone: ตั้ง การตั้งค่า > กล้อง > รู�
 `plate-split-v1-devbatch` จึง**ไม่ใช้สิทธิ์ล็อกชุดทดสอบหลัก** ~45 คัน → ชุดทดสอบราว 7 คัน ≈ 20 ภาพมีป้าย [คำนวณ] ต่ำกว่าเกณฑ์ 60
 `plate-det-compare` จะตอบว่า "dev batch: ไม่มีการตัดสินรับโมเดล" เสมอ เมื่อทำชุดหลัก ให้ใส่ภาพชุดแรกรวมได้ แต่ใช้
 `split --train-only ~/LENSIQ-field/plates-train-batch1/dataset/MANIFEST.json` เพื่อ**ไม่ให้ภาพชุดแรกอยู่ในชุดทดสอบของชุดหลัก**
-(เพราะเคยดูผลแล้ว)
+(เพราะเคยดูผลแล้ว) ถ้ารถคันเดียวกันถูกถ่ายซ้ำในชุดหลัก ภาพทุกภาพของป้ายนั้น (ทั้งกลุ่ม) ย้ายไปชุดฝึกด้วย ไม่มีรถคันเดียวกันทั้งในชุดฝึกและชุดทดสอบ
 
 **ชุดแรกพิสูจน์ได้:** เส้นทางทั้งหมดใช้ได้กับภาพจริง (ติดป้ายกำกับ เบลอ แบ่งชุด ส่งออก ฝึกข้ามคืน ส่งออก ONNX โหลดในเบราว์เซอร์)
 เวลาที่ใช้ติดป้ายต่อภาพ ปัญหาภาพ (HEIC เบลอ แสง) และตัวเลขชุดซ้อม (dev) ที่ติดป้าย "dev, factory batch, not a claim"
@@ -101,7 +101,7 @@ node tools/plate-train-prep.mjs init             # สร้างโฟลเ�
 # วางภาพใน ~/LENSIQ-field/plates-train/photos/ และกรอก CONSENT.md
 node tools/plate-labeller.mjs                    # เปิดเครื่องมือติดป้ายกำกับ (เฉพาะเครื่องนี้) แล้วเปิดลิงก์ใน Chrome
 node tools/plate-train-prep.mjs status           # นับว่าติดป้ายแล้ว / ตรวจแล้ว / เบลอแล้วกี่ภาพ
-node tools/plate-train-prep.mjs split            # แบ่งชุดตามกฎที่ล็อกไว้ แล้วล็อก sha256 → commit evals-locks/plate-train-split.sha256 ก่อนฝึก
+node tools/plate-train-prep.mjs split            # แบ่งชุดตามกฎที่ล็อกไว้ แล้วล็อก sha256 → commit evals-locks/plate-train.sha256 ก่อนฝึก
 node tools/plate-train-prep.mjs export           # สร้าง dataset/ จากภาพที่เบลอแล้วและ "ตรวจแล้ว" เท่านั้น
 python3 tools/plate_train.py setup               # ครั้งแรก: venv + YOLOX 0.3.0 + น้ำหนักเริ่มต้น (ดาวน์โหลดราว 1 GB)
 python3 tools/plate_train.py train --name run1   # ฝึก 150 รอบ บนเครื่องนี้ (หลายชั่วโมง เสียบไฟ เปิดข้ามคืน)
@@ -138,7 +138,7 @@ node tools/plate-det-compare.mjs --model ~/LENSIQ-field/plates-train/runs/run1/p
 - ภาพที่มีป้ายเดียวกัน (รถคันเดียวกันถ่ายต่างวัน หรือภาพที่มีสองป้ายเชื่อมกัน) อยู่**กลุ่มเดียวกัน** จึงไม่มีรถคันเดียวกันทั้งในชุดฝึกและชุดทดสอบ
 - ภาพไม่มีป้ายเป็นกลุ่มของตัวเอง
 - กลุ่ม → sha256("lensiq-plate-split:v1:" + กลุ่ม) → 8 ตัวแรก mod 100: ต่ำกว่า 70 = ฝึก, 70–84 = ตรวจระหว่างฝึก (val), 85 ขึ้นไป = ทดสอบ
-- `split` บันทึก sha256 ลง `~/LENSIQ-field/evals/plate-train/locked.sha256` และ `evals-locks/plate-train-split.sha256` ต้อง commit ไฟล์หลัง
+- `split` คัดลอกไฟล์แบ่งชุดไป `~/LENSIQ-field/evals/plate-train/` แล้วล็อกด้วย `tools/eval-guard.mjs` (บันทึก sha256 ลง `locked.sha256` ที่นั่น) และ `evals-locks/plate-train.sha256` ต้อง commit ไฟล์หลัง
   **ก่อน**ฝึกหรือวัดผล (กฎเจ้าของ 13 พ.ย. 2569) ถ้าเพิ่มภาพหรือแก้เลขทะเบียนหลังล็อก เครื่องมือจะไม่ยอม: ชุดใหม่ = รุ่นกฎใหม่ = ชุดทดสอบใหม่
 - ทดสอบ: `tests/unit/plate-train-prep.test.js`
 
@@ -204,7 +204,8 @@ answers (`docs/PDPA-NOTES-FOR-COUNSEL.md` J(c)). Retention proposal: originals d
 vehicles, ~30 plate-less photos: **~170 photos**. Same split rule, but `split --dev-batch` locks it as
 `plate-split-v1-devbatch` (it does not use the main held-out lock); ~45 vehicles leave about 7 in test, ≈ 20 plate photos
 [calc], below the 60 rule, and `plate-det-compare` always answers "dev batch: no adoption decision". For the main set,
-`split --train-only …/plates-train-batch1/dataset/MANIFEST.json` keeps the first batch out of the main test split (it has
+`split --train-only …/plates-train-batch1/dataset/MANIFEST.json` keeps the first batch out of the main test split, with every other photo of the same plate group (the same car is
+never in train and test) (it has
 been looked at). **It can prove:** the whole path works on real photos (label, blur, split, export, overnight training,
 ONNX in the browser), labelling time per photo, photo problems, and dev numbers labelled "dev, factory batch, not a claim".
 **It cannot prove:** any accuracy, an adoption decision, any per-type result (every type is under 20 test photos), or
@@ -214,7 +215,7 @@ anything about other sites or cameras; its numbers never go into sales material 
 dataset/, runs/}` (Thai section §2).
 
 **Steps.** `plate-train-prep init` → photos + CONSENT.md → `plate-labeller` (127.0.0.1 only) → `plate-train-prep split`
-(locks the split; commit `evals-locks/plate-train-split.sha256` before training or measuring) → `plate-train-prep export`
+(locks the split; commit `evals-locks/plate-train.sha256` before training or measuring) → `plate-train-prep export`
 → `plate_train.py setup / train / onnx` → `plate-det-compare --model …`.
 
 **Labelling and privacy.** Plate boxes + text + category; ignore boxes for tiny unreadable plates; blur boxes. BlazeFace

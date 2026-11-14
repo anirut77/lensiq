@@ -11,6 +11,7 @@
 // Also worth running (report only, no decision): the 51-photo public Wikimedia set, held-out half:
 //   node tools/plate-field-eval.mjs --dir ~/LENSIQ-field/plates-public/photos --labels …/plates-photo-labels.v3.csv --split heldout --det-model …
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { assertLocked, phaseDir } from "./eval-guard.mjs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -93,7 +94,12 @@ async function main(argv) {
   const dir = join(root, "dataset", "test2017");
   const args = ["--dir", dir, "--source", SOURCE, "--synthetic", "0"];
   try {
-    checkManifest(root, get("--lock", join(homedir(), "LENSIQ-field", "evals", "plate-train", "locked.sha256")));
+    // the locked split (tools/eval-guard.mjs: its sha256 must be committed in evals-locks/plate-train.sha256 at HEAD)
+    const man = JSON.parse(readFileSync(join(root, "dataset", "MANIFEST.json"), "utf8"));
+    const splitFile = join(phaseDir("plate-train"), `split-${man.rule}.json`);
+    assertLocked("plate-train", [splitFile]);
+    if (JSON.parse(readFileSync(splitFile, "utf8")).sha256 !== man.sha256) throw new Error("dataset/MANIFEST.json does not match the locked split: export again");
+    checkManifest(root, join(phaseDir("plate-train"), "split-rules.txt"));
     const base = await E.run(E.parseArgs(args));
     const cand = await E.run(E.parseArgs([...args, "--det-model", model]));
     let devBatch = false;

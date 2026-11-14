@@ -17,7 +17,7 @@ import sys
 # Owner rule 2026-11-13: train on the Mac only overnight and ONLY when no other team runs heavy jobs. Training refuses to
 # start (it does not wait or retry) when the machine is busy; run it again later.
 HEAVY_CPU = 50.0                                   # % CPU of one process
-HEAVY_CMD = re.compile(r"node|python|chrome", re.I)
+OS_PROCS = re.compile(r"(^|/)(kernel_task|WindowServer)(\s|$)")
 OTHER_RUNS = [(re.compile(r"lq-e2e"), "an e2e headless Chrome (lq-e2e profile) is running"),
               (re.compile(r"tests/e2e/run\.mjs"), "an e2e test run is in progress"),
               (re.compile(r"node --test"), "a unit test run is in progress"),
@@ -45,7 +45,9 @@ def busy_reasons(load1, cores, ps_lines, self_pid=None):
                 seen.add(hit)
                 out.append(f"{hit} (pid {pid})")
             continue
-        if cpu >= HEAVY_CPU and HEAVY_CMD.search(cmd):
+        # any heavy process counts (ffmpeg, encoders, other teams' tools), not only node / python / Chrome by name;
+        # the OS's own kernel_task / WindowServer are not jobs
+        if cpu >= HEAVY_CPU and not OS_PROCS.search(cmd):
             out.append(f"heavy process pid {pid} at {cpu:.0f} % CPU: {cmd[:80]}")
     return out
 

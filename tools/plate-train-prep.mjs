@@ -18,7 +18,7 @@
 //   node tools/plate-train-prep.mjs split  [--root DIR] [--dev-batch] [--train-only FIRST-BATCH/MANIFEST.json]
 //        --dev-batch: the first factory batch (dev only, never an adoption decision; locked as plate-split-v1-devbatch)
 //        --train-only: photos of the first batch never go to the test split of the main set
-//   (split) make the fixed split and LOCK it (evals-locks/plate-train-split.sha256 + ~/LENSIQ-field/evals/plate-train/)
+//   (split) make the fixed split and LOCK it (evals-locks/plate-train.sha256 + ~/LENSIQ-field/evals/plate-train/)
 //   node tools/plate-train-prep.mjs export [--root DIR]   write dataset/ from blurred photos of the locked split (checked photos only)
 //
 // SPLIT RULE (plate-split-v1, locked in tests/unit/plate-train-prep.test.js): photos that share a plate are one group
@@ -28,9 +28,10 @@
 import { createHash } from "node:crypto";
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, dirname, extname, isAbsolute, join, relative, resolve } from "node:path";
+import { dirname, extname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseLabels } from "./plate-field-eval.mjs";
+import { lock as guardLock, phaseDir } from "./eval-guard.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const SPLIT_RULE = Object.freeze({ version: "plate-split-v1", salt: "lensiq-plate-split:v1", train: 70, val: 15 });
@@ -80,15 +81,20 @@ export function groups(photos) {
 export function makeSplit(photos, o = {}) {
   const g = groups(photos), files = {}, counts = { train: {}, val: {}, test: {} }, only = o.trainOnly || new Set();
   let moved = 0;
+  // review N1: a train-only photo takes its WHOLE plate group out of test (the same car is never in train and test)
+  const trainGroups = new Set([...only].filter(f => g.has(f)).map(f => g.get(f)));
   for (const f of [...g.keys()].sort()) {
     let part = bucket(g.get(f));
-    if (part === "test" && only.has(f)) { part = "train"; moved++; }
+    if (part === "test" && trainGroups.has(g.get(f))) { part = "train"; moved++; }
     files[f] = part;
     const cat = photos.get(f).cat; counts[part][cat] = (counts[part][cat] || 0) + 1;
   }
   // the hash covers each photo's labels too (review S2): editing a held-out label after the lock is refused at export
-  const labels = Object.fromEntries(Object.keys(files).map(f => { const ph = photos.get(f); return [f, [ph.cat,
-    ph.plates.map(p => [p.text, p.key, p.cat, p.box || null, p.sure, p.province || ""]), (ph.ignore || []).map(b => b.slice())]]; }));
+  const labels = Object.fromEntries(Object.keys(files).map(f => { const ph = photos.get(f); return [f, [ph.cat === "none" ? "none" : "plate", // the photo category comes from its first row: not hashed
+
+    // review L2: plates and ignore boxes sorted, so the hash does not depend on the CSV row order
+    ph.plates.map(p => JSON.stringify([p.text, p.key, p.cat, p.box || null, p.sure, p.province || ""])).sort(),
+    (ph.ignore || []).map(b => JSON.stringify(b)).sort()]]; }));
   const canon = JSON.stringify({ rule: SPLIT_RULE.version, files, labels });
   const out = { rule: SPLIT_RULE.version, files, groups: new Set(g.values()).size, counts, sha256: createHash("sha256").update(canon).digest("hex") };
   if (only.size) out.trainOnly = moved;
@@ -253,8 +259,13 @@ function status(root) {
 export async function main(argv, io = {}) {
   const log = io.log || console.log, err = io.err || console.error;
   const cmd = argv[0], ri = argv.indexOf("--root"), root = resolve(ri >= 0 ? argv[ri + 1] : ROOT_DEFAULT);
-  const lockRepo = io.lockRepo || join(repo, "evals-locks", "plate-train-split.sha256");
-  const lockField = io.lockField || join(homedir(), "LENSIQ-field", "evals", "plate-train", "locked.sha256");
+  // locks (owner rule 2026-11-13, tools/eval-guard.mjs): the split JSON is copied to ~/LENSIQ-field/evals/plate-train/ and
+  // locked there with eval-guard (evals-locks/plate-train.sha256, commit it before training or measuring); split-rules.txt in
+  // that folder refuses a second, different split under the same rule version. Unit tests pass io.lockRepo / io.lockField.
+  const testMode = !!io.lockRepo;
+  const fieldDir = testMode ? dirname(io.lockField) : phaseDir("plate-train");
+  const lockRepo = io.lockRepo || join(repo, "evals-locks", "plate-train.sha256");
+  const lockField = testMode ? io.lockField : join(fieldDir, "split-rules.txt");
   try {
     checkRoot(root, io.repo || repo);
     const P = paths(root);
@@ -280,12 +291,17 @@ export async function main(argv, io = {}) {
       mkdirSync(P.splits, { recursive: true });
       const file = join(P.splits, `split-${SPLIT_RULE.version}.json`);
       const r1 = lockSplit(s, lockField);
-      lockSplit(s, lockRepo);
+      if (testMode) lockSplit(s, lockRepo);
       if (trainOnly.size) s.trainOnlyFiles = [...trainOnly].filter(f => s.files[f]).sort();
       writeFileSync(file, JSON.stringify(s, null, 1));
-      mkdirSync(dirname(lockField), { recursive: true }); copyFileSync(file, join(dirname(lockField), basename(file)));
+      mkdirSync(fieldDir, { recursive: true });
+      const fieldCopy = join(fieldDir, `split-${s.rule}.json`);
+      if (!existsSync(fieldCopy)) {
+        copyFileSync(file, fieldCopy);
+        if (!testMode) guardLock("plate-train", [fieldCopy], { log });
+      }
       log(`${s.rule}: ${Object.keys(s.files).length} photos in ${s.groups} groups -> ${JSON.stringify(s.counts)}\nsha256 ${s.sha256} ${r1.locked ? "LOCKED now" : "(already locked)"}`);
-      log(`commit ${relative(repo, lockRepo)} BEFORE training or measuring (owner rule 2026-11-13)`);
+      log(`commit ${relative(repo, lockRepo).split("\\").join("/")} BEFORE training or measuring (owner rule 2026-11-13)`);
       return 0;
     }
     if (cmd === "export") {
