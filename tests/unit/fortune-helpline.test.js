@@ -26,7 +26,10 @@ const read = f => readFileSync(join(ROOT, f), "utf8");
 const PAGES = ["fortune", "cat-fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui",
   "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report"];
 const THAI = /[\u0E00-\u0E7F]/;
-const KEYS = ["help.line.label", "call.1323.btn", "call.1323.sub", "call.1323.org", "call.1669.btn", "help.line.note"];
+// RE-LOCK 2026-11-14 (owner addition after testing on a phone: one compact row, short label + call button): the label and the
+//    button text have their own keys (call.<n>.label / .go); the whole wording (call.<n>.btn) is the button's aria-label key.
+const KEYS = ["help.line.label", "call.1323.btn", "call.1323.label", "call.1323.go", "call.1323.sub", "call.1323.org", "call.1669.btn", "call.1669.label",
+  "call.1669.go", "help.line.note"];
 
 /** the outer HTML of the element with this id (balanced on its own tag name) */
 function block(html, id) {
@@ -89,7 +92,9 @@ test("every fortune page has the help line in the HTML: top (before <main>) and 
       const t = text(b.html);
       for (const w of ["อยากมีคนรับฟัง โทร 1323", "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง", "บริการของกรมสุขภาพจิต", "เจ็บป่วยฉุกเฉิน โทร 1669",
         "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น"]) assert.ok(t.includes(w), p + " #" + id + " has '" + w + "': " + t);
-      for (const k of KEYS.slice(1)) assert.ok(b.html.includes('data-i18n="' + k + '"'), p + " #" + id + " key " + k);
+      for (const k of KEYS.slice(1)) {
+        assert.ok(b.html.includes(/\.btn$/.test(k) ? 'data-i18n-attr="aria-label:' + k + '"' : 'data-i18n="' + k + '"'), p + " #" + id + " key " + k);
+      }
     }
   }
 });
