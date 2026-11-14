@@ -150,6 +150,8 @@ export function splitFavicon(tag) {
   parts.push(rest + m[3]);
   return parts.join("\n");
 }
+/** quote-form interest preselected by each category's CTA (index.html #lqInterest options; buyer walkthrough W-017) */
+const CAT_INTEREST = { security: "gate", education: "exam", hr: "attendance", marketing: "crowd", health: "addons", fortune: "fortune", studio: "photobooth" };
 export const FAVICON_ONE_LINE = readFileSync(join(repo, "solutions.html"), "utf8").match(/<link rel="icon"[^>]*>/)[0];
 const FAVICON = splitFavicon(FAVICON_ONE_LINE);
 
@@ -209,7 +211,7 @@ export function pageHtml(cat, nav = navEntries()) {
     `    <h1 id="catH"><span aria-hidden="true">${cat.icon}</span> <span data-i18n="cat.${cat.slug}.name">${esc(cat.name.th)}</span></h1>`,
     `    <p data-i18n="cat.${cat.slug}.intro">${esc(cat.intro.th)}</p>`,
     `    <div class="pd-cta">`,
-    `      <a class="btn primary" href="index.html?interest=solutions#contact" data-i18n="cat.cta.pilot">ขอโครงการนำร่อง</a>`,
+    `      <a class="btn primary" href="index.html?interest=${CAT_INTEREST[cat.slug] || "unsure"}#contact" data-i18n="cat.cta.pilot">ขอโครงการนำร่อง</a>`,
     `      <a class="btn ghost light" href="cameras.html" data-i18n="cat.cta.all">ระบบทั้งหมด</a>`,
     `    </div>`,
     `  </section>`,

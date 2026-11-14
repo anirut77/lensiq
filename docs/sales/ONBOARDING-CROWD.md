@@ -42,7 +42,7 @@
 |---|---|---|
 | ขึ้น "คนดูเล็ก" | คนสูงไม่ถึง 10% ของภาพ | ย้ายกล้องเข้าใกล้ หรือวาดโซนเฉพาะส่วนใกล้ ผลที่นับต่ำกว่าจริง 37–59% ในกรณีนี้ |
 | ตัวเลขน้อยมากทั้งที่มีคนเยอะ | ฝูงชนหนาแน่น ตัวตรวจจับล้ม (ที่ชิบูย่า ราว 300 คนถูกนับ 0–2) | หยุดใช้ค่านั้น ตั้ง "จำนวนคนที่คาดว่าจะมีช่วงพีค" ให้ระบบเตือน แบ่งมุมกล้องให้คนต่อภาพน้อยลง ถ้าเกินประมาณ 50 คนต่อภาพ นอกขอบเขตบริการ |
-| ตัวเลขต่ำกว่าที่นับด้วยตา 26–58% | ข้อจำกัดที่ทราบ: คน 15–22 คนเต็มภาพ นับต่ำ 26% (n = 12 ภาพ) คน 30–50 คน นับต่ำ 58% (n = 20 ภาพ) ผลเบื้องต้นเทียบ AI | ใช้เป็นค่าประมาณและแนวโน้ม ไม่ใช้เป็นจำนวนจริง บอกผู้จัดงานตั้งแต่ต้น |
+| ตัวเลขต่ำกว่าที่นับด้วยตา 26–59% | ข้อจำกัดที่ทราบ: คน 15–22 คนเต็มภาพ นับต่ำ 26% (n = 12 ภาพ) คน 30–50 คน นับต่ำ 58% (n = 20 ภาพ) คนไกลหรือตัวเล็ก นับต่ำ 37–59% (n = 29 ภาพ) ผลเบื้องต้นเทียบ AI | ใช้เป็นค่าประมาณและแนวโน้ม ไม่ใช้เป็นจำนวนจริง บอกผู้จัดงานตั้งแต่ต้น |
 | ตัวนับข้ามเส้นไม่ตรง | กล้องขยับ เส้นพาดผ่านจุดที่คนยืนหยุด | ตรึงกล้อง ย้ายเส้นไปจุดที่คนเดินผ่านต่อเนื่อง ทดลองเดินนับก่อน |
 | ตัวเลขในโซนกระพริบที่ขอบ | คนยืนที่ขอบโซน | ขยับขอบโซนให้ไม่ตัดผ่านจุดที่คนยืน |
 | ภาพค้าง ช้า ตัวเลขกระตุก | เครื่องร้อนลดความเร็ว หรือรุ่นต่ำ ต่ำกว่า 2 ครั้งต่อวินาที | พักเครื่อง ระบายความร้อน ต่อไฟ ใช้เครื่องรุ่นสูงขึ้น (ขั้นต่ำที่เสนอในชุดนำร่อง: 2 ครั้งต่อวินาที) |
@@ -106,7 +106,7 @@
 |---|---|---|
 | "People look small" | People under 10% of the frame height | Move the camera closer, or draw the zone on the near part only. The undercount in this case is 37–59% |
 | Very low count with many people | Dense crowd; the detector collapses (at Shibuya about 300 people counted as 0–2) | Stop using that number; set the expected crowd so the page warns; split camera views so fewer people are in each; above about 50 per view is outside the service |
-| Count lower than a count by eye by 26–58% | Known limit: 15–22 people filling the frame undercounted by 26% (n = 12 frames); 30–50 people undercounted by 58% (n = 20 frames); preliminary, against an AI reference | Use it as an estimate and a trend, not a true count; tell the organiser from the start |
+| Count lower than a count by eye by 26–59% | Known limit: 15–22 people filling the frame undercounted by 26% (n = 12 frames); 30–50 people undercounted by 58% (n = 20 frames); small / far people 37–59% (n = 29 frames); preliminary, against an AI reference | Use it as an estimate and a trend, not a true count; tell the organiser from the start |
 | Line crossings look wrong | Camera moved, or the line is across where people stand | Fix the camera; move the line to where people walk through; test by walking across |
 | Zone count flickers at the edge | People standing on the edge | Move the edge so it does not cut through where people stand |
 | Frozen picture, slow, jerky numbers | Device hot and slowed, or a low-end model; below 2 calls a second | Rest and cool the device, use mains power, use a stronger device (the pilot kit proposes at least 2 a second) |

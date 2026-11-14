@@ -184,3 +184,11 @@ body.att-kiosk .att{padding-top:16px}
   body.att-print-badge #hrBadge .badge-card{position:absolute;left:0;top:0}
 }
 .hr-table .btn{white-space:nowrap;min-width:44px}
+
+/* buyer walkthrough 2026-11-14 W-026: nav.js puts <wbr> between Thai words, and Chrome breaks at <wbr> even inside
+   white-space:nowrap, so the tab labels and the "ดูรายวัน" buttons wrapped one word per line in the narrow panel.
+   Short labels keep their words together; the tab row wraps to a second row instead (phones keep the scrolling row). */
+.tab wbr,.hr-table .btn wbr{display:none}
+@media(min-width:641px){.tabs{flex-wrap:wrap;row-gap:0}}
+/* W-004: PIN / QR is the default way to clock in, so its tab comes first on screen in employee mode (DOM order unchanged) */
+body.att-emp #tabPin{order:-1}

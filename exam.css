@@ -109,3 +109,9 @@
 .ex .clip-pin{grid-template-columns:1fr;max-width:24rem;margin:8px 0}
 .ex .clip-pin .note,.ex .clip-pin .form-msg{margin:0}
 .ex .clip-pin input{width:100%;min-height:44px;padding:8px 10px;border:1px solid #b9c1d6;border-radius:10px;font:inherit;background:#fff;color:var(--text)}
+
+/* buyer walkthrough 2026-11-14: W-022 the seat map starts under its heading (styles.css gives .card p flex:1, which pushed the
+   seats to the bottom of a stretched card); W-037 the import file input stays inside a phone screen */
+.ex .card>p{flex:0 0 auto}
+.ex details label{min-width:0}
+.ex input[type=file]{max-width:100%;min-width:0;width:100%;box-sizing:border-box}

@@ -172,7 +172,11 @@
     document.body.classList.toggle("att-emp", S.mode === "employee");
     $all(".mode-btn").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === S.mode)));
     if (S.mode !== "employee") { if (S.kiosk) exitKiosk(); const t = $("#tabPin"); if (t && t.classList.contains("active")) $('.tab[data-t="checkin"]').click(); }
-    else if (!S.noticeSeen) { $("#hrNotice").open = true; S.noticeSeen = true; saveSet(); }
+    else {
+      if (!S.noticeSeen) { $("#hrNotice").open = true; S.noticeSeen = true; saveSet(); }
+      // PIN / QR is the default way to clock in (face optional): the employee time clock opens on the PIN / QR tab
+      const t = $("#tabPin"); if (t && !S.kiosk && !t.classList.contains("active")) t.click();
+    }
     if (!first) renderAll();
   }
   $all(".mode-btn").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));

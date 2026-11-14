@@ -28,7 +28,7 @@
 
   /* ================================================================ Exam: candidate page (lab mode) */
   if (page === "exam-lab") {
-    D.seed("lq-exam-lab", { room: "DEMO1", seat: "S01" });
+    D.seed("lq-exam-lab", { room: "DEMO", seat: "3" }); // the dashboard demo room and one of its seats (walkthrough W-020)
     D.seed("lq-exam-lab-log", [
       { t: now - 16 * MIN, sig: "setup", lvl: "setup", what: "backlight", id: "e1-demo" },
       { t: now - 12 * MIN, sig: "noface", lvl: "watch", dur: 7000, id: "e2-demo" },
@@ -51,7 +51,7 @@
   /* ================================================================ Exam: invigilator dashboard (pre-filled on-site tally) */
   if (page === "exam-dashboard") {
     // Room DEMO, 12 seats, 18 made-up flags with a made-up invigilator, 15 of them already marked "flag was right / wrong" so the
-    // precision table is full: phone 3/1, noface 2/3, multiface 1/2, fsexit 2/0, lean 0/1 (8 of 15). These numbers show HOW the
+    // precision table is full: phone 3/1, noface 2/3, multiface 1/2, fsexit 2/0, object 0/1 (8 of 15; lab signals only, W-019). These numbers show HOW the
     // tally works; they are not a measured accuracy of LENSIQ (the panel says so). Built with the real board (LQExam.createBoard),
     // so every figure on the page is computed by the same code as in a real exam.
     const ROOM = "DEMO", NAME = L("ผู้คุมสอบตัวอย่าง", "Sample invigilator", "示例监考老师");
@@ -67,8 +67,8 @@
         [50, "2", "noface", "watch", "lab", 1, "n"], [41, "5", "noface", "watch", "lab", 1, "n"], [33, "8", "noface", "watch", "lab", 0, "n"], [27, "10", "noface", "watch", "lab", 0, "n"], [18, "12", "noface", "watch", "lab", 0, "n"],
         [47, "4", "multiface", "check", "lab", 1, "e"], [30, "7", "multiface", "check", "lab", 0, "n"], [15, "1", "multiface", "check", "lab", 0, "n"],
         [38, "6", "fsexit", "watch", "lab", 1, "n"], [24, "9", "fsexit", "watch", "lab", 1, "n"],
-        [12, "5", "lean", "watch", "hall", 0, "n"],
-        [4, "3", "object", "watch", "lab", null, null], [3, "12", "lean", "watch", "hall", null, null], [2, "", "aisle", "watch", "hall", null, null]
+        [12, "5", "object", "watch", "lab", 0, "n"],
+        [4, "3", "object", "watch", "lab", null, null], [3, "11", "noface", "watch", "lab", null, null], [2, "7", "phone", "check", "lab", null, null]
       ];
       for (const [min, seat, sig, lvl, src, verdict, out] of rows) {
         const t = now - Number(min) * MIN, r = b.ingest({ v: 1, type: "ev", room: ROOM, node: src === "hall" ? HALL : LAB, src, seat, sig, lvl, t }, now);
@@ -156,7 +156,7 @@
 
   /* ================================================================ Gate: village / condo guard post */
   if (page === "village") {
-    D.seed("lq-gate-village-cfg", { gate: GATE_VG, autoOpen: { on: false, minConf: 0.95, minAgree: 0.8 }, relay: { kind: "", url: "", channel: 0, pulseSec: 1, token: "" } });
+    D.seed("lq-gate-village-cfg", { operator: GUARD, gate: GATE_VG, autoOpen: { on: false, minConf: 0.95, minAgree: 0.8 }, relay: { kind: "", url: "", channel: 0, pulseSec: 1, token: "" } });
     D.addRecords("lq-gate-village", () => {
       const GR = W.LQGateRules, r = rng(7);
       const res = [["99/1", "1กข2345", "bangkok"], ["99/1", "2กข1111", "bangkok"], ["12/3", "9กก9999", "bangkok"], ["8/8", "5กก5555", "nonthaburi"]]
@@ -181,8 +181,10 @@
       return [...res, ...passes, ...deny, ...evs];
     });
     D.onReady(body => {
-      body.innerHTML = `<p data-i18n="demo.vg.p">บ้านและรถสมมติ บัตรผู้มาเยือน และรายการห้ามเข้าโหลดไว้แล้ว ยืนยันประกาศด้านล่าง แล้วกด "ใช้ภาพตัวอย่าง"
-และ "รถคันถัดไป (ตัวอย่าง)" เพื่อดูการตัดสินแต่ละแบบ ทุกการอ่านป้ายต้องให้ รปภ. กดปุ่มยืนยันเอง การเปิดอัตโนมัติปิดอยู่</p>
+      body.innerHTML = `<p data-i18n="demo.vg.p">บ้านและรถสมมติ บัตรผู้มาเยือน และรายการห้ามเข้าโหลดไว้แล้ว ขั้นตอน: 1) ในกล่อง PDPA ด้านล่าง ชื่อเจ้าหน้าที่ตัวอย่างกรอกไว้แล้ว ติ๊ก 2
+        ช่องแล้วกด "เริ่มใช้งาน" 2) กด "ใช้ภาพตัวอย่าง"
+3) กด "อ่านป้ายตอนนี้" (ครั้งแรกโหลดโมเดลประมาณ 12 MB) 4) กด "รถคันถัดไป (ตัวอย่าง)" เพื่อดูการตัดสินแต่ละแบบ
+ป้ายตัวอย่างบางป้ายระบบจะถามว่า "เลขนำหน้าไม่แน่ชัด" ให้ รปภ. เลือกเอง เป็นไปตามที่ออกแบบ เพราะ รปภ. ยืนยันทุกการอ่าน การเปิดอัตโนมัติปิดอยู่</p>
 <ul><li>${TH("1กข 2345")} — <span data-i18n="demo.vg.res">รถลูกบ้าน (บ้าน 99/1)</span></li>
 <li>${TH("ขค 789")} — <span data-i18n="demo.vg.vis">ผู้มาเยือน มีบัตรผ่าน (บ้าน 99/1)</span></li>
 <li>${TH("3ฒพ 12")} — <span data-i18n="demo.vg.deny">อยู่ในรายการห้ามเข้า</span></li>

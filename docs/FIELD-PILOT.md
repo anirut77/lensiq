@@ -411,3 +411,6 @@ No field figure changed. Field pilots of Gate, Attendance, Exam and Crowd now ru
 1 lane, 100 reads per day; Attendance up to 5 people; Exam up to 5 candidates per session; Crowd 2 hours per device per
 day), which are counted on the device and not enforced. A pilot beyond those sizes needs a licence order entered by the
 owner after the quotation and transfer (admin → Organisations), or the pilot terms in the contract (the Exam field pilot stays free).
+
+Walkthrough 2026-11-14: `gate.html` now states the same Gate pilot bar as PILOT-GATE §5 (≥ 200 reads, night ≥ 40, motorcycles
+≥ 30). Customer onboarding guides for the pilots are in `docs/sales/customer/` (TH / EN / ZH).

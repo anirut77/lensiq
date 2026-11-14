@@ -22,14 +22,14 @@
 <link rel="stylesheet" href="styles.css?v=12">
 <link rel="stylesheet" href="gate.css?v=2">
 <script src="lensiq-demo.js?v=1"></script>
-<script src="lensiq-demo-data.js?v=2"></script>
-<script src="i18n/zh-demo.js?v=2"></script>
+<script src="lensiq-demo-data.js?v=3"></script>
+<script src="i18n/zh-demo.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=16"></script>
-<script src="i18n/zh-gate.js?v=3"></script>
-<script src="i18n/zh-gate-village.js?v=1"></script>
+<script src="i18n/zh-gate.js?v=4"></script>
+<script src="i18n/zh-gate-village.js?v=2"></script>
 
 <main class="gk-page" id="main">
   <p class="eyebrow" data-i18n="vg.eyebrow">LENSIQ Gate · หมู่บ้าน/คอนโด</p>
@@ -150,7 +150,8 @@
         <label class="gk-field"><span data-i18n="vg.relay.pulse">กดค้าง (วินาที)</span><input id="vgRelayPulse" type="number" min="0.2" max="30" step="0.1" value="1"></label>
         <label class="gk-field"><span data-i18n="vg.relay.token">โทเคน (webhook, ไม่บังคับ)</span><input id="vgRelayToken" type="password" maxlength="200" autocomplete="off"></label>
       </div>
-      <p class="hint" data-i18n="vg.relay.csp">หน้านี้อนุญาตให้ส่งคำสั่งได้เฉพาะที่อยู่เดียวกับหน้าเว็บ (ตัวกลางในวง LAN) การสั่ง Shelly ตรงต้องเพิ่มที่อยู่อุปกรณ์ในนโยบายความปลอดภัยของหน้า และเบราว์เซอร์อาจขออนุญาตเข้าถึงเครือข่ายในบ้านก่อน ดู docs/GATE.md</p>
+      <p class="hint" data-i18n="vg.relay.csp">หน้านี้อนุญาตให้ส่งคำสั่งได้เฉพาะที่อยู่เดียวกับหน้าเว็บ (ตัวกลางในวง LAN) การสั่ง Shelly
+        ตรงต้องเพิ่มที่อยู่อุปกรณ์ในนโยบายความปลอดภัยของหน้า และเบราว์เซอร์อาจขออนุญาตเข้าถึงเครือข่ายในบ้านก่อน ดูคู่มือติดตั้งที่ทีมงานส่งให้</p>
       <div class="gk-row"><button class="btn ghost" type="button" id="vgRelayTest" data-i18n="vg.relay.test">ทดสอบเปิดไม้กั้น</button></div>
       <h3 data-i18n="vg.auto.h">เปิดอัตโนมัติ (ปิดไว้เป็นค่าเริ่มต้น)</h3>
       <label class="gk-check"><input type="checkbox" id="vgAutoOn"> <span data-i18n="vg.auto.on">เจ้าของโครงการอนุญาตให้เปิดไม้กั้นอัตโนมัติ เฉพาะรถลูกบ้านที่ทะเบียนตรงทุกตัว จังหวัดไม่ขัดกัน และความมั่นใจถึงเกณฑ์</span></label>
@@ -174,7 +175,8 @@
     <div class="card" id="vgCheck"></div>
   </section>
 
-  <p class="hint" data-i18n="vg.foot">ข้อมูลทั้งหมดเก็บในเบราว์เซอร์ของเครื่องป้อมยามนี้ (ไม่มีเซิร์ฟเวอร์) ส่งออก CSV สำรองไว้สม่ำเสมอ · คู่มือติดตั้งกล้องและรีเลย์: docs/GATE.md</p>
+  <p class="hint" data-i18n="vg.foot">ข้อมูลทั้งหมดเก็บในเบราว์เซอร์ของเครื่องป้อมยามนี้ (ไม่มีเซิร์ฟเวอร์) ส่งออก CSV สำรองไว้สม่ำเสมอ · คู่มือติดตั้งกล้องและรีเลย์: ดูหัวข้อ
+    “อุปกรณ์และการติดตั้ง” ในหน้า LENSIQ Gate ทีมงานส่งคู่มือฉบับเต็มให้ผู้ติดตั้ง</p>
 </main>
 
 <script src="lensiq-config.js?v=10"></script>
@@ -187,8 +189,8 @@
 <script src="lensiq-plate.js?v=4"></script>
 <script src="lensiq-promptpay.js?v=1"></script>
 <script src="gate-rules.js?v=1"></script>
-<script src="gate-kit.js?v=3"></script>
+<script src="gate-kit.js?v=4"></script>
 <script src="lensiq-freetier.js?v=1"></script>
-<script src="village.js?v=1"></script>
+<script src="village.js?v=2"></script>
 </body>
 </html>
