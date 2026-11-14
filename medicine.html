@@ -19,8 +19,8 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="md.title">ตรวจข้อมูลยา: อ่านฉลากและเลขทะเบียน | LENSIQ</title>
 <meta name="description" content="ตรวจข้อมูลยาจากเลขทะเบียน อย. บาร์โค้ด หรือชื่อยา และหาเม็ดยาที่มีลักษณะตรงกับที่คุณเห็น แสดงข้อความฉลากตามต้นฉบับพร้อมแหล่งที่มา ยืนยันกับเภสัชกรทุกครั้ง">
-<link rel="stylesheet" href="styles.css?v=12">
-<link rel="stylesheet" href="medicine.css?v=4">
+<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="medicine.css?v=5">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -60,10 +60,10 @@
   </section>
 
   <div class="md-tabs" role="tablist" aria-label="โหมดการตรวจ" data-i18n-attr="aria-label:md.tabs">
-    <button type="button" role="tab" id="t-pack" aria-controls="tab-pack" aria-selected="true" data-tab="pack" data-i18n="md.tab.pack">กล่อง / ฉลาก / ชื่อยา</button>
-    <button type="button" role="tab" id="t-pill" aria-controls="tab-pill" aria-selected="false" tabindex="-1" data-tab="pill" data-i18n="md.tab.pill">เม็ดยาที่ไม่มีกล่อง</button>
-    <button type="button" role="tab" id="t-pc" aria-controls="tab-pc" aria-selected="false" tabindex="-1" data-tab="pc" data-i18n="md.pc.tab">ตรวจสินค้า (ทุกประเทศ)</button>
-    <button type="button" role="tab" id="t-hist" aria-controls="tab-hist" aria-selected="false" tabindex="-1" data-tab="hist" data-i18n="md.tab.hist">ประวัติ</button>
+    <button type="button" class="tab" role="tab" id="t-pack" aria-controls="tab-pack" aria-selected="true" data-tab="pack" data-i18n="md.tab.pack">กล่อง / ฉลาก / ชื่อยา</button>
+    <button type="button" class="tab" role="tab" id="t-pill" aria-controls="tab-pill" aria-selected="false" tabindex="-1" data-tab="pill" data-i18n="md.tab.pill">เม็ดยาที่ไม่มีกล่อง</button>
+    <button type="button" class="tab" role="tab" id="t-pc" aria-controls="tab-pc" aria-selected="false" tabindex="-1" data-tab="pc" data-i18n="md.pc.tab">ตรวจสินค้า (ทุกประเทศ)</button>
+    <button type="button" class="tab" role="tab" id="t-hist" aria-controls="tab-hist" aria-selected="false" tabindex="-1" data-tab="hist" data-i18n="md.tab.hist">ประวัติ</button>
   </div>
 
   <section id="tab-pack" role="tabpanel" aria-labelledby="t-pack">

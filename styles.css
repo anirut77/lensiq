@@ -200,6 +200,16 @@ h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:600;line-height:1.3;text-align
 
 .chip{background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 18px;color:var(--muted)}
 .chip.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+/* shared tab button (consistency pass 2026-11-14): underline style; .active or aria-selected=true marks the open tab.
+   Page CSS only lays out the tab bar (.tabs / .gk-tabs / .md-tabs) and never restyles the buttons. */
+.tab{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 14px;min-height:44px;white-space:nowrap;color:var(--muted);font:inherit;cursor:pointer}
+.tab:hover{color:var(--navy)}
+.tab.active,.tab[aria-selected=true]{color:var(--navy);border-bottom-color:var(--gold);font-weight:500}
+/* nav.js puts <wbr> between Thai words and Chrome breaks at <wbr> even under nowrap, so a tab label wrapped one word per line
+   (walkthrough W-026); a tab label keeps its words together, and a tab bar too wide for the screen scrolls sideways */
+.tab wbr{display:none}
+@media (max-width:640px){.tabs,.gk-tabs,.md-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .tabs>.tab,.gk-tabs>.tab,.md-tabs>.tab{flex:0 0 auto;white-space:nowrap;max-width:none}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px}
 .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s,border-color .25s}
 .tag{font-size:.72rem;color:var(--gold);letter-spacing:.1em;font-weight:600}

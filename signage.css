@@ -23,9 +23,7 @@
 .btn:disabled{opacity:.55;cursor:wait}
 
 /* แท็บ */
-.tabs{display:flex;gap:6px;background:var(--alt);padding:5px;border-radius:99px;width:max-content;max-width:100%;margin:0 auto 20px;overflow-x:auto}
-.tabs [role=tab]{border:0;background:transparent;color:var(--muted);padding:9px 22px;min-height:44px;border-radius:99px;white-space:nowrap;font-weight:500}
-.tabs [role=tab][aria-selected=true]{background:var(--navy);color:#fff}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);max-width:100%;margin:0 0 20px;overflow-x:auto;scrollbar-width:none}
 
 /* จอโฆษณา */
 .stage{position:relative;aspect-ratio:16/9;background:var(--navy);border-radius:12px;overflow:hidden;container-type:inline-size}

@@ -322,7 +322,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderAll() {
     if (allDone) return; allDone = true;
     var html = "";
-    for (var n = 1; n <= 64; n++) html += '<button type="button" class="ic-cell" data-n="' + n + '">' + hexSVG(IC.bitsOf(n), [], "ic-hex", hexLabel(n)) + "<b>" + n + " " + esc(hChar(n)) + "</b><small>" + esc(hName(n)) + "</small></button>";
+    for (var n = 1; n <= 64; n++) html += '<button type="button" class="ic-cell" data-n="' + n + '">' + hexSVG(IC.bitsOf(n), [], "ic-hex", hexLabel(n)) + "<b>" + n + ' <span lang="zh">' + esc(hChar(n)) + "</span></b><small>" + esc(hName(n)) + "</small></button>";
     $("#icGrid").innerHTML = html;
   }
   function renderDetail(n) {

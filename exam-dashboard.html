@@ -18,8 +18,8 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="exam.db.title">แดชบอร์ดผู้คุมสอบ | LENSIQ Exam</title>
-<link rel="stylesheet" href="styles.css?v=12">
-<link rel="stylesheet" href="exam.css?v=3">
+<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="exam.css?v=4">
 <script src="lensiq-demo.js?v=1"></script>
 <script src="lensiq-demo-data.js?v=3"></script>
 <script src="i18n/zh-demo.js?v=3"></script>
@@ -95,7 +95,7 @@
     <div class="kv" id="summary"></div>
     <h3 data-i18n="exam.db.precH">ตรวจความแม่นยำหน้างาน (ผู้คุมสอบนับว่าแจ้งถูกหรือผิด)</h3>
     <p class="note" data-i18n="exam.db.precP">กด “แจ้งถูก” เมื่อไปดูแล้วเห็นตามที่ระบบบอก (เช่น มีโทรศัพท์จริง) ไม่ได้แปลว่ามีการทุจริต กด “แจ้งผิด” เมื่อไม่เป็นอย่างที่บอก ช่วงความเชื่อมั่น 95% แบบ Wilson</p>
-    <div class="table-wrap"><table><thead><tr><th data-i18n="exam.db.tSig">ข้อสังเกต</th><th data-i18n="exam.db.tRight">แจ้งถูก</th><th data-i18n="exam.db.tWrong">แจ้งผิด</th><th data-i18n="exam.db.tPrec">ความแม่นยำ (95%)</th></tr></thead><tbody id="precBody"></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th data-i18n="exam.db.tSig">ข้อสังเกต</th><th data-i18n="exam.db.tRight">แจ้งถูก</th><th data-i18n="exam.db.tWrong">แจ้งผิด</th><th data-i18n="exam.db.tPrec">ความแม่นยำ (95%)</th></tr></thead><tbody id="precBody"><tr><td colspan="4" class="empty" data-i18n="exam.db.precEmpty">ยังไม่มีการนับ — กด แจ้งถูก / แจ้งผิด ในรายการ</td></tr></tbody></table></div>
   </section>
 
   <section class="card" aria-labelledby="logH">
@@ -105,7 +105,7 @@
       <button class="btn ghost" type="button" id="printBtn" data-i18n="exam.db.print">พิมพ์รายงานสำหรับคณะกรรมการ (PDF)</button>
       <button class="btn ghost danger" type="button" id="clearBtn" data-i18n="exam.db.clear">ล้างข้อมูลห้องนี้</button>
     </div>
-    <div class="table-wrap"><table><thead><tr><th data-i18n="exam.db.tTime">เวลา</th><th data-i18n="exam.db.tSeat">ที่นั่ง</th><th data-i18n="exam.db.tReason">เหตุผล</th><th data-i18n="exam.db.tLvl">ระดับ</th><th data-i18n="exam.db.tWho">ผู้ตรวจ / ผล</th><th data-i18n="exam.db.tTally">แจ้งถูกไหม</th></tr></thead><tbody id="logBody"></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th data-i18n="exam.db.tTime">เวลา</th><th data-i18n="exam.db.tSeat">ที่นั่ง</th><th data-i18n="exam.db.tReason">เหตุผล</th><th data-i18n="exam.db.tLvl">ระดับ</th><th data-i18n="exam.db.tWho">ผู้ตรวจ / ผล</th><th data-i18n="exam.db.tTally">แจ้งถูกไหม</th></tr></thead><tbody id="logBody"><tr><td colspan="6" class="empty" data-i18n="exam.db.logEmpty">ยังไม่มีเหตุการณ์</td></tr></tbody></table></div>
     <p class="note" data-i18n="exam.db.keep">ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น (ไม่มีภาพ) ส่งออกให้คณะกรรมการแล้วล้างข้อมูลตามระเบียบของสถาบัน</p>
   </section>
   </div>

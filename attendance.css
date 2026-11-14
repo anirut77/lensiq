@@ -16,8 +16,6 @@
 .banner.err{background:#fdeaea;border-color:#e3a8a3;color:#a12b20}
 .panel{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)}
 .tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--line)}
-.tab{background:none;border:0;padding:10px 14px;min-height:44px;white-space:nowrap;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
-.tab.active{color:var(--navy);border-color:var(--gold);font-weight:500}
 .pane[hidden]{display:none}
 .pane h3{margin:22px 0 8px;font-size:1rem;color:var(--navy);font-weight:500}
 .pane form{padding:0;border:0;box-shadow:none}
@@ -188,7 +186,7 @@ body.att-kiosk .att{padding-top:16px}
 /* buyer walkthrough 2026-11-14 W-026: nav.js puts <wbr> between Thai words, and Chrome breaks at <wbr> even inside
    white-space:nowrap, so the tab labels and the "ดูรายวัน" buttons wrapped one word per line in the narrow panel.
    Short labels keep their words together; the tab row wraps to a second row instead (phones keep the scrolling row). */
-.tab wbr,.hr-table .btn wbr{display:none}
+.hr-table .btn wbr{display:none} /* tab labels: shared rule in styles.css */
 @media(min-width:641px){.tabs{flex-wrap:wrap;row-gap:0}}
 /* W-004: PIN / QR is the default way to clock in, so its tab comes first on screen in employee mode (DOM order unchanged) */
 body.att-emp #tabPin{order:-1}

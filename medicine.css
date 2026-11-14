@@ -36,9 +36,8 @@
 .md-emerg h2{color:#7a1f12}
 .md-emerg a{color:#7a1f12;display:inline-block;min-height:44px;min-width:56px;line-height:44px;font-size:1.2rem}
 /* tabs */
-.md-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px}
-.md-tabs button{min-height:44px;padding:8px 14px;border-radius:99px;border:1.5px solid var(--line);background:#fff;color:var(--navy);font:inherit;font-size:.9rem;max-width:100%;white-space:normal}
-.md-tabs button[aria-selected=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.md-tabs{display:flex;gap:2px 6px;flex-wrap:wrap;margin:0 0 14px;border-bottom:1px solid var(--line)}
+.md-tabs .tab{max-width:100%;white-space:normal}
 /* camera + crop */
 .md-cam{position:relative;background:#1b2140;border-radius:12px;overflow:hidden;aspect-ratio:4/3;touch-action:none;max-width:640px}
 .md-cam video,.md-cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
