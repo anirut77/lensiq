@@ -441,5 +441,5 @@
   }
   root.addEventListener("lq-lang", () => { render(); });
   if (d.readyState === "loading") d.addEventListener("DOMContentLoaded", start, { once: true }); else start();
-  root.LQDeviceFit = Object.assign({}, api, { page, env, show });
+  /** @type {any} */ (root).LQDeviceFit = Object.assign({}, api, { page, env, show });
 })(typeof window !== "undefined" ? window : null);

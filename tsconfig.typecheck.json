@@ -243,6 +243,7 @@
     "lensiq-pc-advert.js",
     "lensiq-pc-travel.js",
     "lensiq-pc-refimg.js",
-    "lensiq-thai-canon.js"
+    "lensiq-thai-canon.js",
+    "lensiq-devicefit.js"
   ]
 }
