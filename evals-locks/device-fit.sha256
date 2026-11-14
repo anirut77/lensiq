@@ -1,0 +1,6 @@
+# locked 2026-11-14T09:24:53Z (tools/eval-guard.mjs lock, 2 files)
+88fb1db299e2b3dbf8b2a17b35cb63b1faa97e6c227368bb559d79b14e2bbcce  tests/unit/device-fit.test.js
+f1c486ca86d7214b3b113437a1060bec096f23f4cbdb6e23c7e4a16426e14785  tests/e2e/device-fit.e2e.mjs
+# re-lock 2026-11-14T09:25:23Z before any measurement or product code: tests/e2e/device-fit.e2e.mjs wrapped two lines over the 200-character format limit; no assertion, page, value or wait changed.
+# locked 2026-11-14T09:25:24Z (tools/eval-guard.mjs lock, 1 file)
+3776168a988b858be2cb3c16cb5f32c3a5685fc0d83cc5c90da70eedf8196807  tests/e2e/device-fit.e2e.mjs
