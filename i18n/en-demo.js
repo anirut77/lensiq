@@ -1,6 +1,7 @@
 /* i18n/en-demo.js — English for the sales demo mode (?demo=1: lensiq-demo.js, lensiq-demo-data.js, demo.*). Mirrors
  * i18n/zh-demo.js. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "demo.exam.mon": "Demo mode: no camera is used · no images are sent",
   "demo.bar": "Demo mode: sample data, not real data",
   "demo.h": "Demo mode for presentations",
   "demo.p": "This page uses built-in sample data; every name is invented. No camera, no images of people, nothing leaves this device and the real records on this device are not touched. Exported files are marked SAMPLE. Demo mode covers this page only; links to other pages open the real system.",
@@ -23,7 +24,7 @@
   "demo.exdb.p": "A made-up exam room, DEMO, with 12 seats and 18 sample flags. The sample invigilator has already checked 15 of them and pressed \"flag was right\" or \"flag was wrong\", so the precision-per-signal table is already filled (8 right out of 15 in total). 3 flags are still in the queue for you to mark yourself. These numbers only show how the tally works; they are not a measured accuracy of LENSIQ, which has not been measured in a real exam room. The invigilator always decides.",
   "demo.exdb.tally": "Go to the precision table",
   "demo.att.month": "Show last month's summary and CSV export",
-  "demo.vg.p": "Fictitious houses and cars, visitor passes and a deny list are loaded. Confirm the notice below, then press \"Use sample image\" and \"Next car (sample)\" to see each kind of decision. Every plate read waits for the guard to press a button; auto-open is off.",
+  "demo.vg.p": "Fictitious houses and cars, visitor passes and a deny list are loaded. Steps: 1) in the PDPA panel below the sample operator name is already filled in; tick the 2 boxes and press \"Start\" 2) press \"Use sample image\" 3) press \"Read plate now\" (the first time loads about 12 MB of models) 4) press \"Next car (sample)\" to see each kind of decision. On some sample plates the system asks about an unclear leading digit and the guard chooses; this is by design, because the guard confirms every read. Auto-open is off.",
   "demo.vg.res": "Resident car (house 99/1)",
   "demo.vg.vis": "Visitor with a pass (house 99/1)",
   "demo.vg.deny": "On the deny list",

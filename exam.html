@@ -19,18 +19,23 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="exam.l.title">LENSIQ Exam ช่วยผู้คุมสอบ | LENSIQ</title>
 <meta name="description" content="LENSIQ Exam ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน ระบบไม่ตัดสินการทุจริต ประมวลผลภาพในเครื่อง" data-i18n-attr="content:exam.l.desc">
-<link rel="stylesheet" href="styles.css?v=13">
-<link rel="stylesheet" href="exam.css?v=3">
+<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="exam.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=16"></script>
 <script src="i18n/zh-exam.js?v=4"></script>
+<script src="i18n/zh-buy.js?v=1"></script>
 
 <main class="ex" id="main">
   <p class="eyebrow" data-i18n="exam.l.eyebrow">การศึกษาและการสอบ</p>
   <h1 data-i18n="exam.l.h1">LENSIQ Exam — บอกผู้คุมสอบว่าควรไปดูที่นั่งไหน</h1>
   <p class="lead" data-i18n="exam.l.lead">ระบบช่วยผู้คุมสอบ ไม่ใช่ผู้ตัดสิน: กล้องสังเกตสิ่งที่เห็นได้ เช่น ไม่เห็นใบหน้า หรือมีโทรศัพท์ในภาพ แล้วแจ้งที่นั่งให้คนไปดู การตัดสินว่ามีการทุจริตหรือไม่เป็นของผู้คุมสอบและคณะกรรมการเท่านั้น ภาพประมวลผลในเครื่อง ไม่ส่งภาพออกนอกเครื่อง</p>
+  <div class="lq-buy" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
+    <a class="btn primary" href="index.html?interest=exam#contact" data-i18n="buy.quote">ขอใบเสนอราคา</a>
+    <a class="btn ghost" href="exam-lab.html?demo=1" data-i18n="buy.demo">ดูเดโม</a>
+  </div>
   <div class="row-actions">
     <a class="btn primary" href="exam-lab.html" data-i18n="exam.l.ctaLab">หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์)</a>
     <a class="btn ghost" href="exam-hall.html" data-i18n="exam.l.ctaHall">เครื่องกล้องในห้องสอบ (ทดลอง)</a>
@@ -171,7 +176,7 @@
         <h3 data-i18n="exam.l.p2">ห้องคอมพิวเตอร์ / ออนไลน์ (ต่อผู้สอบ)</h3>
         <small class="tag" data-i18n="exam.l.lvlPilot">ราคานำร่อง</small>
         <b data-i18n="exam.l.p2b">฿10 ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7%</b>
-        <p class="note" data-i18n="exam.l.p2n">ขั้นต่ำ ฿300 ต่อรอบสอบ หรือแพ็กเกจ ฿990 / เดือน / ห้องคอมพิวเตอร์ ไม่รวม VAT 7%</p>
+        <p class="note" data-i18n="exam.l.p2n">ขั้นต่ำ ฿300 ต่อรอบสอบ หรือแพ็กเกจ ฿990 / เดือน / ห้องแล็บคอมพิวเตอร์ ไม่รวม VAT 7%</p>
         <p class="note" data-i18n="exam.l.p2a">ราคาปกติหลังผ่านเกณฑ์นำร่อง: ฿15–30 ต่อผู้สอบ หรือ ฿990–1,490 / เดือน ไม่รวม VAT 7%</p>
       </div>
       <div class="card">
@@ -207,6 +212,14 @@
       <p data-i18n="exam.l.n4">ข้าพเจ้าได้อ่านประกาศนี้แล้ว และยินยอมให้ใช้กล้องช่วยผู้คุมสอบตามที่ระบุ ลงชื่อ ____________ วันที่ ________</p>
     </div>
     <div class="row-actions no-print"><button class="btn ghost" type="button" id="printNotice" data-i18n="exam.l.print">พิมพ์ประกาศ</button></div>
+  </section>
+  <section class="lq-buy-end" aria-labelledby="buyH" style="margin:28px 0">
+    <h2 id="buyH" data-i18n="buy.h">ขั้นตอนถัดไป</h2>
+    <p data-i18n="buy.p">ขอใบเสนอราคาหรือนัดสาธิต ทีมงานจะติดต่อกลับ หน้าเดโมใช้ข้อมูลตัวอย่าง ไม่ใช่ข้อมูลจริง</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn primary" href="index.html?interest=exam#contact" data-i18n="buy.quote">ขอใบเสนอราคา</a>
+    <a class="btn ghost" href="exam-lab.html?demo=1" data-i18n="buy.demo">ดูเดโม</a>
+    </div>
   </section>
 </main>
 

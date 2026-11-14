@@ -18,25 +18,33 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="attendance.s1">เช็คชื่ออบรมด้วยใบหน้า | LENSIQ</title>
-<link rel="stylesheet" href="styles.css?v=13">
-<link rel="stylesheet" href="attendance.css?v=9">
+<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="attendance.css?v=10">
 <link rel="stylesheet" href="lensiq-sitecheck.css?v=3">
 <script src="lensiq-demo.js?v=1"></script>
-<script src="lensiq-demo-data.js?v=2"></script>
-<script src="i18n/zh-demo.js?v=2"></script>
+<script src="lensiq-demo-data.js?v=3"></script>
+<script src="i18n/zh-demo.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=16"></script>
-<script src="i18n/zh-attendance.js?v=2"></script>
+<script src="i18n/zh-attendance.js?v=3"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=2"></script>
 <script src="i18n/zh-rt-attendance.js?v=1"></script>
 <script src="i18n/zh-rt-sitecheck.js?v=3"></script>
+<script src="i18n/zh-buy.js?v=1"></script>
 
 <main class="att">
-  <h1 data-i18n="attendance.s2">เช็คชื่อเข้าอบรมด้วยการสแกนใบหน้า</h1>
-  <p class="lead" data-i18n="attendance.s3">ไม่ต้องเซ็นชื่อ ลงทะเบียนใบหน้าครั้งเดียว แล้วสแกนเพื่อบันทึกการเข้าเรียน</p>
+  <h1><span class="tr-only" data-i18n="attendance.s2">เช็คชื่อเข้าอบรมด้วยการสแกนใบหน้า</span><span class="emp-only" data-i18n="attendance.hr.h1">ลงเวลาทำงานด้วย PIN / QR
+    (สแกนใบหน้าเป็นตัวเลือก)</span></h1>
+  <p class="lead emp-only" data-i18n="attendance.hr.lead">พนักงานลงเวลาด้วยรหัสพนักงาน + PIN หรือบัตร QR ได้ทันที ไม่ต้องใช้กล้อง การสแกนใบหน้าเป็นตัวเลือกเสริม
+    ใช้เฉพาะพนักงานที่ยินยอม ตัวเลขความแม่นยำด้านล่างเป็นของการสแกนใบหน้าเท่านั้น</p>
+  <p class="lead tr-only" data-i18n="attendance.s3">ไม่ต้องเซ็นชื่อ ลงทะเบียนใบหน้าครั้งเดียว แล้วสแกนเพื่อบันทึกการเข้าเรียน</p>
+  <div class="lq-buy" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
+    <a class="btn primary" href="index.html?interest=attendance#contact" data-i18n="buy.quote">ขอใบเสนอราคา</a>
+    <a class="btn ghost" href="attendance.html?mode=employee&amp;demo=1" data-i18n="buy.demo">ดูเดโม</a>
+  </div>
   <p class="acc-note" role="note"><b class="beta" data-i18n="attendance.s4">ความแม่นยำที่วัดได้</b>
     <span data-i18n="attendance.s5">ทดสอบกับภาพใบหน้าสาธารณะ (ภาพข่าว LFW และใบหน้าเอเชีย CASIA-FaceV5 ไม่ใช่กล้องหน้างาน) ด้วยกฎปัจจุบัน ผู้ลงทะเบียน
       100 คน: จำผู้ลงทะเบียนได้ราว 85% ต่อการสแกน แต่ใบหน้าเอเชียเพียงราว 66–76% · คนที่ไม่ได้ลงทะเบียนถูกเสนอชื่อราว 0.4% (ใบหน้าเอเชีย 0.2%
@@ -65,8 +73,8 @@
 
   <!-- employee time attendance (attendance-hr.js + lensiq-timeclock.js) — added on top of the training check-in, nothing removed -->
   <div class="att-mode" role="group" aria-label="โหมดการใช้งาน" data-i18n-attr="aria-label:attendance.hr.modeL">
-    <button type="button" class="mode-btn" data-mode="training" aria-pressed="true"><span data-i18n="attendance.hr.modeT">เช็คชื่ออบรม/กิจกรรม</span></button>
-    <button type="button" class="mode-btn" data-mode="employee" aria-pressed="false"><span data-i18n="attendance.hr.modeE">ลงเวลาทำงานพนักงาน</span></button>
+    <button type="button" class="mode-btn" data-mode="employee" aria-pressed="false"><span data-i18n="attendance.hr.modeE">ลงเวลาทำงาน (PIN / QR)</span></button>
+    <button type="button" class="mode-btn" data-mode="training" aria-pressed="true"><span data-i18n="attendance.hr.modeT">เช็คชื่ออบรม/กิจกรรม (ใบหน้า)</span></button>
   </div>
   <details class="hr-notice emp-only" id="hrNotice">
     <summary data-i18n="attendance.hr.nT">ข้อมูลส่วนบุคคลในการลงเวลาทำงาน (PDPA) — อ่านก่อนใช้</summary>
@@ -174,7 +182,7 @@
       <div class="pane sc-panel" id="pane-check" hidden><div id="scPanel"></div></div>
 
       <div class="pane" id="pane-pin" hidden>
-        <p data-i18n="attendance.hr.pinIntro">สำหรับพนักงานที่ไม่ใช้ใบหน้า หรือเมื่อสแกนใบหน้าไม่ผ่าน: ใส่รหัสพนักงานกับ PIN หรือสแกนบัตร QR</p>
+        <p data-i18n="attendance.hr.pinIntro">วิธีลงเวลาหลัก ไม่ต้องใช้กล้องหรือใบหน้า: ใส่รหัสพนักงานกับ PIN หรือสแกนบัตร QR</p>
         <form id="hrPinForm" novalidate>
           <label><span data-i18n="attendance.hr.code">รหัสพนักงาน</span><input id="hrCode" maxlength="30" autocomplete="off" autocapitalize="characters"></label>
           <label><span data-i18n="attendance.hr.pin">PIN (4–8 หลัก)</span><input id="hrPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>
@@ -368,6 +376,14 @@
   </section>
 
   <p class="note" data-i18n="attendance.s40">เว็บตัวอย่าง: ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ค่าลักษณะใบหน้าเข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้ มีตัวเลือกให้หันหน้าเพื่อตรวจว่าเป็นคนจริง (ปิดไว้เป็นค่าเริ่มต้น ยังไม่ได้วัดผล) แต่ยังไม่มีระบบกันภาพปลอมที่ผ่านการทดสอบ หากใช้งานจริงควรมีฐานข้อมูลฝั่งเซิร์ฟเวอร์ และนโยบายตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)</p>
+  <section class="lq-buy-end" aria-labelledby="buyH" style="margin:28px 0">
+    <h2 id="buyH" data-i18n="buy.h">ขั้นตอนถัดไป</h2>
+    <p data-i18n="buy.p">ขอใบเสนอราคาหรือนัดสาธิต ทีมงานจะติดต่อกลับ หน้าเดโมใช้ข้อมูลตัวอย่าง ไม่ใช่ข้อมูลจริง</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn primary" href="index.html?interest=attendance#contact" data-i18n="buy.quote">ขอใบเสนอราคา</a>
+    <a class="btn ghost" href="attendance.html?mode=employee&amp;demo=1" data-i18n="buy.demo">ดูเดโม</a>
+    </div>
+  </section>
 </main>
 
 <script src="vendor/face-api.js"></script>
@@ -381,7 +397,7 @@
 <script src="lensiq-timeclock.js?v=1"></script>
 <script src="attendance-qr.js?v=1"></script>
 <script src="lensiq-freetier.js?v=1"></script>
-<script src="attendance-hr.js?v=1"></script>
+<script src="attendance-hr.js?v=3"></script>
 <script src="lensiq-config.js?v=10"></script>
 </body>
 </html>

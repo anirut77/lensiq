@@ -569,6 +569,13 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
   tiles / YOLOX 144 px) and seat-layout export. Hall mode stays experimental; field: not measured.
 - Locks: `evals-locks/gate-hall-h.sha256` (tests committed before product code).
 
+### Buyer walkthrough fixes (2026-11-14, branch `walk-fix`)
+- 27 of 38 walkthrough defects fixed on `walk-fix` (W-001 verified working on the built site) (product pages get quote / demo buttons, Attendance presented as the PIN / QR
+  time clock, Gate and Crowd numbers aligned with `docs/accuracy-figures.json`, one status vocabulary in the solutions catalogue,
+  lab-only Exam demo, customer onboarding guides in TH / EN / ZH). Owner items listed in `docs/LAUNCH-READINESS.md` §9.
+- Verified W-001: the built site (`tools/build-site.mjs`) posts the quote form to `<api>/v1/leads` with a Turnstile token; the
+  reviewer had served the raw repo.
+
 ### Stream JK (2026-11-14): Japanese / Korean text never goes to AI by itself; claim wording; "turn the pack" hint
 
 Owner decisions 2026-11-14 (1, 2, 3, 4), branch `pc-jk`. Text with Japanese / Korean script is never sent automatically

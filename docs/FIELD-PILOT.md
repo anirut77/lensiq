@@ -412,6 +412,9 @@ No field figure changed. Field pilots of Gate, Attendance, Exam and Crowd now ru
 day), which are counted on the device and not enforced. A pilot beyond those sizes needs a licence order entered by the
 owner after the quotation and transfer (admin → Organisations), or the pilot terms in the contract (the Exam field pilot stays free).
 
+Walkthrough 2026-11-14: `gate.html` now states the same Gate pilot bar as PILOT-GATE §5 (≥ 200 reads, night ≥ 40, motorcycles
+≥ 30). Customer onboarding guides for the pilots are in `docs/sales/customer/` (TH / EN / ZH).
+
 - **2026-11-14 (stream JK)**: Product Check never sends Japanese / Korean text to AI by itself (one-tap off for it, no photo,
   preview always open, Worker second check). Field question to record on the first phone test with a Japanese or Korean pack:
   which script was chosen, whether the reading showed the script, whether the user removed anything in the preview, and

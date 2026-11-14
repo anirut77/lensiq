@@ -257,6 +257,20 @@
       var want = new URLSearchParams(location.search).get("interest");
       if (want && /^[a-z]{2,20}$/.test(want) && $("lqInterest").querySelector('option[value="' + want + '"]')) $("lqInterest").value = want;
     } catch (e) { /* old browser */ }
+    // buyer walkthrough W-017: the long home page keeps growing while it renders, so a #contact link could land far above the
+    // form; keep the form in view until the page settles (stops as soon as the visitor scrolls, touches or types)
+    if (location.hash === "#contact") {
+      var held = true, unhold = function () { held = false; };
+      ["wheel", "touchstart", "keydown", "mousedown"].forEach(function (ev) { window.addEventListener(ev, unhold, { once: true, passive: true }); });
+      var pin = function () {
+        var t = document.getElementById("lqInterest") || document.getElementById("contact");
+        if (!held || !t) return;
+        var r = t.getBoundingClientRect();
+        if (r.top < 0 || r.bottom > window.innerHeight) { try { t.scrollIntoView({ block: "center" }); } catch (e) { t.scrollIntoView(); } }
+      };
+      [0, 150, 400, 800, 1200, 2000].forEach(function (ms) { setTimeout(pin, ms); });
+      window.addEventListener("load", function () { setTimeout(pin, 0); setTimeout(pin, 300); });
+    }
 
     // how the form is delivered (lensiq-leads.js): API -> sent to the team; mailto / LINE -> the visitor sends it;
     // neither -> not sent (honest wording, stored in this browser only as before)

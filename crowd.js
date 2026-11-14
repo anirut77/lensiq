@@ -17,7 +17,7 @@
   const $ = id => /** @type {any} */ (document.getElementById(id));
   const DEMO_SPEED = 2, NS = "lqcr", LINE_KEY = NS + "-line", DAY_PREFIX = NS + "-day-", DEMO_LOG = NS + "-demo-log";
   const ROLES = ["area", "pass", "stop"];
-  const roleName = r => r === "pass" ? T("cr.role.pass", "ทางเดินหน้าร้าน") : r === "stop" ? T("cr.role.stop", "หน้าตู้โชว์/บูธ") : T("cr.role.area", "พื้นที่");
+  const roleName = r => r === "pass" ? T("cr.role.pass", "ทางเดิน / ทางเข้างาน") : r === "stop" ? T("cr.role.stop", "หน้าบูธ / หน้าเวที") : T("cr.role.area", "พื้นที่");
   const levelName = l => ({
     low: T("cr.lv.low", "โล่ง"), busy: T("cr.lv.busy", "เริ่มหนาแน่น"),
     crowded: T("cr.lv.crowded", "แน่น"), critical: T("cr.lv.critical", "แน่นมาก — ควรดูหน้างาน")
@@ -319,7 +319,7 @@
     const f = P.day.funnel, hasRoles = P.zones.some(z => z.role === "pass" || z.role === "stop"), r = C.funnelRates({ pass: f.pass, stop: f.stop, enter: P.day.in });
     const step = (k, v, sub) => { const li = el("li", "cr-step"); li.append(el("span", "k", k), el("b", "v", v)); if (sub) li.appendChild(el("span", "s", sub)); ol.appendChild(li); };
     if (hasRoles) {
-      step(T("cr.f.pass", "เดินผ่าน"), String(f.pass), T("cr.f.passS", "เห็นในโซนทางเดิน/หน้าตู้โชว์"));
+      step(T("cr.f.pass", "เดินผ่าน"), String(f.pass), T("cr.f.passS", "เห็นในโซนทางเดิน/หน้าบูธ"));
       step(T("cr.f.stop", "หยุดดู"), String(f.stop), T("cr.f.rate", "{p} ของคนเดินผ่าน", { p: pct(r.stopRate) }));
     }
     step(T("cr.f.enter", "เข้า (เส้นนับ)"), line ? String(P.day.in) : "—", line
@@ -572,7 +572,7 @@
   }
   const DEMO_ZONES = [
     { poly: [{ x: 0.02, y: 0.3 }, { x: 0.4, y: 0.3 }, { x: 0.4, y: 0.98 }, { x: 0.02, y: 0.98 }], role: "pass", name: () => T("cr.demo.pass", "ทางเดิน") },
-    { poly: [{ x: 0.42, y: 0.3 }, { x: 0.7, y: 0.3 }, { x: 0.7, y: 0.98 }, { x: 0.42, y: 0.98 }], role: "stop", name: () => T("cr.demo.stop", "หน้าตู้โชว์"), area: 6, cap: 4 }
+    { poly: [{ x: 0.42, y: 0.3 }, { x: 0.7, y: 0.3 }, { x: 0.7, y: 0.98 }, { x: 0.42, y: 0.98 }], role: "stop", name: () => T("cr.demo.stop", "หน้าบูธ"), area: 6, cap: 4 }
   ];
   const DEMO_LINE = { a: { x: 0.8, y: 0.68 }, b: { x: 0.8, y: 0.98 }, swap: true };
 
@@ -630,7 +630,7 @@
     ns: NS, key: "crowd", classes: ["person"], anchorKind: "foot", csvName: "lensiq-crowd", demoSpeed: DEMO_SPEED,
     zoneName: i => T("cr.zoneName", "โซน {n}", { n: i + 1 }),
     zoneFields: z => ({ role: ROLES.includes(z.role) ? z.role : "area", cap: Math.round(clampN(z.cap, 0, 10000)), area: Math.round(clampN(z.area, 0, 100000) * 10) / 10 }),
-    defaults: { siteName: "", minVisitSec: 2, stopSec: 5, holdSec: 10, clearSec: 15, cooldownMin: 5, convKind: "buy", heatOverlay: true, sound: false, expectCrowd: 0 },
+    defaults: { siteName: "", minVisitSec: 2, stopSec: 5, holdSec: 10, clearSec: 15, cooldownMin: 5, convKind: "signup", heatOverlay: true, sound: false, expectCrowd: 0 },
     newDay: () => C.newDay(ZC.dayKey()), onFrame, render, csv, demo, draw,
     demoZones: DEMO_ZONES.map(d => d.poly),
     zoneColor: z => live.get(z.id) && live.get(z.id).on ? "#f87171" : null,
