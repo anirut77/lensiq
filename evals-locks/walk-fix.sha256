@@ -1,0 +1,10 @@
+# locked 2026-11-14T12:58:42Z (tools/eval-guard.mjs lock, 4 files)
+320122ebcae1ef85dbf70bbed910f166126c476221547074850b9d9709afaf30  walkfix.test.js
+a02856c29c59c8e3bbe3b3877f6e55735f37bcab8ed36aaa4fda97476a368c66  walkfix.e2e.mjs
+9f68e3b30576e86170164817f033401d6878f4fb4b50bab9944ba38ee6644be1  walkfix-webkit.e2e.mjs
+cdcc159e34d9e16c94c970dae606afb6054fffb38d167818228cd9e696790526  exam-dashboard-demo.e2e.mjs
+# repo copies (byte-identical to the locked set above), locked 2026-11-14 BEFORE the fixes on branch walk-fix (base 4413bc3); buyer walkthrough W-001..W-038
+320122ebcae1ef85dbf70bbed910f166126c476221547074850b9d9709afaf30  tests/unit/walkfix.test.js  # repo file
+a02856c29c59c8e3bbe3b3877f6e55735f37bcab8ed36aaa4fda97476a368c66  tests/e2e/walkfix.e2e.mjs  # repo file
+9f68e3b30576e86170164817f033401d6878f4fb4b50bab9944ba38ee6644be1  tests/e2e/walkfix-webkit.e2e.mjs  # repo file
+cdcc159e34d9e16c94c970dae606afb6054fffb38d167818228cd9e696790526  tests/e2e/exam-dashboard-demo.e2e.mjs  # repo file
