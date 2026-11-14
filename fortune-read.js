@@ -309,7 +309,7 @@
   }
   function toc(container, groups, lang, before) {
     const doc = container.ownerDocument;
-    const nav = doc.createElement("nav"); nav.className = "lq-toc"; nav.setAttribute("aria-label", TOC[lang]);
+    const nav = doc.createElement("nav"); nav.className = "lq-toc"; nav.setAttribute("aria-label", TOC[lang]); nav.setAttribute("data-lq-toc", "");
     const t = doc.createElement("p"); t.textContent = TOC[lang]; nav.appendChild(t);
     const ul = doc.createElement("ul");
     for (const g of groups) {
@@ -336,7 +336,7 @@
     const leads = leadsFor(lang), titles = STD_TITLES();
     for (const g of groups) group(g, lang, leads, titles);
     for (const li of container.querySelectorAll(".fa-plan li")) { if (li.querySelector(".lq-advice")) continue; const box = adviceBox(doc, li.textContent, lang); if (box) li.appendChild(box); }
-    const old = container.querySelector(":scope > nav.lq-toc"); if (old) old.remove();
+    const old = container.querySelector(":scope > nav.lq-toc[data-lq-toc]"); if (old) old.remove(); // only a menu this file made
     if (groups.length >= 4 && !(opts && opts.toc === false)) toc(container, groups, lang, groups[0]);
     for (const r of container.querySelectorAll(".fa-reminder")) noticeify(r, lang);
     return container;

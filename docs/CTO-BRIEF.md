@@ -6,6 +6,18 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Fortune Part A (owner order 2026-11-14, branch `fortune-a`, waiting for owner approval before merge)
+
+- A1: "for entertainment" removed from the 18 fortune pages (TH / EN / ZH); the owner's one-line notice replaces it
+  (`fortune.disc.line`); legal item L63. Platform pages (home body text, `cat-fortune.html`, solutions, terms, sales docs)
+  still say "for entertainment" and wait for the owner.
+- A2 / A3: `fortune-read.js` regroups every reading (short headings, main point first, short paragraphs, "read more"
+  buttons, in-page menu on long readings). The words never change (tested on 1,000+ paragraphs, TH / EN / ZH, straight and
+  gentle); caution paragraphs are always shown.
+- A4: own inline-SVG icons (MIT) and colour swatches with the real colour and a text label; hidden in the crisis state.
+- A5: notices are one line, the rest behind "read more"; the help line and the crisis card are never folded.
+- Tests: `tests/unit/fortune-layout.test.js`, `tests/e2e/fortune-layout.e2e.mjs` (locked, `evals-locks/fortune-layout.sha256`).
+
 ## Owner decisions 2026-11-13
 
 - **Payment:** bank transfer only for now (no PromptPay QR, no card, no Opn); prices exclude 7 % VAT.
