@@ -90,6 +90,10 @@ LEADS_GLOBAL_DAY = "200"
 MERIT_INTEREST_FORM = "off"
 MERIT_INTEREST_DAYS = "90"
 MERIT_INTEREST_GLOBAL_DAY = "100"
+# Organisation accounts lite (org-p1, src/orgs.js): OFF until the owner approves. Off = every member-side and back-office
+# organisation route answers 404 org_accounts_off and /v1/config reports org_accounts: false. "on" also needs
+# window.LENSIQ_ORG_ACCOUNTS = true in lensiq-config.js before anything is shown on a page.
+ORG_ACCOUNTS = "off"
 # Transactional e-mail (src/mail.js): receipt / credit-note notices and a renewal reminder 3 days before a paid period
 # ends. OFF while MAIL_PROVIDER is empty (every mail logged as skipped_not_configured). Needs a provider account and the
 # sender domain's SPF / DKIM / DMARC; the API key is the SECRET MAIL_API_KEY (`wrangler secret put MAIL_API_KEY`).
@@ -203,6 +207,7 @@ LEAD_NOTIFY_LINE_DAY = "50"
 MERIT_INTEREST_FORM = "off"
 MERIT_INTEREST_DAYS = "90"
 MERIT_INTEREST_GLOBAL_DAY = "100"
+ORG_ACCOUNTS = "off"
 MAIL_PROVIDER = ""
 MAIL_FROM = ""
 SITE_URL = "https://anirut77.github.io/lensiq"

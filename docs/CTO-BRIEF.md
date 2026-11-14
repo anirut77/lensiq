@@ -21,6 +21,7 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
 - **Grace period:** limits start 30 days after the announcement; the announcement is made at least 30 days ahead; customers can always export their data.
 - **Offline licence:** a licence works offline for 14 days (planned, not built).
 - **Organisation accounts (lite), planned, not built:** organisation name, billing details, admins and staff, invitations; no syncing of the customer's people data.
+  - **P1 built 2026-11-14 on branch `org-p1`, OFF (not merged until CI is green, not deployed):** two off switches (Worker `ORG_ACCOUNTS`, page `LENSIQ_ORG_ACCOUNTS`), both off = no UI and every organisation route 404; organisation export for admins, always available (suspended, closed, any licence). Turning it on needs the owner's approval. PDPA §I4.
 - **Plans in the database:** only Gate, Attendance, Exam (lab room) and Crowd report get back-office order plans; no online purchase.
 - **Stream G built (2026-11-13, branch `accounts-g`, not merged / not deployed):** LINE Login next to Google (off until the owner sets
   the LINE channel id and secret), organisation account lite with invitations and an audit log, back-office licence orders

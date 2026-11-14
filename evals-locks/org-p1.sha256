@@ -1,0 +1,11 @@
+# locked 2026-11-14T11:43:21Z (tools/eval-guard.mjs lock, 6 files)
+b6c74937af702e616705d4ff53c9ee76ce30c18fd52c63ebd5b986efa5b78e7b  tests/unit/backend-org-p1.test.js
+c70e34d6caa83151f7f8af52edba9bcd4361e85429cca00d66d14dd4f446ae65  tests/e2e/org-p1.e2e.mjs
+0fdec63cbb6e561bedc15a8b47aa159682d77609612494d8051a555b4e7159e9  tests/unit/backend-orgs.test.js
+392996a94d9e149afd46887bb864a308c72823923f1cf397a9d8cdd095b32afe  tests/unit/backend-accounts-security.test.js
+2aebb07cfc5b5dd3039971fc9a53ca4cc70db585ca2c37dd53dd5668005fb967  tests/e2e/accounts.e2e.mjs
+e7327d22e7c51cac247c537423496c5012111e77a1509d454c41c151b43a52ce  tests/e2e/admin-orgs.e2e.mjs
+# org-p1 (organisation accounts phase 1, owner approval 2026-11-13 "Org accounts lite", order 2026-11-14 "P1 behind off switches"): fixed acceptance tests locked BEFORE the P1 code (off switches ORG_ACCOUNTS / LENSIQ_ORG_ACCOUNTS, org export, UI gating). Branch org-p1, base 4413bc3. Paths = repo paths; the copies in ~/LENSIQ-field/evals/org-p1/ are byte-identical.
+# NEW: tests/unit/backend-org-p1.test.js (F1-F4 switches, R1-R2 roles, X1 cross-org, I1-I2 invitations, E1-E3 export always, D1 minimal data); tests/e2e/org-p1.e2e.mjs (UI hidden unless both switches on; export button; admin tab).
+# Amendments to tests locked in accounts-g (fixture only, no assertion changed, nothing loosened): A-P1-1 backend-orgs + backend-accounts-security env gets ORG_ACCOUNTS="on"; A-P1-2 accounts.e2e mock sets window.LENSIQ_ORG_ACCOUNTS = true and /v1/config org_accounts: true; A-P1-3 admin-orgs.e2e starts the Worker with ORG_ACCOUNTS="on" and the page with LENSIQ_ORG_ACCOUNTS = true. Reason: both switches now default off, so these suites must switch them on to keep testing the same behaviour.
+# Harness fix before locking (not measured): I1 / I2 / E3 sign-in subs renamed so they cannot collide with the org fixture owner subs.
