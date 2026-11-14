@@ -314,6 +314,67 @@
     window.addEventListener("lq-lang", showNotice);
     showNotice(); window.addEventListener("load", showNotice);
     var tsBox = document.getElementById("lqTurnstile"), tsHint = document.getElementById("lqTurnstileHint");
+    // Part E (owner order 2026-11-14, defect W-001): a request counts as sent ONLY when the server confirmed it (2xx from
+    // /v1/leads, {via: "api", ok: true}); only then the green success style. Anything else says "ยังไม่ได้ส่ง", keeps
+    // every field, offers "send again" and the LINE button, and keeps the request in the local queue (lensiq-leads.js
+    // retries it after the next bot check and removes it only after a 2xx).
+    /** @type {any} */
+    var pending = null; // the request on screen that is not sent yet (its id is reused by "send again")
+    var fieldsOf = function () {
+      return { name: $("lqName").value.trim(), org: $("lqOrg").value.trim(), email: $("lqEmail").value.trim(),
+        phone: $("lqPhone").value.trim(), interest: $("lqInterest").value, message: $("lqMsg").value.trim() };
+    };
+    var done = function () {
+      /** @type {HTMLFormElement} */ (form).reset();
+      Object.keys(rules).forEach(function (id) { $(id).classList.remove("invalid"); $(id).removeAttribute("aria-invalid"); });
+    };
+    /** the green confirmation: only ever called after a 2xx @param {string} name */
+    var showSent = function (name) {
+      var L = /** @type {any} */ (window).LQLeads;
+      var ql = L && typeof L.quoteLine === "function" ? L.quoteLine() : "";
+      msg.className = "form-msg ok";
+      msg.textContent = ql
+        ? T("home.ok.sentLine", "ขอบคุณคุณ{name} ส่งคำขอถึงทีมงานแล้ว เราจะติดต่อกลับตามข้อมูลที่ให้ไว้ หรือแอด LINE: {id}", { name: name, id: ql })
+        : T("home.ok.sent", "ขอบคุณคุณ{name} ส่งคำขอเดโมถึงทีมงานแล้ว ทีมงานจะติดต่อกลับทางอีเมลที่ให้ไว้", { name: name });
+    };
+    /** "not sent yet" + send again + LINE @param {any} r */
+    var showNotSent = function (r) {
+      var L = /** @type {any} */ (window).LQLeads;
+      var id = r.lineId || (L && typeof L.quoteLine === "function" ? L.quoteLine() : "") || "";
+      var url = r.line || (id && L && L.lineUrl ? L.lineUrl(id) : "");
+      msg.className = "form-msg err";
+      msg.textContent = "";
+      msg.appendChild(document.createTextNode(r.reason === "turnstile"
+        ? T("home.err.ts", "ยังไม่ได้ส่ง: ยืนยันว่าเป็นคนไม่สำเร็จ ข้อความของคุณยังอยู่ในแบบฟอร์ม กด “ส่งอีกครั้ง” หรือติดต่อเราทาง LINE {id}", { id: id })
+        : r.reason === "offline"
+          ? T("home.err.offline", "ยังไม่ได้ส่ง: เครื่องนี้ไม่ได้เชื่อมต่ออินเทอร์เน็ต ข้อความของคุณยังอยู่ในแบบฟอร์ม ระบบจะลองส่งให้อีกครั้งเมื่อกลับมาออนไลน์ หรือกด “ส่งอีกครั้ง” หรือติดต่อเราทาง LINE {id}", { id: id })
+          : T("home.err.send", "ยังไม่ได้ส่ง: ระบบหรือเครือข่ายขัดข้อง ข้อความของคุณยังอยู่ในแบบฟอร์ม กด “ส่งอีกครั้ง” หรือติดต่อเราทาง LINE {id}", { id: id })));
+      var row = document.createElement("span");
+      row.className = "form-msg-acts";
+      var rb = document.createElement("button");
+      rb.type = "button"; rb.className = "btn primary"; rb.setAttribute("data-lq-retry", "");
+      rb.textContent = T("home.retry", "ส่งอีกครั้ง");
+      rb.addEventListener("click", function () {
+        var f = /** @type {any} */ (form);
+        if (typeof f.requestSubmit === "function") f.requestSubmit();
+        else { var sb = /** @type {HTMLButtonElement|null} */ (f.querySelector("button[type=submit]")); if (sb) sb.click(); }
+      });
+      row.appendChild(rb);
+      if (url) {
+        var la = document.createElement("a"); la.href = url; la.target = "_blank"; la.rel = "noopener"; la.className = "btn ghost";
+        la.textContent = T("home.ok.line", "แชตทาง LINE {id}", { id: id }); row.appendChild(la);
+      }
+      msg.appendChild(row);
+    };
+    // the queue sent the request still on screen (after a later bot check): only now the success style
+    window.addEventListener("lq-leads-sent", function (/** @type {any} */ e) {
+      var ids = e && e.detail && e.detail.ids || [];
+      if (!pending || ids.indexOf(pending.id) < 0 || sending) return;
+      var p = pending, now = fieldsOf();
+      pending = null;
+      if (now.name === p.name && now.message === p.message && now.email === p.email && now.phone === p.phone) done();
+      showSent(p.name);
+    });
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       if (sending) return;
@@ -325,12 +386,15 @@
         $(bad[0]).focus();
         return;
       }
-      var lead = {
-        id: Date.now().toString(36), createdAt: new Date().toISOString(),
-        name: $("lqName").value.trim(), org: $("lqOrg").value.trim(), email: $("lqEmail").value.trim(),
-        phone: $("lqPhone").value.trim(), interest: $("lqInterest").value,
-        message: $("lqMsg").value.trim()
-      };
+      // the queue already delivered the request on screen (confirmed 2xx) before "send again": never send it twice
+      var LQ0 = /** @type {any} */ (window).LQLeads;
+      if (pending && LQ0 && typeof LQ0.isQueued === "function" && LQ0.serverOn && LQ0.serverOn() && !LQ0.isQueued(pending.id) && LQ0.wasSent && LQ0.wasSent(pending.id)) {
+        var p0 = pending; pending = null; done(); showSent(p0.name); return;
+      }
+      // "send again" keeps the id of the request already queued, so the queue never holds it twice
+      // source and lang go into the request itself, so a queued request keeps them when it is retried later
+      var lead = Object.assign({ id: pending ? pending.id : Date.now().toString(36), createdAt: pending ? pending.createdAt : new Date().toISOString(),
+        source: "index", lang: window.LQI18N ? window.LQI18N.lang : "th" }, fieldsOf());
       var keepLocal = function () {
         // round 12: lensiq-leads.js keeps it in the same "lq-leads" list (capped) and shows the "not sent yet" box
         var LQ = /** @type {any} */ (window).LQLeads;
@@ -343,10 +407,6 @@
           return true;
         } catch (err) { return false; }
       };
-      var done = function () {
-        /** @type {HTMLFormElement} */ (form).reset();
-        Object.keys(rules).forEach(function (id) { $(id).classList.remove("invalid"); $(id).removeAttribute("aria-invalid"); });
-      };
       var L = /** @type {any} */ (window).LQLeads;
       var btn = /** @type {HTMLButtonElement|null} */ (form.querySelector("button[type=submit]"));
       if (btn) btn.disabled = true;
@@ -355,34 +415,31 @@
       var tsOpts = { container: tsBox || undefined,
         onInteractive: function () { if (tsHint) tsHint.hidden = false; msg.textContent = ""; try { if (tsBox) tsBox.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (err) { /* old browser */ } },
         onDone: function () { if (tsHint) tsHint.hidden = true; } };
-      var sent = L ? L.submit(Object.assign({}, lead, { source: "index", lang: window.LQI18N ? window.LQI18N.lang : "th" }), { subject: "LENSIQ demo request", turnstile: tsOpts }) : Promise.resolve({ via: "none", ok: false });
+      var sent = L ? L.submit(lead, { subject: "LENSIQ demo request", turnstile: tsOpts }) : Promise.resolve({ via: "none", ok: false });
       sent.then(function (/** @type {any} */ r) {
         sending = false;
         if (btn) btn.disabled = false;
         if (tsHint) tsHint.hidden = true;
         msg.textContent = "";
-        if (r && r.via === "api" && !r.ok) {
-          // the server form failed: keep everything the customer typed, say so plainly, offer LINE (never a silent loss)
-          msg.className = "form-msg err";
-          msg.appendChild(document.createTextNode(r.reason === "turnstile"
-            ? T("home.err.ts", "ยังไม่ได้ส่ง: ยืนยันว่าเป็นคนไม่สำเร็จ ข้อความของคุณยังอยู่ในแบบฟอร์ม กดส่งอีกครั้ง หรือติดต่อเราทาง LINE {id}", { id: r.lineId || "" })
-            : T("home.err.send", "ส่งไม่สำเร็จ (ระบบหรือเครือข่ายขัดข้อง) ข้อความของคุณยังอยู่ในแบบฟอร์ม กดส่งอีกครั้ง หรือติดต่อเราทาง LINE {id}", { id: r.lineId || "" })));
-          if (r.line) {
-            msg.appendChild(document.createElement("br"));
-            var la = document.createElement("a"); la.href = r.line; la.target = "_blank"; la.rel = "noopener"; la.className = "btn ghost";
-            la.textContent = T("home.ok.line", "แชตทาง LINE {id}", { id: r.lineId || "" }); msg.appendChild(la);
-          }
-          return;
-        }
-        if (r && r.ok) {
+        if (r && r.via === "api" && r.ok) {
+          // confirmed by the server (2xx): the only success path
+          pending = null;
+          if (L && typeof L.unqueue === "function") L.unqueue(lead.id);
           done();
-          msg.className = "form-msg ok";
-          var ql = L && typeof L.quoteLine === "function" ? L.quoteLine() : "";
-          msg.textContent = ql
-            ? T("home.ok.sentLine", "ขอบคุณคุณ{name} ส่งคำขอถึงทีมงานแล้ว เราจะติดต่อกลับตามข้อมูลที่ให้ไว้ หรือแอด LINE: {id}", { name: lead.name, id: ql })
-            : T("home.ok.sent", "ขอบคุณคุณ{name} ส่งคำขอเดโมถึงทีมงานแล้ว ทีมงานจะติดต่อกลับทางอีเมลที่ให้ไว้", { name: lead.name });
+          showSent(lead.name);
+          // the bot check just passed: send whatever else is waiting in this browser
+          if (L && typeof L.flushQueue === "function") L.flushQueue({ turnstile: { container: tsBox || undefined } });
           return;
         }
+        if (r && r.via === "api") {
+          // the server form failed: keep everything the customer typed, keep it in the queue, say so plainly, offer
+          // "send again" and LINE (never a silent loss, never the success style)
+          keepLocal();
+          pending = lead;
+          showNotSent(r);
+          return;
+        }
+        // the server form is off: nothing was sent; the text stays in the form and in this browser
         var saved = keepLocal();
         if (r && (r.href || r.line)) {
           // not sent yet: the visitor's own mail app / LINE sends it — say so plainly
@@ -392,11 +449,10 @@
           if (r.line) { var b2 = document.createElement("a"); b2.href = r.line; b2.target = "_blank"; b2.rel = "noopener"; b2.className = "btn ghost"; b2.textContent = T("home.ok.line", "แชตทาง LINE {id}", { id: r.lineId || "" }); msg.appendChild(b2); }
           return;
         }
-        done();
-        msg.className = "form-msg ok";
+        msg.className = "form-msg warn";
         msg.textContent = saved
           ? T("home.ok.notSent", "ขอบคุณคุณ{name} — ยังไม่ได้ส่งคำขอนี้: ระบบรับคำขอออนไลน์และช่องทางติดต่อของผู้ให้บริการจะประกาศก่อนเปิดขาย (บันทึกไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น)", { name: lead.name })
-          : T("home.ok.unsaved", "ขอบคุณคุณ{name} ได้รับคำขอเดโมแล้ว (โหมดเดโม: เบราว์เซอร์ไม่อนุญาตให้บันทึกข้อมูล จึงไม่ได้เก็บไว้)", { name: lead.name });
+          : T("home.ok.unsaved", "ยังไม่ได้ส่ง: ระบบรับคำขอออนไลน์ยังไม่เปิด และเบราว์เซอร์นี้ไม่อนุญาตให้บันทึกข้อมูล คำขอจึงยังไม่ได้เก็บไว้ที่ใด", { name: lead.name });
       });
     });
   }
