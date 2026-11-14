@@ -138,7 +138,12 @@ export async function measureOnce(browser, base, path, { capSec = 90, initScript
   } finally { off(); await page.close(); }
 }
 
-export const median = a => { const s = a.filter(v => v != null).sort((x, y) => x - y); if (!s.length) return null; const m = s.length >> 1; return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2); };
+export const median = a => {
+  const s = a.filter(v => v != null).sort((x, y) => x - y);
+  if (!s.length) return null;
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
+};
 
 export function summarize(runs) {
   const k = ["requests", "kb", "fcp", "dcl", "load", "quiet", "tti", "heapMB", "modelKB"];
@@ -176,8 +181,12 @@ async function main() {
       s.all = rs.map(r => ({ kb: r.kb, requests: r.requests, fcp: r.fcp, load: r.load, tti: r.tti, heapMB: r.heapMB, capped: r.capped }));
       rows.push(s);
       loads.push(loadavg().map(v => +v.toFixed(2)));
-      console.log(`  ${p.padEnd(22)} ${String(s.kb).padStart(6)} KB ${String(s.requests).padStart(4)} req  FCP ${s.fcp} ms  load ${s.load} ms  TTI ${s.tti} ms  heap ${s.heapMB} MB  models ${s.modelKB} KB${s.capped ? `  capped ${s.capped}/${runs}` : ""}${s.models.length ? "  [" + s.models.join(" ") + "]" : ""}`);
-      if (out) writeFileSync(out, JSON.stringify({ profile: fast ? "unthrottled" : PROFILE, source: "synthetic, emulated mid-range phone", dir, runs, capSec, at: new Date().toISOString(), loadavg: loads, rows }, null, 1));
+      console.log(`  ${p.padEnd(22)} ${String(s.kb).padStart(6)} KB ${String(s.requests).padStart(4)} req  FCP ${s.fcp} ms  load ${s.load} ms` +
+        `  TTI ${s.tti} ms  heap ${s.heapMB} MB  models ${s.modelKB} KB${s.capped ? `  capped ${s.capped}/${runs}` : ""}` +
+        `${s.models.length ? "  [" + s.models.join(" ") + "]" : ""}`);
+      const doc = { profile: fast ? "unthrottled" : PROFILE, source: "synthetic, emulated mid-range phone", dir, runs, capSec,
+        at: new Date().toISOString(), loadavg: loads, rows };
+      if (out) writeFileSync(out, JSON.stringify(doc, null, 1));
     }
   } finally { await browser.close(); srv.stop(); }
   const la = loads.map(l => l[0]);

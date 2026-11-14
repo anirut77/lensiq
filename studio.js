@@ -73,9 +73,11 @@
   function loadModels() {
     if (modelsP) return modelsP;
     status("matte", T("studio.js.st.matteLoading", "กำลังโหลดโมเดลตัดพื้นหลัง (MODNet)..."), "");
-    const a = PBHQ.loadMatting().then(() => status("matte", T("studio.js.st.matteOk", "ตัดพื้นหลัง MODNet พร้อม"), "ok"), e => { console.warn(e); status("matte", T("studio.js.st.matteFail", "MODNet ใช้ไม่ได้ (ใช้การแยกสีฉากแทน)"), "warn"); });
+    const a = PBHQ.loadMatting().then(() => status("matte", T("studio.js.st.matteOk", "ตัดพื้นหลัง MODNet พร้อม"), "ok"),
+      e => { console.warn(e); status("matte", T("studio.js.st.matteFail", "MODNet ใช้ไม่ได้ (ใช้การแยกสีฉากแทน)"), "warn"); });
     status("parse", T("studio.js.st.parseLoading", "กำลังโหลดโมเดลแยกผม/คอ/เสื้อ..."), "");
-    const b = PBHQ.loadMulticlass().then(() => status("parse", T("studio.js.st.parseOk", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass) พร้อม"), "ok"), e => { console.warn(e); status("parse", T("studio.js.st.parseFail", "โหลดโมเดลแยกผม/คอไม่ได้ (ใช้การจัดกลุ่มสีแทน)"), "warn"); });
+    const b = PBHQ.loadMulticlass().then(() => status("parse", T("studio.js.st.parseOk", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass) พร้อม"), "ok"),
+      e => { console.warn(e); status("parse", T("studio.js.st.parseFail", "โหลดโมเดลแยกผม/คอไม่ได้ (ใช้การจัดกลุ่มสีแทน)"), "warn"); });
     status("face", T("studio.js.st.faceLoading", "กำลังโหลดตัวตรวจใบหน้า..."), "");
     const c = loadFace().catch(() => {});
     modelsP = Promise.allSettled([a, b, c]);
