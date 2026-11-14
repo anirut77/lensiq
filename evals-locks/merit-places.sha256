@@ -1,0 +1,5 @@
+# locked 2026-11-14T15:47:05Z (tools/eval-guard.mjs lock, 1 file)
+d1ff3e71a076259dc22f269f2cc71889150d123adb0ad5be7bb4231281ed6197  backend-merit-places.test.js
+# merit-places (team C, owner order 2026-11-14 Part C) locked 2026-11-14 on branch merit-places-c (base ea509e0) BEFORE the product change
+# (backend/src/merit.js review notes purposes / province / verification, lensiq-merit-lint.js "แก้ชงได้", tools/merit-drafts-check.mjs, admin.js).
+d1ff3e71a076259dc22f269f2cc71889150d123adb0ad5be7bb4231281ed6197  tests/unit/backend-merit-places.test.js  # repo file
