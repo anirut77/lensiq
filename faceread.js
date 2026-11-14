@@ -1440,6 +1440,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#frColors").innerHTML = E.colors.map(function (c) { return '<li><i style="background:' + c.hex + '"></i>' + esc(c.name) + "</li>"; }).join("");
 
     renderReco(R);
+    // แนะนำการแต่งลุค (lensiq-look.js): ผู้ใหญ่เท่านั้น ซ่อนเมื่อระบบดูแลภาวะวิกฤตทำงาน ไม่เก็บภาพ ไม่ผูกกับสินค้า
+    var W8 = /** @type {any} */ (window); if (W8.LQLook) W8.LQLook.render($("#frLook"), R);
     renderLeadForm();
 
     // วิธีคำนวณ

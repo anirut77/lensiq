@@ -50,6 +50,8 @@ interface Window {
   LQFortuneCrisis?: any;
   /** lensiq-config.js: Part C "read it straight" fortune option (owner order 2026-11-12); false until the owner approves */
   LENSIQ_FORTUNE_STRAIGHT?: boolean;
+  /** look suggestions salon mode (lensiq-config.js, hard off until the human-approval step exists; owner 2026-11-14) */
+  LENSIQ_LOOK_SALON?: boolean;
   /** fortune-straight.js (loaded before fortune-ai.js) */
   LQFortuneStraight?: any;
   /** lensiq-config.js: "commercial" (default since round 16, customer mode) forces LENSIQ_AGE_GENDER, LENSIQ_EXPRESSION and
