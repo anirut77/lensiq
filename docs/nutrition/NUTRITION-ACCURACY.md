@@ -51,7 +51,7 @@ shifts down one row and each is shown as "read" (e.g. China: fat shows the carbo
 value). The parser accepts sodium printed in g without flagging it, which hid part of this. Thai panels (name and value
 on one text run) are not affected. The missed allergen statements are also on rotated pictures (2 / 6 found).
 
-## Next step (not built: it needs the owner's decision, see the round report)
+## Next step after round 1 (historical: it needed the owner's decision then; see rounds 2–5 and "Status")
 
 Candidate fixes, to be measured on a NEW synthetic set (this one is used up for tuning purposes): pair names and values
 by the tilt of the OCR boxes instead of the line grouping; flag "please check" when a whole column looks shifted
@@ -60,7 +60,8 @@ silently. Real-photo measurement still needs the owner's 200 photos.
 
 ## Round 2 (2026-11-13): tilt fix, option (a), measured on a NEW locked set (v2)
 
-Coordinator instruction 2026-11-13 (branch only; nothing ships until the owner decides). Fix: rows are paired along the
+Coordinator instruction 2026-11-13 (round 2 only: branch only, nothing shipped until the owner decided, because I2
+still missed then; superseded by round 5, see "Status" below). Fix: rows are paired along the
 picture's tilt (`LQNut.linesFromParts`: the angle that lines up box centres across rows and box edges down columns);
 a tilt above 2.5° marks every value "please check" (why "tilt"); a unit that does not fit its field (sodium in g, salt in
 mg, …) is never accepted silently; two or more such units mark the label's values "please check" (why "shifted").
@@ -155,3 +156,9 @@ tests/unit/nut-straighten.test.js and tests/e2e/nutrition-tilt.e2e.mjs). Source:
 Serving weight exact 245 / 251 = 97.6 %; servings per pack 141 / 144 = 97.9 %. OCR + parse median 2.7 s, p90 3.8 s per
 label (M1, headless Chrome; not a phone). The single silent wrong value: Japanese protein 8.7 g read for 8.1 g at 2°.
 All of this is synthetic: real label photos are still unmeasured (owner's 200-photo set, design §5.1).
+
+## Status (2026-11-14)
+
+Round 5 (v5) met every target (I2 silent wrong 1 / 1912 = 0.1 % [0.0–0.3], I3 allergen 99.6 %); independent review
+2026-11-13 OK (synthetic, re-measured on the reviewer's own set); merged as experimental under the standing order
+(`nutrition-2`). Real-photo measurement still needs the owner's photos.

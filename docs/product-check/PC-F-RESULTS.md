@@ -58,7 +58,7 @@ Dev set: 0 / 0 / 0 leaks, cued recall 1.000 (not evidence: the builder wrote it)
 
 ### 1.3 Regression checks (synthetic)
 
-- P7 / P7b locked sets (`live-leak-score.mjs`, committed guard `2bcd23bc…` after the review fix; earlier `8f5f89de…` gave the same): personal items to AI **0/260, 0/614**, text and image,
+- P7 / P7b locked sets (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`) (p7b languages: Thai 319, English 161, Chinese 51, Japanese 56, Korean 27 items) (`live-leak-score.mjs`, committed guard `2bcd23bc…` after the review fix; earlier `8f5f89de…` gave the same): personal items to AI **0/260, 0/614**, text and image,
   single and merged readings; one-tap-eligible product labels 217/360, manual gate 299/360 (unchanged).
 - Same-frame stress (P001 + 308 personal captures): 0 sent.
 - Old vs new guard on all 1,773 fixed texts (`guardcompare-run3.log`): 97 texts changed, **0 product decisions changed**;

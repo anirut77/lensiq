@@ -5,7 +5,8 @@
  * window.LQPCLiveUI.start(video) / stop() — called by lensiq-pc-ui.js when the camera button opens the camera with
  * "#pcLiveOn" ticked (the default) / when the camera closes, a photo is taken by hand, or the tab is left.
  *   - a framing guide over the video (#pcLiveGuide) and one short live hint (#pcLiveHint data-hint = nolabel | dark |
- *     bright | closer | glare | hold | ok | reading | done | paused);
+ *     bright | closer | glare | hold | ok | reading | done | turn | paused; turn = a side read in full with nothing on the
+ *     checklist, most likely the front of the pack: turn to the side with the ingredients, registration number or barcode);
  *   - every frame analysed is a <= 320 px copy of the video (memory only), at most CFG.fps (<= 5) per second; nothing runs
  *     while the page is hidden (the loop stops; LQCam releases the camera) and the reading starts over when it is visible;
  *   - after CFG.stableFrames steady good frames the frame is read on the device (barcodes first, then OCR) — no shutter;
@@ -40,7 +41,8 @@
     bright: T("md.pc.live.h.bright", "สว่างจ้าเกินไป ย้ายออกจากแสงไฟ"), closer: T("md.pc.live.h.closer", "ขยับเข้าใกล้ฉลากอีกนิด"),
     glare: T("md.pc.live.h.glare", "มีแสงสะท้อน เอียงสินค้าเล็กน้อย"), hold: T("md.pc.live.h.hold", "ถือนิ่ง ๆ"), ok: T("md.pc.live.h.ok", "ภาพนิ่งแล้ว กำลังจะอ่าน"),
     reading: T("md.pc.live.h.reading", "กำลังอ่านบนเครื่องนี้…"), done: T("md.pc.live.h.done", "อ่านด้านนี้แล้ว หันไปอีกด้านหรือสินค้าชิ้นอื่นได้"),
-    paused: T("md.pc.live.h.paused", "หยุดอ่านชั่วคราวระหว่างขั้นตอนอื่น")
+    paused: T("md.pc.live.h.paused", "หยุดอ่านชั่วคราวระหว่างขั้นตอนอื่น"),
+    turn: T("md.pc.live.h.turn", "ด้านนี้ไม่มีเลขทะเบียน ส่วนประกอบ หรือบาร์โค้ด (น่าจะเป็นด้านหน้า) หมุนกล่องไปด้านที่มีส่วนประกอบ เลขทะเบียน หรือบาร์โค้ด")
   });
   function setHint(h) {
     if (h === st.hint) return;
@@ -107,7 +109,8 @@
       if (r.cut) newScene(); // another object: never merged with the last one
       const blocked = W.__LQ_PC && W.__LQ_PC.liveBlocked && W.__LQ_PC.liveBlocked();
       if (reading) setHint("reading");
-      else if (st.sceneReads >= C.readsPerScene && (r.hint === "ok" || r.hint === "hold")) setHint("done");
+      // a side read in full: "turn" when nothing on the checklist was found (most likely the front of the pack), else "done"
+      else if (st.sceneReads >= C.readsPerScene && (r.hint === "ok" || r.hint === "hold")) setHint(L.sideHint ? L.sideHint(st.list) : "done");
       else if (blocked && r.stable) setHint("paused");
       else setHint(r.hint);
       if (r.stable && !reading && !blocked && st.sceneReads < C.readsPerScene) {

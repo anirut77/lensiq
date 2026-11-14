@@ -375,7 +375,7 @@ input. Rows without ground truth are skipped and counted.
   Pilots should photograph the side of the pack with the registration number or the barcode; adverts and other sides
   get the on-device results only (`docs/product-check/P7-RESULTS.md` §3.4, §3.6). Field: not measured.
 - **2026-11-10 (round 17, P7, owner decision ก)**: the filter was measured by an independent agent on a locked
-  synthetic set: 0/260 personal-data items reached the AI; 19.2 % of real product labels were refused (front panel
+  synthetic set: 0/260 personal-data items reached the AI (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`); 19.2 % of real product labels were refused (front panel
   38.9 %, short capture 28.9 %, long label 7.8 %, back panel 1.1 %; with a decoded barcode or a parsed registration
   number 5.0 %). When a capture is refused for lack of evidence the page now tells the user to photograph the side
   with the registration number or the ingredients list, or to scan the barcode. At a pilot site record, per pack:
@@ -411,3 +411,9 @@ No field figure changed. Field pilots of Gate, Attendance, Exam and Crowd now ru
 1 lane, 100 reads per day; Attendance up to 5 people; Exam up to 5 candidates per session; Crowd 2 hours per device per
 day), which are counted on the device and not enforced. A pilot beyond those sizes needs a licence order entered by the
 owner after the quotation and transfer (admin → Organisations), or the pilot terms in the contract (the Exam field pilot stays free).
+
+- **2026-11-14 (stream JK)**: Product Check never sends Japanese / Korean text to AI by itself (one-tap off for it, no photo,
+  preview always open, Worker second check). Field question to record on the first phone test with a Japanese or Korean pack:
+  which script was chosen, whether the reading showed the script, whether the user removed anything in the preview, and
+  whether the live scan's "turn the pack" hint appeared on the front. Synthetic numbers only so far
+  (`docs/product-check/PC-JK-RESULTS.md`).
