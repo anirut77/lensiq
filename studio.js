@@ -410,7 +410,7 @@
   // ---------- ปรับชุด ----------
   /** แยก ผม/ใบหน้า/คอ/เสื้อ: BiSeNet บนครอปรอบใบหน้า (ถ้าผมยาวถึงขอบล่างของครอป รันซ้ำด้วยครอปที่ใหญ่ขึ้น) สำรอง = heuristic */
   // ?faceparse=1 only on a research-demo device (PBHQ.faceparseAllowed); no PBHQ = off
-  const parseOptIn = () => !!(self.PBHQ && PBHQ.faceparseAllowed && PBHQ.faceparseAllowed(self));
+  const parseOptIn = () => { const hq = /** @type {any} */ (self).PBHQ; return !!(hq && hq.faceparseAllowed && hq.faceparseAllowed(self)); };
   async function parsePerson(canvas, face) {
     const W = ST.W, H = ST.H;
     const optIn = parseOptIn();

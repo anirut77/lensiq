@@ -42,6 +42,6 @@ test("studio.js and photobooth-hq.js read ?faceparse only through faceparseAllow
     const raw = (src.match(/faceparse=1/g) || []).length;
     assert.equal(raw, f === "photobooth-hq.js" ? 1 : 0, f + ": the query is tested in one place only");
   }
-  assert.match(readFileSync(join(ROOT, "studio.js"), "utf8"), /PBHQ\.faceparseAllowed\(self\)/);
+  assert.match(readFileSync(join(ROOT, "studio.js"), "utf8"), /\(self\)\.PBHQ;[^\n]*hq\.faceparseAllowed\(self\)/);
   assert.match(readFileSync(join(ROOT, "photobooth-hq.js"), "utf8"), /if \(!faceparseAllowed\(self\)\) throw new Error\("faceparse disabled"\)/);
 });
