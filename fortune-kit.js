@@ -245,7 +245,7 @@
     });
     // the help line travels with every shared card (owner order 2026-11-12; numbers verified in docs/CRISIS-RESOURCES.md)
     c.font = "500 24px " + F; c.fillStyle = "#a5f3fc";
-    K.wrapTh(c, T("fk.card.help", "ถ้ากำลังรู้สึกไม่ไหว โทร 1323 สายด่วนสุขภาพจิต ฟรี ตลอด 24 ชั่วโมง"), W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1236 + k * 28); });
+    K.wrapTh(c, T("fk.card.help", "อยากมีคนรับฟัง โทร 1323 · พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง"), W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1236 + k * 28); });
     c.font = "400 22px " + F; c.fillStyle = "#8f9bc4";
     K.wrapTh(c, opt.foot || T("fk.card.foot", "เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์"), W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1298 + k * 26); });
     return cv;

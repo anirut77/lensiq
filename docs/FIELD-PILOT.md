@@ -320,6 +320,9 @@ input. Rows without ground truth are skipped and counted.
 
 ## Changelog / last reviewed
 
+- **2026-11-14 (tap-to-call help lines)**: no change to the pilots. Every help number (fortune pages, medicine,
+  nutrition, terms) is now a one-row tap-to-call button; on a booth computer the number shows as large text instead of
+  relying on a phone. Numbers and hours re-checked 2026-11-14 (`docs/CRISIS-RESOURCES.md`).
 - **2026-11-12 (fortune help line)**: no change to the plate or medicine pilots. The fortune pages (not a field-pilot
   product) now carry an always-visible help line with numbers verified in `docs/CRISIS-RESOURCES.md`; if fortune ever
   runs at a pilot booth, staff should know the line is there and that 1669 is the medical emergency number. Last

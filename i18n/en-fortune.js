@@ -57,7 +57,7 @@
     "fk.src.ai": "Composed by the writing assistant (Claude by Anthropic)",
     "fk.src.local": "Composed on this device · worded differently each time",
     "fk.card.foot": "For entertainment only, not a scientific conclusion",
-    "fk.card.help": "If things feel like too much, call 1323, the Thai mental health hotline: free, 24 hours",
+    "fk.card.help": "Want someone to listen? Call 1323 · Talk any time, 24 hours a day, with someone ready to listen",
     "fk.share.text": "For entertainment only",
     "fk.card.saved": "Card saved",
     "fk.card.fail": "Could not create the card",

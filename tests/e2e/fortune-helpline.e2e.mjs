@@ -13,9 +13,11 @@ const S = JSON.stringify;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const PAGES = ["fortune", "cat-fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui",
   "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report"];
-const WANT = { th: /สายด่วนสุขภาพจิต[\s\S]*1323[\s\S]*ฟรี ตลอด 24 ชั่วโมง[\s\S]*เจ็บป่วยฉุกเฉิน[\s\S]*1669/,
-  en: /mental health hotline[\s\S]*1323[\s\S]*free, 24 hours[\s\S]*Medical emergency[\s\S]*1669/i,
-  zh: /心理健康热线[\s\S]*1323[\s\S]*免费，24 小时[\s\S]*医疗急救[\s\S]*1669[\s\S]*没有经核实的泰国中文热线/ };
+// AMENDED 2026-11-14 (owner order Part B, re-locked before the build on branch helpline-b): the expected wording is the owner's
+// warm 1323 wording in the shared tap-to-call component; every other check (sizes, fit, tel links, no JS, crisis) is unchanged.
+const WANT = { th: /อยากมีคนรับฟัง โทร 1323[\s\S]*พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง[\s\S]*บริการของกรมสุขภาพจิต[\s\S]*เจ็บป่วยฉุกเฉิน โทร 1669/,
+  en: /someone to listen[\s\S]*1323[\s\S]*24 hours[\s\S]*Department of Mental Health[\s\S]*Medical emergency[\s\S]*1669[\s\S]*local emergency number/i,
+  zh: /倾听[\s\S]*1323[\s\S]*24 小时[\s\S]*心理健康司[\s\S]*医疗急救[\s\S]*1669[\s\S]*没有经核实的泰国中文热线/ };
 const HTML_LANG = { th: "th", en: "en", zh: "zh-Hans" };
 // remedy / lucky-item / plan / paid / straight-mode wording (TH / EN / ZH) that must not appear next to a support card
 const MARKERS = /วิธีปรับ|ข้อแนะนำทั่วไปคือ|เคล็ด|สีมงคล|สีเสื้อมงคล|ธาตุเสริม|ทำบุญ|ดูตรง|A simple adjustment|lucky colou?r|remed|read it straight|调整的方法|幸运色|开运|直说/gi;
