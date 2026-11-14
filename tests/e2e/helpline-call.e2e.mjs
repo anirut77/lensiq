@@ -9,6 +9,10 @@
 //    every help line as a button.
 // 4) Rendered wording: 1323 button + second line in TH / EN / ZH without the forbidden words; EN / ZH without Thai.
 // 5) Computer: the number is also shown as large text that can be selected (user-select not none, >= 24 px).
+// RE-LOCK 2026-11-14 (owner addition after testing on a phone, relayed by the coordinator): every help line is ONE compact
+//    row at 360 / 375 / 414 px: the short label's start, the number and the call button share one row (same top band:
+//    the label's first line and the button overlap vertically) with the button to the RIGHT of the label, never below it;
+//    the second line wraps under the label, never under the button. Wording check reads label + call button.
 import { assert } from "./cdp.mjs";
 
 const S = JSON.stringify;
@@ -49,8 +53,13 @@ const BUTTONS = `(async () => { const out = [];
     if (!a.getClientRects().length || getComputedStyle(a).visibility === "hidden") continue;
     a.scrollIntoView({ block: "center", inline: "nearest" }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     const r = a.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, hit = document.elementFromPoint(cx, cy);
-    const c = a.closest("[data-lq-call]");
-    out.push({ href: a.getAttribute("href"), id: c ? c.getAttribute("data-lq-call") : null, text: a.textContent.replace(/\\s+/g, " ").trim(),
+    const c = a.closest("[data-lq-call]"), lab = c && c.querySelector(".lq-call-t"), sub = c && c.querySelector(".lq-call-sub");
+    let first = null;
+    if (lab && lab.firstChild) { const rg = document.createRange(); rg.setStart(lab.firstChild, 0); rg.setEnd(lab.firstChild, 1); first = rg.getClientRects()[0] || null; }
+    const lr = lab ? lab.getBoundingClientRect() : null, sr = sub && sub.getClientRects().length ? sub.getBoundingClientRect() : null;
+    const row = !first || !lr ? "no label" : !(first.top < r.bottom && r.top < first.bottom) ? "label and button not on one row " + JSON.stringify([first.top, first.bottom, r.top, r.bottom])
+      : r.left < lr.right - 1 ? "button not to the right of the label" : sr && sr.left < r.right && sr.right > r.left && sr.top >= r.top ? "second line under the button" : "";
+    out.push({ href: a.getAttribute("href"), id: c ? c.getAttribute("data-lq-call") : null, text: a.textContent.replace(/\\s+/g, " ").trim(), row,
       w: r.width, h: r.height, left: r.left, right: r.right, vw: innerWidth, hitSelf: hit === a,
       hit: hit ? hit.tagName + (hit.id ? "#" + hit.id : "") + "." + String(hit.className && hit.className.baseVal != null ? hit.className.baseVal : hit.className).slice(0, 60) : null });
   }
@@ -65,6 +74,7 @@ const checkButtons = (list, where, bad) => {
     if (b.h < 44 || b.w < 44) bad.push(`${where}: ${b.id} is ${b.w.toFixed(1)}×${b.h.toFixed(1)} px`);
     if (b.left < -0.5 || b.right > b.vw + 0.5) bad.push(`${where}: ${b.id} off screen ${S({ left: b.left, right: b.right, vw: b.vw })}`);
     if (!b.hitSelf) bad.push(`${where}: ${b.id} covered at its centre by ${b.hit}`);
+    if (b.vw <= 414 && b.row) bad.push(`${where}: ${b.id} one-row layout: ${b.row}`);
   }
 };
 
@@ -167,7 +177,8 @@ export default async function ({ base, launch, check }) {
             await page.waitFor(`document.documentElement.lang === ${S(HTML_LANG[lang])}`, 8000);
             await sleep(400);
             const r = await page.evaluate(`[...document.querySelectorAll('[data-lq-call]')].filter(c => c.getClientRects().length).map(c => ({ id: c.getAttribute("data-lq-call"),
-              btn: (c.querySelector(".lq-call-t") || {}).innerText || "", sub: (c.querySelector(".lq-call-sub") || {}).innerText || "" }))`);
+              btn: ((c.querySelector(".lq-call-t") || {}).innerText || "") + " " + ((c.querySelector("a.lq-call-btn") || {}).innerText || ""),
+              sub: (c.querySelector(".lq-call-sub") || {}).innerText || "" }))`);
             if (p !== "medicine") assert(r.some(x => x.id === "1323"), `${p} ${lang}: a visible 1323 component`);
             for (const x of r) {
               const t = (x.btn + " " + x.sub).replace(/\s+/g, " ");

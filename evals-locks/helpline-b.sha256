@@ -2,3 +2,6 @@
 # helpline-b (owner order 2026-11-14 Part B: tap-to-call help lines, warm 1323 wording, verified hours, re-check cron) — locked 2026-11-14T15:55:22Z BEFORE any product code on branch helpline-b (base ea509e0). Before the build the new unit file fails (no lensiq-helpline.js).
 a927e6d8e5f2edf3c5e90d61f233913736325abbd82c8dbc6b0d717054918046  tests/unit/helpline-call.test.js  # repo file
 e5ea01dc3375b404ffa83cb854181fc51a663137fce2d2471522adfee75727eb  tests/e2e/helpline-call.e2e.mjs  # repo file
+# RE-LOCK 2026-11-14T15:59:55Z, before any product code was committed or measured: owner addition 2026-11-14 (after testing on a phone, relayed by the coordinator) — every help line is one compact row (short label, number, call button on one line at 360 / 375 / 414 px; second line under the label, never under the button). Unit: label / go fields, the link text is the call button, accessible name is the whole wording. E2E: one-row assertion added to every button check; wording reads label + button. No earlier assertion removed or weakened.
+06229020c48e9fd9d35221f6d4ae4310d60cf535865c511f485f5c302aae3a14  tests/unit/helpline-call.test.js  # repo file
+8f8d6b922c6677b93c9a0dfb8fb52d65e9a484cc823fd7ef167a99e772dce52e  tests/e2e/helpline-call.e2e.mjs  # repo file
