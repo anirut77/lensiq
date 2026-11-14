@@ -576,6 +576,9 @@
   (Apache-2.0 ทั้งคู่) หน้า `exam.html` และ `exam-dashboard.html` ไม่โหลดโมเดล face-api.js โหลดเฉพาะเมื่อเปิดสวิตช์สาธิตงานวิจัยและมี
   `?faceengine=faceapi` เท่านั้น ไม่มีใน customer build (ตรวจซ้ำ 2026-11-14) **ยังเปิดอยู่** สำหรับ Attendance โหมดใบหน้า Customers Booth
   และหน้าอื่นที่ยังโหลด face-api.js (ตัวตรวจ / จุดใบหน้า F5 และการจดจำ F6)
+- **คำถามเพิ่ม (2026-11-14):** ชุดไฟล์สำหรับลูกค้า (`node tools/build-site.mjs --customer`) ล็อกปิดโมเดลอายุ / เพศ และสีหน้าแล้ว (ไม่โหลด ไม่แสดง)
+  แต่ไฟล์น้ำหนัก `vendor/models/age_gender_model.*` (UTKFace ไม่ใช่เชิงพาณิชย์) `face_expression_model.*` และน้ำหนัก face-api อื่น ๆ ยังอยู่ในชุดไฟล์
+  การส่งไฟล์ที่ไม่ได้ใช้ไปกับชุดไฟล์ลูกค้าถือเป็นการแจกจ่ายต่อที่ติดเงื่อนไขชุดข้อมูลไหม ควรตัดไฟล์ออกจากชุดลูกค้าหรือไม่ (ยังไม่ตัด รอเจ้าของและทนาย)
 - **เอกสาร / หน้า:** `LICENSES/THIRD_PARTY.md`, `docs/LICENCE-REQUESTS.md`, `docs/ATTENDANCE-READINESS.md` Part B, `docs/LEGAL-REVIEW-PACK.md` §4
 - **รหัส:** L23, LRP-M1, LRP-M2, LRP-M3, DPIA-L8
 

@@ -47,7 +47,7 @@ every figure is copied from the file named next to it. Where two sources disagre
 | Seller details | **Missing:** name, tax_id, address, email, effective_date, dpo_email; Worker `SELLER_NAME`, `SELLER_TAX_ID`, `SELLER_ADDRESS` missing; counsel not confirmed. Go-live checklist 0 done, 11 open | `node tools/check-legal.mjs` output, 2026-11-11 |
 | Tax invoices | e-Tax Invoice by Email not built; VAT only if the seller is VAT-registered (mandatory above 1.8 M THB a year). The owner issues receipts from the template and the system does not number them (2026-11-13); numbering series and tax-invoice content are questions for the accountant (`docs/sales/ACCOUNTANT-QUESTIONS-TH.md`) | `docs/BILLING-PLAN.md` §5; `docs/CTO-BRIEF.md` §3 item 7 |
 | Where data lives | On the customer's device (browser storage). No organisation accounts, no sync, no backup; clearing the browser loses records | `docs/CTO-BRIEF.md` §3 item 5; `docs/ORG-ACCOUNTS-DESIGN.md` (design only) |
-| Customer build | Customer mode is the default on every host. A customer bundle is built with `node tools/build-site.mjs --customer --out <folder>`: it locks the research models off in the output `lensiq-config.js` (`LENSIQ_RESEARCH_DEMO = false`, `LENSIQ_PROFILE = "commercial"`, age/gender, expression and face parsing off) and fails (exit 1) unless the go-live items `config.profile` and `config.age_gender` read "ok" on that file. `npm run check:legal` on the repo still lists both as open: the public demo site stays unlocked on purpose | `docs/CTO-BRIEF.md` §2; `tools/build-site.mjs` `--customer`; `tests/unit/build-site.test.js` |
+| Customer build | Customer mode is the default on every host. A customer bundle is built with `node tools/build-site.mjs --customer --out <folder>`: it locks the research models off in the output `lensiq-config.js` (`LENSIQ_RESEARCH_DEMO = false`, `LENSIQ_PROFILE = "commercial"`, age/gender, expression and face parsing off) and fails (exit 1) unless the go-live items `config.profile` and `config.age_gender` read "ok" on that file (expression checked too). It never applies `deploy/public-site.json` (the closed-test Worker, test Turnstile key and tester gate): without `--site-config <customer file>` the bundle has no API. The face-api weight files (incl. `age_gender_model.bin`, UTKFace, and `face_expression_model.bin`) are still in the bundle, locked off but shipped. `npm run check:legal` on the repo still lists both items as open: the public demo site stays unlocked on purpose | `docs/CTO-BRIEF.md` §2; `tools/build-site.mjs` `--customer`; `tests/unit/build-site.test.js` |
 | Field accuracy | Not measured for any product. No field pilot has run | `docs/FIELD-PILOT.md` "Status per round" (round 16: not started) |
 | Legal review | Planned before sale; has not happened | `docs/CTO-BRIEF.md` §4 |
 | Real-phone quality (stream B, 2026-11-13) | WebKit (iOS engine) e2e at iPhone width for the main flow of every product; crash guard on 24 camera pages (not on interview, qc, store, teamface: they store nothing at all) (restart note TH/EN/ZH + lighter camera); a JS-heap / renderer-memory budget per camera page (synthetic, headless). **Not measured on a real phone yet**: the owner's 15-minute checklists per product are ready | `docs/PHONE-QUALITY.md`; `docs/owner-checklists/` |
@@ -94,7 +94,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | None open. The four code items (L51, retention cron, labels, claims) are done (evidence above); C5 is handled by the customer build (`node tools/build-site.mjs --customer`) |
+| code | None open. The four code items (L51, retention cron, labels, claims) are done (evidence above); C5 is handled in code by the customer build (`node tools/build-site.mjs --customer`); shipping the locked-off licence-limited weight files is an owner / counsel decision (C5) |
 | owner | Seller details and VAT decision (section 1); one pilot institution; confirm the pilot targets (`docs/pilot/PILOT-EXAM.md` §6) |
 | legal | Notice and consent text (`exam.html#notice`, `i18n/*-exam.js`); lawful basis public vs private institution and minors (`docs/PDPA-NOTES-FOR-COUNSEL.md` B1); evidence-clip questions if clips are offered (C2); MediaPipe mesh and human-oversight wording (`docs/PDPA-NOTES-FOR-COUNSEL.md` F5, not the licence flag F5); L25–L27 |
 
@@ -133,7 +133,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | None open. The code items above are done (evidence above); C5 is handled by the customer build (`node tools/build-site.mjs --customer`) |
+| code | None open. The code items above are done (evidence above); C5 is handled in code by the customer build (`node tools/build-site.mjs --customer`); shipping the locked-off licence-limited weight files is an owner / counsel decision (C5) |
 | owner | Seller details and VAT decision; one pilot site with 5–20 staff; decide whether face mode is quoted before L23 is answered (`docs/ATTENDANCE-READINESS.md` B10) |
 | legal | Employee notice and consent text; whether biometric consent is free in employment with the PIN / QR alternative (`docs/PDPA-NOTES-FOR-COUNSEL.md` B2; DPIA-L1; LRP-P2, LRP-L5); s.114 wording and 2-year minimum; works-rules wording for lateness beyond grace and OT rounding; 13-holiday text (`docs/ATTENDANCE-READINESS.md` "Needs outside resources"); L23 for face mode; L25 |
 
@@ -175,7 +175,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | None open. The code items above are done (evidence above); C5 is handled by the customer build (`node tools/build-site.mjs --customer`) |
+| code | None open. The code items above are done (evidence above); C5 is handled in code by the customer build (`node tools/build-site.mjs --customer`); shipping the locked-off licence-limited weight files is an owner / counsel decision (C5) |
 | owner | Seller details and VAT decision; ~100 phone photos for phase 0; one car park and one village for phase 1; the Thai YOLOX-nano ONNX file |
 | legal | L24 (sign, basis, retention); visitor names / phones typed by guards and the deny list (`docs/PDPA-NOTES-FOR-COUNSEL.md` B3, E2); L25–L28 |
 
@@ -216,7 +216,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | None open. The code items above are done (evidence above); C5 is handled by the customer build (`node tools/build-site.mjs --customer`) |
+| code | None open. The code items above are done (evidence above); C5 is handled in code by the customer build (`node tools/build-site.mjs --customer`); shipping the locked-off licence-limited weight files is an owner / counsel decision (C5) |
 | owner | Seller details and VAT decision; two people for the human count (about 1–2 hours, `docs/CROWD-ACCURACY.md` "Deferred"); one event site; a real mid-range phone for timing; confirm the status label |
 | legal | Lawful basis for anonymous counting at events (notice + legitimate interest, or also ticket terms) and the default retention of day records (`docs/PDPA-NOTES-FOR-COUNSEL.md` C1); sign A wording; L25, L28 |
 
@@ -230,7 +230,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | C2 | Retention cron confirmed on | all (backend) | **done 2026-11-11** (audit `retention.run` 03:17 UTC) |
 | C3 | Hall mode and Crowd labels consistent on every page, category page, catalogue and one-pager | Exam, Crowd | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
 | C4 | No page claims more than was measured (candidates found while writing this file: section 7 items 1, 2, 4) | all | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
-| C5 | Customer install locks the research models off (`LENSIQ_RESEARCH_DEMO = false`); go-live items `config.profile`, `config.age_gender` | all | **closed by code 2026-11-14** for bundles built with `node tools/build-site.mjs --customer` (sets the lock and verifies both items "ok" on the output, else exit 1; `tests/unit/build-site.test.js`). Per install the owner only has to ship that output folder, not a copy of the repo or of the public site. Both items stay open in `npm run check:legal` for the repo by design (public demo site) |
+| C5 | Customer install locks the research models off (`LENSIQ_RESEARCH_DEMO = false`); go-live items `config.profile`, `config.age_gender` | all | **closed in code (locked off), 2026-11-14:** `node tools/build-site.mjs --customer` sets the lock and verifies both items "ok" (and expression off) on the output, else exit 1; it never applies the public test-site config `deploy/public-site.json`, so the bundle has no API unless the owner passes a separate customer config with `--site-config <file>` (tester gate always off; `tests/unit/build-site.test.js`). **Still open, owner / counsel decision:** the licence-limited weight files (`vendor/models/age_gender_model.*` UTKFace, `face_expression_model.*`, and the other face-api weights) are still shipped in the bundle, only locked off (`docs/LEGAL-PACKET.md` §9.1, L23). Per install the owner ships that output folder (not a copy of the repo or of the public site) and, if the customer needs the backend, writes and passes the customer site config. Both items stay open in `npm run check:legal` for the repo by design (public demo site) |
 
 Not blockers by owner decision: the Gate trial timer (deferred to org accounts and billing, `docs/CTO-BRIEF.md` §5);
 organisation accounts and sync (not sold; `docs/PRICING-RESEARCH.md` §3.4); e-Tax invoice (quotation sales can use the

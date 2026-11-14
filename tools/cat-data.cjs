@@ -253,11 +253,11 @@ const REASONS = {
     zh: "流程可用，但尚未针对此用途测量准确率" },
   exam: {
     th: "หน้าผู้เข้าสอบ เครื่องในห้อง และแดชบอร์ดครบ คนตัดสินทุกสัญญาณ ความแม่นยำยังไม่ได้วัดและการนำร่องคือการวัด " +
-      "หน้าผู้เข้าสอบและเครื่องในห้องใช้ MediaPipe Face Landmarker และ COCO-SSD (ทั้งคู่ Apache-2.0) ไม่โหลดโมเดล face-api.js (ใช้เฉพาะโหมดสาธิตงานวิจัย) หน้าแรกและแดชบอร์ดไม่โหลดโมเดลใด ๆ",
+      "หน้าผู้เข้าสอบและเครื่องในห้องใช้ MediaPipe Face Landmarker และ COCO-SSD (ทั้งคู่ Apache-2.0) ส่วน YOLOX-Nano (Apache-2.0) ในเครื่องห้องสอบเป็นตัวเลือกที่ปิดไว้เป็นค่าเริ่มต้น โหลด face-api.js เฉพาะเมื่อเปิดเดโมงานวิจัย หน้าแนะนำ Exam และแดชบอร์ดไม่โหลดโมเดลใด ๆ",
     en:
       "Candidate page, room camera and dashboard are complete and a person decides every flag; accuracy is unmeasured and the pilot is the measurement; " +
-      "the candidate page and room camera run MediaPipe Face Landmarker and COCO-SSD (both Apache-2.0) and never load the face-api.js models (research demo only); the landing page and dashboard load no model",
-    zh: "考生页、考场摄像头与看板齐全，每个信号由人判断；准确率尚未测量，试点即为测量；考生页与考场摄像头使用 MediaPipe Face Landmarker 和 COCO-SSD（均为 Apache-2.0），不加载 face-api.js 模型（仅限研究演示）；首页与看板不加载任何模型" },
+      "the candidate page and room camera run MediaPipe Face Landmarker and COCO-SSD (both Apache-2.0); the room camera's YOLOX-Nano option (Apache-2.0) is off by default; face-api.js is loaded only in the research demo; the Exam overview page and the dashboard load no model",
+    zh: "考生页、考场摄像头与看板齐全，每个信号由人判断；准确率尚未测量，试点即为测量；考生页与考场摄像头使用 MediaPipe Face Landmarker 和 COCO-SSD（均为 Apache-2.0）；考场摄像头的 YOLOX-Nano 选项（Apache-2.0）默认关闭；仅在研究演示中加载 face-api.js；Exam 介绍页与看板不加载任何模型" },
   examHall: { th: "เครื่องกล้องในห้องสอบใช้งานได้ครบ แต่ใบหน้าเล็กในภาพมุมกว้างของห้องสอบยังตรวจได้ไม่ดี จึงเป็นรุ่นทดลองจนกว่าจะแก้ ยังไม่เปิดขาย หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์) พร้อมนำร่อง",
     en: "The room camera works end to end, but small faces in the wide exam-room view are still poorly detected, so it stays experimental until that is fixed and is not for sale yet; " +
       "the candidate page (computer lab) is pilot-ready",

@@ -15,7 +15,10 @@
 //                                          mode (LENSIQ_RESEARCH_DEMO = false, age/gender and expression off) and the
 //                                          go-live items config.profile and config.age_gender are verified "ok" on the
 //                                          output file with the same code as tools/check-legal.mjs; otherwise exit 1.
-//                                          The public site (no flag) is unchanged: it stays unlocked on purpose.
+//                                          deploy/public-site.json (closed-test backend) is NOT applied: the bundle
+//                                          has no API unless --site-config <file> names a separate customer config
+//                                          (same format; tester gate always off). The public site (no flag) is
+//                                          unchanged: it stays unlocked on purpose.
 //   node tools/build-site.mjs --allow-no-git   outside a git checkout (release tarball): walk the folder, applying the
 //                                          root .gitignore and always excluding faceparse-*.onnx. Without this flag a
 //                                          folder that is not a git checkout fails the build (exit 1).
@@ -268,7 +271,26 @@ export async function customerConfigProblems(src) {
   if (!sc.locked) bad.push("research demo switch is not locked");
   if (sc.ageGender) bad.push("LENSIQ_AGE_GENDER is not false");
   if (sc.faceparse) bad.push("LENSIQ_FACEPARSE is on");
+  // expression model (face-api, research licence): not in siteConfigFromConfig, read the same sandboxed way
+  const window = {};
+  try { (await import("node:vm")).runInNewContext(String(src), { window, location: { pathname: "/" } }, { timeout: 1000 }); } catch { /* malformed: other checks fail */ }
+  if (window.LENSIQ_EXPRESSION !== false) bad.push("LENSIQ_EXPRESSION is not false");
   return bad;
+}
+
+/** Site config of a customer bundle: never deploy/public-site.json (the closed-test backend, tester gate, test
+ *  Turnstile key). Only an explicit, separate file given with --site-config; none = an API-less bundle. The tester gate
+ *  is always off in a customer bundle. @param {string|null} file */
+export function customerSiteConfig(file) {
+  if (file == null) return null;
+  if (!file) throw new Error("--site-config needs a file");
+  const abs = resolve(repo, file), pub = resolve(repo, SITE_CONFIG);
+  if (abs === pub || (existsSync(abs) && existsSync(pub) && realpathSync(abs) === realpathSync(pub))) {
+    throw new Error("--site-config: " + SITE_CONFIG + " is the public test-site config; give a separate customer file");
+  }
+  if (!existsSync(abs)) throw new Error("--site-config: " + file + " not found");
+  const cfg = readSiteConfig(abs);
+  return cfg ? { ...cfg, testerGate: false } : null;
 }
 
 /** Locks out/lensiq-config.js and verifies it. Throws when the file is missing or the check fails. */
@@ -300,13 +322,16 @@ if (isMain) {
     bytes += statSync(dst).size;
   }
   let scoped = [];
+  const customer = args.includes("--customer"), si = args.indexOf("--site-config");
   try {
-    const sc = readSiteConfig();
+    if (si >= 0 && !customer) throw new Error("--site-config is only for --customer bundles");
+    const sc = customer ? customerSiteConfig(si >= 0 ? args[si + 1] : null) : readSiteConfig();
+    if (customer && !sc) console.log("build-site: customer bundle — " + SITE_CONFIG + " (test backend) NOT applied; no --site-config: the bundle has no API");
     scoped = await applySiteConfig(out, sc);
     if (sc) console.log("build-site: " + SITE_CONFIG + " -> API " + sc.apiBase + " on " + scoped.join(", ") + " only (analytics " + (sc.analytics ? "on" : "off") + ")");
   }
   catch (e) { console.error("build-site: FAILED — " + e.message); process.exit(1); }
-  if (args.includes("--customer")) {
+  if (customer) {
     try { await applyCustomerLock(out); }
     catch (e) { console.error("build-site: FAILED — " + e.message); process.exit(1); }
     console.log("build-site: customer bundle — lensiq-config.js locked (research demo off, age/gender off); go-live config.profile and config.age_gender OK");

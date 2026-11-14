@@ -172,12 +172,20 @@
   // ---------- Face parsing (BiSeNet, ONNX uint8) — แยก ผม/ใบหน้า/คอ/เสื้อ สำหรับลำดับชั้นของสตูดิโอ ----------
   // โมเดล: github.com/yakhyo/face-parsing (MIT) น้ำหนัก ResNet18 ตัด aux head + dynamic quantization (13 MB) ดู vendor/models/FACEPARSE-LICENSE.txt
   let parseP = null;
+  /** BiSeNet opt-in (non-commercial weights): LENSIQ_FACEPARSE === true, or ?faceparse=1 ONLY on a research-demo device
+   *  (LENSIQ_PROFILE "demo" and LENSIQ_RESEARCH.on; a customer lock forces both off, lensiq-config.js). @param {any} g */
+  function faceparseAllowed(g) {
+    if (!g) return false;
+    if (g.LENSIQ_FACEPARSE === true) return true;
+    const demo = g.LENSIQ_PROFILE === "demo" && !!(g.LENSIQ_RESEARCH && g.LENSIQ_RESEARCH.on === true);
+    return demo && /[?&]faceparse=1(&|$)/.test(String((g.location && g.location.search) || ""));
+  }
   function loadParsing(base = "vendor/") {
     if (parseP) return parseP;
     parseP = (async () => {
       // ปิดไว้เป็นค่าเริ่มต้น: น้ำหนักโมเดลฝึกจาก CelebAMask-HQ (ใช้ได้เฉพาะงานวิจัย/ไม่ใช่เชิงพาณิชย์) — เปิดด้วย
-      // window.LENSIQ_FACEPARSE = true ใน lensiq-config.js หรือ ?faceparse=1 เมื่อมีไฟล์โมเดลและสิทธิ์ใช้งานแล้ว
-      if (!(self.LENSIQ_FACEPARSE === true || /[?&]faceparse=1(&|$)/.test(location.search))) throw new Error("faceparse disabled");
+      // window.LENSIQ_FACEPARSE = true ใน lensiq-config.js หรือ ?faceparse=1 (เฉพาะเครื่องที่เปิดเดโมงานวิจัย) เมื่อมีไฟล์โมเดลและสิทธิ์ใช้งานแล้ว
+      if (!faceparseAllowed(self)) throw new Error("faceparse disabled");
       if (typeof ort === "undefined") throw new Error("ไม่พบ onnxruntime-web");
       ort.env.wasm.wasmPaths = new URL(base + "ort/", location.href).href;
       ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
@@ -286,6 +294,9 @@
     return c;
   }
 
-  const api = { boxFilter, guidedFilter, refineAlpha, decontaminate, skinMask, fillPoly, smoothSkin, loadMatting, modnetAlpha, loadParsing, faceParse, MC_LABELS, loadMulticlass, multiclassParse, maskAlpha, cutout, retouch };
+  const api = {
+    faceparseAllowed, boxFilter, guidedFilter, refineAlpha, decontaminate, skinMask, fillPoly, smoothSkin, loadMatting, modnetAlpha,
+    loadParsing, faceParse, MC_LABELS, loadMulticlass, multiclassParse, maskAlpha, cutout, retouch
+  };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.PBHQ = api;
 })(typeof window !== "undefined" ? window : globalThis);
