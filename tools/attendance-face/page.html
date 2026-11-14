@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>LENSIQ attendance face eval</title></head>
+<body>
+<!-- Served at /__afe.html (repo root) by tools/attendance-face/run.mjs so TF.js and ORT find vendor/*.wasm like the real
+     pages. Evaluation only (owner order 2026-11-14 item E). Loads the production face-api pipeline (baseline) and the
+     vendored MediaPipe Face Landmarker + ORT WASM (alignment and candidate embedders). Never shipped. -->
+<script src="vendor/face-api.js"></script>
+<script src="vendor/ort/ort.wasm.min.js"></script>
+<script src="lensiq-detect.js"></script>
+<script type="module" src="tools/attendance-face/page.js"></script>
+</body></html>
