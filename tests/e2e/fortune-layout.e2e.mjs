@@ -249,6 +249,12 @@ export default async function ({ base, launch, check, fakeCams }) {
                 const s2 = await page.evaluate(STRUCT);
                 if (s2.panels.includes(id)) bad.push(`${p}: panel #${id} still hidden after opening its tab`);
                 for (const b of s2.bad) bad.push(`${p} #${id}: ${b}`);
+                // restore dropped check (review round 2, F3): the menus shown with this tab are checked like the first pass
+                for (const t of s2.tocs) {
+                  if (t.missing) bad.push(`${p} #${id}: menu link without target`);
+                  if (t.small) bad.push(`${p} #${id}: ${t.small} menu links under 44 px`);
+                  if (!t.label) bad.push(`${p} #${id}: menu without aria-label`);
+                }
               }
               if (st.maxPerContainer >= 4 && !st.tocs.some(t => t.links >= 4 && !t.missing)) bad.push(`${p}: long reading (${st.maxPerContainer} groups) without an in-page menu ${S(st.tocs)}`);
               for (const t of st.tocs) {

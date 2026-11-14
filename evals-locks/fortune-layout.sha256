@@ -11,3 +11,6 @@ a167d0487ae02d8c655148d045ff1409dab77b9ea1486464241f55748ff8bc03  tests/e2e/fort
 # RE-LOCK 2026-11-14 (3): test-setup fix only, follow-up to re-lock (1). Opening a page tab hides the other tab, so the in-page menu of the hidden tab measured 0 px ("menu links under 44 px"); a menu inside an unselected tab panel is now checked when its tab is open (same rule as the groups). No assertion, input or threshold removed. The report failure in the same run ("long reading without an in-page menu") was a product bug (fortune-read.js removed the report menu), fixed in the product.
 # locked 2026-11-14T16:51:43Z (tools/eval-guard.mjs lock, 1 file)
 f82efb359fba78fe490be74d43e92f86ace384afd18eca0560263af8bc75e05c  tests/e2e/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-15 (4), review round 2 finding F3: restore dropped check. Re-lock (3) skipped menus inside an unselected tab but the harness never checked them after opening the tab; the menu checks (link targets, 44 px, aria-label) now run on the menus shown with each opened tab. Stricter only.
+# locked 2026-11-14T18:53:34Z (tools/eval-guard.mjs lock, 1 file)
+7772f6a214f5e9b9bb193429eb403120f4da0a68f1b3ffbda668b57502588d04  tests/e2e/fortune-layout.e2e.mjs
