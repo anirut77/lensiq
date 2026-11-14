@@ -77,4 +77,8 @@
   "lc.uMonth": "This birth date is the day the solar term {n} begins a new month, at {t} — without a birth time, the month pillar may be the neighbouring month (this chart assumes noon); add your birth time for accuracy",
   "lc.uRahu": "Born on a Wednesday with no birth time — if you were born after 18:00, Thai tradition counts it as \"Wednesday night\" and the day planet is Rahu, which changes the Taksa chart; add your birth time for accuracy",
   "lc.uDawn": "No birth time given — the Thai day changes at 06:00, so a birth before dawn counts as the previous day ({p}) and the result would differ",
+  // D2-fix: date-check messages from horoscope.js validateDate() (shown by lifecal-ui.js on bazi / taksa / lek7 / lifegraph)
+  "ปีเกิดต้องอยู่ระหว่าง ค.ศ. 1900–2100 (พ.ศ. 2443–2643)": "Year of birth must be between CE 1900–2100 (BE 2443–2643)",
+  "กรุณาเลือกเดือน": "Please select a month",
+  "วันที่ไม่ถูกต้องสำหรับเดือนนี้": "This month does not have that day; please choose again",
 } });

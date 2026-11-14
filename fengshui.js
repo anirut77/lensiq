@@ -481,7 +481,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function camErrMsg(e) {
     if (e && e.name === "Insecure") return T("fengshui.cam.insecure", "เปิดกล้องได้เฉพาะ https:// หรือ localhost — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง");
     var t = window.LQCam && LQCam.errorText ? LQCam.errorText(e) : "";
-    if (isZh() && /[\u0E00-\u0E7F]/.test(t)) t = "";
+    // D2-003: EN / ZH never show LQCam's Thai text (pages with the run-time translator get Thai back from LQCam): use the cam.err.* keys
+    if ((isZh() || isEn()) && /[\u0E00-\u0E7F]/.test(t)) { var I = /** @type {any} */ (window).LQI18N; t = LQCam.errorKind && I ? I.t("cam.err." + LQCam.errorKind(e)) : ""; }
+    if (/[\u0E00-\u0E7F]/.test(t) && (isZh() || isEn())) t = "";
     return T("fengshui.cam.fail", "เปิดกล้องไม่ได้{t} — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง", { t: t ? ": " + t : " (" + ((e && e.name) || "error") + ")" });
   }
   function camLive(on) { arBox.classList.toggle("live", !!on); video.style.transform = on && cam && cam.mirrored ? "scaleX(-1)" : ""; }
@@ -579,7 +581,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var k = b.dataset.rec, dir = FS.headingToDir(heading);
       state.recorded[k] = dir; state.recordedDeg[k] = heading;
       if (k === "door") { state.facing = dir; $("#fsFacing").value = dir; }
-      toast(isZh() ? T("fengshui.toast.rec", "", { w: T("fengshui.rec.what." + k, ""), d: dirTh(dir), deg: Math.round(heading) }) : "บันทึก" + b.textContent.replace("บันทึก", "") + ": " + dirTh(dir) + " (" + Math.round(heading) + "°)");
+      toast(isZh() || isEn() // D2-004: English used the Thai template too ("บันทึกRecord bed direction")
+        ? T("fengshui.toast.rec", "", { w: T("fengshui.rec.what." + k, ""), d: dirTh(dir), deg: Math.round(heading) })
+        : "บันทึก" + b.textContent.replace("บันทึก", "") + ": " + dirTh(dir) + " (" + Math.round(heading) + "°)");
       refreshAll();
     });
   });
