@@ -149,6 +149,7 @@ const STRUCT = `(() => {
     if (bodies.some(vis)) out.bad.push(id + ": folded text visible before opening");
   }
   for (const t of document.querySelectorAll("nav.lq-toc")) {
+    const tp = t.closest('[role="tabpanel"]'); if (tp && (tp.hidden || getComputedStyle(tp).display === "none")) continue; // checked when its tab is open
     const links = [...t.querySelectorAll('a[href^="#"]')];
     out.tocs.push({ links: links.length, missing: links.filter(a => !document.getElementById(a.getAttribute("href").slice(1))).length,
       small: links.filter(a => a.getBoundingClientRect().height < 44).length, label: t.getAttribute("aria-label") || "" });
