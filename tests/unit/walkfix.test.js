@@ -189,7 +189,7 @@ test("W-012: solutions.html badges match each linked page's status (cat-data); C
   assert.ok(cards.length > 50);
   const label = { "pilot-ready": D.STATUS["pilot-ready"].th, experimental: D.STATUS.experimental.th, demo: D.STATUS.demo.th };
   const rank = { demo: 0, experimental: 1, "pilot-ready": 2 };
-  const bad = [];
+  const bad = [], prCodes = new Set(), otherCodes = new Set();
   for (const [, code, id, body] of cards) {
     const tag = body.match(/<span class="sl-tag (\w+)" data-i18n="([\w.]+)">([^<]+)<\/span>/);
     if (!tag) { bad.push(id + ": no tag"); continue; }
@@ -202,10 +202,16 @@ test("W-012: solutions.html badges match each linked page's status (cat-data); C
     const shown = Object.keys(label).find(k => label[k] === tag[3].trim());
     if (!shown) bad.push(`${id}: tag text «${tag[3]}» is not a category status`);
     else if (rank[shown] > rank[st]) bad.push(`${id}: shows ${shown} but ${href} is ${st}`);
-    if ((code === "pilot") !== (shown === "pilot-ready")) bad.push(`${id}: code ${code} vs shown ${shown}`);
+    // amendment 2: the filter code is internal; what counts is that pilot-ready cards and the other cards never share a code
+    // (docs/claim-rules.json "crowd-not-available-now" forbids code "now" on the Crowd cards, so the codes may be swapped)
+    if (shown) (shown === "pilot-ready" ? prCodes : otherCodes).add(code);
     if (href === "crowd" && shown !== "experimental") bad.push(id + ": Crowd must show experimental");
   }
   assert.deepEqual(bad, []);
+  assert.ok(prCodes.size === 1 && otherCodes.size === 1 && ![...prCodes].some(c => otherCodes.has(c)), `one code per group: ${[...prCodes]} / ${[...otherCodes]}`);
+  const fbtn = c => (html.match(new RegExp(`data-f="${c}"[^>]*>([^<]+)<`)) || [])[1] || "";
+  assert.equal(fbtn([...prCodes][0]).trim(), label["pilot-ready"], "filter button of the pilot-ready group");
+  assert.match(fbtn([...otherCodes][0]), new RegExp(label.experimental), "filter button of the experimental / demo group");
   assert.ok(!/ใช้ได้แล้ว<\/span>/.test(html), "no 'available now' badge");
   for (const f of ["i18n/en-solutions.js", "i18n/zh-solutions.js"]) {
     assert.equal(dictVal(f, "sl.st.pilot"), D.STATUS["pilot-ready"][f.includes("/en-") ? "en" : "zh"], f + " sl.st.pilot");
