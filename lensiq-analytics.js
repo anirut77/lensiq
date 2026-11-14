@@ -168,25 +168,22 @@
   }
 
   var bannerEl = /** @type {HTMLElement|null} */ (null);
-  // nothing may cover a button (owner order 2026-11-14, D1; tests/e2e/overlap-*.e2e.mjs): while the prompt is shown the
-  // page gets extra bottom padding of the prompt's height, so the last links and buttons can be scrolled clear of it
-  var padSaved = /** @type {string|null} */ (null);
-  function fitPad() {
-    if (!bannerEl || !doc || !doc.body || !root.getComputedStyle) return;
-    var b = doc.body;
-    if (padSaved === null) padSaved = b.style.paddingBottom || "";
-    b.style.paddingBottom = "";
-    var base = parseFloat(root.getComputedStyle(b).paddingBottom) || 0;
-    b.style.paddingBottom = Math.ceil(base + bannerEl.getBoundingClientRect().height + 24) + "px";
-  }
+  // nothing may cover a button (owner order 2026-11-14 D1; review of overlap-d, 2026-11-15): the prompt sits IN the page
+  // flow (under the breadcrumb / above <main>), never over the page, so it covers no button, no pay bar and no help line
   function hideBanner() {
     if (bannerEl && bannerEl.parentNode) bannerEl.parentNode.removeChild(bannerEl);
     bannerEl = null;
-    if (padSaved !== null && doc && doc.body) { doc.body.style.paddingBottom = padSaved; padSaved = null; }
-    if (root.removeEventListener) root.removeEventListener("resize", fitPad);
+  }
+  // fortune calm / crisis state (fortune-crisis.js: <html data-lq-calm> / <html data-lq-crisis>, the tab's
+  // "lq-fortune-calm" flag): no analytics prompt at all, so nothing competes with the help line or the support card;
+  // nothing is sent without consent, so analytics simply stays off
+  function calmOrCrisis() {
+    var h = doc && doc.documentElement;
+    if (h && h.hasAttribute && (h.hasAttribute("data-lq-calm") || h.hasAttribute("data-lq-crisis"))) return true;
+    return sget(SS, "lq-fortune-calm") === "1";
   }
   function showBanner() {
-    if (!doc || !doc.body || !api() || dnt()) return null;
+    if (!doc || !doc.body || !api() || dnt() || calmOrCrisis()) return null;
     hideBanner();
     var t = TEXT[lang()] || TEXT.th;
     var box = doc.createElement("div");
@@ -194,8 +191,8 @@
     box.setAttribute("aria-label", t.label);
     box.setAttribute("data-lq-analytics-banner", "");
     box.setAttribute("data-i18n-skip", "");
-    box.style.cssText = "position:fixed;left:12px;right:12px;bottom:12px;z-index:2147483000;max-width:640px;margin:0 auto;padding:14px 16px;border-radius:14px;" +
-      "background:#0e1430;color:#f4f6ff;box-shadow:0 8px 30px rgba(0,0,0,.35);font:14px/1.5 system-ui,sans-serif;display:flex;flex-wrap:wrap;gap:10px;align-items:center";
+    box.style.cssText = "position:static;box-sizing:border-box;max-width:640px;margin:8px auto;width:calc(100% - 24px);padding:14px 16px;border-radius:14px;" +
+      "background:#0e1430;color:#f4f6ff;box-shadow:0 4px 16px rgba(0,0,0,.18);font:14px/1.5 system-ui,sans-serif;display:flex;flex-wrap:wrap;gap:10px;align-items:center";
     var p = doc.createElement("p");
     p.style.cssText = "margin:0;flex:1 1 280px;font-size:14px";
     p.textContent = t.msg;
@@ -216,10 +213,16 @@
     btns.appendChild(mk(t.yes, true, true));
     box.appendChild(p);
     box.appendChild(btns);
-    doc.body.appendChild(box);
+    // in the flow at the top of the page: after the breadcrumb (and after a help line right under it: the help line stays
+    // first), else before <main>, else first in <body>
+    var q = function (/** @type {string} */ sel) { return typeof doc.querySelector === "function" ? doc.querySelector(sel) : null; };
+    var crumbs = /** @type {Element|null} */ (q(".lq-crumbs")), main = q("main");
+    while (crumbs && crumbs.nextElementSibling && crumbs.nextElementSibling.matches(".lq-helpline")) crumbs = crumbs.nextElementSibling;
+    if (crumbs && crumbs.parentNode) crumbs.parentNode.insertBefore(box, crumbs.nextSibling);
+    else if (main && main.parentNode) main.parentNode.insertBefore(box, main);
+    else if (typeof doc.body.insertBefore === "function") doc.body.insertBefore(box, doc.body.firstChild);
+    else doc.body.appendChild(box);
     bannerEl = box;
-    fitPad();
-    if (root.addEventListener) root.addEventListener("resize", fitPad);
     return box;
   }
 
@@ -227,6 +230,11 @@
     if (!api() || dnt()) return;
     var c = consent();
     if (c === null) showBanner();
+    // the page enters the calm / crisis state later (a reading, the support card): the prompt goes away, unanswered
+    if (c === null && doc && doc.documentElement && typeof root.MutationObserver === "function") {
+      new root.MutationObserver(function () { if (bannerEl && calmOrCrisis()) hideBanner(); })
+        .observe(doc.documentElement, { attributes: true, attributeFilter: ["data-lq-calm", "data-lq-crisis"] });
+    }
     else if (c === "yes") pageView();
     root.addEventListener("error", function (ev) {
       if (errors++ < 5) track("error", { err: (ev && ev.error && ev.error.name) || "Error" });
