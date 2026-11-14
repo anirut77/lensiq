@@ -1,0 +1,3 @@
+# evals-locks/pc-jk.sha256 — stream pc-jk (2026-11-14). Append-only. Checked by tools/eval-guard.mjs.
+# locked 2026-11-14T11:43:49Z (tools/eval-guard.mjs lock, 1 file): FOURTH independent JA/KO hold-out (230 items, 213 values, 30 zh product labels), written by an independent agent that read no code, locked before any measurement or guard change
+8cb887d275260c56167f0532388c0696ca86733d635f11cec0491d42eca7e9a2  holdout-jako-4/pcjk-jako-holdout-4.json
