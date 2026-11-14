@@ -1,0 +1,16 @@
+# evals-locks/style-mvp.sha256 — Style MVP (docs/STYLE-DESIGN.md, owner order 2026-11-14 F: behind an off switch) fixed tests
+# and synthetic set S, locked BEFORE lensiq-colour.js, lensiq-style.js, vendor/style/content.json, style.html / style.js
+# and the LENSIQ_STYLE flag were written. Base 4413bc3. Source label: synthetic. tests/*.js here are byte copies of
+# tests/unit/style-*.test.js and tests/e2e/style.e2e.mjs. Folder: ~/LENSIQ-field/evals/style-mvp/. Append-only.
+# locked 2026-11-14T11:52:20Z (tools/eval-guard.mjs lock, 11 files)
+9ef01c6fcd0aec066567b475a40d110a8abe4b636ff8f3bbb4fe88c640f15a59  README.md
+d7706529c0f7fec57378e890500d43bf183088b680d93c0ec80052b8248b8d2a  gen-set.mjs
+5e86fce6a78a9f655af84f0617def9776aa33b2687bcc40aa38ff22df5a6b606  render.mjs
+a9c6871997a2bb477aa0eca5db73bd480d315cbe580c29de5e71b5cfc62e15c7  set.json
+7cc0a0c4baf3e2c906ee22c459ec8c39a12b0eaf73c2e25798f867ac8c3637c1  score.mjs
+86be61d5de77d2b00e29cedc26bcc970da79a7ae8c107036023782f972e5fd05  targets.json
+015de14af6e15169764394eaf3ee611ca54dab0ab36faf2e6f30958289bbcedb  tests/style-colour.test.js
+def2941a2a2f7835da0db07e41cac9cf2cab8f92172eb817c56f95523ce45047  tests/style-core.test.js
+7bcd2c124191aab6a84cd7339888f375bb3d186286ebd27febae173d812aca59  tests/style-wording.test.js
+d32d62ce32c8ef8c02f72996f2eed07d1482bf16630bf87107ba023050c01b99  tests/style-flag.test.js
+df2d80c4fff620ded001d96c14a0d01d147a2ee7423d663321453a12b7e31236  tests/style.e2e.mjs
