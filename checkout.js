@@ -713,6 +713,11 @@ if (typeof document !== "undefined") (() => {
     history.replaceState(null, "", "#" + t);
   }
   window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h && h !== tab) setTab(h); });
+  // the pay bar's measured height reserves room under the page (checkout.css), so it never covers the last controls
+  const payBar = document.getElementById("paybar");
+  const fitPayBar = () => { if (payBar) document.body.style.setProperty("--co-paybar-h", Math.ceil(payBar.getBoundingClientRect().height) + "px"); };
+  if (payBar && typeof ResizeObserver === "function") new ResizeObserver(fitPayBar).observe(payBar);
+  fitPayBar();
   $$(".tabs [role=tab]").forEach((b, i, all) => {
     b.onclick = () => setTab(b.dataset.tab);
     b.onkeydown = e => {
