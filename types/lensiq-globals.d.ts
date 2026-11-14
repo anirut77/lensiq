@@ -50,6 +50,8 @@ interface Window {
   LQFortuneCrisis?: any;
   /** lensiq-config.js: Part C "read it straight" fortune option (owner order 2026-11-12); false until the owner approves */
   LENSIQ_FORTUNE_STRAIGHT?: boolean;
+  /** look suggestions salon mode (lensiq-config.js, hard off until the human-approval step exists; owner 2026-11-14) */
+  LENSIQ_LOOK_SALON?: boolean;
   /** fortune-straight.js (loaded before fortune-ai.js) */
   LQFortuneStraight?: any;
   /** lensiq-config.js: "commercial" (default since round 16, customer mode) forces LENSIQ_AGE_GENDER, LENSIQ_EXPRESSION and
@@ -70,6 +72,9 @@ interface Window {
   /** lensiq-config.js (Merit MVP): true = the page may show the paid on-your-behalf interest form (default false; also needs the Worker's
    *  MERIT_INTEREST_FORM = "on" and no crisis state) */
   LENSIQ_MERIT_INTEREST_FORM?: boolean;
+  /** lensiq-config.js (org-p1): true = account.html / admin.html may show organisation accounts lite (default false; also
+   *  needs the Worker's ORG_ACCOUNTS = "on", reported as /v1/config org_accounts) */
+  LENSIQ_ORG_ACCOUNTS?: boolean;
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
   LENSIQ_TURNSTILE_SITEKEY?: string;
   /** lensiq-config.js: public OAuth Client ID for "Sign in with Google" ("" = no member sign-in) */

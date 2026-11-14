@@ -513,6 +513,20 @@ invitation link (absolute when `SITE_URL` — the public site, may include `/len
 `POST /api/orgs/:id/members/:user/role`, `DELETE /api/orgs/:id/members/:user`, `GET /api/orgs/:id/audit|licences`,
 `POST /api/org-invites/accept`. Role changes, removals and ownership transfer need a fresh Google / LINE confirmation.
 
+**Phase 1 off switches and export (org-p1, 2026-11-14; tests `tests/unit/backend-org-p1.test.js`,
+`tests/e2e/org-p1.e2e.mjs`).** Organisation accounts are OFF unless the Worker var `ORG_ACCOUNTS = "on"` (wrangler.toml
+ships `"off"` in `[vars]` and `[env.test.vars]`) AND the page sets `window.LENSIQ_ORG_ACCOUNTS = true`
+(`lensiq-config.js`, default false). Worker off: `GET /api/me/orgs`, every `/api/orgs/*`, `POST /api/org-invites/accept`
+and the back-office `/admin/api/orgs*` and `/admin/api/licence-plans` answer 404 `org_accounts_off` before Origin, session
+or D1; `/v1/config` and `/admin/api/me` report `org_accounts`. Pages: `LQMember.orgOn()` needs both; off = no organisation
+request, the account section and invitation card stay hidden (the invitation token is not kept), the admin tab is
+hidden. Export: `GET|POST /api/orgs/:id/export` (admin, fresh confirmation, 30 per organisation per hour) returns
+`lensiq-org-export` v1 (`Content-Disposition: attachment; filename="lensiq-org-<id>.json"`): org, billing, members
+(display name, e-mail, role, owner, status, joined_at), open invitations (no link / hash / HMAC), licences (no reference,
+amount or note), the full audit chain (verifiable offline: `hash = SHA-256(prev_hash + "|" + JSON([org_id, ts,
+actor_kind, actor_ref, action, ref, detail]))`, genesis 64 zeros) and a TH / EN / ZH readme. Always available, also for a
+suspended or closed organisation and any licence state; logged as `org.exported`.
+
 **Licences (back-office orders, bank transfer only).** `licence_plans` seeds only Gate (`gate_trial`, `gate_lane`),
 Attendance (`attendance_person`), Exam lab (`exam_lab_candidate`, `exam_lab_room`) and Crowd report (`crowd_report`),
 **without a price column**: prices stay in the quotation and the approved price list. The owner records an order after

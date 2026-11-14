@@ -32,6 +32,12 @@ window.LENSIQ_ANALYTICS = window.LENSIQ_ANALYTICS !== false;
  *   (ตั้ง true อย่างเดียวไม่มีผล ถ้าเซิร์ฟเวอร์ไม่ตอบว่าเปิด) และไม่แสดงเลยระหว่างสถานะวิกฤตของหน้าดูดวง (เฉพาะเซสชันเบราว์เซอร์, L59) */
 window.LENSIQ_MERIT_INTEREST_FORM = window.LENSIQ_MERIT_INTEREST_FORM === true;
 
+/* LENSIQ_ORG_ACCOUNTS (org-p1, 2026-11-14): บัญชีองค์กรแบบย่อ (ชื่อองค์กร ข้อมูลออกเอกสาร ผู้ดูแล/เจ้าหน้าที่ ลิงก์เชิญ ส่งออกข้อมูล)
+ *   ในหน้าบัญชี (account-org.js) และแท็บ "บัญชีองค์กร" ในหลังบ้าน
+ *   false (ค่าเริ่มต้น) = ไม่แสดงอะไรเลยและไม่ส่งคำขอเรื่ององค์กรใด ๆ · ห้ามเปิดจนกว่าเจ้าของอนุมัติ
+ *   ต้องเปิดคู่กับ ORG_ACCOUNTS = "on" บน Worker (ตั้ง true อย่างเดียวไม่มีผล ถ้าเซิร์ฟเวอร์ไม่ตอบว่าเปิด) · ต้องเป็น true จริงเท่านั้น */
+window.LENSIQ_ORG_ACCOUNTS = window.LENSIQ_ORG_ACCOUNTS === true;
+
 /* LENSIQ_FACEPARSE: สตูดิโอแต่งชุดใช้ BiSeNet (vendor/models/faceparse-bisenet-r18-q8.onnx) แทนโมเดลค่าเริ่มต้น
  *   false (ค่าเริ่มต้น) = MediaPipe Selfie Multiclass (Apache-2.0, vendor/models/selfie-multiclass-256-f16.onnx — ใช้เชิงพาณิชย์ได้)
  *   true = BiSeNet: น้ำหนักฝึกจาก CelebAMask-HQ (ใช้ได้เฉพาะงานวิจัย/ไม่ใช่เชิงพาณิชย์) ไฟล์ไม่อยู่ใน git
@@ -49,6 +55,12 @@ window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
  *   ได้ถ้อยคำนุ่มนวล · ระหว่างที่ตาข่ายวิกฤต ขั้นถามความรู้สึก หรือการ์ดช่วยเหลือทำงาน ไม่มีโหมดตรงและไม่มีเคล็ด/ของมงคล
  *   false = ซ่อนตัวเลือกทั้งหมด (tests/unit/fortune-honest.test.js ตรวจค่าที่ส่งมอบ) */
 window.LENSIQ_FORTUNE_STRAIGHT = false;
+
+/* LENSIQ_LOOK_SALON (owner decision 2026-11-14, ข้อแนะนำการแต่งลุค ตัวเลือก ก): "โหมดร้าน" ของข้อแนะนำการแต่งลุค (แสดงชื่อแบบจาก
+ *   แคตตาล็อกที่ร้านพิมพ์เอง) ปิดตายจนกว่าจะมีขั้นตอนให้คน (เจ้าของหรือ admin) อนุมัติข้อความที่ร้านพิมพ์ก่อนแสดง
+ *   (docs/BEAUTY-IMAGE-DESIGN.md §4) ขั้นตอนนี้ยังไม่ได้สร้าง · ตั้ง true อย่างเดียวไม่มีผล: lensiq-look.js ต้องมีขั้นตอนอนุมัติด้วย
+ *   ข้อแนะนำแบบคงที่ 31 ข้อและภาพตัวอย่างสดไม่ขึ้นกับสวิตช์นี้ (เทสต์ look ที่ล็อกไว้ 2026-11-14 ตรวจค่าที่ส่งมอบ: evals-locks/beauty-look.sha256) */
+window.LENSIQ_LOOK_SALON = false;
 
 /* LENSIQ_EXPRESSION (round 16): โมเดลสีหน้า face-api.js faceExpressionNet (ข้อมูลฝึกไม่ชัดเรื่องสิทธิ์ — F5) ที่หน้า neuro,
  *   signage (ยิ้ม/Valence/อารมณ์), booth (สีหน้าหลัก/Valence) และ photobooth (ตรวจสีหน้ารูปติดบัตร) ใช้

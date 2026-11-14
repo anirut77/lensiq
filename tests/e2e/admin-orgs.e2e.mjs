@@ -15,8 +15,8 @@ const THAI = /[ก-ฺเ-๛]/;
 
 export default async function ({ launch, check, repo }) {
   const browser = await launch();
-  const W = await startWorker(repo);
-  const page = await browser.newPage(null, { isolated: true });
+  const W = await startWorker(repo, { vars: { ORG_ACCOUNTS: "on" } }); // A-P1-3: both org-p1 switches on for this suite
+  const page = await browser.newPage(null, { initScripts: ["window.LENSIQ_ORG_ACCOUNTS = true;"], isolated: true }); // A-P1-3
   const reauth = pw => page.evaluate(pw => {
     const d = document.querySelector("dialog.ad-reauth[open]");
     d.querySelector("input[type=password]").value = pw;

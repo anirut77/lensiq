@@ -14,6 +14,13 @@
 > the LENSIQ owner creates organisations (no self-service); licence orders replace §2.1's plan rows. See `docs/BACKEND.md`
 > "Stream G" and `docs/PDPA-NOTES-FOR-COUNSEL.md` §I2.
 >
+> **P1 built 2026-11-14 (branch `org-p1`, not deployed, both switches OFF):** the lite scope above behind two off
+> switches — Worker var `ORG_ACCOUNTS` (`"on"` only; off = every organisation route 404 `org_accounts_off` before any
+> session or D1 lookup) and `window.LENSIQ_ORG_ACCOUNTS` (`true` only; off = no organisation UI and no request) — plus the
+> §7 export for the lite data (`GET|POST /api/orgs/:id/export`, admins, fresh confirmation, always available: suspended,
+> closed, any licence state). No new migration (0018 unchanged). Locked acceptance tests: `tests/unit/backend-org-p1.test.js`,
+> `tests/e2e/org-p1.e2e.mjs` (`evals-locks/org-p1.sha256`). PDPA: `docs/PDPA-NOTES-FOR-COUNSEL.md` §I4.
+>
 > Written 2026-11-08 from the code as it is today: `backend/migrations/0001–0009`, `docs/BACKEND.md`, `docs/EXAM.md`,
 > `docs/GATE.md`, `docs/ATTENDANCE-READINESS.md`, `docs/pdpa/*`, `docs/PDPA-NOTES-FOR-COUNSEL.md`, `gate-kit.js`,
 > `gate-rules.js`, `parking.js`, `village.js`, `attendance-hr.js`, `lensiq-timeclock.js`, `lensiq-exam-clip.js`,
