@@ -625,7 +625,9 @@ async function processId(img) {
     } catch (e) { console.warn("harm", e); }
   }
   idState.cap = { img, mask, person, face, qc, method, rt: {}, faceLum, harm, cleaned };
-  showIdResult();
+  // D2-006: the person may have switched to another tab while the photo was processing; the ID result is shown when they
+  // come back to the ID tab (setMode), never on the other tab (its buttons would have no ID photo to work on)
+  if (mode === "id") showIdResult();
 }
 
 /* ตรวจคุณภาพรูปติดบัตรจากจุดบนใบหน้า (ค่าประมาณ ไม่ใช่การรับรองของหน่วยงาน) */
@@ -901,7 +903,7 @@ function idCheckMeta() {
   const s = L.ID_SIZES[idState.size], spec = r.spec ? r.spec.items.map(i => `${i.k}=${i.ok ? "ok" : "fail"}${i.k === "head" && i.v ? "(" + i.v.p + "%)" : ""}`).join(" ") : "spec=not-checked";
   return `LENSIQ ID-photo check (estimate, not an agency approval): size=${s.w}x${s.h}cm@${L.DPI}dpi ${spec} leftovers=${r.findings.filter(f => f.k === "island").length} torso-cut=${r.findings.filter(f => f.k.startsWith("cut-")).map(f => f.k.slice(4)).join(",") || "none"} outfit=${idState.shownOutfit || "none"} reviewed-by-user=${r.at ? "yes " + r.at : "no"}`;
 }
-const guarded = fn => async () => { if (!(await reviewGate())) return; if (await outfitConfirm()) fn(); };
+const guarded = fn => async () => { if (!idState.last) return; if (!(await reviewGate())) return; if (await outfitConfirm()) fn(); }; // D2-006: no rendered ID photo = nothing to save
 function renderId() {
   if (mode !== "id" || !idState.cap) return;
   const photo = idPhotoNow(), sheet = renderSheet(photo);
