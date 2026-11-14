@@ -1,2 +1,5 @@
 # locked 2026-11-14T18:53:34Z (tools/eval-guard.mjs lock, 1 file)
 99d745a65071ef43c3321dec883a32367989ec358599342f11e964cc358dee6d  tests/unit/fortune-layout-caution.test.js
+# RE-LOCK 2026-11-15 (1): ground-truth fix only. After the fix 1 reading remained, iching EN money: the lead tail "rather than rush" matched inside "rather than rushing to expand" (an i-ching meaning, not a caution). English matches now end on a word boundary. No threshold, corpus or other assertion changed.
+# locked 2026-11-14T18:58:30Z (tools/eval-guard.mjs lock, 1 file)
+d2db6f25970656be108de0b0ada3382fab14f68ffac0644d7975ea8d5d40812c  tests/unit/fortune-layout-caution.test.js

@@ -45,6 +45,12 @@ function fragments(m, l) {
   if (l === "en") return m.split(/[,;:.!?]\s+|\s+(?:and|but|so)\s+/).map(x => x.trim()).filter(x => x.length >= 25);
   return m.split(/\s+/).filter(x => x.length >= 15);
 }
+// English matches end on a word boundary ("rather than rush" is not "rather than rushing to expand"); re-lock 2026-11-15 (1)
+function has(text, q, l) {
+  if (l !== "en") return text.includes(q);
+  for (let i = text.indexOf(q); i >= 0; i = text.indexOf(q, i + 1)) if (!/[A-Za-z]/.test(text.charAt(i + q.length))) return true;
+  return false;
+}
 const isCautionItem = (it, straight) => it.tone === "caution" || it.polarity === "challenge" || (straight && FA.straight.LABEL_NEG.test(String(it.label || "")));
 function meaningsOf(domain, it, l) {
   const src = l === "en" ? FA.en.item(domain, it) : l === "zh" ? FA.zh.item(domain, it) : it;
@@ -112,7 +118,7 @@ test("F1: no caution sentence inside a closed fold (lead tails and unfavourable-
     let hit = false;
     for (const s of res.sections) {
       for (const x of RD.planSection(s, lang)) {
-        const t = tails[lang].find(q => x.text.includes(q)) || frags.find(q => x.text.includes(q));
+        const t = tails[lang].find(q => has(x.text, q, lang)) || frags.find(q => has(x.text, q, lang));
         if (!t) continue;
         if (x.visible) { shownHits++; continue; }
         hit = true;
