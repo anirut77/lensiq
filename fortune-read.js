@@ -238,11 +238,14 @@
     const b = doc.createElement("button");
     b.type = "button"; b.className = "lq-more"; b.textContent = MORE[lang];
     b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-controls", ids.join(" ")); b.setAttribute("data-lq-lang", lang);
-    b.addEventListener("click", () => {
+    const toggle = () => {
       const open = b.getAttribute("aria-expanded") !== "true", L = b.getAttribute("data-lq-lang") || lang;
       b.setAttribute("aria-expanded", open ? "true" : "false"); b.textContent = open ? LESS[L] : MORE[L];
       onToggle(open);
-    });
+    };
+    b.addEventListener("click", toggle);
+    // Enter toggles on key down (the native click is suppressed, so it never toggles twice); Space keeps the native click
+    b.addEventListener("keydown", e => { if (e.key === "Enter" && !e.repeat) { e.preventDefault(); toggle(); } });
     return b;
   }
   function leadsFor(lang) {
