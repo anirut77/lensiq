@@ -102,3 +102,6 @@
 @media print{.nav,.md-tabs,.md-set,.md-row,.md-camwrap{display:none!important}}
 .pc-kind{border:0;padding:0;margin:4px 0 8px;min-width:0}.pc-kind legend{font-weight:600;font-size:.92rem;padding:0;margin:0 0 2px}
 .pc-ad{border-left:3px solid #f59e0b;padding:4px 0 4px 12px;margin:0 0 10px}#pcAdList q{font-weight:600}
+
+/* 375 px (consistency review): the tab bar stays one row and scrolls sideways, so inactive tabs still read as tabs */
+@media (max-width:640px){.md-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.md-tabs>.tab{flex:0 0 auto;white-space:nowrap;max-width:none}}

@@ -19,13 +19,13 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="cr.doc.title">นับคนและความหนาแน่น | LENSIQ</title>
 <meta name="description" data-i18n-attr="content:cr.doc.desc" content="นับคนในภาพหรือในโซนแบบไม่ระบุตัวตน ฮีตแมปความหนาแน่น ช่วงเวลาคนเยอะ เส้นนับเข้า–ออก เวลาอยู่ในโซน ผู้เข้าชมรายชั่วโมง และอัตราแปลงยอดขาย ประมวลผลบนเครื่อง ไม่เก็บภาพ">
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="styles.css?v=14">
 <link rel="stylesheet" href="store.css?v=6">
 <link rel="stylesheet" href="zones.css?v=1">
 <link rel="stylesheet" href="crowd.css?v=2">
 <script src="lensiq-demo.js?v=1"></script>
-<script src="lensiq-demo-data.js?v=2"></script>
-<script src="i18n/zh-demo.js?v=2"></script>
+<script src="lensiq-demo-data.js?v=3"></script>
+<script src="i18n/zh-demo.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -42,6 +42,10 @@
     <span data-i18n="cr.st">สำหรับอีเวนต์ที่มีคนน้อยถึงปานกลาง · ยังไม่เหมาะกับฝูงชนหนาแน่น · ตัวเลขทุกตัวเป็นผลเบื้องต้น</span></p>
   <p class="lead" data-i18n="cr.lead">นับจำนวนคนในภาพหรือในโซนที่วาด ดูความหนาแน่นเป็นฮีตแมปและกราฟตามเวลา หาช่วงเวลาคนเยอะ นับคนเข้า–ออกด้วยเส้นนับ
     วัดเวลาที่อยู่ในแต่ละโซน และเทียบกับยอดขาย/ยอดลงทะเบียนที่กรอกเอง เหมาะกับอีเวนต์ บูธ และหน้าร้าน ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ</p>
+  <div class="lq-buy" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
+    <a class="btn primary" href="index.html?interest=crowd#contact" data-i18n="cr.buy.quote">ขอใบเสนอราคา</a>
+    <a class="btn ghost" href="crowd.html?demo=1" data-i18n="cr.buy.demo">ดูเดโม</a>
+  </div>
   <p class="acc-note" role="note"><b class="beta" data-i18n="zc.beta">ค่าประมาณ (Beta)</b> <span data-i18n="cr.acc">ใช้ตัวตรวจจับคนตัวเดียวกับหน้าวิเคราะห์หน้าร้าน
     ในที่คนแน่นมาก คนที่ยืนบังกันอาจถูกนับขาด และคนเดิมที่ออกจากภาพแล้วกลับมาจะถูกนับเป็นผู้เข้าชมใหม่ ตัวเลขจึงเป็นค่าประมาณสำหรับวางแผน
     ไม่ใช่ยอดนับอย่างเป็นทางการ ตั้งกล้องสูงมองเฉียงลง แล้วเทียบกับการนับด้วยมือสักช่วงก่อนใช้จริง</span> <a href="cameras.html#accuracy" data-i18n="zc.accLink">ความแม่นยำที่วัดได้</a></p>
@@ -49,13 +53,13 @@
     <p><b class="beta" data-i18n="cr.cl.h">ตัวเลขและที่มา (เบื้องต้น)</b> <strong data-i18n="cr.cl.dense">ยังไม่เหมาะกับฝูงชนหนาแน่น: ฝูงชนราว 300 คน
       (Shibuya) หน้านี้นับได้เพียงราว 1 คนต่อภาพ และนับได้ 0–2 คนในคลิปไทม์แลปส์ที่มีคนมากกว่า 100 คน · n = 2 + 7 ภาพ (2 คลิป) · ที่มา: ชุดข้อมูลสาธารณะ
       (วิดีโอ Wikimedia Commons) ผลเบื้องต้น เทียบกับการนับอ้างอิงโดย AI · ใช้กับคนน้อยถึงปานกลางที่ตัวใหญ่พอในภาพเท่านั้น</strong></p>
-    <p data-i18n="cr.cl.field">ความแม่นยำสุดท้าย: ยังไม่ได้วัด · ที่มา: หน้างานจริง (รอผลการนับโดยคน 2 คน และยังไม่มีโครงการนำร่อง) ตัวเลขทุกตัวในหัวข้อด้านล่างเป็นผลเบื้องต้น</p>
+    <p data-i18n="cr.cl.field">ความแม่นยำสุดท้าย: ยังไม่ได้วัด · ที่มา: หน้างานจริง (รอผลการนับโดยคน 2 คน และยังไม่มีโครงการนำร่อง) ตัวเลขทุกตัวในหัวข้อด้านล่างเป็นผลเบื้องต้น (PRELIMINARY)</p>
   </div>
   <details class="card cr-acc" id="crAcc">
-    <summary><span data-i18n="cr.acc2.h">ความแม่นยำของการนับคน: ผลวัดเบื้องต้น</span> <b class="beta" data-i18n="cr.acc2.pre">เบื้องต้น (PRELIMINARY)</b></summary>
+    <summary><span data-i18n="cr.acc2.h">ความแม่นยำของการนับคน</span> <b class="beta" data-i18n="cr.acc2.pre">ผลวัดเบื้องต้น</b></summary>
     <p data-i18n="cr.acc2.how">วัดกับวิดีโอสาธารณะ 5 คลิป (ทางม้าลายในเมือง คนน้อยถึงแน่นมาก) โดยรันตัวตรวจจับและตัวนับชุดเดียวกับหน้านี้ทีละเฟรม
       แล้วเทียบกับจำนวนคนที่นับจากภาพนิ่งทุก 1–5 วินาที ผู้นับอ้างอิงรอบนี้เป็น AI ที่ดูภาพนิ่ง ไม่ใช่คนนับ 2 คน
-      ตัวเลขด้านล่างจึงเป็น AI เทียบกับ AI และยังไม่ใช่ค่าความจริง</p>
+      ตัวเลขด้านล่างจึงเป็นผลเบื้องต้น (PRELIMINARY): AI เทียบกับ AI และยังไม่ใช่ค่าความจริง</p>
     <ul class="cr-acc-list">
       <li data-i18n="cr.acc2.r2">คน 15–22 คนเต็มภาพ ขนาดปานกลาง: นับต่ำกว่าจริงเฉลี่ย 26% (ประมาณ 5 คน) · n = 12 ภาพ (1 คลิป) · ที่มา: ชุดข้อมูลสาธารณะ ผลเบื้องต้น</li>
       <li data-i18n="cr.acc2.r6">คน 30–50 คนในภาพ หลายคนอยู่ไกล: นับต่ำกว่าจริงเฉลี่ย 58% (ค่าอ้างอิงเองก็เป็นค่าประมาณ ±20%) · n = 20 ภาพ (1 คลิป) · ที่มา: ชุดข้อมูลสาธารณะ ผลเบื้องต้น</li>
@@ -114,7 +118,7 @@
       </div>
       <p class="hint" id="drawMsg" role="status"></p>
       <h3 data-i18n="cr.zonesH">โซน</h3>
-      <p class="hint" data-i18n="cr.zonesHint">บทบาทของโซน: "พื้นที่" = นับคนและเวลาอยู่ · "ทางเดินหน้าร้าน" = คนเดินผ่าน · "หน้าตู้โชว์/บูธ" = คนหยุดดู (ใช้ทำกรวยหน้าร้าน)
+      <p class="hint" data-i18n="cr.zonesHint">บทบาทของโซน: "พื้นที่" = นับคนและเวลาอยู่ · "ทางเดิน / ทางเข้างาน" = คนเดินผ่าน · "หน้าบูธ / หน้าเวที" = คนหยุดดู (ใช้ทำกรวยผู้เข้าชม)
         ใส่จำนวนคนสูงสุดเพื่อให้เตือนเมื่อแน่น และพื้นที่ (ตร.ม.) เพื่อดูความหนาแน่นต่อตารางเมตร</p>
       <ul class="zc-zones" id="zoneList"></ul>
     </section>
@@ -129,13 +133,13 @@
         <label><span data-i18n="cr.s.site">ชื่อจุดหรืออีเวนต์ (ใช้ในรายงาน)</span><input name="siteName" type="text" maxlength="40" autocomplete="off"
           placeholder="เช่น บูธ A ชั้น 1" data-i18n-attr="placeholder:cr.s.sitePh"></label>
         <label><span data-i18n="cr.s.minVisit">อยู่ในโซนอย่างน้อย (วินาที) จึงนับเป็นการเข้าโซน</span><input name="minVisitSec" type="number" min="0" max="600" inputmode="numeric"></label>
-        <label><span data-i18n="cr.s.stop">หยุดหน้าตู้โชว์/บูธอย่างน้อย (วินาที) จึงนับว่า "หยุดดู"</span><input name="stopSec" type="number" min="1" max="600" inputmode="numeric"></label>
+        <label><span data-i18n="cr.s.stop">หยุดหน้าบูธหรือเวทีอย่างน้อย (วินาที) จึงนับว่า "หยุดดู"</span><input name="stopSec" type="number" min="1" max="600" inputmode="numeric"></label>
         <label><span data-i18n="cr.s.hold">เตือนเมื่อโซนแน่นเกินจำนวนสูงสุดต่อเนื่อง (วินาที)</span><input name="holdSec" type="number" min="1" max="600" inputmode="numeric"></label>
         <label><span data-i18n="zq.s.clear">กลับสู่ปกติเมื่อต่ำกว่าเกณฑ์ต่อเนื่อง (วินาที)</span><input name="clearSec" type="number" min="1" max="600" inputmode="numeric"></label>
         <label><span data-i18n="zq.s.cool">ไม่เตือนซ้ำโซนเดิมภายใน (นาที)</span><input name="cooldownMin" type="number" min="0" max="240" inputmode="numeric"></label>
         <label><span data-i18n="cr.s.conv">ผลลัพธ์ที่ใช้คิดอัตราแปลง</span><select name="convKind">
-          <option value="buy" data-i18n="cr.conv.buy">ยอดซื้อ (บิล)</option>
           <option value="signup" data-i18n="cr.conv.signup">ยอดลงทะเบียน</option>
+          <option value="buy" data-i18n="cr.conv.buy">ยอดซื้อ (บิล)</option>
           <option value="other" data-i18n="cr.conv.other">ผลลัพธ์อื่น</option>
         </select></label>
         <label><span data-i18n="cr.s.expect">จำนวนคนที่คาดว่าจะมีช่วงพีค (อีเวนต์) 0 = ไม่ใช้:
@@ -181,7 +185,8 @@
 
   <section class="card" aria-labelledby="funH">
     <h2 id="funH" data-i18n="cr.funH">เข้า–ออก และกรวยหน้าร้าน</h2>
-    <p class="hint" data-i18n="cr.funHint">วาดเส้นนับที่ประตูหรือทางเข้างาน (แตะ 2 จุดบนภาพ) ระบบนับเมื่อจุดเท้าของคนข้ามเส้น กรวยหน้าร้าน (ไม่บังคับ) ต้องมีโซน "ทางเดินหน้าร้าน" หรือ "หน้าตู้โชว์/บูธ" และเส้นนับที่ประตู</p>
+    <p class="hint" data-i18n="cr.funHint">วาดเส้นนับที่ประตูหรือทางเข้างาน (แตะ 2 จุดบนภาพ) ระบบนับเมื่อจุดเท้าของคนข้ามเส้น กรวยผู้เข้าชม (ไม่บังคับ) ต้องมีโซน "ทางเดิน / ทางเข้างาน"
+      หรือ "หน้าบูธ / หน้าเวที" และเส้นนับที่ทางเข้า</p>
     <ol class="cr-funnel" id="funnel"></ol>
     <h3 data-i18n="cr.q15.h">เข้า–ออกราย 15 นาที (สำหรับอีเวนต์)</h3>
     <p class="hint" data-i18n="cr.q15.hint">"เข้า" = คนที่เดินข้ามเส้นไปฝั่งที่เขียนว่าเข้า "ออก" = ทิศตรงข้าม
@@ -240,6 +245,14 @@
     <div class="row-actions">
       <button class="btn ghost" id="printNotice" type="button" data-i18n="zc.printNotice">พิมพ์ป้ายนี้</button>
       <a class="btn ghost" href="camera-notice.html" data-i18n="zc.allNotices">ป้ายแจ้งและแบบฟอร์มทั้งหมด</a>
+    </div>
+  </section>
+  <section class="lq-buy-end" aria-labelledby="buyH" style="margin:28px 0">
+    <h2 id="buyH" data-i18n="cr.buy.h">ขั้นตอนถัดไป</h2>
+    <p data-i18n="cr.buy.p">ขอใบเสนอราคาหรือนัดสาธิต ทีมงานจะติดต่อกลับ หน้าเดโมใช้ข้อมูลตัวอย่าง ไม่ใช่ข้อมูลจริง</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn primary" href="index.html?interest=crowd#contact" data-i18n="cr.buy.quote">ขอใบเสนอราคา</a>
+    <a class="btn ghost" href="crowd.html?demo=1" data-i18n="cr.buy.demo">ดูเดโม</a>
     </div>
   </section>
 </main>

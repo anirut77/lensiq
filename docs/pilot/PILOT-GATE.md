@@ -23,7 +23,7 @@
 |---|---|---|---|
 | อ่านอัตโนมัติถูกทั้งป้าย | 32% (7 / 22) | n = 22 ภาพ | ชุดข้อมูลสาธารณะ (Wikimedia Commons; 12 ภาพใช้ปรับค่า) |
 | ต้องแตะกรอบเอง | 78% (25 / 32) | n = 32 ภาพที่มีป้าย | ชุดข้อมูลสาธารณะ |
-| ภาพไม่มีป้ายแต่ถูกอ่านอัตโนมัติ | 0 / 19 (ช่วง 95%: 0–17%; ภาพที่ไม่ได้ใช้ปรับ 0 / 9: 0–30%) | n = 19 ภาพ | ชุดข้อมูลสาธารณะ |
+| ภาพไม่มีป้ายแต่ถูกอ่านอัตโนมัติ | 0 / 19 (ช่วง 95%: 0–17%; ภาพที่ไม่ได้ใช้ปรับ 0 / 8: 0–32%) | n = 19 ภาพ | ชุดข้อมูลสาธารณะ |
 | อ่านถูกจากภาพเดียว | 58% (81 / 140) | n = 140 ฉาก | ข้อมูลจำลอง (seed 7) |
 | ลานจอด / หมู่บ้านจริง | ยังไม่ได้วัด | — | หน้างานจริง |
 
@@ -179,7 +179,7 @@ Today's numbers (not field yet):
 |---|---|---|---|
 | Exact automatic read | 32% (7 / 22) | n = 22 photos | public dataset (Wikimedia Commons; 12 used for tuning) |
 | Taps needed | 78% (25 / 32) | n = 32 photos with a plate | public dataset |
-| Photos without a plate read automatically | 0 / 19 (95% interval 0–17%; held-out half 0 / 9: 0–30%) | n = 19 photos | public dataset |
+| Photos without a plate read automatically | 0 / 19 (95% interval 0–17%; held-out half 0 / 8: 0–32%) | n = 19 photos | public dataset |
 | Exact read from one frame | 58% (81 / 140) | n = 140 scenes | synthetic (seed 7) |
 | Real car park / village | not measured | — | field |
 

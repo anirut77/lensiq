@@ -30,3 +30,9 @@
 }
 /* round 16 (item 1): links to the 7 work-category pages above the sector catalogue */
 .sl-cats{margin:0 0 4px}
+
+/* walkthrough W-012: the badge colour follows the status it names (the group class only drives the filter) */
+.sl-tag[data-i18n="sl.st.pilot"]{background:#e6f6ee;color:#14653b}
+.sl-tag[data-i18n="sl.st.exp"]{background:#fff3d6;color:#6b4b00}
+.sl-tag[data-i18n="sl.st.demo"]{background:#eef0f4;color:#3a4256}
+.sl-tag[data-i18n="sl.st.soon"]{background:#e7f0ff;color:#1d4ed8}

@@ -4,3 +4,5 @@ bcb2d01fe4a65860f4527a27d793347d47294def3ab2fe73e003f30382d9a20a  tests/e2e/exam
 # --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/sellable-c/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
 bcb2d01fe4a65860f4527a27d793347d47294def3ab2fe73e003f30382d9a20a  tests/e2e/exam-dashboard-demo.e2e.mjs  # repo file
 0b8b8484223f2ade2a80d04a077872286f204ede0813b8236a4b42da8b36beaf  tests/e2e/exam-dashboard-demo.e2e.mjs (after amendment 1)  # repo file
+# amendment 2 2026-11-14 (branch walk-fix, buyer walkthrough W-019: lab demo shows lab signals only): EXPECT lean 0/1 -> object 0/1, every count and total unchanged; locked in evals-locks/walk-fix.sha256 before the fix
+cdcc159e34d9e16c94c970dae606afb6054fffb38d167818228cd9e696790526  tests/e2e/exam-dashboard-demo.e2e.mjs (after amendment 2)  # repo file

@@ -38,6 +38,7 @@
 
 .iq .btn{padding:8px 18px;font-size:.88rem;text-align:center}
 .btn.ghost.danger{border-color:#c0392b;color:#a12b20}
+.btn.ghost.danger:hover{background:#a12b20;color:#ffffff;border-color:#a12b20} /* AA: 6.6:1 (the shared navy hover left red on navy at about 2:1) */
 .btn.file{position:relative}
 .btn.file input{position:absolute;width:1px;height:1px;opacity:0}
 .btn.file:focus-within{outline:2px solid var(--aqua);outline-offset:2px}

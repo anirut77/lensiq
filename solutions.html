@@ -21,9 +21,9 @@
 <meta name="description"
   data-i18n-attr="content:sl.doc.desc"
   content="งานที่ LENSIQ ทำได้ในแต่ละอุตสาหกรรม: การศึกษา องค์กร ค้าปลีก ร้านอาหาร โรงงาน ลานจอด สุขภาพ ฟิตเนส เกษตร อีเวนต์ และภาครัฐ พร้อมสถานะและหมายเหตุความเป็นส่วนตัว">
-<link rel="stylesheet" href="styles.css?v=12">
-<link rel="stylesheet" href="products.css?v=2">
-<link rel="stylesheet" href="solutions.css?v=2">
+<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="products.css?v=3">
+<link rel="stylesheet" href="solutions.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -37,7 +37,7 @@
       ทุกระบบประมวลผลบนเครื่องเป็นค่าเริ่มต้น และส่งสัญญาณให้คนตรวจสอบ ไม่ตัดสินแทนคน</p>
     <div class="pd-cta">
       <a class="btn primary" href="#sec-retail" data-i18n="sl.cta1">ลองหน้าตัวอย่างที่ใช้ได้แล้ว</a>
-      <a class="btn ghost light" href="index.html?interest=solutions#contact" data-i18n="sl.cta2">ขอโครงการนำร่อง</a>
+      <a class="btn ghost light" href="index.html?interest=unsure#contact" data-i18n="sl.cta2">ขอโครงการนำร่อง</a>
     </div>
   </section>
   <div class="pd-body">
@@ -61,15 +61,19 @@
     <section aria-labelledby="slStH">
       <h2 id="slStH" data-i18n="sl.statusH">สถานะหมายถึงอะไร</h2>
       <ul class="sl-legend">
-        <li><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span> <span data-i18n="sl.st.now.d">เปิดใช้ได้ทันทีในเบราว์เซอร์ มีโหมดตัวอย่าง และเครื่องมือวัดความแม่นยำหน้างาน</span></li>
-        <li><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span> <span data-i18n="sl.st.pilot.d">ระบบครบขั้นตอนแล้ว แต่ต้องทดสอบกับหน้างานจริงร่วมกันก่อนใช้งานประจำ</span></li>
+        <li><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span> <span data-i18n="sl.st.pilot.d">พร้อมทดสอบนำร่องที่หน้างานหนึ่งแห่งภายใต้การดูแล ขั้นตอนครบ
+          คนตัดสินใจทุกครั้ง ยังไม่ผ่านการทดสอบภาคสนาม</span></li>
+        <li><span class="sl-tag now" data-i18n="sl.st.now">ทดลอง / สาธิต</span> <span data-i18n="sl.st.now.d">ทดลอง: ใช้งานได้ครบขั้นตอน แต่ความแม่นยำยังไม่ได้วัด เป็นผลเบื้องต้น
+          หรือมีข้อจำกัดที่รู้แล้ว · สาธิต: แสดงแนวคิดด้วยข้อมูลตัวอย่างหรือเพื่อความบันเทิง ไม่ใช้ตัดสินเรื่องคน เงิน หรือสิทธิ์เข้าออก</span></li>
         <li><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span> <span data-i18n="sl.st.soon.d">ยังไม่เปิดใช้ ระบุสิ่งที่ยังขาดไว้ตรง ๆ (โมเดล
           การทดสอบ หรือขั้นตอนขอความยินยอม)</span></li>
       </ul>
+      <p class="pd-sub" data-i18n="sl.f.pilotNote">ตัวกรอง "เปิดรับโครงการนำร่อง" รวมระบบที่พร้อมนำร่อง และ LENSIQ Crowd รุ่นทดลองสำหรับอีเวนต์ (สั่งโครงการนำร่องได้ ป้ายสถานะของ Crowd
+        ยังเป็น "ทดลอง")</p>
       <div class="sl-filter" role="group" aria-label="กรองตามสถานะ" data-i18n-attr="aria-label:sl.filterAria">
         <button class="seg" type="button" data-f="all" aria-pressed="true" data-i18n="sl.f.all">ทั้งหมด</button>
-        <button class="seg" type="button" data-f="now" aria-pressed="false" data-i18n="sl.st.now">ใช้ได้แล้ว</button>
-        <button class="seg" type="button" data-f="pilot" aria-pressed="false" data-i18n="sl.st.pilot">นำร่อง</button>
+        <button class="seg" type="button" data-f="pilot" aria-pressed="false" data-i18n="sl.f.pilot">เปิดรับโครงการนำร่อง</button>
+        <button class="seg" type="button" data-f="now" aria-pressed="false" data-i18n="sl.st.now">ทดลอง / สาธิต</button>
         <button class="seg" type="button" data-f="soon" aria-pressed="false" data-i18n="sl.st.soon">กำลังพัฒนา</button>
       </div>
       <p class="pd-sub sl-count" id="slCount" role="status"></p>
@@ -91,7 +95,7 @@
       <p class="pd-sub" data-i18n="sl.s.edu.sub">โรงเรียน มหาวิทยาลัย ศูนย์สอบ และสถาบันฝึกอบรม</p>
       <div class="pd-grid sl-grid">
       <article class="sl-card" data-status="pilot" id="sol-edu1">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📝</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📝</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.edu1.h">ผู้ช่วยกรรมการคุมสอบ</h3>
         <p data-i18n="sl.c.edu1.p">บอกกรรมการว่าควรไปดูที่นั่งไหน (ไม่มีใบหน้า มากกว่าหนึ่งคน โทรศัพท์ ออกจากหน้าจอ)
           ในห้องสอบคอมพิวเตอร์ (พร้อมนำร่อง) และห้องสอบที่มีกล้องรอบห้อง (รุ่นทดลอง ยังไม่เปิดขาย) ไม่ตัดสินว่าทุจริต กรรมการเป็นผู้ตรวจและบันทึกผล</p>
@@ -101,7 +105,7 @@
         <a class="sl-go" href="exam.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.exam">ผู้ช่วยกรรมการคุมสอบ</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-edu2">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">✅</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">✅</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.edu2.h">เช็คชื่อเข้าอบรมด้วยใบหน้า</h3>
         <p data-i18n="sl.c.edu2.p">ลงทะเบียนใบหน้าครั้งเดียวแล้วสแกนเพื่อบันทึกการเข้าเรียน มีการตรวจความมีชีวิต ส่งออกรายชื่อ CSV และตั้งระยะเวลาลบข้อมูลใบหน้า</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu2.w">ผู้จัดอบรม สัมมนา และคลาสเรียนผู้ใหญ่</span></p>
@@ -128,7 +132,7 @@
           และการวัดความแม่นยำกับนักเรียนจริงพร้อมความยินยอมของผู้ปกครอง</span></p>
       </article>
       <article class="sl-card" data-status="now" id="sol-edu5">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🍱</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🍱</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.edu5.h">คิวโรงอาหารและจุดลงทะเบียน</h3>
         <p data-i18n="sl.c.edu5.p">นับคนในโซนคิวและเตือนให้เปิดจุดบริการเพิ่มเมื่อคิวยาว</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu5.w">โรงอาหาร ฝ่ายทะเบียน วันรับสมัคร</span></p>
@@ -136,8 +140,8 @@
         <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
       </article>
       <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
-      <article class="sl-card" data-status="pilot" id="sol-edu6">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧾</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+      <article class="sl-card" data-status="now" id="sol-edu6">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧾</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.edu6.h">ตรวจกระดาษคำตอบด้วยกล้องมือถือ</h3>
         <p data-i18n="sl.c.edu6.p">พิมพ์กระดาษคำตอบที่มีมุมอ้างอิง ถ่ายด้วยมือถือ ระบบอ่านช่องที่ฝน ให้คะแนนตามเฉลย วิเคราะห์รายข้อ และส่งออก CSV ไม่ใช้ AI ไม่ใช้ใบหน้า ครูตรวจทานข้อที่อ่านไม่ชัดเอง</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu6.w">ครู โรงเรียน สถาบันกวดวิชา</span></p>
@@ -145,7 +149,7 @@
         <a class="sl-go" href="omr.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.omr">ตรวจกระดาษคำตอบ</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="pilot" id="sol-edu7">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚌</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚌</span><span class="sl-tag pilot" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.edu7.h">นับจำนวนนักเรียนขึ้นรถหรือไปทัศนศึกษา</h3>
         <p data-i18n="sl.c.edu7.p">นับคนที่เดินผ่านเส้นที่ประตูรถหรือทางเข้า แล้วให้ครูเทียบกับจำนวนตามรายชื่อ นับจำนวนเท่านั้น ไม่ระบุว่าใครเป็นใคร (ทดลอง ยังไม่เหมาะกับฝูงชนหนาแน่น)</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu7.w">ครูประจำชั้น ผู้จัดทัศนศึกษา โรงเรียนที่มีรถรับส่ง</span></p>
@@ -192,16 +196,17 @@
       <p class="pd-sub" data-i18n="sl.s.hr.sub">ฝ่ายบุคคล สำนักงาน และอาคาร</p>
       <div class="pd-grid sl-grid">
       <article class="sl-card" data-status="pilot" id="sol-hr1">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">⏱️</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">⏱️</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.hr1.h">ลงเวลาทำงานพนักงาน</h3>
-        <p data-i18n="sl.c.hr1.p">โหมดพนักงาน: กะ เวลาสาย ออกก่อน OT พักเบรก สรุปรายเดือนสำหรับเงินเดือน และทางเลือก PIN/QR สำหรับผู้ไม่ใช้ใบหน้า (กำลังเพิ่มในหน้าเช็คชื่อ)</p>
+        <p data-i18n="sl.c.hr1.p">โหมดพนักงาน: กะ เวลาสาย ออกก่อน OT พักเบรก สรุปรายเดือนสำหรับเงินเดือน ลงเวลาด้วย PIN / QR เป็นวิธีหลัก สแกนใบหน้าเป็นตัวเลือกสำหรับผู้ที่ยินยอม</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr1.w">SME โรงงาน ร้านค้าหลายสาขา</span></p>
         <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.face">ใช้ใบหน้าเฉพาะผู้ที่ยินยอมโดยชัดแจ้ง (ข้อมูลชีวภาพ PDPA
           ม.26) เข้ารหัสในเครื่อง ตั้งระยะเวลาเก็บและลบได้ ควรมีทางเลือกที่ไม่ใช้ใบหน้า</span></p>
+        <a class="btn primary sl-entry" href="attendance.html?mode=employee" data-i18n="sl.pg.timeclock">เปิดลงเวลาทำงาน PIN / QR</a>
         <a class="sl-go" href="attendance.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.attendance">เช็คชื่อด้วยใบหน้า</span> <span aria-hidden="true">→</span></a>
       </article>
-      <article class="sl-card" data-status="now" id="sol-hr2">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧑‍💼</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+      <article class="sl-card" data-status="pilot" id="sol-hr2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧑‍💼</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.hr2.h">สัมภาษณ์งานแบบมีโครงสร้าง</h3>
         <p data-i18n="sl.c.hr2.p">คำถามเดียวกันทุกคน เกณฑ์ให้คะแนนที่บรรยายพฤติกรรม ผู้สัมภาษณ์ให้คะแนนแยกกันก่อนหารือ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr2.w">ฝ่ายบุคคลและหัวหน้างานที่รับคน</span></p>
@@ -209,7 +214,7 @@
         <a class="sl-go" href="interview.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.interview">ชุดสัมภาษณ์แบบมีโครงสร้าง</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-hr3">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔐</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔐</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.hr3.h">เฝ้าสำนักงานและห้องเซิร์ฟเวอร์นอกเวลา</h3>
         <p data-i18n="sl.c.hr3.p">แจ้งเจ้าหน้าที่เมื่อพบคนในห้องเซิร์ฟเวอร์ ห้องเอกสาร หรือสำนักงานหลังเลิกงาน ให้คนตรวจสอบเสมอ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr3.w">ผู้ดูแลอาคารและฝ่ายไอที</span></p>
@@ -217,7 +222,7 @@
         <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-hr4">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🗓️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🗓️</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.hr4.h">ห้องประชุมว่างหรือไม่</h3>
         <p data-i18n="sl.c.hr4.p">ใช้หน้าโต๊ะว่าง: วาดโซนรอบโต๊ะประชุม ดูว่าว่างหรือมีคน และเวลาที่ใช้ต่อวัน</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr4.w">สำนักงานและโคเวิร์กกิ้งสเปซ</span></p>
@@ -225,8 +230,8 @@
         <a class="sl-go" href="tables.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.tables">โต๊ะว่างและรอบการนั่ง</span> <span aria-hidden="true">→</span></a>
       </article>
       <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
-      <article class="sl-card" data-status="now" id="sol-hr5">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🎞️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+      <article class="sl-card" data-status="pilot" id="sol-hr5">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🎞️</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.hr5.h">ทบทวนเคสจากคลิปวิดีโอ</h3>
         <p data-i18n="sl.c.hr5.p">เปิดคลิปจากเครื่อง ติดแท็กตามเวลา จดบันทึก ระบุชื่อผู้ตรวจทุกขั้น เก็บล็อกแบบต่อท้ายที่ตรวจพบการแก้ไขได้ ส่งออก CSV/JSON และพิมพ์สรุปเคส ระบบไม่ตัดสินว่าใครพูดจริงหรือเท็จ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr5.w">ฝ่ายบุคคล ฝ่ายกฎหมาย ผู้ตรวจสอบภายใน</span></p>
@@ -240,8 +245,8 @@
       <h2 id="h-retail"><span aria-hidden="true">🛍️</span> <span data-i18n="sl.s.retail">ค้าปลีกและร้านอาหาร</span></h2>
       <p class="pd-sub" data-i18n="sl.s.retail.sub">ร้านค้า ร้านอาหาร คาเฟ่ และศูนย์การค้า</p>
       <div class="pd-grid sl-grid">
-      <article class="sl-card" data-status="now" id="sol-r1">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚪</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+      <article class="sl-card" data-status="pilot" id="sol-r1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚪</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.r1.h">นับคนเข้าร้านและโซนยอดนิยม</h3>
         <p data-i18n="sl.c.r1.p">นับคนเข้า–ออก จำนวนคนในร้าน โซนยอดนิยม และฮีตแมป หลายกล้องต่อเครื่อง</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r1.w">ร้านค้าปลีกและ SME</span></p>
@@ -249,7 +254,7 @@
         <a class="sl-go" href="store.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.store">วิเคราะห์หน้าร้าน</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-r2">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧍</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧍</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.r2.h">แจ้งเตือนคิวยาว</h3>
         <p data-i18n="sl.c.r2.p">นับคนในโซนคิว ประมาณเวลารอ และเตือนพนักงานให้พิจารณาเปิดเคาน์เตอร์เพิ่ม</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r2.w">ซูเปอร์มาร์เก็ต ร้านกาแฟ จุดชำระเงิน</span></p>
@@ -257,7 +262,7 @@
         <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-r3">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🍽️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🍽️</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.r3.h">โต๊ะว่างและรอบการนั่ง</h3>
         <p data-i18n="sl.c.r3.p">ดูโต๊ะว่าง มีลูกค้า หรือรอเก็บ จับเวลาต่อโต๊ะ และนับรอบการนั่งต่อวัน</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r3.w">ร้านอาหาร ฟู้ดคอร์ต คาเฟ่</span></p>
@@ -265,7 +270,7 @@
         <a class="sl-go" href="tables.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.tables">โต๊ะว่างและรอบการนั่ง</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-r4">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧾</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧾</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.r4.h">คิดเงินด้วยกล้อง</h3>
         <p data-i18n="sl.c.r4.p">สอนระบบจำสินค้าจากกล้อง แล้วใช้คิดเงินแบบบริการตนเองหรือนับสต็อก</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r4.w">ร้านสะดวกซื้อ ร้านขนม ร้านในสำนักงาน</span></p>
@@ -273,7 +278,7 @@
         <a class="sl-go" href="checkout.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.checkout">สแกนสินค้าด้วยกล้อง</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-r5">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📺</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📺</span><span class="sl-tag now" data-i18n="sl.st.demo">สาธิต</span></div>
         <h3 data-i18n="sl.c.r5.h">ป้ายโฆษณาดิจิทัล</h3>
         <p data-i18n="sl.c.r5.p">วัดเวลาดูจอแบบไม่ระบุตัวตน และคีออสก์สั่งงานด้วยมือไม่ต้องสัมผัสจอ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r5.w">ร้านค้า ศูนย์การค้า ล็อบบี้</span></p>
@@ -281,7 +286,7 @@
         <a class="sl-go" href="signage.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.signage">ป้ายโฆษณาดิจิทัล</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-r6">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🤝</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🤝</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.r6.h">จดจำสมาชิก (เฉพาะผู้ยินยอม)</h3>
         <p data-i18n="sl.c.r6.p">ทักทายสมาชิกที่ยินยอม แสดงเมนูที่สั่งบ่อย มีทางเลือกค้นด้วยชื่อ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r6.w">ร้านกาแฟ ร้านอาหารที่มีลูกค้าประจำ</span></p>
@@ -290,7 +295,7 @@
         <a class="sl-go" href="customers.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.customers">จดจำสมาชิก</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-r7">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📦</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📦</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.r7.h">เฝ้าหลังร้านและคลังสินค้าหลังปิด</h3>
         <p data-i18n="sl.c.r7.p">แจ้งเมื่อพบคนในคลังสินค้าหรือหลังเคาน์เตอร์ในช่วงเวลาที่ตั้ง มีเวลาพักการแจ้งซ้ำ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r7.w">ร้านค้าและร้านอาหาร</span></p>
@@ -298,7 +303,7 @@
         <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-r8">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📊</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📊</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.r8.h">แดชบอร์ดรวมหลายสาขา</h3>
         <p data-i18n="sl.c.r8.p">สรุปตัวเลขจากทุกระบบในเครื่องนี้ พร้อมความมั่นใจทางสถิติและคาดการณ์</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r8.w">เจ้าของร้านหลายสาขา</span></p>
@@ -307,7 +312,7 @@
       </article>
       <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
       <article class="sl-card" data-status="pilot" id="sol-r9">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🪟</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🪟</span><span class="sl-tag pilot" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.r9.h">นับคนและความหนาแน่น พร้อมกรวยหน้าร้าน</h3>
         <p data-i18n="sl.c.r9.p">คนในโซน ฮีตแมปความหนาแน่น ช่วงพีค เส้นนับเข้า-ออก เวลาอยู่ในโซน และกรวยหน้าร้าน (คนเดินผ่าน → หยุดดู → เข้าร้าน)
           ใส่ยอดซื้อเองเพื่อดูอัตราการซื้อ (ทดลอง ยังไม่เหมาะกับฝูงชนหนาแน่น)</p>
@@ -316,7 +321,7 @@
         <a class="sl-go" href="crowd.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.crowd">นับคนและความหนาแน่น</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-r10">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🛵</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🛵</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.r10.h">จุดรอไรเดอร์รับอาหาร</h3>
         <p data-i18n="sl.c.r10.p">นับไรเดอร์ที่รออยู่ในโซนหน้าเคาน์เตอร์ และเตือนพนักงานเมื่อรอมากเกินไป ซึ่งอาจแปลว่าออเดอร์ค้าง ใช้หน้าแจ้งเตือนคิว</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r10.w">ร้านอาหารและคาเฟ่ที่ขายผ่านแอปเดลิเวอรี</span></p>
@@ -371,7 +376,7 @@
       <p class="pd-sub" data-i18n="sl.s.mfg.sub">โรงงาน สายการผลิต และคลังสินค้า</p>
       <div class="pd-grid sl-grid">
       <article class="sl-card" data-status="now" id="sol-m1">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔍</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔍</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.m1.h">ตรวจคุณภาพบนสายการผลิต</h3>
         <p data-i18n="sl.c.m1.p">เทียบชิ้นงานกับตัวอย่างที่ผ่าน นับยอดผ่าน/คัดทิ้ง และส่งออกรายงานประจำกะ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.m1.w">โรงงาน SME และสายบรรจุ</span></p>
@@ -379,7 +384,7 @@
         <a class="sl-go" href="qc.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.qc">ตรวจคุณภาพสินค้า</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-m2">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">⚠️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">⚠️</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.m2.h">แจ้งเตือนคนเข้าพื้นที่หวงห้าม</h3>
         <p data-i18n="sl.c.m2.p">แจ้งเจ้าหน้าที่เมื่อพบคนในพื้นที่ที่กำหนด เช่น หลังรั้วเครื่องจักร เป็นสัญญาณให้คนดูเท่านั้น ไม่ใช่ระบบความปลอดภัยของเครื่องจักรและไม่ใช้หยุดเครื่อง</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.m2.w">หัวหน้ากะ เจ้าหน้าที่ความปลอดภัย</span></p>
@@ -398,7 +403,7 @@
           ที่ฝึกจากภาพที่มีสิทธิ์ใช้เชิงพาณิชย์ ตอนนี้ยังไม่มีโมเดลสำเร็จรูปที่ใบอนุญาตชัดเจน</span></p>
       </article>
       <article class="sl-card" data-status="now" id="sol-m4">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚚</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚚</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.m4.h">เฝ้าระวังความง่วงคนขับ</h3>
         <p data-i18n="sl.c.m4.p">เตือนเมื่อหลับตานานหรือหาวบ่อย สำหรับคนขับรถส่งของและรถรับส่งพนักงาน</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.m4.w">ฟลีตขนส่งและรถรับส่ง</span></p>
@@ -414,7 +419,7 @@
       <p class="pd-sub" data-i18n="sl.s.park.sub">ลานจอด หมู่บ้าน คอนโด และงานรักษาความปลอดภัย</p>
       <div class="pd-grid sl-grid">
       <article class="sl-card" data-status="pilot" id="sol-p1">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚗</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚗</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.p1.h">อ่านป้ายทะเบียนที่ประตู</h3>
         <p data-i18n="sl.c.p1.p">ช่วยอ่านทะเบียนรถไทย เจ้าหน้าที่ยืนยันหรือแก้ทุกครั้ง บันทึกเข้า–ออก ส่งออก CSV และใช้งานได้ครบแม้พิมพ์ทะเบียนเอง</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p1.w">ลานจอด อาคาร โรงงาน</span></p>
@@ -423,7 +428,7 @@
         <a class="sl-go" href="gate.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.gate">อ่านป้ายทะเบียนที่ประตู</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="pilot" id="sol-p2">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">💳</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">💳</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.p2.h">ลานจอดเก็บเงินพร้อม PromptPay</h3>
         <p data-i18n="sl.c.p2.p">จับคู่เข้า–ออกด้วยทะเบียน คิดค่าจอดตามกฎ (ฟรีช่วงแรก ปัดชั่วโมง เพดานรายวัน) สร้าง QR พร้อมเพย์ตามยอด และสรุปปิดกะ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p2.w">ลานจอดเอกชน ตลาด ศูนย์การค้าขนาดเล็ก</span></p>
@@ -432,7 +437,7 @@
         <a class="sl-go" href="parking.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.parking">ลานจอดเก็บเงิน</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="pilot" id="sol-p3">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏘️</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏘️</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.p3.h">ประตูหมู่บ้านและคอนโด</h3>
         <p data-i18n="sl.c.p3.p">รายชื่อรถลูกบ้าน บัตรผู้มาเยือนแบบจำกัดเวลา แจ้งยามเมื่อเป็นรถไม่รู้จัก และปุ่มเปิดไม้กั้นที่ยามกดเองเสมอ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p3.w">นิติบุคคลหมู่บ้าน คอนโด</span></p>
@@ -441,7 +446,7 @@
         <a class="sl-go" href="village.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.village">ประตูหมู่บ้านและคอนโด</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-p4">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🅿️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🅿️</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.p4.h">นับช่องจอดว่าง</h3>
         <p data-i18n="sl.c.p4.p">นับช่องรถยนต์และจักรยานยนต์ที่ว่างโดยไม่อ่านทะเบียน พร้อมจอแสดงช่องว่างหน้าทางเข้า</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p4.w">ลานจอดอาคาร โรงพยาบาล ห้าง</span></p>
@@ -449,7 +454,7 @@
         <a class="sl-go" href="bays.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.bays">นับช่องจอดว่าง</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-p5">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚌</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚌</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.p5.h">เฝ้าระวังความง่วงคนขับ</h3>
         <p data-i18n="sl.c.p5.p">ประมวลผลบนมือถือหรือแท็บเล็ตในรถ ไม่ต้องใช้อินเทอร์เน็ต</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p5.w">รถตู้ รถบัส รถขนส่ง</span></p>
@@ -458,7 +463,7 @@
         <a class="sl-go" href="driver.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.driver">เฝ้าระวังความง่วงคนขับ</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-p6">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🌙</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🌙</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.p6.h">เฝ้าพื้นที่นอกเวลา</h3>
         <p data-i18n="sl.c.p6.p">แจ้ง รปภ. เมื่อพบคนในพื้นที่ที่กำหนดในช่วงกลางคืน ให้คนตรวจสอบก่อนดำเนินการ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p6.w">รปภ. ไซต์ก่อสร้าง ลานจอด</span></p>
@@ -467,7 +472,7 @@
       </article>
       <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
       <article class="sl-card" data-status="now" id="sol-p7">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚿</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚿</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.p7.h">ช่องล้างรถและร้านซักผ้าที่ว่าง</h3>
         <p data-i18n="sl.c.p7.p">วาดช่องล้างรถหรือจุดจอด แล้วดูว่าว่างกี่ช่อง ไม่อ่านป้ายทะเบียน</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p7.w">คาร์แคร์ ร้านซักผ้าหยอดเหรียญ</span></p>
@@ -499,7 +504,7 @@
         <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.h2.y">โมเดลท่าทางและการวัดความแม่นยำเทียบกับการวัดของนักกายภาพ</span></p>
       </article>
       <article class="sl-card" data-status="now" id="sol-h3">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">💊</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">💊</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.h3.h">คิวห้องรอตรวจและห้องยา</h3>
         <p data-i18n="sl.c.h3.p">นับคนรอและเตือนให้เปิดช่องบริการเพิ่มเมื่อคิวยาว</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h3.w">คลินิก โรงพยาบาล ร้านยา</span></p>
@@ -507,7 +512,7 @@
         <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-h4">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔒</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔒</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.h4.h">เฝ้าห้องยาและพื้นที่จำกัด</h3>
         <p data-i18n="sl.c.h4.p">แจ้งเจ้าหน้าที่เมื่อพบคนในห้องยาหรือพื้นที่จำกัดนอกเวลาที่กำหนด</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h4.w">คลินิกและโรงพยาบาล</span></p>
@@ -515,8 +520,8 @@
         <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
       </article>
       <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
-      <article class="sl-card" data-status="pilot" id="sol-h5">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">💊</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+      <article class="sl-card" data-status="now" id="sol-h5">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">💊</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.h5.h">ตรวจข้อมูลยาจากกล่องหรือเม็ดยา</h3>
         <p data-i18n="sl.c.h5.p">อ่านเลขทะเบียน อย. บาร์โค้ด หรือชื่อยา แสดงข้อความฉลากตามต้นฉบับพร้อมแหล่งที่มา และแสดงเม็ดยาที่ลักษณะใกล้เคียงหลายรายการ ไม่ใช่คำแนะนำทางการแพทย์ ยืนยันกับเภสัชกรทุกครั้ง</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h5.w">ร้านยา ผู้ดูแลผู้สูงอายุ ครอบครัว</span></p>
@@ -524,7 +529,7 @@
         <a class="sl-go" href="medicine.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.medicine">ตรวจข้อมูลยา</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-h6">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🪑</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🪑</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.h6.h">ที่นั่งว่างในห้องรอ</h3>
         <p data-i18n="sl.c.h6.p">ใช้หน้าโต๊ะว่าง วาดโซนรอบเก้าอี้ในห้องรอเพื่อดูว่าเหลือที่นั่งว่างกี่ที่</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h6.w">คลินิก โรงพยาบาล สำนักงานบริการ</span></p>
@@ -579,8 +584,8 @@
         <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.pose">ตั้งใจใช้จุดโครงร่างร่างกายหรือภาพเงาแทนภาพจริง ประมวลผลในเครื่อง ไม่บันทึกภาพ</span></p>
         <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.f1.y">โมเดลท่าทางและการทดสอบกับท่าจริงหลายมุมกล้อง</span></p>
       </article>
-      <article class="sl-card" data-status="now" id="sol-f2">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏃</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+      <article class="sl-card" data-status="pilot" id="sol-f2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏃</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.f2.h">นับคนในฟิตเนสและแต่ละโซน</h3>
         <p data-i18n="sl.c.f2.p">ใช้หน้าวิเคราะห์หน้าร้าน: นับคนเข้า–ออกและจำนวนคนในโซนเครื่องเล่น เพื่อจัดพนักงานและบอกช่วงเวลาที่ว่าง</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.f2.w">ฟิตเนสและสระว่ายน้ำ (เฉพาะจำนวนคน)</span></p>
@@ -588,7 +593,7 @@
         <a class="sl-go" href="store.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.store">วิเคราะห์หน้าร้าน</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-f3">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧘</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧘</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.f3.h">เช็คชื่อเข้าคลาส</h3>
         <p data-i18n="sl.c.f3.p">เช็คชื่อเข้าคลาสด้วยใบหน้าเฉพาะสมาชิกที่ยินยอม</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.f3.w">สตูดิโอโยคะ คลาสกลุ่ม</span></p>
@@ -604,15 +609,15 @@
       <p class="pd-sub" data-i18n="sl.s.agri.sub">ฟาร์ม โรงคัดแยก และจุดรับซื้อผลผลิต</p>
       <div class="pd-grid sl-grid">
       <article class="sl-card" data-status="now" id="sol-a1">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏚️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏚️</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.a1.h">เฝ้าโรงเก็บและฟาร์มตอนกลางคืน</h3>
         <p data-i18n="sl.c.a1.p">แจ้งเมื่อพบคนในโรงเก็บปุ๋ย เครื่องมือ หรือผลผลิตในช่วงกลางคืน ให้เจ้าของตรวจสอบ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.a1.w">ฟาร์ม สหกรณ์</span></p>
         <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
         <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
       </article>
-      <article class="sl-card" data-status="pilot" id="sol-a2">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🥭</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+      <article class="sl-card" data-status="now" id="sol-a2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🥭</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.a2.h">คัดแยกผลผลิตด้วยกล้อง</h3>
         <p data-i18n="sl.c.a2.p">ใช้หน้าตรวจคุณภาพกับผลผลิต (สี ขนาด ตำหนิ) ต้องตั้งเกณฑ์และทดสอบกับผลผลิตจริงก่อน</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.a2.w">โรงคัดบรรจุ ผู้ส่งออกผลไม้</span></p>
@@ -620,7 +625,7 @@
         <a class="sl-go" href="qc.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.qc">ตรวจคุณภาพสินค้า</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-a3">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚜</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚜</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.a3.h">คิวรถที่จุดรับซื้อ</h3>
         <p data-i18n="sl.c.a3.p">วาดช่องจอดรอขาย ดูว่ามีรถรออยู่กี่ช่อง โดยไม่อ่านทะเบียน</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.a3.w">ลานรับซื้อผลผลิต โรงสี</span></p>
@@ -643,15 +648,15 @@
       <p class="pd-sub" data-i18n="sl.s.event.sub">งานแสดงสินค้า บูธ แหล่งท่องเที่ยว และพิพิธภัณฑ์</p>
       <div class="pd-grid sl-grid">
       <article class="sl-card" data-status="now" id="sol-e1">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🎟️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🎟️</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.e1.h">นับผู้เข้าชมบูธ</h3>
         <p data-i18n="sl.c.e1.p">นับผู้เข้าชมและเวลาหยุดชมบูธแบบไม่ระบุตัวตน</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e1.w">ผู้ออกบูธ ผู้จัดงาน</span></p>
         <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
         <a class="sl-go" href="booth.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.booth">วิเคราะห์บูธ</span> <span aria-hidden="true">→</span></a>
       </article>
-      <article class="sl-card" data-status="now" id="sol-e2">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📸</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+      <article class="sl-card" data-status="pilot" id="sol-e2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📸</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.e2.h">ตู้ถ่ายรูป</h3>
         <p data-i18n="sl.c.e2.p">ตู้ถ่ายรูปสติ๊กเกอร์ เปลี่ยนฉากหลัง และแชร์ภาพเข้ามือถือ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e2.w">งานอีเวนต์ บูธแบรนด์</span></p>
@@ -659,7 +664,7 @@
         <a class="sl-go" href="photobooth.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.photobooth">ตู้ถ่ายรูป</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-e3">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔮</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔮</span><span class="sl-tag now" data-i18n="sl.st.demo">สาธิต</span></div>
         <h3 data-i18n="sl.c.e3.h">กิจกรรมดูดวงดึงคนเข้าบูธ</h3>
         <p data-i18n="sl.c.e3.p">ศาสตร์ไทยและจีนเพื่อความบันเทิง ใช้เป็นกิจกรรมหน้าบูธ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e3.w">งานแสดงสินค้า ห้าง เทศกาล</span></p>
@@ -667,7 +672,7 @@
         <a class="sl-go" href="fortune.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.fortune">รวมศาสตร์ดูดวง</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-e4">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🪪</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🪪</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.e4.h">ลงทะเบียนเข้างาน</h3>
         <p data-i18n="sl.c.e4.p">เช็คชื่อผู้ร่วมงานที่ลงทะเบียนและยินยอม ส่งออกรายชื่อ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e4.w">งานสัมมนา งานประชุม</span></p>
@@ -676,7 +681,7 @@
         <a class="sl-go" href="attendance.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.attendance">เช็คชื่อด้วยใบหน้า</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-e5">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🎢</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🎢</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.e5.h">คิวเครื่องเล่นและจุดจำหน่ายบัตร</h3>
         <p data-i18n="sl.c.e5.p">ประมาณเวลารอและเตือนให้เปิดช่องขายบัตรเพิ่ม</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e5.w">สวนสนุก พิพิธภัณฑ์ แหล่งท่องเที่ยว</span></p>
@@ -685,7 +690,7 @@
       </article>
       <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
       <article class="sl-card" data-status="pilot" id="sol-e6">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">⛩️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">⛩️</span><span class="sl-tag pilot" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.e6.h">นับผู้มาเที่ยวงานวัดและเทศกาล</h3>
         <p data-i18n="sl.c.e6.p">วางเส้นนับที่ทางเข้า ดูจำนวนคนเข้า-ออกรายชั่วโมงและช่วงพีค เพื่อจัดเจ้าหน้าที่และเต็นท์บริการ (ทดลอง ยังไม่เหมาะกับฝูงชนหนาแน่น)</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e6.w">วัด ผู้จัดงานเทศกาล ชุมชน</span></p>
@@ -693,7 +698,7 @@
         <a class="sl-go" href="crowd.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.crowd">นับคนและความหนาแน่น</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-e7">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🍳</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🍳</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.e7.h">ห้องอาหารเช้าโรงแรมคนเยอะไหม</h3>
         <p data-i18n="sl.c.e7.p">ใช้หน้าโต๊ะว่าง แสดงโต๊ะว่างในห้องอาหารเช้า เพื่อให้แขกรู้ว่าตอนนี้คนเยอะหรือไม่</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e7.w">โรงแรม รีสอร์ท</span></p>
@@ -701,7 +706,7 @@
         <a class="sl-go" href="tables.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.tables">โต๊ะว่างและรอบการนั่ง</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-e8">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📅</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📅</span><span class="sl-tag now" data-i18n="sl.st.demo">สาธิต</span></div>
         <h3 data-i18n="sl.c.e8.h">วางแผนฤกษ์มงคล</h3>
         <p data-i18n="sl.c.e8.p">เลือกงาน (ขึ้นบ้านใหม่ เปิดร้าน เริ่มงาน) และเดือน ระบบแสดงเฉพาะวันดีตามวันเกิดของเจ้าของงาน จากตำราไทยและจีน เพื่อความบันเทิงและวัฒนธรรม ตำราต่างกันได้ ควรปรึกษาผู้รู้ที่ไว้ใจ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e8.w">บูธงานแต่งงานและงานบ้าน ร้านค้า ผู้สนใจโหราศาสตร์</span></p>
@@ -709,7 +714,7 @@
         <a class="sl-go" href="planner.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.planner">วางแผนฤกษ์มงคล</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-e9">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">👕</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">👕</span><span class="sl-tag now" data-i18n="sl.st.demo">สาธิต</span></div>
         <h3 data-i18n="sl.c.e9.h">กระจกส่องสีเสื้อมงคล</h3>
         <p data-i18n="sl.c.e9.p">ส่องกล้องดูสีเสื้อที่ใส่ เทียบกับสีมงคลประจำวันและสีวันเกิด แล้วแนะนำเครื่องประดับ ไม่วิเคราะห์ใบหน้า เพื่อความบันเทิง</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e9.w">บูธงานอีเวนต์ ร้านเสื้อผ้า ห้างสรรพสินค้า</span></p>
@@ -764,7 +769,7 @@
       <p class="pd-sub" data-i18n="sl.s.gov.sub">หน่วยงานรัฐ ท้องถิ่น ชุมชน และหมู่บ้าน</p>
       <div class="pd-grid sl-grid">
       <article class="sl-card" data-status="now" id="sol-g1">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧾</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧾</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.g1.h">คิวจุดบริการประชาชน</h3>
         <p data-i18n="sl.c.g1.p">นับคนรอที่จุดบริการ เช่น ที่ว่าการอำเภอ และเตือนให้เปิดช่องบริการเพิ่ม</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.g1.w">ที่ว่าการอำเภอ สำนักงานเขต หน่วยบริการ</span></p>
@@ -772,7 +777,7 @@
         <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="pilot" id="sol-g2">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏡</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏡</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.g2.h">ประตูหมู่บ้านและชุมชน</h3>
         <p data-i18n="sl.c.g2.p">บันทึกรถเข้า–ออกหมู่บ้าน บัตรผู้มาเยือน และให้ยามตัดสินใจเปิดไม้กั้นเอง</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.g2.w">หมู่บ้านจัดสรร ชุมชน</span></p>
@@ -781,7 +786,7 @@
         <a class="sl-go" href="village.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.village">ประตูหมู่บ้านและคอนโด</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-g3">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🅿️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🅿️</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.g3.h">ช่องจอดว่างลานจอดสาธารณะ</h3>
         <p data-i18n="sl.c.g3.p">แสดงจำนวนช่องว่างหน้าทางเข้าโดยไม่อ่านทะเบียน</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.g3.w">เทศบาล โรงพยาบาลรัฐ ตลาด</span></p>
@@ -789,7 +794,7 @@
         <a class="sl-go" href="bays.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.bays">นับช่องจอดว่าง</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="now" id="sol-g4">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏫</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏫</span><span class="sl-tag now" data-i18n="sl.st.exp">ทดลอง</span></div>
         <h3 data-i18n="sl.c.g4.h">เฝ้าศาลาชุมชนและโรงเรียนนอกเวลา</h3>
         <p data-i18n="sl.c.g4.p">แจ้งผู้ดูแลเมื่อพบคนในอาคารนอกเวลาที่กำหนด ให้คนตรวจสอบเสมอ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.g4.w">อบต. เทศบาล โรงเรียน</span></p>
@@ -797,7 +802,7 @@
         <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
       </article>
       <article class="sl-card" data-status="pilot" id="sol-g5">
-        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🖥️</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🖥️</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">พร้อมนำร่อง</span></div>
         <h3 data-i18n="sl.c.g5.h">ห้องสอบออนไลน์ของหน่วยงาน</h3>
         <p data-i18n="sl.c.g5.p">ช่วยกรรมการคุมสอบในห้องสอบคอมพิวเตอร์ สัญญาณทุกอย่างให้คนตรวจ ไม่ตัดสินผลสอบอัตโนมัติ</p>
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.g5.w">หน่วยงานที่จัดสอบคัดเลือก</span></p>
@@ -833,7 +838,7 @@
       <h2 id="slNxH" data-i18n="sl.next.h">เริ่มอย่างไร</h2>
       <p class="pd-sub" data-i18n="sl.next.p">ลองหน้าที่ใช้ได้แล้วในโหมดตัวอย่าง → ทดลองหน้างาน 2 สัปดาห์พร้อมตรวจความแม่นยำ → สรุปผลร่วมกัน</p>
       <ul class="pd-links">
-        <li><a href="index.html?interest=solutions#contact" data-i18n="sl.next.demo">ขอเดโมหรือโครงการนำร่อง</a></li>
+        <li><a href="index.html?interest=unsure#contact" data-i18n="sl.next.demo">ขอเดโมหรือโครงการนำร่อง</a></li>
         <li><a href="cameras.html" data-i18n="sl.next.all">ระบบทั้งหมด</a></li>
         <li><a href="pricing.html" data-i18n="sl.next.pricing">แพ็กเกจและราคา</a></li>
         <li><button type="button" class="pd-print" id="slPrint" data-i18n="sl.print">พิมพ์ / บันทึกเป็น PDF</button></li>
