@@ -1,3 +1,6 @@
 # locked 2026-11-14T15:59:59Z (tools/eval-guard.mjs lock, 2 files)
 fa0d7a40dfcc8ec5215bb39f87f96b64d17ea59ead8d53763fef756c9fe4cc81  tests/unit/fortune-layout.test.js
 c6cb0dd780e1b60edef60304a171972970b9f3fc0a683c51960462f684e453a6  tests/e2e/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-14 (first run after the build, 3 passed / 4 failed): test-setup fix only. STRUCT inspected reading groups inside a page tab that is not selected (horoscope "today", hidden by the page), where nothing can be visible; those groups are now checked after their tab is opened (stricter: every group is checked visible). No assertion, input or threshold removed or loosened. The Enter-key failure was a product bug (fixed in fortune-read.js), not changed in the test.
+# locked 2026-11-14T16:26:10Z (tools/eval-guard.mjs lock, 1 file)
+a167d0487ae02d8c655148d045ff1409dab77b9ea1486464241f55748ff8bc03  tests/e2e/fortune-layout.e2e.mjs

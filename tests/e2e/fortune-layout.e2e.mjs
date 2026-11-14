@@ -125,12 +125,15 @@ const WORDING = `((oldRe, lineRe) => {
 const STRUCT = `(() => {
   const vis = e => { if (!e) return false; const s = getComputedStyle(e), r = e.getBoundingClientRect(); return s.display !== "none" && s.visibility !== "hidden" && r.width > 0 && r.height > 0; };
   const groups = [...document.querySelectorAll(".fa-section")].filter(g => !g.closest(".fa-support"));
-  const out = { n: groups.length, bad: [], buttons: 0, tocs: [] };
+  const out = { n: groups.length, bad: [], buttons: 0, tocs: [], panels: [] };
   for (const g of groups) {
     const id = g.getAttribute("data-section") || "?";
     const h = g.querySelector("h3, h4");
     if (!h || !h.textContent.trim()) out.bad.push(id + ": no heading");
     if (g.closest(".lq-more-body")) continue; // a group inside a folded part is checked when opened
+    // a group in a page tab that is not selected (e.g. horoscope "today") is checked after its tab is opened (harness below)
+    const panel = g.closest('[role="tabpanel"]');
+    if (panel && (panel.hidden || getComputedStyle(panel).display === "none")) { out.panels.push(panel.id); continue; }
     const gist = g.querySelector(".lq-gist");
     if (!gist || !vis(gist) || gist.textContent.trim().length < 8) out.bad.push(id + ": no visible main point");
     const bodies = [...g.querySelectorAll(".lq-more-body")].filter(b => b.closest(".fa-section") === g);
@@ -237,6 +240,15 @@ export default async function ({ base, launch, check, fakeCams }) {
               const st = await page.evaluate(STRUCT);
               if (st.n < 2) bad.push(`${p}: only ${st.n} reading groups`);
               for (const b of st.bad) bad.push(`${p}: ${b}`);
+              // open each page tab that holds a reading and check its groups the same way
+              for (const id of [...new Set(st.panels)]) {
+                const opened = await page.evaluate(`(() => { const t = document.querySelector('[role="tab"][aria-controls=${S(id)}]'); if (!t) return false; t.click(); return true; })()`);
+                if (!opened) { bad.push(`${p}: reading in hidden panel #${id} without a tab`); continue; }
+                await sleep(300);
+                const s2 = await page.evaluate(STRUCT);
+                if (s2.panels.includes(id)) bad.push(`${p}: panel #${id} still hidden after opening its tab`);
+                for (const b of s2.bad) bad.push(`${p} #${id}: ${b}`);
+              }
               if (st.maxPerContainer >= 4 && !st.tocs.some(t => t.links >= 4 && !t.missing)) bad.push(`${p}: long reading (${st.maxPerContainer} groups) without an in-page menu ${S(st.tocs)}`);
               for (const t of st.tocs) {
                 if (t.missing) bad.push(`${p}: menu link without target`);
