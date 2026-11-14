@@ -18,6 +18,12 @@
 //   GET    /api/orgs/:id/audit                        admin: entries + chain_ok
 //   GET    /api/orgs/:id/licences                     any member: licence status per product, the 14-day offline window
 //                                                     and the free tiers (counted on the device, NOT enforced)
+//   GET|POST /api/orgs/:id/export {credential?, nonce?} admin + fresh confirmation: the organisation's own data as
+//                                                     lensiq-org-export v1 (org-p1). ALWAYS available (owner decision
+//                                                     2026-11-13 "export always"): also suspended / closed, any licence state
+// org-p1 (order 2026-11-14): OFF unless the Worker var ORG_ACCOUNTS = "on" (orgsEnabled). Off: every member-side and
+// back-office organisation route answers 404 org_accounts_off before any session or database lookup (index.js), and
+// /v1/config + /admin/api/me report org_accounts: false. The pages also need window.LENSIQ_ORG_ACCOUNTS = true.
 // Back office (LENSIQ owner, /admin/api, see index.js): orgs list / create (+ owner invitation), detail, update (status
 // change needs re-auth), owner-invite (re-auth), licence orders add / cancel (re-auth), audit, licence-plans.
 // Roles: admin (one of them is_owner) and staff. Unknown organisation, or not a member: 404 (no existence leak).
@@ -31,6 +37,14 @@ import { HttpError, now } from "./util.js";
 
 export { verifyOrgAudit };
 export const INVITE_TTL = 72 * 3600;
+/** org-p1 off switch: only the var value "on" (trimmed, any case) switches organisation accounts on. @param {any} env */
+export const orgsEnabled = env => String((env && env.ORG_ACCOUNTS) || "").trim().toLowerCase() === "on";
+export const ORGS_OFF_BODY = { error: "organisation accounts are not enabled (org_accounts_off)", code: "org_accounts_off" };
+/** member-side paths behind the switch @param {string} p */
+export const isOrgMemberPath = p => p === "/api/me/orgs" || p === "/api/orgs" || p.startsWith("/api/orgs/") || p === "/api/org-invites/accept";
+/** back-office routes (after /admin/api) behind the switch @param {string} route */
+export const isOrgAdminRoute = route => route === "/orgs" || route.startsWith("/orgs/") || route === "/licence-plans";
+export const EXPORT_PER_HOUR = 30;
 const ROLES = ["admin", "staff"];
 const STATUSES = ["active", "suspended", "closed"];
 const ID_RE = /^[a-f0-9]{32}$/;
@@ -97,12 +111,12 @@ async function newInvite(env, orgId, { role, owner = false, email = null, byRef 
 
 // ---- member side ------------------------------------------------------------------------------------------------------
 
-/** The caller's membership in an organisation (404 when unknown, closed or not a member). */
-async function membership(env, mem, orgId) {
+/** The caller's membership in an organisation (404 when unknown, closed or not a member; `allowClosed` only for export). */
+async function membership(env, mem, orgId, { allowClosed = false } = {}) {
   if (!ID_RE.test(String(orgId || ""))) throw notFound();
   const r = await env.DB.prepare("SELECT o.*, m.role AS m_role, m.is_owner AS m_owner, m.status AS m_status FROM orgs o JOIN org_members m ON m.org_id = o.id " +
     "WHERE o.id = ?1 AND m.user_id = ?2").bind(orgId, mem.user.id).first();
-  if (!r || r.status === "closed" || r.m_status !== "active") throw notFound();
+  if (!r || (r.status === "closed" && !allowClosed) || r.m_status !== "active") throw notFound();
   return { org: r, role: String(r.m_role), owner: r.m_owner === 1, ref: await actorRef(mem.user.id) };
 }
 const needAdmin = ms => { if (ms.role !== "admin") throw forbidden(); };
@@ -283,6 +297,55 @@ export async function orgAuditView(env, mem, orgId) {
   const ms = await membership(env, mem, orgId);
   needAdmin(ms);
   return { chain_ok: (await verifyOrgAudit(env.DB, orgId)).ok, entries: await auditEntries(env.DB, orgId) };
+}
+
+// ---- export (org-p1) ----------------------------------------------------------------------------------------------------
+
+const EXPORT_README = {
+  th: "ไฟล์นี้คือข้อมูลบัญชีองค์กรของคุณจาก LENSIQ: ชื่อองค์กร ข้อมูลออกเอกสาร รายชื่อผู้ดูแลและเจ้าหน้าที่ (ชื่อ อีเมล สิทธิ์) ลิงก์เชิญที่ยังเปิดอยู่ (ไม่มีตัวลิงก์) " +
+    "สถานะใบอนุญาต (ไม่มีจำนวนเงิน) และบันทึกการเปลี่ยนแปลงทั้งหมดขององค์กร ไม่มีข้อมูลพนักงาน ทะเบียนรถ ผู้สอบ ใบหน้า หรือภาพใด ๆ เพราะข้อมูลเหล่านั้นอยู่ในเครื่องของคุณเท่านั้น " +
+    "ตรวจบันทึกเองได้: hash ของแต่ละรายการ = SHA-256 ของ prev_hash + \"|\" + JSON ของ [org_id, ts, actor_kind, actor_ref, action, ref, detail] และ prev_hash ของรายการแรกคือเลข 0 จำนวน 64 ตัว",
+  en: "This file is your organisation account data from LENSIQ: the organisation name, billing details, admins and staff (name, e-mail, role), open invitations " +
+    "(without the links), licence status (without amounts) and the organisation's full change log. It holds no employees, plates, candidates, faces or images: " +
+    "that data stays on your devices. To verify the log yourself: each hash = SHA-256 of prev_hash + \"|\" + the JSON of [org_id, ts, actor_kind, actor_ref, " +
+    "action, ref, detail]; the first prev_hash is 64 zeros.",
+  zh: "本文件是您在 LENSIQ 的机构账户数据：机构名称、开票信息、管理员和工作人员（姓名、电子邮箱、角色）、尚未使用的邀请（不含链接）、许可证状态（不含金额）以及机构的完整变更日志。" +
+    "其中不含员工、车牌、考生、人脸或任何图像：这些数据只保存在您的设备上。自行核验日志：每条的 hash = SHA-256(prev_hash + \"|\" + [org_id, ts, actor_kind, actor_ref, action, ref, detail] 的 JSON)，" +
+    "第一条的 prev_hash 为 64 个 0。"
+};
+
+/**
+ * The organisation's own data for its admins (design §7, lite: no synced records exist). Fresh confirmation required;
+ * ALWAYS available whatever the organisation status (active / suspended / closed) or licence state. Never included:
+ * invitation tokens or their hashes, e-mail HMACs, Google / LINE account ids, user ids, order references, amounts, notes.
+ */
+export async function exportOrg(env, mem, orgId, body, deps = {}) {
+  const ms = await membership(env, mem, orgId, { allowClosed: true });
+  needAdmin(ms);
+  if (body != null) {
+    if (typeof body !== "object" || Array.isArray(body)) throw new HttpError(400, "invalid request");
+    onlyKeys(body, ["credential", "nonce"]);
+  }
+  await requireFreshMember(env, mem, body, deps);
+  const t = now();
+  const rl = await hit(env.DB, `orgexp:${orgId}`, EXPORT_PER_HOUR, 3600, t);
+  if (!rl.ok) throw new HttpError(429, "too many exports this hour — try again later", { retryAfter: rl.retryAfter });
+  const db = env.DB, o = ms.org;
+  const members = (await membersOf(db, orgId)).map(m => ({ display_name: m.display_name, email: m.email, role: m.role, is_owner: m.is_owner, status: m.status, joined_at: m.created_at }));
+  const invites = (await openInvites(db, orgId, t)).map(i => ({ role: i.role, owner_invite: i.owner_invite, email_bound: i.email_bound, created_at: i.created_at, expires_at: i.expires_at }));
+  const licences = ((await db.prepare("SELECT l.plan_id, p.product, p.unit, l.quantity, l.starts_at, l.ends_at, l.status FROM org_licences l JOIN licence_plans p ON p.id = l.plan_id " +
+    "WHERE l.org_id = ?1 ORDER BY l.starts_at, l.created_at").bind(orgId).all()).results || [])
+    .map(r => ({ plan_id: r.plan_id, product: r.product, unit: r.unit, quantity: r.quantity, starts_at: r.starts_at, ends_at: r.ends_at, status: r.status }));
+  const entries = ((await db.prepare("SELECT id, org_id, ts, actor_kind, actor_ref, action, ref, detail, prev_hash, hash FROM org_audit WHERE org_id = ?1 ORDER BY id").bind(orgId).all()).results || [])
+    .map(r => ({ id: r.id, org_id: r.org_id, ts: r.ts, actor_kind: r.actor_kind, actor_ref: r.actor_ref ?? null, action: r.action, ref: r.ref ?? null, detail: r.detail ?? null,
+      prev_hash: r.prev_hash, hash: r.hash }));
+  const out = {
+    format: "lensiq-org-export", v: 1, exported_at: t, org: publicOrg(o), billing: billingOf(o), members, invites, licences,
+    audit: { chain_ok: (await verifyOrgAudit(db, orgId)).ok, entries }, readme: EXPORT_README
+  };
+  await orgAudit(db, orgId, { actorKind: "user", actorRef: ms.ref, action: "org.exported",
+    detail: { members: members.length, invites: invites.length, licences: licences.length, audit: entries.length } }, t);
+  return out;
 }
 
 /** Licence status per product for devices: an active licence that has not ended (it may start later). */

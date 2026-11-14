@@ -39,7 +39,8 @@
 //   Stream G (owner decisions 2026-11-13; identities.js, orgs.js): POST /api/auth/line/start|finish (LINE Login, refused
 //     with 503 line_not_configured until LINE_LOGIN_CHANNEL_ID / _SECRET / _REDIRECT_URI are set), POST /api/auth/link/google,
 //     GET /api/me/identities, POST /api/me/identities/unlink, GET /api/me/orgs, /api/orgs/:id[/profile|invites|members|
-//     transfer|audit|licences], POST /api/org-invites/accept
+//     transfer|audit|licences|export], POST /api/org-invites/accept — org-p1: every organisation route (member side and
+//     back office) answers 404 org_accounts_off unless ORG_ACCOUNTS = "on"
 // Test deployment switches (tester.js; all unset by default = no change): PUBLIC_ROUTES (allow-list; other public routes
 //   404 route_off before D1), D1_WRITE_BUDGET (429 d1_budget), ADMIN_UNAUTH_WRITES_HOUR, SERVICE_OFF (every public route except /health
 //   -> 503 {off:true}), DAILY_REQUEST_CAP (429 daily_cap), TESTER_GATE + TESTER_ACCESS_CODE (X-Tester-Code on /v1/ai/*,
@@ -119,6 +120,8 @@ async function publicRoute(request, env, url, deps) {
   // account safety: LENSIQ-side daily request cap (DAILY_REQUEST_CAP; the Free plan quota is shared by the whole account)
   // this deployment's public route allow-list (PUBLIC_ROUTES): anything else is refused before D1 is touched
   if (!routeEnabled(env, p)) return reply(ROUTE_OFF_BODY, 404);
+  // org-p1: organisation accounts OFF unless ORG_ACCOUNTS = "on" — refused before any session or database lookup
+  if (orgs.isOrgMemberPath(p) && !orgs.orgsEnabled(env)) return reply(orgs.ORGS_OFF_BODY, 404);
   const capped = await countRequest(env);
   if (!capped.ok) return json(capBody(capped.code), capped.code === "config_invalid" ? 503 : 429, { ...cors, "Retry-After": String(capped.retryAfter) });
   // deploy B3: tester access code (TESTER_GATE=required). Checked only on the gated routes below.
@@ -172,11 +175,12 @@ async function publicRoute(request, env, url, deps) {
   }
   if (p === "/v1/config" && m === "GET" && !routeEnabled(env, "/v1/events") && !routeEnabled(env, "/api/auth/nonce") && !routeEnabled(env, "/v1/billing/plans")) {
     // a deployment whose allow-list leaves analytics, sign-in and billing out says so, without touching D1
-    return reply({ analytics: false, free_mode: true, pricing_enabled: false, billing_enabled: false, membership: { required: false, google_client_id: null } });
+    return reply({ analytics: false, free_mode: true, pricing_enabled: false, billing_enabled: false, org_accounts: false, membership: { required: false, google_client_id: null } });
   }
   if (p === "/v1/config" && m === "GET") {
     const b = await billing.publicBillingInfo(env);
-    return reply({ analytics: routeEnabled(env, "/v1/events"), free_mode: b.free_mode, pricing_enabled: b.pricing_enabled, membership: await members.publicMembership(env) });
+    return reply({ analytics: routeEnabled(env, "/v1/events"), free_mode: b.free_mode, pricing_enabled: b.pricing_enabled, org_accounts: orgs.orgsEnabled(env),
+      membership: await members.publicMembership(env) });
   }
   if (p.startsWith("/api/auth/") || p === "/api/me" || p.startsWith("/api/me/")) {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
@@ -241,7 +245,7 @@ async function publicRoute(request, env, url, deps) {
       return b;
     };
     if (p === "/api/org-invites/accept" && m === "POST") return reply(await orgs.acceptInvite(env, mem, await body()));
-    const om = /^\/api\/orgs\/([a-f0-9]{32})(?:\/(profile|invites|members|transfer|audit|licences)(?:\/([a-f0-9]{32}))?(?:\/(role))?)?$/.exec(p);
+    const om = /^\/api\/orgs\/([a-f0-9]{32})(?:\/(profile|invites|members|transfer|audit|licences|export)(?:\/([a-f0-9]{32}))?(?:\/(role))?)?$/.exec(p);
     if (!om) return reply({ error: "not found" }, 404);
     const [, id, sub, sid, leaf] = om;
     if (!sub && m === "GET") return reply(await orgs.orgView(env, mem, id));
@@ -253,6 +257,11 @@ async function publicRoute(request, env, url, deps) {
     if (sub === "transfer" && !sid && m === "POST") return reply(await orgs.transferOwner(env, mem, id, await body(), deps));
     if (sub === "audit" && !sid && m === "GET") return reply(await orgs.orgAuditView(env, mem, id));
     if (sub === "licences" && !sid && m === "GET") return reply(await orgs.orgLicences(env, mem, id));
+    if (sub === "export" && !sid && (m === "GET" || m === "POST")) {
+      // org-p1: always available to the organisation's admins (fresh confirmation), whatever the status or licence
+      const x = await orgs.exportOrg(env, mem, id, m === "POST" ? await body() : null, deps);
+      return json(x, 200, { ...cors, "Content-Disposition": `attachment; filename="lensiq-org-${id}.json"`, "Cache-Control": "no-store" });
+    }
     return reply({ error: "not found" }, 404);
   }
   if (p.startsWith("/api/med/")) {
@@ -330,6 +339,8 @@ async function adminRoute(request, env, url, deps) {
   const cors = corsHeaders(request, allow, { credentials: true, methods: "GET, POST, PUT, DELETE, OPTIONS", headers: "Content-Type, X-CSRF-Token, Authorization, X-LQ-Device" });
   const m = request.method;
   const route = url.pathname.slice("/admin/api".length) || "/";
+  // org-p1: the back-office organisation routes are unreachable while ORG_ACCOUNTS is not "on" (before Origin, session, D1)
+  if (orgs.isOrgAdminRoute(route) && !orgs.orgsEnabled(env)) return json(orgs.ORGS_OFF_BODY, 404, cors);
   // Every admin request must come from an allowlisted Origin; unsafe ones must send it explicitly.
   const unsafe = !["GET", "HEAD", "OPTIONS"].includes(m);
   if (!originAllowed(request, allow, { required: unsafe || m === "OPTIONS" })) return json({ error: "origin not allowed" }, 403, cors);
@@ -495,7 +506,7 @@ async function adminRoute(request, env, url, deps) {
   switch (`${m} ${route}`) {
     case "GET /me": {
       const o = await auth.getOwner(env.DB);
-      return reply({ role: "owner", username: o.username, totp_enabled: !!o.totp_enabled, recovery_left: o.totp_enabled ? await auth.recoveryLeft(env.DB) : 0,
+      return reply({ role: "owner", username: o.username, totp_enabled: !!o.totp_enabled, org_accounts: orgs.orgsEnabled(env), recovery_left: o.totp_enabled ? await auth.recoveryLeft(env.DB) : 0,
         recovery_legacy: o.totp_enabled ? await auth.recoveryLegacy(env.DB) : 0,
         csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null, password_changed_at: o.password_changed_at });
     }

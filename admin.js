@@ -210,7 +210,9 @@
     // a merit reviewer sees the merit tab only, a try-on account (tryon_admin / tryon_editor, migration 0017) the try-on tab
     // only (the Worker refuses everything else anyway: 403 forbidden_role)
     var only = me.role === "reviewer" ? "merit" : /^tryon_/.test(String(me.role)) ? "tryon" : "";
-    document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) { /** @type {HTMLElement} */ (b).hidden = !!only && b.getAttribute("data-tab") !== only; });
+    // org-p1: the Organisations tab needs both switches (window.LENSIQ_ORG_ACCOUNTS === true and the Worker's ORG_ACCOUNTS = "on")
+    var orgsOn = /** @type {any} */ (window).LENSIQ_ORG_ACCOUNTS === true && me.org_accounts === true;
+    document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) { var n = b.getAttribute("data-tab"); /** @type {HTMLElement} */ (b).hidden = (!!only && n !== only) || (n === "orgs" && !orgsOn); });
     show("adApp");
     msg("");
     tab(only || "analytics");
