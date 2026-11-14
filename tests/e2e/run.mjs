@@ -5,6 +5,7 @@
 //   --retry=N / LQ_RETRY=N   re-run a failing file up to N times (CI uses 1); only the last attempt counts
 //   LQ_FILE_TIMEOUT=ms       per-file time limit (default 900000 = 15 min) — a hung file fails instead of blocking the run
 //   --shard=i/n              run only shard i of n (tools/e2e-shards.mjs assign(); CI runs n jobs); no filter words with it
+//   --mac-last               with --shard: the WebKit files (*webkit*) form the last shard only (CI runs it on macOS)
 //   --manifest=path          write {shard, total, assigned, ran, passed, failed} as JSON at the end; CI's shard check job
 //                            (tools/e2e-shards.mjs --check) turns CI red unless every test file ran exactly once
 // Throw-away Chrome profiles (owner request 2026-11-13): profile folders left by an earlier killed run are swept first; a
@@ -59,7 +60,9 @@ process.on("SIGINT", () => { stopServer(); process.exit(130); });
   if (sw.removed.length) console.log(`removed ${sw.removed.length} Chrome test profile folder(s) left by an earlier stopped run`);
 }
 const fakeCams = readFileSync(join(here, "fake-cams.js"), "utf8");
-const files = SHARD ? assign(allFiles(), weights(), SHARD.n)[SHARD.i - 1]
+const MAC_LAST = argv.includes("--mac-last");
+if (MAC_LAST && !SHARD) { console.error("--mac-last needs --shard=i/n"); process.exit(2); }
+const files = SHARD ? assign(allFiles(), weights(), SHARD.n, { macLast: MAC_LAST })[SHARD.i - 1]
   : readdirSync(here).filter(f => f.endsWith(".e2e.mjs") && (!filters.length || filters.some(w => f.includes(w)))).sort();
 const ran = [];
 let pass = 0, fail = 0, skipped = 0;

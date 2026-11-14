@@ -262,6 +262,7 @@
     if (pin) { e.pinSalt = C.newToken(16); e.pinHash = C.pinHash(pin, e.pinSalt); }
     if (!old) emps.push(e);
     save(KEY.emps, emps);
+    if (/** @type {any} */ (window).LQFreeTier) /** @type {any} */ (window).LQFreeTier.level("attendance", "people", emps.filter(x => !x.removed).length); // counting only (stream G)
     addAudit({ action: old ? "emp_edit" : "emp_add", emp: e.id, before, after: { code: e.code, name, dept, shift: e.shift, shiftFrom: changed ? from : undefined, noFace: e.noFace, pin: pin ? "set" : old && old.pinHash ? "kept" : "none" }, reason: "" });
     const faceToo = e.noFace && CORE().people.some(p => p.code === e.code);
     resetEmpForm(); renderAll();

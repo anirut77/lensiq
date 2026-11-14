@@ -10,6 +10,38 @@
 90b526a8455455f122211bfb08ef93519223674388201fd208569b3bb8064cf6  tests/e2e/look.e2e.mjs  # repo file
 # Part 1b (owner wording 2026-11-13: salon catalogue text vs generated wording), locked before the salon code:
 5fabec531fdc9b44347ad7813de878938abf2c195e6bfb4d1cd1908d091bb22c  tests/unit/look-salon.test.js  # repo file
+# --- from ~/LENSIQ-field/evals/beauty-look/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+# product code of the matching part was written and before any measurement. Branch beauty-look, base origin/main 1ef19c6.
+# Paths relative to the repo root. Repo copy: evals-locks/beauty-look.sha256 (identical hash lines).
+# part 1: look suggestions (locked 2026-11-13, before lensiq-look*.js)
+#   look.e2e.mjs was 90b526a8455455f122211bfb08ef93519223674388201fd208569b3bb8064cf6. Re-locked 2026-11-13 for ONE test-setup
+#   bug: it waited for <html lang="zh"> but the site's i18n sets "zh-Hans", so the zh case could never start. Only that wait
+#   line changed; no assertion was changed or loosened.
+4b12bc7b2fd9e0bf2f1cf24782604628e9a7fee1498e74526d22dbe5f20b3761  tests/e2e/look.e2e.mjs  # repo file
+# part 1b: salon catalogue text vs generated wording (owner wording 2026-11-13; locked before the salon code)
+# part 2: live preview (locked 2026-11-13, before lensiq-look-preview.js and before any measurement; the feasibility probe
+#   tools/look-probe.mjs used seeds 9000-9013 only, outside the set). Protocol, targets, set generator and tests:
+20d0836b37e43fd0dae34f2e742b7a9d15644c116628275295c75c6978119283  docs/LOOK-PREVIEW-EVAL.md  # repo file
+c8fe7cbea9218d64a4bb7d07d75ddaf67c091dbe5733e238a2eecc8a2b4df822  tools/look-synth-face.js  # repo file
+d98d4a82071c6c8e0feea1eb3e5675515cd03ecc64d2e6ee2bbc797423b6dbf6  tests/unit/look-preview.test.js  # repo file
+c8a6aa2fe220ef481c675162f4c9efbde2285de8975cf02de12752fccff3593e  tests/e2e/look-preview.e2e.mjs  # repo file
+# part 2 measurement tool, locked after a 6-face DEV smoke run and BEFORE the full held-out run (held-out not looked at before):
+8ec5830b0ce6f7645118b42b91d73a7b0c611c5c25b42acb0a32383c09bb4aeb  tools/look-preview-eval.mjs  # repo file
+# part 3: Personal Colour MVP (locked 2026-11-13, before lensiq-colour.js / style.html / style.js; synthetic set S inside the test)
+#   lives on branch beauty-colour (moved off beauty-look after the first run failed C4; see colour-run-1.log)
+e6b5eae388d7000c6e9a7efeaa93d96b44ee7f6a91ca4a9b66fcf879c0dcd316  tests/unit/style-colour.test.js  # repo file
+baab02cbcf75839d1aa53e8cb983a79dc5dbfedeb8b3e48304fec1aad687e4ae  tests/e2e/style.e2e.mjs  # repo file
+# NOTE 2026-11-13 (coordinator: lock files are append-only): earlier in this session the lines above were rewritten as a whole
+#   file (to add the re-lock note for look.e2e.mjs and part 2/3 lines). No earlier hash was removed or altered except the
+#   documented look.e2e.mjs re-lock; the full history is in the repo copy evals-locks/beauty-look.sha256 (git log -p). From now
+#   on this file is only appended to.
+# 2026-11-13: style-* lines above belong to branch beauty-colour (moved off beauty-look after the first run failed C4).
+# 2026-11-13: harness now calls tools/eval-guard.mjs assertLocked() on set/LOOK-PREVIEW-EVAL.md + set/look-synth-face.js
+#   (copies of the locked repo files, same hashes). Guard only, no scoring change. New harness hash:
+30f9556122eb80b82eda19ea9aee8a26c205343fb49b6a3e31bd40b1481095f8  tools/look-preview-eval.mjs  # repo file
+# 2026-11-13 review fixes (independent review S1-S4), locked before the fixes:
+4be55fb7e6f67e590cafc52a60a9de7ba5c44dff4bfeb4664c35f2e92a256fe5  tests/unit/look-review-fixes.test.js  # repo file
+# --- merged 2026-11-14 (main into beauty-look): branch beauty-look's appended lines verbatim below ---
 # --- merged 2026-11-13 from branch beauty-look's own copy (its lines verbatim below; same hashes where repeated) ---
 # Beauty & Image stream D team 1 (branch beauty-look): locked test sets. Copy of ~/LENSIQ-field/evals/beauty-look/locked.sha256.
 # Each hash was recorded BEFORE the product code it tests was written and before any measurement. Never edited to make a test pass.

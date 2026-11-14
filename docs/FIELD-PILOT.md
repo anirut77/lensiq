@@ -3,9 +3,9 @@
 > เอกสารนี้ปรับปรุงทุก round (ดู "Changelog / last reviewed" และ "Status per round" ท้ายเอกสาร)
 > This document is maintained every round (see "Changelog / last reviewed" and "Status per round" at the end).
 >
-> **ราคาระหว่างนำร่อง (เจ้าของอนุมัติ 9 พ.ย. 2569):** ระหว่างนำร่องใช้ราคาช่วงนำร่อง และนำร่อง Exam ฟรี ราคาหลังผ่านเกณฑ์ใช้เมื่อหน้างานผ่านเกณฑ์ในชุดนำร่องเท่านั้น (`docs/PRICING-RESEARCH.md` §3)
-> **Pilot pricing (owner approved 2026-11-09):** pilot-stage prices apply during pilots and the Exam field pilot is free;
-> after-pilot prices apply only once a site passes its pilot kit thresholds (`docs/PRICING-RESEARCH.md` §3).
+> **ราคาระหว่างนำร่อง (เจ้าของอนุมัติ 9 พ.ย. 2569; ป้ายราคาตัดสิน 13 พ.ย. 2569):** ระหว่างนำร่องใช้ "ราคานำร่อง" และนำร่อง Exam ฟรี "ราคาปกติหลังผ่านเกณฑ์นำร่อง" ใช้เมื่อหน้างานผ่านเกณฑ์ในชุดนำร่องเท่านั้น (`docs/PRICING-RESEARCH.md` §3)
+> **Pilot pricing (owner approved 2026-11-09; labels decided 2026-11-13):** the "pilot price" applies during pilots and the Exam field pilot is free;
+> the "regular price after the pilot thresholds are met" applies only once a site passes its pilot kit thresholds (`docs/PRICING-RESEARCH.md` §3).
 > Product Check (round 17) has its own photo-set protocol: `docs/product-check/PHOTO-SET-PROTOCOL.md`.
 
 ไฟล์ที่เกี่ยวข้อง / Related files:
@@ -316,6 +316,7 @@ input. Rows without ground truth are skipped and counted.
 | 15 | 2026-11-08 | — / — / — / — | — / — / — | not started | plan, templates and `tools/field-pilot-metrics.mjs` added; no field data yet |
 | 15b | 2026-11-08 | — / — / — / — · taps — | — / — / — | not started | "taps needed" added (template column `tapped`, metric + PROPOSAL ≤ 10 % good light, Gate site check tallies taps). Plate finder upgraded; synthetic demo set only: 136–137 / 140 found (docs/GATE.md), real photos 2 / 6 — the pilot's taps share is the real measure |
 | 16 | 2026-11-09 | — / — / — / — · taps — | — / — / — | not started | Plate check before every auto-read (`LQPlate.plateGuard`). **Public dataset** (51 Wikimedia Commons photos, not field): exact automatic read 7 / 22, photos without a plate auto-read 0 / 19 (held-out 0 / 9), taps needed 25 / 32. Owner photo tool and sheet ready; **field (owner photos): not measured**. Per-product kits in `docs/pilot/`. Owner decided 2026-11-09: Gate targets are judged on the Wilson 95 % lower bound (upper bound for taps), with the plain average k / n shown beside it. |
+| 18 (stream H) | 2026-11-13 | — / — / — / — · taps — | — / — / — | not started | Plate-detector training path for the owner's photos ready (`docs/PLATE-TRAINING.md`): main set ~635 plate + 100 plate-less photos (types under 20 test photos reported UNMEASURED), a ~170-photo first batch at the owner's factory (dev only, no adoption decision), locked split and comparison rule; no photos yet. Exam hall: seat-watch scoring tool + replay (`docs/pilot/SEATWATCH-SCORING-TH.md`) and an on-page camera placement check; **field: not measured** |
 
 ## Changelog / last reviewed
 
@@ -403,3 +404,10 @@ input. Rows without ground truth are skipped and counted.
 
 ยังไม่มีการนำร่องภาคสนาม ตัวเลขทั้งหมดมาจากฉลากสังเคราะห์ (`docs/nutrition/NUTRITION-ACCURACY.md`) การวัดกับฉลากจริงต้องใช้ภาพฉลากจริง
 อย่างน้อย 200 ภาพจากเจ้าของ (`docs/NUTRITION-DESIGN.md` §5.1, §11) เก็บไว้นอก repo ที่ `~/LENSIQ-field/nutrition/labels/`
+
+## Status 2026-11-13 — accounts groundwork (stream G)
+
+No field figure changed. Field pilots of Gate, Attendance, Exam and Crowd now run inside the free tiers (Gate 30-day trial,
+1 lane, 100 reads per day; Attendance up to 5 people; Exam up to 5 candidates per session; Crowd 2 hours per device per
+day), which are counted on the device and not enforced. A pilot beyond those sizes needs a licence order entered by the
+owner after the quotation and transfer (admin → Organisations), or the pilot terms in the contract (the Exam field pilot stays free).

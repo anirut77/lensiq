@@ -69,3 +69,8 @@
   .acct-table tr td:last-child{border-bottom:0}
   .acct-table td .acct-mini{width:100%}
 }
+/* stream G: sign-in methods + organisation account (account-org.js) */
+#acMethods .acct-saved button,#acOrgs .acct-saved button{min-height:44px}
+#acOrgDetail select{min-height:44px;max-width:100%;border:1px solid #9aa3bd;border-radius:10px;padding:0 8px;font:inherit;background:#fff}
+#acOrgDetail .acct-form{margin-bottom:8px}
+#acOrgInviteLink{max-width:100%}

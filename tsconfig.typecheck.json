@@ -29,7 +29,8 @@
     "nav.js",
     "lensiq-timeclock.js",
     "attendance-qr.js",
-    "lensiq-ai.js"
+    "lensiq-ai.js",
+    "lensiq-thai-canon.js"
   ],
   "pages": [
     {
@@ -241,6 +242,7 @@
     "lensiq-pc-ai.js",
     "lensiq-pc-advert.js",
     "lensiq-pc-travel.js",
-    "lensiq-pc-refimg.js"
+    "lensiq-pc-refimg.js",
+    "lensiq-thai-canon.js"
   ]
 }

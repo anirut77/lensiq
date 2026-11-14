@@ -17,6 +17,10 @@
 //   --seed N       demo-set seed for the synthetic column (default the development seed)
 //   --max-side PX  scale photos so the long side is at most PX (default 1920 = a 1080p camera frame)
 //   --json         print the full result as JSON;  --out FILE  also write the JSON to FILE (outside the repo)
+//   --det-model F  ALSO register a trained YOLOX plate detector (ONNX, raw head, one class; tools/plate_train.py) as an
+//                  extra proposal source (LQPlate.registerDetector(fn, {proposals: true}), docs/PLATE-DATASETS.md §4); the
+//                  file stays outside the repo (or under vendor/models/ once shipped). tools/plate-det-compare.mjs runs both.
+//   Every result row also carries ms = time of the shipped auto-read path for that photo (this machine).
 //
 // Labelling sheet columns: file, category, plate, province, x0, y0, x1, y1, split, sure, notes
 //   category = white | yellow | green | red | blue | moto | night | none | other (graphic = white with a picture)
@@ -44,7 +48,7 @@
 import { readFileSync, readdirSync, statSync, existsSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
-import { dirname, extname, join, relative, resolve, isAbsolute } from "node:path";
+import { basename, dirname, extname, join, relative, resolve, isAbsolute } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -60,7 +64,7 @@ export const CONVERT_HINT = "convert to JPEG first (iPhone: Settings > Camera > 
 
 export function parseArgs(argv, env = process.env) {
   const a = { dir: join(env.HOME || homedir(), "LENSIQ-field", "plates"), labels: null, source: SOURCE_FIELD, split: "all", synthetic: 20, seed: null, maxSide: 1920,
-    json: false, out: null };
+    json: false, out: null, detModel: null };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i], v = () => { if (argv[i + 1] == null || argv[i + 1].startsWith("--")) throw new Error(`${k} needs a value`); return argv[++i]; };
     if (k === "--dir") a.dir = v();
@@ -72,6 +76,7 @@ export function parseArgs(argv, env = process.env) {
     else if (k === "--max-side") a.maxSide = parseInt(v(), 10);
     else if (k === "--json") a.json = true;
     else if (k === "--out") a.out = v();
+    else if (k === "--det-model") a.detModel = v();
     else throw new Error(`unknown argument ${k}`);
   }
   if (!["all", "dev", "heldout"].includes(a.split)) throw new Error("--split must be all, dev or heldout");
@@ -81,6 +86,16 @@ export function parseArgs(argv, env = process.env) {
   a.dir = resolve(a.dir);
   a.labels = resolve(a.labels || join(a.dir, "plates-photo-labels.csv"));
   return a;
+}
+
+/** a trained detector to compare: an .onnx file outside the repo, or under vendor/models/ once it is shipped */
+export function checkModel(file, root = repo) {
+  if (extname(file).toLowerCase() !== ".onnx") throw new Error(`--det-model must be an .onnx file: ${file}`);
+  const rel = relative(root, resolve(file));
+  const inside = rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+  if (inside && !(rel.startsWith("vendor/models/") || rel.startsWith("vendor\\models\\")))
+    throw new Error(`--det-model inside the repo must be under vendor/models/ (${rel})`);
+  return true;
 }
 
 /** photos must not live in the repo, except under the git-ignored field-data/ folder */
@@ -341,7 +356,8 @@ export async function run(a, o = {}) {
   const unlabelled = m.unlabelled.filter(f => !CONVERT.has(extname(f).toLowerCase())), missing = m.missing;
   if (!items.length && !failed.length) throw new Error("no labelled photo found in the folder");
   const evaluate = o.evaluate || browserEvaluate;
-  const { results, synthetic } = items.length ? await evaluate(items, { dir: a.dir, maxSide: a.maxSide, synthetic: a.synthetic, seed: a.seed })
+  if (a.detModel) checkModel(a.detModel, o.root || repo);
+  const { results, synthetic } = items.length ? await evaluate(items, { dir: a.dir, maxSide: a.maxSide, synthetic: a.synthetic, seed: a.seed, detModel: a.detModel })
     : { results: [], synthetic: null };
   for (const r of results) if (r.error) failed.push({ file: r.file, error: "could not decode: " + r.error });
   const byFile = new Map(results.filter(r => !r.error).map(r => [r.file, r]));
@@ -356,7 +372,7 @@ export async function run(a, o = {}) {
 async function browserEvaluate(items, o) {
   const { serve } = await import(pathToFileURL(join(repo, "tools/static-server.mjs")).href);
   const { launch } = await import(pathToFileURL(join(repo, "tests/e2e/cdp.mjs")).href);
-  const srv = await serve(repo);
+  const srv = await serve(repo, o.detModel ? { mounts: { "/__detmodel": dirname(resolve(o.detModel)) } } : {});
   let browser = null;
   try {
     browser = await launch();
@@ -364,6 +380,25 @@ async function browserEvaluate(items, o) {
     await page.goto(`${srv.base}/parking.html?cpu`);
     await page.waitFor("!!(window.GateKit && window.GateKit.autoReadFrame && window.LQPlate)", 15000);
     await page.evaluate(async () => { await Promise.all([window.LQPlate.loadOcr(), window.LQPlate.loadPlateDet().catch(() => null)]); });
+    if (o.detModel) { // the trained detector as an extra proposal source (same code as docs/PLATE-DATASETS.md §4)
+      const ok = await page.evaluate(async url => {
+        const LP = window.LQPlate, ort = window.ort, S = 416;
+        const session = await ort.InferenceSession.create(url, { executionProviders: ["wasm"] });
+        LP.registerDetector(async canvas => {
+          const k = Math.min(S / canvas.width, S / canvas.height), c = document.createElement("canvas"); c.width = S; c.height = S;
+          const x = c.getContext("2d", { willReadFrequently: true }); x.fillStyle = "rgb(114,114,114)"; x.fillRect(0, 0, S, S);
+          x.drawImage(canvas, 0, 0, canvas.width * k, canvas.height * k);
+          const d = x.getImageData(0, 0, S, S).data, P = S * S, buf = new Float32Array(3 * P);
+          for (let i = 0; i < P; i++) { buf[i] = d[4 * i + 2]; buf[P + i] = d[4 * i + 1]; buf[2 * P + i] = d[4 * i]; }
+          const out = await session.run({ [session.inputNames[0]]: new ort.Tensor("float32", buf, [1, 3, S, S]) });
+          const t = out[session.outputNames[0]];
+          return window.LQDetect.decodeYolox(t.data, t.dims[1], t.dims[2], S, { classes: [0], minScore: 0.3, scale: k })
+            .map(b => ({ x: b.x / canvas.width, y: b.y / canvas.height, w: b.w / canvas.width, h: b.h / canvas.height, score: b.score, src: "model" }));
+        }, { proposals: true });
+        return true;
+      }, `${srv.base}/__detmodel/${encodeURIComponent(basename(o.detModel))}`);
+      if (!ok) throw new Error("the trained detector did not load");
+    }
     const results = [];
     for (const ph of items) { // one photo per call: phone photos are large; one bad photo never stops the run
       const mime = ph.mime || "image/" + extname(ph.file).slice(1).toLowerCase().replace("jpg", "jpeg");
@@ -377,7 +412,7 @@ async function browserEvaluate(items, o) {
           const W0 = el.naturalWidth, H0 = el.naturalHeight, k = Math.min(1, maxSide / Math.max(W0, H0));
           const c = document.createElement("canvas"); c.width = Math.round(W0 * k); c.height = Math.round(H0 * k);
           c.getContext("2d").drawImage(el, 0, 0, c.width, c.height);
-          const moto = ph.cat === "moto", auto = await window.GateKit.autoReadFrame(c, { moto });
+          const moto = ph.cat === "moto", t0 = performance.now(), auto = await window.GateKit.autoReadFrame(c, { moto }), ms = Math.round(performance.now() - t0);
           const taps = [];
           for (const p of ph.plates) {
             if (!p.box) { taps.push(null); continue; }
@@ -385,7 +420,7 @@ async function browserEvaluate(items, o) {
             const t = await window.LQPlate.readPlate(c, b, { moto: p.moto });
             taps.push({ key: t && t.key ? t.key : "" });
           }
-          return { size: [W0, H0], auto, taps };
+          return { size: [W0, H0], auto, taps, ms };
         }, url, ph, o.maxSide);
       } catch (e) { r = { error: String(e && e.message || e).slice(0, 200) }; }
       results.push({ file: ph.file, ...r });
@@ -404,7 +439,7 @@ async function main() {
   let a;
   try { a = parseArgs(process.argv.slice(2)); } catch (e) {
     console.error(`plate-field-eval: ${e.message}\nusage: node tools/plate-field-eval.mjs [--dir DIR] [--labels CSV] [--source TEXT] [--split dev|heldout|all]`
-      + " [--synthetic N] [--seed N] [--max-side PX] [--json] [--out FILE]");
+      + " [--synthetic N] [--seed N] [--max-side PX] [--json] [--out FILE] [--det-model FILE.onnx]");
     return 2;
   }
   try {
@@ -422,6 +457,9 @@ async function main() {
         if (out.failed.length > 20) console.log(`  … ${out.failed.length - 20} more (use --json for the full list)`);
       }
       console.log(formatReport(out.summary, { synthetic: out.synthetic, source: out.source }));
+      // owner rule 2026-11-13: a plate type with fewer than 20 photos here is UNMEASURED (no claim for that type)
+      const few = Object.entries(out.summary).filter(([k, s]) => k !== "all plates" && k !== "none" && s.photos < 20).map(([k, s]) => `${k} (n = ${s.photos})`);
+      if (few.length) console.log(`UNMEASURED types (fewer than 20 photos, no claim): ${few.join(", ")}`);
     }
     return 0;
   } catch (e) { console.error("plate-field-eval:", e && e.message || e); return 2; }

@@ -77,3 +77,8 @@ aece1c6aa162199cc328b58a91ad5d131e6bbf4be6f6b5266ff7be0eac60a688  tests/e2e/cris
 # CRISIS DETECTION V2 (owner decision item 7 option ก, coordinator 2026-11-13) locked BEFORE the detection change on crisis-flow-v2 (base 9c17019 + uncommitted flow-v2 product files; fortune-crisis.js detection patterns unchanged so far). Dev: the 18 misses + idiom / name-field false soft steps of the 2026-11-13 fresh review (spent); held-out variants builder-written.
 # Before: unit 1/5 pass (only 'not weaker'). Counts: dev clear 0/12 card; dev farewell 0/6 card-or-soft; held-out clear 3/15 card; held-out farewell 1/5; idioms dev 10/10 still trigger (1 card: 想死你了), held-out 11/11 trigger (1 card); ordinary name phrases 10/12 trigger the soft step; distress names 8/8 trigger.
 988abf5cafd854c1a0063d55bafa8fb2862d1852c09929ba6b01be5cb009db0f  tests/unit/fortune-crisis-detect-v2.test.js  # repo file
+# --- from ~/LENSIQ-field/evals/fortune-honest/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+# AFTER (crisis flow v2 + detection v2, 3ebced7): unit fortune-crisis-flow-v2 16/16, fortune-crisis-detect-v2 5/5, full unit 1800/1800; e2e fortune-crisis-flow-v2-pages 6/6, fortune-crisis-flow-v2 7/7; older crisis / helpline / calm / merit-crisis e2e all green (log crisis-flow-v2-after.log).
+# ONE HELP BAR (coordinator review 2026-11-13: two help bars on screen in the zodiac screen) locked BEFORE the fix on crisis-flow-v2 (base 3ebced7).
+eefb2c196acbe2a39e0ecac3f27e608699e06726004395a428586bfb1c0912e4  tests/e2e/fortune-crisis-one-bar.e2e.mjs  # repo file
+# AFTER one-bar fix: fortune-crisis-one-bar 1/1 (before 0/1: 20 positions with 2 bars on zodiac, horoscope, astro, tarot); crisis / calm / helpline / merit e2e 58/58; affected unit 259/259.

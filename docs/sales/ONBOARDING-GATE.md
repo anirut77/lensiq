@@ -4,6 +4,8 @@
 > ฐานข้อมูล: `docs/GATE.md` (§1–§5), `docs/pilot/PILOT-GATE.md`, `docs/DEPLOYMENT-CHECKLIST.md`, `docs/SUPPORT.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
 > ช่อง [วงเล็บ] เจ้าของกรอก ห้ามแต่งข้อมูลติดต่อ LENSIQ ไม่ขายกล้อง ไม้กั้น หรือรีเลย์ ระบบเสนอเลขป้าย รปภ. แตะยืนยันทุกคัน
 
+> ความแม่นยำหน้างานจริงยังไม่ได้วัด ตัวเลขในคู่มือนี้มาจากชุดข้อมูลสาธารณะหรือข้อมูลจำลอง (ที่มาใน `docs/ACCURACY-CLAIMS.md`)
+
 ## 1. ก่อนติดตั้ง: สิ่งที่ลูกค้าต้องมี
 
 | หัวข้อ | รายละเอียด |
@@ -32,7 +34,7 @@
    พร้อมเพย์: ต้องเปิดแอปธนาคารตรวจเงินเข้าก่อนกด "รับเงินแล้ว" หน้าไม่ตรวจการชำระ
 6. **ทดลอง 1 ชั่วโมง** ผ่านรถจริงอย่างน้อย 10 คัน ตรวจว่ากรอบป้ายถูก ตัวอักษรเสี่ยงถูกขีดเส้นใต้ จังหวัดถูกเลือก
 7. **เปิดเมนู "ตรวจความแม่นยำ"** ตั้งแต่วันแรก: รปภ. กด ✓ หรือ ✗ ทุกการอ่าน (การแก้ค่านับเป็น ✗) ระบบแยกกลางวัน/กลางคืนและแสดงช่วงความเชื่อมั่น 95%
-8. **สัปดาห์แรก**: ตรวจตัวเลขวันละครั้ง ถ้ากลางคืนต่ำ ปรับไฟ IR/ชัตเตอร์ก่อน ผู้ทดลองใช้ฟรี 30 วัน (1 ช่องทาง 100 ครั้งต่อวัน เก็บบันทึก 7 วัน) นับวันเอง ระบบยังไม่มีตัวจับเวลา (OP-20)
+8. **สัปดาห์แรก**: ตรวจตัวเลขวันละครั้ง ถ้ากลางคืนต่ำ ปรับไฟ IR/ชัตเตอร์ก่อน ผู้ทดลองใช้ฟรี 30 วัน (1 ช่องทาง 100 ป้ายต่อวัน เก็บบันทึก 7 วัน) นับวันเอง ระบบยังไม่มีตัวจับเวลา (OP-20)
 9. **นำร่อง** (ถ้าสั่ง): อย่างน้อย 5 วันต่อไซต์ อย่างน้อย 200 การอ่านจริง กลางคืน ≥ 40 มอเตอร์ไซค์ ≥ 30 ตัดสินด้วยขอบล่าง Wilson 95% (เป้าตาม `docs/pilot/PILOT-GATE.md` §5)
 
 ## 3. ปัญหาที่พบบ่อยและวิธีแก้
@@ -69,6 +71,8 @@
 > `docs/pilot/PILOT-GATE.md`, `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`. Open points (OP-xx) are in `docs/sales/README.md`. Fields in [brackets] are for the owner.
 > LENSIQ sells no camera, barrier or relay. The system suggests a plate; the guard taps to confirm every vehicle.
 
+> Accuracy at a real site has not been measured. Figures in this guide come from public datasets or synthetic data (sources in `docs/ACCURACY-CLAIMS.md`).
+
 ## 1. Before installing
 
 - **Device per lane:** an Android phone, iPhone or laptop with a 1080p camera, a firm stand or mount, power or a power bank, a sun hood (for 24-hour use a fixed IP camera is recommended).
@@ -101,7 +105,7 @@
    always available and always logged. PromptPay: open the bank app and check the money before pressing "money received"; the page does not verify payment.
 6. One-hour trial with at least 10 real vehicles: check the box is right, doubtful characters are underlined, the province is chosen.
 7. Use the "accuracy check" from day one: the guard presses tick or cross on every read (an edited read counts as a cross); the page splits day and night and shows a 95% interval.
-8. First week: review the numbers daily; if night is low, fix the IR light and shutter first. The free 30-day trial (1 lane, 100 reads a day, 7-day log) is counted by you; there is no timer in the system (OP-20).
+8. First week: review the numbers daily; if night is low, fix the IR light and shutter first. The free 30-day trial (1 lane, 100 plates a day, 7-day log) is counted by you; there is no timer in the system (OP-20).
 9. Pilot (if ordered): at least 5 days per site, at least 200 real reads, at least 40 at night, at least 30 motorcycles; judged on the lower bound of a 95% Wilson interval (targets in
    `docs/pilot/PILOT-GATE.md` §5).
 

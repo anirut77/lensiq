@@ -284,7 +284,7 @@ export async function requireAdmin(env, request) {
     if (!csrf || !timingSafeEqual(await sha256Hex(csrf), s.csrf_hash)) throw new HttpError(403, "CSRF token missing or invalid");
   }
   // a reviewer's session: the account must still be active on every request (disable / reset / delete sign out at once)
-  let role = "owner", reviewerId = null, reviewerName = null;
+  let role = "owner", reviewerId = null, reviewerName = null, accountRole = "owner";
   if (s.reviewer_id) {
     const r = await reviewerById(env.DB, s.reviewer_id);
     if (!r || r.status !== "active" || !r.totp_enabled) {
@@ -292,9 +292,10 @@ export async function requireAdmin(env, request) {
       throw new HttpError(401, "session expired");
     }
     role = "reviewer"; reviewerId = String(r.id); reviewerName = String(r.username);
+    accountRole = r.role || "merit"; // migration 0017: merit | tryon_admin | tryon_editor (index.js decides the routes)
   }
   await env.DB.prepare("UPDATE admin_sessions SET last_seen = ?1 WHERE id_hash = ?2").bind(t, idHash).run();
-  return { idHash, viaCookie: !bearer, reauthAt: Number(s.reauth_at) || 0, role, reviewerId, reviewerName };
+  return { idHash, viaCookie: !bearer, reauthAt: Number(s.reauth_at) || 0, role, reviewerId, reviewerName, accountRole };
 }
 
 /** Fresh CSRF token for the current session (e.g. after a page reload). Readable only by allowlisted origins (CORS). */
@@ -386,6 +387,52 @@ export async function requireReauth(env, sess, body) {
   if (password != null && password !== "") { await reauthOwner(env, { password, totp }, sess); return rest; }
   if (reauthFresh(sess)) return rest;
   throw new HttpError(403, "please confirm your password first (reauth_required)", { code: "reauth_required" });
+}
+
+/**
+ * Inline re-auth of a restricted account (try-on admin delete): the account's OWN password + a fresh 6-digit code in this
+ * request. Same per-session rate limit as the owner's re-auth; a wrong password or code counts on the reviewer row like a
+ * failed sign-in. 403 reauth_inline_required when the body carries no password.
+ * @param {any} env @param {any} sess @param {any} body
+ */
+export async function reauthReviewerInline(env, sess, body) {
+  const b = body && typeof body === "object" ? body : {};
+  const { password, totp, ...rest } = b;
+  if (password == null || password === "") {
+    throw new HttpError(403, "confirm your password and code with this request (reauth_inline_required)", { code: "reauth_inline_required" });
+  }
+  const t = now(), key = sessKey(sess);
+  if ((await peek(env.DB, key, WINDOW, t)) >= REAUTH_FAILURES) {
+    throw new HttpError(429, "too many wrong re-authentications — try again later", { retryAfter: WINDOW - (t % WINDOW), code: "reauth_rate_limited" });
+  }
+  const rev = sess && sess.reviewerId ? await reviewerById(env.DB, sess.reviewerId) : null;
+  // a locked account gets the answer sign-in gives (no trusted-device exemption here), before any secret is checked
+  if (rev && rev.locked_until > t && t - rev.last_failed_at <= DECAY) {
+    await audit(env, "reviewer:" + rev.id, "reauth.delayed", { inline: true });
+    throw new HttpError(429, "too many failed attempts — slow down", { retryAfter: rev.locked_until - t, code: "too_many" });
+  }
+  const usable = !!rev && rev.status === "active" && !!rev.totp_enabled && !!rev.password_hash;
+  const pwOk = await verifyPassword(String(password), usable ? rev.password_hash : DUMMY_HASH);
+  const totpOk = usable && pwOk ? await reviewerTotpOk(env, rev, totp, t) : false;
+  if (!usable || !pwOk || !totpOk) {
+    await hit(env.DB, key, REAUTH_FAILURES, WINDOW, t);
+    if (usable) await reviewerFailure(env, rev, t, accountDelay, DECAY);
+    // like the owner's re-auth: count wrong answers on the session; after REAUTH_REVOKE_AFTER the session is revoked
+    let fails = 0;
+    if (sess && sess.idHash) {
+      const r = await env.DB.prepare("UPDATE admin_sessions SET reauth_fails = reauth_fails + 1 WHERE id_hash = ?1 RETURNING reauth_fails").bind(sess.idHash).first();
+      fails = r ? Number(r.reauth_fails) : 0;
+    }
+    await audit(env, "reviewer:" + (sess && sess.reviewerId), "reauth.failed", { inline: true, step: usable && pwOk ? "totp" : "password", fails });
+    if (fails >= REAUTH_REVOKE_AFTER) {
+      await env.DB.prepare("DELETE FROM admin_sessions WHERE id_hash = ?1").bind(sess.idHash).run();
+      await audit(env, "reviewer:" + (sess && sess.reviewerId), "reauth.session_revoked", { fails });
+      throw new HttpError(401, "signed out after too many wrong re-authentications", { code: "reauth_revoked" });
+    }
+    throw new HttpError(401, usable && pwOk ? "invalid TOTP code" : "invalid credentials", { code: usable && pwOk ? "invalid_totp" : "invalid_credentials" });
+  }
+  if (sess && sess.idHash) await env.DB.prepare("UPDATE admin_sessions SET reauth_fails = 0 WHERE id_hash = ?1").bind(sess.idHash).run();
+  return rest;
 }
 
 /** How money operations re-authenticate (round 12): "inline" = {password, totp} in the request body only (MONEY_REAUTH=

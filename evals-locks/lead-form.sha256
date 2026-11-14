@@ -1,6 +1,18 @@
+# Quote form on iPhone (stream A1). Fixed tests locked BEFORE the product change; paths relative to the repo root.
+# lead-form-webkit.e2e.mjs: locked 2026-11-13 before the fix (base 1ef19c6); v2 set-up only (service workers blocked).
+# lead-form-webkit-slow.e2e.mjs: locked 2026-11-13T15:31:20Z before the review B1/B2 fix (base b62ac88 + merge of main). A changed hash means the test was edited after locking.
+227d026198f61b467515e3a378019242ba4fe8723e2fcad2be88df18e6fcba07  tests/e2e/lead-form-webkit.e2e.mjs
+# v1 (superseded by v2 below): 6d97d199b203ebce7d10962ad23157455b97aed352d65696591ec46a3aa41029  tests/e2e/lead-form-webkit-slow.e2e.mjs
+# lead-form-webkit-slow.e2e.mjs v2 2026-11-13T15:34:41Z (stricter, before the fix): also rejects 'ยังไม่เปิด / not open / 尚未开放' (the pricing case passed on b62ac88 while saying 'online requests are not open').
+9a1b9c938ca24b9b0090124ce7868ebc83dbae815af8ad819c5f46f06787c691  tests/e2e/lead-form-webkit-slow.e2e.mjs
 # evals-locks/lead-form.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/lead-form/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
 # --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/lead-form/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
 # quote form on WebKit (owner bug report 2026-11-13: iPhone tab reload after send; 'verify you are human' failures) — test locked 2026-11-13T13:39:51Z BEFORE the fix on branch lead-form-fix (base 1ef19c6)
 e2f29fa37c48dbc7efca1dee0e270a8786feb71c34e92e8f5b009ff7629814f1  tests/e2e/lead-form-webkit.e2e.mjs  # repo file
 # v2 2026-11-13T14:00:22Z: set-up only — browser.newContext gets serviceWorkers:'block'. nav.js registers sw.js on localhost; in WebKit a controlled page's fetch bypasses page.route, so the fake API origin was never reached (the 'pass' cases timed out with 'hostname could not be found' while Turnstile had returned XXXX.DUMMY.TOKEN.XXXX). No assertion, key, input or expected text changed.
 227d026198f61b467515e3a378019242ba4fe8723e2fcad2be88df18e6fcba07  tests/e2e/lead-form-webkit.e2e.mjs  # repo file
+# --- from ~/LENSIQ-field/evals/lead-form/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+# review B1/B2 (independent review of lead-form-fix @ b62ac88): new test locked 2026-11-13T15:31:20Z BEFORE the fix (Turnstile script load timeout + retry; lensiq-api.js missing; pricing notify failure path). lead-form-webkit.e2e.mjs unchanged (v2).
+6d97d199b203ebce7d10962ad23157455b97aed352d65696591ec46a3aa41029  tests/e2e/lead-form-webkit-slow.e2e.mjs  # repo file
+# v2 2026-11-13T15:34:41Z (stricter, before the fix): FALSE_TEXT also rejects 'ยังไม่เปิด / not open / 尚未开放' — the pricing case passed on b62ac88 while showing 'online requests are not open', which is false while the form is on. No other change.
+9a1b9c938ca24b9b0090124ce7868ebc83dbae815af8ad819c5f46f06787c691  tests/e2e/lead-form-webkit-slow.e2e.mjs  # repo file

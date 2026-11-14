@@ -17,6 +17,7 @@ import {
   totpUri, verifyTotp
 } from "./crypto.js";
 import { audit, callerHash, hit } from "./store.js";
+import { cleanRole } from "./tryon.js";
 import { HttpError, now } from "./util.js";
 
 export const REVIEWER_MAX = 10;
@@ -29,7 +30,7 @@ export const REVIEWER_ID_RE = /^[a-f0-9]{12}$/;
 const setupHash = (/** @type {string} */ code) => sha256Hex("rsetup:" + code);
 const aad = (/** @type {string} */ id) => "totp:reviewer:" + id;
 /** @param {any} r */
-const pub = r => ({ id: r.id, username: r.username, status: r.status, totp_enabled: !!r.totp_enabled, created_at: r.created_at,
+const pub = r => ({ id: r.id, username: r.username, role: r.role || "merit", status: r.status, totp_enabled: !!r.totp_enabled, created_at: r.created_at,
   last_login_at: r.last_login_at || null, setup_pending: !!r.setup_hash, setup_expires_at: r.setup_hash ? r.setup_expires : null });
 
 /** Reviewer row by username (null when none, or before migration 0016). @param {any} db @param {string} username */
@@ -91,6 +92,7 @@ async function newSetupCode(env) {
 
 /** @param {any} env @param {any} body @param {any} owner */
 export async function createReviewer(env, body, owner) {
+  const role = cleanRole(body && body.role); // migration 0017: merit (default) | tryon_admin | tryon_editor
   const username = String((body && body.username) || "").trim();
   if (!USERNAME_RE.test(username)) throw new HttpError(400, "invalid username", { code: "invalid_username" });
   if (owner && String(owner.username).toLowerCase() === username.toLowerCase()) throw new HttpError(409, "this name is the owner's", { code: "username_taken" });
@@ -100,8 +102,8 @@ export async function createReviewer(env, body, owner) {
   const n = await env.DB.prepare("SELECT COUNT(*) AS n FROM admin_reviewers").first();
   if (Number(n.n) >= REVIEWER_MAX) throw new HttpError(409, `at most ${REVIEWER_MAX} reviewer accounts`, { code: "too_many_reviewers" });
   const id = randomId(6), s = await newSetupCode(env), t = now();
-  await env.DB.prepare("INSERT INTO admin_reviewers (id, username, setup_hash, setup_expires, status, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, 'pending', ?5, ?5)")
-    .bind(id, username, s.hash, s.expires, t).run();
+  await env.DB.prepare("INSERT INTO admin_reviewers (id, username, setup_hash, setup_expires, status, created_at, updated_at, role) VALUES (?1, ?2, ?3, ?4, 'pending', ?5, ?5, ?6)")
+    .bind(id, username, s.hash, s.expires, t, role).run();
   const row = await reviewerById(env.DB, id);
   return { reviewer: pub(row), setup_code: s.code, setup_expires_at: s.expires };
 }

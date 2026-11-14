@@ -472,6 +472,11 @@
   "home.ok.fallback": "Not sent yet: online requests are not open. Use e-mail or LINE below to reach the team",
   "home.ok.mailto": "Send by e-mail",
   "home.ok.line": "Chat on LINE {id}",
+  "home.notice.text": "If the form does not send, contact us on LINE {id} right away",
+  "home.notice.line": "Chat on LINE",
+  "home.ts.hint": "Please tap the check box above to confirm you are human; your request will then be sent automatically",
+  "home.err.ts": "Not sent yet: the human check did not succeed. Your message is still in the form. Press send again, or contact us on LINE {id}",
+  "home.err.send": "Could not send (a system or network problem). Your message is still in the form. Press send again, or contact us on LINE {id}",
   "home.ok.notSent": "Thank you, {name}. This request has not been sent: online requests and the provider's contact details will be announced before sales open (kept in this browser only)",
   "home.cv.screen": "Ad screen",
   "home.cv.campaign": "Campaign A · {n}/15 s",
@@ -484,5 +489,7 @@
   "help.line.lead": "If things feel like too much, you can talk to someone: Thai mental health hotline",
   "help.line.free": "free, 24 hours",
   "help.line.emerg": "Medical emergency",
-  "help.line.note": "Outside Thailand, call your local emergency number."
+  "help.line.note": "Outside Thailand, call your local emergency number.",
+  "ft.notice": "The free-tier limits are not enforced yet. We will announce the start date at least 30 days ahead, and the limits start 30 days after the announcement. You can always export your data.",
+  "home.pk.ft": "Fortune and the general tools are free. The business products have a limited free tier: Gate 30-day trial (1 lane, 100 plates per day) · Attendance up to 5 people · Exam up to 5 candidates per session · Crowd 2 hours per device per day"
 } });

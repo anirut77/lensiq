@@ -13,6 +13,11 @@
   const TONE = /[็-์]/g;
   /** Thai pattern written normally; matched against text with spaces and tone marks removed @param {RegExp} re */
   const toneless = re => new RegExp(re.source.replace(TONE, ""), re.flags);
+  /* review 2026-11-14: sara am ำ arrives decomposed (nikhahit + sara aa), with the tone mark after it, or with zero-width
+     characters inside a word; every check runs on the canonical copy (lensiq-thai-canon.js, looked up at call time) */
+  const TC = typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-thai-canon.js") : null;
+  /** @param {any} s @returns {string} */
+  const canon = s => { const C = TC || root.LQThaiCanon; return C ? C.canon(s) : String(s == null ? "" : s).normalize("NFC"); };
   const TH = [
     /ฆ่าตัว(?:ตาย)?|อยาก(?:จะ)?(?:ไป)?(?:ต(?:า|ั)ย(?!ตัว)|die)|ไม่อยาก(?:มีชีวิต(?:อยู่)?|อยู่(?:แล้ว|ต่อ|บนโลก)|ตื่น(?:ขึ้นมา)?อีก|หายใจ)|อยากหายไป(?:จากโลก)?/,
     /อยากไปเกิดใหม่|ไปจากโลกนี้|(?:จะ|อยาก)ไปให้พ้น|ไม่อยากเป็นภาระ|(?:ทุกคน|คนอื่น|ครอบครัว)[^\s]{0,6}(?:สบาย|ดี|มีความสุข)(?:ขึ้น)?[^\s]{0,4}(?:ถ้า|หาก)(?:ไม่มี|ขาด)(?:ฉัน|หนู|ผม|เรา|กู)/,
@@ -105,7 +110,7 @@
      before the hard net; the rest of the text is still checked, and the soft step still sees "ตาย" */
   const JOKE = /อยาก\s*(?:จะ\s*)?ตาย\s*(?:เพราะ\s*|จน\s*)?(?:หัวเราะ|ขำ|ตลก)(?!\s*ไม่)/g;
   /** the text without the dying-of-laughter idiom @param {any} text */
-  const unjoke = text => String(text == null ? "" : text).normalize("NFC").replace(JOKE, " ");
+  const unjoke = text => canon(text).replace(JOKE, " ");
   /** true when the text shows a crisis signal @param {any} text */
   function check(text) {
     const t = unjoke(text);
@@ -141,7 +146,7 @@
     /死神牌?|梦见[^。？]{0,12}|梦到[^。？]{0,12}|夢見[^。？]{0,12}/g];
   /** ambiguous distress words (fortune vocabulary removed first) @param {any} text */
   function soft(text) {
-    let t = String(text == null ? "" : text).normalize("NFC");
+    let t = canon(text);
     for (const re of FORTUNE_CTX) t = t.replace(re, " ");
     const th = t.replace(/\s+/g, "").replace(TONE, ""), zh = t.replace(T2S_RE, c => T2S[c]).replace(/\s+/g, "");
     return SOFT[0].test(th) || SOFT[1].test(enCopy(t)) || SOFT[2].test(zh);
@@ -151,7 +156,7 @@
   const NAME_ZH = /我|你|他|她|想|要|不|死|打|救/;
   /** a name field that is more than a plain name @param {any} name */
   function softName(name) {
-    const n = String(name == null ? "" : name).normalize("NFC").trim();
+    const n = canon(name).trim();
     if (!n) return false;
     return n.split(/\s+/).length > 3 || NAME_TH.test(n.replace(/\s+/g, "").replace(TONE, "")) || NAME_EN.test(n) || NAME_ZH.test(n) ||
       (/\d/.test(n) && /\p{L}/u.test(n)) || soft(n);

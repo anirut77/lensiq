@@ -1,0 +1,35 @@
+{
+  "session": "S1-EXAMPLE",
+  "date": "2026-11-20",
+  "variant": "B",
+  "split": "heldout",
+  "phoneOn": false,
+  "labels": "labels.csv",
+  "room": { "rows": 2, "seatsPerRow": 4, "rowPitchM": 1.2, "emptyRoomPhotos": ["room-empty-1.jpg"] },
+  "volunteersPresent": 8,
+  "consentForms": 8,
+  "recording": "no",
+  "scheduleSha256": "",
+  "blocks": [
+    {
+      "block": "H1",
+      "log": "H1-cam1.json",
+      "node": "",
+      "camera": "P1 front wall centre, 2.7 m, 78 deg lens",
+      "device": "laptop model / CPU / RAM, browser version, build commit",
+      "detector": "coco",
+      "tiles": false,
+      "placementCheck": "good: 8 of 8 seats seen, smallest 301 px, minimum 288 px",
+      "light": "normal",
+      "seats": ["A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4"],
+      "minLeaveMin": 30,
+      "monitoredSec": 1440,
+      "clock": {
+        "start": { "timer": "00:00", "laptop": "2026-11-20T09:00:03.200+07:00" },
+        "end": { "timer": "24:00", "laptop": "2026-11-20T09:24:04.100+07:00" }
+      },
+      "fps": [3.0, 2.9, 3.1],
+      "dropped": false
+    }
+  ]
+}

@@ -12,6 +12,7 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
 - **Receipts:** the owner issues receipts from the template; the system does not number them yet.
 - **Accountant:** questions on the numbering series (one series `LQ-YYYYMM-000001` shared with the system, or a separate series for transfers) and on tax invoices (VAT status, full vs abbreviated, s.86/4 fields, timing) are in `docs/sales/ACCOUNTANT-QUESTIONS-TH.md`.
 - **After the accountant confirms:** switch to system numbering `LQ-YYYYMM-000001`.
+- **Price labels (OP-10, option B, decided 2026-11-13):** every document shows both price levels, clearly labelled, excl. 7 % VAT: the "pilot price" (ราคานำร่อง, the approved list, used now) and the "regular price after the pilot thresholds are met" (ราคาปกติหลังผ่านเกณฑ์นำร่อง, the after-pilot column of `docs/PRICING-RESEARCH.md` §3: Gate 990-1,490, Attendance 29, Crowd 990, Exam 15-30 / 990-1,490 / 30,000-120,000). Quotations charge the pilot price and show the regular price beside it. No number changed. Still open: the contract wording on when a site has "passed" the thresholds and who decides. Live pages follow in a separate stream.
 - **Free tiers (option B):** Fortune and general tools stay free (signed-out users keep the full fortune reading); the four business products get a limited free tier and need a licence beyond it.
 - **Gate:** 30-day trial, 1 lane, 100 plates per day. **Attendance:** free up to 5 people. **Exam:** free up to 5 candidates per session. **Crowd:** free 2 hours per device per day.
 - **Approved prices (excl. 7 % VAT):** Gate 490-790 THB per lane per month; Attendance 19 THB per person per month (minimum 190); Exam 10 THB per candidate (minimum 300 per session) or 990 THB per room per month; Crowd 590 THB per device per day.
@@ -21,6 +22,10 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
 - **Offline licence:** a licence works offline for 14 days (planned, not built).
 - **Organisation accounts (lite), planned, not built:** organisation name, billing details, admins and staff, invitations; no syncing of the customer's people data.
 - **Plans in the database:** only Gate, Attendance, Exam (lab room) and Crowd report get back-office order plans; no online purchase.
+- **Stream G built (2026-11-13, branch `accounts-g`, not merged / not deployed):** LINE Login next to Google (off until the owner sets
+  the LINE channel id and secret), organisation account lite with invitations and an audit log, back-office licence orders
+  (plans without prices), the 14-day offline licence window, free-tier counting on the device (not enforced), and the
+  free-tier wording + 30-day notice on pricing, home and the four product pages (TH / EN / ZH). Migration 0018 (`0018_accounts.sql`).
 - **Privacy contact:** a separate privacy-contact (DPO) e-mail will be added, the owner will send the address; until then documents show LINE @632yliiw (legal item L61).
 - **Legal list:** L57 text approved to list as drafted (`docs/product-check/LIVE-SCAN-RESULTS.md` §7); new L60 (Claude Haiku via Google Vertex for the live label scan), L61 (privacy contact), L62 (free-tier limits).
 
@@ -118,6 +123,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 | Integration | 1 file |
 | Python unittest | 4 files |
 | Gates | lint, typecheck, CSP, ZH/EN coverage, site check, and a mobile audit at 320/360/390 px |
+| Real-phone quality (stream B, 2026-11-13) | WebKit iPhone-width flows (14), crash guard (unit 10 + e2e 5, TH/EN/ZH), memory budget per camera page (9 pages, 60 s, synthetic headless Chrome). Details and numbers: `docs/PHONE-QUALITY.md`. Real-phone checks: `docs/owner-checklists/` |
 
 ### CI
 
@@ -151,6 +157,11 @@ No module is production-ready. None has completed a field pilot, and the backend
    further reading, remedy, lucky item, recommendation, lead form, share card or hook (member, future merit / straight
    mode) until reload. Remaining risks: the card and line wording still await a Thai mental-health professional (L-M14);
    1669 hours/cost and Samaritans' languages are not claimed because they could not be read on the official pages.
+   Thai sara am (branch `thai-sara-am-safety`, 2026-11-14, not merged): ำ arriving decomposed (nikhahit + sara aa, from
+   NFKC / PDF / OCR / some keyboards), with the tone mark after it, or with zero-width characters, slipped past the crisis
+   net, the medicine self-harm check, the Product Check privacy guard (home addresses on live-scan text) and the fortune
+   filter. All of them now match on one canonical copy (`lensiq-thai-canon.js`); locked tests
+   `evals-locks/thai-sara-am.sha256` (synthetic, the review's examples in every shape): 14/20 failed on main, 20/20 pass.
 
 ### CI-only or loosened tests
 
@@ -234,8 +245,9 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 **Round 16, owner decisions and what is still open**
 - Page-status table (`docs/PAGE-STATUS.md`): approved as proposed on 2026-11-09; the category packaging is published.
-- Draft price levels (`docs/PRICING-RESEARCH.md`, open questions 1–6): still open; the document is committed as a
-  draft. Decided 2026-11-09: B2B prices are quoted excluding VAT ("excl. 7% VAT" on every price, now also on the live
+- Price levels (`docs/PRICING-RESEARCH.md`, open questions 1–6): **approved 2026-11-09** (not on sale yet); on 2026-11-13 (OP-10, option B) the owner decided
+  that both levels stay and are labelled "pilot price" and "regular price after the pilot thresholds are met" everywhere (see "Owner decisions 2026-11-13").
+  Decided 2026-11-09: B2B prices are quoted excluding VAT ("excl. 7% VAT" on every price, now also on the live
   gate.html and exam.html in TH / EN / ZH and in BILLING-PLAN §4.1); the Gate free tier is a free 30-day trial (live
   text updated; no trial timer is enforced in code); Gate pilot targets are judged on the Wilson 95 % lower bound with
   the plain average beside it. Still open: the self-serve checkout plans on pricing.html (Plus, Creator, Business, and
@@ -298,6 +310,15 @@ No module is production-ready. None has completed a field pilot, and the backend
   **spent** set (not an independent figure): 0/260 and 61/360 = 16.9 %. Product Check AI therefore needs the side of
   the pack with the registration number, the ingredients or the barcode; it is not sold as "works on any photo".
   Option ข is not built (own commit, new locked set). Details: `docs/product-check/P7-RESULTS.md` §3.7.
+- Stream F (branch `pc-f`, 2026-11-13, not merged): Japanese / Korean name guard (fresh independent hold-out, synthetic:
+  values to AI text 13 → 7, image 13 → 6, one-tap 2 → 2; cued recall 0.15 → 0.83; target 0 / 0.90 **missed, owner decision**),
+  P9 recall 0.741 → 0.907 / precision 0.971 on a fresh independent hold-out (targets met; card figure unchanged pending the
+  owner), live-scan progressive checklist (latency not measured: loaded machine), adverts scoped-AI plan (no spend).
+  `docs/product-check/PC-F-RESULTS.md`, `ADVERT-AI-SCOPED-EVAL.md`.
+- Stream F2 (branch `pc-f2`, not merged): guard now linear time (8,000-character phone line: minutes → ~0.05 s, same answers;
+  locked relative test); latency harness wait bug fixed and re-locked (not run: machine loaded); names without a field word on a
+  fresh independent hold-out 3 (synthetic): leaks to AI text 61 → 55, image 57 → 50, one-tap 48 → 26; target 0 still missed,
+  bare names on packs need a non-rule control (owner decision 1). `PC-F-RESULTS.md` §7.
 - P7 product-label evidence filter (owner decision 2026-11-10, option 1), the rule and its dev figures:
   One decision for text and image mode (`LQPCGuard.aiGate`): AI only when the capture shows product-label evidence (a
   registration-number shape, a decoded barcode, or two label cue types), no personal-document sign and is not a
@@ -511,7 +532,7 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
 | L43 | Merit service: Fundraising Control Act B.E. 2487 (and Sangha orders) | **Must answer before charging.** Donations go straight to the temple's e-Donation QR (owner decision); confirm LENSIQ's booking of offerings is not fundraising | `docs/MERIT-DESIGN.md` §6, §13 | open (must answer before charging) | 2026-11-10 |
 | L44 | Remedies and merit wording (consumer protection) | Every service, advert and recommendation text reviewed against Thai consumer-protection and advertising law before launch; never sell an outcome (CLAUDE.md rule 2026-11-10) | `docs/MERIT-DESIGN.md`; fortune pages | open | 2026-11-10 |
 | L45 | Try-On cloud mode sends a customer photo (TO-D3) | Exception to "only derived facts are sent", approved 2026-11-10: after consent, only to providers whose terms say they neither keep nor train on the image; retention terms recorded per provider; only garment cut-outs stored (TO-D7) | `docs/TRYON-DESIGN.md` | open | 2026-11-10 |
-| L46 | Product Check patient-name guard limits | Rule guard recall 62–76 % on independent synthetic sets; text that is on the label (OCR) and not caught can be sent after the mandatory preview; non-Thai IDs/phones and CJK names without 姓名 weakest; provenance, photo gate and dispensing check enforced in the browser (the Worker cannot see the label) | `lensiq-pc-guard.js`, `lensiq-pc-ai.js`; `docs/product-check/P7-RESULTS.md` §3 | open | 2026-11-10 |
+| L46 | Product Check patient-name guard limits | Rule guard recall 62–76 % on independent synthetic sets (Japanese / Korean after stream F: 83 % of cued values, 7 of 291 values still reach the AI in text mode on a synthetic hold-out); text that is on the label (OCR) and not caught can be sent after the mandatory preview; non-Thai IDs/phones and CJK names without 姓名 weakest; provenance, photo gate and dispensing check enforced in the browser (the Worker cannot see the label) | `lensiq-pc-guard.js`, `lensiq-pc-ai.js`; `docs/product-check/P7-RESULTS.md` §3 | open | 2026-11-10 |
 | L47 | Translating printed dosing lines (`pc_translate`) | Is translating the label's own dosing text "dosing advice" under the medicine-page rule? Shown as "translated from the label, not advice, ask a pharmacist" | `backend/src/ai/pc-features.js`; P9 travel mode | open | 2026-11-10 |
 | L48 | Lawful basis for real customers: cross-border AI (Product Check) | **Must answer before any real customer uses it.** For the closed tester group the owner accepted consent as the basis (decision D3, 2026-11-10). Open for customers: is per-send consent enough for sending label text / a product photo outside Thailand (PDPA s.28), or is another basis, an adequacy finding or contract clauses needed; what the consent text must say; minors. | `lensiq-ai.js` consent; `docs/DEPLOY.md`; `docs/PDPA-NOTES-FOR-COUNSEL.md` F1 (g) | open (counsel) | 2026-11-10 |
 | L49 | Tester-group privacy wording | Draft shown to testers in the tester card of `medicine.html` and in `privacy.html` section 5 (TH / EN / ZH; `lensiq-tester.js` `priv`, `brief`), owner decision D4: "only after your consent, label text (and the blurred product photo in photo mode) is sent through Cloudflare and OpenRouter to Google Cloud Vertex AI or Microsoft Azure, outside Thailand; they keep no content; LENSIQ stores no label text or image". Counsel to confirm or correct the wording, including "keep no content" (zero-retention routes) and that no statement is made about the model makers. | `lensiq-tester.js`; `privacy.html` section 5 | open (counsel) | 2026-11-10 |
@@ -528,3 +549,19 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
 | L60 | Claude Haiku via Google Vertex for the live label scan (legal list, owner 2026-11-13) | Google's terms forbid use on sites likely used by people under 18 and as a substitute for medical advice. Current approach: adult testers only (closed tester group); counsel reviews before any public use. Related: L48, L50, L57 | `backend/src/ai/*`, `docs/product-check/LIVE-SCAN-RESULTS.md`, `docs/LEGAL-PACKET.md` §3.11 (sub-section "ช่องทางอื่นที่ประเมินแล้ว": other routes (Anthropic direct, Bedrock, Azure, OpenRouter, OpenAI) read on 2026-11-13, not legal advice, nothing changed) | open | 2026-11-13 |
 | L61 | Privacy contact: separate DPO e-mail pending (owner 2026-11-13) | A separate privacy-contact (DPO) e-mail will be added; the owner will send the address. Until then documents show LINE @632yliiw and the placeholder `[อีเมลติดต่อเรื่องข้อมูลส่วนบุคคล — เจ้าของจะแจ้ง]`. Counsel: whether LENSIQ needs a DPO under s.41 (see LRP-P8, ORG-Q3) | `lensiq-config.js` `LENSIQ_SELLER`, `docs/legal/customer/*`, `docs/LEGAL-PACKET.md` §1.19 | open | 2026-11-13 |
 | L62 | Free-tier limits and the change from "free, every feature" (owner 2026-11-13) | Fortune and general tools stay free; Gate 30-day trial (1 lane, 100 plates per day), Attendance free up to 5 people, Exam free up to 5 candidates per session, Crowd free 2 hours per device per day, licence beyond. Not enforced in the product; limits apply from a date announced at least 30 days ahead and start 30 days after the announcement; enforced by contract; customers can always export their data; a licence works offline for 14 days (planned). Counsel: notice period, consumer-protection angle (existing users who had every feature free), contract wording, honest note that a limit on the user's device can be bypassed. Related: L25 | `docs/PRICING-RESEARCH.md`, `docs/BILLING-PLAN.md` §4.1, `docs/legal/customer/TERMS-OF-SERVICE-B2B.md` 8.6, `docs/sales/*`, `docs/LEGAL-PACKET.md` §4.7 | open | 2026-11-13 |
+
+### Stream H (2026-11-13): Gate training path, Exam hall seat-watch kit, hall placement check
+- Gate: owner-photo training path (`docs/PLATE-TRAINING.md`): local labeller (127.0.0.1, BlazeFace face-box proposals +
+  mandatory human "checked"; export blurs irreversibly, drops EXIF), locked split `plate-split-v1` (plate-group union,
+  70/15/15), boxes-only training files, local YOLOX-nano training (Apache-2.0, pinned 0.3.0, not vendored; CPU / MPS),
+  locked comparison `plate-compare-v1` vs the shipped detector on the field test split. No model trained (no photos).
+  Owner 2026-11-13: Mac-only training, overnight, refused automatically when the machine is busy; no Colab for owner photos;
+  basis B (vehicle owners who agree) for a ~170-photo first batch at the owner's factory (dev only), basis A (site-owner
+  permission + PDPA sign + no people) for the main set after counsel (PDPA notes J(c)). Per-type results under 20 test photos
+  are UNMEASURED. Measured: nothing (smoke runs only).
+- Exam hall mock session: variant B with 8 adult volunteers; no date until counsel clears the consent form.
+- Exam hall: `tools/hall-seatwatch-score.mjs` (locked rule `seatwatch-score-v1`), `tools/hall-seatwatch-replay.mjs`
+  (consented recordings only), Thai steps `docs/pilot/SEATWATCH-SCORING-TH.md`; on-page camera placement check
+  (`LQExam.hallPlacement`, TH / EN / ZH; minimum person height per detector from the public-dataset numbers: COCO-SSD 288 px,
+  tiles / YOLOX 144 px) and seat-layout export. Hall mode stays experimental; field: not measured.
+- Locks: `evals-locks/gate-hall-h.sha256` (tests committed before product code).

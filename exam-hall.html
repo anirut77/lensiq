@@ -87,6 +87,16 @@
             (ดูข้อความ “รุ่นทดลอง” ด้านบน) ใบหน้าที่หาไม่เจอจะไม่มีตัวเลข หน้านี้จึงเทียบจำนวนคนที่เห็นกับจำนวนใบหน้าที่วัดได้ด้วย
             เหตุผลและตารางระยะกล้องอยู่ในคู่มือวางกล้อง ขอคู่มือวางกล้องได้จากเรา</p>
         </div>
+        <div id="placeCheck">
+          <h3 data-i18n="exam.hall.pcH">ตรวจตำแหน่งกล้อง: ที่นั่งและขนาดคน</h3>
+          <p class="note" data-i18n="exam.hall.pcLead">ใช้ก่อนเริ่มเฝ้าดู หลังวาดที่นั่งแล้ว: ให้คนนั่งทุกที่นั่ง แล้วกดเริ่ม
+            ระบบนับว่ากี่ที่นั่งเห็นคน วัดความสูงของคนในภาพเป็นพิกเซล เทียบกับขนาดเล็กสุดที่ตัวตรวจหาคนเคยวัดได้ผล
+            และดูว่าที่นั่งถูกแถวหน้าบังหรือชิดขอบภาพหรือไม่ แสดงเฉพาะตัวเลขในเครื่องนี้ ไม่บันทึก ไม่ส่งออก</p>
+          <div class="row-actions"><button class="btn ghost" type="button" id="pcBtn" aria-pressed="false"></button></div>
+          <div class="kv" id="pcKv" role="status"></div>
+          <p class="status" id="pcState" role="status" aria-live="polite"></p>
+          <p class="note" id="pcList" hidden></p>
+        </div>
         <p class="note" id="drawHint" role="status"></p>
       </div>
       <div>
@@ -109,7 +119,8 @@
         <h3><span data-i18n="exam.hall.listH">ที่นั่งในมุมกล้องนี้</span> (<span id="seatCount">0</span>)</h3>
         <p class="status warn" id="seatAr" role="status" hidden></p>
         <ul class="seat-list" id="seatList"></ul>
-        <div class="row-actions"><button class="btn ghost danger" type="button" id="clearSeats" data-i18n="exam.hall.clear">ลบที่นั่งทั้งหมด</button></div>
+        <div class="row-actions"><button class="btn ghost" type="button" id="exportSeats" data-i18n="exam.hall.exportSeats">ส่งออกผังที่นั่ง (ไฟล์ JSON สำหรับการวัดผล)</button>
+          <button class="btn ghost danger" type="button" id="clearSeats" data-i18n="exam.hall.clear">ลบที่นั่งทั้งหมด</button></div>
       </div>
     </div>
   </section>
@@ -137,6 +148,7 @@
 
 <script src="vendor/tfjs/tf.es2017.min.js"></script>
 <script src="vendor/tfjs/tf-backend-wasm.es2017.min.js"></script>
+<script src="lensiq-crashguard.js?v=1"></script>
 <script src="lensiq-camera.js?v=5"></script>
 <script src="lensiq-detect.js?v=5"></script>
 <script src="lensiq-sitecheck.js?v=4"></script>

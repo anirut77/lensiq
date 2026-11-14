@@ -125,6 +125,7 @@ isolated. One run; nothing was re-run or tuned.
 | Measure | n | BEFORE `coco` | AFTER `yolox` | Better | Source |
 |---|---|---|---|---|---|
 | Person recall, hall band 72 – 288 px tall | 442 persons | 152 = **34.4 %** [30.1 – 38.9] | 256 = **57.9 %** [53.3 – 62.4] | YOLOX | public dataset |
+| Person recall, 24 – 72 px (very far / very small) | 143 | 3.5 % [1.5 – 7.9] (5) | 25.2 % [18.8 – 32.9] (36) | YOLOX | public dataset |
 | Person recall, 72 – 144 px (about rows 4 – 7 at a 78° lens, calc) | 195 | 19.5 % [14.5 – 25.6] | 48.7 % [41.8 – 55.7] | YOLOX | public dataset |
 | Person recall, 144 – 288 px (about rows 1 – 3, calc) | 247 | 46.2 % [40.0 – 52.4] | 65.2 % [59.0 – 70.8] | YOLOX | public dataset |
 | Person recall, all counted sizes (≥ 24 px) | 860 | 42.3 % [39.1 – 45.7] | 55.3 % [52.0 – 58.6] | YOLOX | public dataset |
@@ -144,6 +145,10 @@ phone at hall distance, which neither detector is expected to see (`HALL-NO-FACE
 
 | Measure | `coco-t2` | `yolox-t2` | Source |
 |---|---|---|---|
+| Person recall, 24 – 72 px | 8.4 % [4.9 – 14.1] (12 / 143) | 21.7 % [15.7 – 29.1] (31 / 143) | public dataset |
+| Person recall, 72 – 144 px | 38.5 % [31.9 – 45.5] (75 / 195) | 43.1 % [36.3 – 50.1] (84 / 195) | public dataset |
+| Person recall, 144 – 288 px | 56.3 % [50.0 – 62.3] (139 / 247) | 66.4 % [60.3 – 72.0] (164 / 247) | public dataset |
+| Person recall, ≥ 288 px | 70.2 % [64.5 – 75.3] (193 / 275) | 76.0 % [70.6 – 80.7] (209 / 275) | public dataset |
 | Person recall, hall band | 48.4 % [43.8 – 53.1] (214 / 442) | 56.1 % [51.4 – 60.7] (248 / 442) | public dataset |
 | Person recall, all counted | 48.7 % (419 / 860) | 56.7 % (488 / 860) | public dataset |
 | Empty-seat false alarm | 2 / 94 = 2.1 % | 6 / 94 = 6.4 % | public dataset |
