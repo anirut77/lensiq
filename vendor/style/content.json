@@ -1,0 +1,1634 @@
+{
+ "version": "2026-11-14",
+ "source": "LENSIQ own palette content (bundled fallback, docs/STYLE-DESIGN.md §2.2). Colour names are our own (no trade-marked colour system names or numbers, L-S6).",
+ "thresholds": {
+  "version": "prov-2026-11-14",
+  "ownerApproved": false,
+  "note": "Provisional operational thresholds (design §3.1: no published colorimetric definition of undertone or season exists). Owner-only (design §2.3); changing them marks measured numbers stale.",
+  "hue": {
+   "neutral": 55,
+   "scale": 8,
+   "bands": [
+    49,
+    53,
+    57,
+    61
+   ]
+  },
+  "hairHue": {
+   "neutral": 60,
+   "scale": 15,
+   "weight": 0.2,
+   "minC": 8
+  },
+  "value": {
+   "skinMid": 58,
+   "skinScale": 12,
+   "hairMid": 28,
+   "hairScale": 20,
+   "hairWeight": 0.4
+  },
+  "chroma": {
+   "mid": 22,
+   "scale": 6,
+   "contrastMid": 30,
+   "contrastScale": 15,
+   "contrastWeight": 0.4
+  },
+  "drape": 0.5,
+  "unsure": {
+   "sdHue": 3,
+   "minFrames": 10,
+   "minCardShare": 0.5
+  },
+  "confidence": {
+   "highSdHue": 1,
+   "highSdL": 1.5,
+   "medSdHue": 2,
+   "agreeMin": 0.25
+  }
+ },
+ "parents": [
+  {
+   "id": "spring",
+   "name": {
+    "th": "สปริง",
+    "en": "Spring",
+    "zh": "春季型"
+   }
+  },
+  {
+   "id": "summer",
+   "name": {
+    "th": "ซัมเมอร์",
+    "en": "Summer",
+    "zh": "夏季型"
+   }
+  },
+  {
+   "id": "autumn",
+   "name": {
+    "th": "ออทัมน์",
+    "en": "Autumn",
+    "zh": "秋季型"
+   }
+  },
+  {
+   "id": "winter",
+   "name": {
+    "th": "วินเทอร์",
+    "en": "Winter",
+    "zh": "冬季型"
+   }
+  }
+ ],
+ "seasons": [
+  {
+   "id": "light-spring",
+   "parent": "spring",
+   "name": {
+    "th": "สปริงสีอ่อน",
+    "en": "Light Spring",
+    "zh": "浅春型"
+   },
+   "alt": {
+    "th": "สปริงวอร์ม ไลต์",
+    "en": "Spring warm light",
+    "zh": "春季暖调·浅"
+   },
+   "desc": {
+    "th": "อุ่น อ่อน และใส",
+    "en": "warm, light and clear",
+    "zh": "暖、浅、清透"
+   },
+   "pos": {
+    "warmth": 0.5,
+    "value": 0.9,
+    "chroma": 0.2
+   },
+   "palette": [
+    {
+     "c": "ivory",
+     "role": "base"
+    },
+    {
+     "c": "cream",
+     "role": "base"
+    },
+    {
+     "c": "warmbeige",
+     "role": "base"
+    },
+    {
+     "c": "peach",
+     "role": "accent"
+    },
+    {
+     "c": "warmpink",
+     "role": "accent"
+    },
+    {
+     "c": "buttercup",
+     "role": "accent"
+    },
+    {
+     "c": "aqua",
+     "role": "accent"
+    },
+    {
+     "c": "periwinkle",
+     "role": "accent"
+    },
+    {
+     "c": "applegreen",
+     "role": "accent"
+    },
+    {
+     "c": "gold",
+     "role": "metal"
+    },
+    {
+     "c": "camel",
+     "role": "away"
+    },
+    {
+     "c": "khaki",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "true-spring",
+   "parent": "spring",
+   "name": {
+    "th": "สปริงแท้",
+    "en": "True Spring",
+    "zh": "正春型"
+   },
+   "alt": {
+    "th": "สปริงวอร์ม",
+    "en": "Spring warm",
+    "zh": "春季暖调"
+   },
+   "desc": {
+    "th": "อุ่นชัด สดใส",
+    "en": "clearly warm and fresh",
+    "zh": "明显偏暖、鲜活"
+   },
+   "pos": {
+    "warmth": 1,
+    "value": 0.3,
+    "chroma": 0.5
+   },
+   "palette": [
+    {
+     "c": "ivory",
+     "role": "base"
+    },
+    {
+     "c": "camel",
+     "role": "base"
+    },
+    {
+     "c": "warmbeige",
+     "role": "base"
+    },
+    {
+     "c": "coral",
+     "role": "accent"
+    },
+    {
+     "c": "goldenyellow",
+     "role": "accent"
+    },
+    {
+     "c": "turquoise",
+     "role": "accent"
+    },
+    {
+     "c": "applegreen",
+     "role": "accent"
+    },
+    {
+     "c": "tomato",
+     "role": "accent"
+    },
+    {
+     "c": "leafgreen",
+     "role": "accent"
+    },
+    {
+     "c": "gold",
+     "role": "metal"
+    },
+    {
+     "c": "coffee",
+     "role": "away"
+    },
+    {
+     "c": "khaki",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "bright-spring",
+   "parent": "spring",
+   "name": {
+    "th": "สปริงสีสด",
+    "en": "Bright Spring",
+    "zh": "净春型"
+   },
+   "alt": {
+    "th": "สปริงวอร์ม ไบรต์",
+    "en": "Spring warm bright",
+    "zh": "春季暖调·亮"
+   },
+   "desc": {
+    "th": "อุ่นเล็กน้อย สดและคมชัด",
+    "en": "slightly warm, vivid and crisp",
+    "zh": "微暖、鲜艳、对比鲜明"
+   },
+   "pos": {
+    "warmth": 0.5,
+    "value": 0.1,
+    "chroma": 1
+   },
+   "palette": [
+    {
+     "c": "softwhite",
+     "role": "base"
+    },
+    {
+     "c": "navy",
+     "role": "base"
+    },
+    {
+     "c": "camel",
+     "role": "base"
+    },
+    {
+     "c": "brightcoral",
+     "role": "accent"
+    },
+    {
+     "c": "clearblue",
+     "role": "accent"
+    },
+    {
+     "c": "turquoise",
+     "role": "accent"
+    },
+    {
+     "c": "leafgreen",
+     "role": "accent"
+    },
+    {
+     "c": "goldenyellow",
+     "role": "accent"
+    },
+    {
+     "c": "tomato",
+     "role": "accent"
+    },
+    {
+     "c": "gold",
+     "role": "metal"
+    },
+    {
+     "c": "chocolate",
+     "role": "away"
+    },
+    {
+     "c": "charcoal",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "light-summer",
+   "parent": "summer",
+   "name": {
+    "th": "ซัมเมอร์สีอ่อน",
+    "en": "Light Summer",
+    "zh": "浅夏型"
+   },
+   "alt": {
+    "th": "ซัมเมอร์คูล ไลต์",
+    "en": "Summer cool light",
+    "zh": "夏季冷调·浅"
+   },
+   "desc": {
+    "th": "เย็น อ่อน และนุ่ม",
+    "en": "cool, light and gentle",
+    "zh": "冷、浅、柔和"
+   },
+   "pos": {
+    "warmth": -0.5,
+    "value": 0.9,
+    "chroma": -0.2
+   },
+   "palette": [
+    {
+     "c": "softwhite",
+     "role": "base"
+    },
+    {
+     "c": "dovegrey",
+     "role": "base"
+    },
+    {
+     "c": "rosebeige",
+     "role": "base"
+    },
+    {
+     "c": "powderblue",
+     "role": "accent"
+    },
+    {
+     "c": "lavender",
+     "role": "accent"
+    },
+    {
+     "c": "rosepink",
+     "role": "accent"
+    },
+    {
+     "c": "softseagreen",
+     "role": "accent"
+    },
+    {
+     "c": "periwinkle",
+     "role": "accent"
+    },
+    {
+     "c": "palelemon",
+     "role": "accent"
+    },
+    {
+     "c": "silver",
+     "role": "metal"
+    },
+    {
+     "c": "slategrey",
+     "role": "away"
+    },
+    {
+     "c": "bluegrey",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "true-summer",
+   "parent": "summer",
+   "name": {
+    "th": "ซัมเมอร์แท้",
+    "en": "True Summer",
+    "zh": "正夏型"
+   },
+   "alt": {
+    "th": "ซัมเมอร์คูล",
+    "en": "Summer cool",
+    "zh": "夏季冷调"
+   },
+   "desc": {
+    "th": "เย็นชัด นุ่มนวล",
+    "en": "clearly cool and soft",
+    "zh": "明显偏冷、柔和"
+   },
+   "pos": {
+    "warmth": -1,
+    "value": 0.2,
+    "chroma": -0.4
+   },
+   "palette": [
+    {
+     "c": "dovegrey",
+     "role": "base"
+    },
+    {
+     "c": "bluegrey",
+     "role": "base"
+    },
+    {
+     "c": "navy",
+     "role": "base"
+    },
+    {
+     "c": "cornflower",
+     "role": "accent"
+    },
+    {
+     "c": "raspberry",
+     "role": "accent"
+    },
+    {
+     "c": "rosepink",
+     "role": "accent"
+    },
+    {
+     "c": "softteal",
+     "role": "accent"
+    },
+    {
+     "c": "lavender",
+     "role": "accent"
+    },
+    {
+     "c": "powderblue",
+     "role": "accent"
+    },
+    {
+     "c": "silver",
+     "role": "metal"
+    },
+    {
+     "c": "charcoal",
+     "role": "away"
+    },
+    {
+     "c": "slategrey",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "soft-summer",
+   "parent": "summer",
+   "name": {
+    "th": "ซัมเมอร์สีหม่น",
+    "en": "Soft Summer",
+    "zh": "柔夏型"
+   },
+   "alt": {
+    "th": "ซัมเมอร์คูล มิวต์",
+    "en": "Summer cool mute",
+    "zh": "夏季冷调·柔"
+   },
+   "desc": {
+    "th": "เย็นเล็กน้อย หม่นและกลมกลืน",
+    "en": "slightly cool, muted and blended",
+    "zh": "微冷、低饱和、融合"
+   },
+   "pos": {
+    "warmth": -0.4,
+    "value": 0,
+    "chroma": -1
+   },
+   "palette": [
+    {
+     "c": "greybeige",
+     "role": "base"
+    },
+    {
+     "c": "dovegrey",
+     "role": "base"
+    },
+    {
+     "c": "taupe",
+     "role": "base"
+    },
+    {
+     "c": "dustyrose",
+     "role": "accent"
+    },
+    {
+     "c": "mauve",
+     "role": "accent"
+    },
+    {
+     "c": "softplum",
+     "role": "accent"
+    },
+    {
+     "c": "softseagreen",
+     "role": "accent"
+    },
+    {
+     "c": "softteal",
+     "role": "accent"
+    },
+    {
+     "c": "cornflower",
+     "role": "accent"
+    },
+    {
+     "c": "pewter",
+     "role": "metal"
+    },
+    {
+     "c": "charcoal",
+     "role": "away"
+    },
+    {
+     "c": "slategrey",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "soft-autumn",
+   "parent": "autumn",
+   "name": {
+    "th": "ออทัมน์สีหม่น",
+    "en": "Soft Autumn",
+    "zh": "柔秋型"
+   },
+   "alt": {
+    "th": "ออทัมน์วอร์ม มิวต์",
+    "en": "Autumn warm mute",
+    "zh": "秋季暖调·柔"
+   },
+   "desc": {
+    "th": "อุ่นเล็กน้อย หม่นและกลมกลืน",
+    "en": "slightly warm, muted and blended",
+    "zh": "微暖、低饱和、融合"
+   },
+   "pos": {
+    "warmth": 0.4,
+    "value": 0,
+    "chroma": -1
+   },
+   "palette": [
+    {
+     "c": "oatmeal",
+     "role": "base"
+    },
+    {
+     "c": "greybeige",
+     "role": "base"
+    },
+    {
+     "c": "taupe",
+     "role": "base"
+    },
+    {
+     "c": "sage",
+     "role": "accent"
+    },
+    {
+     "c": "softsalmon",
+     "role": "accent"
+    },
+    {
+     "c": "moss",
+     "role": "accent"
+    },
+    {
+     "c": "softteal",
+     "role": "accent"
+    },
+    {
+     "c": "mustard",
+     "role": "accent"
+    },
+    {
+     "c": "dustyrose",
+     "role": "accent"
+    },
+    {
+     "c": "bronze",
+     "role": "metal"
+    },
+    {
+     "c": "coffee",
+     "role": "away"
+    },
+    {
+     "c": "khaki",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "true-autumn",
+   "parent": "autumn",
+   "name": {
+    "th": "ออทัมน์แท้",
+    "en": "True Autumn",
+    "zh": "正秋型"
+   },
+   "alt": {
+    "th": "ออทัมน์วอร์ม",
+    "en": "Autumn warm",
+    "zh": "秋季暖调"
+   },
+   "desc": {
+    "th": "อุ่นชัด ลึกและอบอุ่น",
+    "en": "clearly warm, rich and earthy",
+    "zh": "明显偏暖、浓郁大地色"
+   },
+   "pos": {
+    "warmth": 1,
+    "value": -0.3,
+    "chroma": -0.4
+   },
+   "palette": [
+    {
+     "c": "cream",
+     "role": "base"
+    },
+    {
+     "c": "camel",
+     "role": "base"
+    },
+    {
+     "c": "coffee",
+     "role": "base"
+    },
+    {
+     "c": "rust",
+     "role": "accent"
+    },
+    {
+     "c": "pumpkin",
+     "role": "accent"
+    },
+    {
+     "c": "mustard",
+     "role": "accent"
+    },
+    {
+     "c": "olive",
+     "role": "accent"
+    },
+    {
+     "c": "deepteal",
+     "role": "accent"
+    },
+    {
+     "c": "terracotta",
+     "role": "accent"
+    },
+    {
+     "c": "copper",
+     "role": "metal"
+    },
+    {
+     "c": "chocolate",
+     "role": "away"
+    },
+    {
+     "c": "forest",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "deep-autumn",
+   "parent": "autumn",
+   "name": {
+    "th": "ออทัมน์สีเข้ม",
+    "en": "Deep Autumn",
+    "zh": "深秋型"
+   },
+   "alt": {
+    "th": "ออทัมน์วอร์ม ดีป",
+    "en": "Autumn warm deep",
+    "zh": "秋季暖调·深"
+   },
+   "desc": {
+    "th": "อุ่น เข้มและลึก",
+    "en": "warm, deep and rich",
+    "zh": "暖、深、浓郁"
+   },
+   "pos": {
+    "warmth": 0.5,
+    "value": -0.9,
+    "chroma": -0.1
+   },
+   "palette": [
+    {
+     "c": "cream",
+     "role": "base"
+    },
+    {
+     "c": "chocolate",
+     "role": "base"
+    },
+    {
+     "c": "coffee",
+     "role": "base"
+    },
+    {
+     "c": "brick",
+     "role": "accent"
+    },
+    {
+     "c": "deepteal",
+     "role": "accent"
+    },
+    {
+     "c": "forest",
+     "role": "accent"
+    },
+    {
+     "c": "goldenbrown",
+     "role": "accent"
+    },
+    {
+     "c": "aubergine",
+     "role": "accent"
+    },
+    {
+     "c": "rust",
+     "role": "accent"
+    },
+    {
+     "c": "gold",
+     "role": "metal"
+    },
+    {
+     "c": "charcoal",
+     "role": "away"
+    },
+    {
+     "c": "navy",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "deep-winter",
+   "parent": "winter",
+   "name": {
+    "th": "วินเทอร์สีเข้ม",
+    "en": "Deep Winter",
+    "zh": "深冬型"
+   },
+   "alt": {
+    "th": "วินเทอร์คูล ดีป",
+    "en": "Winter cool deep",
+    "zh": "冬季冷调·深"
+   },
+   "desc": {
+    "th": "เย็น เข้มและชัด",
+    "en": "cool, deep and defined",
+    "zh": "冷、深、轮廓分明"
+   },
+   "pos": {
+    "warmth": -0.5,
+    "value": -0.9,
+    "chroma": 0.2
+   },
+   "palette": [
+    {
+     "c": "purewhite",
+     "role": "base"
+    },
+    {
+     "c": "black",
+     "role": "base"
+    },
+    {
+     "c": "charcoal",
+     "role": "base"
+    },
+    {
+     "c": "burgundy",
+     "role": "accent"
+    },
+    {
+     "c": "pine",
+     "role": "accent"
+    },
+    {
+     "c": "royalpurple",
+     "role": "accent"
+    },
+    {
+     "c": "royalblue",
+     "role": "accent"
+    },
+    {
+     "c": "truered",
+     "role": "accent"
+    },
+    {
+     "c": "emerald",
+     "role": "accent"
+    },
+    {
+     "c": "silver",
+     "role": "metal"
+    },
+    {
+     "c": "navy",
+     "role": "away"
+    },
+    {
+     "c": "slategrey",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "true-winter",
+   "parent": "winter",
+   "name": {
+    "th": "วินเทอร์แท้",
+    "en": "True Winter",
+    "zh": "正冬型"
+   },
+   "alt": {
+    "th": "วินเทอร์คูล",
+    "en": "Winter cool",
+    "zh": "冬季冷调"
+   },
+   "desc": {
+    "th": "เย็นชัด คมและตัดกัน",
+    "en": "clearly cool, crisp and contrasting",
+    "zh": "明显偏冷、清晰、对比强"
+   },
+   "pos": {
+    "warmth": -1,
+    "value": -0.2,
+    "chroma": 0.5
+   },
+   "palette": [
+    {
+     "c": "purewhite",
+     "role": "base"
+    },
+    {
+     "c": "black",
+     "role": "base"
+    },
+    {
+     "c": "navy",
+     "role": "base"
+    },
+    {
+     "c": "truered",
+     "role": "accent"
+    },
+    {
+     "c": "royalblue",
+     "role": "accent"
+    },
+    {
+     "c": "emerald",
+     "role": "accent"
+    },
+    {
+     "c": "fuchsia",
+     "role": "accent"
+    },
+    {
+     "c": "icyblue",
+     "role": "accent"
+    },
+    {
+     "c": "icypink",
+     "role": "accent"
+    },
+    {
+     "c": "platinum",
+     "role": "metal"
+    },
+    {
+     "c": "charcoal",
+     "role": "away"
+    },
+    {
+     "c": "slategrey",
+     "role": "away"
+    }
+   ]
+  },
+  {
+   "id": "bright-winter",
+   "parent": "winter",
+   "name": {
+    "th": "วินเทอร์สีสด",
+    "en": "Bright Winter",
+    "zh": "净冬型"
+   },
+   "alt": {
+    "th": "วินเทอร์คูล ไบรต์",
+    "en": "Winter cool bright",
+    "zh": "冬季冷调·亮"
+   },
+   "desc": {
+    "th": "เย็นเล็กน้อย สดและคมชัด",
+    "en": "slightly cool, vivid and crisp",
+    "zh": "微冷、鲜艳、对比鲜明"
+   },
+   "pos": {
+    "warmth": -0.5,
+    "value": 0,
+    "chroma": 1
+   },
+   "palette": [
+    {
+     "c": "purewhite",
+     "role": "base"
+    },
+    {
+     "c": "black",
+     "role": "base"
+    },
+    {
+     "c": "navy",
+     "role": "base"
+    },
+    {
+     "c": "hotpink",
+     "role": "accent"
+    },
+    {
+     "c": "brightcyan",
+     "role": "accent"
+    },
+    {
+     "c": "emerald",
+     "role": "accent"
+    },
+    {
+     "c": "royalblue",
+     "role": "accent"
+    },
+    {
+     "c": "lemon",
+     "role": "accent"
+    },
+    {
+     "c": "fuchsia",
+     "role": "accent"
+    },
+    {
+     "c": "silver",
+     "role": "metal"
+    },
+    {
+     "c": "charcoal",
+     "role": "away"
+    },
+    {
+     "c": "dovegrey",
+     "role": "away"
+    }
+   ]
+  }
+ ],
+ "colours": {
+  "ivory": {
+   "hex": "#fff6e0",
+   "name": {
+    "th": "งาช้าง",
+    "en": "Ivory",
+    "zh": "象牙白"
+   }
+  },
+  "cream": {
+   "hex": "#f3e5c0",
+   "name": {
+    "th": "ครีม",
+    "en": "Cream",
+    "zh": "奶油色"
+   }
+  },
+  "warmbeige": {
+   "hex": "#d8bc94",
+   "name": {
+    "th": "เบจอุ่น",
+    "en": "Warm beige",
+    "zh": "暖米色"
+   }
+  },
+  "camel": {
+   "hex": "#c19a6b",
+   "name": {
+    "th": "คาเมล",
+    "en": "Camel",
+    "zh": "驼色"
+   }
+  },
+  "oatmeal": {
+   "hex": "#e0d3b8",
+   "name": {
+    "th": "ข้าวโอ๊ต",
+    "en": "Oatmeal",
+    "zh": "燕麦色"
+   }
+  },
+  "greybeige": {
+   "hex": "#bdb3a3",
+   "name": {
+    "th": "เบจเทา",
+    "en": "Grey beige",
+    "zh": "灰米色"
+   }
+  },
+  "taupe": {
+   "hex": "#8b7d6b",
+   "name": {
+    "th": "น้ำตาลเทา",
+    "en": "Taupe",
+    "zh": "灰褐色"
+   }
+  },
+  "khaki": {
+   "hex": "#a39a72",
+   "name": {
+    "th": "กากี",
+    "en": "Khaki",
+    "zh": "卡其色"
+   }
+  },
+  "coffee": {
+   "hex": "#6f4e37",
+   "name": {
+    "th": "กาแฟ",
+    "en": "Coffee",
+    "zh": "咖啡色"
+   }
+  },
+  "chocolate": {
+   "hex": "#5c3a21",
+   "name": {
+    "th": "ช็อกโกแลต",
+    "en": "Chocolate",
+    "zh": "巧克力色"
+   }
+  },
+  "softwhite": {
+   "hex": "#f7f4ee",
+   "name": {
+    "th": "ขาวนวล",
+    "en": "Soft white",
+    "zh": "柔白"
+   }
+  },
+  "purewhite": {
+   "hex": "#ffffff",
+   "name": {
+    "th": "ขาวบริสุทธิ์",
+    "en": "Pure white",
+    "zh": "纯白"
+   }
+  },
+  "dovegrey": {
+   "hex": "#b8b5b0",
+   "name": {
+    "th": "เทานกพิราบ",
+    "en": "Dove grey",
+    "zh": "鸽灰"
+   }
+  },
+  "rosebeige": {
+   "hex": "#d9bfb4",
+   "name": {
+    "th": "เบจอมชมพู",
+    "en": "Rose beige",
+    "zh": "玫瑰米色"
+   }
+  },
+  "bluegrey": {
+   "hex": "#7d93a8",
+   "name": {
+    "th": "ฟ้าเทา",
+    "en": "Blue grey",
+    "zh": "蓝灰"
+   }
+  },
+  "slategrey": {
+   "hex": "#6e7b8b",
+   "name": {
+    "th": "เทาหินชนวน",
+    "en": "Slate grey",
+    "zh": "石板灰"
+   }
+  },
+  "charcoal": {
+   "hex": "#36454f",
+   "name": {
+    "th": "เทาถ่าน",
+    "en": "Charcoal",
+    "zh": "炭灰"
+   }
+  },
+  "navy": {
+   "hex": "#1f2a44",
+   "name": {
+    "th": "กรมท่า",
+    "en": "Navy",
+    "zh": "藏青"
+   }
+  },
+  "black": {
+   "hex": "#111111",
+   "name": {
+    "th": "ดำ",
+    "en": "Black",
+    "zh": "黑色"
+   }
+  },
+  "peach": {
+   "hex": "#ffc3a0",
+   "name": {
+    "th": "พีช",
+    "en": "Peach",
+    "zh": "蜜桃色"
+   }
+  },
+  "warmpink": {
+   "hex": "#f88379",
+   "name": {
+    "th": "ชมพูอุ่น",
+    "en": "Warm pink",
+    "zh": "暖粉"
+   }
+  },
+  "coral": {
+   "hex": "#ff7f50",
+   "name": {
+    "th": "ปะการัง",
+    "en": "Coral",
+    "zh": "珊瑚色"
+   }
+  },
+  "brightcoral": {
+   "hex": "#ff5a4e",
+   "name": {
+    "th": "ปะการังสด",
+    "en": "Bright coral",
+    "zh": "亮珊瑚色"
+   }
+  },
+  "buttercup": {
+   "hex": "#f9d56e",
+   "name": {
+    "th": "เหลืองเนย",
+    "en": "Butter yellow",
+    "zh": "奶油黄"
+   }
+  },
+  "goldenyellow": {
+   "hex": "#ffc72c",
+   "name": {
+    "th": "เหลืองทอง",
+    "en": "Golden yellow",
+    "zh": "金黄"
+   }
+  },
+  "aqua": {
+   "hex": "#7fd8c8",
+   "name": {
+    "th": "ฟ้าอมเขียวอ่อน",
+    "en": "Aqua",
+    "zh": "水绿"
+   }
+  },
+  "turquoise": {
+   "hex": "#30d5c8",
+   "name": {
+    "th": "เทอร์ควอยซ์",
+    "en": "Turquoise",
+    "zh": "绿松石色"
+   }
+  },
+  "applegreen": {
+   "hex": "#8db600",
+   "name": {
+    "th": "เขียวแอปเปิล",
+    "en": "Apple green",
+    "zh": "苹果绿"
+   }
+  },
+  "leafgreen": {
+   "hex": "#2ead5b",
+   "name": {
+    "th": "เขียวใบไม้สด",
+    "en": "Leaf green",
+    "zh": "嫩叶绿"
+   }
+  },
+  "periwinkle": {
+   "hex": "#a7b8e8",
+   "name": {
+    "th": "ฟ้าอมม่วงอ่อน",
+    "en": "Periwinkle",
+    "zh": "长春花蓝"
+   }
+  },
+  "clearblue": {
+   "hex": "#2e9cdb",
+   "name": {
+    "th": "ฟ้าสด",
+    "en": "Clear blue",
+    "zh": "亮蓝"
+   }
+  },
+  "tomato": {
+   "hex": "#e8462f",
+   "name": {
+    "th": "แดงมะเขือเทศ",
+    "en": "Tomato red",
+    "zh": "番茄红"
+   }
+  },
+  "powderblue": {
+   "hex": "#b0cde6",
+   "name": {
+    "th": "ฟ้าแป้ง",
+    "en": "Powder blue",
+    "zh": "粉蓝"
+   }
+  },
+  "lavender": {
+   "hex": "#c5b4e3",
+   "name": {
+    "th": "ลาเวนเดอร์",
+    "en": "Lavender",
+    "zh": "薰衣草紫"
+   }
+  },
+  "rosepink": {
+   "hex": "#e8a0b4",
+   "name": {
+    "th": "ชมพูกุหลาบ",
+    "en": "Rose pink",
+    "zh": "玫瑰粉"
+   }
+  },
+  "mauve": {
+   "hex": "#b784a7",
+   "name": {
+    "th": "ม่วงอมชมพูหม่น",
+    "en": "Mauve",
+    "zh": "淡紫红"
+   }
+  },
+  "dustyrose": {
+   "hex": "#c9a0a0",
+   "name": {
+    "th": "ชมพูหม่น",
+    "en": "Dusty rose",
+    "zh": "灰玫瑰"
+   }
+  },
+  "softseagreen": {
+   "hex": "#8fbcb0",
+   "name": {
+    "th": "เขียวน้ำทะเลหม่น",
+    "en": "Soft sea green",
+    "zh": "柔海绿"
+   }
+  },
+  "cornflower": {
+   "hex": "#6f8fcf",
+   "name": {
+    "th": "ฟ้าคอร์นฟลาวเวอร์",
+    "en": "Cornflower blue",
+    "zh": "矢车菊蓝"
+   }
+  },
+  "raspberry": {
+   "hex": "#b3446c",
+   "name": {
+    "th": "ราสเบอร์รี",
+    "en": "Raspberry",
+    "zh": "覆盆子红"
+   }
+  },
+  "softplum": {
+   "hex": "#8e6c8a",
+   "name": {
+    "th": "พลัมหม่น",
+    "en": "Soft plum",
+    "zh": "灰梅紫"
+   }
+  },
+  "softteal": {
+   "hex": "#5f9ea0",
+   "name": {
+    "th": "เขียวหัวเป็ดหม่น",
+    "en": "Soft teal",
+    "zh": "柔青"
+   }
+  },
+  "palelemon": {
+   "hex": "#f3eda2",
+   "name": {
+    "th": "เหลืองมะนาวอ่อน",
+    "en": "Pale lemon",
+    "zh": "淡柠檬黄"
+   }
+  },
+  "rust": {
+   "hex": "#b7410e",
+   "name": {
+    "th": "สีสนิม",
+    "en": "Rust",
+    "zh": "铁锈红"
+   }
+  },
+  "terracotta": {
+   "hex": "#c8643b",
+   "name": {
+    "th": "ดินเผา",
+    "en": "Terracotta",
+    "zh": "陶土色"
+   }
+  },
+  "mustard": {
+   "hex": "#d2a531",
+   "name": {
+    "th": "มัสตาร์ด",
+    "en": "Mustard",
+    "zh": "芥末黄"
+   }
+  },
+  "olive": {
+   "hex": "#708238",
+   "name": {
+    "th": "เขียวมะกอก",
+    "en": "Olive",
+    "zh": "橄榄绿"
+   }
+  },
+  "moss": {
+   "hex": "#8a9a5b",
+   "name": {
+    "th": "เขียวมอส",
+    "en": "Moss green",
+    "zh": "苔藓绿"
+   }
+  },
+  "pumpkin": {
+   "hex": "#e07b39",
+   "name": {
+    "th": "ฟักทอง",
+    "en": "Pumpkin",
+    "zh": "南瓜色"
+   }
+  },
+  "deepteal": {
+   "hex": "#1f6f6f",
+   "name": {
+    "th": "เขียวหัวเป็ดเข้ม",
+    "en": "Deep teal",
+    "zh": "深青"
+   }
+  },
+  "forest": {
+   "hex": "#2e4d2e",
+   "name": {
+    "th": "เขียวป่า",
+    "en": "Forest green",
+    "zh": "森林绿"
+   }
+  },
+  "brick": {
+   "hex": "#9c3d2e",
+   "name": {
+    "th": "แดงอิฐ",
+    "en": "Brick red",
+    "zh": "砖红"
+   }
+  },
+  "softsalmon": {
+   "hex": "#e3a587",
+   "name": {
+    "th": "แซลมอนหม่น",
+    "en": "Soft salmon",
+    "zh": "柔鲑鱼色"
+   }
+  },
+  "sage": {
+   "hex": "#9caf88",
+   "name": {
+    "th": "เขียวเสจ",
+    "en": "Sage green",
+    "zh": "鼠尾草绿"
+   }
+  },
+  "aubergine": {
+   "hex": "#5b3256",
+   "name": {
+    "th": "ม่วงมะเขือ",
+    "en": "Aubergine",
+    "zh": "茄紫"
+   }
+  },
+  "goldenbrown": {
+   "hex": "#996515",
+   "name": {
+    "th": "น้ำตาลทอง",
+    "en": "Golden brown",
+    "zh": "金棕"
+   }
+  },
+  "royalblue": {
+   "hex": "#2347b8",
+   "name": {
+    "th": "น้ำเงินรอยัล",
+    "en": "Royal blue",
+    "zh": "宝蓝"
+   }
+  },
+  "emerald": {
+   "hex": "#009b77",
+   "name": {
+    "th": "มรกต",
+    "en": "Emerald",
+    "zh": "祖母绿"
+   }
+  },
+  "fuchsia": {
+   "hex": "#d1338c",
+   "name": {
+    "th": "บานเย็น",
+    "en": "Fuchsia",
+    "zh": "品红"
+   }
+  },
+  "truered": {
+   "hex": "#c8102e",
+   "name": {
+    "th": "แดงสด",
+    "en": "True red",
+    "zh": "正红"
+   }
+  },
+  "icyblue": {
+   "hex": "#dcebf7",
+   "name": {
+    "th": "ฟ้าน้ำแข็ง",
+    "en": "Icy blue",
+    "zh": "冰蓝"
+   }
+  },
+  "icypink": {
+   "hex": "#f6dde8",
+   "name": {
+    "th": "ชมพูน้ำแข็ง",
+    "en": "Icy pink",
+    "zh": "冰粉"
+   }
+  },
+  "royalpurple": {
+   "hex": "#6a2c91",
+   "name": {
+    "th": "ม่วงเข้ม",
+    "en": "Royal purple",
+    "zh": "皇家紫"
+   }
+  },
+  "burgundy": {
+   "hex": "#7a1f35",
+   "name": {
+    "th": "เบอร์กันดี",
+    "en": "Burgundy",
+    "zh": "勃艮第红"
+   }
+  },
+  "pine": {
+   "hex": "#01563f",
+   "name": {
+    "th": "เขียวสน",
+    "en": "Pine green",
+    "zh": "松绿"
+   }
+  },
+  "hotpink": {
+   "hex": "#e5438a",
+   "name": {
+    "th": "ชมพูสด",
+    "en": "Hot pink",
+    "zh": "亮粉"
+   }
+  },
+  "lemon": {
+   "hex": "#f4e04d",
+   "name": {
+    "th": "เหลืองมะนาว",
+    "en": "Lemon yellow",
+    "zh": "柠檬黄"
+   }
+  },
+  "brightcyan": {
+   "hex": "#00a6c8",
+   "name": {
+    "th": "ฟ้าอมเขียวสด",
+    "en": "Bright cyan",
+    "zh": "亮青"
+   }
+  },
+  "gold": {
+   "hex": "#c9a54c",
+   "name": {
+    "th": "ทอง",
+    "en": "Gold",
+    "zh": "金色"
+   }
+  },
+  "silver": {
+   "hex": "#c0c0c8",
+   "name": {
+    "th": "เงิน",
+    "en": "Silver",
+    "zh": "银色"
+   }
+  },
+  "pewter": {
+   "hex": "#8e9196",
+   "name": {
+    "th": "พิวเตอร์",
+    "en": "Pewter",
+    "zh": "锡灰"
+   }
+  },
+  "copper": {
+   "hex": "#b87333",
+   "name": {
+    "th": "ทองแดง",
+    "en": "Copper",
+    "zh": "铜色"
+   }
+  },
+  "bronze": {
+   "hex": "#a97142",
+   "name": {
+    "th": "บรอนซ์",
+    "en": "Bronze",
+    "zh": "青铜色"
+   }
+  },
+  "platinum": {
+   "hex": "#e5e4e2",
+   "name": {
+    "th": "แพลทินัม",
+    "en": "Platinum",
+    "zh": "铂金色"
+   }
+  }
+ },
+ "drapes": [
+  {
+   "dim": "warmth",
+   "a": {
+    "id": "gold",
+    "hex": "#c9a54c",
+    "name": {
+     "th": "ทอง",
+     "en": "Gold",
+     "zh": "金色"
+    }
+   },
+   "b": {
+    "id": "silver",
+    "hex": "#c0c0c8",
+    "name": {
+     "th": "เงิน",
+     "en": "Silver",
+     "zh": "银色"
+    }
+   }
+  },
+  {
+   "dim": "value",
+   "a": {
+    "id": "light",
+    "hex": "#f3e5c0",
+    "name": {
+     "th": "โทนอ่อน",
+     "en": "Light",
+     "zh": "浅色"
+    }
+   },
+   "b": {
+    "id": "deep",
+    "hex": "#3b2f2f",
+    "name": {
+     "th": "โทนเข้ม",
+     "en": "Deep",
+     "zh": "深色"
+    }
+   }
+  },
+  {
+   "dim": "chroma",
+   "a": {
+    "id": "clear",
+    "hex": "#e8462f",
+    "name": {
+     "th": "สีสด",
+     "en": "Clear",
+     "zh": "鲜明色"
+    }
+   },
+   "b": {
+    "id": "soft",
+    "hex": "#b88a84",
+    "name": {
+     "th": "สีหม่น",
+     "en": "Soft",
+     "zh": "柔和色"
+    }
+   }
+  }
+ ]
+}

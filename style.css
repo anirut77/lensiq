@@ -1,0 +1,41 @@
+/* style.css — Style MVP page (personal colour palette). Phone first: one column from 320 px. */
+.sty-page { max-width: 980px; margin: 0 auto; padding: 16px; }
+.sty-page .card { margin: 16px 0; }
+.sty-off { text-align: center; padding: 28px 16px; }
+.sty-off-line { margin: 6px 0; font-size: 1.05rem; }
+.sty-off-home { margin-top: 14px; }
+.sty-notice { font-weight: 600; line-height: 1.6; }
+.sty-small { color: var(--muted, #475569); font-size: 14px; line-height: 1.5; }
+.sty-list { margin: 8px 0 12px; padding-left: 20px; line-height: 1.6; }
+.sty-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.sty-actions .btn, .sty-drape-pair .btn { min-height: 44px; }
+.sty-field { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; max-width: 360px; }
+.sty-field select { min-height: 44px; font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line, #cbd5e1); }
+.sty-check { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0; min-height: 44px; }
+.sty-check input { width: 22px; height: 22px; margin-top: 2px; flex: none; }
+.sty-stage { position: relative; width: 100%; background: #0e1430; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; }
+.sty-stage video, .sty-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); }
+.sty-drape { position: absolute; top: 0; bottom: 0; width: 22%; z-index: 2; }
+.sty-drape-l { left: 0; }
+.sty-drape-r { right: 0; }
+.sty-status { margin: 8px 0; min-height: 1.4em; font-weight: 600; }
+.sty-drapes { margin-top: 12px; }
+.sty-drape-pair { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.sty-drape-pair .btn { flex: 1 1 120px; }
+.sty-unsure { padding: 12px; border-radius: 10px; background: #fff7e6; color: #7a4b00; border: 1px solid #f5d79e; margin: 8px 0; }
+.sty-under { margin: 12px 0; }
+.sty-bar { position: relative; height: 14px; border-radius: 999px; background: linear-gradient(90deg, #c0c0c8, #e6e6ea 50%, #c9a54c); margin: 8px 0 4px; }
+.sty-bar-dot { position: absolute; top: -5px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: #0e1430; border: 3px solid #fff;
+  box-shadow: 0 0 0 1px #0e1430; }
+.sty-bar-ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted, #475569); }
+.sty-seasons { display: grid; gap: 8px; margin: 12px 0; }
+.sty-season { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line, #cbd5e1); }
+.sty-season b { display: block; }
+.sty-chart svg { width: 100%; max-width: 360px; height: auto; display: block; margin: 8px 0; }
+.sty-palette h3 { font-size: 15px; margin: 14px 0 6px; }
+.sty-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.sty-sw { border-radius: 10px; border: 1px solid var(--line, #cbd5e1); overflow: hidden; font-size: 12.5px; background: var(--card, #fff); }
+.sty-sw i { display: block; height: 44px; }
+.sty-sw span { display: block; padding: 4px 6px; line-height: 1.3; overflow-wrap: anywhere; }
+.sty-conf { font-weight: 600; }
+.sty-disc { font-size: 14px; padding: 10px 12px; border-left: 4px solid #674ff2; background: rgba(103, 79, 242, .06); }

@@ -67,6 +67,12 @@ window.LENSIQ_FORTUNE_STRAIGHT = false;
  *   true = เปิด (เจ้าของตัดสินใจเท่านั้น) · ต้องเป็น true จริงเท่านั้น ค่าอื่นถือว่าปิด */
 window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
 
+/* LENSIQ_STYLE (Style MVP, คำสั่งเจ้าของ 14 พ.ย. 2569 F): หน้า "สีและสไตล์ส่วนตัว" (หน้า style — พาเลตสีส่วนตัวพร้อมขั้นแก้แสงด้วยการ์ด)
+ *   false (ค่าเริ่มต้น) = ปิด: ไม่มีลิงก์จากเมนู หน้าหมวด หรือแคตตาล็อก และเปิด URL ตรง ๆ จะเห็นเพียงข้อความ "ยังไม่เปิดให้ใช้งาน"
+ *   3 ภาษา ไม่โหลดโมเดล กล้อง หรือข้อมูลสีใด ๆ · true = เปิด (เจ้าของอนุมัติเท่านั้น) · ต้องเป็น true จริงเท่านั้น ค่าอื่นถือว่าปิด
+ *   (ตั้งก่อนโหลดไฟล์นี้ได้ เช่นเครื่องทดสอบ) ไม่มีพารามิเตอร์ URL หรือค่าในเครื่องที่เปิดได้ (tests/unit/style-flag.test.js) */
+window.LENSIQ_STYLE = window.LENSIQ_STYLE === true;
+
 /* LENSIQ_PROFILE: ชุดค่าการติดตั้ง — "commercial" (ค่าเริ่มต้นตั้งแต่ round 16: โหมดลูกค้า ทุกเว็บรวม GitHub Pages) | "demo"
  *   โหมดลูกค้า: LENSIQ_AGE_GENDER = LENSIQ_EXPRESSION = LENSIQ_FACEPARSE = false — ไม่โหลดและไม่แสดงโมเดลอายุ/เพศ (UTKFace)
  *   และโมเดลสีหน้า · BiSeNet (ไม่ใช่เชิงพาณิชย์) ปิดค่าเริ่มต้น แต่ลิงก์ทดสอบ ?faceparse=1 ใน studio.js / photobooth-hq.js ยังไม่อยู่ใต้ล็อกนี้

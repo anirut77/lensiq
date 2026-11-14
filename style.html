@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';
+  script-src 'self' 'wasm-unsafe-eval';
+  style-src 'self' 'unsafe-inline';
+  font-src 'self' data:;
+  img-src 'self' data: blob:;
+  media-src 'self' data: blob:;
+  connect-src 'self' data: blob:;
+  worker-src 'self' blob:;
+  manifest-src 'self';
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E
+  %3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E
+  %3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E
+  %3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>LENSIQ</title>
+<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=16"></script>
+<script src="i18n/zh-style.js?v=1"></script>
+
+<main class="sty-page" id="main">
+  <!-- Off switch (lensiq-config.js LENSIQ_STYLE, default false): this notice is all a visitor sees until the owner approves -->
+  <section class="card sty-off" id="styOff" aria-label="LENSIQ">
+    <p lang="th" class="sty-off-line">หน้านี้ยังไม่เปิดให้ใช้งาน</p>
+    <p lang="en" class="sty-off-line">This page is not available yet.</p>
+    <p lang="zh-Hans" class="sty-off-line">此页面尚未开放。</p>
+    <p class="sty-off-home"><a class="btn ghost sm" href="index.html" translate="no">LENSIQ</a></p>
+  </section>
+
+  <div id="styApp" hidden>
+    <p class="eyebrow" data-i18n="sty.eyebrow">LENSIQ · สีและสไตล์ (ทดลอง)</p>
+    <h1 data-i18n="sty.h1">พาเลตสีส่วนตัวของคุณ</h1>
+    <p class="lead" data-i18n="sty.lead">ถือการ์ดสีเทาหรือขาวไว้ข้างแก้มเพื่อแก้แสง แล้วดูว่าสีโทนไหนกลมกลืนกับโทนสีของคุณ</p>
+
+    <!-- 1.1 start screen -->
+    <section class="card" id="styStart" aria-labelledby="styStartH">
+      <h2 id="styStartH" data-i18n="sty.start.h">ก่อนเริ่ม</h2>
+      <p class="sty-notice" data-i18n="sty.start.notice">วิเคราะห์สี ไม่ใช่หน้าตา · ประมวลผลในเครื่อง · ไม่เก็บภาพ · ผลเป็นคำแนะนำด้านสี ไม่ใช่ข้อเท็จจริงเกี่ยวกับตัวคุณ</p>
+      <div class="sty-actions">
+        <button class="btn primary" id="styGoA" type="button" data-i18n="sty.start.a">วัดพาเลตสี</button>
+        <button class="btn ghost" id="styGoC" type="button" hidden data-i18n="sty.start.c">ดูพาเลตที่บันทึกไว้</button>
+      </div>
+      <p class="sty-small" data-i18n="sty.start.acc">ยังไม่ได้วัดกับคนจริง ทดสอบกับชุดสีสังเคราะห์ใต้แสงจำลองเท่านั้น ซีซันสีไม่มีคำตอบที่ถูกต้องแท้จริง จึงไม่อ้างความแม่นยำ</p>
+    </section>
+
+    <!-- 1.2 step 1: light check -->
+    <section class="card" id="styLight" hidden aria-labelledby="styLightH">
+      <h2 id="styLightH" data-i18n="sty.light.h">เตรียมแสงและการ์ด</h2>
+      <ul class="sty-list">
+        <li data-i18n="sty.light.face">หันหน้าเข้าหาแสง ไม่มีแสงจ้าจากด้านหลัง</li>
+        <li data-i18n="sty.light.filter">ปิดฟิลเตอร์และการแต่งภาพอัตโนมัติของกล้อง</li>
+        <li data-i18n="sty.light.card">ถือการ์ดสีเทาหรือขาวไว้ข้างแก้ม ในแสงเดียวกับใบหน้า ให้อยู่ในภาพตลอดการวัด</li>
+      </ul>
+      <label class="sty-field"><span data-i18n="sty.light.cardType">การ์ดที่ใช้</span>
+        <select id="styCardType">
+          <option value="grey" data-i18n="sty.card.grey">การ์ดสีเทา 18% (แนะนำ)</option>
+          <option value="white" data-i18n="sty.card.white">การ์ดสีขาว</option>
+          <option value="paper" data-i18n="sty.card.paper">กระดาษถ่ายเอกสารสีขาว</option>
+        </select>
+      </label>
+      <label class="sty-check"><input type="checkbox" id="styMakeup"> <span data-i18n="sty.light.makeup">แต่งหน้าอยู่ (วัดที่ขอบกรามและลำคอแทน และความมั่นใจจะลดลง)</span></label>
+      <div class="sty-actions">
+        <button class="btn primary" id="styOpen" type="button" data-i18n="sty.light.open">เปิดกล้องบนเครื่องนี้</button>
+        <button class="btn ghost" id="styBack" type="button" data-i18n="sty.back">กลับ</button>
+      </div>
+    </section>
+
+    <!-- camera stage: card step, measurement, drapes -->
+    <section class="card" id="styCam" hidden aria-labelledby="styCamH">
+      <h2 id="styCamH" data-i18n="sty.cam.h">กล้อง</h2>
+      <div class="sty-stage" id="styStage">
+        <div class="sty-drape sty-drape-l" id="styDrapeL" hidden></div>
+        <video id="styVideo" playsinline muted aria-hidden="true"></video>
+        <canvas id="styOverlay" aria-label="ภาพกล้องพร้อมกรอบการ์ด" data-i18n-attr="aria-label:sty.cam.aria"></canvas>
+        <div class="sty-drape sty-drape-r" id="styDrapeR" hidden></div>
+      </div>
+      <p class="sty-status" id="styCardMsg" role="status" data-i18n="sty.cam.idle">ยังไม่ได้เปิดกล้อง</p>
+      <p class="sty-small" data-i18n="sty.cam.tap">ถ้ากรอบไม่ตรงการ์ด แตะที่การ์ดในภาพ</p>
+      <div class="sty-actions">
+        <button class="btn primary" id="styCardOk" type="button" disabled data-i18n="sty.cam.ok">การ์ดอยู่ในกรอบแล้ว เริ่มวัด</button>
+        <button class="btn ghost" id="styStop" type="button" data-i18n="sty.cam.stop">ปิดกล้อง</button>
+      </div>
+      <div class="sty-drapes" id="styDrapes" hidden>
+        <p id="styDrapeQ" data-i18n="sty.drape.q">เลือกฝั่งที่คุณชอบมากกว่า (เป็นความชอบของคุณเอง)</p>
+        <div class="sty-drape-pair" data-dim="warmth">
+          <button class="btn ghost" type="button" data-dim="warmth" data-side="a" data-i18n="sty.drape.gold">ทอง</button>
+          <button class="btn ghost" type="button" data-dim="warmth" data-side="b" data-i18n="sty.drape.silver">เงิน</button>
+        </div>
+        <div class="sty-drape-pair" data-dim="value" hidden>
+          <button class="btn ghost" type="button" data-dim="value" data-side="a" data-i18n="sty.drape.light">โทนอ่อน</button>
+          <button class="btn ghost" type="button" data-dim="value" data-side="b" data-i18n="sty.drape.deep">โทนเข้ม</button>
+        </div>
+        <div class="sty-drape-pair" data-dim="chroma" hidden>
+          <button class="btn ghost" type="button" data-dim="chroma" data-side="a" data-i18n="sty.drape.clear">สีสด</button>
+          <button class="btn ghost" type="button" data-dim="chroma" data-side="b" data-i18n="sty.drape.soft">สีหม่น</button>
+        </div>
+        <button class="btn ghost sm" id="stySkipDrapes" type="button" data-i18n="sty.drape.skip">ข้ามขั้นนี้</button>
+      </div>
+    </section>
+
+    <!-- 1.3 palette summary card -->
+    <section class="card" id="styResult" hidden aria-labelledby="styResultH">
+      <h2 id="styResultH" data-i18n="sty.res.h">พาเลตสีของคุณ</h2>
+      <div id="styUnsure" class="sty-unsure" hidden></div>
+      <div id="styUndertone" class="sty-under"></div>
+      <div id="stySeasons" class="sty-seasons"></div>
+      <div id="styChart" class="sty-chart"></div>
+      <ul id="styWhy" class="sty-list"></ul>
+      <div id="styPalette" class="sty-palette"></div>
+      <p id="styConf" class="sty-conf"></p>
+      <p id="styDisclaimer" class="sty-disc" data-i18n="sty.disclaimer">ระบบซีซันสีเป็นความชอบเชิงอัตวิสัย ผลนี้เป็นคำแนะนำด้านสี ไม่ใช่การประเมินตัวคุณ</p>
+      <p id="styMeta" class="sty-small"></p>
+      <label class="sty-check"><input type="checkbox" id="styRemember"> <span data-i18n="sty.res.remember">จำพาเลตไว้ในเครื่องนี้ (เก็บเฉพาะชื่อซีซัน รหัสสี และโทน ไม่เก็บภาพ)</span></label>
+      <div class="sty-actions">
+        <button class="btn primary sm" id="styDownload" type="button" data-i18n="sty.res.download">บันทึกการ์ดพาเลตเป็นรูป</button>
+        <button class="btn ghost sm" id="styForget" type="button" data-i18n="sty.res.forget">ลบพาเลตที่บันทึกไว้</button>
+        <button class="btn ghost sm" id="styAgain" type="button" data-i18n="sty.res.again">เริ่มใหม่</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="lensiq-config.js?v=10"></script>
+<script src="style.js?v=1"></script>
+</body>
+</html>

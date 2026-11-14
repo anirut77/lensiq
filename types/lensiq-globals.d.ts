@@ -59,6 +59,8 @@ interface Window {
   LENSIQ_EXPRESSION?: boolean;
   /** lensiq-config.js (round 17 P9): true = the travel card lists Thai products with the same ingredients (TMT 2020); default false */
   LENSIQ_PC_THAI_EQUIV?: boolean;
+  /** Style MVP switch (lensiq-config.js): true only when the owner approves; default false */
+  LENSIQ_STYLE?: boolean;
   /** lensiq-config.js (round 16): false = customer installation, the "Research demo" toggle is locked off */
   LENSIQ_RESEARCH_DEMO?: boolean;
   /** lensiq-config.js (round 16): resolved research-demo state, read by lensiq-research.js */

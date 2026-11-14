@@ -193,6 +193,23 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 ## 5. Backlog (deferred, with reasons)
 
+**Style MVP (branch `style-mvp`, 2026-11-14, owner order F; behind `LENSIQ_STYLE`, OFF)**
+- Built (design `docs/STYLE-DESIGN.md`, MVP = personal colour palette with the white-balance step): `lensiq-colour.js` (sRGB /
+  Lab, CIEDE2000, card detection, card gains and clipped / small / uneven / dark refusal), `lensiq-style.js` (skin patches from
+  the face mesh, makeup mode at jaw / neck, robust sampling, undertone band, 3 colour dimensions, 12 seasons closest two,
+  confidence words, "unsure" instead of a guess, opt-in save of derived colours only), `vendor/style/content.json` (12 seasons
+  under 4 parents, 74 own colour names TH / EN / ZH, provisional owner-only thresholds), the page with start notice, light check,
+  card step, measurement, virtual drapes (skippable), palette card, PNG from swatches only, TH / EN / ZH.
+- Off switch: `LENSIQ_STYLE` defaults to false; the page is in `tools/cat-data.cjs` UNLINKED and linked from nowhere; opened
+  directly it shows "not available yet" in 3 languages and loads nothing. Tests locked first (`evals-locks/style-mvp.sha256`).
+- Measured (synthetic set S only, `~/LENSIQ-field/evals/style-mvp/results-2026-11-14.md`): within-person skin hue SD median
+  3.70° (target ≤ 2.0°), L* SD 0.41 (≤ 2.0), same band 36.7 % (≥ 80 %), same top-1 season 6.7 % (≥ 70 %), top-2 contains 33.3 %
+  (≥ 90 %), tertile gap 40 pp (≤ 10); ColorChecker median ΔE00 after the grey card 1.4–5.5 per phone × light (target ≤ 4.0:
+  misses for the warm bulb on the high-crosstalk phone and for mixed light). A diagonal card correction does not remove the
+  modelled cross-channel cast; not tuned on the locked set. No field numbers.
+- Deferred: daily outfit / hair match (S4), admin Style section (S5), kiosk mode, link from lucky colour, analytics events,
+  field sets A–E (owner inputs §9.1), decisions S-D1…S-D8 (recommendations used, page off).
+
 **Nutrition MVP (branch `nutrition-mvp`, 2026-11-13; label mode only)**
 - Built: `nutrition.html` (category 5), `lensiq-nut.js` (parser, conversions, amount-eaten calculation, allergen words),
   `lensiq-nut-ui.js`, TH / EN / ZH. On the device only: no AI, no food database, no backend, nothing stored except the
@@ -549,6 +566,16 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
 | L60 | Claude Haiku via Google Vertex for the live label scan (legal list, owner 2026-11-13) | Google's terms forbid use on sites likely used by people under 18 and as a substitute for medical advice. Current approach: adult testers only (closed tester group); counsel reviews before any public use. Related: L48, L50, L57 | `backend/src/ai/*`, `docs/product-check/LIVE-SCAN-RESULTS.md`, `docs/LEGAL-PACKET.md` §3.11 (sub-section "ช่องทางอื่นที่ประเมินแล้ว": other routes (Anthropic direct, Bedrock, Azure, OpenRouter, OpenAI) read on 2026-11-13, not legal advice, nothing changed) | open | 2026-11-13 |
 | L61 | Privacy contact: separate DPO e-mail pending (owner 2026-11-13) | A separate privacy-contact (DPO) e-mail will be added; the owner will send the address. Until then documents show LINE @632yliiw and the placeholder `[อีเมลติดต่อเรื่องข้อมูลส่วนบุคคล — เจ้าของจะแจ้ง]`. Counsel: whether LENSIQ needs a DPO under s.41 (see LRP-P8, ORG-Q3) | `lensiq-config.js` `LENSIQ_SELLER`, `docs/legal/customer/*`, `docs/LEGAL-PACKET.md` §1.19 | open | 2026-11-13 |
 | L62 | Free-tier limits and the change from "free, every feature" (owner 2026-11-13) | Fortune and general tools stay free; Gate 30-day trial (1 lane, 100 plates per day), Attendance free up to 5 people, Exam free up to 5 candidates per session, Crowd free 2 hours per device per day, licence beyond. Not enforced in the product; limits apply from a date announced at least 30 days ahead and start 30 days after the announcement; enforced by contract; customers can always export their data; a licence works offline for 14 days (planned). Counsel: notice period, consumer-protection angle (existing users who had every feature free), contract wording, honest note that a limit on the user's device can be bypassed. Related: L25 | `docs/PRICING-RESEARCH.md`, `docs/BILLING-PLAN.md` §4.1, `docs/legal/customer/TERMS-OF-SERVICE-B2B.md` 8.6, `docs/sales/*`, `docs/LEGAL-PACKET.md` §4.7 | open | 2026-11-13 |
+| L-S1 | Style MVP: on-device face processing for colour measurement | Are transient landmarks and skin patches "biometric data" (s.26)? Is LENSIQ a controller when nothing leaves the user's device? Page built 2026-11-14 behind `LENSIQ_STYLE` (off) | `style.js`, `lensiq-style.js`; `docs/STYLE-DESIGN.md` §5 | open | 2026-11-14 |
+| L-S2 | Style: skin colour / undertone as a proxy for racial or ethnic origin | s.26 sensitive-data risk for the measurement, the opt-in saved palette (season ids, swatch hex, undertone band, date; no skin values) and analytics (none sent by the page) | `lensiq-style.js` `toSaved`, `style.js`; STYLE-DESIGN §1.3, §5 | open | 2026-11-14 |
+| L-S3 | Style: consented test sets (volunteer face photos, analysts) | Consent wording TH / EN / ZH, retention ≤ 12 months, withdrawal, analyst confidentiality, ROPA and DPIA delta. Not started: no person has been photographed | STYLE-DESIGN §4.1, §5 | open | 2026-11-14 |
+| L-S4 | Style: MediaPipe Face Landmarker + Selfie Multiclass reuse | Both already vendored and recorded (Apache-2.0, `LICENSES/THIRD_PARTY.md`); the Style page only adds a use (skin patches, hair mask). No new model file | `LICENSES/THIRD_PARTY.md` | open | 2026-11-14 |
+| L-S5 | Style: public face datasets | MST-E (research / annotator training only), FFHQ, CelebA, UTKFace, Chicago, Fitzpatrick17k, SCUT-FBP: not used. FHIBE: not used yet | STYLE-DESIGN §3.6 | open | 2026-11-14 |
+| L-S6 | Style: trade marks and reference data | Generic season names and our own colour names (no trade-marked colour-system names or numbers). ColorChecker Classic published values are used only in the synthetic test set (`~/LENSIQ-field/evals/style-mvp/`), not in the product | `vendor/style/content.json`; STYLE-DESIGN §3.2, §3.6 | open | 2026-11-14 |
+| L-S7 | Style: claims and wording | The page states "not measured with people; no accuracy claim" and the design's disclaimer on every result; banned colourism / looks / body / age wording is enforced by `tests/unit/style-wording.test.js` | `style.html`, `i18n/*-style.js`; STYLE-DESIGN §4.3, §6 | open | 2026-11-14 |
+| L-S8 | Style: admin image uploads of people | Not built in the MVP (admin section S5 deferred) | STYLE-DESIGN §2.1, §5 | open | 2026-11-14 |
+| L-S9 | Style: minors on the public camera page | No age inference is possible or wanted; is a "20+ or with a parent" notice needed for a page that stores nothing? | `style.html` | open | 2026-11-14 |
+| L-S10 | Style: shop kiosk deployment | Kiosk mode not built in the MVP | STYLE-DESIGN §5 | open | 2026-11-14 |
 
 ### Stream H (2026-11-13): Gate training path, Exam hall seat-watch kit, hall placement check
 - Gate: owner-photo training path (`docs/PLATE-TRAINING.md`): local labeller (127.0.0.1, BlazeFace face-box proposals +

@@ -198,6 +198,10 @@ const CLAIMS = {
     th: "ยังไม่ได้วัดกับภาพกล้องจริง การวางแว่น หมวก ต่างหู และเสื้อทดสอบกับข้อมูลสังเคราะห์เท่านั้น เป็นภาพจำลอง ไม่ใช่ภาพสวมใส่จริง",
     en: "Not measured on real camera pictures; placing glasses, hats, earrings and tops is tested on synthetic data only. A preview, not a real fit",
     zh: "尚未用真实摄像头画面测量；眼镜、帽子、耳环和上衣的放置仅用合成数据测试。仅为模拟预览，不代表真实穿着效果" },
+  style: { src: "none", ref: "docs/STYLE-DESIGN.md §4 (no ground truth exists for undertone or season; only a synthetic colour set was measured, no people)",
+    th: "ยังไม่ได้วัดกับคนจริง ทดสอบกับชุดสีสังเคราะห์ใต้แสงจำลองเท่านั้น ซีซันสีไม่มีคำตอบที่ถูกต้องแท้จริง จึงไม่อ้างความแม่นยำ",
+    en: "Not measured with people; tested on a synthetic colour set under simulated light only. Colour seasons have no ground truth, so no accuracy is claimed",
+    zh: "尚未用真人测量；仅在模拟光照下用合成颜色集测试。色彩季型没有标准答案，因此不声明准确率" },
   studio: { src: "public", ref: "ACCURACY.md §11 (35 held-out people, AI-rated)",
     ev: { doc: "ACCURACY.md", quote: ["| no-outfit version (new background + retouch) with a defect | 22.9 % [11.4–39.0] (8/35) |"] },
     th:
@@ -320,6 +324,9 @@ const REASONS = {
   tryon: { th: "ลองแว่น หมวก ต่างหู และเสื้อบนภาพกล้องสดบนเครื่อง พร้อมหลังบ้านแคตตาล็อกร้าน ยังไม่ได้วัดกับภาพจริงและยังไม่ได้เปิดระบบหลังบ้าน",
     en: "Try glasses, hats, earrings and tops on the live camera picture on the device, with a shop catalogue back office; not measured on real pictures and the backend is not deployed",
     zh: "在本机实时摄像头画面上试戴眼镜、帽子、耳环和上衣，并配有店铺目录后台；尚未用真实画面测量，后端尚未部署" },
+  style: { th: "วัดพาเลตสีส่วนตัวจากกล้องบนเครื่อง โดยถือการ์ดสีเทาหรือขาวข้างแก้มเพื่อแก้แสง ปิดอยู่จนกว่าเจ้าของอนุมัติ ยังไม่ได้วัดกับคนจริง",
+    en: "Personal colour palette from the camera on the device, with a grey or white card held by the cheek to correct the light; switched off until the owner approves; not measured with people",
+    zh: "在本机用摄像头测量个人色彩调色板，脸颊旁手持灰卡或白卡以校正光线；在负责人批准前保持关闭；尚未用真人测量" },
   studio: { th: "แบบไม่เปลี่ยนชุดใช้ได้ แบบเปลี่ยนชุดยังบกพร่องมากจึงปิดเป็นค่าเริ่มต้น",
     en: "The no-outfit version works; outfit renders still have many defects, so they are off by default",
     zh: "不换装版本可用；换装效果仍多瑕疵，因此默认关闭" },
@@ -405,6 +412,7 @@ const PAGES = {
   // 7 Studio & Media
   studio: { st: "experimental", why: "studio", claims: ["studio"] },
   tryon: { st: "experimental", why: "tryon", claims: ["tryon"] },
+  style: { st: "experimental", why: "style", claims: ["style"] },
   photobooth: { st: "pilot-ready", why: "photobooth", claims: ["photobooth"] },
   converter: { st: "experimental", why: "converter", claims: ["converter"] },
   // Platform (not a category)
@@ -482,6 +490,7 @@ const CATEGORIES = [
  *  noindex; see docs/PAGE-STATUS.md "Not linked"). */
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
 const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
-  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category" };
+  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category",
+  style: "Style MVP (personal colour palette), behind the LENSIQ_STYLE switch (off): not linked anywhere until the owner approves" };
 
 module.exports = { STATUS, STATUS_DEF, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };

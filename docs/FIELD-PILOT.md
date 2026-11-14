@@ -20,6 +20,7 @@
 | [`docs/PILOT-PLAN.md`](PILOT-PLAN.md), [`docs/pdpa/`](pdpa/) | ชุดนำร่องทั่วไป + PDPA / general pilot kit + PDPA documents |
 | [`docs/pilot/PILOT-GATE.md`](pilot/PILOT-GATE.md), [`PILOT-EXAM.md`](pilot/PILOT-EXAM.md), [`PILOT-CROWD.md`](pilot/PILOT-CROWD.md) | ชุดนำร่องรายผลิตภัณฑ์ (รอบ 16) / per-product pilot kits (round 16) |
 | `tools/plate-field-eval.mjs`, [`docs/field-pilot/plates-photo-labels.md`](field-pilot/plates-photo-labels.md) | ระยะ 0 ของ Gate: ภาพถ่ายป้ายจากโทรศัพท์ของเจ้าของ (~100 ภาพ เก็บนอก repo) / Gate phase 0: the owner's ~100 phone photos (kept outside the repo) |
+| [`docs/STYLE-DESIGN.md`](STYLE-DESIGN.md) §4 | Style MVP (ปิดอยู่ 14 พ.ย. 2569): ยังไม่มีการนำร่องภาคสนาม ต้องมีอาสาสมัครที่ยินยอม ≥ 40 คน นักวิเคราะห์สี 2 คน การ์ดเทา และ ColorChecker ก่อน / Style MVP (off, 2026-11-14): no field pilot yet; needs ≥ 40 consenting volunteers, 2 colour analysts, a grey card and a ColorChecker first |
 
 ---
 
