@@ -290,7 +290,18 @@ export function customerSiteConfig(file) {
   }
   if (!existsSync(abs)) throw new Error("--site-config: " + file + " not found");
   const cfg = readSiteConfig(abs);
-  return cfg ? { ...cfg, testerGate: false } : null;
+  if (!cfg) return null;
+  // refused by content too: a copy of the test-site config under another name must not reach a customer
+  let pubKey = "";
+  try { pubKey = String(JSON.parse(readFileSync(pub, "utf8")).turnstileSiteKey || "").trim(); } catch { /* no public file */ }
+  const host = new URL(cfg.apiBase).host;
+  if (/workers\.dev$/i.test(host) || /-test\b/i.test(host)) {
+    throw new Error("--site-config: apiBase " + cfg.apiBase + " looks like a test backend (workers.dev / -test); a customer bundle needs the customer's own API");
+  }
+  if (cfg.turnstileSiteKey && pubKey && cfg.turnstileSiteKey === pubKey) {
+    throw new Error("--site-config: turnstileSiteKey is the public test-site key; use the customer's own site key");
+  }
+  return { ...cfg, testerGate: false, file: relative(repo, abs) || abs };
 }
 
 /** Locks out/lensiq-config.js and verifies it. Throws when the file is missing or the check fails. */
@@ -313,6 +324,15 @@ if (isMain) {
   catch (e) { if (e instanceof NotAGitCheckout) { console.error("build-site: FAILED — " + e.message); process.exit(1); } throw e; }
   if (args.includes("--list")) { for (const f of files) console.log(f); console.log(`${files.length} file(s)`); process.exit(0); }
   if (out === repo || repo.startsWith(out + sep)) throw new Error("refusing to build into " + out);
+  // site config first: a refused customer config leaves no half-built output behind
+  const customer = args.includes("--customer"), si = args.indexOf("--site-config");
+  let sc = null;
+  try {
+    if (si >= 0 && !customer) throw new Error("--site-config is only for --customer bundles");
+    if (si >= 0 && (!args[si + 1] || args[si + 1].startsWith("--"))) throw new Error("--site-config needs a file");
+    sc = customer ? customerSiteConfig(si >= 0 ? args[si + 1] : null) : readSiteConfig();
+  }
+  catch (e) { console.error("build-site: FAILED — " + e.message); process.exit(1); }
   rmSync(out, { recursive: true, force: true });
   let bytes = 0;
   for (const f of files) {
@@ -322,13 +342,10 @@ if (isMain) {
     bytes += statSync(dst).size;
   }
   let scoped = [];
-  const customer = args.includes("--customer"), si = args.indexOf("--site-config");
   try {
-    if (si >= 0 && !customer) throw new Error("--site-config is only for --customer bundles");
-    const sc = customer ? customerSiteConfig(si >= 0 ? args[si + 1] : null) : readSiteConfig();
     if (customer && !sc) console.log("build-site: customer bundle — " + SITE_CONFIG + " (test backend) NOT applied; no --site-config: the bundle has no API");
     scoped = await applySiteConfig(out, sc);
-    if (sc) console.log("build-site: " + SITE_CONFIG + " -> API " + sc.apiBase + " on " + scoped.join(", ") + " only (analytics " + (sc.analytics ? "on" : "off") + ")");
+    if (sc) console.log("build-site: " + (sc.file || SITE_CONFIG) + " -> API " + sc.apiBase + " on " + scoped.join(", ") + " only (analytics " + (sc.analytics ? "on" : "off") + ")");
   }
   catch (e) { console.error("build-site: FAILED — " + e.message); process.exit(1); }
   if (customer) {

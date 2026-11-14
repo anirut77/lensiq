@@ -4,13 +4,13 @@ Replaces the handover of 2026-11-11. Written for the next working session. Rules
 teams mode of 2026-11-13, gates on GitHub Actions). Persistent data outside the repo: `~/LENSIQ-field/evals/` (locked
 sets; their sha256 are committed in `evals-locks/`), worktrees in `~/LENSIQ-field/work/`.
 
-Snapshot from `git branch -r`, `git cherry origin/main <branch>` and `gh run list` on 2026-11-14 at main `9bbc147`.
+Snapshot from `git branch -r`, `git cherry origin/main <branch>` and `gh run list` on 2026-11-14 at main `9bbc147`; `beauty-look` merged afterwards (`de59b10`).
 Branches move: refresh section 3 before acting (section 5, step 2). "unique" = commits whose patch is not on main.
 
 ## 1. Main
 
-- `origin/main` = `9bbc147` (Merge org-p1). The previous head `4413bc3` had CI and the Pages deploy green; check the run
-  of `9bbc147` before deploying (live: https://anirut77.github.io/lensiq/).
+- `origin/main` = `de59b10` (Merge beauty-look) after `9bbc147` (Merge org-p1). The earlier head `4413bc3` had CI and the Pages deploy green; check the runs
+  of the current head before deploying (live: https://anirut77.github.io/lensiq/).
 - Test backend: Worker `lensiq-api-test` and D1 `lensiq-test` on the owner's Cloudflare account (`deploy/created.json`).
   `accounts-g` (migration `0018_accounts.sql`, `9a31642`) and `org-p1` (organisation accounts P1 behind two off
   switches, `9bbc147`) are merged on main; this file does not record either as deployed: read `docs/DEPLOY.md` and the
@@ -26,7 +26,7 @@ merges to main only when the branch's full CI run is green.
 | A urgent fixes | crisis net, Thai text safety, test determinism | `thai-sara-am-safety`, `thai-canon-2`, `totp-test-deterministic`, `deploy-gate-deterministic`, `parking-test-wait`, `e2e-profile-cleanup`, `eval-guard`, lock sets 14c / 14d (`review-locks-1114c`, `lock-fresh-14d`) | crisis flow v2, detection v4 / v5 |
 | B real-phone quality | phone layouts, capture, memory | `phone-quality`, `capture-hints`, `lead-form-fix` | `device-fit` |
 | C Sellable pack | docs, sales kit, decisions | `sellable-c`, `sellable-c2`, `sellable-decisions-1113`, `legal-packet-backfill`, `claude-md-ops` | `claims-1114`, `stale-docs`, `attendance-face-eval` |
-| D Beauty & Image | look wording lint, personal colour, style, try-on | `tryon-fit` | `beauty-look`, `review-locks-look`, `style-mvp`, `beauty-design`, `beauty-colour` (parked) |
+| D Beauty & Image | look wording lint, personal colour, style, try-on | `tryon-fit`, `beauty-look` (`de59b10`) | `review-locks-look`, `style-mvp`, `beauty-design`, `beauty-colour` (parked) |
 | E Merit | Merit MVP, wording lint | `merit-e`, `merit-lint-sara-am` | none |
 | F Product Check | JA / KO guard, P9, live scan | `pc-f`, `pc-f2` | `pc-jk` |
 | G accounts / billing | LINE sign-in, org lite, licences, org accounts P1 | `accounts-g`, `org-p1` | none (P2–P3 not started) |
@@ -47,8 +47,7 @@ CI = last `ci.yml` run on the branch head at the snapshot ("running" = in progre
 | `attendance-face-eval` | `9f648bb` | 3 ahead, 3 behind | running (43595494387) | owner item E: AuraFace, SFace, MobileFaceNet vs face-api.js on the Face Research Lab London Set (CC BY 4.0, 102 people, lock `69e8693`); no candidate has clean weights and training data together; nothing switched; independent re-score matched | green CI, coordinator merge; feeds L23 / B10 |
 | `pc-jk` | `a1ad2b7` | 5 ahead, 3 behind | running (43596202059) | Japanese / Korean text never goes to AI automatically or as a photo (page, Worker, fortune); review fixes; results on hold-out 4 | green CI, coordinator merge |
 | `style-mvp` | `ba2d152` | 2 ahead, 3 behind | running (43595256145) | Style MVP behind `LENSIQ_STYLE` (off): personal colour palette with the white-balance card step; acceptance tests locked first (`15b7837`) | green CI, independent review, merge. Personal Colour was parked by the owner (see `claims-1114`): confirm the switch stays off |
-| `beauty-look` | `eaeb1ed` | 25 ahead, 3 behind, 23 unique | running (43595125643) | look wording lint (TH / EN / ZH families), held-out false positives fixed, `LENSIQ_LOOK_SALON` typed | independent review on held-out set 2 (`review-locks-look`), green CI, merge |
-| `review-locks-look` | `2fdbcc6` | 2 ahead | no run | lock files `beauty-look-heldout*.sha256` | merge with `beauty-look` |
+| `review-locks-look` | `2fdbcc6` | 2 unique | no run | lock files `beauty-look-heldout*.sha256` | `beauty-look` is merged (`de59b10`): check whether these lock files are on main, persist them if not (append-only) |
 | `device-fit` | `19fc7c6` | 4 ahead, 3 behind | green (43588563634) | "best used on" per page, phone notice, labels in menu / catalogues / sales docs; review findings 1, 2, 4 fixed | update from main, coordinator merge once the review is recorded OK |
 | `beauty-design` | `2924017` | 1 ahead | no run | `docs/BEAUTY-IMAGE-DESIGN.md`, draft for owner approval, nothing built | owner approval |
 | `beauty-colour` | `36ece3e` | 9 ahead, 123 behind | no run | Personal Colour MVP; locked test C4 fails | **parked** by the owner 2026-11-14 (option C, recorded in `claims-1114`); do not merge |
@@ -63,6 +62,8 @@ No unique patches (content already on main): `merge-eval-guard`, `rules-ci`. Not
 
 Restated so this file stands alone. The report format in `CLAUDE.md` restates them in full under "รอคุณตัดสิน".
 Decided 2026-11-14 and no longer pending: Personal Colour parked (option C, recorded on `claims-1114`).
+Not an owner decision any more: Nutrition. Round 5 (v5) met every target; independent review 2026-11-13 OK (synthetic, re-measured on the reviewer's own set); merged as experimental under the standing order. Real-photo measurement still needs the owner's photos. (I2 silent wrong 1 / 1912 = 0.1 % [0.0–0.3], I3 allergen 99.6 %,
+locked set v5; `docs/nutrition/NUTRITION-ACCURACY.md` "Status".) The "branch only" wording of round 2 no longer applies.
 
 1. **Beauty & Image design note (`beauty-design`).** Approve or ask for changes. No answer: nothing beyond what the owner
    already approved is built.

@@ -200,7 +200,8 @@ No module is production-ready. None has completed a field pilot, and the backend
   "hide calories" setting.
 - Measured (synthetic only, `docs/nutrition/NUTRITION-ACCURACY.md`): parser 100 % on ideal text; on-device images 82.2 %
   exact. **Safety target missed:** silent wrong values 3.0 % [2.0–4.3] pooled, all on 4° tilted pictures (22.6 %);
-  waiting for the owner's decision before any fix.
+  this was round 1. Round 5 (v5) met every target; independent review 2026-11-13 OK (synthetic, re-measured on the
+  reviewer's own set); merged as experimental under the standing order (`docs/nutrition/NUTRITION-ACCURACY.md` "Status").
 - Not built (owner decision needed): back-office basics (design N3 / N4) and USDA FDC data, which only the photo mode
   uses; the AI step `nut_label`; the barcode / Open Food Facts cross-check; the Product Check link; the food log; photo mode.
 - Real-label accuracy needs the owner's 200 label photos (design §11).

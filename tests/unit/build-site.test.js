@@ -155,6 +155,25 @@ test("--customer CLI: never the public test-site config; API-less without --site
     const js = readFileSync(join(out2, "lensiq-site-config.js"), "utf8");
     assert.match(js, /https:\/\/api\.customer\.example/);
     assert.match(js, /LENSIQ_TESTER_GATE = false/);
+    assert.match(r2.stdout, /customer-site\.json -> API https:\/\/api\.customer\.example/, "log names the customer file");
+    assert.ok(!/public-site\.json -> API/.test(r2.stdout));
+    // refused by content: test-looking apiBase, or the public test Turnstile key, under any file name
+    const bad = [
+      { apiBase: "https://lensiq-api.someone.workers.dev", pages: ["medicine.html"] },
+      { apiBase: "https://api-test.customer.example", pages: ["medicine.html"] },
+      ...(pub.turnstileSiteKey ? [{ apiBase: "https://api.customer.example", turnstileSiteKey: pub.turnstileSiteKey, pages: ["medicine.html"] }] : []),
+      ...(pub.apiBase ? [pub] : [])
+    ];
+    bad.forEach((c, i) => {
+      const f = join(tmp, "bad-" + i + ".json");
+      writeFileSync(f, JSON.stringify(c));
+      const rb = run("--customer", "--site-config", f, "--out", join(tmp, "bad-out-" + i));
+      assert.equal(rb.status, 1, "refused: " + JSON.stringify(c));
+      assert.ok(!existsSync(join(tmp, "bad-out-" + i)), "nothing built");
+    });
+    // --site-config as the last argument, or followed by another flag: exit 1
+    assert.equal(run("--customer", "--out", join(tmp, "e"), "--site-config").status, 1);
+    assert.equal(run("--customer", "--site-config", "--out", join(tmp, "f")).status, 1);
     if (testHost) assert.ok(!texts(out2).includes(testHost));
     // refused: the public test-site file as a customer config, and --site-config without --customer
     assert.equal(run("--customer", "--site-config", "deploy/public-site.json", "--out", join(tmp, "c")).status, 1);
