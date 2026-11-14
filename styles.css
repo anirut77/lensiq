@@ -353,12 +353,12 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
    or a wide screen) the number is also shown as large text that can be selected and copied. */
 .lq-call{overflow-wrap:break-word;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:0;align-items:center;margin:6px 0;line-height:1.45;text-align:start}
 .lq-call-t{grid-column:1;grid-row:1;font-weight:700;min-width:0;overflow-wrap:break-word}
-.lq-call>a.lq-call-btn{grid-column:2;grid-row:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;min-width:44px;
+.lq-call>a.lq-call-btn[href]{grid-column:2;grid-row:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;min-width:44px;
   padding:0 12px;border-radius:12px;background:#0b5d8f;color:#fff;font-weight:700;font-size:1rem;line-height:1.2;text-decoration:none;white-space:nowrap;
   box-sizing:border-box;touch-action:manipulation}
-.lq-call>a.lq-call-btn:hover{background:#094d77;color:#fff}
-.lq-call>a.lq-call-btn:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
-.lq-call>a.lq-call-btn>*{pointer-events:none}
+.lq-call>a.lq-call-btn[href]:hover{background:#094d77;color:#fff}
+.lq-call>a.lq-call-btn[href]:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+.lq-call>a.lq-call-btn[href]>*{pointer-events:none}
 .lq-call-ico{flex:none;width:20px;height:20px;fill:currentColor}
 .lq-call-num{display:none;grid-column:2;grid-row:1;font-size:1.9rem;font-weight:800;letter-spacing:.02em;user-select:all;-webkit-user-select:all;cursor:text;
   font-variant-numeric:tabular-nums}
@@ -369,7 +369,7 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 @media (min-width:1024px),(hover:hover) and (pointer:fine) and (min-width:600px){
   .lq-call{grid-template-columns:auto auto auto;justify-content:start;column-gap:14px}
   .lq-call-num{display:block}
-  .lq-call>a.lq-call-btn{grid-column:3}
+  .lq-call>a.lq-call-btn[href]{grid-column:3}
   .lq-call-sub,.lq-call-org{grid-column:1 / -1}
 }
 /* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
@@ -377,7 +377,7 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 html[data-lq-crisis] [data-lq-remedy]{display:none!important}
 @media print{
   .lq-helpline{background:#fff;border-color:#888;color:#000;break-inside:avoid}
-  .lq-call>a.lq-call-btn{min-height:0;min-width:0;padding:0;background:none;color:#000;text-decoration:underline}
+  .lq-call>a.lq-call-btn[href]{min-height:0;min-width:0;padding:0;background:none;color:#000;text-decoration:underline}
   .lq-call-ico{display:none}
   .lq-call-num{display:block;font-size:1.2rem}
 }
