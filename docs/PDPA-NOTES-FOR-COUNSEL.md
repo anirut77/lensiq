@@ -791,7 +791,7 @@ blurred preview. Residual risks for counsel: personal data printed on a non-disp
 (CTO-BRIEF L46, L47.)
 
 (e) Product-label evidence filter (owner decision 2026-11-10; measured once by an independent agent on a locked synthetic
-set: 0 of 260 personal-data items reached the AI in text mode or in image mode; 19.2 % of real product labels were
+set: 0 of 260 personal-data items reached the AI in text mode or in image mode (languages measured, synthetic: Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 items; not a claim for Japanese / Korean names without a cue word, which still reach the AI on the JA / KO hold-outs, `docs/product-check/PC-JK-RESULTS.md`); 19.2 % of real product labels were
 refused, see `docs/product-check/P7-RESULTS.md` §3.7). When a capture is refused for lack of product evidence the page
 suggests photographing the side with the registration number or the ingredients, or scanning the barcode; a capture
 refused as a personal document or as a dispensing label gets no such suggestion. Changes after the measurement (not
@@ -829,6 +829,17 @@ tester code only as a Worker secret (in the browser: sessionStorage, for the ses
 personal is ever put in a URL. Switches: `npm run backend:off` (everything), admin global AI switch, tester-code
 rotation. Questions for counsel: L48 (lawful basis for real customers), L49 (this wording), L50 (processor terms and
 whether the model makers receive data on these routes, which the router does not state).
+
+### F6a. Product Check: Japanese / Korean text (stream JK, owner decision 2026-11-14)
+
+Text with Japanese or Korean script is never sent to an AI provider automatically (tester one-tap refused), never as a photo
+when the on-device reading shows that script, and only after the user's own "Send this text" on a preview that is always open;
+the Worker refuses the request otherwise. Fortune readings drop such strings (a nickname in kana / hangul). Reason: names
+without a field word on Japanese / Korean packs are not found reliably (synthetic hold-out 4: 29 of 213 values would still be
+in the text if the user removes nothing). Counsel question: is the preview plus the user's own send an adequate safeguard for
+the remaining names, or should Japanese / Korean labels be text-only with the name lines removed by the user every time?
+Known limit: a photo of a Japanese / Korean label read by an OCR model without that script is not detected (photo mode is off
+by default). `docs/product-check/PC-JK-RESULTS.md`.
 
 ### F7. Quote-request inbox and privacy text; form switched ON by the owner (2026-11-12; `docs/LEADS-DESIGN.md` §8)
 

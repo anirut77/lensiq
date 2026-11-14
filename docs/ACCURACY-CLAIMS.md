@@ -294,3 +294,15 @@ never hand-typed:
 - Chinese adverts: 50.0 % on 242 texts in fresh-3 (56.8 % on 148 in fresh-2, 50 % on 20 in the first run); the card keeps
   "limited support" in TH / EN / ZH.
 - Recall target (80 %) not met; false flags ≤ 5 per 100 met. Measuring further rule work needs a new locked set.
+
+## 9. Product Check personal-data guard: privacy claims and the languages measured (owner decision 2026-11-14)
+
+Every claim of the form "0 personal data reached the AI" names the languages measured. Source: synthetic.
+
+| Claim | Languages measured (personal items) | Not claimed |
+|---|---|---|
+| P7 locked set: 0/260 personal-data items reached the AI, text and image mode | Thai 78, English 79, Chinese 63, Japanese 28, Korean 12 | Japanese / Korean names without a cue word |
+| P7b locked set: 0/614 | Thai 319, English 161, Chinese 51, Japanese 56, Korean 27 | same |
+| JA / KO hold-out 4: 0 values reach the AI without the user's own send after the open preview (one-tap, auto, photo, unpreviewed Worker request) | Japanese, Korean, mixed (213 values; 30 Chinese labels for false-positive cost) | the explicit send after the preview: 29 of 213 values still in the text if the user removes nothing; a photo when the OCR model does not output JA / KO script (B1) |
+
+Details: [`docs/product-check/PC-JK-RESULTS.md`](product-check/PC-JK-RESULTS.md).
