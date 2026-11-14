@@ -80,3 +80,8 @@ f84cc9b66dfb8571f89c499b0bcaaf9caed58391639b5ce38bc6adaea22fa05d  tests/unit/loo
 # 2026-11-14 coordinator held-out measure of 9b2d28b (false positives + missed families): must-pass / must-block set, locked
 #   before the lint change:
 2b3c76a8b48d8caf036bfc5672c8ea24ace3b4bbea39d25a4ab659d5ec70a754  tests/unit/look-lint-benign.test.js
+# locked 2026-11-14T11:40:24Z (tools/eval-guard.mjs lock, 2 files)
+5f9834051b997b2639966aab8d3b32e0b6991c199c9fb7d4353a9a7cd0d6bf6a  salon-off/look-salon-off.test.js
+438bd353a2d22339b45528249368389d38e1df04831d7d1aacd17dc0dde68147  salon-off/look-salon-off.e2e.mjs
+# 2026-11-14 owner decision (look option ga: salon mode OFF until the human-approval step exists): salon-off tests, locked before
+#   the switch was added. Repo copies (same bytes): tests/unit/look-salon-off.test.js, tests/e2e/look-salon-off.e2e.mjs
