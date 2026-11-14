@@ -810,6 +810,8 @@ export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin
   "/lensiq-i18n.js", "/i18n/zh-admin.js", "/i18n/en-admin.js",
   // first-run setup: QR code of the 2-step verification secret, drawn in the browser (no request carries the secret)
   "/attendance-qr.js",
+  // "best used on" notice (owner order 2026-11-14): on a phone the back office suggests a computer; on-device only, no request
+  "/lensiq-devicefit.js",
   // fortune citation list (back office only; fortune pages no longer show citations, owner order 2026-11-12)
   "/fortune-sources.js",
   // Try-On catalogue tab: face blur of product photos on the merchant's device before upload (Product Check detector,

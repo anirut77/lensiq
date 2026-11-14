@@ -20,6 +20,8 @@
 .cat-src.none,.cat-src.na{border-color:#d5dae6;background:#f4f5f8;color:#3c4560}
 .cat-why{font-size:.84rem!important}
 .cat-why b{color:var(--navy);margin-right:4px}
+.cat-fit{font-size:.84rem!important}
+.cat-fit b{color:#3b2fb8;margin-right:4px}
 .cat-legend .cat-st{margin-right:2px}
 .cat-h2{margin-top:20px!important}
 .cat-srcs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}

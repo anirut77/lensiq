@@ -17,7 +17,9 @@
    - Legal footer: pages without their own <footer> get a slim one (terms / privacy / help / about links, keys foot.*);
      hidden in kiosk modes and in print. Pages with a <footer> (index, about) link the documents themselves.
    - Fortune pages: loads lensiq-report.js ("report a problem with this reading", works without a backend) and
-     lensiq-merit-core.js + lensiq-merit-lint.js + lensiq-merit.js (free belief guidance under a reading, Merit MVP). */
+     lensiq-merit-core.js + lensiq-merit-lint.js + lensiq-merit.js (free belief guidance under a reading, Merit MVP).
+   - Every page: lensiq-devicefit.js ("best used on": device labels in the menu and the solutions catalogue, and on a phone
+     a short notice on computer / tablet pages; on-device only, no camera, no model, no request). */
 (function () {
   "use strict";
 
@@ -169,7 +171,7 @@
   })();
 
   var header = /** @type {HTMLElement} */ (document.getElementById("siteNav") || document.querySelector("header.nav"));
-  if (!header) { thaiBreaks(); models(); registerSW(); legalFoot(); reportHook(); meritHook(); return; }
+  if (!header) { thaiBreaks(); models(); registerSW(); legalFoot(); reportHook(); meritHook(); deviceFitHook(); return; }
   if (!header.classList.contains("nav")) header.classList.add("nav");
 
   var page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -416,6 +418,7 @@
   legalFoot();
   reportHook();
   meritHook();
+  deviceFitHook();
 
   // ---------- Thai line breaking: <wbr> at word boundaries ----------
   function thaiBreaks() {
@@ -657,6 +660,15 @@
       sc.src = src; sc.async = false; // in order: the core first
       (document.head || document.documentElement).appendChild(sc);
     });
+  }
+  // ---------- every page: "best used on" (lensiq-devicefit.js; owner order 2026-11-14) ----------
+  // The config of which device each page works best on, the short phone notice on computer / tablet pages and the labels
+  // in the menu and the solutions catalogue. On-device only: it never starts a camera, loads a model or sends anything.
+  function deviceFitHook() {
+    if (/** @type {any} */ (window).LQDeviceFit || document.querySelector('script[src^="lensiq-devicefit.js"]')) return;
+    var sc = document.createElement("script");
+    sc.src = "lensiq-devicefit.js?v=1"; sc.async = true;
+    (document.head || document.documentElement).appendChild(sc);
   }
   // ---------- service worker (offline cache for vendor/ models) ----------
   function registerSW() {

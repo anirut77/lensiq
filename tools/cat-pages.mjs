@@ -19,6 +19,7 @@ import { snippet as helpLine } from "./helpline.mjs";
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 const D = require("./cat-data.cjs");
+const FIT = require("../lensiq-devicefit.js"); // "best used on" (owner order 2026-11-14): the device label of every tool card
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const jsStr = s => JSON.stringify(String(s));
@@ -74,6 +75,8 @@ export function entries() {
   for (const [k, v] of Object.entries(D.SOURCE)) e["cat.src." + k] = v;
   for (const [k, v] of Object.entries(D.CLAIMS)) e["cat.c." + k] = { th: v.th, en: v.en, zh: v.zh };
   for (const [k, v] of Object.entries(D.REASONS)) e["cat.r." + k] = v;
+  for (const v of FIT.VALUES) e["fit.l." + v] = FIT.LABEL[v];
+  for (const [k, v] of Object.entries(FIT.REASONS)) e["fit.r." + k] = v;
   for (const c of D.CATEGORIES) {
     e[`cat.${c.slug}.name`] = c.name;
     e[`cat.${c.slug}.intro`] = c.intro;
@@ -153,8 +156,16 @@ export function splitFavicon(tag) {
 export const FAVICON_ONE_LINE = readFileSync(join(repo, "solutions.html"), "utf8").match(/<link rel="icon"[^>]*>/)[0];
 const FAVICON = splitFavicon(FAVICON_ONE_LINE);
 
+/** device value + reason of a tool card: an overview page shows its strictest working page (FIT.catalogueFit) */
+function fitOf(page) {
+  const v = FIT.catalogueFit(page), f = FIT.FIT[page];
+  if (!v) throw new Error(`${page}.html has no device value in lensiq-devicefit.js`);
+  const src = f.product ? FIT.FIT[f.product.find(q => FIT.FIT[q].fit === v)] : f;
+  return { v, why: src.why };
+}
+
 function card(page, nav) {
-  const p = D.PAGES[page], t = nav[page];
+  const p = D.PAGES[page], t = nav[page], fit = fitOf(page);
   if (!t) throw new Error(`${page}.html is in a category but not in the nav.js menu`);
   const acc = p.claims.map(id => {
     const c = D.CLAIMS[id];
@@ -168,6 +179,7 @@ function card(page, nav) {
 ${acc}
         </ul>
         <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.${p.why}">${esc(D.REASONS[p.why].th)}</span></p>
+        <p class="cat-fit" data-fit="${fit.v}"><b data-i18n="fit.l.${fit.v}">${esc(FIT.LABEL[fit.v].th)}</b> <span data-i18n="fit.r.${fit.why}">${esc(FIT.REASONS[fit.why].th)}</span></p>
         <a class="sl-go" href="${page}.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>`;
 }
@@ -195,11 +207,11 @@ export function pageHtml(cat, nav = navEntries()) {
     '<link rel="stylesheet" href="styles.css?v=12">',
     '<link rel="stylesheet" href="products.css?v=2">',
     '<link rel="stylesheet" href="solutions.css?v=1">',
-    '<link rel="stylesheet" href="cat.css?v=1">',
+    '<link rel="stylesheet" href="cat.css?v=2">',
     "</head>",
     "<body>",
     '<header class="nav" id="siteNav"></header>',
-    '<script src="nav.js?v=16"></script>',
+    '<script src="nav.js?v=17"></script>',
     '<script src="i18n/zh-cat.js?v=1"></script>',
     // the fortune category carries the always-visible help line (owner order 2026-11-12; tools/helpline.mjs)
     ...(cat.slug === "fortune" ? [helpLine("lqHelpTop")] : []),
