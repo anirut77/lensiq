@@ -78,21 +78,21 @@
       zh: "PIN 或二维码打卡适用于任何屏幕；该流程在 iPhone 宽度的模拟测试中通过，内存在预算之内（290 MB）" },
     scan: { th: "ออกแบบให้ใช้กล้องมือถือส่องฉลาก กล่อง หรือกระดาษ", en: "Made for pointing a phone camera at a label, a box or a sheet of paper",
       zh: "专为用手机摄像头对准标签、盒子或纸张而设计" },
-    med: { th: "ออกแบบให้ใช้กล้องมือถือส่องฉลาก ขั้นตอนสแกนบนจอขนาด iPhone ผ่านการทดสอบจำลอง หน่วยความจำ 554 MB (มากเป็นอันดับ 2 ต้องลองบน iPhone รุ่นเก่า)",
-      en: "Made for pointing a phone camera at a label; the scan passes the synthetic test at iPhone width; memory 554 MB (2nd heaviest, to be tried on older iPhones)",
-      zh: "专为用手机摄像头对准标签而设计；扫描在 iPhone 宽度的模拟测试中通过；内存 554 MB（第 2 高，需在较旧的 iPhone 上试用）" },
-    nut: { th: "ส่องฉลากด้วยกล้องมือถือ ขั้นตอนบนจอขนาด iPhone ผ่านการทดสอบจำลอง หน่วยความจำ 203 MB (น้อยที่สุดใน 9 หน้าที่วัด)",
-      en: "Point a phone camera at the label; the flow passes the synthetic test at iPhone width; memory 203 MB (the lightest of the 9 pages measured)",
-      zh: "用手机摄像头对准标签；该流程在 iPhone 宽度的模拟测试中通过；内存 203 MB（9 个实测页面中最低）" },
+    med: { th: "ออกแบบให้ใช้กล้องมือถือส่องฉลาก ขั้นตอนสแกนบนจอขนาด iPhone ผ่านการทดสอบจำลอง หน่วยความจำในการทดสอบจำลอง 554 MB (มากเป็นอันดับ 2 ต้องลองบน iPhone รุ่นเก่า)",
+      en: "Made for pointing a phone camera at a label; the scan passes the synthetic test at iPhone width; synthetic-test memory 554 MB (2nd heaviest, to be tried on older iPhones)",
+      zh: "专为用手机摄像头对准标签而设计；扫描在 iPhone 宽度的模拟测试中通过；模拟测试内存 554 MB（第 2 高，需在较旧的 iPhone 上试用）" },
+    nut: { th: "ส่องฉลากด้วยกล้องมือถือ ขั้นตอนบนจอขนาด iPhone ผ่านการทดสอบจำลอง หน่วยความจำในการทดสอบจำลอง 203 MB (น้อยที่สุดใน 9 หน้าที่วัด)",
+      en: "Point a phone camera at the label; the flow passes the synthetic test at iPhone width; synthetic-test memory 203 MB (the lightest of the 9 pages measured)",
+      zh: "用手机摄像头对准标签；该流程在 iPhone 宽度的模拟测试中通过；模拟测试内存 203 MB（9 个实测页面中最低）" },
     car: { th: "วางมือถือบนที่ยึดในรถ กล้องหน้าหันหาคนขับ", en: "The phone sits in a car holder with its front camera on the driver",
       zh: "手机放在车载支架上，前置摄像头对准驾驶员" },
     fortune: { th: "ดูดวงสั้น ๆ บนมือถือของตัวเอง มีแต่ข้อความและการแตะไม่กี่ครั้ง", en: "Short readings on your own phone: text and a few taps",
       zh: "在自己的手机上进行简短占卜：只有文字和几次点击" },
     fortuneTested: { th: "ดูดวงบนมือถือของตัวเอง ขั้นตอนบนจอขนาด iPhone ผ่านการทดสอบจำลอง (WebKit)",
       en: "Readings on your own phone; the flow passes the synthetic test at iPhone width (WebKit)", zh: "在自己的手机上占卜；该流程在 iPhone 宽度的模拟测试中通过（WebKit）" },
-    faceread: { th: "ใช้กล้องหน้าของมือถือ ขั้นตอนบนจอขนาด iPhone ผ่านการทดสอบจำลอง หน่วยความจำ 514 MB (มากเป็นอันดับ 3 ต้องลองบน iPhone รุ่นเก่า)",
-      en: "It uses the phone's front camera; the flow passes the synthetic test at iPhone width; memory 514 MB (3rd heaviest, to be tried on older iPhones)",
-      zh: "使用手机前置摄像头；该流程在 iPhone 宽度的模拟测试中通过；内存 514 MB（第 3 高，需在较旧的 iPhone 上试用）" },
+    faceread: { th: "ใช้กล้องหน้าของมือถือ ขั้นตอนบนจอขนาด iPhone ผ่านการทดสอบจำลอง หน่วยความจำในการทดสอบจำลอง 514 MB (มากเป็นอันดับ 3 ต้องลองบน iPhone รุ่นเก่า)",
+      en: "It uses the phone's front camera; the flow passes the synthetic test at iPhone width; synthetic-test memory 514 MB (3rd heaviest, to be tried on older iPhones)",
+      zh: "使用手机前置摄像头；该流程在 iPhone 宽度的模拟测试中通过；模拟测试内存 514 MB（第 3 高，需在较旧的 iPhone 上试用）" },
     selfie: { th: "ลองสินค้ากับกล้องหน้ามือถือของตัวเองจากลิงก์ของร้าน", en: "Try items on with your own phone's front camera from the shop's link",
       zh: "通过店铺链接，用自己手机的前置摄像头试戴" },
     overview: { th: "หน้าแนะนำผลิตภัณฑ์ อ่านได้ทุกจอ หน้าที่ใช้งานจริงบอกอุปกรณ์ของตัวเอง", en: "A product overview, readable on any screen; each working page states its own device",
@@ -295,17 +295,17 @@
   }
 
   const BASIS = {
-    th: { measured: "วัดจากการทดสอบจำลอง ยังไม่ใช่มือถือจริง", estimate: "ประมาณการ", head: "อุปกรณ์ที่เหมาะ",
+    th: { measured: "วัดบนจอขนาด iPhone ในการทดสอบจำลอง ยังไม่ใช่มือถือจริง", estimate: "ประมาณการ", head: "อุปกรณ์ที่เหมาะ",
       tail: "เปิดบนมือถือได้ แต่หน้าจะขึ้นป้ายสั้น ๆ แนะนำให้เปิดบนเครื่องที่เหมาะกว่า" },
-    en: { measured: "measured in a synthetic test, not yet on a real phone", estimate: "estimate", head: "Best used on",
+    en: { measured: "measured at iPhone width in a synthetic test, not yet on a real phone", estimate: "estimate", head: "Best used on",
       tail: "On a phone the page still opens, with a short notice suggesting a better-suited device." },
-    zh: { measured: "模拟测试实测，尚未在真实手机上测量", estimate: "估计", head: "最适合的设备",
+    zh: { measured: "在 iPhone 宽度的模拟测试中实测，尚未在真实手机上测量", estimate: "估计", head: "最适合的设备",
       tail: "在手机上仍可打开，但页面会显示简短提示，建议改用更合适的设备。" }
   };
   function docLine(pages, l) {
     const b = BASIS[l];
     const parts = pages.map(p => "`" + p + ".html` " + LABEL[FIT[p].fit][l] + (l === "zh" ? "（" + b[FIT[p].basis] + "）" : " (" + b[FIT[p].basis] + ")"));
-    const tail = pages.some(p => needsNotice(FIT[p].fit)) ? (l === "en" ? ". " : " ") + b.tail : (l === "en" ? "." : "");
+    const tail = pages.some(p => needsNotice(FIT[p].fit)) ? (l === "en" ? ". " : l === "zh" ? "" : " ") + b.tail : (l === "en" ? "." : "");
     return "**" + b.head + (l === "zh" ? "：** " : ":** ") + parts.join(" · ") + (l === "zh" ? "。" : "") + tail;
   }
   /** the generated block of one document and language (markers included) */
