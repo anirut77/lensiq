@@ -193,9 +193,13 @@ test("W-012: solutions.html badges match each linked page's status (cat-data); C
   for (const [, code, id, body] of cards) {
     const tag = body.match(/<span class="sl-tag (\w+)" data-i18n="([\w.]+)">([^<]+)<\/span>/);
     if (!tag) { bad.push(id + ": no tag"); continue; }
-    if (tag[1] !== code) bad.push(`${id}: tag class ${tag[1]} != data-status ${code}`);
+    // amendment 3: the filter group is the badge class (solutions.js filters by it); data-status keeps its older values, which
+    // tests/unit/solutions.test.js (no "now" on exam / gate / parking / village) and the claim rule crowd-not-available-now read
+    const grp = tag[1];
+    if ((code === "soon") !== (grp === "soon")) bad.push(`${id}: coming-soon status ${code} vs badge ${grp}`);
+    if (!/filter|group\(c\)/.test(read("solutions.js")) || !/classList\.contains/.test(read("solutions.js"))) bad.push("solutions.js does not filter by the badge");
     const href = (body.match(/class="sl-go" href="([a-z0-9-]+)\.html/) || [])[1];
-    if (code === "soon") { if (href) bad.push(id + ": coming soon with a page link"); continue; }
+    if (grp === "soon") { if (href) bad.push(id + ": coming soon with a page link"); continue; }
     const st = href && D.PAGES[href] && D.PAGES[href].st;
     if (!st || !(st in rank)) { bad.push(`${id}: linked page ${href} has no product status`); continue; }
     // the card names the status it shows; it may be weaker than the page (e.g. face check-in), never stronger
@@ -204,7 +208,7 @@ test("W-012: solutions.html badges match each linked page's status (cat-data); C
     else if (rank[shown] > rank[st]) bad.push(`${id}: shows ${shown} but ${href} is ${st}`);
     // amendment 2: the filter code is internal; what counts is that pilot-ready cards and the other cards never share a code
     // (docs/claim-rules.json "crowd-not-available-now" forbids code "now" on the Crowd cards, so the codes may be swapped)
-    if (shown) (shown === "pilot-ready" ? prCodes : otherCodes).add(code);
+    if (shown) (shown === "pilot-ready" ? prCodes : otherCodes).add(grp);
     if (href === "crowd" && shown !== "experimental") bad.push(id + ": Crowd must show experimental");
   }
   assert.deepEqual(bad, []);
