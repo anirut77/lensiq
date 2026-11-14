@@ -11,6 +11,7 @@
   "cat.acc.h": "已测准确率",
   "cat.why": "为何是此状态",
   "cat.open": "打开页面",
+  "cat.openTimeclock": "打开 PIN / QR 考勤打卡",
   "cat.method": "测量方法与数据集",
   "cat.others.h": "其他类别",
   "cat.all.h": "按业务类别浏览",

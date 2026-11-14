@@ -170,6 +170,14 @@
   function setMode(m, first) {
     S.mode = m === "employee" ? "employee" : "training"; saveSet();
     document.body.classList.toggle("att-emp", S.mode === "employee");
+    // re-walk N2: the tab title names the PIN / QR time clock in employee mode (key attendance.hr.title); training keeps attendance.s1
+    const tt = document.querySelector("title");
+    if (tt) {
+      if (!tt.dataset.lqTrain) tt.dataset.lqTrain = tt.getAttribute("data-i18n") || "attendance.s1";
+      tt.setAttribute("data-i18n", S.mode === "employee" ? "attendance.hr.title" : tt.dataset.lqTrain);
+    }
+    if (S.mode === "employee") document.title = T("title", "ลงเวลาทำงาน PIN / QR | LENSIQ");
+    else if (W.LQI18N && W.LQI18N.tf) document.title = W.LQI18N.tf("attendance.s1", "เช็คชื่ออบรมด้วยใบหน้า | LENSIQ");
     $all(".mode-btn").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === S.mode)));
     if (S.mode !== "employee") { if (S.kiosk) exitKiosk(); const t = $("#tabPin"); if (t && t.classList.contains("active")) $('.tab[data-t="checkin"]').click(); }
     else {
@@ -564,7 +572,9 @@
     else if (hTab === "data") renderData();
     if (S.kiosk) $("#hrKiosk").firstElementChild.textContent = T("kexB", "ออกจากคิออสก์");
   }
-  W.addEventListener("lq-lang", () => { renderAll(); $("#hrQrCam").textContent = qrTimer ? T("qrStop", "หยุดสแกน QR") : T("qrCam", "สแกนบัตร QR ด้วยกล้อง"); tick(); });
+  W.addEventListener("lq-lang", () => {
+    if (S.mode === "employee") document.title = T("title", "ลงเวลาทำงาน PIN / QR | LENSIQ");
+    renderAll(); $("#hrQrCam").textContent = qrTimer ? T("qrStop", "หยุดสแกน QR") : T("qrCam", "สแกนบัตร QR ด้วยกล้อง"); tick(); });
 
   // public API (attendance.js + tests)
   W.LQHR = {

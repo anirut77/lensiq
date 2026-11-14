@@ -61,7 +61,7 @@
 | เรื่อง | ช่องทาง |
 |---|---|
 | คำถามการใช้งาน การตั้งค่าโซน | LINE: @632yliiw · อีเมล: [เจ้าของจะแจ้ง] · โทร: [เจ้าของจะแจ้ง] ควรติดต่อล่วงหน้าตามแผนสนับสนุนในใบเสนอราคา |
-| ระบบใช้ไม่ได้ระหว่างงาน หรือสงสัยข้อมูลรั่ว | ช่องทางเดียวกัน ระบุว่าเป็น S1 เวลาตอบรับเป็นไปตามแผนสนับสนุนในใบเสนอราคา การดูแลช่วงสุดสัปดาห์หรือกลางคืนระหว่างงานต้องตกลงล่วงหน้า |
+| ระบบใช้ไม่ได้ระหว่างงาน หรือสงสัยข้อมูลรั่ว | ช่องทางเดียวกัน ระบุว่าเป็น S1 (เหตุร้ายแรง: ใช้งานไม่ได้หรือสงสัยข้อมูลรั่ว) เวลาตอบรับเป็นไปตามแผนสนับสนุนในใบเสนอราคา การดูแลช่วงสุดสัปดาห์หรือกลางคืนระหว่างงานต้องตกลงล่วงหน้า |
 | กล้อง ขาตั้ง ไฟ เครือข่าย | ลูกค้าหรือผู้รับเหมาอุปกรณ์ของลูกค้า (LENSIQ ไม่ขายอุปกรณ์) |
 | ป้ายแจ้งและคำขอสิทธิ์ข้อมูล | ผู้จัดงานหรือเจ้าของพื้นที่เป็นผู้ควบคุมข้อมูล |
 
@@ -126,8 +126,8 @@ Customers can always export their own data.
 
 | Topic | Channel |
 |---|---|
-| Usage questions and zone set-up | LINE: @632yliiw · E-mail: [เจ้าของจะแจ้ง] · Phone: [เจ้าของจะแจ้ง]. Contact us ahead of the event as set out in the support plan in your quotation |
-| System down during the event, or a suspected data leak | The same channels, marked S1. Response times are as agreed in your quotation. Weekend and night cover during an event must be agreed in advance |
+| Usage questions and zone set-up | LINE: @632yliiw · E-mail: [to be provided by the owner] · Phone: [to be provided by the owner]. Contact us ahead of the event as set out in the support plan in your quotation |
+| System down during the event, or a suspected data leak | The same channels, marked S1 (serious: the system cannot be used, or data may have leaked). Response times are as agreed in your quotation. Weekend and night cover during an event must be agreed in advance |
 | Cameras, stands, power and network | The customer or its equipment contractor (LENSIQ sells no hardware) |
 | Signage and data-subject requests | The organiser or site owner is the data controller |
 
@@ -190,8 +190,8 @@ When reporting, give the event or site, camera view, page name, time, steps take
 
 | 事项 | 渠道 |
 |---|---|
-| 使用咨询与区域设置 | LINE：@632yliiw · 电子邮件：[เจ้าของจะแจ้ง] · 电话：[เจ้าของจะแจ้ง]。请按报价单中支持方案的约定在活动前提前联系 |
-| 活动期间系统无法使用，或怀疑数据泄露 | 同一渠道，并注明 S1。响应时间以报价单中的支持方案为准。活动期间的周末和夜间支持必须提前约定 |
+| 使用咨询与区域设置 | LINE：@632yliiw · 电子邮件：[由业主提供] · 电话：[由业主提供]。请按报价单中支持方案的约定在活动前提前联系 |
+| 活动期间系统无法使用，或怀疑数据泄露 | 同一渠道，并注明 S1（严重：系统无法使用或怀疑数据泄露）。响应时间以报价单中的支持方案为准。活动期间的周末和夜间支持必须提前约定 |
 | 摄像头、支架、电源和网络 | 客户或其设备承包商（LENSIQ 不销售硬件） |
 | 告示和数据权利请求 | 主办方或场地业主是数据控制者 |
 

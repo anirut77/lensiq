@@ -11,6 +11,7 @@
   "cat.acc.h": "Measured accuracy",
   "cat.why": "Why this status",
   "cat.open": "Open page",
+  "cat.openTimeclock": "Open the PIN / QR time clock",
   "cat.method": "How it was measured",
   "cat.others.h": "Other categories",
   "cat.all.h": "Browse by work category",

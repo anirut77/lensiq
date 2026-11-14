@@ -78,6 +78,7 @@
   "attendance.hr.tabPin": "PIN / QR",
   "attendance.hr.consent": "I consent to my face data (biometric data) being stored for time attendance only. I understand I can use a PIN or a QR badge instead with no effect on my employment, and can ask for deletion at any time",
   "attendance.hr.pinIntro": "The main way to clock in, with no camera or face: enter the employee code and PIN, or scan a QR badge",
+  "attendance.hr.title": "PIN / QR time clock | LENSIQ",
   "attendance.hr.h1": "Time clock by PIN / QR (face scan optional)",
   "attendance.hr.lead": "Employees clock in with their employee code + PIN or a QR badge straight away, with no camera. Face scan is an optional extra, only for employees who consent. The accuracy figures below are for the face scan only",
   "attendance.hr.code": "Employee code",

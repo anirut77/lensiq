@@ -55,6 +55,7 @@ const UI = {
   "cat.acc.h": { th: "ความแม่นยำที่วัดได้", en: "Measured accuracy", zh: "已测准确率" },
   "cat.why": { th: "ทำไมสถานะนี้", en: "Why this status", zh: "为何是此状态" },
   "cat.open": { th: "เปิดหน้า", en: "Open page", zh: "打开页面" },
+  "cat.openTimeclock": { th: "เปิดลงเวลาทำงาน PIN / QR", en: "Open the PIN / QR time clock", zh: "打开 PIN / QR 考勤打卡" },
   "cat.method": { th: "วิธีวัดและชุดข้อมูล", en: "How it was measured", zh: "测量方法与数据集" },
   "cat.others.h": { th: "หมวดอื่น", en: "Other categories", zh: "其他类别" },
   "cat.all.h": { th: "เลือกตามหมวดงาน", en: "Browse by work category", zh: "按业务类别浏览" },
@@ -170,7 +171,8 @@ function card(page, nav) {
 ${acc}
         </ul>
         <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.${p.why}">${esc(D.REASONS[p.why].th)}</span></p>
-        <a class="sl-go" href="${page}.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+${page === "attendance" ? `        <a class="btn primary cat-entry" href="attendance.html?mode=employee" data-i18n="cat.openTimeclock">เปิดลงเวลาทำงาน PIN / QR</a>
+` : ""}        <a class="sl-go" href="${page}.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>`;
 }
 

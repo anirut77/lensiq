@@ -61,7 +61,7 @@ LENSIQ ไม่ขายกล้อง ไม้กั้น หรือร�
 | เรื่อง | ช่องทาง |
 |---|---|
 | คำถามการใช้งาน การตั้งค่า | LINE: @632yliiw · อีเมล: [เจ้าของจะแจ้ง] · โทร: [เจ้าของจะแจ้ง] |
-| ระบบใช้ไม่ได้ที่ป้อมในเวลาเปิดทำการ หรือสงสัยข้อมูลรั่ว | ช่องทางเดียวกัน ระบุว่าเป็น S1 เวลาตอบรับเป็นไปตามแผนสนับสนุนในใบเสนอราคา |
+| ระบบใช้ไม่ได้ที่ป้อมในเวลาเปิดทำการ หรือสงสัยข้อมูลรั่ว | ช่องทางเดียวกัน ระบุว่าเป็น S1 (เหตุร้ายแรง: ใช้งานไม่ได้หรือสงสัยข้อมูลรั่ว) เวลาตอบรับเป็นไปตามแผนสนับสนุนในใบเสนอราคา |
 | กล้อง ไม้กั้น รีเลย์ เครือข่าย ไฟฟ้า | ผู้ติดตั้งหรือผู้ขายอุปกรณ์ของลูกค้า (LENSIQ ไม่ขายอุปกรณ์) |
 | คำขอสิทธิ์ข้อมูลส่วนบุคคลของเจ้าของรถ | นิติบุคคลหรือเจ้าของลานจอดเป็นผู้ควบคุมข้อมูล |
 
@@ -128,8 +128,8 @@ Accuracy at a real site has not been measured (there is no field measurement yet
 
 | Topic | Channel |
 |---|---|
-| Usage and set-up questions | LINE: @632yliiw · E-mail: [เจ้าของจะแจ้ง] · Phone: [เจ้าของจะแจ้ง] |
-| System down at the guard post during opening hours, or a suspected data leak | The same channels, marked S1. Response times are as agreed in your quotation |
+| Usage and set-up questions | LINE: @632yliiw · E-mail: [to be provided by the owner] · Phone: [to be provided by the owner] |
+| System down at the guard post during opening hours, or a suspected data leak | The same channels, marked S1 (serious: the system cannot be used, or data may have leaked). Response times are as agreed in your quotation |
 | Cameras, barriers, relays, network and power | Your installer or equipment seller (LENSIQ sells no hardware) |
 | Data-subject requests from vehicle owners | The juristic person or car-park owner is the data controller |
 
@@ -192,8 +192,8 @@ LENSIQ 不销售摄像头、道闸或继电器。图像在您自己的设备上�
 
 | 事项 | 渠道 |
 |---|---|
-| 使用与设置咨询 | LINE：@632yliiw · 电子邮件：[เจ้าของจะแจ้ง] · 电话：[เจ้าของจะแจ้ง] |
-| 营业时间内岗亭系统无法使用，或怀疑数据泄露 | 同一渠道，并注明 S1。响应时间以报价单中的支持方案为准 |
+| 使用与设置咨询 | LINE：@632yliiw · 电子邮件：[由业主提供] · 电话：[由业主提供] |
+| 营业时间内岗亭系统无法使用，或怀疑数据泄露 | 同一渠道，并注明 S1（严重：系统无法使用或怀疑数据泄露）。响应时间以报价单中的支持方案为准 |
 | 摄像头、道闸、继电器、网络和电力 | 客户的安装人员或设备供应商（LENSIQ 不销售硬件） |
 | 车主的个人数据权利请求 | 小区法人或停车场业主是数据控制者 |
 

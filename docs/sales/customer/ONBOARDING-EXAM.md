@@ -75,7 +75,7 @@
 | เรื่อง | ช่องทาง |
 |---|---|
 | ปัญหาการใช้งาน ข้อสงสัย | LINE: @632yliiw · อีเมล: [เจ้าของจะแจ้ง] · โทร: [เจ้าของจะแจ้ง] |
-| เหตุขัดข้องระดับสูง (ระบบใช้ไม่ได้ในเวลาสอบ) หรือสงสัยข้อมูลรั่ว | ช่องทางเดียวกัน ระบุว่าเป็น S1 เวลาตอบรับเป็นไปตามแผนสนับสนุนในใบเสนอราคา |
+| เหตุขัดข้องระดับสูง (ระบบใช้ไม่ได้ในเวลาสอบ) หรือสงสัยข้อมูลรั่ว | ช่องทางเดียวกัน ระบุว่าเป็น S1 (เหตุร้ายแรง: ใช้งานไม่ได้หรือสงสัยข้อมูลรั่ว) เวลาตอบรับเป็นไปตามแผนสนับสนุนในใบเสนอราคา |
 | คำขอสิทธิ์ข้อมูลส่วนบุคคลของผู้สอบ | สถาบันของท่านเป็นผู้ควบคุมข้อมูล ติดต่อผู้รับผิดชอบด้านข้อมูลส่วนบุคคลของสถาบัน |
 
 เมื่อแจ้งปัญหา บอกเพียง: สถาบันและห้อง ชื่อหน้า เวลา ขั้นตอนที่ทำ รุ่นเบราว์เซอร์ และข้อความในคอนโซลถ้ามี **ห้ามส่งภาพผู้สอบ ใบหน้า หรือรายชื่อผู้สอบ**
@@ -150,8 +150,8 @@ The 10-second evidence clip is off by default. It stays off unless the instituti
 
 | Topic | Channel |
 |---|---|
-| Usage problems and questions | LINE: @632yliiw · E-mail: [เจ้าของจะแจ้ง] · Phone: [เจ้าของจะแจ้ง] |
-| Serious incident (service unusable during the exam) or a suspected data leak | The same channels, marked S1. Response times are as agreed in your quotation |
+| Usage problems and questions | LINE: @632yliiw · E-mail: [to be provided by the owner] · Phone: [to be provided by the owner] |
+| Serious incident (service unusable during the exam) or a suspected data leak | The same channels, marked S1 (serious: the system cannot be used, or data may have leaked). Response times are as agreed in your quotation |
 | Data-subject requests from candidates | Your institution is the data controller; contact the institution's personal-data officer |
 
 When reporting, give only: institution and room, page name, time, steps taken, browser version, and the console message if any. **Never send images of candidates, faces or candidate lists.**
@@ -159,7 +159,7 @@ When reporting, give only: institution and room, page name, time, steps taken, b
 ## 中文
 
 本指南适用于 `exam-lab.html`（考生页面）和 `exam-dashboard.html`（监考员仪表板），即正式销售的版本：机房考试或在线考试模式。
-设在大厅内的摄像头考场模式（`exam-hall.html`）属于试验版，不销售，也不在本指南范围内。网站：https://anirut77.github.io/lensiq/
+大型考场摄像头模式（`exam-hall.html`）属于试验版，不销售，也不在本指南范围内。网站：https://anirut77.github.io/lensiq/
 
 请告知每位监考员以下原则：系统从不判定任何人作弊，最终由监考员判断。系统显示的观察提示不是作弊证据。系统不做情绪分析，也不做用于识别身份的人脸识别。
 所有图像都在考生自己的设备上处理，图像不会离开设备。
@@ -226,8 +226,8 @@ When reporting, give only: institution and room, page name, time, steps taken, b
 
 | 事项 | 渠道 |
 |---|---|
-| 使用问题与咨询 | LINE：@632yliiw · 电子邮件：[เจ้าของจะแจ้ง] · 电话：[เจ้าของจะแจ้ง] |
-| 严重故障（考试期间系统无法使用）或怀疑数据泄露 | 同一渠道，并注明 S1。响应时间以报价单中的支持方案为准 |
+| 使用问题与咨询 | LINE：@632yliiw · 电子邮件：[由业主提供] · 电话：[由业主提供] |
+| 严重故障（考试期间系统无法使用）或怀疑数据泄露 | 同一渠道，并注明 S1（严重：系统无法使用或怀疑数据泄露）。响应时间以报价单中的支持方案为准 |
 | 考生的个人数据权利请求 | 贵机构是数据控制者，请联系机构的个人数据负责人 |
 
 报告问题时，只需说明：机构和考场、页面名称、时间、已执行的步骤、浏览器版本，以及控制台信息（如有）。**请勿发送考生图像、人脸或考生名单。**

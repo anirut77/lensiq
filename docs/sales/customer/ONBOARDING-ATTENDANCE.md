@@ -71,7 +71,7 @@
 | เรื่อง | ช่องทาง |
 |---|---|
 | คำถามการใช้งาน | LINE: @632yliiw · อีเมล: [เจ้าของจะแจ้ง] · โทร: [เจ้าของจะแจ้ง] |
-| ระบบใช้ไม่ได้ทั้งหมด หรือสงสัยข้อมูลรั่ว | ช่องทางเดียวกัน ระบุว่าเป็น S1 เวลาตอบรับเป็นไปตามแผนสนับสนุนในใบเสนอราคา |
+| ระบบใช้ไม่ได้ทั้งหมด หรือสงสัยข้อมูลรั่ว | ช่องทางเดียวกัน ระบุว่าเป็น S1 (เหตุร้ายแรง: ใช้งานไม่ได้หรือสงสัยข้อมูลรั่ว) เวลาตอบรับเป็นไปตามแผนสนับสนุนในใบเสนอราคา |
 | คำขอสิทธิ์ของพนักงาน | องค์กรของท่านเป็นผู้ควบคุมข้อมูล ใช้ปุ่ม "ส่งออกข้อมูลของพนักงานคนนี้" ในหน้า |
 
 เมื่อแจ้งปัญหา บอก: จุดลงเวลา ชื่อหน้า เวลา ขั้นตอนที่ทำ และรุ่นเบราว์เซอร์ **ห้ามส่งภาพ ใบหน้า PIN หรือรายชื่อพนักงาน**
@@ -142,8 +142,8 @@ Several clock-in points: each device exports a JSON file (no images, face values
 
 | Topic | Channel |
 |---|---|
-| Usage questions | LINE: @632yliiw · E-mail: [เจ้าของจะแจ้ง] · Phone: [เจ้าของจะแจ้ง] |
-| System completely down, or a suspected data leak | The same channels, marked S1. Response times are as agreed in your quotation |
+| Usage questions | LINE: @632yliiw · E-mail: [to be provided by the owner] · Phone: [to be provided by the owner] |
+| System completely down, or a suspected data leak | The same channels, marked S1 (serious: the system cannot be used, or data may have leaked). Response times are as agreed in your quotation |
 | Staff data requests | Your organisation is the data controller; use "export this employee's records" in the page |
 
 When reporting, give the clock point, page name, time, steps taken and browser version. **Never send images, faces, PINs or staff lists.**
@@ -171,7 +171,7 @@ When reporting, give the clock point, page name, time, steps taken and browser v
 ### 2. 第一天逐步操作
 
 1. **打开** 打卡设备上的 `attendance.html?mode=employee`。检查设备的日期和时间是否正确（系统以设备时钟为准，时间被往回调时会发出警告）。
-2. **“设置与数据”标签页：** 为设备或打卡点命名；设置**经理 PIN**（用于确认更正和退出自助终端模式）；设置考勤记录保存期限（依第 114 条至少 2 年，
+2. **“设置与数据”标签页：** 为设备或打卡点命名；设置**经理 PIN**（用于确认更正和退出自助终端模式）；设置考勤记录保存期限（依《劳动保护法》第 114 条至少 2 年，
    请与您的劳动法律师核实），与人脸数据的保存期限分开设置。
 3. **“班次”标签页：** 建立班次，设定上下班时间、休息时间、迟到或早退的宽限分钟数，以及加班规则（超过多少分钟开始计算、最低时数、向下取整、是否需要批准）。注意：超出宽限时间后，系统从班次开始起按每一分钟计算，
    加班按设定向下取整。公司应将该规则写入工作规章，并请律师审核。
@@ -182,7 +182,7 @@ When reporting, give the clock point, page name, time, steps taken and browser v
 7. **测试：** 请每个人在“PIN / QR”标签页试打上班和下班卡。PIN 连续输错 5 次，该代码会被锁定（由经理解锁）。在“今日打卡”中核对。
 8. **开启自助终端模式**（如果设备固定放置；用经理 PIN 退出），并设置设备不进入睡眠。
 9. **第一周：** 经理每周五查看“月度与工资”，并在“更正与历史”中修正漏打的卡（每次都要填写姓名和原因；原始数据不会被修改）。
-10. **第一个月末：** 导出工资 CSV，把工时和加班与商店原有记录对比一个周期（试点标准：一致）。如果列与您的工资系统不匹配，请发送不含个人数据的样例文件，我们协助对应
+10. **第一个月末：** 导出工资 CSV，把工时和加班与贵单位原有的考勤记录对比一个周期（试点标准：一致）。如果列与您的工资系统不匹配，请发送不含个人数据的样例文件，我们协助对应
     （如订购，设置协助服务费用为 2,900 泰铢）。
 
 多个打卡点：每台设备导出一个 JSON 文件（不含图像、人脸数值、PIN 或工牌代码），再导入主设备。没有实时同步。多分店同步和云备份目前不销售。
@@ -214,8 +214,8 @@ When reporting, give the clock point, page name, time, steps taken and browser v
 
 | 事项 | 渠道 |
 |---|---|
-| 使用咨询 | LINE：@632yliiw · 电子邮件：[เจ้าของจะแจ้ง] · 电话：[เจ้าของจะแจ้ง] |
-| 系统完全无法使用，或怀疑数据泄露 | 同一渠道，并注明 S1。响应时间以报价单中的支持方案为准 |
+| 使用咨询 | LINE：@632yliiw · 电子邮件：[由业主提供] · 电话：[由业主提供] |
+| 系统完全无法使用，或怀疑数据泄露 | 同一渠道，并注明 S1（严重：系统无法使用或怀疑数据泄露）。响应时间以报价单中的支持方案为准 |
 | 员工的数据权利请求 | 贵组织是数据控制者；请使用页面中的“导出该员工的数据” |
 
 报告问题时，请说明：打卡点、页面名称、时间、已执行的步骤和浏览器版本。**请勿发送图像、人脸、PIN 或员工名单。**

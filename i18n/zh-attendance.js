@@ -80,6 +80,7 @@
   "attendance.hr.tabPin": "PIN / 二维码",
   "attendance.hr.consent": "本人同意保存我的人脸数据（生物特征数据），仅用于考勤打卡。我了解可以改用 PIN 或二维码工牌，不影响雇佣，并可随时要求删除",
   "attendance.hr.pinIntro": "主要打卡方式，无需摄像头或人脸：输入工号和 PIN，或扫描二维码工牌",
+  "attendance.hr.title": "PIN / QR 码考勤打卡 | LENSIQ",
   "attendance.hr.h1": "PIN / QR 码考勤打卡（人脸扫描可选）",
   "attendance.hr.lead": "员工可直接用工号 + PIN 或二维码工牌打卡，无需摄像头。人脸扫描是可选的附加功能，仅限同意的员工使用。下方准确率数字仅适用于人脸扫描",
   "attendance.hr.code": "工号",
