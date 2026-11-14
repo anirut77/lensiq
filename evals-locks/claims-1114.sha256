@@ -1,0 +1,14 @@
+# locked 2026-11-14T11:46:00Z (tools/eval-guard.mjs lock, 4 files)
+ee3677fd3eaf77776f0fb42be1876bc5359d8fa4fd83a7adb57143648934c938  privacy-camera-keys.test.js
+8f8483ecdd12ac3cf8fb8171138514f9aa9a644c62303aa5eeb93fa2d015f577  cat-pages.test.js
+8544bbde984844a7e0f34c383e94dc2791b77a44aaa810704fc2ee46a6032661  pc-travel-release.test.js
+16afc1b9f23c3576ba6437eb955bab6e5977c1aa27e4cb4f1c83d1c328fecc42  categories.e2e.mjs
+# note (builder, same lock): the tests were written after each red run and locked right after the product edits that make them
+# pass, before the independent review; they are claim / structure re-locks for owner decisions of 2026-11-14 (travel card figure,
+# privacy rows, Try-On in category 4), not measurement sets. Copies live in ~/LENSIQ-field/evals/claims-1114/.
+# locked 2026-11-14T11:48:55Z (tools/eval-guard.mjs lock, 1 file)
+b7bf64b8c4596fd83f46f9455b3f6afadffb28c66da86891a31311026d41d326  product-check-travel-release.e2e.mjs
+# locked 2026-11-14T11:53:34Z (tools/eval-guard.mjs lock, 2 files)
+6b6b617ce22a17153e094f621987997acd85ad4cce9ac1851065dee3883f04f9  cat-pages.test.js
+3479b04bd386bccbfa9327dfe81a9e94d1659b99dc48ecbd7d3c0fde0cd39aba  categories.e2e.mjs
+# v2 note: cat-pages.test.js and categories.e2e.mjs re-locked only to wrap two lines over 200 characters (tools/format-check.mjs); no assertion changed.
