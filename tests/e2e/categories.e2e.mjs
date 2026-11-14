@@ -45,6 +45,31 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       console.log(`       ${all.length} pages, ${nLinked} linked, deliberately unlinked: ${Object.keys(D.UNLINKED).join(", ")}` + (unlinked.length ? " (now linked: " + unlinked + ")" : ""));
     });
 
+    await check("Try-On is listed on the category 4 landing page (status tag, link) but is in no menu panel (owner decision 2026-11-14)", async () => {
+      const menuLinks = async f => {
+        const page = await browser.newPage(`${base}/${f}?nosw`);
+        await page.waitFor(() => document.querySelectorAll("#siteNav .nav-sub a").length > 40, 8000);
+        const hrefs = await page.evaluate(() => [...document.querySelectorAll("#siteNav a[href], #siteMenu a[href]")].map(a => a.getAttribute("href")));
+        noErrors(page);
+        await page.close();
+        return hrefs;
+      };
+      for (const f of ["index.html", "cat-marketing.html", "tryon.html"]) {
+        const h = await menuLinks(f);
+        assert(!h.some(x => /(^|\/)tryon\.html/.test(x)), f + ": the header menu links tryon.html");
+        assert(h.includes("cat-marketing.html"), f + ": category 4 landing link is in the menu");
+      }
+      const page = await browser.newPage(`${base}/cat-marketing.html?nosw`);
+      await page.waitFor(() => !!document.querySelector(".cat-tool"), 8000);
+      const t = await page.evaluate(() => {
+        const a = document.querySelector('.cat-tool[data-page="tryon"]');
+        return a && { st: a.dataset.status, go: a.querySelector(".sl-go").getAttribute("href"), tag: a.querySelector(".cat-st").className };
+      });
+      assert(t && t.go === "tryon.html" && /^(demo|experimental)$/.test(t.st) && t.tag.includes(t.st), "tryon card " + JSON.stringify(t));
+      noErrors(page);
+      await page.close();
+    });
+
     await check("landing pages: each tool with status tag + accuracy lines with a source label; counts; Crowd dense limit", async () => {
       // the favicon data URI is split over lines in the generated pages: the browser must decode the same SVG as on
       // solutions.html (whitespace aside) and the icon must render

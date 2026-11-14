@@ -15,9 +15,10 @@ const NET = `window.LENSIQ_API_BASE="https://api.example.test";window.__pcCalls=
     :{status:200,source:x.source,ok:true,found:0,total:0,items:[],fetched:"2026-11-12T03:00:00Z"});
   return new Response(JSON.stringify({ok:true,results}),{status:200,headers:{"Content-Type":"application/json"}});};`;
 const openTab = page => page.evaluate(() => { document.querySelector("#t-pc").click(); return true; });
-const WANT = { th: /recall 0\.811 \(n = 173 ฉลากสังเคราะห์ วัดโดยผู้ตรวจอิสระ\) precision 0\.971.*อาจไม่ครบ/,
-  en: /INN recall 0\.811 \(n = 173, synthetic, independent\), precision 0\.971.*may be incomplete/,
-  zh: /INN 召回率 0\.811（n = 173，合成数据，独立测试），精确率 0\.971.*可能不完整/ };
+// re-locked 2026-11-14 (owner decision: card figure 0.811 -> 0.907, "measured on 188 synthetic labels"; ACCURACY.md section 16)
+const WANT = { th: /recall 0\.907 \(วัดจากฉลากสังเคราะห์ 188 ฉลาก โดยผู้ตรวจอิสระ\) precision 0\.971.*อาจไม่ครบ/,
+  en: /INN recall 0\.907 \(measured on 188 synthetic labels, independent test\), precision 0\.971.*may be incomplete/,
+  zh: /INN 召回率 0\.907（在 188 条合成标签上测得，独立测试），精确率 0\.971.*可能不完整/ };
 const ATTR = { th: /มีข้อมูลภายใต้สัญญาอนุญาต Open Government Licence – Canada/, en: /^Contains information licensed under the Open Government Licence – Canada/,
   zh: /Open Government Licence – Canada/ };
 

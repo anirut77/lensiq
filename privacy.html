@@ -165,6 +165,14 @@
           <td>localStorage (เลือกเปิดเอง ปิดไว้เป็นค่าเริ่มต้น)</td>
           <td>จำว่าเครื่องนี้เปิดหรือปิดโมเดลใบอนุญาตวิจัย (อายุ/เพศ และสีหน้า) — เก็บแค่คำว่าเปิด/ปิด ไม่มีข้อมูลบุคคล ไม่ส่งให้เรา ค่าเริ่มต้นคือปิด (โหมดลูกค้า) และผู้ติดตั้งล็อกปิดได้</td>
           <td>จนกว่าจะปิดสวิตช์ หรือล้างข้อมูลไซต์</td></tr>
+        <tr id="p9-heavy"><td><code>lq-heavy</code></td>
+          <td>sessionStorage (จำเป็น)</td>
+          <td>ค่าเดียวคือ "1" ที่ตั้งไว้ขณะกล้องกำลังทำงาน เพื่อให้หน้านี้สลับเป็นโหมดเบาถ้าเบราว์เซอร์รีสตาร์ตหน้าเพราะหน่วยความจำไม่พอ — ไม่มีข้อมูลส่วนบุคคล ไม่มีภาพ ไม่ส่งให้เรา</td>
+          <td>เก็บไว้ในแท็บนี้เท่านั้น ล้างเมื่อปิดแท็บ (และถูกลบเมื่อกล้องหยุดหรือออกจากหน้า)</td></tr>
+        <tr id="p9-camcap"><td><code>lq-camcap</code></td>
+          <td>localStorage (จำเป็นต่อฟีเจอร์)</td>
+          <td>ค่าตั้งของกล้อง: จำนวนกล้องที่เครื่องนี้เปิดพร้อมกันได้ และเวลาที่ตรวจพบ — ไม่มีข้อมูลส่วนบุคคล ไม่มีภาพ ไม่ส่งให้เรา เขียนเฉพาะหน้าหลายกล้องเมื่อเครื่องเปิดกล้องเพิ่มไม่ได้</td>
+          <td>7 วัน (หลังจากนั้นถือว่าหมดอายุและตรวจใหม่) หรือจนกว่าจะล้างข้อมูลไซต์</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -340,6 +348,16 @@
           <td>Remembers whether this device has the research-licence models (age/gender and expression) switched on. It stores only on/off, no personal data,
           and is never sent to us. The default is off (customer mode) and an installer can lock it off.</td>
           <td>Until you switch it off or clear site data</td></tr>
+        <tr id="en-p9-heavy"><td><code>lq-heavy</code></td>
+          <td>sessionStorage (necessary)</td>
+          <td>A single value, "1", set while a camera is running so the page can switch to a lighter mode if the browser
+          restarts it for lack of memory. No personal data, no images, never sent to us.</td>
+          <td>Kept for this tab only and cleared when the tab is closed (also removed when the camera stops or you leave the page)</td></tr>
+        <tr id="en-p9-camcap"><td><code>lq-camcap</code></td>
+          <td>localStorage (necessary for the feature)</td>
+          <td>Camera settings: how many cameras this device can run at once, and when that was found out. No personal data,
+          no images, never sent to us. Written only by multi-camera pages when the device cannot open one more camera.</td>
+          <td>7 days (after that it counts as expired and is checked again), or until you clear site data</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -514,6 +532,14 @@
           <td>localStorage（自行开启，默认关闭）</td>
           <td>记住本设备是否开启研究许可模型（年龄/性别与表情）。只保存开/关，不含个人数据，不会发送给我们。默认关闭（客户模式），安装方可锁定为关闭。</td>
           <td>直到关闭开关或清除网站数据</td></tr>
+        <tr id="zh-p9-heavy"><td><code>lq-heavy</code></td>
+          <td>sessionStorage（必要）</td>
+          <td>只有一个值 "1"，在摄像头运行期间设置，以便浏览器因内存不足而重启页面时，本页可切换到轻量模式。不含个人数据，不含图像，不会发送给我们。</td>
+          <td>仅保留在此标签页，关闭标签页即清除（摄像头停止或离开页面时也会删除）</td></tr>
+        <tr id="zh-p9-camcap"><td><code>lq-camcap</code></td>
+          <td>localStorage（功能所需）</td>
+          <td>摄像头设置：本设备可同时运行的摄像头数量，以及检测到的时间。不含个人数据，不含图像，不会发送给我们。仅在多摄像头页面发现设备无法再打开一个摄像头时写入。</td>
+          <td>7 天（之后视为过期并重新检测），或直到您清除网站数据</td></tr>
       </tbody>
     </table></div>
   </section>

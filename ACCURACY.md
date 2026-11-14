@@ -1509,11 +1509,18 @@ On-device extraction of international non-proprietary names from the label text 
 the measured numbers on the card (owner decision 2026-11-12). Details: `docs/product-check/P9-RESULTS.md`. Source label:
 synthetic.
 
-Independent hold-out written and locked by a separate agent before measuring (173 invented label texts, 14 languages),
-measured once: INN recall **0.811** (129 / 159 ingredients, out-of-table items excluded; Wilson 95 % 0.743–0.865),
-precision **0.971** (135 / 139; 0.928–0.989), packs with no medicine ingredient left clean 0.964 (27 / 28). Target recall
-≥ 0.85: **not met** (the target stays). Combination products and OCR misreads are the main misses, so the card says
-the list may be incomplete. The builder's own fixed set (122 texts) scored 1.0; it is not evidence.
+**Card figure since 2026-11-14 (owner decision 2026-11-14, replaces 0.811):** a second independent hold-out, written and
+locked by a separate agent before the stream-F travel change and scored once (188 invented label texts, 14 languages;
+set sha256 `f91d003e…`, `~/LENSIQ-field/evals/pc-f/holdout-p9/`, result `holdout-p9-result-pcf-2026-11-13.json`; source:
+synthetic): INN recall **0.907** (186 / 205 ingredients, out-of-table items excluded; Wilson 95 % 0.860–0.940),
+precision **0.971** (201 / 207; 0.938–0.987), packs with no medicine ingredient left clean 1.000 (30 / 30). Targets:
+recall ≥ 0.85 **met**, precision ≥ 0.95 met. Combination products, caffeine / ascorbic acid without a medicine word and
+OCR misreads are the main misses, so the card still says the list may be incomplete. The builder's own fixed set scored
+1.0; it is not evidence. Details: `docs/product-check/PC-F-RESULTS.md` §2.
+
+Superseded (kept as history): the first independent hold-out (173 invented label texts, now a dev set after stream F)
+measured, before the stream-F travel change, INN recall 0.811 (129 / 159 ingredients; Wilson 95 % 0.743–0.865),
+precision 0.971 (135 / 139) and recall target ≥ 0.85 not met; the card showed that figure until 2026-11-14.
 
 ## Datasets and licences
 

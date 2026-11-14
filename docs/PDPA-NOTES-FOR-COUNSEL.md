@@ -955,15 +955,27 @@ are internal working notes about content, not personal data, and are never serve
 ## H. Camera pages: device-only technical keys (stream B, 2026-11-13)
 
 Two technical keys written by the shared camera code on the user's own device. Neither holds personal data, an image or
-an identifier; nothing is sent anywhere. `privacy.html` is not changed yet (owner decision pending).
+an identifier; nothing is sent anywhere.
+
+**Update 2026-11-14 (owner decision, branch `claims-1114`):** both keys are now named in the cookie / storage table of
+`privacy.html` in Thai, English and Chinese (rows `p9-heavy`, `p9-camcap`, `en-` / `zh-` prefixed; test
+`tests/unit/privacy-camera-keys.test.js`, which also reads the code). The wording was checked against the code first:
+`lq-heavy` is read and written only through `sessionStorage` in `lensiq-crashguard.js` (value `"1"`; gone when the tab
+closes; also removed when the camera stops, pauses or is lost, on a normal page leave, and once on the next load after a
+crash). `lq-camcap` is `localStorage` in `lensiq-camera.js` (`{v:1, maxLive, at}`, written only by the multi-camera hub when
+the device cannot open one more camera). Two precisions for counsel: (1) the 7-day limit is an **expiry on read**: after 7
+days the value is ignored and probed again (the next probe overwrites it), but the stored value is not actively deleted
+until then or until the user clears site data; (2) `resetCapacity()` (which deletes it) exists in the camera code but no page
+has a button for it, so the privacy page does not mention a reset control. Neither key is a cookie and neither identifies
+a person, so the rows say "necessary" (device settings the feature needs).
 
 | Key | Where | Content | When written / removed | Pages |
 |---|---|---|---|---|
 | `lq-heavy` | `sessionStorage` (this tab only; gone when the tab closes) | the single value `"1"` | set while a camera stream is live (crash guard, `lensiq-crashguard.js`); removed when the camera stops, pauses or is lost, when the page is left normally, and on the next load after a crash (read once, then deleted) | the 24 camera pages that load the crash guard; NOT interview, qc, store, teamface (they promise that nothing is stored) |
-| `lq-camcap` | `localStorage` (this browser; note: not sessionStorage) | `{v:1, maxLive, at}`: how many cameras this device could run at once, and when that was learned | written only when a multi-camera page proves the device cannot open one more camera; expires after 7 days; the camera "reset" deletes it | multi-camera pages (camera hub of `lensiq-camera.js`) |
+| `lq-camcap` | `localStorage` (this browser; note: not sessionStorage) | `{v:1, maxLive, at}`: how many cameras this device could run at once, and when that was learned | written only when a multi-camera page proves the device cannot open one more camera; expires after 7 days (ignored on read, then overwritten by the next probe); the code can delete it (`resetCapacity()`, no button yet) | multi-camera pages (camera hub of `lensiq-camera.js`) |
 
-Question for counsel: do these purely technical keys need to be named in the privacy notice (storage section), or is a
-general sentence ("the site keeps technical settings on your device") enough?
+Question for counsel (still open, the rows are in as the safer choice): is it enough to name these purely technical keys in
+the storage table, or does the notice need no per-key entry at all ("the site keeps technical settings on your device")?
 
 ## I. Accounts and billing groundwork (stream G, owner decisions 2026-11-13; branch `accounts-g`)
 

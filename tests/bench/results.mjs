@@ -49,8 +49,9 @@ export const BENCHES = Object.freeze({
     + " --labels ~/LENSIQ-field/plates-public/photos/plates-photo-labels.v3.csv --source \"public dataset (Wikimedia Commons)\""
     + " --split dev|heldout --out out.json" },
   advert: { datasets: ["adverts-fresh-3"], cmd: "scored once by an independent agent on ~/LENSIQ-field/product-check/texts-fresh-3 (see docs/product-check/ADVERT-RESULTS.md)" },
-  // Product Check travel mode INN extraction (P9): synthetic hold-out written and scored once by an independent agent, kept outside the repo
-  travel: { datasets: ["p9-inn-holdout"], cmd: "node -e with LQPCTravel.measure on ~/LENSIQ-field/evals/p9/holdout/p9-inn-holdout.json (see docs/product-check/P9-RESULTS.md)" }
+  // Product Check travel mode INN extraction (P9): synthetic hold-out written and scored once by an independent agent, kept outside the repo.
+  // 2026-11-14: the card figure moved to the second independent hold-out (188 labels, locked in evals-locks/pc-f__holdout-p9.sha256); the first (173 labels) is a dev set since stream F
+  travel: { datasets: ["p9-inn-holdout2"], cmd: "node -e with LQPCTravel.measure on ~/LENSIQ-field/evals/pc-f/holdout-p9/p9-inn-holdout2.json (see docs/product-check/PC-F-RESULTS.md section 2)" }
 });
 
 /** fingerprint of one folder: sha256 over "relpath\tsize\tsha256(file)\n" for every file, sorted; dot-paths skipped */

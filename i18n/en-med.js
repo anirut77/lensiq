@@ -1,7 +1,7 @@
 /* i18n/en-med.js — English for medicine.html / medicine.js (md.*). Mirrors i18n/zh-med.js. Label text from openFDA stays in
  * its original English (never machine-translated); Thai registry names stay Thai (lang="th"). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
-  "md.pc.tv.acc": "INN recall 0.811 (n = 173, synthetic, independent), precision 0.971 · This list may be incomplete (for example a combination product or a misread word): always compare it with the ingredient list on the box · source: synthetic",
+  "md.pc.tv.acc": "INN recall 0.907 (measured on 188 synthetic labels, independent test), precision 0.971 · This list may be incomplete (for example a combination product or a misread word): always compare it with the ingredient list on the box · source: synthetic",
   "md.pc.ad.acc": "Independent test, 545 over-claim / 382 compliant public advert texts, labelled by AI, pending expert review: finds 60% of over-claims with the product type chosen, 2.1 false flags per 100 compliant texts · n = 545 / 382 · source: public dataset",
   "md.title": "Medicine checker: read labels and registration numbers | LENSIQ",
   "md.eyebrow": "LENSIQ · Medicine checker",

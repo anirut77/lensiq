@@ -43,7 +43,8 @@ Every place LENSIQ stores data, per module, with default retention and the delet
 | photobooth, studio | IDB `pb-templates`; `pb-kiosk` | Operator outfit and frame templates | Until deleted | Delete the template in the page |
 | fortune pages | `fr-/palm-/hs-/tarot-/fs-/nm-/ic-/zd-/as-/dm-` `stats` and `prefs` (LS) | Anonymous counters (totals per day, category tallies) | Until cleared. They can be switched off per page. | "ล้างสถิติ" (clear stats) per page |
 | AI fortune | `fa-consent` (LS) | Consent flag ("1"/"0") | Until changed | Untick the consent checkbox |
-| shared | `lq-camcap` (LS) | Camera capability probe | n/a | n/a |
+| shared | `lq-camcap` (LS) | Camera capability probe (how many cameras run at once) | 7 days (expiry on read; then probed again) | Clear site data |
+| shared | `lq-heavy` (SS) | Crash-guard marker, value "1" while a camera runs | Tab only; cleared when the tab closes or the camera stops | Close the tab |
 | insights | `iq-range`, `iq-compare`, `iq-range-custom`, `iq-goals`, `iq-alerts`, `iq-demo` (LS); `iq-notified` (SS) | Dashboard preferences | n/a | n/a |
 | service worker | Cache Storage (versioned) | Model and library files | Replaced on version bump | Clear site data |
 

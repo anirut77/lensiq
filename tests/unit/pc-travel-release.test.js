@@ -15,14 +15,15 @@ test("(5) accuracy line: generated text with the independent numbers, TH / EN / 
   const t = fig.texts.find(x => x.key === "md.pc.tv.acc");
   assert.ok(t, "md.pc.tv.acc is a generated text");
   for (const k of ["innRecall", "innPrec", "innN"]) for (const l of ["th", "en", "zh"]) assert.match(t[l], new RegExp(`\\{${k}\\}`), `${l} uses {${k}}`);
-  assert.equal(fig.figures.innRecall.value, "0.811");
+  // re-locked 2026-11-14 (owner decision: card figure 0.811 -> 0.907, independent hold-out 2, 188 synthetic labels; ACCURACY.md section 16)
+  assert.equal(fig.figures.innRecall.value, "0.907");
   assert.equal(fig.figures.innPrec.value, "0.971");
-  assert.equal(fig.figures.innN.value, "173");
-  assert.match(t.en, /synthetic, independent/);
+  assert.equal(fig.figures.innN.value, "188");
+  assert.match(t.en, /measured on \{innN\} synthetic labels, independent test/);
   assert.match(t.en, /may be incomplete/);
-  assert.match(read("medicine.html"), /<p hidden data-i18n="md\.pc\.tv\.acc">[^<]*recall 0\.811[^<]*precision 0\.971[^<]*อาจไม่ครบ[^<]*<\/p>/);
+  assert.match(read("medicine.html"), /<p hidden data-i18n="md\.pc\.tv\.acc">[^<]*recall 0\.907[^<]*188 ฉลาก[^<]*precision 0\.971[^<]*อาจไม่ครบ[^<]*<\/p>/);
   const src = read("lensiq-pc-travel.js");
-  assert.ok(!/0\.811|0\.971|n = 173/.test(src), "no measured number typed into lensiq-pc-travel.js");
+  assert.ok(!/0\.907|0\.811|0\.971|n = 173|n = 188/.test(src), "no measured number typed into lensiq-pc-travel.js");
   assert.match(src, /data-i18n="md\.pc\.tv\.acc"/);
 });
 

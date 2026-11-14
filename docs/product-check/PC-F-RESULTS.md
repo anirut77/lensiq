@@ -83,6 +83,8 @@ Targets: precision ≥ 0.95 met, recall ≥ 0.85 met. 4 of the 6 "false INNs" on
 "simethicone" for our INN "simeticone" (counted as written). Misses left: caffeine and ascorbic acid without a medicine
 word (kept weak on purpose), calcium carbonate (excipient word), and a few combinations. The card still shows the
 released 0.811 (owner decision 5, `docs/accuracy-figures.json`) until the owner decides.
+**Decided 2026-11-14:** the card now shows recall 0.907 / precision 0.971, "measured on 188 synthetic labels" (this hold-out 2;
+raw counts 186 / 205 and 201 / 207 from `~/LENSIQ-field/evals/pc-f/holdout-p9-result-pcf-2026-11-13.json`; `ACCURACY.md` §16).
 
 ## 3. Live scan (on-device, no new data)
 
@@ -121,7 +123,7 @@ storage or send; now a unit test); stale ticks after a scene cut also happen on 
 - Bare-name rules are limited to forms that do not fire on the hold-out product labels (kinship word + spaced name; sender
   line); a stricter "no one-tap with Japanese / Korean script" rule was not built (owner decision below).
 - Ascorbic acid and calcium carbonate not added as INNs (supplement / excipient words would cost precision).
-- The travel card's figure is not changed (it is a claim users see).
+- The travel card's figure is not changed (it is a claim users see). (Changed on the owner's decision of 2026-11-14: see §2.)
 
 ## 6. Risks
 

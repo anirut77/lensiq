@@ -133,7 +133,9 @@ to RxNav, DIN to DPD), `backend/src/pc.js` (DPD), `lensiq-config.js` (switch, of
 
 ## 7. Owner decisions 2026-11-12 (built)
 
-- (5) Released with the measured numbers: the travel card shows "INN recall 0.811 (n = 173, synthetic, independent), precision
+- (5) **Superseded on 2026-11-14** (owner decision): the card now shows "INN recall 0.907 (measured on 188 synthetic labels,
+  independent test), precision 0.971" from the second independent hold-out (`PC-F-RESULTS.md` §2, `ACCURACY.md` §16). As released
+  on 2026-11-12 the travel card showed "INN recall 0.811 (n = 173, synthetic, independent), precision
   0.971" and "this list may be incomplete" in TH / EN / ZH. The text is generated from `docs/accuracy-figures.json` (figures
   innRecall, innPrec, innN; evidence in ACCURACY.md §16) by `tools/accuracy-sync.mjs` into a hidden element of `medicine.html`
   and the en / zh dictionaries; the module copies that element, so no number is typed in code. The 0.85 target stays.

@@ -98,8 +98,12 @@ test("nav.js menu: one group per category with exactly its pages + landing page;
     assert.equal(g.label, c.name.th, c.slug + " label");
     assert.equal(g.short, c.short.th, c.slug + " short label");
     assert.equal(g.hrefs[0], "cat-" + c.slug, c.slug + ": landing page first");
-    assert.deepEqual(g.hrefs.slice(1).sort(), [...c.pages].sort(), c.slug + " menu items");
+    // re-lock 2026-11-14 (owner decision: Try-On is listed in category 4 but kept out of the menu): menu items = pages minus MENU_HIDDEN
+    assert.deepEqual(g.hrefs.slice(1).sort(), c.pages.filter(p => !D.MENU_HIDDEN[p]).sort(), c.slug + " menu items");
   }
+  assert.deepEqual(Object.keys(D.MENU_HIDDEN), ["tryon"], "only Try-On is hidden from the menu");
+  for (const h of groups.flatMap(g => g.hrefs)) assert.ok(!D.MENU_HIDDEN[h], h + " must not be in the menu");
+  assert.ok(!/href: "tryon\.html"/.test(nav), "tryon.html is not an item of any nav.js menu group");
   const about = groups.find(g => g.id === "about");
   assert.deepEqual(about.hrefs.sort(), [...D.PLATFORM].sort(), "About group = platform pages");
   for (const m of nav.matchAll(/href: "([a-z0-9-]+\.html)"/g)) assert.ok(existsSync(join(ROOT, m[1])), m[1]);
@@ -227,4 +231,23 @@ test("generated pages: no line over 200 characters (the CSP <meta> included); fa
   assert.ok(split.split("\n").every(l => l.length <= 160), "favicon lines");
   assert.equal(split.replace(/\n/g, ""), mod.FAVICON_ONE_LINE, "favicon: only line feeds added");
   assert.ok(split.split("\n").slice(1).every(l => l.startsWith(" ")), "favicon: every break sits right before an existing space");
+});
+
+test("Try-On (owner decision 2026-11-14): in category 4, status shown on the landing, never in the menu, no longer a loose page", () => {
+  const c4 = D.CATEGORIES.find(c => c.n === 4);
+  assert.ok(c4.pages.includes("tryon"), "tryon is in category 4");
+  assert.ok(!D.CATEGORIES.some(c => c.n !== 4 && c.pages.includes("tryon")), "only in category 4");
+  assert.ok(!("tryon" in D.UNLINKED), "tryon is not an UNLINKED exception any more (the category 4 landing links it)");
+  assert.ok(D.MENU_HIDDEN.tryon && D.MENU_HIDDEN.tryon.reason, "the reason for hiding it is recorded");
+  for (const k of ["title", "desc"]) for (const l of ["th", "en", "zh"]) assert.ok(D.MENU_HIDDEN.tryon[k][l] && D.MENU_HIDDEN.tryon[k][l].length > 5, `${k}.${l}`);
+  assert.ok(!THAI.test(D.MENU_HIDDEN.tryon.title.en + D.MENU_HIDDEN.tryon.desc.en + D.MENU_HIDDEN.tryon.title.zh + D.MENU_HIDDEN.tryon.desc.zh), "no Thai in en / zh");
+  assert.ok(["demo", "experimental"].includes(D.PAGES.tryon.st), "status on the landing: " + D.PAGES.tryon.st);
+  const html = readFileSync(join(ROOT, "cat-marketing.html"), "utf8");
+  assert.match(html, /<article class="pd-card cat-tool" data-page="tryon" data-status="(demo|experimental)">/);
+  assert.match(html, /\d+ เครื่องมือ/);
+  assert.ok(readFileSync(join(ROOT, "docs", "PAGE-STATUS.md"), "utf8").split("\n").filter(l => l.startsWith("| `tryon.html` |")).length === 1, "one row in PAGE-STATUS.md");
+  // the dictionaries the landing card reads (generated into i18n/*-cat.js)
+  for (const l of ["en", "zh"]) for (const k of ["title", "desc"]) {
+    assert.match(readFileSync(join(ROOT, "i18n", `${l}-cat.js`), "utf8"), new RegExp(`"nav\\.tryon\\.${k}": "[^"]+"`), `${l}-cat nav.tryon.${k}`);
+  }
 });

@@ -453,7 +453,7 @@ const CATEGORIES = [
       en: "People counts and density, store, queues, tables, bays, signage and booths, anonymous and processed on the device.",
       zh: "人数与密度、门店、排队、餐桌、车位、广告屏与展位，匿名且在本机处理。" },
     pages: ["crowd", "store", "retail", "insights", "customers", "signage", "neuro", "queue", "tables", "bays", "checkout", "creative",
-      "creative-suite", "booth"] },
+      "creative-suite", "booth", "tryon"] },
   { n: 5, slug: "health", id: "health", icon: "🩺",
     name: { th: "สุขภาพ ความปลอดภัย และคุณภาพ", en: "Health, Safety & Quality", zh: "健康、安全与质量" },
     short: { th: "สุขภาพ", en: "Health", zh: "健康" },
@@ -481,7 +481,20 @@ const CATEGORIES = [
 /** Platform pages (not a category): nav.js "About" group. admin.html stays unlinked on purpose (owner back office,
  *  noindex; see docs/PAGE-STATUS.md "Not linked"). */
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
-const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
-  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category" };
+const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9" };
 
-module.exports = { STATUS, STATUS_DEF, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };
+/** Pages that belong to a category (listed on its landing page, in docs/PAGE-STATUS.md) but are NOT items of the nav.js menu.
+ *  Owner decision 2026-11-14: Try-On is in category 4 (Marketing, Retail & Events) and stays out of the menu and navigation; it
+ *  is opened from a shop link and from its card on the category landing page. The card takes its title and description from
+ *  here (menu pages take them from nav.js). */
+const MENU_HIDDEN = {
+  tryon: {
+    reason: "Try-On MVP customer page, opened from a shop link; in category 4 but not in the menus (owner decision 2026-11-14)",
+    title: { th: "ลองสินค้าบนตัวคุณด้วยกล้อง", en: "Virtual try-on with the camera", zh: "用摄像头虚拟试戴" },
+    desc: { th: "ลองแว่น หมวก ต่างหู และเสื้อบนภาพกล้องสดบนเครื่อง เป็นภาพจำลอง ยังไม่ได้วัดกับภาพจริง",
+      en: "Try glasses, hats, earrings and tops on the live camera picture on the device. A simulation, not yet measured on real pictures.",
+      zh: "在本机实时摄像头画面上试戴眼镜、帽子、耳环和上衣。为模拟效果，尚未用真实画面测量。" }
+  }
+};
+
+module.exports = { STATUS, STATUS_DEF, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED, MENU_HIDDEN };

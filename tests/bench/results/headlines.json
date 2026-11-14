@@ -50,7 +50,7 @@
    "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
-  "p9-inn-holdout": {
+  "p9-inn-holdout2": {
    "sha256": null,
    "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
@@ -635,31 +635,31 @@
    "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
   },
   "innRecall": {
-   "value": "0.811",
-   "raw": 0.811321,
-   "what": "travel mode, independent synthetic hold-out: INN recall",
-   "evidence": "INN recall **0.811** (129 / 159 ingredients",
+   "value": "0.907",
+   "raw": 0.907317,
+   "what": "travel mode, independent synthetic hold-out 2 (188 labels): INN recall",
+   "evidence": "INN recall **0.907** (186 / 205 ingredients",
    "bench": "travel",
    "fingerprinted": false,
-   "status": "not reproducible here: datasets absent or not fingerprinted (p9-inn-holdout)"
+   "status": "not reproducible here: datasets absent or not fingerprinted (p9-inn-holdout2)"
   },
   "innPrec": {
    "value": "0.971",
-   "raw": 0.971223,
-   "what": "travel mode, independent synthetic hold-out: INN precision",
-   "evidence": "precision **0.971** (135 / 139",
+   "raw": 0.971014,
+   "what": "travel mode, independent synthetic hold-out 2 (188 labels): INN precision",
+   "evidence": "precision **0.971** (201 / 207",
    "bench": "travel",
    "fingerprinted": false,
-   "status": "not reproducible here: datasets absent or not fingerprinted (p9-inn-holdout)"
+   "status": "not reproducible here: datasets absent or not fingerprinted (p9-inn-holdout2)"
   },
   "innN": {
-   "value": "173",
-   "raw": 173,
-   "what": "travel mode: hold-out size",
-   "evidence": "173 invented label texts, 14 languages",
+   "value": "188",
+   "raw": 188,
+   "what": "travel mode: hold-out 2 size",
+   "evidence": "188 invented label texts, 14 languages",
    "bench": "travel",
    "fingerprinted": false,
-   "status": "not reproducible here: datasets absent or not fingerprinted (p9-inn-holdout)"
+   "status": "not reproducible here: datasets absent or not fingerprinted (p9-inn-holdout2)"
   }
  }
 }

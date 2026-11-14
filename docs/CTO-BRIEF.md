@@ -29,6 +29,42 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
 - **Privacy contact:** a separate privacy-contact (DPO) e-mail will be added, the owner will send the address; until then documents show LINE @632yliiw (legal item L61).
 - **Legal list:** L57 text approved to list as drafted (`docs/product-check/LIVE-SCAN-RESULTS.md` §7); new L60 (Claude Haiku via Google Vertex for the live label scan), L61 (privacy contact), L62 (free-tier limits).
 
+## Owner decisions 2026-11-14 (branch `claims-1114`; not merged until the coordinator's independent review)
+
+1. **Crisis flow v2 preview images:** the five Thai screens were regenerated from `merge-staging-crisis` at `921ecb6` (390 px
+   wide, synthetic input text only) and saved outside the repo to `~/Desktop/LENSIQ-review/` (`1-…png` to `5-…png`, `README.txt`).
+   **Crisis flow v2 is not merged and not deployed; it stays off until the owner replies** (wording still marked "awaiting
+   professional review", L63).
+2. **Travel-mode (INN) card figure 0.811 → 0.907,** worded "measured on 188 synthetic labels" (TH / EN / ZH). Source: the second
+   independent hold-out (188 invented label texts, 14 languages, set `f91d003e…`, locked before the stream-F travel change and
+   scored once): recall 0.907 (186 / 205 ingredients, Wilson 95 % 0.860–0.940), precision 0.971 (201 / 207), packs without a
+   medicine clean 30 / 30. Targets (recall ≥ 0.85, precision ≥ 0.95) met. Done through the claim registry: `docs/accuracy-figures.json`
+   (`innRecall`, `innPrec`, `innN`; the `md` evidence now quotes `ACCURACY.md` §16, which carries the new set and keeps the
+   0.811 / 173-label figure as superseded history), regenerated into `medicine.html` and `i18n/{en,zh}-med.js` by
+   `tools/accuracy-sync.mjs`, and `tests/unit/pc-travel-release.test.js` updated to the new figure and wording (a re-lock for the
+   owner decision, not a loosening: every assertion still pins an exact figure). Still synthetic only: no field figure exists.
+3. **Privacy page:** `privacy.html` now has rows for `lq-heavy` (sessionStorage; kept for the tab only, cleared when the tab is
+   closed; no personal data) and `lq-camcap` (localStorage; camera settings; 7 days; no personal data) in TH / EN / ZH. Checked
+   against the code first (`lensiq-crashguard.js`, `lensiq-camera.js`): two precisions are recorded in
+   `docs/PDPA-NOTES-FOR-COUNSEL.md` §H (the 7 days is an expiry on read, the value is overwritten at the next probe and not
+   actively deleted; no page has a "reset" button, so the page does not mention one). `docs/pdpa/retention-table.md` updated.
+   Test: `tests/unit/privacy-camera-keys.test.js`. Counsel question stays open.
+4. **Try-On in category 4 (Marketing, Retail & Events), kept out of the menu and navigation.** No R2, no server deploy.
+   `tools/cat-data.cjs`: `tryon` added to category 4's page list and a new `MENU_HIDDEN` record (title and description in TH / EN / ZH,
+   reason); `tryon` removed from `UNLINKED` (the category landing now links it). The landing card shows its status (kept at
+   "experimental", the status it already had; the owner allowed "demo"). `tools/cat-pages.mjs` takes the card text from
+   `MENU_HIDDEN`; `nav.js` is unchanged, so no menu panel lists it. Regenerated: `cat-marketing.html` (15 tools), the `index.html`
+   category count, `i18n/{en,zh}-cat.js`, `docs/PAGE-STATUS.md`. Tests: `tests/unit/cat-pages.test.js` (menu = category pages minus
+   `MENU_HIDDEN`, only Try-On hidden, never a menu item) and `tests/e2e/categories.e2e.mjs` (no header link to `tryon.html`; card on
+   the landing). **`CLAUDE.md` product-structure table still needs `tryon` in row 4** (the existing test "categories equal the
+   CLAUDE.md table" requires it); not edited by the builder, left to the coordinator.
+5. **Personal Colour (Style MVP part 3) is parked (option ค), 2026-11-14.** It missed its locked targets on the synthetic set S
+   (locked unit test `tests/unit/style-colour.test.js`, branch `beauty-colour`, first run 2026-11-13 in
+   `~/LENSIQ-field/evals/beauty-look/colour-run-1.log`): same undertone band across 5 lights 20 % vs target 80 %; same top-1 season
+   35.6 % vs target 70 % (top-2 70 % vs 90 %). The colour maths, card step, wording and privacy checks passed. The owner said not to
+   swap the failed target for one that already passes (the exploratory 3-band 66 % and parent-season 60 % figures stay exploratory,
+   not claims). No code change; nothing built is deleted (branch `beauty-colour` stays as is). `docs/BEAUTY-IMAGE-DESIGN.md` is not on `main`, so the record is here.
+
 ## 1. System map
 
 **Status legend:**

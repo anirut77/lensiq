@@ -74,6 +74,8 @@ export function entries() {
   for (const [k, v] of Object.entries(D.SOURCE)) e["cat.src." + k] = v;
   for (const [k, v] of Object.entries(D.CLAIMS)) e["cat.c." + k] = { th: v.th, en: v.en, zh: v.zh };
   for (const [k, v] of Object.entries(D.REASONS)) e["cat.r." + k] = v;
+  // pages in a category that are not menu items: their card title / description (menu pages read nav.* from i18n/*-common.js)
+  for (const [pg, h] of Object.entries(D.MENU_HIDDEN)) { e[`nav.${pg}.title`] = h.title; e[`nav.${pg}.desc`] = h.desc; }
   for (const c of D.CATEGORIES) {
     e[`cat.${c.slug}.name`] = c.name;
     e[`cat.${c.slug}.intro`] = c.intro;
@@ -154,8 +156,8 @@ export const FAVICON_ONE_LINE = readFileSync(join(repo, "solutions.html"), "utf8
 const FAVICON = splitFavicon(FAVICON_ONE_LINE);
 
 function card(page, nav) {
-  const p = D.PAGES[page], t = nav[page];
-  if (!t) throw new Error(`${page}.html is in a category but not in the nav.js menu`);
+  const p = D.PAGES[page], t = nav[page] || (D.MENU_HIDDEN[page] && { title: D.MENU_HIDDEN[page].title.th, desc: D.MENU_HIDDEN[page].desc.th });
+  if (!t) throw new Error(`${page}.html is in a category but not in the nav.js menu (and not in MENU_HIDDEN)`);
   const acc = p.claims.map(id => {
     const c = D.CLAIMS[id];
     return `          <li data-src="${c.src}"><span class="cat-src ${c.src}" data-i18n="cat.src.${c.src}">${esc(D.SOURCE[c.src].th)}</span> <span data-i18n="cat.c.${id}">${esc(c.th)}</span></li>`;
