@@ -1038,52 +1038,17 @@
       function () { lq.notify = { state: "unavailable" }; renderNotify(); });
   };
   /* LINE notification status line under the inbox (owner order 2026-11-15, "never silent"): working or not, the last
-   * success time and the reason, from GET /admin/api/leads/notify (secret NAMES + reason codes only, never a value). */
-  /** @param {string} code */
-  var nfReason = function (code) {
-    var T = /** @type {Record<string, string>} */ ({
-      missing: G("adl.nf.r.missing", "ยังไม่ได้ตั้งค่า"),
-      whitespace: G("adl.nf.r.whitespace", "มีช่องว่างหรือขึ้นบรรทัดอยู่ข้างใน"),
-      too_short: G("adl.nf.r.too_short", "สั้นเกินไป (ไม่ใช่ channel access token ที่ถูกต้อง)"),
-      starts_with_at: G("adl.nf.r.starts_with_at", "ขึ้นต้นด้วย @ ซึ่งเป็น ID ของบัญชี LINE OA ไม่ใช่ user ID ของคุณ (ต้องเป็น U ตามด้วย 32 ตัว)"),
-      wrong_length: G("adl.nf.r.wrong_length", "ความยาวไม่ถูกต้อง (ต้องมี 33 ตัว: U ตามด้วย 32 ตัว)"),
-      not_u32hex: G("adl.nf.r.not_u32hex", "รูปแบบไม่ถูกต้อง (ต้องเป็น U ตามด้วยตัวเลข 0-9 และตัวอักษร a-f ตัวเล็ก 32 ตัว)")
-    });
-    return T[code] || code;
-  };
-  /** @param {string} detail e.g. "http_401", "cap_50" */
-  var nfFailText = function (detail) {
-    var m = /^http_(\d{1,3})$/.exec(String(detail || ""));
-    var n = m ? Number(m[1]) : -1;
-    if (n === 0) return G("adl.nf.http0", "LINE ไม่ตอบ (เครือข่ายขัดข้องหรือหมดเวลา)");
-    if (n === 401) return G("adl.nf.http401", "LINE ตอบรหัส 401: token ไม่ถูกต้องหรือหมดอายุ ให้ออก token ใหม่แล้วตั้งค่าอีกครั้ง");
-    if (n === 400) return G("adl.nf.http400", "LINE ตอบรหัส 400: ตรวจ LEAD_NOTIFY_LINE_TO และเพิ่ม @632yliiw เป็นเพื่อนในโทรศัพท์ของคุณ");
-    if (n === 429) return G("adl.nf.http429", "LINE ตอบรหัส 429: ใช้โควตาข้อความของ LINE OA เดือนนี้หมดแล้ว");
-    if (detail === "unrecorded") return G("adl.nf.unrecorded", "บันทึกผลการแจ้ง LINE ของคำขอล่าสุดไม่ได้ (ดูบันทึก alert.lead_line_unrecorded ของ Worker)");
-    if (detail === "error") return G("adl.nf.error", "เกิดข้อผิดพลาดในระบบก่อนส่ง LINE (ดูบันทึก alert.lead_line_unrecorded ของ Worker)");
-    return G("adl.nf.http", "LINE ตอบรหัส {n}", { n: n < 0 ? "?" : n });
-  };
-  /** Inbox rows that get a badge: the owner was not (or maybe not) told on LINE. */
-  var NF_MISS = ["skipped", "failed", "capped", "unknown"];
+   * success time and the reason, from GET /admin/api/leads/notify (secret NAMES + reason codes only, never a value).
+   * Wording in admin-lead-notify.js (window.LQLeadNotify, loaded before this file). */
+  var NF = /** @type {any} */ (window).LQLeadNotify;
   function renderNotify() {
     var el = $("adlNotify"), r = lq.notify;
-    if (!el || !r) return;
+    if (!el || !r || !NF) return;
     var st = String(r.state || "unavailable");
     el.setAttribute("data-state", st);
     el.className = "adl-notify" + (st === "ok" ? " adl-nf-ok" : st === "unconfirmed" ? "" : " adl-nf-bad");
     el.hidden = false;
-    if (st === "unavailable") { el.textContent = G("adl.nf.unknown", "ตรวจสถานะการแจ้งเตือนทาง LINE ไม่ได้ ลองกดโหลดใหม่"); return; }
-    var parts = [];
-    parts.push(G("adl.nf.label", "การแจ้งเตือนทาง LINE") + G("adl.nf.sep", ": ") + (st === "ok" ? G("adl.nf.ok", "ทำงาน")
-      : st === "capped" ? G("adl.nf.capped", "หยุดชั่วคราว ครบจำนวนต่อวันแล้ว (คำขอยังเข้ากล่องนี้ตามปกติ)")
-      : st === "unconfirmed" ? G("adl.nf.unconfirmed", "ตั้งค่าถูกต้องแล้ว รอคำขอถัดไปเพื่อยืนยันว่าส่งได้") : G("adl.nf.off", "ไม่ทำงาน")));
-    if (st === "off") {
-      parts.push(G("adl.nf.why", "สาเหตุ: {r}", { r: (r.problems || []).map(function (/** @type {any} */ p) { return p.secret + " " + nfReason(p.reason); }).join("; ") }));
-    } else if (st === "failing") {
-      parts.push(G("adl.nf.why", "สาเหตุ: {r}", { r: nfFailText(r.last && r.last.detail) }));
-    }
-    parts.push(r.last_sent_at ? G("adl.nf.last", "ส่งสำเร็จล่าสุด: {t}", { t: dt(r.last_sent_at) }) : G("adl.nf.never", "ยังไม่เคยส่งสำเร็จ"));
-    el.textContent = parts.join(" · ");
+    el.textContent = NF.line(G, dt, r);
   }
   /** Unread badge on the tab: new requests not opened yet (count only, from the Worker). @param {any} n */
   function setBadge(n) {
@@ -1095,6 +1060,11 @@
     b.title = b.getAttribute("aria-label") || "";
   }
   function leadBadge() { call("/leads/unread").then(function (/** @type {any} */ r) { setBadge(r.unread); }, function () { /* badge only */ }); }
+  /** Row badge when the owner was not (or maybe not) told on LINE. @param {any} n */
+  var nfBadge = function (n) {
+    var b = NF && NF.badge(G, n);
+    return b ? h("span", { class: "adl-chip adl-nf-miss", "data-notify-miss": n, title: b.title, text: b.text }) : null;
+  };
   function renderLeads() {
     var c = lq.counts || { new: 0, contacted: 0, closed: 0 };
     $("adlCounts").textContent = G("adl.counts", "ใหม่ {n} · ติดต่อแล้ว {c} · ปิดแล้ว {x}", { n: c.new, c: c.contacted, x: c.closed }) +
@@ -1110,13 +1080,9 @@
           l.company ? h("span", { class: "ad-muted", text: " · " + l.company }) : null,
           h("div", { class: "ad-muted adl-meta" },
             h("span", { class: "adl-chip adl-" + l.status, text: stText(l.status) }), " ",
-            // never silent (2026-11-15): this request's LINE alert was skipped or failed, so the owner was not told
-            // skipped / failed / capped: no LINE message went out; unknown: the result was never recorded (review D2, D3)
-            NF_MISS.indexOf(l.notify) >= 0 ? h("span", { class: "adl-chip adl-nf-miss", "data-notify-miss": l.notify,
-              title: l.notify === "unknown" ? G("adl.nf.unknownTip", "ไม่รู้ว่ามีข้อความ LINE แจ้งคำขอนี้หรือไม่ โปรดตรวจเอง")
-                : G("adl.nf.badgeTip", "ไม่มีข้อความ LINE แจ้งคำขอนี้ โปรดตรวจเอง"),
-              text: l.notify === "unknown" ? G("adl.nf.badgeUnknown", "ไม่ทราบผลแจ้ง LINE") : G("adl.nf.badge", "ยังไม่ได้แจ้งทาง LINE") }) : null,
-            NF_MISS.indexOf(l.notify) >= 0 ? " " : null,
+            // never silent (2026-11-15; review D2, D3): skipped / failed / capped = no LINE message went out; unknown = never recorded
+            nfBadge(l.notify),
+            nfBadge(l.notify) ? " " : null,
             G("adl.interest", "สนใจ") + ": ", h("span", { translate: "no", text: l.interest || "—" }), " · " + dt(l.created_at))),
         view));
     });
@@ -1158,13 +1124,7 @@
     row("adl.f.lang", "ภาษา", l.lang);
     row("adl.f.message", "ข้อความ", l.message);
     row("adl.f.consent", "เวอร์ชันข้อความยินยอม", l.consent_version);
-    var nf = l.notify === "sent" ? G("adl.nf.sent", "ส่งแล้ว {t}", { t: dt(l.notify_at) })
-      : l.notify === "failed" ? G("adl.nf.badge", "ยังไม่ได้แจ้งทาง LINE") + G("adl.nf.sep", ": ") + nfFailText(l.notify_detail)
-      : l.notify === "unknown" ? G("adl.nf.badgeUnknown", "ไม่ทราบผลแจ้ง LINE") + G("adl.nf.sep", ": ") + nfFailText("unrecorded")
-      : l.notify === "capped" ? G("adl.nf.capped", "หยุดชั่วคราว ครบจำนวนต่อวันแล้ว (คำขอยังเข้ากล่องนี้ตามปกติ)")
-      : l.notify === "skipped" ? G("adl.nf.badge", "ยังไม่ได้แจ้งทาง LINE") + G("adl.nf.sep", ": ") + String(l.notify_detail || "").split(",").map(function (x) {
-        var i = x.indexOf(":"); return i > 0 ? x.slice(0, i) + " " + nfReason(x.slice(i + 1)) : x;
-      }).join("; ") : null;
+    var nf = NF ? NF.field(G, dt, l) : null;
     row("adl.nf.label", "การแจ้งเตือนทาง LINE", nf);
     row("adl.f.delete", "ลบอัตโนมัติ", dt(l.delete_after, true) + " " + G("adl.f.deleteNote", "({n} วันหลังได้รับ)", { n: lq.days }));
   }
