@@ -22,7 +22,7 @@
     "faceread.nick.ph": "例如 小李",
     "faceread.topicL": "最想了解哪个方面",
     "faceread.privacy": "全部在浏览器内处理，不上传也不保存照片",
-    "faceread.discMini": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+    "faceread.discMini": "基于命理学原则，属个人信仰，请自行判断。",
     "faceread.resCanvas": "带三停分界线和重要部位标注的面部图像",
     "faceread.ovlGroup": "选择面部叠加图层",
     "faceread.elK": "脸型五行",
@@ -267,8 +267,8 @@
 
   /* ---------- faceread-kb.js 的中文版（只含页面显示的字段） ---------- */
   root.FR_KB_ZH = {
-    disclaimer: "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。不应用于招聘、财务、感情等决策，也不应用来评价他人",
-    disclaimerShort: "属于个人信仰，请自行判断，不保证预测准确",
+    disclaimer: "基于命理学原则，属个人信仰，请自行判断。不应用于招聘、财务、感情等决策，也不应用来评价他人",
+    disclaimerShort: "基于命理学原则，属个人信仰，请自行判断。",
     sources: [
       { label: "Wikipedia — Mien Shiang（英文）" },
       { label: "维基百科 — 面相（十二宫、五岳、四渎、三停）" },

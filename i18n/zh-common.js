@@ -336,7 +336,7 @@
   "home.link.signage": "数字广告屏与非接触式自助终端",
   "home.link.customers": "顾客识别与点单历史",
   "home.link.booth": "展位分析",
-  "home.link.fortune": "趣味占卜：面相、手相、生辰、塔罗牌",
+  "home.link.fortune": "命理占卜：面相、手相、生辰、塔罗牌",
   "home.link.store": "门店分析（客流 · 热力图 · 排队）",
   "home.link.insights": "综合仪表板",
   "home.link.checkout": "摄像头扫描商品",

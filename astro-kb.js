@@ -143,9 +143,9 @@
   var TOPICS = { overall: "ภาพรวม", love: "ความรัก", work: "การงาน", money: "การเงิน" };
   var KB = {
     version: 1, SIGNS: SIGNS, ELEMENTS: ELEMENTS, MODES: MODES, HOUSES: HOUSES, TOPICS: TOPICS,
-    disclaimer: "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย" +
+    disclaimer: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" +
       " ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน การงาน หรือความสัมพันธ์ที่สำคัญ",
-    disclaimerShort: "ตามความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่รับรองความถูกต้องของคำทำนาย",
+    disclaimerShort: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
     sources: [
       { label: "Jean Meeus, Astronomical Algorithms 2nd ed. — บทที่ 13/14 (ลัคนา), 22 (นิวเทชัน), 25 (ดวงอาทิตย์), 47 (ดวงจันทร์)", url: "https://www.willbell.com/math/mc1.htm" },
       { label: "Paul Schlyter: How to compute planetary positions (สูตรความแม่นยำต่ำ)", url: "https://stjarnhimlen.se/comp/ppcomp.html" },

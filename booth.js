@@ -1002,7 +1002,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   if (TEST) window.__booth = { get S() { return S; }, get lastFrame() { return lastFrameAll(); }, get frames() { return frames; }, get ready() { return ready; }, get running() { return running; }, persist, camera, get overlay() { return primaryCam()?.overlay; }, get cams() { return orderedCams(); }, hub, sched };
   // speed pass 2026-11-14: no model download at page load; test mode (?fakedet) loads no model, so it is ready at once
   render(0);
-  if (TEST) loadOnce(); else engine("กด เริ่มกล้อง — โมเดลจะโหลดเมื่อเปิดกล้อง");
+  if (TEST) loadOnce(); else engine(""); // owner order 2026-11-15 item 1: no idle technical status (it speaks while loading or on a failure)
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = { CFG, EMO, qualityFlags, dayKey, dist, blend, newState, newRuntime, runtime, dropRuntime, nearest, nearestCand, observe, noteTimeline, inFrameCount, inFrameUnion, normalizeRoles, camStats, hourlyByCam, buildStatsCsv, touchVisitor, hitBox, visitorStats, aggregate, markActivity, purgeFaces, autoPurge, serializeState, restoreState };

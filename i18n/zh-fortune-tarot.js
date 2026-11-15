@@ -166,7 +166,7 @@
     "tarot.card.adv": "建议：",
     "tarot.card.footSs": " · 签诗为原创内容",
     "tarot.card.footTarot": " · 牌面图片为 RWS 1909 公有领域作品",
-    "tarot.discShort": "属于个人信仰，请自行判断，不保证预测准确",
+    "tarot.discShort": "基于命理学原则，属个人信仰，请自行判断。",
     "tarot.shareTitle": "塔罗牌 & 求签 — LENSIQ",
     "tarot.stats.empty": "本机还没有抽牌记录",
     "tarot.stats.times": "次",

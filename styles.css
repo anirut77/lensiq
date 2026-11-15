@@ -365,6 +365,27 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
   background:#eef5fb;color:#14324a;font-size:.95rem;line-height:1.7;overflow-wrap:anywhere}
 .lq-helpline-result{width:auto;margin:14px 0 4px}
 .lq-helpline-note{display:block;margin-top:2px;font-size:.85rem;color:#33506a}
+/* owner order 2026-11-15 item 3: the help line is in ONE place per fortune page, a small row of tap-to-call buttons near the top
+   (tools/helpline.mjs): "อยากมีคนรับฟัง 1323" and "เจ็บป่วยฉุกเฉิน 1669". In the normal page flow (never fixed), so it cannot cover
+   the header or the menu; each button at least 44 px; the row wraps on a narrow phone. */
+.lq-helpline.lq-helpbar{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding:0;border:0;background:none;margin:8px auto 4px;line-height:1.3}
+.lq-call-mini{display:inline-flex;max-width:100%}
+.lq-call-mini>a.lq-call-btn[href]{display:inline-flex;align-items:center;gap:6px;min-height:44px;min-width:44px;max-width:100%;padding:4px 14px;border-radius:999px;
+  box-sizing:border-box;background:#0b5d8f;color:#fff;font-weight:700;font-size:.95rem;line-height:1.25;text-decoration:none;touch-action:manipulation;
+  overflow-wrap:anywhere}
+.lq-call-mini>a.lq-call-btn[href]:hover{background:#094d77;color:#fff}
+.lq-call-mini>a.lq-call-btn[href]:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+.lq-call-mini>a.lq-call-btn[href]>*{pointer-events:none}
+.lq-call-mini[data-lq-call="1669"]>a.lq-call-btn[href]{background:#fff;color:#0b5d8f;border:1px solid #0b5d8f;font-weight:600}
+.lq-call-mini[data-lq-call="1669"]>a.lq-call-btn[href]:hover{background:#eef5fb;color:#094d77}
+.lq-call-mini-n{font-variant-numeric:tabular-nums;white-space:nowrap;user-select:all;-webkit-user-select:all}
+@media (min-width:1024px),(hover:hover) and (pointer:fine) and (min-width:600px){.lq-call-mini-n{font-size:1.5rem;line-height:1.1}}
+/* owner order 2026-11-15 item 1: no idle technical status. A status line (role=status) with nothing to say is empty and takes
+   no space; it stays in the page so loading and error messages still reach screen readers. */
+html :is(.engine,.fr-engine,.pl-engine):empty{padding:0;margin:0;min-height:0;border:0;background:none}
+/* the printed report keeps the full help line; on screen the top button is the one place (owner order 2026-11-15 item 3) */
+.lq-helpline.lq-helpline-print{display:none}
+@media print{.lq-helpline.lq-helpline-print{display:block}}
 /* ---------- tap-to-call help-line component (lensiq-helpline.js; owner order 2026-11-14 Part B) ----------
    One compact row on a phone (owner addition 2026-11-14): short label | call button with the number; the second line and
    the small print wrap under the label, never under the button. Tap target at least 44 px tall. On a computer (no touch,

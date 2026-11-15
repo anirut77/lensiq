@@ -148,9 +148,9 @@
   var DAILY_NOTE = "กว้าประจำวันเหมือนกันสำหรับทุกคนในวันนี้ เปลี่ยนทุกเที่ยงคืน";
   var KB = {
     version: 1, title: "อี้จิง",
-    disclaimer: "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย" +
+    disclaimer: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" +
       " ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน กฎหมาย หรือความสัมพันธ์ที่สำคัญ",
-    disclaimerShort: "ตามความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่รับรองความถูกต้องของคำทำนาย",
+    disclaimerShort: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
     TRIGRAMS: TRIGRAMS, TRI_ORDER: TRI_ORDER, KING_WEN: KING_WEN, HEX: HEX, LINE_POS: LINE_POS, RULES: RULES, TOPICS: TOPICS, FRAMES: FRAMES, DAILY_NOTE: DAILY_NOTE,
     sources: [
       { label: "James Legge (1882), The I Ching — Sacred Books of the East vol. 16 (สาธารณสมบัติ, sacred-texts.com)", url: "https://sacred-texts.com/ich/" },

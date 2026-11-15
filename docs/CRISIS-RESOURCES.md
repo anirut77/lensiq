@@ -65,13 +65,26 @@ update this table and the component, and only then update the phrase in `tools/h
 
 ## Where each number appears
 
+**Placement change, owner decision 2026-11-15 (help line in one place per page; ช่วยเหลือที่เดียวต่อหน้า).** The owner ordered the
+1323 and 1669 rows at the bottom of every fortune page removed (the end-of-page line `#lqHelpEnd` and the line under every
+normal reading) and a single small "อยากมีคนรับฟัง" tap-to-call button kept near the top of each fortune page; one tap calls
+(a `tel:` link, no extra sheet). 1669 stays beside it as a second small tap-to-call button, so each number shows exactly once
+per page in the normal state. The second line ("พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง"), the agency and the abroad
+note are no longer on the normal page; they stay in the crisis card, in the calm-state line and in the printed report. The
+crisis net is unchanged: when it triggers, the full help card with every number replaces the reading (not a duplicate). The
+owner pre-approved this placement on 2026-11-15; it is listed for the mental-health professional's review (L63) below.
+Tests: `tests/unit/fortune-live.test.js`, `tests/e2e/fortune-live.e2e.mjs` (each number once per page at 375 px, TH / EN / ZH;
+button in the first screen, at least 44 px, not covered, clear of the header at 320 / 375 / 430 px; one tap reaches `tel:1323`;
+crisis card replaces the reading).
+
 Every place draws the number with the shared component `lensiq-helpline.js` (static HTML written by
 `tools/helpline.mjs`, which also re-draws every static copy so none can drift).
 
 | Place | Numbers | Wording source |
 |---|---|---|
-| Always-visible line on every fortune page (top and end of the page, in the HTML so it shows without JavaScript), the fortune category page and under every reading (sticky in the calm state) | 1323, 1669 | `lensiq-helpline.js`, `fortune-crisis.js` `HELP` (label, note), `tools/helpline.mjs`, `tools/cat-pages.mjs`, `i18n/{en,zh}-common.js` keys `call.*`, `help.line.*` |
-| Printed / PDF report (`report.html`) | same line at the end of the report, kept in the print view | `report.js` |
+| Help button, ONE place per fortune page (owner decision 2026-11-15, see below): one small row near the top of every fortune page and the fortune category page, in the HTML so it shows without JavaScript: "อยากมีคนรับฟัง 1323" (tap-to-call) and "เจ็บป่วยฉุกเฉิน 1669" (tap-to-call) | 1323, 1669 (each once per page) | `tools/helpline.mjs` `miniCall()` / `snippet()`, `tools/cat-pages.mjs`, `lensiq-helpline.js` (labels, accessible names), `i18n/{en,zh}-common.js` keys `call.*.label`, `call.*.btn`, `help.line.label` |
+| Under a reading, only on a calm page (crisis net: crisis state, calm session, distress words typed); sticky next to the reading | 1323, 1669 with the full wording and the abroad note | `fortune-crisis.js` `helpLine()` / `calmDock()`, `fortune-ai.js` |
+| Printed / PDF report (`report.html`) | the full line at the end of the report, shown in the print view only (hidden on screen, where the top button is the one place) | `report.js`, `styles.css` `.lq-helpline-print` |
 | Crisis support card (`fortune-ai.js`) | 1323, 1669, 191, 1300, 02 113 6789 | `lensiq-helpline.js` |
 | Merit panel support card | same card | `lensiq-merit.js` uses the `fortune-ai.js` card |
 | Medicine checker (`medicine.html`): safety bar, emergency card, product-check bottom bar | 1669; 1323 on self-harm wording | `lensiq-helpline.js` (1367 Poison Center is outside this order and unchanged) |
@@ -109,3 +122,10 @@ row: the short label, then the call button; the whole wording is the button's ac
 Also for review: the share-card line (TH "อยากมีคนรับฟัง โทร 1323 · พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง"), the help
 line's note ("อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น" / "Outside Thailand, call your local emergency number." /
 "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。") and the support card text (`fortune-ai.js` `SUPPORT`).
+
+Also for review (added 2026-11-15, owner pre-approved the placement): the fortune pages' single top help button. On a normal
+fortune page the visitor now sees only "อยากมีคนรับฟัง 1323" (EN "Want someone to listen? 1323", ZH "想找人倾听？1323") and
+"เจ็บป่วยฉุกเฉิน 1669" (EN "Medical emergency? 1669", ZH "医疗急救 1669") as two small tap-to-call buttons near the top; the
+accessible names are the full button wording in the table above. The question for the reviewer: is one button near the top
+enough on a normal fortune page, without the second line, the agency name and the abroad note (they remain on the crisis
+card, the calm-state line and the printed report)?

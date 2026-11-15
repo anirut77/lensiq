@@ -1755,6 +1755,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   // (test mode ?fakedet loads no model at all, so it is ready at once)
   if (!window.isSecureContext) showHttpsNote($("#frEngine"));
   if (FAKE) loadModels().catch(function () {});
-  else engineT("faceread.eng.idle", "พร้อม — โมเดลจะโหลดเมื่อเปิดกล้องหรือเลือกรูป", null, "ok");
+  else engine("", "ok"); // owner order 2026-11-15 item 1: no idle technical status; the status line speaks only while loading or on a failure
   window.__fr = { get current() { return current; }, makeCard: makeCard, reset: reset, narrate: narrate, keySentences: keySentences }; // ใช้ทดสอบ
 })();

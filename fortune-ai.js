@@ -4304,7 +4304,7 @@
     // ที่มาของผล (หลักฐานแบบสูตรคำนวณที่ไม่ใส่ในประโยค)
     if (res.why && Array.isArray(res.why.lines) && res.why.lines.length && opts.why !== false) h += '<details class="fa-more fa-why"><summary data-i18n="fa.why">' + escapeHtml(res.why.title || "ที่มาของผล") + "</summary><ul>" + res.why.lines.map(l => "<li><b>" + escapeHtml(l.k) + "</b> " + escapeHtml(l.t) + "</li>").join("") + "</ul></details>";
     if (res.reminder && opts.reminder !== false) h += '<p class="fa-reminder" role="note">' + escapeHtml(res.reminder) + "</p>";
-    if (CR && CR.helpHTML) h += CR.helpHTML(res.lang, "lq-helpline-result"); // the help line under every reading
+    if (CR && CR.helpHTML && CR.calmOn && (CR.calmOn() || CR.distress())) h += CR.helpHTML(res.lang, "lq-helpline-result"); // under a reading only when calm (2026-11-15: one place per page)
     return h;
   }
   function renderSections(container, result, opts = {}) {
@@ -4360,9 +4360,9 @@
     if (res.reminder && opts.reminder !== false) { const n = el("p", "fa-reminder", res.reminder); n.setAttribute("role", "note"); frag.appendChild(n); }
     // ส่วน C: ตัวเลือก "ดูตรง ๆ" — วาดเฉพาะเมื่อเปิดสวิตช์ (ปิดอยู่ในไฟล์ที่ส่งมอบ จึงไม่มีอะไรเปลี่ยนบนหน้า)
     if (straightEnabled() && opts.straightControl !== false && FS.mount) FS.mount(container, frag, res);
-    // the help line under every reading (owner order 2026-11-12): calm, verified numbers, no detection needed
-    // (crisis fix 4: on a calm page fortune-crisis.js makes it sticky, in view next to the reading)
-    if (CR && CR.helpLine) { try { frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ } }
+    // owner order 2026-11-15 item 3: the help line is in ONE place per page (the top button); under a reading only on a calm page
+    // (crisis net: crisis state, calm session or distress typed), where fortune-crisis.js makes it sticky next to the reading
+    if (CR && CR.helpLine && CR.calmOn && (CR.calmOn(doc) || CR.distress(doc))) { try { frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ } }
     container.appendChild(frag); if (CR && CR.calmDock) CR.calmDock(container, res.lang); // crisis fix 4: help line in view when calm
     try { if (root.LQI18N && typeof root.LQI18N.apply === "function") root.LQI18N.apply(container); } catch (e) { /* i18n ไม่พร้อม */ }
     return container;

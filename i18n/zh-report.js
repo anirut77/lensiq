@@ -1,6 +1,6 @@
 /* zh-report.js — Simplified Chinese for report.html (Thai lives in the markup / report.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
-  "fortune.disc.line": "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+  "fortune.disc.line": "基于命理学原则，属个人信仰，请自行判断。",
   "rp.doc.title": "我的占卜报告 | LENSIQ",
   "rp.doc.desc": "LENSIQ 长篇占卜报告：多体系基础报告、合盘报告和按月年度报告，在设备上计算，可保存到账户并打印或另存为 PDF",
   "rp.eyebrow": "LENSIQ 占卜 · 报告",

@@ -6,6 +6,10 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Fortune go-live (owner order 2026-11-15, branch `fortune-live` = fortune-a + main)
+
+- Final disclaimer "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" (TH / EN / ZH) on every fortune page and the fortune category; no idle "ready, the model loads when …" status on faceread, palm, booth or studio; help line in one place per fortune page (one small "อยากมีคนรับฟัง 1323" tap-to-call button with 1669 beside it near the top, crisis card unchanged). Tests: `tests/{unit,e2e}/fortune-live.*` (locked).
+
 ## Fortune Part A (owner order 2026-11-14, branch `fortune-a`, waiting for owner approval before merge)
 
 - A1: "for entertainment" removed from the 18 fortune pages (TH / EN / ZH); the owner's one-line notice replaces it

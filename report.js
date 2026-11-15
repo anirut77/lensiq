@@ -473,7 +473,7 @@
     // owner order 2026-11-14 A1 + A5: the one-line notice (fortune.disc.line), the rest behind "อ่านเพิ่มเติม"
     out.appendChild(h("p", { class: "rp-small lq-notice", role: "note" },
       h("b", { class: "lq-disc-line", "data-i18n": "fortune.disc.line",
-        text: T("fortune.disc.line", "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย") }), " ",
+        text: T("fortune.disc.line", "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ") }), " ",
       h("span", { class: "lq-notice-more" }, h("span", { text: T("rp.disclaimer", "ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ ไม่ใช่คำแนะนำทางการแพทย์ การเงิน หรือการจ้างงาน") }))));
     // the help line at the end of every report, kept in the print / PDF view (owner order 2026-11-12)
     var CRh = W.LQFortuneCrisis;

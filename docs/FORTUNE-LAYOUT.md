@@ -109,3 +109,20 @@ wrong tag shows more text and never hides any.
 - Keep the off switch default off; with it off the DOM above must be byte-for-byte what the layout produces today.
 - Paid content must never appear while the crisis net, the soft step or the support card is active (mark it
   `data-lq-remedy` / `data-lq-upsell`, see `fortune-crisis.js`).
+
+## Go-live changes (owner order 2026-11-15, branch `fortune-live`)
+
+- Notice line (`fortune.disc.line`, `LINE` in `fortune-read.js` / `fortune-notice.js`): the owner's final wording
+  "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" / "Based on astrological principles, which are a matter of
+  personal belief. Please use your own judgement." / "基于命理学原则，属个人信仰，请自行判断。". The share card and every KB
+  `disclaimer` / `disclaimerShort` use the same line. "เพื่อความบันเทิง" does not appear on any fortune page.
+- Help line in ONE place per page: `#lqHelpTop` (before `<main>`) is a small row of two tap-to-call buttons
+  (`.lq-helpbar` > `.lq-call-mini[data-lq-call]` > `a.lq-call-btn[href^="tel:"]`, label and number inside the button). There is
+  no `#lqHelpEnd` and no `.lq-helpline-result` under a normal reading. Under a reading on a calm page (crisis net) the line is
+  still added (`fortune-crisis.js` `helpLine()` / `calmDock()`); the printed report keeps `.lq-helpline-print` (print only).
+  Paid depth: find the help line with `.lq-helpline, .lq-helpline-result` as before and fall back to appending at the end of
+  the reading when there is none (normal state).
+- The group model above (`.fa-section[data-section][data-lq-grouped]`, `.lq-gist`, `button.lq-more` + `.lq-more-body`,
+  `HEADINGS[lang][id]`, `FortuneAI.SECTION_IDS`, `enhance(container, res)`) is unchanged; it is the structure the paid depth
+  (`fortune-paid.js`) uses.
+- Tests: `tests/unit/fortune-live.test.js`, `tests/e2e/fortune-live.e2e.mjs` (locked, `evals-locks/fortune-live.sha256`).
