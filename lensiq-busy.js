@@ -67,6 +67,7 @@
     return t;
   }
   function wrap(fn) {
+    /** @this {any} @param {any} ev */
     return function (ev) {
       var owner = ev && ev.currentTarget && ev.currentTarget.nodeType === 1 ? ev.currentTarget : null;
       if (owner && pending && pending.has(owner)) { if (ev.preventDefault) ev.preventDefault(); return undefined; }
@@ -77,9 +78,11 @@
 
   if (typeof document !== "undefined" && document.addEventListener) {
     var last = typeof WeakMap === "function" ? new WeakMap() : null;
+    /** the element a click landed on (a text node gives its parent) @param {any} x @returns {any} */
+    var elOf = function (x) { return x && x.nodeType === 1 ? x : x && x.parentElement; };
     var closest = function (t, sel) { return t && t.closest ? t.closest(sel) : null; };
     root.addEventListener("click", function (ev) {
-      var t = ev.target && ev.target.nodeType === 1 ? ev.target : ev.target && ev.target.parentElement;
+      var t = elOf(ev.target);
       if (!t) return;
       // a busy button: drop the click before any page listener sees it
       for (var p = t; p && p.nodeType === 1; p = p.parentElement) {
@@ -101,15 +104,16 @@
     var lastTap = null, lastTapAt = 0;
     root.addEventListener("click", function (ev) {
       if (!ev.isTrusted) return;
-      var t = ev.target && ev.target.nodeType === 1 ? ev.target : ev.target && ev.target.parentElement;
+      var t = elOf(ev.target);
       var b = closest(t, BTN);
       if (b && !closest(t, NEVER)) { lastTap = b; lastTapAt = Date.now(); }
     }, true);
     var md = root.navigator && root.navigator.mediaDevices;
     if (md && typeof md.getUserMedia === "function") {
       var gum = md.getUserMedia;
-      md.getUserMedia = function () {
-        var p = gum.apply(md, arguments);
+      /** @param {MediaStreamConstraints} [c] */
+      md.getUserMedia = function (c) {
+        var p = gum.call(md, c);
         var b = lastTap;
         if (b && b.isConnected && Date.now() - lastTapAt < CAM_MS && !isBusy(b) && p && typeof p.then === "function") {
           lastTap = null;
