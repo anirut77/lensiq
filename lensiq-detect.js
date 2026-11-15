@@ -29,10 +29,18 @@
  *     window.ort); detectYolox(m, src, opts) same contract as detectCoco (+ split:'auto'); detectPeople(m, src, opts) dispatches.
  *   decodeYolox(out, A, C5, S, {classes, minScore, iou, max, scale}) -> dets in letterboxed-source px (pure)
  *   faceSharpness(src, box px) -> Laplacian variance of the face crop (quality gate)
- *   detectFacesCascade(faceapi, src, {sizes=[320,224,160], scoreThreshold=0.5, descriptors=true}) -> Promise<results[]>
+ *   detectFacesCascade(faceapi, src, {sizes=[320,224,160], scoreThreshold=0.5, descriptors=true, timeoutMs=10000}) -> Promise<results[]>
+ *     rejects (never hangs) when the detector throws; rejects "DetectTimeout" when a pass takes longer than timeoutMs.
  *     TinyFaceDetector + 68 landmarks (+ descriptors) at sizes[0]; only when that finds no face, again at the next size.
  *     A face that fills a large part of the frame (someone close to a kiosk camera) is often missed at 320 and found at
  *     160: CASIA-FaceV5 faces found 60% -> see ACCURACY.md §2. Costs a second (cheaper) pass only on empty frames.
+ *   withTimeout(p, ms, name='Timeout') -> p, or a rejection with e.name = name after ms
+ *   failKind(e) -> 'timeout' | 'lost' | 'oom' | 'other'   (*Timeout name / WebGL context lost / RangeError or memory text)
+ *   nextBackend(current) -> 'wasm'|'cpu'|null   next registered TF.js backend after current (order wasm -> cpu)
+ *   switchBackend(name, {dispose:[nets], reload:async fn}) -> Promise<name>   disposes nets, setBackend, reload(); tfBackend() then = name
+ *   scanGuard({max=3}) -> {ok(), fail(e) -> kind|null}   trips on max "other" errors in a row or one timeout / lost / oom
+ *   scanFailText(kind) -> plain Thai line for a scan page whose detector stopped ("oom" names memory)
+ *   watchContextLost(onLost) -> boolean   onLost() once on 'webglcontextlost' of the current WebGL backend (false: not webgl)
  *   isTest() -> boolean   location.hostname in {localhost,127.0.0.1} && URLSearchParams has 'fakedet'
  *   fake(key, now) -> dets|null   isTest() ? (window.__LQ_FAKE_DET?.(key, now) ?? null) : null
  *     Pages call fake() before the real model; with ?fakedet they skip model loading entirely.
@@ -355,18 +363,79 @@
     return r == null ? null : r;
   }
 
+  /* ---- live-failure helpers (faceread iOS fix 2026-11-15): a page never keeps a live camera whose detector stopped ---- */
+  const named = (name, msg) => { const e = new Error(msg || name); try { e.name = name; } catch { /* read-only */ } return e; };
+  /** p, or a rejection named `name` after ms */
+  function withTimeout(p, ms, name = "Timeout") {
+    let t = 0;
+    Promise.resolve(p).catch(() => { /* a late rejection after the timeout is not an unhandled error */ });
+    return Promise.race([p, new Promise((_, rej) => { t = setTimeout(() => rej(named(name, `${name} after ${ms} ms`)), ms); })])
+      .then(v => { clearTimeout(t); return v; }, e => { clearTimeout(t); throw e; });
+  }
+  /** "timeout" (a *Timeout error) | "lost" (WebGL context) | "oom" (RangeError / memory) | "other" */
+  function failKind(e) {
+    const n = (e && e.name) || "", m = String((e && e.message) || e || "");
+    if (/Timeout$/.test(n)) return "timeout";
+    if (n === "ContextLost" || /context.{0,8}lost/i.test(m)) return "lost";
+    if (n === "RangeError" || /out of memory|memory|allocat/i.test(m)) return "oom";
+    return "other";
+  }
+  /** the next registered TF.js backend after `current` in the order wasm -> cpu, or null */
+  function nextBackend(current) {
+    const tf = tfLib(); if (!tf) return null;
+    const has = n => { try { return !!(tf.findBackendFactory ? tf.findBackendFactory(n) : tf.engine().registryFactory[n]); } catch { return false; } };
+    return ["wasm", "cpu"].filter(n => n !== current && has(n))[0] || null;
+  }
+  /**
+   * switches TF.js to `name`: disposes the given nets (their weights lived on the old backend), then reload()
+   * @param {string} name @param {{dispose?: any[], reload?: () => Promise<any>}} [o]
+   */
+  async function switchBackend(name, { dispose = [], reload = async () => {} } = {}) {
+    const tf = tfLib(); if (!tf) throw new Error("no TensorFlow.js");
+    for (const n of dispose) { try { n.dispose(); } catch { /* already gone with a lost context */ } }
+    if (!(await tf.setBackend(name))) throw new Error(`backend ${name} not available`);
+    await tf.ready();
+    backendP = Promise.resolve(name);
+    await reload();
+    return name;
+  }
+  /** calls onLost() once when the current WebGL backend loses its context (iOS drops it under memory pressure) */
+  function watchContextLost(onLost) {
+    try {
+      const tf = tfLib(); if (!tf || tf.getBackend() !== "webgl") return false;
+      const c = tf.backend().gpgpu.gl.canvas;
+      if (!c || c.__lqWatch) return !!c;
+      c.__lqWatch = true;
+      c.addEventListener("webglcontextlost", () => { try { onLost(); } catch { /* page handler */ } }, { once: true });
+      return true;
+    } catch { return false; }
+  }
+
   const FACE_SIZES = Object.freeze([320, 224, 160]);
-  async function detectFacesCascade(fa, src, { sizes = FACE_SIZES, scoreThreshold = 0.5, descriptors = true } = {}) {
+  // q.run(), not `await q`: face-api's task.then(ok) ignores the reject handler, so `await q` never settles when the
+  // detector throws (a frozen scan with the camera on). Each pass is limited to timeoutMs (rejects "DetectTimeout").
+  async function detectFacesCascade(fa, src, { sizes = FACE_SIZES, scoreThreshold = 0.5, descriptors = true, timeoutMs = 10000 } = {}) {
     for (const inputSize of sizes) {
       let q = fa.detectAllFaces(src, new fa.TinyFaceDetectorOptions({ inputSize, scoreThreshold })).withFaceLandmarks();
       if (descriptors) q = q.withFaceDescriptors();
-      const r = await q;
+      const r = await withTimeout(typeof q.run === "function" ? q.run() : Promise.resolve(q), timeoutMs, "DetectTimeout"); // a plain thenable: as is
       if (r && r.length) return r;
     }
     return [];
   }
+  /** a scan loop's error counter: fail(e) -> the kind once tripped (3 "other" errors in a row, or one timeout / lost / oom), else null */
+  function scanGuard({ max = 3 } = {}) {
+    let n = 0;
+    return { ok() { n = 0; }, fail(e) { const k = failKind(e); n++; if (k !== "other" || n >= max) { n = 0; return k; } return null; } };
+  }
+  /** the plain Thai line a scan page shows when its face detector stopped (translated by the run-time dictionaries) */
+  const SCAN_FAIL = {
+    oom: "หน่วยความจำของเครื่องไม่พอสำหรับสแกนใบหน้า — หยุดสแกนแล้ว ปิดแท็บหรือแอปอื่น แล้วกดเริ่มสแกนอีกครั้ง",
+    other: "การตรวจจับใบหน้าหยุดทำงานบนเครื่องนี้ — หยุดสแกนแล้ว ปิดแท็บอื่นหรือโหลดหน้าใหม่ แล้วกดเริ่มสแกนอีกครั้ง"
+  };
+  const scanFailText = kind => (kind === "oom" ? SCAN_FAIL.oom : SCAN_FAIL.other);
   const api = { detectFacesCascade, FACE_SIZES, tfBackend, hasWebGL, loadCoco, decodeCoco, nms, detectCoco, detectCocoMulti, decodeYolox, loadYolox, detectYolox, detectPeople, YOLOX_DEFAULT,
-    tileRects, mergeTiles, loadEmbedder, embedBox, EMB_NODE, faceSharpness, isTest, fake };
+    tileRects, mergeTiles, loadEmbedder, embedBox, EMB_NODE, faceSharpness, isTest, fake, withTimeout, failKind, nextBackend, switchBackend, watchContextLost, scanGuard, scanFailText };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQDetect = api;
 })(typeof window !== "undefined" ? window : globalThis);

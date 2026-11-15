@@ -238,6 +238,7 @@ $("#regForm").addEventListener("submit", async e => {
 const TIME = () => new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 const RES_CLS = { ok: "ok", dup: "warn", pending: "", ask: "warn", unknown: "unknown", err: "err" };
 let unknownAt = 0;
+const scanGuard = LQDetect.scanGuard();
 
 async function loop() {
   if (!scanning) return;
@@ -246,6 +247,7 @@ async function loop() {
   try {
     const faces = await detectFaces();
     if (!scanning) return;
+    scanGuard.ok();
     const now = performance.now();
     healthStep(faces);
     if (SCA) { attCheckStep(faces, now, ctx); setTimeout(loop, 300); return; } // ตรวจความแม่นยำ: ไม่บันทึกการเข้าเรียน
@@ -288,7 +290,15 @@ async function loop() {
     if (unk) unknownAt = Date.now();
     showUnknownNote(unk);
     if (!faces.length && Date.now() - lastMsgAt > 2500) say("กำลังสแกน... กรุณาหันหน้าเข้าหากล้อง");
-  } catch (e) { console.error(e); }
+  } catch (e) {
+    console.error(e);
+    // the detector threw or hung (faceread-ios round 2): stop scanning with a plain line, never a silent frozen scan
+    const k = scanGuard.fail(e);
+    if (k && scanning) {
+      scanning = false; $("#startScan").textContent = "เริ่มสแกน"; if (UA) UA.stop();
+      overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); say(LQDetect.scanFailText(k), "err"); return;
+    }
+  }
   setTimeout(loop, 400);
 }
 

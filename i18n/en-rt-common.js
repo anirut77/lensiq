@@ -243,5 +243,10 @@
   // shared header / nav leftovers seen on camera pages
   "LENSIQ หน้าแรก": "LENSIQ home",
   "หน้าแรก": "Home",
-  "ไม่มี WebGL ใช้ CPU แทน อาจช้ากว่าปกติ": "No WebGL; using CPU instead, may be slower than usual"
+  "ไม่มี WebGL ใช้ CPU แทน อาจช้ากว่าปกติ": "No WebGL; using CPU instead, may be slower than usual",
+  // ---- face scan stopped (LQDetect.scanFailText; customers adds the search hint) ----
+  "หน่วยความจำของเครื่องไม่พอสำหรับสแกนใบหน้า — หยุดสแกนแล้ว ปิดแท็บหรือแอปอื่น แล้วกดเริ่มสแกนอีกครั้ง": "This device ran out of memory for face scanning — scanning stopped. Close other tabs or apps, then tap Start scan again",
+  "หน่วยความจำของเครื่องไม่พอสำหรับสแกนใบหน้า — หยุดสแกนแล้ว ปิดแท็บหรือแอปอื่น แล้วกดเริ่มสแกนอีกครั้ง · ค้นหาด้วยชื่อหรือเบอร์แทนได้": "This device ran out of memory for face scanning — scanning stopped. Close other tabs or apps, then tap Start scan again · You can search by name or phone instead",
+  "การตรวจจับใบหน้าหยุดทำงานบนเครื่องนี้ — หยุดสแกนแล้ว ปิดแท็บอื่นหรือโหลดหน้าใหม่ แล้วกดเริ่มสแกนอีกครั้ง": "Face detection stopped working on this device — scanning stopped. Close other tabs or reload the page, then tap Start scan again",
+  "การตรวจจับใบหน้าหยุดทำงานบนเครื่องนี้ — หยุดสแกนแล้ว ปิดแท็บอื่นหรือโหลดหน้าใหม่ แล้วกดเริ่มสแกนอีกครั้ง · ค้นหาด้วยชื่อหรือเบอร์แทนได้": "Face detection stopped working on this device — scanning stopped. Close other tabs or reload the page, then tap Start scan again · You can search by name or phone instead"
 });
