@@ -165,7 +165,8 @@ export default async function ({ base, launch, check }) {
           }
           (withOffers[lang] = withOffers[lang] || []).push(p);
           for (const b of r.bad) bad.push(`${lang} ${p}: ${b}`);
-          if (r.plans.full !== 1 || r.plans.plus !== 1 || !r.plans.group) bad.push(`${lang} ${p}: offers ${S(r.plans)}`);
+          // re-lock (10), review D1: a group may have no 49 offer (its free overview ends in a caution or guidance part)
+          if (r.plans.full !== 1 || r.plans.plus !== 1) bad.push(`${lang} ${p}: offers ${S(r.plans)}`);
           // tapping connects no payment: no POST, no request to another origin, a short status note in the offer
           const n0 = page.requests.length;
           const note = await page.evaluate(`(() => { const b = document.querySelector('[data-lq-offer="full"] [data-lq-buy]'); b.click();

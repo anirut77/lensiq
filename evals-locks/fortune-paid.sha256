@@ -34,3 +34,11 @@ c4762a5abcb5ad8e1d4379c860f98af3099ef076eafe1178a47368c1833e83b6  tests/e2e/fort
 # locked 2026-11-15T18:56:35Z (tools/eval-guard.mjs lock, 2 files)
 fc0f4d0a56897cf13bf28dc7a82599cfee18c38b555865be88dc69b99636f9f6  tests/unit/fortune-paid-affiliate.test.js
 59a89b483fca82a063610bbb5203bfbfbf1155259465d62d23adc1ed97b8dbec  tests/e2e/fortune-paid-sources.e2e.mjs
+# RE-LOCK 2026-11-16 (10), BEFORE the fix: independent review of c28f96c PASSED for merge with every switch off, with three defects before go-live. New: tests/unit/fortune-paid-d123.test.js (D1 not-a-remedy line on every group offer, no group offer right after a caution / guidance part, D2 zodiac support / dream ancestor / horoscope useful element are guidance data and never paid, D3 sample entries never in a plan and titles kept, switch-off identity: guidance marks additive only, reading and HTML byte-identical without them) and tests/e2e/fortune-paid-d1.e2e.mjs (DOM: no group offer right after a caution paragraph or advice box; not-a-remedy line). Changed by the review (D1 / D3): tests/unit/fortune-paid.test.js (c) one 49 offer per SAFE paid group instead of per paid group; tests/e2e/fortune-paid.e2e.mjs a reading may have no group offer; tests/unit/fortune-paid-plan.test.js fixtures are the seed entries as non-sample copies and samples alone make no plan; tests/e2e/fortune-paid-plan.e2e.mjs injects non-sample published places (LQ_FORTUNE_PLAN_ITEMS). No hard-limit (a, b, c) assertion removed. Before the fix: d123 1 / 5, plan unit and (c) failing as expected.
+# locked 2026-11-15T20:32:14Z (tools/eval-guard.mjs lock, 6 files)
+a62f99430dfb5c6e048db46020b06395ba68400eabd70fa3667f70f350a47587  tests/unit/fortune-paid-d123.test.js
+3c8ac515638b581fccd537a41ffdb26f4a574e3b64523e1ed69e554447847e5a  tests/unit/fortune-paid.test.js
+282f85d73dab32485e35cea03e6825edc8099947f826841265011bfe3ef17313  tests/unit/fortune-paid-plan.test.js
+d8dd96e03e88fdc7e5743da5006ae076bc86d50101a0377934ae91d926c39677  tests/e2e/fortune-paid-d1.e2e.mjs
+22118496a6a8b4e2aee1fa3714e25a134a1795ef885139121aa31c62acf7f9a6  tests/e2e/fortune-paid.e2e.mjs
+0da6463ccdd0804e38f7c25fc20c7a2aa0f2128bb9058f7e70e6aba480e0ba17  tests/e2e/fortune-paid-plan.e2e.mjs

@@ -25,7 +25,9 @@ const ROOT = path.join(__dirname, "..", "..");
 for (const f of fs.readdirSync(path.join(ROOT, "i18n")).filter(f => /^(?:zh|en)-kb-.+\.js$/.test(f))) require(path.join(ROOT, "i18n", f));
 const FA = require("../../fortune-ai.js");
 const P = require("../../fortune-paid.js");
-const SEED = require("../../lensiq-merit-seed.js");
+// re-lock (10), review D3: sample seed entries never appear in a plan; the fixtures are the same entries as reviewed, non-sample
+const SAMPLES = require("../../lensiq-merit-seed.js");
+const SEED = SAMPLES.map(s => Object.assign({}, s, { sample: false }));
 const exportTool = () => import("../../tools/fortune-review-export.mjs");
 const LANGS = ["th", "en", "zh"];
 const GOALS = ["work", "money", "love", "health", "protection", "barami"];
@@ -118,6 +120,7 @@ test("plan: chosen by goal only, built from published Merit places and the facts
 
 test("plan: no plan without a valid goal, without published places, with the plan switch off, or in the crisis state", () => {
   const f = { domain: "zodiac", items: [], extras: { luckyColors: ["เขียว"] } }, res = { lang: "th", sections: [{ id: "overview", paragraphs: ["ก"] }] };
+  assert.equal(withSw(true, true, () => P.planFor("work", { facts: f, res, lang: "th", items: SAMPLES })), null, "sample entries are never used (D3)");
   assert.equal(withSw(true, true, () => P.planFor("lottery", { facts: f, res, lang: "th", items: SEED })), null, "unknown goal");
   assert.equal(withSw(true, true, () => P.planFor(undefined, { facts: f, res, lang: "th", items: SEED })), null, "no goal chosen");
   assert.equal(withSw(true, true, () => P.planFor("work", { facts: f, res, lang: "th", items: SEED.filter(s => s.type !== "place") })), null, "no places");

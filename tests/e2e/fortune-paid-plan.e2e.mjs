@@ -16,6 +16,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const LANGS = ["th", "en", "zh"];
 const HTML_LANG = { th: "th", en: "en", zh: "zh-Hans" };
 const PRICE_RE = "\\d+\\s*(?:บาท|THB|泰铢)|฿";
+const PLACES = [{ id: "pl-1", type: "place", tradition: "thai_buddhist", keys: ["any"], status: "published", sample: false,
+  title: { th: "วัดใกล้บ้าน", en: "A temple near home", zh: "家附近的寺庙" }, place: { th: "วัดใกล้บ้าน", en: "A temple near home", zh: "家附近的寺庙" } },
+{ id: "of-1", type: "offering", tradition: "thai_buddhist", keys: ["any"], status: "published", sample: false,
+  title: { th: "ดอกไม้ ธูป เทียน", en: "Flowers, incense and candles", zh: "鲜花、香和蜡烛" } }];
 const ev = (page, fn, ...a) => page.evaluate(fn, ...a);
 const sections = n => `document.querySelectorAll(".fa-section").length >= ${n} && !document.querySelector(".fa-loading, [aria-busy=true] .fa-section")`;
 const READ = {
@@ -28,6 +32,8 @@ const READ = {
 async function open(browser, base, p, lang, { plan = true } = {}) {
   const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`, "window.LENSIQ_FORTUNE_PAID = true;"];
   if (plan) init.push("window.LENSIQ_FORTUNE_PLAN = true;");
+  // re-lock (10), review D3: sample seed entries never make a plan; published, non-sample places (approved in the back office later)
+  init.push(`window.LQ_FORTUNE_PLAN_ITEMS = ${S(PLACES)};`);
   const page = await browser.newPage(null, { initScripts: init });
   await page.send("Emulation.setDeviceMetricsOverride", { width: 375, height: 800, deviceScaleFactor: 2, mobile: true });
   await page.goto(`${base}/${p}.html?nosw`);

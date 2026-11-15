@@ -256,7 +256,10 @@ test("(c) every offer: approved price, price text with the currency in the readi
       assert.ok(typeof o.label === "string" && o.label.trim(), "label");
     }
     const byPlan = p => offers.filter(o => o.plan === p);
-    assert.equal(byPlan("group").length, paidGroups.length, "one 49 offer per group with paid depth");
+    // re-lock (10), review D1: no 49 offer in a group whose free overview ends in a caution or guidance part (offerSafe false);
+    // exactly one per group with paid depth that ends in a neutral part
+    assert.equal(byPlan("group").length, paidGroups.filter(g => g.offerSafe === true).length, "one 49 offer per safe group with paid depth");
+    for (const o of byPlan("group")) assert.equal(sp.groups.find(gg => gg.id === o.group).offerSafe, true, "group offer only in a safe group");
     for (const o of byPlan("group")) {
       const g = sp.groups.find(gg => gg.id === o.group);
       assert.ok(g && g.paid.length && o.headings.includes(g.title), "group offer lists its group heading");
