@@ -1034,7 +1034,22 @@
       setBadge(r.unread);
       renderLeads();
     }, fail);
+    call("/leads/notify").then(function (/** @type {any} */ r) { lq.notify = r; renderNotify(); },
+      function () { lq.notify = { state: "unavailable" }; renderNotify(); });
   };
+  /* LINE notification status line under the inbox (owner order 2026-11-15, "never silent"): working or not, the last
+   * success time and the reason, from GET /admin/api/leads/notify (secret NAMES + reason codes only, never a value).
+   * Wording in admin-lead-notify.js (window.LQLeadNotify, loaded before this file). */
+  var NF = /** @type {any} */ (window).LQLeadNotify;
+  function renderNotify() {
+    var el = $("adlNotify"), r = lq.notify;
+    if (!el || !r || !NF) return;
+    var st = String(r.state || "unavailable");
+    el.setAttribute("data-state", st);
+    el.className = "adl-notify" + (st === "ok" ? " adl-nf-ok" : st === "unconfirmed" ? "" : " adl-nf-bad");
+    el.hidden = false;
+    el.textContent = NF.line(G, dt, r);
+  }
   /** Unread badge on the tab: new requests not opened yet (count only, from the Worker). @param {any} n */
   function setBadge(n) {
     lq.unread = Math.max(0, Number(n) || 0);
@@ -1045,6 +1060,11 @@
     b.title = b.getAttribute("aria-label") || "";
   }
   function leadBadge() { call("/leads/unread").then(function (/** @type {any} */ r) { setBadge(r.unread); }, function () { /* badge only */ }); }
+  /** Row badge when the owner was not (or maybe not) told on LINE. @param {any} n */
+  var nfBadge = function (n) {
+    var b = NF && NF.badge(G, n);
+    return b ? h("span", { class: "adl-chip adl-nf-miss", "data-notify-miss": n, title: b.title, text: b.text }) : null;
+  };
   function renderLeads() {
     var c = lq.counts || { new: 0, contacted: 0, closed: 0 };
     $("adlCounts").textContent = G("adl.counts", "ใหม่ {n} · ติดต่อแล้ว {c} · ปิดแล้ว {x}", { n: c.new, c: c.contacted, x: c.closed }) +
@@ -1060,6 +1080,9 @@
           l.company ? h("span", { class: "ad-muted", text: " · " + l.company }) : null,
           h("div", { class: "ad-muted adl-meta" },
             h("span", { class: "adl-chip adl-" + l.status, text: stText(l.status) }), " ",
+            // never silent (2026-11-15; review D2, D3): skipped / failed / capped = no LINE message went out; unknown = never recorded
+            nfBadge(l.notify),
+            nfBadge(l.notify) ? " " : null,
             G("adl.interest", "สนใจ") + ": ", h("span", { translate: "no", text: l.interest || "—" }), " · " + dt(l.created_at))),
         view));
     });
@@ -1101,6 +1124,8 @@
     row("adl.f.lang", "ภาษา", l.lang);
     row("adl.f.message", "ข้อความ", l.message);
     row("adl.f.consent", "เวอร์ชันข้อความยินยอม", l.consent_version);
+    var nf = NF ? NF.field(G, dt, l) : null;
+    row("adl.nf.label", "การแจ้งเตือนทาง LINE", nf);
     row("adl.f.delete", "ลบอัตโนมัติ", dt(l.delete_after, true) + " " + G("adl.f.deleteNote", "({n} วันหลังได้รับ)", { n: lq.days }));
   }
   function closeLead() { lq.open = ""; lq.lead = null; $("adlDetail").hidden = true; $("adlFields").textContent = ""; $("adlName").textContent = ""; renderLeads(); }
@@ -1141,7 +1166,7 @@
     });
   });
   // language switch: redraw from what is already loaded (no new request, nothing extra in the audit log)
-  window.addEventListener("lq-lang", function () { if (lq.counts) renderLeads(); renderDetail(); setBadge(lq.unread); });
+  window.addEventListener("lq-lang", function () { if (lq.counts) renderLeads(); renderDetail(); setBadge(lq.unread); renderNotify(); });
 
   /* ---------------- security ---------------- */
   loaders.security = function () {
