@@ -36,7 +36,7 @@ on those stars and compass records pointing at an unfavourable direction (`all`)
 | Discipline | Tagged entries | What was tagged (read, not searched) |
 |---|---|---|
 | tarot | 154 | Engine-unfavourable cards (`all`); Four of Swords (`all`); reversed cards whose love / work / money text says to slow down, check the plan or hold back; Moon, Death, Tower reversed; pairs with Five of Cups / Pentacles, Swords 3, 5, 8, 9, 10, Ten of Wands, Devil, Tower, Death, Moon |
-| iching | 73 | Hexagrams 3, 6, 12 否, 23, 29, 36, 39 蹇, 47 and their "leads to" forms (`all`); 5 需, 10 履, 33 遯, 41 損, 44 姤, 52 艮, 60 節 (`all`); 18 more by area (mostly money); changing lines 1, 3, 6; trigrams Gen and Kan by area |
+| iching | 75 | Hexagrams 3, 6, 12 否, 23, 29, 36, 39 蹇, 47 and their "leads to" forms (`all`); 5 需, 10 履, 33 遯, 41 損, 44 姤, 52 艮, 60 節 (`all`); 18 more by area (mostly money); hex.4 / rel.4 money (review F); changing lines 1, 3, 6; trigrams Gen and Kan by area |
 | numbers | 57 | Pair groups whose label names a risk (money leak, burden, ups and downs, obstacle, love needing care, hasty temper: `all`); sums that repeat those pairs; areas that say check before signing, lending or a big expense |
 | dream | 56 | Areas that say pause before deciding, read terms before agreeing, spend within a budget, do not rush, rest enough; dream type and the confused mood |
 | horoscope | 46 | Money cautions (do not give beyond your means, keep a fallback, pause before spending); fire-element "do not burn all your energy at once"; Tiger, Dragon and Pig year lines; BaZi excess elements and Rob Wealth (choose partners with care) |
@@ -50,6 +50,22 @@ on those stars and compass records pointing at an unfavourable direction (`all`)
 | lek7 | 7 | Houses with low energy that need attention (`all`) |
 | lifegraph | 4 | Current-period care, love and money cautions (`all`); wealth luck timing |
 | fengshui | 2 | Directions to use less (`all`); headboard advice "keep the bed out of line with the door" (all compass records of the bed); plus the chart-dependent engine tags above |
+
+Review of 2026-11-15 (fresh detector), decided by reading:
+- Tarot `m00.r` (Fool reversed) love ("slow down … before deciding anything") and `swords11.r` (Page of Swords reversed)
+  love ("choose your words with care") are tagged, like the face and palm count-to-ten tags.
+- Borderline cases made consistent: Wheel of Fortune `m10` / `m10.r` advice ("wait patiently for the right moment") is
+  tagged, like the siam si slips that counsel waiting and I Ching 5 需; I Ching `hex.4` / `rel.4` money ("read up on all the
+  facts before a money decision") is tagged, like the palm and numbers check-before-a-big-money-decision tags.
+- Numbers `sum.NN` reuses the text of `pair.NN`, so an untagged sum takes its pair's tag (plus overview). This covers sums the
+  review sheets never produced (`sum.70`, `sum.72` … `sum.80`).
+- Tips: `facts.extras.restrainTips` lists the tips the engine's data marks as restraining (numbers: `goals[].tips[].avoid`, for
+  example "ตำรานิยมเลี่ยงคู่ 27/72 และ 67/76 …"); provenance area `tip`. Every other discipline's tips were read: I Ching and
+  zodiac tips are their items' own advice text (covered by the item tags); face, palm and feng shui tips do not restrain.
+- Template fills: a summary or headline template filled with an unfavourable or tagged item (TH contrast "แม้{W}จะยังไม่เด่นนัก…",
+  TH / ZH / EN headline "…{X}"; headlines count `all` tags only) is recorded where it is filled (`FL` in `fortune-ai.js`;
+  contrast at the claim, headlines at the sentence); provenance area `fill`. A short name no longer depends on the fragment
+  length of `markCaution`.
 
 Not tagged on purpose: neutral description of character, encouragement, favourable predictions and positive tips that are not
 framed as holding back (for example "wear green", "set a fixed share aside as savings", "make time to rest"). Coverage limit:
