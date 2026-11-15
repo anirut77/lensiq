@@ -697,7 +697,13 @@ if (typeof document !== "undefined") (() => {
     if (!p) { msg.textContent = `ไม่พบสินค้าที่มีบาร์โค้ด ${code}`; msg.className = "form-msg err"; beep(330, 0.2); return; }
     if (tab === "stock") countStock(p.id, 1, true); else addToCart(p, src);
   }
-  $("#bcForm").onsubmit = e => { e.preventDefault(); const v = $("#bcIn").value; $("#bcIn").value = ""; if (normBarcode(v)) handleBarcode(normBarcode(v), "บาร์โค้ด"); };
+  $("#bcForm").onsubmit = e => {
+    e.preventDefault(); const v = $("#bcIn").value; $("#bcIn").value = "";
+    const msg = $("#bcMsg"); msg.textContent = ""; msg.className = "form-msg";
+    if (normBarcode(v)) return handleBarcode(normBarcode(v), "บาร์โค้ด");
+    // D2-010: an empty search says what to do (next to the form) instead of doing nothing
+    msg.textContent = "กรุณาพิมพ์หรือยิงบาร์โค้ดก่อนกดค้นหา"; msg.className = "form-msg err"; $("#bcIn").focus();
+  };
 
   // ---------- แท็บ ----------
   function setTab(t) {

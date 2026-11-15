@@ -19,7 +19,9 @@ const MP_BUNDLE = "./vendor/mediapipe/vision_bundle.mjs";
 function engine() {
   const e = $("#engine"), parts = Object.values(engineMsgs);
   const cls = parts.some(p => p.c === "err") ? "err" : parts.some(p => p.c === "warn") ? "warn" : parts.length >= 3 ? "ok" : "";
-  e.textContent = parts.map(p => typeof p.t === "function" ? p.t() : p.t).join(" · ") || tr("photobooth.js.engine.prep", "กำลังเตรียมระบบ...");
+  // D2-012: when something failed, the red line lists only the failures (not the "ready" statuses)
+  const shown = cls === "err" ? parts.filter(p => p.c === "err" || p.c === "warn") : parts;
+  e.textContent = shown.map(p => typeof p.t === "function" ? p.t() : p.t).join(" · ") || tr("photobooth.js.engine.prep", "กำลังเตรียมระบบ...");
   e.className = "engine " + cls;
 }
 const setStatus = (k, t, c) => { engineMsgs[k] = { t, c }; engine(); }; // t = ข้อความ หรือฟังก์ชันคืนข้อความ (แปลใหม่เมื่อเปลี่ยนภาษา)
@@ -262,7 +264,14 @@ const MULTI_HINT = () => tr("photobooth.js.multi", "มีบุคคลอื�
 function camErr(e) {
   console.warn(e); camOK = false;
   if (e.name === "Insecure") showHttpsNote($("#engine"));
-  setStatus("cam", () => e.name === "Insecure" ? HTTPS_MSG() : tr("photobooth.js.camErr", "เปิดกล้องไม่ได้: ") + ({ NotAllowedError: tr("photobooth.js.camErr.denied", "ไม่ได้รับอนุญาต"), NotFoundError: tr("photobooth.js.camErr.notFound", "ไม่พบกล้อง"), NotReadableError: tr("photobooth.js.camErr.busy", "กล้องถูกโปรแกรมอื่นใช้อยู่") }[e.name] || e.message), "err");
+  // D2-012: one next step after the reason
+  const next = () => ({ NotAllowedError: tr("photobooth.js.camErr.next.denied", "อนุญาตให้ใช้กล้องในการตั้งค่าเว็บไซต์ของเบราว์เซอร์ แล้วโหลดหน้านี้ใหม่"),
+    NotFoundError: tr("photobooth.js.camErr.next.notFound", "ต่อกล้องเข้ากับเครื่อง แล้วโหลดหน้านี้ใหม่"),
+    NotReadableError: tr("photobooth.js.camErr.next.busy", "ปิดโปรแกรมอื่นที่ใช้กล้องอยู่ แล้วโหลดหน้านี้ใหม่") }[e.name]
+    || tr("photobooth.js.camErr.next.other", "โหลดหน้านี้ใหม่ หรือลองเบราว์เซอร์อื่น"));
+  const why = () => ({ NotAllowedError: tr("photobooth.js.camErr.denied", "ไม่ได้รับอนุญาต"), NotFoundError: tr("photobooth.js.camErr.notFound", "ไม่พบกล้อง"),
+    NotReadableError: tr("photobooth.js.camErr.busy", "กล้องถูกโปรแกรมอื่นใช้อยู่") }[e.name] || e.message);
+  setStatus("cam", () => e.name === "Insecure" ? HTTPS_MSG() : tr("photobooth.js.camErr", "เปิดกล้องไม่ได้: ") + why() + " — " + next(), "err");
 }
 renderCamCtl = mountCamCtl($(".preview"), camera, camErr);
 /* ขนาดพรีวิว: ตู้สติ๊กเกอร์ = 4:3 ตามช่องภาพจริง, รูปติดบัตร = ตามสัดส่วนกล้อง (แนวตั้งบนมือถือ) */

@@ -1,0 +1,4 @@
+# locked 2026-11-15T01:43:51Z (tools/eval-guard.mjs lock, 2 files)
+874802ac68bc41b662e3cacf6063461a6d01ca0c27bc42a15ffc5572f4f8e8b4  tests/e2e/polish-1115.e2e.mjs
+83340fa92ff8c8dd2674e7034bec05e099a492f85171d35d2d1285a2c4e425b5  tests/unit/polish-1115-backend.test.js
+# Polish round 2026-11-15 (D2-008/009/010/012/013 + backend review items: merit verify/review phantom history, import batch record, reviewer try-on roles while TRYON is off): locked before any product fix. Set copy: ~/LENSIQ-field/evals/polish-1115/tests/.
