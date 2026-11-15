@@ -10,7 +10,8 @@
 //         so part 1 also checks that styles.css and admin.css set it to none in the shared button rule.
 //   busy  (every entry of tests/e2e/buttons-busy-list.json): getUserMedia is delayed 1.5 s and counted; one real tap,
 //         then 350 ms later the button carries aria-busy="true" or is disabled; a second real tap 600 ms after the first
-//         (after the double-tap window) does nothing: exactly one camera open; afterwards the button is no longer busy.
+//         (after the double-tap window) does nothing: exactly one camera request (getUserMedia with video) and at most one
+//         microphone-only request; afterwards the button is no longer busy.
 //         dl entries: two real taps 150 ms apart save exactly one file.
 // Locked before any product fix: evals-locks/buttons.sha256.
 import { readFileSync } from "node:fs";
@@ -88,7 +89,7 @@ function target(sel) {
 function state(sel) {
   const el = document.querySelector(sel);
   const w = window.__lqw || {};
-  return { busy: !!el && el.getAttribute("aria-busy") === "true", disabled: !!el && !!el.disabled, gum: w.gum || 0, dl: w.dl || 0 };
+  return { busy: !!el && el.getAttribute("aria-busy") === "true", disabled: !!el && !!el.disabled, gum: w.gum || 0, mic: w.mic || 0, dl: w.dl || 0 };
 }
 
 /** @param {any} ctx @param {"chrome"|"webkit"} engine */
@@ -153,6 +154,7 @@ export async function runBusy(ctx, engine) {
           assert(mid.gum - s0.gum >= 1, `${id}: the tap did not open the camera`);
           assert(mid.busy || mid.disabled, `${id}: no busy state while the camera opens (aria-busy="${mid.busy}", disabled ${mid.disabled})`);
           assert(end.gum - s0.gum === 1, `${id}: the second tap during the work ran it again: ${end.gum - s0.gum} camera opens, expected 1`);
+          assert(end.mic - s0.mic <= 1, `${id}: the second tap during the work ran it again: ${end.mic - s0.mic} microphone requests, expected at most 1`);
           let left = end;
           for (let i = 0; i < 30 && left.busy; i++) { await sleep(250); left = await t.ev(state, b.button); }
           assert(!left.busy, `${id}: still aria-busy="true" after the work ended`);

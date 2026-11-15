@@ -15,16 +15,16 @@ import { PAGES, INIT } from "./buttons-probe.mjs";
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const ACTION_WORDS = "เริ่ม|เปิดกล้อง|กล้อง|วิเคราะห์|ส่งออก|ส่ง|อ่าน|ดาวน์โหลด|บันทึก|ตรวจ|สแกน|คำนวณ|ดูดวง|ทำนาย|สร้าง|ถ่าย|เข้าสู่ระบบ|ยืนยัน|" +
   "start|camera|analy|export|send|submit|read|download|save|scan|check|capture|sign in|login|confirm|generate";
-// counts async work; getUserMedia and fetch / XHR wait LQ_DELAY ms (default 1500) so a second tap lands during the work
+// counts async work (gum = camera requests, mic = microphone-only requests); getUserMedia and fetch / XHR wait LQ_DELAY ms (default 1500) so a second tap lands during the work
 export const INSTRUMENT = `(() => {
-  const W = window.__lqw = { gum: 0, fetch: 0, xhr: 0, dl: 0, urls: [] };
+  const W = window.__lqw = { gum: 0, mic: 0, fetch: 0, xhr: 0, dl: 0, urls: [] };
   const delay = () => new Promise(r => setTimeout(r, window.__lqDelay || 1500));
   const counted = u => {
     try { const p = new URL(u, location.href); return p.origin !== location.origin
       || !/^\\/(vendor|i18n|fonts)\\//.test(p.pathname.replace(/^\\/[^/]+(?=\\/(vendor|i18n|fonts)\\/)/, "")); } catch (e) { return true; } };
   try {
     const md = navigator.mediaDevices;
-    if (md && md.getUserMedia) { const g = md.getUserMedia.bind(md); md.getUserMedia = async c => { W.gum++; await delay(); return g(c); }; }
+    if (md && md.getUserMedia) { const g = md.getUserMedia.bind(md); md.getUserMedia = async c => { if (c && c.video) W.gum++; else W.mic++; await delay(); return g(c); }; }
   } catch (e) {}
   const f = window.fetch;
   window.fetch = async function (u, o) { const url = String(u && u.url || u); if (counted(url)) { W.fetch++; W.urls.push(url.slice(0, 120)); await delay(); } return f.apply(this, arguments); };
@@ -85,7 +85,7 @@ async function main() {
           const after = await p.evaluate(() => window.__lqw ? JSON.stringify(window.__lqw) : null);
           if (!after) { found.push({ page, ...c, work: "navigated" }); p.close().catch(() => {}); p = await open(); await p.evaluate(candidates, ACTION_WORDS); continue; }
           const b = JSON.parse(before), a = JSON.parse(after);
-          const work = ["gum", "fetch", "xhr", "dl"].filter(k => a[k] > b[k]).map(k => `${k}+${a[k] - b[k]}`);
+          const work = ["gum", "mic", "fetch", "xhr", "dl"].filter(k => a[k] > b[k]).map(k => `${k}+${a[k] - b[k]}`);
           if (work.length) {
             found.push({ page, ...c, work: work.join(" "), urls: a.urls.slice(b.urls.length, b.urls.length + 3) });
             console.log(`${page.padEnd(22)} #${c.id || "-"} "${c.text}" ${work.join(" ")} ${a.urls.slice(b.urls.length, b.urls.length + 2).join(" ")}`);

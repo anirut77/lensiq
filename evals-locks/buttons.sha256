@@ -32,3 +32,9 @@ e416a2095db28ac04702748a208e3256d9e06e3015b0ecfd1269661b7187573f  tests/e2e/butt
 3711ba9ed4127cccdd3560854d25e1d202f06c6c7f8ae890ef65f9728f6dec1f  buttons-busy-list.json
 # amendment 1 2026-11-15 (buttons-busy-list.json), found on the first after-fix run: the interview.html #ivDStart entry did not open the delivery tab, so its button was always hidden (pane-delivery is hidden until tab-delivery is chosen) and the entry could never pass or fail on the busy rule. Setup now clicks #tab-delivery first. No rule, button, timing or other entry changed.
 3711ba9ed4127cccdd3560854d25e1d202f06c6c7f8ae890ef65f9728f6dec1f  tests/e2e/buttons-busy-list.json (amendment 1)  # repo file
+# locked 2026-11-15T03:12:22Z (tools/eval-guard.mjs lock, 2 files)
+66e0357b5876ac34e31e50a82f51d207d63894bdd546ccb17d087c434a02d025  buttons-kit.mjs
+a138b16b998bb1f87fdea5b0732b1ce13bcb055cda78fd4fef227ed7ca14840b  buttons-busy-discover.mjs
+# amendment 2 2026-11-15 (buttons-kit.mjs + buttons-busy-discover.mjs), found on the after-fix run: the busy rule says "exactly one camera open" but counted EVERY getUserMedia call; interview.html opens the microphone and the camera as two separate requests by design (a slow microphone must not block the camera), so one tap counted 2 and no page could pass. Now: camera requests (getUserMedia with video) must be exactly 1 as before, and microphone-only requests are counted separately and must be at most 1 (new check, stricter than before for audio). Timings, busy / disabled check, entries and every other rule unchanged.
+66e0357b5876ac34e31e50a82f51d207d63894bdd546ccb17d087c434a02d025  tests/e2e/buttons-kit.mjs (amendment 2)  # repo file
+a138b16b998bb1f87fdea5b0732b1ce13bcb055cda78fd4fef227ed7ca14840b  tools/buttons-busy-discover.mjs (amendment 2)  # repo file
