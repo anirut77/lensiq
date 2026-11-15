@@ -56,6 +56,13 @@ window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
  *   false = ซ่อนตัวเลือกทั้งหมด (tests/unit/fortune-honest.test.js ตรวจค่าที่ส่งมอบ) */
 window.LENSIQ_FORTUNE_STRAIGHT = false;
 
+/* LENSIQ_FORTUNE_PAID (owner order 2026-11-15: DESIGN ONLY, OFF): "อ่านเชิงลึก" แบบเสียเงินบนหน้าดูดวง (ฟรี = ภาพรวมทุกหมวด
+ *   ข้อควรระวังและคำแนะนำทุกข้อ · เสียเงิน = รายละเอียดเชิงลึก: 49 บาทต่อหมวด 99 ฉบับเต็ม 199 ฉบับเต็ม+รายเดือน Plus 149 ต่อเดือน)
+ *   false (ค่าเริ่มต้น) = ไม่โหลด fortune-paid.js ไม่มีราคา ไม่มีล็อก คำทำนายฉบับเต็มฟรีเหมือนเดิม · ต้องเป็น true จริงเท่านั้น
+ *   ยังไม่เชื่อมระบบชำระเงินใด ๆ · เปิดได้เมื่อเจ้าของตัดสินใจ หลังระบบเก็บเงิน (โอนเงิน) และทนาย (L65) พร้อม
+ *   docs/FORTUNE-PAID-DESIGN.md · เทสต์ที่ล็อกไว้: tests/unit/fortune-paid.test.js, tests/e2e/fortune-paid.e2e.mjs */
+window.LENSIQ_FORTUNE_PAID = window.LENSIQ_FORTUNE_PAID === true;
+
 /* LENSIQ_LOOK_SALON (owner decision 2026-11-14, ข้อแนะนำการแต่งลุค ตัวเลือก ก): "โหมดร้าน" ของข้อแนะนำการแต่งลุค (แสดงชื่อแบบจาก
  *   แคตตาล็อกที่ร้านพิมพ์เอง) ปิดตายจนกว่าจะมีขั้นตอนให้คน (เจ้าของหรือ admin) อนุมัติข้อความที่ร้านพิมพ์ก่อนแสดง
  *   (docs/BEAUTY-IMAGE-DESIGN.md §4) ขั้นตอนนี้ยังไม่ได้สร้าง · ตั้ง true อย่างเดียวไม่มีผล: lensiq-look.js ต้องมีขั้นตอนอนุมัติด้วย

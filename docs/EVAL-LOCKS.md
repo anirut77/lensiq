@@ -105,3 +105,7 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
 และแนบผลลัพธ์ทั้งหมดไว้ในรายงาน
 ชื่อ phase ต้องเป็นตัวพิมพ์เล็ก คำสั่ง `node tools/eval-locks-import.mjs` คัดลอกไฟล์ล็อกที่อยู่ข้างชุดข้อมูลเข้ามาใน `evals-locks/`
 โดยเพิ่มบรรทัดต่อท้ายเท่านั้น ไม่แก้หรือลบบรรทัดเดิม และรายงานไฟล์ที่หายไปหรือไฟล์ล็อกที่ถูกเขียนทับ
+- `fortune-paid` (2026-11-15): locked before `fortune-paid.js` existed (unit 0/1). The e2e file was re-locked once after its
+  first run, test-setup fixes only (readings without in-depth text have nothing to sell, so they now must show no paid block and
+  no price, with a coverage minimum instead; tab-free pages added; crisis groups found by element; the off snapshot waits for
+  the page's own Thai line breaking). The reason is written in `evals-locks/fortune-paid.sha256`. Unit file unchanged.

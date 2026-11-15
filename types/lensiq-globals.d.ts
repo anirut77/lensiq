@@ -75,6 +75,8 @@ interface Window {
   /** lensiq-config.js (org-p1): true = account.html / admin.html may show organisation accounts lite (default false; also
    *  needs the Worker's ORG_ACCOUNTS = "on", reported as /v1/config org_accounts) */
   LENSIQ_ORG_ACCOUNTS?: boolean;
+  /** paid depth on the fortune pages (owner order 2026-11-15, design only): off unless exactly true */
+  LENSIQ_FORTUNE_PAID?: boolean;
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
   LENSIQ_TURNSTILE_SITEKEY?: string;
   /** lensiq-config.js: public OAuth Client ID for "Sign in with Google" ("" = no member sign-in) */
