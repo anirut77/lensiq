@@ -537,7 +537,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     reroute();
   }
   function camError(e, what, retry) {
-    console.error(e);
+    LQCam.logError(e);
     const m = CAM_ERR[e.name] || (e.name === "CapacityError" || e.name === "NoFreeCamera" || e.name === "DuplicateCamera" ? LQCam.errorText(e) : null);
     engine(`${what}ไม่สำเร็จ: ${m || "โหลดโมเดลไม่สำเร็จ"} (${e.name}: ${e.message || "-"})`, "err", retry);
   }

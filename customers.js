@@ -207,7 +207,7 @@ if (typeof document !== "undefined") (() => {
     } catch (e) { showInitError(e); }
   }
   function showInitError(e) {
-    console.error(e);
+    LQCam.logError(e);
     const m = { Insecure: INSECURE_MSG, NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง", NotFoundError: "ไม่พบกล้อง", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่" }[e.name];
     engine(`ระบบไม่พร้อม: ${m || "โหลดโมเดลไม่สำเร็จ"} (${e.name}: ${e.message || "-"}) — ยังค้นหาสมาชิกด้วยชื่อได้`, "err");
     if (e.name === "Insecure") { const a = document.createElement("a"); a.href = "cameras.html"; a.textContent = "ดูวิธีเปิดผ่าน https"; a.className = "engine-link"; $("#engine").append(" ", a); }

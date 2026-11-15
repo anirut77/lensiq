@@ -907,7 +907,7 @@ if (typeof document !== "undefined") (() => {
   }
 
   function showError(e, retry) {
-    console.error(e);
+    LQCam.logError(e);
     const kind = LQCam.errorKind(e);
     const m = e.name === "MediaError" ? "เปิดไฟล์วิดีโอไม่ได้ ลองไฟล์ MP4/WebM อื่น" : LQCam.errorText(e);
     engine(`ระบบไม่พร้อม: ${e.model ? "โหลดโมเดลตรวจจับคนไม่สำเร็จ" : m || "เกิดข้อผิดพลาด"} (${e.name}: ${e.message || "-"})`, "err");

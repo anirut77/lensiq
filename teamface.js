@@ -161,7 +161,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#tfCamBtn").addEventListener("click", async function () {
     this.disabled = true; status("tf.js.opening", "กำลังเปิดกล้อง...");
     try { await Promise.all([camera.start(), loadModels()]); $("#tfCamBtn").hidden = true; status("tf.js.camOk", "กล้องพร้อม — ภาพไม่ถูกบันทึก", null, "ok"); syncRead(); }
-    catch (e) { this.disabled = false; status("tf.js.camFail", "เปิดกล้องไม่ได้ ลองอัปโหลดรูปแทน", null, "err"); console.error(e); }
+    catch (e) {
+      this.disabled = false; LQCam.logError(e);
+      // a refused permission (iOS "Don't Allow") says so plainly; anything else keeps the general line
+      if (LQCam.errorKind(e) === "denied") status("tf.js.camDenied", "ไม่ได้รับอนุญาตให้ใช้กล้อง — อนุญาตกล้องในการตั้งค่าเบราว์เซอร์ หรืออัปโหลดรูปแทน", null, "err");
+      else status("tf.js.camFail", "เปิดกล้องไม่ได้ ลองอัปโหลดรูปแทน", null, "err");
+    }
   });
 
   function addMember(el) {

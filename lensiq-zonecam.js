@@ -278,7 +278,7 @@
           : T("zc.ready", "พร้อมใช้งาน · ตัวตรวจจับ {d} · ประมวลผลในเครื่องนี้ ไม่บันทึกภาพ", { d: name }), "ok");
         tick();
       } catch (e) {
-        console.error(e);
+        LQCam.logError(e);
         const msg = e && e.name === "Insecure" ? T("zc.err.https", "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด")
           : LQCam.errorText ? LQCam.errorText(e) : String(e && e.message || e);
         engine(() => T("zc.err.start", "เริ่มไม่สำเร็จ: {m} — ลอง \"ดูตัวอย่าง (ข้อมูลจำลอง)\" ได้", { m: msg }), "err");

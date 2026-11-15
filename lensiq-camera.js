@@ -15,6 +15,7 @@
  *     that size) while a lower rung is left. The page reads what arrived from video.videoWidth.
  *   errorKind(err) -> 'denied'|'insecure'|'busy'|'notfound'|'overconstrained'|'unknown'
  *   errorText(err) -> message in the current language (Thai default; zh via LQI18N keys cam.err.*; also handles CapacityError / DuplicateCamera / NoFreeCamera / Ended)
+ *   logError(err) -> console.info for a refused permission (the user's choice, already shown in words), console.error otherwise
  *   parseCams(json|object) -> {v:1, cams:[{slot, deviceId, label, name, role}]}   tolerant: garbage -> {v:1, cams:[]}
  *   serializeCams(state|cams[]) -> string
  *   nextSlot(cams) -> 'c1'..'c4' | null
@@ -918,8 +919,16 @@
     return hub;
   }
 
+  /** a camera start error for the developer console: a refused permission ("Don't Allow" on iOS) is the user's choice and the
+   * page already says so in words, so it is logged as info; every other failure stays a console error
+   * @param {any} err */
+  function logError(err) {
+    if (typeof console === "undefined") return;
+    if (errorKind(err) === "denied") console.info("camera permission refused by the user", (err && err.name) || "");
+    else console.error(err);
+  }
   const api = {
-    fallbackChain, lowerRungLeft, errorKind, errorText, parseCams, serializeCams, nextSlot, pickNext, mapSeatToImage,
+    logError, fallbackChain, lowerRungLeft, errorKind, errorText, parseCams, serializeCams, nextSlot, pickNext, mapSeatToImage,
     readCapacity, writeCapacity, createScheduler, listCameras, create, createHub, offlineBadge, SLOTS, CAP_KEY,
     createGapLog, sampleSec, unattended, ackBox
   };

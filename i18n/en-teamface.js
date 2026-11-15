@@ -57,7 +57,8 @@
 
   "tf.js.needConsent": "Tick this member's consent first", "tf.js.needCam": "Start the camera or upload a photo", "tf.js.needFace": "Keep your face in frame, facing the camera",
   "tf.js.ready": "Ready to read role", "tf.js.opening": "Starting camera...", "tf.js.camOk": "Camera ready — images are not stored",
-  "tf.js.camFail": "Cannot start camera; upload a photo instead", "tf.js.reading": "Reading...",
+  "tf.js.camFail": "Cannot start camera; upload a photo instead",
+  "tf.js.camDenied": "Camera permission denied. Allow the camera in your browser settings, or upload a photo instead", "tf.js.reading": "Reading...",
   "tf.js.unstable": "Face not steady enough yet; face the camera, hold still and try again", "tf.js.added": "Card added — the next member can read after ticking consent",
   "tf.js.fail": "Reading failed; please try again", "tf.js.uploading": "Reading photo (photo is not stored)...", "tf.js.noFace": "No face found in this photo; use a clear front-facing photo",
   "tf.js.member": "Member {n}", "tf.js.remove": "Delete {n}'s card", "tf.js.power": "Superpower:", "tf.js.work": "Working well together:",

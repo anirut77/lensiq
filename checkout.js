@@ -542,7 +542,7 @@ if (typeof document !== "undefined") (() => {
       payGate = gateInit(true); stockGate = gateInit(true);
       await listCams();
     } catch (e) {
-      console.error(e); stopCam();
+      if (e && e.name === "NotAllowedError") console.info("camera permission refused by the user"); else console.error(e); stopCam();
       const m = {
         Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
         NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่แล้วเลือก \"อนุญาต\"",
