@@ -197,7 +197,10 @@ export async function openEngine(engine, o = {}) {
       evaluate: (fn, arg) => page.evaluate(fn, arg),
       move: (x, y) => page.mouse.move(x, y),
       down: () => page.mouse.down(),
-      up: () => page.mouse.up(),
+      // WebKit (Playwright) keeps a "mouse pressed" flag after a press released away from the button and then marks the
+      // NEXT hovered element :active without any press, so the next button's "not pressed" snapshot already looked
+      // pressed (amendment 3). A second mouseup with no button down clears the flag; it fires no click.
+      up: async () => { await page.mouse.up(); await page.mouse.up(); },
       tap: (x, y) => page.touchscreen.tap(x, y),
       errors: () => errors,
       close: () => ctx.close()
@@ -225,6 +228,9 @@ export async function probePage(eng, base, page) {
       const pt = await t.evaluate(pressPoint, i);
       if (!pt) continue;
       if (pt.covered) { covered++; continue; }
+      // let the scroll settle: WebKit hit-tests a mouse event right after scrollIntoView at the old scroll position, so the
+      // press missed the button (amendment 3)
+      await sleep(200);
       await t.move(pt.x, pt.y);
       await sleep(60);
       const before = await t.evaluate(pressSnap, { i, props: PRESS_PROPS });
