@@ -6,3 +6,16 @@ bcbdbd845f5f43836516a94e659a21880d451564ba32d0848eecccb5a3e45155  admin-lead-not
 # The three files are byte-identical copies of tests/unit/backend-lead-notify.test.js, tests/unit/secrets-setup-line.test.js
 # and tests/e2e/admin-lead-notify.e2e.mjs. Before the build: unit 2 pass / 10 fail (of 12), e2e 0 pass / 1 fail (crash: no
 # notify_state column). Logs: ~/LENSIQ-field/evals/lead-notify/{unit,e2e}-before-build.log
+# locked 2026-11-15T16:43:58Z (tools/eval-guard.mjs lock, 4 files)
+8311c6ac0b54dd1319d74deb9fd2cfde4ebe56b0a72a34e20a982a76fb918f55  secrets-setup-pty.test.js
+e50b6af7e2e418626ab5f64728eefaead85309bfc5867a116b0a092831d96eae  secrets-pty-drive.py
+62680d1024c8932c614009ef6fd5d22a00b851747e2cc395fe7af30493e893c0  backend-lead-notify-2.test.js
+0d4a4b2cb3c968e349a15f06e24c0b97e6c7c39df3c90e4a1ddb1c7deaae08cc  admin-lead-notify-2.e2e.mjs
+# Review round 1 (independent reviewer NOT OK on 0bd5d11, 2026-11-15). New cases locked BEFORE the fix; the first 3 files are unchanged.
+#  R1-D1 secrets-setup-pty.test.js + secrets-pty-drive.py: the incident cause. A token pasted with an inner LF / CRLF (plain or
+#        bracketed paste) was cut at the first line break, accepted and sent. Real pty + fake wrangler: refused, 0 bytes sent, never
+#        shown; bracketed paste on/off; no false refusal; a cut-off (short) token refused at entry.
+#  R1-D2/D3 admin-lead-notify-2.e2e.mjs: capped lead gets the badge; a never-recorded lead gets an "unknown" badge; ZH full-width separator.
+#  R1-D3/D4 backend-lead-notify-2.test.js: notifyLine throwing / the result UPDATE failing are logged (alert.lead_line_unrecorded) and
+#        flagged; pre-feature rows get no badge; docs state migration 0020 FIRST, then the Worker deploy.
+# On 0bd5d11: unit 2 pass / 10 fail (of 12), e2e 0 pass / 2 fail. Logs: r1-unit-before-fix.log, r1-e2e-before-fix.log.
