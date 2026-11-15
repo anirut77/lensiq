@@ -920,8 +920,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   /* ---------- โมเดล (WebGL → WASM → CPU; ?cpu ข้าม WebGL) ---------- */
   // iOS 2026-11-15 (owner report: the camera opened but nothing was detected): every failure of the model or the live
-  // detector ends in either a working detector (one switch to the backup backend) or a plain TH/EN/ZH line with the photo
-  // upload as the way forward, and the camera is stopped; the page never leaves a live camera that does nothing.
+  // detector ends in either a working detector or a plain TH/EN/ZH line with the photo upload as the way forward, and the
+  // camera is stopped; the page never leaves a live camera that does nothing. Backup = ONE backend switch per camera start:
+  // to WASM (to CPU only when the page already runs on WASM, or WASM is not registered); no further switch after that.
+  // Tapping "open camera" again after the message re-arms the detector (ready) and allows one switch again.
   // Limits: model download 30 s, one detection 8 s, 3 errors in a row. Locked test: tests/e2e/faceread-webkit.e2e.mjs.
   var FAKE = !!(window.LQDetect && LQDetect.isTest()); // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
   var MODEL_MS = 30000, DET_MS = 8000, ERR_MAX = 3, modelsP = null, backendNow = null, switched = false, detGen = 0, useCanvas = false, glLost = false;
@@ -929,8 +931,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var loadNets = function () { return Promise.all(nets().map(function (n) { return n.loadFromUri("vendor/models/"); })); };
   var TRY = " — ปิดแท็บอื่นแล้วกด เปิดกล้อง อีกครั้ง หรือใช้ปุ่ม อัปโหลดรูป แทน", NET = " — ตรวจอินเทอร์เน็ตแล้วกด เปิดกล้อง อีกครั้ง หรือใช้ปุ่ม อัปโหลดรูป แทน";
   var FAIL = { oom: "หน่วยความจำของเครื่องไม่พอสำหรับวิเคราะห์ใบหน้าสด" + TRY, detStop: "การวิเคราะห์ใบหน้าสดหยุดทำงานบนเครื่องนี้" + TRY,
-    modelSlow: "โหลดโมเดลวิเคราะห์ใบหน้านานเกินไป" + NET, modelFail2: "โหลดโมเดลวิเคราะห์ใบหน้าไม่สำเร็จ" + NET };
-  var failLine = function (id) { engineT("faceread.eng." + id, FAIL[id], null, "err"); };
+    modelSlow: "โหลดโมเดลวิเคราะห์ใบหน้านานเกินไป" + NET, modelFail2: "โหลดโมเดลวิเคราะห์ใบหน้าไม่สำเร็จ" + NET,
+    readFail2: "อ่านไม่สำเร็จ (วิเคราะห์หยุดหรือช้าเกินไป) — กด อ่านโหงวเฮ้ง อีกครั้ง หรือใช้ อัปโหลดรูป" }, failLine = function (id) { engineT("faceread.eng." + id, FAIL[id], null, "err"); };
   /** a lost WebGL context (iOS drops it under memory pressure) is handled by the live loop */
   function watchGl() { glLost = false; if (backendNow === "webgl") LQDetect.watchContextLost(function () { console.warn("faceread: WebGL context lost"); glLost = true; }); }
   function loadModels() {
@@ -1066,7 +1068,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       // speed pass 2026-11-14: models are fetched only once the camera is open (nothing is downloaded if the camera is refused)
       await camera.start();
       engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
-      try { await loadModels(); } catch (e) { stopLive(); modelMsg(e); return; } // never a live camera without a detector
+      // never a live camera without a detector; a retry after liveDead() re-arms the detector (the models are still loaded)
+      try { await loadModels(); } catch (e) { stopLive(); modelMsg(e); return; } ready = true; switched = false;
       $("#frCamHint").hidden = true;
       engineT("faceread.eng.camReady", "กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี มองตรง แล้วกด อ่านโหงวเฮ้ง", null, "ok");
       btnCam.hidden = true; btnRead.hidden = false;
@@ -1093,7 +1096,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var avg = capt.average();
       var snap = snaps[Math.floor(snaps.length / 2)];
       showResult(snap.cv, avg, snap.d.box);
-    } catch (e) { console.error(e); engineT("faceread.eng.readFail", "อ่านไม่สำเร็จ: {msg}", { msg: e.message || e }, "err"); }
+    } catch (e) { console.error(e); if (failKind(e) === "oom") failLine("oom"); else failLine("readFail2"); }
     finally { countEl.hidden = true; countEl.classList.remove("small"); busy = false; btnRead.disabled = !(lastQ && qOk(lastQ)); }
   });
 

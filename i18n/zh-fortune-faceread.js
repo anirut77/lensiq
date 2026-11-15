@@ -73,6 +73,7 @@
     "faceread.eng.otherFace": "有其他人进入画面，请保持只有一人后再试",
     "faceread.eng.unstable": "还没能稳定捕捉到脸部，请正视镜头并保持不动后再试",
     "faceread.eng.readFail": "解读失败：{msg}",
+    "faceread.eng.readFail2": "解读失败 — 人脸分析已停止或耗时过长。请再次点击“面相解读”，或改用“上传照片”",
     "faceread.eng.uploading": "正在加载模型并读取照片...",
     "faceread.eng.badFile": "无法打开这张图片",
     "faceread.eng.noFace": "照片中没有找到人脸，请换一张能清楚看到正脸的照片",
