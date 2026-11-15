@@ -1,0 +1,6 @@
+# evals-locks/fortune-live.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-live/ (owner rule 2026-11-13). Append-only.
+# fortune-live (owner order 2026-11-15 items 1-3: no idle technical status; final disclaimer wording; help line in one place per page) — locked BEFORE any product code on branch fortune-live (base fd2cf43 = fortune-a cb8ffeb + main 480ea46).
+# Before the build: unit 2/14 pass (12 fail), e2e 3/7 checks pass (4 fail: H1 x2, H2+D1, S1). Logs: ~/LENSIQ-field/evals/fortune-live/run-0-before-build-*.log
+# locked 2026-11-15T14:20:08Z (tools/eval-guard.mjs lock, 2 files)
+f970688f1c19696a51d4cc549e0db94a12303271a1fdcce30a4b47431a9de78a  tests/unit/fortune-live.test.js
+a4b03b33e6c476d07a7b22cd504bd298c62aa87c015b7b996dcbc5cb60e39469  tests/e2e/fortune-live.e2e.mjs
