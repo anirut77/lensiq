@@ -29,6 +29,7 @@
 //   open the mobile menu, open every <details>, click each [role=tab] / .tab / [data-tab] in turn, then the clicks listed
 //   for the page in tools/zh-coverage.interactions.json (teams: add selectors for your dialogs / result views there).
 // In the browser the same numbers are live with ?i18n=debug (red outlines + badge). See docs/I18N.md.
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { readdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -63,6 +64,7 @@ const INTERACT = existsSync(ixFile) ? JSON.parse(readFileSync(ixFile, "utf8")) :
 const SHARED_SEL = "header.nav, #siteNav, footer, .site-footer, .lq-model-note, .lq-consent, [data-lq-shared]";
 
 const srv = await serve(repo);
+assertFreeSpace({ label: "tools/zh-coverage.mjs" }); // stops with exit 75 when free disk space is under 5 GB
 const browser = await launch();
 const init = [];
 try { init.push(readFileSync(resolve(repo, "tests/e2e/fake-cams.js"), "utf8"), "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}"); } catch { /* optional */ }

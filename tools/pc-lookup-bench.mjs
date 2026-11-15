@@ -6,6 +6,7 @@
 // (performance.measureUserAgentSpecificMemory needs a cross-origin-isolated page, which medicine.html is not).
 //
 //   node tools/pc-lookup-bench.mjs [--runs 3] [--json]
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { launch } from "../tests/e2e/cdp.mjs";
 import { serve } from "./static-server.mjs";
 import { dirname, resolve } from "node:path";
@@ -18,6 +19,7 @@ const LABELS = ["TYLENOL 500 Reg. No. 1A 844/39 รักษาหายขา�
 const med = xs => { const s = [...xs].sort((x, y) => x - y); return +s[Math.floor(s.length / 2)].toFixed(1); };
 
 const srv = await serve(repo);
+assertFreeSpace({ label: "tools/pc-lookup-bench.mjs" }); // stops with exit 75 when free disk space is under 5 GB
 const browser = await launch();
 const out = { profile: "EMULATED mid-range phone: CPU throttling 4x, 390x800 mobile viewport (Chrome DevTools); not a real phone", runs, modes: {} };
 try {

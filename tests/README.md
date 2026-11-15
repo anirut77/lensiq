@@ -12,11 +12,27 @@ Needs Node 22+, `python3` and Google Chrome. `npm ci` is only needed for `npm ru
 | `node tools/check-csp.mjs [--as-is]` | every page in headless Chrome under the Pages `<meta>` policy (injects it on the fly unless `--as-is`) |
 | `node tools/mobile-audit.mjs [--lang zh] [--json f] [--selftest]` | 390 px phone audit per page: overflow, targets < 44 px, text < 12 px, mid-word Thai breaks |
 | `node tools/check-legal.mjs [--billing] [--dir _site]` | legal guard: fails on raw `[placeholder]` text in help / terms / privacy, and when billing is on (`LENSIQ_SELLER.sales_open`, `BILLING_ENABLED`, `FREE_MODE=false` or `--billing`) while seller details are missing |
+| `node tools/disk-guard.mjs [--min 5]` | disk guard (owner order 2026-11-15): exit 75 when free disk space under `$HOME` is under 5 GB, 0 otherwise |
 
 CI (`.github/workflows/ci.yml`) runs lint, unit, csp-meta `--check`, Python (3.11, pinned `requirements.txt`),
 the mobile-audit self-test, e2e with one retry, check-csp and a mobile-audit JSON artifact. Chrome comes from
 `browser-actions/setup-chrome` (`LQ_CHROME`); `cdp.mjs` also finds `/usr/bin/google-chrome`/`chromium` and adds
 `--no-sandbox` when `CI` is set.
+
+## Disk guard (owner order 2026-11-15)
+
+Parallel agent teams filled the Mac's disk and broke git and the tests, so heavy local jobs stop first.
+`tools/disk-guard.mjs` exports `freeBytes(path)` (`fs.statfsSync`, `df -k` fallback) and
+`assertFreeSpace({ minGB = 5, path = os.homedir(), label })`, which prints the free space and the limit and exits with
+code **75** when less than 5 GB is free (1 GB = 1024^3 bytes). It runs first in `tests/e2e/run.mjs` (and again before
+every test file there: Chrome closed, profile folders removed, server stopped, exit 75), in every `tools/*.mjs` that
+launches a browser (`audit:mobile`, `audit:overlap`, perf, consistency, the evals), and in `plate-train-prep`. A unit test
+fails when a browser harness is added without it. `LQ_DISK_MIN_GB=n` changes the limit; `npm run disk:guard` checks by hand.
+
+CI choice: the guard is an **environment precondition, not a test result**, so it never changes what a test expects. It is
+skipped on CI runners (GitHub Actions sets `CI=true`; the runner disk is ephemeral and not the owner's) and with the explicit
+override `LQ_DISK_GUARD=off`, so no workflow edit is needed and a runner can never be blocked by it. Every test keeps the
+same pass rule on CI and locally. `tests/unit/disk-guard.test.js` is locked in `evals-locks/disk-guard.sha256`.
 
 ## Unit tests (pure JS, no browser)
 

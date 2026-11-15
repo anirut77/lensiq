@@ -7,6 +7,7 @@
 // The output is the CANDIDATE list the fixed busy test set (tests/e2e/buttons-busy-list.json) is chosen from; this tool
 // does not test anything itself.
 //   node tools/buttons-busy-discover.mjs [--json out.json] [words...]
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -59,6 +60,7 @@ async function main() {
   const words = argv.filter((a, i) => !a.startsWith("--") && argv[i - 1] !== "--json");
   const pages = PAGES.filter(f => !words.length || words.some(w => f.includes(w)));
   const srv = await serve(repo);
+  assertFreeSpace({ label: "tools/buttons-busy-discover.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const browser = await launch();
   const found = [];
   const sleep = ms => new Promise(r => setTimeout(r, ms));

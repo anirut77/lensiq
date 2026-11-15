@@ -20,6 +20,7 @@
 // before blurring (LQPC.tokenHit), the share still found after; (b) real faces left unblurred = share of ground-truth face
 // boxes with < 50 % of their area under blur regions, per face width at upload resolution; (c) packs without a person that
 // get >= 1 region. Wilson 95 % intervals. Pick rule (§1.6): on dev, (a) >= 90 %, then the lowest (b).
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, chmodSync } from "node:fs";
 import { homedir, tmpdir, cpus, totalmem, platform, release } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -107,6 +108,7 @@ if (!FROM) {
 }
 async function run() {
 const srv = await serve(repo);
+assertFreeSpace({ label: "tools/pc-faceblur-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
 const browser = await launch();
 try {
   const page0 = await browser.newPage(null, { isolated: true });

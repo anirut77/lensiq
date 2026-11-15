@@ -10,14 +10,18 @@
 //                            (tools/e2e-shards.mjs --check) turns CI red unless every test file ran exactly once
 // Throw-away Chrome profiles (owner request 2026-11-13): profile folders left by an earlier killed run are swept first; a
 // file that leaves a Chrome open FAILS (the runner closes it); the run FAILS if any profile folder it made is still on disk.
+// Disk guard (owner order 2026-11-15): tools/disk-guard.mjs stops the run with exit 75 when free disk space is under 5 GB, before the
+// server or Chrome starts and again before every test file (browsers closed, profile folders removed, server stopped). Skipped on
+// CI runners and with LQ_DISK_GUARD=off: an environment precondition, not a test result. LQ_DISK_MIN_GB changes the limit.
 // Each *.e2e.mjs exports `default async function (ctx)`; ctx = {base, launch, check(name, fn), skip(name, why), fakeCams}.
 import { spawn } from "node:child_process";
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { closeAll, launch, leftoverProfiles, openBrowsers, sweepStale } from "./cdp.mjs";
 import { allFiles, assign, parseShard, weights } from "../../tools/e2e-shards.mjs";
+import { EXIT_LOW_DISK, assertFreeSpace, checkFreeSpace } from "../../tools/disk-guard.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, "..", "..");
@@ -31,6 +35,7 @@ const manifestArg = argv.find(a => a.startsWith("--manifest="));
 const SHARD = shardArg ? parseShard(shardArg.slice(8)) : null;
 if (SHARD && filters.length) { console.error("--shard cannot be combined with filter words"); process.exit(2); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+assertFreeSpace({ label: "tests/e2e/run.mjs" }); // before the server and before any Chrome
 
 function freePort() {
   return new Promise((res, rej) => {
@@ -69,7 +74,19 @@ let pass = 0, fail = 0, skipped = 0;
 const t0 = Date.now();
 console.log(`LENSIQ e2e — ${base} — ${files.length} file(s)${SHARD ? ` — shard ${SHARD.i}/${SHARD.n}` : ""}`);
 const flaky = [];
+/** free space fell under the limit mid-run: close every Chrome, remove the profile folders, stop the server, exit 75 */
+async function stopForLowDisk(message, nextFile) {
+  console.error(message);
+  console.error(`disk-guard: stopping the e2e run before ${nextFile} (${ran.length} of ${files.length} file(s) done); ${pass} passed, ${fail} failed so far`);
+  await closeAll();
+  for (const d of leftoverProfiles()) rmSync(d, { recursive: true, force: true });
+  sweepStale();
+  stopServer();
+  process.exit(EXIT_LOW_DISK);
+}
 for (const f of files) {
+  const room = checkFreeSpace({ label: "tests/e2e/run.mjs" }); // before every file, so a long run stops cleanly when the disk fills
+  if (!room.ok) await stopForLowDisk(room.message, f);
   for (let attempt = 0; attempt <= RETRY; attempt++) {
     const last = attempt === RETRY;
     let fp = 0, ff = 0, fs = 0;

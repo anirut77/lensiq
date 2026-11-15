@@ -11,6 +11,7 @@
 //   node tools/exam-face-eval.mjs --from <json>       print the tables of a saved run (no browser)
 //   node tools/exam-face-eval.mjs --cleanup           delete the downloaded images (manifest, credits, results stay)
 //   --dir <path> (default ~/LENSIQ-field/exam-faces) · --out <json> (default <dir>/eval/examface-<date>.json)
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, chmodSync, rmSync, readdirSync } from "node:fs";
 import { homedir, tmpdir, cpus, totalmem, platform, release } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -177,6 +178,7 @@ async function run() {
     : { tool: "tools/exam-face-eval.mjs", date: new Date().toISOString(), machine: {}, thresholds: THRESHOLDS, poses: POSES, frames: [], renders: [], latency: {} };
   const checkpoint = () => { mkdirSync(dirname(OUT), { recursive: true }); writeFileSync(PARTIAL, JSON.stringify(out)); };
   const srv = await serve(repo);
+  assertFreeSpace({ label: "tools/exam-face-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const browser = await launch();
   try {
     const page0 = await browser.newPage(null, { isolated: true });

@@ -14,6 +14,7 @@
 //   node tools/check-site.mjs --dir out       other site directory
 //   node tools/check-site.mjs palm zh         crawl only pages whose name contains a word
 //   LQ_CHROME=/path/to/chrome                 other Chrome binary
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, posix, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -87,6 +88,7 @@ if (!args.includes("--static")) {
     prefix: "/lensiq",
     onResponse: (status, path) => { if (status >= 400 && !path.startsWith("/lensiq/api/") && !path.startsWith("/api/")) errors.push({ page: current, status, path }); }
   });
+  assertFreeSpace({ label: "tools/check-site.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const browser = await launch();
   const init = [];
   try { init.push(readFileSync(resolve(repo, "tests/e2e/fake-cams.js"), "utf8"), "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}"); } catch { /* optional */ }

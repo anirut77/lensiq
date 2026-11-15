@@ -29,6 +29,7 @@
 //                      run on every image ("th default").
 //   face gate        = LQPC.faceGate over BlazeFace short range on the frame, 2 x 2 tiles and the crop (threshold 0.3).
 //   synthetic        = LQPC.charAccuracy(known text, OCR text) per label (1 - edit distance / length, whitespace ignored).
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, chmodSync, rmSync } from "node:fs";
 import { homedir, tmpdir, cpus, totalmem, platform, release } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -70,6 +71,7 @@ const gtin14 = d => String(d || "").replace(/\D/g, "").padStart(14, "0");
 const SCRIPT_OF = { th: "th", cn: "cjk", jp: "cjk", kr: "ko", my: "latin", us: "latin", eu: "latin", de: "latin" };
 
 const srv = await serve(repo);
+assertFreeSpace({ label: "tools/pc-ondevice-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
 const browser = await launch();
 const out = { tool: "tools/pc-ondevice-eval.mjs", date: new Date().toISOString(), machine: {}, photos: null, synthetic: null };
 try {

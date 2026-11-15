@@ -14,6 +14,7 @@
 // the repo (owner decision 2026-11-10, docs/exam/FACE-ENGINE-RESULTS.md §7.3). --run and --load-check read them from
 //   --vendor <dir>  or  LQ_EXAM_EVAL_VENDOR=<dir>   (default ~/LENSIQ-field/evals/exam-followups/vendor)
 // and stop with an error when a file is missing or its sha256 differs.
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, chmodSync, rmSync, readdirSync } from "node:fs";
 import { homedir, tmpdir, cpus, totalmem, platform, release } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -213,6 +214,7 @@ async function kit() {
   const { launch } = await import("../tests/e2e/cdp.mjs");
   const { serve } = await import("./static-server.mjs");
   const { PAGE_LIB } = await import("./exam-hall-face-page.mjs");
+  assertFreeSpace({ label: "tools/exam-hall-face-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   return { PAGE_LIB, srv: await serve(repo, { mounts: { [VENDOR_MOUNT]: VENDOR } }), browser: await launch() };
 }
 
