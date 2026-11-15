@@ -109,3 +109,7 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   first run, test-setup fixes only (readings without in-depth text have nothing to sell, so they now must show no paid block and
   no price, with a coverage minimum instead; tab-free pages added; crisis groups found by element; the off snapshot waits for
   the page's own Thai line breaking). The reason is written in `evals-locks/fortune-paid.sha256`. Unit file unchanged.
+- `fortune-paid` re-lock (2) (2026-11-15): after the independent review of ed6a0a6 (NOT OK, F1 belief remedies paid-only,
+  F2 flying stars 2/5 and avoid-warnings paid-only), two NEW files were locked before the fix
+  (`tests/unit/fortune-paid-guidance.test.js`, `tests/e2e/fortune-paid-guidance.e2e.mjs`). Before the fix: unit 2 pass / 3
+  fail (306 + 133 readings). Earlier locked files unchanged.

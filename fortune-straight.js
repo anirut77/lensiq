@@ -241,7 +241,18 @@
       frag.insertBefore(straightControl(container, res.lang), frag.firstChild);
     } catch (e) { /* no DOM */ }
   }
-  const api = { mount, hardLimit, stripHonest, LABEL_NEG, LEADS: STRAIGHT_LEAD, NATAL_LEADS: NATAL_LEAD, isNatal, calm,
+  /* fortune-paid review F1 / F2 (2026-11-15): words of belief guidance (lucky colour, direction, rite, element tip, lucky item),
+     feng-shui flying stars 2 / 5 and "avoid / don't" warnings. fortune-ai.js marks paragraphs with them (section.guidance);
+     fortune-paid.js never sells such a paragraph. Encouragements (อย่าลืม, อย่าลังเล, ไม่ควรมองข้าม) and อย่าง / 别人 / 特别 are not warnings. */
+  const GUIDE = {
+    th: new RegExp("(?:เลือก|ใส่|ใช้|สวม|เติม)สี|สีมงคล|สีที่เข้ากับ|เคล็ด|หันหน้าไปทาง|หันไปทาง|ปรับมุมไปทาง|ไว้ทาง|ทิศ|เสริม(?:พลัง)?ธาตุ|ทำบุญ|ไหว้|บูชา|" +
+      "สวดมนต์|ใส่บาตร|พกติดตัว|ของมงคล|เครื่องราง|ถวาย|ดาว ?[25](?![0-9])|ห้าเหลือง|ดำสอง|ทุบเจาะ|เหนื่อยล้า|อย่า(?!ง|ลืม|ลังเล)|เลี่ยง|ไม่ควร(?!มองข้าม)"),
+    en: new RegExp("\\b(?:wear(?:ing)?|choose|add|use) (?:a touch of |some |more )?(?:red|orange|blue|black|green|white|yellow|gold|pink|purple|navy|cream|" +
+      "grey|gray|brown|light blue|sky blue)\\b|lucky (?:colou?r|item|charm|direction)|\\bfac(?:e|ing) (?:north|south|east|west)|make merit|\\bpray|offering|" +
+      "\\belement\\b|amulet|\\bStar [25]\\b|Five Yellow|Two Black|digging|fatigue|exhaust\\w*|\\bavoid|\\bdon't\\b|\\bdo not\\b", "i"),
+    zh: /(?:穿|选|用|佩戴|添).{0,3}(?:红|橙|蓝|黑|绿|白|黄|金|粉|紫|灰|棕)色|幸运色|吉祥色|朝(?:东|西|南|北)|吉位|供奉|拜神|拜佛|祈福|行善|布施|补充|护身符|吉祥物|二黑|五黄|动土|避免|不要|(?<![特区告分识派离辨])别(?![人的处具致墅])|勿|忌|疲惫/,
+  };
+  const api = { mount, hardLimit, GUIDE, stripHonest, LABEL_NEG, LEADS: STRAIGHT_LEAD, NATAL_LEADS: NATAL_LEAD, isNatal, calm,
     enabled: straightEnabled, active: straightActive, get: straightGet, set: straightSet,
     text: straightText, controlHTML: straightControlHTML, control: straightControl };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQFortuneStraight = api;

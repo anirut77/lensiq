@@ -75,6 +75,15 @@
     en: /\b(?:try|should|tip|suggest\w*|recommend\w*|wear|carry|choose|make merit|pray\w*|offerings?|remed\w*|helps?|consider|keep)\b/i,
     zh: /建议|可以|不妨|宜|应|穿|佩戴|选择|供奉|拜|行善|祈福|有助/,
   };
+  /* review F1 / F2 (2026-11-15): belief guidance (lucky colour, direction, rite, element tip, lucky item), feng-shui flying stars
+     2 / 5 and "avoid / don't" warnings are never paid, in any group (fallback to the composer's section.guidance marks) */
+  /** @param {"th"|"en"|"zh"} l @returns {RegExp} */
+  const guideRe = l => { const F = FA(); return (F && F.straight && F.straight.GUIDE && F.straight.GUIDE[l]) || /$^/; };
+  // the reading layout draws an advice box (data-lq-remedy) after such a part: never take it away (fortune-read.js adviceBox rule)
+  const FRAME = { th: /ควร|ลอง|วิธีปรับ|สิ่งที่ทำได้|ข้อแนะนำ|เคล็ด|เลือก|ใส่|ใช้กับ|สีที่เข้ากับ|สีมงคล|ทิศที่ส่งเสริม|ไหว้|บูชา|ทำบุญ/,
+    en: /\b(?:try|wear|choose|should|tip|remedy|suit|face|pay|make merit|pray)\b/i, zh: /建议|可以|不妨|穿|选择|宜|适合|朝|拜|供奉|孝/ };
+  /** @param {string} t @param {"th"|"en"|"zh"} l */
+  const adviceBox = (t, l) => { const R = RD(); return !!(R && R.adviceKinds && R.adviceKinds(t, l).length && FRAME[l].test(t)); };
   const leadCache = /** @type {Record<string, string[]>} */ ({});
   /** caution leads the composer can use (straight leads, natal leads, gentle caution leads), whole and their tails */
   function leads(/** @type {"th"|"en"|"zh"} */ l) {
@@ -110,7 +119,9 @@
   /** where one folded part goes: "free" | "paid" | "drop" @param {string} t @param {any} ctx */
   function classify(t, ctx) {
     if (!safe(t, { straight: ctx.straight })) return "drop";
+    if (ctx.marked) return "free"; // the composer's guidance mark (section.guidance)
     if (isCaution(t, ctx.lang) || ctx.plan.some((/** @type {string} */ q) => q && t.includes(q))) return "free";
+    if (guideRe(ctx.lang).test(t) || adviceBox(t, ctx.lang)) return "free"; // review F1 / F2: in every group, caution or not
     if (ctx.sectionCaution && ADVICE[ctx.lang].test(t)) return "free";
     return "paid";
   }
@@ -134,8 +145,9 @@
       const parts = R.planSection(s, lang);
       const g = { id: s.id, title: titleOf(s, lang), free: /** @type {string[]} */ ([]), paid: /** @type {string[]} */ ([]), dropped: /** @type {string[]} */ ([]) };
       const ctx = { lang, straight, plan, sectionCaution: parts.some((/** @type {any} */ p) => p.caution || isCaution(p.text, lang)) };
+      const marks = Array.isArray(s.guidance) && s.guidance.length === (s.paragraphs || []).length ? s.guidance : null;
       for (const p of parts) {
-        const where = p.visible || s.id === "advice" ? "free" : classify(p.text, ctx);
+        const where = p.visible || s.id === "advice" ? "free" : classify(p.text, Object.assign({}, ctx, { marked: !!(marks && marks[p.para]) }));
         (where === "free" ? g.free : where === "paid" ? g.paid : g.dropped).push(p.text);
       }
       return g;
@@ -232,7 +244,7 @@
     if (!allowed(doc)) return;
     const res = shown || original;
     if (!res || res.crisis || res.source === "support" || container.closest && container.closest(".fa-support")) return;
-    const l = langOf(res.lang || pageLang()), straight = res.mode === "straight", plan = planFrags(res, l);
+    const l = langOf(res.lang || pageLang()), straight = res.mode === "straight";
     ensureStyle(doc);
     // this file can load before fortune-read.js (nav.js inserts it), so its hook may run first: group the reading here
     // (fortune-read's enhance is idempotent: a group already made is left as it is)
@@ -240,6 +252,7 @@
     if (R && R.enhance && container.querySelector(".fa-section:not([data-lq-grouped])")) { try { R.enhance(container, res); } catch (e) { return; } }
     // a re-render of the same container replaced its nodes: forget the old record
     DONE = DONE.filter(r => r.container !== container && r.container.isConnected !== false);
+    const sp = split(res, { lang: l, straight }), used = new Set();
     const rec = { container, bodies: /** @type {any[]} */ ([]), buttons: /** @type {any[]} */ ([]), groups: /** @type {any[]} */ ([]), lang: l, monthly: res.monthly };
     const groups = rec.groups;
     for (const sec of container.querySelectorAll(".fa-section[data-lq-grouped]")) {
@@ -248,15 +261,19 @@
       const h = sec.querySelector("h3, h4"), title = h ? h.textContent.trim() : id;
       const bodies = [...sec.querySelectorAll(".lq-more-body")].filter(b => b.closest(".fa-section") === sec);
       if (id === "advice" || !bodies.length) continue;
-      const texts = [...sec.querySelectorAll("p")].filter(p => !p.closest("[data-lq-paid]")).map(p => p.textContent);
-      const ctx = { lang: l, straight, plan, sectionCaution: !!sec.querySelector(".lq-caution") || texts.some(t => isCaution(t, l)) };
+      // the parts to lock are exactly the paid parts of split() for this group (same rules as the tests); a group the
+      // result does not describe (other renderer, AI text) is left whole. Advice boxes and any other node are never removed.
+      const g = sp && sp.groups.find((/** @type {any} */ x, /** @type {number} */ k) => x.id === id && !used.has(k));
+      if (g) used.add(sp.groups.indexOf(g));
+      const paid = g ? g.paid.slice() : [];
       let locked = 0;
       for (const body of bodies) {
         const nodes = [...body.childNodes];
-        let keep = true; // an advice box follows its paragraph
         for (const n of nodes) {
-          if (n.tagName === "P") keep = classify(n.textContent, ctx) === "free";
-          if (!keep) { n.remove(); if (n.tagName === "P") locked++; }
+          if (n.tagName !== "P") continue;
+          const k = paid.indexOf(n.textContent);
+          if (k < 0) continue;
+          paid.splice(k, 1); n.remove(); locked++;
         }
         if (nodes.length !== body.childNodes.length) rec.bodies.push({ body, nodes });
       }
