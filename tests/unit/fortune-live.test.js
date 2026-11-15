@@ -8,7 +8,7 @@
 //      (EN / ZH to match). The earlier drafts and "for entertainment" (TH / EN / ZH) are gone from the fortune pages,
 //      cat-fortune.html, the fortune KBs and scripts, and the fortune strings in i18n. The AI prompt says no "entertainment".
 //   3  Help line in one place per page: a single small "อยากมีคนรับฟัง" tap-to-call button near the top (before <main>);
-//      1323 and 1669 each appear exactly once in a fortune page's HTML; no help-line block at the end of the page and no
+//      no help number more than once in a fortune page's HTML, 1323 once, 1669 not at all (re-lock: decision 54 ข); no help-line block at the end of the page and no
 //      help line under a reading in the normal state. The crisis card is unchanged (full card with every number).
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -187,14 +187,19 @@ function block(html, id) {
 const bodyText = h => stripComments(h).replace(/<head[\s\S]*?<\/head>/i, " ").replace(/<(script|style|noscript|template)\b[\s\S]*?<\/\1>/gi, " ")
   .replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
-test("item 3: every fortune page (and cat-fortune) has 1323 and 1669 exactly once in its HTML, in one help button row before <main>", () => {
+// RE-LOCK 2026-11-15 (owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis
+// card): in the normal state no help number appears more than once per page; "อยากมีคนรับฟัง 1323" is the ONLY help control at
+// the top; 1669 (and 191, 1300, Samaritans) do not appear in the normal state; the crisis card carries them all.
+const NUMS = { 1323: "1323", 1669: "1669", 191: "191", 1300: "1300", samaritans: "021136789" };
+test("item 3: every fortune page (and cat-fortune): each help number at most once in its HTML, 1323 exactly once (the top button), 1669 none", () => {
   for (const p of ALL) {
     const h = stripComments(read(p + ".html"));
-    for (const n of ["1323", "1669"]) {
+    for (const [id, n] of Object.entries(NUMS)) {
       const tels = (h.match(new RegExp('href="tel:' + n + '"', "g")) || []).length;
-      const txt = (bodyText(h).match(new RegExp("(?<!\\d)" + n + "(?!\\d)", "g")) || []).length;
-      assert.equal(tels, 1, `${p}.html: tel:${n} links ${tels}`);
-      assert.equal(txt, 1, `${p}.html: ${n} in the visible text ${txt} times`);
+      const txt = id === "samaritans" ? (bodyText(h).match(/02 113 6789/g) || []).length : (bodyText(h).match(new RegExp("(?<!\\d)" + n + "(?!\\d)", "g")) || []).length;
+      assert.ok(tels <= 1 && txt <= 1, `${p}.html: ${id} appears more than once (tel ${tels}, text ${txt})`);
+      if (id === "1323") { assert.equal(tels, 1, `${p}.html: tel:1323 links ${tels}`); assert.equal(txt, 1, `${p}.html: 1323 in the text ${txt} times`); }
+      else { assert.equal(tels, 0, `${p}.html: tel:${n} in the normal page`); assert.equal(txt, 0, `${p}.html: ${id} in the normal page text`); }
     }
     assert.ok(!h.includes('id="lqHelpEnd"'), p + ".html: no help line at the end of the page");
     const top = block(h, "lqHelpTop");
@@ -202,7 +207,8 @@ test("item 3: every fortune page (and cat-fortune) has 1323 and 1669 exactly onc
     const main = h.search(/<main\b/);
     assert.ok(top.start < main, p + ".html: the help button comes before <main>");
     assert.ok(top.start > h.search(/<header\b/), p + ".html: the help button comes after the header");
-    assert.match(top.html, /href="tel:1323"/); assert.match(top.html, /href="tel:1669"/);
+    assert.deepEqual([...top.html.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map(m => m[1]), ["tel:1323"], p + ": the 1323 button is the only control at the top");
+    assert.doesNotMatch(top.html, /<button\b|role="button"/, p + ": no other help control at the top");
     const a = top.html.match(/<a\b[^>]*href="tel:1323"[^>]*>[\s\S]*?<\/a>/)[0];
     assert.match(a, /อยากมีคนรับฟัง/, p + ": the 1323 button says อยากมีคนรับฟัง");
     assert.match(a, /data-i18n="call\.1323\.label"/, p + ": the label is translatable");
@@ -221,7 +227,7 @@ test("item 3: the button labels exist in EN / ZH (no Thai letters) and the gener
   const H = await import("../../tools/helpline.mjs");
   const out = H.applyTo("<header class=\"nav\" id=\"siteNav\"></header>\n<main>\n  <p>x</p>\n</main>\n");
   assert.equal((out.match(/tel:1323/g) || []).length, 1, "generator: one 1323");
-  assert.equal((out.match(/tel:1669/g) || []).length, 1, "generator: one 1669");
+  assert.equal((out.match(/tel:1669/g) || []).length, 0, "generator: no 1669 in the normal page (crisis card only; decision 54 ข)");
   assert.ok(!out.includes("lqHelpEnd"), "generator: no end block");
 });
 

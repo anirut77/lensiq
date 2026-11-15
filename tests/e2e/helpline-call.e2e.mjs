@@ -8,6 +8,8 @@
 // 3) Crisis state (dream hard net) and calm state (tab flag): the 1323 button is still visible and tappable; the card keeps
 //    every help line as a button.
 // 4) Rendered wording: 1323 button + second line in TH / EN / ZH without the forbidden words; EN / ZH without Thai.
+// RE-LOCK 2026-11-15 (2) (owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis
+//    card): the fortune pages' top row holds only the 1323 button.
 // RE-LOCK 2026-11-15 (fortune-live, owner order 2026-11-15 item 3; placement pre-approved by the owner): on the fortune pages
 //    the help line is ONE small tap-to-call button row near the top (#lqHelpTop: "อยากมีคนรับฟัง 1323" and "เจ็บป่วยฉุกเฉิน
 //    1669", class .lq-call-mini); #lqHelpEnd is gone. Every button keeps the tel / 44 px / on-screen / not-covered checks; the
@@ -106,7 +108,7 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n" + bad.slice(0, 40).join("\n"));
     });
 
-    await check("the always-visible help lines are never collapsed or hidden (fortune pages, 360 px): 1323 + 1669 buttons in each", async () => {
+    await check("the always-visible help lines are never collapsed or hidden (fortune pages, 360 px): only the 1323 button in each (decision 54 ข)", async () => {
       const bad = [];
       const page = await browser.newPage(null);
       try {
@@ -121,7 +123,7 @@ export default async function ({ base, launch, check }) {
               const btn = e && e.querySelector('[data-lq-call="1323"] a.lq-call-btn');
               return { why, calls, btn: btn ? ${SHOWN}(btn) : "no 1323 button" }; })()`);
             if (r.why) bad.push(`${p} #${id}: ${r.why}`);
-            if (S(r.calls.slice(0, 2)) !== S(["1323", "1669"])) bad.push(`${p} #${id}: components ${S(r.calls)}`);
+            if (S(r.calls) !== S(["1323"])) bad.push(`${p} #${id}: components ${S(r.calls)}`);
             if (r.btn) bad.push(`${p} #${id} 1323 button: ${r.btn}`);
           }
         }

@@ -1,7 +1,7 @@
 // tests/e2e/fortune-live.e2e.mjs — FIXED TEST SET, fortune go-live (owner order 2026-11-15, items 1–3), locked BEFORE the build
 // (evals-locks/fortune-live.sha256, ~/LENSIQ-field/evals/fortune-live/). The static half is tests/unit/fortune-live.test.js.
 // Phone width, every fortune page (CLAUDE.md category 6 + cat-fortune), TH / EN / ZH:
-//   H1  normal state: 1323 and 1669 each appear exactly once on the page (visible tel: links and visible text, counted as
+//   H1  normal state (re-lock, decision 54 ข): no help number more than once; 1323 exactly once, 1669 not at all on the page (visible tel: links and visible text, counted as
 //       one place when the number is the text of its own tel: link), at page load and after a reading (dream TH / EN / ZH,
 //       report TH)
 //   H2  the "อยากมีคนรับฟัง" button is reachable in one tap from page load: in the first screen without scrolling, at least
@@ -26,6 +26,11 @@ const LINE = {
   en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
   zh: "基于命理学原则，属个人信仰，请自行判断。",
 };
+
+// RE-LOCK 2026-11-15 (owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis
+// card): in the normal state each help number appears at most once; 1323 (the one top button) exactly once; 1669, 191, 1300 and
+// Samaritans not at all. The crisis-state checks (H3: the full card with 1669, 191, 1300) are unchanged.
+const WANT_N = { 1323: 1, 1669: 0, 191: 0, 1300: 0, "021136789": 0 };
 
 const phone = async (page, w, h = 800) => {
   await page.send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 2, mobile: true });
@@ -62,6 +67,7 @@ const BUTTON = `(() => {
   const overlapNav = !!n && n.height > 0 && r.left < n.right && n.left < r.right && r.top < n.bottom && n.top < r.bottom;
   return { w: r.width, h: r.height, top: r.top, bottom: r.bottom, left: r.left, right: r.right, vw: innerWidth, vh: innerHeight, scrollY,
     covered: !(hit && (hit === a || a.contains(hit))), hit: hit ? hit.tagName + "." + hit.className : null, overlapNav,
+    topCtl: (() => { const t = document.getElementById("lqHelpTop"); return t ? [...t.querySelectorAll("a[href], button, [role=button]")].filter(x => x.getClientRects().length).map(x => x.getAttribute("href") || x.tagName) : null; })(),
     text: a.innerText.replace(/\\s+/g, " ").trim(), aria: a.getAttribute("aria-label") || "", sw: document.documentElement.scrollWidth }; })()`;
 
 /** every fortune page loads; returns once the page language is applied */
@@ -85,7 +91,7 @@ async function dreamReading(page) {
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
-    await check("H1: normal state, every fortune page at 375 px, TH / EN / ZH: 1323 and 1669 each appear exactly once", async () => {
+    await check("H1: normal state, every fortune page at 375 px, TH / EN / ZH: each help number at most once; 1323 exactly once, 1669 none", async () => {
       const bad = [];
       for (const lang of LANGS) {
         const page = await open(browser, lang);
@@ -93,9 +99,9 @@ export default async function ({ base, launch, check }) {
           await phone(page, 375);
           for (const p of PAGES) {
             try { await load(page, base, p, lang); } catch (e) { bad.push(`${p} ${lang}: did not load in ${lang} with a 1323 link`); continue; }
-            for (const n of ["1323", "1669"]) {
+            for (const [n, want] of Object.entries(WANT_N)) {
               const places = await page.evaluate(PLACES(n));
-              if (places.length !== 1) bad.push(`${p} ${lang}: ${n} shows ${places.length} times ${S(places)}`);
+              if (places.length !== want) bad.push(`${p} ${lang}: ${n} shows ${places.length} times (want ${want}) ${S(places)}`);
             }
           }
         } finally { await page.close(); }
@@ -103,7 +109,7 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n" + bad.slice(0, 60).join("\n"));
     });
 
-    await check("H1: after a reading (dream TH / EN / ZH, report TH) 1323 and 1669 still appear exactly once", async () => {
+    await check("H1: after a reading (dream TH / EN / ZH, report TH): still 1323 once, 1669 none", async () => {
       const bad = [];
       for (const lang of LANGS) {
         const page = await open(browser, lang);
@@ -111,9 +117,9 @@ export default async function ({ base, launch, check }) {
           await phone(page, 375);
           await load(page, base, "dream", lang);
           await dreamReading(page);
-          for (const n of ["1323", "1669"]) {
+          for (const [n, want] of Object.entries(WANT_N)) {
             const places = await page.evaluate(PLACES(n));
-            if (places.length !== 1) bad.push(`dream ${lang}: ${n} shows ${places.length} times after the reading ${S(places)}`);
+            if (places.length !== want) bad.push(`dream ${lang}: ${n} shows ${places.length} times (want ${want}) after the reading ${S(places)}`);
           }
         } catch (e) { bad.push(`dream ${lang}: ${e.message}`); } finally { await page.close(); }
       }
@@ -128,9 +134,9 @@ export default async function ({ base, launch, check }) {
         });
         await page.waitFor(() => document.querySelectorAll("#rpOut .rp-part").length >= 3, 10000);
         await sleep(400);
-        for (const n of ["1323", "1669"]) {
+        for (const [n, want] of Object.entries(WANT_N)) {
           const places = await page.evaluate(PLACES(n));
-          if (places.length !== 1) bad.push(`report th: ${n} shows ${places.length} times after the report ${S(places)}`);
+          if (places.length !== want) bad.push(`report th: ${n} shows ${places.length} times (want ${want}) after the report ${S(places)}`);
         }
         const line = await page.evaluate(`[...document.querySelectorAll(".lq-disc-line")].some(e => e.getClientRects().length && e.textContent.trim() === ${S(LINE.th)})`);
         if (!line) bad.push("report th: the final disclaimer line is not shown");
@@ -158,6 +164,7 @@ export default async function ({ base, launch, check }) {
               if (b.w < 44 || b.h < 44) bad.push(`${tag}: button ${b.w.toFixed(1)}×${b.h.toFixed(1)} px`);
               if (b.top < 0 || b.bottom > b.vh) bad.push(`${tag}: button not in the first screen (top ${b.top.toFixed(0)}, screen ${b.vh})`);
               if (b.left < -0.5 || b.right > b.vw + 0.5) bad.push(`${tag}: button off the side of the screen`);
+              if (S(b.topCtl) !== S(["tel:1323"])) bad.push(`${tag}: the top help row must hold only the 1323 button (decision 54 ข): ${S(b.topCtl)}`);
               if (b.covered) bad.push(`${tag}: button covered by ${b.hit}`);
               if (b.overlapNav) bad.push(`${tag}: button overlaps the header`);
               if (b.sw > b.vw + 1) bad.push(`${tag}: page wider than the screen (${b.sw} > ${b.vw})`);

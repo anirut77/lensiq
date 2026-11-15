@@ -4,3 +4,7 @@
 # locked 2026-11-15T14:20:08Z (tools/eval-guard.mjs lock, 2 files)
 f970688f1c19696a51d4cc549e0db94a12303271a1fdcce30a4b47431a9de78a  tests/unit/fortune-live.test.js
 a4b03b33e6c476d07a7b22cd504bd298c62aa87c015b7b996dcbc5cb60e39469  tests/e2e/fortune-live.e2e.mjs
+# RE-LOCK 2026-11-15 (2): owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis card. Unit item 3 and e2e H1 / H2: every help number at most once per page in the normal state; 1323 (the "อยากมีคนรับฟัง" top button, tel:, >= 44 px, one tap) exactly once and the only control at the top; 1669, 191, 1300 and Samaritans not in the normal state; generator writes no 1669. Crisis-state checks (full card with 1669, 191, 1300) unchanged. On 542a9b7: unit 3 tests fail (fortune-live 2, fortune-helpline 1). Log: run-3-relock54-unit-on-542a9b7.log
+# locked 2026-11-15T15:43:20Z (tools/eval-guard.mjs lock, 2 files)
+3e842dacf8686034903aca38933359a883bae035ef54379faf06b885b79f098e  tests/unit/fortune-live.test.js
+5522ff47eea5a72e4128de85c86286b5441db4d818d2a9c7510322f9ccdff08c  tests/e2e/fortune-live.e2e.mjs
