@@ -170,7 +170,7 @@ test("composer: money-topic overview uses money meanings, not love ones (numbers
   const f = NM.buildFacts(NM.analyzePhone("0812345678"), "money", {});
   for (let seed = 1; seed <= 12; seed++) {
     const r = FA.compose(f, { seed, trace: true });
-    assert.ok(!/ความรักมั่นคงและอบอุ่น/.test(r.sections[0].paragraphs.join(" ")), "seed " + seed);
+    assert.ok(!/ชีวิตรักมั่นคง อบอุ่น/.test(r.sections[0].paragraphs.join(" ")), "seed " + seed);
     assert.deepEqual(FA.lintSemantic(f, r).filter(x => x.rule === "overview-topic"), []);
   }
 });

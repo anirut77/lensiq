@@ -65,7 +65,7 @@
         c: "you may not have many friends, but every one of them is a true friend",
         a: "let someone you trust come a little closer, and your strength will feel warmer too" },
       "sun.8": { n: "your Sun in Sagittarius", s: "your Sun sign",
-        p: ["you are optimistic, freedom-loving and always eager to learn something new", "you have a great sense of humor and you lift the spirits of everyone around you"],
+        p: ["you are optimistic, freedom-loving and always eager to explore new ideas", "you have a great sense of humor and you lift the spirits of everyone around you"],
         w: ["work that involves travel, teaching, sharing knowledge or working across cultures suits you well", "you see the big picture and can spark a shared vision for your team"],
         m: ["good opportunities come your way often, and automatic savings help you hold on to what you gain", "spending on knowledge and experiences tends to give you a great return"],
         l: ["in love you need someone who is both your partner and your fellow adventurer", "you love sincerely and are happy to give each other room to be free"],

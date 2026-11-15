@@ -100,7 +100,7 @@
     items.push({ id: "animal." + R.animal, group: "ปีเกิด", label: "ปี" + A.th + " (" + anFlat(A) + ")", short: "ชาวปี" + A.th, person: true, evidence: "นักษัตร" + A.an + " " + A.zh + " ธาตุ" + KB.ELEMENTS[R.birthElement].th,
       strength: 0.84, tags: ["personality", "work", "money", "love", "social", "advice"], meanings: { personality: A.p.slice(), work: A.w.slice(), money: A.m.slice(), love: A.l.slice(), social: A.s.slice(), advice: [A.a] } });
     var rm = { overview: REL.o.slice(), work: REL.w.slice(), money: REL.m.slice(), love: REL.l.slice(), advice: REL.a.slice(), timing: REL.t.slice() };
-    items.push({ id: "rel." + R.rel, group: "ปี " + R.year + " (พ.ศ. " + (R.year + 543) + ")", label: REL.th === "ปีปกติ" ? "ปี" + Y.th + "ที่ไม่ชงและไม่ประสาน" : REL.badge.split(" · ").pop() + "ในปี" + Y.th, short: REL.th === "ปีปกติ" ? "ปีนี้" : "ปี" + REL.th, evidence: yearName(R.year),
+    items.push({ id: "rel." + R.rel, group: "ปี " + R.year + " (พ.ศ. " + (R.year + 543) + ")", label: REL.th === "ปีปกติ" ? "ปี" + Y.th + "ที่ไม่ชงและไม่ประสาน" : REL.badge.split(" · ").pop() + "ในปี" + Y.th, short: "ปีนี้", evidence: yearName(R.year),
       strength: 0.95, polarity: REL.tone === "care" ? "challenge" : undefined, tags: Object.keys(rm), meanings: rm });
     var em = { overview: [ER.o], work: [ER.w], money: [ER.m], love: [ER.l] };
     items.push({ id: "el." + R.elRel, group: "พลังธาตุ", label: ER.th + " (ธาตุ" + KB.ELEMENTS[R.yearElement].th + "กับธาตุ" + KB.ELEMENTS[R.birthElement].th + ")", short: "พลังธาตุของปี", strength: 0.78, tags: Object.keys(em), meanings: em });
@@ -111,7 +111,7 @@
     }
     for (var i = items.length - 1; i >= 0; i--) if (!items[i].polarity) delete items[i].polarity;
     return {
-      domain: "zodiac", topic: topic || "overall", subject: {}, headline: "ชาวปี" + A.th + "ใน" + yearName(R.year) + " ซึ่งเป็น" + (REL_GLOSS[REL.th] || REL.badge.split(" · ").pop()), items: items,
+      domain: "zodiac", topic: topic || "overall", subject: {}, headline: "ปีนี้เป็น" + yearName(R.year) + " ซึ่งนับเป็น" + (REL_GLOSS[REL.th] || REL.badge.split(" · ").pop()) + "ของชาวปี" + A.th, items: items,
       extras: { luckyColors: R.lucky.map(function (e) { return KB.ELEMENTS[e].colors.join(" / "); }), directions: [R.direction], tips: [FK.pickR(r, REL.a)] }
     };
   }

@@ -79,6 +79,13 @@
     7: { th: "เสาร์", color: "ม่วง", day: "วันเสาร์", q: "ความอดทนและความรับผิดชอบ" },
     8: { th: "ราหู", color: "เทาและดำ", day: "วันพุธกลางคืน", q: "ความทะเยอทะยานและการเปลี่ยนแปลง" },
   };
+  var LOVE_BY_PLANET = { 1: "ดาวอาทิตย์ประจำวันเกิดทำให้คุณรักอย่างเปิดเผย และอยากเป็นที่พึ่งให้คนที่รัก", 2: "ดาวจันทร์ประจำวันเกิดทำให้คุณรักแบบอ่อนโยน ใส่ใจความรู้สึกเล็ก ๆ ของอีกฝ่าย",
+    3: "ดาวอังคารประจำวันเกิดทำให้คุณรักตรงไปตรงมา และพร้อมปกป้องคนที่รัก", 4: "ดาวพุธประจำวันเกิดทำให้ความรักของคุณเติบโตผ่านการพูดคุยและแลกเปลี่ยนความคิด",
+    5: "ดาวพฤหัสบดีประจำวันเกิดทำให้คุณรักแบบผู้ใหญ่ อยากเห็นอีกฝ่ายเติบโต", 6: "ดาวศุกร์ประจำวันเกิดทำให้คุณรักแบบโรแมนติก ชอบบรรยากาศดี ๆ และความใส่ใจในรายละเอียด",
+    7: "ดาวเสาร์ประจำวันเกิดทำให้คุณรักมั่นคงแบบค่อยเป็นค่อยไป แต่จริงจังเมื่อเลือกแล้ว", 8: "ดาวราหูประจำวันเกิดทำให้คุณรักแบบไม่ซ้ำใคร และชอบความสัมพันธ์ที่ให้อิสระกัน" };
+  var LOVE_BY_BHUMI = { boriwan: "ช่วงนี้คนในบ้านและคู่ครองเป็นศูนย์กลางของใจคุณ", ayu: "ช่วงนี้เหมาะกับการดูแลใจของกันและกันอย่างสม่ำเสมอ", det: "ช่วงนี้คุณมักเป็นฝ่ายนำในความสัมพันธ์ ลองเปิดพื้นที่ให้อีกฝ่ายด้วย",
+    sri: "ช่วงนี้ความสัมพันธ์มีเรื่องน่ายินดีเข้ามาได้ง่าย", mula: "ช่วงนี้เหมาะกับการวางรากฐานชีวิตคู่ เช่น เรื่องบ้านหรือแผนระยะยาว", utsaha: "ช่วงนี้งานยุ่ง อย่าลืมเผื่อเวลาให้คนที่รัก",
+    montri: "ช่วงนี้มีผู้ใหญ่คอยหนุนเรื่องหัวใจ", kalakini: "ช่วงนี้ควรใจเย็นเป็นพิเศษเวลาเห็นต่างกัน" };
   var BHUMI_TH = {
     boriwan: { th: "บริวาร", tone: "favourable", tag: "social", m: "คนรอบตัวและลูกน้องเป็นกำลังสำคัญของคุณ" },
     ayu: { th: "อายุ", tone: "favourable", tag: "advice", m: "พลังในการดูแลตัวเองและความสม่ำเสมอของชีวิตมาจากดาวนี้", a: "ลองทำกิจวัตรดูแลตัวเองสั้น ๆ ทุกวัน เช่น เดินเล่นหรือนอนให้ตรงเวลา" },
@@ -97,7 +104,8 @@
     items.push({ id: "tk.boriwan." + bp, group: "ดาวประจำวันเกิด", label: "ดาว" + P0.th + " (" + P0.day + ")", short: "ดาว" + P0.th, evidence: "ภูมิบริวาร", strength: 0.95, tone: "favourable", tags: ["personality", "social"],
       meanings: { overview: ["ดาวประจำวันเกิดของคุณคือดาว" + P0.th + " ซึ่งตำราให้ความหมายเรื่อง" + P0.q], personality: ["คุณมีพลังของ" + P0.q + "เป็นพื้นฐาน"], social: [BHUMI_TH.boriwan.m],
         // ภูมิบริวารในตำราทักษารวมถึงคู่ครองและคนในครอบครัว → ใช้ตอบเรื่องความรักได้ตรงตำรา
-        love: ["ในตำราทักษา ภูมิบริวารของคุณซึ่งมีดาว" + P0.th + "ยังหมายถึงคู่ครองและคนในครอบครัว ความสัมพันธ์ใกล้ชิดจึงเติบโตได้ดีเมื่อคุณดูแลคนรอบตัวอย่างใส่ใจ และคนที่เกิด" + PLANET[T.bhumi.montri].day + "มักเป็นผู้ใหญ่ที่คอยหนุนความสัมพันธ์ของคุณ ตอนนี้คุณอายุ " + Math.max(0, age0) + " ปี อยู่ในช่วงอายุ " + M0.from + "–" + M0.to + " ปีที่อยู่ใต้มหาทักษาดาว" + PLANET[M0.planet].th + " เป็นจังหวะที่ดีสำหรับการใส่ใจคนใกล้ชิด"] } });
+        // round 2: the love line reads this chart, not one template: how the birth planet loves, and what the current Taksa period asks of a relationship
+        love: [(LOVE_BY_PLANET[bp] || "") + " ในตำราทักษา ภูมิบริวารซึ่งมีดาว" + P0.th + "ยังหมายถึงคู่ครองและคนในครอบครัว และคนที่เกิด" + PLANET[T.bhumi.montri].day + "มักเป็นผู้ใหญ่ที่คอยหนุนความสัมพันธ์ของคุณ ตอนนี้คุณอายุ " + Math.max(0, age0) + " ปี อยู่ในช่วงอายุ " + M0.from + "–" + M0.to + " ปีที่อยู่ใต้มหาทักษาดาว" + PLANET[M0.planet].th + " " + (LOVE_BY_BHUMI[M0.bhumi] || "")] } });
     ["sri", "det", "montri", "utsaha", "ayu", "kalakini"].forEach(function (b, i) {
       var p = T.bhumi[b], B = BHUMI_TH[b], P = PLANET[p], m = {};
       m[B.tag] = [B.m.replace("ดาวนี้", "ดาว" + P.th) + " สีประจำดาวคือสี" + P.color];
@@ -144,7 +152,7 @@
       return { id: "l7." + i + "." + tone, group: "ฐานรวม", label: "ภพ" + H.th + " ได้ " + s[i], short: "ภพ" + H.th, evidence: "ช่องที่ " + (i + 1) + " ของฐานรวม",
         strength: Math.max(0.3, Math.min(0.95, 0.5 + (s[i] - mean) / 20)), tone: tone, tags: Object.keys(m), meanings: m };
     });
-    return { domain: "lek7", topic: topic || "overall", subject: {}, headline: "ภพ" + HOUSE[hiI].th + " ซึ่งดูแลเรื่อง" + HOUSE[hiI].m, items: items, extras: {} };
+    return { domain: "lek7", topic: topic || "overall", subject: {}, headline: "ภพ" + HOUSE[hiI].th + " ซึ่งดูแลเรื่อง" + HOUSE[hiI].m + " มีพลังมากที่สุดในผังเลขของคุณ", items: items, extras: {} };
   }
 
   /* ---------- กราฟชีวิต ----------
@@ -211,8 +219,10 @@
       items.push({ id: "lg.now." + d + "." + tone, group: "ช่วงอายุปัจจุบัน", label: DOM_TH[d] + "ช่วงอายุ " + cur + "–" + (cur + step), short: d === "care" ? "ด้าน" + DOM_TH[d] : "เส้น" + DOM_TH[d], evidence: "ระดับ " + S.avg[k] + "/100 จากทักษา 八字 และตะวันตก", strength: 0.9 - k * 0.04, tone: tone, plainTh: d !== "care", tags: Object.keys(m), meanings: m });
     });
     var MP = PLANET[S.maha.planet];
-    items.push({ id: "lg.maha." + S.maha.planet, group: "ระบบทักษา", label: "มหาทักษาดาว" + MP.th, short: "มหาทักษา", evidence: "มหาทักษา · อายุ " + S.maha.from + "–" + S.maha.to, strength: 0.8, tone: BHUMI_TH[S.maha.bhumi].tone, tags: ["timing"],
-      meanings: { timing: ["ตามมหาทักษา ช่วงนี้อยู่ใต้ดาว" + MP.th + " ซึ่งเด่นเรื่อง" + MP.q] } });
+    // round 2: the main point of the life graph is the age band, its Taksa period and where the curves go (a whole sentence)
+    var mean0 = Math.round((S.avg[0] + S.avg[1] + S.avg[2]) / 3);
+    items.push({ id: "lg.maha." + S.maha.planet, group: "ระบบทักษา", label: "มหาทักษาดาว" + MP.th, short: "มหาทักษา", evidence: "มหาทักษา · อายุ " + S.maha.from + "–" + S.maha.to, strength: 0.95, tone: BHUMI_TH[S.maha.bhumi].tone, tags: ["overview", "timing"], plainTh: true,
+      meanings: { overview: ["ช่วงอายุ " + cur + "–" + (cur + step) + " ปี ภาพรวมของเส้นชีวิตคุณ" + DIR_TH[TONE_OF(mean0)] + " และอยู่ใต้มหาทักษาดาว" + MP.th + " ซึ่งเด่นเรื่อง" + MP.q], timing: ["ตามมหาทักษา ช่วงนี้อยู่ใต้ดาว" + MP.th + " ซึ่งเด่นเรื่อง" + MP.q] } });
     if (S.luck) { var G = GOD[S.luck.stemGod]; items.push({ id: "lg.luck." + S.luck.stemGod, group: "ระบบ 八字", label: "วัยจร " + S.luck.pillar.zh, short: "วัยจร", evidence: "八字 大运 · อายุ " + Math.round(S.luck.from) + "–" + Math.round(S.luck.to), strength: 0.78, tone: G.tone, tags: ["timing"], meanings: { timing: [G.t] } }); }
     var nx = C.turns.find(function (t) { return t.age > nowAge; });
     if (nx) items.push({ id: "lg.turn." + nx.sys, group: "จุดเปลี่ยนถัดไป", label: "จุดเปลี่ยนราวอายุ " + Math.round(nx.age) + " ปี", short: "จุดเปลี่ยนถัดไป", evidence: { taksa: "ทักษา", bazi: "八字", west: "ตะวันตก" }[nx.sys], strength: 0.72, tone: "neutral", tags: ["timing"],

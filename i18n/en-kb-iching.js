@@ -431,7 +431,7 @@
     "set sensible rules for yourself, then apply them flexibly",
     "knowing your limits helps you go steadier and farther from here");
   H(61, "Inner Truth", "Zhong Fu", "Inner Truth",
-    ["wind on the lake sends ripples out from the center, and your sincerity touches people's hearts", "sincerity and keeping your word are your most important themes right now"],
+    ["wind on the lake sends ripples out from the center, and your sincerity touches people's hearts", "sincerity and keeping your word are your most essential themes right now"],
     "trust makes your relationship beautiful, and hearts in tune need few words",
     "honesty and sincerity win you trust from every side",
     "your solid reputation brings money your way, since your word carries the weight of a contract",

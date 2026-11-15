@@ -75,21 +75,21 @@
 
   /* ---------- Eight Mansions favorable directions ---------- */
   items["dir.shengqi"] = { n: "your Sheng Qi direction (life-giving energy)", s: "your Sheng Qi direction",
-    o: "Sheng Qi is your liveliest direction, the one tied to drive, progress and new beginnings",
+    o: "your Sheng Qi direction is your liveliest one, tied to drive, progress and new beginnings",
     w: ["when your desk faces your Sheng Qi direction, you tend to work with more energy", "planning your work or holding important meetings toward Sheng Qi helps your thinking stay clear"],
     m: ["a front door or work corner that opens toward your Sheng Qi direction is traditionally said to welcome new opportunities", "you can set up a money-planning corner facing Sheng Qi and pick a few small goals you can really reach"],
     x: "in Eight Mansions feng shui, Sheng Qi (life-giving energy) is the best of your four favorable directions, linked to growth and success" };
   items["dir.tianyi"] = { n: "your Tian Yi direction (heavenly doctor)", s: "your Tian Yi direction",
-    o: "Tian Yi is your restoring direction, linked to rest and getting your energy back",
+    o: "your Tian Yi direction is the restoring one, linked to rest and getting your energy back",
     a: ["point your headboard toward Tian Yi so you can sleep more soundly", "place your rest corner or dining table in your Tian Yi direction"],
     x: "Tian Yi (literally the heavenly doctor) is the Eight Mansions direction for rest, recovery and renewed energy" };
   items["dir.yannian"] = { n: "your Yan Nian direction (longevity and harmony)", s: "your Yan Nian direction",
-    o: "Yan Nian is your direction of harmony, love and lasting friendship",
+    o: "your Yan Nian direction is the one of harmony, love and lasting friendship",
     l: ["when your shared headboard or conversation corner faces Yan Nian, your home feels warmer", "turning your sofa toward Yan Nian helps your family conversations flow more easily"],
     c: ["a seating area for guests in your Yan Nian direction is traditionally said to help friendship and cooperation", "talking things over or holding meetings toward Yan Nian makes it easier for you to reach agreement"],
     x: "Yan Nian (literally extended years) is the Eight Mansions direction for harmony, relationships and long friendships" };
   items["dir.fuwei"] = { n: "your Fu Wei direction (steady stability)", s: "your Fu Wei direction",
-    o: "Fu Wei is your steadiest direction, bringing focus and self-confidence",
+    o: "your Fu Wei direction is your steadiest one, bringing focus and self-confidence",
     p: ["when you want to quiet your mind and reflect, facing Fu Wei makes it easier for you to focus", "when you need to concentrate, sitting toward Fu Wei helps you feel settled"],
     a: ["turn your reading corner or quiet sitting spot toward Fu Wei", "try pointing your headboard toward Fu Wei as another option for restful sleep"],
     x: "Fu Wei (literally hidden position) is the Eight Mansions direction of personal stability, calm and clear focus" };

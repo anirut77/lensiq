@@ -107,12 +107,12 @@
       taksa["maha." + p + "." + b] = mt;
     });
     taksa["maha." + p + ".boriwan"] = { n: P.k + " period in Taksa, in " + BH.boriwan.n, s: "this Taksa period", t: "this stretch of your life is led by " + P.n + ", with the focus on " + P.q, x: MAHA_X };
-    life["lg.maha." + p] = { n: "your Taksa major period of " + P.n, s: "your Taksa period", t: "in the Taksa major periods, this stretch is led by " + P.n + ", with the focus on " + P.q, x: MAHA_X };
+    life["lg.maha." + p] = { n: "your Taksa major period of " + P.n, s: "your Taksa period", t: "your Taksa period right now is led by " + P.n + ", with the focus on " + P.q, x: MAHA_X };
   });
   HOUSE.forEach(function (h, i) {
     var fav = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), o: "the area of " + h.m + " is one of the stronger spots in your chart", x: L7_X }; fav[h.f] = "your chart marks " + h.m + " as a strength to use now";
-    var neu = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), x: L7_X }; neu[h.f] = h.m + " has moderate energy for you, so your usual pace is enough";
-    var cau = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), a: "give a little more time, bit by bit, to " + h.m, x: L7_X }; cau[h.f] = h.m + " has less energy for now, so you can build it up gradually";
+    var neu = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), x: L7_X }; neu[h.f] = h.m + " sits at a moderate level of energy, where your usual pace is enough";
+    var cau = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), a: "give a little more time, bit by bit, to " + h.m, x: L7_X }; cau[h.f] = h.m + " has less energy for now and can be built up gradually";
     lek7["l7." + i + ".favourable"] = fav; lek7["l7." + i + ".neutral"] = neu; lek7["l7." + i + ".caution"] = cau;
   });
   Object.keys(DOM).forEach(function (d) {
@@ -124,7 +124,7 @@
     });
     life["lg.next." + d] = { n: "the next stage for your " + DOM[d].n, s: "the next stage", t: "in the next age period, your " + DOM[d].n + " shows signs of improving" };
   });
-  Object.keys(GOD).forEach(function (k) { life["lg.luck." + k] = { n: "your BaZi luck period (" + GOD[k].n + ")", s: "your BaZi luck period", t: GOD[k].t, x: LUCK_X }; });
+  Object.keys(GOD).forEach(function (k) { life["lg.luck." + k] = { n: "your BaZi luck period (" + GOD[k].n + ")", s: "your BaZi luck period", t: GOD[k].t.replace(/^this luck period/, "your BaZi luck period"), x: LUCK_X }; });
   Object.keys(TURN).forEach(function (k) { life["lg.turn." + k] = { n: "the next turning point (around age {d})", s: "the next turning point", t: TURN[k], x: TURN_X[k] }; });
 
   var Q = (root.FORTUNE_EN_Q = root.FORTUNE_EN_Q || []); root.FORTUNE_EN = root.FORTUNE_EN || {};

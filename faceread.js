@@ -1563,7 +1563,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (cur.trim()) lines.push(cur.trim());
     return lines;
   }
-  /** โหมดจีน: ประโยคเด่นของการ์ดจาก i18n/zh-kb-face.js (หมวดที่เด่นที่สุดก่อน) — ไม่ใช้สำนวนไทยในการ์ดภาษาจีน */
+  /** โหมดจีน: ประโยคเด่นของการ์ดจาก i18n/zh-kb-face.js (หมวดที่เด่นชัดที่สุดก่อน) — ไม่ใช้สำนวนไทยในการ์ดภาษาจีน */
   function zhKeySentences(facts, n) {
     var ZI = (window.FORTUNE_ZH && window.FORTUNE_ZH.face && window.FORTUNE_ZH.face.items) || {}, out = [];
     ((facts && facts.items) || []).slice().sort(function (a, b) { return b.strength - a.strength; }).forEach(function (it) {

@@ -101,13 +101,22 @@
   var ADV_UNIT = /ข้อแนะนำทั่วไป|วิธีปรับตามตำรา|สิ่งที่ควรทำ|สิ่งที่ทำได้|เคล็ด|Try |try |建议|不妨|调整的方法/;
   /** @param {any[]} parts @param {string} lang */
   function dropRepeats(parts, lang) {
-    var seen = new Set(), min = lang === "zh" ? 10 : 30;
+    var seen = /** @type {string[]} */ ([]), min = lang === "zh" ? 10 : 30;
+    /** shared start of two strings @param {string} x @param {string} y */
+    var common = function (x, y) { var i = 0; while (i < x.length && i < y.length && x[i] === y[i]) i++; return i; };
     parts.forEach(function (p) {
       p.sections.forEach(function (/** @type {any} */ s) {
         s.paragraphs = s.paragraphs.map(function (/** @type {string} */ q) {
-          var units = lang === "zh" ? q.split(/(?<=[。！？])/) : lang === "en" ? q.split(/(?<=[.!?]) (?=[A-Z"“])/) : q.split(/ (?=ข้อแนะนำทั่วไป|วิธีปรับตามตำรา|สิ่งที่ควรทำ|สิ่งที่ทำได้)/);
-          var out = units.filter(function (/** @type {string} */ u) { var k = u.trim(); if (k.length < min || !ADV_UNIT.test(k)) return true; if (seen.has(k)) return false; seen.add(k); return true; });
-          return out.join(lang === "zh" ? "" : " ").trim() || q;
+          // round 2: units also start at the beginning of a paragraph, and a repeated tip followed by other text loses the tip only
+          var units = lang === "zh" ? q.split(/(?<=[。！？])/) : lang === "en" ? q.split(/(?<=[.!?]) (?=[A-Z"“])/) : q.split(/(?=ข้อแนะนำทั่วไป|วิธีปรับตามตำรา|สิ่งที่ควรทำ|สิ่งที่ทำได้จาก|เคล็ดเสริมดวง)/);
+          var out = units.map(function (/** @type {string} */ u) {
+            var k = u.trim(); if (k.length < min || !ADV_UNIT.test(k)) return u;
+            var prev = seen.find(function (x) { return common(x, k) >= min; });
+            if (!prev) { seen.push(k); return u; }
+            var n = common(prev, k); if (n < prev.length && lang === "th") n = k.lastIndexOf(" ", n);
+            return n > 0 ? k.slice(n).trim() : "";
+          });
+          return out.join(lang === "zh" ? "" : " ").replace(/\s{2,}/g, " ").trim() || q;
         });
       });
     });

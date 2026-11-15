@@ -116,7 +116,7 @@ Notes moved off the page:
 - Feng Shui Import — กฎดาวรายเดือน (ปีชวด/มะเมีย/เถาะ/ระกา เริ่ม 8 ฯลฯ) — <https://www.fengshui-import.com/blog/wp-json/wp/v2/posts/678>
 - Wikipedia — Lo Shu Square (ผังเลขลั่วซู) — <https://en.wikipedia.org/wiki/Lo_Shu_Square>
 - Wikipedia — Lichun (立春 จุดเริ่มปีสุริยคติจีน ลองจิจูดดวงอาทิตย์ 315°) — <https://en.wikipedia.org/wiki/Lichun>
-- LoveToKnow — Bagua Map (แผนผังปากั้ว ธาตุและสี) — <https://feng-shui.lovetoknow.com/Bagua_Map>
+- LoveToKnow — Bagua Map (แผนผังปากัว ธาตุและสี) — <https://feng-shui.lovetoknow.com/Bagua_Map>
 - AstroStyle — The Bagua Map (ความแตกต่างสายเข็มทิศ/BTB) — <https://astrostyle.com/astrology/feng-shui/feng-shui-bagua/>
 - ธนาคารกสิกรไทย K-Home — การตั้งศาลพระภูมิ (ระยะห่างจากห้องน้ำ/ถังขยะ) — <https://www.kasikornbank.com/th/k-home-smiles-club/articles/Pages/detail.aspx?nh=1268>
 - Sanook — ตั้งศาลพระภูมิอย่างถูกหลัก (ระดับความสูงประมาณสายตา) — <https://www.sanook.com/home/23717/>

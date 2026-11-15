@@ -324,7 +324,7 @@
     "url": "https://en.wikipedia.org/wiki/Lichun"
    },
    {
-    "label": "LoveToKnow — Bagua Map (แผนผังปากั้ว ธาตุและสี)",
+    "label": "LoveToKnow — Bagua Map (แผนผังปากัว ธาตุและสี)",
     "url": "https://feng-shui.lovetoknow.com/Bagua_Map"
    },
    {

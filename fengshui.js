@@ -303,9 +303,9 @@
         timing: [R.th + "อยู่โซน" + dirTh(A.dir) + " ปีนี้ดาว" + S.th + " (" + S.cn + ") ประจำโซน — " + S.theme, "ปีนี้" + R.th + "ได้ดาว" + S.th + " (" + S.cn + ") " + (S.care ? "ตำราแนะนำให้จัดให้สงบ ลดการรบกวน" : "ถือเป็นโซนที่เสริมได้")],
         advice: [R.th + " (โซน" + dirTh(A.dir) + "): " + S.cure, "สำหรับ" + R.th + " " + S.cure]
       };
-      m[tag] = (m[tag] || []).concat(["โซน" + dirTh(A.dir) + "ตามปากั้วคือเรื่อง" + B.area + " " + R.th + "ที่อยู่ตรงนี้ลองเติมสี" + B.colors.map(function (c) { return c[0]; }).join("/") + " หรือ " + B.items]);
+      m[tag] = (m[tag] || []).concat(["โซน" + dirTh(A.dir) + "ตามปากัวคือเรื่อง" + B.area + " " + R.th + "ที่อยู่ตรงนี้ลองเติมสี" + B.colors.map(function (c) { return c[0]; }).join("/") + " หรือ " + B.items]);
       items.push({ id: "room." + r.room + "." + A.dir + ".s" + A.star, group: "ผังบ้าน", label: R.th + "โซน" + dirTh(A.dir) + " (ดาว " + A.star + ")", short: R.th,
-        evidence: "ปากั้ว: " + B.short,
+        evidence: "ปากัว: " + B.short,
         strength: Math.min(1, 0.4 + A.priority / 6), tags: ["timing", "advice", tag],
         meanings: m, restrain: S.care ? "all" : null });
     });
@@ -582,7 +582,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#fsHeadingDir").textContent = dirTh(d0);
     var s0 = k ? KB.stars8[FS.starOfDir(k.kua, d0)] : null;
     var s0k = k ? FS.starOfDir(k.kua, d0) : null;
-    $("#fsHeadingInfo").innerHTML = (s0 ? '<span class="fs-tag ' + (s0.good ? "good" : "quiet") + '">' + esc(s8L(s0k, "th") + " · " + s8L(s0k, "name")) + "</span> " : '<span class="fs-tag">' + esc(T("fengshui.ar.needKua", "คำนวณเลขกัวก่อนเพื่อดูทิศมงคลส่วนตัว")) + '</span> ') + '<span class="fs-tag">' + esc(T("fengshui.ar.bagua", "ปากั้ว: {a}", { a: bgL(d0, "area") })) + "</span>";
+    $("#fsHeadingInfo").innerHTML = (s0 ? '<span class="fs-tag ' + (s0.good ? "good" : "quiet") + '">' + esc(s8L(s0k, "th") + " · " + s8L(s0k, "name")) + "</span> " : '<span class="fs-tag">' + esc(T("fengshui.ar.needKua", "คำนวณเลขกัวก่อนเพื่อดูทิศมงคลส่วนตัว")) + '</span> ') + '<span class="fs-tag">' + esc(T("fengshui.ar.bagua", "ปากัว: {a}", { a: bgL(d0, "area") })) + "</span>";
     if (!manual) slider.value = Math.round(h);
     if (sensor && !manual && Math.abs(FS.angDiff(rawHeading, heading)) > 0.5) { rafOn = true; requestAnimationFrame(drawAR); }
   }
@@ -646,7 +646,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var star = chart[d], S = KB.flying[star], B = KB.bagua[d], rooms = state.cells[i];
       var pk = k && d !== "C" ? FS.starOfDir(k.kua, d) : null, personal = pk ? KB.stars8[pk] : null;
       var aria = isZh() ? T("fengshui.cell.aria", "", { d: dirTh(d), n: star, s: flyL(star), b: bgL(d, "short") }) + (rooms.length ? T("fengshui.cell.rooms", "", { r: rooms.map(roomL).join("、") }) : "")
-        : dirTh(d) + " ดาว " + star + " " + S.th + " ปากั้ว " + B.short + (rooms.length ? " ห้อง: " + rooms.map(function (r) { return KB.rooms[r].th; }).join(", ") : "");
+        : dirTh(d) + " ดาว " + star + " " + S.th + " ปากัว " + B.short + (rooms.length ? " ห้อง: " + rooms.map(function (r) { return KB.rooms[r].th; }).join(", ") : "");
       return '<button type="button" class="fs-cell ' + (S.care ? (S.care >= 3 ? "high" : "mid") : "ok") + (i === 7 ? " front" : "") + '" data-i="' + i + '" aria-label="' + esc(aria) + '">' +
         '<span class="c-dir">' + esc(abbrL(d)) + '</span><span class="c-star">' + star + '</span><span class="c-name">' + esc(flyL(star)) + '</span><span class="c-bg">' + esc(bgL(d, "short")) + "</span>" +
         (personal ? '<span class="c-p ' + (personal.good ? "good" : "quiet") + '">' + esc(s8L(pk, "th")) + "</span>" : "") +
@@ -689,7 +689,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return '<li class="' + a.level + '"><div class="a-h"><span class="a-star">' + a.star + "</span><b>" + esc((a.rooms.length ? a.rooms.map(roomL).join(" + ") + " · " : "") + zone) + '</b><span class="a-lv">' + esc(a.level === "high" ? T("fengshui.adv.high", "ควรจัดให้สงบ (สำคัญ)") : a.level === "mid" ? T("fengshui.adv.mid", "ควรจัดให้สงบ") : T("fengshui.adv.good", "เสริมได้")) + "</span></div>" +
         '<p class="a-theme">' + (zh ? esc(T("fengshui.adv.theme", "", { n: a.star + " " + flyL(a.star), e: elL(S.element), t: flyF(a.star, "theme") })) : 'ดาว ' + a.star + " " + S.th + " (" + S.cn + ", ธาตุ" + KB.elements[S.element].th + "): " + esc(S.theme)) + "</p>" +
         "<ul>" + lines.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") +
-        "<li>" + esc(T("fengshui.adv.bagua", "ปากั้ว: {a} — สี ", { a: bgL(a.dir, "area") })) + a.bagua.colors.map(function (c, ci) { return '<i class="sw" style="background:' + c[1] + '"></i>' + esc(bgColor(a.dir, ci)); }).join(" ") + " · " + esc(bgL(a.dir, "items")) + "</li>" +
+        "<li>" + esc(T("fengshui.adv.bagua", "ปากัว: {a} — สี ", { a: bgL(a.dir, "area") })) + a.bagua.colors.map(function (c, ci) { return '<i class="sw" style="background:' + c[1] + '"></i>' + esc(bgColor(a.dir, ci)); }).join(" ") + " · " + esc(bgL(a.dir, "items")) + "</li>" +
         '<li>' + esc(T("fengshui.adv.cure", "ธาตุที่ช่วยปรับ: ")) + '<i class="sw" style="background:' + E.color + '"></i>' + esc(elL(a.cureElement)) + " — " + esc(T("fengshui.eli." + a.cureElement, E.items)) + esc(T("fengshui.adv.mat", " (วัสดุ: {m})", { m: T("fengshui.elm." + a.cureElement, E.materials) })) + "</li>" +
         (per ? "<li>" + esc(zh ? T("fengshui.adv.personal", "", { k: k.kua, s: s8L(a.personal, "th"), n: s8L(a.personal, "name") }) : "สำหรับเลขกัว " + k.kua + ": โซนนี้เป็นทิศ" + per.th + " (" + per.name + ")") + "</li>" : "") + "</ul></li>";
     }).join("") + "</ol>";
