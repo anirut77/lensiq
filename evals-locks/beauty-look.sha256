@@ -91,3 +91,5 @@ f84cc9b66dfb8571f89c499b0bcaaf9caed58391639b5ce38bc6adaea22fa05d  tests/unit/loo
 #   other assertion changed; every other salon word still fails O4. Old copy kept in salon-off/, new copy in salon-off-v2/.
 # locked 2026-11-14T11:42:04Z (tools/eval-guard.mjs lock, 1 file)
 98689a887dd06cf6fe53dd43a109572055a8010a0b8dc7e856166c32fe4d1640  salon-off-v2/look-salon-off.test.js
+# re-lock 2026-11-15T13:52:09Z (coordinator): disk-guard commit 480ea46 added an import of tools/disk-guard.mjs and one assertFreeSpace() call before the first browser launch; no assertion, threshold, input or measurement logic changed. Append-only.
+4ef6178552ccbced4f4e2bbf304db9baff03deed97c70e7c5e14c577f997a693  tools/look-preview-eval.mjs
