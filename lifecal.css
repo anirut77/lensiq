@@ -31,3 +31,7 @@
 .lc-scroll{overflow-x:auto;max-width:100%}
 .lc-notes{margin:10px 0 4px}
 .lc-note{margin:6px 0;padding:8px 12px;border-left:3px solid #e8590c;background:#fff7ed;border-radius:8px;font-size:.9rem;color:#5b3a1a}
+/* a wide table scrolls inside its own box on a narrow phone, never the page (review 2026-11-15, 320 px) */
+.lc-scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.lc-scroll{margin:14px 0}.lc-scroll>.lc-table{margin:0}
+.lc-scroll:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}

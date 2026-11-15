@@ -40,6 +40,7 @@
 // The command line measures only with the locked probe (tools/eval-guard.mjs assertLocked, phase overlap-d2): the repo
 // copies of the probe and the gate must equal the locked copies in ~/LENSIQ-field/evals/overlap-d2/.
 // Library: import { TARGETS, LANGS, VIEWPORTS, probeTarget } from "./overlap-probe.mjs" (tests/e2e/overlap-kit.mjs).
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -269,6 +270,7 @@ async function main() {
   const words = argv.filter((a, i) => !a.startsWith("--") && argv[i - 1] !== "--json");
   const targets = TARGETS.filter(t => !words.length || words.some(w => t.id.includes(w)));
   const srv = await serve(repo);
+  assertFreeSpace({ label: "tools/overlap-probe.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const browser = await launch();
   const rows = [];
   const t0 = Date.now();

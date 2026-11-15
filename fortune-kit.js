@@ -247,7 +247,7 @@
     c.font = "500 24px " + F; c.fillStyle = "#a5f3fc";
     K.wrapTh(c, T("fk.card.help", "อยากมีคนรับฟัง โทร 1323 · พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง"), W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1236 + k * 28); });
     c.font = "400 22px " + F; c.fillStyle = "#8f9bc4";
-    K.wrapTh(c, opt.foot || T("fk.card.foot", "ตามความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่รับรองความถูกต้องของคำทำนาย"), W - 160).slice(0, 2)
+    K.wrapTh(c, opt.foot || T("fk.card.foot", "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ"), W - 160).slice(0, 2)
       .forEach(function (l, k) { c.fillText(l, W / 2, 1298 + k * 26); });
     return cv;
   };
@@ -264,7 +264,7 @@
       var file = new File([blob], fileName, { type: "image/jpeg" });
       btn.disabled = false;
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: shareTitle || "LENSIQ", text: T("fk.share.text", "ตามความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่รับรองความถูกต้องของคำทำนาย") }); return; }
+        try { await navigator.share({ files: [file], title: shareTitle || "LENSIQ", text: T("fk.share.text", "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ") }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = url; a.download = fileName; document.body.append(a); a.click(); a.remove();

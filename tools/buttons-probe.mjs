@@ -22,6 +22,7 @@
 //   node tools/buttons-probe.mjs [--engine chrome|webkit] [--json out.json] [--details] [words...]
 // Library: import { PAGES, probePage, openEngine } from "./buttons-probe.mjs" (tests/e2e/buttons-kit.mjs).
 // Locked before any product fix: evals-locks/buttons.sha256.
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -162,6 +163,7 @@ function tapProbe(op) {
 export async function openEngine(engine, o = {}) {
   if (engine === "chrome") {
     const launch = o.launch || (await import("../tests/e2e/cdp.mjs")).launch;
+    assertFreeSpace({ label: "tools/buttons-probe.mjs" }); // stops with exit 75 when free disk space is under 5 GB
     const browser = await launch();
     const open = async url => {
       const p = await browser.newPage(null, { initScripts: [INIT], isolated: true });
@@ -185,6 +187,7 @@ export async function openEngine(engine, o = {}) {
     return { engine, open, close: () => browser.close(), defaults };
   }
   const { webkit, devices } = await import("playwright");
+  assertFreeSpace({ label: "tools/buttons-probe.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const browser = await webkit.launch();
   const open = async url => {
     const ctx = await browser.newContext({ ...devices["iPhone 13"], viewport: VIEWPORT, serviceWorkers: "block" });

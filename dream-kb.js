@@ -252,9 +252,9 @@
   var TOPICS = { overall: "ภาพรวม", love: "ความรัก", work: "การงาน", money: "การเงิน" };
   var KB = {
     version: 1, MORE: MORE, THEMES: THEMES, CATS: CATS, SYMBOLS: SYMBOLS, MOODS: MOODS, TIMES: TIMES, TYPES: TYPES, TOPICS: TOPICS, THEME_FOCUS: THEME_FOCUS,
-    disclaimer: "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย" +
+    disclaimer: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" +
       " ไม่มีเลขนำโชคเพื่อการพนัน และไม่ควรใช้ตัดสินใจเรื่องสำคัญ",
-    disclaimerShort: "ตามความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่รับรองความถูกต้องของคำทำนาย",
+    disclaimerShort: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
     sources: [
       { label: "นิตยสารศิลปวัฒนธรรม (silpa-mag.com) — ค้นบทความคติความฝันแบบไทย: บุพนิมิต เทพสังหรณ์ จิตนิวรณ์ ธาตุกำเริบ", url: "https://www.silpa-mag.com/" },
       { label: "Wikipedia: Dream interpretation (ภาพรวมการตีความฝันในวัฒนธรรมต่าง ๆ)", url: "https://en.wikipedia.org/wiki/Dream_interpretation" },

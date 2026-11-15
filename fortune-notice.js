@@ -7,10 +7,9 @@
 (function (root) {
   "use strict";
   const LINE = {
-    th: "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย",
-    en: "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. " +
-      "We cannot vouch for the accuracy of any prediction.",
-    zh: "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
+    th: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
+    en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
+    zh: "基于命理学原则，属个人信仰，请自行判断。",
   };
   const MORE = { th: "อ่านเพิ่มเติม", en: "Read more", zh: "阅读更多" };
   const LESS = { th: "ย่อลง", en: "Show less", zh: "收起" };

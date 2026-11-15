@@ -7,6 +7,8 @@ sets; their sha256 are committed in `evals-locks/`), worktrees in `~/LENSIQ-fiel
 Snapshot from `git branch -r`, `git cherry origin/main <branch>` and `gh run list` on 2026-11-14 at main `9bbc147`; `beauty-look` merged afterwards (`de59b10`).
 Branches move: refresh section 3 before acting (section 5, step 2). "unique" = commits whose patch is not on main.
 
+Disk guard (owner order 2026-11-15, branch `disk-guard`): heavy local jobs (`tests/e2e/run.mjs`, every browser harness under `tools/`, `npm run audit:*`) exit with code 75 when free space under `$HOME` is under 5 GB; run.mjs also re-checks before every test file and stops cleanly. Skipped on CI (`CI=true`) and with `LQ_DISK_GUARD=off`; see `tests/README.md` "Disk guard". If a job exits 75, free disk space first (old worktrees, Chrome profiles, eval output).
+
 ## 1. Main
 
 - `origin/main` = `de59b10` (Merge beauty-look) after `9bbc147` (Merge org-p1). The earlier head `4413bc3` had CI and the Pages deploy green; check the runs

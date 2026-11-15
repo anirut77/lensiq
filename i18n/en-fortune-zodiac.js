@@ -75,7 +75,7 @@
   "zodiac.cardKind": "Chinese Zodiac",
   "zodiac.cardTitle": "Year of the {a} · {year}",
   "zodiac.cardLuck": "Lucky colors: {c} · Direction: {d}",
-  "zodiac.cardFoot": "Personal belief: use your own judgement; we cannot vouch for any prediction",
+  "zodiac.cardFoot": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
   "zodiac.shareTitle": "Chinese Zodiac — LENSIQ",
 
   /* Tai Sui table */

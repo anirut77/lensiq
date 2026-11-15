@@ -495,7 +495,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       ]);
       await cam.refreshDevices();
       ready = true;
-      engine(`พร้อมใช้งาน (ตัวประมวลผล: ${backend.toUpperCase()}${backend === "webgl" ? "" : " — ใช้โหมดประหยัด ขนาดภาพตรวจจับ " + settings.inputSize + " px"})`, "ok");
+      engine("", "ok"); $("#engine").dataset.state = "ready"; $("#engine").dataset.backend = backend; // owner rule 2026-11-15: no idle status
       if (!trip) $("#stateText").textContent = "พร้อม — กรอกข้อมูลแล้วกดเริ่มเที่ยว";
     } catch (e) {
       console.warn(e);

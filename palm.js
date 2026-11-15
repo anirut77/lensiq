@@ -2012,7 +2012,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   // speed pass 2026-11-14: no model download at page load; the hand model loads when the camera opens or a photo is chosen
   // (test mode ?fakedet loads no model at all, so it is ready at once)
   if (FAKE) loadModels().catch(function () {});
-  else engine(function () { return T("palm.eng.idle", "พร้อม — โมเดลจะโหลดเมื่อเปิดกล้องหรือเลือกรูป"); }, "ok");
+  else engine("", "ok"); // owner order 2026-11-15 item 1: no idle technical status; the status line speaks only while loading or on a failure
   renderPair();
 
   /* ---------- สลับภาษา (TH | 中文): วาดข้อความที่สร้างจาก JS ใหม่ และเรียบเรียงคำทำนายใหม่จากผลวัดชุดเดิม ---------- */

@@ -18,6 +18,13 @@ const PAGES = ["fortune", "cat-fortune", "faceread", "palm", "horoscope", "tarot
 const WANT = { th: /อยากมีคนรับฟัง โทร 1323[\s\S]*พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง[\s\S]*บริการของกรมสุขภาพจิต[\s\S]*เจ็บป่วยฉุกเฉิน โทร 1669/,
   en: /someone to listen[\s\S]*1323[\s\S]*24 hours[\s\S]*Department of Mental Health[\s\S]*Medical emergency[\s\S]*1669[\s\S]*local emergency number/i,
   zh: /倾听[\s\S]*1323[\s\S]*24 小时[\s\S]*心理健康司[\s\S]*医疗急救[\s\S]*1669[\s\S]*没有经核实的泰国中文热线/ };
+// RE-LOCK 2026-11-15 (fortune-live, owner order 2026-11-15 item 3; placement pre-approved by the owner): one small tap-to-call
+// help button near the top of each fortune page (#lqHelpTop) with the short wording; no line at the end of the page and none
+// under a normal reading (each number once per page). Sizes, fit at 320 / 360 / 390 px, tel links and their order, the no-JS
+// check, the printed report (full wording) and every crisis-state check are unchanged.
+// RE-LOCK 2026-11-15 (owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis
+// card): the top row is only the "อยากมีคนรับฟัง 1323" button; 1669 is checked on the crisis card (checks below unchanged).
+const WANT_TOP = { th: /^\s*อยากมีคนรับฟัง\s+1323\s*$/, en: /^\s*Want someone to listen\?\s+1323\s*$/, zh: /^\s*想找人倾听？\s*1323\s*$/ };
 const HTML_LANG = { th: "th", en: "en", zh: "zh-Hans" };
 // remedy / lucky-item / plan / paid / straight-mode wording (TH / EN / ZH) that must not appear next to a support card
 const MARKERS = /วิธีปรับ|ข้อแนะนำทั่วไปคือ|เคล็ด|สีมงคล|สีเสื้อมงคล|ธาตุเสริม|ทำบุญ|ดูตรง|A simple adjustment|lucky colou?r|remed|read it straight|调整的方法|幸运色|开运|直说/gi;
@@ -36,7 +43,7 @@ const markerCount = `((document.body.innerText || "").match(${MARKERS.toString()
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
-    await check("every fortune page: the help line at the top and the end, TH / EN / ZH, tel 1323 + 1669 ≥ 44 px, fits 320 / 360 / 390 px", async () => {
+    await check("every fortune page: the help button at the top only (no end line), TH / EN / ZH, tel 1323 only (≥ 44 px), fits 320 / 360 / 390 px", async () => {
       const bad = [];
       for (const lang of ["th", "en", "zh"]) {
         const page = await browser.newPage(null, { initScripts: [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`] });
@@ -46,20 +53,21 @@ export default async function ({ base, launch, check }) {
             await page.goto(`${base}/${p}.html?nosw`);
             try {
               await page.waitFor(`(() => { const e = document.getElementById("lqHelpTop"); return !!e && document.documentElement.lang === ${S(HTML_LANG[lang])} &&
-                ${WANT[lang].toString()}.test(e.innerText.replace(/\\s+/g, " ")); })()`, 8000);
+                ${WANT_TOP[lang].toString()}.test(e.innerText.replace(/\\s+/g, " ")); })()`, 8000);
             } catch (e) { bad.push(`${p} ${lang}: line not in ${lang}: ` + S(await page.evaluate(lineFacts("lqHelpTop")))); continue; }
+            if (await page.evaluate(`!!document.getElementById("lqHelpEnd")`)) bad.push(`${p} ${lang}: #lqHelpEnd still on the page`);
             for (const w of [390, 360, 320]) {
               if (w !== 390) { await page.send("Emulation.setDeviceMetricsOverride", { width: w, height: 780, deviceScaleFactor: 2, mobile: true }); await sleep(150); }
-              for (const id of ["lqHelpTop", "lqHelpEnd"]) {
+              for (const id of ["lqHelpTop"]) {
                 const f = await page.evaluate(lineFacts(id));
                 if (!f || !f.shown) { bad.push(`${p} ${lang} ${w}: #${id} not shown`); continue; }
-                if (!WANT[lang].test(f.text)) bad.push(`${p} ${lang} ${w}: #${id} text ${f.text}`);
+                if (!WANT_TOP[lang].test(f.text)) bad.push(`${p} ${lang} ${w}: #${id} text ${f.text}`);
                 if (lang !== "th" && /[฀-๿]/.test(f.text)) bad.push(`${p} ${lang} ${w}: #${id} has Thai: ${f.text}`);
                 if (f.left < -0.5 || f.right > f.w + 0.5 || f.sw > f.cw + 1) {
                   bad.push(`${p} ${lang} ${w}: #${id} wider than the screen ${S({ left: f.left, right: f.right, sw: f.sw, cw: f.cw, w: f.w })}`);
                 }
                 const hrefs = f.tels.map(t => t.href);
-                if (S(hrefs) !== S(["tel:1323", "tel:1669"])) bad.push(`${p} ${lang} ${w}: #${id} tel links ${S(hrefs)}`);
+                if (S(hrefs) !== S(["tel:1323"])) bad.push(`${p} ${lang} ${w}: #${id} tel links ${S(hrefs)}`);
                 for (const t of f.tels) {
                   if (t.w < 44 || t.h < 44) bad.push(`${p} ${lang} ${w}: #${id} ${t.href} is ${t.w.toFixed(1)}×${t.h.toFixed(1)} px`);
                   if (t.right > f.w + 0.5 || t.left < -0.5) bad.push(`${p} ${lang} ${w}: #${id} ${t.href} off screen`);
@@ -72,7 +80,7 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n" + bad.slice(0, 40).join("\n"));
     });
 
-    await check("JavaScript off: every fortune page still shows the help line with tel:1323 + tel:1669 and the Thai text (static HTML)", async () => {
+    await check("JavaScript off: every fortune page still shows the help button with tel:1323 and the Thai text (static HTML)", async () => {
       const page = await browser.newPage(null);
       const bad = [];
       try {
@@ -82,12 +90,12 @@ export default async function ({ base, launch, check }) {
         for (const p of PAGES) {
           await page.goto(`${base}/${p}.html?nosw`);
           const { root } = await page.send("DOM.getDocument", { depth: -1 });
-          for (const id of ["lqHelpTop", "lqHelpEnd"]) {
+          for (const id of ["lqHelpTop"]) {
             const { nodeId } = await page.send("DOM.querySelector", { nodeId: root.nodeId, selector: "#" + id });
             if (!nodeId) { bad.push(`${p}: #${id} missing`); continue; }
             const { outerHTML } = await page.send("DOM.getOuterHTML", { nodeId });
             const txt = outerHTML.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
-            if (!WANT.th.test(txt)) bad.push(`${p}: #${id} text ${txt}`);
+            if (!WANT_TOP.th.test(txt)) bad.push(`${p}: #${id} text ${txt}`);
             let box = null;
             try { box = (await page.send("DOM.getBoxModel", { nodeId })).model; } catch (e) { /* not rendered */ }
             if (!box || box.width <= 0 || box.height <= 0) bad.push(`${p}: #${id} not rendered without JS`);
@@ -99,14 +107,14 @@ export default async function ({ base, launch, check }) {
               let m = null; try { m = (await page.send("DOM.getBoxModel", { nodeId: n })).model; } catch (e) { /* not rendered */ }
               if (!m || m.width < 44 || m.height < 44) bad.push(`${p}: #${id} tel link smaller than 44 px without JS ${m ? m.width + "×" + m.height : "(not rendered)"}`);
             }
-            if (S(hrefs) !== S(["tel:1323", "tel:1669"])) bad.push(`${p}: #${id} tel links ${S(hrefs)}`);
+            if (S(hrefs) !== S(["tel:1323"])) bad.push(`${p}: #${id} tel links ${S(hrefs)}`);
           }
         }
       } finally { await page.close(); }
       assert(!bad.length, bad.length + " problem(s):\n" + bad.slice(0, 40).join("\n"));
     });
 
-    await check("a reading carries the help line under it (dream, TH and EN); the printed report keeps it", async () => {
+    await check("a normal reading carries no second help line (dream, TH and EN; the top button is the one place); the printed report keeps it", async () => {
       for (const lang of ["th", "en"]) {
         const page = await browser.newPage(null, { initScripts: [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`] });
         try {
@@ -120,9 +128,9 @@ export default async function ({ base, launch, check }) {
           const r = await page.evaluate(`(() => { const b = document.getElementById("drRd-body"), l = b.querySelector(".lq-helpline"), secs = b.querySelectorAll(".fa-section");
             return { has: !!l, shown: ${vis}(l), after: !!l && !!(secs[secs.length - 1].compareDocumentPosition(l) & Node.DOCUMENT_POSITION_FOLLOWING),
               text: l ? l.innerText.replace(/\\s+/g, " ") : "", tels: l ? [...l.querySelectorAll('a[href^="tel:"]')].map(a => a.getAttribute("href")) : [] }; })()`);
-          assert(r.has && r.shown && r.after, lang + ": help line under the dream reading " + S(r));
-          assert(WANT[lang].test(r.text), lang + ": wording " + r.text);
-          assert(S(r.tels) === S(["tel:1323", "tel:1669"]), lang + ": tel links " + S(r.tels));
+          assert(!r.has || !r.shown, lang + ": no help line under a normal dream reading " + S(r));
+          const top = await page.evaluate(`${vis}(document.getElementById("lqHelpTop"))`);
+          assert(top, lang + ": the top help button is still shown after the reading");
         } finally { await page.close(); }
       }
       const page = await browser.newPage(null, { isolated: true });

@@ -45,7 +45,7 @@
   "nav.interview.title": "结构化面试工具包",
   "nav.interview.desc": "STAR 问题 + BARS 标准，独立评分，一致性汇总，练习模式",
   "nav.teamface.title": "团队面相",
-  "nav.teamface.desc": "破冰活动：团队角色卡，仅供娱乐",
+  "nav.teamface.desc": "破冰活动：团队角色卡，并非评估",
   // product landing pages (Round 10 product split)
   "nav.retail.title": "LENSIQ Retail 概览",
   "nav.retail.desc": "面向中小企业的门店摄像头：客流、成交率、多门店",
@@ -336,7 +336,7 @@
   "home.link.signage": "数字广告屏与非接触式自助终端",
   "home.link.customers": "顾客识别与点单历史",
   "home.link.booth": "展位分析",
-  "home.link.fortune": "趣味占卜：面相、手相、生辰、塔罗牌",
+  "home.link.fortune": "命理占卜：面相、手相、生辰、塔罗牌",
   "home.link.store": "门店分析（客流 · 热力图 · 排队）",
   "home.link.insights": "综合仪表板",
   "home.link.checkout": "摄像头扫描商品",

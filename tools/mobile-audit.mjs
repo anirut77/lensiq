@@ -25,6 +25,7 @@
 //                                                   language menu, sign-in dialog, guest + full reading results,
 //                                                   signed-in account page and its error state (mocked API Worker
 //                                                   from tests/e2e/member.e2e.mjs — nothing leaves the machine)
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -272,6 +273,7 @@ export const SCENARIOS = [
 ];
 
 if (argv.includes("--selftest")) {
+  assertFreeSpace({ label: "tools/mobile-audit.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const srv0 = await serve(repo), b0 = await launch();
   try {
     const page = await b0.newPage(null);
@@ -315,6 +317,7 @@ const statesMode = argv.includes("--states");
 const pages = statesMode ? SCENARIOS.filter(sc => !words.length || words.some(w => sc.name.includes(w) || sc.page.includes(w))).map(sc => sc.name)
   : readdirSync(repo).filter(f => f.endsWith(".html") && (!words.length || words.some(w => f.includes(w)))).sort();
 const srv = await serve(repo);
+assertFreeSpace({ label: "tools/mobile-audit.mjs" }); // stops with exit 75 when free disk space is under 5 GB
 const browser = await launch();
 const results = {};
 const { MOCK } = statesMode ? await import("../tests/e2e/member.e2e.mjs") : { MOCK: "" };

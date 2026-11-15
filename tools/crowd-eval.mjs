@@ -35,6 +35,7 @@
 //       --variant coco | tiles3x2 scores the COCO-SSD fallback or the tiling experiment instead of the page as shipped.
 //   node tools/crowd-eval.mjs template [--out docs/crowd-count/count-sheet.csv]
 //       (Re)writes the empty human count sheet for the clips marked "kit": true (two counters, A and B).
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { createServer } from "node:http";
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { cpus, loadavg, platform, release } from "node:os";
@@ -344,6 +345,7 @@ async function cmdRun(o) {
   const prev = existsSync(outFile) ? JSON.parse(readFileSync(outFile, "utf8")) : { clips: {} };
   const html = readFileSync(rel("crowd.html"), "utf8"), ver = f => (html.match(new RegExp(f.replace(".", "\\.") + "\\?v=(\\d+)")) || [])[1] || "?";
   const { srv, base } = await serveEval(o.clips, o["model-file"] || null);
+  assertFreeSpace({ label: "tools/crowd-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const browser = await launch();
   const result = { _about: "App counts from tools/crowd-eval.mjs run (numbers only, no frames). PRELIMINARY until compared with the human count sheet.",
     generated: new Date().toISOString(), pipeline: pipe,
@@ -384,6 +386,7 @@ async function cmdBench(o) {
   if (!c) throw new Error("unknown clip " + id);
   const frames = Number(o.frames || 30), warm = 3, rates = String(o.throttle || "1,4,6").split(",").map(Number);
   const { srv, base } = await serveEval(o.clips, o["model-file"] || null);
+  assertFreeSpace({ label: "tools/crowd-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const browser = await launch(), out = { variant: V.key || "shipped", clip: id, frames, warmup: warm, device: `${platform()} ${release()} · ${(cpus()[0] || {}).model || "cpu"}`, rates: {} };
   try {
     const page = await browser.newPage(`${base}/crowd.html?cpu`, { timeout: 60000 });

@@ -24,9 +24,11 @@ const OLD = {
   en: "\\bfor (?:the )?entertainment\\b|\\bentertainment(?: and [a-z ]+)? (?:only|purposes?|content|use)\\b|\\bfor fun only\\b|\\bjust for fun\\b",
   zh: "仅供娱乐|供娱乐|娱乐参考|娱乐内容|娱乐用途|依信仰娱乐|娱乐性质",
 };
+// RE-LOCK 2026-11-15 (fortune-live, owner order 2026-11-15 item 2): the owner's final wording replaces the earlier draft; the
+// EN / ZH lines are now matched word for word (stricter than the earlier patterns).
 const LINE = {
-  th: "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย",
-  en: "judg(?:e)?ment[\\s\\S]*(?:do not|don't|cannot|can't) (?:guarantee|vouch for|promise)", zh: "判断[\\s\\S]*不保证",
+  th: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
+  en: "Based on astrological principles, which are a matter of personal belief\\. Please use your own judgement\\.", zh: "基于命理学原则，属个人信仰，请自行判断。",
 };
 const MORE = { th: "อ่านเพิ่มเติม", en: "Read more", zh: "阅读更多" };
 const NOTE_MAX = { th: 140, en: 210, zh: 80 };

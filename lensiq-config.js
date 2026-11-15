@@ -141,7 +141,9 @@ window.LENSIQ_SELLER = window.LENSIQ_SELLER || {
 window.LENSIQ_LEADS_FORM = window.LENSIQ_LEADS_FORM !== false;
 /* LENSIQ_LEADS_NOTICE: ข้อความสั้นข้างแบบฟอร์มขอใบเสนอราคา "หากส่งไม่ได้ ติดต่อทาง LINE" พร้อม ID จาก LENSIQ_SELLER.quote_line (คำสั่งเจ้าของ 13 พ.ย. 2569:
  *   แสดงไว้จนกว่าแก้ปัญหาส่งบน iPhone และเจ้าของตรวจบน iPhone แล้ว) ปิดได้โดยตั้ง false */
-window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE !== false;
+/*   ปิดแล้ว 16 พ.ย. 2569 (คำสั่งเจ้าของ): เจ้าของยืนยันว่าส่งจาก iPhone ได้และแจ้งเตือน LINE ถึง (คำขอ b0011eb6, 15 พ.ย. 22:35)
+ *   เปิดคืนได้โดยตั้ง true */
+window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
 
 /* round 12 (round 16 wording): ป้องกันการติดตั้งให้ลูกค้าที่ยังเปิดเดโมงานวิจัยค้างไว้ — บนหน้ากล้อง เมื่อเครื่องนี้เปิด
  *   "เดโมงานวิจัย" อยู่และหน้าเว็บไม่ได้เปิดจากเว็บสาธิต (github.io) หรือเครื่องนักพัฒนา (localhost) จะแสดงแถบเตือนด้านบน

@@ -184,13 +184,13 @@ export default async function ({ base, launch, check, fakeCams }) {
       // the camera is opened first and the same "models ready" wait follows it (same 30 s, same checks below)
       await p.evaluate(() => document.getElementById("camStart").click());
       await p.waitFor(`(document.querySelector("#camGrid video") || {}).videoWidth > 0`, 5000);
-      await p.waitFor(`/โมเดลพร้อม|ไม่พร้อม/.test(document.getElementById("engine").textContent)`, 30000);
+      await p.waitFor(`document.getElementById("engine").dataset.state === "ready" || /ไม่พร้อม/.test(document.getElementById("engine").textContent)`, 30000);
       await p.evaluate(() => document.getElementById("toggle").click()); // real face-api pipeline on the fake stream
       await sleep(2500);
       const fps = await p.evaluate(() => document.getElementById("fps").textContent);
       assert(/คนในกล้อง/.test(fps), "loop ran: " + fps);
-      const r = await p.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, eng: document.getElementById("engine").textContent, wide: [...document.querySelectorAll("main *")].filter(e => e.getBoundingClientRect().right > innerWidth + 1 && !e.closest(".table-wrap")).map(e => e.tagName + "." + e.className).slice(0, 5) }));
-      assert(/กล้องพร้อม|โมเดลพร้อม/.test(r.eng), "engine: " + r.eng);
+      const r = await p.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, eng: document.getElementById("engine").textContent, state: document.getElementById("engine").dataset.state, wide: [...document.querySelectorAll("main *")].filter(e => e.getBoundingClientRect().right > innerWidth + 1 && !e.closest(".table-wrap")).map(e => e.tagName + "." + e.className).slice(0, 5) }));
+      assert(r.state === "ready" && !/ไม่พร้อม/.test(r.eng), "engine: " + r.eng);
       assert(await p.evaluate(() => faceapi.tf.getBackend()) === "wasm", "wasm backend");
       assert(r.sw <= r.cw, `overflow ${r.sw} > ${r.cw}: ${r.wide.join(", ")}`);
       assert(!p.consoleErrors.length, "console errors: " + JSON.stringify(p.consoleErrors.slice(0, 3)));

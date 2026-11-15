@@ -46,6 +46,18 @@ const STATUS_DEF = {
     zh: "不是产品（目录、告示、信息、法律或账户页面），因此不给就绪状态，也不与产品一起计数。"
   }
 };
+/** A category's own wording for a status definition (key cat.std.<status>.<slug>). Owner order 2026-11-15 item 2: the
+ *  fortune landing page never says "for entertainment"; the other categories keep the shared definition. */
+const STATUS_DEF_CAT = {
+  fortune: {
+    demo: {
+      th: "แสดงแนวคิดด้วยข้อมูลตัวอย่าง หรือเป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่ใช้ตัดสินเรื่องคน เงิน หรือสิทธิ์เข้าออก",
+      en: "Shows the idea with sample data, or is based on astrological principles, which are a matter of personal belief. " +
+        "Please use your own judgement. Not for decisions about people, money or access.",
+      zh: "以示例数据展示概念，或基于命理学原则，属个人信仰，请自行判断。不用于涉及人员、金钱或出入权限的决定。"
+    }
+  }
+};
 
 /** Source labels for accuracy lines (CLAUDE.md: synthetic / public dataset / field). */
 const SOURCE = {
@@ -216,9 +228,10 @@ const CLAIMS = {
     en: "Conversion quality is not measured on real documents; files are not uploaded",
     zh: "尚未用真实文档测量转换质量；文件不会上传" },
   fortune: { src: "na", ref: "docs/FORTUNE-REVIEW.md",
-    th: "เพื่อความบันเทิงเท่านั้น ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม",
-    en: "For entertainment only; no accuracy claim. Readings pass a banned-topics filter",
-    zh: "仅供娱乐，无准确率声明。解读经过禁用话题过滤" },
+    // owner order 2026-11-15 item 2: the fortune disclaimer is "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ"
+    th: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม",
+    en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement. No accuracy claim; readings pass a banned-topics filter",
+    zh: "基于命理学原则，属个人信仰，请自行判断。无准确率声明；解读经过禁用话题过滤" },
   hrPilot: { src: "none", ref: "docs/ACCURACY-CLAIMS.md H1 (docs/PILOT-PLAN.md §3.4)", acr: ["H1"],
     th: "ความเห็นตรงกันของผู้สัมภาษณ์และเวลาจนได้สรุป: ยังไม่ได้วัด การนำร่องจะวัด",
     en: "Interviewer agreement and time to summary: not measured; the pilot measures them",
@@ -314,9 +327,9 @@ const REASONS = {
   qc: { th: "วัดด้วยขวดสังเคราะห์เท่านั้น ยังไม่ทดสอบกับสายการผลิตจริง",
     en: "Measured on synthetic bottles only; not tested on a real production line",
     zh: "仅用合成瓶子测量；尚未在真实产线测试" },
-  fortune: { th: "เพื่อความบันเทิง ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ",
-    en: "Entertainment; can draw visitors to a booth; no accuracy claim",
-    zh: "娱乐用途；可吸引访客到展位；无准确率声明" },
+  fortune: { th: "เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ",
+    en: "Based on astrological principles, a matter of personal belief; can draw visitors to a booth; no accuracy claim",
+    zh: "基于命理学原则，属个人信仰；可吸引访客到展位；无准确率声明" },
   tryon: { th: "ลองแว่น หมวก ต่างหู และเสื้อบนภาพกล้องสดบนเครื่อง พร้อมหลังบ้านแคตตาล็อกร้าน ยังไม่ได้วัดกับภาพจริงและยังไม่ได้เปิดระบบหลังบ้าน",
     en: "Try glasses, hats, earrings and tops on the live camera picture on the device, with a shop catalogue back office; not measured on real pictures and the backend is not deployed",
     zh: "在本机实时摄像头画面上试戴眼镜、帽子、耳环和上衣，并配有店铺目录后台；尚未用真实画面测量，后端尚未部署" },
@@ -464,9 +477,17 @@ const CATEGORIES = [
   { n: 6, slug: "fortune", id: "fortune", icon: "🔮",
     name: { th: "ดูดวงและฤกษ์มงคล", en: "Fortune & Auspicious Planning", zh: "占卜与择吉" },
     short: { th: "ดูดวง", en: "Fortune", zh: "占卜" },
-    intro: { th: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน และวางแผนฤกษ์มงคล เพื่อความบันเทิงเท่านั้น",
-      en: "Engagement activities drawn from Thai and Chinese traditions, plus auspicious-date planning. For entertainment only.",
-      zh: "源自泰国与中国传统的互动活动以及择吉规划。仅供娱乐。" },
+    intro: { th: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน และวางแผนฤกษ์มงคล เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
+      en: "Engagement activities drawn from Thai and Chinese traditions, plus auspicious-date planning. " +
+        "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
+      zh: "源自泰国与中国传统的互动活动以及择吉规划。基于命理学原则，属个人信仰，请自行判断。" },
+    // on the landing page the intro is shown as this lead plus the fortune notice line (fortune.disc.line), as on every fortune page
+    lead: { th: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน และวางแผนฤกษ์มงคล",
+      en: "Engagement activities drawn from Thai and Chinese traditions, plus auspicious-date planning.",
+      zh: "源自泰国与中国传统的互动活动以及择吉规划。" },
+    disc: { th: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
+      en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
+      zh: "基于命理学原则，属个人信仰，请自行判断。" },
     pages: ["fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui", "dream", "zodiac",
       "astro", "lifegraph", "planner", "luckycolor", "report"] },
   { n: 7, slug: "studio", id: "photo", icon: "📸",
@@ -484,4 +505,4 @@ const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "
 const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
   tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category" };
 
-module.exports = { STATUS, STATUS_DEF, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };
+module.exports = { STATUS, STATUS_DEF, STATUS_DEF_CAT, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };

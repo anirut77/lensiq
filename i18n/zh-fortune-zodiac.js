@@ -76,7 +76,7 @@
   "zodiac.cardKind": "十二生肖",
   "zodiac.cardTitle": "属{a} · {year}",
   "zodiac.cardLuck": "开运颜色：{c} · 方位：{d}",
-  "zodiac.cardFoot": "属于个人信仰，请自行判断，不保证预测准确",
+  "zodiac.cardFoot": "基于命理学原则，属个人信仰，请自行判断。",
   "zodiac.shareTitle": "十二生肖 — LENSIQ",
 
   /* 犯太岁表 */

@@ -112,9 +112,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderLek7(L) {
     var hi = L.sum.indexOf(Math.max.apply(null, L.sum)), lo = L.sum.indexOf(Math.min.apply(null, L.sum));
     var rows = [["lc.r1", "ฐาน 1 วันเกิด"], ["lc.r2", "ฐาน 2 เดือน (จันทรคติ เดือน {m})"], ["lc.r3", "ฐาน 3 ปีนักษัตร"]];
+    // the 7-column table scrolls inside its own box on a narrow phone, never the page (review 2026-11-15, 320 px)
     var h = '<table class="lc-table lc-l7"><caption>' + esc(T("lc.l7Cap", "ผังเลข 7 ตัว (ฐาน 1–4)")) + '</caption><thead><tr><th scope="col"></th>' + KB.HOUSE.map(function (x, i) { return '<th scope="col">' + esc(T("lc.house." + i, x.th)) + "</th>"; }).join("") + "</tr></thead><tbody>" +
       L.rows.map(function (r, i) { return '<tr><th scope="row">' + esc(T(rows[i][0], rows[i][1], { m: L.lunarMonth + (L.secondEight ? T("lc.second8", " หลัง") : "") })) + "</th>" + r.map(function (v) { return "<td>" + v + "</td>"; }).join("") + "</tr>"; }).join("") +
       '<tr class="lc-sum"><th scope="row">' + esc(T("lc.r4", "ฐาน 4 ฐานรวม")) + "</th>" + L.sum.map(function (v, i) { return "<td" + (i === hi ? ' class="lc-hi"' : i === lo ? ' class="lc-lo"' : "") + ">" + v + "</td>"; }).join("") + "</tr></tbody></table>";
+    h = '<div class="lc-scroll" data-lq-hscroll tabindex="0" role="region" aria-label="' + esc(T("lc.l7Cap", "ผังเลข 7 ตัว (ฐาน 1–4)")) + '">' + h + "</div>";
     h += '<p class="fk-small">' + esc(T("lc.l7Note", "ช่องที่สูงสุดคือจุดแข็ง ช่องที่ต่ำสุดคือด้านที่ควรค่อย ๆ เติม (เดือนจันทรคติเป็นค่าประมาณ)")) + "</p>";
     // ปีนักษัตรใช้กฎเดียวกับหน้าดวงชะตา (ขึ้น 1 ค่ำ เดือน 5); ถ้านับแบบวันสงกรานต์แล้วต่างกัน บอกให้รู้
     var an = function (i) { return T("lc.animal." + i, ANIMALS_TH[i]); };

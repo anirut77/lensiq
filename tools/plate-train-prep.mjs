@@ -25,6 +25,7 @@
 // (union over every plate key on a photo, so the same car on different days never sits in train AND test); a plate-less
 // photo is its own group "photo-none:<file>"; group -> sha256("lensiq-plate-split:v1:" + key) -> first 8 hex mod 100:
 // < 70 train, < 85 val, else test. No plate text and no province ever goes into the training files (boxes only).
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { createHash } from "node:crypto";
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -332,4 +333,7 @@ export async function main(argv, io = {}) {
   } catch (e) { err("plate-train-prep: " + (e && e.message || e)); return 2; }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) process.exitCode = await main(process.argv.slice(2));
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  assertFreeSpace({ label: "tools/plate-train-prep.mjs" }); // the export copies the photo set: exit 75 when free disk space is under 5 GB
+  process.exitCode = await main(process.argv.slice(2));
+}

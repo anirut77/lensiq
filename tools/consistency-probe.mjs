@@ -23,6 +23,7 @@
 //   node tools/consistency-probe.mjs --json out.json      full result as JSON
 //   node tools/consistency-probe.mjs --details            list the findings per page
 // Library: import { PAGES, probePage, summarize, SHARED_BUTTON } from "./consistency-probe.mjs" (tests/e2e/consistency.e2e.mjs).
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -221,6 +222,7 @@ async function main() {
   const pages = PAGES.filter(f => !words.length || words.some(w => f.includes(w)));
   const init = [INIT];
   const srv = await serve(repo);
+  assertFreeSpace({ label: "tools/consistency-probe.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const browser = await launch();
   const rows = [];
   try {

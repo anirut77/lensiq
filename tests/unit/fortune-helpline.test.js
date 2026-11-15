@@ -16,6 +16,12 @@
 //    tap-to-call component (lensiq-helpline.js) with the owner's warm 1323 wording ("อยากมีคนรับฟัง โทร 1323" /
 //    "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง" / "บริการของกรมสุขภาพจิต"); the expected wording and i18n keys follow it.
 //    Every other assertion (placement, no-JS, tel links and their order, EN / ZH without Thai, verified claims) is unchanged.
+// RE-LOCK 2026-11-15 (fortune-live, owner order 2026-11-15 item 3, help line in one place per page; owner pre-approved the
+//    placement): the page carries ONE small tap-to-call help button near the top (#lqHelpTop, before <main>): "อยากมีคนรับฟัง"
+//    with 1323 and "เจ็บป่วยฉุกเฉิน" with 1669, each once. The block at the end of <main> (#lqHelpEnd) and the help line under a
+//    normal reading are removed; under a reading on a calm page (crisis net: crisis state, calm session, distress typed) the
+//    line stays. The second line, agency and abroad note stay in the dictionaries and in the crisis card. The verified-claims,
+//    crisis-state and data-lq-remedy assertions are unchanged.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
@@ -74,11 +80,16 @@ test("verified table: 1323 free + 24 h, 1669, 191, 1300, Samaritans; each with a
   assert.match(V["1323"].hours, /24 hours/); assert.match(V["1323"].cost, /^Free/);
 });
 
-test("every fortune page has the help line in the HTML: top (before <main>) and end of <main>, tel:1323 + tel:1669, Thai wording", () => {
+// re-lock 2026-11-15: the top button only; the end block must be gone; the button carries the short wording and its keys
+// RE-LOCK 2026-11-15 (owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis
+// card): the top row holds only the "อยากมีคนรับฟัง 1323" button; 1669 is on the crisis card and the calm-state line only.
+const TOP_KEYS = ["call.1323.btn", "call.1323.label"];
+test("every fortune page has the help button in the HTML: top (before <main>) only, tel:1323 only (decision 54 ข), Thai wording", () => {
   for (const p of PAGES) {
     const html = read(p + ".html"), main = html.search(/<main\b/), mainEnd = html.lastIndexOf("</main>");
     assert.ok(main > 0 && mainEnd > main, p + ": has <main>");
-    for (const id of ["lqHelpTop", "lqHelpEnd"]) {
+    assert.equal(block(html, "lqHelpEnd"), null, p + ": no help line at the end of the page (one place per page)");
+    for (const id of ["lqHelpTop"]) {
       const b = block(html, id);
       assert.ok(b, p + ": #" + id);
       assert.match(b.open, /class="[^"]*\blq-helpline\b/, p + " #" + id + " class");
@@ -88,11 +99,12 @@ test("every fortune page has the help line in the HTML: top (before <main>) and 
       if (id === "lqHelpTop") assert.ok(b.start < main, p + ": top line comes before <main>");
       else assert.ok(b.start > main && b.end <= mainEnd, p + ": end line is inside <main>");
       const tels = [...b.html.matchAll(/href="tel:([^"]+)"/g)].map(m => m[1]);
-      assert.deepEqual(tels, ["1323", "1669"], p + " #" + id + " tel links");
+      assert.deepEqual(tels, ["1323"], p + " #" + id + " tel links (1669 only on the crisis card)");
       const t = text(b.html);
-      for (const w of ["อยากมีคนรับฟัง โทร 1323", "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง", "บริการของกรมสุขภาพจิต", "เจ็บป่วยฉุกเฉิน โทร 1669",
-        "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น"]) assert.ok(t.includes(w), p + " #" + id + " has '" + w + "': " + t);
-      for (const k of KEYS.slice(1)) {
+      for (const w of ["อยากมีคนรับฟัง 1323"]) assert.ok(t.includes(w), p + " #" + id + " has '" + w + "': " + t);
+      assert.ok(b.html.includes('aria-label="อยากมีคนรับฟัง โทร 1323"') && !/1669/.test(b.html), p + " accessible name; no 1669 at the top");
+      assert.ok(b.html.includes('data-i18n-attr="aria-label:help.line.label"'), p + " key help.line.label");
+      for (const k of TOP_KEYS) {
         assert.ok(b.html.includes(/\.btn$/.test(k) ? 'data-i18n-attr="aria-label:' + k + '"' : 'data-i18n="' + k + '"'), p + " #" + id + " key " + k);
       }
     }
@@ -119,8 +131,8 @@ test("EN / ZH wording: complete, no Thai, verified claims only; the ZH line says
   const own = { "help.line.label": "label", "help.line.note": "note" };
   const val = (lang, k) => own[k] ? CR.HELP[lang][own[k]] : LQH.LINES[k.split(".")[1]][lang][k.split(".")[2]];
   for (const k of KEYS) { assert.equal(val("en", k), en[k], "HELP.en = en-common " + k); assert.equal(val("zh", k), zh[k], "HELP.zh = zh-common " + k); }
-  const topTh = text(block(read("dream.html"), "lqHelpTop").html);
-  for (const k of KEYS.slice(1)) assert.ok(topTh.includes(val("th", k)), "static Thai = " + k);
+  const topTh = block(read("dream.html"), "lqHelpTop").html;
+  for (const k of TOP_KEYS) assert.ok(topTh.includes(val("th", k)), "static Thai = " + k);
   assert.deepEqual(CR.HELP.tel, ["1323", "1669"]);
 });
 
@@ -174,18 +186,25 @@ const READING = {
   reminder: "ใช้วิจารณญาณของตัวเอง",
 };
 
-test("a normal reading carries the help line (tel:1323, tel:1669) under it; the plan is marked data-lq-remedy", () => {
+// re-lock 2026-11-15 (item 3): a normal reading carries NO second help line (the page's top button is the one place); a reading
+// on a calm page (crisis net) still carries the line under it
+test("a normal reading carries no help line under it (one place per page); a calm page's reading does; the plan is marked data-lq-remedy", () => {
   delete require.cache[require.resolve(join(ROOT, "fortune-ai.js"))];
   const FA = require(join(ROOT, "fortune-ai.js")), doc = fakeDoc(), box = doc.createElement("div");
   FA.renderSections(box, READING, { aiBadge: false });
   const h = ser(box);
   assert.match(h, /fa-section/); assert.match(h, /fa-plan/);
   assert.match(h, /<section class="fa-plan"[^>]*data-lq-remedy/, "plan marked data-lq-remedy");
-  assert.match(h, /class="lq-helpline[^"]*"[\s\S]*tel:1323[\s\S]*tel:1669/, "help line under the reading");
-  assert.ok(h.lastIndexOf("lq-helpline") > h.lastIndexOf("fa-section"), "help line comes after the reading");
+  assert.doesNotMatch(h, /lq-helpline|tel:1323|tel:1669/, "no help line under a normal reading");
   const html = FA.toHTML(READING);
-  assert.match(html, /class="lq-helpline[^"]*"[\s\S]*href="tel:1323"[\s\S]*href="tel:1669"/, "toHTML carries the help line");
+  assert.doesNotMatch(html, /lq-helpline|tel:1323|tel:1669/, "toHTML of a normal reading: no help line");
   assert.match(html, /<section class="fa-plan"[^>]*data-lq-remedy/, "toHTML plan marked");
+  const calm = fakeDoc(); calm.documentElement.setAttribute("data-lq-calm", "1");
+  const cb = calm.createElement("div");
+  FA.renderSections(cb, READING, { aiBadge: false });
+  const ch = ser(cb);
+  assert.match(ch, /class="lq-helpline[^"]*"[\s\S]*tel:1323[\s\S]*tel:1669/, "calm page: help line under the reading");
+  assert.ok(ch.lastIndexOf("lq-helpline") > ch.lastIndexOf("fa-section"), "calm page: help line comes after the reading");
 });
 
 test("crisis state: after the support card, the page shows no reading, plan, remedy text or hook output; allow() says no; other pages unaffected", () => {

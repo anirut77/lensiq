@@ -8,6 +8,7 @@
 //   node tools/exam-hall-detector-eval.mjs --run        run every detector key on every frame (+ latency x1 and CPU-throttled 4x)
 //   node tools/exam-hall-detector-eval.mjs --from <json> [--md <file>] [--json]   tables + decision of a saved run
 //   node tools/exam-hall-detector-eval.mjs --cleanup    delete the images (manifest, credits, results stay)
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync } from "node:fs";
 import { homedir, cpus, totalmem, platform, release } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -193,6 +194,7 @@ const limit = (p, ms, what) => Promise.race([p, new Promise((_, rej) => { const 
 async function run() {
   const { launch } = await import("../tests/e2e/cdp.mjs");
   const { serve } = await import("./static-server.mjs");
+  assertFreeSpace({ label: "tools/exam-hall-detector-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const srv = await serve(repo), browser = await launch();
   const rows = readJsonl(join(DIR, "manifest.jsonl"));
   const out = { tool: "tools/exam-hall-detector-eval.mjs", date: new Date().toISOString(), manifestSha256: createHash("sha256").update(readFileSync(join(DIR, "manifest.jsonl"))).digest("hex"),
