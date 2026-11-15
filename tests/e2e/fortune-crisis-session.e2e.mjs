@@ -29,7 +29,10 @@ const SNAP = sc => `(() => {
   const box = document.querySelector(${S(sc)}) || document.body;
   const secs = [...box.querySelectorAll(".fa-section")].filter(vis);
   const straight = secs.filter(s => { const h = s.closest("[data-fa-mode]"); return h && h.getAttribute("data-fa-mode") === "straight"; }).length;
-  const tel = [...box.querySelectorAll(".lq-helpline .lq-helpline-tel")].concat([...document.querySelectorAll(".fa-support .fa-tel")]).filter(a => /1323/.test(a.textContent));
+  // RE-LOCK 2026-11-16 (crisis-v2-live, owner decisions 2026-11-15 1 ก + 54 ข): no help line under the reading any more; the calm
+  // page's ONE help place is the top button #lqHelpTop (prominent, kept in view). It counts here; "in the viewport" is unchanged.
+  const tel = [...box.querySelectorAll(".lq-helpline .lq-helpline-tel")].concat([...document.querySelectorAll("#lqHelpTop .lq-helpline-tel")],
+    [...document.querySelectorAll(".fa-support .fa-tel")]).filter(a => /1323/.test(a.textContent));
   return { sections: secs.length, straight, support: [...document.querySelectorAll(".fa-support")].some(vis), soft: [...document.querySelectorAll(".fa-soft")].some(vis),
     remedies: [...document.querySelectorAll("[data-lq-remedy]")].filter(vis).map(e => e.id || e.className || e.tagName),
     paid: [...document.querySelectorAll("[data-lq-upsell], [data-lq-paid], [data-lq-merit]")].filter(vis).length,

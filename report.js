@@ -399,12 +399,12 @@
   function plainName(s) { return W.LQFortuneCrisis ? W.LQFortuneCrisis.plainName(s) : s; }
   function crisisStop() {
     var CRx = W.LQFortuneCrisis, out = $("rpOut");
-    // crisis state (owner order 2026-11-12): after the support card on this page, every later report is the card again
-    var hard = !!(FA.crisis && ((FA.crisis.active && FA.crisis.active()) || FA.crisis.check(($("rpName") && $("rpName").value) || "")));
+    // crisis flow v2 (owner decision 2026-11-13): the card for a hard-net signal the reader has not continued past; then a calm report
+    var hard = !!(FA.crisis && FA.crisis.check(($("rpName") && $("rpName").value) || "") && !(FA.crisis.acked && FA.crisis.acked()));
     var soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the gentle "are you okay?" step before any report
     if (!hard && !soft) return false;
     out.textContent = ""; out.hidden = false;
-    var card = function () { out.textContent = ""; FA.crisis.render(out, FA.crisis.result({ lang: lang() })); };
+    var card = function () { out.textContent = ""; FA.crisis.render(out, FA.crisis.result({ lang: lang() }), { onContinue: function () { $("rpForm").requestSubmit(); } }); };
     if (soft) { CRx.renderSoft(out, lang(), function () { CRx.ack(); $("rpForm").requestSubmit(); }, card); return true; }
     card();
     return true;
@@ -412,6 +412,13 @@
   function renderReport(rep) {
     if (crisisStop()) return;
     var out = $("rpOut"); out.textContent = ""; out.hidden = false;
+    // crisis flow v2 (owner decision 2026-11-13): in the calm state the report keeps its parts, through the calm filter, inside
+    // the hope frame; no plan, no 30-day plan (the help place is the top button, crisis-v2-live)
+    var CRc = W.LQFortuneCrisis, calm = !!(CRc && CRc.calmOn && CRc.calmOn() && CRc.calmText);
+    /** @param {any} t */
+    var ct = function (t) { return calm ? CRc.calmText(t, rep.lang) : t; };
+    /** @param {string} k */
+    var hopeP = function (k) { var hp = CRc.hope(rep.lang); return h("p", { class: "fa-hope fa-hope-" + k, role: "note", "data-review": "pending-professional-review", text: hp[k] }); };
     out.setAttribute("lang", rep.lang === "zh" ? "zh-Hans" : rep.lang || "th");
     var head = h("header", { class: "rp-head" }, h("p", { class: "eyebrow", text: "LENSIQ" }), h("h2", { id: "rpOutH", tabindex: "-1", text: rep.title }));
     head.appendChild(h("p", { class: "rp-meta", text: T("rp.meta", "สร้างเมื่อ {d} · คำนวณในเครื่องจากตำรา ไม่ได้ใช้ผู้ช่วยเขียน", { d: new Date().toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" }) }) }));
@@ -420,25 +427,28 @@
     var forName = plainName(String(($("rpName") && $("rpName").value) || "").trim().slice(0, 60));
     if (forName) head.appendChild(h("p", { class: "rp-for", text: T("rp.for", "จัดทำสำหรับ {name}", { name: forName }) }));
     out.appendChild(head);
+    if (calm) out.appendChild(hopeP("open"));
     var toc = h("nav", { class: "rp-toc lq-toc", "aria-label": T("rp.toc", "สารบัญ") }, h("p", { class: "rp-toch", text: T("rp.toc", "สารบัญ") }));
     var tl = h("ol");
     // owner order 2026-11-14 A3: the contents list is an in-page menu (links to each part)
     var tocLink = function (/** @type {string} */ id, /** @type {string} */ text) { return h("li", null, h("a", { href: "#" + id, text: text })); };
     rep.parts.forEach(function (/** @type {any} */ p) { tl.appendChild(tocLink("rp-p-" + p.id, p.title)); });
     if (rep.months) tl.appendChild(tocLink("rp-p-months", T("rp.part.months", "รายเดือนตลอดปี")));
-    if (rep.plan30) tl.appendChild(tocLink("rp-p-plan30", rep.plan30.title));
+    if (rep.plan30 && !calm) tl.appendChild(tocLink("rp-p-plan30", rep.plan30.title));
     toc.appendChild(tl);
     if (rep.parts.length + (rep.months ? 1 : 0) + (rep.plan30 ? 1 : 0) > 2) out.appendChild(toc);
     if (rep.summary && rep.summary.lines && rep.summary.lines.length) {
       var sm = h("section", { class: "rp-summary" }, h("h3", { text: rep.summary.title || T("rp.summary", "สรุปสั้น") }));
       var ul = h("ul");
-      rep.summary.lines.forEach(function (/** @type {any} */ l) { ul.appendChild(h("li", null, h("b", { text: l.k + " " }), l.t)); });
+      rep.summary.lines.forEach(function (/** @type {any} */ l) { var t = ct(l.t); if (t) ul.appendChild(h("li", null, h("b", { text: l.k + " " }), t)); });
       sm.appendChild(ul); out.appendChild(sm);
     }
     rep.parts.forEach(function (/** @type {any} */ p) {
       var part = h("section", { class: "rp-part", id: "rp-p-" + p.id, "data-part": p.id }, h("h3", { text: p.title }));
       if (p.headline) part.appendChild(h("p", { class: "rp-headline", text: p.headline }));
-      part.appendChild(sectionsEl(p.sections));
+      part.appendChild(sectionsEl(calm ? p.sections.map(function (/** @type {any} */ s) {
+        return Object.assign({}, s, { paragraphs: (s.paragraphs || []).map(ct).filter(Boolean) });
+      }).filter(function (/** @type {any} */ s) { return s.paragraphs.length; }) : p.sections));
       out.appendChild(part);
     });
     if (rep.months) {
@@ -448,17 +458,18 @@
       rep.months.forEach(function (/** @type {any} */ x) {
         grid.appendChild(h("li", { class: "rp-month " + x.tone },
           h("p", { class: "rp-mlabel" }, h("b", { text: x.label }), " ", h("span", { lang: "zh-Hant", text: x.pillar })),
-          h("p", { class: "rp-mtitle", text: x.title }), h("p", { text: x.text }), h("p", { class: "rp-tip", text: "→ " + x.tip }), x.fav ? h("p", { class: "rp-fav", text: x.fav }) : null));
+          h("p", { class: "rp-mtitle", text: x.title }), h("p", { text: ct(x.text) }), ct(x.tip) ? h("p", { class: "rp-tip", text: "→ " + ct(x.tip) }) : null,
+          x.fav && ct(x.fav) ? h("p", { class: "rp-fav", text: ct(x.fav) }) : null));
       });
       ms.appendChild(grid); out.appendChild(ms);
     }
-    if (rep.plan && rep.plan.items && rep.plan.items.length) {
+    if (!calm && rep.plan && rep.plan.items && rep.plan.items.length) {
       var pl = h("section", { class: "rp-plan" }, h("h3", { text: rep.plan.title || T("rp.plan", "แผนปรับ 3 ข้อ") }));
       var ol = h("ol");
       rep.plan.items.forEach(function (/** @type {any} */ x) { ol.appendChild(h("li", null, h("b", { text: x.for + " " }), x.t)); });
       pl.appendChild(ol); out.appendChild(pl);
     }
-    if (rep.plan30 && rep.plan30.weeks) {
+    if (!calm && rep.plan30 && rep.plan30.weeks) {
       var p30 = h("section", { class: "rp-plan rp-plan30", id: "rp-p-plan30", "data-part": "plan30" }, h("h3", { text: rep.plan30.title }), h("p", { class: "rp-small", text: rep.plan30.note }));
       var wl = h("ol", { class: "rp-weeks" });
       rep.plan30.weeks.forEach(function (/** @type {any} */ w) {
@@ -475,6 +486,7 @@
       h("b", { class: "lq-disc-line", "data-i18n": "fortune.disc.line",
         text: T("fortune.disc.line", "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ") }), " ",
       h("span", { class: "lq-notice-more" }, h("span", { text: T("rp.disclaimer", "ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ ไม่ใช่คำแนะนำทางการแพทย์ การเงิน หรือการจ้างงาน") }))));
+    if (calm) out.appendChild(hopeP("close"));
     // the help line at the end of every report, kept in the print / PDF view (owner order 2026-11-12)
     var CRh = W.LQFortuneCrisis;
     if (CRh && CRh.helpLine) out.appendChild(CRh.helpLine(document, rep.lang, "lq-helpline-result lq-helpline-print"));

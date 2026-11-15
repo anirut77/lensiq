@@ -7,7 +7,7 @@
 // 3) Every number published (the line, HELP, the support card) is in the "Verified" table of docs/CRISIS-RESOURCES.md
 //    with an official https source and a date; "free" and "24 hours" are only claimed where that table says so.
 // 4) Crisis state: once the support card is shown on a page, the page is in the crisis state (page-level flag on the
-//    document): no reading, no plan, no remedy text and no hook output (merit / paid / straight mode come as hooks or
+//    document): (re-lock 2026-11-13, crisis flow v2: later readings are calm readings, not the card) no plan, no remedy text and no hook output (merit / paid / straight mode come as hooks or
 //    renderers that must ask FortuneAI.crisis.allow()) is rendered on that page any more. Another document is not
 //    affected. A normal reading carries the help line under it.
 // 5) Blocks that show lucky items, recommendations, lead forms or share cards on pages where the net can trigger are
@@ -203,11 +203,16 @@ test("a normal reading carries no help line under it (one place per page); a cal
   const cb = calm.createElement("div");
   FA.renderSections(cb, READING, { aiBadge: false });
   const ch = ser(cb);
-  assert.match(ch, /class="lq-helpline[^"]*"[\s\S]*tel:1323[\s\S]*tel:1669/, "calm page: help line under the reading");
-  assert.ok(ch.lastIndexOf("lq-helpline") > ch.lastIndexOf("fa-section"), "calm page: help line comes after the reading");
+  // RE-LOCK 2026-11-16 (crisis-v2-live, owner decisions 2026-11-15 1 ก + 54 ข; the fortune-live reviewer flagged main's calm-state
+  // top button + line under the reading + sticky dock as a duplicate): a calm page's reading carries NO help line under it either;
+  // the page's one help place is the top button (fortune-crisis.js calmTop: prominent, with "more help numbers"), 1323 there.
+  assert.doesNotMatch(ch, /lq-helpline|tel:/, "calm page: no help line under the reading (one place per page)");
+  assert.match(ser(calm.body), /lqHelpTop[\s\S]*tel:1323/, "calm page: the top help button holds 1323");
 });
 
-test("crisis state: after the support card, the page shows no reading, plan, remedy text or hook output; allow() says no; other pages unaffected", () => {
+// RE-LOCK 2026-11-13 (owner decision 2026-11-13 crisis flow v2: "never block the reading"): after the card, a later reading on the
+// page (no new hard-net signal) is a CALM reading (sections, no plan, no remedy text, help line kept), not the card again.
+test("crisis state: after the support card, a later reading on the page is calm (no plan, remedy text or hook output); allow() says no; other pages unaffected", () => {
   delete require.cache[require.resolve(join(ROOT, "fortune-ai.js"))];
   const FA = require(join(ROOT, "fortune-ai.js")), doc = fakeDoc();
   assert.equal(typeof FA.crisis.active, "function"); assert.equal(typeof FA.crisis.allow, "function");
@@ -224,14 +229,17 @@ test("crisis state: after the support card, the page shows no reading, plan, rem
       const box = doc.createElement("div");
       FA.renderSections(box, Object.assign({}, READING, { lang }), { aiBadge: false });
       const h = ser(box), t = box.textContent;
-      assert.match(h, /fa-support/, lang + ": support card instead");
-      assert.doesNotMatch(h, /fa-section|fa-plan|fa-summary/, lang + ": no reading / plan");
+      assert.doesNotMatch(h, /fa-support/, lang + ": no card again without a new signal (re-lock: crisis flow v2)");
+      assert.match(h, /fa-section/, lang + ": the reading is shown (re-lock: crisis flow v2, never block)");
+      assert.doesNotMatch(h, /fa-plan/, lang + ": no plan");
       assert.ok(!/วิธีปรับ|ข้อแนะนำทั่วไปคือ|เสื้อสีขาว|A simple adjustment|调整的方法/.test(t), lang + ": no remedy text");
-      assert.match(t, /1323/, lang + ": card keeps 1323");
+      // RE-LOCK 2026-11-16 (crisis-v2-live, decisions 1 ก + 54 ข): 1323 is not repeated under the reading; the top button holds it
+      assert.doesNotMatch(t, /1323/, lang + ": no second 1323 under the calm reading");
+      assert.match(ser(doc.body), /lqHelpTop[\s\S]*tel:1323/, lang + ": the top help button holds 1323");
     }
     assert.equal(calls, 0, "no hook (merit / paid / straight) runs in the crisis state");
     const html = FA.toHTML(READING, { doc });
-    assert.match(html, /fa-support/); assert.doesNotMatch(html, /fa-plan|fa-section/);
+    assert.doesNotMatch(html, /fa-support|fa-plan/); assert.match(html, /fa-section/); // re-lock: crisis flow v2, a calm reading
   } finally { off(); }
   // page-level: another document is not in the crisis state
   const other = fakeDoc(), b2 = other.createElement("div");

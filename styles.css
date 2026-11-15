@@ -384,6 +384,26 @@ html :is(.engine,.fr-engine,.pl-engine,#engine.status):empty{padding:0;margin:0;
 /* the printed report keeps the full help line; on screen the top button is the one place (owner order 2026-11-15 item 3) */
 .lq-helpline.lq-helpline-print{display:none}
 @media print{.lq-helpline.lq-helpline-print{display:block}}
+/* crisis-v2-live (owner decisions 2026-11-15: 1 ก + 54 ข): on a calm page (after "ดูคำทำนายต่อ", "Just the reading" or in a calm tab)
+   the SAME top button is the one help place: larger, high contrast, kept in view just below the sticky site header (top offset
+   set by fortune-crisis.js calmTop), with ONE "more help numbers" control inside it (closed by default). No pinned bottom bar. */
+html[data-lq-calm] #lqHelpTop{position:sticky;top:var(--lq-helptop-y,0px);z-index:55;justify-content:center;gap:6px 10px;margin:0 auto 8px;
+  padding:8px 12px;background:#fff;border-bottom:1px solid #d5dde8;box-shadow:0 4px 10px -6px rgba(14,20,48,.25)}
+html[data-lq-calm] #lqHelpTop>.lq-call-mini{flex:1 1 260px;max-width:560px}
+html[data-lq-calm] #lqHelpTop>.lq-call-mini>a.lq-call-btn[href]{width:100%;justify-content:center;min-height:56px;padding:8px 20px;background:#0b2540;color:#fff;
+  font-size:1.1rem;box-shadow:0 0 0 3px #fbbf24}
+html[data-lq-calm] #lqHelpTop>.lq-call-mini>a.lq-call-btn[href]:hover{background:#071a2e;color:#fff}
+html[data-lq-calm] #lqHelpTop>.lq-call-mini .lq-call-mini-n{font-size:1.4rem;line-height:1.1}
+.lq-helpmore{flex:0 1 auto;max-width:100%}
+.lq-helpmore>summary{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:12px;cursor:pointer;color:#0b2540;font-weight:600;text-decoration:underline}
+.lq-helpmore>ul{list-style:none;margin:6px 0 2px;padding:0;display:grid;gap:6px}
+.lq-helpmore .lq-call-mini>a.lq-call-btn[href]{background:#0b5d8f}
+/* crisis flow v2: the acknowledgement card (fortune-ai.js renderSupport) and the hope frame of a calm reading (fortune-crisis.js HOPE) */
+.fa-support h3{margin:0 0 .4em}.fa-support ul{list-style:none;padding:0;margin:.6em 0}.fa-support-act{margin:.8em 0 .4em}
+.fa-support-act .fa-continue{min-height:44px;padding:.5em 1.2em;border-radius:12px}.fa-support-cont-note{font-size:.9em;margin:.4em 0 0}
+.fa-hope{margin:.4em 0 1em;padding:.7em .9em;border-left:3px solid #38bdf8;background:rgba(56,189,248,.08);border-radius:8px;line-height:1.6}
+/* decision 23 (coordinator default ก) + CLAUDE.md hard limit 3: no free belief guidance in a calm or crisis tab */
+html[data-lq-calm] [data-lq-belief],html[data-lq-crisis] [data-lq-belief]{display:none!important}
 /* ---------- tap-to-call help-line component (lensiq-helpline.js; owner order 2026-11-14 Part B) ----------
    One compact row on a phone (owner addition 2026-11-14): short label | call button with the number; the second line and
    the small print wrap under the label, never under the button. Tap target at least 44 px tall. On a computer (no touch,
@@ -412,6 +432,11 @@ html :is(.engine,.fr-engine,.pl-engine,#engine.status):empty{padding:0;margin:0;
 /* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
    and share cards stay hidden on that page */
 html[data-lq-crisis] [data-lq-remedy]{display:none!important}
+/* crisis flow v2 (review 2026-11-14, rules d and e): in a calm or crisis tab the fixed paragraph about the straight option and
+   every link to pricing, plans or refunds are hidden on every fortune page */
+html[data-lq-calm] [data-lq-straight],html[data-lq-crisis] [data-lq-straight],html[data-lq-calm] [data-lq-paid-link],html[data-lq-crisis] [data-lq-paid-link],
+html[data-lq-calm] a[href*="pricing.html"],html[data-lq-crisis] a[href*="pricing.html"],
+html[data-lq-calm] a[href*="terms.html#t9"],html[data-lq-crisis] a[href*="terms.html#t9"]{display:none!important}
 @media print{
   .lq-helpline{background:#fff;border-color:#888;color:#000;break-inside:avoid}
   .lq-call>a.lq-call-btn[href]{min-height:0;min-width:0;padding:0;background:none;color:#000;text-decoration:underline}

@@ -272,18 +272,35 @@
   /** @param {{pageFlag?: any, serverFlag?: any, crisis?: any}} o */
   function paidAllowed(o) { return !!o && o.pageFlag === true && o.serverFlag === true && o.crisis === false; }
 
-  /** @param {any[]} items @param {{choice?: string, keys?: string[], lang?: string, pageFlag?: any, serverFlag?: any, crisis?: boolean, retentionDays?: any}} o */
+  /* crisis flow v2 (owner decision 2026-11-13 §3/§4): in the calm state the free guidance stays (labelled "according to belief")
+     but lucky-item cards, any card whose text is about an object, a purchase or another remedy (the shared classifier in
+     fortune-crisis.js), and the paid section are left out. */
+  function classifier() {
+    try { if (root.LQFortuneCrisis && root.LQFortuneCrisis.adviceKind) return root.LQFortuneCrisis.adviceKind; } catch (e) { /* none */ }
+    try { if (typeof module !== "undefined" && module.exports && typeof require === "function") return require("./fortune-crisis.js").adviceKind; } catch (e) { /* none */ }
+    return null;
+  }
+  /** @param {any[]} items @param {string} lang */
+  function calmItems(items, lang) {
+    var kind = classifier();
+    return (Array.isArray(items) ? items : []).filter(function (it) {
+      if (!it || it.type === "lucky_item") return false;
+      var k = kind ? kind(text(it.title, lang) + " " + text(it.body, lang)) : "";
+      return k !== "lucky" && k !== "purchase" && k !== "remedy";
+    });
+  }
+  /** @param {any[]} items @param {{choice?: string, keys?: string[], lang?: string, pageFlag?: any, serverFlag?: any, crisis?: boolean, calm?: boolean, retentionDays?: any}} o */
   function panelModel(items, o) {
     var opt = o || {};
     if (opt.crisis) return null;
     var lang = normLang(opt.lang), U = UI[lang], choice = normChoice(opt.choice);
-    var shown = match(items, { choice: choice, keys: opt.keys });
+    var shown = match(opt.calm ? calmItems(items, lang) : items, { choice: choice, keys: opt.keys });
     var cards = shown.map(function (it) {
       return { id: String(it.id), type: it.type, tradition: it.tradition, typeLabel: U["t." + it.type], title: text(it.title, lang), body: text(it.body, lang),
         place: it.place ? text(it.place, lang) : "", area: it.area ? text(it.area, lang) : "", sample: it.sample === true, label: LABEL[lang] };
     });
     var paid = null;
-    if (choice !== "off" && cards.length && paidAllowed({ pageFlag: opt.pageFlag, serverFlag: opt.serverFlag, crisis: opt.crisis === true })) {
+    if (choice !== "off" && cards.length && !opt.calm && paidAllowed({ pageFlag: opt.pageFlag, serverFlag: opt.serverFlag, crisis: opt.crisis === true })) {
       /** @type {Record<string, string>} */
       var t = {};
       PAID_KEYS.forEach(function (k) { t[k] = U[k]; });

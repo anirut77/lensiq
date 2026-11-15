@@ -250,11 +250,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       typing = เรียกระหว่างพิมพ์: แสดงการ์ดโดยไม่ย้ายโฟกัสออกจากช่องพิมพ์ */
   function supportFor(text, typing) {
     var box = document.getElementById("drSupport");
-    if (!FA || !FA.crisis || !FA.crisis.check(text)) { st.support = false; if (box) { box.hidden = true; box.textContent = ""; } return false; }
+    // crisis flow v2: no card for a text the reader has already continued past (a new hard-net signal shows it again)
+    if (!FA || !FA.crisis || !FA.crisis.check(text) || (FA.crisis.acked && FA.crisis.acked())) { st.support = false; if (box) { box.hidden = true; box.textContent = ""; } return false; }
     if (typing && st.support && box && !box.hidden) return true;
     if (!box) { box = document.createElement("div"); box.id = "drSupport"; box.tabIndex = -1; $("#drForm").insertAdjacentElement("afterend", box); }
     st.res = null; st.support = true; $("#drResult").hidden = true; $("#drMsg").textContent = "";
-    box.hidden = false; FA.crisis.render(box, FA.crisis.result({ lang: isZh() ? "zh" : isEn() ? "en" : "th" }));
+    // "continue": the card collapses and the reading is asked for (the symbols already found, else the reader picks one)
+    box.hidden = false; FA.crisis.render(box, FA.crisis.result({ lang: isZh() ? "zh" : isEn() ? "en" : "th" }), { onContinue: function () {
+      box.hidden = true; box.textContent = ""; st.support = false;
+      st.detected = detectAll($("#drText").value); renderSel();
+      if (selected().length) $("#drForm").requestSubmit(); else $("#drText").focus();
+    } });
     if (!typing) box.focus();
     return true;
   }

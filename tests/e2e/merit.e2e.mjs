@@ -9,7 +9,8 @@
 //      free guidance, states the separate fee / donation passed on in full / proof and receipt, has no countdown or
 //      scarcity wording, asks only for the minimum fields and sends only those
 //   4. crisis net: crisis text typed into the interest form shows the support card and sends nothing; a support card on
-//      the tarot page hides the whole panel (free and paid) on the next reading and on another fortune page
+//      the tarot page hides the paid section and lucky-item cards on the next reading and on another fortune page
+//      (RE-LOCK 2026-11-13, owner decision crisis flow v2 §3: free belief guidance may stay; was: the whole panel hidden)
 //   5. English and 中文: the panel has no Thai left; phone widths 320 / 360 / 390: no horizontal overflow, 44 px targets
 import { createRequire } from "node:module";
 import { join } from "node:path";
@@ -171,14 +172,16 @@ export default async function ({ base, launch, check, repo }) {
       // re-lock 2026-11-12 (owner decision 2026-11-12, session-only, L59): the shared state, nothing stored by Merit
       assert(await page.evaluate(() => FortuneAI.crisis.active(document)), "shared crisis state set");
       assert(await page.evaluate(() => localStorage.getItem("lq-crisis-at") === null), "no lq-crisis-at stored");
-      await readZodiac(page, "calm", { afterCrisis: true });
+      // re-lock 2026-11-13 (crisis flow v2: never block the reading): the next zodiac reading is a calm reading, not a new card
+      await readZodiac(page, "calm");
       await sleep(1500);
-      assert(await page.evaluate(() => !document.querySelector(".lq-merit-paid") && !document.querySelector(".lq-merit-card")), "no merit content on the next reading");
+      assert(await page.evaluate(() => !document.querySelector(".lq-merit-paid") && !document.querySelector(".lq-merit-card[data-type=lucky_item]")),
+        "no paid section and no lucky-item card on the next reading");
     });
     await page.close();
 
     page = await browser.newPage(null, { isolated: true, initScripts: [stubScript(seed)] });
-    await check("4b. support card on tarot: no merit panel (free or paid) on the next reading there or on the zodiac page", async () => {
+    await check("4b. support card on tarot: no paid section and no lucky-item card on the zodiac page (re-lock v2: free guidance may stay)", async () => {
       await page.goto(`${base}/tarot.html`);
       await page.evaluate(() => { document.getElementById("trQuestion").value = "I want to die"; document.getElementById("trStart").click(); });
       await page.waitFor("(() => { const b = document.getElementById('trSupport'); return !!b && !b.hidden && /1323/.test(b.textContent); })()", 5000);
@@ -187,8 +190,9 @@ export default async function ({ base, launch, check, repo }) {
       await readZodiac(page, "chong");
       await sleep(2000);
       const r = await page.evaluate(() => ({ panel: [...document.querySelectorAll(".lq-merit")].filter(p => !p.hidden && p.getBoundingClientRect().height > 0).length,
-        cards: document.querySelectorAll(".lq-merit-card").length, paid: document.querySelectorAll(".lq-merit-paid").length }));
-      assert(r.panel === 0 && r.cards === 0 && r.paid === 0, JSON.stringify(r));
+        lucky: document.querySelectorAll(".lq-merit-card[data-type=lucky_item]").length, paid: document.querySelectorAll(".lq-merit-paid").length,
+        form: document.querySelectorAll(".lq-merit form").length }));
+      assert(r.lucky === 0 && r.paid === 0 && r.form === 0, JSON.stringify(r)); // re-lock 2026-11-13 (crisis flow v2 §3)
     });
     await page.close();
 

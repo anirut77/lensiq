@@ -2401,7 +2401,7 @@
     : lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH);
   /* compose: เลือกโหมดก่อน แล้วเรียกตัวเรียบเรียงเดิม — ตาข่ายวิกฤตมาก่อนเสมอเมื่อเป็นโหมดตรง (ข้อ 3) */
   function compose(facts, opts = {}) {
-    const calm = FS.calm ? FS.calm() : false, straight = !calm && (opts.straight != null ? !!opts.straight : straightActive());
+    const calm = !!opts.calm || (FS.calm ? FS.calm() : false), straight = !calm && (opts.straight != null ? !!opts.straight : straightActive());
     if (straight && crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
     const prev = STRAIGHT, prevC = CALM, prevR = CREC, prevF = FILLS;
     STRAIGHT = straight; CALM = calm; CREC = []; FILLS = { rec: [], F: facts };
@@ -2412,7 +2412,8 @@
         const src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : [];
         out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
       }
-      if (calm && out) delete out.plan; return out;
+      if (calm && out) delete out.plan;
+      return calm && out && out.source !== "support" ? calmify(out) : out; // crisis flow v2: hope frame + calm filter
     } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; FILLS = prevF; }
   }
   function composeBase(facts, opts = {}) {
@@ -4128,7 +4129,7 @@
      ต้องให้ผู้เชี่ยวชาญตรวจก่อนอ้างว่าเป็นถ้อยคำที่ผ่านการรับรอง */
   const CRISIS_TH = /ฆ่าตัว(?:ตาย)?|อยากตาย|อยากจะตาย|ไม่อยาก(?:มีชีวิต(?:อยู่)?|อยู่(?:แล้ว|ต่อ|บนโลก)|ตื่น(?:ขึ้นมา)?อีก)|อยากหายไป(?:จากโลก)?|ไม่อยากตื่น(?:มา|ขึ้นมา)?เจอ(?:วัน)?พรุ่งนี้|ชีวิต(?:นี้)?ไม่มี(?:ความหมาย|ค่า)|(?:ควร|อยาก)จบ(?:ทุกอย่าง|ทุกสิ่ง|มันซะ)|ไม่อยากอยู่บนโลกนี้|อยากจบชีวิต|จบชีวิต(?:ตัวเอง|ตนเอง)|ทำร้ายตัวเอง|ทำร้ายตนเอง|กรีด(?:ข้อมือ|แขน|ตัวเอง)|ปลิดชีพ|กินยาตาย|กินยาเกินขนาด|กระโดด(?:ตึก|สะพาน)|ผูกคอ|(?:ถูก|โดน)(?:ทำร้าย(?:ร่างกาย)?|ทุบตี|ตบตี|ซ้อม|ข่มขืน|ล่วงละเมิด|ทารุณ|กักขัง)|ข่มขืน|ล่วงละเมิดทางเพศ|ความรุนแรงในครอบครัว|(?:แฟน|สามี|ภรรยา|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง)[^\s]{0,8}(?:ตบ|ตี|ทุบ|ทำร้าย|ซ้อม)(?:ฉัน|หนู|ผม|เรา|ดิฉัน)/;
   const CRISIS_EN = /\b(?:suicid\w*|kill(?:ing)? myself|end(?:ing)? my life|end it all|take my (?:own )?life|want(?:ed)? to die|wanna die|wish I (?:was|were) dead|self[- ]?harm\w*|hurt(?:ing)? myself|cut(?:ting)? myself|don'?t want to (?:live|be alive|wake up)|no reason to live|overdos\w*|can'?t go on(?: anymore| any longer)?|want(?:ed)? to disappear|(?:should I|I want to|I'll) (?:just )?end it(?! (?:with|between|off))(?: all)?|no point (?:in )?(?:living|being alive)|life (?:is|feels) (?:meaningless|pointless))\b|\b(?:he|she|they|my (?:partner|husband|wife|boyfriend|girlfriend|father|mother|dad|mum|mom|stepfather|stepmother))\s+(?:hits|beats|abuses|rapes|hurts|chokes)\s+me\b|\b(?:being|been|was|am|got)\s+(?:abused|raped|molested|assaulted|attacked|beaten up)\b|\bdomestic (?:violence|abuse)\b|\bsexual(?:ly)? (?:abuse|assault\w*)\b/i;
-  const CRISIS_ZH = new RegExp("自杀|自尽|轻生|想死(?!的心)|不想活|活不下去|活着没意思|活着好累|活着没有意义|不想再醒来|不想醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|" +
+  const CRISIS_ZH = new RegExp("自杀|自尽|轻生|想死(?!的心|你|您|妳)|不想活|活不下去|活着没意思|活着好累|活着没有意义|不想再醒来|不想醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|" +
     "被(?:人)?(?:打|殴打|袭击|虐待|性侵|强奸|侵犯|猥亵)|性侵|强奸|(?:他|她|老公|老婆|丈夫|妻子|男朋友|女朋友|爸爸|妈妈|继父|继母)(?:经常|总是|一直)?(?:打|殴打|虐待)我");
   // fortune-crisis.js (review 2026-11-12): the widened net (tone-mark-insensitive Thai, traditional Chinese, slang) + every free-text field
   const CR = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis.js") : root.LQFortuneCrisis) || null;
@@ -4140,48 +4141,28 @@
     }
     return false;
   }
-  const SUPPORT = {
-    th: {
-      title: "ขอหยุดคำทำนายไว้ก่อน",
-      lead: "ขอบคุณที่เล่าให้ฟัง สิ่งที่คุณพิมพ์มาฟังดูหนักใจ และสำคัญกว่าคำทำนายใด ๆ ตอนนี้เราจึงขอไม่อ่านดวงให้",
-      body: "ถ้าคุณกำลังคิดทำร้ายตัวเอง รู้สึกไม่ปลอดภัย หรือมีคนทำร้ายคุณ คุณไม่ต้องเผชิญเรื่องนี้คนเดียว มีคนพร้อมรับฟังและช่วยเหลือ",
-      after: "ถ้าทำได้ ลองบอกคนที่คุณไว้ใจสักคนว่ากำลังรู้สึกอย่างไร หรือไปที่โรงพยาบาลใกล้บ้าน ถ้าอยู่นอกประเทศไทย โทรเบอร์ฉุกเฉินของประเทศนั้น",
-      foot: "ข้อความนี้ไม่ได้บันทึกหรือส่งไปที่ใด · ถ้อยคำบนการ์ดนี้กำลังรอผู้เชี่ยวชาญด้านสุขภาพจิตตรวจทาน",
-      call: "โทร",
-    },
-    en: {
-      title: "Let's pause the reading",
-      lead: "Thank you for telling us. What you wrote sounds heavy, and it matters more than any reading, so we will not give a fortune right now.",
-      body: "If you are thinking about hurting yourself, feel unsafe, or someone is hurting you, you do not have to face this alone. People are ready to listen and help.",
-      after: "If you can, tell someone you trust how you feel, or go to the nearest hospital. Outside Thailand, call your local emergency number.",
-      foot: "Nothing you typed was saved or sent anywhere · The wording on this card is awaiting review by a mental-health professional",
-      call: "Call",
-    },
-    zh: {
-      title: "先暂停这次解读",
-      lead: "谢谢你愿意说出来。你写下的内容听起来很沉重，这比任何解读都重要，所以现在我们先不做占卜。",
-      body: "如果你正在想伤害自己、觉得不安全，或者有人在伤害你，你不需要独自面对。有人愿意倾听并提供帮助。",
-      after: "如果可以，请告诉一位你信任的人你现在的感受，或者去最近的医院。如果你不在泰国，请拨打当地的紧急电话。",
-      foot: "你输入的内容没有被保存或发送 · 这张卡片的措辞正在等待心理健康专业人士审阅",
-      call: "拨打",
-    },
-  };
-  // help lines on the card: the shared tap-to-call component (lensiq-helpline.js, owner order 2026-11-14 Part B), in its order
-  // 1323, 1669, 191, 1300, Samaritans; numbers and hours verified in docs/CRISIS-RESOURCES.md (checked 2026-11-14)
+  // crisis flow v2 (docs/CRISIS-FLOW-V2.md): the acknowledgement card (wording fortune-crisis.js CARD, never echoes; "continue" shows the reading,
+  // then the top button is the one help place: crisis-v2-live, decisions 2026-11-15 1 ก + 54 ข). REVIEW pending (L63).
+  const SUPPORT = { ...((CR && CR.CARD) || { th: { title: "", lead: "", body: "", after: "", foot: "", call: "", cont: "", contNote: "" } }) };
+  // help lines on the card: the shared tap-to-call component (lensiq-helpline.js; 1323, 1669, 191, 1300, Samaritans; docs/CRISIS-RESOURCES.md)
   const callKit = () => (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : root.LQHelpline) || null;
   const supportLines = lang => (callKit() ? callKit().cardLines(lang) : ["1323", "1669", "191", "1300", "021136789"].map(n => ({ id: n.length > 4 ? "samaritans" : n, n, tel: n, btn: n, t: "" })));
-  function supportResult(opts) {
+  /** the acknowledgement card; `reading` (optional) is the calm reading shown on "continue" @param {any} [opts] @param {any} [reading] */
+  function supportResult(opts, reading) {
     const lang = langOf(opts), S0 = Object.assign({}, SUPPORT[lang] || SUPPORT.th, { lines: supportLines(lang) });
     try { const ls = root.localStorage; if (ls) ls.setItem("lq-support-n", String((parseInt(ls.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }
     return {
       source: "support", crisis: true, lang, reviewStatus: "pending-professional-review",
-      support: { title: S0.title, lead: S0.lead, body: S0.body, lines: S0.lines, after: S0.after, foot: S0.foot, call: S0.call },
+      support: { title: S0.title, lead: S0.lead, body: S0.body, lines: S0.lines, after: S0.after, foot: S0.foot, call: S0.call, cont: S0.cont, contNote: S0.contNote },
       sections: [{ id: "support", title: S0.title, paragraphs: [S0.lead, S0.body].concat(S0.lines.map(l => l.btn + " — " + l.t), [S0.after]) }],
+      reading: reading && !reading.crisis ? reading : undefined,
     };
   }
+  /** crisis flow v2 §2–§4: a reading for the calm state (fortune-crisis.js calmReading: no plan, calm filter, hope frame) @param {any} res */
+  const calmify = res => (CR && CR.calmReading ? CR.calmReading(res) : res), withoutTyped = facts => (CR && CR.withoutTyped ? CR.withoutTyped(facts, crisisCheck) : facts);
   const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support-foot{font-size:.85em;opacity:.75}";
   /** วาดการ์ดช่วยเหลือ (ใช้ textContent ทั้งหมด) — container จะถูกล้างก่อน */
-  function renderSupport(container, res) {
+  function renderSupport(container, res, opts) {
     if (!container) return null;
     const doc = container.ownerDocument || root.document, s = (res && res.support) || supportResult().support;
     container.textContent = "";
@@ -4195,15 +4176,31 @@
     for (const l of s.lines) {
       ul.appendChild(el("li")).appendChild(K && K.LINES[l.id] ? K.el(doc, l.id, { lang: lng, cls: "fa-tel" }) : Object.assign(el("a", "lq-call-btn fa-tel", l.n), { href: "tel:" + l.tel }));
     }
-    box.appendChild(ul); box.appendChild(el("p", null, s.after)); box.appendChild(el("p", "fa-support-foot", s.foot));
+    box.appendChild(ul); box.appendChild(el("p", "fa-support-trust", s.after));
+    // crisis flow v2: nothing is blocked; "continue" collapses the card and shows the reading (the top button stays the help place)
+    const S1 = SUPPORT[res && res.lang] || SUPPORT.th, contLabel = s.cont || S1.cont;
+    const act = el("div", "fa-support-act"), go = el("button", "btn primary fa-continue", contLabel);
+    go.type = "button"; go.setAttribute("data-lq-continue", "");
+    act.appendChild(go); act.appendChild(el("p", "fa-support-cont-note", s.contNote || S1.contNote));
+    box.appendChild(act); box.appendChild(el("p", "fa-support-foot", s.foot));
+    const onContinue = opts && typeof opts.onContinue === "function" ? opts.onContinue : null, reading = res && res.reading;
+    go.addEventListener("click", () => {
+      try { if (CR && CR.continued) CR.continued(doc); } catch (e) { /* memory only */ } container.textContent = "";
+      const F = root.FortuneAI, R = F && typeof F.renderSections === "function" ? F.renderSections : renderWithHooks;
+      try { if (onContinue) onContinue(); else if (reading) R(container, reading, { aiBadge: false }); } catch (e) { /* the top help button stays (calmTop) */ }
+      try { if (CR && CR.calmTop) CR.calmTop(doc); } catch (e) { /* no DOM */ }
+    });
     container.appendChild(box);
     // the page is now in the crisis state: no later reading, remedy, lucky item, paid / merit offer or straight mode on it
     if (CR && CR.setActive) CR.setActive(doc);
     return box;
   }
   async function interpret(facts, opts = {}) {
-    // ข้อความที่ผู้ใช้พิมพ์เอง (ชื่อเล่น คำถาม) มีสัญญาณวิกฤต → การ์ดช่วยเหลือแทนคำทำนาย (ไม่ส่งไป AI)
-    if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
+    // ข้อความที่ผู้ใช้พิมพ์เอง (ชื่อเล่น คำถาม) มีสัญญาณวิกฤต → การ์ดก่อน แล้วคำทำนายแบบนุ่มนวลหลังกด "ดูคำทำนายต่อ" (ไม่ส่งไป AI)
+    if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) {
+      const reading = calmify(compose(withoutTyped(facts), Object.assign({}, opts, { straight: false, calm: true })));
+      return CR && CR.acked && CR.acked() ? reading : supportResult(opts, reading); // continued past this text: the reading only
+    }
     // Chinese and English are composed on the device only (the writing assistant and its grounding gate are Thai-only)
     // ส่วน C: โหมดตรงเรียบเรียงในเครื่องเท่านั้น (ผู้ช่วยเขียน AI ยังใช้ถ้อยคำนุ่มนวลจนกว่าเจ้าของอนุมัติ)
     const straight = opts.straight != null ? !!opts.straight : straightActive();
@@ -4268,7 +4265,7 @@
   }
   function toHTML(result, opts = {}) {
     let res = result || { sections: [] };
-    if (!res.crisis && CR && CR.active && CR.active(opts.doc)) res = supportResult({ lang: res.lang }); // crisis state: never a reading
+    if (!res.crisis && CR && CR.calmOn && CR.calmOn(opts.doc)) res = calmify(res); // crisis flow v2: a calm reading, never blocked
     if (res.crisis && res.support) {
       const sp = res.support;
       return '<section class="fa-support" role="region" data-review="pending-professional-review"><h3>' + escapeHtml(sp.title) + "</h3><p>" + escapeHtml(sp.lead) + "</p><p>" + escapeHtml(sp.body) + "</p><ul>" +
@@ -4276,6 +4273,8 @@
         "</ul><p>" + escapeHtml(sp.after) + '</p><p class="fa-support-foot">' + escapeHtml(sp.foot) + "</p></section>";
     }
     let h = "";
+    const hopeP = (t, k) => (t ? '<p class="fa-hope fa-hope-' + k + '" role="note" data-review="pending-professional-review">' + escapeHtml(t) + "</p>" : "");
+    h += hopeP(res.hope && res.hope.open, "open");
     if (res.source === "ai" && opts.aiBadge !== false) h += '<p class="fa-ai-badge">' + escapeHtml(badgeText(opts)) + "</p>";
     if (res.note && opts.showNote !== false) h += '<p class="fa-note" role="status">' + escapeHtml(res.note) + "</p>";
     const sm = res.summary;
@@ -4304,7 +4303,8 @@
     // ที่มาของผล (หลักฐานแบบสูตรคำนวณที่ไม่ใส่ในประโยค)
     if (res.why && Array.isArray(res.why.lines) && res.why.lines.length && opts.why !== false) h += '<details class="fa-more fa-why"><summary data-i18n="fa.why">' + escapeHtml(res.why.title || "ที่มาของผล") + "</summary><ul>" + res.why.lines.map(l => "<li><b>" + escapeHtml(l.k) + "</b> " + escapeHtml(l.t) + "</li>").join("") + "</ul></details>";
     if (res.reminder && opts.reminder !== false) h += '<p class="fa-reminder" role="note">' + escapeHtml(res.reminder) + "</p>";
-    if (CR && CR.helpHTML && CR.calmOn && (CR.calmOn() || CR.distress())) h += CR.helpHTML(res.lang, "lq-helpline-result"); // under a reading only when calm (2026-11-15: one place per page)
+    h += hopeP(res.hope && res.hope.close, "close");
+    // crisis-v2-live (decisions 2026-11-15 1 ก + 54 ข): no help line under a reading in any state; the top button is the one help place
     return h;
   }
   function renderSections(container, result, opts = {}) {
@@ -4320,6 +4320,9 @@
     const details = (label, cls) => { const d = el("details", "fa-more" + (cls ? " " + cls : "")); d.appendChild(el("summary", null, label)); return d; };
     if (res.source === "ai" && opts.aiBadge !== false) frag.appendChild(el("p", "fa-ai-badge", badgeText(opts)));
     if (res.note && opts.showNote !== false) { const n = el("p", "fa-note", res.note); n.setAttribute("role", "status"); frag.appendChild(n); }
+    // crisis flow v2 §2: the hope frame (fixed opening and closing line, pending professional review)
+    const hopeEl = (t, k) => { if (t && CR && CR.hopeNode) frag.appendChild(CR.hopeNode(doc, t, k)); }; // crisis flow v2 §2: the hope frame
+    hopeEl(res.hope && res.hope.open, "open");
     // การ์ด "สรุปสั้น" 2–3 บรรทัดบนสุด — อ่านจบในไม่กี่วินาที แล้วค่อยอ่านรายละเอียดด้านล่าง
     const sm = res.summary;
     if (sm && Array.isArray(sm.lines) && sm.lines.length && opts.summary !== false) {
@@ -4358,12 +4361,12 @@
       d.appendChild(ul); frag.appendChild(d);
     }
     if (res.reminder && opts.reminder !== false) { const n = el("p", "fa-reminder", res.reminder); n.setAttribute("role", "note"); frag.appendChild(n); }
+    hopeEl(res.hope && res.hope.close, "close");
     // ส่วน C: ตัวเลือก "ดูตรง ๆ" — วาดเฉพาะเมื่อเปิดสวิตช์ (ปิดอยู่ในไฟล์ที่ส่งมอบ จึงไม่มีอะไรเปลี่ยนบนหน้า)
     if (straightEnabled() && opts.straightControl !== false && FS.mount) FS.mount(container, frag, res);
-    // owner order 2026-11-15 item 3: the help line is in ONE place per page (the top button); under a reading only on a calm page
-    // (crisis net: crisis state, calm session or distress typed), where fortune-crisis.js makes it sticky next to the reading
-    if (CR && CR.helpLine && CR.calmOn && (CR.calmOn(doc) || CR.distress(doc))) { try { frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ } }
-    container.appendChild(frag); if (CR && CR.calmDock) CR.calmDock(container, res.lang); // crisis fix 4: help line in view when calm
+    // crisis-v2-live (decisions 2026-11-15 1 ก + 54 ข): no help line under a reading, no pinned bar; calm: the top button (calmTop)
+    container.appendChild(frag);
+    if (CR && CR.calmDock) CR.calmDock(container, res.lang);
     try { if (root.LQI18N && typeof root.LQI18N.apply === "function") root.LQI18N.apply(container); } catch (e) { /* i18n ไม่พร้อม */ }
     return container;
   }
@@ -4402,18 +4405,19 @@
   function notifyAIResponse(res) {
     for (const h of HOOKS) if (typeof h.onAIResponse === "function") { try { h.onAIResponse(res && typeof res.clone === "function" ? res.clone() : res); } catch (e) { /* observer error */ } }
   }
-  /* crisis state (owner order 2026-11-12): once the support card was shown on this page, every later reading is the card
-     again: no reading, plan, remedy or lucky item, and no hook runs (member light reading, merit or paid offers) */
-  const crisisOn = container => !!(CR && CR.active && CR.active(container && container.ownerDocument)), calmAt = c => !!(FS.calm && FS.calm(c && c.ownerDocument));
+  /* crisis flow v2 (owner decision 2026-11-13): a NEW hard-net signal in a field shows the acknowledgement card first, with the
+     reading behind "continue"; once the page or the tab is calm every reading is a calm reading (hope frame, calm filter, no
+     plan) and no hook runs (member light reading, paid offers). A straight reading composed before the calm state is never shown. */
+  const calmAt = c => !!(FS.calm && FS.calm(c && c.ownerDocument));
   function renderWithHooks(container, result, opts) {
-    // crisis net first: any free-text field of the page (name, question, dream …) with a crisis signal → support card, never a reading
-    if (!(result && result.crisis) && (crisisOn(container) || crisisCheck(pageText(container && container.ownerDocument)))) result = supportResult({ lang: result && result.lang });
+    const doc = container && container.ownerDocument;
+    if (!(result && result.crisis) && crisisCheck(pageText(doc)) && !(CR && CR.acked && CR.acked(doc))) result = supportResult({ lang: result && result.lang }, result);
     // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step first, never a reading first
-    const sl = result && result.lang, card = box => renderSupport(box, supportResult({ lang: sl }));
+    const sl = result && result.lang, card = box => renderSupport(box, supportResult({ lang: sl }, result));
     if (!(result && result.crisis) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
-    // crisis fix 4 (fail-safe): in a calm page a straight reading composed earlier is never shown (the card instead), nor a plan
-    if (result && !result.crisis && calmAt(container)) result = result.mode === "straight" ? supportResult({ lang: result.lang }) : Object.assign({}, result, { plan: undefined });
-    if (!HOOKS.length || (result && result.crisis)) return renderSections(container, result, opts); // a support card never goes through hooks
+    // fail-safe: a straight reading composed before the calm state is never shown (the card; its "continue" keeps the help bar)
+    if (result && !result.crisis && calmAt(container)) result = result.mode === "straight" ? supportResult({ lang: result.lang }) : calmify(result);
+    if (!HOOKS.length || (result && (result.crisis || result.calm))) return renderSections(container, result, opts); // no hook next to a card or in the calm state
     let shown = result;
     for (const h of HOOKS) if (typeof h.gate === "function") { try { shown = h.gate(shown, opts, container); } catch (e) { /* keep the reading */ } }
     const out = renderSections(container, shown, opts);
@@ -4423,8 +4427,9 @@
   try { const q = root.LQFortuneHooks; if (Array.isArray(q)) for (const h of q) registerHooks(h); } catch (e) { /* no queue */ }
 
   const api = {
-    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, fields: doc => pageText(doc),
-      active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => (CR && CR.allow ? CR.allow(kind, doc) : !(CR && CR.active && CR.active(doc))) },
+    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, fields: doc => pageText(doc), calmify,
+      active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => (CR && CR.allow ? CR.allow(kind, doc) : !(CR && CR.active && CR.active(doc))),
+      pending: doc => !!(CR && CR.pending && CR.pending(doc)), acked: doc => !!(CR && CR.acked && CR.acked(doc)), continued: doc => { if (CR && CR.continued) CR.continued(doc); } },
     straight: Object.assign({}, FS, { isSafe: isSafeStraight, hardLimit }),
     privacy: { jakoScript: s => { canon(s); return TC && TC.jakoScript ? TC.jakoScript(s) : true; }, withoutJaKo: jk }, compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,
     rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT, DOMAIN_NAMES, lint, lintSemantic, lintZh, lintEn, nearDupPairs, lintRepeats, leadEcho, PHRASE_BUDGET, FILLER_BUDGET,

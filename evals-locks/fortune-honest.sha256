@@ -93,3 +93,33 @@ f507051f7bda24c7dd5331329a81d12e376ba4634e2fbb2decb0f5cb4ef0224d  tests/unit/for
 # RE-LOCK 2026-11-15 (2) (branch fortune-live): owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis card. fortune-helpline unit and e2e: the top row (#lqHelpTop) holds only tel:1323 with "อยากมีคนรับฟัง 1323"; no 1669 at the top. Printed report, calm-state line, crisis card and verified-claims checks unchanged. Copies: ~/LENSIQ-field/evals/fortune-live/relock2/. On 542a9b7: unit placement test fails.
 afcdc1f3aa1c8413f98e9e69b452a36e15c83b0db78912788de092a05f7cc1e9  tests/unit/fortune-helpline.test.js  # repo file
 18e619ff885d8fbb2a482074db860364fb2a883f5406f9fa57eb71ca09cf9684  tests/e2e/fortune-helpline.e2e.mjs  # repo file
+# evals-locks/fortune-honest.sha256 — owner rule 2026-11-13: every locked test / eval set used on this branch, hashed in the repo
+# BEFORE any further measurement. Branch crisis-flow-v2 (crisis flow v2 + detection v2). Repo test files (path from the repo root):
+cff3ef3445a4ee5df2cb71d47d241193dd4b9ce3f836336ebe3bd7c0db26fb7e  tests/unit/fortune-crisis-flow-v2.test.js
+9c033d51371d5e8eba0ddef934eeac6f8e7035b13feb16e82f95e32d8f9100e6  tests/e2e/fortune-crisis-flow-v2.e2e.mjs
+8806d1126d5189b9054916a3be0a5307731013458c474f586c99b4879b286085  tests/e2e/fortune-crisis-flow-v2-pages.e2e.mjs
+aece1c6aa162199cc328b58a91ad5d131e6bbf4be6f6b5266ff7be0eac60a688  tests/e2e/crisis-flow-lib.mjs
+988abf5cafd854c1a0063d55bafa8fb2862d1852c09929ba6b01be5cb009db0f  tests/unit/fortune-crisis-detect-v2.test.js
+5aee9ecee7ad22c7c78243e66cc7e901160108e8a17d1e4efceacbd143d0fbde  tests/unit/fortune-helpline.test.js
+c8421600a895e5332448a2a29e9244c75e09c2f0452000e355429fe9dd87a46e  tests/e2e/fortune-helpline.e2e.mjs
+# dev data outside the repo (path from ~/LENSIQ-field/evals/; the 2026-11-13 fresh review set, SPENT, dev data only):
+3df729f4d8706611c45cff71469f78a0d43ae878eb98bca63676aa9c302f4366  fortune-honest/fresh-2026-11-13/set.json
+3e737cba6f19b8c213c1acf0ff0b111bb627a9506a2a71c45b09e491de45c8d6  fortune-honest/fresh-2026-11-13/run1/runs.jsonl
+eefb2c196acbe2a39e0ecac3f27e608699e06726004395a428586bfb1c0912e4  tests/e2e/fortune-crisis-one-bar.e2e.mjs
+#
+# CRISIS DETECTION V3 + CALM TEXT (rules d, e) — independent review 2026-11-14 of a0ec6f0 (set fortune-honest__fresh-2026-11-14, SPENT, dev data only). Locked 2026-11-13T19:37:43Z BEFORE the change on crisis-flow-v2 (base 5fcac32). Copies in ~/LENSIQ-field/evals/fortune-honest/repo-copies/.
+a7b505d7f5051f4b3b030fa1aa4ccee573711d31bd34626384f2a35ede3ad258  tests/unit/fortune-crisis-detect-v3.test.js  # repo file  # locked 2026-11-13T19:37:43Z
+7491d27cc6ec9a6a0b28e3efca7cb308d122b2cb1bf1627009029c03074b5310  tests/e2e/fortune-crisis-calm-text.e2e.mjs  # repo file  # locked 2026-11-13T19:37:43Z
+# RE-LOCK 2026-11-13T19:55:12Z fortune-crisis-calm-text.e2e.mjs: the Chinese straight-option pattern matched the ordinary word 直说 ('有话直说', speak frankly) inside a numbers reading; it now matches the option's name as shown on the pages (“直说” in quotes, or 直说模式). TH and EN patterns unchanged; paid checks unchanged.
+33dab0b7892448f4cc391aaea9b6c8ef6dd8de305a933fe6455d0708bac75bf9  tests/e2e/fortune-crisis-calm-text.e2e.mjs  # repo file  # re-locked 2026-11-13T19:55:12Z
+# RE-LOCK 2026-11-13T20:01:59Z fortune-crisis-flow-v2.e2e.mjs (after merging origin/main): the 'one new sessionStorage key' check ignores 'lq-heavy', the camera crash guard from main (lensiq-crashguard.js, PDPA notes H), which faceread / palm set while the camera runs; the crisis flow must still add exactly lq-fortune-calm=1.
+dd183b210f34a502a88be0588bebd81b71da22da100b2b0cc0f486d0b5834bf9  tests/e2e/fortune-crisis-flow-v2.e2e.mjs  # repo file  # re-locked 2026-11-13T20:01:59Z
+# RE-LOCK 2026-11-16 (branch crisis-v2-live; owner decisions 2026-11-15: 1 ก ship v2 with the single help button rule, 54 ข; coordinator default ก for decision 23). Append-only; copies in ~/LENSIQ-field/evals/fortune-honest/repo-copies/crisis-v2-live/. Reasons:
+#  - tests/unit/fortune-crisis-flow-v2.test.js §3/§4 calmText + allow(): free belief guidance is no longer shown in the calm / crisis state (decision 23 + CLAUDE.md hard limit 3); belief is now dropped / refused (stricter). Lucky / purchase / remedy / straight assertions unchanged.
+#  - tests/e2e/fortune-crisis-flow-v2-pages.e2e.mjs check 3: requires NO merit panel or card in the calm tab (was: free cards shown). No-lucky-item / no-paid / no-form unchanged.
+#  - tests/e2e/fortune-crisis-session.e2e.mjs SNAP: the top button #lqHelpTop counts as the help line (no line under the reading any more, decision 54 ข); 'in the viewport' unchanged.
+#  - tests/unit/fortune-helpline.test.js: a calm page's reading carries no help line under it; the top button holds 1323 (the fortune-live reviewer flagged the calm-state triple line as a duplicate).
+950d0caa965d33c99cf3f30490e7bebcd0f644b767dec7b413343a6a90b626dc  tests/unit/fortune-crisis-flow-v2.test.js  # repo file  # re-locked 2026-11-16 crisis-v2-live
+45fe5db8ae80a51e4fbb8d9fcc5c44537e9ea4a01b952526d1766b6cb0b0eb23  tests/unit/fortune-helpline.test.js  # repo file  # re-locked 2026-11-16 crisis-v2-live
+cb58948ac284aa3dde57497509c4f855877d9637896ac00a081273307443cb79  tests/e2e/fortune-crisis-flow-v2-pages.e2e.mjs  # repo file  # re-locked 2026-11-16 crisis-v2-live
+92ef2007e4eb4e6c80b7fcc2950f0585ccbcc03c171ae9959f6feb68d7adb08e  tests/e2e/fortune-crisis-session.e2e.mjs  # repo file  # re-locked 2026-11-16 crisis-v2-live

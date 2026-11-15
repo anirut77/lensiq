@@ -3,7 +3,9 @@
 //   1. second tab: a support card on the tarot page in another tab withdraws the open merit panel and its paid offer
 //   2. submit-time check: when the crisis state is set after the form was drawn (no event), submitting sends nothing
 //      and shows the support card
-//   3. blocked storage (localStorage throws): after a support card, the next reading on the same page shows no panel
+//   3. blocked storage (localStorage throws): after a support card, the next reading on the same page shows no paid section
+//      and no lucky-item card (RE-LOCK 2026-11-13, owner decision crisis flow v2: the next reading is a calm reading and free
+//      belief guidance may be shown; was: the card again and no panel at all)
 //   4. horoscope: the panel sits in the visible overview tab, not in a hidden tab
 import { createRequire } from "node:module";
 import { join } from "node:path";
@@ -80,7 +82,8 @@ export default async function ({ base, launch, check, repo }) {
       await a.goto(`${base}/zodiac.html`);
       await readZodiac(a);
       await a.waitFor("!!document.querySelector('.lq-merit-paid form')", 8000);
-      assert(await a.evaluate(() => document.querySelector(".lq-merit").getAttribute("data-lq-remedy") === "merit"), "panel is a data-lq-remedy block");
+      // re-lock 2026-11-13 (crisis flow v2 §3): the panel is free belief guidance, marked data-lq-belief (was data-lq-remedy)
+      assert(await a.evaluate(() => document.querySelector(".lq-merit").getAttribute("data-lq-belief") === "merit"), "panel is a data-lq-belief block");
       const before = await a.evaluate(() => Object.keys(localStorage).sort());
       // the shared path every fortune page uses: FortuneAI's support card puts the page into the crisis state
       await a.evaluate(() => { const box = document.createElement("div"); document.querySelector("main").appendChild(box); FortuneAI.crisis.render(box, FortuneAI.crisis.result({ lang: "th" })); });
@@ -112,16 +115,19 @@ export default async function ({ base, launch, check, repo }) {
     await page.close();
 
     page = await browser.newPage(null, { isolated: true, initScripts: [stubScript(seed, { blockStorage: true })] });
-    await check("3. storage blocked: after a support card, the next reading on the page shows no merit panel", async () => {
+    await check("3. storage blocked: after a support card, the next reading on the page shows no paid section and no lucky-item card (re-lock v2)", async () => {
       await page.goto(`${base}/tarot.html`);
       assert(await page.evaluate(() => { try { localStorage.length; return false; } catch (e) { return true; } }), "storage is blocked in this page");
       await page.evaluate(() => { document.getElementById("trQuestion").value = "I want to die"; document.getElementById("trStart").click(); });
       await page.waitFor("(() => { const s = document.getElementById('trSupport'); return !!s && !s.hidden && /1323/.test(s.textContent); })()", 5000);
       assert(await page.evaluate(() => FortuneAI.crisis.active(document)), "shared crisis state is on (storage blocked)");
-      await tarotReading(page, "งานใหม่จะดีไหม", { afterCrisis: true });
+      // re-lock 2026-11-13 (crisis flow v2: never block the reading): a plain question now gets a calm reading, not the card again
+      await tarotReading(page, "งานใหม่จะดีไหม");
       await sleep(1500);
       const r = await page.evaluate(meritShown);
-      assert(r.panels === 0 && r.cards === 0 && r.paid === 0, JSON.stringify(r));
+      const lucky = await page.evaluate(() => [...document.querySelectorAll(".lq-merit-card")]
+        .filter(c => c.getAttribute("data-type") === "lucky_item" && c.getBoundingClientRect().height > 0).length);
+      assert(r.paid === 0 && lucky === 0, JSON.stringify(Object.assign(r, { lucky })));
     });
     await page.close();
 
@@ -140,13 +146,16 @@ export default async function ({ base, launch, check, repo }) {
       const r = await page.evaluate(() => {
         const p = document.querySelector(".lq-merit"), tab = p.closest("[role=tabpanel]");
         return { tab: tab && tab.id, hiddenTab: !!p.closest("[role=tabpanel][hidden]"), visible: p.getBoundingClientRect().height > 0,
-          remedy: p.getAttribute("data-lq-remedy") };
+          belief: p.getAttribute("data-lq-belief") };
       });
-      assert(r.tab === "pn-ov" && !r.hiddenTab && r.visible && r.remedy === "merit", JSON.stringify(r));
-      // the page-wide rule alone hides it: <html data-lq-crisis> + [data-lq-remedy] (added 2026-11-12)
+      // re-lock 2026-11-13 (crisis flow v2 §3/§4): the panel is free belief guidance (data-lq-belief); the page-wide rule
+      // <html data-lq-crisis> + [data-lq-remedy] hides its lucky-item cards only, the panel itself stays
+      assert(r.tab === "pn-ov" && !r.hiddenTab && r.visible && r.belief === "merit", JSON.stringify(r));
       const hid = await page.evaluate(() => { document.documentElement.setAttribute("data-lq-crisis", "1");
-        const h = document.querySelector(".lq-merit").getBoundingClientRect().height; document.documentElement.removeAttribute("data-lq-crisis"); return h; });
-      assert(hid === 0, "hidden by html[data-lq-crisis] [data-lq-remedy]: " + hid);
+        const h = document.querySelector(".lq-merit").getBoundingClientRect().height;
+        const lucky = [...document.querySelectorAll(".lq-merit-card[data-type=lucky_item]")].filter(c => c.getBoundingClientRect().height > 0).length;
+        document.documentElement.removeAttribute("data-lq-crisis"); return { h, lucky }; });
+      assert(hid.h > 0 && hid.lucky === 0, "html[data-lq-crisis]: panel stays, lucky-item cards hidden: " + JSON.stringify(hid));
     });
     await page.close();
   } finally {

@@ -75,10 +75,12 @@ const FORBID_SEL = [".lq-merit", ".lq-merit-card", "[data-lq-belief]", "[data-lq
   'a[href*="pricing.html"]', 'a[href*="terms.html#t9"]', ".fa-straight", "[data-lq-straight]", '[data-fa-mode="straight"]'];
 // guidance wording, not page names: the zodiac page is called "ปีชง · ไท้ส่วย / Tai Sui / 犯太岁" and the planner lists the event
 // "ทำบุญบ้าน" (house blessing); those names are not advice
+// RE-LOCK 2026-11-16 (first build run, same principle): the planner's Chinese event description "搬入新居、新居祈福" (move into a new
+// home, house blessing; i18n/zh-planner.js pl.ev.moveS) is an event name like "ทำบุญบ้าน", not advice; 祈福 after 新居 is not counted.
 const FORBID_TEXT = {
   th: /ไหว้ไท้ส่วย|แก้ชง|ทำบุญ(?!บ้าน)|ตักบาตร|สวดมนต์|อัญมณี|พลอย|ของมงคล|เครื่องราง|วัตถุมงคล|ราคา|\d\s*บาท|฿|ดูตรง ๆ|แผนมู|ทำบุญแทน/,
   en: /(?:pray|offer\w*|worship\w*|respects?) (?:to|for) (?:the )?Tai Sui|make merit|\bpray(?:er|ing)?\b|\bchant\w*|gemstones?|sapphire|lucky charms?|amulets?|talismans?|\bprices?\b|฿|\bbaht\b|read it straight|merit plan/i,
-  zh: /拜太岁|化太岁|安太岁|行善|积德|诵经|祈福|宝石|吉祥物|护身符|价格|泰铢|฿|“直说”|直说模式/,
+  zh: /拜太岁|化太岁|安太岁|行善|积德|诵经|(?<!新居)祈福|宝石|吉祥物|护身符|价格|泰铢|฿|“直说”|直说模式/,
 };
 const FORBIDDEN = lang => `(() => {
   const vis = e => !!e && e.getClientRects().length > 0 && getComputedStyle(e).display !== "none" && getComputedStyle(e).visibility !== "hidden" && !e.closest("[hidden]");

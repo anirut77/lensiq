@@ -132,18 +132,25 @@
     panel.textContent = "";
     var box = el("div", "lq-merit-support");
     panel.appendChild(box);
-    if (FA && FA.crisis && FA.crisis.render) FA.crisis.render(box, FA.crisis.result({ lang: lang() }));
+    // crisis flow v2: "continue" brings back the free guidance (calm: no paid section, no lucky items)
+    var p0 = panel;
+    if (FA && FA.crisis && FA.crisis.render) FA.crisis.render(box, FA.crisis.result({ lang: lang() }), { onContinue: function () { if (p0) render(p0); } });
     try { box.setAttribute("tabindex", "-1"); box.focus(); } catch (e) { /* older browsers */ }
   }
 
   /* ---------------- panel ---------------- */
+  /* crisis flow v2 (owner decision 2026-11-13 §3): free belief guidance may be shown in the calm state; the paid section and
+     lucky-item cards are not (LQMeritCore.panelModel calm). Nothing is drawn next to an acknowledgement card that is on screen. */
+  var beliefOK = function () { var FA = W.FortuneAI; try { return !!(FA && FA.crisis && FA.crisis.allow && FA.crisis.allow("belief", doc)); } catch (e) { return false; } };
+  var cardOnScreen = function () { return !!doc.querySelector(".fa-support:not(.lq-merit .fa-support), .fa-soft"); };
   /** @param {HTMLElement} p */
   function render(p) {
-    var L = lang(), U = C.UI[L];
-    if (crisisOn()) { p.textContent = ""; p.hidden = true; return; }
+    var L = lang(), U = C.UI[L], calm = crisisOn();
+    // nothing next to an acknowledgement card or an "are you okay?" step that is on screen
+    if ((calm && !beliefOK()) || cardOnScreen()) { p.textContent = ""; p.hidden = true; return; }
     if (!state.items) { p.hidden = true; load().then(function () { if (p.isConnected) render(p); }); return; }
     var m = C.panelModel(state.items, { choice: C.loadChoice(store()), keys: C.keysFromFacts(state.facts, page), lang: L,
-      pageFlag: W.LENSIQ_MERIT_INTEREST_FORM === true, serverFlag: state.serverFlag, crisis: false, retentionDays: state.retentionDays });
+      pageFlag: W.LENSIQ_MERIT_INTEREST_FORM === true, serverFlag: state.serverFlag, crisis: false, calm: calm, retentionDays: state.retentionDays });
     if (!m) { p.textContent = ""; p.hidden = true; return; }
     p.textContent = "";
     p.hidden = false;
@@ -172,6 +179,7 @@
       if (c.type !== lastType) { lastType = c.type; wrap.appendChild(el("h3", "lq-merit-type", c.typeLabel)); }
       var card = el("article", "lq-merit-card");
       card.setAttribute("data-type", c.type); card.setAttribute("data-tradition", c.tradition); card.setAttribute("data-id", c.id);
+      if (c.type === "lucky_item") card.setAttribute("data-lq-remedy", "lucky"); // lucky items: hidden by the crisis / calm rule
       if (c.sample) card.appendChild(el("span", "lq-merit-badge", U.sample));
       card.appendChild(el("h4", null, c.title));
       card.appendChild(el("p", null, c.body));
@@ -187,7 +195,7 @@
     });
     p.appendChild(wrap);
     p.appendChild(el("p", "lq-merit-foot", m.footer));
-    if (m.paid) p.appendChild(paidSection(m.paid, U, L));
+    if (m.paid && !calm) p.appendChild(paidSection(m.paid, U, L));
   }
 
   /** The optional paid section: description + "request interest" form (minimum fields). @param {any} paid @param {any} U @param {string} L */
@@ -270,8 +278,8 @@
     if (panel && panel.isConnected && inHiddenTab(container) && !inHiddenTab(panel)) return panel;
     if (!panel) {
       panel = el("section", "lq-merit"); panel.hidden = true;
-      // free belief guidance counts as a remedy block: <html data-lq-crisis> hides it (styles.css / fortune-crisis.js)
-      panel.setAttribute("data-lq-remedy", "merit");
+      // crisis flow v2 §3: free belief guidance, allowed in the calm state (its lucky-item cards are data-lq-remedy)
+      panel.setAttribute("data-lq-belief", "merit");
     }
     var anchor = container, nx = container.nextElementSibling;
     if (nx && nx.classList && nx.classList.contains("lq-rp-wrap")) anchor = nx;
@@ -281,7 +289,7 @@
   /** @param {Element} container @param {any} result */
   function afterReading(container, result) {
     if (result && result.crisis) { onCrisis(); return; }
-    if (crisisOn()) { hidePanels(); return; }
+    if (crisisOn() && !beliefOK()) { hidePanels(); return; } // calm: render() draws the free guidance only
     if (!result || !(result.sections || []).length) return;
     var p = place(container);
     if (!p) return;

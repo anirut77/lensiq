@@ -515,6 +515,7 @@
   "call.samaritans.sub": "A listening line, 12:00–22:00",
   "call.samaritans.org": "Samaritans of Thailand",
   "help.line.note": "Outside Thailand, call your local emergency number.",
+  "help.line.more": "More help numbers",
   "ft.notice": "The free-tier limits are not enforced yet. We will announce the start date at least 30 days ahead, and the limits start 30 days after the announcement. You can always export your data.",
   "home.pk.ft": "Fortune and the general tools are free. The business products have a limited free tier: Gate 30-day trial (1 lane, 100 plates per day) · Attendance up to 5 people · Exam up to 5 candidates per session · Crowd 2 hours per device per day"
 } });

@@ -91,6 +91,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var mo = L.month === 8 && L.leap ? T("pl.lm.8b", "8 หลัง") : String(L.month);
     return L.waxing ? T("pl.lunar.up", "ขึ้น {d} ค่ำ เดือน {m}", { d: L.day, m: mo }) : T("pl.lunar.down", "แรม {d} ค่ำ เดือน {m}", { d: L.day, m: mo });
   }
+  /* crisis-v2-live (decision 23, coordinator default ก): in a calm or crisis tab a note that is belief guidance (merit-making, remedies)
+     is left out; LQFortuneCrisis.calmText drops such sentences @param {any} r */
+  function calmNote(r) {
+    var CR = window.LQFortuneCrisis;
+    if (!CR || !CR.calmOn || !CR.calmOn(document) || !CR.calmText) return true;
+    return !!CR.calmText(reasonText(r), (window.LQI18N && window.LQI18N.lang) || "th");
+  }
   function reasonText(r) {
     var v = r.v || {}, vars = { d: v.d, m: v.m, n: v.n };
     if (v.planet != null) vars.birth = wdName(v.planet);
@@ -118,7 +125,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plEmpty").hidden = st.res.length > 0;
     $("#plList").innerHTML = sorted().map(function (x) {
       var k = keyOf(x), id = "pl-" + k;
-      var main = x.reasons.filter(function (r) { return !r.note; }), notes = x.reasons.filter(function (r) { return r.note; });
+      var main = x.reasons.filter(function (r) { return !r.note; }), notes = x.reasons.filter(function (r) { return r.note && calmNote(r); });
       return '<li class="pl-day' + (st.picked[k] ? " picked" : "") + '">' +
         '<label class="pl-pick fk-check" for="' + id + '"><input type="checkbox" id="' + id + '" data-k="' + k + '"' + (st.picked[k] ? " checked" : "") + ">" +
         ' <span class="pl-date">' + esc(fmtDate(x)) + "</span></label>" +
