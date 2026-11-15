@@ -116,7 +116,7 @@ wrong tag shows more text and never hides any.
   "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" / "Based on astrological principles, which are a matter of
   personal belief. Please use your own judgement." / "基于命理学原则，属个人信仰，请自行判断。". The share card and every KB
   `disclaimer` / `disclaimerShort` use the same line. "เพื่อความบันเทิง" does not appear on any fortune page.
-- Help line in ONE place per page: `#lqHelpTop` (before `<main>`) is a small row of two tap-to-call buttons
+- Help line in ONE place per page: `#lqHelpTop` (before `<main>`) is ONE small tap-to-call button, "อยากมีคนรับฟัง 1323" (owner decision 54 ข: 1669 only on the crisis card)
   (`.lq-helpbar` > `.lq-call-mini[data-lq-call]` > `a.lq-call-btn[href^="tel:"]`, label and number inside the button). There is
   no `#lqHelpEnd` and no `.lq-helpline-result` under a normal reading. Under a reading on a calm page (crisis net) the line is
   still added (`fortune-crisis.js` `helpLine()` / `calmDock()`); the printed report keeps `.lq-helpline-print` (print only).

@@ -8,7 +8,7 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
 
 ## Fortune go-live (owner order 2026-11-15, branch `fortune-live` = fortune-a + main)
 
-- Final disclaimer "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" (TH / EN / ZH) on every fortune page and the fortune category; no idle "ready, the model loads when …" status on faceread, palm, booth or studio; help line in one place per fortune page (one small "อยากมีคนรับฟัง 1323" tap-to-call button with 1669 beside it near the top, crisis card unchanged). Tests: `tests/{unit,e2e}/fortune-live.*` (locked).
+- Final disclaimer "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" (TH / EN / ZH) on every fortune page and the fortune category; no idle "ready, the model loads when …" status on faceread, palm, booth or studio; help line in one place per fortune page (one small "อยากมีคนรับฟัง 1323" tap-to-call button near the top, the only number in the normal state (decision 54 ข; 1669 and the rest on the crisis card), crisis card unchanged). Tests: `tests/{unit,e2e}/fortune-live.*` (locked).
 
 ## Fortune Part A (owner order 2026-11-14, branch `fortune-a`, waiting for owner approval before merge)
 

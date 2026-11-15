@@ -81,8 +81,10 @@ test("verified table: 1323 free + 24 h, 1669, 191, 1300, Samaritans; each with a
 });
 
 // re-lock 2026-11-15: the top button only; the end block must be gone; the button carries the short wording and its keys
-const TOP_KEYS = ["call.1323.btn", "call.1323.label", "call.1669.btn", "call.1669.label"];
-test("every fortune page has the help button in the HTML: top (before <main>) only, tel:1323 + tel:1669, Thai wording", () => {
+// RE-LOCK 2026-11-15 (owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis
+// card): the top row holds only the "อยากมีคนรับฟัง 1323" button; 1669 is on the crisis card and the calm-state line only.
+const TOP_KEYS = ["call.1323.btn", "call.1323.label"];
+test("every fortune page has the help button in the HTML: top (before <main>) only, tel:1323 only (decision 54 ข), Thai wording", () => {
   for (const p of PAGES) {
     const html = read(p + ".html"), main = html.search(/<main\b/), mainEnd = html.lastIndexOf("</main>");
     assert.ok(main > 0 && mainEnd > main, p + ": has <main>");
@@ -97,10 +99,10 @@ test("every fortune page has the help button in the HTML: top (before <main>) on
       if (id === "lqHelpTop") assert.ok(b.start < main, p + ": top line comes before <main>");
       else assert.ok(b.start > main && b.end <= mainEnd, p + ": end line is inside <main>");
       const tels = [...b.html.matchAll(/href="tel:([^"]+)"/g)].map(m => m[1]);
-      assert.deepEqual(tels, ["1323", "1669"], p + " #" + id + " tel links");
+      assert.deepEqual(tels, ["1323"], p + " #" + id + " tel links (1669 only on the crisis card)");
       const t = text(b.html);
-      for (const w of ["อยากมีคนรับฟัง 1323", "เจ็บป่วยฉุกเฉิน 1669"]) assert.ok(t.includes(w), p + " #" + id + " has '" + w + "': " + t);
-      assert.ok(b.html.includes('aria-label="อยากมีคนรับฟัง โทร 1323"') && b.html.includes('aria-label="เจ็บป่วยฉุกเฉิน โทร 1669"'), p + " accessible names");
+      for (const w of ["อยากมีคนรับฟัง 1323"]) assert.ok(t.includes(w), p + " #" + id + " has '" + w + "': " + t);
+      assert.ok(b.html.includes('aria-label="อยากมีคนรับฟัง โทร 1323"') && !/1669/.test(b.html), p + " accessible name; no 1669 at the top");
       assert.ok(b.html.includes('data-i18n-attr="aria-label:help.line.label"'), p + " key help.line.label");
       for (const k of TOP_KEYS) {
         assert.ok(b.html.includes(/\.btn$/.test(k) ? 'data-i18n-attr="aria-label:' + k + '"' : 'data-i18n="' + k + '"'), p + " #" + id + " key " + k);

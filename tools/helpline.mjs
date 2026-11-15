@@ -53,13 +53,14 @@ export function miniCall(n) {
 }
 
 /** the static help button row near the top of a fortune page (Thai, with data-i18n keys). Owner order 2026-11-15 item 3: ONE
- *  place per page, a single small "อยากมีคนรับฟัง" tap-to-call button (1323) with the emergency number (1669) beside it; the
- *  second line, the agency and the abroad note are in the crisis card. @param {"lqHelpTop"} id @param {string} [indent] */
+ *  place per page, a single small "อยากมีคนรับฟัง" tap-to-call button (1323). Owner decision 54 option ข (2026-11-15): no other
+ *  number in the normal state; 1669 and the others are in the crisis card (and the calm-state line). @param {"lqHelpTop"} id
+ *  @param {string} [indent] */
 export function snippet(id, indent = "") {
   const T = HELP.th;
   return [
     `<aside class="lq-helpline lq-helpbar" id="${id}" role="note" aria-label="${esc(T.label)}" data-i18n-attr="aria-label:help.line.label">`,
-    ...HELP.tel.map(n => "  " + wrapCall(miniCall(n), indent + "  ")),
+    "  " + wrapCall(miniCall("1323"), indent + "  "),
     `</aside>`,
   ].map(l => indent + l).join("\n");
 }
