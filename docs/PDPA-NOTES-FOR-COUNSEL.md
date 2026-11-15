@@ -867,6 +867,13 @@ all requests, including `/v1/leads`, are logged by Cloudflare with request metad
 country and possibly the IP address in Cloudflare's own request fields), even though our own log lines hold no personal
 data and never the form fields. Do the privacy text in §8.2 and the processor list need to name these two flows, and is a
 shorter Cloudflare log retention or a lower sampling rate needed for the quote form?
+Update 2026-11-15 (owner order "LINE lead notification is never silent"; migration `0020_lead_notify.sql`): each request row
+now also records the result of its one LINE alert to the owner: `notify_state` (sent / skipped / failed / capped),
+`notify_detail` (a short code: the LINE HTTP status, the daily cap, or the NAME of a missing or malformed Worker secret with
+a reason such as "missing" or "starts_with_at") and `notify_at` (time). No personal data is added: no name, contact,
+message, IP or secret value; the codes are about our own configuration, not the requester. The columns are deleted with
+the request (180-day purge or the owner's delete) and are not in the CSV export. The admin page shows one status line and a
+"not sent to LINE" badge per affected request, behind the owner sign-in. No question for counsel beyond (a)-(g).
 
 ## Fortune "read it straight" option (Part C, owner order 2026-11-12) — APPROVED; currently OFF
 

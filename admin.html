@@ -349,6 +349,8 @@
           <button class="ad-btn ad-ghost" type="button" id="adlExport" data-i18n="adl.export">ส่งออก CSV (ยืนยันรหัสผ่าน)</button>
         </div>
         <ul id="adlList" class="adl-list"></ul>
+        <!-- LINE notification status (owner order 2026-11-15, "never silent"): filled by admin.js from GET /admin/api/leads/notify -->
+        <p id="adlNotify" class="adl-notify" role="status" aria-live="polite" hidden></p>
       </div>
       <div class="ad-card adl-detail" id="adlDetail" hidden>
         <div class="ad-row adl-head">

@@ -292,7 +292,17 @@ until BOTH values below are on the Worker. The token is never printed, logged or
 
 Each new request then sends one LINE message "LENSIQ: คำขอใบเสนอราคาใหม่ #<id> <time>" with no name, contact detail
 or message, at most `LEAD_NOTIFY_LINE_DAY` (50) a day. A LINE failure never loses the request (it is in the admin
-inbox either way). To stop the alerts: `npx wrangler secret delete LINE_CHANNEL_ACCESS_TOKEN --env test` (from
+inbox either way).
+
+**Never silent (owner order 2026-11-15).** Both values are checked when you type them: `npm run secrets:setup -- --only
+LEAD_NOTIFY_LINE_TO` (and `-- --only LINE_CHANNEL_ACCESS_TOKEN`) trims spaces and line breaks and refuses a wrong value
+with the reason (empty, a space inside, starts with "@" = the OA ID instead of your user ID, not 33 characters, not U +
+32 lowercase 0-9 a-f; token shorter than 20 characters), without showing it and without sending it. The Worker runs the
+same check (`backend/src/line-config.js`, also trimming). Every request records its LINE result (migration
+`0020_lead_notify.sql`: sent / skipped + which secret and why / failed + LINE's HTTP status, 0 = no answer / capped).
+The admin page shows it under the quote-request inbox (one line: working or not, last success time, the reason; from
+`GET /admin/api/leads/notify`, owner sign-in), and a row whose LINE message was skipped or failed carries a badge
+"ยังไม่ได้แจ้งทาง LINE". Only secret names and reason codes are recorded, never a value. To stop the alerts: `npx wrangler secret delete LINE_CHANNEL_ACCESS_TOKEN --env test` (from
 `backend/`), or revoke the token in the LINE Developers console.
 
 Change or revoke the tester code: `npm run secrets:setup -- --only TESTER_ACCESS_CODE` (the old code stops working

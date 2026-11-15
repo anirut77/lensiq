@@ -9,6 +9,7 @@
 //                   rate limited: 5 per caller per hour, LEADS_GLOBAL_DAY (200; the test deployment sets 50) per Bangkok day
 //   GET  /admin/api/leads?status=new|contacted|closed|all   inbox (newest first): summary fields only + counts + unread
 //   GET  /admin/api/leads/unread                   {unread}: new requests the owner has not opened yet (tab badge)
+//   GET  /admin/api/leads/notify                   LINE notification status: {state, problems [{secret, reason}], last, last_sent_at}
 //   GET  /admin/api/leads/:id                      one request with contact details + its automatic deletion date
 //                                                  (opening it marks it read: viewed_at, migration 0014)
 //   POST /admin/api/leads/:id/status {status}      new | contacted | closed (owner decision 2026-11-12)
@@ -26,10 +27,15 @@
 // "LENSIQ: คำขอใบเสนอราคาใหม่ #<id> <time>" (no personal data), at most LEAD_NOTIFY_LINE_DAY (50) per Bangkok day.
 // A LINE failure never blocks or undoes the stored request. Only push is used: no webhook, so no channel secret.
 // POST /health/notify-test (Bearer HEALTH_TOKEN; `npm run backend:notify-test`) sends one test push, 3 per hour.
+// Never silent (owner order 2026-11-15): every stored request records the result of its one LINE attempt on its row
+// (migration 0020: notify_state sent | skipped | failed | capped, notify_detail a short code, notify_at), written once.
+// A skip names the secret and the reason (line-config.js), never the value. GET /admin/api/leads/notify gives the
+// admin page its status line (live config check + latest result + last success); the inbox list flags skipped / failed rows.
 // The page form sends here while window.LENSIQ_LEADS_FORM is on (lensiq-config.js) and the deployment lists /v1/leads
 // in PUBLIC_ROUTES.
 import { pushAlert } from "./alerts.js";
 import { randomId } from "./crypto.js";
+import { LINE_TO_RE, lineConfigProblems, trimSecret } from "./line-config.js";
 import { callerHash, hit } from "./store.js";
 import { verifyTurnstile } from "./turnstile.js";
 import { BKK_OFFSET, HttpError, intVar, log, now } from "./util.js";
@@ -37,7 +43,7 @@ import { BKK_OFFSET, HttpError, intVar, log, now } from "./util.js";
 /** Inbox statuses. Rows written before 2026-11-12 may still say "acked": shown and filtered as "contacted". */
 export const LEAD_STATUSES = ["new", "contacted", "closed"];
 const LINE_PUSH = "https://api.line.me/v2/bot/message/push";
-export const LINE_TO_RE = /^U[0-9a-f]{32}$/; // the owner's LINE user ID (LINE Developers console: Basic settings)
+export { LINE_TO_RE }; // the owner's LINE user ID (LINE Developers console: Basic settings); defined in line-config.js
 export const LINE_TEST_PER_HOUR = 3;
 /** Days a request is kept (retention.js purges after this many days from receipt). @param {any} env */
 export const leadDays = env => intVar(env && env.LEADS_DAYS, 180, 7, 3650);
@@ -102,10 +108,12 @@ export async function submitLead(env, request, body, deps = {}) {
 /** "YYYY-MM-DD HH:MM" in Bangkok time. @param {number} t unix seconds */
 const bkkTime = t => new Date((t + BKK_OFFSET) * 1000).toISOString().slice(0, 16).replace("T", " ");
 
-/** @param {any} env */
+/** Both LINE secrets, trimmed (a pasted trailing newline is not a failure), + their problems (names + reason codes).
+ *  @param {any} env */
 const lineConfig = env => {
-  const token = String(env.LINE_CHANNEL_ACCESS_TOKEN || "").trim(), to = String(env.LEAD_NOTIFY_LINE_TO || "").trim();
-  return { token, to, ok: !!token && !/\s/.test(token) && LINE_TO_RE.test(to) };
+  const token = trimSecret(env.LINE_CHANNEL_ACCESS_TOKEN), to = trimSecret(env.LEAD_NOTIFY_LINE_TO);
+  const problems = lineConfigProblems(env);
+  return { token, to, problems, ok: !problems.length };
 };
 /** One LINE push (text only). Returns the LINE HTTP status (0 = network error / timeout). The token is never logged.
  *  @param {{token: string, to: string}} c @param {string} text @param {typeof fetch} [fetchImpl] */
@@ -120,20 +128,54 @@ async function linePush(c, text, fetchImpl) {
 /** LINE push to the owner for a new request: id and time only. Off unless both owner-entered secrets are set; daily cap.
  *  @param {any} env @param {string} id @param {number} t @param {typeof fetch} [fetchImpl] */
 export async function notifyLine(env, id, t, fetchImpl) {
+  // Never silent (owner order 2026-11-15): the result is recorded on the request's row and logged
   const c = lineConfig(env);
-  if (!c.ok) return false;
-  const cap = await hit(env.DB, "lead:line", intVar(env.LEAD_NOTIFY_LINE_DAY, 50, 1, 1000), 86400, now(), BKK_OFFSET);
-  if (!cap.ok) { log("alert.lead_line_capped", {}); return false; }
+  if (!c.ok) {
+    const detail = c.problems.map(p => p.secret + ":" + p.reason).join(",");
+    log("alert.lead_line_skipped", { reason: detail });
+    await recordNotify(env.DB, id, "skipped", detail);
+    return false;
+  }
+  const capN = intVar(env.LEAD_NOTIFY_LINE_DAY, 50, 1, 1000);
+  const cap = await hit(env.DB, "lead:line", capN, 86400, now(), BKK_OFFSET);
+  if (!cap.ok) { log("alert.lead_line_capped", { cap: capN }); await recordNotify(env.DB, id, "capped", "cap_" + capN); return false; }
   const st = await linePush(c, `LENSIQ: คำขอใบเสนอราคาใหม่ #${id} ${bkkTime(t)}`, fetchImpl);
-  if (st < 200 || st > 299) log("alert.lead_line_failed", { status: st });
-  return st >= 200 && st <= 299;
+  const ok = st >= 200 && st <= 299;
+  if (!ok) log("alert.lead_line_failed", { status: st });
+  await recordNotify(env.DB, id, ok ? "sent" : "failed", "http_" + st);
+  return ok;
+}
+
+/** Records the result of a request's LINE attempt, once (an existing result is never overwritten). No personal data,
+ *  never a secret value. @param {any} db @param {string} id @param {string} state @param {string} detail */
+async function recordNotify(db, id, state, detail) {
+  try {
+    await db.prepare("UPDATE leads SET notify_state = ?1, notify_detail = ?2, notify_at = ?3 WHERE id = ?4 AND notify_state IS NULL")
+      .bind(state, detail.slice(0, 120), now(), id).run();
+  } catch { /* the request itself is already stored */ }
+}
+
+/** GET /admin/api/leads/notify: is the LINE notification working? Live config check (secret names + reason codes only),
+ *  the latest request's result and the last success time. state: ok | off (a secret is missing or malformed now) |
+ *  failing (LINE refused the latest push) | capped (daily cap hit on the latest request) | unconfirmed (config fine, no
+ *  push confirmed since). Never returns a secret value. @param {any} env */
+export async function lineNotifyStatus(env) {
+  const problems = lineConfigProblems(env);
+  const r = await env.DB.prepare("SELECT notify_state, notify_detail, notify_at FROM leads WHERE notify_state IS NOT NULL " +
+    "ORDER BY notify_at DESC, created_at DESC, rowid DESC LIMIT 1").first();
+  const last = r ? { state: String(r.notify_state), detail: String(r.notify_detail || ""), at: Number(r.notify_at) || null } : null;
+  const s = await env.DB.prepare("SELECT MAX(notify_at) AS t FROM leads WHERE notify_state = 'sent'").first();
+  const lastSent = s && s.t != null ? Number(s.t) : null;
+  const state = problems.length ? "off" : !last ? "unconfirmed" : last.state === "sent" ? "ok" : last.state === "failed" ? "failing"
+    : last.state === "capped" ? "capped" : "unconfirmed";
+  return { state, problems, last, last_sent_at: lastSent };
 }
 
 /** POST /health/notify-test: one test push to the owner, LINE_TEST_PER_HOUR per hour. Never returns the token or the
  *  recipient. @param {any} env @param {typeof fetch} [fetchImpl] */
 export async function lineTest(env, fetchImpl) {
   const c = lineConfig(env);
-  const missing = [!c.token ? "LINE_CHANNEL_ACCESS_TOKEN" : "", !LINE_TO_RE.test(c.to) ? "LEAD_NOTIFY_LINE_TO" : ""].filter(Boolean);
+  const missing = c.problems.map(p => p.secret); // names only (the same check as the lead notification)
   if (missing.length) return { ok: false, configured: false, missing };
   const rl = await hit(env.DB, "lead:line_test", LINE_TEST_PER_HOUR, 3600);
   if (!rl.ok) throw new HttpError(429, `test limit reached (${LINE_TEST_PER_HOUR} per hour) — try again later`, { code: "too_many", retryAfter: rl.retryAfter });
@@ -143,7 +185,7 @@ export async function lineTest(env, fetchImpl) {
 
 /** @param {any} s */
 const statusOf = s => (s === "acked" ? "contacted" : s);
-const SUMMARY = "id, created_at, product, plan, source, lang, name, company, status, acked_at, viewed_at";
+const SUMMARY = "id, created_at, product, plan, source, lang, name, company, status, acked_at, viewed_at, notify_state";
 const STATUS_SQL = "(CASE status WHEN 'acked' THEN 'contacted' ELSE status END)";
 
 /** Inbox list, newest first: summary fields only (contact details and message only in the audited single view).
@@ -162,7 +204,7 @@ export async function adminLeads(db, q = {}) {
   return {
     leads: rows.map(/** @param {any} r */ r => ({ id: r.id, created_at: r.created_at, interest: r.product, plan: r.plan, source: r.source, lang: r.lang,
       name: r.name, company: r.company, status: statusOf(r.status), status_at: r.acked_at || null,
-      unread: r.status === "new" && r.viewed_at == null })),
+      unread: r.status === "new" && r.viewed_at == null, notify: r.notify_state || null })),
     open: counts.new, counts, unread, status: want || "all"
   };
 }
@@ -183,7 +225,7 @@ export async function getLead(env, id) {
   return {
     lead: { id: r.id, created_at: r.created_at, interest: r.product, plan: r.plan, source: r.source, lang: r.lang, name: r.name, company: r.company,
       email: r.email, phone: r.phone, message: r.message, consent_version: r.consent_version, status: statusOf(r.status), status_at: r.acked_at || null,
-      delete_after: r.created_at + days * 86400 },
+      delete_after: r.created_at + days * 86400, notify: r.notify_state || null, notify_detail: r.notify_detail || null, notify_at: r.notify_at || null },
     retention_days: days
   };
 }

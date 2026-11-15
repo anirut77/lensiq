@@ -21,6 +21,9 @@
 //     terminal control codes: a scroll-back buffer, tmux or a screen recorder may still hold the text, so the owner is
 //     told to clear the terminal, and the token is overwritten (closed) right after the bootstrap in any case;
 //   - every secret can be skipped (Enter).
+//   - the two LINE notification secrets get the Worker's own format check (backend/src/line-config.js, owner order
+//     2026-11-15): spaces and line breaks around the value are trimmed; a wrong value is refused with the reason (never
+//     the value) and is never "sent anyway" (tests/unit/secrets-setup-line.test.js).
 //
 //   npm run secrets:setup                           all "required now" secrets, then the optional ones
 //   npm run secrets:setup -- --only TESTER_ACCESS_CODE     one secret (rotation: the old code stops working at once)
@@ -32,6 +35,8 @@ import { existsSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 // the ONE definition of a usable tester code: the Worker refuses a weak configured code too (backend/src/tester.js)
 import { weakCode } from "../backend/src/tester.js";
+// the ONE format check of the two LINE notification secrets (the Worker uses the same one; owner order 2026-11-15)
+import { LINE_REASON_TEXT, LINE_SECRETS, lineSecretProblem } from "../backend/src/line-config.js";
 import {
   BACKEND, ENV, GuardError, accountEnvRefusal, assertEffective, assertOffline, assertSafeEnv, assertTarget, assertWranglerBundle, childEnv, deployedArgs, jsonArray, readTargets, wranglerBin
 } from "./lib/cf-guard.mjs";
@@ -49,8 +54,8 @@ export const SECRETS = Object.freeze([
   { name: "OPENFDA_API_KEY", when: "later", min: 20, what: "optional: free openFDA key (raises its daily request limit)" },
   { name: "LINE_CHANNEL_ACCESS_TOKEN", when: "later", min: 20,
     what: "optional: LINE Messaging API channel access token (LINE OA LENSIQ @632yliiw) for new quote-request notifications" },
-  { name: "LEAD_NOTIFY_LINE_TO", when: "later", min: 33, prefix: "U",
-    what: "optional: the owner's LINE user ID (U + 32 characters, LINE Developers console -> Basic settings) that receives lead notifications" }
+  { name: "LEAD_NOTIFY_LINE_TO", when: "later", min: 33,
+    what: "optional: the owner's LINE user ID (U + 32 characters 0-9 a-f, LINE Developers console -> Basic settings -> Your user ID; not the @ account ID) that receives lead notifications" }
 ]);
 export const REQUIRED_NOW = SECRETS.filter(s => s.when === "now").map(s => s.name);
 
@@ -231,6 +236,13 @@ async function session(argv, { stdout, env, say, term, only, spawn: spawnImpl, r
         const typed = a.toString("utf8").trim();
         a.fill(0);
         if (!typed) break;
+        if (LINE_SECRETS.includes(s.name)) {
+          // the SAME check as the Worker (backend/src/line-config.js): a wrong LINE value is refused, never "sent anyway"
+          const why = lineSecretProblem(s.name, typed);
+          if (why) { say(`  ${s.name}: not accepted: ${LINE_REASON_TEXT[why]}. Nothing was sent. Try again, or Enter to skip.`); continue; }
+          value = Buffer.from(typed, "utf8");
+          continue;
+        }
         if (typed.length < (s.min || 1)) { say(`  too short: at least ${s.min} characters are needed. Try again, or Enter to skip.`); continue; }
         if (s.strong && weakCode(typed)) { say(`  too easy to guess: ${weakCode(typed)}. Try again, or Enter to skip.`); continue; }
         if (s.prefix && !typed.startsWith(s.prefix)) {

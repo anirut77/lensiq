@@ -531,6 +531,8 @@ async function adminRoute(request, env, url, deps) {
       return reply(r);
     }
     case "GET /leads/unread": return reply({ unread: await leads.unreadLeads(env.DB) }); // count only (tab badge)
+    // LINE notification status line (owner order 2026-11-15): secret names + reason codes, never a value
+    case "GET /leads/notify": return reply(await leads.lineNotifyStatus(env));
     case "POST /leads/export": {
       const b = await reauthed();
       const r = await leads.exportLeads(env, b);
