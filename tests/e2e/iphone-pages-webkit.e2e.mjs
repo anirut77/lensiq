@@ -27,7 +27,22 @@ import { IPHONE, MD_SHIM, launchWebKit, sleep } from "./phone-kit.mjs";
 const LANGS = ["th", "en", "zh"];
 const HTML_LANG = { th: "th", en: "en", zh: "zh-Hans" };
 const THAI = /[฀-๿]/;
-const DENIED = { th: /อนุญาต|สิทธิ์|ถูกปฏิเสธ/, en: /permission|allow|denied|blocked/i, zh: /权限|允许|拒绝/ };
+// AMENDED 2026-11-16 (amendment 2, stricter, independent review of d2b474b): the message must name the camera AND the permission
+// (one permission word alone matched page text such as "Allow online lookups", "拒绝通行" or "ใบอนุญาต" before any tap), and it must be
+// new text that was not on the page before the start control was tapped
+const DENIED = { th: [/กล้อง/, /อนุญาต|สิทธิ์|ถูกปฏิเสธ/], en: [/camera/i, /permission|allow|denied|blocked/i], zh: [/摄像头|相机|镜头/, /权限|允许|拒绝/] };
+/** in-page: visible texts (<= 400 chars, outside the nav / footer / help line) that match every [source, flags] pattern */
+function permTexts(rx) {
+  const res = rx.map(r => new RegExp(r[0], r[1])), out = [];
+  for (const e of document.querySelectorAll("body *")) {
+    if (/^(SCRIPT|STYLE|NOSCRIPT|svg)$/i.test(e.tagName) || e.closest("#siteNav, header.nav, footer, .lq-helpline")) continue;
+    const t = (e.innerText || "").trim(); if (!t || t.length > 400 || !res.every(r => r.test(t))) continue;
+    const r = e.getBoundingClientRect(), s = getComputedStyle(e);
+    if (s.display === "none" || s.visibility === "hidden" || !r.width || !r.height || e.closest("[hidden]")) continue;
+    out.push(t);
+  }
+  return out;
+}
 // console noise that is not the page's: Playwright blocks service workers (serviceWorkers: "block") and WebKit logs the refusal
 // and the MediaPipe / TensorFlow Lite WASM runtime (vendor/) writes its start-up INFO line to stderr, which the browser shows
 // at error level ("INFO: Created TensorFlow Lite XNNPACK delegate for CPU."); only lines that begin with "INFO: " are let through
@@ -176,7 +191,7 @@ const GATE_ACK = async p => {
   await p.evaluate(() => { document.querySelector("#gkAck1").click(); document.querySelector("#gkAck2").click(); });
   await tap(p, "#gkAckBtn");
 };
-/** @type {{page: string, q?: string, init?: string[], pre?: (p: any) => Promise<void>, start: string|null, stop: string|null|{select: [string, string]}}[]} */
+/** @type {{page: string, q?: string, init?: string[], pre?: (p: any) => Promise<void>, start: string|null, stop: string|null|{select: [string, string]}|((p: any) => Promise<void>)}[]} */
 const CAMERA = [
   zone("afterhours"), zone("bays"), zone("crowd"), zone("queue"), zone("tables"),
   { page: "luckycolor", start: "#startCam", stop: "#stopCam" },
@@ -191,7 +206,18 @@ const CAMERA = [
     start: "#tripForm [type=submit]", stop: null },
   { page: "exam-hall", pre: async p => { await setVal(p, "#room", "HALL1"); }, start: "#startCam", stop: null },
   { page: "exam-lab", pre: async p => { await setVal(p, "#room", "LAB1"); await setVal(p, "#seat", "12"); await setVal(p, "#consent", true); },
-    start: "#toCam", stop: null },
+    // AMENDED 2026-11-16 (amendment 2): the candidate's own "ส่งข้อสอบและปิดกล้อง" (#endExam) must release the camera; it is reached
+    // the real way (one scripted face -> head-pose calibration, 2 s with ?calsec=2 -> exam phase), not by pagehide
+    q: "?cpu&fakedet&calsec=2", start: "#toCam", stop: async p => {
+      await waitFor(p, () => !!window.__LQ_EXAM_LAB && window.__LQ_EXAM_LAB.phase === "cam" && document.querySelector("#engine").classList.contains("ok"), null, 15000);
+      await p.evaluate(f => { window.__dets = [f]; }, { x: 0.32, y: 0.18, w: 0.34, h: 0.5, score: 0.95, yaw: 0, pitch: 0 });
+      await waitFor(p, () => window.__LQ_EXAM_LAB.faces.length === 1, null, 8000);
+      await tap(p, "#toCal");
+      await waitFor(p, () => window.__LQ_EXAM_LAB.phase === "calDone", null, 12000);
+      await tap(p, "#toExam");
+      await waitFor(p, () => window.__LQ_EXAM_LAB.phase === "exam", null, 8000);
+      await tap(p, "#endExam");
+    } },
   { page: "faceread", start: "#frStartCam", stop: null },
   { page: "fengshui", start: "#fsCompassStart", stop: null },
   { page: "interview", pre: async p => { await tap(p, "#tab-delivery"); await setVal(p, "#ivCOk1", true); await setVal(p, "#ivCOk2", true); },
@@ -307,6 +333,9 @@ export default async function ({ base, check, fakeCams }) {
           let ok = false;
           try {
             const bad = await loadChecks(page, lang, []);
+            const rx = DENIED[lang].map(r => [r.source, r.flags]);
+            // texts already on the page before the start tap do not count (a page that opens the camera on load has no "before")
+            const before = C.start || C.startSelect ? await page.evaluate(permTexts, rx) : [];
             if (C.pre) await C.pre(page);
             if (C.start) { const p = ctlProblem(await page.evaluate(controlFacts, C.start)); if (p) bad.push(p); else await tap(page, C.start); }
             if (C.startSelect) await setVal(page, C.startSelect[0], C.startSelect[1]);
@@ -319,19 +348,20 @@ export default async function ({ base, check, fakeCams }) {
               if (!eng) bad.push("no status line telling why the camera stays off");
               if (eng && lang !== "th" && THAI.test(eng)) bad.push(`the status line is not in ${lang}: "${eng.slice(0, 120)}"`);
             } else try {
-              const h = await waitFor(page, re => {
-                const rx = new RegExp(re[0], re[1]);
+              // same scan as permTexts() (a predicate cannot call another function: the pages' CSP forbids eval), new texts only
+              const h = await waitFor(page, a => {
                 if (!window.__lqDenied) return null;
+                const res = a.rx.map(r => new RegExp(r[0], r[1]));
                 let best = null;
                 for (const e of document.querySelectorAll("body *")) {
                   if (/^(SCRIPT|STYLE|NOSCRIPT|svg)$/i.test(e.tagName) || e.closest("#siteNav, header.nav, footer, .lq-helpline")) continue;
-                  const t = (e.innerText || "").trim(); if (!t || t.length > 400 || !rx.test(t)) continue;
+                  const t = (e.innerText || "").trim(); if (!t || t.length > 400 || !res.every(r => r.test(t)) || a.before.includes(t)) continue;
                   const r = e.getBoundingClientRect(), s = getComputedStyle(e);
                   if (s.display === "none" || s.visibility === "hidden" || !r.width || !r.height || e.closest("[hidden]")) continue;
                   if (!best || t.length < best.length) best = t;
                 }
                 return best;
-              }, [DENIED[lang].source, DENIED[lang].flags], 12000);
+              }, { rx, before }, 12000);
               msg = await h.jsonValue();
             } catch { bad.push(`no camera-permission message in ${lang} (getUserMedia called ${await page.evaluate(() => window.__lqDenied || 0)} time(s))`); }
             if (msg && lang !== "th" && THAI.test(msg)) bad.push(`the message is not in ${lang}: "${msg.slice(0, 120)}"`);
@@ -373,7 +403,8 @@ export default async function ({ base, check, fakeCams }) {
           if (!C.noCamera && !bad.length) try { await waitFor(page, () => window.__LQ_FAKE.live().length >= 1, null, 20000); } catch { bad.push("the camera never started (no live fake track)"); }
           if (!C.noCamera && !bad.length) {
             await sleep(800);
-            if (C.stop && typeof C.stop === "object") await setVal(page, C.stop.select[0], C.stop.select[1]);
+            if (typeof C.stop === "function") await C.stop(page);
+            else if (C.stop && typeof C.stop === "object") await setVal(page, C.stop.select[0], C.stop.select[1]);
             else if (C.stop) await tap(page, C.stop);
             else await page.evaluate(() => { window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: true })); });
             try { await waitFor(page, () => window.__LQ_FAKE.live().length === 0, null, 6000); }
