@@ -382,6 +382,75 @@ export default async function ({ base, launch, check, fakeCams }) {
       }
       assert(!bad.length, bad.join("\n"));
     });
+
+    // RE-LOCK (append-only), owner extension 2026-11-15 item 5: the first screen of a reading is a short overview of 2–3 lines
+    // per group (composer-marked caution paragraphs excepted: always shown in full); groups open and close on tap and by keyboard
+    await check("item 5: overview at most 3 lines per group at 375 px before opening; every marked caution paragraph shown", async () => {
+      const bad = [], rows = [];
+      const runs = Object.keys(PAGES).filter(p => PAGES[p]).map(p => [p, "th"]).concat([["horoscope", "en"], ["horoscope", "zh"], ["tarot", "en"], ["dream", "zh"]]);
+      for (const [p, lang] of runs) {
+        const page = await openPage(browser, base, fakeCams, p, lang, 375);
+        try {
+          await PAGES[p](page); await sleep(400);
+          const r = await page.evaluate(`(() => {
+            const vis = e => { const s = getComputedStyle(e), r = e.getBoundingClientRect(); return s.display !== "none" && s.visibility !== "hidden" && r.width > 0 && r.height > 0; };
+            const out = { groups: 0, bad: [], caution: 0 };
+            for (const g of document.querySelectorAll(".fa-section")) {
+              if (g.closest(".fa-support, .lq-more-body") || !vis(g)) continue;
+              out.groups++;
+              let lines = 0;
+              for (const pEl of g.querySelectorAll("p")) {
+                if (pEl.closest(".lq-more-body") || pEl.closest(".lq-advice") || !vis(pEl)) continue;
+                if (pEl.classList.contains("lq-caution")) continue;
+                const lh = parseFloat(getComputedStyle(pEl).lineHeight) || 24;
+                lines += Math.round(pEl.getBoundingClientRect().height / lh);
+              }
+              if (lines < 1 || lines > 3) out.bad.push((g.getAttribute("data-section") || "?") + ": " + lines + " lines");
+            }
+            for (const c of document.querySelectorAll(".fa-section .lq-caution")) { out.caution++; if (!vis(c) || c.closest(".lq-more-body")) out.bad.push("caution paragraph hidden"); }
+            return out;
+          })()`);
+          rows.push(`${p}/${lang}:${r.groups}g/${r.caution}c`);
+          for (const b of r.bad) bad.push(`${p} ${lang}: ${b}`);
+        } catch (e) { bad.push(`${p} ${lang}: ${e.message}`); } finally { await page.close(); }
+      }
+      console.log("    " + rows.join(" "));
+      assert(!bad.length, bad.length + " problem(s):\n" + bad.slice(0, 40).join("\n"));
+    });
+
+    await check("item 5: every group opens and closes on tap (touch) and by keyboard (Enter), TH / EN / ZH", async () => {
+      const bad = [];
+      for (const lang of LANGS) {
+        const page = await openPage(browser, base, fakeCams, "horoscope", lang, 375);
+        try {
+          await PAGES.horoscope(page); await sleep(300);
+          await page.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
+          const n = await page.evaluate(`[...document.querySelectorAll(".fa-section button.lq-more")].filter(b => b.getBoundingClientRect().height > 0).length`);
+          if (!n) bad.push(lang + ": no group to open");
+          for (let i = 0; i < n; i++) {
+            const st = `(() => { const b = [...document.querySelectorAll(".fa-section button.lq-more")].filter(b => b.getBoundingClientRect().height > 0)[${i}];
+              b.scrollIntoView({ block: "center" }); const r = b.getBoundingClientRect();
+              const shown = b.getAttribute("aria-controls").split(/\\s+/).every(id => getComputedStyle(document.getElementById(id)).display !== "none");
+              return { x: r.left + r.width / 2, y: r.top + r.height / 2, exp: b.getAttribute("aria-expanded"), shown }; })()`;
+            const tap = async () => {
+              const a = await page.evaluate(st); await sleep(80);
+              const pt = [{ x: a.x, y: a.y }];
+              await page.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt });
+              await page.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+              await sleep(250);
+              return page.evaluate(st);
+            };
+            const t1 = await tap(), t2 = await tap();
+            if (t1.exp !== "true" || !t1.shown || t2.exp !== "false" || t2.shown) bad.push(`${lang} group ${i}: tap ${JSON.stringify({ t1, t2 })}`);
+            await page.evaluate(`[...document.querySelectorAll(".fa-section button.lq-more")].filter(b => b.getBoundingClientRect().height > 0)[${i}].focus()`);
+            await key(page, "Enter"); await sleep(120); const k1 = await page.evaluate(st);
+            await key(page, "Enter"); await sleep(120); const k2 = await page.evaluate(st);
+            if (k1.exp !== "true" || !k1.shown || k2.exp !== "false" || k2.shown) bad.push(`${lang} group ${i}: keyboard ${JSON.stringify({ k1, k2 })}`);
+          }
+        } catch (e) { bad.push(`${lang}: ${e.message}`); } finally { await page.close(); }
+      }
+      assert(!bad.length, bad.join("\n"));
+    });
   } finally {
     await browser.close();
   }
