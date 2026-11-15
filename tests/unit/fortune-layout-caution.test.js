@@ -425,6 +425,7 @@ test("data tags (D / E / F): tarot m00.r / swords11.r love, sums that reuse a ta
 const tailOf = m => { const c = String(m || "").trim().replace(/[.。\s]+$/, ""); return c.length >= 20 ? c.slice(-20) : c.length >= 12 ? c : null; };
 const REVIEW_REWRITES = [["numbers", "pair.48", "money"], ["numbers", "pair.38", "money"], ["numbers", "sum.38", "money"], ["bazi", "luck.peer", "advice"]];
 let TH_TAG_CORPUS = null;
+const AMBIGUOUS = { n: 0 };
 async function thTagCorpus() {
   if (TH_TAG_CORPUS) return TH_TAG_CORPUS;
   const X = await exportTool(), RS = loadRS(), out = [], seen = {};
@@ -438,8 +439,19 @@ async function thTagCorpus() {
       const res = FA.compose(f, { seed: 3100 + i, lang: "th", straight });
       if (!res || res.crisis || !(res.sections || []).length) continue;
       tagged.forEach(it => got.add(String(it.id).replace(/^card\.[a-z]+\./, "")));
-      const tails = tagged.flatMap(it => { const tag = RS.of(f.domain || d, it), ms = it.meanings || {};
+      const raw = tagged.flatMap(it => { const tag = RS.of(f.domain || d, it), ms = it.meanings || {};
         return (tag === "all" ? Object.keys(ms) : tag).flatMap(a => [].concat(ms[a] || []).map(m => ({ id: it.id, area: a, tail: tailOf(m) }))).filter(x => x.tail); });
+      // re-lock 6 (ground truth only): a tail is attributed to the tagged items whose tagged meanings carry it (any of them may
+      // hold the provenance), and is not attributed at all when untagged text of the same fact set carries it too (template tails
+      // such as "…ต้องใช้ความใส่ใจมากกว่าปกติ" or tarot's "…จะค่อย ๆ ชัดเจนขึ้นจนคุณสัมผัสได้" are shared by many entries)
+      const untagged = (f.items || []).flatMap(it => { const tag = RS.of(f.domain || d, it), ms = it.meanings || {};
+        return Object.keys(ms).filter(a => !tag || (tag !== "all" && !tag.includes(a))).flatMap(a => [].concat(ms[a] || []).map(String)); });
+      const tails = [];
+      for (const x of raw) {
+        if (untagged.some(u => u.includes(x.tail))) { AMBIGUOUS.n++; continue; }
+        const ids = new Set(raw.filter(y => y.tail === x.tail || y.tail.endsWith(x.tail)).map(y => y.id));
+        tails.push(Object.assign({}, x, { ids }));
+      }
       out.push({ d, straight, f, res, tails });
     }
     seen[d + (straight ? "S" : "G")] = { want: want.size, got: got.size };
@@ -460,7 +472,7 @@ test("TH rewrites: every sentence derived from a tagged meaning is outside close
     for (const s of res.sections) for (const x of RD.planSection(s, "th")) for (const t of tails) {
       if (!x.text.includes(t.tail)) continue;
       found++; per[d] = (per[d] || 0) + 1;
-      const ok = x.visible && prov.some(p => p.section === s.id && p.para === x.para && p.id === t.id);
+      const ok = x.visible && prov.some(p => p.section === s.id && p.para === x.para && t.ids.has(p.id));
       if (!ok) { bad.total = (bad.total || 0) + 1; if (bad.length < 25) bad.push(`${d} ${straight ? "S" : "G"} ${s.id} ${t.id} ${t.area} ${x.visible ? "no provenance" : "FOLDED"}: …${x.text.slice(-70)}`); }
     }
   }
@@ -481,7 +493,7 @@ test("TH rewrites: the reviewer's rewritten examples (pair.48, pair.38, sum.38 m
       // a rewrite path: the derived sentence is framed ("…เป็นสัญญาณให้", "…ชวนให้", "…แนะให้", "ลอง…", "ตามคำแนะนำของ…")
       if (/เป็นสัญญาณให้|ชวนให้|แนะให้|ตามคำแนะนำของ|(?:^|\s)ลอง/.test(x.text)) {
         framed++;
-        if (!x.visible || !prov.some(p => p.section === s.id && p.para === x.para && p.id === t.id)) bad.push(`${k} ${straight ? "S" : "G"}: ${x.text.slice(0, 80)}`);
+        if (!x.visible || !prov.some(p => p.section === s.id && p.para === x.para && t.ids.has(p.id))) bad.push(`${k} ${straight ? "S" : "G"}: ${x.text.slice(0, 80)}`);
       }
     }
   }
