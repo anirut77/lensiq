@@ -222,3 +222,104 @@ test("F1 feng shui: the layout keeps the composer's wording (parts rejoin byte-e
     s.paragraphs.forEach((p, i) => assert.equal(parts.filter(x => x.para === i).map(x => x.text).join(RD.SEP[lang]), p, `${lang} ${s.id} paragraph ${i}`));
   }
 });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// RE-LOCK 2026-11-15 (3), independent review finding (fresh detector): "hold off / slow down" cautions from restraining items
+// (tarot Four of Swords / Knight of Wands, siam si slips, I Ching 蹇 / 否, flying star 7 …) were folded because only items
+// the engine marks unfavourable were protected. Structural contract, append-only (nothing above changed):
+//   - fortune-restrain.js holds data tags, per discipline, for every fact item / meaning area that restrains or warns,
+//     tagged by reading (RS.of(domain, item) → "all" | [areas] | null; RS.count(domain) = tagged entries);
+//   - docs/FORTUNE-LAYOUT.md has a per-discipline table row "| <domain> | <count> | …" for what was tagged;
+//   - the composer records provenance: FA._internal.provenance(result) → [{ section, para, id, area }] for every final
+//     paragraph that carries text from a tagged entry; each such paragraph is never inside a closed fold.
+// Checks: provenance (recorded by the composer) and an independent trace by this test (fragments of each tagged entry's
+// meanings in the reading's language), both 0 folded; the reviewer's five example sentences never folded; parts rejoin
+// byte-equal. Corpus: every discipline × TH / EN / ZH × gentle / straight, fact sets that contain a tagged entry.
+const loadRS = () => require(path.join(ROOT, "fortune-restrain.js"));
+const REVIEW_EXAMPLES = ["ชะลอการตัดสินใจการเงินเรื่องใหญ่ไว้ก่อน", "steer clear of impulsive money decisions", "hold off on big financial commitments", "暂缓新的投资", "keep valuables put away and think twice"];
+function taggedMeanings(RS, domain, it, l) {
+  const tag = RS.of(domain, it); if (!tag) return [];
+  const src = l === "en" ? FA.en.item(domain, it) : l === "zh" ? FA.zh.item(domain, it) : it;
+  if (!src) return [];
+  const ms = src.meanings || {};
+  return tag === "all" ? Object.values(ms).flat() : [].concat(tag).flatMap(a => [].concat(ms[a] || []));
+}
+let RS_CORPUS = null;
+async function rsCorpus() {
+  if (RS_CORPUS) return RS_CORPUS;
+  const X = await exportTool(), RS = loadRS(), out = [];
+  for (const d of X.DOMAINS) for (const lang of LANGS) for (const straight of [false, true]) {
+    const r = X.lcg(6262 + X.DOMAINS.indexOf(d) * 13 + (straight ? 7 : 0) + LANGS.indexOf(lang) * 97);
+    let got = 0;
+    for (let i = 0; i < 400 && got < 12; i++) {
+      let f; try { f = X.factsFor(d, i, r); } catch (e) { continue; }
+      const tagged = (f.items || []).filter(it => RS.of(f.domain || d, it));
+      if (!tagged.length) continue;
+      const res = FA.compose(f, { seed: 1300 + i, lang, straight });
+      if (!res || res.crisis || !(res.sections || []).length) continue;
+      got++;
+      const frags = [...new Set(tagged.flatMap(it => taggedMeanings(RS, f.domain || d, it, lang)).flatMap(m => fragments(m, lang)))];
+      out.push({ d, lang, straight, res, frags });
+    }
+  }
+  return (RS_CORPUS = out);
+}
+
+test("restrain tags: every discipline has tagged entries, and docs/FORTUNE-LAYOUT.md has a matching per-discipline row", async () => {
+  const X = await exportTool(), RS = loadRS(), doc = fs.readFileSync(path.join(ROOT, "docs", "FORTUNE-LAYOUT.md"), "utf8");
+  for (const d of X.DOMAINS) {
+    const n = RS.count(d);
+    assert.ok(n > 0, d + ": no tagged entries");
+    const row = new RegExp("^\\|\\s*" + d + "\\s*\\|\\s*(\\d+)\\s*\\|", "m").exec(doc);
+    assert.ok(row, d + ": no row in docs/FORTUNE-LAYOUT.md");
+    assert.equal(Number(row[1]), n, d + ": documented count");
+  }
+});
+
+test("restrain corpus: >= 8 readings with a tagged entry for every discipline × TH / EN / ZH × gentle / straight", async () => {
+  const C = await rsCorpus(), X = await exportTool();
+  for (const d of X.DOMAINS) for (const lang of LANGS) for (const st of [false, true]) {
+    const n = C.filter(x => x.d === d && x.lang === lang && x.straight === st).length;
+    assert.ok(n >= 8, `${d} ${lang} ${st ? "straight" : "gentle"}: ${n} readings with a tagged entry`);
+  }
+});
+
+test("restrain provenance: every paragraph the composer derives from a tagged entry is outside closed folds (0 allowed)", async () => {
+  const C = await rsCorpus(), X = await exportTool(), per = {}, bad = [];
+  for (const { d, lang, straight, res } of C) {
+    const prov = FA._internal.provenance(res);
+    assert.ok(Array.isArray(prov), "provenance is recorded");
+    per[d] = (per[d] || 0) + prov.length;
+    for (const p of prov) {
+      const s = res.sections.find(x => x.id === p.section);
+      assert.ok(s && typeof s.paragraphs[p.para] === "string", `${d}: provenance points at a real paragraph`);
+      const folded = RD.planSection(s, lang).filter(x => x.para === p.para && !x.visible);
+      if (folded.length && bad.length < 25) bad.push(`${d} ${lang} ${straight ? "S" : "G"} ${s.id} (${p.id} ${p.area}): ${folded[0].text.slice(0, 70)}`);
+      if (folded.length) bad.total = (bad.total || 0) + 1;
+    }
+  }
+  for (const d of X.DOMAINS) assert.ok((per[d] || 0) >= 10, `${d}: ${per[d] || 0} provenance records`);
+  assert.equal(bad.total || 0, 0, (bad.total || 0) + " derived paragraphs folded:\n" + bad.join("\n"));
+  assert.ok(!Object.keys(C[0].res).includes("provenance"), "provenance is not part of the reading's data");
+});
+
+test("restrain trace (independent of the composer): text of tagged entries, and the reviewer's examples, never folded", async () => {
+  const C = await rsCorpus(), bad = [];
+  let shown = 0;
+  for (const { d, lang, straight, res, frags } of C) for (const s of res.sections) for (const x of RD.planSection(s, lang)) {
+    const t = frags.find(q => has(x.text, q, lang)) || REVIEW_EXAMPLES.find(q => x.text.includes(q));
+    if (!t) continue;
+    if (x.visible) { shown++; continue; }
+    if (bad.length < 25) bad.push(`${d} ${lang} ${straight ? "S" : "G"} ${s.id}: …${t.slice(0, 60)}`);
+    bad.total = (bad.total || 0) + 1;
+  }
+  assert.ok(shown >= 1000, "tagged text found (shown) " + shown + " — the ground truth is not empty");
+  assert.equal(bad.total || 0, 0, (bad.total || 0) + " parts with tagged text folded:\n" + bad.join("\n"));
+});
+
+test("restrain: the layout keeps the composer's wording (parts rejoin byte-equal to each paragraph)", async () => {
+  for (const { lang, res } of await rsCorpus()) for (const s of res.sections) {
+    const parts = RD.planSection(s, lang);
+    s.paragraphs.forEach((p, i) => assert.equal(parts.filter(x => x.para === i).map(x => x.text).join(RD.SEP[lang]), p, `${lang} ${s.id} paragraph ${i}`));
+  }
+});
