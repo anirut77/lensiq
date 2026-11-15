@@ -21,13 +21,25 @@
   /** @type {any} */
   const W = root;
   const isNode = typeof module !== "undefined" && module.exports && typeof require === "function";
-  const PRICES = { group: 49, full: 99, year: 199, plus: 149 };
+  // plan: PROPOSAL (owner to confirm, docs/PENDING-DECISIONS.md); the plan itself is behind its own sub-switch LENSIQ_FORTUNE_PLAN
+  const PRICES = { group: 49, full: 99, year: 199, plus: 149, plan: 99 };
+  const GOALS = ["work", "money", "love", "health", "protection", "barami"];
   const TEXT = {
     th: {
       groupLabel: "อ่านเชิงลึกหมวด {g}", fullLabel: "คำทำนายฉบับเต็ม ทุกหมวด", yearLabel: "ฉบับเต็ม พร้อมรายเดือนทั้งปี", plusLabel: "Plus: อ่านเชิงลึกทุกหน้าดูดวง",
       panelTitle: "อ่านเชิงลึกเพิ่มเติม", lead: "สิ่งที่จะได้อ่าน", currency: "บาท", perMonth: "ต่อเดือน", buy: "เลือก",
       freeNote: "ภาพรวม ข้อควรระวัง และคำแนะนำตามความเชื่อทุกข้ออ่านได้ฟรีเสมอ ส่วนเชิงลึกเป็นรายละเอียดเพิ่ม ไม่ใช่ทางแก้",
       notOnSale: "ยังไม่เปิดขาย ระบบสั่งซื้อยังไม่เชื่อมต่อ และไม่มีการเก็บเงิน", monthly: "รายเดือน 12 เดือน", plusAll: "อ่านเชิงลึกทุกหมวด บนหน้าดูดวงทุกหน้า",
+      ladderTitle: "ราคาทั้งหมด", ladder_group: "อ่านเชิงลึก 1 หมวด", ladder_full: "ทุกหมวด", ladder_year: "ทุกหมวด พร้อมรายเดือนทั้งปี", ladder_plus: "Plus ทุกหน้าดูดวง",
+      beforePay: "ก่อนชำระเงิน: สิ่งที่จะได้อ่าน", madeFor: "ทำสำหรับ", madeForAnon: "คำทำนายนี้ทำจากข้อมูลที่คุณกรอกในหน้านี้",
+      payNote: "ชำระด้วย PromptPay ได้โดยไม่ต้องสมัครสมาชิก เมื่อเปิดขาย (ตอนนี้ยังไม่เปิด)",
+      planTitle: "แผนมูตามเป้าหมาย (ตามความเชื่อ)", planLead: "เลือกเป้าหมายของคุณเอง แล้วเราจัดลำดับและตารางเวลาให้",
+      planFree: "สถานที่ สี และทิศในแผนเป็นข้อมูลฟรีทั้งหมดในคำทำนายและรายการสิ่งที่ทำได้ตามความเชื่อ ส่วนที่เสียค่าบริการคือการจัดลำดับและตารางเวลาให้คุณ ไม่สัญญาผลใด ๆ",
+      planLabel: "แผนมูเพื่อ{g}", plan_place: "สถานที่", plan_time: "วันและเวลา", plan_steps: "ลำดับขั้นตอน", plan_offering: "ของถวาย", plan_colour: "สีและทิศของคุณ",
+      "goal.work": "การงาน", "goal.money": "การเงิน", "goal.love": "ความรัก", "goal.health": "สุขภาพใจและกาย", "goal.protection": "ความคุ้มครอง", "goal.barami": "บารมี",
+      belief: "ตามความเชื่อ โปรดใช้วิจารณญาณ", stepOffering: "เตรียม{x}", stepPlace: "ไปที่{x}", stepTime: "เลือกวันเกิดของคุณในสัปดาห์หรือวันพระ ช่วงเช้า",
+      stepColour: "แต่งกายสีที่คำทำนายของคุณระบุ: {x}", stepDirection: "เมื่อไหว้ หันหน้าไปทางที่คำทำนายของคุณระบุ: {x}",
+      stepIntent: "ตั้งจิตเรื่อง{g} แล้วทำความดีต่อเนื่องในชีวิตประจำวัน", shareTitle: "ผลดูดวงจาก LENSIQ",
     },
     en: {
       groupLabel: "In-depth reading: {g}", fullLabel: "Full reading, every group", yearLabel: "Full reading with the year month by month",
@@ -35,11 +47,31 @@
       buy: "Choose", freeNote: "The overview, every caution and every piece of belief guidance are always free. The in-depth text adds detail; it is not a remedy.",
       notOnSale: "Not on sale yet. Ordering is not connected and nothing is charged.", monthly: "Month by month, 12 months",
       plusAll: "In-depth text for every group on every fortune page",
+      ladderTitle: "All prices", ladder_group: "One group in depth", ladder_full: "Every group", ladder_year: "Every group with the year month by month",
+      ladder_plus: "Plus, every fortune page", beforePay: "Before you pay: what you will get", madeFor: "Made for",
+      madeForAnon: "This reading was made from what you entered on this page", payNote: "PromptPay without signing up, once sales open (not open yet)",
+      planTitle: "Goal-based plan (by belief)", planLead: "Choose your own goal, and we arrange the order and the timing for you",
+      planFree: "The places, colours and directions in the plan are all free information in your reading and in the belief guidance list. " +
+        "The paid part is arranging the order and timing for you. No result is promised.",
+      planLabel: "Plan for {g}", plan_place: "Places", plan_time: "Day and time", plan_steps: "Order of steps", plan_offering: "Offerings", plan_colour: "Your colours and directions",
+      "goal.work": "work", "goal.money": "money", "goal.love": "love", "goal.health": "wellbeing", "goal.protection": "protection", "goal.barami": "barami (standing)",
+      belief: "According to belief, please use your own judgement", stepOffering: "Prepare {x}", stepPlace: "Go to {x}",
+      stepTime: "Choose the weekday you were born on, or a Buddhist holy day, in the morning",
+      stepColour: "Dress in the colours your reading names: {x}", stepDirection: "When paying respects, face the direction your reading names: {x}",
+      stepIntent: "Set your intention for {g}, then keep doing good in daily life", shareTitle: "A LENSIQ fortune reading",
     },
     zh: {
       groupLabel: "深入解读：{g}", fullLabel: "完整解读（全部类别）", yearLabel: "完整解读＋全年逐月", plusLabel: "Plus：所有占卜页面的深入解读", panelTitle: "深入阅读",
       lead: "您将获得", currency: "泰铢", perMonth: "每月", buy: "选择", freeNote: "总览、每一条注意事项和每一条依传统说法的建议始终免费。深入内容只是更多细节，不是化解方法。",
       notOnSale: "尚未开售。下单功能未接通，不会收取任何费用。", monthly: "逐月解读（12 个月）", plusAll: "所有占卜页面全部类别的深入解读",
+      ladderTitle: "全部价格", ladder_group: "一个类别的深入解读", ladder_full: "全部类别", ladder_year: "全部类别＋全年逐月", ladder_plus: "Plus（所有占卜页面）",
+      beforePay: "付款前：您将获得的内容", madeFor: "为您制作", madeForAnon: "本解读根据您在本页填写的资料制作", payNote: "开售后可用 PromptPay 付款，无需注册（目前尚未开放）",
+      planTitle: "按目标的参拜安排（依传统说法）", planLead: "请先选择您自己的目标，我们为您安排顺序和时间",
+      planFree: "安排中的地点、颜色和方位在您的解读和按习俗可以做的事中全部免费提供。付费部分是为您安排顺序和时间，不承诺任何结果。",
+      planLabel: "{g}参拜安排", plan_place: "地点", plan_time: "日期和时间", plan_steps: "步骤顺序", plan_offering: "供品", plan_colour: "您的颜色和方位",
+      "goal.work": "事业", "goal.money": "财运", "goal.love": "感情", "goal.health": "身心安康", "goal.protection": "平安守护", "goal.barami": "威望",
+      belief: "依据传统说法，请自行判断", stepOffering: "准备{x}", stepPlace: "前往{x}", stepTime: "选择您出生的星期几或佛日的早上",
+      stepColour: "穿您的解读所说的颜色：{x}", stepDirection: "礼拜时面向您的解读所说的方位：{x}", stepIntent: "为{g}发愿，并在日常生活中持续行善", shareTitle: "LENSIQ 占卜结果",
     },
   };
   /** @param {any} l @returns {"th"|"en"|"zh"} */
@@ -172,8 +204,8 @@
     if (!paid.length) return [];
     const titles = paid.map((/** @type {any} */ g) => g.title);
     /** @param {string} plan @param {string} label @param {string[]} headings @param {any} [extra] */
-    const offer = (plan, label, headings, extra) => Object.assign({ plan, price: /** @type {any} */ (PRICES)[plan], priceText: priceText(/** @type {any} */ (PRICES)[plan], l, plan === "plus"),
-      label, headings }, extra || {});
+    const offer = (plan, label, headings, extra) => { const pt = priceText(/** @type {any} */ (PRICES)[plan], l, plan === "plus");
+      return Object.assign({ plan, price: /** @type {any} */ (PRICES)[plan], priceText: pt, label, headings, button: T.buy + " · " + pt }, extra || {}); };
     const out = paid.map((/** @type {any} */ g) => offer("group", T.groupLabel.replace("{g}", g.title), [g.title], { group: g.id }));
     out.push(offer("full", T.fullLabel, titles.slice()));
     if (Array.isArray(sp.monthly) && sp.monthly.length) out.push(offer("year", T.yearLabel, titles.concat(T.monthly)));
@@ -192,6 +224,90 @@
     return split(res, o) || res;
   }
 
+  /* ---------------- owner order 2026-11-15 (2): ladder, preview, made-for, share card, funnel, goal-based plan ---------------- */
+  /** the price ladder shown together (49 one group · 99 every group · 199 with the year · Plus 149 per month) @param {string} [lang] */
+  function ladder(lang) {
+    const l = langOf(lang), T = /** @type {any} */ (TEXT[l]);
+    return ["group", "full", "year", "plus"].map(plan => ({ plan, price: /** @type {any} */ (PRICES)[plan], priceText: priceText(/** @type {any} */ (PRICES)[plan], l, plan === "plus"),
+      label: T["ladder_" + plan] }));
+  }
+  /** @param {string} t @param {"th"|"en"|"zh"} l */
+  const line = (t, l) => { const max = l === "zh" ? 40 : 90; t = String(t || "").trim(); return t.length > max ? t.slice(0, max).trim() + "…" : t; };
+  /** who the reading was made for: the nickname when given, the reading's headline (from the birth data the page used) */
+  function madeFor(/** @type {any} */ subj, /** @type {"th"|"en"|"zh"} */ l) {
+    const T = TEXT[l], bits = [subj && subj.nickname, subj && subj.headline].map(x => String(x || "").trim()).filter(Boolean);
+    return bits.length ? T.madeFor + ": " + bits.join(" · ") : T.madeForAnon;
+  }
+  /** conversion b + c: the pre-payment preview: every paid group's heading with at most its first two paid lines
+   *  @param {any} sp @param {string} [lang] @param {any} [subj] @param {{crisis?: boolean, doc?: any}} [o] */
+  function preview(sp, lang, subj, o) {
+    o = o || {};
+    if (!sp || o.crisis || !allowed(o.doc)) return null;
+    const l = langOf(lang || sp.lang), paid = sp.groups.filter((/** @type {any} */ g) => g.paid.length);
+    if (!paid.length) return null;
+    const groups = paid.map((/** @type {any} */ g) => ({ title: g.title, lines: g.paid.slice(0, 2).map((/** @type {string} */ t) => line(t, l)) }));
+    return { title: TEXT[l].beforePay, madeFor: madeFor(subj, l), groups,
+      ladder: ladder(l), note: TEXT[l].payNote };
+  }
+  /** conversion f: a share card with no personal data unless the person chooses it (showName / showBirth)
+   *  @param {any} res @param {{lang?: string, nickname?: string, headline?: string, showName?: boolean, showBirth?: boolean}} [o] */
+  function shareCard(res, o) {
+    o = o || {};
+    if (!res || res.crisis || res.source === "support" || !Array.isArray(res.sections) || !res.sections.length) return null;
+    const l = langOf(o.lang || res.lang), R = RD(), nick = String(o.nickname || "").trim(), head = String(o.headline || "").trim();
+    const scrub = (/** @type {string} */ t) => { let x = String(t || ""); for (const v of [nick, head]) if (v) x = x.split(v).join(""); return x.replace(/\s{2,}/g, " ").trim(); };
+    const gist = R ? (R.planSection(res.sections[0], l)[0] || {}).text : (res.sections[0].paragraphs || [])[0];
+    const lines = [line(scrub(gist), l)].filter(Boolean);
+    if (o.showName && nick) lines.unshift(nick);
+    if (o.showBirth && head) lines.push(head);
+    return { title: TEXT[l].shareTitle, lines };
+  }
+  const STEPS = ["overview", "open", "tap", "paid"];
+  /** funnel: one total per step through the consent-gated analytics (nothing without it; no personal field) @param {string} step */
+  function funnel(step) {
+    const A = W.LQAnalytics;
+    if (STEPS.indexOf(step) < 0 || !A || typeof A.feature !== "function") return false;
+    try { if (typeof A.consent === "function" && A.consent() !== "yes") return false; A.feature("fortune.paid." + step, "start"); return true; } catch (e) { return false; }
+  }
+  /** the plan needs both switches exactly true */
+  const planEnabled = () => enabled() && W.LENSIQ_FORTUNE_PLAN === true;
+  /** @returns {any} */
+  const MLINT = () => W.LQMeritLint || (isNode ? require("./lensiq-merit-lint.js") : null);
+  /** published Merit entries usable in a plan: never a "weak" / "chong" entry (a plan is never the answer to a warning) @param {any[]} items */
+  function planItems(items) {
+    const L = MLINT();
+    return (Array.isArray(items) ? items : []).filter(it => it && it.status === "published" && it.type !== "chong" && !(it.keys || []).some((/** @type {string} */ k) => k === "weak" || k === "chong"))
+      .filter(it => { try { return !L || !L.lintMerit || !(L.lintMerit(it) || []).length; } catch (e) { return true; } });
+  }
+  /** goal-based plan (แผนมูตามเป้าหมาย): chosen by the person's goal only; places from published Merit entries; colours and
+   *  directions only from the facts' extras that the free reading already shows; every step "according to belief", no promise
+   *  @param {string} goal @param {{facts?: any, res?: any, lang?: string, items?: any[], crisis?: boolean, doc?: any}} o */
+  function planFor(goal, o) {
+    o = o || {};
+    if (!planEnabled() || o.crisis || !allowed(o.doc) || GOALS.indexOf(goal) < 0) return null;
+    const res = o.res, F = o.facts || {};
+    if (!res || res.crisis || res.source === "support") return null;
+    const l = langOf(o.lang || res.lang), T = /** @type {any} */ (TEXT[l]), pick = (/** @type {any} */ x) => String((x && (x[l] || x.th)) || "").replace(/^(?:ตัวอย่าง|Sample|示例)[:：]\s*/, "").trim();
+    const its = planItems(o.items || W.LQ_MERIT_SEED || []), dom = "domain:" + (F.domain || "");
+    const fits = (/** @type {any} */ it) => (it.keys || []).some((/** @type {string} */ k) => k === "any" || k === dom);
+    const places = its.filter(it => it.type === "place" && fits(it)).slice(0, 2), offs = its.filter(it => it.type === "offering" && fits(it)).slice(0, 2);
+    if (!places.length) return null;
+    const sp = split(res, { lang: l }), free = sp ? sp.groups.flatMap((/** @type {any} */ g) => g.free).join(" ") + JSON.stringify(res.summary || "") + JSON.stringify(res.plan || "") : "";
+    const ex = F.extras || {}, flat = (/** @type {any} */ x) => [].concat(x || []).flat().map(String);
+    const colours = flat(ex.luckyColors).filter(c => c && free.includes(c)), directions = flat(ex.directions).filter(d => d && free.includes(d));
+    const g = T["goal." + goal], steps = [];
+    if (offs.length) steps.push(fill(T.stepOffering, offs.map(it => pick(it.title)).join(l === "zh" ? "、" : ", ")));
+    steps.push(fill(T.stepPlace, places.map(it => pick(it.place) || pick(it.title)).join(l === "zh" ? "、" : ", ")), T.stepTime);
+    if (colours.length) steps.push(fill(T.stepColour, colours.join(l === "zh" ? "、" : ", ")));
+    if (directions.length) steps.push(fill(T.stepDirection, directions.join(l === "zh" ? "、" : ", ")));
+    steps.push(T.stepIntent.replace("{g}", g));
+    const out = { goal, title: T.planLabel.replace("{g}", g), belief: T.belief, placeIds: places.map(it => it.id), colours, directions,
+      steps: steps.map((t, i) => ({ n: i + 1, text: t + (l === "zh" ? "（" + T.belief + "）" : " (" + T.belief + ")") })) };
+    return out.steps.every(x => safe(x.text, { straight: false }) && safe(x.text, { straight: true })) ? out : null;
+  }
+  /** @param {string} t @param {string} x */
+  const fill = (t, x) => t.replace("{x}", x);
+
   /* ---------------- DOM (only with the switch on) ---------------- */
   const CSS = ".lq-paid-offer{margin:.6em 0 1em;padding:.75em .9em;border:1px solid rgba(201,162,39,.55);border-radius:14px;background:rgba(201,162,39,.07);" +
     "max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}.lq-paid-title{margin:0 0 .3em;font-weight:600;display:flex;gap:.4em;align-items:center}" +
@@ -200,11 +316,18 @@
     "button.lq-paid-buy{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:.35em 1.1em;border-radius:999px;" +
     "font:inherit;font-weight:600;cursor:pointer;max-width:100%;white-space:normal;text-align:center}.lq-paid-panel{margin:1em 0}" +
     ".lq-paid-panel>h3{margin:.2em 0 .5em;font-size:1rem}.lq-paid-icon{width:1.2em;height:1.2em;flex:none}" +
+    ".lq-paid-ladder{list-style:none;margin:.3em 0 .8em;padding:0;display:grid;gap:.3em}.lq-paid-ladder li{display:flex;justify-content:space-between;gap:.6em;" +
+    "padding:.35em .6em;border-radius:10px;background:rgba(201,162,39,.08)}.lq-paid-preview,.lq-paid-plan{margin:.8em 0;padding:.75em .9em;border-radius:14px;" +
+    "border:1px solid rgba(103,79,242,.35);background:rgba(103,79,242,.05);overflow-wrap:anywhere}.lq-pv-list{list-style:none;margin:.4em 0;padding:0;display:grid;gap:.6em}" +
+    ".lq-pv-line{margin:.15em 0;font-size:.92em;opacity:.85}.lq-pv-for{font-weight:600}.lq-paid-goals{display:flex;flex-wrap:wrap;gap:.4em;margin:.4em 0}" +
+    ".lq-paid-goal{min-height:44px;padding:.3em .9em;border-radius:999px}.lq-paid-goal[aria-pressed=true]{outline:2px solid #674ff2}" +
     "html[data-lq-crisis] [data-lq-paid],html[data-lq-calm] [data-lq-paid]{display:none!important}";
   const LOCK = '<svg class="lq-paid-icon" data-icon="lock" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" fill="none" ' +
     'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/>' +
     '<path d="M8.5 10.5V7.8a3.5 3.5 0 0 1 7 0v2.7"/></svg>';
-  /** @type {{container: any, bodies: {body: any, nodes: any[]}[], buttons: any[], groups: any[], lang: string, monthly: any}[]} */
+  /** @type {any} the last reading's nickname / headline (memory only) */
+  let SUBJ = null;
+  /** @type {{container: any, bodies: {body: any, nodes: any[]}[], buttons: any[], groups: any[], lang: string, monthly: any, sp?: any}[]} */
   let DONE = [];
   /** @param {any} doc */
   function ensureStyle(doc) {
@@ -229,6 +352,7 @@
     const note = el("p", "lq-paid-note"); note.setAttribute("data-lq-paid-note", ""); note.setAttribute("role", "status"); note.hidden = true;
     b.addEventListener("click", () => {
       note.textContent = T.notOnSale; note.hidden = false; // no payment is connected (owner order 2026-11-15)
+      funnel("tap"); try { showPreview(doc, l); } catch (e) { /* keep the page */ }
       try { W.dispatchEvent(new W.CustomEvent("lq-paid-request", { detail: { plan: of.plan, group: of.group || null, price: of.price } })); } catch (e) { /* no events */ }
     });
     box.appendChild(b); box.appendChild(note);
@@ -253,7 +377,7 @@
     // a re-render of the same container replaced its nodes: forget the old record
     DONE = DONE.filter(r => r.container !== container && r.container.isConnected !== false);
     const sp = split(res, { lang: l, straight }), used = new Set();
-    const rec = { container, bodies: /** @type {any[]} */ ([]), buttons: /** @type {any[]} */ ([]), groups: /** @type {any[]} */ ([]), lang: l, monthly: res.monthly };
+    const rec = { container, bodies: /** @type {any[]} */ ([]), buttons: /** @type {any[]} */ ([]), groups: /** @type {any[]} */ ([]), lang: l, monthly: res.monthly, sp };
     const groups = rec.groups;
     for (const sec of container.querySelectorAll(".fa-section[data-lq-grouped]")) {
       if (sec.closest(".fa-support")) continue;
@@ -286,6 +410,59 @@
     if (!groups.length) { restore(rec); return; }
     DONE.push(rec);
     panelFor(doc, container, l);
+    funnel("overview");
+    if (!container.__lqPaidOpen) {
+      container.__lqPaidOpen = true;
+      container.addEventListener("click", (/** @type {any} */ e) => { if (e.target && e.target.closest && e.target.closest(".fa-section button.lq-more")) funnel("open"); });
+    }
+  }
+  /** @param {any} doc @param {string} tag @param {string} [cls] @param {string} [text] */
+  const mk = (doc, tag, cls, text) => { const e = doc.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  /** the ladder list (49 / 99 / 199 / 149 together) @param {any} doc @param {"th"|"en"|"zh"} l */
+  function ladderEl(doc, l) {
+    const ul = mk(doc, "ul", "lq-paid-ladder"); ul.setAttribute("aria-label", TEXT[l].ladderTitle);
+    for (const r of ladder(l)) { const li = mk(doc, "li", ""); li.appendChild(mk(doc, "span", "", r.label + " ")); li.appendChild(mk(doc, "b", "", r.priceText)); ul.appendChild(li); }
+    return ul;
+  }
+  /** conversion b + c: the pre-payment preview for every reading on the page (headings + first two paid lines, who it is for) */
+  function showPreview(/** @type {any} */ doc, /** @type {"th"|"en"|"zh"} */ l) {
+    for (const e of doc.querySelectorAll(".lq-paid-preview")) e.remove();
+    const live = DONE.filter(r => r.container.isConnected !== false && r.sp);
+    const groups = live.flatMap(r => r.sp.groups.filter((/** @type {any} */ g) => g.paid.length));
+    const pv = preview({ lang: l, groups }, l, SUBJ, { doc });
+    const panel = doc.querySelector(".lq-paid-panel");
+    if (!pv || !panel) return;
+    const box = mk(doc, "section", "lq-paid-preview"); box.setAttribute("data-lq-paid", ""); box.setAttribute("data-lq-upsell", ""); box.setAttribute("aria-live", "polite");
+    box.appendChild(mk(doc, "h3", "", pv.title));
+    const mf = mk(doc, "p", "lq-pv-for", pv.madeFor); mf.setAttribute("data-lq-made-for", ""); box.appendChild(mf);
+    const ul = mk(doc, "ul", "lq-pv-list");
+    for (const g of pv.groups) {
+      const li = mk(doc, "li", "lq-pv-group"); li.appendChild(mk(doc, "b", "lq-pv-title", g.title));
+      for (const t of g.lines) li.appendChild(mk(doc, "p", "lq-pv-line", t));
+      ul.appendChild(li);
+    }
+    box.appendChild(ul); box.appendChild(ladderEl(doc, l)); box.appendChild(mk(doc, "p", "lq-paid-free", pv.note));
+    panel.parentNode.insertBefore(box, panel.nextSibling);
+  }
+  /** the goal-based plan block (both switches on): the goal picker first; the plan offer (price + headings) only after a goal */
+  function planEl(/** @type {any} */ doc, /** @type {"th"|"en"|"zh"} */ l) {
+    const T = /** @type {any} */ (TEXT[l]), blk = mk(doc, "section", "lq-paid-plan");
+    blk.setAttribute("data-lq-plan", ""); blk.setAttribute("data-lq-paid", ""); blk.setAttribute("data-lq-upsell", "");
+    blk.appendChild(mk(doc, "h3", "", T.planTitle)); blk.appendChild(mk(doc, "p", "lq-paid-lead", T.planLead)); blk.appendChild(mk(doc, "p", "lq-paid-free", T.planFree));
+    const row = mk(doc, "div", "lq-paid-goals"); row.setAttribute("role", "group"); row.setAttribute("aria-label", T.planLead);
+    for (const goal of GOALS) {
+      const b = mk(doc, "button", "chip lq-paid-goal", T["goal." + goal]); b.type = "button"; b.setAttribute("data-lq-goal", goal); b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", () => {
+        for (const x of row.querySelectorAll("[data-lq-goal]")) x.setAttribute("aria-pressed", x === b ? "true" : "false");
+        const old = blk.querySelector('[data-lq-offer="plan"]'); if (old) old.remove();
+        const pt = priceText(PRICES.plan, l);
+        blk.appendChild(offerEl(doc, { plan: "plan", price: PRICES.plan, priceText: pt, label: T.planLabel.replace("{g}", T["goal." + goal]), button: T.buy + " · " + pt,
+          headings: [T.plan_place, T.plan_time, T.plan_steps, T.plan_offering, T.plan_colour] }, l));
+      });
+      row.appendChild(b);
+    }
+    blk.appendChild(row);
+    return blk;
   }
   /** one panel per page (a page can show two readings, e.g. astro: birth chart + today): the full / year / Plus offers cover
    *  every reading on the page that has paid depth; drawn after the last section of the reading decorated last
@@ -302,9 +479,12 @@
     panel.setAttribute("data-lq-paid", ""); panel.setAttribute("data-lq-upsell", "");
     const h = doc.createElement("h3"); h.textContent = TEXT[l].panelTitle; panel.appendChild(h);
     const fn = doc.createElement("p"); fn.className = "lq-paid-free"; fn.textContent = TEXT[l].freeNote; panel.appendChild(fn);
+    panel.appendChild(ladderEl(doc, l));
     for (const o of all) panel.appendChild(offerEl(doc, o, l));
-    const secs = [...container.querySelectorAll(".fa-section[data-lq-grouped]")], last = secs[secs.length - 1];
-    if (last && last.parentNode) last.parentNode.insertBefore(panel, last.nextSibling); else container.appendChild(panel);
+    if (planEnabled()) panel.appendChild(planEl(doc, l));
+    // at the end of the reading (after the reminder, before the help line): the panel and the plan are never next to a group
+    const help = [...container.children].find((/** @type {any} */ e) => e.matches && e.matches(".lq-helpline, .lq-helpline-result"));
+    if (help) container.insertBefore(panel, help); else container.appendChild(panel);
   }
   /** give the locked text back (free "read more") and remove every offer of one decorated reading @param {any} rec */
   function restore(rec) {
@@ -322,8 +502,14 @@
   if (W.document && enabled()) {
     try { if (W.FortuneAI && W.FortuneAI.registerHooks) W.FortuneAI.registerHooks(HOOK); else (W.LQFortuneHooks = W.LQFortuneHooks || []).push(HOOK); } catch (e) { /* none */ }
     try { W.addEventListener("lq-crisis", withdraw); } catch (e) { /* no events */ }
+    // conversion c: remember (in memory only, never sent or stored) the nickname and the headline of the last reading's facts
+    const wrapI = () => { const F = W.FortuneAI; if (!F || typeof F.interpret !== "function" || F.interpret.__lqPaid) return !!F;
+      const orig = F.interpret, w = /** @this {any} @param {any} facts */ function (facts) {
+        try { SUBJ = { nickname: facts && facts.subject && facts.subject.nickname, headline: facts && facts.headline }; } catch (e) { /* none */ }
+        return orig.apply(this, arguments); }; /** @type {any} */ (w).__lqPaid = true; F.interpret = w; return true; };
+    if (!wrapI()) { let n = 0; const t = setInterval(() => { if (wrapI() || ++n > 40) clearInterval(t); }, 250); }
   }
 
-  const api = { PRICES, TEXT, enabled, safe, split, offers, apply, decorate, allowed, withdraw };
+  const api = { PRICES, TEXT, GOALS, enabled, planEnabled, safe, split, offers, apply, decorate, allowed, withdraw, ladder, preview, shareCard, funnel, planFor, planItems };
   if (isNode) module.exports = api; else W.LQPaid = api;
 })(typeof window !== "undefined" ? window : globalThis);
