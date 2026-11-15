@@ -228,17 +228,22 @@
   }
 
   /* ---------------- owner order 2026-11-15 (2): ladder, preview, made-for, share card, funnel, goal-based plan ---------------- */
-  /** the price ladder shown together (49 one group · 99 every group · 199 with the year · Plus 149 per month) @param {string} [lang] */
-  function ladder(lang) {
+  /** the price ladder shown together (49 · 99 · 199 with the year · Plus 149 per month) @param {string} [lang] @param {{monthly?: any}} [o] */
+  function ladder(lang, o) {
     const l = langOf(lang), T = /** @type {any} */ (TEXT[l]);
-    return ["group", "full", "year", "plus"].map(plan => ({ plan, price: /** @type {any} */ (PRICES)[plan], priceText: priceText(/** @type {any} */ (PRICES)[plan], l, plan === "plus"),
+    // the 199 row only when the page can deliver month-by-month content (round-3 review)
+    return ["group", "full", "year", "plus"].filter(plan => plan !== "year" || !!(o && o.monthly))
+      .map(plan => ({ plan, price: /** @type {any} */ (PRICES)[plan], priceText: priceText(/** @type {any} */ (PRICES)[plan], l, plan === "plus"),
       label: T["ladder_" + plan] }));
   }
   /** @param {string} t @param {"th"|"en"|"zh"} l */
   const line = (t, l) => { const max = l === "zh" ? 40 : 90; t = String(t || "").trim(); return t.length > max ? t.slice(0, max).trim() + "…" : t; };
   /** who the reading was made for: the nickname when given, the reading's headline (from the birth data the page used) */
   function madeFor(/** @type {any} */ subj, /** @type {"th"|"en"|"zh"} */ l) {
-    const T = TEXT[l], bits = [subj && subj.nickname, subj && subj.headline].map(x => String(x || "").trim()).filter(Boolean);
+    // the headline is Thai and describes the person on most pages; astro's is today's moon and bazi's the eight characters
+    // (round-3 review): there, and on EN / ZH pages, the nickname only
+    const head = l === "th" && !/^(?:astro|bazi)$/.test(String((subj && subj.domain) || "")) ? subj && subj.headline : "";
+    const T = TEXT[l], bits = [subj && subj.nickname, head].map(x => String(x || "").trim()).filter(Boolean);
     return bits.length ? T.madeFor + ": " + bits.join(" · ") : T.madeForAnon;
   }
   /** conversion b + c: the pre-payment preview: every paid group's heading with at most its first two paid lines
@@ -250,7 +255,7 @@
     if (!paid.length) return null;
     const groups = paid.map((/** @type {any} */ g) => ({ title: g.title, lines: g.paid.slice(0, 2).map((/** @type {string} */ t) => line(t, l)) }));
     return { title: TEXT[l].beforePay, madeFor: madeFor(subj, l), groups,
-      ladder: ladder(l), note: TEXT[l].payNote };
+      ladder: ladder(l, { monthly: Array.isArray(sp.monthly) && sp.monthly.length }), note: TEXT[l].payNote };
   }
   /** conversion f: a share card with no personal data unless the person chooses it (showName / showBirth)
    *  @param {any} res @param {{lang?: string, nickname?: string, headline?: string, showName?: boolean, showBirth?: boolean}} [o] */
@@ -440,7 +445,8 @@
   /** the ladder list (49 / 99 / 199 / 149 together) @param {any} doc @param {"th"|"en"|"zh"} l */
   function ladderEl(doc, l) {
     const ul = mk(doc, "ul", "lq-paid-ladder"); ul.setAttribute("aria-label", TEXT[l].ladderTitle);
-    for (const r of ladder(l)) { const li = mk(doc, "li", ""); li.appendChild(mk(doc, "span", "", r.label + " ")); li.appendChild(mk(doc, "b", "", r.priceText)); ul.appendChild(li); }
+    const monthly = DONE.some(r => r.container.isConnected !== false && Array.isArray(r.monthly) && r.monthly.length);
+    for (const r of ladder(l, { monthly })) { const li = mk(doc, "li", ""); li.appendChild(mk(doc, "span", "", r.label + " ")); li.appendChild(mk(doc, "b", "", r.priceText)); ul.appendChild(li); }
     return ul;
   }
   /** conversion b + c: the pre-payment preview for every reading on the page (headings + first two paid lines, who it is for) */
@@ -448,7 +454,8 @@
     for (const e of doc.querySelectorAll(".lq-paid-preview")) e.remove();
     const live = DONE.filter(r => r.container.isConnected !== false && r.sp);
     const groups = live.flatMap(r => r.sp.groups.filter((/** @type {any} */ g) => g.paid.length));
-    const pv = preview({ lang: l, groups }, l, SUBJ, { doc });
+    const monthly = live.map(r => r.monthly).find(m => Array.isArray(m) && m.length) || null;
+    const pv = preview({ lang: l, groups, monthly }, l, SUBJ, { doc });
     const panel = doc.querySelector(".lq-paid-panel");
     if (!pv || !panel) return;
     const box = mk(doc, "section", "lq-paid-preview"); box.setAttribute("data-lq-paid", ""); box.setAttribute("data-lq-upsell", ""); box.setAttribute("aria-live", "polite");
@@ -535,7 +542,7 @@
     // conversion c: remember (in memory only, never sent or stored) the nickname and the headline of the last reading's facts
     const wrapI = () => { const F = W.FortuneAI; if (!F || typeof F.interpret !== "function" || F.interpret.__lqPaid) return !!F;
       const orig = F.interpret, w = /** @this {any} @param {any} facts */ function (facts) {
-        try { SUBJ = { nickname: facts && facts.subject && facts.subject.nickname, headline: facts && facts.headline }; } catch (e) { /* none */ }
+        try { SUBJ = { nickname: facts && facts.subject && facts.subject.nickname, headline: facts && facts.headline, domain: facts && facts.domain }; } catch (e) { /* none */ }
         return orig.apply(this, arguments); }; /** @type {any} */ (w).__lqPaid = true; F.interpret = w; return true; };
     if (!wrapI()) { let n = 0; const t = setInterval(() => { if (wrapI() || ++n > 40) clearInterval(t); }, 250); }
   }

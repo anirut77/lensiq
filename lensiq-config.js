@@ -56,7 +56,7 @@ window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
  *   false = ซ่อนตัวเลือกทั้งหมด (tests/unit/fortune-honest.test.js ตรวจค่าที่ส่งมอบ) */
 window.LENSIQ_FORTUNE_STRAIGHT = false;
 
-/* paid fortune depth, plan, seller links: off (docs/FORTUNE-PAID-DESIGN.md) */
+/* fortune-paid switches: off */
 window.LENSIQ_FORTUNE_PAID = window.LENSIQ_FORTUNE_PAID === true;
 window.LENSIQ_FORTUNE_PLAN = window.LENSIQ_FORTUNE_PLAN === true;
 window.LENSIQ_FORTUNE_SOURCES = window.LENSIQ_FORTUNE_SOURCES === true;

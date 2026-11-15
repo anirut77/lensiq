@@ -120,3 +120,6 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   2026-11-15 (2)); (5) recommended-sources tests, reason "owner decision 2026-11-15 replaces Remedies and merit"
   (decision 46 ก; no earlier assertion encoded the old rule, every hard-limit test kept); (6) plan e2e test-setup fix after its
   first run (the ladder is checked only on readings with offers; no offers = no panel and no price, now asserted).
+- `fortune-paid` re-lock (7) (2026-11-15): round-3 review of 826bbd9 NOT OK. New `tests/unit/fortune-paid-negstate.test.js`
+  locked before the tags; the plan unit / e2e tests changed by the coordinator's round-3 order (199 row only with monthly
+  content; made-for headline only in Thai, never on astro / bazi). Reason in `evals-locks/fortune-paid.sha256`.

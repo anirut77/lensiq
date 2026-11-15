@@ -656,8 +656,10 @@
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
     // the pages that run FortuneAI readings (planner / luckycolor do not: nothing to attach to)
     if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(p)) return;
-    var W = /** @type {any} */ (window), d = document.head || document.documentElement; // paid depth only when exactly true
-    if (W.LENSIQ_FORTUNE_PAID === true && !W.LQPaid) { var ps = document.createElement("script"); ps.src = "fortune-paid.js?v=1"; ps.async = false; d.appendChild(ps); }
+    var W = /** @type {any} */ (window), d = document.head || document.documentElement;
+    if (W.LENSIQ_FORTUNE_PAID === true && !W.LQPaid) {
+      ["fortune-negstate.js?v=1", "fortune-paid.js?v=1"].forEach(function (f) { var ps = document.createElement("script"); ps.src = f; ps.async = false; d.appendChild(ps); });
+    }
     if (W.LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
     ["lensiq-merit-core.js?v=3", "lensiq-merit-lint.js?v=2", "lensiq-merit.js?v=3"].forEach(function (src) {
       var sc = document.createElement("script");

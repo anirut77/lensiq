@@ -58,3 +58,9 @@ Running list, append only. Each entry: date, what changes, status, what happens 
    say so)? Recommendation: owner / admin approval per entry in the back office, label affiliate links. If no answer: no entries ship.
 9. **Monthly / yearly content (199).** No page composes 12 monthly parts yet; building it is a new scoped item. Recommendation:
    start with lifegraph and bazi. If no answer: 199 is listed in the ladder but its offer is shown nowhere.
+
+## 2026-11-15: round-3 review fixes (fortune-paid)
+
+- Negative-state topic meanings tagged by reading (`fortune-negstate.js`, design §11): never paid. Practical tips with no negative
+  state stay paid depth until the owner decides item 45 (350 / 2,700 readings in the reviewer's count).
+- The 199 row is hidden in the ladder until a page can deliver month-by-month content (open question 9 above).
