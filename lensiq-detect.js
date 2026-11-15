@@ -418,7 +418,7 @@
     for (const inputSize of sizes) {
       let q = fa.detectAllFaces(src, new fa.TinyFaceDetectorOptions({ inputSize, scoreThreshold })).withFaceLandmarks();
       if (descriptors) q = q.withFaceDescriptors();
-      const r = await withTimeout(q.run(), timeoutMs, "DetectTimeout");
+      const r = await withTimeout(typeof q.run === "function" ? q.run() : Promise.resolve(q), timeoutMs, "DetectTimeout"); // a plain thenable: as is
       if (r && r.length) return r;
     }
     return [];
