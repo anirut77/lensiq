@@ -30,3 +30,7 @@ c4762a5abcb5ad8e1d4379c860f98af3099ef076eafe1178a47368c1833e83b6  tests/e2e/fort
 # RE-LOCK 2026-11-16 (8), new file only, BEFORE the build: owner night order 2026-11-15 item 3 (recommended sources: affiliate label, per-entry approval, no entries ship). Added tests/unit/fortune-paid-affiliate.test.js. Earlier files unchanged. Before the build: 1 pass / 1 fail (no affiliate label yet).
 # locked 2026-11-15T18:55:57Z (tools/eval-guard.mjs lock, 1 file)
 98def0a17dc478d4362ba77ed521c3ba074182c6424c306305d44c723aaaee9e  tests/unit/fortune-paid-affiliate.test.js
+# RE-LOCK 2026-11-16 (9), before the build is done: name collision found. The recommended-source entries were read from window.LQ_FORTUNE_SOURCES, which is also the back office citation list (fortune-sources.js, admin.html only). The product global becomes LQ_FORTUNE_SELLER_LINKS; tests/e2e/fortune-paid-sources.e2e.mjs puts its sample entries there and tests/unit/fortune-paid-affiliate.test.js checks that no site file ships LQ_FORTUNE_SELLER_LINKS entries. Name only; no assertion removed or loosened. (Re-lock (8) said 1 pass / 1 fail before the build; it was 0 / 2: the second test also tripped on the citation list.)
+# locked 2026-11-15T18:56:35Z (tools/eval-guard.mjs lock, 2 files)
+fc0f4d0a56897cf13bf28dc7a82599cfee18c38b555865be88dc69b99636f9f6  tests/unit/fortune-paid-affiliate.test.js
+59a89b483fca82a063610bbb5203bfbfbf1155259465d62d23adc1ed97b8dbec  tests/e2e/fortune-paid-sources.e2e.mjs

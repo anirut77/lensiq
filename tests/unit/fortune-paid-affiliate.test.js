@@ -30,6 +30,8 @@ test("per-entry approval: an entry needs approved === true and status published;
   for (const bad of [{ approved: "true" }, { approved: 1 }, { approved: undefined }, { status: "pending" }]) {
     assert.deepEqual(on(() => P.sources([Object.assign({}, E, bad)], { lang: "th" })), [], JSON.stringify(bad));
   }
-  const shipped = fs.readdirSync(ROOT).filter(f => /\.(?:js|html)$/.test(f)).filter(f => /LQ_FORTUNE_SOURCES\s*=\s*\[/.test(fs.readFileSync(path.join(ROOT, f), "utf8")));
+  const shipped = fs.readdirSync(ROOT).filter(f => /\.(?:js|html)$/.test(f)).filter(f => /LQ_FORTUNE_SELLER_LINKS\s*=\s*\[/.test(fs.readFileSync(path.join(ROOT, f), "utf8")));
+  // re-lock (9): the entries live in LQ_FORTUNE_SELLER_LINKS (LQ_FORTUNE_SOURCES is the back office's citation list,
+  // fortune-sources.js; the two names collided)
   assert.deepEqual(shipped, [], "no recommended-source entries ship in the site files");
 });

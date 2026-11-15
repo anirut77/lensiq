@@ -14,8 +14,9 @@ const OK = { id: "s1", status: "published", approved: true, url: "https://exampl
 const LIST = [OK, Object.assign({}, OK, { id: "s2", url: "http://example.com/x" }), Object.assign({}, OK, { id: "s4", status: "draft" }),
   Object.assign({}, OK, { id: "s6", keys: ["chong"] }), Object.assign({}, OK, { id: "s8", note: T("ซื้อแล้วดวงดีขึ้นแน่นอน") })];
 const sections = n => `document.querySelectorAll(".fa-section").length >= ${n} && !document.querySelector(".fa-loading, [aria-busy=true] .fa-section")`;
+// re-lock (9): the sample entries go to LQ_FORTUNE_SELLER_LINKS (LQ_FORTUNE_SOURCES is the back office's citation list)
 async function open(browser, base, lang, flag) {
-  const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`, "window.LENSIQ_FORTUNE_PAID = true;", `window.LQ_FORTUNE_SOURCES = ${S(LIST)};`];
+  const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`, "window.LENSIQ_FORTUNE_PAID = true;", `window.LQ_FORTUNE_SELLER_LINKS = ${S(LIST)};`];
   if (flag) init.push("window.LENSIQ_FORTUNE_SOURCES = true;");
   const page = await browser.newPage(null, { initScripts: init });
   await page.send("Emulation.setDeviceMetricsOverride", { width: 375, height: 800, deviceScaleFactor: 2, mobile: true });
