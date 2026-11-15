@@ -462,7 +462,11 @@
    tradition names unfavourable, or every area restrains); otherwise the listed meaning areas (any language's text in that area
    holds back, delays, limits or warns). Keys are fact item ids; tarot ids drop their spread position ("card.past.swords04.r" ->
    "swords04.r"); a "*" matches one id part. Chart-dependent tags come from the engine as item.restrain (fengshui.js).
-   fortune-ai.js marks every paragraph that carries a tagged entry's text as caution (sources) and records provenance(). */
+   A numbers sum ("sum.NN") reuses the text of its pair ("pair.NN"), so an untagged sum takes its pair's tag (plus overview,
+   which carries the same text). Tips: facts.extras.restrainTips lists the tips the engine's data marks as restraining
+   (numbers-kb.js goals[].tips[].avoid). fortune-ai.js marks every paragraph that carries a tagged entry's text as caution
+   (sources), records each template filled with an unfavourable or tagged item at the fill site (fill), and records
+   provenance(): area = a meaning area, "label", "tip" or "fill". */
 (function (root) {
   "use strict";
   const TAGS = /** @type {Record<string, Record<string, string>>} */ ({
@@ -487,18 +491,19 @@
       "work": "bazi.excess.fire bazi.excess.water bazi.excess.wood"
     },
     "tarot": {
+      "advice,money,overview,work": "m10.r",
+      "advice,money,work": "m10",
       "advice,overview": "spread.pattern",
       "all": "cups05 m15 m16 pentacles05 swords03 swords04 swords05 swords08 swords09 swords10 wands10",
-      "love,money,overview,work": "cups02.r cups03.r cups04.r cups07.r cups08.r cups09.r cups12.r cups13.r cups14.r m02.r m03.r m04.r m07.r m08.r m09.r m12.r m13.r m14.r m16.r" +
-        " " + "m17.r m18 m18.r m19.r pentacles01.r pentacles04.r pentacles05.r pentacles06.r pentacles09.r pentacles10.r pentacles11.r pentacles14.r" +
-        " " + "swords03.r swords04.r swords05.r swords08.r swords09.r swords10.r swords12.r swords13.r swords14.r wands01.r wands02.r wands03.r wands06.r" +
-        " " + "wands07.r wands08.r wands11.r wands12.r wands13.r",
+      "love,money,overview,work": "cups02.r cups03.r cups04.r cups07.r cups08.r cups09.r cups12.r cups13.r cups14.r m00.r m02.r m03.r m04.r m07.r m08.r m09.r m12.r m13.r m14.r" +
+        " " + "m16.r m17.r m18 m18.r m19.r pentacles01.r pentacles04.r pentacles05.r pentacles06.r pentacles09.r pentacles10.r pentacles11.r pentacles14.r" +
+        " " + "swords03.r swords04.r swords05.r swords08.r swords09.r swords10.r swords11.r swords12.r swords13.r swords14.r wands01.r wands02.r wands03.r" +
+        " " + "wands06.r wands07.r wands08.r wands11.r wands12.r wands13.r",
       "love,money,work": "cups01.r cups06.r cups11.r m01.r m06.r m11.r m21.r pentacles03.r pentacles08.r pentacles13.r swords02.r swords07.r wands05.r wands10.r",
       "love,overview,work": "swords02 wands05",
       "money": "cups03 swords07 wands02",
-      "money,overview,work": "cups05.r cups10.r m00.r m05.r m10.r m12 m15.r m20.r pentacles02.r pentacles07.r pentacles12.r swords01.r swords06.r swords11.r wands04.r" +
-        " " + "wands09.r wands14.r",
-      "money,work": "cups07 cups12 m00 m02 m05 m10",
+      "money,overview,work": "cups05.r cups10.r m05.r m12 m15.r m20.r pentacles02.r pentacles07.r pentacles12.r swords01.r swords06.r wands04.r wands09.r wands14.r",
+      "money,work": "cups07 cups12 m00 m02 m05",
       "overview": "m09 m13 pair.cups04+cups05 pair.cups05+cups06 pair.m00+m13 pair.m06+m15 pair.m09+pentacles07 pair.m12+m13 pair.m12+swords02 pair.m13+m20" +
         " " + "pair.m14+swords04 pair.m15+m16 pair.m16+m17 pair.m16+m20 pair.m17+m18 pair.m17+swords03 pair.m18+m19 pair.m18+swords09 pair.m20+swords10" +
         " " + "pair.pentacles04+pentacles05 pair.pentacles05+pentacles06 pair.swords02+swords03 pair.swords03+swords04 pair.swords04+swords05" +
@@ -533,7 +538,7 @@
         " " + "rel.10 rel.12 rel.23 rel.29 rel.33 rel.36 rel.39 rel.41 rel.44 rel.47 rel.52 rel.60",
       "love,money,overview,timing,work": "rel.25 rel.64",
       "love,money,overview,work": "hex.25 hex.64",
-      "money": "hex.18 hex.27 hex.32 hex.34 hex.51 hex.59 rel.18 rel.27 rel.32 rel.34 rel.51 rel.59",
+      "money": "hex.4 hex.18 hex.27 hex.32 hex.34 hex.51 hex.59 rel.4 rel.18 rel.27 rel.32 rel.34 rel.51 rel.59",
       "money,overview": "hex.28 hex.38",
       "money,overview,timing": "hex.20 hex.62 rel.20 rel.28 rel.38 rel.62",
       "money,timing": "hex.55 rel.55",
@@ -600,7 +605,8 @@
     const k = key(d, it.id || ""), E = EXACT[d];
     if (E && E[k]) return E[k];
     for (const [re, v] of GLOB[d] || []) if (re.test(k)) return v;
-    return null;
+    const sum = d === "numbers" && /^sum\.(\d\d)$/.exec(k), p = sum && E && E["pair." + sum[1]];
+    return p ? (p === "all" ? "all" : [...new Set(p.concat("overview"))]) : null;
   }
   const count = (/** @type {string} */ d) => (TAGS[d] ? Object.values(TAGS[d]).reduce((n, ks) => n + ks.split(" ").length, 0) : 0);
   /** the text of every tagged entry in a fact set, in the reading language: [{ id, area, text }]; tr(item) -> that language's item */
@@ -612,7 +618,23 @@
       if (tag === "all") for (const t of [x.label, x.short]) if (t) out.push({ id: it.id, area: "label", text: String(t) });
       for (const a of tag === "all" ? Object.keys(ms) : tag) for (const t of [].concat(ms[a] || [])) if (t) out.push({ id: it.id, area: a, text: String(t) });
     }
+    const tips = F && F.extras && Array.isArray(F.extras.restrainTips) ? F.extras.restrainTips : [];
+    for (const t of tips) if (t) out.push({ id: "extras.tips", area: "tip", text: String(t) });
     return out;
+  }
+  /** fill site: a template filled with these items (or "named": every item whose name is in the text) is caution text when
+   *  one of them is unfavourable (isCaution) or tagged ("all" only when allOnly); records { id, area: "fill", text } into rec */
+  function fill(/** @type {any[]} */ rec, /** @type {any} */ F, /** @type {any} */ its, /** @type {string} */ text,
+    /** @type {(it: any) => boolean} */ isCaution, /** @type {boolean} */ allOnly) {
+    if (!rec || !F || !text) return;
+    const names = (/** @type {any} */ it) => [it.short, it.label, String(it.label || "").replace(/\s*[(（][^)）]*[)）]/g, "").trim()];
+    const named = (/** @type {any} */ it) => names(it).some(n => n && String(n).length >= 2 && text.indexOf(String(n)) >= 0);
+    const byId = (/** @type {any} */ it) => (F.items || []).find((/** @type {any} */ x) => it && String(x.id) === String(it.id)) || it; // the engine's own item
+    const list = its === "named" ? (F.items || []).filter(named) : [].concat(its || []).map(byId);
+    for (const it of list) {
+      const tag = it && of(F.domain, it);
+      if (it && (isCaution(it) || (tag && (!allOnly || tag === "all")))) { rec.push({ id: String(it.id), area: "fill", text: String(text) }); return; }
+    }
   }
   // the fragments fortune-ai.js markCaution matches: clauses / words of 12+ characters (6+ for Chinese), and the whole text
   function frags(/** @type {string} */ t, /** @type {string} */ lang) {
@@ -628,7 +650,7 @@
     });
     return res;
   }
-  const API = { TAGS, of, count, sources, provenance };
+  const API = { TAGS, of, count, sources, fill, provenance };
   // exports only from its own file: the copy inside fortune-read.js (tools/fortune-read-embed.mjs) leaves that module's exports alone
   if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length) module.exports = API;
   root.LQFortuneRestrain = API;

@@ -1824,7 +1824,7 @@
       for (const a of [].concat(u.alt || [])) { if (s) break; s = vet(ctx, a); }
       if (!s) continue;
       ok.push(Object.assign({}, u, { text: s }));
-      if (u.claim) ctx.claims.push(Object.assign({ text: s }, u.claim));
+      if (u.claim) { ctx.claims.push(Object.assign({ text: s }, u.claim)); if (u.claim.kind === "contrast") FL([{ id: u.claim.ids[0] }], s, false); } // the weak item
     }
     ctx.lastSub = ok.filter(u => u.sub).length;
     ctx.lastSubText = ok.filter(u => u.sub).map(u => u.text);
@@ -1891,7 +1891,7 @@
     const units = [{ text: fill(ctx.opener(), ctx.vars()), fixed: true }];
     if (F.headline) {
       const X = thaiList(F.headline.replace(CJK_PAREN, "").split(/\s*·\s*/).filter(Boolean));
-      const text = F.domain === "dream" ? "ภาพหลักในฝันครั้งนี้คือ" + X.replace(/^ฝันเห็น/, "") : fill(ctx.headline(), ctx.vars({ X }));
+      const text = FL("named", F.domain === "dream" ? "ภาพหลักในฝันครั้งนี้คือ" + X.replace(/^ฝันเห็น/, "") : fill(ctx.headline(), ctx.vars({ X })), true);
       units.push({ text, fixed: true, sub: true });
     }
     const k = Math.min(F.items.length, 3 + Math.floor(r() * 3));
@@ -2009,7 +2009,9 @@
   // review round 2 (F1): the composer marks caution paragraphs itself. Every sentence built from an unfavourable item and every
   // caution lead / action is recorded while composing; compose() then sets section.caution[i] for each final paragraph holding one
   const crec = (it, t) => { if (CREC && t && (it === true || (it && cautS(it)))) CREC.push(String(t)); return t; };
-  let CREC = null; const crecU = (it, u) => { if (u) [u.text].concat(u.alt || []).forEach(t => crec(it, t)); return u; };
+  let CREC = null, FILLS = /** @type {any} */ (null); const crecU = (it, u) => { if (u) [u.text].concat(u.alt || []).forEach(t => crec(it, t)); return u; };
+  // fill site (review 2026-11-15 A / B): a template filled with an unfavourable or tagged item is recorded as caution text there
+  const FL = (/** @type {any} */ its, /** @type {string} */ t, /** @type {boolean} */ all) => { const RS = rsOf(); if (FILLS && RS) RS.fill(FILLS.rec, FILLS.F, its, t, cautS, all); return t; };
   const cautMeanings = (F, lang) => ((F && F.items) || []).filter(cautS).flatMap(it => { // + every meaning of such an item
     const x = (lang === "en" ? (enLoad(), enItem(F.domain, it)) : lang === "zh" ? (zhLoad(), zhItem(F.domain, it)) : it) || {}; return Object.values(x.meanings || {}).flat(); });
   // data tags for entries that restrain or warn (fortune-restrain.js, tagged by reading); PROV keeps each reading's provenance
@@ -2400,18 +2402,17 @@
   function compose(facts, opts = {}) {
     const calm = FS.calm ? FS.calm() : false, straight = !calm && (opts.straight != null ? !!opts.straight : straightActive());
     if (straight && crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
-    const prev = STRAIGHT, prevC = CALM, prevR = CREC;
-    STRAIGHT = straight; CALM = calm; CREC = [];
+    const prev = STRAIGHT, prevC = CALM, prevR = CREC, prevF = FILLS;
+    STRAIGHT = straight; CALM = calm; CREC = []; FILLS = { rec: [], F: facts };
     try {
       const out = composeBase(calm && facts ? Object.assign({}, facts, { extras: {} }) : facts, opts);
       if (out && out.source !== "support") {
         const L = out.lang || langOf(opts), RS = rsOf(), tr = (/** @type {any} */ it) => (L === "en" ? (enLoad(), enItem(facts.domain, it)) : L === "zh" ? (zhLoad(), zhItem(facts.domain, it)) : it);
-        const src = RS ? RS.sources(facts, tr) : [];
+        const src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : [];
         out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
       }
-      if (calm && out) delete out.plan;
-      return out;
-    } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; }
+      if (calm && out) delete out.plan; return out;
+    } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; FILLS = prevF; }
   }
   function composeBase(facts, opts = {}) {
     if (langOf(opts) === "zh") return composeZh(facts, opts);
@@ -2707,7 +2708,7 @@
     {
       const s = [zhEnd(pick(r, (F.variant && ZH_OPENERS[F.domain + "." + F.variant]) || ZH_OPENERS[F.domain] || ["先看整体"]))];
       const top = items.filter(it => !META_ITEM.test(it.id) || it.kind === "plain").slice(0, 2);
-      if (top.length) s.push(zhEnd(fill(pick(r, ZH_HEAD), { X: zhList(top.map(it => it.label)) })));
+      if (top.length) s.push(FL(top, zhEnd(fill(pick(r, ZH_HEAD), { X: zhList(top.map(it => it.label)) })), true));
       top.forEach(it => nameShown.add(it.id));
       head = top.length ? { ids: top.map(it => it.id), at: 0 } : null;
       secM.overview = [];
@@ -3055,7 +3056,7 @@
     {
       const s = [enEnd(pick(r, (F.variant && EN_OPENERS[F.domain + "." + F.variant]) || EN_OPENERS[F.domain] || ["Let's start with the overall picture"]))];
       const top = items.filter(it => !META_ITEM.test(it.id) || it.kind === "plain").slice(0, 2);
-      if (top.length) s.push(enEnd(fill(pick(r, EN_HEAD), { X: enList(top.map(it => it.label)) })));
+      if (top.length) s.push(FL(top, enEnd(fill(pick(r, EN_HEAD), { X: enList(top.map(it => it.label)) })), true));
       top.forEach(it => nameShown.add(it.id));
       head = top.length ? { ids: top.map(it => it.id), at: 0 } : null;
       secM.overview = [];
