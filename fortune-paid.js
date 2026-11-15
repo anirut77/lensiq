@@ -431,7 +431,7 @@
       groups.push({ id, title, paid: [locked] });
       sec.appendChild(offerEl(doc, offers({ lang: l, groups: [{ id, title, paid: [1] }] }, l, { doc }).find(o => o.plan === "group"), l));
     }
-    if (!groups.length) { restore(rec); return; }
+    if (!groups.length) { restore(rec); planOnly(doc, container, l); return; }
     DONE.push(rec);
     panelFor(doc, container, l);
     funnel("overview");
@@ -470,6 +470,14 @@
     box.appendChild(ul); box.appendChild(ladderEl(doc, l)); box.appendChild(mk(doc, "p", "lq-paid-free", pv.note));
     panel.parentNode.insertBefore(box, panel.nextSibling);
   }
+  /** a reading with no in-depth text to sell: no panel and no price; the goal plan (chosen by the person's own goal, not by
+   *  this reading) still shows at the end of the reading when both switches are on */
+  function planOnly(/** @type {any} */ doc, /** @type {any} */ container, /** @type {"th"|"en"|"zh"} */ l) {
+    for (const e of doc.querySelectorAll(".lq-paid-plan")) e.remove();
+    if (!planEnabled() || doc.querySelector(".lq-paid-panel")) return;
+    const blk = planEl(doc, l), help = [...container.children].find((/** @type {any} */ e) => e.matches && e.matches(".lq-helpline, .lq-helpline-result"));
+    if (help) container.insertBefore(blk, help); else container.appendChild(blk);
+  }
   /** the goal-based plan block (both switches on): the goal picker first; the plan offer (price + headings) only after a goal */
   function planEl(/** @type {any} */ doc, /** @type {"th"|"en"|"zh"} */ l) {
     const T = /** @type {any} */ (TEXT[l]), blk = mk(doc, "section", "lq-paid-plan");
@@ -494,7 +502,7 @@
    *  every reading on the page that has paid depth; drawn after the last section of the reading decorated last
    *  @param {any} doc @param {any} container @param {"th"|"en"|"zh"} l */
   function panelFor(doc, container, l) {
-    for (const e of doc.querySelectorAll(".lq-paid-panel")) e.remove();
+    for (const e of doc.querySelectorAll(".lq-paid-panel, .lq-paid-plan")) e.remove(); // one plan block per page
     const live = DONE.filter(r => r.groups.length && r.container.isConnected !== false);
     const seen = new Set(), groups = [];
     for (const r of live) for (const g of r.groups) if (!seen.has(g.title)) { seen.add(g.title); groups.push(g); }

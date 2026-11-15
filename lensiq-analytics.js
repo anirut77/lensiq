@@ -43,7 +43,7 @@
       "store", "studio", "tables", "taksa", "tarot", "teamface", "terms", "village", "zodiac", "other"
     ],
     feature: ["fortune.reading", "fortune.ai", "fortune.local",
-      "fortune.paid.overview", "fortune.paid.open", "fortune.paid.tap", "fortune.paid.paid", // fortune-paid funnel (totals, consent only)
+      "fortune.paid.overview", "fortune.paid.open", "fortune.paid.tap", "fortune.paid.paid",
       "studio.render", "photobooth.capture", "photobooth.print", "booth.count", "store.count", "signage.play", "camera.start", "camera.denied",
       "attendance.checkin", "customers.lookup", "checkout.scan", "qc.inspect", "driver.alert", "neuro.session", "insights.view", "insights.export",
       "converter.convert", "creative.analyse", "creative.compare", "interview.session", "teamface.card", "pricing.view", "palm", "faceread", "tarot",
