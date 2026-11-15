@@ -22,6 +22,8 @@ const PRICE_RE = "(?:49|99|199|149)\\s*(?:บาท|THB|泰铢)|฿";
 const PAID_SEL = "[data-lq-paid], [data-lq-offer], [data-lq-buy], .lq-paid-price, .lq-paid-heads, .lq-paid-teaser, svg[data-icon=lock], [data-lq-locked]";
 
 const ev = (page, fn, ...a) => page.evaluate(fn, ...a);
+const setSel = (id, v) => `(() => { const e = document.getElementById(${S(id)}); e.value = ${S(v)};
+  e.dispatchEvent(new Event("input", { bubbles: true })); e.dispatchEvent(new Event("change", { bubbles: true })); })()`;
 const sections = n => `document.querySelectorAll(".fa-section").length >= ${n} && !document.querySelector(".fa-loading, [aria-busy=true] .fa-section")`;
 const PAGES = {
   zodiac: async p => {
@@ -40,6 +42,16 @@ const PAGES = {
     });
     await p.waitFor(sections(2), 15000);
   },
+  // re-lock (1): three more reading pages (no page tabs), so every language has readings with in-depth text to check
+  astro: async p => {
+    await ev(p, setSel("asDay", "15")); await ev(p, setSel("asMonth", "5")); await ev(p, setSel("asYear", "2533"));
+    await ev(p, () => document.getElementById("asForm").requestSubmit()); await p.waitFor(sections(3), 15000);
+  },
+  dream: async p => {
+    await ev(p, setSel("drText", "ฝันเห็นงูใหญ่ในบ้าน แล้วนั่งเครื่องบินไปทะเล")); await p.waitFor(`!document.getElementById("drGo").disabled`, 5000);
+    await ev(p, () => document.getElementById("drGo").click()); await p.waitFor(sections(3), 15000);
+  },
+  iching: async p => { await ev(p, () => { document.getElementById("icStart").click(); document.getElementById("icAuto").click(); }); await p.waitFor(sections(3), 20000); },
 };
 
 async function openPage(browser, base, p, lang, { on = false, calm = false, width = 375 } = {}) {
@@ -120,7 +132,10 @@ export default async function ({ base, launch, check }) {
           if (!r.more) bad.push(lang + ": no read-more button (the reading layout of today)");
           const st = await page.evaluate(`${PAID_STATE}(${S(PAID_SEL)}, ${S(PRICE_RE)})`);
           if (st.n || st.price) bad.push(lang + ": paid content while off " + S(st));
-          const html0 = await page.evaluate(READING);
+          // re-lock (1): the page keeps working on the reading for a moment by itself (nav.js Thai line breaking wraps words
+          // in <span>/<wbr>), so the snapshot is taken once two snapshots 500 ms apart are equal
+          let html0 = await page.evaluate(READING);
+          for (let k = 0; k < 20; k++) { await sleep(500); const h = await page.evaluate(READING); if (h === html0) break; html0 = h; }
           await page.evaluate(`new Promise(res => { const s = document.createElement("script"); s.src = "fortune-paid.js"; s.onload = res; s.onerror = res; document.head.appendChild(s); })`);
           await page.waitFor("!!window.LQPaid", 5000);
           await page.evaluate(`(() => { const c = document.querySelector(".fa-section").parentElement; window.LQPaid.decorate(c); })()`);
@@ -132,14 +147,23 @@ export default async function ({ base, launch, check }) {
     });
 
     await check("(c) + (a): every purchase control shows its price and heading list before it can be tapped; cautions visible, advice free", async () => {
-      const bad = [], rows = [];
+      const bad = [], rows = [], withOffers = /** @type {Record<string, string[]>} */ ({});
       for (const lang of LANGS) for (const [p, readIt] of Object.entries(PAGES)) {
         const page = await openPage(browser, base, p, lang, { on: true, width: 360 });
         try {
           await readIt(page);
-          await page.waitFor(`document.querySelectorAll("[data-lq-offer]").length > 0`, 5000);
+          await sleep(800);
           const r = await page.evaluate(`${OFFERS}(${S(PRICES)}, ${S(CURRENCY[lang])})`);
           rows.push(`${lang}/${p}:${r.offers}`);
+          // re-lock (1): a reading without in-depth text has nothing to sell, so no offer (unit test (c)); then nothing
+          // paid and no price may be on the page at all
+          if (!r.offers) {
+            const st = await page.evaluate(`${PAID_STATE}(${S(PAID_SEL)}, ${S(PRICE_RE)})`);
+            if (st.n || st.price) bad.push(`${lang} ${p}: paid content without an offer ${S(st)}`);
+            for (const b of r.bad) bad.push(`${lang} ${p}: ${b}`);
+            continue;
+          }
+          (withOffers[lang] = withOffers[lang] || []).push(p);
           for (const b of r.bad) bad.push(`${lang} ${p}: ${b}`);
           if (r.plans.full !== 1 || r.plans.plus !== 1 || !r.plans.group) bad.push(`${lang} ${p}: offers ${S(r.plans)}`);
           // tapping connects no payment: no POST, no request to another origin, a short status note in the offer
@@ -153,24 +177,36 @@ export default async function ({ base, launch, check }) {
         } catch (e) { bad.push(`${lang} ${p}: ${e.message}`); } finally { await page.close(); }
       }
       console.log("    offers " + rows.join(" "));
+      // re-lock (1): the checks above must have run on offers in every language, and on most readings
+      for (const lang of LANGS) if (!(withOffers[lang] || []).length) bad.push(`${lang}: no reading with offers (test not exercised)`);
+      const nOff = LANGS.reduce((a, l) => a + (withOffers[l] || []).length, 0);
+      if (nOff < 10) bad.push(`readings with offers ${nOff} / ${rows.length} (at least 10 needed)`);
       assert(!bad.length, bad.join("\n"));
     });
 
     await check("(b) crisis set on a page with offers: no price, payment entry, lock icon or teaser left; depth and belief guidance free", async () => {
       const bad = [];
       for (const lang of LANGS) {
-        const page = await openPage(browser, base, "zodiac", lang, { on: true });
+        // re-lock (1): the first reading page (in this order) whose reading has offers; none in any page = not exercised
+        let page = null;
+        for (const p of ["zodiac", "astro", "dream", "tarot", "iching", "bazi"]) {
+          const pg = await openPage(browser, base, p, lang, { on: true });
+          await PAGES[p](pg); await sleep(800);
+          if (await pg.evaluate(`document.querySelectorAll("[data-lq-offer]").length > 0`)) { page = pg; break; }
+          await pg.close();
+        }
+        if (!page) { bad.push(lang + ": no reading with offers on any page (test not exercised)"); continue; }
         try {
-          await PAGES.zodiac(page);
-          await page.waitFor(`document.querySelectorAll("[data-lq-offer]").length > 0`, 5000);
-          const locked = await page.evaluate(`[...document.querySelectorAll(".fa-section")].filter(g => g.querySelector('[data-lq-offer="group"]')).map(g => g.getAttribute("data-section"))`);
+          // re-lock (1): the groups are marked by element (a page can show two readings with the same group ids, e.g. astro)
+          const locked = await page.evaluate(`[...document.querySelectorAll(".fa-section")].filter(g => g.querySelector('[data-lq-offer="group"]'))
+            .map((g, i) => { g.setAttribute("data-t-locked", String(i)); return String(i); })`);
           await page.evaluate("window.LQFortuneCrisis.setActive(document)");
           await sleep(300);
           const st = await page.evaluate(`${PAID_STATE}(${S(PAID_SEL)}, ${S(PRICE_RE)})`);
           if (st.n || st.price) bad.push(lang + ": paid content in the crisis state " + S(st));
           const r = await page.evaluate(`((ids) => {
             const out = [];
-            for (const id of ids) { const g = document.querySelector('.fa-section[data-section="' + id + '"]');
+            for (const id of ids) { const g = document.querySelector('.fa-section[data-t-locked="' + id + '"]');
               const bodies = g ? [...g.querySelectorAll(".lq-more-body")] : [];
               if (!bodies.length || !bodies.some(b => b.textContent.trim().length > 10)) out.push(id + ": in-depth text not given back"); }
             const adv = document.querySelector('.fa-section[data-section="advice"]');
@@ -192,8 +228,10 @@ export default async function ({ base, launch, check }) {
           await sleep(500);
           const st = await page.evaluate(`${PAID_STATE}(${S(PAID_SEL)}, ${S(PRICE_RE)})`);
           if (st.n || st.price) bad.push(lang + " calm: " + S(st));
-          const more = await page.evaluate(`document.querySelectorAll(".fa-section button.lq-more").length`);
-          if (!more) bad.push(lang + " calm: the reading's read-more depth is missing");
+          // re-lock (1): nothing of the reading is taken away (a reading may have no fold at all; when it has one, it is whole)
+          const gone = await page.evaluate(`[...document.querySelectorAll(".fa-section button.lq-more[hidden], .fa-section .lq-more-body")]
+            .filter(e => e.tagName === "BUTTON" || !e.textContent.trim()).length`);
+          if (gone) bad.push(lang + " calm: " + gone + " read-more parts emptied or hidden");
         } finally { await page.close(); }
         const dream = await openPage(browser, base, "dream", lang, { on: true });
         try {
