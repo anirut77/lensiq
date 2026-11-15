@@ -838,6 +838,8 @@ export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin
   "/attendance-qr.js",
   // fortune citation list (back office only; fortune pages no longer show citations, owner order 2026-11-12)
   "/fortune-sources.js",
+  // tap feedback, busy state and double-tap guard of every button (owner report 2026-11-14)
+  "/lensiq-busy.js",
   // Try-On catalogue tab: face blur of product photos on the merchant's device before upload (Product Check detector,
   // BlazeFace short range + MediaPipe Tasks runtime, Apache-2.0) and the plain-background cut-out (studio-core.js)
   "/admin-tryon.js", "/lensiq-tryon-core.js", "/lensiq-pc.js", "/lensiq-pc-run.js", "/studio-core.js", "/vendor/mediapipe/vision_bundle.mjs",

@@ -1,0 +1,44 @@
+# locked 2026-11-15T03:02:03Z (tools/eval-guard.mjs lock, 14 files)
+d80673530e50cc3da4a9f7e961d402cdb32dfb537aa6c5c5cbc7733eb2f3cf83  buttons-kit.mjs
+b0a330dc8942051173cc2c32d9670b40a1f3f57fd976b50ae92d30553c4de5e2  buttons-busy-list.json
+095d91f8ad06eeeb699ce41624b2d0c88fb306dbf1da7a961bcc8914d6dbf19b  buttons-exceptions.json
+3c6a598131b0e49a657ae04a05f0edf078ded307c85afee9b0db9376fda87386  buttons-busy.e2e.mjs
+eb3722ebd3789041da6f9db1d3790f26ca5adb139add07a8dc63d02f4ee432ee  buttons-busy-webkit.e2e.mjs
+8f4bfeaecc2cf4e0f8bcf77ce19dd33ba12be8254c6d85c982d369b1e9d2f36d  buttons-chrome-1.e2e.mjs
+e416a2095db28ac04702748a208e3256d9e06e3015b0ecfd1269661b7187573f  buttons-chrome-2.e2e.mjs
+453388e77aa7f718b66e5dc4757a19cc35f43abcc7dc5f59528bb1b472b06e55  buttons-chrome-3.e2e.mjs
+43e079e7aaee48667d4bea1aec6b8e59af6d7132c3d6df1039870e32b9b7d91f  buttons-webkit-1.e2e.mjs
+2a210ff6a901f956aa6eafe9fa1f21061bb8be27467951fb7e92c76b9dd40d05  buttons-webkit-2.e2e.mjs
+795a71a2d2a24491df747498ea51964e248bb3e102a26c1bfc2d543e5c09fcd2  buttons-webkit-3.e2e.mjs
+01ee1f26273f8268f70fb87cf6c650763829330cc337aae8fa1a2f477646b62e  lensiq-busy.test.js
+8cd3e82431afe9d61c35c590cbb9493aa0f366c13b6d3261c7bdbd9179720291  buttons-probe.mjs
+71abcffc553bc9f44f9fb1303249eae9a85422d02112459e299251bd3c575afa  buttons-busy-discover.mjs
+# repo copies (byte-identical to the locked set above), locked 2026-11-15 BEFORE any product fix on branch buttons-press (base 512e267); owner report 2026-11-14 (iPhone: tap feedback, text highlight on repeated taps, double taps). An earlier uncommitted lock of 03:01Z in ~/LENSIQ-field/evals/buttons/locked.sha256 is superseded: only line wrapping to the 200-character limit changed, no check or value.
+d80673530e50cc3da4a9f7e961d402cdb32dfb537aa6c5c5cbc7733eb2f3cf83  tests/e2e/buttons-kit.mjs  # repo file
+b0a330dc8942051173cc2c32d9670b40a1f3f57fd976b50ae92d30553c4de5e2  tests/e2e/buttons-busy-list.json  # repo file
+095d91f8ad06eeeb699ce41624b2d0c88fb306dbf1da7a961bcc8914d6dbf19b  tests/e2e/buttons-exceptions.json  # repo file
+3c6a598131b0e49a657ae04a05f0edf078ded307c85afee9b0db9376fda87386  tests/e2e/buttons-busy.e2e.mjs  # repo file
+eb3722ebd3789041da6f9db1d3790f26ca5adb139add07a8dc63d02f4ee432ee  tests/e2e/buttons-busy-webkit.e2e.mjs  # repo file
+8f4bfeaecc2cf4e0f8bcf77ce19dd33ba12be8254c6d85c982d369b1e9d2f36d  tests/e2e/buttons-chrome-1.e2e.mjs  # repo file
+e416a2095db28ac04702748a208e3256d9e06e3015b0ecfd1269661b7187573f  tests/e2e/buttons-chrome-2.e2e.mjs  # repo file
+453388e77aa7f718b66e5dc4757a19cc35f43abcc7dc5f59528bb1b472b06e55  tests/e2e/buttons-chrome-3.e2e.mjs  # repo file
+43e079e7aaee48667d4bea1aec6b8e59af6d7132c3d6df1039870e32b9b7d91f  tests/e2e/buttons-webkit-1.e2e.mjs  # repo file
+2a210ff6a901f956aa6eafe9fa1f21061bb8be27467951fb7e92c76b9dd40d05  tests/e2e/buttons-webkit-2.e2e.mjs  # repo file
+795a71a2d2a24491df747498ea51964e248bb3e102a26c1bfc2d543e5c09fcd2  tests/e2e/buttons-webkit-3.e2e.mjs  # repo file
+01ee1f26273f8268f70fb87cf6c650763829330cc337aae8fa1a2f477646b62e  tests/unit/lensiq-busy.test.js  # repo file
+8cd3e82431afe9d61c35c590cbb9493aa0f366c13b6d3261c7bdbd9179720291  tools/buttons-probe.mjs  # repo file
+71abcffc553bc9f44f9fb1303249eae9a85422d02112459e299251bd3c575afa  tools/buttons-busy-discover.mjs  # repo file
+# locked 2026-11-15T03:09:42Z (tools/eval-guard.mjs lock, 1 file)
+3711ba9ed4127cccdd3560854d25e1d202f06c6c7f8ae890ef65f9728f6dec1f  buttons-busy-list.json
+# amendment 1 2026-11-15 (buttons-busy-list.json), found on the first after-fix run: the interview.html #ivDStart entry did not open the delivery tab, so its button was always hidden (pane-delivery is hidden until tab-delivery is chosen) and the entry could never pass or fail on the busy rule. Setup now clicks #tab-delivery first. No rule, button, timing or other entry changed.
+3711ba9ed4127cccdd3560854d25e1d202f06c6c7f8ae890ef65f9728f6dec1f  tests/e2e/buttons-busy-list.json (amendment 1)  # repo file
+# locked 2026-11-15T03:12:22Z (tools/eval-guard.mjs lock, 2 files)
+66e0357b5876ac34e31e50a82f51d207d63894bdd546ccb17d087c434a02d025  buttons-kit.mjs
+a138b16b998bb1f87fdea5b0732b1ce13bcb055cda78fd4fef227ed7ca14840b  buttons-busy-discover.mjs
+# amendment 2 2026-11-15 (buttons-kit.mjs + buttons-busy-discover.mjs), found on the after-fix run: the busy rule says "exactly one camera open" but counted EVERY getUserMedia call; interview.html opens the microphone and the camera as two separate requests by design (a slow microphone must not block the camera), so one tap counted 2 and no page could pass. Now: camera requests (getUserMedia with video) must be exactly 1 as before, and microphone-only requests are counted separately and must be at most 1 (new check, stricter than before for audio). Timings, busy / disabled check, entries and every other rule unchanged.
+66e0357b5876ac34e31e50a82f51d207d63894bdd546ccb17d087c434a02d025  tests/e2e/buttons-kit.mjs (amendment 2)  # repo file
+a138b16b998bb1f87fdea5b0732b1ce13bcb055cda78fd4fef227ed7ca14840b  tools/buttons-busy-discover.mjs (amendment 2)  # repo file
+# locked 2026-11-15T03:22:58Z (tools/eval-guard.mjs lock, 1 file)
+55d84247ffbd3f91d84ba22464e0f43d70140aff93462f079ad2f02a6216d667  buttons-probe.mjs
+# amendment 3 2026-11-15 (buttons-probe.mjs), found on the after-fix WebKit run (39 of 76 style checks failed on "active" only, Chrome 0): two artefacts of driving WebKit with a mouse, traced with the :active chain: (a) after a press released away from the button, Playwright WebKit marks the NEXT hovered element :active with no press, so that button's "not pressed" snapshot already looked pressed; a second mouseup with no button down (fires no click) clears it; (b) a mouse event right after scrollIntoView is hit-tested at the old scroll position, so the press missed the button; the probe now waits 200 ms after scrolling. The pressed-vs-not-pressed comparison, the properties, the candidates and every other check are unchanged.
+55d84247ffbd3f91d84ba22464e0f43d70140aff93462f079ad2f02a6216d667  tools/buttons-probe.mjs (amendment 3)  # repo file
