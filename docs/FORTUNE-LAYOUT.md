@@ -66,6 +66,11 @@ Review of 2026-11-15 (fresh detector), decided by reading:
   TH / ZH / EN headline "…{X}"; headlines count `all` tags only) is recorded where it is filled (`FL` in `fortune-ai.js`;
   contrast at the claim, headlines at the sentence); provenance area `fill`. A short name no longer depends on the fragment
   length of `markCaution`.
+- Thai rewrites (re-review 2026-11-15): the Thai composer rewrites a meaning before it reaches the page (modal "ควร" dropped,
+  "{LEV}เป็นสัญญาณให้{M}" and the other imperative, advice and action frames). Every unit built from a meaning
+  (`itemSentence`, `adviceUnit`, `actionLine`) carries its source (`src: { it, m }`); `paragraphs()` records provenance
+  `{ id, area }` on the final vetted text when that meaning belongs to a tagged area (or an unfavourable item, or a restraining
+  tip). The rewritten words are never matched.
 
 Not tagged on purpose: neutral description of character, encouragement, favourable predictions and positive tips that are not
 framed as holding back (for example "wear green", "set a fixed share aside as savings", "make time to rest"). Coverage limit:

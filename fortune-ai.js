@@ -1711,7 +1711,7 @@
   }
   // "คนที่มีเส้นนี้มีความคิด…" → "คุณมีความคิด…" (ตัวเรียบเรียงเอ่ยชื่อสิ่งที่พบไว้แล้ว ไม่ต้องอ้างซ้ำ)
   const PEOPLE_WITH = /^(?:คน|ผู้)ที่มี\S{1,14}(?:นี้|แบบนี้|ลักษณะนี้)(?:มัก)?(?=\S)/;
-  function itemSentence(ctx, it, m, mode) { return crecU(it, itemSentence0(ctx, it, m, mode)); } function itemSentence0(ctx, it, m, mode) {
+  function itemSentence(ctx, it, m, mode) { const u = crecU(it, itemSentence0(ctx, it, m, mode)); if (u) u.src = { it, m }; return u; } function itemSentence0(ctx, it, m, mode) {
     const r = ctx.r;
     if (PEOPLE_WITH.test(m)) m = m.replace(PEOPLE_WITH, "คุณ");
     let R0 = null;
@@ -1825,6 +1825,7 @@
       if (!s) continue;
       ok.push(Object.assign({}, u, { text: s }));
       if (u.claim) { ctx.claims.push(Object.assign({ text: s }, u.claim)); if (u.claim.kind === "contrast") FL([{ id: u.claim.ids[0] }], s, false); } // the weak item
+      if (u.src) FL(u.src.it ? [u.src.it] : "any", s, false, u.src.m); // Thai rewrite step: the meaning's item and area (review 2026-11-15)
     }
     ctx.lastSub = ok.filter(u => u.sub).length;
     ctx.lastSubText = ok.filter(u => u.sub).map(u => u.text);
@@ -1958,7 +1959,7 @@
       text = fill(f, ctx.vars({ M: m }));
     }
     spend(ctx, text); ctx.advN = (ctx.advN || 0) + 1;
-    return { text, noConn: true, sub: true };
+    return { text, noConn: true, sub: true, src: { it, m } };
   }
 
   // ข้อแนะนำที่ลงมือได้จริง 1 ข้อ ดึงจากหมวด advice ของสิ่งที่พบในหัวข้อนั้น (ต้องเป็นคำแนะนำจริง และตรงหัวข้อ)
@@ -1979,7 +1980,7 @@
     if (/คือ/.test(x.m)) af = ACTION_FRAMES.find(f => !/คือ/.test(f)) || af;
     const text = fill(af, ctx.vars({ TW: TAG_WORDS[id] || "นี้", M: x.m }));
     spend(ctx, text);
-    return { text, fixed: true, sub: true };
+    return { text, fixed: true, sub: true, src: { it: null, m: x.c } };
   }
 
   function cautionLead(ctx, it, sec) { return crecU(true, cautionLead0(ctx, it, sec)); } function cautionLead0(ctx, it, sec) {
@@ -2011,7 +2012,7 @@
   const crec = (it, t) => { if (CREC && t && (it === true || (it && cautS(it)))) CREC.push(String(t)); return t; };
   let CREC = null, FILLS = /** @type {any} */ (null); const crecU = (it, u) => { if (u) [u.text].concat(u.alt || []).forEach(t => crec(it, t)); return u; };
   // fill site (review 2026-11-15 A / B): a template filled with an unfavourable or tagged item is recorded as caution text there
-  const FL = (/** @type {any} */ its, /** @type {string} */ t, /** @type {boolean} */ all) => { const RS = rsOf(); if (FILLS && RS) RS.fill(FILLS.rec, FILLS.F, its, t, cautS, all); return t; };
+  const FL = (its, t, all, m = "") => { const RS = rsOf(); if (FILLS && RS) RS.fill(FILLS.rec, FILLS.F, its, t, cautS, all, m, cleanMeaning); return t; };
   const cautMeanings = (F, lang) => ((F && F.items) || []).filter(cautS).flatMap(it => { // + every meaning of such an item
     const x = (lang === "en" ? (enLoad(), enItem(F.domain, it)) : lang === "zh" ? (zhLoad(), zhItem(F.domain, it)) : it) || {}; return Object.values(x.meanings || {}).flat(); });
   // data tags for entries that restrain or warn (fortune-restrain.js, tagged by reading); PROV keeps each reading's provenance

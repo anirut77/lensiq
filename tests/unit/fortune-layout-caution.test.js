@@ -412,3 +412,92 @@ test("data tags (D / E / F): tarot m00.r / swords11.r love, sums that reuse a ta
   const doc = fs.readFileSync(path.join(ROOT, "docs", "FORTUNE-LAYOUT.md"), "utf8");
   for (const k of ["m10", "hex.4", "m00.r", "swords11.r", "sum."]) assert.ok(doc.includes(k), "docs record the decision for " + k);
 });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// RE-LOCK 2026-11-15 (5), re-review of 80da630 (Thai only): the Thai composer rewrites a tagged item's meaning before it reaches
+// the page (modal "ควร" dropped, "{LEV}เป็นสัญญาณให้{M}" and the other imperative / advice / action frames), so whole-token
+// matching missed it and the sentence folded (numbers pair.48 / pair.38 / sum.38 money, BaZi luck.peer advice …). Append-only.
+// Contract: every Thai sentence the composer builds from a tagged item's meaning carries provenance { id, area } recorded at
+// the rewrite step (not by matching the rewritten words) and its paragraph is never folded. Corpus: every discipline, TH,
+// gentle and straight, fact sets until each tagged key the engines produce has been composed (<= 300 per discipline / mode).
+// Independent check: the tail of each tagged meaning (rewrites change the start of a sentence, not its end) in any part means
+// that part must be visible and its paragraph must carry provenance with that item's id.
+const tailOf = m => { const c = String(m || "").trim().replace(/[.。\s]+$/, ""); return c.length >= 20 ? c.slice(-20) : c.length >= 12 ? c : null; };
+const REVIEW_REWRITES = [["numbers", "pair.48", "money"], ["numbers", "pair.38", "money"], ["numbers", "sum.38", "money"], ["bazi", "luck.peer", "advice"]];
+let TH_TAG_CORPUS = null;
+const AMBIGUOUS = { n: 0 };
+async function thTagCorpus() {
+  if (TH_TAG_CORPUS) return TH_TAG_CORPUS;
+  const X = await exportTool(), RS = loadRS(), out = [], seen = {};
+  for (const d of X.DOMAINS) for (const straight of [false, true]) {
+    const r = X.lcg(8484 + X.DOMAINS.indexOf(d) * 19 + (straight ? 3 : 0)), want = new Set(), got = new Set();
+    for (let i = 0; i < 300; i++) {
+      let f; try { f = X.factsFor(d, i, r); } catch (e) { continue; }
+      const tagged = (f.items || []).filter(it => RS.of(f.domain || d, it));
+      tagged.forEach(it => want.add(String(it.id).replace(/^card\.[a-z]+\./, "")));
+      if (!tagged.some(it => !got.has(String(it.id).replace(/^card\.[a-z]+\./, ""))) && i >= 40) continue;
+      const res = FA.compose(f, { seed: 3100 + i, lang: "th", straight });
+      if (!res || res.crisis || !(res.sections || []).length) continue;
+      tagged.forEach(it => got.add(String(it.id).replace(/^card\.[a-z]+\./, "")));
+      const raw = tagged.flatMap(it => { const tag = RS.of(f.domain || d, it), ms = it.meanings || {};
+        return (tag === "all" ? Object.keys(ms) : tag).flatMap(a => [].concat(ms[a] || []).map(m => ({ id: it.id, area: a, tail: tailOf(m) }))).filter(x => x.tail); });
+      // re-lock 6 (ground truth only): a tail is attributed to the tagged items whose tagged meanings carry it (any of them may
+      // hold the provenance), and is not attributed at all when untagged text of the same fact set carries it too (template tails
+      // such as "…ต้องใช้ความใส่ใจมากกว่าปกติ" or tarot's "…จะค่อย ๆ ชัดเจนขึ้นจนคุณสัมผัสได้" are shared by many entries)
+      const untagged = (f.items || []).flatMap(it => { const tag = RS.of(f.domain || d, it), ms = it.meanings || {};
+        return Object.keys(ms).filter(a => !tag || (tag !== "all" && !tag.includes(a))).flatMap(a => [].concat(ms[a] || []).map(String)); });
+      const tails = [];
+      for (const x of raw) {
+        if (untagged.some(u => u.includes(x.tail))) { AMBIGUOUS.n++; continue; }
+        const ids = new Set(raw.filter(y => y.tail === x.tail || y.tail.endsWith(x.tail)).map(y => y.id));
+        tails.push(Object.assign({}, x, { ids }));
+      }
+      out.push({ d, straight, f, res, tails });
+    }
+    seen[d + (straight ? "S" : "G")] = { want: want.size, got: got.size };
+  }
+  return (TH_TAG_CORPUS = { out, seen });
+}
+
+test("TH rewrites: every tagged key the engines produce is composed in Thai, gentle and straight (coverage)", async () => {
+  const { seen } = await thTagCorpus();
+  for (const [k, v] of Object.entries(seen)) assert.equal(v.got, v.want, `${k}: ${v.got} of ${v.want} tagged keys composed`);
+});
+
+test("TH rewrites: every sentence derived from a tagged meaning is outside closed folds and carries provenance with its item id", async () => {
+  const { out } = await thTagCorpus(), bad = [], per = {};
+  let found = 0;
+  for (const { d, straight, res, tails } of out) {
+    const prov = FA._internal.provenance(res);
+    for (const s of res.sections) for (const x of RD.planSection(s, "th")) for (const t of tails) {
+      if (!x.text.includes(t.tail)) continue;
+      found++; per[d] = (per[d] || 0) + 1;
+      const ok = x.visible && prov.some(p => p.section === s.id && p.para === x.para && t.ids.has(p.id));
+      if (!ok) { bad.total = (bad.total || 0) + 1; if (bad.length < 25) bad.push(`${d} ${straight ? "S" : "G"} ${s.id} ${t.id} ${t.area} ${x.visible ? "no provenance" : "FOLDED"}: …${x.text.slice(-70)}`); }
+    }
+  }
+  assert.ok(found >= 2000, "derived sentences found " + found);
+  assert.equal(bad.total || 0, 0, (bad.total || 0) + " derived Thai sentences folded or without provenance:\n" + bad.join("\n"));
+});
+
+test("TH rewrites: the reviewer's rewritten examples (pair.48, pair.38, sum.38 money; BaZi luck.peer advice) and the rewrite frames", async () => {
+  const { out } = await thTagCorpus(), bad = [];
+  const hits = Object.fromEntries(REVIEW_REWRITES.map(([d, id, a]) => [d + " " + id + " " + a, 0]));
+  let framed = 0;
+  for (const { d, straight, res, tails } of out) {
+    const prov = FA._internal.provenance(res);
+    for (const s of res.sections) for (const x of RD.planSection(s, "th")) for (const t of tails) {
+      if (!x.text.includes(t.tail)) continue;
+      const k = d + " " + t.id + " " + t.area;
+      if (k in hits) hits[k]++;
+      // a rewrite path: the derived sentence is framed ("…เป็นสัญญาณให้", "…ชวนให้", "…แนะให้", "ลอง…", "ตามคำแนะนำของ…")
+      if (/เป็นสัญญาณให้|ชวนให้|แนะให้|ตามคำแนะนำของ|(?:^|\s)ลอง/.test(x.text)) {
+        framed++;
+        if (!x.visible || !prov.some(p => p.section === s.id && p.para === x.para && t.ids.has(p.id))) bad.push(`${k} ${straight ? "S" : "G"}: ${x.text.slice(0, 80)}`);
+      }
+    }
+  }
+  for (const [k, n] of Object.entries(hits)) assert.ok(n >= 1, k + ": composed " + n + " times");
+  assert.ok(framed >= 200, "framed (rewritten) derived sentences found " + framed);
+  assert.equal(bad.length, 0, bad.length + " framed derived sentences folded or without provenance:\n" + bad.slice(0, 25).join("\n"));
+});

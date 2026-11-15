@@ -151,7 +151,7 @@ A page may appear in two categories. Pages not listed under a category are platf
   3. the crisis net always takes priority; straight mode never bypasses it, and when it triggers no remedies, paid
      service or straight reading is shown;
   4. no wording that says the bad result will happen unless the user pays or performs something (no fear-selling;
-     see Remedies and merit).
+     see Remedies, merit and paid fortune content).
   Also: no lottery numbers; no medical advice and no cosmetic or medical procedure advice (reversible styling
   suggestions below are allowed); no emotion or deception inference.
 - Look suggestions (owner request and wording 2026-11-13): the tool suggests reversible styling with a fortune reading
@@ -164,15 +164,19 @@ A page may appear in two categories. Pages not listed under a category are platf
   (brow shapes, lip and liner styles from the salon's own catalogue); the method is left to the salon and the tool's
   wording never names or recommends it. Adults only; hidden when the crisis net triggers or the tab is calm; no photos
   stored by default; never tied to a purchase.
-- Remedies and merit (owner decision 2026-11-10, replaces "no paid remedies"):
-  - Never sell a remedy, a change of fortune or any outcome. No wording like "pay and your luck improves" or
-    "guaranteed to fix ชง".
-  - A paid "merit on your behalf" service is allowed only as a service: we charge for staff time, travel and
-    photo/video proof. The donation or offering amount is shown separately and passed on in full, with proof and a
-    receipt.
-  - Remedy, place and lucky-item recommendations are free information, labelled "according to belief, please use your
-    own judgement", and are never tied to a purchase.
-  - Never offer the paid service when the crisis net triggers; show help resources instead.
+- Remedies, merit and paid fortune content (owner decision 2026-11-15, replaces the 2026-11-10 "Remedies and merit"
+  rule; recorded in docs/PENDING-DECISIONS.md):
+  - General belief advice is free: lucky colours, directions, items, places and general guidance, labelled "according
+    to belief, please use your own judgement".
+  - Paid content is allowed: in-depth readings per group, monthly and yearly timing, and the goal-based plan
+    (แผนมูตามเป้าหมาย: which place, which day and time, order of steps, offerings, colours and directions for the
+    person's own goal and birth data). Only approved, published Merit place entries appear in a plan.
+  - A "recommended sources" section with links to outside sellers is allowed; we do not sell items on our own site.
+  - Hard limits that remain (separate from the cancelled rule):
+    a. no promise or implication of a result, and no "bad outcome unless you pay"; warnings and what to do about them
+       stay free and complete;
+    b. no prices, purchase buttons, plans or seller links while the crisis flag is set;
+    c. paid features stay behind their off switches until billing works and the owner approves the go-live.
 - No AGPL, GPL or non-commercial models, code or data in the product. No Ultralytics.
   `vendor/models/faceparse-*.onnx` is never committed. Datasets, test videos and photos stay out of the repo.
 - PDPA: keep privacy defaults and add notes to `docs/PDPA-NOTES-FOR-COUNSEL.md`. A lawyer reviews before sale.
