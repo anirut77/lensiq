@@ -1,7 +1,7 @@
 /* i18n/en-fortune-iching.js — English for iching.html / iching.js (mirrors zh-fortune-iching.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
   /* Static page */
-  "iching.desc": "Toss three coins six times to cast one of the 64 hexagrams, with changing lines and the relating hexagram, for fun at booths and events",
+  "iching.desc": "Toss three coins six times to cast one of the 64 hexagrams, with changing lines and the relating hexagram, for booths and events, based on belief",
   "iching.disclaimerRest": "Do not use it for decisions about health, finances, legal matters or important relationships",
   "iching.modeLabel": "Choose a mode",
   "iching.qLabel": "Your question (optional · never saved or sent)",
@@ -81,7 +81,7 @@
   "iching.cardTitle": "Hexagram {n} {zh} · {th}",
   "iching.cardSub": "Changing to hexagram {n} · {th}",
   "iching.cardAdvice": "Advice: {a}",
-  "iching.cardFoot": "For entertainment only, based on traditional belief, not science · the I Ching text is in the public domain",
+  "iching.cardFoot": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement. · the I Ching text is in the public domain",
 
   /* Sources */
   "iching.src.0": "James Legge (1882), The I Ching — Sacred Books of the East, vol. 16 (public domain, sacred-texts.com)",

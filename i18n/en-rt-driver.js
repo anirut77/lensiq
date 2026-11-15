@@ -30,7 +30,6 @@
   "ปิดโปรแกรมนั้นแล้วกดลองใหม่": "Close that program, then press Retry",
   "กล้องที่เลือกไม่รองรับการตั้งค่านี้ ลองเลือกกล้องอื่น": "The selected camera does not support this setting. Try another camera",
   "เปิดกล้องไม่สำเร็จ ลองใหม่อีกครั้ง": "Could not start the camera. Please try again",
-  "ใช้โหมดประหยัด ขนาดภาพตรวจจับ": "Using power-saving mode, detection image size",
   "กรอกข้อมูลแล้วกดเริ่มเที่ยว": "Fill in the details, then press Start trip",
   "กำลังสลับกล้อง": "Switching camera",
   "แนะนำให้กดปรับเทียบใหม่": "Recalibration recommended",

@@ -1,7 +1,7 @@
 /* i18n/en-kb-siamsee.js — English reading data (Siam Si fortune sticks, 28 slips) for fortune-ai.js (English mode). Mirrors i18n/zh-kb-siamsee.js key for key.
-   The slip verses and readings are original entertainment content, not taken from any temple or shrine.
+   The slip verses and readings are original content, not taken from any temple or shrine.
    "very favorable" / "favorable" / "middling" match the slip levels in tarot-kb.js.
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var X = "Siam Si is the Thai practice of fortune sticks: you shake a cup of numbered sticks until one falls out, then read the slip with the same number";

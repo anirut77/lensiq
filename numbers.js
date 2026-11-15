@@ -283,9 +283,11 @@
     // และไม่ยกคู่ที่ตำราจัดว่าควรระวังเป็นตัวอย่างที่ดี — ตัดสินจากระดับในคลังความรู้ (KB.pairs) เสมอ
     const have = new Set((r.pairs || []).map(p => p.pair));
     const tipOk = t => { if (typeof t === "string") return true; if ((t.avoid || []).some(x => have.has(x))) return false; return (t.good || []).every(x => (KB.pairs[pairKey(x)] || [])[0] !== "c"); };
-    const want = (topic && KB.goals[topic] ? KB.goals[topic].tips : KB.generalTips).filter(tipOk).map(t => t.t || t);
+    const wantT = (topic && KB.goals[topic] ? KB.goals[topic].tips : KB.generalTips).filter(tipOk), want = wantT.map(t => t.t || t);
     const goalTips = gm.filter(g => g.hit.length && (!topic || topic === "overall" || g.id === topic)).map(g => ai ? "เบอร์นี้มีคู่เลขที่ตรงกับเป้าหมายด้าน" + g.th : "เบอร์นี้มีคู่ " + g.hit.join(" และ ") + " ซึ่งตรงกับเป้าหมายด้าน" + g.th);
-    const extras = { tips: want.slice(0, 3).concat(goalTips) };
+    // restrainTips: the tips the knowledge base marks as restraining (avoid: the pairs a tip says to steer clear of), so the
+    // reading layout never folds them (fortune-restrain.js sources)
+    const extras = { tips: want.slice(0, 3).concat(goalTips), restrainTips: wantT.slice(0, 3).filter(t => t && t.avoid && t.avoid.length).map(t => t.t) };
     if (r.weekday) extras.luckyColors = [r.weekday.color];
     return {
       domain: "numbers", topic: topic || "overall", subject: {},

@@ -1,0 +1,26 @@
+# locked 2026-11-14T15:59:59Z (tools/eval-guard.mjs lock, 2 files)
+fa0d7a40dfcc8ec5215bb39f87f96b64d17ea59ead8d53763fef756c9fe4cc81  tests/unit/fortune-layout.test.js
+c6cb0dd780e1b60edef60304a171972970b9f3fc0a683c51960462f684e453a6  tests/e2e/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-14 (first run after the build, 3 passed / 4 failed): test-setup fix only. STRUCT inspected reading groups inside a page tab that is not selected (horoscope "today", hidden by the page), where nothing can be visible; those groups are now checked after their tab is opened (stricter: every group is checked visible). No assertion, input or threshold removed or loosened. The Enter-key failure was a product bug (fixed in fortune-read.js), not changed in the test.
+# locked 2026-11-14T16:26:10Z (tools/eval-guard.mjs lock, 1 file)
+a167d0487ae02d8c655148d045ff1409dab77b9ea1486464241f55748ff8bc03  tests/e2e/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-14 (2): expected EN wording only. The repo-wide fortune safety filter (planner.test.js "fortune hard bans", category en:certainty) blocks the word "guarantee" in any EN fortune string, so the EN line now says "We cannot vouch for the accuracy of any prediction." The EN check accepts "do not / cannot + guarantee / vouch for / promise"; every other assertion unchanged.
+# locked 2026-11-14T16:39:56Z (tools/eval-guard.mjs lock, 2 files)
+9071ba8178caecec0b72c1fd2df3eb94fdb76ac136e8c56838b51928261905c8  tests/unit/fortune-layout.test.js
+9916298f3c7b9d5bb1fbc30debe129a13b59951a406afeabf685653eb2d9bcfe  tests/e2e/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-14 (3): test-setup fix only, follow-up to re-lock (1). Opening a page tab hides the other tab, so the in-page menu of the hidden tab measured 0 px ("menu links under 44 px"); a menu inside an unselected tab panel is now checked when its tab is open (same rule as the groups). No assertion, input or threshold removed. The report failure in the same run ("long reading without an in-page menu") was a product bug (fortune-read.js removed the report menu), fixed in the product.
+# locked 2026-11-14T16:51:43Z (tools/eval-guard.mjs lock, 1 file)
+f82efb359fba78fe490be74d43e92f86ace384afd18eca0560263af8bc75e05c  tests/e2e/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-15 (4), review round 2 finding F3: restore dropped check. Re-lock (3) skipped menus inside an unselected tab but the harness never checked them after opening the tab; the menu checks (link targets, 44 px, aria-label) now run on the menus shown with each opened tab. Stricter only.
+# locked 2026-11-14T18:53:34Z (tools/eval-guard.mjs lock, 1 file)
+7772f6a214f5e9b9bb193429eb403120f4da0a68f1b3ffbda668b57502588d04  tests/e2e/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-15 (5), owner extension of Part A item 5, locked BEFORE building it: append-only additions. Unit: overview limits, overview = start of the main point, only overview + composer-marked text shown before opening, rejoin per section, group structure documented (docs/FORTUNE-LAYOUT.md). E2E: overview at most 3 lines per group at 375 px with every marked caution paragraph shown; every group opens and closes on tap (touch) and by Enter in TH/EN/ZH. No existing assertion changed. Before: unit item-5 tests 0/2.
+# locked 2026-11-15T02:31:23Z (tools/eval-guard.mjs lock, 2 files)
+380f9bc364e72df54ba58b4d17160ccc3270cfd78aede5df6a5e50c22cea45d6  tests/unit/fortune-layout.test.js
+65f5c74dffae43fd227ff5792534502c0f64768c0fa044c57df4083b4283756c  tests/e2e/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-15 (6): test fixes found on the first run of the item-5 checks (no threshold loosened). (a) A group whose main point is itself a composer-marked caution paragraph has 0 non-caution overview lines; the check now requires at least 1 visible line in total and still at most 3 non-caution lines. (b) The tap check measured the button while the page was still smooth-scrolling (styles.css scroll-behavior), so touches landed off the button; it now scrolls with behavior instant and measures after the scroll settles. The keyboard failures in that run followed from (b).
+# locked 2026-11-15T02:37:56Z (tools/eval-guard.mjs lock, 1 file)
+a4e9c96cfbae92c0fed6482dc6954782bb1e1be28b800a144a8d2a951a20b0aa  tests/e2e/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-15T14:40Z (branch fortune-live), owner order 2026-11-15 item 2 (final disclaimer wording; the owner explicitly ordered the locked tests updated): LINE_TH and the EN / ZH lines are the owner's final wording, matched word for word (stricter than the earlier EN / ZH patterns). No other assertion changed. Copies: ~/LENSIQ-field/evals/fortune-live/relock/. Before the build: unit A1 3 tests fail (line, pages, LEGAL-PACKET).
+a45b2accfee8b77ee5c04b8f6e6558b32fb686e9832674489a4ad46d6e48521b  tests/unit/fortune-layout.test.js  # repo file
+c3a9894e698793d9e21f734d8ca07da589dda87ac1b4959ffee8f2fda7289681  tests/e2e/fortune-layout.e2e.mjs  # repo file

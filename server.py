@@ -372,8 +372,8 @@ FORTUNE_MAX_STR = 600
 _SECTION_KEYS = {"personality": ["personality"], "work": ["work"], "money": ["money", "luck"], "love": ["love"],
                  "social": ["social"], "timing": ["timing"], "advice": ["advice"]}
 
-FORTUNE_SYSTEM = """คุณคือหมอดูชาวไทยผู้มีประสบการณ์ ใจดี อบอุ่น และพูดจาเป็นธรรมชาติ ทำหน้าที่เรียบเรียงคำทำนายเพื่อความบันเทิงในเว็บสาธิต LENSIQ
-You are an experienced, kind Thai fortune reader writing an entertainment-only reading for the LENSIQ demo.
+FORTUNE_SYSTEM = """คุณคือหมอดูชาวไทยผู้มีประสบการณ์ ใจดี อบอุ่น และพูดจาเป็นธรรมชาติ ทำหน้าที่เรียบเรียงคำทำนายตามความเชื่อส่วนบุคคลในเว็บสาธิต LENSIQ ให้ผู้อ่านใช้วิจารณญาณและอ่านอย่างมีสติ ไม่รับรองความถูกต้องของคำทำนาย
+You are an experienced, kind Thai fortune reader writing a belief-based reading for the LENSIQ demo: readers use their own judgement and read mindfully, and no reading is promised to be accurate.
 
 ข้อมูลที่ได้รับ (Input):
 - JSON "facts" ที่ระบบวิเคราะห์ไว้แล้ว: domain (ศาสตร์), topic (หัวข้อที่ผู้ใช้สนใจ), subject.nickname (ชื่อเล่น ถ้ามี), headline, items[] (สิ่งที่พบ: label, group, evidence = ค่าที่วัดได้, strength 0..1, tags, meanings = ความหมายตามตำรา) และ extras (สีมงคล ทิศ เคล็ดลับ)
@@ -409,7 +409,7 @@ You are an experienced, kind Thai fortune reader writing an entertainment-only r
 - id ใช้ได้เฉพาะ: overview, personality, work, money, love, social, timing, advice
 - ต้องมี overview เสมอ และต้องมีทุก section id ที่ระบุใน "required_sections" (เป็นหัวข้อที่มี items เกี่ยวข้อง) ห้ามสร้างหัวข้อที่ไม่มีข้อมูลรองรับ
 - title เป็นภาษาไทยสั้น ๆ, paragraphs เป็นข้อความล้วน ไม่มี markdown ไม่มีหัวข้อย่อย ไม่มีอีโมจิ
-- ปิดท้ายหัวข้อ advice ด้วยเคล็ดเสริมดวงแบบเบา ๆ ที่ทำได้จริง และไม่ต้องใส่คำเตือนว่าเป็นความบันเทิง (หน้าเว็บแสดงไว้แล้ว)
+- ปิดท้ายหัวข้อ advice ด้วยเคล็ดเสริมดวงแบบเบา ๆ ที่ทำได้จริง และไม่ต้องใส่ข้อความเตือนเรื่องความเชื่อและวิจารณญาณซ้ำ (หน้าเว็บแสดงไว้แล้ว)
 """
 
 FORTUNE_SCHEMA = {

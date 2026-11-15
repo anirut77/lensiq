@@ -35,7 +35,7 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       await page.evaluate(() => { localStorage.clear(); localStorage.setItem("dr-cam", JSON.stringify("fake-cam-2")); });
       await page.reload();
       await page.evaluate((d, p) => { window.__dets = [p, d]; window.__LQ_FAKE_DET = key => key === "driver" ? window.__dets : null; }, DRIVER, PASSENGER);
-      await page.waitFor(`document.querySelector("#engine").textContent.includes("พร้อมใช้งาน")`, 10000);
+      await page.waitFor(`document.querySelector("#engine").dataset.state === "ready"`, 10000);
       const camId = await page.evaluate(() => window.__LQ_DR.camId);
       assert(camId === "fake-cam-2", "old dr-cam value honoured, got " + camId);
       const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("dr-cam")));
@@ -116,7 +116,7 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
           { x: 0.4, y: 0.3, w: 0.2, h: 0.4, score: 0.8, expressions: { neutral: 0.3, happy: 0.7 } }
         ] : null;
       });
-      await page.waitFor(`document.querySelector("#engine").textContent.includes("พร้อมใช้งาน")`, 10000);
+      await page.waitFor(`document.querySelector("#engine").dataset.state === "ready"`, 10000);
       await page.evaluate(async () => {
         const f = document.querySelector("#setup");
         const c = document.createElement("canvas"); c.width = 32; c.height = 24;

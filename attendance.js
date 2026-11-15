@@ -172,7 +172,7 @@ async function init() {
 
   if (!camWanted) { camera.stop(); return; } // turned off while it was starting
   ready = true; camMsg.classList.add("hide");
-  rebuildMatcher(); say("พร้อมใช้งาน"); camPowerSync();
+  rebuildMatcher(); say(""); camPowerSync(); // owner rule 2026-11-15: no idle "ready" status (loading / failure / what happened only)
 }
 
 function rebuildMatcher() {

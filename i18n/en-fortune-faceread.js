@@ -4,7 +4,7 @@
   var dict = { en: {
     /* ---------- static ---------- */
     "faceread.desc": "Face reading from the camera to add fun to booths and events; processed in the browser, no photos stored",
-    "faceread.disclaimerRest": ", and should not be used for hiring, financial or relationship decisions, or to judge others",
+    "faceread.disclaimerRest": "Do not use it for hiring, financial or relationship decisions, or to judge others",
     "faceread.stage": "Take or upload a photo",
     "faceread.camHint1": "Tap",
     "faceread.camHint2": "Start camera",
@@ -19,7 +19,7 @@
     "faceread.nick.ph": "e.g. Alex",
     "faceread.topicL": "What would you most like to know about",
     "faceread.privacy": "Everything is processed in your browser; photos are not uploaded or stored",
-    "faceread.discMini": "For entertainment only, based on traditional belief, not science",
+    "faceread.discMini": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
     "faceread.resCanvas": "Face image with the three-zone dividers and key areas marked",
     "faceread.ovlGroup": "Choose a face overlay",
     "faceread.elK": "Face-shape element",
@@ -55,7 +55,7 @@
     "faceread.eng.oom": "This device ran out of memory for live face analysis — close other tabs or apps and tap \"Start camera\" again, or use \"Upload photo\" instead",
     "faceread.eng.detStop": "Live face analysis stopped working on this device — close other tabs and tap \"Start camera\" again, or use \"Upload photo\" instead",
     "faceread.eng.switching": "Switching to the backup processor...",
-    "faceread.eng.switched": "Camera ready (backup processor, may be slower) — place your face in the oval, then tap \"Read my face\"",
+    "faceread.eng.switched": "Camera ready (this device may read more slowly) — place your face in the oval, then tap \"Read my face\"",
     "faceread.eng.https": "On mobile, open via https:// — see the All Solutions page for how",
     "faceread.httpsA": "On mobile, open via",
     "faceread.httpsB": "— see how on",
@@ -266,8 +266,8 @@
   /* ---------- English version of faceread-kb.js (only the fields shown on the page); faceread.js overlays it on the KB in
      English mode, same as FR_KB_ZH in zh-fortune-faceread.js (same structure as FR_KB, translated fields only) ---------- */
   root.FR_KB_EN = {
-    disclaimer: "For entertainment only, based on traditional face-reading beliefs, not science. Not for hiring, financial or relationship decisions, or for judging others",
-    disclaimerShort: "For entertainment only, based on traditional face-reading beliefs, not science",
+    disclaimer: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement. Not for hiring, financial or relationship decisions, or for judging others",
+    disclaimerShort: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
     sources: [
       { label: "Wikipedia — Mien Shiang" },
       { label: "Chinese Wikipedia — 面相 (twelve palaces, five mountains, four rivers, three zones)" },

@@ -2,7 +2,7 @@
    ส่วนบน: ฟังก์ชันล้วน (ความสัมพันธ์กิ่งดิน, ปีนักษัตรจากวันเกิดตามขอบเขตตรุษจีน/ลี่ชุน/ไทย, คะแนนรายปี, facts)
            ใช้ HSCore (horoscope.js) คำนวณตรุษจีนและลี่ชุนด้วยสูตรดาราศาสตร์ของ Meeus
    ส่วนล่าง: UI ในเบราว์เซอร์ (ทำงานเมื่อพบ #zdApp) — วันเกิดคำนวณในเครื่อง ไม่ส่งและไม่บันทึก
-   เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ */
+   ตามความเชื่อ (โปรดใช้วิจารณญาณ) ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ */
 (function (root) {
   "use strict";
   var KB = root.ZODIAC_KB || (typeof require === "function" ? require("./zodiac-kb.js") : null);
@@ -245,7 +245,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       "<div>" + dt("dir", "ทิศประจำนักษัตร") + "<dd>" + esc(dirName(R.animal)) + "</dd></div>" +
       "<div>" + dt("support", "คู่เสริมดวง") + "<dd>" + R.supports.map(function (k) { return KB.ANIMALS[k].emo + " " + esc(anName(k)); }).join(" · ") + "</dd></div>" +
       "<div>" + dt("clash", "คู่ชง") + "<dd>" + KB.ANIMALS[R.clashWith].emo + " " + esc(anName(R.clashWith)) + "</dd></div></dl>" +
-      '<h3 class="zd-h">' + esc(T("zodiac.powerH", "พลังปี (เพื่อความบันเทิง)")) + "</h3>" + scoreBars(R.scores) + '<p class="zd-traits">' + traits(R.animal).map(function (t) { return '<span class="fk-chip">' + esc(t) + "</span>"; }).join(" ") + "</p>";
+      '<h3 class="zd-h">' + esc(T("zodiac.powerH", "พลังปี (ตามความเชื่อ)")) + "</h3>" + scoreBars(R.scores) +
+      '<p class="zd-traits">' + traits(R.animal).map(function (t) { return '<span class="fk-chip">' + esc(t) + "</span>"; }).join(" ") + "</p>";
     $("#zdReadWrap").innerHTML = FK.readingBlock("zdRd", T("zodiac.rdTitle", "คำทำนายดวงรายปี"), true);
     FK.bindReading("zdRd", "zodiac", function (topic, r) { return ZD.buildFacts(R, topic, { rng: r }); }, { withTopics: true });
   }
