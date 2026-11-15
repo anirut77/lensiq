@@ -269,7 +269,7 @@
     for (const k of ["luckyColors", "directions", "energyWords", "tips"]) src.push(...[].concat(ex[k] || []));
     // negative-state / worry / difficulty areas tagged by reading (fortune-negstate.js): never paid (rule a)
     const NS = /** @type {any} */ (root).LQFortuneNeg || (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-negstate.js") : null);
-    if (NS && NS.sources) src.push(...NS.sources(F, tr));
+    if (NS && NS.sources) src.push(...NS.sources(F, tr), ...(NS.guideSources ? NS.guideSources(F, tr) : []));
     // rem: the remedy table of the reading's language (EN: strings; TH / ZH: {th, zh})
     const rv = Object.values(rem || {}).map((/** @type {any} */ x) => (typeof x === "string" ? x : x && (L === "zh" ? x.zh : x.th)));
     src.push(...rv, ...((out && out.plan && out.plan.items) || []).map((/** @type {any} */ x) => x.t));

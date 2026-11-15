@@ -40,6 +40,7 @@
       belief: "ตามความเชื่อ โปรดใช้วิจารณญาณ", stepOffering: "เตรียม{x}", stepPlace: "ไปที่{x}", stepTime: "เลือกวันเกิดของคุณในสัปดาห์หรือวันพระ ช่วงเช้า",
       stepColour: "แต่งกายสีที่คำทำนายของคุณระบุ: {x}", stepDirection: "เมื่อไหว้ หันหน้าไปทางที่คำทำนายของคุณระบุ: {x}",
       stepIntent: "ตั้งจิตเรื่อง{g} แล้วทำความดีต่อเนื่องในชีวิตประจำวัน", shareTitle: "ผลดูดวงจาก LENSIQ",
+      notRemedy: "อ่านเชิงลึกเป็นรายละเอียดเพิ่ม ไม่ใช่การแก้เคล็ด และไม่สัญญาผลใด ๆ",
       srcAffiliate: "ลิงก์พันธมิตร: เราอาจได้รับค่าตอบแทนเมื่อซื้อผ่านลิงก์นี้",
       srcTitle: "แหล่งที่แนะนำ (ร้านภายนอก)", srcNote: "ลิงก์ไปร้านภายนอก เราไม่ได้ขายสินค้าเองและไม่ได้สัญญาผลใด ๆ ตามความเชื่อ โปรดใช้วิจารณญาณ",
     },
@@ -61,6 +62,7 @@
       stepTime: "Choose the weekday you were born on, or a Buddhist holy day, in the morning",
       stepColour: "Dress in the colours your reading names: {x}", stepDirection: "When paying respects, face the direction your reading names: {x}",
       stepIntent: "Set your intention for {g}, then keep doing good in daily life", shareTitle: "A LENSIQ fortune reading",
+      notRemedy: "The in-depth text adds detail. It is not a remedy and promises no result.",
       srcAffiliate: "Affiliate link: we may receive a commission if you buy through it",
       srcTitle: "Recommended sources (outside shops)", srcNote: "Links go to outside shops. We do not sell these items and promise no result. According to belief, please use your own judgement.",
     },
@@ -76,6 +78,7 @@
       "goal.work": "事业", "goal.money": "财运", "goal.love": "感情", "goal.health": "身心安康", "goal.protection": "平安守护", "goal.barami": "威望",
       belief: "依据传统说法，请自行判断", stepOffering: "准备{x}", stepPlace: "前往{x}", stepTime: "选择您出生的星期几或佛日的早上",
       stepColour: "穿您的解读所说的颜色：{x}", stepDirection: "礼拜时面向您的解读所说的方位：{x}", stepIntent: "为{g}发愿，并在日常生活中持续行善", shareTitle: "LENSIQ 占卜结果",
+      notRemedy: "深入内容只是更多细节，不是化解方法，也不承诺任何结果。",
       srcAffiliate: "联盟链接：通过此链接购买时我们可能获得佣金",
       srcTitle: "推荐来源（外部商店）", srcNote: "链接通往外部商店，我们不出售这些物品，也不承诺任何结果。依据传统说法，请自行判断。",
     },
@@ -197,6 +200,14 @@
         const where = p.visible || s.id === "advice" ? "free" : classify(p.text, Object.assign({}, ctx, { marked: !!(marks && marks[p.para]) }));
         (where === "free" ? g.free : where === "paid" ? g.paid : g.dropped).push(p.text);
       }
+      // review D1: the 49 offer sits at the end of the group; the read-more button precedes it while free folded text remains,
+      // otherwise the last shown part does. Never right after a caution or guidance part: then this group gets no 49 offer.
+      const last = parts.filter((/** @type {any} */ p) => p.visible).pop();
+      const keep = parts.some((/** @type {any} */ p) => !p.visible && g.free.includes(p.text));
+      // (an advice word such as a colour or a direction in that last part counts as guidance here, box or not)
+      const R2 = RD();
+      /** @type {any} */ (g).offerSafe = g.paid.length > 0 && (keep || !!(last && !last.caution && !(marks && marks[last.para]) &&
+        classify(last.text, Object.assign({}, ctx, { marked: false })) === "paid" && !(R2 && R2.adviceKinds && R2.adviceKinds(last.text, lang).length)));
       return g;
     });
     const free = Object.assign({}, res, { sections: groups.map((/** @type {any} */ g) => ({ id: g.id, title: g.title, paragraphs: g.free.slice() })) });
@@ -221,7 +232,8 @@
     /** @param {string} plan @param {string} label @param {string[]} headings @param {any} [extra] */
     const offer = (plan, label, headings, extra) => { const pt = priceText(/** @type {any} */ (PRICES)[plan], l, plan === "plus");
       return Object.assign({ plan, price: /** @type {any} */ (PRICES)[plan], priceText: pt, label, headings, button: T.buy + " · " + pt }, extra || {}); };
-    const out = paid.map((/** @type {any} */ g) => offer("group", T.groupLabel.replace("{g}", g.title), [g.title], { group: g.id }));
+    const out = paid.filter((/** @type {any} */ g) => g.offerSafe === true)
+      .map((/** @type {any} */ g) => offer("group", T.groupLabel.replace("{g}", g.title), [g.title], { group: g.id, note: T.notRemedy }));
     out.push(offer("full", T.fullLabel, titles.slice()));
     if (Array.isArray(sp.monthly) && sp.monthly.length) out.push(offer("year", T.yearLabel, titles.concat(T.monthly)));
     out.push(offer("plus", T.plusLabel, [T.plusAll].concat(titles)));
@@ -296,7 +308,9 @@
   /** published Merit entries usable in a plan: never a "weak" / "chong" entry (a plan is never the answer to a warning) @param {any[]} items */
   function planItems(items) {
     const L = MLINT();
-    return (Array.isArray(items) ? items : []).filter(it => it && it.status === "published" && it.type !== "chong" && !(it.keys || []).some((/** @type {string} */ k) => k === "weak" || k === "chong"))
+    // review D3: sample seed entries (sample: true) are never part of a plan
+    return (Array.isArray(items) ? items : []).filter(it => it && it.status === "published" && it.sample !== true && it.type !== "chong" &&
+      !(it.keys || []).some((/** @type {string} */ k) => k === "weak" || k === "chong"))
       .filter(it => { try { return !L || !L.lintMerit || !(L.lintMerit(it) || []).length; } catch (e) { return true; } });
   }
   /** goal-based plan (แผนมูตามเป้าหมาย): chosen by the person's goal only; places from published Merit entries; colours and
@@ -307,8 +321,8 @@
     if (!planEnabled() || o.crisis || !allowed(o.doc) || GOALS.indexOf(goal) < 0) return null;
     const res = o.res, F = o.facts || {};
     if (!res || res.crisis || res.source === "support") return null;
-    const l = langOf(o.lang || res.lang), T = /** @type {any} */ (TEXT[l]), pick = (/** @type {any} */ x) => String((x && (x[l] || x.th)) || "").replace(/^(?:ตัวอย่าง|Sample|示例)[:：]\s*/, "").trim();
-    const its = planItems(o.items || W.LQ_MERIT_SEED || []), dom = "domain:" + (F.domain || "");
+    const l = langOf(o.lang || res.lang), T = /** @type {any} */ (TEXT[l]), pick = (/** @type {any} */ x) => String((x && (x[l] || x.th)) || "").trim(); // the entry's title as written
+    const its = planItems(o.items || W.LQ_FORTUNE_PLAN_ITEMS || W.LQ_MERIT_SEED || []), dom = "domain:" + (F.domain || "");
     const fits = (/** @type {any} */ it) => (it.keys || []).some((/** @type {string} */ k) => k === "any" || k === dom);
     const places = its.filter(it => it.type === "place" && fits(it)).slice(0, 2), offs = its.filter(it => it.type === "offering" && fits(it)).slice(0, 2);
     if (!places.length) return null;
@@ -384,6 +398,7 @@
     box.appendChild(el("p", "lq-paid-price", of.priceText));
     box.appendChild(el("p", "lq-paid-lead", T.lead));
     const ul = el("ul", "lq-paid-heads"); for (const h of of.headings) ul.appendChild(el("li", "", h)); box.appendChild(ul);
+    if (of.note) box.appendChild(el("p", "lq-paid-free", of.note)); // review D1: "not a remedy" on every group offer
     const b = el("button", "chip lq-paid-buy", T.buy + " · " + of.priceText);
     b.type = "button"; b.setAttribute("data-lq-buy", of.plan); b.setAttribute("aria-label", of.label + " · " + of.priceText);
     const note = el("p", "lq-paid-note"); note.setAttribute("data-lq-paid-note", ""); note.setAttribute("role", "status"); note.hidden = true;
@@ -442,7 +457,11 @@
       const btn = [...sec.querySelectorAll("button.lq-more")].find(b => b.closest(".fa-section") === sec);
       if (btn && bodies.every(b => !b.childNodes.length)) { btn.hidden = true; rec.buttons.push(btn); }
       groups.push({ id, title, paid: [locked] });
-      sec.appendChild(offerEl(doc, offers({ lang: l, groups: [{ id, title, paid: [1] }] }, l, { doc }).find(o => o.plan === "group"), l));
+      // review D1: the element right before the offer is never a caution paragraph or an advice box
+      const prev = btn && !btn.hidden ? btn : [...sec.children].reverse().find(e => !(e.classList && e.classList.contains("lq-more-body")) && !e.hidden);
+      const risky = !prev || (prev.matches && (prev.matches(".lq-caution, [data-lq-remedy]") || !!prev.querySelector(".lq-caution, [data-lq-remedy]")));
+      const ofr = g && g.offerSafe && !risky && offers({ lang: l, groups: [{ id, title, paid: [1], offerSafe: true }] }, l, { doc }).find(o => o.plan === "group");
+      if (ofr) sec.appendChild(offerEl(doc, ofr, l));
     }
     if (!groups.length) { restore(rec); planOnly(doc, container, l); return; }
     DONE.push(rec);
@@ -483,11 +502,14 @@
     box.appendChild(ul); box.appendChild(ladderEl(doc, l)); box.appendChild(mk(doc, "p", "lq-paid-free", pv.note));
     panel.parentNode.insertBefore(box, panel.nextSibling);
   }
+  /** review D3: a plan is offered only when published, non-sample places exist for this page (none ship with the site) */
+  const planPlaces = () => { const d = "domain:" + String((SUBJ && SUBJ.domain) || "");
+    return planItems(W.LQ_FORTUNE_PLAN_ITEMS || W.LQ_MERIT_SEED || []).some(it => it.type === "place" && (it.keys || []).some((/** @type {string} */ k) => k === "any" || k === d)); };
   /** a reading with no in-depth text to sell: no panel and no price; the goal plan (chosen by the person's own goal, not by
    *  this reading) still shows at the end of the reading when both switches are on */
   function planOnly(/** @type {any} */ doc, /** @type {any} */ container, /** @type {"th"|"en"|"zh"} */ l) {
     for (const e of doc.querySelectorAll(".lq-paid-plan")) e.remove();
-    if (!planEnabled() || doc.querySelector(".lq-paid-panel")) return;
+    if (!planEnabled() || !planPlaces() || doc.querySelector(".lq-paid-panel")) return;
     const blk = planEl(doc, l), help = [...container.children].find((/** @type {any} */ e) => e.matches && e.matches(".lq-helpline, .lq-helpline-result"));
     if (help) container.insertBefore(blk, help); else container.appendChild(blk);
   }
@@ -528,7 +550,7 @@
     const fn = doc.createElement("p"); fn.className = "lq-paid-free"; fn.textContent = TEXT[l].freeNote; panel.appendChild(fn);
     panel.appendChild(ladderEl(doc, l));
     for (const o of all) panel.appendChild(offerEl(doc, o, l));
-    if (planEnabled()) panel.appendChild(planEl(doc, l));
+    if (planEnabled() && planPlaces()) panel.appendChild(planEl(doc, l));
     const src = sources(W.LQ_FORTUNE_SELLER_LINKS, { lang: l, doc });
     if (src.length) {
       const blk = mk(doc, "section", "lq-paid-sources"); blk.setAttribute("data-lq-sources", ""); blk.setAttribute("data-lq-paid", ""); blk.setAttribute("data-lq-upsell", "");

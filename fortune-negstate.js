@@ -139,6 +139,32 @@
     }
     return out;
   }
-  const API = { REVIEWED, TAGS, of, key, count, ids, sources };
+  /* review D2 (2026-11-16): belief guidance that sits in topic meanings, not in an advice field: a lucky partner sign (zodiac
+     "support", คู่เสริมดวง / 助运的生肖), a merit suggestion (dream sym.ancestor overview), the element that supports you (horoscope
+     bazi.useful.*, ธาตุเสริม). Free information, never paid. Found by checking every discipline's topic meanings for lucky-person,
+     colour, direction, element and merit advice; the other matches were figures of speech (e.g. "เข็มทิศ", a compass). */
+  const GUIDE = /** @type {Record<string, Record<string, string>>} */ ({
+    zodiac: { all: "support" },
+    dream: { overview: "sym.ancestor" },
+    horoscope: { all: "bazi.useful.wood bazi.useful.fire bazi.useful.earth bazi.useful.metal bazi.useful.water" },
+  });
+  /** "all" | areas | null @param {string} d @param {any} it */
+  function guideOf(d, it) {
+    const G = it && GUIDE[d]; if (!G) return null;
+    const k = key(d, it.id); let out = null;
+    for (const areas in G) if (G[areas].split(" ").includes(k)) { if (areas === "all") return "all"; out = (out || []).concat(areas.split(",")); }
+    return out;
+  }
+  /** the text of every guidance-tagged area in a fact set, in the reading language */
+  function guideSources(/** @type {any} */ F, /** @type {(it: any) => any} */ tr) {
+    const out = /** @type {string[]} */ ([]);
+    for (const it of (F && F.items) || []) {
+      const a = guideOf(F.domain, it); if (!a) continue;
+      const ms = ((tr ? tr(it) : it) || it).meanings || {};
+      for (const k of a === "all" ? Object.keys(ms) : a) for (const t of [].concat(ms[k] || [])) if (t) out.push(String(t));
+    }
+    return out;
+  }
+  const API = { REVIEWED, TAGS, GUIDE, of, key, count, ids, sources, guideOf, guideSources };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else /** @type {any} */ (root).LQFortuneNeg = API;
 })(typeof window !== "undefined" ? window : globalThis);
