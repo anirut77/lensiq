@@ -1,0 +1,9 @@
+# evals-locks/faceread-ios.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/faceread-ios/ (owner rule 2026-11-13, locked sets persist). Append-only.
+# faceread on iOS (owner report 2026-11-15, iPhone Safari: camera opens, detection does not seem to run) — tests locked BEFORE any product change on branch faceread-ios (base origin/main 512e267). On that base: 1 passed (A normal start, live), 9 failed (B-H: no live detector and no plain message).
+# locked 2026-11-15T02:44:23Z (tools/eval-guard.mjs lock, 2 files)
+6de2af49982426234a54949801fba57fa84b6fe46b0eccee75b18a9cd3842590  tests/e2e/faceread-webkit.e2e.mjs
+18bb3865100cfaa26cd7892d94548712fec1c9fb42a92035437fb690bc34d5b9  tests/e2e/synth-face-cam.js
+# formatting re-lock (same minute, nothing measured in between): lines wrapped to <= 200 chars for tools/format-check.mjs; no flow, fault, limit or assertion changed.
+# locked 2026-11-15T02:44:55Z (tools/eval-guard.mjs lock, 2 files)
+625311857fc6850488b45d8b2c76785b3185d5b843e0173b913016fe0d2bf21b  tests/e2e/faceread-webkit.e2e.mjs
+147e83e80bfb3cdbf4c06a9daa922c5774b52cfdd456d4cbbd67bbc519a4d26b  tests/e2e/synth-face-cam.js
