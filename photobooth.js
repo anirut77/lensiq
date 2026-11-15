@@ -232,7 +232,11 @@ const camera = LQCam.create(video, {
   facing: "user", ideal: { width: 1280, height: 720 },
   onChange: (c, ev) => {
     if (ev.type === "devices") { renderCamCtl(); return; }
-    camOK = c.active && !!video.videoWidth; syncPreview();
+    camOK = c.active && !!video.videoWidth; syncPreview(); camPowerLabel();
+    if (ev.type === "stopped") {
+      pctx.clearRect(0, 0, preview.width, preview.height);
+      setStatus("cam", () => tr("photobooth.js.st.camOff", "ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อถ่ายต่อ หรืออัปโหลดรูป"), ""); return;
+    }
     if (ev.type === "ended") { setStatus("cam", () => tr("photobooth.js.st.camEnded", "สัญญาณกล้องหลุด — โหลดหน้าใหม่หรือเลือกกล้องอีกครั้ง"), "err"); return; }
     if (ev.type === "error") return;
     const camKey = c.active ? (c.facing === "environment" ? ["photobooth.js.st.camBack", "กล้องหลังพร้อม"] : ["photobooth.js.st.camOk", "กล้องพร้อม"]) : ["photobooth.js.st.camPaused", "พักกล้องไว้ขณะสลับแอป"];
@@ -274,6 +278,16 @@ function camErr(e) {
   setStatus("cam", () => e.name === "Insecure" ? HTTPS_MSG() : tr("photobooth.js.camErr", "เปิดกล้องไม่ได้: ") + why() + " — " + next(), "err");
 }
 renderCamCtl = mountCamCtl($(".preview"), camera, camErr);
+/* D-13: a visible camera on/off control — off stops every track; on opens it again */
+function camPowerLabel() {
+  const b = $("#camPower"); if (!b) return;
+  b.hidden = false; b.textContent = camera.active ? tr("photobooth.js.cam.off", "ปิดกล้อง") : tr("photobooth.js.cam.on", "เปิดกล้อง");
+}
+$("#camPower").addEventListener("click", () => {
+  if (camera.active) { camera.stop(); camOK = false; camPowerLabel(); return; }
+  setStatus("cam", () => tr("photobooth.js.st.camOpening", "กำลังเปิดกล้อง..."), "");
+  camera.start().catch(camErr).finally(camPowerLabel);
+});
 /* ขนาดพรีวิว: ตู้สติ๊กเกอร์ = 4:3 ตามช่องภาพจริง, รูปติดบัตร = ตามสัดส่วนกล้อง (แนวตั้งบนมือถือ) */
 function previewDims() {
   if (mode !== "id") return [800, 600];
@@ -756,11 +770,13 @@ function renderSheet(photo) {
 }
 // ---------- AI สร้างภาพชุดจำลองด้วยบริการภายนอก (ปิดไว้จนกว่าจะตั้งค่า API key ที่เซิร์ฟเวอร์; ผลยังเป็นภาพสังเคราะห์) ----------
 let aiEnabled = false, aiReason = null, aiNC = false, aiAsked = false;
-/** asks the same-origin server (server.py) once, when the ID-photo result first opens — never at page load, and never on a static
- * host (GitHub Pages has no try-on server: the request was a 404 console error on every visit, iPhone coverage 2026-11-16) */
+/** asks the same-origin server (server.py) once, when the ID-photo result first opens — only while the client switch is on
+ * (D2-011: lensiq-config.js LENSIQ_TRYON; off = backend TRYON "off"), never at page load and never on a static host (GitHub Pages
+ * has no try-on server: the request was a 404 console error on every visit, iPhone coverage 2026-11-16) */
 function aiStatus() {
   if (aiAsked) return;
   aiAsked = true;
+  if (window.LENSIQ_TRYON !== true) return;
   if (typeof location !== "undefined" && /\.github\.io$/i.test(location.hostname)) return;
   fetch("/api/tryon/status").then(r => r.ok ? r.json() : null).then(s => {
     aiEnabled = !!(s && s.enabled); aiReason = s && s.reason || null; aiNC = !!(s && s.noncommercial);
@@ -1136,6 +1152,7 @@ document.fonts?.ready.then(renderThemes);
 init();
 // เปลี่ยนภาษา (TH/中文): วาดข้อความที่สร้างจากสคริปต์ใหม่ทั้งหมดให้เป็นภาษาที่เลือก
 window.addEventListener("lq-lang", () => {
+  if (!$("#camPower").hidden) camPowerLabel();
   engine(); renderThemes(); renderBgSwatches(); renderOutfitChoices(); renderIdSizes(); renderPurposes(); renderTplList();
   if (hintFn) $("#shootHint").textContent = hintFn();
   kioskBtn.textContent = kioskLabel(root.classList.contains("pb-kiosk"));

@@ -328,7 +328,7 @@ if (typeof document !== "undefined") (() => {
 
   // ---------- สถานะระบบ ----------
   // speed pass 2026-11-14: the product model (MobileNetV2, ~14 MB) is fetched only once the camera is open
-  let modelMsg = { text: "โมเดลจำสินค้าจะโหลดเมื่อเปิดกล้อง", cls: "" }, camMsg = null, modelP = null;
+  let modelMsg = { text: "", cls: "" }, camMsg = null, modelP = null; // owner rule 2026-11-15: no idle status
   const ensureModel = () => modelP || (modelP = loadModel());
   function engine(text, cls = "", retry) {
     const e = $("#engine");
@@ -346,8 +346,8 @@ if (typeof document !== "undefined") (() => {
       return;
     }
     if (modelMsg.cls === "err") return engine(modelMsg.text, "err", loadModel);
-    const parts = [modelMsg.text];
-    if (camMsg) parts.push(camMsg.text);
+    const parts = [modelMsg.text].filter(Boolean);
+    if (camMsg && camMsg.text) parts.push(camMsg.text);
     const cls = modelMsg.cls === "ok" && camOn ? "ok" : (modelMsg.cls === "warn" || camMsg?.cls === "warn" ? "warn" : "");
     engine(parts.join(" · "), cls);
   }
@@ -461,7 +461,7 @@ if (typeof document !== "undefined") (() => {
         },
         tensors: () => tf.memory().numTensors
       };
-      modelMsg = { text: `โมเดลจำสินค้า MobileNetV2 พร้อม (ตัวประมวลผล: ${backend.toUpperCase()}${backend === "webgl" ? "" : " — ไม่มี WebGL ใช้ CPU แทน อาจช้ากว่าปกติ"})`, cls: "ok" };
+      modelMsg = { text: "", cls: "ok" }; $("#engine").dataset.backend = backend; // ready: no status (owner rule 2026-11-15); backend is data only
     } catch (e) {
       console.warn("โหลด MobileNetV2 ไม่สำเร็จ เปลี่ยนเป็นตัวสกัดภาพพื้นฐาน", e);
       const small = document.createElement("canvas"); small.width = small.height = 64;
@@ -538,7 +538,7 @@ if (typeof document !== "undefined") (() => {
       track.addEventListener("ended", () => { if (document.hidden) return; stopCam(); camMsg = { text: "กล้องถูกถอดหรือหยุดทำงาน", cls: "err" }; showStatus(); });
       camOn = true; $("#camBtn").textContent = "ปิดกล้อง";
       ensureModel();
-      camMsg = { text: `กล้อง: ${track.label || "พร้อม"} (${video.videoWidth}×${video.videoHeight})`, cls: "ok" };
+      camMsg = { text: "", cls: "ok" }; // camera open: the picture shows it, no status (owner rule 2026-11-15)
       payGate = gateInit(true); stockGate = gateInit(true);
       await listCams();
     } catch (e) {

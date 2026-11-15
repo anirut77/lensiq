@@ -18,20 +18,20 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="gn.title">ป้ายแจ้งกล้องอ่านทะเบียนและประกาศความเป็นส่วนตัว | LENSIQ Gate</title>
-<meta name="description" content="ชุดป้ายแจ้ง PDPA สำหรับกล้องอ่านป้ายทะเบียน: ป้ายภาษาไทย/อังกฤษสำหรับพิมพ์ และแม่แบบประกาศความเป็นส่วนตัว">
-<link rel="stylesheet" href="styles.css?v=17">
+<meta name="description" content="ชุดป้ายแจ้ง PDPA สำหรับกล้องอ่านป้ายทะเบียน: ป้ายภาษาไทย/อังกฤษ/จีนสำหรับพิมพ์ และแม่แบบประกาศความเป็นส่วนตัว">
+<link rel="stylesheet" href="styles.css?v=20">
 <link rel="stylesheet" href="gate.css?v=4">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=18"></script>
-<script src="i18n/zh-gate.js?v=4"></script>
+<script src="nav.js?v=21"></script>
+<script src="i18n/zh-gate.js?v=5"></script>
 
 <main class="gk-page" id="main">
   <p class="eyebrow" data-i18n="gn.eyebrow">LENSIQ Gate · ชุดป้ายแจ้ง PDPA</p>
   <h1 data-i18n="gn.h1">ป้ายแจ้งกล้องอ่านทะเบียน และประกาศความเป็นส่วนตัว</h1>
-  <p class="lead" data-i18n="gn.lead">กรอกข้อมูลสถานที่ แล้วพิมพ์ป้าย (ไทย/อังกฤษ) ติดก่อนถึงจุดกล้องให้ผู้ขับขี่เห็นชัด และเผยแพร่ประกาศความเป็นส่วนตัวที่ป้อมหรือเว็บไซต์ของสถานที่</p>
+  <p class="lead" data-i18n="gn.lead">กรอกข้อมูลสถานที่ แล้วพิมพ์ป้าย (ไทย/อังกฤษ/จีน) ติดก่อนถึงจุดกล้องให้ผู้ขับขี่เห็นชัด และเผยแพร่ประกาศความเป็นส่วนตัวที่ป้อมหรือเว็บไซต์ของสถานที่</p>
   <p class="gk-note" role="note" data-i18n="gn.legal">แม่แบบนี้ไม่ใช่คำแนะนำทางกฎหมาย ควรให้นักกฎหมายหรือเจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล (DPO) ของคุณตรวจก่อนใช้จริง</p>
 
   <section class="card" aria-labelledby="gnFormH">
@@ -65,6 +65,11 @@
       <p>For <span data-out="purpose_en"></span>. Plate number and province are read on site and confirmed by staff. Logs are kept for <span data-out="logDays"></span> days<span data-out="img_en"></span>.</p>
       <p class="gn-small">Data controller: <span class="gn-fill" data-out="ctrl"></span> · Contact: <span class="gn-fill" data-out="contact"></span></p>
     </div>
+    <div class="gn-en gn-zh" lang="zh-Hans" translate="no">
+      <h2>本区域使用车牌识别摄像头</h2>
+      <p>用途：<span data-out="purpose_zh"></span>。系统在现场读取车牌号码和府名，由工作人员确认。记录保存 <span data-out="logDays"></span> 天<span data-out="img_zh"></span>。</p>
+      <p class="gn-small">数据控制者：<span class="gn-fill" data-out="ctrl"></span> · 联系方式：<span class="gn-fill" data-out="contact"></span></p>
+    </div>
   </div>
 
   <h2 data-i18n="gn.noticeH">ประกาศความเป็นส่วนตัว (แม่แบบ)</h2>
@@ -95,8 +100,21 @@
         <li><b>Decisions:</b> the system suggests a read and staff decide; corrections are kept in a log that cannot be edited afterwards</li>
       </ol>
     </div>
+    <div lang="zh-Hans" translate="no">
+      <h3>隐私声明：车牌识别摄像头 — <span class="gn-fill" data-out="site"></span></h3>
+      <ol>
+        <li><b>数据控制者：</b><span class="gn-fill" data-out="ctrl"></span>，联系方式 <span class="gn-fill" data-out="contact"></span></li>
+        <li><b>收集的数据：</b>车牌号码、府名、进出时间、出入口或车道、确认人员的姓名、费用和付款方式（如有）、车辆登记的门牌号（小区 / 公寓）<span data-out="img_zh2"></span>。不使用人脸识别，也不评估情绪或行为。</li>
+        <li><b>目的：</b><span data-out="purpose_zh"></span></li>
+        <li><b>法律依据：</b>正当利益（泰国《个人数据保护法》B.E. 2562 第 24(5) 条）以及履行服务合同（第 24(3) 条）— <span class="gn-fill">待律师确认</span></li>
+        <li><b>保存期限：</b>进出记录 <span data-out="logDays"></span> 天 · 车牌裁剪图 <span data-out="imgTxt_zh"></span> · 收据按会计 / 税务法律保存 5 年，之后自动删除</li>
+        <li><b>披露：</b>图像不离开出入口的设备；仅在法律要求时向主管机关披露</li>
+        <li><b>您的权利：</b>查阅、复制、更正、删除、反对和限制处理；可向个人数据保护委员会（PDPC）投诉</li>
+        <li><b>决定：</b>系统给出识别建议，由工作人员决定；更正记录保存在事后无法修改的日志中</li>
+      </ol>
+    </div>
   </div>
 </main>
-<script src="gate-notice.js?v=1"></script>
+<script src="gate-notice.js?v=2"></script>
 </body>
 </html>

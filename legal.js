@@ -79,6 +79,10 @@
     var s = c && typeof c === "object" ? c : {};
     doc.querySelectorAll("[data-seller]").forEach(function (node) {
       var el = /** @type {HTMLElement} */ (node), k = el.getAttribute("data-seller") || "", v = s[k];
+      // walk-through 2026-11-16 D-03: help.html names the quote LINE OA; when that is not shown (form off or no quote_line)
+      // and the general LINE (LENSIQ_SELLER.line) is filled, that one is shown instead
+      var qlOk = leadsOn() && /^@?[A-Za-z0-9._-]{2,40}$/.test(String(s.quote_line || "").trim());
+      if (k === "quote_line" && !qlOk && has(s.line)) { k = "line"; v = s.line; el.setAttribute("data-seller", "line"); }
       if (k === "draft") { el.title = (prefix() === "zh-" ? "草案数值，待律师确认" : prefix() === "en-" ? "draft value, to be confirmed by counsel" : "ค่าร่าง รอทนายความยืนยัน"); return; }
       if (k === "counsel") { if (s.counsel_confirmed === true) el.hidden = true; return; }
       // the quote-request LINE Official Account is shown only while the quote form is switched on

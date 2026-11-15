@@ -40,7 +40,7 @@
     r.textContent = err ? (typeof err.t === "function" ? err.t() : err.t)
       : eng.run ? (eng.run.c === "warn" ? T("studio.js.ready.doneWarn", "เสร็จแล้ว ({s} วินาที) · ไม่พบจุดบนใบหน้า ปรับจุดคอและไหล่ได้", { s: status.secs || "?" }) : T("studio.js.ready.done", "เสร็จแล้ว ({s} วินาที)", { s: status.secs || "?" }))
       : all.some(x => x.c === "") ? T("studio.js.ready.loading", "กำลังเตรียมระบบ...")
-      : all.some(x => x.c === "idle") ? T("studio.js.ready.idle", "พร้อม — โมเดลจะโหลดเมื่อเปิดกล้องหรือเลือกรูป")
+      : all.some(x => x.c === "idle") ? "" // owner order 2026-11-15 item 1: no idle technical status (models load when the camera opens or a photo is chosen)
       : all.some(x => x.c === "warn") ? T("studio.js.ready.fallback", "พร้อมใช้งาน (บางส่วนใช้วิธีสำรอง ดูรายละเอียดทางเทคนิค)")
       : T("studio.js.ready.ok", "พร้อมใช้งาน");
     r.className = "engine " + cls;

@@ -1,4 +1,4 @@
-/* อ่านโหงวเฮ้ง — อ่านโหงวเฮ้งจากจุดบนใบหน้า 68 จุด (face-api) เพื่อความบันเทิง
+/* อ่านโหงวเฮ้ง — อ่านโหงวเฮ้งจากจุดบนใบหน้า 68 จุด (face-api) ตามความเชื่อ
    ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่ส่งและไม่บันทึกภาพ
    ส่วนแรก (FRCore) เป็นฟังก์ชันล้วน ทดสอบใน Node ได้:  const FR = require("./faceread.js")
    ส่วนหลัง (UI) ทำงานเฉพาะในเบราว์เซอร์
@@ -198,7 +198,7 @@
        ค่าที่ขึ้นกับแนวผม (lengthRatio, *Share, foreheadH) ใช้เฉพาะภาพที่ตรวจพบแนวผม n = 25
      รูปแบบ [มัธยฐาน, IQR/1.349] (ค่าเบี่ยงเบนแบบทนค่าผิดปกติ) แล้วแปลงเป็นค่า z = (x − มัธยฐาน) / ค่าเบี่ยงเบน
      หมายเหตุ: จุด 68 จุดของ face-api ถูกดึงเข้าหารูปหน้าเฉลี่ยค่อนข้างมาก ค่าเบี่ยงเบนของกรอบหน้าจึงแคบ
-     ตัวอย่างยังเล็กและเป็นภาพถ่ายสตูดิโอ ไม่ใช่ค่าประชากร — เป็นค่าตั้งต้นเพื่อความบันเทิงเท่านั้น */
+     ตัวอย่างยังเล็กและเป็นภาพถ่ายสตูดิโอ ไม่ใช่ค่าประชากร — เป็นค่าตั้งต้นตามความเชื่อเท่านั้น */
   var NORMS = {
     lengthRatio: [1.324, 0.063], jawRatio: [0.837, 0.0066], foreheadRatio: [0.963, 0.0197], chinWidth: [0.537, 0.0065],
     chinAngle: [134.2, 6.95], jawCorner: [153.2, 1.72], lowerShare: [0.359, 0.0145], upperShare: [0.286, 0.0183], middleShare: [0.356, 0.0233],
@@ -958,7 +958,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     switched = true; engineT("faceread.eng.switching", "กำลังสลับไปใช้ตัวประมวลผลสำรอง...");
     try {
       await withTimeout(LQDetect.switchBackend(next, { dispose: nets(), reload: loadNets }), MODEL_MS, "ModelTimeout");
-      backendNow = next; watchGl(); ready = true; if (camera.active) engineT("faceread.eng.switched", "กล้องพร้อม (ตัวประมวลผลสำรอง อาจช้ากว่าปกติ) — จัดใบหน้าในวงรี แล้วกด อ่านโหงวเฮ้ง", null, "ok");
+      backendNow = next; watchGl(); ready = true; if (camera.active) engineT("faceread.eng.switched", "กล้องพร้อม (เครื่องนี้อาจอ่านช้ากว่าปกติ) — จัดใบหน้าในวงรี แล้วกด อ่านโหงวเฮ้ง", null, "ok");
     } catch (e2) { console.error(e2); modelsP = null; var k2 = failKind(e2); liveDead(k2 === "other" ? kind : k2); }
   }
   /** ทุกใบหน้าในภาพ → [{box:{x,y,width,height}, score, pts}] (พิกัดพิกเซลของ input) */
@@ -1069,12 +1069,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       await camera.start();
       engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
       // never a live camera without a detector; a retry after liveDead() re-arms the detector (the models are still loaded)
-      try { await loadModels(); } catch (e) { stopLive(); modelMsg(e); return; } ready = true; switched = false;
-      $("#frCamHint").hidden = true;
+      try { await loadModels(); } catch (e) { stopLive(); modelMsg(e); return; } ready = true; switched = false; $("#frCamHint").hidden = true;
       engineT("faceread.eng.camReady", "กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี มองตรง แล้วกด อ่านโหงวเฮ้ง", null, "ok");
-      btnCam.hidden = true; btnRead.hidden = false;
-    } catch (e) { camErr(e); btnCam.disabled = false; }
-  });
+      btnCam.hidden = true; btnRead.hidden = false; } catch (e) { camErr(e); btnCam.disabled = false; }
+  }); // D-13: the camera-off control (#frStopCam) shows while the start button is hidden (faceread.css)
+  $("#frStopCam").addEventListener("click", function () { if (busy) return; stopLive(); hideHint(); octx.clearRect(0, 0, ov.width, ov.height);
+    engineT("faceread.eng.camOff", "ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อใช้ต่อ หรืออัปโหลดรูป", null, "ok"); });
 
   /* ---------- อ่านจากกล้อง: นับถอยหลัง 3-2-1 แล้วเก็บ ~10 เฟรม ---------- */
   btnRead.addEventListener("click", async function () {
@@ -1755,6 +1755,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   // (test mode ?fakedet loads no model at all, so it is ready at once)
   if (!window.isSecureContext) showHttpsNote($("#frEngine"));
   if (FAKE) loadModels().catch(function () {});
-  else engineT("faceread.eng.idle", "พร้อม — โมเดลจะโหลดเมื่อเปิดกล้องหรือเลือกรูป", null, "ok");
+  else engine("", "ok"); // owner order 2026-11-15 item 1: no idle technical status; the status line speaks only while loading or on a failure
   window.__fr = { get current() { return current; }, makeCard: makeCard, reset: reset, narrate: narrate, keySentences: keySentences }; // ใช้ทดสอบ
 })();

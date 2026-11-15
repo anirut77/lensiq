@@ -176,12 +176,29 @@ if (typeof document !== "undefined") (() => {
   }
   const camera = LQCam.create(video, {
     facing: "user", persistKey: "cx-cam",
-    onChange: (c, ev) => { if (ev.type === "started" || ev.type === "resumed") layout(c); },
+    onChange: (c, ev) => { if (ev.type === "started" || ev.type === "resumed") layout(c); camPowerLabel(); },
     onError: (c, e) => { if (e && e.name !== "AbortError") showInitError(e); }
   });
   video.addEventListener("resize", () => { if (camera.active) layout(); });
   camera.attach(camSwitch);
   if (LQCam.offlineBadge) LQCam.offlineBadge(camera, camBox); // "กล้องออฟไลน์ตั้งแต่ HH:MM" + เชื่อมต่อใหม่อัตโนมัติ
+
+  // D-13: a visible camera on/off control — off stops every track (member search by name keeps working)
+  function camPowerLabel() {
+    const b = $("#camPower"); if (!b) return;
+    b.hidden = false; b.textContent = camera.active ? "ปิดกล้อง" : "เปิดกล้อง";
+  }
+  $("#camPower").onclick = async () => {
+    if (camera.active) {
+      stopScan(); camera.stop(); camPowerLabel();
+      engine("ปิดกล้องแล้ว — ยังค้นหาสมาชิกด้วยชื่อได้", "ok");
+      return;
+    }
+    if (!ready) return init();
+    engine("กำลังเปิดกล้อง...");
+    try { await camera.start(); engine("กล้องพร้อม", "ok"); } catch (e) { showInitError(e); }
+    camPowerLabel();
+  };
 
   // ---------- เริ่มระบบ ----------
   async function init() {
@@ -203,7 +220,7 @@ if (typeof document !== "undefined") (() => {
         storageReady
       ]);
       ready = true; rebuildMatcher();
-      engine(`พร้อมใช้งาน (ตัวประมวลผล: ${backend.toUpperCase()})`, "ok");
+      engine("", "ok"); $("#engine").dataset.state = "ready"; $("#engine").dataset.backend = backend; // owner rule 2026-11-15: no idle status (ready + backend is data only)
     } catch (e) { showInitError(e); }
   }
   function showInitError(e) {
@@ -325,7 +342,7 @@ if (typeof document !== "undefined") (() => {
   function stopScan(clear = true) { scanning = false; $("#scanToggle").textContent = "เริ่มสแกนลูกค้า"; if (clear) overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); }
   $("#scanToggle").onclick = () => {
     if (SC) return ($("#scanStatus").textContent = "กำลังตรวจความแม่นยำ — กด \"จบและคำนวณ\" ก่อนสแกนลูกค้า");
-    if (!ready) return ($("#scanStatus").textContent = "กล้องยังไม่พร้อม — ใช้ค้นหาด้วยชื่อแทนได้");
+    if (!ready || !camera.active) return ($("#scanStatus").textContent = "กล้องยังไม่พร้อม — ใช้ค้นหาด้วยชื่อแทนได้");
     if (scanning) return stopScan();
     if (!members.some(m => m.descriptor)) $("#scanStatus").textContent = "ยังไม่มีสมาชิกที่ลงทะเบียนใบหน้า";
     scanning = true; $("#scanToggle").textContent = "หยุดสแกน"; scanLoop();

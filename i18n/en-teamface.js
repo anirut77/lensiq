@@ -9,6 +9,7 @@
   "tf.s.r3": "Processed in the browser; images are not sent or stored, and cards disappear when the page closes",
   "tf.s.stageH": "Read roles one by one",
   "tf.s.cam": "Start camera",
+  "tf.s.camOff": "Turn camera off",
   "tf.s.upload": "Upload photo",
   "tf.s.team": "Team name (optional)",
   "tf.s.team.ph": "e.g. Marketing",
@@ -56,7 +57,7 @@
   "tf.pat.mixed.t": "Colorful team", "tf.pat.mixed.x": "Our team mixes many roles, so everyone can bring their strengths to different stages of the work and cover for each other",
 
   "tf.js.needConsent": "Tick this member's consent first", "tf.js.needCam": "Start the camera or upload a photo", "tf.js.needFace": "Keep your face in frame, facing the camera",
-  "tf.js.ready": "Ready to read role", "tf.js.opening": "Starting camera...", "tf.js.camOk": "Camera ready — images are not stored",
+  "tf.js.ready": "Ready to read role", "tf.js.opening": "Starting camera...", "tf.js.camOk": "Camera ready — images are not stored", "tf.js.camOff": "Camera off — tap Start camera to continue, or upload a photo",
   "tf.js.camFail": "Cannot start camera; upload a photo instead",
   "tf.js.camDenied": "Camera permission denied. Allow the camera in your browser settings, or upload a photo instead", "tf.js.reading": "Reading...",
   "tf.js.unstable": "Face not steady enough yet; face the camera, hold still and try again", "tf.js.added": "Card added — the next member can read after ticking consent",

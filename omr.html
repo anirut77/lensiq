@@ -20,22 +20,27 @@
 <title data-i18n="om.doc.title">ตรวจกระดาษคำตอบปรนัยด้วยกล้องมือถือ | LENSIQ</title>
 <meta name="description" data-i18n-attr="content:om.doc.desc"
   content="พิมพ์กระดาษคำตอบ A4 สแกนด้วยกล้องมือถือ ตรวจคะแนนตามเฉลย วิเคราะห์ข้อสอบรายข้อ และส่งออก CSV ประมวลผลในเครื่อง ไม่ใช้ AI ไม่ถ่ายใบหน้า ไม่เก็บภาพ">
-<link rel="stylesheet" href="styles.css?v=17">
+<link rel="stylesheet" href="styles.css?v=20">
 <link rel="stylesheet" href="store.css?v=6">
-<link rel="stylesheet" href="omr.css?v=1">
+<link rel="stylesheet" href="omr.css?v=2">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=18"></script>
-<script src="i18n/zh-omr.js?v=1"></script>
+<script src="nav.js?v=21"></script>
+<script src="i18n/zh-omr.js?v=2"></script>
 
 <main class="st om" id="main">
   <p class="om-crumb"><a href="solutions.html" data-i18n="om.back">← โซลูชันตามอุตสาหกรรม</a></p>
   <h1 data-i18n="om.h1">ตรวจกระดาษคำตอบปรนัยด้วยกล้องมือถือ</h1>
   <p class="lead" data-i18n="om.lead">พิมพ์กระดาษคำตอบ A4 (20 / 40 / 60 / 100 ข้อ, 4 หรือ 5 ตัวเลือก) ให้นักเรียนระบายวงกลม
-    แล้วส่องด้วยกล้องมือถือ ระบบหามุมกระดาษทั้งสี่ ปรับภาพให้ตรง อ่านวงที่ระบาย และให้คะแนนตามเฉลยทันที
-    ครูแก้คำตอบรายข้อได้ทุกข้อ ดูวิเคราะห์ข้อสอบ และส่งออก CSV</p>
+    แล้วส่องด้วยกล้องมือถือ ระบบหามุมกระดาษทั้งสี่ ปรับภาพให้ตรง อ่านวงที่ระบาย และให้คะแนนตามเฉลยทันที ครูแก้คำตอบรายข้อได้ทุกข้อ ดูวิเคราะห์ข้อสอบ และส่งออก
+    CSV</p>
+  <p class="om-status" role="note"><b class="beta" data-i18n="om.st.b">ทดลอง</b>
+    <span data-i18n="om.st.acc">ความแม่นยำ: ยังไม่ได้วัดกับกระดาษคำตอบที่สแกนจริง · ที่มา: ชุดทดสอบภาพสังเคราะห์เท่านั้น ครูตรวจแผ่นที่ถูกทำเครื่องหมายเสมอ</span></p>
+  <p class="om-buy"><a class="btn ghost" href="omr.html?demo=1" data-i18n="om.demo.link">ดูเดโมด้วยกระดาษตัวอย่าง</a></p>
+  <p class="om-demo" id="omDemo" role="status" hidden data-i18n="om.demo.note">โหมดสาธิต: ชุดข้อสอบและกระดาษคำตอบ 3
+    แผ่นด้านล่างเป็นภาพตัวอย่างสังเคราะห์ ระบบอ่านให้ดูโดยไม่เปิดกล้อง และไม่บันทึกอะไรในเครื่องนี้</p>
   <p class="om-note" role="note"><b data-i18n="om.note.h">ไม่ใช้ AI ไม่ถ่ายใบหน้า ไม่เก็บภาพ</b>
     <span data-i18n="om.note.p">อ่านกระดาษด้วยการวัดความเข้มของวงกลมแบบธรรมดาในเบราว์เซอร์นี้ ภาพจากกล้องใช้ชั่วคราวแล้วทิ้ง
       เก็บเฉพาะคำตอบ รหัสนักเรียน และคะแนนในเครื่องนี้ ไม่ส่งออกนอกเครื่อง ข้อที่ระบบไม่แน่ใจจะถูกทำเครื่องหมายให้ครูตรวจ ครูเป็นผู้ยืนยันคะแนนเสมอ</span></p>
@@ -179,7 +184,7 @@
 <script src="lensiq-crashguard.js?v=1"></script>
 <script src="lensiq-camera.js?v=6"></script>
 <script src="lensiq-omr.js?v=1"></script>
-<script src="omr.js?v=1"></script>
-<script src="lensiq-config.js?v=11"></script>
+<script src="omr.js?v=2"></script>
+<script src="lensiq-config.js?v=12"></script>
 </body>
 </html>

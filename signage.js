@@ -448,8 +448,14 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   const persistPop = () => save("sg-pop", pop);
 
   function engine(msg, cls = "", retry) {
-    const e = $("#engine"); e.textContent = msg; e.className = "engine " + cls;
-    if (retry) { const b = document.createElement("button"); b.className = "btn ghost"; b.type = "button"; b.textContent = "ลองใหม่"; b.style.cssText = "margin-left:10px;padding:4px 14px"; b.onclick = retry; e.append(b); }
+    const e = $("#engine"); e.className = "engine " + cls;
+    if (!retry) { e.textContent = msg; return; }
+    // D-14: the message is its own text and the retry button a separate control (a space between them)
+    const t = document.createElement("span"); t.textContent = msg; e.replaceChildren(t, " ");
+    {
+      const b = document.createElement("button"); b.className = "btn ghost"; b.type = "button"; b.textContent = "ลองใหม่";
+      b.style.cssText = "margin-left:10px;padding:4px 14px"; b.onclick = retry; e.append(b);
+    }
   }
 
   // ---------- แท็บ ----------
@@ -545,7 +551,8 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   function camError(e, what, retry) {
     LQCam.logError(e);
     const m = CAM_ERR[e.name] || (e.name === "CapacityError" || e.name === "NoFreeCamera" || e.name === "DuplicateCamera" ? LQCam.errorText(e) : null);
-    engine(m ? `${what}ไม่สำเร็จ: ${m}` : `${what}ไม่สำเร็จ: โหลดโมเดลไม่สำเร็จ (${e.name}: ${e.message || "-"})`, "err", retry); // the code only for an unknown error
+    // D-14: plain message only; the raw error name / message stay in the console (logged above)
+    engine(`${what}ไม่สำเร็จ: ${m || "โหลดโมเดลไม่สำเร็จ"}`, "err", retry);
   }
 
   // เพิ่ม/เอาออก กล้องคีออสก์แยก

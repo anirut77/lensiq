@@ -190,3 +190,5 @@ body.att-kiosk .att{padding-top:16px}
 @media(min-width:641px){.tabs{flex-wrap:wrap;row-gap:0}}
 /* W-004: PIN / QR is the default way to clock in, so its tab comes first on screen in employee mode (DOM order unchanged) */
 body.att-emp #tabPin{order:-1}
+.cam-power-row{margin:10px 0 0}
+.cam-power-row #camPower[hidden]{display:none}

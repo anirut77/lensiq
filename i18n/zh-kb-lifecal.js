@@ -1,6 +1,6 @@
 /* i18n/zh-kb-lifecal.js — 简体中文解读资料：八字（bazi）、塔克萨（taksa）、七数九基（lek7）、人生曲线（lifegraph）
    键与 lifecal-kb.js 生成的 fact id 相同；fortune-ai.js 在中文模式下直接用这些内容撰写解读。
-   有长处也有需要留意的地方：需要留意的内容都用温和的说法，并附上可以做的事。仅供娱乐。 */
+   有长处也有需要留意的地方：需要留意的内容都用温和的说法，并附上可以做的事。请自行判断。 */
 (function (root) {
   "use strict";
   var EL = [

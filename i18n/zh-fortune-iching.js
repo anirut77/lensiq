@@ -2,7 +2,7 @@
    卦名与卦义正文来自 i18n/zh-kb-iching.js；这里是标题、按钮、提示、卦的中文副标题（iching.hn.N）与关键词（iching.kw.N）。 */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
   /* 静态页面 */
-  "iching.desc": "用三枚硬币掷六次起卦，得出六十四卦之一，附变爻与之卦，供展位和活动娱乐",
+  "iching.desc": "用三枚硬币掷六次起卦，得出六十四卦之一，附变爻与之卦，适合展位和活动，依据传统信仰",
   "iching.disclaimerRest": "请勿用于健康、财务、法律或重要感情方面的决定",
   "iching.modeLabel": "选择模式",
   "iching.qLabel": "你的问题（选填 · 不会被保存或发送）",
@@ -82,7 +82,7 @@
   "iching.cardTitle": "第 {n} 卦 {zh} · {th}",
   "iching.cardSub": "正在变为第 {n} 卦 · {th}",
   "iching.cardAdvice": "建议：{a}",
-  "iching.cardFoot": "仅供娱乐，依据传统信仰，并非科学 · 易经经文属于公有领域",
+  "iching.cardFoot": "基于命理学原则，属个人信仰，请自行判断。 · 易经经文属于公有领域",
 
   /* 参考资料 */
   "iching.src.0": "James Legge（1882），The I Ching — Sacred Books of the East 第16卷（公有领域，sacred-texts.com）",

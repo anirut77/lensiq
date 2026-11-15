@@ -52,6 +52,8 @@ function handle(files) {
 async function convertOnServer(file) {
   const fd = new FormData(); fd.append("file", file);
   let res;
+  // D2-011: the conversion server exists only with server.py (lensiq-config.js LENSIQ_CONVERT_SERVER, off on the static site)
+  if (/** @type {any} */ (window).LENSIQ_CONVERT_SERVER !== true) { const e = /** @type {Error & {network?: boolean}} */ (new Error("no server")); e.network = true; throw e; }
   try { res = await fetch("/api/convert", { method: "POST", body: fd }); }
   catch (e) { e.network = true; throw e; }
   if (res.status === 404 || res.status === 405 || res.status === 501) { const e = /** @type {Error & {network?: boolean}} */ (new Error("no server")); e.network = true; throw e; }
@@ -147,6 +149,7 @@ const ENGINE_TEXT = {
 };
 async function showEngine() {
   const el = $("#engine"); if (!el) return;
+  if (/** @type {any} */ (window).LENSIQ_CONVERT_SERVER !== true) return; // D2-011: no server on the static site, nothing to ask
   try {
     const r = await fetch("/api/convert/status", { cache: "no-store" });
     if (!r.ok) return;
@@ -156,4 +159,5 @@ async function showEngine() {
     el.hidden = false;
   } catch { /* static hosting: no API */ }
 }
-showEngine();
+// lensiq-config.js loads after this file: read the switch once the document is parsed
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showEngine); else showEngine();

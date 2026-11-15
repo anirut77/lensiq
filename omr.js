@@ -18,8 +18,11 @@
   const locale = () => ({ en: "en-GB", zh: "zh-CN" })[W.LQI18N && W.LQI18N.lang] || "th-TH";
   const fmt = (v, d) => v == null || !isFinite(v) ? "—" : (+v).toFixed(d == null ? 2 : d);
 
+  // walk-through 2026-11-16 D-10: ?demo=1 = a sample exam and 3 synthetic filled sheets, read by the real reader without a
+  // camera; kept in memory only (nothing is written to this browser), so no customer data is involved
+  const DEMO = /[?&]demo=1(?:&|$)/.test(location.search);
   /** @type {{v:number, cur:string|null, exams:any[]}} */
-  let S = load();
+  let S = DEMO ? { v: 1, cur: null, exams: [] } : load();
   const pics = new Map(); // sheetId -> {data, w, h, ppm} straightened gray picture (memory only)
   let openSheet = null, keyScan = false;
 
@@ -28,6 +31,7 @@
     return { v: 1, cur: null, exams: [] };
   }
   function save() {
+    if (DEMO) return true;
     try { LS && LS.setItem(KEY, JSON.stringify(S)); return true; }
     catch { msg("examMsg", T("om.err.quota", "บันทึกในเครื่องไม่สำเร็จ (พื้นที่เต็มหรือถูกปิดกั้น) ส่งออก CSV ไว้ก่อน"), true); return false; }
   }
@@ -192,7 +196,7 @@
     const g = O.grade(s.marks, e.key);
     status(T("om.scan.read", "อ่านแผ่นแล้ว รหัส {id} · {s}/{m} คะแนน{f}", { id: s.sid || "—", s: g.score, m: g.max,
       f: needs(e, s) ? T("om.scan.readFlag", " · มีข้อให้ตรวจ") : "" }));
-    if (navigator.vibrate) try { navigator.vibrate(60); } catch {}
+    if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) try { navigator.vibrate(60); } catch {}
     renderResults(); renderMeta(); openReview(s.id);
     return s;
   }
@@ -492,7 +496,44 @@
   });
 
   window.addEventListener("lq-lang", () => renderExams());
+  /** draws the page's own printed sheet with the given answers filled in, slightly rotated on a table, as a canvas */
+  async function demoPhoto(e, answers, id, deg) {
+    const L = lay(e), k = 4;
+    const img = new Image(), url = URL.createObjectURL(new Blob([O.sheetSvg(L, sheetText(e))], { type: "image/svg+xml" }));
+    try { await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; }); } finally { URL.revokeObjectURL(url); }
+    const sc = document.createElement("canvas"); sc.width = 210 * k; sc.height = 297 * k;
+    const g = sc.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, sc.width, sc.height); g.drawImage(img, 0, 0, sc.width, sc.height);
+    g.fillStyle = "#1c1c1c";
+    const dot = b => { g.beginPath(); g.arc(b.x * k, b.y * k, b.r * 0.92 * k, 0, Math.PI * 2); g.fill(); };
+    answers.forEach((a, q) => { if (a != null && L.q[q]) dot(L.q[q][a]); });
+    String(id).split("").forEach((d, i) => { if (L.id[i]) dot(L.id[i][+d]); });
+    const pc = document.createElement("canvas"); pc.width = 1000; pc.height = 1300;
+    const p = pc.getContext("2d"); p.fillStyle = "#3a3a3a"; p.fillRect(0, 0, pc.width, pc.height);
+    p.save(); p.translate(pc.width / 2, pc.height / 2); p.rotate(deg * Math.PI / 180);
+    const s = Math.min(pc.width / sc.width, pc.height / sc.height) * 0.88; p.scale(s, s);
+    p.drawImage(sc, -sc.width / 2, -sc.height / 2); p.restore();
+    return pc;
+  }
+  async function demo() {
+    $("omDemo").hidden = false;
+    const L = O.layout({ n: 20, choices: 4, idDigits: 5, labels: "en" });
+    const key = Array.from({ length: L.n }, (_, q) => [(q * 7 + 1) % 4]);
+    const e = { id: "demo", title: T("om.demo.title", "สอบย่อยตัวอย่าง 20 ข้อ (ข้อมูลสาธิต)"), n: L.n, choices: L.choices, labels: L.labels,
+      idDigits: L.idDigits, key, sheets: [], created: Date.now(), demo: true };
+    S.exams.push(e); S.cur = e.id; renderExams();
+    // three sample students: all right, a few wrong, many wrong (answers are made up, nobody real)
+    const students = [{ id: "10001", wrong: [] }, { id: "10002", wrong: [2, 5, 11] }, { id: "10003", wrong: [0, 3, 4, 8, 9, 13, 17] }];
+    for (const [i, st] of students.entries()) {
+      const answers = key.map((k, q) => st.wrong.includes(q) ? (k[0] + 1) % 4 : k[0]);
+      const c = await demoPhoto(e, answers, st.id, [-4, 3, -2][i]);
+      const gr = grayOf(c, c.width, c.height, 1600);
+      const s = processGray(gr.gray, gr.w, gr.h, "demo");
+      if (s && typeof s === "object") s.name = T("om.demo.name", "นักเรียนตัวอย่าง {n}", { n: i + 1 });
+    }
+    closeReview(); renderResults(); renderMeta();
+  }
   renderExams();
+  if (DEMO) demo().catch(err => { console.warn(err); status(T("om.why.markers", "ไม่เห็นสี่เหลี่ยมดำครบทั้งสี่มุม ถอยกล้องให้เห็นทั้งแผ่น และเพิ่มแสง"), true); });
   W.__LQOMRP = {
     get state() { return S; }, pics, layout: () => { const e = exam(); return e && lay(e); },
     processCanvas(c) { const g = grayOf(c, c.width, c.height, 1600); return processGray(g.gray, g.w, g.h, "test"); },

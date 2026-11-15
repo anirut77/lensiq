@@ -1,6 +1,8 @@
 /* i18n/en-rt-driver.js — run-time English for text written by driver.js (mirrors zh-rt-driver.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
   "@lang": "en",
+  "ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อเฝ้าระวังต่อ": "Camera off — tap Start camera to keep monitoring",
+  "กล้องปิดอยู่ — กด เปิดกล้อง ก่อนเริ่มเที่ยว": "The camera is off — tap Start camera before starting a trip",
   "ตรวจหลับตาด้วยภาพดวงตา": "Eye closure detected from eye images",
   "ค่าปกติ": "normal value",
   "ปิดเมื่อ": "closed at",
@@ -28,7 +30,6 @@
   "ปิดโปรแกรมนั้นแล้วกดลองใหม่": "Close that program, then press Retry",
   "กล้องที่เลือกไม่รองรับการตั้งค่านี้ ลองเลือกกล้องอื่น": "The selected camera does not support this setting. Try another camera",
   "เปิดกล้องไม่สำเร็จ ลองใหม่อีกครั้ง": "Could not start the camera. Please try again",
-  "ใช้โหมดประหยัด ขนาดภาพตรวจจับ": "Using power-saving mode, detection image size",
   "กรอกข้อมูลแล้วกดเริ่มเที่ยว": "Fill in the details, then press Start trip",
   "กำลังสลับกล้อง": "Switching camera",
   "แนะนำให้กดปรับเทียบใหม่": "Recalibration recommended",

@@ -258,6 +258,7 @@
   "attendance.hr.locked": "Too many wrong PINs, try again in {s} seconds",
   "attendance.hr.badPin": "Employee code or PIN is incorrect",
   "attendance.hr.badQr": "The QR badge is invalid or has been cancelled",
+  "attendance.hr.camOpening": "Opening the camera...",
   "attendance.hr.camNo": "The camera is not ready",
   "attendance.hr.qrNo": "This browser cannot scan QR codes with the camera — use a badge reader or a PIN",
   "attendance.hr.qrStop": "Stop QR scan",

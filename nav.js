@@ -62,7 +62,7 @@
       { href: "hr.html", title: "LENSIQ HR ภาพรวม", desc: "ชุดสัมภาษณ์ โหมดฝึกซ้อมผู้สมัคร และกิจกรรมทีม" },
       { href: "interview.html", title: "ชุดสัมภาษณ์แบบมีโครงสร้าง", desc: "คำถาม STAR + เกณฑ์ BARS ให้คะแนนอิสระ สรุปความสอดคล้อง โหมดฝึกซ้อม" },
       { href: "case-review.html", title: "ทบทวนเคสจากคลิปวิดีโอ", desc: "แท็กเวลา บันทึก ล็อกตรวจสอบย้อนหลัง ไม่ตัดสินความจริง" },
-      { href: "teamface.html", title: "โหงวเฮ้งทีม", desc: "กิจกรรมละลายพฤติกรรม การ์ดบทบาทในทีม เพื่อความบันเทิงเท่านั้น" }
+      { href: "teamface.html", title: "โหงวเฮ้งทีม", desc: "กิจกรรมละลายพฤติกรรม การ์ดบทบาทในทีม ไม่ใช่การประเมิน" }
     ] },
     { label: "การตลาด ค้าปลีก และอีเวนต์", short: "ค้าปลีก", id: "ana", cat: "marketing",
       intro: "นับคนและความหนาแน่น หน้าร้าน คิว โต๊ะ ช่องจอด ป้ายโฆษณา และบูธ แบบไม่ระบุตัวตน ประมวลผลบนเครื่อง", items: [
@@ -91,7 +91,7 @@
       { href: "qc.html", title: "ตรวจคุณภาพสินค้า", desc: "ตรวจชิ้นงานบนสายการผลิต" }
     ] },
     { label: "ดูดวงและฤกษ์มงคล", short: "ดูดวง", id: "fortune", cat: "fortune",
-      intro: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน และวางแผนฤกษ์มงคล เพื่อความบันเทิงเท่านั้น", items: [
+      intro: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน และวางแผนฤกษ์มงคล ตามความเชื่อ โปรดใช้วิจารณญาณ", items: [
       { href: "cat-fortune.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
       { href: "fortune.html", title: "รวมศาสตร์ดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
       { href: "faceread.html", title: "อ่านโหงวเฮ้ง", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
@@ -458,7 +458,7 @@
       return parts;
     }
     // one text node -> <span class="lq-run"> (a single box, so flex/grid layouts are unchanged) holding
-    // <span class="lq-w"> (nowrap) words with <wbr> between them; textContent stays identical
+    // <span class="lq-w"> (nowrap) words with <wbr> between them; textContent stays identical except that a line break between words becomes one space
     function rebuild(tn, full) {
       var parts;
       if (full) parts = words(tn.nodeValue).map(function (p) { return [p, THAI.test(p) && p.length >= 4 && p.length <= 14 && !/\s/.test(p) ? 1 : 0]; });
@@ -467,7 +467,9 @@
       var run = document.createElement("span"); run.className = "lq-run";
       parts.forEach(function (p, i) {
         if (p[1]) { var w = document.createElement("span"); w.className = "lq-w"; w.textContent = p[0]; run.appendChild(w); }
-        else run.appendChild(document.createTextNode(p[0]));
+        // walk-through 2026-11-16 D-05: a source line break between two Thai words is a word space; written as its own text
+        // node between the nowrap word boxes, browsers drop it (sentences ran together), so it becomes one plain space
+        else run.appendChild(document.createTextNode(p[0].replace(/[ \t]*\n\s*/g, " ")));
         if (full && i < parts.length - 1 && !/\s$/.test(p[0]) && THAI.test(p[0])) run.appendChild(document.createElement("wbr"));
       });
       tn.parentNode.replaceChild(run, tn);

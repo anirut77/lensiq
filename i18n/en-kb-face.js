@@ -2,7 +2,7 @@
    Keys = fact ids from FRCore.buildFacts (element.* zone.* brow.* eye.* nose.* mouth.* yintang.* philtrum.* chin.*
    palace.<palace>.<high|mid|low> mountain.lead.* mountain.level.* river.level.* age.<starting age>).
    Positive meanings only; the Health palace (Shan Gen) speaks only about energy, rest and self-care. Never judges appearance.
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var X_EL = "in Chinese face reading (known in Thailand as ngo heng), face shapes are grouped by the five elements of wood, fire, earth, metal and water";

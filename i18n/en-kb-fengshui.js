@@ -3,7 +3,7 @@
    Keys: kua.N (kua number), star.N (nine stars, annual/monthly center), dir.* (Eight Mansions favorable directions),
    rec.<door|desk|bed>.<dir> (compass records), room.<room>.<dir>.s<star> (rooms on the floor-plan grid), photo.N (room photos)
    Remedies are limited to arranging, tidying, light, colors and desk/bed direction.
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var items = {};

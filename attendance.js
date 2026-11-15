@@ -83,7 +83,7 @@ function layout(c = camera) {
 }
 const camera = LQCam.create(video, {
   facing: "user", persistKey: "att-cam",
-  onChange: (c, ev) => { if (ev.type === "started" || ev.type === "resumed") layout(c); },
+  onChange: (c, ev) => { if (ev.type === "started" || ev.type === "resumed") layout(c); camPowerSync(); },
   onError: (c, e) => { if (e && e.name === "AbortError") return; ready = false; showCamError(camErrorText(e)); }
 });
 video.addEventListener("resize", () => { if (camera.active) layout(); });
@@ -122,7 +122,35 @@ function camErrorText(e) {
 }
 
 
+// walk-through 2026-11-16 D-01: the PIN / QR time clock (employee mode) opens with the camera OFF; the camera and the face
+// models start only when someone chooses face (a face tab, the QR camera scan, kiosk) or presses "เปิดกล้อง".
+// D2-007: a visible "ปิดกล้อง" control stops every track at any time (the training page still opens the camera on load).
+let camWanted = false;
+function startCamera() { if (camWanted && (ready || camera.active)) return Promise.resolve(); camWanted = true; camPowerSync(); return init(); }
+function camIdle(text) {
+  camMsg.classList.remove("hide"); camMsg.innerHTML = "";
+  const p = document.createElement("div"); p.textContent = text;
+  const b = document.createElement("button"); b.type = "button"; b.className = "btn primary"; b.textContent = "เปิดกล้อง"; b.style.marginTop = "14px";
+  b.onclick = () => { startCamera(); };
+  p.append(document.createElement("br"), b); camMsg.append(p);
+}
+function stopCamera() {
+  camWanted = false; ready = false;
+  if (scanning) $("#startScan").click();
+  camera.stop();
+  overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height);
+  camIdle("ปิดกล้องแล้ว — ลงเวลาด้วย PIN หรือบัตร QR ได้ตามปกติ กดเปิดกล้องเมื่อต้องการสแกนใบหน้า");
+  say("ปิดกล้องแล้ว"); camPowerSync();
+}
+function camPowerSync() {
+  const b = $("#camPower"); if (!b) return;
+  const on = camWanted || camera.active;
+  b.textContent = on ? "ปิดกล้อง" : "เปิดกล้อง";
+  b.classList.toggle("primary", !on); b.classList.toggle("ghost", on);
+}
+
 async function init() {
+  camWanted = true;
   ready = false;
   camMsg.classList.remove("hide");
   camMsg.textContent = "กำลังเปิดกล้องและโหลดโมเดลตรวจจับใบหน้า...";
@@ -144,8 +172,9 @@ async function init() {
   if (c.status === "rejected") return showCamError(camErrorText(c.reason));
   if (m.status === "rejected") return showCamError("โหลดโมเดลตรวจจับใบหน้าไม่สำเร็จ ไม่พบไฟล์โมเดลใน vendor/models (ตรวจว่ารันเว็บจากโฟลเดอร์โปรเจกต์ ไม่ได้เปิดไฟล์ตรง ๆ)");
 
+  if (!camWanted) { camera.stop(); return; } // turned off while it was starting
   ready = true; camMsg.classList.add("hide");
-  rebuildMatcher(); say("พร้อมใช้งาน");
+  rebuildMatcher(); say(""); camPowerSync(); // owner rule 2026-11-15: no idle "ready" status (loading / failure / what happened only)
 }
 
 function rebuildMatcher() {
@@ -472,6 +501,7 @@ document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
   ["checkin", "register", "records", "check", "pin"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== t.dataset.t; });
   mode = t.dataset.t;
+  if (mode === "checkin" || mode === "register" || mode === "check") startCamera(); // choosing face opens the camera (D-01)
   if (mode !== "check" && SCA) scaFinish();
   if (mode !== "checkin" && mode !== "check" && mode !== "pin" && scanning) $("#startScan").click();
   if (mode === "check" && SCA) scaWho();
@@ -604,7 +634,7 @@ if (scaPanel) {
   scaHist.render(scaPanel.hist); renderField();
 }
 // bridge for attendance-hr.js (employee time attendance): read-only view of this page's state + the status line
-window.__ATT_CORE = { get people() { return people; }, get ready() { return ready; }, get scanning() { return scanning; }, say, video, isTest: TEST };
+window.__ATT_CORE = { get people() { return people; }, get ready() { return ready; }, get scanning() { return scanning; }, say, video, isTest: TEST, startCamera };
 window.__ATT_SC = { get active() { return SCA; }, get last() { return SCA_LAST; }, get field() { return { ...fieldStats }; } };
 
 // sales demo mode (?demo=1, lensiq-demo.js): no camera and no face models — the demo is PIN / QR on sample employees
@@ -614,4 +644,19 @@ function demoNoCamera() {
   show(); window.addEventListener("lq-lang", show);
 }
 renderPeople(); renderLogs();
-if (/** @type {any} */ (window).LQDemo && /** @type {any} */ (window).LQDemo.on) demoNoCamera(); else init();
+// employee mode = ?mode=employee, or the mode this browser used last (attendance-hr.js reads the same setting)
+const EMP_OPEN = (() => {
+  try {
+    const q = new URLSearchParams(location.search).get("mode");
+    if (q) return q === "employee";
+    const st = JSON.parse(localStorage.getItem("att-hr-settings") || "null");
+    return !!st && st.mode === "employee";
+  } catch { return false; }
+})();
+{
+  const b = $("#camPower");
+  if (b) b.addEventListener("click", () => { if (camWanted || camera.active) stopCamera(); else startCamera(); });
+}
+if (/** @type {any} */ (window).LQDemo && /** @type {any} */ (window).LQDemo.on) { demoNoCamera(); const b = $("#camPower"); if (b) b.hidden = true; }
+else if (EMP_OPEN) { camIdle("กล้องปิดอยู่ — ลงเวลาด้วย PIN หรือบัตร QR ได้เลย กดเปิดกล้องเมื่อต้องการสแกนใบหน้า (ไม่บังคับ)"); camPowerSync(); }
+else init();

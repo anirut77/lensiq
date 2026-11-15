@@ -22,7 +22,7 @@ LENSIQ ไม่ขายกล้อง ไม้กั้น หรือร�
 | ชัตเตอร์และแสง | ภาพเบลอจากการเคลื่อนไหวคือสาเหตุผิดพลาดหลัก ตั้งชัตเตอร์ 1/500 วินาทีหรือเร็วกว่า (ถ้ารถไม่หยุดใช้ 1/1000 วินาที) โฟกัสคงที่ที่เส้นหยุด เปิด WDR หรือ BLC เมื่อย้อนแสง และทำให้รถหยุดหรือชะลอ (ไม้กั้น ลูกระนาด) |
 | กลางคืน | ป้ายไทยสะท้อนแสง ใช้ไฟ IR 850 nm ติดใกล้เลนส์ ลดกำลังไฟหรือชัตเตอร์ถ้าป้ายสว่างจ้า ตรวจผลกลางคืนแยกในเมนูตรวจความแม่นยำ |
 | ไม้กั้นและรีเลย์ | ไม่จำหน่ายและไม่รวมในบริการ ถ้าลูกค้าหรือผู้ติดตั้งต่อรีเลย์เอง รปภ. ต้องกดเปิดหลังยืนยันเสมอ ห้ามต่อให้เปิดโดยไม่มีคนยืนยัน และห้ามต่อในวงจรมอเตอร์ ทีมงานจะส่งคู่มือการต่อฉบับเต็มให้ผู้ติดตั้ง |
-| ป้ายแจ้ง PDPA | ติดป้ายจาก `gate-notice.html` ก่อนถึงกล้อง (ป้ายพิมพ์ได้มีเฉพาะภาษาไทยและอังกฤษ) เผยแพร่ประกาศความเป็นส่วนตัวของไซต์ท่าน กำหนดระยะเก็บบันทึก และให้ผู้ปฏิบัติงานที่ใช้ระบบยอมรับประกาศก่อนเปิดกล้อง |
+| ป้ายแจ้ง PDPA | ติดป้ายจาก `gate-notice.html` ก่อนถึงกล้อง (ป้ายพิมพ์ได้มีภาษาไทย อังกฤษ และจีน) เผยแพร่ประกาศความเป็นส่วนตัวของไซต์ท่าน กำหนดระยะเก็บบันทึก และให้ผู้ปฏิบัติงานที่ใช้ระบบยอมรับประกาศก่อนเปิดกล้อง |
 | เอกสาร | หนังสืออนุญาตจากนิติบุคคลหมู่บ้านหรืออาคารชุด หรือเจ้าของลานจอด และการประเมินผลกระทบด้านข้อมูลส่วนบุคคล (DPIA) ทีมงานจะส่งแบบฟอร์มให้ |
 
 ### 2. วันแรกทีละขั้น
@@ -89,7 +89,7 @@ Accuracy at a real site has not been measured (there is no field measurement yet
 - **Night:** Thai plates are retro-reflective; use an 850 nm IR light near the lens; lower the power or exposure if the plate saturates; check the night result separately in the accuracy check.
 - **Barrier and relay:** not sold and not part of the service. If you or an installer wire a relay, the guard must always press open after confirming; never wire it to open without a person, and never
   in the motor circuit. The team will send the installer the full wiring guide.
-- **PDPA sign:** post the sign from `gate-notice.html` before the camera (the printable sign exists in Thai and English only); publish a privacy notice for your site; set the log retention; and have the operator using the system accept the notice before the
+- **PDPA sign:** post the sign from `gate-notice.html` before the camera (the printable sign is in Thai, English and Chinese); publish a privacy notice for your site; set the log retention; and have the operator using the system accept the notice before the
   camera starts.
 - **Documents:** permission from the village or condo juristic person, or the car-park owner, and a data protection impact assessment (DPIA). The team will send you the forms.
 
@@ -154,7 +154,7 @@ LENSIQ 不销售摄像头、道闸或继电器。图像在您自己的设备上�
 - **快门与光线：** 运动模糊是错误的主要原因。快门设为 1/500 秒或更快（车辆不停时用 1/1000 秒），在停车线处固定对焦，逆光时开启 WDR 或 BLC，并让车辆停下或减速（道闸、减速带）。
 - **夜间：** 泰国车牌是反光材质；请在镜头附近使用 850 nm 红外灯；如果车牌过曝，降低功率或曝光；在准确度检查中单独查看夜间结果。
 - **道闸与继电器：** 不销售，也不属于服务范围。如果客户或安装人员自行接入继电器，必须由保安在确认后按下开启；绝不能接成无人确认就自动开启，也绝不能接入电机回路。团队会把完整的接线指南发给安装人员。
-- **PDPA 告示：** 在摄像头之前张贴 `gate-notice.html` 的告示（可打印的告示只有泰语和英语版本）；发布您所在场所的隐私声明；设定日志保存期限；并让使用系统的操作员在摄像头启动前接受该声明。
+- **PDPA 告示：** 在摄像头之前张贴 `gate-notice.html` 的告示（可打印的告示有泰语、英语和中文版本）；发布您所在场所的隐私声明；设定日志保存期限；并让使用系统的操作员在摄像头启动前接受该声明。
 - **文件：** 来自小区或公寓法人、或停车场业主的许可，以及个人数据影响评估（DPIA）。团队会把表格发给您。
 
 ### 2. 第一天逐步操作

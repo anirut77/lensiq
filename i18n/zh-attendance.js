@@ -260,6 +260,7 @@
   "attendance.hr.locked": "PIN 错误次数过多，请在 {s} 秒后重试",
   "attendance.hr.badPin": "工号或 PIN 不正确",
   "attendance.hr.badQr": "二维码工牌无效或已作废",
+  "attendance.hr.camOpening": "正在开启摄像头...",
   "attendance.hr.camNo": "摄像头尚未就绪",
   "attendance.hr.qrNo": "此浏览器无法用摄像头扫描二维码——请使用读卡器或 PIN",
   "attendance.hr.qrStop": "停止扫描二维码",

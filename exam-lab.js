@@ -163,7 +163,7 @@
       });
       const [, b] = await Promise.all([cam.start(), loadModels()]);
       try { cam.attach($("#camPick")); } catch (e) { /* single camera */ }
-      engine(() => T("exam.lab.ready", "พร้อม — ตัวประมวลผล: {b} · ภาพไม่ออกจากเครื่องนี้", { b: String(b).toUpperCase() }), "ok");
+      engine(() => "", "ok"); // owner rule 2026-11-15: no idle status at rest (loading or failure only)
       if (faceOff) { faceOff = false; setFaceOff(); }
       running = true; loop();
       renderChecks();
@@ -406,6 +406,14 @@
     $("#monitor").hidden = true;
     engine(() => T("exam.lab.ended", "ส่งข้อสอบแล้ว กล้องปิดแล้ว บันทึกเหตุการณ์ของคุณยังดูได้ด้านล่าง"), "ok");
   });
+  // walk-through 2026-11-16 D-12: before the exam starts (steps 2 and 3) the candidate can turn the camera off; nothing has
+  // started, the page goes back to the notice, and confirming it again reopens the camera
+  document.querySelectorAll(".cam-off-early").forEach(b => b.addEventListener("click", () => {
+    running = false; clearInterval(hbTimer);
+    try { cam && cam.stop(); } catch (e) { /* ignore */ }
+    show("notice");
+    engine(() => T("exam.lab.camOffDone", "ปิดกล้องแล้ว ยังไม่ได้เริ่มสอบ กดยืนยันในประกาศอีกครั้งเพื่อเปิดกล้อง หรือแจ้งผู้คุมสอบเพื่อขอทางเลือกอื่น"), "warn");
+  }));
   $("#exportOwn").addEventListener("click", () => L.exportFile(`lensiq-exam-${room || "room"}-${seat || "seat"}.json`, sent.length ? sent : own.map(e => ({ v: 1, type: "ev", room: room || "room", node: nodeId, src: "lab", seat: seat || "0", sig: e.sig, lvl: e.lvl, t: e.t }))));
   wireBrowser();
   renderOwn();

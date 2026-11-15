@@ -18,29 +18,22 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="tarot.title">ไพ่ทาโรต์ &amp; เซียมซี | LENSIQ</title>
-<meta name="description" data-i18n-attr="content:tarot.metaDesc" content="เปิดไพ่ทาโรต์ Rider–Waite–Smith 78 ใบ ไพ่ประจำวัน และเสี่ยงเซียมซี 28 ใบ เพื่อความบันเทิงในบูธและอีเวนต์ ทำงานในเบราว์เซอร์ ไม่บันทึกคำถาม">
-<link rel="stylesheet" href="styles.css?v=17">
+<meta name="description" data-i18n-attr="content:tarot.metaDesc" content="เปิดไพ่ทาโรต์ Rider–Waite–Smith 78 ใบ ไพ่ประจำวัน และเสี่ยงเซียมซี 28 ใบ สำหรับบูธและอีเวนต์ ทำงานในเบราว์เซอร์
+  ไม่บันทึกคำถาม">
+<link rel="stylesheet" href="styles.css?v=20">
 <link rel="stylesheet" href="tarot.css?v=4">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=18"></script>
+<script src="nav.js?v=21"></script>
 
-<aside class="lq-helpline" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
-  <span class="lq-call" data-lq-call="1323"><span class="lq-call-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span>
+<aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
+  <span class="lq-call-mini" data-lq-call="1323">
     <a class="lq-call-btn lq-helpline-tel" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
     <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
     <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
-    <span class="lq-call-go" data-i18n="call.1323.go">โทร 1323</span></a><span class="lq-call-num">1323</span>
-    <span class="lq-call-sub" data-i18n="call.1323.sub">พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง</span>
-    <small class="lq-call-org" data-i18n="call.1323.org">บริการของกรมสุขภาพจิต</small></span>
-  <span class="lq-call" data-lq-call="1669"><span class="lq-call-t" data-i18n="call.1669.label">เจ็บป่วยฉุกเฉิน</span>
-    <a class="lq-call-btn lq-helpline-tel" href="tel:1669" aria-label="เจ็บป่วยฉุกเฉิน โทร 1669" data-i18n-attr="aria-label:call.1669.btn">
-    <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-    <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
-    <span class="lq-call-go" data-i18n="call.1669.go">โทร 1669</span></a><span class="lq-call-num">1669</span></span>
-  <span class="lq-helpline-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</span>
+    <span class="lq-call-mini-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span> <b class="lq-call-mini-n">1323</b></a></span>
 </aside>
 <main class="tr" id="trApp">
   <div class="tr-head">
@@ -49,7 +42,10 @@
     <p data-i18n="tarot.lead" class="lead">ตั้งคำถาม สับไพ่ เลือกไพ่ด้วยมือคุณเอง แล้วอ่านความหมายไพ่ครบ 78 ใบ หรือเขย่าเซียมซีเสี่ยงทาย สร้างสีสันให้บูธ อีเวนต์ และแคมเปญการตลาด</p>
   </div>
 
-  <p class="tr-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span data-i18n="tarot.disc2"><b data-i18n="fortune.common.disclaimerBelief">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน กฎหมาย หรือความสัมพันธ์ที่สำคัญ</span></p>
+  <p class="tr-disclaimer lq-notice" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+    <span><b class="lq-disc-line"
+      data-i18n="fortune.disc.line">เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ</b>
+    <span class="lq-notice-more"><span data-i18n="tarot.disc2">ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน กฎหมาย หรือความสัมพันธ์ที่สำคัญ</span></span></span></p>
 
   <div class="tr-tabs" role="tablist" data-i18n-attr="aria-label:tarot.tabsAria" aria-label="เลือกโหมด">
     <button data-i18n="tarot.tabTarot" class="tr-tab" role="tab" id="tabTarot" aria-controls="panelTarot" aria-selected="true" type="button">ไพ่ทาโรต์</button>
@@ -105,7 +101,8 @@
     <!-- ขั้น 3 -->
     <section class="tr-result" id="trResult" hidden aria-labelledby="trResTitle">
       <h2 data-i18n="tarot.trResTitle" id="trResTitle" tabindex="-1">ผลการเปิดไพ่</h2>
-      <p class="tr-disc-mini" data-i18n="fortune.common.disclaimerBelief">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</p>
+      <p class="tr-disc-mini lq-disc-mini"
+        data-i18n="fortune.disc.line">เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ</p>
       <p class="tr-res-meta" id="trResMeta"></p>
       <div class="tr-synth" id="trSynth"></div>
       <div class="tr-readings" id="trReadings"></div>
@@ -172,7 +169,7 @@
         <p class="ss-meaning" id="ssMeaning"></p>
         <ul class="ss-cats" id="ssCats"></ul>
         <div id="ssRead"></div>
-        <p class="tr-small" data-i18n="tarot.ssNote">กลอนและคำทำนายแต่งขึ้นใหม่เพื่อความบันเทิง ไม่ได้อ้างอิงเซียมซีของวัดหรือศาลเจ้าใด</p>
+        <p class="tr-small" data-i18n="tarot.ssNote">กลอนและคำทำนายแต่งขึ้นใหม่ ไม่ได้อ้างอิงเซียมซีของวัดหรือศาลเจ้าใด</p>
         <div class="tr-res-actions">
           <button data-i18n="tarot.ssShare" class="btn primary big" id="ssShare" data-lq-remedy type="button">แชร์การ์ดเซียมซี</button>
           <button data-i18n="tarot.ssAgain" class="btn ghost big" id="ssAgain" type="button">เสี่ยงใหม่</button>
@@ -197,21 +194,6 @@
         และไม่มีการขายพิธีแก้ดวง ไพ่อย่างความตาย หอคอย หรือปีศาจ ไม่ได้หมายถึงความตายหรือเหตุร้ายจริง และไม่บันทึกคำถามของคุณ</p>
     </section>
   </div>
-  <aside class="lq-helpline" id="lqHelpEnd" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
-    <span class="lq-call" data-lq-call="1323"><span class="lq-call-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span>
-      <a class="lq-call-btn lq-helpline-tel" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
-      <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
-      <span class="lq-call-go" data-i18n="call.1323.go">โทร 1323</span></a><span class="lq-call-num">1323</span>
-      <span class="lq-call-sub" data-i18n="call.1323.sub">พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง</span>
-      <small class="lq-call-org" data-i18n="call.1323.org">บริการของกรมสุขภาพจิต</small></span>
-    <span class="lq-call" data-lq-call="1669"><span class="lq-call-t" data-i18n="call.1669.label">เจ็บป่วยฉุกเฉิน</span>
-      <a class="lq-call-btn lq-helpline-tel" href="tel:1669" aria-label="เจ็บป่วยฉุกเฉิน โทร 1669" data-i18n-attr="aria-label:call.1669.btn">
-      <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
-      <span class="lq-call-go" data-i18n="call.1669.go">โทร 1669</span></a><span class="lq-call-num">1669</span></span>
-    <span class="lq-helpline-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</span>
-  </aside>
 </main>
 
 <dialog class="tr-modal" id="trModal" aria-labelledby="trModalTitle">
@@ -225,17 +207,18 @@
 <button data-i18n="fortune.common.kioskExit" class="btn primary tr-kiosk-exit" id="trKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 <div class="toast" id="trToast" role="status"></div>
 
-<script src="i18n/zh-fortune.js?v=7"></script>
-<script src="i18n/zh-fortune-tarot.js?v=4"></script>
+<script src="i18n/zh-fortune.js?v=10"></script>
+<script src="i18n/zh-fortune-tarot.js?v=6"></script>
 <script src="i18n/zh-kb-tarot.js?v=1"></script>
-<script src="i18n/zh-kb-siamsee.js?v=1"></script>
-<script src="lensiq-config.js?v=11"></script>
+<script src="i18n/zh-kb-siamsee.js?v=2"></script>
+<script src="lensiq-config.js?v=12"></script>
 <script src="fortune-straight.js?v=6"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
+<script src="fortune-read.js?v=10"></script>
 <script src="lensiq-helpline.js?v=1"></script>
 <script src="fortune-crisis.js?v=11"></script>
-<script src="fortune-ai.js?v=23"></script>
-<script src="tarot-kb.js?v=3"></script>
-<script src="tarot.js?v=10"></script>
+<script src="fortune-ai.js?v=28"></script>
+<script src="tarot-kb.js?v=5"></script>
+<script src="tarot.js?v=11"></script>
 </body>
 </html>

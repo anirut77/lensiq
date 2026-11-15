@@ -3,6 +3,8 @@
 // enrolment, manager correction with append-only audit, monthly summary + payroll CSV, kiosk, multi-device import,
 // zh / en coverage of the new UI (0 % Thai), phone widths 320/360/390 (no overflow, 44 px targets), privacy.
 // Faces come from window.__LQ_FAKE_DET and matches from window.__LQ_FAKE_MATCH (?fakedet on localhost only).
+// walk-through 2026-11-16 D-01: the PIN / QR time clock (employee mode) no longer opens the camera on load, so the HR-only
+// checks below wait for the page (LQHR + attendance core) instead of the camera being ready; face checks still open it.
 import { assert, privacyScan } from "./cdp.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -121,11 +123,11 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(await page.evaluate(() => /ลืมสแกนออก/.test(document.querySelector("#hrAuditBody").textContent)), "audit table shows the reason");
       // tampering with the stored log is detected
       await page.evaluate(() => { const a = JSON.parse(localStorage.getItem("att-hr-audit")); a[0].reason = "x"; localStorage.setItem("att-hr-audit", JSON.stringify(a)); });
-      await page.reload(); await page.waitFor("window.LQHR && ready === true", 15000);
+      await page.reload(); await page.waitFor("window.LQHR && !!window.__ATT_CORE", 15000);
       await hrTab("audit");
       assert(/ไม่ตรงลำดับ|แก้ไขภายนอก/.test(await page.evaluate(() => document.querySelector("#hrChain").textContent)), "tampering flagged");
       await page.evaluate(() => { const a = JSON.parse(localStorage.getItem("att-hr-audit")); a[0].reason = ""; localStorage.setItem("att-hr-audit", JSON.stringify(a)); });
-      await page.reload(); await page.waitFor("window.LQHR && ready === true", 15000);
+      await page.reload(); await page.waitFor("window.LQHR && !!window.__ATT_CORE", 15000);
       await hrTab("month");
       const row = await page.evaluate(() => [...document.querySelectorAll("#hrSumBody tr")].map(tr => [...tr.cells].map(c => c.textContent)).find(c => c[0] === "B02"));
       assert(row && row[11] === "1", "corrections column = 1: " + JSON.stringify(row));
@@ -139,7 +141,7 @@ export default async function ({ base, launch, check, fakeCams }) {
         P.push({ id: "t1", emp: e.id, ts: T("2026-10-05", "08:12"), type: "auto", method: "face", dev: s.S.dev }, { id: "t2", emp: e.id, ts: T("2026-10-05", "18:05"), type: "auto", method: "face", dev: s.S.dev });
         localStorage.setItem("att-hr-punches", JSON.stringify(P));
       });
-      await page.reload(); await page.waitFor("window.LQHR && ready === true", 15000);
+      await page.reload(); await page.waitFor("window.LQHR && !!window.__ATT_CORE", 15000);
       await hrTab("month"); await fill("#hrMonth", "2026-10");
       await click("#hrPayCsv");
       const csv = await lastBlob();
@@ -245,7 +247,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     for (const lang of ["zh", "en"]) {
       await check(`${lang}: the employee-mode UI has no Thai left (user data excluded)`, async () => {
         await page.goto(`${base}/attendance.html?cpu&fakedet&mode=employee&lang=${lang}`);
-        await page.waitFor(`window.LQHR && ready === true && window.LQI18N && LQI18N.lang === "${lang}"`, 15000);
+        await page.waitFor(`window.LQHR && !!window.__ATT_CORE && window.LQI18N && LQI18N.lang === "${lang}"`, 15000);
         await sleep(400);
         const worst = [];
         for (const h of ["emp", "shift", "cal", "month", "audit", "data"]) {
@@ -271,7 +273,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       for (const w of [320, 360, 390]) {
         await p.send("Emulation.setDeviceMetricsOverride", { width: w, height: 800, deviceScaleFactor: 2, mobile: true });
         await p.goto(`${base}/attendance.html?cpu&fakedet&mode=employee&lang=th`);
-        await p.waitFor("window.LQHR && ready === true", 15000);
+        await p.waitFor("window.LQHR && !!window.__ATT_CORE", 15000);
         for (const h of ["emp", "shift", "cal", "month", "audit", "data", "kiosk"]) {
           if (h === "kiosk") await p.evaluate(() => LQHR.enterKiosk(false)); else await p.evaluate(h => document.querySelector(`.hr-tab[data-h="${h}"]`).click(), h);
           const r = await p.evaluate(() => {

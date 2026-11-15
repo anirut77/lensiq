@@ -1,7 +1,7 @@
 /* i18n/en-kb-zodiac.js — English reading data (Chinese zodiac, Tai Sui years, zodiac matches) for fortune-ai.js (English mode).
    Mirrors i18n/zh-kb-zodiac.js key for key. animal.0 = Rat … animal.11 = Pig (same order as ANIMALS).
    animal.N is written to "you"; partner.N describes "the other person" in the third person and is used as stand-alone sentences.
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var X_EL = "each Chinese year carries one of five elements (wood, fire, earth, metal, water), and tradition reads how it meets the element of your birth year";
