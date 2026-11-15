@@ -543,15 +543,17 @@ if (typeof document !== "undefined") (() => {
       await listCams();
     } catch (e) {
       if (e && e.name === "NotAllowedError") console.info("camera permission refused by the user"); else console.error(e); stopCam();
+      // the iPhone path (Safari aA -> Website Settings -> Camera), added to the address-bar hint; en / zh in i18n/*-rt-common.js
+      const IOS_CAM = "บนไอโฟน แตะปุ่ม aA ข้างช่องที่อยู่ของซาฟารี แล้วเลือก การตั้งค่าเว็บไซต์ แล้วเลือก กล้อง แล้วเลือก อนุญาต";
       const m = {
         Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
-        NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่แล้วเลือก \"อนุญาต\"",
+        NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่แล้วเลือก \"อนุญาต\" — " + IOS_CAM,
         NotFoundError: "ไม่พบกล้อง — ตรวจสอบการเสียบสาย USB ของกล้อง",
         NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ (เช่น Zoom, FaceTime) — ปิดโปรแกรมนั้นก่อน",
         OverconstrainedError: "กล้องที่เลือกไม่รองรับความละเอียดที่ขอ",
         AbortError: "การเปิดกล้องถูกยกเลิก"
       }[e.name];
-      camMsg = { text: `เปิดกล้องไม่ได้: ${m || "เกิดข้อผิดพลาด"} (${e.name})`, cls: "err" };
+      camMsg = { text: m ? `เปิดกล้องไม่ได้: ${m}` : `เปิดกล้องไม่ได้: เกิดข้อผิดพลาด (${e.name})`, cls: "err" }; // the code only for an unknown error
     }
     showStatus();
   }

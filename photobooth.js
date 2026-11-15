@@ -764,7 +764,8 @@ function aiStatus() {
   if (typeof location !== "undefined" && /\.github\.io$/i.test(location.hostname)) return;
   fetch("/api/tryon/status").then(r => r.ok ? r.json() : null).then(s => {
     aiEnabled = !!(s && s.enabled); aiReason = s && s.reason || null; aiNC = !!(s && s.noncommercial);
-    if (aiEnabled && mode === "id" && idState.cap && !$("#result").hidden) showIdResult(true);
+    // redraw on every answer: enabled -> the AI panel; disabled with a reason ("no-token" ...) -> that reason, not "server not found"
+    if ((aiEnabled || aiReason) && mode === "id" && idState.cap && !$("#result").hidden) showIdResult(true);
   }).catch(() => {});
 }
 /** เหตุผลที่ AI ปิดอยู่ (จาก /api/tryon/status: reason) — แสดงให้ผู้ดูแลรู้ว่าต้องตั้งค่าอะไร */

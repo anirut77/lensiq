@@ -479,7 +479,13 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   // 1 ตัว = ใช้ร่วมกันทั้งจอโฆษณาและคีออสก์ (เหมือนเดิม) · 2 ตัว = กล้องผู้ชม (วัดผล) + กล้องคีออสก์ (สั่งงานด้วยมือ) ทำงานพร้อมกัน
   // ตำแหน่ง/บทบาทกล้องเก็บใน sg-cams (เฉพาะ deviceId/ชื่อ/บทบาท ไม่มีภาพ) · อุปกรณ์ที่เปิดได้ทีละกล้องจะได้ข้อความแจ้งและใช้กล้องเดียวต่อ
   const ROLE_TH = { both: "ทั้งสองโหมด", audience: "วัดผู้ชม", kiosk: "คีออสก์" };
-  const CAM_ERR = { Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด", NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดอนุญาตที่แถบที่อยู่ของเบราว์เซอร์", NotFoundError: "ไม่พบกล้องในเครื่องนี้", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ — ปิดโปรแกรมนั้นแล้วลองใหม่", OverconstrainedError: "กล้องไม่รองรับความละเอียดที่ขอ" };
+  // the iPhone path (Safari aA -> Website Settings -> Camera), added to the address-bar hint; en / zh in i18n/*-rt-common.js
+  const IOS_CAM = "บนไอโฟน แตะปุ่ม aA ข้างช่องที่อยู่ของซาฟารี แล้วเลือก การตั้งค่าเว็บไซต์ แล้วเลือก กล้อง แล้วเลือก อนุญาต";
+  const CAM_ERR = {
+    Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
+    NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดอนุญาตที่แถบที่อยู่ของเบราว์เซอร์ — " + IOS_CAM,
+    NotFoundError: "ไม่พบกล้องในเครื่องนี้", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ — ปิดโปรแกรมนั้นแล้วลองใหม่", OverconstrainedError: "กล้องไม่รองรับความละเอียดที่ขอ"
+  };
   let R = { audience: null, kiosk: null, shared: true };
   const audCam = () => hub.cam(R.audience), kioCam = () => hub.cam(R.kiosk);
   const mirrored = c => !!c && c.facing !== "environment"; // สะท้อนภาพเฉพาะกล้องหน้า
@@ -539,7 +545,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   function camError(e, what, retry) {
     LQCam.logError(e);
     const m = CAM_ERR[e.name] || (e.name === "CapacityError" || e.name === "NoFreeCamera" || e.name === "DuplicateCamera" ? LQCam.errorText(e) : null);
-    engine(`${what}ไม่สำเร็จ: ${m || "โหลดโมเดลไม่สำเร็จ"} (${e.name}: ${e.message || "-"})`, "err", retry);
+    engine(m ? `${what}ไม่สำเร็จ: ${m}` : `${what}ไม่สำเร็จ: โหลดโมเดลไม่สำเร็จ (${e.name}: ${e.message || "-"})`, "err", retry); // the code only for an unknown error
   }
 
   // เพิ่ม/เอาออก กล้องคีออสก์แยก

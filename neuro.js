@@ -82,7 +82,7 @@ async function init() {
     console.warn(e);
     if (e.name === "Insecure") showHttpsNote($("#engine"));
     const m = { Insecure: HTTPS_MSG, NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง", NotFoundError: "ไม่พบกล้อง", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่" }[e.name];
-    engine("ระบบไม่พร้อม: " + (m || "โหลดโมเดลไม่สำเร็จ") + (e.name === "Insecure" ? "" : ` (${e.name}: ${e.message || "-"})`), "err");
+    engine("ระบบไม่พร้อม: " + (m || "โหลดโมเดลไม่สำเร็จ") + (m ? "" : ` (${e.name}: ${e.message || "-"})`), "err"); // the code only for an unknown error
     const b = document.createElement("button");
     b.className = "btn ghost retry"; b.textContent = "ลองใหม่";
     b.onclick = init; $("#engine").append(b);

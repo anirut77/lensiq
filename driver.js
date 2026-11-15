@@ -465,10 +465,12 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     b.onclick = init; $("#engine").append(b);
   }
 
+  // the iPhone path (Safari aA -> Website Settings -> Camera), added to the address-bar hint; en / zh in i18n/*-rt-common.js
+  const IOS_CAM = "บนไอโฟน แตะปุ่ม aA ข้างช่องที่อยู่ของซาฟารี แล้วเลือก การตั้งค่าเว็บไซต์ แล้วเลือก กล้อง แล้วเลือก อนุญาต";
   function cameraError(e) {
     const m = {
       Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
-      NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่เพื่ออนุญาต แล้วกดลองใหม่",
+      NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่เพื่ออนุญาต แล้วกดลองใหม่ — " + IOS_CAM,
       SecurityError: "เบราว์เซอร์บล็อกการใช้กล้อง",
       NotFoundError: "ไม่พบกล้อง — ตรวจสอบการต่อกล้องหน้ารถ/กล้อง IR",
       NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ — ปิดโปรแกรมนั้นแล้วกดลองใหม่",
@@ -500,7 +502,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     } catch (e) {
       console.warn(e);
       const m = cameraError(e);
-      engine(`ระบบไม่พร้อม: ${m || "โหลดโมเดลไม่สำเร็จ"} (${e.name}: ${e.message || "-"})`, "err");
+      engine(m ? `ระบบไม่พร้อม: ${m}` : `ระบบไม่พร้อม: โหลดโมเดลไม่สำเร็จ (${e.name}: ${e.message || "-"})`, "err"); // the code only for an unknown error
       addRetry();
       if (e.name === "Insecure" && !$("#engine a")) { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "btn ghost"; a.style.cssText = "margin-left:10px;padding:4px 14px"; a.textContent = "วิธีเปิดผ่าน https"; $("#engine").append(a); }
     }

@@ -248,5 +248,8 @@
   "หน่วยความจำของเครื่องไม่พอสำหรับสแกนใบหน้า — หยุดสแกนแล้ว ปิดแท็บหรือแอปอื่น แล้วกดเริ่มสแกนอีกครั้ง": "This device ran out of memory for face scanning — scanning stopped. Close other tabs or apps, then tap Start scan again",
   "หน่วยความจำของเครื่องไม่พอสำหรับสแกนใบหน้า — หยุดสแกนแล้ว ปิดแท็บหรือแอปอื่น แล้วกดเริ่มสแกนอีกครั้ง · ค้นหาด้วยชื่อหรือเบอร์แทนได้": "This device ran out of memory for face scanning — scanning stopped. Close other tabs or apps, then tap Start scan again · You can search by name or phone instead",
   "การตรวจจับใบหน้าหยุดทำงานบนเครื่องนี้ — หยุดสแกนแล้ว ปิดแท็บอื่นหรือโหลดหน้าใหม่ แล้วกดเริ่มสแกนอีกครั้ง": "Face detection stopped working on this device — scanning stopped. Close other tabs or reload the page, then tap Start scan again",
-  "การตรวจจับใบหน้าหยุดทำงานบนเครื่องนี้ — หยุดสแกนแล้ว ปิดแท็บอื่นหรือโหลดหน้าใหม่ แล้วกดเริ่มสแกนอีกครั้ง · ค้นหาด้วยชื่อหรือเบอร์แทนได้": "Face detection stopped working on this device — scanning stopped. Close other tabs or reload the page, then tap Start scan again · You can search by name or phone instead"
+  "การตรวจจับใบหน้าหยุดทำงานบนเครื่องนี้ — หยุดสแกนแล้ว ปิดแท็บอื่นหรือโหลดหน้าใหม่ แล้วกดเริ่มสแกนอีกครั้ง · ค้นหาด้วยชื่อหรือเบอร์แทนได้": "Face detection stopped working on this device — scanning stopped. Close other tabs or reload the page, then tap Start scan again · You can search by name or phone instead",
+  // the iPhone path added to every "allow it in the address bar" camera hint (iPhone coverage follow-up, 2026-11-16)
+  "บนไอโฟน แตะปุ่ม": "On iPhone, tap",
+  "ข้างช่องที่อยู่ของซาฟารี แล้วเลือก การตั้งค่าเว็บไซต์ แล้วเลือก กล้อง แล้วเลือก อนุญาต": "by the Safari address bar, then Website Settings → Camera → Allow"
 });

@@ -107,9 +107,11 @@ function showCamError(text) {
 function camErrorText(e) {
   if (!window.isSecureContext || !navigator.mediaDevices)
     return `${INSECURE_MSG} (ตอนนี้เปิดจาก ${location.origin} — บนคอมพิวเตอร์ใช้ http://localhost:8000 ได้)`;
+  // the iPhone path (Safari aA -> Website Settings -> Camera), added to the address-bar hint; en / zh in i18n/*-rt-common.js
+  const IOS_CAM = "บนไอโฟน แตะปุ่ม aA ข้างช่องที่อยู่ของซาฟารี แล้วเลือก การตั้งค่าเว็บไซต์ แล้วเลือก กล้อง แล้วเลือก อนุญาต";
   switch (e && e.name) {
     case "NotAllowedError": case "SecurityError":
-      return "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณากดไอคอนแม่กุญแจข้าง URL แล้วเลือก \"อนุญาต\" กล้อง จากนั้นกดลองใหม่";
+      return "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณากดไอคอนแม่กุญแจข้าง URL แล้วเลือก \"อนุญาต\" กล้อง จากนั้นกดลองใหม่ — " + IOS_CAM;
     case "NotFoundError": case "OverconstrainedError":
       return "ไม่พบกล้องในอุปกรณ์นี้ กรุณาเสียบเว็บแคมแล้วกดลองใหม่";
     case "NotReadableError": case "AbortError":

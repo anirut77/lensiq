@@ -209,7 +209,7 @@ if (typeof document !== "undefined") (() => {
   function showInitError(e) {
     LQCam.logError(e);
     const m = { Insecure: INSECURE_MSG, NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง", NotFoundError: "ไม่พบกล้อง", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่" }[e.name];
-    engine(`ระบบไม่พร้อม: ${m || "โหลดโมเดลไม่สำเร็จ"} (${e.name}: ${e.message || "-"}) — ยังค้นหาสมาชิกด้วยชื่อได้`, "err");
+    engine((m ? `ระบบไม่พร้อม: ${m}` : `ระบบไม่พร้อม: โหลดโมเดลไม่สำเร็จ (${e.name}: ${e.message || "-"})`) + " — ยังค้นหาสมาชิกด้วยชื่อได้", "err"); // the code only for an unknown error
     if (e.name === "Insecure") { const a = document.createElement("a"); a.href = "cameras.html"; a.textContent = "ดูวิธีเปิดผ่าน https"; a.className = "engine-link"; $("#engine").append(" ", a); }
     const b = document.createElement("button");
     b.className = "btn ghost"; b.type = "button"; b.textContent = "ลองใหม่"; b.style.cssText = "margin-left:10px;padding:4px 14px";

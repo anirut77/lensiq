@@ -910,7 +910,9 @@ if (typeof document !== "undefined") (() => {
     LQCam.logError(e);
     const kind = LQCam.errorKind(e);
     const m = e.name === "MediaError" ? "เปิดไฟล์วิดีโอไม่ได้ ลองไฟล์ MP4/WebM อื่น" : LQCam.errorText(e);
-    engine(`ระบบไม่พร้อม: ${e.model ? "โหลดโมเดลตรวจจับคนไม่สำเร็จ" : m || "เกิดข้อผิดพลาด"} (${e.name}: ${e.message || "-"})`, "err");
+    // the error code only for a model or unknown error
+    const code = e.model || kind === "unknown" ? ` (${e.name}: ${e.message || "-"})` : "";
+    engine(`ระบบไม่พร้อม: ${e.model ? "โหลดโมเดลตรวจจับคนไม่สำเร็จ" : m || "เกิดข้อผิดพลาด"}${code}`, "err");
     const b = document.createElement("button");
     b.type = "button"; b.className = "btn ghost retry"; b.textContent = "ลองใหม่"; b.onclick = retry;
     $("#engine").append(" ", b);
