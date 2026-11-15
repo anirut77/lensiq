@@ -1,0 +1,8 @@
+# locked 2026-11-15T15:36:14Z (tools/eval-guard.mjs lock, 3 files)
+89b3514b1aeb6accf086f5fba284e9bd46399193ab99c0dc8b9acfba2b41192c  backend-lead-notify.test.js
+ad0f8487d1e54391864c39453d9b0757dbfcd564a0c2558240830ff4c03d78e6  secrets-setup-line.test.js
+bcbdbd845f5f43836516a94e659a21880d451564ba32d0848eecccb5a3e45155  admin-lead-notify.e2e.mjs
+# Owner order 2026-11-15 "LINE lead notification is never silent". Locked BEFORE any product code (base d5ea000).
+# The three files are byte-identical copies of tests/unit/backend-lead-notify.test.js, tests/unit/secrets-setup-line.test.js
+# and tests/e2e/admin-lead-notify.e2e.mjs. Before the build: unit 2 pass / 10 fail (of 12), e2e 0 pass / 1 fail (crash: no
+# notify_state column). Logs: ~/LENSIQ-field/evals/lead-notify/{unit,e2e}-before-build.log
