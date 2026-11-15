@@ -15,3 +15,14 @@ b9ccdf5fbb7986fca97c07fd666b4e8673c6cc53ed392a0f1515236adf2340c4  tools/fortune-
 3aa404ff3f8e543eb75f5bd23eb22c35468229df780734497df4f32f6d8ea00a  tests/unit/fortune-quality-2.test.js
 7d79bbee0c98e2d2a6f04c4ddac790f292655d3716edc916271f1f03c27d3ff8  tests/unit/fortune-quality-base-content.json
 c1e1b93301cb01892590856ee53e8e6ca9dcba4a8c95ea4572455433ee2b48d8  tools/fortune-quality-measure-2.mjs
+# round 3 (coordinator order after RECHECK-2.md NOT OK on d07ecbe): metrics S1-S10 (overview topic blocks and text after the
+# read-on line, the pinned money overview of 0812345678, the name + means-that verb opener formula, wrong-type verb frames, cuts
+# before ๆ / name splits / dangling tags / label-only groups, report tips by core text, first-finding parity and the lifegraph age
+# band, stock caution leads, the closer after 2+ tips, lek7 / siam si advice parity, characters vs base, small Thai grammar, hub
+# wording) and a new input set fresh3 (120). Detectors written by the builder; the reviewer's scripts were not read. Base characters
+# computed with the base composer (0b5391f) on the fresh3 facts. Locked BEFORE the round-3 fixes.
+# locked 2026-11-15T22:51:19Z (tools/eval-guard.mjs lock, 4 files)
+89e6e793fdb257e450d423df0ef5a12c947b6382f3689bae671d1b4d35b5de7d  tools/fortune-quality-metrics-3.mjs
+a874aa34ae096ac6c1ae2fcadc2dbf204552d8b7d4b6bff56ff7841fffbb55e3  tests/unit/fortune-quality-3.test.js
+6be8f4852d00f536e18f2ab55fceade7441aac31d7ed5b903a1d4433d15e9a2f  tests/unit/fortune-quality-base-chars.json
+4fd6c26d7d907d728ab1ba2ae8bfa2ce65f9ee9507671697d3c6033873dfba0d  tools/fortune-quality-measure-3.mjs
