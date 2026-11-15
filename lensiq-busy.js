@@ -17,6 +17,8 @@
  *     Toggles are left alone (a second tap on a tab, chip, menu or switch is a deliberate undo): .tab, .chip,
  *     [role=tab|switch|checkbox|radio|menuitem*], aria-expanded / aria-pressed / aria-selected. Never guarded: tel: links
  *     and the help-line call buttons (.lq-call-btn), [data-lq-repeat] (steppers), form fields.
+ *     Form submit buttons are left to the form (its code, or LQBusy.wrap on the submit listener), so a quick retry
+ *     after an error message is not dropped. The gap is measured between the taps themselves (event.timeStamp).
  *   - camera starts: when getUserMedia is called within CAM_MS of a real tap on a button, that button is busy until the
  *     browser answers (permission prompt, camera warm-up), so a second tap cannot open a second camera.
  *   - iOS Safari only shows :active when a touchstart listener exists: one passive no-op listener is added.
@@ -28,6 +30,9 @@
   var TOGGLE = ".tab, .chip, [role=tab], [role=switch], [role=checkbox], [role=radio], " +
     "[role=menuitem], [role=menuitemcheckbox], [role=menuitemradio], [aria-expanded], [aria-pressed], [aria-selected]";
   var NEVER = "a[href^='tel:'], .lq-call-btn, [data-lq-repeat]";
+  // form submit buttons: the form's own code (or LQBusy.wrap on the submit listener) guards a second submit; a time guard
+  // would drop a quick, deliberate retry after an error message
+  var NO_TIME_GUARD = "[type=submit], button:not([type])";
   var busy = typeof WeakSet === "function" ? new WeakSet() : null;
 
   function isBusy(el) { return !!(el && busy && busy.has(el)); }
@@ -83,7 +88,9 @@
       if (!ev.isTrusted || !last) return;
       var b = closest(t, BTN);
       if (!b || closest(t, NEVER) || b.matches(TOGGLE)) return;
-      var now = Date.now(), prev = last.get(b);
+      if (b.matches(NO_TIME_GUARD) && b.form) return;
+      // the time of the tap itself (input timestamp), not of handling: a busy main thread must not stretch the gap
+      var now = typeof ev.timeStamp === "number" && ev.timeStamp > 0 ? ev.timeStamp : Date.now(), prev = last.get(b);
       last.set(b, now);
       if (prev && now - prev < GUARD_MS) { ev.preventDefault(); ev.stopImmediatePropagation(); }
     }, true);
