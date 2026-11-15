@@ -1069,12 +1069,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       await camera.start();
       engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
       // never a live camera without a detector; a retry after liveDead() re-arms the detector (the models are still loaded)
-      try { await loadModels(); } catch (e) { stopLive(); modelMsg(e); return; } ready = true; switched = false;
-      $("#frCamHint").hidden = true;
+      try { await loadModels(); } catch (e) { stopLive(); modelMsg(e); return; } ready = true; switched = false; $("#frCamHint").hidden = true;
       engineT("faceread.eng.camReady", "กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี มองตรง แล้วกด อ่านโหงวเฮ้ง", null, "ok");
-      btnCam.hidden = true; btnRead.hidden = false;
-    } catch (e) { camErr(e); btnCam.disabled = false; }
-  });
+      btnCam.hidden = true; btnRead.hidden = false; } catch (e) { camErr(e); btnCam.disabled = false; }
+  }); // D-13: the camera-off control (#frStopCam) shows while the start button is hidden (faceread.css)
+  $("#frStopCam").addEventListener("click", function () { if (busy) return; stopLive(); hideHint(); octx.clearRect(0, 0, ov.width, ov.height);
+    engineT("faceread.eng.camOff", "ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อใช้ต่อ หรืออัปโหลดรูป", null, "ok"); });
 
   /* ---------- อ่านจากกล้อง: นับถอยหลัง 3-2-1 แล้วเก็บ ~10 เฟรม ---------- */
   btnRead.addEventListener("click", async function () {

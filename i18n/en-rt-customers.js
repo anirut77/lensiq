@@ -1,6 +1,7 @@
 /* i18n/en-rt-customers.js — run-time English for text written by customers.js (mirrors zh-rt-customers.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
   "@lang": "en",
+  "ปิดกล้องแล้ว — ยังค้นหาสมาชิกด้วยชื่อได้": "Camera off — members can still be found by name",
   "ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้แล้ว": "All biometric data on this device has been deleted",
   "ลบข้อมูลชีวมิติ (ค่าใบหน้า) ทั้งหมดในเบราว์เซอร์เครื่องนี้ ทั้งระบบจดจำลูกค้าและเช็คชื่อ พร้อมกุญแจเข้ารหัส? สมาชิกและประวัติการสั่งยังอยู่ (ค้นหาด้วยชื่อได้) บันทึกการเข้าเรียนยังอยู่ ย้อนกลับไม่ได้": "Delete all biometric data (face values) in this browser, for both customer recognition and check-in, together with the encryption keys? Members and order history are kept (search by name). Attendance records are kept. This cannot be undone",
   "{a} คนจะถูกลบภายใน 30 วัน (เร็วสุดอีก {b} วัน)": "{a} will be deleted within 30 days (the first in {b} days)",

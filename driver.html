@@ -25,11 +25,11 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=18"></script>
+<script src="nav.js?v=19"></script>
 <script src="i18n/zh-driver.js?v=2"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=3"></script>
-<script src="i18n/zh-rt-driver.js?v=1"></script>
+<script src="i18n/zh-rt-driver.js?v=2"></script>
 <script src="i18n/zh-rt-sitecheck.js?v=3"></script>
 
 <main class="dr">
@@ -51,6 +51,7 @@
         <div class="cam-pick">
           <label><span data-i18n="driver.s12">กล้อง</span><select id="camSel"><option value="" data-i18n="driver.s13">กำลังค้นหากล้อง...</option></select></label>
           <button class="btn ghost" id="flipCam" type="button" data-i18n="driver.s14">สลับกล้องหน้า/หลัง</button>
+          <button class="btn ghost" id="camPower" type="button" hidden>ปิดกล้อง</button>
         </div>
         <p class="acc-start" id="accStart" role="note"><span data-i18n="driver.accstart">ก่อนเริ่ม: ผลวัดล่าสุด (การขับจำลอง ไม่ใช่คนขับที่ง่วงจริง) ระบบเตือนการหลับตา 2 วินาทีได้ราว 25% และเตือนผิดราว 1.4 ครั้งต่อชั่วโมง จึงพลาดการหลับตาได้มาก ห้ามใช้แทนการพักผ่อน และห้ามมองจอขณะขับ</span> <b data-i18n="driver.accstart2">หมายความว่ามีเพียงราว 25% ของการหลับตา 2 วินาทีที่มีเสียงเตือน ที่เหลือไม่มีเสียงเตือนเลย — เป็นเพียงเครื่องช่วยเตือนเสริม ไม่ใช่ตัวกันหลับ หากรู้สึกง่วงให้จอดพักทันที อย่ารอเสียงเตือน</b></p>
         <p class="lq-ready" id="drReady" role="status" hidden></p>
@@ -190,7 +191,7 @@
 <script src="lensiq-camera.js?v=5"></script>
 <script src="lensiq-detect.js?v=6"></script>
 <script src="lensiq-sitecheck.js?v=4"></script>
-<script src="driver.js?v=7"></script>
-<script src="lensiq-config.js?v=10"></script>
+<script src="driver.js?v=8"></script>
+<script src="lensiq-config.js?v=11"></script>
 </body>
 </html>

@@ -67,6 +67,10 @@ studio), and extra systems (cameras, checkout, attendance, qc, driver, converter
 | `POST /api/fortune`, `GET /api/fortune/status` | Rewrites derived fortune facts with Claude. Needs `consent: true`. | off without `ANTHROPIC_API_KEY` |
 | `POST /api/tryon`, `GET /api/tryon/status` | Replicate try-on. Needs token + model + `LENSIQ_TRYON_LICENSE` + `consent=yes`. | off |
 
+Client switches (`lensiq-config.js`, both off as shipped, D2-011 2026-11-16): `LENSIQ_CONVERT_SERVER` lets converter.html call
+`/api/convert` and `/api/convert/status` (set `true` when serving with `server.py`); `LENSIQ_TRYON` lets photobooth.html ask
+`/api/tryon/status` (set `true` only when the try-on server is live). While off, the static site makes no such request.
+
 ## 2. Data flow
 
 1. **Camera → numbers.** `getUserMedia` frames go to an off-DOM canvas, then to the detector (face-api / COCO-SSD /

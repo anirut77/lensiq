@@ -72,6 +72,7 @@
     "palm.eng.modelFail": "The hand landmark model failed to load — you can still tap the hand points manually",
     "palm.eng.camLost": "Camera signal lost — please reopen the camera",
     "palm.eng.opening": "Opening the camera...",
+    "palm.eng.camOff": "Camera off — tap Start camera to continue, or upload a photo",
     "palm.eng.camReady": "Camera ready — place your palm inside the frame, then tap \"Capture your palm\"",
     "palm.eng.snapFail": "Capture failed: {msg}",
     "palm.eng.openingImg": "Opening the image...",

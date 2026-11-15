@@ -447,6 +447,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   const cam = LQCam.create(video, {
     facing: "user", ideal: { width: 640, height: 480 }, persistKey: K.cam,
     onChange: (c, ev) => {
+      camPowerLabel();
       if (ev.type === "started") {
         fitOverlay();
         $("#cam").classList.toggle("mirror", c.mirrored); // กลับด้านภาพเฉพาะกล้องหน้า
@@ -457,6 +458,24 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     },
     onError: (c, err) => { if (err.name !== "AbortError") { engine(`เปิดกล้องไม่สำเร็จ: ${cameraError(err) || err.message}`, "err"); addRetry(); } }
   });
+
+  // D-13: a visible camera on/off control — off stops every track (a running trip ends first: no camera, no monitoring)
+  function camPowerLabel() {
+    const b = $("#camPower"); if (!b) return;
+    b.hidden = false; b.textContent = cam.active ? "ปิดกล้อง" : "เปิดกล้อง";
+  }
+  $("#camPower").onclick = async () => {
+    if (cam.active) {
+      if (trip) stopTrip();
+      cam.stop(); overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); camPowerLabel();
+      engine("ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อเฝ้าระวังต่อ", "ok");
+      return;
+    }
+    if (!ready) return init();
+    engine("กำลังเปิดกล้อง...");
+    try { await cam.start(); engine("กล้องพร้อม", "ok"); } catch (err) { if (err.name !== "AbortError") { engine(`เปิดกล้องไม่สำเร็จ: ${cameraError(err) || err.message}`, "err"); addRetry(); } }
+    camPowerLabel();
+  };
 
   function addRetry() {
     if ($("#engine button")) return;
@@ -603,6 +622,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     if (!driver) { tf.driver.focus(); return set("กรุณากรอกชื่อคนขับ", "err"); }
     if (!plate) { tf.plate.focus(); return set("กรุณากรอกทะเบียนรถ", "err"); }
     if (!ready) return set($("#engine").className.includes("err") ? "กล้องหรือโมเดลยังไม่พร้อม — ดูข้อความด้านบนแล้วกดลองใหม่" : "ระบบกำลังโหลด กรุณารอสักครู่", "err");
+    if (!cam.active) return set("กล้องปิดอยู่ — กด เปิดกล้อง ก่อนเริ่มเที่ยว", "err");
     set("", "");
     save("dr-lastDriver", driver); save("dr-lastPlate", plate);
     alarm.ensure();

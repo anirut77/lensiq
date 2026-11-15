@@ -358,6 +358,31 @@ accountant's invoices; see owner item O3).
 - **ต้องบอกลูกค้า:** นับต่ำกว่าจริง 26–59% ในคลิปคนเบาบางถึงปานกลาง (ผลเบื้องต้น เทียบ AI ไม่ใช่คนนับ) ต้องติดป้าย A ที่ทางเข้าพื้นที่ ไม่ประมาณอายุ เพศ หรือสีหน้า
 - **หลังโอน:** `ONBOARDING-CROWD.md`
 
+## 10. Second customer walk-through 2026-11-16: fixes on branch `walk-fix-2` (not merged yet)
+
+Defects: `~/LENSIQ-field/review/walkthrough-2026-11-16/DEFECTS.md` (D-01 … D-15, D2 rest). Tests locked first:
+`evals-locks/walk-fix-2.sha256` (unit 0/11, Chrome 0/37, WebKit 0/7 on the base).
+
+- Attendance (D-01, D-02, D-07): `attendance.html?mode=employee` no longer opens the camera or downloads face models on open;
+  the camera starts only when a face tab, the QR camera scan or kiosk is chosen, and a "ปิดกล้อง" control stops it. The PIN / QR
+  cards on cat-hr and solutions open the time clock; the solutions face card says the head-turn check is off by default and not
+  measured. Status: resolved in code (real-iPhone permission prompt still to confirm on a phone).
+- Help (D-03 contact, D-11): the support section shows the quote LINE OA from `LENSIQ_SELLER.quote_line` (same source and switch
+  as the home page); a getting-started section per product (Exam, Attendance, Gate, Crowd) in TH / EN / ZH. The demo banner
+  ("everything is free", no paid service) is unchanged: owner decision.
+- Exam (D-08, D-09, D-12): first note says พร้อมนำร่อง; reasons 2 and 3 name ProctorU (May 2021) and the EPIC complaint
+  (December 2020); exam-lab steps 2–3 have "ปิดกล้องและหยุด". OMR (D-10): status ทดลอง, accuracy "not measured on real sheets,
+  synthetic tests only", `omr.html?demo=1` reads 3 synthetic sample sheets with no camera and stores nothing.
+- Gate (D-05, W-031): sentences no longer run together (nav.js Thai word-break kept line breaks as their own text nodes); the
+  printable sign and the notice template now include Chinese (translation of the TH / EN wording; counsel item L24 still open).
+- Crowd (D-06): one status word (ทดลอง / Experimental / 实验性), no English "(PRELIMINARY)" inside Thai text.
+- D-04: `index.html?interest=…#contact` lands on the form heading with the Name field on screen (phone and desktop).
+- D-13 / D2-007 / D2-011 / D-14: camera-off control on palm, teamface, attendance, customers, driver, faceread, photobooth,
+  exam-lab; photobooth / converter ask no server status while try-on / the converter server are off (`LENSIQ_TRYON`,
+  `LENSIQ_CONVERT_SERVER`, both off as shipped); signage shows no raw error code.
+- Not changed (owner decisions): W-003, W-007, W-013 to W-016, W-018, the "everything is free" wording on Help (D-03). D-15:
+  lead delivery confirmed by the owner on 2026-11-15.
+
 ## 9. Buyer walkthrough 2026-11-14: fixes on branch `walk-fix` (not merged yet)
 
 Defects: `~/LENSIQ-field/review/walkthrough-2026-11-14/DEFECTS.md` (W-001 … W-038). Tests locked first: `evals-locks/walk-fix.sha256`.
@@ -375,4 +400,4 @@ Defects: `~/LENSIQ-field/review/walkthrough-2026-11-14/DEFECTS.md` (W-001 … W-
   The internal guides in `docs/sales/` stay for the team.
 - Still with the owner: W-003 / W-007 / W-015 / W-016 (sale-status and price wording), W-013 / W-014 (home emphasis, emotion
   content), W-030 (Gate retention: code default 90 days, free-trial 7-day log limit not enforced in code), W-035 (leads in
-  localStorage), W-031 (Chinese line on the Gate sign: legal wording, L24).
+  localStorage), W-031 (Chinese line on the Gate sign: legal wording, L24; Chinese sign added on `walk-fix-2`, see §10).

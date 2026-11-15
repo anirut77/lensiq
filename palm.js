@@ -959,7 +959,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   if (["left", "right", "auto", "both"].indexOf(prefs.sideMode) < 0) prefs.sideMode = "auto";
 
   var video = $("#plVideo"), cam = $("#plCam"), ov = $("#plOverlay"), octx = ov.getContext("2d");
-  var btnCam = $("#plStartCam"), btnSnap = $("#plSnap"), fileIn = $("#plFile"), countEl = $("#plCount");
+  var btnCam = $("#plStartCam"), btnStop = $("#plStopCam"), btnSnap = $("#plSnap"), fileIn = $("#plFile"), countEl = $("#plCount");
   var editSec = $("#plEdit"), resultSec = $("#plResult"), edCv = $("#plEditCanvas"), resCanvas = $("#plResCanvas");
   // sideMode: left | right | auto | both — side: ข้างที่อ่านในรอบนี้, sideSrc: manual | detect, liveSide: ข้างที่เห็นสด ๆ จากกล้อง
   // pair/pairStep: โหมดทั้งสองมือ (มือที่ 1 = ศักยภาพที่ติดตัว, มือที่ 2 = สิ่งที่สร้างขึ้นเอง) · cmp: ผลเทียบสองมือ
@@ -1302,9 +1302,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       // speed pass 2026-11-14: the hand model is fetched now that the camera is open; a loading line until it is ready
       if (ready) camOk();
       else { engine(function () { return T("palm.eng.loading", "กำลังโหลดโมเดลจุดบนมือ..."); }); loadModels().then(camOk, function () {}); }
-      btnCam.hidden = true; btnSnap.hidden = false;
+      btnCam.hidden = true; btnSnap.hidden = false; if (btnStop) btnStop.hidden = false;
       drawGuide(null, false);
     } catch (e) { camErr(e); btnCam.disabled = false; }
+  });
+  // D-13: a visible camera-off control (stops every track; the start button comes back to turn it on again)
+  if (btnStop) btnStop.addEventListener("click", function () {
+    looping = false; camera.stop(); hideHint();
+    octx.clearRect(0, 0, ov.width, ov.height);
+    btnStop.hidden = true; btnSnap.hidden = true; btnCam.hidden = false; btnCam.disabled = false;
+    engine(function () { return T("palm.eng.camOff", "ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อใช้ต่อ หรืออัปโหลดรูป"); }, "ok");
   });
   btnSnap.addEventListener("click", async function () {
     if (S.busy || !camera.active) return;

@@ -61,7 +61,8 @@ export default async function ({ base, launch, check, fakeCams }) {
       await page.reload();
       // the accuracy note: preliminary, AI reference, final pending a human count
       const acc = await page.evaluate(() => document.getElementById("crAcc").textContent);
-      assert(/PRELIMINARY/.test(acc) && /AI/.test(acc) && /รอผลการนับโดยคน/.test(acc), acc.slice(0, 200));
+      // walk-through 2026-11-16 D-06: "preliminary" in the page language (ผลเบื้องต้น), no English "(PRELIMINARY)" inside Thai
+      assert(/ผลเบื้องต้น/.test(acc) && /AI/.test(acc) && /รอผลการนับโดยคน/.test(acc), acc.slice(0, 200));
       await startFake(page, script);
       const est = await page.waitFor(`(() => { const q = document.getElementById("crQual");
         return !q.hidden && /ไม่ใช่ยอดนับที่แน่นอน/.test(q.textContent) && __LQZ.cr.qual.estimate && document.querySelector("#tiles .tile .v").textContent; })()`, 8000);

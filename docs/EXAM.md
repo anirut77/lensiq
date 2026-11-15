@@ -21,7 +21,8 @@ flag is an observation ("a phone may be in view"), never a verdict ("cheating de
 ## Why it does not decide
 
 Proctorio caught 0 of 6 instructed cheaters in a University of Twente randomised trial; ProctorU dropped AI-only
-decisions; most complaints are false flags (dark skin in low light, disability, tics, reading aloud); a US court held a
+decisions (ProctorU announcement, May 2021); false flags have been reported for dark skin in low light, disability, tics
+and reading aloud (EPIC complaint to the D.C. Attorney General, December 2020); a US court held a
 mandatory home room scan unconstitutional (*Ogletree v. Cleveland State*, 2022). So:
 
 - **Never**: automatic fail or termination, flag limits, a "cheating score" shown to candidates, ranking by suspicion in

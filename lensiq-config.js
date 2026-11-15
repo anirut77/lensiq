@@ -194,3 +194,10 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE !== false;
   // fortune pages: analytics hook (no-op without consent) + Turnstile token for the AI writing assistant (when configured)
   if (/(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(location.pathname)) load("lensiq-fortune-hook.js", "__lqFortuneHook");
 })();
+
+/* LENSIQ_TRYON: สวิตช์ฝั่งหน้าเว็บของบริการลองชุดด้วย AI (photobooth.js) ตรงกับ TRYON = "off" ของ backend (wrangler.toml)
+ *   ปิด (ค่าเริ่มต้น): ไม่ถาม /api/tryon/status เลย (ไม่มี 404 ในคอนโซล) · ตั้ง true เฉพาะเมื่อเซิร์ฟเวอร์ลองชุดเปิดใช้งานจริงแล้ว */
+window.LENSIQ_TRYON = window.LENSIQ_TRYON === true;
+/* LENSIQ_CONVERT_SERVER: ตัวแปลง PDF -> DOCX บนเซิร์ฟเวอร์ (converter.js) มีเฉพาะเมื่อเปิดเว็บด้วย server.py ในเครื่อง
+ *   ปิด (ค่าเริ่มต้น, เว็บนิ่ง): ไม่เรียก /api/convert และ /api/convert/status แปลงในเบราว์เซอร์แทน · ตั้ง true เมื่อเสิร์ฟด้วย server.py */
+window.LENSIQ_CONVERT_SERVER = window.LENSIQ_CONVERT_SERVER === true;

@@ -45,6 +45,10 @@ interface Window {
   LENSIQ_AGE_GENDER?: boolean;
   /** lensiq-config.js: quote-request form sends to the server (POST /v1/leads) only when true; ON by default since the owner decision 2026-11-12 */
   LENSIQ_LEADS_FORM?: boolean;
+  /** photobooth try-on server status is asked only when true (mirrors the backend TRYON switch; off as shipped) */
+  LENSIQ_TRYON?: boolean;
+  /** converter uses the local python server.py PDF engine only when true (off as shipped) */
+  LENSIQ_CONVERT_SERVER?: boolean;
   LENSIQ_LEADS_NOTICE?: boolean;
   /** fortune-crisis.js (loaded before fortune-ai.js) */
   LQFortuneCrisis?: any;

@@ -1,6 +1,8 @@
 /* i18n/en-rt-attendance.js — run-time English for text written by attendance.js (mirrors zh-rt-attendance.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
   "@lang": "en",
+  "กล้องปิดอยู่ — ลงเวลาด้วย PIN หรือบัตร QR ได้เลย กดเปิดกล้องเมื่อต้องการสแกนใบหน้า (ไม่บังคับ)": "The camera is off — clock in with a PIN or a QR card. Press Start camera only if you want to scan a face (optional)",
+  "ปิดกล้องแล้ว — ลงเวลาด้วย PIN หรือบัตร QR ได้ตามปกติ กดเปิดกล้องเมื่อต้องการสแกนใบหน้า": "Camera stopped — PIN and QR card clock-in work as usual. Press Start camera when you want to scan a face",
   "ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้แล้ว": "All biometric data on this device has been deleted",
   "ลบข้อมูลชีวมิติ (ค่าใบหน้า) ทั้งหมดในเบราว์เซอร์เครื่องนี้ ทั้งระบบเช็คชื่อและจดจำลูกค้า พร้อมกุญแจเข้ารหัส? ทุกคนต้องลงทะเบียนใบหน้าใหม่ บันทึกการเข้าเรียนและประวัติการสั่งยังอยู่ ย้อนกลับไม่ได้": "Delete all biometric data (face values) in this browser, for both check-in and customer recognition, together with the encryption keys? Everyone will have to register their face again. Attendance records and order history are kept. This cannot be undone",
   "{a} คนจะถูกลบภายใน 30 วัน (เร็วสุดอีก {b} วัน)": "{a} will be deleted within 30 days (the first in {b} days)",

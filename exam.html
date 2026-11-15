@@ -25,8 +25,8 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=18"></script>
-<script src="i18n/zh-exam.js?v=4"></script>
+<script src="nav.js?v=19"></script>
+<script src="i18n/zh-exam.js?v=5"></script>
 <script src="i18n/zh-buy.js?v=1"></script>
 
 <main class="ex" id="main">
@@ -42,7 +42,7 @@
     <a class="btn ghost" href="exam-hall.html" data-i18n="exam.l.ctaHall">เครื่องกล้องในห้องสอบ (ทดลอง)</a>
     <a class="btn ghost" href="exam-dashboard.html" data-i18n="exam.l.ctaDash">แดชบอร์ดผู้คุมสอบ</a>
   </div>
-<p class="warn" role="note"><b data-i18n="exam.l.betaB">เดโม ยังไม่ได้วัดความแม่นยำในห้องสอบจริง</b> <span
+<p class="warn" role="note"><b data-i18n="exam.l.betaB">พร้อมนำร่อง · ยังไม่ได้วัดความแม่นยำในห้องสอบจริง</b> <span
     data-i18n="exam.l.beta">เกณฑ์ทุกค่าเป็นค่าเริ่มต้นจากงานวิจัยและต้องตรวจในสถานที่จริงก่อนใช้ (มีเครื่องมือนับว่าแจ้งถูกหรือผิดในแดชบอร์ด)
     ใบหน้าวิเคราะห์ในเครื่องด้วย MediaPipe Face Landmarker ของ Google (Apache-2.0) เพื่อนับใบหน้าและดูการหันศีรษะเท่านั้น
     ไม่จดจำใบหน้าและไม่วิเคราะห์สีหน้า</span></p>
@@ -99,8 +99,10 @@
     <h2 id="whyH" data-i18n="exam.l.whyH">ทำไมระบบไม่ตัดสินเอง</h2>
     <ul class="ticks">
       <li data-i18n="exam.l.why1">การทดลองแบบสุ่มที่มหาวิทยาลัย Twente พบว่าระบบคุมสอบอัตโนมัติจับผู้ที่ถูกสั่งให้ทุจริตได้ 0 จาก 6 คน</li>
-      <li data-i18n="exam.l.why2">ผู้ให้บริการคุมสอบรายใหญ่เลิกใช้การตัดสินด้วยระบบอย่างเดียว และให้คนตรวจทุกการแจ้ง</li>
-      <li data-i18n="exam.l.why3">ข้อร้องเรียนส่วนใหญ่มาจากการแจ้งผิด: ผิวสีเข้มในแสงน้อย ความพิการ อาการกระตุก (tic) การอ่านออกเสียง</li>
+      <li data-i18n="exam.l.why2">ProctorU ผู้ให้บริการคุมสอบรายใหญ่ ประกาศเมื่อพฤษภาคม 2021 ว่าเลิกให้ระบบ AI
+        ตัดสินเองโดยลำพัง และให้เจ้าหน้าที่ที่ผ่านการฝึกตรวจทุกการแจ้ง (ประกาศของ ProctorU, 2021)</li>
+      <li data-i18n="exam.l.why3">มีรายงานการแจ้งผิดกับผู้สอบผิวสีเข้มในแสงน้อย ผู้พิการ ผู้มีอาการกระตุก (tic) และผู้ที่อ่านออกเสียง (คำร้องเรียนของ
+        Electronic Privacy Information Center (EPIC) ต่ออัยการสูงสุดกรุงวอชิงตัน ดี.ซี. ธันวาคม 2020)</li>
       <li data-i18n="exam.l.why4">ศาลสหรัฐฯ (Ogletree v. Cleveland State, 2022) ตัดสินว่าการบังคับสแกนห้องที่บ้านขัดรัฐธรรมนูญ ระบบนี้จึงไม่มีการสแกนห้อง</li>
     </ul>
   </section>
@@ -227,6 +229,6 @@
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-exam-clip.js?v=2"></script>
 <script src="exam-landing.js?v=1"></script>
-<script src="lensiq-config.js?v=10"></script>
+<script src="lensiq-config.js?v=11"></script>
 </body>
 </html>

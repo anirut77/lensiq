@@ -1,6 +1,8 @@
 /* i18n/en-rt-driver.js — run-time English for text written by driver.js (mirrors zh-rt-driver.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
   "@lang": "en",
+  "ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อเฝ้าระวังต่อ": "Camera off — tap Start camera to keep monitoring",
+  "กล้องปิดอยู่ — กด เปิดกล้อง ก่อนเริ่มเที่ยว": "The camera is off — tap Start camera before starting a trip",
   "ตรวจหลับตาด้วยภาพดวงตา": "Eye closure detected from eye images",
   "ค่าปกติ": "normal value",
   "ปิดเมื่อ": "closed at",

@@ -69,6 +69,7 @@
     "faceread.eng.camFail": "无法打开摄像头：{msg}",
     "faceread.eng.ended": "摄像头信号中断 — 请再次点击打开相机",
     "faceread.eng.opening": "正在打开摄像头并加载模型...",
+    "faceread.eng.camOff": "摄像头已关闭 — 点击“打开相机”继续，或上传照片",
     "faceread.eng.camReady": "摄像头已就绪 — 把脸放进椭圆框内、正视镜头，然后点击“面相解读”",
     "faceread.eng.otherFace": "有其他人进入画面，请保持只有一人后再试",
     "faceread.eng.unstable": "还没能稳定捕捉到脸部，请正视镜头并保持不动后再试",
