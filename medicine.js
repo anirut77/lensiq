@@ -161,6 +161,8 @@
       if (!cfg.online) h += offMsg(T("md.src.thfda", "ทะเบียนยาไทย (อย.)"));
       else if (!apiOn()) h += `<p class="md-status" data-kind="warn">${esc(T("md.r.noServer", "ต้องมีเซิร์ฟเวอร์: การตรวจทะเบียนยาไทยต้องผ่านเซิร์ฟเวอร์ตัวกลาง ซึ่งเว็บนี้ยังไม่ได้ตั้งค่า ตรวจเองได้ที่เว็บไซต์ อย."))}</p><p>${link(THFDA_SITE, T("md.r.thSite", "ค้นที่เว็บไซต์ อย."))}</p>`;
       else if (b.state === "loading") h += `<p class="md-status">${esc(T("md.r.loading", "กำลังค้น…"))}</p>`;
+      else if (b.state === "tester") h += `<p class="md-status" data-kind="warn">${esc(T("md.th.tester",
+        "การค้นทะเบียน อย. แบบออนไลน์ยังอยู่ระหว่างทดสอบ เปิดให้เฉพาะกลุ่มผู้ทดสอบ ตรวจเองได้ที่เว็บไซต์ อย."))}</p><p>${link(THFDA_SITE, T("md.r.thSite", "ค้นที่เว็บไซต์ อย."))}</p>`;
       else if (b.state === "error") h += `<p class="md-status" data-kind="err">${esc(T("md.r.err", "ค้นไม่สำเร็จ ลองใหม่ภายหลัง หรือตรวจเองที่เว็บไซต์ อย."))}</p><p>${link(THFDA_SITE, T("md.r.thSite", "ค้นที่เว็บไซต์ อย."))}</p>`;
       else if (b.state === "done") h += thRows(b.rows, b.fetched);
       return card(b.state === "done" && b.rows.some(x => x.status === "active") ? "ok" : b.state === "done" ? "warn" : "info", h);
@@ -170,8 +172,15 @@
     return b;
   }
   async function thLookup(b, q) {
+    // closed test (lensiq-tester.js): the Thai FDA web service answers tester-code holders only. Without a code the
+    // request is not made at all; a kept code that is refused is forgotten at once.
+    const TS = W.LQTester;
+    if (TS && TS.gate() && !TS.unlocked()) { b.state = "tester"; renderOut(); return; }
     b.state = "loading"; renderOut();
-    const r = await viaApi(`/api/med/thfda?q=${encodeURIComponent(q)}`);
+    // with the gate on, the request goes to LENSIQ's own Worker with the code in a header (LQApi.call)
+    const path = `/api/med/thfda?q=${encodeURIComponent(q)}`;
+    const r = TS && TS.gate() ? await W.LQApi.call(path, { headers: TS.headers() }) : await viaApi(path);
+    if (r.j && r.j.reason === "tester_required") { if (TS) TS.refused(); b.state = "tester"; renderOut(); return; }
     if (!r.ok || !r.j || !Array.isArray(r.j.rows)) { b.state = "error"; renderOut(); return; }
     b.state = "done"; b.rows = r.j.rows; b.fetched = r.j.fetched || ""; b.q = q;
     addHist("thfda", q, b.rows.slice(0, 3).map(x => `${x.lcnno} ${x.name_en || x.name_th} (${x.status})`).join("; "));
@@ -268,7 +277,9 @@
       if (!cfg.online) return card("info", h + offMsg("RxNav / openFDA" + (apiOn() ? " / " + T("md.src.thfda", "ทะเบียนยาไทย (อย.)") : "")));
       if (latin) {
         if (b.state === "loading") h += `<p class="md-status">${esc(T("md.r.loading", "กำลังค้น…"))}</p>`;
-        else if (b.state === "error") h += `<p class="md-status" data-kind="warn">${esc(T("md.n.err", "ค้นชื่อใน RxNav ไม่สำเร็จ ยังค้นฉลากด้วยชื่อที่พิมพ์ได้"))}</p>`;
+        else if (b.state === "tester") h += `<p class="md-status" data-kind="warn">${esc(T("md.th.tester",
+        "การค้นทะเบียน อย. แบบออนไลน์ยังอยู่ระหว่างทดสอบ เปิดให้เฉพาะกลุ่มผู้ทดสอบ ตรวจเองได้ที่เว็บไซต์ อย."))}</p><p>${link(THFDA_SITE, T("md.r.thSite", "ค้นที่เว็บไซต์ อย."))}</p>`;
+      else if (b.state === "error") h += `<p class="md-status" data-kind="warn">${esc(T("md.n.err", "ค้นชื่อใน RxNav ไม่สำเร็จ ยังค้นฉลากด้วยชื่อที่พิมพ์ได้"))}</p>`;
         else if (b.state === "done") h += b.cands.length ? `<p>${esc(T("md.n.sugg", "ชื่อที่ใกล้เคียงใน RxNorm (เลือกเพื่อดูฉลาก):"))}</p><div class="md-sugg">${b.cands.slice(0, 6).map(c => btn("label-name", c.name || "RxCUI " + c.rxcui, { q: c.name || q })).join("")}</div>` : `<p>${esc(T("md.n.none", "ไม่พบชื่อที่ใกล้เคียงใน RxNorm"))}</p>`;
       }
       h += `<div class="md-row">${latin ? btn("label-name", T("md.n.label", "ดูฉลากสหรัฐฯ ด้วยชื่อ {n}", { n: q }), { q }) : ""}${apiOn() ? btn("th-name", T("md.n.th", "ค้นชื่อนี้ในทะเบียนยาไทย"), { q }) : ""}</div>`;

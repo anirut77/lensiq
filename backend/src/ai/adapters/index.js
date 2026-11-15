@@ -108,9 +108,16 @@ export const PROVIDERS = Object.freeze({
       zh: "每次调用强制零保留、不收集数据；OpenRouter 仅保留用量元数据（不含内容）"
     },
     note: {
-      th: "เพิ่มผู้ประมวลผลรายที่สองระหว่าง LENSIQ กับผู้ให้บริการโมเดล หน้าผลตรวจแสดงผู้ให้บริการปลายทางที่ใช้จริง ราคาจองด้วยเพดานแบบระมัดระวังและส่งเป็นราคาสูงสุดที่ยอมรับ",
-      en: "Adds a second processor between LENSIQ and the model provider. The result card names the routed provider. Prices reserve at a conservative ceiling, also sent as the maximum accepted price",
-      zh: "在 LENSIQ 与模型服务商之间增加第二个处理方。结果卡显示实际转接的服务商。预算按保守上限预留，并作为可接受的最高价格发送"
+      th: "เพิ่มผู้ประมวลผลรายที่สองระหว่าง LENSIQ กับผู้ให้บริการโมเดล หน้าผลตรวจแสดงผู้ให้บริการปลายทางที่ใช้จริง ราคาจองด้วยเพดานแบบระมัดระวังและส่งเป็นราคาสูงสุดที่ยอมรับ" +
+        " โมเดลนอกลำดับเริ่มต้น (ผลทดสอบ P8, 10 พ.ย. 2569): Qwen 3.8 และ DeepSeek v4.1 flash ตอบช้า (ค่ากลาง 7 ถึง 15 วินาที) และคำตอบมักถูกตัดที่เพดาน 1,500 โทเคน" +
+        " จึงไม่เหมาะกับการอ่านช่องข้อมูลบนฉลาก ส่วน GLM 5.3 flash เป็นตัวเลือกสำหรับฉลากภาษาจีน (เฉพาะงานแปล)",
+      en: "Adds a second processor between LENSIQ and the model provider. The result card names the routed provider. Prices reserve at a conservative ceiling," +
+        " also sent as the maximum accepted price." +
+        " Models outside the default order (P8 results, 2026-11-10): Qwen 3.8 and DeepSeek v4.1 flash answer slowly (median 7 to 15 s) and their answers are often cut at" +
+        " the 1,500-token output cap, so they do not suit label-field reading; GLM 5.3 flash is the option for Chinese labels (translation only)",
+      zh: "在 LENSIQ 与模型服务商之间增加第二个处理方。结果卡显示实际转接的服务商。预算按保守上限预留，并作为可接受的最高价格发送。" +
+        "默认顺序之外的模型（P8 测试结果，2026-11-10）：Qwen 3.8 与 DeepSeek v4.1 flash 响应较慢（中位数 7 至 15 秒），回答常在 1,500 token 输出上限处被截断，" +
+        "不适合读取标签字段；GLM 5.3 flash 是中文标签的可选模型（仅用于翻译）"
     }
   }
 });
@@ -186,6 +193,8 @@ const setStr = v => typeof v === "string" && !!v.trim();
 export function providerConfig(env, id) {
   const e = /** @type {Record<string, any>} */ (env);
   if (id === "dashscope") return { workspaceId: setStr(e.DASHSCOPE_WORKSPACE_ID) ? String(e.DASHSCOPE_WORKSPACE_ID).trim() : null };
+  // deploy B6: pin each router model to the serving provider named on the consent screen (openrouter.js ROUTES)
+  if (id === "openrouter") return { pinRoutes: String(e.AI_ROUTE_PIN || "").trim().toLowerCase() === "required" };
   return {};
 }
 

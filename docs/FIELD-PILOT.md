@@ -319,6 +319,12 @@ input. Rows without ground truth are skipped and counted.
 
 ## Changelog / last reviewed
 
+- **2026-11-10 (backend test deployment prepared)**: Product Check online parts are prepared for a **closed tester
+  group** (`docs/DEPLOY.md`): official lookups on `medicine.html`, AI field reading and translation behind a tester code.
+  This is a functional test, not a field pilot: no accuracy figure comes from it. Testers are asked to note, per label,
+  whether the AI fields matched the pack (type, brand, registration number, lot, expiry) so a later field round can be
+  planned; photos of prescriptions or dispensing labels are not to be used.
+
 - **2026-11-10 (round 17, follow-ups)**: Exam **hall mode is experimental** (owner decision) and not the lead mode of the
   pilot; the pilot leads with the lab mode (`docs/pilot/PILOT-EXAM.md`). Small faces in the hall view are still not found
   (public dataset: 0 / 195 at 24 – 48 px; `docs/exam/FACE-ENGINE-RESULTS.md` §7.1). If a hall trial runs alongside, record

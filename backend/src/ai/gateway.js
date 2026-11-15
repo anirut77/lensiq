@@ -65,6 +65,8 @@ async function usableChain(env, gw, fs, adapters, consentProviders) {
   const out = [];
   for (const e of (fs && fs.chain) || []) {
     if (gw.providers[e.provider] === false || !adapters[e.provider] || !providerReady(env, e.provider)) continue;
+    // a deployment that pins serving providers (deploy B6): a model without a pin is never offered and never called
+    if (typeof adapters[e.provider].usable === "function" && !adapters[e.provider].usable(e.model, providerConfig(env, e.provider))) continue;
     if (consentProviders && !consentProviders.includes(e.provider)) continue;
     const key = await keyFor(env, e.provider, gw);
     if (key) out.push({ entry: e, key });
@@ -127,6 +129,14 @@ export async function runFeature(env, featureId, req0, opts = {}) {
   const timeoutMs = opts.timeoutOverrideMs || fs.timeoutMs || 30000;
   const sleep = deps.sleep || (ms => new Promise(r => setTimeout(r, ms)));
   const chain = await usableChain(env, gw, fs, adapters, opts.consentProviders);
+  // an entry left out because its model has no pinned serving provider is a configuration error: tell the owner
+  for (const e of fs.chain || []) {
+    const a = adapters[e.provider];
+    if (a && typeof a.usable === "function" && gw.providers[e.provider] !== false && !a.usable(e.model, providerConfig(env, e.provider))) {
+      await alertConfig(env, featureId, e.provider, "route_not_pinned", deps.fetch);
+      break;
+    }
+  }
   if (!chain.length) return finish({ ok: false, reason: "not_configured" });
   // one deadline for the whole request; each attempt gets min(per-attempt timeout, time left)
   const overallMs = opts.overallMs || meta.overallMs || Math.min(120000, timeoutMs * 2 * chain.length);
@@ -159,6 +169,8 @@ export async function runFeature(env, featureId, req0, opts = {}) {
       let r = await withDeadline(signal => adapter.call(req, entry, { ...ctx, signal }), attemptMs);
       const latencyMs = Date.now() - t0;
       if (!r || typeof r !== "object") r = { ok: false, kind: "server_error", unexpected: true };
+      // deploy B6: the adapter rejected an answer served by another provider than the pinned (consented) one
+      if (r.routeMismatch) await alertConfig(env, featureId, entry.provider, "route_mismatch", deps.fetch);
       if (r.ok) {
         let errs = validateJson(schema, r.json);
         // feature validator (P7, design §10.4): runs only on a schema-valid answer; may reject it (e.g. a pc_claims evidence
@@ -197,7 +209,8 @@ export async function runFeature(env, featureId, req0, opts = {}) {
         feature: featureId, provider: entry.provider, model: entry.model, served_model: r.model || undefined,
         region: typeof adapter.region === "function" ? adapter.region(entry.model) : undefined, attempt: attempts.length, kind, billed,
         in_tok: u.inputTokens, out_tok: u.outputTokens, reasoning_tok: u.reasoningTokens, cached_tok: u.cachedInputTokens, image_tok: u.imageTokens,
-        cost_micros: cost, latency_ms: latencyMs, request_id: requestId, provider_request_id: r.providerRequestId
+        cost_micros: cost, latency_ms: latencyMs, request_id: requestId, provider_request_id: r.providerRequestId,
+        routed: typeof r.routedProvider === "string" ? r.routedProvider : undefined, route_mismatch: r.routeMismatch ? true : undefined
       });
       try {
         await addAggregates(env.DB, aggMonth, featureId, {
@@ -348,7 +361,12 @@ export async function providersInfo(env, featureId, deps = {}) {
     enabled: !!((gw.enabled || reg[featureId].legacy) && fs.enabled && chain.length),
     imageModeAllowed: !!fs.imageModeAllowed,
     stores: false,
-    chain: chain.map(({ entry }) => ({ provider: entry.provider, model: entry.model, ...publicProvider(entry.provider) }))
+    chain: chain.map(({ entry }) => {
+      const a = adaptersWith(deps.aiAdapters)[entry.provider];
+      // pinned serving provider (name + place), shown on the consent screen and part of the remembered consent
+      const routed = a && typeof a.route === "function" ? a.route(entry.model, providerConfig(env, entry.provider)) : null;
+      return { provider: entry.provider, model: entry.model, ...publicProvider(entry.provider), ...(routed ? { routed } : {}) };
+    })
   };
 }
 
@@ -362,6 +380,8 @@ export async function adminGateway(env) {
     providers: PROVIDER_IDS.map(id => ({
       id, name: PROVIDERS[id].name, region: PROVIDERS[id].region, retention: PROVIDERS[id].retention,
       secret_name: SECRET_NAMES[id], key_set: keys[id], implemented: !!ADAPTERS[id], models: modelsOf(id),
+      // when this deployment pins serving providers: the only models that can be used (others are refused)
+      usable_models: ADAPTERS[id] && typeof /** @type {any} */ (ADAPTERS[id]).pinnedModels === "function" ? /** @type {any} */ (ADAPTERS[id]).pinnedModels(providerConfig(env, id)) : null,
       note: PROVIDERS[id].note || null, config_names: PROVIDERS[id].config || [], config_set: providerReady(env, id), config_state: configState(env, id)
     })),
     legacy_key: await apiKeyStatus(env),

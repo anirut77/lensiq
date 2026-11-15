@@ -14,6 +14,7 @@
 // Optional secret OPENFDA_API_KEY raises openFDA's limit from 1,000/day to 120,000/day for the Worker's address.
 import { callerHash, hit } from "./store.js";
 import { flag, intVar, json, log, originAllowed, publicOrigins } from "./util.js";
+import { testerGateRequired, testerState } from "./tester.js";
 
 export const THFDA_URL = "https://porta.fda.moph.go.th/FDA_SEARCH_ALL/WS_LICENSE_SEARCH.asmx";
 export const OPENFDA_URL = "https://api.fda.gov/drug/label.json";
@@ -129,6 +130,10 @@ export async function medRoute(request, env, url, deps = {}, cors = {}) {
   const raw = url.searchParams.get(route === "rxnav" ? "term" : "q") || "";
   const q = cleanTerm(raw, route === "thfda" ? 60 : 80);
   if (q.length < 2) return reply({ error: "query too short" }, 400);
+  // deploy B8 (owner decision D2): the Thai FDA web service is a testing-only source; tester-code holders only
+  if (route === "thfda" && testerGateRequired(env) && !(await testerState(env, request)).ok) {
+    return reply({ error: "tester access code required", could_not_check: true, reason: "tester_required" }, 503);
+  }
 
   if (env.DB) {
     const who = await callerHash(env, request, "med");

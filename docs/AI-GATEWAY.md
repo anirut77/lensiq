@@ -449,6 +449,30 @@ Residual points: a variable set by hand in the Cloudflare dashboard is outside w
 effect on a deployed Worker (condition 2). Local `wrangler dev` must be called on its localhost address (the eval tools
 already refuse any other base); a dev setup that rewrites the request host to a route's zone would simply not get the mode.
 
+## 10b. Test deployment: pinned routes, tester gate, deploy defaults (2026-11-10; `docs/DEPLOY.md`)
+
+- **Pinned serving provider (`AI_ROUTE_PIN = "required"`, test environment only).** `adapters/openrouter.js ROUTES` maps
+  the Claude models to `google-vertex` and the GPT models to `azure`. With the pin on, the request carries
+  `provider.only = [slug]` and `allow_fallbacks = false` next to the forced `zdr` / `data_collection: "deny"`;
+  `GET /v1/ai/providers` adds `routed: {slug, name, region}` (TH / EN / ZH) to each pinned chain entry, and the consent
+  screen shows "OpenRouter, then on to Google Cloud Vertex AI … outside Thailand (global, US or Europe; country not
+  fixed)". A remembered consent is stored for `provider>slug` (`lensiq-ai.js procs()`): another serving provider asks
+  again. An answer whose served provider is not the pinned one (or is missing) is rejected by the adapter
+  (`routeMismatch`; attempt kind `refusal`: billed, next chain entry) and the gateway raises the owner alert
+  `ai_config_error` with `kind: route_mismatch`. With the pin off (repo default) nothing changes.
+  Unverified wording: the region list and the exact served-provider name (DEPLOY.md §8 points 8–10).
+- **Tester gate.** With `TESTER_GATE = "required"`, `GET /v1/ai/providers` answers `{enabled:false, tester:true, chain:[]}`
+  and `POST /v1/ai/:feature` answers 403 `{fallback:true, reason:"tester_required"}` (429 `tester_locked` after 5 wrong
+  codes in 15 minutes per caller) unless `X-Tester-Code` equals the secret `TESTER_ACCESS_CODE`. The page
+  (`lensiq-tester.js`) hides the AI step without a code.
+- **Deploy defaults** (`npm run ai:deploy-defaults`, `tools/ai-deploy-defaults.mjs`): a separate, tested artefact; the
+  repo defaults (`DEFAULT_CHAINS`, budget 0) are unchanged. All off; OpenRouter only; Haiku 5.5 then GPT-6 Luna; budgets
+  5 / 3 / 2 USD; 20 per user per day, 3 per user per minute, 20 per minute for all users; photo mode allowed for
+  `pc_fields`. `INSERT … ON CONFLICT DO NOTHING`.
+- **Logs.** `ai.attempt` gained `routed` (served provider name) and `route_mismatch`. Test "logs: …" in
+  `tests/unit/backend-deploy-gate.test.js` plants image bytes, label text, a name, a phone number, query text, the
+  caller address and the tester code, and finds none of them in any AI or lookup log line or stored row.
+
 ## 11. Open points
 
 - PDPA: remembered consent and image mode go to counsel (`docs/PDPA-NOTES-FOR-COUNSEL.md` §F).

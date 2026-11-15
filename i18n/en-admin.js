@@ -38,6 +38,7 @@
   "adg.cfg.unset": "not set (this provider is not used)",
   "adg.cfg.invalid": "invalid format (this provider is not used)",
   "adg.notes.h": "Provider notes",
+  "adg.pin.only": "This deployment pins the serving provider. Only the models below can be used; any other model is refused until a pin is added in the code:",
   "adg.t.provider": "Provider",
   "adg.t.secret": "Set the key with",
   "adg.t.region": "Processed in",
