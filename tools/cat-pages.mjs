@@ -200,10 +200,10 @@ export function pageHtml(cat, nav = navEntries()) {
     '<link rel="stylesheet" href="products.css?v=3">',
     '<link rel="stylesheet" href="solutions.css?v=4">',
     '<link rel="stylesheet" href="cat.css?v=1">',
+    '<script src="lensiq-busy.js?v=1"></script>',
     "</head>",
     "<body>",
     '<header class="nav" id="siteNav"></header>',
-    '<script src="lensiq-busy.js?v=1"></script>',
     '<script src="nav.js?v=18"></script>',
     '<script src="i18n/zh-cat.js?v=1"></script>',
     // the fortune category carries the always-visible help line (owner order 2026-11-12; tools/helpline.mjs)

@@ -23,6 +23,7 @@
 <meta name="description" data-i18n-attr="content:pr.doc.desc" content="แพ็กเกจสมาชิกและรายงานดวงแบบซื้อครั้งเดียวของ LENSIQ ราคารวมภาษีมูลค่าเพิ่ม ชำระด้วยพร้อมเพย์">
 <link rel="stylesheet" href="styles.css?v=17">
 <link rel="stylesheet" href="pricing.css?v=4">
+<script src="lensiq-busy.js?v=1"></script>
 </head>
 <body>
 <!-- Pricing page (not linked from the menu). Plans come from the API Worker (GET /v1/billing/plans) and are shown only
@@ -30,7 +31,6 @@
      from the built-in DRAFT copy when there is no API — and is never an offer. Buy buttons only for plans whose
      status is 'active' while the Worker reports billing_enabled. -->
 <header class="nav" id="siteNav"></header>
-<script src="lensiq-busy.js?v=1"></script>
 <script src="nav.js?v=18"></script>
 <script src="i18n/zh-pricing.js?v=3"></script>
 
