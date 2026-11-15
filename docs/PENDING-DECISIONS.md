@@ -33,3 +33,28 @@ Running list, append only. Each entry: date, what changes, status, what happens 
    after the round-2 review: every sentence taken from an advice, remedy, direction, placement or colour field is free, so these
    tips are free too. Paid depth now holds only explanation. If the owner wants tips back in paid depth, that needs a new rule and
    a re-lock; recommendation: keep them free (simpler to explain, and nothing that tells the reader what to do is sold).
+
+## 2026-11-15: decision 46 decided (owner): option ก, "Remedies, merit and paid fortune content"
+
+- **Decided by the owner, 2026-11-15.** The 2026-11-10 "Remedies and merit" rule is cancelled. General belief advice stays free;
+  paid in-depth readings, monthly / yearly timing and the goal-based plan are allowed; a "recommended sources" section with links
+  to outside sellers is allowed (we sell nothing ourselves). Hard limits kept: no promised result and no "bad outcome unless you
+  pay"; nothing paid, no plan and no seller link in the crisis state; everything behind off switches until billing works and the
+  owner approves go-live.
+- **Built on `fortune-paid` (off):** `LENSIQ_FORTUNE_PLAN` (plan) and `LENSIQ_FORTUNE_SOURCES` (seller links), both under
+  `LENSIQ_FORTUNE_PAID`, all default false. Design: `docs/FORTUNE-PAID-DESIGN.md` §10.
+
+### Open questions from the owner order of 2026-11-15 (2)
+
+5. **Plan price.** Not given in the order. Built with a proposal of 99 THB (`PRICES.plan`). Options: ก 99 THB per plan; ข include the
+   plan in 199 and Plus only. Recommendation: ก (simple, sits on the approved ladder). If no answer: 99 THB, still switched off.
+6. **Guest payment by PromptPay QR vs the 2026-11-13 decision "bank transfer only".** The order asks for PromptPay without sign-up;
+   the earlier decision put PromptPay on hold. Options: ก allow PromptPay QR for fortune purchases only (owner confirms each payment
+   in the back office; no automatic bank notice yet); ข keep bank transfer only. Recommendation: ก for small fortune tickets. If no
+   answer: design only, nothing wired (today's state).
+7. **LINE OA free group.** Needs a LINE OA, a one-time code flow and a privacy text (LINE user ID kept on the LINE side only).
+   Options: ก build it after the LINE OA exists; ข drop it. Recommendation: ก. If no answer: not built.
+8. **Recommended-source entries.** Who adds and approves seller links, and is any of them an affiliate link (then the label must
+   say so)? Recommendation: owner / admin approval per entry in the back office, label affiliate links. If no answer: no entries ship.
+9. **Monthly / yearly content (199).** No page composes 12 monthly parts yet; building it is a new scoped item. Recommendation:
+   start with lifegraph and bazi. If no answer: 199 is listed in the ladder but its offer is shown nowhere.

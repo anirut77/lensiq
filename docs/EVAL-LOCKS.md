@@ -116,3 +116,7 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
 - `fortune-paid` re-lock (3) (2026-11-15): round-2 review of ce6dc1c NOT OK (guidance still paid outside known wordings). New
   file `tests/unit/fortune-paid-provenance.test.js` locked before the fix: the gate is provenance (guidance fields of the facts,
   caution-marked paragraphs, restraining / caution items), not word lists. Before the fix: 2 pass / 2 fail (645 readings).
+- `fortune-paid` re-locks (4)–(6) (2026-11-15): (4) plan / conversion / funnel tests locked before the build (owner order
+  2026-11-15 (2)); (5) recommended-sources tests, reason "owner decision 2026-11-15 replaces Remedies and merit"
+  (decision 46 ก; no earlier assertion encoded the old rule, every hard-limit test kept); (6) plan e2e test-setup fix after its
+  first run (the ladder is checked only on readings with offers; no offers = no panel and no price, now asserted).
