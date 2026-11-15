@@ -1,0 +1,6 @@
+# locked 2026-11-15T12:32:21Z (tools/eval-guard.mjs lock, 2 files)
+739810bd3a765cac6078daf03916df0bc11b0f87e8defb8526b5466085600986  disk-guard.test.js
+d4f0e528aa81c717401a96b942ed3f5a5241fcc26539be8ae6b94c73a151a634  fake-statfs.cjs
+# repo copies of the two locked files (same hashes as above), 2026-11-15
+739810bd3a765cac6078daf03916df0bc11b0f87e8defb8526b5466085600986  tests/unit/disk-guard.test.js  # repo file
+d4f0e528aa81c717401a96b942ed3f5a5241fcc26539be8ae6b94c73a151a634  tests/unit/fixtures/fake-statfs.cjs  # repo file

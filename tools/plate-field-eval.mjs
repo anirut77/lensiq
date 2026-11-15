@@ -45,6 +45,7 @@
 // decode" with the reason (HEIC: convert to JPEG first) and left out of every number. The labelling sheet holds plate numbers
 // (personal data): inside the repo it is refused unless under field-data/ (or it is the unchanged template).
 // Exit codes: 0 ok · 2 usage / browser error.
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { readFileSync, readdirSync, statSync, existsSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
@@ -375,6 +376,7 @@ async function browserEvaluate(items, o) {
   const srv = await serve(repo, o.detModel ? { mounts: { "/__detmodel": dirname(resolve(o.detModel)) } } : {});
   let browser = null;
   try {
+    assertFreeSpace({ label: "tools/plate-field-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
     browser = await launch();
     const page = await browser.newPage(null, { initScripts: ["window.confirm=()=>true;"] });
     await page.goto(`${srv.base}/parking.html?cpu`);

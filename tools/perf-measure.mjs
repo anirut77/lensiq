@@ -16,6 +16,7 @@
 //
 //   node tools/perf-measure.mjs [--dir=path] [--runs=3] [--out=file.json] [--only=a,b] [--cap=90] [--fast]
 //   --dir   folder served (default: the repo); --cap   seconds per run before the run is cut (marked "capped")
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { spawn } from "node:child_process";
 import { readdirSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
@@ -155,6 +156,7 @@ export function summarize(runs) {
 }
 
 async function main() {
+  assertFreeSpace({ label: "tools/perf-measure.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const argv = process.argv.slice(2);
   const arg = (n, d) => { const a = argv.find(x => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
   const dir = resolve(arg("dir", repo));

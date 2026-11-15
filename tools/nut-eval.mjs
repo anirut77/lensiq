@@ -9,6 +9,7 @@
 // a changed or unlocked file stops the run. Results go next to the set (never into the
 // repo), then the locked score.mjs prints the tables.
 //   node tools/nut-eval.mjs [--set <dir>] [--text-only] [--limit N] [--out <json>]
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -58,6 +59,7 @@ if (!argv.includes("--text-only")) {
   const { launch } = await import("../tests/e2e/cdp.mjs");
   const { serve } = await import("./static-server.mjs");
   const srv = await serve(repo);
+  assertFreeSpace({ label: "tools/nut-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const browser = await launch();
   try {
     const page = await browser.newPage(null, { isolated: true });

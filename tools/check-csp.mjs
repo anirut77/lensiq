@@ -7,6 +7,7 @@
 //   node tools/check-csp.mjs --as-is      serve files untouched; pages without the meta are reported as MISSING
 //   node tools/check-csp.mjs palm studio  only pages whose name contains one of the words
 //   LQ_CHROME=/path/to/chrome             other Chrome binary
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -36,6 +37,7 @@ const srv = await serve(repo, {
     return asIs ? html : apply(html, pol);
   }
 });
+assertFreeSpace({ label: "tools/check-csp.mjs" }); // stops with exit 75 when free disk space is under 5 GB
 const browser = await launch();
 let bad = 0;
 const init = [RECORDER];

@@ -6,6 +6,7 @@
 //
 //   node tools/look-preview-eval.mjs [--limit N]      per-face results -> ~/LENSIQ-field/evals/beauty-look/preview-<date>.json
 //                                                      summary          -> tools/look-preview-results.json (read by the unit test)
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { mkdtempSync, writeFileSync, chmodSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { tmpdir, homedir, cpus, platform, release } from "node:os";
 import { join, resolve, dirname } from "node:path";
@@ -156,6 +157,7 @@ async function PAGE() {
 
 /* ---------------- run ---------------- */
 const srv = await serve(repo);
+assertFreeSpace({ label: "tools/look-preview-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
 const browser = await launch();
 const out = { tool: "tools/look-preview-eval.mjs", protocol: "docs/LOOK-PREVIEW-EVAL.md", date: new Date().toISOString(), source: "synthetic",
   machine: { cpu: cpus()[0] && cpus()[0].model, cores: cpus().length, os: `${platform()} ${release()}`, browser: "headless Chrome + SwiftShader WebGL (CPU)" }, faces: [], jitter: [] };

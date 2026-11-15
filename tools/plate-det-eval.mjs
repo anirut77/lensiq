@@ -21,6 +21,7 @@
 // read = exact plate key; fp = plate-less scenes whose top box would start an auto-read (score >= LQPlate.AUTO_MIN).
 // Wilson 95 % intervals. Target (docs/GATE.md): det >= 90 % per category — reported as met / not met, never tuned for.
 // Exit codes: 0 ok · 2 usage / browser error.
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -72,6 +73,7 @@ async function main() {
   const srv = await serve(repo);
   let browser = null;
   try {
+    assertFreeSpace({ label: "tools/plate-det-eval.mjs" }); // stops with exit 75 when free disk space is under 5 GB
     browser = await launch();
     const page = await browser.newPage(null, { initScripts: ["window.confirm=()=>true;"] });
     await page.goto(`${srv.base}/parking.html?cpu`);

@@ -8,6 +8,7 @@
 //   node tools/check-external.mjs --as-is    serve the files untouched (CI, after integration)
 //   node tools/check-external.mjs palm zh    only pages whose name contains one of the words
 //   LQ_CHROME=/path/to/chrome                other Chrome binary
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +25,7 @@ const pages = readdirSync(repo).filter(f => f.endsWith(".html") && (!filters.len
 
 const srv = await serve(repo, { transformHtml: html => asIs ? html : transform(html) });
 const origin = new URL(srv.base).origin;
+assertFreeSpace({ label: "tools/check-external.mjs" }); // stops with exit 75 when free disk space is under 5 GB
 const browser = await launch();
 const init = [];
 try { init.push(readFileSync(resolve(repo, "tests/e2e/fake-cams.js"), "utf8"), "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}"); } catch { /* optional */ }

@@ -2,6 +2,7 @@
 // tools/look-probe.mjs — feasibility probe only (NOT a measurement): does MediaPipe Face Landmarker find the synthetic faces of
 // tools/look-synth-face.js at all? Prints the detection count on a handful of seeds outside the locked set and writes one
 // example PNG to the given folder (outside the repo). No number from this probe is a product claim.
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { mkdtempSync, writeFileSync, chmodSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, dirname } from "node:path";
@@ -19,6 +20,7 @@ process.env.LQ_CHROME = wrapper;
 const { launch } = await import("../tests/e2e/cdp.mjs");
 const { serve } = await import("./static-server.mjs");
 const srv = await serve(repo);
+assertFreeSpace({ label: "tools/look-probe.mjs" }); // stops with exit 75 when free disk space is under 5 GB
 const browser = await launch();
 try {
   const page = await browser.newPage(null, { isolated: true });

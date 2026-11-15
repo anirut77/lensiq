@@ -13,6 +13,7 @@
 //        same-design queries + every other design's queries against each key; prints and saves the counts
 //        (default ~/LENSIQ-field/evals/p9/refimg-synthetic-<date>.json)
 //   node tools/pc-refimg.mjs check <lib.json>      validate a library (embeddings only, allowlisted fields)
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -34,6 +35,7 @@ async function withPage(fn) {
   const { serve } = await import("./static-server.mjs");
   const { launch } = await import("../tests/e2e/cdp.mjs");
   const srv = await serve(repo);
+  assertFreeSpace({ label: "tools/pc-refimg.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   const browser = await launch();
   try {
     const page = await browser.newPage(null, { isolated: true });

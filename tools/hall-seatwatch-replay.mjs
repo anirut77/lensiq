@@ -13,6 +13,7 @@
 //   --labels/--block  walk mode is ON during that block's STAFF_WALK rows with walk_mode "on" (as the operator pressed it live)
 // Privacy: frames are extracted with ffmpeg into a temporary folder that is deleted at the end; the video, the frames and the
 // output stay outside the repo; nothing leaves the machine. Limit: frames at a fixed rate, the live page runs at 2–5 a second.
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
@@ -68,6 +69,7 @@ export function eventFile(evs, o) {
 async function main(argv) {
   let a;
   try { a = parseArgs(argv); } catch (e) { console.error("hall-seatwatch-replay:", e.message); return 2; }
+  assertFreeSpace({ label: "tools/hall-seatwatch-replay.mjs" }); // before ffmpeg writes the frames; exit 75 when free disk space is under 5 GB
   const seats = readSeats(readFileSync(a.seats, "utf8"));
   const walk = a.labels ? walkPeriods(readFileSync(a.labels, "utf8"), a.block) : [];
   const tmp = mkdtempSync(join(tmpdir(), "lq-sw-frames-"));
