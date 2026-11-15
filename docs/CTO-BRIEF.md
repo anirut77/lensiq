@@ -590,3 +590,7 @@ without the user's own send 23 → 0, photo 33 → 0, explicit send if the user 
 0.624 → 0.714, product false removals 9 → 10 / 110. Open: photo of a JA / KO label read by an OCR model without that script
 (only with `imageModeAllowed` on, default off) — owner decision. Every "0 personal data reached AI" claim names its languages.
 Live scan: a side read with nothing on the checklist says "turn the pack". `docs/product-check/PC-JK-RESULTS.md`.
+
+### Merit import safety (2026-11-15, branch `merit-import-safe`)
+
+`tools/merit-import-guard.mjs` (`npm run merit:import:drafts` / `merit:import:places`) is the step before the admin-page import: it prints batch id, item count and sha256, refuses a file of the wrong kind or batch id, a re-confirmed batch (unless `--idempotent-confirmed`), changed content under a known batch id, and the second batch of the same 35 places; the owner types the batch id to confirm. It imports nothing and writes only `~/LENSIQ-field/merit/import-ledger.json`. `tools/merit-places-notes.mjs` builds the complete replacement batch `places-2026-11-14-notes` (reviewer warnings per verification level in the back-office `uncertain` note) without touching the original. Locked tests `tests/unit/merit-import.test.js` (`evals-locks/merit-import.sha256`). The guard is a local safety net: the Worker still has no rule against two place batches with the same `draft_id`s (open item, would need a backend change and deploy).
