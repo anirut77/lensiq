@@ -79,6 +79,10 @@ interface Window {
   LENSIQ_FORTUNE_PAID?: boolean;
   /** goal-based plan under the paid switch (owner order 2026-11-15 (2), design only): off unless exactly true */
   LENSIQ_FORTUNE_PLAN?: boolean;
+  /** "recommended sources" (outside seller links) under the paid switch (decision 46, design only): off unless exactly true */
+  LENSIQ_FORTUNE_SOURCES?: boolean;
+  /** recommended-source entries (admin-managed later; none ship) */
+  LQ_FORTUNE_SOURCES?: any[];
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
   LENSIQ_TURNSTILE_SITEKEY?: string;
   /** lensiq-config.js: public OAuth Client ID for "Sign in with Google" ("" = no member sign-in) */

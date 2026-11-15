@@ -64,9 +64,13 @@ window.LENSIQ_FORTUNE_STRAIGHT = false;
 window.LENSIQ_FORTUNE_PAID = window.LENSIQ_FORTUNE_PAID === true;
 
 /* LENSIQ_FORTUNE_PLAN (owner order 2026-11-15 (2): DESIGN ONLY, OFF): "แผนมูตามเป้าหมาย" แบบเสียค่าบริการ ภายใต้ LENSIQ_FORTUNE_PAID
- *   ทำงานเฉพาะเมื่อทั้งสองสวิตช์เป็น true จริง · ขัดกับกฎ "แก้เคล็ดและทำบุญ" ใน CLAUDE.md จนกว่าเจ้าของจะแก้กฎ (docs/PENDING-DECISIONS.md)
+ *   ทำงานเฉพาะเมื่อทั้งสองสวิตช์เป็น true จริง · อนุญาตแล้วตามการตัดสินใจเจ้าของ 2026-11-15 (ข้อ 46 ก) แต่ปิดไว้จนระบบเก็บเงินพร้อมและเจ้าของสั่งเปิด
  *   ข้อมูลสถานที่ สี และทิศยังฟรีเสมอ ส่วนที่เสียค่าบริการคือการจัดลำดับและตารางเวลา ไม่สัญญาผลใด ๆ · ทนาย L65 */
 window.LENSIQ_FORTUNE_PLAN = window.LENSIQ_FORTUNE_PLAN === true;
+
+/* LENSIQ_FORTUNE_SOURCES (owner decision 2026-11-15, decision 46 ก: DESIGN ONLY, OFF): "แหล่งที่แนะนำ" ลิงก์ไปร้านภายนอก (เราไม่ขายสินค้าเอง)
+ *   ใต้ LENSIQ_FORTUNE_PAID · ซ่อนในสถานะวิกฤต ไม่อยู่ติดข้อควรระวัง และไม่เสนอเป็นทางแก้ · ต้องเป็น true จริงเท่านั้น */
+window.LENSIQ_FORTUNE_SOURCES = window.LENSIQ_FORTUNE_SOURCES === true;
 
 /* LENSIQ_LOOK_SALON (owner decision 2026-11-14, ข้อแนะนำการแต่งลุค ตัวเลือก ก): "โหมดร้าน" ของข้อแนะนำการแต่งลุค (แสดงชื่อแบบจาก
  *   แคตตาล็อกที่ร้านพิมพ์เอง) ปิดตายจนกว่าจะมีขั้นตอนให้คน (เจ้าของหรือ admin) อนุมัติข้อความที่ร้านพิมพ์ก่อนแสดง

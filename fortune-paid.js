@@ -40,6 +40,7 @@
       belief: "ตามความเชื่อ โปรดใช้วิจารณญาณ", stepOffering: "เตรียม{x}", stepPlace: "ไปที่{x}", stepTime: "เลือกวันเกิดของคุณในสัปดาห์หรือวันพระ ช่วงเช้า",
       stepColour: "แต่งกายสีที่คำทำนายของคุณระบุ: {x}", stepDirection: "เมื่อไหว้ หันหน้าไปทางที่คำทำนายของคุณระบุ: {x}",
       stepIntent: "ตั้งจิตเรื่อง{g} แล้วทำความดีต่อเนื่องในชีวิตประจำวัน", shareTitle: "ผลดูดวงจาก LENSIQ",
+      srcTitle: "แหล่งที่แนะนำ (ร้านภายนอก)", srcNote: "ลิงก์ไปร้านภายนอก เราไม่ได้ขายสินค้าเองและไม่ได้สัญญาผลใด ๆ ตามความเชื่อ โปรดใช้วิจารณญาณ",
     },
     en: {
       groupLabel: "In-depth reading: {g}", fullLabel: "Full reading, every group", yearLabel: "Full reading with the year month by month",
@@ -59,6 +60,7 @@
       stepTime: "Choose the weekday you were born on, or a Buddhist holy day, in the morning",
       stepColour: "Dress in the colours your reading names: {x}", stepDirection: "When paying respects, face the direction your reading names: {x}",
       stepIntent: "Set your intention for {g}, then keep doing good in daily life", shareTitle: "A LENSIQ fortune reading",
+      srcTitle: "Recommended sources (outside shops)", srcNote: "Links go to outside shops. We do not sell these items and promise no result. According to belief, please use your own judgement.",
     },
     zh: {
       groupLabel: "深入解读：{g}", fullLabel: "完整解读（全部类别）", yearLabel: "完整解读＋全年逐月", plusLabel: "Plus：所有占卜页面的深入解读", panelTitle: "深入阅读",
@@ -72,6 +74,7 @@
       "goal.work": "事业", "goal.money": "财运", "goal.love": "感情", "goal.health": "身心安康", "goal.protection": "平安守护", "goal.barami": "威望",
       belief: "依据传统说法，请自行判断", stepOffering: "准备{x}", stepPlace: "前往{x}", stepTime: "选择您出生的星期几或佛日的早上",
       stepColour: "穿您的解读所说的颜色：{x}", stepDirection: "礼拜时面向您的解读所说的方位：{x}", stepIntent: "为{g}发愿，并在日常生活中持续行善", shareTitle: "LENSIQ 占卜结果",
+      srcTitle: "推荐来源（外部商店）", srcNote: "链接通往外部商店，我们不出售这些物品，也不承诺任何结果。依据传统说法，请自行判断。",
     },
   };
   /** @param {any} l @returns {"th"|"en"|"zh"} */
@@ -305,6 +308,22 @@
       steps: steps.map((t, i) => ({ n: i + 1, text: t + (l === "zh" ? "（" + T.belief + "）" : " (" + T.belief + ")") })) };
     return out.steps.every(x => safe(x.text, { straight: false }) && safe(x.text, { straight: true })) ? out : null;
   }
+  /* owner decision 2026-11-15 (decision 46, option ก): "recommended sources" with links to outside sellers (we sell nothing
+     ourselves), behind its own off flag LENSIQ_FORTUNE_SOURCES (and the paid switch). Entries come from W.LQ_FORTUNE_SOURCES
+     (admin-managed later; none ship). Only published + approved https entries; never a weak / chong entry (never the fix for a
+     warning); the note passes the hard-limit filters and makes no promise; nothing in the crisis state. */
+  const sourcesEnabled = () => enabled() && W.LENSIQ_FORTUNE_SOURCES === true;
+  const NO_PROMISE = /แน่นอน|รับรอง|ดวงดีขึ้น|แก้ชง|ไม่งั้น|guarantee|will (?:bring|fix|change)|or your luck|保证|一定会|不付钱|倒霉/i;
+  /** @param {any} list @param {{lang?: string, crisis?: boolean, doc?: any}} [o] */
+  function sources(list, o) {
+    o = o || {};
+    if (!sourcesEnabled() || o.crisis || !allowed(o.doc) || !Array.isArray(list)) return [];
+    const l = langOf(o.lang), tx = (/** @type {any} */ x) => String((x && typeof x === "object" ? x[l] || x.th : x) || "").trim();
+    return list.filter(it => it && typeof it === "object" && it.status === "published" && it.approved === true && /^https:\/\/[^\s"'<>]+$/.test(String(it.url || "")) &&
+      !(it.keys || []).some((/** @type {string} */ k) => k === "weak" || k === "chong") && tx(it.name))
+      .map(it => ({ id: String(it.id || ""), name: tx(it.name), url: String(it.url), note: tx(it.note) }))
+      .filter(x => !NO_PROMISE.test(x.note + " " + x.name) && safe(x.note || x.name, { straight: false }) && safe(x.note || x.name, { straight: true })).slice(0, 6);
+  }
   /** @param {string} t @param {string} x */
   const fill = (t, x) => t.replace("{x}", x);
 
@@ -482,6 +501,17 @@
     panel.appendChild(ladderEl(doc, l));
     for (const o of all) panel.appendChild(offerEl(doc, o, l));
     if (planEnabled()) panel.appendChild(planEl(doc, l));
+    const src = sources(W.LQ_FORTUNE_SOURCES, { lang: l, doc });
+    if (src.length) {
+      const blk = mk(doc, "section", "lq-paid-sources"); blk.setAttribute("data-lq-sources", ""); blk.setAttribute("data-lq-paid", ""); blk.setAttribute("data-lq-upsell", "");
+      blk.appendChild(mk(doc, "h3", "", TEXT[l].srcTitle)); blk.appendChild(mk(doc, "p", "lq-paid-free", TEXT[l].srcNote));
+      const ul = mk(doc, "ul", "lq-paid-heads");
+      for (const x of src) {
+        const li = mk(doc, "li", ""), a = mk(doc, "a", "", x.name); a.href = x.url; a.target = "_blank"; a.rel = "noopener noreferrer nofollow";
+        li.appendChild(a); if (x.note) li.appendChild(mk(doc, "span", "", " · " + x.note)); ul.appendChild(li);
+      }
+      blk.appendChild(ul); panel.appendChild(blk);
+    }
     // at the end of the reading (after the reminder, before the help line): the panel and the plan are never next to a group
     const help = [...container.children].find((/** @type {any} */ e) => e.matches && e.matches(".lq-helpline, .lq-helpline-result"));
     if (help) container.insertBefore(panel, help); else container.appendChild(panel);
@@ -510,6 +540,6 @@
     if (!wrapI()) { let n = 0; const t = setInterval(() => { if (wrapI() || ++n > 40) clearInterval(t); }, 250); }
   }
 
-  const api = { PRICES, TEXT, GOALS, enabled, planEnabled, safe, split, offers, apply, decorate, allowed, withdraw, ladder, preview, shareCard, funnel, planFor, planItems };
+  const api = { PRICES, TEXT, GOALS, enabled, planEnabled, safe, split, offers, apply, decorate, allowed, withdraw, ladder, preview, shareCard, funnel, planFor, planItems, sourcesEnabled, sources };
   if (isNode) module.exports = api; else W.LQPaid = api;
 })(typeof window !== "undefined" ? window : globalThis);
