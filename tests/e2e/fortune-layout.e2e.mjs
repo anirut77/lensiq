@@ -398,14 +398,14 @@ export default async function ({ base, launch, check, fakeCams }) {
             for (const g of document.querySelectorAll(".fa-section")) {
               if (g.closest(".fa-support, .lq-more-body") || !vis(g)) continue;
               out.groups++;
-              let lines = 0;
+              let lines = 0, all = 0;
               for (const pEl of g.querySelectorAll("p")) {
                 if (pEl.closest(".lq-more-body") || pEl.closest(".lq-advice") || !vis(pEl)) continue;
-                if (pEl.classList.contains("lq-caution")) continue;
-                const lh = parseFloat(getComputedStyle(pEl).lineHeight) || 24;
-                lines += Math.round(pEl.getBoundingClientRect().height / lh);
+                const lh = parseFloat(getComputedStyle(pEl).lineHeight) || 24, n = Math.round(pEl.getBoundingClientRect().height / lh);
+                all += n; // a group whose main point is itself a marked caution paragraph shows that paragraph in full (re-lock 6)
+                if (!pEl.classList.contains("lq-caution")) lines += n;
               }
-              if (lines < 1 || lines > 3) out.bad.push((g.getAttribute("data-section") || "?") + ": " + lines + " lines");
+              if (all < 1 || lines > 3) out.bad.push((g.getAttribute("data-section") || "?") + ": " + lines + " lines (" + all + " with caution)");
             }
             for (const c of document.querySelectorAll(".fa-section .lq-caution")) { out.caution++; if (!vis(c) || c.closest(".lq-more-body")) out.bad.push("caution paragraph hidden"); }
             return out;
@@ -429,11 +429,11 @@ export default async function ({ base, launch, check, fakeCams }) {
           if (!n) bad.push(lang + ": no group to open");
           for (let i = 0; i < n; i++) {
             const st = `(() => { const b = [...document.querySelectorAll(".fa-section button.lq-more")].filter(b => b.getBoundingClientRect().height > 0)[${i}];
-              b.scrollIntoView({ block: "center" }); const r = b.getBoundingClientRect();
+              b.scrollIntoView({ block: "center", behavior: "instant" }); const r = b.getBoundingClientRect(); // re-lock 6: no smooth scroll
               const shown = b.getAttribute("aria-controls").split(/\\s+/).every(id => getComputedStyle(document.getElementById(id)).display !== "none");
               return { x: r.left + r.width / 2, y: r.top + r.height / 2, exp: b.getAttribute("aria-expanded"), shown }; })()`;
             const tap = async () => {
-              const a = await page.evaluate(st); await sleep(80);
+              await page.evaluate(st); await sleep(150); const a = await page.evaluate(st); // re-lock 6: measure after the scroll settles
               const pt = [{ x: a.x, y: a.y }];
               await page.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt });
               await page.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
