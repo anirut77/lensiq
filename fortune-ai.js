@@ -2409,10 +2409,9 @@
       const out = composeBase(calm && facts ? Object.assign({}, facts, { extras: {} }) : facts, opts);
       if (out && out.source !== "support") {
         const L = out.lang || langOf(opts), RS = rsOf(), tr = (/** @type {any} */ it) => (L === "en" ? (enLoad(), enItem(facts.domain, it)) : L === "zh" ? (zhLoad(), zhItem(facts.domain, it)) : it);
-        const src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : [];
-        out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
         // fortune-paid (2026-11-15): guidance marks by provenance, section.guidance (fortune-straight.js markGuidance; the layout ignores it)
-        if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, Object.values(L === "en" ? REMEDY_EN : REMEDY).map(x => (typeof x === "string" ? x : x && (L === "zh" ? x.zh : x.th))));
+        const src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : []; if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, L === "en" ? REMEDY_EN : REMEDY);
+        out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
       }
       if (calm && out) delete out.plan; return out;
     } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; FILLS = prevF; }

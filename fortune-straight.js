@@ -257,7 +257,7 @@
      e.g. feng-shui directions, measured directions, rooms, photos, flying stars) or per key (it.guideKeys), the extras (lucky
      colours, directions, energy words, tips), the remedy texts and the improvement plan: section.guidance[i]. No word list:
      the marks come from where the text was taken. Called by fortune-ai.js compose(); the reading layout ignores the mark.
-     tr(item) = the item in the reading's language; rem = the remedy texts in that language. */
+     tr(item) = the item in the reading's language; rem = the remedy table (fortune-ai.js REMEDY / REMEDY_EN). */
   function markGuidance(out, F, lang, tr, rem) {
     const L = lang === "zh" || lang === "en" ? lang : "th", en = L === "en", lc = (/** @type {any} */ t) => (en ? String(t).toLowerCase() : String(t));
     const ex = (F && F.extras) || {}, src = [];
@@ -267,7 +267,9 @@
       else { src.push(...[].concat(m.advice || [])); for (const k of it.guideKeys || []) src.push(...[].concat(m[k] || [])); }
     }
     for (const k of ["luckyColors", "directions", "energyWords", "tips"]) src.push(...[].concat(ex[k] || []));
-    src.push(...(rem || []), ...((out && out.plan && out.plan.items) || []).map((/** @type {any} */ x) => x.t));
+    // rem: the remedy table of the reading's language (EN: strings; TH / ZH: {th, zh})
+    const rv = Object.values(rem || {}).map((/** @type {any} */ x) => (typeof x === "string" ? x : x && (L === "zh" ? x.zh : x.th)));
+    src.push(...rv, ...((out && out.plan && out.plan.items) || []).map((/** @type {any} */ x) => x.t));
     const cut = (/** @type {string} */ t) => (L === "zh" ? t.split(/[，。；！？、：:]/) : en ? t.split(/[,.;:!?]\s+|\s+(?:and|but|so|or)\s+/) : t.split(/\s+/));
     const frags = [...new Set(src.filter(Boolean).map(lc).flatMap(t => cut(t).concat([t])).map(x => x.trim()).filter(x => x.length >= (L === "zh" ? 6 : 12)))];
     for (const s of (out && out.sections) || []) s.guidance = (s.paragraphs || []).map((/** @type {any} */ p) => frags.some(x => lc(p).includes(x)));
