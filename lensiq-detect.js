@@ -383,7 +383,10 @@
     const has = n => { try { return !!(tf.findBackendFactory ? tf.findBackendFactory(n) : tf.engine().registryFactory[n]); } catch { return false; } };
     return ["wasm", "cpu"].filter(n => n !== current && has(n))[0] || null;
   }
-  /** switches TF.js to `name`: disposes the given nets (their weights lived on the old backend), then reload() */
+  /**
+   * switches TF.js to `name`: disposes the given nets (their weights lived on the old backend), then reload()
+   * @param {string} name @param {{dispose?: any[], reload?: () => Promise<any>}} [o]
+   */
   async function switchBackend(name, { dispose = [], reload = async () => {} } = {}) {
     const tf = tfLib(); if (!tf) throw new Error("no TensorFlow.js");
     for (const n of dispose) { try { n.dispose(); } catch { /* already gone with a lost context */ } }

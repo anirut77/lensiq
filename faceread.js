@@ -938,7 +938,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (!modelsP) modelsP = withTimeout(LQDetect.tfBackend().then(function (b) { return loadNets().then(function () { return b; }); }), MODEL_MS, "ModelTimeout").then(function (b) {
       ready = true; backendNow = b; watchGl(); if (b === "webgl") engineT("faceread.eng.ready", "พร้อมใช้งาน", { b: b.toUpperCase() }, "ok");
       else engineT("faceread.eng.readySlow", "พร้อมใช้งาน (เครื่องนี้อาจอ่านผลช้ากว่าปกติเล็กน้อย)", { b: b.toUpperCase() }, "ok"); return b;
-    }).catch(function (e) { console.error(e); modelsP = null; var x = e instanceof Error ? e : new Error(String(e)); x.lqModel = true; throw x; });
+    }).catch(function (e) { console.error(e); modelsP = null; var x = /** @type {any} */ (e instanceof Error ? e : new Error(String(e))); x.lqModel = true; throw x; });
     return modelsP;
   }
   var modelMsg = function (e) { failLine({ oom: "oom", timeout: "modelSlow" }[failKind(e)] || "modelFail2"); };
