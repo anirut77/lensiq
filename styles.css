@@ -380,7 +380,7 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 @media (min-width:1024px),(hover:hover) and (pointer:fine) and (min-width:600px){.lq-call-mini-n{font-size:1.5rem;line-height:1.1}}
 /* owner order 2026-11-15 item 1: no idle technical status. A status line (role=status) with nothing to say is empty and takes
    no space; it stays in the page so loading and error messages still reach screen readers. */
-html :is(.engine,.fr-engine,.pl-engine):empty{padding:0;margin:0;min-height:0;border:0;background:none}
+html :is(.engine,.fr-engine,.pl-engine,#engine.status):empty{padding:0;margin:0;min-height:0;border:0;background:none}
 /* the printed report keeps the full help line; on screen the top button is the one place (owner order 2026-11-15 item 3) */
 .lq-helpline.lq-helpline-print{display:none}
 @media print{.lq-helpline.lq-helpline-print{display:block}}

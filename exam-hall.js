@@ -219,7 +219,7 @@
       const [, b] = await Promise.all([cam.start(), TEST ? Promise.resolve("test") : loadDetector()]);
       try { cam.attach($("#camPick")); } catch (e) { /* one camera */ }
       loadSeats();
-      engine(() => T("exam.hall.ready", "พร้อม — ตัวประมวลผล: {b} · ภาพไม่ออกจากเครื่องนี้", { b: b === "test" ? "TEST" : String(b) }), "ok");
+      engine(() => "", "ok"); // owner rule 2026-11-15: no idle status at rest (loading or failure only)
       if (!running) { running = true; loop(); }
       renderSc();
       clearInterval(hbTimer); hbTimer = setInterval(heartbeat, 5000); heartbeat();
@@ -623,7 +623,7 @@
   $("#detector").value = P.has("yolox") || (saved && saved.det === "yolox") ? "yolox" : "coco";
   $("#detector").addEventListener("change", () => {
     const s = U.store.get(K.hall, {}) || {}; s.det = $("#detector").value; U.store.set(K.hall, s);
-    if (running && !TEST) loadDetector().then(b => engine(() => T("exam.hall.ready", "พร้อม — ตัวประมวลผล: {b} · ภาพไม่ออกจากเครื่องนี้", { b }), "ok"))
+    if (running && !TEST) loadDetector().then(() => engine(() => "", "ok"))
       .catch(e => { console.warn(e); engine(() => T("exam.hall.camErr", "เปิดกล้องไม่สำเร็จ: {m}", { m: e.message || e.name }), "err"); });
   });
   if (P.get("room")) $("#room").value = U.cleanRoom(P.get("room"));

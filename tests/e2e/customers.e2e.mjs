@@ -23,7 +23,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     await page.goto(`${base}/customers.html?cpu&fakedet`);
     await page.evaluate(m => { localStorage.clear(); localStorage.setItem("cx-members", JSON.stringify(m)); }, MEMBERS);
     await page.reload();
-    await page.waitFor(() => /พร้อมใช้งาน/.test(document.querySelector("#engine").textContent), 15000);
+    await page.waitFor(() => document.querySelector("#engine").dataset.state === "ready", 15000);
 
     const scan = faces => page.evaluate(f => {
       window.__faces = f;
@@ -132,13 +132,13 @@ export default async function ({ base, launch, check, fakeCams }) {
 
     await check("reload decrypts (members still recognised); retention drops faces unused > N days; wipe removes all faces + key", async () => {
       await page.reload();
-      await page.waitFor(() => /พร้อมใช้งาน/.test(document.querySelector("#engine").textContent), 15000);
+      await page.waitFor(() => document.querySelector("#engine").dataset.state === "ready", 15000);
       await scan([FACE(0.3, 0.3, "mA")]);
       await page.waitFor(() => /สวัสดีคุณแอน/.test(document.querySelector("#customerCard").textContent), 6000);
       // mB last seen 400 days ago -> expired on next load with default 365
       await page.evaluate(() => { const m = JSON.parse(localStorage.getItem("cx-members")); const b = m.find(x => x.id === "mB"); b.created = b.lastSeen = Date.now() - 400 * 864e5; localStorage.setItem("cx-members", JSON.stringify(m)); });
       await page.reload();
-      await page.waitFor(() => /พร้อมใช้งาน|ลบข้อมูลใบหน้า/.test(document.querySelector("#engine").textContent), 15000);
+      await page.waitFor(() => document.querySelector("#engine").dataset.state === "ready" || /ลบข้อมูลใบหน้า/.test(document.querySelector("#engine").textContent), 15000);
       await page.waitFor(() => LQVault.read("lqv-cx-faces").then(r => r.data && Object.keys(r.data.faces).length === 1), 5000);
       const st = await page.evaluate(async () => { const r = await LQVault.read("lqv-cx-faces"); return { ids: Object.keys(r.data.faces).sort(), ms: JSON.parse(localStorage.getItem("cx-members")) }; });
       assert(JSON.stringify(st.ids) === '["mA"]', "only mA keeps a face: " + st.ids);
@@ -173,9 +173,9 @@ export default async function ({ base, launch, check, fakeCams }) {
       const p = await browser.newPage(null, { initScripts: [fakeCams] });
       await p.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
       await p.goto(`${base}/customers.html?cpu`);
-      await p.waitFor(() => /พร้อมใช้งาน|ไม่พร้อม/.test(document.querySelector("#engine").textContent), 30000);
-      const eng = await p.evaluate(() => document.querySelector("#engine").textContent);
-      assert(/พร้อมใช้งาน \(ตัวประมวลผล: WASM\)/.test(eng), "ready on WASM: " + eng);
+      await p.waitFor(() => document.querySelector("#engine").dataset.state === "ready" || /ไม่พร้อม/.test(document.querySelector("#engine").textContent), 30000);
+      const eng = await p.evaluate(() => ({ state: document.querySelector("#engine").dataset.state, backend: document.querySelector("#engine").dataset.backend, text: document.querySelector("#engine").textContent }));
+      assert(eng.state === "ready" && eng.backend === "wasm" && !eng.text.trim(), "ready on WASM, no idle status text: " + JSON.stringify(eng));
       for (const t of ["pos", "enroll", "analytics", "menu"]) {
         await p.evaluate(t => document.querySelector(`.tab[data-t="${t}"]`).click(), t);
         const w = await p.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));

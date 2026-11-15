@@ -958,7 +958,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     switched = true; engineT("faceread.eng.switching", "กำลังสลับไปใช้ตัวประมวลผลสำรอง...");
     try {
       await withTimeout(LQDetect.switchBackend(next, { dispose: nets(), reload: loadNets }), MODEL_MS, "ModelTimeout");
-      backendNow = next; watchGl(); ready = true; if (camera.active) engineT("faceread.eng.switched", "กล้องพร้อม (ตัวประมวลผลสำรอง อาจช้ากว่าปกติ) — จัดใบหน้าในวงรี แล้วกด อ่านโหงวเฮ้ง", null, "ok");
+      backendNow = next; watchGl(); ready = true; if (camera.active) engineT("faceread.eng.switched", "กล้องพร้อม (เครื่องนี้อาจอ่านช้ากว่าปกติ) — จัดใบหน้าในวงรี แล้วกด อ่านโหงวเฮ้ง", null, "ok");
     } catch (e2) { console.error(e2); modelsP = null; var k2 = failKind(e2); liveDead(k2 === "other" ? kind : k2); }
   }
   /** ทุกใบหน้าในภาพ → [{box:{x,y,width,height}, score, pts}] (พิกัดพิกเซลของ input) */

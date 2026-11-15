@@ -42,7 +42,7 @@
   "nav.interview.title": "Structured Interview Kit",
   "nav.interview.desc": "STAR questions and BARS scales, independent scoring, agreement summary, practice mode",
   "nav.teamface.title": "Team Face Reading (icebreaker)",
-  "nav.teamface.desc": "Icebreaker team-role cards. For entertainment only.",
+  "nav.teamface.desc": "Ice-breaker team-role cards, not an assessment.",
   // product landing pages (Round 10 product split)
   "nav.retail.title": "LENSIQ Retail overview",
   "nav.retail.desc": "Store cameras for SMEs: visitor counts, conversion, multiple branches",

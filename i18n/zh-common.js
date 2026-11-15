@@ -45,7 +45,7 @@
   "nav.interview.title": "结构化面试工具包",
   "nav.interview.desc": "STAR 问题 + BARS 标准，独立评分，一致性汇总，练习模式",
   "nav.teamface.title": "团队面相",
-  "nav.teamface.desc": "破冰活动：团队角色卡，仅供娱乐",
+  "nav.teamface.desc": "破冰活动：团队角色卡，并非评估",
   // product landing pages (Round 10 product split)
   "nav.retail.title": "LENSIQ Retail 概览",
   "nav.retail.desc": "面向中小企业的门店摄像头：客流、成交率、多门店",

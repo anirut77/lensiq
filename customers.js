@@ -203,7 +203,7 @@ if (typeof document !== "undefined") (() => {
         storageReady
       ]);
       ready = true; rebuildMatcher();
-      engine(`พร้อมใช้งาน (ตัวประมวลผล: ${backend.toUpperCase()})`, "ok");
+      engine("", "ok"); $("#engine").dataset.state = "ready"; $("#engine").dataset.backend = backend; // owner rule 2026-11-15: no idle status (ready + backend is data only)
     } catch (e) { showInitError(e); }
   }
   function showInitError(e) {
