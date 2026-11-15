@@ -27,6 +27,7 @@
     zh: { overview: "总览", personality: "性格", work: "事业", money: "财运", love: "感情", social: "人际", timing: "时机", health: "健康", advice: "建议", brief: "其他" },
   };
   const MAXLEN = { th: 220, en: 320, zh: 110 };
+  const OVERVIEW_MAX = { th: 100, en: 120, zh: 46 }; // owner item 5: about 3 lines at 375 px
 
   /* ---------- A2: cut a paragraph into short parts (rejoined with SEP[lang] = the paragraph, word for word) ---------- */
   function split(p, lang, max) {
@@ -54,6 +55,27 @@
     out.push(p.slice(start));
     return out.filter((x, i) => x.length || i === 0);
   }
+  /** owner item 5: cut the start of the main point to about 3 lines at 375 px (OVERVIEW_MAX), at a sentence / clause / word
+   *  boundary; the rest of the paragraph is split as usual. Rejoined with SEP[lang] the pieces are the paragraph, word for word. */
+  function overviewCut(p, lang) {
+    const max = OVERVIEW_MAX[lang];
+    if (p.length <= max) return [p];
+    let at = -1;
+    if (lang === "zh") {
+      const re = /[。！？；]/g; let m; while ((m = re.exec(p)) && m.index < max) at = m.index + 1;
+      if (at < max * 0.4) { const re2 = /[，、]/g; let m2; while ((m2 = re2.exec(p)) && m2.index < max) at = Math.max(at, m2.index + 1); }
+      if (at <= 0) return split(p, lang);
+      return [p.slice(0, at)].concat(split(p.slice(at), lang));
+    }
+    const cuts = lang === "en" ? cutsEn(p) : cutsTh(p);
+    const okc = cuts.filter(c => c.ok && c.at <= max && c.at >= max * 0.4);
+    let c = okc[okc.length - 1];
+    if (!c && lang === "en") { const cm = [...p.matchAll(/, /g)].map(m => m.index + 1).filter(i => i <= max && i >= max * 0.4); if (cm.length) c = { at: cm[cm.length - 1] }; }
+    if (!c) { const any = lang === "en" ? [...p.matchAll(/ /g)].map(m => ({ at: m.index })) : cuts; c = any.filter(x => x.at <= max && x.at >= 12).pop(); }
+    if (!c) return split(p, lang);
+    at = c.at;
+    return [p.slice(0, at)].concat(split(p.slice(at + 1), lang));
+  }
   /** parts of a section: [{ text, para, visible, caution }]; the first part (the main point) and caution paragraphs are shown.
    *  opts.flags = the composer's marks (section.caution, one per paragraph): a marked paragraph is never cut or folded.
    *  Without opts.flags nothing is folded (every part visible): the layout never guesses which text is a caution.
@@ -63,7 +85,8 @@
     const leads = (opts && opts.leads) || [], flags = opts && Array.isArray(opts.flags) ? opts.flags : null, parts = [];
     (paragraphs || []).forEach((p, k) => {
       const caution = !!(flags && flags[k]) || leads.some(l => l && String(p).includes(l));
-      const chunks = caution ? [String(p)] : split(p, lang);
+      // owner item 5: the overview is the first ~3 lines of the main point (the start of the first paragraph), the rest folds
+      const chunks = caution ? [String(p)] : k === 0 ? overviewCut(String(p), lang) : split(p, lang);
       chunks.forEach((t, j) => parts.push({ text: t, para: k, caution, visible: !flags || caution || (k === 0 && j === 0) }));
     });
     return parts;
@@ -190,6 +213,8 @@
   const CSS = ".fa-section{scroll-margin-top:96px}.fa-section>p,.fa-section .lq-more-body>p{margin:.55em 0;line-height:1.75}" +
     ".fa-section .lq-gist{font-weight:500}.fa-section .lq-caution{border-left:3px solid rgba(214,120,0,.55);padding-left:.7em}" +
     ".lq-more-body{display:none}.lq-more-body.lq-open{display:block}" +
+    // owner item 5: while a group is closed its overview never takes more than 3 lines (marked caution text is never clamped)
+    ".fa-section[data-lq-grouped]:not(.lq-open)>p.lq-gist:not(.lq-caution){display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}" +
     ".lq-toc{margin:.4em 0 1em;padding:.6em .7em;border:1px solid rgba(103,79,242,.22);border-radius:14px;background:rgba(103,79,242,.04)}" +
     ".lq-toc p{margin:0 0 .4em;font-size:.88em;font-weight:600;opacity:.85}.lq-toc ul{display:flex;flex-wrap:wrap;gap:.4em;list-style:none;margin:0;padding:0}" +
     ".lq-toc a{display:inline-flex;align-items:center;min-height:44px;padding:0 .9em;border-radius:999px;border:1px solid rgba(103,79,242,.3);" +
@@ -256,7 +281,7 @@
     }
     if (ids.length) {
       const bodies = ids.map(x => sec.querySelector("#" + x));
-      sec.appendChild(moreButton(doc, lang, ids, open => bodies.forEach(b => b.classList.toggle("lq-open", open))));
+      sec.appendChild(moreButton(doc, lang, ids, open => { bodies.forEach(b => b.classList.toggle("lq-open", open)); sec.classList.toggle("lq-open", open); }));
     }
   }
   function toc(container, groups, lang, before) {
@@ -300,7 +325,7 @@
     try { if (root.FortuneAI && root.FortuneAI.registerHooks) root.FortuneAI.registerHooks(HOOK); else (root.LQFortuneHooks = root.LQFortuneHooks || []).push(HOOK); } catch (e) { /* none */ }
   }
 
-  const api = { FA_CSS, LINE, MORE, LESS, TOC, BELIEF, HEADINGS, SEP, MAXLEN, NOTE_MAX, NEVER_COLLAPSE, ICONS, COLOURS,
+  const api = { FA_CSS, OVERVIEW_MAX, LINE, MORE, LESS, TOC, BELIEF, HEADINGS, SEP, MAXLEN, NOTE_MAX, NEVER_COLLAPSE, ICONS, COLOURS,
     split, plan, planSection, sectionFlags, noticeSplit, colours, adviceKinds, enhance, noticeify, notices, ensureStyle };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQRead = api;
 })(typeof window !== "undefined" ? window : globalThis);
