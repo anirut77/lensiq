@@ -64,3 +64,11 @@ Running list, append only. Each entry: date, what changes, status, what happens 
 - Negative-state topic meanings tagged by reading (`fortune-negstate.js`, design §11): never paid. Practical tips with no negative
   state stay paid depth until the owner decides item 45 (350 / 2,700 readings in the reviewer's count).
 - The 199 row is hidden in the ladder until a page can deliver month-by-month content (open question 9 above).
+
+## 2026-11-16: owner night order item 3 (fortune paid content)
+
+- Leak counts on a fresh locked set (`fortune-paid-fresh-2026-11-16b`, 2,700 synthetic readings): negative-state A 85 -> 0
+  readings, caution / guidance B 12 -> 0. All three switches stay off; nothing calls a payment API.
+- Payment options written in `docs/FORTUNE-PAID-PAYMENTS.md` (guest PromptPay: static QR + manual confirmation, dynamic QR via
+  Stripe / Opn and others, slip verification). Recommendation: start with the static QR for a small trial; Stripe or Opn at
+  volume. Needs the owner's choice, an exception to "bank transfer only" for option B, and L65 / the accountant first.

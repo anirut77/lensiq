@@ -123,3 +123,9 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
 - `fortune-paid` re-lock (7) (2026-11-15): round-3 review of 826bbd9 NOT OK. New `tests/unit/fortune-paid-negstate.test.js`
   locked before the tags; the plan unit / e2e tests changed by the coordinator's round-3 order (199 row only with monthly
   content; made-for headline only in Thai, never on astro / bazi). Reason in `evals-locks/fortune-paid.sha256`.
+- `fortune-paid-fresh-2026-11-16` / `-16b` (2026-11-16): fresh synthetic sets for the two fortune-paid leak counts
+  (`tools/fortune-paid-leaks.mjs`). Set (a) was measured once before any change (A 261 readings / 281 parts, B 7 / 7) but its
+  Thai detector matched ท้อ inside สะท้อน (181 parts) and ลังเล inside อย่าลังเล; set (b) has new inputs and only those two
+  patterns fixed. Set (b): before A 85 / 86, B 12 / 12; after A 0 / 0, B 0 / 0 (2,700 readings). `fortune-paid` re-locks
+  (8)–(9): affiliate label test; the seller-link global became `LQ_FORTUNE_SELLER_LINKS` (it collided with the back
+  office citation list `LQ_FORTUNE_SOURCES`).
