@@ -155,3 +155,70 @@ test("F1: the page layout finds a section's marks by id and paragraph text, and 
   assert.equal(RD.sectionFlags(res, "love", ["x"]), null, "no such section");
   assert.equal(RD.sectionFlags({ sections: [{ id: "work", paragraphs: ["a"] }] }, "work", ["a"]), null, "no marks");
 });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// RE-LOCK 2026-11-15 (2), fortune-paid review finding: feng shui flying-star 2 / 5 text (Five Yellow / Two Black, 五黄 / 二黑,
+// "ดาว 5", "ดาว 2") and avoid-warnings ("เลี่ยง…", "avoid…", "避免…") were not marked as caution by the composer, so the
+// layout folded them behind "อ่านเพิ่มเติม". Append-only: nothing above changed. Ground truth is a fixed wording detector,
+// independent of the composer's marks and of the layout code. The corpus uses the engine's own facts (fengshui.js
+// buildFacts) with the page's inputs: kua from a birth year, floor-plan rooms (sectorAdvice on the year chart, as the page's
+// collect() does) and compass records, across all 12 months; TH / EN / ZH × gentle / straight, >= 150 readings in all.
+const FS_STAR_AVOID = {
+  th: /ดาว ?[25](?![0-9])|ห้าเหลือง|สองดำ|เลี่ยง/,
+  en: /\bstar ?[25]\b|\bfive yellow\b|\btwo black\b|\bavoid|free of digging/i,
+  zh: /五黄|二黑|避免|第 ?[25] ?星/
+};
+let FS_CORPUS = null;
+function fsCorpus() {
+  if (FS_CORPUS) return FS_CORPUS;
+  const FSE = require("../../fengshui.js"), FKB = require("../../fengshui-kb.js");
+  const ROOMS = Object.keys(FKB.rooms), RECS = ["door", "desk", "bed"], TOPICS = ["overall", "work", "money", "love"];
+  const out = [];
+  for (const lang of LANGS) for (const straight of [false, true]) {
+    let s = 9191 + LANGS.indexOf(lang) * 37 + (straight ? 5 : 0);
+    const r = () => ((s = (Math.imul(s, 1103515245) + 12345) >>> 0) / 4294967296);
+    for (let i = 0; i < 30; i++) {
+      const now = new Date(2026, i % 12, 1 + Math.floor(r() * 27)), k = FSE.kua(1945 + Math.floor(r() * 65), r() < 0.5 ? "f" : "m");
+      const chart = FSE.flyChart(FSE.monthInfo(now.getFullYear(), now.getMonth() + 1, now.getDate()).yearCenter);
+      const rooms = [], recorded = {};
+      for (let j = Math.floor(r() * 4); j > 0; j--) { const d = FSE.DIRS[Math.floor(r() * 8)], room = ROOMS[Math.floor(r() * ROOMS.length)]; rooms.push({ room, advice: FSE.sectorAdvice(d, chart[d], [room], k.kua) }); }
+      for (const rec of RECS) if (r() < 0.4) recorded[rec] = FSE.DIRS[Math.floor(r() * 8)];
+      const f = FSE.buildFacts({ kua: Object.assign({ solarYear: 2026 }, k), recorded, rooms, photos: [], topic: TOPICS[i % 4], now });
+      const res = FA.compose(f, { seed: 900 + i, lang, straight });
+      if (!res || res.crisis || !(res.sections || []).length) continue;
+      out.push({ lang, straight, res });
+    }
+  }
+  return (FS_CORPUS = out);
+}
+
+test("F1 feng shui: flying-star 2 / 5 and avoid-warnings are never inside a closed fold (>= 150 readings, TH / EN / ZH × gentle / straight)", () => {
+  const C = fsCorpus();
+  assert.ok(C.length >= 150, "feng shui readings " + C.length);
+  for (const l of LANGS) for (const st of [false, true]) {
+    const n = C.filter(x => x.lang === l && x.straight === st).length;
+    assert.ok(n >= 25, `fengshui ${l} ${st ? "straight" : "gentle"}: ${n} readings`);
+  }
+  const bad = [];
+  let found = 0, readings = 0;
+  for (const { lang, straight, res } of C) {
+    let hit = false;
+    for (const s of res.sections) for (const x of RD.planSection(s, lang)) {
+      if (!FS_STAR_AVOID[lang].test(x.text)) continue;
+      found++;
+      if (x.visible) continue;
+      hit = true;
+      if (bad.length < 25) bad.push(`${lang} ${straight ? "straight" : "gentle"} ${s.id}: ${x.text.slice(0, 90)}`);
+    }
+    if (hit) readings++;
+  }
+  assert.ok(found >= 200, "flying-star 2 / 5 and avoid sentences found " + found + " — the ground truth is not empty");
+  assert.equal(readings, 0, readings + " feng shui readings with flying-star 2 / 5 or avoid text folded:\n" + bad.join("\n"));
+});
+
+test("F1 feng shui: the layout keeps the composer's wording (parts rejoin byte-equal to each paragraph)", () => {
+  for (const { lang, res } of fsCorpus()) for (const s of res.sections) {
+    const parts = RD.planSection(s, lang);
+    s.paragraphs.forEach((p, i) => assert.equal(parts.filter(x => x.para === i).map(x => x.text).join(RD.SEP[lang]), p, `${lang} ${s.id} paragraph ${i}`));
+  }
+});
