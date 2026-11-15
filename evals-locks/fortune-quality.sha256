@@ -5,3 +5,13 @@
 a79d8f6b59211db471c4be9f61fbe71c9193fc3480c3aa17bfe102c9f7514ee9  tools/fortune-quality-metrics.mjs
 4fc03180210d7d03dfbf9592acb70f53f0238f69db884e929ef32b37a52d2813  tests/unit/fortune-quality.test.js
 cf1f732197a86b918f1b7389107f2e17aafd3513cf1792b9625ec846cc30e295  tools/fortune-quality-measure.mjs
+# ROUND 2 (append-only; round 1 unchanged): the independent re-check RECHECK.md returned NOT OK on 65fa9e8. New cases Q1-Q12
+# (dangling ends of new kinds, stock main-point formula, bare-label main point, filler advice, templated group starts, wrong-type
+# frames, one-finding readings, second finding parity, report repeats, taksa love, hub / lucky colour, content kept vs base) and a
+# new input set fresh2 (120). Detectors written by the builder; the reviewer's scripts were not read. Base content numbers computed
+# on fortune-live before this branch with the fresh2 inputs. Locked BEFORE the round-2 fixes.
+# locked 2026-11-15T19:00:41Z (tools/eval-guard.mjs lock, 4 files)
+b9ccdf5fbb7986fca97c07fd666b4e8673c6cc53ed392a0f1515236adf2340c4  tools/fortune-quality-metrics-2.mjs
+3aa404ff3f8e543eb75f5bd23eb22c35468229df780734497df4f32f6d8ea00a  tests/unit/fortune-quality-2.test.js
+7d79bbee0c98e2d2a6f04c4ddac790f292655d3716edc916271f1f03c27d3ff8  tests/unit/fortune-quality-base-content.json
+c1e1b93301cb01892590856ee53e8e6ca9dcba4a8c95ea4572455433ee2b48d8  tools/fortune-quality-measure-2.mjs
