@@ -1,0 +1,390 @@
+// tests/e2e/iphone-pages-webkit.e2e.mjs — iPHONE COVERAGE (owner order, night 2026-11-15, item 5): every fortune page and
+// every camera page on WebKit (the iOS Safari engine) with the iPhone 13 profile (390 px wide, touch, mobile user agent), in
+// Thai, English and Chinese. FIXED TEST, locked (evals-locks/iphone-webkit.sha256, ~/LENSIQ-field/evals/iphone-webkit/)
+// before any product fix of the round. Runs on the macOS WebKit shard (the file name contains "webkit").
+//
+// Pages: fortune = category 6 of CLAUDE.md + cat-fortune; camera = every page whose own scripts call getUserMedia
+// (lensiq-camera.js, booth.js, checkout.js, ...; lensiq-busy.js / lensiq-demo.js only wrap it and do not count).
+// Per page and language, one fresh iPhone context:
+//   LOAD     <html lang> is the chosen language; no page error and no console error (after the run); no horizontal scroll;
+//            the main controls are visible, at least 44 x 44 px and not covered (the element at their centre is the control
+//            itself); the tap itself goes through Playwright's tap(), which waits for the control to be stable and hit-able.
+//   FORTUNE  one reading from sample input (typed dates, a dream text, drawn cards; fake camera + scripted detector for
+//            face / palm); the hubs list their tools instead. The "อยากมีคนรับฟัง 1323" control at the top (#lqHelpTop) is a
+//            tel:1323 link of at least 44 x 44 px, visible and not covered.
+//   CAMERA   getUserMedia refused with NotAllowedError (what iOS returns when the user taps "Don't Allow"): after the start
+//            step a plain message about the camera permission appears in the page's language (en / zh: no Thai in it;
+//            th: Thai), no control is left busy (aria-busy) and the start control, when still shown, is not disabled.
+//   TRACKS   Thai only (an engine fact, not a wording one): a canvas fake camera (tests/e2e/fake-cams.js; Playwright WebKit
+//            has no fake-media switch) is started from the page's start control; after the page's stop control (or, on a
+//            page with no stop control, the pagehide event iOS sends when the user leaves Safari) no camera track is live.
+//   MEMORY   performance.memory.usedJSHeapSize when the engine has it (WebKit does not, and Playwright WebKit has no CDP),
+//            reported in the table only, never asserted.
+// Synthetic input only; no photo of a person. Prints a pass / fail table per page at the end.
+import { assert } from "./cdp.mjs";
+import { IPHONE, MD_SHIM, launchWebKit, sleep } from "./phone-kit.mjs";
+
+const LANGS = ["th", "en", "zh"];
+const HTML_LANG = { th: "th", en: "en", zh: "zh-Hans" };
+const THAI = /[฀-๿]/;
+const DENIED = { th: /อนุญาต|สิทธิ์|ถูกปฏิเสธ/, en: /permission|allow|denied|blocked/i, zh: /权限|允许|拒绝/ };
+// console noise that is not the page's: Playwright blocks service workers (serviceWorkers: "block") and WebKit logs the refusal
+// and the MediaPipe / TensorFlow Lite WASM runtime (vendor/) writes its start-up INFO line to stderr, which the browser shows
+// at error level ("INFO: Created TensorFlow Lite XNNPACK delegate for CPU."); only lines that begin with "INFO: " are let through
+const CONSOLE_OK = /service ?worker|serviceWorker|^INFO: /i;
+const NO_DIALOGS = "window.confirm = () => true; window.print = () => {}; window.prompt = () => 'test'; window.alert = () => {};";
+const DENY = `(() => { const md = navigator.mediaDevices; if (!md) return; window.__lqDenied = 0;
+  md.enumerateDevices = async () => [{ kind: "videoinput", deviceId: "", groupId: "", label: "", toJSON() { return this; } }];
+  md.getUserMedia = async () => { window.__lqDenied++; throw new DOMException("The request is not allowed by the user agent or the platform in the current context.", "NotAllowedError"); };
+})();`;
+const ONE_CAM = `window.__LQ_FAKE_CAMS = { n: 1, mode: "ok" }; window.__dets = []; window.__LQ_FAKE_DET = () => window.__dets.map(d => Object.assign({}, d));`;
+const FACE = { x: 0.35, y: 0.2, w: 0.3, h: 0.45, score: 0.95 };
+const HAND = { x: 0.35, y: 0.18, w: 0.3, h: 0.6, score: 0.95, side: "right" };
+
+/** sets a form control's value the way a user leaves it (input + change) */
+const setVal = (page, sel, v) => page.evaluate(([sel, v]) => {
+  const el = document.querySelector(sel); if (!el) throw new Error("no " + sel);
+  if (el.type === "checkbox" || el.type === "radio") el.checked = !!v; else el.value = v;
+  el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true }));
+}, [sel, v]);
+const waitFor = (page, fn, arg = null, ms = 15000) => page.waitForFunction(fn, arg, { timeout: ms, polling: 100 });
+const tap = (page, sel) => page.locator(sel).first().tap({ timeout: 10000 });
+/** reading predicate: at least n reading sections, none still being composed */
+const SECTIONS = n => { const s = [...document.querySelectorAll(".fa-section, .fs-sec")]; return s.length >= n && !s.some(x => /กำลังเรียบเรียง|Composing|正在/.test(x.textContent)); };
+
+// shared birth-date form of bazi / taksa / lek7 / lifegraph (lifecal-ui.js)
+const lcRead = async page => {
+  await setVal(page, "#lcDay", "12"); await setVal(page, "#lcMonth", "5"); await setVal(page, "#lcYear", "2533"); await setVal(page, "#lcTime", "08:00");
+  await tap(page, "#lcForm button[type=submit]");
+  await waitFor(page, SECTIONS, 2, 20000);
+};
+
+// ---------- fortune pages: main controls + one reading ----------
+/** @type {{page: string, main: string[], q?: string, cam?: boolean, read: (p: any) => Promise<void>}[]} */
+const FORTUNE = [
+  { page: "fortune", main: [".pd-card"], read: async p => {
+    const n = await p.evaluate(() => document.querySelectorAll("a.pd-card[href$='.html'], a.ft-card[href$='.html']").length);
+    assert(n >= 10, "fortune hub lists only " + n + " tools");
+  } },
+  { page: "cat-fortune", main: ["main a[href$='.html']"], read: async p => {
+    const n = await p.evaluate(() => new Set([...document.querySelectorAll("main a[href$='.html']")].map(a => a.getAttribute("href"))).size);
+    assert(n >= 10, "cat-fortune lists only " + n + " tools");
+  } },
+  { page: "faceread", q: "?cpu&fakedet", cam: true, main: ["#frStartCam"], read: async p => {
+    await tap(p, "#frStartCam");
+    await waitFor(p, () => !document.getElementById("frRead").hidden && !!document.querySelector("#frCam.live"), null, 15000);
+    await p.evaluate(d => { window.__dets = d; }, [FACE]);
+    await waitFor(p, () => !document.getElementById("frRead").disabled, null, 10000);
+    await tap(p, "#frRead");
+    await waitFor(p, () => !document.getElementById("frResult").hidden, null, 25000);
+    await waitFor(p, SECTIONS, 3, 25000);
+  } },
+  { page: "palm", q: "?cpu&fakedet", cam: true, main: ["#plStartCam"], read: async p => {
+    await waitFor(p, () => !!(window.__palm && document.getElementById("plEngine").classList.contains("ok")), null, 15000);
+    await tap(p, "#plStartCam");
+    await waitFor(p, () => !!document.querySelector("#plCam.live") && !document.getElementById("plSnap").hidden, null, 15000);
+    await p.evaluate(d => { window.__dets = d; }, [HAND]);
+    await sleep(600);
+    await tap(p, "#plSnap");
+    await waitFor(p, () => !document.getElementById("plEdit").hidden && !!window.__palm.S.lines && !window.__palm.S.busy, null, 20000);
+    await tap(p, "#plRead");
+    await waitFor(p, () => !document.getElementById("plResult").hidden && document.querySelectorAll("#plNarr .fa-section").length >= 3, null, 20000);
+  } },
+  { page: "horoscope", main: ["#hsGo"], read: async p => {
+    await setVal(p, "#hsDay", "15"); await setVal(p, "#hsMonth", "8"); await setVal(p, "#hsYear", "1990");
+    await tap(p, "#hsGo"); await waitFor(p, SECTIONS, 3, 20000);
+  } },
+  { page: "tarot", main: ["#trStart"], read: async p => {
+    await p.evaluate(() => { document.querySelector('input[value="three"]').click(); document.querySelector('input[value="love"]').click(); });
+    await tap(p, "#trStart"); await sleep(600);
+    await tap(p, "#trAuto"); await sleep(900);
+    await tap(p, "#trReveal"); await waitFor(p, SECTIONS, 3, 25000);
+  } },
+  { page: "iching", main: ["#icStart"], read: async p => {
+    await tap(p, "#icStart"); await tap(p, "#icAuto"); await waitFor(p, SECTIONS, 3, 20000);
+  } },
+  { page: "bazi", main: ["#lcForm button[type=submit]"], read: lcRead },
+  { page: "taksa", main: ["#lcForm button[type=submit]"], read: lcRead },
+  { page: "lek7", main: ["#lcForm button[type=submit]"], read: lcRead },
+  { page: "numbers", main: ["#nmGo"], read: async p => {
+    await setVal(p, "#nmPhone", "0812345678"); await tap(p, "#nmGo"); await waitFor(p, SECTIONS, 2, 15000);
+  } },
+  { page: "fengshui", main: ["#fsKuaForm [type=submit]"], read: async p => {
+    await setVal(p, "#fsDay", "15"); await setVal(p, "#fsMonth", "6"); await setVal(p, "#fsYear", "2533");
+    await tap(p, "#fsKuaForm [type=submit]"); await sleep(500);
+    await tap(p, "#fsReadBtn"); await waitFor(p, SECTIONS, 2, 15000);
+  } },
+  { page: "dream", main: ["#drText"], read: async p => {
+    await setVal(p, "#drText", "ฝันเห็นงูใหญ่ในบ้าน แล้วนั่งเครื่องบินไปทะเล");
+    await waitFor(p, () => !document.getElementById("drGo").disabled, null, 5000);
+    await tap(p, "#drGo"); await waitFor(p, SECTIONS, 3, 15000);
+  } },
+  { page: "zodiac", main: ["#zdForm [type=submit]"], read: async p => {
+    await p.evaluate(() => document.querySelector('input[name="zdAnimal"][value="6"]').click());
+    await tap(p, "#zdForm [type=submit]"); await waitFor(p, SECTIONS, 3, 15000);
+  } },
+  { page: "astro", main: ["#asForm [type=submit]"], read: async p => {
+    await setVal(p, "#asDay", "15"); await setVal(p, "#asMonth", "5"); await setVal(p, "#asYear", "2533");
+    await tap(p, "#asForm [type=submit]"); await waitFor(p, SECTIONS, 3, 15000);
+  } },
+  { page: "lifegraph", main: ["#lcForm button[type=submit]"], read: lcRead },
+  { page: "planner", main: ["#plGo"], read: async p => {
+    await waitFor(p, () => !!window.__pl && document.getElementById("plFrom").options.length > 1, null, 8000);
+    await p.evaluate(() => {
+      document.querySelector("input[name=plEvent][value=shop]").click();
+      const from = document.getElementById("plFrom"); from.value = from.options[1].value; from.dispatchEvent(new Event("change", { bubbles: true }));
+      const fs = document.querySelector('.pl-owner[data-owner="0"]'); fs.querySelector("details").open = true;
+      const bd = fs.querySelector(".pl-bd"); bd.value = "1990-05-17"; bd.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await tap(p, "#plGo");
+    await waitFor(p, () => !document.getElementById("plResult").hidden && document.querySelectorAll(".pl-day").length > 0, null, 10000);
+  } },
+  { page: "luckycolor", q: "?cpu&fakeseg", main: [".lc-goal[data-goal=money]"], read: async p => {
+    await tap(p, ".lc-goal[data-goal=money]");
+    await setVal(p, "#daySel", "4");
+    await waitFor(p, () => (document.getElementById("recBox").textContent || "").trim().length > 20 && document.querySelectorAll("#week tbody tr").length === 7, null, 8000);
+  } },
+  { page: "report", main: ["#rpGo"], read: async p => {
+    await waitFor(p, () => !!window.__rp, null, 8000);
+    await tap(p, '[data-rp-type="report_basic"]');
+    await setVal(p, "#rpAYear", "2533");
+    await tap(p, "#rpGo");
+    await waitFor(p, () => !document.getElementById("rpOut").hidden && document.querySelectorAll("#rpOut .rp-part").length >= 3, null, 15000);
+  } },
+];
+
+// ---------- camera pages: steps before the start control, the start control, the stop control ----------
+// pre: actions that lead to the start control; start: tapped to open the camera (null = the page opens it on load);
+// stop: tapped to close it (same as start for a toggle; {select} for a source picker; null = none -> pagehide is used)
+// zone pages (lensiq-zonecam.js): the operator ticks "the camera notice is posted" and taps the acknowledgement first
+const ZONE_ACK = async p => {
+  await waitFor(p, () => !!document.getElementById("gate") && !!document.getElementById("startCam"), null, 10000);
+  if (await p.evaluate(() => document.getElementById("gate").hidden)) return;
+  await setVal(p, "#gate input[type=checkbox]", true);
+  await tap(p, "#gate button[data-ack]");
+};
+const zone = page => ({ page, pre: ZONE_ACK, start: "#startCam", stop: "#stopCam" });
+const GATE_ACK = async p => {
+  await waitFor(p, () => !!document.querySelector("#gkAck1"), null, 10000);
+  await setVal(p, "#gkOp", "สมชาย");
+  await p.evaluate(() => { document.querySelector("#gkAck1").click(); document.querySelector("#gkAck2").click(); });
+  await tap(p, "#gkAckBtn");
+};
+/** @type {{page: string, q?: string, init?: string[], pre?: (p: any) => Promise<void>, start: string|null, stop: string|null|{select: [string, string]}}[]} */
+const CAMERA = [
+  zone("afterhours"), zone("bays"), zone("crowd"), zone("queue"), zone("tables"),
+  { page: "luckycolor", start: "#startCam", stop: "#stopCam" },
+  // attendance (face mode, the page default when no HR employee mode is set) opens the camera on load; #startScan only scans
+  { page: "attendance", start: null, stop: null },
+  // booth / customers / driver / signage: the stop control ends counting / scanning / the trip and keeps the preview for the
+  // next one (kiosk design), so the camera is released by pagehide (the user leaves Safari or the page)
+  { page: "booth", start: "#camStart", stop: null },
+  { page: "checkout", start: null, stop: "#camBtn" },
+  { page: "customers", start: "#scanToggle", stop: null },
+  { page: "driver", pre: async p => { await setVal(p, "#tripForm [name=driver]", "สมชาย"); await setVal(p, "#tripForm [name=plate]", "1กข 1234"); },
+    start: "#tripForm [type=submit]", stop: null },
+  { page: "exam-hall", pre: async p => { await setVal(p, "#room", "HALL1"); }, start: "#startCam", stop: null },
+  { page: "exam-lab", pre: async p => { await setVal(p, "#room", "LAB1"); await setVal(p, "#seat", "12"); await setVal(p, "#consent", true); },
+    start: "#toCam", stop: null },
+  { page: "faceread", start: "#frStartCam", stop: null },
+  { page: "fengshui", start: "#fsCompassStart", stop: null },
+  { page: "interview", pre: async p => { await tap(p, "#tab-delivery"); await setVal(p, "#ivCOk1", true); await setVal(p, "#ivCOk2", true); },
+    start: "#ivDStart", stop: "#ivDStop" },
+  { page: "medicine", start: "#mdCamBtn", stop: "#mdCamStop" },
+  // neuro: customer builds (the default) do not load the expression model and never open the camera (round 16 item 2)
+  { page: "neuro", noCamera: true, start: null, stop: null },
+  { page: "nutrition", start: "#nutCamBtn", stop: "#nutClear" },
+  { page: "omr", pre: async p => {
+    await p.evaluate(() => { document.getElementById("newWrap").open = true; });
+    await setVal(p, "#newExam [name=title]", "Quiz"); await tap(p, "#newExam [type=submit]");
+    await waitFor(p, () => !document.getElementById("ws").hidden, null, 8000);
+  }, start: "#camStart", stop: "#camStop" },
+  { page: "palm", start: "#plStartCam", stop: null },
+  { page: "parking", pre: GATE_ACK, start: "#gkCamBtn", stop: "#gkCamBtn" },
+  { page: "village", pre: GATE_ACK, start: "#gkCamBtn", stop: "#gkCamBtn" },
+  { page: "photobooth", start: 'button[data-n="1"]', stop: null },
+  { page: "qc", start: null, startSelect: ["#srcSel", "camera"], stop: { select: ["#srcSel", "sim"] } },
+  { page: "signage", start: "#startFace", stop: null },
+  { page: "store", start: "#startCam", stop: "#stop" },
+  { page: "studio", start: "#stCamBtn", stop: "#stCamClose" },
+  { page: "teamface", start: "#tfCamBtn", stop: null },
+  { page: "tryon", pre: async p => { await setVal(p, "#toConsent", true); }, start: "#toStart", stop: "#toStop" },
+];
+
+/** in-page facts about one control: shown, size, inside the screen after scrolling to it, and whether it is covered */
+function controlFacts(sel) {
+  const e = document.querySelector(sel);
+  if (!e) return { sel, missing: true };
+  e.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+  const r = e.getBoundingClientRect(), s = getComputedStyle(e);
+  const shown = s.display !== "none" && s.visibility !== "hidden" && r.width > 0 && r.height > 0 && !e.closest("[hidden]");
+  const box = (e.closest("label") && (e.type === "checkbox" || e.type === "radio")) ? e.closest("label").getBoundingClientRect() : r;
+  const x = Math.min(innerWidth - 1, Math.max(0, r.left + r.width / 2)), y = Math.min(innerHeight - 1, Math.max(0, r.top + r.height / 2));
+  const top = document.elementFromPoint(x, y);
+  const lab = e.closest("label");
+  const mine = !!top && (top === e || e.contains(top) || (!!lab && lab.contains(top)));
+  const who = top ? top.tagName.toLowerCase() + (top.id ? "#" + top.id : "") + (typeof top.className === "string" && top.className ? "." + top.className.trim().split(/\s+/)[0] : "") : "nothing";
+  return { sel, shown, w: Math.round(box.width), h: Math.round(box.height), left: Math.round(r.left), right: Math.round(r.right), vw: innerWidth, covered: !mine, by: who };
+}
+const ctlProblem = f => f.missing ? `${f.sel} missing` : !f.shown ? `${f.sel} not shown` : f.w < 44 || f.h < 44 ? `${f.sel} is ${f.w}x${f.h} px (< 44)`
+  : f.left < -1 || f.right > f.vw + 1 ? `${f.sel} off screen (${f.left}..${f.right})` : f.covered ? `${f.sel} covered by ${f.by}` : "";
+
+/** opens one page in a fresh iPhone context; st collects page errors and console errors */
+async function open(browser, url, lang, init) {
+  const ctx = await browser.newContext({ ...IPHONE, serviceWorkers: "block" });
+  const page = await ctx.newPage();
+  const st = { errors: [], console: [], crashed: false };
+  page.on("pageerror", e => st.errors.push(String(e && e.message || e).slice(0, 240)));
+  // WebKit's "Failed to load resource" console line has no address: the failed responses are listed by URL instead
+  page.on("console", m => { if (m.type() === "error" && !CONSOLE_OK.test(m.text()) && !/^Failed to load resource/.test(m.text())) st.console.push(m.text().slice(0, 240)); });
+  page.on("response", r => { if (r.status() >= 400) st.console.push(`HTTP ${r.status()} ${r.url().replace(/^https?:\/\/[^/]+/, "")}`); });
+  page.on("requestfailed", r => { if (!/^(data|blob):/.test(r.url())) st.console.push(`request failed ${r.url().replace(/^https?:\/\/[^/]+/, "")} (${(r.failure() || {}).errorText || "?"})`); });
+  page.on("crash", () => { st.crashed = true; });
+  // fortune-ai.js asks the same-origin backend "/api/fortune/status" on any host but *.github.io; the test server is a plain
+  // static server, so it answers what the live GitHub Pages site behaves as: AI writer off (no other request is answered)
+  await page.route("**/api/fortune/status", r => r.fulfill({ status: 200, contentType: "application/json", body: '{"enabled":false}' }));
+  for (const s of [NO_DIALOGS, `try { localStorage.setItem("lq-lang", ${JSON.stringify(lang)}); } catch (e) {}`, ...init]) await page.addInitScript(s);
+  await page.goto(url, { waitUntil: "load", timeout: 60000 });
+  return { ctx, page, st };
+}
+/** the common LOAD checks; returns a list of problems */
+async function loadChecks(page, lang, main) {
+  const bad = [];
+  try { await waitFor(page, l => document.documentElement.lang === l && !!window.LQI18N, HTML_LANG[lang], 10000); }
+  catch { bad.push(`<html lang> is "${await page.evaluate(() => document.documentElement.lang)}", not ${HTML_LANG[lang]}`); }
+  await sleep(600);
+  const ov = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
+  if (ov.sw > ov.cw + 1) bad.push(`horizontal scroll ${ov.sw} > ${ov.cw}`);
+  for (const sel of main) { const p = ctlProblem(await page.evaluate(controlFacts, sel)); if (p) bad.push(p); }
+  return bad;
+}
+const memory = page => page.evaluate(() => { const m = /** @type {any} */ (performance).memory; return m && m.usedJSHeapSize ? Math.round(m.usedJSHeapSize / 1048576) : null; });
+const endChecks = (st, bad) => {
+  if (st.crashed) bad.push("the WebKit page crashed");
+  if (st.errors.length) bad.push("page error(s): " + st.errors.slice(0, 3).join(" | "));
+  if (st.console.length) bad.push("console error(s): " + st.console.slice(0, 3).join(" | "));
+};
+
+export default async function ({ base, check, fakeCams }) {
+  const browser = await launchWebKit();
+  /** @type {Record<string, Record<string, string>>} page -> column -> "ok" | "FAIL" */
+  const table = {}, mem = {};
+  const mark = (pg, col, ok) => { (table[pg] = table[pg] || {})[col] = ok ? "ok" : "FAIL"; };
+  try {
+    for (const F of FORTUNE) {
+      for (const lang of LANGS) {
+        await check(`iPhone WebKit ${lang}: fortune ${F.page} loads, controls tappable, help 1323 tel link, one reading`, async () => {
+          const init = F.cam ? [MD_SHIM, fakeCams, ONE_CAM] : [];
+          const { ctx, page, st } = await open(browser, `${base}/${F.page}.html${F.q || ""}`, lang, init);
+          let ok = false;
+          try {
+            const bad = await loadChecks(page, lang, F.main);
+            const help = await page.evaluate(controlFacts, '#lqHelpTop a[href="tel:1323"]');
+            const hp = ctlProblem(help); if (hp) bad.push("help 1323: " + hp);
+            try { await F.read(page); } catch (e) { bad.push("reading: " + String(e && e.message || e).split("\n")[0].slice(0, 200)); }
+            const ov = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+            if (ov > 1) bad.push(`horizontal scroll after the reading (+${ov} px)`);
+            mem[F.page] = await memory(page);
+            endChecks(st, bad);
+            assert(!bad.length, `${F.page} ${lang}: ` + bad.join("; "));
+            ok = true;
+          } finally { mark(F.page, "fortune-" + lang, ok); await ctx.close(); }
+        });
+      }
+    }
+
+    for (const C of CAMERA) {
+      const q = C.q || "?cpu&fakedet";
+      for (const lang of LANGS) {
+        await check(`iPhone WebKit ${lang}: camera ${C.page} loads, controls tappable, camera refused -> plain ${lang} message, nothing hangs`, async () => {
+          const { ctx, page, st } = await open(browser, `${base}/${C.page}.html${q}`, lang, [MD_SHIM, DENY, ...(C.init || [])]);
+          let ok = false;
+          try {
+            const bad = await loadChecks(page, lang, []);
+            if (C.pre) await C.pre(page);
+            if (C.start) { const p = ctlProblem(await page.evaluate(controlFacts, C.start)); if (p) bad.push(p); else await tap(page, C.start); }
+            if (C.startSelect) await setVal(page, C.startSelect[0], C.startSelect[1]);
+            let msg = null;
+            if (C.noCamera) {
+              await sleep(2000);
+              const n = await page.evaluate(() => window.__lqDenied || 0);
+              if (n) bad.push(`a page that must not open the camera called getUserMedia ${n} time(s)`);
+              const eng = await page.evaluate(() => { const e = document.getElementById("engine"); return e && e.getBoundingClientRect().height > 0 ? e.innerText.trim() : ""; });
+              if (!eng) bad.push("no status line telling why the camera stays off");
+              if (eng && lang !== "th" && THAI.test(eng)) bad.push(`the status line is not in ${lang}: "${eng.slice(0, 120)}"`);
+            } else try {
+              const h = await waitFor(page, re => {
+                const rx = new RegExp(re[0], re[1]);
+                if (!window.__lqDenied) return null;
+                let best = null;
+                for (const e of document.querySelectorAll("body *")) {
+                  if (/^(SCRIPT|STYLE|NOSCRIPT|svg)$/i.test(e.tagName) || e.closest("#siteNav, header.nav, footer, .lq-helpline")) continue;
+                  const t = (e.innerText || "").trim(); if (!t || t.length > 400 || !rx.test(t)) continue;
+                  const r = e.getBoundingClientRect(), s = getComputedStyle(e);
+                  if (s.display === "none" || s.visibility === "hidden" || !r.width || !r.height || e.closest("[hidden]")) continue;
+                  if (!best || t.length < best.length) best = t;
+                }
+                return best;
+              }, [DENIED[lang].source, DENIED[lang].flags], 12000);
+              msg = await h.jsonValue();
+            } catch { bad.push(`no camera-permission message in ${lang} (getUserMedia called ${await page.evaluate(() => window.__lqDenied || 0)} time(s))`); }
+            if (msg && lang !== "th" && THAI.test(msg)) bad.push(`the message is not in ${lang}: "${msg.slice(0, 120)}"`);
+            if (msg && lang === "th" && !THAI.test(msg)) bad.push(`the message is not in Thai: "${msg.slice(0, 120)}"`);
+            await sleep(1500);
+            const hang = await page.evaluate(sel => {
+              const busy = [...document.querySelectorAll('[aria-busy="true"]')].filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !e.closest("[hidden]"); })
+                .map(e => e.tagName.toLowerCase() + (e.id ? "#" + e.id : ""));
+              const s = sel && document.querySelector(sel);
+              const shown = !!s && s.getBoundingClientRect().width > 0 && !s.closest("[hidden]");
+              return { busy, disabled: shown && !!s.disabled };
+            }, C.start);
+            if (hang.busy.length) bad.push("still busy after the refusal: " + hang.busy.join(", "));
+            if (hang.disabled) bad.push(`${C.start} is disabled after the refusal (no way to try again)`);
+            const ov = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+            if (ov > 1) bad.push(`horizontal scroll after the message (+${ov} px)`);
+            if (!(C.page in mem)) mem[C.page] = await memory(page);
+            endChecks(st, bad);
+            assert(!bad.length, `${C.page} ${lang}: ` + bad.join("; "));
+            ok = true;
+          } finally { mark(C.page, "denied-" + lang, ok); await ctx.close(); }
+        });
+      }
+      await check(`iPhone WebKit th: camera ${C.page} fake camera start -> ${C.stop ? "stop" : "pagehide"} releases every track`, async () => {
+        const { ctx, page, st } = await open(browser, `${base}/${C.page}.html${q}`, "th", [MD_SHIM, fakeCams, ONE_CAM, ...(C.init || [])]);
+        let ok = false;
+        try {
+          const bad = [];
+          await waitFor(page, () => !!window.__LQ_FAKE && !!window.LQI18N, null, 10000);
+          if (C.noCamera) {
+            await sleep(2000);
+            const n = await page.evaluate(() => window.__LQ_FAKE.opens.length);
+            if (n) bad.push(`a page that must not open the camera opened it ${n} time(s)`);
+          } else try {
+            if (C.pre) await C.pre(page);
+            if (C.start) await tap(page, C.start);
+            if (C.startSelect) await setVal(page, C.startSelect[0], C.startSelect[1]);
+          } catch (e) { bad.push("start: " + String(e && e.message || e).split("\n")[0].slice(0, 200)); }
+          if (!C.noCamera && !bad.length) try { await waitFor(page, () => window.__LQ_FAKE.live().length >= 1, null, 20000); } catch { bad.push("the camera never started (no live fake track)"); }
+          if (!C.noCamera && !bad.length) {
+            await sleep(800);
+            if (C.stop && typeof C.stop === "object") await setVal(page, C.stop.select[0], C.stop.select[1]);
+            else if (C.stop) await tap(page, C.stop);
+            else await page.evaluate(() => { window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: true })); });
+            try { await waitFor(page, () => window.__LQ_FAKE.live().length === 0, null, 6000); }
+            catch { bad.push(`${await page.evaluate(() => window.__LQ_FAKE.live().length)} camera track(s) still live after ${C.stop ? "the stop control" : "pagehide"}`); }
+          }
+          endChecks(st, bad);
+          assert(!bad.length, `${C.page}: ` + bad.join("; "));
+          ok = true;
+        } finally { mark(C.page, "tracks", ok); await ctx.close(); }
+      });
+    }
+  } finally {
+    await browser.close();
+    const cols = ["fortune-th", "fortune-en", "fortune-zh", "denied-th", "denied-en", "denied-zh", "tracks"];
+    console.log("\n  iPhone WebKit coverage (390 px) — " + cols.join(" | ") + " | JS heap MB");
+    for (const pg of Object.keys(table)) {
+      console.log("  " + pg.padEnd(12) + cols.map(c => (table[pg][c] || "-").padStart(c.length)).join("   ") + "   " + (mem[pg] == null ? "n/a" : mem[pg]));
+    }
+  }
+}
