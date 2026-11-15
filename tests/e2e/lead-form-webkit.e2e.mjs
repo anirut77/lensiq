@@ -161,18 +161,19 @@ export default async function ({ base, repo, check }) {
       } finally { await ctx.close(); }
     });
 
+    // owner order 2026-11-16: the temporary "if the form does not send, contact us on LINE" notice is removed after the owner
+    // confirmed the iPhone send and the LINE push (lead b0011eb6, 2026-11-15 22:35). The form itself stays on.
     for (const lang of ["th", "en", "zh"]) {
-      await check(`notice next to the form with the LINE contact as the alternative (${lang})`, async () => {
+      await check(`no temporary LINE notice next to the form; the form is still on (${lang})`, async () => {
         const { ctx, page } = await open({ key: KEYS.pass, lang });
         try {
           const n = await page.evaluate(() => {
-            const e = document.getElementById("leadNotice"); if (!e) return null;
-            const r = e.getBoundingClientRect(), a = e.querySelector("a[href*='line.me']");
-            return { vis: r.width > 0 && r.height > 0 && !e.closest("[hidden]"), near: !!e.closest("#contact"), text: e.textContent || "", href: a ? a.getAttribute("href") : "" };
+            const e = document.getElementById("leadNotice"), f = document.getElementById("leadForm");
+            const vis = el => { if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !el.closest("[hidden]"); };
+            const c = document.getElementById("contact");
+            return { notice: vis(e), form: vis(f), lineInContact: c ? /632yliiw/.test(Array.from(c.querySelectorAll("p.lead-notice")).filter(vis).map(x => x.textContent).join(" ")) : false };
           });
-          assert(n && n.vis && n.near && LINE.test(n.href) && /632yliiw/.test(n.text), "notice: " + JSON.stringify(n));
-          if (lang === "en") assert(!/[฀-๿]/.test(n.text), "English notice");
-          if (lang === "zh") assert(/[一-鿿]/.test(n.text) && !/[฀-๿]/.test(n.text), "Chinese notice");
+          assert(n && !n.notice && !n.lineInContact && n.form, "notice: " + JSON.stringify(n));
         } finally { await ctx.close(); }
       });
     }
