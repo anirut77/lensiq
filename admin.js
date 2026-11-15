@@ -1034,7 +1034,22 @@
       setBadge(r.unread);
       renderLeads();
     }, fail);
+    call("/leads/notify").then(function (/** @type {any} */ r) { lq.notify = r; renderNotify(); },
+      function () { lq.notify = { state: "unavailable" }; renderNotify(); });
   };
+  /* LINE notification status line under the inbox (owner order 2026-11-15, "never silent"): working or not, the last
+   * success time and the reason, from GET /admin/api/leads/notify (secret NAMES + reason codes only, never a value).
+   * Wording in admin-lead-notify.js (window.LQLeadNotify, loaded before this file). */
+  var NF = /** @type {any} */ (window).LQLeadNotify;
+  function renderNotify() {
+    var el = $("adlNotify"), r = lq.notify;
+    if (!el || !r || !NF) return;
+    var st = String(r.state || "unavailable");
+    el.setAttribute("data-state", st);
+    el.className = "adl-notify" + (st === "ok" ? " adl-nf-ok" : st === "unconfirmed" ? "" : " adl-nf-bad");
+    el.hidden = false;
+    el.textContent = NF.line(G, dt, r);
+  }
   /** Unread badge on the tab: new requests not opened yet (count only, from the Worker). @param {any} n */
   function setBadge(n) {
     lq.unread = Math.max(0, Number(n) || 0);
@@ -1045,6 +1060,11 @@
     b.title = b.getAttribute("aria-label") || "";
   }
   function leadBadge() { call("/leads/unread").then(function (/** @type {any} */ r) { setBadge(r.unread); }, function () { /* badge only */ }); }
+  /** Row badge when the owner was not (or maybe not) told on LINE. @param {any} n */
+  var nfBadge = function (n) {
+    var b = NF && NF.badge(G, n);
+    return b ? h("span", { class: "adl-chip adl-nf-miss", "data-notify-miss": n, title: b.title, text: b.text }) : null;
+  };
   function renderLeads() {
     var c = lq.counts || { new: 0, contacted: 0, closed: 0 };
     $("adlCounts").textContent = G("adl.counts", "ใหม่ {n} · ติดต่อแล้ว {c} · ปิดแล้ว {x}", { n: c.new, c: c.contacted, x: c.closed }) +
@@ -1060,6 +1080,9 @@
           l.company ? h("span", { class: "ad-muted", text: " · " + l.company }) : null,
           h("div", { class: "ad-muted adl-meta" },
             h("span", { class: "adl-chip adl-" + l.status, text: stText(l.status) }), " ",
+            // never silent (2026-11-15; review D2, D3): skipped / failed / capped = no LINE message went out; unknown = never recorded
+            nfBadge(l.notify),
+            nfBadge(l.notify) ? " " : null,
             G("adl.interest", "สนใจ") + ": ", h("span", { translate: "no", text: l.interest || "—" }), " · " + dt(l.created_at))),
         view));
     });
@@ -1101,6 +1124,8 @@
     row("adl.f.lang", "ภาษา", l.lang);
     row("adl.f.message", "ข้อความ", l.message);
     row("adl.f.consent", "เวอร์ชันข้อความยินยอม", l.consent_version);
+    var nf = NF ? NF.field(G, dt, l) : null;
+    row("adl.nf.label", "การแจ้งเตือนทาง LINE", nf);
     row("adl.f.delete", "ลบอัตโนมัติ", dt(l.delete_after, true) + " " + G("adl.f.deleteNote", "({n} วันหลังได้รับ)", { n: lq.days }));
   }
   function closeLead() { lq.open = ""; lq.lead = null; $("adlDetail").hidden = true; $("adlFields").textContent = ""; $("adlName").textContent = ""; renderLeads(); }
@@ -1141,7 +1166,7 @@
     });
   });
   // language switch: redraw from what is already loaded (no new request, nothing extra in the audit log)
-  window.addEventListener("lq-lang", function () { if (lq.counts) renderLeads(); renderDetail(); setBadge(lq.unread); });
+  window.addEventListener("lq-lang", function () { if (lq.counts) renderLeads(); renderDetail(); setBadge(lq.unread); renderNotify(); });
 
   /* ---------------- security ---------------- */
   loaders.security = function () {
@@ -1236,6 +1261,11 @@
     if (e && e.code === "merit_invalid") return G("am.e.invalid", "ข้อมูลยังไม่ครบหรือไม่ถูกต้อง: {why}", { why: String(e.message || "").replace(/[{}]/g, "") });
     if (e && e.code === "batch_exists") {
       return G("am.e.batch_exists", "ไฟล์ชุด {batch} นำเข้าไปแล้ว แต่ละไฟล์นำเข้าได้ครั้งเดียว ไม่มีอะไรถูกเขียนเพิ่ม", { batch: amImp.batch || "" });
+    }
+    if (e && e.code === "draft_ids_exist") {
+      var dn = /(\d+) draft id\(s\)/.exec(String(e.message || "")), db = /\(batch: ([^)]*)\)/.exec(String(e.message || ""));
+      return G("am.e.draft_ids_exist", "ไฟล์นี้มี {n} รายการที่มีอยู่ในหลังบ้านแล้ว (ชุด {batch}) จึงไม่นำเข้าทั้งไฟล์ เพื่อไม่ให้ซ้ำ ไม่มีอะไรถูกเขียน ตรวจว่าเลือกไฟล์ถูกชุด",
+        { n: dn ? dn[1] : "?", batch: db ? db[1].replace(/[{}]/g, "") : "?" });
     }
     if (e && e.code === "reauth_required") return G("am.e.reauth", "ต้องยืนยันรหัสผ่านก่อนลบ");
     return friendly(e);
@@ -1434,12 +1464,23 @@
       return G("am.imp.batchLine", "{batch} · {n} รายการ · {when}", { batch: b.batch, n: b.count, when: when(b.imported_at) });
     }).join("\n") : G("am.imp.batchesNone", "ยังไม่ได้นำเข้าไฟล์ร่างชุดใด");
   }
+  /** which kind of file was picked: "places" when every item is a place, otherwise "drafts" @param {any} items */
+  function amImportKind(items) {
+    return Array.isArray(items) && items.length && items.every(function (/** @type {any} */ x) { return x && x.type === "place"; }) ? "places" : "drafts";
+  }
   /** @param {any} r */
   function amImportReport(r) {
-    var lines = [G(r.dry_run ? "am.imp.ready" : "am.imp.done", r.dry_run ? "พร้อมนำเข้า {n} รายการ" : "นำเข้าเป็นร่างแล้ว {n} รายการ", { n: r.dry_run ? r.ok_count : r.imported })];
+    var lines = amImportWho(r.batch || amImp.batch, amImp.items);
+    lines.push(G(r.dry_run ? "am.imp.ready" : "am.imp.done", r.dry_run ? "พร้อมนำเข้า {n} รายการ" : "นำเข้าเป็นร่างแล้ว {n} รายการ", { n: r.dry_run ? r.ok_count : r.imported }));
     if (r.refused.length) lines.push(G("am.imp.refused", "ไม่ผ่าน {n} รายการ (ไม่นำเข้า):", { n: r.refused.length }));
     r.refused.slice(0, 30).forEach(function (/** @type {any} */ x) { lines.push("#" + (x.index + 1) + ": " + amError({ code: x.code, message: x.error })); });
     $("amImportOut").textContent = lines.join("\n");
+  }
+  /** the first lines of the import box: the batch id and the kind of the picked file, to compare with the owner steps @param {any} batch @param {any} items */
+  function amImportWho(batch, items) {
+    var n = Array.isArray(items) ? items.length : 0, k = amImportKind(items);
+    return [G("am.imp.batchIs", "รหัสชุดของไฟล์ที่เลือก: {batch}", { batch: String(batch || "") }),
+      k === "places" ? G("am.imp.kindPlaces", "ชนิดไฟล์: สถานที่ไหว้ขอพร (places) {n} รายการ", { n: n }) : G("am.imp.kindDrafts", "ชนิดไฟล์: ร่างคำแนะนำ (drafts) {n} รายการ", { n: n })];
   }
   $("amImport").addEventListener("click", function () {
     var inp = /** @type {any} */ ($("amImportFile")), file = inp.files && inp.files[0];
@@ -1451,6 +1492,7 @@
       var batch = j && !Array.isArray(j) && typeof j.batch === "string" ? j.batch : null;
       if (!batch) { msg(G("am.imp.nobatch", "ไฟล์นี้ไม่มีรหัสชุด (batch) จึงไม่นำเข้า เพื่อกันการนำเข้าไฟล์เดียวกันซ้ำ ส่งไฟล์ให้ผู้ช่วยเพิ่มรหัสชุดก่อน"), true); return null; }
       amImp.items = items; amImp.batch = batch;
+      $("amImportOut").textContent = amImportWho(batch, items).join("\n");
       return call("/merit/import", { method: "POST", body: { batch: amImp.batch, items: items, dry_run: true } });
     }).then(function (/** @type {any} */ r) { if (!r) return; amImportReport(r); $("amImportGo").hidden = !r.ok_count; },
       function (/** @type {any} */ e) { msg(e && e.status ? amError(e) : G("am.imp.bad", "อ่านไฟล์ไม่ได้ ต้องเป็นไฟล์ JSON ที่มีรายการ (items)"), true); });
