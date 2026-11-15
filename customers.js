@@ -275,14 +275,14 @@ if (typeof document !== "undefined") (() => {
   // นับเฟรมติดกันต่อคน (Map<label,count>) — ต้องตรงกัน 2 เฟรมกันการจำผิด
   // สมาชิก 1 คน -> เลือกอัตโนมัติ · 2 คนขึ้นไป -> ชิปให้แคชเชียร์แตะเลือก · ผู้ที่ไม่ใช่สมาชิกไม่แย่งสมาชิก
   async function scanLoop() {
-    const streak = new Map(), sureN = new Map(); // sureN: เฟรมติดกันที่จับคู่ได้แบบมั่นใจ
+    const streak = new Map(), sureN = new Map(), guard = LQDetect.scanGuard(); // sureN: เฟรมติดกันที่จับคู่ได้แบบมั่นใจ
     clearChips();
     while (scanning) {
       const t0 = performance.now();
       try {
         if (video.readyState < 2) { await sleep(300); continue; } // กล้องถูกพักขณะสลับแอป/สลับกล้อง
         const res = await detectAll();
-        healthStep(res);
+        healthStep(res); guard.ok();
         if (!scanning) break;
         const seen = new Set(res.map(r => r.label));
         for (const k of [...streak.keys()]) if (!seen.has(k)) streak.delete(k);
@@ -301,7 +301,11 @@ if (typeof document !== "undefined") (() => {
           const n = Math.max(0, ...res.map(r => streak.get(r.label) || 0));
           setStatus(`กำลังยืนยันตัวตน... (${Math.min(2, n)}/2)${present.length > 1 ? ` · พบสมาชิก ${present.length} คน` : ""}`);
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        // the detector threw or hung (faceread-ios round 2): stop with a plain line, never a silent frozen scan
+        console.error(e); const k = guard.fail(e);
+        if (k && scanning) { stopScan(); setStatus(LQDetect.scanFailText(k) + " · ค้นหาด้วยชื่อหรือเบอร์แทนได้"); break; }
+      }
       await sleep(Math.max(0, 300 - (performance.now() - t0)));
     }
   }

@@ -55,3 +55,28 @@ test("tileRects covers the frame with the requested overlap; mergeTiles drops du
   assert.deepEqual(m.map(d => d.score), [0.9, 0.5]);
   assert.equal(D.mergeTiles([full, other], { max: 1 }).length, 1);
 });
+
+// faceread iOS fix 2026-11-15: live-failure helpers
+test("withTimeout passes a value through, rejects with the given name after ms, keeps the original rejection", async () => {
+  assert.equal(await D.withTimeout(Promise.resolve(7), 50, "X"), 7);
+  await assert.rejects(D.withTimeout(new Promise(() => {}), 20, "DetectTimeout"), e => e.name === "DetectTimeout");
+  await assert.rejects(D.withTimeout(Promise.reject(new RangeError("boom")), 50, "X"), e => e.name === "RangeError");
+});
+
+test("failKind: timeout / lost / oom / other", () => {
+  const n = (name, msg) => Object.assign(new Error(msg || name), { name });
+  assert.equal(D.failKind(n("ModelTimeout")), "timeout");
+  assert.equal(D.failKind(n("DetectTimeout")), "timeout");
+  assert.equal(D.failKind(n("ContextLost")), "lost");
+  assert.equal(D.failKind(new Error("WebGL context was lost.")), "lost");
+  assert.equal(D.failKind(new RangeError("Out of memory")), "oom");
+  assert.equal(D.failKind(new Error("Failed to allocate texture")), "oom");
+  assert.equal(D.failKind("Out of memory"), "oom");
+  assert.equal(D.failKind(new Error("simulated detector failure")), "other");
+  assert.equal(D.failKind(null), "other");
+});
+
+test("nextBackend without TF.js is null; watchContextLost without TF.js is false", () => {
+  assert.equal(D.nextBackend("webgl"), null);
+  assert.equal(D.watchContextLost(() => {}), false);
+});
