@@ -2012,6 +2012,9 @@
   let CREC = null; const crecU = (it, u) => { if (u) [u.text].concat(u.alt || []).forEach(t => crec(it, t)); return u; };
   const cautMeanings = (F, lang) => ((F && F.items) || []).filter(cautS).flatMap(it => { // + every meaning of such an item
     const x = (lang === "en" ? (enLoad(), enItem(F.domain, it)) : lang === "zh" ? (zhLoad(), zhItem(F.domain, it)) : it) || {}; return Object.values(x.meanings || {}).flat(); });
+  // data tags for entries that restrain or warn (fortune-restrain.js, tagged by reading); PROV keeps each reading's provenance
+  // (in a page fortune-read.js carries it, so it is looked up when composing, not at load)
+  const rsOf = () => (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-restrain.js") : root.LQFortuneRestrain) || null, PROV = new WeakMap();
   function markCaution(out, lang, rec) { const en = lang === "en", lc = t => (en ? t.toLowerCase() : t);
     const frags = [...new Set(rec.map(lc).flatMap(t => (lang === "zh" ? t.split(/[，。；！？]/) : en ? t.split(/[,.;:!?]\s+/) : t.split(" ")).concat([t]))
       .map(x => x.trim()).filter(x => x.length >= (lang === "zh" ? 6 : 12)))];
@@ -2401,7 +2404,11 @@
     STRAIGHT = straight; CALM = calm; CREC = [];
     try {
       const out = composeBase(calm && facts ? Object.assign({}, facts, { extras: {} }) : facts, opts);
-      if (out && out.source !== "support") { out.mode = straight ? "straight" : "gentle"; markCaution(out, out.lang || langOf(opts), CREC.concat(cautMeanings(facts, out.lang || langOf(opts)))); }
+      if (out && out.source !== "support") {
+        const L = out.lang || langOf(opts), RS = rsOf(), tr = (/** @type {any} */ it) => (L === "en" ? (enLoad(), enItem(facts.domain, it)) : L === "zh" ? (zhLoad(), zhItem(facts.domain, it)) : it);
+        const src = RS ? RS.sources(facts, tr) : [];
+        out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
+      }
       if (calm && out) delete out.plan;
       return out;
     } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; }
@@ -4423,7 +4430,8 @@
     en: { load: enLoad, item: (domain, it) => { enLoad(); return enItem(domain, it); }, data: () => enLoad(), TITLES: EN_TITLES, REMEDY: REMEDY_EN, REMINDER: REMINDER_EN, OPENERS: EN_OPENERS, sentences: enSentences, labelEcho: enLabelEcho, keyLines: enKeyLines },
     zh: { load: zhLoad, keys: zhKeys, item: (domain, it) => { zhLoad(); return zhItem(domain, it); }, data: () => zhLoad(), TITLES: ZH_TITLES }, MAIN_LENGTH: { min: MAIN_MIN, target: MAIN_TARGET, max: MAIN_MAX, full: FULL_MAX },
     safety: { isSafe, filterText, sentences, groundAI, groundUnit, groundCorpus, category: t => unsafeCategory(String(t || "").normalize("NFC")), BANNED: BANNED_TH.slice(), ALLOW: ALLOW_TH.slice(), segmenter: () => !!SEG, _useSegmenter: on => { SEG = on ? SEG0 : null; segCache.clear(); for (const k in ownCuts) delete ownCuts[k]; } },
-    _internal: { cautionLeads: lang => (lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH), factsForAI, normalizeAI,
+    _internal: { provenance: (/** @type {any} */ r) => PROV.get(r) || [],
+      cautionLeads: lang => (lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH), factsForAI, normalizeAI,
       normSentence, dice, bigrams, isImperative, offTopic, phrasesIn, splitMain, banks: { OPENERS, OPENERS_BY_DOMAIN, CONNECTORS, CLOSERS, ADVICE_FRAMES, ADVICE_STATEMENT_FRAMES, INTROS } },
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.FortuneAI = api;
