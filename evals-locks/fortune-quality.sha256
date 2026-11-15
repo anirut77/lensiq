@@ -1,0 +1,7 @@
+# evals-locks/fortune-quality.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-quality/ (owner rule 2026-11-13). Append-only.
+# fortune-quality (owner order 2026-11-16: reviewer findings R1-R5, group parity, main point, hard limits, weak lines; review in
+# ~/LENSIQ-field/review/fortune-quality-2026-11-16/REPORT.md) — locked BEFORE any product code on branch fortune-quality (base origin/fortune-live 542a9b7).
+# locked 2026-11-15T16:12:47Z (tools/eval-guard.mjs lock, 3 files)
+a79d8f6b59211db471c4be9f61fbe71c9193fc3480c3aa17bfe102c9f7514ee9  tools/fortune-quality-metrics.mjs
+4fc03180210d7d03dfbf9592acb70f53f0238f69db884e929ef32b37a52d2813  tests/unit/fortune-quality.test.js
+cf1f732197a86b918f1b7389107f2e17aafd3513cf1792b9625ec846cc30e295  tools/fortune-quality-measure.mjs
