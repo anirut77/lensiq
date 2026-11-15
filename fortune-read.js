@@ -13,14 +13,10 @@
  * Loaded on every fortune page before fortune-ai.js; Node: require("./fortune-read.js") for the pure parts. */
 (function (root) {
   "use strict";
-  const LINE = {
-    th: "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย",
-    en: "This content draws on traditional astrological knowledge and reflects personal belief. Please use your own judgement and read it mindfully. " +
-      "We cannot vouch for the accuracy of any prediction.",
-    zh: "本内容基于传统占星与命理知识，属于个人信仰。请自行判断，理性阅读。我们不保证预测的准确性。",
-  };
-  const MORE = { th: "อ่านเพิ่มเติม", en: "Read more", zh: "阅读更多" };
-  const LESS = { th: "ย่อลง", en: "Show less", zh: "收起" };
+  // the notice part (one-line notices, the read-more button, the help-line exception) lives in fortune-notice.js, which every
+  // fortune page loads (pages without a reading load only that file, to stay inside their speed budget)
+  const N = root.LQNotice || (typeof require === "function" ? require("./fortune-notice.js") : null);
+  const { LINE, MORE, LESS, SEP, NOTE_MAX, NEVER_COLLAPSE, langOf, cutsTh, cutsEn, noticeSplit, pageLang, never, moreButton, noticeify, notices } = N;
   const TOC = { th: "หัวข้อในคำทำนายนี้", en: "In this reading", zh: "本次解读目录" };
   const BELIEF = { th: "ตามความเชื่อ โปรดใช้วิจารณญาณ", en: "According to belief, please use your own judgement", zh: "依据传统说法，请自行判断" };
   const HEADINGS = {
@@ -30,26 +26,9 @@
       health: "Health", advice: "What to do", brief: "Other areas" },
     zh: { overview: "总览", personality: "性格", work: "事业", money: "财运", love: "感情", social: "人际", timing: "时机", health: "健康", advice: "建议", brief: "其他" },
   };
-  const SEP = { th: " ", en: " ", zh: "" };
   const MAXLEN = { th: 220, en: 320, zh: 110 };
-  const NOTE_MAX = { th: 140, en: 200, zh: 60 };
-  const NEVER_COLLAPSE = [".lq-helpline", ".lq-call", ".fa-support", ".lq-support", "[data-lq-crisis-card]"];
-  const langOf = l => (l === "en" || l === "zh" ? l : "th");
 
   /* ---------- A2: cut a paragraph into short parts (rejoined with SEP[lang] = the paragraph, word for word) ---------- */
-  // Thai has no sentence mark: cut only at a single space, never before a word that continues the clause, never after one
-  // that leads into the next word.
-  const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน|จาก|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|[\d(/–\-)])/;
-  const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|[(/–\-])$/;
-  function cutsTh(p) {
-    const out = [];
-    for (let i = p.indexOf(" "); i >= 0; i = p.indexOf(" ", i + 1)) {
-      if (p[i + 1] === " " || p[i - 1] === " ") continue;
-      out.push({ at: i, ok: !TH_CONT_NEXT.test(p.slice(i + 1)) && !TH_CONT_PREV.test(p.slice(0, i)) });
-    }
-    return out;
-  }
-  function cutsEn(p) { const out = []; const re = /[.!?]["”’)]? (?=["“(]?[A-Z0-9])/g; let m; while ((m = re.exec(p))) out.push({ at: m.index + m[0].length - 1, ok: true }); return out; }
   function split(p, lang, max) {
     lang = langOf(lang); max = max || MAXLEN[lang];
     p = String(p == null ? "" : p);
@@ -98,25 +77,6 @@
     const same = x => x && x.id === id && Array.isArray(x.paragraphs) && x.paragraphs.length === texts.length && x.paragraphs.every((p, i) => p === texts[i]);
     const s = ((res && res.sections) || []).find(same);
     return marksOf(s);
-  }
-
-  /* ---------- A5: one short line + the rest ---------- */
-  function noticeSplit(text, lang) {
-    lang = langOf(lang); text = String(text || "");
-    const max = NOTE_MAX[lang];
-    if (text.length <= max) return [text, ""];
-    let at = -1;
-    if (lang === "zh") {
-      const m = /[。！？]/g; let x; while ((x = m.exec(text)) && x.index < max) at = x.index + 1;
-      if (at < 0) { const c = text.lastIndexOf("，", max); at = c > 0 ? c + 1 : max; }
-      return [text.slice(0, at), text.slice(at)];
-    }
-    const cuts = lang === "en" ? cutsEn(text) : cutsTh(text);
-    const ok = cuts.filter(c => c.ok && c.at <= max);
-    const pick = ok.find(c => c.at >= 30) || ok[ok.length - 1];
-    at = pick ? pick.at : (cuts.filter(c => c.at <= max).pop() || { at: -1 }).at;
-    if (at <= 0) return [text, ""];
-    return [text.slice(0, at), text.slice(at + 1)];
   }
 
   /* ---------- A4: colours, advice kinds, icons ---------- */
@@ -230,10 +190,6 @@
   const CSS = ".fa-section{scroll-margin-top:96px}.fa-section>p,.fa-section .lq-more-body>p{margin:.55em 0;line-height:1.75}" +
     ".fa-section .lq-gist{font-weight:500}.fa-section .lq-caution{border-left:3px solid rgba(214,120,0,.55);padding-left:.7em}" +
     ".lq-more-body{display:none}.lq-more-body.lq-open{display:block}" +
-    "button.lq-more{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:.35em 1.1em;margin:.25em 0 .5em;" +
-    "border-radius:999px;border:1px solid rgba(103,79,242,.45);background:transparent;color:#4b36c9;font:inherit;font-size:.95em;font-weight:600;cursor:pointer;" +
-    "max-width:100%;white-space:normal;text-align:center;line-height:1.3}" +
-    "button.lq-more:hover{background:rgba(103,79,242,.08)}button.lq-more:focus-visible{outline:3px solid #674ff2;outline-offset:2px}" +
     ".lq-toc{margin:.4em 0 1em;padding:.6em .7em;border:1px solid rgba(103,79,242,.22);border-radius:14px;background:rgba(103,79,242,.04)}" +
     ".lq-toc p{margin:0 0 .4em;font-size:.88em;font-weight:600;opacity:.85}.lq-toc ul{display:flex;flex-wrap:wrap;gap:.4em;list-style:none;margin:0;padding:0}" +
     ".lq-toc a{display:inline-flex;align-items:center;min-height:44px;padding:0 .9em;border-radius:999px;border:1px solid rgba(103,79,242,.3);" +
@@ -243,33 +199,15 @@
     ".lq-sw{display:inline-flex;align-items:center;gap:.35em;padding:.15em .6em .15em .3em;border:1px solid rgba(0,0,0,.14);border-radius:999px;background:#fff;color:#222}" +
     ".lq-sw-chip{display:inline-block;width:1.15em;height:1.15em;border-radius:50%;border:1px solid rgba(0,0,0,.3);flex:none}" +
     ".lq-belief{flex-basis:100%;font-size:.84em;opacity:.78}" +
-    ".lq-notice .lq-notice-more{display:none}.lq-notice.lq-open .lq-notice-more{display:inline}" +
-    ".lq-notice button.lq-more{min-height:44px;padding:.2em .9em;margin:.2em 0 0 .4em;font-size:.88em;vertical-align:middle}" +
     "html[data-lq-crisis] [data-lq-remedy]{display:none!important}" +
-    "@media print{.lq-more-body,.lq-notice .lq-notice-more{display:block!important}button.lq-more{display:none!important}}" +
-    "@media (prefers-color-scheme:dark){button.lq-more{color:#c9bcff;border-color:rgba(201,188,255,.5)}.lq-toc a{background:transparent}.lq-icon{color:#b9abff}}";
+    "@media print{.lq-more-body{display:block!important}}" +
+    "@media (prefers-color-scheme:dark){.lq-toc a{background:transparent}.lq-icon{color:#b9abff}}";
   let uid = 0;
   function ensureStyle(doc) {
     try {
       if (!doc || !doc.head || doc.getElementById("lq-read-style")) return;
-      const s = doc.createElement("style"); s.id = "lq-read-style"; s.textContent = CSS; doc.head.appendChild(s);
+      N.ensureStyle(doc); const s = doc.createElement("style"); s.id = "lq-read-style"; s.textContent = CSS; doc.head.appendChild(s);
     } catch (e) { /* no DOM */ }
-  }
-  const pageLang = () => { try { return langOf(root.LQI18N && root.LQI18N.lang); } catch (e) { return "th"; } };
-  const never = el => !!(el && el.closest && el.closest(NEVER_COLLAPSE.join(",")));
-  function moreButton(doc, lang, ids, onToggle) {
-    const b = doc.createElement("button");
-    b.type = "button"; b.className = "chip lq-more"; b.textContent = MORE[lang]; // "chip" = the shared button class
-    b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-controls", ids.join(" ")); b.setAttribute("data-lq-lang", lang);
-    const toggle = () => {
-      const open = b.getAttribute("aria-expanded") !== "true", L = b.getAttribute("data-lq-lang") || lang;
-      b.setAttribute("aria-expanded", open ? "true" : "false"); b.textContent = open ? LESS[L] : MORE[L];
-      onToggle(open);
-    };
-    b.addEventListener("click", toggle);
-    // Enter toggles on key down (the native click is suppressed, so it never toggles twice); Space keeps the native click
-    b.addEventListener("keydown", e => { if (e.key === "Enter" && !e.repeat) { e.preventDefault(); toggle(); } });
-    return b;
   }
   const STD_TITLES = () => {
     const FA = root.FortuneAI, t = {};
@@ -355,46 +293,11 @@
     for (const r of container.querySelectorAll(".fa-reminder")) noticeify(r, lang);
     return container;
   }
-  /** turn a plain-text notice into one short line + the rest behind read more (the help line / crisis card never) */
-  function noticeify(el, lang) {
-    if (!el || never(el) || el.firstElementChild) return el;
-    lang = langOf(lang || (el.closest && el.closest("[lang]") && /^zh/.test(el.closest("[lang]").lang) ? "zh" : null) || pageLang());
-    const [line, rest] = noticeSplit(el.textContent.trim(), lang);
-    if (!rest) return el;
-    const doc = el.ownerDocument;
-    el.textContent = "";
-    el.classList.add("lq-notice");
-    const a = doc.createElement("span"); a.className = "lq-notice-line"; a.textContent = line; el.appendChild(a);
-    const more = doc.createElement("span"); more.className = "lq-notice-more"; more.id = "lq-nm-" + (++uid);
-    const inner = doc.createElement("span"); inner.textContent = SEP[lang] + rest; more.appendChild(inner);
-    el.appendChild(moreButton(doc, lang, [more.id], open => el.classList.toggle("lq-open", open)));
-    el.appendChild(more);
-    return el;
-  }
-  /** static notices in the page markup: <x class="lq-notice"> … <span class="lq-notice-more">…</span>: add the button */
-  function notices(scope) {
-    const doc = (scope && scope.ownerDocument) || (scope && scope.nodeType === 9 ? scope : root.document);
-    if (!doc || !doc.querySelectorAll) return;
-    ensureStyle(doc);
-    const lang = pageLang();
-    for (const n of (scope || doc).querySelectorAll(".lq-notice")) {
-      if (never(n)) continue;
-      const more = n.querySelector(".lq-notice-more"); if (!more) continue;
-      let b = [...n.querySelectorAll("button.lq-more")].find(x => x.closest(".lq-notice") === n);
-      if (!b) { if (!more.id) more.id = "lq-nm-" + (++uid); b = moreButton(doc, lang, [more.id], open => n.classList.toggle("lq-open", open)); more.parentNode.insertBefore(b, more); }
-      else { b.setAttribute("data-lq-lang", lang); b.textContent = b.getAttribute("aria-expanded") === "true" ? LESS[lang] : MORE[lang]; }
-    }
-  }
   // the reading layout runs through FortuneAI's documented extension point (decorate after every rendered reading; a support
   // card never reaches hooks). Queued here because this file loads before fortune-ai.js.
   const HOOK = { decorate(container, original, shown) { try { enhance(container, shown || original); } catch (e) { /* keep the plain reading */ } } };
   if (root.document) {
     try { if (root.FortuneAI && root.FortuneAI.registerHooks) root.FortuneAI.registerHooks(HOOK); else (root.LQFortuneHooks = root.LQFortuneHooks || []).push(HOOK); } catch (e) { /* none */ }
-  }
-  if (root.document && root.addEventListener) {
-    const doc = root.document, run = () => { try { notices(doc); } catch (e) { /* keep the page */ } };
-    if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", run); else run();
-    root.addEventListener("lq-lang", run);
   }
 
   const api = { FA_CSS, LINE, MORE, LESS, TOC, BELIEF, HEADINGS, SEP, MAXLEN, NOTE_MAX, NEVER_COLLAPSE, ICONS, COLOURS,
