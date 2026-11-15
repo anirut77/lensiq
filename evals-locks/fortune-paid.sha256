@@ -1,0 +1,3 @@
+# locked 2026-11-15T02:39:35Z (tools/eval-guard.mjs lock, 2 files)
+74d050c8691fee8c59e59f96f7735e7bb5c3dbe199633c4a6317f0e0d7eba7b0  tests/unit/fortune-paid.test.js
+01a48fc01bfbf1e293cec6b76313243302b8d4b347aeed217994629e23811120  tests/e2e/fortune-paid.e2e.mjs
