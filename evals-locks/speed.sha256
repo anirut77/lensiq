@@ -11,3 +11,5 @@ f56fd71620b75d6766b22cc806c610a1a4302fe3f9566b4661be9a47347a2071  tools/perf-mea
 # lock in measured gain 2026-11-14T18:08:58Z (reviewer L2, L4): speed-budget.e2e.mjs budgets LOWERED (stricter) for studio 52330->2550 KB / 42->32 req, booth 10260->2260 / 40->32, palm 8280->3390 / 47->41, faceread 4570->3650 / 47 (measured after-weights, CI run 43611756050, x1.10). tools/perf-measure.mjs: --only now refuses unknown pages (exit 2). No other budget, page, procedure or metric changed.
 eeab36fdfd2cc1d00b920fb0b0f5dc99aa71e75f40582036c41dda125ff1baa9  tests/e2e/speed-budget.e2e.mjs
 fb5b985051c1a02071803c1d97b7d4c226633d418f82f38e30ef994d21670f5d  tools/perf-measure.mjs
+# re-lock 2026-11-15T13:52:09Z (coordinator): disk-guard commit 480ea46 added an import of tools/disk-guard.mjs and one assertFreeSpace() call before the first browser launch; no assertion, threshold, input or measurement logic changed. Append-only.
+9966c505eaed875a271335ba570fd8ae2ffd711624b58e532e55cdf1c9a012dc  tools/perf-measure.mjs

@@ -20,3 +20,5 @@ f44646d3ddef95b329add2124eb2c48519329bb7a43d442e26b316b33541111a  tests/e2e/over
 513e32cf8f58bb8d8ad2d7f4c46e271fb42ad7a714c9fb206b21eb556b4df230  tests/e2e/overlap-14.e2e.mjs
 7581c34f27b352f467555e9251e0b2a3bfa2ef21e6d0e8ce2530f59ce72166e8  tests/e2e/overlap-15.e2e.mjs
 fe0cb9839f0d369954728cec1b2f2aa7eaa8750e424e496ea72e2583d51de5bf  tests/e2e/overlap-16.e2e.mjs
+# re-lock 2026-11-15T13:52:09Z (coordinator): disk-guard commit 480ea46 added an import of tools/disk-guard.mjs and one assertFreeSpace() call before the first browser launch; no assertion, threshold, input or measurement logic changed. Append-only.
+5dbe54232d4875117b5d68a1ef9fdbc7e1401d0139a6b80bcf80a824b60f6e12  tools/overlap-probe.mjs
