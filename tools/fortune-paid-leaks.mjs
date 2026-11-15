@@ -17,7 +17,7 @@ import { assertLocked, phaseDir } from "./eval-guard.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
-const phase = process.argv[2] || "fortune-paid-fresh-2026-11-16";
+const phase = process.argv[2] || "fortune-paid-fresh-2026-11-16b";
 const lock = assertLocked(phase, ["set.json", "detect.json", "README.md"]);
 const dir = phaseDir(phase);
 const SET = JSON.parse(readFileSync(join(dir, "set.json"), "utf8")), DET = JSON.parse(readFileSync(join(dir, "detect.json"), "utf8"));

@@ -27,3 +27,6 @@ c4762a5abcb5ad8e1d4379c860f98af3099ef076eafe1178a47368c1833e83b6  tests/e2e/fort
 444685c41fc0bc587405765878479d9337773eb5e2eb4144a7b3d31aab42c913  tests/unit/fortune-paid-negstate.test.js
 10b6138acbe7bc09beeb768bd89ec2ce05aad5293642c2cf0397a0fc9ce70b4a  tests/unit/fortune-paid-plan.test.js
 28124be07c78d91356cf3de7f05cf1fc1124f2b72fffefb6c2303506858ad60a  tests/e2e/fortune-paid-plan.e2e.mjs
+# RE-LOCK 2026-11-16 (8), new file only, BEFORE the build: owner night order 2026-11-15 item 3 (recommended sources: affiliate label, per-entry approval, no entries ship). Added tests/unit/fortune-paid-affiliate.test.js. Earlier files unchanged. Before the build: 1 pass / 1 fail (no affiliate label yet).
+# locked 2026-11-15T18:55:57Z (tools/eval-guard.mjs lock, 1 file)
+98def0a17dc478d4362ba77ed521c3ba074182c6424c306305d44c723aaaee9e  tests/unit/fortune-paid-affiliate.test.js
