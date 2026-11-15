@@ -180,6 +180,8 @@
   "ปิดกล้องแล้ว": "Camera stopped",
   "เพิ่ม": "Add",
   "กำลังโหลดโมเดลวิเคราะห์ใบหน้า": "Loading face analysis model",
+  "โมเดลจะโหลดเมื่อเปิดกล้อง": "the model loads when you open the camera",
+  "โมเดลจะโหลดเมื่อเปิดกล้องหรือเลือกรูป": "the model loads when you open the camera or choose a photo",
   "โหลดโมเดลไม่สำเร็จ": "Model failed to load",
   "หยุดแล้ว": "Stopped",
   "บันทึก": "Record",

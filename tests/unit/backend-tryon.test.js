@@ -79,7 +79,8 @@ function fakeR2() {
 async function setup(vars = {}, extra = {}) {
   const { handle } = await import(B + "index.js");
   const crypto = await import(B + "crypto.js");
-  const env = createEnv({ ADMIN_BOOTSTRAP_TOKEN: ADMIN_TOKEN, SECRETS_KEK: Buffer.alloc(32, 13).toString("base64"), ...vars });
+  // fixture amendment A-TO-1 (evals-locks/tryon-off.sha256): the Worker switch TRYON now ships off; these tests switch it on
+  const env = createEnv({ ADMIN_BOOTSTRAP_TOKEN: ADMIN_TOKEN, SECRETS_KEK: Buffer.alloc(32, 13).toString("base64"), TRYON: "on", ...vars });
   Object.assign(env, extra);
   const call = async (path, o = {}) => {
     const headers = { ...(o.headers || {}) };

@@ -1,0 +1,7 @@
+# locked 2026-11-14T19:17:07Z (tools/eval-guard.mjs lock, 3 files)
+ce1eae396047ba3f0134d293f5ef06466b45722d725361ec075cb829f225c7b6  tests/unit/tryon-off.test.js
+274fbb9f7aa0338385b989a9b796fd6e71fa9b74456066dd3b758b09e139cf1d  tests/unit/backend-tryon.test.js
+f7080559bc5003d667c43b60ea5472eed447e424798ee9e2572367d0a4fa4ec4  tests/unit/tryon-reauth.test.js
+# tryon-off (owner decision 2026-11-14: Try-On gets no R2 and no server deploy; coordinator: Try-On must be unreachable in the Worker deploy for Merit): fixed tests locked BEFORE the switch code. Branch tryon-off, base 24bb50a. Paths = repo paths; the copies in ~/LENSIQ-field/evals/tryon-off/ are byte-identical.
+# NEW: tests/unit/tryon-off.test.js (W1 wrangler.toml TRYON = "off" in [vars] + [env.test.vars]; W2 every Try-On route 404 tryon_off for anonymous / owner / tryon_admin / tryon_editor, any Origin, zero SQL, zero R2 calls, catalogue unchanged; W3 /v1/config + /admin/api/me tryon flag; W4 switch on = routes work as before; W5 admin Try-On tab hidden unless /me tryon === true, at.off text TH/EN/ZH).
+# Amendments to tests locked in tryon-mvp (fixture only, no case or assertion changed, nothing loosened): A-TO-1 backend-tryon.test.js setup() env gets TRYON: "on" (before ...vars); A-TO-2 tryon-reauth.test.js setup() env gets TRYON: "on". Reason: the Worker switch now ships off, so these suites must switch it on to keep testing the same behaviour (same approach as org-p1 A-P1-1..3).

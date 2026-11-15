@@ -131,7 +131,8 @@ async function init() {
     await camera.start();
   })();
   // เลือกตัวประมวลผล: WebGL -> WASM -> CPU (?cpu ข้าม WebGL) · โหมดทดสอบ (?fakedet) ไม่โหลดโมเดล
-  const models = TEST ? Promise.resolve() : LQDetect.tfBackend().then(() => Promise.all([
+  // speed pass 2026-11-14: the face models are fetched only once the camera is open (nothing if it is refused)
+  const models = TEST ? Promise.resolve() : cam.then(() => LQDetect.tfBackend()).then(() => Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
     faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
     faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)

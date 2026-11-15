@@ -180,9 +180,11 @@ export default async function ({ base, launch, check, fakeCams }) {
       const p = await browser.newPage(null, { initScripts: [fakeCams, GUM_SPY] });
       await p.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
       await p.goto(`${base}/booth.html?cpu`);
-      await p.waitFor(`/โมเดลพร้อม|ไม่พร้อม/.test(document.getElementById("engine").textContent)`, 30000);
+      // speed pass 2026-11-14: the real models load only once the camera is open (tests/e2e/speed-models.e2e.mjs), so
+      // the camera is opened first and the same "models ready" wait follows it (same 30 s, same checks below)
       await p.evaluate(() => document.getElementById("camStart").click());
       await p.waitFor(`(document.querySelector("#camGrid video") || {}).videoWidth > 0`, 5000);
+      await p.waitFor(`/โมเดลพร้อม|ไม่พร้อม/.test(document.getElementById("engine").textContent)`, 30000);
       await p.evaluate(() => document.getElementById("toggle").click()); // real face-api pipeline on the fake stream
       await sleep(2500);
       const fps = await p.evaluate(() => document.getElementById("fps").textContent);

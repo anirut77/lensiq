@@ -22,7 +22,8 @@ const PNG = (() => { const b = Buffer.alloc(8 + 25 + 64); Buffer.from([137, 80, 
 async function setup() {
   const { handle } = await import(B + "index.js");
   const crypto = await import(B + "crypto.js");
-  const env = createEnv({ ADMIN_BOOTSTRAP_TOKEN: ADMIN_TOKEN, SECRETS_KEK: Buffer.alloc(32, 17).toString("base64") });
+  // fixture amendment A-TO-2 (evals-locks/tryon-off.sha256): the Worker switch TRYON now ships off; this test switches it on
+  const env = createEnv({ ADMIN_BOOTSTRAP_TOKEN: ADMIN_TOKEN, SECRETS_KEK: Buffer.alloc(32, 17).toString("base64"), TRYON: "on" });
   const call = async (path, o = {}) => {
     const headers = { ...(o.headers || {}) };
     if (o.token) headers.Authorization = "Bearer " + o.token;
