@@ -18,14 +18,15 @@
  *     [role=tab|switch|checkbox|radio|menuitem*], aria-expanded / aria-pressed / aria-selected. Never guarded: tel: links
  *     and the help-line call buttons (.lq-call-btn), [data-lq-repeat] (steppers), form fields.
  *     Form submit buttons are left to the form (its code, or LQBusy.wrap on the submit listener), so a quick retry
- *     after an error message is not dropped. The gap is measured between the taps themselves (event.timeStamp).
+ *     after an error message is not dropped. The window runs from the moment the page handled the previous tap to
+ *     GUARD_MS later, and is compared with the moment the new tap was made (event.timeStamp).
  *   - camera starts: when getUserMedia is called within CAM_MS of a real tap on a button, that button is busy until the
  *     browser answers (permission prompt, camera warm-up), so a second tap cannot open a second camera.
  *   - iOS Safari only shows :active when a touchstart listener exists: one passive no-op listener is added.
  * Nothing here stores or sends anything. */
 (function (root) {
   "use strict";
-  var GUARD_MS = 400, CAM_MS = 3000;
+  var GUARD_MS = 400, HOLD_MS = 1500, CAM_MS = 3000;
   var BTN = "button, [role=button], .btn, input[type=button], input[type=submit], input[type=reset]";
   var TOGGLE = ".tab, .chip, [role=tab], [role=switch], [role=checkbox], [role=radio], " +
     "[role=menuitem], [role=menuitemcheckbox], [role=menuitemradio], [aria-expanded], [aria-pressed], [aria-selected]";
@@ -78,6 +79,8 @@
 
   if (typeof document !== "undefined" && document.addEventListener) {
     var last = typeof WeakMap === "function" ? new WeakMap() : null;
+    var HR = typeof performance !== "undefined" && typeof performance.now === "function";
+    var clock = function () { return HR ? performance.now() : Date.now(); };
     /** the element a click landed on (a text node gives its parent) @param {any} x @returns {any} */
     var elOf = function (x) { return x && x.nodeType === 1 ? x : x && x.parentElement; };
     var closest = function (t, sel) { return t && t.closest ? t.closest(sel) : null; };
@@ -92,11 +95,25 @@
       var b = closest(t, BTN);
       if (!b || closest(t, NEVER) || b.matches(TOGGLE)) return;
       if (b.matches(NO_TIME_GUARD) && b.form) return;
-      // the time of the tap itself (input timestamp), not of handling: a busy main thread must not stretch the gap
-      var now = typeof ev.timeStamp === "number" && ev.timeStamp > 0 ? ev.timeStamp : Date.now(), prev = last.get(b);
-      last.set(b, now);
-      if (prev && now - prev < GUARD_MS) { ev.preventDefault(); ev.stopImmediatePropagation(); }
+      // window: from the moment the result of the previous tap could be SEEN (handled, then painted) until GUARD_MS
+      // later, compared with the moment the new tap was MADE (event.timeStamp). A tap made while the page was still busy
+      // with the previous one (frozen main thread, nothing changed on screen yet) is a repeat, however late it is
+      // handled; a page that paints nothing still frees the button HOLD_MS after the previous tap was handled.
+      var now = clock(), made = typeof ev.timeStamp === "number" && ev.timeStamp > 0 && HR ? ev.timeStamp : now;
+      var rec = last.get(b);
+      if (rec && ((!rec.shown && now - rec.t < HOLD_MS) || made - rec.t < GUARD_MS)) { ev.preventDefault(); ev.stopImmediatePropagation(); return; }
+      last.set(b, { t: now, shown: false, tap: ev });
     }, true);
+    // end of the tap's handling: after every page listener of this click has run (window, bubble phase; a listener that
+    // stops propagation leaves the capture-phase time), then once more after the next paint
+    root.addEventListener("click", function (ev) {
+      if (!ev.isTrusted || !last) return;
+      var b = closest(elOf(ev.target), BTN), rec = b && last.get(b);
+      if (!rec || rec.tap !== ev) return;
+      rec.tap = null; rec.t = clock();
+      var shown = function () { rec.t = clock(); rec.shown = true; };
+      if (typeof requestAnimationFrame === "function") requestAnimationFrame(function () { setTimeout(shown, 0); }); else shown();
+    });
     // iOS Safari applies :active only when the page listens for touchstart
     document.addEventListener("touchstart", function () {}, { passive: true });
     // camera starts: a camera request that follows a real tap on a button (within CAM_MS) marks that button busy until
