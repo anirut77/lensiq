@@ -294,6 +294,9 @@ Each new request then sends one LINE message "LENSIQ: คำขอใบเส�
 or message, at most `LEAD_NOTIFY_LINE_DAY` (50) a day. A LINE failure never loses the request (it is in the admin
 inbox either way).
 
+**Deploy order for this change:** apply migration `0020_lead_notify.sql` FIRST (`npm run backend:migrate`), then deploy the Worker.
+Without 0020 the new Worker code answers 500 on the admin inbox and cannot store new quote requests.
+
 **Never silent (owner order 2026-11-15).** Both values are checked when you type them: `npm run secrets:setup -- --only
 LEAD_NOTIFY_LINE_TO` (and `-- --only LINE_CHANNEL_ACCESS_TOKEN`) trims spaces and line breaks and refuses a wrong value
 with the reason (empty, a space inside, starts with "@" = the OA ID instead of your user ID, not 33 characters, not U +

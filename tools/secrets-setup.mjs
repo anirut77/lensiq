@@ -36,7 +36,7 @@ import { pathToFileURL } from "node:url";
 // the ONE definition of a usable tester code: the Worker refuses a weak configured code too (backend/src/tester.js)
 import { weakCode } from "../backend/src/tester.js";
 // the ONE format check of the two LINE notification secrets (the Worker uses the same one; owner order 2026-11-15)
-import { LINE_REASON_TEXT, LINE_SECRETS, lineSecretProblem } from "../backend/src/line-config.js";
+import { LINE_REASON_TEXT, LINE_SECRETS, LINE_TOKEN_ENTRY_TEXT, lineSecretProblem } from "../backend/src/line-config.js";
 import {
   BACKEND, ENV, GuardError, accountEnvRefusal, assertEffective, assertOffline, assertSafeEnv, assertTarget, assertWranglerBundle, childEnv, deployedArgs, jsonArray, readTargets, wranglerBin
 } from "./lib/cf-guard.mjs";
@@ -73,21 +73,65 @@ const CTRL_C = 3, BACKSPACE = [8, 127];
  * The terminal for the whole session: raw mode (no echo) from open() to close(). Input that arrives while no prompt is
  * waiting (for example while wrangler runs) is DISCARDED, never shown and never part of a later value; Ctrl-C at such a
  * moment is remembered (interrupted()). close() restores the terminal; it is also called from the signal handlers.
+ *
+ * Line breaks inside a pasted value (incident 2026-11-15: a LINE token copied with a line break was cut at the first
+ * break, the first part was sent and reported "set"). Two independent guards, each marks the line `lineBreak: true` and
+ * the session refuses it:
+ *   - bracketed paste is switched on (ESC[?2004h, off again on close): between ESC[200~ and ESC[201~ a CR / LF is part of
+ *     the value, never the end of the line;
+ *   - a terminal without bracketed paste: after Enter the line is held for ENTER_WINDOW_MS; any further byte in that
+ *     window (other than the LF of a CR LF Enter) means the Enter was a line break inside a paste.
  */
-export function openTerminal(stdin, proc = process) {
+export const ENTER_WINDOW_MS = 120;
+export const LINE_BREAK_TEXT = "the value contained a line break (it was copied over two lines). Copy it again with the console's copy button so it is one line";
+/** A pasted value that held a line break: marked by the terminal, or a CR / LF left inside after trimming.
+ *  @param {Buffer & {lineBreak?: boolean}} a @param {string} typed */
+const lineBroken = (a, typed) => !!a.lineBreak || /[\r\n]/.test(typed);
+export function openTerminal(stdin, proc = process, out = null) {
   const raw = typeof stdin.setRawMode === "function";
   /** @type {null | ((v: Buffer|null) => void)} */ let waiting = null;
   /** @type {number[]} */ let bytes = [];
-  let esc = 0, stopped = false, closed = false;
-  const settle = v => { const w = waiting; waiting = null; bytes.fill(0); bytes = []; esc = 0; if (w) w(v); };
+  let esc = 0, seq = "", paste = false, stopped = false, closed = false;
+  /** @type {null | {bytes: number[], afterCR: boolean, extra: boolean, timer: any}} */ let held = null;
+  const settle = v => {
+    const w = waiting; waiting = null; bytes.fill(0); bytes = []; esc = 0; seq = ""; paste = false;
+    if (held) { clearTimeout(held.timer); held.bytes.fill(0); held = null; }
+    if (w) w(v);
+  };
+  const release = () => {
+    if (!held) return;
+    const v = /** @type {Buffer & {lineBreak?: boolean}} */ (Buffer.from(held.bytes));
+    if (held.extra) v.lineBreak = true;
+    settle(v);
+  };
+  const hold = (/** @type {number} */ b) => {
+    held = { bytes: bytes.slice(), afterCR: b === 13, extra: false, timer: setTimeout(release, ENTER_WINDOW_MS) };
+    bytes.fill(0); bytes = [];
+  };
   const onData = chunk => {
     for (const b of Buffer.from(chunk)) {
+      if (held) { // Enter was pressed: anything more in the window means a line break inside a paste
+        if (b === CTRL_C || b === 4) { stopped = true; settle(null); continue; }
+        if (b === 10 && held.afterCR) { held.afterCR = false; continue; }
+        held.afterCR = false; held.extra = true;
+        clearTimeout(held.timer); held.timer = setTimeout(release, ENTER_WINDOW_MS);
+        continue;
+      }
       if (!waiting) { if (b === CTRL_C || b === 4) stopped = true; continue; } // stray input between prompts: dropped
-      if (esc === 1) { esc = b === 91 || b === 79 ? 2 : 0; continue; }          // ESC [ … / ESC O … (arrow keys, paste marks)
-      if (esc === 2) { if (b >= 64 && b <= 126) esc = 0; continue; }
+      if (esc === 1) { esc = b === 91 || b === 79 ? 2 : 0; seq = ""; continue; } // ESC [ … / ESC O … (arrow keys, paste marks)
+      if (esc === 2) {
+        seq += String.fromCharCode(b);
+        if (b >= 64 && b <= 126) { if (seq === "200~") paste = true; else if (seq === "201~") paste = false; esc = 0; seq = ""; }
+        else if (seq.length > 8) { esc = 0; seq = ""; }
+        continue;
+      }
       if (b === 27) { esc = 1; continue; }
       if (b === CTRL_C || b === 4) { stopped = true; settle(null); continue; }
-      if (b === 13 || b === 10) { settle(Buffer.from(bytes)); continue; }
+      if (b === 13 || b === 10 || b === 9) {
+        if (paste) { bytes.push(b); continue; } // part of the pasted value: the checks refuse an inner line break
+        if (b !== 9) hold(b);
+        continue;
+      }
       if (BACKSPACE.includes(b)) { bytes.pop(); continue; }
       if (b >= 32) bytes.push(b);
     }
@@ -98,6 +142,7 @@ export function openTerminal(stdin, proc = process) {
     closed = true;
     stdin.removeListener("data", onData); stdin.removeListener("end", onEnd);
     for (const [sig, fn] of handlers) proc.removeListener(sig, fn);
+    if (out) { try { out.write("\x1b[?2004l"); } catch { /* terminal already gone */ } }
     if (raw) { try { stdin.setRawMode(false); } catch { /* terminal already gone */ } }
     stdin.pause();
     settle(null);
@@ -105,6 +150,7 @@ export function openTerminal(stdin, proc = process) {
   /** @type {[string, () => void][]} */
   const handlers = [["SIGINT", 130], ["SIGTERM", 143], ["SIGHUP", 129]].map(([sig, code]) => [String(sig), () => { close(); proc.exit(Number(code)); }]);
   if (raw) stdin.setRawMode(true);
+  if (out) out.write("\x1b[?2004h"); // bracketed paste on: a pasted line break stays inside the value
   stdin.on("data", onData); stdin.once("end", onEnd);
   for (const [sig, fn] of handlers) proc.on(sig, fn);
   stdin.resume();
@@ -156,7 +202,7 @@ export async function main(argv, io = {}) {
   const only = argv.includes("--only") ? argv[argv.indexOf("--only") + 1] : null;
   if (only && !SECRETS.some(s => s.name === only)) { say(`unknown secret "${String(only).slice(0, 40)}". Names: ${SECRETS.map(s => s.name).join(", ")}`); return 2; }
   // raw mode (no echo) from here to the end of the session, whatever happens
-  const term = openTerminal(stdin, io.proc || process);
+  const term = openTerminal(stdin, io.proc || process, stdout);
   try { return await session(argv, { ...io, stdin, stdout, env, say, term, only }); }
   catch (e) { if (e instanceof GuardError) { say(e.message); return 3; } throw e; }
   finally { term.close(); }
@@ -221,7 +267,9 @@ async function session(argv, { stdout, env, say, term, only, spawn: spawnImpl, r
       stdout.write("\n");
       if (a === null) return stop();
       const typed = a.toString("utf8").trim();
+      const broken = lineBroken(a, typed);
       a.fill(0);
+      if (broken) { say(`  ${s.name}: skipped (${LINE_BREAK_TEXT}; run --only ${s.name} again)`); continue; }
       if (/^s$/i.test(typed)) { say(`  ${s.name}: skipped`); continue; }
       if (typed && s.typed !== false) {
         if (typed.length < (s.min || 1)) { say(`  ${s.name}: skipped (too short: at least ${s.min} characters are needed)`); continue; }
@@ -234,12 +282,15 @@ async function session(argv, { stdout, env, say, term, only, spawn: spawnImpl, r
         stdout.write("\n");
         if (a === null) return stop();
         const typed = a.toString("utf8").trim();
+        const broken = lineBroken(a, typed);
         a.fill(0);
+        if (broken) { say(`  ${s.name}: not accepted: ${LINE_BREAK_TEXT}. Nothing was sent. Try again, or Enter to skip.`); continue; }
         if (!typed) break;
         if (LINE_SECRETS.includes(s.name)) {
-          // the SAME check as the Worker (backend/src/line-config.js): a wrong LINE value is refused, never "sent anyway"
-          const why = lineSecretProblem(s.name, typed);
-          if (why) { say(`  ${s.name}: not accepted: ${LINE_REASON_TEXT[why]}. Nothing was sent. Try again, or Enter to skip.`); continue; }
+          // the SAME check as the Worker (backend/src/line-config.js), stricter token length at entry: a wrong LINE value
+          // is refused, never "sent anyway"
+          const why = lineSecretProblem(s.name, typed, { entry: true });
+          if (why) { say(`  ${s.name}: not accepted: ${why === "too_short" ? LINE_TOKEN_ENTRY_TEXT : LINE_REASON_TEXT[why]}. Nothing was sent. Try again, or Enter to skip.`); continue; }
           value = Buffer.from(typed, "utf8");
           continue;
         }

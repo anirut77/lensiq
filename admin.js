@@ -1035,7 +1035,7 @@
       renderLeads();
     }, fail);
     call("/leads/notify").then(function (/** @type {any} */ r) { lq.notify = r; renderNotify(); },
-      function () { lq.notify = { state: "unknown" }; renderNotify(); });
+      function () { lq.notify = { state: "unavailable" }; renderNotify(); });
   };
   /* LINE notification status line under the inbox (owner order 2026-11-15, "never silent"): working or not, the last
    * success time and the reason, from GET /admin/api/leads/notify (secret NAMES + reason codes only, never a value). */
@@ -1059,18 +1059,22 @@
     if (n === 401) return G("adl.nf.http401", "LINE ตอบรหัส 401: token ไม่ถูกต้องหรือหมดอายุ ให้ออก token ใหม่แล้วตั้งค่าอีกครั้ง");
     if (n === 400) return G("adl.nf.http400", "LINE ตอบรหัส 400: ตรวจ LEAD_NOTIFY_LINE_TO และเพิ่ม @632yliiw เป็นเพื่อนในโทรศัพท์ของคุณ");
     if (n === 429) return G("adl.nf.http429", "LINE ตอบรหัส 429: ใช้โควตาข้อความของ LINE OA เดือนนี้หมดแล้ว");
+    if (detail === "unrecorded") return G("adl.nf.unrecorded", "บันทึกผลการแจ้ง LINE ของคำขอล่าสุดไม่ได้ (ดูบันทึก alert.lead_line_unrecorded ของ Worker)");
+    if (detail === "error") return G("adl.nf.error", "เกิดข้อผิดพลาดในระบบก่อนส่ง LINE (ดูบันทึก alert.lead_line_unrecorded ของ Worker)");
     return G("adl.nf.http", "LINE ตอบรหัส {n}", { n: n < 0 ? "?" : n });
   };
+  /** Inbox rows that get a badge: the owner was not (or maybe not) told on LINE. */
+  var NF_MISS = ["skipped", "failed", "capped", "unknown"];
   function renderNotify() {
     var el = $("adlNotify"), r = lq.notify;
     if (!el || !r) return;
-    var st = String(r.state || "unknown");
+    var st = String(r.state || "unavailable");
     el.setAttribute("data-state", st);
     el.className = "adl-notify" + (st === "ok" ? " adl-nf-ok" : st === "unconfirmed" ? "" : " adl-nf-bad");
     el.hidden = false;
-    if (st === "unknown") { el.textContent = G("adl.nf.unknown", "ตรวจสถานะการแจ้งเตือนทาง LINE ไม่ได้ ลองกดโหลดใหม่"); return; }
+    if (st === "unavailable") { el.textContent = G("adl.nf.unknown", "ตรวจสถานะการแจ้งเตือนทาง LINE ไม่ได้ ลองกดโหลดใหม่"); return; }
     var parts = [];
-    parts.push(G("adl.nf.label", "การแจ้งเตือนทาง LINE") + ": " + (st === "ok" ? G("adl.nf.ok", "ทำงาน")
+    parts.push(G("adl.nf.label", "การแจ้งเตือนทาง LINE") + G("adl.nf.sep", ": ") + (st === "ok" ? G("adl.nf.ok", "ทำงาน")
       : st === "capped" ? G("adl.nf.capped", "หยุดชั่วคราว ครบจำนวนต่อวันแล้ว (คำขอยังเข้ากล่องนี้ตามปกติ)")
       : st === "unconfirmed" ? G("adl.nf.unconfirmed", "ตั้งค่าถูกต้องแล้ว รอคำขอถัดไปเพื่อยืนยันว่าส่งได้") : G("adl.nf.off", "ไม่ทำงาน")));
     if (st === "off") {
@@ -1107,9 +1111,12 @@
           h("div", { class: "ad-muted adl-meta" },
             h("span", { class: "adl-chip adl-" + l.status, text: stText(l.status) }), " ",
             // never silent (2026-11-15): this request's LINE alert was skipped or failed, so the owner was not told
-            l.notify === "skipped" || l.notify === "failed" ? h("span", { class: "adl-chip adl-nf-miss", "data-notify-miss": l.notify,
-              title: G("adl.nf.badgeTip", "ไม่มีข้อความ LINE แจ้งคำขอนี้ โปรดตรวจเอง"), text: G("adl.nf.badge", "ยังไม่ได้แจ้งทาง LINE") }) : null,
-            l.notify === "skipped" || l.notify === "failed" ? " " : null,
+            // skipped / failed / capped: no LINE message went out; unknown: the result was never recorded (review D2, D3)
+            NF_MISS.indexOf(l.notify) >= 0 ? h("span", { class: "adl-chip adl-nf-miss", "data-notify-miss": l.notify,
+              title: l.notify === "unknown" ? G("adl.nf.unknownTip", "ไม่รู้ว่ามีข้อความ LINE แจ้งคำขอนี้หรือไม่ โปรดตรวจเอง")
+                : G("adl.nf.badgeTip", "ไม่มีข้อความ LINE แจ้งคำขอนี้ โปรดตรวจเอง"),
+              text: l.notify === "unknown" ? G("adl.nf.badgeUnknown", "ไม่ทราบผลแจ้ง LINE") : G("adl.nf.badge", "ยังไม่ได้แจ้งทาง LINE") }) : null,
+            NF_MISS.indexOf(l.notify) >= 0 ? " " : null,
             G("adl.interest", "สนใจ") + ": ", h("span", { translate: "no", text: l.interest || "—" }), " · " + dt(l.created_at))),
         view));
     });
@@ -1152,9 +1159,10 @@
     row("adl.f.message", "ข้อความ", l.message);
     row("adl.f.consent", "เวอร์ชันข้อความยินยอม", l.consent_version);
     var nf = l.notify === "sent" ? G("adl.nf.sent", "ส่งแล้ว {t}", { t: dt(l.notify_at) })
-      : l.notify === "failed" ? G("adl.nf.badge", "ยังไม่ได้แจ้งทาง LINE") + ": " + nfFailText(l.notify_detail)
+      : l.notify === "failed" ? G("adl.nf.badge", "ยังไม่ได้แจ้งทาง LINE") + G("adl.nf.sep", ": ") + nfFailText(l.notify_detail)
+      : l.notify === "unknown" ? G("adl.nf.badgeUnknown", "ไม่ทราบผลแจ้ง LINE") + G("adl.nf.sep", ": ") + nfFailText("unrecorded")
       : l.notify === "capped" ? G("adl.nf.capped", "หยุดชั่วคราว ครบจำนวนต่อวันแล้ว (คำขอยังเข้ากล่องนี้ตามปกติ)")
-      : l.notify === "skipped" ? G("adl.nf.badge", "ยังไม่ได้แจ้งทาง LINE") + ": " + String(l.notify_detail || "").split(",").map(function (x) {
+      : l.notify === "skipped" ? G("adl.nf.badge", "ยังไม่ได้แจ้งทาง LINE") + G("adl.nf.sep", ": ") + String(l.notify_detail || "").split(",").map(function (x) {
         var i = x.indexOf(":"); return i > 0 ? x.slice(0, i) + " " + nfReason(x.slice(i + 1)) : x;
       }).join("; ") : null;
     row("adl.nf.label", "การแจ้งเตือนทาง LINE", nf);

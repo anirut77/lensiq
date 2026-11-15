@@ -96,12 +96,15 @@ export async function submitLead(env, request, body, deps = {}) {
   const g = await hit(env.DB, "lead:global", intVar(env.LEADS_GLOBAL_DAY, 200, 1, 100000), 86400, now(), BKK_OFFSET);
   if (!g.ok) throw new HttpError(429, "the request inbox is full for today — please try again tomorrow", { retryAfter: g.retryAfter });
   const id = randomId(12), t = now();
-  await env.DB.prepare("INSERT INTO leads (id, created_at, product, plan, source, name, company, email, phone, message, lang, consent_version, status) " +
-    "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, 'new')")
+  await env.DB.prepare("INSERT INTO leads (id, created_at, product, plan, source, name, company, email, phone, message, lang, consent_version, status, notify_state) " +
+    "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, 'new', 'pending')") // 'pending' until its LINE result is written
     .bind(id, t, lead.interest, null, lead.source, lead.name, lead.org, lead.email, lead.phone, lead.message, lead.lang, LEAD_CONSENT_VERSION).run();
   log("alert.lead_new", { interest: lead.interest });
   try { await pushAlert(env, "lead_new", id, null, deps.fetch); } catch { /* push is best effort */ }
-  try { await notifyLine(env, id, t, deps.fetch); } catch { /* push is best effort */ }
+  try { await notifyLine(env, id, t, deps.fetch); } catch { // push is best effort, but never silent (review D3)
+    log("alert.lead_line_unrecorded", { where: "notify" });
+    await recordNotify(env.DB, id, "failed", "error");
+  }
   return { ok: true, id };
 }
 
@@ -150,23 +153,33 @@ export async function notifyLine(env, id, t, fetchImpl) {
  *  never a secret value. @param {any} db @param {string} id @param {string} state @param {string} detail */
 async function recordNotify(db, id, state, detail) {
   try {
-    await db.prepare("UPDATE leads SET notify_state = ?1, notify_detail = ?2, notify_at = ?3 WHERE id = ?4 AND notify_state IS NULL")
+    await db.prepare("UPDATE leads SET notify_state = ?1, notify_detail = ?2, notify_at = ?3 WHERE id = ?4 AND notify_state = 'pending'")
       .bind(state, detail.slice(0, 120), now(), id).run();
-  } catch { /* the request itself is already stored */ }
+  } catch { // the request itself is stored; it stays 'pending' and shows as "unknown" after NOTIFY_STUCK_S (review D3)
+    log("alert.lead_line_unrecorded", { where: "record" });
+  }
 }
+
+/** A request whose result is still 'pending' this many seconds after it arrived was never recorded: shown "unknown". */
+export const NOTIFY_STUCK_S = 60;
+/** Inbox value of a row's notify state: null for rows from before 0020 / this code (no badge). @param {any} r @param {number} t */
+const notifyOf = (r, t) => r.notify_state === "pending" ? (r.created_at < t - NOTIFY_STUCK_S ? "unknown" : "pending") : (r.notify_state || null);
 
 /** GET /admin/api/leads/notify: is the LINE notification working? Live config check (secret names + reason codes only),
  *  the latest request's result and the last success time. state: ok | off (a secret is missing or malformed now) |
  *  failing (LINE refused the latest push) | capped (daily cap hit on the latest request) | unconfirmed (config fine, no
- *  push confirmed since). Never returns a secret value. @param {any} env */
+ *  push confirmed since). A request whose result was never written (still 'pending' after NOTIFY_STUCK_S) counts as
+ *  last = {state: "unknown", detail: "unrecorded"} and state "failing". Never returns a secret value. @param {any} env */
 export async function lineNotifyStatus(env) {
   const problems = lineConfigProblems(env);
-  const r = await env.DB.prepare("SELECT notify_state, notify_detail, notify_at FROM leads WHERE notify_state IS NOT NULL " +
-    "ORDER BY notify_at DESC, created_at DESC, rowid DESC LIMIT 1").first();
-  const last = r ? { state: String(r.notify_state), detail: String(r.notify_detail || ""), at: Number(r.notify_at) || null } : null;
+  const r = await env.DB.prepare("SELECT notify_state, notify_detail, notify_at, created_at FROM leads WHERE notify_state IS NOT NULL " +
+    "AND (notify_state <> 'pending' OR created_at < ?1) ORDER BY COALESCE(notify_at, created_at) DESC, created_at DESC, rowid DESC LIMIT 1")
+    .bind(now() - NOTIFY_STUCK_S).first();
+  const last = !r ? null : r.notify_state === "pending" ? { state: "unknown", detail: "unrecorded", at: Number(r.created_at) || null }
+    : { state: String(r.notify_state), detail: String(r.notify_detail || ""), at: Number(r.notify_at) || null };
   const s = await env.DB.prepare("SELECT MAX(notify_at) AS t FROM leads WHERE notify_state = 'sent'").first();
   const lastSent = s && s.t != null ? Number(s.t) : null;
-  const state = problems.length ? "off" : !last ? "unconfirmed" : last.state === "sent" ? "ok" : last.state === "failed" ? "failing"
+  const state = problems.length ? "off" : !last ? "unconfirmed" : last.state === "sent" ? "ok" : last.state === "failed" || last.state === "unknown" ? "failing"
     : last.state === "capped" ? "capped" : "unconfirmed";
   return { state, problems, last, last_sent_at: lastSent };
 }
@@ -196,7 +209,7 @@ export async function adminLeads(db, q = {}) {
   const rows = (await db.prepare(`SELECT ${SUMMARY} FROM leads WHERE (?1 IS NULL OR ${STATUS_SQL} = ?1) ORDER BY created_at DESC, id DESC LIMIT ?2`)
     .bind(want, limit).all()).results || [];
   const counts = { new: 0, contacted: 0, closed: 0 };
-  const unread = await unreadLeads(db);
+  const unread = await unreadLeads(db), t = now();
   for (const c of (await db.prepare("SELECT status, COUNT(*) AS n FROM leads GROUP BY status").all()).results || []) {
     const k = statusOf(c.status);
     if (k === "new" || k === "contacted" || k === "closed") counts[k] += Number(c.n);
@@ -204,7 +217,7 @@ export async function adminLeads(db, q = {}) {
   return {
     leads: rows.map(/** @param {any} r */ r => ({ id: r.id, created_at: r.created_at, interest: r.product, plan: r.plan, source: r.source, lang: r.lang,
       name: r.name, company: r.company, status: statusOf(r.status), status_at: r.acked_at || null,
-      unread: r.status === "new" && r.viewed_at == null, notify: r.notify_state || null })),
+      unread: r.status === "new" && r.viewed_at == null, notify: notifyOf(r, t) })),
     open: counts.new, counts, unread, status: want || "all"
   };
 }
@@ -225,7 +238,7 @@ export async function getLead(env, id) {
   return {
     lead: { id: r.id, created_at: r.created_at, interest: r.product, plan: r.plan, source: r.source, lang: r.lang, name: r.name, company: r.company,
       email: r.email, phone: r.phone, message: r.message, consent_version: r.consent_version, status: statusOf(r.status), status_at: r.acked_at || null,
-      delete_after: r.created_at + days * 86400, notify: r.notify_state || null, notify_detail: r.notify_detail || null, notify_at: r.notify_at || null },
+      delete_after: r.created_at + days * 86400, notify: notifyOf(r, now()), notify_detail: r.notify_detail || null, notify_at: r.notify_at || null },
     retention_days: days
   };
 }

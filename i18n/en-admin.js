@@ -244,6 +244,11 @@
   "adl.nf.http400": "LINE answered 400: check LEAD_NOTIFY_LINE_TO and add @632yliiw as a friend on your phone",
   "adl.nf.http429": "LINE answered 429: this month's message quota of the LINE Official Account is used up",
   "adl.nf.http": "LINE answered {n}",
+  "adl.nf.sep": ": ",
+  "adl.nf.unrecorded": "the LINE result of the latest request could not be recorded (see the Worker log alert.lead_line_unrecorded)",
+  "adl.nf.error": "a system error happened before the LINE message was sent (see the Worker log alert.lead_line_unrecorded)",
+  "adl.nf.badgeUnknown": "LINE result unknown",
+  "adl.nf.unknownTip": "It is not known whether a LINE message went out for this request. Please check it yourself.",
   // Merit MVP: belief-guidance editor (admin.js "merit" tab, am.*)
   "am.tab": "Belief guidance",
   "am.h": "Belief guidance (shown free under readings)",

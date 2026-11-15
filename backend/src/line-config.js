@@ -11,18 +11,25 @@
 export const LINE_SECRETS = Object.freeze(["LINE_CHANNEL_ACCESS_TOKEN", "LEAD_NOTIFY_LINE_TO"]);
 export const LINE_TO_RE = /^U[0-9a-f]{32}$/; // the owner's LINE user ID (LINE Developers console: Basic settings)
 export const LINE_TOKEN_MIN = 20;
+/** Shortest token `secrets:setup` accepts at entry (review D1, 2026-11-15). LINE does not publish a fixed length; the
+ *  long-lived channel access tokens issued in the console are about 170 characters, and the JWT-issued v2.1 tokens are
+ *  longer still. 100 refuses a copy cut off around its middle (the incident: 90 of 154 characters were sent) while
+ *  leaving room for any real format. The Worker keeps LINE_TOKEN_MIN: a value that slips through is reported by LINE
+ *  as 401 and recorded on the lead, and a stricter Worker check could silence a working token of a format we have not seen. */
+export const LINE_TOKEN_ENTRY_MIN = 100;
 
 /** Trimmed text of a secret value (spaces, tabs and line breaks around it removed). @param {unknown} v */
 export const trimSecret = v => String(v == null ? "" : v).trim();
 
 /** Reason code for a LINE secret value, "" when it is usable (or the name is not a LINE secret).
- *  @param {string} name @param {unknown} raw @returns {string} */
-export function lineSecretProblem(name, raw) {
+ *  `entry`: the stricter token length of `secrets:setup` (LINE_TOKEN_ENTRY_MIN).
+ *  @param {string} name @param {unknown} raw @param {{entry?: boolean}} [o] @returns {string} */
+export function lineSecretProblem(name, raw, o = {}) {
   const v = trimSecret(raw);
   if (name === "LINE_CHANNEL_ACCESS_TOKEN") {
     if (!v) return "missing";
     if (/\s/.test(v)) return "whitespace";
-    if (v.length < LINE_TOKEN_MIN) return "too_short";
+    if (v.length < (o.entry ? LINE_TOKEN_ENTRY_MIN : LINE_TOKEN_MIN)) return "too_short";
     return "";
   }
   if (name === "LEAD_NOTIFY_LINE_TO") {
@@ -57,3 +64,5 @@ export const LINE_REASON_TEXT = Object.freeze({
   wrong_length: "it must be exactly 33 characters: U followed by 32 characters (0-9, a-f)",
   not_u32hex: "it must be U followed by 32 characters 0-9 and a-f in lowercase (LINE Developers console -> Basic settings -> Your user ID)"
 });
+export const LINE_TOKEN_ENTRY_TEXT = `it is too short: a long-lived channel access token is about 170 characters (at least ${LINE_TOKEN_ENTRY_MIN} are needed), ` +
+  "so it was probably cut off when copied. Copy it again with the console's copy button";

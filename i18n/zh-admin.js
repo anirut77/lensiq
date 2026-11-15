@@ -244,6 +244,11 @@
   "adl.nf.http400": "LINE 返回 400：请检查 LEAD_NOTIFY_LINE_TO，并在手机上把 @632yliiw 加为好友",
   "adl.nf.http429": "LINE 返回 429：本月 LINE 官方账号的消息额度已用完",
   "adl.nf.http": "LINE 返回 {n}",
+  "adl.nf.sep": "：",
+  "adl.nf.unrecorded": "无法记录最近一条请求的 LINE 通知结果（请查看 Worker 日志 alert.lead_line_unrecorded）",
+  "adl.nf.error": "发送 LINE 消息前发生系统错误（请查看 Worker 日志 alert.lead_line_unrecorded）",
+  "adl.nf.badgeUnknown": "LINE 通知结果未知",
+  "adl.nf.unknownTip": "不清楚此请求是否已发出 LINE 消息，请自行查看。",
   // Merit MVP: belief-guidance editor (admin.js "merit" tab, am.*)
   "am.tab": "信仰指引",
   "am.h": "信仰指引（在解读下方免费显示）",
