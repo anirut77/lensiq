@@ -130,6 +130,9 @@
    "work": "gum",
    "setup": [
     {
+     "click": "#tab-delivery"
+    },
+    {
      "check": "#ivCOk1"
     },
     {
