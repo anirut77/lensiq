@@ -11,7 +11,8 @@
 //   2. refuses (exit 1, "REFUSED <code>") when: the file has no batch id (batch_missing); the batch id or the items are not of the
 //      command's kind (kind_mismatch, item_kind, batch_count); an item fails the Worker's own validation (item_invalid, the same
 //      cleanItem / splitReviewMeta as tools/merit-drafts-check.mjs); the batch was already confirmed here (already_confirmed);
-//      the batch id was confirmed with other content (file_changed); the other places batch of the same date was confirmed
+//      the batch id was confirmed with other content (file_changed); the same items under another batch id (same_content_other_batch);
+//      draft_ids that a confirmed batch already holds (draft_ids_overlap); the other places batch of the same date was confirmed
 //      (same_places_other_batch: places-2026-11-14 and places-2026-11-14-notes hold the same 35 places);
 //   3. asks you to type the batch id; anything else cancels (exit 1);
 //   4. records the batch in a ledger (default ~/LENSIQ-field/merit/import-ledger.json, env LENSIQ_MERIT_LEDGER overrides) and
@@ -150,6 +151,25 @@ if (sibling) {
   refuse("same_places_other_batch", `ชุด ${sibling.batch} (วันที่ ${sibling.confirmed_at}) มีสถานที่ชุดเดียวกันนี้อยู่แล้ว นำเข้าได้ชุดเดียว ถ้านำเข้าทั้งสองจะได้สถานที่ซ้ำ`,
     `batch ${sibling.batch} (confirmed ${sibling.confirmed_at}) holds the same places as ${batch}; import only one of them or every place will appear twice`);
 }
+// the same items under another batch id (a renamed copy), or draft_ids that an already-confirmed batch holds: refused, flag or not
+const stable = (/** @type {any} */ v) => (Array.isArray(v) ? "[" + v.map(stable).join(",") + "]" : v && typeof v === "object"
+  ? "{" + Object.keys(v).sort().map(k => JSON.stringify(k) + ":" + stable(v[k])).join(",") + "}" : JSON.stringify(v));
+const itemsSha = createHash("sha256").update(stable(items)).digest("hex");
+const draftIds = items.map((/** @type {any} */ it) => it && it.draft_id).filter((/** @type {any} */ d) => typeof d === "string");
+const renamed = ledger.entries.find(e => e.batch !== batch && e.items_sha256 === itemsSha);
+if (renamed) {
+  refuse("same_content_other_batch", `รายการทั้งหมดในไฟล์นี้ตรงกับชุด ${renamed.batch} ที่ยืนยันไปแล้ว (เปลี่ยนแค่รหัสชุด) ห้ามนำเข้าซ้ำ`,
+    `these items are identical to batch ${renamed.batch}, which was already confirmed (only the batch id differs); a renamed copy would import everything twice`);
+}
+for (const e of ledger.entries) {
+  if (e.batch === batch || !Array.isArray(e.draft_ids)) continue;
+  const taken = new Set(e.draft_ids);
+  const overlap = draftIds.filter((/** @type {string} */ d) => taken.has(d));
+  if (overlap.length) {
+    refuse("draft_ids_overlap", `${overlap.length} draft_id ในไฟล์นี้มีอยู่แล้วในชุด ${e.batch} ที่ยืนยันไปแล้ว (เช่น ${overlap[0]}) ห้ามนำเข้า จะได้รายการซ้ำ`,
+      `${overlap.length} draft id(s) of this file (for example ${overlap[0]}) already belong to the confirmed batch ${e.batch}; importing would duplicate them`);
+  }
+}
 if (same && same.sha256 !== sha256) {
   refuse("file_changed", `รหัสชุด ${batch} เคยยืนยันกับไฟล์ที่เนื้อหาต่างจากไฟล์นี้ (sha256 เดิม ${same.sha256.slice(0, 8)}…) ห้ามนำเข้า`,
     `batch ${batch} was confirmed with different content (earlier sha256 ${same.sha256.slice(0, 8)}…); this file is not the one you confirmed. Do not import it`);
@@ -172,7 +192,7 @@ if (answer !== batch) {
   process.exit(1);
 }
 if (!same) {
-  ledger.entries.push({ batch, kind, count: items.length, sha256, file, confirmed_at: new Date().toISOString().replace(/\.\d+Z$/, "Z") });
+  ledger.entries.push({ batch, kind, count: items.length, sha256, items_sha256: itemsSha, draft_ids: draftIds, file, confirmed_at: new Date().toISOString().replace(/\.\d+Z$/, "Z") });
   mkdirSync(dirname(ledgerPath), { recursive: true });
   const tmp = ledgerPath + ".tmp";
   writeFileSync(tmp, JSON.stringify(ledger, null, 1) + "\n");

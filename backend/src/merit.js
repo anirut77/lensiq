@@ -423,6 +423,24 @@ export async function importItems(env, body, who) {
       refused.push({ index: i, error: String((e && e.message) || "invalid").slice(0, 300), code: (e && e.extra && e.extra.code) || "merit_invalid" });
     }
   }
+  // draft ids (coordinator order 2026-11-15): a file whose draft_id already exists in merit_items is refused as a whole, whatever its batch
+  // id, so a renamed copy of an imported file (or the original places file after its -notes replacement) can never create duplicates.
+  // Checked on the dry run too, so the owner sees it before importing.
+  const wanted = new Set(ok.map(x => x.meta && x.meta.draft_id).filter(Boolean));
+  if (wanted.size) {
+    /** @type {Set<string>} */
+    const found = new Set(), inBatches = new Set();
+    for (const r of (await env.DB.prepare("SELECT review_meta FROM merit_items WHERE review_meta IS NOT NULL").all()).results || []) {
+      let m = null;
+      try { m = JSON.parse(String(/** @type {any} */ (r).review_meta)); } catch { /* an unreadable note holds no draft id */ }
+      if (m && typeof m.draft_id === "string" && wanted.has(m.draft_id)) { found.add(m.draft_id); inBatches.add(typeof m.batch === "string" ? m.batch : "none"); }
+    }
+    if (found.size) {
+      const names = [...inBatches].sort().slice(0, 5).join(", ");
+      throw new HttpError(409, `draft_ids_exist: ${found.size} draft id(s) of this file already exist in the back office (batch: ${names}); the whole file is refused so nothing is imported twice`,
+        { code: "draft_ids_exist", count: found.size });
+    }
+  }
   if (body.dry_run === true) return { dry_run: true, ok_count: ok.length, imported: 0, refused, batch };
   // nothing to write (every item refused): no batch record, so the same file can be imported again once fixed
   if (!ok.length) return { dry_run: false, ok_count: 0, imported: 0, refused, ids: [], batch };
