@@ -201,6 +201,8 @@
   // ชื่อภาษาไทยก่อน อักษรจีนอยู่ในวงเล็บ เช่น "坎 ขั้น" → "ขั้น (坎)", "กลุ่มตะวันออก (東四命)" → "กลุ่มตะวันออก"
   function triTh(t) { var m = /^([\u2E80-\u9FFF]+)\s+(.+)$/.exec(String(t || "")); return m ? m[2] + " (" + m[1] + ")" : String(t || ""); }
   function noCn(t) { return String(t || "").replace(/\s*\([^)]*[\u2E80-\u9FFF][^)]*\)/g, ""); }
+  // a flying star the tradition reads as needing care (2 Two Black, 5 Five Yellow, also 3 and 7): KB.flying[n].care > 0
+  function careStar(n) { return !!(KB.flying[n] && KB.flying[n].care); }
   function buildFacts(st) {
     var items = [], extras = { luckyColors: [], directions: [], tips: [] };
     var K = st.kua, now = st.now || new Date();
@@ -212,6 +214,10 @@
     items.push({
       id: "year.center." + yc, group: "ดาวประจำปี", label: "ปี " + mi.solarYear + " ดาว " + yc + " " + YS.th + " เข้าศูนย์กลาง", short: "ดาวประจำปี",
       evidence: "ผังดาวเหินรายปี (ลั่วซู) · ปีเริ่มที่ลี่ชุน", strength: 0.8, tags: ["overview", "timing"],
+      // restrain (fortune-restrain.js contract): the meaning areas that restrain or warn, or "all" (label + every meaning, in
+      // every language). Chart-dependent here: stars the tradition reads as needing care (KB.flying[n].care: 2, 3, 5, 7) and,
+      // for the year star, its timing text (the zones of stars 5 and 2). Static tags live in fortune-restrain.js.
+      restrain: careStar(yc) ? "all" : ["timing"],
       meanings: {
         overview: [
           // ไม่พูดชื่อดาวซ้ำกับป้ายชื่อ ("…เข้าศูนย์กลาง บ่งบอกว่าปีนี้ดาว … เข้าศูนย์กลาง")
@@ -227,6 +233,7 @@
     items.push({
       id: "month.center." + mi.center, group: "ดาวประจำเดือน", label: "เดือน" + KB.monthNames[mi.k].replace(/\s*\([^)]*\)/, "") + " ดาว " + mi.center + " " + MS.th + " เข้าศูนย์กลาง", short: "ดาวประจำเดือน",
       evidence: "เดือนสุริยคติจีน (เริ่มตามสารทจีน 12 จุด)", strength: 0.5, tags: ["timing"],
+      restrain: careStar(mi.center) ? "all" : null,
       meanings: { timing: [
         "จังหวะของเดือนนี้เน้น" + MS.theme,
         "ตลอดเดือนนี้ ลองใช้พื้นที่กลางบ้านให้โปร่งและสว่าง"
@@ -283,7 +290,10 @@
       else if (good) txt = recLabel[k] + recVerb[k] + dirTh(dir) + " ซึ่งตรงกับทิศ" + S8.th + " (" + S8.name + ") ของคุณ เป็นการจัดวางที่ส่งเสริมดี";
       else txt = recLabel[k] + recVerb[k] + dirTh(dir) + " ซึ่งเป็น" + S8.name + "ของคุณ ลองปรับมุมไปทาง" + dirTh(K.stars.shengqi) + "หรือ" + dirTh(K.stars.tianyi) + "ถ้าทำได้ หรือเสริมด้วยแสงและความเป็นระเบียบ";
       var m = {}; m[recTag[k]] = [txt, txt]; m.advice = [txt];
-      items.push({ id: "rec." + k + "." + dir, group: "ทิศที่วัดได้", label: recLabel[k] + "ที่" + recVerb[k] + dirTh(dir), short: recLabel[k], evidence: "เข็มทิศ " + (st.recordedDeg && st.recordedDeg[k] != null ? Math.round(st.recordedDeg[k]) + "°" : ""), strength: good ? 0.85 : 0.65, tags: [recTag[k], "advice"], meanings: m });
+      items.push({ id: "rec." + k + "." + dir, group: "ทิศที่วัดได้", label: recLabel[k] + "ที่" + recVerb[k] + dirTh(dir), short: recLabel[k],
+        evidence: "เข็มทิศ " + (st.recordedDeg && st.recordedDeg[k] != null ? Math.round(st.recordedDeg[k]) + "°" : ""),
+        strength: good ? 0.85 : 0.65, tags: [recTag[k], "advice"],
+        meanings: m, restrain: S8 && !good ? "all" : null });
     });
     // ห้องในผังบ้าน
     (st.rooms || []).forEach(function (r) {
@@ -294,7 +304,10 @@
         advice: [R.th + " (โซน" + dirTh(A.dir) + "): " + S.cure, "สำหรับ" + R.th + " " + S.cure]
       };
       m[tag] = (m[tag] || []).concat(["โซน" + dirTh(A.dir) + "ตามปากั้วคือเรื่อง" + B.area + " " + R.th + "ที่อยู่ตรงนี้ลองเติมสี" + B.colors.map(function (c) { return c[0]; }).join("/") + " หรือ " + B.items]);
-      items.push({ id: "room." + r.room + "." + A.dir + ".s" + A.star, group: "ผังบ้าน", label: R.th + "โซน" + dirTh(A.dir) + " (ดาว " + A.star + ")", short: R.th, evidence: "ปากั้ว: " + B.short, strength: Math.min(1, 0.4 + A.priority / 6), tags: ["timing", "advice", tag], meanings: m });
+      items.push({ id: "room." + r.room + "." + A.dir + ".s" + A.star, group: "ผังบ้าน", label: R.th + "โซน" + dirTh(A.dir) + " (ดาว " + A.star + ")", short: R.th,
+        evidence: "ปากั้ว: " + B.short,
+        strength: Math.min(1, 0.4 + A.priority / 6), tags: ["timing", "advice", tag],
+        meanings: m, restrain: S.care ? "all" : null });
     });
     // ภาพห้อง
     (st.photos || []).forEach(function (ph, i) {

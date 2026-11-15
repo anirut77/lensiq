@@ -252,7 +252,28 @@
       "\\belement\\b|amulet|\\bStar [25]\\b|Five Yellow|Two Black|digging|fatigue|exhaust\\w*|\\bavoid|\\bdon't\\b|\\bdo not\\b", "i"),
     zh: /(?:穿|选|用|佩戴|添).{0,3}(?:红|橙|蓝|黑|绿|白|黄|金|粉|紫|灰|棕)色|幸运色|吉祥色|朝(?:东|西|南|北)|吉位|供奉|拜神|拜佛|祈福|行善|布施|补充|护身符|吉祥物|二黑|五黄|动土|避免|不要|(?<![特区告分识派离辨])别(?![人的处具致墅])|勿|忌|疲惫/,
   };
-  const api = { mount, hardLimit, GUIDE, stripHonest, LABEL_NEG, LEADS: STRAIGHT_LEAD, NATAL_LEADS: NATAL_LEAD, isNatal, calm,
+  /* fortune-paid reviews (2026-11-15), guidance by PROVENANCE: marks every paragraph that holds text taken from a guidance
+     field of the facts: any item's advice meanings, every meaning of an item the engine flags as guidance as a whole (it.guide,
+     e.g. feng-shui directions, measured directions, rooms, photos, flying stars) or per key (it.guideKeys), the extras (lucky
+     colours, directions, energy words, tips), the remedy texts and the improvement plan: section.guidance[i]. No word list:
+     the marks come from where the text was taken. Called by fortune-ai.js compose(); the reading layout ignores the mark.
+     tr(item) = the item in the reading's language; rem = the remedy texts in that language. */
+  function markGuidance(out, F, lang, tr, rem) {
+    const L = lang === "zh" || lang === "en" ? lang : "th", en = L === "en", lc = (/** @type {any} */ t) => (en ? String(t).toLowerCase() : String(t));
+    const ex = (F && F.extras) || {}, src = [];
+    for (const it of (F && F.items) || []) {
+      const m = ((tr ? tr(it) : it) || it).meanings || {};
+      if (it.guide) for (const k in m) src.push(...[].concat(m[k] || []));
+      else { src.push(...[].concat(m.advice || [])); for (const k of it.guideKeys || []) src.push(...[].concat(m[k] || [])); }
+    }
+    for (const k of ["luckyColors", "directions", "energyWords", "tips"]) src.push(...[].concat(ex[k] || []));
+    src.push(...(rem || []), ...((out && out.plan && out.plan.items) || []).map((/** @type {any} */ x) => x.t));
+    const cut = (/** @type {string} */ t) => (L === "zh" ? t.split(/[，。；！？、：:]/) : en ? t.split(/[,.;:!?]\s+|\s+(?:and|but|so|or)\s+/) : t.split(/\s+/));
+    const frags = [...new Set(src.filter(Boolean).map(lc).flatMap(t => cut(t).concat([t])).map(x => x.trim()).filter(x => x.length >= (L === "zh" ? 6 : 12)))];
+    for (const s of (out && out.sections) || []) s.guidance = (s.paragraphs || []).map((/** @type {any} */ p) => frags.some(x => lc(p).includes(x)));
+    return out;
+  }
+  const api = { mount, hardLimit, GUIDE, markGuidance, stripHonest, LABEL_NEG, LEADS: STRAIGHT_LEAD, NATAL_LEADS: NATAL_LEAD, isNatal, calm,
     enabled: straightEnabled, active: straightActive, get: straightGet, set: straightSet,
     text: straightText, controlHTML: straightControlHTML, control: straightControl };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQFortuneStraight = api;

@@ -2012,22 +2012,13 @@
   let CREC = null; const crecU = (it, u) => { if (u) [u.text].concat(u.alt || []).forEach(t => crec(it, t)); return u; };
   const cautMeanings = (F, lang) => ((F && F.items) || []).filter(cautS).flatMap(it => { // + every meaning of such an item
     const x = (lang === "en" ? (enLoad(), enItem(F.domain, it)) : lang === "zh" ? (zhLoad(), zhItem(F.domain, it)) : it) || {}; return Object.values(x.meanings || {}).flat(); });
-  // key: the same marking for section.guidance (below; finer clause cuts); the caution marks are computed exactly as before
-  function markCaution(out, lang, rec, key) { const en = lang === "en", lc = t => (en ? t.toLowerCase() : t), g = !!key;
-    const cut = t => (lang === "zh" ? t.split(g ? /[，。；！？、：:]/ : /[，。；！？]/) : en ? t.split(g ? /[,.;:!?]\s+|\s+(?:and|but|so|or)\s+/ : /[,.;:!?]\s+/) : t.split(g ? /\s+/ : " "));
-    const frags = [...new Set(rec.map(lc).flatMap(t => cut(t).concat([t])).map(x => x.trim()).filter(x => x.length >= (lang === "zh" ? 6 : 12)))];
-    for (const s of out.sections || []) s[key || "caution"] = (s.paragraphs || []).map(p => frags.some(x => lc(p).includes(x))); }
-  /* fortune-paid reviews (2026-11-15), guidance by PROVENANCE: the composer marks every paragraph that holds text taken from a
-     guidance field of the facts: any item's advice meanings, every meaning of an item the engine flags as guidance as a whole
-     (it.guide, e.g. feng-shui directions, measured directions, rooms, photos, flying stars) or per key (it.guideKeys), the
-     extras (lucky colours, directions, energy words, tips), the remedy texts and the improvement plan: section.guidance[i].
-     No word list: the marks come from where the text was taken. The reading layout does not read this mark (same reading). */
-  function markGuidance(out, F, lang) { const L = lang === "zh" || lang === "en" ? lang : "th", ex = (F && F.extras) || {}, src = ((F && F.items) || []).flatMap(it => {
-      const m = ((L === "en" ? (enLoad(), enItem(F.domain, it)) : L === "zh" ? (zhLoad(), zhItem(F.domain, it)) : it) || it).meanings || {};
-      return it.guide ? Object.values(m).flat() : [].concat(m.advice || [], ...(it.guideKeys || []).map(k => m[k] || [])); });
-    const rem = Object.values(L === "en" ? REMEDY_EN : REMEDY).map(x => (typeof x === "string" ? x : x && (L === "zh" ? x.zh : x.th)));
-    markCaution(out, L, src.concat(...["luckyColors", "directions", "energyWords", "tips"].map(k => [].concat(ex[k] || [])), rem, ((out.plan && out.plan.items) || []).map(x => x.t))
-      .filter(Boolean).map(String), "guidance"); }
+  // data tags for entries that restrain or warn (fortune-restrain.js, tagged by reading); PROV keeps each reading's provenance
+  // (in a page fortune-read.js carries it, so it is looked up when composing, not at load)
+  const rsOf = () => (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-restrain.js") : root.LQFortuneRestrain) || null, PROV = new WeakMap();
+  function markCaution(out, lang, rec) { const en = lang === "en", lc = t => (en ? t.toLowerCase() : t);
+    const frags = [...new Set(rec.map(lc).flatMap(t => (lang === "zh" ? t.split(/[，。；！？]/) : en ? t.split(/[,.;:!?]\s+/) : t.split(" ")).concat([t]))
+      .map(x => x.trim()).filter(x => x.length >= (lang === "zh" ? 6 : 12)))];
+    for (const s of out.sections || []) s.caution = (s.paragraphs || []).map(p => frags.some(x => lc(p).includes(x))); }
   // จุดที่ต้องระวังจุดถัดไปในหัวข้อเดียวกัน (โหมดตรง): ไม่มีประโยคนำซ้ำ แต่มีสิ่งที่ทำได้ต่อท้ายเสมอ
   function stepAfter(ctx, it, sec, iu) { const act = cautionAction(ctx, it, sec).text; return Object.assign({}, iu, { text: iu.text + " " + act, alt: [act], noConn: true }); }
   function cautionUnit(ctx, it, sec, iu) {
@@ -2413,8 +2404,13 @@
     STRAIGHT = straight; CALM = calm; CREC = [];
     try {
       const out = composeBase(calm && facts ? Object.assign({}, facts, { extras: {} }) : facts, opts);
-      if (out && out.source !== "support") { out.mode = straight ? "straight" : "gentle"; markCaution(out, out.lang || langOf(opts), CREC.concat(cautMeanings(facts, out.lang || langOf(opts))));
-        markGuidance(out, facts, out.lang || langOf(opts)); }
+      if (out && out.source !== "support") {
+        const L = out.lang || langOf(opts), RS = rsOf(), tr = (/** @type {any} */ it) => (L === "en" ? (enLoad(), enItem(facts.domain, it)) : L === "zh" ? (zhLoad(), zhItem(facts.domain, it)) : it);
+        const src = RS ? RS.sources(facts, tr) : [];
+        out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
+        // fortune-paid (2026-11-15): guidance marks by provenance, section.guidance (fortune-straight.js markGuidance; the layout ignores it)
+        if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, Object.values(L === "en" ? REMEDY_EN : REMEDY).map(x => (typeof x === "string" ? x : x && (L === "zh" ? x.zh : x.th))));
+      }
       if (calm && out) delete out.plan;
       return out;
     } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; }
@@ -4436,7 +4432,8 @@
     en: { load: enLoad, item: (domain, it) => { enLoad(); return enItem(domain, it); }, data: () => enLoad(), TITLES: EN_TITLES, REMEDY: REMEDY_EN, REMINDER: REMINDER_EN, OPENERS: EN_OPENERS, sentences: enSentences, labelEcho: enLabelEcho, keyLines: enKeyLines },
     zh: { load: zhLoad, keys: zhKeys, item: (domain, it) => { zhLoad(); return zhItem(domain, it); }, data: () => zhLoad(), TITLES: ZH_TITLES }, MAIN_LENGTH: { min: MAIN_MIN, target: MAIN_TARGET, max: MAIN_MAX, full: FULL_MAX },
     safety: { isSafe, filterText, sentences, groundAI, groundUnit, groundCorpus, category: t => unsafeCategory(String(t || "").normalize("NFC")), BANNED: BANNED_TH.slice(), ALLOW: ALLOW_TH.slice(), segmenter: () => !!SEG, _useSegmenter: on => { SEG = on ? SEG0 : null; segCache.clear(); for (const k in ownCuts) delete ownCuts[k]; } },
-    _internal: { cautionLeads: lang => (lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH), factsForAI, normalizeAI,
+    _internal: { provenance: (/** @type {any} */ r) => PROV.get(r) || [],
+      cautionLeads: lang => (lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH), factsForAI, normalizeAI,
       normSentence, dice, bigrams, isImperative, offTopic, phrasesIn, splitMain, banks: { OPENERS, OPENERS_BY_DOMAIN, CONNECTORS, CLOSERS, ADVICE_FRAMES, ADVICE_STATEMENT_FRAMES, INTROS } },
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.FortuneAI = api;
