@@ -366,8 +366,8 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 .lq-helpline-result{width:auto;margin:14px 0 4px}
 .lq-helpline-note{display:block;margin-top:2px;font-size:.85rem;color:#33506a}
 /* owner order 2026-11-15 item 3: the help line is in ONE place per fortune page, a small row of tap-to-call buttons near the top
-   (tools/helpline.mjs): "อยากมีคนรับฟัง 1323" and "เจ็บป่วยฉุกเฉิน 1669". In the normal page flow (never fixed), so it cannot cover
-   the header or the menu; each button at least 44 px; the row wraps on a narrow phone. */
+   (tools/helpline.mjs): only "อยากมีคนรับฟัง 1323" (owner decision 54 ข: 1669 and the other numbers only on the crisis card). In
+   the normal page flow (never fixed), so it cannot cover the header or the menu; the button is at least 44 px. */
 .lq-helpline.lq-helpbar{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding:0;border:0;background:none;margin:8px auto 4px;line-height:1.3}
 .lq-call-mini{display:inline-flex;max-width:100%}
 .lq-call-mini>a.lq-call-btn[href]{display:inline-flex;align-items:center;gap:6px;min-height:44px;min-width:44px;max-width:100%;padding:4px 14px;border-radius:999px;
@@ -376,8 +376,6 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 .lq-call-mini>a.lq-call-btn[href]:hover{background:#094d77;color:#fff}
 .lq-call-mini>a.lq-call-btn[href]:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
 .lq-call-mini>a.lq-call-btn[href]>*{pointer-events:none}
-.lq-call-mini[data-lq-call="1669"]>a.lq-call-btn[href]{background:#fff;color:#0b5d8f;border:1px solid #0b5d8f;font-weight:600}
-.lq-call-mini[data-lq-call="1669"]>a.lq-call-btn[href]:hover{background:#eef5fb;color:#094d77}
 .lq-call-mini-n{font-variant-numeric:tabular-nums;white-space:nowrap;user-select:all;-webkit-user-select:all}
 @media (min-width:1024px),(hover:hover) and (pointer:fine) and (min-width:600px){.lq-call-mini-n{font-size:1.5rem;line-height:1.1}}
 /* owner order 2026-11-15 item 1: no idle technical status. A status line (role=status) with nothing to say is empty and takes
