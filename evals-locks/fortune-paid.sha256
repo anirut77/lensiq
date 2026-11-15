@@ -15,3 +15,7 @@ cabdfa4649fd7eeb5a39d98d2431700a8c4fafcc1d546724c9d045882a0df110  tests/unit/for
 # locked 2026-11-15T08:50:22Z (tools/eval-guard.mjs lock, 2 files)
 d92ec55c383c44714b3418804cf2ee6eb1ccd2311ca51265f528c8c775ad7a55  tests/unit/fortune-paid-plan.test.js
 c5908cef8e1a7a351f4cc7d875ae64640459d499657d4be1d9ba35341fae832b  tests/e2e/fortune-paid-plan.e2e.mjs
+# RE-LOCK 2026-11-15 (5), new files only, BEFORE the build. Reason: owner decision 2026-11-15 replaces Remedies and merit (decision 46, option ก): a paid goal plan and a "recommended sources" section with outside seller links are allowed behind off switches. Added tests/unit/fortune-paid-sources.test.js and tests/e2e/fortune-paid-sources.e2e.mjs (own flag LENSIQ_FORTUNE_SOURCES, published + approved https entries only, never weak / chong, no promise or fear wording, never in or next to a group with a caution, outside-link attributes, nothing in the crisis state). No earlier locked assertion encoded the old rule (only the header comment of fortune-paid-plan.test.js mentions it), so no earlier file is re-locked; every hard-limit test (a, b, c) is kept unchanged. Before the build: unit 0 / 3.
+# locked 2026-11-15T08:59:53Z (tools/eval-guard.mjs lock, 2 files)
+98942448e0360e4f30763f97dea652dad27717c136b8e33bb36a6735c5e00279  tests/unit/fortune-paid-sources.test.js
+c4762a5abcb5ad8e1d4379c860f98af3099ef076eafe1178a47368c1833e83b6  tests/e2e/fortune-paid-sources.e2e.mjs
