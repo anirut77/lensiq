@@ -564,7 +564,8 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
         await Promise.all(nets.map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
       }
       ready = true;
-      engine(`โมเดลพร้อม (ตัวประมวลผล: ${backendName.toUpperCase()}${backendName === "webgl" ? "" : " — อาจช้ากว่าปกติ"}) — ${anyActive() ? "กด เริ่มนับผู้เข้าชม" : "กด เริ่มกล้อง"}`, "ok");
+      // owner rule 2026-11-15: no technical status; only what to do next (the backend is data only)
+      engine(anyActive() ? "กด เริ่มนับผู้เข้าชม" : "กด เริ่มกล้อง", "ok"); $("#engine").dataset.state = "ready"; $("#engine").dataset.backend = backendName;
     } catch (e) {
       console.warn(e);
       engine(`ระบบไม่พร้อม: โหลดโมเดลไม่สำเร็จ (${e.name}: ${e.message || "-"})`, "err");

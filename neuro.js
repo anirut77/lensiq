@@ -77,7 +77,7 @@ async function init() {
     ]);
     layoutCam();
     ready = true;
-    engine(`พร้อมใช้งาน (ตัวประมวลผล: ${backend.toUpperCase()}${backend === "webgl" ? "" : " — อาจช้ากว่าปกติ"})`, "ok");
+    engine("", "ok"); $("#engine").dataset.state = "ready"; $("#engine").dataset.backend = backend; // owner rule 2026-11-15: no idle status
   } catch (e) {
     console.warn(e);
     if (e.name === "Insecure") showHttpsNote($("#engine"));

@@ -16,3 +16,5 @@ e2f29fa37c48dbc7efca1dee0e270a8786feb71c34e92e8f5b009ff7629814f1  tests/e2e/lead
 6d97d199b203ebce7d10962ad23157455b97aed352d65696591ec46a3aa41029  tests/e2e/lead-form-webkit-slow.e2e.mjs  # repo file
 # v2 2026-11-13T15:34:41Z (stricter, before the fix): FALSE_TEXT also rejects 'ยังไม่เปิด / not open / 尚未开放' — the pricing case passed on b62ac88 while showing 'online requests are not open', which is false while the form is on. No other change.
 9a1b9c938ca24b9b0090124ce7868ebc83dbae815af8ad819c5f46f06787c691  tests/e2e/lead-form-webkit-slow.e2e.mjs  # repo file
+# v3 2026-11-15T15:46:11Z (coordinator, owner order 2026-11-16 after confirming lead b0011eb6 reached LINE at 22:35): the three 'notice next to the form' checks become 'no temporary LINE notice; form still visible' (TH/EN/ZH). Locked BEFORE the product change (base d5ea000). No other check changed. Append-only.
+85b916539aa92e2b17dc119739aa502459733a90838c00de25069199373fc0c8  tests/e2e/lead-form-webkit.e2e.mjs  # repo file

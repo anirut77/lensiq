@@ -58,7 +58,7 @@
     "faceread.eng.oom": "设备内存不足，无法进行实时人脸分析 — 请关闭其他标签页或应用后再次点击“打开相机”，或改用“上传照片”",
     "faceread.eng.detStop": "实时人脸分析在此设备上已停止运行 — 请关闭其他标签页后再次点击“打开相机”，或改用“上传照片”",
     "faceread.eng.switching": "正在切换到备用处理方式...",
-    "faceread.eng.switched": "摄像头已就绪（备用处理方式，可能较慢）— 把脸放进椭圆框内，然后点击“面相解读”",
+    "faceread.eng.switched": "摄像头已就绪（本设备可能较慢）— 把脸放进椭圆框内，然后点击“面相解读”",
     "faceread.eng.https": "在手机上需通过 https:// 打开 — 方法见“全部系统”页面",
     "faceread.httpsA": "在手机上需通过",
     "faceread.httpsB": "打开 — 方法见",

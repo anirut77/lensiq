@@ -55,7 +55,7 @@
     "faceread.eng.oom": "This device ran out of memory for live face analysis — close other tabs or apps and tap \"Start camera\" again, or use \"Upload photo\" instead",
     "faceread.eng.detStop": "Live face analysis stopped working on this device — close other tabs and tap \"Start camera\" again, or use \"Upload photo\" instead",
     "faceread.eng.switching": "Switching to the backup processor...",
-    "faceread.eng.switched": "Camera ready (backup processor, may be slower) — place your face in the oval, then tap \"Read my face\"",
+    "faceread.eng.switched": "Camera ready (this device may read more slowly) — place your face in the oval, then tap \"Read my face\"",
     "faceread.eng.https": "On mobile, open via https:// — see the All Solutions page for how",
     "faceread.httpsA": "On mobile, open via",
     "faceread.httpsB": "— see how on",
