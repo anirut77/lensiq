@@ -196,7 +196,7 @@
     const g = O.grade(s.marks, e.key);
     status(T("om.scan.read", "อ่านแผ่นแล้ว รหัส {id} · {s}/{m} คะแนน{f}", { id: s.sid || "—", s: g.score, m: g.max,
       f: needs(e, s) ? T("om.scan.readFlag", " · มีข้อให้ตรวจ") : "" }));
-    if (navigator.vibrate) try { navigator.vibrate(60); } catch {}
+    if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) try { navigator.vibrate(60); } catch {}
     renderResults(); renderMeta(); openReview(s.id);
     return s;
   }
