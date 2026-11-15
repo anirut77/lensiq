@@ -180,6 +180,18 @@ const FORTUNE = [
 // ---------- camera pages: steps before the start control, the start control, the stop control ----------
 // pre: actions that lead to the start control; start: tapped to open the camera (null = the page opens it on load);
 // stop: tapped to close it (same as start for a toggle; {select} for a source picker; null = none -> pagehide is used)
+// amendment 3: the page's visible camera-off button (walk-fix-2 D2-007), found by its Thai label the way a user finds it
+// ("เปิดกล้อง" = camera ON contains "ปิดกล้อง", so a preceding เ is excluded), then tapped
+const CAM_OFF = async p => {
+  await waitFor(p, () => [...document.querySelectorAll("button, [role=button]")].some(e => e.getClientRects().length > 0 && !e.closest("[hidden]")
+    && !e.disabled && /(^|[^เ])ปิดกล้อง/.test((e.textContent || "").trim())), null, 10000);
+  await p.evaluate(() => {
+    const b = [...document.querySelectorAll("button, [role=button]")].find(e => e.getClientRects().length > 0 && !e.closest("[hidden]")
+      && !(/** @type {any} */ (e)).disabled && /(^|[^เ])ปิดกล้อง/.test((e.textContent || "").trim()));
+    if (b) b.setAttribute("data-lq-camoff", "1");
+  });
+  await tap(p, "[data-lq-camoff]");
+};
 // zone pages (lensiq-zonecam.js): the operator ticks "the camera notice is posted" and taps the acknowledgement first
 const ZONE_ACK = async p => {
   await waitFor(p, () => !!document.getElementById("gate") && !!document.getElementById("startCam"), null, 10000);
@@ -199,14 +211,16 @@ const CAMERA = [
   zone("afterhours"), zone("bays"), zone("crowd"), zone("queue"), zone("tables"),
   { page: "luckycolor", start: "#startCam", stop: "#stopCam" },
   // attendance (face mode, the page default when no HR employee mode is set) opens the camera on load; #startScan only scans
-  { page: "attendance", start: null, stop: null },
-  // booth / customers / driver / signage: the stop control ends counting / scanning / the trip and keeps the preview for the
-  // next one (kiosk design), so the camera is released by pagehide (the user leaves Safari or the page)
+  { page: "attendance", start: null, stop: CAM_OFF },
+  // booth / signage: the stop control ends counting and keeps the preview for the next round (kiosk design), so the camera is
+  // released by pagehide (the user leaves Safari or the page). AMENDED 2026-11-16 (amendment 3, after walk-fix-2 merged): attendance,
+  // customers, driver, faceread, palm, photobooth and teamface now have a visible "ปิดกล้อง" control, which must release every track
   { page: "booth", start: "#camStart", stop: null },
   { page: "checkout", start: null, stop: "#camBtn" },
-  { page: "customers", start: "#scanToggle", stop: null },
+  { page: "customers", start: "#scanToggle", stop: CAM_OFF },
   { page: "driver", pre: async p => { await setVal(p, "#tripForm [name=driver]", "สมชาย"); await setVal(p, "#tripForm [name=plate]", "1กข 1234"); },
-    start: "#tripForm [type=submit]", stop: null },
+    // driver: during a trip the setup card (with "ปิดกล้อง") is scrolled out of reach; the user ends the trip ("จบเที่ยว") first
+    start: "#tripForm [type=submit]", stop: async p => { await tap(p, "#stop"); await CAM_OFF(p); } },
   { page: "exam-hall", pre: async p => { await setVal(p, "#room", "HALL1"); }, start: "#startCam", stop: null },
   { page: "exam-lab", pre: async p => { await setVal(p, "#room", "LAB1"); await setVal(p, "#seat", "12"); await setVal(p, "#consent", true); },
     // AMENDED 2026-11-16 (amendment 2): the candidate's own "ส่งข้อสอบและปิดกล้อง" (#endExam) must release the camera; it is reached
@@ -221,7 +235,7 @@ const CAMERA = [
       await waitFor(p, () => window.__LQ_EXAM_LAB.phase === "exam", null, 8000);
       await tap(p, "#endExam");
     } },
-  { page: "faceread", start: "#frStartCam", stop: null },
+  { page: "faceread", start: "#frStartCam", stop: CAM_OFF },
   { page: "fengshui", start: "#fsCompassStart", stop: null },
   { page: "interview", pre: async p => { await tap(p, "#tab-delivery"); await setVal(p, "#ivCOk1", true); await setVal(p, "#ivCOk2", true); },
     start: "#ivDStart", stop: "#ivDStop" },
@@ -234,15 +248,15 @@ const CAMERA = [
     await setVal(p, "#newExam [name=title]", "Quiz"); await tap(p, "#newExam [type=submit]");
     await waitFor(p, () => !document.getElementById("ws").hidden, null, 8000);
   }, start: "#camStart", stop: "#camStop" },
-  { page: "palm", start: "#plStartCam", stop: null },
+  { page: "palm", start: "#plStartCam", stop: CAM_OFF },
   { page: "parking", pre: GATE_ACK, start: "#gkCamBtn", stop: "#gkCamBtn" },
   { page: "village", pre: GATE_ACK, start: "#gkCamBtn", stop: "#gkCamBtn" },
-  { page: "photobooth", start: 'button[data-n="1"]', stop: null },
+  { page: "photobooth", start: 'button[data-n="1"]', stop: CAM_OFF },
   { page: "qc", start: null, startSelect: ["#srcSel", "camera"], stop: { select: ["#srcSel", "sim"] } },
   { page: "signage", start: "#startFace", stop: null },
   { page: "store", start: "#startCam", stop: "#stop" },
   { page: "studio", start: "#stCamBtn", stop: "#stCamClose" },
-  { page: "teamface", start: "#tfCamBtn", stop: null },
+  { page: "teamface", start: "#tfCamBtn", stop: CAM_OFF },
   { page: "tryon", pre: async p => { await setVal(p, "#toConsent", true); }, start: "#toStart", stop: "#toStop" },
 ];
 
