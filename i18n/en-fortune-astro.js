@@ -87,7 +87,7 @@
     "astro.cardSub": "Sun · Moon",
     "astro.cardSubAsc": " · Ascendant",
     "astro.cardDom": "Dominant element: {el} — {kw}",
-    "astro.cardFoot": "For entertainment only; based on traditional beliefs, not science · Tropical zodiac",
+    "astro.cardFoot": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement. · Tropical zodiac",
     "astro.shareTitle": "Western Astrology — LENSIQ",
     /* References */
     "astro.src.0": "Jean Meeus, Astronomical Algorithms 2nd ed. — ch. 13/14 (ascendant), ch. 22 (nutation), ch. 25 (Sun), ch. 47 (Moon)",

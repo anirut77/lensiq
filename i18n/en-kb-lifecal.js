@@ -1,7 +1,7 @@
 /* i18n/en-kb-lifecal.js — English reading data (bazi, taksa, lek7, lifegraph) for fortune-ai.js (English mode).
    Mirrors i18n/zh-kb-lifecal.js key for key, with the same loops; keys equal the fact ids built by lifecal-kb.js.
    Strengths and points that need care are both included; cautions stay gentle and come with practical steps.
-   For entertainment, based on traditional beliefs. */
+   Based on traditional beliefs; readers use their own judgement. */
 (function (root) {
   "use strict";
   var EL = [

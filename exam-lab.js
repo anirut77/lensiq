@@ -163,7 +163,7 @@
       });
       const [, b] = await Promise.all([cam.start(), loadModels()]);
       try { cam.attach($("#camPick")); } catch (e) { /* single camera */ }
-      engine(() => T("exam.lab.ready", "พร้อม — ตัวประมวลผล: {b} · ภาพไม่ออกจากเครื่องนี้", { b: String(b).toUpperCase() }), "ok");
+      engine(() => "", "ok"); // owner rule 2026-11-15: no idle status at rest (loading or failure only)
       if (faceOff) { faceOff = false; setFaceOff(); }
       running = true; loop();
       renderChecks();

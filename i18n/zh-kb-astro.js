@@ -1,6 +1,6 @@
 /* i18n/zh-kb-astro.js — 简体中文解读资料（西洋星座 Big Three：太阳 · 月亮 · 上升，回归黄道），供 fortune-ai.js 在中文模式下直接生成解读
    键名与 astro.js 的 buildFacts / dailyFacts 一致：sun.N、moon.N、asc.N（N = 0 白羊座 … 11 双鱼座）、el.*、mode.*、same.sun.moon、
-   house.N（N = 0 … 11，对应第一宫 … 第十二宫，即 astro-kb.js HOUSES 的下标）。仅供娱乐参考 */
+   house.N（N = 0 … 11，对应第一宫 … 第十二宫，即 astro-kb.js HOUSES 的下标）。仅供参考，请自行判断 */
 (function (root) {
   "use strict";
   var D = {

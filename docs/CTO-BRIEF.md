@@ -7,6 +7,23 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Fortune go-live (owner order 2026-11-15, branch `fortune-live` = fortune-a + main)
+
+- Final disclaimer "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" (TH / EN / ZH) on every fortune page and the fortune category; no idle "ready, the model loads when …" status on faceread, palm, booth or studio; help line in one place per fortune page (one small "อยากมีคนรับฟัง 1323" tap-to-call button near the top, the only number in the normal state (decision 54 ข; 1669 and the rest on the crisis card), crisis card unchanged). Tests: `tests/{unit,e2e}/fortune-live.*` (locked).
+- Review round 1: no idle "ready (backend …)" status site-wide (customers, driver, neuro, booth, checkout, exam lab / hall, attendance; readiness is `#engine[data-state=ready][data-backend]` for tests); team face-reading menu entry says "not an assessment" instead of "for entertainment"; help.html EN / ZH fortune answer on the final wording; the lek7 table scrolls inside its own box at 320 px. Open owner decision: on a calm page after a reading the help line shows 3 times (top button, line under the reading, sticky dock); unchanged, crisis-net behaviour. Tests: `tests/{unit,e2e}/fortune-live-2.*` (locked).
+
+## Fortune Part A (owner order 2026-11-14, branch `fortune-a`, waiting for owner approval before merge)
+
+- A1: "for entertainment" removed from the 18 fortune pages (TH / EN / ZH); the owner's one-line notice replaces it
+  (`fortune.disc.line`); legal item L64. Platform pages (home body text, `cat-fortune.html`, solutions, terms, sales docs)
+  still say "for entertainment" and wait for the owner.
+- A2 / A3: `fortune-read.js` regroups every reading (short headings, main point first, short paragraphs, "read more"
+  buttons, in-page menu on long readings). The words never change (tested on 1,000+ paragraphs, TH / EN / ZH, straight and
+  gentle); caution paragraphs are always shown.
+- A4: own inline-SVG icons (MIT) and colour swatches with the real colour and a text label; hidden in the crisis state.
+- A5: notices are one line, the rest behind "read more"; the help line and the crisis card are never folded.
+- Tests: `tests/unit/fortune-layout.test.js`, `tests/e2e/fortune-layout.e2e.mjs` (locked, `evals-locks/fortune-layout.sha256`).
+
 ## Owner decisions 2026-11-13
 
 - **Payment:** bank transfer only for now (no PromptPay QR, no card, no Opn); prices exclude 7 % VAT.
@@ -557,6 +574,7 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
 | L60 | Claude Haiku via Google Vertex for the live label scan (legal list, owner 2026-11-13) | Google's terms forbid use on sites likely used by people under 18 and as a substitute for medical advice. Current approach: adult testers only (closed tester group); counsel reviews before any public use. Related: L48, L50, L57 | `backend/src/ai/*`, `docs/product-check/LIVE-SCAN-RESULTS.md`, `docs/LEGAL-PACKET.md` §3.11 (sub-section "ช่องทางอื่นที่ประเมินแล้ว": other routes (Anthropic direct, Bedrock, Azure, OpenRouter, OpenAI) read on 2026-11-13, not legal advice, nothing changed) | open | 2026-11-13 |
 | L61 | Privacy contact: separate DPO e-mail pending (owner 2026-11-13) | A separate privacy-contact (DPO) e-mail will be added; the owner will send the address. Until then documents show LINE @632yliiw and the placeholder `[อีเมลติดต่อเรื่องข้อมูลส่วนบุคคล — เจ้าของจะแจ้ง]`. Counsel: whether LENSIQ needs a DPO under s.41 (see LRP-P8, ORG-Q3) | `lensiq-config.js` `LENSIQ_SELLER`, `docs/legal/customer/*`, `docs/LEGAL-PACKET.md` §1.19 | open | 2026-11-13 |
 | L62 | Free-tier limits and the change from "free, every feature" (owner 2026-11-13) | Fortune and general tools stay free; Gate 30-day trial (1 lane, 100 plates per day), Attendance free up to 5 people, Exam free up to 5 candidates per session, Crowd free 2 hours per device per day, licence beyond. Not enforced in the product; limits apply from a date announced at least 30 days ahead and start 30 days after the announcement; enforced by contract; customers can always export their data; a licence works offline for 14 days (planned). Counsel: notice period, consumer-protection angle (existing users who had every feature free), contract wording, honest note that a limit on the user's device can be bypassed. Related: L25 | `docs/PRICING-RESEARCH.md`, `docs/BILLING-PLAN.md` §4.1, `docs/legal/customer/TERMS-OF-SERVICE-B2B.md` 8.6, `docs/sales/*`, `docs/LEGAL-PACKET.md` §4.7 | open | 2026-11-13 |
+| L64 | Fortune notice without "for entertainment" (owner order 2026-11-14 A1) | Every fortune page now shows one line instead of "for entertainment": "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย" (EN / ZH translations); the longer caveats sit behind "read more"; share images use a short form. Question for counsel: is this enough without "for entertainment" (consumer protection, advertising, straight mode)? Platform pages (home, cat-fortune, solutions, terms, sales docs) still say "for entertainment" pending the owner. | Open, answer before launch. `docs/LEGAL-PACKET.md` §6.10 |
 
 ### Stream H (2026-11-13): Gate training path, Exam hall seat-watch kit, hall placement check
 - Gate: owner-photo training path (`docs/PLATE-TRAINING.md`): local labeller (127.0.0.1, BlazeFace face-box proposals +

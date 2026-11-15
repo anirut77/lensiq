@@ -216,7 +216,7 @@
     "horoscope.x.cRasi": "星座",
     "horoscope.x.compatAria": "契合度 {s}%",
     "horoscope.x.compatWho": "你与{who}（{day} · {date}）——{desc}",
-    "horoscope.x.compatNote": "娱乐性分数（55–98%），综合多种命理得出；好的关系来自理解与用心，而不是数字",
+    "horoscope.x.compatNote": "依典籍得出的分数（属信仰，55–98%），综合多种命理得出；好的关系来自理解与用心，而不是数字",
     "horoscope.x.sub": "{day}出生 · {date}{time}",
     "horoscope.x.noTimeSub": "（未填写时间）",
     "horoscope.x.cardTitle": "生辰运势",
@@ -246,7 +246,7 @@
   /* ---------- horoscope-kb.js 界面资料的中文版（只含文字字段，数字与颜色沿用原 KB） ---------- */
   var M = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
   root.HSKB_ZH = {
-    disclaimerShort: "仅供娱乐，依据传统信仰，并非科学",
+    disclaimerShort: "基于命理学原则，属个人信仰，请自行判断。",
     sources: [
       { label: "Meeus《天文算法》（太阳位置、新月与恒星时公式）" },
       { label: "日本国立天文台 暦要項 2025 — 二十四节气时刻（用于校验）" },

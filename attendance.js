@@ -143,7 +143,7 @@ async function init() {
   if (m.status === "rejected") return showCamError("โหลดโมเดลตรวจจับใบหน้าไม่สำเร็จ ไม่พบไฟล์โมเดลใน vendor/models (ตรวจว่ารันเว็บจากโฟลเดอร์โปรเจกต์ ไม่ได้เปิดไฟล์ตรง ๆ)");
 
   ready = true; camMsg.classList.add("hide");
-  rebuildMatcher(); say("พร้อมใช้งาน");
+  rebuildMatcher(); say(""); // owner rule 2026-11-15: no idle "ready" status (loading / failure / what happened only)
 }
 
 function rebuildMatcher() {
