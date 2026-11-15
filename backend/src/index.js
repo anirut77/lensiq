@@ -531,6 +531,8 @@ async function adminRoute(request, env, url, deps) {
       return reply(r);
     }
     case "GET /leads/unread": return reply({ unread: await leads.unreadLeads(env.DB) }); // count only (tab badge)
+    // LINE notification status line (owner order 2026-11-15): secret names + reason codes, never a value
+    case "GET /leads/notify": return reply(await leads.lineNotifyStatus(env));
     case "POST /leads/export": {
       const b = await reauthed();
       const r = await leads.exportLeads(env, b);
@@ -831,7 +833,7 @@ async function adminRoute(request, env, url, deps) {
 
 /** Static admin shell served from the Worker's own origin (Workers Static Assets binding ASSETS, built by
  *  backend/scripts/build-admin.mjs). HTTP headers a <meta> cannot carry: frame-ancestors 'none' + X-Frame-Options. */
-export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin-orgs.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js",
+export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin-lead-notify.js", "/admin-orgs.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js",
   // round 17 P5: AI Gateway section text in English / Chinese (Thai stays the default)
   "/lensiq-i18n.js", "/i18n/zh-admin.js", "/i18n/en-admin.js",
   // first-run setup: QR code of the 2-step verification secret, drawn in the browser (no request carries the secret)

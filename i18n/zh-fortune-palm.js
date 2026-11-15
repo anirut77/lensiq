@@ -74,6 +74,7 @@
     "palm.eng.modelFail": "手部关键点模型加载失败 — 仍可手动点选手上的关键点",
     "palm.eng.camLost": "相机信号中断 — 请重新打开相机",
     "palm.eng.opening": "正在打开相机...",
+    "palm.eng.camOff": "相机已关闭 — 点击“打开相机”继续，或上传照片",
     "palm.eng.camReady": "相机已就绪 — 把手掌放进框内，然后点击“拍摄手掌”",
     "palm.eng.snapFail": "拍摄失败：{msg}",
     "palm.eng.openingImg": "正在打开图片...",

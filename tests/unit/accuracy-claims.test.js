@@ -148,8 +148,10 @@ test("crowd says plainly, above the collapsed panel, that it is not yet suitable
   assert.match(thText(html, "cr.cl.dense"), /ยังไม่เหมาะกับฝูงชนหนาแน่น/);
   assert.match(dict("en", "crowd")["cr.cl.dense"], /not yet suitable for dense crowds/i);
   assert.match(dict("zh", "crowd")["cr.cl.dense"], /尚不适用于密集人群/);
-  // preliminary stays stated
-  assert.match(html, /เบื้องต้น \(PRELIMINARY\)/);
+  // preliminary stays stated (walk-through 2026-11-16 D-06: in the page language, no English "(PRELIMINARY)" inside Thai)
+  assert.match(thText(html, "cr.cl.field"), /ผลเบื้องต้น/);
+  assert.match(dict("en", "crowd")["cr.cl.field"], /preliminary/i);
+  assert.match(dict("zh", "crowd")["cr.cl.field"], /初步/);
 });
 
 test("the unsupported retail figure stays gone", () => {

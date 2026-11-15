@@ -262,14 +262,22 @@
     if (location.hash === "#contact") {
       var held = true, unhold = function () { held = false; };
       ["wheel", "touchstart", "keydown", "mousedown"].forEach(function (ev) { window.addEventListener(ev, unhold, { once: true, passive: true }); });
+      // walk-through 2026-11-16 D-04: land on the form heading just below the sticky header, so the heading, the delivery note
+      // and the Name field (the first required field) are on screen on a phone too (centring the interest field overshot)
       var pin = function () {
-        var t = document.getElementById("lqInterest") || document.getElementById("contact");
-        if (!held || !t) return;
-        var r = t.getBoundingClientRect();
-        if (r.top < 0 || r.bottom > window.innerHeight) { try { t.scrollIntoView({ block: "center" }); } catch (e) { t.scrollIntoView(); } }
+        var h = document.getElementById("ct-title") || document.getElementById("contact"), nm = document.getElementById("lqName");
+        if (!held || !h) return;
+        var nav = document.getElementById("siteNav"), nb = nav ? Math.max(0, nav.getBoundingClientRect().bottom) : 0;
+        var r = h.getBoundingClientRect(), rn = nm ? nm.getBoundingClientRect() : r;
+        if (r.top < nb || r.top > nb + 48 || rn.bottom > window.innerHeight) window.scrollTo(0, Math.max(0, window.pageYOffset + r.top - nb - 12));
       };
-      [0, 150, 400, 800, 1200, 2000].forEach(function (ms) { setTimeout(pin, ms); });
-      window.addEventListener("load", function () { setTimeout(pin, 0); setTimeout(pin, 300); });
+      [0, 150, 400, 800, 1200, 2000, 3000].forEach(function (ms) { setTimeout(pin, ms); });
+      window.addEventListener("load", function () { [0, 300, 800, 1500].forEach(function (ms) { setTimeout(pin, ms); }); });
+      // a slow phone keeps laying the page out after load (fonts, images): re-pin whenever the page height changes, for 6 s
+      if (typeof ResizeObserver === "function") {
+        var ro = new ResizeObserver(function () { pin(); });
+        ro.observe(document.body); setTimeout(function () { ro.disconnect(); }, 6000);
+      }
     }
 
     // how the form is delivered (lensiq-leads.js): API -> sent to the team; mailto / LINE -> the visitor sends it;

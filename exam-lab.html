@@ -27,8 +27,8 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=20"></script>
-<script src="i18n/zh-exam.js?v=4"></script>
+<script src="nav.js?v=21"></script>
+<script src="i18n/zh-exam.js?v=5"></script>
 
 <main class="ex" id="main">
   <h1 data-i18n="exam.lab.h1">หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์ / เว็บแคม)</h1>
@@ -104,7 +104,8 @@
         <p class="status" id="lightMsg" role="status"></p>
         <ul class="ticks" id="checks"></ul>
         <p class="note" data-i18n="exam.lab.camTip">นั่งให้เห็นใบหน้าเต็ม แสงอยู่ด้านหน้า ไม่หันหลังให้หน้าต่าง ถ้าระบบเห็นใบหน้าได้ไม่ดี เป็นเรื่องการติดตั้ง ไม่ใช่ความผิดของคุณ</p>
-        <div class="row-actions"><button class="btn primary" type="button" id="toCal" data-i18n="exam.lab.next2">ถัดไป: ปรับเทียบ</button></div>
+        <div class="row-actions"><button class="btn primary" type="button" id="toCal" data-i18n="exam.lab.next2">ถัดไป: ปรับเทียบ</button>
+          <button class="btn ghost cam-off-early" type="button" data-i18n="exam.lab.camOff">ปิดกล้องและหยุด</button></div>
       </div>
     </div>
   </section>
@@ -114,7 +115,8 @@
     <p data-i18n="exam.lab.calP">มองจอตามปกติเหมือนตอนทำข้อสอบ ระบบจะจำท่าศีรษะปกติของคุณ เพื่อเทียบการหันศีรษะกับท่านี้ ไม่ใช่กับค่ามาตรฐาน</p>
     <p class="status" id="calMsg" role="status" aria-live="polite"></p>
     <div class="meter"><i id="calBar"></i></div>
-    <div class="row-actions"><button class="btn primary" type="button" id="toExam" disabled data-i18n="exam.lab.next3">เข้าเต็มจอและเริ่มสอบ</button></div>
+    <div class="row-actions"><button class="btn primary" type="button" id="toExam" disabled data-i18n="exam.lab.next3">เข้าเต็มจอและเริ่มสอบ</button>
+      <button class="btn ghost cam-off-early" type="button" data-i18n="exam.lab.camOff">ปิดกล้องและหยุด</button></div>
   </section>
 
   <section class="card" id="stepExam" hidden aria-labelledby="examH">
@@ -154,7 +156,7 @@
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-exam-clip.js?v=2"></script>
 <script src="exam-clip-ui.js?v=2"></script>
-<script src="exam-lab.js?v=6"></script>
-<script src="lensiq-config.js?v=11"></script>
+<script src="exam-lab.js?v=7"></script>
+<script src="lensiq-config.js?v=12"></script>
 </body>
 </html>

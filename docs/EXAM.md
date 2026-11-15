@@ -20,8 +20,12 @@ flag is an observation ("a phone may be in view"), never a verdict ("cheating de
 
 ## Why it does not decide
 
-Proctorio caught 0 of 6 instructed cheaters in a University of Twente randomised trial; ProctorU dropped AI-only
-decisions; most complaints are false flags (dark skin in low light, disability, tics, reading aloud); a US court held a
+Proctorio caught 0 of 6 instructed cheaters in a University of Twente randomised trial; ProctorU stopped offering AI-only
+proctoring and uses trained human proctors in every session (ProctorU press release, 24 May 2021,
+https://www.meazurelearning.com/resources/proctoru-to-discontinue-exam-integrity-services-that-rely-exclusively-on-ai); reported harms include a student falsely flagged for reading a question
+aloud, students with disabilities and neurological differences flagged inaccurately and disproportionately, a student of
+colour the software could not detect without extra light, and a student with a tic disorder who had to submit medical
+records (EPIC complaint to the D.C. Attorney General, 9 December 2020, https://epic.org/documents/in-re-online-test-proctoring-companies/); a US court held a
 mandatory home room scan unconstitutional (*Ogletree v. Cleveland State*, 2022). So:
 
 - **Never**: automatic fail or termination, flag limits, a "cheating score" shown to candidates, ranking by suspicion in

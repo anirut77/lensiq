@@ -266,3 +266,6 @@ body.fr-kiosk .fa-body p{font-size:1.05rem}
 @media print{.fa-actions,.fa-consent-wrap,.fa-reading .fa-topics{display:none}}
 /* disclaimer: the gap after the bold lead is CSS, so the English / Chinese rest (", and…" / "，不应…") has no stray space */
 html[lang=th] .fr-dlead{margin-right:.3em}
+/* walk-through 2026-11-16 D-13: the camera-off control is shown only while the camera is on (the start button is hidden) */
+#frStopCam{display:none}
+#frStartCam[hidden]~#frStopCam{display:inline-flex}

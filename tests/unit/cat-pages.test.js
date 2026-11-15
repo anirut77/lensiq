@@ -118,7 +118,8 @@ test("landing pages: static markup lists each tool with a status tag and source-
       assert.equal(m[2], D.PAGES[m[1]].st, m[1] + " status");
       assert.match(m[3], new RegExp(`class="cat-st ${m[2]}"`), m[1] + " status tag");
       assert.ok((m[3].match(/<li data-src="(synthetic|public|prelim|field|none|na)">/g) || []).length === D.PAGES[m[1]].claims.length, m[1] + " accuracy lines");
-      assert.match(m[3], new RegExp(`href="${m[1]}\\.html"`), m[1] + " link");
+      // walk-through 2026-11-16 D-02: the attendance card links the PIN / QR time clock (exact href), every other card its page
+      assert.match(m[3], m[1] === "attendance" ? /href="attendance\.html\?mode=employee"/ : new RegExp(`href="${m[1]}\\.html"`), m[1] + " link");
     }
     assert.ok(!/<script>(?!<\/script>)|<script(?![^>]*src=)/.test(html), c.slug + ": inline script");
     assert.match(html, /http-equiv="Content-Security-Policy"/);

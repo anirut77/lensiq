@@ -458,7 +458,7 @@
       return parts;
     }
     // one text node -> <span class="lq-run"> (a single box, so flex/grid layouts are unchanged) holding
-    // <span class="lq-w"> (nowrap) words with <wbr> between them; textContent stays identical
+    // <span class="lq-w"> (nowrap) words with <wbr> between them; textContent stays identical except that a line break between words becomes one space
     function rebuild(tn, full) {
       var parts;
       if (full) parts = words(tn.nodeValue).map(function (p) { return [p, THAI.test(p) && p.length >= 4 && p.length <= 14 && !/\s/.test(p) ? 1 : 0]; });
@@ -467,7 +467,9 @@
       var run = document.createElement("span"); run.className = "lq-run";
       parts.forEach(function (p, i) {
         if (p[1]) { var w = document.createElement("span"); w.className = "lq-w"; w.textContent = p[0]; run.appendChild(w); }
-        else run.appendChild(document.createTextNode(p[0]));
+        // walk-through 2026-11-16 D-05: a source line break between two Thai words is a word space; written as its own text
+        // node between the nowrap word boxes, browsers drop it (sentences ran together), so it becomes one plain space
+        else run.appendChild(document.createTextNode(p[0].replace(/[ \t]*\n\s*/g, " ")));
         if (full && i < parts.length - 1 && !/\s$/.test(p[0]) && THAI.test(p[0])) run.appendChild(document.createElement("wbr"));
       });
       tn.parentNode.replaceChild(run, tn);

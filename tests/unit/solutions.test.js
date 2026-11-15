@@ -34,7 +34,10 @@ test("every card: status, title, what, who, privacy; link or an honest 'still ne
       assert.match(c.body, /sl-why/, c.id + ": coming soon says what is missing");
     } else {
       assert.ok(link, c.id + " links a page");
-      assert.ok(fs.existsSync(path.join(ROOT, link)) || PARALLEL.has(link), `${c.id}: ${link} missing`);
+      // walk-through 2026-11-16 D-02: the employee time-clock card (hr1) opens attendance.html in PIN / QR mode; that exact
+      // query is the only one allowed, and the file must still exist
+      const file = c.id === "hr1" && link === "attendance.html?mode=employee" ? "attendance.html" : link;
+      assert.ok(fs.existsSync(path.join(ROOT, file)) || PARALLEL.has(link), `${c.id}: ${link} missing`);
     }
   }
 });

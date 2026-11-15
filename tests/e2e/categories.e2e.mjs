@@ -81,7 +81,8 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
           const want = D.PAGES[t.page];
           assert(t.st === want.st && t.tag.includes(want.st), `${t.page} status ${t.st}/${t.tag}`);
           assert(t.src.length === want.claims.length && t.src.every((s, i) => s === D.CLAIMS[want.claims[i]].src + ":" + D.SOURCE[D.CLAIMS[want.claims[i]].src].th), `${t.page} sources ${t.src}`);
-          assert(t.go === t.page + ".html", t.page + " link " + t.go);
+          // walk-through 2026-11-16 D-02: the attendance card's page link opens the PIN / QR time clock (exact href)
+          assert(t.go === (t.page === "attendance" ? "attendance.html?mode=employee" : t.page + ".html"), t.page + " link " + t.go);
         }
         assert(new RegExp("^" + c.pages.length + " เครื่องมือ").test(r.count), c.slug + " count " + r.count);
         if (c.slug === "marketing") assert(/ยังไม่เหมาะกับฝูงชนหนาแน่น/.test(r.tools.find(t => t.page === "crowd").text), "crowd dense-crowd limit");

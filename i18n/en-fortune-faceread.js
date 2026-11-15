@@ -66,6 +66,7 @@
     "faceread.eng.camFail": "Could not open the camera: {msg}",
     "faceread.eng.ended": "Camera signal lost — tap Start camera again",
     "faceread.eng.opening": "Opening the camera and loading the model...",
+    "faceread.eng.camOff": "Camera off — tap Start camera to continue, or upload a photo",
     "faceread.eng.camReady": "Camera ready — place your face in the oval, look straight ahead, then tap \"Read my face\"",
     "faceread.eng.otherFace": "Someone else entered the frame; keep only one person in view and try again",
     "faceread.eng.unstable": "Could not capture your face steadily yet; look straight at the camera, hold still and try again",
