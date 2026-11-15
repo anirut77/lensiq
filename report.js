@@ -140,14 +140,23 @@
     DEEP.forEach(function (tp, i) {
       var rs = [FA.compose(KB.baziFacts(B, tp, { age: age }), { lang: lang, seed: seed + 10 + i }), FA.compose(KB.taksaFacts(Tk, tp, { age: age }), { lang: lang, seed: seed + 20 + i }), FA.compose(KB.lek7Facts(L7, tp), { lang: lang, seed: seed + 30 + i })];
       deepRs = deepRs.concat(rs);
-      var paras = /** @type {string[]} */ ([]);
-      rs.forEach(function (r) { (r.sections || []).filter(function (/** @type {any} */ s) { return s.id === tp; }).forEach(function (/** @type {any} */ s) { (s.paragraphs || []).forEach(function (/** @type {string} */ q) { if (q && !used.has(q)) { used.add(q); paras.push(q); } }); }); });
-      if (paras.length) deepSecs.push({ id: tp, title: t("rp.deep." + tp, DEEP_TH[tp]), paragraphs: paras.slice(0, 8) });
+      var paras = /** @type {string[]} */ ([]), marks = /** @type {boolean[]} */ ([]); // marks: the composer's caution marks travel along
+      rs.forEach(function (r) {
+        (r.sections || []).filter(function (/** @type {any} */ s) { return s.id === tp; }).forEach(function (/** @type {any} */ s) {
+          (s.paragraphs || []).forEach(function (/** @type {string} */ q, /** @type {number} */ i) {
+            if (q && !used.has(q)) { used.add(q); paras.push(q); marks.push(!!(Array.isArray(s.caution) && s.caution[i])); }
+          });
+        });
+      });
+      if (paras.length) deepSecs.push({ id: tp, title: t("rp.deep." + tp, DEEP_TH[tp]), paragraphs: paras.slice(0, 8), caution: marks.slice(0, 8) });
     });
     if (deepSecs.length) parts.push({ id: "deep", title: t("rp.part.deep", "เจาะลึกรายหัวข้อ · 3 ศาสตร์ประกอบกัน"), headline: "", sections: deepSecs });
     // the next three months (month pillar vs the Day Master)
     var ahead = [0, 1, 2].map(function (k) { var mm = now.getMonth() + k, yy = now.getFullYear() + Math.floor(mm / 12); return monthEntry(B, b, yy, (mm % 12) + 1, t, o && o.monthName); });
-    parts.push({ id: "ahead", title: t("rp.part.ahead", "3 เดือนข้างหน้า"), headline: "", sections: ahead.map(function (x) { return { id: "m" + x.m, title: x.label + " (" + x.pillar + ") · " + x.title, paragraphs: [x.text, "→ " + x.tip].concat(x.fav ? [x.fav] : []) }; }) });
+    parts.push({ id: "ahead", title: t("rp.part.ahead", "3 เดือนข้างหน้า"), headline: "", sections: ahead.map(function (x) {
+      var ps = [x.text, "→ " + x.tip].concat(x.fav ? [x.fav] : []); // a "caution" month (the month's tone) is shown in full, never folded
+      return { id: "m" + x.m, title: x.label + " (" + x.pillar + ") · " + x.title, paragraphs: ps, caution: ps.map(function () { return x.tone === "caution"; }) };
+    }) });
     var plan30 = plan30Of(planPool([rb, rt, rl].concat(deepRs)), ahead[0], t);
     return {
       kind: "report_basic", lang: rb.lang || lang, title: t("rp.basic.title", "รายงานดวงพื้นฐาน"),
