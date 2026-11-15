@@ -42,3 +42,8 @@ a62f99430dfb5c6e048db46020b06395ba68400eabd70fa3667f70f350a47587  tests/unit/for
 d8dd96e03e88fdc7e5743da5006ae076bc86d50101a0377934ae91d926c39677  tests/e2e/fortune-paid-d1.e2e.mjs
 22118496a6a8b4e2aee1fa3714e25a134a1795ef885139121aa31c62acf7f9a6  tests/e2e/fortune-paid.e2e.mjs
 0da6463ccdd0804e38f7c25fc20c7a2aa0f2128bb9058f7e70e6aba480e0ba17  tests/e2e/fortune-paid-plan.e2e.mjs
+# RE-LOCK 2026-11-16 (11), test-setup consequences of review D1 after the first run (3 fails, all "not exercised" or "nothing to sell" preconditions keyed on 49 group offers, which D1 makes rarer): fortune-paid-plan.e2e.mjs treats "nothing to sell" as no offer of any kind and opens the preview from the full-reading offer, comparing its headings with the full offer heading list; fortune-paid.e2e.mjs (b) picks a page whose reading has a group offer; fortune-paid-sources.e2e.mjs uses the first reading (zodiac, then iching) with an offer panel. Every assertion on prices, headings, preview lines, made-for, ladder, crisis, links and placement is unchanged.
+# locked 2026-11-15T20:53:20Z (tools/eval-guard.mjs lock, 3 files)
+4ef87073b12e2918a66490e097ebaa92055eda49885cf367ff4231c7112d2eaa  tests/e2e/fortune-paid-sources.e2e.mjs
+c354ec1b09b2f88e6446eeac35db68148b278ec14184645f60c2b62a2aadef66  tests/e2e/fortune-paid.e2e.mjs
+a28c7d8e692fc0c78eb0fab58ffbec8bcfc9826c2944034727eb181e4452b12a  tests/e2e/fortune-paid-plan.e2e.mjs

@@ -129,3 +129,7 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   patterns fixed. Set (b): before A 85 / 86, B 12 / 12; after A 0 / 0, B 0 / 0 (2,700 readings). `fortune-paid` re-locks
   (8)–(9): affiliate label test; the seller-link global became `LQ_FORTUNE_SELLER_LINKS` (it collided with the back
   office citation list `LQ_FORTUNE_SOURCES`).
+- `fortune-paid-review-2026-11-16` (2026-11-16): the independent reviewer's fresh set (1,260 readings), imported by copying
+  its `locked.sha256` as is (`tools/eval-locks-import.mjs` stopped on an unrelated missing file in `pc-f/review`). Re-measure
+  only; never tuned against. The builder's 0 / 0 on `fortune-paid-fresh-2026-11-16b` came after tuning on that set and is not
+  an independent number. `fortune-paid` re-lock (10): review D1–D3 and the switch-off identity test, before the fix.

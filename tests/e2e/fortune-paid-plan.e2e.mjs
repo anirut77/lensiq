@@ -61,15 +61,21 @@ export default async function ({ base, launch, check }) {
             for (const o of offers) { const b = o.querySelector("[data-lq-buy]"), pr = window.LQPaid.PRICES.group;
               if (!b || !b.textContent.includes(String(pr))) out.bad.push("group button without its price: " + (b ? b.textContent : "none")); }
             // re-lock (6): a reading with nothing to sell has no panel and no price at all (locked rule (c) of fortune-paid.e2e.mjs)
-            if (!offers.length) { if (document.querySelector(".lq-paid-panel, .lq-paid-ladder")) out.bad.push("ladder without any offer"); return out; }
+            // re-lock (11), review D1: a reading can have paid depth (full / Plus offers) but no 49 group offer; "nothing to sell"
+            // now means no offer of any kind, and the preview is opened from the full-reading offer
+            const all = [...document.querySelectorAll("[data-lq-offer]")];
+            out.groups = all.length;
+            if (!all.length) { if (document.querySelector(".lq-paid-panel, .lq-paid-ladder")) out.bad.push("ladder without any offer"); return out; }
+            const full = document.querySelector('[data-lq-offer="full"]');
+            const paidHeads = full ? full.querySelectorAll("ul.lq-paid-heads li").length : 0;
             const lad = [...document.querySelectorAll(".lq-paid-panel .lq-paid-ladder li")].map(li => li.textContent);
             // re-lock (7): no 199 row while the page has no month-by-month content (zodiac / iching have none)
             if (lad.length !== 3 || ![49, 99, 149].every((n, i) => lad[i] && lad[i].includes(String(n)))) out.bad.push("panel ladder " + JSON.stringify(lad));
-            offers[0].querySelector("[data-lq-buy]").click();
+            (full || all[0]).querySelector("[data-lq-buy]").click();
             const pv = document.querySelector(".lq-paid-preview");
             if (!pv || !vis(pv)) { out.bad.push("no visible preview after the tap"); return out; }
             const heads = [...pv.querySelectorAll(".lq-pv-group")];
-            if (heads.length !== offers.length) out.bad.push("preview headings " + heads.length + " / groups " + offers.length);
+            if (heads.length !== paidHeads) out.bad.push("preview headings " + heads.length + " / paid groups " + paidHeads);
             for (const h of heads) { const t = h.querySelector(".lq-pv-title"), ls = h.querySelectorAll(".lq-pv-line");
               if (!t || !t.textContent.trim()) out.bad.push("preview heading empty"); if (ls.length < 1 || ls.length > 2) out.bad.push("preview lines " + ls.length); }
             const mf = pv.querySelector("[data-lq-made-for]");

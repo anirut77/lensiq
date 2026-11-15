@@ -15,15 +15,26 @@ const LIST = [OK, Object.assign({}, OK, { id: "s2", url: "http://example.com/x" 
   Object.assign({}, OK, { id: "s6", keys: ["chong"] }), Object.assign({}, OK, { id: "s8", note: T("ซื้อแล้วดวงดีขึ้นแน่นอน") })];
 const sections = n => `document.querySelectorAll(".fa-section").length >= ${n} && !document.querySelector(".fa-loading, [aria-busy=true] .fa-section")`;
 // re-lock (9): the sample entries go to LQ_FORTUNE_SELLER_LINKS (LQ_FORTUNE_SOURCES is the back office's citation list)
-async function open(browser, base, lang, flag) {
+// re-lock (11), review D1: fewer offers per reading now, so the flag-on check uses the first reading (zodiac, then iching, two
+// tries each) that has an offer panel; the assertions are unchanged
+async function openWithOffers(browser, base, lang) {
+  for (const pg of ["zodiac", "iching", "zodiac", "iching"]) {
+    const page = await open(browser, base, lang, true, pg);
+    if (await page.evaluate(`!!document.querySelector("[data-lq-offer]")`)) return page;
+    await page.close();
+  }
+  return open(browser, base, lang, true);
+}
+async function open(browser, base, lang, flag, pg) {
   const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`, "window.LENSIQ_FORTUNE_PAID = true;", `window.LQ_FORTUNE_SELLER_LINKS = ${S(LIST)};`];
   if (flag) init.push("window.LENSIQ_FORTUNE_SOURCES = true;");
   const page = await browser.newPage(null, { initScripts: init });
   await page.send("Emulation.setDeviceMetricsOverride", { width: 375, height: 800, deviceScaleFactor: 2, mobile: true });
-  await page.goto(`${base}/zodiac.html?nosw`);
+  await page.goto(`${base}/${pg || "zodiac"}.html?nosw`);
   await page.waitFor(`document.readyState === "complete" && document.documentElement.lang === ${S(HTML_LANG[lang])} && !!window.LQPaid`, 10000);
   await sleep(400);
-  await page.evaluate(() => { document.querySelector('input[name="zdAnimal"][value="6"]').click(); document.getElementById("zdForm").requestSubmit(); });
+  if (pg === "iching") await page.evaluate(() => { document.getElementById("icStart").click(); document.getElementById("icAuto").click(); });
+  else await page.evaluate(() => { document.querySelector('input[name="zdAnimal"][value="6"]').click(); document.getElementById("zdForm").requestSubmit(); });
   await page.waitFor(sections(3), 15000); await sleep(900);
   return page;
 }
@@ -34,7 +45,7 @@ export default async function ({ base, launch, check }) {
     await check("sources: only the valid entry, outside links, never in a group or next to a caution; off with the flag off; gone in the crisis state", async () => {
       const bad = [];
       for (const lang of LANGS) {
-        const page = await open(browser, base, lang, true);
+        const page = await openWithOffers(browser, base, lang);
         try {
           const r = await page.evaluate(`(() => { const out = [], blk = document.querySelector("[data-lq-sources]");
             if (!document.querySelector("[data-lq-offer]")) return ["no offers on this reading (test not exercised)"];

@@ -193,7 +193,8 @@ export default async function ({ base, launch, check }) {
         for (const p of ["zodiac", "astro", "dream", "tarot", "iching", "bazi"]) {
           const pg = await openPage(browser, base, p, lang, { on: true });
           await PAGES[p](pg); await sleep(800);
-          if (await pg.evaluate(`document.querySelectorAll("[data-lq-offer]").length > 0`)) { page = pg; break; }
+          // re-lock (11), review D1: a page whose reading has a 49 group offer (the check below needs one)
+          if (await pg.evaluate(`document.querySelectorAll('[data-lq-offer="group"]').length > 0`)) { page = pg; break; }
           await pg.close();
         }
         if (!page) { bad.push(lang + ": no reading with offers on any page (test not exercised)"); continue; }
