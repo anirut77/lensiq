@@ -24,7 +24,7 @@
     var K = KUA[n];
     items["kua." + n] = {
       n: "kua number " + n + " (the " + K.gt + " trigram, " + K.g + ")", s: "kua " + n,
-      o: ["your kua belongs to the " + K.gt + " trigram (" + K.g + "), which makes you a " + K.el + "-element member of the " + K.grp + " group",
+      o: ["your kua belongs to the " + K.gt + " trigram (" + K.g + "), which makes you " + (/^[aeiou]/.test(K.el) ? "an " : "a ") + K.el + "-element member of the " + K.grp + " group",
         K.dirs + " are the four directions that suit you best"],
       p: K.p,
       x: KX
@@ -53,7 +53,7 @@
     5: { n: "the Five Yellow star", nm: "Five Yellow",
       o: "the Five Yellow star marks the area that tradition asks you to keep the quietest all year",
       t: "this is a time to leave that area free of digging or building work and keep it neat and settled",
-      a: "skip renovating, hammering or moving heavy furniture in this area, and brighten it with white or gold accents" },
+      a: "avoid renovating, hammering or moving heavy furniture in this area, and brighten it with white or gold accents" },
     6: { n: "the Six White star", nm: "Six White",
       o: "the Six White star stands for helpful mentors, leadership and a good reputation for you",
       t: "this is a time when senior people and mentors are likely to back you",

@@ -20,9 +20,9 @@
   const FAM_TH = { red: "แดง", yellow: "เหลือง", cream: "ครีม", pink: "ชมพู", green: "เขียว", orange: "ส้ม", sky: "ฟ้า", navy: "น้ำเงิน",
     purple: "ม่วง", black: "ดำ", grey: "เทา", white: "ขาว", brown: "น้ำตาล" };
   const BHUMI_TH = { boriwan: "บริวาร", ayu: "อายุ", dech: "เดช", sri: "ศรี", mula: "มูละ", utsaha: "อุตสาหะ", montri: "มนตรี" };
-  const MEAN_TH = { boriwan: "ทีมงานและคนรอบข้าง", ayu: "อารมณ์ดี สดชื่น", dech: "การงาน ความน่าเชื่อถือ", sri: "โชคลาภ เงินทอง เสน่ห์",
+  const MEAN_TH = { boriwan: "ทีมงานและคนรอบข้าง", ayu: "อารมณ์ดีและความสดชื่น", dech: "การงาน ความน่าเชื่อถือ", sri: "โชคลาภ เงินทอง เสน่ห์",
     mula: "ความมั่นคง หลักฐาน", utsaha: "ความขยันและพลังทำงาน", montri: "ผู้ใหญ่เอ็นดู มีคนสนับสนุน" };
-  const GOAL_TH = { work: "การงาน", money: "การเงิน โชคลาภ", love: "ความรัก เสน่ห์", support: "ผู้ใหญ่อุปถัมภ์" };
+  const GOAL_TH = { work: "การงาน", money: "การเงินและโชคลาภ", love: "ความรัก เสน่ห์", support: "ผู้ใหญ่อุปถัมภ์" };
   const DAY_TH = ["วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"];
   const fam = k => T("lucky.fam." + k, FAM_TH[k] || k);
   const bhumiN = k => T("lucky.bh." + k, BHUMI_TH[k] || k);
@@ -226,7 +226,7 @@
     drawOverlay(null);
     $("#camEmpty").hidden = false;
     $("#startCam").disabled = false; $("#stopCam").disabled = true;
-    if (st.engine) $("#engine").textContent = T("lucky.stopped", "ปิดกล้องแล้ว ผลล่าสุดยังแสดงอยู่ ไม่มีภาพถูกเก็บไว้");
+    if (st.engine) $("#engine").textContent = T("lucky.stopped", "ปิดกล้องแล้ว ผลล่าสุดยังแสดงอยู่ ระบบไม่ได้เก็บภาพไว้");
   }
 
   // ---------- wiring ----------

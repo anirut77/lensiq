@@ -93,10 +93,11 @@
     opts = opts || {};
     var bp = T.birth.planet, items = [];
     var P0 = PLANET[bp];
+    var age0 = opts.age != null ? opts.age : new Date().getFullYear() - (T.y || new Date().getFullYear()), M0 = LC.mahaAt(T, Math.max(0, age0));
     items.push({ id: "tk.boriwan." + bp, group: "ดาวประจำวันเกิด", label: "ดาว" + P0.th + " (" + P0.day + ")", short: "ดาว" + P0.th, evidence: "ภูมิบริวาร", strength: 0.95, tone: "favourable", tags: ["personality", "social"],
       meanings: { overview: ["ดาวประจำวันเกิดของคุณคือดาว" + P0.th + " ซึ่งตำราให้ความหมายเรื่อง" + P0.q], personality: ["คุณมีพลังของ" + P0.q + "เป็นพื้นฐาน"], social: [BHUMI_TH.boriwan.m],
         // ภูมิบริวารในตำราทักษารวมถึงคู่ครองและคนในครอบครัว → ใช้ตอบเรื่องความรักได้ตรงตำรา
-        love: ["ในตำราทักษา ภูมิบริวารยังหมายถึงคู่ครองและคนในครอบครัว ความสัมพันธ์ใกล้ชิดจึงเติบโตได้ดีเมื่อคุณดูแลคนรอบตัวอย่างใส่ใจ"] } });
+        love: ["ในตำราทักษา ภูมิบริวารของคุณซึ่งมีดาว" + P0.th + "ยังหมายถึงคู่ครองและคนในครอบครัว ความสัมพันธ์ใกล้ชิดจึงเติบโตได้ดีเมื่อคุณดูแลคนรอบตัวอย่างใส่ใจ และคนที่เกิด" + PLANET[T.bhumi.montri].day + "มักเป็นผู้ใหญ่ที่คอยหนุนความสัมพันธ์ของคุณ ตอนนี้คุณอายุ " + Math.max(0, age0) + " ปี อยู่ในช่วงอายุ " + M0.from + "–" + M0.to + " ปีที่อยู่ใต้มหาทักษาดาว" + PLANET[M0.planet].th + " เป็นจังหวะที่ดีสำหรับการใส่ใจคนใกล้ชิด"] } });
     ["sri", "det", "montri", "utsaha", "ayu", "kalakini"].forEach(function (b, i) {
       var p = T.bhumi[b], B = BHUMI_TH[b], P = PLANET[p], m = {};
       m[B.tag] = [B.m.replace("ดาวนี้", "ดาว" + P.th) + " สีประจำดาวคือสี" + P.color];
@@ -109,7 +110,7 @@
     if (M.bhumi === "kalakini") mm.advice = ["ควรตัดสินใจเรื่องใหญ่อย่างใจเย็น ทำทีละขั้น และปรึกษาคนที่ไว้ใจก่อนลงมือ"];
     items.push({ id: "maha." + M.planet + "." + M.bhumi, group: "มหาทักษา (อายุจร)", label: "มหาทักษาดาว" + MP.th + " (ภูมิ" + MB.th + ")", short: "มหาทักษาช่วงนี้", evidence: "อายุ " + M.from + "–" + M.to + " ปี",
       strength: 0.9, tone: MB.tone, tags: Object.keys(mm), meanings: mm });
-    return { domain: "taksa", topic: topic || "overall", subject: {}, headline: "ดาว" + P0.th + " · ภูมิศรีคือดาว" + PLANET[T.bhumi.sri].th, items: items, extras: { luckyColors: [PLANET[T.bhumi.sri].color, PLANET[T.bhumi.det].color] } };
+    return { domain: "taksa", topic: topic || "overall", subject: {}, headline: "ดาว" + P0.th + " (ดาวประจำวันเกิด) · ภูมิศรี (ดาว" + PLANET[T.bhumi.sri].th + ")", items: items, extras: { luckyColors: [PLANET[T.bhumi.sri].color, PLANET[T.bhumi.det].color] } };
   }
 
   /* ---------- เลข 7 ตัว 9 ฐาน (ฐาน 1–4) ---------- */
@@ -143,7 +144,7 @@
       return { id: "l7." + i + "." + tone, group: "ฐานรวม", label: "ภพ" + H.th + " ได้ " + s[i], short: "ภพ" + H.th, evidence: "ช่องที่ " + (i + 1) + " ของฐานรวม",
         strength: Math.max(0.3, Math.min(0.95, 0.5 + (s[i] - mean) / 20)), tone: tone, tags: Object.keys(m), meanings: m };
     });
-    return { domain: "lek7", topic: topic || "overall", subject: {}, headline: "ฐานรวม " + s.join(" "), items: items, extras: {} };
+    return { domain: "lek7", topic: topic || "overall", subject: {}, headline: "ภพ" + HOUSE[hiI].th + " ซึ่งดูแลเรื่อง" + HOUSE[hiI].m, items: items, extras: {} };
   }
 
   /* ---------- กราฟชีวิต ----------
@@ -194,6 +195,7 @@
     love: { favourable: "ความสัมพันธ์อบอุ่นและเปิดใจได้ง่าย", neutral: "ความสัมพันธ์มั่นคงตามปกติ", caution: "ตำราชี้ว่าความสัมพันธ์อาจต้องการความเข้าใจมากขึ้น" },
     care: { favourable: "เป็นช่วงที่ดูแลตัวเองได้สม่ำเสมอและมีกำลังใจดี", neutral: "ควรรักษากิจวัตรดูแลตัวเองให้สม่ำเสมอ", caution: "ตำราชวนให้ใส่ใจการพักผ่อนและการดูแลใจเป็นพิเศษ" },
   };
+  var DIR_TH = { favourable: "อยู่ในช่วงขาขึ้น", neutral: "ทรงตัว", caution: "อยู่ในช่วงที่ควรเดินอย่างรอบคอบ" };
   var DOM_ACT = { work: "ลองแบ่งงานเป็นขั้นเล็ก ๆ และขอความช่วยเหลือเมื่อจำเป็น", money: "ควรวางแผนใช้จ่ายให้รัดกุม และกันเงินสำรองไว้", love: "ลองคุยกันด้วยน้ำเสียงนุ่มนวล ฟังให้มากกว่าพูด", care: "ควรนอนให้พอ ขยับร่างกายเบา ๆ และไปตรวจสุขภาพตามนัดเป็นประจำ" };
   /** facts ของกราฟชีวิต: ช่วงอายุปัจจุบัน + ช่วงถัดไป + จุดเปลี่ยนที่ใกล้ที่สุด (ทุกข้อบอกระบบที่มา) */
   function lifeFacts(B, T, W, C, nowAge, topic) {
@@ -204,7 +206,9 @@
       m[tag] = [DOM_LINE[d][tone]];
       if (tone === "caution") m.advice = [DOM_ACT[d]];
       if (k === 0) m.overview = [DOM_LINE[d][tone]];
-      items.push({ id: "lg.now." + d + "." + tone, group: "ช่วงอายุปัจจุบัน", label: DOM_TH[d] + "ช่วงอายุ " + cur + "–" + (cur + step), short: "ด้าน" + DOM_TH[d], evidence: "ระดับ " + S.avg[k] + "/100 จากทักษา 八字 และตะวันตก", strength: 0.9 - k * 0.04, tone: tone, tags: Object.keys(m), meanings: m });
+      // quality round 2026-11-16: "ช่วงอายุ 24–30 ปี เส้นความรักของคุณทรงตัว …" (a whole sentence, used as it is in Thai)
+      if (d !== "care") Object.keys(m).forEach(function (t) { if (t !== "advice") m[t] = m[t].map(function (x) { return "เส้น" + DOM_TH[d] + "ของคุณช่วงอายุ " + cur + "–" + (cur + step) + " ปี" + DIR_TH[tone] + " (ระดับ " + S.avg[k] + " จาก 100) " + x; }); });
+      items.push({ id: "lg.now." + d + "." + tone, group: "ช่วงอายุปัจจุบัน", label: DOM_TH[d] + "ช่วงอายุ " + cur + "–" + (cur + step), short: d === "care" ? "ด้าน" + DOM_TH[d] : "เส้น" + DOM_TH[d], evidence: "ระดับ " + S.avg[k] + "/100 จากทักษา 八字 และตะวันตก", strength: 0.9 - k * 0.04, tone: tone, plainTh: d !== "care", tags: Object.keys(m), meanings: m });
     });
     var MP = PLANET[S.maha.planet];
     items.push({ id: "lg.maha." + S.maha.planet, group: "ระบบทักษา", label: "มหาทักษาดาว" + MP.th, short: "มหาทักษา", evidence: "มหาทักษา · อายุ " + S.maha.from + "–" + S.maha.to, strength: 0.8, tone: BHUMI_TH[S.maha.bhumi].tone, tags: ["timing"],
@@ -212,11 +216,13 @@
     if (S.luck) { var G = GOD[S.luck.stemGod]; items.push({ id: "lg.luck." + S.luck.stemGod, group: "ระบบ 八字", label: "วัยจร " + S.luck.pillar.zh, short: "วัยจร", evidence: "八字 大运 · อายุ " + Math.round(S.luck.from) + "–" + Math.round(S.luck.to), strength: 0.78, tone: G.tone, tags: ["timing"], meanings: { timing: [G.t] } }); }
     var nx = C.turns.find(function (t) { return t.age > nowAge; });
     if (nx) items.push({ id: "lg.turn." + nx.sys, group: "จุดเปลี่ยนถัดไป", label: "จุดเปลี่ยนราวอายุ " + Math.round(nx.age) + " ปี", short: "จุดเปลี่ยนถัดไป", evidence: { taksa: "ทักษา", bazi: "八字", west: "ตะวันตก" }[nx.sys], strength: 0.72, tone: "neutral", tags: ["timing"],
-      meanings: { timing: [TURN_LINE[nx.sys]] } });
+      meanings: { timing: ["ราวอายุ " + Math.round(nx.age) + " ปี " + TURN_LINE[nx.sys]] }, plainTh: true });
     var nb = DOMS.map(function (d, k) { return N.avg[k] - S.avg[k]; }), up = nb.indexOf(Math.max.apply(null, nb));
     if (nb[up] > 3) items.push({ id: "lg.next." + DOMS[up], group: "ช่วงอายุถัดไป", label: DOM_TH[DOMS[up]] + "ช่วงอายุ " + (cur + step) + "–" + (cur + 2 * step), short: "ช่วงถัดไป", evidence: "ระดับ " + N.avg[up] + "/100 จากทักษา 八字 และตะวันตก", strength: 0.6, tone: "favourable", tags: ["timing"],
       meanings: { timing: ["ในช่วงอายุถัดไป ด้าน" + DOM_TH[DOMS[up]] + "มีแนวโน้มดีขึ้นกว่าช่วงนี้"] } });
-    return { domain: "lifegraph", topic: topic || "overall", subject: {}, headline: "กราฟชีวิตช่วงอายุ " + cur + "–" + (cur + step) + " ปี", items: items, extras: {} };
+    // quality round 2026-11-16: lead with the age band, its Taksa period and its direction (not the same line for everyone)
+    var mean = Math.round((S.avg[0] + S.avg[1] + S.avg[2]) / 3);
+    return { domain: "lifegraph", topic: topic || "overall", subject: {}, headline: "ช่วงอายุ " + cur + "–" + (cur + step) + " ปีของคุณอยู่ใต้มหาทักษาดาว" + MP.th + " และภาพรวม" + DIR_TH[TONE_OF(mean)], items: items, extras: {} };
   }
   var TURN_LINE = {
     taksa: "ตามทักษา จุดนี้คือการเปลี่ยนดาวมหาทักษา จังหวะชีวิตจะเปลี่ยนโทน ควรทบทวนเป้าหมายก่อนเข้าช่วงใหม่",

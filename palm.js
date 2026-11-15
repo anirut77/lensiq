@@ -686,7 +686,8 @@
     add("fingerdom." + fdm.id, "นิ้วเด่น", FD.label, fdm.id === "balanced" ? "นิ้วทั้งสี่ยาวใกล้ค่าทั่วไป" : tpl(EV.fingerDom, { finger: FD.finger, pct: fx(hm.fingers[fdm.finger] * 100, 0), rel: rel(fdm.z, "ยาว", "สั้น") }),
       fdm.id === "balanced" ? 0.3 : clamp(0.36 + 0.08 * fdm.z, 0.36, 0.64));
     var spc = spreadCat(hm);
-    if (spc !== "na") add("spread." + spc, "ระยะห่างนิ้ว", KB.spread[spc].label, tpl(EV.spread, { deg: fx(hm.spread, 0) }), spc === "medium" ? 0.24 : 0.42);
+    // quality round 2026-11-16: "นิ้วกางห่างกันเฉลี่ย 0 องศา" reads as a fault; a spread that rounds to 0 is "fingers held together"
+    if (spc !== "na") add("spread." + spc, "ระยะห่างนิ้ว", KB.spread[spc].label, Math.round(hm.spread) < 1 ? "นิ้วของคุณชิดกัน" : tpl(EV.spread, { deg: fx(hm.spread, 0) }), spc === "medium" ? 0.24 : 0.42);
     var minor = opt.minor || {};
     Object.keys(KB.minor).forEach(function (k) {
       if (minor[k] !== true && minor[k] !== false) return;

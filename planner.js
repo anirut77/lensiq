@@ -15,7 +15,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var WD_TH = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์", "พุธกลางคืน"];
   var ANIMAL_TH = ["ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง", "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน"];
   var MONTH_TH = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-  var EVENT_TH = { move: "ขึ้นบ้านใหม่", shop: "เปิดร้าน / กิจการ", work: "เริ่มงานใหม่" };
+  var EVENT_TH = { move: "ขึ้นบ้านใหม่", shop: "เปิดร้านหรือกิจการ", work: "เริ่มงานใหม่" };
   var wdName = function (p) { return T("pl.wd." + p, WD_TH[p]); };
   var animalName = function (a) { return T("pl.an." + a, ANIMAL_TH[a]); };
   var bhumiName = function (b) { return T("pl.bh." + b, K.bhumi[b].th); };

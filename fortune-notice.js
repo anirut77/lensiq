@@ -19,13 +19,22 @@
   const langOf = l => (l === "en" || l === "zh" ? l : "th");
   // Thai has no sentence mark: cut only at a single space, never before a word that continues the clause, never after one
   // that leads into the next word.
-  const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน|จาก|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|[\d(/–\-)])/;
-  const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|[(/–\-])$/;
+  const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน(?!ฐานะ)|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|เช่น|ได้แก่|เสริมด้วย|[\d(/–\-)])/;
+  // "จาก…" after a space opens a new clause ("…ไม่ชอบเล่นเกมหัวใจ ‖ จากธาตุน้ำ คุณ…") unless a verb before it takes it ("ออกมา จาก…")
+  const TH_FROM = /^จาก/, TH_FROM_VERB = /(?:มา|ได้|ออก|ห่าง|พ้น|แยก|หลุด|กลับ|รับ|ไกล)$/;
+  const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|ๆ|[(/–\-])$/;
+  // quality round 2026-11-16 (R3): never between a number and its unit, inside a list ("อำนาจ ‖ บารมี และ…"), or right after a
+  // lead that still needs its clause ("จากราศีอาทิตย์ ‖", "เรื่องการงาน ‖")
+  const TH_UNIT = /^(?:ปี|เท่า|%|องศา|คน|วัน|เดือน|ครั้ง|ข้อ|ชั่วโมง|นาที|บาท|ใบ|ตัว|ดวง|ฐาน|ภพ|ช่วง|สัปดาห์|ขวบ)/;
+  const TH_LIST_NEXT = /^\S{1,14} (?:\S{1,14} )?(?:และ|หรือ)\S/, TH_LEAD_PREV = /(?:^|\s)(?:สำหรับ|จาก|ดูที่|ส่วน|เรื่อง|ด้าน)\S+$/;
   function cutsTh(p) {
     const out = [];
     for (let i = p.indexOf(" "); i >= 0; i = p.indexOf(" ", i + 1)) {
       if (p[i + 1] === " " || p[i - 1] === " ") continue;
-      out.push({ at: i, ok: !TH_CONT_NEXT.test(p.slice(i + 1)) && !TH_CONT_PREV.test(p.slice(0, i)) });
+      const a = p.slice(0, i), b = p.slice(i + 1);
+      // soft: none of the hard breaks (after ๆ, number|unit, inside a list, after a lead + noun); ok: soft and a clean clause boundary
+      const soft = !/ๆ$/.test(a) && !(/\d$/.test(a) && TH_UNIT.test(b)) && !(TH_LIST_NEXT.test(b) && !/[.!?)]$/.test(a)) && !TH_LEAD_PREV.test(a) && !/^(?:เช่น|ได้แก่|เสริมด้วย|และ|หรือ)/.test(b);
+      out.push({ at: i, soft, ok: soft && !TH_CONT_NEXT.test(b) && !TH_CONT_PREV.test(a) && !(TH_FROM.test(b) && TH_FROM_VERB.test(a)) });
     }
     return out;
   }

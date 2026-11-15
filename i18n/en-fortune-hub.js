@@ -3,7 +3,7 @@
 (function (root) {
   "use strict";
   var dict = { en: {
-    "fortune.hub.lead": "The most popular readings from Thai, Chinese and Western traditions — face reading, palm reading, birth-date horoscope, tarot, Siam Si, I Ching, Chinese zodiac, Western astrology, dream interpretation, feng shui and lucky numbers. Results become shareable cards instantly, helping booths draw traffic and spark brand conversation.",
+    "fortune.hub.lead": "The most popular readings from Thai, Chinese and Western traditions — face reading, palm reading, birth-date horoscope, tarot, Siam Si, I Ching, Chinese zodiac, Western astrology, dream interpretation, feng shui and lucky numbers. Each result is saved as a card you can share right away.",
     "fortune.hub.guideLead": "Not sure where to start? Choose by goal. Every reading also lets you pick a love, career or money theme.",
     "fortune.hub.goal.love": "💞 Love",
     "fortune.hub.goal.work": "💼 Career",

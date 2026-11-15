@@ -212,7 +212,7 @@
     var five = Object.keys(chart).filter(function (p) { return chart[p] === 5; })[0];
     var two = Object.keys(chart).filter(function (p) { return chart[p] === 2; })[0];
     items.push({
-      id: "year.center." + yc, group: "ดาวประจำปี", label: "ปี " + mi.solarYear + " ดาว " + yc + " " + YS.th + " เข้าศูนย์กลาง", short: "ดาวประจำปี",
+      id: "year.center." + yc, group: "ดาวประจำปี", label: "ปี " + mi.solarYear + " ดาว" + YS.th + " (" + YS.cn + ") เข้าศูนย์กลาง", short: "ดาวประจำปี",
       evidence: "ผังดาวเหินรายปี (ลั่วซู) · ปีเริ่มที่ลี่ชุน", strength: 0.8, tags: ["overview", "timing"],
       // restrain (fortune-restrain.js contract): the meaning areas that restrain or warn, or "all" (label + every meaning, in
       // every language). Chart-dependent here: stars the tradition reads as needing care (KB.flying[n].care: 2, 3, 5, 7) and,
@@ -231,7 +231,7 @@
       }
     });
     items.push({
-      id: "month.center." + mi.center, group: "ดาวประจำเดือน", label: "เดือน" + KB.monthNames[mi.k].replace(/\s*\([^)]*\)/, "") + " ดาว " + mi.center + " " + MS.th + " เข้าศูนย์กลาง", short: "ดาวประจำเดือน",
+      id: "month.center." + mi.center, group: "ดาวประจำเดือน", label: "เดือน" + KB.monthNames[mi.k].replace(/\s*\([^)]*\)/, "") + " ดาว" + MS.th + " (" + MS.cn + ") เข้าศูนย์กลาง", short: "ดาวประจำเดือน",
       evidence: "เดือนสุริยคติจีน (เริ่มตามสารทจีน 12 จุด)", strength: 0.5, tags: ["timing"],
       restrain: careStar(mi.center) ? "all" : null,
       meanings: { timing: [
@@ -259,13 +259,13 @@
       items.push({ id: "dir.shengqi", group: "ทิศมงคล", label: "ทิศ" + dirTh(T.shengqi) + " (เซิงชี่)", short: "ทิศเซิงชี่", strength: 0.9, tags: ["work", "money"],
         meanings: {
           work: ["หันหน้าโต๊ะทำงานไปทาง" + dirTh(T.shengqi) + " (เซิงชี่ " + s1.shengqi.cn + ") ช่วยเสริมความรู้สึกกระตือรือร้นและกล้าเริ่มสิ่งใหม่", "ทิศพลังก้าวหน้าของคุณคือ" + dirTh(T.shengqi) + " เหมาะกับการนั่งวางแผนงานหรือประชุมสำคัญ"],
-          money: ["ประตูหรือมุมทำงานที่เปิดรับทาง" + dirTh(T.shengqi) + " ตามตำราเชื่อว่าช่วยให้โอกาสใหม่ๆ ไหลเข้ามา", "ลองจัดมุมวางแผนการเงินให้หันไปทาง" + dirTh(T.shengqi) + " แล้วตั้งเป้าเล็กๆ ที่ทำได้จริง"]
+          money: ["ประตูหรือมุมทำงานที่เปิดรับทาง" + dirTh(T.shengqi) + " ตามตำราเชื่อว่าช่วยให้โอกาสใหม่ ๆ ไหลเข้ามา", "ลองจัดมุมวางแผนการเงินให้หันไปทาง" + dirTh(T.shengqi) + " แล้วตั้งเป้าเล็ก ๆ ที่ทำได้จริง"]
         } });
       items.push({ id: "dir.tianyi", group: "ทิศมงคล", label: "ทิศ" + dirTh(T.tianyi) + " (เทียนอี)", short: "ทิศเทียนอี", strength: 0.75, tags: ["advice"],
         meanings: { advice: ["หัวเตียงที่ชี้ไปทาง" + dirTh(T.tianyi) + " (เทียนอี พลังฟื้นฟู) ช่วยให้รู้สึกได้พักผ่อนเต็มที่", "ทิศ" + dirTh(T.tianyi) + "เป็นทิศพลังฟื้นฟูของคุณ เหมาะกับมุมพักผ่อนหรือโต๊ะอาหาร"] } });
       items.push({ id: "dir.yannian", group: "ทิศมงคล", label: "ทิศ" + dirTh(T.yannian) + " (เหยียนเหนียน)", short: "ทิศเหยียนเหนียน", strength: 0.7, tags: ["love", "social"],
         meanings: {
-          love: ["ทิศ" + dirTh(T.yannian) + " (เหยียนเหนียน) คือทิศความสัมพันธ์ หัวเตียงคู่หรือมุมนั่งคุยที่หันทางนี้ช่วยให้บรรยากาศอบอุ่น", "ถ้าอยากให้บ้านมีบทสนทนาดีๆ ลองจัดโซฟาหันไปทาง" + dirTh(T.yannian)],
+          love: ["ทิศ" + dirTh(T.yannian) + " (เหยียนเหนียน) คือทิศความสัมพันธ์ หัวเตียงคู่หรือมุมนั่งคุยที่หันทางนี้ช่วยให้บรรยากาศอบอุ่น", "ถ้าอยากให้บ้านมีบทสนทนาดี ๆ ลองจัดโซฟาหันไปทาง" + dirTh(T.yannian)],
           social: ["มุมรับแขกที่หันไปทาง" + dirTh(T.yannian) + " ตามตำราช่วยเรื่องมิตรภาพและความร่วมมือ", "โต๊ะประชุมที่หันทาง" + dirTh(T.yannian) + " เหมาะกับการคุยตกลงร่วมกัน"]
         } });
       items.push({ id: "dir.fuwei", group: "ทิศมงคล", label: "ทิศ" + dirTh(T.fuwei) + " (ฟูเว่ย)", short: "ทิศฟูเว่ย", strength: 0.6, tags: ["personality", "advice"],
@@ -300,7 +300,7 @@
       var A = r.advice, S = A.starInfo, R = KB.rooms[r.room], B = A.bagua;
       var tag = B.tag === "personality" ? "personality" : B.tag;
       var m = {
-        timing: [R.th + "อยู่โซน" + dirTh(A.dir) + " ปีนี้ดาว " + A.star + " " + S.th + " ประจำโซน — " + S.theme, "ปีนี้" + R.th + "ได้ดาว " + A.star + " " + S.th + " (" + S.cn + ") " + (S.care ? "ตำราแนะนำให้จัดให้สงบ ลดการรบกวน" : "ถือเป็นโซนที่เสริมได้")],
+        timing: [R.th + "อยู่โซน" + dirTh(A.dir) + " ปีนี้ดาว" + S.th + " (" + S.cn + ") ประจำโซน — " + S.theme, "ปีนี้" + R.th + "ได้ดาว" + S.th + " (" + S.cn + ") " + (S.care ? "ตำราแนะนำให้จัดให้สงบ ลดการรบกวน" : "ถือเป็นโซนที่เสริมได้")],
         advice: [R.th + " (โซน" + dirTh(A.dir) + "): " + S.cure, "สำหรับ" + R.th + " " + S.cure]
       };
       m[tag] = (m[tag] || []).concat(["โซน" + dirTh(A.dir) + "ตามปากั้วคือเรื่อง" + B.area + " " + R.th + "ที่อยู่ตรงนี้ลองเติมสี" + B.colors.map(function (c) { return c[0]; }).join("/") + " หรือ " + B.items]);
@@ -612,7 +612,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderCompassText() {
     $("#fsHelpDoor").textContent = T("fengshui.compass.door", KB.compass.door); $("#fsHelpDesk").textContent = T("fengshui.compass.desk", KB.compass.desk); $("#fsHelpBed").textContent = T("fengshui.compass.bed", KB.compass.bed);
     $("#fsCalib").textContent = T("fengshui.compass.calib", KB.compass.calib); $("#fsManualHint").textContent = T("fengshui.compass.desktop", KB.compass.desktop);
-    if (heading == null) { $("#fsHeadingDir").textContent = T("fengshui.ar.notStarted", "ยังไม่เริ่ม"); $("#fsHeadingInfo").innerHTML = '<span class="fs-tag">' + esc(T("fengshui.ar.startHint", "กด เริ่มเข็มทิศ แล้วหันโทรศัพท์ไปรอบๆ")) + "</span>"; }
+    if (heading == null) { $("#fsHeadingDir").textContent = T("fengshui.ar.notStarted", "ยังไม่เริ่ม"); $("#fsHeadingInfo").innerHTML = '<span class="fs-tag">' + esc(T("fengshui.ar.startHint", "กด เริ่มเข็มทิศ แล้วหันโทรศัพท์ไปรอบ ๆ")) + "</span>"; }
   }
   renderCompassText();
 

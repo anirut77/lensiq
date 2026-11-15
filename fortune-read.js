@@ -20,13 +20,22 @@
   const langOf = l => (l === "en" || l === "zh" ? l : "th");
   // Thai has no sentence mark: cut only at a single space, never before a word that continues the clause, never after one
   // that leads into the next word.
-  const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน|จาก|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|[\d(/–\-)])/;
-  const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|[(/–\-])$/;
+  const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน(?!ฐานะ)|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|เช่น|ได้แก่|เสริมด้วย|[\d(/–\-)])/;
+  // "จาก…" after a space opens a new clause ("…ไม่ชอบเล่นเกมหัวใจ ‖ จากธาตุน้ำ คุณ…") unless a verb before it takes it ("ออกมา จาก…")
+  const TH_FROM = /^จาก/, TH_FROM_VERB = /(?:มา|ได้|ออก|ห่าง|พ้น|แยก|หลุด|กลับ|รับ|ไกล)$/;
+  const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|ๆ|[(/–\-])$/;
+  // quality round 2026-11-16 (R3): never between a number and its unit, inside a list ("อำนาจ ‖ บารมี และ…"), or right after a
+  // lead that still needs its clause ("จากราศีอาทิตย์ ‖", "เรื่องการงาน ‖")
+  const TH_UNIT = /^(?:ปี|เท่า|%|องศา|คน|วัน|เดือน|ครั้ง|ข้อ|ชั่วโมง|นาที|บาท|ใบ|ตัว|ดวง|ฐาน|ภพ|ช่วง|สัปดาห์|ขวบ)/;
+  const TH_LIST_NEXT = /^\S{1,14} (?:\S{1,14} )?(?:และ|หรือ)\S/, TH_LEAD_PREV = /(?:^|\s)(?:สำหรับ|จาก|ดูที่|ส่วน|เรื่อง|ด้าน)\S+$/;
   function cutsTh(p) {
     const out = [];
     for (let i = p.indexOf(" "); i >= 0; i = p.indexOf(" ", i + 1)) {
       if (p[i + 1] === " " || p[i - 1] === " ") continue;
-      out.push({ at: i, ok: !TH_CONT_NEXT.test(p.slice(i + 1)) && !TH_CONT_PREV.test(p.slice(0, i)) });
+      const a = p.slice(0, i), b = p.slice(i + 1);
+      // soft: none of the hard breaks (after ๆ, number|unit, inside a list, after a lead + noun); ok: soft and a clean clause boundary
+      const soft = !/ๆ$/.test(a) && !(/\d$/.test(a) && TH_UNIT.test(b)) && !(TH_LIST_NEXT.test(b) && !/[.!?)]$/.test(a)) && !TH_LEAD_PREV.test(a) && !/^(?:เช่น|ได้แก่|เสริมด้วย|และ|หรือ)/.test(b);
+      out.push({ at: i, soft, ok: soft && !TH_CONT_NEXT.test(b) && !TH_CONT_PREV.test(a) && !(TH_FROM.test(b) && TH_FROM_VERB.test(a)) });
     }
     return out;
   }
@@ -151,7 +160,7 @@
     zh: { overview: "总览", personality: "性格", work: "事业", money: "财运", love: "感情", social: "人际", timing: "时机", health: "健康", advice: "建议", brief: "其他" },
   };
   const MAXLEN = { th: 220, en: 320, zh: 110 };
-  const OVERVIEW_MAX = { th: 100, en: 120, zh: 46 }; // owner item 5: about 3 lines at 375 px
+  const OVERVIEW_MAX = { th: 100, en: 140, zh: 50 }; // owner item 5: about 3 lines at 375 px (EN / ZH: room for one whole sentence, quality round 2026-11-16)
 
   /* ---------- A2: cut a paragraph into short parts (rejoined with SEP[lang] = the paragraph, word for word) ---------- */
   function split(p, lang, max) {
@@ -186,15 +195,25 @@
     if (p.length <= max) return [p];
     let at = -1;
     if (lang === "zh") {
+      // quality round 2026-11-16 (R3): a short first sentence is better than a cut after a comma
       const re = /[。！？；]/g; let m; while ((m = re.exec(p)) && m.index < max) at = m.index + 1;
-      if (at < max * 0.4) { const re2 = /[，、]/g; let m2; while ((m2 = re2.exec(p)) && m2.index < max) at = Math.max(at, m2.index + 1); }
+      if (at <= 0) { const re2 = /[，、]/g; let m2; while ((m2 = re2.exec(p)) && m2.index < max) at = Math.max(at, m2.index + 1); }
       if (at <= 0) return split(p, lang);
       return [p.slice(0, at)].concat(split(p.slice(at), lang));
     }
     const cuts = lang === "en" ? cutsEn(p) : cutsTh(p);
     const okc = cuts.filter(c => c.ok && c.at <= max && c.at >= max * 0.4);
-    let c = okc[okc.length - 1];
+    // quality round 2026-11-16 (R3): then a shorter clean cut, then (Thai) the first clean cut a little past the limit
+    let c = okc[okc.length - 1] || cuts.filter(x => x.ok && x.at <= max && x.at >= 12).pop() || (lang === "th" ? cuts.find(x => x.ok && x.at > max && x.at <= max * 1.25) : null);
+    // Thai: a clean cut that leaves only a few words visible moves on to the next clean cut a little past the limit
+    if (c && lang === "th" && c.at < 60) { const nx = cuts.find(x => x.ok && x.at > max && x.at <= max * 1.25); if (nx) c = nx; }
+    // a paragraph a little longer than the limit with no clean cut is shown whole (quality round 2026-11-16)
+    if (!c && p.length <= max * 1.25) return [p];
+    // English: one whole first sentence a little past the limit rather than a cut inside it (quality round 2026-11-16)
+    if (!c && lang === "en") { const s1 = cuts.find(x => x.at > max && x.at <= max * 1.25); if (s1) c = s1; }
     if (!c && lang === "en") { const cm = [...p.matchAll(/, /g)].map(m => m.index + 1).filter(i => i <= max && i >= max * 0.4); if (cm.length) c = { at: cm[cm.length - 1] }; }
+    // Thai: no clean cut near the limit → a cut that at least keeps a word group together (never after ๆ, a number, a lead)
+    if (!c && lang === "th") c = cuts.filter(x => x.soft && x.at <= max && x.at >= 12).pop() || cuts.find(x => x.soft && x.at > max && x.at <= max * 1.6);
     if (!c) { const any = lang === "en" ? [...p.matchAll(/ /g)].map(m => ({ at: m.index })) : cuts; c = any.filter(x => x.at <= max && x.at >= 12).pop(); }
     if (!c) return split(p, lang);
     at = c.at;

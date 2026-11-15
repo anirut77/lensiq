@@ -96,6 +96,23 @@
   var DEEP_TH = /** @type {Record<string, string>} */ ({ work: "การงานและการเรียน · มุมมองจาก 3 ศาสตร์", money: "การเงิน · มุมมองจาก 3 ศาสตร์", love: "ความรักและความสัมพันธ์ · มุมมองจาก 3 ศาสตร์" });
   /** Paragraphs of every part already in the report (so the deep-dive never repeats them). @param {any[]} parts */
   function usedParas(parts) { var s = new Set(); parts.forEach(function (p) { p.sections.forEach(function (/** @type {any} */ x) { x.paragraphs.forEach(function (/** @type {string} */ q) { s.add(q); }); }); }); return s; }
+  /* quality round 2026-11-16: one step of advice (or the same closing line) appears at most once in the whole report; a paragraph
+     that would be left empty and the sections themselves stay (TH / EN / ZH keep the same sections) */
+  var ADV_UNIT = /ข้อแนะนำทั่วไป|วิธีปรับตามตำรา|สิ่งที่ควรทำ|สิ่งที่ทำได้|เคล็ด|Try |try |建议|不妨|调整的方法/;
+  /** @param {any[]} parts @param {string} lang */
+  function dropRepeats(parts, lang) {
+    var seen = new Set(), min = lang === "zh" ? 10 : 30;
+    parts.forEach(function (p) {
+      p.sections.forEach(function (/** @type {any} */ s) {
+        s.paragraphs = s.paragraphs.map(function (/** @type {string} */ q) {
+          var units = lang === "zh" ? q.split(/(?<=[。！？])/) : lang === "en" ? q.split(/(?<=[.!?]) (?=[A-Z"“])/) : q.split(/ (?=ข้อแนะนำทั่วไป|วิธีปรับตามตำรา|สิ่งที่ควรทำ|สิ่งที่ทำได้)/);
+          var out = units.filter(function (/** @type {string} */ u) { var k = u.trim(); if (k.length < min || !ADV_UNIT.test(k)) return true; if (seen.has(k)) return false; seen.add(k); return true; });
+          return out.join(lang === "zh" ? "" : " ").trim() || q;
+        });
+      });
+    });
+    return parts;
+  }
   /** Plan items of several composed readings, de-duplicated by text. @param {any[]} rs */
   function planPool(rs) {
     var seen = new Set(), out = /** @type {any[]} */ ([]);
@@ -112,6 +129,8 @@
       var items = pool.slice(w * 2, w * 2 + 2);
       if (!items.length && pool.length) items = [pool[w % pool.length]];
       if (w === 2 && month) items = items.concat([{ for: t("rp.plan30.month", "เดือนนี้"), t: month.tip }]);
+      // a Taksa term the reader may not know is named with what it means ("จุดที่ควรใส่ใจ (ภูมิกาลกิณี)")
+      items = items.map(function (/** @type {any} */ x) { return x && /กาลกิณี/.test(x.for || "") && !/\(/.test(x.for) ? Object.assign({}, x, { for: "จุดที่ควรใส่ใจ (" + x.for + ")" }) : x; });
       weeks.push({ n: w + 1, label: t("rp.week", "สัปดาห์ที่ {n}", { n: w + 1 }), items: items });
     }
     weeks.push({ n: 4, label: t("rp.week", "สัปดาห์ที่ {n}", { n: 4 }), items: [{ for: t("rp.plan30.reviewFor", "ทบทวน"), t: t("rp.plan30.review", "จดสั้น ๆ ว่าข้อไหนทำได้และรู้สึกอย่างไร เลือกข้อที่ได้ผลที่สุดทำต่อในเดือนถัดไป และปล่อยข้อที่ไม่เหมาะกับคุณ") }] });
@@ -157,6 +176,7 @@
       var ps = [x.text, "→ " + x.tip].concat(x.fav ? [x.fav] : []); // a "caution" month (the month's tone) is shown in full, never folded
       return { id: "m" + x.m, title: x.label + " (" + x.pillar + ") · " + x.title, paragraphs: ps, caution: ps.map(function () { return x.tone === "caution"; }) };
     }) });
+    dropRepeats(parts, lang);
     var plan30 = plan30Of(planPool([rb, rt, rl].concat(deepRs)), ahead[0], t);
     return {
       kind: "report_basic", lang: rb.lang || lang, title: t("rp.basic.title", "รายงานดวงพื้นฐาน"),

@@ -58,7 +58,7 @@ const RULES = {
 //   became an error; this is the last raise — the next split must bring it down), palm 1830 -> 1820,
 //   studio-core 1800 -> 1790, store 1650 -> 1670 (round 12 work in progress), faceread 1550 -> 1540, qc 1550 -> 1540.
 export const SIZE_CAPS = {
-  "fortune-ai.js": 3720,
+  "fortune-ai.js": 3620, // 2026-11-16 fortune quality round: lint checks moved to fortune-lint.js (3720 -> 3620)
   "palm.js": 1820,
   "studio-core.js": 1790,
   "store.js": 1670,

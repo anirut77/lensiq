@@ -145,8 +145,9 @@
       if (early >= Math.max(1, half - 1) && late === 0) pat.push(pickR(r, P.flow.rising));
       else if (late >= Math.max(1, half - 1) && early === 0) pat.push(pickR(r, P.flow.settling));
     }
-    items.push({ id: "spread.pattern", group: "ภาพรวมของไพ่", label: "รูปแบบของไพ่ทั้งชุด", short: "ไพ่ทั้งชุด", evidence: S.th + " มีไพ่ชุดใหญ่ " + Y.majors + " ใบ" + (Y.reversed ? " กลับหัว " + Y.reversed + " ใบ" : " ไม่มีใบกลับหัว"),
-      strength: 0.97, tags: ["overview", "advice"], meanings: { overview: pat, advice: P.topicClose[topic].slice() } });
+    // quality round 2026-11-16: a one-card draw has no "pattern of the spread" to read ("ไพ่ 1 ใบ มีไพ่ชุดใหญ่ 0 ใบ…"): advice only
+    items.push({ id: "spread.pattern", group: "ภาพรวมของไพ่", label: "รูปแบบของไพ่ทั้งชุด", short: "ไพ่ทั้งชุด", evidence: n === 1 ? S.th : S.th + " มีไพ่ชุดใหญ่ " + Y.majors + " ใบ" + (Y.reversed ? " กลับหัว " + Y.reversed + " ใบ" : " ไม่มีใบกลับหัว"),
+      strength: 0.97, tags: n > 1 ? ["overview", "advice"] : ["advice"], meanings: n > 1 ? { overview: pat, advice: P.topicClose[topic].slice() } : { advice: P.topicClose[topic].slice() } });
     // 2) ไพ่แต่ละตำแหน่ง — ไม่ใช้กรอบประโยคเดียวกันซ้ำกับไพ่ใบอื่นในคำทำนายเดียว
     var usedT = {}, tCount = 0, tOff = Math.floor(r() * TIME_TPL.length);
     var uniq = function (arr, ids) { var out = arr.filter(function (x, j) { return !ids[j] || !usedT[ids[j]]; }); ids.forEach(function (t) { if (t) usedT[t] = 1; }); return out; };
@@ -182,13 +183,17 @@
     return { domain: "tarot", topic: TOPIC_FA[topic] || "overall", subject: nick && nick.length <= 12 && !/\s/.test(nick) ? { nickname: nick } : {},
       headline: Y.headline, items: items };
   }
+  /* quality round 2026-11-16: what to do for each slip (TH, the same advice as i18n/en-kb-siamsee.js "a" and the Chinese data);
+     the slip's state of mind ("ใจฟื้นฟูและมีพลัง") is a state, not advice; it stays in the slip data shown on the page */
+  var SIAMSEE_ADV_TH = ["รักษากำลังใจให้สดใส และมองหาด้านดีของทุกเรื่อง", "อดทนและมีความหวัง ทำทีละขั้นอย่างสม่ำเสมอ", "ทุ่มพลังให้กับสิ่งที่อยากทำอย่างเต็มที่", "ฝึกใจให้สงบ และทำทีละอย่าง", "หาเวลาคุยกับเพื่อนให้มากขึ้น ให้ความอบอุ่นของมิตรช่วยเติมใจ", "รักษาความร่าเริง และใจดีกับคนรอบตัว", "ปล่อยวางความคาดหวังว่าทุกอย่างต้องเป็นแบบเดิม ให้ใจได้เบาลง", "แบ่งปันน้ำใจให้คนรอบตัวอีกนิด", "เชื่อมั่นในตัวเอง และรักษาความก้าวหน้าไว้", "รักษาใจให้สงบและมั่นคง", "ให้เวลาตัวเองคิดให้รอบด้าน ไม่ต้องรีบ", "ชื่นชมความก้าวหน้าของตัวเอง แม้จะเป็นก้าวเล็ก ๆ", "รักษาความกตัญญูและความอ่อนน้อม", "เปิดใจรับมุมมองใหม่ ๆ", "พักใจสักระยะ ให้ตัวเองได้ผ่อนคลาย", "ยึดมั่นในคุณค่าที่คุณให้ความสำคัญ", "พักเติมพลัง ให้ใจกลับมามีแรงอีกครั้ง", "ให้รางวัลเล็ก ๆ กับตัวเอง", "ใช้เวลาทำความรู้จักตัวเองให้มากขึ้น", "เห็นคุณค่าของความอบอุ่นและความมั่นคงรอบตัว", "ภูมิใจในความพยายามของตัวเอง", "ทำใจให้อ่อนโยน และปล่อยวางความคาดหวังที่เข้มงวดเกินไป", "เปิดใจให้ความหวังเข้ามา", "กันเวลาให้ใจได้พักอย่างสม่ำเสมอ", "เดินตามจังหวะของตัวเอง โดยไม่ต้องเทียบกับใคร", "ต้อนรับสิ่งใหม่ด้วยใจที่สดใส", "ภูมิใจในสิ่งที่คุณสร้างขึ้น", "รักษาใจให้พอใจและสงบ"];
   /** เซียมซี → facts */
   function siamseeFacts(s, opts) {
     opts = opts || {};
     var ph = KB.siamseePhr(s);
     return { domain: "siamsee", topic: opts.topic || "overall", subject: {}, headline: "เซียมซีใบที่ " + s.n + " (" + s.level + ")",
       items: [{ id: "siamsee." + s.n, group: "เซียมซี", label: "เซียมซีใบที่ " + s.n + " (" + s.level + ")", short: "เซียมซีใบนี้", evidence: s.verse.join(" "), strength: 0.95,
-        tags: ["overview", "work", "money", "love", "advice", "timing"], meanings: { overview: ph.meaning, work: ph.work, money: ph.money, love: ph.love, advice: ph.mind, timing: ph.travel } }] };
+        tags: ["overview", "work", "money", "love", "advice", "timing"], meanings: { overview: ph.meaning, work: ph.work, money: ph.money, love: ph.love,
+          advice: SIAMSEE_ADV_TH[s.n - 1] ? [SIAMSEE_ADV_TH[s.n - 1]] : ph.mind, timing: ph.travel } }] };
   }
   /** ข้อความประจำการ์ดใบเดียวในตำแหน่ง (สุ่มสำนวนนำ + ความหมาย) */
   function positionText(card, rev, topic, pos, r) {
