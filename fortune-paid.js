@@ -40,6 +40,7 @@
       belief: "ตามความเชื่อ โปรดใช้วิจารณญาณ", stepOffering: "เตรียม{x}", stepPlace: "ไปที่{x}", stepTime: "เลือกวันเกิดของคุณในสัปดาห์หรือวันพระ ช่วงเช้า",
       stepColour: "แต่งกายสีที่คำทำนายของคุณระบุ: {x}", stepDirection: "เมื่อไหว้ หันหน้าไปทางที่คำทำนายของคุณระบุ: {x}",
       stepIntent: "ตั้งจิตเรื่อง{g} แล้วทำความดีต่อเนื่องในชีวิตประจำวัน", shareTitle: "ผลดูดวงจาก LENSIQ",
+      srcAffiliate: "ลิงก์พันธมิตร: เราอาจได้รับค่าตอบแทนเมื่อซื้อผ่านลิงก์นี้",
       srcTitle: "แหล่งที่แนะนำ (ร้านภายนอก)", srcNote: "ลิงก์ไปร้านภายนอก เราไม่ได้ขายสินค้าเองและไม่ได้สัญญาผลใด ๆ ตามความเชื่อ โปรดใช้วิจารณญาณ",
     },
     en: {
@@ -60,6 +61,7 @@
       stepTime: "Choose the weekday you were born on, or a Buddhist holy day, in the morning",
       stepColour: "Dress in the colours your reading names: {x}", stepDirection: "When paying respects, face the direction your reading names: {x}",
       stepIntent: "Set your intention for {g}, then keep doing good in daily life", shareTitle: "A LENSIQ fortune reading",
+      srcAffiliate: "Affiliate link: we may receive a commission if you buy through it",
       srcTitle: "Recommended sources (outside shops)", srcNote: "Links go to outside shops. We do not sell these items and promise no result. According to belief, please use your own judgement.",
     },
     zh: {
@@ -74,6 +76,7 @@
       "goal.work": "事业", "goal.money": "财运", "goal.love": "感情", "goal.health": "身心安康", "goal.protection": "平安守护", "goal.barami": "威望",
       belief: "依据传统说法，请自行判断", stepOffering: "准备{x}", stepPlace: "前往{x}", stepTime: "选择您出生的星期几或佛日的早上",
       stepColour: "穿您的解读所说的颜色：{x}", stepDirection: "礼拜时面向您的解读所说的方位：{x}", stepIntent: "为{g}发愿，并在日常生活中持续行善", shareTitle: "LENSIQ 占卜结果",
+      srcAffiliate: "联盟链接：通过此链接购买时我们可能获得佣金",
       srcTitle: "推荐来源（外部商店）", srcNote: "链接通往外部商店，我们不出售这些物品，也不承诺任何结果。依据传统说法，请自行判断。",
     },
   };
@@ -114,6 +117,15 @@
      2 / 5 and "avoid / don't" warnings are never paid, in any group (fallback to the composer's section.guidance marks) */
   /** @param {"th"|"en"|"zh"} l @returns {RegExp} */
   const guideRe = l => { const F = FA(); return (F && F.straight && F.straight.GUIDE && F.straight.GUIDE[l]) || /$^/; };
+  /* fresh-set measurement 2026-11-16: a negative state, a worry or a difficulty named in a part keeps that part free in every
+     group (fallback to the data tags in fortune-negstate.js); a strength phrased around a difficulty is free too */
+  const NEG = {
+    th: new RegExp("กังวล|เครียด|เหนื่อย|เปราะบาง|กดดัน|ท้อแท้|ท้อใจ|เศร้า|เหงา|กลัว|(?<!อย่า)ลังเล|คิดมาก|ผิดหวัง|สับสน|" +
+      "หนักใจ|อ่อนล้า|ยากลำบาก|ปัญหา|ไม่มั่นใจ|ไม่มั่นคง|อึดอัด|ค้างคา|ค้างใจ|เจ็บ|หมดแรง|หมดไฟ|โดดเดี่ยว|เรื่องยาก|ชง"),
+    en: new RegExp("\\b(?:worr\\w*|stress\\w*|anxi\\w*|tired\\w*|exhaust\\w*|fragil\\w*|pressure\\w*|discourag\\w*|sad|lonel\\w*|afraid|fear\\w*|" +
+      "hesita\\w*|overthink\\w*|disappoint\\w*|confus\\w*|burden\\w*|struggl\\w*|difficult\\w*|problem\\w*|insecur\\w*|hurt\\w*|drained|setback\\w*|clash\\w*)\\b", "i"),
+    zh: /担心|焦虑|压力|疲惫|疲劳|脆弱|沮丧|难过|孤单|孤独|害怕|犹豫|想太多|失望|迷茫|负担|困难|问题|不安|委屈|受伤|心累|苛刻|冲太岁|犯太岁/,
+  };
   // the reading layout draws an advice box (data-lq-remedy) after such a part: never take it away (fortune-read.js adviceBox rule)
   const FRAME = { th: /ควร|ลอง|วิธีปรับ|สิ่งที่ทำได้|ข้อแนะนำ|เคล็ด|เลือก|ใส่|ใช้กับ|สีที่เข้ากับ|สีมงคล|ทิศที่ส่งเสริม|ไหว้|บูชา|ทำบุญ/,
     en: /\b(?:try|wear|choose|should|tip|remedy|suit|face|pay|make merit|pray)\b/i, zh: /建议|可以|不妨|穿|选择|宜|适合|朝|拜|供奉|孝/ };
@@ -156,7 +168,7 @@
     if (!safe(t, { straight: ctx.straight })) return "drop";
     if (ctx.marked) return "free"; // the composer's guidance mark (section.guidance)
     if (isCaution(t, ctx.lang) || ctx.plan.some((/** @type {string} */ q) => q && t.includes(q))) return "free";
-    if (guideRe(ctx.lang).test(t) || adviceBox(t, ctx.lang)) return "free"; // review F1 / F2: in every group, caution or not
+    if (guideRe(ctx.lang).test(t) || adviceBox(t, ctx.lang) || NEG[ctx.lang].test(t)) return "free"; // review F1 / F2: in every group, caution or not
     if (ctx.sectionCaution && ADVICE[ctx.lang].test(t)) return "free";
     return "paid";
   }
@@ -314,7 +326,7 @@
     return out.steps.every(x => safe(x.text, { straight: false }) && safe(x.text, { straight: true })) ? out : null;
   }
   /* owner decision 2026-11-15 (decision 46, option ก): "recommended sources" with links to outside sellers (we sell nothing
-     ourselves), behind its own off flag LENSIQ_FORTUNE_SOURCES (and the paid switch). Entries come from W.LQ_FORTUNE_SOURCES
+     ourselves), behind its own off flag LENSIQ_FORTUNE_SOURCES (and the paid switch). Entries come from W.LQ_FORTUNE_SELLER_LINKS
      (admin-managed later; none ship). Only published + approved https entries; never a weak / chong entry (never the fix for a
      warning); the note passes the hard-limit filters and makes no promise; nothing in the crisis state. */
   const sourcesEnabled = () => enabled() && W.LENSIQ_FORTUNE_SOURCES === true;
@@ -326,7 +338,8 @@
     const l = langOf(o.lang), tx = (/** @type {any} */ x) => String((x && typeof x === "object" ? x[l] || x.th : x) || "").trim();
     return list.filter(it => it && typeof it === "object" && it.status === "published" && it.approved === true && /^https:\/\/[^\s"'<>]+$/.test(String(it.url || "")) &&
       !(it.keys || []).some((/** @type {string} */ k) => k === "weak" || k === "chong") && tx(it.name))
-      .map(it => ({ id: String(it.id || ""), name: tx(it.name), url: String(it.url), note: tx(it.note) }))
+      .map(it => ({ id: String(it.id || ""), name: tx(it.name), url: String(it.url), note: tx(it.note), affiliate: it.affiliate === true,
+        label: it.affiliate === true ? TEXT[l].srcAffiliate : "" }))
       .filter(x => !NO_PROMISE.test(x.note + " " + x.name) && safe(x.note || x.name, { straight: false }) && safe(x.note || x.name, { straight: true })).slice(0, 6);
   }
   /** @param {string} t @param {string} x */
@@ -516,14 +529,16 @@
     panel.appendChild(ladderEl(doc, l));
     for (const o of all) panel.appendChild(offerEl(doc, o, l));
     if (planEnabled()) panel.appendChild(planEl(doc, l));
-    const src = sources(W.LQ_FORTUNE_SOURCES, { lang: l, doc });
+    const src = sources(W.LQ_FORTUNE_SELLER_LINKS, { lang: l, doc });
     if (src.length) {
       const blk = mk(doc, "section", "lq-paid-sources"); blk.setAttribute("data-lq-sources", ""); blk.setAttribute("data-lq-paid", ""); blk.setAttribute("data-lq-upsell", "");
       blk.appendChild(mk(doc, "h3", "", TEXT[l].srcTitle)); blk.appendChild(mk(doc, "p", "lq-paid-free", TEXT[l].srcNote));
       const ul = mk(doc, "ul", "lq-paid-heads");
       for (const x of src) {
         const li = mk(doc, "li", ""), a = mk(doc, "a", "", x.name); a.href = x.url; a.target = "_blank"; a.rel = "noopener noreferrer nofollow";
-        li.appendChild(a); if (x.note) li.appendChild(mk(doc, "span", "", " · " + x.note)); ul.appendChild(li);
+        li.appendChild(a); if (x.note) li.appendChild(mk(doc, "span", "", " · " + x.note));
+        if (x.label) { const lb = mk(doc, "span", "lq-paid-aff", " · " + x.label); lb.setAttribute("data-lq-affiliate", ""); li.appendChild(lb); }
+        ul.appendChild(li);
       }
       blk.appendChild(ul); panel.appendChild(blk);
     }
