@@ -8,3 +8,6 @@
 # locked 2026-11-15T04:59:53Z (tools/eval-guard.mjs lock, 2 files)
 8b6b348a52bd2c4a813782fc254c97d4848629cec5cd306e54231f955d677319  tests/unit/fortune-paid-guidance.test.js
 07fb3fd60a9d9ab4b74a4e15ae770701f3f5713c25df50e198ec5537a637b4fd  tests/e2e/fortune-paid-guidance.e2e.mjs
+# RE-LOCK 2026-11-15 (3), new file only, BEFORE the fix: round-2 independent review of ce6dc1c was NOT OK (F1 fixed only for known wordings: placement / remedy guidance, mostly EN/ZH feng shui, and restraining cautions still paid). Added tests/unit/fortune-paid-provenance.test.js: the gate by provenance (guidance fields of the facts: every item advice meaning, feng-shui placement / direction items, extras, plan; caution-marked paragraphs and restraining / caution items), 2,250 readings, 0 allowed, plus composer guidance marks by the same ground truth. Before the fix: 2 pass / 2 fail (645 readings with guidance-field text paid). Earlier locked files unchanged; they stay as extra checks.
+# locked 2026-11-15T06:12:06Z (tools/eval-guard.mjs lock, 1 file)
+cabdfa4649fd7eeb5a39d98d2431700a8c4fafcc1d546724c9d045882a0df110  tests/unit/fortune-paid-provenance.test.js
