@@ -63,6 +63,7 @@
   "อุปกรณ์นี้อ่านบาร์โค้ดจากกล้องไม่ได้": "This device cannot read barcodes from the camera",
   "หรือพิมพ์รหัสแทน": "or type the code instead",
   "บาร์โค้ด": "Barcode",
+  "กรุณาพิมพ์หรือยิงบาร์โค้ดก่อนกดค้นหา": "Type or scan a barcode first, then press Search",
   "ไม่พบสินค้าที่มีบาร์โค้ด": "No product found with barcode",
   "โมเดลยังโหลดไม่เสร็จ กรุณารอสักครู่": "The model is still loading; please wait",
   "กรุณาเปิดกล้องก่อน": "Please turn on the camera first",
