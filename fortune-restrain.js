@@ -166,10 +166,14 @@
     return out;
   }
   /** fill site: a template filled with these items (or "named": every item whose name is in the text) is caution text when
-   *  one of them is unfavourable (isCaution) or tagged ("all" only when allOnly); records { id, area: "fill", text } into rec */
+   *  one of them is unfavourable (isCaution) or tagged ("all" only when allOnly); records { id, area: "fill", text } into rec.
+   *  With m (a meaning the composer rewrote into text, Thai): records { id, area: the tagged area that meaning came from, text }
+   *  when m is one of a tagged area's meanings of these items ("any": every item, and the restraining tips); clean = the
+   *  composer's cleanMeaning. The rewritten text itself is never matched. */
   function fill(/** @type {any[]} */ rec, /** @type {any} */ F, /** @type {any} */ its, /** @type {string} */ text,
-    /** @type {(it: any) => boolean} */ isCaution, /** @type {boolean} */ allOnly) {
+    /** @type {(it: any) => boolean} */ isCaution, /** @type {boolean} */ allOnly, /** @type {string} */ m, /** @type {(s: string) => string} */ clean) {
     if (!rec || !F || !text) return;
+    if (m) return fromMeaning(rec, F, its, text, isCaution, String(m), clean || ((/** @type {string} */ s) => String(s || "").trim()));
     const names = (/** @type {any} */ it) => [it.short, it.label, String(it.label || "").replace(/\s*[(（][^)）]*[)）]/g, "").trim()];
     const named = (/** @type {any} */ it) => names(it).some(n => n && String(n).length >= 2 && text.indexOf(String(n)) >= 0);
     const byId = (/** @type {any} */ it) => (F.items || []).find((/** @type {any} */ x) => it && String(x.id) === String(it.id)) || it; // the engine's own item
@@ -178,6 +182,21 @@
       const tag = it && of(F.domain, it);
       if (it && (isCaution(it) || (tag && (!allOnly || tag === "all")))) { rec.push({ id: String(it.id), area: "fill", text: String(text) }); return; }
     }
+  }
+  function fromMeaning(/** @type {any[]} */ rec, /** @type {any} */ F, /** @type {any} */ its, /** @type {string} */ text,
+    /** @type {(it: any) => boolean} */ isCaution, /** @type {string} */ m, /** @type {(s: string) => string} */ clean) {
+    const same = (/** @type {any} */ x) => { const c = clean(String(x || "")); return !!c && (c === m || (m.length >= 8 && (c.indexOf(m) >= 0 || m.indexOf(c) >= 0))); };
+    const byId = (/** @type {any} */ it) => (F.items || []).find((/** @type {any} */ x) => it && String(x.id) === String(it.id)) || it;
+    for (const it of its === "any" ? F.items || [] : [].concat(its || []).map(byId)) {
+      if (!it) continue;
+      const tag = of(F.domain, it), ms = it.meanings || {}, caution = isCaution(it);
+      if (!tag && !caution) continue;
+      for (const a of tag === "all" || caution || !tag ? Object.keys(ms) : tag) {
+        if ([].concat(ms[a] || []).some(same)) { rec.push({ id: String(it.id), area: a, text: String(text) }); return; }
+      }
+    }
+    const tips = F.extras && Array.isArray(F.extras.restrainTips) ? F.extras.restrainTips : [];
+    if (its === "any" && tips.some(same)) rec.push({ id: "extras.tips", area: "tip", text: String(text) });
   }
   // the fragments fortune-ai.js markCaution matches: clauses / words of 12+ characters (6+ for Chinese), and the whole text
   function frags(/** @type {string} */ t, /** @type {string} */ lang) {
