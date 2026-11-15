@@ -29,7 +29,7 @@ Running list, append only. Each entry: date, what changes, status, what happens 
 3. **Plus 149 contents**: `docs/BILLING-PLAN.md` drafts Plus as full readings + 30 AI readings / month; the 2026-11-15 order says
    "for all". Recommendation: Plus = all paid depth on every page + the drafted AI quota. If no answer: the design note's wording
    ("in-depth text for every group on every fortune page").
-4. **Practical tips in groups without a caution** (for example "ลองตั้งงบ…", about 3,800 counted by the independent review of
-   2026-11-15) are paid depth in the current design; belief guidance, cautions and avoid-warnings are always free. Options: ก keep
-   practical tips as paid depth; ข make every tip free (paid depth then holds only explanation). Recommendation: ก, because the tips
-   are not remedies for a caution and rule (a) holds. If no answer: ก (the design as built; it is off).
+4. **Practical tips from the advice field** (for example "ลองตั้งงบ…"): changed on 2026-11-15 by the coordinator's provenance rule
+   after the round-2 review: every sentence taken from an advice, remedy, direction, placement or colour field is free, so these
+   tips are free too. Paid depth now holds only explanation. If the owner wants tips back in paid depth, that needs a new rule and
+   a re-lock; recommendation: keep them free (simpler to explain, and nothing that tells the reader what to do is sold).

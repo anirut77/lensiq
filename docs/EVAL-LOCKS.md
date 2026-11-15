@@ -113,3 +113,6 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   F2 flying stars 2/5 and avoid-warnings paid-only), two NEW files were locked before the fix
   (`tests/unit/fortune-paid-guidance.test.js`, `tests/e2e/fortune-paid-guidance.e2e.mjs`). Before the fix: unit 2 pass / 3
   fail (306 + 133 readings). Earlier locked files unchanged.
+- `fortune-paid` re-lock (3) (2026-11-15): round-2 review of ce6dc1c NOT OK (guidance still paid outside known wordings). New
+  file `tests/unit/fortune-paid-provenance.test.js` locked before the fix: the gate is provenance (guidance fields of the facts,
+  caution-marked paragraphs, restraining / caution items), not word lists. Before the fix: 2 pass / 2 fail (645 readings).

@@ -2012,22 +2012,22 @@
   let CREC = null; const crecU = (it, u) => { if (u) [u.text].concat(u.alt || []).forEach(t => crec(it, t)); return u; };
   const cautMeanings = (F, lang) => ((F && F.items) || []).filter(cautS).flatMap(it => { // + every meaning of such an item
     const x = (lang === "en" ? (enLoad(), enItem(F.domain, it)) : lang === "zh" ? (zhLoad(), zhItem(F.domain, it)) : it) || {}; return Object.values(x.meanings || {}).flat(); });
-  // key / re: the same marking for section.guidance (below); the caution marks are computed exactly as before
-  function markCaution(out, lang, rec, key, re) { const en = lang === "en", lc = t => (en ? t.toLowerCase() : t);
-    const frags = [...new Set(rec.map(lc).flatMap(t => (lang === "zh" ? t.split(/[，。；！？]/) : en ? t.split(/[,.;:!?]\s+/) : t.split(" ")).concat([t]))
-      .map(x => x.trim()).filter(x => x.length >= (lang === "zh" ? 6 : 12)))];
-    for (const s of out.sections || []) s[key || "caution"] = (s.paragraphs || []).map(p => !!(re && re.test(p)) || frags.some(x => lc(p).includes(x))); }
-  /* fortune-paid review F1 / F2 (2026-11-15): the composer also marks every paragraph that holds belief guidance (a lucky colour,
-     direction, rite, element tip or lucky item from an item or a remedy text, the improvement plan), a feng-shui flying-star 2 / 5
-     text, or an "avoid / don't" warning: section.guidance[i]. The reading layout (fortune-read.js) does not read this mark, so the
-     reading looks exactly as before; fortune-paid.js never sells a marked paragraph (belief guidance is always free information).
-     The word lists live in fortune-straight.js (GUIDE), shared with fortune-paid.js. */
-  function markGuidance(out, F, lang) {
-    const L = lang === "zh" || lang === "en" ? lang : "th", re = (FS.GUIDE && FS.GUIDE[L]) || /$^/;
-    const items = ((F && F.items) || []).map(it => (L === "en" ? (enLoad(), enItem(F.domain, it)) : L === "zh" ? (zhLoad(), zhItem(F.domain, it)) : it) || {});
+  // key: the same marking for section.guidance (below; finer clause cuts); the caution marks are computed exactly as before
+  function markCaution(out, lang, rec, key) { const en = lang === "en", lc = t => (en ? t.toLowerCase() : t), g = !!key;
+    const cut = t => (lang === "zh" ? t.split(g ? /[，。；！？、：:]/ : /[，。；！？]/) : en ? t.split(g ? /[,.;:!?]\s+|\s+(?:and|but|so|or)\s+/ : /[,.;:!?]\s+/) : t.split(g ? /\s+/ : " "));
+    const frags = [...new Set(rec.map(lc).flatMap(t => cut(t).concat([t])).map(x => x.trim()).filter(x => x.length >= (lang === "zh" ? 6 : 12)))];
+    for (const s of out.sections || []) s[key || "caution"] = (s.paragraphs || []).map(p => frags.some(x => lc(p).includes(x))); }
+  /* fortune-paid reviews (2026-11-15), guidance by PROVENANCE: the composer marks every paragraph that holds text taken from a
+     guidance field of the facts: any item's advice meanings, every meaning of an item the engine flags as guidance as a whole
+     (it.guide, e.g. feng-shui directions, measured directions, rooms, photos, flying stars) or per key (it.guideKeys), the
+     extras (lucky colours, directions, energy words, tips), the remedy texts and the improvement plan: section.guidance[i].
+     No word list: the marks come from where the text was taken. The reading layout does not read this mark (same reading). */
+  function markGuidance(out, F, lang) { const L = lang === "zh" || lang === "en" ? lang : "th", ex = (F && F.extras) || {}, src = ((F && F.items) || []).flatMap(it => {
+      const m = ((L === "en" ? (enLoad(), enItem(F.domain, it)) : L === "zh" ? (zhLoad(), zhItem(F.domain, it)) : it) || it).meanings || {};
+      return it.guide ? Object.values(m).flat() : [].concat(m.advice || [], ...(it.guideKeys || []).map(k => m[k] || [])); });
     const rem = Object.values(L === "en" ? REMEDY_EN : REMEDY).map(x => (typeof x === "string" ? x : x && (L === "zh" ? x.zh : x.th)));
-    markCaution(out, L, items.flatMap(x => Object.values(x.meanings || {}).flat()).concat(rem).map(String).filter(t => re.test(t))
-      .concat(((out.plan && out.plan.items) || []).map(x => String(x.t || ""))), "guidance", re); }
+    markCaution(out, L, src.concat(...["luckyColors", "directions", "energyWords", "tips"].map(k => [].concat(ex[k] || [])), rem, ((out.plan && out.plan.items) || []).map(x => x.t))
+      .filter(Boolean).map(String), "guidance"); }
   // จุดที่ต้องระวังจุดถัดไปในหัวข้อเดียวกัน (โหมดตรง): ไม่มีประโยคนำซ้ำ แต่มีสิ่งที่ทำได้ต่อท้ายเสมอ
   function stepAfter(ctx, it, sec, iu) { const act = cautionAction(ctx, it, sec).text; return Object.assign({}, iu, { text: iu.text + " " + act, alt: [act], noConn: true }); }
   function cautionUnit(ctx, it, sec, iu) {
