@@ -919,19 +919,45 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   video.addEventListener("resize", layoutCam);
 
   /* ---------- โมเดล (WebGL → WASM → CPU; ?cpu ข้าม WebGL) ---------- */
+  // iOS 2026-11-15 (owner report: the camera opened but nothing was detected): every failure of the model or the live
+  // detector ends in either a working detector (one switch to the backup backend) or a plain TH/EN/ZH line with the photo
+  // upload as the way forward, and the camera is stopped; the page never leaves a live camera that does nothing.
+  // Limits: model download 30 s, one detection 8 s, 3 errors in a row. Locked test: tests/e2e/faceread-webkit.e2e.mjs.
   var FAKE = !!(window.LQDetect && LQDetect.isTest()); // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
-  var modelsP = null;
+  var MODEL_MS = 30000, DET_MS = 8000, ERR_MAX = 3, modelsP = null, backendNow = null, switched = false, detGen = 0, useCanvas = false, glLost = false;
+  var withTimeout = LQDetect.withTimeout, failKind = LQDetect.failKind, nets = function () { return [faceapi.nets.tinyFaceDetector, faceapi.nets.faceLandmark68Net]; };
+  var loadNets = function () { return Promise.all(nets().map(function (n) { return n.loadFromUri("vendor/models/"); })); };
+  var TRY = " — ปิดแท็บอื่นแล้วกด เปิดกล้อง อีกครั้ง หรือใช้ปุ่ม อัปโหลดรูป แทน", NET = " — ตรวจอินเทอร์เน็ตแล้วกด เปิดกล้อง อีกครั้ง หรือใช้ปุ่ม อัปโหลดรูป แทน";
+  var FAIL = { oom: "หน่วยความจำของเครื่องไม่พอสำหรับวิเคราะห์ใบหน้าสด" + TRY, detStop: "การวิเคราะห์ใบหน้าสดหยุดทำงานบนเครื่องนี้" + TRY,
+    modelSlow: "โหลดโมเดลวิเคราะห์ใบหน้านานเกินไป" + NET, modelFail2: "โหลดโมเดลวิเคราะห์ใบหน้าไม่สำเร็จ" + NET };
+  var failLine = function (id) { engineT("faceread.eng." + id, FAIL[id], null, "err"); };
+  /** a lost WebGL context (iOS drops it under memory pressure) is handled by the live loop */
+  function watchGl() { glLost = false; if (backendNow === "webgl") LQDetect.watchContextLost(function () { console.warn("faceread: WebGL context lost"); glLost = true; }); }
   function loadModels() {
     if (FAKE) { ready = true; engineT("faceread.eng.fake", "พร้อมใช้งาน (ตัวตรวจจับจำลองสำหรับทดสอบ)", null, "ok"); return Promise.resolve("fake"); }
-    if (!modelsP) modelsP = LQDetect.tfBackend().then(function (b) {
-      return Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri("vendor/models/"), faceapi.nets.faceLandmark68Net.loadFromUri("vendor/models/")]).then(function () { return b; });
-    }).then(function (b) {
-      ready = true;
-      if (b === "webgl") engineT("faceread.eng.ready", "พร้อมใช้งาน", { b: b.toUpperCase() }, "ok");
-      else engineT("faceread.eng.readySlow", "พร้อมใช้งาน (เครื่องนี้อาจอ่านผลช้ากว่าปกติเล็กน้อย)", { b: b.toUpperCase() }, "ok");
-      return b;
-    }).catch(function (e) { console.error(e); engineT("faceread.eng.modelFail", "โหลดโมเดลไม่สำเร็จ: {msg}", { msg: e.message || e }, "err"); modelsP = null; throw e; });
+    if (!modelsP) modelsP = withTimeout(LQDetect.tfBackend().then(function (b) { return loadNets().then(function () { return b; }); }), MODEL_MS, "ModelTimeout").then(function (b) {
+      ready = true; backendNow = b; watchGl(); if (b === "webgl") engineT("faceread.eng.ready", "พร้อมใช้งาน", { b: b.toUpperCase() }, "ok");
+      else engineT("faceread.eng.readySlow", "พร้อมใช้งาน (เครื่องนี้อาจอ่านผลช้ากว่าปกติเล็กน้อย)", { b: b.toUpperCase() }, "ok"); return b;
+    }).catch(function (e) { console.error(e); modelsP = null; var x = e instanceof Error ? e : new Error(String(e)); x.lqModel = true; throw x; });
     return modelsP;
+  }
+  var modelMsg = function (e) { failLine({ oom: "oom", timeout: "modelSlow" }[failKind(e)] || "modelFail2"); };
+  /** no stale "face OK" / enabled Read button while the detector is not running */
+  function invalidate() { lastQ = null; btnRead.disabled = true; octx.clearRect(0, 0, ov.width, ov.height); renderQc([{ id: "face", ok: false, label: "พบใบหน้า", tip: "ให้อยู่ในกรอบวงรี" }]); }
+  /** stops the camera and the loop; the Start button comes back (the photo upload stays) */
+  function stopLive() { looping = false; detGen++; invalidate(); camera.stop(); btnRead.hidden = true; btnCam.hidden = false; btnCam.disabled = false; }
+  /** the live detector failed for good: a plain line, no live camera */
+  function liveDead(kind) { ready = false; stopLive(); failLine(kind === "oom" ? "oom" : "detStop"); }
+  /** one switch to the backup backend (models reloaded on it), else liveDead */
+  async function recover(e) {
+    ready = false; detGen++; invalidate(); var kind = failKind(e), next = switched ? null : LQDetect.nextBackend(backendNow);
+    console.warn("faceread: live detector failed (" + kind + ")" + (next ? ", switching to " + next : ""), e);
+    if (!next) return liveDead(kind);
+    switched = true; engineT("faceread.eng.switching", "กำลังสลับไปใช้ตัวประมวลผลสำรอง...");
+    try {
+      await withTimeout(LQDetect.switchBackend(next, { dispose: nets(), reload: loadNets }), MODEL_MS, "ModelTimeout");
+      backendNow = next; watchGl(); ready = true; if (camera.active) engineT("faceread.eng.switched", "กล้องพร้อม (ตัวประมวลผลสำรอง อาจช้ากว่าปกติ) — จัดใบหน้าในวงรี แล้วกด อ่านโหงวเฮ้ง", null, "ok");
+    } catch (e2) { console.error(e2); modelsP = null; var k2 = failKind(e2); liveDead(k2 === "other" ? kind : k2); }
   }
   /** ทุกใบหน้าในภาพ → [{box:{x,y,width,height}, score, pts}] (พิกัดพิกเซลของ input) */
   async function detectAll(input, size) {
@@ -944,7 +970,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         return { box: box, score: d.score, pts: FR.synthFace(box) };
       });
     }
-    var rs = await faceapi.detectAllFaces(input, new faceapi.TinyFaceDetectorOptions({ inputSize: size || 320, scoreThreshold: 0.45 })).withFaceLandmarks();
+    // .run(): face-api's task.then(ok) ignores the reject handler, so `await task` never settles when detection throws (iOS fault)
+    var rs = await faceapi.detectAllFaces(input, new faceapi.TinyFaceDetectorOptions({ inputSize: size || 320, scoreThreshold: 0.45 })).withFaceLandmarks().run();
     return rs.map(function (r) {
       var b = r.detection.box;
       return { box: { x: b.x, y: b.y, width: b.width, height: b.height }, score: r.detection.score, pts: r.landmarks.positions.map(function (p) { return [p.x, p.y]; }) };
@@ -1010,26 +1037,26 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function hideHint() { hintTrack.reset(); hintUi.set("wait"); hintUi.el.hidden = true; }
   async function startLoop() {
-    if (looping) return; looping = true;
+    if (looping) return; looping = true; var errs = 0, noFaceSince = 0;
     while (camera.active && looping) {
       if (!busy && ready && video.videoWidth) {
-        try {
-          var list = await detectAll(video, 224), W = video.videoWidth, H = video.videoHeight;
-          var pk = FR.pickFace(list, lockPrev, W, H), det = pk.index >= 0 ? list[pk.index] : null;
-          lockPrev = pk.boxN;
-          var light = null;
-          if (det) { grabFrame(probe, false); light = FR.lightStats(pctx.getImageData(0, 0, probe.width, probe.height), det.box); }
+        var gen = detGen, now = performance.now(); try {
+          if (glLost) throw Object.assign(new Error("WebGL context lost"), { name: "ContextLost" }); var W = video.videoWidth, H = video.videoHeight, input = video;
+          // a phone that hands the detector blank <video> pictures: after 8 s without a face, detect on a canvas copy
+          if (useCanvas && !FAKE) { grabFrame(probe, false); input = probe; }
+          var list = await withTimeout(detectAll(input, 224), DET_MS, "DetectTimeout"); if (gen !== detGen || !looping) throw new Error("stale frame (detector reset)");
+          errs = 0; if (list.length || FAKE || useCanvas) noFaceSince = 0; else if (!noFaceSince) noFaceSince = now;
+          else if (now - noFaceSince > 8000) { useCanvas = true; console.info("faceread: no face from <video> for 8 s, detecting on a canvas copy"); }
+          var pk = FR.pickFace(list, lockPrev, W, H), det = pk.index >= 0 ? list[pk.index] : null, light = null; lockPrev = pk.boxN;
+          if (det) { if (input !== probe) grabFrame(probe, false); light = FR.lightStats(pctx.getImageData(0, 0, probe.width, probe.height), det.box); }
           lastQ = FR.quality(det, W, H, light, list.length);
-          if (!busy) {
-            var hs = updateHint(det, list.length, lastQ, light, W, H);
-            renderQc(lastQ); drawGuide(det, hs === "ok", list.filter(function (d) { return d !== det; })); btnRead.disabled = !qOk(lastQ);
-          }
-        } catch (e) { console.warn(e); }
+          if (!busy) { var hs = updateHint(det, list.length, lastQ, light, W, H); renderQc(lastQ); btnRead.disabled = !qOk(lastQ);
+            drawGuide(det, hs === "ok", list.filter(function (d) { return d !== det; })); }
+        } catch (e) { console.warn(e); if (gen === detGen && looping && (failKind(e) !== "other" || ++errs >= ERR_MAX)) { errs = 0; await recover(e); } }
       }
       await sleep(250);
     }
-    looping = false;
-    hideHint();
+    looping = false; hideHint();
   }
 
   btnCam.addEventListener("click", async function () {
@@ -1039,7 +1066,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       // speed pass 2026-11-14: models are fetched only once the camera is open (nothing is downloaded if the camera is refused)
       await camera.start();
       engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
-      await loadModels();
+      try { await loadModels(); } catch (e) { stopLive(); modelMsg(e); return; } // never a live camera without a detector
       $("#frCamHint").hidden = true;
       engineT("faceread.eng.camReady", "กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี มองตรง แล้วกด อ่านโหงวเฮ้ง", null, "ok");
       btnCam.hidden = true; btnRead.hidden = false;
@@ -1058,7 +1085,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var frames = capt.frames, snaps = [];
       for (var i = 0; i < FRAMES + 4 && frames.length < FRAMES; i++) {
         var cv = document.createElement("canvas"); grabFrame(cv, camera.mirrored);
-        var d = capt.push(await detectAll(cv, 320), cv.width, cv.height);
+        var d = capt.push(await withTimeout(detectAll(cv, 320), DET_MS * 2, "DetectTimeout"), cv.width, cv.height);
         if (d) snaps.push({ cv: cv, d: d });
         countEl.textContent = T("faceread.count.pct", "กำลังอ่าน {p}%", { p: Math.round(frames.length / FRAMES * 100) });
       }
@@ -1098,7 +1125,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       }
       engineT("faceread.eng.photoOk", "อ่านรูปเรียบร้อย", null, "ok");
       showResult(cv, d.pts, d.box);
-    } catch (e) { console.error(e); engineT("faceread.eng.photoFail", "อ่านรูปไม่สำเร็จ: {msg}", { msg: e.message || e }, "err"); }
+    } catch (e) { console.error(e); if (e && e.lqModel) modelMsg(e); else engineT("faceread.eng.photoFail", "อ่านรูปไม่สำเร็จ: {msg}", { msg: e.message || e }, "err"); }
   });
   $("#frForce").addEventListener("click", function () { $("#frForce").hidden = true; if (forceRead) forceRead(); forceRead = null; });
 
