@@ -95,7 +95,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
      is left out; LQFortuneCrisis.adviceKind classifies it @param {any} r */
   function calmNote(r) {
     var CR = window.LQFortuneCrisis;
-    if (!CR || !CR.calmOn || !CR.calmOn(document) || !CR.adviceKind) return true;
+    var calm = (CR && CR.calmOn && CR.calmOn(document)) || document.documentElement.getAttribute("data-lq-calm") === "1";
+    if (!calm) return true;
+    if (!CR || !CR.adviceKind) return false; // the calm module is not in yet: leave every note out (safer)
     var k = CR.adviceKind(reasonText(r)); // a note is one piece of advice: any belief / lucky / purchase / remedy word leaves it out
     return !k || k === "colour";
   }

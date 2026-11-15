@@ -77,5 +77,7 @@ test("every page that loads a matcher using the canonicaliser loads lensiq-thai-
     assert.ok(canonAt >= 0, `${p} loads lensiq-thai-canon.js`);
     assert.ok(canonAt < Math.min(...at), `${p} loads lensiq-thai-canon.js before the matchers`);
   }
-  assert.ok(checked >= 19, "fortune pages and medicine.html found: " + checked);
+  // RE-LOCK 2026-11-16 (crisis-v2-live, speed budget): the hub, planner and lucky-colour pages no longer load a matcher at page load
+  // (nav.js fetches the crisis net on demand, with lensiq-thai-canon.js first); the per-page rule above is unchanged
+  assert.ok(checked >= 16, "fortune pages and medicine.html found: " + checked);
 });

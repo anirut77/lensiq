@@ -4159,7 +4159,7 @@
     };
   }
   /** crisis flow v2 §2–§4: a reading for the calm state (fortune-crisis.js calmReading: no plan, calm filter, hope frame) @param {any} res */
-  const calmify = res => (CR && CR.calmReading ? CR.calmReading(res) : res), withoutTyped = facts => (CR && CR.withoutTyped ? CR.withoutTyped(facts, crisisCheck) : facts);
+  const calmify = res => (CR && CR.calmSafe ? CR.calmSafe(res) : res), withoutTyped = facts => (CR && CR.withoutTyped ? CR.withoutTyped(facts, crisisCheck) : facts);
   const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support-foot{font-size:.85em;opacity:.75}";
   /** วาดการ์ดช่วยเหลือ (ใช้ textContent ทั้งหมด) — container จะถูกล้างก่อน */
   function renderSupport(container, res, opts) {
@@ -4178,17 +4178,14 @@
     }
     box.appendChild(ul); box.appendChild(el("p", "fa-support-trust", s.after));
     // crisis flow v2: nothing is blocked; "continue" collapses the card and shows the reading (the top button stays the help place)
-    const S1 = SUPPORT[res && res.lang] || SUPPORT.th, contLabel = s.cont || S1.cont;
-    const act = el("div", "fa-support-act"), go = el("button", "btn primary fa-continue", contLabel);
-    go.type = "button"; go.setAttribute("data-lq-continue", "");
-    act.appendChild(go); act.appendChild(el("p", "fa-support-cont-note", s.contNote || S1.contNote));
+    const S1 = SUPPORT[res && res.lang] || SUPPORT.th, act = el("div", "fa-support-act"), go = el("button", "btn primary fa-continue", s.cont || S1.cont);
+    go.type = "button"; go.setAttribute("data-lq-continue", ""); act.appendChild(go); act.appendChild(el("p", "fa-support-cont-note", s.contNote || S1.contNote));
     box.appendChild(act); box.appendChild(el("p", "fa-support-foot", s.foot));
     const onContinue = opts && typeof opts.onContinue === "function" ? opts.onContinue : null, reading = res && res.reading;
     go.addEventListener("click", () => {
-      try { if (CR && CR.continued) CR.continued(doc); } catch (e) { /* memory only */ } container.textContent = "";
+      try { if (CR && CR.continued) CR.continued(doc); } catch (e) { /* memory only */ } container.textContent = ""; // continued(): calm, the top button
       const F = root.FortuneAI, R = F && typeof F.renderSections === "function" ? F.renderSections : renderWithHooks;
       try { if (onContinue) onContinue(); else if (reading) R(container, reading, { aiBadge: false }); } catch (e) { /* the top help button stays (calmTop) */ }
-      try { if (CR && CR.calmTop) CR.calmTop(doc); } catch (e) { /* no DOM */ }
     });
     container.appendChild(box);
     // the page is now in the crisis state: no later reading, remedy, lucky item, paid / merit offer or straight mode on it
@@ -4197,7 +4194,9 @@
   }
   async function interpret(facts, opts = {}) {
     // ข้อความที่ผู้ใช้พิมพ์เอง (ชื่อเล่น คำถาม) มีสัญญาณวิกฤต → การ์ดก่อน แล้วคำทำนายแบบนุ่มนวลหลังกด "ดูคำทำนายต่อ" (ไม่ส่งไป AI)
-    if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) {
+    const hard = crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText());
+    if (CR && CR.loadCalm && (hard || CR.calmOn())) await CR.loadCalm(); // the calm module (on demand) is in before any calm reading
+    if (hard) {
       const reading = calmify(compose(withoutTyped(facts), Object.assign({}, opts, { straight: false, calm: true })));
       return CR && CR.acked && CR.acked() ? reading : supportResult(opts, reading); // continued past this text: the reading only
     }
@@ -4416,6 +4415,7 @@
     const sl = result && result.lang, card = box => renderSupport(box, supportResult({ lang: sl }, result));
     if (!(result && result.crisis) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
     // fail-safe: a straight reading composed before the calm state is never shown (the card; its "continue" keeps the help bar)
+    if (result && !result.crisis && calmAt(container) && CR && CR.afterCalm && CR.afterCalm(container, () => renderWithHooks(container, result, opts))) return container;
     if (result && !result.crisis && calmAt(container)) result = result.mode === "straight" ? supportResult({ lang: result.lang }) : calmify(result);
     if (!HOOKS.length || (result && (result.crisis || result.calm))) return renderSections(container, result, opts); // no hook next to a card or in the calm state
     let shown = result;

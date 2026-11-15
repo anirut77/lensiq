@@ -248,8 +248,8 @@
   /* crisis flow v2 (owner decision 2026-11-13 §3): in a calm tab the goal picker, mirror and week table stay hidden
      (data-lq-remedy) and a neutral colour of the day is shown instead (the day planet's colour, no goal, no object) */
   function renderCalmDay() {
-    const CR = window.LQFortuneCrisis;
-    if (!CR || !CR.calmOn || !CR.calmOn(document)) return;
+    const CR = window.LQFortuneCrisis; // the crisis net loads on demand here (nav.js); the calm flag is on <html> from the first paint
+    if (!(CR && CR.calmOn && CR.calmOn(document)) && document.documentElement.getAttribute("data-lq-calm") !== "1") return;
     let box = $("#lcCalmDay");
     if (!box) { box = el("section", "fk-block lc-calmday"); box.id = "lcCalmDay"; const ref = document.querySelector(".lc-opts"); if (ref) ref.before(box); else return; }
     box.textContent = "";

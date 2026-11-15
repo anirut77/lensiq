@@ -1,5 +1,5 @@
 /* LENSIQ shared site header.
-   Usage in every page:  <header class="nav" id="siteNav"></header><script src="nav.js?v=22"></script>
+   Usage in every page:  <header class="nav" id="siteNav"></header><script src="nav.js?v=23"></script>
    Plain script, no dependencies. Change the brand in BRAND below.
    Also provides, for every page (no extra <script> tag needed):
    - i18n: injects lensiq-i18n.js + i18n/zh-common.js (TH | EN | 中文 switch in the header; English dictionaries are
@@ -20,6 +20,19 @@
      lensiq-merit-core.js + lensiq-merit-lint.js + lensiq-merit.js (free belief guidance under a reading, Merit MVP). */
 (function () {
   "use strict";
+  // crisis-v2-live (speed budget): the tab's calm flag (fortune-crisis.js SESSION_KEY "lq-fortune-calm") is read here, before any page
+  // script: <html data-lq-calm> hides lucky / remedy / paid / belief blocks from the first paint (styles.css). A fortune page without the
+  // crisis net (hub, planner, lucky colour, fortune category) fetches it on demand, so its top button becomes the calm one.
+  try {
+    if (sessionStorage.getItem("lq-fortune-calm") === "1") {
+      document.documentElement.setAttribute("data-lq-calm", "1");
+      var calmNet = function () {
+        if (window.LQFortuneCrisis || !document.getElementById("lqHelpTop")) return;
+        ["lensiq-thai-canon.js?v=3", "fortune-crisis.js?v=14"].forEach(function (src) { var sc = document.createElement("script"); sc.src = src; sc.async = false; document.head.appendChild(sc); });
+      };
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", calmNet); else calmNet();
+    }
+  } catch (e) { /* storage blocked: the page-level behaviour stays */ }
 
   var BRAND = { name: "LENS", accent: "IQ", full: "LENSIQ", tagline: "Computer Vision ประมวลผลบนเครื่อง เพื่อการตลาดและการวิเคราะห์" };
 

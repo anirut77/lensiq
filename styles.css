@@ -432,6 +432,8 @@ html[data-lq-calm] [data-lq-belief],html[data-lq-crisis] [data-lq-belief]{displa
 /* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
    and share cards stay hidden on that page */
 html[data-lq-crisis] [data-lq-remedy]{display:none!important}
+/* a calm tab (crisis fix 4 / crisis flow v2): the same blocks hidden from the first paint; nav.js sets <html data-lq-calm> from the tab flag */
+html[data-lq-calm] [data-lq-remedy],html[data-lq-calm] [data-lq-upsell],html[data-lq-crisis] [data-lq-upsell],html[data-lq-calm] .fa-straight{display:none!important}
 /* crisis flow v2 (review 2026-11-14, rules d and e): in a calm or crisis tab the fixed paragraph about the straight option and
    every link to pricing, plans or refunds are hidden on every fortune page */
 html[data-lq-calm] [data-lq-straight],html[data-lq-crisis] [data-lq-straight],html[data-lq-calm] [data-lq-paid-link],html[data-lq-crisis] [data-lq-paid-link],
