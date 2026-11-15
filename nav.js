@@ -172,7 +172,7 @@
   })();
 
   var header = /** @type {HTMLElement} */ (document.getElementById("siteNav") || document.querySelector("header.nav"));
-  if (!header) { thaiBreaks(); models(); registerSW(); legalFoot(); reportHook(); meritHook(); paidHook(); return; }
+  if (!header) { thaiBreaks(); models(); registerSW(); legalFoot(); reportHook(); meritHook(); return; }
   if (!header.classList.contains("nav")) header.classList.add("nav");
 
   var page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -421,7 +421,6 @@
   legalFoot();
   reportHook();
   meritHook();
-  paidHook();
 
   // ---------- Thai line breaking: <wbr> at word boundaries ----------
   function thaiBreaks() {
@@ -657,23 +656,14 @@
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
     // the pages that run FortuneAI readings (planner / luckycolor do not: nothing to attach to)
     if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(p)) return;
-    if (/** @type {any} */ (window).LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
+    var W = /** @type {any} */ (window), d = document.head || document.documentElement; // paid depth only when exactly true
+    if (W.LENSIQ_FORTUNE_PAID === true && !W.LQPaid) { var ps = document.createElement("script"); ps.src = "fortune-paid.js?v=1"; ps.async = false; d.appendChild(ps); }
+    if (W.LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
     ["lensiq-merit-core.js?v=3", "lensiq-merit-lint.js?v=2", "lensiq-merit.js?v=3"].forEach(function (src) {
       var sc = document.createElement("script");
       sc.src = src; sc.async = false; // in order: the core first
       (document.head || document.documentElement).appendChild(sc);
     });
-  }
-  // ---------- fortune pages: paid depth (fortune-paid.js; owner order 2026-11-15, design only) ----------
-  // loaded ONLY when window.LENSIQ_FORTUNE_PAID === true (lensiq-config.js, default false): off = nothing changes on the page
-  function paidHook() {
-    if (/** @type {any} */ (window).LENSIQ_FORTUNE_PAID !== true) return;
-    var p = (location.pathname.split("/").pop() || "").toLowerCase();
-    if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(p)) return;
-    if (/** @type {any} */ (window).LQPaid || document.querySelector('script[src^="fortune-paid.js"]')) return;
-    var sc = document.createElement("script");
-    sc.src = "fortune-paid.js?v=1"; sc.async = false;
-    (document.head || document.documentElement).appendChild(sc);
   }
   // ---------- service worker (offline cache for vendor/ models) ----------
   function registerSW() {

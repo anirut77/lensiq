@@ -56,20 +56,9 @@ window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
  *   false = ซ่อนตัวเลือกทั้งหมด (tests/unit/fortune-honest.test.js ตรวจค่าที่ส่งมอบ) */
 window.LENSIQ_FORTUNE_STRAIGHT = false;
 
-/* LENSIQ_FORTUNE_PAID (owner order 2026-11-15: DESIGN ONLY, OFF): "อ่านเชิงลึก" แบบเสียเงินบนหน้าดูดวง (ฟรี = ภาพรวมทุกหมวด
- *   ข้อควรระวังและคำแนะนำทุกข้อ · เสียเงิน = รายละเอียดเชิงลึก: 49 บาทต่อหมวด 99 ฉบับเต็ม 199 ฉบับเต็ม+รายเดือน Plus 149 ต่อเดือน)
- *   false (ค่าเริ่มต้น) = ไม่โหลด fortune-paid.js ไม่มีราคา ไม่มีล็อก คำทำนายฉบับเต็มฟรีเหมือนเดิม · ต้องเป็น true จริงเท่านั้น
- *   ยังไม่เชื่อมระบบชำระเงินใด ๆ · เปิดได้เมื่อเจ้าของตัดสินใจ หลังระบบเก็บเงิน (โอนเงิน) และทนาย (L65) พร้อม
- *   docs/FORTUNE-PAID-DESIGN.md · เทสต์ที่ล็อกไว้: tests/unit/fortune-paid.test.js, tests/e2e/fortune-paid.e2e.mjs */
+/* paid fortune depth, plan, seller links: off (docs/FORTUNE-PAID-DESIGN.md) */
 window.LENSIQ_FORTUNE_PAID = window.LENSIQ_FORTUNE_PAID === true;
-
-/* LENSIQ_FORTUNE_PLAN (owner order 2026-11-15 (2): DESIGN ONLY, OFF): "แผนมูตามเป้าหมาย" แบบเสียค่าบริการ ภายใต้ LENSIQ_FORTUNE_PAID
- *   ทำงานเฉพาะเมื่อทั้งสองสวิตช์เป็น true จริง · อนุญาตแล้วตามการตัดสินใจเจ้าของ 2026-11-15 (ข้อ 46 ก) แต่ปิดไว้จนระบบเก็บเงินพร้อมและเจ้าของสั่งเปิด
- *   ข้อมูลสถานที่ สี และทิศยังฟรีเสมอ ส่วนที่เสียค่าบริการคือการจัดลำดับและตารางเวลา ไม่สัญญาผลใด ๆ · ทนาย L65 */
 window.LENSIQ_FORTUNE_PLAN = window.LENSIQ_FORTUNE_PLAN === true;
-
-/* LENSIQ_FORTUNE_SOURCES (owner decision 2026-11-15, decision 46 ก: DESIGN ONLY, OFF): "แหล่งที่แนะนำ" ลิงก์ไปร้านภายนอก (เราไม่ขายสินค้าเอง)
- *   ใต้ LENSIQ_FORTUNE_PAID · ซ่อนในสถานะวิกฤต ไม่อยู่ติดข้อควรระวัง และไม่เสนอเป็นทางแก้ · ต้องเป็น true จริงเท่านั้น */
 window.LENSIQ_FORTUNE_SOURCES = window.LENSIQ_FORTUNE_SOURCES === true;
 
 /* LENSIQ_LOOK_SALON (owner decision 2026-11-14, ข้อแนะนำการแต่งลุค ตัวเลือก ก): "โหมดร้าน" ของข้อแนะนำการแต่งลุค (แสดงชื่อแบบจาก
