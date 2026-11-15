@@ -1562,7 +1562,9 @@
     call("/reviewers", { method: "POST", body: body }).then(function (/** @type {any} */ r) {
       f.reset(); arShowLink(r); msg(G("ar.created", "สร้างบัญชีแล้ว ส่งลิงก์ตั้งค่าให้ผู้ตรวจ")); arLoad();
     }, function (/** @type {any} */ e) {
-      msg(e && e.code === "username_taken" ? G("ar.e.taken", "ชื่อนี้ถูกใช้แล้ว") : e && e.code === "too_many_reviewers" ? G("ar.e.max", "มีบัญชีผู้ตรวจครบจำนวนสูงสุดแล้ว") : friendly(e), true);
+      msg(e && e.code === "username_taken" ? G("ar.e.taken", "ชื่อนี้ถูกใช้แล้ว") : e && e.code === "too_many_reviewers" ? G("ar.e.max", "มีบัญชีผู้ตรวจครบจำนวนสูงสุดแล้ว")
+        : e && e.code === "tryon_role_off" ? G("ar.e.tryonOff", "ระบบลองสินค้ายังปิดอยู่บนเซิร์ฟเวอร์นี้ จึงยังสร้างบัญชีบทบาทแคตตาล็อกลองสินค้าไม่ได้ เลือกบทบาทผู้ตรวจคำแนะนำตามความเชื่อแทน")
+        : friendly(e), true);
     });
   });
   $("arCopy").addEventListener("click", function () {
