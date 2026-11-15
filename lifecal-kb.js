@@ -88,12 +88,12 @@
     montri: "ช่วงนี้มีผู้ใหญ่คอยหนุนเรื่องหัวใจ", kalakini: "ช่วงนี้ควรใจเย็นเป็นพิเศษเวลาเห็นต่างกัน" };
   var BHUMI_TH = {
     boriwan: { th: "บริวาร", tone: "favourable", tag: "social", m: "คนรอบตัวและลูกน้องเป็นกำลังสำคัญของคุณ" },
-    ayu: { th: "อายุ", tone: "favourable", tag: "advice", m: "พลังในการดูแลตัวเองและความสม่ำเสมอของชีวิตมาจากดาวนี้", a: "ลองทำกิจวัตรดูแลตัวเองสั้น ๆ ทุกวัน เช่น เดินเล่นหรือนอนให้ตรงเวลา" },
-    det: { th: "เดช", tone: "favourable", tag: "work", m: "อำนาจ บารมี และความน่าเกรงขามในการงานมาจากดาวนี้" },
-    sri: { th: "ศรี", tone: "favourable", tag: "money", m: "โชคและความเป็นสิริมงคลด้านทรัพย์มาจากดาวนี้" },
-    mula: { th: "มูละ", tone: "neutral", tag: "money", m: "รากฐาน บ้าน และทรัพย์สินที่สะสมไว้มาจากดาวนี้" },
-    utsaha: { th: "อุตสาหะ", tone: "favourable", tag: "work", m: "ความขยันและความพากเพียรในการลงมือทำมาจากดาวนี้" },
-    montri: { th: "มนตรี", tone: "favourable", tag: "social", m: "ผู้ใหญ่และคนที่คอยช่วยเหลือสนับสนุนมาจากดาวนี้" },
+    ayu: { th: "อายุ", tone: "favourable", tag: "advice", m: "คุณดูแลตัวเองได้ดีเมื่อชีวิตมีจังหวะที่สม่ำเสมอ", a: "ลองทำกิจวัตรดูแลตัวเองสั้น ๆ ทุกวัน เช่น เดินเล่นหรือนอนให้ตรงเวลา" },
+    det: { th: "เดช", tone: "favourable", tag: "work", m: "คุณมีบารมีและความน่าเกรงขามในการงาน คนรอบตัวจึงรับฟังเมื่อคุณตัดสินใจ" },
+    sri: { th: "ศรี", tone: "favourable", tag: "money", m: "ตำราถือว่าโชคและความเป็นสิริมงคลด้านทรัพย์อยู่ในดวงของคุณ" },
+    mula: { th: "มูละ", tone: "neutral", tag: "money", m: "รากฐาน บ้าน และทรัพย์สินที่คุณสะสมไว้เป็นหลักยึดของชีวิต" },
+    utsaha: { th: "อุตสาหะ", tone: "favourable", tag: "work", m: "คุณขยันและพากเพียร เมื่อลงมือทำแล้วมักไม่ทิ้งกลางทาง" },
+    montri: { th: "มนตรี", tone: "favourable", tag: "social", m: "คุณมีผู้ใหญ่และคนที่คอยช่วยเหลือสนับสนุนอยู่รอบตัว" },
     kalakini: { th: "กาลกิณี", tone: "caution", tag: "advice", m: "ตำราถือว่าดาวนี้เป็นจุดที่ควรระวัง ของใช้หรือการตัดสินใจที่เกี่ยวกับดาวนี้ควรทำอย่างรอบคอบ", a: "หากชอบความสบายใจ ลองเลี่ยงสีของดาวนี้ในวันสำคัญ แต่ความตั้งใจของคุณสำคัญกว่าเสมอ" },
   };
   function taksaFacts(T, topic, opts) {
@@ -108,7 +108,7 @@
         love: [(LOVE_BY_PLANET[bp] || "") + " ในตำราทักษา ภูมิบริวารซึ่งมีดาว" + P0.th + "ยังหมายถึงคู่ครองและคนในครอบครัว และคนที่เกิด" + PLANET[T.bhumi.montri].day + "มักเป็นผู้ใหญ่ที่คอยหนุนความสัมพันธ์ของคุณ ตอนนี้คุณอายุ " + Math.max(0, age0) + " ปี อยู่ในช่วงอายุ " + M0.from + "–" + M0.to + " ปีที่อยู่ใต้มหาทักษาดาว" + PLANET[M0.planet].th + " " + (LOVE_BY_BHUMI[M0.bhumi] || "")] } });
     ["sri", "det", "montri", "utsaha", "ayu", "kalakini"].forEach(function (b, i) {
       var p = T.bhumi[b], B = BHUMI_TH[b], P = PLANET[p], m = {};
-      m[B.tag] = [B.m.replace("ดาวนี้", "ดาว" + P.th) + " สีประจำดาวคือสี" + P.color];
+      m[B.tag] = [B.m.replace("ดาวนี้", "ดาว" + P.th) + " สีประจำดาว" + P.th + "คือสี" + P.color];
       if (B.a) m.advice = [B.a.replace("ดาวนี้", "ดาว" + P.th)];
       if (B.tag !== "advice") m.overview = m[B.tag].slice();
       items.push({ id: "tk." + b + "." + p, group: "ภูมิทักษา", label: "ภูมิ" + B.th + " (ดาว" + P.th + ")", short: "ภูมิ" + B.th, evidence: "นับจากดาว" + P0.th + "ตามวงทักษา", strength: 0.88 - i * 0.05, tone: B.tone, tags: Object.keys(m), meanings: m });
@@ -133,20 +133,33 @@
   ];
   /** ทุกภพเป็นสิ่งที่พบหนึ่งชิ้น: สูงกว่าค่าเฉลี่ยชัด = จุดแข็ง (favourable), ต่ำกว่าชัด = ควรค่อย ๆ เติม (caution), อื่น ๆ = ปกติ */
   var L7_TONE = function (v, mean) { return v >= mean + 2 ? "favourable" : v <= mean - 3 ? "caution" : "neutral"; };
+  // round 3: each house has its own wording, so two houses of the same level are not dropped as near copies of each other
+  // (the composer skips a line that repeats a long stretch of a line already used; with one template per level, the third
+  // and later houses of a level were lost)
+  var L7_TAIL = {
+    favourable: ["เป็นจุดแข็งที่ใช้ได้ทันที", "มีแรงหนุนให้ลงมือได้เลย", "เป็นด้านที่คุณพึ่งพาได้ในช่วงนี้", "มีพลังเด่นพร้อมให้หยิบมาใช้", "เป็นจุดที่ทำแล้วเห็นผลง่าย", "มีพลังดีเป็นพิเศษในผังของคุณ", "เป็นเรื่องที่คุณทำได้อย่างมั่นใจ"],
+    neutral: ["มีพลังพอดี ดูแลไปตามจังหวะปกติได้", "อยู่ในจังหวะกลาง ไม่ต้องเร่งและไม่ต้องกังวล", "มีแรงพอใช้ ดูแลไปตามปกติก็พอ", "ทรงตัวดี รักษาจังหวะเดิมไว้ก็ไปต่อได้", "อยู่ในระดับพอดี ใส่ใจตามปกติก็เพียงพอ", "มีพลังปานกลาง ไปได้เรื่อยอย่างมั่นคง", "อยู่ในเกณฑ์กลาง ดูแลอย่างสม่ำเสมอก็พอ"],
+    caution: ["ยังมีพลังน้อย จึงควรค่อย ๆ เติม", "ยังต้องการแรงหนุน ควรเติมทีละน้อย", "มีพลังน้อยกว่าด้านอื่น ควรให้เวลาเพิ่มขึ้น", "ยังไม่เด่นในผัง ค่อยเป็นค่อยไปจะดีที่สุด", "ยังบางกว่าด้านอื่น ควรดูแลอย่างใจเย็น", "ยังต้องสร้างพลังเพิ่ม เริ่มจากเรื่องเล็กได้", "ยังมีแรงไม่มาก จึงไม่ควรเร่ง"],
+  };
+  var L7_TAIL2 = {
+    favourable: ["เดินหน้าได้ง่ายกว่าเรื่องอื่น", "มีแรงส่งมากกว่าด้านอื่นในผัง", "ไปได้ดีโดยไม่ต้องออกแรงมาก", "มักมีโอกาสดีเข้ามาเอง", "เติบโตได้เร็วเมื่อคุณลงมือ", "เป็นที่พึ่งให้ด้านอื่นได้", "มักให้ผลดีกว่าที่คาด"],
+    neutral: ["จึงขึ้นกับความสม่ำเสมอของคุณมากกว่าโชค", "จะไปได้ดีเมื่อคุณดูแลอย่างต่อเนื่อง", "ขึ้นกับความตั้งใจของคุณเป็นหลัก", "ไปได้ตามปกติถ้ารักษาจังหวะไว้", "ไม่หวือหวาแต่ไว้ใจได้", "จะดีขึ้นทีละน้อยตามความใส่ใจ", "ค่อนข้างนิ่งและคาดเดาได้"],
+    caution: ["ต้องใช้ความใส่ใจมากกว่าปกติ", "ควรค่อย ๆ ดูแลอย่างใจเย็น", "ต้องให้เวลามากกว่าด้านอื่นสักหน่อย", "ไม่ควรรีบร้อนในช่วงนี้", "ควรวางแผนให้รอบคอบกว่าเดิม", "ต้องการความอดทนเป็นพิเศษ", "ควรเริ่มจากก้าวเล็ก ๆ ก่อน"],
+  };
   var L7_LINE = {
-    favourable: function (H) { return "ผังเลขชี้ว่าเรื่อง" + H.m + "เป็นจุดแข็งที่ใช้ได้ทันที"; },
-    neutral: function (H) { return "เรื่อง" + H.m + "มีพลังพอดี ดูแลไปตามจังหวะปกติได้"; },
-    caution: function (H) { return "ผังเลขชี้ว่าด้าน" + H.th + " (" + H.m + ") ยังมีพลังน้อย จึงควรค่อย ๆ เติม"; },
+    favourable: function (H, i) { return "ผังเลขชี้ว่าเรื่อง" + H.m + L7_TAIL.favourable[i % 7]; },
+    neutral: function (H, i) { return "เรื่อง" + H.m + L7_TAIL.neutral[i % 7]; },
+    caution: function (H, i) { return "ผังเลขชี้ว่าด้าน" + H.th + " (" + H.m + ") " + L7_TAIL.caution[i % 7]; },
   };
   var L7_LINE2 = {
-    favourable: function (H) { return "พลังของภพ" + H.th + "ช่วยให้เรื่อง" + H.m + "เดินหน้าได้ง่ายกว่าเรื่องอื่น"; },
-    neutral: function (H) { return "ภพ" + H.th + "อยู่ในระดับกลาง เรื่อง" + H.m + "จึงขึ้นกับความสม่ำเสมอของคุณ"; },
-    caution: function (H) { return "ตำรามองว่าเรื่อง" + H.m + "ต้องใช้ความใส่ใจมากกว่าปกติ"; },
+    favourable: function (H, i) { return "พลังของภพ" + H.th + "ช่วยให้เรื่อง" + H.m + L7_TAIL2.favourable[i % 7]; },
+    neutral: function (H, i) { return "ภพ" + H.th + "อยู่ในระดับกลาง ผลของเรื่อง" + H.m + L7_TAIL2.neutral[i % 7]; },
+    caution: function (H, i) { return "ตำรามองว่าเรื่อง" + H.m + L7_TAIL2.caution[i % 7]; },
   };
   function lek7Facts(L7, topic) {
     var s = L7.sum, mean = s.reduce(function (a, x) { return a + x; }, 0) / s.length, hiI = s.indexOf(Math.max.apply(null, s));
     var items = HOUSE.map(function (H, i) {
-      var tone = L7_TONE(s[i], mean), m = {}; m[H.tag] = [L7_LINE[tone](H), L7_LINE2[tone](H)];
+      var tone = L7_TONE(s[i], mean), m = {}; m[H.tag] = [L7_LINE[tone](H, i), L7_LINE2[tone](H, i)];
       if (tone === "caution") m.advice = ["ลองให้เวลากับเรื่อง" + H.m + "มากขึ้นทีละน้อย"];
       if (i === hiI) m.overview = ["เรื่อง" + H.m + "เป็นจุดที่มีพลังมากที่สุดในผังของคุณ"];
       return { id: "l7." + i + "." + tone, group: "ฐานรวม", label: "ภพ" + H.th + " ได้ " + s[i], short: "ภพ" + H.th, evidence: "ช่องที่ " + (i + 1) + " ของฐานรวม",
@@ -215,13 +228,15 @@
       if (tone === "caution") m.advice = [DOM_ACT[d]];
       if (k === 0) m.overview = [DOM_LINE[d][tone]];
       // quality round 2026-11-16: "ช่วงอายุ 24–30 ปี เส้นความรักของคุณทรงตัว …" (a whole sentence, used as it is in Thai)
-      if (d !== "care") Object.keys(m).forEach(function (t) { if (t !== "advice") m[t] = m[t].map(function (x) { return "เส้น" + DOM_TH[d] + "ของคุณช่วงอายุ " + cur + "–" + (cur + step) + " ปี" + DIR_TH[tone] + " (ระดับ " + S.avg[k] + " จาก 100) " + x; }); });
-      items.push({ id: "lg.now." + d + "." + tone, group: "ช่วงอายุปัจจุบัน", label: DOM_TH[d] + "ช่วงอายุ " + cur + "–" + (cur + step), short: d === "care" ? "ด้าน" + DOM_TH[d] : "เส้น" + DOM_TH[d], evidence: "ระดับ " + S.avg[k] + "/100 จากทักษา 八字 และตะวันตก", strength: 0.9 - k * 0.04, tone: tone, plainTh: d !== "care", tags: Object.keys(m), meanings: m });
+      // round 3: only the first curve repeats the age band; the others open with their own area, so the composer does not drop them
+      // as near copies of each other (the money and work curves were lost in round 2)
+      if (d !== "care") Object.keys(m).forEach(function (t) { if (t !== "advice") m[t] = m[t].map(function (x) { return k === 0 ? "เส้น" + DOM_TH[d] + "ของคุณช่วงอายุ " + cur + "–" + (cur + step) + " ปี" + DIR_TH[tone] + " (ระดับ " + S.avg[k] + " จาก 100) " + x : "เส้น" + DOM_TH[d] + "ช่วงนี้ (ระดับ " + S.avg[k] + " จาก 100) " + x; }); });
+      items.push({ id: "lg.now." + d + "." + tone, group: "ช่วงอายุปัจจุบัน", label: (d === "care" ? "" : "เส้น") + DOM_TH[d] + "ช่วงอายุ " + cur + "–" + (cur + step), short: d === "care" ? "ด้าน" + DOM_TH[d] : "เส้น" + DOM_TH[d], evidence: "ระดับ " + S.avg[k] + "/100 จากทักษา 八字 และตะวันตก", strength: 0.9 - k * 0.04, tone: tone, plainTh: d !== "care", tags: Object.keys(m), meanings: m });
     });
     var MP = PLANET[S.maha.planet];
     // round 2: the main point of the life graph is the age band, its Taksa period and where the curves go (a whole sentence)
     var mean0 = Math.round((S.avg[0] + S.avg[1] + S.avg[2]) / 3);
-    items.push({ id: "lg.maha." + S.maha.planet, group: "ระบบทักษา", label: "มหาทักษาดาว" + MP.th, short: "มหาทักษา", evidence: "มหาทักษา · อายุ " + S.maha.from + "–" + S.maha.to, strength: 0.95, tone: BHUMI_TH[S.maha.bhumi].tone, tags: ["overview", "timing"], plainTh: true,
+    items.push({ id: "lg.maha." + S.maha.planet, group: "ระบบทักษา", label: "มหาทักษาดาว" + MP.th, short: "มหาทักษา", evidence: "มหาทักษา · อายุ " + S.maha.from + "–" + S.maha.to, strength: 0.95, tone: BHUMI_TH[S.maha.bhumi].tone, tags: ["overview", "timing"], plainTh: true, ages: [cur, cur + step], dirTone: TONE_OF(mean0),
       meanings: { overview: ["ช่วงอายุ " + cur + "–" + (cur + step) + " ปี ภาพรวมของเส้นชีวิตคุณ" + DIR_TH[TONE_OF(mean0)] + " และอยู่ใต้มหาทักษาดาว" + MP.th + " ซึ่งเด่นเรื่อง" + MP.q], timing: ["ตามมหาทักษา ช่วงนี้อยู่ใต้ดาว" + MP.th + " ซึ่งเด่นเรื่อง" + MP.q] } });
     if (S.luck) { var G = GOD[S.luck.stemGod]; items.push({ id: "lg.luck." + S.luck.stemGod, group: "ระบบ 八字", label: "วัยจร " + S.luck.pillar.zh, short: "วัยจร", evidence: "八字 大运 · อายุ " + Math.round(S.luck.from) + "–" + Math.round(S.luck.to), strength: 0.78, tone: G.tone, tags: ["timing"], meanings: { timing: [G.t] } }); }
     var nx = C.turns.find(function (t) { return t.age > nowAge; });

@@ -100,21 +100,35 @@
      that would be left empty and the sections themselves stay (TH / EN / ZH keep the same sections) */
   var ADV_UNIT = /ข้อแนะนำทั่วไป|วิธีปรับตามตำรา|สิ่งที่ควรทำ|สิ่งที่ทำได้|เคล็ด|Try |try |建议|不妨|调整的方法/;
   /** @param {any[]} parts @param {string} lang */
+  // round 3: the lead words of a tip ("ข้อแนะนำทั่วไปคือ / สิ่งที่ทำได้จากจุดนี้คือ / ข้อแนะนำทั่วไปจากจุดนี้คือ …", "Try this:", "建议你")
+  // differ between copies, so tips are compared on their core text after the lead
+  var TIP_LEAD = {
+    th: /^(?:ข้อแนะนำทั่วไป(?:จากจุดนี้)?คือ|สิ่งที่ทำได้(?:ทันที)?(?:จากจุดนี้)?(?:ในเรื่อง\S*)?คือ|วิธีปรับตามตำรา(?:คือ)?|สิ่งที่ควรทำ(?:ตามตำรา)?(?:คือ)?|เคล็ดเสริมดวง\S*\s?)\s?/,
+    en: /^(?:Try this simple adjustment:|A simple adjustment:|Try this:|It would help to|Try to|A good next step is to|This is a good time to)\s*/i,
+    zh: /^(?:建议这样调整：|调整的方法是：|建议你|不妨|试着|可以先)/,
+  };
   function dropRepeats(parts, lang) {
-    var seen = /** @type {string[]} */ ([]), min = lang === "zh" ? 10 : 30;
+    var seen = /** @type {string[]} */ ([]), min = lang === "zh" ? 10 : 30, minCore = lang === "zh" ? 8 : lang === "en" ? 24 : 16;
+    var lead = TIP_LEAD[lang] || TIP_LEAD.th;
     /** shared start of two strings @param {string} x @param {string} y */
     var common = function (x, y) { var i = 0; while (i < x.length && i < y.length && x[i] === y[i]) i++; return i; };
+    /** @param {string} x */
+    var norm = function (x) { return lang === "en" ? x.toLowerCase() : x; };
     parts.forEach(function (p) {
       p.sections.forEach(function (/** @type {any} */ s) {
         s.paragraphs = s.paragraphs.map(function (/** @type {string} */ q) {
-          // round 2: units also start at the beginning of a paragraph, and a repeated tip followed by other text loses the tip only
+          // units also start at the beginning of a paragraph; a repeated tip followed by other text loses the tip only
           var units = lang === "zh" ? q.split(/(?<=[。！？])/) : lang === "en" ? q.split(/(?<=[.!?]) (?=[A-Z"“])/) : q.split(/(?=ข้อแนะนำทั่วไป|วิธีปรับตามตำรา|สิ่งที่ควรทำ|สิ่งที่ทำได้จาก|เคล็ดเสริมดวง)/);
           var out = units.map(function (/** @type {string} */ u) {
-            var k = u.trim(); if (k.length < min || !ADV_UNIT.test(k)) return u;
-            var prev = seen.find(function (x) { return common(x, k) >= min; });
-            if (!prev) { seen.push(k); return u; }
-            var n = common(prev, k); if (n < prev.length && lang === "th") n = k.lastIndexOf(" ", n);
-            return n > 0 ? k.slice(n).trim() : "";
+            var k = u.trim(), m = lead.exec(k), hasLead = !!m;
+            if (!hasLead && (k.length < min || !ADV_UNIT.test(k))) return u;
+            var core = (m ? k.slice(m[0].length) : k).replace(/^[:：\s]+/, "");
+            if (core.length < minCore) return u;
+            var prev = seen.find(function (x) { return common(norm(x), norm(core)) >= minCore; });
+            if (!prev) { seen.push(core); return u; }
+            var n = common(norm(prev), norm(core)); if (n < prev.length && lang === "th") n = core.lastIndexOf(" ", n);
+            if (n < prev.length && lang === "en") { var e = core.slice(n).search(/[.!?]/); n = e < 0 ? core.length : n + e + 1; }
+            return n > 0 ? core.slice(n).replace(/^[\s,，、。.]+/, "").trim() : "";
           });
           return out.join(lang === "zh" ? "" : " ").replace(/\s{2,}/g, " ").trim() || q;
         });

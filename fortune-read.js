@@ -29,17 +29,21 @@
   // quality round 2026-11-16 (R3): never between a number and its unit, inside a list ("อำนาจ ‖ บารมี และ…"), or right after a
   // lead that still needs its clause ("จากราศีอาทิตย์ ‖", "เรื่องการงาน ‖")
   const TH_UNIT = /^(?:ปี|เท่า|%|องศา|คน|วัน|เดือน|ครั้ง|ข้อ|ชั่วโมง|นาที|บาท|ใบ|ตัว|ดวง|ฐาน|ภพ|ช่วง|สัปดาห์|ขวบ)/;
-  const TH_LIST_NEXT = /^\S{1,14} (?:\S{1,14} )?(?:และ|หรือ)\S/, TH_LEAD_PREV = /(?:^|\s)(?:สำหรับ|จาก|ดูที่|ส่วน|เรื่อง|ด้าน|ในฐานะ|ในส่วนของ|ตาม|เมื่อดูที่)\S*(?:\s+[一-鿿\d]+)?(?:\s*[(（][^)）]*[)）])?$/;
+  const TH_LIST_NEXT = /^\S{1,14} (?:\S{1,14} )?(?:และ|หรือ)\S/, TH_LEAD_PREV = /(?:^|\s)(?:สำหรับ|จาก|ดูที่|ส่วน|เรื่อง|ด้าน|ในฐานะ|ในส่วนของ|ในมุมของ|ตาม|เมื่อดูที่)\S*(?:\s+[一-鿿\d]+)?(?:\s*[(（][^)）]*[)）])?$/;
   // round 2: never right after a transition word ("…ที่สำคัญ ‖") or inside brackets ("(Six of ‖")
   const TH_TRANS_PREV = /(?:^|\s)(?:ที่สำคัญ|เช่นเดียวกัน|พร้อมกันนั้น|ในขณะเดียวกัน|ถ้ามีเวลา|นอกจากนี้|ในอีกมุมหนึ่ง|อีกด้านหนึ่ง|ถัดมา|อีกทั้ง|ในทำนองเดียวกัน|ที่น่าสังเกตคือ|อีกเรื่องหนึ่งคือ|ต่อจากนั้น|ยิ่งไปกว่านั้น|ขณะเดียวกัน)$/;
   const openBracket = (/** @type {string} */ a) => (a.match(/[(（]/g) || []).length > (a.match(/[)）]/g) || []).length;
+  // a bare tag or item at the end ("…ในตำราทักษา", "ชาวปีจอ", "เช่น", "คือ") is not a place to stop (round 3)
+  const TH_TAG_END = /(?:^|\s)ในตำรา\S*$|(?:^|\s)ชาวปี(?:ชวด|ฉลู|ขาล|เถาะ|มะโรง|มะเส็ง|มะเมีย|มะแม|วอก|ระกา|จอ|กุน)$|(?:^|\s)(?:เช่น|คือ|ว่า|ได้แก่)$/;
   function cutsTh(p) {
     const out = [];
     for (let i = p.indexOf(" "); i >= 0; i = p.indexOf(" ", i + 1)) {
       if (p[i + 1] === " " || p[i - 1] === " ") continue;
       const a = p.slice(0, i), b = p.slice(i + 1);
+      // never a cut: before ๆ ("เล็ก ‖ ๆ"), before a name's value or gloss ("วัยจร ‖ 甲辰", "ในตำราทักษา ‖ (…)") (round 3)
+      if (/^[ๆ一-鿿(（]/.test(b)) continue;
       // soft: none of the hard breaks (after ๆ, number|unit, inside a list, after a lead + noun); ok: soft and a clean clause boundary
-      const soft = !/ๆ$/.test(a) && !(/\d$/.test(a) && TH_UNIT.test(b)) && !(TH_LIST_NEXT.test(b) && !/[.!?)]$/.test(a)) && !TH_LEAD_PREV.test(a) && !/^(?:เช่น|ได้แก่|เสริมด้วย|และ|หรือ)/.test(b) && !TH_TRANS_PREV.test(a) && !openBracket(a);
+      const soft = !/ๆ$/.test(a) && !(/\d$/.test(a) && TH_UNIT.test(b)) && !(TH_LIST_NEXT.test(b) && !/[.!?)]$/.test(a)) && !TH_LEAD_PREV.test(a) && !/^(?:เช่น|ได้แก่|เสริมด้วย|และ|หรือ)/.test(b) && !TH_TRANS_PREV.test(a) && !openBracket(a) && !TH_TAG_END.test(a);
       out.push({ at: i, soft, ok: soft && !TH_CONT_NEXT.test(b) && !TH_CONT_PREV.test(a) && !(TH_FROM.test(b) && TH_FROM_VERB.test(a)) && !TH_REPORT_NEXT.test(b) && !/^[(（]/.test(b) });
     }
     return out;
@@ -186,7 +190,7 @@
       const inRange = cuts.filter(c => c.at > start && c.at - start <= max);
       if (!inRange.length) break;
       const good = inRange.filter(c => c.ok);
-      const pick = good.find(c => c.at - start >= target * 0.8) || good[good.length - 1] || inRange[inRange.length - 1];
+      const pick = good.find(c => c.at - start >= target * 0.8) || good[good.length - 1] || inRange.filter(c => c.soft !== false).pop() || inRange[inRange.length - 1];
       if (pick.at - start < 12 && inRange.length > 1) { const later = inRange.find(c => c.at - start >= 12); if (later) { out.push(p.slice(start, later.at)); start = later.at + 1; continue; } }
       out.push(p.slice(start, pick.at)); start = pick.at + 1;
     }
@@ -214,14 +218,16 @@
     let c = okc[okc.length - 1] || cuts.filter(x => x.ok && within(x) && x.at >= (th ? 40 : 12)).pop() ||
       (th ? cuts.filter(x => x.soft && within(x) && x.at >= 40).pop() || cuts.find(x => x.ok && past(1.15)(x)) || cuts.find(x => x.soft && past(1.15)(x)) : null);
     if (!c && th) c = cuts.filter(x => x.ok && within(x) && x.at >= 12).pop() || null; // a short clean start …
-    if (c && th && c.at < 40) { const nx = cuts.find(x => (x.ok || x.soft) && x.at > 60 && x.at <= max * 1.3); if (nx) c = nx; else if (p.length <= max * 1.6) return [p]; } // … not a bare name
+    // round 3: "short" is measured without brackets, so a label with a long gloss ("ตรีแกรมบนฟ้า (乾 …)") is not a main point
+    const clen = x => p.slice(0, x.at).replace(/\s*[(（][^)）]*[)）]/g, "").length;
+    if (c && th && (c.at < 40 || clen(c) < 45)) { const nx = cuts.find(x => (x.ok || x.soft) && x.at > 60 && clen(x) >= 45 && x.at <= max) || cuts.find(x => (x.ok || x.soft) && x.at > 60 && clen(x) >= 45 && x.at <= max * 1.3); if (nx) c = nx; else if (p.length <= max * 1.6) return [p]; } // … not a bare name
     if (!c && p.length <= max * 1.25) return [p];
     // English: one whole first sentence a little past the limit rather than a cut inside it (quality round 2026-11-16)
     if (!c && lang === "en") { const s1 = cuts.find(x => x.at > max && x.at <= max * 1.25); if (s1) c = s1; }
     if (!c && lang === "en") { const cm = [...p.matchAll(/, /g)].map(m => m.index + 1).filter(i => i <= max && i >= max * 0.4); if (cm.length) c = { at: cm[cm.length - 1] }; }
     if (!c && th) c = cuts.find(x => x.soft && past(2)(x)) || null;
     if (!c && th && p.length <= max * 1.6) return [p]; // never a visible end that strands a word group
-    if (!c) { const any = lang === "en" ? [...p.matchAll(/ /g)].map(m => ({ at: m.index })) : cuts; c = any.filter(x => x.at <= max && x.at >= 12).pop(); }
+    if (!c) { const any = lang === "en" ? [...p.matchAll(/ /g)].map(m => ({ at: m.index })) : cuts.filter(x => x.soft); c = any.filter(x => x.at <= max && x.at >= 12).pop(); }
     if (!c) return split(p, lang);
     at = c.at;
     return [p.slice(0, at)].concat(split(p.slice(at + 1), lang));

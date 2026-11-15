@@ -81,11 +81,11 @@
   const FALLBACK_KEYS = { love: ["social", "personality", "overview"], work: ["personality", "timing", "overview"], money: ["timing", "personality", "overview"] };
   const FALLBACK_LINE = {
     th: { none: ["{D}ไม่ได้พูดถึงเรื่อง{TW}โดยตรงในครั้งนี้ จึงขออ่านเรื่อง{TW}จากลักษณะโดยรวมของสิ่งที่พบแทน", "ครั้งนี้{D}ให้ข้อมูลเรื่อง{TW}โดยตรงไม่มากนัก ขอเล่าจากสิ่งที่พบในภาพรวมที่นำมาใช้กับเรื่อง{TW}ได้"],
-      some: ["เรื่อง{TW}ครั้งนี้ ตำราดูจาก{X} ซึ่งเล่าไว้ในหัวข้อก่อนหน้าแล้ว ขอเสริมมุมที่นำไปใช้ได้"] },
+      some: ["เรื่อง{TW}ครั้งนี้ ตำราดูจาก{X} ขอเล่าว่านำมาใช้กับเรื่อง{TW}ได้อย่างไร"] },
     zh: { none: ["{D}这次没有直接谈到{TW}，下面从整体的特点来看{TW}", "这次{D}对{TW}的直接说法不多，下面挑出能用在{TW}上的部分"],
-      some: ["{TW}方面这次主要看{X}，前面已经讲过，这里补充可以怎么用"] },
+      some: ["{TW}方面这次主要看{X}，下面说说可以怎么用"] },
     en: { none: ["{D} doesn't speak to {TW} directly this time, so this part reads {TW} from the overall picture", "{D} says little about {TW} directly this time; here is what from the overall picture applies to {TW}"],
-      some: ["For {TW}, this reading looks at {X}, covered above; here is how to put it to use"] },
+      some: ["For {TW}, this reading looks at {X}; here is how to put it to use"] },
   };
   const FALLBACK_TIP = {
     th: { love: ["ในเรื่องความรัก ลองนำจุดเด่นของตัวเองไปใช้กับการพูดคุยกับคนสำคัญอย่างจริงใจ", "เรื่องหัวใจไม่มีสูตรตายตัว การฟังกันและกันอย่างตั้งใจยังเป็นสิ่งที่ช่วยได้มากที่สุด"],
@@ -105,10 +105,24 @@
       timing: ["Pick one important plan and give it a clear start date"], advice: ["Pick one thing from this reading you can do right away, and keep at it for a week"] },
   };
   // quality round 2026-11-16: what the Thai plan says about one group ("group", "brief", "skip" = not in the Thai reading; "" no plan)
+  // round 3: lines the Thai plan keeps out of its own groups go to "in brief" (or the group where Thai put its short in-brief);
+  // never into the overview or another topic's group. Without such a group in Thai they are left out (Thai sets the plan).
+  const foldHost = (sections, P) => sections.find(x => x.id === "brief") || (P && P.host && sections.find(x => x.id === P.host)) || null;
+  // round 3 (S7c): the "pick one of these" closer only after two or more tips in the same group
+  const PICK_ONE = /挑一条最适合你的|Pick the one suggestion/;
+  const TIP_SEN = {
+    en: /^(?:Try|It would help|A good next step|This is a good time to|A simple adjustment|Set aside|Pick|Keep|Plan|Take|Make|Spend|Give|Write|Ask|Talk|Rest|Start|Check|Save|Choose|Wear|Add|Place|Face|Turn|Put|Avoid|Leave|Note|Use)\b/,
+    zh: /建议|不妨|试着|可以先|可以|记得|调整的方法|先把|多留|留意|别急/,
+  };
+  const closeAfter = (draw, s, lang) => {
+    const tips = s.flatMap(x => (lang === "zh" ? String(x).split(/(?<=[。！？])/) : String(x).split(/(?<=[.!?])\s+/))).filter(x => TIP_SEN[lang].test(x.trim())).length;
+    for (let k = 0; k < 6; k++) { const c = draw(); if (!PICK_ONE.test(c) || tips >= 2) return c; }
+    return lang === "zh" ? "把这次解读当作参考，最后还是按自己的判断来决定" : "These are tendencies in traditional teachings, and what you actually do matters more";
+  };
   const planKind = (P, id) => (!P ? "" : P.seq.indexOf(id) >= 0 ? "group" : P.brief.indexOf(id) >= 0 ? "brief" : (P.ov || []).indexOf(id) >= 0 ? "ov" : id === "advice" && P.adv ? "merge" : "skip");
   // round 2: a planned group the language's own data says nothing about is read from nearby areas of the same findings (no general tip)
   const NEAR = { personality: ["overview"], social: ["love", "personality"], timing: ["overview", "personality"], work: ["personality", "overview"], money: ["work", "overview"], love: ["social", "personality"], advice: ["advice"] };
-  const planTop = (items, P) => { const ord = (P && P.order) || (P && P.main ? [P.main] : []), lead = ord.slice(0, 2).map(id => items.find(it => it.id === id)).filter(Boolean); return lead.concat(items.filter(it => lead.indexOf(it) < 0 && (!META_ITEM.test(it.id) || it.kind === "plain"))).slice(0, 2); };
+  const planTop = (items, P) => { const ord = (P && P.order) || (P && P.main ? [P.main] : []), lead = ord.slice(0, 3).map(id => items.find(it => it.id === id)).filter(Boolean); return lead.concat(items.filter(it => lead.indexOf(it) < 0 && (!META_ITEM.test(it.id) || it.kind === "plain"))).slice(0, 2); };
   const DOMAIN_NAMES_ZH = { face: "面相", palm: "手相", horoscope: "泰式占星", tarot: "塔罗牌", siamsee: "签诗", fengshui: "风水", numbers: "数字命理", iching: "易经", zodiac: "十二生肖", astro: "西洋占星", dream: "解梦", bazi: "八字", taksa: "塔克萨命理", lek7: "七数九宫", lifegraph: "人生曲线" };
   const DOMAIN_NAMES_EN = { face: "Face reading", palm: "Palm reading", horoscope: "Thai astrology", tarot: "The tarot", siamsee: "The Siam Si verse", fengshui: "Feng shui", numbers: "Number reading", iching: "The I Ching", zodiac: "The Chinese zodiac", astro: "Western astrology", dream: "Dream reading", bazi: "BaZi", taksa: "Taksa", lek7: "The Lek 7 chart", lifegraph: "The life graph" };
   // ความหมายที่นำมาใช้ในหัวข้อสำรองได้: ไม่พูดถึงหัวข้ออื่น (หรือพูดถึงหัวข้อนี้)
@@ -797,9 +811,10 @@
   /* ---------- ชนิดของเนื้อความ: คำแนะนำ (imperative) กับความเชื่อ/ข้อสังเกต (statement) ----------
      กรอบความเชื่อ ("เชื่อกันว่า…", "ตีความว่า…", "บ่งบอกว่า…") ต่อได้เฉพาะ statement
      ถ้าเอาไปต่อหน้าคำสั่ง จะได้ประโยคแปลก ๆ อย่าง "เชื่อกันว่าเปิดบัญชีออม…" จึงจัดชนิดอัตโนมัติจากคำขึ้นต้น */
-  const IMPER = /^(?:ลอง|ควร|อย่า|หมั่น|ฝึก|เลือก|จด|ตั้งใจ|ตั้งเป้า|ตั้งงบ|ตั้งโอน|ตั้งเวลา|ให้เวลา|เปิดใจ|เปิดบัญชี|เปิดรับ|เปิดโอกาส|เปิดหน้าต่าง|เปิดไฟ|เปิดประตู|ใช้เวลา|ใช้โอกาส|ใช้จังหวะ|ใช้ส่วน|เริ่มจาก|เริ่มต้นจาก|เริ่มวัน|ค่อย ๆ|ปล่อย|พักใจ|พักผ่อน|พักสายตา|รักษา|เตรียม|ปรับ|นับ|เก็บ|แบ่ง|วางแผน|วางของ|วางต้นไม้|วางโต๊ะ|วางเตียง|จัด|เติม|หัน|พก|ใส่|เขียน|ทบทวน|ขอบคุณ|หาเวลา|หาโอกาส|หาที่|หาคน|มองหา|ดูแล|ต้อนรับ|เชื่อมั่น|เคลียร์|กล้า(?!เสี่ยง|คิดกล้า|ลงมือในเรื่องใหญ่)|ระวัง|เลี่ยง|ชะลอ|ฟัง|พูด(?!จา|มีหลักการ|แล้วคนฟัง|เก่ง|เพราะ|ดี)|ถาม|คุย|ทำบุญ|สวดมนต์|นั่งสมาธิ|ให้กำลังใจ|ให้รางวัล|ให้อภัย|ศึกษา|โฟกัส|ตรวจ|ออม|บอกความ|บอกคน|แสดงความ|แบ่งปัน|ทำความ|ทำสิ่ง|ทำทีละ|ทำบัญชี|ทำรายการ|ทำงานทีละ|ลดการ|งด|ซ้อม|ฝากเงิน|ส่งข้อความ|ทักทาย|ชวนเพื่อน|ชวนคน|ขอคำ|ขอความ|ปิดมือถือ|ปิดโทรศัพท์|ปิดแจ้งเตือน|ย้าย|ล้าง|ทิ้ง|รดน้ำ|สวม|แต่งตัว|แต่งกาย|อ่านหนังสือ|ดื่มน้ำ|เดินเล่น|ออกไปเดิน|ออกกำลัง|ยิ้มให้|หายใจ|อยู่กับปัจจุบัน|รอจังหวะ|ยอมรับ|เปลี่ยน|สังเกต|บอก)/;
+  const IMPER = /^(?:กันเงิน|กันเวลา|ตั้งสติ|หลีกเลี่ยง|ทำข้อตกลง|ช่วยเหลือเพื่อน|ยืดหยุ่นกับ|ลอง|ควร|อย่า|หมั่น|ฝึก|เลือก|จด|ตั้งใจ|ตั้งเป้า|ตั้งงบ|ตั้งโอน|ตั้งเวลา|ให้เวลา|เปิดใจ|เปิดบัญชี|เปิดรับ|เปิดโอกาส|เปิดหน้าต่าง|เปิดไฟ|เปิดประตู|ใช้เวลา|ใช้โอกาส|ใช้จังหวะ|ใช้ส่วน|เริ่มจาก|เริ่มต้นจาก|เริ่มวัน|ค่อย ๆ|ปล่อย|พักใจ|พักผ่อน|พักสายตา|รักษา|เตรียม|ปรับ|นับ|เก็บ|แบ่ง|วางแผน|วางของ|วางต้นไม้|วางโต๊ะ|วางเตียง|จัด|เติม|หัน|พก|ใส่|เขียน|ทบทวน|ขอบคุณ|หาเวลา|หาโอกาส|หาที่|หาคน|มองหา|ดูแล|ต้อนรับ|เชื่อมั่น|เคลียร์|กล้า(?!เสี่ยง|คิดกล้า|ลงมือในเรื่องใหญ่)|ระวัง|เลี่ยง|ชะลอ|ฟัง|พูด(?!จา|มีหลักการ|แล้วคนฟัง|เก่ง|เพราะ|ดี)|ถาม|คุย|ทำบุญ|สวดมนต์|นั่งสมาธิ|ให้กำลังใจ|ให้รางวัล|ให้อภัย|ศึกษา|โฟกัส|ตรวจ|ออม|บอกความ|บอกคน|แสดงความ|แบ่งปัน|ทำความ|ทำสิ่ง|ทำทีละ|ทำบัญชี|ทำรายการ|ทำงานทีละ|ลดการ|งด|ซ้อม|ฝากเงิน|ส่งข้อความ|ทักทาย|ชวนเพื่อน|ชวนคน|ขอคำ|ขอความ|ปิดมือถือ|ปิดโทรศัพท์|ปิดแจ้งเตือน|ย้าย|ล้าง|ทิ้ง|รดน้ำ|สวม|แต่งตัว|แต่งกาย|อ่านหนังสือ|ดื่มน้ำ|เดินเล่น|ออกไปเดิน|ออกกำลัง|ยิ้มให้|หายใจ|อยู่กับปัจจุบัน|รอจังหวะ|ยอมรับ|เปลี่ยน|สังเกต|บอก)/;
   // "คุยเรื่องอนาคตได้ดี", "เก็บสะสมทรัพย์สินได้ดี": a skill or trait, not an instruction (round 2: Q6)
-  const isImperative = m => IMPER.test(String(m || "").replace(/^คุณ(?=ควร|ลอง|อย่า)/, "")) && !/^\S*(?:ได้ดี|เก่ง)/.test(String(m || ""));
+  const EVID_TH = /^(?:หน้าผาก|โหนกแก้ม|คาง|ฝ่ามือ|นิ้ว|จมูก|คิ้ว|ริมฝีปาก|ดวงตา|ใบหู|โซน\S*มีดาว)/; // physical evidence, not a meaning
+  const isImperative = m => IMPER.test(String(m || "").replace(/^คุณ(?=ควร|ลอง|อย่า)/, "")) && !/^\S*(?:ได้ดี|เก่ง)/.test(String(m || "")) && !/^\S{0,24}คือ/.test(String(m || ""));
   // คำแนะนำแบบมีเงื่อนไข ("ก่อนตอบรับงานใหม่ ลองนับถึงสิบ…") ใช้เป็นประโยคเดี่ยวได้เลย ไม่ต้องใส่กรอบ
   const condAdvice = m => /^(?:ก่อน|เวลา|ถ้า|หาก|เมื่อ|ช่วงที่|ทุกครั้งที่)\S*(?:\s\S+){0,4}\s(?:ลอง|ควร|อย่า|ให้)/.test(String(m || ""));
   // ตัด "คุณควร/ควร" ออกเมื่อกรอบมีคำแนะนำนำหน้าอยู่แล้ว ("ชวนให้…", "แนะนำให้…")
@@ -1092,7 +1107,8 @@
     love: ["Try talking things through in a gentle tone, and listen more than you speak", "A good way to handle this is to make more time for each other and to say how you feel honestly but kindly"],
     overview: ["A good way to handle this is to make important decisions calmly and keep a backup plan", "Try taking one thing at a time, resting enough, and reviewing your plans now and then"],
   };
-  const cautionArea = (it, sec) => (CAUTION_LEAD_TH[sec] ? sec : (it.tags || []).find(t => CAUTION_LEAD_TH[t]) || "overview");
+  // round 3 (S7b): a group of its own topic (timing, social, personality) takes the general lead, never another topic's lead
+  const cautionArea = (it, sec) => (CAUTION_LEAD_TH[sec] ? sec : /^(?:timing|social|personality)$/.test(sec || "") ? "overview" : (it.tags || []).find(t => CAUTION_LEAD_TH[t]) || "overview");
   /* lint "caution-gentle": ประโยคที่บอกจุดควรระวังต้องนุ่มนวล (ไม่มีถ้อยคำรุนแรง/ฟันธง) และต้องมีสิ่งที่ทำได้ในประโยคเดียวกันหรือประโยคถัดไป */
   const CAUTION_MARK_TH = /ควรระวัง|ตึงมือ|ระมัดระวัง|ต้องใช้แรงมากกว่าปกติ|ต้องการความเข้าใจมากขึ้น|ควรใจเย็นกับกันและกัน|เดินอย่างรอบคอบ|จุดที่ควรใส่ใจ/;
   const CAUTION_MARK_ZH = /紧一些|多留意|多留心|多花些力气|多一些体谅|多一点耐心|宜稳/;
@@ -1542,7 +1558,7 @@
       meanings: it.meanings && typeof it.meanings === "object" ? it.meanings : {}, _i: i,
       // plain: ความหมายเป็นประโยคสมบูรณ์ที่อ้างถึงสิ่งที่พบอยู่แล้ว ใช้ตามคลังโดยไม่ใส่กรอบ
       // focus: หัวข้อที่สิ่งที่พบนี้ "พูดถึงจริง" (ใช้ตัดสินประโยคผสาน "A กับ B หนุนเรื่องเดียวกัน") ไม่ระบุ = ใช้ tags
-      plain: !!it.plain, plainTh: !!it.plainTh, person: !!it.person, remedy: typeof it.remedy === "string" ? it.remedy : "", focus: Array.isArray(it.focus) ? it.focus.map(String) : null,
+      plain: !!it.plain, plainTh: !!it.plainTh, person: !!it.person, ages: Array.isArray(it.ages) && it.ages.length === 2 ? it.ages.map(Number) : null, dirTone: typeof it.dirTone === "string" ? it.dirTone : "", remedy: typeof it.remedy === "string" ? it.remedy : "", focus: Array.isArray(it.focus) ? it.focus.map(String) : null,
     }));
     items.sort((a, b) => (b.strength - a.strength) || (a._i - b._i));
     return {
@@ -1620,7 +1636,7 @@
       ctx.fullShown.add(it.id);
       let ev = (opt.evidence || ctx.noEv) && !/[)”"]$/.test(it.label) ? proseEvidence(it.evidence) : "";
       // หลักฐานแบบสูตรคำนวณ ("ธาตุหนุนเจ้าชะตา 29% + ธาตุให้กำเนิด") ไม่ใส่ในประโยค → ย้ายไปบรรทัด "ที่มาของผล"
-      if (ev && /[+=×]/.test(ev)) { addWhy(ctx, it.label, ev); ev = ""; }
+      if (ev && /[+=×]|\d\s*%/.test(ev)) { addWhy(ctx, it.label, ev); ev = ""; } // round 3: a raw share goes to the "why" line
       if (ctx.noEv) ev = "";
       return { name: it.label.replace(/\s*\d+(?:\.\d+)?\s*%$/, ""), ev, first: true };
     }
@@ -1746,6 +1762,7 @@
         const nc = nameCore(nm), shares = [...Array(Math.max(0, nc.length - 3)).keys()].some(i => m.indexOf(nc.slice(i, i + 4)) >= 0);
         text = ctx.gNow && shares ? m : (ctx.gNow ? "ด้วย" : R0.first ? "จาก" : "ส่วน") + nm + " " + m; noConn = true;
       }
+      text = text.replace(/([\u4e00-\u9fff])(?=[\u0e01-\u0e4e])/g, "$1 "); // round 3: "วัยจร 己酉 สื่อว่า…" (a space after a Chinese stem / branch)
       spend(ctx, text); return { text, noConn, sub: true, claim: { kind: "item", ids: [it.id], sec: ctx.sec } };
     };
     // a person-named finding ("ชาวปีระกา") is the subject itself: "ชาวปีระกากล้าคิดกล้าทำ…" (no "ในฐานะ…" that the cutter could strand)
@@ -1789,7 +1806,7 @@
       let f = neg ? firstUnder(ctx, NEG_FRAMES) : drawB(ctx, ctx.imp, IMP_FRAMES.length) || "{LEV}ชวนให้{M}";
       if (/^\^(?:ตามคำแนะนำของ|เพื่อใช้จุดเด่นของ)/.test(f)) f = neg ? "{LEV}เตือนเบา ๆ ว่า{M}" : "{LEV}ชวนให้{M}"; // round 2: Q6
       const standalone = f[0] === "^";
-      const M = neg ? m.replace(/^คุณ/, "") : standalone ? m.replace(/^ควร/, "คุณควร") : bareAdvice(m);
+      const M = (neg ? m.replace(/^คุณ/, "") : standalone ? m.replace(/^ควร/, "คุณควร") : bareAdvice(m)).replace(/^หลีกเลี่ยง/, "เลี่ยง").replace(/^เคลียร์/, "จัดการ");
       if (/^(?:ให้|พูด|ดู)/.test(M) && /(?:ชวนให้|แนะให้|เป็นสัญญาณให้)\{M\}$/.test(f)) f = f.replace(/(?:ชวนให้|แนะให้|เป็นสัญญาณให้)\{M\}$/, "ชวนคุณ{M}"); // no "ชวนให้ให้"
       return done(fill(standalone ? f.slice(1) : f, ctx.vars({ LE, LEV, M })), standalone);
     }
@@ -1800,12 +1817,17 @@
     // "ไพ่ใบนี้…" (สรรพนามไม่มีที่อ้าง) → ใช้ชื่อไพ่เป็นประธานแทน
     if (/^(?:ไพ่ใบนี้|ใบนี้)/.test(m)) return done(LEV.trim() + " " + m.replace(/^(?:ไพ่ใบนี้|ใบนี้)\s*/, ""), false);
     const role = roleOf(m);
+    // round 3 (S3): a means-that verb only reports a trait or a meaning, never a simile, physical evidence or a bare noun phrase
+    if (/^(?:ชวนให้|ช่วยให้|ทำให้|เสริมให้)/.test(m)) return done(LEV + m, false);
+    if (/^(?:เหมือน|ดุจ|ราวกับ|ประหนึ่ง)/.test(m)) return done(LEV + "เปรียบได้กับ" + m.replace(/^(?:เหมือน|ดุจ|ราวกับ|ประหนึ่ง)\s?/, ""), false);
+    if (EVID_TH.test(m)) { const nc = nameCore(R0.name); return done([...Array(Math.max(0, nc.length - 3)).keys()].some(i => m.indexOf(nc.slice(i, i + 4)) >= 0) ? m : "ตาม" + R0.name + " " + m, true); }
+    if (/^การ\S+$/.test(m)) { if (/^การ(?:เงิน|งาน)/.test(m)) m = "ด้าน" + m; else if (!/(?:จะ|ทำให้|เป็น|ช่วย|มัก|ได้)/.test(m) || /ที่/.test(m)) return done(LEV + "สื่อถึง" + m, false); }
     // กริยาวลีที่ประธานคือสิ่งที่พบ: "{ชื่อ}ช่วยให้…" (ไม่ใช่ "{ชื่อ}บ่งบอกว่าช่วยให้…")
     if (role === "vpItem") return done(LEV + m, false);
     // นามวลี/คำคุณศัพท์ลอย ๆ: "{ชื่อ}สื่อถึงความมั่นคง"
     if (role === "noun" || role === "adjective") return done(LEV + (r() < 0.5 ? "สื่อถึง" : "เน้นเรื่อง") + asNoun(m), false);
     // กริยาวลีที่ประธานคือผู้ถูกทำนาย → เติมประธาน "คุณ" ให้เป็นประโยคสมบูรณ์ก่อนวางหลัง "…ว่า"
-    if (role === "vpPerson" || (role === "clause" && TRAIT_TH.test(m)) || (IMPER.test(m) && !isImperative(m))) m = "คุณ" + m;
+    if (role === "vpPerson" || (role === "clause" && TRAIT_TH.test(m)) || (IMPER.test(m) && !isImperative(m)) || (/^(?:ใช้|เริ่ม|ตั้ง(?!แต่)|หา|เก็บ|จัด)/.test(m) && !isImperative(m))) m = "คุณ" + m;
     const cond = COND_START.test(m);
     // ความหมายที่มีกริยารายงาน/ภาพบรรยายของตัวเอง ("…บอกว่า…", "ภาพราชินี…สะท้อน…") → วางชื่อไว้หน้าเฉย ๆ ไม่ใส่ "บ่งบอกว่า" ซ้อน
     if (!cond && (SELF_SAYS.test(m) || /^ภาพ/.test(m) || OWN_REPORT.test(m))) {
@@ -1823,7 +1845,16 @@
       if (!/\{L/.test(frame) && prevItem !== it.id) frame = "^ส่วน{L} {H}{M}";
     }
     if (!R0.first && /\{G\}/.test(frame)) frame = "{LEV}{V}{M}";
-    if (ctx.gNow) frame = mode === "first" ? "{LEV}{V}{M}" : "{L}{V}{M}"; // a group opens with the finding's name
+    if (ctx.gNow) {
+      // a group opens with the finding (round 3, S2: not always "name + means-that verb"; one finding does not open every group the
+      // same way): the first time a finding opens a group it may be reported; later it is the point of view ("ตาม… / ในมุมของ…") or,
+      // once already named in an earlier group, the trait itself (the heading names the topic). The overview keeps the report frame.
+      const og = ctx.gOpen = ctx.gOpen || {}, n = (og[it.id] = (og[it.id] || 0) + 1), you = /^คุณ/.test(m) && !cond && !/^คุณ(?:อาจ|ควร)/.test(m);
+      if (ctx.sec === "overview" || /นี้$/.test(R0.name) || (n === 1 && r() < 0.45)) frame = mode === "first" ? "{LEV}{V}{M}" : "{L}{V}{M}";
+      else if (you && n >= 2) frame = "^{M}";
+      else if (/^(?:ไม่|มี)/.test(R0.name)) frame = "^{LE} {M}"; // a finding named by a statement ("ไม่มีเลข 0 …") is not a point of view
+      else frame = "^" + (r() < 0.5 ? "ตาม" : "ในมุมของ") + (mode === "first" ? "{LE}" : "{L}") + " {M}";
+    }
     if (/^\^ดูที่/.test(frame) && /^(?:เป็น|มี|ใจ|พูดจา|สัญชาตญาณ)/.test(m)) frame = "{L}{V}{M}";
     if (/ว่า\{M\}$/.test(frame) && /(?:บ้าง|เถอะ|นะ)$/.test(m)) frame = "{H}{M}"; // a request is not reported with "…ว่า"
     const noConn = frame[0] === "^";
@@ -2057,8 +2088,14 @@
     const rm = remedyFor(ctx.F, it, sec);
     // "ตามตำรา" เฉพาะวิธีที่ตำรากำหนดจริง (สี ธาตุ ทิศ); นิสัยทั่วไปบอกตรง ๆ ว่าเป็น "ข้อแนะนำทั่วไป"
     const frame = STRAIGHT ? (TRAD_REMEDY.has(rm && rm.cat) ? "สิ่งที่ควรทำตามตำราคือ" : "สิ่งที่ควรทำคือ") : TRAD_REMEDY.has(rm && rm.cat) ? "วิธีปรับตามตำราคือ" : "ข้อแนะนำทั่วไปคือ";
-    if (rm && !ctx.remedyKeys.has(rm.key)) { ctx.remedyKeys.add(rm.key); return { text: frame + rm.th.replace(/^ตามตำรา/, ""), fixed: true, sub: true, noConn: true }; }
-    const own = (it.meanings.advice || []).map(cleanMeaning).find(m => m && !ctx.used.has(m) && isSafe(m) && isImperative(m) && !adviceOffTopic(m, area) && !overlapsUsed(ctx, m));
+    const own2 = ctx.F.domain === "lek7" ? (it.meanings.advice || []).map(cleanMeaning).find(m => m && !ctx.used.has(m) && isSafe(m) && isImperative(m)) : null;
+    if (rm && !ctx.remedyKeys.has(rm.key)) {
+      ctx.remedyKeys.add(rm.key);
+      // round 3 (S7d): lek7 has no advice group, so a caution house keeps its own step too (EN / ZH give it as well)
+      if (own2) markUsed(ctx, own2);
+      return { text: frame + rm.th.replace(/^ตามตำรา/, "") + (own2 ? " แล้ว" + bareAdvice(own2) : ""), fixed: true, sub: true, noConn: true };
+    }
+    const own = own2 || (it.meanings.advice || []).map(cleanMeaning).find(m => m && !ctx.used.has(m) && isSafe(m) && isImperative(m) && !adviceOffTopic(m, area) && !overlapsUsed(ctx, m));
     let text = own || pick(ctx.r, CAUTION_ACTION_TH[area]);
     if (own) { markUsed(ctx, own); if (!/^(?:ควร|ลอง)/.test(text)) text = "ควร" + bareAdvice(text); }
     return { text, fixed: true, sub: true, noConn: true };
@@ -2089,6 +2126,8 @@
   // จุดที่ต้องระวังจุดถัดไปในหัวข้อเดียวกัน (โหมดตรง): ไม่มีประโยคนำซ้ำ แต่มีสิ่งที่ทำได้ต่อท้ายเสมอ
   function stepAfter(ctx, it, sec, iu) { const act = cautionAction(ctx, it, sec).text; return Object.assign({}, iu, { text: iu.text + " " + act, alt: [act], noConn: true }); }
   function cautionUnit(ctx, it, sec, iu) {
+    // round 3 (S7a): at most two stock caution leads per reading; later cautions keep their practical step without a lead
+    if (ctx.leadUsedTh && ctx.leadUsedTh.size >= 2) return stepAfter(ctx, it, sec, iu);
     const lead = cautionLead(ctx, it, sec).text, act = cautionAction(ctx, it, sec).text, area = cautionArea(it, sec);
     const alts = [lead + " " + act].concat(CAUTION_ACTION_TH[area].filter(a => a !== act).map(a => lead + " " + a));
     return Object.assign({}, iu, { text: lead + " " + iu.text + " " + act, alt: alts, noConn: true });
@@ -2113,7 +2152,7 @@
     if (!rel.length && !extraUnits.length) return null;
 
     // ความยาว: หัวข้อที่ถามได้พื้นที่มากที่สุด หัวข้ออื่นเล่าแค่จุดเด่น 2–3 จุด
-    const maxItems = isTopic ? 5 : id === "advice" ? 4 : 2 + Math.floor(r() * 2);
+    const maxItems = isTopic ? 5 : id === "advice" ? 4 : 2 + Math.floor(r() * 2) + (r() < 0.5 ? 1 : 0); // round 3: a little more of what was found
     // เรียงตามความเด่น + สุ่มเล็กน้อย เพื่อให้ลำดับต่างกันในแต่ละรอบ แต่ตัวเด่นยังมาก่อน
     const chosen = id === "advice" ? rel.slice(0, maxItems) : rel.map(it => ({ it, k: it.strength + r() * 0.18 })).sort((a, b) => b.k - a.k).slice(0, maxItems).map(x => x.it);
     ctx.secLead = 0; ctx.lastItem = null; ctx.secUnits = 0;
@@ -2131,12 +2170,12 @@
       if (caut) { ctx.cautionSec[id] = 1; body.push(cautionUnit(ctx, it, id, iu)); } else body.push(STRAIGHT && cautS(it) ? stepAfter(ctx, it, id, iu) : iu);
       // สิ่งที่พบ → ตำราว่าอย่างไร → ทำอะไรได้ (หัวข้อที่ถาม: สองจุดเด่นแรก)
       if (!caut && isTopic && i < 2) { const rm = remedyFor(ctx.F, it, id); if (rm && !ctx.remedyKeys.has(rm.key)) { ctx.remedyKeys.add(rm.key); body.push({ text: pick(r, TRAD_REMEDY.has(rm.cat) ? REMEDY_FRAMES_TH : REMEDY_FRAMES_GENERAL_TH) + rm.th.replace(/^ตามตำรา/, ""), fixed: true, sub: true, noConn: true }); } }
-      if (isTopic && i < 2 && r() < 0.4) { const m2 = pickMeaning(ctx, it, keys, id); if (m2) body.push(itemSentence(ctx, it, m2, "more")); }
+      if (isTopic && i < 2 && r() < 0.75) { const m2 = pickMeaning(ctx, it, keys, id); if (m2) body.push(itemSentence(ctx, it, m2, "more")); }
     });
     // หัวข้อที่ถามแต่เนื้อหายังบาง → ใช้ความหมายสำนวนอื่นของสิ่งที่พบเดิมเพิ่ม (รวมจากภาพรวมที่ยังไม่ได้ใช้)
-    if (isTopic && id !== "advice" && body.reduce((n, u) => n + u.text.length, 0) < 220) {
+    if (isTopic && id !== "advice" && body.reduce((n, u) => n + u.text.length, 0) < 300) {
       for (const it of chosen.concat(F.items.filter(x => chosen.indexOf(x) < 0 && speaksTo(x, id)))) {
-        if (body.reduce((n, u) => n + u.text.length, 0) >= 220) break;
+        if (body.reduce((n, u) => n + u.text.length, 0) >= 300) break;
         const m2 = pickMeaning(ctx, it, keys, id); if (m2) body.push(itemSentence(ctx, it, m2, ctx.mentioned.has(it.id) ? "more" : "first"));
       }
     }
@@ -2304,6 +2343,9 @@
     cap(sections.find(s => s.id === topicId), 3, true);
     const plen = s => s.paragraphs.reduce((m, p) => m + p.length + 1, 0);
     for (const s of minor) while (len() > max && s.paragraphs.length > 1 && plen(s) - s.paragraphs[s.paragraphs.length - 1].length >= 140) s.paragraphs.pop();
+    // round 3: the advice group gives up its extra paragraphs before a whole group of findings is dropped (EN / ZH follow the
+    // Thai groups, so a dropped Thai group was lost in all three languages)
+    const adv0 = sections.find(s => s.id === "advice"); while (adv0 && len() > max && adv0.paragraphs.length > 1) adv0.paragraphs.pop();
     if (!keep) for (const s of minor) if (len() > max) sections.splice(sections.indexOf(s), 1); // keep: a planned group stays (parity)
     const shrink = (s, keepLast) => { while (s && len() > max && s.paragraphs.length > (keepLast ? 2 : 1)) s.paragraphs.splice(keepLast ? s.paragraphs.length - 2 : s.paragraphs.length - 1, 1); };
     shrink(sections.find(s => s.id === "advice"));
@@ -2529,8 +2571,9 @@
       // "เรื่องการเงิน เรื่องเงิน…" → ตัดคำนำหน้าหัวข้อเดียวกันออกจากประโยคแรก
       const dropLead = (id, t) => { const sp = splitLead(t); return sp && sp.kind !== "wa" && leadTopic(sp.lead) === id ? sp.rest : t; };
       const at = sections.findIndex(s => s.id === "advice"), lines = briefs.map(b => BRIEF_TH[b.id] + " " + b.brief.map((t, i) => (i ? t : dropLead(b.id, t))).join(" "));
-      const ovS = sections.find(s => s.id === "overview");
-      if (ovS && lines.join(" ").length < 90) { ovS.paragraphs[ovS.paragraphs.length - 1] += " " + lines.join(" "); ctx.ovBrief = briefs.map(b => b.id); }
+      // round 3: a short "in brief" (under 90 characters) never goes into the overview, which carries only the overview, nor into
+      // another topic's group; it is left out (EN / ZH leave the same areas out)
+      if (lines.join(" ").length < 90) ctx.ovBrief = briefs.map(b => b.id);
       else { ctx.briefIds = briefs.map(b => b.id); sections.splice(at < 0 ? sections.length : at, 0, { id: "brief", title: "เรื่องอื่น ๆ โดยย่อ", paragraphs: lines }); }
     }
     // หัวข้อที่ถามต้องมีเสมอ: ศาสตร์ที่ไม่พูดถึงเรื่องนี้โดยตรง → บอกตรง ๆ แล้วอ่านจากมุมใกล้เคียง
@@ -2560,7 +2603,7 @@
     if (opts.split !== false) splitMain(sections, topicId);
     const out = { source: "local", sections, seed, lang: "th", topic: F.topic, reminder: reminderFor("th", r, F.domain) };
     const bs = sections.find(s => s.id === "brief");
-    Object.defineProperty(out, "_plan", { value: { seq: sections.map(s => s.id), brief: bs ? (ctx.briefIds || []).slice(0, bs.paragraphs.length) : [], ov: ctx.ovBrief || [], adv: ctx.advTo || "", main: namedOrder(sections, F.items)[0] || "", order: namedOrder(sections, F.items) } });
+    Object.defineProperty(out, "_plan", { value: { seq: sections.map(s => s.id), brief: bs ? (ctx.briefIds || []).slice(0, bs.paragraphs.length) : [], ov: ctx.ovBrief || [], host: ctx.briefHost || "", adv: ctx.advTo || "", main: namedOrder(sections, F.items)[0] || "", order: namedOrder(sections, F.items) } });
     Object.defineProperty(out, "_dupNames", { value: dupNames, enumerable: false });
     if (ctx.why && ctx.why.length) out.why = { title: "ที่มาของผล", lines: ctx.why.slice(0, 4) };
     const plan = buildPlan(F, "th", ctx.mentioned, null, { of: it => (it.meanings && it.meanings.advice) || [], used: ctx.used }); if (plan) out.plan = plan;
@@ -2647,10 +2690,15 @@
     if (/[฀-๿]/.test(n + s)) return null;
     const meanings = {};
     for (const e of ents) for (const f in ZH_FIELD) for (const x of zhArr(e[f])) if (!/[฀-๿]/.test(x)) (meanings[ZH_FIELD[f]] = meanings[ZH_FIELD[f]] || []).push(x);
+    // round 3 (S6): the lifegraph main point keeps the Thai age band and direction of the life line
+    if (domain === "lifegraph" && Array.isArray(it.ages) && meanings.timing && /·/.test(n)) meanings.overview = [it.ages[0] + "–" + it.ages[1] + "岁这段时间，你的人生曲线整体" + ({ favourable: "在上升", neutral: "比较平稳", caution: "宜稳步前行" }[it.dirTone] || "比较平稳") + "，处在塔克萨大运的" + n.split("·")[1].trim() + "阶段"];
     if (!Object.keys(meanings).length) return null;
-    return { id: it.id, label: n, short: s || n, strength: it.strength, polarity: it.polarity, tags: Object.keys(meanings), meanings, kind: domain === "iching" && /^rel\./.test(it.id) ? "rel" : it.plain ? "plain" : "", _i: it._i };
+    // round 3: the one-line explanation of the concept the English reading gives (glossary below), in Chinese too
+    const ex = ((enLoad()[domain] || {}).items || {}), gx = zhKeys(domain, it).map(k => ex[k] && ex[k].x).find(Boolean), gloss = (gx && ZH_GLOSS[gx]) || "";
+    return { id: it.id, label: n, short: s || n, gloss, strength: it.strength, polarity: it.polarity, tags: Object.keys(meanings), meanings, kind: domain === "iching" && /^rel\./.test(it.id) ? "rel" : it.plain ? "plain" : "", _i: it._i };
   }
 
+  const ZH_GLOSS = {"in Chinese face reading (known in Thailand as ngo heng), face shapes are grouped by the five elements of wood, fire, earth, metal and water": "面相把脸型按木、火、土、金、水五行来分类", "face reading splits the face into three zones: upper (hairline to brows), middle (brows to nose tip) and lower (nose tip to chin)": "面相把脸分成三停：上停从发际到眉毛，中停从眉毛到鼻头，下停从鼻头到下巴", "the name comes from classic Chinese face reading, where a straight bridge with a full, rounded tip is linked with a well-kept store of wealth": "这个名字来自传统面相，鼻梁直、鼻头圆润饱满，象征守得住的财库", "yintang is the space between the brows, which Chinese face reading treats as a window on your outlook and state of mind": "印堂是两眉之间的位置，面相把它看作心态和眼界的窗口", "the philtrum is the small groove between the nose and the upper lip, read in tradition as a sign of your stamina and life rhythm": "人中是鼻子和上唇之间的小沟，传统上用来看耐力和生活节奏", "in face reading the chin and jaw are called the Earth Pavilion and are linked with support from others and the later years of life": "面相把下巴和下颌称为地阁，和他人的支持以及晚年运势有关", "the twelve palaces are twelve areas of the face, each linked in tradition to one part of life, such as work, money, family or friends": "十二宫是脸上的十二个区域，传统上各自对应事业、财运、家庭或朋友等生活的一部分", "Shan Gen, the bridge of the nose between the eyes, is the palace face reading uses to talk about your energy, rest and daily rhythm": "山根是两眼之间的鼻梁，面相用它来看精力、休息和日常节奏", "the five mountains are the forehead, nose, both cheekbones and chin, the raised points of the face that tradition reads as your foundation": "五岳是额头、鼻子、两颧和下巴这几个隆起的部位，传统上看作一个人的根基", "the four rivers are the ears, eyes, nose and mouth, read in tradition as the channels that carry your thinking, resources and words": "四渎是耳、眼、鼻、口，传统上看作承载思路、资源和言语的通道", "the age map links each stretch of life to one area of the face, moving from the ears in childhood down to the chin and jaw in later years": "流年图把人生的每一段对应到脸上的一个部位，从童年的耳朵一直到晚年的下巴", "in Lek 7 Tua 9 Than, the Thai seven digits and nine bases chart, digits from your birth weekday, month and year add up into houses like this one": "在泰国的七数九宫里，出生的星期、月份和年份的数字相加，就得出像这样的各个宫", "in Taksa, the maha taksa periods hand each stretch of your life to a different planet in turn": "在塔克萨里，大运把人生的每一段依次交给不同的星曜主导", "the life graph combines Taksa, BaZi and Western astrology to show how your energy in each area of life shifts from one age period to the next": "人生曲线结合塔克萨、八字和西洋占星，显示各方面的能量在不同年龄段怎样起伏", "in BaZi, a ten-year luck period is a decade-long phase of your life with its own element and theme": "在八字里，大运是十年一段的人生阶段，每段都有自己的五行和主题", "in Western astrology, Saturn returns to its birth position roughly every twenty-nine years, a classic time for taking stock": "在西洋占星里，土星大约每二十九年回到出生时的位置，传统上是盘点人生的时刻", "Siam Si is the Thai practice of fortune sticks: you shake a cup of numbered sticks until one falls out, then read the slip with the same number": "求签是泰国常见的做法：摇动装着编号签条的签筒，掉出哪一支，就读同号的签诗", "in Taksa, the Thai system of birth-day planets, each weekday has a ruling planet that sets the tone of your chart": "塔克萨是泰国按出生星期排星的命理，每个星期几都有一颗主星，定下命盘的基调", "in Taksa, the Thai system of birth-day planets, this is one of eight bhumi, or life areas, and it covers vitality, self-care and the rhythm of daily life": "塔克萨是泰国按出生星期排星的命理，这是八个宫位之一，主管活力、照顾自己和日常节奏", "in Taksa, the Thai system of birth-day planets, this is one of eight bhumi, or life areas, and it covers authority and standing at work": "塔克萨是泰国按出生星期排星的命理，这是八个宫位之一，主管工作上的威望和地位", "in Taksa, the Thai system of birth-day planets, this is one of eight bhumi, or life areas, and it covers prosperity and blessings around money": "塔克萨是泰国按出生星期排星的命理，这是八个宫位之一，主管财运上的兴旺和福气", "in Taksa, the Thai system of birth-day planets, this is one of eight bhumi, or life areas, and it covers home, roots and what you build up over time": "塔克萨是泰国按出生星期排星的命理，这是八个宫位之一，主管家、根基和长期积累的东西", "in Taksa, the Thai system of birth-day planets, this is one of eight bhumi, or life areas, and it covers effort, diligence and perseverance": "塔克萨是泰国按出生星期排星的命理，这是八个宫位之一，主管努力、勤奋和毅力", "in Taksa, the Thai system of birth-day planets, this is one of eight bhumi, or life areas, and it covers mentors, elders and the people who support you": "塔克萨是泰国按出生星期排星的命理，这是八个宫位之一，主管贵人、长辈和支持你的人", "in Taksa, the Thai system of birth-day planets, this is one of eight bhumi, or life areas, and it covers the obstacles tradition asks you to handle with care": "塔克萨是泰国按出生星期排星的命理，这是八个宫位之一，主管传统上提醒要小心应对的阻碍"};
   /* ---------- 中文句式库（按语法角色） ---------- */
   const ZH_OPENERS = {
     face: ["面相是从五官比例看性格的传统学问，先从你脸上最突出的部位说起", "按面相的说法，你的五官有几处很值得细看"],
@@ -2730,13 +2778,15 @@
     const zLead = (area, it) => { const L = leadPool("zh", it), c = shuffle(r, L[area] || L.overview).find(x => !zLeadUsed.has(x)); return c ? (zLeadUsed.add(c), crec(true, zhEnd(c))) : null; };
     function zhCautionAction(it, area) { return crec(true, zhCautionAction0(it, area)); } function zhCautionAction0(it, area) {
       const rm = remedyFor(F, it, area);
-      if (rm && !zRemedy.has(rm.key)) { zRemedy.add(rm.key); lastSubj = null; return zhEnd((STRAIGHT ? "建议这样调整：" : "调整的方法是：") + rm.zh); }
-      const own = (it.meanings.advice || []).find(m => !used.has(m) && isSafe(m) && !adviceOffTopic(m, area) && (area !== "personality" || F.topic !== "overall" || !topicsIn(m).length));
+      const lk = F.domain === "lek7" && (!P || area === "overview" || P.seq.indexOf(area) >= 0) ? (it.meanings.advice || []).find(m => !used.has(m) && isSafe(m)) : null; // round 3 (S7d): lek7 keeps each caution house's own step
+      if (rm && !zRemedy.has(rm.key)) { zRemedy.add(rm.key); lastSubj = null; if (lk) used.add(lk); return zhEnd((STRAIGHT ? "建议这样调整：" : "调整的方法是：") + rm.zh) + (lk ? advice(lk) : ""); }
+      const own = lk || (it.meanings.advice || []).find(m => !used.has(m) && isSafe(m) && !adviceOffTopic(m, area) && (area !== "personality" || F.topic !== "overall" || !topicsIn(m).length));
       if (own) { used.add(own); return STRAIGHT ? zhEnd("建议你" + zhAdvSlot("建议你{A}", own)) : advice(own); } // straight: the step reads as one
       lastSubj = null;
       const pool = CAUTION_ACTION_ZH[area] || CAUTION_ACTION_ZH.overview, a = shuffle(r, pool).find(x => !zActUsed.has(x)) || shuffle(r, CAUTION_ACTION_ZH.overview).find(x => !zActUsed.has(x)) || pool[0];
       zActUsed.add(a); return zhEnd(a);
     }
+    const zGloss = new Set();
     function sentence(it, m, sec) { return crec(sec !== "advice" && it, sentence0(it, m, sec)); } function sentence0(it, m, sec) {
       let t;
       const afterHead = head && head.ids[head.at] === it.id && it.kind !== "plain";
@@ -2764,6 +2814,8 @@
         else if (zg && t.endsWith(m)) t = t.slice(0, t.length - m.length) + zhEchoPronoun(m, zg);
       }
       t = zhEnd(t);
+      // round 3: each concept explained once, in a group (not the overview), at most three per reading, as in English
+      if (sec !== "overview" && sec !== "advice" && it.gloss && !zGloss.has(it.gloss.slice(0, 12)) && zGloss.size < 3 && isSafe(it.gloss)) { zGloss.add(it.gloss.slice(0, 12)); t += zhEnd(it.gloss); }
       lastSubj = it.short;
       claims.push({ kind: "item", ids: [it.id], sec, text: t });
       return t;
@@ -2841,11 +2893,11 @@
         if (!s.length && pk === "group") { const a = items.flatMap(it => it.meanings.advice || []).find(m => !used.has(m) && isSafe(m) && !adviceOffTopic(m, F.topic)); if (a) { used.add(a); s.push(advice(a, true)); } }
         if (!s.length) continue;
         if (pk === "merge") { const h = sections.find(x => x.id === P.adv) || sections[sections.length - 1], s2 = h && h.id === "personality" && F.topic === "overall" ? s.filter(x => !topicsIn(x).length) : s; if (h && s2.length) h.paragraphs.push(s2.join("")); continue; }
-        s.push(zhEnd(fill(dk.close(), { TW: ZH_TAG[F.topic === "overall" ? "overview" : F.topic] })));
+        s.push(zhEnd(fill(closeAfter(dk.close, s, "zh"), { TW: ZH_TAG[F.topic === "overall" ? "overview" : F.topic] })));
         sections.push({ id, title: ZH_TITLES[id], paragraphs: paras(s) });
         continue;
       }
-      const chosen = rel.slice(0, isTopic ? 4 : 2);
+      const chosen = rel.slice(0, isTopic ? 4 : 3); // round 3: as in English
       for (const it of chosen) {
         const m = take(it, keys); if (!m) continue;
         const zc = zIsCaut(it) && !zCaut[id];
@@ -2868,10 +2920,10 @@
         const lex = ZH_TOPIC_LEX[id];
         const act = items.map(it => (it.meanings.advice || []).find(m => !used.has(m) && (!lex || lex.test(m)) && !adviceOffTopic(m, id) && (ADV_TOPIC[id] || !topicsIn(m).length))).find(Boolean);
         if (act) { used.add(act); actions.push(act); s.push(advice(act)); }
-        else s.push(zhEnd(fill(dk.close(), { TW: ZH_TAG[id] })));
+        else s.push(zhEnd(fill(closeAfter(dk.close, s, "zh"), { TW: ZH_TAG[id] })));
       }
       const text = s.join("");
-      if (pk === "ov") { const o = sections.find(x => x.id === "overview"); if (o) o.paragraphs[o.paragraphs.length - 1] += ZH_TAG[id] + "方面：" + text; continue; }
+      if (pk === "ov") { folded.push(ZH_TAG[id] + "方面：" + text); continue; }
       if (pk === "skip") { folded.push(ZH_TAG[id] + "方面：" + text); continue; }
       if (pk === "brief" || (!P && !isTopic && text.length < 40)) { briefs.push(ZH_TAG[id] + "方面：" + text); continue; }
       sections.push({ id, title: ZH_TITLES[id], paragraphs: paras(s) });
@@ -2898,7 +2950,7 @@
       if (briefs.length) sections.splice(at < 0 ? sections.length : at, 0, { id: "brief", title: ZH_TITLES.brief, paragraphs: P ? briefs : [briefs.join("")] });
     }
     if (P) { sections.sort((a, b) => P.seq.indexOf(a.id) - P.seq.indexOf(b.id)); for (let k = sections.length - 1; k >= 0; k--) if (P.seq.indexOf(sections[k].id) < 0) sections.splice(k, 1); }
-    if (folded.length) { const h = sections.find(x => x.id === "brief") || sections.find(x => x.id === "overview") || sections[0]; if (h) h.paragraphs.push(...folded); }
+    if (folded.length) { const h = foldHost(sections, P); if (h) h.paragraphs.push(...folded); }
     if (!sections.length) sections.push({ id: "overview", title: ZH_TITLES.overview, paragraphs: ["这次的结果暂时没有中文解读，可以切换到泰语查看完整内容。"] });
     for (const s of sections) all.push(...s.paragraphs);
     dropNearDupes(sections, "zh");
@@ -2965,6 +3017,8 @@
     if (FOREIGN.test(n + s)) return null;
     const meanings = {};
     for (const e of ents) for (const f in ZH_FIELD) for (const x of enArr(e[f])) if (!FOREIGN.test(x)) (meanings[ZH_FIELD[f]] = meanings[ZH_FIELD[f]] || []).push(x);
+    // round 3 (S6): the lifegraph main point keeps the Thai age band and direction of the life line
+    if (domain === "lifegraph" && Array.isArray(it.ages) && meanings.timing && /^your Taksa major period of /.test(n)) meanings.overview = ["for ages " + it.ages[0] + "–" + it.ages[1] + ", the overall line of your life " + ({ favourable: "is on the rise", neutral: "holds steady", caution: "calls for careful steps" }[it.dirTone] || "holds steady") + " under your Taksa period of " + n.replace(/^your Taksa major period of /, "")];
     if (!Object.keys(meanings).length) return null;
     const x = enArr(ents[0].x)[0];
     return { id: it.id, label: n, short: s || n, gloss: x && !FOREIGN.test(x) ? x : "", strength: it.strength, polarity: it.polarity, tags: Object.keys(meanings), meanings, kind: domain === "iching" && /^rel\./.test(it.id) ? "rel" : it.plain ? "plain" : "", _i: it._i };
@@ -2997,7 +3051,7 @@
     numbers: "In number reading", iching: "In the I Ching", zodiac: "In the Chinese zodiac", astro: "In Western astrology", dream: "In Thai dream lore", bazi: "In BaZi", taksa: "In Taksa", lek7: "In the Lek 7 chart", lifegraph: "In the life graph" };
   // quality round 2026-11-16: the first sentence of a group (it is what the layout shows before "Read more") opens briefly
   // round 2: the finding's name leads ("Looking at… / As for… / With…" at the start of most groups read as a template)
-  const EN_GROUP_FIRST = ["{N} suggests that {M}", "{N} shows that {M}", "Traditionally, {N} means that {M}", "In your reading, {N} points to this: {M}"];
+  const EN_GROUP_FIRST = ["{N} suggests that {M}", "{N} shows that {M}", "Traditionally, {N} means that {M}", "By tradition, {N} is a sign that {M}"]; // round 3: no "In your reading, X points to this:" formula
   // a first sentence longer than the short overview splits at a clause that has its own subject (". You …"), so it ends whole
   const EN_SPLIT = /, and (?=(?:you|your|it|this|that|they|people|others|the|there|friends|partners?|an?|[a-z]+ing)\b)|; |, so (?=[a-z])|, but (?=(?:you|your|it|this|they|the|there)\b)|, as (?=what\b)|, which (?=makes?\b)/g;
   function enShort(t) {
@@ -3098,8 +3152,9 @@
     function cautionAction(it, area) { return crec(true, cautionAction0(it, area)); } function cautionAction0(it, area) {
       const rm = remedyFor(F, it, area);
       const frame = STRAIGHT ? "Try this simple adjustment: " : "A simple adjustment: ";
-      if (rm && rm.en && !eRemedy.has(rm.key)) { eRemedy.add(rm.key); lastSubj = null; return enEnd(frame + lcFirst(rm.en.replace(/[.]+$/, ""))); }
-      const own = (it.meanings.advice || []).find(m => !used.has(m) && ok(m) && !adviceOffTopic(m, area) && (area !== "personality" || F.topic !== "overall" || !topicsIn(m).length));
+      const lk = F.domain === "lek7" && (!P || area === "overview" || P.seq.indexOf(area) >= 0) ? (it.meanings.advice || []).find(m => !used.has(m) && ok(m)) : null; // round 3 (S7d): lek7 keeps each caution house's own step
+      if (rm && rm.en && !eRemedy.has(rm.key)) { eRemedy.add(rm.key); lastSubj = null; if (lk) used.add(lk); return enEnd(frame + lcFirst(rm.en.replace(/[.]+$/, ""))) + (lk ? " " + advice(lk) : ""); }
+      const own = lk || (it.meanings.advice || []).find(m => !used.has(m) && ok(m) && !adviceOffTopic(m, area) && (area !== "personality" || F.topic !== "overall" || !topicsIn(m).length));
       if (own) { used.add(own); const a0 = advice(own); return STRAIGHT && !EN_DO.test(a0) ? "Try this: " + lcFirst(a0) : a0; }
       lastSubj = null;
       const pool = CAUTION_ACTION_EN[area] || CAUTION_ACTION_EN.overview, a = shuffle(r, pool).find(x => !eActUsed.has(x)) || shuffle(r, CAUTION_ACTION_EN.overview).find(x => !eActUsed.has(x)) || pool[0];
@@ -3133,7 +3188,7 @@
           if (sec === "overview" && !has(it.short) && !has(it.label)) {
             // "An older person in a dream…" → "The older person in a dream…" (the line names the finding as the reading calls it)
             const core = String(sn).replace(/^(?:the|your|a|an)\s+/i, ""), art = sn.slice(0, sn.length - core.length);
-            const m2 = art ? m.replace(new RegExp("^(?:an?|the|your)\\s+(?=" + core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b)", "i"), art) : m;
+            const m2 = art ? m.replace(new RegExp("(?:^|(?<=\\s))(?:an?|the|your)\\s+(?=" + core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b)", "i"), art) : m;
             if (m2 !== m) t = m2;
             else if (!enEcho(sn, m)) t = fill("As for {N}, {M}", { N: sn, M: m });
           }
@@ -3219,11 +3274,11 @@
         if (!s.length && pk === "group") { const a = items.flatMap(it => it.meanings.advice || []).find(m => !used.has(m) && ok(m) && !adviceOffTopic(m, F.topic)); if (a) { used.add(a); s.push(advice(a, true)); } }
         if (!s.length) continue;
         if (pk === "merge") { const h = sections.find(x => x.id === P.adv) || sections[sections.length - 1], s2 = h && h.id === "personality" && F.topic === "overall" ? s.filter(x => !topicsIn(x).length) : s; if (h && s2.length) h.paragraphs.push(s2.join(" ")); continue; }
-        s.push(enEnd(fill(dk.close(), { TW: EN_TAG[F.topic === "overall" ? "overview" : F.topic] })));
+        s.push(enEnd(fill(closeAfter(dk.close, s, "en"), { TW: EN_TAG[F.topic === "overall" ? "overview" : F.topic] })));
         sections.push({ id, title: EN_TITLES[id], paragraphs: paras(s) });
         continue;
       }
-      const chosen = rel.slice(0, isTopic ? 4 : 2);
+      const chosen = rel.slice(0, isTopic ? 4 : 3); // round 3: as many findings per group as the Thai reading gives (2–3)
       for (const it of chosen) {
         const m = take(it, keys); if (!m) continue;
         const ec = eIsCaut(it) && !eCaut[id];
@@ -3242,10 +3297,10 @@
         const lex = EN_TOPIC_LEX[id];
         const act = items.map(it => (it.meanings.advice || []).find(m => !used.has(m) && ok(m) && (!lex || lex.test(m)) && !adviceOffTopic(m, id) && (ADV_TOPIC_EN[id] || !topicsIn(m).length))).find(Boolean);
         if (act) { used.add(act); actions.push(act); s.push(advice(act)); }
-        else s.push(enEnd(fill(dk.close(), { TW: EN_TAG[id] })));
+        else s.push(enEnd(fill(closeAfter(dk.close, s, "en"), { TW: EN_TAG[id] })));
       }
       const text = s.join(" ");
-      if (pk === "ov") { const o = sections.find(x => x.id === "overview"); if (o) o.paragraphs[o.paragraphs.length - 1] += " " + EN_BRIEF[id] + ": " + text; continue; }
+      if (pk === "ov") { folded.push(EN_BRIEF[id] + ": " + text); continue; }
       if (pk === "skip") { folded.push(EN_BRIEF[id] + ": " + text); continue; }
       if (pk === "brief" || (!P && !isTopic && text.length < 110)) { briefs.push(EN_BRIEF[id] + ": " + text); continue; }
       sections.push({ id, title: EN_TITLES[id], paragraphs: paras(s) });
@@ -3272,7 +3327,7 @@
       if (briefs.length) sections.splice(at < 0 ? sections.length : at, 0, { id: "brief", title: EN_TITLES.brief, paragraphs: P ? briefs : [briefs.join(" ")] });
     }
     if (P) { sections.sort((a, b) => P.seq.indexOf(a.id) - P.seq.indexOf(b.id)); for (let k = sections.length - 1; k >= 0; k--) if (P.seq.indexOf(sections[k].id) < 0) sections.splice(k, 1); }
-    if (folded.length) { const h = sections.find(x => x.id === "brief") || sections.find(x => x.id === "overview") || sections[0]; if (h) h.paragraphs.push(...folded); }
+    if (folded.length) { const h = foldHost(sections, P); if (h) h.paragraphs.push(...folded); }
     if (!sections.length) sections.push({ id: "overview", title: EN_TITLES.overview, paragraphs: ["There isn't an English reading for this result yet. Switch to Thai to see the full reading."] });
     for (const s of sections) s.paragraphs = s.paragraphs.map(p => enSentences(p).filter(x => isSafe(x)).join(" ")).filter(Boolean);
     for (const s of sections) all.push(...s.paragraphs);

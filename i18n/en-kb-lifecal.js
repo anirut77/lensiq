@@ -58,8 +58,8 @@
   };
   var MAHA_X = "in Taksa, the maha taksa periods hand each stretch of your life to a different planet in turn";
   var HOUSE = [
-    { n: "the self house (tanu)", f: "p", m: "your sense of self and how others see you" }, { n: "the wealth house (kadumpha)", f: "m", m: "earning and saving money" }, { n: "the siblings and friends house (sahatcha)", f: "c", m: "friends, siblings and short trips" },
-    { n: "the family house (phanthu)", f: "c", m: "family, home and relatives" }, { n: "the joy and romance house (putta)", f: "l", m: "love, joy and creative work" }, { n: "the challenges house (ari)", f: "w", m: "competition and demanding work" }, { n: "the partner house (patni)", f: "l", m: "partners and close collaborators" },
+    { n: "the self house (tanu)", f: "p", m: "your sense of self, your confidence and how others see you" }, { n: "the wealth house (kadumpha)", f: "m", m: "earning and saving money" }, { n: "the siblings and friends house (sahatcha)", f: "c", m: "friends, siblings and short trips" },
+    { n: "the family house (phanthu)", f: "c", m: "family, home and relatives" }, { n: "the joy and romance house (putta)", f: "l", m: "love, joy and creative work" }, { n: "the challenges house (ari)", f: "w", m: "handling competition and work that takes real effort" }, { n: "the partner house (patni)", f: "l", m: "partners and close collaborators" },
   ];
   var L7_X = "in Lek 7 Tua 9 Than, the Thai seven digits and nine bases chart, digits from your birth weekday, month and year add up into houses like this one";
   var DOM = { work: { n: "work", f: "w" }, money: { n: "finances", f: "m" }, love: { n: "love life", f: "l" }, care: { n: "self-care", f: "a" } };
@@ -109,10 +109,18 @@
     taksa["maha." + p + ".boriwan"] = { n: P.k + " period in Taksa, in " + BH.boriwan.n, s: "this Taksa period", t: "this stretch of your life is led by " + P.n + ", with the focus on " + P.q, x: MAHA_X };
     life["lg.maha." + p] = { n: "your Taksa major period of " + P.n, s: "your Taksa period", t: "your Taksa period right now is led by " + P.n + ", with the focus on " + P.q, x: MAHA_X };
   });
+  // round 3: two short sentences per house, the second one its own (one long template ran past the visible cut and made the
+  // readings drop later houses as near copies)
+  var L7_FAV2 = ["You can put it to use right away", "It has a tailwind you can act on now", "It is an area you can lean on at the moment", "It carries extra energy that is ready to use",
+    "Effort here shows results easily", "It stands among the strongest parts of your chart", "You can take it on with confidence"];
+  var L7_NEU2 = ["Looking after it at your usual pace is enough", "There is no need to rush or to worry about it", "Ordinary care keeps it on track", "Keeping your current rhythm carries it forward",
+    "Everyday attention is enough to maintain it", "It moves along at a calm, reliable pace", "Steady care looks after it well"];
+  var L7_CAU2 = ["You can build it up gradually", "It could use more support, added a little at a time", "It deserves a bit more of your time than the other areas", "A slow and steady approach works best here",
+    "It is best handled calmly for now", "Its energy can be built up with small steps", "It is better not to push it at the moment"];
   HOUSE.forEach(function (h, i) {
-    var fav = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), o: "the area of " + h.m + " is one of the stronger spots in your chart", x: L7_X }; fav[h.f] = "your chart marks " + h.m + " as a strength to use now";
-    var neu = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), x: L7_X }; neu[h.f] = h.m + " sits at a moderate level of energy, where your usual pace is enough";
-    var cau = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), a: "give a little more time, bit by bit, to " + h.m, x: L7_X }; cau[h.f] = h.m + " has less energy for now and can be built up gradually";
+    var fav = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), o: "the area of " + h.m + " is one of the stronger spots in your chart", x: L7_X }; fav[h.f] = "your number chart marks the area of " + h.m + " as a strength. " + L7_FAV2[i % 7];
+    var neu = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), x: L7_X }; neu[h.f] = "the area of " + h.m + " has a moderate amount of energy for you. " + L7_NEU2[i % 7];
+    var cau = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), a: "give a little more time, bit by bit, to " + h.m, x: L7_X }; cau[h.f] = "your number chart shows that the area of " + h.m + " has less energy for now. " + L7_CAU2[i % 7];
     lek7["l7." + i + ".favourable"] = fav; lek7["l7." + i + ".neutral"] = neu; lek7["l7." + i + ".caution"] = cau;
   });
   Object.keys(DOM).forEach(function (d) {
