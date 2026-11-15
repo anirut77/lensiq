@@ -31,6 +31,9 @@ const THAI = /[฀-๿]/;
 // (one permission word alone matched page text such as "Allow online lookups", "拒绝通行" or "ใบอนุญาต" before any tap), and it must be
 // new text that was not on the page before the start control was tapped
 const DENIED = { th: [/กล้อง/, /อนุญาต|สิทธิ์|ถูกปฏิเสธ/], en: [/camera/i, /permission|allow|denied|blocked/i], zh: [/摄像头|相机|镜头/, /权限|允许|拒绝/] };
+// amendment 2b (coordinator follow-up 3): user-facing refusal text has no DOMException name, and an address-bar hint has the iOS path
+const RAW_CODE = /\b(NotAllowed|NotFound|NotReadable|Overconstrained|Security|Abort|PermissionDenied)Error\b|DOMException/;
+const ADDR_HINT = /address bar|lock icon|camera icon|แถบที่อยู่|ข้าง URL|แม่กุญแจ|ไอคอนกล้อง|地址栏|锁形|摄像头图标/i;
 /** in-page: visible texts (<= 400 chars, outside the nav / footer / help line) that match every [source, flags] pattern */
 function permTexts(rx) {
   const res = rx.map(r => new RegExp(r[0], r[1])), out = [];
@@ -334,8 +337,10 @@ export default async function ({ base, check, fakeCams }) {
           try {
             const bad = await loadChecks(page, lang, []);
             const rx = DENIED[lang].map(r => [r.source, r.flags]);
-            // texts already on the page before the start tap do not count (a page that opens the camera on load has no "before")
-            const before = C.start || C.startSelect ? await page.evaluate(permTexts, rx) : [];
+            // texts already on the page before the start tap do not count. A page that already asked for the camera on load (and was
+            // refused there) has no "before": its message is already after the refusal (amendment 2b; customers, driver, photobooth)
+            const refusedOnLoad = await page.evaluate(() => window.__lqDenied || 0);
+            const before = (C.start || C.startSelect) && !refusedOnLoad ? await page.evaluate(permTexts, rx) : [];
             if (C.pre) await C.pre(page);
             if (C.start) { const p = ctlProblem(await page.evaluate(controlFacts, C.start)); if (p) bad.push(p); else await tap(page, C.start); }
             if (C.startSelect) await setVal(page, C.startSelect[0], C.startSelect[1]);
@@ -366,6 +371,10 @@ export default async function ({ base, check, fakeCams }) {
             } catch { bad.push(`no camera-permission message in ${lang} (getUserMedia called ${await page.evaluate(() => window.__lqDenied || 0)} time(s))`); }
             if (msg && lang !== "th" && THAI.test(msg)) bad.push(`the message is not in ${lang}: "${msg.slice(0, 120)}"`);
             if (msg && lang === "th" && !THAI.test(msg)) bad.push(`the message is not in Thai: "${msg.slice(0, 120)}"`);
+            // amendment 2b: no raw error code for the user, and a message that points to the browser's address bar / lock / camera icon
+            // also gives the iPhone path (Safari aA -> Website Settings -> Camera)
+            if (msg && RAW_CODE.test(msg)) bad.push(`the message shows a raw error code: "${msg.slice(0, 160)}"`);
+            if (msg && ADDR_HINT.test(msg) && !/aA/.test(msg)) bad.push(`the message points to the address bar but not to the iPhone path (aA): "${msg.slice(0, 160)}"`);
             await sleep(1500);
             const hang = await page.evaluate(sel => {
               const busy = [...document.querySelectorAll('[aria-busy="true"]')].filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !e.closest("[hidden]"); })
