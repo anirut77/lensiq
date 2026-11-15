@@ -231,7 +231,7 @@
   "iv.js.discarded": "已丢弃反馈 — 任何人都不会再看到这些数字",
 
   // ---------- interview.js ----------
-  "iv.js.submitted": "已提交", "iv.js.pending": "未提交", "iv.js.removeWho": "删除 {n}", "iv.js.dupWho": "已有此名字",
+  "iv.js.submitted": "已提交", "iv.js.pending": "未提交", "iv.js.removeWho": "删除 {n}", "iv.js.needWho": "请先输入面试官的姓名或缩写", "iv.js.dupWho": "已有此名字",
   "iv.js.lawAlt": "改为询问：", "iv.js.lawCount": "已确认 {n}/{t} 项",
   "iv.js.between": "介于 1 级和 3 级之间", "iv.js.between2": "介于 3 级和 5 级之间", "iv.js.betweenShort": "介于所描述的等级之间",
   "iv.js.qBeh": "行为面试题（STAR）", "iv.js.qSit": "情境题", "iv.js.barsH": "评分标准（BARS）", "iv.js.noComps": "尚未选择胜任力",

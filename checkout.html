@@ -27,7 +27,7 @@
 <script src="i18n/zh-checkout.js?v=1"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=2"></script>
-<script src="i18n/zh-rt-checkout.js?v=2"></script>
+<script src="i18n/zh-rt-checkout.js?v=3"></script>
 
 <main class="co">
   <h1 data-i18n="checkout.s2">สแกนสินค้าด้วยกล้อง</h1>
@@ -114,6 +114,7 @@
         <h2 data-i18n="checkout.s43">เพิ่มสินค้าเอง</h2>
         <div class="inline"><select id="manualSel" aria-label="เลือกสินค้า" data-i18n-attr="aria-label:checkout.s44"></select><button class="btn ghost sm" id="manualAdd" type="button" data-i18n="checkout.s45">เพิ่ม</button></div>
         <form class="inline" id="bcForm"><input id="bcIn" placeholder="ยิงหรือพิมพ์บาร์โค้ดแล้วกด Enter" aria-label="บาร์โค้ด" autocomplete="off" inputmode="numeric" data-i18n-attr="placeholder:checkout.s46;aria-label:checkout.s47"><button class="btn ghost sm" type="submit" data-i18n="checkout.s48">ค้นหา</button></form>
+        <p class="form-msg" id="bcMsg" role="status" aria-live="polite"></p>
         <p class="hint" id="bcNote" data-i18n="checkout.s49">กำลังตรวจสอบการอ่านบาร์โค้ด...</p>
       </section>
       <details class="card settings">
@@ -199,7 +200,7 @@
 </dialog>
 
 <script src="vendor/face-api.js"></script>
-<script src="checkout.js?v=5"></script>
+<script src="checkout.js?v=6"></script>
 <script src="lensiq-config.js?v=10"></script>
 </body>
 </html>

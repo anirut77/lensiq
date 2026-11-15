@@ -228,7 +228,7 @@
   "iv.js.discarded": "Feedback discarded — no one will see these numbers again",
 
   // ---------- interview.js ----------
-  "iv.js.submitted": "Submitted", "iv.js.pending": "Not submitted", "iv.js.removeWho": "Remove {n}", "iv.js.dupWho": "This name already exists",
+  "iv.js.submitted": "Submitted", "iv.js.pending": "Not submitted", "iv.js.removeWho": "Remove {n}", "iv.js.needWho": "Enter the interviewer’s name or initials first", "iv.js.dupWho": "This name already exists",
   "iv.js.lawAlt": "Ask instead:", "iv.js.lawCount": "{n}/{t} confirmed",
   "iv.js.between": "Between level 1 and level 3", "iv.js.between2": "Between level 3 and level 5", "iv.js.betweenShort": "Between the described levels",
   "iv.js.qBeh": "Behavioral question (STAR)", "iv.js.qSit": "Situational question", "iv.js.barsH": "Rating scale (BARS)", "iv.js.noComps": "No competencies selected yet",

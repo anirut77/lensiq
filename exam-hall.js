@@ -697,7 +697,7 @@
   window.addEventListener("lq-lang", () => { renderSeats(); renderRecent(); status(); hint(); runLabel(); renderSc(); renderPc(); renderClipOff();
     if (lastEngine) engine(lastEngine[0], lastEngine[1]); });
   engine(() => T("exam.hall.engine0", "ยังไม่ได้เปิดกล้อง"));
-  renderSeats(); renderRecent(); runLabel(); hint(); renderSc(); renderPc();
+  renderSeats(); renderRecent(); runLabel(); hint(); renderSc(); renderPc(); status(); // D2-013: the status line is there on first load
 
   /** @type {any} */ (window).__LQ_EXAM_HALL = {
     get seats() { return seats; }, get mon() { return mon; }, get monitoring() { return monitoring; }, get walk() { return walk; },
