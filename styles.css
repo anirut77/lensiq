@@ -187,6 +187,20 @@ h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.2;color:var(--navy);margin:12p
 .btn.primary{background:var(--navy);color:#fff}.btn.primary:hover{background:var(--navy2);border-color:var(--navy2)}
 .btn.ghost{color:var(--navy);background:transparent}.btn.ghost:hover{background:var(--navy);color:#fff}
 .btn.full{width:100%;text-align:center}
+/* Tap feedback, busy state and double-tap safety for every button (owner report 2026-11-14, iPhone Safari: "I cannot tell
+   whether a tap registered, and repeated taps highlight the text inside the button"). Button text cannot be selected,
+   long-press shows no callout, a double tap never zooms, a press is visible (:active), and a button whose work is running
+   (aria-busy="true", set by lensiq-busy.js) shows a spinner and ignores taps. Reading text and text fields stay selectable. */
+button,[role=button],.btn,.chip,.tab,input[type=button],input[type=submit],input[type=reset],a.lq-call-btn{
+  -webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+:is(button,[role=button],.btn,.chip,.tab,input[type=button],input[type=submit],input[type=reset],a.lq-call-btn):active:not(:disabled):not([aria-disabled=true]){
+  filter:brightness(.86)!important;box-shadow:inset 0 2px 6px rgba(0,0,0,.18)!important}
+.btn:active:not(:disabled):not([aria-disabled=true]){transform:translateY(1px)}
+:is(button,.btn,[role=button])[aria-busy=true]{cursor:progress;opacity:.75;position:relative}
+:is(button,.btn,[role=button])[aria-busy=true]::after{content:"";display:inline-block;flex:none;width:1em;height:1em;
+  margin-inline-start:8px;vertical-align:-.15em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:lq-busy-spin .7s linear infinite}
+@keyframes lq-busy-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){:is(button,.btn,[role=button])[aria-busy=true]::after{animation:none;border-right-color:currentColor;opacity:.6}}
 .stats{display:flex;gap:32px;list-style:none;padding:0;flex-wrap:wrap}
 .stats b{display:block;font-size:1.3rem;color:var(--navy)}.stats span{font-size:.82rem;color:var(--muted)}
 

@@ -1,0 +1,199 @@
+{
+ "note": "Fixed set of key action buttons for the busy / double-tap check (tests/e2e/buttons-kit.mjs runBusy), chosen 2026-11-15 from tools/buttons-busy-discover.mjs (buttons that opened a camera, called the network or saved a file when tapped) plus the camera starts of the Sellable-pack products found by reading the pages. work: gum = opens a camera (getUserMedia is delayed 1.5 s and counted), dl = saves a file (synchronous; checks the double-tap guard). setup: steps run before the tap (check = tick a checkbox, click = untrusted click, fill = [selector, value]). Locked before any product fix (evals-locks/buttons.sha256); entries are only ever added.",
+ "buttons": [
+  {
+   "page": "crowd.html",
+   "button": "#startCam",
+   "work": "gum",
+   "setup": [
+    {
+     "check": "#gate input[type=checkbox]"
+    },
+    {
+     "click": "#gate button[data-ack]"
+    }
+   ],
+   "why": "Crowd: start camera (consent first)"
+  },
+  {
+   "page": "queue.html",
+   "button": "#startCam",
+   "work": "gum",
+   "setup": [
+    {
+     "check": "#gate input[type=checkbox]"
+    },
+    {
+     "click": "#gate button[data-ack]"
+    }
+   ],
+   "why": "Queue (shared zone camera of crowd / queue / tables / bays / afterhours): start camera"
+  },
+  {
+   "page": "exam-hall.html",
+   "button": "#startCam",
+   "work": "gum",
+   "setup": [
+    {
+     "fill": [
+      "#room",
+      "A101"
+     ]
+    }
+   ],
+   "why": "Exam hall mode: setup form submit opens the camera"
+  },
+  {
+   "page": "studio.html",
+   "button": "#stCamBtn",
+   "work": "gum",
+   "setup": [],
+   "why": "Studio: open camera"
+  },
+  {
+   "page": "checkout.html",
+   "button": "#camBtn",
+   "work": "gum",
+   "setup": [],
+   "why": "Checkout: open camera (toggle)"
+  },
+  {
+   "page": "medicine.html",
+   "button": "#mdCamBtn",
+   "work": "gum",
+   "setup": [],
+   "why": "Medicine: open camera to read a box"
+  },
+  {
+   "page": "nutrition.html",
+   "button": "#nutCamBtn",
+   "work": "gum",
+   "setup": [],
+   "why": "Nutrition: open camera to read a label"
+  },
+  {
+   "page": "faceread.html",
+   "button": "#frStartCam",
+   "work": "gum",
+   "setup": [],
+   "why": "Face reading: open camera"
+  },
+  {
+   "page": "palm.html",
+   "button": "#plStartCam",
+   "work": "gum",
+   "setup": [],
+   "why": "Palm reading: open camera"
+  },
+  {
+   "page": "store.html",
+   "button": "#startCam",
+   "work": "gum",
+   "setup": [],
+   "why": "Store: open camera"
+  },
+  {
+   "page": "signage.html",
+   "button": "#startFace",
+   "work": "gum",
+   "setup": [],
+   "why": "Signage: start audience measurement"
+  },
+  {
+   "page": "booth.html",
+   "button": "#camStart",
+   "work": "gum",
+   "setup": [],
+   "why": "Booth: start camera"
+  },
+  {
+   "page": "teamface.html",
+   "button": "#tfCamBtn",
+   "work": "gum",
+   "setup": [],
+   "why": "Team face: open camera"
+  },
+  {
+   "page": "medicine.html",
+   "button": "#pcCamBtn",
+   "work": "gum",
+   "setup": [
+    {
+     "click": "#t-pc"
+    }
+   ],
+   "why": "Product check: open camera to read a label"
+  },
+  {
+   "page": "interview.html",
+   "button": "#ivDStart",
+   "work": "gum",
+   "setup": [
+    {
+     "click": "#tab-delivery"
+    },
+    {
+     "check": "#ivCOk1"
+    },
+    {
+     "check": "#ivCOk2"
+    }
+   ],
+   "why": "Interview: start measuring (both consents first)"
+  },
+  {
+   "page": "tryon.html",
+   "button": "#toStart",
+   "work": "gum",
+   "setup": [
+    {
+     "check": "#toConsent"
+    }
+   ],
+   "why": "Try-on: open camera (consent first)"
+  },
+  {
+   "page": "crowd.html",
+   "button": "#exportCsv",
+   "work": "dl",
+   "setup": [],
+   "why": "Crowd: export CSV"
+  },
+  {
+   "page": "crowd.html",
+   "button": "#exportMkt",
+   "work": "dl",
+   "setup": [],
+   "why": "Crowd: export marketing CSV"
+  },
+  {
+   "page": "exam-hall.html",
+   "button": "#exportSeats",
+   "work": "dl",
+   "setup": [],
+   "why": "Exam hall: export seat map"
+  },
+  {
+   "page": "booth.html",
+   "button": "#exportCsv",
+   "work": "dl",
+   "setup": [],
+   "why": "Booth: export CSV"
+  },
+  {
+   "page": "insights.html",
+   "button": "#exportCsv",
+   "query": "&demo",
+   "work": "dl",
+   "setup": [],
+   "why": "Insights: export summary CSV"
+  },
+  {
+   "page": "store.html",
+   "button": "#exportHourly",
+   "work": "dl",
+   "setup": [],
+   "why": "Store: hourly CSV"
+  }
+ ]
+}
