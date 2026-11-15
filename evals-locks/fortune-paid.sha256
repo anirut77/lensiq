@@ -47,3 +47,6 @@ d8dd96e03e88fdc7e5743da5006ae076bc86d50101a0377934ae91d926c39677  tests/e2e/fort
 4ef87073b12e2918a66490e097ebaa92055eda49885cf367ff4231c7112d2eaa  tests/e2e/fortune-paid-sources.e2e.mjs
 c354ec1b09b2f88e6446eeac35db68148b278ec14184645f60c2b62a2aadef66  tests/e2e/fortune-paid.e2e.mjs
 a28c7d8e692fc0c78eb0fab58ffbec8bcfc9826c2944034727eb181e4452b12a  tests/e2e/fortune-paid-plan.e2e.mjs
+# RE-LOCK 2026-11-16 (12), fortune-paid-plan.e2e.mjs only: coverage after re-lock (11) was 3 / 6 readings with offers (zodiac readings rarely have paid depth now that D1 / D2 free more text). Dream added to the pages (9 readings); the minimum of 4 readings with offers is unchanged. Stricter coverage, no assertion loosened.
+# locked 2026-11-15T20:57:37Z (tools/eval-guard.mjs lock, 1 file)
+1c5ad35c00befa226935b2b281e242d5990348d59549694f724293a01662520b  tests/e2e/fortune-paid-plan.e2e.mjs

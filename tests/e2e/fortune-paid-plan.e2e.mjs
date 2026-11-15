@@ -28,6 +28,11 @@ const READ = {
     await p.waitFor(sections(3), 15000);
   },
   iching: async p => { await ev(p, () => { document.getElementById("icStart").click(); document.getElementById("icAuto").click(); }); await p.waitFor(sections(3), 20000); },
+  // re-lock (12): with more text free since D1 / D2, zodiac readings rarely have anything to sell; dream added for coverage
+  dream: async p => {
+    await ev(p, () => { const e = document.getElementById("drText"); e.value = "ฝันเห็นงูใหญ่ในบ้าน แล้วนั่งเครื่องบินไปทะเล"; e.dispatchEvent(new Event("input", { bubbles: true })); });
+    await p.waitFor(`!document.getElementById("drGo").disabled`, 5000); await ev(p, () => document.getElementById("drGo").click()); await p.waitFor(sections(3), 15000);
+  },
 };
 async function open(browser, base, p, lang, { plan = true } = {}) {
   const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`, "window.LENSIQ_FORTUNE_PAID = true;"];
@@ -89,7 +94,7 @@ export default async function ({ base, launch, check }) {
           if (sent.length) bad.push(`${lang} ${p}: tap sent ${S(sent.map(q => q.method + " " + q.url).slice(0, 3))} (analytics is off)`);
         } catch (e) { bad.push(`${lang} ${p}: ${e.message}`); } finally { await page.close(); }
       }
-      if (pages < 4) bad.push("readings with group offers " + pages + " / 6 (at least 4 needed)");
+      if (pages < 4) bad.push("readings with offers " + pages + " / 9 (at least 4 needed)");
       assert(!bad.length, bad.join("\n"));
     });
 
