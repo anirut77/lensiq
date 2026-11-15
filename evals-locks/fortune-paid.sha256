@@ -19,3 +19,6 @@ c5908cef8e1a7a351f4cc7d875ae64640459d499657d4be1d9ba35341fae832b  tests/e2e/fort
 # locked 2026-11-15T08:59:53Z (tools/eval-guard.mjs lock, 2 files)
 98942448e0360e4f30763f97dea652dad27717c136b8e33bb36a6735c5e00279  tests/unit/fortune-paid-sources.test.js
 c4762a5abcb5ad8e1d4379c860f98af3099ef076eafe1178a47368c1833e83b6  tests/e2e/fortune-paid-sources.e2e.mjs
+# RE-LOCK 2026-11-15 (6), tests/e2e/fortune-paid-plan.e2e.mjs only, test-setup fix after its first run (1 fail, th iching): the ladder was checked before checking that the reading has offers; a reading with nothing to sell has no panel and no price at all (locked rule (c) of fortune-paid.e2e.mjs, re-lock (1)). Now: no offers = no panel / ladder must exist (new check); with offers the ladder check is unchanged. No assertion removed or loosened.
+# locked 2026-11-15T09:04:49Z (tools/eval-guard.mjs lock, 1 file)
+01644f5760a98401691af229d458b0a043c3fb77f733a3ead9c920714106feb9  tests/e2e/fortune-paid-plan.e2e.mjs

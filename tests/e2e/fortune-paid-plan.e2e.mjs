@@ -54,9 +54,10 @@ export default async function ({ base, launch, check }) {
             out.groups = offers.length;
             for (const o of offers) { const b = o.querySelector("[data-lq-buy]"), pr = window.LQPaid.PRICES.group;
               if (!b || !b.textContent.includes(String(pr))) out.bad.push("group button without its price: " + (b ? b.textContent : "none")); }
+            // re-lock (6): a reading with nothing to sell has no panel and no price at all (locked rule (c) of fortune-paid.e2e.mjs)
+            if (!offers.length) { if (document.querySelector(".lq-paid-panel, .lq-paid-ladder")) out.bad.push("ladder without any offer"); return out; }
             const lad = [...document.querySelectorAll(".lq-paid-panel .lq-paid-ladder li")].map(li => li.textContent);
             if (lad.length !== 4 || ![49, 99, 199, 149].every((n, i) => lad[i] && lad[i].includes(String(n)))) out.bad.push("panel ladder " + JSON.stringify(lad));
-            if (!offers.length) return out;
             offers[0].querySelector("[data-lq-buy]").click();
             const pv = document.querySelector(".lq-paid-preview");
             if (!pv || !vis(pv)) { out.bad.push("no visible preview after the tap"); return out; }
