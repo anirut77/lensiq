@@ -115,8 +115,9 @@ test("crowd.js / crowd.html: hour heatmaps, peak report, 15-min table, marketing
   assert.match(js, /C\.gridAdd\(hg, a, dt \/ 1000\)/);
   assert.match(js, /ZC\.downloadCsv\(`lensiq-crowd-marketing-/, "marketing CSV goes through the BOM writer");
   assert.match(js, /C\.countQuality\(/);
-  assert.match(html, /PRELIMINARY/); assert.match(html, /รอผลการนับโดยคน/); assert.match(html, /AI/);
-  for (const f of ["crowd.js?v=2", "lensiq-crowd.js?v=2", "crowd.css?v=2", "i18n/zh-crowd.js?v=3"]) assert.ok(html.includes(f), "cache-busted " + f);
+  // walk-through 2026-11-16 D-06: "preliminary" is stated in the page language (no English "(PRELIMINARY)" inside Thai)
+  assert.match(html, /ผลเบื้องต้น/); assert.match(read("i18n/en-crowd.js"), /preliminary/i); assert.match(html, /รอผลการนับโดยคน/); assert.match(html, /AI/);
+  for (const f of ["crowd.js?v=2", "lensiq-crowd.js?v=2", "crowd.css?v=2", "i18n/zh-crowd.js?v=4"]) assert.ok(html.includes(f), "cache-busted " + f);
   assert.match(read("crowd.css"), /html\.cr-print-peak/);
 });
 

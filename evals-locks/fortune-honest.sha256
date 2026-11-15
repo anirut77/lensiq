@@ -123,3 +123,8 @@ dd183b210f34a502a88be0588bebd81b71da22da100b2b0cc0f486d0b5834bf9  tests/e2e/fort
 45fe5db8ae80a51e4fbb8d9fcc5c44537e9ea4a01b952526d1766b6cb0b0eb23  tests/unit/fortune-helpline.test.js  # repo file  # re-locked 2026-11-16 crisis-v2-live
 cb58948ac284aa3dde57497509c4f855877d9637896ac00a081273307443cb79  tests/e2e/fortune-crisis-flow-v2-pages.e2e.mjs  # repo file  # re-locked 2026-11-16 crisis-v2-live
 92ef2007e4eb4e6c80b7fcc2950f0585ccbcc03c171ae9959f6feb68d7adb08e  tests/e2e/fortune-crisis-session.e2e.mjs  # repo file  # re-locked 2026-11-16 crisis-v2-live
+# RE-LOCK 2026-11-16 (crisis-v2-live, after the affected e2e run 3; the test edits are in c7d8596, this record was missed in that commit and is added here):
+#  - tests/e2e/merit-crisis.e2e.mjs check 4: in the crisis state the free guidance panel is hidden too (decision 23 + hard limit 3), as before v2.
+#  - tests/e2e/fortune-crisis-flow-v2.e2e.mjs D: 'a new tab is not calm' is read from the calm top (lq-helptop-calm / 'more help numbers'), not from any .lq-helpbar (main's normal top button carries that class since fortune-live).
+0cde7892bda0f27e874d4306c7a3764f12bee609cb3cb49bd9322fd8c964837b  tests/e2e/merit-crisis.e2e.mjs  # repo file  # re-locked 2026-11-16 crisis-v2-live
+4a03ae7f66086271aa7fe9bc7900d85a71185f3523f89ba38dd97a82fc06c934  tests/e2e/fortune-crisis-flow-v2.e2e.mjs  # repo file  # re-locked 2026-11-16 crisis-v2-live

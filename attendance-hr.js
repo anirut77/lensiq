@@ -141,8 +141,10 @@
   // camera QR scan: BarcodeDetector (Chrome / Android / macOS) on the page's camera; test mode reads window.__LQ_FAKE_QR()
   let qrTimer = 0, qrDet = null;
   if ("BarcodeDetector" in W || CORE().isTest) $("#hrQrCam").hidden = false;
-  $("#hrQrCam").addEventListener("click", () => {
+  $("#hrQrCam").addEventListener("click", async () => {
     if (qrTimer) { clearInterval(qrTimer); qrTimer = 0; $("#hrQrCam").textContent = T("qrCam", "สแกนบัตร QR ด้วยกล้อง"); return; }
+    // walk-through 2026-11-16 D-01: the time clock opens with the camera off; scanning a QR card with the camera turns it on
+    if (!CORE().ready && CORE().startCamera) { msg("#hrPunchMsg", T("camOpening", "กำลังเปิดกล้อง..."), ""); await CORE().startCamera(); }
     if (!CORE().ready) return msg("#hrPunchMsg", T("camNo", "กล้องยังไม่พร้อม"), "err");
     try { if (!CORE().isTest) qrDet = new W.BarcodeDetector({ formats: ["qr_code"] }); } catch { return msg("#hrPunchMsg", T("qrNo", "เบราว์เซอร์นี้สแกน QR ด้วยกล้องไม่ได้ — ใช้เครื่องอ่านบัตรหรือ PIN"), "err"); }
     $("#hrQrCam").textContent = T("qrStop", "หยุดสแกน QR");
@@ -179,6 +181,13 @@
     if (S.mode === "employee") document.title = T("title", "ลงเวลาทำงาน PIN / QR | LENSIQ");
     else if (W.LQI18N && W.LQI18N.tf) document.title = W.LQI18N.tf("attendance.s1", "เช็คชื่ออบรมด้วยใบหน้า | LENSIQ");
     $all(".mode-btn").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === S.mode)));
+    // walk-through 2026-11-16 D-02: the breadcrumb names the mode on screen (PIN / QR time clock or face training check-in)
+    const cr = document.querySelector('.lq-crumbs [aria-current="page"]');
+    if (cr) {
+      const emp = S.mode === "employee", k = emp ? "nav.attendance.title" : "attendance.hr.modeT";
+      cr.setAttribute("data-i18n", k); cr.setAttribute("href", emp ? "attendance.html?mode=employee" : "attendance.html");
+      cr.textContent = W.LQI18N && W.LQI18N.tf ? W.LQI18N.tf(k, emp ? "ลงเวลาทำงาน PIN / QR" : "เช็คชื่ออบรม/กิจกรรม (ใบหน้า)") : (emp ? "ลงเวลาทำงาน PIN / QR" : "เช็คชื่ออบรม/กิจกรรม (ใบหน้า)");
+    }
     if (S.mode !== "employee") { if (S.kiosk) exitKiosk(); const t = $("#tabPin"); if (t && t.classList.contains("active")) $('.tab[data-t="checkin"]').click(); }
     else {
       if (!S.noticeSeen) { $("#hrNotice").open = true; S.noticeSeen = true; saveSet(); }

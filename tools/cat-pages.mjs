@@ -175,9 +175,13 @@ ${acc}
         </ul>
         <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.${p.why}">${esc(D.REASONS[p.why].th)}</span></p>
 ${page === "attendance" ? `        <a class="btn primary cat-entry" href="attendance.html?mode=employee" data-i18n="cat.openTimeclock">เปิดลงเวลาทำงาน PIN / QR</a>
-` : ""}        <a class="sl-go" href="${page}.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+` : ""}        <a class="sl-go" href="${SL_GO[page] || page + ".html"}"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>`;
 }
+
+// walk-through 2026-11-16 D-02: the attendance card sells the PIN / QR time clock, so its page link opens that mode
+// (the bare attendance.html is the face-scan training check-in)
+const SL_GO = /** @type {Record<string, string>} */ ({ attendance: "attendance.html?mode=employee" });
 
 export function pageHtml(cat, nav = navEntries()) {
   const n = counts(cat);
@@ -210,7 +214,7 @@ export function pageHtml(cat, nav = navEntries()) {
     "</head>",
     "<body>",
     '<header class="nav" id="siteNav"></header>',
-    '<script src="nav.js?v=21"></script>',
+    '<script src="nav.js?v=22"></script>',
     '<script src="i18n/zh-cat.js?v=2"></script>',
     // the fortune category carries the always-visible help button, in one place (owner orders 2026-11-12, 2026-11-15; tools/helpline.mjs)
     ...(cat.slug === "fortune" ? [helpLine("lqHelpTop")] : []),
@@ -254,7 +258,7 @@ export function pageHtml(cat, nav = navEntries()) {
     `    </section>`,
     `  </div>`,
     `</main>`,
-    '<script src="lensiq-config.js?v=11"></script>',
+    '<script src="lensiq-config.js?v=12"></script>',
     // crisis-v2-live: in a calm tab the fortune category's top button becomes the calm one (prominent, "more help numbers")
     ...(cat.slug === "fortune" ? ['<script src="lensiq-thai-canon.js?v=3"></script>', '<script src="lensiq-helpline.js?v=1"></script>',
       '<script src="fortune-crisis.js?v=13"></script>'] : []),

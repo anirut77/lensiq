@@ -604,6 +604,12 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
 - Verified W-001: the built site (`tools/build-site.mjs`) posts the quote form to `<api>/v1/leads` with a Turnstile token; the
   reviewer had served the raw repo.
 
+### Second customer walk-through fixes (2026-11-16, branch `walk-fix-2`)
+- The PIN / QR time clock opens with the camera off (the camera and face models start only when face is chosen), every camera
+  page has a camera-off control that ends all tracks, PIN / QR cards link to the time clock, Help shows the quote LINE OA and a
+  per-product getting-started section, Thai sentences no longer run together, Crowd uses one status word, OMR states its status
+  and has a sample-sheet demo, the Gate sign exists in Chinese; tests locked first (`evals-locks/walk-fix-2.sha256`).
+
 ### Stream JK (2026-11-14): Japanese / Korean text never goes to AI by itself; claim wording; "turn the pack" hint
 
 Owner decisions 2026-11-14 (1, 2, 3, 4), branch `pc-jk`. Text with Japanese / Korean script is never sent automatically

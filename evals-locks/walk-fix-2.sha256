@@ -1,0 +1,8 @@
+# locked 2026-11-15T16:45:00Z (tools/eval-guard.mjs lock, 3 files)
+a133a8c1cb138ecf4963c1fbe33bd1a158a36eb4193416c2ef40e7c890eaa7bf  walkfix2.test.js
+e759009d7087bf7b8e3b50b8dca52ebba10ad9fccd2ceb20e66509aa67e95404  walkfix2.e2e.mjs
+68050f989845f70fd83c34d4fa4f0bd52bcbe353833684d1900917f2bf4d32d0  walkfix2-webkit.e2e.mjs
+# repo copies (byte-identical to the locked set above), locked 2026-11-15 BEFORE the fixes on branch walk-fix-2 (base d5ea000); second customer walk-through 2026-11-16 D-01..D-14, D2-007 rest, D2-011, W-031. Base: unit 0/11 pass, Chrome e2e 0/37 pass, WebKit e2e 0/7 pass (logs in ~/LENSIQ-field/evals/walk-fix-2/baseline-*.log)
+a133a8c1cb138ecf4963c1fbe33bd1a158a36eb4193416c2ef40e7c890eaa7bf  tests/unit/walkfix2.test.js  # repo file
+e759009d7087bf7b8e3b50b8dca52ebba10ad9fccd2ceb20e66509aa67e95404  tests/e2e/walkfix2.e2e.mjs  # repo file
+68050f989845f70fd83c34d4fa4f0bd52bcbe353833684d1900917f2bf4d32d0  tests/e2e/walkfix2-webkit.e2e.mjs  # repo file
