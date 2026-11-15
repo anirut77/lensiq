@@ -184,7 +184,13 @@ const NOTICES = `((max) => {
   }
   const help = [...document.querySelectorAll(never)];
   for (const h of help) {
-    if (h.querySelector("button.lq-more, .lq-more-body, .lq-notice-more, details")) bad.push("collapsible parts inside " + h.className);
+    // RE-LOCK 2026-11-16 (crisis-v2-live, owner decisions 2026-11-15 1 ก + 54 ข; the coordinator's brief allows ONE "more help numbers"
+    // control inside the top button on a calm page): that one control (details[data-lq-more] in #lqHelpTop) is the only allowed fold;
+    // the 1323 button itself and the crisis card's lines are never inside a fold (checked below), any other fold still fails
+    const folds = [...h.querySelectorAll("button.lq-more, .lq-more-body, .lq-notice-more, details")].filter(x => !(h.id === "lqHelpTop" && x.matches("details[data-lq-more]")));
+    if (folds.length) bad.push("collapsible parts inside " + h.className);
+    if ([...h.querySelectorAll('a[href="tel:1323"]')].some(a => a.closest("details, .lq-more-body, .lq-notice-more"))) bad.push("1323 folded inside " + h.className);
+    if (h.matches(".fa-support") && h.querySelector("details[data-lq-more]")) bad.push("a 'more' fold inside the crisis card");
     if (h.closest(".lq-more-body, .lq-notice-more, details:not([open])")) bad.push(h.className + " sits inside a folded part");
     if (h.classList.contains("lq-notice")) bad.push(h.className + " made a notice");
   }

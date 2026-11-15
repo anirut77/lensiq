@@ -116,7 +116,10 @@ export default async function ({ base, launch, check, fakeCams }) {
       try {
         await ask(p2, "zodiac", "");
         const s = await p2.evaluate(SNAP);
-        if (s.hope || s.bars) bad.push("a new tab shows the calm frame " + S({ hope: s.hope, bars: s.bars }));
+        // RE-LOCK 2026-11-16 (crisis-v2-live): main's normal top button #lqHelpTop carries the class lq-helpbar (fortune-live, decision 54 ข),
+        // so "a bar" is no longer a sign of calm; the calm help place is the top button made calm (lq-helptop-calm / "more help numbers")
+        const calmTop = await p2.evaluate("document.querySelectorAll('.lq-helptop-calm, .lq-helpbar-pin, [data-lq-more]').length");
+        if (s.hope || calmTop) bad.push("a new tab shows the calm frame " + S({ hope: s.hope, calmTop }));
       } finally { await p2.close(); }
       assert(!bad.length, bad.join("\n       "));
     });

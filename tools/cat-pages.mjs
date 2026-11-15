@@ -257,7 +257,7 @@ export function pageHtml(cat, nav = navEntries()) {
     '<script src="lensiq-config.js?v=11"></script>',
     // crisis-v2-live: in a calm tab the fortune category's top button becomes the calm one (prominent, "more help numbers")
     ...(cat.slug === "fortune" ? ['<script src="lensiq-thai-canon.js?v=3"></script>', '<script src="lensiq-helpline.js?v=1"></script>',
-      '<script src="fortune-crisis.js?v=12"></script>'] : []),
+      '<script src="fortune-crisis.js?v=13"></script>'] : []),
     "</body>",
     "</html>",
     ""

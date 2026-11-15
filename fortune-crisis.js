@@ -591,6 +591,10 @@
     det.appendChild(sum);
     const ul = d.createElement("ul");
     for (const id of MORE_IDS) { const li = d.createElement("li"); li.appendChild(miniCall(d, id, l, keys)); ul.appendChild(li); }
+    // closed: the list is hidden outright (Chrome keeps layout boxes for the content of a closed <details>, so the closed numbers
+    // would still count as on screen); it is shown when the control opens
+    ul.hidden = true;
+    det.addEventListener("toggle", () => { ul.hidden = !det.open; });
     det.appendChild(ul);
     return det;
   }

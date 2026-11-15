@@ -92,11 +92,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return L.waxing ? T("pl.lunar.up", "ขึ้น {d} ค่ำ เดือน {m}", { d: L.day, m: mo }) : T("pl.lunar.down", "แรม {d} ค่ำ เดือน {m}", { d: L.day, m: mo });
   }
   /* crisis-v2-live (decision 23, coordinator default ก): in a calm or crisis tab a note that is belief guidance (merit-making, remedies)
-     is left out; LQFortuneCrisis.calmText drops such sentences @param {any} r */
+     is left out; LQFortuneCrisis.adviceKind classifies it @param {any} r */
   function calmNote(r) {
     var CR = window.LQFortuneCrisis;
-    if (!CR || !CR.calmOn || !CR.calmOn(document) || !CR.calmText) return true;
-    return !!CR.calmText(reasonText(r), (window.LQI18N && window.LQI18N.lang) || "th");
+    if (!CR || !CR.calmOn || !CR.calmOn(document) || !CR.adviceKind) return true;
+    var k = CR.adviceKind(reasonText(r)); // a note is one piece of advice: any belief / lucky / purchase / remedy word leaves it out
+    return !k || k === "colour";
   }
   function reasonText(r) {
     var v = r.v || {}, vars = { d: v.d, m: v.m, n: v.n };

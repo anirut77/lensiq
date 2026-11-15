@@ -155,7 +155,9 @@ export default async function ({ base, launch, check, repo }) {
         const h = document.querySelector(".lq-merit").getBoundingClientRect().height;
         const lucky = [...document.querySelectorAll(".lq-merit-card[data-type=lucky_item]")].filter(c => c.getBoundingClientRect().height > 0).length;
         document.documentElement.removeAttribute("data-lq-crisis"); return { h, lucky }; });
-      assert(hid.h > 0 && hid.lucky === 0, "html[data-lq-crisis]: panel stays, lucky-item cards hidden: " + JSON.stringify(hid));
+      // RE-LOCK 2026-11-16 (crisis-v2-live, owner decision 23 coordinator default ก + CLAUDE.md hard limit 3): in the crisis state the
+      // free belief guidance panel is hidden too (as before crisis flow v2), lucky-item cards included
+      assert(hid.h === 0 && hid.lucky === 0, "html[data-lq-crisis]: panel and lucky-item cards hidden: " + JSON.stringify(hid));
     });
     await page.close();
   } finally {
