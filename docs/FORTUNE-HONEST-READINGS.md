@@ -359,3 +359,4 @@ Same input as example 1. Mode: gentle; identical to today's gentle reading: yes.
 
 > [ภาพรวม] ดวงแปดอักษรดูทั้งด้านที่ส่งเสริมและด้านที่ควรเติม ของคุณก็มีทั้งสองด้าน ใจความหลักของผลครั้งนี้คือแปดอักษร 壬申 乙巳 丁酉 丙午 และเจ้าชะตาไฟ จากไฟหยิน (ติง 丁) ชี้ว่าคุณละเอียดอ่อน มีสมาธิ และให้ความอบอุ่นแบบเทียนที่ส่องทาง จากวัยจร 戊申 ช่วงวัยนี้เด่นเรื่องการแสดงฝีมือ ความคิดสร้างสรรค์ และการสื่อสาร
 
+> **2026-11-15:** the owner cancelled the 2026-11-10 "Remedies and merit" rule and replaced it with "Remedies, merit and paid fortune content" (CLAUDE.md). General belief advice stays free; paid in-depth readings, timing and the goal-based plan are allowed behind off switches; outside-seller links are allowed; no result promised, nothing paid in the crisis state. See docs/PENDING-DECISIONS.md.

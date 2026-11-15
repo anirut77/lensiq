@@ -121,3 +121,5 @@
 
 และแก้ "no medical or cosmetic advice" เป็น "no medical advice and no cosmetic or medical procedure advice (reversible styling
 suggestions as above are allowed)"
+
+> **2026-11-15:** the owner cancelled the 2026-11-10 "Remedies and merit" rule and replaced it with "Remedies, merit and paid fortune content" (CLAUDE.md). General belief advice stays free; paid in-depth readings, timing and the goal-based plan are allowed behind off switches; outside-seller links are allowed; no result promised, nothing paid in the crisis state. See docs/PENDING-DECISIONS.md.
