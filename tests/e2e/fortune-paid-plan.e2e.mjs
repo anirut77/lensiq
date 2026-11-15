@@ -57,7 +57,8 @@ export default async function ({ base, launch, check }) {
             // re-lock (6): a reading with nothing to sell has no panel and no price at all (locked rule (c) of fortune-paid.e2e.mjs)
             if (!offers.length) { if (document.querySelector(".lq-paid-panel, .lq-paid-ladder")) out.bad.push("ladder without any offer"); return out; }
             const lad = [...document.querySelectorAll(".lq-paid-panel .lq-paid-ladder li")].map(li => li.textContent);
-            if (lad.length !== 4 || ![49, 99, 199, 149].every((n, i) => lad[i] && lad[i].includes(String(n)))) out.bad.push("panel ladder " + JSON.stringify(lad));
+            // re-lock (7): no 199 row while the page has no month-by-month content (zodiac / iching have none)
+            if (lad.length !== 3 || ![49, 99, 149].every((n, i) => lad[i] && lad[i].includes(String(n)))) out.bad.push("panel ladder " + JSON.stringify(lad));
             offers[0].querySelector("[data-lq-buy]").click();
             const pv = document.querySelector(".lq-paid-preview");
             if (!pv || !vis(pv)) { out.bad.push("no visible preview after the tap"); return out; }
@@ -68,7 +69,7 @@ export default async function ({ base, launch, check }) {
             const mf = pv.querySelector("[data-lq-made-for]");
             if (!mf || !vis(mf) || mf.textContent.trim().length < 4) out.bad.push("no 'made for' line");
             const pl = [...pv.querySelectorAll(".lq-paid-ladder li")].map(li => li.textContent);
-            if (pl.length !== 4 || ![49, 99, 199, 149].every((n, i) => pl[i] && pl[i].includes(String(n)))) out.bad.push("preview ladder " + JSON.stringify(pl));
+            if (pl.length !== 3 || ![49, 99, 149].every((n, i) => pl[i] && pl[i].includes(String(n)))) out.bad.push("preview ladder " + JSON.stringify(pl));
             return out; })()`);
           if (r.groups) pages++;
           for (const b of r.bad) bad.push(`${lang} ${p}: ${b}`);

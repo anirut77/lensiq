@@ -146,7 +146,9 @@ test("plan: every place, colour and direction in a plan is also free information
 test("conversion a + d: one 49 offer per group with paid depth, price in the button text; the ladder shows 49 / 99 / 199 / 149 together", async () => {
   const C = await corpus();
   for (const l of LANGS) {
-    const ld = P.ladder(l);
+    // re-lock (7), round-3 review: the 199 row shows only when the page can deliver month-by-month content
+    assert.deepEqual(P.ladder(l).map(r => r.plan), ["group", "full", "plus"], "no monthly content: no 199 row");
+    const ld = P.ladder(l, { monthly: true });
     assert.deepEqual(ld.map(r => r.plan), ["group", "full", "year", "plus"]);
     for (const r of ld) { assert.equal(r.price, LADDER[r.plan]); assert.ok(r.priceText.includes(String(r.price)), r.priceText); assert.ok(r.label.trim()); }
   }
@@ -163,7 +165,7 @@ test("conversion b + c: the pre-payment preview lists every paid group's heading
   for (const x of C.slice(0, 900)) {
     const sp = withSw(true, false, () => P.split(x.res, { lang: x.lang, straight: x.straight }));
     const paid = sp.groups.filter(g => g.paid.length);
-    const pv = withSw(true, false, () => P.preview(sp, x.lang, { nickname: (x.f.subject || {}).nickname, headline: x.f.headline }));
+    const pv = withSw(true, false, () => P.preview(sp, x.lang, { nickname: (x.f.subject || {}).nickname, headline: x.f.headline, domain: x.f.domain || x.d }));
     if (!paid.length) { assert.equal(pv, null, "nothing to sell, no preview"); continue; }
     n++;
     assert.deepEqual(pv.groups.map(g => g.title), paid.map(g => g.title), "every heading, in order");
@@ -174,8 +176,13 @@ test("conversion b + c: the pre-payment preview lists every paid group's heading
     });
     const nick = (x.f.subject || {}).nickname;
     if (nick) assert.ok(pv.madeFor.includes(nick), "nickname shown when given");
-    if (x.f.headline) assert.ok(pv.madeFor.includes(String(x.f.headline).slice(0, 20)), "the reading's headline (birth data) shown");
-    assert.deepEqual(pv.ladder.map(r => r.price), [49, 99, 199, 149]);
+    // re-lock (7), round-3 review: the headline only where it describes the person and is in the reading's language (Thai);
+    // astro (today's moon) and bazi (the eight characters) show the nickname only; EN / ZH show no Thai text
+    const showHead = x.lang === "th" && !["astro", "bazi"].includes(x.f.domain || x.d);
+    if (x.f.headline && showHead) assert.ok(pv.madeFor.includes(String(x.f.headline).slice(0, 20)), "the reading's headline (birth data) shown");
+    if (x.f.headline && !showHead) assert.ok(!pv.madeFor.includes(String(x.f.headline).slice(0, 12)), `${x.d} ${x.lang}: headline must not be shown`);
+    if (x.lang !== "th") assert.ok(!/[\u0E00-\u0E7F]/.test(pv.madeFor.replace(nick || "\u0000", "")), `${x.lang}: Thai text in the made-for line`);
+    assert.deepEqual(pv.ladder.map(r => r.price), [49, 99, 149], "no monthly content: no 199 row");
     assert.equal(withSw(true, false, () => P.preview(sp, x.lang, {}, { crisis: true })), null, "no preview in the crisis state");
   }
   assert.ok(n >= 500, "previews " + n);
