@@ -50,7 +50,12 @@ const setVal = (page, sel, v) => page.evaluate(([sel, v]) => {
 const waitFor = (page, fn, arg = null, ms = 15000) => page.waitForFunction(fn, arg, { timeout: ms, polling: 100 });
 const tap = (page, sel) => page.locator(sel).first().tap({ timeout: 10000 });
 /** reading predicate: at least n reading sections, none still being composed */
-const SECTIONS = n => { const s = [...document.querySelectorAll(".fa-section, .fs-sec")]; return s.length >= n && !s.some(x => /กำลังเรียบเรียง|Composing|正在/.test(x.textContent)); };
+// AMENDED 2026-11-16 (before any product fix was measured): the "still composing" test matched any 正在 ("currently"), which real
+// Chinese readings use (I Ching hexagram 3, 5, 9 ...); it now matches only the loading line itself (fk.loading / horoscope.x.composing)
+const SECTIONS = n => {
+  const s = [...document.querySelectorAll(".fa-section, .fs-sec")];
+  return s.length >= n && !s.some(x => /กำลังเรียบเรียงคำทำนาย|Composing your reading|正在撰写解读/.test(x.textContent));
+};
 
 // shared birth-date form of bazi / taksa / lek7 / lifegraph (lifecal-ui.js)
 const lcRead = async page => {
@@ -60,7 +65,7 @@ const lcRead = async page => {
 };
 
 // ---------- fortune pages: main controls + one reading ----------
-/** @type {{page: string, main: string[], q?: string, cam?: boolean, read: (p: any) => Promise<void>}[]} */
+/** @type {{page: string, main: string[], q?: string, cam?: boolean, read: (p: any, lang?: string) => Promise<void>}[]} */
 const FORTUNE = [
   { page: "fortune", main: [".pd-card"], read: async p => {
     const n = await p.evaluate(() => document.querySelectorAll("a.pd-card[href$='.html'], a.ft-card[href$='.html']").length);
@@ -144,10 +149,11 @@ const FORTUNE = [
     await setVal(p, "#daySel", "4");
     await waitFor(p, () => (document.getElementById("recBox").textContent || "").trim().length > 20 && document.querySelectorAll("#week tbody tr").length === 7, null, 8000);
   } },
-  { page: "report", main: ["#rpGo"], read: async p => {
+  { page: "report", main: ["#rpGo"], read: async (p, lang) => {
     await waitFor(p, () => !!window.__rp, null, 8000);
     await tap(p, '[data-rp-type="report_basic"]');
-    await setVal(p, "#rpAYear", "2533");
+    // AMENDED 2026-11-16: the birth year is typed in the era the page selects by default (Buddhist era in Thai, Common Era in en / zh)
+    await setVal(p, "#rpAYear", lang === "th" ? "2533" : "1990");
     await tap(p, "#rpGo");
     await waitFor(p, () => !document.getElementById("rpOut").hidden && document.querySelectorAll("#rpOut .rp-part").length >= 3, null, 15000);
   } },
@@ -281,7 +287,7 @@ export default async function ({ base, check, fakeCams }) {
             const bad = await loadChecks(page, lang, F.main);
             const help = await page.evaluate(controlFacts, '#lqHelpTop a[href="tel:1323"]');
             const hp = ctlProblem(help); if (hp) bad.push("help 1323: " + hp);
-            try { await F.read(page); } catch (e) { bad.push("reading: " + String(e && e.message || e).split("\n")[0].slice(0, 200)); }
+            try { await F.read(page, lang); } catch (e) { bad.push("reading: " + String(e && e.message || e).split("\n")[0].slice(0, 200)); }
             const ov = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
             if (ov > 1) bad.push(`horizontal scroll after the reading (+${ov} px)`);
             mem[F.page] = await memory(page);

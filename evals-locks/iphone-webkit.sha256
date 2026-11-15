@@ -2,3 +2,8 @@
 # iPhone coverage (owner order night 2026-11-15 item 5): every fortune page and every camera page on WebKit, iPhone 13, TH/EN/ZH. Test locked BEFORE any product fix on branch iphone-webkit (base origin/main 3cf4f4b).
 # locked 2026-11-15T19:04:43Z (tools/eval-guard.mjs lock, 1 file)
 c70944cebd0e05534acf92aa7e30df9de292121cf2a427da4efb79db1339d83c  tests/e2e/iphone-pages-webkit.e2e.mjs
+# amendment 1 (2026-11-16, after the base run on f5baa83 = 134/177, BEFORE any product fix was measured): two harness defects that the base run exposed, no pass rule changed.
+#   the 'still composing' check matched any 正在 in a Chinese reading (iching zh failed on a hexagram that uses the word in a first run; passed by chance in the base run); now only the loading line itself.
+#   report.html: the sample birth year is typed in the era the page selects by default (2533 BE in Thai, 1990 CE in en / zh; 2533 CE was refused).
+# locked 2026-11-15T19:22:51Z (tools/eval-guard.mjs lock, 1 file)
+9cc94de8d9b976bc2c93a3890675cc47607e8ac987f3a51f1673cfa4980a41c3  tests/e2e/iphone-pages-webkit.e2e.mjs
