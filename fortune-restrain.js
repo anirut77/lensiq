@@ -172,7 +172,7 @@
     return res;
   }
   const API = { TAGS, of, count, sources, provenance };
-  // exports only from its own file: the copy inside fortune-read.js (tools/restrain-embed.mjs) leaves that module's exports alone
+  // exports only from its own file: the copy inside fortune-read.js (tools/fortune-read-embed.mjs) leaves that module's exports alone
   if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length) module.exports = API;
   root.LQFortuneRestrain = API;
 })(typeof window !== "undefined" ? window : globalThis);

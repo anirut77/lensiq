@@ -2,6 +2,9 @@
 
 Owner order 2026-11-14 Part A, extended on 2026-11-15 (item 5). Code: `fortune-notice.js` (notices, the read-more button and
 the help-line exception, on every fortune page) and `fortune-read.js` (the reading layout, on pages with a reading).
+Delivery: the 15 reading pages load only `fortune-read.js`, which carries byte-exact copies of `fortune-notice.js` (top) and
+`fortune-restrain.js` (end), written by `tools/fortune-read-embed.mjs` and checked by `tests/unit/fortune-read-embed.test.js`
+(each separate script would cost one request; the speed budget has none left). Edit the source files, then run the tool.
 Tests: `tests/unit/fortune-layout.test.js`, `tests/unit/fortune-layout-caution.test.js`, `tests/e2e/fortune-layout.e2e.mjs`
 (all locked; see `evals-locks/fortune-layout*.sha256`).
 
