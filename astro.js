@@ -96,7 +96,7 @@
       domain: "astro", topic: topic || "overall", subject: {}, headline: "ดวงจันทร์วันนี้ใน" + signName(D.moon.sign),
       items: [
         { id: "day.house." + D.house, group: "ดวงวันนี้", label: "ดวงจันทร์ผ่าน" + H.th + " ของชาว" + signName(sunSign), short: "ดวงจันทร์วันนี้", strength: 0.95, tags: ["overview", "advice", "timing"], meanings: { overview: [H.o], advice: [H.a], timing: ["อารมณ์ของวันนี้ได้กลิ่นอายของ" + signName(D.moon.sign) + " คือ" + Mo.kw.join(" ") ] } },
-        { id: "day.sun." + sunSign, group: "ราศีของคุณ", label: "ชาว" + signName(sunSign), short: signName(sunSign), strength: 0.7, tags: ["work", "love", "money"], meanings: { work: [S.w[0]], love: [S.l[0]], money: [S.m[0]] } }
+        { id: "day.sun." + sunSign, group: "ราศีของคุณ", label: "ชาว" + signName(sunSign), short: signName(sunSign), strength: 0.7, tags: ["work", "love", "money", "advice"], meanings: { work: [S.w[0]], love: [S.l[0]], money: [S.m[0]], advice: [S.a] } }
       ]
     };
   }

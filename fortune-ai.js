@@ -2799,7 +2799,7 @@
       for (const it of withCaution(top.concat(items.filter(x => top.indexOf(x) < 0)), 3 + Math.floor(r() * 2), zIsCaut)) {
         // round 2: the main finding first says what it means about you; the two findings the Thai overview names come first in any area
         const m = (topicHas ? takeOv(it, s.length ? null : ["personality", "overview"]) : (s.length ? take(it, ["overview", "personality"]) : takeOv(it, ["personality", "overview"]))) || (topicHas ? null : take(it, [F.topic])) ||
-          (top.indexOf(it) >= 0 ? take(it, ["timing", "social", "work", "money", "love"].filter(k => k !== F.topic).sort((a, b) => (P && P.seq.indexOf(a) >= 0) - (P && P.seq.indexOf(b) >= 0))) : null);
+          (top.indexOf(it) >= 0 ? take(it, ["timing", "social", "work", "money", "love"].filter(k => k !== F.topic).sort((a, b) => (P && P.seq.indexOf(a) >= 0 ? 1 : 0) - (P && P.seq.indexOf(b) >= 0 ? 1 : 0))) : null);
         if (!m) { if (head && head.ids[head.at] === it.id && ++head.at >= head.ids.length) head = null; continue; } // a named finding with no overview line: the next one follows the headline
         if (!(head && head.ids[head.at] === it.id)) nameShown.delete(it.id);
         const zc = zIsCaut(it) && !zCaut.overview;
@@ -3181,7 +3181,7 @@
       for (const it of withCaution(top.concat(items.filter(x => top.indexOf(x) < 0)), 3 + Math.floor(r() * 2), eIsCaut)) {
         // round 2: the main finding first says what it means about you; the two findings the Thai overview names come first in any area
         const m = (topicHas ? takeOv(it, s.length ? null : ["personality", "overview"]) : (s.length ? take(it, ["overview", "personality"]) : takeOv(it, ["personality", "overview"]))) || (topicHas ? null : take(it, [F.topic])) ||
-          (top.indexOf(it) >= 0 ? take(it, ["timing", "social", "work", "money", "love"].filter(k => k !== F.topic).sort((a, b) => (P && P.seq.indexOf(a) >= 0) - (P && P.seq.indexOf(b) >= 0))) : null);
+          (top.indexOf(it) >= 0 ? take(it, ["timing", "social", "work", "money", "love"].filter(k => k !== F.topic).sort((a, b) => (P && P.seq.indexOf(a) >= 0 ? 1 : 0) - (P && P.seq.indexOf(b) >= 0 ? 1 : 0))) : null);
         if (!m) { if (head && head.ids[head.at] === it.id && ++head.at >= head.ids.length) head = null; continue; } // a named finding with no overview line: the next one follows the headline
         if (!(head && head.ids[head.at] === it.id)) nameShown.delete(it.id);
         // a caution stays in one unit with its lead and its practical step (paragraph trimming never separates them)
