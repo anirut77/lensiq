@@ -1,0 +1,4 @@
+{
+ "note": "Known exceptions of the button press / busy gate (tests/e2e/buttons-kit.mjs). APPEND-ONLY: entries are never edited or removed; when an exception is fixed, the gate passes anyway and the entry stays as history. Each entry: page, category (select | callout | zoom | highlight | active | busy-look | inputs | doubletap | busy), a text the finding contains (for busy: the button selector), the reason, and the date added.",
+ "exceptions": []
+}

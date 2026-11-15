@@ -1,0 +1,30 @@
+# locked 2026-11-15T03:02:03Z (tools/eval-guard.mjs lock, 14 files)
+d80673530e50cc3da4a9f7e961d402cdb32dfb537aa6c5c5cbc7733eb2f3cf83  buttons-kit.mjs
+b0a330dc8942051173cc2c32d9670b40a1f3f57fd976b50ae92d30553c4de5e2  buttons-busy-list.json
+095d91f8ad06eeeb699ce41624b2d0c88fb306dbf1da7a961bcc8914d6dbf19b  buttons-exceptions.json
+3c6a598131b0e49a657ae04a05f0edf078ded307c85afee9b0db9376fda87386  buttons-busy.e2e.mjs
+eb3722ebd3789041da6f9db1d3790f26ca5adb139add07a8dc63d02f4ee432ee  buttons-busy-webkit.e2e.mjs
+8f4bfeaecc2cf4e0f8bcf77ce19dd33ba12be8254c6d85c982d369b1e9d2f36d  buttons-chrome-1.e2e.mjs
+e416a2095db28ac04702748a208e3256d9e06e3015b0ecfd1269661b7187573f  buttons-chrome-2.e2e.mjs
+453388e77aa7f718b66e5dc4757a19cc35f43abcc7dc5f59528bb1b472b06e55  buttons-chrome-3.e2e.mjs
+43e079e7aaee48667d4bea1aec6b8e59af6d7132c3d6df1039870e32b9b7d91f  buttons-webkit-1.e2e.mjs
+2a210ff6a901f956aa6eafe9fa1f21061bb8be27467951fb7e92c76b9dd40d05  buttons-webkit-2.e2e.mjs
+795a71a2d2a24491df747498ea51964e248bb3e102a26c1bfc2d543e5c09fcd2  buttons-webkit-3.e2e.mjs
+01ee1f26273f8268f70fb87cf6c650763829330cc337aae8fa1a2f477646b62e  lensiq-busy.test.js
+8cd3e82431afe9d61c35c590cbb9493aa0f366c13b6d3261c7bdbd9179720291  buttons-probe.mjs
+71abcffc553bc9f44f9fb1303249eae9a85422d02112459e299251bd3c575afa  buttons-busy-discover.mjs
+# repo copies (byte-identical to the locked set above), locked 2026-11-15 BEFORE any product fix on branch buttons-press (base 512e267); owner report 2026-11-14 (iPhone: tap feedback, text highlight on repeated taps, double taps). An earlier uncommitted lock of 03:01Z in ~/LENSIQ-field/evals/buttons/locked.sha256 is superseded: only line wrapping to the 200-character limit changed, no check or value.
+d80673530e50cc3da4a9f7e961d402cdb32dfb537aa6c5c5cbc7733eb2f3cf83  tests/e2e/buttons-kit.mjs  # repo file
+b0a330dc8942051173cc2c32d9670b40a1f3f57fd976b50ae92d30553c4de5e2  tests/e2e/buttons-busy-list.json  # repo file
+095d91f8ad06eeeb699ce41624b2d0c88fb306dbf1da7a961bcc8914d6dbf19b  tests/e2e/buttons-exceptions.json  # repo file
+3c6a598131b0e49a657ae04a05f0edf078ded307c85afee9b0db9376fda87386  tests/e2e/buttons-busy.e2e.mjs  # repo file
+eb3722ebd3789041da6f9db1d3790f26ca5adb139add07a8dc63d02f4ee432ee  tests/e2e/buttons-busy-webkit.e2e.mjs  # repo file
+8f4bfeaecc2cf4e0f8bcf77ce19dd33ba12be8254c6d85c982d369b1e9d2f36d  tests/e2e/buttons-chrome-1.e2e.mjs  # repo file
+e416a2095db28ac04702748a208e3256d9e06e3015b0ecfd1269661b7187573f  tests/e2e/buttons-chrome-2.e2e.mjs  # repo file
+453388e77aa7f718b66e5dc4757a19cc35f43abcc7dc5f59528bb1b472b06e55  tests/e2e/buttons-chrome-3.e2e.mjs  # repo file
+43e079e7aaee48667d4bea1aec6b8e59af6d7132c3d6df1039870e32b9b7d91f  tests/e2e/buttons-webkit-1.e2e.mjs  # repo file
+2a210ff6a901f956aa6eafe9fa1f21061bb8be27467951fb7e92c76b9dd40d05  tests/e2e/buttons-webkit-2.e2e.mjs  # repo file
+795a71a2d2a24491df747498ea51964e248bb3e102a26c1bfc2d543e5c09fcd2  tests/e2e/buttons-webkit-3.e2e.mjs  # repo file
+01ee1f26273f8268f70fb87cf6c650763829330cc337aae8fa1a2f477646b62e  tests/unit/lensiq-busy.test.js  # repo file
+8cd3e82431afe9d61c35c590cbb9493aa0f366c13b6d3261c7bdbd9179720291  tools/buttons-probe.mjs  # repo file
+71abcffc553bc9f44f9fb1303249eae9a85422d02112459e299251bd3c575afa  tools/buttons-busy-discover.mjs  # repo file
