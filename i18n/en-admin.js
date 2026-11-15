@@ -367,6 +367,7 @@
   "ar.done": "Saved.",
   "ar.e.max": "The maximum number of reviewer accounts is reached",
   "ar.e.setup": "This setup link cannot be used or has expired. Please ask the owner for a new link.",
+  "ar.e.tryonOff": "Try-On is switched off on this server, so try-on catalogue roles cannot be created yet. Choose the belief-guidance reviewer role instead",
   "ar.e.taken": "This name is already used",
   "ar.h": "Content reviewer accounts (belief guidance)",
   "ar.last": "last signed in",

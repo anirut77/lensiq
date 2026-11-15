@@ -247,10 +247,12 @@ export function splitReviewMeta(raw) {
   return { meta: Object.keys(meta).length ? meta : null, rest };
 }
 /** One history row. @param {any} env @param {string} itemId @param {any} who @param {string} action
- *  @param {{decision?: string|null, fields?: string[]|null, comment?: string|null, from?: string|null, to?: string|null}} [o] */
+ *  @param {{decision?: string|null, fields?: string[]|null, comment?: string|null, from?: string|null, to?: string|null, ifChanged?: boolean}} [o] */
 function revision(env, itemId, who, action, o = {}) {
+  // o.ifChanged: the row is written only when the statement just before it in the same batch changed a row (SQLite
+  // changes()), so a conditional UPDATE that lost to a concurrent edit leaves no phantom history row
   return env.DB.prepare("INSERT INTO merit_revisions (item_id, ts, actor, actor_name, action, decision, fields, comment, from_status, to_status) " +
-    "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)")
+    (o.ifChanged ? "SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10 WHERE changes() > 0" : "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)"))
     .bind(itemId, now(), who.actor, who.name, action, o.decision || null, o.fields ? JSON.stringify(o.fields) : null, o.comment || null, o.from || null, o.to || null);
 }
 /** @param {any} env @param {string} id */
@@ -339,7 +341,7 @@ export async function reviewItem(env, id, body, who) {
   const r = await env.DB.batch([
     env.DB.prepare("UPDATE merit_items SET status = ?1, review_comment = ?2, reviewed_by = ?3, reviewed_at = ?4, updated_at = ?4 WHERE id = ?5 AND status = ?6")
       .bind(to, comment || null, who.name, t, id, row.status),
-    revision(env, id, who, "review", { decision, comment: comment || null, from: row.status, to })
+    revision(env, id, who, "review", { decision, comment: comment || null, from: row.status, to, ifChanged: true })
   ]);
   if (!r[0].meta || !r[0].meta.changes) throw new HttpError(409, "the item changed meanwhile — reload (bad_transition)", { code: "bad_transition" });
   return { item: adminRow(await env.DB.prepare("SELECT * FROM merit_items WHERE id = ?1").bind(id).first()), decision, from: row.status, to };
@@ -363,7 +365,8 @@ export async function verifyItem(env, id, body, who) {
   const next = JSON.stringify({ ...meta, verification: "official" }), t = now();
   const r = await env.DB.batch([
     env.DB.prepare("UPDATE merit_items SET review_meta = ?1, updated_at = ?2 WHERE id = ?3 AND review_meta = ?4").bind(next, t, id, row.review_meta),
-    revision(env, id, who, "verify", { fields: ["verification"], comment: "official_unopened → official" + (comment ? " · " + comment : ""), from: row.status, to: row.status })
+    revision(env, id, who, "verify", { fields: ["verification"], comment: "official_unopened → official" + (comment ? " · " + comment : ""), from: row.status, to: row.status,
+      ifChanged: true })
   ]);
   if (!r[0].meta || !r[0].meta.changes) throw new HttpError(409, "the item changed meanwhile — reload (bad_transition)", { code: "bad_transition" });
   return { item: adminRow(await env.DB.prepare("SELECT * FROM merit_items WHERE id = ?1").bind(id).first()), from, to: "official" };
@@ -421,6 +424,8 @@ export async function importItems(env, body, who) {
     }
   }
   if (body.dry_run === true) return { dry_run: true, ok_count: ok.length, imported: 0, refused, batch };
+  // nothing to write (every item refused): no batch record, so the same file can be imported again once fixed
+  if (!ok.length) return { dry_run: false, ok_count: 0, imported: 0, refused, ids: [], batch };
   const t = now(), stmts = [];
   if (batch !== null) {
     // the batch row first: a second import of the same file (double click, two tabs) fails on the primary key here
@@ -432,7 +437,20 @@ export async function importItems(env, body, who) {
     item.id = "mi-" + randomId(6);
     stmts.push(insertStmt(env, item, t, "import", batch !== null ? { ...(meta || {}), batch } : meta), revision(env, item.id, who, "import", { fields: CONTENT, to: "draft" }));
   }
-  for (let i = 0; i < stmts.length; i += 100) await env.DB.batch(stmts.slice(i, i + 100));
+  let done = 0; // drafts committed so far (2 statements per draft; each chunk of 100 is one transaction)
+  try {
+    for (let i = 0; i < stmts.length; i += 100) { await env.DB.batch(stmts.slice(i, i + 100)); done += Math.min(100, stmts.length - i) / 2; }
+  } catch (e) {
+    // a chunk failed: the batch record says what was actually imported; with nothing imported it is removed, so the
+    // whole file can be retried (a partly imported batch stays recorded: a re-import would duplicate its drafts)
+    if (batch !== null) {
+      try {
+        if (done) await env.DB.prepare("UPDATE merit_batches SET count = ?1 WHERE batch = ?2").bind(done, batch).run();
+        else await env.DB.prepare("DELETE FROM merit_batches WHERE batch = ?1").bind(batch).run();
+      } catch (e2) { log("merit.import.batch_fix_failed", { batch, done, error: String((e2 && e2.message) || e2).slice(0, 200) }); }
+    }
+    throw e;
+  }
   return { dry_run: false, ok_count: ok.length, imported: ok.length, refused, ids: ok.map(x => x.item.id), batch };
 }
 

@@ -332,3 +332,34 @@ test("A5: the help line and the crisis card are never collapsible (skip list, an
     }
   }
 });
+
+/* ---------------- item 5 (owner extension 2026-11-15): short overview per group ---------------- */
+// RE-LOCK (append-only): the first screen of a reading shows a short overview of 2–3 lines per group, taken from the group's
+// main point (its first words, never a new text); everything else opens on tap. Composer-marked caution paragraphs are never
+// folded and stay in the overview even when that makes it longer. The group structure is documented for other teams.
+test("item 5: overview limits are short (about 3 lines at 375 px) and every group's overview is the start of its main point", async () => {
+  assert.ok(RD.OVERVIEW_MAX && RD.OVERVIEW_MAX.th <= 110 && RD.OVERVIEW_MAX.en <= 140 && RD.OVERVIEW_MAX.zh <= 50, JSON.stringify(RD.OVERVIEW_MAX));
+  const C = await corpus();
+  let n = 0, short = 0;
+  for (const { d, lang, res } of C) for (const s of res.sections) {
+    const parts = RD.planSection(s, lang);
+    s.paragraphs.forEach((p, k) => assert.equal(parts.filter(x => x.para === k).map(x => x.text).join(RD.SEP[lang]), p, `${d} ${lang} ${s.id}: rejoin`));
+    assert.ok(s.paragraphs[0].startsWith(parts[0].text), `${d} ${lang} ${s.id}: overview is the start of the main point`);
+    assert.ok(parts[0].visible, "overview shown");
+    const marked = Array.isArray(s.caution) && s.caution.length === s.paragraphs.length;
+    if (marked) {
+      for (const x of parts) {
+        if (s.caution[x.para]) assert.ok(x.visible, `${d} ${lang} ${s.id}: marked paragraph folded`);
+        else if (x !== parts[0]) assert.ok(!x.visible, `${d} ${lang} ${s.id}: only the overview and marked text are shown before opening`);
+      }
+    }
+    if (!s.caution || !s.caution[0]) { n++; if (parts[0].text.length <= RD.OVERVIEW_MAX[lang]) short++; }
+  }
+  assert.ok(short / n >= 0.95, `${short}/${n} overviews within the limit`);
+});
+
+test("item 5: the group structure is documented for other teams (docs/FORTUNE-LAYOUT.md)", () => {
+  const doc = read("docs/FORTUNE-LAYOUT.md");
+  for (const k of [".fa-section", "data-section", ".lq-gist", ".lq-caution", ".lq-more-body", "button.lq-more", "aria-expanded", "section.caution",
+    "planSection", "fortune-notice.js", "fortune-read.js"]) assert.ok(doc.includes(k), "documents " + k);
+});

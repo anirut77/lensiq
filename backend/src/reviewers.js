@@ -17,7 +17,7 @@ import {
   totpUri, verifyTotp
 } from "./crypto.js";
 import { audit, callerHash, hit } from "./store.js";
-import { cleanRole } from "./tryon.js";
+import { cleanRole, tryonEnabled } from "./tryon.js";
 import { HttpError, now } from "./util.js";
 
 export const REVIEWER_MAX = 10;
@@ -93,6 +93,10 @@ async function newSetupCode(env) {
 /** @param {any} env @param {any} body @param {any} owner */
 export async function createReviewer(env, body, owner) {
   const role = cleanRole(body && body.role); // migration 0017: merit (default) | tryon_admin | tryon_editor
+  // a try-on account is useless while Try-On is switched off (TRYON != "on"): refused, nothing written
+  if (role !== "merit" && !tryonEnabled(env)) {
+    throw new HttpError(409, "try-on is not enabled on this server, so try-on roles cannot be given (tryon_role_off)", { code: "tryon_role_off" });
+  }
   const username = String((body && body.username) || "").trim();
   if (!USERNAME_RE.test(username)) throw new HttpError(400, "invalid username", { code: "invalid_username" });
   if (owner && String(owner.username).toLowerCase() === username.toLowerCase()) throw new HttpError(409, "this name is the owner's", { code: "username_taken" });

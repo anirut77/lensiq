@@ -85,7 +85,7 @@
   $("#ivWhoForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var n = $("#ivWho").value.replace(/[<>]/g, "").trim().slice(0, 40);
-    if (!n) return;
+    if (!n) { toast(T("iv.js.needWho", "กรอกชื่อหรืออักษรย่อของผู้สัมภาษณ์ก่อน")); $("#ivWho").focus(); return; } // D2-009
     if (S.sheets.some(function (s) { return s.who === n; })) { toast(T("iv.js.dupWho", "มีชื่อนี้แล้ว")); return; }
     S.sheets.push({ who: n, scores: {}, notes: {}, consist: {}, submitted: false });
     if (S.cur < 0) S.cur = 0;

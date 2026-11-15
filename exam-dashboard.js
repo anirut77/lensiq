@@ -219,14 +219,21 @@
     if (link) link.send({ v: 1, type: "mute", room, t: now, ms: 60000 });
     changed();
   });
+  // D2-008: the accommodation form's own message sits next to the form (the top status line is out of view there)
+  let lastAcc = null;
+  function accMsg(text, kind) {
+    lastAcc = [text, kind];
+    const el = $("#accMsg"); el.textContent = text(); el.className = "form-msg" + (kind === "ok" ? " ok" : " err");
+    engine(text, kind);
+  }
   $("#accForm").addEventListener("submit", e => {
     e.preventDefault();
-    if (!board) return engine(() => T("exam.db.joinFirst", "เปิดแดชบอร์ดห้องก่อน"), "warn");
+    if (!board) return accMsg(() => T("exam.db.joinFirst", "เปิดแดชบอร์ดห้องก่อน"), "warn");
     const seat = U.cleanSeat($("#accSeat").value);
-    if (!seat) return engine(() => T("exam.db.needSeat", "กรอกเลขที่นั่ง"), "warn");
+    if (!seat) { $("#accSeat").focus(); return accMsg(() => T("exam.db.needSeat", "กรอกเลขที่นั่ง"), "warn"); }
     board.setProfile(seat, { gazeOff: $("#accGaze").checked, readAloud: $("#accRead").checked, breaks: $("#accBreaks").checked, noFaceX: +$("#accNoFace").value, ticX: +$("#accTic").value });
     board.addSeats([seat]); sendProfiles(); changed();
-    engine(() => T("exam.db.accSaved", "บันทึกเงื่อนไขของที่นั่ง {s} และส่งให้เครื่องในห้องแล้ว", { s: seat }), "ok");
+    accMsg(() => T("exam.db.accSaved", "บันทึกเงื่อนไขของที่นั่ง {s} และส่งให้เครื่องในห้องแล้ว", { s: seat }), "ok");
   });
   $("#accList").addEventListener("click", e => {
     const b = /** @type {HTMLElement} */ (e.target).closest("[data-unacc]"); if (!b) return;
@@ -293,7 +300,8 @@
   if (P.get("room")) $("#room").value = U.cleanRoom(P.get("room"));
   if (P.get("room") || (saved && saved.room)) join(U.cleanRoom($("#room").value));
   if (!board) engine(() => T("exam.db.engine0", "ยังไม่ได้เข้าห้องสอบ"));
-  window.addEventListener("lq-lang", () => { rendered = -1; render(); importMsg(); if (lastEngine) engine(lastEngine[0], lastEngine[1]); });
+  window.addEventListener("lq-lang", () => { rendered = -1; render(); importMsg(); if (lastEngine) engine(lastEngine[0], lastEngine[1]);
+    if (lastAcc) $("#accMsg").textContent = lastAcc[0](); });
 
   /** @type {any} */ (window).__LQ_EXAM_DB = { get board() { return board; }, get room() { return room; }, get link() { return link; }, join, render: () => { rendered = -1; render(); } };
 })();
