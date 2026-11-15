@@ -323,3 +323,92 @@ test("restrain: the layout keeps the composer's wording (parts rejoin byte-equal
     s.paragraphs.forEach((p, i) => assert.equal(parts.filter(x => x.para === i).map(x => x.text).join(RD.SEP[lang]), p, `${lang} ${s.id} paragraph ${i}`));
   }
 });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// RE-LOCK 2026-11-15 (4), independent review of 64b7e57 (fresh detector, synthetic): six gaps, append-only (nothing above
+// changed). A/B: summary and headline templates filled with the name of an unfavourable or tagged item (TH contrast
+// "แม้{W}จะยังไม่เด่นนัก…", TH / ZH / EN headline "…{X}") were folded, because a short name is under markCaution's fragment
+// length. The composer must record provenance at the fill site (area "fill") and the paragraph is never folded. C: numbers
+// tips the knowledge base marks as restraining (numbers-kb.js goals[].tips[].avoid) were folded; they must carry provenance
+// (area "tip") and never fold. D / E / F: data tags for tarot m00.r and swords11.r love, every numbers sum whose pair is
+// tagged (sums reuse the pair's text: sum.70, 72-80 …), and the two borderline cases (Wheel of Fortune advice, I Ching hex.4
+// money), each decided in docs/FORTUNE-LAYOUT.md.
+const TH_CONTRAST = ["แม้{W}จะยังไม่เด่นนัก แต่{S}ช่วยเรื่อง{TW}ไว้ได้", "{W}เป็นจุดที่ควรค่อย ๆ พัฒนา ส่วน{S}เป็นจุดแข็งที่ใช้ได้ทันที",
+  "{W}เป็นเรื่องที่ควรค่อย ๆ ดูแล ขณะที่{S}เป็นแรงหนุนในเรื่อง{TW}"];
+const TH_HEAD = ["จุดที่เด่นที่สุดครั้งนี้คือ{X}", "ใจความหลักของผลครั้งนี้คือ{X}", "ผลหลักที่ควรจำไว้คือ{X}"];
+const ZH_HEADS = ["这次最突出的是{X}", "这次的重点在{X}"], EN_HEADS = ["What stands out most this time is {X}", "The main focus this time is {X}"];
+const tplRe = t => new RegExp(t.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{W\}/, "(?<W>.+?)").replace(/\{X\}/, "(?<X>[^。.]+)").replace(/\{[A-Z]+\}/g, ".+?"));
+const fillTemplates = { th: TH_CONTRAST.concat(TH_HEAD).map(tplRe), zh: ZH_HEADS.map(tplRe), en: EN_HEADS.map(tplRe) };
+const noParen = s => String(s || "").replace(/\s*[(（][^)）]*[)）]/g, "").trim();
+function namesOf(domain, it, l) {
+  const src = l === "en" ? FA.en.item(domain, it) : l === "zh" ? FA.zh.item(domain, it) : it;
+  return src ? [src.short, src.label, noParen(src.label)].filter(x => x && String(x).length >= 2).map(String) : [];
+}
+const RESTRAIN_TIPS = (() => { const K = require("../../numbers-kb.js"); return Object.values(K.goals).flatMap(g => g.tips).filter(t => t && t.avoid && t.avoid.length).map(t => t.t); })();
+let FILL_CORPUS = null;
+async function fillCorpus() {
+  if (FILL_CORPUS) return FILL_CORPUS;
+  const X = await exportTool(), RS = loadRS(), out = [];
+  for (const d of X.DOMAINS) for (const lang of LANGS) for (const straight of [false, true]) {
+    const r = X.lcg(7373 + X.DOMAINS.indexOf(d) * 17 + (straight ? 5 : 0) + LANGS.indexOf(lang) * 89);
+    for (let i = 0; i < 20; i++) {
+      let f; try { f = X.factsFor(d, i, r); } catch (e) { continue; }
+      const res = FA.compose(f, { seed: 2100 + i, lang, straight });
+      if (!res || res.crisis || !(res.sections || []).length) continue;
+      const flagged = (f.items || []).filter(it => isCautionItem(it, straight) || RS.of(f.domain || d, it));
+      out.push({ d, lang, straight, f, res, flagged, names: flagged.map(it => ({ it, n: namesOf(f.domain || d, it, lang), all: isCautionItem(it, straight) || RS.of(f.domain || d, it) === "all" })) });
+    }
+  }
+  return (FILL_CORPUS = out);
+}
+
+test("fills (A / B): a summary or headline template filled with an unfavourable or tagged item is never folded and has fill provenance", async () => {
+  const C = await fillCorpus(), bad = [];
+  let found = 0;
+  for (const { d, lang, straight, res, names } of C) {
+    const prov = FA._internal.provenance(res);
+    for (const s of res.sections) for (const x of RD.planSection(s, lang)) for (const re of fillTemplates[lang]) {
+      const m = re.exec(x.text); if (!m) continue;
+      const slot = (m.groups.W || m.groups.X || "").trim(), isHead = !m.groups.W;
+      // W is the text right before the template words, so it must END with the name; X starts right after them (a list of names)
+      const hit = names.find(o => (isHead ? o.all : true) && o.n.some(n => (isHead ? slot.slice(0, 80).includes(n) : slot.endsWith(n))));
+      if (!hit) continue;
+      found++;
+      const ok = x.visible && prov.some(p => p.section === s.id && p.para === x.para && p.area === "fill");
+      if (!ok && bad.length < 25) bad.push(`${d} ${lang} ${straight ? "S" : "G"} ${s.id} ${x.visible ? "no fill provenance" : "FOLDED"}: ${x.text.slice(0, 70)}`);
+      if (!ok) bad.total = (bad.total || 0) + 1;
+    }
+  }
+  assert.ok(found >= 40, "filled templates naming an unfavourable / tagged item found " + found);
+  assert.equal(bad.total || 0, 0, (bad.total || 0) + " filled templates folded or without provenance:\n" + bad.join("\n"));
+});
+
+test("tips (C): numbers tips the knowledge base marks as restraining are never folded and have tip provenance", async () => {
+  assert.ok(RESTRAIN_TIPS.length >= 2, "restraining tips in numbers-kb.js " + RESTRAIN_TIPS.length);
+  const C = (await fillCorpus()).filter(x => x.d === "numbers" && x.lang === "th"), bad = [];
+  let found = 0;
+  for (const { straight, res } of C) {
+    const prov = FA._internal.provenance(res);
+    for (const s of res.sections) for (const x of RD.planSection(s, "th")) {
+      if (!RESTRAIN_TIPS.some(t => fragments(t, "th").some(q => x.text.includes(q)) || x.text.includes(t))) continue;
+      found++;
+      const ok = x.visible && prov.some(p => p.section === s.id && p.para === x.para && p.area === "tip");
+      if (!ok) { bad.total = (bad.total || 0) + 1; if (bad.length < 25) bad.push(`${straight ? "S" : "G"} ${s.id} ${x.visible ? "no tip provenance" : "FOLDED"}: ${x.text.slice(0, 70)}`); }
+    }
+  }
+  assert.ok(found >= 5, "restraining tips found in numbers TH readings " + found);
+  assert.equal(bad.total || 0, 0, (bad.total || 0) + " restraining tips folded or without provenance:\n" + bad.join("\n"));
+});
+
+test("data tags (D / E / F): tarot m00.r / swords11.r love, sums that reuse a tagged pair, Wheel advice and I Ching hex.4 money; decisions documented", () => {
+  const RS = loadRS(), has = (tag, a) => tag === "all" || (Array.isArray(tag) && tag.includes(a));
+  for (const [id, a] of [["card.love.m00.r", "love"], ["card.past.swords11.r", "love"], ["card.today.m10", "advice"], ["card.today.m10.r", "advice"]]) assert.ok(has(RS.of("tarot", { id }), a), `tarot ${id} ${a}`);
+  for (const id of ["hex.4", "rel.4"]) assert.ok(has(RS.of("iching", { id }), "money"), "iching " + id + " money");
+  for (let n = 10; n <= 99; n++) {
+    const p = RS.of("numbers", { id: "pair." + String(n).padStart(2, "0") });
+    if (p) assert.ok(RS.of("numbers", { id: "sum." + n }), `numbers sum.${n} (pair.${n} is tagged)`);
+  }
+  for (const n of [70, 72, 73, 74, 75, 76, 77, 78, 79, 80]) if (RS.of("numbers", { id: "pair." + n })) assert.ok(RS.of("numbers", { id: "sum." + n }), "sum." + n);
+  const doc = fs.readFileSync(path.join(ROOT, "docs", "FORTUNE-LAYOUT.md"), "utf8");
+  for (const k of ["m10", "hex.4", "m00.r", "swords11.r", "sum."]) assert.ok(doc.includes(k), "docs record the decision for " + k);
+});
