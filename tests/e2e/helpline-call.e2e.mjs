@@ -8,6 +8,11 @@
 // 3) Crisis state (dream hard net) and calm state (tab flag): the 1323 button is still visible and tappable; the card keeps
 //    every help line as a button.
 // 4) Rendered wording: 1323 button + second line in TH / EN / ZH without the forbidden words; EN / ZH without Thai.
+// RE-LOCK 2026-11-15 (fortune-live, owner order 2026-11-15 item 3; placement pre-approved by the owner): on the fortune pages
+//    the help line is ONE small tap-to-call button row near the top (#lqHelpTop: "อยากมีคนรับฟัง 1323" and "เจ็บป่วยฉุกเฉิน
+//    1669", class .lq-call-mini); #lqHelpEnd is gone. Every button keeps the tel / 44 px / on-screen / not-covered checks; the
+//    mini button's label is inside the button (no separate label row, no second line); on a computer its number is the large
+//    selectable text. The crisis card, calm state and full components (medicine, nutrition, terms) are checked as before.
 // 5) Computer: the number is also shown as large text that can be selected (user-select not none, >= 24 px).
 // RE-LOCK 2026-11-14 (owner addition after testing on a phone, relayed by the coordinator): every help line is ONE compact
 //    row at 360 / 375 / 414 px: the short label's start, the number and the call button share one row (same top band:
@@ -57,7 +62,9 @@ const BUTTONS = `(async () => { const out = [];
     let first = null;
     if (lab && lab.firstChild) { const rg = document.createRange(); rg.setStart(lab.firstChild, 0); rg.setEnd(lab.firstChild, 1); first = rg.getClientRects()[0] || null; }
     const lr = lab ? lab.getBoundingClientRect() : null, sr = sub && sub.getClientRects().length ? sub.getBoundingClientRect() : null;
-    const row = !first || !lr ? "no label" : !(first.top < r.bottom && r.top < first.bottom) ? "label and button not on one row " + JSON.stringify([first.top, first.bottom, r.top, r.bottom])
+    // re-lock 2026-11-15 (fortune-live item 3): the top help button (.lq-call-mini) is ONE button whose text is the label and the
+    // number, so there is no separate label to line up; every other check applies to it unchanged
+    const row = a.closest(".lq-call-mini") ? (/\\S/.test(a.textContent.replace(/[\\d\\s]/g, "")) ? "" : "mini button has no label text") : !first || !lr ? "no label" : !(first.top < r.bottom && r.top < first.bottom) ? "label and button not on one row " + JSON.stringify([first.top, first.bottom, r.top, r.bottom])
       : r.left < lr.right - 1 ? "button not to the right of the label" : sr && sr.left < r.right && sr.right > r.left && sr.top >= r.top ? "second line under the button" : "";
     out.push({ href: a.getAttribute("href"), id: c ? c.getAttribute("data-lq-call") : null, text: a.textContent.replace(/\\s+/g, " ").trim(), row,
       w: r.width, h: r.height, left: r.left, right: r.right, vw: innerWidth, hitSelf: hit === a,
@@ -107,7 +114,8 @@ export default async function ({ base, launch, check }) {
         for (const p of FORTUNE) {
           await page.goto(`${base}/${p}.html?nosw`);
           await sleep(300);
-          for (const id of ["lqHelpTop", "lqHelpEnd"]) {
+          if (await page.evaluate(`!!document.getElementById("lqHelpEnd")`)) bad.push(`${p}: #lqHelpEnd still on the page (one place per page)`);
+          for (const id of ["lqHelpTop"]) {
             const r = await page.evaluate(`(() => { const e = document.getElementById(${S(id)}); const why = ${SHOWN}(e);
               const calls = e ? [...e.querySelectorAll("[data-lq-call]")].map(c => c.getAttribute("data-lq-call")) : [];
               const btn = e && e.querySelector('[data-lq-call="1323"] a.lq-call-btn');
@@ -134,10 +142,10 @@ export default async function ({ base, launch, check }) {
           const r = await page.evaluate(`(() => { const cards = [...document.querySelectorAll(".fa-support")].filter(c => c.getClientRects().length);
             const c = cards[0]; return { n: cards.length, why: c ? ${SHOWN}(c) : "no card",
               calls: c ? [...c.querySelectorAll("[data-lq-call]")].map(x => x.getAttribute("data-lq-call")) : [],
-              top: ${SHOWN}(document.getElementById("lqHelpTop")), end: ${SHOWN}(document.getElementById("lqHelpEnd")) }; })()`);
+              top: ${SHOWN}(document.getElementById("lqHelpTop")) }; })()`);
           assert(r.n >= 1 && !r.why, w + ": crisis card shown " + S(r));
           for (const id of Object.keys(TELS)) assert(r.calls.includes(id), w + ": card has the " + id + " button " + S(r.calls));
-          assert(!r.top && !r.end, w + ": help lines still visible in the crisis state " + S(r));
+          assert(!r.top, w + ": help button still visible in the crisis state " + S(r));
           const list = await page.evaluate(BUTTONS), bad = [];
           checkButtons(list, "dream crisis " + w, bad);
           const card = await page.evaluate(`[...document.querySelectorAll(".fa-support a.lq-call-btn")].filter(a => a.getClientRects().length).map(a => a.getAttribute("href"))`);
@@ -178,7 +186,7 @@ export default async function ({ base, launch, check }) {
             await sleep(400);
             const r = await page.evaluate(`[...document.querySelectorAll('[data-lq-call]')].filter(c => c.getClientRects().length).map(c => ({ id: c.getAttribute("data-lq-call"),
               btn: ((c.querySelector(".lq-call-t") || {}).innerText || "") + " " + ((c.querySelector("a.lq-call-btn") || {}).innerText || ""),
-              sub: (c.querySelector(".lq-call-sub") || {}).innerText || "" }))`);
+              sub: (c.querySelector(".lq-call-sub") || {}).innerText || "", mini: c.classList.contains("lq-call-mini") }))`);
             if (p !== "medicine") assert(r.some(x => x.id === "1323"), `${p} ${lang}: a visible 1323 component`);
             for (const x of r) {
               const t = (x.btn + " " + x.sub).replace(/\s+/g, " ");
@@ -188,7 +196,9 @@ export default async function ({ base, launch, check }) {
                 assert(!hit, `${p} ${lang} ${x.id}: forbidden '${w}' in '${t}'`);
               }
               if (lang !== "th") assert(!/[฀-๿]/.test(t), `${p} ${lang} ${x.id}: Thai in '${t}'`);
-              if (lang === "th" && x.id === "1323") {
+              if (lang === "th" && x.id === "1323" && x.mini) {
+                assert(x.btn.replace(/\s+/g, " ").trim() === "อยากมีคนรับฟัง 1323", `${p}: 1323 top button '${x.btn}'`);
+              } else if (lang === "th" && x.id === "1323") {
                 assert(x.btn.replace(/\s+/g, " ").trim() === "อยากมีคนรับฟัง โทร 1323", `${p}: 1323 button '${x.btn}'`);
                 assert(x.sub.replace(/\s+/g, " ").trim() === "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง", `${p}: 1323 second line '${x.sub}'`);
               }
@@ -207,7 +217,7 @@ export default async function ({ base, launch, check }) {
           await page.goto(`${base}/${p}.html?nosw`);
           await sleep(300);
           const r = await page.evaluate(`[...document.querySelectorAll('[data-lq-call]')].filter(c => c.getClientRects().length && c.querySelector("a.lq-call-btn").getClientRects().length).map(c => {
-            const n = c.querySelector(".lq-call-num"), s = n ? getComputedStyle(n) : null, r = n ? n.getBoundingClientRect() : null;
+            const n = c.querySelector(c.classList.contains("lq-call-mini") ? ".lq-call-mini-n" : ".lq-call-num"), s = n ? getComputedStyle(n) : null, r = n ? n.getBoundingClientRect() : null;
             return { id: c.getAttribute("data-lq-call"), text: n ? n.textContent.replace(/\\s+/g, "") : null,
               shown: !!(r && r.width > 0 && r.height > 0 && s.display !== "none" && s.visibility !== "hidden"),
               fs: s ? parseFloat(s.fontSize) : 0, sel: s ? (s.userSelect || s.webkitUserSelect) : "none" }; })`);

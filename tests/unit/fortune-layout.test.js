@@ -37,15 +37,18 @@ const OLD = {
   en: /\bfor (?:the )?entertainment\b|\bentertainment(?: and [a-z ]+)? (?:only|purposes?|content|use)\b|\bfor fun only\b|\bjust for fun\b/i,
   zh: /仅供娱乐|供娱乐|娱乐参考|娱乐内容|娱乐用途|依信仰娱乐|娱乐性质/,
 };
-const LINE_TH = "เนื้อหานี้พัฒนาขึ้นจากองค์ความรู้ด้านโหราศาสตร์ เป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณและอ่านอย่างมีสติ เราไม่รับรองความถูกต้องของคำทำนาย";
+// RE-LOCK 2026-11-15 (fortune-live, owner order 2026-11-15 item 2): the owner's final wording replaces the earlier draft; the
+// EN / ZH lines are now checked word for word (stricter than the earlier patterns).
+const LINE_TH = "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ";
+const LINE_EN = "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.";
+const LINE_ZH = "基于命理学原则，属个人信仰，请自行判断。";
 const stripHtmlComments = s => s.replace(/<!--[\s\S]*?-->/g, "");
 const LANGS = ["th", "en", "zh"];
 
 /* ---------------- A1 wording ---------------- */
 test("A1: the new line in TH / EN / ZH (TH verbatim from the owner; EN / ZH say the same: belief, use judgement, no guarantee)", () => {
   assert.equal(RD.LINE.th, LINE_TH);
-  assert.match(RD.LINE.en, /belief/i); assert.match(RD.LINE.en, /judg(?:e)?ment/i); assert.match(RD.LINE.en, /(?:do not|don't|cannot|can't) (?:guarantee|vouch for|promise)/i);
-  assert.match(RD.LINE.zh, /信仰|信念/); assert.match(RD.LINE.zh, /判断/); assert.match(RD.LINE.zh, /不保证/);
+  assert.equal(RD.LINE.en, LINE_EN); assert.equal(RD.LINE.zh, LINE_ZH);
   for (const l of LANGS) for (const o of LANGS) assert.doesNotMatch(RD.LINE[l], OLD[o], l + " line has old wording");
   // the dictionaries carry the same text under one key
   assert.ok(read("i18n/en-fortune.js").includes(JSON.stringify("fortune.disc.line") + ": " + JSON.stringify(RD.LINE.en)), "en-fortune.js fortune.disc.line");
