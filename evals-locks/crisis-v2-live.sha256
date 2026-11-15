@@ -1,0 +1,5 @@
+# locked 2026-11-15T20:17:06Z (tools/eval-guard.mjs lock, 3 files)
+cef294479fd7f4b6c53d011854cb7b4e2fe1663defe6372457542fdb6f4d2eab  tests/unit/crisis-v2-live.test.js
+de2c6532c24d7894810b98b00fe4bfdf3590e221eb51b01c582a90a7b3f037e3  tests/e2e/crisis-v2-live.e2e.mjs
+aece1c6aa162199cc328b58a91ad5d131e6bbf4be6f6b5266ff7be0eac60a688  tests/e2e/crisis-flow-lib.mjs
+# crisis-v2-live (owner decisions 2026-11-15: 1 option ก ship crisis flow v2 = merge-staging-crisis 921ecb6 with the single help button rule; 54 ข; 23 default ก) — locked BEFORE any product change on branch crisis-v2-live (base origin/main 507b56a). crisis-flow-lib.mjs is v2's locked helper, same bytes as in evals-locks/fortune-honest.sha256. Source: synthetic.
