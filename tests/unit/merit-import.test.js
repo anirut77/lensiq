@@ -192,7 +192,9 @@ test("G9: the original places batch and the -notes batch are the same places: on
   // a different date is a different family and is allowed
   const s = sandbox();
   assert.equal(s.guard(["places", pFile(s, "places-2026-11-14", "a.json")], "places-2026-11-14\n").status, 0);
-  assert.equal(s.guard(["places", pFile(s, "places-2026-12-01", "b.json")], "places-2026-12-01\n").status, 0);
+  // (re-locked 2026-11-15: the second file needs its own draft_ids, since the guard now refuses overlapping ids; see merit-import-2.test.js L1)
+  const other = s.write("b.json", { batch: "places-2026-12-01", items: placesItems().map(it => ({ ...it, draft_id: "x-" + it.draft_id, title: { ...it.title, en: it.title.en + " (x)" } })) });
+  assert.equal(s.guard(["places", other], "places-2026-12-01\n").status, 0);
 });
 
 test("G10: the checked file is never changed and nothing but the ledger is written", () => {

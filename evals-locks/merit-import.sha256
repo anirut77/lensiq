@@ -2,3 +2,12 @@
 ac20fbf5a035fd6b164b65cfed673462fefbefa808edb7ffd9d8c542123b73d7  merit-import.test.js
 # repo copy of the locked file (same hash as above), 2026-11-15
 ac20fbf5a035fd6b164b65cfed673462fefbefa808edb7ffd9d8c542123b73d7  tests/unit/merit-import.test.js  # repo file
+# locked 2026-11-15T16:09:16Z (tools/eval-guard.mjs lock, 2 files)
+7dfdfcfa9dc5688f582b6af861cfeaf7e0aa76b99c981a65243cf3d4cdca29a1  merit-import.test.js
+c883ce718754b87712e7fb585f2bd3f5068f0572a1818cabeed7cb77e18d5bef  merit-import-2.test.js
+# Second round 2026-11-15 (coordinator order after the independent review of cebd048: the admin upload to POST /merit/import was unprotected).
+# merit-import.test.js re-locked above (new hash 7dfdfcfa...) for ONE reason: its G9 last case imported a second places file with the SAME draft_ids
+# under another batch id and expected success; the new rule (draft_ids_overlap / draft_ids_exist) refuses exactly that, so the fixture now uses
+# its own draft_ids. No assertion was loosened. merit-import-2.test.js is new (W1 W2 A1 L1 L2 L3 D2), red on cebd048 (7 of 7), written before the product change.
+7dfdfcfa9dc5688f582b6af861cfeaf7e0aa76b99c981a65243cf3d4cdca29a1  tests/unit/merit-import.test.js  # repo file
+c883ce718754b87712e7fb585f2bd3f5068f0572a1818cabeed7cb77e18d5bef  tests/unit/merit-import-2.test.js  # repo file
