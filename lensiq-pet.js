@@ -190,18 +190,21 @@
       const x = c.getContext("2d", { willReadFrequently: true });
       x.drawImage(src, (box.x + box.w * 0.25) * W, (box.y + box.h * 0.3) * H, box.w * 0.5 * W, box.h * 0.5 * H, 0, 0, 32, 32);
       const px = x.getImageData(0, 0, 32, 32).data;
-      let L = 0, S = 0, hx = 0, hy = 0, n = 0;
+      // one vote per pixel (a white chest or a lead across the fur must not tint the average), then the largest share wins
+      const votes = { black: 0, white: 0, grey: 0, orange: 0, brown: 0, cream: 0 };
+      let n = 0;
       for (let i = 0; i < px.length; i += 4) {
         const r = px[i] / 255, g = px[i + 1] / 255, b = px[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2;
         const s = mx === mn ? 0 : (mx - mn) / (1 - Math.abs(2 * l - 1));
-        let hh = 0; if (mx !== mn) { hh = mx === r ? ((g - b) / (mx - mn)) % 6 : mx === g ? (b - r) / (mx - mn) + 2 : (r - g) / (mx - mn) + 4; hh *= 60; }
-        L += l; S += s; hx += Math.cos(hh * Math.PI / 180) * s; hy += Math.sin(hh * Math.PI / 180) * s; n++;
+        let h = 0; if (mx !== mn) { h = mx === r ? ((g - b) / (mx - mn)) % 6 : mx === g ? (b - r) / (mx - mn) + 2 : (r - g) / (mx - mn) + 4; h *= 60; if (h < 0) h += 360; }
+        n++;
+        if (l < 0.2) votes.black++;
+        else if (s < 0.15 || l > 0.85) votes[l > 0.72 ? "white" : "grey"]++;
+        else if (h >= 10 && h <= 55) votes[l > 0.68 && s < 0.5 ? "cream" : l > 0.42 ? "orange" : "brown"]++;
       }
-      L /= n; S /= n; let hue = Math.atan2(hy, hx) * 180 / Math.PI; if (hue < 0) hue += 360;
-      if (L < 0.2) return "black";
-      if (S < 0.14) return L > 0.78 ? "white" : "grey";
-      if (hue >= 15 && hue <= 50) return L > 0.66 && S < 0.45 ? "cream" : L > 0.42 ? "orange" : "brown";
-      return null;
+      const top = Object.entries(votes).sort((p, q) => q[1] - p[1]);
+      if (votes.black / n >= 0.3 && votes.white / n >= 0.2) return "bicolour";
+      return top[0][1] / n >= 0.35 ? top[0][0] : null;
     } catch (e) { return null; }
   }
 

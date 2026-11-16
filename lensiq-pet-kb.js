@@ -330,9 +330,9 @@
         zh: "还没有填写出生日期，所以从毛色来看：能衬托它的颜色是{colour}，好日子是{day}。",
       },
       use: {
-        th: "ลองใช้{colour}กับปลอกคอ ผ้าพันคอ ของเล่น หรือมุมนอนของน้อง และใช้{day}เป็นวันถ่ายรูปหรือวันเล่นพิเศษด้วยกัน ตามความเชื่อ โปรดใช้วิจารณญาณ",
-        en: "Try {colour} for a collar, bandana, toy or bed corner, and keep {day} for a photo day or a special play day together. According to belief, please use your own judgement.",
-        zh: "可以把{colour}用在项圈、小围巾、玩具或小窝上，把{day}当作一起拍照或特别玩耍的日子。依据传统说法，请自行判断。",
+        th: "ลองใช้{colour}กับปลอกคอ ผ้าพันคอ ของเล่น หรือมุมนอนของน้อง และใช้{day}เป็นวันถ่ายรูปหรือวันเล่นพิเศษด้วยกัน",
+        en: "Try {colour} for a collar, bandana, toy or bed corner, and keep {day} for a photo day or a special play day together.",
+        zh: "可以把{colour}用在项圈、小围巾、玩具或小窝上，把{day}当作一起拍照或特别玩耍的日子。",
       },
     },
     compatNone: {
