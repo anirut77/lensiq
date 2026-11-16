@@ -931,6 +931,15 @@
    "phrase": false,
    "why": "on / off only",
    "dynamic": "lensiq-merit.js interest form"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-rp textarea",
+   "type": "textarea",
+   "maxlength": 600,
+   "phrase": true,
+   "dynamic": "lensiq-report.js \"Report a problem with this reading\" dialog (loaded by nav.js on fortune pages): the note (maxlength 600) and the editable preview",
+   "covered_by": "lensiq-report.js runs the crisis net on the note and the edited preview before anything is saved, copied or mailed: nothing stored, the dialog closes, the card takes over; locked tests/e2e/crisis-net-hotfix-e.e2e.mjs (E4) and tests/unit/crisis-input-inventory-2.test.js"
   }
  ]
 }
