@@ -10,6 +10,11 @@
 //   H3  crisis state: the full help card (every number, tap-to-call) shows and the reading is replaced (dream hard net,
 //       TH / EN / ZH); on every page with the reading engine, the crisis card renders with 1323 and 1669 tap-to-call
 //   D1  the final disclaimer line is shown in the page language on every fortune page (report after a reading)
+//   RE-LOCK 2026-11-16 (owner decision 69 ค 2026-11-16: confirmation step before calling; the control moves into the top bar,
+//       branch fortune-top-compact): H2 now wants the button INSIDE the top bar (it was "clear of the header"), its page-language
+//       label in the aria-label with "1323" shown (the visible text is the icon and the number), and the first touch tap opens a
+//       confirmation whose tel:1323 call link is reached by one more tap with nothing cancelling it. 44 px, first screen, not
+//       covered, on screen, only control in #lqHelpTop and no horizontal scroll are unchanged; H1, H3, D1 and S1 are unchanged.
 //   S1  no idle technical status: faceread, palm, booth and studio show no "ready — the model loads when …" line at page
 //       load; the role=status element is still there (empty or hidden)
 import { assert } from "./cdp.mjs";
@@ -144,7 +149,7 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n" + bad.join("\n"));
     });
 
-    await check("H2 + D1: the help button is in the first screen, ≥ 44 px, not covered, clear of the header, label in the page language (320 / 375 / 430 px); the final line shows", async () => {
+    await check("H2 + D1: the help button is in the first screen, ≥ 44 px, not covered, in the top bar (re-lock 2026-11-16), label in the page language (320 / 375 / 430 px); the final line shows", async () => {
       const bad = [];
       for (const lang of LANGS) {
         const page = await open(browser, lang);
@@ -166,9 +171,11 @@ export default async function ({ base, launch, check }) {
               if (b.left < -0.5 || b.right > b.vw + 0.5) bad.push(`${tag}: button off the side of the screen`);
               if (S(b.topCtl) !== S(["tel:1323"])) bad.push(`${tag}: the top help row must hold only the 1323 button (decision 54 ข): ${S(b.topCtl)}`);
               if (b.covered) bad.push(`${tag}: button covered by ${b.hit}`);
-              if (b.overlapNav) bad.push(`${tag}: button overlaps the header`);
+              // re-lock 2026-11-16 (decision 69 ค): the button is in the top bar, so it must overlap the header (was: must not)
+              if (!b.overlapNav) bad.push(`${tag}: button is not in the top bar`);
               if (b.sw > b.vw + 1) bad.push(`${tag}: page wider than the screen (${b.sw} > ${b.vw})`);
-              if (!LABEL[lang].test(b.text) || !LABEL[lang].test(b.aria)) bad.push(`${tag}: label not in ${lang}: ${S({ text: b.text, aria: b.aria })}`);
+              // re-lock 2026-11-16 (decision 69 ค): the label is the aria-label; the button shows the icon and 1323
+              if (!LABEL[lang].test(b.aria) || !/1323/.test(b.text)) bad.push(`${tag}: label not in ${lang}: ${S({ text: b.text, aria: b.aria })}`);
               if (lang !== "th" && /[฀-๿]/.test(b.text + b.aria)) bad.push(`${tag}: Thai letters in the ${lang} button: ${b.text}`);
             }
           }
@@ -177,24 +184,32 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n" + bad.slice(0, 60).join("\n"));
     });
 
-    await check("H2: one touch tap on the button from page load reaches the tel:1323 link and nothing cancels it (every page, TH, 375 px)", async () => {
+    // RE-LOCK 2026-11-16 (owner decision 69 ค 2026-11-16: confirmation step before calling): was "one touch tap reaches the
+    // tel:1323 link"; now the first tap opens a confirmation (no call), and one more tap on its tel:1323 link calls, uncancelled
+    await check("H2: from page load, one touch tap on the button opens the confirmation, one more tap on its tel:1323 link calls and nothing cancels it (every page, TH, 375 px)", async () => {
       const bad = [];
       const page = await open(browser, "th");
+      const touch = async pt => { await page.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [pt] });
+        await page.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] }); await sleep(300); };
       try {
         await phone(page, 375);
         for (const p of PAGES) {
           try { await load(page, base, p, "th"); } catch (e) { bad.push(`${p}: did not load`); continue; }
-          await page.evaluate(`window.scrollTo(0, 0); window.__tap = null;
-            window.addEventListener("click", e => { const a = e.target && e.target.closest && e.target.closest("a[href]");
-              window.__tap = { href: a ? a.getAttribute("href") : null, prevented: e.defaultPrevented }; e.preventDefault(); }, { once: true });`);
+          await page.evaluate("window.scrollTo(0, 0)");
           const b = await page.evaluate(BUTTON);
           if (!b) { bad.push(`${p}: no button`); continue; }
-          const pt = [{ x: (b.left + b.right) / 2, y: (b.top + b.bottom) / 2 }];
-          await page.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt });
-          await page.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-          await sleep(300);
+          await touch({ x: (b.left + b.right) / 2, y: (b.top + b.bottom) / 2 });
+          const d = await page.evaluate(`(() => { const d = [...document.querySelectorAll("dialog, [role=dialog]")].find(x => x.getClientRects().length && (x.tagName !== "DIALOG" || x.open));
+            const a = d && [...d.querySelectorAll('a[href="tel:1323"]')].find(x => x.getClientRects().length); if (!a) return null; const r = a.getBoundingClientRect();
+            return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height }; })()`);
+          if (!d) { bad.push(`${p}: the first tap opened no confirmation with a tel:1323 link`); continue; }
+          if (d.w < 44 || d.h < 44) bad.push(`${p}: confirmation call link ${d.w}×${d.h}`);
+          await page.evaluate(`window.__tap = null;
+            window.addEventListener("click", e => { const a = e.target && e.target.closest && e.target.closest("a[href]");
+              window.__tap = { href: a ? a.getAttribute("href") : null, prevented: e.defaultPrevented }; e.preventDefault(); }, { once: true });`);
+          await touch({ x: d.x, y: d.y });
           const t = await page.evaluate("window.__tap");
-          if (!t || t.href !== "tel:1323" || t.prevented) bad.push(`${p}: tap result ${S(t)}`);
+          if (!t || t.href !== "tel:1323" || t.prevented) bad.push(`${p}: second tap result ${S(t)}`);
         }
       } finally { await page.close(); }
       assert(!bad.length, bad.length + " problem(s):\n" + bad.join("\n"));

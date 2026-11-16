@@ -1,0 +1,11 @@
+# evals-locks/fortune-top-compact.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-top-compact/ (owner rule 2026-11-13). Append-only.
+# fortune-top-compact (owner order 2026-11-16 items 1-4 from a real iPhone 16 Pro: quiet help control, short consumer descriptions, main action on the first screen, one-line disclaimer)
+# + owner decision 69 option ค 2026-11-16 (help control = phone icon + 1323 in the top bar, confirmation step before calling) — locked BEFORE any product code on branch fortune-top-compact (base origin/main 6319860).
+# New: tests/unit/fortune-top-compact.test.js (U1-U4) and tests/e2e/fortune-top-compact.e2e.mjs (C1-C8).
+# RE-LOCK (owner decision 69 ค 2026-11-16: confirmation step before calling): tests/e2e/fortune-live.e2e.mjs H2 (button in the top bar instead of clear of it; label in the aria-label; first tap opens the confirmation, one more tap calls) and
+# tests/e2e/fortune-helpline.e2e.mjs check 1 (top control words = aria-label in the page language + "1323" shown). Copies in relock69/; every other check in both files unchanged; 44 px, tel:, not-covered checks kept.
+# locked 2026-11-16T03:34:31Z (tools/eval-guard.mjs lock, 4 files)
+ae694b57675b1b0d78d09a2826fe054374b21356cfff84aa99b7fdd9482df920  tests/unit/fortune-top-compact.test.js
+488bf89031daaeeba066917edc9e7e9d8bab2fe6c6364e62987bc289c08cdc58  tests/e2e/fortune-top-compact.e2e.mjs
+7388a064e142cb4b600b975bc863813ec75be3a6f6fc590d03f6fb82e4231463  relock69/tests/e2e/fortune-live.e2e.mjs
+17af0cd3ec53dadbaa6ffe22a7e538062f4fd70ba75e9f8ea81badaadb9e7417  relock69/tests/e2e/fortune-helpline.e2e.mjs
