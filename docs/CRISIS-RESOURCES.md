@@ -85,7 +85,8 @@ step.** On every fortune page and the fortune category page, `#lqHelpTop` (still
 so it calls without JavaScript) is moved by `nav.js` into the sticky top bar as a small phone icon with "1323" (the bar stays
 on screen while the page scrolls). Its accessible name stays "อยากมีคนรับฟัง โทร 1323" / "Want someone to listen? Call 1323" /
 "想找人倾听？拨打 1323" (`call.1323.btn`). The large blue button is no longer in the page content, so 1323 still shows once per
-page in the normal state. The first tap opens a small confirmation (`dialog#lqHelpDlg.lq-help-dlg`) with the same words, a call
+page in the normal state. The first tap opens a small confirmation (`dialog.lq-help-dlg`, styles in `fortune-top.css`,
+inlined into the fortune pages by `tools/helpline.mjs`) with the same words, a call
 button (`tel:1323`, at least 44 px) and a close button, so a stray tap does not start a call; the call is one more tap. Escape,
 the close button or a tap outside closes it and focus returns to the control. Counting rule for "once per page" (tests): visible
 text and visible `tel:` links, a number that is the text of its own `tel:` link counted once; the confirmation counts only while
@@ -99,7 +100,7 @@ re-locked `tests/e2e/fortune-live.e2e.mjs` H2 and `tests/e2e/fortune-helpline.e2
 
 **Hook for crisis flow v2 (branch crisis-v2-live, not merged; it owns the calm-state behaviour).** The control keeps the id
 `#lqHelpTop` (now inside `#siteNav`, class `.lq-helpnav`; the header has `.has-help`); the link is
-`#lqHelpTop [data-lq-call="1323"] a.lq-call-btn`. `window.LQHelpTop = { el, link, dialog(), open(), close(), confirm }`:
+`#lqHelpTop [data-lq-call="1323"] a.lq-call-btn`. `window.LQHelpTop = { el, link, dlg, open(), close(), confirm }`:
 `LQHelpTop.open()` shows the confirmation, `LQHelpTop.confirm = false` makes the first tap call directly (for example in the
 calm state, if crisis v2 decides so). The in-content styles `.lq-helpline.lq-helpbar` still apply when JavaScript is off.
 

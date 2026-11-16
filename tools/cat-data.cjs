@@ -486,9 +486,7 @@ const CATEGORIES = [
     lead: { th: "ดูดวงศาสตร์ไทย จีน และตะวันตก และหาฤกษ์มงคลสำหรับเรื่องสำคัญของคุณ",
       en: "Thai, Chinese and Western readings, and auspicious dates for the things that matter to you.",
       zh: "泰式、中式与西方占卜，以及为重要事项择吉日。" },
-    discRest: { th: "ผลการดูดวงทุกระบบอ้างอิงตามความเชื่อและศาสตร์ดั้งเดิม ไม่ใช่ข้อเท็จจริงทางวิทยาศาสตร์ ไม่ควรใช้ตัดสินใจเรื่องสำคัญ เช่น การจ้างงาน การเงิน สุขภาพ หรือความสัมพันธ์",
-      en: "Every reading follows traditional belief, not scientific fact. Do not use it for important decisions such as hiring, money, health or relationships.",
-      zh: "所有占卜均依据传统信仰，并非科学事实。请勿用于招聘、财务、健康或感情等重要决定。" },
+    discMore: "help.html#h-fortune", // owner order 2026-11-16 item 4: "อ่านเพิ่มเติม" after the one-line notice
     disc: { th: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
       en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
       zh: "基于命理学原则，属个人信仰，请自行判断。" },

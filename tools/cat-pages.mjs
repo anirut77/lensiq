@@ -14,7 +14,7 @@ import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { metaPolicy, metaTag } from "./csp-meta.mjs";
-import { snippet as helpLine } from "./helpline.mjs";
+import { snippet as helpLine, topStyle } from "./helpline.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -46,6 +46,7 @@ const UI = {
   "cat.eyebrow": { th: "LENSIQ · หมวดงาน", en: "LENSIQ · Work categories", zh: "LENSIQ · 业务类别" },
   "cat.cta.pilot": { th: "ขอโครงการนำร่อง", en: "Request a pilot", zh: "申请试点" },
   "cat.cta.all": { th: "ระบบทั้งหมด", en: "All solutions", zh: "全部系统" },
+  "cat.more": { th: "อ่านเพิ่มเติม", en: "Read more", zh: "阅读更多" },
   "cat.legend.h": { th: "สถานะหมายถึงอะไร", en: "What the status means", zh: "状态说明" },
   "cat.src.h": { th: "ที่มาของตัวเลข", en: "Where the numbers come from", zh: "数据来源" },
   "cat.src.d": { th: "ทุกตัวเลขบอกที่มา: ข้อมูลสังเคราะห์ ชุดข้อมูลสาธารณะ หรือภาคสนาม ยังไม่มีระบบใดมีตัวเลขภาคสนาม ก่อนใช้ตัวเลขจริงให้ทดลองหน้างานพร้อมนับเทียบ",
@@ -80,7 +81,6 @@ export function entries() {
     e[`cat.${c.slug}.name`] = c.name;
     e[`cat.${c.slug}.intro`] = c.intro;
     if (c.lead) e[`cat.${c.slug}.lead`] = c.lead;
-    if (c.discRest) e[`cat.${c.slug}.discRest`] = c.discRest;
     if (c.disc) e["fortune.disc.line"] = c.disc;
     e[`cat.${c.slug}.title`] = { th: c.name.th + " | LENSIQ", en: c.name.en + " | LENSIQ", zh: c.name.zh + " | LENSIQ" };
     const n = counts(c);
@@ -218,17 +218,17 @@ export function pageHtml(cat, nav = navEntries()) {
     '<script src="nav.js?v=22"></script>',
     '<script src="i18n/zh-cat.js?v=2"></script>',
     // the fortune category carries the always-visible help button, in one place (owner orders 2026-11-12, 2026-11-15; tools/helpline.mjs)
-    ...(cat.slug === "fortune" ? [helpLine("lqHelpTop")] : []),
-    `<main class="pd cat${cat.discRest ? " lq-ftop" : ""}" id="main" data-cat="${cat.slug}">`,
+    ...(cat.slug === "fortune" ? [topStyle(), helpLine("lqHelpTop")] : []),
+    `<main class="pd cat${cat.discMore ? " lq-ftop" : ""}" id="main" data-cat="${cat.slug}">`,
     `  <section class="pd-hero" aria-labelledby="catH">`,
     `    <span class="eyebrow" data-i18n="cat.eyebrow">LENSIQ · หมวดงาน</span>`,
     `    <h1 id="catH"><span aria-hidden="true">${cat.icon}</span> <span data-i18n="cat.${cat.slug}.name">${esc(cat.name.th)}</span></h1>`,
     ...(cat.lead && cat.disc ? [
       // fortune (owner order 2026-11-15 item 2): the lead, then the same one-line notice every fortune page shows
       `    <p data-i18n="cat.${cat.slug}.lead">${esc(cat.lead.th)}</p>`,
-      // owner order 2026-11-16 item 4: one small line under the title; the rest behind "อ่านเพิ่มเติม" (fortune-notice.js)
+      // owner order 2026-11-16 item 4: one small line under the title; "อ่านเพิ่มเติม" links to the fortune answer on help.html
       `    <p class="lq-notice lq-top" role="note"><b class="lq-disc-line" data-i18n="fortune.disc.line">${esc(cat.disc.th)}</b>` +
-        (cat.discRest ? ` <span class="lq-notice-more"><span data-i18n="cat.${cat.slug}.discRest">${esc(cat.discRest.th)}</span></span>` : "") + `</p>`,
+        (cat.discMore ? ` <a href="${cat.discMore}" data-i18n="cat.more">อ่านเพิ่มเติม</a>` : "") + `</p>`,
     ] : [`    <p data-i18n="cat.${cat.slug}.intro">${esc(cat.intro.th)}</p>`]),
     `    <div class="pd-cta">`,
     `      <a class="btn primary" href="index.html?interest=${CAT_INTEREST[cat.slug] || "unsure"}#contact" data-i18n="cat.cta.pilot">ขอโครงการนำร่อง</a>`,
@@ -262,7 +262,6 @@ export function pageHtml(cat, nav = navEntries()) {
     `  </div>`,
     `</main>`,
     '<script src="lensiq-config.js?v=12"></script>',
-    ...(cat.discRest ? ['<script src="fortune-notice.js?v=2"></script>'] : []),
     "</body>",
     "</html>",
     ""

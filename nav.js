@@ -407,72 +407,27 @@
   window.addEventListener("lq-lang", syncLang);
   if (window.LQI18N) { window.LQI18N.apply(header); var cb = document.querySelector(".lq-crumbs"); if (cb) window.LQI18N.apply(cb); syncLang(); }
 
-  // ---------- help control in the top bar (owner decision 69 option ค, 2026-11-16) ----------
-  // Fortune pages carry the 1323 help button (#lqHelpTop) in their HTML (tools/helpline.mjs), so it calls even without
-  // JavaScript. Here it moves into the bar (always on screen: the bar is sticky) as a small phone icon + "1323"; its
-  // accessible name stays "อยากมีคนรับฟัง โทร 1323" (call.1323.btn). The first tap opens a small confirmation with the same
-  // words, a call button (tel:1323) and a close button, so a stray tap does not start a call; the call is one more tap.
-  // Escape, the close button or a tap outside closes it and focus returns to the control. The crisis card is not affected
-  // (its numbers are direct tap-to-call). Hook for crisis flow v2 (docs/CRISIS-RESOURCES.md): window.LQHelpTop =
-  // { el, link, dialog(), open(), close(), confirm } — set LQHelpTop.confirm = false to call on the first tap.
-  /** @type {Record<string, {call: string, close: string}>} */
-  var HELP_W = { th: { call: "โทร 1323", close: "ปิด" }, en: { call: "Call 1323", close: "Close" }, zh: { call: "拨打 1323", close: "关闭" } };
+  // 1323 control in the bar + confirmation (decision 69 ค; docs/CRISIS-RESOURCES.md)
   /** @type {any} */
-  var helpApi = { el: null, link: null, confirm: true, dialog: function () { return helpDlg; }, open: function () { openHelp(); }, close: function () { closeHelp(); } };
-  /** @type {any} */ var helpDlg = null;
-  /** @returns {string} */
-  function helpLang() { /** @type {string} */ var l = window.LQI18N ? String(window.LQI18N.lang) : "th"; return l === "en" || l === "zh" ? l : "th"; }
-  function helpWords() {
-    var a = helpApi.link, w = HELP_W[helpLang()];
-    return { q: (a && a.getAttribute("aria-label")) || "อยากมีคนรับฟัง โทร 1323", call: w.call, close: w.close };
+  var help = /** @type {any} */ (window).LQHelpTop = { confirm: true, close: function () { if (help.dlg && help.dlg.open) help.dlg.close(); }, open: function () {
+    var d = help.dlg, w = /** @type {any} */ ({ en: ["Call 1323", "Close"], zh: ["拨打 1323", "关闭"] })[window.LQI18N ? String(window.LQI18N.lang) : ""] || ["โทร 1323", "ปิด"];
+    if (!d) {
+      d = help.dlg = document.body.appendChild(document.createElement("dialog")); d.className = "lq-help-dlg"; d.setAttribute("aria-labelledby", "lqHelpQ");
+      d.innerHTML = '<p id="lqHelpQ"></p><div><a class="lq-call-btn" href="tel:1323"></a><button type="button"></button></div>';
+      d.querySelector("button").onclick = help.close; d.onclick = function (/** @type {Event} */ e) { if (e.target === d) help.close(); };
+      d.onclose = function () { help.link.focus(); };
+    }
+    d.querySelector("p").textContent = help.link.getAttribute("aria-label"); d.querySelector("a").textContent = w[0]; d.querySelector("button").textContent = w[1];
+    if (!d.open) { d.showModal(); d.querySelector("a").focus(); }
+  } };
+  function helpMount() {
+    var top = document.getElementById("lqHelpTop"), a = top && top.querySelector("a");
+    if (!top || !a || header.contains(top)) return;
+    header.insertBefore(top, header.querySelector(".nav-end") || langBox); top.classList.add("lq-helpnav"); header.classList.add("has-help");
+    a.setAttribute("aria-haspopup", "dialog"); a.onclick = function (/** @type {Event} */ e) { if (help.confirm) { e.preventDefault(); help.open(); } };
+    help.el = top; help.link = a; syncCompact(); setNavH();
   }
-  function buildHelpDlg() {
-    if (helpDlg) return helpDlg;
-    var d = document.createElement("dialog");
-    d.className = "lq-help-dlg"; d.id = "lqHelpDlg"; d.setAttribute("aria-labelledby", "lqHelpDlgQ");
-    d.innerHTML = '<p class="lq-help-q" id="lqHelpDlgQ"></p><div class="lq-help-acts">' +
-      '<a class="lq-call-btn lq-help-call" href="tel:1323"><svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
-      '<path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg><span class="lq-help-callt"></span></a>' +
-      '<button type="button" class="lq-help-close"></button></div>';
-    /** @type {HTMLElement} */ (d.querySelector(".lq-help-close")).addEventListener("click", function () { closeHelp(); });
-    d.addEventListener("click", function (e) { if (e.target === d) closeHelp(); }); // a tap on the backdrop
-    d.addEventListener("close", function () { if (helpApi.link) { try { helpApi.link.focus(); } catch (e) { /* gone */ } } });
-    d.addEventListener("keydown", function (e) { if (e.key === "Escape" && !d.showModal) { e.preventDefault(); closeHelp(); } });
-    document.body.appendChild(d);
-    helpDlg = d;
-    return d;
-  }
-  function openHelp() {
-    var d = buildHelpDlg(), w = helpWords();
-    d.querySelector(".lq-help-q").textContent = w.q;
-    d.querySelector(".lq-help-callt").textContent = w.call;
-    d.querySelector(".lq-help-close").textContent = w.close;
-    if (d.open) return;
-    if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", "");
-    var c = /** @type {HTMLElement} */ (d.querySelector(".lq-help-call"));
-    try { c.focus(); } catch (e) { /* focus not possible */ }
-  }
-  function closeHelp() {
-    if (!helpDlg || !helpDlg.open) return;
-    if (typeof helpDlg.close === "function") helpDlg.close();
-    else { helpDlg.removeAttribute("open"); if (helpApi.link) helpApi.link.focus(); }
-  }
-  function mountHelp() {
-    var top = document.getElementById("lqHelpTop");
-    if (!top || header.contains(top)) return;
-    var a = /** @type {HTMLElement|null} */ (top.querySelector('a[href^="tel:"]'));
-    if (!a) return;
-    header.insertBefore(top, header.querySelector(".nav-end") || langBox);
-    top.classList.add("lq-helpnav");
-    header.classList.add("has-help");
-    a.setAttribute("aria-haspopup", "dialog");
-    a.addEventListener("click", function (e) { if (!helpApi.confirm) return; e.preventDefault(); openHelp(); });
-    helpApi.el = top; helpApi.link = a;
-    syncCompact(); setNavH();
-  }
-  /** @type {any} */ (window).LQHelpTop = helpApi;
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountHelp); else mountHelp();
-  window.addEventListener("lq-lang", function () { if (helpDlg && helpDlg.open) openHelp(); });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", helpMount); else helpMount();
 
   window.LENSIQ_BRAND = BRAND;
 

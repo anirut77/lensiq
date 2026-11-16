@@ -208,6 +208,9 @@ body.fr-kiosk .fr-card p,body.fr-kiosk .fr-table{font-size:1rem}
   .fr-stage,.fr-res-top,.fr-two,.fr-foot,.fr-mr{grid-template-columns:1fr}
 }
 @media(max-width:560px){
+  /* owner order 2026-11-16 item 3: the camera buttons on the first screen of a phone (shorter preview until the camera runs) */
+  .fr-cam:not(.live){aspect-ratio:auto;height:clamp(170px,32vh,280px)}
+  .fr-actions .btn{flex:1 1 120px}
   .fr{padding:20px 16px 60px}
   .fr .lead{font-size:.95rem}
   .fr-camcard{padding:10px}
