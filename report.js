@@ -161,7 +161,7 @@
         s.paragraphs = s.paragraphs.map(function (/** @type {string} */ q, /** @type {number} */ k) {
           if (k && s.src[k] === s.src[k - 1]) return q;
           var name = t("rp.src." + s.src[k], SYS_TH[s.src[k]]);
-          if (!q || q.indexOf(name) >= 0) return q;
+          if (!q || q.indexOf(name) === 0) return q; // round 6: every system's run is labelled the same way (work / money / love)
           return name + (lang === "zh" ? "：" : ": ") + q;
         });
       });

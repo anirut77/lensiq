@@ -847,7 +847,22 @@
       "คล่องแคล่ว|คุยเก่ง|พูดเก่ง|ยืดหยุ่น|ปรับตัว|สร้างสรรค์|มองการณ์|เห็นอกเห็นใจ|เอาใจใส่|ใส่ใจ|ให้ความสำคัญ|ถนัด|เหมาะกับ(?!การ)|ดู(?:อบอุ่น|สดใส|เรียบร้อย|น่า|เป็นคน|ดี)|" +
       "รักสงบ|น่าเชื่อถือ|น่ารัก|ทำงาน(?:เก่ง|ได้ดี|หนัก)|พูดจา|คิดเร็ว|คิดลึก)");
     const HAVE_TH = /^(?:สติปัญญา|ปัญญา|เสน่ห์|รสนิยม|บารมี|วาทศิลป์|ไหวพริบ)/;
-    const subjOf = t => (/^คุณ/.test(t) || D.isImperative(t) ? "" : HAVE_TH.test(t) ? "คุณมี" : personTh(t) || BARE_TH.test(t) ? "คุณ" : "");
+    const ADVICE_HAVE = /^มี\S*ไว้(?:\s|$)/;
+    const subjOf = t => (/^คุณ/.test(t) || D.isImperative(t) || ADVICE_HAVE.test(t) ? "" : HAVE_TH.test(t) ? "คุณมี" : personTh(t) || BARE_TH.test(t) ? "คุณ" : "");
+    // round 6 (RECHECK-5 R1): a group start needs a subject unless it opens with one (a noun, a time, a condition, a connector) or is
+    // an instruction; the test is on the kind of start, not on a list of adjectives
+    const SUBJ_OK = new RegExp("^(?:คุณ|ช่วง|จังหวะ|ดาว|คน|โซน|ตาม|ใน|ทิศ|ภายใน|ถ้า|หาก|เป็นปี|เป็นช่วง|หน้าผาก|รายได้|รายรับ|ด้าน|โต๊ะ|ธาตุ|ตำรา|สถานการณ์|งาน|การ|เรื่อง|เคล็ด|พลัง|ความ|ปี|ฝัน|ฝ่ามือ|จมูก|ปีกจมูก|มุม|เมื่อ|ราว|บาง|ทรัพย์|ครอบครัว|ไอเดีย|ข้อมูล|คำ|เส้น|บรรยากาศ|รอบตัว|สิ่ง|ฟ้า|น้ำ|ไฟ|ภูเขา|ทะเลสาบ|ลม|ดิน|ไม้|ทอง|แนวโน้ม|ใจ|เพื่อน|ด้วย|อาจ|ทั้ง|ชื่อเสียง|ศิลปะ|ดนตรี|ร่างกาย|สุขภาพ|ผล|โชค|ลาภ|เงิน|ชีวิต|อนาคต|โอกาส|ทุก|ยิ่ง|แม้|นี่|ที่|ผู้|หัวหน้า|ทีม|ลูก|บ้าน|ภาพ|เลข|คู่|ไพ่|ราศี|มือ|ใบหน้า|วัย|ภพ|ภูมิ|กว้า|ตรีแกรม|เซียมซี|นอกจาก|อีก|ส่วน|สำหรับ|จาก|ดูที่|หลัง|ก่อน|ตอน|วัน|เดือน|สัปดาห์|เช้า|ค่ำ|กลางวัน|เวลา|ระยะ|ข่าว|ปัญหา|อุปสรรค|เป้าหมาย|แผน|ลึก ๆ|เจ้าชะตา|ลัคนา|หู|ตา|ปาก|คิ้ว|คาง|แก้ม|โหนกแก้ม|ริมฝีปาก|ดวง|ฐาน|ทักษา|ตำแหน่ง|บทบาท|ลูกค้า|คู่ครอง|คนรัก|ญาติ|พ่อ|แม่|พี่|น้อง|แสง|เมฆ|ฝน|ต้นไม้|ทะเล|แม่น้ำ|ถนน|ประตู|หน้าต่าง|เตียง|ห้อง|พื้นที่|โครงการ|สัญญา|เอกสาร|ภาระ|หนี้|ค่าใช้จ่าย|รายจ่าย|บัญชี|เงินออม|การลงทุน|ใคร|อะไร|เหตุ|ผู้คน|มิตร|บริวาร|ศัตรู|คู่แข่ง|สี|ปลาย|เชื่อกันว่า|เชื่อว่า|เครือข่าย|อารมณ์|ศาสตร์|ไม่ต้อง|พูดกันตรง|คาน|สายลม)");
+    const INSTR_OK = /^(?:ลอง|เลือก|จัด|ตั้ง(?!แต่|ใจ)|ใช้|เก็บ|เช็ก|ตรวจ|พัก|ปรึกษา|วางแผน|วาง|ให้|เริ่ม|ฝึก|อย่า|ควร|รักษา|เขียน|จด|แบ่ง|ชวน|ทบทวน|ระวัง|เตรียม|ออม|หมั่น|ทดลอง|ฉลอง|หยุด|ประกาศ|พัฒนา|เปิดใจ|หา(?!ก)|ทำ(?!งาน|ให้)|คุย|ขอ|ฟัง|อ่าน|เดิน|ปล่อย|มอง(?!การณ์)|ดูแล|เติม|หล่อเลี้ยง|ติดตาม|กล้า(?=พูด|เลือก|ลอง|ขอ)|ใจดีกับ|มีเงินสำรอง|มี\S*ไว้(?:\s|$))/;
+    const QUALITY_TH = /^(?:สัญชาตญาณ|สติปัญญา|ปัญญา|เสน่ห์|รสนิยม|บารมี|วาทศิลป์|ไหวพริบ)/;
+    function startTh(t, names) {
+      if (!t || names.some(n => n.length >= 2 && t.startsWith(n)) || SUBJ_OK.test(t) || INSTR_OK.test(t) || D.isImperative(t)) return t;
+      if (/^\d/.test(t)) return t; // the lead that carried the number is restored by the caller (framesTh never strips it)
+      if (/^เหมาะกับการ/.test(t)) return "ช่วงนี้" + t;
+      if (QUALITY_TH.test(t)) return "คุณมี" + t;
+      const k = /^(\S{2,12}?)คือ(?=หลัก|สิ่ง|กุญแจ)/.exec(t); // a bare keyword ("รองรับคือหลักที่ช่วย…")
+      if (k) return "การ" + t;
+      return "คุณ" + t;
+    }
     const subjTh = t => subjOf(t) + t;
     function openTh(t, names) {
       for (const n of names) {
@@ -915,7 +930,7 @@
         q = q.replace(new RegExp("(^|\\s)(ตาม|ในมุมของ|จาก|ดูที่|สำหรับ)(" + e + ")(?=[\\s(])", "g"), (all, sp, lead, nm, at) => {
           const k = lead + nm; seen[k] = (seen[k] || 0) + 1;
           if (seen[k] === 1) return all;
-          if (at === 0) { head = true; return ""; } // a group never opens with a contrastive "ส่วน…": the content opens it
+          if (at === 0 && !/^\s*\d/.test(q.slice(all.length))) { head = true; return ""; } // a group never opens with a contrastive "ส่วน…": the content opens it
           const alt = "ส่วน" + nm; seen[alt] = (seen[alt] || 0) + 1;
           return sp + (seen[alt] === 1 ? alt : nm);
         });
@@ -967,7 +982,9 @@
         if (lo.indexOf(low(bare)) < 0) tail = lang === "th" || !det ? bare : bare + (lang === "zh" ? "，" : ", ") + det;
         else if (lang !== "th" && det && lo.indexOf(low(det)) < 0) tail = det;
         // never a warning in the brief's source (a flying star stays where the reading shows it in full)
-        if (!tail || tail.length < 2 || /五黄|二黑|ห้าเหลือง|สองดำ|ดาว ?[25](?!\d)|\b(?:five yellow|two black|star [25])\b/i.test(tail)) return line;
+        // a bare label that is only a topic word ("财运") keeps its detail ("财运，36岁起")
+        if (tail && det && emptyCite(tail, lang) && !emptyCite(det, lang)) tail = bare + (lang === "zh" ? "，" : ", ") + det;
+        if (!tail || tail.length < 2 || emptyCite(tail, lang) || /五黄|二黑|ห้าเหลือง|สองดำ|ดาว ?[25](?!\d)|\b(?:five yellow|two black|star [25])\b/i.test(tail)) return line;
         if (done) done.add(it.id);
         if (lang === "th") return line + " (" + tail + ")";
         // right after the sentence that carries the finding (not after a gloss that follows it)
@@ -998,7 +1015,7 @@
     }
     const firstSen = (t, lang) => (lang === "zh" ? String(t).split(/(?<=[。！？])/)[0] : lang === "en" ? String(t).split(/(?<=[.!?])\s/)[0] : String(t).split(" ")[0]).trim();
     function polish(secs, lang, items, st) {
-      ST = st || { kept: 0 };
+      ST = st || { kept: 0 }; CITED = {};
       const names = namesOf(items, lang), seen = {}, open = OPEN[lang], some = someRe(lang);
       const before = (secs || []).map(s => s.paragraphs.slice()), dup0 = new Set(D.nearDupPairs ? D.nearDupPairs(secs, lang).map(x => x.a + "|" + x.b) : []);
       for (const s of secs || []) {
@@ -1014,24 +1031,36 @@
             let o2 = o;
             const short = () => lang === "th" && s.paragraphs.join(" ").length - (p0.length - o2.length) < 90;
             // short: the source moves to the end of the paragraph in brackets ("… (เจ้าชะตาดิน)") rather than leading it
-            if (short() && ST.name && o !== p0) o2 = o.replace(/\s+$/, "") + " (" + ST.name.replace(PAREN, "").trim() + ")";
+            if (short() && ST.name && o !== p0) o2 = emptyCite(ST.name.replace(PAREN, "").trim(), "th") ? o : placeTh(o.replace(/\s+$/, ""), ST.name, items);
             // round 5: every source the first line lost is named right after that line (cite; was: numbered sources only, EN / ZH)
-            if (!short() && !(lang !== "th" && f.length >= 10 && nearCopy(f, rest, lang))) { s.paragraphs[0] = o2; if (o2 !== p0 && ST.name) cite(s, lang, ST.name, items); }
+            if (!short() && !(lang !== "th" && f.length >= 10 && nearCopy(f, rest, lang)) && !(lang !== "th" && GLOSS_LINE[lang].test(f))) { s.paragraphs[0] = o2; if (o2 !== p0 && ST.name) cite(s, lang, ST.name, items); }
           }
         }
         if (s.id === "overview" && lang !== "th") overviewLeads(s, lang, names, items);
         orphans(s, lang, names);
         s.paragraphs = s.paragraphs.map(q => (lang === "th" ? framesTh(q, names, seen) : leadsOther(q, lang, names, seen)));
+        // round 6 (D3): after the repeated leads are dropped, an "also" line with nothing named before it says it plainly; a group that
+        // opens with a glossary line names its finding first
+        if (lang !== "th" && s.id !== "overview") { alsoPlain(s, lang, names); glossFirst(s, lang); }
+        if (lang === "th" && s.id !== "overview") {
+          let seenTh = "";
+          s.paragraphs = s.paragraphs.map(q => { const out = q.replace(/ตำรายัง(บอก|ชี้|อ่าน|มอง)(?:ด้วย)?(ว่า)?/g, (a, v, w, at) => (names.some(n => n.length >= 3 && (seenTh + q.slice(0, at)).indexOf(n) >= 0) ? a : "ตำรา" + v + (w || ""))); seenTh += " " + out; return out; });
+        }
         closerLast(s, lang);
       }
       // round 5 (R1): whatever opened it, a Thai group never starts with a bare trait ("มั่นคงเหมือนภูเขา…" → "คุณมั่นคงเหมือนภูเขา…")
-      if (lang === "th") for (const s of secs || []) if (s.id !== "brief" && s.id !== "advice" && s.paragraphs[0]) s.paragraphs[0] = subjTh(s.paragraphs[0]);
+      if (lang === "th") for (const s of secs || []) if (s.id !== "brief" && s.id !== "advice" && s.paragraphs[0]) s.paragraphs[0] = startTh(subjTh(s.paragraphs[0]), names);
       // safety net: a group the polish left under 90 Thai characters, or a line it made a near copy of another, goes back as it was
       (secs || []).forEach((s, i) => { if (lang === "th" && s.paragraphs.join(" ").length < 90 && before[i].join(" ").length >= 90) s.paragraphs = before[i]; });
       const fresh = D.nearDupPairs ? D.nearDupPairs(secs, lang).filter(x => !dup0.has(x.a + "|" + x.b)) : [];
       if (fresh.length) {
         const bad = new Set(fresh.flatMap(x => [x.a, x.b]));
-        (secs || []).forEach((s, i) => { if (s.paragraphs.some(p => [...bad].some(b => p.indexOf(b) >= 0))) s.paragraphs = before[i]; });
+        (secs || []).forEach((s, i) => {
+          if (!s.paragraphs.some(p => [...bad].some(b => p.indexOf(b) >= 0))) return;
+          s.paragraphs = before[i];
+          // round 6: an EN / ZH overview whose content-first lines came out alike names each source first ("The family house (phanthu): …")
+          if (s.id === "overview" && lang !== "th") overviewLeads(s, lang, names, items, true);
+        });
       }
       return secs;
     }
@@ -1042,7 +1071,7 @@
        - the EN / ZH overview: a sentence that opens with its source ("As for X, …", "Start with X: …", "Traditionally, X is read to
          mean that …", "说到X，…", "X这一点说明，…") opens with what it says and names X in brackets at its end; a siam si slip names
          the slip, then the verse ("Slip 22 (middling): your verse compares…", "第22签（中签）：签诗把…"), never under a meaning verb */
-    const CONNECT_TH = "นอกจากนี้|พร้อมกันนั้น|อีกทั้ง|ถัดมา|ในทางกลับกัน|ขณะที่|อีกด้านหนึ่ง|ในอีกมุมหนึ่ง|ในขณะเดียวกัน|เช่นเดียวกัน|ในทำนองเดียวกัน|อีกความหมาย|ตำรายัง|ตำราบางสำนัก|ข้อแนะนำ|สิ่งที่ลงมือ|สิ่งที่ทำได้|ก้าวแรก|ถ้าเลือกทำ|วิธีปรับ|วิธีเสริม|เคล็ด|อีกข้อ|ในส่วนของ|ส่วน|ดูที่|ลอง|ถ้า|หาก|แต่";
+    const CONNECT_TH = "ที่สำคัญ|สำคัญคือ|ยิ่งไปกว่านั้น|เพิ่มเติม|ด้านหนึ่ง|นอกเหนือจากนี้|นอกจากนี้|พร้อมกันนั้น|อีกทั้ง|ถัดมา|ในทางกลับกัน|ขณะที่|อีกด้านหนึ่ง|ในอีกมุมหนึ่ง|ในขณะเดียวกัน|เช่นเดียวกัน|ในทำนองเดียวกัน|อีกความหมาย|ตำรายัง|ตำราบางสำนัก|ข้อแนะนำ|สิ่งที่ลงมือ|สิ่งที่ทำได้|ก้าวแรก|ถ้าเลือกทำ|วิธีปรับ|วิธีเสริม|เคล็ด|อีกข้อ|ในส่วนของ|ส่วน|ดูที่|ลอง|ถ้า|หาก|แต่";
     const itemOf = (items, name, lang) => (items || []).find(it => namesOf([it], lang).indexOf(name) >= 0) || null;
     // where the first meaning of the opened Thai line ends: the item's own meaning, else the next connector or finding, else the end
     function endTh(t, it, names) {
@@ -1057,17 +1086,50 @@
       }
       if (best > 0) return best;
       const re = new RegExp("\\s(?=" + CONNECT_TH + (names.length ? "|(?:ตาม|ในมุมของ|จาก|สำหรับ|ด้วย)?(?:" + names.map(esc).join("|") + ")" : "") + ")", "g");
-      for (const m of t.matchAll(re)) if (m.index >= 20) return m.index;
-      return t.length;
+      let cut = t.length;
+      for (const m of t.matchAll(re)) if (m.index >= 20) { cut = m.index; break; }
+      // round 6 (RECHECK-5 D1): never past a line that names another finding, anywhere near its start ("…ดีที่สุด น้ำหยินเด่นใน…")
+      const st = stemsTh(names);
+      for (const m of t.matchAll(/\s(?=\S)/g)) {
+        if (m.index < 20 || m.index >= cut) continue;
+        const head = t.slice(m.index + 1, m.index + 1 + 24);
+        if (st.some(x => head.indexOf(x) >= 0)) { cut = m.index; break; }
+      }
+      return cut;
     }
+    // a finding's name without its kind word ("ธาตุประจำตัวน้ำหยิน กุ่ย (癸)" → "น้ำหยิน"), 4 letters or more
+    const KIND_TH = /^(?:ธาตุประจำตัว|ธาตุ|เจ้าชะตา|วันเกิด|เกิดวัน|ลัคนาราศี|ราศี|มือธาตุ|เลขชีวิต)/;
+    const stemsTh = names => [...new Set(names.flatMap(n => [n, n.replace(KIND_TH, "").split(/[\s(（]/)[0]]))].filter(x => x.length >= 4);
+    // round 6 (RECHECK-5 D4): a citation must name a finding, not a time, a topic or "this slip"
+    const EMPTY_CITE = {
+      th: /^(?:ปีนี้|เซียมซีใบนี้|\S{1,14}นี้|การงาน|การเงิน|ความรัก|ตัวตน)$/,
+      en: /^(?:this |that |these |the (?:older|younger) person$|the success theme$|the winning dream$|(?:work|money|love)$)/i,
+      zh: /^(?:今年|这|本|工作$|事业$|财运$|感情$|爱情$)/,
+    };
+    const emptyCite = (nm, lang) => EMPTY_CITE[lang].test(String(nm).trim());
+    // a generic word that also names a finding ("pair", "slip", "kua") is not the finding when a later line says "this pair"
+    const GENERIC = /^(?:pair|slip|kua|card|line|star|house|area|year|month|element|planet|sign|hand|face|dream|คู่|ไพ่|เส้น|ดาว|ภพ|ภูมิ|数对|签|卦|命卦|星|宫)$/i;
     const BACKREF = { th: /อีกความหมายหนึ่งคือ|ตำรายัง/, en: /\bAnother side of this\b/i, zh: /另一层意思是/ };
+    const numbered = n => (/\d/.test(n) && /[(（][^)）]+[)）]\s*$/.test(n) ? n.replace(/\s*[(（]([^)）]+)[)）]\s*$/, (a, x) => (/[\u4e00-\u9fff]/.test(x) ? "，" : ", ") + x).trim() : n.replace(PAREN, "").trim());
     const caseOf = (name, items, lang) => (lang === "en" ? namesOf(items, lang).find(n => n.toLowerCase() === String(name).toLowerCase()) || String(name) : String(name));
+    const REPORT_AFTER = /^\s*(?:ตามตำรา|ตามความเชื่อ|ว่ากันว่า|เชื่อกันว่า|หมายความว่า|บ่งบอกว่า|ชี้ว่า|สะท้อนว่า|แสดงว่า|สื่อว่า|ตีความ|อ่านได้ว่า|แปลได้ว่า|บอกว่า|หมายถึง)/;
+    function placeTh(t, name, items) {
+      const it = itemOf(items, name, "th"), vars = it ? namesOf([it], "th") : [String(name)], nm = String(name).replace(PAREN, "").trim();
+      let end = endTh(t, it, namesOf(items, "th").filter(n => vars.indexOf(n) < 0));
+      if (REPORT_AFTER.test(t.slice(end))) end = t.length;
+      const tail = t.slice(end);
+      return t.slice(0, end).replace(/\s+$/, "") + " (" + nm + ")" + (tail && !/^\s/.test(tail) ? " " : "") + tail;
+    }
+    let CITED = {};
+    const names0 = (items, lang) => namesOf(items, lang).filter(n => !GENERIC.test(n));
     function cite(s, lang, name, items) {
       name = caseOf(name, items, lang);
       if (/^(?:this|that|the) (?:year|month|time|period)$/i.test(String(name).trim())) return;
-      const nm = String(name).replace(PAREN, "").trim(), it = itemOf(items, name, lang), lo = x => (lang === "en" ? String(x).toLowerCase() : String(x));
-      if (nm.length < 2) return;
-      const vars = (it ? namesOf([it], lang) : [String(name)]).filter(v => v.length >= 2), alt = vars.map(v => esc(lang === "en" ? v.toLowerCase() : v)).join("|");
+      const nm = numbered(String(name)), it = itemOf(items, name, lang), lo = x => (lang === "en" ? String(x).toLowerCase() : String(x));
+      if (nm.length < 2 || emptyCite(nm, lang) || emptyCite(String(name).replace(PAREN, "").trim(), lang)) return;
+      const vars0 = (it ? namesOf([it], lang) : [String(name)]).filter(v => v.length >= 2 && !GENERIC.test(v.trim()));
+      // "kua number" (the name without its number) would match "your kua number" in a glossary line
+      const vars = vars0.filter(v => !vars0.some(w => w !== v && /\d/.test(w) && w.replace(/\s*[\d.,]+\s*%?$/, "").replace(PAREN, "").trim() === v.trim())), alt = vars.map(v => esc(lang === "en" ? v.toLowerCase() : v)).join("|");
       // the back-reference to what is about to be named
       s.paragraphs = s.paragraphs.map(q => (lang === "th" ? q.replace(new RegExp("อีกความหมายของ(?:" + alt + ")(?:\\s?[(（][^)）]*[)）])?คือ", "g"), "อีกความหมายหนึ่งคือ")
         : lang === "en" ? q.replace(new RegExp("\\bAnother side of (?:the |your )?(?:" + alt + ")(?:\\s?\\([^)]*\\))? is\\b", "gi"), "Another side of this is")
@@ -1077,14 +1139,53 @@
       let end;
       if (lang === "th") end = endTh(p0, it, namesOf(items, "th").filter(n => vars.indexOf(n) < 0));
       else { const m = (lang === "zh" ? /[。！？]/ : /[.!?](?=\s|$)/).exec(p0); end = m ? m.index : p0.length; }
+      // round 6 (RECHECK-5, non-blocking): the same citation at most twice per reading, when the group still names another finding
+      // and has no line that leans on this one ("also", a glossary, a back-reference)
+      const all0 = lo(s.paragraphs.join(" "));
+      if ((CITED[nm] || 0) >= 2 && names0(items, lang).some(n => vars.indexOf(n) < 0 && n.length >= 3 && all0.indexOf(lo(n)) >= 0) &&
+        !s.paragraphs.some(q => BACKREF[lang].test(q) || (lang !== "th" && (q.split(/(?<=[.!?。！？])\s*/).some(x => ALSO_LINE[lang].test(x) || GLOSS_LINE[lang].test(x)))))) return;
       // named again (anywhere after the opened start) before any back-reference: the reader already sees it
       const after = lo(p0.slice(1) + " " + s.paragraphs.slice(1).join(" ")), br = after.search(BACKREF[lang]);
       const at = Math.min(...vars.map(v => { const i = after.indexOf(lo(v)); return i < 0 ? Infinity : i; }));
       if (at < Infinity && (br < 0 || at < br)) return;
+      // round 6 (RECHECK-5 D2): EN / ZH: a next sentence that opens with "It" / "它" takes the finding's name instead of a bracket
+      if (lang !== "th") {
+        const rest = p0.slice(end + 1), pr = lang === "zh" ? /^\s*它/ : /^\s+It (?!would|could|may|might|can|helps?|pays|takes|is (?:time|worth))/;
+        if (pr.test(rest)) { const nmx = lang === "en" ? D.cap(String(name).replace(PAREN, "").trim()) : String(name).replace(PAREN, "").trim(); s.paragraphs[0] = p0.slice(0, end + 1) + rest.replace(lang === "zh" ? /^(\s*)它/ : /^(\s+)It /, (a, sp) => sp + nmx + (lang === "zh" ? "" : " ")); return; }
+      }
       // a reporting phrase right after the bracket would read as the bracket's own words ("(ไพ่…) ตามตำราเชื่อว่า…"): the end instead
       if (lang === "th" && /^\s*(?:ตามตำรา|ตามความเชื่อ|ว่ากันว่า|เชื่อกันว่า|หมายความว่า|บ่งบอกว่า|ชี้ว่า|สะท้อนว่า|แสดงว่า|สื่อว่า|ตีความ|อ่านได้ว่า|แปลได้ว่า|บอกว่า|หมายถึง)/.test(p0.slice(end))) end = p0.length;
       const tail = p0.slice(end);
       s.paragraphs[0] = p0.slice(0, end).replace(/\s+$/, "") + (lang === "zh" ? "（" + nm + "）" : " (" + nm + ")") + (lang === "th" && tail && !/^\s/.test(tail) ? " " : "") + tail;
+      CITED[nm] = (CITED[nm] || 0) + 1;
+    }
+    // round 6 (RECHECK-5 D3)
+    const GLOSS_LINE = {
+      en: /^(?:In (?:Thai number reading|Eight Mansions|Taksa|BaZi|Chinese face reading|palm reading|palmistry|the I Ching|Siam Si|astrology)\b|Siam Si is\b|A hexagram is\b|The five mountains are\b|The twelve palaces are\b|Face reading splits\b|Each Chinese year carries\b)/,
+      zh: /^(?:在(?:泰式数字|八宅|塔克萨|八字|面相|手相|易经)[^，。]{0,8}(?:里|中)|求签是|面相把|十二宫是|五岳是|卦是)/,
+    };
+    const ALSO_LINE = { en: /^((?:The |Your )?[A-Z][^,.]{0,60}?) (?:also (shows?|says?|means?|suggests?|points? to)|(adds?)) that\b/, zh: /^([^，。：；！？]{1,24}?)(?:也提示|还说明|也说明)/ };
+    function alsoPlain(s, lang, names) {
+      const lo = x => (lang === "en" ? String(x).toLowerCase() : String(x)), nn = names.filter(n => n.length >= 2 && !GENERIC.test(n)).map(lo);
+      let seen = "";
+      s.paragraphs = s.paragraphs.map(q => (lang === "zh" ? q.split(/(?<=[。！？])/) : q.split(/(?<=[.!?])\s+/)).map(x => {
+        let y = x;
+        if (!nn.some(n => lo(seen).indexOf(n) >= 0)) {
+          // nothing named before: "X also shows that…" → "X shows that…"; "X也提示，…" → "X提示，…"
+          if (lang === "en") y = x.replace(ALSO_LINE.en, (a, sub, v, add) => sub + " " + (add ? (/s$/.test(add) ? "shows" : "show") : v) + " that");
+          else y = x.replace(/^([^，。：；！？]{1,24}?)(?:也提示|还说明|也说明)/, (a, sub) => sub + (/提示/.test(a) ? "提示" : "说明"));
+        }
+        seen += " " + y;
+        return y;
+      }).join(lang === "zh" ? "" : " "));
+    }
+    function glossFirst(s, lang) {
+      const q = s.paragraphs[0] || "", f = (lang === "zh" ? q.split(/(?<=[。！？])/) : q.split(/(?<=[.!?])\s+/))[0] || "";
+      if (!GLOSS_LINE[lang].test(f)) return;
+      const m = lang === "zh" ? /（([^（）]{1,30})）。$/.exec(f) : /\s\(([^()]{2,80})\)\.$/.exec(f);
+      if (!m) return;
+      const body = f.slice(0, m.index) + (lang === "zh" ? "。" : ".");
+      s.paragraphs[0] = (lang === "zh" ? m[1] + "：" + body : D.cap(m[1]) + ": " + body) + q.slice(f.length);
     }
     function orphans(s, lang, names) {
       const lo = x => (lang === "en" ? String(x).toLowerCase() : String(x)), alt = names.filter(n => n.length >= 2).map(n => esc(lang === "en" ? n.toLowerCase() : n)).join("|");
@@ -1102,7 +1203,7 @@
           return "\u0001" + (lang === "zh" ? x + (x2 || "") : x.replace(/^(?:the |your )/i, m => m.toLowerCase())) + "\u0002";
         }).replace(lang === "zh" ? /\u0001([^\u0002]*)\u0002([^。！？]*)([。！？]?)/g : /\u0001([^\u0002]*)\u0002([^.!?]*(?:\([^)]*\)[^.!?]*)*)([.!?]?)/g, (all, x, body, end) => {
           const nm = x.replace(/\s?[(（][^)）]*[)）]$/, "").replace(/^(?:the |your )/i, ""), b = lang === "en" ? D.cap(body.trim()) : body;
-          return lo(b).indexOf(lo(nm)) >= 0 ? b + end : b + (lang === "zh" ? "（" + x + "）" : " (" + x + ")") + end;
+          return lo(b).indexOf(lo(nm)) >= 0 || emptyCite(nm, lang) || emptyCite(x, lang) ? b + end : b + (lang === "zh" ? "（" + x + "）" : " (" + x + ")") + end;
         });
         seen += " " + out;
         return out;
@@ -1110,7 +1211,7 @@
     }
     const OV_LEAD = { en: /^(?:Looking at|As for|With|Start with|Starting with|Turning to|Traditionally|In traditional readings)\b/, zh: /^(?:从|就|说到|先看|再看|至于|按|根据)/ };
     let OV_ITEMS = [];
-    function overviewLeads(s, lang, names, items) {
+    function overviewLeads(s, lang, names, items, colon) {
       OV_ITEMS = items || [];
       const split = q => (lang === "zh" ? String(q).split(/(?<=[。！？])/) : String(q).split(/(?<=[.!?])\s+/));
       s.paragraphs = s.paragraphs.map(q => split(q).map(x => {
@@ -1121,17 +1222,28 @@
         if (o === x || !ST.name) return x;
         // "Looking at your Sun in Cancer, with your Cancer Sun, you are…": the inner lead goes too
         if (lang === "en") { const w = /^With (?:your |the |a )?[^,]{3,40}, (?=[a-z])/.exec(o); if (w) o = D.cap(o.slice(w[0].length)); }
-        const full = caseOf(String(ST.name).trim(), OV_ITEMS, lang), nm = full.replace(PAREN, "").trim();
+        const full = caseOf(String(ST.name).trim(), OV_ITEMS, lang), nm = numbered(full);
+        // round 6 (D2): "Looking at the One White star, it stands for…" → "The One White star stands for…"
+        if (lang === "en" && /^It /.test(o)) return D.cap(full.replace(PAREN, "").trim()) + " " + o.slice(3).replace(/^is /, "is ");
+        if (lang === "zh" && /^它/.test(o)) return full.replace(PAREN, "").trim() + o.slice(1);
+        if (emptyCite(nm, lang) || emptyCite(full.replace(PAREN, "").trim(), lang)) return lang === "en" ? hedged(o, x) : o;
         // the slip, then its verse; a rest that itself opens like a lead ("就像春天…", "按传统说法…") follows its source after a colon
         // (also when the line names another finding before its end: the reader meets this source first)
         const other = names.some(n => n.length >= 2 && (lang === "en" ? n.toLowerCase() : n) !== (lang === "en" ? full.toLowerCase() : full) && full.indexOf(n) < 0 && (lang === "en" ? o.toLowerCase() : o).indexOf(lang === "en" ? n.toLowerCase() : n) >= 0);
-        if (/^(?:your verse|签诗|签文)/i.test(o) || OV_LEAD[lang].test(o) || other) return lang === "zh" ? full + "：" + o : D.cap(full) + ": " + o.replace(/^(?:Your|Traditionally|In)\b/, w => w.toLowerCase());
+        if (/^(?:your verse|签诗|签文)/i.test(o) || OV_LEAD[lang].test(o) || other || colon) return lang === "zh" ? full + "：" + o : D.cap(full) + ": " + o.replace(/^(?:Your|Traditionally|In)\b/, w => w.toLowerCase());
         if ((lang === "en" ? o.toLowerCase() : o).indexOf(lang === "en" ? nm.toLowerCase() : nm) >= 0) return o;
         if (lang === "zh" && /^日主./.test(nm) && o.indexOf(nm.slice(2)) >= 0) return o; // "你的日主是庚金" already names 日主庚金
         const m = (lang === "zh" ? /[。！？]$/ : /[.!?]$/).exec(o), body = m ? o.slice(0, -1) : o;
-        return body + (lang === "zh" ? "（" + nm + "）" : " (" + nm + ")") + (m ? m[0] : "");
-      }).join(lang === "zh" ? "" : " "));
+        return (lang === "en" ? hedged(body, x) : body) + (lang === "zh" ? "（" + nm + "）" : " (" + nm + ")") + (m ? m[0] : "");
+      }).join(lang === "zh" ? "" : " ")).map(q => {
+        // round 6 (D2): a sentence that opens with "It" / "它" right after a bracket citation takes that name, and the bracket goes
+        q = lang === "zh" ? q.replace(/(（[^（）]{2,40}）。)它(?=也|还)/g, "$1这") : q.replace(/(\s\([^()]{2,80}\)\.\s+)It also\b/g, "$1This also");
+        const re = lang === "zh" ? /（([^（）]{2,40})）。它/g : /\s\(([^()]{2,80})\)\.\s+It (?!would|could|may|might|can|helps?|pays|takes|is (?:time|worth))/g;
+        return q.replace(re, (a, x) => (lang === "zh" ? "。" + x.replace(/，.*$/, "") : ". " + D.cap(x.replace(/, .*$/, "")) + " "));
+      });
     }
+    // round 6 (RECHECK-5 non-blocking 3): an EN overview line that lost its "Traditionally," keeps one hedge ("By tradition, …")
+    const hedged = (o, x) => (/^(?:Traditionally|In traditional readings)\b/.test(x) && !/\btradition/i.test(o) ? "By tradition, " + o.replace(/^([A-Z])(?=[a-z])/, c => c.toLowerCase()).replace(/^i\b/, "I") : o);
     const PICK_ONE = /挑一条最适合你的|Pick the one suggestion/;
     const TIP_SEN = {
       en: new RegExp("^(?:Try|It would help|A good next step|This is a good time to|A simple adjustment|Set aside|Pick|Keep|Plan|Take|Make|Spend|Give|Write|" +
