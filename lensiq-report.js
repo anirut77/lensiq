@@ -156,23 +156,32 @@
     };
     var bMail = mk("rp.email", "เปิดแอปอีเมล", true), bCopy = mk("rp.copy", "คัดลอก", false), bSave = mk("rp.save", "บันทึกในเครื่องนี้", false), bClose = mk("rp.close", "ปิด", false);
     var edited = false;
+    // crisis net first (hotfix r2): a crisis phrase in the note or edited preview -> nothing stored, dialog closes, card takes over
+    var cr = function () {
+      var F = W.LQCrisisFirst, C = W.LQFortuneCrisis, t = note.value + (edited ? "\n" + pv.value : "");
+      if (F ? !F((opener && opener.parentNode) || doc.body, t) : !(C && C.check(t))) return false;
+      d.close(); return true;
+    };
     var cat = function () { var c = /** @type {HTMLInputElement|null} */ (f.querySelector('input[name="lq-rp-cat"]:checked')); return c ? c.value : "other"; };
     var refresh = function () { if (!edited) pv.value = format(res, { cat: cat(), note: note.value, include: inc.checked }); };
-    pv.addEventListener("input", function () { edited = true; });
-    [note, inc].forEach(function (el) { el.addEventListener("input", function () { edited = false; refresh(); }); el.addEventListener("change", function () { edited = false; refresh(); }); });
+    pv.addEventListener("input", function () { edited = true; cr(); });
+    [note, inc].forEach(function (el) { el.addEventListener("input", function () { if (!cr()) { edited = false; refresh(); } }); el.addEventListener("change", function () { if (!cr()) { edited = false; refresh(); } }); });
     fs.addEventListener("change", function () { edited = false; refresh(); });
     bMail.addEventListener("click", function () {
+      if (cr()) return;
       var to = typeof W.LENSIQ_REPORT_EMAIL === "string" && /^[^@\s<>"]+@[^@\s<>"]+$/.test(W.LENSIQ_REPORT_EMAIL) ? W.LENSIQ_REPORT_EMAIL : "";
       var body = pv.value.length > MAILTO_MAX ? pv.value.slice(0, MAILTO_MAX) + "\n…" : pv.value;
       root.location.href = "mailto:" + encodeURIComponent(to).replace(/%40/g, "@") + "?subject=" + encodeURIComponent("LENSIQ reading report: " + cat()) + "&body=" + encodeURIComponent(body);
       stat.textContent = to ? T("rp.thanks", "ขอบคุณที่ช่วยแจ้ง") : T("rp.noemail", "ยังไม่ได้ตั้งอีเมลรับเรื่อง ใส่อีเมลฝ่ายสนับสนุนจากหน้าช่วยเหลือในช่องผู้รับ");
     });
     bCopy.addEventListener("click", function () {
+      if (cr()) return;
       var done = function () { stat.textContent = T("rp.copied", "คัดลอกแล้ว"); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(pv.value).then(done, function () { pv.select(); });
       else { pv.select(); try { doc.execCommand("copy"); done(); } catch (e) { /* select only */ } }
     });
     bSave.addEventListener("click", function () {
+      if (cr()) return;
       var n = save(pv.value);
       stat.textContent = n < 0 ? T("rp.savefail", "บันทึกไม่ได้ (เบราว์เซอร์ปิดพื้นที่จัดเก็บ) ใช้การคัดลอกแทน") : T("rp.saved", "บันทึกแล้ว ({n} รายการในเครื่องนี้)", { n: n });
     });

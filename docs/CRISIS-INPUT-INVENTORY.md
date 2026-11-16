@@ -125,5 +125,6 @@ after = branch crisis-net-hotfix 64f0d4a (`after-64f0d4a-*.log`). Pages without 
 | every reading page | `.lq-merit-form input[name="date_from"]` (created by lensiq-merit.js interest form) | date | – | no: date picker | n/a | n/a | – |
 | every reading page | `.lq-merit-form input[name="date_to"]` (created by lensiq-merit.js interest form) | date | – | no: date picker | n/a | n/a | – |
 | every reading page | `.lq-merit-form input[name="consent"]` (created by lensiq-merit.js interest form) | checkbox | – | no: on / off only | n/a | n/a | – |
+| every fortune page with a reading (round 2, 2026-11-17) | `.lq-rp textarea` ×2 (created by lensiq-report.js, loaded by nav.js: the "Report a problem with this reading" note, maxlength 600, and the editable preview) | textarea | 600 | yes | **no** (0/12 cases on 5061f53: the phrase was saved in `lq-report-log`, no card) | see round-2 numbers below | lensiq-report.js runs the crisis net on the note and the edited preview before anything is saved, copied or mailed: nothing stored, the dialog closes, the card takes over; the report button is hidden in the crisis state. Locked tests/e2e/crisis-net-hotfix-e.e2e.mjs (E4), tests/unit/crisis-input-inventory-2.test.js (scripts nav.js injects are scanned too) |
 
 Totals: 113 input rows, 30 can hold a phrase; covered before 2/30, after 30/30.

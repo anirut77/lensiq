@@ -320,7 +320,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var CRx = window.LQFortuneCrisis, lang = (window.LQI18N && window.LQI18N.lang) || "th";
     // hotfix 2026-11-16: every free-text field of the page, before anything else (the shuffle / coin step itself is not a result;
     // in the crisis state the reading that follows is the card again)
-    var hard = !!(FAx && FAx.crisis && (FAx.crisis.check(q) || FAx.crisis.check(FAx.crisis.fields())));
+    // round 2: once the card was shown the crisis flag holds: an ordinary question shows the card again
+    var hard = document.documentElement.getAttribute("data-lq-crisis") === "1" || !!(FAx && FAx.crisis && (FAx.crisis.check(q) || FAx.crisis.check(FAx.crisis.fields())));
     var soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the soft step
     if (!hard && !soft) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
     if (!box) { box = document.createElement("div"); box.id = "trSupport"; box.tabIndex = -1; $("#trSetup").insertAdjacentElement("afterend", box); }
@@ -659,7 +660,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- เซียมซี ---------- */
   var ssBusy = false, ssCurrent = null;
   async function drawSiamsee() {
-    if (ssBusy) return; ssBusy = true; touch();
+    if (ssBusy || document.documentElement.getAttribute("data-lq-crisis") === "1") return; // round 2: no siamsee in the crisis state
+    ssBusy = true; touch();
     $("#ssDraw").disabled = true; $("#ssResult").hidden = true; $("#ssFall").hidden = true; $("#ssCardImg").hidden = true;
     var cup = $("#ssCup");
     cup.classList.add("shaking");

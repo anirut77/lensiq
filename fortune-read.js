@@ -685,10 +685,14 @@
   /** @returns {any} */
   const CR = () => /** @type {any} */ (root).LQFortuneCrisis || {};
   const FREE_TEXT = 'textarea, input:not([type]), input[type="text"], input[type="search"], input[type="tel"]';
-  const active = (/** @type {any} */ d) => !!(CR().active && CR().active(d));
-  const setActive = (/** @type {any} */ d) => { if (CR().setActive) CR().setActive(d); };
-  const check = (/** @type {any} */ t) => !!(CR().check && CR().check(t));
-  const fields = (/** @type {any} */ d) => (CR().fields ? CR().fields(d) : "");
+  // round 2: fortune-crisis.js may fail to load: then the crisis state is the <html> flag, the net is FortuneAI's own patterns
+  // (fortune-ai.js) and the page fields are read here, so the early net still shows the card
+  const FAC = () => (/** @type {any} */ (root).FortuneAI || {}).crisis || {};
+  const ATTR = "data-lq-crisis";
+  const active = (/** @type {any} */ d) => !!(CR().active ? CR().active(d) : d && d.documentElement.getAttribute(ATTR) === "1");
+  const setActive = (/** @type {any} */ d) => { if (CR().setActive) CR().setActive(d); else d.documentElement.setAttribute(ATTR, "1"); };
+  const check = (/** @type {any} */ t) => !!(CR().check ? CR().check(t) : FAC().check && FAC().check(t));
+  const fields = (/** @type {any} */ d) => (CR().fields ? CR().fields(d) : Array.from(d.querySelectorAll(FREE_TEXT)).map((/** @type {any} */ e) => e.value).filter(Boolean).join("\n"));
   const helpLine = (/** @type {any} */ d, /** @type {string} */ l) => CR().helpLine(d, l);
   /* ---------------- crisis-net hotfix 2026-11-16 (owner order a + b; docs/INCIDENT-2026-11-16-CRISIS-LEAK.md) ----------------
      (a) takeover(card): when the support card is shown, NOTHING from the result area stays visible: every result root of the
@@ -705,7 +709,8 @@
      runs the net first on every field and draws the card in its own place carry data-lq-crisis-own and are left to it.
      Shared helper for pages on other branches: window.LQCrisisTakeover(cardOrContainer) (see the incident record). */
   const HIDE = "data-lq-crisis-hide";
-  const TAKEOVER_CSS = "html[data-lq-crisis] [" + HIDE + "]{display:none!important}";
+  // round 2: the "report a problem with this reading" button (lensiq-report.js) goes too
+  const TAKEOVER_CSS = "html[data-lq-crisis] [" + HIDE + "],html[data-lq-crisis] .lq-rp-wrap{display:none!important}";
   // the page's reading counters ("1 today") go too: they change with the reading just made
   const ROOTS = '[data-lq-result], [id$="Result"], [id$="Stats"]';
   const KEEP = ".fa-support, .fa-soft, .lq-helpline, #lqHelpTop, .lq-crisis-slot, form, script, style, template";
@@ -801,6 +806,9 @@
     }
   } catch (e) { /* no DOM */ }
 
+  // round 2: after a language switch or a resize the card is brought back to the first screen
+  const back = () => { try { const c = root.document.querySelector(".fa-support"); if (c && active(root.document)) root.setTimeout(() => toCard(c), 300); } catch (e) { /* no DOM */ } };
+  try { root.addEventListener("lq-lang", back); root.addEventListener("resize", back); } catch (e) { /* no events */ }
   /** @type {any} */ (root).LQCrisisTakeover = takeover;
   /** @type {any} */ (root).LQCrisisFirst = first;
 })(typeof window !== "undefined" ? window : globalThis);

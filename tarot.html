@@ -26,7 +26,7 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=22"></script>
+<script src="nav.js?v=23"></script>
 
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
@@ -78,7 +78,7 @@
     </form>
 
     <!-- ขั้น 2 -->
-    <section class="tr-pick" id="trPick" hidden aria-labelledby="trPickTitle">
+    <section class="tr-pick" id="trPick" data-lq-result hidden aria-labelledby="trPickTitle">
       <div class="tr-pick-head">
         <h2 id="trPickTitle" tabindex="-1">ตั้งจิตถึงคำถาม แล้วเลือกไพ่</h2>
         <p class="tr-pick-count" id="trPickCount" aria-live="polite"></p>
@@ -116,7 +116,7 @@
 
   <!-- ===================== ไพ่ประจำวัน ===================== -->
   <section class="tr-panel" id="panelDaily" role="tabpanel" aria-labelledby="tabDaily" hidden>
-    <div class="tr-daily">
+    <div class="tr-daily" data-lq-result>
       <div class="tr-daily-card">
         <p class="tr-daily-date" id="trDailyDate"></p>
         <button class="tcard big" id="trDailyCard" type="button" aria-label="แตะเพื่อเปิดไพ่ประจำวัน"><span class="tc-in"><span class="tc-back"></span><span class="tc-face"><img alt="" id="trDailyImg"></span></span></button>
@@ -152,7 +152,7 @@
             <path d="M52 140h96M55 210h90" stroke="#f3c969" stroke-width="4" opacity=".75"/>
             <text x="100" y="186" text-anchor="middle" font-size="30" font-weight="700" fill="#f3c969" font-family="Prompt, sans-serif" data-i18n="tarot.tabSiamsee">เซียมซี</text>
           </svg>
-          <div class="ss-fall" id="ssFall" hidden><span id="ssFallNo"></span></div>
+          <div class="ss-fall" id="ssFall" data-lq-result hidden><span id="ssFallNo"></span></div>
         </div>
         <div class="ss-actions">
           <button data-i18n="tarot.ssDraw" class="btn primary big" id="ssDraw" type="button">เขย่าเซียมซี</button>
@@ -214,11 +214,11 @@
 <script src="lensiq-config.js?v=13"></script>
 <script src="fortune-straight.js?v=6"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
-<script src="fortune-read.js?v=11"></script>
+<script src="fortune-read.js?v=12"></script>
 <script src="lensiq-helpline.js?v=1"></script>
 <script src="fortune-crisis.js?v=12"></script>
 <script src="fortune-ai.js?v=29"></script>
 <script src="tarot-kb.js?v=5"></script>
-<script src="tarot.js?v=12"></script>
+<script src="tarot.js?v=13"></script>
 </body>
 </html>
