@@ -4168,7 +4168,6 @@
   const counselText = lang => ({ th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" }[lang] || "ช่องทางให้คำปรึกษา");
   function supportResult(opts) {
     const lang = langOf(opts), S0 = Object.assign({}, SUPPORT[lang] || SUPPORT.th, { lines: supportLines(lang) });
-    try { const ss = root.sessionStorage; if (ss) ss.setItem("lq-support-n", String((parseInt(ss.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* private */ }
     return {
       source: "support", crisis: true, lang, reviewStatus: "pending-professional-review",
       support: { title: S0.title, warm: S0.warm, more: S0.more.slice(), moreLabel: S0.moreLabel, guide: S0.guide, lines: S0.lines, call: S0.call,
