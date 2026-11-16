@@ -12,6 +12,9 @@ import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { launch } from "../tests/e2e/cdp.mjs";
+import { assertFreeSpace } from "./disk-guard.mjs";
+
+assertFreeSpace({ label: "tools/print-samples.mjs" }); // stops with exit 75 when free disk space is under 5 GB, before the server or Chrome
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = process.argv[2] || join(homedir(), "Desktop", "LENSIQ-review", "print");
