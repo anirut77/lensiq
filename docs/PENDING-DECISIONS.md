@@ -72,3 +72,13 @@ Running list, append only. Each entry: date, what changes, status, what happens 
 - Payment options written in `docs/FORTUNE-PAID-PAYMENTS.md` (guest PromptPay: static QR + manual confirmation, dynamic QR via
   Stripe / Opn and others, slip verification). Recommendation: start with the static QR for a small trial; Stripe or Opn at
   volume. Needs the owner's choice, an exception to "bank transfer only" for option B, and L65 / the accountant first.
+
+## 2026-11-16: full formatted PDF report in the 99, 199 and Plus products (owner order, item 3)
+
+- **Owner order:** "Paid tie-in, behind the existing off switches: the free print and share cover the free overview. A full report as
+  a formatted PDF is part of the 99 and 199 THB products and Plus. Add it to the free/paid table."
+- **Recorded as:** free share card and print = overview only; the full formatted PDF is included in 99, 199 and Plus and is not in
+  the 49 THB product. Table in `docs/FORTUNE-PAID-DESIGN.md` section 12.0. Behind `LENSIQ_FORTUNE_PAID` (off); the crisis or calm
+  state hides the PDF button, prices and invitations. Docs only; the PDF is not built.
+- **Decision taken on the owner's behalf (reversible):** 49 THB does not include the PDF (the order lists 99, 199 and Plus only).
+- **If the owner does not answer:** nothing changes for users; it stays off.
