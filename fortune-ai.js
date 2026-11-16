@@ -2759,7 +2759,7 @@
       const opener = zhEnd(pick(r, (F.variant && ZH_OPENERS[F.domain + "." + F.variant]) || ZH_OPENERS[F.domain] || ["先看整体"])), s = [];
       const top = planTop(items, P);
       // round 2: no "…是这次最突出的地方" line; the overview opens with the main finding and what it means
-      head = null;
+      head = /** @type {any} */ (null);
       secM.overview = [];
       for (const it of withCaution(ovList(items, top, P), 3 + Math.floor(r() * 2), zIsCaut)) {
         // round 2: the main finding first says what it means about you; the two findings the Thai overview names come first in any area
@@ -3144,7 +3144,7 @@
       const opener = enEnd(pick(r, (F.variant && EN_OPENERS[F.domain + "." + F.variant]) || EN_OPENERS[F.domain] || ["Let's start with the overall picture"])), s = [];
       const top = planTop(items, P);
       // round 2: no "… stands out most this time" line; the overview opens with the main finding and what it means
-      head = null;
+      head = /** @type {any} */ (null);
       secM.overview = [];
       // the items named in the headline are explained first, in the same order
       for (const it of withCaution(ovList(items, top, P), 3 + Math.floor(r() * 2), eIsCaut)) {
