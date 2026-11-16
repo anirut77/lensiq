@@ -19,7 +19,7 @@
   "ตอนนี้เปิดจาก": "currently opened from",
   "บนคอมพิวเตอร์ใช้": "on a computer, use",
   "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณากดไอคอนแม่กุญแจข้าง": "Camera permission denied. Click the lock icon next to the",
-  "กล้อง จากนั้นกดลองใหม่": "for the camera, then click Retry",
+  "ให้กล้อง": "for the camera",
   "ไม่พบกล้องในอุปกรณ์นี้ กรุณาเสียบเว็บแคมแล้วกดลองใหม่": "No camera found on this device. Connect a webcam and click Retry",
   "กล้องถูกใช้งานโดยโปรแกรมอื่นอยู่": "The camera is in use by another program",
   "กรุณาปิดแล้วกดลองใหม่": "Close it and click Retry",

@@ -15,6 +15,7 @@
  *     that size) while a lower rung is left. The page reads what arrived from video.videoWidth.
  *   errorKind(err) -> 'denied'|'insecure'|'busy'|'notfound'|'overconstrained'|'unknown'
  *   errorText(err) -> message in the current language (Thai default; zh via LQI18N keys cam.err.*; also handles CapacityError / DuplicateCamera / NoFreeCamera / Ended)
+ *   logError(err) -> console.info for a refused permission (the user's choice, already shown in words), console.error otherwise
  *   parseCams(json|object) -> {v:1, cams:[{slot, deviceId, label, name, role}]}   tolerant: garbage -> {v:1, cams:[]}
  *   serializeCams(state|cams[]) -> string
  *   nextSlot(cams) -> 'c1'..'c4' | null
@@ -66,6 +67,30 @@
  */
 (function (root) {
   "use strict";
+  // camera help stub (owner input 2026-11-16, iPhone): lensiq-camhelp.js (the "how to allow the camera" link) is loaded only after
+  // a refused camera, to stay inside the pages' speed budgets; this stub notes the notices on the page before each request
+  if (typeof document !== "undefined" && typeof navigator !== "undefined" && navigator.mediaDevices
+    && typeof navigator.mediaDevices.getUserMedia === "function" && !(/** @type {any} */ (navigator.mediaDevices)).__lqHelpStub) {
+    const md = /** @type {any} */ (navigator.mediaDevices), gum = md.getUserMedia;
+    const RX = [[/กล้อง/, /อนุญาต|สิทธิ์|ถูกปฏิเสธ/], [/camera/i, /permission|allow|denied|blocked/i], [/摄像头|相机|镜头/, /权限|允许|拒绝/]];
+    const snap = () => { const m = new Map(); if (document.body) for (const el of document.body.querySelectorAll("*")) {
+      const t = el.textContent || ""; if (t.length <= 3000 && RX.some(p => p[0].test(t) && p[1].test(t))) m.set(el, t); } return m; };
+    md.__lqHelpStub = 1;
+    md.getUserMedia = function (c) {
+      const H = root.LQCamHelp;
+      if (!(H && H.denied())) { const m = snap(); root.__lqCamBefore = m; if (H) H.setBefore(m); }
+      return Promise.resolve(gum.call(md, c)).then(s => { if (root.LQCamHelp) root.LQCamHelp.allowed(); return s; }, e => {
+        if (/^(NotAllowedError|PermissionDeniedError|SecurityError)$/.test((e && e.name) || "") && !(root.LQDemo && root.LQDemo.on)) {
+          if (root.LQCamHelp) root.LQCamHelp.refused();
+          else if (!root.__lqCamHelpLoading) {
+            root.__lqCamHelpLoading = 1;
+            const s = document.createElement("script"); s.src = "lensiq-camhelp.js?v=2"; (document.head || document.documentElement).appendChild(s);
+          }
+        }
+        throw e;
+      });
+    };
+  }
   const hasDOM = typeof document !== "undefined";
   /* crash guard (lensiq-crashguard.js, when the page loads it): a live camera counts as heavy work; after a crash restart
      (LQCrashGuard.lite) every camera is asked for at most 640 px wide */
@@ -918,8 +943,16 @@
     return hub;
   }
 
+  /** a camera start error for the developer console: a refused permission ("Don't Allow" on iOS) is the user's choice and the
+   * page already says so in words, so it is logged as info; every other failure stays a console error
+   * @param {any} err */
+  function logError(err) {
+    if (typeof console === "undefined") return;
+    if (errorKind(err) === "denied") console.info("camera permission refused by the user", (err && err.name) || "");
+    else console.error(err);
+  }
   const api = {
-    fallbackChain, lowerRungLeft, errorKind, errorText, parseCams, serializeCams, nextSlot, pickNext, mapSeatToImage,
+    logError, fallbackChain, lowerRungLeft, errorKind, errorText, parseCams, serializeCams, nextSlot, pickNext, mapSeatToImage,
     readCapacity, writeCapacity, createScheduler, listCameras, create, createHub, offlineBadge, SLOTS, CAP_KEY,
     createGapLog, sampleSec, unattended, ackBox
   };

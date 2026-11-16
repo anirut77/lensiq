@@ -298,6 +298,9 @@ function basicFeatures(px, w, h) {
 
 // ================= ส่วนหน้าจอ =================
 if (typeof document !== "undefined") (() => {
+  // the iPhone steps (iOS 18+: page-menu icon, older: aA) and the Settings fallback, ending with the retry step; always
+  // the END of the message after " — " so i18n/*-rt-common.js translates it whole (template "{msg} — <hint>")
+  const IOS_CAM = "บน iPhone: แตะชื่อหน้าด้านบนสุด แล้วแตะปุ่มเมนูหน้าเว็บ (aA หรือไอคอนเมนู) > การตั้งค่าเว็บไซต์ > กล้อง > อนุญาต หรือไปที่ การตั้งค่า > แอป > Safari > กล้อง > อนุญาต แล้วกดลองใหม่";
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -542,16 +545,16 @@ if (typeof document !== "undefined") (() => {
       payGate = gateInit(true); stockGate = gateInit(true);
       await listCams();
     } catch (e) {
-      console.error(e); stopCam();
+      if (e && e.name === "NotAllowedError") console.info("camera permission refused by the user"); else console.error(e); stopCam();
       const m = {
         Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
-        NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่แล้วเลือก \"อนุญาต\"",
+        NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่แล้วเลือก \"อนุญาต\" — " + IOS_CAM,
         NotFoundError: "ไม่พบกล้อง — ตรวจสอบการเสียบสาย USB ของกล้อง",
         NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ (เช่น Zoom, FaceTime) — ปิดโปรแกรมนั้นก่อน",
         OverconstrainedError: "กล้องที่เลือกไม่รองรับความละเอียดที่ขอ",
         AbortError: "การเปิดกล้องถูกยกเลิก"
       }[e.name];
-      camMsg = { text: `เปิดกล้องไม่ได้: ${m || "เกิดข้อผิดพลาด"} (${e.name})`, cls: "err" };
+      camMsg = { text: m ? `เปิดกล้องไม่ได้: ${m}` : `เปิดกล้องไม่ได้: เกิดข้อผิดพลาด (${e.name})`, cls: "err" }; // the code only for an unknown error
     }
     showStatus();
   }

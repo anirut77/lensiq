@@ -485,7 +485,14 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   // 1 ตัว = ใช้ร่วมกันทั้งจอโฆษณาและคีออสก์ (เหมือนเดิม) · 2 ตัว = กล้องผู้ชม (วัดผล) + กล้องคีออสก์ (สั่งงานด้วยมือ) ทำงานพร้อมกัน
   // ตำแหน่ง/บทบาทกล้องเก็บใน sg-cams (เฉพาะ deviceId/ชื่อ/บทบาท ไม่มีภาพ) · อุปกรณ์ที่เปิดได้ทีละกล้องจะได้ข้อความแจ้งและใช้กล้องเดียวต่อ
   const ROLE_TH = { both: "ทั้งสองโหมด", audience: "วัดผู้ชม", kiosk: "คีออสก์" };
-  const CAM_ERR = { Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด", NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดอนุญาตที่แถบที่อยู่ของเบราว์เซอร์", NotFoundError: "ไม่พบกล้องในเครื่องนี้", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ — ปิดโปรแกรมนั้นแล้วลองใหม่", OverconstrainedError: "กล้องไม่รองรับความละเอียดที่ขอ" };
+  // the iPhone steps (iOS 18+: page-menu icon, older: aA) and the Settings fallback, ending with the retry step; always the END of the
+  // message after " — " so i18n/*-rt-common.js translates it whole (template "{msg} — <hint>")
+  const IOS_CAM = "บน iPhone: แตะชื่อหน้าด้านบนสุด แล้วแตะปุ่มเมนูหน้าเว็บ (aA หรือไอคอนเมนู) > การตั้งค่าเว็บไซต์ > กล้อง > อนุญาต หรือไปที่ การตั้งค่า > แอป > Safari > กล้อง > อนุญาต แล้วกดลองใหม่";
+  const CAM_ERR = {
+    Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
+    NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดอนุญาตที่แถบที่อยู่ของเบราว์เซอร์ — " + IOS_CAM,
+    NotFoundError: "ไม่พบกล้องในเครื่องนี้", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ — ปิดโปรแกรมนั้นแล้วลองใหม่", OverconstrainedError: "กล้องไม่รองรับความละเอียดที่ขอ"
+  };
   let R = { audience: null, kiosk: null, shared: true };
   const audCam = () => hub.cam(R.audience), kioCam = () => hub.cam(R.kiosk);
   const mirrored = c => !!c && c.facing !== "environment"; // สะท้อนภาพเฉพาะกล้องหน้า
@@ -543,7 +550,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     reroute();
   }
   function camError(e, what, retry) {
-    console.error(e);
+    LQCam.logError(e);
     const m = CAM_ERR[e.name] || (e.name === "CapacityError" || e.name === "NoFreeCamera" || e.name === "DuplicateCamera" ? LQCam.errorText(e) : null);
     // D-14: plain message only; the raw error name / message stay in the console (logged above)
     engine(`${what}ไม่สำเร็จ: ${m || "โหลดโมเดลไม่สำเร็จ"}`, "err", retry);

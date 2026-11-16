@@ -39,3 +39,9 @@ bc575841e1f1884effd6eaf65eb622c981a294284ad4272ee68adf19c3df9f7f  tests/unit/for
 49b52ac475553733483f2c9835688eb96c686671d93048f6f5b6d86e59fdcc0e  relock2/cat-pages.test.js
 2b725ddce952141be7de9b11b4113771d3bb60e116460a0b83246104792d43f3  tests/unit/crisis-rules-1323.test.js  # repo file (re-lock 2)
 49b52ac475553733483f2c9835688eb96c686671d93048f6f5b6d86e59fdcc0e  tests/unit/cat-pages.test.js  # repo file (re-lock 2)
+# RE-LOCK 3 2026-11-16: (a) tests/unit/fortune-layout.test.js A5 (owner decision 2026-11-16 rule 3, 'anything longer goes behind อ่านเพิ่มเติม'): the card may have exactly ONE fold (details.fa-support-more) holding only the longer text; the warm lines, guidance, 1323 button and counselling link must be outside it. Found while running the affected suites after the build (the old A5 forbade any fold). (b) tests/e2e/fortune-live.e2e.mjs = merge of main 7a51bcf (iphone-webkit H2 393 px re-lock) and this branch's re-lock; no assertion changed by the merge.
+# locked 2026-11-16T14:08:16Z (tools/eval-guard.mjs lock, 2 files)
+52dae4dacd6c9f3cddb1b2910a917b4c92186714eb29fd228d9d88a09401b00b  relock3/fortune-live.e2e.mjs
+41edb3c475372905bea716f32895467b7283dff22898943853437cd3c884b4b0  relock3/fortune-layout.test.js
+52dae4dacd6c9f3cddb1b2910a917b4c92186714eb29fd228d9d88a09401b00b  tests/e2e/fortune-live.e2e.mjs  # repo file (re-lock 3, merged)
+41edb3c475372905bea716f32895467b7283dff22898943853437cd3c884b4b0  tests/unit/fortune-layout.test.js  # repo file (re-lock 3, A5)
