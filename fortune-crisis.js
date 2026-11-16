@@ -381,7 +381,7 @@
       d.head.appendChild(s);
     };
     if (!root.LQHelpline) add("lensiq-helpline.js?v=1", false);
-    add("fortune-crisis-calm.js?v=1", true);
+    add("fortune-crisis-calm.js?v=2", true);
     return ready;
   }
   /** the calm part (or anything that may draw a reading) is needed before this page's next action */

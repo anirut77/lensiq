@@ -342,6 +342,24 @@
     return out;
   }
 
+  // crisis-v2-live: the calm top button, "more help numbers", the card actions and the hope frame (moved from styles.css)
+  const CALM_TOP_CSS = "html[data-lq-calm] #lqHelpTop{position:sticky;top:var(--lq-helptop-y,0px);z-index:55;justify-content:center;gap:6px 10px;margin:0 auto 8px;p" +
+    "adding:8px 12px;background:#fff;border-bottom:1px solid #d5dde8;box-shadow:0 4px 10px -6px rgba(14,20,48,.25)}html[data-lq-calm] #lqHelpTop>" +
+    ".lq-call-mini{flex:1 1 260px;max-width:560px}html[data-lq-calm] #lqHelpTop>.lq-call-mini>a.lq-call-btn[href]{width:100%;justify-content:cent" +
+    "er;min-height:56px;padding:8px 20px;background:#0b2540;color:#fff;font-size:1.1rem;box-shadow:0 0 0 3px #fbbf24}html[data-lq-calm] #lqHelpTo" +
+    "p>.lq-call-mini>a.lq-call-btn[href]:hover{background:#071a2e;color:#fff}html[data-lq-calm] #lqHelpTop>.lq-call-mini .lq-call-mini-n{font-siz" +
+    "e:1.4rem;line-height:1.1}.lq-helpmore{flex:0 1 auto;max-width:100%}.lq-helpmore>summary{display:flex;align-items:center;min-height:44px;padd" +
+    "ing:0 12px;border-radius:12px;cursor:pointer;color:#0b2540;font-weight:600;text-decoration:underline}.lq-helpmore>ul{list-style:none;margin:" +
+    "6px 0 2px;padding:0;display:grid;gap:6px}.lq-helpmore .lq-call-mini>a.lq-call-btn[href]{background:#0b5d8f}.fa-support h3{margin:0 0 .4em}.f" +
+    "a-support ul{list-style:none;padding:0;margin:.6em 0}.fa-support-act{margin:.8em 0 .4em}.fa-support-act .fa-continue{min-height:44px;padding" +
+    ":.5em 1.2em;border-radius:12px}.fa-support-cont-note{font-size:.9em;margin:.4em 0 0}.fa-hope{margin:.4em 0 1em;padding:.7em .9em;border-left" +
+    ":3px solid #38bdf8;background:rgba(56,189,248,.08);border-radius:8px;line-height:1.6}";
+  try {
+    const d = root.document;
+    if (d && d.head && d.getElementById && !d.getElementById("lq-calm-top-style")) {
+      const st = d.createElement("style"); st.id = "lq-calm-top-style"; st.textContent = CALM_TOP_CSS; d.head.appendChild(st);
+    }
+  } catch (e) { /* no DOM */ }
   return { HELP, helpLine, helpHTML, calmDock, adviceKind, fatalistic, calmText, HOPE, hope, hopeNode, helpBar, calmTop, WORDS, CARD, calmReading };
   }
   if (typeof module !== "undefined" && module.exports) module.exports = install;
