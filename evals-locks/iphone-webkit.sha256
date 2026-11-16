@@ -25,3 +25,6 @@ e645ba15eeaa6d5dd4613ac451e7a8e579efaca91e4996505a40e8d32b05269a  tests/e2e/ipho
 # amendment 6 (2026-11-16, after merging main 656712f = 163be8c; locked before measuring the merged tree): driver's camera-off step taps the trip-panel button #camPowerLive ('ปิดกล้อง', new in main) during the trip, instead of ending the trip first; the extra pagehide check stays.
 # locked 2026-11-16T03:44:11Z (tools/eval-guard.mjs lock, 1 file)
 16b1b69839cae7f1e843caed34b901fb821a18dbf6ea7e637afde18622a4d41a  tests/e2e/iphone-pages-webkit.e2e.mjs
+# amendment 7 (2026-11-16, harness timing, no pass rule changed; locked before the next measurement): driver opens its camera at page load and refuses a trip started before the camera is on; under CPU load the test tapped 'start trip' too early, the trip never started and #camPowerLive (shown only during a trip) never appeared (reproduced 1 in 12 with 6 busy CPU workers). The pre-step now waits, like a driver, for the camera to be on (or refused) before tapping start; the stop step (#camPowerLive must release every track) is unchanged.
+# locked 2026-11-16T06:34:20Z (tools/eval-guard.mjs lock, 1 file)
+2c9d69cd56e1ec7662f083b58cfea55dd75d3cc240305a8c3253f4397c2748fd  tests/e2e/iphone-pages-webkit.e2e.mjs

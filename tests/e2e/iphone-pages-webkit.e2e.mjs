@@ -232,7 +232,13 @@ const CAMERA = [
   { page: "booth", start: "#camStart", stop: null },
   { page: "checkout", start: null, stop: "#camBtn" },
   { page: "customers", start: "#scanToggle", stop: CAM_OFF, alsoPagehide: true },
-  { page: "driver", pre: async p => { await setVal(p, "#tripForm [name=driver]", "สมชาย"); await setVal(p, "#tripForm [name=plate]", "1กข 1234"); },
+  // AMENDED 2026-11-16 (amendment 7): driver opens its camera at page load; like a driver, the test waits until the camera is on
+  // (or was refused) before tapping "start trip" — under CPU load the tap came before the camera, the page refused the trip and
+  // #camPowerLive (shown only during a trip) never appeared (reproduced 1 in 12 under load). The stop step is unchanged.
+  { page: "driver", pre: async p => {
+    await setVal(p, "#tripForm [name=driver]", "สมชาย"); await setVal(p, "#tripForm [name=plate]", "1กข 1234");
+    await waitFor(p, () => (window.__LQ_FAKE ? window.__LQ_FAKE.live().length >= 1 : false) || (window.__lqDenied || 0) > 0, null, 20000);
+  },
     // AMENDED 2026-11-16 (amendment 6, after main 656712f added #camPowerLive): during a trip the "ปิดกล้อง" button shown in the
     // trip panel (#camPowerLive) must release every track, without ending the trip first
     start: "#tripForm [type=submit]", stop: async p => { await tap(p, "#camPowerLive"); }, alsoPagehide: true },
