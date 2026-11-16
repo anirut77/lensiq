@@ -25,3 +25,8 @@ c86c80f6a0d1d47c9a5aadfbf1c26f1a732d662d9ccb0ed2d397919ecc47bf72  EquivalentUnif
 6a4927683ca847c207cd4ea69b5cdeea6141415334b469e7f9c713111eeb9647  tests/e2e/fortune-print-report-kit.mjs  # repo file
 266fc05ae72539eca129962ad8fb34752668f4143425469faf1583fe72018e2a  tests/e2e/pdf-glyph-twins.json  # repo file
 039d5afe4b610174e39e2ecee459f221a179fc0b387305a6680175998dff8151  tools/pdf-glyph-twins.py  # repo file
+# locked 2026-11-16T23:23:29Z (tools/eval-guard.mjs lock, 2 files)
+b2a52f5501f2a3f0b2457b07dbbefc13d43cff3d671081fe06465793cca445f2  fortune-print-report-kit.mjs
+84596bbf6cf8a92676a4a8a5b192d6460ec3df2e080a5dba957d42b2ae997ec2  relock4-evidence-branch-e2e-6.log
+# RE-LOCK 2026-11-17 (implementation fix of coordinator decision 4, same semantics; first local run of 3f39481 = relock4-evidence-branch-e2e-6.log). (a) 'IS a heading line' now means the last 1-3 body lines together EQUAL a heading; 3f39481 matched any line that ended a heading's text (TH paragraph line 'งาน' vs heading 'การงาน'). (b) the cross-check now looks for the first unit of the following block (first list item, table caption or first row): list bullets / numbers are drawn as PDF text but are not in the DOM text, so a whole list's opening never matched. Nothing else changed.
+b2a52f5501f2a3f0b2457b07dbbefc13d43cff3d671081fe06465793cca445f2  tests/e2e/fortune-print-report-kit.mjs  # repo file

@@ -200,7 +200,10 @@ export async function run({ base, launch, check, fakeCams }, lang) {
               // RE-LOCK 2026-11-17 (decision 4): each heading with the start of the block that follows it (cross-check below)
               const leads = [...pv.querySelectorAll("[data-lqp-h]")].map(h => {
                 let nx = h.nextElementSibling; while (nx && nx.matches("[data-lqp-h]")) nx = nx.nextElementSibling;
-                return { h: t(h), next: nx ? t(nx) : "" };
+                // the first unit of that block: a list's first item, a table's caption or first row (list markers and
+                // bullets are drawn as text in the PDF but are not in the DOM text, so a whole list never matches)
+                const unit = !nx ? null : nx.matches("ul, ol") ? nx.querySelector("li") : nx.matches("table") ? (nx.querySelector("caption") || nx.querySelector("tr")) : nx;
+                return { h: t(h), next: unit ? t(unit) : "" };
               });
               return { heads: [...pv.querySelectorAll("[data-lqp-h]")].map(t), leads, items: [...pv.querySelectorAll(".lqp-body li, .lqp-body tr")].map(t).filter(Boolean) };
             });
@@ -234,7 +237,10 @@ export async function run({ base, launch, check, fakeCams }, lang) {
               // RE-LOCK 2026-11-17 (coordinator decision 4): the last line IS a heading line (the heading, or the final segment of a
               // wrapped heading); a body line that merely ends with a heading's words (faceread ZH "…有助财运" / heading 财运, an <ol>
               // item) is not a heading. The cross-check below keeps the rule as strong as before.
-              if (i < n - 1 && last && fh.some(h => h.endsWith(last))) bad.push(`page ${i + 1} ends with a heading: ${body[body.length - 1].text}`);
+              // a heading line: the last 1, 2 or 3 body lines together ARE a heading (a wrapped heading spans lines), not a
+              // body line that only shares the heading's last word (TH "งาน" closing a paragraph vs heading "การงาน")
+              const isHead = fh.some(h => [1, 2, 3].some(k => body.length >= k && fold(body.slice(-k).map(l => l.text).join("")) === h));
+              if (i < n - 1 && last && isHead) bad.push(`page ${i + 1} ends with a heading: ${body[body.length - 1].text}`);
             });
             // RE-LOCK 2026-11-17 (coordinator decision 4) DOM cross-check, on the print layout as printed: every heading element of
             // the report is found on its PDF page, and the first text of the block after it starts on that same page, after it
