@@ -14,8 +14,8 @@
   const T = (key, thai, vars) => (W.LQI18N ? W.LQI18N.tf(key, thai, vars) : thai.replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] != null ? vars[k] : m)));
   const KB = W.LQPetKB, P = W.LQPet;
   const isTest = () => /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("fakedet");
-  const st = { img: null, det: null, detected: false, detFailed: false, stream: null, res: null, theme: "sunny", busy: 0 };
-  const api = { ready: false, st, useImage, cardText: () => (st.model ? P.cardText(st.model) : []), lastStream: null };
+  const st = { img: null, det: null, detected: false, detFailed: false, stream: null, res: null, theme: "sunny", size: "post", busy: 0 };
+  const api = { ready: false, st, useImage, cardText: () => (st.model ? P.cardText(st.model) : []), model: () => st.model || null, lastStream: null };
   W.__LQPET = api;
 
   /* ---------- trait picker (rendered from the KB in the page language) ---------- */
@@ -72,7 +72,7 @@
     else if (src && src.naturalWidth) c = toCanvas(src);
     if (!c) return;
     st.img = c; st.det = null; st.detected = false; st.detFailed = false; setHuman(false);
-    drawView(); $("#petEmpty").hidden = true;
+    drawView(); $("#petEmpty").hidden = true; if (api.bar) api.bar();
     await runDetector();
     if (st.res) read(true);
   }
@@ -112,7 +112,7 @@
       } else msg.textContent = T("pet.det.none", "ไม่พบน้องหมาหรือน้องแมวในรูปนี้ เลือกลักษณะเองด้านล่างได้เลย");
       setHuman(d.persons.length > 0);
     } catch (e) {
-      st.det = { pet: null, species: null, persons: [] }; st.detFailed = true;
+      st.det = null; st.detFailed = true;
       msg.textContent = T("pet.det.fail", "ตัวช่วยดูรูปใช้ไม่ได้บนเครื่องนี้ตอนนี้ เลือกลักษณะเองด้านล่างได้เลย");
     }
   }
@@ -122,12 +122,14 @@
   }
 
   /* ---------- camera ---------- */
+  // iPhone Safari steps for a refused camera (review round 1, D3). ONE place: swap for the shared helper of the iphone-webkit
+  // stream when it lands on main. The first step opens the page menu; the Settings app is the fallback.
+  const IOS_CAM_FIRST_TH = "แตะชื่อหน้าด้านบนสุด";
   function camMsg(e) {
     const n = e && e.name;
     if (n === "NotAllowedError" || n === "PermissionDeniedError" || n === "SecurityError")
-      return T("pet.cam.denied",
-        "ไม่ได้รับอนุญาตให้ใช้กล้อง ใช้ปุ่ม เลือกรูป แทนได้ หรือเปิดสิทธิ์กล้อง: บน iPhone ใน Safari แตะปุ่มเมนูหน้าเว็บ (aA) ข้างช่องที่อยู่ > การตั้งค่าเว็บไซต์ > กล้อง > อนุญาต แล้วโหลดหน้าใหม่ ถ้าไม่เห็นเมนูนี้ ไปที่แอปการตั้งค่า > Safari > กล้อง"
-      );
+      return T("pet.cam.denied", "ไม่ได้รับอนุญาตให้ใช้กล้อง ใช้ปุ่ม เลือกรูป แทนได้ หรือเปิดสิทธิ์กล้องบน iPhone ใน Safari: " + IOS_CAM_FIRST_TH +
+        " (เปิดเมนูของหน้า) > การตั้งค่าเว็บไซต์ > กล้อง > อนุญาต แล้วโหลดหน้าใหม่ ถ้าไม่เห็นเมนูนี้ ไปที่แอปการตั้งค่า > Safari > กล้อง");
     if (n === "NotFoundError" || n === "OverconstrainedError") return T("pet.cam.none", "ไม่พบกล้องบนเครื่องนี้ ใช้ปุ่ม เลือกรูป แทนได้");
     if (n === "NotReadableError" || n === "AbortError") return T("pet.cam.busy", "กล้องถูกแอปอื่นใช้อยู่ ปิดแอปนั้นแล้วลองใหม่ หรือใช้ปุ่ม เลือกรูป แทน");
     if (!window.isSecureContext || n === "Insecure") return T("pet.cam.https", "กล้องใช้ได้เฉพาะหน้าเว็บที่เปิดด้วย https ใช้ปุ่ม เลือกรูป แทนได้");
@@ -188,16 +190,37 @@
   }
 
   /* ---------- the card ---------- */
+  let qrLib = null;
+  function qrMatrix() {
+    const q = W.qrcode; if (typeof q !== "function") return null;
+    const m = q(0, "M"); m.addData(P.LINK); m.make();
+    return { n: m.getModuleCount(), dark: (r, c) => m.isDark(r, c) };
+  }
+  function loadQr() {
+    if (W.qrcode) return Promise.resolve();
+    if (!qrLib) qrLib = new Promise((ok, no) => {
+      const s = document.createElement("script"); s.src = "vendor/qrcode-generator/qrcode.js"; s.onload = () => ok(); s.onerror = () => { qrLib = null; no(new Error("qr")); };
+      document.head.appendChild(s);
+    });
+    return qrLib;
+  }
   function drawCard() {
     if (!st.res) return;
-    const on = $("#petPhotoOn").checked && !!st.img;
-    st.model = P.cardModel(st.res, { photo: on, theme: st.theme });
+    const want = $("#petPhotoOn").checked, on = want && !!st.img, qrOn = $("#petQrOn").checked;
+    if (qrOn && !W.qrcode) { loadQr().then(drawCard, () => { $("#petQrOn").checked = false; drawCard(); }); }
+    st.model = P.cardModel(st.res, { photo: on, theme: st.theme, size: st.size });
     const cv = $("#petCard");
-    const info = W.LQPetCard.draw(cv, st.model, { theme: st.theme, photo: on ? st.img : null, pet: st.det && st.det.pet, persons: (st.det && st.det.persons) || [] });
+    // privacy (review round 1, D1): the photo only after the detector ran; every person box it found, down to PRIVACY_MIN
+    const detOk = !!st.det && st.detected && !st.detFailed;
+    const info = W.LQPetCard.draw(cv, st.model, { theme: st.theme, size: st.size, photo: on ? st.img : null, detOk,
+      pet: st.det && st.det.pet, persons: (st.det && (st.det.blur || st.det.persons)) || [], qr: qrOn ? qrMatrix() : null });
     cv.dataset.drawn = "1"; cv.dataset.photo = info.photo ? "1" : "0"; cv.dataset.blur = String(info.blur || 0); cv.dataset.theme = info.theme;
+    cv.dataset.size = info.size; cv.dataset.qr = info.qr ? "1" : "0"; cv.dataset.frame = info.frame.join(",");
     const note = $("#petCardNote");
-    if ($("#petPhotoOn").checked && !st.img) note.textContent = T("pet.card.noimg", "ยังไม่มีรูปน้อง การ์ดใช้ภาพวาดแทน");
-    else if (info.refused) note.textContent = T("pet.card.refused", "มีคนอยู่ชิดน้องมากในรูป จึงไม่ใส่รูปในการ์ด ใช้ภาพวาดแทน ลองใช้รูปที่มีแต่น้อง");
+    if (want && !st.img) note.textContent = T("pet.card.noimg", "ยังไม่มีรูปน้อง การ์ดใช้ภาพวาดแทน");
+    else if (want && info.refused === "nodet")
+      note.textContent = T("pet.card.nodet", "ตัวช่วยดูรูปยังไม่ได้ตรวจรูปนี้ว่ามีคนอยู่หรือไม่ จึงไม่ใส่รูปในการ์ด ใช้ภาพวาดแทน");
+    else if (want && info.refused) note.textContent = T("pet.card.refused", "มีคนอยู่ติดกับน้องในรูป จึงไม่ใส่รูปในการ์ด ใช้ภาพวาดแทน ลองใช้รูปที่มีแต่น้อง");
     else if (info.blur) note.textContent = T("pet.card.blur", "พบคนในรูป ส่วนที่เป็นคนถูกเบลอบนการ์ดแล้ว ถ้ายังเห็นหน้าคน อย่าใส่รูปในการ์ด");
     else note.textContent = "";
   }
@@ -230,9 +253,29 @@
     $("#petSnap").addEventListener("click", snap);
     $("#petForm").addEventListener("submit", e => { e.preventDefault(); read(false); });
     $("#petPhotoOn").addEventListener("change", drawCard);
-    for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".pet-theme"))) b.addEventListener("click", () => {
+    $("#petQrOn").addEventListener("change", drawCard);
+    for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".pet-size"))) b.addEventListener("click", () => {
+      st.size = b.dataset.size;
+      for (const o of document.querySelectorAll(".pet-size")) o.setAttribute("aria-pressed", String(o === b));
+      drawCard();
+    });
+    // D2: once a photo is set (or a species picked) a Read bar stays at the bottom of the screen until the form's own Read
+    // button or the reading is in view
+    const seen = { form: false, result: false };
+    const bar = () => {
+      const show = !!(st.img || checked("petSpecies")) && !seen.form && !seen.result;
+      $("#petReadBarWrap").hidden = !show; document.body.classList.toggle("pet-bar-on", show);
+    };
+    api.bar = bar;
+    if (typeof IntersectionObserver === "function") {
+      const io = new IntersectionObserver(es => { for (const e of es) seen[e.target.id === "petRead" ? "form" : "result"] = e.isIntersecting; bar(); });
+      io.observe($("#petRead")); io.observe($("#petResult"));
+    }
+    $("#petTraits").addEventListener("change", bar);
+    $("#petReadBar").addEventListener("click", () => { read(false); bar(); });
+    for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".pet-theme[data-theme]"))) b.addEventListener("click", () => {
       st.theme = b.dataset.theme;
-      for (const o of document.querySelectorAll(".pet-theme")) o.setAttribute("aria-pressed", String(o === b));
+      for (const o of document.querySelectorAll(".pet-theme[data-theme]")) o.setAttribute("aria-pressed", String(o === b));
       drawCard();
     });
     $("#petCardSave").addEventListener("click", save);

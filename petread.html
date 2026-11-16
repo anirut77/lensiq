@@ -37,20 +37,17 @@
     <span class="lq-call-mini-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span> <b class="lq-call-mini-n">1323</b></a></span>
 </aside>
 <main class="fk pet" id="petApp">
-  <div class="fk-head">
-    <span class="eyebrow" data-i18n="pet.eyebrow">น้องหมา · น้องแมว · ตามความเชื่อ</span>
+  <div class="fk-head pet-head">
     <h1 data-i18n="pet.h1">ดูลักษณะน้องหมาน้องแมว</h1>
-    <p class="lead" data-i18n="pet.lead">ใส่รูปน้องหรือเปิดกล้อง แล้วเลือกลักษณะของน้อง อ่านนิสัย สิ่งที่น้องชอบ ความผูกพันกับเจ้าของ สีมงคลและวันดี แล้วทำการ์ดน่ารัก ๆ ไว้แชร์ได้ฟรี</p>
+    <p class="fk-disclaimer lq-notice pet-disc" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      <span><b class="lq-disc-line"
+        data-i18n="fortune.disc.line">เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ</b>
+      <span class="lq-notice-more"><span data-i18n="pet.disc.rest">รูปของน้องประมวลผลในเครื่องนี้เท่านั้น ไม่บันทึก ไม่ส่งออก ถ้ามีคนอยู่ในรูป ระบบไม่อ่านลักษณะของคน</span></span></span></p>
+    <p class="lead pet-lead" data-i18n="pet.lead">ใส่รูปน้อง เลือกลักษณะ แล้วรับคำอ่านกับการ์ดแชร์ฟรี</p>
   </div>
-  <p class="fk-disclaimer lq-notice" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-    <span><b class="lq-disc-line"
-      data-i18n="fortune.disc.line">เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ</b>
-    <span class="lq-notice-more"><span data-i18n="pet.disc.rest">รูปของน้องประมวลผลในเครื่องนี้เท่านั้น ไม่บันทึก ไม่ส่งออก ถ้ามีคนอยู่ในรูป ระบบไม่อ่านลักษณะของคน</span></span></span></p>
-  <p class="pet-honest" id="petHonest" data-i18n="pet.honest">คำอ่านนี้ดัดแปลงจากความเชื่อเรื่องการดูลักษณะ ไม่ใช่ตำราดั้งเดิม</p>
 
-  <section class="fk-block pet-step" aria-labelledby="petPhotoH">
+  <section class="fk-block pet-step pet-photo" aria-labelledby="petPhotoH">
     <h2 id="petPhotoH" data-i18n="pet.photoH">1. รูปน้อง (ไม่บังคับ)</h2>
-    <p class="fk-small" data-i18n="pet.photoHint">เลือกรูปที่เห็นหน้าน้องชัด ๆ ระบบในเครื่องจะช่วยดูว่าเป็นหมาหรือแมวและสีขน คุณตรวจและแก้เองได้ทุกข้อ</p>
     <div class="pet-actions">
       <label class="btn primary pet-file"><input type="file" id="petFile" accept="image/*"
         data-i18n-attr="aria-label:pet.fileAria" aria-label="เลือกรูปน้อง"><span data-i18n="pet.file">เลือกรูป</span></label>
@@ -58,6 +55,8 @@
       <button class="btn ghost" id="petSnap" type="button" disabled data-i18n="pet.snap">ถ่ายรูป</button>
       <button class="btn ghost" id="petCamOff" type="button" disabled data-i18n="pet.camOff">ปิดกล้อง</button>
     </div>
+    <p class="fk-small" data-i18n="pet.photoHint">เลือกรูปที่เห็นหน้าน้องชัด ๆ ระบบในเครื่องจะช่วยดูว่าเป็นหมาหรือแมวและสีขน คุณตรวจและแก้เองได้ทุกข้อ</p>
+    <p class="pet-honest" id="petHonest" data-i18n="pet.honest">คำอ่านนี้ดัดแปลงจากความเชื่อเรื่องการดูลักษณะ ไม่ใช่ตำราดั้งเดิม</p>
     <div class="pet-stage" id="petStage">
       <video id="petVideo" autoplay muted playsinline hidden></video>
       <canvas id="petView" hidden role="img" aria-label="รูปน้องที่เลือก (อยู่ในเครื่องนี้เท่านั้น)" data-i18n-attr="aria-label:pet.viewAria"></canvas>
@@ -85,6 +84,8 @@
     <button class="btn primary big full" id="petRead" type="submit" data-i18n="pet.read">อ่านลักษณะน้อง</button>
   </form>
 
+  <div class="pet-readbar" id="petReadBarWrap" hidden><button class="btn primary big" id="petReadBar" type="button" data-i18n="pet.read">อ่านลักษณะน้อง</button></div>
+
   <section class="pet-result" id="petResult" hidden aria-labelledby="petResH">
     <div class="fk-block">
       <h2 id="petResH" tabindex="-1" data-i18n="pet.resH">คำอ่านของน้อง</h2>
@@ -100,7 +101,13 @@
       <button class="pet-theme" type="button" data-theme="mint" aria-pressed="false" data-i18n="pet.theme.mint">มินต์</button>
       <button class="pet-theme" type="button" data-theme="blossom" aria-pressed="false" data-i18n="pet.theme.blossom">ซากุระ</button>
     </div>
-    <label class="fk-check"><input type="checkbox" id="petPhotoOn"> <span data-i18n="pet.photoOn">ใส่รูปน้องในการ์ด (ปิดไว้ก่อน รูปไม่ถูกส่งออก)</span></label>
+    <div class="pet-themes pet-sizes" role="group" data-i18n-attr="aria-label:pet.sizeAria" aria-label="ขนาดการ์ด">
+      <button class="pet-size" type="button" data-size="post" aria-pressed="true" data-i18n="pet.size.post">โพสต์ 4:5</button>
+      <button class="pet-size" type="button" data-size="story" aria-pressed="false" data-i18n="pet.size.story">สตอรี่ 9:16</button>
+    </div>
+    <label class="fk-check"><input type="checkbox" id="petPhotoOn"> <span data-i18n="pet.photoOn">ใส่รูปน้องในการ์ด</span></label>
+    <label class="fk-check"><input type="checkbox" id="petQrOn"> <span data-i18n="pet.qrOn">ใส่ QR ลิงก์กลับมาหน้านี้</span></label>
+    <p class="fk-small" data-i18n="pet.photoOnHint">ทั้งสองข้อปิดไว้ก่อน รูปและ QR สร้างในเครื่อง ไม่ถูกส่งออก</p>
     <p class="hint" id="petCardNote" role="status"></p>
     <div class="pet-card-wrap"><canvas id="petCard" role="img" aria-label="การ์ดแชร์คำอ่านของน้อง" data-i18n-attr="aria-label:pet.cardAria"></canvas></div>
     <div class="pet-actions">

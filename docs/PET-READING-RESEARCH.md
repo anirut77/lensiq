@@ -364,6 +364,11 @@ trainval images (96 cats, 200 dogs, 8 per breed, `~/LENSIQ-field/evals/fortune-p
 | 1 (first build) | score ≥ 0.30 | 90.2 % | 85.5 % | 98.1 % | 51 |
 | 2 (final) | score ≥ 0.10, chosen on the DEV split only | **95.3 %** | **89.5 % (missed by 0.5 pt, 2 images)** | **97.9 %** | 103 |
 
+Disclosure (review round 1): the locked set was first measured at 0.30 before the DEV split existed (run 1); the 0.10 threshold
+was then chosen on the DEV split and the locked set measured once more (run 2). The locked set therefore was seen once before the
+threshold choice; the choice itself used DEV numbers only. After review round 1 the detector runs people and pets in two separate
+passes (privacy), so the locked set was measured again (run 3, see below) without any threshold change.
+
 Per species (run 2): cats found 95.8 %, species right 87.5 %; dogs found 95.0 %, species right 90.5 %. A person was flagged on 4.4 %
 of the images (report only; some Oxford photos do show people). Thresholds were chosen on a separate DEV split (148 other Oxford
 trainval images, `tests/bench/pet-dev.tune.mjs`), never on the locked set; a second look on the crop and a mirrored crop added

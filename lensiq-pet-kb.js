@@ -239,6 +239,22 @@
     },
 
     /* look-alikes from the beliefs (first match wins). Sources and the excluded items: docs/PET-READING-RESEARCH.md §2, §3, §5 */
+    /* a headline type per coat for the share card (generated text, same hard limits as the reading) */
+    headline: {
+      black: { th: "ผู้พิทักษ์ผู้สุขุม", en: "The Calm Guardian", zh: "沉稳的守护者" },
+      white: { th: "ผู้สง่างามประจำบ้าน", en: "The Graceful One", zh: "优雅的小贵族" },
+      grey: { th: "นักคิดใจเย็น", en: "The Gentle Thinker", zh: "温和的思考家" },
+      orange: { th: "ดวงอาทิตย์ประจำบ้าน", en: "The Little Sunshine", zh: "家里的小太阳" },
+      brown: { th: "เพื่อนซี้ผู้ซื่อตรง", en: "The Loyal Buddy", zh: "忠实的好伙伴" },
+      cream: { th: "หัวใจอ่อนโยน", en: "The Soft Heart", zh: "温柔的小心肝" },
+      tabby: { th: "นักผจญภัยตัวจิ๋ว", en: "The Little Adventurer", zh: "小小探险家" },
+      tricolour: { th: "ศิลปินอารมณ์ดี", en: "The Colourful Spirit", zh: "多彩的小精灵" },
+      bicolour: { th: "ผู้รักความสมดุล", en: "The Balanced Soul", zh: "平衡大师" },
+      tortie: { th: "ตัวจริงเสียงจริง", en: "The Free Thinker", zh: "有主见的小家伙" },
+      merle: { th: "อัจฉริยะลายหินอ่อน", en: "The Marbled Genius", zh: "大理石纹小天才" },
+      fawn: { th: "เจ้าตัวอบอุ่น", en: "The Warm Companion", zh: "温暖的陪伴者" },
+    },
+
     folk: [
       { sp: "cat", coat: "black", mark: "whitechest", th: "ตามความเชื่อในตำราแมวไทย ลักษณะดำมีสร้อยคอขาวคล้าย \"นิลจักร\" ถือเป็นแมวมงคล ว่ากันว่าเสริมความสง่างามและความมั่งคั่งในบ้าน",
         en:
@@ -278,9 +294,9 @@
         en:
           "In the Thai cat treatise, a dark coat mixed with white resembles \"Saem Sawet\", an auspicious kind said to be loyal and grateful.",
         zh: "按泰国猫经的说法，黑白相间像吉祥猫\"三萨维\"（Saem Sawet），据说忠诚又懂得感恩。" },
-      { sp: "dog", coat: "white", mark: "spots", th: "ตามความเชื่อในตำราพรหมชาติ หมาตัวขาวมีด่างดำคล้ายลักษณะหมาที่ว่ากันว่าเลี้ยงแล้วมีเงินทองมาก",
-        en: "In the Thai Phrommachat almanac, a white dog with dark patches resembles a kind said to bring plenty of money to the home.",
-          zh: "按泰国《梵天历书》的说法，白身带黑斑的狗，据说养了家里财源充足。" },
+      { sp: "dog", coat: "white", mark: "spots", th: "ตามความเชื่อในตำราพรหมชาติ หมาตัวขาว เท้าทั้งสี่ด่างดำ ว่ากันว่าเลี้ยงแล้วมีเงินทองมาก",
+        en: "In the Thai Phrommachat almanac, a white dog with black-spotted feet is said to bring plenty of money to the home.",
+          zh: "按泰国《梵天历书》的说法，白身、四只脚带黑斑的狗，据说养了家里财源充足。" },
       { sp: "dog", mark: "whitetail", th: "ตามความเชื่อในตำราพรหมชาติ หมาปลายหางขาว (หางดอก) ถือเป็นลักษณะที่เลี้ยงไว้แล้วดี",
         en: "In the Thai Phrommachat almanac, a white tail tip (a \"flower tail\") is a sign of a dog that is good to keep.", zh: "按泰国《梵天历书》的说法，白尾尖（\"花尾\"）的狗被认为养了会好。" },
       { sp: "dog", coat: "orange", mark: "whitepaws", th: "ตามความเชื่อในตำราพรหมชาติ หมาขนเหลืองเท้าขาวทั้งสี่ ว่ากันว่าเลี้ยงแล้วร่ำรวย",

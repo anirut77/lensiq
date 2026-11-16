@@ -21,8 +21,23 @@
 .pet-fields label{display:flex;flex-direction:column;gap:6px;font-size:.92rem;min-width:0}
 .pet-result .fk-block{padding:18px}
 .pet-themes{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
-.pet-theme{min-height:44px;min-width:44px;padding:6px 16px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--text);font:inherit;cursor:pointer}
-.pet-theme[aria-pressed=true]{border-color:#e8590c;background:#fff4e6;font-weight:600}
+.pet-theme,.pet-size{min-height:44px;min-width:44px;padding:6px 16px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--text);font:inherit;cursor:pointer}
+.pet-theme[aria-pressed=true],.pet-size[aria-pressed=true]{border-color:#e8590c;background:#fff4e6;font-weight:600}
 .pet-card-wrap{max-width:420px;margin:8px auto}
 .pet-card-wrap canvas{display:block;width:100%;height:auto;border-radius:18px;box-shadow:0 8px 24px rgba(14,20,48,.18)}
 .pet-novet{font-weight:600}
+/* review round 1 (D2): the photo and camera buttons on the first phone screen; a Read bar once a photo is set */
+.fk.pet{padding-top:12px}
+.pet-head h1{font-size:clamp(1.4rem,6vw,2.1rem);margin:2px 0 6px}
+.pet-head .pet-disc{margin:0 auto 6px;padding:8px 12px;font-size:.84rem;gap:8px}
+.pet-head .pet-disc svg{width:20px;height:20px}
+.pet-head .pet-lead{margin:0 auto 10px;font-size:.95rem;line-height:1.45}
+.pet-photo{padding:14px 16px}
+.pet-photo h2{margin-bottom:6px}
+.pet-photo .pet-actions{margin:4px 0 8px}
+.pet-photo .pet-honest{text-align:left;margin:4px 0 8px}
+.pet-readbar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  background:rgba(255,255,255,.94);box-shadow:0 -6px 18px rgba(14,20,48,.12);display:flex;justify-content:center}
+.pet-readbar .btn{width:100%;max-width:520px;min-height:52px}
+.pet-readbar[hidden]{display:none}
+body.pet-bar-on main.pet{padding-bottom:110px}

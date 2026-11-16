@@ -122,7 +122,7 @@
       const lines = res && Array.isArray(res.lines) ? res.lines.map(String) : [];
       if (lines.length) add("compat", lines.concat([KB.compatFoot[lang]]));
     }
-    const out = { lang, source: "local", domain: "pet", species: x.species, coat: t.coat, name: own, sections, lucky: { colour, day },
+    const out = { lang, source: "local", domain: "pet", species: x.species, coat: t.coat, eyes: t.eyes, ears: t.ears, name: own, typedName: x.name, sections, lucky: { colour, day },
       honest: HONEST[lang], disclaimer: DISC[lang], reminder: KB.reminder[lang], notes: {} };
     if (x.humanSeen) out.notes.human = KB.human[lang];
     return out;
@@ -130,33 +130,41 @@
 
   /* ---- the share card's data (drawn by lensiq-pet-card.js) ---- */
   const CARD_T = {
-    title: { th: "{n} · ดูลักษณะน้อง{sp}", en: "{N} · pet face reading", zh: "{n} · 宠物相术" },
+    title: { th: "ดูลักษณะน้อง{sp} · LENSIQ", en: "Pet face reading · LENSIQ", zh: "宠物相术 · LENSIQ" },
     lucky: { th: "สีมงคล {c} · วันดี {d}", en: "Lucky colour {c} · good day {d}", zh: "幸运色 {c} · 好日子 {d}" },
   };
+  /** the card's data. petName = the name the owner typed, in whatever script (it is the owner's own word, drawn as the
+   *  headline and never linted or translated); every other string is generated in the page language (cardText). */
   function cardModel(res, opts) {
     const o = opts || {}, lang = langOf(res && res.lang);
     const sec = id => ((res.sections || []).find(s => s.id === id) || { paragraphs: [] }).paragraphs;
-    const sp = res.species || "cat", nm = res.name || KB.defName[sp][lang];
+    const sp = res.species || "cat", coat = res.coat || "orange";
     const lines = [sec("personality")[0], sec("likes")[1] || sec("likes")[0], sec("bond")[0]].filter(Boolean);
-    const lk = res.lucky || {};
+    const lk = res.lucky || {}, typed = String(res.typedName || "").trim();
+    const hl = KB && KB.headline && KB.headline[coat] ? KB.headline[coat][lang] : "";
     return {
-      lang, species: sp, coat: res.coat || "orange", photo: !!o.photo, theme: o.theme || "sunny",
-      title: fill(CARD_T.title[lang], { n: nm, N: lang === "en" ? cap(nm) : nm, sp: KB.species[sp][lang] }),
+      lang, species: sp, coat, eyes: res.eyes || "gold", ears: res.ears || "up", photo: !!o.photo, theme: o.theme || "sunny", size: o.size || "post",
+      petName: typed || KB.defName[sp][lang].replace(/^./, c => (lang === "en" ? c.toUpperCase() : c)),
+      headline: hl, title: fill(CARD_T.title[lang], { sp: KB.species[sp][lang] }),
       lines, lucky: lk.colour ? fill(CARD_T.lucky[lang], { c: lk.colour.name, d: lk.day.name }) : "",
       hex: lk.colour ? lk.colour.hex : "#f2b705",
       honest: HONEST[lang], disclaimer: DISC[lang], link: LINK,
     };
   }
-  function cardText(m) { return [m.title].concat(m.lines, m.lucky ? [m.lucky] : [], [m.honest, m.disclaimer, m.link]).filter(Boolean); }
+  function cardText(m) { return [m.title, m.headline].concat(m.lines, m.lucky ? [m.lucky] : [], [m.honest, m.disclaimer, m.link]).filter(Boolean); }
 
   /* ---- detections ---- */
+  // privacy (review round 1, D1): every person box at or above PRIVACY_MIN is blurred on the card, far below the 0.4 used for
+  // the on-page note; the detector itself is run at PRIVACY_MIN so that nothing above it is lost
+  const PRIVACY_MIN = 0.1;
   function pickDetections(dets, o) {
     const min = (o && o.min) || 0.1, pmin = (o && o.personMin) || 0.4;
     const ds = Array.isArray(dets) ? dets : [];
     const pets = ds.filter(d => (d.cls === CLASSES.cat || d.cls === CLASSES.dog) && d.score >= min).sort((a, b) => b.score - a.score);
-    const persons = ds.filter(d => d.cls === CLASSES.person && d.score >= pmin);
+    const blur = ds.filter(d => d.cls === CLASSES.person && d.score >= PRIVACY_MIN);
+    const persons = blur.filter(d => d.score >= pmin);
     const pet = pets[0] || null;
-    return { pet, species: pet ? (pet.cls === CLASSES.cat ? "cat" : "dog") : null, persons };
+    return { pet, species: pet ? (pet.cls === CLASSES.cat ? "cat" : "dog") : null, persons, blur };
   }
   function loadScript(src) {
     return new Promise((ok, no) => {
@@ -178,8 +186,11 @@
   // thresholds chosen on the DEV split only (tests/bench/pet-dev.tune.mjs, 148 Oxford-IIIT Pet images disjoint from the locked
   // set): 0.1 finds 95.9 % of the pets there (0.3: 92.6 %) with the head inside the box in 98.6 %
   async function detect(model, img) {
-    const dets = await root.LQDetect.detectYolox(model, img, { classes: [CLASSES.person, CLASSES.cat, CLASSES.dog], minScore: 0.1, max: 20 });
-    return pickDetections(dets);
+    // two passes: pets on their own, people on their own, so that a person box can never be removed by the overlap
+    // suppression of a higher-scoring pet box (a person holding the pet must still be found and blurred)
+    const pets = await root.LQDetect.detectYolox(model, img, { classes: [CLASSES.cat, CLASSES.dog], minScore: 0.1, max: 20 });
+    const people = await root.LQDetect.detectYolox(model, img, { classes: [CLASSES.person], minScore: PRIVACY_MIN, max: 30 });
+    return pickDetections(pets.concat(people));
   }
   /** a coat-colour hint from the centre of the pet box (the owner confirms or changes it) */
   function coatGuess(src, box) {
@@ -208,6 +219,6 @@
     } catch (e) { return null; }
   }
 
-  const api = { HONEST, DISC, LINK, CLASSES, TRAITS, PLANET_HEX, compose, cardModel, cardText, pickDetections, loadDetector, detect, coatGuess, lint, taksaSri, weekday, KB };
+  const api = { HONEST, DISC, LINK, CLASSES, PRIVACY_MIN, TRAITS, PLANET_HEX, compose, cardModel, cardText, pickDetections, loadDetector, detect, coatGuess, lint, taksaSri, weekday, KB };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQPet = api;
 })(typeof window !== "undefined" ? window : globalThis);
