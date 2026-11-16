@@ -233,8 +233,9 @@ const CAMERA = [
   { page: "checkout", start: null, stop: "#camBtn" },
   { page: "customers", start: "#scanToggle", stop: CAM_OFF, alsoPagehide: true },
   { page: "driver", pre: async p => { await setVal(p, "#tripForm [name=driver]", "สมชาย"); await setVal(p, "#tripForm [name=plate]", "1กข 1234"); },
-    // driver: during a trip the setup card (with "ปิดกล้อง") is scrolled out of reach; the user ends the trip ("จบเที่ยว") first
-    start: "#tripForm [type=submit]", stop: async p => { await tap(p, "#stop"); await CAM_OFF(p); }, alsoPagehide: true },
+    // AMENDED 2026-11-16 (amendment 6, after main 656712f added #camPowerLive): during a trip the "ปิดกล้อง" button shown in the
+    // trip panel (#camPowerLive) must release every track, without ending the trip first
+    start: "#tripForm [type=submit]", stop: async p => { await tap(p, "#camPowerLive"); }, alsoPagehide: true },
   { page: "exam-hall", pre: async p => { await setVal(p, "#room", "HALL1"); }, start: "#startCam", stop: null },
   { page: "exam-lab", pre: async p => { await setVal(p, "#room", "LAB1"); await setVal(p, "#seat", "12"); await setVal(p, "#consent", true); },
     // AMENDED 2026-11-16 (amendment 2): the candidate's own "ส่งข้อสอบและปิดกล้อง" (#endExam) must release the camera; it is reached
