@@ -63,7 +63,8 @@
   };
   const shown = el => {
     const r = el.getBoundingClientRect(), s = getComputedStyle(el);
-    return r.width > 0 && r.height > 0 && s.display !== "none" && s.visibility !== "hidden" && !el.closest("[hidden]");
+    // pointer-events none = a passing toast or a non-interactive overlay: the help link would not be tappable there
+    return r.width > 0 && r.height > 0 && s.display !== "none" && s.visibility !== "hidden" && s.pointerEvents !== "none" && !el.closest("[hidden]");
   };
   const isNotice = t => !!t && t.length <= 400 && NOTICE.some(p => p[0].test(t) && p[1].test(t));
   function notices() {
@@ -77,7 +78,7 @@
     return out;
   }
 
-  let denied = false, before = new Set(), obs = null, timer = 0;
+  let denied = false, before = new Set(), obs = null, timer = 0, openWanted = false;
   function build(l) {
     const H = HELP[l], d = document.createElement("details");
     d.className = "lq-camhelp"; d.setAttribute("translate", "no"); d.setAttribute("data-i18n-skip", ""); d.dataset.lang = l;
@@ -89,6 +90,8 @@
     ol.style.margin = "4px 0 0"; ol.style.paddingLeft = "1.4em";
     for (const step of H.steps) { const li = document.createElement("li"); li.textContent = step; li.style.margin = "2px 0"; ol.appendChild(li); }
     d.append(s, ol);
+    if (openWanted) d.open = true;
+    d.addEventListener("toggle", () => { openWanted = d.open; });
     return d;
   }
   function place() {
@@ -96,16 +99,31 @@
     if (!denied) return;
     const l = lang(), list = notices().filter(n => !before.has(n.t));
     if (!list.length) return;
-    // the smallest notice is the page's own refusal line
-    list.sort((a, b) => a.t.length - b.t.length);
+    // a help block that still sits with a current notice stays where it is (pages rewrite their status often; moving it
+    // would close it under the user's finger); it is only redrawn when the language changed
+    const cur = document.querySelector(".lq-camhelp");
+    if (cur) {
+      const box = cur.dataset.after === "1" ? cur.previousElementSibling : cur.parentElement;
+      if (box && list.some(n => n.el === box || box.contains(n.el))) {
+        for (const x of document.querySelectorAll(".lq-camhelp")) if (x !== cur) x.remove();
+        if (cur.dataset.lang !== l) { const d = build(l); d.dataset.after = cur.dataset.after || ""; cur.replaceWith(d); }
+        return;
+      }
+    }
+    // the smallest notice is the page's own refusal line (same text length: the innermost element)
+    const depth = e => { let n = 0; for (let x = e; x; x = x.parentElement) n++; return n; };
+    list.sort((a, b) => a.t.length - b.t.length || depth(b.el) - depth(a.el));
     const host = list[0].el;
-    const have = host.querySelector(":scope > .lq-camhelp");
-    if (have && have.dataset.lang === l) return;
-    const open = !!(have && have.open);
-    if (have) have.remove();
+    // a notice drawn over the camera picture (absolute / fixed overlay, or inside a box that clips) has no room for the steps:
+    // the help goes right after that box instead, so it can open and be read (attendance ...)
+    let after = null;
+    for (let e = host, i = 0; e && e !== document.body && i < 4; e = e.parentElement, i++) {
+      const cs = getComputedStyle(e);
+      if (cs.position === "absolute" || cs.position === "fixed" || /hidden|clip/.test(cs.overflowY)) after = e;
+    }
+    for (const x of document.querySelectorAll(".lq-camhelp")) x.remove(); // one help block per page
     const d = build(l);
-    if (open) d.open = true;
-    host.appendChild(d);
+    if (after) { d.dataset.after = "1"; after.after(d); } else host.appendChild(d);
   }
   const later = () => { if (!timer) timer = setTimeout(place, 120); };
   function watch(on) {
@@ -120,7 +138,7 @@
     denied = true; watch(true); later();
   }
   function allowed() {
-    denied = false; watch(false);
+    denied = false; openWanted = false; watch(false);
     for (const d of document.querySelectorAll(".lq-camhelp")) d.remove();
   }
 
