@@ -5,17 +5,18 @@
  * phone's own share sheet. A person in the photo is never read: the reading ignores them and the card pixelates them.
  * Test seam (any host): window.__LQPET = {ready, st, useImage(src), cardText(), lastStream}. Scripted detections only on
  * localhost with ?fakedet (window.__LQ_FAKE_DET("pet")), as in lensiq-detect.js. */
-/* global LQPetCard, LQI18N */
 (function () {
   "use strict";
+  const W = /** @type {any} */ (window);
+  /** @param {string} s @returns {any} */
   const $ = s => document.querySelector(s);
-  const lang = () => (window.LQI18N && (LQI18N.lang === "en" || LQI18N.lang === "zh") ? LQI18N.lang : "th");
-  const T = (key, thai, vars) => (window.LQI18N ? LQI18N.tf(key, thai, vars) : thai.replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] != null ? vars[k] : m)));
-  const KB = window.LQPetKB, P = window.LQPet;
+  const lang = () => (W.LQI18N && (W.LQI18N.lang === "en" || W.LQI18N.lang === "zh") ? W.LQI18N.lang : "th");
+  const T = (key, thai, vars) => (W.LQI18N ? W.LQI18N.tf(key, thai, vars) : thai.replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] != null ? vars[k] : m)));
+  const KB = W.LQPetKB, P = W.LQPet;
   const isTest = () => /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("fakedet");
   const st = { img: null, det: null, detected: false, detFailed: false, stream: null, res: null, theme: "sunny", busy: 0 };
   const api = { ready: false, st, useImage, cardText: () => (st.model ? P.cardText(st.model) : []), lastStream: null };
-  window.__LQPET = api;
+  W.__LQPET = api;
 
   /* ---------- trait picker (rendered from the KB in the page language) ---------- */
   const GROUPS = [
@@ -44,13 +45,13 @@
     syncChips();
   }
   function syncChips() { for (const l of document.querySelectorAll("#petTraits .fk-opt")) l.classList.toggle("on", !!l.querySelector("input:checked")); }
-  function checked(name) { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : null; }
+  function checked(name) { const el = $(`input[name="${name}"]:checked`); return el ? el.value : null; }
   function values() {
-    const marks = [...document.querySelectorAll('input[name="petMark"]:checked')].map(i => i.value);
+    const marks = [...document.querySelectorAll('input[name="petMark"]:checked')].map(i => /** @type {HTMLInputElement} */ (i).value);
     const tr = { marks }; for (const g of ["coat", "eyes", "ears", "face", "size", "energy"]) tr[g] = checked(NAME[g]);
     return { species: checked("petSpecies"), traits: tr };
   }
-  function setRadio(name, v) { const el = document.querySelector(`input[name="${name}"][value="${v}"]`); if (el) { el.checked = true; syncChips(); } }
+  function setRadio(name, v) { const el = $(`input[name="${name}"][value="${v}"]`); if (el) { el.checked = true; syncChips(); } }
 
   /* ---------- photo ---------- */
   const MAXPX = 1600;
@@ -93,7 +94,7 @@
     const msg = $("#petDetMsg");
     try {
       let d;
-      if (isTest() && typeof window.__LQ_FAKE_DET === "function") d = P.pickDetections(window.__LQ_FAKE_DET("pet", Date.now()) || []);
+      if (isTest() && typeof W.__LQ_FAKE_DET === "function") d = P.pickDetections(W.__LQ_FAKE_DET("pet", Date.now()) || []);
       else {
         msg.textContent = T("pet.det.loading", "กำลังเตรียมตัวช่วยดูรูปในเครื่อง ครั้งแรกอาจใช้เวลาสักครู่…");
         const model = await withTimeout(P.loadDetector(), 45000);
@@ -192,7 +193,7 @@
     const on = $("#petPhotoOn").checked && !!st.img;
     st.model = P.cardModel(st.res, { photo: on, theme: st.theme });
     const cv = $("#petCard");
-    const info = LQPetCard.draw(cv, st.model, { theme: st.theme, photo: on ? st.img : null, pet: st.det && st.det.pet, persons: (st.det && st.det.persons) || [] });
+    const info = W.LQPetCard.draw(cv, st.model, { theme: st.theme, photo: on ? st.img : null, pet: st.det && st.det.pet, persons: (st.det && st.det.persons) || [] });
     cv.dataset.drawn = "1"; cv.dataset.photo = info.photo ? "1" : "0"; cv.dataset.blur = String(info.blur || 0); cv.dataset.theme = info.theme;
     const note = $("#petCardNote");
     if ($("#petPhotoOn").checked && !st.img) note.textContent = T("pet.card.noimg", "ยังไม่มีรูปน้อง การ์ดใช้ภาพวาดแทน");
@@ -229,7 +230,7 @@
     $("#petSnap").addEventListener("click", snap);
     $("#petForm").addEventListener("submit", e => { e.preventDefault(); read(false); });
     $("#petPhotoOn").addEventListener("change", drawCard);
-    for (const b of document.querySelectorAll(".pet-theme")) b.addEventListener("click", () => {
+    for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".pet-theme"))) b.addEventListener("click", () => {
       st.theme = b.dataset.theme;
       for (const o of document.querySelectorAll(".pet-theme")) o.setAttribute("aria-pressed", String(o === b));
       drawCard();

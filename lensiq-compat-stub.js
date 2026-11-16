@@ -54,7 +54,8 @@
   const DAYS = { th: ["วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"],
     en: ["a Sunday", "a Monday", "a Tuesday", "a Wednesday", "a Thursday", "a Friday", "a Saturday"],
     zh: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"] };
-  const wd = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || "")); if (!m) return -1; const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return isNaN(d) ? -1 : d.getUTCDay(); };
+  const wd = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || "")); if (!m) return -1;
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return isNaN(d.getTime()) ? -1 : d.getUTCDay(); };
   function pair(a, b, opts) {
     const o = opts || {}, lang = o.lang === "en" || o.lang === "zh" ? o.lang : "th", L = T[lang];
     const pa = wd(a && a.birth), pb = wd(b && b.birth);

@@ -63,7 +63,7 @@
   function hash(s) { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; }
   function weekday(iso) {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || "")); if (!m) return -1;
-    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return isNaN(d) ? -1 : d.getUTCDay();
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return isNaN(d.getTime()) ? -1 : d.getUTCDay();
   }
   const pick = (arr, h) => (Array.isArray(arr) ? arr[h % arr.length] : arr);
   const cap = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
