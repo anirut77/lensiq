@@ -4143,13 +4143,14 @@
   }
   // crisis flow v2 (docs/CRISIS-FLOW-V2.md): the acknowledgement card (wording fortune-crisis.js CARD, never echoes; "continue" shows the reading,
   // then the top button is the one help place: crisis-v2-live, decisions 2026-11-15 1 ก + 54 ข). REVIEW pending (L63).
-  const SUPPORT = { ...((CR && CR.CARD) || { th: { title: "", lead: "", body: "", after: "", foot: "", call: "", cont: "", contNote: "" } }) };
+  // card wording and calm filter (fortune-crisis-calm.js) load on demand: read at call time; ready() waits before a card or calm reading (fail closed)
+  const SUPPORT = { card: () => (CR && CR.CARD) || { th: {} }, ready: (f, o) => (CR && CR.ready ? CR.ready(!!((f && f.question) || o.userText)) : true) };
   // help lines on the card: the shared tap-to-call component (lensiq-helpline.js; 1323, 1669, 191, 1300, Samaritans; docs/CRISIS-RESOURCES.md)
   const callKit = () => (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : root.LQHelpline) || null;
   const supportLines = lang => (callKit() ? callKit().cardLines(lang) : ["1323", "1669", "191", "1300", "021136789"].map(n => ({ id: n.length > 4 ? "samaritans" : n, n, tel: n, btn: n, t: "" })));
   /** the acknowledgement card; `reading` (optional) is the calm reading shown on "continue" @param {any} [opts] @param {any} [reading] */
   function supportResult(opts, reading) {
-    const lang = langOf(opts), S0 = Object.assign({}, SUPPORT[lang] || SUPPORT.th, { lines: supportLines(lang) });
+    const lang = langOf(opts), C0 = SUPPORT.card(), S0 = Object.assign({}, C0[lang] || C0.th, { lines: supportLines(lang) });
     try { const ls = root.localStorage; if (ls) ls.setItem("lq-support-n", String((parseInt(ls.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }
     return {
       source: "support", crisis: true, lang, reviewStatus: "pending-professional-review",
@@ -4178,7 +4179,7 @@
     }
     box.appendChild(ul); box.appendChild(el("p", "fa-support-trust", s.after));
     // crisis flow v2: nothing is blocked; "continue" collapses the card and shows the reading (the top button stays the help place)
-    const S1 = SUPPORT[res && res.lang] || SUPPORT.th, contLabel = s.cont || S1.cont;
+    const C1 = SUPPORT.card(), S1 = C1[res && res.lang] || C1.th, contLabel = s.cont || S1.cont;
     const act = el("div", "fa-support-act"), go = el("button", "btn primary fa-continue", contLabel);
     go.type = "button"; go.setAttribute("data-lq-continue", "");
     act.appendChild(go); act.appendChild(el("p", "fa-support-cont-note", s.contNote || S1.contNote));
@@ -4197,7 +4198,8 @@
   }
   async function interpret(facts, opts = {}) {
     // ข้อความที่ผู้ใช้พิมพ์เอง (ชื่อเล่น คำถาม) มีสัญญาณวิกฤต → การ์ดก่อน แล้วคำทำนายแบบนุ่มนวลหลังกด "ดูคำทำนายต่อ" (ไม่ส่งไป AI)
-    if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) {
+    // the net reads the page now (synchronously), then waits for the card wording / calm filter if they are still loading
+    if ([crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText()), await SUPPORT.ready(facts, opts)][0]) {
       const reading = calmify(compose(withoutTyped(facts), Object.assign({}, opts, { straight: false, calm: true })));
       return CR && CR.acked && CR.acked() ? reading : supportResult(opts, reading); // continued past this text: the reading only
     }

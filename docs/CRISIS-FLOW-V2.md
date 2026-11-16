@@ -181,3 +181,27 @@ C0/C no guidance / paid / straight in calm or crisis, D prominent one-tap top bu
 along; the assertions that decision 54 or decision 23 changes were re-locked append-only with the reason
 (`evals-locks/fortune-honest.sha256`). Source of every input: synthetic.
 
+### Speed-budget fix (crisis-v2-live, 2026-11-16)
+
+CI run 43768157588 (shard 2/3) failed the locked speed budget (bytes before any user action) on cat-fortune, fortune, luckycolor,
+dream, fengshui and iching: fortune-crisis.js had grown from 36 KB to 76 KB and was loaded eagerly (also newly on cat-fortune).
+Budgets unchanged. Fix:
+
+- `fortune-crisis.js` keeps the hard net, the soft step, the page / tab state and `allow()` (about 42 KB; the long history
+  comments are left to git). The card wording, calm filter and hope frame, calm top button with "more help numbers" and the
+  printed help line moved to `fortune-crisis-calm.js` (about 33 KB), loaded on demand: in a calm tab at once, else on the first
+  touch of a free-text field (focus, pointer, typing) or when the card, soft step or calm state needs it. In Node it is required at
+  once (same module API).
+- Until it is in, fortune-crisis.js holds every click, submit, change and typed input on the page that could show a reading
+  (text in a free-text field, or a calm page) and replays it once installed; `FortuneAI.interpret` also waits (`CR.ready`). A
+  failed load is retried and held actions keep waiting (fail closed). Before it is in, the calm helpers fail closed (calmText
+  returns "", adviceKind "remedy", calmReading no sections).
+- cat-fortune.html: `fortune-calm-boot.js` loads canon, helpline and the crisis code only in a calm tab. fortune.html and
+  luckycolor.html no longer load lensiq-helpline.js up front (the calm part loads it when needed).
+- New locked test `tests/e2e/crisis-cold-throttled.e2e.mjs` (locked before the fix): cold page, 800 ms / 100 KB/s, crisis phrase
+  typed in one go and the reading asked for at once, dream / horoscope / tarot x TH / EN / ZH: card in the page language with
+  tap-to-call 1323, never a reading or the soft step. 9/9 before (ea8808e) and after. Source: synthetic.
+- Known limit: the unit check "no chat feature in the crisis files" (fortune-crisis-flow-v2.test.js §5) reads fortune-crisis.js
+  and the card code in fortune-ai.js; the moved code in fortune-crisis-calm.js has no textarea or chat either, but that file is
+  not in the locked check.
+
