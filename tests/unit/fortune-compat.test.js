@@ -10,8 +10,11 @@
 //       Yoni 14x14 standard matrix (onlinejyotish.com enemy pairs = 0, same = 4); Graha Maitri Parashara friendships
 //       (5/4/3/1/0.5/0); Gana bride-row matrix (saravali); Bhakoot 2/12, 5/9, 6/8 = 0 else 7; Nadi same = 0 else 8.
 //       Cases: Rohini (Taurus) + Pushya (Cancer) = 26, per-koota, five of them as published by hindutone.com;
-//       Rohini (Taurus) + Swati (Libra) = 13.5 (melooha.com shows the same pair under another variant: 16.5, documented);
-//       Ashwini + Bharani (Aries) = 34; Ashwini (Aries) + Jyeshtha (Scorpio) = 11; Ashwini + Shatabhisha Yoni = 4 and
+//       Rohini (Taurus) + Swati (Libra) = 14.5 (melooha.com shows the same pair under another variant: 16.5, documented);
+//       Ashwini + Bharani (Aries) = 34; Ashwini (Aries) + Jyeshtha (Scorpio) = 13; Ashwini + Shatabhisha Yoni = 4 and
+//       RE-LOCK 2026-11-16 (3), independent review D1: AGPL-derived value replaced by value derived from onlinejyotish.com
+//       yoni-kootam (scale same 4 / friendly 3 / neutral 2 / hostile 1 / sworn 0, the 7 sworn-enemy pairs) and aaps.space
+//       yoni-matching (the friendly pairs): Yoni Serpent-Buffalo 1 -> 2 (neutral), Horse-Deer 1 -> 3 (friendly);
 //       Aries + Virgo Bhakoot = 0 (dekhopanchang.com single-koota examples); Bhakoot / Nadi cancellations reported, never
 //       silently added to the total; Vashya of Sagittarius / Capricorn split at 15 degrees.
 //    M2 Nakshatra from the sidereal Moon (27 x 13°20′, 4 padas); Lahiri ayanamsa within 0.005° of the Indian Astronomical
@@ -83,11 +86,11 @@ const GOLD = [
   { name: "Rohini (Taurus) + Pushya (Cancer)", a: { nak: NAK.rohini, rashi: RASHI.taurus, deg: 15 }, b: { nak: NAK.pushya, rashi: RASHI.cancer, deg: 10 },
     k: [1, 1, 1.5, 2, 0.5, 5, 7, 8], total: 26 },
   { name: "Rohini (Taurus) + Swati (Libra)", a: { nak: NAK.rohini, rashi: RASHI.taurus, deg: 15 }, b: { nak: NAK.swati, rashi: RASHI.libra, deg: 13 },
-    k: [0, 1, 1.5, 1, 5, 5, 0, 0], total: 13.5, bhakootCancel: true },
+    k: [0, 1, 1.5, 2, 5, 5, 0, 0], total: 14.5, bhakootCancel: true },
   { name: "Ashwini + Bharani (Aries)", a: { nak: NAK.ashwini, rashi: RASHI.aries, deg: 5 }, b: { nak: NAK.bharani, rashi: RASHI.aries, deg: 20 },
     k: [1, 2, 3, 2, 5, 6, 7, 8], total: 34 },
   { name: "Ashwini (Aries) + Jyeshtha (Scorpio)", a: { nak: NAK.ashwini, rashi: RASHI.aries, deg: 5 }, b: { nak: NAK.jyeshtha, rashi: RASHI.scorpio, deg: 25 },
-    k: [1, 1, 3, 1, 5, 0, 0, 0], total: 11, bhakootCancel: true },
+    k: [1, 1, 3, 3, 5, 0, 0, 0], total: 13, bhakootCancel: true },
 ];
 test("M1 Ashtakoota golden cases: every koota and the total (common profile)", () => {
   const C = load();
