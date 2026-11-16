@@ -7,6 +7,12 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Compatibility ดวงสมพงษ์ (owner order 2026-11-16 A, branch `fortune-compat`, waiting for owner approval; not merged)
+
+- New page `compat.html` (fortune category, hub and menu): two people or a group of 3–8; Thai (birth-day pairs, year animals, Phrommachat year elements), BaZi (Day Masters, stem combinations, branch relations), Vedic Ashtakoota 36 points (sidereal Moon, Lahiri) and Western synastry, computed on the device; 7 categories with what fits, what needs care and how to adjust; agreement view per method and category; SVG wheel; group map and roles; consent statement before anyone else's data (L72); work-use line in group mode (L73).
+- Library: astronomy-engine 2.1.19 (MIT) vendored for the western planets, loaded on demand; aryaminus/astro and astroceleste-engine checked and not used (`docs/COMPAT-SOURCES.md`). The site's own Moon is within 0.72′ of astronomy-engine (synthetic comparison, 1900–2100).
+- Paid parts behind `LENSIQ_FORTUNE_PAID` (off): free = overview + 2 categories, every caution free with its step. Locked tests: `evals-locks/fortune-compat.sha256`.
+
 ## Fortune go-live (owner order 2026-11-15, branch `fortune-live` = fortune-a + main)
 
 - Final disclaimer "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" (TH / EN / ZH) on every fortune page and the fortune category; no idle "ready, the model loads when …" status on faceread, palm, booth or studio; help line in one place per fortune page (one small "อยากมีคนรับฟัง 1323" tap-to-call button near the top, the only number in the normal state (decision 54 ข; 1669 and the rest on the crisis card), crisis card unchanged). Tests: `tests/{unit,e2e}/fortune-live.*` (locked).

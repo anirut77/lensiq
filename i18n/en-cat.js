@@ -124,7 +124,7 @@
   "cat.fortune.lead": "Engagement activities drawn from Thai and Chinese traditions, plus auspicious-date planning.",
   "fortune.disc.line": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
   "cat.fortune.title": "Fortune & Auspicious Planning | LENSIQ",
-  "cat.fortune.count": "18 tools · pilot-ready 0 · experimental 0 · demo 18",
+  "cat.fortune.count": "19 tools · pilot-ready 0 · experimental 0 · demo 19",
   "cat.studio.name": "Studio & Media",
   "cat.studio.intro": "Portrait and ID photo studio, event photo booth, booth analytics and document conversion.",
   "cat.studio.title": "Studio & Media | LENSIQ",

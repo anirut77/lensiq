@@ -76,6 +76,8 @@
   "nav.iching.desc": "Coin toss, 64 hexagrams",
   "nav.zodiac.title": "Chinese Zodiac · Tai Sui",
   "nav.zodiac.desc": "Yearly outlook and compatible signs",
+  "nav.compat.title": "Compatibility",
+  "nav.compat.desc": "Two people or a whole group",
   "nav.astro.title": "Western Astrology",
   "nav.astro.desc": "Sun, Moon and Rising signs",
   "nav.dream.title": "Dream Interpretation",
