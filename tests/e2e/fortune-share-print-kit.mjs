@@ -1,5 +1,9 @@
-// tests/e2e/fortune-share-print.e2e.mjs — FIXED TEST SET, owner order 2026-11-16 items 1-2 ("fortune share & print"), Chrome.
+// tests/e2e/fortune-share-print-kit.mjs — FIXED TEST SET, owner order 2026-11-16 items 1-2 ("fortune share & print"), Chrome.
 // Written and locked BEFORE the build (~/LENSIQ-field/evals/fortune-share-print/, sha256 in evals-locks/fortune-share-print.sha256).
+// RE-LOCK 2026-11-16 (before any build measurement): the base run of the single file hit the runner's 15-minute per-file limit
+// (238 of 275 checks in 902 s), so the same checks now run from this kit in three files, one per language
+// (tests/e2e/fortune-share-print-{th,en,zh}.e2e.mjs). Nothing in a check changed; "S4" counts 18 cards per language file
+// instead of 54 in one file, and the calm-session check runs once (in the TH file), as before.
 // Pure half: tests/unit/fortune-share-print.test.js. WebKit (iPhone) half: tests/e2e/fortune-share-print-webkit.e2e.mjs.
 // Every fortune page (CLAUDE.md category 6, 18 pages) in TH / EN / ZH at 375 px; where the page has a reading, one is produced first
 // (same recipes as fortune-layout.e2e.mjs). Then, per page and language:
@@ -29,7 +33,6 @@ const CR = require("../../fortune-crisis.js");
 
 const S = JSON.stringify;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const LANGS = ["th", "en", "zh"];
 const HTML_LANG = { th: "th", en: "en", zh: "zh-Hans" };
 const LINE = {
   th: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
@@ -238,7 +241,8 @@ async function pdfText(reader, b64) {
 // Thai marks may come back from the PDF in another order: compare without spaces and without Thai vowel / tone marks
 const fold = s => String(s).normalize("NFC").replace(/[\sัิ-ฺ็-๎]+/g, "");
 
-export default async function ({ base, launch, check, fakeCams }) {
+/** one language per test file (fortune-share-print-{th,en,zh}.e2e.mjs) so each file stays well inside the runner's per-file limit */
+export async function run({ base, launch, check, fakeCams }, only) {
   const browser = await launch();
   const reader = await browser.newPage(null);
   const cards = [];
@@ -246,7 +250,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     await reader.goto(`${base}/converter.html?nosw`);
     await reader.waitFor(`!!window.pdfjsLib`, 10000);
     for (const [p, cfg] of Object.entries(PAGES)) {
-      for (const lang of LANGS) {
+      for (const lang of [only]) {
         const tag = `[${p}/${lang}]`;
         let page = null, err = null;
         try {
@@ -362,8 +366,8 @@ export default async function ({ base, launch, check, fakeCams }) {
       }
     }
 
-    await check("S4 card text from every page and language passes the reading safety filter and has no crisis words", async () => {
-      assert(cards.length >= 54, "cards collected: " + cards.length + " of 54");
+    await check(`S4 [${only}] card text from every page passes the reading safety filter and has no crisis words`, async () => {
+      assert(cards.length >= 18, "cards collected: " + cards.length + " of 18");
       const bad = [];
       for (const c of cards) for (const l of c.lines) {
         if (!FA.safety.isSafe(l)) bad.push(`${c.p}/${c.lang} unsafe: ${l}`);
@@ -372,7 +376,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(!bad.length, bad.slice(0, 10).join("\n"));
     });
 
-    await check("calm session (tab flag): no share or print button on any of the 18 pages, and both refuse", async () => {
+    if (only === "th") await check("calm session (tab flag): no share or print button on any of the 18 pages, and both refuse", async () => {
       const bad = [];
       for (const [p, cfg] of Object.entries(PAGES)) {
         const page = await openPage(browser, base, fakeCams, p, "th", [STUBS, `try { sessionStorage.setItem("lq-fortune-calm", "1"); } catch (e) {}`]);
@@ -390,7 +394,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     });
 
     const CRISIS = { th: "อยากตายจริงๆ ไม่ไหวแล้ว", en: "I want to kill myself", zh: "我不想活了" };
-    for (const lang of LANGS) {
+    for (const lang of [only]) {
       await check(`real path [${lang}]: crisis words in the tarot question → support card, no share or print button`, async () => {
         const page = await openPage(browser, base, fakeCams, "tarot", lang, [STUBS]);
         try {

@@ -6,3 +6,13 @@ c3fe23ed9bf5f01177f549f20b748ea523f3fc95cffb48f9f76d87937167ab84  fortune-share-
 2faad665d49cf3d89c2909ee85b28d2f7c28389697d935812a7e8b094972d1c0  tests/unit/fortune-share-print.test.js  # repo file
 0a0a99dda29bdb79b6c19a4dfd65638d7a33b3efa7be14716b5d796135d0f754  tests/e2e/fortune-share-print.e2e.mjs  # repo file
 c3fe23ed9bf5f01177f549f20b748ea523f3fc95cffb48f9f76d87937167ab84  tests/e2e/fortune-share-print-webkit.e2e.mjs  # repo file
+# locked 2026-11-16T00:40:55Z (tools/eval-guard.mjs lock, 4 files)
+360b57ffb5cbab039bbe80f9791c2ca94deb68215a8e374592769e7ade8599be  fortune-share-print-kit.mjs
+39170851bf6a978071083e039b1fb6f358d63a8da2eb76e9bbb2b8e58019d1fd  fortune-share-print-th.e2e.mjs
+bfbaff64090abcb8e17e6e2154c6d2d1721bd67a6fc2c047e5a9c8b2c80d0275  fortune-share-print-en.e2e.mjs
+0b4c97ee90aebe8060a225de7181551cf5ddb6211bc3d60d63d84d32b8097cf0  fortune-share-print-zh.e2e.mjs
+# RE-LOCK 2026-11-16 (before any build measurement): the single Chrome file hit the runner's 15-min per-file limit on the base run (238/275 checks in 902 s, all failing); same checks split into a kit + one file per language. tests/e2e/fortune-share-print.e2e.mjs is retired (its lines above stay as history).
+360b57ffb5cbab039bbe80f9791c2ca94deb68215a8e374592769e7ade8599be  tests/e2e/fortune-share-print-kit.mjs  # repo file
+39170851bf6a978071083e039b1fb6f358d63a8da2eb76e9bbb2b8e58019d1fd  tests/e2e/fortune-share-print-th.e2e.mjs  # repo file
+bfbaff64090abcb8e17e6e2154c6d2d1721bd67a6fc2c047e5a9c8b2c80d0275  tests/e2e/fortune-share-print-en.e2e.mjs  # repo file
+0b4c97ee90aebe8060a225de7181551cf5ddb6211bc3d60d63d84d32b8097cf0  tests/e2e/fortune-share-print-zh.e2e.mjs  # repo file
