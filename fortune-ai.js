@@ -4168,7 +4168,7 @@
   const counselText = lang => ({ th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" }[lang] || "ช่องทางให้คำปรึกษา");
   function supportResult(opts) {
     const lang = langOf(opts), S0 = Object.assign({}, SUPPORT[lang] || SUPPORT.th, { lines: supportLines(lang) });
-    try { const ls = root.localStorage; if (ls) ls.setItem("lq-support-n", String((parseInt(ls.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }
+    try { const ss = root.sessionStorage; if (ss) ss.setItem("lq-support-n", String((parseInt(ss.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }
     return {
       source: "support", crisis: true, lang, reviewStatus: "pending-professional-review",
       support: { title: S0.title, warm: S0.warm, more: S0.more.slice(), moreLabel: S0.moreLabel, guide: S0.guide, lines: S0.lines, call: S0.call,
@@ -4195,7 +4195,7 @@
     (s.more || []).forEach((t, i, a) => more.appendChild(el("p", i === a.length - 1 ? "fa-support-foot" : null, t)));
     box.appendChild(more); box.appendChild(el("p", "fa-support-guide", s.guide));
     const K = callKit(), lng = res && (res.lang === "en" || res.lang === "zh") ? res.lang : "th";
-    for (const l of s.lines) box.appendChild(K && K.LINES[l.id] ? K.el(doc, l.id, { lang: lng, cls: "fa-tel" }) : Object.assign(el("a", "lq-call-btn fa-tel", l.n), { href: "tel:" + l.tel }));
+    for (const l of s.lines) box.appendChild(K && K.LINES[l.id] ? K.el(doc, l.id, { lang: lng, cls: "fa-tel" }) : Object.assign(el("a", "lq-call-btn fa-tel", l.n), { href: "tel:" + l.tel, style: "display:inline-flex;align-items:center;min-height:44px;min-width:44px" }));
     const lp = el("p", "fa-support-link"), a = el("a", "lq-counsel-link", (s.counsel && s.counsel.text) || counselText(lng));
     a.setAttribute("href", "counselling.html"); lp.appendChild(a); box.appendChild(lp);
     container.appendChild(box);
@@ -4277,7 +4277,7 @@
         '</p><details class="fa-support-more"><summary>' + escapeHtml(sp.moreLabel) + "</summary>" +
         more.map((t, i) => "<p" + (i === more.length - 1 ? ' class="fa-support-foot"' : "") + ">" + escapeHtml(t) + "</p>").join("") +
         '</details><p class="fa-support-guide">' + escapeHtml(sp.guide) + "</p>" +
-        sp.lines.map(l => (K ? K.html(l.id, { lang: res.lang, cls: "fa-tel", keys: false }) : '<a href="tel:' + l.tel + '">' + l.n + "</a>")).join("") +
+        sp.lines.map(l => (K ? K.html(l.id, { lang: res.lang, cls: "fa-tel", keys: false }) : '<a href="tel:' + l.tel + '" style="display:inline-flex;align-items:center;min-height:44px;min-width:44px">' + l.n + "</a>")).join("") +
         '<p class="fa-support-link"><a class="lq-counsel-link" href="counselling.html">' + escapeHtml((sp.counsel && sp.counsel.text) || counselText(res.lang)) + "</a></p></section>";
     }
     let h = "";

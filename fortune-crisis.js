@@ -220,15 +220,8 @@
     renderSoft(container, lang, () => { ack(doc); proceed(); }, () => card(container));
     return true;
   }
-  /* ---------------- help line (owner order 2026-11-12; tap-to-call buttons 2026-11-14) ----------------
-     A calm line with real help resources on every fortune page and under every reading; it needs no detection.
-     Numbers, hours and cost are only what docs/CRISIS-RESOURCES.md verified on the agency's own page (checked 2026-11-14).
-     Owner order 2026-11-14 (Part B): the numbers are the shared tap-to-call component (lensiq-helpline.js): 1323 with the
-     owner's warm wording ("อยากมีคนรับฟัง โทร 1323" / "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง" / "บริการของกรมสุขภาพจิต"),
-     then 1669 (medical emergency; no hours or cost: not stated on niems.go.th). No verified Chinese-language line exists in
-     Thailand: the note says so in Chinese. HELP keeps the line's own text (label, note); tools/helpline.mjs writes the
-     static line into every fortune page (it shows without JavaScript); i18n/{en,zh}-common.js carry help.line.* and call.*.
-     2026-11-16: 1323 only + link to counselling.html (docs/CRISIS-RESOURCES.md); never sticky, after the reading. */
+  /* help line (owner orders 2026-11-12/14/16; docs/CRISIS-RESOURCES.md): the shared component (lensiq-helpline.js), 1323 only,
+     then the link to counselling.html; never sticky, after the reading. HELP keeps the label and the abroad note. */
   const LQH = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : null);
   /** the shared component (lensiq-helpline.js), looked up at call time in the browser @returns {any} */
   const callKit = () => LQH || /** @type {any} */ (root).LQHelpline || null;
@@ -274,17 +267,9 @@
       (l === "th" ? ' data-i18n-attr="aria-label:help.line.label"' : "") + ">" + calls.join(" ") + " " + note + "</aside>";
   }
 
-  /* ---------------- crisis state (owner order 2026-11-12) ----------------
-     Once the support card has been shown on a page (hard net, or the soft step's "talk" path), the PAGE is in the crisis
-     state until it is reloaded: FortuneAI shows the support card instead of any later reading, hooks (member, merit,
-     paid services) do not run, and <html data-lq-crisis="1"> hides every block marked data-lq-remedy (lucky items,
-     remedies, recommendations, lead forms, share cards) through styles.css. Any renderer of remedies, lucky items, paid
-     or merit services or straight-mode readings must ask allow(kind) first.
-     Crisis fix 4 (owner decision 2026-11-12): the state also holds for the browser session (this tab). ONE sessionStorage
-     boolean ("lq-fortune-calm" = "1"; no timestamp, no text) is set when the support card is shown or the soft step is
-     answered with "Just the reading". Every fortune page opened later in the same tab is then calm: gentle wording only, no
-     straight reading, no remedy / lucky-item / paid / merit block (<html data-lq-calm>), and the help line stays in view next
-     to the reading. Closing the tab clears it. Without storage the page-level behaviour stays. */
+  /* crisis state (owner orders 2026-11-12, crisis fix 4): after the support card the page is in the crisis state (<html
+     data-lq-crisis>, allow(kind) refuses remedies, paid, merit, straight); one sessionStorage boolean "lq-fortune-calm" keeps
+     later fortune pages in this tab calm. Details: docs/INCIDENT-2026-11-12-CRISIS-NET.md. */
   const SESSION_KEY = "lq-fortune-calm";
   /** the tab's session flag (false when storage is unavailable) */
   function sessionOn() { try { const st = root.sessionStorage; return !!(st && st.getItem(SESSION_KEY) === "1"); } catch (e) { return false; } }

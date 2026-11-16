@@ -407,10 +407,34 @@
   window.addEventListener("lq-lang", syncLang);
   if (window.LQI18N) { window.LQI18N.apply(header); var cb = document.querySelector(".lq-crumbs"); if (cb) window.LQI18N.apply(cb); syncLang(); }
 
-  // rule-6 switch LENSIQ_HELP_STICKY (lensiq-config.js): the 1323 control rides the sticky bar, else scrolls away
+  // rule-6 switch LENSIQ_HELP_STICKY (lensiq-config.js; decisions 69 ค, 75 ก): true = the 1323 icon sits IN the sticky bar and asks
+  // first (call 1323 / counselling page); false = the row stays above the page and scrolls away
   document.addEventListener("DOMContentLoaded", function () {
-    var t = document.getElementById("lqHelpTop");
-    if (t && window.LENSIQ_HELP_STICKY === true) t.style.cssText = "position:sticky;top:var(--nav-h);z-index:59;width:fit-content;margin-right:12px";
+    var t = document.getElementById("lqHelpTop"), a = t && t.querySelector("a"), end = header.querySelector(".nav-end");
+    if (!a || window.LENSIQ_HELP_STICKY !== true) return;
+    if (!end) { end = document.createElement("div"); end.className = "nav-end"; langBox.parentNode.insertBefore(end, langBox); end.appendChild(langBox); }
+    end.insertBefore(t, langBox); t.className = "lq-helpnav"; header.classList.add("has-help");
+    var st = document.head.appendChild(document.createElement("style"));
+    st.textContent = ".nav-end{grid-area:lang;justify-self:end;display:flex;align-items:center;gap:6px;min-width:0}.nav-end .lang-switch{grid-area:auto}" +
+      ".lq-helpnav{display:flex}.lq-helpnav .lq-call-mini-t{display:none}.lq-helpnav a.lq-call-btn[href]{padding:0 10px}" +
+      ".lq-help-dlg{width:min(340px,90vw);padding:18px;border:1px solid #bcd3e6;border-radius:16px;text-align:center}" +
+      ".lq-help-dlg>*{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:8px 0 0;border-radius:12px;font:inherit}" +
+      ".lq-help-dlg .lq-call-btn{background:#0b5d8f;color:#fff;font-weight:700}.lq-help-dlg button{border:1px solid #bcd3e6;background:#fff}" +
+      "@media(max-width:400.98px){.nav.has-help{padding:0 12px;column-gap:6px}.nav.has-help .lang-switch:not(.open) button[aria-pressed=false]{display:none}}";
+    a.setAttribute("aria-haspopup", "dialog");
+    a.addEventListener("click", function (e) {
+      e.preventDefault();
+      var d = document.body.appendChild(document.createElement("dialog")), l = window.LQI18N ? String(window.LQI18N.lang) : "";
+      d.className = "lq-help-dlg";
+      d.innerHTML = '<p></p><a class="lq-call-btn" href="tel:1323"></a><a href="counselling.html"></a><button type="button"></button>';
+      var c = d.children;
+      c[0].textContent = a.getAttribute("aria-label") || ""; c[1].textContent = T("call.1323.go", "โทร 1323");
+      c[2].textContent = T("counsel.link", "ช่องทางให้คำปรึกษา"); c[3].textContent = /** @type {any} */ ({ en: "Close", zh: "关闭" })[l] || "ปิด";
+      /** @type {HTMLElement} */ (c[3]).onclick = function () { d.close(); };
+      d.onclose = function () { d.remove(); a.focus(); };
+      d.showModal();
+    });
+    syncCompact(); setNavH();
   });
 
   window.LENSIQ_BRAND = BRAND;

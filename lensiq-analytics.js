@@ -189,7 +189,7 @@
   }
   // decision 77 ก (2026-11-16): never count the counselling page or a crisis-state view (no record of who opens crisis help)
   function crisisView() {
-    var p = String((root.location && root.location.pathname) || "").split("/").pop().replace(/\.html?$/i, "").toLowerCase();
+    var p = (String((root.location && root.location.pathname) || "").split("/").pop() || "").replace(/\.html?$/i, "").toLowerCase();
     if (/^counsel/.test(p) || calmOrCrisis()) return true;
     try { return !!(doc && doc.querySelector && doc.querySelector(".fa-support")); } catch (e) { return false; }
   }
