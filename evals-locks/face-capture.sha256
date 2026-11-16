@@ -27,3 +27,6 @@ f9d742636f75d2d4523f0c597705726480ec9a47d2e4125900e9115c70da7f0a  tests/e2e/face
 # round-2 re-lock (2026-11-17), before the round-2 fix was committed: hyst 0.005 still trapped the reviewer's case. The model's eye-centre distance is about 96 % of the IPD, so iPhone 4:3 / 58 mm / 40 cm measures 0.1233, not 0.1285 (found by running the locked R2-1 against the half-built fix). face-capture.test.js: RANGE hyst 0.005 -> 0.003 and the two messages (leaving far 0.123, near 0.317); the band test values 0.122 / 0.318 are unchanged. R2 test unchanged.
 # locked 2026-11-16T18:10:45Z (tools/eval-guard.mjs lock, 1 file)
 ecca79740686b1c3f193db5af909999151bc0a4560a5b4d3d243fabd98190289  tests/unit/face-capture.test.js
+# rename (2026-11-17): tests/unit/face-capture-r2.test.js -> face-capture-stability.test.js (repo rule: unit test files are feature-named, no -rN). Content byte-identical (same sha256).
+# locked 2026-11-16T18:37:50Z (tools/eval-guard.mjs lock, 1 file)
+7edcbeb9ebdd84ba1571b40549c58325b9cf846c2eb7075af4b6c09c64f2989d  tests/unit/face-capture-stability.test.js

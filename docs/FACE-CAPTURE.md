@@ -58,10 +58,13 @@ Eye distance as a share of the picture width (IPD 63 mm):
 | Android front 25 mm, 4:3 | 0.243 | 0.202 | 0.173 | 0.152 | 0.121 | 0.101 |
 
 **New rule**: eye distance (centre of points 36-41 to centre of 42-47) divided by the picture's short side, accepted from
-**0.12 to 0.32**; hysteresis 0.01 (leaving "far" needs 0.13, leaving "near" 0.31). No pixel size anywhere: the same face
+**0.12 to 0.32**; hysteresis 0.003 (leaving "far" needs 0.123, leaving "near" 0.317; 0.01 trapped a 58 mm face at 40 cm on a
+4:3 iPhone picture in "too far" when it came from further away, review 2026-11-17). No pixel size anywhere: the same face
 in a bigger or smaller picture gets the same answer. 30-40 cm passes on every camera above for eye distances 58-68 mm
 (smallest: 0.129 for a 58 mm eye distance at 40 cm on a 4:3 iPhone picture; largest: 0.302 for 68 mm at 30 cm on a 26 mm
-Android). As distances (63 mm):
+Android). As distances (63 mm), from the formula; the synthetic face model gives about 2 cm less at both ends because its
+landmark eye centres sit at 93-98 % of the IPD (iPhone 16:9 about 21-60 cm, 4:3 15-45, Android 24/25/26 mm 22-63 / 23-66 /
+24-68, Android 4:3 17-49, rear 24-68):
 
 | Camera | "move back a little" below | "move closer" beyond |
 |---|---|---|
@@ -120,17 +123,27 @@ Image checks run on a few hundred samples of the frame the page already reads; n
 
 - 3-2-1 (0.8 s each) runs only while the oval is green and the face stays within 0.12 eye distances (and 6 % of its
   size) of where the count started; any move restarts at 3. Then the page takes ~10 frames of the same face, as before.
-- One automatic capture per person: after a capture (automatic or manual) the next automatic one waits until the oval
-  has been off green for 1.5 s.
+- Selfie: one automatic capture per person: after a capture (automatic or manual) the next automatic one waits until the
+  oval has been off green for 1.5 s.
+- Rear camera: one consent tick = one person. After each capture the tick is cleared and the camera stops; the next person
+  needs a new tick and a new start (review D2).
 - The manual button (อ่านโหงวเฮ้ง) works whenever exactly one face is found, whatever the guidance says. It is off with no
-  face (nothing to read) and with two or more faces (never read a bystander; existing locked rule).
+  face (nothing to read) and with two or more faces (never read a bystander; existing locked rule). A manual capture taken
+  while the oval is not green shows the reading with the line "ถ่ายก่อนวงรีเป็นสีเขียว ผลอาจคลาดเคลื่อน" (EN "results may be
+  off", ZH "结果可能有偏差"), like the photo upload (review D4).
 
 ## 5. Rear camera: photographing someone else
 
 Buttons above the camera: "ถ่ายตัวเอง (กล้องหน้า)" / "ถ่ายให้คนอื่น (กล้องหลัง)". The rear option shows the consent line
 "ถ่ายภาพคนอื่นได้เฉพาะเมื่อเจ้าตัวรู้และยินยอมแล้วเท่านั้น ภาพไม่ถูกบันทึกและไม่ถูกส่งออกจากเครื่องนี้" and a tick box; the camera
 button stays off until it is ticked. A back camera reached any other way (the flip control or the camera list) without the
-tick is closed at once and the consent box is shown. Guidance in rear mode is worded for the person holding the phone.
+tick is closed at once and the consent box is shown. Unticking while the back camera is on stops it at once and cancels a
+running count; nothing is read (review D1). Guidance in rear mode is worded for the person holding the phone, and the
+English button reads "Read their face".
+
+Known gap: a back camera that reports neither a facing mode nor a recognisable name ("back", "rear", ...) is treated as a
+front camera by LQCam, so a back camera reached through the camera list on such a device would not be caught by the
+consent check. Low risk on iOS and Android (both report the facing); listed for the testers.
 
 ## 6. Side views (item 5): not added
 
@@ -147,5 +160,34 @@ mirror for styling, not a capture; luckycolor reads clothing colours. None of th
 ## 8. Privacy and speed
 
 On-device only: numbers from the detector and pixel samples of the frame already on the page; no picture stored or sent;
-no liveness, identity, emotion or beauty judgement. `lensiq-facecap.js` (about 29 KB, 10 KB gzipped) is fetched when the camera starts,
-together with the models, so the page weight at load is unchanged.
+no liveness, identity, emotion or beauty judgement. `lensiq-facecap.js` (about 32 KB, 11 KB gzipped) is fetched when the
+camera starts, together with the models, so the page weight at load is unchanged.
+
+Memory (review D3): the checks read only the region around the face (and a 32 x 32 copy when no face is found), reuse their
+typed buffers and select the top 5 % instead of sorting. faceread JS heap peak, tests/e2e/phone-memory.e2e.mjs, 60 s, local
+headless Chrome, 2 runs each: fd52345 9.8 / 10.8 MB (budget 10 MB), round 2 7.1 / 5.9 MB; main about 6.3-6.5 MB (reviewer's
+local runs). pixelChecks about 2.8 ms per call in Node on a 16:9 picture (was 14-25 ms).
+
+## 9. Testers' checklist (real phones; everything above is synthetic)
+
+1. At a normal bent arm (30-40 cm) the oval turns green without stretching the arm. Note the phone model and the distance
+   where it turns green.
+2. How often green is never reached. Head turn is strict: the "face forward" limit (yaw ratio 0.14, the reading's own rule)
+   is about 5 degrees on the synthetic face, and landmark jitter makes it worse. Reviewer simulation (Gaussian landmark
+   noise, 12 s at 4 fps, needs 10 green frames in a row), share of tries that never reach green:
+
+   | Noise (sigma, x eye distance) | Turned 0 deg | Turned 3 deg | Turned 5 deg |
+   |---|---|---|---|
+   | 0.02 | 0 % | 0 % | 100 % |
+   | 0.04 | 0 % | 11.5 % | 100 % |
+   | 0.06 | 0 % | 46.5 % | 100 % |
+
+   A real head probably turns less per degree than the synthetic one (its nose is relatively deep). The manual button
+   always works.
+3. False "ภาพไม่ชัด" (blur) on phones whose front camera smooths skin (beauty mode, many Android phones), and false
+   "แว่นสะท้อนแสง" (glare) under a ring light or bright overhead light with over-exposed skin under the eyes. These
+   thresholds are synthetic only.
+4. Backlight by a window: the "แสงอยู่ด้านหลัง" line appears, and goes when the person turns to the light.
+5. The same person at 30 cm and at 50 cm: the readings should be close (perspective makes the nose about 5 % larger at 30 cm).
+6. Rear camera: consent tick before start; unticking stops the camera; after one capture the tick is cleared. Try the camera
+   list on a phone with several back cameras (see the known gap above).
