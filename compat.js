@@ -456,7 +456,7 @@
       if (f.ab.cancel.bhakoot || f.ba.cancel.bhakoot) d.push(fill(T.vedCancel, { k: N.koota[lang].bhakoot }));
       if (f.ab.cancel.nadi || f.ba.cancel.nadi) d.push(fill(T.vedNadiEx, { k: N.koota[lang].nadi }));
       [[A, names[0]], [B, names[1]]].forEach(([P, nm]) => { if (P.vedic.uncertain) d.push(fill(T.vedUnsure, { a: nm, x: nk(P.vedic.alt[0]), y: nk(P.vedic.alt[1]) })); });
-      d.push(T.vedNoGana);
+      d.push(T.vedNoGana, T.vedYoniNote);
       if (res.rel !== "couple") d.push(T.vedNotCouple);
     } else {
       const f = M.facts;

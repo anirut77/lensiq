@@ -78,7 +78,7 @@ Every cell (14 × 14 = 196), by class:
 | The 15 pairs S3 calls friendly, e.g. Horse–Deer, Elephant–Sheep (30 cells, Monkey–Cat counted above) | 2 | not listed | class not given | single source only (S3), so not scored 3; scored 2 like every other pair |
 | Every other pair (136 cells) | 2 | not listed | class not given ("varies") | neutral 2: S2's middle value; S1 lists them as neither same nor hostile |
 
-Result: Yoni is 4 (same animal), 0 (the 7 sworn-enemy pairs) or 2 (everything else). No cell scores 3 or 1, because no friendly or
+Result: Yoni is 4 (same animal), 0 (the 7 sworn-enemy pairs) or 2 (everything else). The page says so in the Vedic detail, in TH / EN / ZH (`vedYoniNote` in `compat-kb.js`): only the "same animal" and "sworn enemy" levels are used and every other pair counts as neutral. This is the default until the owner answers the pending question on the Yoni levels. No cell scores 3 or 1, because no friendly or
 "hostile, not sworn" list is backed by two independent sources. Code: `yoniScore` in `compat.js`; the locked test D1 checks all
 196 cells. History: the first build used a grid identical to the AGPL PyJHora table (removed, review round 1); the second used
 S3's friendly list (single source, replaced under owner decision 72).

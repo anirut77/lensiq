@@ -240,7 +240,9 @@
   function mapHTML(rep) {
     const n = rep.names.length, cell = {};
     rep.map.forEach(c => { cell[c.i + "-" + c.j] = c; });
-    let t = '<div class="cp-mapwrap"><table class="cp-map" data-compat-map><caption>' + esc(T("compat.mapKey", "● เข้ากันดี · ◐ กลาง ๆ · ○ ใส่ใจเป็นพิเศษ")) + "</caption><thead><tr><th></th>" +
+    // the hint and the fade edge show only when the table is wider than the screen (fitMap after drawing)
+    let t = '<p class="cp-maphint" data-compat-maphint hidden>' + esc(T("compat.mapScroll", "เลื่อนตารางไปทางขวาเพื่อดูทุกคน →")) + "</p>" +
+      '<div class="cp-mapouter"><div class="cp-mapwrap"><table class="cp-map" data-compat-map><caption>' + esc(T("compat.mapKey", "● เข้ากันดี · ◐ กลาง ๆ · ○ ใส่ใจเป็นพิเศษ")) + "</caption><thead><tr><th></th>" +
       rep.names.map((nm, i) => '<th scope="col" title="' + esc(nm) + '">' + (i + 1) + "</th>").join("") + "</tr></thead><tbody>";
     for (let i = 0; i < n; i++) {
       t += '<tr><th scope="row">' + (i + 1) + ". " + esc(short(rep.names[i])) + "</th>";
@@ -251,10 +253,18 @@
       }
       t += "</tr>";
     }
-    t += "</tbody></table></div>";
+    t += "</tbody></table></div></div>";
     t += '<ul class="cp-pairs">' + rep.map.map(c => '<li data-lean="' + c.lean + '"><span aria-hidden="true">' + LEAN_SYM[c.lean] + "</span> " + esc(c.text) + (c.step ? '<br><span class="cp-step">' + esc(c.step) + "</span>" : "") + "</li>").join("") + "</ul>";
     return t;
   }
+  function fitMap() {
+    D.querySelectorAll("#cpResult .cp-mapouter").forEach(o => {
+      const w = o.querySelector(".cp-mapwrap"), wide = !!w && w.scrollWidth > w.clientWidth + 1, h = o.previousElementSibling;
+      o.classList.toggle("cp-scrolls", wide);
+      if (h && h.hasAttribute("data-compat-maphint")) /** @type {any} */ (h).hidden = !wide;
+    });
+  }
+  W.addEventListener("resize", fitMap);
   const short = s => (String(s).length > 10 ? String(s).slice(0, 9) + "…" : s);
   function draw() {
     if (!st.last) return;
@@ -280,6 +290,7 @@
     const h = D.createElement("h3"); h.className = "cp-catsh"; h.textContent = T("compat.catsH", "รายละเอียดแต่ละหมวด (แตะ \"อ่านเพิ่มเติม\" เพื่อเปิด)"); cats.appendChild(h);
     rep.sections.forEach(s => cats.appendChild(sectionEl(s, rep)));
     r.appendChild(cats);
+    fitMap();
     if (W.LQRead && W.LQRead.ensureStyle) try { W.LQRead.ensureStyle(D); } catch (e) { /* layout styles are also in compat.css */ }
   }
 

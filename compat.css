@@ -83,3 +83,9 @@
 .cp .cp-lead{font-size:.95rem;margin-bottom:12px}
 .cp #cpGo{position:sticky;bottom:10px;z-index:4;box-shadow:0 6px 18px rgba(14,20,48,.25)}
 @media (max-width:520px){.cp .fk-head .eyebrow{display:none}.cp .cp-lead{font-size:.9rem;line-height:1.55}.cp{padding-top:14px}}
+/* coordinator 2026-11-16: the 8-person map scrolls sideways (fade edge + hint); the sticky button never covers the consent note */
+.cp-mapouter{position:relative}
+.cp-mapouter.cp-scrolls::after{content:"";position:absolute;right:0;top:0;bottom:0;width:28px;pointer-events:none;background:linear-gradient(to right,rgba(255,255,255,0),#fff)}
+.cp-maphint{margin:2px 0 4px;font-size:13px;color:var(--muted)}
+.cp-consent{margin-bottom:8px}
+.cp #cpForm{padding-bottom:76px}

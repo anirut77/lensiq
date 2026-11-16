@@ -56,6 +56,7 @@
   "compat.agreeH": "各方法是否一致",
   "compat.agreeKey": "● 契合 · ◐ 居中 · ○ 需多用心 · – 无法计算",
   "compat.mapKey": "● 契合 · ◐ 居中 · ○ 需多用心",
+  "compat.mapScroll": "向右滑动表格查看所有人 →",
   "compat.agreeTag": "一致",
   "compat.differTag": "不同",
   "compat.careH": "需多用心",
