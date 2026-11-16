@@ -520,10 +520,8 @@
   "call.samaritans.org": "泰国撒玛利亚会（Samaritans of Thailand）",
   "counsel.link": "咨询服务渠道",
   "counsel.doc.title": "咨询服务渠道 | LENSIQ",
-  "counsel.doc.desc": "求助和咨询热线，服务时间已在各机构官方网站核实。点按按钮即可拨打。",
   "counsel.h1": "咨询服务渠道",
   "counsel.lead": "选择适合你的服务，然后点按按钮拨打。",
-  "counsel.src": "电话号码和服务时间均在各机构官方网站上核实。",
   "help.line.note": "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。",
   "ft.notice": "免费方案的限制尚未执行。我们会至少提前 30 天公布开始日期，限制在公告 30 天后开始生效。你随时可以导出自己的数据。",
   "home.pk.ft": "算命和通用工具免费。商业产品提供有限的免费方案：Gate 30 天试用（1 条车道，每天 100 个车牌）· 考勤 最多 5 人 · Exam 每场最多 5 名考生 · Crowd 每台设备每天 2 小时"

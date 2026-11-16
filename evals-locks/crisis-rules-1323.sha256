@@ -45,3 +45,7 @@ bc575841e1f1884effd6eaf65eb622c981a294284ad4272ee68adf19c3df9f7f  tests/unit/for
 41edb3c475372905bea716f32895467b7283dff22898943853437cd3c884b4b0  relock3/fortune-layout.test.js
 52dae4dacd6c9f3cddb1b2910a917b4c92186714eb29fd228d9d88a09401b00b  tests/e2e/fortune-live.e2e.mjs  # repo file (re-lock 3, merged)
 41edb3c475372905bea716f32895467b7283dff22898943853437cd3c884b4b0  tests/unit/fortune-layout.test.js  # repo file (re-lock 3, A5)
+# RE-LOCK 4 2026-11-16: owner decision 75 option ก (the 1323 icon stays in the sticky top bar by default): R6 now requires LENSIQ_HELP_STICKY shipped true. The e2e checks force the switch both ways (N5 false, N6 true) and are unchanged.
+# locked 2026-11-16T14:58:36Z (tools/eval-guard.mjs lock, 1 file)
+fe1135d272c0ecdf4b854bc2053c6e7c7f23ec8aa115b87ec32e287f5598fef8  relock4/crisis-rules-1323.test.js
+fe1135d272c0ecdf4b854bc2053c6e7c7f23ec8aa115b87ec32e287f5598fef8  tests/unit/crisis-rules-1323.test.js  # repo file (re-lock 4)

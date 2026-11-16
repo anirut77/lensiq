@@ -208,7 +208,5 @@ window.LENSIQ_TRYON = window.LENSIQ_TRYON === true;
 /* LENSIQ_CONVERT_SERVER: ตัวแปลง PDF -> DOCX บนเซิร์ฟเวอร์ (converter.js) มีเฉพาะเมื่อเปิดเว็บด้วย server.py ในเครื่อง
  *   ปิด (ค่าเริ่มต้น, เว็บนิ่ง): ไม่เรียก /api/convert และ /api/convert/status แปลงในเบราว์เซอร์แทน · ตั้ง true เมื่อเสิร์ฟด้วย server.py */
 window.LENSIQ_CONVERT_SERVER = window.LENSIQ_CONVERT_SERVER === true;
-/* LENSIQ_HELP_STICKY (owner decision 2026-11-16, crisis one-number rules, rule 6): ที่วางไอคอน 1323 ด้านบนของหน้าดูดวง
- *   false (ค่าเริ่มต้น) = อยู่ในส่วนหัวของหน้า เลื่อนหายไปตามเนื้อหา (ไม่มีอะไรลอยตามผู้อ่าน, กฎข้อ 5)
- *   true = ติดไปกับแถบบนที่ค้างอยู่ (sticky top bar) · เปลี่ยนบรรทัดเดียวนี้เท่านั้น (tests/e2e/crisis-rules-1323-a.e2e.mjs N5 / N6) */
-window.LENSIQ_HELP_STICKY = false;
+/* LENSIQ_HELP_STICKY (rule 6; owner decision 75 ก 2026-11-16): true = 1323 icon in the sticky top bar; false = scrolls away */
+window.LENSIQ_HELP_STICKY = true;

@@ -407,16 +407,11 @@
   window.addEventListener("lq-lang", syncLang);
   if (window.LQI18N) { window.LQI18N.apply(header); var cb = document.querySelector(".lq-crumbs"); if (cb) window.LQI18N.apply(cb); syncLang(); }
 
-  // rule-6 switch (owner decision 2026-11-16): window.LENSIQ_HELP_STICKY in lensiq-config.js. true = the top 1323 control rides
-  // the sticky top bar; false (shipped) = it stays in the header area and scrolls away. The top-bar dialog (fortune-top-compact)
-  // reads the same switch and adds LQHelpline.link() ("ช่องทางให้คำปรึกษา") under its call button.
-  var helpPin = function () {
+  // rule-6 switch LENSIQ_HELP_STICKY (lensiq-config.js): the 1323 control rides the sticky bar, else scrolls away
+  document.addEventListener("DOMContentLoaded", function () {
     var t = document.getElementById("lqHelpTop");
-    if (!t || window.LENSIQ_HELP_STICKY !== true) return;
-    t.classList.add("lq-help-sticky"); t.style.cssText = "position:sticky;top:var(--nav-h);z-index:59;pointer-events:none";
-    [].forEach.call(t.querySelectorAll("a"), function (/** @type {HTMLElement} */ a) { a.style.pointerEvents = "auto"; });
-  };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", helpPin); else helpPin();
+    if (t && window.LENSIQ_HELP_STICKY === true) t.style.cssText = "position:sticky;top:var(--nav-h);z-index:59;width:fit-content;margin-right:12px";
+  });
 
   window.LENSIQ_BRAND = BRAND;
 

@@ -8,9 +8,7 @@
  * second line never use the words in FORBIDDEN (tests/unit/helpline-call.test.js).
  * Users: tools/helpline.mjs writes the static HTML (fortune pages, medicine, nutrition, terms) with html(); fortune-crisis.js
  * (help line under a reading) and fortune-ai.js (crisis card) build it with el(). Thai output carries data-i18n keys
- * call.<id>.btn / .sub / .org; English and Chinese are in i18n/{en,zh}-common.js (unit-tested to match LINES).
- * Owner decision 2026-11-16 (crisis one-number rules): the fortune pages show only 1323; every line is listed on counselling.html
- * (brief form), reached by link() / linkHTML() ("ช่องทางให้คำปรึกษา") under the 1323 button. */
+ * call.<id>.btn / .sub / .org; English and Chinese are in i18n/{en,zh}-common.js (unit-tested to match LINES). */
 (function (root) {
   "use strict";
   /** btn = the whole wording (the link's accessible name), read as the short label followed by the call button go (with the
@@ -75,8 +73,7 @@
   /** compact drops the second line and the small print, except for 1323 (the owner's wording is always whole)
    *  @param {string} id @param {any} o */
   const full = (id, o) => !(o && o.brief) && (id === "1323" || !(o && o.compact));
-  /** brief (counselling.html, owner decision 2026-11-16): label + call button on one row and the second line (it carries the
-   *  verified hours), no small print @param {any} o */
+  /** brief (counselling.html): label, button, second line; no small print @param {any} o */
   const brief = (/** @type {any} */ o) => !!(o && o.brief);
 
   /** the component as HTML. Thai carries data-i18n keys (the page translates it); EN / ZH are fixed text.
@@ -130,22 +127,9 @@
   /** the crisis card's lines in order: {id, n, tel, btn, t (second line), org} @param {string} [lang] */
   const cardLines = lang => ORDER.map(id => { const x = LINES[id], W = x[langOf(lang)]; return { id, n: x.n, tel: x.tel, btn: W.btn, t: W.sub, org: W.org }; });
 
-  /* the counselling page (owner decision 2026-11-16 crisis one-number rules): the fortune pages show ONE number, 1323; every other
-     service is on counselling.html ("ช่องทางให้คำปรึกษา"), reached by one small text link under the 1323 button (crisis card,
-     help line; the top-bar dialog uses link() too). EN / ZH: i18n/{en,zh}-common.js "counsel.link". */
+  // 2026-11-16: the link under the 1323 button to counselling.html, which lists every line (i18n key counsel.link)
   const COUNSEL = { href: "counselling.html", th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" };
-  /** the small text link to counselling.html (textContent only). Thai with the data-i18n key when keys is set.
-   *  @param {any} doc @param {string} [lang] @param {boolean} [keys] */
-  function link(doc, lang, keys) {
-    const d = doc || root.document, l = langOf(lang), a = d.createElement("a");
-    a.className = "lq-counsel-link"; a.setAttribute("href", COUNSEL.href); a.textContent = COUNSEL[l];
-    if (keys && l === "th") a.setAttribute("data-i18n", "counsel.link");
-    return a;
-  }
-  /** the same link as HTML @param {string} [lang] @param {boolean} [keys] */
-  const linkHTML = (lang, keys) => '<a class="lq-counsel-link" href="' + COUNSEL.href + '"' + (keys && langOf(lang) === "th" ? ' data-i18n="counsel.link"' : "") + ">" +
-    esc(COUNSEL[langOf(lang)]) + "</a>";
 
-  const api = { LINES, ORDER, FORBIDDEN, forbiddenIn, html, el, ICON, cardLines, COUNSEL, link, linkHTML };
+  const api = { LINES, ORDER, FORBIDDEN, forbiddenIn, html, el, ICON, cardLines, COUNSEL };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQHelpline = api;
 })(typeof window !== "undefined" ? window : globalThis);

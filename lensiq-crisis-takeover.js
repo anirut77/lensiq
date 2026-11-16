@@ -51,7 +51,8 @@
       try {
         if (!card.isConnected) return;
         const h = card.querySelector("h3") || card, nav = d.querySelector(".nav");
-        const navB = nav ? Math.max(0, nav.getBoundingClientRect().bottom) : 0, b = h.getBoundingClientRect();
+        const pin = d.getElementById("lqHelpTop"), pinB = pin && w.getComputedStyle(pin).position === "sticky" ? pin.getBoundingClientRect().bottom : 0; // the 1323 icon in the sticky bar
+        const navB = Math.max(0, nav ? nav.getBoundingClientRect().bottom : 0, pinB), b = h.getBoundingClientRect();
         if (b.top < navB + 4 || b.bottom > w.innerHeight - 8) w.scrollTo(0, Math.max(0, w.scrollY + b.top - navB - 12));
       } catch (e) { /* no layout */ }
     };

@@ -228,9 +228,7 @@
      then 1669 (medical emergency; no hours or cost: not stated on niems.go.th). No verified Chinese-language line exists in
      Thailand: the note says so in Chinese. HELP keeps the line's own text (label, note); tools/helpline.mjs writes the
      static line into every fortune page (it shows without JavaScript); i18n/{en,zh}-common.js carry help.line.* and call.*.
-     Owner decision 2026-11-16 (crisis one-number rules): ONE number, 1323, then one small text link "ช่องทางให้คำปรึกษา" to
-     counselling.html, where 1669, 191, 1300, Samaritans and the abroad note (HELP.note) are listed. The line is never sticky
-     or fixed (rule 5) and comes after the reading (rule 4). */
+     2026-11-16: 1323 only + link to counselling.html (docs/CRISIS-RESOURCES.md); never sticky, after the reading. */
   const LQH = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : null);
   /** the shared component (lensiq-helpline.js), looked up at call time in the browser @returns {any} */
   const callKit = () => LQH || /** @type {any} */ (root).LQHelpline || null;
@@ -241,6 +239,7 @@
     en: { label: "Help lines", note: "Outside Thailand, call your local emergency number." },
     zh: { label: "求助热线", note: "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。" },
   };
+  const COUNSEL = { th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" };
   const helpLang = (/** @type {any} */ l) => (l === "en" || l === "zh" ? l : "th");
   /** the help line as an element (textContent only). With the page's i18n present it is built in Thai with data-i18n keys
    *  and translated by LQI18N (so it follows later language switches); without it, in the given language.
@@ -250,8 +249,7 @@
     const l = i18n ? "th" : helpLang(lang), L = HELP[l], K = callKit();
     /** @param {string} tag @param {string} [c] @param {string} [t] */
     const el = (tag, c, t) => { const e = d.createElement(tag); if (c) e.className = c; if (t != null) e.textContent = t; return e; };
-    // crisis fix 4: under a reading on a calm page (crisis state, calm session, soft step answered or distress typed); owner decision
-    // 2026-11-16 rule 5: in the page flow after the reading, never sticky
+    // under a reading on a calm page (crisis state, calm session, soft step answered or distress typed)
     const calmHere = !!cls && /lq-helpline-result/.test(cls) && (calmOn(d) || distress(d));
     if (calmHere) markCalm(d);
     const box = el("aside", "lq-helpline" + (cls ? " " + cls : "") + (calmHere ? " lq-helpline-calm" : ""));
@@ -260,10 +258,8 @@
       if (K) box.appendChild(K.el(d, n, { lang: l, cls: "lq-helpline-tel", compact: n !== "1323", keys: i18n }));
       else { const a = el("a", "lq-call-btn lq-helpline-tel", n); a.setAttribute("href", "tel:" + n); box.appendChild(a); } // component missing: the number still calls
     }
-    const more = el("span", "lq-helpline-more");
-    if (K && K.link) more.appendChild(K.link(d, l, i18n));
-    else { const a = el("a", "lq-counsel-link", "ช่องทางให้คำปรึกษา"); a.setAttribute("href", "counselling.html"); more.appendChild(a); }
-    box.appendChild(more);
+    const more = box.appendChild(el("span", "lq-helpline-more")), a = more.appendChild(el("a", "", COUNSEL[l]));
+    a.setAttribute("href", "counselling.html"); if (i18n) a.setAttribute("data-i18n", "counsel.link");
     if (i18n) { try { I.apply(box); } catch (e) { /* i18n not ready: Thai stays */ } }
     return box;
   }
@@ -273,7 +269,7 @@
     const l = helpLang(lang), L = HELP[l], K = callKit();
     const calls = HELP.tel.map(n => K ? K.html(n, { lang: l, cls: "lq-helpline-tel", compact: n !== "1323" })
       : '<a class="lq-call-btn lq-helpline-tel" href="tel:' + n + '">' + n + "</a>");
-    const note = '<span class="lq-helpline-more">' + (K && K.linkHTML ? K.linkHTML(l, true) : '<a class="lq-counsel-link" href="counselling.html">ช่องทางให้คำปรึกษา</a>') + "</span>";
+    const note = '<span class="lq-helpline-more"><a href="counselling.html"' + (l === "th" ? ' data-i18n="counsel.link"' : "") + ">" + COUNSEL[l] + "</a></span>";
     return '<aside class="lq-helpline' + (cls ? " " + escH(cls) : "") + '" role="note" aria-label="' + escH(L.label) + '"' +
       (l === "th" ? ' data-i18n-attr="aria-label:help.line.label"' : "") + ">" + calls.join(" ") + " " + note + "</aside>";
   }
@@ -305,8 +301,7 @@
       if (d.getElementById && !d.getElementById("lq-calm-style") && d.head) { const st = d.createElement("style"); st.id = "lq-calm-style"; st.textContent = CALM_CSS; d.head.appendChild(st); }
     } catch (e) { /* no DOM */ }
   }
-  /** calm page: one help line at the END of the reading's result section, after the text the person reads (owner decision
-   *  2026-11-16 rules 4 and 5: never sticky, nothing between sections); none when the reading already carries its own line
+  /** calm page: one help line at the end of the reading's result section (never sticky); none when the reading has its own
    *  @param {any} container the reading's container @param {string} [lang] */
   function calmDock(container, lang) {
     try {

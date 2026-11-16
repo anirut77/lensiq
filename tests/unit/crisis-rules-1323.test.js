@@ -16,7 +16,7 @@
 //      menus; PLATFORM is the nav "About" group, which R5 forbids).
 //   R5 counselling.html is linked only from the crisis card / help line (fortune-ai.js, fortune-crisis.js, lensiq-helpline.js),
 //      help.html and privacy.html (and the top-bar dialog when it exists in nav.js); not from the menu or any other page.
-//   R6 rule-6 switch: lensiq-config.js has exactly one line setting window.LENSIQ_HELP_STICKY, shipped false.
+//   R6 rule-6 switch: lensiq-config.js has exactly one line setting window.LENSIQ_HELP_STICKY, shipped true (re-lock 4: decision 75 ก).
 //   R7 docs: CRISIS-RESOURCES.md records the new placement (owner decision 2026-11-16, counselling.html); LEGAL-PACKET.md L63
 //      carries "reduced card: one number, button after the text, other numbers on a separate page; owner decision 2026-11-16".
 const test = require("node:test");
@@ -131,13 +131,14 @@ test("R5: counselling.html is linked only from the crisis card / help line, the 
   if (js.includes("nav.js")) assert.doesNotMatch(read("nav.js"), /href:\s*"counselling\.html"/, "not a menu item");
 });
 
-test("R6: one line in lensiq-config.js sets window.LENSIQ_HELP_STICKY; shipped false", () => {
+test("R6: one line in lensiq-config.js sets window.LENSIQ_HELP_STICKY; shipped true (decision 75 ก)", () => {
   const cfg = read("lensiq-config.js");
   const lines = cfg.split("\n").filter(l => /^\s*window\.LENSIQ_HELP_STICKY\s*=/.test(l));
   assert.equal(lines.length, 1, "exactly one line sets the switch");
   const win = {};
   new Function("window", "document", cfg)(win, undefined);
-  assert.equal(win.LENSIQ_HELP_STICKY, false, "shipped: non-sticky header area that scrolls away");
+  // RE-LOCK 4 2026-11-16: owner decision 75 option ก: the 1323 icon stays in the sticky top bar by default (was: shipped false)
+  assert.equal(win.LENSIQ_HELP_STICKY, true, "shipped: the 1323 icon in the sticky top bar (decision 75 ก)");
 });
 
 test("R7: docs record the rules (CRISIS-RESOURCES.md placement; LEGAL-PACKET.md L63 review list)", () => {
