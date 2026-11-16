@@ -484,12 +484,13 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     b.onclick = init; $("#engine").append(b);
   }
 
-  // the iPhone path (Safari aA -> Website Settings -> Camera), added to the address-bar hint; en / zh in i18n/*-rt-common.js
-  const IOS_CAM = "บนไอโฟน แตะปุ่ม aA ข้างช่องที่อยู่ของซาฟารี แล้วเลือก การตั้งค่าเว็บไซต์ แล้วเลือก กล้อง แล้วเลือก อนุญาต";
+  // the iPhone steps (iOS 18+: page-menu icon, older: aA) and the Settings fallback, ending with the retry step; always the END of the
+  // message after " — " so i18n/*-rt-common.js translates it whole (template "{msg} — <hint>")
+  const IOS_CAM = "บน iPhone: แตะปุ่มเมนูหน้าเว็บ (aA หรือไอคอนเมนู) ที่ช่องที่อยู่ใน Safari > การตั้งค่าเว็บไซต์ > กล้อง > อนุญาต หรือไปที่ การตั้งค่า > แอป > Safari > กล้อง > อนุญาต แล้วกดลองใหม่";
   function cameraError(e) {
     const m = {
       Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
-      NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่เพื่ออนุญาต แล้วกดลองใหม่ — " + IOS_CAM,
+      NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่เพื่ออนุญาต — " + IOS_CAM,
       SecurityError: "เบราว์เซอร์บล็อกการใช้กล้อง",
       NotFoundError: "ไม่พบกล้อง — ตรวจสอบการต่อกล้องหน้ารถ/กล้อง IR",
       NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ — ปิดโปรแกรมนั้นแล้วกดลองใหม่",

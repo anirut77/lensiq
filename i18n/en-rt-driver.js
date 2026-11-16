@@ -24,7 +24,7 @@
   "ทดสอบเสียง กรุณาพักรถ": "Sound test: please stop and rest",
   "กลับมาเฝ้าระวังต่อแล้ว": "Monitoring resumed",
   "สัญญาณกล้องหลุด กรุณาตรวจสอบสายกล้องแล้วกดลองใหม่": "Camera signal lost. Check the camera cable, then press Retry",
-  "กดไอคอนกล้องที่แถบที่อยู่เพื่ออนุญาต แล้วกดลองใหม่": "Click the camera icon in the address bar to allow access, then press Retry",
+  "กดไอคอนกล้องที่แถบที่อยู่เพื่ออนุญาต": "Click the camera icon in the address bar to allow access",
   "เบราว์เซอร์บล็อกการใช้กล้อง": "The browser blocked the camera",
   "ตรวจสอบการต่อกล้องหน้ารถ": "Check the in-car camera connection",
   "ปิดโปรแกรมนั้นแล้วกดลองใหม่": "Close that program, then press Retry",

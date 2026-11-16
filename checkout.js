@@ -298,6 +298,9 @@ function basicFeatures(px, w, h) {
 
 // ================= ส่วนหน้าจอ =================
 if (typeof document !== "undefined") (() => {
+  // the iPhone steps (iOS 18+: page-menu icon, older: aA) and the Settings fallback, ending with the retry step; always
+  // the END of the message after " — " so i18n/*-rt-common.js translates it whole (template "{msg} — <hint>")
+  const IOS_CAM = "บน iPhone: แตะปุ่มเมนูหน้าเว็บ (aA หรือไอคอนเมนู) ที่ช่องที่อยู่ใน Safari > การตั้งค่าเว็บไซต์ > กล้อง > อนุญาต หรือไปที่ การตั้งค่า > แอป > Safari > กล้อง > อนุญาต แล้วกดลองใหม่";
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -543,8 +546,6 @@ if (typeof document !== "undefined") (() => {
       await listCams();
     } catch (e) {
       if (e && e.name === "NotAllowedError") console.info("camera permission refused by the user"); else console.error(e); stopCam();
-      // the iPhone path (Safari aA -> Website Settings -> Camera), added to the address-bar hint; en / zh in i18n/*-rt-common.js
-      const IOS_CAM = "บนไอโฟน แตะปุ่ม aA ข้างช่องที่อยู่ของซาฟารี แล้วเลือก การตั้งค่าเว็บไซต์ แล้วเลือก กล้อง แล้วเลือก อนุญาต";
       const m = {
         Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
         NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่แล้วเลือก \"อนุญาต\" — " + IOS_CAM,
