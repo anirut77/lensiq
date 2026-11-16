@@ -1,0 +1,13 @@
+# evals-locks/fortune-pet.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-pet/ (owner rule 2026-11-13). Append-only.
+# fortune-pet (owner order 2026-11-16 part B, Pet face reading for dogs and cats) — locked BEFORE any product code on branch fortune-pet
+# (base origin/main 6319860). Set: 296 Oxford-IIIT Pet trainval images (select.mjs, 8 per breed; images stay outside the repo) + targets.json;
+# fixed unit / Chrome e2e / WebKit 390 px e2e / detector bench files. Before the build: unit file fails (lensiq-pet.js missing, 13 tests
+# unreachable), Chrome e2e 0/7. Logs: ~/LENSIQ-field/evals/fortune-pet/run-0-before-build-*.log
+# locked 2026-11-16T02:54:00Z (tools/eval-guard.mjs lock, 7 files)
+288a116629df2f412c12756ef7b5ba4c216f93f10fed2b2c55f6cd9b74b5a614  manifest.json
+db47d6e0d68785bee2fffaddc5aa705bc5056745f69de28abc9430bdc9eb1d99  targets.json
+696f9491fa9cc57e4141717bfce0a9b7e06ebc0babd707bccde4684311c26b16  select.mjs
+846779d65e4a0a90b7221bcbf8b99cdd06095fb3c9aec6a2283b131da43e8105  tests/unit/fortune-pet.test.js
+fa1319567232bdd7dfc05f7d6ad6f1355d97e080052e7794d84f2a7580f117d4  tests/e2e/fortune-pet.e2e.mjs
+9ac5578400198d30eecc513f17f53930f4136303fd6742b475991fda6f8ae2b3  tests/e2e/petread-webkit.e2e.mjs
+f6b653cc4affcfe84dc0386a6e625651b2f2d33565f99135a4f5ee4c436febc1  tests/bench/pet.bench.mjs
