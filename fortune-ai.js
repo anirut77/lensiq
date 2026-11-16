@@ -4123,7 +4123,7 @@
 
   /* ======================= รอบ 11: ตาข่ายความปลอดภัยเมื่อผู้ใช้อาจอยู่ในภาวะวิกฤต =======================
      ถ้าข้อความที่ผู้ใช้พิมพ์เอง (เล่าความฝัน ชื่อเล่น คำถาม) มีคำเรื่องทำร้ายตัวเอง/อยากตาย หรือถูกทำร้าย/ล่วงละเมิด (TH/EN/ZH)
-     → ไม่แสดงคำทำนาย แสดงการ์ดช่วยเหลือที่สงบ พร้อมสายด่วนสุขภาพจิต 1323 และเบอร์ฉุกเฉิน 1669 / 191 (และ 1300 สำหรับความรุนแรง)
+     → ไม่แสดงคำทำนาย แสดงการ์ดช่วยเหลือที่สงบ พร้อมปุ่มโทรสายด่วนสุขภาพจิต 1323 ปุ่มเดียว และลิงก์ "ช่องทางให้คำปรึกษา" (counselling.html: เบอร์อื่นทั้งหมด)
      ไม่เก็บข้อความของผู้ใช้ ไม่ส่งออกนอกเครื่อง (นับเฉพาะจำนวนครั้งในเครื่อง ไม่มีเนื้อหา)
      REVIEW: ถ้อยคำในการ์ดยังไม่ได้ผ่านการตรวจโดยผู้เชี่ยวชาญด้านสุขภาพจิตชาวไทย (reviewStatus = "pending-professional-review")
      ต้องให้ผู้เชี่ยวชาญตรวจก่อนอ้างว่าเป็นถ้อยคำที่ผ่านการรับรอง */
@@ -4141,46 +4141,45 @@
     }
     return false;
   }
+  /* Owner decision 2026-11-16 (crisis one-number rules): ONE number, ONE button, far fewer words, nothing interrupts reading.
+     The card reads, in this order: a short title, two or three short warm lines (warm), "อ่านเพิ่มเติม" (a closed <details> with
+     the longer text: more), the free comforting guidance (guide: no belief remedy, no price; hard limit 3), the 1323 call button,
+     then one small text link "ช่องทางให้คำปรึกษา" to counselling.html, where 1669, 191, 1300 and Samaritans are listed. No list,
+     nothing sticky. The wording keeps the reviewed card's spirit, shortened; it is on the mental-health professional's review
+     list (L63: "reduced card: one number, button after the text, other numbers on a separate page"). */
   const SUPPORT = {
-    th: {
-      title: "ขอหยุดคำทำนายไว้ก่อน",
-      lead: "ขอบคุณที่เล่าให้ฟัง สิ่งที่คุณพิมพ์มาฟังดูหนักใจ และสำคัญกว่าคำทำนายใด ๆ ตอนนี้เราจึงขอไม่อ่านดวงให้",
-      body: "ถ้าคุณกำลังคิดทำร้ายตัวเอง รู้สึกไม่ปลอดภัย หรือมีคนทำร้ายคุณ คุณไม่ต้องเผชิญเรื่องนี้คนเดียว มีคนพร้อมรับฟังและช่วยเหลือ",
-      after: "ถ้าทำได้ ลองบอกคนที่คุณไว้ใจสักคนว่ากำลังรู้สึกอย่างไร หรือไปที่โรงพยาบาลใกล้บ้าน ถ้าอยู่นอกประเทศไทย โทรเบอร์ฉุกเฉินของประเทศนั้น",
-      foot: "ข้อความนี้ไม่ได้บันทึกหรือส่งไปที่ใด · ถ้อยคำบนการ์ดนี้กำลังรอผู้เชี่ยวชาญด้านสุขภาพจิตตรวจทาน",
-      call: "โทร",
-    },
-    en: {
-      title: "Let's pause the reading",
-      lead: "Thank you for telling us. What you wrote sounds heavy, and it matters more than any reading, so we will not give a fortune right now.",
-      body: "If you are thinking about hurting yourself, feel unsafe, or someone is hurting you, you do not have to face this alone. People are ready to listen and help.",
-      after: "If you can, tell someone you trust how you feel, or go to the nearest hospital. Outside Thailand, call your local emergency number.",
-      foot: "Nothing you typed was saved or sent anywhere · The wording on this card is awaiting review by a mental-health professional",
-      call: "Call",
-    },
-    zh: {
-      title: "先暂停这次解读",
-      lead: "谢谢你愿意说出来。你写下的内容听起来很沉重，这比任何解读都重要，所以现在我们先不做占卜。",
-      body: "如果你正在想伤害自己、觉得不安全，或者有人在伤害你，你不需要独自面对。有人愿意倾听并提供帮助。",
-      after: "如果可以，请告诉一位你信任的人你现在的感受，或者去最近的医院。如果你不在泰国，请拨打当地的紧急电话。",
-      foot: "你输入的内容没有被保存或发送 · 这张卡片的措辞正在等待心理健康专业人士审阅",
-      call: "拨打",
-    },
+    th: { title: "ขอหยุดคำทำนายไว้ก่อน", moreLabel: "อ่านเพิ่มเติม", call: "โทร", warm: "ขอบคุณที่เล่าให้ฟัง เรื่องนี้ฟังดูหนักใจ คุณไม่ต้องเผชิญมันคนเดียว",
+      guide: "ลองหายใจช้า ๆ สักครู่ ถ้ามีคนที่คุณไว้ใจ ลองเล่าให้เขาฟังว่ากำลังรู้สึกอย่างไร",
+      more: ["สิ่งที่คุณพิมพ์มาสำคัญกว่าคำทำนายใด ๆ ตอนนี้เราจึงขอไม่อ่านดวงให้", "ถ้าคุณกำลังคิดทำร้ายตัวเอง รู้สึกไม่ปลอดภัย หรือมีคนทำร้ายคุณ มีคนพร้อมรับฟังและช่วยเหลือเสมอ " +
+        "ถ้าอยู่ในอันตรายตอนนี้ ไปที่โรงพยาบาลใกล้บ้านได้ ถ้าอยู่นอกประเทศไทย โทรเบอร์ฉุกเฉินของประเทศนั้น",
+        "ข้อความนี้ไม่ได้บันทึกหรือส่งไปที่ใด · ถ้อยคำบนการ์ดนี้กำลังรอผู้เชี่ยวชาญด้านสุขภาพจิตตรวจทาน"] },
+    en: { title: "Let's pause the reading", moreLabel: "Read more", call: "Call", warm: "Thank you for telling us. You don't have to face this alone.",
+      guide: "Take a slow breath. If there is someone you trust, try telling them how you feel.",
+      more: ["What you wrote matters more than any reading, so we will not give a fortune right now.", "If you are thinking about hurting yourself, feel unsafe, or someone " +
+        "is hurting you, people are ready to listen and help. If you are in danger now, go to the nearest hospital. Outside Thailand, call your local emergency number.",
+        "Nothing you typed was saved or sent anywhere · The wording on this card is awaiting review by a mental-health professional"] },
+    zh: { title: "先暂停这次解读", moreLabel: "阅读更多", call: "拨打", warm: "谢谢你愿意说出来。这听起来很沉重，你不需要独自面对。", guide: "先慢慢地呼吸一下。如果身边有你信任的人，试着告诉对方你现在的感受。",
+      more: ["你写下的内容比任何解读都重要，所以现在我们先不做占卜。", "如果你正在想伤害自己、觉得不安全，或者有人在伤害你，有人愿意倾听并提供帮助。如果你现在有危险，请去最近的医院。如果你不在泰国，请拨打当地的紧急电话。",
+        "你输入的内容没有被保存或发送 · 这张卡片的措辞正在等待心理健康专业人士审阅"] },
   };
-  // help lines on the card: the shared tap-to-call component (lensiq-helpline.js, owner order 2026-11-14 Part B), in its order
-  // 1323, 1669, 191, 1300, Samaritans; numbers and hours verified in docs/CRISIS-RESOURCES.md (checked 2026-11-14)
+  // the card's one call button: the shared component (lensiq-helpline.js), 1323 only (verified in docs/CRISIS-RESOURCES.md); the others: counselling.html
   const callKit = () => (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : root.LQHelpline) || null;
-  const supportLines = lang => (callKit() ? callKit().cardLines(lang) : ["1323", "1669", "191", "1300", "021136789"].map(n => ({ id: n.length > 4 ? "samaritans" : n, n, tel: n, btn: n, t: "" })));
+  const supportLines = lang => (callKit() ? callKit().cardLines(lang).filter(l => l.id === "1323") : [{ id: "1323", n: "1323", tel: "1323", btn: "1323", t: "" }]);
+  const counselText = lang => (callKit() && callKit().COUNSEL ? callKit().COUNSEL[lang] : { th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" }[lang]);
   function supportResult(opts) {
     const lang = langOf(opts), S0 = Object.assign({}, SUPPORT[lang] || SUPPORT.th, { lines: supportLines(lang) });
     try { const ls = root.localStorage; if (ls) ls.setItem("lq-support-n", String((parseInt(ls.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }
     return {
       source: "support", crisis: true, lang, reviewStatus: "pending-professional-review",
-      support: { title: S0.title, lead: S0.lead, body: S0.body, lines: S0.lines, after: S0.after, foot: S0.foot, call: S0.call },
-      sections: [{ id: "support", title: S0.title, paragraphs: [S0.lead, S0.body].concat(S0.lines.map(l => l.btn + " — " + l.t), [S0.after]) }],
+      support: { title: S0.title, warm: S0.warm, more: S0.more.slice(), moreLabel: S0.moreLabel, guide: S0.guide, lines: S0.lines, call: S0.call,
+        counsel: { href: "counselling.html", text: counselText(lang) } },
+      sections: [{ id: "support", title: S0.title, paragraphs: [S0.warm, S0.guide].concat(S0.lines.map(l => l.btn + " — " + l.t)) }],
     };
   }
-  const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support-foot{font-size:.85em;opacity:.75}";
+  const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support-warm{margin:0 0 .5em}" +
+    ".fa-support-more>summary{display:inline-flex;align-items:center;min-height:44px;cursor:pointer;color:#0b5d8f;text-decoration:underline}.fa-support-guide{margin:.4em 0}" +
+    ".fa-support-more>p{margin:.2em 0 .6em;font-size:.95em}.fa-support-foot{font-size:.85em;opacity:.75}.fa-support-link{margin:.2em 0 0;font-size:.9em}" +
+    ".fa-support-link a,.lq-helpline-more a{display:inline-flex;align-items:center;min-height:44px;color:#0b5d8f;text-decoration:underline}";
   /** วาดการ์ดช่วยเหลือ (ใช้ textContent ทั้งหมด) — container จะถูกล้างก่อน */
   function renderSupport(container, res) {
     if (!container) return null;
@@ -4191,12 +4190,14 @@
     const el = (tag, cls, text) => { const e = doc.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
     const box = el("section", "fa-support"), h = el("h3", null, s.title);
     h.id = "fa-h-" + (++uid); box.setAttribute("aria-labelledby", h.id); box.setAttribute("role", "region"); box.setAttribute("data-review", "pending-professional-review");
-    box.appendChild(h); box.appendChild(el("p", null, s.lead)); box.appendChild(el("p", null, s.body));
-    const ul = el("ul"), K = callKit(), lng = res && (res.lang === "en" || res.lang === "zh") ? res.lang : "th";
-    for (const l of s.lines) {
-      ul.appendChild(el("li")).appendChild(K && K.LINES[l.id] ? K.el(doc, l.id, { lang: lng, cls: "fa-tel" }) : Object.assign(el("a", "lq-call-btn fa-tel", l.n), { href: "tel:" + l.tel }));
-    }
-    box.appendChild(ul); box.appendChild(el("p", null, s.after)); box.appendChild(el("p", "fa-support-foot", s.foot));
+    box.appendChild(h); box.appendChild(el("p", "fa-support-warm", s.warm));
+    const more = el("details", "fa-support-more"); more.appendChild(el("summary", null, s.moreLabel));
+    (s.more || []).forEach((t, i, a) => more.appendChild(el("p", i === a.length - 1 ? "fa-support-foot" : null, t)));
+    box.appendChild(more); box.appendChild(el("p", "fa-support-guide", s.guide));
+    const K = callKit(), lng = res && (res.lang === "en" || res.lang === "zh") ? res.lang : "th";
+    for (const l of s.lines) box.appendChild(K && K.LINES[l.id] ? K.el(doc, l.id, { lang: lng, cls: "fa-tel" }) : Object.assign(el("a", "lq-call-btn fa-tel", l.n), { href: "tel:" + l.tel }));
+    const lp = el("p", "fa-support-link"), a = el("a", "lq-counsel-link", (s.counsel && s.counsel.text) || counselText(lng));
+    a.setAttribute("href", "counselling.html"); lp.appendChild(a); box.appendChild(lp);
     container.appendChild(box);
     // the page is now in the crisis state: no later reading, remedy, lucky item, paid / merit offer or straight mode on it
     if (CR && CR.setActive) CR.setActive(doc); if (root.LQCrisisTakeover) root.LQCrisisTakeover(box); // hotfix 2026-11-16: the card replaces EVERY result area, screen scrolls to it
@@ -4271,10 +4272,13 @@
     let res = result || { sections: [] };
     if (!res.crisis && CR && CR.active && CR.active(opts.doc)) res = supportResult({ lang: res.lang }); // crisis state: never a reading
     if (res.crisis && res.support) {
-      const sp = res.support;
-      return '<section class="fa-support" role="region" data-review="pending-professional-review"><h3>' + escapeHtml(sp.title) + "</h3><p>" + escapeHtml(sp.lead) + "</p><p>" + escapeHtml(sp.body) + "</p><ul>" +
-        sp.lines.map(l => "<li>" + (callKit() ? callKit().html(l.id, { lang: res.lang, cls: "fa-tel", keys: false }) : '<a href="tel:' + l.tel + '">' + l.n + "</a>") + "</li>").join("") +
-        "</ul><p>" + escapeHtml(sp.after) + '</p><p class="fa-support-foot">' + escapeHtml(sp.foot) + "</p></section>";
+      const sp = res.support, K = callKit(), more = sp.more || [];
+      return '<section class="fa-support" role="region" data-review="pending-professional-review"><h3>' + escapeHtml(sp.title) + '</h3><p class="fa-support-warm">' + escapeHtml(sp.warm) +
+        '</p><details class="fa-support-more"><summary>' + escapeHtml(sp.moreLabel) + "</summary>" +
+        more.map((t, i) => "<p" + (i === more.length - 1 ? ' class="fa-support-foot"' : "") + ">" + escapeHtml(t) + "</p>").join("") +
+        '</details><p class="fa-support-guide">' + escapeHtml(sp.guide) + "</p>" +
+        sp.lines.map(l => (K ? K.html(l.id, { lang: res.lang, cls: "fa-tel", keys: false }) : '<a href="tel:' + l.tel + '">' + l.n + "</a>")).join("") +
+        '<p class="fa-support-link"><a class="lq-counsel-link" href="counselling.html">' + escapeHtml((sp.counsel && sp.counsel.text) || counselText(res.lang)) + "</a></p></section>";
     }
     let h = "";
     if (res.source === "ai" && opts.aiBadge !== false) h += '<p class="fa-ai-badge">' + escapeHtml(badgeText(opts)) + "</p>";

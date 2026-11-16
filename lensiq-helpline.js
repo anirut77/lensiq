@@ -8,7 +8,9 @@
  * second line never use the words in FORBIDDEN (tests/unit/helpline-call.test.js).
  * Users: tools/helpline.mjs writes the static HTML (fortune pages, medicine, nutrition, terms) with html(); fortune-crisis.js
  * (help line under a reading) and fortune-ai.js (crisis card) build it with el(). Thai output carries data-i18n keys
- * call.<id>.btn / .sub / .org; English and Chinese are in i18n/{en,zh}-common.js (unit-tested to match LINES). */
+ * call.<id>.btn / .sub / .org; English and Chinese are in i18n/{en,zh}-common.js (unit-tested to match LINES).
+ * Owner decision 2026-11-16 (crisis one-number rules): the fortune pages show only 1323; every line is listed on counselling.html
+ * (brief form), reached by link() / linkHTML() ("ช่องทางให้คำปรึกษา") under the 1323 button. */
 (function (root) {
   "use strict";
   /** btn = the whole wording (the link's accessible name), read as the short label followed by the call button go (with the
@@ -22,7 +24,7 @@
       th: { btn: "อยากมีคนรับฟัง โทร 1323", label: "อยากมีคนรับฟัง", go: "โทร 1323", sub: "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง", org: "บริการของกรมสุขภาพจิต" },
       en: { btn: "Want someone to listen? Call 1323", label: "Want someone to listen?", go: "Call 1323", sub: "Talk any time, 24 hours a day, with someone ready to listen",
         org: "A service of the Department of Mental Health, Thailand" },
-      zh: { btn: "想找人倾听？拨打 1323", label: "想找人倾听？", go: "拨打 1323", sub: "24 小时随时可以聊，有人愿意倾听", org: "泰国心理健康司提供的服务" },
+      zh: { btn: "想找人倾听？拨打 1323", label: "想找人倾听？", go: "拨打 1323", sub: "随时可以聊，24 小时有人愿意倾听", org: "泰国心理健康司提供的服务" },
     },
     1669: {
       n: "1669", tel: "1669",
@@ -72,10 +74,13 @@
   const line = id => { const x = LINES[id]; if (!x) throw new Error("lensiq-helpline: unknown line " + id); return x; };
   /** compact drops the second line and the small print, except for 1323 (the owner's wording is always whole)
    *  @param {string} id @param {any} o */
-  const full = (id, o) => id === "1323" || !(o && o.compact);
+  const full = (id, o) => !(o && o.brief) && (id === "1323" || !(o && o.compact));
+  /** brief (counselling.html, owner decision 2026-11-16): label + call button on one row and the second line (it carries the
+   *  verified hours), no small print @param {any} o */
+  const brief = (/** @type {any} */ o) => !!(o && o.brief);
 
   /** the component as HTML. Thai carries data-i18n keys (the page translates it); EN / ZH are fixed text.
-   *  @param {string} id @param {{lang?: string, cls?: string, compact?: boolean, keys?: boolean}} [o] */
+   *  @param {string} id @param {{lang?: string, cls?: string, compact?: boolean, brief?: boolean, keys?: boolean}} [o] */
   function html(id, o) {
     const x = line(id), l = langOf(o && o.lang), W = x[l], keys = l === "th" && !(o && o.keys === false);
     const k = (/** @type {string} */ f) => (keys ? ' data-i18n="call.' + id + "." + f + '"' : "");
@@ -85,12 +90,13 @@
       '<a class="lq-call-btn' + cls + '" href="tel:' + x.tel + '" aria-label="' + esc(W.btn) + '"' +
       (keys ? ' data-i18n-attr="aria-label:call.' + id + '.btn"' : "") + ">" + ICON + '<span class="lq-call-go"' + k("go") + ">" + esc(W.go) + "</span></a>" +
       '<span class="lq-call-num">' + esc(x.n) + "</span>";
-    if (full(id, o)) h += '<span class="lq-call-sub"' + k("sub") + ">" + esc(W.sub) + "</span>" + '<small class="lq-call-org"' + k("org") + ">" + esc(W.org) + "</small>";
+    if (full(id, o) || brief(o)) h += '<span class="lq-call-sub"' + k("sub") + ">" + esc(W.sub) + "</span>";
+    if (full(id, o)) h += '<small class="lq-call-org"' + k("org") + ">" + esc(W.org) + "</small>";
     return h + "</span>";
   }
 
   /** the component as an element (textContent only, no innerHTML). Thai with keys when the page has LQI18N, else fixed text.
-   *  @param {any} doc @param {string} id @param {{lang?: string, cls?: string, compact?: boolean, keys?: boolean}} [o] */
+   *  @param {any} doc @param {string} id @param {{lang?: string, cls?: string, compact?: boolean, brief?: boolean, keys?: boolean}} [o] */
   function el(doc, id, o) {
     const d = doc || root.document, x = line(id), l = langOf(o && o.lang), W = x[l], keys = l === "th" && !!(o && o.keys);
     /** @param {string} tag @param {string} [c] @param {string} [t] @param {string} [f] */
@@ -116,13 +122,30 @@
     a.appendChild(mk("span", "lq-call-go", W.go, "go"));
     box.appendChild(a);
     box.appendChild(mk("span", "lq-call-num", x.n));
-    if (full(id, o)) { box.appendChild(mk("span", "lq-call-sub", W.sub, "sub")); box.appendChild(mk("small", "lq-call-org", W.org, "org")); }
+    if (full(id, o) || brief(o)) box.appendChild(mk("span", "lq-call-sub", W.sub, "sub"));
+    if (full(id, o)) box.appendChild(mk("small", "lq-call-org", W.org, "org"));
     return box;
   }
 
   /** the crisis card's lines in order: {id, n, tel, btn, t (second line), org} @param {string} [lang] */
   const cardLines = lang => ORDER.map(id => { const x = LINES[id], W = x[langOf(lang)]; return { id, n: x.n, tel: x.tel, btn: W.btn, t: W.sub, org: W.org }; });
 
-  const api = { LINES, ORDER, FORBIDDEN, forbiddenIn, html, el, ICON, cardLines };
+  /* the counselling page (owner decision 2026-11-16 crisis one-number rules): the fortune pages show ONE number, 1323; every other
+     service is on counselling.html ("ช่องทางให้คำปรึกษา"), reached by one small text link under the 1323 button (crisis card,
+     help line; the top-bar dialog uses link() too). EN / ZH: i18n/{en,zh}-common.js "counsel.link". */
+  const COUNSEL = { href: "counselling.html", th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" };
+  /** the small text link to counselling.html (textContent only). Thai with the data-i18n key when keys is set.
+   *  @param {any} doc @param {string} [lang] @param {boolean} [keys] */
+  function link(doc, lang, keys) {
+    const d = doc || root.document, l = langOf(lang), a = d.createElement("a");
+    a.className = "lq-counsel-link"; a.setAttribute("href", COUNSEL.href); a.textContent = COUNSEL[l];
+    if (keys && l === "th") a.setAttribute("data-i18n", "counsel.link");
+    return a;
+  }
+  /** the same link as HTML @param {string} [lang] @param {boolean} [keys] */
+  const linkHTML = (lang, keys) => '<a class="lq-counsel-link" href="' + COUNSEL.href + '"' + (keys && langOf(lang) === "th" ? ' data-i18n="counsel.link"' : "") + ">" +
+    esc(COUNSEL[langOf(lang)]) + "</a>";
+
+  const api = { LINES, ORDER, FORBIDDEN, forbiddenIn, html, el, ICON, cardLines, COUNSEL, link, linkHTML };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQHelpline = api;
 })(typeof window !== "undefined" ? window : globalThis);

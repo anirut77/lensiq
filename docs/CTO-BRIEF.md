@@ -7,6 +7,15 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Crisis one-number rules (owner decision 2026-11-16, branch `crisis-rules-1323`, waiting for independent review)
+
+Every fortune page shows one number, 1323. The crisis card is short: title, 2–3 warm lines ("อ่านเพิ่มเติม" folds the rest),
+free comforting guidance, the "โทร 1323" button, then one small link to the new platform page `counselling.html`, which lists
+1323, 1669, 191, 1300 and Samaritans (one row each, call button, verified hours; crisis net loaded; not in the menus). The
+calm-state line is 1323 plus the link, after the reading, never sticky. Rule-6 switch: `window.LENSIQ_HELP_STICKY` in
+`lensiq-config.js` (false shipped: the top 1323 control scrolls away). Fixed set `crisis-rules-1323` (locked first; source:
+synthetic, headless Chrome). Wording added to L63 for the mental-health professional. Details: `docs/CRISIS-RESOURCES.md`.
+
 ## Fortune go-live (owner order 2026-11-15, branch `fortune-live` = fortune-a + main)
 
 - Final disclaimer "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" (TH / EN / ZH) on every fortune page and the fortune category; no idle "ready, the model loads when …" status on faceread, palm, booth or studio; help line in one place per fortune page (one small "อยากมีคนรับฟัง 1323" tap-to-call button near the top, the only number in the normal state (decision 54 ข; 1669 and the rest on the crisis card), crisis card unchanged). Tests: `tests/{unit,e2e}/fortune-live.*` (locked).

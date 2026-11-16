@@ -61,7 +61,7 @@ export const SUPPORT_LINES = [
   { n: "1323",
     th: "อยากมีคนรับฟัง โทร 1323 — พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง",
     en: "Want someone to listen? Call 1323 — Talk any time, 24 hours a day, with someone ready to listen",
-    zh: "想找人倾听？拨打 1323 — 24 小时随时可以聊，有人愿意倾听" },
+    zh: "想找人倾听？拨打 1323 — 随时可以聊，24 小时有人愿意倾听" },
   { n: "1669",
     th: "เจ็บป่วยฉุกเฉิน โทร 1669 — ขอรถพยาบาลและความช่วยเหลือทางการแพทย์ฉุกเฉิน",
     en: "Medical emergency? Call 1669 — Ambulance and emergency medical help",

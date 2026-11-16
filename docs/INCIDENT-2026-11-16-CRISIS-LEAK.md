@@ -78,3 +78,12 @@ Went live (fix): _to be filled in at deploy (commit, deploy time UTC / Bangkok).
    (and `FortuneAI.crisis.active()`) before any validation.
 4. Add every new free-text input to `tests/e2e/crisis-net-hotfix-inventory.json` (with a flow in the e2e set) and to
    `docs/CRISIS-INPUT-INVENTORY.md`.
+
+### Follow-up: crisis one-number rules (owner decision 2026-11-16, branch `crisis-rules-1323`)
+
+The card that replaces every result area (above) was then reduced by the owner's order of 2026-11-16: one number (1323) and
+one call button, two or three warm lines with the longer text behind "อ่านเพิ่มเติม", the free comforting guidance, the
+button after the text, then one small link to `counselling.html` where 1669, 191, 1300 and Samaritans are listed. No sticky
+or floating help element. The takeover is unchanged: the result areas stay hidden and the card's contract (`.fa-support`
+with an `h3`) is the same. Placement and wording: `docs/CRISIS-RESOURCES.md`; review item: `docs/LEGAL-PACKET.md` L63;
+tests: `tests/unit/crisis-rules-1323.test.js`, `tests/e2e/crisis-rules-1323-{a,b,c}.e2e.mjs`.

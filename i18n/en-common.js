@@ -515,6 +515,12 @@
   "call.samaritans.go": "Call 02 113 6789",
   "call.samaritans.sub": "A listening line, 12:00–22:00",
   "call.samaritans.org": "Samaritans of Thailand",
+  "counsel.link": "Counselling services",
+  "counsel.doc.title": "Counselling services | LENSIQ",
+  "counsel.doc.desc": "Help and counselling lines, with hours checked on each agency's own website. Tap a button to call.",
+  "counsel.h1": "Counselling services",
+  "counsel.lead": "Choose the service that fits, then tap the button to call.",
+  "counsel.src": "Numbers and hours are checked on each agency's own website.",
   "help.line.note": "Outside Thailand, call your local emergency number.",
   "ft.notice": "The free-tier limits are not enforced yet. We will announce the start date at least 30 days ahead, and the limits start 30 days after the announcement. You can always export your data.",
   "home.pk.ft": "Fortune and the general tools are free. The business products have a limited free tier: Gate 30-day trial (1 lane, 100 plates per day) · Attendance up to 5 people · Exam up to 5 candidates per session · Crowd 2 hours per device per day"

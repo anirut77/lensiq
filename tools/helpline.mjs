@@ -41,7 +41,7 @@ export function wrapCall(h, indent) {
 }
 
 /** pages whose static tap-to-call components are re-drawn from the component (besides the fortune pages) */
-export const CALL_PAGES = ["medicine", "nutrition", "terms"];
+export const CALL_PAGES = ["medicine", "nutrition", "terms", "counselling"];
 
 /** one small tap-to-call button (owner order 2026-11-15 item 3): the label and the number are the button's own text, so a
  *  single tap calls; the whole wording (call.<n>.btn) is its accessible name. Thai with data-i18n keys. @param {string} n */
@@ -82,10 +82,12 @@ export function redrawCalls(html) {
     const lang = /data-i18n=/.test(block) || /[\u0E00-\u0E7F]/.test(btn) ? "th" : /[\u3400-\u9FFF]/.test(btn) ? "zh" : "en";
     const cls = ((/<a class="lq-call-btn([^"]*)"/.exec(block) || [])[1] || "").trim();
     const compact = !/class="lq-call-sub"/.test(block);
+    // brief (counselling.html, owner decision 2026-11-16): the second line (with the verified hours) but no small print
+    const brief = /class="lq-call-sub"/.test(block) && !/class="lq-call-org"/.test(block);
     const before = html.slice(html.lastIndexOf("\n", m.index) + 1, m.index), indent = (/^[ \t]*/.exec(before) || [""])[0];
     // a component after text on the same line starts on its own line (keeps every line short; the line break is whitespace)
     const lead = before.trim() ? html.slice(i, m.index).replace(/[ \t]+$/, "") + "\n" + indent + "  " : html.slice(i, m.index);
-    out += lead + wrapCall(LQH.html(id, { lang, cls: cls || undefined, compact, keys: lang === "th" && (/data-i18n=/.test(block) || !btn) }), indent);
+    out += lead + wrapCall(LQH.html(id, { lang, cls: cls || undefined, compact, brief, keys: lang === "th" && (/data-i18n=/.test(block) || !btn) }), indent);
     i = re.lastIndex; open.lastIndex = re.lastIndex;
   }
   return out + html.slice(i);
