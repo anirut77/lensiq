@@ -33,3 +33,9 @@ d833c6939c8bb705f8a833c44ae3cd37988f47b6bd769cd249b93503ceaa9968  tests/e2e/fort
 986ad232e532fc05b4b97d5c93bb3b88744dd13b183cd7dbf9417904259ac830  tests/unit/fortune-helpline.test.js  # repo file (re-lock)
 bc575841e1f1884effd6eaf65eb622c981a294284ad4272ee68adf19c3df9f7f  tests/unit/fortune-live.test.js  # repo file (re-lock)
 39e895388527f44ba129993b3eab337339cf875df01e66eb0817317100ad04f6  tests/unit/helpline-call.test.js  # repo file (re-lock)
+# RE-LOCK 2 2026-11-16, before any product measurement: R4 asked for tools/cat-data.cjs PLATFORM, which by definition is the nav.js About menu group (tests/unit/cat-pages.test.js) and so contradicts R5 (not in the menus). R4 now asks for UNLINKED + st support + not in PLATFORM. cat-pages.test.js: the support-page list adds counselling. No other assertion changed.
+# locked 2026-11-16T10:47:41Z (tools/eval-guard.mjs lock, 2 files)
+2b725ddce952141be7de9b11b4113771d3bb60e116460a0b83246104792d43f3  relock2/crisis-rules-1323.test.js
+49b52ac475553733483f2c9835688eb96c686671d93048f6f5b6d86e59fdcc0e  relock2/cat-pages.test.js
+2b725ddce952141be7de9b11b4113771d3bb60e116460a0b83246104792d43f3  tests/unit/crisis-rules-1323.test.js  # repo file (re-lock 2)
+49b52ac475553733483f2c9835688eb96c686671d93048f6f5b6d86e59fdcc0e  tests/unit/cat-pages.test.js  # repo file (re-lock 2)

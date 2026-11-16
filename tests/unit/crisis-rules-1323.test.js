@@ -12,7 +12,8 @@
 //   R4 counselling.html ("ช่องทางให้คำปรึกษา"): every service of docs/CRISIS-RESOURCES.md (1323, 1669, 191, 1300, Samaritans
 //      02 113 6789) once, as the shared component with its tel: link; Thai title with EN / ZH keys in i18n; loads the crisis net
 //      (fortune-crisis.js); no reading, ads, offers or prices; redrawn by tools/helpline.mjs (CALL_PAGES) so the daily re-check
-//      covers its numbers; registered as a platform page.
+//      covers its numbers; registered as a platform page (re-lock 2: in tools/cat-data.cjs UNLINKED, a support page outside the
+//      menus; PLATFORM is the nav "About" group, which R5 forbids).
 //   R5 counselling.html is linked only from the crisis card / help line (fortune-ai.js, fortune-crisis.js, lensiq-helpline.js),
 //      help.html and privacy.html (and the top-bar dialog when it exists in nav.js); not from the menu or any other page.
 //   R6 rule-6 switch: lensiq-config.js has exactly one line setting window.LENSIQ_HELP_STICKY, shipped false.
@@ -113,8 +114,11 @@ test("R4: counselling.html lists every verified service once with its call butto
     assert.ok(keys.length >= 2, "counselling page carries counsel.* keys");
     for (const k of keys) assert.match(d, new RegExp('"' + k.replace(/\./g, "\\.") + '"\\s*:'), lang + "-common has " + k);
   }
+  // RE-LOCK 2026-11-16 (2), before any product measurement: D.PLATFORM is by definition the nav.js "About" menu group
+  // (tests/unit/cat-pages.test.js), which R5 forbids for this page; a platform page outside the menus is listed in D.UNLINKED.
   const D = require(path.join(ROOT, "tools", "cat-data.cjs"));
-  assert.ok(D.PLATFORM.includes("counselling"), "registered as a platform page");
+  assert.ok(D.UNLINKED.counselling && D.PAGES.counselling && D.PAGES.counselling.st === "support", "registered as a platform (support) page, not in the menus");
+  assert.ok(!D.PLATFORM.includes("counselling"), "not in the nav About group");
 });
 
 test("R5: counselling.html is linked only from the crisis card / help line, the top-bar dialog, help.html and privacy.html", () => {
