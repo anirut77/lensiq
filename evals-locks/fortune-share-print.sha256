@@ -22,3 +22,9 @@ aa319b5b931716a7b4380f7f62d542afff9ac26dd409481c9d9c608155390870  fortune-share-
 # RE-LOCK 2026-11-16 (coordinator decisions on the owner's behalf, before the fix): option B — owner rule: no budget increases; lazy-load per coordinator decision 2026-11-16 (unit: loader on every page + fortune-share.js loadable, no eager tag; kit: S0 buttons within 2 s of a reading with no touch, the 6 budget pages within their unchanged budgets, hub / lucky colour first use = one scroll); Chinese PDF comparison NFKC (Kangxi radical read-back artefact), TH / EN stay NFC
 aa319b5b931716a7b4380f7f62d542afff9ac26dd409481c9d9c608155390870  tests/unit/fortune-share-print.test.js  # repo file
 7f8b2ad14f8f033a10de6b6a91693ef06310c40af9673c23dc745721b49c4222  tests/e2e/fortune-share-print-kit.mjs  # repo file
+# locked 2026-11-16T14:56:34Z (tools/eval-guard.mjs lock, 2 files)
+35af2b2c7aaea37083e77a5364ccdda5b850fc33a92696f4b4dc627d75d3dd39  fortune-share-print.test.js
+437e7e868dd7a8d62597cf38e5b58ec67539d797f52e3872d1a37601b6a05fdb  fortune-share-art-optin.e2e.mjs
+# APPEND 2026-11-16 (owner decision 76, option ก; locked before the fix): palm line drawing + birth-derived sign / animal art on the share card OFF by default, own switch reset on every open. Unit test appended (nothing above it changed); new Chrome file fortune-share-art-optin.e2e.mjs
+35af2b2c7aaea37083e77a5364ccdda5b850fc33a92696f4b4dc627d75d3dd39  tests/unit/fortune-share-print.test.js  # repo file
+437e7e868dd7a8d62597cf38e5b58ec67539d797f52e3872d1a37601b6a05fdb  tests/e2e/fortune-share-art-optin.e2e.mjs  # repo file

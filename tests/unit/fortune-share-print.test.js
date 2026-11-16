@@ -237,3 +237,28 @@ test("print stylesheet: clean page, groups expanded, colours kept, disclaimer on
   assert.ok(/print-color-adjust\s*:\s*exact/.test(print), "swatch colours are kept");
   assert.ok(/thead|table-header-group/.test(print) && /tfoot|table-footer-group/.test(print), "the disclaimer repeats on every printed page (table header / footer)");
 });
+
+// APPENDED 2026-11-16 (owner decision 76, option ก; locked before the fix, nothing above changed): on the share card the palm
+// line drawing (palm) and the sign / animal art derived from birth data (astro, zodiac) are OFF by default. Each page has its
+// own switch ("art"), separate from the photo and birth switches, off every time the dialog opens. Pages whose art is not
+// derived from the person (I Ching hexagram, dream symbols, face element glyph) are unchanged.
+test("decision 76: palm drawing and birth-derived sign / animal art are off by default, each behind its own switch", () => {
+  const GATED = ["astro", "palm", "zodiac"];
+  assert.deepEqual(PAGES.filter(p => SP.PAGES[p].artOpt).sort(), GATED, "exactly palm, astro and zodiac gate their card art");
+  for (const p of GATED) for (const l of LANGS) {
+    const off = SP.cardModel({ page: p, lang: l, gist: GIST_TH, date: DATE, link: LINK, hasPhoto: true });
+    assert.equal(off.art, false, `${p}/${l}: art must be off by default`);
+    const other = SP.cardModel({ page: p, lang: l, gist: GIST_TH, date: DATE, link: LINK, include: { photo: true, birth: true }, hasPhoto: true });
+    assert.equal(other.art, false, `${p}/${l}: the photo / birth switches do not turn the art on`);
+    const on = SP.cardModel({ page: p, lang: l, gist: GIST_TH, date: DATE, link: LINK, include: { art: true } });
+    assert.equal(on.art, true, `${p}/${l}: art when its own switch is on`);
+    const label = SP.artLabel(p, l);
+    assert.ok(String(label || "").trim() && SCRIPT[l].test(label), `${p}: art switch label in ${l}: ${label}`);
+  }
+  for (const p of ["iching", "dream", "faceread"]) {
+    assert.equal(SP.cardModel({ page: p, lang: "th", gist: GIST_TH, date: DATE, link: LINK }).art, true, p + ": art not derived from the person stays");
+  }
+  const card = fs.readFileSync(path.join(ROOT, "fortune-share-card.js"), "utf8");
+  assert.ok(/lqSpArt/.test(card), "the dialog has its own art switch (#lqSpArt)");
+  assert.ok(/lqSpArt[\s\S]{0,300}\.checked\s*=\s*false/.test(card), "the art switch is reset to off when the dialog opens");
+});
