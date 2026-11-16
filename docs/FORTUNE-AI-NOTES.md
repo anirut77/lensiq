@@ -917,3 +917,283 @@ REVIEW: ถ้อยคำในการ์ดยังไม่ได้ผ่
 * Hooks never break a reading: each call is wrapped in try/catch. */
 ```
 
+# fortune-brief.js developer notes (moved out of the file, round 6: the file travels inside fortune-read.js on 15 pages and report.html, speed budget)
+
+## #B1 (fortune-brief.js line 25, before `const NEAR = { personality: ["overview"], social: ["personality", "overview"], timing: ["o`)
+
+```
+// nearby areas whose lines may fill a short area, when they do not name another topic
+// round 4: a little wider (overview lines too), now that a short brief is no longer padded with a general step
+```
+
+## #B2 (fortune-brief.js line 28, before `const readsOk = t => !D.grammarIssues(t).length && !D.thJoinIssues(t) && !/คือ[^\s]{0,30}ค`)
+
+```
+// the longer line reads cleanly: no new grammar or join problem ("…คือพลังหลักของช่วงนี้คือ…")
+```
+
+## #B3 (fortune-brief.js line 44, before `function fullerLine(ctx, b, line) {`)
+
+```
+// a fuller wording of the same line: it contains the line's meaning, so it adds what the finding says (e.g. the slip's image)
+```
+
+## #B4 (fortune-brief.js line 67, before `function briefMore(ctx, briefs, lines) {`)
+
+```
+// round 4: a short brief is no longer padded with the topic's general step (stepLine): the same step read the same for every
+// user ("ข้อแนะนำทั่วไปคือทักทายเพื่อนเก่า…"); a brief that stays short is left out, in every language
+```
+
+## #B5 (fortune-brief.js line 77, before `const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");`)
+
+```
+/* ---- round 4 (RECHECK-3 N1 / N3 and the wrong-type frames): polish of a composed reading, TH / EN / ZH ----
+       - a group opens with what the finding says, not with its source ("ตามวันเกิดพุธ คุณ…", "วันเกิดพุธสื่อว่าคุณ…", "Looking at X, …",
+         "X suggests that …", "从X来看，…", "X显示，…" → the finding's content); the source stays named in the overview and in the
+         later lines of the group
+       - the same source lead ("ดูที่เส้นหัวใจ", "As for your Sunday birth", "就周日生人而言") at most once per reading
+       - Thai frames: a reporting verb never wraps an instruction (→ "ชวนให้…"), never stands with no subject (→ "…ว่าคุณ…");
+         "ปีนี้" is a time, not a source ("ปีนี้สะท้อนว่า…" → "ปีนี้ …")
+       - the closing line ("ลองเลือกสักหนึ่งข้อ…", "Pick the one suggestion…", "把这次解读当作参考…") is the last line of its group */
+```
+
+## #B6 (fortune-brief.js line 91, before `const HEDGE = { th: /^(?:ตามความเชื่อ(?:ไทย|จีน)?(?:แล้ว)?|ตามตำรา(?:ไทย|จีน)?|ในตำรา(?:ไท`)
+
+```
+// round 5 (RECHECK-4 R1): a hedge goes whole or not at all ("ตามความเชื่อไทย ฝัน…" never becomes "ไทย ฝัน…")
+```
+
+## #B7 (fortune-brief.js line 102, before `const PERSON_X = /^(?:ปกป้อง|ทุ่มเท|มีเป้าหมาย|รู้ใจ|รู้ตัว|เดินถูกทาง|บริหาร|โดดเด่น|ฉลาด`)
+
+```
+// a line about the person with no subject gets "คุณ" ("บริหารเงินเก่ง…" → "คุณบริหารเงินเก่ง…")
+```
+
+## #B8 (fortune-brief.js line 105, before `const BARE_TH = new RegExp("^(?:มี(?!ความหมาย|โอกาสที่จะเกิด|ตัวเลือก|ทาง|สิ่ง|เรื่อง|ข่าว`)
+
+```
+// round 5 (RECHECK-4 R1): a bare trait or predicate never opens a line without its subject ("โรแมนติก ใส่ใจบรรยากาศ…" →
+// "คุณโรแมนติก…", "สติปัญญาดี…" → "คุณมีสติปัญญาดี…"); existential lines ("มีตัวเลือกหลายทาง…") keep their form
+```
+
+## #B9 (fortune-brief.js line 115, before `const SUBJ_OK = new RegExp("^(?:คุณ|ช่วง|จังหวะ|ดาว|คน|โซน|ตาม|ใน|ทิศ|ภายใน|ถ้า|หาก|เป็นปี`)
+
+```
+// round 6 (RECHECK-5 R1): a group start needs a subject unless it opens with one (a noun, a time, a condition, a connector) or is
+// an instruction; the test is on the kind of start, not on a list of adjectives
+```
+
+## #B10 (fortune-brief.js line 137, before `if (rest.length < 15 || TH_TAIL.test(rest) || D.isImperative(rest)) return t;`)
+
+```
+// a short "คุณ…" clause alone would be a stock-looking visible start ("คุณเหมาะกับงานที่…" in many readings): keep the source
+// (once per reading; a second such group opens with the content after all)
+```
+
+## #B11 (fortune-brief.js line 141, before `const sp = out.split(" ");`)
+
+```
+// a very short first clause whose predicate goes on after the space ("คุณขยันและมีวิสัยทัศน์ ชอบเรียนรู้…") would be cut alone
+```
+
+## #B12 (fortune-brief.js line 146, before `const b = /^(\S{2,20}นี้)\s+(?=\S)/.exec(t);`)
+
+```
+// a bare "this …" label before a statement ("เซียมซีใบนี้ ความรักเติบโต…")
+```
+
+## #B13 (fortune-brief.js line 186, before `const rest = s.slice(at + all.length);`)
+
+```
+// the feature itself opens the line ("ตามธาตุไฟ หน้าผากกว้าง…" → "หน้าผากกว้าง…"): evidence is not a point of view
+```
+
+## #B14 (fortune-brief.js line 208, before `return q.replace(re, (all, sp) => {`)
+
+```
+// the same lead twice ("Looking at pair 45, … Looking at pair 56, …"): the second reads "As for …", a third drops the lead
+```
+
+## #B15 (fortune-brief.js line 229, before `const SLOT = { TW: "\\S{1,30}?", X: ".{1,90}?", D: ".{0,30}?" };`)
+
+```
+// the topic fallback's "some" line ("เรื่องการงานครั้งนี้ ตำราดูจากทิศเซิงชี่ ขอเล่าว่านำมาใช้กับเรื่องการงานได้อย่างไร") says
+// nothing: the group opens with the finding it names (RECHECK-3, fengshui)
+```
+
+## #B16 (fortune-brief.js line 234, before `function sourced(line, lang, items, done) {`)
+
+```
+// a brief line that does not name its finding in full says where it comes from, in brackets at its end ("การเงิน: ช่วงนี้การเงิน…
+// (เส้นการเงินช่วงอายุ 60–66)"): the line is this reading's, not a line every user with the same tone gets (round 4, U8)
+```
+
+## #B17 (fortune-brief.js line 241, before `const bare = String(it.label).replace(PAREN, "").trim(), det = (String(it.label).match(/[(`)
+
+```
+// the bare label (no brackets) and its bracketed detail ("your Yan Nian direction" + "southwest"); Thai shows the bare label only
+```
+
+## #B18 (fortune-brief.js line 247, before `if (tail && det && emptyCite(tail, lang) && !emptyCite(det, lang)) tail = bare + (lang ===`)
+
+```
+// never a warning in the brief's source (a flying star stays where the reading shows it in full)
+// a bare label that is only a topic word ("财运") keeps its detail ("财运，36岁起")
+```
+
+## #B19 (fortune-brief.js line 259, before `let ST = { kept: 0 };`)
+
+```
+// one kept source lead per reading (TH: the brief and the groups of the same reading share it): st.kept, st = the reading's state
+```
+
+## #B20 (fortune-brief.js line 261, before `function briefPolish(lines, items, st) {`)
+
+```
+// the Thai brief lines as they will be shown (lead dropped, source once), so the 90-character rule reads the shown text
+```
+
+## #B21 (fortune-brief.js line 266, before `const units = (t, lang) => { if (lang === "en") return String(t).toLowerCase().match(/[a-z`)
+
+```
+// the opened first line is (nearly) a line the reading already has: dice over words (EN) or character pairs (TH / ZH) >= 0.6
+```
+
+## #B22 (fortune-brief.js line 293, before `let o2 = o;`)
+
+```
+// keep the source where dropping it would leave a Thai group under 90 characters, or make its first line a copy of another line
+```
+
+## #B23 (fortune-brief.js line 296, before `if (short() && ST.name && o !== p0) o2 = emptyCite(ST.name.replace(PAREN, "").trim(), "th"`)
+
+```
+// short: the source moves to the end of the paragraph in brackets ("… (เจ้าชะตาดิน)") rather than leading it
+```
+
+## #B24 (fortune-brief.js line 298, before `if (!short() && !(lang !== "th" && f.length >= 10 && nearCopy(f, rest, lang)) && !(lang !=`)
+
+```
+// round 5: every source the first line lost is named right after that line (cite; was: numbered sources only, EN / ZH)
+```
+
+## #B25 (fortune-brief.js line 305, before `if (lang !== "th" && s.id !== "overview") { alsoPlain(s, lang, names); glossFirst(s, lang)`)
+
+```
+// round 6 (D3): after the repeated leads are dropped, an "also" line with nothing named before it says it plainly; a group that
+// opens with a glossary line names its finding first
+```
+
+## #B26 (fortune-brief.js line 314, before `if (lang === "th") for (const s of secs || []) if (s.id !== "brief" && s.id !== "advice" &`)
+
+```
+// round 5 (R1): whatever opened it, a Thai group never starts with a bare trait ("มั่นคงเหมือนภูเขา…" → "คุณมั่นคงเหมือนภูเขา…")
+```
+
+## #B27 (fortune-brief.js line 316, before `(secs || []).forEach((s, i) => { if (lang === "th" && s.paragraphs.join(" ").length < 90 &`)
+
+```
+// safety net: a group the polish left under 90 Thai characters, or a line it made a near copy of another, goes back as it was
+```
+
+## #B28 (fortune-brief.js line 324, before `if (s.id === "overview" && lang !== "th") overviewLeads(s, lang, names, items, secs.filter`)
+
+```
+// round 6: an EN / ZH overview whose content-first lines came out alike names each source first ("The family house (phanthu): …")
+```
+
+## #B29 (fortune-brief.js line 330, before `const CONNECT_TH = "ที่สำคัญ|สำคัญคือ|ยิ่งไปกว่านั้น|เพิ่มเติม|ด้านหนึ่ง|นอกเหนือจากนี้|นอ`)
+
+```
+/* ---- round 5 (RECHECK-4 R1 / R3 and the EN / ZH overview leads) ----
+       - a group whose first line lost its source names it right after that line, in brackets ("คุณโรแมนติก… (วันเกิดศุกร์) ดูที่…",
+         "Creative work suits you (your gentle eyes).", "……（温柔眼）。"), unless the group names it again before any back-reference;
+         a later "อีกความหมายของX…" / "Another side of X…" / "X的另一层意思是…" then reads as a second meaning of what was just named
+       - the EN / ZH overview: a sentence that opens with its source ("As for X, …", "Start with X: …", "Traditionally, X is read to
+         mean that …", "说到X，…", "X这一点说明，…") opens with what it says and names X in brackets at its end; a siam si slip names
+         the slip, then the verse ("Slip 22 (middling): your verse compares…", "第22签（中签）：签诗把…"), never under a meaning verb */
+```
+
+## #B30 (fortune-brief.js line 339, before `function endTh(t, it, names) {`)
+
+```
+// where the first meaning of the opened Thai line ends: the item's own meaning, else the next connector or finding, else the end
+```
+
+## #B31 (fortune-brief.js line 354, before `const st = stemsTh(names);`)
+
+```
+// round 6 (RECHECK-5 D1): never past a line that names another finding, anywhere near its start ("…ดีที่สุด น้ำหยินเด่นใน…")
+```
+
+## #B32 (fortune-brief.js line 363, before `const KIND_TH = /^(?:ธาตุประจำตัว|ธาตุ|เจ้าชะตา|วันเกิด|เกิดวัน|ลัคนาราศี|ราศี|มือธาตุ|เลข`)
+
+```
+// a finding's name without its kind word ("ธาตุประจำตัวน้ำหยิน กุ่ย (癸)" → "น้ำหยิน"), 4 letters or more
+```
+
+## #B33 (fortune-brief.js line 373, before `const GENERIC = /^(?:pair|slip|kua|card|line|star|house|area|year|month|element|planet|sig`)
+
+```
+// a generic word that also names a finding ("pair", "slip", "kua") is not the finding when a later line says "this pair"
+```
+
+## #B34 (fortune-brief.js line 405, before `const all0 = lo(s.paragraphs.join(" "));`)
+
+```
+// round 6 (RECHECK-5, non-blocking): the same citation at most twice per reading, when the group still names another finding
+// and has no line that leans on this one ("also", a glossary, a back-reference)
+```
+
+## #B35 (fortune-brief.js line 414, before `if (lang !== "th") {`)
+
+```
+// round 6 (RECHECK-5 D2): EN / ZH: a next sentence that opens with "It" / "它" takes the finding's name instead of a bracket
+```
+
+## #B36 (fortune-brief.js line 419, before `if (lang === "th" && /^\s*(?:ตามตำรา|ตามความเชื่อ|ว่ากันว่า|เชื่อกันว่า|หมายความว่า|บ่งบอก`)
+
+```
+// a reporting phrase right after the bracket would read as the bracket's own words ("(ไพ่…) ตามตำราเชื่อว่า…"): the end instead
+```
+
+## #B37 (fortune-brief.js line 464, before `return "\u0001" + (lang === "zh" ? x + (x2 || "") : x.replace(/^(?:the |your )/i, m => m.t`)
+
+```
+// no "อีก…": nothing came before
+// EN / ZH: the line says what it says, and names its source in brackets at its end (unless it names it already)
+```
+
+## #B38 (fortune-brief.js line 477, before `const dupOf = (r, safe, acc, lang) => !D.nearDupPairs ? nearCopy(r, safe + " " + acc.join(`)
+
+```
+// safe: the text of the other groups; each line then takes the bracket form, else the colon form, else stays as it was, whichever
+// is not a near copy of another line (round 6: an overview reverted for near copies is not left with its source leads)
+// the composer's own near-copy test (the lint's rule): does r make a near copy with the other groups or the lines kept so far
+```
+
+## #B39 (fortune-brief.js line 487, before `q = lang === "zh" ? q.replace(/(（[^（）]{2,40}）。)它(?=也|还)/g, "$1这") : q.replace(/(\s\([^()]{`)
+
+```
+// round 6 (D2): a sentence that opens with "It" / "它" right after a bracket citation takes that name, and the bracket goes
+```
+
+## #B40 (fortune-brief.js line 505, before `const other = names.some(n => n.length >= 2 && (lang === "en" ? n.toLowerCase() : n) !== (`)
+
+```
+// the slip, then its verse; a rest that itself opens like a lead ("就像春天…", "按传统说法…") follows its source after a colon
+// (also when the line names another finding before its end: the reader meets this source first)
+```
+
+## #B41 (fortune-brief.js line 515, before `const hedged = (o, x) => (/^(?:Traditionally|In traditional readings)\b/.test(x) && !/\btr`)
+
+```
+// round 6 (RECHECK-5 non-blocking 3): an EN overview line that lost its "Traditionally," keeps one hedge ("By tradition, …")
+```
+
+## #B42 (fortune-brief.js line 531, before `if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length`)
+
+```
+// exports only from its own file: the copy inside fortune-read.js (tools/fortune-read-embed.mjs) leaves that module's exports alone
+```
