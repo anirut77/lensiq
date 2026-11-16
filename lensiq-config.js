@@ -208,6 +208,7 @@ window.LENSIQ_TRYON = window.LENSIQ_TRYON === true;
 /* LENSIQ_CONVERT_SERVER: ตัวแปลง PDF -> DOCX บนเซิร์ฟเวอร์ (converter.js) มีเฉพาะเมื่อเปิดเว็บด้วย server.py ในเครื่อง
  *   ปิด (ค่าเริ่มต้น, เว็บนิ่ง): ไม่เรียก /api/convert และ /api/convert/status แปลงในเบราว์เซอร์แทน · ตั้ง true เมื่อเสิร์ฟด้วย server.py */
 window.LENSIQ_CONVERT_SERVER = window.LENSIQ_CONVERT_SERVER === true;
-/* LENSIQ_HELP_TOP_STICKY: ปุ่ม 1323 บนหน้าดูดวง (เจ้าของ 2026-11-16 กฎวิกฤตใหม่; การตัดสินใจข้อ 75 ทางเลือก ก: ไอคอนอยู่ในแถบบนที่ติดจอ เป็นค่าเริ่มต้น) เปิด (ค่าเริ่มต้น): ไอคอน 1323 อยู่ในแถบบนที่ติดจอ
+/* LENSIQ_HELP_TOP_STICKY: ปุ่ม 1323 บนหน้าดูดวง (เจ้าของ 2026-11-16 กฎวิกฤตใหม่; การตัดสินใจข้อ 75 ทางเลือก ก)
+ *   เปิด (ค่าเริ่มต้น ตามข้อ 75 ก): ไอคอน 1323 อยู่ในแถบบนที่ติดจอ
  *   ปิด (false): ไอคอนอยู่ที่ด้านบนของเนื้อหาหน้า ไม่ติดจอ (nav.js ไม่ย้ายเข้าแถบบน) สวิตช์เดียวนี้เท่านั้น */
 window.LENSIQ_HELP_TOP_STICKY = window.LENSIQ_HELP_TOP_STICKY !== false;
