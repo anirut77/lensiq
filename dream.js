@@ -237,7 +237,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   $("#drForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    // ตาข่ายความปลอดภัย: ข้อความเรื่องทำร้ายตัวเอง/ถูกทำร้าย → การ์ดช่วยเหลือ (1323, 1669, 191) แทนคำทำนาย
+    // ตาข่ายความปลอดภัย: ข้อความเรื่องทำร้ายตัวเอง/ถูกทำร้าย → การ์ดช่วยเหลือ (1323 และลิงก์ช่องทางให้คำปรึกษา) แทนคำทำนาย
     if (supportFor($("#drText").value)) return;
     st.detected = detectAll($("#drText").value);
     var ids = selected(); if (!ids.length) { $("#drMsg").textContent = T("dream.errNone", "เลือกหรือพิมพ์สิ่งที่เห็นในฝันอย่างน้อย 1 อย่าง"); return; }
