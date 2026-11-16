@@ -3,6 +3,8 @@
   "@lang": "en",
   "ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อเฝ้าระวังต่อ": "Camera off — tap Start camera to keep monitoring",
   "กล้องปิดอยู่ — กด เปิดกล้อง ก่อนเริ่มเที่ยว": "The camera is off — tap Start camera before starting a trip",
+  "กำลังเปิดกล้อง รอสักครู่แล้วกดเริ่มเที่ยว": "Starting the camera — wait a moment, then tap Start trip",
+  "กำลังเปิดกล้อง...": "Starting the camera...",
   "ตรวจหลับตาด้วยภาพดวงตา": "Eye closure detected from eye images",
   "ค่าปกติ": "normal value",
   "ปิดเมื่อ": "closed at",
