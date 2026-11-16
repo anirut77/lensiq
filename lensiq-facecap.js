@@ -6,7 +6,7 @@
  *
  * SIZE  iodFrac = eye distance (mean of points 36-41 to mean of 42-47) / the picture's SHORT side (= its width when the
  *       phone is upright). Accepted 0.12 .. 0.32 = a face at about 30-40 cm on common phone front cameras (23-26 mm
- *       equivalent, 16:9 or 4:3), adult eye distance 58-68 mm. Hysteresis: leaving "far" needs >= 0.13, leaving "near" <= 0.31.
+ *       equivalent, 16:9 or 4:3), adult eye distance 58-68 mm. Hysteresis 0.003 (review 2026-11-17): leaving "far" needs >= 0.123, leaving "near" <= 0.317.
  * OVAL  centre (0.5 W, 0.42 H), radii 0.27 x 0.36 of the short side (a face at about 35-40 cm fills it).
  * STATES, in priority order (ONE instruction at a time; the first that applies wins):
  *   wait      no picture size yet
@@ -51,7 +51,7 @@
 (function (root) {
   "use strict";
 
-  var RANGE = Object.freeze({ far: 0.12, near: 0.32, hyst: 0.01 });
+  var RANGE = Object.freeze({ far: 0.12, near: 0.32, hyst: 0.003 });
   var LIMITS = Object.freeze({ off: 0.4, offBack: 0.33, yaw: 0.14, yawBack: 0.11, roll: 9, rollBack: 7, pitchHi: 0.46, pitchLo: 0.16, pitchHyst: 0.03,
     lumaLo: 65, backlightGap: 70, backlightBg: 170, glare: 0.08, glareFaceMax: 200, blur: 2, blurContrast: 25, edge: 0.005 });
   var STATES = Object.freeze(["wait", "multi", "near", "cut", "out", "far", "dark", "backlight", "turn", "tilt", "chinUp", "chinDown", "glare", "blur", "still", "ok"]);
@@ -212,17 +212,32 @@
   function manualEnabled(state, n) { return n === 1 && state !== "multi"; }
 
   /* ---------------- pixel checks (a few hundred samples; no picture is kept) ---------------- */
+  // img may be a region of the picture: img.x0 / img.y0 = its top-left corner in picture pixels (0 when absent)
   function lumaAt(img, x, y) {
-    x = Math.round(x); y = Math.round(y);
+    x = Math.round(x) - (img.x0 || 0); y = Math.round(y) - (img.y0 || 0);
     if (x < 0 || y < 0 || x >= img.width || y >= img.height) return -1;
     var i = (y * img.width + x) * 4, d = img.data;
     return 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
   }
   function minAt(img, x, y) {
-    x = Math.round(x); y = Math.round(y);
+    x = Math.round(x) - (img.x0 || 0); y = Math.round(y) - (img.y0 || 0);
     if (x < 0 || y < 0 || x >= img.width || y >= img.height) return -1;
     var i = (y * img.width + x) * 4, d = img.data;
     return Math.min(d[i], d[i + 1], d[i + 2]);
+  }
+  var BUF = {};
+  /** a reused typed buffer of at least n entries (the pixel checks run every 250 ms; no new big arrays each time) */
+  function buf(name, n, Type) { if (!BUF[name] || BUF[name].length < n) BUF[name] = new Type(Math.max(n, 1)); return BUF[name]; }
+  /** k-th largest of a[0..n) (1 <= k <= n), by quickselect on a reused copy */
+  function kthLargest(a, n, k) {
+    var w = buf("s", n, Float64Array), lo = 0, hi = n - 1, want = k - 1, i, j, piv, tmp;
+    for (i = 0; i < n; i++) w[i] = a[i];
+    while (lo < hi) {
+      piv = w[(lo + hi) >> 1]; i = lo; j = hi;
+      while (i <= j) { while (w[i] > piv) i++; while (w[j] < piv) j--; if (i <= j) { tmp = w[i]; w[i] = w[j]; w[j] = tmp; i++; j--; } }
+      if (want <= j) hi = j; else if (want >= i) lo = i; else break;
+    }
+    return w[want];
   }
   function pixelChecks(img, pts) {
     var F = eyeFrame(pts), L = LIMITS, i, j, p, v;
@@ -249,22 +264,32 @@
       if (all) glareFrac = Math.max(glareFrac, hit / all);
     });
     var glare = !dark && glareFrac >= L.glare && (faceLuma == null || faceLuma < L.glareFaceMax);
-    // blur: edge width on the sharpest edges of the brow/eye band
-    var gstep = Math.max(1, F.iod / 120), nx = Math.round(1.8 * F.iod / gstep), ny = Math.round(0.85 * F.iod / gstep), grid = new Float32Array(nx * ny), ok = true;
+    // blur: edge width on the sharpest edges of the brow/eye band. Memory (review D3): reused typed buffers, no per-sample
+    // arrays or closures, the top 5 % found by selection (same result as the stable full sort it replaces)
+    var gstep = Math.max(1, F.iod / 120), nx = Math.round(1.8 * F.iod / gstep), ny = Math.round(0.85 * F.iod / gstep), grid = buf("g", nx * ny, Float32Array), ok = true;
+    var cx = F.c[0], cy = F.c[1], cs = Math.cos(F.th), sn = Math.sin(F.th), ax, ay;
     for (j = 0; j < ny && ok; j++) for (i = 0; i < nx; i++) {
-      p = F.img(-0.9 + i * gstep / F.iod, -0.55 + j * gstep / F.iod);
-      v = lumaAt(img, p[0], p[1]); if (v < 0) { ok = false; break; } grid[j * nx + i] = v;
+      ax = -0.9 + i * gstep / F.iod; ay = -0.55 + j * gstep / F.iod;
+      v = lumaAt(img, cx + F.iod * (ax * cs - ay * sn), cy + F.iod * (ax * sn + ay * cs)); if (v < 0) { ok = false; break; } grid[j * nx + i] = v;
     }
     var blurRatio = null;
     if (ok) {
       // coarse step 16g against the largest of its four 4g sub-steps: 1 for a crisp edge, up to 4 for an edge wider than 16g
-      var pairs = [], q4;
-      var add = function (at) { var c = Math.abs(at(16) - at(0)); q4 = 0; for (var t = 0; t < 16; t += 4) q4 = Math.max(q4, Math.abs(at(t + 4) - at(t))); pairs.push([c, q4]); };
-      for (j = 0; j < ny; j++) for (i = 0; i + 16 < nx; i++) add(function (t) { return grid[j * nx + i + t]; });
-      for (j = 0; j + 16 < ny; j++) for (i = 0; i < nx; i++) add(function (t) { return grid[(j + t) * nx + i]; });
-      pairs.sort(function (a, b) { return b[0] - a[0]; });
-      var k = Math.max(20, Math.round(pairs.length * 0.05)), s2 = 0, s1 = 0;
-      for (i = 0; i < k && i < pairs.length; i++) { s2 += pairs[i][0]; s1 += pairs[i][1]; }
+      var m = Math.max(0, ny * (nx - 16)) + Math.max(0, (ny - 16) * nx), cv = buf("c", m, Float64Array), qv = buf("q", m, Float64Array), n = 0, t, o, q4, d;
+      for (j = 0; j < ny; j++) for (i = 0; i + 16 < nx; i++) {
+        o = j * nx + i; q4 = 0; for (t = 0; t < 16; t += 4) { d = Math.abs(grid[o + t + 4] - grid[o + t]); if (d > q4) q4 = d; }
+        cv[n] = Math.abs(grid[o + 16] - grid[o]); qv[n++] = q4;
+      }
+      for (j = 0; j + 16 < ny; j++) for (i = 0; i < nx; i++) {
+        o = j * nx + i; q4 = 0; for (t = 0; t < 16; t += 4) { d = Math.abs(grid[o + (t + 4) * nx] - grid[o + t * nx]); if (d > q4) q4 = d; }
+        cv[n] = Math.abs(grid[o + 16 * nx] - grid[o]); qv[n++] = q4;
+      }
+      var k = Math.max(20, Math.round(n * 0.05)), take = Math.min(k, n), s2 = 0, s1 = 0;
+      if (take) {
+        var T = kthLargest(cv, n, take), got = 0;
+        for (i = 0; i < n; i++) if (cv[i] > T) { got++; s2 += cv[i]; s1 += qv[i]; }
+        for (i = 0; i < n && got < take; i++) if (cv[i] === T) { got++; s2 += cv[i]; s1 += qv[i]; } // ties in scan order, as the stable sort did
+      }
       if (k && s2 / k >= L.blurContrast && s1 > 0) blurRatio = s2 / s1;
     }
     var blur = !dark && blurRatio != null && blurRatio >= L.blur;
@@ -385,7 +410,7 @@
     api2.setMode = function (m) { api2.mode = m === "other" ? "other" : "self"; ui.set(ui.state, api2.mode); };
     api2.frame = function (det, list, img, W, H, now) {
       var n = list.length, px = null;
-      if (img) px = det ? pixelChecks(img, det.pts) : { dark: (frameLuma(img) || 255) < LIMITS.lumaLo };
+      if (img) px = det && !img.small ? pixelChecks(img, det.pts) : { dark: (frameLuma(img) || 255) < LIMITS.lumaLo };
       var r = guide.update({ pts: det ? det.pts : null, n: n, W: W, H: H, px: px, moving: now - lastMoveAt < 700 }, now);
       api2.state = r.state; api2.n = n;
       ui.el.hidden = false; ui.set(r.state, api2.mode);
@@ -403,6 +428,21 @@
       ui.set("wait", api2.mode); ui.el.hidden = true; o.cam.removeAttribute("data-guide"); count(0);
     };
     api2.manualOk = function () { return manualEnabled(api2.state, api2.n); };
+    /* the pixels the checks need (review D3, memory): with a face, only the region around it (2.8 eye distances to each side,
+       2.8 above the eyes, 2.0 below; the checks sample inside it); with no face, a 32 x 32 copy for "too dark". One canvas of
+       each kind is reused. -> {data, width, height, x0, y0} */
+    var rc = document.createElement("canvas"), rctx = rc.getContext("2d", { willReadFrequently: true });
+    var sc = document.createElement("canvas"), sctx = sc.getContext("2d", { willReadFrequently: true }); sc.width = sc.height = 32;
+    api2.read = function (src, W, H, det) {
+      if (!det) { sctx.drawImage(src, 0, 0, W, H, 0, 0, 32, 32); var sm = sctx.getImageData(0, 0, 32, 32); return { data: sm.data, width: 32, height: 32, x0: 0, y0: 0, small: true }; }
+      var F = eyeFrame(det.pts), r = 2.8 * F.iod;
+      var x0 = Math.max(0, Math.floor(F.c[0] - r)), y0 = Math.max(0, Math.floor(F.c[1] - r)), x1 = Math.min(W, Math.ceil(F.c[0] + r)), y1 = Math.min(H, Math.ceil(F.c[1] + 2.0 * F.iod + r * 0.3));
+      var w = Math.max(1, x1 - x0), h = Math.max(1, y1 - y0);
+      if (rc.width < w || rc.height < h) { rc.width = Math.max(rc.width, w); rc.height = Math.max(rc.height, h); }
+      rctx.drawImage(src, x0, y0, w, h, 0, 0, w, h);
+      var im = rctx.getImageData(0, 0, w, h);
+      return { data: im.data, width: w, height: h, x0: x0, y0: y0 };
+    };
     return api2;
   }
 

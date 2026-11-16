@@ -987,7 +987,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
 
   /* ---------- ตรวจคุณภาพสด + วงรีนำทาง ---------- */
-  var probe = document.createElement("canvas"), pctx = probe.getContext("2d", { willReadFrequently: true });
+  var probe = document.createElement("canvas");
   function grabFrame(target, mirror) {
     var w = video.videoWidth, h = video.videoHeight;
     target.width = w; target.height = h;
@@ -1018,7 +1018,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
      holding the phone. Numbers only: no picture is stored or sent; no liveness, identity or emotion check. docs/FACE-CAPTURE.md */
   var fcapP = null, fc = null, mode = "self";
   function loadFaceCap() {
-    if (!fcapP) fcapP = new Promise(function (res, rej) { var s = document.createElement("script"); s.src = "lensiq-facecap.js?v=1"; s.onload = res;
+    if (!fcapP) fcapP = new Promise(function (res, rej) { var s = document.createElement("script"); s.src = "lensiq-facecap.js?v=2"; s.onload = res;
       s.onerror = function () { fcapP = null; rej(Object.assign(new Error("face guide script did not load"), { name: "NetworkError" })); }; document.head.appendChild(s); });
     return fcapP.then(function () { fc = fc || LQFaceCap.controller({ cam: cam, canvas: ov, count: countEl, button: btnRead, busy: function () { return busy; }, fire: capture }); fc.setMode(mode); });
   }
@@ -1035,9 +1035,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
           errs = 0; if (list.length || FAKE || useCanvas) noFaceSince = 0; else if (!noFaceSince) noFaceSince = now;
           else if (now - noFaceSince > 8000) { useCanvas = true; console.info("faceread: no face from <video> for 8 s, detecting on a canvas copy"); }
           var pk = FR.pickFace(list, lockPrev, W, H), det = pk.index >= 0 ? list[pk.index] : null; lockPrev = pk.boxN;
-          if (input !== probe) grabFrame(probe, false);
-          var img = pctx.getImageData(0, 0, probe.width, probe.height); // the frame the page already holds: read, never kept
-          lastQ = FR.quality(det, W, H, det ? FR.lightStats(img, det.box) : null, list.length);
+          var img = fc.read(input, W, H, det), bx = det && det.box; // only the region around the face (D3): read, never kept
+          lastQ = FR.quality(det, W, H, bx ? FR.lightStats(img, { x: bx.x - img.x0, y: bx.y - img.y0, width: bx.width, height: bx.height }) : null, list.length);
           if (!busy) { renderQc(lastQ); fc.frame(det, list, img, W, H, now); }
         } catch (e) { console.warn(e); if (gen === detGen && looping && (failKind(e) !== "other" || ++errs >= ERR_MAX)) { errs = 0; await recover(e); } }
       }
@@ -1055,16 +1054,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     consentBox.hidden = mode !== "other";
     if (!btnCam.hidden) btnCam.disabled = mode === "other" && !consentOk.checked;
     if (fc) fc.setMode(mode);
+    btnRead.dataset.i18n = mode === "other" ? "faceread.frReadOther" : "faceread.frRead"; btnRead.textContent = T(btnRead.dataset.i18n, "อ่านโหงวเฮ้ง");
   }
   modeSelf.addEventListener("click", function () { if (busy || mode === "self") return; var wasLive = camera.active; setMode("self"); if (wasLive) { stopLive(); hideHint(); btnCam.click(); } });
   modeOther.addEventListener("click", function () { if (busy || mode === "other") return; if (camera.active) { stopLive(); hideHint(); } setMode("other"); askConsent(); });
-  consentOk.addEventListener("change", function () { setMode(mode); });
+  // consent withdrawn while the back camera is on (or reading): camera off at once, count cancelled, nothing read (review D1)
+  consentOk.addEventListener("change", function () { if (mode === "other" && !consentOk.checked && (camera.active || busy)) { stopLive(); hideHint(); askConsent(); } setMode(mode); });
   /** a back camera reached any other way (the flip control, the camera list) without the consent tick is closed at once */
-  camera.listen(function (c, ev) {
-    if (ev.type !== "started" || !c.active) return;
+  camera.listen(function (c, ev) { if (ev.type !== "started" || !c.active) return;
     if (c.facing === "environment" && !(mode === "other" && consentOk.checked)) { stopLive(); hideHint(); setMode("other"); askConsent(); }
-    else if (c.facing !== "environment" && mode === "other") setMode("self");
-  });
+    else if (c.facing !== "environment" && mode === "other") setMode("self"); });
 
   btnCam.addEventListener("click", async function () {
     if (mode === "other" && !consentOk.checked) return setMode(mode); else btnCam.disabled = true;
@@ -1073,8 +1072,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       // speed pass 2026-11-14: models (and the face guide script) are fetched only once the camera is open
       // LQCam's public start(id) takes no facing; flip() opens the other side (start("", {face}) inside) when the facing differs
       var want = mode === "other" ? "environment" : "user"; await (camera.facing === want ? camera.start() : camera.flip());
-      if (!camera.active) return; // closed again at once (a back camera without the consent tick)
-      engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
+      // closed again at once = a back camera without the consent tick
+      if (!camera.active) return; engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
       // never a live camera without a detector; a retry after liveDead() re-arms the detector (the models are still loaded)
       try { await Promise.all([loadModels(), loadFaceCap()]); } catch (e) { stopLive(); modelMsg(e); return; } ready = true; switched = false; $("#frCamHint").hidden = true;
       if (mode === "other") engineT("faceread.eng.camReadyRear", "กล้องหลังพร้อม — เล็งให้ใบหน้าของเขาอยู่ในวงรี เมื่อวงรีเป็นสีเขียว ระบบจะนับ 3-2-1 แล้วถ่ายเอง", null, "ok");
@@ -1087,7 +1086,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- capture: automatic after 3-2-1, or the manual button at once; ~10 frames of the same face are averaged ---------- */
   async function capture() {
     if (busy || !camera.active) return;
-    busy = true; btnRead.disabled = true; touch(); if (fc) fc.auto.hold();
+    busy = true; btnRead.disabled = true; touch(); if (fc) fc.auto.hold(); var offGreen = !(fc && LQFaceCap.green(fc.state));
     try {
       countEl.textContent = T("faceread.count.reading", "กำลังอ่าน..."); countEl.classList.add("small"); countEl.hidden = false;
       // ล็อกคนแรกที่ผ่านเกณฑ์ แล้วเก็บเฉพาะเฟรมของคนนั้น (ไม่เฉลี่ยจุดของสองคนเข้าด้วยกัน)
@@ -1100,10 +1099,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         countEl.textContent = T("faceread.count.pct", "กำลังอ่าน {p}%", { p: Math.round(frames.length / FRAMES * 100) });
       }
       if (frames.length < 4) { if (capt.skipped) engineT("faceread.eng.otherFace", "มีใบหน้าอื่นเข้ามาในกรอบ ให้อยู่คนเดียวแล้วลองอีกครั้ง", null, "err"); else engineT("faceread.eng.unstable", "ยังจับใบหน้าได้ไม่นิ่งพอ ลองมองตรงและอยู่นิ่ง ๆ อีกครั้ง", null, "err"); return; }
+      if (mode === "other" && !consentOk.checked) return; // consent withdrawn during the reading: nothing is shown or counted
       var snap = snaps[Math.floor(snaps.length / 2)]; showResult(snap.cv, capt.average(), snap.d.box);
+      if (!offGreen && mode === "other") engineT("faceread.eng.rearDone", "ถ่ายเสร็จแล้ว ถ้าจะถ่ายคนต่อไป ขอความยินยอมจากเจ้าตัวและติ๊กช่องยินยอมใหม่", null, "ok");
+      if (offGreen) engineT("faceread.eng.notGreen", "ถ่ายก่อนวงรีเป็นสีเขียว ผลอาจคลาดเคลื่อน", null, "err"); // review D4
     } catch (e) { console.error(e); if (failKind(e) === "oom") failLine("oom"); else failLine("readFail2"); }
-    finally { countEl.hidden = true; countEl.classList.remove("small"); busy = false; btnRead.disabled = !(fc && fc.manualOk()); }
-  }
+    finally { countEl.hidden = true; countEl.classList.remove("small"); busy = false; btnRead.disabled = !(fc && fc.manualOk());
+      // rear mode: one tick = one person (review D2); the next person needs a new tick and a new start
+      if (mode === "other") { consentOk.checked = false; if (camera.active) { stopLive(); hideHint(); } setMode(mode); } } }
   btnRead.addEventListener("click", function () { capture(); });
 
   /* ---------- อัปโหลดรูป ---------- */
