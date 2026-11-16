@@ -280,7 +280,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     document.querySelectorAll(".ic-coin").forEach(function (el) { el.classList.remove("heads", "tails"); el.querySelector(".ic-coin-v").textContent = ""; });
   }
   $("#icAgain").addEventListener("click", function () { reset(); $("#icSetup").scrollIntoView({ block: "start" }); });
-  $("#icPrint").addEventListener("click", function () { window.print(); });
+  // #icShare / #icPrint: the shared share and print of fortune-share.js (owner order 2026-11-16); the hexagram is the card's art
 
   function card(c, lines, kind) {
     var n = c.primary;
@@ -299,10 +299,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       }
     };
   }
-  $("#icShare").addEventListener("click", function () {
-    var rd = FK.readings.icRd || {};
-    if (st.cast) FK.share(this, card(st.cast, rd.lines, T("iching.cardKind", "อี้จิง")), "lensiq-iching.jpg", $("#icCardImg"), T("iching.shareTitle", "อี้จิง — LENSIQ"));
-  });
+  if (window.LQShare) {
+    window.LQShare.art("#icResult", function (c, x, y, w, h) { if (st.cast) card(st.cast, [], "").art(c, x, y, w, h); });
+    window.LQShare.art("#icDaily", function (c, x, y, w, h) { if (st.daily) card(st.daily, [], "").art(c, x, y, w, h); });
+  }
 
   /* ---------- กว้าประจำวัน ---------- */
   var dailyDone = false;
@@ -314,7 +314,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       '<p class="ic-gist">' + esc(hx(P, "gist")) + '</p><p class="fk-small">' + esc(T("iching.dailyNote", KB.DAILY_NOTE)) + "</p>" + FK.readingBlock("icDayRd", T("iching.dayRdTitle", "คำทำนายประจำวัน"), true) +
       '<div class="fk-res-actions"><button class="btn primary big" id="icDayShare" type="button">' + esc(T("iching.dayShare", "แชร์การ์ดประจำวัน")) + '</button></div><img class="fk-cardimg" id="icDayImg" alt="' + esc(T("iching.dayImgAlt", "การ์ดกว้าประจำวันสำหรับแชร์")) + '" hidden>';
     FK.bindReading("icDayRd", "iching", function (topic, r) { return IC.buildFacts(c, topic, { rng: r }); }, { withTopics: true });
-    $("#icDayShare").addEventListener("click", function () { FK.share(this, card(c, (FK.readings.icDayRd || {}).lines, T("iching.dayKind", "กว้าประจำวัน")), "lensiq-iching-daily.jpg", $("#icDayImg"), T("iching.dayShareTitle", "กว้าประจำวัน — LENSIQ")); });
   }
 
   /* ---------- ตาราง 64 กว้า ---------- */

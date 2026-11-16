@@ -858,7 +858,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var btnCam = $("#frStartCam"), btnRead = $("#frRead"), fileIn = $("#frFile"), qcList = $("#frQc"), countEl = $("#frCount");
   var resultSec = $("#frResult"), resCanvas = $("#frResCanvas");
   var ready = false, busy = false, looping = false, lastQ = null, lockPrev = null, current = null, forceRead = null;
-  var prefs = Object.assign({ stats: true, photoOnCard: false, reco: !!(KB.recommend && KB.recommend.enabled), leads: !!(KB.leads && KB.leads.enabled) }, lsGet(PREF_KEY, {}));
+  var prefs = Object.assign({ stats: true, photoOnCard: false, reco: !!(KB.recommend && KB.recommend.enabled), leads: !!(KB.leads && KB.leads.enabled) },
+    lsGet(PREF_KEY, {}), { photoOnCard: false }); // the photo switch is in the share dialog now (fortune-share.js), off each time
 
   function engine(msg, cls) { engState = null; var e = $("#frEngine"); e.textContent = msg; e.className = "fr-engine " + (cls || ""); }
   /** ข้อความสถานะแบบมีคีย์: จำไว้เพื่อแปลใหม่เมื่อสลับภาษา */
@@ -1649,31 +1650,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.restore();
   }
   var cardUrl = null;
-  $("#frShare").addEventListener("click", async function () {
-    if (!current) return; touch();
-    var b = this; b.disabled = true;
-    try {
-      var cv = await makeCard();
-      var blob = await new Promise(function (r) { cv.toBlob(r, "image/png"); });
-      if (cardUrl) URL.revokeObjectURL(cardUrl);
-      cardUrl = URL.createObjectURL(blob);
-      var im = $("#frCardImg"); im.src = cardUrl; im.hidden = false;
-      var file = new File([blob], T("faceread.share.file", "lensiq-โหงวเฮ้ง.png"), { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: T("faceread.share.title", "อ่านโหงวเฮ้ง — LENSIQ"), text: T("faceread.share.text", "ธาตุ{el} {disc}", { el: KB.elements[current.R.el.top.id].th, disc: KB.disclaimerShort }) }); return; }
-        catch (e) { if (e.name === "AbortError") return; }
-      }
-      var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-faceread.png"; document.body.append(a); a.click(); a.remove();
-      toast(T("faceread.toast.saved", "บันทึกการ์ดแล้ว"));
-    } catch (e) { console.error(e); toast(T("faceread.toast.fail", "สร้างการ์ดไม่สำเร็จ")); }
-    finally { b.disabled = false; }
+  // #frShare / #frPrint: the shared share and print of fortune-share.js (owner order 2026-11-16). The card's "include my photo"
+  // switch lives in the share dialog and is off each time it opens (it replaced the remembered #frPhotoCard box); without the
+  // photo the card shows the element glyph. makeCard above stays for the page's own tests.
+  if (window.LQShare) window.LQShare.art("#frResult", function (c, x, y, w, h) {
+    if (!current) return;
+    var id = current.R.el.top.id, col = KB.elements[id].color, r = h / 2 - 12;
+    c.beginPath(); c.arc(x + w / 2, y + h / 2, r + 10, 0, Math.PI * 2); c.fillStyle = col; c.fill();
+    c.beginPath(); c.arc(x + w / 2, y + h / 2, r, 0, Math.PI * 2); c.fillStyle = "#0e1430"; c.fill();
+    drawElementGlyph(c, id, x + w / 2, y + h / 2, r * 0.62, col);
   });
-  $("#frPrint").addEventListener("click", function () { touch(); window.print(); });
   $("#frAgain").addEventListener("click", reset);
-  $("#frPhotoCard").checked = !!prefs.photoOnCard;
-  $("#frPhotoCard").addEventListener("change", function () { prefs.photoOnCard = this.checked; lsSet(PREF_KEY, prefs); });
 
-  function toast(msg) { var t = $("#frToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 2200); }
 
   function reset() {
     resultSec.hidden = true; current = null;

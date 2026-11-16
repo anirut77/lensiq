@@ -1920,26 +1920,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.restore();
   }
   var cardUrl = null;
-  $("#plShare").addEventListener("click", async function () {
-    if (!S.result) return; touch();
-    var b = this; b.disabled = true;
-    try {
-      var cv = await makeCard();
-      var blob = await new Promise(function (r) { cv.toBlob(r, "image/png"); });
-      if (cardUrl) URL.revokeObjectURL(cardUrl);
-      cardUrl = URL.createObjectURL(blob);
-      var im = $("#plCardImg"); im.src = cardUrl; im.hidden = false;
-      var file = new File([blob], "lensiq-ดูลายมือ.png", { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: T("palm.share.title", "ดูลายมือ — LENSIQ"), text: elHand(S.result.el.top.id) + " " + KT("disclaimerShort", KB.disclaimerShort) }); return; }
-        catch (e) { if (e.name === "AbortError") return; }
-      }
-      var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-palm.png"; document.body.append(a); a.click(); a.remove();
-      toast(T("palm.toast.saved", "บันทึกการ์ดแล้ว"));
-    } catch (e) { console.error(e); toast(T("palm.toast.cardFail", "สร้างการ์ดไม่สำเร็จ")); }
-    finally { b.disabled = false; }
+  // #plShare / #plPrint: the shared share and print of fortune-share.js (owner order 2026-11-16). "Include my photo" is in the share
+  // dialog, off each time it opens; without the photo the card shows the line drawing of the confirmed palm lines (no photograph).
+  // makeCard above stays for the page's own tests.
+  if (window.LQShare) window.LQShare.art("#plResult", function (c, x, y, w, h) {
+    if (!S.result || !S.lines) return;
+    var col = S.result.reading.element.color, r = h / 2 - 12, cx = x + w / 2, cy = y + h / 2;
+    c.beginPath(); c.arc(cx, cy, r + 10, 0, Math.PI * 2); c.fillStyle = col; c.fill();
+    c.save(); c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.clip(); c.fillStyle = "#0e1430"; c.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+    drawPalmGlyph(c, cx, cy, r, S.lines, S.F ? S.F.asp : 1.6);
+    c.restore();
   });
-  $("#plPrint").addEventListener("click", function () { touch(); window.print(); });
   $("#plAgain").addEventListener("click", function () { reset(); });
 
   /** ล้างผลของมือปัจจุบัน (คงโหมดและผลมือที่ 1 ไว้) */

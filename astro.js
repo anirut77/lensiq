@@ -238,27 +238,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function reset() { $("#asResult").hidden = true; $("#asCardImg").hidden = true; $("#asForm").reset(); $("#asTime").disabled = false; $("#asLatLon").hidden = true; st.chart = null; }
   $("#asAgain").addEventListener("click", function () { reset(); $("#asForm").scrollIntoView({ block: "start" }); });
-  $("#asPrint").addEventListener("click", function () { window.print(); });
-  $("#asShare").addEventListener("click", function () {
+  // #asShare / #asPrint: the shared share and print of fortune-share.js (owner order 2026-11-16); the Big Three signs are the card's art
+  if (window.LQShare) window.LQShare.art("#asResult", function (c, x, y, w, h) {
     var C = st.chart; if (!C) return;
-    var lines = (FK.readings.asRd || {}).lines || [], trio = [["☉", C.sun], ["☽", C.moon], ["ASC", C.asc]].filter(function (x) { return x[1]; });
-    var E = C.dominant;
-    FK.share(this, {
-      kind: T("astro.cardKind", "ราศีตะวันตก"), glow: "rgba(34,211,238,.32)", artH: 360,
-      title: trio.map(function (x) { return sn(x[1].sign); }).join(" · "), sub: T("astro.cardSub", "อาทิตย์ · จันทร์") + (C.asc ? T("astro.cardSubAsc", " · ลัคนา") : ""),
-      msgs: (lines.length >= 2 ? lines.slice(0, 2) : [zk("sun." + C.sun.sign, "p", KB.SIGNS[C.sun.sign].p[0]), zk("moon." + C.moon.sign, "p", KB.SIGNS[C.moon.sign].moon[0])]).concat([T("astro.cardDom", "ธาตุเด่น: {el} — {kw}", { el: elName(E), kw: T("astro.elkw." + E, KB.ELEMENTS[E].kw) })]),
-      foot: T("astro.cardFoot", KB.disclaimerShort + " · ราศีแบบสายนะ (Tropical)"),
-      art: function (c, x, y, w, h) {
-        var n = trio.length, cw = 220, gap = 30, x0 = x + (w - (n * cw + (n - 1) * gap)) / 2;
-        trio.forEach(function (t, i) {
-          var S = KB.SIGNS[t[1].sign], xx = x0 + i * (cw + gap);
-          FK.rr(c, xx, y + 20, cw, h - 40, 28); c.fillStyle = "rgba(255,255,255,.09)"; c.fill();
-          c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#a5f3fc"; c.font = "600 34px Prompt, sans-serif"; c.fillText(t[0], xx + cw / 2, y + 70);
-          c.fillStyle = "#fff"; c.font = "120px 'Segoe UI Symbol','Apple Symbols','Noto Sans Symbols',serif"; c.fillText(S.gl + "︎", xx + cw / 2, y + 180);
-          c.font = "600 40px Prompt, sans-serif"; c.fillStyle = "#f3c969"; c.fillText(sn(t[1].sign), xx + cw / 2, y + 290);
-        });
-      }
-    }, "lensiq-astro.jpg", $("#asCardImg"), T("astro.shareTitle", "ราศีตะวันตก — LENSIQ"));
+    var trio = [["☉", C.sun], ["☽", C.moon], ["ASC", C.asc]].filter(function (x) { return x[1]; });
+    var n = trio.length, cw = 220, gap = 30, x0 = x + (w - (n * cw + (n - 1) * gap)) / 2;
+    trio.forEach(function (t, i) {
+      var S = KB.SIGNS[t[1].sign], xx = x0 + i * (cw + gap);
+      FK.rr(c, xx, y + 20, cw, h - 40, 28); c.fillStyle = "rgba(255,255,255,.09)"; c.fill();
+      c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#a5f3fc"; c.font = "600 34px Prompt, sans-serif"; c.fillText(t[0], xx + cw / 2, y + 70);
+      c.fillStyle = "#fff"; c.font = "120px 'Segoe UI Symbol','Apple Symbols','Noto Sans Symbols',serif"; c.fillText(S.gl + "︎", xx + cw / 2, y + 180);
+      c.font = "600 40px Prompt, sans-serif"; c.fillStyle = "#f3c969"; c.fillText(sn(t[1].sign), xx + cw / 2, y + 290);
+    });
   });
 
   /* ราศีทั้ง 12 (เลือกราศีอาทิตย์เร็ว ๆ) */

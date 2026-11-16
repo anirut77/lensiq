@@ -1257,29 +1257,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return cv;
   }
   var cardUrl = null;
-  $("#hsShare").addEventListener("click", async function () {
-    if (!current) return; touch();
-    var b = this; b.disabled = true;
-    try {
-      var cv = await makeCard();
-      var blob = await new Promise(function (r) { cv.toBlob(r, "image/png"); });
-      if (cardUrl) URL.revokeObjectURL(cardUrl);
-      cardUrl = URL.createObjectURL(blob);
-      var im = $("#hsCardImg"); im.src = cardUrl; im.hidden = false;
-      var file = new File([blob], isZh() ? "lensiq-horoscope.png" : "lensiq-ดวงวันเกิด.png", { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: T("horoscope.x.shareTitle", "ดวงวันเดือนปีเกิด — LENSIQ"), text: bornOn(dayTitle(current)) + " · " + K.disclaimerShort }); return; }
-        catch (e) { if (e.name === "AbortError") return; }
-      }
-      var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-horoscope.png"; document.body.append(a); a.click(); a.remove();
-      toast(T("horoscope.x.saved", "บันทึกการ์ดแล้ว"));
-    } catch (e) { console.error(e); toast(T("horoscope.x.cardFail", "สร้างการ์ดไม่สำเร็จ")); }
-    finally { b.disabled = false; }
-  });
-  $("#hsPrint").addEventListener("click", function () { touch(); window.print(); });
+  // share / print buttons: the shared share and print of fortune-share.js (owner order 2026-11-16: overview card, no photo or birth
+  // data by default, nothing uploaded; print view with every group open). makeCard above stays for the page's own tests.
   $("#hsAgain").addEventListener("click", reset);
 
-  function toast(msg) { var t = $("#hsToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 2200); }
 
   function reset() {
     resultSec.hidden = true; current = null; lastPartner = null;

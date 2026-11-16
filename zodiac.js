@@ -160,8 +160,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function elRelName(er) { var z = ZK("el." + er); return z ? z.n : KB.ELREL[er].th; }
   function compatName(rel) { var z = ZK("compat." + rel); return z ? z.n : KB.COMPAT[rel].th; }
   function compatLine(rel) { var z = ZK("compat." + rel); return z && z.l ? one(z.l) : KB.COMPAT[rel].l[0]; }
-  function relLine(rel) { var z = ZK("rel." + rel); return z && z.o ? one(z.o) : KB.REL[rel].o[0]; }
-  function anLine(i) { var z = ZK("animal." + i); return z && z.p ? one(z.p) : KB.ANIMALS[i].p[0]; }
   function monthName(m) { return T("zodiac.month", months[m - 1], { m: m }); }
   function yearName(y) {
     var a = ZD.animalOfYear(y), A = KB.ANIMALS[a], e = ZD.elementOfYear(y);
@@ -259,7 +257,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function resetYear() { $("#zdResult").hidden = true; $("#zdCardImg").hidden = true; $("#zdForm").reset(); st.res = null; st.msg = null; showMsg(); }
   $("#zdAgain").addEventListener("click", function () { resetYear(); $("#zdForm").scrollIntoView({ block: "start" }); });
-  $("#zdPrint").addEventListener("click", function () { window.print(); });
   function emojiArt(emos) {
     return function (c, x, y, w, h) {
       c.textAlign = "center"; c.textBaseline = "middle";
@@ -269,13 +266,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       else c.fillText(emos[0], x + w / 2, y + h / 2 + 10);
     };
   }
-  $("#zdShare").addEventListener("click", function () {
-    var R = st.res; if (!R) return;
-    var A = KB.ANIMALS[R.animal], lines = (FK.readings.zdRd || {}).lines || [];
-    FK.share(this, { kind: T("zodiac.cardKind", "12 นักษัตร"), glow: "rgba(192,57,43,.4)", artH: 380, art: emojiArt([A.emo]), title: T("zodiac.cardTitle", "ชาวปี{a} · {year}", { a: anName(R.animal), year: yearName(R.year) }), sub: badge(R.rel),
-      msgs: (lines.length >= 2 ? lines.slice(0, 2) : [relLine(R.rel), anLine(R.animal)]).concat([T("zodiac.cardLuck", "สีเสริมดวง: {c} · ทิศ{d}", { c: R.lucky.map(function (e) { return colors(e)[0]; }).join(" · "), d: dirName(R.animal) })]), foot: T("zodiac.cardFoot", KB.disclaimerShort) },
-      "lensiq-zodiac.jpg", $("#zdCardImg"), T("zodiac.shareTitle", "12 นักษัตร — LENSIQ"));
-  });
+  // #zdShare / #zdPrint: the shared share and print of fortune-share.js (owner order 2026-11-16); the animal is the card's art
+  if (window.LQShare) window.LQShare.art("#zdResult", function (c, x, y, w, h) { var R = st.res; if (R) emojiArt([KB.ANIMALS[R.animal].emo])(c, x, y, w, h); });
 
   /* ตารางปีชง */
   function renderChong() {

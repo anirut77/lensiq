@@ -70,7 +70,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     st.b = b; compute(); render(true);
   });
   $("#lcAgain").addEventListener("click", function () { $("#lcResult").hidden = true; $("#lcForm").reset(); st.b = st.res = null; $("#lcForm").scrollIntoView({ block: "start" }); });
-  $("#lcPrint").addEventListener("click", function () { window.print(); });
+  // #lcPrint: the shared print of fortune-share.js (owner order 2026-11-16), which also adds the share button next to it
 
   var ageNow = function (b) { var n = new Date(), a = n.getFullYear() - b.y; if (n.getMonth() + 1 < b.m || (n.getMonth() + 1 === b.m && n.getDate() < b.d)) a--; return Math.max(0, a); };
   function compute() {
