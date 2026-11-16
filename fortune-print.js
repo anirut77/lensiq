@@ -88,7 +88,7 @@
   const lenOf = s => String(s || "").length;
   /** short items read better side by side: two columns when every item is short (A5 keeps them only when very short) */
   function colsClass(items, lang) {
-    const n = items.length, max = Math.max(0, ...items.map(it => lenOf(it.label) + lenOf(it.text) + 6 * ((it.sw || []).length)));
+    const n = items.length, max = Math.max(0, ...items.map(it => lenOf(it.label) + lenOf(it.text) + (it.sw || []).reduce((a, s) => a + 3 + lenOf(s.name), 0)));
     const lim = lang === "zh" ? { two: 26, tiny: 12 } : { two: 64, tiny: 30 };
     if (n < 4 || max > lim.two) return "";
     return max <= lim.tiny ? " lqp-cols lqp-cols-tiny" : " lqp-cols";
