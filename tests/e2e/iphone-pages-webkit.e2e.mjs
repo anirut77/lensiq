@@ -34,6 +34,13 @@ const DENIED = { th: [/กล้อง/, /อนุญาต|สิทธิ์|
 // amendment 2b (coordinator follow-up 3): user-facing refusal text has no DOMException name, and an address-bar hint has the iOS path
 const RAW_CODE = /\b(NotAllowed|NotFound|NotReadable|Overconstrained|Security|Abort|PermissionDenied)Error\b|DOMException/;
 const ADDR_HINT = /address bar|lock icon|camera icon|แถบที่อยู่|ข้าง URL|แม่กุญแจ|ไอคอนกล้อง|地址栏|锁形|摄像头图标/i;
+// AMENDED 2026-11-16 (amendment 4, STRICTER, independent review of cb672a1: iOS 18+ replaced Safari's "aA" with a page-menu icon):
+// the iPhone step may name aA OR the page menu, and the hint must also give the Settings > Apps > Safari > Camera > Allow fallback,
+// with the retry word (if any) after those steps
+const IOS_MENU = { th: /aA|ไอคอนเมนู|เมนูหน้าเว็บ/, en: /aA|page menu/i, zh: /aA|页面菜单/ };
+const IOS_FALLBACK = { th: /การตั้งค่า\s*>\s*แอป\s*>\s*Safari\s*>\s*กล้อง\s*>\s*อนุญาต/, en: /Settings\s*>\s*Apps\s*>\s*Safari\s*>\s*Camera\s*>\s*Allow/i,
+  zh: /设置\s*>\s*(?:App|应用)\s*>\s*Safari\s*>\s*相机\s*>\s*允许/ };
+const IOS_RETRY = { th: /ลองใหม่/, en: /retry|try again/i, zh: /重试/ };
 /** in-page: visible texts (<= 400 chars, outside the nav / footer / help line) that match every [source, flags] pattern */
 function permTexts(rx) {
   const res = rx.map(r => new RegExp(r[0], r[1])), out = [];
@@ -211,16 +218,16 @@ const CAMERA = [
   zone("afterhours"), zone("bays"), zone("crowd"), zone("queue"), zone("tables"),
   { page: "luckycolor", start: "#startCam", stop: "#stopCam" },
   // attendance (face mode, the page default when no HR employee mode is set) opens the camera on load; #startScan only scans
-  { page: "attendance", start: null, stop: CAM_OFF },
+  { page: "attendance", start: null, stop: CAM_OFF, alsoPagehide: true },
   // booth / signage: the stop control ends counting and keeps the preview for the next round (kiosk design), so the camera is
   // released by pagehide (the user leaves Safari or the page). AMENDED 2026-11-16 (amendment 3, after walk-fix-2 merged): attendance,
   // customers, driver, faceread, palm, photobooth and teamface now have a visible "ปิดกล้อง" control, which must release every track
   { page: "booth", start: "#camStart", stop: null },
   { page: "checkout", start: null, stop: "#camBtn" },
-  { page: "customers", start: "#scanToggle", stop: CAM_OFF },
+  { page: "customers", start: "#scanToggle", stop: CAM_OFF, alsoPagehide: true },
   { page: "driver", pre: async p => { await setVal(p, "#tripForm [name=driver]", "สมชาย"); await setVal(p, "#tripForm [name=plate]", "1กข 1234"); },
     // driver: during a trip the setup card (with "ปิดกล้อง") is scrolled out of reach; the user ends the trip ("จบเที่ยว") first
-    start: "#tripForm [type=submit]", stop: async p => { await tap(p, "#stop"); await CAM_OFF(p); } },
+    start: "#tripForm [type=submit]", stop: async p => { await tap(p, "#stop"); await CAM_OFF(p); }, alsoPagehide: true },
   { page: "exam-hall", pre: async p => { await setVal(p, "#room", "HALL1"); }, start: "#startCam", stop: null },
   { page: "exam-lab", pre: async p => { await setVal(p, "#room", "LAB1"); await setVal(p, "#seat", "12"); await setVal(p, "#consent", true); },
     // AMENDED 2026-11-16 (amendment 2): the candidate's own "ส่งข้อสอบและปิดกล้อง" (#endExam) must release the camera; it is reached
@@ -235,7 +242,7 @@ const CAMERA = [
       await waitFor(p, () => window.__LQ_EXAM_LAB.phase === "exam", null, 8000);
       await tap(p, "#endExam");
     } },
-  { page: "faceread", start: "#frStartCam", stop: CAM_OFF },
+  { page: "faceread", start: "#frStartCam", stop: CAM_OFF, alsoPagehide: true },
   { page: "fengshui", start: "#fsCompassStart", stop: null },
   { page: "interview", pre: async p => { await tap(p, "#tab-delivery"); await setVal(p, "#ivCOk1", true); await setVal(p, "#ivCOk2", true); },
     start: "#ivDStart", stop: "#ivDStop" },
@@ -248,15 +255,15 @@ const CAMERA = [
     await setVal(p, "#newExam [name=title]", "Quiz"); await tap(p, "#newExam [type=submit]");
     await waitFor(p, () => !document.getElementById("ws").hidden, null, 8000);
   }, start: "#camStart", stop: "#camStop" },
-  { page: "palm", start: "#plStartCam", stop: CAM_OFF },
+  { page: "palm", start: "#plStartCam", stop: CAM_OFF, alsoPagehide: true },
   { page: "parking", pre: GATE_ACK, start: "#gkCamBtn", stop: "#gkCamBtn" },
   { page: "village", pre: GATE_ACK, start: "#gkCamBtn", stop: "#gkCamBtn" },
-  { page: "photobooth", start: 'button[data-n="1"]', stop: CAM_OFF },
+  { page: "photobooth", start: 'button[data-n="1"]', stop: CAM_OFF, alsoPagehide: true },
   { page: "qc", start: null, startSelect: ["#srcSel", "camera"], stop: { select: ["#srcSel", "sim"] } },
   { page: "signage", start: "#startFace", stop: null },
   { page: "store", start: "#startCam", stop: "#stop" },
   { page: "studio", start: "#stCamBtn", stop: "#stCamClose" },
-  { page: "teamface", start: "#tfCamBtn", stop: CAM_OFF },
+  { page: "teamface", start: "#tfCamBtn", stop: CAM_OFF, alsoPagehide: true },
   { page: "tryon", pre: async p => { await setVal(p, "#toConsent", true); }, start: "#toStart", stop: "#toStop" },
 ];
 
@@ -388,7 +395,14 @@ export default async function ({ base, check, fakeCams }) {
             // amendment 2b: no raw error code for the user, and a message that points to the browser's address bar / lock / camera icon
             // also gives the iPhone path (Safari aA -> Website Settings -> Camera)
             if (msg && RAW_CODE.test(msg)) bad.push(`the message shows a raw error code: "${msg.slice(0, 160)}"`);
-            if (msg && ADDR_HINT.test(msg) && !/aA/.test(msg)) bad.push(`the message points to the address bar but not to the iPhone path (aA): "${msg.slice(0, 160)}"`);
+            if (msg && ADDR_HINT.test(msg)) {
+              // amendment 4: "aA" OR the page-menu wording (iOS 18+ shows a page-menu icon instead of aA), AND the Settings fallback,
+              // AND the steps come before the retry word
+              const fb = IOS_FALLBACK[lang].exec(msg), rt = msg.search(IOS_RETRY[lang]) >= 0 ? Math.max(...[...msg.matchAll(new RegExp(IOS_RETRY[lang].source, "gi"))].map(m => m.index)) : -1;
+              if (!IOS_MENU[lang].test(msg)) bad.push(`the address-bar hint has no iPhone page-menu step (aA or the page menu): "${msg.slice(0, 200)}"`);
+              if (!fb) bad.push(`the address-bar hint has no Settings > Apps > Safari > Camera fallback in ${lang}: "${msg.slice(0, 200)}"`);
+              if (fb && rt >= 0 && rt < fb.index) bad.push(`the retry word comes before the iPhone steps: "${msg.slice(0, 200)}"`);
+            }
             await sleep(1500);
             const hang = await page.evaluate(sel => {
               const busy = [...document.querySelectorAll('[aria-busy="true"]')].filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !e.closest("[hidden]"); })
@@ -408,7 +422,9 @@ export default async function ({ base, check, fakeCams }) {
           } finally { mark(C.page, "denied-" + lang, ok); await ctx.close(); }
         });
       }
-      await check(`iPhone WebKit th: camera ${C.page} fake camera start -> ${C.stop ? "stop" : "pagehide"} releases every track`, async () => {
+      // amendment 4 (optional item, reviewer): pages with a camera-off button are ALSO checked with pagehide (an extra check, not a replacement)
+      for (const stop of C.alsoPagehide ? [C.stop, null] : [C.stop]) {
+      await check(`iPhone WebKit th: camera ${C.page} fake camera start -> ${stop ? "stop" : "pagehide"} releases every track`, async () => {
         const { ctx, page, st } = await open(browser, `${base}/${C.page}.html${q}`, "th", [MD_SHIM, fakeCams, ONE_CAM, ...(C.init || [])]);
         let ok = false;
         try {
@@ -426,22 +442,23 @@ export default async function ({ base, check, fakeCams }) {
           if (!C.noCamera && !bad.length) try { await waitFor(page, () => window.__LQ_FAKE.live().length >= 1, null, 20000); } catch { bad.push("the camera never started (no live fake track)"); }
           if (!C.noCamera && !bad.length) {
             await sleep(800);
-            if (typeof C.stop === "function") await C.stop(page);
-            else if (C.stop && typeof C.stop === "object") await setVal(page, C.stop.select[0], C.stop.select[1]);
-            else if (C.stop) await tap(page, C.stop);
+            if (typeof stop === "function") await stop(page);
+            else if (stop && typeof stop === "object") await setVal(page, stop.select[0], stop.select[1]);
+            else if (stop) await tap(page, stop);
             else await page.evaluate(() => { window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: true })); });
             try { await waitFor(page, () => window.__LQ_FAKE.live().length === 0, null, 6000); }
-            catch { bad.push(`${await page.evaluate(() => window.__LQ_FAKE.live().length)} camera track(s) still live after ${C.stop ? "the stop control" : "pagehide"}`); }
+            catch { bad.push(`${await page.evaluate(() => window.__LQ_FAKE.live().length)} camera track(s) still live after ${stop ? "the stop control" : "pagehide"}`); }
           }
           endChecks(st, bad);
           assert(!bad.length, `${C.page}: ` + bad.join("; "));
           ok = true;
-        } finally { mark(C.page, "tracks", ok); await ctx.close(); }
+        } finally { mark(C.page, stop === C.stop ? "tracks" : "pagehide", ok); await ctx.close(); }
       });
+      }
     }
   } finally {
     await browser.close();
-    const cols = ["fortune-th", "fortune-en", "fortune-zh", "denied-th", "denied-en", "denied-zh", "tracks"];
+    const cols = ["fortune-th", "fortune-en", "fortune-zh", "denied-th", "denied-en", "denied-zh", "tracks", "pagehide"];
     console.log("\n  iPhone WebKit coverage (390 px) — " + cols.join(" | ") + " | JS heap MB");
     for (const pg of Object.keys(table)) {
       console.log("  " + pg.padEnd(12) + cols.map(c => (table[pg][c] || "-").padStart(c.length)).join("   ") + "   " + (mem[pg] == null ? "n/a" : mem[pg]));
