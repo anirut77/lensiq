@@ -8,6 +8,9 @@
 > the "regular price after the pilot thresholds are met" applies only once a site passes its pilot kit thresholds (`docs/PRICING-RESEARCH.md` §3).
 > Product Check (round 17) has its own photo-set protocol: `docs/product-check/PHOTO-SET-PROTOCOL.md`.
 
+> **Fortune paid depth (2026-11-15, design only, OFF):** not part of any field pilot; fortune readings stay full and free in every
+> pilot build (`window.LENSIQ_FORTUNE_PAID = false`). Design: `docs/FORTUNE-PAID-DESIGN.md`.
+
 ไฟล์ที่เกี่ยวข้อง / Related files:
 
 | ไฟล์ / File | หน้าที่ / Purpose |

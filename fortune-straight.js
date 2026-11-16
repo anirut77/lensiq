@@ -241,7 +241,44 @@
       frag.insertBefore(straightControl(container, res.lang), frag.firstChild);
     } catch (e) { /* no DOM */ }
   }
-  const api = { mount, hardLimit, stripHonest, LABEL_NEG, LEADS: STRAIGHT_LEAD, NATAL_LEADS: NATAL_LEAD, isNatal, calm,
+  /* fortune-paid review F1 / F2 (2026-11-15): words of belief guidance (lucky colour, direction, rite, element tip, lucky item),
+     feng-shui flying stars 2 / 5 and "avoid / don't" warnings. fortune-ai.js marks paragraphs with them (section.guidance);
+     fortune-paid.js never sells such a paragraph. Encouragements (อย่าลืม, อย่าลังเล, ไม่ควรมองข้าม) and อย่าง / 别人 / 特别 are not warnings. */
+  const GUIDE = {
+    th: new RegExp("(?:เลือก|ใส่|ใช้|สวม|เติม)สี|สีมงคล|สีที่เข้ากับ|เคล็ด|หันหน้าไปทาง|หันไปทาง|ปรับมุมไปทาง|ไว้ทาง|ทิศ|เสริม(?:พลัง)?ธาตุ|ทำบุญ|ไหว้|บูชา|" +
+      "สวดมนต์|ใส่บาตร|พกติดตัว|ของมงคล|เครื่องราง|ถวาย|ดาว ?[25](?![0-9])|ห้าเหลือง|ดำสอง|ทุบเจาะ|เหนื่อยล้า|อย่า(?!ง|ลืม|ลังเล)|เลี่ยง|ไม่ควร(?!มองข้าม)"),
+    en: new RegExp("\\b(?:wear(?:ing)?|choose|add|use) (?:a touch of |some |more )?(?:red|orange|blue|black|green|white|yellow|gold|pink|purple|navy|cream|" +
+      "grey|gray|brown|light blue|sky blue)\\b|lucky (?:colou?r|item|charm|direction)|\\bfac(?:e|ing) (?:north|south|east|west)|make merit|\\bpray|offering|" +
+      "\\belement\\b|amulet|\\bStar [25]\\b|Five Yellow|Two Black|digging|fatigue|exhaust\\w*|\\bavoid|\\bdon't\\b|\\bdo not\\b", "i"),
+    zh: /(?:穿|选|用|佩戴|添).{0,3}(?:红|橙|蓝|黑|绿|白|黄|金|粉|紫|灰|棕)色|幸运色|吉祥色|朝(?:东|西|南|北)|吉位|供奉|拜神|拜佛|祈福|行善|布施|补充|护身符|吉祥物|二黑|五黄|动土|避免|不要|(?<![特区告分识派离辨])别(?![人的处具致墅])|勿|忌|疲惫/,
+  };
+  /* fortune-paid reviews (2026-11-15), guidance by PROVENANCE: marks every paragraph that holds text taken from a guidance
+     field of the facts: any item's advice meanings, every meaning of an item the engine flags as guidance as a whole (it.guide,
+     e.g. feng-shui directions, measured directions, rooms, photos, flying stars) or per key (it.guideKeys), the extras (lucky
+     colours, directions, energy words, tips), the remedy texts and the improvement plan: section.guidance[i]. No word list:
+     the marks come from where the text was taken. Called by fortune-ai.js compose(); the reading layout ignores the mark.
+     tr(item) = the item in the reading's language; rem = the remedy table (fortune-ai.js REMEDY / REMEDY_EN). */
+  function markGuidance(out, F, lang, tr, rem) {
+    const L = lang === "zh" || lang === "en" ? lang : "th", en = L === "en", lc = (/** @type {any} */ t) => (en ? String(t).toLowerCase() : String(t));
+    const ex = (F && F.extras) || {}, src = [];
+    for (const it of (F && F.items) || []) {
+      const m = ((tr ? tr(it) : it) || it).meanings || {};
+      if (it.guide) for (const k in m) src.push(...[].concat(m[k] || []));
+      else { src.push(...[].concat(m.advice || [])); for (const k of it.guideKeys || []) src.push(...[].concat(m[k] || [])); }
+    }
+    for (const k of ["luckyColors", "directions", "energyWords", "tips"]) src.push(...[].concat(ex[k] || []));
+    // negative-state / worry / difficulty areas tagged by reading (fortune-negstate.js): never paid (rule a)
+    const NS = /** @type {any} */ (root).LQFortuneNeg || (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-negstate.js") : null);
+    if (NS && NS.sources) src.push(...NS.sources(F, tr), ...(NS.guideSources ? NS.guideSources(F, tr) : []));
+    // rem: the remedy table of the reading's language (EN: strings; TH / ZH: {th, zh})
+    const rv = Object.values(rem || {}).map((/** @type {any} */ x) => (typeof x === "string" ? x : x && (L === "zh" ? x.zh : x.th)));
+    src.push(...rv, ...((out && out.plan && out.plan.items) || []).map((/** @type {any} */ x) => x.t));
+    const cut = (/** @type {string} */ t) => (L === "zh" ? t.split(/[，。；！？、：:]/) : en ? t.split(/[,.;:!?]\s+|\s+(?:and|but|so|or)\s+/) : t.split(/\s+/));
+    const frags = [...new Set(src.filter(Boolean).map(lc).flatMap(t => cut(t).concat([t])).map(x => x.trim()).filter(x => x.length >= (L === "zh" ? 6 : 12)))];
+    for (const s of (out && out.sections) || []) s.guidance = (s.paragraphs || []).map((/** @type {any} */ p) => frags.some(x => lc(p).includes(x)));
+    return out;
+  }
+  const api = { mount, hardLimit, GUIDE, markGuidance, stripHonest, LABEL_NEG, LEADS: STRAIGHT_LEAD, NATAL_LEADS: NATAL_LEAD, isNatal, calm,
     enabled: straightEnabled, active: straightActive, get: straightGet, set: straightSet,
     text: straightText, controlHTML: straightControlHTML, control: straightControl };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQFortuneStraight = api;
