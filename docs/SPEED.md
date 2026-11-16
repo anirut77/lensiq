@@ -76,12 +76,13 @@ palm 3,390 KB, faceread 3,650 KB (measured after-weight x 1.10, same rounding).
 
 ### Headroom warning (2026-11-16, branch fortune-top-compact)
 
-Measured locally (headless Chrome, unthrottled, cold) after the fortune top compact work and the review-round-1 fixes:
+Measured locally (headless Chrome, unthrottled, cold) after the fortune top compact work, the review-round-1 fixes and the
+merge of main 7a51bcf (main itself added weight to the shared files):
 
 | Page | Bytes | Budget | Headroom |
 |---|---|---|---|
-| fortune.html | 449,585 B (439 KB) | 440 KB (450,560 B; fails from 451,072 B) | about 1.5 KB |
-| help.html | 408,226 B (399 KB) | 400 KB (fails from 410,112 B) | about 1.9 KB |
+| fortune.html | 450,637 B (440 KB) | 440 KB (fails from 451,072 B) | about 0.4 KB |
+| help.html | 409,131 B (400 KB) | 400 KB (fails from 410,112 B) | about 1.0 KB |
 
 Every fortune page now carries `fortune-top.css` inline (about 2.3 KB) and nav.js carries the 1323 top-bar control (about
 1.8 KB). To make room, the long header comment of nav.js moved word for word to `docs/NAV.md`. The sticky read bar
