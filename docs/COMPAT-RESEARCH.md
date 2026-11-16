@@ -114,3 +114,11 @@ is not computed (fear-selling risk; it also needs a birth time and houses).
    Background: firms in China have screened applicants by zodiac year (scmp.com 2024; sixthtone.com; livescience.com), and
    signs do not predict personality or job performance (Lu et al. 2020, JPSP, as summarised by humanresourcesonline.net and
    psychologytoday.com).
+7. **Not linked yet** (coordinator 2026-11-16): `compat.html` is in `UNLINKED` (tools/cat-data.cjs), not in category 6, the
+   fortune hub or the menu, and CLAUDE.md is unchanged, until the owner approves the go-live. Linking it later: move `compat`
+   from `UNLINKED` to category 6 in `tools/cat-data.cjs` (and the CLAUDE.md table, by the owner), run `node tools/cat-pages.mjs`,
+   add the nav.js entry and the hub card.
+8. **Owner and pet** (for the pet page, branch fortune-pet): `LQCompat.pair(owner, pet, {mode: "owner-pet", lang})` returns
+   `{mode, source: "lensiq-compat", title, lines}` from the two birth dates only: the Thai birth-day pair, the year animals
+   (harmony, three harmony, clash) and the BaZi generating cycle, always warm, a difference always with a shared routine,
+   and the belief line last.

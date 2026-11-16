@@ -296,8 +296,32 @@
   }
 
   /* ================= pair ================= */
+  /* owner and pet: the interface the pet page uses (branch fortune-pet, lensiq-compat-stub.js):
+     pair({birth: "YYYY-MM-DD", kind: "person"}, {birth, kind: "pet", species}, {mode: "owner-pet", lang}) -> {mode, source, title, lines}
+     birth dates only (never a photo); Thai birth-day pair, year animals and the BaZi element cycle, always framed warmly */
+  function ownerPet(a, b, opts) {
+    const lang = langOf(opts.lang), L = KB.PET[lang], N = KB.NAMES, out = { mode: "owner-pet", source: "lensiq-compat", title: L.title, lines: [] };
+    const parse = x => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String((x && x.birth) || "")); if (!m) return null;
+      const y = +m[1], mo = +m[2], d = +m[3]; if (!(y >= 1900 && y <= 2100 && mo >= 1 && mo <= 12 && d >= 1 && d <= new Date(Date.UTC(y, mo, 0)).getUTCDate())) return null;
+      return person({ y, m: mo, d, time: null, tz: 7 }); };
+    const O = parse(a), P = parse(b);
+    if (!O) return out;
+    const day = n => N.day[lang][n];
+    if (!P) { out.lines.push(fill(L.solo, { x: day(O.thai.day) })); out.lines.push(L.belief); return out; }
+    const dp = thai.dayPair(O.thai.day, P.thai.day);
+    const k = dp.same ? "same" : ["mitr", "thatu", "somphon", "satru"].find(x => dp.kinds.includes(x)) || "none";
+    out.lines.push(fill(L[k], { x: day(O.thai.day), y: day(P.thai.day) }));
+    const yr = bazi.branchRels(O.thai.animal, P.thai.animal), yk = ["six", "three", "clash"].find(x => yr.includes(x));
+    if (yk) out.lines.push(fill(L[yk], { x: N.animal[lang][O.thai.animal], y: N.animal[lang][P.thai.animal] }));
+    const sr = bazi.stemRel(O.bazi.dayStem, P.bazi.dayStem);
+    if (sr.rel === "aGen") out.lines.push(fill(L.genOwner, { x: N.el5[lang][O.bazi.dmEl], y: N.el5[lang][P.bazi.dmEl] }));
+    if (sr.rel === "bGen") out.lines.push(fill(L.genPet, { x: N.el5[lang][P.bazi.dmEl], y: N.el5[lang][O.bazi.dmEl] }));
+    out.lines.push(L.belief);
+    return out;
+  }
   function pair(A, B, opts) {
     opts = opts || {};
+    if (opts.mode === "owner-pet") return ownerPet(A, B, opts);
     const th = thaiSignals(A, B), bz = baziSignals(A, B), vd = vedicSignals(A, B), ws = westernSignals(A, B);
     const methods = {
       thai: { score: scoreOf(th.out), max: 100, guide: true, signals: th.out, facts: th.facts },

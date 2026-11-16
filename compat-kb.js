@@ -433,6 +433,56 @@
     },
   };
 
-  const KB = { CATS, CAT, LEAN, METHOD, NAMES, S, BR, GEN, CARE_NONE, ROLE, WORK_USE, T };
+  /* owner and pet (interface for the pet page, branch fortune-pet: LQCompat.pair(owner, pet, {mode: "owner-pet", lang})):
+     birth dates only; always warm; a difference comes with a routine to share */
+  const PET = {
+    th: {
+      title: "เจ้าของกับน้อง", belief: "ตามความเชื่อ โปรดใช้วิจารณญาณ",
+      solo: "คนเกิด{x}มักเป็นเจ้าของที่ใส่ใจ น้องจะรับรู้ความใส่ใจนี้ได้ดีที่สุดผ่านกิจวัตรที่ทำด้วยกัน",
+      mitr: "คุณเกิด{x} น้องเกิด{y} เป็นคู่มิตรตามตำราไทย เข้าขากันง่ายและสนิทกันเร็ว",
+      thatu: "คุณเกิด{x} น้องเกิด{y} เป็นคู่ธาตุเดียวกัน จังหวะชีวิตคล้ายกัน อยู่ด้วยกันสบาย",
+      somphon: "คุณเกิด{x} น้องเกิด{y} เป็นคู่สมพล ต่างคนต่างเติมสิ่งที่อีกฝ่ายไม่มี",
+      same: "คุณกับน้องเกิด{x}เหมือนกัน นิสัยพื้นฐานคล้ายกันจึงรู้ใจกัน",
+      satru: "คุณเกิด{x} น้องเกิด{y} ตำราว่าจังหวะของสองฝ่ายต่างกัน ให้เวลาเรียนรู้กันด้วยกิจวัตรเดิมทุกวัน เช่นเวลาให้อาหารและเวลาเล่นที่แน่นอน",
+      none: "คุณเกิด{x} น้องเกิด{y} เป็นคู่ที่ค่อย ๆ รู้ใจกันผ่านเวลาที่อยู่ด้วยกัน",
+      six: "ปี{x}ของคุณกับปี{y}ของน้องเป็นคู่สมพงษ์ตามนักษัตร ผูกพันกันได้ยาวนาน",
+      three: "ปี{x}ของคุณกับปี{y}ของน้องอยู่ในกลุ่มสามประสาน ไปทางเดียวกันได้ง่าย",
+      clash: "ปี{x}ของคุณกับปี{y}ของน้องเป็นคู่ชง หมายถึงพลังต่างกัน ช่วยกันได้ด้วยการพาเดินเล่นหรือเล่นด้วยกันทุกวัน",
+      genOwner: "ธาตุ{x}ของคุณหล่อเลี้ยงธาตุ{y}ของน้องตามวัฏจักรห้าธาตุ คุณเป็นฝ่ายเติมพลังและความมั่นใจให้น้อง",
+      genPet: "ธาตุ{x}ของน้องหล่อเลี้ยงธาตุ{y}ของคุณตามวัฏจักรห้าธาตุ น้องเป็นฝ่ายเติมพลังให้คุณในวันที่เหนื่อย",
+    },
+    en: {
+      title: "You and your pet", belief: "According to belief, please use your own judgement.",
+      solo: "People born on a {x} tend to be attentive keepers; your pet feels it best through routines you share.",
+      mitr: "You were born on a {x} and your pet on a {y}: a friend pair in Thai tradition, so you click easily and bond quickly.",
+      thatu: "You were born on a {x} and your pet on a {y}: the same element, so your rhythms match and home feels easy.",
+      somphon: "You were born on a {x} and your pet on a {y}: a balancing pair, each bringing what the other lacks.",
+      same: "You and your pet were both born on a {x}: alike at heart, so you read each other well.",
+      satru: "You were born on a {x} and your pet on a {y}: the tradition says your rhythms differ, so get to know each other through the same routine every day, such as fixed meal and play times.",
+      none: "You were born on a {x} and your pet on a {y}: a pair that grows closer through time spent together.",
+      six: "Your {x} year and your pet's {y} year are a harmony pair among the twelve animals: a long, close bond.",
+      three: "Your {x} year and your pet's {y} year belong to the same three-harmony group: easy to move in the same direction.",
+      clash: "Your {x} year and your pet's {y} year clash, meaning different energy; a daily walk or play time together helps you match.",
+      genOwner: "In the five-element cycle your {x} feeds your pet's {y}: you give your pet energy and confidence.",
+      genPet: "In the five-element cycle your pet's {x} feeds your {y}: your pet recharges you on tiring days.",
+    },
+    zh: {
+      title: "你和它", belief: "依据传统说法，请自行判断。",
+      solo: "{x}出生的人往往是很用心的主人，它最能从你们一起的日常中感受到这份用心。",
+      mitr: "你生于{x}，它生于{y}：按泰式传统是朋友组合，很快就能亲近起来。",
+      thatu: "你生于{x}，它生于{y}：同属一个元素，生活节奏相近，相处自在。",
+      somphon: "你生于{x}，它生于{y}：平衡组合，各自补上对方没有的部分。",
+      same: "你和它都生于{x}：本性相似，很懂彼此。",
+      satru: "你生于{x}，它生于{y}：传统上说两者节奏不同，可以每天用固定的日常来互相熟悉，比如固定的喂食和玩耍时间。",
+      none: "你生于{x}，它生于{y}：在相处中慢慢变得默契。",
+      six: "你的{x}年与它的{y}年是生肖六合：感情深厚长久。",
+      three: "你的{x}年与它的{y}年同属三合：容易同步。",
+      clash: "你的{x}年与它的{y}年相冲，代表能量不同；每天一起散步或玩耍能让你们更合拍。",
+      genOwner: "五行相生：你的{x}生它的{y}，你为它带来能量和安全感。",
+      genPet: "五行相生：它的{x}生你的{y}，在你疲惫的日子里它为你补充能量。",
+    },
+  };
+
+  const KB = { CATS, CAT, LEAN, METHOD, NAMES, S, BR, GEN, CARE_NONE, ROLE, WORK_USE, T, PET };
   if (typeof module !== "undefined" && module.exports) module.exports = KB; else root.LQCompatKB = KB;
 })(typeof window !== "undefined" ? window : globalThis);
