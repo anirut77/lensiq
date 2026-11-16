@@ -6,7 +6,7 @@
   "pl.doc.desc": "Find good days to move into a new home, open a shop or start a new job, based on the weekday and its colour, the lunar phase and the owner's birth weekday. Good days only, each with its reasons; save to your calendar. Calculated on this device.",
   "pl.eyebrow": "Auspicious dates · good days in Thai tradition",
   "pl.h1": "Auspicious date planner",
-  "pl.lead": "Choose what you are planning and the months, then add the owner's birth weekday (optional). The page lists only good days and explains why each one is good. Tick the days you like and save them to your phone's calendar.",
+  "pl.lead": "Choose what you are planning and the months to get good days with reasons, ready for your calendar.",
   "pl.disc.b": "For cultural planning, not a guarantee.",
   "pl.disc.rest": "Traditions differ: ask a monk or an astrologer you trust before fixing the real date. Calculated on this device; your birth date is not saved or sent anywhere.",
   "pl.f.event": "What are you planning?",

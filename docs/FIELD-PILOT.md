@@ -320,6 +320,10 @@ input. Rows without ground truth are skipped and counted.
 
 ## Changelog / last reviewed
 
+- **2026-11-16 (fortune top compact, branch `fortune-top-compact`, not merged)**: no change to the plate, exam, gate or crowd
+  pilots. Fortune pages (not a field-pilot product): the 1323 help control is a phone icon + "1323" in the top bar with a
+  confirmation before calling; the page top is compact so the camera / first field is on the first screen of a phone. If
+  fortune runs at a booth, the booth wording is now on `solutions.html`, not on the fortune pages.
 - **2026-11-14 (tap-to-call help lines)**: no change to the pilots. Every help number (fortune pages, medicine,
   nutrition, terms) is now a one-row tap-to-call button; on a booth computer the number shows as large text instead of
   relying on a phone. Numbers and hours re-checked 2026-11-14 (`docs/CRISIS-RESOURCES.md`).

@@ -2,7 +2,7 @@
 (function (root) {
   "use strict";
   var dict = { en: {
-    "tarot.metaDesc": "The full 78-card Rider–Waite–Smith tarot deck, a card of the day and 28 Siam Si fortune sticks to add fun to booths and events. Runs in your browser and never saves your question",
+    "tarot.metaDesc": "The full 78-card Rider–Waite–Smith tarot deck, a card of the day and 28 Siam Si fortune sticks. Runs in your browser and never saves your question",
     "tarot.disc2": " Do not use it for decisions about health, finances, legal matters or important relationships.",
     "tarot.tabsAria": "Choose a mode",
     "tarot.step1": "1 Ask a question",
