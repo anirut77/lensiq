@@ -49,3 +49,7 @@ bc575841e1f1884effd6eaf65eb622c981a294284ad4272ee68adf19c3df9f7f  tests/unit/for
 # locked 2026-11-16T14:58:36Z (tools/eval-guard.mjs lock, 1 file)
 fe1135d272c0ecdf4b854bc2053c6e7c7f23ec8aa115b87ec32e287f5598fef8  relock4/crisis-rules-1323.test.js
 fe1135d272c0ecdf4b854bc2053c6e7c7f23ec8aa115b87ec32e287f5598fef8  tests/unit/crisis-rules-1323.test.js  # repo file (re-lock 4)
+# RE-LOCK 5 2026-11-16: tests/e2e/fortune-layout.e2e.mjs A5 exception (owner decision 2026-11-16 rule 3, the longer text behind อ่านเพิ่มเติม; rule 1 one number): exactly one fold, details.fa-support-more; no other fold; every line outside it visible; tel links = exactly one, tel:1323. Found in CI run 43882802665 (the old check required no fold and >= 2 tel links).
+# locked 2026-11-16T15:34:49Z (tools/eval-guard.mjs lock, 1 file)
+79f31738488874797256ab4ceeeb1340841780240c04c89b20f82228aaa4040c  relock5/fortune-layout.e2e.mjs
+79f31738488874797256ab4ceeeb1340841780240c04c89b20f82228aaa4040c  tests/e2e/fortune-layout.e2e.mjs  # repo file (re-lock 5)

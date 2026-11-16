@@ -372,12 +372,15 @@ export default async function ({ base, launch, check, fakeCams }) {
           await page.waitFor(() => !!document.querySelector(".fa-support"), 5000);
           const r = await page.evaluate(`(() => {
             const vis = e => { const s = getComputedStyle(e), r = e.getBoundingClientRect(); return s.display !== "none" && s.visibility !== "hidden" && r.width > 0 && r.height > 0; };
-            return [...document.querySelectorAll(".fa-support")].map(c => ({ shown: vis(c), parts: c.querySelectorAll("button.lq-more, .lq-more-body, .lq-notice-more, details").length,
-              folded: !!c.closest(".lq-more-body, .lq-notice-more, details:not([open])"), hiddenLines: [...c.querySelectorAll("li, p, a")].filter(e => !vis(e)).length,
-              tel: c.querySelectorAll('a[href^="tel:"]').length }));
+            // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules, rule 3): exactly ONE fold is allowed, the card's own
+            // details.fa-support-more ("อ่านเพิ่มเติม", longer text only); every other part stays unfolded; one number, tel:1323
+            return [...document.querySelectorAll(".fa-support")].map(c => ({ shown: vis(c), parts: c.querySelectorAll("button.lq-more, .lq-more-body, .lq-notice-more, details:not(.fa-support-more)").length,
+              more: c.querySelectorAll("details.fa-support-more").length,
+              folded: !!c.closest(".lq-more-body, .lq-notice-more, details:not([open])"), hiddenLines: [...c.querySelectorAll("li, p, a")].filter(e => !vis(e) && !e.closest("details.fa-support-more")).length,
+              tel: c.querySelectorAll('a[href^="tel:"]').length, only1323: [...c.querySelectorAll('a[href^="tel:"]')].every(a => a.getAttribute("href") === "tel:1323") }));
           })()`);
           if (!r.length) bad.push(lang + ": no crisis card");
-          for (const c of r) { if (!c.shown || c.parts || c.folded || c.hiddenLines || c.tel < 2) bad.push(lang + ": " + S(c)); }
+          for (const c of r) { if (!c.shown || c.parts || c.more !== 1 || c.folded || c.hiddenLines || c.tel !== 1 || !c.only1323) bad.push(lang + ": " + S(c)); }
           const n = await page.evaluate(`${NOTICES}(${NOTE_MAX[lang]})`);
           for (const b of n.bad.filter(b => /helpline|support|sits inside|made a notice|collapsible/.test(b))) bad.push(lang + ": " + b);
         } finally { await page.close(); }
