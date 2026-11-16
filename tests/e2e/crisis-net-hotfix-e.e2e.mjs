@@ -186,14 +186,18 @@ export default async function ({ base, launch, check, fakeCams }) {
     const tel = label => `(() => { ${VIS} const a = [...document.querySelectorAll('.fa-support a[href="tel:1323"]')].find(vis); if (!a) return "no visible tel:1323 link";
       const b = a.getBoundingClientRect(); return b.height >= 44 ? "" : ${S(label)} + ": tel:1323 is " + Math.round(b.height) + " px tall (< 44)"; })()`;
     const E5 = [
-      ["numbers name", "numbers.html", NM, async (p, q) => { await p.evaluate(click('.nm-tab[data-tab="name"]')); await p.evaluate(setVal("#nmName", q)); try { await p.evaluate(submit("nmForm")); } catch (e) { /* replaced */ } }],
+      // re-lock 2026-11-17 (append-only): the name tab is opened BEFORE the baseline, as in part A (v1 opened it after the
+      // baseline, so the tab's own label "ชื่อจริง" counted as an echo of "อยากตายจริงๆ"); assertion unchanged
+      ["numbers name", "numbers.html", NM, async (p, q) => { await p.evaluate(setVal("#nmName", q)); try { await p.evaluate(submit("nmForm")); } catch (e) { /* replaced */ } },
+        p => p.evaluate(click('.nm-tab[data-tab="name"]'))],
       ["tarot question", "tarot.html", TR, async (p, q) => { await p.evaluate(setVal("#trQuestion", q)); await p.evaluate(submit("trSetup")); }],
       ["iching question", "iching.html", IC, async (p, q) => { await p.evaluate(setVal("#icQuestion", q)); await p.evaluate(click("#icStart")); }],
     ];
-    for (const [name, path, widgets, act] of E5) {
+    for (const [name, path, widgets, act, prep] of E5) {
       await each(check, `E5 ${name}, fortune-crisis.js blocked: crisis phrase -> the card with a 44 px tel:1323, no reading`, async ({ lang, width, phrase, label }) => {
         const page = await openBlocked(path, { width, lang });
         try {
+          if (prep) { await prep(page); await sleep(300); }
           const before = await baseline(page);
           await act(page, phrase);
           await assertCard(page, { label, typed: phrase, before, widgets });

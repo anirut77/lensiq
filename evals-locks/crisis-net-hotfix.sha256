@@ -26,3 +26,5 @@ a51b5a66b400a7b99d20205811fafd44b2dc99a9da80c5b1936245be408bb1a7  tests/e2e/cris
 ea5974394ed52531a91e2aea41ae511aadbf7b9b4d9f86f44c743942862d1943  tests/unit/crisis-input-inventory-2.test.js  # repo file
 7b515a0d425011c0dc07795f511f1c3253c2aa737d36ebe5d5c4df3d0eb8b7c6  tests/e2e/fortune-crisis.e2e.mjs  # repo file (stricter re-lock)
 074e8b3df854f5034f68fc83439f07bf14d18ee5b7b377d6822bc837aaf0a88a  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (v3)
+# re-lock 2026-11-17 (append-only): crisis-net-hotfix-e.e2e.mjs v2: E5 numbers opens the name tab BEFORE the baseline, as in part A (v1 opened it after, so the tab's own label "ชื่อจริง" was counted as an echo of "อยากตายจริงๆ" in TH: found in the first after-fix run, 2/6 TH cases). Assertion unchanged; every other check byte-identical. Field copy: crisis-net-hotfix-r2/crisis-net-hotfix-e.v2.e2e.mjs (v1 kept as crisis-net-hotfix-e.e2e.mjs).
+f312ef6bfa242df5e2052dafeeee29e45b2ef88dd74b801c951ce2a348ed6130  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file (v2)
