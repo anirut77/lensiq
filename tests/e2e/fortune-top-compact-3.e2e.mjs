@@ -36,7 +36,9 @@ const tap = async (page, pt) => {
 };
 const key = async (page, k, shift) => {
   const code = { Enter: 13, Tab: 9, Escape: 27 }[k];
-  await page.send("Input.dispatchKeyEvent", { type: "keyDown", key: k, code: k, windowsVirtualKeyCode: code, modifiers: shift ? 8 : 0 });
+  // RE-LOCK 2026-11-16 (test fault found in the first run, run-8): Chrome activates a button on Enter only when the
+  // key event carries its text ("\r"); without it the switch never opened, so R3 could not test Tab at all
+  await page.send("Input.dispatchKeyEvent", { type: "keyDown", key: k, code: k, windowsVirtualKeyCode: code, modifiers: shift ? 8 : 0, ...(k === "Enter" ? { text: "\r" } : {}) });
   await page.send("Input.dispatchKeyEvent", { type: "keyUp", key: k, code: k, windowsVirtualKeyCode: code, modifiers: shift ? 8 : 0 });
   await sleep(200);
 };
