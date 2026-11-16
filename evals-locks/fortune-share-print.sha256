@@ -1,0 +1,8 @@
+# locked 2026-11-16T00:13:27Z (tools/eval-guard.mjs lock, 3 files)
+2faad665d49cf3d89c2909ee85b28d2f7c28389697d935812a7e8b094972d1c0  fortune-share-print.test.js
+0a0a99dda29bdb79b6c19a4dfd65638d7a33b3efa7be14716b5d796135d0f754  fortune-share-print.e2e.mjs
+c3fe23ed9bf5f01177f549f20b748ea523f3fc95cffb48f9f76d87937167ab84  fortune-share-print-webkit.e2e.mjs
+# repo copies (byte-identical to the locked set above), locked 2026-11-16 BEFORE the build on branch fortune-share-print (base 6319860); owner order 2026-11-16 items 1-2 (share + print on every fortune result)
+2faad665d49cf3d89c2909ee85b28d2f7c28389697d935812a7e8b094972d1c0  tests/unit/fortune-share-print.test.js  # repo file
+0a0a99dda29bdb79b6c19a4dfd65638d7a33b3efa7be14716b5d796135d0f754  tests/e2e/fortune-share-print.e2e.mjs  # repo file
+c3fe23ed9bf5f01177f549f20b748ea523f3fc95cffb48f9f76d87937167ab84  tests/e2e/fortune-share-print-webkit.e2e.mjs  # repo file
