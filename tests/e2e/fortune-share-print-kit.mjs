@@ -24,6 +24,8 @@
 // the real path (crisis words in the tarot question) in TH / EN / ZH shows the support card with no share or print button.
 import { createRequire } from "node:module";
 import { assert } from "./cdp.mjs";
+import { BUDGET } from "./speed-budget.e2e.mjs";
+import { measureOnce } from "../../tools/perf-measure.mjs";
 
 const require = createRequire(import.meta.url);
 global.PALM_KB = require("../../palm-kb.js");
@@ -53,6 +55,8 @@ const ev = (page, fn, ...a) => page.evaluate(fn, ...a);
 const sections = n => `document.querySelectorAll(".fa-section").length >= ${n} && !document.querySelector(".fa-loading, [aria-busy=true] .fa-section")`;
 const setSel = (id, v) => `(() => { const e = document.getElementById(${S(id)}); e.value = ${S(v)};
   e.dispatchEvent(new Event("input", { bubbles: true })); e.dispatchEvent(new Event("change", { bubbles: true })); })()`;
+/** the reader's first use of a page whose content is there at load: one scroll (no touch) */
+const FIRST_USE = async p => { await p.evaluate(() => { window.scrollBy(0, 2); window.dispatchEvent(new Event("scroll")); }); };
 const lcFill = async p => {
   await p.evaluate(() => {
     document.getElementById("lcDay").value = "12"; document.getElementById("lcMonth").value = "5"; document.getElementById("lcYear").value = "2533";
@@ -62,12 +66,14 @@ const lcFill = async p => {
 };
 // page → read(page) produces the result; typed: what the user typed / chose that must never be on a default card
 const PAGES = {
-  fortune: { read: null, typed: [] },
+  // RE-LOCK 2026-11-16 (option B): the hub and the lucky-colour mirror show their content at load, so the share module is fetched
+  // at the reader's first use (the speed budget forbids fetching it before any user action); the recipe is one scroll
+  fortune: { read: FIRST_USE, typed: [] },
   planner: {
     read: async p => { await ev(p, () => document.getElementById("plGo").click()); await p.waitFor(`!document.getElementById("plResult").hidden && document.querySelectorAll("#plList li").length > 0`, 10000); },
     typed: [],
   },
-  luckycolor: { read: async p => { await p.waitFor(`document.getElementById("recBox").textContent.trim().length > 10`, 8000); }, typed: [] },
+  luckycolor: { read: async p => { await p.waitFor(`document.getElementById("recBox").textContent.trim().length > 10`, 8000); await FIRST_USE(p); }, typed: [] },
   iching: {
     read: async p => { await ev(p, setSel("icQuestion", "งานใหม่จะดีไหมครับ")); await ev(p, () => { document.getElementById("icStart").click(); document.getElementById("icAuto").click(); }); await p.waitFor(sections(3), 20000); },
     typed: ["งานใหม่จะดีไหมครับ"],
@@ -239,7 +245,10 @@ async function pdfText(reader, b64) {
   }, b64);
 }
 // Thai marks may come back from the PDF in another order: compare without spaces and without Thai vowel / tone marks
-const fold = s => String(s).normalize("NFC").replace(/[\sัิ-ฺ็-๎]+/g, "");
+// RE-LOCK 2026-11-16 (coordinator decision): Chinese is compared after NFKC, because Chrome's PDF text maps 人 / 自 / 行 to Kangxi
+// radicals (⼈ ⾃ ⾏), a read-back artefact; the line must still match exactly after NFKC. Thai / English stay NFC (NFKC could
+// hide real Thai differences).
+const fold = (s, lang) => String(s).normalize(lang === "zh" ? "NFKC" : "NFC").replace(/[\sัิ-ฺ็-๎]+/g, "");
 
 /** one language per test file (fortune-share-print-{th,en,zh}.e2e.mjs) so each file stays well inside the runner's per-file limit */
 export async function run({ base, launch, check, fakeCams }, only) {
@@ -252,14 +261,23 @@ export async function run({ base, launch, check, fakeCams }, only) {
     for (const [p, cfg] of Object.entries(PAGES)) {
       for (const lang of [only]) {
         const tag = `[${p}/${lang}]`;
-        let page = null, err = null;
+        let page = null, err = null, t0 = 0;
         try {
           page = await openPage(browser, base, fakeCams, p, lang, [STUBS]);
           if (cfg.read) await cfg.read(page);
-          await sleep(600);
+          t0 = Date.now();
         } catch (e) { err = e; }
         const need = () => { if (err) throw new Error("no result: " + err.message); };
         try {
+          // ADDED 2026-11-16 (option B, locked before the loader was built): the recipes produce the reading by script (no pointer,
+          // touch, key or scroll event; the hub and the lucky-colour mirror: one scroll = first use); within 2 s the share module is
+          // loaded and both buttons are on screen
+          await check(`S0 ${tag} share and print buttons on screen within 2 s of the reading, with no touch`, async () => {
+            need();
+            const left = Math.max(1, 2000 - (Date.now() - t0));
+            await page.waitFor(`!!window.LQShare && [...document.querySelectorAll('[data-lq-sp="share"]')].some(b => b.offsetParent) && [...document.querySelectorAll('[data-lq-sp="print"]')].some(b => b.offsetParent)`, left, 50);
+          });
+          await sleep(600);
           await check(`S1 ${tag} a visible share button and print button with the result, in the page language`, async () => {
             need();
             const b = await page.evaluate(BUTTONS);
@@ -345,7 +363,7 @@ export async function run({ base, launch, check, fakeCams }, only) {
               const bytes = Buffer.from(pdf.data, "base64");
               assert(bytes.length > 2000 && bytes.slice(0, 5).toString() === "%PDF-", "PDF " + bytes.length + " bytes");
               const pages = await pdfText(reader, pdf.data);
-              const miss = pages.map((t, i) => fold(t).includes(fold(LINE[lang])) ? 0 : i + 1).filter(Boolean);
+              const miss = pages.map((t, i) => fold(t, lang).includes(fold(LINE[lang], lang)) ? 0 : i + 1).filter(Boolean);
               assert(pages.length >= 1 && !miss.length, `S7 PDF: ${pages.length} page(s), disclaimer missing on page(s) ${miss.join(", ")}`);
             }
             await page.send("Emulation.setEmulatedMedia", { media: "" });
@@ -363,6 +381,18 @@ export async function run({ base, launch, check, fakeCams }, only) {
             assert(r.s === false && r.p === false && r.printed === 0 && !r.dlg && !r.pv, "refuse " + S(r));
           });
         } finally { if (page) await page.close(); }
+      }
+    }
+
+    // ADDED 2026-11-16 (option B; owner rule: no budget increases): the 6 pages that went over with the eager script tag are back
+    // within their unchanged budgets (same measurement as tests/e2e/speed-budget.e2e.mjs, before any user action)
+    if (only === "th") {
+      for (const path of ["fortune.html", "horoscope.html", "luckycolor.html", "numbers.html", "planner.html", "report.html"]) {
+        await check(`budget: ${path} within its unchanged speed budget with share + print on the page`, async () => {
+          const b = BUDGET[path], r = await measureOnce(browser, base, path, { fast: true, capSec: 60 });
+          console.log(`       ${path}: ${r.kb} KB, ${r.requests} requests (budget ${b.kb} KB, ${b.req})`);
+          assert(r.kb <= b.kb && r.requests <= b.req, `${path}: ${r.kb} KB / ${r.requests} requests > ${b.kb} KB / ${b.req}`);
+        });
       }
     }
 

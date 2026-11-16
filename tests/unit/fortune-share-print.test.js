@@ -42,14 +42,30 @@ const SCRIPT = { th: /[฀-๿]/, en: /^[\x20-\x7E–—’·]+$/, zh: /[一-鿿
 const DATE = new Date(2026, 10, 16, 9, 30);
 const LINK = "https://anirut77.github.io/lensiq/horoscope.html";
 
-test("one shared module on all 18 fortune pages, loaded after the crisis net", () => {
+// RE-LOCK 2026-11-16 (coordinator decision, option B; owner rule: no budget increases; lazy-load per coordinator decision
+// 2026-11-16): the eager <script src="fortune-share.js"> tag pushed 6 pages over their speed budget (CI run 43794823885), so
+// the module is now fetched by a small loader inside the fortune script every page already loads (fortune-notice.js, embedded
+// byte-for-byte in fortune-read.js). The check below replaces "a script tag on every page" with: the loader is on every page,
+// the crisis net is on every page, no page fetches fortune-share.js eagerly, and fortune-share.js / fortune-share-card.js load.
+// The browser side (buttons within 2 s of a reading with no touch; the 6 pages back within budget) is in the e2e kit.
+test("one shared module on all 18 fortune pages: the loader is on every page with the crisis net, fortune-share.js is loadable", () => {
+  const notice = fs.readFileSync(path.join(ROOT, "fortune-notice.js"), "utf8"), read = fs.readFileSync(path.join(ROOT, "fortune-read.js"), "utf8");
+  const m = /\/\* BEGIN fortune-share loader \*\/[\s\S]*?\/\* END fortune-share loader \*\//.exec(notice);
+  assert.ok(m, "fortune-notice.js holds the fortune-share loader block");
+  assert.ok(read.includes(m[0]), "fortune-read.js holds the same loader block (embedded copy)");
+  const v = /["']fortune-share\.js\?v=(\d+)["']/.exec(m[0]);
+  assert.ok(v, "the loader fetches fortune-share.js?v=<n>");
+  for (const ev of ["pointerdown", "touchstart", "keydown", "scroll", "focusin"]) assert.ok(m[0].includes('"' + ev + '"'), "loader starts on " + ev);
+  assert.ok(/fa-section/.test(m[0]), "the loader also starts when a reading is rendered");
   for (const p of PAGES) {
     const html = fs.readFileSync(path.join(ROOT, p + ".html"), "utf8");
-    const at = html.search(/<script src="fortune-share\.js(\?v=\d+)?"/), cr = html.search(/<script src="fortune-crisis\.js/);
-    assert.ok(at > 0, p + ".html does not load fortune-share.js");
-    assert.ok(cr > 0 && cr < at, p + ".html: fortune-share.js must come after fortune-crisis.js");
-    assert.equal((html.match(/<script src="fortune-share\.js/g) || []).length, 1, p + ".html loads fortune-share.js more than once");
+    const hosts = (html.match(/<script src="fortune-(?:notice|read)\.js(?:\?v=\d+)?"/g) || []).length;
+    assert.equal(hosts, 1, p + ".html must load exactly one of fortune-notice.js / fortune-read.js (the loader host)");
+    assert.ok(/<script src="fortune-crisis\.js/.test(html), p + ".html loads the crisis net");
+    assert.ok(!/<script src="fortune-share(?:-card)?\.js/.test(html), p + ".html fetches fortune-share.js eagerly (speed budget)");
   }
+  for (const f of ["fortune-share.js", "fortune-share-card.js"]) assert.ok(fs.statSync(path.join(ROOT, f)).size > 1000, f + " exists");
+  assert.equal(typeof SP.cardModel, "function", "fortune-share.js loads in Node");
   assert.deepEqual(Object.keys(SP.PAGES).sort(), [...PAGES].sort(), "SP.PAGES lists exactly the 18 fortune pages");
 });
 
