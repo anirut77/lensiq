@@ -13,3 +13,6 @@ ae694b57675b1b0d78d09a2826fe054374b21356cfff84aa99b7fdd9482df920  tests/unit/for
 # locked 2026-11-16T03:58:31Z (tools/eval-guard.mjs lock, 2 files)
 1f3043e4375515ed7d23b28d9d5d2b7b2d338d5e866859eb38e42ea147993f20  tests/e2e/fortune-top-compact.e2e.mjs
 9c5f41e3d50570baa6d2782499399d2cf4675fa1cf72f942e24bad8e9cccefa6  tests/e2e/fortune-top-compact-2.e2e.mjs
+# RE-LOCK 2026-11-16 (owner decision 69 ค 2026-11-16, same reason as above; found at the first after-build run, run-3-affected-b.log): tests/e2e/helpline-call.e2e.mjs 'rendered wording' check: the top control (mini button) shows '1323' and its words are the aria-label 'อยากมีคนรับฟัง โทร 1323' (was: visible 'อยากมีคนรับฟัง 1323'). Every other check in the file (tel, 44 px, on screen, not covered, never hidden, crisis, calm, forbidden words, computer 24 px number) unchanged; the 24 px desktop-number failure of that run is fixed in the product, not in the test.
+# locked 2026-11-16T05:15:21Z (tools/eval-guard.mjs lock, 1 file)
+4c00c03101d793f0f9c08d1b2215be9c76d6ccfc7be29f28ad556842ff0ed3b4  relock69/tests/e2e/helpline-call.e2e.mjs
