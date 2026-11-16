@@ -208,5 +208,5 @@ window.LENSIQ_TRYON = window.LENSIQ_TRYON === true;
 /* LENSIQ_CONVERT_SERVER: ตัวแปลง PDF -> DOCX บนเซิร์ฟเวอร์ (converter.js) มีเฉพาะเมื่อเปิดเว็บด้วย server.py ในเครื่อง
  *   ปิด (ค่าเริ่มต้น, เว็บนิ่ง): ไม่เรียก /api/convert และ /api/convert/status แปลงในเบราว์เซอร์แทน · ตั้ง true เมื่อเสิร์ฟด้วย server.py */
 window.LENSIQ_CONVERT_SERVER = window.LENSIQ_CONVERT_SERVER === true;
-/* LENSIQ_HELP_STICKY (rule 6; owner decision 75 ก 2026-11-16): true = 1323 icon in the sticky top bar; false = scrolls away */
-window.LENSIQ_HELP_STICKY = true;
+/* LENSIQ_HELP_STICKY: 1323 icon in the sticky top bar of fortune pages (decision 75 ก, default); false = in the page, not sticky. */
+window.LENSIQ_HELP_STICKY = window.LENSIQ_HELP_STICKY !== false;
