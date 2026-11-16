@@ -14,6 +14,7 @@
 .lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
 .lq-helpnav a.lq-call-btn[href]:hover{background:#0b5d8f14;color:#094d77}
 .lq-helpnav .lq-call-mini-t{display:none}
+.lq-helpquiet a.lq-call-btn[href]{gap:4px;padding:0 6px;background:none;color:#0b5d8f;font-size:.88rem}.lq-helpquiet .lq-call-mini-t{display:none}
 .has-help{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"util util util lang" "logo menu menu help"}
 @media(max-width:1023.98px),(pointer:coarse) and (max-height:600px){
   .has-help{grid-template-columns:auto minmax(0,1fr) auto auto auto;grid-template-areas:"logo . help lang toggle"}}

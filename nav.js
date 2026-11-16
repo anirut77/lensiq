@@ -410,7 +410,8 @@
   function helpMount() {
     var top = document.getElementById("lqHelpTop"), a = top && top.querySelector("a");
     if (!top || !a || header.contains(top)) return;
-    header.insertBefore(top, header.querySelector(".nav-end") || langBox); top.classList.add("lq-helpnav"); header.classList.add("has-help");
+    if (/** @type {any} */ (window).LENSIQ_HELP_TOP_STICKY === false) top.classList.add("lq-helpquiet"); // decision 75 switch: stays in the page, not sticky
+    else { header.insertBefore(top, header.querySelector(".nav-end") || langBox); top.classList.add("lq-helpnav"); header.classList.add("has-help"); }
     a.setAttribute("aria-haspopup", "dialog"); a.onclick = function (/** @type {Event} */ e) { if (help.confirm) { e.preventDefault(); help.open(); } };
     help.el = top; help.link = a; syncCompact(); setNavH();
   }

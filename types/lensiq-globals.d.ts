@@ -49,6 +49,7 @@ interface Window {
   LENSIQ_TRYON?: boolean;
   /** converter uses the local python server.py PDF engine only when true (off as shipped) */
   LENSIQ_CONVERT_SERVER?: boolean;
+  LENSIQ_HELP_TOP_STICKY?: boolean;
   LENSIQ_LEADS_NOTICE?: boolean;
   /** fortune-crisis.js (loaded before fortune-ai.js) */
   LQFortuneCrisis?: any;

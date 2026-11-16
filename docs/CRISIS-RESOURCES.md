@@ -98,6 +98,11 @@ the bar fits at 360 px. Owner reason: on a real iPhone 16 Pro the button was lar
 confirmation step before calling add harmful friction?". Tests: `tests/e2e/fortune-top-compact.e2e.mjs` C2, C6, C7, C8;
 re-locked `tests/e2e/fortune-live.e2e.mjs` H2 and `tests/e2e/fortune-helpline.e2e.mjs` (evals-locks/fortune-top-compact.sha256).
 
+**Stickiness switch (owner crisis rules 2026-11-16, pending decision 75):** `window.LENSIQ_HELP_TOP_STICKY` in
+`lensiq-config.js` (default on). Off: nav.js leaves `#lqHelpTop` at the top of the page content (class `.lq-helpquiet`, same
+icon + "1323", not sticky); the confirmation step stays. The sticky read bar below is a reading control and never carries
+a help number.
+
 **Sticky read bar (review 2026-11-16):** the copy of a reading page's own read button at the bottom of the screen
 (`fortune-readbar.js`) is never shown in the crisis state (`html[data-lq-crisis]`) or while a help card is on screen, and it
 sits at the bottom only, so it cannot cover the top-bar 1323 control.
