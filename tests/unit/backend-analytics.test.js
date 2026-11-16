@@ -81,7 +81,9 @@ test("eval8 probe3: server allowlists are enforced — free slugs are rejected, 
   assert.equal(ok[0].feature, "newpage.thing", "ANALYTICS_FEATURES var extends the allowlist");
   const { ANALYTICS_PAGES } = await import(B + "constants.js");
   const { readdirSync } = require("node:fs");
-  const pages = readdirSync(require("node:path").join(__dirname, "..", "..")).filter(f => f.endsWith(".html") && f !== "admin.html").map(f => f.slice(0, -5));
+  // exception (owner decision 77 ก, 2026-11-16): counselling.html is never counted, no record of who opens crisis help
+  // (tests/unit/crisis-no-analytics.test.js checks it is NOT on either allowlist)
+  const pages = readdirSync(require("node:path").join(__dirname, "..", "..")).filter(f => f.endsWith(".html") && f !== "admin.html" && f !== "counselling.html").map(f => f.slice(0, -5));
   for (const p of pages) assert.ok(ANALYTICS_PAGES.includes(p), `add "${p}" to ANALYTICS_PAGES in backend/src/constants.js and lensiq-analytics.js`);
 });
 

@@ -53,3 +53,9 @@ fe1135d272c0ecdf4b854bc2053c6e7c7f23ec8aa115b87ec32e287f5598fef8  tests/unit/cri
 # locked 2026-11-16T15:34:49Z (tools/eval-guard.mjs lock, 1 file)
 79f31738488874797256ab4ceeeb1340841780240c04c89b20f82228aaa4040c  relock5/fortune-layout.e2e.mjs
 79f31738488874797256ab4ceeeb1340841780240c04c89b20f82228aaa4040c  tests/e2e/fortune-layout.e2e.mjs  # repo file (re-lock 5)
+# LOCK part D 2026-11-16, BEFORE the fix: owner decision 77 ก 'Do not count visits to the ช่องทางให้คำปรึกษา page or any crisis-state view, for anyone' (reason: no record of who opens crisis help). New tests/unit/crisis-no-analytics.test.js (D1-D5). backend-analytics.test.js 'every page in allowlist': one narrow exception, counselling.html only, with that reason; nothing else changed. On 9f9ed98: 1 pass (control) / 4 fail. Log: runs/d-before-fix.log
+# locked 2026-11-16T16:20:58Z (tools/eval-guard.mjs lock, 2 files)
+df22c9372800c58b13dc50bfc12d2e4c084bdfda0a2c49a1a5735c08e0b74960  d-no-analytics/crisis-no-analytics.test.js
+612d5030223a4ba47b76e4cb6c88d1f31b1c1b716f5dc1fca9410c3f97df68e4  d-no-analytics/backend-analytics.test.js
+df22c9372800c58b13dc50bfc12d2e4c084bdfda0a2c49a1a5735c08e0b74960  tests/unit/crisis-no-analytics.test.js  # repo file (part D)
+612d5030223a4ba47b76e4cb6c88d1f31b1c1b716f5dc1fca9410c3f97df68e4  tests/unit/backend-analytics.test.js  # repo file (part D, counselling exception)
