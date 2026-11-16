@@ -4,8 +4,8 @@
    paper chosen in the print dialog: narrow paper = the A5 rules), .lqp--r80 (80 mm receipt, kiosk). */
 .lqp{color:#111;background:#fff;font-size:10.5pt;line-height:1.55;-webkit-text-size-adjust:none;text-size-adjust:none}
 .lqp *,.lqp *::before,.lqp *::after{box-sizing:border-box;box-shadow:none;text-shadow:none;animation:none;transition:none}
-/* Thai: the device's Thai UI font with ligatures off, so the PDF text can be copied and searched (share-print decision) */
-.lqp[lang=th]{font-variant-ligatures:none;font-feature-settings:"ccmp" 0,"liga" 0,"clig" 0,"calt" 0,"locl" 0}
+/* Thai (in any report language): ligatures / ccmp off, so the PDF text can be copied and searched (share-print decision) */
+.lqp{font-variant-ligatures:none;font-feature-settings:"ccmp" 0,"liga" 0,"clig" 0,"calt" 0,"locl" 0}
 .lqp[lang=th],.lqp[lang=zh-Hans]{line-height:1.7}
 
 /* frame: the header and footer repeat on every printed page (table header / footer groups) */

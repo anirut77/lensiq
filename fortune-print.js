@@ -53,9 +53,13 @@
   const FONT = {
     // the device's own Thai UI font with ligatures off: its text stays copyable / searchable in the PDF (decision of the
     // share-print branch, kept); Chinese and English use the system sans
-    th: "Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,Garuda,sans-serif",
-    en: "'Helvetica Neue',Helvetica,Arial,'Liberation Sans',sans-serif",
-    zh: "'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',sans-serif",
+    // Chinese characters inside a Thai or English report (BaZi pillars, I Ching names) use the same simplified-Chinese fonts as
+    // a Chinese report, not whatever the system falls back to
+    // every report can hold all three scripts (Thai temple names in English, BaZi pillars in Thai): each stack names a Thai and
+    // a simplified-Chinese font, so mixed text never falls back to a font whose PDF text reads back differently
+    th: "Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,Garuda,'Helvetica Neue',Arial,'Liberation Sans','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',sans-serif",
+    en: "'Helvetica Neue',Helvetica,Arial,'Liberation Sans',Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,Garuda,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',sans-serif",
+    zh: "'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC','Helvetica Neue',Arial,'Liberation Sans',Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,Garuda,sans-serif",
   };
   // the LENSIQ mark (same drawing as nav.js); dark square + white corners print in black and white as they are
   const MARK = '<svg class="lqp-mark-svg" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#111"/>' +
@@ -129,9 +133,14 @@
   }
   const HTAG = { 1: ["h2", "lqp-part"], 2: ["h3", "lqp-h"], 3: ["h4", "lqp-subh"] };
   /** the @page rule for a paper size (page numbers in the margin box, in the report's language and font) */
+  // Thai text with ligatures / ccmp off keeps its own code points in the PDF (copy, search); used on the page and in the margin
+  const TH_FEAT = "font-variant-ligatures:none;font-feature-settings:'ccmp' 0,'liga' 0,'clig' 0,'calt' 0,'locl' 0";
   function pageCSS(size, lang) {
-    const S = SIZES[size] || SIZES.auto, small = size === "80mm" ? "6.5pt" : "8pt";
-    return "@page{" + S.page + ";@bottom-right{content:" + PAGE_NO[lang] + ";font-family:" + FONT[lang] + ";font-size:" + small + ";color:#222;vertical-align:top;padding-top:1.5mm}}";
+    const S = SIZES[size] || SIZES.auto, small = size === "80mm" ? "6.5pt" : "8pt", feat = ";" + TH_FEAT;
+    // the page margin boxes inherit from the root element: while the report is in the page, the root carries the report's
+    // font (and Thai features), so "หน้า X / Y" is drawn in the same font as the text and reads back the same from the PDF
+    return "@page{" + S.page + ";@bottom-right{content:" + PAGE_NO[lang] + ";font-family:" + FONT[lang] + feat + ";font-size:" + small +
+      ";color:#222;vertical-align:top;padding-top:1.5mm}}" + "@media print{html{font-family:" + FONT[lang] + feat + "}}";
   }
   /**
    * The paper report as one HTML string: <div class="lqp lqp--<size>"> with a <style> for @page, a table frame whose header

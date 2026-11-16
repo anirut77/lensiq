@@ -1,10 +1,6 @@
 /* BEGIN fortune-notice.js (copied by tools/fortune-read-embed.mjs; edit fortune-notice.js, then run it) */
-/* fortune-notice.js — the notice part of the fortune layout (owner order 2026-11-14, Part A1 + A5), loaded on every fortune page.
- *   A1  LINE: the one-line notice that replaced the old fun-only label (TH from the owner, EN / ZH translations)
- *   A5  every notice is one short line, the rest behind a real <button> "อ่านเพิ่มเติม / Read more / 阅读更多" (aria-expanded,
- *       aria-controls, Enter key, 44 px); the help line, the tap-to-call buttons and the crisis card are NEVER folded
- * The reading layout (fortune-read.js) builds on this file; pages without a reading (hub, planner, lucky colour) load only
- * this one. Tests: tests/unit/fortune-layout.test.js, tests/e2e/fortune-layout.e2e.mjs. */
+/* fortune-notice.js — fortune notices (A1 line, A5 one line + read more; help line / crisis card never folded). Docs and
+ * tests: docs/FORTUNE-LAYOUT.md, tests/unit/fortune-layout.test.js. Speed budget: keep comments short in this file. */
 (function (root) {
   "use strict";
   const LINE = {
@@ -18,8 +14,7 @@
   const NOTE_MAX = { th: 140, en: 200, zh: 60 };
   const NEVER_COLLAPSE = [".lq-helpline", ".lq-call", ".fa-support", ".lq-support", "[data-lq-crisis-card]"];
   const langOf = l => (l === "en" || l === "zh" ? l : "th");
-  // Thai has no sentence mark: cut only at a single space, never before a word that continues the clause, never after one
-  // that leads into the next word.
+  // Thai: cut only at a single space, never inside a clause
   const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน|จาก|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|[\d(/–\-)])/;
   const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|[(/–\-])$/;
   function cutsTh(p) {
@@ -77,11 +72,11 @@
       onToggle(open);
     };
     b.addEventListener("click", toggle);
-    // Enter toggles on key down (the native click is suppressed, so it never toggles twice); Space keeps the native click
+    // Enter toggles on key down (native click suppressed); Space keeps the native click
     b.addEventListener("keydown", e => { if (e.key === "Enter" && !e.repeat) { e.preventDefault(); toggle(); } });
     return b;
   }
-  /** turn a plain-text notice into one short line + the rest behind read more (the help line / crisis card never) */
+  /** plain notice -> one line + read more */
   function noticeify(el, lang) {
     if (!el || never(el) || el.firstElementChild) return el;
     lang = langOf(lang || (el.closest && el.closest("[lang]") && /^zh/.test(el.closest("[lang]").lang) ? "zh" : null) || pageLang());
@@ -97,7 +92,7 @@
     el.appendChild(more);
     return el;
   }
-  /** static notices in the page markup: <x class="lq-notice"> … <span class="lq-notice-more">…</span>: add the button */
+  /** static .lq-notice markup: add the button */
   function notices(scope) {
     const doc = (scope && scope.ownerDocument) || (scope && scope.nodeType === 9 ? scope : root.document);
     if (!doc || !doc.querySelectorAll) return;
@@ -122,9 +117,7 @@
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQNotice = api;
 })(typeof window !== "undefined" ? window : globalThis);
 /* BEGIN fortune-share loader */
-/* Share and print on every fortune result (owner order 2026-11-16) come from fortune-share.js. Coordinator decision 2026-11-16
-   (option B; owner rule: no budget increases): it is fetched only when the page is used (first touch, key, scroll or focus) or a
-   reading is rendered after the page has loaded, never during the first page load. Tests: tests/unit/fortune-share-print.test.js. */
+/* fortune-share.js only after first use or a rendered reading (no budget increase). docs/FORTUNE-SHARE-PRINT.md */
 (function (root) {
   "use strict";
   const d = root.document;
@@ -145,10 +138,10 @@
         for (const m of ms) if ((m.type === "attributes" && shown(m.target)) || [...m.addedNodes].some(shown)) { mo.disconnect(); go(); return; }
       });
       mo.observe(d.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] });
-    } catch (e) { /* no observer: the first touch / key / scroll / focus still loads it */ }
+    } catch (e) { /* first use still loads it */ }
   }
   if (d.readyState === "complete") watch(); else root.addEventListener("load", watch, { once: true });
-  // pages lend their symbol art to the card before the module is here: LQShareArt(rootSelector, fn) queues it
+  // art queued before the module is here
   if (!root.LQShareArt) { const q = []; root.LQShareArt = (sel, fn) => { q.push([sel, fn]); }; root.LQShareArt.q = q; }
   root.LQShareLoader = { load: go };
 })(typeof window !== "undefined" ? window : globalThis);
