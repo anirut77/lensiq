@@ -124,7 +124,7 @@
     "It is best handled calmly for now, without rushing big decisions in this area", "Its energy can be built up with small steps, starting with something easy this week",
     "It is better not to push it at the moment, and to give it patient attention instead"];
   HOUSE.forEach(function (h, i) {
-    var fav = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), o: "the area of " + h.m + " is one of the stronger spots in your chart", x: L7_X }; fav[h.f] = "the area of " + h.m + " is a strength in your chart. " + L7_FAV2[i % 7];
+    var fav = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), o: "the area of " + h.m + " is one of the stronger spots in your chart", x: L7_X }; fav[h.f] = h.m + " is a strength in your chart. " + L7_FAV2[i % 7];
     var neu = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), x: L7_X }; neu[h.f] = "the area of " + h.m + " has a moderate amount of energy. " + L7_NEU2[i % 7];
     var cau = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), a: "give a little more time, bit by bit, to " + h.m, x: L7_X }; cau[h.f] = "the area of " + h.m + " has less energy for now. " + L7_CAU2[i % 7];
     lek7["l7." + i + ".favourable"] = fav; lek7["l7." + i + ".neutral"] = neu; lek7["l7." + i + ".caution"] = cau;

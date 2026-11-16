@@ -243,7 +243,7 @@
     if (nx) items.push({ id: "lg.turn." + nx.sys, group: "จุดเปลี่ยนถัดไป", label: "จุดเปลี่ยนราวอายุ " + Math.round(nx.age) + " ปี", short: "จุดเปลี่ยนถัดไป", evidence: { taksa: "ทักษา", bazi: "八字", west: "ตะวันตก" }[nx.sys], strength: 0.72, tone: "neutral", tags: ["timing"],
       meanings: { timing: ["ราวอายุ " + Math.round(nx.age) + " ปี " + TURN_LINE[nx.sys]] }, plainTh: true });
     var nb = DOMS.map(function (d, k) { return N.avg[k] - S.avg[k]; }), up = nb.indexOf(Math.max.apply(null, nb));
-    if (nb[up] > 3) items.push({ id: "lg.next." + DOMS[up], group: "ช่วงอายุถัดไป", label: DOM_TH[DOMS[up]] + "ช่วงอายุ " + (cur + step) + "–" + (cur + 2 * step), short: "ช่วงถัดไป", evidence: "ระดับ " + N.avg[up] + "/100 จากทักษา 八字 และตะวันตก", strength: 0.6, tone: "favourable", tags: ["timing"],
+    if (nb[up] > 3) items.push({ id: "lg.next." + DOMS[up], group: "ช่วงอายุถัดไป", label: (DOMS[up] === "care" ? "" : "เส้น") + DOM_TH[DOMS[up]] + "ช่วงอายุ " + (cur + step) + "–" + (cur + 2 * step), short: "ช่วงถัดไป", evidence: "ระดับ " + N.avg[up] + "/100 จากทักษา 八字 และตะวันตก", strength: 0.6, tone: "favourable", tags: ["timing"],
       meanings: { timing: ["ในช่วงอายุถัดไป ด้าน" + DOM_TH[DOMS[up]] + "มีแนวโน้มดีขึ้นกว่าช่วงนี้"] } });
     // quality round 2026-11-16: lead with the age band, its Taksa period and its direction (not the same line for everyone)
     var mean = Math.round((S.avg[0] + S.avg[1] + S.avg[2]) / 3);

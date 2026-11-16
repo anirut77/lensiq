@@ -108,20 +108,20 @@
   // round 3: lines the Thai plan keeps out of its own groups go to "in brief" (or the group where Thai put its short in-brief);
   // never into the overview or another topic's group. Without such a group in Thai they are left out (Thai sets the plan).
   const foldHost = (sections, P) => sections.find(x => x.id === "brief") || (P && P.host && sections.find(x => x.id === P.host)) || null;
-  // round 3 (S7c): the "pick one of these" closer only after two or more tips in the same group
-  const PICK_ONE = /挑一条最适合你的|Pick the one suggestion/;
-  const TIP_SEN = {
-    en: /^(?:Try|It would help|A good next step|This is a good time to|A simple adjustment|Set aside|Pick|Keep|Plan|Take|Make|Spend|Give|Write|Ask|Talk|Rest|Start|Check|Save|Choose|Wear|Add|Place|Face|Turn|Put|Avoid|Leave|Note|Use)\b/,
-    zh: /建议|不妨|试着|可以先|可以|记得|调整的方法|先把|多留|留意|别急/,
-  };
-  const closeAfter = (draw, s, lang) => {
-    const tips = s.flatMap(x => (lang === "zh" ? String(x).split(/(?<=[。！？])/) : String(x).split(/(?<=[.!?])\s+/))).filter(x => TIP_SEN[lang].test(x.trim())).length;
-    for (let k = 0; k < 6; k++) { const c = draw(); if (!PICK_ONE.test(c) || tips >= 2) return c; }
-    return lang === "zh" ? "把这次解读当作参考，最后还是按自己的判断来决定" : "These are tendencies in traditional teachings, and what you actually do matters more";
-  };
+  // round 3 (S7c): the "pick one of these" closer only after two or more tips in the same group (fortune-brief.js)
+  const closeAfter = (draw, s, lang) => (BR() ? BR().closeAfter(draw, s, lang) : draw());
   const planKind = (P, id) => (!P ? "" : P.seq.indexOf(id) >= 0 ? "group" : P.brief.indexOf(id) >= 0 ? "brief" : (P.ov || []).indexOf(id) >= 0 ? "ov" : id === "advice" && P.adv ? "merge" : "skip");
   // round 2: a planned group the language's own data says nothing about is read from nearby areas of the same findings (no general tip)
   const NEAR = { personality: ["overview"], social: ["love", "personality"], timing: ["overview", "personality"], work: ["personality", "overview"], money: ["work", "overview"], love: ["social", "personality"], advice: ["advice"] };
+  // round 3: the findings the Thai overview names come next in the EN / ZH overview, read from any area, so nothing the Thai overview
+  // carries is dropped from EN / ZH (and no topic block is needed to keep it)
+  const thOv = (P, it) => !!(P && (P.order || []).indexOf(it.id) >= 0);
+  const ovList = (items, top, P) => { const named = ((P && P.order) || []).map(id => items.find(it => it.id === id)).filter(it => it && top.indexOf(it) < 0);
+    // a finding the Thai overview does not name, whose overview line is the same text as its line for a group Thai gives it, stays
+    // for that group when it would only pad the overview's top two (the overview would use the line up and leave the group empty)
+    const keep = it => !P || !(it.meanings.overview || []).some(m => Object.keys(it.meanings).some(k => k !== "overview" && [].concat(it.meanings[k]).indexOf(m) >= 0 && Object.keys(SECTION_KEYS).some(g => SECTION_KEYS[g].indexOf(k) >= 0 && (P.seq.indexOf(g) >= 0 || P.brief.indexOf(g) >= 0))));
+    const o = top.filter((it, i) => thOv(P, it) || keep(it) || (i === 0 && !(P && (P.order || []).length))).concat(named);
+    return o.concat(items.filter(x => o.indexOf(x) < 0 && top.indexOf(x) < 0)); };
   const planTop = (items, P) => { const ord = (P && P.order) || (P && P.main ? [P.main] : []), lead = ord.slice(0, 3).map(id => items.find(it => it.id === id)).filter(Boolean); return lead.concat(items.filter(it => lead.indexOf(it) < 0 && (!META_ITEM.test(it.id) || it.kind === "plain"))).slice(0, 2); };
   const DOMAIN_NAMES_ZH = { face: "面相", palm: "手相", horoscope: "泰式占星", tarot: "塔罗牌", siamsee: "签诗", fengshui: "风水", numbers: "数字命理", iching: "易经", zodiac: "十二生肖", astro: "西洋占星", dream: "解梦", bazi: "八字", taksa: "塔克萨命理", lek7: "七数九宫", lifegraph: "人生曲线" };
   const DOMAIN_NAMES_EN = { face: "Face reading", palm: "Palm reading", horoscope: "Thai astrology", tarot: "The tarot", siamsee: "The Siam Si verse", fengshui: "Feng shui", numbers: "Number reading", iching: "The I Ching", zodiac: "The Chinese zodiac", astro: "Western astrology", dream: "Dream reading", bazi: "BaZi", taksa: "Taksa", lek7: "The Lek 7 chart", lifegraph: "The life graph" };
@@ -1719,13 +1719,25 @@
     return false;
   }
   const markUsed = (ctx, m) => { ctx.used.add(m); const c = coreOf(m); for (let i = 0; i + OVL <= c.length; i++) ctx.cores.add(c.substr(i, OVL)); (ctx.usedBg = ctx.usedBg || []).push(bigrams(c)); };
+  // round 3: the short "in brief" helpers and the repeated-phrase check live in fortune-brief.js (size cap); this file passes its rules in
+  let BRK;
+  const BR = () => BRK !== undefined ? BRK : (BRK = (m => (m ? m({ SECTION_KEYS, hasKeys, pickMeaning, topicsIn, offTopic, itemSentence, isSafe, tidy, cleanMeaning,
+    loveOnlyIn, BRIEF_TH, markUsed, remedyFor, TRAD_REMEDY, REMEDY_FRAMES_TH, REMEDY_FRAMES_GENERAL_TH, pick, grammarIssues, thJoinIssues }) : null))(
+    (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-brief.js") : root.LQFortuneBrief) || null));
   function pickMeaning(ctx, it, keys, secId) {
     const pool = [];
     for (const k of keys) { const arr = it.meanings[k]; if (Array.isArray(arr)) for (const m of arr) { const c = cleanMeaning(m); if (c && !ctx.used.has(c) && !(ctx.avoid && ctx.avoid.has(c)) && isSafe(c) && !(secId && (offTopic(c, secId) || loveOnlyIn(c, secId))) && !(secId === "advice" && adviceOffTopic(c, ctx.F.topic)) && !overlapsUsed(ctx, c)) pool.push(c); } }
     if (!pool.length) return null;
     // เลี่ยงสำนวนที่ขึ้นต้นด้วยคำนำหน้าที่ใช้ไปแล้วในคำทำนายนี้
-    const fresh = pool.filter(c => { const sp = splitLead(c); return !sp || !ctx.leads.has(sp.lead); });
-    const m = pick(ctx.r, fresh.length ? fresh : pool); markUsed(ctx, m); return m;
+    const fresh0 = pool.filter(c => { const sp = splitLead(c); return !sp || !ctx.leads.has(sp.lead); });
+    // round 3: prefer a line that does not repeat a long phrase already used (a siam si slip's image "จันทร์เพ็ญกลางฟ้าใส" in the
+    // overview and again in the money group read as the same sentence twice)
+    const fresh = fresh0.length ? fresh0 : pool, novel0 = fresh.filter(c => !(BR() && BR().repeatsUsed(ctx, c))), novel = novel0.length ? novel0 : fresh;
+    // round 3 (R1): the overview's first line is a line that names its finding ("ปีนี้…" rather than "ปีสามประสานคือ…", which the
+    // composer would shorten back to the bare meaning without the finding's name)
+    const nm = [it.label, it.short].map(n => String(n || "").replace(/\s*[(（][^)）]*[)）]/g, "").trim()).filter(n => n.length >= 3);
+    const ovNamed = (secId || ctx.sec) === "overview" && !ctx.secUnits ? novel.filter(c => nm.some(n => c.indexOf(n) >= 0)) : [];
+    const m = pick(ctx.r, ovNamed.length ? ovNamed : novel); markUsed(ctx, m); return m;
   }
   const hasKeys = (it, keys) => keys.some(k => Array.isArray(it.meanings[k]) && it.meanings[k].length);
 
@@ -2576,8 +2588,10 @@
       // "เรื่องการเงิน เรื่องเงิน…" → ตัดคำนำหน้าหัวข้อเดียวกันออกจากประโยคแรก
       const dropLead = (id, t) => { const sp = splitLead(t); return sp && sp.kind !== "wa" && leadTopic(sp.lead) === id ? sp.rest : t; };
       const at = sections.findIndex(s => s.id === "advice"), lines = briefs.map(b => BRIEF_TH[b.id] + " " + b.brief.map((t, i) => (i ? t : dropLead(b.id, t))).join(" "));
-      // round 3: a short "in brief" (under 90 characters) never goes into the overview, which carries only the overview, nor into
-      // another topic's group; it is left out (EN / ZH leave the same areas out)
+      // round 3: a short "in brief" never goes into the overview, which carries only the overview, nor into another topic's group.
+      // Under 90 characters it is first given a second line on the same areas from what was found; still too short, it is left out
+      // (EN / ZH leave the same areas out)
+      if (lines.join(" ").length < 90 && BR()) BR().briefMore(ctx, briefs, lines);
       if (lines.join(" ").length < 90) ctx.ovBrief = briefs.map(b => b.id);
       else { ctx.briefIds = briefs.map(b => b.id); sections.splice(at < 0 ? sections.length : at, 0, { id: "brief", title: "เรื่องอื่น ๆ โดยย่อ", paragraphs: lines }); }
     }
@@ -2854,10 +2868,10 @@
       // round 2: no "…是这次最突出的地方" line; the overview opens with the main finding and what it means
       head = null;
       secM.overview = [];
-      for (const it of withCaution(top.concat(items.filter(x => top.indexOf(x) < 0)), 3 + Math.floor(r() * 2), zIsCaut)) {
+      for (const it of withCaution(ovList(items, top, P), 3 + Math.floor(r() * 2), zIsCaut)) {
         // round 2: the main finding first says what it means about you; the two findings the Thai overview names come first in any area
         const m = (topicHas ? takeOv(it, s.length ? null : ["personality", "overview"]) : (s.length ? take(it, ["overview", "personality"]) : takeOv(it, ["personality", "overview"]))) || (topicHas ? null : take(it, [F.topic])) ||
-          (top.indexOf(it) >= 0 ? take(it, ["timing", "social", "work", "money", "love"].filter(k => k !== F.topic).sort((a, b) => (P && P.seq.indexOf(a) >= 0 ? 1 : 0) - (P && P.seq.indexOf(b) >= 0 ? 1 : 0))) : null);
+          (top.indexOf(it) >= 0 || thOv(P, it) ? take(it, ["timing", "social", "work", "money", "love"].filter(k => k !== F.topic).sort((a, b) => (P && P.seq.indexOf(a) >= 0 ? 1 : 0) - (P && P.seq.indexOf(b) >= 0 ? 1 : 0))) : null);
         if (!m) { if (head && head.ids[head.at] === it.id && ++head.at >= head.ids.length) head = null; continue; } // a named finding with no overview line: the next one follows the headline
         if (!(head && head.ids[head.at] === it.id)) nameShown.delete(it.id);
         const zc = zIsCaut(it) && !zCaut.overview;
@@ -2875,6 +2889,9 @@
       const zl = zsc && zLead("overview", zsc), znm = zsc && !/[\u0E00-\u0E7F]/.test(zsc.label || "") ? zhEnd("这一项是" + zsc.label) : "";
       if (zl) { zCaut.overview = 1; s.push(zl + znm + zhCautionAction(zsc, "overview")); }
       const p = pairLine(secM.overview, "overview"); if (p) s.push(p);
+      // round 3: a reading with one finding (siam si): the line Thai keeps in its overview for an area it gives no group of its own
+      // (timing, social) stays in this overview too, instead of an "in brief" Thai does not have
+      if (P && items.length === 1) for (const k of ["timing", "social"]) { if (planKind(P, k) !== "skip") continue; const m = take(items[0], [k]); if (m) { s.push(sentence(items[0], m, "overview")); break; } }
       if (topicHas) s.push(zhEnd(fill(pick(r, ZH_BRIDGE), { TW: ZH_TAG[F.topic] })));
       if (s.length) sections.push({ id: "overview", title: ZH_TITLES.overview, paragraphs: paras(s) });
       else if (opener) sections.push({ id: "overview", title: ZH_TITLES.overview, paragraphs: [opener] });
@@ -3057,7 +3074,8 @@
     numbers: "In number reading", iching: "In the I Ching", zodiac: "In the Chinese zodiac", astro: "In Western astrology", dream: "In Thai dream lore", bazi: "In BaZi", taksa: "In Taksa", lek7: "In the Lek 7 chart", lifegraph: "In the life graph" };
   // quality round 2026-11-16: the first sentence of a group (it is what the layout shows before "Read more") opens briefly
   // round 2: the finding's name leads ("Looking at… / As for… / With…" at the start of most groups read as a template)
-  const EN_GROUP_FIRST = ["{N} suggests that {M}", "{N} shows that {M}", "Traditionally, {N} means that {M}", "By tradition, {N} is a sign that {M}"]; // round 3: no "In your reading, X points to this:" formula
+  const EN_IMPER = /^(?:hold off|hold on|try|keep|take|make|give|avoid|set aside|set|put|let|start|stop|check|ask|talk|plan|save|spend|choose|pick|wear|offer|write|rest|use|be|don't|do not|share|reach out|look|stay|find|treat)\b/i;
+  const EN_GROUP_FIRST = ["{N} suggests that {M}", "{N} shows that {M}", "Traditionally, {N} means that {M}", "{N} is traditionally read to mean that {M}"]; // round 3: no "In your reading, X points to this:" formula; no omen frame
   // a first sentence longer than the short overview splits at a clause that has its own subject (". You …"), so it ends whole
   const EN_SPLIT = /, and (?=(?:you|your|it|this|that|they|people|others|the|there|friends|partners?|an?|[a-z]+ing)\b)|; |, so (?=[a-z])|, but (?=(?:you|your|it|this|they|the|there)\b)|, as (?=what\b)|, which (?=makes?\b)/g;
   function enShort(t) {
@@ -3154,6 +3172,7 @@
     // the first time an item with a gloss is named, explain the concept in one sentence (at most three per reading)
     // glosses that open the same way ("In Taksa, the Thai system of …") are shown once; at most three per reading
     const glossKey = g => String(g).toLowerCase().split(/\s+/).slice(0, 4).join(" ");
+    let heldGloss = "";
     const glossFor = it => { if (!it.gloss || glossShown.has(glossKey(it.gloss)) || glossShown.size >= 3 || !isSafe(it.gloss)) return ""; glossShown.add(glossKey(it.gloss)); return " " + enEnd(it.gloss); };
     function cautionAction(it, area) { return crec(true, cautionAction0(it, area)); } function cautionAction0(it, area) {
       const rm = remedyFor(F, it, area);
@@ -3180,7 +3199,7 @@
         const isNew = !nameShown.has(it.id), N = nm(it);
         if (it.kind === "rel" && isNew) t = fill(pick(r, EN_REL), { N, M: m });
         else if (it.polarity === "challenge" && isNew) t = fill(dk.chal(), { N, M: m });
-        else if (gFirst && it.kind !== "rel") t = fill(pick(r, EN_GROUP_FIRST), { N, M: m });
+        else if (gFirst && it.kind !== "rel") t = fill(pick(r, /^(?:if|when|whenever|before|after|once)\b/i.test(m) || EN_IMPER.test(m) ? EN_PLAIN_FIRST : m.length > 80 ? EN_GROUP_FIRST.slice(0, 3) : EN_GROUP_FIRST), { N, M: m }); // no "that" before a condition or an instruction; the long frame only on a short line
         else t = isNew ? fill(dk.first(), { N, M: m }) : fill(dk.next(), { S: N, M: m });
         // never "X suggests that X…" or a reporting verb stacked on a clause that reports by itself
         if ((enLabelEcho(enEnd(t)) || EN_CHAIN.test(t)) && gFirst) t = m;
@@ -3207,7 +3226,9 @@
       t = enEnd(t);
       if (sec === "overview" && !claims.some(c => c.sec === "overview") && t.length < 80 && EN_IN[F.domain]) t = EN_IN[F.domain] + ", " + lcFirst(t);
       if (gFirst || sec === "overview") t = enShort(t);
-      if (sec !== "overview" && !gDone.has(it.id)) { gDone.add(it.id); t += glossFor(it); } // round 2: the overview states the findings; each gloss comes once, in a group
+      heldGloss = "";
+      // round 3: a caution's gloss waits until after its practical step (the step follows the caution directly)
+      if (sec !== "overview" && !gDone.has(it.id)) { gDone.add(it.id); const g = glossFor(it); if (eIsCaut(it) && sec !== "advice") heldGloss = g; else t += g; } // round 2: the overview states the findings; each gloss comes once, in a group
       lastSubj = it.short;
       claims.push({ kind: "item", ids: [it.id], sec, text: t });
       return t;
@@ -3239,10 +3260,10 @@
       head = null;
       secM.overview = [];
       // the items named in the headline are explained first, in the same order
-      for (const it of withCaution(top.concat(items.filter(x => top.indexOf(x) < 0)), 3 + Math.floor(r() * 2), eIsCaut)) {
+      for (const it of withCaution(ovList(items, top, P), 3 + Math.floor(r() * 2), eIsCaut)) {
         // round 2: the main finding first says what it means about you; the two findings the Thai overview names come first in any area
         const m = (topicHas ? takeOv(it, s.length ? null : ["personality", "overview"]) : (s.length ? take(it, ["overview", "personality"]) : takeOv(it, ["personality", "overview"]))) || (topicHas ? null : take(it, [F.topic])) ||
-          (top.indexOf(it) >= 0 ? take(it, ["timing", "social", "work", "money", "love"].filter(k => k !== F.topic).sort((a, b) => (P && P.seq.indexOf(a) >= 0 ? 1 : 0) - (P && P.seq.indexOf(b) >= 0 ? 1 : 0))) : null);
+          (top.indexOf(it) >= 0 || thOv(P, it) ? take(it, ["timing", "social", "work", "money", "love"].filter(k => k !== F.topic).sort((a, b) => (P && P.seq.indexOf(a) >= 0 ? 1 : 0) - (P && P.seq.indexOf(b) >= 0 ? 1 : 0))) : null);
         if (!m) { if (head && head.ids[head.at] === it.id && ++head.at >= head.ids.length) head = null; continue; } // a named finding with no overview line: the next one follows the headline
         if (!(head && head.ids[head.at] === it.id)) nameShown.delete(it.id);
         // a caution stays in one unit with its lead and its practical step (paragraph trimming never separates them)
@@ -3257,6 +3278,9 @@
       const el = esc && eLead("overview", esc), enm = esc && !/[\u0E00-\u0E7F]/.test(esc.label || "") ? " " + enEnd("The finding in question is " + esc.label) : "";
       if (el) { eCaut.overview = 1; s.push(el + enm + " " + cautionAction(esc, "overview")); }
       const p = pairLine(secM.overview, "overview"); if (p) s.push(p);
+      // round 3: a reading with one finding (siam si): the line Thai keeps in its overview for an area it gives no group of its own
+      // (timing, social) stays in this overview too, instead of an "in brief" Thai does not have
+      if (P && items.length === 1) for (const k of ["timing", "social"]) { if (planKind(P, k) !== "skip") continue; const m = take(items[0], [k]); if (m) { s.push(sentence(items[0], m, "overview")); break; } }
       if (topicHas) s.push(enEnd(fill(pick(r, EN_BRIDGE), { TW: EN_TAG[F.topic] })));
       if (s.length) sections.push({ id: "overview", title: EN_TITLES.overview, paragraphs: paras(s) });
       else if (opener) sections.push({ id: "overview", title: EN_TITLES.overview, paragraphs: [opener] });
@@ -3291,7 +3315,7 @@
         const ea = CAUTION_LEAD_EN[id] ? id : "overview";
         const l = ec ? (eCaut[id] = 1, eLead(ea, it)) : null;
         gFirst = !s.length; const sen = sentence(it, m, id); gFirst = false; secM[id].push({ it, m });
-        s.push(ec ? [l, sen, cautionAction(it, ea)].filter(Boolean).join(" ") : sen);
+        s.push((ec ? [l, sen, cautionAction(it, ea)].filter(Boolean).join(" ") : sen) + heldGloss); heldGloss = "";
         if (isTopic && secM[id].length <= 2) { const m2 = take(it, keys); if (m2) { s.push(sentence(it, m2, id)); secM[id].push({ it, m: m2 }); } }
       }
       if (!s.length && !(pk === "group" && !(isTopic && F.topic === id))) continue;
@@ -3805,10 +3829,13 @@
   // ข้อความทั้งหมดของคำอ่านนี้ (ข้อมูลที่พบ + คำอ่านในเครื่อง) → ข้ออ้าง/ชื่อที่คำอ่านนี้รองรับ
   function readingSupport(corpus) {
     if (corpus._support) return corpus._support;
-    const txt = corpus.vetted.map(v => v.t).concat(corpus.nameStr || [], corpus.factStr || []).join(" \n ");
-    const names = namesOf(txt);
+    const parts = corpus.vetted.map(v => v.t).concat(corpus.nameStr || [], corpus.factStr || []);
+    const names = namesOf(parts.join(" \n "));
     if (names.has("ดาวพฤหัสบดี")) names.add("ดาวพฤหัส");
-    corpus._support = { claims: claimsOf(txt), names };
+    // claims are read per source piece: "…มีรายละเอียดมากที่สุด" at the end of one piece and "ธาตุดิน…" at the start of the next is not a claim
+    const claims = new Set();
+    for (const t of parts) for (const c of claimsOf(t)) claims.add(c);
+    corpus._support = { claims, names };
     return corpus._support;
   }
   function claimMismatch(u, corpus) {
