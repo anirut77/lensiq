@@ -63,3 +63,20 @@ test("G1b: no count of crisis cards anywhere: not in localStorage, not in sessio
   assert.deepEqual([...ss.m.keys()], [], "sessionStorage");
   assert.doesNotMatch(readFileSync(join(ROOT, "fortune-ai.js"), "utf8"), /lq-support-n/, "fortune-ai.js keeps no crisis-card counter");
 });
+
+// RE-LOCK 2026-11-17 (append-only; coordinator after the re-review of 1d5164c): visitors from before the change still hold the old
+// "lq-support-n" key; every fortune page (fortune-crisis.js, loaded on all 18 fortune pages) removes it once on load.
+test("G1c: a stale lq-support-n key in localStorage is removed when a fortune page loads (fortune-crisis.js)", () => {
+  const ls = mk(), ss = mk();
+  ls.setItem("lq-support-n", "3"); ls.setItem("lq-lang", "th");
+  const win = { localStorage: ls, sessionStorage: ss, console };
+  win.window = win; win.globalThis = win;
+  vm.runInContext(readFileSync(join(ROOT, "fortune-crisis.js"), "utf8"), vm.createContext(win), { filename: "fortune-crisis.js" });
+  assert.equal(ls.getItem("lq-support-n"), null, "stale counter removed");
+  assert.equal(ls.getItem("lq-lang"), "th", "other keys untouched");
+  const blocked = { console, get localStorage() { throw new Error("blocked"); } };
+  blocked.window = blocked;
+  assert.doesNotThrow(() => vm.runInContext(readFileSync(join(ROOT, "fortune-crisis.js"), "utf8"), vm.createContext(blocked)), "blocked storage: no error");
+  for (const p of ["fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui", "dream", "zodiac", "astro",
+    "lifegraph", "planner", "luckycolor", "report"]) assert.match(readFileSync(join(ROOT, p + ".html"), "utf8"), /<script src="fortune-crisis\.js\?v=\d+"><\/script>/, p + " loads fortune-crisis.js");
+});

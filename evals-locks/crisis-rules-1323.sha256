@@ -85,3 +85,7 @@ bfe416e44fab36aba3ebdf6db0c82bcf624243f01ae7d3060281692c73dbb65b  tests/e2e/fort
 # locked 2026-11-16T22:30:47Z (tools/eval-guard.mjs lock, 1 file)
 99446efcacd732d3f7994085109cd9a0d6c114342fe18b5f012707398354fcf4  relock8/crisis-rules-1323-g.test.js
 99446efcacd732d3f7994085109cd9a0d6c114342fe18b5f012707398354fcf4  tests/unit/crisis-rules-1323-g.test.js  # repo file (re-lock 8)
+# RE-LOCK 9 2026-11-17 (append-only), before the fix: G1c added to tests/unit/crisis-rules-1323-g.test.js: a stale lq-support-n key left by older visits is removed when any fortune page loads (fortune-crisis.js), other keys untouched, blocked storage throws nothing (coordinator after re-review of 1d5164c). G1-G1b unchanged. Fails 1/5 on 1d5164c.
+# locked 2026-11-16T23:20:00Z (tools/eval-guard.mjs lock, 1 file)
+c7c6fc116a9ed445694a077863e6d7c974fbc76e8463501566231ac48a1fe3df  relock9/crisis-rules-1323-g.test.js
+c7c6fc116a9ed445694a077863e6d7c974fbc76e8463501566231ac48a1fe3df  tests/unit/crisis-rules-1323-g.test.js  # repo file (re-lock 9)
