@@ -51,15 +51,15 @@ All eight kootas use the Moon's sidereal sign (rashi) and nakshatra (27 × 13°2
 | Varna | 1 | Sign element: water Brahmin, fire Kshatriya, earth Vaishya, air Shudra. 1 if the groom's varna is the same or higher (hindutone.com; astromedha.in). Variant: PyJHora swaps Taurus and Gemini |
 | Vashya | 2 | Groups: quadruped (Aries, Taurus, 2nd half Sagittarius, 1st half Capricorn), human (Gemini, Virgo, Libra, 1st half Sagittarius, Aquarius), water (Cancer, Pisces, 2nd half Capricorn), wild (Leo), insect (Scorpio). Matrix (bride rows C M J V K): [2,1,1,1.5,1] [1,2,1.5,0,1] [1,1.5,2,1,1] [0,0,0,2,0] [1,1,1,0,2] (astroyogi.com; stevehora.substack.com). Variant: Saravali matrix |
 | Tara | 3 | Count from the bride's nakshatra to the groom's (inclusive), remainder mod 9 (0 = 9); 3, 5, 7 unfavourable; same the other way; 1.5 per favourable direction (dekhopanchang.com; hindutone.com) |
-| Yoni | 4 | 14 animals per nakshatra; same 4, sworn enemies 0 (Horse–Buffalo, Elephant–Lion, Sheep–Monkey, Serpent–Mongoose, Dog–Deer, Cat–Rat, Cow–Tiger; onlinejyotish.com), friendly 3 (aaps.space list), every other pair 2. Derived cell by cell, see COMPAT-SOURCES.md §3a (the first build's grid matched AGPL PyJHora and was removed) |
+| Yoni | 4 | 14 animals per nakshatra; same 4, the 7 sworn-enemy pairs 0, every other pair 2: only these levels are backed by two independent sources (B.V. Raman, Muhurtha, pp. 82–84; onlinejyotish.com; aaps.space for sheep–monkey). Per-cell table and disagreements in COMPAT-SOURCES.md §3a |
 | Graha Maitri | 5 | Lords of the Moon signs; Parashara natural friendships; friend+friend 5, friend+neutral 4, neutral+neutral 3, friend+enemy 1, neutral+enemy 0.5, enemy+enemy 0 (hindutone.com; dekhopanchang.com) |
-| Gana | 6 | Deva / Manushya / Rakshasa per nakshatra; bride rows D [6,6,0], M [5,6,0], R [1,0,6] (saravali.de, CC BY-SA 4.0: credit and owner / legal question in COMPAT-SOURCES.md §3c). Variant: symmetric (dekhopanchang.com) |
+| Gana | 6 | **Not included** (owner decision 72): the references disagree on six of nine cells and Raman's Gana pages are missing from the readable scan; Ashtakoota is out of 30 (COMPAT-SOURCES.md §3c) |
 | Bhakoot | 7 | Sign distance 2/12, 5/9, 6/8 = 0, otherwise 7. Cancellation when the lords are the same or friends (lists differ by school) |
 | Nadi | 8 | Adi / Madhya / Antya per nakshatra; same Nadi 0, different 8. Exceptions (same sign other nakshatra, same nakshatra other sign, named pairs) differ by school |
 
-Golden cases in the locked test (common profile): Rohini–Pushya 26 (hindutone.com publishes Tara 1.5, Bhakoot 7, Nadi 8,
-Varna 1, Maitri 0.5; all reproduced), Rohini–Swati 14.5 (melooha.com shows 16.5 with other variants), Ashwini–Bharani 34,
-Ashwini–Jyeshtha 13, plus single-koota examples from dekhopanchang.com. Mangal (Kuja) dosha is not part of the 36 points and
+Golden cases in the locked test (out of 30, without Gana): Rohini–Pushya 21 (hindutone.com publishes Tara 1.5, Bhakoot 7, Nadi 8,
+Varna 1, Maitri 0.5; all reproduced), Rohini–Swati 9.5 (melooha.com shows 16.5 of 36 with other variants), Ashwini–Bharani 28,
+Ashwini–Jyeshtha 12, plus single-koota examples from dekhopanchang.com. Mangal (Kuja) dosha is not part of the 36 points and
 is not computed (fear-selling risk; it also needs a birth time and houses).
 
 ## 4. BaZi compatibility
@@ -122,3 +122,5 @@ is not computed (fear-selling risk; it also needs a birth time and houses).
    `{mode, source: "lensiq-compat", title, lines}` from the two birth dates only: the Thai birth-day pair, the year animals
    (harmony, three harmony, clash) and the BaZi generating cycle, always warm, a difference always with a shared routine,
    and the belief line last.
+9. **Two sources per table cell** (owner decision 72, 2026-11-16): Gana left out (Ashtakoota out of 30, said on the page in TH / EN /
+   ZH); Yoni reduced to the levels two sources back (4 / 0 / 2); the saravali (CC BY-SA) table removed.

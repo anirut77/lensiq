@@ -45,35 +45,43 @@ Unclear-licence stop rule: none of the libraries we use has an unclear licence, 
 | Thai: birth-year elements (ตำราพรหมชาติ) | Rat, Pig water; Ox, Dog earth; Tiger, Rabbit wood; Monkey, Rooster iron; Dragon, Goat gold; Snake, Horse fire. Good: water with water / wood / earth / iron, earth with earth / iron / fire / wood, wood with wood, gold with any other. Mixed: water + fire. Needs care: wood + fire, fire + fire, fire + iron, iron + iron. Not in the text: wood + iron, gold + gold (no effect on the result) | sanook.com/horoscope/229037 (quoting ตำราพรหมชาติ) |
 | BaZi: Day Masters | Five-element generating (木→火→土→金→水) and controlling (木→土→水→火→金) cycles; five stem combinations 甲己 土, 乙庚 金, 丙辛 水, 丁壬 木, 戊癸 火; stem clashes 甲庚 乙辛 丙壬 丁癸 | en.wikipedia Wuxing; zh.wikipedia 天干 |
 | BaZi: branches | Day branch (spouse palace) and year branch: 六合, 三合, 三会, 六冲, 刑 (寅巳申, 丑戌未, 子卯, self 辰午酉亥), 六害, 破 | zh.wikipedia 地支; masterseanchan.com/bazi-branch-harms. Reading the day branch as the spouse palace: masterseanchan.com/blog/how-to-know-bazi-compatibility (practitioner, not classical) |
-| Vedic: Ashtakoota | Moon nakshatra and rashi (sidereal, Lahiri). Varna 1 (by element of the sign), Vashya 2 (Astroyogi / Steve Hora matrix; Sagittarius and Capricorn split at 15°), Tara 3 (counted both ways, remainders 3/5/7 unfavourable, 1.5 each), Yoni 4 (derived from the classical rule, §3a), Graha Maitri 5 (computed from Parashara friendships, §3b), Gana 6 (bride-row matrix of saravali.de, CC BY-SA 4.0, §3c), Bhakoot 7 (2/12, 5/9, 6/8 = 0), Nadi 8 (same = 0). Bhakoot cancellation (same or friendly lords) and the Nadi exceptions (same sign other nakshatra, same nakshatra other sign) are reported as notes; the raw score never changes | dekhopanchang.com/learn/matching; hindutone.com/astrology/kundli-matching-ashtakoota-guna-milan-36-gunas; astroyogi.com/blog/vasya-koota-in-kundli-matching.aspx; stevehora.substack.com/p/marriage-compatibility; onlinejyotish.com yoni-kootam; en.wikipedia Synastry (36 points). Golden cases: hindutone's Rohini–Pushya breakdown (5 of 8 kootas published, all reproduced; total 26); melooha.com's Rohini–Swati example (published 16.5 under other variants; 14.5 with our tables, difference documented) |
-| Vedic: order | The tradition counts the bride first (Varna, Vashya, Gana are asymmetric). The page asks no gender: it computes both orders, shows both totals when they differ, and uses their mean for the category view (decision recorded in `docs/COMPAT-RESEARCH.md` §7) | — |
+| Vedic: Ashtakoota | Moon nakshatra and rashi (sidereal, Lahiri). Varna 1 (by element of the sign), Vashya 2 (Astroyogi / Steve Hora matrix; Sagittarius and Capricorn split at 15°), Tara 3 (counted both ways, remainders 3/5/7 unfavourable, 1.5 each), Yoni 4 (two-source rule, §3a), Graha Maitri 5 (computed from Parashara friendships, §3b), **Gana 6 not included (§3c, owner decision 72): the total is out of 30**, Bhakoot 7 (2/12, 5/9, 6/8 = 0), Nadi 8 (same = 0). Bhakoot cancellation (same or friendly lords) and the Nadi exceptions (same sign other nakshatra, same nakshatra other sign) are reported as notes; the raw score never changes | dekhopanchang.com/learn/matching; hindutone.com/astrology/kundli-matching-ashtakoota-guna-milan-36-gunas; astroyogi.com/blog/vasya-koota-in-kundli-matching.aspx; stevehora.substack.com/p/marriage-compatibility; onlinejyotish.com yoni-kootam; en.wikipedia Synastry (36 points). Golden cases: hindutone's Rohini–Pushya breakdown (5 of 8 kootas published, all reproduced; our total 21 of 30 without Gana); melooha.com's Rohini–Swati example (published 16.5 of 36 under other variants; ours 9.5 of 30, documented) |
+| Vedic: order | The tradition counts the bride first (Varna and Vashya are asymmetric). The page asks no gender: it computes both orders, shows both totals when they differ, and uses their mean for the category view (decision recorded in `docs/COMPAT-RESEARCH.md` §7) | — |
 | Western synastry | Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn of one chart against the other (Jupiter–Saturn pairs skipped as generational). Conjunction, sextile, square, trine, opposition; orb 8° with the Sun or Moon, 6° otherwise, 4° for the sextile; tighter aspects weigh more; Moon contacts at half weight without a birth time | en.wikipedia "Astrological aspect" (orbs credited to Liz Greene / Astrodienst); astrotheme.com/astrology_aspects.php; astrolearn.com/?p=14849 (synastry caps); kerykeion.net synastry guide (which pairs matter most) |
 
 
-### 3a. Yoni (4 points): how every cell is derived (review round 1, D1)
+### 3a. Yoni (4 points): two independent sources per cell (review round 1 D1; owner decision 72)
 
-Sources, both read on 2026-11-16:
-- onlinejyotish.com, "Yoni Kootam": https://www.onlinejyotish.com/articles/marriage-matching/english/yoni-kootam.php . Gives
-  the animal of each nakshatra, the point scale (same Yoni 4, friendly 3, neutral 2, hostile 1, Mahavaira 0) and the seven
-  Mahavaira (sworn-enemy) pairs: Horse–Buffalo, Elephant–Lion, Sheep–Monkey, Serpent–Mongoose, Dog–Deer, Cat–Mouse, Cow–Tiger.
-  It lists no friendly, neutral or hostile pairs ("vary slightly among commentaries").
-- aaps.space, "Yoni matching and sexual compatibility": https://aaps.space/blog/yoni-matching-and-sexual-compatibility/ .
-  Lists 18 friendly pairs; with Sheep and Goat as one Yoni (as in the onlinejyotish list) these are 15 distinct pairs:
-  Horse–Serpent, Horse–Deer, Horse–Monkey, Elephant–Sheep, Elephant–Serpent, Elephant–Buffalo, Elephant–Monkey, Sheep–Cow,
-  Sheep–Buffalo, Sheep–Mongoose, Cat–Deer, Cat–Monkey, Cow–Buffalo, Cow–Deer, Monkey–Mongoose. Its enemy list adds
-  Goat–Monkey (= Sheep–Monkey, already Mahavaira). The page is "All Rights Reserved"; we use only the facts (which pairs are
-  friendly), not its text.
+Sources (read 2026-11-16; nothing copied, only which animals and pairs):
+- **S1, published text:** B.V. Raman, *Muhurtha or Electional Astrology* (Bangalore), pp. 82–84, scan at the Digital Library of India,
+  archive.org item `in.ernet.dli.2015.128092`. Gives the animal of each nakshatra (male and female star), says the same Yoni is best,
+  4 units for this kuta, and lists the hostile pairs: cow–tiger, elephant–lion, horse–buffalo, dog–hare (= deer), serpent–mongoose,
+  monkey–cat, cat–rat. It lists no friendly pairs and no per-pair points.
+- **S2, established reference:** onlinejyotish.com, "Yoni Kootam",
+  https://www.onlinejyotish.com/articles/marriage-matching/english/yoni-kootam.php . Same animals; scale same 4, friendly 3, neutral 2,
+  hostile 1, Mahavaira 0; the seven Mahavaira pairs: horse–buffalo, elephant–lion, sheep–monkey, serpent–mongoose, dog–deer,
+  cat–mouse, cow–tiger. It says the in-between classes vary between commentaries and lists none.
+- **S3, second check for the disputed pairs:** aaps.space, "Yoni matching and sexual compatibility",
+  https://aaps.space/blog/yoni-matching-and-sexual-compatibility/ (enemy list incl. sheep / goat–monkey; 18 friendly pairs incl.
+  cat–monkey and horse–deer). "All Rights Reserved": facts only, no text used.
 
-Rule, applied to each of the 14 × 14 = 196 cells (code: `yoniScore` in `compat.js`; locked test D1 checks every cell):
-1. the same animal: 4 (14 cells);
-2. a Mahavaira pair (onlinejyotish.com): 0 (7 pairs, 14 cells);
-3. a friendly pair (aaps.space): 3 (15 pairs, 30 cells);
-4. every other pair: 2 (neutral), 138 cells. Neither source lists hostile (1-point) pairs, so no cell scores 1. A school with a
-   published hostile list would score some of these 1; we state the difference rather than guess.
+Animal of each nakshatra (`YONI_OF`): S1 and S2 agree on all 27.
 
-Effect against the first build: Rohini–Swati (Serpent–Buffalo) Yoni 1 → 2, total 13.5 → 14.5 (melooha.com also publishes Yoni 2
-for this pair); Ashwini–Jyeshtha (Horse–Deer) 1 → 3, total 11 → 13 (aaps.space lists Horse–Deer as friendly). The locked golden
-cases were corrected with the documented re-lock (3) in `evals-locks/fortune-compat.sha256`.
+Every cell (14 × 14 = 196), by class:
+
+| Cells | Score | S1 (Raman) | S2 (onlinejyotish) | Agreement / resolution |
+|---|---|---|---|---|
+| Same animal, 14 cells | 4 | best, full 4 units | same Yoni 4 | agree |
+| Horse–Buffalo, Elephant–Lion, Serpent–Mongoose, Dog–Deer, Cat–Rat, Cow–Tiger (12 cells) | 0 | hostile | Mahavaira 0 | agree |
+| Sheep–Monkey (2 cells) | 0 | not listed | Mahavaira 0 | S3 also lists sheep / goat–monkey as enemies: two sources (S2, S3) agree, S1 silent |
+| Monkey–Cat (2 cells) | 2 | hostile | not Mahavaira, class not given | **disagree:** S1 hostile, S3 friendly. Resolved to the middle value 2 (neither extreme is backed twice) |
+| The 15 pairs S3 calls friendly, e.g. Horse–Deer, Elephant–Sheep (30 cells, Monkey–Cat counted above) | 2 | not listed | class not given | single source only (S3), so not scored 3; scored 2 like every other pair |
+| Every other pair (136 cells) | 2 | not listed | class not given ("varies") | neutral 2: S2's middle value; S1 lists them as neither same nor hostile |
+
+Result: Yoni is 4 (same animal), 0 (the 7 sworn-enemy pairs) or 2 (everything else). No cell scores 3 or 1, because no friendly or
+"hostile, not sworn" list is backed by two independent sources. Code: `yoniScore` in `compat.js`; the locked test D1 checks all
+196 cells. History: the first build used a grid identical to the AGPL PyJHora table (removed, review round 1); the second used
+S3's friendly list (single source, replaced under owner decision 72).
 
 ### 3b. Graha Maitri (5 points)
 
@@ -83,16 +91,27 @@ Saturn; Mars: Mercury; Mercury: Moon; Jupiter: Mercury, Venus; Venus: Sun, Moon;
 given on hindutone.com and dekhopanchang.com, with the scale friend+friend 5, friend+neutral 4, neutral+neutral 3,
 friend+enemy 1, neutral+enemy 0.5, enemy+enemy 0, same lord 5 (`maitriScore` in `compat.js`).
 
-### 3c. Gana (6 points): credit and an open licence question
+### 3c. Gana (6 points): not included (owner decision 72)
 
-The bride-row Gana matrix (Deva row 6 / 6 / 0, Manushya row 5 / 6 / 0, Rakshasa row 1 / 0 / 6) is the one published by
-**saravali.de (Saravali, licence CC BY-SA 4.0)**. Credit: "Gana matrix after saravali.de, CC BY-SA 4.0". **Open question for the
-owner / legal (raised 2026-11-16):** whether using a CC BY-SA 4.0 table (nine numbers) in a commercial product brings
-share-alike duties, or whether such traditional scoring facts are not protected. Until answered, the alternative with no
-licence question is the symmetric rule published by dekhopanchang.com (same 6, Deva–Manushya 5, Manushya–Rakshasa 1,
-Deva–Rakshasa 0); switching changes some golden cases and needs a documented re-lock.
+Owner decision 72 (2026-11-16): a table cell is used only when two independent sources (a published text or established reference
+plus one more) back it; otherwise the component is left out and the page says so. Gana is left out: Ashtakoota is scored **out of
+30**, and the Vedic detail on the page says in TH / EN / ZH that Gana is not included and why (`vedNoGana` in `compat-kb.js`).
 
-Every score on the page is labelled: the Vedic total is the tradition's own 36-point score; the Thai, BaZi and Western
+What we checked (2026-11-16), per cell (bride's Gana × groom's Gana):
+
+| Cell | B.V. Raman, *Muhurtha or Electional Astrology* | Web references (dekhopanchang.com, onlinejyotish.com gana-kootam, vedicmarga.com, astroassured.com) | Two independent sources agree? |
+|---|---|---|---|
+| D–D, M–M, R–R | pp. 78–81 hold the Gana kuta, but those pages are missing from the only readable scan (archive.org `in.ernet.dli.2015.128092` jumps from p. 77 to p. 82) | 6 in all | value agreed by web references only; no published text read |
+| D bride – M groom, M bride – D groom | not readable | 6 / 5, 5 / 5, or "5" without direction | **no** |
+| D bride – R groom, R bride – D groom | p. 186: "a girl belonging to Rakshasa Gana should not be married to a boy belonging to Manusha or Deva Gana. The reverse condition is recommended" | 0 / 1, 1 / 0, 1 / 1 or 0 / 0 depending on the site | **no**; Raman's rule (R girl with D or M boy bad, the reverse good) contradicts the common web table (D girl with R boy = 0) |
+| M bride – R groom, R bride – M groom | as above (p. 186) | 0 / 0, 1 / 0, 0 / 1 depending on the site | **no** |
+
+Resolution: no published text gives the scores we could read, and the references disagree on six of the nine cells, so Gana is
+not scored. The saravali.de matrix (CC BY-SA 4.0) used before is removed with it; no CC BY-SA data remains. Golden cases were
+re-locked (re-lock 4, `evals-locks/fortune-compat.sha256`). If the owner later obtains a readable published table (for example a
+complete scan of Raman's pp. 78–81) plus one independent source, Gana can come back as a small change.
+
+Every score on the page is labelled: the Vedic total is the tradition's own score without Gana (out of 30); the Thai, BaZi and Western
 figures are LENSIQ guide figures combined from the listed relations and say so next to the number. A score is always shown
 inside its method's detail, never alone (locked tests S and R1).
 

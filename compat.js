@@ -5,7 +5,7 @@
  *   thai     day-of-birth pairs (คู่มิตร / ศัตรู / สมพล / ธาตุ, th.wikipedia โหราศาสตร์ไทย, baankhunyai.com), year animals
  *            (six harmony, three harmony, clash, harm, punishment; sanook.com), birth-year elements of ตำราพรหมชาติ (sanook.com)
  *   bazi     Day Master element cycle, five stem combinations and stem clashes, day / year branch relations (zh.wikipedia 天干 地支)
- *   vedic    Ashtakoota 36 points from the sidereal Moon (Lahiri ayanamsa, IAE values): "common" tables (hindutone.com,
+ *   vedic    Ashtakoota out of 30 (seven kootas; Gana left out, owner decision 72) from the sidereal Moon (Lahiri ayanamsa, IAE values): "common" tables (hindutone.com,
  *            dekhopanchang.com, astroyogi.com, onlinejyotish.com); cancellations are reported, never added to the raw score
  *   western  synastry: five major aspects between Sun … Saturn of the two charts (orbs 8° luminaries / 6° / 4° sextile)
  * The site's own engines do the calendar work (horoscope.js: Thai day from sunrise, BaZi pillars, year animals; astro.js:
@@ -96,13 +96,13 @@
   /* Yoni, derived from the classical rule (review round 1, D1: no table copied from any GPL / AGPL source). Animals:
      0 Horse 1 Elephant 2 Sheep/Goat 3 Serpent 4 Dog 5 Cat 6 Rat/Mouse 7 Cow 8 Buffalo 9 Tiger 10 Deer 11 Monkey 12 Mongoose 13 Lion.
      Animal per nakshatra and the scale (same 4, friendly 3, neutral 2, hostile 1, sworn enemy 0) and the 7 sworn-enemy pairs:
-     onlinejyotish.com/articles/marriage-matching/english/yoni-kootam.php. Friendly pairs: aaps.space/blog/yoni-matching-and-
-     sexual-compatibility (its 18 pairs, Sheep = Goat, = 15 pairs). Neither page lists hostile (1-point) pairs, so every other
-     pair is neutral (2). Derivation per cell: docs/COMPAT-SOURCES.md §3a. */
+     onlinejyotish.com/articles/marriage-matching/english/yoni-kootam.php, checked against B.V. Raman, Muhurtha or Electional
+     Astrology, pp. 82-84 (owner decision 72: two independent sources per cell). Only two levels are backed twice: the same animal
+     (4) and the sworn-enemy pairs (0); which pairs are "friendly" has one source only and Monkey-Cat is disputed (Raman: hostile;
+     aaps.space: friendly), so every other pair is 2. Derivation per cell: docs/COMPAT-SOURCES.md §3a. */
   const YONI_OF = [0, 1, 2, 3, 3, 4, 5, 2, 5, 6, 6, 7, 8, 9, 8, 9, 10, 10, 4, 11, 12, 11, 13, 0, 13, 7, 1];
   const Y_SWORN = [[0, 8], [1, 13], [2, 11], [3, 12], [4, 10], [5, 6], [7, 9]];
-  const Y_FRIEND = [[0, 3], [0, 10], [0, 11], [1, 2], [1, 3], [1, 8], [1, 11], [2, 7], [2, 8], [2, 12], [5, 10], [5, 11], [7, 8], [7, 10], [11, 12]];
-  const yoniScore = (a, b) => (a === b ? 4 : has(Y_SWORN, a, b) ? 0 : has(Y_FRIEND, a, b) ? 3 : 2);
+  const yoniScore = (a, b) => (a === b ? 4 : has(Y_SWORN, a, b) ? 0 : 2);
   const LORD = [2, 5, 3, 1, 0, 3, 5, 2, 4, 6, 6, 4];                      // planets: 0 Su 1 Mo 2 Ma 3 Me 4 Ju 5 Ve 6 Sa
   /* Graha Maitri, derived from Parashara's natural friendships (Brihat Parashara Hora Shastra ch. 3; table as given on
      hindutone.com / dekhopanchang.com) with the scale friend+friend 5, friend+neutral 4, neutral+neutral 3, friend+enemy 1,
@@ -112,8 +112,7 @@
   const view = (a, b) => (FRIENDS[a].includes(b) ? "F" : ENEMIES[a].includes(b) ? "E" : "N");
   const M_SCALE = { FF: 5, FN: 4, NN: 3, EF: 1, EN: 0.5, EE: 0 };
   const maitriScore = (a, b) => (a === b ? 5 : M_SCALE[[view(a, b), view(b, a)].sort().join("")]);
-  const GANA_OF = "DMRMDMDDRRMMDRDRDRRMMDRRMMD";                           // Deva / Manushya / Rakshasa per nakshatra
-  const GANA = { D: { D: 6, M: 6, R: 0 }, M: { D: 5, M: 6, R: 0 }, R: { D: 1, M: 0, R: 6 } };
+  // Gana (6 points) is left out (owner decision 72): no two independent sources agree on its mixed cells (COMPAT-SOURCES §3c)
   const NADI_OF = [0, 1, 2, 2, 1, 0, 0, 1, 2, 2, 1, 0, 0, 1, 2, 2, 1, 0, 0, 1, 2, 2, 1, 0, 0, 1, 2];
   const NAK_SPAN = 360 / 27;
   const vedic = {
@@ -133,7 +132,6 @@
       const yoni = yoniScore(YONI_OF[b.nak], YONI_OF[g.nak]);
       const lb = LORD[b.rashi], lg = LORD[g.rashi];
       const maitri = maitriScore(lb, lg);
-      const gana = GANA[GANA_OF[b.nak]][GANA_OF[g.nak]];
       const d = ((g.rashi - b.rashi + 12) % 12) + 1;
       const bhakoot = [2, 12, 5, 9, 6, 8].includes(d) ? 0 : 7;
       const nadi = NADI_OF[b.nak] === NADI_OF[g.nak] ? 0 : 8;
@@ -142,11 +140,11 @@
         bhakoot: bhakoot === 0 && (lb === lg || ([6, 8].includes(d) ? friends : (FRIENDS[lb].includes(lg) || FRIENDS[lg].includes(lb)))),
         nadi: nadi === 0 && ((b.rashi === g.rashi && b.nak !== g.nak) || (b.nak === g.nak && b.rashi !== g.rashi)),
       };
-      const kootas = { varna, vashya, tara, yoni, maitri, gana, bhakoot, nadi };
+      const kootas = { varna, vashya, tara, yoni, maitri, bhakoot, nadi };
       const total = Object.values(kootas).reduce((s, v) => s + v, 0);
-      return { kootas, total, max: 36, cancel, dist: [d, ((b.rashi - g.rashi + 12) % 12) + 1] };
+      return { kootas, total, max: 30, cancel, dist: [d, ((b.rashi - g.rashi + 12) % 12) + 1] };
     },
-    MAX: { varna: 1, vashya: 2, tara: 3, yoni: 4, maitri: 5, gana: 6, bhakoot: 7, nadi: 8 },
+    MAX: { varna: 1, vashya: 2, tara: 3, yoni: 4, maitri: 5, bhakoot: 7, nadi: 8 },
     yoniScore, maitriScore, YONI_OF,
   };
 
@@ -248,7 +246,7 @@
     return { out, facts: { sr, day, year } };
   }
   const K_CATS = { varna: ["values", "work"], vashya: ["decisions", "communication"], tara: ["longterm", "daily"], yoni: ["daily"], maitri: ["communication", "values"],
-    gana: ["daily", "decisions", "work"], bhakoot: ["money", "longterm"], nadi: ["longterm", "daily"] };
+    bhakoot: ["money", "longterm"], nadi: ["longterm", "daily"] };
   function vedicSignals(A, B) {
     const ab = vedic.ashtakoota(A.vedic, B.vedic), ba = vedic.ashtakoota(B.vedic, A.vedic), out = [];
     for (const k of Object.keys(vedic.MAX)) {
@@ -335,7 +333,7 @@
     const methods = {
       thai: { score: scoreOf(th.out), max: 100, guide: true, signals: th.out, facts: th.facts },
       bazi: { score: scoreOf(bz.out), max: 100, guide: true, signals: bz.out, facts: bz.facts },
-      vedic: { score: (vd.facts.ab.total + vd.facts.ba.total) / 2, max: 36, signals: vd.out, facts: vd.facts },
+      vedic: { score: (vd.facts.ab.total + vd.facts.ba.total) / 2, max: 30, signals: vd.out, facts: vd.facts },
       western: ws.off ? { score: null, max: 100, off: true, signals: [], facts: null } : { score: scoreOf(ws.out), max: 100, guide: true, signals: ws.out, facts: ws.facts },
     };
     const categories = {}, agreement = {};
@@ -458,6 +456,7 @@
       if (f.ab.cancel.bhakoot || f.ba.cancel.bhakoot) d.push(fill(T.vedCancel, { k: N.koota[lang].bhakoot }));
       if (f.ab.cancel.nadi || f.ba.cancel.nadi) d.push(fill(T.vedNadiEx, { k: N.koota[lang].nadi }));
       [[A, names[0]], [B, names[1]]].forEach(([P, nm]) => { if (P.vedic.uncertain) d.push(fill(T.vedUnsure, { a: nm, x: nk(P.vedic.alt[0]), y: nk(P.vedic.alt[1]) })); });
+      d.push(T.vedNoGana);
       if (res.rel !== "couple") d.push(T.vedNotCouple);
     } else {
       const f = M.facts;
