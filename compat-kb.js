@@ -268,6 +268,8 @@
         harm: { day: "ความน้อยใจเล็ก ๆ สะสมได้ถ้าไม่พูด", year: "ความคาดหวังจากครอบครัวของแต่ละฝ่ายอาจไม่ตรงกัน" },
         punish: { day: "ต่างคนต่างมีวิธีของตัวเองในบ้าน", year: "ต่างคนต่างยึดวิธีที่เคยชินจากบ้านเดิม" },
         destroy: { day: "แผนประจำวันอาจสะดุดเพราะสื่อสารไม่ครบ", year: "แผนที่วางกับครอบครัวอาจต้องปรับบ่อย" } },
+      stepYear: { clash: "คุยกันว่าครอบครัวของแต่ละฝ่ายคาดหวังอะไร แล้วตกลงว่าจะรับส่วนไหนมาใช้ในบ้านของเราเอง", harm: "เล่าให้กันฟังว่าเรื่องไหนที่บ้านเดิมของแต่ละคนให้ความสำคัญ ก่อนจะตัดสินใจเรื่องครอบครัว",
+        punish: "เลือกธรรมเนียมจากบ้านเดิมของแต่ละฝ่ายมาอย่างละข้อสองข้อ แล้วสร้างแบบของเราเอง", destroy: "เมื่อวางแผนกับญาติ ให้ยืนยันรายละเอียดกันอีกครั้งและเผื่อเวลาไว้" },
       step: { clash: "ตกลงเรื่องกิจวัตร เช่นเวลานอน งานบ้าน และเวลาส่วนตัว ให้ชัดตั้งแต่ต้น", harm: "นัดเวลาสั้น ๆ ทุกสัปดาห์เพื่อบอกเรื่องที่ค้างใจ",
         punish: "ลองทำตามวิธีของแต่ละคนสลับกัน แล้วเลือกวิธีที่ได้ผลจริง", destroy: "ยืนยันแผนกันอีกครั้งก่อนวันนัด และมีแผนสำรองไว้" },
     },
@@ -278,6 +280,8 @@
         harm: { day: "small hurts can pile up if left unsaid.", year: "each family's expectations may not match." },
         punish: { day: "each of you has your own way of running things at home.", year: "each of you holds on to habits from the home you grew up in." },
         destroy: { day: "daily plans can stall when details go unshared.", year: "plans made with family may need frequent changes." } },
+      stepYear: { clash: "Talk about what each family expects, then agree which parts you take into your own home.", harm: "Tell each other what mattered most in the home you grew up in before family decisions.",
+        punish: "Pick one or two customs from each family and build your own way from them.", destroy: "When you plan with relatives, confirm the details again and leave spare time." },
       step: { clash: "Agree on routines early: bedtimes, housework and personal time.", harm: "Set a short weekly moment to raise whatever is still on your mind.",
         punish: "Try each person's way in turn, then keep the one that really works.", destroy: "Confirm plans again the day before and keep a back-up plan." },
     },
@@ -288,6 +292,8 @@
         harm: { day: "小委屈不说出来会慢慢累积。", year: "双方家庭的期待可能不一致。" },
         punish: { day: "在家里各有各的做法。", year: "都坚持原生家庭的习惯。" },
         destroy: { day: "细节没沟通好，日常计划容易卡住。", year: "和家人定的计划可能常要调整。" } },
+      stepYear: { clash: "聊聊双方家庭各自的期待，再商量哪些放进你们自己的家。", harm: "做家庭决定前，先告诉对方原生家庭最看重什么。",
+        punish: "从双方家庭各挑一两个习惯，组合成你们自己的方式。", destroy: "和亲戚一起计划时，再确认一次细节并预留时间。" },
       step: { clash: "尽早约定作息：睡觉时间、家务和个人时间。", harm: "每周留一小段时间，把心里还没说的事说出来。",
         punish: "轮流试试各自的方法，再保留真正有效的那一个。", destroy: "前一天再确认一次计划，并准备备用方案。" },
     },
@@ -325,6 +331,9 @@
       zh: { f: "一起规划时，两人各有长处，能把长远目标走下去。", a: ["写下未来一年的两三个共同目标，每三个月回顾一次。", "在共同计划里也给各自的个人目标留出位置。"] } },
   };
   const CARE_NONE = { th: "หมวดนี้ไม่มีจุดที่ตำราให้ระวังเป็นพิเศษ", en: "No method flags anything special to watch in this area.", zh: "这一方面没有特别需要留意的地方。" };
+  // review round 1 (D3): each point is said once, in its own category; a category it also touches gets this short line
+  const CARE_ELSE = { th: "{c}: จุดที่ต้องใส่ใจซึ่งเกี่ยวกับเรื่องนี้ด้วย อธิบายไว้แล้วในหมวด{list}", en: "{c}: points of care that also touch this area are explained under {list}.",
+    zh: "{c}：与这方面相关的需用心之处，已在“{list}”中说明。" };
 
   /* roles for a group, from the Day Master element (BaZi), framed as strengths */
   const ROLE = {
@@ -366,7 +375,7 @@
       vedNotCouple: "อัษฏกูฏเป็นตำราจับคู่แต่งงาน สำหรับความสัมพันธ์แบบอื่นใช้เพื่อเทียบเท่านั้น",
       westPlanets: "ดาวที่ใช้: อาทิตย์ จันทร์ พุธ ศุกร์ อังคาร พฤหัสบดี เสาร์ (ระบบทรอปิคัล) มุมหลัก 5 แบบ วงคลาด 8° เมื่อมีอาทิตย์หรือจันทร์ 6° สำหรับดาวอื่น 4° สำหรับมุม 60°",
       westTop: "มุมที่เด่นที่สุด: {list}", westNone: "ไม่พบมุมหลักที่ชัดเจนระหว่างดาวของสองคน",
-      westNoTime: "ไม่ทราบเวลาเกิดของบางคน ตำแหน่งดวงจันทร์คลาดได้ราว ±6° มุมของดวงจันทร์จึงนับน้ำหนักครึ่งเดียว",
+      westNoTime: "ไม่ทราบเวลาเกิดของบางคน ตำแหน่งดวงจันทร์คลาดได้ราว ±7° มุมของดวงจันทร์จึงนับน้ำหนักครึ่งเดียว",
       westOff: "ยังคำนวณดาวตะวันตกไม่ได้ (โหลดตัวคำนวณไม่สำเร็จ) ส่วนอื่นยังใช้ได้ตามปกติ",
       agreeYes: "ทุกศาสตร์ที่คำนวณได้มองตรงกันว่า{lean}", agreeNo: "ศาสตร์มองต่างกัน: {parts}", agreeFew: "มีศาสตร์คำนวณได้ไม่พอจะเทียบ", agreePart: "{m} ว่า{lean}",
       mapCell: "{a} กับ {b}: {lean} เด่นเรื่อง{fit}", mapCellCare: "{a} กับ {b}: {lean} ควรใส่ใจเรื่อง{care}", mapStep: "วิธีปรับ: {s}",
@@ -394,7 +403,7 @@
       vedNotCouple: "Ashtakoota is a marriage-matching tradition; for other relationships it is shown for comparison only.",
       westPlanets: "Bodies used: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn (tropical). Five major aspects; orb 8° with the Sun or Moon, 6° otherwise, 4° for the sextile.",
       westTop: "Strongest contacts: {list}", westNone: "No clear major aspect between the two charts.",
-      westNoTime: "A birth time is missing, so the Moon may be off by about ±6°; Moon contacts count at half weight.",
+      westNoTime: "A birth time is missing, so the Moon may be off by about ±7°; Moon contacts count at half weight.",
       westOff: "The western planets could not be computed (the calculator did not load); everything else still works.",
       agreeYes: "Every method computed sees this as {lean}.", agreeNo: "The methods differ: {parts}.", agreeFew: "Not enough methods computed to compare.", agreePart: "{m}: {lean}",
       mapCell: "{a} and {b}: {lean}, strongest in {fit}", mapCellCare: "{a} and {b}: {lean}, look after {care}", mapStep: "How to adjust: {s}",
@@ -422,7 +431,7 @@
       vedNotCouple: "Ashtakoota 是婚配传统，用于其他关系时仅供比较。",
       westPlanets: "使用的星体：太阳、月亮、水星、金星、火星、木星、土星（回归黄道）。五种主要相位；有太阳或月亮时容许度 8°，其他 6°，六合相 4°。",
       westTop: "最明显的相位：{list}", westNone: "两张星盘之间没有明显的主要相位。",
-      westNoTime: "有人缺少出生时间，月亮位置可能偏差约 ±6°，月亮相位只按一半权重计算。",
+      westNoTime: "有人缺少出生时间，月亮位置可能偏差约 ±7°，月亮相位只按一半权重计算。",
       westOff: "西洋行星暂时无法计算（计算模块未能载入），其他部分照常使用。",
       agreeYes: "所有已计算的方法都认为是{lean}。", agreeNo: "各方法看法不同：{parts}。", agreeFew: "已计算的方法不足以比较。", agreePart: "{m}认为{lean}",
       mapCell: "{a}与{b}：{lean}，最强在{fit}", mapCellCare: "{a}与{b}：{lean}，多留意{care}", mapStep: "调整方法：{s}",
@@ -483,6 +492,6 @@
     },
   };
 
-  const KB = { CATS, CAT, LEAN, METHOD, NAMES, S, BR, GEN, CARE_NONE, ROLE, WORK_USE, T, PET };
+  const KB = { CATS, CAT, LEAN, METHOD, NAMES, S, BR, GEN, CARE_NONE, CARE_ELSE, ROLE, WORK_USE, T, PET };
   if (typeof module !== "undefined" && module.exports) module.exports = KB; else root.LQCompatKB = KB;
 })(typeof window !== "undefined" ? window : globalThis);

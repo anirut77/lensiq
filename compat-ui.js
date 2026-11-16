@@ -44,10 +44,10 @@
     const days = '<option value="">' + esc(T("compat.optDay", "วันที่")) + "</option>" + Array.from({ length: 31 }, (_, k) => '<option value="' + (k + 1) + '">' + (k + 1) + "</option>").join("");
     const months = '<option value="">' + esc(T("compat.optMonth", "เดือน")) + "</option>" + MONTHS.map((m, k) => '<option value="' + (k + 1) + '">' + esc(T("compat.month." + (k + 1), m)) + "</option>").join("");
     return '<fieldset class="cp-person fk-block" data-cp-person="' + i + '"><legend>' + esc(legend) + "</legend>" +
-      '<label class="cp-nick"><span>' + esc(T("compat.nick", "ชื่อเล่น (ไม่บังคับ)")) + '</span><input type="text" name="nick" maxlength="20" autocomplete="off"></label>' +
+      '<label class="cp-nick"><span>' + esc(T("compat.nick", "ชื่อเล่น (ไม่บังคับ)")) + '</span><input type="text" name="nick" id="cpNick' + i + '" maxlength="80" autocomplete="off"></label>' +
       '<div class="fk-row cp-date"><label><span>' + esc(T("compat.day", "วันที่")) + '</span><select name="d">' + days + "</select></label>" +
       "<label><span>" + esc(T("compat.month", "เดือน")) + '</span><select name="m">' + months + "</select></label>" +
-      "<label><span>" + esc(T("compat.year", "ปีเกิด (พ.ศ. หรือ ค.ศ.)")) + '</span><input type="text" name="y" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="' +
+      "<label><span>" + esc(T("compat.year", "ปีเกิด (พ.ศ. หรือ ค.ศ.)")) + '</span><input type="text" name="y" id="cpYear' + i + '" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="' +
       esc(T("compat.yearPh", "เช่น 2531")) + '"></label>' +
       "<label><span>" + esc(T("compat.time", "เวลาเกิด (ถ้าทราบ)")) + '</span><input type="time" name="t"></label></div></fieldset>';
   }
@@ -76,13 +76,15 @@
   }
 
   /* ---------- mode ---------- */
+  function syncWorkUse() { /** @type {any} */ (D.querySelector("#cpForm [data-compat-workuse]")).hidden = !(st.mode === "group" || /** @type {any} */ ($("cpRel")).value === "business"); }
+  $("cpRel").addEventListener("change", syncWorkUse);
   function setMode(m) {
     st.mode = m; st.n = m === "group" ? 3 : 2;
     D.querySelectorAll("[data-cp-mode]").forEach(b => { const on = b.getAttribute("data-cp-mode") === m; b.setAttribute("aria-selected", on ? "true" : "false"); /** @type {any} */ (b).tabIndex = on ? 0 : -1; });
     const sel = /** @type {HTMLSelectElement} */ ($("cpRel"));
     Array.from(sel.options).forEach(o => { const on = o.getAttribute("data-cp-for") === m; o.hidden = !on; o.disabled = !on; });
     sel.value = m === "group" ? "team" : "couple";
-    /** @type {any} */ (D.querySelector("#cpForm [data-compat-workuse]")).hidden = m !== "group";
+    syncWorkUse();
     renderPeople(true);
     clearResult();
   }
@@ -98,7 +100,10 @@
   const msg = t => { $("cpMsg").textContent = t || ""; };
   function clearResult() { const r = $("cpResult"); r.innerHTML = ""; r.hidden = true; }
   const FA = () => W.FortuneAI, CR = () => W.LQFortuneCrisis;
+  /** crisis takeover: the support card replaces the whole result area (review round 1, D2). One place to switch to the shared
+   *  LQCrisisTakeover helper from main once it lands. */
   function showSupport() {
+    st.last = null;
     const r = $("cpResult"); r.innerHTML = ""; r.hidden = false;
     const box = D.createElement("div"); box.id = "cpSupport"; box.tabIndex = -1; r.appendChild(box);
     const fa = FA();
@@ -107,6 +112,12 @@
     try { r.scrollIntoView({ block: "start" }); box.focus({ preventScroll: true }); } catch (e) { /* old browsers */ }
   }
   const crisisHit = texts => { const fa = FA(); return !!(fa && fa.crisis && texts.some(t => t && fa.crisis.check(t))); };
+  /** every field the visitor can type into (names, years, times), and the crisis net's own field reader */
+  const allTexts = () => Array.from(D.querySelectorAll("#cpForm input, #cpForm textarea")).map(e => /** @type {any} */ (e)).filter(e => e.type !== "checkbox").map(e => e.value)
+    .concat([CR() && CR().fields ? CR().fields(D) : ""]);
+  const softNames = () => { const c = CR(); return !!(c && c.softName) && Array.from(D.querySelectorAll('#cpForm input[name="nick"]')).some(e => c.softName(/** @type {any} */ (e).value)); };
+  // the crisis check runs while the visitor types, on every field, before any truncation or validation
+  $("cpForm").addEventListener("input", () => { if (!$("cpResult").querySelector(".fa-support") && crisisHit(allTexts())) { msg(""); showSupport(); } });
   const crisisOn = () => { const fa = FA(); return !!(fa && fa.crisis && fa.crisis.active && fa.crisis.active()) || !!(CR() && CR().active && CR().active(D)); };
   const plain = s => { const c = CR(); return c && c.plainName ? c.plainName(s) : s; };
 
@@ -114,20 +125,22 @@
   $("cpForm").addEventListener("submit", e => { e.preventDefault(); go(); });
   async function go() {
     if (st.busy) return;
+    // the crisis net first, on every field, before consent and before any format check
+    if (crisisOn() || crisisHit(allTexts())) { msg(""); showSupport(); return; }
     if (!/** @type {any} */ ($("cpConsent")).checked) { msg(T("compat.needConsent", "โปรดติ๊กยืนยันว่าได้แจ้งเจ้าของข้อมูลแล้ว ก่อนกรอกและดูผล")); clearResult(); return; }
     const ppl = readAll(false);
-    if (crisisOn() || crisisHit(ppl.map(p => p.nick))) { msg(""); showSupport(); return; }
     for (let i = 0; i < ppl.length; i++) {
       const p = ppl[i], bad = !(p.y >= 1900 && p.y <= 2100) ? "y" : !(p.m >= 1 && p.m <= 12) ? "m" : !(p.d >= 1 && p.d <= new Date(p.y, p.m, 0).getDate()) ? "d" : "";
       if (bad) {
         const who = i === 0 ? T("compat.you", "คุณ") : T("compat.personN", "คนที่ {n}", { n: i + 1 });
         msg(T("compat.bad." + bad, { y: "{who}: ปีเกิดต้องอยู่ระหว่าง พ.ศ. 2443–2643 (ค.ศ. 1900–2100)", m: "{who}: โปรดเลือกเดือนเกิด", d: "{who}: โปรดเลือกวันที่ให้ถูกต้อง" }[bad], { who }));
         const f = D.querySelector('[data-cp-person="' + i + '"] [name="' + bad + '"]'); if (f) /** @type {any} */ (f).focus();
+        st.last = null; clearResult();
         return;
       }
     }
     const c = CR();
-    if (c && c.pageSoft && c.pageSoft() && c.renderSoft) {
+    if (c && c.renderSoft && ((c.pageSoft && c.pageSoft()) || softNames())) {
       const r = $("cpResult"); r.innerHTML = ""; r.hidden = false;
       const box = D.createElement("div"); r.appendChild(box);
       c.renderSoft(box, lang(), () => { c.ack(); compute(ppl); }, () => showSupport());
@@ -208,8 +221,6 @@
     sec.className = "fa-section cp-cat fk-block"; sec.setAttribute("data-section", s.id); sec.setAttribute("data-lq-grouped", "1"); sec.id = "cp-cat-" + s.id;
     sec.style.setProperty("--cat-color", s.color);
     if (s.paid) sec.setAttribute("data-lq-paid", "compat");
-    const lean = rep.mode === "group" ? null : null;
-    void lean;
     const h = D.createElement("h3"); h.innerHTML = '<span class="cp-ic" data-icon>' + icon(s.icon, s.color) + "</span>" + esc(s.title); sec.appendChild(h);
     const gist = D.createElement("p"); gist.className = "lq-gist"; gist.textContent = s.fit[0]; sec.appendChild(gist);
     if (s.care.length) {
@@ -262,6 +273,7 @@
         rep.roles.map(x => '<li data-compat-role><b>' + esc(x.name) + "</b> · " + esc(x.role) + '<br><span class="fk-small">' + esc(x.strength) + "</span></li>").join("") + "</ul>";
       r.appendChild(g);
     } else {
+      if (rep.workUse) { const w = D.createElement("p"); w.className = "cp-workuse"; w.setAttribute("data-compat-workuse", ""); w.textContent = rep.workUse; r.appendChild(w); } // business partners
       const a = D.createElement("div"); a.innerHTML = agreeHTML(rep); r.appendChild(a.firstElementChild);
     }
     const cats = D.createElement("div"); cats.className = "cp-cats";

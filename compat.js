@@ -93,17 +93,25 @@
   const VG = { C: 0, M: 1, J: 2, V: 3, K: 4 };                             // quadruped, human, water, wild, insect
   const vashyaOf = (r, deg) => r === 8 ? (deg < 15 ? VG.M : VG.C) : r === 9 ? (deg < 15 ? VG.C : VG.J) : [VG.C, VG.C, VG.M, VG.J, VG.V, VG.M, VG.M, VG.K, 0, 0, VG.M, VG.J][r];
   const VASHYA = [[2, 1, 1, 1.5, 1], [1, 2, 1.5, 0, 1], [1, 1.5, 2, 1, 1], [0, 0, 0, 2, 0], [1, 1, 1, 0, 2]]; // row = first (bride), col = second
+  /* Yoni, derived from the classical rule (review round 1, D1: no table copied from any GPL / AGPL source). Animals:
+     0 Horse 1 Elephant 2 Sheep/Goat 3 Serpent 4 Dog 5 Cat 6 Rat/Mouse 7 Cow 8 Buffalo 9 Tiger 10 Deer 11 Monkey 12 Mongoose 13 Lion.
+     Animal per nakshatra and the scale (same 4, friendly 3, neutral 2, hostile 1, sworn enemy 0) and the 7 sworn-enemy pairs:
+     onlinejyotish.com/articles/marriage-matching/english/yoni-kootam.php. Friendly pairs: aaps.space/blog/yoni-matching-and-
+     sexual-compatibility (its 18 pairs, Sheep = Goat, = 15 pairs). Neither page lists hostile (1-point) pairs, so every other
+     pair is neutral (2). Derivation per cell: docs/COMPAT-SOURCES.md §3a. */
   const YONI_OF = [0, 1, 2, 3, 3, 4, 5, 2, 5, 6, 6, 7, 8, 9, 8, 9, 10, 10, 4, 11, 12, 11, 13, 0, 13, 7, 1];
-  const YONI = [
-    [4, 2, 2, 3, 2, 2, 2, 1, 0, 1, 1, 3, 2, 1], [2, 4, 3, 3, 2, 2, 2, 2, 3, 1, 2, 3, 2, 0], [2, 3, 4, 2, 1, 2, 1, 3, 3, 1, 2, 0, 3, 1],
-    [3, 3, 2, 4, 2, 1, 1, 1, 1, 2, 2, 2, 0, 2], [2, 2, 1, 2, 4, 2, 1, 2, 2, 1, 0, 2, 1, 1], [2, 2, 2, 1, 2, 4, 0, 2, 2, 1, 3, 3, 2, 1],
-    [2, 2, 1, 1, 1, 0, 4, 2, 2, 2, 2, 2, 1, 2], [1, 2, 3, 1, 2, 2, 2, 4, 3, 0, 3, 2, 2, 1], [0, 3, 3, 1, 2, 2, 2, 3, 4, 1, 2, 2, 2, 1],
-    [1, 1, 1, 2, 1, 1, 2, 0, 1, 4, 1, 1, 2, 1], [1, 2, 2, 2, 0, 3, 2, 3, 2, 1, 4, 2, 2, 1], [3, 3, 0, 2, 2, 3, 2, 2, 2, 1, 2, 4, 3, 2],
-    [2, 2, 3, 0, 1, 2, 1, 2, 2, 2, 2, 3, 4, 2], [1, 0, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 2, 4]];
+  const Y_SWORN = [[0, 8], [1, 13], [2, 11], [3, 12], [4, 10], [5, 6], [7, 9]];
+  const Y_FRIEND = [[0, 3], [0, 10], [0, 11], [1, 2], [1, 3], [1, 8], [1, 11], [2, 7], [2, 8], [2, 12], [5, 10], [5, 11], [7, 8], [7, 10], [11, 12]];
+  const yoniScore = (a, b) => (a === b ? 4 : has(Y_SWORN, a, b) ? 0 : has(Y_FRIEND, a, b) ? 3 : 2);
   const LORD = [2, 5, 3, 1, 0, 3, 5, 2, 4, 6, 6, 4];                      // planets: 0 Su 1 Mo 2 Ma 3 Me 4 Ju 5 Ve 6 Sa
-  const MAITRI = [[5, 5, 5, 4, 5, 0, 0], [5, 5, 4, 1, 4, 0.5, 0.5], [5, 4, 5, 0.5, 5, 3, 0.5], [4, 1, 0.5, 5, 0.5, 5, 4], [5, 4, 5, 0.5, 5, 0.5, 3],
-    [0, 0.5, 3, 5, 0.5, 5, 5], [0, 0.5, 0.5, 4, 3, 5, 5]];
+  /* Graha Maitri, derived from Parashara's natural friendships (Brihat Parashara Hora Shastra ch. 3; table as given on
+     hindutone.com / dekhopanchang.com) with the scale friend+friend 5, friend+neutral 4, neutral+neutral 3, friend+enemy 1,
+     neutral+enemy 0.5, enemy+enemy 0, same lord 5 (hindutone.com, dekhopanchang.com) */
   const FRIENDS = [[1, 2, 4], [0, 3], [0, 1, 4], [0, 5], [0, 1, 2], [3, 6], [3, 5]]; // Parashara natural friends
+  const ENEMIES = [[5, 6], [], [3], [1], [3, 5], [0, 1], [0, 1, 2]];                  // the rest are neutral
+  const view = (a, b) => (FRIENDS[a].includes(b) ? "F" : ENEMIES[a].includes(b) ? "E" : "N");
+  const M_SCALE = { FF: 5, FN: 4, NN: 3, EF: 1, EN: 0.5, EE: 0 };
+  const maitriScore = (a, b) => (a === b ? 5 : M_SCALE[[view(a, b), view(b, a)].sort().join("")]);
   const GANA_OF = "DMRMDMDDRRMMDRDRDRRMMDRRMMD";                           // Deva / Manushya / Rakshasa per nakshatra
   const GANA = { D: { D: 6, M: 6, R: 0 }, M: { D: 5, M: 6, R: 0 }, R: { D: 1, M: 0, R: 6 } };
   const NADI_OF = [0, 1, 2, 2, 1, 0, 0, 1, 2, 2, 1, 0, 0, 1, 2, 2, 1, 0, 0, 1, 2, 2, 1, 0, 0, 1, 2];
@@ -122,9 +130,9 @@
       const vashya = VASHYA[vashyaOf(b.rashi, b.deg == null ? 0 : b.deg)][vashyaOf(g.rashi, g.deg == null ? 0 : g.deg)];
       const taraOk = (x, y) => { const c = ((y - x + 27) % 27) + 1, r = c % 9 || 9; return [3, 5, 7].includes(r) ? 0 : 1.5; };
       const tara = taraOk(b.nak, g.nak) + taraOk(g.nak, b.nak);
-      const yoni = YONI[YONI_OF[b.nak]][YONI_OF[g.nak]];
+      const yoni = yoniScore(YONI_OF[b.nak], YONI_OF[g.nak]);
       const lb = LORD[b.rashi], lg = LORD[g.rashi];
-      const maitri = MAITRI[lb][lg];
+      const maitri = maitriScore(lb, lg);
       const gana = GANA[GANA_OF[b.nak]][GANA_OF[g.nak]];
       const d = ((g.rashi - b.rashi + 12) % 12) + 1;
       const bhakoot = [2, 12, 5, 9, 6, 8].includes(d) ? 0 : 7;
@@ -139,6 +147,7 @@
       return { kootas, total, max: 36, cancel, dist: [d, ((b.rashi - g.rashi + 12) % 12) + 1] };
     },
     MAX: { varna: 1, vashya: 2, tara: 3, yoni: 4, maitri: 5, gana: 6, bhakoot: 7, nadi: 8 },
+    yoniScore, maitriScore, YONI_OF,
   };
 
   /* ================= Western ================= */
@@ -389,7 +398,7 @@
     if (g.id.startsWith("bazi.br.")) {
       const BR = KB.BR[lang];
       v.w = BR.w[g.where]; v.rel = KB.NAMES.brRel[lang][g.rel];
-      if (g.pol === "fit") v.where_fit = BR.fit[g.where]; else { v.where_care = BR.care[g.rel][g.where]; v.where_step = BR.step[g.rel]; }
+      if (g.pol === "fit") v.where_fit = BR.fit[g.where]; else { v.where_care = BR.care[g.rel][g.where]; v.where_step = (g.where === "year" ? BR.stepYear : BR.step)[g.rel]; }
     }
     const pre = KB.METHOD[g.m].short[lang] + (lang === "zh" ? "：" : ": ");
     if (g.pol === "fit") return L.f ? { fit: pre + fill(L.f, v) } : null;
@@ -399,8 +408,14 @@
   const joinList = (arr, lang) => arr.join(KB.T[lang].list);
   const catName = (c, lang) => KB.CAT[c][lang];
 
-  function sectionFor(cat, sigs, lang, names, tier) {
-    const fit = [], care = [], steps = [], seen = new Set();
+  /** each signal is said once, in its own (first) category; the other categories it touches only count it in their lean */
+  const primary = (sigs, cat) => sigs.filter(g => g.cats[0] === cat);
+  function careElse(cat, sigs, lang) {
+    const others = [...new Set(sigs.filter(g => g.pol === "care" && g.cats[0] !== cat).map(g => g.cats[0]))];
+    return others.length ? fill(KB.CARE_ELSE[lang], { c: catName(cat, lang), list: joinList(others.map(c => catName(c, lang)), lang) }) : KB.CARE_NONE[lang];
+  }
+  function sectionFor(cat, allSigs, lang, names, tier) {
+    const fit = [], care = [], steps = [], seen = new Set(), sigs = primary(allSigs, cat);
     const sorted = sigs.slice().sort((x, y) => y.w - x.w);
     for (const g of sorted) {
       const t = sigText(g, lang, names);
@@ -413,7 +428,7 @@
     if (!fit.length) fit.push(KB.GEN[cat][lang].f);
     const adjust = steps.concat(KB.GEN[cat][lang].a);
     const s = { id: cat, title: catName(cat, lang), color: KB.CAT[cat].color, icon: KB.CAT[cat].icon, fit, care, steps, adjust, paid: tier === "full" && !FREE_CATEGORIES.includes(cat) };
-    if (!care.length) s.careNone = KB.CARE_NONE[lang];
+    if (!care.length) s.careNone = careElse(cat, allSigs, lang);
     return s;
   }
   function methodDetail(m, res, lang, names) {
@@ -486,7 +501,7 @@
     for (const s of all) s.care.forEach((c, i) => { if (seen.has(c)) return; seen.add(c); cautions.push({ cat: s.id, title: s.title, text: c, step: s.steps[i] }); });
     const wheel = CATEGORIES.map(c => ({ cat: c, title: catName(c, lang), lean: res.categories[c].lean, leanText: KB.LEAN[res.categories[c].lean][lang], level: res.categories[c].level, color: KB.CAT[c].color, icon: KB.CAT[c].icon }));
     return {
-      lang, mode: "pair", tier, names,
+      lang, mode: "pair", tier, names, workUse: res.rel === "business" ? KB.WORK_USE[lang] : undefined,
       overview: { title: fill(T.ovTitle, { a: names[0], b: names[1] }), lean: overall, lines, cautions, wheel, methods: METHODS.map(m => methodDetail(m, res, lang, names)) },
       agreement: agreementRows(res, lang),
       sections: tier === "full" ? all : all.filter(s => FREE_CATEGORIES.includes(s.id)),
@@ -517,7 +532,7 @@
     // group categories: the strongest signals across pairs, each naming its pair
     const sections = CATEGORIES.map(cat => {
       const sigs = [];
-      for (const p of res.pairs) for (const g of p.res.categories[cat].signals) sigs.push(Object.assign({}, g, { _pair: [p.i, p.j] }));
+      for (const p of res.pairs) for (const g of primary(p.res.categories[cat].signals, cat)) sigs.push(Object.assign({}, g, { _pair: [p.i, p.j] }));
       const fit = [], care = [], steps = [], seen = new Set();
       for (const g of sigs.sort((x, y) => y.w - x.w)) {
         const t = sigText(g, lang, [names[g._pair[0]], names[g._pair[1]]]);
@@ -528,7 +543,7 @@
       }
       if (!fit.length) fit.push(KB.GEN[cat][lang].f);
       const s = { id: cat, title: catName(cat, lang), color: KB.CAT[cat].color, icon: KB.CAT[cat].icon, fit, care, steps, adjust: steps.concat(KB.GEN[cat][lang].a), paid: tier === "full" && !FREE_CATEGORIES.includes(cat) };
-      if (!care.length) s.careNone = KB.CARE_NONE[lang];
+      if (!care.length) s.careNone = careElse(cat, res.pairs.flatMap(p => p.res.categories[cat].signals), lang);
       return s;
     });
     const cautions = [];
