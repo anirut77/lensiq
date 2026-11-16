@@ -1071,7 +1071,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     engineT("faceread.eng.opening", "กำลังเปิดกล้องและโหลดโมเดล...");
     try {
       // speed pass 2026-11-14: models (and the face guide script) are fetched only once the camera is open
-      await camera.start(undefined, { face: mode === "other" ? "environment" : "user" });
+      // LQCam's public start(id) takes no facing; flip() opens the other side (start("", {face}) inside) when the facing differs
+      var want = mode === "other" ? "environment" : "user"; await (camera.facing === want ? camera.start() : camera.flip());
       if (!camera.active) return; // closed again at once (a back camera without the consent tick)
       engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
       // never a live camera without a detector; a retry after liveDead() re-arms the detector (the models are still loaded)
