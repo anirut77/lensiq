@@ -239,7 +239,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function reset() { $("#asResult").hidden = true; $("#asCardImg").hidden = true; $("#asForm").reset(); $("#asTime").disabled = false; $("#asLatLon").hidden = true; st.chart = null; }
   $("#asAgain").addEventListener("click", function () { reset(); $("#asForm").scrollIntoView({ block: "start" }); });
   // #asShare / #asPrint: the shared share and print of fortune-share.js (owner order 2026-11-16); the Big Three signs are the card's art
-  if (window.LQShare) window.LQShare.art("#asResult", function (c, x, y, w, h) {
+  if (window.LQShareArt) window.LQShareArt("#asResult", function (c, x, y, w, h) {
     var C = st.chart; if (!C) return;
     var trio = [["☉", C.sun], ["☽", C.moon], ["ASC", C.asc]].filter(function (x) { return x[1]; });
     var n = trio.length, cw = 220, gap = 30, x0 = x + (w - (n * cw + (n - 1) * gap)) / 2;

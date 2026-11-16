@@ -354,6 +354,9 @@
   const arts = {};
   api.art = (rootSel, fn) => { if (typeof fn === "function") arts[rootSel] = fn; };
   api.artFor = r => (r && arts[r.root]) || null;
+  // art queued by the page before this module was fetched (the loader in fortune-notice.js holds LQShareArt.q)
+  try { const pre = root.LQShareArt && root.LQShareArt.q; if (pre) for (const [s, f] of pre) api.art(s, f); } catch (e) { /* none */ }
+  root.LQShareArt = api.art;
   api.config = () => P;
   api.page = page;
 
@@ -489,7 +492,8 @@
     const k = b.getAttribute("data-lq-sp");
     if (k === "share") api.share({ button: b }); else if (k === "print") api.print({ button: b });
   });
-  let tick = 0, used = false;
+  // fetched by the loader only after the page was used or a reading was rendered, so the card code may follow right away
+  let tick = 0, used = !!root.LQShareLoader;
   const later = () => { if (tick) return; tick = root.requestAnimationFrame ? root.requestAnimationFrame(() => { tick = 0; wire(); sync(); }) : setTimeout(() => { tick = 0; wire(); sync(); }, 50); };
   function start() {
     ensureStyle(); wire(); sync();

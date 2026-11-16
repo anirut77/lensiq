@@ -1923,7 +1923,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   // #plShare / #plPrint: the shared share and print of fortune-share.js (owner order 2026-11-16). "Include my photo" is in the share
   // dialog, off each time it opens; without the photo the card shows the line drawing of the confirmed palm lines (no photograph).
   // makeCard above stays for the page's own tests.
-  if (window.LQShare) window.LQShare.art("#plResult", function (c, x, y, w, h) {
+  if (window.LQShareArt) window.LQShareArt("#plResult", function (c, x, y, w, h) {
     if (!S.result || !S.lines) return;
     var col = S.result.reading.element.color, r = h / 2 - 12, cx = x + w / 2, cy = y + h / 2;
     c.beginPath(); c.arc(cx, cy, r + 10, 0, Math.PI * 2); c.fillStyle = col; c.fill();

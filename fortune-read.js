@@ -121,6 +121,38 @@
     ensureStyle };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQNotice = api;
 })(typeof window !== "undefined" ? window : globalThis);
+/* BEGIN fortune-share loader */
+/* Share and print on every fortune result (owner order 2026-11-16) come from fortune-share.js. Coordinator decision 2026-11-16
+   (option B; owner rule: no budget increases): it is fetched only when the page is used (first touch, key, scroll or focus) or a
+   reading is rendered after the page has loaded, never during the first page load. Tests: tests/unit/fortune-share-print.test.js. */
+(function (root) {
+  "use strict";
+  const d = root.document;
+  if (!d || root.LQShareLoader) return;
+  let done = false;
+  const go = () => {
+    if (done) return;
+    done = true;
+    if (root.LQShare) return;
+    const s = d.createElement("script"); s.src = "fortune-share.js?v=2"; s.async = true; (d.head || d.documentElement).appendChild(s);
+  };
+  for (const ev of ["pointerdown", "touchstart", "keydown", "scroll", "focusin"]) root.addEventListener(ev, go, { capture: true, passive: true, once: true });
+  const ROOTS = "#frResult,#plResult,#hsResult,#trResult,#ssResult,#icResult,#lcResult,#nmResult,#fsReading,#drResult,#zdResult,#asResult,#rpOut";
+  const shown = n => !!n && n.nodeType === 1 && (n.matches(".fa-section, .rp-part") || !!n.querySelector(".fa-section, .rp-part") || (n.matches(ROOTS) && !n.hidden));
+  function watch() {
+    try {
+      const mo = new MutationObserver(ms => {
+        for (const m of ms) if ((m.type === "attributes" && shown(m.target)) || [...m.addedNodes].some(shown)) { mo.disconnect(); go(); return; }
+      });
+      mo.observe(d.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] });
+    } catch (e) { /* no observer: the first touch / key / scroll / focus still loads it */ }
+  }
+  if (d.readyState === "complete") watch(); else root.addEventListener("load", watch, { once: true });
+  // pages lend their symbol art to the card before the module is here: LQShareArt(rootSelector, fn) queues it
+  if (!root.LQShareArt) { const q = []; root.LQShareArt = (sel, fn) => { q.push([sel, fn]); }; root.LQShareArt.q = q; }
+  root.LQShareLoader = { load: go };
+})(typeof window !== "undefined" ? window : globalThis);
+/* END fortune-share loader */
 /* END fortune-notice.js */
 /* fortune-read.js — one shared reading layout for every fortune page (owner order 2026-11-14, Part A).
  *   A1  LINE: the one-line notice that replaced the old fun-only label (TH from the owner, EN / ZH translations)

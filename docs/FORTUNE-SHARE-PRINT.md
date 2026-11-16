@@ -35,7 +35,10 @@ user taps them, and receive text and the page link, never the image. PDPA note: 
 
 ## Files
 
-- `fortune-share.js` (every fortune page, after `fortune-crisis.js`): page map, card model, crisis check, buttons, print view.
+- Loader (end of `fortune-notice.js`, embedded in `fortune-read.js`; about 2 KB): fetches `fortune-share.js` at the first
+  touch, key, scroll or focus, or when a reading is rendered after the page loaded; never during the first page load
+  (coordinator decision 2026-11-16, option B; owner rule: no speed-budget increases).
+- `fortune-share.js` (fetched by the loader): page map, card model, crisis check, buttons, print view.
   Pages may lend symbol art to the card with `LQShare.art(rootSelector, fn)` (I Ching hexagram, zodiac animal, Big Three signs,
   dream symbols, face element glyph, palm line drawing).
 - `fortune-share-card.js` (fetched when a result is shown): dialog, canvas card, share actions.

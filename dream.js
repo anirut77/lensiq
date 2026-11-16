@@ -280,7 +280,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   $("#drAgain").addEventListener("click", function () { reset(); $("#drForm").scrollIntoView({ block: "start" }); });
   // #drShare / #drPrint: the shared share and print of fortune-share.js (owner order 2026-11-16); the dream symbols are the card's art
-  if (window.LQShare) window.LQShare.art("#drResult", function (c, x, y, w, h) {
+  if (window.LQShareArt) window.LQShareArt("#drResult", function (c, x, y, w, h) {
         var R = st.res; if (!R) return;
         var syms = R.ids.map(function (id) { return DR.BY[id]; });
         c.textAlign = "center"; c.textBaseline = "middle";

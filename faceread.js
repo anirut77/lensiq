@@ -1653,7 +1653,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   // #frShare / #frPrint: the shared share and print of fortune-share.js (owner order 2026-11-16). The card's "include my photo"
   // switch lives in the share dialog and is off each time it opens (it replaced the remembered #frPhotoCard box); without the
   // photo the card shows the element glyph. makeCard above stays for the page's own tests.
-  if (window.LQShare) window.LQShare.art("#frResult", function (c, x, y, w, h) {
+  if (window.LQShareArt) window.LQShareArt("#frResult", function (c, x, y, w, h) {
     if (!current) return;
     var id = current.R.el.top.id, col = KB.elements[id].color, r = h / 2 - 12;
     c.beginPath(); c.arc(x + w / 2, y + h / 2, r + 10, 0, Math.PI * 2); c.fillStyle = col; c.fill();

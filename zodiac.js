@@ -267,7 +267,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     };
   }
   // #zdShare / #zdPrint: the shared share and print of fortune-share.js (owner order 2026-11-16); the animal is the card's art
-  if (window.LQShare) window.LQShare.art("#zdResult", function (c, x, y, w, h) { var R = st.res; if (R) emojiArt([KB.ANIMALS[R.animal].emo])(c, x, y, w, h); });
+  if (window.LQShareArt) window.LQShareArt("#zdResult", function (c, x, y, w, h) { var R = st.res; if (R) emojiArt([KB.ANIMALS[R.animal].emo])(c, x, y, w, h); });
 
   /* ตารางปีชง */
   function renderChong() {

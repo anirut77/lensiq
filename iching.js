@@ -299,9 +299,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       }
     };
   }
-  if (window.LQShare) {
-    window.LQShare.art("#icResult", function (c, x, y, w, h) { if (st.cast) card(st.cast, [], "").art(c, x, y, w, h); });
-    window.LQShare.art("#icDaily", function (c, x, y, w, h) { if (st.daily) card(st.daily, [], "").art(c, x, y, w, h); });
+  if (window.LQShareArt) {
+    window.LQShareArt("#icResult", function (c, x, y, w, h) { if (st.cast) card(st.cast, [], "").art(c, x, y, w, h); });
+    window.LQShareArt("#icDaily", function (c, x, y, w, h) { if (st.daily) card(st.daily, [], "").art(c, x, y, w, h); });
   }
 
   /* ---------- กว้าประจำวัน ---------- */
