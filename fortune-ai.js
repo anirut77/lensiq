@@ -4165,7 +4165,7 @@
   // the card's one call button: the shared component (lensiq-helpline.js), 1323 only (verified in docs/CRISIS-RESOURCES.md); the others: counselling.html
   const callKit = () => (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : root.LQHelpline) || null;
   const supportLines = lang => (callKit() ? callKit().cardLines(lang).filter(l => l.id === "1323") : [{ id: "1323", n: "1323", tel: "1323", btn: "1323", t: "" }]);
-  const counselText = lang => (callKit() && callKit().COUNSEL ? callKit().COUNSEL[lang] : { th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" }[lang]);
+  const counselText = lang => ({ th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" }[lang] || "ช่องทางให้คำปรึกษา");
   function supportResult(opts) {
     const lang = langOf(opts), S0 = Object.assign({}, SUPPORT[lang] || SUPPORT.th, { lines: supportLines(lang) });
     try { const ls = root.localStorage; if (ls) ls.setItem("lq-support-n", String((parseInt(ls.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }

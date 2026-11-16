@@ -73,7 +73,6 @@
   /** compact drops the second line and the small print, except for 1323 (the owner's wording is always whole)
    *  @param {string} id @param {any} o */
   const full = (id, o) => !(o && o.brief) && (id === "1323" || !(o && o.compact));
-  /** brief (counselling.html): label, button, second line; no small print @param {any} o */
   const brief = (/** @type {any} */ o) => !!(o && o.brief);
 
   /** the component as HTML. Thai carries data-i18n keys (the page translates it); EN / ZH are fixed text.
@@ -127,9 +126,7 @@
   /** the crisis card's lines in order: {id, n, tel, btn, t (second line), org} @param {string} [lang] */
   const cardLines = lang => ORDER.map(id => { const x = LINES[id], W = x[langOf(lang)]; return { id, n: x.n, tel: x.tel, btn: W.btn, t: W.sub, org: W.org }; });
 
-  // 2026-11-16: the link under the 1323 button to counselling.html, which lists every line (i18n key counsel.link)
-  const COUNSEL = { href: "counselling.html", th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" };
 
-  const api = { LINES, ORDER, FORBIDDEN, forbiddenIn, html, el, ICON, cardLines, COUNSEL };
+  const api = { LINES, ORDER, FORBIDDEN, forbiddenIn, html, el, ICON, cardLines };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQHelpline = api;
 })(typeof window !== "undefined" ? window : globalThis);
