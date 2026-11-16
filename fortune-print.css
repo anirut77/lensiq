@@ -120,3 +120,7 @@ ol.lqp-cols>li::before{content:counter(lqp) "."}
 .lqp--r80 .lqp-adv{font-size:7.5pt}
 .lqp--r80 .lqp-sw{white-space:normal}
 .lqp--r80 .lqp-foot{font-size:7pt}
+
+/* site styles must not reach the paper: headings start at the left edge; belief note under a list item */
+.lqp h1,.lqp h2,.lqp h3,.lqp h4,.lqp p,.lqp li{text-align:left;letter-spacing:normal;text-transform:none}
+.lqp-belief-i{display:block;font-size:8pt;color:#333;margin-top:.4mm}

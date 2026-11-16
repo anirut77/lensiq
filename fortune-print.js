@@ -101,7 +101,7 @@
       if (!items.length) return "";
       const tag = b.ordered ? "ol" : "ul";
       return "<" + tag + ' class="lqp-list' + colsClass(items, lang) + '">' + items.map(it => "<li>" + (it.label ? "<b>" + esc(it.label) + "</b> " : "") + esc(it.text || "") +
-        (it.sw && it.sw.length ? " " + sws(it.sw, lang) : "") + "</li>").join("") + "</" + tag + ">";
+        (it.sw && it.sw.length ? " " + sws(it.sw, lang) : "") + (it.note ? ' <span class="lqp-belief-i">' + esc(it.note) + "</span>" : "") + "</li>").join("") + "</" + tag + ">";
     }
     if (b.t === "table") {
       const rows = (b.rows || []).filter(r => r && r.length);
@@ -237,7 +237,7 @@
         sw.push({ hex: toHex(c), name: "" }); return;
       }
       if (n.tagName === "BR") { out += " "; return; }
-      if (n.tagName === "svg" || skipEl(n, ctx.photo)) return;
+      if (n.tagName === "svg" || n.classList.contains("lq-advice") || skipEl(n, ctx.photo)) return; // advice boxes: read on their own
       for (const k of n.childNodes) walk(k);
     };
     for (const k of e.childNodes) walk(k);
@@ -306,7 +306,8 @@
         let text = r.text; if (lead && text.startsWith(lead)) text = text.slice(lead.length).trim();
         const adv = li.querySelector(".lq-advice");
         const sw = r.sw.concat(adv ? swOf(adv) : []);
-        if (text || lead || sw.length) items.push({ label: lead, text, sw });
+        const note = adv && adv.querySelector(".lq-belief") ? txt(adv.querySelector(".lq-belief").textContent) : "";
+        if (text || lead || sw.length) items.push({ label: lead, text, sw, note });
       }
       return items;
     };
