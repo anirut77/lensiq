@@ -9,7 +9,7 @@
 .lqp[lang=th],.lqp[lang=zh-Hans]{line-height:1.7}
 
 /* frame: the header and footer repeat on every printed page (table header / footer groups) */
-.lqp-frame{width:100%;border-collapse:collapse;border:0;table-layout:fixed} /* never wider than the paper */
+.lqp-frame{width:100%;border-collapse:collapse;border:0} /* auto layout: fixed layout stops Chrome keeping a heading with its text */
 .lqp-frame>thead{display:table-header-group}
 .lqp-frame>tfoot{display:table-footer-group}
 .lqp-frame>thead>tr>td,.lqp-frame>tfoot>tr>td,.lqp-frame>tbody>tr>td{padding:0;border:0;vertical-align:top}
@@ -34,7 +34,7 @@
 .lqp-part{font-size:13.5pt;line-height:1.3;margin:6mm 0 2.5mm;padding:0 0 1mm;border-bottom:.9pt solid #111;font-weight:700;break-after:avoid;page-break-after:avoid}
 .lqp-h{font-size:11.5pt;line-height:1.35;margin:4.5mm 0 1.6mm;padding-left:2.2mm;border-left:1.1mm solid #111;font-weight:700;break-after:avoid;page-break-after:avoid}
 .lqp-subh{font-size:10.5pt;line-height:1.35;margin:3.5mm 0 1.2mm;font-weight:700;break-after:avoid;page-break-after:avoid}
-.lqp-lead{break-inside:avoid;page-break-inside:avoid}
+.lqp-lead{display:flow-root;break-inside:avoid;page-break-inside:avoid} /* flow-root: Chrome keeps it whole inside the frame cell */
 .lqp-lead>.lqp-part:first-child,.lqp-lead>.lqp-h:first-child{margin-top:0}
 .lqp-sec{margin:0 0 1mm}
 .lqp-sec-1{margin-top:3mm}
