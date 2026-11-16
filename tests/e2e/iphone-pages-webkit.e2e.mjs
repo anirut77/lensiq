@@ -22,6 +22,8 @@
 //            reported in the table only, never asserted.
 // Synthetic input only; no photo of a person. Prints a pass / fail table per page at the end.
 import { assert } from "./cdp.mjs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { IPHONE, MD_SHIM, launchWebKit, sleep } from "./phone-kit.mjs";
 
 const LANGS = ["th", "en", "zh"];
@@ -335,7 +337,7 @@ const endChecks = (st, bad) => {
   if (st.console.length) bad.push("console error(s): " + st.console.slice(0, 3).join(" | "));
 };
 
-export default async function ({ base, check, fakeCams }) {
+export default async function ({ base, check, fakeCams, repo }) {
   const browser = await launchWebKit();
   /** @type {Record<string, Record<string, string>>} page -> column -> "ok" | "FAIL" */
   const table = {}, mem = {};
@@ -507,6 +509,60 @@ export default async function ({ base, check, fakeCams }) {
         } finally { mark(C.page, stop === C.stop ? "tracks" : "pagehide", ok); await ctx.close(); }
       });
       }
+    }
+
+    // AMENDED 2026-11-16 (amendment 8, independent review of 6dfaff4): (A) one version of lensiq-camhelp.js everywhere (every page
+    // that names it and the loader in lensiq-camera.js); (B) driver: "start trip" tapped while the camera is still starting (camera
+    // off -> on) must say the camera is starting (not "the camera is off"), the camera button must not offer "start camera" again
+    // meanwhile, and once the camera is live the trip starts (by itself or on the next tap). A trip with no camera stays refused.
+    await check("one lensiq-camhelp.js version on every page and in the lensiq-camera.js loader", async () => {
+      const seen = new Map();
+      for (const f of readdirSync(repo).filter(x => x.endsWith(".html") || x === "lensiq-camera.js")) {
+        for (const m of readFileSync(join(repo, f), "utf8").matchAll(/lensiq-camhelp\.js\?v=(\d+)/g)) seen.set(m[1], (seen.get(m[1]) || []).concat(f));
+      }
+      assert(seen.size === 1, "lensiq-camhelp.js versions: " + JSON.stringify(Object.fromEntries([...seen].map(([k, v]) => [k, v.slice(0, 6)]))));
+    });
+    const SLOW_ON = `(() => { const md = navigator.mediaDevices; if (!md) return; let n = 0; const g = md.getUserMedia;
+      md.getUserMedia = function (c) { n++; return n === 1 ? g.call(md, c) : new Promise(r => setTimeout(r, 4000)).then(() => g.call(md, c)); }; })();`;
+    const STARTING = { th: /กำลังเปิดกล้อง/, en: /starting the camera/i, zh: /正在开启摄像头/ };
+    const OFF_TEXT = { th: /กล้องปิดอยู่/, en: /camera is off/i, zh: /摄像头已关闭/ };
+    const ON_LABEL = { th: /^เปิดกล้อง$/, en: /^start camera$/i, zh: /^开启摄像头$/ };
+    for (const lang of LANGS) {
+      await check(`iPhone WebKit ${lang}: driver "start trip" while the camera is starting (off -> on): right message, no second "start camera", the trip starts once live`, async () => {
+        const { ctx, page, st } = await open(browser, `${base}/driver.html?cpu&fakedet`, lang, [MD_SHIM, fakeCams, ONE_CAM, SLOW_ON]);
+        let ok = false;
+        try {
+          const bad = [];
+          await waitFor(page, () => !!window.__LQ_FAKE && window.__LQ_FAKE.live().length >= 1 && document.getElementById("engine").dataset.state === "ready", null, 20000);
+          await setVal(page, "#tripForm [name=driver]", "สมชาย"); await setVal(page, "#tripForm [name=plate]", "1กข 1234");
+          await tap(page, "#camPower");
+          await waitFor(page, () => window.__LQ_FAKE.live().length === 0, null, 6000);
+          await sleep(2000); // a person's pause; lensiq-busy drops a second tap on the same button within 1.5 s (HOLD_MS)
+          await tap(page, "#camPower"); // on again: this request takes 4 s (SLOW_ON)
+          await sleep(400);
+          const btn = await page.evaluate(() => { const b = document.getElementById("camPower"); return { t: (b.textContent || "").trim(), dis: !!b.disabled }; });
+          if (ON_LABEL[lang].test(btn.t) && !btn.dis) bad.push(`while the camera starts the button still offers "${btn.t}" (a second tap restarts it)`);
+          await tap(page, "#tripForm [type=submit]");
+          await sleep(400);
+          const m = await page.evaluate(() => (document.getElementById("tripMsg").innerText || "").trim());
+          const started = await page.evaluate(() => document.body.classList.contains("on-trip"));
+          if (!started) {
+            if (OFF_TEXT[lang].test(m)) bad.push(`the camera is starting but the page says it is off: "${m}"`);
+            if (!STARTING[lang].test(m)) bad.push(`no "camera is starting" message in ${lang}: "${m}"`);
+          }
+          try { await waitFor(page, () => window.__LQ_FAKE.live().length >= 1, null, 12000); } catch {
+            const d = await page.evaluate(() => ({ eng: document.getElementById("engine").innerText, btn: document.getElementById("camPower").textContent,
+              msg: document.getElementById("tripMsg").innerText }));
+            bad.push("the camera did not come back on: " + JSON.stringify(d));
+          }
+          await sleep(600);
+          if (!(await page.evaluate(() => document.body.classList.contains("on-trip")))) await tap(page, "#tripForm [type=submit]");
+          try { await waitFor(page, () => document.body.classList.contains("on-trip"), null, 6000); } catch { bad.push("the trip did not start once the camera was live"); }
+          endChecks(st, bad);
+          assert(!bad.length, "driver " + lang + ": " + bad.join("; "));
+          ok = true;
+        } finally { mark("driver", "early-" + lang, ok); await ctx.close(); }
+      });
     }
   } finally {
     await browser.close();
