@@ -28,3 +28,6 @@ a433e1ebf2a6a9e3ba0fc5d509afd3f425feee4a2d76a81cd71cac99e1d8b8b0  tests/e2e/fort
 # LOCK 2026-11-17 (re-review of 059ec35 PASS with a keyboard risk; owner decision 78 ก provisional): new tests/e2e/fortune-top-compact-4.e2e.mjs, locked BEFORE the fix: K1 the read bar is hidden and never intersects a focused input/textarea/select (14 pages x 360/393/430 x 659/360 px, TH); K2 hidden while the visual viewport is shrunk (keyboard, simulated); K3 keyboard activation moves focus to the page's own read button, one click. Existing locked files unchanged.
 # locked 2026-11-16T17:34:01Z (tools/eval-guard.mjs lock, 1 file)
 cecad9b4f7dd5a15feb513df01218c7def9dfe939eb3648ee334a83e40230c6f  tests/e2e/fortune-top-compact-4.e2e.mjs
+# RE-LOCK 2026-11-17 (test fault found in the first run, run-14-keyboard.log): K1 picked dream's search field inside a closed <details>, which is not on screen and cannot take focus; the picker now skips fields in closed <details>. No check, page or size changed.
+# locked 2026-11-16T18:13:11Z (tools/eval-guard.mjs lock, 1 file)
+5b3d37da9fc89c17e1b84d179796fbc583cc42fa5689beb137797fbc00d41072  tests/e2e/fortune-top-compact-4.e2e.mjs

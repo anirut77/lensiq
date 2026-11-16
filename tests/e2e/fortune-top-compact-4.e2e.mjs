@@ -24,7 +24,8 @@ const BAR = `(() => { const b = document.querySelector(".lq-readbar"); if (!b ||
   const r = b.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right }; })()`;
 /** the first visible field of each kind in <main> (not inside the bar) */
 const FIELDS = `(() => { const out = []; for (const sel of ["input:not([type=hidden])", "textarea", "select"]) {
-  const e = [...document.querySelectorAll("main " + sel)].find(x => x.getClientRects().length && !x.disabled && !x.closest(".lq-readbar"));
+  // RE-LOCK 2026-11-17 (test fault, first run run-14): a field inside a closed <details> is not on screen and cannot take focus
+  const e = [...document.querySelectorAll("main " + sel)].find(x => x.getClientRects().length && !x.disabled && !x.closest(".lq-readbar") && !x.closest("details:not([open])"));
   if (e) { e.setAttribute("data-k4", sel.slice(0, 5)); out.push(sel.slice(0, 5)); } } return out; })()`;
 
 export default async function ({ base, launch, check }) {
