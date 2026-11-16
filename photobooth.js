@@ -769,10 +769,21 @@ function renderSheet(photo) {
   return { canvas: c, info: t };
 }
 // ---------- AI สร้างภาพชุดจำลองด้วยบริการภายนอก (ปิดไว้จนกว่าจะตั้งค่า API key ที่เซิร์ฟเวอร์; ผลยังเป็นภาพสังเคราะห์) ----------
-let aiEnabled = false, aiReason = null, aiNC = false;
-// D2-011: ask the try-on server only while the client switch is on (lensiq-config.js; off = backend TRYON "off")
-if (window.LENSIQ_TRYON === true) fetch("/api/tryon/status").then(r => r.ok ? r.json() : null)
-  .then(s => { aiEnabled = !!(s && s.enabled); aiReason = s && s.reason || null; aiNC = !!(s && s.noncommercial); }).catch(() => {});
+let aiEnabled = false, aiReason = null, aiNC = false, aiAsked = false;
+/** asks the same-origin server (server.py) once, when the ID-photo result first opens — only while the client switch is on
+ * (D2-011: lensiq-config.js LENSIQ_TRYON; off = backend TRYON "off"), never at page load and never on a static host (GitHub Pages
+ * has no try-on server: the request was a 404 console error on every visit, iPhone coverage 2026-11-16) */
+function aiStatus() {
+  if (aiAsked) return;
+  aiAsked = true;
+  if (window.LENSIQ_TRYON !== true) return;
+  if (typeof location !== "undefined" && /\.github\.io$/i.test(location.hostname)) return;
+  fetch("/api/tryon/status").then(r => r.ok ? r.json() : null).then(s => {
+    aiEnabled = !!(s && s.enabled); aiReason = s && s.reason || null; aiNC = !!(s && s.noncommercial);
+    // redraw on every answer: enabled -> the AI panel; disabled with a reason ("no-token" ...) -> that reason, not "server not found"
+    if ((aiEnabled || aiReason) && mode === "id" && idState.cap && !$("#result").hidden) showIdResult(true);
+  }).catch(() => {});
+}
 /** เหตุผลที่ AI ปิดอยู่ (จาก /api/tryon/status: reason) — แสดงให้ผู้ดูแลรู้ว่าต้องตั้งค่าอะไร */
 const aiReasonText = () => ({
   "no-token": tr("photobooth.js.ai.r.noToken", "ยังไม่ได้ตั้งค่า API key ของ Replicate ที่เซิร์ฟเวอร์"),
@@ -942,6 +953,7 @@ function renderId() {
   clearTimeout(/** @type {any} */ (renderId).t); /** @type {any} */ (renderId).t = setTimeout(renderGallery, 120); // หน่วงเล็กน้อยเวลาลากแถบปรับ
 }
 function showIdResult(keep) { // keep = วาดใหม่ตอนเปลี่ยนภาษา (ไม่เลื่อนหน้าจอ)
+  aiStatus();
   $("#result").hidden = false; $("#resultTitle").textContent = tr("photobooth.js.res.id", "รูปติดบัตร (แผ่นพิมพ์)");
   $("#resultActions").innerHTML = "";
   current = { canvas: () => idState.last.photo, get name() { return "lensiq-id-photo" + sfx(); }, title: tr("photobooth.js.res.idTitle", "รูปติดบัตร") };

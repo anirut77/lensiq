@@ -22,3 +22,6 @@ c71c8be5dfd1d7955c64efb14255bb0d7dd011ca651292e7c3f48bba231dd7b0  tests/e2e/fort
 # RE-LOCK 2026-11-16 (test fault found in the first run, run-8-review1-part3.log): R3 sent Enter without the key's text, so Chrome never activated the language button and Tab could not be tested. The Enter key event now carries text '\r'. No check, page, size or language changed.
 # locked 2026-11-16T08:58:34Z (tools/eval-guard.mjs lock, 1 file)
 a433e1ebf2a6a9e3ba0fc5d509afd3f425feee4a2d76a81cd71cac99e1d8b8b0  tests/e2e/fortune-top-compact-3.e2e.mjs
+# MERGE 2026-11-16 (origin/main 7a51bcf): tests/e2e/fortune-live.e2e.mjs = the decision-69 re-lock above combined with main's re-lock 74e0477 (owner: 393 px added, #lqHelpTop on the first screen at 393 px). Both locked checks kept unchanged; only the H2 title merged (in the top bar + 320/375/393/430 px).
+# locked 2026-11-16T14:10:39Z (tools/eval-guard.mjs lock, 1 file)
+74ffd16167ffa7c860db3e521f41c48919055db769f3c29280818b445cdcf7f2  relock69-merge/tests/e2e/fortune-live.e2e.mjs
