@@ -38,4 +38,5 @@
   .lq-ftop :is(.lead,.ft-hero>p,.pd-hero>p):not(.lq-top){font-size:.9rem;line-height:1.45;margin:0 auto 6px}
   .lq-ftop :is(.ft-hero,.pd-hero){padding:10px 16px 14px}
   .lq-ftop .lq-top{font-size:.75rem;margin-left:-8px;margin-right:-8px}
+  [lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}
 }
