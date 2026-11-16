@@ -40,6 +40,7 @@
   "driver.s31": "Normal",
   "driver.s32": "Mute alerts",
   "driver.s33": "End trip",
+  "driver.camoff": "Stop camera",
   "driver.s34": "Keep eyes open, look at the road ahead",
   "driver.s35": "EAR threshold",
   "driver.s36": "Recalibrate",
