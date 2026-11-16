@@ -322,7 +322,7 @@
           if (!s.paragraphs.some(p => [...bad].some(b => p.indexOf(b) >= 0))) return;
           s.paragraphs = before[i];
           // round 6: an EN / ZH overview whose content-first lines came out alike names each source first ("The family house (phanthu): …")
-          if (s.id === "overview" && lang !== "th") overviewLeads(s, lang, names, items, true);
+          if (s.id === "overview" && lang !== "th") overviewLeads(s, lang, names, items, secs.filter(x => x !== s).map(x => x.paragraphs.join(" ")).join(" "));
         });
       }
       return secs;
@@ -474,10 +474,22 @@
     }
     const OV_LEAD = { en: /^(?:Looking at|As for|With|Start with|Starting with|Turning to|Traditionally|In traditional readings)\b/, zh: /^(?:从|就|说到|先看|再看|至于|按|根据)/ };
     let OV_ITEMS = [];
-    function overviewLeads(s, lang, names, items, colon) {
+    // safe: the text of the other groups; each line then takes the bracket form, else the colon form, else stays as it was, whichever
+    // is not a near copy of another line (round 6: an overview reverted for near copies is not left with its source leads)
+    // the composer's own near-copy test (the lint's rule): does r make a near copy with the other groups or the lines kept so far
+    const dupOf = (r, safe, acc, lang) => !D.nearDupPairs ? nearCopy(r, safe + " " + acc.join(" "), lang) :
+      D.nearDupPairs([{ id: "o", paragraphs: [safe] }, { id: "v", paragraphs: [acc.concat(r).join(lang === "zh" ? "" : " ")] }], lang).some(p => r.indexOf(String(p.a).trim()) >= 0 || r.indexOf(String(p.b).trim()) >= 0);
+    function overviewLeads(s, lang, names, items, safe) {
       OV_ITEMS = items || [];
-      const split = q => (lang === "zh" ? String(q).split(/(?<=[。！？])/) : String(q).split(/(?<=[.!?])\s+/));
-      s.paragraphs = s.paragraphs.map(q => split(q).map(x => {
+      const split = q => (lang === "zh" ? String(q).split(/(?<=[。！？])/) : String(q).split(/(?<=[.!?])\s+/)), acc = [];
+      const pickSafe = x => { for (const c of [false, true]) { const r = conv(x, c); if (r === x) return x; if (!dupOf(r, safe, acc, lang)) { acc.push(r); return r; } } acc.push(x); return x; };
+      s.paragraphs = s.paragraphs.map(q => split(q).map(x => (safe != null ? pickSafe(x) : conv(x, false))).join(lang === "zh" ? "" : " ")).map(q => {
+        // round 6 (D2): a sentence that opens with "It" / "它" right after a bracket citation takes that name, and the bracket goes
+        q = lang === "zh" ? q.replace(/(（[^（）]{2,40}）。)它(?=也|还)/g, "$1这") : q.replace(/(\s\([^()]{2,80}\)\.\s+)It also\b/g, "$1This also");
+        const re = lang === "zh" ? /（([^（）]{2,40})）。它/g : /\s\(([^()]{2,80})\)\.\s+It (?!would|could|may|might|can|helps?|pays|takes|is (?:time|worth))/g;
+        return q.replace(re, (a, x) => (lang === "zh" ? "。" + x.replace(/，.*$/, "") : ". " + D.cap(x.replace(/, .*$/, "")) + " "));
+      });
+      function conv(x, colon) {
         ST.name = "";
         // "按命盘，…" / "按泰国占星，…" (a system, not a finding): "命盘上，…"
         if (lang === "zh") { const a = /^按(?:照)?([^，。：]{2,8}?)(?:的看法|的说法)?，(?=\S)/.exec(x); if (a && !/传统/.test(a[1])) return a[1] + "上，" + x.slice(a[0].length); }
@@ -498,12 +510,7 @@
         if (lang === "zh" && /^日主./.test(nm) && o.indexOf(nm.slice(2)) >= 0) return o; // "你的日主是庚金" already names 日主庚金
         const m = (lang === "zh" ? /[。！？]$/ : /[.!?]$/).exec(o), body = m ? o.slice(0, -1) : o;
         return (lang === "en" ? hedged(body, x) : body) + (lang === "zh" ? "（" + nm + "）" : " (" + nm + ")") + (m ? m[0] : "");
-      }).join(lang === "zh" ? "" : " ")).map(q => {
-        // round 6 (D2): a sentence that opens with "It" / "它" right after a bracket citation takes that name, and the bracket goes
-        q = lang === "zh" ? q.replace(/(（[^（）]{2,40}）。)它(?=也|还)/g, "$1这") : q.replace(/(\s\([^()]{2,80}\)\.\s+)It also\b/g, "$1This also");
-        const re = lang === "zh" ? /（([^（）]{2,40})）。它/g : /\s\(([^()]{2,80})\)\.\s+It (?!would|could|may|might|can|helps?|pays|takes|is (?:time|worth))/g;
-        return q.replace(re, (a, x) => (lang === "zh" ? "。" + x.replace(/，.*$/, "") : ". " + D.cap(x.replace(/, .*$/, "")) + " "));
-      });
+      }
     }
     // round 6 (RECHECK-5 non-blocking 3): an EN overview line that lost its "Traditionally," keeps one hedge ("By tradition, …")
     const hedged = (o, x) => (/^(?:Traditionally|In traditional readings)\b/.test(x) && !/\btradition/i.test(o) ? "By tradition, " + o.replace(/^([A-Z])(?=[a-z])/, c => c.toLowerCase()).replace(/^i\b/, "I") : o);
