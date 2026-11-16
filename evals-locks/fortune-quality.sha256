@@ -26,3 +26,13 @@ c1e1b93301cb01892590856ee53e8e6ca9dcba4a8c95ea4572455433ee2b48d8  tools/fortune-
 a874aa34ae096ac6c1ae2fcadc2dbf204552d8b7d4b6bff56ff7841fffbb55e3  tests/unit/fortune-quality-3.test.js
 6be8f4852d00f536e18f2ab55fceade7441aac31d7ed5b903a1d4433d15e9a2f  tests/unit/fortune-quality-base-chars.json
 4fd6c26d7d907d728ab1ba2ae8bfa2ce65f9ee9507671697d3c6033873dfba0d  tools/fortune-quality-measure-3.mjs
+# round 4 (coordinator order after RECHECK-3.md NOT OK on 431d2c8): metrics U1-U12 (stock openers <= 15 % per language, no identical
+# source lead twice, no reading with >= 60 % stock openers, wrong-type frames, report glossary once and no EN / ZH sentence twice,
+# closer last, no visible cut inside a list / before a quote / between a label and its number, no padded or shared brief, lifegraph
+# raw levels, fengshui content-free lead and label-only overview, taksa social per user, lek7 / siam si / lifegraph advice groups,
+# siam si EN content) and a NEW input set fresh4 (120) plus 6 new report births. Detectors written by the builder; the reviewer's
+# scripts were not read. Locked BEFORE the round-4 fixes.
+# locked 2026-11-16T06:52:01Z (tools/eval-guard.mjs lock, 3 files)
+7276effc52fe326baf074b510873bb3b0a53dae8450ad096181d7556fceedb21  tools/fortune-quality-metrics-4.mjs
+70a27e6630de04b23b2d2b284029e574e3c1a12ef20652338a138164cbcabb89  tests/unit/fortune-quality-4.test.js
+e132569ec12e2859b236202cf6a5871061d6ac59ac70c2e247c69ee3edc44552  tools/fortune-quality-measure-4.mjs
