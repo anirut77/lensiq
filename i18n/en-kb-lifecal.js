@@ -111,16 +111,22 @@
   });
   // round 3: two short sentences per house, the second one its own (one long template ran past the visible cut and made the
   // readings drop later houses as near copies)
-  var L7_FAV2 = ["You can put it to use right away", "It has a tailwind you can act on now", "It is an area you can lean on at the moment", "It carries extra energy that is ready to use",
-    "Effort here shows results easily", "It stands among the strongest parts of your chart", "You can take it on with confidence"];
-  var L7_NEU2 = ["Looking after it at your usual pace is enough", "There is no need to rush or to worry about it", "Ordinary care keeps it on track", "Keeping your current rhythm carries it forward",
-    "Everyday attention is enough to maintain it", "It moves along at a calm, reliable pace", "Steady care looks after it well"];
-  var L7_CAU2 = ["You can build it up gradually", "It could use more support, added a little at a time", "It deserves a bit more of your time than the other areas", "A slow and steady approach works best here",
-    "It is best handled calmly for now", "Its energy can be built up with small steps", "It is better not to push it at the moment"];
+  var L7_FAV2 = ["You can put it to use right away, and effort you spend here tends to pay back quickly", "It has a tailwind you can act on now, so this is a good area to start new plans in",
+    "It is an area you can lean on at the moment, especially when other parts of life feel slow", "It carries extra energy that is ready to use, so small steps here often bring visible results",
+    "Effort here shows results easily, which makes it a good place to build confidence", "It stands among the strongest parts of your chart and can support the weaker areas",
+    "You can take it on with confidence, as the numbers give it more support than usual"];
+  var L7_NEU2 = ["Looking after it at your usual pace is enough, without any need to push harder", "There is no need to rush or to worry about it, as long as you keep giving it some attention",
+    "Ordinary care keeps it on track, and steady habits matter more here than luck", "Keeping your current rhythm carries it forward, so there is little reason to change course",
+    "Everyday attention is enough to maintain it, and it rarely needs special effort", "It moves along at a calm, reliable pace that you can plan around",
+    "Steady care looks after it well, and consistency is what makes it grow"];
+  var L7_CAU2 = ["You can build it up gradually by giving it a little more time each week", "It could use more support, added a little at a time rather than all at once",
+    "It deserves a bit more of your time than the other areas, at a pace you can keep up", "A slow and steady approach works best here, with small goals you can actually reach",
+    "It is best handled calmly for now, without rushing big decisions in this area", "Its energy can be built up with small steps, starting with something easy this week",
+    "It is better not to push it at the moment, and to give it patient attention instead"];
   HOUSE.forEach(function (h, i) {
-    var fav = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), o: "the area of " + h.m + " is one of the stronger spots in your chart", x: L7_X }; fav[h.f] = "your number chart marks the area of " + h.m + " as a strength. " + L7_FAV2[i % 7];
-    var neu = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), x: L7_X }; neu[h.f] = "the area of " + h.m + " has a moderate amount of energy for you. " + L7_NEU2[i % 7];
-    var cau = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), a: "give a little more time, bit by bit, to " + h.m, x: L7_X }; cau[h.f] = "your number chart shows that the area of " + h.m + " has less energy for now. " + L7_CAU2[i % 7];
+    var fav = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), o: "the area of " + h.m + " is one of the stronger spots in your chart", x: L7_X }; fav[h.f] = "the area of " + h.m + " is a strength in your chart. " + L7_FAV2[i % 7];
+    var neu = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), x: L7_X }; neu[h.f] = "the area of " + h.m + " has a moderate amount of energy. " + L7_NEU2[i % 7];
+    var cau = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), a: "give a little more time, bit by bit, to " + h.m, x: L7_X }; cau[h.f] = "the area of " + h.m + " has less energy for now. " + L7_CAU2[i % 7];
     lek7["l7." + i + ".favourable"] = fav; lek7["l7." + i + ".neutral"] = neu; lek7["l7." + i + ".caution"] = cau;
   });
   Object.keys(DOM).forEach(function (d) {

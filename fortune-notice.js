@@ -42,8 +42,9 @@
       // never a cut: before ๆ ("เล็ก ‖ ๆ"), before a name's value or gloss ("วัยจร ‖ 甲辰", "ในตำราทักษา ‖ (…)") (round 3)
       if (/^[ๆ一-鿿(（]/.test(b)) continue;
       // soft: none of the hard breaks (after ๆ, number|unit, inside a list, after a lead + noun); ok: soft and a clean clause boundary
-      const soft = !/ๆ$/.test(a) && !(/\d$/.test(a) && TH_UNIT.test(b)) && !(TH_LIST_NEXT.test(b) && !/[.!?)]$/.test(a)) && !TH_LEAD_PREV.test(a) && !/^(?:เช่น|ได้แก่|เสริมด้วย|และ|หรือ)/.test(b) && !TH_TRANS_PREV.test(a) && !openBracket(a) && !TH_TAG_END.test(a);
-      out.push({ at: i, soft, ok: soft && !TH_CONT_NEXT.test(b) && !TH_CONT_PREV.test(a) && !(TH_FROM.test(b) && TH_FROM_VERB.test(a)) && !TH_REPORT_NEXT.test(b) && !/^[(（]/.test(b) });
+      const soft = !/ๆ$/.test(a) && !(/\d$/.test(a) && TH_UNIT.test(b)) && !(TH_LIST_NEXT.test(b) && !/[.!?)]$/.test(a)) && !TH_LEAD_PREV.test(a) && !/^(?:เช่น|ได้แก่|เสริมด้วย|และ|หรือ)/.test(b) && !TH_TRANS_PREV.test(a) && !openBracket(a) && !TH_TAG_END.test(a) && !(/[)）]$/.test(a) && TH_REPORT_NEXT.test(b));
+      const mild = !/ๆ$/.test(a) && !TH_LEAD_PREV.test(a) && !TH_TRANS_PREV.test(a) && !openBracket(a) && !TH_TAG_END.test(a) && !/^(?:เช่น|ได้แก่)/.test(b);
+      out.push({ at: i, soft, mild, ok: soft && !TH_CONT_NEXT.test(b) && !TH_CONT_PREV.test(a) && !(TH_FROM.test(b) && TH_FROM_VERB.test(a)) && !TH_REPORT_NEXT.test(b) && !/^[(（]/.test(b) });
     }
     return out;
   }

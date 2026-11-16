@@ -1762,7 +1762,7 @@
         const nc = nameCore(nm), shares = [...Array(Math.max(0, nc.length - 3)).keys()].some(i => m.indexOf(nc.slice(i, i + 4)) >= 0);
         text = ctx.gNow && shares ? m : (ctx.gNow ? "ด้วย" : R0.first ? "จาก" : "ส่วน") + nm + " " + m; noConn = true;
       }
-      text = text.replace(/([\u4e00-\u9fff])(?=[\u0e01-\u0e4e])/g, "$1 "); // round 3: "วัยจร 己酉 สื่อว่า…" (a space after a Chinese stem / branch)
+      text = text.replace(/([\u4e00-\u9fff])(?=[\u0e01-\u0e4e])/g, "$1 "); text = text.replace(/(ซึ่ง\S{0,24}\s)ซึ่ง(?=หมายความว่า|เป็น)/, "$1"); // no "ซึ่ง … ซึ่ง" (round 3) // round 3: "วัยจร 己酉 สื่อว่า…" (a space after a Chinese stem / branch)
       spend(ctx, text); return { text, noConn, sub: true, claim: { kind: "item", ids: [it.id], sec: ctx.sec } };
     };
     // a person-named finding ("ชาวปีระกา") is the subject itself: "ชาวปีระกากล้าคิดกล้าทำ…" (no "ในฐานะ…" that the cutter could strand)
@@ -1849,11 +1849,11 @@
       // a group opens with the finding (round 3, S2: not always "name + means-that verb"; one finding does not open every group the
       // same way): the first time a finding opens a group it may be reported; later it is the point of view ("ตาม… / ในมุมของ…") or,
       // once already named in an earlier group, the trait itself (the heading names the topic). The overview keeps the report frame.
-      const og = ctx.gOpen = ctx.gOpen || {}, n = (og[it.id] = (og[it.id] || 0) + 1), you = /^คุณ/.test(m) && !cond && !/^คุณ(?:อาจ|ควร)/.test(m);
-      if (ctx.sec === "overview" || /นี้$/.test(R0.name) || (n === 1 && r() < 0.45)) frame = mode === "first" ? "{LEV}{V}{M}" : "{L}{V}{M}";
-      else if (you && n >= 2) frame = "^{M}";
-      else if (/^(?:ไม่|มี)/.test(R0.name)) frame = "^{LE} {M}"; // a finding named by a statement ("ไม่มีเลข 0 …") is not a point of view
-      else frame = "^" + (r() < 0.5 ? "ตาม" : "ในมุมของ") + (mode === "first" ? "{LE}" : "{L}") + " {M}";
+      const og = ctx.gOpen = ctx.gOpen || {}, n = (og[it.id] = (og[it.id] || 0) + 1);
+      // the report frame also where the point of view would leave a short visible start, or the name is a statement ("ไม่มีเลข 0 …")
+      if (ctx.sec === "overview" || (R0.name + m.split(" ")[0]).length < 30 || /^(?:ไม่|มี)/.test(R0.name) || (n === 1 && r() < 0.45)) frame = mode === "first" ? "{LEV}{V}{M}" : "{L}{V}{M}";
+      else if (/นี้$/.test(R0.name)) frame = "^{LE} {M}"; // "ปีนี้" is not a point of view
+      else frame = "^" + (r() < 0.5 ? "ตาม" : "ในมุมของ") + "{L} {M}"; // no evidence bracket here: the visible start would end on it
     }
     if (/^\^ดูที่/.test(frame) && /^(?:เป็น|มี|ใจ|พูดจา|สัญชาตญาณ)/.test(m)) frame = "{L}{V}{M}";
     if (/ว่า\{M\}$/.test(frame) && /(?:บ้าง|เถอะ|นะ)$/.test(m)) frame = "{H}{M}"; // a request is not reported with "…ว่า"
@@ -2171,6 +2171,8 @@
       // สิ่งที่พบ → ตำราว่าอย่างไร → ทำอะไรได้ (หัวข้อที่ถาม: สองจุดเด่นแรก)
       if (!caut && isTopic && i < 2) { const rm = remedyFor(ctx.F, it, id); if (rm && !ctx.remedyKeys.has(rm.key)) { ctx.remedyKeys.add(rm.key); body.push({ text: pick(r, TRAD_REMEDY.has(rm.cat) ? REMEDY_FRAMES_TH : REMEDY_FRAMES_GENERAL_TH) + rm.th.replace(/^ตามตำรา/, ""), fixed: true, sub: true, noConn: true }); } }
       if (isTopic && i < 2 && r() < 0.75) { const m2 = pickMeaning(ctx, it, keys, id); if (m2) body.push(itemSentence(ctx, it, m2, "more")); }
+      // round 3: a reading with one finding (siam si) gives each area two of its lines, not one
+      else if (!isTopic && chosen.length === 1 && rel.length === 1) { const m2 = pickMeaning(ctx, it, keys, id); if (m2) body.push(itemSentence(ctx, it, m2, "more")); }
     });
     // หัวข้อที่ถามแต่เนื้อหายังบาง → ใช้ความหมายสำนวนอื่นของสิ่งที่พบเดิมเพิ่ม (รวมจากภาพรวมที่ยังไม่ได้ใช้)
     if (isTopic && id !== "advice" && body.reduce((n, u) => n + u.text.length, 0) < 300) {
@@ -2377,11 +2379,14 @@
       let done = false;
       for (const s of sections) {
         if (done) break;
-        s.paragraphs = s.paragraphs.map(p => {
+        s.paragraphs = s.paragraphs.map((p, pi) => {
           if (done) return p;
           if (p.indexOf(gloss) >= 0) { done = true; return p; }
           re.lastIndex = 0;
           for (let m; (m = re.exec(p));) {
+            // round 3: a group's main point (its first ~60 characters) keeps the finding and its meaning together; the explanation
+            // goes to a later mention of the term
+            if (pi === 0 && m.index < 60) continue;
             const before = p.slice(0, m.index);
             if ((before.match(/[(（]/g) || []).length > (before.match(/[)）]/g) || []).length) continue; // อยู่ในวงเล็บ
             let end = m.index + term.length;
@@ -2600,6 +2605,7 @@
     enforceBudget(sections);
     trimToBudget(sections, topicId, (opts.maxLength || FULL_MAX) - 90);
     explainTerms(sections);
+    for (const s of sections) s.paragraphs = s.paragraphs.map(p => p.replace(/(ซึ่ง\S{0,24}\s)ซึ่ง(?=หมายความว่า|เป็น)/g, "$1")); // round 3: no "ซึ่ง … ซึ่ง"
     if (opts.split !== false) splitMain(sections, topicId);
     const out = { source: "local", sections, seed, lang: "th", topic: F.topic, reminder: reminderFor("th", r, F.domain) };
     const bs = sections.find(s => s.id === "brief");
@@ -2691,7 +2697,7 @@
     const meanings = {};
     for (const e of ents) for (const f in ZH_FIELD) for (const x of zhArr(e[f])) if (!/[฀-๿]/.test(x)) (meanings[ZH_FIELD[f]] = meanings[ZH_FIELD[f]] || []).push(x);
     // round 3 (S6): the lifegraph main point keeps the Thai age band and direction of the life line
-    if (domain === "lifegraph" && Array.isArray(it.ages) && meanings.timing && /·/.test(n)) meanings.overview = [it.ages[0] + "–" + it.ages[1] + "岁这段时间，你的人生曲线整体" + ({ favourable: "在上升", neutral: "比较平稳", caution: "宜稳步前行" }[it.dirTone] || "比较平稳") + "，处在塔克萨大运的" + n.split("·")[1].trim() + "阶段"];
+    if (domain === "lifegraph" && Array.isArray(it.ages) && meanings.timing && /·/.test(String(ents[0].n || ""))) meanings.overview = [it.ages[0] + "–" + it.ages[1] + "岁这段时间，你的人生曲线整体" + ({ favourable: "在上升", neutral: "比较平稳", caution: "宜稳步前行" }[it.dirTone] || "比较平稳") + "，处在塔克萨大运的" + String(ents[0].n).split("·")[1].trim() + "阶段"];
     if (!Object.keys(meanings).length) return null;
     // round 3: the one-line explanation of the concept the English reading gives (glossary below), in Chinese too
     const ex = ((enLoad()[domain] || {}).items || {}), gx = zhKeys(domain, it).map(k => ex[k] && ex[k].x).find(Boolean), gloss = (gx && ZH_GLOSS[gx]) || "";
