@@ -33,7 +33,7 @@ test("1 acceptance: a face at 30-40 cm is accepted on every common front camera"
     assert.equal(st, "ok", `${c.id} (${c.why}): got ${st}, eye distance ${g.iodFrac.toFixed(3)} of the width`);
   }
   // the accepted range itself is stated as a share of the picture's short side, never in pixels
-  assert.deepEqual({ ...C.RANGE }, { far: 0.12, near: 0.32, hyst: 0.01 });
+  assert.deepEqual({ ...C.RANGE }, { far: 0.12, near: 0.32, hyst: 0.005 });
   // same face, same distance, a bigger or smaller picture: the same answer (no pixel threshold)
   const c = byGroup("accept").find(x => x.id === "accept-iphone-front-16x9-35cm-ipd63");
   for (const k of [0.5, 2]) assert.equal(C.classify({ pts: c.pts.map(p => [p[0] * k, p[1] * k]), n: 1, W: c.W * k, H: c.H * k }), "ok", "scale " + k);
@@ -47,10 +47,10 @@ test("1 size: too small -> far ('move closer'), too large -> near ('move back a 
   // hysteresis: a face right at a limit does not flicker
   const k = byGroup("accept").find(x => x.id === "accept-iphone-front-16x9-35cm-ipd63");
   const at = f => { const g = C.measure(k.pts, k.W, k.H), s = f / g.iodFrac, cx = k.W / 2, cy = k.H * 0.42; return k.pts.map(p => [cx + (p[0] - cx) * s, cy + (p[1] - cy) * s]); };
-  assert.equal(C.classify({ pts: at(0.125), n: 1, W: k.W, H: k.H }, "far"), "far", "leaving far needs >= 0.13");
-  assert.equal(C.classify({ pts: at(0.125), n: 1, W: k.W, H: k.H }, "ok"), "ok");
-  assert.equal(C.classify({ pts: at(0.315), n: 1, W: k.W, H: k.H }, "near"), "near", "leaving near needs <= 0.31");
-  assert.equal(C.classify({ pts: at(0.315), n: 1, W: k.W, H: k.H }, "ok"), "ok");
+  assert.equal(C.classify({ pts: at(0.122), n: 1, W: k.W, H: k.H }, "far"), "far", "leaving far needs >= 0.125");
+  assert.equal(C.classify({ pts: at(0.122), n: 1, W: k.W, H: k.H }, "ok"), "ok");
+  assert.equal(C.classify({ pts: at(0.318), n: 1, W: k.W, H: k.H }, "near"), "near", "leaving near needs <= 0.315");
+  assert.equal(C.classify({ pts: at(0.318), n: 1, W: k.W, H: k.H }, "ok"), "ok");
 });
 
 test("2 angles and position: face forward, head level, chin, off the oval, partly out of the picture", () => {

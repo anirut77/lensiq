@@ -19,3 +19,8 @@ d62d8f92d59e5fbe515b2b033dfd5c040714f43abe729420fa7644c4bfbfd40f  preview/set.js
 3040c20eceaeef44e296377cb916d25ed27923608a3a463e9dc7879efe66f0d7  tests/e2e/face-capture.e2e.mjs
 ffb2bd9ba999555f26fcf37754793475d3797fa933b1e251a44aebb1878a1a82  tests/fixtures/face-capture/face-model.js
 f6c75c5f8753d116ed291e118530f01c0cd2fa3432e74297b20f927b715f3acf  tests/fixtures/face-capture/make-set.mjs
+# round 2 (independent review of fd52345 NOT OK, 2026-11-17) — locked BEFORE the round-2 fix. New: face-capture-consent.e2e.mjs (D1 consent withdrawn while live -> camera off, count cancelled, no capture; D2 rear mode one tick = one person; D3 no full-frame read with no face; D4 'results may be off' after a manual capture off green, TH/EN/ZH; D5 EN rear label) and face-capture-r2.test.js (every accepted 30-40 cm case stays accepted coming from far/near/out; reviewer case iPhone 4:3 58 mm 40 cm; pixel numbers equal to fd52345). Amended face-capture.test.js, the owner/coordinator-approved hysteresis change only: hyst 0.01 -> 0.005 (leaving far 0.125, leaving near 0.315; the band tests moved to 0.122 / 0.318). Fixed set unchanged.
+# locked 2026-11-16T18:07:30Z (tools/eval-guard.mjs lock, 3 files)
+f9d742636f75d2d4523f0c597705726480ec9a47d2e4125900e9115c70da7f0a  tests/e2e/face-capture-consent.e2e.mjs
+7edcbeb9ebdd84ba1571b40549c58325b9cf846c2eb7075af4b6c09c64f2989d  tests/unit/face-capture-r2.test.js
+268737843e9e98edf45998eaef25b78a8001a415b9a19b04da1760b403dc750d  tests/unit/face-capture.test.js
