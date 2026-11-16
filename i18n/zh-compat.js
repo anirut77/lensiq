@@ -55,6 +55,7 @@
   "compat.traditional": "传统分数",
   "compat.agreeH": "各方法是否一致",
   "compat.agreeKey": "● 契合 · ◐ 居中 · ○ 需多用心 · – 无法计算",
+  "compat.mapKey": "● 契合 · ◐ 居中 · ○ 需多用心",
   "compat.agreeTag": "一致",
   "compat.differTag": "不同",
   "compat.careH": "需多用心",

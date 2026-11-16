@@ -229,7 +229,7 @@
   function mapHTML(rep) {
     const n = rep.names.length, cell = {};
     rep.map.forEach(c => { cell[c.i + "-" + c.j] = c; });
-    let t = '<div class="cp-mapwrap"><table class="cp-map" data-compat-map><caption>' + esc(T("compat.mapH", "แผนผังว่าใครเสริมใคร")) + "</caption><thead><tr><th></th>" +
+    let t = '<div class="cp-mapwrap"><table class="cp-map" data-compat-map><caption>' + esc(T("compat.mapKey", "● เข้ากันดี · ◐ กลาง ๆ · ○ ใส่ใจเป็นพิเศษ")) + "</caption><thead><tr><th></th>" +
       rep.names.map((nm, i) => '<th scope="col" title="' + esc(nm) + '">' + (i + 1) + "</th>").join("") + "</tr></thead><tbody>";
     for (let i = 0; i < n; i++) {
       t += '<tr><th scope="row">' + (i + 1) + ". " + esc(short(rep.names[i])) + "</th>";

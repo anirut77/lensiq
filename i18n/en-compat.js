@@ -55,6 +55,7 @@
   "compat.traditional": "traditional score",
   "compat.agreeH": "Where the methods agree",
   "compat.agreeKey": "● good fit · ◐ in between · ○ needs care · – not computed",
+  "compat.mapKey": "● good fit · ◐ in between · ○ needs care",
   "compat.agreeTag": "agree",
   "compat.differTag": "differ",
   "compat.careH": "Needs care",
