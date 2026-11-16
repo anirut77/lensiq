@@ -42,6 +42,7 @@
   "driver.s31": "正常",
   "driver.s32": "关闭提醒音",
   "driver.s33": "结束行程",
+  "driver.camoff": "关闭摄像头",
   "driver.s34": "正常睁眼，注视前方道路",
   "driver.s35": "EAR 阈值",
   "driver.s36": "重新校准",

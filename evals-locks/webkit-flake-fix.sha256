@@ -1,0 +1,4 @@
+# locked 2026-11-16T00:31:05Z (tools/eval-guard.mjs lock, 1 file)
+2267e600d3338e248439bdd07b96cab3f6109bb49d7b6831351471f89848e35e  driver-camoff-webkit.e2e.mjs
+# repo copy (byte-identical to the locked file above), locked 2026-11-16 BEFORE the driver camera-off fix on branch webkit-flake-fix (base 6319860): DC-1 [th/en/zh] trip at 390 px, DC-2 driving mode portrait 390x664 and landscape 844x390. Baseline log: ~/LENSIQ-field/evals/webkit-flake-fix/baseline-driver-camoff.log
+2267e600d3338e248439bdd07b96cab3f6109bb49d7b6831351471f89848e35e  tests/e2e/driver-camoff-webkit.e2e.mjs  # repo file
