@@ -1,0 +1,6 @@
+# evals-locks/fortune-compat.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-compat/ (owner rule 2026-11-13). Append-only.
+# fortune-compat (owner order 2026-11-16 part A, Compatibility ดวงสมพงษ์) — locked BEFORE any product code on branch fortune-compat (base 6319860 = origin/main).
+# locked 2026-11-16T02:57:07Z (tools/eval-guard.mjs lock, 3 files)
+806567cff27d43455ba0f2e3d42c53b954c3679ab88ce7af68b7452550c0d000  tests/unit/fortune-compat.test.js
+f6f55cd525fd615225caf6b51f3a5667848c47c5a1fed08499a2341a5380924b  tests/e2e/fortune-compat.e2e.mjs
+ba23091fca3d53dd84457f7e41b72334a7bdab47e6aab078fa9550bef0978eee  tests/e2e/fortune-compat-webkit.e2e.mjs
