@@ -27,6 +27,13 @@ const WANT = { th: /อยากมีคนรับฟัง โทร 1323[\s
 // RE-LOCK 2026-11-15 (owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis
 // card): the top row is only the "อยากมีคนรับฟัง 1323" button; 1669 is checked on the crisis card (checks below unchanged).
 const WANT_TOP = { th: /^\s*อยากมีคนรับฟัง\s+1323\s*$/, en: /^\s*Want someone to listen\?\s+1323\s*$/, zh: /^\s*想找人倾听？\s*1323\s*$/ };
+// RE-LOCK 2026-11-16 (owner decision 69 ค 2026-11-16: the control moves into the top bar as a phone icon with "1323"; confirmation
+// step before calling; branch fortune-top-compact): with JavaScript on, the top control shows only "1323" and its words are the
+// aria-label (WANT_ARIA) in the page language. Every other check (no end line, tel 1323 only, 44 px, fit at 320 / 360 / 390 px,
+// the no-JS static HTML with WANT_TOP.th, readings, print, crisis) is unchanged.
+const WANT_ARIA = { th: /^อยากมีคนรับฟัง โทร 1323$/, en: /^Want someone to listen\? Call 1323$/, zh: /^想找人倾听？拨打 1323$/ };
+const topWords = `(e => { const a = e && e.querySelector('a[href^="tel:"]'); return (a ? (a.getAttribute("aria-label") || "").replace(/\\s+/g, " ").trim() : "") + " | " + (e ? e.innerText.replace(/\\s+/g, " ").trim() : ""); })`;
+const okTop = lang => `(t => { const [aria, text] = t.split(" | "); return ${WANT_ARIA[lang].toString()}.test(aria) && /^1323$/.test(text); })`;
 const HTML_LANG = { th: "th", en: "en", zh: "zh-Hans" };
 // remedy / lucky-item / plan / paid / straight-mode wording (TH / EN / ZH) that must not appear next to a support card
 const MARKERS = /วิธีปรับ|ข้อแนะนำทั่วไปคือ|เคล็ด|สีมงคล|สีเสื้อมงคล|ธาตุเสริม|ทำบุญ|ดูตรง|A simple adjustment|lucky colou?r|remed|read it straight|调整的方法|幸运色|开运|直说/gi;
@@ -55,7 +62,7 @@ export default async function ({ base, launch, check }) {
             await page.goto(`${base}/${p}.html?nosw`);
             try {
               await page.waitFor(`(() => { const e = document.getElementById("lqHelpTop"); return !!e && document.documentElement.lang === ${S(HTML_LANG[lang])} &&
-                ${WANT_TOP[lang].toString()}.test(e.innerText.replace(/\\s+/g, " ")); })()`, 8000);
+                ${okTop(lang)}(${topWords}(e)); })()`, 8000);
             } catch (e) { bad.push(`${p} ${lang}: line not in ${lang}: ` + S(await page.evaluate(lineFacts("lqHelpTop")))); continue; }
             if (await page.evaluate(`!!document.getElementById("lqHelpEnd")`)) bad.push(`${p} ${lang}: #lqHelpEnd still on the page`);
             for (const w of [390, 360, 320]) {
@@ -63,7 +70,8 @@ export default async function ({ base, launch, check }) {
               for (const id of ["lqHelpTop"]) {
                 const f = await page.evaluate(lineFacts(id));
                 if (!f || !f.shown) { bad.push(`${p} ${lang} ${w}: #${id} not shown`); continue; }
-                if (!WANT_TOP[lang].test(f.text)) bad.push(`${p} ${lang} ${w}: #${id} text ${f.text}`);
+                const words = await page.evaluate(`${topWords}(document.getElementById(${S(id)}))`);
+                if (!(await page.evaluate(`${okTop(lang)}(${S(words)})`))) bad.push(`${p} ${lang} ${w}: #${id} words ${words}`);
                 if (lang !== "th" && /[฀-๿]/.test(f.text)) bad.push(`${p} ${lang} ${w}: #${id} has Thai: ${f.text}`);
                 if (f.left < -0.5 || f.right > f.w + 0.5 || f.sw > f.cw + 1) {
                   bad.push(`${p} ${lang} ${w}: #${id} wider than the screen ${S({ left: f.left, right: f.right, sw: f.sw, cw: f.cw, w: f.w })}`);

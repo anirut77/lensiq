@@ -73,3 +73,11 @@ e511387e9685e0c597a0073bcaf052e648159b57a2bee11ac10802d4a3477077  tests/e2e/fort
 d292189474534f60e482cee587cab4e6d4744d6087e690755992b603fe34d7d4  tests/e2e/crisis-rules-1323-e.e2e.mjs  # repo file (re-lock 6 / parts E-G)
 95cc9b7b80794f36c5b122b973272451612da094432a822315ecd7f95f403056  tests/e2e/crisis-rules-1323-f.e2e.mjs  # repo file (re-lock 6 / parts E-G)
 2b8d1721fa03b241888d0c93876ae1c6707cf8f262781113264a7399b6a3b56e  tests/unit/crisis-rules-1323-g.test.js  # repo file (re-lock 6 / parts E-G)
+# RE-LOCK 7 2026-11-17, before the icon fix: decisions 69 ค + 75 ก (1323 icon in the top bar with a confirmation dialog). Ported unchanged from branch fortune-top-compact (its locked re-locks 1e74ce6 / 9eff6b9, owner decision 69 ค): fortune-live H2 wants the button INSIDE the top bar and a confirmation tap before the call; fortune-helpline and helpline-call read the words from the aria-label (the bar shows the icon and 1323). Nothing else changed.
+# locked 2026-11-16T17:08:05Z (tools/eval-guard.mjs lock, 3 files)
+fe0370cea5963d3a28609c64e357548582657990bdc280ef6406fcccca70a62a  relock7/fortune-live.e2e.mjs
+bfe416e44fab36aba3ebdf6db0c82bcf624243f01ae7d3060281692c73dbb65b  relock7/fortune-helpline.e2e.mjs
+9877be5bfed86be058b5dfc881acac5e6914633cd8436b710e29421c5c475e9b  relock7/helpline-call.e2e.mjs
+fe0370cea5963d3a28609c64e357548582657990bdc280ef6406fcccca70a62a  tests/e2e/fortune-live.e2e.mjs  # repo file (re-lock 7)
+bfe416e44fab36aba3ebdf6db0c82bcf624243f01ae7d3060281692c73dbb65b  tests/e2e/fortune-helpline.e2e.mjs  # repo file (re-lock 7)
+9877be5bfed86be058b5dfc881acac5e6914633cd8436b710e29421c5c475e9b  tests/e2e/helpline-call.e2e.mjs  # repo file (re-lock 7)

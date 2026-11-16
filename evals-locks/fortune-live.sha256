@@ -20,3 +20,5 @@ c3af68f2e5281f2f759916648c6d0b2d4ead6320de506bd869ff5ce37c247240  tests/e2e/fort
 bc575841e1f1884effd6eaf65eb622c981a294284ad4272ee68adf19c3df9f7f  tests/unit/fortune-live.test.js  # repo file
 # RE-LOCK 2026-11-16 (branch crisis-rules-1323, after merging main 7a51bcf): fortune-live.e2e.mjs = iphone-webkit H2 re-lock + crisis one-number re-lock (card 1323 only). Copy: ~/LENSIQ-field/evals/crisis-rules-1323/relock3/.
 52dae4dacd6c9f3cddb1b2910a917b4c92186714eb29fd228d9d88a09401b00b  tests/e2e/fortune-live.e2e.mjs  # repo file
+# RE-LOCK 2026-11-17 (branch crisis-rules-1323, re-lock 7): decision 69 ค top-bar icon + confirmation, ported from fortune-top-compact. Copy: ~/LENSIQ-field/evals/crisis-rules-1323/relock7/.
+fe0370cea5963d3a28609c64e357548582657990bdc280ef6406fcccca70a62a  tests/e2e/fortune-live.e2e.mjs  # repo file

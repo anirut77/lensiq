@@ -190,7 +190,8 @@ export default async function ({ base, launch, check }) {
             await sleep(400);
             const r = await page.evaluate(`[...document.querySelectorAll('[data-lq-call]')].filter(c => c.getClientRects().length).map(c => ({ id: c.getAttribute("data-lq-call"),
               btn: ((c.querySelector(".lq-call-t") || {}).innerText || "") + " " + ((c.querySelector("a.lq-call-btn") || {}).innerText || ""),
-              sub: (c.querySelector(".lq-call-sub") || {}).innerText || "", mini: c.classList.contains("lq-call-mini") }))`);
+              sub: (c.querySelector(".lq-call-sub") || {}).innerText || "", mini: c.classList.contains("lq-call-mini"),
+              aria: (c.querySelector("a.lq-call-btn") ? c.querySelector("a.lq-call-btn").getAttribute("aria-label") || "" : "").replace(/\s+/g, " ").trim() }))`);
             if (p !== "medicine") assert(r.some(x => x.id === "1323"), `${p} ${lang}: a visible 1323 component`);
             for (const x of r) {
               const t = (x.btn + " " + x.sub).replace(/\s+/g, " ");
@@ -201,7 +202,9 @@ export default async function ({ base, launch, check }) {
               }
               if (lang !== "th") assert(!/[฀-๿]/.test(t), `${p} ${lang} ${x.id}: Thai in '${t}'`);
               if (lang === "th" && x.id === "1323" && x.mini) {
-                assert(x.btn.replace(/\s+/g, " ").trim() === "อยากมีคนรับฟัง 1323", `${p}: 1323 top button '${x.btn}'`);
+                // RE-LOCK 2026-11-16 (owner decision 69 ค 2026-11-16: the top control is a phone icon + "1323" in the top bar, confirmation
+                // step before calling): it shows "1323" and its words are the aria-label (was: visible "อยากมีคนรับฟัง 1323")
+                assert(x.btn.replace(/\s+/g, " ").trim() === "1323" && x.aria === "อยากมีคนรับฟัง โทร 1323", `${p}: 1323 top button '${x.btn}' (${x.aria})`);
               } else if (lang === "th" && x.id === "1323") {
                 assert(x.btn.replace(/\s+/g, " ").trim() === "อยากมีคนรับฟัง โทร 1323", `${p}: 1323 button '${x.btn}'`);
                 assert(x.sub.replace(/\s+/g, " ").trim() === "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง", `${p}: 1323 second line '${x.sub}'`);

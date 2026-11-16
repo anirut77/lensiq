@@ -98,3 +98,5 @@ afcdc1f3aa1c8413f98e9e69b452a36e15c83b0db78912788de092a05f7cc1e9  tests/unit/for
 5f303211323bbf63976c6d23d9401056144533550157330b99037e31a3695a59  tests/e2e/fortune-crisis-session.e2e.mjs  # repo file
 e3fe031e0ee6e6f412ad3fae541aaa362a3807acfc608446e93270e20c25bcf5  tests/e2e/fortune-helpline.e2e.mjs  # repo file
 986ad232e532fc05b4b97d5c93bb3b88744dd13b183cd7dbf9417904259ac830  tests/unit/fortune-helpline.test.js  # repo file
+# RE-LOCK 2026-11-17 (branch crisis-rules-1323, re-lock 7): decision 69 ค top-bar icon + confirmation, ported from fortune-top-compact. Copy: ~/LENSIQ-field/evals/crisis-rules-1323/relock7/.
+bfe416e44fab36aba3ebdf6db0c82bcf624243f01ae7d3060281692c73dbb65b  tests/e2e/fortune-helpline.e2e.mjs  # repo file
