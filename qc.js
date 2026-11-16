@@ -886,13 +886,16 @@ if (typeof document !== "undefined") (() => {
     setSize(domVideo.videoWidth || 640, domVideo.videoHeight || 480);
     engine(`กล้องพร้อม (${domVideo.videoWidth}×${domVideo.videoHeight}) — ประมวลผลภาพที่ความกว้าง ${W} พิกเซล`, "ok");
   }
+  // the iPhone steps (iOS 18+: page-menu icon, older: aA) and the Settings fallback, ending with the retry step; always the END of the
+  // message after " — " so i18n/*-rt-common.js translates it whole (template "{msg} — <hint>")
+  const IOS_CAM = "บน iPhone: แตะชื่อหน้าด้านบนสุด แล้วแตะปุ่มเมนูหน้าเว็บ (aA หรือไอคอนเมนู) > การตั้งค่าเว็บไซต์ > กล้อง > อนุญาต หรือไปที่ การตั้งค่า > แอป > Safari > กล้อง > อนุญาต แล้วกดลองใหม่";
   function camFail(e) {
     const m = {
-      Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด", NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณาอนุญาตในแถบที่อยู่ของเบราว์เซอร์",
+      Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด", NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณาอนุญาตในแถบที่อยู่ของเบราว์เซอร์ — " + IOS_CAM,
       NotFoundError: "ไม่พบกล้อง ตรวจสอบสาย USB ของกล้อง", OverconstrainedError: "กล้องที่เลือกไม่พร้อมใช้งาน ลองเลือกกล้องตัวอื่น",
       NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ ปิดโปรแกรมนั้นก่อน", AbortError: "เปิดกล้องไม่สำเร็จ (ถูกยกเลิก)"
     }[e.name];
-    engine(`เปิดกล้องไม่ได้: ${m || "ข้อผิดพลาดไม่ทราบสาเหตุ"} (${e.name})`, "err");
+    engine(m ? `เปิดกล้องไม่ได้: ${m}` : `เปิดกล้องไม่ได้: ข้อผิดพลาดไม่ทราบสาเหตุ (${e.name})`, "err"); // the code only for an unknown error
     retryBtn(() => startCamera());
     if (e.name === "Insecure") { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "btn ghost retry"; a.textContent = "วิธีเปิดผ่าน https"; $("#engine").append(" ", a); }
   }

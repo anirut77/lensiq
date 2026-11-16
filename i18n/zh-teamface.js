@@ -61,7 +61,8 @@
 
   "tf.js.needConsent": "请先勾选这位成员的同意", "tf.js.needCam": "请打开摄像头或上传照片", "tf.js.needFace": "让脸位于画面中，正对镜头",
   "tf.js.ready": "准备好了，可以读取角色", "tf.js.opening": "正在打开摄像头...", "tf.js.camOk": "摄像头已就绪 — 不保存图像", "tf.js.camOff": "摄像头已关闭 — 点击“打开摄像头”继续，或上传照片",
-  "tf.js.camFail": "无法打开摄像头，可改为上传照片", "tf.js.reading": "读取中...",
+  "tf.js.camFail": "无法打开摄像头，可改为上传照片",
+  "tf.js.camDenied": "未获得摄像头使用权限，请在浏览器设置中允许，或改为上传照片", "tf.js.reading": "读取中...",
   "tf.js.unstable": "人脸还不够稳定，请正对镜头保持不动再试一次", "tf.js.added": "已添加卡片 — 下一位成员勾选同意后即可读取",
   "tf.js.fail": "读取失败，请再试一次", "tf.js.uploading": "正在读取照片（照片不会保存）...", "tf.js.noFace": "这张照片里没有找到人脸，请换一张清晰的正脸照",
   "tf.js.member": "成员 {n}", "tf.js.remove": "删除 {n} 的卡片", "tf.js.power": "超能力：", "tf.js.work": "一起愉快合作：",
