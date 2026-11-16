@@ -825,7 +825,8 @@
     const LEAD_TH = "(?:ตาม|ในมุมของ|จาก|ดูที่|สำหรับ|ส่วน|ด้วย|ในส่วนของ|เมื่อดูที่)";
     // a rest that continues the clause it was cut from cannot open a group
     const TH_TAIL = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ได้\s?\d|ได้ |ของ|กับ|ว่า|ให้|ก็|จึง|[\d(（])/;
-    const HEDGE = { th: /^(?:ตามความเชื่อ(?:แล้ว)?|ตามตำรา|ในตำรา|ตามศาสตร์\S+)\s?(?=\S)/, en: /^(?:Traditionally|In traditional readings),\s+/, zh: /^(?:按传统说法|按照传统说法|传统上)，/ };
+    // round 5 (RECHECK-4 R1): a hedge goes whole or not at all ("ตามความเชื่อไทย ฝัน…" never becomes "ไทย ฝัน…")
+    const HEDGE = { th: /^(?:ตามความเชื่อ(?:ไทย|จีน)?(?:แล้ว)?|ตามตำรา(?:ไทย|จีน)?|ในตำรา(?:ไทย|จีน)?|ตามศาสตร์\S+)\s+(?=\S)/, en: /^(?:Traditionally|In traditional readings),\s+/, zh: /^(?:按传统说法|按照传统说法|传统上)，/ };
     function namesOf(items, lang) {
       const out = new Set();
       for (const it of items || []) for (const n of [it.label, it.short]) {
@@ -838,7 +839,16 @@
     // a line about the person with no subject gets "คุณ" ("บริหารเงินเก่ง…" → "คุณบริหารเงินเก่ง…")
     const PERSON_X = /^(?:ปกป้อง|ทุ่มเท|มีเป้าหมาย|รู้ใจ|รู้ตัว|เดินถูกทาง|บริหาร|โดดเด่น|ฉลาด|เชื่อมโยง|มีปัญญา|รู้จัก|จริงใจ|ช่วยเหลือ|รับฟัง|เปิดเผย|อบอุ่น|มีอารมณ์|มีเครือข่าย|มีรายได้|เก็บเล็กผสมน้อย|ลงมือ|เห็นอกเห็นใจ)/;
     const personTh = t => !/^คุณ/.test(t) && !D.isImperative(t) && (D.roleOf(t) === "vpPerson" || D.TRAIT_TH.test(t) || PERSON_X.test(t));
-    const subjTh = t => (personTh(t) ? "คุณ" + t : t);
+    // round 5 (RECHECK-4 R1): a bare trait or predicate never opens a line without its subject ("โรแมนติก ใส่ใจบรรยากาศ…" →
+    // "คุณโรแมนติก…", "สติปัญญาดี…" → "คุณมีสติปัญญาดี…"); existential lines ("มีตัวเลือกหลายทาง…") keep their form
+    const BARE_TH = new RegExp("^(?:มี(?!ความหมาย|โอกาสที่จะเกิด|ตัวเลือก|ทาง|สิ่ง|เรื่อง|ข่าว|อุปสรรค|ปัญหา|แรง|เป้าหมายร่วม|คนคอย|หลาย)|เป็น(?!ปี|ช่วง|จังหวะ|เวลา|สัญญาณ|ลาง|วัน|เดือน|เรื่อง|ภาพ)|" +
+      "โรแมนติก|ประณีต|ประนีประนอม|อารมณ์ดี|มั่นคง|เข้ากับ|เด็ดขาด|ยุติธรรม|ลึกซึ้ง|หนักแน่น|ฉลาด|อ่อนโยน|อ่อนหวาน|ใจ(?:ดี|เย็น|กว้าง|ร้อน|อ่อน|สู้)|ช่าง(?:คิด|สังเกต|พูด|เจรจา)|" +
+      "เก่ง|รัก(?!ษา)|ชอบ|มัก|กล้า|ขยัน|ร่าเริง|อบอุ่น|จริงใจ|ซื่อ|ละเอียด|รอบคอบ|อดทน|มุ่งมั่น|สุขุม|ทะเยอทะยาน|ตรงไปตรงมา|เปิดเผย|มั่นใจ|เรียบร้อย|สดใส|" +
+      "คล่องแคล่ว|คุยเก่ง|พูดเก่ง|ยืดหยุ่น|ปรับตัว|สร้างสรรค์|มองการณ์|เห็นอกเห็นใจ|เอาใจใส่|ใส่ใจ|ให้ความสำคัญ|ถนัด|เหมาะกับ(?!การ)|ดู(?:อบอุ่น|สดใส|เรียบร้อย|น่า|เป็นคน|ดี)|" +
+      "รักสงบ|น่าเชื่อถือ|น่ารัก|ทำงาน(?:เก่ง|ได้ดี|หนัก)|พูดจา|คิดเร็ว|คิดลึก)");
+    const HAVE_TH = /^(?:สติปัญญา|ปัญญา|เสน่ห์|รสนิยม|บารมี|วาทศิลป์|ไหวพริบ)/;
+    const subjOf = t => (/^คุณ/.test(t) || D.isImperative(t) ? "" : HAVE_TH.test(t) ? "คุณมี" : personTh(t) || BARE_TH.test(t) ? "คุณ" : "");
+    const subjTh = t => subjOf(t) + t;
     function openTh(t, names) {
       for (const n of names) {
         const e = esc(n), m = new RegExp("^(?:คน)?" + LEAD_TH + "\\s?" + e + "(?:\\s?[(（][^)）]*[)）])?(?:\\s?" + VERB_TH + "|\\s+(?:ว่ากันว่า|เชื่อกันว่า|ตามความเชื่อแล้ว|ตามตำรา)?)\\s?").exec(t) ||
@@ -848,7 +858,7 @@
         ST.name = n;
         // a short "คุณ…" clause alone would be a stock-looking visible start ("คุณเหมาะกับงานที่…" in many readings): keep the source
         // (once per reading; a second such group opens with the content after all)
-        if (rest.length < 15 || TH_TAIL.test(rest)) return t;
+        if (rest.length < 15 || TH_TAIL.test(rest) || D.isImperative(rest)) return t;
         if (/^คุณ(?:เหมาะกับ|เป็นคน|มีความ|มักจะ|ชอบ)/.test(out) && out.split(" ")[0].length < 60 && !ST.kept) { ST.kept = 1; return t; }
         // a very short first clause whose predicate goes on after the space ("คุณขยันและมีวิสัยทัศน์ ชอบเรียนรู้…") would be cut alone
         const sp = out.split(" ");
@@ -866,7 +876,7 @@
       const lo = t.toLowerCase();
       for (const n of names) {
         const e = esc(n.toLowerCase()), m = new RegExp("^(?:looking at|as for|with|start with|starting with|turning to|when it comes to) (?:the |your )?" + e + "(?:\\s?\\([^)]*\\))?[,:] ").exec(lo) ||
-          new RegExp("^(?:(?:traditionally|in traditional readings), )?(?:the |your )?" + e + "(?:\\s?\\([^)]*\\))? " + EN_VERB + ",? ").exec(lo);
+          new RegExp("^(?:(?:traditionally|in traditional readings), )?(?:the |your )?" + e + "(?:\\s?\\([^)]*\\))?,? " + EN_VERB + ",? ").exec(lo);
         if (!m) continue;
         const rest = t.slice(m[0].length);
         if (rest.length < 20 || /^(?:and|or|but|which|that)\b/.test(rest)) return t;
@@ -890,7 +900,7 @@
       q = q.replace(new RegExp("(\\S*?)(" + VERB_TH + ")\\s?(?=\\S)", "g"), (all, pre, v, at, s) => {
         const rest = s.slice(at + all.length);
         if (D.isImperative(rest)) return pre + (/^(?:คุณ)?อย่า/.test(rest) ? "เตือนว่า" : /^(?:ให้|พูด|ดู)/.test(rest) ? "ชวนคุณ" : "ชวนให้");
-        return all + (personTh(rest) ? "คุณ" : "");
+        return all + subjOf(rest);
       }).replace(/(ชวนให้|ชวนคุณ|เตือนว่า)\s?(?:คุณ)?ควร/g, "$1");
       for (const n of names) {
         const e = esc(n);
@@ -898,8 +908,9 @@
           // the feature itself opens the line ("ตามธาตุไฟ หน้าผากกว้าง…" → "หน้าผากกว้าง…"): evidence is not a point of view
           const rest = s.slice(at + all.length);
           if (/^(?:หน้าผาก|โหนกแก้ม|คาง|ฝ่ามือ|นิ้ว|จมูก|คิ้ว|ริมฝีปาก|ดวงตา|ใบหู)/.test(rest)) return sp;
-          return all + (personTh(rest) ? "คุณ" : "");
+          return all + subjOf(rest);
         });
+        q = q.replace(new RegExp("(^|\\s)((?:สำหรับ|จาก|ดูที่|ส่วน|ในส่วนของ)" + e + ")\\s(?=\\S)", "g"), (all, sp, lead, at, s) => all + subjOf(s.slice(at + all.length)));
         let head = false;
         q = q.replace(new RegExp("(^|\\s)(ตาม|ในมุมของ|จาก|ดูที่|สำหรับ)(" + e + ")(?=[\\s(])", "g"), (all, sp, lead, nm, at) => {
           const k = lead + nm; seen[k] = (seen[k] || 0) + 1;
@@ -1003,15 +1014,18 @@
             let o2 = o;
             const short = () => lang === "th" && s.paragraphs.join(" ").length - (p0.length - o2.length) < 90;
             // short: the source moves to the end of the paragraph in brackets ("… (เจ้าชะตาดิน)") rather than leading it
-            if (short() && ST.name && o !== p0) o2 = o + " (" + ST.name.replace(PAREN, "").trim() + ")";
-            // a numbered source (a flying star, a line, a pair) is what the line is about: EN / ZH keep it after the first sentence
-            if (lang !== "th" && ST.name && o !== p0 && /\d|星|\bstar\b/i.test(ST.name)) { const f1 = firstSen(o, lang), endp = /[.。！？!?]$/.test(f1) ? f1.slice(-1) : ""; o2 = (endp ? f1.slice(0, -1) : f1) + (lang === "zh" ? "（" + ST.name.replace(PAREN, "").trim() + "）" : " (" + ST.name.replace(PAREN, "").trim() + ")") + endp + o.slice(f1.length); }
-            if (!short() && !(lang !== "th" && f.length >= 10 && nearCopy(f, rest, lang))) s.paragraphs[0] = o2;
+            if (short() && ST.name && o !== p0) o2 = o.replace(/\s+$/, "") + " (" + ST.name.replace(PAREN, "").trim() + ")";
+            // round 5: every source the first line lost is named right after that line (cite; was: numbered sources only, EN / ZH)
+            if (!short() && !(lang !== "th" && f.length >= 10 && nearCopy(f, rest, lang))) { s.paragraphs[0] = o2; if (o2 !== p0 && ST.name) cite(s, lang, ST.name, items); }
           }
         }
+        if (s.id === "overview" && lang !== "th") overviewLeads(s, lang, names, items);
+        orphans(s, lang, names);
         s.paragraphs = s.paragraphs.map(q => (lang === "th" ? framesTh(q, names, seen) : leadsOther(q, lang, names, seen)));
         closerLast(s, lang);
       }
+      // round 5 (R1): whatever opened it, a Thai group never starts with a bare trait ("มั่นคงเหมือนภูเขา…" → "คุณมั่นคงเหมือนภูเขา…")
+      if (lang === "th") for (const s of secs || []) if (s.id !== "brief" && s.id !== "advice" && s.paragraphs[0]) s.paragraphs[0] = subjTh(s.paragraphs[0]);
       // safety net: a group the polish left under 90 Thai characters, or a line it made a near copy of another, goes back as it was
       (secs || []).forEach((s, i) => { if (lang === "th" && s.paragraphs.join(" ").length < 90 && before[i].join(" ").length >= 90) s.paragraphs = before[i]; });
       const fresh = D.nearDupPairs ? D.nearDupPairs(secs, lang).filter(x => !dup0.has(x.a + "|" + x.b)) : [];
@@ -1020,6 +1034,103 @@
         (secs || []).forEach((s, i) => { if (s.paragraphs.some(p => [...bad].some(b => p.indexOf(b) >= 0))) s.paragraphs = before[i]; });
       }
       return secs;
+    }
+    /* ---- round 5 (RECHECK-4 R1 / R3 and the EN / ZH overview leads) ----
+       - a group whose first line lost its source names it right after that line, in brackets ("คุณโรแมนติก… (วันเกิดศุกร์) ดูที่…",
+         "Creative work suits you (your gentle eyes).", "……（温柔眼）。"), unless the group names it again before any back-reference;
+         a later "อีกความหมายของX…" / "Another side of X…" / "X的另一层意思是…" then reads as a second meaning of what was just named
+       - the EN / ZH overview: a sentence that opens with its source ("As for X, …", "Start with X: …", "Traditionally, X is read to
+         mean that …", "说到X，…", "X这一点说明，…") opens with what it says and names X in brackets at its end; a siam si slip names
+         the slip, then the verse ("Slip 22 (middling): your verse compares…", "第22签（中签）：签诗把…"), never under a meaning verb */
+    const CONNECT_TH = "นอกจากนี้|พร้อมกันนั้น|อีกทั้ง|ถัดมา|ในทางกลับกัน|ขณะที่|อีกด้านหนึ่ง|ในอีกมุมหนึ่ง|ในขณะเดียวกัน|เช่นเดียวกัน|ในทำนองเดียวกัน|อีกความหมาย|ตำรายัง|ตำราบางสำนัก|ข้อแนะนำ|สิ่งที่ลงมือ|สิ่งที่ทำได้|ก้าวแรก|ถ้าเลือกทำ|วิธีปรับ|วิธีเสริม|เคล็ด|อีกข้อ|ในส่วนของ|ส่วน|ดูที่|ลอง|ถ้า|หาก|แต่";
+    const itemOf = (items, name, lang) => (items || []).find(it => namesOf([it], lang).indexOf(name) >= 0) || null;
+    // where the first meaning of the opened Thai line ends: the item's own meaning, else the next connector or finding, else the end
+    function endTh(t, it, names) {
+      const s = t.replace(/^คุณ(?:มี)?/, "");
+      let best = -1;
+      for (const k of Object.keys((it && it.meanings) || {})) for (const m0 of [].concat(it.meanings[k] || [])) {
+        const m = String(m0).trim().replace(/^คุณ/, "");
+        if (m.length < 14 || s.slice(0, 8) !== m.slice(0, 8)) continue;
+        const tail = m.slice(-8), at = t.indexOf(tail, 8), e = at + tail.length;
+        // the meaning's own end: near its length and at a word break (never inside a later line)
+        if (at > 0 && e <= m.length + 24 && (e === t.length || /\s/.test(t[e])) && e > best) best = e;
+      }
+      if (best > 0) return best;
+      const re = new RegExp("\\s(?=" + CONNECT_TH + (names.length ? "|(?:ตาม|ในมุมของ|จาก|สำหรับ|ด้วย)?(?:" + names.map(esc).join("|") + ")" : "") + ")", "g");
+      for (const m of t.matchAll(re)) if (m.index >= 20) return m.index;
+      return t.length;
+    }
+    const BACKREF = { th: /อีกความหมายหนึ่งคือ|ตำรายัง/, en: /\bAnother side of this\b/i, zh: /另一层意思是/ };
+    const caseOf = (name, items, lang) => (lang === "en" ? namesOf(items, lang).find(n => n.toLowerCase() === String(name).toLowerCase()) || String(name) : String(name));
+    function cite(s, lang, name, items) {
+      name = caseOf(name, items, lang);
+      if (/^(?:this|that|the) (?:year|month|time|period)$/i.test(String(name).trim())) return;
+      const nm = String(name).replace(PAREN, "").trim(), it = itemOf(items, name, lang), lo = x => (lang === "en" ? String(x).toLowerCase() : String(x));
+      if (nm.length < 2) return;
+      const vars = (it ? namesOf([it], lang) : [String(name)]).filter(v => v.length >= 2), alt = vars.map(v => esc(lang === "en" ? v.toLowerCase() : v)).join("|");
+      // the back-reference to what is about to be named
+      s.paragraphs = s.paragraphs.map(q => (lang === "th" ? q.replace(new RegExp("อีกความหมายของ(?:" + alt + ")(?:\\s?[(（][^)）]*[)）])?คือ", "g"), "อีกความหมายหนึ่งคือ")
+        : lang === "en" ? q.replace(new RegExp("\\bAnother side of (?:the |your )?(?:" + alt + ")(?:\\s?\\([^)]*\\))? is\\b", "gi"), "Another side of this is")
+          : q.replace(new RegExp("(^|[。！？])(?:" + alt + ")(?:（[^）]*）)?的另一层意思是", "g"), "$1另一层意思是")));
+      const p0 = s.paragraphs[0];
+      if (lo(p0).indexOf("(" + lo(nm)) >= 0 || p0.indexOf("（" + nm) >= 0) return;
+      let end;
+      if (lang === "th") end = endTh(p0, it, namesOf(items, "th").filter(n => vars.indexOf(n) < 0));
+      else { const m = (lang === "zh" ? /[。！？]/ : /[.!?](?=\s|$)/).exec(p0); end = m ? m.index : p0.length; }
+      // named again (anywhere after the opened start) before any back-reference: the reader already sees it
+      const after = lo(p0.slice(1) + " " + s.paragraphs.slice(1).join(" ")), br = after.search(BACKREF[lang]);
+      const at = Math.min(...vars.map(v => { const i = after.indexOf(lo(v)); return i < 0 ? Infinity : i; }));
+      if (at < Infinity && (br < 0 || at < br)) return;
+      // a reporting phrase right after the bracket would read as the bracket's own words ("(ไพ่…) ตามตำราเชื่อว่า…"): the end instead
+      if (lang === "th" && /^\s*(?:ตามตำรา|ตามความเชื่อ|ว่ากันว่า|เชื่อกันว่า|หมายความว่า|บ่งบอกว่า|ชี้ว่า|สะท้อนว่า|แสดงว่า|สื่อว่า|ตีความ|อ่านได้ว่า|แปลได้ว่า|บอกว่า|หมายถึง)/.test(p0.slice(end))) end = p0.length;
+      const tail = p0.slice(end);
+      s.paragraphs[0] = p0.slice(0, end).replace(/\s+$/, "") + (lang === "zh" ? "（" + nm + "）" : " (" + nm + ")") + (lang === "th" && tail && !/^\s/.test(tail) ? " " : "") + tail;
+    }
+    function orphans(s, lang, names) {
+      const lo = x => (lang === "en" ? String(x).toLowerCase() : String(x)), alt = names.filter(n => n.length >= 2).map(n => esc(lang === "en" ? n.toLowerCase() : n)).join("|");
+      if (!alt) return;
+      const re = lang === "th" ? new RegExp("อีกความหมายของ(" + alt + ")(?:\\s?[(（][^)）]*[)）])?คือ\\s?", "g")
+        : lang === "en" ? new RegExp("\\bAnother side of ((?:the |your )?(?:" + alt + ")(?:\\s?\\([^)]*\\))?) is that ", "gi")
+          : new RegExp("(" + alt + ")((?:（[^）]*）)?)\\s?的另一层意思是，?", "g");
+      let seen = "";
+      s.paragraphs = s.paragraphs.map(q => {
+        const out = q.replace(re, (all, x, x2, at) => {
+          const nm = lang === "en" ? x.replace(/^(?:the |your )/i, "") : x;
+          if (lo(seen + " " + q.slice(0, at)).indexOf(lo(nm)) >= 0) return all; // a second side of what the group already named
+          if (lang === "th") return x + "ยังสื่อว่า";
+          // EN / ZH: the line says what it says, and names its source in brackets at its end (unless it names it already)
+          return "\u0001" + (lang === "zh" ? x + (x2 || "") : x.replace(/^(?:the |your )/i, m => m.toLowerCase())) + "\u0002";
+        }).replace(lang === "zh" ? /\u0001([^\u0002]*)\u0002([^。！？]*)([。！？]?)/g : /\u0001([^\u0002]*)\u0002([^.!?]*(?:\([^)]*\)[^.!?]*)*)([.!?]?)/g, (all, x, body, end) => {
+          const nm = x.replace(/\s?[(（][^)）]*[)）]$/, "").replace(/^(?:the |your )/i, ""), b = lang === "en" ? D.cap(body.trim()) : body;
+          return lo(b).indexOf(lo(nm)) >= 0 ? b + end : b + (lang === "zh" ? "（" + x + "）" : " (" + x + ")") + end;
+        });
+        seen += " " + out;
+        return out;
+      });
+    }
+    const OV_LEAD = { en: /^(?:Looking at|As for|With|Start with|Starting with|Turning to|Traditionally|In traditional readings)\b/, zh: /^(?:从|就|说到|先看|再看|至于|按|根据)/ };
+    let OV_ITEMS = [];
+    function overviewLeads(s, lang, names, items) {
+      OV_ITEMS = items || [];
+      const split = q => (lang === "zh" ? String(q).split(/(?<=[。！？])/) : String(q).split(/(?<=[.!?])\s+/));
+      s.paragraphs = s.paragraphs.map(q => split(q).map(x => {
+        ST.name = "";
+        // "按命盘，…" / "按泰国占星，…" (a system, not a finding): "命盘上，…"
+        if (lang === "zh") { const a = /^按(?:照)?([^，。：]{2,8}?)(?:的看法|的说法)?，(?=\S)/.exec(x); if (a && !/传统/.test(a[1])) return a[1] + "上，" + x.slice(a[0].length); }
+        let o = OPEN[lang](x, names);
+        if (o === x || !ST.name) return x;
+        // "Looking at your Sun in Cancer, with your Cancer Sun, you are…": the inner lead goes too
+        if (lang === "en") { const w = /^With (?:your |the |a )?[^,]{3,40}, (?=[a-z])/.exec(o); if (w) o = D.cap(o.slice(w[0].length)); }
+        const full = caseOf(String(ST.name).trim(), OV_ITEMS, lang), nm = full.replace(PAREN, "").trim();
+        // the slip, then its verse; a rest that itself opens like a lead ("就像春天…", "按传统说法…") follows its source after a colon
+        // (also when the line names another finding before its end: the reader meets this source first)
+        const other = names.some(n => n.length >= 2 && (lang === "en" ? n.toLowerCase() : n) !== (lang === "en" ? full.toLowerCase() : full) && full.indexOf(n) < 0 && (lang === "en" ? o.toLowerCase() : o).indexOf(lang === "en" ? n.toLowerCase() : n) >= 0);
+        if (/^(?:your verse|签诗|签文)/i.test(o) || OV_LEAD[lang].test(o) || other) return lang === "zh" ? full + "：" + o : D.cap(full) + ": " + o.replace(/^(?:Your|Traditionally|In)\b/, w => w.toLowerCase());
+        if ((lang === "en" ? o.toLowerCase() : o).indexOf(lang === "en" ? nm.toLowerCase() : nm) >= 0) return o;
+        if (lang === "zh" && /^日主./.test(nm) && o.indexOf(nm.slice(2)) >= 0) return o; // "你的日主是庚金" already names 日主庚金
+        const m = (lang === "zh" ? /[。！？]$/ : /[.!?]$/).exec(o), body = m ? o.slice(0, -1) : o;
+        return body + (lang === "zh" ? "（" + nm + "）" : " (" + nm + ")") + (m ? m[0] : "");
+      }).join(lang === "zh" ? "" : " "));
     }
     const PICK_ONE = /挑一条最适合你的|Pick the one suggestion/;
     const TIP_SEN = {

@@ -82,6 +82,11 @@
 
   /** One month of the outlook: the month pillar's ten god against the Day Master of chart B. @param {any} B @param {any} b
    *  @param {number} year @param {number} m @param {Function} t @param {((m: number) => string)|undefined} monthName */
+  /* round 5 (RECHECK-4 R2): a month is shown by its name in every language ("เดือนธันวาคม", "December", "12月"), never a bare number */
+  var MONTH_TH = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+  var MONTH_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  /** @param {string} lang @param {number} m */
+  function monthWord(lang, m) { return lang === "zh" ? m + "月" : lang === "en" ? MONTH_EN[m - 1] : MONTH_TH[m - 1]; }
   function monthEntry(B, b, year, m, t, monthName) {
     var P = LC.bazi({ y: year, m: m, d: 15, h: 12, mi: 0, tz: b.tz == null ? 7 : b.tz, noTime: false, gender: b.gender }).pillars.month;
     var mel = LC.STEM_EL[P.stem], god = LC.tenGod(B.dayMaster.el, mel), G = GODS[god];
@@ -129,17 +134,68 @@
             var prev = seen.find(function (x) { return common(norm(x), norm(core)) >= minCore; });
             if (!prev) { seen.push(core); return u; }
             var n = common(norm(prev), norm(core)); if (n < prev.length && lang === "th") n = core.lastIndexOf(" ", n);
+            while (lang === "th" && n > 0 && core.charAt(n + 1) === "ๆ") n = core.lastIndexOf(" ", n - 1); // round 5: never "ลงมือ ๆ"
             if (n < prev.length && lang === "en") { var e = core.slice(n).search(/[.!?]/); n = e < 0 ? core.length : n + e + 1; }
-            return n > 0 ? core.slice(n).replace(/^[\s,，、。.]+/, "").trim() : "";
+            return n > 0 ? core.slice(n).replace(/^[\s,，、。.]+/, "").replace(/^ๆ(?:\s|$)/, "").trim() : "";
           });
           return out.join(lang === "zh" ? "" : " ").replace(/\s{2,}/g, " ").trim() || (lang === "th" ? q : "");
         });
         // an emptied paragraph is dropped with its caution mark (a section keeps at least its first paragraph)
         if (Array.isArray(s.caution) && s.caution.length === s.paragraphs.length) s.caution = s.caution.filter(function (/** @type {boolean} */ c, /** @type {number} */ i) { return !!s.paragraphs[i] || i === 0; });
+        if (Array.isArray(s.src) && s.src.length === s.paragraphs.length) s.src = s.src.filter(function (/** @type {string} */ c, /** @type {number} */ i) { return !!s.paragraphs[i] || i === 0; });
         s.paragraphs = s.paragraphs.filter(function (/** @type {string} */ q, /** @type {number} */ i) { return !!q || i === 0; });
       });
     });
     return parts;
+  }
+  /* round 5 (RECHECK-4 R1 / should-fix): the deep-dive mixes the 3 systems in one section: the first paragraph of each system's run
+     is labelled with its system ("แปดอักษร: …", "BaZi: …", "八字：…") unless it names the system already; Thai closing lines appear
+     at most once per part and the same closing line once per report (they repeated up to 8 times in a basic report) */
+  var SYS_IDS = ["bazi", "taksa", "lek7"];
+  var SYS_TH = /** @type {Record<string, string>} */ ({ bazi: "แปดอักษร", taksa: "ทักษา", lek7: "เลข 7 ตัว 9 ฐาน" });
+  /** @param {any[]} parts @param {string} lang @param {Function} t */
+  function labelDeep(parts, lang, t) {
+    parts.filter(function (p) { return p.id === "deep"; }).forEach(function (p) {
+      p.sections.forEach(function (/** @type {any} */ s) {
+        if (!Array.isArray(s.src) || s.src.length !== s.paragraphs.length) return;
+        s.paragraphs = s.paragraphs.map(function (/** @type {string} */ q, /** @type {number} */ k) {
+          if (k && s.src[k] === s.src[k - 1]) return q;
+          var name = t("rp.src." + s.src[k], SYS_TH[s.src[k]]);
+          if (!q || q.indexOf(name) >= 0) return q;
+          return name + (lang === "zh" ? "：" : ": ") + q;
+        });
+      });
+    });
+  }
+  /** @param {any[]} parts @param {string} lang */
+  function closed(parts, lang) { dropCloserRepeats(parts, lang); return parts; }
+  /** @param {any[]} parts @param {string} lang */
+  function dropCloserRepeats(parts, lang) {
+    if (lang !== "th") return;
+    var bank = (FA && FA._internal && FA._internal.banks && FA._internal.banks.CLOSERS) || [];
+    var res = bank.map(function (/** @type {string} */ c) { return new RegExp("\\s?" + c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\\\{(?:N|T)\\\}/g, "\\S{1,30}?"), "g"); });
+    var seenAll = /** @type {Record<number, boolean>} */ ({});
+    parts.forEach(function (p) {
+      var inPart = 0;
+      p.sections.forEach(function (/** @type {any} */ s) {
+        var keep = s.paragraphs.map(function (/** @type {string} */ q, /** @type {number} */ i) {
+          var out = q;
+          res.forEach(function (/** @type {RegExp} */ re, /** @type {number} */ ci) {
+            out = out.replace(re, function (/** @type {string} */ m) {
+              if (!inPart && !seenAll[ci]) { inPart++; seenAll[ci] = true; return m; }
+              return "";
+            });
+          });
+          out = out.replace(/\s{2,}/g, " ").trim();
+          // a paragraph that was only a repeated closer goes, unless it is the section's only paragraph
+          return { q: out || (s.paragraphs.length === 1 ? q : ""), i: i };
+        });
+        var kept = keep.filter(function (/** @type {any} */ x) { return !!x.q; });
+        if (Array.isArray(s.caution) && s.caution.length === s.paragraphs.length) s.caution = kept.map(function (/** @type {any} */ x) { return s.caution[x.i]; });
+        if (Array.isArray(s.src) && s.src.length === s.paragraphs.length) s.src = kept.map(function (/** @type {any} */ x) { return s.src[x.i]; });
+        s.paragraphs = kept.map(function (/** @type {any} */ x) { return x.q; });
+      });
+    });
   }
   /** Plan items of several composed readings, de-duplicated by text. @param {any[]} rs */
   function planPool(rs) {
@@ -187,27 +243,27 @@
     DEEP.forEach(function (tp, i) {
       var rs = [FA.compose(KB.baziFacts(B, tp, { age: age }), { lang: lang, seed: seed + 10 + i }), FA.compose(KB.taksaFacts(Tk, tp, { age: age }), { lang: lang, seed: seed + 20 + i }), FA.compose(KB.lek7Facts(L7, tp), { lang: lang, seed: seed + 30 + i })];
       deepRs = deepRs.concat(rs);
-      var paras = /** @type {string[]} */ ([]), marks = /** @type {boolean[]} */ ([]); // marks: the composer's caution marks travel along
-      rs.forEach(function (r) {
+      var paras = /** @type {string[]} */ ([]), marks = /** @type {boolean[]} */ ([]), srcs = /** @type {string[]} */ ([]); // marks: the composer's caution marks travel along
+      rs.forEach(function (r, ri) {
         (r.sections || []).filter(function (/** @type {any} */ s) { return s.id === tp; }).forEach(function (/** @type {any} */ s) {
           (s.paragraphs || []).forEach(function (/** @type {string} */ q, /** @type {number} */ i) {
-            if (q && !used.has(q)) { used.add(q); paras.push(q); marks.push(!!(Array.isArray(s.caution) && s.caution[i])); }
+            if (q && !used.has(q)) { used.add(q); paras.push(q); marks.push(!!(Array.isArray(s.caution) && s.caution[i])); srcs.push(SYS_IDS[ri]); }
           });
         });
       });
-      if (paras.length) deepSecs.push({ id: tp, title: t("rp.deep." + tp, DEEP_TH[tp]), paragraphs: paras.slice(0, 8), caution: marks.slice(0, 8) });
+      if (paras.length) deepSecs.push({ id: tp, title: t("rp.deep." + tp, DEEP_TH[tp]), paragraphs: paras.slice(0, 8), caution: marks.slice(0, 8), src: srcs.slice(0, 8) });
     });
     if (deepSecs.length) parts.push({ id: "deep", title: t("rp.part.deep", "เจาะลึกรายหัวข้อ · 3 ศาสตร์ประกอบกัน"), headline: "", sections: deepSecs });
     // the next three months (month pillar vs the Day Master)
-    var ahead = [0, 1, 2].map(function (k) { var mm = now.getMonth() + k, yy = now.getFullYear() + Math.floor(mm / 12); return monthEntry(B, b, yy, (mm % 12) + 1, t, o && o.monthName); });
+    var ahead = [0, 1, 2].map(function (k) { var mm = now.getMonth() + k, yy = now.getFullYear() + Math.floor(mm / 12); return monthEntry(B, b, yy, (mm % 12) + 1, t, (o && o.monthName) || function (/** @type {number} */ k) { return monthWord(lang, k); }); });
     var aheadSeen = /** @type {Record<string, string>} */ ({}); // round 4: a month that reads like an earlier one says so, it does not repeat it
     parts.push({ id: "ahead", title: t("rp.part.ahead", "3 เดือนข้างหน้า"), headline: "", sections: ahead.map(function (x) {
-      var same = aheadSeen[x.god], ps = same ? [t("rp.sameMonth", "แนวโน้มคล้ายกับเดือน{m} ใช้แผนเดียวกันต่อได้", { m: same })] : [x.text, "→ " + x.tip];
-      if (!same) aheadSeen[x.god] = x.label;
+      var same = aheadSeen[x.god], ps = same ? [t("rp.sameMonth", "แนวโน้มคล้ายกับเดือน{m} ใช้แผนเดียวกันต่อได้", { m: monthWord(lang, Number(same)) })] : [x.text, "→ " + x.tip];
+      if (!same) aheadSeen[x.god] = String(x.m);
       if (x.fav && !aheadSeen["fav:" + x.fav]) { aheadSeen["fav:" + x.fav] = x.label; ps.push(x.fav); } // a "caution" month (the month's tone) is shown in full, never folded
       return { id: "m" + x.m, title: x.label + " (" + x.pillar + ") · " + x.title, paragraphs: ps, caution: ps.map(function () { return x.tone === "caution"; }) };
     }) });
-    dropRepeats(parts, lang);
+    dropRepeats(parts, lang); dropCloserRepeats(parts, lang); labelDeep(parts, lang, t);
     var plan30 = plan30Of(planPool([rb, rt, rl].concat(deepRs)), ahead[0], t);
     return {
       kind: "report_basic", lang: rb.lang || lang, title: t("rp.basic.title", "รายงานดวงพื้นฐาน"),
@@ -234,11 +290,11 @@
     return {
       kind: "report_compat", lang: rz.lang || lang, title: t("rp.compat.title", "รายงานดวงคู่"),
       score: C.score, rel: C.rel, elRel: rel,
-      parts: [
+      parts: closed([
         { id: "pair", title: t("rp.part.pair", "ความเข้ากันตาม 12 นักษัตร"), headline: t("rp.pairHead", "ปี{a} กับ ปี{b} · {s}%", { a: animals(za.animal), b: animals(zb.animal), s: C.score }), sections: plainSections(rz) },
         { id: "elements", title: t("rp.part.elements", "ธาตุเจ้าชะตา (八字 日主) ของทั้งสอง"), headline: el(Ba.dayMaster.el) + " · " + el(Bb.dayMaster.el),
           sections: [{ id: "el", title: t("rp.sec.elements", "พลังห้าธาตุระหว่างกัน"), paragraphs: [elText, t("rp.pairElNote", "ห้าธาตุบอกแนวโน้มของการเติมพลังให้กันตามตำรา ไม่ได้ตัดสินว่าคู่ใดดีหรือไม่ดี ความเข้าใจและการกระทำของทั้งสองสำคัญที่สุด")] }] }
-      ],
+      ], lang),
       summary: rz.summary || null, plan: rz.plan || null, reminder: rz.reminder || ""
     };
   }
@@ -258,13 +314,13 @@
     var rb = FA.compose(KB.baziFacts(B, "overall", { age: ageOn(b, year, 7, 1) }), { lang: lang, seed: seed + 1 });
     var timing = plainSections(rb).filter(function (s) { return s.id === "timing" || s.id === "overview"; });
     var months = [];
-    for (var m = 1; m <= 12; m++) months.push(monthEntry(B, b, year, m, t, o.monthName));
+    for (var m = 1; m <= 12; m++) months.push(monthEntry(B, b, year, m, t, o.monthName || function (/** @type {number} */ k) { return monthWord(lang, k); }));
     return {
       kind: "report_annual", lang: ry.lang || lang, title: t("rp.annual.title", "รายงานดวงรายปี {y}", { y: year }), year: year,
-      parts: [
+      parts: closed([
         { id: "year", title: t("rp.part.year", "ภาพรวมของปีตาม 12 นักษัตร"), headline: "", sections: plainSections(ry) },
         { id: "luck", title: t("rp.part.luck", "วัยจร 10 ปี (大运) ในปีนี้"), headline: "", sections: timing.length ? timing : plainSections(rb).slice(0, 2) }
-      ],
+      ], lang),
       months: months,
       monthNote: t("rp.monthNote", "เสาเดือนของ 八字 เปลี่ยนตามสารท (ราววันที่ 4–8 ของแต่ละเดือน) รายการนี้ใช้เสาเดือนที่ครอบคลุมช่วงกลางเดือน"),
       summary: ry.summary || null, plan: ry.plan || rb.plan || null, reminder: ry.reminder || rb.reminder || ""

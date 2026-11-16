@@ -344,6 +344,8 @@
       const after = lo(p0.slice(1) + " " + s.paragraphs.slice(1).join(" ")), br = after.search(BACKREF[lang]);
       const at = Math.min(...vars.map(v => { const i = after.indexOf(lo(v)); return i < 0 ? Infinity : i; }));
       if (at < Infinity && (br < 0 || at < br)) return;
+      // a reporting phrase right after the bracket would read as the bracket's own words ("(ไพ่…) ตามตำราเชื่อว่า…"): the end instead
+      if (lang === "th" && /^\s*(?:ตามตำรา|ตามความเชื่อ|ว่ากันว่า|เชื่อกันว่า|หมายความว่า|บ่งบอกว่า|ชี้ว่า|สะท้อนว่า|แสดงว่า|สื่อว่า|ตีความ|อ่านได้ว่า|แปลได้ว่า|บอกว่า|หมายถึง)/.test(p0.slice(end))) end = p0.length;
       const tail = p0.slice(end);
       s.paragraphs[0] = p0.slice(0, end).replace(/\s+$/, "") + (lang === "zh" ? "（" + nm + "）" : " (" + nm + ")") + (lang === "th" && tail && !/^\s/.test(tail) ? " " : "") + tail;
     }
@@ -359,9 +361,11 @@
           const nm = lang === "en" ? x.replace(/^(?:the |your )/i, "") : x;
           if (lo(seen + " " + q.slice(0, at)).indexOf(lo(nm)) >= 0) return all; // a second side of what the group already named
           if (lang === "th") return x + "ยังสื่อว่า";
-          if (lang === "zh") return x + (x2 || "") + "也说明，";
-          const pl = /(?:eyes|brows|lines|ears|cheeks|lips|hands|fingers|mountains|palaces)\)?$/i.test(x.replace(/\s?\([^)]*\)$/, ""));
-          return D.cap(x) + (/also shows? that/i.test(q) ? (pl ? " add that " : " adds that ") : pl ? " also show that " : " also shows that ");
+          // EN / ZH: the line says what it says, and names its source in brackets at its end (unless it names it already)
+          return "\u0001" + (lang === "zh" ? x + (x2 || "") : x.replace(/^(?:the |your )/i, m => m.toLowerCase())) + "\u0002";
+        }).replace(lang === "zh" ? /\u0001([^\u0002]*)\u0002([^。！？]*)([。！？]?)/g : /\u0001([^\u0002]*)\u0002([^.!?]*(?:\([^)]*\)[^.!?]*)*)([.!?]?)/g, (all, x, body, end) => {
+          const nm = x.replace(/\s?[(（][^)）]*[)）]$/, "").replace(/^(?:the |your )/i, ""), b = lang === "en" ? D.cap(body.trim()) : body;
+          return lo(b).indexOf(lo(nm)) >= 0 ? b + end : b + (lang === "zh" ? "（" + x + "）" : " (" + x + ")") + end;
         });
         seen += " " + out;
         return out;
@@ -376,8 +380,10 @@
         ST.name = "";
         // "按命盘，…" / "按泰国占星，…" (a system, not a finding): "命盘上，…"
         if (lang === "zh") { const a = /^按(?:照)?([^，。：]{2,8}?)(?:的看法|的说法)?，(?=\S)/.exec(x); if (a && !/传统/.test(a[1])) return a[1] + "上，" + x.slice(a[0].length); }
-        const o = OPEN[lang](x, names);
+        let o = OPEN[lang](x, names);
         if (o === x || !ST.name) return x;
+        // "Looking at your Sun in Cancer, with your Cancer Sun, you are…": the inner lead goes too
+        if (lang === "en") { const w = /^With (?:your |the |a )?[^,]{3,40}, (?=[a-z])/.exec(o); if (w) o = D.cap(o.slice(w[0].length)); }
         const full = caseOf(String(ST.name).trim(), OV_ITEMS, lang), nm = full.replace(PAREN, "").trim();
         // the slip, then its verse; a rest that itself opens like a lead ("就像春天…", "按传统说法…") follows its source after a colon
         // (also when the line names another finding before its end: the reader meets this source first)
