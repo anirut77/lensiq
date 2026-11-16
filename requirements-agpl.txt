@@ -9,10 +9,10 @@
 #   pip install -r requirements.txt -r requirements-agpl.txt
 #   export LENSIQ_CONVERT_ENGINE=pdf2docx      (server.py logs a licence warning at start-up)
 # Default engine without this file: pdfplumber + python-docx (MIT) — see pdfconvert.py.
-pdf2docx==0.5.8
+pdf2docx==0.5.13
 PyMuPDF==1.24.14
 fire==0.7.1
-termcolor==3.1.0
-fonttools==4.60.2
-numpy==2.0.2
+termcolor==3.3.0
+fonttools==4.68.0
+numpy==2.5.4
 opencv-python-headless==5.0.0.93
