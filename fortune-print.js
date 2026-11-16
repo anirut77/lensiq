@@ -335,6 +335,23 @@
       if (r.width && r.width < 40) return; // small decorations
       add({ t: "figure", src, alt: ctx.clean(txt(e.getAttribute("alt") || e.getAttribute("aria-label") || "")), w: r.width ? Math.min(90, pxToMm(r.width)) : 60 });
     };
+    /** "label · value · note" when e is 2-4 short leaf blocks (no heading, list, table, picture, swatch); otherwise "" */
+    const compact = e => {
+      if (e.nodeType !== 1 || e.matches("p, li, h1, h2, h3, h4, h5, h6, .lq-advice, .lq-sw") || e.querySelector("h1, h2, h3, h4, h5, h6, ul, ol, table, canvas, img, .lq-advice, .lq-sw")) return "";
+      const kids = [...e.childNodes].filter(n => n.nodeType === 1 ? !skipEl(n, ctx.photo) : n.nodeType === 3 && txt(n.textContent));
+      if (kids.length < 2 || kids.length > 4 || kids.some(n => n.nodeType !== 1 || n.tagName === "P" || n.tagName === "BLOCKQUOTE")) return "";
+      if (!kids.some(n => isBlock(n))) return ""; // plain inline text: an ordinary paragraph
+      const parts = [];
+      for (const n of kids) {
+        if (n.querySelector("*") && [...n.querySelectorAll("*")].some(x => isBlock(x) || isSwatchEl(x))) return "";
+        const t = ctx.clean(txt(n.textContent));
+        if (!t) continue;
+        if (t.length > 48) return "";
+        parts.push(t);
+      }
+      const s = parts.join(" · ");
+      return parts.length >= 2 && s.length <= 120 ? s : "";
+    };
     const walk = e => {
       if (e.nodeType === 3) { const t = ctx.clean(txt(e.textContent)); if (t) add({ t: "p", text: t }); return; }
       if (e.nodeType !== 1 || skipEl(e, ctx.photo)) return;
@@ -357,6 +374,13 @@
       if (tag === "svg") return; // inline icons on screen; the report draws its own
       if (tag === "HR") return;
       const kids = [...e.childNodes].filter(n => n.nodeType === 1 ? !skipEl(n, ctx.photo) : n.nodeType === 3 && txt(n.textContent));
+      // fact cards (label / value / note in small blocks) read as one line on paper; a row of them becomes a short list
+      const els = kids.filter(n => n.nodeType === 1);
+      if (els.length >= 3 && els.length === kids.length && els.every(n => compact(n))) {
+        add({ t: "list", items: els.map(n => ({ text: compact(n) })) }); return;
+      }
+      const one = compact(e);
+      if (one) { add({ t: "p", text: one }); return; }
       const hasBlock = kids.some(n => n.nodeType === 1 && (isBlock(n) || /^(CANVAS|IMG)$/.test(n.tagName) || n.querySelector("canvas, img, h1, h2, h3, h4, ul, ol, table, p, div, section")));
       if (!hasBlock) { if (isBlock(e) || tag === "P" || tag === "SPAN") para(e, e.classList.contains("lq-caution") ? { caution: true } : null); return; }
       for (const n of kids) walk(n);
