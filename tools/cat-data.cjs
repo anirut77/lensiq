@@ -490,7 +490,7 @@ const CATEGORIES = [
       en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
       zh: "基于命理学原则，属个人信仰，请自行判断。" },
     pages: ["fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui", "dream", "zodiac",
-      "compat", "astro", "lifegraph", "planner", "luckycolor", "report"] },
+      "astro", "lifegraph", "planner", "luckycolor", "report"] },
   { n: 7, slug: "studio", id: "photo", icon: "📸",
     name: { th: "สตูดิโอและสื่อ", en: "Studio & Media", zh: "影棚与媒体" },
     short: { th: "สตูดิโอ", en: "Studio", zh: "影棚" },
@@ -504,6 +504,7 @@ const CATEGORIES = [
  *  noindex; see docs/PAGE-STATUS.md "Not linked"). */
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
 const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
-  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category" };
+  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category",
+  compat: "Compatibility (ดวงสมพงษ์, owner order 2026-11-16 A): built on branch fortune-compat, not linked from category 6, the fortune hub or the menu until the owner approves the go-live" };
 
 module.exports = { STATUS, STATUS_DEF, STATUS_DEF_CAT, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };

@@ -40,8 +40,9 @@
 //    (rule a). Switch on and not calm = "full" (7 categories); switch on in the crisis or calm state = "free".
 // G  Group: 3–8 people: every pair once, one suggested role per person framed as a strength, the work-use line in TH / EN / ZH.
 // P  Page and privacy (static): compat.html has the single top help button (1323 once, 1669 not), the final disclaimer line,
-//    the consent statement in TH (EN / ZH in the dictionaries) and the work-use line; it is linked from cat-fortune.html,
-//    fortune.html and nav.js; the astronomy engine is not loaded at page load (lazy); compat.js / compat-kb.js make no
+//    the consent statement in TH (EN / ZH in the dictionaries) and the work-use line; RE-LOCK 2026-11-16 (coordinator, until the
+//    owner approves the go-live): compat.html is NOT linked from cat-fortune.html, fortune.html or nav.js and is listed in
+//    UNLINKED of tools/cat-data.cjs (was: linked from all three); the astronomy engine is not loaded at page load (lazy); compat.js / compat-kb.js make no
 //    network call and write no storage; the vendored engine matches its published sha256 and carries its MIT licence;
 //    credits, sources, legal packet (consent wording, L72) and PDPA note are recorded.
 const test = require("node:test");
@@ -404,7 +405,9 @@ test("P page: help button, disclaimer, consent, work-use line, links, lazy engin
   for (const re of CONSENT.en) assert.match(en, re);
   for (const re of CONSENT.zh) assert.match(zh, re);
   assert.match(en, WORK.en); assert.match(zh, WORK.zh); assert.match(html, WORK.th);
-  for (const f of ["cat-fortune.html", "fortune.html", "nav.js"]) assert.ok(read(f).includes('href="compat.html') || read(f).includes('"compat.html"'), f + " links compat.html");
+  // RE-LOCK 2026-11-16: unlinked until the owner approves (coordinator); reachable by its URL only
+  for (const f of ["cat-fortune.html", "fortune.html", "nav.js"]) assert.ok(!read(f).includes("compat.html"), f + " does not link compat.html yet");
+  assert.ok(require(path.join(ROOT, "tools", "cat-data.cjs")).UNLINKED.compat, "compat listed in UNLINKED (tools/cat-data.cjs)");
 });
 test("P privacy: no network call, no storage write in the compat code; vendored engine sha256 and licence; records", () => {
   for (const f of ["compat.js", "compat-kb.js"]) {
@@ -422,4 +425,28 @@ test("P privacy: no network call, no storage write in the compat code; vendored 
   assert.match(lp, /L72/);
   assert.ok(lp.includes("รับผิดชอบ") && /compat/.test(lp), "consent wording in the legal packet");
   assert.match(read("docs/PDPA-NOTES-FOR-COUNSEL.md"), /compat/i);
+});
+
+/* ---------------- K owner and pet interface (RE-LOCK 2026-11-16: the pet page, branch fortune-pet, calls this) ---------------- */
+test("K owner-pet: LQCompat.pair(owner, pet, {mode: 'owner-pet', lang}) -> {mode, source, title, lines}; birth dates only; hard limits", () => {
+  const C = load();
+  const BANP = { th: /เลิก|หย่า|ไม่เข้ากัน|เข้ากันไม่ได้|ตาย|อุบัติเหตุ|ป่วย|มิฉะนั้น|ถ้าไม่/, en: /\b(?:break up|incompatib\w*|bad match|death|dies?|accident|sick|or else|unless you)\b/i,
+    zh: /分手|不相配|合不来|死|意外|生病|否则|除非你/ };
+  for (const lang of LANGS) {
+    const r = C.pair({ birth: "1990-07-02", kind: "person" }, { birth: "2021-03-14", kind: "pet", species: "cat" }, { mode: "owner-pet", lang });
+    assert.equal(r.mode, "owner-pet");
+    assert.ok(typeof r.source === "string" && r.source && typeof r.title === "string" && r.title, "source and title");
+    assert.ok(Array.isArray(r.lines) && r.lines.length >= 2 && r.lines.every(x => typeof x === "string" && x.length > 5), "at least two lines");
+    if (lang !== "th") assert.ok(!THAI.test(r.lines.join(" ") + r.title), "no Thai in " + lang);
+    const solo = C.pair({ birth: "1990-07-02", kind: "person" }, { birth: null, kind: "pet" }, { mode: "owner-pet", lang });
+    assert.ok(solo.lines.length >= 1, "pet without a birth date still gets a line");
+    assert.deepEqual(C.pair({ birth: null }, { birth: "2021-03-14" }, { mode: "owner-pet", lang }).lines, [], "no owner date: no lines");
+  }
+  const r2 = rng(77), pad = x => String(x).padStart(2, "0");
+  for (let i = 0; i < 900; i++) {
+    const lang = LANGS[i % 3], a = birth(r2, false), b = birth(r2, false);
+    const r = C.pair({ birth: `${a.y}-${pad(a.m)}-${pad(a.d)}`, kind: "person" }, { birth: `${b.y}-${pad(b.m)}-${pad(b.d)}`, kind: "pet", species: i % 2 ? "dog" : "cat" }, { mode: "owner-pet", lang });
+    const t = r.lines.join(" ");
+    assert.ok(!BANP[lang].test(t), `[${lang}] ${t}`);
+  }
 });

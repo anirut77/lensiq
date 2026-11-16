@@ -106,7 +106,6 @@
       { href: "fengshui.html", title: "ฮวงจุ้ย", desc: "เลขกัว เข็มทิศ ผังบ้าน" },
       { href: "dream.html", title: "ทำนายฝัน", desc: "ความหมายสัญลักษณ์ในฝัน" },
       { href: "zodiac.html", title: "12 นักษัตร · ปีชง", desc: "ดวงรายปี คู่มงคล" },
-      { href: "compat.html", title: "ดวงสมพงษ์", desc: "ความเข้ากันสองคนหรือทั้งกลุ่ม" },
       { href: "astro.html", title: "ราศีตะวันตก", desc: "ราศีอาทิตย์ จันทร์ ลัคนา" },
       { href: "lifegraph.html", title: "กราฟชีวิต", desc: "เส้นพลังตามช่วงอายุ" },
       { href: "planner.html", title: "วางแผนฤกษ์มงคล", desc: "วันดีขึ้นบ้านใหม่ เปิดร้าน เริ่มงาน" },

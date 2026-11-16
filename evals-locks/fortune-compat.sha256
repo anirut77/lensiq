@@ -4,3 +4,6 @@
 806567cff27d43455ba0f2e3d42c53b954c3679ab88ce7af68b7452550c0d000  tests/unit/fortune-compat.test.js
 f6f55cd525fd615225caf6b51f3a5667848c47c5a1fed08499a2341a5380924b  tests/e2e/fortune-compat.e2e.mjs
 ba23091fca3d53dd84457f7e41b72334a7bdab47e6aab078fa9550bef0978eee  tests/e2e/fortune-compat-webkit.e2e.mjs
+# RE-LOCK 2026-11-16 (2): coordinator instructions while the owner has not approved the go-live: compat stays UNLINKED (tools/cat-data.cjs; not in cat-fortune.html, fortune.html or nav.js; CLAUDE.md untouched) and the pet page (branch fortune-pet) calls LQCompat.pair(owner, pet, {mode: 'owner-pet', lang}). Unit test only: P link assertion inverted (must NOT link, must be in UNLINKED); new test K for the owner-pet interface. E2E files unchanged. Honest order: the owner-pet code was written first (interface given by the coordinator, checked ad hoc on 3,000 pairs); this test file was not run before this lock line.
+# locked 2026-11-16T05:46:27Z (tools/eval-guard.mjs lock, 1 file)
+8da9074a632e97e2c345959538f17c73b5334ab13b93b6825d1acc4dad136257  tests/unit/fortune-compat.test.js
