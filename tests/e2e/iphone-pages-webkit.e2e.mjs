@@ -41,12 +41,19 @@ const IOS_MENU = { th: /aA|ไอคอนเมนู|เมนูหน้า�
 const IOS_FALLBACK = { th: /การตั้งค่า\s*>\s*แอป\s*>\s*Safari\s*>\s*กล้อง\s*>\s*อนุญาต/, en: /Settings\s*>\s*Apps\s*>\s*Safari\s*>\s*Camera\s*>\s*Allow/i,
   zh: /设置\s*>\s*(?:App|应用)\s*>\s*Safari\s*>\s*相机\s*>\s*允许/ };
 const IOS_RETRY = { th: /ลองใหม่/, en: /retry|try again/i, zh: /重试/ };
+// AMENDED 2026-11-16 (amendment 5, owner input from a real iPhone 16 Pro, iOS 27.0.1, Safari: on iOS 27 the address bar collapses to
+// the page title while scrolling): every refusal notice carries the "how to allow the camera" link; its steps start with the tap
+// on the page title at the very top (owner wording) and include the Settings fallback; opening them makes no network request
+const HELP_LABEL = { th: "วิธีเปิดสิทธิ์กล้อง", en: "How to allow the camera", zh: "如何允许使用相机" };
+const HELP_FIRST = { th: /^แตะชื่อหน้าด้านบนสุด/, en: /^Tap the page title at the very top/i, zh: /^点按最上方的页面标题/ };
 /** in-page: visible texts (<= 400 chars, outside the nav / footer / help line) that match every [source, flags] pattern */
 function permTexts(rx) {
   const res = rx.map(r => new RegExp(r[0], r[1])), out = [];
   for (const e of document.querySelectorAll("body *")) {
-    if (/^(SCRIPT|STYLE|NOSCRIPT|svg)$/i.test(e.tagName) || e.closest("#siteNav, header.nav, footer, .lq-helpline")) continue;
-    const t = (e.innerText || "").trim(); if (!t || t.length > 400 || !res.every(r => r.test(t))) continue;
+    if (/^(SCRIPT|STYLE|NOSCRIPT|svg)$/i.test(e.tagName) || e.closest("#siteNav, header.nav, footer, .lq-helpline, .lq-camhelp")) continue;
+    const hp = e.querySelector(".lq-camhelp"); // amendment 5: the help block's text is not part of the message
+    const t = (hp ? (e.innerText || "").replace(hp.innerText || "", "") : e.innerText || "").trim();
+    if (!t || t.length > 400 || !res.every(r => r.test(t))) continue;
     const r = e.getBoundingClientRect(), s = getComputedStyle(e);
     if (s.display === "none" || s.visibility === "hidden" || !r.width || !r.height || e.closest("[hidden]")) continue;
     out.push(t);
@@ -380,8 +387,10 @@ export default async function ({ base, check, fakeCams }) {
                 const res = a.rx.map(r => new RegExp(r[0], r[1]));
                 let best = null;
                 for (const e of document.querySelectorAll("body *")) {
-                  if (/^(SCRIPT|STYLE|NOSCRIPT|svg)$/i.test(e.tagName) || e.closest("#siteNav, header.nav, footer, .lq-helpline")) continue;
-                  const t = (e.innerText || "").trim(); if (!t || t.length > 400 || !res.every(r => r.test(t)) || a.before.includes(t)) continue;
+                  if (/^(SCRIPT|STYLE|NOSCRIPT|svg)$/i.test(e.tagName) || e.closest("#siteNav, header.nav, footer, .lq-helpline, .lq-camhelp")) continue;
+                  const hp = e.querySelector(".lq-camhelp");
+                  const t = (hp ? (e.innerText || "").replace(hp.innerText || "", "") : e.innerText || "").trim();
+                  if (!t || t.length > 400 || !res.every(r => r.test(t)) || a.before.includes(t)) continue;
                   const r = e.getBoundingClientRect(), s = getComputedStyle(e);
                   if (s.display === "none" || s.visibility === "hidden" || !r.width || !r.height || e.closest("[hidden]")) continue;
                   if (!best || t.length < best.length) best = t;
@@ -402,6 +411,42 @@ export default async function ({ base, check, fakeCams }) {
               if (!IOS_MENU[lang].test(msg)) bad.push(`the address-bar hint has no iPhone page-menu step (aA or the page menu): "${msg.slice(0, 200)}"`);
               if (!fb) bad.push(`the address-bar hint has no Settings > Apps > Safari > Camera fallback in ${lang}: "${msg.slice(0, 200)}"`);
               if (fb && rt >= 0 && rt < fb.index) bad.push(`the retry word comes before the iPhone steps: "${msg.slice(0, 200)}"`);
+            }
+            if (msg) {
+              // amendment 5 (owner, real iPhone 16 Pro / iOS 27.0.1): inside the notice, a "how to allow the camera" link opens the
+              // steps in place with one tap (no request); step 1 is the page-title tap, the Settings fallback is there, no raw code
+              const where = await page.waitForFunction(m => {
+                const d = [...document.querySelectorAll(".lq-camhelp")].find(x => {
+                  const p = x.parentElement; if (!p || !x.getClientRects().length) return false;
+                  return ((p.innerText || "").replace(x.innerText || "", "").replace(/\s+/g, " ")).includes(m.replace(/\s+/g, " ").slice(0, 40));
+                });
+                if (!d) return null;
+                d.setAttribute("data-lq-help-hit", "1");
+                return { label: (d.querySelector("summary") || {}).textContent || "", open: d.open };
+              }, msg, { timeout: 5000, polling: 100 }).then(x => x.jsonValue()).catch(() => null);
+              if (!where) bad.push(`no "${HELP_LABEL[lang]}" link inside the refusal notice`);
+              else {
+                if (where.label.trim() !== HELP_LABEL[lang]) bad.push(`help link label is "${where.label.trim()}", not "${HELP_LABEL[lang]}"`);
+                const reqs = [];
+                const onReq = r => reqs.push(r.url());
+                page.on("request", onReq);
+                await tap(page, "[data-lq-help-hit] > summary");
+                const steps = await page.waitForFunction(() => {
+                  const d = document.querySelector("[data-lq-help-hit]"); if (!d || !d.open) return null;
+                  const li = [...d.querySelectorAll("li")].filter(x => x.getClientRects().length);
+                  return li.length ? { first: li[0].innerText.trim(), all: d.innerText } : null;
+                }, null, { timeout: 3000, polling: 100 }).then(x => x.jsonValue()).catch(() => null);
+                await sleep(500);
+                page.off("request", onReq);
+                if (!steps) bad.push("one tap on the help link did not open the steps");
+                else {
+                  if (!HELP_FIRST[lang].test(steps.first)) bad.push(`step 1 is not the page-title tap: "${steps.first.slice(0, 120)}"`);
+                  if (!IOS_FALLBACK[lang].test(steps.all)) bad.push(`the steps have no Settings > Apps > Safari > Camera fallback: "${steps.all.slice(0, 200)}"`);
+                  if (RAW_CODE.test(steps.all)) bad.push("the steps show a raw error code");
+                  if (lang !== "th" && THAI.test(steps.all)) bad.push(`the steps are not in ${lang}: "${steps.all.slice(0, 160)}"`);
+                }
+                if (reqs.length) bad.push(`opening the help made ${reqs.length} request(s): ${reqs.slice(0, 3).join(" ")}`);
+              }
             }
             await sleep(1500);
             const hang = await page.evaluate(sel => {
