@@ -225,7 +225,7 @@
     if (c && th && (c.at < 40 || clen(c) < 45)) { const nx = cuts.find(x => (x.ok || x.soft) && x.at > 60 && clen(x) >= 45 && x.at <= max); if (nx) c = nx; else if (c.at < 40 && p.length <= max * 1.6) return [p];
       // round 3: still a bare name or age band ("อัศวินไม้เท้า (Knight of Wands)", "ช่วงอายุ 54–60 ปี") → the first cut that holds what
       // it means, a little past the limit, rather than a label alone
-      else { const nx2 = cuts.find(x => (x.ok || x.soft) && x.at >= 40 && clen(x) >= 45 && x.at <= max * 1.35); if (nx2) c = nx2; } } // … not a bare name
+      else if (clen(c) < 30) { const nx2 = cuts.find(x => (x.ok || x.soft) && x.at >= 40 && clen(x) >= 45 && x.at <= max * 1.35); if (nx2) c = nx2; } } // … not a bare name
     if (!c && p.length <= max * 1.25) return [p];
     // English: one whole first sentence a little past the limit rather than a cut inside it (quality round 2026-11-16)
     if (!c && lang === "en") { const s1 = cuts.find(x => x.at > max && x.at <= max * 1.25); if (s1) c = s1; }
