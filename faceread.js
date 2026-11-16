@@ -892,7 +892,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     before.before(p);
   }
   var camErr = function (e) {
-    console.error(e);
+    LQCam.logError(e);
     if (e.name === "Insecure") showHttpsNote($("#frEngine"));
     var m = { Insecure: ["faceread.eng.https", HTTPS_MSG], NotAllowedError: ["faceread.eng.denied", "ไม่ได้รับอนุญาตให้ใช้กล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้"], NotFoundError: ["faceread.eng.notFound", "ไม่พบกล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้"], NotReadableError: ["faceread.eng.busyCam", "กล้องถูกโปรแกรมอื่นใช้อยู่"] }[e.name];
     if (m) engineT(m[0], m[1], null, "err");

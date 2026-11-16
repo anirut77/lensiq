@@ -5,7 +5,7 @@
 //       one place when the number is the text of its own tel: link), at page load and after a reading (dream TH / EN / ZH,
 //       report TH)
 //   H2  the "อยากมีคนรับฟัง" button is reachable in one tap from page load: in the first screen without scrolling, at least
-//       44 × 44 px, not covered, not overlapping the header, at 320 / 375 / 430 px; a touch tap on it reaches the tel: link
+//       44 × 44 px, not covered, not overlapping the header, at 320 / 375 / 393 / 430 px; a touch tap on it reaches the tel: link
 //       with nothing cancelling it; its label is in the page language
 //   H3  crisis state: the full help card (every number, tap-to-call) shows and the reading is replaced (dream hard net,
 //       TH / EN / ZH); on every page with the reading engine, the crisis card renders with 1323 and 1669 tap-to-call
@@ -144,7 +144,7 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n" + bad.join("\n"));
     });
 
-    await check("H2 + D1: the help button is in the first screen, ≥ 44 px, not covered, clear of the header, label in the page language (320 / 375 / 430 px); the final line shows", async () => {
+    await check("H2 + D1: the help button is in the first screen, ≥ 44 px, not covered, clear of the header, label in the page language (320 / 375 / 393 / 430 px); the final line shows", async () => {
       const bad = [];
       for (const lang of LANGS) {
         const page = await open(browser, lang);
@@ -156,11 +156,25 @@ export default async function ({ base, launch, check }) {
               const line = await page.evaluate(`[...document.querySelectorAll('[data-i18n="fortune.disc.line"], .lq-disc-line')].some(e => e.getClientRects().length && e.textContent.replace(/\\s+/g, " ").trim() === ${S(LINE[lang])})`);
               if (!line) bad.push(`${p} ${lang}: the final disclaimer line is not shown in ${lang}`);
             }
-            for (const w of [320, 375, 430]) {
+            // RE-LOCK 2026-11-16 (owner, real iPhone 16 Pro / iOS 27.0.1 = 393 CSS px wide): 393 px added; at 393 px the whole
+            // #lqHelpTop row ("อยากมีคนรับฟัง 1323") is on the first screen at page load with no scroll (y and height logged for faceread)
+            for (const w of [320, 375, 393, 430]) {
               await phone(page, w, 740); await page.evaluate("window.scrollTo(0, 0)"); await sleep(200);
               const b = await page.evaluate(BUTTON);
               if (!b) { bad.push(`${p} ${lang} ${w}: no visible 1323 button`); continue; }
               const tag = `${p} ${lang} ${w}`;
+              if (w === 393) {
+                const row = await page.evaluate(`(() => { const t = document.getElementById("lqHelpTop"); if (!t || !t.getClientRects().length) return null;
+                  const r = t.getBoundingClientRect(); return { top: r.top, h: r.height, bottom: r.bottom, vh: innerHeight, sy: scrollY }; })()`);
+                if (!row) bad.push(`${tag}: #lqHelpTop not shown`);
+                else {
+                  if (row.sy !== 0 || row.top < 0 || row.bottom > row.vh) bad.push(`${tag}: #lqHelpTop not fully on the first screen without scrolling ${S(row)}`);
+                  if (p === "faceread") {
+                    console.log(`       393 px ${lang} faceread #lqHelpTop: y ${row.top.toFixed(1)} px, height ${row.h.toFixed(1)} px (screen ${row.vh}); `
+                      + `1323 button y ${b.top.toFixed(1)}, ${b.w.toFixed(1)}×${b.h.toFixed(1)} px`);
+                  }
+                }
+              }
               if (b.w < 44 || b.h < 44) bad.push(`${tag}: button ${b.w.toFixed(1)}×${b.h.toFixed(1)} px`);
               if (b.top < 0 || b.bottom > b.vh) bad.push(`${tag}: button not in the first screen (top ${b.top.toFixed(0)}, screen ${b.vh})`);
               if (b.left < -0.5 || b.right > b.vw + 0.5) bad.push(`${tag}: button off the side of the screen`);

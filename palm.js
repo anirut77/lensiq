@@ -1084,7 +1084,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     before.before(p);
   }
   var camErr = function (e) {
-    console.error(e);
+    LQCam.logError(e);
     if (e.name === "Insecure") showHttpsNote($("#plEngine"));
     var m = { Insecure: ["palm.err.https", HTTPS_MSG], NotAllowedError: ["palm.err.denied", "ไม่ได้รับอนุญาตให้ใช้กล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้"], NotFoundError: ["palm.err.nocam", "ไม่พบกล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้"], NotReadableError: ["palm.err.busy", "กล้องถูกโปรแกรมอื่นใช้อยู่"] }[e.name];
     engine(function () { return m ? T(m[0], m[1]) : T("palm.err.cam", "เปิดกล้องไม่ได้: {msg}", { msg: e.message || e.name }); }, "err");
