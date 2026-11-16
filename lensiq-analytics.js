@@ -39,7 +39,7 @@
       "cat-fortune", "cat-health", "cat-hr", "cat-marketing", "cat-security", "cat-studio", "checkout", "converter", "creative", "creative-suite",
       "crowd", "customers", "dream", "driver", "exam", "exam-dashboard", "exam-hall", "exam-lab", "faceread", "fengshui", "fortune", "gate",
       "gate-notice", "help", "horoscope", "hr", "iching", "index", "insights", "interview", "lek7", "lifegraph", "luckycolor", "medicine", "neuro", "nutrition", "tryon",
-      "numbers", "omr", "palm", "parking", "photobooth", "planner", "pricing", "privacy", "qc", "queue", "report", "retail", "signage", "solutions",
+      "numbers", "omr", "palm", "parking", "petread", "photobooth", "planner", "pricing", "privacy", "qc", "queue", "report", "retail", "signage", "solutions",
       "store", "studio", "tables", "taksa", "tarot", "teamface", "terms", "village", "zodiac", "other"
     ],
     feature: ["fortune.reading", "fortune.ai", "fortune.local", "studio.render", "photobooth.capture", "photobooth.print", "booth.count", "store.count", "signage.play", "camera.start", "camera.denied", "attendance.checkin", "customers.lookup", "checkout.scan", "qc.inspect", "driver.alert", "neuro.session", "insights.view", "insights.export", "converter.convert", "creative.analyse", "creative.compare", "interview.session", "teamface.card", "pricing.view", "palm", "faceread", "tarot", "horoscope", "other"],

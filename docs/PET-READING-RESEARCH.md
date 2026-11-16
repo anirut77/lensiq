@@ -341,3 +341,32 @@ Pet-owner content and apps
 - https://apps.apple.com/us/app/id6755437345
 - https://gummysearch.com/tools/best-products/astrology-apps/
 - https://unstar.app/blog/co-star-sanctuary-pattern-nebula-stellium-astrology-apps-ranked-2026 [C]
+
+## 6. Detector decision and measured numbers (branch `fortune-pet`, 2026-11-16)
+
+**Decision: reuse the shipped YOLOX-Nano 416** (Megvii, Apache-2.0, `vendor/models/yolox/`, already in `LICENSES/THIRD_PARTY.md`;
+COCO classes person 0, cat 15, dog 16) on ONNX Runtime Web WASM (`vendor/ort`). No new model file, no new licence. Every dedicated
+cat / dog face or landmark model checked is NO (non-commercial, no licence, GPL / AGPL or Ultralytics): see `docs/PET-READING-SOURCES.md`.
+MediaPipe EfficientDet-Lite weights are UNCLEAR (no first-party licence statement) and are not used.
+
+COCO gives a box around the whole animal, not a face. That is enough for this page: the box gives species and a coat-colour hint
+(centre of the box), and the share card crops around it. The owner confirms or changes every trait; the reading never depends on
+the detector alone. A person box (class 0) is never read: the reading text is identical with or without a person, the page says
+the person is ignored, and on the card every person region outside the pet box is pixelated (the photo is refused when a person
+covers more than half of the pet box). The detector is downloaded only after the owner picks a photo.
+
+**Measured (source: public dataset, Oxford-IIIT Pet, CC BY-SA 4.0, evaluation only, images never in the repo).** Locked set: 296
+trainval images (96 cats, 200 dogs, 8 per breed, `~/LENSIQ-field/evals/fortune-pet/manifest.json`, hashes in
+`evals-locks/fortune-pet.sha256`), harness `tests/bench/pet.bench.mjs`, headless Chrome, WASM, no WebGL.
+
+| run | thresholds | pet found (target ≥ 90 %) | species correct (target ≥ 90 %) | head box ≥ 80 % inside (target ≥ 85 %) | median ms |
+|---|---|---|---|---|---|
+| 1 (first build) | score ≥ 0.30 | 90.2 % | 85.5 % | 98.1 % | 51 |
+| 2 (final) | score ≥ 0.10, chosen on the DEV split only | **95.3 %** | **89.5 % (missed by 0.5 pt, 2 images)** | **97.9 %** | 103 |
+
+Per species (run 2): cats found 95.8 %, species right 87.5 %; dogs found 95.0 %, species right 90.5 %. A person was flagged on 4.4 %
+of the images (report only; some Oxford photos do show people). Thresholds were chosen on a separate DEV split (148 other Oxford
+trainval images, `tests/bench/pet-dev.tune.mjs`), never on the locked set; a second look on the crop and a mirrored crop added
+0.7 pt on DEV and was not adopted. The species target is **missed**, so the page only pre-fills the species and says
+"ตรวจและแก้ได้" (check and change). WebKit (iPhone 13 profile) runs the same model: of 4 CC0 sample photos, 3 were found
+(2 dogs, 1 cat) and the black cat on a fence was not, 90–730 ms each (4 sample photos: an observation, not a measurement).

@@ -414,6 +414,7 @@ const PAGES = {
   lifegraph: { st: "demo", why: "fortune", claims: ["fortune"] },
   planner: { st: "demo", why: "fortune", claims: ["fortune"] },
   luckycolor: { st: "demo", why: "fortune", claims: ["fortune"] },
+  petread: { st: "demo", why: "fortune", claims: ["fortune"] },
   report: { st: "demo", why: "fortune", claims: ["fortune"] },
   // 7 Studio & Media
   studio: { st: "experimental", why: "studio", claims: ["studio"] },
@@ -503,6 +504,8 @@ const CATEGORIES = [
  *  noindex; see docs/PAGE-STATUS.md "Not linked"). */
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
 const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
-  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category" };
+  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category",
+  petread: "Pet face reading (dogs and cats, owner order 2026-11-16 part B): built on branch fortune-pet; " +
+    "joins category 6 (CLAUDE.md table, cat-fortune, fortune hub) when the owner approves go-live" };
 
 module.exports = { STATUS, STATUS_DEF, STATUS_DEF_CAT, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };
