@@ -81,3 +81,7 @@ bfe416e44fab36aba3ebdf6db0c82bcf624243f01ae7d3060281692c73dbb65b  relock7/fortun
 fe0370cea5963d3a28609c64e357548582657990bdc280ef6406fcccca70a62a  tests/e2e/fortune-live.e2e.mjs  # repo file (re-lock 7)
 bfe416e44fab36aba3ebdf6db0c82bcf624243f01ae7d3060281692c73dbb65b  tests/e2e/fortune-helpline.e2e.mjs  # repo file (re-lock 7)
 9877be5bfed86be058b5dfc881acac5e6914633cd8436b710e29421c5c475e9b  tests/e2e/helpline-call.e2e.mjs  # repo file (re-lock 7)
+# RE-LOCK 8 2026-11-17 (append-only), before the fix: G1b added to tests/unit/crisis-rules-1323-g.test.js: no crisis-card counter anywhere (no localStorage, no sessionStorage, not in fortune-ai.js). Reason: CI run 43936566370 fortune-crisis-session (b) allows one sessionStorage boolean, and nothing reads the counter (coordinator order 2026-11-17). G1-G3 unchanged. Fails 1/4 on 57d7e3f.
+# locked 2026-11-16T22:30:47Z (tools/eval-guard.mjs lock, 1 file)
+99446efcacd732d3f7994085109cd9a0d6c114342fe18b5f012707398354fcf4  relock8/crisis-rules-1323-g.test.js
+99446efcacd732d3f7994085109cd9a0d6c114342fe18b5f012707398354fcf4  tests/unit/crisis-rules-1323-g.test.js  # repo file (re-lock 8)

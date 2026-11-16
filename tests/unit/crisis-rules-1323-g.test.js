@@ -50,3 +50,16 @@ test("G3: the fallback call button (component missing) is at least 44 x 44 px", 
   const dom = /Object\.assign\(el\("a", "lq-call-btn fa-tel"[^\n]*/.exec(src) || /el\("a", "lq-call-btn fa-tel"[^\n]*/.exec(src);
   assert.ok(dom && /min-height:\s*44px/.test(dom[0]) && /min-width:\s*44px/.test(dom[0]), "DOM fallback sets 44 px");
 });
+
+// RE-LOCK 2026-11-17 (append-only; coordinator, after CI run 43936566370: fortune-crisis-session (b) allows ONE sessionStorage
+// boolean): the count of crisis cards is not kept at all (nothing reads it; the most private choice).
+test("G1b: no count of crisis cards anywhere: not in localStorage, not in sessionStorage, not in the source", () => {
+  const ls = mk(), ss = mk();
+  const win = { localStorage: ls, sessionStorage: ss, console };
+  win.window = win; win.globalThis = win;
+  vm.runInContext(readFileSync(join(ROOT, "fortune-ai.js"), "utf8"), vm.createContext(win), { filename: "fortune-ai.js" });
+  for (const lang of ["th", "en", "zh"]) win.FortuneAI.crisis.result({ lang });
+  assert.deepEqual([...ls.m.keys()], [], "localStorage");
+  assert.deepEqual([...ss.m.keys()], [], "sessionStorage");
+  assert.doesNotMatch(readFileSync(join(ROOT, "fortune-ai.js"), "utf8"), /lq-support-n/, "fortune-ai.js keeps no crisis-card counter");
+});
