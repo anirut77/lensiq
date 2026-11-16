@@ -12,6 +12,17 @@ const COUNT_GUM = `(() => { window.__gum = 0; try { const md = navigator.mediaDe
   Object.defineProperty(navigator, "mediaDevices", { get: () => md, configurable: true });
   md.getUserMedia = () => { window.__gum++; return Promise.reject(new DOMException("Permission denied", "NotAllowedError")); }; } catch (e) {} })();`;
 
+/** polls the element's top every 50 ms until it has not changed for 500 ms (8 s at most; the assertion then decides) */
+async function waitStableTop(page, id, stableMs = 500, maxMs = 8000) {
+  const t0 = Date.now();
+  let last = null, since = Date.now();
+  while (Date.now() - t0 < maxMs) {
+    const top = await page.evaluate(i => { const e = document.getElementById(i); return e ? Math.round(e.getBoundingClientRect().top) : null; }, id);
+    if (top !== last) { last = top; since = Date.now(); } else if (top !== null && Date.now() - since >= stableMs) return;
+    await sleep(50);
+  }
+}
+
 export default async function ({ base, check }) {
   const browser = await launchWebKit();
   try {
@@ -20,7 +31,9 @@ export default async function ({ base, check }) {
         await check(`D-04 [${lang}] iPhone: index.html?interest=${product}#contact lands on the form heading and Name field`, async () => {
           const { ctx, page } = await openFlow(browser, `${base}/index.html?interest=${product}&nosw#contact`, { lang });
           try {
-            await sleep(2500);
+            // re-lock 2026-11-16 (webkit-flake-fix, CI run 43771149311): the fixed 2.5 s pause is replaced by a wait for a stable
+            // scroll position (the heading's top unchanged for 500 ms, 8 s at most); the assertion below is unchanged
+            await waitStableTop(page, "ct-title");
             const r = await page.evaluate(() => {
               const nav = document.getElementById("siteNav"), nb = nav ? nav.getBoundingClientRect().bottom : 0;
               const box = id => { const e = document.getElementById(id); if (!e || !e.getClientRects().length) return null; const b = e.getBoundingClientRect(); return { top: Math.round(b.top), bottom: Math.round(b.bottom) }; };

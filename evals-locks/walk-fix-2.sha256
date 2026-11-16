@@ -6,3 +6,6 @@ e759009d7087bf7b8e3b50b8dca52ebba10ad9fccd2ceb20e66509aa67e95404  walkfix2.e2e.m
 a133a8c1cb138ecf4963c1fbe33bd1a158a36eb4193416c2ef40e7c890eaa7bf  tests/unit/walkfix2.test.js  # repo file
 e759009d7087bf7b8e3b50b8dca52ebba10ad9fccd2ceb20e66509aa67e95404  tests/e2e/walkfix2.e2e.mjs  # repo file
 68050f989845f70fd83c34d4fa4f0bd52bcbe353833684d1900917f2bf4d32d0  tests/e2e/walkfix2-webkit.e2e.mjs  # repo file
+# re-lock 2026-11-16T00:17:22Z (webkit-flake-fix, CI run 43771149311): walkfix2-webkit.e2e.mjs D-04: fixed pause -> wait for stable scroll; assertion unchanged (the heading's top is polled every 50 ms until unchanged for 500 ms, 8 s at most; then the same on-screen-below-the-header rule for title, note and Name). D-01 untouched. Committed BEFORE the product fix. Append-only.
+5d89140d68dd8637e53a5fce8270f77ee888a16122956efd12bb4bbf6bd0a84f  walkfix2-webkit.e2e.mjs
+5d89140d68dd8637e53a5fce8270f77ee888a16122956efd12bb4bbf6bd0a84f  tests/e2e/walkfix2-webkit.e2e.mjs  # repo file
