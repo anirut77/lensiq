@@ -9,3 +9,7 @@ ae694b57675b1b0d78d09a2826fe054374b21356cfff84aa99b7fdd9482df920  tests/unit/for
 488bf89031daaeeba066917edc9e7e9d8bab2fe6c6364e62987bc289c08cdc58  tests/e2e/fortune-top-compact.e2e.mjs
 7388a064e142cb4b600b975bc863813ec75be3a6f6fc590d03f6fb82e4231463  relock69/tests/e2e/fortune-live.e2e.mjs
 17af0cd3ec53dadbaa6ffe22a7e538062f4fd70ba75e9f8ea81badaadb9e7417  relock69/tests/e2e/fortune-helpline.e2e.mjs
+# RE-LOCK 2026-11-16 (runtime only, before any measurement of the build): the base run (run-0-before-build-e2e.log: C1-C4 fail, C5-C6 pass, then the file hit the runner's 15-minute limit inside C7) showed the file is too slow; C7 moved verbatim to tests/e2e/fortune-top-compact-2.e2e.mjs, waits after a resize / scroll 250 -> 150 ms. No check, page, size or language changed.
+# locked 2026-11-16T03:58:31Z (tools/eval-guard.mjs lock, 2 files)
+1f3043e4375515ed7d23b28d9d5d2b7b2d338d5e866859eb38e42ea147993f20  tests/e2e/fortune-top-compact.e2e.mjs
+9c5f41e3d50570baa6d2782499399d2cf4675fa1cf72f942e24bad8e9cccefa6  tests/e2e/fortune-top-compact-2.e2e.mjs
