@@ -36,3 +36,16 @@ a874aa34ae096ac6c1ae2fcadc2dbf204552d8b7d4b6bff56ff7841fffbb55e3  tests/unit/for
 7276effc52fe326baf074b510873bb3b0a53dae8450ad096181d7556fceedb21  tools/fortune-quality-metrics-4.mjs
 70a27e6630de04b23b2d2b284029e574e3c1a12ef20652338a138164cbcabb89  tests/unit/fortune-quality-4.test.js
 e132569ec12e2859b236202cf6a5871061d6ac59ac70c2e247c69ee3edc44552  tools/fortune-quality-measure-4.mjs
+# round 5 (coordinator order after RECHECK-4.md NOT OK on d0c8b43; append-only, rounds 1-4 unchanged): metrics V1-V8. Reasons:
+# V1 bare-adjective Thai group starts left by the content-first strip (R1: "โรแมนติก ใส่ใจบรรยากาศ…"); V2 a partly stripped hedge
+# ("ไทย ฝันช่วงหัวค่ำ…") and the stray "ลงมือ ๆ"; V3 back-references to a source the strip no longer names ("อีกความหมายของX…",
+# "ตำรายังบอกด้วยว่า…", "Another side of X…", "X的另一层意思是…"); V4 a named source in every topic group of the multi-system pages
+# (horoscope, bazi; the report deep-dive per system run); V5 month names in the report (R2: "เดือน12" / "as 12" / "和12"); V6 no
+# meaning verb over the siam si verse image (R3, EN and ZH); V7 overview source-lead formulas (EN 84 % / ZH 58 % in RECHECK-4, never
+# measured: the round-4 U1 skipped the overview) <= 15 % and at most one per overview; V8 Thai report closers at most once per part
+# and once per report. NEW input set fresh5 (120 inputs, gentle AND straight) and 5 new report births. Detectors written by the
+# builder; the reviewer's scripts (r4rev/) were not read. Locked BEFORE the round-5 fixes; all eight fail on d0c8b43.
+# locked 2026-11-16T15:14:23Z (tools/eval-guard.mjs lock, 3 files)
+32e379a7dc9960f7cdd9b5c3bbac33ea58400e97bd985e3da9d45fae2e024a18  tools/fortune-quality-metrics-5.mjs
+37f9d3e92ed138693400f32e84cdee265561e17631623573746a5dc4704e6e2d  tests/unit/fortune-quality-5.test.js
+7f146523d2eeaa0f9c16b5a6dbe31c05bdee988ade1444fc1c6bc8d1063ac972  tools/fortune-quality-measure-5.mjs
