@@ -16,6 +16,7 @@
   "rp.plan30.title": "Your personal 30-day plan",
   "rp.plan30.note": "Merged from the suggestions of all 3 systems for your chart. Small self-care steps, not medical or financial advice",
   "rp.plan30.month": "This month",
+  "rp.sameMonth": "Much the same as {m}, so the same plan carries on",
   "rp.plan30.reviewFor": "Review",
   "rp.plan30.review": "Note briefly which steps you managed and how they felt. Keep the one that worked best for next month and drop the ones that do not suit you",
   "rp.h1": "My fortune reports",

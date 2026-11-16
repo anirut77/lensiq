@@ -58,14 +58,14 @@
   };
   var MAHA_X = "in Taksa, the maha taksa periods hand each stretch of your life to a different planet in turn";
   var HOUSE = [
-    { n: "the self house (tanu)", f: "p", m: "your sense of self, your confidence and how others see you" }, { n: "the wealth house (kadumpha)", f: "m", m: "earning and saving money" }, { n: "the siblings and friends house (sahatcha)", f: "c", m: "friends, siblings and short trips" },
-    { n: "the family house (phanthu)", f: "c", m: "family, home and relatives" }, { n: "the joy and romance house (putta)", f: "l", m: "love, joy and creative work" }, { n: "the challenges house (ari)", f: "w", m: "handling competition and work that takes real effort" }, { n: "the partner house (patni)", f: "l", m: "partners and close collaborators" },
+    { n: "the self house (tanu)", f: "p", m: "your sense of self, your confidence and how others see you", a: "do one small thing each day that builds your confidence, such as dressing the part or speaking up once in a meeting" }, { n: "the wealth house (kadumpha)", f: "m", m: "earning and saving money", a: "write down what comes in and goes out each day, and set a small amount aside before you spend" }, { n: "the siblings and friends house (sahatcha)", f: "c", m: "friends, siblings and short trips", a: "reach out to a sibling or an old friend once a week, or plan a short trip together" },
+    { n: "the family house (phanthu)", f: "c", m: "family, home and relatives", a: "set aside one unhurried meal or talk with the people at home each week" }, { n: "the joy and romance house (putta)", f: "l", m: "love, joy and creative work", a: "give an hour a week to a hobby or something that simply makes you happy" }, { n: "the challenges house (ari)", f: "w", m: "handling competition and work that takes real effort", a: "break a hard task into small steps and finish them one at a time" }, { n: "the partner house (patni)", f: "l", m: "partners and close collaborators", a: "talk your shared plans through clearly with your partner or business partner once a month" },
   ];
   var L7_X = "in Lek 7 Tua 9 Than, the Thai seven digits and nine bases chart, digits from your birth weekday, month and year add up into houses like this one";
   var DOM = { work: { n: "work", f: "w" }, money: { n: "finances", f: "m" }, love: { n: "love life", f: "l" }, care: { n: "self-care", f: "a" } };
   var DOM_LINE = {
     work: { favourable: "your work has a good tailwind, which makes this a fine time to take on a new role or grow your results", neutral: "your work moves along at its usual pace, a good time for you to build experience", caution: "your work may ask a little more effort of you during this time" },
-    money: { favourable: "with good planning, your finances have room to grow", neutral: "your finances stay steady, which suits regular saving", caution: "money may feel a little tight for you during this time" },
+    money: { favourable: "good planning gives your finances room to grow", neutral: "your finances stay steady, which suits regular saving", caution: "money may feel a little tight for you during this time" },
     love: { favourable: "your love life feels warm, and it is easy for you to open your heart", neutral: "your love life keeps its usual steady rhythm", caution: "your love life may need a little more patience and understanding during this time" },
     care: { favourable: "keep up the steady self-care that is serving you so well in this period", neutral: "keep a regular, easy rhythm of self-care", caution: "pay extra attention to rest and to your inner well-being during this time" },
   };
@@ -93,13 +93,16 @@
   });
   Object.keys(GOD).forEach(function (k) { var G = GOD[k], it = { n: "your ten-year luck period (" + G.n + ")", s: "this luck period", t: G.t }; ["w", "m", "l", "c", "a"].forEach(function (f) { if (G[f]) it[f] = G[f]; }); it.x = LUCK_X; bazi["luck." + k] = it; });
 
+  // round 4: who the people around you are, by the planet in the area (one line per planet, not one for every user)
+  var BORI2 = {"1": "when you give the people around you credit, they become even keener to help you", "2": "your small acts of care keep your friendships going for years", "3": "when there is a hard job to do, you are often the first person your friends think of", "4": "keeping in touch regularly makes your network wider still", "5": "sharing what you know brings you people who respect you and are ready to help", "6": "get-togethers and fun outings often bring good people into your life", "7": "your friendships grow slowly but steadily, and they last", "8": "being open to people from other fields opens new doors for you"};
+  var BORI = {"1": "the people around you tend to respect you and follow when you take the lead", "2": "people feel at ease with you and come back to you when they need encouragement", "3": "you have hard-working companions who are ready to take on tough jobs with you", "4": "you have a network of friends you can talk to about anything, and you pass opportunities to each other", "5": "people often come to you for advice, and your friendships tend to last", "6": "you get along with people easily, and your friends share your love of fun and beautiful things", "7": "the people around you trust you because you are responsible and do what you say", "8": "your friends are a varied crowd, and you often meet new people who widen your view"}, MONT = {"1": "people in senior positions or your managers tend to be the ones who back you", "2": "kind elders or gentle people tend to help you out", "3": "elders who work seriously and decide boldly tend to support you", "4": "people with a talent for communication or trade tend to open doors for you", "5": "teachers and knowledgeable people tend to point the way for you", "6": "charming people or people in the arts tend to help you", "7": "patient, experienced elders tend to support you steadily", "8": "help often comes from outside your usual circle, or from people you would not expect"};
   Object.keys(PLANET).forEach(function (p) {
     var P = PLANET[p];
-    taksa["tk.boriwan." + p] = { n: P.n + " (your birth-day planet)", s: P.n, o: "your birth-day planet is " + P.n + ", which stands for " + P.q, p: "you are born with a natural strength for " + P.q, c: BH.boriwan.m, l: "in Taksa the companions area covers your partner and family too, so close relationships grow well when you look after the people around you", x: TK_X };
+    taksa["tk.boriwan." + p] = { n: P.n + " (your birth-day planet)", s: P.n, o: "your birth-day planet is " + P.n + ", which stands for " + P.q, p: "you are born with a natural strength for " + P.q, c: [BORI[p] || BH.boriwan.m, BORI2[p]], l: "in Taksa the companions area covers your partner and family too, so close relationships grow well when you look after the people around you", x: TK_X };
     Object.keys(BH).forEach(function (b) {
       if (b === "boriwan") return;
       var B = BH[b], it = { n: B.n + ", held by " + P.n, s: B.n.replace(/ \(\w+\)$/, "") };
-      it[B.f] = B.m.replace("{p}", P.n); if (B.a) it.a = B.a.replace("{p}", P.n); if (B.f !== "a") it.o = it[B.f];
+      it[B.f] = b === "montri" ? MONT[p] : B.m.replace("{p}", P.n); if (B.a) it.a = B.a.replace("{p}", P.n); if (B.f !== "a") it.o = it[B.f];
       it.x = "in Taksa, the Thai system of birth-day planets, this is one of eight bhumi, or life areas, and it covers " + B.g;
       taksa["tk." + b + "." + p] = it;
       var mt = { n: P.k + " period in Taksa, in " + B.n, s: "this Taksa period", t: "this stretch of your life is led by " + P.n + ", with the focus on " + P.q, x: MAHA_X };
@@ -124,9 +127,9 @@
     "It is best handled calmly for now, without rushing big decisions in this area", "Its energy can be built up with small steps, starting with something easy this week",
     "It is better not to push it at the moment, and to give it patient attention instead"];
   HOUSE.forEach(function (h, i) {
-    var fav = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), o: "the area of " + h.m + " is one of the stronger spots in your chart", x: L7_X }; fav[h.f] = h.m + " is a strength in your chart. " + L7_FAV2[i % 7];
+    var fav = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), o: "the area of " + h.m + " is one of the stronger spots in your chart", x: L7_X }; fav[h.f] = "there is extra strength behind " + h.m + " for you. " + L7_FAV2[i % 7];
     var neu = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), x: L7_X }; neu[h.f] = "the area of " + h.m + " has a moderate amount of energy. " + L7_NEU2[i % 7];
-    var cau = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), a: "give a little more time, bit by bit, to " + h.m, x: L7_X }; cau[h.f] = "the area of " + h.m + " has less energy for now. " + L7_CAU2[i % 7];
+    var cau = { n: h.n, s: h.n.replace(/ \(\w+\)$/, ""), a: h.a, x: L7_X }; cau[h.f] = "the area of " + h.m + " has less energy for now. " + L7_CAU2[i % 7];
     lek7["l7." + i + ".favourable"] = fav; lek7["l7." + i + ".neutral"] = neu; lek7["l7." + i + ".caution"] = cau;
   });
   Object.keys(DOM).forEach(function (d) {

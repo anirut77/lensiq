@@ -246,7 +246,8 @@
         evidence: "ปีสุริยคติ " + K.solarYear + (K.raw === 5 ? " (ได้ 5 ใช้ " + K.kua + ")" : ""), strength: 1, tags: ["overview", "personality"],
         meanings: {
           overview: [
-            "เลขกัวของคุณคือ " + K.kua + " ตรงกับตรีแกรม" + triTh(I.trigram) + " อยู่ใน" + noCn(G.th) + " ทิศที่เข้ากับคุณตามตำราคือ" + G.dirs.slice(0, -1).map(dirTh).join(" ") + " และ" + dirTh(G.dirs[G.dirs.length - 1]),
+            // round 4: the overview says what the kua means, not only its labels (RECHECK-3: "เลขกัวของคุณคือ 3 ตรงกับตรีแกรมเจิ้น (震) อยู่ในกลุ่มตะวันออก")
+            "เลขกัว " + K.kua + " ของคุณตรงกับตรีแกรม" + triTh(I.trigram) + " ตำรามองว่าคุณเป็นคน" + I.vibe[0] + "และ" + I.vibe[1] + " คุณอยู่ใน" + noCn(G.th) + " ทิศที่เข้ากับคุณตามตำราคือ" + G.dirs.slice(0, -1).map(dirTh).join(" ") + " และ" + dirTh(G.dirs[G.dirs.length - 1]),
             "ตามศาสตร์ปาจ้าย คุณเป็นคน" + noCn(G.th) + " เลขกัว " + K.kua + " ธาตุ" + EL.th + " ทิศหลักที่ส่งเสริมคือ" + dirTh(T.shengqi)
           ],
           personality: [

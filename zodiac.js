@@ -102,11 +102,12 @@
     var rm = { overview: REL.o.slice(), work: REL.w.slice(), money: REL.m.slice(), love: REL.l.slice(), advice: REL.a.slice(), timing: REL.t.slice() };
     items.push({ id: "rel." + R.rel, group: "ปี " + R.year + " (พ.ศ. " + (R.year + 543) + ")", label: REL.th === "ปีปกติ" ? "ปี" + Y.th + "ที่ไม่ชงและไม่ประสาน" : REL.badge.split(" · ").pop() + "ในปี" + Y.th, short: "ปีนี้", evidence: yearName(R.year),
       strength: 0.95, polarity: REL.tone === "care" ? "challenge" : undefined, tags: Object.keys(rm), meanings: rm });
-    var em = { overview: [ER.o], work: [ER.w], money: [ER.m], love: [ER.l] };
+    var em = { overview: [ER.o], work: [ER.w], money: [ER.m], love: [ER.l], timing: [ER.t] }; // round 4: each element year has its own timing line
     items.push({ id: "el." + R.elRel, group: "พลังธาตุ", label: ER.th + " (ธาตุ" + KB.ELEMENTS[R.yearElement].th + "กับธาตุ" + KB.ELEMENTS[R.birthElement].th + ")", short: "พลังธาตุของปี", strength: 0.78, tags: Object.keys(em), meanings: em });
     if (R.supports.length) {
       var names = R.supports.map(function (k) { return "ปี" + KB.ANIMALS[k].th; });
-      var sm = { social: ["คนที่เกิด" + names.join(" ") + " เป็นคู่เสริมดวงของคุณตามตำรา ร่วมงานหรือทำกิจกรรมด้วยกันแล้วพลังดีจะเพิ่มขึ้น"], love: ["ตามตำรา คนที่เกิด" + names.slice(0, 2).join("หรือ") + "มักเข้าใจคุณได้ง่าย"] };
+      // round 4: the list closes its clause ("…คนที่เกิดปีมะแม ปีจอ และปีกุน"), so a cut after it never leaves a subject without its verb
+      var sm = { social: ["คู่เสริมดวงของคุณตามตำราคือคนที่เกิด" + (names.length > 1 ? names.slice(0, -1).join(" ") + " และ" + names[names.length - 1] : names[0]) + " ร่วมงานหรือทำกิจกรรมด้วยกันแล้วพลังดีจะเพิ่มขึ้น"], love: ["ตามตำรา คนที่เกิด" + names.slice(0, 2).join("หรือ") + "มักเข้าใจคุณได้ง่าย"] };
       items.push({ id: "support", group: "คู่มงคล", label: "นักษัตรคู่เสริมดวง", short: "คู่เสริมดวง", strength: 0.66, tags: Object.keys(sm), meanings: sm });
     }
     for (var i = items.length - 1; i >= 0; i--) if (!items[i].polarity) delete items[i].polarity;

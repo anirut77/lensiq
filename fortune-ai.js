@@ -1722,7 +1722,7 @@
   // round 3: the short "in brief" helpers and the repeated-phrase check live in fortune-brief.js (size cap); this file passes its rules in
   let BRK;
   const BR = () => BRK !== undefined ? BRK : (BRK = (m => (m ? m({ SECTION_KEYS, hasKeys, pickMeaning, topicsIn, offTopic, itemSentence, isSafe, tidy, cleanMeaning,
-    loveOnlyIn, BRIEF_TH, markUsed, remedyFor, TRAD_REMEDY, REMEDY_FRAMES_TH, REMEDY_FRAMES_GENERAL_TH, pick, grammarIssues, thJoinIssues }) : null))(
+    loveOnlyIn, BRIEF_TH, markUsed, remedyFor, TRAD_REMEDY, REMEDY_FRAMES_TH, REMEDY_FRAMES_GENERAL_TH, pick, grammarIssues, thJoinIssues, roleOf, isImperative, TRAIT_TH, cap, FALLBACK_LINE, nearDupPairs, CLOSE: { th: CLOSERS, en: EN_CLOSE, zh: ZH_CLOSE } }) : null))(
     (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-brief.js") : root.LQFortuneBrief) || null));
   function pickMeaning(ctx, it, keys, secId) {
     const pool = [];
@@ -2072,7 +2072,7 @@
   function actionLine(ctx, chosen, id) {
     const cands = [];
     const tips = Array.isArray(ctx.F.extras.tips) ? ctx.F.extras.tips : [];
-    for (const raw of chosen.concat(ctx.F.items).flatMap(it => it.meanings.advice || []).concat(tips)) {
+    for (const raw of (ctx.F.domain === "lek7" ? [] : chosen.concat(ctx.F.items).flatMap(it => it.meanings.advice || [])).concat(tips)) { // round 4: lek7 house steps: advice group only
       const c = cleanMeaning(raw); if (!c || ctx.used.has(c) || !isSafe(c) || offTopic(c, id) || adviceOffTopic(c, id) || (!ADV_TOPIC[id] && topicsIn(c).length) || overlapsUsed(ctx, c)) continue;
       const sp = splitLead(c); const m = bareAdvice(sp ? sp.rest : c);
       if (m.length >= 8 && isImperative(sp ? sp.rest : c) && !/^อย่า/.test(m) && cands.every(x => x.c !== c)) cands.push({ c, m, on: TOPIC_LEX[id] ? TOPIC_LEX[id].test(c) : false });
@@ -2100,14 +2100,13 @@
     const rm = remedyFor(ctx.F, it, sec);
     // "ตามตำรา" เฉพาะวิธีที่ตำรากำหนดจริง (สี ธาตุ ทิศ); นิสัยทั่วไปบอกตรง ๆ ว่าเป็น "ข้อแนะนำทั่วไป"
     const frame = STRAIGHT ? (TRAD_REMEDY.has(rm && rm.cat) ? "สิ่งที่ควรทำตามตำราคือ" : "สิ่งที่ควรทำคือ") : TRAD_REMEDY.has(rm && rm.cat) ? "วิธีปรับตามตำราคือ" : "ข้อแนะนำทั่วไปคือ";
-    const own2 = ctx.F.domain === "lek7" ? (it.meanings.advice || []).map(cleanMeaning).find(m => m && !ctx.used.has(m) && isSafe(m) && isImperative(m)) : null;
+    const own2 = null; // round 4: lek7 has its advice group again (the house steps go there, in TH / EN / ZH), so a caution keeps the remedy only
     if (rm && !ctx.remedyKeys.has(rm.key)) {
       ctx.remedyKeys.add(rm.key);
-      // round 3 (S7d): lek7 has no advice group, so a caution house keeps its own step too (EN / ZH give it as well)
       if (own2) markUsed(ctx, own2);
       return { text: frame + rm.th.replace(/^ตามตำรา/, "") + (own2 ? " แล้ว" + bareAdvice(own2) : ""), fixed: true, sub: true, noConn: true };
     }
-    const own = own2 || (it.meanings.advice || []).map(cleanMeaning).find(m => m && !ctx.used.has(m) && isSafe(m) && isImperative(m) && !adviceOffTopic(m, area) && !overlapsUsed(ctx, m));
+    const own = own2 || (ctx.F.domain !== "lek7" && (it.meanings.advice || []).map(cleanMeaning).find(m => m && !ctx.used.has(m) && isSafe(m) && isImperative(m) && !adviceOffTopic(m, area) && !overlapsUsed(ctx, m)));
     let text = own || pick(ctx.r, CAUTION_ACTION_TH[area]);
     if (own) { markUsed(ctx, own); if (!/^(?:ควร|ลอง)/.test(text)) text = "ควร" + bareAdvice(text); }
     return { text, fixed: true, sub: true, noConn: true };
@@ -2194,7 +2193,8 @@
       }
     }
     // ไม่มีเนื้อหาจริงเลย (ความหมายถูกใช้ไปหมดแล้ว) → ไม่สร้างหัวข้อที่มีแต่คำเกริ่น
-    if (!body.length && !extraUnits.length) return null;
+    // round 4: lek7's advice group holds the house steps, also one for a house outside the asked topic (TH / EN / ZH alike)
+    if (id === "advice" && !body.length && F.domain === "lek7") { const a = F.items.flatMap(it => it.meanings.advice || []).map(cleanMeaning).find(m => m && !ctx.used.has(m) && isSafe(m)); if (a) { markUsed(ctx, a); body.push(adviceUnit(ctx, a)); } } if (!body.length && !extraUnits.length) return null;
     const syn = id === "advice" || body.length < 2 ? [] : synthesis(ctx, chosen, id);
     // แทรกประโยคผสานไว้หลังสิ่งที่พบชิ้นที่สองหรือสาม ให้อ่านลื่นเหมือนคนเล่า
     if (syn.length) body.splice(Math.min(body.length, 2 + Math.floor(r() * 2)), 0, syn[0]);
@@ -2580,8 +2580,9 @@
       const kept = briefs[adv].brief.filter(t => !adviceOffTopic(t, F.topic));
       const host = sections.find(s => s.id === topicId) || sections[sections.length - 1];
       const fits = t => !(host && adviceOffTopic(t, host.id)) && !(host && (loveOnlyIn(t, host.id) || (host.id === "money" && t.split(" ").some(cl => cl.length >= 20 && TOPIC_LEX.love.test(cl) && !TOPIC_LEX.money.test(cl)))));
-      if (kept.length && kept.join(" ").length < 90 && host) { const k2 = kept.filter(fits); if (k2.length) { host.paragraphs.push(k2.join(" ")); ctx.advTo = host.id; } }
-      else if (kept.length) sections.push({ id: "advice", title: SECTION_TITLES.advice, paragraphs: [kept.join(" ")] });
+      // round 4: in lek7, siam si and the life graph (no advice group in RECHECK-3) a short advice of the findings own steps stays its own group
+      const own = /^(?:lek7|siamsee|lifegraph)$/.test(F.domain) && kept.some(t => F.items.some(it => (it.meanings.advice || []).some(a => String(cleanMeaning(a) || "").length >= 12 && t.indexOf(String(cleanMeaning(a)).replace(/^(?:คุณ)?(?:ควร|ลอง)/, "").slice(0, 12)) >= 0))); if (kept.length && kept.join(" ").length < 90 && host && !own) { const k2 = kept.filter(fits); if (k2.length) { host.paragraphs.push(k2.join(" ")); ctx.advTo = host.id; } }
+      else if (kept.length) { const t = kept.join(" "), cl = t.length < 90 ? CLOSERS.filter(c => !/\{/.test(c) && !sections.some(x => x.paragraphs.join(" ").indexOf(c) >= 0)).sort((a, b) => b.length - a.length).reduce((z, c) => (t.length + z.length < 90 ? (z ? z + " " : "") + c : z), "") : ""; sections.push({ id: "advice", title: SECTION_TITLES.advice, paragraphs: [t + (cl ? " " + cl : "")] }); } // round 4: a short own-step advice group ends with a closing line (90 characters)
       briefs.splice(adv, 1);
     }
     if (briefs.length) {
@@ -2591,7 +2592,7 @@
       // round 3: a short "in brief" never goes into the overview, which carries only the overview, nor into another topic's group.
       // Under 90 characters it is first given a second line on the same areas from what was found; still too short, it is left out
       // (EN / ZH leave the same areas out)
-      if (lines.join(" ").length < 90 && BR()) BR().briefMore(ctx, briefs, lines);
+      if (BR()) { BR().briefPolish(lines, F.items, ctx.pol = ctx.pol || { kept: 0 }); if (lines.join(" ").length < 90) { BR().briefMore(ctx, briefs, lines); BR().briefPolish(lines, F.items, ctx.pol); } } // round 4: decided on the lines as shown
       if (lines.join(" ").length < 90) ctx.ovBrief = briefs.map(b => b.id);
       else { ctx.briefIds = briefs.map(b => b.id); sections.splice(at < 0 ? sections.length : at, 0, { id: "brief", title: "เรื่องอื่น ๆ โดยย่อ", paragraphs: lines }); }
     }
@@ -2619,7 +2620,7 @@
     enforceBudget(sections);
     trimToBudget(sections, topicId, (opts.maxLength || FULL_MAX) - 90);
     explainTerms(sections);
-    for (const s of sections) s.paragraphs = s.paragraphs.map(p => p.replace(/(ซึ่ง\S{0,24}\s)ซึ่ง(?=หมายความว่า|เป็น)/g, "$1")); // round 3: no "ซึ่ง … ซึ่ง"
+    for (const s of sections) s.paragraphs = s.paragraphs.map(p => p.replace(/(ซึ่ง\S{0,24}\s)ซึ่ง(?=หมายความว่า|เป็น)/g, "$1")); if (BR()) BR().polish(sections, "th", F.items, ctx.pol = ctx.pol || { kept: 0 }); // round 3: no "ซึ่ง … ซึ่ง"; round 4: group openings (fortune-brief.js)
     if (opts.split !== false) splitMain(sections, topicId);
     const out = { source: "local", sections, seed, lang: "th", topic: F.topic, reminder: reminderFor("th", r, F.domain) };
     const bs = sections.find(s => s.id === "brief");
@@ -2798,9 +2799,9 @@
     const zLead = (area, it) => { const L = leadPool("zh", it), c = shuffle(r, L[area] || L.overview).find(x => !zLeadUsed.has(x)); return c ? (zLeadUsed.add(c), crec(true, zhEnd(c))) : null; };
     function zhCautionAction(it, area) { return crec(true, zhCautionAction0(it, area)); } function zhCautionAction0(it, area) {
       const rm = remedyFor(F, it, area);
-      const lk = F.domain === "lek7" && (!P || area === "overview" || P.seq.indexOf(area) >= 0) ? (it.meanings.advice || []).find(m => !used.has(m) && isSafe(m)) : null; // round 3 (S7d): lek7 keeps each caution house's own step
+      const lk = null; // round 4: lek7 house steps go to the advice group (as in Thai)
       if (rm && !zRemedy.has(rm.key)) { zRemedy.add(rm.key); lastSubj = null; if (lk) used.add(lk); return zhEnd((STRAIGHT ? "建议这样调整：" : "调整的方法是：") + rm.zh) + (lk ? advice(lk) : ""); }
-      const own = lk || (it.meanings.advice || []).find(m => !used.has(m) && isSafe(m) && !adviceOffTopic(m, area) && (area !== "personality" || F.topic !== "overall" || !topicsIn(m).length));
+      const own = lk || (F.domain !== "lek7" && (it.meanings.advice || []).find(m => !used.has(m) && isSafe(m) && !adviceOffTopic(m, area) && (area !== "personality" || F.topic !== "overall" || !topicsIn(m).length)));
       if (own) { used.add(own); return STRAIGHT ? zhEnd("建议你" + zhAdvSlot("建议你{A}", own)) : advice(own); } // straight: the step reads as one
       lastSubj = null;
       const pool = CAUTION_ACTION_ZH[area] || CAUTION_ACTION_ZH.overview, a = shuffle(r, pool).find(x => !zActUsed.has(x)) || shuffle(r, CAUTION_ACTION_ZH.overview).find(x => !zActUsed.has(x)) || pool[0];
@@ -2913,7 +2914,7 @@
         const dirs = [].concat(F.extras.directions || []).map(d => zhDirsIn(d)[0]).filter(Boolean);
         if (dirs.length) s.push(zhEnd(fill(pick(r, ZH_DIR), { X: zhList(Array.from(new Set(dirs)).slice(0, 2)) })));
         for (const t of [].concat(F.extras.tips || []).slice(0, 2)) { const z = ((ZH[F.domain] || {}).tips || {})[t]; if (z && !used.has(z) && isSafe(z)) { used.add(z); s.push(zhEnd(z)); } }
-        if (!s.length && pk === "group") { const a = items.flatMap(it => it.meanings.advice || []).find(m => !used.has(m) && isSafe(m) && !adviceOffTopic(m, F.topic)); if (a) { used.add(a); s.push(advice(a, true)); } }
+        if (!s.length && (pk === "group" || (pk === "merge" && F.domain === "lek7"))) { const A = items.flatMap(it => it.meanings.advice || []), a = A.find(m => !used.has(m) && isSafe(m) && !adviceOffTopic(m, F.topic)) || (F.domain === "lek7" ? A.find(m => !used.has(m) && isSafe(m)) : null); if (a) { used.add(a); s.push(advice(a, true)); } }
         if (!s.length) continue;
         if (pk === "merge") { const h = sections.find(x => x.id === P.adv) || sections[sections.length - 1], s2 = h && h.id === "personality" && F.topic === "overall" ? s.filter(x => !topicsIn(x).length) : s; if (h && s2.length) h.paragraphs.push(s2.join("")); continue; }
         s.push(zhEnd(fill(closeAfter(dk.close, s, "zh"), { TW: ZH_TAG[F.topic === "overall" ? "overview" : F.topic] })));
@@ -2941,9 +2942,9 @@
       if (isTopic) {
         // 本主题的行动建议必须真的谈这个主题（不把"多喝水"放在事业里）
         const lex = ZH_TOPIC_LEX[id];
-        const act = items.map(it => (it.meanings.advice || []).find(m => !used.has(m) && (!lex || lex.test(m)) && !adviceOffTopic(m, id) && (ADV_TOPIC[id] || !topicsIn(m).length))).find(Boolean);
+        const act = F.domain === "lek7" || P && P.seq.indexOf("advice") >= 0 && items.reduce((n, it) => n + (it.meanings.advice || []).filter(m => !used.has(m)).length, 0) <= 1 ? null : items.map(it => (it.meanings.advice || []).find(m => !used.has(m) && (!lex || lex.test(m)) && !adviceOffTopic(m, id) && (ADV_TOPIC[id] || !topicsIn(m).length))).find(Boolean);
         if (act) { used.add(act); actions.push(act); s.push(advice(act)); }
-        else s.push(zhEnd(fill(closeAfter(dk.close, s, "zh"), { TW: ZH_TAG[id] })));
+        else { const rm = P && P.seq.indexOf("advice") >= 0 && items[0] ? remedyFor(F, items[0], id) : null; if (rm && rm.zh && !zRemedy.has(rm.key)) { zRemedy.add(rm.key); s.push(zhEnd("调整的方法是：" + rm.zh)); } s.push(zhEnd(fill(closeAfter(dk.close, s, "zh"), { TW: ZH_TAG[id] }))); } // round 4: as in English
       }
       const text = s.join("");
       if (pk === "ov") { folded.push(ZH_TAG[id] + "方面：" + text); continue; }
@@ -2976,7 +2977,7 @@
     if (folded.length) { const h = foldHost(sections, P); if (h) h.paragraphs.push(...folded); }
     if (!sections.length) sections.push({ id: "overview", title: ZH_TITLES.overview, paragraphs: ["这次的结果暂时没有中文解读，可以切换到泰语查看完整内容。"] });
     for (const s of sections) all.push(...s.paragraphs);
-    dropNearDupes(sections, "zh");
+    dropNearDupes(sections, "zh"); if (BR()) BR().polish(sections, "zh", items); // round 4: group openings (fortune-brief.js)
     trimToBudget(sections, topicId, (opts.maxLength || ZH_FULL_MAX) - 40, !!P);
     if (opts.split !== false) splitMain(sections, topicId, ZH_MAIN);
     const out = { source: "local", lang: "zh", sections, seed, topic: F.topic, reminder: reminderFor("zh", r, F.domain) };
@@ -3177,9 +3178,9 @@
     function cautionAction(it, area) { return crec(true, cautionAction0(it, area)); } function cautionAction0(it, area) {
       const rm = remedyFor(F, it, area);
       const frame = STRAIGHT ? "Try this simple adjustment: " : "A simple adjustment: ";
-      const lk = F.domain === "lek7" && (!P || area === "overview" || P.seq.indexOf(area) >= 0) ? (it.meanings.advice || []).find(m => !used.has(m) && ok(m)) : null; // round 3 (S7d): lek7 keeps each caution house's own step
+      const lk = null; // round 4: lek7 house steps go to the advice group (as in Thai)
       if (rm && rm.en && !eRemedy.has(rm.key)) { eRemedy.add(rm.key); lastSubj = null; if (lk) used.add(lk); return enEnd(frame + lcFirst(rm.en.replace(/[.]+$/, ""))) + (lk ? " " + advice(lk) : ""); }
-      const own = lk || (it.meanings.advice || []).find(m => !used.has(m) && ok(m) && !adviceOffTopic(m, area) && (area !== "personality" || F.topic !== "overall" || !topicsIn(m).length));
+      const own = lk || (F.domain !== "lek7" && (it.meanings.advice || []).find(m => !used.has(m) && ok(m) && !adviceOffTopic(m, area) && (area !== "personality" || F.topic !== "overall" || !topicsIn(m).length)));
       if (own) { used.add(own); const a0 = advice(own); return STRAIGHT && !EN_DO.test(a0) ? "Try this: " + lcFirst(a0) : a0; }
       lastSubj = null;
       const pool = CAUTION_ACTION_EN[area] || CAUTION_ACTION_EN.overview, a = shuffle(r, pool).find(x => !eActUsed.has(x)) || shuffle(r, CAUTION_ACTION_EN.overview).find(x => !eActUsed.has(x)) || pool[0];
@@ -3301,7 +3302,7 @@
         const dirs = Array.from(new Set([].concat(F.extras.directions || []).map(d => enDirsIn(d)[0]).filter(Boolean))).slice(0, 2);
         if (dirs.length) s.push(enEnd(r() < 0.5 ? "Traditionally, the " + enList(dirs) + (dirs.length > 1 ? " are favorable directions" : " is a favorable direction") + " for you at the moment" : "You could turn your desk or reading corner to face the " + dirs[0]));
         for (const t of [].concat(F.extras.tips || []).slice(0, 2)) { const e = ((EN[F.domain] || {}).tips || {})[t]; if (e && !used.has(e) && ok(e)) { used.add(e); s.push(enEnd(e)); } }
-        if (!s.length && pk === "group") { const a = items.flatMap(it => it.meanings.advice || []).find(m => !used.has(m) && ok(m) && !adviceOffTopic(m, F.topic)); if (a) { used.add(a); s.push(advice(a, true)); } }
+        if (!s.length && (pk === "group" || (pk === "merge" && F.domain === "lek7"))) { const A = items.flatMap(it => it.meanings.advice || []), a = A.find(m => !used.has(m) && ok(m) && !adviceOffTopic(m, F.topic)) || (F.domain === "lek7" ? A.find(m => !used.has(m) && ok(m)) : null); if (a) { used.add(a); s.push(advice(a, true)); } }
         if (!s.length) continue;
         if (pk === "merge") { const h = sections.find(x => x.id === P.adv) || sections[sections.length - 1], s2 = h && h.id === "personality" && F.topic === "overall" ? s.filter(x => !topicsIn(x).length) : s; if (h && s2.length) h.paragraphs.push(s2.join(" ")); continue; }
         s.push(enEnd(fill(closeAfter(dk.close, s, "en"), { TW: EN_TAG[F.topic === "overall" ? "overview" : F.topic] })));
@@ -3325,9 +3326,9 @@
       const p = isTopic ? pairLine(secM[id], id) : null; if (p) s.push(p);
       if (isTopic) {
         const lex = EN_TOPIC_LEX[id];
-        const act = items.map(it => (it.meanings.advice || []).find(m => !used.has(m) && ok(m) && (!lex || lex.test(m)) && !adviceOffTopic(m, id) && (ADV_TOPIC_EN[id] || !topicsIn(m).length))).find(Boolean);
+        const act = F.domain === "lek7" || P && P.seq.indexOf("advice") >= 0 && items.reduce((n, it) => n + (it.meanings.advice || []).filter(m => !used.has(m)).length, 0) <= 1 ? null : items.map(it => (it.meanings.advice || []).find(m => !used.has(m) && ok(m) && (!lex || lex.test(m)) && !adviceOffTopic(m, id) && (ADV_TOPIC_EN[id] || !topicsIn(m).length))).find(Boolean);
         if (act) { used.add(act); actions.push(act); s.push(advice(act)); }
-        else s.push(enEnd(fill(closeAfter(dk.close, s, "en"), { TW: EN_TAG[id] })));
+        else { const rm = P && P.seq.indexOf("advice") >= 0 && items[0] ? remedyFor(F, items[0], id) : null; if (rm && rm.en && !eRemedy.has(rm.key)) { eRemedy.add(rm.key); s.push(enEnd("A simple step for now: " + lcFirst(rm.en.replace(/[.]+$/, "")))); } s.push(enEnd(fill(closeAfter(dk.close, s, "en"), { TW: EN_TAG[id] }))); } // round 4: the topic step, as in Thai, when the own step went to the advice group
       }
       const text = s.join(" ");
       if (pk === "ov") { folded.push(EN_BRIEF[id] + ": " + text); continue; }
@@ -3361,7 +3362,7 @@
     if (!sections.length) sections.push({ id: "overview", title: EN_TITLES.overview, paragraphs: ["There isn't an English reading for this result yet. Switch to Thai to see the full reading."] });
     for (const s of sections) s.paragraphs = s.paragraphs.map(p => enSentences(p).filter(x => isSafe(x)).join(" ")).filter(Boolean);
     for (const s of sections) all.push(...s.paragraphs);
-    dropNearDupes(sections, "en");
+    dropNearDupes(sections, "en"); if (BR()) BR().polish(sections, "en", items); // round 4: group openings (fortune-brief.js)
     trimToBudget(sections, topicId, (opts.maxLength || EN_FULL_MAX) - 60, !!P);
     if (opts.split !== false) splitMain(sections, topicId, EN_MAIN);
     const out = { source: "local", lang: "en", sections, seed, topic: F.topic, reminder: reminderFor("en", r, F.domain) };

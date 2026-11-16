@@ -109,7 +109,7 @@
   };
   function dropRepeats(parts, lang) {
     var seen = /** @type {string[]} */ ([]), min = lang === "zh" ? 10 : 30, minCore = lang === "zh" ? 8 : lang === "en" ? 24 : 16;
-    var lead = TIP_LEAD[lang] || TIP_LEAD.th;
+    var lead = TIP_LEAD[lang] || TIP_LEAD.th, whole = new Set();
     /** shared start of two strings @param {string} x @param {string} y */
     var common = function (x, y) { var i = 0; while (i < x.length && i < y.length && x[i] === y[i]) i++; return i; };
     /** @param {string} x */
@@ -121,6 +121,8 @@
           var units = lang === "zh" ? q.split(/(?<=[。！？])/) : lang === "en" ? q.split(/(?<=[.!?]) (?=[A-Z"“])/) : q.split(/(?=ข้อแนะนำทั่วไป|วิธีปรับตามตำรา|สิ่งที่ควรทำ|สิ่งที่ทำได้จาก|เคล็ดเสริมดวง)/);
           var out = units.map(function (/** @type {string} */ u) {
             var k = u.trim(), m = lead.exec(k), hasLead = !!m;
+            // round 4 (RECHECK-3 N2): EN / ZH: a whole sentence (a glossary line, a closing line, a step) appears once per report
+            if (lang !== "th" && k.length >= (lang === "zh" ? 14 : 40)) { var kk = norm(k).replace(/[.。！？!?]+$/, ""); if (whole.has(kk)) return ""; whole.add(kk); }
             if (!hasLead && (k.length < min || !ADV_UNIT.test(k))) return u;
             var core = (m ? k.slice(m[0].length) : k).replace(/^[:：\s]+/, "");
             if (core.length < minCore) return u;
@@ -130,8 +132,11 @@
             if (n < prev.length && lang === "en") { var e = core.slice(n).search(/[.!?]/); n = e < 0 ? core.length : n + e + 1; }
             return n > 0 ? core.slice(n).replace(/^[\s,，、。.]+/, "").trim() : "";
           });
-          return out.join(lang === "zh" ? "" : " ").replace(/\s{2,}/g, " ").trim() || q;
+          return out.join(lang === "zh" ? "" : " ").replace(/\s{2,}/g, " ").trim() || (lang === "th" ? q : "");
         });
+        // an emptied paragraph is dropped with its caution mark (a section keeps at least its first paragraph)
+        if (Array.isArray(s.caution) && s.caution.length === s.paragraphs.length) s.caution = s.caution.filter(function (/** @type {boolean} */ c, /** @type {number} */ i) { return !!s.paragraphs[i] || i === 0; });
+        s.paragraphs = s.paragraphs.filter(function (/** @type {string} */ q, /** @type {number} */ i) { return !!q || i === 0; });
       });
     });
     return parts;
@@ -195,8 +200,11 @@
     if (deepSecs.length) parts.push({ id: "deep", title: t("rp.part.deep", "เจาะลึกรายหัวข้อ · 3 ศาสตร์ประกอบกัน"), headline: "", sections: deepSecs });
     // the next three months (month pillar vs the Day Master)
     var ahead = [0, 1, 2].map(function (k) { var mm = now.getMonth() + k, yy = now.getFullYear() + Math.floor(mm / 12); return monthEntry(B, b, yy, (mm % 12) + 1, t, o && o.monthName); });
+    var aheadSeen = /** @type {Record<string, string>} */ ({}); // round 4: a month that reads like an earlier one says so, it does not repeat it
     parts.push({ id: "ahead", title: t("rp.part.ahead", "3 เดือนข้างหน้า"), headline: "", sections: ahead.map(function (x) {
-      var ps = [x.text, "→ " + x.tip].concat(x.fav ? [x.fav] : []); // a "caution" month (the month's tone) is shown in full, never folded
+      var same = aheadSeen[x.god], ps = same ? [t("rp.sameMonth", "แนวโน้มคล้ายกับเดือน{m} ใช้แผนเดียวกันต่อได้", { m: same })] : [x.text, "→ " + x.tip];
+      if (!same) aheadSeen[x.god] = x.label;
+      if (x.fav && !aheadSeen["fav:" + x.fav]) { aheadSeen["fav:" + x.fav] = x.label; ps.push(x.fav); } // a "caution" month (the month's tone) is shown in full, never folded
       return { id: "m" + x.m, title: x.label + " (" + x.pillar + ") · " + x.title, paragraphs: ps, caution: ps.map(function () { return x.tone === "caution"; }) };
     }) });
     dropRepeats(parts, lang);

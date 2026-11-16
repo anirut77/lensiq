@@ -399,7 +399,7 @@
     ["fire on the mountain keeps moving, a good time for you to get out and broaden your view", "learning new things on the road is your theme right now"],
     "traveling together or trying new things keeps your relationship fresh",
     "business trips, seminars or learning away from your usual place bring you good gains",
-    "with a clear travel budget, you can enjoy yourself without worry",
+    "a clear travel budget lets you enjoy yourself without worry",
     "be a good guest wherever you go, and with humility and openness you make friends everywhere",
     "a trip or change of scene may be ahead, so set out with curiosity");
   H(57, "the Gentle Wind", "Xun", "the Gentle Wind",
