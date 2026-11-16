@@ -412,8 +412,6 @@ html :is(.engine,.fr-engine,.pl-engine,#engine.status):empty{padding:0;margin:0;
 /* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
    and share cards stay hidden on that page */
 html[data-lq-crisis] [data-lq-remedy]{display:none!important}
-/* crisis-net hotfix 2026-11-16: the help card replaces every result area (fortune-crisis.js takeover) */
-html[data-lq-crisis] [data-lq-crisis-hide]{display:none!important}
 @media print{
   .lq-helpline{background:#fff;border-color:#888;color:#000;break-inside:avoid}
   .lq-call>a.lq-call-btn[href]{min-height:0;min-width:0;padding:0;background:none;color:#000;text-decoration:underline}

@@ -42,11 +42,12 @@ Went live (fix): _to be filled in at deploy (commit, deploy time UTC / Bangkok).
 
 ## Fix (branch `crisis-net-hotfix`)
 
-- **(a) Takeover.** `lensiq-crisis-takeover.js` (new; loaded right after `fortune-crisis.js` on the 17 fortune pages with an
-  input or a result; not on the `fortune.html` hub, which keeps its speed budget) exposes `window.LQCrisisTakeover(card)`. It runs every time the card is drawn (`FortuneAI.crisis.render`, which
+- **(a) Takeover.** `lensiq-crisis-takeover.js` (new single source, copied into `fortune-read.js` by
+  `tools/fortune-read-embed.mjs`, so the 15 reading pages get it with no extra request and the `fortune.html` hub, planner and
+  lucky colour, which have no input and no reading, stay within their speed budgets) exposes `window.LQCrisisTakeover(card)`. It runs every time the card is drawn (`FortuneAI.crisis.render`, which
   every page uses). It sweeps every result area of the page: elements with `data-lq-result` or an id ending in `Result` or `Stats` (reading counters). The
   branch that holds the card stays. Every other element gets `data-lq-crisis-hide`, which is hidden by
-  `html[data-lq-crisis] [data-lq-crisis-hide]{display:none!important}` (styles.css, and injected). Page code that later sets
+  `html[data-lq-crisis] [data-lq-crisis-hide]{display:none!important}` (injected with the card). Page code that later sets
   `hidden = false` cannot bring an element back. The following stay visible: the card, the help lines, forms, and the boxes
   the visitor types into. The screen then scrolls so the card heading sits below the sticky top bar. Share and print buttons,
   prices, maps, rings, strips and charts are all inside the swept areas.
@@ -68,7 +69,7 @@ Went live (fix): _to be filled in at deploy (commit, deploy time UTC / Bangkok).
 
 ### For pages on other branches (petread on `fortune-pet`, compat on `fortune-compat`)
 
-0. Load `<script src="lensiq-crisis-takeover.js?v=1"></script>` right after `fortune-crisis.js`.
+0. Load `fortune-read.js` (petread and compat already do): it carries the helper. Merge this branch first so the copy is there.
 1. Mark the page's result container(s) with `data-lq-result`, or give them an id ending in `Result`.
 2. Draw the card with `FortuneAI.crisis.render(box, FortuneAI.crisis.result({ lang }))`, which calls the takeover itself.
    For a card drawn in any other way, call `window.LQCrisisTakeover(box)` right after it.
