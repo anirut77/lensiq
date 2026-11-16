@@ -23,6 +23,12 @@
     for (var i = 0; i < r.length; i++) if (r[i].getClientRects().length && onScreen(r[i])) return true;
     return false;
   }
+  // a form field has focus, or the on-screen keyboard shrinks the visual viewport: the bar would cover the field (review 2026-11-17)
+  function typing() {
+    var a = doc.activeElement, vv = root.visualViewport;
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !(bar && bar.contains(a))) return true;
+    return !!vv && vv.height < root.innerHeight * 0.75;
+  }
   function build() {
     var st = doc.createElement("style");
     st.textContent = ".lq-readbar{position:fixed;left:0;right:0;bottom:0;z-index:55;padding:8px 16px calc(8px + env(safe-area-inset-bottom));" +
@@ -32,10 +38,11 @@
     doc.head.appendChild(st);
     bar = doc.createElement("div"); bar.className = "lq-readbar"; bar.hidden = true;
     btn = doc.createElement("button"); btn.type = "button"; btn.className = "btn primary big";
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (/** @type {any} */ e) {
       if (!real || real.disabled) return;
       var y = root.scrollY, r = real;
       r.click();
+      if (!e.detail) r.focus(); // keyboard: focus moves to the page's own button before the bar hides
       // the page did not move to its result: bring the form's button (and what it shows below it) into view
       root.setTimeout(function () { if (root.scrollY === y && r.isConnected) r.scrollIntoView({ block: "center" }); }, 250);
     });
@@ -45,7 +52,7 @@
     raf = 0;
     real = pick();
     var crisis = doc.documentElement.hasAttribute("data-lq-crisis");
-    var show = !!real && !crisis && real.getBoundingClientRect().top > root.innerHeight - 8 && !readingShown();
+    var show = !!real && !crisis && !typing() && real.getBoundingClientRect().top > root.innerHeight - 8 && !readingShown();
     if (show && !bar) build();
     if (!bar) return;
     if (show) {
@@ -56,15 +63,20 @@
   }
   function later() { if (!raf) raf = root.requestAnimationFrame(sync); }
   ["scroll", "resize", "lq-lang"].forEach(function (t) { root.addEventListener(t, later, { passive: true }); });
-  ["input", "change", "click"].forEach(function (t) { doc.addEventListener(t, later, true); });
+  ["input", "change", "click", "focusin", "focusout"].forEach(function (t) { doc.addEventListener(t, later, true); });
+  if (root.visualViewport) root.visualViewport.addEventListener("resize", later);
   if (root.MutationObserver) {
     var mo = new root.MutationObserver(function () { sync(); }); // crisis flag / button state: at once, not on the next frame
     mo.observe(doc.documentElement, { attributes: true, attributeFilter: ["data-lq-crisis"] });
     // the page enables its button later (dream: after the symbols are found)
-    var watch = function () { var r = doc.querySelectorAll("[data-lq-read]"); for (var i = 0; i < r.length; i++) mo.observe(r[i], { attributes: true, attributeFilter: ["disabled"] }); };
+    // the real button entering or leaving the screen (also at the end of a smooth scroll): no polling
+    var io = root.IntersectionObserver ? new root.IntersectionObserver(later) : null;
+    var watch = function () {
+      var r = doc.querySelectorAll("[data-lq-read]");
+      for (var i = 0; i < r.length; i++) { mo.observe(r[i], { attributes: true, attributeFilter: ["disabled"] }); if (io) io.observe(r[i]); }
+    };
     if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", watch); else watch();
   }
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", later); else later();
   root.addEventListener("load", later);
-  root.setInterval(function () { if (bar && !doc.hidden) sync(); }, 400); // smooth scrolling, late layout: settle within 0.4 s
 })(typeof window !== "undefined" ? window : globalThis);
