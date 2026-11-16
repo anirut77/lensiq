@@ -360,7 +360,7 @@
         const out = q.replace(re, (all, x, x2, at) => {
           const nm = lang === "en" ? x.replace(/^(?:the |your )/i, "") : x;
           if (lo(seen + " " + q.slice(0, at)).indexOf(lo(nm)) >= 0) return all; // a second side of what the group already named
-          if (lang === "th") return x + "ยังสื่อว่า";
+          if (lang === "th") return "ความหมายของ" + x + "คือ"; // no "อีก…": nothing came before
           // EN / ZH: the line says what it says, and names its source in brackets at its end (unless it names it already)
           return "\u0001" + (lang === "zh" ? x + (x2 || "") : x.replace(/^(?:the |your )/i, m => m.toLowerCase())) + "\u0002";
         }).replace(lang === "zh" ? /\u0001([^\u0002]*)\u0002([^。！？]*)([。！？]?)/g : /\u0001([^\u0002]*)\u0002([^.!?]*(?:\([^)]*\)[^.!?]*)*)([.!?]?)/g, (all, x, body, end) => {
