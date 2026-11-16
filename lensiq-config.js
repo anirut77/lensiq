@@ -192,7 +192,7 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
     (document.head || document.documentElement).appendChild(s);
   };
   load("lensiq-api.js", "LQApi");
-  // never on the back office, the pricing draft or the counselling page (decision 77 ก)
+  // not on admin, pricing or counselling (77 ก)
   if (window.LENSIQ_ANALYTICS !== false && !/\/(admin|pricing|counselling)\.html$/.test(location.pathname)) load("lensiq-analytics.js", "LQAnalytics");
   // member sign-in (account chip in the header, light reading for guests) — inert unless the Worker reports
   // membership and LENSIQ_GOOGLE_CLIENT_ID is set; never on the back office
