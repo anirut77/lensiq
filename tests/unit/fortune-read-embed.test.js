@@ -13,7 +13,7 @@ const vm = require("node:vm");
 
 const ROOT = path.join(__dirname, "..", "..");
 const read = f => fs.readFileSync(path.join(ROOT, f), "utf8");
-const PARTS = ["fortune-notice.js", "fortune-restrain.js"];
+const PARTS = ["fortune-notice.js", "fortune-restrain.js", "fortune-brief.js"];
 const begin = f => `/* BEGIN ${f} (copied by tools/fortune-read-embed.mjs; edit ${f}, then run it) */\n`;
 const end = f => `/* END ${f} */\n`;
 
@@ -37,6 +37,7 @@ test("in a page, fortune-read.js alone defines the notice, the layout and the ta
   const RS = require(path.join(ROOT, "fortune-restrain.js"));
   assert.ok(win.LQFortuneRestrain, "LQFortuneRestrain defined");
   for (const d of Object.keys(RS.TAGS)) assert.equal(win.LQFortuneRestrain.count(d), RS.count(d), d);
+  assert.equal(typeof win.LQFortuneBrief, "function", "LQFortuneBrief defined (fortune-brief.js copy)");
   const RD = require(path.join(ROOT, "fortune-read.js"));
   assert.equal(typeof RD.planSection, "function", "Node exports stay the layout's");
   assert.equal(RD.count, undefined, "the restrain copy does not replace fortune-read.js exports");
@@ -46,6 +47,7 @@ test("reading pages load neither part separately; every page with fortune-ai.js 
   for (const f of fs.readdirSync(ROOT).filter(f => f.endsWith(".html"))) {
     const h = read(f);
     assert.ok(!/src="fortune-restrain\.js/.test(h), f + ": separate fortune-restrain.js");
+    assert.ok(!/src="fortune-brief\.js/.test(h), f + ": separate fortune-brief.js");
     if (/src="fortune-read\.js/.test(h)) assert.ok(!/src="fortune-notice\.js/.test(h), f + ": fortune-notice.js loaded twice");
     const ai = h.indexOf('src="fortune-ai.js'), rd = h.indexOf('src="fortune-read.js');
     if (ai >= 0) assert.ok(rd >= 0 && rd < ai, f + ": fortune-read.js before fortune-ai.js");

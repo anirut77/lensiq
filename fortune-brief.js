@@ -1,5 +1,6 @@
 /* fortune-brief.js — two composer helpers of fortune-ai.js, split out so fortune-ai.js stays under its size cap (eslint.config.mjs).
-   Loaded before fortune-ai.js on every page that reads fortunes (window.LQFortuneBrief); required by fortune-ai.js in Node.
+   The 15 reading pages get it inside fortune-read.js (tools/fortune-read-embed.mjs; no extra request, speed budget), as
+   window.LQFortuneBrief; fortune-ai.js requires it in Node.
    fortune-ai.js passes its own functions and tables in (no copies here), so both files always use the same rules.
    - repeatsUsed: a knowledge-base line that repeats a long phrase already used in the reading (a siam si slip's image in the
      overview and again in a group read as the same sentence twice)
@@ -83,5 +84,7 @@
     }
     return { repeatsUsed, briefMore, closeAfter };
   }
-  if (typeof module !== "undefined" && module.exports) module.exports = make; else root.LQFortuneBrief = make;
+  // exports only from its own file: the copy inside fortune-read.js (tools/fortune-read-embed.mjs) leaves that module's exports alone
+  if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length) module.exports = make;
+  root.LQFortuneBrief = make;
 })(typeof window !== "undefined" ? window : globalThis);

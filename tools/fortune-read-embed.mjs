@@ -4,6 +4,7 @@
 //   fortune-notice.js   -> top of fortune-read.js (the layout uses LQNotice while it loads); hub, planner and lucky colour
 //                          still load fortune-notice.js alone
 //   fortune-restrain.js -> end of fortune-read.js (the composer looks the tags up when it composes)
+//   fortune-brief.js    -> end of fortune-read.js (the composer's in-brief helpers, split out of fortune-ai.js for its size cap)
 // Edit the source files only, then run this. tests/unit/fortune-read-embed.test.js fails when a copy drifts.
 //   node tools/fortune-read-embed.mjs          write the copies
 //   node tools/fortune-read-embed.mjs --check  exit 1 if a copy differs
@@ -12,7 +13,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const PARTS = [{ file: "fortune-notice.js", at: "top" }, { file: "fortune-restrain.js", at: "end" }];
+const PARTS = [{ file: "fortune-notice.js", at: "top" }, { file: "fortune-restrain.js", at: "end" }, { file: "fortune-brief.js", at: "end" }];
 const begin = (/** @type {string} */ f) => `/* BEGIN ${f} (copied by tools/fortune-read-embed.mjs; edit ${f}, then run it) */\n`;
 const end = (/** @type {string} */ f) => `/* END ${f} */\n`;
 // a copy written by the first version of this tool (tools/restrain-embed.mjs markers) is replaced, not doubled

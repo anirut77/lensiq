@@ -20,32 +20,13 @@
   const langOf = l => (l === "en" || l === "zh" ? l : "th");
   // Thai has no sentence mark: cut only at a single space, never before a word that continues the clause, never after one
   // that leads into the next word.
-  const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน(?!ฐานะ)|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|เช่น|ได้แก่|เสริมด้วย|[\d(/–\-)])/;
-  // "จาก…" after a space opens a new clause ("…ไม่ชอบเล่นเกมหัวใจ ‖ จากธาตุน้ำ คุณ…") unless a verb before it takes it ("ออกมา จาก…")
-  // round 2: a reporting verb right after a name continues that sentence ("อัศวินไม้เท้า (Knight of Wands) ‖ สื่อว่า…")
-  const TH_REPORT_NEXT = /^(?:สื่อว่า|สื่อถึง|บ่งบอก|ชี้ว่า|สะท้อน|แสดงว่า|หมายความว่า|หมายถึง|ตีความ|ตำราอ่าน|อ่านได้ว่า|แปลได้ว่า|ตามตำราอ่าน|ตามความเชื่อหมายถึง|ตำราให้ความหมาย|ซึ่งหมายความ|เน้นเรื่อง|ชวนให้|แนะให้|เป็นสัญญาณ|เตือนเบา)/;
-  const TH_FROM = /^จาก/, TH_FROM_VERB = /(?:มา|ได้|ออก|ห่าง|พ้น|แยก|หลุด|กลับ|รับ|ไกล)$/;
-  const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|ๆ|[(/–\-])$/;
-  // quality round 2026-11-16 (R3): never between a number and its unit, inside a list ("อำนาจ ‖ บารมี และ…"), or right after a
-  // lead that still needs its clause ("จากราศีอาทิตย์ ‖", "เรื่องการงาน ‖")
-  const TH_UNIT = /^(?:ปี|เท่า|%|องศา|คน|วัน|เดือน|ครั้ง|ข้อ|ชั่วโมง|นาที|บาท|ใบ|ตัว|ดวง|ฐาน|ภพ|ช่วง|สัปดาห์|ขวบ)/;
-  const TH_LIST_NEXT = /^\S{1,14} (?:\S{1,14} )?(?:และ|หรือ)\S/, TH_LEAD_PREV = /(?:^|\s)(?:สำหรับ|จาก|ดูที่|ส่วน|เรื่อง|ด้าน|ในฐานะ|ในส่วนของ|ในมุมของ|ตาม|เมื่อดูที่)\S*(?:\s+[一-鿿\d]+)?(?:\s*[(（][^)）]*[)）])?$/;
-  // round 2: never right after a transition word ("…ที่สำคัญ ‖") or inside brackets ("(Six of ‖")
-  const TH_TRANS_PREV = /(?:^|\s)(?:ที่สำคัญ|เช่นเดียวกัน|พร้อมกันนั้น|ในขณะเดียวกัน|ถ้ามีเวลา|นอกจากนี้|ในอีกมุมหนึ่ง|อีกด้านหนึ่ง|ถัดมา|อีกทั้ง|ในทำนองเดียวกัน|ที่น่าสังเกตคือ|อีกเรื่องหนึ่งคือ|ต่อจากนั้น|ยิ่งไปกว่านั้น|ขณะเดียวกัน)$/;
-  const openBracket = (/** @type {string} */ a) => (a.match(/[(（]/g) || []).length > (a.match(/[)）]/g) || []).length;
-  // a bare tag or item at the end ("…ในตำราทักษา", "ชาวปีจอ", "เช่น", "คือ") is not a place to stop (round 3)
-  const TH_TAG_END = /(?:^|\s)ในตำรา\S*$|(?:^|\s)ชาวปี(?:ชวด|ฉลู|ขาล|เถาะ|มะโรง|มะเส็ง|มะเมีย|มะแม|วอก|ระกา|จอ|กุน)$|(?:^|\s)(?:เช่น|คือ|ว่า|ได้แก่)$/;
+  const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน|จาก|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|[\d(/–\-)])/;
+  const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|[(/–\-])$/;
   function cutsTh(p) {
     const out = [];
     for (let i = p.indexOf(" "); i >= 0; i = p.indexOf(" ", i + 1)) {
       if (p[i + 1] === " " || p[i - 1] === " ") continue;
-      const a = p.slice(0, i), b = p.slice(i + 1);
-      // never a cut: before ๆ ("เล็ก ‖ ๆ"), before a name's value or gloss ("วัยจร ‖ 甲辰", "ในตำราทักษา ‖ (…)") (round 3)
-      if (/^[ๆ一-鿿(（]/.test(b)) continue;
-      // soft: none of the hard breaks (after ๆ, number|unit, inside a list, after a lead + noun); ok: soft and a clean clause boundary
-      const soft = !/ๆ$/.test(a) && !(/\d$/.test(a) && TH_UNIT.test(b)) && !(TH_LIST_NEXT.test(b) && !/[.!?)]$/.test(a)) && !TH_LEAD_PREV.test(a) && !/^(?:เช่น|ได้แก่|เสริมด้วย|และ|หรือ)/.test(b) && !TH_TRANS_PREV.test(a) && !openBracket(a) && !TH_TAG_END.test(a) && !(/[)）]$/.test(a) && TH_REPORT_NEXT.test(b));
-      const mild = !/ๆ$/.test(a) && !TH_LEAD_PREV.test(a) && !TH_TRANS_PREV.test(a) && !openBracket(a) && !TH_TAG_END.test(a) && !/^(?:เช่น|ได้แก่)/.test(b);
-      out.push({ at: i, soft, mild, ok: soft && !TH_CONT_NEXT.test(b) && !TH_CONT_PREV.test(a) && !(TH_FROM.test(b) && TH_FROM_VERB.test(a)) && !TH_REPORT_NEXT.test(b) && !/^[(（]/.test(b) });
+      out.push({ at: i, ok: !TH_CONT_NEXT.test(p.slice(i + 1)) && !TH_CONT_PREV.test(p.slice(0, i)) });
     }
     return out;
   }
@@ -159,7 +140,40 @@
   // the notice part (one-line notices, the read-more button, the help-line exception) lives in fortune-notice.js; pages without
   // a reading load only that file, reading pages get its copy at the top of this file (tools/fortune-read-embed.mjs: one request)
   const N = root.LQNotice || (typeof require === "function" ? require("./fortune-notice.js") : null);
-  const { LINE, MORE, LESS, SEP, NOTE_MAX, NEVER_COLLAPSE, langOf, cutsTh, cutsEn, noticeSplit, pageLang, never, moreButton, noticeify, notices } = N;
+  const { LINE, MORE, LESS, SEP, NOTE_MAX, NEVER_COLLAPSE, langOf, cutsEn, noticeSplit, pageLang, never, moreButton, noticeify, notices } = N;
+  // the reading's Thai cut points (quality rounds 1-3) live here, not in the notice part: the hub, planner and lucky colour load
+  // only fortune-notice.js, whose one-line notices need the simple rule (speed budget: fortune.html page weight)
+  // Thai has no sentence mark: cut only at a single space, never before a word that continues the clause, never after one
+  // that leads into the next word.
+  const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน(?!ฐานะ)|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|เช่น|ได้แก่|เสริมด้วย|[\d(/–\-)])/;
+  // "จาก…" after a space opens a new clause ("…ไม่ชอบเล่นเกมหัวใจ ‖ จากธาตุน้ำ คุณ…") unless a verb before it takes it ("ออกมา จาก…")
+  // round 2: a reporting verb right after a name continues that sentence ("อัศวินไม้เท้า (Knight of Wands) ‖ สื่อว่า…")
+  const TH_REPORT_NEXT = /^(?:สื่อว่า|สื่อถึง|บ่งบอก|ชี้ว่า|สะท้อน|แสดงว่า|หมายความว่า|หมายถึง|ตีความ|ตำราอ่าน|อ่านได้ว่า|แปลได้ว่า|ตามตำราอ่าน|ตามความเชื่อหมายถึง|ตำราให้ความหมาย|ซึ่งหมายความ|เน้นเรื่อง|ชวนให้|แนะให้|เป็นสัญญาณ|เตือนเบา)/;
+  const TH_FROM = /^จาก/, TH_FROM_VERB = /(?:มา|ได้|ออก|ห่าง|พ้น|แยก|หลุด|กลับ|รับ|ไกล)$/;
+  const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|ๆ|[(/–\-])$/;
+  // quality round 2026-11-16 (R3): never between a number and its unit, inside a list ("อำนาจ ‖ บารมี และ…"), or right after a
+  // lead that still needs its clause ("จากราศีอาทิตย์ ‖", "เรื่องการงาน ‖")
+  const TH_UNIT = /^(?:ปี|เท่า|%|องศา|คน|วัน|เดือน|ครั้ง|ข้อ|ชั่วโมง|นาที|บาท|ใบ|ตัว|ดวง|ฐาน|ภพ|ช่วง|สัปดาห์|ขวบ)/;
+  const TH_LIST_NEXT = /^\S{1,14} (?:\S{1,14} )?(?:และ|หรือ)\S/, TH_LEAD_PREV = /(?:^|\s)(?:สำหรับ|จาก|ดูที่|ส่วน|เรื่อง|ด้าน|ในฐานะ|ในส่วนของ|ในมุมของ|ตาม|เมื่อดูที่)\S*(?:\s+[一-鿿\d]+)?(?:\s*[(（][^)）]*[)）])?$/;
+  // round 2: never right after a transition word ("…ที่สำคัญ ‖") or inside brackets ("(Six of ‖")
+  const TH_TRANS_PREV = /(?:^|\s)(?:ที่สำคัญ|เช่นเดียวกัน|พร้อมกันนั้น|ในขณะเดียวกัน|ถ้ามีเวลา|นอกจากนี้|ในอีกมุมหนึ่ง|อีกด้านหนึ่ง|ถัดมา|อีกทั้ง|ในทำนองเดียวกัน|ที่น่าสังเกตคือ|อีกเรื่องหนึ่งคือ|ต่อจากนั้น|ยิ่งไปกว่านั้น|ขณะเดียวกัน)$/;
+  const openBracket = (/** @type {string} */ a) => (a.match(/[(（]/g) || []).length > (a.match(/[)）]/g) || []).length;
+  // a bare tag or item at the end ("…ในตำราทักษา", "ชาวปีจอ", "เช่น", "คือ") is not a place to stop (round 3)
+  const TH_TAG_END = /(?:^|\s)ในตำรา\S*$|(?:^|\s)ชาวปี(?:ชวด|ฉลู|ขาล|เถาะ|มะโรง|มะเส็ง|มะเมีย|มะแม|วอก|ระกา|จอ|กุน)$|(?:^|\s)(?:เช่น|คือ|ว่า|ได้แก่)$/;
+  function cutsTh(p) {
+    const out = [];
+    for (let i = p.indexOf(" "); i >= 0; i = p.indexOf(" ", i + 1)) {
+      if (p[i + 1] === " " || p[i - 1] === " ") continue;
+      const a = p.slice(0, i), b = p.slice(i + 1);
+      // never a cut: before ๆ ("เล็ก ‖ ๆ"), before a name's value or gloss ("วัยจร ‖ 甲辰", "ในตำราทักษา ‖ (…)") (round 3)
+      if (/^[ๆ一-鿿(（]/.test(b)) continue;
+      // soft: none of the hard breaks (after ๆ, number|unit, inside a list, after a lead + noun); ok: soft and a clean clause boundary
+      const soft = !/ๆ$/.test(a) && !(/\d$/.test(a) && TH_UNIT.test(b)) && !(TH_LIST_NEXT.test(b) && !/[.!?)]$/.test(a)) && !TH_LEAD_PREV.test(a) && !/^(?:เช่น|ได้แก่|เสริมด้วย|และ|หรือ)/.test(b) && !TH_TRANS_PREV.test(a) && !openBracket(a) && !TH_TAG_END.test(a) && !(/[)）]$/.test(a) && TH_REPORT_NEXT.test(b));
+      const mild = !/ๆ$/.test(a) && !TH_LEAD_PREV.test(a) && !TH_TRANS_PREV.test(a) && !openBracket(a) && !TH_TAG_END.test(a) && !/^(?:เช่น|ได้แก่)/.test(b);
+      out.push({ at: i, soft, mild, ok: soft && !TH_CONT_NEXT.test(b) && !TH_CONT_PREV.test(a) && !(TH_FROM.test(b) && TH_FROM_VERB.test(a)) && !TH_REPORT_NEXT.test(b) && !/^[(（]/.test(b) });
+    }
+    return out;
+  }
   const TOC = { th: "หัวข้อในคำทำนายนี้", en: "In this reading", zh: "本次解读目录" };
   const BELIEF = { th: "ตามความเชื่อ โปรดใช้วิจารณญาณ", en: "According to belief, please use your own judgement", zh: "依据传统说法，请自行判断" };
   const HEADINGS = {
@@ -711,3 +725,95 @@
   root.LQFortuneRestrain = API;
 })(typeof window !== "undefined" ? window : globalThis);
 /* END fortune-restrain.js */
+/* BEGIN fortune-brief.js (copied by tools/fortune-read-embed.mjs; edit fortune-brief.js, then run it) */
+/* fortune-brief.js — two composer helpers of fortune-ai.js, split out so fortune-ai.js stays under its size cap (eslint.config.mjs).
+   The 15 reading pages get it inside fortune-read.js (tools/fortune-read-embed.mjs; no extra request, speed budget), as
+   window.LQFortuneBrief; fortune-ai.js requires it in Node.
+   fortune-ai.js passes its own functions and tables in (no copies here), so both files always use the same rules.
+   - repeatsUsed: a knowledge-base line that repeats a long phrase already used in the reading (a siam si slip's image in the
+     overview and again in a group read as the same sentence twice)
+   - briefMore: a short "in brief" group (under 90 characters) gets one more line on the same areas from what was found, a fuller
+     wording of the same line, or the practical step the topic groups give; still too short, the composer leaves it out
+   - closeAfter: the EN / ZH "pick one of these" closer only after two or more tips in the same group
+   Quality round 3 (2026-11-16). Based on traditional beliefs; readers use their own judgement. */
+(function (root) {
+  "use strict";
+  function make(D) {
+    const RUN = 12;
+    function repeatsUsed(ctx, c) {
+      const t = String(c).replace(/\s+/g, "");
+      if (t.length < RUN) return false;
+      for (const u of ctx.used) {
+        const v = String(u).replace(/\s+/g, "");
+        if (v === t || v.length < RUN) continue;
+        for (let i = 0; i + RUN <= t.length; i += 2) if (v.indexOf(t.slice(i, i + RUN)) >= 0) return true;
+      }
+      return false;
+    }
+    // nearby areas whose lines may fill a short area, when they do not name another topic
+    const NEAR = { personality: ["overview"], social: ["personality"], timing: ["overview"], work: ["personality"], money: [], love: [], advice: [] };
+    // the longer line reads cleanly: no new grammar or join problem ("…คือพลังหลักของช่วงนี้คือ…")
+    const readsOk = t => !D.grammarIssues(t).length && !D.thJoinIssues(t) && !/คือ[^\s]{0,30}คือ/.test(t);
+    const say = (ctx, id, it, m) => { ctx.sec = id; ctx.secUnits = 1; ctx.gFirst = false; const u = D.itemSentence(ctx, it, m, "first"); return u && u.text ? D.tidy(u.text) : ""; };
+    function moreLine(ctx, b, line) {
+      const own = D.SECTION_KEYS[b.id] || [];
+      for (const keys of [own, NEAR[b.id] || []]) {
+        if (!keys.length) continue;
+        for (const it of ctx.F.items.filter(x => D.hasKeys(x, keys))) {
+          const m = D.pickMeaning(ctx, it, keys, b.id); if (!m) continue;
+          if (keys !== own && (D.topicsIn(m).some(t => t !== b.id) || D.offTopic(m, b.id))) continue;
+          const t = say(ctx, b.id, it, m);
+          if (t && D.isSafe(t) && readsOk(line + " " + t)) return line + " " + t;
+        }
+      }
+      return null;
+    }
+    // a fuller wording of the same line: it contains the line's meaning, so it adds what the finding says (e.g. the slip's image)
+    function fullerLine(ctx, b, line) {
+      const own = D.SECTION_KEYS[b.id] || [];
+      let best = null;
+      for (const it of ctx.F.items.filter(x => D.hasKeys(x, own))) for (const k of own) for (const m0 of it.meanings[k] || []) {
+        const c = D.cleanMeaning(m0);
+        if (!c || ctx.used.has(c) || !D.isSafe(c) || D.offTopic(c, b.id) || D.loveOnlyIn(c, b.id) || repeatsUsed(ctx, c)) continue;
+        if (![...ctx.used].some(u => String(u).length >= 6 && c.indexOf(u) >= 0 && line.indexOf(u) >= 0)) continue;
+        if (!best || c.length > best.c.length) best = { it, c };
+      }
+      const t = best && say(ctx, b.id, best.it, best.c), full = t && D.BRIEF_TH[b.id] + " " + t;
+      if (!full || !D.isSafe(full) || !readsOk(full)) return null;
+      D.markUsed(ctx, best.c);
+      return full;
+    }
+    // the practical step for this area that the topic groups give after a finding (same remedy table, same labels)
+    function stepLine(ctx, b, line) {
+      const it = ctx.F.items.find(x => D.hasKeys(x, D.SECTION_KEYS[b.id] || []));
+      const rm = it && D.remedyFor(ctx.F, it, b.id);
+      if (!rm || ctx.remedyKeys.has(rm.key) || !D.isSafe(rm.th) || D.offTopic(rm.th, b.id)) return null;
+      ctx.remedyKeys.add(rm.key);
+      return line + " " + D.pick(ctx.r, D.TRAD_REMEDY.has(rm.cat) ? D.REMEDY_FRAMES_TH : D.REMEDY_FRAMES_GENERAL_TH) + rm.th.replace(/^ตามตำรา/, "");
+    }
+    function briefMore(ctx, briefs, lines) {
+      briefs.forEach((b, i) => {
+        lines[i] = moreLine(ctx, b, lines[i]) || lines[i];
+        if (lines[i].length < 90) lines[i] = fullerLine(ctx, b, lines[i]) || lines[i];
+        if (lines.join(" ").length < 90) lines[i] = stepLine(ctx, b, lines[i]) || lines[i];
+      });
+    }
+    const PICK_ONE = /挑一条最适合你的|Pick the one suggestion/;
+    const TIP_SEN = {
+      en: new RegExp("^(?:Try|It would help|A good next step|This is a good time to|A simple adjustment|Set aside|Pick|Keep|Plan|Take|Make|Spend|Give|Write|" +
+        "Ask|Talk|Rest|Start|Check|Save|Choose|Wear|Add|Place|Face|Turn|Put|Avoid|Leave|Note|Use)\\b"),
+      zh: /建议|不妨|试着|可以先|可以|记得|调整的方法|先把|多留|留意|别急/,
+    };
+    function closeAfter(draw, s, lang) {
+      const parts = s.flatMap(x => (lang === "zh" ? String(x).split(/(?<=[。！？])/) : String(x).split(/(?<=[.!?])\s+/)));
+      const tips = parts.filter(x => TIP_SEN[lang].test(x.trim())).length;
+      for (let k = 0; k < 6; k++) { const c = draw(); if (!PICK_ONE.test(c) || tips >= 2) return c; }
+      return lang === "zh" ? "把这次解读当作参考，最后还是按自己的判断来决定" : "These are tendencies in traditional teachings, and what you actually do matters more";
+    }
+    return { repeatsUsed, briefMore, closeAfter };
+  }
+  // exports only from its own file: the copy inside fortune-read.js (tools/fortune-read-embed.mjs) leaves that module's exports alone
+  if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length) module.exports = make;
+  root.LQFortuneBrief = make;
+})(typeof window !== "undefined" ? window : globalThis);
+/* END fortune-brief.js */
