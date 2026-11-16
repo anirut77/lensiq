@@ -1,0 +1,16 @@
+# locked 2026-11-16T06:44:36Z (tools/eval-guard.mjs lock, 7 files)
+d641b9a2d186b393d3212a06abc813f50cff4b0972db0a03a138e31b99fe12e8  crisis-net-hotfix-kit.mjs
+3fc66aaf3ebb2c4dd42a17a88054a1654f1ea7db45f7301439520c6db484db2e  crisis-net-hotfix-inventory.json
+22bd5135ecff149d1bf252f72ffb5db2c9d25d89d143b238ae0cc543a72fe810  crisis-net-hotfix-a.e2e.mjs
+f180e6ee4a569df8814f1cfee4b5299e0d5656a1422df404b11b716228a3a0e7  crisis-net-hotfix-b.e2e.mjs
+04e70be1a961f1158c1936f191ce22d532c30ad1606e0799b1e3d678f02091d7  crisis-net-hotfix-c.e2e.mjs
+76488935b191d8354ad9cbd43be7bc212d7603417cfe3c387048554afcd36a9e  crisis-net-hotfix-d.e2e.mjs
+c526d52f4c93d8b0c8c2933c80fcd64ce427ce85f805063b25fdf524386d9b9c  crisis-input-inventory.test.js
+# repo copies (byte-identical to the locked files above), locked 2026-11-16 BEFORE the crisis-net hotfix on branch crisis-net-hotfix (base 656712f). Baseline logs: ~/LENSIQ-field/evals/crisis-net-hotfix/baseline-*.log
+d641b9a2d186b393d3212a06abc813f50cff4b0972db0a03a138e31b99fe12e8  tests/e2e/crisis-net-hotfix-kit.mjs  # repo file
+3fc66aaf3ebb2c4dd42a17a88054a1654f1ea7db45f7301439520c6db484db2e  tests/e2e/crisis-net-hotfix-inventory.json  # repo file
+22bd5135ecff149d1bf252f72ffb5db2c9d25d89d143b238ae0cc543a72fe810  tests/e2e/crisis-net-hotfix-a.e2e.mjs  # repo file
+f180e6ee4a569df8814f1cfee4b5299e0d5656a1422df404b11b716228a3a0e7  tests/e2e/crisis-net-hotfix-b.e2e.mjs  # repo file
+04e70be1a961f1158c1936f191ce22d532c30ad1606e0799b1e3d678f02091d7  tests/e2e/crisis-net-hotfix-c.e2e.mjs  # repo file
+76488935b191d8354ad9cbd43be7bc212d7603417cfe3c387048554afcd36a9e  tests/e2e/crisis-net-hotfix-d.e2e.mjs  # repo file
+c526d52f4c93d8b0c8c2933c80fcd64ce427ce85f805063b25fdf524386d9b9c  tests/unit/crisis-input-inventory.test.js  # repo file
