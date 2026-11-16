@@ -162,3 +162,6 @@ small tap-to-call button near the top (owner decision 54 ข); the accessible na
 above. 1669, 191, 1300 and Samaritans are not on the normal page; they show on the full help card when the crisis flag is set.
 The question for the reviewer: is one 1323 button near the top enough on a normal fortune page, without 1669, the second
 line, the agency name and the abroad note (they remain on the crisis card, the calm-state line and the printed report)?
+
+Analytics (owner decision 77 ก, 2026-11-16): the counselling page and every crisis-state view are never counted, for anyone
+(no record of who opens crisis help); see `docs/PDPA-NOTES-FOR-COUNSEL.md`.

@@ -1130,3 +1130,11 @@ STYLE-DESIGN L-S1)?
 shows the salon's own catalogue names labelled as the salon's text; may a salon name its semi-permanent method there?
 
 (d) **Volunteer set** for field numbers: `docs/LOOK-VOLUNTEER-PROTOCOL.md` (Thai consent form, draft for legal review).
+
+## Crisis help is never counted (owner decision 77 ก, 2026-11-16)
+
+No record of who opens crisis help. The opt-in usage analytics (`lensiq-analytics.js`) never counts the counselling page
+(`counselling.html`, "ช่องทางให้คำปรึกษา") and sends nothing while a page is in the crisis or calm state or shows the crisis
+card: events queued before the card are dropped, events after it are not recorded, and the page is not loaded with analytics
+at all (`lensiq-config.js`). The Worker rejects the page name (not on `ANALYTICS_PAGES`). Tests:
+`tests/unit/crisis-no-analytics.test.js`. Question for counsel: none expected; recorded so the privacy notice can say it.

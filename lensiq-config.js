@@ -187,13 +187,13 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
   var load = function (file, global) {
     if (/** @type {any} */ (window)[global] || document.querySelector('script[src*="' + file + '"]')) return;
     var s = document.createElement("script");
-    s.src = dir + file + "?v=3";
+    s.src = dir + file + "?v=4";
     s.async = false; // keep order: api before analytics
     (document.head || document.documentElement).appendChild(s);
   };
   load("lensiq-api.js", "LQApi");
-  // the back office (admin.html) and the pricing draft never load analytics
-  if (window.LENSIQ_ANALYTICS !== false && !/\/(admin|pricing)\.html$/.test(location.pathname)) load("lensiq-analytics.js", "LQAnalytics");
+  // never on the back office, the pricing draft or the counselling page (decision 77 ก)
+  if (window.LENSIQ_ANALYTICS !== false && !/\/(admin|pricing|counselling)\.html$/.test(location.pathname)) load("lensiq-analytics.js", "LQAnalytics");
   // member sign-in (account chip in the header, light reading for guests) — inert unless the Worker reports
   // membership and LENSIQ_GOOGLE_CLIENT_ID is set; never on the back office
   // LENSIQ_MEMBER = false (set by a deploy config for a page that needs the API but no sign-in) skips it
