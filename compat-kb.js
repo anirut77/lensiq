@@ -19,7 +19,7 @@
   };
   const LEAN = {
     fit: { th: "เข้ากันดี", en: "Good fit", zh: "契合" },
-    mixed: { th: "มีทั้งสองด้าน", en: "Mixed", zh: "互有长短" },
+    mixed: { th: "กลาง ๆ", en: "In between", zh: "居中" },
     care: { th: "ใส่ใจเป็นพิเศษ", en: "Needs care", zh: "需多用心" },
     none: { th: "คำนวณไม่ได้", en: "Not computed", zh: "无法计算" },
   };
@@ -312,7 +312,7 @@
       en: { f: "In daily life your rhythms can be adjusted towards each other.", a: ["Split daily tasks by strengths and swap now and then.", "Keep some personal time the other respects, at least once a week."] },
       zh: { f: "日常生活中，两人的节奏可以相互调和。", a: ["按擅长分配日常事务，偶尔互换。", "每周至少留一段对方尊重的个人时间。"] } },
     work: {
-      th: { f: "สไตล์การทำงานของทั้งสองเติมกันได้ คนหนึ่งเห็นภาพรวม อีกคนดูรายละเอียด", a: ["ก่อนเริ่มงานร่วมกัน ตกลงบทบาท กำหนดเสร็จ และวิธีส่งต่องาน", "ชมกันเมื่องานสำเร็จ และคุยเรื่องที่ควรทำต่างไปโดยไม่โทษกัน"] },
+      th: { f: "สไตล์การทำงานของทั้งสองเติมกันได้ คนหนึ่งเห็นภาพรวม อีกคนดูรายละเอียด", a: ["ก่อนเริ่มงานร่วมกัน ตกลงว่าใครทำส่วนไหน กำหนดเสร็จ และวิธีส่งต่องาน", "ชมกันเมื่องานสำเร็จ และคุยเรื่องที่ควรทำต่างไปโดยไม่โทษกัน"] },
       en: { f: "Your work styles can complement each other: one sees the big picture, the other the details.", a: ["Before working together, agree roles, deadlines and how work is handed over.", "Recognise each other when something goes well, and discuss what to change without blame."] },
       zh: { f: "两人的做事风格可以互补：一人看全局，一人顾细节。", a: ["合作前先约定角色、期限和交接方式。", "成功时互相肯定，讨论改进时不互相指责。"] } },
     decisions: {
@@ -371,8 +371,8 @@
       agreeYes: "ทุกศาสตร์ที่คำนวณได้มองตรงกันว่า{lean}", agreeNo: "ศาสตร์มองต่างกัน: {parts}", agreeFew: "มีศาสตร์คำนวณได้ไม่พอจะเทียบ", agreePart: "{m} ว่า{lean}",
       mapCell: "{a} กับ {b}: {lean} เด่นเรื่อง{fit}", mapCellCare: "{a} กับ {b}: {lean} ควรใส่ใจเรื่อง{care}", mapStep: "วิธีปรับ: {s}",
       grpLead: "คู่ที่เสริมกันเด่นที่สุดคือ {best} คู่ที่ควรวางกติกาให้ชัดคือ {care}", grpLeadAll: "ทุกคู่ในกลุ่มนี้เสริมกันได้ คู่ที่เด่นที่สุดคือ {best}",
-      grpRoles: "บทบาทที่แนะนำมาจากธาตุประจำตัวของแต่ละคน เป็นจุดแข็งที่นำมาใช้ได้ ไม่ใช่ข้อจำกัด", feeds: "ช่วยเติมพลังให้ {list}",
-      grpFrame: "ผลของกลุ่มช่วยให้เห็นว่าใครเสริมใคร และแบ่งบทบาทกันอย่างไรให้ทุกคนได้ใช้จุดแข็ง",
+      grpRoles: "หน้าที่ที่แนะนำมาจากธาตุประจำตัวของแต่ละคน เป็นจุดแข็งที่นำมาใช้ได้ ไม่ใช่ข้อจำกัด", feeds: "ช่วยเติมพลังให้ {list}",
+      grpFrame: "ผลของกลุ่มช่วยให้เห็นว่าใครเสริมใคร และแบ่งหน้าที่กันอย่างไรให้ทุกคนได้ใช้จุดแข็ง",
       pairTitle: "{a} กับ {b}",
     },
     en: {

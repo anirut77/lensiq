@@ -196,7 +196,7 @@
     if (!rep.agreement.length) return "";
     const K = C().KB, ms = C().METHODS;
     return '<section class="cp-agree fk-block" data-compat-agree><h3>' + esc(T("compat.agreeH", "ศาสตร์ไหนเห็นตรงกัน")) + '</h3><p class="fk-small">' +
-      esc(T("compat.agreeKey", "● เข้ากันดี · ◐ มีทั้งสองด้าน · ○ ใส่ใจเป็นพิเศษ · – คำนวณไม่ได้")) + "</p>" +
+      esc(T("compat.agreeKey", "● เข้ากันดี · ◐ กลาง ๆ · ○ ใส่ใจเป็นพิเศษ · – คำนวณไม่ได้")) + "</p>" +
       rep.agreement.map(a => '<div class="cp-arow" data-agree-cat="' + a.cat + '" style="--cat-color:' + a.color + '"><div class="cp-ahead">' + icon(a.icon, a.color) + "<b>" + esc(a.title) + "</b>" +
         (a.agree ? '<span class="cp-tag ok">' + esc(T("compat.agreeTag", "ตรงกัน")) + "</span>" : '<span class="cp-tag">' + esc(T("compat.differTag", "ต่างกัน")) + "</span>") + '</div><div class="cp-acells">' +
         ms.map(m => { const l = a.leans[m] || "none"; return '<span class="cp-cell" data-agree-method="' + m + '" data-lean="' + l + '"><span aria-hidden="true">' + LEAN_SYM[l] + "</span> " + esc(K.METHOD[m].short[rep.lang]) + '<span class="cp-sr"> ' + esc(K.LEAN[l][rep.lang]) + "</span></span>"; }).join("") +
@@ -258,7 +258,7 @@
     if (rep.mode === "group") {
       const g = D.createElement("div"); g.className = "cp-group fk-block";
       g.innerHTML = '<p class="cp-workuse" data-compat-workuse>' + esc(rep.workUse) + "</p><h3>" + esc(T("compat.mapH", "แผนผังว่าใครเสริมใคร")) + "</h3>" + mapHTML(rep) +
-        "<h3>" + esc(T("compat.rolesH", "บทบาทที่แนะนำ (จุดแข็งของแต่ละคน)")) + '</h3><ul class="cp-roles">' +
+        "<h3>" + esc(T("compat.rolesH", "หน้าที่ที่แนะนำ (จุดแข็งของแต่ละคน)")) + '</h3><ul class="cp-roles">' +
         rep.roles.map(x => '<li data-compat-role><b>' + esc(x.name) + "</b> · " + esc(x.role) + '<br><span class="fk-small">' + esc(x.strength) + "</span></li>").join("") + "</ul>";
       r.appendChild(g);
     } else {

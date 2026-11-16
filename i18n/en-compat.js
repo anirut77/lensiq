@@ -54,7 +54,7 @@
   "compat.guide": "guide figure",
   "compat.traditional": "traditional score",
   "compat.agreeH": "Where the methods agree",
-  "compat.agreeKey": "● good fit · ◐ mixed · ○ needs care · – not computed",
+  "compat.agreeKey": "● good fit · ◐ in between · ○ needs care · – not computed",
   "compat.agreeTag": "agree",
   "compat.differTag": "differ",
   "compat.careH": "Needs care",
