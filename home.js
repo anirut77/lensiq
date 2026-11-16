@@ -260,8 +260,10 @@
     // buyer walkthrough W-017: the long home page keeps growing while it renders, so a #contact link could land far above the
     // form; keep the form in view until the page settles (stops as soon as the visitor scrolls, touches or types)
     if (location.hash === "#contact") {
-      var held = true, unhold = function () { held = false; };
-      ["wheel", "touchstart", "keydown", "mousedown"].forEach(function (ev) { window.addEventListener(ev, unhold, { once: true, passive: true }); });
+      // stops for good as soon as the visitor scrolls, touches, clicks, types or focuses a field, so the page never moves under
+      // a finger or a tap (webkit-flake-fix: a tap on the consent box landed beside it while the page was still re-pinning)
+      var held = true, unhold = function () { held = false; if (ro) ro.disconnect(); };
+      ["wheel", "touchstart", "pointerdown", "mousedown", "keydown", "focusin"].forEach(function (ev) { window.addEventListener(ev, unhold, { once: true, passive: true, capture: true }); });
       // walk-through 2026-11-16 D-04: land on the form heading just below the sticky header, so the heading, the delivery note
       // and the Name field (the first required field) are on screen on a phone too (centring the interest field overshot)
       var pin = function () {
@@ -269,14 +271,27 @@
         if (!held || !h) return;
         var nav = document.getElementById("siteNav"), nb = nav ? Math.max(0, nav.getBoundingClientRect().bottom) : 0;
         var r = h.getBoundingClientRect(), rn = nm ? nm.getBoundingClientRect() : r;
-        if (r.top < nb || r.top > nb + 48 || rn.bottom > window.innerHeight) window.scrollTo(0, Math.max(0, window.pageYOffset + r.top - nb - 12));
+        if (r.top < nb || r.top > nb + 48 || rn.bottom > window.innerHeight) {
+          // webkit-flake-fix (CI run 43771149311): jump, never animate. html has scroll-behavior:smooth, and on a slow phone the
+          // smooth scroll was still under way (or had not started) seconds later, so the form was far below the screen. An
+          // instant jump puts the heading in place at once; every later layout shift is corrected by the next pin.
+          var de = document.documentElement, was = de.style.scrollBehavior;
+          de.style.scrollBehavior = "auto";
+          window.scrollTo(0, Math.max(0, window.pageYOffset + r.top - nb - 12));
+          de.style.scrollBehavior = was;
+        }
       };
+      var ro = null;
       [0, 150, 400, 800, 1200, 2000, 3000].forEach(function (ms) { setTimeout(pin, ms); });
-      window.addEventListener("load", function () { [0, 300, 800, 1500].forEach(function (ms) { setTimeout(pin, ms); }); });
-      // a slow phone keeps laying the page out after load (fonts, images): re-pin whenever the page height changes, for 6 s
+      window.addEventListener("load", function () { [0, 300, 800, 1500, 3000].forEach(function (ms) { setTimeout(pin, ms); }); });
+      try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(pin); } catch (e) { /* old browser */ }
+      // a slow phone keeps laying the page out after load (fonts, images): re-pin whenever the page height changes, until
+      // 8 s after load (or the visitor's first interaction)
       if (typeof ResizeObserver === "function") {
-        var ro = new ResizeObserver(function () { pin(); });
-        ro.observe(document.body); setTimeout(function () { ro.disconnect(); }, 6000);
+        ro = new ResizeObserver(function () { pin(); });
+        ro.observe(document.body);
+        var stopRo = function () { setTimeout(function () { if (ro) ro.disconnect(); }, 8000); };
+        if (document.readyState === "complete") stopRo(); else window.addEventListener("load", stopRo);
       }
     }
 
