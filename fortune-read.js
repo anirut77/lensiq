@@ -134,7 +134,7 @@
     if (done) return;
     done = true;
     if (root.LQShare) return;
-    const s = d.createElement("script"); s.src = "fortune-share.js?v=2"; s.async = true; (d.head || d.documentElement).appendChild(s);
+    const s = d.createElement("script"); s.src = "fortune-share.js?v=3"; s.async = true; (d.head || d.documentElement).appendChild(s);
   };
   for (const ev of ["pointerdown", "touchstart", "keydown", "scroll", "focusin"]) root.addEventListener(ev, go, { capture: true, passive: true, once: true });
   const ROOTS = "#frResult,#plResult,#hsResult,#trResult,#ssResult,#icResult,#lcResult,#nmResult,#fsReading,#drResult,#zdResult,#asResult,#rpOut";

@@ -62,7 +62,8 @@
         "Thai, Chinese and Western fortune traditions in one place. Pick the one that fits what you want to know.", "泰式、中式和西洋命理汇集一处，选一个适合你想了解的问题。") }] },
     faceread: { name: N3("อ่านโหงวเฮ้ง", "Face Reading", "面相解读"), photo: "#frResCanvas", personal: true,
       results: [{ root: "#frResult", share: "#frShare", printBtn: "#frPrint" }] },
-    palm: { name: N3("ดูลายมือ", "Palm Reading", "看手相"), photo: "#plResCanvas", personal: true, results: [{ root: "#plResult", share: "#plShare", printBtn: "#plPrint" }] },
+    palm: { name: N3("ดูลายมือ", "Palm Reading", "看手相"), photo: "#plResCanvas", personal: true,
+      artOpt: N3("ใส่ภาพลายเส้นมือของฉันในการ์ด", "Include my palm line drawing on the card", "在卡片上放我的掌纹线图"), results: [{ root: "#plResult", share: "#plShare", printBtn: "#plPrint" }] },
     horoscope: { name: N3("ดวงวันเดือนปีเกิด", "Birth-date Horoscope", "生辰八字与泰国占星"), personal: true,
       results: [{ root: "#hsResult", share: "#hsShare", printBtn: "#hsPrint" }] },
     tarot: { name: N3("ไพ่ทาโรต์ & เซียมซี", "Tarot & Siam Si", "塔罗牌 & 求签"),
@@ -76,8 +77,10 @@
     fengshui: { name: N3("ฮวงจุ้ย", "Feng Shui", "风水"), personal: true, results: [{ root: "#fsReading", share: "#fsShare", printRoot: "#fsS4" }] },
     dream: { name: N3("ทำนายฝัน", "Dream Interpretation", "解梦"), results: [{ root: "#drResult", share: "#drShare", printBtn: "#drPrint" }] },
     zodiac: { name: N3("12 นักษัตร · ปีชง", "Chinese Zodiac · Tai Sui", "十二生肖 · 犯太岁"), personal: true,
+      artOpt: N3("ใส่ภาพนักษัตรของฉันในการ์ด", "Include my zodiac animal picture on the card", "在卡片上放我的生肖图"),
       results: [{ root: "#zdResult", share: "#zdShare", printBtn: "#zdPrint" }, { root: "#zdPairRes" }] },
     astro: { name: N3("ราศีตะวันตก Big Three", "Western Astrology Big Three", "西洋星座 Big Three"), personal: true,
+      artOpt: N3("ใส่ภาพราศีจากวันเกิดของฉันในการ์ด", "Include my sign pictures (from my birth date) on the card", "在卡片上放我的星座图（来自出生日期）"),
       results: [{ root: "#asResult", share: "#asShare", printBtn: "#asPrint" }, { root: "#asSignRes" }] },
     lifegraph: { name: N3("กราฟชีวิต", "Life Graph", "人生曲线"), personal: true, results: [{ root: "#lcResult", printBtn: "#lcPrint" }] },
     planner: { name: N3("วางแผนฤกษ์มงคล", "Auspicious date planner", "吉日规划"), results: [{ root: "#plResult", printBtn: "#plPrint", gist: "#plResH, #plResSub" }] },
@@ -85,6 +88,9 @@
     report: { name: N3("รายงานดวงของฉัน", "My fortune reports", "我的占卜报告"), personal: true, results: [{ root: "#rpOut", printBtn: "#rpPrint" }] },
   };
   const langOf = l => (l === "en" || l === "zh" ? l : "th");
+  /* owner decision 76 (option ก, 2026-11-16): art made from the person (palm line drawing; sign / animal from birth data) is
+     off on the card by default and has its own switch, off every time the dialog opens; other pages' art is unchanged */
+  const artLabel = (p, lang) => (PAGES[p] && PAGES[p].artOpt ? PAGES[p].artOpt[langOf(lang)] : "");
   const pageName = (p, lang) => (PAGES[p] ? PAGES[p].name[langOf(lang)] : "LENSIQ");
 
   /* ---------- the card (pure) ---------- */
@@ -136,7 +142,7 @@
   function cardModel(o) {
     o = o || {};
     const lang = langOf(o.lang), inc = o.include || {}, per = o.personal || {}, P = PAGES[o.page] || {};
-    const birthOn = !!inc.birth, photoOn = !!(inc.photo && o.hasPhoto && P.photo);
+    const birthOn = !!inc.birth, photoOn = !!(inc.photo && o.hasPhoto && P.photo), artOn = P.artOpt ? !!inc.art : true;
     const always = [].concat(per.typed || []);
     const personal = [].concat(per.names || [], per.ages || [], String(per.birth || "").split(/\s+/).filter(x => x.length >= 3));
     let t = scrub(o.gist, birthOn ? always : always.concat(personal), !birthOn);
@@ -151,7 +157,7 @@
       if (lines.length >= 8) break;
     }
     const birthLine = birthOn && per.birth ? L[lang].born + " " + String(per.birth).trim() : null;
-    const m = { page: o.page, lang, title: pageName(o.page, lang), lines, birth: birthOn, photo: photoOn, birthLine,
+    const m = { page: o.page, lang, title: pageName(o.page, lang), lines, birth: birthOn, photo: photoOn, art: artOn, birthLine,
       names: birthOn ? [].concat(per.names || []).filter(Boolean) : [],
       help: HELP[lang], disclaimer: LINE[lang], link: String(o.link || ""), dateText: dateText(o.date, lang) };
     m.text = [m.title, m.dateText].concat(m.names, lines, birthLine ? [birthLine] : [], [m.help, m.disclaimer, m.link]).filter(Boolean).join("\n");
@@ -222,7 +228,7 @@
     "@page{margin:14mm 12mm}" +
     "}";
 
-  const api = { PAGES, L, LINE, HELP, pageName, cardModel, scrub, lineUrl, fbUrl, allowed, dateText, PRINT_CSS, last: null };
+  const api = { PAGES, L, LINE, HELP, pageName, artLabel, cardModel, scrub, lineUrl, fbUrl, allowed, dateText, PRINT_CSS, last: null };
 
   /* ================================ browser ================================ */
   if (typeof document === "undefined" || NODE && !root.document) {

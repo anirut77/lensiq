@@ -115,6 +115,9 @@
       lab.appendChild(el("input", { type: "checkbox", id })); lab.appendChild(el("span", { "data-k": k }, T(k))); return lab;
     };
     box.appendChild(tog("lqSpPhoto", "photo")); box.appendChild(tog("lqSpBirth", "birth"));
+    // decision 76: the page's own art from the person (palm drawing, sign / animal) has its own switch; its label is per page
+    const artTog = el("label", { for: "lqSpArt", "data-lq-sp-tog": "art" }); artTog.appendChild(el("input", { type: "checkbox", id: "lqSpArt" }));
+    artTog.appendChild(el("span", { "data-art": "" }, "")); box.appendChild(artTog);
     box.appendChild(el("p", { class: "lq-sp-note", "data-k": "note" }, T("note")));
     const acts = el("div", { class: "lq-sp-acts" });
     for (const [k, cls] of [["native", "btn primary"], ["line", "btn ghost"], ["fb", "btn ghost"], ["save", "btn ghost"], ["close", "btn ghost"]]) {
@@ -125,6 +128,7 @@
     d.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
     d.querySelector("#lqSpPhoto").addEventListener("change", () => render());
     d.querySelector("#lqSpBirth").addEventListener("change", () => render());
+    d.querySelector("#lqSpArt").addEventListener("change", () => render());
     acts.addEventListener("click", e => { const b = e.target.closest("[data-lq-sp-act]"); if (b) act(b.getAttribute("data-lq-sp-act")); });
     return d;
   }
@@ -139,11 +143,11 @@
   }
   async function render() {
     const S = state.S, my = ++state.n;
-    const inc = { photo: dlg.querySelector("#lqSpPhoto").checked, birth: dlg.querySelector("#lqSpBirth").checked };
+    const inc = { photo: dlg.querySelector("#lqSpPhoto").checked, birth: dlg.querySelector("#lqSpBirth").checked, art: dlg.querySelector("#lqSpArt").checked };
     S.last = null;
     try {
       const m = S.model(state.r, inc);
-      const cv = draw(m, m.photo ? S.photo() : null, S.artFor(state.r));
+      const cv = draw(m, m.photo ? S.photo() : null, m.art === false ? null : S.artFor(state.r));
       const blob = await new Promise(r => cv.toBlob(r, "image/png"));
       if (my !== state.n || !blob) return;
       if (url) URL.revokeObjectURL(url);
@@ -154,7 +158,7 @@
       let can = false; try { can = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [state.file] })); } catch (e) { can = false; }
       nat.hidden = !can;
       const img = dlg.querySelector("#lqSpPreview"); img.src = url;
-      S.last = { page: m.page, lang: m.lang, lines: m.lines, text: m.text, photo: m.photo, birth: m.birth, birthLine: m.birthLine, link: m.link };
+      S.last = { page: m.page, lang: m.lang, lines: m.lines, text: m.text, photo: m.photo, birth: m.birth, art: m.art !== false, birthLine: m.birthLine, link: m.link };
     } catch (e) { console.warn(e); S.toast(S.L[lang(S)].fail); }
   }
   function open(S, r) {
@@ -163,8 +167,10 @@
     relabel(S);
     state = { S, r, n: 0 };
     const P = S.config() || {};
-    const ph = dlg.querySelector("#lqSpPhoto"), bi = dlg.querySelector("#lqSpBirth");
-    ph.checked = false; bi.checked = false; // off every time the dialog opens
+    const ph = dlg.querySelector("#lqSpPhoto"), bi = dlg.querySelector("#lqSpBirth"), ar = dlg.querySelector("#lqSpArt");
+    ar.checked = false; ph.checked = false; bi.checked = false; // off every time the dialog opens
+    ar.closest("label").hidden = !P.artOpt;
+    ar.closest("label").querySelector("[data-art]").textContent = S.artLabel(S.page, lang(S));
     ph.closest("label").hidden = !(P.photo && S.photo());
     bi.closest("label").hidden = !P.personal;
     dlg.querySelector('[data-lq-sp-act="native"]').hidden = true;

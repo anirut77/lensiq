@@ -57,6 +57,7 @@ interface Window {
   LQShareCard?: any;
   LQShareArt?: any;
   LQShareLoader?: any;
+  LQPrint?: any;
   /** lensiq-config.js: Part C "read it straight" fortune option (owner order 2026-11-12); false until the owner approves */
   LENSIQ_FORTUNE_STRAIGHT?: boolean;
   /** look suggestions salon mode (lensiq-config.js, hard off until the human-approval step exists; owner 2026-11-14) */
