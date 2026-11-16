@@ -14,7 +14,7 @@
   const W = /** @type {any} */ (window), D = document;
   const app = D.getElementById("cpApp");
   if (!app || !W.LQCompat) return;
-  const $ = id => D.getElementById(id);
+  const $ = id => /** @type {any} */ (D.getElementById(id));
   const C = () => W.LQCompat; // always through the public object
   const lang = () => { const l = W.LQI18N && W.LQI18N.lang; return l === "en" || l === "zh" ? l : "th"; };
   const T = (k, th, v) => (W.LQI18N ? W.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, (m, x) => (v && v[x] != null ? v[x] : m)));
@@ -54,7 +54,7 @@
   function renderPeople(keep) {
     const box = $("cpPeople"), old = keep ? readAll(true) : [];
     box.innerHTML = Array.from({ length: st.n }, (_, i) => personHTML(i)).join("");
-    old.forEach((p, i) => { if (i >= st.n) return; const fs = box.querySelector('[data-cp-person="' + i + '"]'); for (const k of ["nick", "d", "m", "y", "t"]) fs.querySelector('[name="' + k + '"]').value = p.raw[k]; });
+    old.forEach((p, i) => { if (i >= st.n) return; const fs = box.querySelector('[data-cp-person="' + i + '"]'); for (const k of ["nick", "d", "m", "y", "t"]) /** @type {any} */ (fs.querySelector('[name="' + k + '"]')).value = p.raw[k]; });
     syncConsent();
     $("cpAdd").hidden = $("cpRemove").hidden = st.mode !== "group";
     $("cpAdd").disabled = st.n >= 8; $("cpRemove").disabled = st.n <= 3;
@@ -82,13 +82,13 @@
     const sel = /** @type {HTMLSelectElement} */ ($("cpRel"));
     Array.from(sel.options).forEach(o => { const on = o.getAttribute("data-cp-for") === m; o.hidden = !on; o.disabled = !on; });
     sel.value = m === "group" ? "team" : "couple";
-    D.querySelector("#cpForm [data-compat-workuse]").hidden = m !== "group";
+    /** @type {any} */ (D.querySelector("#cpForm [data-compat-workuse]")).hidden = m !== "group";
     renderPeople(true);
     clearResult();
   }
   D.querySelectorAll("[data-cp-mode]").forEach(b => {
     b.addEventListener("click", () => setMode(b.getAttribute("data-cp-mode")));
-    b.addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); const m = st.mode === "pair" ? "group" : "pair"; setMode(m); /** @type {any} */ ($(m === "pair" ? "cpTabPair" : "cpTabGroup")).focus(); } });
+    b.addEventListener("keydown", /** @param {any} e */ e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); const m = st.mode === "pair" ? "group" : "pair"; setMode(m); /** @type {any} */ ($(m === "pair" ? "cpTabPair" : "cpTabGroup")).focus(); } });
   });
   $("cpConsent").addEventListener("change", () => { syncConsent(); if (/** @type {any} */ ($("cpConsent")).checked) { engine(); msg(""); } });
   $("cpAdd").addEventListener("click", () => { if (st.n < 8) { st.n++; renderPeople(true); } });

@@ -144,6 +144,7 @@
   /* ================= Western ================= */
   const BODIES = ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"];
   const AE_NAME = { mercury: "Mercury", venus: "Venus", mars: "Mars", jupiter: "Jupiter", saturn: "Saturn" };
+  /** @type {Array<[string, number]>} */
   const ASPECTS = [["conj", 0], ["sext", 60], ["square", 90], ["trine", 120], ["opp", 180]];
   const western = {
     /** major aspect between two longitudes: orb 8° with the Sun or Moon, 6° otherwise, 4° for the sextile */
@@ -260,6 +261,7 @@
     if (s.includes("venus") || (s.includes("mars") && s.includes("moon"))) return "love";
     return "drive";
   };
+  /** @type {Record<string, [number, string[]]>} */
   const THEME = { lum: [3, ["daily", "longterm"]], moonmoon: [2, ["daily"]], sunsun: [1.5, ["values", "work"]], mind: [2.5, ["communication", "decisions"]],
     love: [2.5, ["daily", "values"]], drive: [1.5, ["work", "decisions"]], growth: [1.5, ["longterm", "money"]], structure: [2, ["longterm", "work", "money"]] };
   function westernSignals(A, B) {
@@ -269,7 +271,7 @@
       if (["jupiter", "saturn"].includes(p) && ["jupiter", "saturn"].includes(q)) continue; // generational
       const a = western.aspect(A.western.planets[p], B.western.planets[q], p, q);
       if (!a) continue;
-      const th = P_THEME(p, q), base = THEME[th][0];
+      const th = P_THEME(p, q), base = /** @type {number} */ (THEME[th][0]);
       let w = base * (1 - 0.5 * a.orb / a.max);
       if ((p === "moon" && !A.timeKnown) || (q === "moon" && !B.timeKnown)) w /= 2;
       const pol = a.type === "trine" || a.type === "sext" ? "fit" : a.type === "conj" ? (th === "structure" || th === "drive" ? "mixed" : "fit") : "care";
