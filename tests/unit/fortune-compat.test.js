@@ -12,6 +12,10 @@
 //       Cases: Rohini (Taurus) + Pushya (Cancer) = 26, per-koota, five of them as published by hindutone.com;
 //       Rohini (Taurus) + Swati (Libra) = 14.5 (melooha.com shows the same pair under another variant: 16.5, documented);
 //       Ashwini + Bharani (Aries) = 34; Ashwini (Aries) + Jyeshtha (Scorpio) = 13; Ashwini + Shatabhisha Yoni = 4 and
+//       RE-LOCK 2026-11-16 (4), owner decision 72 (every cell backed by two independent sources, else drop): the Gana koota is
+//       removed (no two independent sources agree on its mixed cells; see docs/COMPAT-SOURCES.md §3c), Ashtakoota is scored out
+//       of 30; Yoni is same 4 / sworn enemy 0 / every other pair 2 (the only levels two sources back). Golden totals:
+//       Rohini-Pushya 21, Rohini-Swati 9.5, Ashwini-Bharani 28, Ashwini-Jyeshtha 12.
 //       RE-LOCK 2026-11-16 (3), independent review D1: AGPL-derived value replaced by value derived from onlinejyotish.com
 //       yoni-kootam (scale same 4 / friendly 3 / neutral 2 / hostile 1 / sworn 0, the 7 sworn-enemy pairs) and aaps.space
 //       yoni-matching (the friendly pairs): Yoni Serpent-Buffalo 1 -> 2 (neutral), Horse-Deer 1 -> 3 (friendly);
@@ -81,16 +85,16 @@ function birth(r, withTime) {
 /* ---------------- M1 Ashtakoota ---------------- */
 const NAK = { ashwini: 0, bharani: 1, rohini: 3, pushya: 7, swati: 14, jyeshtha: 17, mula: 18, purvaAshadha: 19, shatabhisha: 23 };
 const RASHI = { aries: 0, taurus: 1, cancer: 3, virgo: 5, libra: 6, scorpio: 7, sagittarius: 8 };
-const K8 = ["varna", "vashya", "tara", "yoni", "maitri", "gana", "bhakoot", "nadi"];
+const K8 = ["varna", "vashya", "tara", "yoni", "maitri", "bhakoot", "nadi"]; // re-lock (4): no Gana
 const GOLD = [
   { name: "Rohini (Taurus) + Pushya (Cancer)", a: { nak: NAK.rohini, rashi: RASHI.taurus, deg: 15 }, b: { nak: NAK.pushya, rashi: RASHI.cancer, deg: 10 },
-    k: [1, 1, 1.5, 2, 0.5, 5, 7, 8], total: 26 },
+    k: [1, 1, 1.5, 2, 0.5, 7, 8], total: 21 },
   { name: "Rohini (Taurus) + Swati (Libra)", a: { nak: NAK.rohini, rashi: RASHI.taurus, deg: 15 }, b: { nak: NAK.swati, rashi: RASHI.libra, deg: 13 },
-    k: [0, 1, 1.5, 2, 5, 5, 0, 0], total: 14.5, bhakootCancel: true },
+    k: [0, 1, 1.5, 2, 5, 0, 0], total: 9.5, bhakootCancel: true },
   { name: "Ashwini + Bharani (Aries)", a: { nak: NAK.ashwini, rashi: RASHI.aries, deg: 5 }, b: { nak: NAK.bharani, rashi: RASHI.aries, deg: 20 },
-    k: [1, 2, 3, 2, 5, 6, 7, 8], total: 34 },
+    k: [1, 2, 3, 2, 5, 7, 8], total: 28 },
   { name: "Ashwini (Aries) + Jyeshtha (Scorpio)", a: { nak: NAK.ashwini, rashi: RASHI.aries, deg: 5 }, b: { nak: NAK.jyeshtha, rashi: RASHI.scorpio, deg: 25 },
-    k: [1, 1, 3, 3, 5, 0, 0, 0], total: 13, bhakootCancel: true },
+    k: [1, 1, 3, 2, 5, 0, 0], total: 12, bhakootCancel: true },
 ];
 test("M1 Ashtakoota golden cases: every koota and the total (common profile)", () => {
   const C = load();
@@ -98,7 +102,8 @@ test("M1 Ashtakoota golden cases: every koota and the total (common profile)", (
     const r = C.vedic.ashtakoota(g.a, g.b);
     K8.forEach((k, i) => assert.equal(r.kootas[k], g.k[i], `${g.name}: ${k}`));
     assert.equal(r.total, g.total, `${g.name}: total`);
-    assert.equal(r.max, 36);
+    assert.equal(r.max, 30, "out of 30 without Gana");
+    assert.equal(r.kootas.gana, undefined, "no Gana koota");
     if (g.bhakootCancel) {
       assert.equal(r.cancel.bhakoot, true, `${g.name}: Bhakoot cancellation (same lord) is reported`);
       assert.equal(r.total, g.total, `${g.name}: a cancellation is never added to the raw total`);

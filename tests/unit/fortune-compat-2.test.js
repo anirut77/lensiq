@@ -2,6 +2,12 @@
 // tests/unit/fortune-compat-2.test.js — FIXED TEST SET, Compatibility review round 1 (independent review of 5ba333b: NOT OK).
 // Written and locked (~/LENSIQ-field/evals/fortune-compat/, evals-locks/fortune-compat.sha256) BEFORE the fixes.
 // Browser half of D2: tests/e2e/fortune-compat-crisis.e2e.mjs.
+//   RE-LOCK 2026-11-16 (4), owner decision 72: every cell needs two independent sources (a published text or established
+//       reference plus one more), disagreements recorded and resolved in the open. Yoni: same animal 4 and the 7 sworn-enemy
+//       pairs 0 are backed twice (B.V. Raman, Muhurtha or Electional Astrology, pp. 82-84, with onlinejyotish.com / aaps.space);
+//       the friendly list has one source only and Monkey-Cat is disputed (Raman: hostile, aaps.space: friendly), so every other
+//       pair is 2. Gana is removed (its mixed cells have no two agreeing sources); Ashtakoota is out of 30 and the page says
+//       why in TH / EN / ZH. The saravali (CC BY-SA) table is gone.
 //   D1  licence: the Yoni table is derived from the classical rule in non-AGPL sources, not copied from PyJHora (AGPL):
 //       same animal 4; the 7 sworn-enemy pairs 0 (onlinejyotish.com yoni-kootam); the friendly pairs 3 (aaps.space
 //       yoni-matching, Sheep = Goat); every other pair 2 (neutral: no hostile list in those sources); symmetric. The old
@@ -44,7 +50,7 @@ test("D1 Yoni: every one of the 196 cells follows the documented rule; no PyJHor
   const V = load().vedic;
   const has = (L, a, b) => L.some(p => (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a));
   for (let a = 0; a < 14; a++) for (let b = 0; b < 14; b++) {
-    const want = a === b ? 4 : has(SWORN, a, b) ? 0 : has(FRIENDLY, a, b) ? 3 : 2;
+    const want = a === b ? 4 : has(SWORN, a, b) ? 0 : 2; // re-lock (4): the friendly list has one source only
     assert.equal(V.yoniScore(a, b), want, `yoni ${a}-${b}`);
   }
   assert.deepEqual(V.YONI_OF, [0, 1, 2, 3, 3, 4, 5, 2, 5, 6, 6, 7, 8, 9, 8, 9, 10, 10, 4, 11, 12, 11, 13, 0, 13, 7, 1], "animal per nakshatra (onlinejyotish.com)");
@@ -55,9 +61,12 @@ test("D1 Yoni: every one of the 196 cells follows the documented rule; no PyJHor
   const doc = read("docs/COMPAT-SOURCES.md");
   assert.match(doc, /onlinejyotish\.com\/articles\/marriage-matching\/english\/yoni-kootam\.php/);
   assert.match(doc, /aaps\.space\/blog\/yoni-matching-and-sexual-compatibility/);
-  assert.match(doc, /saravali/i);
-  assert.match(doc, /CC BY-SA 4\.0/);
-  assert.match(doc, /owner|legal/i);
+  assert.match(doc, /Raman/); assert.match(doc, /Muhurtha or Electional Astrology/); assert.match(doc, /pp?\. ?8[2-4]/);
+  assert.match(doc, /Gana[^\n]*(?:not included|removed)/i, "the doc says Gana is not included and why");
+  assert.ok(!/D: \{ D: 6/.test(src) && !/GANA = /.test(src), "no Gana table in compat.js");
+  assert.ok(!Object.prototype.hasOwnProperty.call(V.MAX, "gana") && Object.values(V.MAX).reduce((a, b) => a + b, 0) === 30, "Ashtakoota out of 30");
+  const T = load().KB.T, NOTE = { th: /คณะ/, en: /Gana/, zh: /Gana/ };
+  for (const l of ["th", "en", "zh"]) assert.match(T[l].vedNoGana || "", NOTE[l], "page note: Gana not included (" + l + ")");
   assert.match(doc, /PyJHora/);
 });
 

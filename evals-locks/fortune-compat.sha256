@@ -12,3 +12,7 @@ ba23091fca3d53dd84457f7e41b72334a7bdab47e6aab078fa9550bef0978eee  tests/e2e/fort
 58dc9cdebe3ce61b182aab25383ee3b6f161ef54bc01edd597ae083dfce3d2a5  tests/unit/fortune-compat.test.js
 226ace471a5eacb3fac141dd4bacc825751597204421b9289a93c8f6794c65aa  tests/unit/fortune-compat-2.test.js
 ffd61fea273a2010df83d863522b7b01e4b0ffffe392e893c46cc57616d77266  tests/e2e/fortune-compat-crisis.e2e.mjs
+# RE-LOCK 2026-11-16 (4), owner decision 72 (every table cell backed by two independent sources, a published text or established reference plus one more; else drop the component): Gana removed (B.V. Raman's Gana pages 78-81 are missing from the only readable scan; his summary rule on p. 186 contradicts the web tables; the web tables disagree on the mixed cells), Ashtakoota out of 30; Yoni = same 4 / 7 sworn-enemy pairs 0 / every other pair 2 (friendly list single-sourced, Monkey-Cat disputed). Unit golden totals 26/14.5/34/13 -> 21/9.5/28/12; fortune-compat-2 D1 rule and source checks updated. Locked BEFORE the code change.
+# locked 2026-11-16T08:02:31Z (tools/eval-guard.mjs lock, 2 files)
+031a86912dd3ede168690af20b3539910e755e373f2863ba97e63e3f6422a264  tests/unit/fortune-compat.test.js
+1d8bc128c7b04ce8b5c560881b2378852feafaea4ce25c31977d4a10ceabf2e5  tests/unit/fortune-compat-2.test.js
