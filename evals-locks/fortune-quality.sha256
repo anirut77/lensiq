@@ -49,3 +49,16 @@ e132569ec12e2859b236202cf6a5871061d6ac59ac70c2e247c69ee3edc44552  tools/fortune-
 32e379a7dc9960f7cdd9b5c3bbac33ea58400e97bd985e3da9d45fae2e024a18  tools/fortune-quality-metrics-5.mjs
 37f9d3e92ed138693400f32e84cdee265561e17631623573746a5dc4704e6e2d  tests/unit/fortune-quality-5.test.js
 7f146523d2eeaa0f9c16b5a6dbe31c05bdee988ade1444fc1c6bc8d1063ac972  tools/fortune-quality-measure-5.mjs
+# round 6 (coordinator order after RECHECK-5.md NOT OK on 38eb985; append-only, rounds 1-5 unchanged): metrics W1-W6. Reasons:
+# W1 a bracket citation credits a line to the wrong finding (D1: the Water-Yin line cited "(วันเกิดอังคาร)" in horoscope timing);
+# W2 "It …" / "它…" left without its antecedent when the overview lead moved into a bracket (D2, fengshui); W3 EN / ZH "also" and
+# glossary lines with no finding named before them, and numbered sources dropped ("(Pair N)", "(Slip N)", "(Kua N)") (D3); W4
+# content-free citations ("(ปีนี้)", "(this element's energy)", "（今年）", topic words) (D4); W5 advice turned into a statement
+# ("คุณมีเงินสำรองไว้…", with 12 targeted Tower-reversed readings) (D5); W6 Thai group starts without a subject, tested generally
+# (subject / noun / connector / instruction starts allowed, everything else counts) instead of the round-5 adjective list (R1).
+# NEW input set fresh6 (120 inputs, gentle AND straight). Detectors written by the builder; the reviewer's scripts (r5rev/) were not
+# read. Locked BEFORE the round-6 fixes; measured on 38eb985 before any fix.
+# locked 2026-11-16T18:15:53Z (tools/eval-guard.mjs lock, 3 files)
+a0d626ca4b1e0d75be858672fef9776b95e13c527dda8e973d21e36fdae1f29e  tools/fortune-quality-metrics-6.mjs
+ba80f8081980d9237c66eb2dbbba0310afc37ec5722898268ad443deb9672607  tests/unit/fortune-quality-6.test.js
+b2102c3b25fc7a4e0086db99ce5c199aab832a68bb607b4a89266c9e9d92fcd9  tools/fortune-quality-measure-6.mjs
