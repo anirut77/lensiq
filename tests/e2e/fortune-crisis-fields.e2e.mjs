@@ -6,8 +6,9 @@
 import { assert } from "./cdp.mjs";
 
 const PHRASES = ["I want to die", "อยากตาย จริงๆ", "我想去死"];
+// RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the card shows 1323 only (no 1669) and links counselling.html
 const supportIn = sel => `(() => { const b = document.querySelector(${JSON.stringify(sel)});
-  return !!b && !!b.querySelector(".fa-support") && /1323/.test(b.textContent) && /1669/.test(b.textContent) && !b.querySelector(".fa-section"); })()`;
+  return !!b && !!b.querySelector(".fa-support") && /1323/.test(b.textContent) && !/1669/.test(b.textContent) && !!b.querySelector('a[href*="counselling.html"]') && !b.querySelector(".fa-section"); })()`;
 const setVal = (id, v) => `(() => { const e = document.getElementById(${JSON.stringify(id)}); e.value = ${JSON.stringify(v)};
   e.dispatchEvent(new Event("input", { bubbles: true })); e.dispatchEvent(new Event("change", { bubbles: true })); })()`;
 

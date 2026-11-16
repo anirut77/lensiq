@@ -81,7 +81,8 @@ test("crisis: self-harm / abuse text (TH/EN/ZH) gives a calm support card with 1
     const r = FA.crisis.result({ lang });
     assert.equal(r.crisis, true); assert.equal(r.reviewStatus, "pending-professional-review");
     const nums = r.support.lines.map(l => l.n);
-    for (const n of ["1323", "1669", "191"]) assert.ok(nums.includes(n), lang + " " + n);
+    // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the card carries one number, 1323; the other numbers are on counselling.html
+    assert.deepEqual(nums, ["1323"], lang + " card lines");
     const txt = JSON.stringify(r.support);
     if (lang !== "th") assert.ok(!/[฀-๿]/.test(txt), lang + " has Thai");
     assert.ok(!/[0-9]{2}\s*ตัว|lottery|彩票|guarantee|一定|แน่นอน/i.test(txt), lang + ": support card makes no claims");

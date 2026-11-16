@@ -218,10 +218,10 @@ export default async function ({ base, launch, check }) {
           if (r.crisis !== "1") bad.push(`${lang}: page not in the crisis state ${S(r)}`);
           if (!r.cards) bad.push(`${lang}: no help card ${S(r)}`);
           if (r.sections) bad.push(`${lang}: a reading is shown next to the card ${S(r)}`);
-          for (const n of ["tel:1323", "tel:1669", "tel:191", "tel:1300"]) {
-            const t = r.tels.find(x => x.h === n);
-            if (!t) bad.push(`${lang}: card has no ${n} ${S(r.tels)}`); else if (t.w < 44 || t.ht < 44) bad.push(`${lang}: card ${n} is ${t.w}×${t.ht}`);
-          }
+          // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the card has one number, 1323 (>= 44 px); no other tel: link
+          const t = r.tels.find(x => x.h === "tel:1323");
+          if (!t) bad.push(`${lang}: card has no tel:1323 ${S(r.tels)}`); else if (t.w < 44 || t.ht < 44) bad.push(`${lang}: card tel:1323 is ${t.w}×${t.ht}`);
+          if (r.tels.some(x => x.h !== "tel:1323")) bad.push(`${lang}: card has another number ${S(r.tels)}`);
         } catch (e) { bad.push(`${lang}: ${e.message}`); } finally { await page.close(); }
       }
       assert(!bad.length, bad.length + " problem(s):\n" + bad.join("\n"));
@@ -241,7 +241,8 @@ export default async function ({ base, launch, check }) {
               window.FortuneAI.crisis.render(d, window.FortuneAI.crisis.result({ lang: ${S(lang)} }));
               const c = d.querySelector(".fa-support"); const tels = c ? [...c.querySelectorAll('a[href^="tel:"]')].filter(a => a.getClientRects().length).map(a => a.getAttribute("href")) : [];
               return { card: !!c && c.getClientRects().length > 0, tels, crisis: document.documentElement.getAttribute("data-lq-crisis") }; })()`);
-            if (!r.card || r.crisis !== "1" || !r.tels.includes("tel:1323") || !r.tels.includes("tel:1669")) bad.push(`${p} ${lang}: ${S(r)}`);
+            // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): 1323 only on the card
+            if (!r.card || r.crisis !== "1" || !r.tels.includes("tel:1323") || r.tels.some(t => t !== "tel:1323")) bad.push(`${p} ${lang}: ${S(r)}`);
           }
         } finally { await page.close(); }
       }

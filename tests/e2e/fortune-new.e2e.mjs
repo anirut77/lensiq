@@ -125,7 +125,8 @@ export default async function ({ base, launch, check }) {
       await page.waitFor(() => !!document.querySelector("#drSupport .fa-support"), 4000);
       await page.evaluate(() => document.getElementById("drForm").requestSubmit());
       const r = await page.evaluate(() => ({ tel: Array.from(document.querySelectorAll("#drSupport a.fa-tel")).map(a => a.getAttribute("href")), result: document.getElementById("drResult").hidden, ls: JSON.stringify(Object.assign({}, localStorage)) }));
-      for (const n of ["tel:1323", "tel:1669", "tel:191"]) assert(r.tel.includes(n), "support card has " + n + ": " + r.tel.join(","));
+      // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the card has one number, 1323
+      assert(r.tel.length === 1 && r.tel[0] === "tel:1323", "support card has tel:1323 only: " + r.tel.join(","));
       assert(r.result === true, "no reading is shown");
       assert(!/ฆ่าตัว|อยากตาย/.test(r.ls) && !/dm-stats/.test(r.ls), "nothing about the text is stored");
       await noOverflow(page, 390); noErrors(page, base);

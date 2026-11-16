@@ -11,3 +11,6 @@ e5ea01dc3375b404ffa83cb854181fc51a663137fce2d2471522adfee75727eb  tests/e2e/help
 2f69e19007bc97e1674dbd1398d34dede25d1f4371c8f78cbf36d0ad15a16b7e  tests/e2e/helpline-call.e2e.mjs  # repo file
 # RE-LOCK 2026-11-15 (2) (branch fortune-live): owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis card. helpline-call e2e: the fortune pages' top row holds only the 1323 button (components ["1323"]). Crisis card (every number), calm state and full-component checks unchanged. Copy: ~/LENSIQ-field/evals/fortune-live/relock2/.
 040462625f48aad39b43fc42618fee796b039869e2a64c348dd3ed3ca78852dc  tests/e2e/helpline-call.e2e.mjs  # repo file
+# RE-LOCK 2026-11-16 (branch crisis-rules-1323), owner decision 2026-11-16 crisis one-number rules: card / help line carry 1323 only plus the counselling.html link; other numbers on counselling.html; no sticky help element (rule 5). Copies: ~/LENSIQ-field/evals/crisis-rules-1323/relock/ (locked in evals-locks/crisis-rules-1323.sha256).
+6df3d8b9d367bae634f8a8559542525ec28ca75c79cf6d26ebb5d1ec7a3c6f82  tests/e2e/helpline-call.e2e.mjs  # repo file
+39e895388527f44ba129993b3eab337339cf875df01e66eb0817317100ad04f6  tests/unit/helpline-call.test.js  # repo file

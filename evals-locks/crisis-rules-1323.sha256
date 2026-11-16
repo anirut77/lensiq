@@ -1,0 +1,35 @@
+# locked 2026-11-16T10:41:32Z (tools/eval-guard.mjs lock, 16 files)
+2d76b3aa08f56c7dd961f6d53c6ddf052af89bf32184e017c9a5a03f915963ed  crisis-rules-kit.mjs
+bc10770d4681f387640e3c873f99c4074752d873995309b81bf0c2e9273cc413  crisis-rules-1323-a.e2e.mjs
+fc3e784e964db283ccbbfb70f4376e3934bebfbe4160ba5628d5ab88bab2c60d  crisis-rules-1323-b.e2e.mjs
+11d1fd09fa86f74b37c6d271df0313c7a411839152b782f0f5fd8a13949a4ad5  crisis-rules-1323-c.e2e.mjs
+d503b02ceb368b4900fa8e42be8361405618b08f91ebfe30d7cb89ca9eb3583e  crisis-rules-1323.test.js
+58cdd67d16bd707eecf9e333322f81e49ff3750e8a72e5a6790540f2be7dc1b6  relock/fortune-crisis-fields.e2e.mjs
+5f303211323bbf63976c6d23d9401056144533550157330b99037e31a3695a59  relock/fortune-crisis-session.e2e.mjs
+319bee314ff9e260b7d29358e3c28f1ae3e1f50eb22332bef05dcf831dd626a8  relock/fortune-crisis.e2e.mjs
+e3fe031e0ee6e6f412ad3fae541aaa362a3807acfc608446e93270e20c25bcf5  relock/fortune-helpline.e2e.mjs
+c3af68f2e5281f2f759916648c6d0b2d4ead6320de506bd869ff5ce37c247240  relock/fortune-live.e2e.mjs
+d833c6939c8bb705f8a833c44ae3cd37988f47b6bd769cd249b93503ceaa9968  relock/fortune-new.e2e.mjs
+6df3d8b9d367bae634f8a8559542525ec28ca75c79cf6d26ebb5d1ec7a3c6f82  relock/helpline-call.e2e.mjs
+9ab5bc63a6ddeb22ccfe908a872ad2b510984c10b6ce735fd2290747184712d3  relock/fortune-claims-crisis.test.js
+986ad232e532fc05b4b97d5c93bb3b88744dd13b183cd7dbf9417904259ac830  relock/fortune-helpline.test.js
+bc575841e1f1884effd6eaf65eb622c981a294284ad4272ee68adf19c3df9f7f  relock/fortune-live.test.js
+39e895388527f44ba129993b3eab337339cf875df01e66eb0817317100ad04f6  relock/helpline-call.test.js
+# repo copies (byte-identical to the locked files above), locked 2026-11-16 BEFORE any product code on branch crisis-rules-1323 (base crisis-net-hotfix 5061f53 + main 1f59045 = 8d3c364). Reason: owner decision 2026-11-16 crisis one-number rules.
+2d76b3aa08f56c7dd961f6d53c6ddf052af89bf32184e017c9a5a03f915963ed  tests/e2e/crisis-rules-kit.mjs  # repo file
+bc10770d4681f387640e3c873f99c4074752d873995309b81bf0c2e9273cc413  tests/e2e/crisis-rules-1323-a.e2e.mjs  # repo file
+fc3e784e964db283ccbbfb70f4376e3934bebfbe4160ba5628d5ab88bab2c60d  tests/e2e/crisis-rules-1323-b.e2e.mjs  # repo file
+11d1fd09fa86f74b37c6d271df0313c7a411839152b782f0f5fd8a13949a4ad5  tests/e2e/crisis-rules-1323-c.e2e.mjs  # repo file
+d503b02ceb368b4900fa8e42be8361405618b08f91ebfe30d7cb89ca9eb3583e  tests/unit/crisis-rules-1323.test.js  # repo file
+# RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules), before any product code: assertions that required 1669 / 191 / 1300 / Samaritans on the crisis card or the calm / print help line now require 1323 only (and the counselling link); fortune-crisis-session (c) 'help line in the viewport' becomes 'help line after the reading, not sticky or fixed' (rule 5); helpline-call adds counselling.html to the help pages. Kept unchanged: card replaces the reading, no echo, no remedies or price in crisis, 1323 tel >= 44 px.
+58cdd67d16bd707eecf9e333322f81e49ff3750e8a72e5a6790540f2be7dc1b6  tests/e2e/fortune-crisis-fields.e2e.mjs  # repo file (re-lock)
+5f303211323bbf63976c6d23d9401056144533550157330b99037e31a3695a59  tests/e2e/fortune-crisis-session.e2e.mjs  # repo file (re-lock)
+319bee314ff9e260b7d29358e3c28f1ae3e1f50eb22332bef05dcf831dd626a8  tests/e2e/fortune-crisis.e2e.mjs  # repo file (re-lock)
+e3fe031e0ee6e6f412ad3fae541aaa362a3807acfc608446e93270e20c25bcf5  tests/e2e/fortune-helpline.e2e.mjs  # repo file (re-lock)
+c3af68f2e5281f2f759916648c6d0b2d4ead6320de506bd869ff5ce37c247240  tests/e2e/fortune-live.e2e.mjs  # repo file (re-lock)
+d833c6939c8bb705f8a833c44ae3cd37988f47b6bd769cd249b93503ceaa9968  tests/e2e/fortune-new.e2e.mjs  # repo file (re-lock)
+6df3d8b9d367bae634f8a8559542525ec28ca75c79cf6d26ebb5d1ec7a3c6f82  tests/e2e/helpline-call.e2e.mjs  # repo file (re-lock)
+9ab5bc63a6ddeb22ccfe908a872ad2b510984c10b6ce735fd2290747184712d3  tests/unit/fortune-claims-crisis.test.js  # repo file (re-lock)
+986ad232e532fc05b4b97d5c93bb3b88744dd13b183cd7dbf9417904259ac830  tests/unit/fortune-helpline.test.js  # repo file (re-lock)
+bc575841e1f1884effd6eaf65eb622c981a294284ad4272ee68adf19c3df9f7f  tests/unit/fortune-live.test.js  # repo file (re-lock)
+39e895388527f44ba129993b3eab337339cf875df01e66eb0817317100ad04f6  tests/unit/helpline-call.test.js  # repo file (re-lock)

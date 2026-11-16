@@ -25,7 +25,9 @@ import { assert } from "./cdp.mjs";
 const S = JSON.stringify;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const PAGES = ["fortune", "cat-fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui",
-  "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report", "medicine", "nutrition", "terms"];
+  "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report", "medicine", "nutrition", "terms", "counselling"];
+// RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): counselling.html (every service, full components) joins the help pages; the crisis card holds the 1323
+// button only (the other numbers are on counselling.html, one link away).
 const FORTUNE = PAGES.slice(0, 19);
 const TELS = { 1323: "1323", 1669: "1669", 191: "191", 1300: "1300", samaritans: "021136789" };
 const FORBIDDEN = {
@@ -146,12 +148,12 @@ export default async function ({ base, launch, check }) {
               calls: c ? [...c.querySelectorAll("[data-lq-call]")].map(x => x.getAttribute("data-lq-call")) : [],
               top: ${SHOWN}(document.getElementById("lqHelpTop")) }; })()`);
           assert(r.n >= 1 && !r.why, w + ": crisis card shown " + S(r));
-          for (const id of Object.keys(TELS)) assert(r.calls.includes(id), w + ": card has the " + id + " button " + S(r.calls));
+          assert(S(r.calls) === S(["1323"]), w + ": card has the 1323 button only " + S(r.calls));
           assert(!r.top, w + ": help button still visible in the crisis state " + S(r));
           const list = await page.evaluate(BUTTONS), bad = [];
           checkButtons(list, "dream crisis " + w, bad);
           const card = await page.evaluate(`[...document.querySelectorAll(".fa-support a.lq-call-btn")].filter(a => a.getClientRects().length).map(a => a.getAttribute("href"))`);
-          for (const t of Object.values(TELS)) if (!card.includes("tel:" + t)) bad.push(w + ": card button tel:" + t + " not visible");
+          if (S(card) !== S(["tel:1323"])) bad.push(w + ": card buttons " + S(card) + " (want tel:1323 only)");
           assert(!bad.length, bad.join("\n"));
         } finally { await page.close(); }
       }

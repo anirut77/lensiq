@@ -8,6 +8,8 @@
 //     A new tab is not affected. Storage blocked: the page-level behaviour stays, no script error.
 // (c) soft step → "Just the reading": a gentle reading only for the rest of the session, no remedies, and the help line IN THE
 //     VIEWPORT next to the reading (the 1323 link fully inside the visible area), not merely in the DOM.
+//     RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules, rule 5: no sticky or floating help element): the
+//     help line is AFTER the reading (below its last section), holds tel:1323 and is not sticky or fixed; still on the page.
 // (d) the 12 inputs the fresh review missed (dev data; the fresh set is spent) reach the support card on tarot and dream;
 //     the control "อยากตายเพราะหัวเราะ ตลกมาก" does not show the card.
 import { assert } from "./cdp.mjs";
@@ -33,7 +35,13 @@ const SNAP = sc => `(() => {
   return { sections: secs.length, straight, support: [...document.querySelectorAll(".fa-support")].some(vis), soft: [...document.querySelectorAll(".fa-soft")].some(vis),
     remedies: [...document.querySelectorAll("[data-lq-remedy]")].filter(vis).map(e => e.id || e.className || e.tagName),
     paid: [...document.querySelectorAll("[data-lq-upsell], [data-lq-paid], [data-lq-merit]")].filter(vis).length,
-    helpOnPage: tel.some(vis), helpInView: tel.some(full) };
+    helpOnPage: tel.some(vis), helpInView: tel.some(full),
+    // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): rule 5 (no sticky or floating help element that follows the reader) replaces "help line kept
+    // in the viewport": the calm line comes after the reading's last section, holds tel:1323, and nothing pinned holds it
+    helpAfter: (() => { const secs = [...box.querySelectorAll(".fa-section")].filter(vis), last = secs[secs.length - 1];
+      const l = [...box.querySelectorAll(".lq-helpline")].filter(vis);
+      const pin = e => { for (let x = e; x && x.nodeType === 1; x = x.parentElement) { const p = getComputedStyle(x).position; if (p === "fixed" || p === "sticky") return true; } return false; };
+      return !!last && l.length > 0 && l.every(e => (last.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING) && !pin(e) && !!e.querySelector('a[href="tel:1323"]')); })() };
 })()`;
 const READY = sc => `(() => { const b = document.querySelector(${S(sc)}); if (!b) return false; const v = e => !e.closest("[hidden]") && e.getBoundingClientRect().height > 0;
   return [...document.querySelectorAll(".fa-support, .fa-soft")].some(v) || ([...b.querySelectorAll(".fa-section")].filter(v).length >= 2
@@ -163,7 +171,7 @@ export default async function ({ base, launch, check }) {
       } finally { await page.close(); }
     });
 
-    await check("(c) soft step → 'Just the reading': gentle only for the session, no remedies, help line in the viewport next to the reading", async () => {
+    await check("(c) soft step → 'Just the reading': gentle only for the session, no remedies, help line after the reading, not pinned", async () => {
       for (const [w, h] of [[360, 780], [1280, 800]]) {
         const page = await browser.newPage(null, { initScripts: [FLAG_ON, ADULT] });
         try {
@@ -172,12 +180,12 @@ export default async function ({ base, launch, check }) {
           for (const p of ["tarot", "horoscope", "numbers", "dream"]) {
             const s = await read(page, p, soft[p], { go: true });
             calmReading(s, w + "px " + p + " after 'Just the reading'");
-            assert(s.helpInView, w + "px " + p + ": help line not in the viewport next to the reading");
+            assert(s.helpAfter, w + "px " + p + ": help line not after the reading, or pinned (rule 5)");
           }
           for (const p of ["zodiac", "horoscope"]) {
             const s = await read(page, p, p === "horoscope" ? "Somchai" : "");
             calmReading(s, w + "px " + p + " later in the session");
-            assert(s.helpInView, w + "px " + p + " later: help line not in the viewport");
+            assert(s.helpAfter, w + "px " + p + " later: help line not after the reading, or pinned (rule 5)");
           }
         } finally { await page.close(); }
       }

@@ -5,7 +5,8 @@
 import { assert } from "./cdp.mjs";
 
 const PHRASES = ["ควรฆ่าตัวตายดีไหม", "I can't go on anymore", "活着好累"];
-const cardShown = id => `(() => { const b = document.getElementById(${JSON.stringify(id)}); return !!b && !b.hidden && !!b.querySelector(".fa-support") && /1323/.test(b.textContent) && /1669/.test(b.textContent); })()`;
+// RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the card shows 1323 only (no 1669) and links counselling.html
+const cardShown = id => `(() => { const b = document.getElementById(${JSON.stringify(id)}); return !!b && !b.hidden && !!b.querySelector(".fa-support") && /1323/.test(b.textContent) && !/1669/.test(b.textContent) && !!b.querySelector('a[href*="counselling.html"]'); })()`;
 
 export default async function ({ base, launch, check }) {
   const browser = await launch();

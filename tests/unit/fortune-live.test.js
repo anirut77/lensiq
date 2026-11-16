@@ -240,10 +240,13 @@ test("item 3: in the normal state a reading carries no second help line (fortune
     assert.match(html, /fa-section/, l + ": the reading is drawn");
     assert.doesNotMatch(html, /tel:1323|tel:1669/, l + ": toHTML of a normal reading has no help line");
   }
-  // the crisis card is unchanged: every number, tap-to-call
+  // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the crisis card has one number, 1323, tap-to-call;
+  // 1669, 191 and 1300 are on counselling.html (linked from the card)
   for (const l of LANGS) {
     const card = FA.toHTML(FA.crisis.result({ lang: l }));
-    for (const n of ["1323", "1669", "191", "1300"]) assert.match(card, new RegExp('href="tel:' + n + '"'), l + " crisis card has " + n);
+    assert.match(card, /href="tel:1323"/, l + " crisis card has 1323");
+    for (const n of ["1669", "191", "1300", "021136789"]) assert.doesNotMatch(card, new RegExp('href="tel:' + n + '"'), l + " crisis card has no " + n);
+    assert.match(card, /href="counselling\.html"/, l + " crisis card links the counselling page");
   }
   // the source: under a reading only when the page is calm (crisis net), never unconditionally
   const src = read("fortune-ai.js");

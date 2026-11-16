@@ -15,9 +15,11 @@ const PAGES = ["fortune", "cat-fortune", "faceread", "palm", "horoscope", "tarot
   "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report"];
 // AMENDED 2026-11-14 (owner order Part B, re-locked before the build on branch helpline-b): the expected wording is the owner's
 // warm 1323 wording in the shared tap-to-call component; every other check (sizes, fit, tel links, no JS, crisis) is unchanged.
-const WANT = { th: /อยากมีคนรับฟัง โทร 1323[\s\S]*พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง[\s\S]*บริการของกรมสุขภาพจิต[\s\S]*เจ็บป่วยฉุกเฉิน โทร 1669/,
-  en: /someone to listen[\s\S]*1323[\s\S]*24 hours[\s\S]*Department of Mental Health[\s\S]*Medical emergency[\s\S]*1669[\s\S]*local emergency number/i,
-  zh: /倾听[\s\S]*1323[\s\S]*24 小时[\s\S]*心理健康司[\s\S]*医疗急救[\s\S]*1669[\s\S]*没有经核实的泰国中文热线/ };
+// RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the help line (calm state, printed report) is the 1323 wording and the counselling link;
+// 1669 and the abroad note moved to counselling.html.
+const WANT = { th: /อยากมีคนรับฟัง โทร 1323[\s\S]*พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง[\s\S]*บริการของกรมสุขภาพจิต[\s\S]*ช่องทางให้คำปรึกษา/,
+  en: /someone to listen[\s\S]*1323[\s\S]*24 hours[\s\S]*Department of Mental Health[\s\S]*counsel/i,
+  zh: /倾听[\s\S]*1323[\s\S]*24 小时[\s\S]*心理健康司[\s\S]*咨询/ };
 // RE-LOCK 2026-11-15 (fortune-live, owner order 2026-11-15 item 3; placement pre-approved by the owner): one small tap-to-call
 // help button near the top of each fortune page (#lqHelpTop) with the short wording; no line at the end of the page and none
 // under a normal reading (each number once per page). Sizes, fit at 320 / 360 / 390 px, tel links and their order, the no-JS
@@ -148,7 +150,7 @@ export default async function ({ base, launch, check }) {
             tels: ls.flatMap(l => [...l.querySelectorAll('a[href^="tel:"]')].map(a => a.getAttribute("href"))) }; })()`);
         await page.send("Emulation.setEmulatedMedia", { media: "" });
         assert(r.n >= 1 && WANT.th.test(r.text), "printed report keeps the help line " + S(r));
-        assert(r.tels.includes("tel:1323") && r.tels.includes("tel:1669"), "printed report tel links " + S(r.tels));
+        assert(r.tels.includes("tel:1323") && r.tels.every(t => t === "tel:1323"), "printed report tel links (1323 only) " + S(r.tels));
       } finally { await page.close(); }
     });
 

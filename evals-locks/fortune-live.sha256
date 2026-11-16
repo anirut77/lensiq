@@ -12,3 +12,6 @@ a4b03b33e6c476d07a7b22cd504bd298c62aa87c015b7b996dcbc5cb60e39469  tests/e2e/fort
 # locked 2026-11-15T16:54:04Z (tools/eval-guard.mjs lock, 2 files)
 09d707dd032d34f294050b0b2f2b8112019a2f590487ac12f10687c203fafaf1  tests/unit/fortune-live-2.test.js
 a3520ad6fc973f42be3ba999a0d3ce021ac5300b3504e54a0241c3d7804de875  tests/e2e/fortune-live-2.e2e.mjs
+# RE-LOCK 2026-11-16 (branch crisis-rules-1323), owner decision 2026-11-16 crisis one-number rules: card / help line carry 1323 only plus the counselling.html link; other numbers on counselling.html; no sticky help element (rule 5). Copies: ~/LENSIQ-field/evals/crisis-rules-1323/relock/ (locked in evals-locks/crisis-rules-1323.sha256).
+c3af68f2e5281f2f759916648c6d0b2d4ead6320de506bd869ff5ce37c247240  tests/e2e/fortune-live.e2e.mjs  # repo file
+bc575841e1f1884effd6eaf65eb622c981a294284ad4272ee68adf19c3df9f7f  tests/unit/fortune-live.test.js  # repo file
