@@ -1,6 +1,8 @@
 /* lensiq-camhelp.js — one shared "how to allow the camera" help for every camera page (owner input 2026-11-16 from a real
  * iPhone 16 Pro, iOS 27.0.1, Safari: the refusal notice said what was refused but not how to turn the camera back on).
  *
+ * Loading (speed budget): lensiq-camera.js carries a small stub that wraps getUserMedia, notes the notices already on the page
+ * before each request and loads this file only after a refusal; checkout.html (no LQCam) loads this file itself.
  * When the camera is refused (NotAllowedError / SecurityError / PermissionDeniedError from getUserMedia), the page's own refusal
  * notice gets a small link "วิธีเปิดสิทธิ์กล้อง" (EN "How to allow the camera", ZH "如何允许使用相机"). It is a <details>
  * element: one tap opens the steps in place. No request, no storage, nothing sent. Demo mode (?demo=1, which refuses the
@@ -78,7 +80,11 @@
     return out;
   }
 
-  let denied = false, before = new Set(), obs = null, timer = 0, openWanted = false;
+  // before: element -> textContent of the notices that were on the page when the camera was asked for (not this refusal's)
+  let denied = false, before = new Map(), obs = null, timer = 0, openWanted = false;
+  const snap = () => { const m = new Map(); if (document.body) for (const el of document.body.querySelectorAll("*")) {
+    const t = el.textContent || ""; if (t.length <= 3000 && NOTICE.some(p => p[0].test(t) && p[1].test(t))) m.set(el, t); } return m; };
+  const old = n => before.get(n.el) === n.el.textContent;
   function build(l) {
     const H = HELP[l], d = document.createElement("details");
     d.className = "lq-camhelp"; d.setAttribute("translate", "no"); d.setAttribute("data-i18n-skip", ""); d.dataset.lang = l;
@@ -97,7 +103,7 @@
   function place() {
     timer = 0;
     if (!denied) return;
-    const l = lang(), list = notices().filter(n => !before.has(n.t));
+    const l = lang(), list = notices().filter(n => !old(n));
     if (!list.length) return;
     // a help block that still sits with a current notice stays where it is (pages rewrite their status often; moving it
     // would close it under the user's finger); it is only redrawn when the language changed
@@ -142,14 +148,18 @@
     for (const d of document.querySelectorAll(".lq-camhelp")) d.remove();
   }
 
+  root.LQCamHelp = { HELP, refused, allowed, denied: () => denied, snap, setBefore: m => { before = m || new Map(); } };
   const md = typeof navigator !== "undefined" && navigator.mediaDevices;
-  if (md && typeof md.getUserMedia === "function") {
+  if (md && md.__lqHelpStub) {
+    // loaded by the lensiq-camera.js stub after a refusal: take its note of the earlier notices and show the help now
+    before = root.__lqCamBefore || new Map();
+    if (root.__lqCamHelpLoading) refused();
+  } else if (md && typeof md.getUserMedia === "function") {
     const gum = md.getUserMedia;
     md.getUserMedia = function (c) {
       // texts on the page before this request do not count as its refusal notice
-      if (!denied && document.body) before = new Set(notices().map(n => n.t));
+      if (!denied && document.body) before = snap();
       return Promise.resolve(gum.call(md, c)).then(s => { allowed(); return s; }, e => { if (denyName(e)) refused(); throw e; });
     };
   }
-  root.LQCamHelp = { HELP, refused, allowed };
 })(typeof window !== "undefined" ? window : globalThis);
