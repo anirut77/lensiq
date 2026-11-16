@@ -317,6 +317,13 @@
       ph.advice.forEach(function (a) { if (a.k === "dark" || a.k === "busy") extras.tips.push(a.t); });
     });
     extras.tips = extras.tips.concat(KB.tips.general.slice(0, 2));
+    // placement / direction guidance by provenance (fortune-paid review 2026-11-15): the Eight Mansions directions, measured
+    // directions, floor-plan rooms, room photos and the year / month flying stars are guidance as a whole (it.guide); the kua
+    // number's overview names the directions that suit you (it.guideKeys). Free information, never paid (fortune-paid.js).
+    items.forEach(function (/** @type {any} */ it) {
+      if (/^(?:dir|rec|room|photo|year|month)\./.test(it.id)) it.guide = true;
+      else if (/^kua\./.test(it.id)) it.guideKeys = ["overview"];
+    });
     return {
       domain: "fengshui", topic: st.topic || "overall", subject: {},
       headline: K ? "เลขกัว " + K.kua + " · " + KB.groups[K.group].th : "ดาวประจำปี " + yc + " " + YS.th,

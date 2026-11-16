@@ -17,7 +17,7 @@ export const ANALYTICS_PAGES = [
 /** Feature slugs the analytics accepts; anything else is rejected (the client sends "other"). Add new ones here AND in
  *  lensiq-analytics.js (or via the ANALYTICS_FEATURES var, comma separated) when a page starts sending them. */
 export const ANALYTICS_FEATURES = [
-  "fortune.reading", "fortune.ai", "fortune.local",
+  "fortune.reading", "fortune.ai", "fortune.local", "fortune.paid.overview", "fortune.paid.open", "fortune.paid.tap", "fortune.paid.paid",
   "studio.render", "photobooth.capture", "photobooth.print", "booth.count", "store.count", "signage.play",
   "camera.start", "camera.denied", "attendance.checkin", "customers.lookup", "checkout.scan", "qc.inspect",
   "driver.alert", "neuro.session", "insights.view", "insights.export", "converter.convert", "creative.analyse",
