@@ -1,23 +1,5 @@
-/* LENSIQ shared site header.
-   Usage in every page:  <header class="nav" id="siteNav"></header><script src="nav.js?v=2"></script>
-   Plain script, no dependencies. Change the brand in BRAND below.
-   Also provides, for every page (no extra <script> tag needed):
-   - i18n: injects lensiq-i18n.js + i18n/zh-common.js (TH | EN | 中文 switch in the header; English dictionaries are
-     loaded on demand by lensiq-i18n.js). Menu strings carry data-i18n keys "nav.<page>.title|desc", "nav.group.<id>",
-     "nav.groupd.<id>", "nav.cta" — Thai text here is the default.
-   - Header: utility strip (tagline + language, scrolls away) over the sticky main bar (logo, mega-menu groups, CTA);
-     a drawer below 1024 px; a breadcrumb section header (.lq-crumbs) under the bar on every page but the home page.
-   - Thai line breaking: in headings/labels/buttons each Thai word (Intl.Segmenter + loanword list) becomes a
-     nowrap <span class="lq-w"> with <wbr> between words; elsewhere only known loanwords ("แดชบอร์ด") are wrapped.
-     Each rewritten text node becomes one <span class="lq-run">, so textContent and flex/grid layout are unchanged.
-   - window.LQModels: "กำลังโหลดโมเดล xx MB" notice + cache check for large model downloads.
-   - member account chip: hands the header to lensiq-member.js (window.LQMember.mountNav) when that optional module is
-     loaded (API Worker configured + member sign-in set up); otherwise nothing changes.
-   - service worker registration (sw.js: cache-first for vendor/ models, versioned). Disable with ?nosw.
-   - Legal footer: pages without their own <footer> get a slim one (terms / privacy / help / about links, keys foot.*);
-     hidden in kiosk modes and in print. Pages with a <footer> (index, about) link the documents themselves.
-   - Fortune pages: loads lensiq-report.js ("report a problem with this reading", works without a backend) and
-     lensiq-merit-core.js + lensiq-merit-lint.js + lensiq-merit.js (free belief guidance under a reading, Merit MVP). */
+/* LENSIQ shared site header (header, menu, language switch, i18n loader, Thai line breaks, models notice, member chip,
+   service worker, legal footer, fortune extras, 1323 control). Full description: docs/NAV.md. */
 (function () {
   "use strict";
 
@@ -392,6 +374,11 @@
   function syncCompact() { if (!langBox.classList.contains("open")) setLangOpen(false); }
   window.addEventListener("resize", syncCompact);
   document.addEventListener("click", function (e) { if (langBox.classList.contains("open") && !langBox.contains(/** @type {Node} */ (e.target))) setLangOpen(false); });
+  langBox.addEventListener("keydown", function (e) { // open switch: Tab walks current, then the others (review 2026-11-16)
+    var c = function (/** @type {any} */ b) { return b.getAttribute("aria-pressed") === "true"; }, o = langBtns.filter(c).concat(langBtns.filter(function (/** @type {any} */ b) { return !c(b); })),
+      n = o[o.indexOf(/** @type {any} */ (document.activeElement)) + (e.shiftKey ? -1 : 1)];
+    if (e.key === "Tab" && langBox.classList.contains("open") && n) { e.preventDefault(); n.focus(); }
+  });
   langBox.addEventListener("keydown", function (e) { if (e.key === "Escape" && langBox.classList.contains("open")) { e.stopPropagation(); setLangOpen(false); var c = langBtns.filter(function (b) { return b.getAttribute("aria-pressed") === "true"; })[0]; if (c) c.focus(); } });
   langBox.addEventListener("focusout", function (e) { if (langBox.classList.contains("open") && !langBox.contains(/** @type {Node} */ (e.relatedTarget))) setLangOpen(false); });
   /** @type {any} */ (window).LQNavCompact = syncCompact; // lensiq-member.js calls it after adding / removing the account icon
@@ -407,7 +394,7 @@
   window.addEventListener("lq-lang", syncLang);
   if (window.LQI18N) { window.LQI18N.apply(header); var cb = document.querySelector(".lq-crumbs"); if (cb) window.LQI18N.apply(cb); syncLang(); }
 
-  // 1323 control in the bar + confirmation (decision 69 ค; docs/CRISIS-RESOURCES.md)
+  // 1323 in the bar + confirmation (decision 69; CRISIS-RESOURCES)
   /** @type {any} */
   var help = /** @type {any} */ (window).LQHelpTop = { confirm: true, close: function () { if (help.dlg && help.dlg.open) help.dlg.close(); }, open: function () {
     var d = help.dlg, w = /** @type {any} */ ({ en: ["Call 1323", "Close"], zh: ["拨打 1323", "关闭"] })[window.LQI18N ? String(window.LQI18N.lang) : ""] || ["โทร 1323", "ปิด"];

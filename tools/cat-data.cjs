@@ -479,12 +479,12 @@ const CATEGORIES = [
     short: { th: "ดูดวง", en: "Fortune", zh: "占卜" },
     // owner order 2026-11-16 item 2: written for the person using the pages; the booth / event wording moved to solutions.html (sol-e3)
     intro: { th: "ดูดวงศาสตร์ไทย จีน และตะวันตก และหาฤกษ์มงคลสำหรับเรื่องสำคัญของคุณ เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
-      en: "Thai, Chinese and Western readings, and auspicious dates for the things that matter to you. " +
+      en: "Thai, Chinese and Western readings, plus auspicious dates for what matters to you. " +
         "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
       zh: "泰式、中式与西方占卜，以及为重要事项择吉日。基于命理学原则，属个人信仰，请自行判断。" },
     // on the landing page the intro is shown as this lead plus the fortune notice line (fortune.disc.line), as on every fortune page
     lead: { th: "ดูดวงศาสตร์ไทย จีน และตะวันตก และหาฤกษ์มงคลสำหรับเรื่องสำคัญของคุณ",
-      en: "Thai, Chinese and Western readings, and auspicious dates for the things that matter to you.",
+      en: "Thai, Chinese and Western readings, plus auspicious dates for what matters to you.",
       zh: "泰式、中式与西方占卜，以及为重要事项择吉日。" },
     discMore: "help.html#h-fortune", // owner order 2026-11-16 item 4: "อ่านเพิ่มเติม" after the one-line notice
     disc: { th: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",

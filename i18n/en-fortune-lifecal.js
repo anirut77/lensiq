@@ -2,11 +2,11 @@
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
   "bazi.eyebrow": "BaZi · Four Pillars", "taksa.eyebrow": "Thai Taksa", "lek7.eyebrow": "Thai 7-number chart", "lifegraph.eyebrow": "Life graph",
   "bazi.title": "Four Pillars (BaZi) · Day Master, Five Elements, Luck Pillars | LENSIQ", "bazi.h1": "Four Pillars (BaZi)",
-  "bazi.lead": "Enter your birth date and time to see your Four Pillars, Day Master, Five Elements and 10-year luck.",
+  "bazi.lead": "Your Four Pillars, Day Master, Five Elements and 10-year luck from your birth date and time.",
   "bazi.button": "Show chart",
   "bazi.src": "The year changes at Li Chun, months change at the 12 \"Jie\" solar terms, days follow the 60-day cycle, and the Zi hour (23:00) counts as the next day; local time from the time-zone history of the birth date is used (you can choose a fixed offset or true solar time instead, and the result states the value used); solar-term times are accurate to within about 1 minute",
   "taksa.title": "Thai Taksa · Birth Planet, Eight Bhumi, Maha Taksa | LENSIQ", "taksa.h1": "Thai Taksa · Eight Bhumi · Maha Taksa",
-  "taksa.lead": "Enter your birth date to see your Taksa: the eight houses and which planet rules each age range.",
+  "taksa.lead": "Your birth-date Taksa: the eight houses and the planet that rules each age.",
   "taksa.button": "Show chart",
   "taksa.src": "The Thai day begins at dawn (06:00); Wednesday births after 18:00 count as Rahu; Maha Taksa periods: Sun 6, Moon 15, Mars 8, Mercury 17, Saturn 10, Jupiter 19, Rahu 12, Venus 21 years (108 years in total)",
   "lek7.title": "Thai 7-Digit Chart · Numbers from your birth date | LENSIQ", "lek7.h1": "Thai 7-Digit Chart",
