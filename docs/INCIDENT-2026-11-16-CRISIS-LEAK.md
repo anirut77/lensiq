@@ -119,3 +119,26 @@ Fixed test set round 2 (locked before the fix in 538f5d1; field copies `~/LENSIQ
 `tests/e2e/crisis-net-hotfix-e.e2e.mjs` (E1–E5, TH / EN / ZH at 375 and 393 px), `tests/unit/crisis-input-inventory-2.test.js`,
 inventory v3, stricter `fortune-crisis.e2e.mjs`. One append-only re-lock during the round: E5 numbers opens the name tab
 before the baseline, as part A does (v1 counted the tab's own label "ชื่อจริง" as an echo); assertion unchanged.
+
+Round-2 numbers (synthetic, headless Chrome on the owner's Mac; TH / EN / ZH × 375 / 393 px = 6 cases per check; logs
+`~/LENSIQ-field/evals/crisis-net-hotfix-r2/baseline-5061f53-e.log`, `after1-e.log`, `after-affected.log`):
+
+| Check | Before (5061f53) | After (round 2) |
+|---|---|---|
+| E1 palm map, nickname before the reading | 0/6 | 6/6 |
+| E1 palm map, nickname after the reading | 0/6 | 6/6 |
+| E2 tarot: card only after a reading, flag holds for an ordinary question | 0/6 | 6/6 |
+| E2 iching: same | 0/6 | 6/6 |
+| E3 tarot daily card + siamsee in the crisis state | 0/6 | 6/6 |
+| E3 iching Daily tab in the crisis state | 0/6 | 6/6 |
+| E4 report dialog note, tarot (nothing saved, dialog closed, card) | 0/6 | 6/6 |
+| E4 report dialog note, iching | 0/6 | 6/6 |
+| E5 fortune-crisis.js blocked: numbers name | 0/6 | 6/6 |
+| E5 fortune-crisis.js blocked: tarot question / iching question | 6/6 / 6/6 | 6/6 / 6/6 |
+| fortune-crisis.e2e.mjs (stricter re-lock) | 0/2 | 2/2 |
+| crisis-input-inventory-2 unit | 2/3 | 3/3 |
+
+Regression (after): crisis-net-hotfix a–d, fortune-crisis-fields / -fields-2 / -session / -soft, fortune-helpline, merit-crisis,
+speed-budget all pass; unit 2372/2372. fortune-layout "item 5" fails on this branch AND on main 7a51bcf when run on
+2026-11-17: today's horoscope "today" tab (#pn-td, a hidden tab panel) holds caution paragraphs, which the check counts as
+hidden; date-dependent, not caused by this branch (reported to the coordinator; test not changed).
