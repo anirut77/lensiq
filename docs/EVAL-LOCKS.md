@@ -105,3 +105,31 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
 และแนบผลลัพธ์ทั้งหมดไว้ในรายงาน
 ชื่อ phase ต้องเป็นตัวพิมพ์เล็ก คำสั่ง `node tools/eval-locks-import.mjs` คัดลอกไฟล์ล็อกที่อยู่ข้างชุดข้อมูลเข้ามาใน `evals-locks/`
 โดยเพิ่มบรรทัดต่อท้ายเท่านั้น ไม่แก้หรือลบบรรทัดเดิม และรายงานไฟล์ที่หายไปหรือไฟล์ล็อกที่ถูกเขียนทับ
+- `fortune-paid` (2026-11-15): locked before `fortune-paid.js` existed (unit 0/1). The e2e file was re-locked once after its
+  first run, test-setup fixes only (readings without in-depth text have nothing to sell, so they now must show no paid block and
+  no price, with a coverage minimum instead; tab-free pages added; crisis groups found by element; the off snapshot waits for
+  the page's own Thai line breaking). The reason is written in `evals-locks/fortune-paid.sha256`. Unit file unchanged.
+- `fortune-paid` re-lock (2) (2026-11-15): after the independent review of ed6a0a6 (NOT OK, F1 belief remedies paid-only,
+  F2 flying stars 2/5 and avoid-warnings paid-only), two NEW files were locked before the fix
+  (`tests/unit/fortune-paid-guidance.test.js`, `tests/e2e/fortune-paid-guidance.e2e.mjs`). Before the fix: unit 2 pass / 3
+  fail (306 + 133 readings). Earlier locked files unchanged.
+- `fortune-paid` re-lock (3) (2026-11-15): round-2 review of ce6dc1c NOT OK (guidance still paid outside known wordings). New
+  file `tests/unit/fortune-paid-provenance.test.js` locked before the fix: the gate is provenance (guidance fields of the facts,
+  caution-marked paragraphs, restraining / caution items), not word lists. Before the fix: 2 pass / 2 fail (645 readings).
+- `fortune-paid` re-locks (4)–(6) (2026-11-15): (4) plan / conversion / funnel tests locked before the build (owner order
+  2026-11-15 (2)); (5) recommended-sources tests, reason "owner decision 2026-11-15 replaces Remedies and merit"
+  (decision 46 ก; no earlier assertion encoded the old rule, every hard-limit test kept); (6) plan e2e test-setup fix after its
+  first run (the ladder is checked only on readings with offers; no offers = no panel and no price, now asserted).
+- `fortune-paid` re-lock (7) (2026-11-15): round-3 review of 826bbd9 NOT OK. New `tests/unit/fortune-paid-negstate.test.js`
+  locked before the tags; the plan unit / e2e tests changed by the coordinator's round-3 order (199 row only with monthly
+  content; made-for headline only in Thai, never on astro / bazi). Reason in `evals-locks/fortune-paid.sha256`.
+- `fortune-paid-fresh-2026-11-16` / `-16b` (2026-11-16): fresh synthetic sets for the two fortune-paid leak counts
+  (`tools/fortune-paid-leaks.mjs`). Set (a) was measured once before any change (A 261 readings / 281 parts, B 7 / 7) but its
+  Thai detector matched ท้อ inside สะท้อน (181 parts) and ลังเล inside อย่าลังเล; set (b) has new inputs and only those two
+  patterns fixed. Set (b): before A 85 / 86, B 12 / 12; after A 0 / 0, B 0 / 0 (2,700 readings). `fortune-paid` re-locks
+  (8)–(9): affiliate label test; the seller-link global became `LQ_FORTUNE_SELLER_LINKS` (it collided with the back
+  office citation list `LQ_FORTUNE_SOURCES`).
+- `fortune-paid-review-2026-11-16` (2026-11-16): the independent reviewer's fresh set (1,260 readings), imported by copying
+  its `locked.sha256` as is (`tools/eval-locks-import.mjs` stopped on an unrelated missing file in `pc-f/review`). Re-measure
+  only; never tuned against. The builder's 0 / 0 on `fortune-paid-fresh-2026-11-16b` came after tuning on that set and is not
+  an independent number. `fortune-paid` re-lock (10): review D1–D3 and the switch-off identity test, before the fix.
