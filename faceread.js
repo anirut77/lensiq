@@ -1098,8 +1098,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         if (d) snaps.push({ cv: cv, d: d });
         countEl.textContent = T("faceread.count.pct", "กำลังอ่าน {p}%", { p: Math.round(frames.length / FRAMES * 100) });
       }
+      if (mode === "other" && !consentOk.checked) return askConsent(); // consent withdrawn during the reading: nothing shown or counted, the consent line stays (N2)
       if (frames.length < 4) { if (capt.skipped) engineT("faceread.eng.otherFace", "มีใบหน้าอื่นเข้ามาในกรอบ ให้อยู่คนเดียวแล้วลองอีกครั้ง", null, "err"); else engineT("faceread.eng.unstable", "ยังจับใบหน้าได้ไม่นิ่งพอ ลองมองตรงและอยู่นิ่ง ๆ อีกครั้ง", null, "err"); return; }
-      if (mode === "other" && !consentOk.checked) return; // consent withdrawn during the reading: nothing is shown or counted
       var snap = snaps[Math.floor(snaps.length / 2)]; showResult(snap.cv, capt.average(), snap.d.box);
       if (!offGreen && mode === "other") engineT("faceread.eng.rearDone", "ถ่ายเสร็จแล้ว ถ้าจะถ่ายคนต่อไป ขอความยินยอมจากเจ้าตัวและติ๊กช่องยินยอมใหม่", null, "ok");
       if (offGreen) engineT("faceread.eng.notGreen", "ถ่ายก่อนวงรีเป็นสีเขียว ผลอาจคลาดเคลื่อน", null, "err"); // review D4

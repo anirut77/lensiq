@@ -190,4 +190,8 @@ local runs). pixelChecks about 2.8 ms per call in Node on a 16:9 picture (was 14
 4. Backlight by a window: the "แสงอยู่ด้านหลัง" line appears, and goes when the person turns to the light.
 5. The same person at 30 cm and at 50 cm: the readings should be close (perspective makes the nose about 5 % larger at 30 cm).
 6. Rear camera: consent tick before start; unticking stops the camera; after one capture the tick is cleared. Try the camera
-   list on a phone with several back cameras (see the known gap above).
+   list on a phone with several back cameras (see the known gap above). Unticking during the reading itself: no reading is
+   shown and the line asks for consent again (re-review N2).
+7. Watch for flicker between "ไกลไป" and green at the far edge (re-review N1): with hysteresis 0.003 the margin is small
+   (the synthetic 4:3 iPhone, 58 mm, 40 cm case clears it by 0.0003). Possible later fix, only if testers see it: lower the
+   far limit to about 0.115. The locked set is not changed for this.
