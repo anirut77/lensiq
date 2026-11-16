@@ -86,6 +86,7 @@
     const maxRows = Math.max(1, Math.floor((bottom - y - 60) / lh));
     if (rows.length > maxRows) { rows = rows.slice(0, maxRows); rows[maxRows - 1] = rows[maxRows - 1].replace(/.$/, "") + "…"; }
     const boxH = rows.length * lh + 56;
+    y += Math.max(0, Math.round((bottom - 40 - y - boxH) / 2)); // a short overview sits in the middle of the free space
     rr(c, 90, y, W - 180, boxH, 28); c.fillStyle = "rgba(255,255,255,.09)"; c.fill();
     c.fillStyle = "#fff"; rows.forEach((l, k) => { if (l) c.fillText(l, W / 2, y + 28 + lh / 2 + k * lh); });
     y += boxH + 30;

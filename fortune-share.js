@@ -184,7 +184,7 @@
     "z-index:1000;background:rgba(8,12,32,.72);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}" +
     ".lq-sp-dlg[hidden],.lq-sp-dlg [hidden]{display:none!important}" +
     ".lq-sp-box{background:#fff;color:#14182e;border-radius:18px;max-width:420px;width:100%;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.35);max-height:calc(100vh - 32px);overflow:auto}" +
-    ".lq-sp-box h2{margin:0 0 .5em;font-size:1.1rem}.lq-sp-box img{display:block;width:100%;max-width:300px;margin:0 auto .6em;border-radius:12px;aspect-ratio:4/5;background:#0e1430}" +
+    ".lq-sp-box h2{margin:0 0 .5em;font-size:1.1rem}.lq-sp-box img{display:block;height:42vh;width:auto;max-width:100%;margin:0 auto .6em;border-radius:12px;aspect-ratio:4/5;background:#0e1430}" +
     ".lq-sp-box label{display:flex;align-items:center;gap:.5em;min-height:44px;font-size:.95rem}.lq-sp-box input[type=checkbox]{width:22px;height:22px;flex:none}" +
     ".lq-sp-note{font-size:.82rem;opacity:.8;margin:.3em 0 .8em;line-height:1.5}" +
     ".lq-sp-acts{display:grid;gap:.5em}.lq-sp-acts button{min-height:44px;width:100%}" +
