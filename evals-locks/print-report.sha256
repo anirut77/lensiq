@@ -10,3 +10,9 @@ a50a693715f3c9052f544282a9c53bc6dd179c2533d08c6309509fdde89b7d19  tests/e2e/fort
 c9c75a2864103e72ed0b31c50c6bc1dd7e8f287ebf6756d79eeecffb2e2c0398  tests/e2e/fortune-print-report-th.e2e.mjs  # repo file
 7f0275ff88c0b702396c7bae34028ea1f6453007ab5d52e2b5eccf1a6f28cf26  tests/e2e/fortune-print-report-en.e2e.mjs  # repo file
 9cd9860c6841aaaea709f5b98397d2a81351b50ffafdf8e849ce67cb663d27cd  tests/e2e/fortune-print-report-zh.e2e.mjs  # repo file
+# locked 2026-11-16T17:11:04Z (tools/eval-guard.mjs lock, 3 files)
+57aabb4c5ab647e737e6c18be89e35cce6792b7f10b12fe0023ca2343330e981  fortune-print-report-kit.mjs
+c86c80f6a0d1d47c9a5aadfbf1c26f1a732d662d9ccb0ed2d397919ecc47bf72  EquivalentUnifiedIdeograph.txt
+22c093f18547b5f705be0a81d38d292ba86abfb58147979034e3e8d7506e23f8  relock-evidence-codepoints.log
+# RE-LOCK 2026-11-17 (coordinator decisions 1 + 2, recorded for the owner, reversible). (1) R3 contradicted R1; narrow exclusion of R1 header strings only (LENSIQ, page title, date, disclaimer); boundary matching fixes false matches across words; no minimum length. (2) Chinese PDF read-back: fold maps U+2E80-U+2FDF to unified ideographs (Unicode EquivalentUnifiedIdeograph.txt 18.0.0); measured first with a real Chrome 157 PDF on this branch: 页->U+2EDA, 巳->U+2E92, 食->U+2EDD, 风->U+2EDB (relock-evidence-codepoints.log). Nothing else in the kit changed; the language files and the unit test are unchanged.
+57aabb4c5ab647e737e6c18be89e35cce6792b7f10b12fe0023ca2343330e981  tests/e2e/fortune-print-report-kit.mjs  # repo file
