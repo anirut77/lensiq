@@ -1,0 +1,16 @@
+# evals-locks/face-capture.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/face-capture/ (owner rule 2026-11-13, locked sets persist). Append-only.
+# face capture redesign (owner order 2026-11-16 item A, testers had to stretch the arm on faceread). Fixed set + tests locked BEFORE any product change on branch face-capture (base origin/main 7a51bcf; a45730b added only the fixture face model). Source: synthetic (face-model.js: round anthropometric numbers projected through phone camera models; flat-shape pictures; no photo, no person). preview/ = the reviewer's PNG previews of the 12 rendered pictures (set.json holds their RGBA sha256).
+# locked 2026-11-16T15:03:45Z (tools/eval-guard.mjs lock, 13 files)
+b39bf5162dea3cc85931f8029b48ec40875e8264df4abcd2b7ed2a02181ad6a9  tests/unit/face-capture.test.js
+1261423b4f8d9cb66926196cb21f8b37ce48fe0a97dfbead74e89e3f410b9865  tests/e2e/face-capture.e2e.mjs
+22d858e9aade66708169f09945beb3c0a0be0f4f10467a04340a060a225f9d8d  tests/e2e/face-capture-webkit.e2e.mjs
+f139ba1df275b3b44b3744208afd16cfdf8c17e512586575f62692db6a7efbc9  tests/e2e/face-capture-cam.js
+4314bb7d6ff5bdbcf9617d2e336f96687068328e7a97530c41cf50725fbd3dff  tests/fixtures/face-capture/face-model.js
+dfd77e8b3e678173b878a363e4307796643476df45be8c2de140102b69cf14ec  tests/fixtures/face-capture/make-set.mjs
+d62d8f92d59e5fbe515b2b033dfd5c040714f43abe729420fa7644c4bfbfd40f  tests/fixtures/face-capture/set.json
+d62d8f92d59e5fbe515b2b033dfd5c040714f43abe729420fa7644c4bfbfd40f  preview/set.json
+664a592b630c5e08ef05b987e08e52e6178b6d1207bc2bb3c0bd91e48b3915b3  preview/images/clean.png
+7ab3551be2defaaa801b6b6d8f388f77b5693e05839248395956d5d61e015ad0  preview/images/blur-4.png
+39ba20208fa38ce672cc59dfd50c5b64975e31f34e977bd6ef57d40d22701d91  preview/images/glare.png
+47ce537533d3f864f2187ccdaa634e890d4958226794e23efed8023093255aeb  preview/images/backlight.png
+5395a14fbf3f68f3c15b9c4f7e0a800e18e221d2b237e02f65c04421006c8363  preview/images/dark.png
