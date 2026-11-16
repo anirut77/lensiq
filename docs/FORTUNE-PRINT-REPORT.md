@@ -74,6 +74,17 @@ each behind its own switch in the dialog ("ใส่ภาพลายเส้�
 "ใส่ภาพนักษัตรของฉันในการ์ด"), off every time the dialog opens. Tests appended to `tests/unit/fortune-share-print.test.js`
 and `tests/e2e/fortune-share-art-optin.e2e.mjs` (locked, `evals-locks/fortune-share-print.sha256`).
 
+## Layout lessons (measured on this branch)
+
+- The frame is a table so the header and footer repeat on every page; inside its cell Chrome splits a heading from its text
+  unless the heading + first block is a `display: flow-root` box (reproduced: numbers ZH A4, 1 in 10 runs stranded, 0 in 15
+  after). `table-layout: fixed` on the frame also breaks this, so the frame stays auto and nothing inside may force it wider
+  than the paper (long colour labels wrap, two-column items shrink, table cells wrap).
+- PDF text read back: Chrome writes the lowest code point that shares a glyph in the font. With the CI font (Noto Sans CJK
+  SC, fonts-noto-cjk 20240730) 页 -> U+2EDA, 巳 -> U+2E92, 食 -> U+2EDD, 风 -> U+2EDB, en dash U+2013 -> U+2012, 户 U+6237 ->
+  U+6236. The paper shows the right characters; copied text from such a PDF can carry these twins.
+  Evidence: `~/LENSIQ-field/evals/print-report/relock-evidence-codepoints.log`, `ci-font-readback-evidence.log`.
+
 ## Known limits
 
 - Page numbers need CSS margin boxes (Chrome / Edge 131+). Safari / iPhone print has no page numbers.
