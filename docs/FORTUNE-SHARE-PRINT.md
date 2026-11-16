@@ -18,13 +18,15 @@ numbers, fengshui, dream, zodiac, astro, lifegraph, planner, luckycolor, report)
     (BE and CE). Text the user typed for the reading (question, dream, phone, plate, account, house number) is never on the card.
   - The card text goes through the reading safety filter (`FortuneAI.safety`) and the crisis word check; a line that fails is
     left out.
-- **Print** builds a print view and opens the browser's print dialog (printer or "save as PDF", phone or computer): page name and
+- **Print** (replaced on branch `print-report` by the paper report, see `docs/FORTUNE-PRINT-REPORT.md`; the view below stays only as the fallback when the browser print menu is used before the report code arrived) builds a print view and opens the browser's print dialog (printer or "save as PDF", phone or computer): page name and
   date header plus the disclaimer line repeated on every printed page (table header), the result with every reading group
   expanded, canvases (wheels, charts) as pictures, every colour swatch outlined and labelled with its colour name so it reads in
   black and white. No buttons, menus, navigation or help bar; the help line inside a report stays. The person's camera photo is
   not printed. The browser's own print menu (Ctrl+P) gets the same view.
 - **Crisis**: while the crisis flag, the calm session or distress words are on the page there is no share or print button and
   `LQShare.share()` / `LQShare.print()` refuse. Uses the public `LQFortuneCrisis.allow()` / `distress()` checks from main.
+
+- **Owner decision 76 (option ก, 2026-11-16):** the palm line drawing (palm) and the sign / animal art from birth data (astro, zodiac) are off on the card by default, each with its own switch, off every time the dialog opens.
 
 ## Privacy
 

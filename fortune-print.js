@@ -400,14 +400,17 @@
   /** the receipt is one long page: its height follows the content (kiosk roll paper) */
   function fitReceipt(pv) {
     const st = pv.querySelector("style[data-lqp-page]"); if (!st) return;
+    // laid out off-screen at the roll's printable width (80 mm - 2 x 3 mm), measured, then put back (it is shown only in print)
     const measure = () => {
+      const old = pv.getAttribute("style") || "";
+      pv.setAttribute("style", old + ";display:block;position:absolute;left:-10000px;top:0;width:74mm;visibility:hidden");
       const h = pv.getBoundingClientRect().height;
+      pv.setAttribute("style", old);
       if (!h) return;
-      const mm = Math.max(60, Math.ceil(h * 25.4 / 96 * 1.08) + 14);
+      const mm = Math.max(60, Math.ceil(h * 25.4 / 96 * 1.04) + 12);
       st.textContent = st.textContent.replace(/size:80mm [\d.]+mm/, "size:80mm " + mm + "mm");
     };
-    const media = root.matchMedia ? root.matchMedia("print") : null;
-    if (media && media.matches) measure();
+    measure();
     pv.__lqpFit = measure;
   }
   api.fitReceipt = () => { const pv = doc.getElementById("lqPrint"); if (pv && pv.__lqpFit) pv.__lqpFit(); };
