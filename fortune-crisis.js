@@ -348,6 +348,7 @@
   }
   // a fortune page opened later in a calm session is calm from the start
   try { if (root.document && sessionOn()) markCalm(root.document); } catch (e) { /* no DOM */ }
+  try { root.localStorage.removeItem("lq-support-n"); } catch (e) { /* the old crisis-card counter (2026-11-17: no record kept) */ }
 
   const api = { check, unjoke, fields, soft, softName, plainName, pageSoft, ack, renderSoft, softGate, softText, HELP, helpLine, helpHTML, active, setActive, allow,
     calmOn, setCalm, markCalm, calmDock, distress, SESSION_KEY };
