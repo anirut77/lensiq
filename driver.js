@@ -464,6 +464,14 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     const b = $("#camPower"); if (!b) return;
     b.hidden = false; b.textContent = cam.active ? "ปิดกล้อง" : "เปิดกล้อง";
   }
+  // webkit-flake-fix: during a trip the setup card takes no taps and driving mode covers it, so the live panel has its own
+  // camera-off button (shown only during a trip, by driver.css): ends the trip and stops every track, like #camPower
+  const camOffLive = $("#camPowerLive");
+  if (camOffLive) camOffLive.onclick = () => {
+    if (trip) stopTrip();
+    cam.stop(); overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); camPowerLabel();
+    engine("ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อเฝ้าระวังต่อ", "ok");
+  };
   $("#camPower").onclick = async () => {
     if (cam.active) {
       if (trip) stopTrip();
