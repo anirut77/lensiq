@@ -1,0 +1,122 @@
+/* fortune-print.css — the paper report drawn by fortune-print.js (owner order 2026-11-16, testers item B).
+   Everything is scoped to .lqp, so the file changes nothing on screen. The @page rule (paper size, margins, "หน้า X / Y")
+   comes with each report (render() puts it in a <style data-lqp-page>). Sizes: .lqp--a4, .lqp--a5, .lqp--auto (follows the
+   paper chosen in the print dialog: narrow paper = the A5 rules), .lqp--r80 (80 mm receipt, kiosk). */
+.lqp{color:#111;background:#fff;font-size:10.5pt;line-height:1.55;-webkit-text-size-adjust:none;text-size-adjust:none}
+.lqp *,.lqp *::before,.lqp *::after{box-sizing:border-box;box-shadow:none;text-shadow:none;animation:none;transition:none}
+/* Thai: the device's Thai UI font with ligatures off, so the PDF text can be copied and searched (share-print decision) */
+.lqp[lang=th]{font-variant-ligatures:none;font-feature-settings:"ccmp" 0,"liga" 0,"clig" 0,"calt" 0,"locl" 0}
+.lqp[lang=th],.lqp[lang=zh-Hans]{line-height:1.7}
+
+/* frame: the header and footer repeat on every printed page (table header / footer groups) */
+.lqp-frame{width:100%;border-collapse:collapse;border:0}
+.lqp-frame>thead{display:table-header-group}
+.lqp-frame>tfoot{display:table-footer-group}
+.lqp-frame>thead>tr>td,.lqp-frame>tfoot>tr>td,.lqp-frame>tbody>tr>td{padding:0;border:0;vertical-align:top}
+
+.lqp-head{display:flex;align-items:center;gap:3mm;border-bottom:1.2pt solid #111;padding:0 0 1.8mm;margin:0 0 4mm;font-size:8.5pt;line-height:1.35}
+.lqp-mark{display:inline-flex;align-items:center;gap:1.4mm;font-weight:700;letter-spacing:.06em;flex:none}
+.lqp-mark-svg{width:5.5mm;height:5.5mm;flex:none}
+.lqp-hd-title{flex:1 1 auto;min-width:0;font-weight:600}
+.lqp-hd-name{font-weight:400}
+.lqp-hd-date{flex:none;white-space:nowrap}
+
+.lqp-foot{border-top:.75pt solid #444;margin-top:4mm;padding-top:1.5mm;font-size:8pt;line-height:1.4;color:#111}
+.lqp-foot p{margin:0}
+.lqp-src{color:#444;overflow-wrap:anywhere}
+
+/* title block on the first page */
+.lqp-titleblock{margin:0 0 5mm;break-after:avoid}
+.lqp-title{font-size:19pt;line-height:1.25;margin:0 0 1mm;font-weight:700}
+.lqp-kind{margin:0;font-size:9.5pt;color:#333}
+
+/* sections: a heading is never the last thing on a page */
+.lqp-part{font-size:13.5pt;line-height:1.3;margin:6mm 0 2.5mm;padding:0 0 1mm;border-bottom:.9pt solid #111;font-weight:700;break-after:avoid;page-break-after:avoid}
+.lqp-h{font-size:11.5pt;line-height:1.35;margin:4.5mm 0 1.6mm;padding-left:2.2mm;border-left:1.1mm solid #111;font-weight:700;break-after:avoid;page-break-after:avoid}
+.lqp-subh{font-size:10.5pt;line-height:1.35;margin:3.5mm 0 1.2mm;font-weight:700;break-after:avoid;page-break-after:avoid}
+.lqp-lead{break-inside:avoid;page-break-inside:avoid}
+.lqp-lead>.lqp-part:first-child,.lqp-lead>.lqp-h:first-child{margin-top:0}
+.lqp-sec{margin:0 0 1mm}
+.lqp-sec-1{margin-top:3mm}
+.lqp-sec+.lqp-sec .lqp-lead>.lqp-h:first-child{margin-top:3.5mm}
+.lqp p{margin:0 0 2mm;orphans:3;widows:3}
+.lqp-caution{border-left:.8mm dashed #111;padding-left:2.4mm}
+
+/* lists: an item never splits; short lists in two columns */
+.lqp ul,.lqp ol{margin:0 0 2.5mm;padding-left:5.5mm}
+.lqp li{margin:0 0 1.1mm;break-inside:avoid;page-break-inside:avoid}
+.lqp li>b{font-weight:700}
+.lqp-cols{display:grid;grid-template-columns:1fr 1fr;column-gap:7mm;row-gap:1.1mm;list-style:none;padding-left:0}
+.lqp-cols>li{margin:0;padding-left:3.5mm;position:relative}
+.lqp-cols>li::before{content:"\2022";position:absolute;left:0}
+ol.lqp-cols{counter-reset:lqp}
+ol.lqp-cols>li{counter-increment:lqp;padding-left:5mm}
+ol.lqp-cols>li::before{content:counter(lqp) "."}
+
+/* tables: a row never splits; the column heads repeat on the next page */
+.lqp-tbl{width:100%;border-collapse:collapse;margin:0 0 3mm;font-size:9.5pt;line-height:1.4}
+.lqp-tbl caption{caption-side:top;text-align:left;font-weight:700;padding:0 0 1mm;break-after:avoid}
+.lqp-tbl th,.lqp-tbl td{border:.5pt solid #666;padding:1mm 1.6mm;text-align:left;vertical-align:top}
+.lqp-tbl th{font-weight:700;background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lqp-tbl thead{display:table-header-group}
+.lqp-tbl tr{break-inside:avoid;page-break-inside:avoid}
+.lqp-tbl-wide{font-size:8.5pt}
+
+/* figures (charts, cards, wheels drawn on the page) */
+.lqp-fig{margin:1mm 0 3mm;break-inside:avoid;page-break-inside:avoid;display:inline-block;vertical-align:top;max-width:100%;margin-right:3mm}
+.lqp-fig img{display:block;max-width:100%;max-height:75mm;height:auto;width:auto;object-fit:contain}
+.lqp-fig figcaption{font-size:8.5pt;color:#333;margin-top:.8mm;max-width:60mm}
+
+/* black and white: every icon and colour swatch carries its name */
+.lqp-adv{display:flex;flex-wrap:wrap;gap:1.4mm 2.5mm;align-items:center;margin:-.8mm 0 2.5mm;font-size:9pt;line-height:1.3;break-inside:avoid;page-break-inside:avoid}
+.lqp-ico{display:inline-flex;align-items:center;gap:1mm;border:.6pt solid #111;border-radius:1.6mm;padding:.3mm 1.6mm .3mm 1mm}
+.lqp-ico-svg{width:4mm;height:4mm;flex:none;color:#111}
+.lqp-sw{display:inline-flex;align-items:center;gap:1.1mm;white-space:nowrap}
+.lqp-chip{display:inline-block;width:3.6mm;height:3.6mm;border:.7pt solid #111;border-radius:50%;flex:none;vertical-align:-.5mm;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lqp-belief{flex-basis:100%;font-size:8pt;color:#333}
+
+/* narrow paper (A5): smaller type, one column unless the items are very short */
+.lqp--a5{font-size:9.5pt}
+.lqp--a5 .lqp-title{font-size:15.5pt}
+.lqp--a5 .lqp-part{font-size:12pt}
+.lqp--a5 .lqp-h{font-size:10.5pt}
+.lqp--a5 .lqp-cols:not(.lqp-cols-tiny){grid-template-columns:1fr}
+.lqp--a5 .lqp-tbl{font-size:8.5pt}
+.lqp--a5 .lqp-tbl-wide{font-size:7.5pt}
+.lqp--a5 .lqp-head{font-size:7.5pt;gap:2mm}
+.lqp--a5 .lqp-fig img{max-height:60mm}
+@media print and (max-width:150mm){
+  .lqp--auto{font-size:9.5pt}
+  .lqp--auto .lqp-title{font-size:15.5pt}
+  .lqp--auto .lqp-part{font-size:12pt}
+  .lqp--auto .lqp-h{font-size:10.5pt}
+  .lqp--auto .lqp-cols:not(.lqp-cols-tiny){grid-template-columns:1fr}
+  .lqp--auto .lqp-tbl{font-size:8.5pt}
+  .lqp--auto .lqp-tbl-wide{font-size:7.5pt}
+  .lqp--auto .lqp-head{font-size:7.5pt;gap:2mm}
+  .lqp--auto .lqp-fig img{max-height:60mm}
+}
+
+/* 80 mm receipt (future kiosk): its own style; one long page, one column, nothing wider than the roll */
+.lqp--r80{font-size:8.5pt;line-height:1.45;overflow-wrap:anywhere;word-break:normal}
+.lqp--r80[lang=th],.lqp--r80[lang=zh-Hans]{line-height:1.6}
+.lqp--r80 .lqp-frame{table-layout:fixed}
+.lqp--r80 .lqp-head{flex-wrap:wrap;gap:.8mm 2mm;font-size:7.5pt;margin-bottom:2.5mm;padding-bottom:1.2mm}
+.lqp--r80 .lqp-mark-svg{width:4.5mm;height:4.5mm}
+.lqp--r80 .lqp-hd-title{flex-basis:100%;order:3}
+.lqp--r80 .lqp-hd-date{margin-left:auto}
+.lqp--r80 .lqp-title{font-size:13pt}
+.lqp--r80 .lqp-kind{font-size:7.5pt}
+.lqp--r80 .lqp-part{font-size:10.5pt;margin-top:4mm}
+.lqp--r80 .lqp-h{font-size:9.5pt;margin-top:3.5mm}
+.lqp--r80 .lqp-subh{font-size:9pt}
+.lqp--r80 .lqp-cols{grid-template-columns:1fr}
+.lqp--r80 ul,.lqp--r80 ol{padding-left:4mm}
+.lqp--r80 .lqp-tbl,.lqp--r80 .lqp-tbl-wide{font-size:7pt;table-layout:fixed;width:100%}
+.lqp--r80 .lqp-tbl th,.lqp--r80 .lqp-tbl td{padding:.6mm .8mm;overflow-wrap:anywhere}
+.lqp--r80 .lqp-fig{display:block;margin-right:0}
+.lqp--r80 .lqp-fig img{max-width:100%;max-height:50mm}
+.lqp--r80 .lqp-adv{font-size:7.5pt}
+.lqp--r80 .lqp-sw{white-space:normal}
+.lqp--r80 .lqp-foot{font-size:7pt}

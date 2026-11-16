@@ -39,17 +39,17 @@
       native: "แชร์ผ่านแอปในเครื่อง", line: "ส่งทาง LINE", facebook: "แชร์ลิงก์ทาง Facebook", save: "บันทึกรูปการ์ด", close: "ปิด",
       note: "การ์ดสร้างในเครื่องนี้ ไม่อัปโหลดไปที่ใด LINE ได้ข้อความกับลิงก์ Facebook ได้เฉพาะลิงก์หน้าเว็บ",
       saved: "บันทึกรูปการ์ดแล้ว", fail: "สร้างการ์ดไม่สำเร็จ", refused: "ตอนนี้ปิดการแชร์และการพิมพ์ไว้ก่อน", born: "เกิด", preview: "ตัวอย่างการ์ดผลลัพธ์",
-      printed: "พิมพ์เมื่อ", made: "สร้างจาก" },
+      printed: "พิมพ์เมื่อ", made: "สร้างจาก", include: "ใส่ชื่อและข้อมูลที่กรอกในหน้าที่พิมพ์" },
     en: { share: "Share result card", print: "Print", title: "Share result card", photo: "Include my photo on the card", birth: "Include birth date, age and name",
       native: "Share with apps", line: "Send on LINE", facebook: "Share link on Facebook", save: "Save card image", close: "Close",
       note: "The card is made on this device and uploaded nowhere. LINE gets the text and link; Facebook gets the page link only.",
       saved: "Card image saved", fail: "Could not make the card", refused: "Sharing and printing are off for now", born: "Born", preview: "Result card preview",
-      printed: "Printed", made: "Made with" },
+      printed: "Printed", made: "Made with", include: "Include my name and what I entered when printing" },
     zh: { share: "分享结果卡片", print: "打印", title: "分享结果卡片", photo: "在卡片上放我的照片", birth: "在卡片上放出生日期、年龄和名字",
       native: "用手机应用分享", line: "通过 LINE 发送", facebook: "在 Facebook 分享链接", save: "保存卡片图片", close: "关闭",
       note: "卡片在本机生成，不上传到任何地方。LINE 只收到文字和链接，Facebook 只收到网页链接。",
       saved: "卡片图片已保存", fail: "卡片生成失败", refused: "目前已暂停分享和打印", born: "出生", preview: "结果卡片预览",
-      printed: "打印于", made: "生成自" },
+      printed: "打印于", made: "生成自", include: "打印时包含我的姓名和填写的资料" },
   };
   const N3 = (th, en, zh) => ({ th, en, zh });
   /* page → its result(s). root: the result (its visibility = the result is on screen; it is what is printed); share / print:
@@ -177,8 +177,10 @@
 
   /* ---------- print styles ---------- */
   const PRINT_CSS =
-    "[data-lq-sp][data-lq-sp-off],[data-lq-sp-bar][data-lq-sp-off]{display:none!important}" +
-    "html[data-lq-crisis] [data-lq-sp],html[data-lq-calm] [data-lq-sp],html[data-lq-crisis] [data-lq-sp-bar],html[data-lq-calm] [data-lq-sp-bar]{display:none!important}" +
+    "[data-lq-sp][data-lq-sp-off],[data-lq-sp-bar][data-lq-sp-off],[data-lq-sp-opt][data-lq-sp-off],[data-lq-sp-opt][hidden]{display:none!important}" +
+    "html[data-lq-crisis] [data-lq-sp],html[data-lq-calm] [data-lq-sp],html[data-lq-crisis] [data-lq-sp-bar],html[data-lq-calm] [data-lq-sp-bar]," +
+    "html[data-lq-crisis] [data-lq-sp-opt],html[data-lq-calm] [data-lq-sp-opt]{display:none!important}" +
+    ".lq-sp-opt{display:inline-flex;align-items:center;gap:.45em;min-height:44px;font-size:.9rem;margin:.2em .4em}.lq-sp-opt input{width:22px;height:22px;flex:none}" +
     ".lq-sp-bar{display:flex;flex-wrap:wrap;gap:.6em;margin:1em 0 .4em}" +
     "#lqPrint{display:none}" +
     "html.lq-sp-open,html.lq-sp-open body{overflow:hidden}" +
@@ -193,7 +195,7 @@
     "@media (prefers-color-scheme:dark){.lq-sp-box{background:#161b36;color:#eef1ff}}" +
     "@media print{" +
     "body.lq-printing>*:not(#lqPrint){display:none!important}" +
-    "#siteNav,header.nav,.lq-helpbar,nav,button,select,input,textarea,.lq-toc,[data-lq-sp-bar],.lq-sp-dlg,dialog,.toast{display:none!important}" +
+    "#siteNav,header.nav,.lq-helpbar,nav,button,select,input,textarea,.lq-toc,[data-lq-sp-bar],[data-lq-sp-opt],.lq-sp-dlg,dialog,.toast{display:none!important}" +
     "body.lq-printing{background:#fff!important;color:#111!important;margin:0;padding:0}" +
     "#lqPrint{display:block!important;color:#111;background:#fff;font-size:11pt;line-height:1.55}" +
     "#lqPrint *{box-shadow:none!important;text-shadow:none!important;animation:none!important;transition:none!important}" +
@@ -276,17 +278,49 @@
         if (at) at.after(bar); else rootEl.appendChild(bar);
       }
     }
+    addOpts();
   }
+  /* "include my name and what I entered" next to each print button on pages that ask for them: OFF on every page load and
+     again after each print (the share card's rule); while it is off the report leaves out names, birth data and typed text */
+  function addOpts() {
+    if (!P || !P.personal) return;
+    for (const b of doc.querySelectorAll('[data-lq-sp="print"]')) {
+      const forSel = b.getAttribute("data-lq-sp-for") || "";
+      if (doc.querySelector('[data-lq-sp-opt][data-lq-sp-for="' + forSel + '"]')) continue;
+      const l = doc.createElement("label"); l.className = "lq-sp-opt"; l.setAttribute("data-lq-sp-opt", ""); l.setAttribute("data-lq-sp-for", forSel); l.hidden = true;
+      const c = doc.createElement("input"); c.type = "checkbox"; c.checked = false;
+      const t = doc.createElement("span"); t.textContent = T("include");
+      l.appendChild(c); l.appendChild(t); b.after(l);
+    }
+  }
+  const hasPersonal = () => { const x = personalOf(); return !!(x.birth || x.names.length || x.ages.length || x.typed.length); };
+  function includeChecked(r) {
+    const l = r ? doc.querySelector('[data-lq-sp-opt][data-lq-sp-for="' + r.root + '"]') : null, c = l && l.querySelector("input");
+    return !!(c && c.checked && !l.hidden && vis(l));
+  }
+  function resetOpts() { for (const c of doc.querySelectorAll("[data-lq-sp-opt] input")) /** @type {HTMLInputElement} */ (c).checked = false; }
   function sync() {
     const ok = allowed(doc);
-    for (const e of doc.querySelectorAll("[data-lq-sp], [data-lq-sp-bar]")) {
+    for (const e of doc.querySelectorAll("[data-lq-sp], [data-lq-sp-bar], [data-lq-sp-opt]")) {
       if (ok) e.removeAttribute("data-lq-sp-off"); else e.setAttribute("data-lq-sp-off", "");
       if (e.hasAttribute("data-lq-sp-own") && e.textContent !== T(e.getAttribute("data-lq-sp"))) e.textContent = T(e.getAttribute("data-lq-sp"));
+    }
+    const opts = doc.querySelectorAll("[data-lq-sp-opt]");
+    if (opts.length) {
+      const show = ok && hasPersonal();
+      for (const l of /** @type {any[]} */ ([...opts])) {
+        const b = doc.querySelector('[data-lq-sp="print"][data-lq-sp-for="' + l.getAttribute("data-lq-sp-for") + '"]');
+        const on = show && !!b && vis(b);
+        if (l.hidden === on) l.hidden = !on;
+        if (!on) { const c = l.querySelector("input"); if (c) c.checked = false; }
+        const t = l.querySelector("span"); if (t && t.textContent !== T("include")) t.textContent = T("include");
+      }
     }
     if (!ok) { closeAll(); return; }
     // the result is on screen and the reader has used the page: fetch the card code and the fonts now, so the tap itself needs
     // no request (never during the first page load: a page whose result is there from the start waits for the first touch / key)
     if (used && [...doc.querySelectorAll('[data-lq-sp="share"]')].some(vis)) prefetch();
+    if (used && [...doc.querySelectorAll('[data-lq-sp="print"]')].some(vis)) loadPrint();
   }
   function closeAll() {
     const d = doc.getElementById("lqShareDlg"); if (d) d.hidden = true; doc.documentElement.classList.remove("lq-sp-open");
@@ -349,6 +383,11 @@
       safety: FA && FA.safety ? FA.safety : null });
   };
   api.photo = photoOf;
+  api.resultFor = resultFor;
+  api.lang = lang;
+  api.personal = personalOf;
+  api.link = linkOf;
+  api.includeChecked = includeChecked;
   /* a page may lend its own symbol art to the card (hexagram, zodiac animal, element glyph …): fn(ctx, x, y, w, h), drawn when
      no photo is on the card; it must not draw the person's photo or any text the user typed */
   const arts = {};
@@ -469,20 +508,48 @@
     return pv;
   }
   const escH = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  /* the paper report (owner order 2026-11-16, testers item B): fortune-print.js + fortune-print.css, fetched together with the
+     card code once a result is on screen and the page was used (never in the first page load); one renderer for the print
+     button, the browser's own print menu and, later, the paid PDF. buildPrint() above stays only as the fallback for a print
+     started before fortune-print.js arrived (or if it cannot load). */
+  let printing = null, printReady = false;
+  function loadPrint() {
+    if (printing) return printing;
+    printing = new Promise((res, rej) => {
+      if (/** @type {any} */ (root).LQPrint) { res(/** @type {any} */ (root).LQPrint); return; }
+      const me = [...doc.scripts].find(s => /fortune-share\.js/.test(s.src));
+      const v = me && /\?v=(\d+)/.exec(me.src);
+      const s = doc.createElement("script"); s.src = "fortune-print.js" + (v ? "?v=" + v[1] : ""); s.async = true;
+      s.onload = () => (/** @type {any} */ (root).LQPrint ? res(/** @type {any} */ (root).LQPrint) : rej(new Error("print code")));
+      s.onerror = () => { printing = null; rej(new Error("print code")); };
+      doc.head.appendChild(s);
+    }).then(LP => LP.ready().then(() => { printReady = true; return LP; }));
+    printing.catch(() => { /* retried on the next tap */ });
+    return printing;
+  }
+  api.printReady = () => loadPrint().then(() => true);
   api.print = function (o) {
     o = o || {};
     if (!allowed(o.doc || doc)) return false;
     const r = resultFor(o.button || null);
     if (!r) return false;
-    if (!buildPrint(r)) return false;
-    try { root.print(); } catch (e) { /* no print dialog */ }
+    const go = LP => {
+      if (!allowed(doc) || !LP.build({ button: o.button || null, size: o.size, include: o.include })) return false;
+      try { root.print(); } catch (e) { /* no print dialog */ }
+      return true;
+    };
+    const LP = /** @type {any} */ (root).LQPrint;
+    if (LP && printReady) return go(LP);
+    loadPrint().then(go, () => { if (allowed(doc) && buildPrint(r)) { try { root.print(); } catch (e) { /* none */ } } });
     return true;
   };
   root.addEventListener("beforeprint", () => {
     if (doc.getElementById("lqPrint") || !allowed(doc)) return;
+    const LP = /** @type {any} */ (root).LQPrint;
+    if (LP && printReady && LP.build({})) return;
     const r = resultFor(null); if (r) buildPrint(r);
   });
-  root.addEventListener("afterprint", () => setTimeout(endPrint, 0));
+  root.addEventListener("afterprint", () => setTimeout(() => { endPrint(); resetOpts(); }, 0));
 
   /* ---------- start ---------- */
   doc.addEventListener("click", e => {
