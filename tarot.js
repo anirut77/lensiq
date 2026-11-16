@@ -318,7 +318,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function crisisStop(q) {
     var FAx = window.FortuneAI, box = document.getElementById("trSupport");
     var CRx = window.LQFortuneCrisis, lang = (window.LQI18N && window.LQI18N.lang) || "th";
-    var hard = !!(FAx && FAx.crisis && FAx.crisis.check(q)), soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the soft step
+    // hotfix 2026-11-16: every free-text field of the page, before anything else (the shuffle / coin step itself is not a result;
+    // in the crisis state the reading that follows is the card again)
+    var hard = !!(FAx && FAx.crisis && (FAx.crisis.check(q) || FAx.crisis.check(FAx.crisis.fields())));
+    var soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the soft step
     if (!hard && !soft) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
     if (!box) { box = document.createElement("div"); box.id = "trSupport"; box.tabIndex = -1; $("#trSetup").insertAdjacentElement("afterend", box); }
     var card = function () { box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: lang })); box.focus(); };

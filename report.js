@@ -400,7 +400,7 @@
   function crisisStop() {
     var CRx = W.LQFortuneCrisis, out = $("rpOut");
     // crisis state (owner order 2026-11-12): after the support card on this page, every later report is the card again
-    var hard = !!(FA.crisis && ((FA.crisis.active && FA.crisis.active()) || FA.crisis.check(($("rpName") && $("rpName").value) || "")));
+    var hard = !!(FA.crisis && ((FA.crisis.active && FA.crisis.active()) || FA.crisis.check(($("rpName") && $("rpName").value) || "") || FA.crisis.check(FA.crisis.fields())));
     var soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the gentle "are you okay?" step before any report
     if (!hard && !soft) return false;
     out.textContent = ""; out.hidden = false;

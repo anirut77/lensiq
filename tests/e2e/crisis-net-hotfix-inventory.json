@@ -886,6 +886,51 @@
    "phrase": false,
    "why": "on / off only",
    "dynamic": "fortune-ai.js (AI consent, every reading page)"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-merit-form input[name=\"name\"]",
+   "type": "text",
+   "maxlength": 60,
+   "phrase": true,
+   "dynamic": "lensiq-merit.js interest form (every reading page with the merit panel; off by default: LENSIQ_MERIT_INTEREST_FORM)",
+   "covered_by": "lensiq-merit.js checks the form first and draws the card in its panel; locked tests/e2e/merit-crisis.e2e.mjs; the window gate leaves .lq-merit forms to it"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-merit-form input[name=\"contact\"]",
+   "type": "text",
+   "maxlength": 254,
+   "phrase": true,
+   "dynamic": "lensiq-merit.js interest form (every reading page with the merit panel; off by default: LENSIQ_MERIT_INTEREST_FORM)",
+   "covered_by": "lensiq-merit.js checks the form first and draws the card in its panel; locked tests/e2e/merit-crisis.e2e.mjs; the window gate leaves .lq-merit forms to it"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-merit-form input[name=\"date_from\"]",
+   "type": "date",
+   "maxlength": null,
+   "phrase": false,
+   "why": "date picker",
+   "dynamic": "lensiq-merit.js interest form"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-merit-form input[name=\"date_to\"]",
+   "type": "date",
+   "maxlength": null,
+   "phrase": false,
+   "why": "date picker",
+   "dynamic": "lensiq-merit.js interest form"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-merit-form input[name=\"consent\"]",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only",
+   "dynamic": "lensiq-merit.js interest form"
   }
  ]
 }

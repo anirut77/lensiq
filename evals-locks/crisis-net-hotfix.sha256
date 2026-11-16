@@ -14,3 +14,7 @@ f180e6ee4a569df8814f1cfee4b5299e0d5656a1422df404b11b716228a3a0e7  tests/e2e/cris
 04e70be1a961f1158c1936f191ce22d532c30ad1606e0799b1e3d678f02091d7  tests/e2e/crisis-net-hotfix-c.e2e.mjs  # repo file
 76488935b191d8354ad9cbd43be7bc212d7603417cfe3c387048554afcd36a9e  tests/e2e/crisis-net-hotfix-d.e2e.mjs  # repo file
 c526d52f4c93d8b0c8c2933c80fcd64ce427ce85f805063b25fdf524386d9b9c  tests/unit/crisis-input-inventory.test.js  # repo file
+# locked 2026-11-16T08:21:03Z (tools/eval-guard.mjs lock, 1 file)
+a51b5a66b400a7b99d20205811fafd44b2dc99a9da80c5b1936245be408bb1a7  crisis-net-hotfix-inventory.json
+# re-lock 2026-11-16 (append-only): inventory v2 adds the 5 inputs of lensiq-merit.js's interest form (found while running merit-crisis.e2e.mjs; created through a helper, so the unit scan does not see them). Rows only; every v1 row unchanged. v1 kept as crisis-net-hotfix-inventory.v1-2026-11-16T06-44Z.json
+a51b5a66b400a7b99d20205811fafd44b2dc99a9da80c5b1936245be408bb1a7  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (v2)

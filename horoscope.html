@@ -47,7 +47,7 @@
     <span class="lq-notice-more"><span data-i18n="horoscope.disclaimer2">ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน การงาน หรือความสัมพันธ์</span></span></span></p>
 
   <section class="hs-stage" id="hsStage" aria-label="กรอกวันเกิด" data-i18n-attr="aria-label:horoscope.stageAria">
-    <form class="hs-form" id="hsForm" novalidate>
+    <form class="hs-form" id="hsForm" novalidate data-lq-crisis-own>
       <h2 data-i18n="horoscope.h21">กรอกวันเดือนปีเกิด</h2>
       <label data-i18n="horoscope.nameLabel">ชื่อเล่นหรือชื่อจริง (ไม่บังคับ — ใช้คำนวณเลขศาสตร์ชื่อ)
         <input id="hsName" type="text" maxlength="60" autocomplete="off" placeholder="เช่น สมใจ" data-i18n-attr="placeholder:horoscope.namePh">
@@ -136,7 +136,7 @@
     <div role="tabpanel" id="pn-nu" aria-labelledby="tab-nu" class="hs-panel" tabindex="0" hidden></div>
     <div role="tabpanel" id="pn-td" aria-labelledby="tab-td" class="hs-panel" tabindex="0" hidden></div>
     <div role="tabpanel" id="pn-cp" aria-labelledby="tab-cp" class="hs-panel" tabindex="0" hidden>
-      <form class="hs-form hs-partner" id="hsPartner" novalidate>
+      <form class="hs-form hs-partner" id="hsPartner" novalidate data-lq-crisis-own>
         <h3 data-i18n="horoscope.h31">วันเกิดของอีกคน</h3>
         <label data-i18n="horoscope.pNameLabel">ชื่อเล่น (ไม่บังคับ)<input id="hsPName" type="text" maxlength="40" autocomplete="off" placeholder="เช่น ต้นข้าว" data-i18n-attr="placeholder:horoscope.pNamePh"></label>
         <fieldset class="hs-date">
@@ -194,6 +194,7 @@
 <script src="fortune-read.js?v=10"></script>
 <script src="lensiq-helpline.js?v=1"></script>
 <script src="fortune-crisis.js?v=11"></script>
+<script src="lensiq-crisis-takeover.js?v=1"></script>
 <script src="fortune-ai.js?v=28"></script>
 <script src="horoscope-kb.js?v=6"></script>
 <script src="horoscope.js?v=15"></script>
