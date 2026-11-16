@@ -28,3 +28,5 @@ c3a9894e698793d9e21f734d8ca07da589dda87ac1b4959ffee8f2fda7289681  tests/e2e/fort
 41edb3c475372905bea716f32895467b7283dff22898943853437cd3c884b4b0  tests/unit/fortune-layout.test.js  # repo file
 # RE-LOCK 2026-11-16 (branch crisis-rules-1323), owner decision 2026-11-16 crisis one-number rules: A5 exception allows exactly one fold on the crisis card (อ่านเพิ่มเติม) and requires tel:1323 only. Copy: ~/LENSIQ-field/evals/crisis-rules-1323/relock5/.
 79f31738488874797256ab4ceeeb1340841780240c04c89b20f82228aaa4040c  tests/e2e/fortune-layout.e2e.mjs  # repo file
+# RE-LOCK 2026-11-17 (branch crisis-rules-1323, re-lock 6): NOTICES helper exempts exactly details.fa-support-more on the crisis card. Copy: ~/LENSIQ-field/evals/crisis-rules-1323/review-fixes/.
+e511387e9685e0c597a0073bcaf052e648159b57a2bee11ac10802d4a3477077  tests/e2e/fortune-layout.e2e.mjs  # repo file

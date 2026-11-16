@@ -59,3 +59,17 @@ df22c9372800c58b13dc50bfc12d2e4c084bdfda0a2c49a1a5735c08e0b74960  d-no-analytics
 612d5030223a4ba47b76e4cb6c88d1f31b1c1b716f5dc1fca9410c3f97df68e4  d-no-analytics/backend-analytics.test.js
 df22c9372800c58b13dc50bfc12d2e4c084bdfda0a2c49a1a5735c08e0b74960  tests/unit/crisis-no-analytics.test.js  # repo file (part D)
 612d5030223a4ba47b76e4cb6c88d1f31b1c1b716f5dc1fca9410c3f97df68e4  tests/unit/backend-analytics.test.js  # repo file (part D, counselling exception)
+# RE-LOCK 6 + LOCK parts E, F, G 2026-11-17, BEFORE the fixes (independent review NOT OK, ~/LENSIQ-field/review/crisis-rules-1323/REVIEW.md):
+# re-lock 6: tests/e2e/fortune-layout.e2e.mjs NOTICES helper (line ~187) exempts exactly details.fa-support-more on .fa-support (rule 3; same narrow exception as re-locks 3/5); any other fold still fails.
+# part E (new): the SHIPPED switch (decisions 69 ค + 75 ก): the 1323 icon inside #siteNav, inside the bar's box, overlapping no bar item and no page content, 19 pages x TH/EN/ZH x 360/393/430 x 6 scroll positions; normal-state rules with the shipped value; the icon's confirmation dialog has tel:1323 >= 44 px and the counselling link.
+# part F (new): the crisis checks with the shipped switch (card heading not covered), and the fallback call button >= 44 px when lensiq-helpline.js is blocked.
+# part G (new): no localStorage record of crisis cards; Merit API refusal 1323 + counselling only; fallback button inline 44 px.
+# locked 2026-11-16T17:06:08Z (tools/eval-guard.mjs lock, 4 files)
+e511387e9685e0c597a0073bcaf052e648159b57a2bee11ac10802d4a3477077  review-fixes/fortune-layout.e2e.mjs
+d292189474534f60e482cee587cab4e6d4744d6087e690755992b603fe34d7d4  review-fixes/crisis-rules-1323-e.e2e.mjs
+95cc9b7b80794f36c5b122b973272451612da094432a822315ecd7f95f403056  review-fixes/crisis-rules-1323-f.e2e.mjs
+2b8d1721fa03b241888d0c93876ae1c6707cf8f262781113264a7399b6a3b56e  review-fixes/crisis-rules-1323-g.test.js
+e511387e9685e0c597a0073bcaf052e648159b57a2bee11ac10802d4a3477077  tests/e2e/fortune-layout.e2e.mjs  # repo file (re-lock 6 / parts E-G)
+d292189474534f60e482cee587cab4e6d4744d6087e690755992b603fe34d7d4  tests/e2e/crisis-rules-1323-e.e2e.mjs  # repo file (re-lock 6 / parts E-G)
+95cc9b7b80794f36c5b122b973272451612da094432a822315ecd7f95f403056  tests/e2e/crisis-rules-1323-f.e2e.mjs  # repo file (re-lock 6 / parts E-G)
+2b8d1721fa03b241888d0c93876ae1c6707cf8f262781113264a7399b6a3b56e  tests/unit/crisis-rules-1323-g.test.js  # repo file (re-lock 6 / parts E-G)

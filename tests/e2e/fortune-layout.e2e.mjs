@@ -184,7 +184,10 @@ const NOTICES = `((max) => {
   }
   const help = [...document.querySelectorAll(never)];
   for (const h of help) {
-    if (h.querySelector("button.lq-more, .lq-more-body, .lq-notice-more, details")) bad.push("collapsible parts inside " + h.className);
+    // RE-LOCK 6 2026-11-16 (owner decision 2026-11-16 crisis one-number rules, rule 3): the crisis card's own details.fa-support-more
+    // ("อ่านเพิ่มเติม", longer text only) is the one allowed fold, on .fa-support only; any other fold still fails
+    if ([...h.querySelectorAll("button.lq-more, .lq-more-body, .lq-notice-more, details")].some(x => !(h.matches(".fa-support") && x.matches("details.fa-support-more"))))
+      bad.push("collapsible parts inside " + h.className);
     if (h.closest(".lq-more-body, .lq-notice-more, details:not([open])")) bad.push(h.className + " sits inside a folded part");
     if (h.classList.contains("lq-notice")) bad.push(h.className + " made a notice");
   }
