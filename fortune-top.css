@@ -6,7 +6,8 @@
    - the 1323 help control in the sticky top bar (nav.js moves #lqHelpTop there and adds .has-help): small phone icon + "1323",
      no fill, smaller than the page title, tap target 44 px; below 480 px the language switch shows one control;
    - the confirmation dialog (.lq-help-dlg, nav.js): call tel:1323 + close;
-   - the disclaimer as one small line under the title (.lq-notice.lq-top) with "อ่านเพิ่มเติม" as a text link (tap area 44 px);
+   - the disclaimer as one small line under the title (12 px: the phone text minimum of tests/e2e/camera-mobile.e2e.mjs;
+     8 px wider than the column on phones so the English line still fits two lines at 360 px) (.lq-notice.lq-top) with "อ่านเพิ่มเติม" as a text link (tap area 44 px);
    - on phones (main.lq-ftop): category label hidden (the breadcrumb names it), smaller title and description, shorter idle
      camera preview (faceread.css / palm.css), so the main action is on the first screen. */
 .lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
@@ -36,6 +37,5 @@
   .lq-ftop h1{font-size:1.5rem;line-height:1.25;margin:2px 0 4px}
   .lq-ftop :is(.lead,.ft-hero>p,.pd-hero>p):not(.lq-top){font-size:.9rem;line-height:1.45;margin:0 auto 6px}
   .lq-ftop :is(.ft-hero,.pd-hero){padding:10px 16px 14px}
-  .lq-ftop .lq-top{font-size:.72rem}
-  [lang=en] .lq-ftop .lq-top{font-size:.68rem}
+  .lq-ftop .lq-top{font-size:.75rem;margin-left:-8px;margin-right:-8px}
 }
