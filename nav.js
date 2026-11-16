@@ -394,19 +394,18 @@
   window.addEventListener("lq-lang", syncLang);
   if (window.LQI18N) { window.LQI18N.apply(header); var cb = document.querySelector(".lq-crumbs"); if (cb) window.LQI18N.apply(cb); syncLang(); }
 
-  // 1323 in the bar + confirmation (decision 69); switch LENSIQ_HELP_STICKY (decision 75 ก); dialog links counselling.html
+  // 1323 in the bar + confirmation (decision 69; switch LENSIQ_HELP_STICKY)
   /** @type {any} */
   var help = /** @type {any} */ (window).LQHelpTop = { confirm: true, close: function () { if (help.dlg && help.dlg.open) help.dlg.close(); }, open: function () {
     var d = help.dlg, w = /** @type {any} */ ({ en: ["Call 1323", "Close"], zh: ["拨打 1323", "关闭"] })[window.LQI18N ? String(window.LQI18N.lang) : ""] || ["โทร 1323", "ปิด"];
     if (!d) {
       d = help.dlg = document.body.appendChild(document.createElement("dialog")); d.className = "lq-help-dlg"; d.setAttribute("aria-labelledby", "lqHelpQ");
-      d.innerHTML = '<p id="lqHelpQ"></p><div><a class="lq-call-btn" href="tel:1323"></a><button type="button"></button></div>' +
-        '<a href="counselling.html" style="justify-content:center;margin-top:8px;background:none;color:#0b5d8f;font-weight:400;text-decoration:underline"></a>';
+      d.innerHTML = '<p id="lqHelpQ"></p><div><a class="lq-call-btn" href="tel:1323"></a><button type="button"></button></div><a class="lq-help-more" href="counselling.html"></a>';
       d.querySelector("button").onclick = help.close; d.onclick = function (/** @type {Event} */ e) { if (e.target === d) help.close(); };
       d.onclose = function () { help.link.focus(); };
     }
     d.querySelector("p").textContent = help.link.getAttribute("aria-label"); d.querySelector("a").textContent = w[0]; d.querySelector("button").textContent = w[1];
-    /** @type {HTMLElement} */ (d.querySelector('a[href="counselling.html"]')).textContent = T("counsel.link", "ช่องทางให้คำปรึกษา");
+    /** @type {HTMLElement} */ (d.querySelector(".lq-help-more")).textContent = T("counsel.link", "ช่องทางให้คำปรึกษา");
     if (!d.open) { d.showModal(); d.querySelector("a").focus(); }
   } };
   function helpMount() {
