@@ -23,7 +23,8 @@ const ANDROID_UA = "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 
 // storage and network spies, installed before any page script
 const SPY = `(() => {
   const log = window.__SPY = { storage: [], idb: 0, caches: 0, beacons: 0, ws: 0, xhr: [], fetch: [] };
-  const wrap = (st, name) => { try { const set = st.setItem.bind(st); st.setItem = (k, v) => { log.storage.push({ where: name, k: String(k), n: String(v).length, img: /data:image|blob:/i.test(String(v)) }); return set(k, v); }; } catch (e) {} };
+  const wrap = (st, name) => { try { const set = st.setItem.bind(st);
+    st.setItem = (k, v) => { log.storage.push({ where: name, k: String(k), n: String(v).length, img: /data:image|blob:/i.test(String(v)) }); return set(k, v); }; } catch (e) {} };
   wrap(window.localStorage, "local"); wrap(window.sessionStorage, "session");
   try { const o = indexedDB.open.bind(indexedDB); indexedDB.open = (...a) => { log.idb++; return o(...a); }; } catch (e) {}
   try { if (window.caches) { const o = caches.open.bind(caches); caches.open = (...a) => { log.caches++; return o(...a); }; } } catch (e) {}
@@ -103,7 +104,8 @@ async function noLeak(page, label) {
   assert(!badStore.length, label + ": image-like or large storage write " + JSON.stringify(badStore.slice(0, 3)));
   assert(spy.idb === 0 && spy.caches === 0 && spy.beacons === 0 && spy.ws === 0, label + ": IndexedDB / Cache / beacon / socket used " + JSON.stringify(spy));
   const origin = await page.evaluate(() => location.origin);
-  const bad = page.requests.filter(r => { const u = new URL(r.url); return u.protocol !== "data:" && u.protocol !== "blob:" && (r.method !== "GET" || u.origin !== origin || /^\/api\//.test(u.pathname)); });
+  const bad = page.requests.filter(r => { const u = new URL(r.url);
+    return u.protocol !== "data:" && u.protocol !== "blob:" && (r.method !== "GET" || u.origin !== origin || /^\/api\//.test(u.pathname)); });
   assert(!bad.length, label + ": requests that leave the page: " + JSON.stringify(bad.slice(0, 3).map(r => [r.method, r.url])));
   const posts = spy.fetch.filter(f => f.m !== "GET");
   assert(!posts.length, label + ": non-GET fetch " + JSON.stringify(posts));
@@ -173,7 +175,8 @@ export default async function ({ base, launch, check }) {
       await startSelf(page);
       const t0 = await stats(page), seen = new Set(), states = new Set(), end = Date.now() + 5000;
       while (Date.now() < end) {
-        const s = await page.evaluate(() => ({ c: document.getElementById("frCount").hidden ? "" : document.getElementById("frCount").textContent.trim(), st: document.getElementById("frHint").dataset.state }));
+        const s = await page.evaluate(() => ({ c: document.getElementById("frCount").hidden ? "" : document.getElementById("frCount").textContent.trim(),
+          st: document.getElementById("frHint").dataset.state }));
         if (s.c) seen.add(s.c); states.add(s.st); await sleep(40);
       }
       assert(await stats(page) === t0, "no capture while moving");

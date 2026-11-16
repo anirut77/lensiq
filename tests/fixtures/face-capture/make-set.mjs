@@ -54,8 +54,10 @@ for (const [tx, ty] of [[0.08, 0.42], [0.92, 0.42], [0.5, 0.08], [0.5, 0.93]]) a
   const s = M.shot({ ...P0, yaw: 20 }); const s2 = M.shot({ profile: "iphone-front-16x9", d: 500, tx: 0.2, ty: 0.42 });
   cases.push({ id: "prio-multi-over-turn", group: "priority", ...meta(P0, { yaw: 20 }), W: s.W, H: s.H, n: 2, expect: "multi", why: "two faces: multi first", pts: s.pts });
   cases.push({ id: "prio-no-face", group: "priority", profile: P0.profile, d: 0, W: s.W, H: s.H, n: 0, expect: "out", why: "no face: into the oval", pts: null });
-  cases.push({ id: "prio-no-face-dark", group: "priority", profile: P0.profile, d: 0, W: s.W, H: s.H, n: 0, px: { dark: true }, expect: "dark", why: "no face in a dark picture: more light", pts: null });
-  cases.push({ id: "prio-out-over-far", group: "priority", ...meta({ profile: "iphone-front-16x9", d: 900 }, { tx: 0.25 }), W: s2.W, H: s2.H, n: 1, expect: "out", why: "far and off the oval: out first",
+  cases.push({ id: "prio-no-face-dark", group: "priority", profile: P0.profile, d: 0, W: s.W, H: s.H, n: 0, px: { dark: true }, expect: "dark",
+    why: "no face in a dark picture: more light", pts: null });
+  cases.push({ id: "prio-out-over-far", group: "priority", ...meta({ profile: "iphone-front-16x9", d: 900 }, { tx: 0.25 }), W: s2.W, H: s2.H, n: 1,
+    expect: "out", why: "far and off the oval: out first",
     pts: M.shot({ profile: "iphone-front-16x9", d: 900, tx: 0.25 }).pts });
 }
 add("prio-near-over-turn", "priority", { profile: "iphone-front-16x9", d: 180, yaw: 20 }, "near", "too close and turned: near first");

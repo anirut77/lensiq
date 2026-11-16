@@ -94,10 +94,14 @@
   function rng(seed) { var s = (seed >>> 0) || 1; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
   function Img(W, H) { return { width: W, height: H, data: new Uint8ClampedArray(W * H * 4) }; }
   function fillAll(img, c) { for (var i = 0; i < img.data.length; i += 4) { img.data[i] = c[0]; img.data[i + 1] = c[1]; img.data[i + 2] = c[2]; img.data[i + 3] = 255; } }
-  function put(img, x, y, c) { if (x < 0 || y < 0 || x >= img.width || y >= img.height) return; var i = (y * img.width + x) * 4; img.data[i] = c[0]; img.data[i + 1] = c[1]; img.data[i + 2] = c[2]; img.data[i + 3] = 255; }
+  function put(img, x, y, c) {
+    if (x < 0 || y < 0 || x >= img.width || y >= img.height) return;
+    var i = (y * img.width + x) * 4; img.data[i] = c[0]; img.data[i + 1] = c[1]; img.data[i + 2] = c[2]; img.data[i + 3] = 255;
+  }
   /** even-odd scanline fill of a polygon (pixel centres) */
   function poly(img, pts, c) {
-    var y0 = Math.max(0, Math.floor(Math.min.apply(null, pts.map(function (p) { return p[1]; })))), y1 = Math.min(img.height - 1, Math.ceil(Math.max.apply(null, pts.map(function (p) { return p[1]; }))));
+    var y0 = Math.max(0, Math.floor(Math.min.apply(null, pts.map(function (p) { return p[1]; })))),
+      y1 = Math.min(img.height - 1, Math.ceil(Math.max.apply(null, pts.map(function (p) { return p[1]; }))));
     for (var y = y0; y <= y1; y++) {
       var yc = y + 0.5, xs = [];
       for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) {
@@ -190,10 +194,16 @@
     api.sha256Hex = function (buf) { return crypto.createHash("sha256").update(Buffer.from(buf.buffer || buf)).digest("hex"); };
     api.png = function (img) {
       var W = img.width, H = img.height, raw = Buffer.alloc((W * 3 + 1) * H);
-      for (var y = 0; y < H; y++) { raw[y * (W * 3 + 1)] = 0; for (var x = 0; x < W; x++) { var i = (y * W + x) * 4, o = y * (W * 3 + 1) + 1 + x * 3; raw[o] = img.data[i]; raw[o + 1] = img.data[i + 1]; raw[o + 2] = img.data[i + 2]; } }
+      for (var y = 0; y < H; y++) {
+        raw[y * (W * 3 + 1)] = 0;
+        for (var x = 0; x < W; x++) { var i = (y * W + x) * 4, o = y * (W * 3 + 1) + 1 + x * 3; raw[o] = img.data[i]; raw[o + 1] = img.data[i + 1]; raw[o + 2] = img.data[i + 2]; }
+      }
       var crcT = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; crcT[n] = c >>> 0; }
       var crc = function (b) { var c = 0xffffffff; for (var i = 0; i < b.length; i++) c = crcT[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
-      var chunk = function (type, data) { var len = Buffer.alloc(4); len.writeUInt32BE(data.length); var td = Buffer.concat([Buffer.from(type), data]); var cr = Buffer.alloc(4); cr.writeUInt32BE(crc(td)); return Buffer.concat([len, td, cr]); };
+      var chunk = function (type, data) {
+        var len = Buffer.alloc(4); len.writeUInt32BE(data.length); var td = Buffer.concat([Buffer.from(type), data]);
+        var cr = Buffer.alloc(4); cr.writeUInt32BE(crc(td)); return Buffer.concat([len, td, cr]);
+      };
       var ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(W, 0); ihdr.writeUInt32BE(H, 4); ihdr[8] = 8; ihdr[9] = 2; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
       return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk("IHDR", ihdr), chunk("IDAT", zlib.deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]);
     };

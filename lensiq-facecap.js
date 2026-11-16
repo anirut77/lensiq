@@ -41,7 +41,7 @@
  *   -> {phase:'idle'|'count'|'fire'|'done', n (3,2,1 while counting), moved}
  *   counts 3-2-1 only while the guide is green and the face stays within moveTol x eye distance (and sizeTol of its size)
  *   of where the count started; any move restarts the count at 3. 'fire' once; then 'done' until the guide has been
- *   non-green for rearmMs (a new person / a new try).
+ *   non-green for rearmMs (a new person / a new try). hold() = the same "done" after a manual capture.
  * manualEnabled(state, n) -> the manual capture button: enabled whenever exactly one face is found, whatever the
  *   guidance says; disabled with no face (nothing to read) and with two or more faces (never read a bystander).
  * text(state, mode='self'|'other') -> the line in the current language; DICT {th, en, zh}; mode 'other' = rear camera,
@@ -242,7 +242,10 @@
     var glareFrac = 0;
     [F.al(F.L), F.al(F.R)].forEach(function (e) {
       var hit = 0, all = 0;
-      for (var a = 0; a < 24; a++) for (var b = 0; b < 14; b++) { var q = F.img(e[0] - 0.42 + 0.84 * a / 23, e[1] - 0.3 + 0.6 * b / 13), mn = minAt(img, q[0], q[1]); if (mn >= 0) { all++; if (mn >= 240) hit++; } }
+      for (var a = 0; a < 24; a++) for (var b = 0; b < 14; b++) {
+        var q = F.img(e[0] - 0.42 + 0.84 * a / 23, e[1] - 0.3 + 0.6 * b / 13), mn = minAt(img, q[0], q[1]);
+        if (mn >= 0) { all++; if (mn >= 240) hit++; }
+      }
       if (all) glareFrac = Math.max(glareFrac, hit / all);
     });
     var glare = !dark && glareFrac >= L.glare && (faceLuma == null || faceLuma < L.glareFaceMax);
@@ -297,6 +300,8 @@
     var anchor = null, start = 0, done = false, offSince = 0;
     var api = {
       reset: function () { anchor = null; start = 0; done = false; offSince = 0; },
+      /** a capture was taken another way (the manual button): no automatic one until the guide has been off green for rearmMs */
+      hold: function () { anchor = null; done = true; offSince = 0; },
       update: function (f, now) {
         if (done) {
           if (f && f.green) { offSince = 0; return { phase: "done", n: 0, moved: false }; }
@@ -356,7 +361,52 @@
     };
   }
 
-  var api = { RANGE: RANGE, LIMITS: LIMITS, STATES: STATES, DICT: DICT, oval: oval, measure: measure, classify: classify, green: green, manualEnabled: manualEnabled,
+  /** page controller (DOM): one guide line under the camera box, the oval on the overlay canvas, the manual button, the 3-2-1
+   *  count and the automatic capture. o = {cam, canvas, count, button, busy() -> bool, fire()}; frame(det, list, img, W, H, now, mode) */
+  function controller(o) {
+    var ui = mount(o.cam, { id: o.id || "frHint" }), guide = createGuide(), auto = createAuto(), lastMoveAt = -1e9, ctx = o.canvas.getContext("2d");
+    var api2 = { state: "wait", n: 0, mode: "self", auto: auto };
+    ui.el.hidden = true;
+    function count(n) { if (o.busy()) return; if (n) { o.count.textContent = String(n); o.count.hidden = false; } else o.count.hidden = true; }
+    function draw(det, isGreen, others) {
+      var w = o.canvas.width, h = o.canvas.height, ov = oval(w, h); ctx.clearRect(0, 0, w, h);
+      ctx.lineWidth = Math.max(4, Math.min(w, h) / 130); ctx.setLineDash(isGreen ? [] : [w / 50, w / 80]);
+      ctx.strokeStyle = color(isGreen ? "ok" : "wait");
+      ctx.beginPath(); ctx.ellipse(ov.cx, ov.cy, ov.rx, ov.ry, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      if (det) { // face points in raw picture pixels (the canvas is mirrored by CSS together with the video)
+        ctx.fillStyle = isGreen ? "rgba(34,211,238,.9)" : "rgba(255,255,255,.7)";
+        det.pts.forEach(function (p) { ctx.beginPath(); ctx.arc(p[0], p[1], Math.max(1.5, w / 500), 0, Math.PI * 2); ctx.fill(); });
+      }
+      (others || []).forEach(function (d) { // other faces: dimmed, never read
+        var b = d.box; ctx.fillStyle = "rgba(14,20,48,.55)"; ctx.fillRect(b.x, b.y, b.width, b.height);
+        ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.lineWidth = Math.max(2, w / 400); ctx.strokeRect(b.x, b.y, b.width, b.height);
+      });
+    }
+    api2.setMode = function (m) { api2.mode = m === "other" ? "other" : "self"; ui.set(ui.state, api2.mode); };
+    api2.frame = function (det, list, img, W, H, now) {
+      var n = list.length, px = null;
+      if (img) px = det ? pixelChecks(img, det.pts) : { dark: (frameLuma(img) || 255) < LIMITS.lumaLo };
+      var r = guide.update({ pts: det ? det.pts : null, n: n, W: W, H: H, px: px, moving: now - lastMoveAt < 700 }, now);
+      api2.state = r.state; api2.n = n;
+      ui.el.hidden = false; ui.set(r.state, api2.mode);
+      o.cam.setAttribute("data-guide", r.green ? "green" : "grey");
+      o.button.disabled = o.busy() || !manualEnabled(r.state, n);
+      var m = det ? measure(det.pts, W, H) : null, a = auto.update({ green: r.green && n === 1, eye: m && m.eye, iod: m && m.iod }, now);
+      if (a.moved) lastMoveAt = now;
+      count(a.phase === "count" ? a.n : 0);
+      draw(det, r.green, list.filter(function (d) { return d !== det; }));
+      if (a.phase === "fire") o.fire();
+      return r;
+    };
+    api2.hide = function () {
+      guide.reset(); auto.reset(); api2.state = "wait"; api2.n = 0; lastMoveAt = -1e9;
+      ui.set("wait", api2.mode); ui.el.hidden = true; o.cam.removeAttribute("data-guide"); count(0);
+    };
+    api2.manualOk = function () { return manualEnabled(api2.state, api2.n); };
+    return api2;
+  }
+
+  var api = { RANGE: RANGE, LIMITS: LIMITS, STATES: STATES, DICT: DICT, oval: oval, measure: measure, classify: classify, green: green, manualEnabled: manualEnabled, controller: controller,
     pixelChecks: pixelChecks, frameLuma: frameLuma, createGuide: createGuide, createAuto: createAuto, text: text, icon: icon, color: color, mount: mount };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQFaceCap = api;
