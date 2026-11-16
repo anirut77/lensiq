@@ -57,7 +57,9 @@
      else a bar at the end of the root); gist: where the overview is when the page has no reading layout; photo: the canvas
      that holds the person's photo (face / palm only); personal: the page asks for birth data, an age or a name */
   const PAGES = {
-    fortune: { name: N3("ศาสตร์ดูดวง", "Fortune Readings", "占卜"), results: [{ root: ".ft-hero", printRoot: "main.ft", gist: ".ft-hero p" }] },
+    fortune: { name: N3("ศาสตร์ดูดวง", "Fortune Readings", "占卜"), results: [{ root: ".ft-hero", printRoot: "main.ft",
+      blurb: N3("รวมศาสตร์ดูดวงไทย จีน และตะวันตกไว้ในที่เดียว เลือกศาสตร์ที่ตรงกับเรื่องที่อยากรู้ได้เลย",
+        "Thai, Chinese and Western fortune traditions in one place. Pick the one that fits what you want to know.", "泰式、中式和西洋命理汇集一处，选一个适合你想了解的问题。") }] },
     faceread: { name: N3("อ่านโหงวเฮ้ง", "Face Reading", "面相解读"), photo: "#frResCanvas", personal: true,
       results: [{ root: "#frResult", share: "#frShare", printBtn: "#frPrint" }] },
     palm: { name: N3("ดูลายมือ", "Palm Reading", "看手相"), photo: "#plResCanvas", personal: true, results: [{ root: "#plResult", share: "#plShare", printBtn: "#plPrint" }] },
@@ -202,7 +204,7 @@
     "#lqPrint .lq-pr-head{display:flex;justify-content:space-between;gap:1em;border-bottom:1.5pt solid #111;padding:0 0 3pt;margin:0 0 4pt;font-size:9.5pt;font-weight:600}" +
     "#lqPrint .lq-pr-line{font-size:8.5pt;margin:0 0 8pt}" +
     // header, disclaimer and link in the device's own Thai UI font: its marks keep their text in the PDF (copy / search works)
-    "#lqPrint .lq-pr-head,#lqPrint .lq-pr-line,#lqPrint .lq-pr-foot{font-family:Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,Garuda,sans-serif;" +
+    "#lqPrint[lang=th] .lq-pr-head,#lqPrint[lang=th] .lq-pr-line,#lqPrint[lang=th] .lq-pr-foot{font-family:Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,Garuda,sans-serif;" +
     "font-variant-ligatures:none;font-feature-settings:'ccmp' 0,'liga' 0,'clig' 0,'calt' 0,'locl' 0}" +
     "#lqPrint .lq-pr-foot{border-top:.75pt solid #555;margin-top:8pt;padding-top:3pt;font-size:8.5pt}" +
     "#lqPrint [hidden]{display:none!important}" +
@@ -299,6 +301,7 @@
     return list[0] || P.results.find(r => vis(q(r.root))) || null;
   }
   function gistOf(r) {
+    if (r.blurb) return r.blurb[lang()]; // a page without a reading: a fixed, reviewed line (passes FortuneAI.safety)
     const el = q(r.root); if (!el) return "";
     const txt = e => (e && (e.innerText || e.textContent) || "").replace(/\s+/g, " ").trim();
     const pick = [el.querySelector('.fa-section[data-section="overview"] .lq-gist'), el.querySelector(".lq-gist"), el.querySelector(".fa-summary li")];
