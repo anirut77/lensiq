@@ -313,8 +313,16 @@
       cam.attach($("#stCamCtl")); // ปุ่มสลับกล้อง/เลือกกล้อง (ซ่อนเมื่อมีกล้องเดียว)
     }
     $("#stCam").hidden = false;
-    try { await cam.start(); v.classList.toggle("mirror", !!cam.mirrored); loadModels(); } // speed pass: models load now
-    catch (e) { console.warn(e); toast(LQCam.errorText ? LQCam.errorText(e) : T("studio.js.camFail", "เปิดกล้องไม่ได้")); $("#stCam").hidden = true; }
+    const camMsg = $("#stCamMsg");
+    // the refusal stays on the page under the buttons (a toast disappears after 3 s, too soon to follow the steps on a phone);
+    // lensiq-camhelp.js adds the "how to allow the camera" link to it
+    try { await cam.start(); v.classList.toggle("mirror", !!cam.mirrored); loadModels(); if (camMsg) { camMsg.hidden = true; camMsg.textContent = ""; } } // speed pass: models load now
+    catch (e) {
+      console.warn(e);
+      const m = LQCam.errorText ? LQCam.errorText(e) : T("studio.js.camFail", "เปิดกล้องไม่ได้");
+      toast(m); $("#stCam").hidden = true;
+      if (camMsg) { camMsg.textContent = m; camMsg.hidden = false; }
+    }
   };
   $("#stCamClose").onclick = () => { if (cam) cam.stop(); $("#stCam").hidden = true; };
   $("#stShoot").onclick = async () => {

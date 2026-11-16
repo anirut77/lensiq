@@ -35,6 +35,13 @@ really used the test camera. The quote form is covered by `tests/e2e/lead-form-w
 
 Results: see section 4.
 
+**iPhone coverage (2026-11-16, owner order night 2026-11-15 item 5):** `tests/e2e/iphone-pages-webkit.e2e.mjs` (locked,
+`evals-locks/iphone-webkit.sha256`) opens every fortune page (19) and every camera page (30) on the same WebKit iPhone 13
+profile in TH / EN / ZH: no page or console error, no horizontal scroll, main controls at least 44 px and not covered, one
+reading per fortune page, the top 1323 tel link, camera refused -> a plain message in the page's language and nothing busy,
+and fake camera start -> stop (or pagehide) leaves no live track. What only a real iPhone can confirm:
+`docs/IPHONE-REAL-DEVICE-CHECKS.md`.
+
 Finding while building the tests: WebKit can give the document a new `navigator.mediaDevices` object after init scripts
 ran, so a test that patches `getUserMedia` silently tests WebKit's own mock camera instead. `phone-kit.mjs` pins the
 object (`MD_SHIM`) and every camera flow asserts that the page opened the test camera.
