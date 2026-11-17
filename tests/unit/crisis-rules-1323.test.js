@@ -36,31 +36,27 @@ const fresh = f => { const p = path.join(ROOT, f); delete require.cache[require.
 const strip = h => h.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ");
 const sentences = (t, lang) => String(t).split(lang === "zh" ? /[。！？]/ : /[.!?]\s|\s{2,}|(?<=[฀-๿])\s(?=[฀-๿])/).filter(s => s.trim()).length;
 
-test("R1: the crisis card has one number (1323), the order warm -> more -> guidance -> 1323 -> link, no list, no price (TH / EN / ZH)", () => {
-  const FA = fresh("fortune-ai.js");
+// RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): the card is gone; the one help element under a crisis-session reading is the closing line. Kept: one number (1323), the
+// button after the text, the counselling link after the button, no list, no price or remedy, no Thai in EN / ZH, the review marker
+// moves to the documented wording (docs/CRISIS-RESOURCES.md, L63).
+test("R1: no card; the closing line has one number (1323), warm text -> 1323 -> link, no list, no price (TH / EN / ZH)", () => {
+  const FA = fresh("fortune-ai.js"), CR = fresh("fortune-crisis.js");
   for (const lang of LANGS) {
-    const r = FA.crisis.result({ lang }), html = FA.toHTML(r), sp = r.support;
-    assert.equal(r.crisis, true); assert.equal(r.reviewStatus, "pending-professional-review");
-    assert.match(html, /data-review="pending-professional-review"/, lang + " review marker");
+    assert.equal(FA.toHTML(FA.crisis.result({ lang })), "", lang + ": no card");
+    const html = CR.helpHTML(lang, "lq-helpline-result");
     assert.deepEqual([...html.matchAll(/href="tel:([^"]*)"/g)].map(m => m[1]), ["1323"], lang + ": the only tel: link is 1323");
-    assert.doesNotMatch(strip(html) + JSON.stringify(sp), OTHER, lang + ": no other number in the card or its data");
-    assert.doesNotMatch(html, /<(?:ul|ol)\b/, lang + ": no list in the card");
+    assert.doesNotMatch(strip(html), OTHER, lang + ": no other number");
+    assert.doesNotMatch(html, /<(?:ul|ol)\b/, lang + ": no list");
     const at = re => { const m = re.exec(html); return m ? m.index : -1; };
-    const idx = [at(/<h3\b/), at(/class="[^"]*\bfa-support-warm\b/), at(/<details\b[^>]*class="[^"]*\bfa-support-more\b/), at(/class="[^"]*\bfa-support-guide\b/),
-      at(/href="tel:1323"/), at(/href="counselling\.html"/)];
-    assert.ok(idx.every(i => i >= 0), lang + ": every part present " + JSON.stringify(idx));
-    assert.ok(idx.every((v, i) => i === 0 || v > idx[i - 1]), lang + ": order title, warm, more, guidance, 1323, link " + JSON.stringify(idx));
-    const sum = /<details\b[^>]*class="[^"]*\bfa-support-more\b[^"]*"[^>]*>\s*<summary\b[^>]*>([\s\S]*?)<\/summary>/.exec(html);
-    assert.ok(sum && MORE[lang].test(strip(sum[1])), lang + ": the summary says " + (sum && sum[1]));
-    assert.doesNotMatch(/<details\b[^>]*fa-support-more[^>]*>/.exec(html)[0], /\bopen\b/, lang + ": closed at first");
-    const warm = strip((/class="[^"]*\bfa-support-warm\b[^"]*"[^>]*>([\s\S]*?)<\/p>/.exec(html) || [])[1] || "").trim();
-    assert.ok(warm.length > 0 && warm.length <= (lang === "zh" ? 60 : 140), lang + ": warm message is short (" + warm.length + "): " + warm);
-    assert.ok(sentences(warm, lang) <= 3, lang + ": warm message at most 3 sentences: " + warm);
-    const guide = strip((/class="[^"]*\bfa-support-guide\b[^"]*"[^>]*>([\s\S]*?)<\/p>/.exec(html) || [])[1] || "").trim();
-    assert.ok(guide.length > 0, lang + ": comforting guidance present");
-    // hard limit 3 (crisis: no remedies, no paid service, no straight reading) and no price anywhere in the card
+    const idx = [at(/class="lq-helpline-warm"/), at(/href="tel:1323"/), at(/href="counselling\.html"/)];
+    assert.ok(idx.every((v, i) => v >= 0 && (i === 0 || v > idx[i - 1])), lang + ": warm line, then 1323, then the link " + JSON.stringify(idx));
     assert.doesNotMatch(strip(html), /฿|บาท|THB|\bbaht\b|元|ราคา|\bprice|价格|เคล็ด|แก้ดวง|ทำบุญ|สะเดาะเคราะห์|ของมงคล|สีมงคล|lucky|remed|amulet|化解|开运|吉祥物/i, lang + ": no price or remedy");
-    if (lang !== "th") assert.doesNotMatch(strip(html), /[฀-๿]/, lang + ": no Thai in the " + lang + " card");
+    if (lang !== "th") assert.doesNotMatch(strip(html), /[\u0E00-\u0E7F]/, lang + ": no Thai");
+    // protections kept from the old R1 (ledger docs/CRISIS-V3-RELOCKS.md): the warm text is short (at most 3 sentences; 140 characters
+    // in Thai / English, 60 in Chinese) and the counselling link has text
+    const warm = strip((/class="lq-helpline-warm"[^>]*>([\s\S]*?)<\/p>/.exec(html) || [])[1] || "").trim();
+    assert.ok(warm.length > 0 && warm.length <= (lang === "zh" ? 60 : 140), lang + ": warm line is short (" + warm.length + ")");
+    assert.ok(sentences(warm, lang) <= 3, lang + ": warm line at most 3 sentences");
     const link = /<a\b[^>]*href="counselling\.html"[^>]*>([\s\S]*?)<\/a>/.exec(html);
     assert.ok(link && strip(link[1]).trim().length > 0, lang + ": counselling link text");
   }

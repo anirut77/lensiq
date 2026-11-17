@@ -229,14 +229,16 @@ test("crisis state: after the support card, the page shows no reading, plan, rem
       const box = doc.createElement("div");
       FA.renderSections(box, Object.assign({}, READING, { lang }), { aiBadge: false });
       const h = ser(box), t = box.textContent;
-      assert.match(h, /fa-support/, lang + ": support card instead");
-      assert.doesNotMatch(h, /fa-section|fa-plan|fa-summary/, lang + ": no reading / plan");
-      assert.ok(!/วิธีปรับ|ข้อแนะนำทั่วไปคือ|เสื้อสีขาว|A simple adjustment|调整的方法/.test(t), lang + ": no remedy text");
-      assert.match(t, /1323/, lang + ": card keeps 1323");
+      // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): the reading is drawn (no card), without its plan (remedies), with the
+      // closing line and 1323 after the last section; no hook runs (below). The overview paragraph of this fixture is reading text.
+      assert.doesNotMatch(h, /fa-support/, lang + ": no card");
+      assert.match(h, /fa-section/, lang + ": the reading goes on"); assert.doesNotMatch(h, /fa-plan/, lang + ": no plan");
+      assert.ok(!/วิธีปรับ|เสื้อสีขาว|A simple adjustment|调整的方法/.test(t), lang + ": no remedy text");
+      assert.match(t, /1323/, lang + ": closing line keeps 1323"); assert.ok(h.lastIndexOf("lq-helpline") > h.lastIndexOf("fa-section"), lang + ": closing line at the end");
     }
     assert.equal(calls, 0, "no hook (merit / paid / straight) runs in the crisis state");
     const html = FA.toHTML(READING, { doc });
-    assert.match(html, /fa-support/); assert.doesNotMatch(html, /fa-plan|fa-section/);
+    assert.doesNotMatch(html, /fa-support/); assert.match(html, /fa-section/); // RE-LOCK 2026-11-17 crisis v3: the reading, no card
   } finally { off(); }
   // page-level: another document is not in the crisis state
   const other = fakeDoc(), b2 = other.createElement("div");

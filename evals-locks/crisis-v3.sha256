@@ -18,3 +18,29 @@ a9c1d2691000e3c8d74ab755f7be2308dd4ca59b1d8ea68b68324b809bdc2b6d  tests/unit/cri
 b9db473bea8f9e0a1911778827b2a7737426ec00b29f64e91b9cf07703abb798  relock1/crisis-v3-kit.mjs
 6b8b91fd21a461ecae8232811363e96e11853b71c869c354cbee9e04082cf032  tests/unit/crisis-v3.test.js  # repo file (re-lock 1)
 b9db473bea8f9e0a1911778827b2a7737426ec00b29f64e91b9cf07703abb798  tests/e2e/crisis-v3-kit.mjs  # repo file (re-lock 1)
+# RE-LOCK v3-unit 2026-11-17 (owner decision 2026-11-17 crisis v3): unit assertions that required the support card (card replaces the reading / support result / card markup / card fold / card fallback button) now require the reading to go on gently (never straight, no plan, no hook, local, no echo) and the closing line (1323 only, warm line, counselling link, unfolded, 44 px without the component). Kept: crisis check() lists, no echo, no remedies / price / paid merit in crisis, allow() says no, one number. Found by running the unit suite on the first v3 product commit c3847d3 (12 failures: G3, R1, U1 product bug fixed, claims-crisis, net-2, net-3 fixed by code, net, helpline, honest B3, layout A5, live item 3, straight-crisis).
+# locked 2026-11-17T01:11:44Z (tools/eval-guard.mjs lock, 10 files)
+ef56059077c4565f6c34f0c5f45a024efa035c468508e6a0fd16574a4cbd4b55  relock-unit/fortune-claims-crisis.test.js
+96b99947d5dfaaca6fdd5ace8c5df3507e6acab876a93c8b03df4d111c419a9f  relock-unit/fortune-crisis-net.test.js
+604a5d1fc6ba8c1946d894b9efaea16ddefc3532f0eb8ae92f77be0b117318d1  relock-unit/fortune-crisis-net-2.test.js
+ceabab9381abc4f5102624dc1f03234b4d6c4c926313d1c9f8050591c5c17d44  relock-unit/fortune-helpline.test.js
+308000f0ee2fc2389bbd00d5f9c2574a9fa3447b38b5b222436190992e5979b0  relock-unit/fortune-honest.test.js
+494a0f6f153ea77e9dcf935fc771c0a8d079983509673f8db99f28a3b46c220e  relock-unit/fortune-straight-crisis.test.js
+e7875b6755e4fcd7126490dbb3bb8d11e38cdaa794f30da546eac30edfe33cb6  relock-unit/fortune-layout.test.js
+bad29867d49c082b6bb0f7fb26ee0a75b2a8bfe0905ae413f85c8d1d7bc84750  relock-unit/fortune-live.test.js
+f6e296c27f65cedf61ca85cdacad9fa9916879bd6f9e2b53edaa5274d9426618  relock-unit/crisis-rules-1323.test.js
+d34bb2c3cc0e26599265891d2199a85292f95ea4391d8b38e47343a27db7dbfe  relock-unit/crisis-rules-1323-g.test.js
+ef56059077c4565f6c34f0c5f45a024efa035c468508e6a0fd16574a4cbd4b55  tests/unit/fortune-claims-crisis.test.js  # repo file (relock-unit)
+96b99947d5dfaaca6fdd5ace8c5df3507e6acab876a93c8b03df4d111c419a9f  tests/unit/fortune-crisis-net.test.js  # repo file (relock-unit)
+604a5d1fc6ba8c1946d894b9efaea16ddefc3532f0eb8ae92f77be0b117318d1  tests/unit/fortune-crisis-net-2.test.js  # repo file (relock-unit)
+ceabab9381abc4f5102624dc1f03234b4d6c4c926313d1c9f8050591c5c17d44  tests/unit/fortune-helpline.test.js  # repo file (relock-unit)
+308000f0ee2fc2389bbd00d5f9c2574a9fa3447b38b5b222436190992e5979b0  tests/unit/fortune-honest.test.js  # repo file (relock-unit)
+494a0f6f153ea77e9dcf935fc771c0a8d079983509673f8db99f28a3b46c220e  tests/unit/fortune-straight-crisis.test.js  # repo file (relock-unit)
+e7875b6755e4fcd7126490dbb3bb8d11e38cdaa794f30da546eac30edfe33cb6  tests/unit/fortune-layout.test.js  # repo file (relock-unit)
+bad29867d49c082b6bb0f7fb26ee0a75b2a8bfe0905ae413f85c8d1d7bc84750  tests/unit/fortune-live.test.js  # repo file (relock-unit)
+f6e296c27f65cedf61ca85cdacad9fa9916879bd6f9e2b53edaa5274d9426618  tests/unit/crisis-rules-1323.test.js  # repo file (relock-unit)
+d34bb2c3cc0e26599265891d2199a85292f95ea4391d8b38e47343a27db7dbfe  tests/unit/crisis-rules-1323-g.test.js  # repo file (relock-unit)
+# RE-LOCK v3-unit-b 2026-11-17: crisis-rules-1323 R1 re-adds the kept protections (warm line at most 3 sentences and 140 / 60 characters; counselling link text non-empty), see docs/CRISIS-V3-RELOCKS.md.
+# locked 2026-11-17T01:18:02Z (tools/eval-guard.mjs lock, 1 file)
+91f92cf7b50d77449c4fd46056651005b9984b01b1138dc8c21ebc789c8aa9e3  relock-unit-b/crisis-rules-1323.test.js
+91f92cf7b50d77449c4fd46056651005b9984b01b1138dc8c21ebc789c8aa9e3  tests/unit/crisis-rules-1323.test.js  # repo file (relock-unit-b)

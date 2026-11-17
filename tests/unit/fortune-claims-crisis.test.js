@@ -86,15 +86,18 @@ test("crisis: self-harm / abuse text (TH/EN/ZH) gives a calm support card with 1
     const txt = JSON.stringify(r.support);
     if (lang !== "th") assert.ok(!/[฀-๿]/.test(txt), lang + " has Thai");
     assert.ok(!/[0-9]{2}\s*ตัว|lottery|彩票|guarantee|一定|แน่นอน/i.test(txt), lang + ": support card makes no claims");
-    const html = FA.toHTML(r);
-    assert.match(html, /href="tel:1323"/); assert.match(html, /data-review="pending-professional-review"/);
+    // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): no card is drawn any more; the closing line under the reading carries 1323 only and makes no claims
+    assert.equal(FA.toHTML(r), "", lang + ": no card");
+    const close = require("../../fortune-crisis.js").helpHTML(lang, "lq-helpline-result");
+    assert.match(close, /href="tel:1323"/); assert.ok(!/[0-9]{2}\s*ตัว|lottery|彩票|guarantee|一定|แน่นอน/i.test(close), lang + ": closing line makes no claims");
   }
   // interpret: a nickname or question with crisis words never reaches the reading (or the AI)
   const facts = { domain: "tarot", topic: "overall", subject: { nickname: "อยากตาย" }, items: [{ id: "x", label: "ไพ่ดวงดาว", strength: 0.8, tags: ["overview"], meanings: { overview: ["คุณมีความหวังและกำลังใจที่ดี"] } }] };
+  // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): the reading goes on, local (never the AI), without the typed text
   const res = await FA.interpret(facts, { useAI: true, lang: "th" });
-  assert.equal(res.source, "support");
+  assert.equal(res.source, "local"); assert.ok(!JSON.stringify(res).includes("อยากตาย"), "nickname not echoed");
   const res2 = await FA.interpret(Object.assign({}, facts, { subject: {}, question: "I want to kill myself" }), { useAI: false, lang: "en" });
-  assert.equal(res2.source, "support"); assert.equal(res2.lang, "en");
+  assert.equal(res2.source, "local"); assert.ok(!/kill myself/i.test(JSON.stringify(res2)), "question not echoed"); // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3)
 });
 
 /* ---------- remedies: honest labels, helpful elements only ---------- */

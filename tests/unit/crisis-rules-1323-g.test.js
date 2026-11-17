@@ -34,21 +34,19 @@ test("G2: the Merit API refusal carries 1323 only, plus the counselling page", a
   assert.match(txt, /counselling\.html/, "the counselling page");
 });
 
-test("G3: the fallback call button (component missing) is at least 44 x 44 px", () => {
+// RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): the card and its fallback button are gone. The closing line's button works without the shared component (its markup is
+// built by fortune-crisis.js) and is at least 44 x 44 px through styles.css (.lq-call-mini > a.lq-call-btn: min-height / min-width 44 px).
+test("G3: the closing line's call button needs no shared component and is at least 44 x 44 px", () => {
   const win = { console };
   win.window = win;
-  const ctx = vm.createContext(win);
-  vm.runInContext(readFileSync(join(ROOT, "fortune-ai.js"), "utf8"), ctx, { filename: "fortune-ai.js" });
+  vm.runInContext(readFileSync(join(ROOT, "fortune-crisis.js"), "utf8"), vm.createContext(win), { filename: "fortune-crisis.js" });
   for (const lang of ["th", "en", "zh"]) {
-    const html = win.FortuneAI.toHTML(win.FortuneAI.crisis.result({ lang }));
-    const a = /<a\b[^>]*href="tel:1323"[^>]*>/.exec(html);
-    assert.ok(a, lang + ": fallback tel:1323 link");
-    assert.match(a[0], /min-height:\s*44px/, lang + ": min-height 44 px");
-    assert.match(a[0], /min-width:\s*44px/, lang + ": min-width 44 px");
+    const h = win.LQFortuneCrisis.helpHTML(lang, "lq-helpline-result");
+    assert.match(h, /<span class="lq-call-mini"[^>]*><a class="lq-call-btn[^"]*" href="tel:1323"/, lang + ": the button without the component");
   }
-  const src = readFileSync(join(ROOT, "fortune-ai.js"), "utf8");
-  const dom = /Object\.assign\(el\("a", "lq-call-btn fa-tel"[^\n]*/.exec(src) || /el\("a", "lq-call-btn fa-tel"[^\n]*/.exec(src);
-  assert.ok(dom && /min-height:\s*44px/.test(dom[0]) && /min-width:\s*44px/.test(dom[0]), "DOM fallback sets 44 px");
+  const css = readFileSync(join(ROOT, "styles.css"), "utf8");
+  const rule = /\.lq-call-mini>a\.lq-call-btn\[href\]\{[^}]*\}/.exec(css);
+  assert.ok(rule && /min-height:44px/.test(rule[0]) && /min-width:44px/.test(rule[0]), "44 x 44 px in styles.css");
 });
 
 // RE-LOCK 2026-11-17 (append-only; coordinator, after CI run 43936566370: fortune-crisis-session (b) allows ONE sessionStorage
