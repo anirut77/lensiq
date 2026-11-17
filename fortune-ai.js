@@ -2405,7 +2405,8 @@
     const hit = crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText());
     if (hit) {
       if (CR && CR.setActive) CR.setActive();
-      facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: undefined }); opts = Object.assign({}, opts, { userText: "", straight: false });
+      facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: undefined });
+      opts = Object.assign({}, opts, { userText: "", straight: false });
     }
     const calm = hit || (FS.calm ? FS.calm() : false), straight = !calm && (opts.straight != null ? !!opts.straight : straightActive());
     const prev = STRAIGHT, prevC = CALM, prevR = CREC, prevF = FILLS;
@@ -4414,7 +4415,8 @@
     const sl = result && result.lang, card = box => renderSupport(box, supportResult({ lang: sl }));
     if (!(result && result.crisis) && !crisisOn(container) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
     // crisis fix 4 (fail-safe): in a calm page a straight reading composed earlier is never shown (the card instead), nor a plan
-    if (result && !result.crisis && calmAt(container)) result = result.mode === "straight" ? Object.assign({}, result, { sections: [], summary: null, plan: undefined }) : Object.assign({}, result, { plan: undefined });
+    if (result && !result.crisis && calmAt(container)) result = result.mode === "straight"
+      ? Object.assign({}, result, { sections: [], summary: null, plan: undefined }) : Object.assign({}, result, { plan: undefined });
     if (!HOOKS.length || (result && result.crisis) || crisisOn(container)) return renderSections(container, result, opts); // no hook (merit / paid / straight) in the crisis state
     let shown = result;
     for (const h of HOOKS) if (typeof h.gate === "function") { try { shown = h.gate(shown, opts, container); } catch (e) { /* keep the reading */ } }
@@ -4425,7 +4427,8 @@
   try { const q = root.LQFortuneHooks; if (Array.isArray(q)) for (const h of q) registerHooks(h); } catch (e) { /* no queue */ }
 
   const api = {
-    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, setActive: d => { if (CR && CR.setActive) CR.setActive(d); }, fields: doc => pageText(doc),
+    crisis: { check: crisisCheck, result: supportResult, render: renderSupport,
+      setActive: d => { if (CR && CR.setActive) CR.setActive(d); }, fields: doc => pageText(doc),
       active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => (CR && CR.allow ? CR.allow(kind, doc) : !(CR && CR.active && CR.active(doc))) },
     straight: Object.assign({}, FS, { isSafe: isSafeStraight, hardLimit }),
     privacy: { jakoScript: s => { canon(s); return TC && TC.jakoScript ? TC.jakoScript(s) : true; }, withoutJaKo: jk }, compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,
