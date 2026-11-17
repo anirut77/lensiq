@@ -162,6 +162,13 @@
           if (k && s.src[k] === s.src[k - 1]) return q;
           var name = t("rp.src." + s.src[k], SYS_TH[s.src[k]]);
           if (!q || q.indexOf(name) === 0) return q; // round 6: every system's run is labelled the same way (work / money / love)
+          // round 7 (RECHECK-6 N4): never two labels ("塔克萨：土星：…"): an opening "X：" / "X: " moves into a bracket after its first sentence
+          var m = lang === "zh" ? /^(?:先看|再看|说到)?([^：:，。\s()（）]{1,16})：/.exec(q) : /^((?:The |the )?[A-Z][^:,.()]{0,40}): /.exec(q);
+          if (m) {
+            var body = q.slice(m[0].length), e = lang === "zh" ? body.search(/[。！？]/) : body.search(/[.!?](?:\s|$)/);
+            if (e < 0) e = body.length;
+            q = (lang === "zh" ? body.slice(0, e) + "（" + m[1] + "）" : body.charAt(0).toUpperCase() + body.slice(1, e) + " (" + m[1] + ")") + body.slice(e);
+          }
           return name + (lang === "zh" ? "：" : ": ") + q;
         });
       });

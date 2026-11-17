@@ -137,28 +137,22 @@
  * Loaded on every fortune page before fortune-ai.js; Node: require("./fortune-read.js") for the pure parts. */
 (function (root) {
   "use strict";
-  // the notice part (one-line notices, the read-more button, the help-line exception) lives in fortune-notice.js; pages without
-  // a reading load only that file, reading pages get its copy at the top of this file (tools/fortune-read-embed.mjs: one request)
+  // notes: docs/FORTUNE-AI-NOTES.md #R1
   const N = root.LQNotice || (typeof require === "function" ? require("./fortune-notice.js") : null);
   const { LINE, MORE, LESS, SEP, NOTE_MAX, NEVER_COLLAPSE, langOf, cutsEn, noticeSplit, pageLang, never, moreButton, noticeify, notices } = N;
-  // the reading's Thai cut points (quality rounds 1-3) live here, not in the notice part: the hub, planner and lucky colour load
-  // only fortune-notice.js, whose one-line notices need the simple rule (speed budget: fortune.html page weight)
-  // Thai has no sentence mark: cut only at a single space, never before a word that continues the clause, never after one
-  // that leads into the next word.
+  // notes: docs/FORTUNE-AI-NOTES.md #R2
   const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน(?!ฐานะ)|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|เช่น|ได้แก่|เสริมด้วย|[\d(/–\-)])/;
-  // "จาก…" after a space opens a new clause ("…ไม่ชอบเล่นเกมหัวใจ ‖ จากธาตุน้ำ คุณ…") unless a verb before it takes it ("ออกมา จาก…")
-  // round 2: a reporting verb right after a name continues that sentence ("อัศวินไม้เท้า (Knight of Wands) ‖ สื่อว่า…")
+  // notes: docs/FORTUNE-AI-NOTES.md #R3
   const TH_REPORT_NEXT = /^(?:สื่อว่า|สื่อถึง|บ่งบอก|ชี้ว่า|สะท้อน|แสดงว่า|หมายความว่า|หมายถึง|ตีความ|ตำราอ่าน|อ่านได้ว่า|แปลได้ว่า|ตามตำราอ่าน|ตามความเชื่อหมายถึง|ตำราให้ความหมาย|ซึ่งหมายความ|เน้นเรื่อง|ชวนให้|แนะให้|เป็นสัญญาณ|เตือนเบา)/;
   const TH_FROM = /^จาก/, TH_FROM_VERB = /(?:มา|ได้|ออก|ห่าง|พ้น|แยก|หลุด|กลับ|รับ|ไกล)$/;
   const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|ๆ|[(/–\-])$/;
-  // quality round 2026-11-16 (R3): never between a number and its unit, inside a list ("อำนาจ ‖ บารมี และ…"), or right after a
-  // lead that still needs its clause ("จากราศีอาทิตย์ ‖", "เรื่องการงาน ‖")
+  // notes: docs/FORTUNE-AI-NOTES.md #R4
   const TH_UNIT = /^(?:ปี|เท่า|%|องศา|คน|วัน|เดือน|ครั้ง|ข้อ|ชั่วโมง|นาที|บาท|ใบ|ตัว|ดวง|ฐาน|ภพ|ช่วง|สัปดาห์|ขวบ)/;
   const TH_LIST_NEXT = /^\S{1,14} (?:\S{1,14} )?(?:และ|หรือ)\S/, TH_LEAD_PREV = /(?:^|\s)(?:สำหรับ|จาก|ดูที่|ส่วน|เรื่อง|ด้าน|ในฐานะ|ในส่วนของ|ในมุมของ|ตาม|เมื่อดูที่)\S*(?:\s+[一-鿿\d]+)?(?:\s*[(（][^)）]*[)）])?$/;
-  // round 2: never right after a transition word ("…ที่สำคัญ ‖") or inside brackets ("(Six of ‖")
+  // notes: docs/FORTUNE-AI-NOTES.md #R5
   const TH_TRANS_PREV = /(?:^|\s)(?:ที่สำคัญ|เช่นเดียวกัน|พร้อมกันนั้น|ในขณะเดียวกัน|ถ้ามีเวลา|นอกจากนี้|ในอีกมุมหนึ่ง|อีกด้านหนึ่ง|ถัดมา|อีกทั้ง|ในทำนองเดียวกัน|ที่น่าสังเกตคือ|อีกเรื่องหนึ่งคือ|ต่อจากนั้น|ยิ่งไปกว่านั้น|ขณะเดียวกัน)$/;
   const openBracket = (/** @type {string} */ a) => (a.match(/[(（]/g) || []).length > (a.match(/[)）]/g) || []).length;
-  // a bare tag or item at the end ("…ในตำราทักษา", "ชาวปีจอ", "เช่น", "คือ") is not a place to stop (round 3)
+  // notes: docs/FORTUNE-AI-NOTES.md #R6
   const TH_TAG_END = /(?:^|\s)ในตำรา\S*$|(?:^|\s)ชาวปี(?:ชวด|ฉลู|ขาล|เถาะ|มะโรง|มะเส็ง|มะเมีย|มะแม|วอก|ระกา|จอ|กุน)$|(?:^|\s)(?:เช่น|คือ|ว่า|ได้แก่)$/;
   const TH_LISTS = [/ปี(?:ชวด|ฉลู|ขาล|เถาะ|มะโรง|มะเส็ง|มะเมีย|มะแม|วอก|ระกา|จอ|กุน)/, /^วัน(?:อาทิตย์|จันทร์|อังคาร|พุธ|พฤหัส\S*|ศุกร์|เสาร์)$/,
     /^(?:สี)?(?:แดง|ส้ม|เหลือง|เขียว|ฟ้า|น้ำเงิน|ม่วง|ชมพู|ขาว|ดำ|เทา|ทอง|เงิน|น้ำตาล|ครีม)$/, /^(?:ทิศ)?(?:เหนือ|ใต้|ตะวันออก|ตะวันตก|ตะวันออกเฉียง\S+|ตะวันตกเฉียง\S+)$/];
@@ -171,12 +165,11 @@
     for (let i = p.indexOf(" "); i >= 0; i = p.indexOf(" ", i + 1)) {
       if (p[i + 1] === " " || p[i - 1] === " ") continue;
       const a = p.slice(0, i), b = p.slice(i + 1);
-      // never a cut: before ๆ ("เล็ก ‖ ๆ"), before a name's value or gloss ("วัยจร ‖ 甲辰", "ในตำราทักษา ‖ (…)") (round 3)
+      // notes: docs/FORTUNE-AI-NOTES.md #R7
       if (/^[ๆ一-鿿(（]/.test(b)) continue;
-      // round 4 (RECHECK-3 N4): never inside a list of years / days / colours / directions ("ปีมะแม ปีจอ ‖ ปีกุน"), before or right after a quote
-      // ("…คำถามว่า ‖ "เรื่องนี้…""), between a label and its number ("ผลรวม ‖ 43", "เส้นที่ ‖ 2") or after a bare year ("ปี 2026 ‖")
+      // notes: docs/FORTUNE-AI-NOTES.md #R8
       if (/^["“'‘「]/.test(b) || /["“”]$/.test(a) || (/^\d/.test(b) && /[ก-๎A-Za-z]$/.test(a)) || /(?:^|\s)(?:ใน)?(?:ปี|เดือน)\s?\d{1,4}$/.test(a) || listCut(a, b)) continue;
-      // soft: none of the hard breaks (after ๆ, number|unit, inside a list, after a lead + noun); ok: soft and a clean clause boundary
+      // notes: docs/FORTUNE-AI-NOTES.md #R9
       const soft = !/ๆ$/.test(a) && !(/\d$/.test(a) && TH_UNIT.test(b)) && !(TH_LIST_NEXT.test(b) && !/[.!?)]$/.test(a)) && !TH_LEAD_PREV.test(a) && !/^(?:เช่น|ได้แก่|เสริมด้วย|และ|หรือ)/.test(b) && !TH_TRANS_PREV.test(a) && !openBracket(a) && !TH_TAG_END.test(a) && !(/[)）]$/.test(a) && TH_REPORT_NEXT.test(b));
       const mild = !/ๆ$/.test(a) && !TH_LEAD_PREV.test(a) && !TH_TRANS_PREV.test(a) && !openBracket(a) && !TH_TAG_END.test(a) && !/^(?:เช่น|ได้แก่)/.test(b);
       out.push({ at: i, soft, mild, ok: soft && !TH_CONT_NEXT.test(b) && !TH_CONT_PREV.test(a) && !(TH_FROM.test(b) && TH_FROM_VERB.test(a)) && !TH_REPORT_NEXT.test(b) && !/^[(（]/.test(b) });
@@ -195,7 +188,7 @@
   const MAXLEN = { th: 220, en: 320, zh: 110 };
   const OVERVIEW_MAX = { th: 100, en: 140, zh: 50 }; // owner item 5: about 3 lines at 375 px (EN / ZH: room for one whole sentence, quality round 2026-11-16)
 
-  /* ---------- A2: cut a paragraph into short parts (rejoined with SEP[lang] = the paragraph, word for word) ---------- */
+  // notes: docs/FORTUNE-AI-NOTES.md #R10
   function split(p, lang, max) {
     lang = langOf(lang); max = max || MAXLEN[lang];
     p = String(p == null ? "" : p);
@@ -213,7 +206,7 @@
     while (p.length - start > max) {
       const inRange = cuts.filter(c => c.at > start && c.at - start <= max);
       const good = inRange.filter(c => c.ok);
-      // round 3: never a hard break (after a lead + noun, before ๆ, inside a list): the next clean break, even a little later, or none
+      // notes: docs/FORTUNE-AI-NOTES.md #R11
       const pick = good.find(c => c.at - start >= target * 0.8) || good[good.length - 1] || inRange.filter(c => c.soft !== false).pop() || (start === 0 ? inRange.filter(c => c.mild).pop() : null) || cuts.find(c => c.at > start + max && c.soft !== false);
       if (!pick) break;
       if (pick.at - start < 12 && inRange.length > 1) { const later = inRange.find(c => c.at - start >= 12); if (later) { out.push(p.slice(start, later.at)); start = later.at + 1; continue; } }
@@ -222,8 +215,7 @@
     out.push(p.slice(start));
     return out.filter((x, i) => x.length || i === 0);
   }
-  /** owner item 5: cut the start of the main point to about 3 lines at 375 px (OVERVIEW_MAX), at a sentence / clause / word
-   *  boundary; the rest of the paragraph is split as usual. Rejoined with SEP[lang] the pieces are the paragraph, word for word. */
+  // notes: docs/FORTUNE-AI-NOTES.md #R12
   function overviewCut(p, lang) {
     const max = OVERVIEW_MAX[lang];
     if (p.length <= max) return [p];
@@ -238,19 +230,16 @@
     const cuts = lang === "en" ? cutsEn(p) : cutsTh(p);
     const okc = cuts.filter(c => c.ok && c.at <= max && c.at >= max * 0.4);
     const th = lang === "th", within = x => x.at <= max, past = f => x => x.at > max && x.at <= max * f;
-    // quality round 2026-11-16 (R3): inside the limit first (a clean cut, then a cut that keeps a word group whole); past the
-    // limit only when nothing inside it reads cleanly; a short paragraph with no clean cut is shown whole
+    // notes: docs/FORTUNE-AI-NOTES.md #R13
     let c = okc[okc.length - 1] || cuts.filter(x => x.ok && within(x) && x.at >= (th ? 40 : 12)).pop() ||
       (th ? cuts.filter(x => x.soft && within(x) && x.at >= 40).pop() || cuts.find(x => x.ok && past(1.15)(x)) || cuts.find(x => x.soft && past(1.15)(x)) : null);
-    if (!c && th) c = cuts.filter(x => x.ok && within(x) && x.at >= 12).pop() || null; // a short clean start …
-    // round 3: "short" is measured without brackets, so a label with a long gloss ("ตรีแกรมบนฟ้า (乾 …)") is not a main point
+    if (!c && th) c = cuts.filter(x => x.ok && within(x) && x.at >= 12).pop() || null; // notes: docs/FORTUNE-AI-NOTES.md #R14
     const clen = x => p.slice(0, x.at).replace(/\s*[(（][^)）]*[)）]/g, "").length;
     if (c && th && (c.at < 40 || clen(c) < 45)) { const nx = cuts.find(x => (x.ok || x.soft) && x.at > 60 && clen(x) >= 45 && x.at <= max); if (nx) c = nx; else if (c.at < 40 && p.length <= max * 1.6) return [p];
-      // round 3: still a bare name or age band ("อัศวินไม้เท้า (Knight of Wands)", "ช่วงอายุ 54–60 ปี") → the first cut that holds what
-      // it means, a little past the limit, rather than a label alone
+      // notes: docs/FORTUNE-AI-NOTES.md #R15
       else if (clen(c) < 30) { const nx2 = cuts.find(x => (x.ok || x.soft) && x.at >= 40 && clen(x) >= 45 && x.at <= max * 1.35); if (nx2) c = nx2; } } // … not a bare name
     if (!c && p.length <= max * 1.25) return [p];
-    // English: one whole first sentence a little past the limit rather than a cut inside it (quality round 2026-11-16)
+    // notes: docs/FORTUNE-AI-NOTES.md #R16
     if (!c && lang === "en") { const s1 = cuts.find(x => x.at > max && x.at <= max * 1.25); if (s1) c = s1; }
     if (!c && lang === "en") { const cm = [...p.matchAll(/, /g)].map(m => m.index + 1).filter(i => i <= max && i >= max * 0.4); if (cm.length) c = { at: cm[cm.length - 1] }; }
     if (!c && th) c = cuts.find(x => x.soft && past(2)(x)) || null;
@@ -260,16 +249,13 @@
     at = c.at;
     return [p.slice(0, at)].concat(split(p.slice(at + 1), lang));
   }
-  /** parts of a section: [{ text, para, visible, caution }]; the first part (the main point) and caution paragraphs are shown.
-   *  opts.flags = the composer's marks (section.caution, one per paragraph): a marked paragraph is never cut or folded.
-   *  Without opts.flags nothing is folded (every part visible): the layout never guesses which text is a caution.
-   *  opts.leads (older callers / tests) also marks a paragraph holding a whole lead; it never makes anything less visible. */
+  // notes: docs/FORTUNE-AI-NOTES.md #R17
   function plan(paragraphs, lang, opts) {
     lang = langOf(lang);
     const leads = (opts && opts.leads) || [], flags = opts && Array.isArray(opts.flags) ? opts.flags : null, parts = [];
     (paragraphs || []).forEach((p, k) => {
       const caution = !!(flags && flags[k]) || leads.some(l => l && String(p).includes(l));
-      // owner item 5: the overview is the first ~3 lines of the main point (the start of the first paragraph), the rest folds
+      // notes: docs/FORTUNE-AI-NOTES.md #R18
       const chunks = caution ? [String(p)] : k === 0 ? overviewCut(String(p), lang) : split(p, lang);
       chunks.forEach((t, j) => parts.push({ text: t, para: k, caution, visible: !flags || caution || (k === 0 && j === 0) }));
     });
@@ -279,7 +265,7 @@
   const marksOf = s => (s && Array.isArray(s.caution) && Array.isArray(s.paragraphs) && s.caution.length === s.paragraphs.length ? s.caution : null);
   /** plan of one composed section (what the page shows): folds only when the composer marked the section */
   function planSection(s, lang) { return plan((s && s.paragraphs) || [], lang, { flags: marksOf(s) }); }
-  /** marks for a rendered section, found by id and identical paragraph texts; null on any mismatch (then nothing folds) */
+  // notes: docs/FORTUNE-AI-NOTES.md #R19
   function sectionFlags(res, id, texts) {
     const same = x => x && x.id === id && Array.isArray(x.paragraphs) && x.paragraphs.length === texts.length && x.paragraphs.every((p, i) => p === texts[i]);
     const s = ((res && res.sections) || []).find(same);
@@ -366,7 +352,7 @@
     for (const k of ["worship", "respect", "direction"]) if (KINDS[lang][k].test(text)) out.push(k);
     return out;
   }
-  // icons drawn by hand for LENSIQ (simple shapes; no picture of a deity, a temple or any real place); MIT like the repo
+  // notes: docs/FORTUNE-AI-NOTES.md #R20
   const SVG = (body, label) => '<svg class="lq-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" ' +
     'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" data-icon="' + label + '">' + body + "</svg>";
   const OWN = "drawn by hand for LENSIQ in fortune-read.js (2026-11-14); simple geometric shapes, no source image";
@@ -397,7 +383,7 @@
   const CSS = ".fa-section{scroll-margin-top:96px}.fa-section>p,.fa-section .lq-more-body>p{margin:.55em 0;line-height:1.75}" +
     ".fa-section .lq-gist{font-weight:500}.fa-section .lq-caution{border-left:3px solid rgba(214,120,0,.55);padding-left:.7em}" +
     ".lq-more-body{display:none}.lq-more-body.lq-open{display:block}" +
-    // owner item 5: while a group is closed its overview never takes more than 3 lines (marked caution text is never clamped)
+    // notes: docs/FORTUNE-AI-NOTES.md #R21
     ".fa-section[data-lq-grouped]:not(.lq-open)>p.lq-gist:not(.lq-caution){display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}" +
     ".lq-toc{margin:.4em 0 1em;padding:.6em .7em;border:1px solid rgba(103,79,242,.22);border-radius:14px;background:rgba(103,79,242,.04)}" +
     ".lq-toc p{margin:0 0 .4em;font-size:.88em;font-weight:600;opacity:.85}.lq-toc ul{display:flex;flex-wrap:wrap;gap:.4em;list-style:none;margin:0;padding:0}" +
@@ -502,8 +488,7 @@
     for (const r of container.querySelectorAll(".fa-reminder")) noticeify(r, lang);
     return container;
   }
-  // the reading layout runs through FortuneAI's documented extension point (decorate after every rendered reading; a support
-  // card never reaches hooks). Queued here because this file loads before fortune-ai.js.
+  // notes: docs/FORTUNE-AI-NOTES.md #R22
   const HOOK = { decorate(container, original, shown) { try { enhance(container, shown || original); } catch (e) { /* keep the plain reading */ } } };
   if (root.document) {
     try { if (root.FortuneAI && root.FortuneAI.registerHooks) root.FortuneAI.registerHooks(HOOK); else (root.LQFortuneHooks = root.LQFortuneHooks || []).push(HOOK); } catch (e) { /* none */ }
@@ -838,20 +823,24 @@
       "รักสงบ|น่าเชื่อถือ|น่ารัก|ทำงาน(?:เก่ง|ได้ดี|หนัก)|พูดจา|คิดเร็ว|คิดลึก)");
     const HAVE_TH = /^(?:สติปัญญา|ปัญญา|เสน่ห์|รสนิยม|บารมี|วาทศิลป์|ไหวพริบ)/;
     const ADVICE_HAVE = /^มี\S*ไว้(?:\s|$)/;
-    const subjOf = t => (/^คุณ/.test(t) || D.isImperative(t) || ADVICE_HAVE.test(t) ? "" : HAVE_TH.test(t) ? "คุณมี" : personTh(t) || BARE_TH.test(t) ? "คุณ" : "");
+    const FINDING_PRED = /^(?:เป็น(?:จุด|พลัง|ด้าน|ส่วน|หลัก|แรง|ตัว|สัญญาณ|ภาพ|ไพ่|ฐาน|ภพ|ภูมิ)|มีพลัง(?:ปานกลาง|มาก|น้อย|เด่น)|อยู่ใน|อยู่ที่)/;
+    const subjOf = t => (/^คุณ/.test(t) || D.isImperative(t) || ADVICE_HAVE.test(t) || FINDING_PRED.test(t) ? "" : HAVE_TH.test(t) ? "คุณมี" : personTh(t) || BARE_TH.test(t) ? "คุณ" : "");
     // notes: docs/FORTUNE-AI-NOTES.md #B9
-    const SUBJ_OK = new RegExp("^(?:คุณ|ช่วง|จังหวะ|ดาว|คน|โซน|ตาม|ใน|ทิศ|ภายใน|ถ้า|หาก|เป็นปี|เป็นช่วง|หน้าผาก|รายได้|รายรับ|ด้าน|โต๊ะ|ธาตุ|ตำรา|สถานการณ์|งาน|การ|เรื่อง|เคล็ด|พลัง|ความ|ปี|ฝัน|ฝ่ามือ|จมูก|ปีกจมูก|มุม|เมื่อ|ราว|บาง|ทรัพย์|ครอบครัว|ไอเดีย|ข้อมูล|คำ|เส้น|บรรยากาศ|รอบตัว|สิ่ง|ฟ้า|น้ำ|ไฟ|ภูเขา|ทะเลสาบ|ลม|ดิน|ไม้|ทอง|แนวโน้ม|ใจ|เพื่อน|ด้วย|อาจ|ทั้ง|ชื่อเสียง|ศิลปะ|ดนตรี|ร่างกาย|สุขภาพ|ผล|โชค|ลาภ|เงิน|ชีวิต|อนาคต|โอกาส|ทุก|ยิ่ง|แม้|นี่|ที่|ผู้|หัวหน้า|ทีม|ลูก|บ้าน|ภาพ|เลข|คู่|ไพ่|ราศี|มือ|ใบหน้า|วัย|ภพ|ภูมิ|กว้า|ตรีแกรม|เซียมซี|นอกจาก|อีก|ส่วน|สำหรับ|จาก|ดูที่|หลัง|ก่อน|ตอน|วัน|เดือน|สัปดาห์|เช้า|ค่ำ|กลางวัน|เวลา|ระยะ|ข่าว|ปัญหา|อุปสรรค|เป้าหมาย|แผน|ลึก ๆ|เจ้าชะตา|ลัคนา|หู|ตา|ปาก|คิ้ว|คาง|แก้ม|โหนกแก้ม|ริมฝีปาก|ดวง|ฐาน|ทักษา|ตำแหน่ง|บทบาท|ลูกค้า|คู่ครอง|คนรัก|ญาติ|พ่อ|แม่|พี่|น้อง|แสง|เมฆ|ฝน|ต้นไม้|ทะเล|แม่น้ำ|ถนน|ประตู|หน้าต่าง|เตียง|ห้อง|พื้นที่|โครงการ|สัญญา|เอกสาร|ภาระ|หนี้|ค่าใช้จ่าย|รายจ่าย|บัญชี|เงินออม|การลงทุน|ใคร|อะไร|เหตุ|ผู้คน|มิตร|บริวาร|ศัตรู|คู่แข่ง|สี|ปลาย|เชื่อกันว่า|เชื่อว่า|เครือข่าย|อารมณ์|ศาสตร์|ไม่ต้อง|พูดกันตรง|คาน|สายลม)");
     const INSTR_OK = /^(?:ลอง|เลือก|จัด|ตั้ง(?!แต่|ใจ)|ใช้|เก็บ|เช็ก|ตรวจ|พัก|ปรึกษา|วางแผน|วาง|ให้|เริ่ม|ฝึก|อย่า|ควร|รักษา|เขียน|จด|แบ่ง|ชวน|ทบทวน|ระวัง|เตรียม|ออม|หมั่น|ทดลอง|ฉลอง|หยุด|ประกาศ|พัฒนา|เปิดใจ|หา(?!ก)|ทำ(?!งาน|ให้)|คุย|ขอ|ฟัง|อ่าน|เดิน|ปล่อย|มอง(?!การณ์)|ดูแล|เติม|หล่อเลี้ยง|ติดตาม|กล้า(?=พูด|เลือก|ลอง|ขอ)|ใจดีกับ|มีเงินสำรอง|มี\S*ไว้(?:\s|$))/;
     const QUALITY_TH = /^(?:สัญชาตญาณ|สติปัญญา|ปัญญา|เสน่ห์|รสนิยม|บารมี|วาทศิลป์|ไหวพริบ)/;
     function startTh(t, names) {
-      if (!t || names.some(n => n.length >= 2 && t.startsWith(n)) || SUBJ_OK.test(t) || INSTR_OK.test(t) || D.isImperative(t)) return t;
+      if (!t || names.some(n => n.length >= 2 && t.startsWith(n)) || INSTR_OK.test(t) || D.isImperative(t)) return t;
       if (/^\d/.test(t)) return t; // the lead that carried the number is restored by the caller (framesTh never strips it)
       if (/^เหมาะกับการ/.test(t)) return "ช่วงนี้" + t;
       if (QUALITY_TH.test(t)) return "คุณมี" + t;
       const k = /^(\S{2,12}?)คือ(?=หลัก|สิ่ง|กุญแจ)/.exec(t); // a bare keyword ("รองรับคือหลักที่ช่วย…")
-      if (k) return "การ" + t;
-      return "คุณ" + t;
+      if (k && VERB_KEY.test(k[1])) return "การ" + t;
+      if (/^เป็น(?:จังหวะ|ช่วง|เวลา|ปี)/.test(t)) return "ช่วงนี้" + t;
+      // notes: docs/FORTUNE-AI-NOTES.md #B43
+      return PRED_TH.test(t) ? "คุณ" + t : t;
     }
+    const VERB_KEY = /^(?:รองรับ|ใส่ใจ|ลงมือ|อดทน|รอคอย|ปล่อยวาง|ร่วมมือ|ฟื้นฟู|เริ่มต้น|ถ่อมตน|ยืดหยุ่น|ระมัดระวัง|แบ่งปัน|เปิดใจ|ฟัง|รับฟัง|ปรับตัว|ตั้งใจ|เตรียมพร้อม|สื่อสาร|สร้าง|ขยาย|ซ่อมแซม|ยึดมั่น|หยุดพัก|ให้|รับ|เดินหน้า|ถอย|รักษา|ดูแล|อ่อนน้อม|ซื่อสัตย์|เพิ่มพูน|ลด|ละ|รวม|แยก|สะสม)/;
+    const PRED_TH = /^(?:สะสม|ผสาน|เด่น(?!ชัด)|สื่อสาร|กว้างไกล|ดู(?!แล|ที่)|เจรจา|ปิดงาน|ได้รับ|สร้าง|รู้จัก|รู้ใจ|เข้าใจ|เข้ากับ|ชอบ|รัก(?!ษา)|มัก|มีความ|มีพลัง|มีเสน่ห์|มีโอกาส|มีชื่อเสียง|เป็นคน|เป็นที่|ทำงาน|คิด|พูด|ใจ(?:ดี|เย็น|กว้าง|ร้อน|อ่อน|สู้)|กล้า|อ่อนโยน|อ่อนหวาน|มั่นใจ|มั่นคง|ละเอียด|ปรับตัว|ยืดหยุ่น|เปิดเผย|มองการณ์|ประณีต|โรแมนติก|อบอุ่น|มุ่งมั่น|ขยัน|อดทน|สุขุม|ซื่อ|จริงใจ|ร่าเริง|เก่ง|ถนัด|เหมาะกับ(?!การ)|ห่วงใย|ใส่ใจ|เอาใจใส่|ให้ความสำคัญ|ทุ่มเท|ฉลาด|ช่าง(?:คิด|สังเกต|พูด|เจรจา)|ตัดสินใจ|รับผิดชอบ|วางแผนเก่ง|เก็บออม|หาเงิน|ใช้จ่าย)/;
     const subjTh = t => subjOf(t) + t;
     function openTh(t, names) {
       for (const n of names) {
@@ -999,6 +988,17 @@
       return false;
     }
     const firstSen = (t, lang) => (lang === "zh" ? String(t).split(/(?<=[。！？])/)[0] : lang === "en" ? String(t).split(/(?<=[.!?])\s/)[0] : String(t).split(" ")[0]).trim();
+    function bracketsTidy(q, lang) {
+      const core = t => String(t).replace(/[,，、].*$/, "").trim().toLowerCase();
+      let out = String(q).replace(/[(（]([^()（）]{1,80})[)）](\s?)[(（]([^()（）]{1,80})[)）]/g, (a, x, sp, y) => {
+        const cx = core(x), cy = core(y);
+        if (!cx || !cy || (cx.indexOf(cy) < 0 && cy.indexOf(cx) < 0)) return a;
+        const keep = x.length >= y.length ? x : y;
+        return lang === "zh" ? "（" + keep + "）" : "(" + keep + ")";
+      });
+      if (lang === "th") out = out.replace(/\(([^()]{1,80})\)/g, (a, x) => "(" + x.replace(/，\s?/g, ", ").replace(/、/g, ", ").replace(/[：]/g, ": ") + ")");
+      return out;
+    }
     function polish(secs, lang, items, st) {
       ST = st || { kept: 0 }; CITED = {};
       const names = namesOf(items, lang), seen = {}, open = OPEN[lang], some = someRe(lang);
@@ -1018,7 +1018,8 @@
             // notes: docs/FORTUNE-AI-NOTES.md #B23
             if (short() && ST.name && o !== p0) o2 = emptyCite(ST.name.replace(PAREN, "").trim(), "th") ? o : placeTh(o.replace(/\s+$/, ""), ST.name, items);
             // notes: docs/FORTUNE-AI-NOTES.md #B24
-            if (!short() && !(lang !== "th" && f.length >= 10 && nearCopy(f, rest, lang)) && !(lang !== "th" && GLOSS_LINE[lang].test(f))) { s.paragraphs[0] = o2; if (o2 !== p0 && ST.name) cite(s, lang, ST.name, items); }
+            if (lang !== "th" && GLOSS_LINE[lang].test(f) && ST.name && o !== p0) { const nmg = String(ST.name).replace(PAREN, "").trim(); s.paragraphs[0] = lang === "zh" ? nmg + "：" + o : D.cap(nmg) + ": " + o.replace(/^In\b/, "in"); }
+            else if (!short() && !(lang !== "th" && f.length >= 10 && nearCopy(f, rest, lang)) && !(lang !== "th" && GLOSS_LINE[lang].test(f))) { s.paragraphs[0] = o2; if (o2 !== p0 && ST.name) cite(s, lang, ST.name, items); }
           }
         }
         if (s.id === "overview" && lang !== "th") overviewLeads(s, lang, names, items);
@@ -1026,6 +1027,7 @@
         s.paragraphs = s.paragraphs.map(q => (lang === "th" ? framesTh(q, names, seen) : leadsOther(q, lang, names, seen)));
         // notes: docs/FORTUNE-AI-NOTES.md #B25
         if (lang !== "th" && s.id !== "overview") { alsoPlain(s, lang, names); glossFirst(s, lang); }
+        if (lang !== "th") s.paragraphs = s.paragraphs.map(q => unstack(q, lang));
         if (lang === "th" && s.id !== "overview") {
           let seenTh = "";
           s.paragraphs = s.paragraphs.map(q => { const out = q.replace(/ตำรายัง(บอก|ชี้|อ่าน|มอง)(?:ด้วย)?(ว่า)?/g, (a, v, w, at) => (names.some(n => n.length >= 3 && (seenTh + q.slice(0, at)).indexOf(n) >= 0) ? a : "ตำรา" + v + (w || ""))); seenTh += " " + out; return out; });
@@ -1034,6 +1036,7 @@
       }
       // notes: docs/FORTUNE-AI-NOTES.md #B26
       if (lang === "th") for (const s of secs || []) if (s.id !== "brief" && s.id !== "advice" && s.paragraphs[0]) s.paragraphs[0] = startTh(subjTh(s.paragraphs[0]), names);
+      for (const s of secs || []) s.paragraphs = s.paragraphs.map(q => bracketsTidy(q, lang));
       // notes: docs/FORTUNE-AI-NOTES.md #B27
       (secs || []).forEach((s, i) => { if (lang === "th" && s.paragraphs.join(" ").length < 90 && before[i].join(" ").length >= 90) s.paragraphs = before[i]; });
       const fresh = D.nearDupPairs ? D.nearDupPairs(secs, lang).filter(x => !dup0.has(x.a + "|" + x.b)) : [];
@@ -1087,8 +1090,10 @@
     const emptyCite = (nm, lang) => EMPTY_CITE[lang].test(String(nm).trim());
     // notes: docs/FORTUNE-AI-NOTES.md #B33
     const GENERIC = /^(?:pair|slip|kua|card|line|star|house|area|year|month|element|planet|sign|hand|face|dream|คู่|ไพ่|เส้น|ดาว|ภพ|ภูมิ|数对|签|卦|命卦|星|宫)$/i;
+    // notes: docs/FORTUNE-AI-NOTES.md #B44
+    const OWN_SUBJ = { en: /^(?:By tradition,? )?(?:Your|The|A|An|This|That|Its|His|Her|Their|My|your|the|a|an|this|that) [a-z]/, zh: /^(?:你的|这|那)/ };
     const BACKREF = { th: /อีกความหมายหนึ่งคือ|ตำรายัง/, en: /\bAnother side of this\b/i, zh: /另一层意思是/ };
-    const numbered = n => (/\d/.test(n) && /[(（][^)）]+[)）]\s*$/.test(n) ? n.replace(/\s*[(（]([^)）]+)[)）]\s*$/, (a, x) => (/[\u4e00-\u9fff]/.test(x) ? "，" : ", ") + x).trim() : n.replace(PAREN, "").trim());
+    const numbered = (n, lang) => (/\d/.test(n) && /[(（][^)）]+[)）]\s*$/.test(n) ? n.replace(/\s*[(（]([^)）]+)[)）]\s*$/, (a, x) => (lang === "zh" ? "，" : ", ") + x).trim() : n.replace(PAREN, "").trim());
     const caseOf = (name, items, lang) => (lang === "en" ? namesOf(items, lang).find(n => n.toLowerCase() === String(name).toLowerCase()) || String(name) : String(name));
     const REPORT_AFTER = /^\s*(?:ตามตำรา|ตามความเชื่อ|ว่ากันว่า|เชื่อกันว่า|หมายความว่า|บ่งบอกว่า|ชี้ว่า|สะท้อนว่า|แสดงว่า|สื่อว่า|ตีความ|อ่านได้ว่า|แปลได้ว่า|บอกว่า|หมายถึง)/;
     function placeTh(t, name, items) {
@@ -1103,7 +1108,7 @@
     function cite(s, lang, name, items) {
       name = caseOf(name, items, lang);
       if (/^(?:this|that|the) (?:year|month|time|period)$/i.test(String(name).trim())) return;
-      const nm = numbered(String(name)), it = itemOf(items, name, lang), lo = x => (lang === "en" ? String(x).toLowerCase() : String(x));
+      const nm = numbered(String(name), lang), it = itemOf(items, name, lang), lo = x => (lang === "en" ? String(x).toLowerCase() : String(x));
       if (nm.length < 2 || emptyCite(nm, lang) || emptyCite(String(name).replace(PAREN, "").trim(), lang)) return;
       const vars0 = (it ? namesOf([it], lang) : [String(name)]).filter(v => v.length >= 2 && !GENERIC.test(v.trim()));
       // "kua number" (the name without its number) would match "your kua number" in a glossary line
@@ -1128,7 +1133,8 @@
       // notes: docs/FORTUNE-AI-NOTES.md #B35
       if (lang !== "th") {
         const rest = p0.slice(end + 1), pr = lang === "zh" ? /^\s*它/ : /^\s+It (?!would|could|may|might|can|helps?|pays|takes|is (?:time|worth))/;
-        if (pr.test(rest)) { const nmx = lang === "en" ? D.cap(String(name).replace(PAREN, "").trim()) : String(name).replace(PAREN, "").trim(); s.paragraphs[0] = p0.slice(0, end + 1) + rest.replace(lang === "zh" ? /^(\s*)它/ : /^(\s+)It /, (a, sp) => sp + nmx + (lang === "zh" ? "" : " ")); return; }
+        if (pr.test(rest) && !OWN_SUBJ[lang].test(p0)) { const it2 = lang === "zh" ? /[。！？]/.exec(rest) : /[.!?](?=\s|$)/.exec(rest); if (it2) end = end + 1 + it2.index; }
+        else if (pr.test(rest)) { const nmx = lang === "en" ? D.cap(String(name).replace(PAREN, "").trim()) : String(name).replace(PAREN, "").trim(); s.paragraphs[0] = p0.slice(0, end + 1) + rest.replace(lang === "zh" ? /^(\s*)它/ : /^(\s+)It /, (a, sp) => sp + nmx + (lang === "zh" ? "" : " ")); return; }
       }
       // notes: docs/FORTUNE-AI-NOTES.md #B36
       if (lang === "th" && /^\s*(?:ตามตำรา|ตามความเชื่อ|ว่ากันว่า|เชื่อกันว่า|หมายความว่า|บ่งบอกว่า|ชี้ว่า|สะท้อนว่า|แสดงว่า|สื่อว่า|ตีความ|อ่านได้ว่า|แปลได้ว่า|บอกว่า|หมายถึง)/.test(p0.slice(end))) end = p0.length;
@@ -1155,6 +1161,18 @@
         seen += " " + y;
         return y;
       }).join(lang === "zh" ? "" : " "));
+    }
+    const SYSTEMS_EN = "Taksa|BaZi|Eight Mansions|Thai number reading|Chinese face reading|palm reading|the I Ching|Siam Si";
+    const SYSTEMS_ZH = "塔克萨|八字|八宅|面相|泰式数字|手相|易经";
+    function unstack(q, lang) {
+      if (lang === "en") return q
+        .replace(new RegExp("(^|[.!?]\\s+)(?:Traditionally, |In traditional readings, )?((?:the |your |a )?[A-Za-z][^,.]{1,60}?)(?:,? (?:also |traditionally )?(?:is read to mean|means?|shows?|suggests?|adds?|indicates?|points? to|reflects?) that),? in (" + SYSTEMS_EN + ")\\b", "g"), (a, sp, x, sys) => sp + D.cap(x.trim()) + ": in " + sys)
+        .replace(/(^|[.!?]\s+)(?:Turning to|When it comes to|As for|Looking at) this element's energy, ([a-z])/g, (a, sp, c) => sp + c.toUpperCase());
+      return q
+        .replace(new RegExp("(^|[。！？])(?:(?:再看|先看|说到|就|从)([^，。：；！？]{1,16}?)(?:而言|这边|来看)?|([^，。：；！？]{1,16}?)(?:而言|这边|来看|也提示|还说明|提示|显示|说明))，在(" + SYSTEMS_ZH + ")", "g"), (a, sp, x1, x2, sys) => { const x = x1 || x2; return /^(?:这股五行能量|这)$/.test(x) ? sp + "在" + sys : sp + x + "：在" + sys; })
+        // notes: docs/FORTUNE-AI-NOTES.md #B45
+        .replace(/^(\S{1,4}方面：)(?:先看|再看|说到)([^：，。]{1,12})：([^。！？]*)([。！？]?)/, "$1$3（$2）$4")
+        .replace(/(^|[。！？])(?:这股五行能量这边|就这股五行能量而言|说到这股五行能量|从这股五行能量来看)，/g, "$1");
     }
     function glossFirst(s, lang) {
       const q = s.paragraphs[0] || "", f = (lang === "zh" ? q.split(/(?<=[。！？])/) : q.split(/(?<=[.!?])\s+/))[0] || "";
@@ -1194,11 +1212,16 @@
       OV_ITEMS = items || [];
       const split = q => (lang === "zh" ? String(q).split(/(?<=[。！？])/) : String(q).split(/(?<=[.!?])\s+/)), acc = [];
       const pickSafe = x => { for (const c of [false, true]) { const r = conv(x, c); if (r === x) return x; if (!dupOf(r, safe, acc, lang)) { acc.push(r); return r; } } acc.push(x); return x; };
-      s.paragraphs = s.paragraphs.map(q => split(q).map(x => (safe != null ? pickSafe(x) : conv(x, false))).join(lang === "zh" ? "" : " ")).map(q => {
+      OV_PROPER = namesOf(items || [], lang).filter(n => /^[A-Z]/.test(n));
+      s.paragraphs = s.paragraphs.map(q => { HEDGE_PARA = q; return split(q).map(x => (safe != null ? pickSafe(x) : conv(x, false))).join(lang === "zh" ? "" : " "); }).map(q => {
         // notes: docs/FORTUNE-AI-NOTES.md #B39
         q = lang === "zh" ? q.replace(/(（[^（）]{2,40}）。)它(?=也|还)/g, "$1这") : q.replace(/(\s\([^()]{2,80}\)\.\s+)It also\b/g, "$1This also");
-        const re = lang === "zh" ? /（([^（）]{2,40})）。它/g : /\s\(([^()]{2,80})\)\.\s+It (?!would|could|may|might|can|helps?|pays|takes|is (?:time|worth))/g;
-        return q.replace(re, (a, x) => (lang === "zh" ? "。" + x.replace(/，.*$/, "") : ". " + D.cap(x.replace(/, .*$/, "")) + " "));
+        const re = lang === "zh" ? /([^。！？]*)（([^（）]{2,40})）。(它[^。！？]*[。！？])/g : /([^.!?]*)\s\(([^()]{2,80})\)\.\s+(It (?!would|could|may|might|can|helps?|pays|takes|is (?:time|worth))[^.!?]*[.!?])/g;
+        return q.replace(re, (a, pre, x, itS) => {
+          // the line before has its own subject: "It" means that subject; the citation moves after the "It" line instead
+          if (OWN_SUBJ[lang].test(pre.trim())) return lang === "zh" ? pre + "。" + itS.replace(/。$/, "（" + x + "）。") : pre + ". " + itS.replace(/([.!?])$/, " (" + x + ")$1");
+          return lang === "zh" ? pre + "。" + x.replace(/，.*$/, "") + itS.slice(1) : pre + ". " + D.cap(x.replace(/, .*$/, "")) + " " + itS.slice(3);
+        });
       });
       function conv(x, colon) {
         ST.name = "";
@@ -1208,7 +1231,7 @@
         if (o === x || !ST.name) return x;
         // "Looking at your Sun in Cancer, with your Cancer Sun, you are…": the inner lead goes too
         if (lang === "en") { const w = /^With (?:your |the |a )?[^,]{3,40}, (?=[a-z])/.exec(o); if (w) o = D.cap(o.slice(w[0].length)); }
-        const full = caseOf(String(ST.name).trim(), OV_ITEMS, lang), nm = numbered(full);
+        const full = caseOf(String(ST.name).trim(), OV_ITEMS, lang), nm = numbered(full, lang);
         // round 6 (D2): "Looking at the One White star, it stands for…" → "The One White star stands for…"
         if (lang === "en" && /^It /.test(o)) return D.cap(full.replace(PAREN, "").trim()) + " " + o.slice(3).replace(/^is /, "is ");
         if (lang === "zh" && /^它/.test(o)) return full.replace(PAREN, "").trim() + o.slice(1);
@@ -1223,7 +1246,16 @@
       }
     }
     // notes: docs/FORTUNE-AI-NOTES.md #B41
-    const hedged = (o, x) => (/^(?:Traditionally|In traditional readings)\b/.test(x) && !/\btradition/i.test(o) ? "By tradition, " + o.replace(/^([A-Z])(?=[a-z])/, c => c.toLowerCase()).replace(/^i\b/, "I") : o);
+    const HEDGE_WORD = /\b(?:tradition(?:al|ally)?|belief|believed|folk|folklore|by custom)\b/i;
+    const CALC = /\b(?:adding up|add up|digits?|reduc(?:e|ing)|calculat\w*|computed|counted from|sum of)\b/i;
+    const PROPER_EN = /^(?:Thai|Chinese|Buddhist|Taksa|BaZi|I Ching|Siam|Lek|Sun|Moon|Mercury|Venus|Mars|Jupiter|Saturn|Rahu|Ketu|Pair|Slip|Kua|Eight Mansions|Period|Sheng Qi|Yan Nian|Tian Yi|Fu Wei|Day Master|Western|Tarot|I\b)/;
+    let HEDGE_PARA = "";
+    const hedged = (o, x) => {
+      if (!/^(?:Traditionally|In traditional readings)\b/.test(x) || HEDGE_WORD.test(o) || HEDGE_WORD.test(HEDGE_PARA) || CALC.test(o.replace(/\([^)]*\)/g, ""))) return o;
+      HEDGE_PARA += " By tradition";
+      return "By tradition, " + (PROPER_EN.test(o) || OV_PROPER.some(n => o.startsWith(n)) ? o : o.replace(/^([A-Z])(?=[a-z]|\s)/, c => c.toLowerCase()));
+    };
+    let OV_PROPER = [];
     const PICK_ONE = /挑一条最适合你的|Pick the one suggestion/;
     const TIP_SEN = {
       en: new RegExp("^(?:Try|It would help|A good next step|This is a good time to|A simple adjustment|Set aside|Pick|Keep|Plan|Take|Make|Spend|Give|Write|" +

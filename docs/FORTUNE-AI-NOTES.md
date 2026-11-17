@@ -1197,3 +1197,173 @@ REVIEW: ถ้อยคำในการ์ดยังไม่ได้ผ่
 ```
 // exports only from its own file: the copy inside fortune-read.js (tools/fortune-read-embed.mjs) leaves that module's exports alone
 ```
+
+## fortune-brief.js notes, round 7 (moved out of the file for the speed budget)
+
+## #B43 (fortune-brief.js line 117, before `return PRED_TH.test(t) ? "คุณ" + t : t;`)
+
+```
+// round 7 (RECHECK-6 N1): "คุณ" only before a verb or an adjective; "งบประมาณที่ชัดเจน…", "ห้าธาตุ…", "โปรเจกต์…", "นก…" are
+// their own subjects
+```
+
+## #B44 (fortune-brief.js line 372, before `const OWN_SUBJ = { en: /^(?:By tradition,? )?(?:Your|The|A|An|This|That|Its|His|Her|Their|`)
+
+```
+// the line has a subject of its own ("Your charm is…", "The area of…", "你的魅力…"): an "It" after it means that subject
+```
+
+## #B45 (fortune-brief.js line 452, before `.replace(/^(\S{1,4}方面：)(?:先看|再看|说到)([^：，。]{1,12})：([^。！？]*)([。！？]?)/, "$1$3（$2）$4")`)
+
+```
+// a brief line: "财运方面：先看财帛宫：数字盘显示…" → "财运方面：数字盘显示…（财帛宫）"
+```
+
+# fortune-read.js developer notes (its own code; moved out of the file in round 7 for the speed budget)
+
+## #R1 (fortune-read.js line 140, before `const N = root.LQNotice || (typeof require === "function" ? require("./fortune-notice.js")`)
+
+```
+// the notice part (one-line notices, the read-more button, the help-line exception) lives in fortune-notice.js; pages without
+// a reading load only that file, reading pages get its copy at the top of this file (tools/fortune-read-embed.mjs: one request)
+```
+
+## #R2 (fortune-read.js line 144, before `const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน`)
+
+```
+// the reading's Thai cut points (quality rounds 1-3) live here, not in the notice part: the hub, planner and lucky colour load
+// only fortune-notice.js, whose one-line notices need the simple rule (speed budget: fortune.html page weight)
+// Thai has no sentence mark: cut only at a single space, never before a word that continues the clause, never after one
+// that leads into the next word.
+```
+
+## #R3 (fortune-read.js line 149, before `const TH_REPORT_NEXT = /^(?:สื่อว่า|สื่อถึง|บ่งบอก|ชี้ว่า|สะท้อน|แสดงว่า|หมายความว่า|หมายถ`)
+
+```
+// "จาก…" after a space opens a new clause ("…ไม่ชอบเล่นเกมหัวใจ ‖ จากธาตุน้ำ คุณ…") unless a verb before it takes it ("ออกมา จาก…")
+// round 2: a reporting verb right after a name continues that sentence ("อัศวินไม้เท้า (Knight of Wands) ‖ สื่อว่า…")
+```
+
+## #R4 (fortune-read.js line 154, before `const TH_UNIT = /^(?:ปี|เท่า|%|องศา|คน|วัน|เดือน|ครั้ง|ข้อ|ชั่วโมง|นาที|บาท|ใบ|ตัว|ดวง|ฐาน`)
+
+```
+// quality round 2026-11-16 (R3): never between a number and its unit, inside a list ("อำนาจ ‖ บารมี และ…"), or right after a
+// lead that still needs its clause ("จากราศีอาทิตย์ ‖", "เรื่องการงาน ‖")
+```
+
+## #R5 (fortune-read.js line 158, before `const TH_TRANS_PREV = /(?:^|\s)(?:ที่สำคัญ|เช่นเดียวกัน|พร้อมกันนั้น|ในขณะเดียวกัน|ถ้ามีเว`)
+
+```
+// round 2: never right after a transition word ("…ที่สำคัญ ‖") or inside brackets ("(Six of ‖")
+```
+
+## #R6 (fortune-read.js line 161, before `const TH_TAG_END = /(?:^|\s)ในตำรา\S*$|(?:^|\s)ชาวปี(?:ชวด|ฉลู|ขาล|เถาะ|มะโรง|มะเส็ง|มะเมี`)
+
+```
+// a bare tag or item at the end ("…ในตำราทักษา", "ชาวปีจอ", "เช่น", "คือ") is not a place to stop (round 3)
+```
+
+## #R7 (fortune-read.js line 174, before `if (/^[ๆ一-鿿(（]/.test(b)) continue;`)
+
+```
+// never a cut: before ๆ ("เล็ก ‖ ๆ"), before a name's value or gloss ("วัยจร ‖ 甲辰", "ในตำราทักษา ‖ (…)") (round 3)
+```
+
+## #R8 (fortune-read.js line 176, before `if (/^["“'‘「]/.test(b) || /["“”]$/.test(a) || (/^\d/.test(b) && /[ก-๎A-Za-z]$/.test(a)) ||`)
+
+```
+// round 4 (RECHECK-3 N4): never inside a list of years / days / colours / directions ("ปีมะแม ปีจอ ‖ ปีกุน"), before or right after a quote
+// ("…คำถามว่า ‖ "เรื่องนี้…""), between a label and its number ("ผลรวม ‖ 43", "เส้นที่ ‖ 2") or after a bare year ("ปี 2026 ‖")
+```
+
+## #R9 (fortune-read.js line 179, before `const soft = !/ๆ$/.test(a) && !(/\d$/.test(a) && TH_UNIT.test(b)) && !(TH_LIST_NEXT.test(b`)
+
+```
+// soft: none of the hard breaks (after ๆ, number|unit, inside a list, after a lead + noun); ok: soft and a clean clause boundary
+```
+
+## #R10 (fortune-read.js line 198, before `function split(p, lang, max) {`)
+
+```
+/* ---------- A2: cut a paragraph into short parts (rejoined with SEP[lang] = the paragraph, word for word) ---------- */
+```
+
+## #R11 (fortune-read.js line 216, before `const pick = good.find(c => c.at - start >= target * 0.8) || good[good.length - 1] || inRa`)
+
+```
+// round 3: never a hard break (after a lead + noun, before ๆ, inside a list): the next clean break, even a little later, or none
+```
+
+## #R12 (fortune-read.js line 225, before `function overviewCut(p, lang) {`)
+
+```
+/** owner item 5: cut the start of the main point to about 3 lines at 375 px (OVERVIEW_MAX), at a sentence / clause / word
+   *  boundary; the rest of the paragraph is split as usual. Rejoined with SEP[lang] the pieces are the paragraph, word for word. */
+```
+
+## #R13 (fortune-read.js line 241, before `let c = okc[okc.length - 1] || cuts.filter(x => x.ok && within(x) && x.at >= (th ? 40 : 12`)
+
+```
+// quality round 2026-11-16 (R3): inside the limit first (a clean cut, then a cut that keeps a word group whole); past the
+// limit only when nothing inside it reads cleanly; a short paragraph with no clean cut is shown whole
+```
+
+## #R14 (fortune-read.js line 245, before `const clen = x => p.slice(0, x.at).replace(/\s*[(（][^)）]*[)）]/g, "").length;`)
+
+```
+// a short clean start …
+// round 3: "short" is measured without brackets, so a label with a long gloss ("ตรีแกรมบนฟ้า (乾 …)") is not a main point
+```
+
+## #R15 (fortune-read.js line 249, before `else if (clen(c) < 30) { const nx2 = cuts.find(x => (x.ok || x.soft) && x.at >= 40 && clen`)
+
+```
+// round 3: still a bare name or age band ("อัศวินไม้เท้า (Knight of Wands)", "ช่วงอายุ 54–60 ปี") → the first cut that holds what
+// it means, a little past the limit, rather than a label alone
+```
+
+## #R16 (fortune-read.js line 253, before `if (!c && lang === "en") { const s1 = cuts.find(x => x.at > max && x.at <= max * 1.25); if`)
+
+```
+// English: one whole first sentence a little past the limit rather than a cut inside it (quality round 2026-11-16)
+```
+
+## #R17 (fortune-read.js line 263, before `function plan(paragraphs, lang, opts) {`)
+
+```
+/** parts of a section: [{ text, para, visible, caution }]; the first part (the main point) and caution paragraphs are shown.
+   *  opts.flags = the composer's marks (section.caution, one per paragraph): a marked paragraph is never cut or folded.
+   *  Without opts.flags nothing is folded (every part visible): the layout never guesses which text is a caution.
+   *  opts.leads (older callers / tests) also marks a paragraph holding a whole lead; it never makes anything less visible. */
+```
+
+## #R18 (fortune-read.js line 272, before `const chunks = caution ? [String(p)] : k === 0 ? overviewCut(String(p), lang) : split(p, l`)
+
+```
+// owner item 5: the overview is the first ~3 lines of the main point (the start of the first paragraph), the rest folds
+```
+
+## #R19 (fortune-read.js line 282, before `function sectionFlags(res, id, texts) {`)
+
+```
+/** marks for a rendered section, found by id and identical paragraph texts; null on any mismatch (then nothing folds) */
+```
+
+## #R20 (fortune-read.js line 369, before `const SVG = (body, label) => '<svg class="lq-icon" viewBox="0 0 24 24" width="20" height="`)
+
+```
+// icons drawn by hand for LENSIQ (simple shapes; no picture of a deity, a temple or any real place); MIT like the repo
+```
+
+## #R21 (fortune-read.js line 400, before `".fa-section[data-lq-grouped]:not(.lq-open)>p.lq-gist:not(.lq-caution){display:-webkit-box`)
+
+```
+// owner item 5: while a group is closed its overview never takes more than 3 lines (marked caution text is never clamped)
+```
+
+## #R22 (fortune-read.js line 505, before `const HOOK = { decorate(container, original, shown) { try { enhance(container, shown || or`)
+
+```
+// the reading layout runs through FortuneAI's documented extension point (decorate after every rendered reading; a support
+// card never reaches hooks). Queued here because this file loads before fortune-ai.js.
+```
