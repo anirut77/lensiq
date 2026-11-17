@@ -3,7 +3,7 @@
 // changes only on the pages whose readings are better than live; every other page stays byte-identical to live main).
 // Locked BEFORE the gate was built, with tests/unit/fortune-gate-live.json (the live reference) and tools/fortune-gate-compose.mjs.
 //   ON pages (new path): astro, dream, fengshui, lek7, tarot (with Siam Si), zodiac.
-//   Every other page: its HTML is live main's, byte for byte, except that each script this branch changed is loaded from
+//   Every other reading-engine page: its HTML is live main's, byte for byte, except that each script this branch changed is loaded from
 //   live/<same path> — a byte-identical copy of the live file; the composed output of the OFF engines, run with those copies,
 //   equals live main's output for a fixed input set.
 const test = require("node:test");
@@ -22,9 +22,17 @@ const CONFIG = JSON.parse(fs.readFileSync(path.join(ROOT, "tools", "fortune-gate
 const pages = fs.readdirSync(ROOT).filter(f => f.endsWith(".html"));
 const srcs = html => [...String(html).matchAll(/<script[^>]*\ssrc="([^"?]+)(\?[^"]*)?"/g)].map(m => m[1]);
 const isOn = p => LIVE.on.includes(p.replace(/\.html$/, ""));
+// RE-LOCK 1 (append-only, 2026-11-17): the gate covers the reading-engine pages (the owner's decision is about engines: "every other
+// engine must produce byte-identical output to live main"). The first lock also forced pages without a reading (hub, planner, lucky
+// colour, admin, index, hr, retail, creative-suite) to live; that contradicted two existing locked tests (fortune-calm-pages: the
+// planner / lucky colour page script loads from its own path; backend-admin-setup-ui: the Worker serves admin's scripts) and the
+// round-2 lock Q11 (the lucky colour wording fix). Those pages keep this branch's wording fixes. Every engine page and the ON list
+// are checked exactly as before.
+const ENGINE_PAGES = ["astro", "bazi", "dream", "faceread", "fengshui", "horoscope", "iching", "lek7", "lifegraph", "numbers", "palm", "report", "taksa", "tarot", "teamface", "zodiac"].map(p => p + ".html");
 
 test("the gate config lists exactly the ON pages of the owner's decision", () => {
   assert.deepEqual([...CONFIG.on].sort(), [...LIVE.on].sort());
+  assert.deepEqual([...CONFIG.engines].map(p => p + ".html").sort(), [...ENGINE_PAGES].sort());
   assert.equal(CONFIG.live, LIVE.live);
 });
 
@@ -48,7 +56,7 @@ test("every live/ copy is byte-identical to the live file (or, for an unchanged 
 test("OFF pages: the HTML is live main's byte for byte (apart from the live/ prefix) and every changed script comes from live/", () => {
   const changed = new Set(Object.keys(LIVE.files));
   for (const p of pages) {
-    if (isOn(p)) continue;
+    if (isOn(p) || !ENGINE_PAGES.includes(p)) continue;
     const html = String(read(p));
     assert.ok(LIVE.pages[p], `${p} exists on live`);
     assert.equal(sha(html.replace(/(<script[^>]*\ssrc=")live\//g, "$1")), LIVE.pages[p], `${p} equals live`);

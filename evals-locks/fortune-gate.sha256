@@ -11,3 +11,10 @@
 3c312fb0a7c118821a6344e1abb5b9234dd519942a8bd91d135ac31441404f5f  tools/fortune-gate-compose.mjs
 5336e24e3f2f2ab095904c5304666e0d386b705221d444caa1b94b89862bdeae  tests/unit/fortune-gate.test.js
 00efff7590868774ac317eb3b9a1a683d73f73b2e340440b776fbbea99451fdc  tests/unit/fortune-gate-live.json
+# RE-LOCK 1 (append-only, 2026-11-17, before measuring the gate on CI): tests/unit/fortune-gate.test.js scoped to the reading-engine
+# pages. The first lock also pinned pages that show no reading (hub, planner, lucky colour, admin, index, hr, retail, creative-suite) to
+# live; that contradicted the locked fortune-calm-pages test (page scripts load from their own path), backend-admin-setup-ui (the Worker
+# serves admin's scripts) and round-2 Q11 (lucky colour wording). The owner's decision covers engines; every engine page, the ON list,
+# the live/ copies and the byte-identical composed output are checked exactly as in the first lock. Live reference and harness unchanged.
+# locked 2026-11-17T03:12:23Z (tools/eval-guard.mjs lock, 1 file)
+0dc7412b69e6510d2238ad665a8eaa191c23b82e44d152f60904b33c16103a58  tests/unit/fortune-gate.test.js

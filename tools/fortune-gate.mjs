@@ -2,7 +2,7 @@
 // tools/fortune-gate.mjs — the per-page gate of the fortune-quality changes (owner decision 86 ค, 2026-11-17).
 // Config: tools/fortune-gate.json { live: <live main commit>, on: [page names] }.
 //   ON pages keep this branch's HTML and load the new scripts.
-//   Every other page becomes live main's HTML, byte for byte, except that each published script this branch changed (root *.js and
+//   Every other reading-engine page (CFG.engines) becomes live main's HTML, byte for byte, except that each published script this branch changed (root *.js and
 //   i18n/*.js that exist on live) is loaded from live/<same path>, a byte-identical copy of the live file. A zh dictionary whose
 //   English sibling changed is copied too (the sibling's path is derived from the zh tag), and every copied zh dictionary gets its
 //   English sibling next to it. Nothing else changes; the root files stay this branch's (the Node tests keep testing them).
@@ -34,8 +34,9 @@ for (const f of [...copies.keys()]) { // every copied zh dictionary keeps its En
 const want = new Map(); // path -> Buffer
 const used = new Set();
 const on = new Set(CFG.on.map(p => p + ".html"));
+const engines = new Set(CFG.engines.map(p => p + ".html"));
 for (const p of readdirSync(ROOT).filter(f => f.endsWith(".html"))) {
-  if (on.has(p)) continue;
+  if (on.has(p) || !engines.has(p)) continue; // pages without a reading are outside the gate
   const html = atLive(p);
   if (html === null) continue; // a page live does not have stays as it is
   const out = html.toString("utf8").replace(/(<script[^>]*\ssrc=")([^"?]+)/g, (a, pre, src) => (copies.has(src) ? (used.add(src), pre + "live/" + src) : a));
