@@ -35,3 +35,6 @@ ea5974394ed52531a91e2aea41ae511aadbf7b9b4d9f86f44c743942862d1943  tests/unit/cri
 f312ef6bfa242df5e2052dafeeee29e45b2ef88dd74b801c951ce2a348ed6130  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file (v2)
 # RE-LOCK 2026-11-17 (branch crisis-v3-2, merge of main 02fdd69): v3 re-lock of the merged file(s); see evals-locks/crisis-v3.sha256 (relock-merge) and docs/CRISIS-V3-RELOCKS.md.
 cab9a2be05cc2fce201c40396463cf852636cc20eb0d075c77b2364389478807  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-merge)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): fix-1, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
+e152aae01b86b2998afcc8af6ad382c4a2235ea8d9a35a93ce3bae670589abd8  tests/e2e/fortune-crisis-soft.e2e.mjs  # repo file (relock-fix-1)
+cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-fix-1)

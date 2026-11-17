@@ -128,3 +128,10 @@ Locked before compat was changed to v3.
 |---|---|---|---|---|---|
 | tests/e2e/fortune-compat.e2e.mjs | X1 (TH / EN / ZH), X2 | the support card (1323 + 1669) replaces the result; it stays for the next request | the crisis state is set; the reading goes on (overview, free tier); no card, no 1669; one closing line with tel:1323 only at the end of `#cpResult`; the state holds for the next request | a, c, d | nothing paid, no price: same tests (unchanged) |
 | tests/e2e/fortune-compat-crisis.e2e.mjs | N / Y (every MUST60 phrase + kit phrases) | the card shows, no reading; no echo of 4- (2- Chinese) character pieces | crisis state set, no card or soft step, no 1669; N: the reading and the closing line at the end; Y (no consent): no reading; no echo with the v3 piece sizes (7 Thai / 3 Chinese characters, 3 English words, whole phrase); the fixed closing line is left out of the compared text like the top bar | a, d | crisis check before consent / validation: same test (state set in Y); R unchanged |
+
+## Test-fault re-locks found on the merged branch (tag `relock-fix-1`)
+
+| Re-lock | File | Change | Why |
+|---|---|---|---|
+| soft-1 | tests/e2e/fortune-crisis-soft.e2e.mjs | the closing-line selector uses single quotes; after "talk" the test waits for the reading (≥ 3 sections) and the closing line, no card | the `\"` inside a template literal produced a broken expression (SyntaxError, the wait could never pass); the leftover "no reading under the card" line contradicted the v3 re-lock itself (rule a) |
+| merge-1 | tests/e2e/fortune-crisis.e2e.mjs | "the state holds" accepts `data-lq-crisis` or `data-lq-calm` | the loop reloads the page; a reloaded page of the same tab carries the session flag as the calm state (same protections). The fresh-tab check (neither) is unchanged |

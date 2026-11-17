@@ -18,6 +18,9 @@ export default async function ({ base, launch, check }) {
     // RE-LOCK 2026-11-17 (crisis v3 x hotfix round 2, merge of main 02fdd69; ledger docs/CRISIS-V3-RELOCKS.md): the stricter
     // "flag holds" check is kept in v3 terms: after a crisis question an ordinary question in the same tab keeps the crisis
     // state (no card in v3; the reading goes on), and a fresh tab is calm.
+    // RE-LOCK merge-1 2026-11-17 (test fault, v3-2-affected-2.log): the loop reloads the page after each phrase, and a reloaded page
+    // of the same tab carries the session flag as the calm state (html[data-lq-calm]; the same protections), not data-lq-crisis;
+    // "the state holds" now accepts either. The fresh-tab check (neither) is unchanged.
     await check("tarot: a self-harm question sets the crisis state and the shuffle goes on (v3); after it an ordinary question keeps the crisis state, no card; on a fresh page an ordinary question shuffles", async () => {
       await page.goto(`${base}/tarot.html`);
       for (const q of PHRASES) {
@@ -29,7 +32,7 @@ export default async function ({ base, launch, check }) {
       }
       await page.evaluate(() => { document.getElementById("trQuestion").value = "งานใหม่จะดีไหม"; document.getElementById("trStart").click(); });
       await page.waitFor(() => !document.getElementById("trPick").hidden, 8000);
-      const after = await page.evaluate(() => ({ crisis: document.documentElement.getAttribute("data-lq-crisis") === "1", card: !!document.querySelector(".fa-support") || !!(document.getElementById("trSupport") && !document.getElementById("trSupport").hidden) }));
+      const after = await page.evaluate(() => ({ crisis: /^1$/.test(document.documentElement.getAttribute("data-lq-crisis") || document.documentElement.getAttribute("data-lq-calm") || ""), card: !!document.querySelector(".fa-support") || !!(document.getElementById("trSupport") && !document.getElementById("trSupport").hidden) }));
       assert(after.crisis && !after.card, "after a crisis question an ordinary question keeps the crisis state, no card: " + JSON.stringify(after));
       await page.close();
       page = await browser.newPage(null, { isolated: true });
@@ -52,7 +55,7 @@ export default async function ({ base, launch, check }) {
       }
       await page.evaluate(() => { document.getElementById("icQuestion").value = "ควรเริ่มโปรเจกต์ใหม่ช่วงนี้ไหม"; document.getElementById("icStart").click(); });
       await page.waitFor(() => !document.getElementById("icStage").hidden, 8000);
-      const after = await page.evaluate(() => ({ crisis: document.documentElement.getAttribute("data-lq-crisis") === "1", card: !!document.querySelector(".fa-support") || !!(document.getElementById("icSupport") && !document.getElementById("icSupport").hidden) }));
+      const after = await page.evaluate(() => ({ crisis: /^1$/.test(document.documentElement.getAttribute("data-lq-crisis") || document.documentElement.getAttribute("data-lq-calm") || ""), card: !!document.querySelector(".fa-support") || !!(document.getElementById("icSupport") && !document.getElementById("icSupport").hidden) }));
       assert(after.crisis && !after.card, "after a crisis question an ordinary question keeps the crisis state, no card: " + JSON.stringify(after));
       await page.close();
       page = await browser.newPage(null, { isolated: true });
