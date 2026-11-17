@@ -104,3 +104,13 @@ a61e32123a05ef83933cb55dd6249415e3adabf62cf4dc3c531bdc81e2503316  relock-merge/f
 cab9a2be05cc2fce201c40396463cf852636cc20eb0d075c77b2364389478807  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-merge)
 11621c933610dcfe981a42414342d29e0cb0eaa695a3dbb4e6d098a6c4c1a65c  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file (relock-merge)
 a61e32123a05ef83933cb55dd6249415e3adabf62cf4dc3c531bdc81e2503316  tests/e2e/fortune-layout.e2e.mjs  # repo file (relock-merge)
+# PRE-LOCK 2026-11-17 decision 84 (both options built, owner chooses from the images): new fixed set locked BEFORE the option ข product code: crisis-v3-pre{,-en,-zh}.e2e.mjs (P1 ข + plan phrase: one warm line + one tel:1323 >= 44 px before the reading, then the locked crisis-v3 judge; P2 shipped ก: none; P3 ข + non-plan crisis phrase: none; P4 ข + ordinary reading: none, no closing line), crisis-v3-pre.test.js (P1 switch default ก, P2 / P3 narrow plan list TH / EN / ZH, P4 pre-line wording). Append-only; no existing assertion changed.
+# locked 2026-11-17T02:54:27Z (tools/eval-guard.mjs lock, 4 files)
+d81fd3d1f02b69e41e0afacfcf77b036e8013ea4e897aba70688b75d4b0bf3f8  pre-lock/crisis-v3-pre.e2e.mjs
+ec7d4659915d5403360197499c7432671c1d62dfdb1c9f6c528313573577739c  pre-lock/crisis-v3-pre-en.e2e.mjs
+9cf0c063ce59174a91842790381fd62c8fc9c8cc458ccb188aeef6dfd5a3648f  pre-lock/crisis-v3-pre-zh.e2e.mjs
+65857a89305e25fd560319589a71f514d1dbedacfc9dcfee275b4ec64fa92830  pre-lock/crisis-v3-pre.test.js
+d81fd3d1f02b69e41e0afacfcf77b036e8013ea4e897aba70688b75d4b0bf3f8  tests/e2e/crisis-v3-pre.e2e.mjs  # repo file (pre-lock)
+ec7d4659915d5403360197499c7432671c1d62dfdb1c9f6c528313573577739c  tests/e2e/crisis-v3-pre-en.e2e.mjs  # repo file (pre-lock)
+9cf0c063ce59174a91842790381fd62c8fc9c8cc458ccb188aeef6dfd5a3648f  tests/e2e/crisis-v3-pre-zh.e2e.mjs  # repo file (pre-lock)
+65857a89305e25fd560319589a71f514d1dbedacfc9dcfee275b4ec64fa92830  tests/unit/crisis-v3-pre.test.js  # repo file (pre-lock)

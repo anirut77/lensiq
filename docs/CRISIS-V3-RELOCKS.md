@@ -102,3 +102,14 @@ Locked before the merged files were run on the product (branch `crisis-v3-2`).
 Decision taken on the owner's behalf (reversible): the tarot daily card, siamsee and the iching Daily tab stay undrawn in the
 crisis state (hotfix round 2 behaviour kept, E3 unchanged), because their fixed texts are not composed gently. Alternative: draw
 them with the gentle wording and no share.
+
+## Decision 84: both options, new fixed set (tag `pre-lock`, append-only)
+
+Locked before the option ข product code. No existing assertion changed.
+
+| File | Test | Asserts |
+|---|---|---|
+| tests/unit/crisis-v3-pre.test.js | P1 | `lensiq-config.js` ships ก: `LENSIQ_CRISIS_PRELINE` false unless already true |
+| same | P2 / P3 | `LQFortuneCrisis.plan()` true for the narrow listed explicit-plan phrases (TH / EN / ZH; each also caught by the crisis net), false for crisis phrases without a plan and for ordinary text sharing words with the list |
+| same | P4 | `preHTML(lang)`: one short warm line, one link only (tel:1323), no other number, nothing flagged, no statistics, no Thai in EN / ZH |
+| tests/e2e/crisis-v3-pre{,-en,-zh}.e2e.mjs | per page with a field × TH / EN / ZH, 393 px | P1 ข + plan phrase: exactly one pre-line before the first section, not pinned, tel:1323 ≥ 44 × 44 px, short warm line, nothing flagged; then (pre-line removed) the locked crisis-v3 judge, no echo, no analytics. P2 shipped ก + plan phrase: no pre-line, judge passes. P3 ข + non-plan crisis phrase: no pre-line, judge passes. P4 ข + ordinary reading: no pre-line, no closing line, no crisis state |
