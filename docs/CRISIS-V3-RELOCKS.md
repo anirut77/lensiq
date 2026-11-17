@@ -85,3 +85,20 @@ Locked before these files are run on the product.
 | tests/e2e/fortune-helpline.e2e.mjs `WANT` (tag `relock-e2e-b`) | printed report keeps the help line | the full 1323 component wording | the closing line: warm line naming 1323, the button, the counselling link | d | 1323 only in the printed line: same test |
 | tests/e2e/crisis-v3-kit.mjs + crisis-net-hotfix-kit.mjs echo (tag `relock-e2e-b`, test fault) | every echo check | English pieces of 5 letters (spaces removed) | English pieces of 3 consecutive words; Thai 7 / Chinese 3 characters unchanged; the whole typed text always | — | false findings "night" in "Knight", "antto" in "want to do" (build-3-e2e.log) |
 | tests/e2e/crisis-rules-1323-f.e2e.mjs | F1, F2 | the card with the shipped switch; card button ≥ 44 px with the component blocked | F1 → crisis-v3-a/b/c/d (shipped switch); F2 kept for the closing line (component blocked: tel:1323 only, ≥ 44 × 44 px) | a, d | crisis-v3 judge |
+
+## Merge of main 02fdd69 (crisis hotfix round 2, fortune-layout item 5 re-lock 7), tag `relock-merge`
+
+Locked before the merged files were run on the product (branch `crisis-v3-2`).
+
+| File | Test | Old assertion (main) | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/e2e/crisis-net-hotfix-e.e2e.mjs | E2 tarot / iching | after the card an ordinary question still shows the card, no shuffle / coin step | after a crisis question (after a reading) an ordinary question keeps the crisis state and shows no card (v3 kit `assertCard`: no card, no sales / share / print, one number, no echo); the shuffle / coin step may go on | a | the flag holds for the tab: same test (state checked again after the ordinary question) |
+| same | E3 daily card, siamsee, iching daily | waits for the card | waits for the crisis state; "no daily reading, siamsee number or share in the crisis state" unchanged | a, c | same test |
+| same | E4 report dialog note | the card takes over | crisis state, no card, nothing saved, dialog closed (v3 kit) | a | nothing saved, dialog closed: same test |
+| same | E5 fortune-crisis.js blocked | the card with a 44 px tel:1323 | crisis state, no card, no echo; a visible 44 px tel:1323 in the closing line (not the top bar), also without fortune-crisis.js | a, d | 44 px, 1323 reachable without fortune-crisis.js: same test |
+| tests/e2e/fortune-crisis.e2e.mjs | tarot / iching | (main, stricter) after the card an ordinary question keeps the card | merged with the v3 re-lock: a crisis question sets the state, no card, the shuffle / cast goes on; after it an ordinary question keeps the state, no card; a fresh tab is calm (no state, no card) and shuffles / casts | a | the flag holds for the tab (stricter re-lock of round 2): same test |
+| tests/e2e/fortune-layout.e2e.mjs | A5 + item 5 | — | the v3 A5 re-lock and main's item-5 re-lock (7) merged without edits | — | both unchanged |
+
+Decision taken on the owner's behalf (reversible): the tarot daily card, siamsee and the iching Daily tab stay undrawn in the
+crisis state (hotfix round 2 behaviour kept, E3 unchanged), because their fixed texts are not composed gently. Alternative: draw
+them with the gentle wording and no share.

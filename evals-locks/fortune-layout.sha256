@@ -38,3 +38,5 @@ e7875b6755e4fcd7126490dbb3bb8d11e38cdaa794f30da546eac30edfe33cb6  tests/unit/for
 # locked 2026-11-16T23:44:32Z (manual append, 1 file)
 37c4d2a6656e71050cb780512bd4cc102d0346e7504423d0891cf3d37bc110d7  tests/e2e/fortune-layout.e2e.mjs  # repo file
 37c4d2a6656e71050cb780512bd4cc102d0346e7504423d0891cf3d37bc110d7  item5-relock-2026-11-17/fortune-layout.e2e.mjs
+# RE-LOCK 2026-11-17 (branch crisis-v3-2, merge of main 02fdd69): v3 re-lock of the merged file(s); see evals-locks/crisis-v3.sha256 (relock-merge) and docs/CRISIS-V3-RELOCKS.md.
+a61e32123a05ef83933cb55dd6249415e3adabf62cf4dc3c531bdc81e2503316  tests/e2e/fortune-layout.e2e.mjs  # repo file (relock-merge)
