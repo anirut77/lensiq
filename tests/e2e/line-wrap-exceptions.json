@@ -40,6 +40,14 @@
    "contains": "registration | desk",
    "reason": "Narrow table cell (dd in a two-column list) at 360 / 375 px: the cell is narrower than 'registration desk', so the two words cannot share a line; the nowrap piece wraps inside itself instead of overflowing the cell. Wider phones show it on one line.",
    "added": "2026-11-17"
+  },
+  {
+   "page": "photobooth.html",
+   "kind": "W",
+   "lang": "en",
+   "contains": "Face detection | ready",
+   "reason": "Live engine status line (aria-live), rewritten by the page while the camera starts; inside live status lines only short no-wrap pieces are used (longer ones widened narrow result boxes on medicine.html and broke the iPhone camera-refusal checks), and 'detection ready' is longer than that limit.",
+   "added": "2026-11-17"
   }
  ]
 }

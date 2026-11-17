@@ -35,3 +35,7 @@ df10e7d21650a76a677ea66b26fb83dbc43e2487521a0a659419cd92b5f57a9a  relock-4/tests
 # words at 360 / 375 px). No rule, page, width, language or threshold changed. Copy in relock-5/.
 # locked 2026-11-17T12:01:39Z (tools/eval-guard.mjs lock, 1 file)
 b637a848f13006d2cb9d5bb2f426aedc363163a2876e3618937c7168773ab2e7  relock-5/tests/e2e/line-wrap-exceptions.json
+# re-lock 2026-11-17 (append-only exceptions list, sixth entry): photobooth.html W en "Face detection | ready" (live status line,
+# short pieces only there). No rule, page, width, language or threshold changed. Copy in relock-6/.
+# locked 2026-11-17T12:17:28Z (tools/eval-guard.mjs lock, 1 file)
+e7fdc73b02536ef3affb6ee3b82c02d8af51d1e1788ad7eada99fd04bfb3f833  relock-6/tests/e2e/line-wrap-exceptions.json
