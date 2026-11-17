@@ -102,8 +102,8 @@
     return thai || (has(k, "th") ? dicts.th[k] : "");
   }
   function setText(el, key, l) {
-    // nav.js wraps Thai words in <span class="lq-run">: turn those back into plain text first (re-applied for Thai)
-    var w = el.querySelectorAll ? el.querySelectorAll(":scope > span.lq-run") : [];
+    // nav.js wraps Thai words in <span class="lq-run"> (a Chinese line end in .lq-t): back to plain text first (re-applied)
+    var w = el.querySelectorAll ? el.querySelectorAll(":scope > span.lq-run, :scope > span.lq-t") : [];
     if (w.length) { for (var i = 0; i < w.length; i++) w[i].replaceWith(doc.createTextNode(w[i].textContent)); el.normalize(); }
     if (el.removeAttribute) el.removeAttribute("data-lqwb");
     var m = memo(el), onlyText = !el.firstElementChild, node = onlyText ? null : firstText(el);

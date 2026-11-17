@@ -146,6 +146,8 @@
     }
     return false;
   }
+  // nav.js line wrap (window.LQGlue): no-break spaces between a number and its unit, and in the last few words
+  function G(s) { return typeof root.LQGlue === "function" ? root.LQGlue(s) : s; }
   function doText(n) {
     var v = n.nodeValue;
     if (!v || !TH.test(v)) return;
@@ -153,11 +155,11 @@
     var p = n.parentElement; if (!p || skipEl(p)) return;
     if (r && v === r.zh) {
       // already translated: re-translate the Thai original when a dictionary that arrived later knows more
-      var z2 = tr(r.th);
+      var z2 = G(tr(r.th));
       if (z2 !== v) { r.zh = z2; n.nodeValue = z2; }
       return;
     }
-    var z = tr(v);
+    var z = G(tr(v));
     if (z !== v) { if (texts) texts.set(n, { th: v, zh: z }); n.nodeValue = z; }
   }
   function doAttrs(el) {
@@ -186,7 +188,7 @@
   // nav.js splits Thai text into <span class="lq-run"> word boxes for line breaking (Thai mode only): join them back
   // into one text node first, so a sentence is translated as a sentence and not word by word
   function unwrapRuns(rootNode) {
-    var runs = rootNode.querySelectorAll ? rootNode.querySelectorAll("span.lq-run") : [], parents = [];
+    var runs = rootNode.querySelectorAll ? rootNode.querySelectorAll("span.lq-run,span.lq-t") : [], parents = [];
     for (var i = 0; i < runs.length; i++) {
       var sp = runs[i], p = sp.parentNode; if (!p) continue;
       p.replaceChild(doc.createTextNode(sp.textContent), sp);
@@ -269,6 +271,7 @@
     if (!active) return;
     active = false;
     if (observer) { observer.disconnect(); observer = null; }
+    unwrapRuns(doc.documentElement); // nav.js line-wrap tails (.lq-t) back into their text node first
     restore(doc.documentElement);
   }
   function sync(lang) {
@@ -278,7 +281,7 @@
   var q = root.LQI18N_RT;
   if (q && q.length) for (var i = 0; i < q.length; i++) add(q[i]);
   root.LQI18N_RT = { push: function (d) { add(d); return 0; }, length: 0 };
-  root.LQI18N_RTX = { tr: tr, add: add, config: config, get active() { return active; }, get lang() { return active ? L : null; },
+  root.LQI18N_RTX = { tr: tr, owns: function (n) { return !!(texts && texts.get(n)); }, add: add, config: config, get active() { return active; }, get lang() { return active ? L : null; },
     stats: function (lang) { var S = D[LANGS[lang] ? lang : L]; return { phrases: Object.keys(S.dict).length, templates: S.tmpls.length, translated: nTr }; } };
   wrapDialogs();
   wrapCanvas();

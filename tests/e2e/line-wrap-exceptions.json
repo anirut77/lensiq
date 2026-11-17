@@ -1,4 +1,12 @@
 {
  "note": "APPEND-ONLY exceptions of tests/e2e/line-wrap-kit.mjs. Each entry: page (file name), kind (P lone punctuation / W widow / U split number + unit), contains (a text of the finding, at least 4 characters), optional lang and width, reason (why it cannot or should not be changed), added (date).",
- "exceptions": []
+ "exceptions": [
+  {
+   "page": "cameras.html",
+   "kind": "P",
+   "contains": "| ./start.sh mobile",
+   "reason": "Not punctuation: the line starts with the shell command ./start.sh (a file path that begins with a dot) inside a <code> box; the command must be shown exactly as typed, so the dot cannot be moved or joined to the Thai / English word before it.",
+   "added": "2026-11-17"
+  }
+ ]
 }
