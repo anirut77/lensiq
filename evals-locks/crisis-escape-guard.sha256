@@ -16,3 +16,13 @@ a917dec6ab026eb167b92d85685f99e821c22a38ec7845136bdad687266928b8  tests/e2e/cris
 525247ead4166bae201d421d1885b2e53e1bc4cb6e6effc8b5fbaff7b055bceb  tests/e2e/crisis-escape-guard-report.e2e.mjs  # repo file (r2-lock)
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): r2-lock, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
 87ea1e02e062450f2e0f4029e33bd530c0482f28d7d34d2273283db7cc0d9bb3  tests/e2e/crisis-escape-guard-field.e2e.mjs  # repo file (r2-lock)
+# locked 2026-11-17T16:09:27Z (tools/eval-guard.mjs lock, 3 files)
+0850e2d64ff198805ae616f5d6badeb4f4382b285ce187cacc48430585467a99  relock-pet/crisis-escape-guard-kit.mjs
+e994f310a1bde2d44c456be392928bd20d6f73a82cc3f1873a9e3b0245448053  relock-pet/crisis-escape-guard-allow.json
+6418053e164eeb05afba82a1bb26df31f0a65905de3dd26882d6f661c10baade  relock-pet/crisis-net-hotfix-inventory.json
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
+0850e2d64ff198805ae616f5d6badeb4f4382b285ce187cacc48430585467a99  tests/e2e/crisis-escape-guard-kit.mjs  # repo file (relock-pet)
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
+e994f310a1bde2d44c456be392928bd20d6f73a82cc3f1873a9e3b0245448053  tests/unit/crisis-escape-guard-allow.json  # repo file (relock-pet)
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
+6418053e164eeb05afba82a1bb26df31f0a65905de3dd26882d6f661c10baade  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (relock-pet)
