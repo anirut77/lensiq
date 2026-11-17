@@ -251,7 +251,17 @@ export async function run({ base, launch, check, fakeCams }, lang) {
               const ok = ft.some(t => { let at = t.indexOf(fhh); while (at >= 0) { if (t.indexOf(fn, at + fhh.length) >= 0) return true; at = t.indexOf(fhh, at + 1); } return false; });
               if (!ok) bad.push("heading not followed on its page by its text: " + L.h.slice(0, 60));
             }
-            for (const it of paperDom.items) { const f = fold(it); if (f.length >= 2 && !ft.some(t => t.includes(f))) bad.push("list item / table row split across pages: " + it.slice(0, 80)); }
+            // RE-LOCK 2026-11-17 (message only, the check is unchanged): a failing item also shows the PDF text at that place
+            // and the first code points that differ, so a read-back difference on CI can be told from a real split
+            const cpx = c => (c ? c + " U+" + c.codePointAt(0).toString(16).toUpperCase().padStart(4, "0") : "(end)");
+            for (const it of paperDom.items) {
+              const f = fold(it);
+              if (f.length >= 2 && !ft.some(t => t.includes(f))) {
+                const all = ft.join(""), k = all.indexOf(f.slice(0, 6)), near = k >= 0 ? all.slice(k, k + f.length + 12) : "";
+                let d = 0; while (near && d < f.length && near[d] === f[d]) d++;
+                bad.push("list item / table row split across pages: " + it.slice(0, 80) + (near ? ` | PDF: ${near.slice(0, 100)} | first difference at ${d}: DOM ${cpx(f[d])}, PDF ${cpx(near[d])}` : " | PDF: start not found"));
+              }
+            }
             assert(!bad.length, `${n} page(s)\n` + bad.slice(0, 12).join("\n"));
           });
         }

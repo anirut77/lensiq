@@ -36,3 +36,7 @@ cc591f270be1b318459e9251de0b18745c8fb145ee9bf8ce208628102eb50879  fortune-print-
 # repo copies, locked 2026-11-17 BEFORE the colour was built (owner decision 82 ก: approved layout + tasteful colour for colour printers / PDF, fully clear in black and white; existing B/W checks unchanged): colour tokens, B/W contrast of text >= 7:1, accents chromatic and >= 3:1 (unit >= 4.5:1), light backgrounds, colour pixels in the PDF, labels with every swatch / icon
 6674e7487edefeeb9aa631f60d6074ec6fdf84d0ed177d38bdfc3221958bf1fc  tests/unit/fortune-print-colour.test.js  # repo file
 cc591f270be1b318459e9251de0b18745c8fb145ee9bf8ce208628102eb50879  tests/e2e/fortune-print-colour.e2e.mjs  # repo file
+# locked 2026-11-17T00:48:38Z (tools/eval-guard.mjs lock, 1 file)
+430177a6736616447af51e29dd336d44365b8af621595dbccc13a234429639a6  fortune-print-report-kit.mjs
+# RE-LOCK 2026-11-17 (message only; no assertion changed): a list item / table row not found whole on one page now also prints the PDF text at that place and the first differing code points (CI 43979264779 failed only TH faceread rows with symbols + Chinese; not reproducible locally with CI's Loma + Noto CJK, so CI's own read-back is needed).
+430177a6736616447af51e29dd336d44365b8af621595dbccc13a234429639a6  tests/e2e/fortune-print-report-kit.mjs  # repo file
