@@ -164,6 +164,22 @@ Reviewer verified (independent, 2026-11-18): the release criteria were rebuilt f
 
 Decision-96 tests T1–T3 (8f9e9c07, 896606c8) reviewed separately — see REVIEW.md addendum.
 
+## Lock records reconciled 2026-11-18
+
+Merge of main 8a0f5c7d into eval-guard-repo (commit a7552075; conflicts in `fortune-honest.sha256` and `merit.sha256`
+resolved append-only: this branch's lines, then main's). `eval-guard repo` then showed 8 mismatches; coordinator option ข
+(2026-11-18): reconcile each with evidence. Lines appended only; no test file changed.
+
+| # | File | Mismatch | Evidence | Bytes vs old lock | Action |
+|---|---|---|---|---|---|
+| 1 | `tests/e2e/crisis-net-hotfix-e.e2e.mjs` | `crisis-net-hotfix.sha256` latest f312ef6b vs `crisis-v3.sha256:141` / `crisis-net-hotfix-r2.sha256:16` 1363d3d1 (= file) | v2 f312ef6b commit e4c15069; relock-merge 11621c93 commit 58c9a850 (`crisis-v3.sha256:96-105`, CRISIS-V3-RELOCKS.md row 95, owner decision 2026-11-17 crisis v3); relock-fix-2 1363d3d1 commit 44f8d16f (`crisis-v3.sha256:138-141`, row 137, test fault). Field copies: `crisis-net-hotfix-r2/crisis-net-hotfix-e.v2.e2e.mjs`, `crisis-v3/relock-merge/`, `crisis-v3/relock-fix-2/` | WEAKER in letter vs f312ef6b, by owner decision (E2 / E4 card and no-shuffle become the v3 crisis state with no card; E5 accepts the top-bar tel:1323 when no reading is shown); "no daily / siamsee / share" and the 44 px tel:1323 kept | re-lock line in `crisis-net-hotfix.sha256` pointing to `crisis-v3.sha256:141` |
+| 2 | `tests/e2e/crisis-net-hotfix-inventory.json` | latest lock 074e8b3d, file f3c0caaa, no repo record | changed in commit 4fbec46c (crisis escape guard findings); `git show 4fbec46c`: 79 lines added, 0 removed (compat inputs `#cpNick0` … with `covered_by`); parent bytes = field copy `crisis-net-hotfix-r2/crisis-net-hotfix-inventory.json` (074e8b3d); new bytes locked as field copy `crisis-escape-guard/crisis-net-hotfix-inventory.v4.json` (`crisis-escape-guard.sha256:9`, 2026-11-17T03:33:13Z) | STRICTER (rows added only) | "late record" re-lock line in `crisis-net-hotfix.sha256` |
+| 3-6 | `tests/e2e/crisis-v3-pre.e2e.mjs`, `-pre-en`, `-pre-zh`, `tests/unit/crisis-v3-pre.test.js` | locked (`crisis-v3.sha256:114-120`), not in the repo | deleted in f45b9aa7, owner decision 84 = ก (option ข pre-line and `LENSIQ_CRISIS_PRELINE` removed; CRISIS-V3-RELOCKS.md:144). Successors, all present and locked: `crisis-v3-a/b/c/d.e2e.mjs`, `crisis-v3.test.js` U3 / U4 (`crisis-v3.sha256`), `crisis-rules-1323*.e2e.mjs` / `crisis-rules-1323.test.js` / `-g.test.js` (`crisis-rules-1323.sha256`) | n/a (removed feature; rule d "closing line only at the end" stays asserted) | `# retired` lines in `crisis-v3.sha256` |
+| 7 | `tests/unit/crisis-v3-r2.test.js` | locked (`crisis-v3.sha256:165`), not in the repo | renamed in 08ec51f6 to `tests/unit/crisis-net-fallback.test.js`, same bytes 1c430554 (`crisis-v3.sha256:170-171`, CRISIS-V3-RELOCKS.md:169) | EQUAL (same bytes) | `# retired` line in `crisis-v3.sha256` |
+| 8 | `tests/unit/face-capture-r2.test.js` | locked (`face-capture.sha256:25`), not in the repo | renamed in 9f255cdb to `tests/unit/face-capture-stability.test.js`, same bytes 7edcbeb9 (`face-capture.sha256:30-32`) | EQUAL (same bytes) | `# retired` line in `face-capture.sha256` |
+
+After: `node tools/eval-guard.mjs repo` OK, 0 mismatches (293 locked repo files, 12 retired, 2 pending).
+
 ## Known issues in locked files
 
 Locked files are not edited. Known problems are recorded here and fixed in the next set.
