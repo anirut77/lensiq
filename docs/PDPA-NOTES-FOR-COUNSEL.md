@@ -1146,6 +1146,13 @@ for a face photo the user posts themselves (s.26 biometric question as in K1)?
 
 (c) **Print / PDF** stays on the device (browser print dialog). The camera photo is not printed. Nothing to add for counsel
 unless a kiosk prints for walk-in customers at an event (then the operator holds the paper: retention note in the pilot kit?).
+## Crisis help is never counted (owner decision 77 ก, 2026-11-16)
+
+No record of who opens crisis help. The opt-in usage analytics (`lensiq-analytics.js`) never counts the counselling page
+(`counselling.html`, "ช่องทางให้คำปรึกษา") and sends nothing while a page is in the crisis or calm state or shows the crisis
+card: events queued before the card are dropped, events after it are not recorded, and the page is not loaded with analytics
+at all (`lensiq-config.js`). The Worker rejects the page name (not on `ANALYTICS_PAGES`). Tests:
+`tests/unit/crisis-no-analytics.test.js`. Question for counsel: none expected; recorded so the privacy notice can say it.
 
 ## L. Compatibility (ดวงสมพงษ์, `compat.html`, 2026-11-16, branch fortune-compat; legal packet §15, L72–L73)
 

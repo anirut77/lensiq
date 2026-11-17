@@ -426,6 +426,7 @@ const PAGES = {
   solutions: { st: "support", why: "content", claims: ["info"] },
   about: { st: "support", why: "content", claims: ["info"] },
   help: { st: "support", why: "content", claims: ["info"] },
+  counselling: { st: "support", why: "content", claims: ["info"] },
   "camera-notice": { st: "support", why: "notice", claims: ["info"] },
   privacy: { st: "support", why: "legal", claims: ["info"] },
   terms: { st: "support", why: "legal", claims: ["info"] },
@@ -480,14 +481,16 @@ const CATEGORIES = [
   { n: 6, slug: "fortune", id: "fortune", icon: "🔮", noStatusTag: true,
     name: { th: "ดูดวงและฤกษ์มงคล", en: "Fortune & Auspicious Planning", zh: "占卜与择吉" },
     short: { th: "ดูดวง", en: "Fortune", zh: "占卜" },
-    intro: { th: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน และวางแผนฤกษ์มงคล เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
-      en: "Engagement activities drawn from Thai and Chinese traditions, plus auspicious-date planning. " +
+    // owner order 2026-11-16 item 2: written for the person using the pages; the booth / event wording moved to solutions.html (sol-e3)
+    intro: { th: "ดูดวงศาสตร์ไทย จีน และตะวันตก และหาฤกษ์มงคลสำหรับเรื่องสำคัญของคุณ เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
+      en: "Thai, Chinese and Western readings, plus auspicious dates for what matters to you. " +
         "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
-      zh: "源自泰国与中国传统的互动活动以及择吉规划。基于命理学原则，属个人信仰，请自行判断。" },
+      zh: "泰式、中式与西方占卜，以及为重要事项择吉日。基于命理学原则，属个人信仰，请自行判断。" },
     // on the landing page the intro is shown as this lead plus the fortune notice line (fortune.disc.line), as on every fortune page
-    lead: { th: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน และวางแผนฤกษ์มงคล",
-      en: "Engagement activities drawn from Thai and Chinese traditions, plus auspicious-date planning.",
-      zh: "源自泰国与中国传统的互动活动以及择吉规划。" },
+    lead: { th: "ดูดวงศาสตร์ไทย จีน และตะวันตก และหาฤกษ์มงคลสำหรับเรื่องสำคัญของคุณ",
+      en: "Thai, Chinese and Western readings, plus auspicious dates for what matters to you.",
+      zh: "泰式、中式与西方占卜，以及为重要事项择吉日。" },
+    discMore: "help.html#h-fortune", // owner order 2026-11-16 item 4: "อ่านเพิ่มเติม" after the one-line notice
     disc: { th: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
       en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
       zh: "基于命理学原则，属个人信仰，请自行判断。" },
@@ -506,6 +509,7 @@ const CATEGORIES = [
  *  noindex; see docs/PAGE-STATUS.md "Not linked"). */
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
 const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
-  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category" };
+  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category",
+  counselling: "Counselling services (owner decision 2026-11-16, crisis one-number rules): linked only from the fortune crisis card and help line, help and privacy; not in the menus" };
 
 module.exports = { STATUS, STATUS_DEF, STATUS_DEF_CAT, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };

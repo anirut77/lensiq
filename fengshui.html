@@ -19,15 +19,38 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="fengshui.title">ฮวงจุ้ย | LENSIQ</title>
 <meta name="description" content="ฮวงจุ้ย เลขกัว เข็มทิศ AR ผังบ้านดาวประจำปี และคำแนะนำจัดบ้าน ตามความเชื่อและวัฒนธรรม คำนวณในเบราว์เซอร์">
-<link rel="stylesheet" href="styles.css?v=20">
+<link rel="stylesheet" href="styles.css?v=21">
 <link rel="stylesheet" href="fengshui.css?v=2">
 <style>.fs-cam-ui{position:absolute;right:8px;bottom:8px;left:8px;z-index:2;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}.fs-cam-ui[hidden]{display:none}.fs-cam-ui .btn{padding:6px 10px;font-size:.8rem;background:rgba(14,20,48,.75);color:#fff}.fs-cam-ui select{max-width:min(220px,100%);min-width:0;font-size:.8rem;padding:6px;border-radius:8px;background:rgba(14,20,48,.75);color:#fff;border:1px solid rgba(255,255,255,.3)}.fs-ar:not(.live) .fs-cam-ui{display:none}</style>
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=24"></script>
+<script src="nav.js?v=28"></script>
 
+<style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
+.lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
+.lq-helpnav a.lq-call-btn[href]:hover{background:#0b5d8f14;color:#094d77}.lq-helpnav .lq-call-mini-t{display:none}
+.lq-helpquiet a.lq-call-btn[href]{gap:4px;padding:0 6px;background:none;color:#0b5d8f;font-size:.88rem}.lq-helpquiet .lq-call-mini-t{display:none}
+.has-help{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"util util util lang" "logo menu menu help"}
+@media(max-width:1023.98px),(pointer:coarse) and (max-height:600px){
+.has-help{grid-template-columns:auto minmax(0,1fr) auto auto auto;grid-template-areas:"logo . help lang toggle"}}
+@media(max-width:479.98px){.has-help{padding:0 12px;column-gap:6px}.has-help .lang-switch:not(.open) [aria-pressed=false]{display:none}}
+.lq-help-dlg{width:min(340px,90vw);margin:auto;padding:18px;border:1px solid #bcd3e6;border-radius:16px;text-align:center}
+.lq-help-dlg::backdrop{background:#0e143073}.lq-help-dlg div{display:flex;gap:10px}
+.lq-help-dlg :is(a,button){display:flex;align-items:center;justify-content:center;flex:1;min-height:48px;border-radius:12px;font:inherit;
+font-weight:700}
+.lq-help-dlg a{background:#0b5d8f;color:#fff}.lq-help-dlg button{border:1px solid #bcd3e6;background:#fff}
+.lq-top{display:block;margin:0 auto 12px;padding:0;border:0;background:none;color:#5a6280;font-size:.8rem;line-height:1.45;text-align:center}
+.lq-top>svg{display:none}.lq-top b{font-weight:400;color:inherit}
+.lq-top :is(button.lq-more,a){display:inline-flex;align-items:center;min-height:44px;margin:-12px 0;padding:0 3px;border:0;
+background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-hero,.pd-hero) .lq-top{color:#c9d0ea}
+:is(.ft-hero,.pd-hero) .lq-top :is(button,a){color:#d9d1ff}@media(max-width:560px){.lq-ftop:not(.ft,.pd){padding-top:6px}
+.lq-ftop .eyebrow{display:none}.lq-ftop h1{font-size:1.5rem;line-height:1.25;margin:2px 0 4px}
+.lq-ftop :is(.lead,.ft-hero>p,.pd-hero>p):not(.lq-top){font-size:.9rem;line-height:1.45;margin:0 auto 6px}
+.lq-ftop :is(.ft-hero,.pd-hero){padding:10px 16px 14px}.lq-ftop .lq-top{font-size:.75rem;margin-left:-8px;margin-right:-8px}
+[lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}}
+.lq-help-dlg a.lq-help-more{margin-top:8px;background:none;color:#0b5d8f;font-weight:400;text-decoration:underline}</style>
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
     <a class="lq-call-btn lq-helpline-tel" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
@@ -35,14 +58,14 @@
     <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
     <span class="lq-call-mini-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span> <b class="lq-call-mini-n">1323</b></a></span>
 </aside>
-<main class="fs" id="fsApp">
+<main class="fs lq-ftop" id="fsApp">
   <div class="fs-head">
     <span class="eyebrow" data-i18n="fengshui.eyebrow">Feng shui · ฮวงจุ้ย</span>
     <h1 data-i18n="fengshui.h1">ฮวงจุ้ย</h1>
-    <p data-i18n="fengshui.lead" class="lead">หาเลขกัว (八宅) จากวันเกิด ส่องทิศด้วยเข็มทิศ AR วางผังบ้าน 9 ช่องพร้อมดาวประจำปี (年飞星) และแผนผังปากั้ว แล้วรับคำแนะนำจัดบ้านแบบนุ่มนวล สำหรับบูธ อีเวนต์ และงานอสังหาฯ</p>
+    <p data-i18n="fengshui.lead" class="lead">กรอกวันเกิด แล้วรับเลขกัว ทิศมงคล และคำแนะนำจัดบ้านแบบง่าย ๆ</p>
   </div>
 
-  <p class="fs-disclaimer lq-notice" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+  <p class="fs-disclaimer lq-notice lq-top" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
     <span><b class="lq-disc-line"
       data-i18n="fortune.disc.line">เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ</b>
     <span class="lq-notice-more"><span data-i18n="fengshui.disclaimer2">ไม่ใช้แทนคำแนะนำด้านสถาปัตยกรรม ความปลอดภัย สุขภาพ หรือการเงิน และไม่จำเป็นต้องซื้อสิ่งของใดๆ</span></span></span></p>
@@ -69,10 +92,10 @@
         <label class="fs-radio" data-i18n="fengshui.g.n"><input type="radio" name="fsGender" value="n" checked> ไม่ระบุ (แสดงทั้งสองแบบ)</label>
       </fieldset>
       <p class="fs-msg" id="fsKuaMsg" role="status" aria-live="polite"></p>
-      <button data-i18n="fengshui.button1" class="btn primary big" type="submit">คำนวณเลขกัว</button>
+      <button data-i18n="fengshui.button1" class="btn primary big" type="submit" data-lq-read>คำนวณเลขกัว</button>
       <p class="fs-small" data-i18n="fengshui.privacy">วันเกิดใช้คำนวณในเครื่องเท่านั้น ไม่ถูกบันทึกหรือส่งออก · <span id="fsLichunNote"></span></p>
     </form>
-    <div class="fs-kua" id="fsKuaOut" hidden aria-live="polite"></div>
+    <div class="fs-kua" id="fsKuaOut" data-lq-result hidden aria-live="polite"></div>
   </section>
 
   <!-- 2) เข็มทิศ AR -->
@@ -85,7 +108,7 @@
         <div class="fs-ar-read" aria-live="polite"><b id="fsHeadingNum">—</b><span id="fsHeadingDir"></span></div>
       </div>
       <div class="fs-ar-side">
-        <p class="fs-info" id="fsHeadingInfo"></p>
+        <p class="fs-info" id="fsHeadingInfo" data-lq-result></p>
         <div class="fs-row">
           <button data-i18n="fengshui.fsCompassStart" class="btn primary" id="fsCompassStart" type="button">เริ่มเข็มทิศ + กล้อง</button>
           <button data-i18n="fengshui.fsManualToggle" class="btn ghost" id="fsManualToggle" type="button" aria-pressed="false">ตั้งทิศเอง</button>
@@ -108,7 +131,7 @@
           <p class="fs-small"><b data-i18n="fengshui.help.desk">โต๊ะ:</b> <span id="fsHelpDesk"></span></p>
           <p class="fs-small"><b data-i18n="fengshui.help.bed">เตียง:</b> <span id="fsHelpBed"></span></p>
         </details>
-        <ul class="fs-reclist" id="fsRecList"></ul>
+        <ul class="fs-reclist" id="fsRecList" data-lq-result></ul>
         <p class="fs-legend"><span class="lg good"></span><span data-i18n="fengshui.legend.good">ทิศมงคลของคุณ</span> <span class="lg quiet"></span><span data-i18n="fengshui.legend.quiet">ทิศที่ควรจัดให้โปร่ง/ใช้น้อย</span></p>
       </div>
     </div>
@@ -128,10 +151,10 @@
     <p class="fs-small" data-i18n="fengshui.plan.hint">เลือกประเภทห้อง แล้วแตะช่องในผังเพื่อทำเครื่องหมาย (แตะซ้ำเพื่อเอาออก) · หน้าบ้านอยู่ด้านล่างของผัง</p>
     <div class="fs-tools" id="fsTools" role="group" data-i18n-attr="aria-label:fengshui.tools.aria" aria-label="ประเภทห้อง"></div>
     <div class="fs-plan">
-      <div class="fs-grid" id="fsGrid"></div>
+      <div class="fs-grid" id="fsGrid" data-lq-result></div>
       <p class="fs-front" data-i18n="fengshui.front">ด้านหน้าบ้าน / ประตูหลัก</p>
     </div>
-    <div id="fsAdvice"></div>
+    <div id="fsAdvice" data-lq-result></div>
     <div class="fs-photo">
       <h3 data-i18n="fengshui.h31" class="fs-sub">ภาพห้อง (ไม่บังคับ)</h3>
       <p class="fs-small" data-i18n="fengshui.photo.hint">ประเมินความสว่าง โทนสีตามห้าธาตุ และความรกโดยประมาณ ภาพประมวลผลในเครื่อง ไม่ถูกบันทึก</p>
@@ -139,7 +162,7 @@
         <label class="fs-for" data-i18n="fengshui.lbl.photoFor">ภาพนี้เป็นของ<select id="fsPhotoFor"></select></label>
         <label class="btn ghost fs-upload" data-i18n="fengshui.upload">อัปโหลดภาพห้อง<input id="fsPhoto" type="file" accept="image/*"></label>
       </div>
-      <div id="fsPhotoOut"></div>
+      <div id="fsPhotoOut" data-lq-result></div>
     </div>
     <details class="fs-how"><summary data-i18n="fengshui.summary2">หลักการที่ใช้</summary>
       <p class="fs-small" id="fsPeriodNote"></p>
@@ -153,7 +176,7 @@
   <!-- 4) คำทำนาย -->
   <section class="fs-block" id="fsS4" aria-labelledby="fsS4h">
     <h2 id="fsS4h" data-i18n="fengshui.s4h"><span class="n">4</span>คำทำนายและคำแนะนำ</h2>
-    <p class="fs-small" id="fsReadHint"></p>
+    <p class="fs-small" id="fsReadHint" data-lq-result></p>
     <div class="fs-row">
       <label class="fs-for" data-i18n="fengshui.lbl.topic">เรื่องที่สนใจ<select id="fsTopic"><option value="overall" data-i18n="fengshui.topic.overall">ภาพรวม</option><option value="work" data-i18n="fengshui.topic.work">การงาน</option><option value="money" data-i18n="fengshui.topic.money">การเงิน</option><option value="love" data-i18n="fengshui.topic.love">ความรัก</option></select></label>
     </div>
@@ -162,18 +185,18 @@
       <button data-i18n="fengshui.fsReadBtn" class="btn primary big" id="fsReadBtn" type="button">อ่านคำทำนายฮวงจุ้ย</button>
       <button data-i18n="fortune.common.regen" class="btn ghost big" id="fsAgain" type="button" hidden>อ่านอีกสำนวน</button>
     </div>
-    <div class="fs-reading" id="fsReading" hidden>
+    <div class="fs-reading" id="fsReading" data-lq-result hidden>
       <h3 id="fsReadTitle" tabindex="-1" data-i18n="fengshui.readTitle">คำทำนายของคุณ <span class="fs-badge" id="fsSource"></span></h3>
       <p class="fs-small lq-disc-mini"
         data-i18n="fortune.disc.line">เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ</p>
       <div id="fsSections"></div>
-      <div class="fs-extras" id="fsExtras"></div>
+      <div class="fs-extras" id="fsExtras" data-lq-remedy></div>
     </div>
-    <div class="fs-row" id="fsShareRow" hidden>
+    <div class="fs-row" id="fsShareRow" data-lq-result hidden>
       <button data-i18n="fortune.common.share" class="btn primary big" id="fsShare" type="button">แชร์การ์ดผลลัพธ์</button>
       <button data-i18n="fengshui.fsReset" class="btn ghost big" id="fsReset" type="button">เริ่มใหม่ (คนถัดไป)</button>
     </div>
-    <img class="fs-cardimg" id="fsCardImg" data-i18n-attr="alt:fengshui.card.alt" alt="การ์ดผลฮวงจุ้ยสำหรับแชร์" hidden>
+    <img class="fs-cardimg" id="fsCardImg" data-lq-result data-i18n-attr="alt:fengshui.card.alt" alt="การ์ดผลฮวงจุ้ยสำหรับแชร์" hidden>
   </section>
 
   <div class="fs-foot">
@@ -200,16 +223,16 @@
 <button data-i18n="fortune.common.kioskExit" class="btn primary fs-kiosk-exit" id="fsKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 <div class="toast" id="fsToast" role="status"></div>
 
-<script src="i18n/zh-fortune.js?v=10"></script>
+<script src="i18n/zh-fortune.js?v=11"></script>
 <script src="i18n/zh-fortune-fengshui.js?v=5"></script>
 <script src="i18n/zh-kb-fengshui.js?v=1"></script>
-<script src="lensiq-config.js?v=13"></script>
+<script src="lensiq-config.js?v=20"></script>
 <script src="fortune-straight.js?v=6"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
-<script src="fortune-read.js?v=13"></script>
-<script src="lensiq-helpline.js?v=1"></script>
-<script src="fortune-crisis.js?v=12"></script>
-<script src="fortune-ai.js?v=29"></script>
+<script src="fortune-read.js?v=24"></script>
+<script src="lensiq-helpline.js?v=2"></script>
+<script src="fortune-crisis.js?v=22"></script>
+<script src="fortune-ai.js?v=39"></script>
 <script src="fengshui-kb.js?v=3"></script>
 <script src="lensiq-crashguard.js?v=1"></script>
 <script src="lensiq-camera.js?v=7"></script>

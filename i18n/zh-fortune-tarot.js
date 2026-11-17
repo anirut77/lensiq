@@ -5,7 +5,7 @@
   // th: Thai label override for a string whose Thai default lives in page JS owned by the fortune team
   // (no bare "AI" wording; the optional writing assistant is named with its provider for PDPA transparency)
   var dict = { th: { "tarot.srcAI": "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)" }, zh: {
-    "tarot.metaDesc": "完整 78 张 Rider–Waite–Smith 塔罗牌、每日一牌与 28 支求签，为展位和活动增添乐趣。在浏览器中运行，不保存你的问题",
+    "tarot.metaDesc": "完整 78 张 Rider–Waite–Smith 塔罗牌、每日一牌与 28 支求签。在浏览器中运行，不保存你的问题",
     "tarot.disc2": " 请勿用于健康、财务、法律或重要感情方面的决定。",
     "tarot.tabsAria": "选择模式",
     "tarot.step1": "1 提出问题",

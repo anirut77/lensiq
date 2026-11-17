@@ -18,8 +18,8 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="fortune.hub.title">ศาสตร์ดูดวง | LENSIQ</title>
-<meta name="description" content="รวมระบบดูดวง โหงวเฮ้งและลายมืออ่านจากกล้อง ส่วนวันเดือนปีเกิด ไพ่ทาโรต์ เซียมซี อี้จิง 12 นักษัตร ราศีตะวันตก ทำนายฝัน ฮวงจุ้ย และเลขมงคล คำนวณตามหลักตำรา สำหรับสร้างสีสันในบูธและอีเวนต์">
-<link rel="stylesheet" href="styles.css?v=20">
+<meta name="description" content="รวมศาสตร์ดูดวง โหงวเฮ้งและลายมืออ่านจากกล้อง ส่วนวันเดือนปีเกิด ไพ่ทาโรต์ เซียมซี อี้จิง 12 นักษัตร ราศีตะวันตก ทำนายฝัน ฮวงจุ้ย และเลขมงคล คำนวณตามหลักตำรา">
+<link rel="stylesheet" href="styles.css?v=21">
 <link rel="stylesheet" href="products.css?v=3">
 <style>
 .ft{padding:0 0 80px}
@@ -59,10 +59,33 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=24"></script>
-<script src="i18n/zh-fortune.js?v=10"></script>
-<script src="i18n/zh-fortune-hub.js?v=4"></script>
+<script src="nav.js?v=28"></script>
+<script src="i18n/zh-fortune.js?v=11"></script>
+<script src="i18n/zh-fortune-hub.js?v=5"></script>
 <script src="i18n/zh-products.js?v=4"></script>
+<style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
+.lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
+.lq-helpnav a.lq-call-btn[href]:hover{background:#0b5d8f14;color:#094d77}.lq-helpnav .lq-call-mini-t{display:none}
+.lq-helpquiet a.lq-call-btn[href]{gap:4px;padding:0 6px;background:none;color:#0b5d8f;font-size:.88rem}.lq-helpquiet .lq-call-mini-t{display:none}
+.has-help{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"util util util lang" "logo menu menu help"}
+@media(max-width:1023.98px),(pointer:coarse) and (max-height:600px){
+.has-help{grid-template-columns:auto minmax(0,1fr) auto auto auto;grid-template-areas:"logo . help lang toggle"}}
+@media(max-width:479.98px){.has-help{padding:0 12px;column-gap:6px}.has-help .lang-switch:not(.open) [aria-pressed=false]{display:none}}
+.lq-help-dlg{width:min(340px,90vw);margin:auto;padding:18px;border:1px solid #bcd3e6;border-radius:16px;text-align:center}
+.lq-help-dlg::backdrop{background:#0e143073}.lq-help-dlg div{display:flex;gap:10px}
+.lq-help-dlg :is(a,button){display:flex;align-items:center;justify-content:center;flex:1;min-height:48px;border-radius:12px;font:inherit;
+font-weight:700}
+.lq-help-dlg a{background:#0b5d8f;color:#fff}.lq-help-dlg button{border:1px solid #bcd3e6;background:#fff}
+.lq-top{display:block;margin:0 auto 12px;padding:0;border:0;background:none;color:#5a6280;font-size:.8rem;line-height:1.45;text-align:center}
+.lq-top>svg{display:none}.lq-top b{font-weight:400;color:inherit}
+.lq-top :is(button.lq-more,a){display:inline-flex;align-items:center;min-height:44px;margin:-12px 0;padding:0 3px;border:0;
+background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-hero,.pd-hero) .lq-top{color:#c9d0ea}
+:is(.ft-hero,.pd-hero) .lq-top :is(button,a){color:#d9d1ff}@media(max-width:560px){.lq-ftop:not(.ft,.pd){padding-top:6px}
+.lq-ftop .eyebrow{display:none}.lq-ftop h1{font-size:1.5rem;line-height:1.25;margin:2px 0 4px}
+.lq-ftop :is(.lead,.ft-hero>p,.pd-hero>p):not(.lq-top){font-size:.9rem;line-height:1.45;margin:0 auto 6px}
+.lq-ftop :is(.ft-hero,.pd-hero){padding:10px 16px 14px}.lq-ftop .lq-top{font-size:.75rem;margin-left:-8px;margin-right:-8px}
+[lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}}
+.lq-help-dlg a.lq-help-more{margin-top:8px;background:none;color:#0b5d8f;font-weight:400;text-decoration:underline}</style>
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
     <a class="lq-call-btn lq-helpline-tel" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
@@ -70,12 +93,18 @@
     <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
     <span class="lq-call-mini-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span> <b class="lq-call-mini-n">1323</b></a></span>
 </aside>
-<main class="ft">
+<main class="ft lq-ftop">
   <section class="ft-hero">
     <div class="stars" aria-hidden="true"></div>
     <span data-i18n="fortune.hub.eyebrow" class="eyebrow">FORTUNE · ดูดวง</span>
     <h1 data-i18n="fortune.hub.h1">ศาสตร์ดูดวง</h1>
-    <p data-i18n="fortune.hub.lead">รวมศาสตร์ดูดวงยอดนิยมทั้งไทย จีน และตะวันตก — โหงวเฮ้ง ลายมือ วันเดือนปีเกิด ไพ่ทาโรต์ เซียมซี อี้จิง 12 นักษัตร ราศีตะวันตก ทำนายฝัน ฮวงจุ้ย และเลขมงคล ผลลัพธ์สร้างเป็นการ์ดแชร์ลงโซเชียลได้ทันที ช่วยดึงคนเข้าบูธและสร้างการพูดถึงแบรนด์</p>
+    <p data-i18n="fortune.hub.lead">เลือกศาสตร์ที่อยากดู ทั้งไทย จีน และตะวันตก แล้วรับคำทำนายพร้อมคำแนะนำในไม่กี่นาที</p>
+    <p class="ft-note lq-notice lq-top" role="note">
+    <b class="lq-disc-line"
+        data-i18n="fortune.disc.line">เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ</b>
+      <span class="lq-notice-more">
+        <span data-i18n="fortune.hub.note">ผลการดูดวงทุกระบบอ้างอิงตามความเชื่อและศาสตร์ดั้งเดิม ไม่ใช่ข้อเท็จจริงทางวิทยาศาสตร์ ไม่ควรใช้ตัดสินใจเรื่องสำคัญ เช่น การจ้างงาน การเงิน สุขภาพ
+        หรือความสัมพันธ์</span></span></p>
   </section>
   <div class="ft-body">
     <!-- product split (LENSIQ Fortune): lead readings first; every reading stays in "all readings" below -->
@@ -134,18 +163,12 @@
     </div>
     <p class="pd-note pd-team"><span class="pd-tag fun" data-i18n="pd.notAssess">ไม่ใช่การประเมิน</span> <span
       data-i18n="pd.f.team">กิจกรรมทีม: โหงวเฮ้งทีม การ์ดบทบาทสำหรับละลายพฤติกรรม ห้ามใช้คัดเลือกหรือประเมินคน</span> <a href="teamface.html" data-i18n="pd.f.teamA">เปิดโหงวเฮ้งทีม</a></p>
-    <p class="ft-note lq-notice" role="note">
-      <b class="lq-disc-line"
-        data-i18n="fortune.disc.line">เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ</b>
-      <span class="lq-notice-more">
-        <span data-i18n="fortune.hub.note">ผลการดูดวงทุกระบบอ้างอิงตามความเชื่อและศาสตร์ดั้งเดิม ไม่ใช่ข้อเท็จจริงทางวิทยาศาสตร์ ไม่ควรใช้ตัดสินใจเรื่องสำคัญ เช่น การจ้างงาน การเงิน สุขภาพ
-        หรือความสัมพันธ์</span></span></p>
   </div>
 </main>
-<script src="lensiq-config.js?v=13"></script>
+<script src="lensiq-config.js?v=20"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
-<script src="fortune-notice.js?v=4"></script>
-<script src="lensiq-helpline.js?v=1"></script>
-<script src="fortune-crisis.js?v=12"></script>
+<script src="fortune-notice.js?v=5"></script>
+<script src="lensiq-helpline.js?v=2"></script>
+<script src="fortune-crisis.js?v=22"></script>
 </body>
 </html>

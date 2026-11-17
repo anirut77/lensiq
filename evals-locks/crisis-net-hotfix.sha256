@@ -18,6 +18,11 @@ c526d52f4c93d8b0c8c2933c80fcd64ce427ce85f805063b25fdf524386d9b9c  tests/unit/cri
 a51b5a66b400a7b99d20205811fafd44b2dc99a9da80c5b1936245be408bb1a7  crisis-net-hotfix-inventory.json
 # re-lock 2026-11-16 (append-only): inventory v2 adds the 5 inputs of lensiq-merit.js's interest form (found while running merit-crisis.e2e.mjs; created through a helper, so the unit scan does not see them). Rows only; every v1 row unchanged. v1 kept as crisis-net-hotfix-inventory.v1-2026-11-16T06-44Z.json
 a51b5a66b400a7b99d20205811fafd44b2dc99a9da80c5b1936245be408bb1a7  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (v2)
+# RE-LOCK 2026-11-17 (branch crisis-v3): RE-LOCK v3-e2e 2026-11-17 (owner decision 2026-11-17 crisis v3), before these files are run on the product: card assertions replaced by v3 rules a / d; every protection kept (crisis check before validation on every inventoried input via the crisis state, no echo, no sales / remedy / share / print, one number, closing line 44 px, no analytics). Ledger: docs/CRISIS-V3-RELOCKS.md. Copy: ~/LENSIQ-field/evals/crisis-v3/relock-e2e/.
+26179a8d28032eeef736285daf5dc9af17f7716d7f90445215fab7787abf90ad  tests/e2e/crisis-net-hotfix-kit.mjs  # repo file
+30faedf9c260ba9d875d6786eab0ceac657df29246e2e25c196fad73a1ae7700  tests/e2e/crisis-net-hotfix-b.e2e.mjs  # repo file
+# RE-LOCK 2026-11-17 (branch crisis-v3): RE-LOCK v3-e2e-b 2026-11-17: (1) test fault found measuring the build (build-3-e2e.log): English echo pieces are 3 consecutive words, not 5 letters ('night' in 'Knight', 'antto' in 'want to do') in crisis-v3-kit (re-lock 5) and crisis-net-hotfix-kit; (2) v3 re-locks missed in the first pass: fortune-crisis-fields-2 (card -> crisis state, no card; no echo of every variant kept and widened to the whole page) and fortune-helpline WANT (the printed / calm help line is the closing line, rule d). Copy: ~/LENSIQ-field/evals/crisis-v3/relock-e2e-b/.
+8beff8a6dcac921f5e841a24b45b5c13fd75e0d62ce3f106b72b48b30518a7b7  tests/e2e/crisis-net-hotfix-kit.mjs  # repo file
 # ROUND 2 (append-only) locked 2026-11-17 BEFORE the round-2 fix, base 5061f53 + e32a7b2 (reviewer lock). Field copies + guard lock: ~/LENSIQ-field/evals/crisis-net-hotfix-r2/, evals-locks/crisis-net-hotfix-r2.sha256.
 # New: crisis-net-hotfix-e.e2e.mjs (E1 palm map, E2 tarot / iching flag holds + board / report button, E3 daily / siamsee / iching daily, E4 report dialog note, E5 fortune-crisis.js blocked), crisis-input-inventory-2.test.js (scripts injected by nav.js).
 # Re-lock inventory v3: one row added (.lq-rp textarea, lensiq-report.js note + preview); every v2 row unchanged.
@@ -28,3 +33,8 @@ ea5974394ed52531a91e2aea41ae511aadbf7b9b4d9f86f44c743942862d1943  tests/unit/cri
 074e8b3df854f5034f68fc83439f07bf14d18ee5b7b377d6822bc837aaf0a88a  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (v3)
 # re-lock 2026-11-17 (append-only): crisis-net-hotfix-e.e2e.mjs v2: E5 numbers opens the name tab BEFORE the baseline, as in part A (v1 opened it after, so the tab's own label "ชื่อจริง" was counted as an echo of "อยากตายจริงๆ" in TH: found in the first after-fix run, 2/6 TH cases). Assertion unchanged; every other check byte-identical. Field copy: crisis-net-hotfix-r2/crisis-net-hotfix-e.v2.e2e.mjs (v1 kept as crisis-net-hotfix-e.e2e.mjs).
 f312ef6bfa242df5e2052dafeeee29e45b2ef88dd74b801c951ce2a348ed6130  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file (v2)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2, merge of main 02fdd69): v3 re-lock of the merged file(s); see evals-locks/crisis-v3.sha256 (relock-merge) and docs/CRISIS-V3-RELOCKS.md.
+cab9a2be05cc2fce201c40396463cf852636cc20eb0d075c77b2364389478807  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-merge)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): fix-1, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
+e152aae01b86b2998afcc8af6ad382c4a2235ea8d9a35a93ce3bae670589abd8  tests/e2e/fortune-crisis-soft.e2e.mjs  # repo file (relock-fix-1)
+cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-fix-1)

@@ -120,7 +120,7 @@
   let done = 0;
   const go = () => {
     if (done || w.LQShare || !d.querySelector(R + ",#recBox,.ft-hero")) return;
-    done = 1; const s = d.createElement("script"); s.src = "fortune-share.js?v=3"; s.async = true; d.head.appendChild(s);
+    done = 1; const s = d.createElement("script"); s.src = "fortune-share.js?v=4"; s.async = true; d.head.appendChild(s);
   };
   for (const e of ["pointerdown", "touchstart", "keydown", "scroll", "focusin"]) w.addEventListener(e, go, { capture: true, passive: true, once: true });
   const sh = n => n.nodeType === 1 && (n.matches(".fa-section,.rp-part") || !!n.querySelector(".fa-section,.rp-part") || (n.matches(R) && !n.hidden));
@@ -463,8 +463,58 @@
     try { if (root.FortuneAI && root.FortuneAI.registerHooks) root.FortuneAI.registerHooks(HOOK); else (root.LQFortuneHooks = root.LQFortuneHooks || []).push(HOOK); } catch (e) { /* none */ }
   }
 
+  /** crisis v3 stand-in for fortune-crisis.js (fortune-ai.js uses it only when that file failed to load) @param {(t: any) => boolean} crisisCheck */
+  function standIn(crisisCheck) {
+    const d0 = root.document, FT = 'textarea, input:not([type]), input[type="text"], input[type="search"], input[type="tel"]';
+    const CSS = ":is(html[data-lq-crisis],html[data-lq-calm]) :is([data-lq-remedy],[data-lq-upsell],[id$=Share],[id$=Print],[id$=Stats],[data-lq-share],[data-lq-print]," +
+      ".fa-straight,.fa-plan){display:none!important}.lq-call-mini>a.lq-call-btn{display:inline-flex;align-items:center;min-height:44px;min-width:44px}";
+    const W = { th: ["หากมีเรื่องทุกข์ใจ ลองคุยกับคนใกล้ชิด หรือโทร 1323 มีคนพร้อมรับฟัง", "โทร 1323", "ช่องทางให้คำปรึกษา"],
+      en: ["If something weighs on you, talk to someone close, or call 1323. Someone is ready to listen.", "Call 1323", "Counselling services"],
+      zh: ["如果心里有事，可以和身边的人聊聊，或拨打 1323，有人愿意倾听。", "拨打 1323", "咨询服务渠道"] };
+    const L = l => W[l === "en" || l === "zh" ? l : "th"];
+    const on = d => (d || d0).documentElement.getAttribute("data-lq-crisis") === "1";
+    const calm = d => { if (on(d)) return true; try { return root.sessionStorage.getItem("lq-fortune-calm") === "1"; } catch (e) { return false; } };
+    const fields = d => Array.from((d || d0).querySelectorAll(FT)).map(e => /** @type {any} */ (e).value).filter(Boolean).join("\n");
+    const esc = t => String(t).replace(/[&<>"]/g, c => "&#" + c.charCodeAt(0) + ";");
+    const helpHTML = (l, cls) => { const w = L(l); return '<aside class="lq-helpline' + (cls ? " " + esc(cls) : "") + '" role="note"><p class="lq-helpline-warm">' + esc(w[0]) +
+      '</p><span class="lq-call-mini"><a class="lq-call-btn" href="tel:1323"><b>' + esc(w[1]) + '</b></a></span> <span class="lq-helpline-more"><a href="counselling.html">' + esc(w[2]) + "</a></span></aside>"; };
+    // review round 2: the same pattern list as fortune-crisis.js (fortune-crisis-net.js, loaded here only on this failure path)
+    const net = () => /** @type {any} */ (root).LQCrisisNet || (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis-net.js") : null);
+    if (d0 && !net()) { try { const sc = d0.createElement("script"); sc.src = "fortune-crisis-net.js?v=1"; (d0.head || d0.documentElement).appendChild(sc); } catch (e) { /* no DOM */ } }
+    return { check: t => { const N = net(); return !!(N && N.check(t)); }, unjoke: t => t, fields, active: on, calmOn: calm, allow: (k, d) => !calm(d), helpHTML,
+      setActive(d) {
+        const x = d || d0; x.documentElement.setAttribute("data-lq-crisis", "1");
+        try { root.sessionStorage.setItem("lq-fortune-calm", "1"); } catch (e) { /* page-level only */ }
+        if (!x.getElementById("lq-standin-style")) { const st = x.createElement("style"); st.id = "lq-standin-style"; st.textContent = CSS; x.head.appendChild(st); }
+        try { root.dispatchEvent(new root.CustomEvent("lq-crisis")); } catch (e) { /* no events */ }
+      },
+      distress: d => !!crisisCheck(fields(d)), plainName: t => (t && !crisisCheck(t) && String(t).length <= 40 ? t : ""),
+      helpLine(d, l, cls) { const t = (d || d0).createElement("template"); t.innerHTML = helpHTML(l, cls); return t.content.firstChild; } };
+  }
+  /** review round 2 (rule d): when the crisis state starts while a reading is already on screen (e.g. the "report a problem" note),
+   *  ONE closing line is added at the end of that reading's result area; renderSections keeps doing it for later readings */
+  function closeOnCrisis() {
+    try {
+      const d = root.document, R = /** @type {any} */ (root), CR = R.LQFortuneCrisis || (R.FortuneAI && R.FortuneAI.crisis && R.FortuneAI.crisis.api && R.FortuneAI.crisis.api());
+      if (!CR || !CR.helpLine || [...d.querySelectorAll(".lq-helpline-result")].some(e => e.getClientRects().length)) return;
+      const secs = [...d.querySelectorAll(".fa-section")].filter(e => e.getClientRects().length > 0);
+      if (!secs.length) return;
+      const last = secs[secs.length - 1], area = last.closest('[data-lq-result], [id$="Result"], #rpOut') || last.parentElement;
+      const I = R.LQI18N, h = d.documentElement.lang || "th", lang = (I && I.lang) || (/^zh/.test(h) ? "zh" : h.slice(0, 2));
+      area.appendChild(CR.helpLine(d, lang, "lq-helpline-result"));
+    } catch (e) { /* never break the page */ }
+  }
+  if (root.document) {
+    /** @type {any} */ (root).LQCrisisStandIn = standIn;
+    try { root.addEventListener("lq-crisis", () => root.setTimeout(closeOnCrisis, 0)); } catch (e) { /* no events */ }
+    // crisis v3: the operator's on-device reading counter box (the section holding the *Stats counter) is not shown in the session
+    try { const st = root.document.createElement("style"); // review round 2: also on the later (calm) pages of the session
+      st.textContent = ":is(html[data-lq-crisis],html[data-lq-calm]) :is(section:has(>[id$=Stats]),[id$=Stats]){display:none!important}";
+      (root.document.head || root.document.documentElement).appendChild(st); } catch (e) { /* no DOM */ }
+  }
+
   const api = { FA_CSS, OVERVIEW_MAX, LINE, MORE, LESS, TOC, BELIEF, HEADINGS, SEP, MAXLEN, NOTE_MAX, NEVER_COLLAPSE, ICONS, COLOURS,
-    split, plan, planSection, sectionFlags, noticeSplit, colours, adviceKinds, enhance, noticeify, notices, ensureStyle };
+    split, plan, planSection, sectionFlags, noticeSplit, colours, adviceKinds, enhance, noticeify, notices, ensureStyle, standIn };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQRead = api;
 })(typeof window !== "undefined" ? window : globalThis);
 /* BEGIN fortune-restrain.js (copied by tools/fortune-read-embed.mjs; edit fortune-restrain.js, then run it) */
@@ -688,6 +738,90 @@
   root.LQFortuneRestrain = API;
 })(typeof window !== "undefined" ? window : globalThis);
 /* END fortune-restrain.js */
+/* BEGIN fortune-readbar.js (copied by tools/fortune-read-embed.mjs; edit fortune-readbar.js, then run it) */
+/* fortune-readbar.js — sticky "read" bar on the fortune reading pages (owner order 2026-11-16 item 3, review of 08c7b6f:
+ * "the main action is on the first screen" means the button that gives the reading). The page's own read / submit button is
+ * marked data-lq-read; while that button is below the visible area (and no reading is on screen) a compact bar at the bottom
+ * shows a copy of it (same label, page language, 44 px+); a tap clicks the real button, so validation, the crisis net and the
+ * reading flow are the page's own. Hidden when the real button or a reading is on screen, when the page is in the crisis state
+ * (html[data-lq-crisis]) or a help card is shown, and in print. Bottom of the screen only: it never covers the top bar's help
+ * control. Single source; tools/fortune-read-embed.mjs copies it into fortune-read.js (reading pages) and planner.js. */
+(function (root) {
+  "use strict";
+  var doc = root.document;
+  if (!doc || !doc.querySelector || root.__lqReadbar) return;
+  root.__lqReadbar = true;
+  /** @type {any} */ var bar = null, btn = null, real = null, raf = 0;
+  /** @returns {any} */
+  function pick() {
+    var all = doc.querySelectorAll("[data-lq-read]");
+    for (var i = 0; i < all.length; i++) if (all[i].getClientRects().length) return all[i];
+    return null;
+  }
+  function onScreen(e) { var r = e.getBoundingClientRect(); return r.bottom > 0 && r.top < root.innerHeight && r.width > 0; }
+  function readingShown() {
+    var r = doc.querySelectorAll(".fa-section, .fa-support, [data-lq-result]");
+    for (var i = 0; i < r.length; i++) if (r[i].getClientRects().length && onScreen(r[i])) return true;
+    return false;
+  }
+  // a form field has focus, or the on-screen keyboard shrinks the visual viewport: the bar would cover the field (review 2026-11-17)
+  function typing() {
+    var a = doc.activeElement, vv = root.visualViewport;
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !(bar && bar.contains(a))) return true;
+    return !!vv && vv.height < root.innerHeight * 0.75;
+  }
+  function build() {
+    var st = doc.createElement("style");
+    st.textContent = ".lq-readbar{position:fixed;left:0;right:0;bottom:0;z-index:55;padding:8px 16px calc(8px + env(safe-area-inset-bottom));" +
+      "background:rgba(255,255,255,.96);border-top:1px solid #e3e7f0;box-shadow:0 -6px 18px rgba(14,20,48,.08)}" +
+      ".lq-readbar .btn{display:flex;width:100%;max-width:520px;min-height:48px;margin:0 auto}.lq-readbar[hidden]{display:none}" +
+      "@media print{.lq-readbar{display:none!important}}";
+    doc.head.appendChild(st);
+    bar = doc.createElement("div"); bar.className = "lq-readbar"; bar.hidden = true;
+    btn = doc.createElement("button"); btn.type = "button"; btn.className = "btn primary big";
+    btn.addEventListener("click", function (/** @type {any} */ e) {
+      if (!real || real.disabled) return;
+      var y = root.scrollY, r = real;
+      r.click();
+      if (!e.detail) r.focus(); // keyboard: focus moves to the page's own button before the bar hides
+      // the page did not move to its result: bring the form's button (and what it shows below it) into view
+      root.setTimeout(function () { if (root.scrollY === y && r.isConnected) r.scrollIntoView({ block: "center" }); }, 250);
+    });
+    bar.appendChild(btn); doc.body.appendChild(bar);
+  }
+  function sync() {
+    raf = 0;
+    real = pick();
+    var crisis = doc.documentElement.hasAttribute("data-lq-crisis");
+    var show = !!real && !crisis && !typing() && real.getBoundingClientRect().top > root.innerHeight - 8 && !readingShown();
+    if (show && !bar) build();
+    if (!bar) return;
+    if (show) {
+      btn.textContent = (real.textContent || "").replace(/\s+/g, " ").trim();
+      btn.disabled = !!real.disabled;
+    }
+    if (bar.hidden === show) { bar.hidden = !show; doc.body.style.paddingBottom = show ? bar.offsetHeight + "px" : ""; }
+  }
+  function later() { if (!raf) raf = root.requestAnimationFrame(sync); }
+  ["scroll", "resize", "lq-lang"].forEach(function (t) { root.addEventListener(t, later, { passive: true }); });
+  ["input", "change", "click", "focusin", "focusout"].forEach(function (t) { doc.addEventListener(t, later, true); });
+  if (root.visualViewport) root.visualViewport.addEventListener("resize", later);
+  if (root.MutationObserver) {
+    var mo = new root.MutationObserver(function () { sync(); }); // crisis flag / button state: at once, not on the next frame
+    mo.observe(doc.documentElement, { attributes: true, attributeFilter: ["data-lq-crisis"] });
+    // the page enables its button later (dream: after the symbols are found)
+    // the real button entering or leaving the screen (also at the end of a smooth scroll): no polling
+    var io = root.IntersectionObserver ? new root.IntersectionObserver(later) : null;
+    var watch = function () {
+      var r = doc.querySelectorAll("[data-lq-read]");
+      for (var i = 0; i < r.length; i++) { mo.observe(r[i], { attributes: true, attributeFilter: ["disabled"] }); if (io) io.observe(r[i]); }
+    };
+    if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", watch); else watch();
+  }
+  if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", later); else later();
+  root.addEventListener("load", later);
+})(typeof window !== "undefined" ? window : globalThis);
+/* END fortune-readbar.js */
 /* BEGIN lensiq-crisis-takeover.js (copied by tools/fortune-read-embed.mjs; edit lensiq-crisis-takeover.js, then run it) */
 /* lensiq-crisis-takeover.js — crisis-net hotfix 2026-11-16 (docs/INCIDENT-2026-11-16-CRISIS-LEAK.md). Loaded right after
  * fortune-crisis.js on every fortune page with an input or a result (not the fortune.html hub: no input, no result). Uses
@@ -700,14 +834,13 @@
   const CR = () => /** @type {any} */ (root).LQFortuneCrisis || {};
   const FREE_TEXT = 'textarea, input:not([type]), input[type="text"], input[type="search"], input[type="tel"]';
   // round 2: fortune-crisis.js may fail to load: then the crisis state is the <html> flag, the net is FortuneAI's own patterns
-  // (fortune-ai.js) and the page fields are read here, so the early net still shows the card
+  // (fortune-ai.js) and the page fields are read here, so the early net still sets the crisis state (v3: no card)
   const FAC = () => (/** @type {any} */ (root).FortuneAI || {}).crisis || {};
   const ATTR = "data-lq-crisis";
   const active = (/** @type {any} */ d) => !!(CR().active ? CR().active(d) : d && d.documentElement.getAttribute(ATTR) === "1");
   const setActive = (/** @type {any} */ d) => { if (CR().setActive) CR().setActive(d); else d.documentElement.setAttribute(ATTR, "1"); };
   const check = (/** @type {any} */ t) => !!(CR().check ? CR().check(t) : FAC().check && FAC().check(t));
   const fields = (/** @type {any} */ d) => (CR().fields ? CR().fields(d) : Array.from(d.querySelectorAll(FREE_TEXT)).map((/** @type {any} */ e) => e.value).filter(Boolean).join("\n"));
-  const helpLine = (/** @type {any} */ d, /** @type {string} */ l) => CR().helpLine(d, l);
   /* ---------------- crisis-net hotfix 2026-11-16 (owner order a + b; docs/INCIDENT-2026-11-16-CRISIS-LEAK.md) ----------------
      (a) takeover(card): when the support card is shown, NOTHING from the result area stays visible: every result root of the
      page (an element with data-lq-result or an id ending in "Result" or "Stats") is swept: the branch that holds the card stays, every
@@ -747,7 +880,8 @@
       try {
         if (!card.isConnected) return;
         const h = card.querySelector("h3") || card, nav = d.querySelector(".nav");
-        const navB = nav ? Math.max(0, nav.getBoundingClientRect().bottom) : 0, b = h.getBoundingClientRect();
+        const pin = d.getElementById("lqHelpTop"), pinB = pin && w.getComputedStyle(pin).position === "sticky" ? pin.getBoundingClientRect().bottom : 0; // the 1323 icon in the sticky bar
+        const navB = Math.max(0, nav ? nav.getBoundingClientRect().bottom : 0, pinB), b = h.getBoundingClientRect();
         if (b.top < navB + 4 || b.bottom > w.innerHeight - 8) w.scrollTo(0, Math.max(0, w.scrollY + b.top - navB - 12));
       } catch (e) { /* no layout */ }
     };
@@ -772,34 +906,14 @@
       toCard(card);
     } catch (e) { /* never break the card */ }
   }
-  /** the card container for a form or field: data-lq-crisis-slot, else a slot after the form (outside remedy / paid blocks) @param {any} el */
-  function slotFor(el) {
-    const d = el.ownerDocument, form = el.closest ? el.closest("form") || el : el;
-    const sel = form.getAttribute && form.getAttribute("data-lq-crisis-slot"), named = sel ? d.querySelector(sel) : null;
-    if (named) return named;
-    const after = (form.closest && form.closest("[data-lq-remedy], [data-lq-upsell]")) || form;
-    let slot = after.nextElementSibling;
-    if (!(slot && slot.classList.contains("lq-crisis-slot"))) { slot = d.createElement("div"); slot.className = "lq-crisis-slot"; slot.tabIndex = -1; after.insertAdjacentElement("afterend", slot); }
-    return slot;
-  }
-  /** show the support card in slot (FortuneAI draws it; renderSupport calls takeover) @param {any} slot */
-  function cardIn(slot) {
-    const FA = /** @type {any} */ (root).FortuneAI, d = slot.ownerDocument;
-    for (let a = slot; a && a !== d.body; a = a.parentElement) { a.removeAttribute(HIDE); if (a.hidden) a.hidden = false; }
-    const lang = (root.LQI18N && root.LQI18N.lang) || "th";
-    if (FA && FA.crisis && FA.crisis.render) FA.crisis.render(slot, FA.crisis.result({ lang: lang === "en" || lang === "zh" ? lang : "th" }));
-    else { setActive(d); slot.textContent = ""; slot.appendChild(helpLine(d, lang)); }
-    takeover(slot);
-    try { slot.focus({ preventScroll: true }); } catch (e) { /* no focus */ }
-  }
   /** (b) the crisis net first: true when it stopped the event and showed the card @param {any} el form or field @param {string} [text] */
   function first(el, text) {
     try {
       const d = el && el.ownerDocument;
       if (!d) return false;
       if (!(active(d) || check(text != null ? text : fields(d)))) return false;
-      cardIn(slotFor(el));
-      return true;
+      setActive(d); // crisis v3 (owner decision 2026-11-17): the flag first, then the page goes on (no card; closing line at the end)
+      return false;
     } catch (e) { return false; }
   }
   const LIVE = 'input[type="search"], input[type="tel"], [data-lq-crisis-live]';

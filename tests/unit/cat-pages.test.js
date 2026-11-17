@@ -216,7 +216,8 @@ test("accuracy lines are tied to docs/ACCURACY-CLAIMS.md rows or quoted source f
 
 test("support pages: directory / notice / info / legal / account pages carry no readiness status", () => {
   const support = Object.entries(D.PAGES).filter(([, v]) => v.st === "support").map(([p]) => p).sort();
-  assert.deepEqual(support, [...D.PLATFORM, "index", "admin", "cameras", "gate-notice"].sort());
+  // counselling: added 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): a support page outside the menus (UNLINKED)
+  assert.deepEqual(support, [...D.PLATFORM, "index", "admin", "cameras", "gate-notice", "counselling"].sort());
   for (const p of support) assert.ok(D.PAGES[p].claims.every(id => D.CLAIMS[id].src === "na"), p + ": support page with a measured claim");
   const md = readFileSync(join(ROOT, "docs", "PAGE-STATUS.md"), "utf8");
   assert.match(md, new RegExp(`\\*\\*${Object.keys(D.PAGES).length - support.length} product pages\\*\\*`));

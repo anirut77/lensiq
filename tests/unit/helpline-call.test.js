@@ -200,7 +200,8 @@ test("B1: fortune-ai's support card lines come from the component (same numbers,
   for (const lang of LANGS) {
     const s = FA.crisis.result({ lang }).support;
     const ids = s.lines.map(l => l.id);
-    assert.deepEqual(ids, IDS, lang + ": card lines are the component's, in order");
+    // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the card has one line, 1323 (the others are on counselling.html)
+    assert.deepEqual(ids, ["1323"], lang + ": card line is the component's 1323");
     for (const l of s.lines) {
       assert.equal(String(l.tel), L.LINES[l.id].tel, lang + " " + l.id + " tel");
       assert.equal(l.t, L.LINES[l.id][lang].sub, lang + " " + l.id + " second line from the component");

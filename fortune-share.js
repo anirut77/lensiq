@@ -20,7 +20,9 @@
 (function (root) {
   "use strict";
   const NODE = typeof module !== "undefined" && module.exports && typeof require === "function";
-  const crisis = () => (NODE ? require("./fortune-crisis.js") : root.LQFortuneCrisis) || null;
+  // crisis v3: when fortune-crisis.js failed to load, use the stand-in fortune-ai.js runs (FortuneAI.crisis.api())
+  const crisis = () => (NODE ? require("./fortune-crisis.js") : root.LQFortuneCrisis ||
+    (root.FortuneAI && root.FortuneAI.crisis && root.FortuneAI.crisis.api && root.FortuneAI.crisis.api())) || null;
 
   /* ---------- words (TH / EN / ZH) ---------- */
   const LINE = {
@@ -173,7 +175,13 @@
   /** share / print allowed on this page: not in the crisis state, not calm, no distress words in the page's fields */
   function allowed(doc) {
     const C = crisis();
-    if (!C || !C.allow) return true;
+    if (!C || !C.allow) { // no crisis module at all: refuse in the crisis / calm state (fail closed), as the page CSS does
+      try {
+        const e = (doc || root.document).documentElement;
+        if (e.getAttribute("data-lq-crisis") === "1" || e.hasAttribute("data-lq-calm")) return false;
+        return !(root.sessionStorage && root.sessionStorage.getItem("lq-fortune-calm") === "1");
+      } catch (e) { return false; }
+    }
     try {
       if (!C.allow("share", doc)) return false;
       const d = doc || root.document;

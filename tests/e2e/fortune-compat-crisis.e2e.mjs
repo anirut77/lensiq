@@ -11,6 +11,12 @@
 // [data-compat-overview], no category section, no map); no echo: no 4-character piece (2 for Chinese) of the typed phrase
 // appears in visible page text outside the card and the help line unless it was there before typing (input values are not text).
 // Also R: a reading on screen is cleared when the next request fails validation (old results never stay on the page).
+// RE-LOCK 2026-11-17 (crisis v3, owner decision 2026-11-17; branch crisis-v3-2; ledger docs/CRISIS-V3-RELOCKS.md): "the card replaces
+// everything" -> the crisis state is set by the typing / the button, no card or soft step, no 1669; N (consent ticked, valid dates):
+// the reading goes on and ends with one closing line holding tel:1323 only; Y (no consent): no reading (the consent message, as for
+// anyone). No echo kept, with the v3 piece sizes (7 Thai / 3 Chinese characters, 3 English words, plus the whole phrase; the reading is
+// now shown, so 4 / 2-character pieces match its ordinary words); the fixed closing line is left out of the compared text like the
+// top bar.
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -30,10 +36,14 @@ function phrases() {
   return [...new Set(all)];
 }
 const TEXT = `(() => { const c = document.body.cloneNode(true);
-  c.querySelectorAll(".fa-support, #lqHelpTop, script, style, input, select, textarea, option").forEach(e => e.remove());
+  c.querySelectorAll(".fa-support, #lqHelpTop, .lq-helpline-result, script, style, input, select, textarea, option").forEach(e => e.remove());
   return c.innerText.replace(/\\s+/g, ""); })()`;
 const STATE = `(() => { const r = document.getElementById("cpResult"); const vis = e => !!e && e.getClientRects().length > 0;
-  return { card: vis(r.querySelector(".fa-support")) && !!r.querySelector('a[href="tel:1323"]') && !!r.querySelector('a[href="tel:1669"]'),
+  const close = [...r.querySelectorAll(".lq-helpline")].filter(vis), last = r.lastElementChild;
+  return { card: [...document.querySelectorAll(".fa-support, .fa-soft")].some(vis), state: document.documentElement.getAttribute("data-lq-crisis") === "1",
+    tel1669: [...document.querySelectorAll('a[href="tel:1669"]')].some(vis),
+    lines: close.length, tels: close.length ? [...close[0].querySelectorAll('a[href^="tel:"]')].map(a => a.getAttribute("href")) : [],
+    atEnd: close.length === 1 && !!last && (last === close[0] || last.contains(close[0])),
     reading: !!(r.querySelector("[data-compat-overview]") || r.querySelector(".cp-cat") || r.querySelector("[data-compat-map]")),
     soft: vis(r.querySelector(".fa-soft")), msg: (document.getElementById("cpMsg") || {}).innerText || "" }; })()`;
 const fillDate = (sel, p) => `(() => { const fs = document.querySelector(${S(sel)});
@@ -54,9 +64,11 @@ async function type(page, sel, text) {
   await sleep(150);
 }
 function noEcho(before, after, phrase) {
-  const p = phrase.replace(/\s+/g, ""), n = /[一-鿿]/.test(p) ? 2 : 4, bad = [];
-  for (let i = 0; i + n <= p.length; i++) { const piece = p.slice(i, i + n); if (after.includes(piece) && !before.includes(piece)) bad.push(piece); }
-  return bad;
+  const t = phrase.toLowerCase().replace(/\s+/g, ""), words = phrase.toLowerCase().split(/\s+/).filter(Boolean), subs = new Set([t]);
+  const a = after.toLowerCase(), b = before.toLowerCase();
+  if (!/[\u0E00-\u0E7F\u3400-\u9fff]/.test(t) && words.length >= 3) for (let i = 0; i + 3 <= words.length; i++) subs.add(words.slice(i, i + 3).join(""));
+  else { const n = /[\u3400-\u9fff]/.test(t) ? 3 : /[\u0E00-\u0E7F]/.test(t) ? 7 : 5; for (let i = 0; i + n <= t.length; i++) subs.add(t.slice(i, i + n)); }
+  return [...subs].filter(p => a.includes(p) && !b.includes(p));
 }
 
 export default async function ({ base, launch, check }) {
@@ -65,7 +77,9 @@ export default async function ({ base, launch, check }) {
   try {
     await check(`phrase list: ${list.length} phrases from the locked lists`, async () => { assert(list.length >= 65, "phrases: " + list.length); });
     for (const [mode, sel] of [["N", "#cpNick0"], ["Y", '[data-cp-person="0"] input[name=y]']]) {
-      await check(`${mode} every phrase typed into ${mode === "N" ? "the nickname (consent ticked)" : "the year field (no consent)"}: the card replaces everything, no echo`, async () => {
+      const what = mode === "N" ? "the nickname (consent ticked)" : "the year field (no consent)";
+      const then = mode === "N" ? "the reading goes on with the closing line at the end" : "no reading";
+      await check(`${mode} every phrase typed into ${what}: crisis state, no card, ${then}, no echo (v3)`, async () => {
         const bad = [];
         for (const [i, phrase] of list.entries()) {
           const lang = LANGS[i % 3];
@@ -79,9 +93,14 @@ export default async function ({ base, launch, check }) {
             const before = await page.evaluate(TEXT);
             await type(page, sel, phrase);
             await page.evaluate(`(() => { document.getElementById("cpGo").click(); return true; })()`);
+            // v3: in mode N the reading is computed (the engine may still be loading); wait for it, then let the closing line settle
+            if (mode === "N") { try { await page.waitFor(`!!document.querySelector("#cpResult [data-compat-overview]")`, 15000); } catch (e) { /* judged below */ } }
             await sleep(700);
             const st = await page.evaluate(STATE), after = await page.evaluate(TEXT), echo = noEcho(before, after, phrase);
-            if (!st.card || st.reading || echo.length) bad.push(`[${lang}] ${phrase}: ${S({ card: st.card, reading: st.reading, soft: st.soft, msg: st.msg.slice(0, 60), echo })}`);
+            const ok = st.state && !st.card && !st.tel1669 && !echo.length &&
+              (mode === "N" ? st.reading && st.lines === 1 && S(st.tels) === S(["tel:1323"]) && st.atEnd : !st.reading);
+            const got = { state: st.state, card: st.card, reading: st.reading, lines: st.lines, tels: st.tels, atEnd: st.atEnd, msg: st.msg.slice(0, 60), echo };
+            if (!ok) bad.push(`[${lang}] ${phrase}: ${S(got)}`);
           } finally { await page.close(); }
         }
         assert(bad.length === 0, `${bad.length} of ${list.length} phrases:\n` + bad.join("\n"));

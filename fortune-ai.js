@@ -587,8 +587,7 @@
       return Array.from(s.segment("ทิศพายัพ")).length >= 2 ? s : null;
     } catch (e) { return null; }
   })();
-  let SEG = SEG0;
-  const segCache = new Map();
+  let SEG = SEG0; const segCache = new Map();
   // ตำแหน่งรอยต่อคำ (ไม่รวมต้น/ท้ายข้อความ)
   function cuts(text) {
     let c = segCache.get(text);
@@ -642,6 +641,9 @@
      slipped past the filters and the crisis patterns; they all run on the canonical copy (lensiq-thai-canon.js) */
   /** @param {any} s @returns {string} */
   const canon = s => { const C = TC || (TC = typeof require === "function" ? require("./lensiq-thai-canon.js") : root.LQThaiCanon); return C ? C.canon(s) : String(s ?? "").normalize("NFC"); }; /* owner decision 2026-11-14: no JA / KO script to AI (LQThaiCanon.withoutJaKo; the Worker drops it again) */ const jk = (/** @type {any} */ f) => { canon(""); return TC && TC.withoutJaKo ? TC.withoutJaKo(f) : f; };
+  const CALM_T = { th: "การดูแลตัวเอง", en: "Taking care of yourself", zh: "照顾自己" }, CALM_P = { th: "ช่วงนี้ลองดูแลตัวเองเบา ๆ พักผ่อนให้พอ กินข้าวให้ตรงเวลา และเล่าเรื่องในใจให้คนที่ไว้ใจฟังบ้าง",
+      en: "For now, be gentle with yourself: rest enough, eat regular meals, and share what is on your mind with someone you trust.", zh: "这段时间对自己温柔一点：好好休息，按时吃饭，也可以把心里的事说给信任的人听。" },
+    REM_W = /เคล็ด|ข้อแนะนำทั่วไปคือ|A simple adjustment|สีมงคล|สีเสื้อมงคล|ธาตุเสริม|ทำบุญ|วิธีปรับ|เสริมดวง|lucky colou?r|remed|luck tip|幸运色|开运|调整的方法|化解/i;
   let STRAIGHT = false, CALM = false, /** @type {any} */ TC = null; // CALM: crisis net / soft step / support card active on the page (no straight, no remedies)
   const preHL = t => canon(t || "").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
   const hardLimit = text => FS.hardLimit(preHL(text));
@@ -715,8 +717,7 @@
     return x.index === 0 ? "it" + m.slice(x[0].length) : m.slice(0, x.index) + "this " + g.split(" ").pop() + m.slice(x.index + x[0].length);
   }
   function zhEchoPronoun(m, g) {
-    const i = m.indexOf(g); if (i < 0) return m;
-    const pre = m.slice(Math.max(0, i - 2), i), cut = /你的$/.test(pre) ? 2 : 0;
+    const i = m.indexOf(g); if (i < 0) return m; const pre = m.slice(Math.max(0, i - 2), i), cut = /你的$/.test(pre) ? 2 : 0;
     return i === 0 ? "它" + m.slice(g.length) : m.slice(0, i - cut) + (/数$/.test(g) ? "这个数" : "它") + m.slice(i + g.length);
   }
   const digitsKept = (name, m) => (String(name).match(/\d+/g) || []).every(d => String(m).indexOf(d) >= 0);
@@ -764,8 +765,7 @@
   // "เงิน" เดี่ยว ๆ ในรายการสีเขียนเป็น "สีเงิน" (ไม่ให้อ่านเป็นเรื่องเงิน)
   const colorList = arr => thaiList(Array.from(new Set(arr.flatMap(c => String(c).split(/\s*(?:และ|หรือ|,|、|\/)\s*/)).map(x => x.trim()).filter(Boolean))).map((x, i) => (i && x === "เงิน" ? "สีเงิน" : x)));
   const thaiList = (arr, sp) => arr.length <= 1 ? (arr[0] || "") : arr.slice(0, -1).join(" ") + (sp ? " และ " : " และ") + arr[arr.length - 1];
-  const CJK_RE = /[⺀-鿿豈-﫿]/;
-  const CJK_PAREN = /\s*[(（][^()（）]*[⺀-鿿豈-﫿][^()（）]*[)）]/g;
+  const CJK_RE = /[⺀-鿿豈-﫿]/, CJK_PAREN = /\s*[(（][^()（）]*[⺀-鿿豈-﫿][^()（）]*[)）]/g;
   // คำออกตัวซ้อนกัน เช่น "ว่ากันว่าตามความเชื่อแล้ว คุณ…" → "ว่ากันว่าคุณ…"
   const DOUBLE_HEDGE = /(ว่ากันว่า|เชื่อกันว่า|ตามตำราเชื่อว่า|มีแนวโน้มว่า|ดูเหมือนว่า|ตามตำรามักตีความว่า|ในทางตำรามักตีความว่า|ในความเชื่อหมายความว่า|ซึ่งตามความเชื่อหมายถึง|ตามความเชื่อแล้วบอกว่า)\s*(?:ตามความเชื่อ(?:แล้ว)?|ว่ากันว่า|เชื่อกันว่า|ตามตำราเชื่อว่า)\s*/g;
   // คำซ้ำจากรอยต่อแม่แบบ เช่น "ลอง" + "ลองฟัง…" → "ลองฟัง…" (เฉพาะคำที่ซ้อนกันแล้วผิดไวยากรณ์แน่นอน)
@@ -2317,17 +2317,18 @@
     max = max || 90;
     let t = cleanMeaning(m);
     for (let k = 0; k < 2; k++) t = t.replace(GIST_STRIP, "").trim();
-    const sp = splitLead(t); if (sp && sp.kind !== "wa") t = sp.rest;
-    const parts = t.split(" ");
-    let out = "";
-    for (const p of parts) {
-      const next = out ? out + " " + p : p;
-      if (out && next.length > max) break;
-      out = next;
-      if (out.length >= 44 && /[^\d]$/.test(out)) break;
-    }
-    return out.replace(/(?:และ|ซึ่ง|ที่|เพราะ|แต่|หรือ|คือ|ว่า)$/, "").trim();
+    const sp = splitLead(t); if (sp && sp.kind !== "wa") t = sp.rest; if (t.length <= max) return t; // fits: no cut (decision 90 ข)
+    const sp1 = [...t.matchAll(/\s/g)].map(x => x.index).filter(i => i > 0), sg = SEGW ? Array.from(SEGW.segment(t), g => g.index).filter(i => i > 0 && !/^(?:ที่|ๆ|ฯ)/.test(t.slice(i))) : [];
+    // cut at a space (else a Segmenter word edge), never before ๆ/ที่, inside brackets/quotes or label|number; clause edges first
+    const score = i => { const a = t.slice(0, i).trimEnd(), b = t.slice(i).trimStart(), ok = a.length <= max && a.length >= 20 && gistBal(a);
+      return !ok || /^[ๆฯ\d๐-๙]/.test(b) || /[\d๐-๙]$/.test(a) ? -1 : (a.length >= 44 ? 1e4 : 0) + (/[.!?;,:。]$/.test(a) ? 2e3 : GIST_CLAUSE.test(b) ? 1e3 : 0) + a.length; };
+    const top = cuts => cuts.reduce((m, i) => (score(i) > (m < 0 ? -1 : score(m)) ? i : m), -1), at = top(sp1) >= 0 ? top(sp1) : top(sg);
+    if (at < 0) return t; const best = t.slice(0, at).trimEnd(), tail = /(?:และ|ซึ่ง|ที่|เพราะ|แต่|หรือ|คือ|ว่า)$/.exec(best), c = tail ? best.slice(0, -tail[0].length) : "";
+    const own = c && (/\s$/.test(c) || (tail[0] !== "ที่" && SEGW && Array.from(SEGW.segment(best)).pop().segment === tail[0]));
+    return (own && c.trim().length >= 20 && !/[\d๐-๙]$/.test(c.trim()) ? c : best).replace(/[\s,;:]+$/, "").trim();
   }
+  const GIST_CLAUSE = /^(?:แต่|และ|เพราะ|ซึ่ง|โดย|ส่วน|หรือ|จึง|ทำให้|เพื่อ|ถ้า|หาก|เมื่อ|แล้ว|จน|ขณะ)/, GIST_PAIRS = ["\"\"", "()", "[]", "（）", "「」", "“”"];
+  const gistBal = a => GIST_PAIRS.every(([o, c]) => { let d = 0; for (const x of a) if ((d += x === o ? (o === c && d ? -1 : 1) : x === c ? -1 : 0) < 0) return !1; return !d; });
   function buildSummary(ctx, topicId) {
     const F = ctx.F, lines = [];
     const ov = ctx.secMeanings.overview || [];
@@ -2401,8 +2402,14 @@
     : lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH);
   /* compose: เลือกโหมดก่อน แล้วเรียกตัวเรียบเรียงเดิม — ตาข่ายวิกฤตมาก่อนเสมอเมื่อเป็นโหมดตรง (ข้อ 3) */
   function compose(facts, opts = {}) {
-    const calm = FS.calm ? FS.calm() : false, straight = !calm && (opts.straight != null ? !!opts.straight : straightActive());
-    if (straight && crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
+    // crisis v3 (2026-11-17): a crisis signal sets the flag; the reading is composed calm (gentle, no extras, no plan), never straight, no echo
+    const hit = crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText());
+    if (hit) {
+      if (CR && CR.setActive) CR.setActive();
+      facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: undefined });
+      opts = Object.assign({}, opts, { userText: "", straight: false });
+    }
+    const calm = hit || (FS.calm ? FS.calm() : false), straight = !calm && (opts.straight != null ? !!opts.straight : straightActive());
     const prev = STRAIGHT, prevC = CALM, prevR = CREC, prevF = FILLS;
     STRAIGHT = straight; CALM = calm; CREC = []; FILLS = { rec: [], F: facts };
     try {
@@ -2413,7 +2420,11 @@
         const src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : []; if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, L === "en" ? REMEDY_EN : REMEDY);
         out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
       }
-      if (calm && out) delete out.plan; return out;
+      // calm / crisis (hard limit 3): no plan, no remedy; the advice section stays (rule a) under a plain title without remedy wording
+      if (calm && out) { delete out.plan; if (Array.isArray(out.sections)) out.sections = out.sections.map(x => x.id !== "advice" ? x : Object.assign({}, x, { title: CALM_T[out.lang] || CALM_T.th,
+        paragraphs: (x.paragraphs || []).filter(pp => !REM_W.test(JSON.stringify(pp))) })).filter(x => x.id !== "advice" || x.paragraphs.length);
+        const L2 = out.lang in CALM_T ? out.lang : "th"; // a calm reading always keeps a self-care advice section (review round 2)
+        if (Array.isArray(out.sections) && !out.sections.some(x => x.id === "advice")) out.sections.push({ id: "advice", title: CALM_T[L2], paragraphs: [CALM_P[L2]] }); } return out;
     } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; FILLS = prevF; }
   }
   function composeBase(facts, opts = {}) {
@@ -4123,7 +4134,7 @@
 
   /* ======================= รอบ 11: ตาข่ายความปลอดภัยเมื่อผู้ใช้อาจอยู่ในภาวะวิกฤต =======================
      ถ้าข้อความที่ผู้ใช้พิมพ์เอง (เล่าความฝัน ชื่อเล่น คำถาม) มีคำเรื่องทำร้ายตัวเอง/อยากตาย หรือถูกทำร้าย/ล่วงละเมิด (TH/EN/ZH)
-     → ไม่แสดงคำทำนาย แสดงการ์ดช่วยเหลือที่สงบ พร้อมสายด่วนสุขภาพจิต 1323 และเบอร์ฉุกเฉิน 1669 / 191 (และ 1300 สำหรับความรุนแรง)
+     → ไม่แสดงคำทำนาย แสดงการ์ดช่วยเหลือที่สงบ พร้อมปุ่มโทรสายด่วนสุขภาพจิต 1323 ปุ่มเดียว และลิงก์ "ช่องทางให้คำปรึกษา" (counselling.html: เบอร์อื่นทั้งหมด)
      ไม่เก็บข้อความของผู้ใช้ ไม่ส่งออกนอกเครื่อง (นับเฉพาะจำนวนครั้งในเครื่อง ไม่มีเนื้อหา)
      REVIEW: ถ้อยคำในการ์ดยังไม่ได้ผ่านการตรวจโดยผู้เชี่ยวชาญด้านสุขภาพจิตชาวไทย (reviewStatus = "pending-professional-review")
      ต้องให้ผู้เชี่ยวชาญตรวจก่อนอ้างว่าเป็นถ้อยคำที่ผ่านการรับรอง */
@@ -4132,7 +4143,9 @@
   const CRISIS_ZH = new RegExp("自杀|自尽|轻生|想死(?!的心)|不想活|活不下去|活着没意思|活着好累|活着没有意义|不想再醒来|不想醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|" +
     "被(?:人)?(?:打|殴打|袭击|虐待|性侵|强奸|侵犯|猥亵)|性侵|强奸|(?:他|她|老公|老婆|丈夫|妻子|男朋友|女朋友|爸爸|妈妈|继父|继母)(?:经常|总是|一直)?(?:打|殴打|虐待)我");
   // fortune-crisis.js (review 2026-11-12): the widened net (tone-mark-insensitive Thai, traditional Chinese, slang) + every free-text field
-  const CR = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis.js") : root.LQFortuneCrisis) || null;
+  // crisis v3: when fortune-crisis.js fails to load, the stand-in in lensiq-crisis-takeover.js keeps the v3 rules (hotfix-e E5)
+  const CR = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis.js") : root.LQFortuneCrisis) ||
+    (root.LQCrisisStandIn ? root.LQCrisisStandIn(crisisCheck) : null);
   const pageText = doc => (CR ? CR.fields(doc) : "");
   function crisisCheck() {
     for (let i = 0; i < arguments.length; i++) {
@@ -4141,70 +4154,56 @@
     }
     return false;
   }
+  /* Owner decision 2026-11-16 (crisis one-number rules): ONE number, ONE button, far fewer words, nothing interrupts reading.
+     The card reads, in this order: a short title, two or three short warm lines (warm), "อ่านเพิ่มเติม" (a closed <details> with
+     the longer text: more), the free comforting guidance (guide: no belief remedy, no price; hard limit 3), the 1323 call button,
+     then one small text link "ช่องทางให้คำปรึกษา" to counselling.html, where 1669, 191, 1300 and Samaritans are listed. No list,
+     nothing sticky. The wording keeps the reviewed card's spirit, shortened; it is on the mental-health professional's review
+     list (L63: "reduced card: one number, button after the text, other numbers on a separate page"). */
   const SUPPORT = {
-    th: {
-      title: "ขอหยุดคำทำนายไว้ก่อน",
-      lead: "ขอบคุณที่เล่าให้ฟัง สิ่งที่คุณพิมพ์มาฟังดูหนักใจ และสำคัญกว่าคำทำนายใด ๆ ตอนนี้เราจึงขอไม่อ่านดวงให้",
-      body: "ถ้าคุณกำลังคิดทำร้ายตัวเอง รู้สึกไม่ปลอดภัย หรือมีคนทำร้ายคุณ คุณไม่ต้องเผชิญเรื่องนี้คนเดียว มีคนพร้อมรับฟังและช่วยเหลือ",
-      after: "ถ้าทำได้ ลองบอกคนที่คุณไว้ใจสักคนว่ากำลังรู้สึกอย่างไร หรือไปที่โรงพยาบาลใกล้บ้าน ถ้าอยู่นอกประเทศไทย โทรเบอร์ฉุกเฉินของประเทศนั้น",
-      foot: "ข้อความนี้ไม่ได้บันทึกหรือส่งไปที่ใด · ถ้อยคำบนการ์ดนี้กำลังรอผู้เชี่ยวชาญด้านสุขภาพจิตตรวจทาน",
-      call: "โทร",
-    },
-    en: {
-      title: "Let's pause the reading",
-      lead: "Thank you for telling us. What you wrote sounds heavy, and it matters more than any reading, so we will not give a fortune right now.",
-      body: "If you are thinking about hurting yourself, feel unsafe, or someone is hurting you, you do not have to face this alone. People are ready to listen and help.",
-      after: "If you can, tell someone you trust how you feel, or go to the nearest hospital. Outside Thailand, call your local emergency number.",
-      foot: "Nothing you typed was saved or sent anywhere · The wording on this card is awaiting review by a mental-health professional",
-      call: "Call",
-    },
-    zh: {
-      title: "先暂停这次解读",
-      lead: "谢谢你愿意说出来。你写下的内容听起来很沉重，这比任何解读都重要，所以现在我们先不做占卜。",
-      body: "如果你正在想伤害自己、觉得不安全，或者有人在伤害你，你不需要独自面对。有人愿意倾听并提供帮助。",
-      after: "如果可以，请告诉一位你信任的人你现在的感受，或者去最近的医院。如果你不在泰国，请拨打当地的紧急电话。",
-      foot: "你输入的内容没有被保存或发送 · 这张卡片的措辞正在等待心理健康专业人士审阅",
-      call: "拨打",
-    },
+    th: { title: "ขอหยุดคำทำนายไว้ก่อน", moreLabel: "อ่านเพิ่มเติม", call: "โทร", warm: "ขอบคุณที่เล่าให้ฟัง เรื่องนี้ฟังดูหนักใจ คุณไม่ต้องเผชิญมันคนเดียว",
+      guide: "ลองหายใจช้า ๆ สักครู่ ถ้ามีคนที่คุณไว้ใจ ลองเล่าให้เขาฟังว่ากำลังรู้สึกอย่างไร",
+      more: ["สิ่งที่คุณพิมพ์มาสำคัญกว่าคำทำนายใด ๆ ตอนนี้เราจึงขอไม่อ่านดวงให้", "ถ้าคุณกำลังคิดทำร้ายตัวเอง รู้สึกไม่ปลอดภัย หรือมีคนทำร้ายคุณ มีคนพร้อมรับฟังและช่วยเหลือเสมอ " +
+        "ถ้าอยู่ในอันตรายตอนนี้ ไปที่โรงพยาบาลใกล้บ้านได้ ถ้าอยู่นอกประเทศไทย โทรเบอร์ฉุกเฉินของประเทศนั้น",
+        "ข้อความนี้ไม่ได้บันทึกหรือส่งไปที่ใด · ถ้อยคำบนการ์ดนี้กำลังรอผู้เชี่ยวชาญด้านสุขภาพจิตตรวจทาน"] },
+    en: { title: "Let's pause the reading", moreLabel: "Read more", call: "Call", warm: "Thank you for telling us. You don't have to face this alone.",
+      guide: "Take a slow breath. If there is someone you trust, try telling them how you feel.",
+      more: ["What you wrote matters more than any reading, so we will not give a fortune right now.", "If you are thinking about hurting yourself, feel unsafe, or someone " +
+        "is hurting you, people are ready to listen and help. If you are in danger now, go to the nearest hospital. Outside Thailand, call your local emergency number.",
+        "Nothing you typed was saved or sent anywhere · The wording on this card is awaiting review by a mental-health professional"] },
+    zh: { title: "先暂停这次解读", moreLabel: "阅读更多", call: "拨打", warm: "谢谢你愿意说出来。这听起来很沉重，你不需要独自面对。", guide: "先慢慢地呼吸一下。如果身边有你信任的人，试着告诉对方你现在的感受。",
+      more: ["你写下的内容比任何解读都重要，所以现在我们先不做占卜。", "如果你正在想伤害自己、觉得不安全，或者有人在伤害你，有人愿意倾听并提供帮助。如果你现在有危险，请去最近的医院。如果你不在泰国，请拨打当地的紧急电话。",
+        "你输入的内容没有被保存或发送 · 这张卡片的措辞正在等待心理健康专业人士审阅"] },
   };
-  // help lines on the card: the shared tap-to-call component (lensiq-helpline.js, owner order 2026-11-14 Part B), in its order
-  // 1323, 1669, 191, 1300, Samaritans; numbers and hours verified in docs/CRISIS-RESOURCES.md (checked 2026-11-14)
+  // the card's one call button: the shared component (lensiq-helpline.js), 1323 only (verified in docs/CRISIS-RESOURCES.md); the others: counselling.html
   const callKit = () => (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : root.LQHelpline) || null;
-  const supportLines = lang => (callKit() ? callKit().cardLines(lang) : ["1323", "1669", "191", "1300", "021136789"].map(n => ({ id: n.length > 4 ? "samaritans" : n, n, tel: n, btn: n, t: "" })));
+  const supportLines = lang => (callKit() ? callKit().cardLines(lang).filter(l => l.id === "1323") : [{ id: "1323", n: "1323", tel: "1323", btn: "1323", t: "" }]);
+  const counselText = lang => ({ th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" }[lang] || "ช่องทางให้คำปรึกษา");
   function supportResult(opts) {
     const lang = langOf(opts), S0 = Object.assign({}, SUPPORT[lang] || SUPPORT.th, { lines: supportLines(lang) });
-    try { const ls = root.localStorage; if (ls) ls.setItem("lq-support-n", String((parseInt(ls.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }
     return {
       source: "support", crisis: true, lang, reviewStatus: "pending-professional-review",
-      support: { title: S0.title, lead: S0.lead, body: S0.body, lines: S0.lines, after: S0.after, foot: S0.foot, call: S0.call },
-      sections: [{ id: "support", title: S0.title, paragraphs: [S0.lead, S0.body].concat(S0.lines.map(l => l.btn + " — " + l.t), [S0.after]) }],
+      support: { title: S0.title, warm: S0.warm, more: S0.more.slice(), moreLabel: S0.moreLabel, guide: S0.guide, lines: S0.lines, call: S0.call,
+        counsel: { href: "counselling.html", text: counselText(lang) } },
+      sections: [{ id: "support", title: S0.title, paragraphs: [S0.warm, S0.guide].concat(S0.lines.map(l => l.btn + " — " + l.t)) }],
     };
   }
-  const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support-foot{font-size:.85em;opacity:.75}";
   /** วาดการ์ดช่วยเหลือ (ใช้ textContent ทั้งหมด) — container จะถูกล้างก่อน */
+  /** crisis v3 (owner decision 2026-11-17): no card replaces the reading; this only puts the page in the crisis state (gentle wording,
+   *  no sales, share or print, the closing line with 1323 at the end of the reading) @param {any} container @param {any} [res] */
+  // eslint-disable-next-line no-unused-vars
   function renderSupport(container, res) {
-    if (!container) return null;
-    const doc = container.ownerDocument || root.document, s = (res && res.support) || supportResult().support;
-    container.textContent = "";
-    try { if (!doc.getElementById("fa-support-style")) { const st = doc.createElement("style"); st.id = "fa-support-style"; st.textContent = SUPPORT_CSS; doc.head.appendChild(st); } } catch (e) { /* ไม่มี DOM */ }
-    try { if (res && res.lang === "zh") container.setAttribute("lang", "zh-Hans"); else if (res && res.lang === "en") container.setAttribute("lang", "en"); else container.removeAttribute("lang"); } catch (e) { /* ไม่มี DOM */ }
-    const el = (tag, cls, text) => { const e = doc.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
-    const box = el("section", "fa-support"), h = el("h3", null, s.title);
-    h.id = "fa-h-" + (++uid); box.setAttribute("aria-labelledby", h.id); box.setAttribute("role", "region"); box.setAttribute("data-review", "pending-professional-review");
-    box.appendChild(h); box.appendChild(el("p", null, s.lead)); box.appendChild(el("p", null, s.body));
-    const ul = el("ul"), K = callKit(), lng = res && (res.lang === "en" || res.lang === "zh") ? res.lang : "th";
-    for (const l of s.lines) {
-      ul.appendChild(el("li")).appendChild(K && K.LINES[l.id] ? K.el(doc, l.id, { lang: lng, cls: "fa-tel" }) : Object.assign(el("a", "lq-call-btn fa-tel", l.n), { href: "tel:" + l.tel }));
-    }
-    box.appendChild(ul); box.appendChild(el("p", null, s.after)); box.appendChild(el("p", "fa-support-foot", s.foot));
-    container.appendChild(box);
-    // the page is now in the crisis state: no later reading, remedy, lucky item, paid / merit offer or straight mode on it
-    if (CR && CR.setActive) CR.setActive(doc); if (root.LQCrisisTakeover) root.LQCrisisTakeover(box); // hotfix 2026-11-16: the card replaces EVERY result area, screen scrolls to it
-    return box;
+    const doc = (container && container.ownerDocument) || root.document;
+    if (CR && CR.setActive) CR.setActive(doc);
+    return null;
   }
   async function interpret(facts, opts = {}) {
     // ข้อความที่ผู้ใช้พิมพ์เอง (ชื่อเล่น คำถาม) มีสัญญาณวิกฤต → การ์ดช่วยเหลือแทนคำทำนาย (ไม่ส่งไป AI)
-    if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
+    if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) {
+      if (CR && CR.setActive) CR.setActive(); // crisis v3 (2026-11-17): the reading goes on, gently, local, never straight, nothing typed echoed
+      facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: undefined });
+      opts = Object.assign({}, opts, { userText: "", useAI: false, straight: false });
+    }
     // Chinese and English are composed on the device only (the writing assistant and its grounding gate are Thai-only)
     // ส่วน C: โหมดตรงเรียบเรียงในเครื่องเท่านั้น (ผู้ช่วยเขียน AI ยังใช้ถ้อยคำนุ่มนวลจนกว่าเจ้าของอนุมัติ)
     const straight = opts.straight != null ? !!opts.straight : straightActive();
@@ -4269,12 +4268,16 @@
   }
   function toHTML(result, opts = {}) {
     let res = result || { sections: [] };
-    if (!res.crisis && CR && CR.active && CR.active(opts.doc)) res = supportResult({ lang: res.lang }); // crisis state: never a reading
+    if (res.crisis && res.support) return ""; // crisis v3: no card
     if (res.crisis && res.support) {
-      const sp = res.support;
-      return '<section class="fa-support" role="region" data-review="pending-professional-review"><h3>' + escapeHtml(sp.title) + "</h3><p>" + escapeHtml(sp.lead) + "</p><p>" + escapeHtml(sp.body) + "</p><ul>" +
-        sp.lines.map(l => "<li>" + (callKit() ? callKit().html(l.id, { lang: res.lang, cls: "fa-tel", keys: false }) : '<a href="tel:' + l.tel + '">' + l.n + "</a>") + "</li>").join("") +
-        "</ul><p>" + escapeHtml(sp.after) + '</p><p class="fa-support-foot">' + escapeHtml(sp.foot) + "</p></section>";
+      const sp = res.support, K = callKit(), more = sp.more || [];
+      return '<section class="fa-support" role="region" data-review="pending-professional-review"><h3>' + escapeHtml(sp.title) + '</h3><p class="fa-support-warm">' + escapeHtml(sp.warm) +
+        '</p><details class="fa-support-more"><summary>' + escapeHtml(sp.moreLabel) + "</summary>" +
+        more.map((t, i) => "<p" + (i === more.length - 1 ? ' class="fa-support-foot"' : "") + ">" + escapeHtml(t) + "</p>").join("") +
+        '</details><p class="fa-support-guide">' + escapeHtml(sp.guide) + "</p>" +
+        sp.lines.map(l => (K ? K.html(l.id, { lang: res.lang, cls: "fa-tel", keys: false })
+          : '<a href="tel:' + l.tel + '" style="display:inline-flex;align-items:center;min-height:44px;min-width:44px">' + l.n + "</a>")).join("") +
+        '<p class="fa-support-link"><a class="lq-counsel-link" href="counselling.html">' + escapeHtml((sp.counsel && sp.counsel.text) || counselText(res.lang)) + "</a></p></section>";
     }
     let h = "";
     if (res.source === "ai" && opts.aiBadge !== false) h += '<p class="fa-ai-badge">' + escapeHtml(badgeText(opts)) + "</p>";
@@ -4361,10 +4364,16 @@
     if (res.reminder && opts.reminder !== false) { const n = el("p", "fa-reminder", res.reminder); n.setAttribute("role", "note"); frag.appendChild(n); }
     // ส่วน C: ตัวเลือก "ดูตรง ๆ" — วาดเฉพาะเมื่อเปิดสวิตช์ (ปิดอยู่ในไฟล์ที่ส่งมอบ จึงไม่มีอะไรเปลี่ยนบนหน้า)
     if (straightEnabled() && opts.straightControl !== false && FS.mount) FS.mount(container, frag, res);
-    // owner order 2026-11-15 item 3: the help line is in ONE place per page (the top button); under a reading only on a calm page
-    // (crisis net: crisis state, calm session or distress typed), where fortune-crisis.js makes it sticky next to the reading
-    if (CR && CR.helpLine && CR.calmOn && (CR.calmOn(doc) || CR.distress(doc))) { try { frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ } }
-    container.appendChild(frag); if (CR && CR.calmDock) CR.calmDock(container, res.lang); // crisis fix 4: help line in view when calm
+    // crisis v3 (2026-11-17) on a calm page (crisis state, calm session, distress typed): ONE closing line at the end of the page's
+    // reading (its result root, so it shows whichever tab is open); none on a normal page
+    container.appendChild(frag);
+    if (CR && CR.helpLine && CR.calmOn && (CR.calmOn(doc) || CR.distress(doc))) {
+      try {
+        Array.from(doc.querySelectorAll(".lq-helpline-result")).forEach(e => e.remove());
+        const up = container.closest ? container.closest('[data-lq-result], [id$="Result"], #rpOut') : null;
+        if (CR.calmOn(doc) || CR.distress(doc)) (up || container).appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result"));
+      } catch (e) { /* no DOM */ }
+    }
     try { if (root.LQI18N && typeof root.LQI18N.apply === "function") root.LQI18N.apply(container); } catch (e) { /* i18n ไม่พร้อม */ }
     return container;
   }
@@ -4407,14 +4416,15 @@
      again: no reading, plan, remedy or lucky item, and no hook runs (member light reading, merit or paid offers) */
   const crisisOn = container => !!(CR && CR.active && CR.active(container && container.ownerDocument)), calmAt = c => !!(FS.calm && FS.calm(c && c.ownerDocument));
   function renderWithHooks(container, result, opts) {
-    // crisis net first: any free-text field of the page (name, question, dream …) with a crisis signal → support card, never a reading
-    if (!(result && result.crisis) && (crisisOn(container) || crisisCheck(pageText(container && container.ownerDocument)))) result = supportResult({ lang: result && result.lang });
+    // crisis net first (every free-text field); v3: the flag only, the reading is still drawn
+    if (crisisCheck(pageText(container && container.ownerDocument)) && CR && CR.setActive) CR.setActive(container && container.ownerDocument);
     // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step first, never a reading first
     const sl = result && result.lang, card = box => renderSupport(box, supportResult({ lang: sl }));
-    if (!(result && result.crisis) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
+    if (!(result && result.crisis) && !crisisOn(container) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
     // crisis fix 4 (fail-safe): in a calm page a straight reading composed earlier is never shown (the card instead), nor a plan
-    if (result && !result.crisis && calmAt(container)) result = result.mode === "straight" ? supportResult({ lang: result.lang }) : Object.assign({}, result, { plan: undefined });
-    if (!HOOKS.length || (result && result.crisis)) return renderSections(container, result, opts); // a support card never goes through hooks
+    if (result && !result.crisis && calmAt(container)) result = result.mode === "straight"
+      ? Object.assign({}, result, { sections: [], summary: null, plan: undefined }) : Object.assign({}, result, { plan: undefined });
+    if (!HOOKS.length || (result && result.crisis) || crisisOn(container)) return renderSections(container, result, opts); // no hook (merit / paid / straight) in the crisis state
     let shown = result;
     for (const h of HOOKS) if (typeof h.gate === "function") { try { shown = h.gate(shown, opts, container); } catch (e) { /* keep the reading */ } }
     const out = renderSections(container, shown, opts);
@@ -4424,7 +4434,8 @@
   try { const q = root.LQFortuneHooks; if (Array.isArray(q)) for (const h of q) registerHooks(h); } catch (e) { /* no queue */ }
 
   const api = {
-    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, fields: doc => pageText(doc),
+    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, api: () => CR,
+      setActive: d => { if (CR && CR.setActive) CR.setActive(d); }, fields: doc => pageText(doc),
       active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => (CR && CR.allow ? CR.allow(kind, doc) : !(CR && CR.active && CR.active(doc))) },
     straight: Object.assign({}, FS, { isSafe: isSafeStraight, hardLimit }),
     privacy: { jakoScript: s => { canon(s); return TC && TC.jakoScript ? TC.jakoScript(s) : true; }, withoutJaKo: jk }, compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,

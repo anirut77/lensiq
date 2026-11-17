@@ -5,7 +5,7 @@
   "lucky.doc.desc": "Check in a mirror whether the colour you are wearing matches the Thai lucky colours of the day for work, money or love (Taksa tradition). Processed on the device; no images are kept.",
   "lucky.eyebrow": "Thai lucky colours of the day · Taksa",
   "lucky.h1": "Lucky-colour outfit mirror",
-  "lucky.lead": "Turn on the camera and stand so it sees you from face to waist. The page looks only at the clothing below your face, finds the main colour of your outfit and compares it with the day's lucky colours in Thai tradition for work, money, love or support from mentors.",
+  "lucky.lead": "Turn on the camera to check whether your outfit matches today's lucky colours.",
   "lucky.disc.b": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
   "lucky.disc.rest": "Camera images are processed on this device only: not recorded, not sent anywhere, no face recognition. The face position is used only to separate clothing from the head.",
   "lucky.optH": "What would you like a boost for today?",

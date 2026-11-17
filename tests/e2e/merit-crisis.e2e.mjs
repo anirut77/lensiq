@@ -31,8 +31,8 @@ async function tarotReading(page, question, { afterCrisis = false } = {}) {
   await page.evaluate(() => document.getElementById("trAuto").click());
   await sleep(900);
   await page.evaluate(() => document.getElementById("trReveal").click());
-  const helpShown = "[...document.querySelectorAll('.fa-support')].some(s => !s.hasAttribute('data-e2e-old')"
-    + " && !s.closest('.lq-merit') && s.getClientRects().length > 0 && /1323/.test(s.textContent))";
+  // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): after a crisis the reading goes on (no card); wait for it with its closing line
+  const helpShown = "document.querySelectorAll('.fa-section').length >= 3 && !!document.querySelector('.lq-helpline-result a[href=\"tel:1323\"]')";
   await page.waitFor(afterCrisis ? helpShown : "document.querySelectorAll('.fa-section').length >= 3", 25000);
 }
 const meritShown = `(() => ({ panels: [...document.querySelectorAll(".lq-merit")].filter(p => !p.hidden && p.getBoundingClientRect().height > 0).length,
@@ -105,7 +105,7 @@ export default async function ({ base, launch, check, repo }) {
       await page.evaluate(() => document.documentElement.setAttribute("data-lq-crisis", "1"));
       assert(await page.evaluate(() => !FortuneAI.crisis.allow("merit", document)), "shared crisis state is on");
       await fill(page, "Tum");
-      await page.waitFor("[...document.querySelectorAll('.lq-merit .fa-support')].some(s => /1323/.test(s.textContent))", 5000);
+      await sleep(1200); // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the submit-time check refuses (nothing sent); no card is drawn in the panel
       await sleep(400);
       assert(await page.evaluate(() => window.__meritSent.length) === 0, "nothing sent");
     });
@@ -116,7 +116,7 @@ export default async function ({ base, launch, check, repo }) {
       await page.goto(`${base}/tarot.html`);
       assert(await page.evaluate(() => { try { localStorage.length; return false; } catch (e) { return true; } }), "storage is blocked in this page");
       await page.evaluate(() => { document.getElementById("trQuestion").value = "I want to die"; document.getElementById("trStart").click(); });
-      await page.waitFor("(() => { const s = document.getElementById('trSupport'); return !!s && !s.hidden && /1323/.test(s.textContent); })()", 5000);
+      await page.waitFor("document.documentElement.getAttribute('data-lq-crisis') === '1'", 5000); // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the state, no card
       assert(await page.evaluate(() => FortuneAI.crisis.active(document)), "shared crisis state is on (storage blocked)");
       await tarotReading(page, "งานใหม่จะดีไหม", { afterCrisis: true });
       await sleep(1500);

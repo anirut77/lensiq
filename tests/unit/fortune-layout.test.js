@@ -320,9 +320,11 @@ test("A5: the help line and the crisis card are never collapsible (skip list, an
   for (const sel of [".lq-helpline", ".fa-support"]) assert.ok(RD.NEVER_COLLAPSE.includes(sel), "skip list has " + sel);
   const CR = require("../../fortune-crisis.js");
   for (const l of LANGS) {
-    const card = FA.toHTML(FA.crisis.result({ lang: l }));
-    assert.match(card, /fa-support/);
-    assert.doesNotMatch(card, /lq-more|lq-notice-more|<details/, l + " crisis card has nothing folded");
+    // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): no card is drawn any more (toHTML of a support result is empty); the closing line is the one help element and it
+    // is never folded: its warm line, 1323 button and counselling link are all unfolded
+    assert.equal(FA.toHTML(FA.crisis.result({ lang: l })), "", l + " no card");
+    const close = CR.helpHTML(l, "lq-helpline-result");
+    assert.match(close, /href="tel:1323"[\s\S]*href="counselling\.html"/, l + " 1323 button and link unfolded");
     if (CR.helpHTML) assert.doesNotMatch(CR.helpHTML(l, "x"), /lq-more|lq-notice-more|<details/, l + " help line has nothing folded");
   }
   for (const p of PAGES) {

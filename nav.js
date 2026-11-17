@@ -1,23 +1,5 @@
-/* LENSIQ shared site header.
-   Usage in every page:  <header class="nav" id="siteNav"></header><script src="nav.js?v=2"></script>
-   Plain script, no dependencies. Change the brand in BRAND below.
-   Also provides, for every page (no extra <script> tag needed):
-   - i18n: injects lensiq-i18n.js + i18n/zh-common.js (TH | EN | 中文 switch in the header; English dictionaries are
-     loaded on demand by lensiq-i18n.js). Menu strings carry data-i18n keys "nav.<page>.title|desc", "nav.group.<id>",
-     "nav.groupd.<id>", "nav.cta" — Thai text here is the default.
-   - Header: utility strip (tagline + language, scrolls away) over the sticky main bar (logo, mega-menu groups, CTA);
-     a drawer below 1024 px; a breadcrumb section header (.lq-crumbs) under the bar on every page but the home page.
-   - Thai line breaking: in headings/labels/buttons each Thai word (Intl.Segmenter + loanword list) becomes a
-     nowrap <span class="lq-w"> with <wbr> between words; elsewhere only known loanwords ("แดชบอร์ด") are wrapped.
-     Each rewritten text node becomes one <span class="lq-run">, so textContent and flex/grid layout are unchanged.
-   - window.LQModels: "กำลังโหลดโมเดล xx MB" notice + cache check for large model downloads.
-   - member account chip: hands the header to lensiq-member.js (window.LQMember.mountNav) when that optional module is
-     loaded (API Worker configured + member sign-in set up); otherwise nothing changes.
-   - service worker registration (sw.js: cache-first for vendor/ models, versioned). Disable with ?nosw.
-   - Legal footer: pages without their own <footer> get a slim one (terms / privacy / help / about links, keys foot.*);
-     hidden in kiosk modes and in print. Pages with a <footer> (index, about) link the documents themselves.
-   - Fortune pages: loads lensiq-report.js ("report a problem with this reading", works without a backend) and
-     lensiq-merit-core.js + lensiq-merit-lint.js + lensiq-merit.js (free belief guidance under a reading, Merit MVP). */
+/* LENSIQ shared site header (header, menu, language switch, i18n loader, Thai line breaks, models notice, member chip,
+   service worker, legal footer, fortune extras, 1323 control). Full description: docs/NAV.md. */
 (function () {
   "use strict";
 
@@ -91,7 +73,7 @@
       { href: "qc.html", title: "ตรวจคุณภาพสินค้า", desc: "ตรวจชิ้นงานบนสายการผลิต" }
     ] },
     { label: "ดูดวงและฤกษ์มงคล", short: "ดูดวง", id: "fortune", cat: "fortune",
-      intro: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน และวางแผนฤกษ์มงคล ตามความเชื่อ โปรดใช้วิจารณญาณ", items: [
+      intro: "ดูดวงศาสตร์ไทย จีน และตะวันตก และหาฤกษ์มงคล ตามความเชื่อ โปรดใช้วิจารณญาณ", items: [
       { href: "cat-fortune.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
       { href: "fortune.html", title: "รวมศาสตร์ดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
       { href: "faceread.html", title: "อ่านโหงวเฮ้ง", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
@@ -393,6 +375,11 @@
   function syncCompact() { if (!langBox.classList.contains("open")) setLangOpen(false); }
   window.addEventListener("resize", syncCompact);
   document.addEventListener("click", function (e) { if (langBox.classList.contains("open") && !langBox.contains(/** @type {Node} */ (e.target))) setLangOpen(false); });
+  langBox.addEventListener("keydown", function (e) { // open switch: Tab walks current, then the others (review 2026-11-16)
+    var c = function (/** @type {any} */ b) { return b.getAttribute("aria-pressed") === "true"; }, o = langBtns.filter(c).concat(langBtns.filter(function (/** @type {any} */ b) { return !c(b); })),
+      n = o[o.indexOf(/** @type {any} */ (document.activeElement)) + (e.shiftKey ? -1 : 1)];
+    if (e.key === "Tab" && langBox.classList.contains("open") && n) { e.preventDefault(); n.focus(); }
+  });
   langBox.addEventListener("keydown", function (e) { if (e.key === "Escape" && langBox.classList.contains("open")) { e.stopPropagation(); setLangOpen(false); var c = langBtns.filter(function (b) { return b.getAttribute("aria-pressed") === "true"; })[0]; if (c) c.focus(); } });
   langBox.addEventListener("focusout", function (e) { if (langBox.classList.contains("open") && !langBox.contains(/** @type {Node} */ (e.relatedTarget))) setLangOpen(false); });
   /** @type {any} */ (window).LQNavCompact = syncCompact; // lensiq-member.js calls it after adding / removing the account icon
@@ -407,6 +394,30 @@
   });
   window.addEventListener("lq-lang", syncLang);
   if (window.LQI18N) { window.LQI18N.apply(header); var cb = document.querySelector(".lq-crumbs"); if (cb) window.LQI18N.apply(cb); syncLang(); }
+
+  // 1323 in the bar + confirmation (decision 69; switch LENSIQ_HELP_TOP_STICKY)
+  /** @type {any} */
+  var help = /** @type {any} */ (window).LQHelpTop = { confirm: true, close: function () { if (help.dlg && help.dlg.open) help.dlg.close(); }, open: function () {
+    var d = help.dlg, w = /** @type {any} */ ({ en: ["Call 1323", "Close"], zh: ["拨打 1323", "关闭"] })[window.LQI18N ? String(window.LQI18N.lang) : ""] || ["โทร 1323", "ปิด"];
+    if (!d) {
+      d = help.dlg = document.body.appendChild(document.createElement("dialog")); d.className = "lq-help-dlg"; d.setAttribute("aria-labelledby", "lqHelpQ");
+      d.innerHTML = '<p id="lqHelpQ"></p><div><a class="lq-call-btn" href="tel:1323"></a><button type="button"></button></div><a class="lq-help-more" href="counselling.html"></a>';
+      d.querySelector("button").onclick = help.close; d.onclick = function (/** @type {Event} */ e) { if (e.target === d) help.close(); };
+      d.onclose = function () { help.link.focus(); };
+    }
+    d.querySelector("p").textContent = help.link.getAttribute("aria-label"); d.querySelector("a").textContent = w[0]; d.querySelector("button").textContent = w[1];
+    /** @type {HTMLElement} */ (d.querySelector(".lq-help-more")).textContent = T("counsel.link", "ช่องทางให้คำปรึกษา");
+    if (!d.open) { d.showModal(); d.querySelector("a").focus(); }
+  } };
+  function helpMount() {
+    var top = document.getElementById("lqHelpTop"), a = top && top.querySelector("a");
+    if (!top || !a || header.contains(top)) return;
+    if (/** @type {any} */ (window).LENSIQ_HELP_TOP_STICKY === false) top.classList.add("lq-helpquiet"); // decision 75 switch: stays in the page, not sticky
+    else { header.insertBefore(top, header.querySelector(".nav-end") || langBox); top.classList.add("lq-helpnav"); header.classList.add("has-help"); }
+    a.setAttribute("aria-haspopup", "dialog"); a.onclick = function (/** @type {Event} */ e) { if (help.confirm) { e.preventDefault(); help.open(); } };
+    help.el = top; help.link = a; syncCompact(); setNavH();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", helpMount); else helpMount();
 
   window.LENSIQ_BRAND = BRAND;
 
@@ -648,10 +659,11 @@
   // ---------- fortune pages: "report a problem with this reading" (lensiq-report.js) ----------
   function reportHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
-    if (!/^(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
+    // not the hub (fortune.html): it shows no reading to report (speed budget, 2026-11-17)
+    if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
     var sc = document.createElement("script");
-    sc.src = "lensiq-report.js?v=2"; sc.async = true;
+    sc.src = "lensiq-report.js?v=3"; sc.async = true;
     (document.head || document.documentElement).appendChild(sc);
   }
   // ---------- fortune pages: belief guidance under a reading (lensiq-merit.js; Merit MVP, owner order 2026-11-12) ----------

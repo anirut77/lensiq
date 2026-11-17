@@ -75,5 +75,8 @@ test("amendment 2 wiring (horoscope): partner name and name-number fields are ch
   assert.match(h, /\$\("#hsPartner"\)\.addEventListener\("submit"[\s\S]{0,300}crisisHit\(/, "partner submit checks the partner name first");
   assert.match(h, /hsNameNum[\s\S]{0,400}crisisHit\(/, "the name-number field is checked");
   assert.match(h, /\$\("#hsForm"\)\.addEventListener\("submit"[\s\S]{0,400}crisisHit\(/, "the main form checks the page fields before any reading");
-  assert.match(h, /function showCrisis\([\s\S]{0,800}\["pn-ov", "pn-th", "pn-bz", "pn-nu", "pn-td"\][\s\S]{0,400}hsResSub/, "every tab cleared and the subtitle emptied");
+  // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): the crisis name no longer replaces the tabs; it sets the crisis state (crisisSet) and the reading goes on; the
+  // subtitle is built by resultSub, which shows a name only when it is a plain name (no echo)
+  assert.match(h, /function crisisSet\(\) \{[^}]*setActive\(/, "a crisis name sets the crisis state");
+  assert.match(h, /function resultSub\([\s\S]{0,600}plainName\(/, "the subtitle shows a name only when it is a plain name");
 });

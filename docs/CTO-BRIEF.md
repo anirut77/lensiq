@@ -11,6 +11,28 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
 
 **2026-11-16 print layout (branch `print-report` on top of fortune-share-print, not merged / not deployed; owner approves PDF samples first):** print now produces a paper report from one renderer (`fortune-print.js` + `.css`, lazy-loaded with the card code): running header (LENSIQ mark, title, name only when the person opts in, date), sections with headings that never end a page, two columns for short lists, labelled icons / swatches for black-and-white, footer with the disclaimer and page X / Y; A4 / A5 portrait and an 80 mm receipt style; refused in crisis. `LQPrint.render(model, {size, paid})` is the same call the paid PDF will use. Also owner decision 76 (option ก): palm drawing and birth-derived sign / animal art off on the share card by default, own switch. Tests locked in `evals-locks/print-report.sha256`; `docs/FORTUNE-PRINT-REPORT.md`.
 
+## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
+
+With the crisis flag set the reading goes on in full structure, gently, never straight; no card and nothing that says the person
+was flagged; no prices, paid parts, plans, seller links, share or print, lucky colours or booth counter; at the end only one warm
+line, one tel:1323 button (≥ 44 px) and the small "ช่องทางให้คำปรึกษา" link; no statistics; nothing typed is shown back. Covers
+every fortune page incl. compat (live) and the report dialog; a stand-in keeps the rules when fortune-crisis.js fails to load.
+Option ข (a 1323 line before the reading for an explicit plan) was built, previewed and removed after the owner chose ก.
+Ledger of every re-locked assertion: `docs/CRISIS-V3-RELOCKS.md`. Source of all numbers: synthetic, headless Chrome.
+
+## Crisis one-number rules (owner decision 2026-11-16, branch `crisis-rules-1323`, waiting for independent review)
+
+Every fortune page shows one number, 1323. The crisis card is short: title, 2–3 warm lines ("อ่านเพิ่มเติม" folds the rest),
+free comforting guidance, the "โทร 1323" button, then one small link to the new platform page `counselling.html`, which lists
+1323, 1669, 191, 1300 and Samaritans (one row each, call button, verified hours; crisis net loaded; not in the menus). The
+calm-state line is 1323 plus the link, after the reading, never sticky. Rule-6 switch: `window.LENSIQ_HELP_STICKY` in
+`lensiq-config.js` (shipped on, decision 75 ก: the 1323 icon inside the sticky bar, with the confirmation dialog that also links the counselling page). Fixed set `crisis-rules-1323` (locked first; source:
+synthetic, headless Chrome). Wording added to L63 for the mental-health professional. Details: `docs/CRISIS-RESOURCES.md`.
+## Fortune top compact (owner order 2026-11-16 from a real iPhone 16 Pro + decision 69 ค, branch `fortune-top-compact`, waiting for review)
+
+- Help control: the 1323 button moves into the sticky top bar on every fortune page (phone icon + "1323", aria-label "อยากมีคนรับฟัง โทร 1323" TH / EN / ZH, 44 px); the first tap opens a small confirmation (call + close), the call is one more tap; the in-content blue button is gone (still in the HTML for no-JS). Crisis card unchanged (direct tap-to-call). Below 480 px the language switch shows one control on fortune pages so the bar fits at 360 px. Hook for crisis v2: `#lqHelpTop`, `window.LQHelpTop` (`docs/CRISIS-RESOURCES.md`). L63 asks whether the confirmation adds harmful friction.
+- Top of every fortune page compact on a phone: descriptions rewritten for the user (1–2 lines, TH / EN / ZH, no booth / event / campaign wording; that wording moved to `solutions.html` card sol-e3 with the 68 / 21 point and share-card facts), disclaimer one small line under the title with "อ่านเพิ่มเติม" as a text link (hub: the note moved from the page end; report: a line added under the title), category label hidden on phones, idle camera preview shorter on faceread / palm. Main action on the first screen at 360–430 px for all 19 pages. Tests: `tests/{unit,e2e}/fortune-top-compact.*` (locked; re-locked fortune-live H2 and fortune-helpline top words).
+- Review round 1 (NOT OK on 08c7b6f, fixed): on the 14 reading pages with a form the page's own read button (marked `data-lq-read`) is copied into a sticky bar at the bottom while it is below the screen (`fortune-readbar.js`, embedded into fortune-read.js and planner.js; hidden when the real button or a reading is on screen and in the crisis state); English descriptions at most 2 lines at every width; Tab walks the compact language switch. Tests: `tests/e2e/fortune-top-compact-3.e2e.mjs` (locked).
 ## Fortune: no "Demo" tag (owner order 2026-11-17, branch `fortune-no-demo`)
 
 - The status chip สาธิต / Demo / 演示 is gone from `cat-fortune.html` (every tool card, the status legend and the tool count:
@@ -20,6 +42,21 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
   in `docs/PAGE-STATUS.md` (marked "no tag shown on the site"). Accuracy and notice lines unchanged; other categories
   unchanged (teamface, signage, neuro keep their demo chip). Tests locked first: `evals-locks/fortune-no-demo.sha256`
   (new unit + e2e; re-locks of walkfix W-012, cat-pages "status tag" and categories e2e "status tag", fortune only).
+## Crisis-card incident 2026-11-16: closed, with a guard (2026-11-17, branch `incident-note`)
+
+- Leak: the help card replaced only the reading text; maps, score rings, a letter strip echoing the typed name, boards, daily
+  readings and the report button stayed beside it, and the report-dialog note was unchecked. Live exposure (Bangkok time):
+  faceread / palm / tarot / iching board from 2026-11-08 06:55, numbers from 2026-11-12 08:49, report note from 2026-11-07 22:53,
+  all until the fix went live 2026-11-17 09:52 (main 02fdd69). Nothing left the device. Found by independent reviewers, not by
+  users. Full record: `docs/INCIDENT-2026-11-16-CRISIS-LEAK.md`.
+- Guard (locked set `crisis-escape-guard`, `evals-locks/crisis-escape-guard.sha256`): pages are discovered by script, so a new
+  fortune page, a new free-text input (incl. JS-created dialogs) or a new result element that the takeover does not hide fails a
+  test without anyone adding it to a list first. Static half `tests/unit/crisis-escape-guard.test.js`; browser half
+  `tests/e2e/crisis-escape-guard-{report,field}.e2e.mjs` (normal reading, collect every element the reading produced, trigger the
+  crisis, all must be hidden except the help card). Crisis v3 re-targets one predicate (ALLOWED in the kit).
+- The guard found two gaps on its first run: fengshui result areas were not takeover roots (the report-dialog note shows the card
+  there since 09:52 today, with the fengshui reading still beside it), and compat's 4 free-text boxes were not in the input
+  inventory (compat itself was covered by its own locked test). Both fixed on `incident-note`; numbers in the incident record.
 
 ## Fortune layout item 5 test (2026-11-17, branch `layout-item5`)
 
@@ -179,6 +216,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 | Python unittest | 4 files |
 | Gates | lint, typecheck, CSP, ZH/EN coverage, site check, and a mobile audit at 320/360/390 px |
 | Real-phone quality (stream B, 2026-11-13) | WebKit iPhone-width flows (14), crash guard (unit 10 + e2e 5, TH/EN/ZH), memory budget per camera page (9 pages, 60 s, synthetic headless Chrome). Details and numbers: `docs/PHONE-QUALITY.md`. Real-phone checks: `docs/owner-checklists/` |
+| Real-device result (field, owner-run, 2026-11-17) | New face capture on `faceread.html`: all 10 tester steps passed on a real iPhone 16 Pro (iOS 27.0.1, Safari) and a real Samsung S23 Ultra (Chrome). Pass / fail only, no distances or timings recorded. Source: owner test 2026-11-17. Log: `docs/PHONE-QUALITY.md` section 5 |
 | Page speed (speed pass, 2026-11-14) | No model file before the camera opens on any page (locked e2e, 73 pages); page-weight budget per page from the measured baseline (bytes, requests); before/after on an emulated mid-range phone (CPU 4x + Fast 3G, synthetic). Details and numbers: `docs/SPEED.md` |
 
 ### CI

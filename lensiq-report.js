@@ -156,10 +156,12 @@
     };
     var bMail = mk("rp.email", "เปิดแอปอีเมล", true), bCopy = mk("rp.copy", "คัดลอก", false), bSave = mk("rp.save", "บันทึกในเครื่องนี้", false), bClose = mk("rp.close", "ปิด", false);
     var edited = false;
-    // crisis net first (hotfix r2): a crisis phrase in the note or edited preview -> nothing stored, dialog closes, card takes over
+    // crisis net first (hotfix r2): a crisis phrase in the note or edited preview -> nothing stored, dialog closes; crisis v3: the page
+    // goes into the crisis state (no card)
     var cr = function () {
-      var F = W.LQCrisisFirst, C = W.LQFortuneCrisis, t = note.value + (edited ? "\n" + pv.value : "");
-      if (F ? !F((opener && opener.parentNode) || doc.body, t) : !(C && C.check(t))) return false;
+      var F = W.LQCrisisFirst, C = W.LQFortuneCrisis, FA = W.FortuneAI, t = note.value + (edited ? "\n" + pv.value : "");
+      if (!((C && C.check(t)) || (FA && FA.crisis && FA.crisis.check(t)))) return false;
+      if (F) F((opener && opener.parentNode) || doc.body, t); else if (FA && FA.crisis && FA.crisis.setActive) FA.crisis.setActive(doc);
       d.close(); return true;
     };
     var cat = function () { var c = /** @type {HTMLInputElement|null} */ (f.querySelector('input[name="lq-rp-cat"]:checked')); return c ? c.value : "other"; };

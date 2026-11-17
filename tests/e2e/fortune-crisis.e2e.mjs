@@ -10,53 +10,59 @@
 import { assert } from "./cdp.mjs";
 
 const PHRASES = ["ควรฆ่าตัวตายดีไหม", "I can't go on anymore", "活着好累"];
-const cardShown = id => `(() => { const b = document.getElementById(${JSON.stringify(id)}); return !!b && !b.hidden && !!b.querySelector(".fa-support") && /1323/.test(b.textContent) && /1669/.test(b.textContent); })()`;
 
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
     let page = await browser.newPage(null);
-    await check("tarot: a self-harm question shows the support card and does not shuffle; after it an ordinary question keeps the card; on a fresh page an ordinary question shuffles", async () => {
+    // RE-LOCK 2026-11-17 (crisis v3 x hotfix round 2, merge of main 02fdd69; ledger docs/CRISIS-V3-RELOCKS.md): the stricter
+    // "flag holds" check is kept in v3 terms: after a crisis question an ordinary question in the same tab keeps the crisis
+    // state (no card in v3; the reading goes on), and a fresh tab is calm.
+    // RE-LOCK merge-1 2026-11-17 (test fault, v3-2-affected-2.log): the loop reloads the page after each phrase, and a reloaded page
+    // of the same tab carries the session flag as the calm state (html[data-lq-calm]; the same protections), not data-lq-crisis;
+    // "the state holds" now accepts either. The fresh-tab check (neither) is unchanged.
+    await check("tarot: a self-harm question sets the crisis state and the shuffle goes on (v3); after it an ordinary question keeps the crisis state, no card; on a fresh page an ordinary question shuffles", async () => {
       await page.goto(`${base}/tarot.html`);
       for (const q of PHRASES) {
         await page.evaluate(q2 => { document.getElementById("trQuestion").value = q2; document.getElementById("trStart").click(); }, q);
-        await page.waitFor(cardShown("trSupport"), 5000);
-        const r = await page.evaluate(() => ({ pick: document.getElementById("trPick").hidden, setup: document.getElementById("trSetup").hidden, focus: document.activeElement && document.activeElement.id }));
-        assert(r.pick && !r.setup, q + ": no shuffle, setup stays: " + JSON.stringify(r));
-        assert(r.focus === "trSupport", q + ": focus moves to the card");
+        // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the crisis state is set and the shuffle goes on (no card)
+        await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1" && !document.getElementById("trPick").hidden, 8000);
+        assert(await page.evaluate(() => !document.querySelector(".fa-support") && (!document.getElementById("trSupport") || document.getElementById("trSupport").hidden)), q + ": no card");
+        await page.reload();
       }
       await page.evaluate(() => { document.getElementById("trQuestion").value = "งานใหม่จะดีไหม"; document.getElementById("trStart").click(); });
-      await new Promise(r => setTimeout(r, 1500));
-      const after = await page.evaluate(() => ({ pick: document.getElementById("trPick").hidden, card: !document.getElementById("trSupport").hidden }));
-      assert(after.pick && after.card, "after the card an ordinary question keeps the card, no shuffle: " + JSON.stringify(after));
+      await page.waitFor(() => !document.getElementById("trPick").hidden, 8000);
+      const after = await page.evaluate(() => ({ crisis: /^1$/.test(document.documentElement.getAttribute("data-lq-crisis") || document.documentElement.getAttribute("data-lq-calm") || ""), card: !!document.querySelector(".fa-support") || !!(document.getElementById("trSupport") && !document.getElementById("trSupport").hidden) }));
+      assert(after.crisis && !after.card, "after a crisis question an ordinary question keeps the crisis state, no card: " + JSON.stringify(after));
       await page.close();
       page = await browser.newPage(null, { isolated: true });
       await page.goto(`${base}/tarot.html`);
       await page.evaluate(() => { document.getElementById("trQuestion").value = "งานใหม่จะดีไหม"; document.getElementById("trStart").click(); });
       await page.waitFor(() => !document.getElementById("trPick").hidden, 8000);
-      assert(await page.evaluate(() => { const b = document.getElementById("trSupport"); return !b || b.hidden; }), "fresh page: no card for an ordinary question");
+      assert(await page.evaluate(() => { const b = document.getElementById("trSupport"); return (!b || b.hidden) && document.documentElement.getAttribute("data-lq-crisis") !== "1"; }), "fresh page: no card, no crisis state for an ordinary question");
     });
     await page.close();
 
     page = await browser.newPage(null);
-    await check("iching: a self-harm question shows the support card and does not cast; after it an ordinary question keeps the card; on a fresh page an ordinary question casts", async () => {
+    await check("iching: a self-harm question sets the crisis state and the cast goes on (v3); after it an ordinary question keeps the crisis state, no card; on a fresh page an ordinary question casts", async () => {
       await page.goto(`${base}/iching.html`);
       for (const q of PHRASES) {
         await page.evaluate(q2 => { document.getElementById("icQuestion").value = q2; document.getElementById("icStart").click(); }, q);
-        await page.waitFor(cardShown("icSupport"), 5000);
-        const r = await page.evaluate(() => ({ stage: document.getElementById("icStage").hidden, setup: document.getElementById("icSetup").hidden }));
-        assert(r.stage && !r.setup, q + ": no cast, setup stays: " + JSON.stringify(r));
+        // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the crisis state is set and the cast goes on (no card)
+        await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1" && !document.getElementById("icStage").hidden, 8000);
+        assert(await page.evaluate(() => !document.querySelector(".fa-support") && (!document.getElementById("icSupport") || document.getElementById("icSupport").hidden)), q + ": no card");
+        await page.reload();
       }
       await page.evaluate(() => { document.getElementById("icQuestion").value = "ควรเริ่มโปรเจกต์ใหม่ช่วงนี้ไหม"; document.getElementById("icStart").click(); });
-      await new Promise(r => setTimeout(r, 1500));
-      const after = await page.evaluate(() => ({ stage: document.getElementById("icStage").hidden, card: !document.getElementById("icSupport").hidden }));
-      assert(after.stage && after.card, "after the card an ordinary question keeps the card, no coin step: " + JSON.stringify(after));
+      await page.waitFor(() => !document.getElementById("icStage").hidden, 8000);
+      const after = await page.evaluate(() => ({ crisis: /^1$/.test(document.documentElement.getAttribute("data-lq-crisis") || document.documentElement.getAttribute("data-lq-calm") || ""), card: !!document.querySelector(".fa-support") || !!(document.getElementById("icSupport") && !document.getElementById("icSupport").hidden) }));
+      assert(after.crisis && !after.card, "after a crisis question an ordinary question keeps the crisis state, no card: " + JSON.stringify(after));
       await page.close();
       page = await browser.newPage(null, { isolated: true });
       await page.goto(`${base}/iching.html`);
       await page.evaluate(() => { document.getElementById("icQuestion").value = "ควรเริ่มโปรเจกต์ใหม่ช่วงนี้ไหม"; document.getElementById("icStart").click(); });
       await page.waitFor(() => !document.getElementById("icStage").hidden, 5000);
-      assert(await page.evaluate(() => { const b = document.getElementById("icSupport"); return !b || b.hidden; }), "fresh page: no card for an ordinary question");
+      assert(await page.evaluate(() => { const b = document.getElementById("icSupport"); return (!b || b.hidden) && document.documentElement.getAttribute("data-lq-crisis") !== "1"; }), "fresh page: no card, no crisis state for an ordinary question");
     });
     await page.close();
   } finally {

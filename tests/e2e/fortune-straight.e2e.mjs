@@ -63,14 +63,17 @@ export default async function ({ base, launch, check }) {
       } finally { await page.close(); }
     });
 
-    await check("flag on + straight chosen: the crisis net still shows the support card (tarot question box)", async () => {
+    await check("flag on + straight chosen: the crisis net still wins (v3: crisis state, no card, no straight; tarot question box)", async () => {
       const page = await browser.newPage(null, { initScripts: [FLAG_ON, ADULT] });
       try {
         await page.goto(`${base}/tarot.html`);
         for (const q of ["ช่วงนี้อยากตาย ดวงจะดีขึ้นไหม", "I want to end my life", "活着好累"]) {
           await page.evaluate(q2 => { document.getElementById("trQuestion").value = q2; document.getElementById("trStart").click(); }, q);
-          await page.waitFor(() => { const b = document.getElementById("trSupport"); return !!b && !b.hidden && /1323/.test(b.textContent); }, 5000);
-          assert(await page.evaluate(() => document.getElementById("trPick").hidden), q + ": no shuffle");
+          // RE-LOCK v3-missed-2 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the crisis net still wins over straight, now as the crisis state
+          // (no card, the shuffle goes on, gently): straight is not offered or active in that session
+          await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1" && !document.querySelector(".fa-support"), 5000);
+          assert(await page.evaluate(() => ![...document.querySelectorAll('.fa-straight, [data-fa-mode="straight"]')].some(e => e.getClientRects().length > 0)), q + ": straight shown");
+          await page.reload();
         }
       } finally { await page.close(); }
     });

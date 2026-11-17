@@ -205,7 +205,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   /** รอบ 11: คำถามที่พิมพ์เองมีสัญญาณวิกฤต → แสดงการ์ดช่วยเหลือแทนการทำนาย (ไม่เก็บ/ไม่ส่งข้อความ) — คืน true เมื่อหยุด */
   // round 3: the question is shown back only when it is plain; otherwise a neutral placeholder
-  function echoQ(s) { var CRx = window.LQFortuneCrisis; return !s || !CRx ? s : CRx.plainName(s) || CRx.softText((window.LQI18N && window.LQI18N.lang) || "th").qHidden; }
+  function echoQ(s) {
+    var CRx = window.LQFortuneCrisis, F = window.FortuneAI;
+    if (!s) return s;
+    // review round 2: in a crisis session nothing stands in for the question (no placeholder that hints at the check)
+    var crisis = document.documentElement.getAttribute("data-lq-crisis") === "1" || !!(F && F.crisis && F.crisis.check(s));
+    if (!CRx) return crisis ? "" : s; // fortune-crisis.js failed to load: still no echo
+    return CRx.plainName(s) || (crisis ? "" : CRx.softText((window.LQI18N && window.LQI18N.lang) || "th").qHidden);
+  }
   function crisisStop(q) {
     var FAx = window.FortuneAI, box = document.getElementById("icSupport");
     var CRx = window.LQFortuneCrisis, lang = (window.LQI18N && window.LQI18N.lang) || "th";
@@ -214,9 +221,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     // round 2: once the card was shown the crisis flag holds: an ordinary question shows the card again
     var hard = document.documentElement.getAttribute("data-lq-crisis") === "1" || !!(FAx && FAx.crisis && (FAx.crisis.check(q) || FAx.crisis.check(FAx.crisis.fields())));
     var soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the soft step
-    if (!hard && !soft) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
+    if (hard) FAx.crisis.setActive(); // crisis v3 (owner decision 2026-11-17): the flag is set and the reading goes on (gentle; closing line with 1323 at its end)
+    if (!soft) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
     if (!box) { box = document.createElement("div"); box.id = "icSupport"; box.tabIndex = -1; $("#icSetup").insertAdjacentElement("afterend", box); }
-    var card = function () { box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: lang })); box.focus(); };
+    var card = function () { FAx.crisis.setActive(); CRx.ack(); box.hidden = true; box.textContent = ""; $("#icStart").click(); };
     box.hidden = false;
     if (soft) { CRx.renderSoft(box, lang, function () { CRx.ack(); box.hidden = true; box.textContent = ""; $("#icStart").click(); }, card); return true; }
     FAx.crisis.render(box, FAx.crisis.result({ lang: lang }));
