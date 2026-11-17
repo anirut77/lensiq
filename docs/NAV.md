@@ -148,3 +148,26 @@ Moved word for word on 2026-11-17 (fifth batch: end-of-line comments):
 [nav.js line 592, end of line] // label: Thai text doubles as its i18n key
 [nav.js line 696, end of line] // in order: the core first
 ```
+
+styles.css comments moved word for word on 2026-11-17 (page-weight budget; each left a one-line pointer):
+
+```text
+/* Tap feedback, busy state and double-tap safety for every button (owner report 2026-11-14, iPhone Safari: "I cannot tell
+   whether a tap registered, and repeated taps highlight the text inside the button"). Button text cannot be selected,
+   long-press shows no callout, a double tap never zooms, a press is visible (:active), and a button whose work is running
+   (aria-busy="true", set by lensiq-busy.js) shows a spinner and ignores taps. Reading text and text fields stay selectable. */
+
+/* ---------- tap-to-call help-line component (lensiq-helpline.js; owner order 2026-11-14 Part B) ----------
+   One compact row on a phone (owner addition 2026-11-14): short label | call button with the number; the second line and
+   the small print wrap under the label, never under the button. Tap target at least 44 px tall. On a computer (no touch,
+   or a wide screen) the number is also shown as large text that can be selected and copied. */
+
+/* owner order 2026-11-15 item 3: the help line is in ONE place per fortune page, a small row of tap-to-call buttons near the top
+   (tools/helpline.mjs): only "อยากมีคนรับฟัง 1323" (owner decision 54 ข: 1669 and the other numbers only on the crisis card). In
+   the normal page flow (never fixed), so it cannot cover the header or the menu; the button is at least 44 px. */
+
+/* ---------- Thai line breaking ----------
+   nav.js wraps each Thai word of headings/labels/buttons in .lq-w (nowrap) with <wbr> between words and marks the
+   element [data-lqwb], so words such as "แดชบอร์ด" are never split mid-syllable (the browser's Thai dictionary does
+   not know many loanwords). overflow-wrap is the last resort for a word wider than its box. */
+```

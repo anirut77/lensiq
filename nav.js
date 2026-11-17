@@ -471,11 +471,10 @@
     var RX = function () { return /** @type {any} */ (window).LQI18N_RTX; }, RT = function (n) { return RX() && RX().owns && RX().owns(n); };
     var TC = /[\u0e00-\u0e7f\u3040-\u9fff]/, CP = /^[)\].,:;!?%ๆฯ…，。、：；！？）」』】]/;
     var wt = function (x) { return x.replace(/[\s\u0e31\u0e34-\u0e3a\u0e47-\u0e4e]/g, "").length + (x.match(/[\u3040-\u9fff]/g) || []).length; };
-    var MK = /[\u0e30-\u0e3a\u0e45-\u0e4e]/, LV = /[\u0e40-\u0e44]/;
     function cut(t, all) {
       for (var c = t.length, L = 0; c > (all ? 0 : 1) && L < 8; ) L += wt(t[--c]);
       while (c && (CP.test(t[c]) || /[(\[{“‘（「『【]$/.test(t[c - 1]))) c--;
-      return L < 8 || L > 14 ? t.length : c;
+      return L < 8 || L > 16 ? t.length : c;
     }
     var PR = [/\d[\d.,]*[ \t\n]+(?:%|[A-Za-z]{1,8}|[\u0e00-\u0e7f]{1,6}|[\u3040-\u9fff]{1,2})/g, /[฿$][ \t\n]*\d[\d.,]*/g,
       /\S[ \t\n]+[)\].,:;!?ๆฯ…，。、：；！？）」』】]+/g, /[(\[{][ \t\n]+\S{1,6}/g];
@@ -499,20 +498,26 @@
           e = v.replace(/\s+$/, "").length; i = e;
           while (i > 0 && wt(v.slice(i, e)) < 10) i--;
           for (m = i; m > 0 && /^\w\w$/.test(v[m - 1] + v[m]); ) m--;
-          if (wt(v.slice(m, e)) < 15 || (z = v.indexOf(" ", i)) < 0 || z >= e - 1) i = m; else i = z + 1;
+          if (wt(v.slice(m, e)) < 19 || (z = v.indexOf(" ", i)) < 0 || z >= e - 1) i = m; else i = z + 1;
           if (i < e && (i > 0 || L > wt(v))) r.push([i, e]);
         }
         if (!v.trim() && y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim())) /** @type {Element} */ (y).classList.add("lq-w");
         if (!r.length) return;
-        r.forEach(function (q) { while (q[0] > 0 && (MK.test(v[q[0]]) || LV.test(v[q[0] - 1]))) q[0]--; while (q[1] < v.length && (MK.test(v[q[1]]) || LV.test(v[q[1] - 1]))) q[1]++; });
+        // piece edges on word boundaries (Intl.Segmenter), with an opening bracket before and closing marks after
+        var bd = { 0: 1 }, at = 0, sg;
+        for (sg of seg.segment(v)) bd[at += sg.segment.length] = 1;
+        r.forEach(function (q) {
+          while (q[0] > 0 && (!bd[q[0]] || /[(\[{“‘（「『【]/.test(v[q[0] - 1]))) q[0]--;
+          while (q[1] < v.length && (!bd[q[1]] || CP.test(v[q[1]]))) q[1]++;
+        });
         r.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (q) { var o = out[out.length - 1]; if (o && q[0] <= o[1]) o[1] = Math.max(o[1], q[1]); else out.push(q); });
-        out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 15; });
+        out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 31; });
         if (!out.length) return;
         var fl = /flex|grid/.test(getComputedStyle(p).display), f = document.createDocumentFragment();
         if (RT(n) && (fl || !out[0][0])) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && out[0][1] >= v.trim().length) p.classList.add("lq-w"); return; }
         out.forEach(function (q, j) {
           var k = document.createElement("lq-t"), t = document.createTextNode(v.slice(q[1], out[j + 1] ? out[j + 1][0] : v.length));
-          k.className = "lq-w lq-t"; k.textContent = v.slice(q[0], q[1]);
+          k.textContent = v.slice(q[0], q[1]); k.className = "lq-w lq-t" + (wt(k.textContent) > 14 && q[0] && q[1] < v.trim().length ? " lq-b" : "");
           if (!j && pre && !q[0]) k.prepend(/** @type {Node} */ (x));
           if (post >= 0 && q[1] === v.length) k.append(/** @type {Node} */ (y));
           DONE.set(t, t.nodeValue || ""); f.append(k, t);
