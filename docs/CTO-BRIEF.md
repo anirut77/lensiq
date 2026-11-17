@@ -7,6 +7,15 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
+
+With the crisis flag set the reading goes on in full structure, gently, never straight; no card and nothing that says the person
+was flagged; no prices, paid parts, plans, seller links, share or print, lucky colours or booth counter; at the end only one warm
+line, one tel:1323 button (≥ 44 px) and the small "ช่องทางให้คำปรึกษา" link; no statistics; nothing typed is shown back. Covers
+every fortune page incl. compat (live) and the report dialog; a stand-in keeps the rules when fortune-crisis.js fails to load.
+Option ข (a 1323 line before the reading for an explicit plan) was built, previewed and removed after the owner chose ก.
+Ledger of every re-locked assertion: `docs/CRISIS-V3-RELOCKS.md`. Source of all numbers: synthetic, headless Chrome.
+
 ## Crisis one-number rules (owner decision 2026-11-16, branch `crisis-rules-1323`, waiting for independent review)
 
 Every fortune page shows one number, 1323. The crisis card is short: title, 2–3 warm lines ("อ่านเพิ่มเติม" folds the rest),
