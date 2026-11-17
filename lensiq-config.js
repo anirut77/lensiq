@@ -208,5 +208,3 @@ window.LENSIQ_TRYON = window.LENSIQ_TRYON === true;
 window.LENSIQ_CONVERT_SERVER = window.LENSIQ_CONVERT_SERVER === true;
 /* LENSIQ_HELP_STICKY (75 ก): 1323 icon in the sticky bar; false = in the page */
 window.LENSIQ_HELP_STICKY = window.LENSIQ_HELP_STICKY !== false;
-/* LENSIQ_CRISIS_PRELINE (decision 84): false = ก, closing line only; true = ข, also one 1323 line before the reading for an explicit plan */
-window.LENSIQ_CRISIS_PRELINE = window.LENSIQ_CRISIS_PRELINE === true;

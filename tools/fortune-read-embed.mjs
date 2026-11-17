@@ -5,7 +5,6 @@
 //                          still load fortune-notice.js alone
 //   fortune-restrain.js -> end of fortune-read.js (the composer looks the tags up when it composes)
 //   lensiq-crisis-takeover.js -> end of fortune-read.js (crisis-net hotfix 2026-11-16: no extra request on the reading pages)
-//   fortune-crisis-pre.js -> end of fortune-read.js (decision 84 option ข, off unless LENSIQ_CRISIS_PRELINE is true)
 //   fortune-readbar.js  -> end of fortune-read.js AND end of planner.js (sticky read bar, owner order 2026-11-16 item 3;
 //                          planner loads no fortune-read.js and has no request to spare)
 // Edit the source files only, then run this. tests/unit/fortune-read-embed.test.js fails when a copy drifts.
@@ -17,7 +16,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PARTS = [{ file: "fortune-notice.js", at: "top" }, { file: "fortune-restrain.js", at: "end" }, { file: "fortune-readbar.js", at: "end" },
-  { file: "lensiq-crisis-takeover.js", at: "end" }, { file: "fortune-crisis-pre.js", at: "end" }];
+  { file: "lensiq-crisis-takeover.js", at: "end" }];
 const begin = (/** @type {string} */ f) => `/* BEGIN ${f} (copied by tools/fortune-read-embed.mjs; edit ${f}, then run it) */\n`;
 const end = (/** @type {string} */ f) => `/* END ${f} */\n`;
 // a copy written by the first version of this tool (tools/restrain-embed.mjs markers) is replaced, not doubled

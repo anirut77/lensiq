@@ -1117,7 +1117,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (dt.err) { err.textContent = dt.err; return; }
     var s = settings();
     var P2 = HS.analyze(Object.assign({}, s, { y: dt.y, m: dt.m, d: dt.d, time: parseTime($("#hsPTime").value), name: "", lunarMonthOverride: null }));
-    lastPartner = { P2: P2, name: $("#hsPName").value.trim() };
+    lastPartner = { P2: P2, name: plainName($("#hsPName").value.trim()) }; // v3: a crisis partner name is never shown back
     renderCompat(current, P2, lastPartner.name);
   });
   function renderCompat(P1, P2, pname) {

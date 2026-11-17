@@ -135,3 +135,9 @@ Locked before compat was changed to v3.
 |---|---|---|---|
 | soft-1 | tests/e2e/fortune-crisis-soft.e2e.mjs | the closing-line selector uses single quotes; after "talk" the test waits for the reading (≥ 3 sections) and the closing line, no card | the `\"` inside a template literal produced a broken expression (SyntaxError, the wait could never pass); the leftover "no reading under the card" line contradicted the v3 re-lock itself (rule a) |
 | merge-1 | tests/e2e/fortune-crisis.e2e.mjs | "the state holds" accepts `data-lq-crisis` or `data-lq-calm` | the loop reloads the page; a reloaded page of the same tab carries the session flag as the calm state (same protections). The fresh-tab check (neither) is unchanged |
+
+## Decision 84 answered: option ก (owner, 2026-11-17)
+
+| Removed | Reason | Protection kept by |
+|---|---|---|
+| tests/unit/crisis-v3-pre.test.js, tests/e2e/crisis-v3-pre{,-en,-zh}.e2e.mjs (tags `pre-lock`, `pre-lock-1`) and the product code they tested (fortune-crisis-pre.js, `LENSIQ_CRISIS_PRELINE`) | the owner chose ก: the 1323 line and button only at the end of the reading. Option ข's code was not free in page weight (about 4.5 KB on every reading page), so the owner's instruction was to remove it with its tests | rule d (closing line only at the end, nothing in the middle, one number, 44 px): crisis-v3-a/b/c/d judge, unit crisis-v3 U3 / U4, crisis-rules-1323 R1 / G3 (all unchanged). Locked copies of the removed set stay in `~/LENSIQ-field/evals/crisis-v3/pre-lock*/` |

@@ -357,6 +357,5 @@
 
   const api = { check, unjoke, fields, soft, softName, plainName, pageSoft, ack, renderSoft, softGate, softText, HELP, helpLine, helpHTML, active, setActive, allow,
     calmOn, setCalm, markCalm, calmDock, distress, SESSION_KEY };
-  // decision 84 ข: plan / preHTML live in fortune-crisis-pre.js (reading pages only); Node gets them here
-  if (typeof module !== "undefined" && module.exports) module.exports = Object.assign(api, require("./fortune-crisis-pre.js")); else /** @type {any} */ (root).LQFortuneCrisis = api;
+  if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQFortuneCrisis = api;
 })(typeof window !== "undefined" ? window : globalThis);
