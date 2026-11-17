@@ -1,0 +1,7 @@
+# locked 2026-11-17T03:14:23Z (tools/eval-guard.mjs lock, 6 files)
+71f757612f7a3164aafcfdaf30f036db904c9811d4f6d355ade3428a3d3954df  crisis-escape-guard-kit.mjs
+e666a41c4e09a6045981d2acc26aada1d3b043dc1130afe3d00b85e3d428b43e  crisis-escape-guard-report.e2e.mjs
+9d43e270e822971e51e96dcd90708bd0b0f6d68c76f34c1432bccc3c965bce8c  crisis-escape-guard-field.e2e.mjs
+04049ea7213794385e4c067c33916df95209e9b1f67635d5b7363a38837de5e7  crisis-escape-guard.test.js
+6ce8387b09b16dd6539309ea5062fc348ccfbc08c617eb85253ba2e527bc41e1  crisis-escape-guard-lib.cjs
+271d50c0413bac257e72354bee9e1b84e90de4aece816b9f2e456042bc2b1f46  crisis-escape-guard-allow.json
