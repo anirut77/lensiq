@@ -113,7 +113,10 @@
       if (QUALITY_TH.test(t)) return "คุณมี" + t;
       const k = /^(\S{2,12}?)คือ(?=หลัก|สิ่ง|กุญแจ)/.exec(t); // a bare keyword ("รองรับคือหลักที่ช่วย…")
       if (k && VERB_KEY.test(k[1])) return "การ" + t;
-      if (/^เป็น(?:จังหวะ|ช่วง|เวลา|ปี)/.test(t)) return "ช่วงนี้" + t;
+      // "เป็นปีที่ดี…" → "ปีนี้เป็นปีที่ดี…", "เป็นช่วง…" → "ตอนนี้เป็นช่วง…", "เป็นจังหวะ…" → "ช่วงนี้เป็นจังหวะ…"
+      if (/^เป็นปี/.test(t)) return "ปีนี้" + t;
+      if (/^เป็น(?:ช่วง|เวลา)/.test(t)) return "ตอนนี้" + t;
+      if (/^เป็นจังหวะ/.test(t)) return "ช่วงนี้" + t;
       // notes: docs/FORTUNE-AI-NOTES.md #B43
       return PRED_TH.test(t) ? "คุณ" + t : t;
     }
@@ -169,6 +172,8 @@
       q = q.replace(new RegExp("ปีนี้" + VERB_TH + "(?:คุณ(?=หาก|ถ้า|เมื่อ))?", "g"), "ปีนี้ ").replace(/ปีนี้ (?=คุณ|เป็น)/g, "ปีนี้");
       q = q.replace(new RegExp("(\\S*?)(" + VERB_TH + ")\\s?(?=\\S)", "g"), (all, pre, v, at, s) => {
         const rest = s.slice(at + all.length);
+        // round 7: a person who says it ("เพื่อนบอกว่าคุยด้วยแล้วสนุก") is reported speech, not a source over an instruction
+        if (/(?:เพื่อน|คน|ใคร|หัวหน้า|ผู้ใหญ่|คนรัก|ลูกค้า|ทีม)$/.test(pre)) return all;
         if (D.isImperative(rest)) return pre + (/^(?:คุณ)?อย่า/.test(rest) ? "เตือนว่า" : /^(?:ให้|พูด|ดู)/.test(rest) ? "ชวนคุณ" : "ชวนให้");
         return all + subjOf(rest);
       }).replace(/(ชวนให้|ชวนคุณ|เตือนว่า)\s?(?:คุณ)?ควร/g, "$1");
