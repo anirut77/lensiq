@@ -24,3 +24,4 @@ a70ea84367b3800a98db062f3b18450edbf6b0a6af228d3a1ab8a6a8be3d9728  tests/e2e/fort
 # Related re-locks: tests/unit/cat-pages.test.js and tests/unit/fortune-no-demo.test.js return to their pre-branch bytes (f548d089…,
 # 0c04589a…, already locked) because credits.html is not created; the a770d72 relock lines for them are moot. Kept:
 # tests/unit/crisis-escape-guard-allow.json without palm plEthics / tarot trCredit / fengshui fsSourcesNote (elements deleted).
+# SUPERSEDED (e2e only) 2026-11-18 by evals-locks/fortune-credits__v3.sha256 (harness fix; ledger there).
