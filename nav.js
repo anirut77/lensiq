@@ -434,7 +434,7 @@
         var ws = (/\s*$/.exec(v) || [""])[0], tail = document.createElement("lq-t");
         tail.textContent = v.slice(at, v.length - ws.length);
         var nt = nxt(tn);
-        var lv = tn.parentElement.closest(LV + ",button,[role=tab],.btn,label,summary,a"); if (lv && wt(tail.textContent) > 12) return;
+        var lv = tn.parentElement.closest("button,[role=tab],.btn,label,summary,a"); if (lv && wt(tail.textContent) > 12) return;
         tail.className = "lq-w lq-t" + (!lv && !CP.test(((nt && nt.textContent) || "").trim()) ? " lq-b" : "");
         if (v.slice(0, at).trim() && !/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail); if (ws) tail.after(ws); }
         else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(tail); if (at) tail.before(v.slice(0, at)); if (ws) tail.after(ws); tn.replaceWith(box); }
@@ -482,7 +482,6 @@
     var PR = [/\d[\d.,]*[ \t\n]+(?:%|[A-Za-z]{1,8}|[\u0e00-\u0e7f]{1,6}|[\u3040-\u9fff]{1,2})/g, /[฿$][ \t\n]*\d[\d.,]*/g,
       /\S[ \t\n]+[)\].,:;!?ๆฯ…，。、：；！？）」』】]+/g, /[(\[{][ \t\n]+\S{1,6}/g];
     var nxt = function (n) { for (var e = n; e && !e.nextSibling && e.parentElement && IN.test(e.parentElement.nodeName); ) e = e.parentElement; return e && e.nextSibling; };
-    var LV = "[role=status],[role=alert],[aria-live]";
     var kf = function (t) { return t.nodeValue + "|" + ((t.previousSibling && t.previousSibling.textContent) || ""); };
     var DONE = new WeakMap(), IN = /^(B|SPAN|STRONG|EM|A|SMALL|CODE|OUTPUT|DATA)$/;
     var len = function (n) {
@@ -526,7 +525,7 @@
         var nn = nxt(post >= 0 ? /** @type {Node} */ (y) : n), nx = ((nn && nn.textContent) || "").trim();
         var cs = getComputedStyle(p), fl = /flex|grid/.test(cs.display), f = document.createDocumentFragment();
         if (/pre|break/.test(cs.whiteSpace)) return;
-        var live = ctl || p.closest(LV);
+        var live = ctl;
         if (wd && (live || (wd[1] >= v.trim().length && (CP.test(nx) || (nn && !nx))))) { while (wd[0] < wd[1] && (wt(v.slice(wd[0], wd[1])) > 12 || !bd[wd[0]])) wd[0]++; out.forEach(function (q) { if (wd && q[0] < wd[0] && wd[0] < q[1]) wd[0] = q[1]; }); if (!inner(wd)) wd = null; }
         var first = Math.min(out.length ? out[0][0] : v.length, wd ? wd[0] : v.length);
         if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t lq-b"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
