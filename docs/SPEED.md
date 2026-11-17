@@ -93,8 +93,8 @@ help.html first. Measure those two pages before merging any of those branches.
 
 2026-11-17 (branch line-wrap, owner request on line breaks): nav.js gained the line-wrap pass (`glue()`, Thai / Chinese line
 ends) and lensiq-i18n.js / lensiq-i18n-rt.js one selector and one hook each. To pay for it, more nav.js comments moved word for
-word to `docs/NAV.md`: nav.js went from 58,289 B to 57,341 B (948 B lighter), lensiq-i18n.js grew by 28 B, styles.css is unchanged,
-so the shared files every page loads are about 0.9 KB lighter than before this branch. Measured with speed-budget (see the branch report).
+word to `docs/NAV.md`: nav.js went from 58,289 B to 58,393 B (+104 B), lensiq-i18n.js from 20,500 B to 20,628 B (+128 B),
+styles.css is unchanged, so every page loads about 0.23 KB more (fortune.html headroom about 0.4 KB before, about 0.2 KB after). Measured with speed-budget (see the branch report).
 
 ## Before / after per page
 
