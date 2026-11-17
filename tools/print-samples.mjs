@@ -4,7 +4,7 @@
 // the page's own print button and saves what Chrome prints (Page.printToPDF = Playwright page.pdf()). The person's name and
 // birth data are left out (the "include" switch stays off, the default). No image of a person is used: the face page reads a
 // synthetic camera (tests/e2e/fake-cams.js) and the camera photo is never printed.
-//   node tools/print-samples.mjs [outDir]     default ~/Desktop/LENSIQ-review/print
+//   node tools/print-samples.mjs [outDir] [--colour]   default ~/Desktop/LENSIQ-review/print; --colour: the two *-colour.pdf samples
 import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
@@ -17,7 +17,8 @@ import { assertFreeSpace } from "./disk-guard.mjs";
 assertFreeSpace({ label: "tools/print-samples.mjs" }); // stops with exit 75 when free disk space is under 5 GB, before the server or Chrome
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = process.argv[2] || join(homedir(), "Desktop", "LENSIQ-review", "print");
+const ARGS = process.argv.slice(2), COLOUR = ARGS.includes("--colour");
+const OUT = ARGS.find(a => !a.startsWith("--")) || join(homedir(), "Desktop", "LENSIQ-review", "print");
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const S = JSON.stringify;
 const fakeCams = readFileSync(join(REPO, "tests", "e2e", "fake-cams.js"), "utf8");
@@ -45,7 +46,8 @@ const READ = {
   },
 };
 const PAPER = { A4: { paperWidth: 8.27, paperHeight: 11.69 }, A5: { paperWidth: 5.83, paperHeight: 8.27 }, "80mm": { paperWidth: 3.15, paperHeight: 11.69 } };
-const JOBS = [
+// --colour (owner decision 82 ก): the two revised colour samples only
+const JOBS = COLOUR ? [["horoscope", "A4", "1-horoscope-A4-TH-colour.pdf"], ["tarot", "A4", "2-tarot-A4-TH-colour.pdf"]] : [
   ["horoscope", "A4", "1-horoscope-A4-TH.pdf"], ["tarot", "A4", "2-tarot-A4-TH.pdf"], ["faceread", "A4", "3-faceread-A4-TH.pdf"],
   ["horoscope", "A5", "4-horoscope-A5-TH.pdf"], ["tarot", "80mm", "5-tarot-80mm-receipt-TH.pdf"],
 ];
