@@ -93,3 +93,12 @@ f507051f7bda24c7dd5331329a81d12e376ba4634e2fbb2decb0f5cb4ef0224d  tests/unit/for
 # RE-LOCK 2026-11-15 (2) (branch fortune-live): owner decision 54 option ข 2026-11-15: rule is at most once per page in normal state, 1669 only in crisis card. fortune-helpline unit and e2e: the top row (#lqHelpTop) holds only tel:1323 with "อยากมีคนรับฟัง 1323"; no 1669 at the top. Printed report, calm-state line, crisis card and verified-claims checks unchanged. Copies: ~/LENSIQ-field/evals/fortune-live/relock2/. On 542a9b7: unit placement test fails.
 afcdc1f3aa1c8413f98e9e69b452a36e15c83b0db78912788de092a05f7cc1e9  tests/unit/fortune-helpline.test.js  # repo file
 18e619ff885d8fbb2a482074db860364fb2a883f5406f9fa57eb71ca09cf9684  tests/e2e/fortune-helpline.e2e.mjs  # repo file
+#
+# 2026-11-17T03:12:00Z eval-guard repo check (owner decision 85 ก; coordinator order 2026-11-17, branch eval-guard-repo): crisis v2 retired. These files were
+# locked here but never merged to main; they live on branches crisis-flow-v2 / crisis-v2-live / crisis-detect-v4 / crisis-detect-v5.
+# retired tests/e2e/crisis-flow-lib.mjs reason: crisis v2 superseded by crisis v3 (owner decision 2026-11-17); files live on branches crisis-flow-v2 / crisis-v2-live / crisis-detect-v4/v5
+# retired tests/e2e/fortune-crisis-flow-v2-pages.e2e.mjs reason: crisis v2 superseded by crisis v3 (owner decision 2026-11-17); files live on branches crisis-flow-v2 / crisis-v2-live / crisis-detect-v4/v5
+# retired tests/e2e/fortune-crisis-flow-v2.e2e.mjs reason: crisis v2 superseded by crisis v3 (owner decision 2026-11-17); files live on branches crisis-flow-v2 / crisis-v2-live / crisis-detect-v4/v5
+# retired tests/unit/fortune-crisis-flow-v2.test.js reason: crisis v2 superseded by crisis v3 (owner decision 2026-11-17); files live on branches crisis-flow-v2 / crisis-v2-live / crisis-detect-v4/v5
+# retired tests/e2e/fortune-crisis-one-bar.e2e.mjs reason: crisis v2 superseded by crisis v3 (owner decision 2026-11-17); files live on branches crisis-flow-v2 / crisis-v2-live / crisis-detect-v4/v5
+# retired tests/unit/fortune-crisis-detect-v2.test.js reason: crisis v2 superseded by crisis v3 (owner decision 2026-11-17); files live on branches crisis-flow-v2 / crisis-v2-live / crisis-detect-v4/v5
