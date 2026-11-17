@@ -254,3 +254,5 @@ body.tr-kiosk .tr-tab{min-height:56px;font-size:1.1rem}
 .tr-reading .rd-actions{display:flex;justify-content:flex-end;margin-top:6px}
 .tr-reading .rd-actions .btn{min-height:44px}
 @media print{.tr-reading .rd-actions,.tr-reading .rd-consent{display:none}}
+/* crisis v3: the daily card is not drawn in the crisis state (its fixed texts are not written gently; decision taken on the owner's behalf, docs/CRISIS-V3-RELOCKS.md) */
+html[data-lq-crisis] .tr-daily{display:none!important}
