@@ -30,7 +30,8 @@
   function plan(text) {
     if (typeof text !== "string" || !text.trim()) return false;
     const t = canon(text), en = t.toLowerCase().replace(/[’`]/g, "'").replace(/\s+/g, " ");
-    return PLAN_TH.test(t.replace(/\s+/g, "").replace(TONE, "")) || PLAN_EN.some(re => re.test(en)) || PLAN_ZH.test(t.replace(T2S_RE, c => T2S[c]).replace(/\s+/g, ""));
+    const zh = t.replace(T2S_RE, c => T2S[c]).replace(/\s+/g, "");
+    return PLAN_TH.test(t.replace(/\s+/g, "").replace(TONE, "")) || PLAN_EN.some(re => re.test(en)) || PLAN_ZH.test(zh);
   }
   /** the warm line (one short line; no statistics, nothing about the person's text) */
   const WARM = {

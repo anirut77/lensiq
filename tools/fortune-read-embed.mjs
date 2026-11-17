@@ -16,7 +16,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const PARTS = [{ file: "fortune-notice.js", at: "top" }, { file: "fortune-restrain.js", at: "end" }, { file: "fortune-readbar.js", at: "end" }, { file: "lensiq-crisis-takeover.js", at: "end" }, { file: "fortune-crisis-pre.js", at: "end" }];
+const PARTS = [{ file: "fortune-notice.js", at: "top" }, { file: "fortune-restrain.js", at: "end" }, { file: "fortune-readbar.js", at: "end" },
+  { file: "lensiq-crisis-takeover.js", at: "end" }, { file: "fortune-crisis-pre.js", at: "end" }];
 const begin = (/** @type {string} */ f) => `/* BEGIN ${f} (copied by tools/fortune-read-embed.mjs; edit ${f}, then run it) */\n`;
 const end = (/** @type {string} */ f) => `/* END ${f} */\n`;
 // a copy written by the first version of this tool (tools/restrain-embed.mjs markers) is replaced, not doubled
