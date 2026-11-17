@@ -35,7 +35,7 @@
       const grid = document.createElement("div"); grid.className = "fk-opts";
       for (const k of P.TRAITS[g]) {
         const lab = document.createElement("label"); lab.className = "fk-opt";
-        const inp = document.createElement("input"); inp.type = type; inp.name = NAME[g]; inp.value = k;
+        const inp = document.createElement("input"); if (type === "checkbox") inp.type = "checkbox"; else inp.type = "radio"; inp.name = NAME[g]; inp.value = k;
         if (g === "marks" ? keep.traits.marks.includes(k) : (g === "species" ? keep.species : keep.traits[g]) === k) inp.checked = true;
         const b = document.createElement("b"); b.textContent = labelOf(g, k);
         lab.appendChild(inp); lab.appendChild(b); grid.appendChild(lab);
@@ -163,6 +163,22 @@
     useImage(c);
   }
 
+  /* ---------- crisis v3 (owner decision 2026-11-17) ----------
+   * The crisis net (fortune-crisis-net.js, the one pattern source, via LQFortuneCrisis) runs on every field of the page before any
+   * check. With the crisis flag set, or the page calm (crisis session, distress words), the reading still comes, gently: the typed
+   * name is left out (nothing typed is shown back), no lucky part, no share card (data-lq-remedy, hidden by styles.css) and
+   * FortuneAI ends the reading with the one closing line (tel:1323 + counselling link). Nothing says the person was flagged. */
+  const CR = () => W.LQFortuneCrisis;
+  const crisisOn = () => { const c = CR(); return !!(c && c.active && c.active(document)) || document.documentElement.getAttribute("data-lq-crisis") === "1"; };
+  const calm = () => { const c = CR(); return crisisOn() || !!(c && ((c.calmOn && c.calmOn(document)) || (c.distress && c.distress(document)))); };
+  const shareOk = () => { const c = CR(); return !calm() && (!c || !c.allow || c.allow("share", document)); };
+  function crisisFirst() {
+    const c = CR(), FA = W.FortuneAI;
+    const txt = c && c.fields ? c.fields(document) : $("#petName").value;
+    const hit = c && c.check ? c.check(txt) : !!(FA && FA.crisis && FA.crisis.check && FA.crisis.check(txt));
+    if (hit && !crisisOn()) { if (c && c.setActive) c.setActive(document); else document.documentElement.setAttribute("data-lq-crisis", "1"); }
+  }
+
   /* ---------- reading ---------- */
   function input() {
     const v = values();
@@ -171,9 +187,13 @@
   }
   function read(quiet) {
     const FA = window.FortuneAI, box = $("#petReading");
+    crisisFirst(); // the net before any format check
     if (!checked("petSpecies")) { $("#petMsg").textContent = T("pet.err.species", "เลือกก่อนว่าน้องเป็นแมวหรือหมา"); return; }
     $("#petMsg").textContent = "";
-    const res = P.compose(input(), { lang: lang() });
+    const gentle = calm(), inp = input();
+    if (gentle) inp.name = ""; // v3: nothing typed is shown back
+    const res = P.compose(inp, { lang: lang() });
+    if (gentle) { res.sections = res.sections.filter(s => s.id !== "lucky"); res.typedName = ""; res.name = ""; } // v3: no lucky part
     st.res = res;
     $("#petResult").hidden = false;
     if (FA && FA.renderSections) FA.renderSections(box, res, { aiBadge: false, straightControl: false });
@@ -182,9 +202,9 @@
     afterRender();
     if (!quiet) { const h = $("#petResH"); try { h.focus({ preventScroll: false }); } catch (e) { /* old engine */ } }
   }
-  // the card only next to a real reading: never next to the support card or the gentle "are you okay?" step
+  // the card only next to a real reading on a normal page: never in the crisis / calm state (v3) or next to a soft step
   function afterRender() {
-    const ok = !!document.querySelector("#petReading .fa-section") && !document.querySelector("#petReading .fa-support");
+    const ok = !!document.querySelector("#petReading .fa-section") && !document.querySelector("#petReading .fa-support, #petReading .fa-soft") && shareOk();
     $("#petCardSec").hidden = !ok;
     if (ok) drawCard(); else st.model = null;
   }
@@ -281,10 +301,13 @@
     $("#petCardSave").addEventListener("click", save);
     $("#petCardShare").addEventListener("click", share);
     // a reading that the crisis net's gentle step later lets through: show the card then
-    new MutationObserver(() => { if (st.res) { const want = !!document.querySelector("#petReading .fa-section") && !document.querySelector("#petReading .fa-support");
+    new MutationObserver(() => { if (st.res) { const want = !!document.querySelector("#petReading .fa-section")
+      && !document.querySelector("#petReading .fa-support, #petReading .fa-soft") && shareOk();
       if (want === $("#petCardSec").hidden) afterRender(); } })
       .observe($("#petReading"), { childList: true });
-    window.addEventListener("lq-lang", () => { renderTraits(); setHuman(st.humanSeen); if (st.res && !document.querySelector("#petReading .fa-support")) read(true); });
+    window.addEventListener("lq-lang", () => { renderTraits(); setHuman(st.humanSeen); if (st.res) read(true); });
+    // v3: the crisis flag set later (another field, the report dialog): the same reading again, gently, closing line last
+    window.addEventListener("lq-crisis", () => { if (st.res && !st.redraw) { st.redraw = true; try { read(true); } finally { st.redraw = false; } } });
     window.addEventListener("pagehide", () => camOff(true));
     document.addEventListener("visibilitychange", () => { if (document.hidden && st.stream) camOff(true); });
     api.ready = true;
