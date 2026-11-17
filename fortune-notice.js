@@ -1,5 +1,4 @@
-/* fortune-notice.js — fortune notices (A1 line, A5 one line + read more; help line / crisis card never folded). Docs and
- * tests: docs/FORTUNE-LAYOUT.md, tests/unit/fortune-layout.test.js. Speed budget: keep comments short in this file. */
+/* fortune-notice.js: fortune notices. docs/FORTUNE-LAYOUT.md (keep this file small: speed budget) */
 (function (root) {
   "use strict";
   const LINE = {
@@ -13,7 +12,6 @@
   const NOTE_MAX = { th: 140, en: 200, zh: 60 };
   const NEVER_COLLAPSE = [".lq-helpline", ".lq-call", ".fa-support", ".lq-support", "[data-lq-crisis-card]"];
   const langOf = l => (l === "en" || l === "zh" ? l : "th");
-  // Thai: cut only at a single space, never inside a clause
   const TH_CONT_NEXT = /^(?:และ|หรือ|แต่|ซึ่ง|ที่|ๆ|เพื่อ|จึง|ก็|แล้ว|ไม่|ได้|ให้|กับ|ของ|ใน|จาก|คือ|ว่า|เป็น|มาก|ด้วย|อยู่|ไว้|กัน|ไป|มา|[\d(/–\-)])/;
   const TH_CONT_PREV = /(?:คือ|ว่า|และ|หรือ|ของ|ใน|กับ|จาก|ที่|ซึ่ง|เพื่อ|เช่น|ได้แก่|อย่าง|แบบ|โดย|ตาม|ทั้ง|[(/–\-])$/;
   function cutsTh(p) {
@@ -25,7 +23,6 @@
     return out;
   }
   function cutsEn(p) { const out = []; const re = /[.!?]["”’)]? (?=["“(]?[A-Z0-9])/g; let m; while ((m = re.exec(p))) out.push({ at: m.index + m[0].length - 1, ok: true }); return out; }
-  /* ---------- A5: one short line + the rest ---------- */
   function noticeSplit(text, lang) {
     lang = langOf(lang); text = String(text || "");
     const max = NOTE_MAX[lang];
@@ -57,13 +54,13 @@
     try {
       if (!doc || !doc.head || doc.getElementById("lq-notice-style")) return;
       const s = doc.createElement("style"); s.id = "lq-notice-style"; s.textContent = CSS; doc.head.appendChild(s);
-    } catch (e) { /* no DOM */ }
+    } catch (e) { }
   }
   const pageLang = () => { try { return langOf(root.LQI18N && root.LQI18N.lang); } catch (e) { return "th"; } };
   const never = el => !!(el && el.closest && el.closest(NEVER_COLLAPSE.join(",")));
   function moreButton(doc, lang, ids, onToggle) {
     const b = doc.createElement("button");
-    b.type = "button"; b.className = "chip lq-more"; b.textContent = MORE[lang]; // "chip" = the shared button class
+    b.type = "button"; b.className = "chip lq-more"; b.textContent = MORE[lang];
     b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-controls", ids.join(" ")); b.setAttribute("data-lq-lang", lang);
     const toggle = () => {
       const open = b.getAttribute("aria-expanded") !== "true", L = b.getAttribute("data-lq-lang") || lang;
@@ -71,11 +68,9 @@
       onToggle(open);
     };
     b.addEventListener("click", toggle);
-    // Enter toggles on key down (native click suppressed); Space keeps the native click
     b.addEventListener("keydown", e => { if (e.key === "Enter" && !e.repeat) { e.preventDefault(); toggle(); } });
     return b;
   }
-  /** plain notice -> one line + read more */
   function noticeify(el, lang) {
     if (!el || never(el) || el.firstElementChild) return el;
     lang = langOf(lang || (el.closest && el.closest("[lang]") && /^zh/.test(el.closest("[lang]").lang) ? "zh" : null) || pageLang());
@@ -91,7 +86,6 @@
     el.appendChild(more);
     return el;
   }
-  /** static .lq-notice markup: add the button */
   function notices(scope) {
     const doc = (scope && scope.ownerDocument) || (scope && scope.nodeType === 9 ? scope : root.document);
     if (!doc || !doc.querySelectorAll) return;
@@ -106,7 +100,7 @@
     }
   }
   if (root.document && root.addEventListener) {
-    const doc = root.document, run = () => { try { notices(doc); } catch (e) { /* keep the page */ } };
+    const doc = root.document, run = () => { try { notices(doc); } catch (e) { } };
     if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", run); else run();
     root.addEventListener("lq-lang", run);
   }
@@ -116,32 +110,27 @@
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQNotice = api;
 })(typeof window !== "undefined" ? window : globalThis);
 /* BEGIN fortune-share loader */
-/* fortune-share.js only after first use or a rendered reading (no budget increase). docs/FORTUNE-SHARE-PRINT.md */
-(function (root) {
+/* docs/FORTUNE-SHARE-PRINT.md */
+(function (w) {
   "use strict";
-  const d = root.document;
-  if (!d || root.LQShareLoader) return;
-  let done = false;
+  const d = w.document;
+  if (!d || w.LQShareLoader) return;
+  const R = "#frResult,#plResult,#hsResult,#trResult,#ssResult,#icResult,#lcResult,#nmResult,#fsReading,#drResult,#zdResult,#asResult,#rpOut";
+  let done = 0;
   const go = () => {
-    if (done) return;
-    done = true;
-    if (root.LQShare) return;
-    const s = d.createElement("script"); s.src = "fortune-share.js?v=3"; s.async = true; (d.head || d.documentElement).appendChild(s);
+    if (done || w.LQShare || !d.querySelector(R + ",#recBox,.ft-hero")) return;
+    done = 1; const s = d.createElement("script"); s.src = "fortune-share.js?v=3"; s.async = true; d.head.appendChild(s);
   };
-  for (const ev of ["pointerdown", "touchstart", "keydown", "scroll", "focusin"]) root.addEventListener(ev, go, { capture: true, passive: true, once: true });
-  const ROOTS = "#frResult,#plResult,#hsResult,#trResult,#ssResult,#icResult,#lcResult,#nmResult,#fsReading,#drResult,#zdResult,#asResult,#rpOut";
-  const shown = n => !!n && n.nodeType === 1 && (n.matches(".fa-section, .rp-part") || !!n.querySelector(".fa-section, .rp-part") || (n.matches(ROOTS) && !n.hidden));
-  function watch() {
+  for (const e of ["pointerdown", "touchstart", "keydown", "scroll", "focusin"]) w.addEventListener(e, go, { capture: true, passive: true, once: true });
+  const sh = n => n.nodeType === 1 && (n.matches(".fa-section,.rp-part") || !!n.querySelector(".fa-section,.rp-part") || (n.matches(R) && !n.hidden));
+  const watch = () => {
     try {
-      const mo = new MutationObserver(ms => {
-        for (const m of ms) if ((m.type === "attributes" && shown(m.target)) || [...m.addedNodes].some(shown)) { mo.disconnect(); go(); return; }
-      });
+      const mo = new MutationObserver(ms => { for (const m of ms) if ((m.type === "attributes" && sh(m.target)) || [...m.addedNodes].some(sh)) { mo.disconnect(); go(); return; } });
       mo.observe(d.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] });
-    } catch (e) { /* first use still loads it */ }
-  }
-  if (d.readyState === "complete") watch(); else root.addEventListener("load", watch, { once: true });
-  // art queued before the module is here
-  if (!root.LQShareArt) { const q = []; root.LQShareArt = (sel, fn) => { q.push([sel, fn]); }; root.LQShareArt.q = q; }
-  root.LQShareLoader = { load: go };
+    } catch (e) { }
+  };
+  if (d.readyState === "complete") watch(); else w.addEventListener("load", watch, { once: true });
+  if (!w.LQShareArt) { const q = []; w.LQShareArt = (x, f) => { q.push([x, f]); }; w.LQShareArt.q = q; }
+  w.LQShareLoader = { load: go };
 })(typeof window !== "undefined" ? window : globalThis);
 /* END fortune-share loader */
