@@ -206,3 +206,20 @@ More styles.css comments moved word for word on 2026-11-17:
 /* round 14 (round 16: from 1024 px): all groups on one line at 1024-1440 px. The bar shows the compact group name (.nav-lbl-s, key nav.groups.*),
    the drawer the full one (.nav-lbl-f); items never shrink or wrap (the Thai <wbr> word breaks stay inside the label) */
 ```
+
+More styles.css comments moved word for word on 2026-11-17 (third batch):
+
+```text
+/* ---------- Site header (rendered by nav.js) ----------
+   Utility strip (tagline, language) that scrolls away + sticky main bar (logo, mega-menu groups, CTA).
+   Restrained palette: ink, slate, hairlines; the violet accent only marks the current location. */
+
+/* nav.js puts <wbr> between Thai words and Chrome breaks at <wbr> even under nowrap, so a tab label wrapped one word per line
+   (walkthrough W-026); a tab label keeps its words together, and a tab bar too wide for the screen scrolls sideways */
+
+/* round 12: on phones the breadcrumb stays ONE line — the separator is part of the item it precedes (never orphaned at
+   the start of a wrapped line), the group label shrinks first, the page title is ellipsised, Home keeps its text width */
+
+/* shared tab button (consistency pass 2026-11-14): underline style; .active or aria-selected=true marks the open tab.
+   Page CSS only lays out the tab bar (.tabs / .gk-tabs / .md-tabs) and never restyles the buttons. */
+```

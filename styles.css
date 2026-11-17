@@ -41,9 +41,7 @@ img,svg,canvas,video{max-width:100%}
 .skip-link{position:absolute;left:12px;top:-60px;z-index:100;background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px}
 .skip-link:focus{top:10px}
 
-/* ---------- Site header (rendered by nav.js) ----------
-   Utility strip (tagline, language) that scrolls away + sticky main bar (logo, mega-menu groups, CTA).
-   Restrained palette: ink, slate, hairlines; the violet accent only marks the current location. */
+/* ---------- Site header (rendered by nav.js) ---------- (docs/NAV.md) */
 .nav{--ink:#0e1430;--slate:#4a5470;--hair:#e3e7f0;position:sticky;top:calc(-1 * var(--nav-util,0px));z-index:60;display:grid;
   grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"util util lang" "logo menu menu";align-items:center;column-gap:24px;
   padding:0 max(24px,calc((100vw - 1240px) / 2));background:#fff;border-bottom:1px solid var(--hair);
@@ -157,8 +155,7 @@ img,svg,canvas,video{max-width:100%}
 @media (pointer:coarse){.lq-crumbs a{min-height:44px;min-width:44px;display:inline-flex;align-items:center}}
 [class*="-kiosk"] .lq-crumbs,[class*="-kiosk"] ~ .lq-crumbs{display:none}
 @media print{.lq-crumbs{display:none!important}}
-/* round 12: on phones the breadcrumb stays ONE line — the separator is part of the item it precedes (never orphaned at
-   the start of a wrapped line), the group label shrinks first, the page title is ellipsised, Home keeps its text width */
+/* round 12: on phones the breadcrumb stays ONE line — the s (docs/NAV.md) */
 @media(max-width:719.98px){
   .lq-crumbs ol{flex-wrap:nowrap;white-space:nowrap;overflow:hidden}
   .lq-crumbs li{flex:none;min-width:0}
@@ -205,13 +202,11 @@ h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:600;line-height:1.3;text-align
 
 .chip{background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 18px;color:var(--muted)}
 .chip.active{background:var(--navy);color:#fff;border-color:var(--navy)}
-/* shared tab button (consistency pass 2026-11-14): underline style; .active or aria-selected=true marks the open tab.
-   Page CSS only lays out the tab bar (.tabs / .gk-tabs / .md-tabs) and never restyles the buttons. */
+/* shared tab button (consistency pass 2026-11-14): underlin (docs/NAV.md) */
 .tab{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 14px;min-height:44px;white-space:nowrap;color:var(--muted);font:inherit;cursor:pointer}
 .tab:hover{color:var(--navy)}
 .tab.active,.tab[aria-selected=true]{color:var(--navy);border-bottom-color:var(--gold);font-weight:500}
-/* nav.js puts <wbr> between Thai words and Chrome breaks at <wbr> even under nowrap, so a tab label wrapped one word per line
-   (walkthrough W-026); a tab label keeps its words together, and a tab bar too wide for the screen scrolls sideways */
+/* nav.js puts <wbr> between Thai words and Chrome breaks at (docs/NAV.md) */
 .tab wbr{display:none}
 @media (max-width:640px){.tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.tabs>.tab{flex:0 0 auto}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px}

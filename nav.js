@@ -480,6 +480,7 @@
     }
     var PR = [/\d[\d.,]*[ \t\n]+(?:%|[A-Za-z]{1,8}|[\u0e00-\u0e7f]{1,6}|[\u3040-\u9fff]{1,2})/g, /[฿$][ \t\n]*\d[\d.,]*/g,
       /\S[ \t\n]+[)\].,:;!?ๆฯ…，。、：；！？）」』】]+/g, /[(\[{][ \t\n]+\S{1,6}/g];
+    var kf = function (t) { return t.nodeValue + "|" + ((t.previousSibling && t.previousSibling.textContent) || ""); };
     var DONE = new WeakMap(), IN = /^(B|SPAN|STRONG|EM|A|SMALL|CODE|OUTPUT|DATA)$/;
     var len = function (n) {
       var p = n.parentNode, x = (p && p.lastChild === n ? (p.closest("p,li,td,th,dd,dt,div,label,summary,h1,h2,h3,h4") || p).textContent : n.nodeValue) || "";
@@ -491,11 +492,11 @@
       all.forEach(function (n) {
         var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, i, L, z, out = [], wd = null;
         var x = n.previousSibling, y = n.nextSibling, pre = 0, post = -1;
-        if (!p || DONE.get(n) === v || p.closest(SKIP + ",#siteNav,.lq-crumbs")) return;
-        DONE.set(n, v);
+        if (!p || DONE.get(n) === kf(n) || p.closest(SKIP + ",#siteNav,.lq-crumbs")) return;
+        DONE.set(n, kf(n));
         PR.forEach(function (re) { re.lastIndex = 0; while ((m = re.exec(v))) r.push([m.index, m.index + m[0].length]); });
-        if (x && IN.test(x.nodeName) && /^[\d.,]*$/.test((x.textContent || "").trim()) && (m = /^[ \t\n]+\S{1,8}/.exec(v))) r.push([0, pre = m[0].length]);
-        else if (x && IN.test(x.nodeName) && (m = /^[)\]}.,:;!?…”’»，。、：；！？）」』】]+/.exec(v))) r.push([0, pre = m[0].length]);
+        if (x && IN.test(x.nodeName) && /^[\d.,]+$/.test((x.textContent || "").trim()) && (m = /^[ \t\n]+\S{1,8}/.exec(v))) r.push([0, pre = m[0].length]);
+        else if (x && IN.test(x.nodeName) && wt(x.textContent || "") < 13 && (m = /^[)\]}.,:;!?…”’»，。、：；！？）」』】]+/.exec(v))) r.push([0, pre = m[0].length]);
         if (y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim()) && (m = /\S{1,8}[ \t\n]*$/.exec(v))) r.push([post = m.index, v.length]);
         if ((L = len(n)) > 12) {
           e = v.replace(/\s+$/, "").length; i = e;
@@ -524,10 +525,10 @@
         var first = Math.min(out.length ? out[0][0] : v.length, wd ? wd[0] : v.length);
         if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t lq-b"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
         if (RT(n) && !first) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && wt(v) < 12) p.classList.add("lq-w"); return; }
-        var pos = first, W = null;
+        var pos = first, W = null, made = [n];
         var piece = function (a, b2) { var k = document.createElement("lq-t"); k.className = "lq-w lq-t" + (b2 >= v.trim().length && (CP.test(nx) || (nn && !nx)) ? "" : " lq-b"); return k; };
         var put = function (node) { (W || f).append(node); };
-        var to = function (e2) { if (e2 > pos) { var t = document.createTextNode(v.slice(pos, e2)); DONE.set(t, t.nodeValue || ""); put(t); pos = e2; } };
+        var to = function (e2) { if (e2 > pos) { var t = document.createTextNode(v.slice(pos, e2)); made.push(t); put(t); pos = e2; } };
         var open = function () { var q = /** @type {number[]} */ (wd); to(q[0]); W = piece(q[0], q[1]); f.append(W); };
         out.forEach(function (q) {
           if (wd && q[0] >= wd[0] && q[1] <= wd[1]) { if (!W) open(); } else if (W && q[0] >= wd[1]) { to(wd[1]); W = null; }
@@ -539,10 +540,11 @@
         if (wd && !W && pos <= wd[0]) open();
         if (W && wd) { to(wd[1]); W = null; }
         to(v.length);
-        n.nodeValue = v.slice(0, first); DONE.set(n, n.nodeValue);
+        n.nodeValue = v.slice(0, first);
         var tx = /** @type {Text} */ (n);
         if (fl) { var b = document.createElement("lq-t"); b.className = "lq-t"; tx.before(b); b.append(tx, f); }
         else tx.after(f);
+        made.forEach(function (t) { DONE.set(t, kf(t)); });
         if (!tx.nodeValue) tx.remove();
       });
     }
@@ -571,7 +573,7 @@
             if (a.nodeType === 1) { if (a.nodeName !== "WBR" && !/\blq-(run|w|t)\b/.test(a.className)) pending.push(a); }
             else if (a.nodeType === 3 && t.nodeType === 1) {
               if (t.hasAttribute("data-lqwb")) t.removeAttribute("data-lqwb");
-              pending.push(t);
+              pending.push(t.parentNode || t);
             }
           }
         }
