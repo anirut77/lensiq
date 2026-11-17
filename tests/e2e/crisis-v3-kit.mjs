@@ -278,7 +278,11 @@ const norm = s => String(s).toLowerCase().replace(/[\s​-‍﻿]/g, "");
 export function echo(before, after, typed) {
   // RE-LOCK 4: 5 Thai characters are an ordinary word ("จริงๆ"); a Thai piece is 7 characters (English 5, Chinese 3)
   const t = norm(typed), was = norm(before.join("")), out = [], subs = new Set(), n = /[\u3400-\u9fff]/.test(t) ? 3 : /[\u0E00-\u0E7F]/.test(t) ? 7 : 5;
-  for (let i = 0; i + n <= t.length; i++) subs.add(t.slice(i, i + n));
+  // RE-LOCK 5 2026-11-17 (test fault found measuring the build, run build-3-e2e.log): with spaces removed, 5 English letters match
+  // ordinary words ("night" in "Knight", "antto" in "want to do"); an English piece is now 3 consecutive words of the typed text
+  const words = String(typed).toLowerCase().split(/\s+/).filter(Boolean);
+  if (!/[\u0E00-\u0E7F\u3400-\u9fff]/.test(t) && words.length >= 3) for (let i = 0; i + 3 <= words.length; i++) subs.add(norm(words.slice(i, i + 3).join("")));
+  else for (let i = 0; i + n <= t.length; i++) subs.add(t.slice(i, i + n));
   subs.add(t);
   for (const node of after) { const n = norm(node); for (const s of subs) if (n.includes(s) && !was.includes(s)) out.push(S(s) + " in " + S(node.trim().slice(0, 40))); }
   return [...new Set(out)].slice(0, 4);

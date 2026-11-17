@@ -17,9 +17,9 @@ const PAGES = ["fortune", "cat-fortune", "faceread", "palm", "horoscope", "tarot
 // warm 1323 wording in the shared tap-to-call component; every other check (sizes, fit, tel links, no JS, crisis) is unchanged.
 // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the help line (calm state, printed report) is the 1323 wording and the counselling link;
 // 1669 and the abroad note moved to counselling.html.
-const WANT = { th: /อยากมีคนรับฟัง โทร 1323[\s\S]*พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง[\s\S]*บริการของกรมสุขภาพจิต[\s\S]*ช่องทางให้คำปรึกษา/,
-  en: /someone to listen[\s\S]*1323[\s\S]*24 hours[\s\S]*Department of Mental Health[\s\S]*counsel/i,
-  zh: /倾听[\s\S]*1323[\s\S]*24 小时[\s\S]*心理健康司[\s\S]*咨询/ };
+// RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3, rule d; ledger docs/CRISIS-V3-RELOCKS.md): the help line (printed report,
+// calm state) is the closing line: one warm line naming 1323, the 1323 button, then the counselling link
+const WANT = { th: /ทุกข์ใจ[\s\S]*1323[\s\S]*ช่องทางให้คำปรึกษา/, en: /talk to someone close[\s\S]*1323[\s\S]*counsel/i, zh: /聊[\s\S]*1323[\s\S]*咨询/ };
 // RE-LOCK 2026-11-15 (fortune-live, owner order 2026-11-15 item 3; placement pre-approved by the owner): one small tap-to-call
 // help button near the top of each fortune page (#lqHelpTop) with the short wording; no line at the end of the page and none
 // under a normal reading (each number once per page). Sizes, fit at 320 / 360 / 390 px, tel links and their order, the no-JS

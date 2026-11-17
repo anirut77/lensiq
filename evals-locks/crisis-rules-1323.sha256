@@ -109,3 +109,5 @@ cf34ded8599e7cfdd5dc730aaeedd2a928861801e38ddd9b44131e1a5a197bfc  tests/e2e/help
 8eef491460a01c05abe5828a237a186affe5bcb067070fdbf426ebbeb58ba13b  tests/e2e/fortune-layout.e2e.mjs  # repo file
 0c976e99dde5c5c14b540878d3bacb8ef53fff8705e51d6fc728ba8ada7f73f7  tests/e2e/crisis-rules-1323-b.e2e.mjs  # repo file
 5f3ef019d9bfcdaab5e0f48f554916a628737ca16a7e2a544f1e810c22d5a5d4  tests/e2e/crisis-rules-1323-f.e2e.mjs  # repo file
+# RE-LOCK 2026-11-17 (branch crisis-v3): RE-LOCK v3-e2e-b 2026-11-17: (1) test fault found measuring the build (build-3-e2e.log): English echo pieces are 3 consecutive words, not 5 letters ('night' in 'Knight', 'antto' in 'want to do') in crisis-v3-kit (re-lock 5) and crisis-net-hotfix-kit; (2) v3 re-locks missed in the first pass: fortune-crisis-fields-2 (card -> crisis state, no card; no echo of every variant kept and widened to the whole page) and fortune-helpline WANT (the printed / calm help line is the closing line, rule d). Copy: ~/LENSIQ-field/evals/crisis-v3/relock-e2e-b/.
+52ec11739663cff705ae2b5799276dcf181b45c97a0a68943db0da52e8641ba2  tests/e2e/fortune-helpline.e2e.mjs  # repo file

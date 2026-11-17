@@ -95,7 +95,10 @@ export async function assertCard(page, { label, typed, before }) {
   const after = await page.evaluate(TEXT_NODES(false));
   const t = norm(typed), was = norm(before.join("")), echo = [], n = /[\u3400-\u9fff]/.test(t) ? 3 : /[\u0E00-\u0E7F]/.test(t) ? 7 : 5;
   const subs = new Set([t]);
-  for (let i = 0; i + n <= t.length; i++) subs.add(t.slice(i, i + n));
+  // RE-LOCK (crisis v3, 2): an English piece is 3 consecutive words (5 letters without spaces matched "night" in "Knight")
+  const words = String(typed).toLowerCase().split(/\s+/).filter(Boolean);
+  if (!/[\u0E00-\u0E7F\u3400-\u9fff]/.test(t) && words.length >= 3) for (let i = 0; i + 3 <= words.length; i++) subs.add(norm(words.slice(i, i + 3).join("")));
+  else for (let i = 0; i + n <= t.length; i++) subs.add(t.slice(i, i + n));
   for (const node of after) { const x = norm(node); for (const sub of subs) if (x.includes(sub) && !was.includes(sub)) echo.push(S(sub) + " in " + S(node.trim().slice(0, 40))); }
   const bad = [];
   if (r.cards) bad.push("a card or the soft step is shown (v3: the reading goes on, nothing flagged)");

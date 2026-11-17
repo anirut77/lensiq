@@ -86,3 +86,13 @@ e630b5c355593a73a7d984c361dfa5f69e6f7d40d941b51d00de4f5acf262a2e  tests/e2e/meri
 8eef491460a01c05abe5828a237a186affe5bcb067070fdbf426ebbeb58ba13b  tests/e2e/fortune-layout.e2e.mjs  # repo file (relock-e2e)
 0c976e99dde5c5c14b540878d3bacb8ef53fff8705e51d6fc728ba8ada7f73f7  tests/e2e/crisis-rules-1323-b.e2e.mjs  # repo file (relock-e2e)
 5f3ef019d9bfcdaab5e0f48f554916a628737ca16a7e2a544f1e810c22d5a5d4  tests/e2e/crisis-rules-1323-f.e2e.mjs  # repo file (relock-e2e)
+# RE-LOCK v3-e2e-b 2026-11-17: (1) test fault found measuring the build (build-3-e2e.log): English echo pieces are 3 consecutive words, not 5 letters ('night' in 'Knight', 'antto' in 'want to do') in crisis-v3-kit (re-lock 5) and crisis-net-hotfix-kit; (2) v3 re-locks missed in the first pass: fortune-crisis-fields-2 (card -> crisis state, no card; no echo of every variant kept and widened to the whole page) and fortune-helpline WANT (the printed / calm help line is the closing line, rule d).
+# locked 2026-11-17T02:18:49Z (tools/eval-guard.mjs lock, 4 files)
+c011aa221271fe64eb46c981acaf9805ba338c4ee55827cb191ae438e8e03e20  relock-e2e-b/crisis-v3-kit.mjs
+8beff8a6dcac921f5e841a24b45b5c13fd75e0d62ce3f106b72b48b30518a7b7  relock-e2e-b/crisis-net-hotfix-kit.mjs
+f167cde29953d078a045e07498a35dc1f201a88dcdcce26e0446504d2698aab4  relock-e2e-b/fortune-crisis-fields-2.e2e.mjs
+52ec11739663cff705ae2b5799276dcf181b45c97a0a68943db0da52e8641ba2  relock-e2e-b/fortune-helpline.e2e.mjs
+c011aa221271fe64eb46c981acaf9805ba338c4ee55827cb191ae438e8e03e20  tests/e2e/crisis-v3-kit.mjs  # repo file (relock-e2e-b)
+8beff8a6dcac921f5e841a24b45b5c13fd75e0d62ce3f106b72b48b30518a7b7  tests/e2e/crisis-net-hotfix-kit.mjs  # repo file (relock-e2e-b)
+f167cde29953d078a045e07498a35dc1f201a88dcdcce26e0446504d2698aab4  tests/e2e/fortune-crisis-fields-2.e2e.mjs  # repo file (relock-e2e-b)
+52ec11739663cff705ae2b5799276dcf181b45c97a0a68943db0da52e8641ba2  tests/e2e/fortune-helpline.e2e.mjs  # repo file (relock-e2e-b)
