@@ -91,14 +91,30 @@ export function redrawCalls(html) {
   return out + html.slice(i);
 }
 
+/** fortune-top.css (owner order 2026-11-16 + decision 69 ค), inlined next to the help button: comments and line breaks removed,
+ *  in lines of at most 150 characters (tools/cat-pages.mjs wraps lines over 160 at a space) */
+export function topStyle() {
+  const css = readFileSync(join(repo, "fortune-top.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map(l => l.trim()).filter(Boolean);
+  const lines = []; let cur = "";
+  for (const l of css) { if (cur && cur.length + l.length > 150) { lines.push(cur); cur = l; } else cur += l; }
+  if (cur) lines.push(cur);
+  const out = []; // a single rule longer than the limit breaks after a "{" or ";"
+  for (let l of lines) {
+    while (l.length > 150) { const k = Math.max(l.lastIndexOf(";", 150), l.lastIndexOf("{", 150), l.lastIndexOf("}", 150)) + 1; out.push(l.slice(0, k)); l = l.slice(k); }
+    out.push(l);
+  }
+  return '<style id="lqFtopCss">' + out.join("\n") + "</style>";
+}
+
+const OLD_STYLE = /^[ \t]*<style id="lqFtopCss">[\s\S]*?<\/style>\n/gm;
 const OLD = /^[ \t]*<aside class="lq-helpline(?: [^"]*)?" id="lqHelp(?:Top|End)"[\s\S]*?<\/aside>\n/gm;
 /** the page with the one help button row in place before <main> (any older copy, including the old end-of-page line
  *  #lqHelpEnd, removed: owner order 2026-11-15 item 3) @param {string} html */
 export function applyTo(html) {
-  let h = html.replace(OLD, "");
+  let h = html.replace(OLD, "").replace(OLD_STYLE, "");
   const main = h.search(/^[ \t]*<main\b/m);
   if (main < 0) throw new Error("no <main> at the start of a line");
-  return h.slice(0, main) + snippet("lqHelpTop") + "\n" + h.slice(main);
+  return h.slice(0, main) + topStyle() + "\n" + snippet("lqHelpTop") + "\n" + h.slice(main);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

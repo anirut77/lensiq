@@ -19,16 +19,38 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="pl.doc.title">วางแผนฤกษ์มงคล ขึ้นบ้านใหม่ เปิดร้าน เริ่มงาน | LENSIQ</title>
 <meta name="description" data-i18n-attr="content:pl.doc.desc" content="หาวันดีสำหรับขึ้นบ้านใหม่ เปิดร้าน หรือเริ่มงานใหม่ จากวันในสัปดาห์ สีประจำวัน ข้างขึ้นข้างแรม และวันเกิดของเจ้าของ แสดงเฉพาะวันดีพร้อมเหตุผล บันทึกลงปฏิทินได้ คำนวณในเครื่อง">
-<link rel="stylesheet" href="styles.css?v=20">
+<link rel="stylesheet" href="styles.css?v=21">
 <link rel="stylesheet" href="fortune-kit.css?v=2">
 <link rel="stylesheet" href="planner.css?v=1">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=24"></script>
+<script src="nav.js?v=25"></script>
 <script src="i18n/zh-planner.js?v=3"></script>
 
+<style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
+.lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
+.lq-helpnav a.lq-call-btn[href]:hover{background:#0b5d8f14;color:#094d77}.lq-helpnav .lq-call-mini-t{display:none}
+.lq-helpquiet a.lq-call-btn[href]{gap:4px;padding:0 6px;background:none;color:#0b5d8f;font-size:.88rem}.lq-helpquiet .lq-call-mini-t{display:none}
+.has-help{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"util util util lang" "logo menu menu help"}
+@media(max-width:1023.98px),(pointer:coarse) and (max-height:600px){
+.has-help{grid-template-columns:auto minmax(0,1fr) auto auto auto;grid-template-areas:"logo . help lang toggle"}}
+@media(max-width:479.98px){.has-help{padding:0 12px;column-gap:6px}.has-help .lang-switch:not(.open) [aria-pressed=false]{display:none}}
+.lq-help-dlg{width:min(340px,90vw);margin:auto;padding:18px;border:1px solid #bcd3e6;border-radius:16px;text-align:center}
+.lq-help-dlg::backdrop{background:#0e143073}.lq-help-dlg div{display:flex;gap:10px}
+.lq-help-dlg :is(a,button){display:flex;align-items:center;justify-content:center;flex:1;min-height:48px;border-radius:12px;font:inherit;
+font-weight:700}
+.lq-help-dlg a{background:#0b5d8f;color:#fff}.lq-help-dlg button{border:1px solid #bcd3e6;background:#fff}
+.lq-top{display:block;margin:0 auto 12px;padding:0;border:0;background:none;color:#5a6280;font-size:.8rem;line-height:1.45;text-align:center}
+.lq-top>svg{display:none}.lq-top b{font-weight:400;color:inherit}
+.lq-top :is(button.lq-more,a){display:inline-flex;align-items:center;min-height:44px;margin:-12px 0;padding:0 3px;border:0;
+background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-hero,.pd-hero) .lq-top{color:#c9d0ea}
+:is(.ft-hero,.pd-hero) .lq-top :is(button,a){color:#d9d1ff}@media(max-width:560px){.lq-ftop:not(.ft,.pd){padding-top:6px}
+.lq-ftop .eyebrow{display:none}.lq-ftop h1{font-size:1.5rem;line-height:1.25;margin:2px 0 4px}
+.lq-ftop :is(.lead,.ft-hero>p,.pd-hero>p):not(.lq-top){font-size:.9rem;line-height:1.45;margin:0 auto 6px}
+.lq-ftop :is(.ft-hero,.pd-hero){padding:10px 16px 14px}.lq-ftop .lq-top{font-size:.75rem;margin-left:-8px;margin-right:-8px}
+[lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}}</style>
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
     <a class="lq-call-btn lq-helpline-tel" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
@@ -36,13 +58,13 @@
     <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
     <span class="lq-call-mini-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span> <b class="lq-call-mini-n">1323</b></a></span>
 </aside>
-<main class="fk pl" id="plApp">
+<main class="fk pl lq-ftop" id="plApp">
   <div class="fk-head">
     <span class="eyebrow" data-i18n="pl.eyebrow">ฤกษ์มงคล · วันดีตามความเชื่อไทย</span>
     <h1 data-i18n="pl.h1">วางแผนฤกษ์มงคล</h1>
-    <p class="lead" data-i18n="pl.lead">เลือกงานที่จะทำและช่วงเดือน แล้วใส่วันเกิดของเจ้าของ (ถ้ามี) หน้านี้จะแสดงเฉพาะวันดีพร้อมเหตุผลว่าดีเพราะอะไร เลือกวันที่ชอบแล้วบันทึกลงปฏิทินในมือถือได้</p>
+    <p class="lead" data-i18n="pl.lead">เลือกงานและช่วงเดือน แล้วรับรายการวันดีพร้อมเหตุผล บันทึกลงปฏิทินได้</p>
   </div>
-  <p class="fk-disclaimer lq-notice" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+  <p class="fk-disclaimer lq-notice lq-top" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
     <span><b class="lq-disc-line"
       data-i18n="fortune.disc.line">เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ</b>
     <span class="lq-notice-more">
@@ -90,7 +112,7 @@
     <button class="btn ghost" type="button" id="plAddOwner" aria-controls="plOwner2" aria-expanded="false" data-i18n="pl.f.add2">+ เพิ่มเจ้าของคนที่ 2 (เช่น คู่สมรส หุ้นส่วน)</button>
     <p class="fk-small" data-i18n="pl.f.privacy">วันเกิดใช้คำนวณในหน้านี้เท่านั้น ไม่บันทึกในเครื่องและไม่ส่งออกไปที่ใด ปิดหน้าแล้วข้อมูลหายไป</p>
     <p class="fk-msg" id="plMsg" role="alert"></p>
-    <button class="btn primary big full" type="submit" id="plGo" data-i18n="pl.f.go">หาวันดี</button>
+    <button class="btn primary big full" type="submit" id="plGo" data-i18n="pl.f.go" data-lq-read>หาวันดี</button>
   </form>
 
   <section class="pl-result" id="plResult" hidden aria-labelledby="plResH">
@@ -138,7 +160,7 @@
   </div>
 </main>
 
-<script src="lensiq-config.js?v=13"></script>
+<script src="lensiq-config.js?v=14"></script>
 <script src="horoscope-kb.js?v=6"></script>
 <script src="horoscope.js?v=16"></script>
 <script src="lensiq-planner.js?v=1"></script>
@@ -146,6 +168,6 @@
 <script src="fortune-notice.js?v=2"></script>
 <script src="lensiq-helpline.js?v=1"></script>
 <script src="fortune-crisis.js?v=12"></script>
-<script src="planner.js?v=2"></script>
+<script src="planner.js?v=3"></script>
 </body>
 </html>
