@@ -494,7 +494,7 @@
       all.forEach(function (n) {
         var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, i, L, z, out = [], wd = null;
         var x = n.previousSibling, y = n.nextSibling, pre = 0, post = -1;
-        if (!p || DONE.get(n) === kf(n) || p.closest(SKIP + ",#siteNav,.lq-crumbs,[translate=no]")) return;
+        if (!p || DONE.get(n) === kf(n) || p.closest(SKIP + ",#siteNav,.lq-crumbs")) return;
         DONE.set(n, kf(n));
         PR.forEach(function (re) { re.lastIndex = 0; while ((m = re.exec(v))) r.push([m.index, m.index + m[0].length]); });
         if (x && IN.test(x.nodeName) && /^[\d.,]+$/.test((x.textContent || "").trim()) && (m = /^[ \t\n]+\S{1,8}/.exec(v))) r.push([0, pre = m[0].length]);
