@@ -62,8 +62,8 @@
     zh: "'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC','Helvetica Neue',Arial,'Liberation Sans',Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,Garuda,sans-serif",
   };
   // the LENSIQ mark (same drawing as nav.js); dark square + white corners print in black and white as they are
-  const MARK = '<svg class="lqp-mark-svg" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#111"/>' +
-    '<path d="M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="16" cy="16" r="3.6" fill="#fff"/></svg>';
+  const MARK = '<svg class="lqp-mark-svg" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#14182e"/>' +
+    '<path d="M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="16" cy="16" r="3.6" fill="#8b78ff"/></svg>';
   // icons: the same hand-drawn shapes as fortune-read.js (MIT, own work), stroke = currentColor (black on paper)
   const ICON_PATH = {
     colour: '<path d="M12 3.5c-4.9 0-8.5 3.6-8.5 8.1 0 4.4 3.6 8.4 8.2 8.4 1.2 0 1.8-.7 1.8-1.6 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.7-1.6 1.6-1.6h1.9c2.7 0 4.5-1.9 4.5-4.4 0-3.7-3.8-6.5-8.5-6.5z"/><circle cx="7.6" cy="11.3" r="1.2"/><circle cx="10.4" cy="7.6" r="1.2"/><circle cx="14.8" cy="7.8" r="1.2"/>',

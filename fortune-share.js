@@ -203,9 +203,9 @@
     "body.lq-printing>*:not(#lqPrint){display:none!important}" +
     "#siteNav,header.nav,.lq-helpbar,nav,button,select,input,textarea,.lq-toc,[data-lq-sp-bar],[data-lq-sp-opt],.lq-sp-dlg,dialog,.toast{display:none!important}" +
     "body.lq-printing{background:#fff!important;color:#111!important;margin:0;padding:0}" +
-    "#lqPrint{display:block!important;color:#111;background:#fff;font-size:11pt;line-height:1.55}" +
+    "#lqPrint{display:block!important}#lqPrint:not(.lqp){color:#111;background:#fff;font-size:11pt;line-height:1.55}" +
     "#lqPrint *{box-shadow:none!important;text-shadow:none!important;animation:none!important;transition:none!important}" +
-    "#lqPrint :is(p,li,h1,h2,h3,h4,h5,span,b,strong,small,td,th,dt,dd,em,a,div,section,article){color:#111!important}" +
+    "#lqPrint:not(.lqp) :is(p,li,h1,h2,h3,h4,h5,span,b,strong,small,td,th,dt,dd,em,a,div,section,article){color:#111!important}" +
     "#lqPrint :is(section,article,div,aside){background-image:none!important}" +
     "#lqPrint .lq-pr-t{width:100%;border-collapse:collapse}#lqPrint .lq-pr-t>thead{display:table-header-group}#lqPrint .lq-pr-t>tfoot{display:table-footer-group}" +
     "#lqPrint .lq-pr-t td{padding:0;vertical-align:top}" +
@@ -221,8 +221,8 @@
     "#lqPrint .lq-gist{-webkit-line-clamp:none!important;overflow:visible!important}" +
     "#lqPrint h1,#lqPrint h2,#lqPrint h3,#lqPrint h4{break-after:avoid;page-break-after:avoid}" +
     "#lqPrint img,#lqPrint svg,#lqPrint figure,#lqPrint li{break-inside:avoid;page-break-inside:avoid}#lqPrint img{max-width:100%;height:auto}" +
-    "#lqPrint svg{color:#111}" +
-    "#lqPrint [style*=background],#lqPrint .lq-sw-chip,#lqPrint .sw,#lqPrint .pl-sw,#lqPrint .lq-look-sw{-webkit-print-color-adjust:exact;print-color-adjust:exact;" +
+    "#lqPrint:not(.lqp) svg{color:#111}" +
+    "#lqPrint:not(.lqp) :is([style*=background],.lq-sw-chip,.sw,.pl-sw,.lq-look-sw){-webkit-print-color-adjust:exact;print-color-adjust:exact;" +
     "outline:1pt solid #111;outline-offset:0}" +
     "#lqPrint .lq-pr-swname{font-size:.85em;margin:0 .3em}" +
     "@page{margin:14mm 12mm}" +

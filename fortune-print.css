@@ -2,7 +2,9 @@
    Everything is scoped to .lqp, so the file changes nothing on screen. The @page rule (paper size, margins, "หน้า X / Y")
    comes with each report (render() puts it in a <style data-lqp-page>). Sizes: .lqp--a4, .lqp--a5, .lqp--auto (follows the
    paper chosen in the print dialog: narrow paper = the A5 rules), .lqp--r80 (80 mm receipt, kiosk). */
-.lqp{color:#111;background:#fff;font-size:10.5pt;line-height:1.55;-webkit-text-size-adjust:none;text-size-adjust:none}
+/* colour (owner decision 82 ก): one brand accent for colour printers and PDF; every text stays dark enough for black and white
+   (text >= 7:1, accents >= 4.5:1 against white) and nothing is told by colour alone (labels, dashed caution rule) */
+.lqp{--lqp-ink:#14182e;--lqp-accent:#4b36c9;--lqp-accent-soft:#efecff;--lqp-caution:#b45309;--lqp-tint:#f6f4ff;color:var(--lqp-ink);background:#fff;font-size:10.5pt;line-height:1.55;-webkit-text-size-adjust:none;text-size-adjust:none}
 .lqp *,.lqp *::before,.lqp *::after{box-sizing:border-box;box-shadow:none;text-shadow:none;animation:none;transition:none}
 /* Thai (in any report language): ligatures / ccmp off, so the PDF text can be copied and searched (share-print decision) */
 .lqp{font-variant-ligatures:none;font-feature-settings:"ccmp" 0,"liga" 0,"clig" 0,"calt" 0,"locl" 0}
@@ -14,25 +16,25 @@
 .lqp-frame>tfoot{display:table-footer-group}
 .lqp-frame>thead>tr>td,.lqp-frame>tfoot>tr>td,.lqp-frame>tbody>tr>td{padding:0;border:0;vertical-align:top}
 
-.lqp-head{display:flex;align-items:center;gap:3mm;border-bottom:1.2pt solid #111;padding:0 0 1.8mm;margin:0 0 4mm;font-size:8.5pt;line-height:1.35}
-.lqp-mark{display:inline-flex;align-items:center;gap:1.4mm;font-weight:700;letter-spacing:.06em;flex:none}
+.lqp-head{display:flex;align-items:center;gap:3mm;border-bottom:1.2pt solid var(--lqp-accent);padding:1.4mm 2mm 1.6mm;margin:0 0 4mm;font-size:8.5pt;line-height:1.35;background:var(--lqp-tint);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lqp-mark{display:inline-flex;align-items:center;gap:1.4mm;font-weight:700;letter-spacing:.06em;flex:none;color:var(--lqp-accent)}
 .lqp-mark-svg{width:5.5mm;height:5.5mm;flex:none}
 .lqp-hd-title{flex:1 1 auto;min-width:0;font-weight:600}
 .lqp-hd-name{font-weight:400}
 .lqp-hd-date{flex:none;white-space:nowrap}
 
-.lqp-foot{border-top:.75pt solid #444;margin-top:4mm;padding-top:1.5mm;font-size:8pt;line-height:1.4;color:#111}
-.lqp-foot p{margin:0}
+.lqp-foot{border-top:.75pt solid var(--lqp-accent);margin-top:4mm;padding-top:1.5mm;font-size:8pt;line-height:1.4;color:#111}
+.lqp-foot p{margin:0;color:#222}
 .lqp-src{color:#444;overflow-wrap:anywhere}
 
 /* title block on the first page */
 .lqp-titleblock{margin:0 0 5mm;break-after:avoid}
-.lqp-title{font-size:19pt;line-height:1.25;margin:0 0 1mm;font-weight:700}
+.lqp-title{font-size:19pt;line-height:1.25;margin:0 0 1mm;font-weight:700;color:var(--lqp-ink)}
 .lqp-kind{margin:0;font-size:9.5pt;color:#333}
 
 /* sections: a heading is never the last thing on a page */
-.lqp-part{font-size:13.5pt;line-height:1.3;margin:6mm 0 2.5mm;padding:0 0 1mm;border-bottom:.9pt solid #111;font-weight:700;break-after:avoid;page-break-after:avoid}
-.lqp-h{font-size:11.5pt;line-height:1.35;margin:4.5mm 0 1.6mm;padding-left:2.2mm;border-left:1.1mm solid #111;font-weight:700;break-after:avoid;page-break-after:avoid}
+.lqp-part{font-size:13.5pt;line-height:1.3;margin:6mm 0 2.5mm;padding:0 0 1mm;border-bottom:.9pt solid var(--lqp-accent);color:var(--lqp-accent);font-weight:700;break-after:avoid;page-break-after:avoid}
+.lqp-h{font-size:11.5pt;line-height:1.35;margin:4.5mm 0 1.6mm;padding-left:2.2mm;border-left:1.1mm solid var(--lqp-accent);color:var(--lqp-ink);font-weight:700;break-after:avoid;page-break-after:avoid}
 .lqp-subh{font-size:10.5pt;line-height:1.35;margin:3.5mm 0 1.2mm;font-weight:700;break-after:avoid;page-break-after:avoid}
 .lqp-lead{display:flow-root;break-inside:avoid;page-break-inside:avoid} /* flow-root: Chrome keeps it whole inside the frame cell */
 .lqp-lead>.lqp-part:first-child,.lqp-lead>.lqp-h:first-child{margin-top:0}
@@ -40,7 +42,7 @@
 .lqp-sec-1{margin-top:3mm}
 .lqp-sec+.lqp-sec .lqp-lead>.lqp-h:first-child{margin-top:3.5mm}
 .lqp p{margin:0 0 2mm;orphans:3;widows:3}
-.lqp-caution{border-left:.8mm dashed #111;padding-left:2.4mm}
+.lqp-caution{border-left:.8mm dashed var(--lqp-caution);padding-left:2.4mm}
 
 /* lists: an item never splits; short lists in two columns */
 .lqp ul,.lqp ol{margin:0 0 2.5mm;padding-left:5.5mm}
@@ -48,7 +50,7 @@
 .lqp li>b{font-weight:700}
 .lqp-cols{display:grid;grid-template-columns:1fr 1fr;column-gap:7mm;row-gap:1.1mm;list-style:none;padding-left:0}
 .lqp-cols>li{margin:0;padding-left:3.5mm;position:relative;min-width:0;overflow-wrap:anywhere}
-.lqp-cols>li::before{content:"\2022";position:absolute;left:0}
+.lqp-cols>li::before{content:"\2022";position:absolute;left:0;color:var(--lqp-accent)}
 ol.lqp-cols{counter-reset:lqp}
 ol.lqp-cols>li{counter-increment:lqp;padding-left:5mm}
 ol.lqp-cols>li::before{content:counter(lqp) "."}
@@ -57,7 +59,7 @@ ol.lqp-cols>li::before{content:counter(lqp) "."}
 .lqp-tbl{width:100%;border-collapse:collapse;margin:0 0 3mm;font-size:9.5pt;line-height:1.4}
 .lqp-tbl caption{caption-side:top;text-align:left;font-weight:700;padding:0 0 1mm;break-after:avoid}
 .lqp-tbl th,.lqp-tbl td{border:.5pt solid #666;padding:1mm 1.6mm;text-align:left;vertical-align:top;overflow-wrap:anywhere}
-.lqp-tbl th{font-weight:700;background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lqp-tbl th{font-weight:700;background:var(--lqp-accent-soft);-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .lqp-tbl thead{display:table-header-group}
 .lqp-tbl tr{break-inside:avoid;page-break-inside:avoid}
 .lqp-tbl-wide{font-size:8.5pt}
@@ -69,8 +71,8 @@ ol.lqp-cols>li::before{content:counter(lqp) "."}
 
 /* black and white: every icon and colour swatch carries its name */
 .lqp-adv{display:flex;flex-wrap:wrap;gap:1.4mm 2.5mm;align-items:center;margin:-.8mm 0 2.5mm;font-size:9pt;line-height:1.3;break-inside:avoid;page-break-inside:avoid}
-.lqp-ico{display:inline-flex;align-items:center;gap:1mm;border:.6pt solid #111;border-radius:1.6mm;padding:.3mm 1.6mm .3mm 1mm}
-.lqp-ico-svg{width:4mm;height:4mm;flex:none;color:#111}
+.lqp-ico{display:inline-flex;align-items:center;gap:1mm;border:.6pt solid var(--lqp-accent);border-radius:1.6mm;padding:.3mm 1.6mm .3mm 1mm}
+.lqp-ico-svg{width:4mm;height:4mm;flex:none;color:var(--lqp-accent)}
 .lqp-sw{display:inline-flex;align-items:center;gap:1.1mm;max-width:100%} /* a long label wraps, the chip stays with it */
 .lqp-chip{display:inline-block;width:3.6mm;height:3.6mm;border:.7pt solid #111;border-radius:50%;flex:none;vertical-align:-.5mm;
   -webkit-print-color-adjust:exact;print-color-adjust:exact}
