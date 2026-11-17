@@ -7,3 +7,6 @@ e666a41c4e09a6045981d2acc26aada1d3b043dc1130afe3d00b85e3d428b43e  crisis-escape-
 271d50c0413bac257e72354bee9e1b84e90de4aece816b9f2e456042bc2b1f46  crisis-escape-guard-allow.json
 # locked 2026-11-17T03:33:13Z (tools/eval-guard.mjs lock, 1 file)
 f3c0caaaf521f4c7d7ab29ecf28f24dde003c464d242e74be547878c11fe2bed  crisis-net-hotfix-inventory.v4.json
+# locked 2026-11-17T03:39:05Z (tools/eval-guard.mjs lock, 2 files)
+4e899434ceb97b937be925c79713055f73fc0b687dac950226d1196611a14859  crisis-escape-guard-kit.v2.mjs
+4e1132d0b86fc2cb0767ee1b84391abea4954e15e375776fb5f0e6f00e83b785  crisis-escape-guard-allow.v2.json

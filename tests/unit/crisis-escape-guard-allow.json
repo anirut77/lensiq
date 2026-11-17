@@ -1,5 +1,5 @@
 {
-  "note": "FIXED TEST SET crisis-escape-guard (locked 2026-11-17 before measuring). Elements that a fortune page's own scripts write into or reveal, that sit OUTSIDE every crisis-takeover root, and that are NOT reading content. tests/unit/crisis-escape-guard.test.js fails on any write target outside a root that is not listed here, so a NEW result element must either carry data-lq-result (or sit inside a root) or be added here with a reason in a reviewed, re-locked commit. Categories: nav = site navigation; field = an input, a select, a picker or the form the visitor fills in; msg = validation, capture or engine status about the input, not a reading; ui = a control (camera, idle screen, toast); ref = static reference text that is the same for every visitor and is not derived from their input or reading.",
+  "note": "FIXED TEST SET crisis-escape-guard (locked 2026-11-17 before measuring; v2 re-lock adds the browser-only section). \"browser\": ids only the browser half sees (not written by id in the page script), same rule. Elements that a fortune page's own scripts write into or reveal, that sit OUTSIDE every crisis-takeover root, and that are NOT reading content. tests/unit/crisis-escape-guard.test.js fails on any write target outside a root that is not listed here, so a NEW result element must either carry data-lq-result (or sit inside a root) or be added here with a reason in a reviewed, re-locked commit. Categories: nav = site navigation; field = an input, a select, a picker or the form the visitor fills in; msg = validation, capture or engine status about the input, not a reading; ui = a control (camera, idle screen, toast); ref = static reference text that is the same for every visitor and is not derived from their input or reading.",
   "targets": {
     "* siteNav": "nav: site navigation (nav.js)",
     "astro asDay": "field: birth-day select",
@@ -101,6 +101,11 @@
     "fengshui fsToast": "ui: status toast",
     "fengshui fsAgain": "ui: 'another wording' button",
     "fengshui fsYearInfo": "ref: this year's flying-star line, same for every visitor (not derived from the birth date)"
+  },
+  "browser": {
+    "faceread frHint": "msg: live camera capture hint (lensiq-capture-hint.js), changes with every camera frame",
+    "faceread frQc": "msg: live photo quality checklist, changes with every camera frame",
+    "palm plHint": "msg: live camera capture hint (lensiq-capture-hint.js), changes with every camera frame"
   },
   "noEntry": {
     "planner": { "why": "no free-text field of its own and no FortuneAI reading; it loads horoscope.js only as the calendar library, whose #hsNameNum box is drawn inside #hsResult, which planner.html does not have", "absent": ["hsResult"] }

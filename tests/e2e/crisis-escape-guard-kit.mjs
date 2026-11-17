@@ -14,6 +14,12 @@
 //      phrase in the page's own free-text box (the kit's PHRASE: existing locked list); wait for the help card;
 //   6. ASSERT: every collected element is allowed in the crisis state (ALLOWED below), and nothing new and visible appeared
 //      after step 5 outside the card and the help lines.
+// Re-lock v2 (2026-11-17, append-only, after the first run on 4a06544 and BEFORE measuring the fix): the first run flagged
+// camera capture hints, the dream symbol chips the visitor picked, a re-labelled submit button and a form legend: none is
+// reading content. v2 (a) uses the SAME reviewed list as the static half (tests/unit/crisis-escape-guard-allow.json:
+// "targets" + "browser"): an element inside an allow-listed id of that page is not a result element; (b) content inside a
+// <form> that existed before the reading is the visitor's form, also when it is re-drawn after the trigger (the takeover
+// keeps forms; result content written into a form by id is the static half's job). Nothing else changed.
 // Crisis v3 (in progress: the reading continues gently instead of a card) re-targets ONE place: MODE / ALLOWED below
 // ("in the crisis state every result element is either hidden or v3-compliant"). Steps 1–5 and the collection stay.
 import { readdirSync, readFileSync } from "node:fs";
@@ -22,6 +28,9 @@ import { fileURLToPath } from "node:url";
 import { assert } from "./cdp.mjs";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const ALLOW = JSON.parse(readFileSync(join(REPO, "tests/unit/crisis-escape-guard-allow.json"), "utf8"));
+/** the ids allow-listed as NOT reading content on a page (static "targets" + browser-only "browser" entries) */
+const allowIds = page => Object.keys(Object.assign({}, ALLOW.targets, ALLOW.browser || {})).map(k => k.split(" ")).filter(([p]) => p === page || p === "*").map(([, id]) => id);
 const S = JSON.stringify;
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
 /** existing locked phrases (crisis-net-hotfix kit): TH, and the short ZH one for 4-character year boxes */
@@ -40,7 +49,10 @@ const HELPERS = `${VIS}
   const content = e => { if (e.closest("svg") && !e.matches("svg")) return false; if (/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE|OPTION|OPTGROUP|BR)$/.test(e.tagName)) return false;
     return !!own(e) || e.matches("img, canvas, svg, video, button, a[href], [role=img], meter, progress"); };
   const field = e => e.matches("input, select, textarea, option, optgroup, datalist") || (e.matches("label") && !!e.querySelector("input, select, textarea"));
-  const exempt = (e, pre) => !!e.closest(${S(HELP)}) || !!e.closest("#siteNav, .nav, footer, .lq-foot, dialog") || field(e) || (!!pre && !!e.closest("form"));
+  const ALLOW_IDS = window.__lqAllow || [];
+  const allowListed = e => ALLOW_IDS.some(id => { const a = document.getElementById(id); return !!a && a.contains(e); });
+  const preForm = e => { const f = e.closest("form"); return !!f && !!window.__lqG && window.__lqG.pre.has(f); };
+  const exempt = (e, pre) => !!e.closest(${S(HELP)}) || !!e.closest("#siteNav, .nav, footer, .lq-foot, dialog") || field(e) || preForm(e) || allowListed(e);
   const desc = e => (e.tagName.toLowerCase() + (e.id ? "#" + e.id : "") + (typeof e.className === "string" && e.className.trim() ? "." + e.className.trim().split(/\\s+/).slice(0, 2).join(".") : "")
     + (own(e) ? " \\"" + own(e).slice(0, 30) + "\\"" : "") + (e.closest("[id]") && e.closest("[id]") !== e ? " in #" + e.closest("[id]").id : ""));`;
 
@@ -175,6 +187,7 @@ export async function runCase(browser, base, fakeCams, page, how) {
     await sleep(400);
     if (F.prep) await F.prep(p);
     await sleep(300);
+    await ev(p, `window.__lqAllow = ${S(allowIds(page))}; true`);
     await ev(p, TRACK);
     await F.read(p);
     await sleep(1200); // late writes of the reading (counters, share card, report button)
