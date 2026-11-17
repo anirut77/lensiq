@@ -227,7 +227,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var x = e.target.closest(".dr-x"); if (x) { toggle(x.dataset.id); return; }
     var c = e.target.closest(".dr-cat"); if (c) { st.cat = c.dataset.c; document.querySelectorAll(".dr-cat").forEach(function (y) { y.setAttribute("aria-pressed", String(y === c)); }); renderList(); }
   });
-  $("#drSearch").addEventListener("input", renderList);
+  $("#drSearch").addEventListener("input", function () { if (supportFor(this.value, true)) return; renderList(); }); // crisis net first (hotfix 2026-11-16)
   renderList();
 
   var stats = FK.statsPanel({
@@ -250,7 +250,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       typing = เรียกระหว่างพิมพ์: แสดงการ์ดโดยไม่ย้ายโฟกัสออกจากช่องพิมพ์ */
   function supportFor(text, typing) {
     var box = document.getElementById("drSupport");
-    if (!FA || !FA.crisis || !FA.crisis.check(text)) { st.support = false; if (box) { box.hidden = true; box.textContent = ""; } return false; }
+    var hit = !!(FA && FA.crisis && (FA.crisis.check(text) || FA.crisis.check(FA.crisis.fields()) || (FA.crisis.active && FA.crisis.active()))); // every field (hotfix 2026-11-16)
+    if (!hit) { st.support = false; if (box) { box.hidden = true; box.textContent = ""; } return false; }
     if (typing && st.support && box && !box.hidden) return true;
     if (!box) { box = document.createElement("div"); box.id = "drSupport"; box.tabIndex = -1; $("#drForm").insertAdjacentElement("afterend", box); }
     st.res = null; st.support = true; $("#drResult").hidden = true; $("#drMsg").textContent = "";

@@ -29,7 +29,7 @@
      the page builds a full sample report on the device (labelled as a free demo sample); with billing on it takes one
      report credit through POST /api/me/entitlements/use before the report is shown and saves it to the history. -->
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=22"></script>
+<script src="nav.js?v=23"></script>
 <script src="i18n/zh-report.js?v=6"></script>
 
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
@@ -56,7 +56,7 @@
     </div>
   </section>
 
-  <form class="rp-form" id="rpForm" novalidate>
+  <form class="rp-form" id="rpForm" novalidate data-lq-crisis-own>
     <fieldset class="rp-person">
       <legend id="rpLegendA">วันเกิด</legend>
       <div class="rp-row">
@@ -109,7 +109,7 @@
     <button class="btn primary big" id="rpGo" type="submit" data-i18n="rp.go">สร้างรายงาน</button>
   </form>
 
-  <article class="rp-out" id="rpOut" hidden aria-labelledby="rpOutH"></article>
+  <article class="rp-out" id="rpOut" data-lq-result hidden aria-labelledby="rpOutH"></article>
 
   <p class="rp-foot no-print"><a href="fortune.html" data-i18n="rp.toFortune">รวมศาสตร์ดูดวง</a> · <a href="pricing.html" data-i18n="rp.toPricing">แพ็กเกจและราคา</a> · <a href="terms.html#t9" data-i18n="rp.toRefund">การคืนเงินของรายงาน</a></p>
 </main>
@@ -118,17 +118,17 @@
 <script src="i18n/zh-kb-zodiac.js?v=3"></script>
 <script src="lensiq-config.js?v=13"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
-<script src="fortune-read.js?v=16"></script>
+<script src="fortune-read.js?v=17"></script>
 <script src="lensiq-helpline.js?v=1"></script>
-<script src="fortune-crisis.js?v=11"></script>
+<script src="fortune-crisis.js?v=12"></script>
 <script src="fortune-straight.js?v=6"></script>
-<script src="fortune-ai.js?v=31"></script>
+<script src="fortune-ai.js?v=32"></script>
 <script src="fortune-kit.js?v=12"></script>
-<script src="horoscope.js?v=15"></script>
+<script src="horoscope.js?v=16"></script>
 <script src="lifecal.js?v=4"></script>
 <script src="lifecal-kb.js?v=4"></script>
 <script src="zodiac-kb.js?v=4"></script>
 <script src="zodiac.js?v=8"></script>
-<script src="report.js?v=14"></script>
+<script src="report.js?v=15"></script>
 </body>
 </html>

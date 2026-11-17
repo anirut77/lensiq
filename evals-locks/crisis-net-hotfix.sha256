@@ -1,0 +1,30 @@
+# locked 2026-11-16T06:44:36Z (tools/eval-guard.mjs lock, 7 files)
+d641b9a2d186b393d3212a06abc813f50cff4b0972db0a03a138e31b99fe12e8  crisis-net-hotfix-kit.mjs
+3fc66aaf3ebb2c4dd42a17a88054a1654f1ea7db45f7301439520c6db484db2e  crisis-net-hotfix-inventory.json
+22bd5135ecff149d1bf252f72ffb5db2c9d25d89d143b238ae0cc543a72fe810  crisis-net-hotfix-a.e2e.mjs
+f180e6ee4a569df8814f1cfee4b5299e0d5656a1422df404b11b716228a3a0e7  crisis-net-hotfix-b.e2e.mjs
+04e70be1a961f1158c1936f191ce22d532c30ad1606e0799b1e3d678f02091d7  crisis-net-hotfix-c.e2e.mjs
+76488935b191d8354ad9cbd43be7bc212d7603417cfe3c387048554afcd36a9e  crisis-net-hotfix-d.e2e.mjs
+c526d52f4c93d8b0c8c2933c80fcd64ce427ce85f805063b25fdf524386d9b9c  crisis-input-inventory.test.js
+# repo copies (byte-identical to the locked files above), locked 2026-11-16 BEFORE the crisis-net hotfix on branch crisis-net-hotfix (base 656712f). Baseline logs: ~/LENSIQ-field/evals/crisis-net-hotfix/baseline-*.log
+d641b9a2d186b393d3212a06abc813f50cff4b0972db0a03a138e31b99fe12e8  tests/e2e/crisis-net-hotfix-kit.mjs  # repo file
+3fc66aaf3ebb2c4dd42a17a88054a1654f1ea7db45f7301439520c6db484db2e  tests/e2e/crisis-net-hotfix-inventory.json  # repo file
+22bd5135ecff149d1bf252f72ffb5db2c9d25d89d143b238ae0cc543a72fe810  tests/e2e/crisis-net-hotfix-a.e2e.mjs  # repo file
+f180e6ee4a569df8814f1cfee4b5299e0d5656a1422df404b11b716228a3a0e7  tests/e2e/crisis-net-hotfix-b.e2e.mjs  # repo file
+04e70be1a961f1158c1936f191ce22d532c30ad1606e0799b1e3d678f02091d7  tests/e2e/crisis-net-hotfix-c.e2e.mjs  # repo file
+76488935b191d8354ad9cbd43be7bc212d7603417cfe3c387048554afcd36a9e  tests/e2e/crisis-net-hotfix-d.e2e.mjs  # repo file
+c526d52f4c93d8b0c8c2933c80fcd64ce427ce85f805063b25fdf524386d9b9c  tests/unit/crisis-input-inventory.test.js  # repo file
+# locked 2026-11-16T08:21:03Z (tools/eval-guard.mjs lock, 1 file)
+a51b5a66b400a7b99d20205811fafd44b2dc99a9da80c5b1936245be408bb1a7  crisis-net-hotfix-inventory.json
+# re-lock 2026-11-16 (append-only): inventory v2 adds the 5 inputs of lensiq-merit.js's interest form (found while running merit-crisis.e2e.mjs; created through a helper, so the unit scan does not see them). Rows only; every v1 row unchanged. v1 kept as crisis-net-hotfix-inventory.v1-2026-11-16T06-44Z.json
+a51b5a66b400a7b99d20205811fafd44b2dc99a9da80c5b1936245be408bb1a7  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (v2)
+# ROUND 2 (append-only) locked 2026-11-17 BEFORE the round-2 fix, base 5061f53 + e32a7b2 (reviewer lock). Field copies + guard lock: ~/LENSIQ-field/evals/crisis-net-hotfix-r2/, evals-locks/crisis-net-hotfix-r2.sha256.
+# New: crisis-net-hotfix-e.e2e.mjs (E1 palm map, E2 tarot / iching flag holds + board / report button, E3 daily / siamsee / iching daily, E4 report dialog note, E5 fortune-crisis.js blocked), crisis-input-inventory-2.test.js (scripts injected by nav.js).
+# Re-lock inventory v3: one row added (.lq-rp textarea, lensiq-report.js note + preview); every v2 row unchanged.
+# Re-lock STRICTER fortune-crisis.e2e.mjs: "card hidden again for an ordinary question" replaced by "after the card an ordinary question keeps the card, no shuffle / coin step" (ordinary question still checked on a fresh page). Reason: owner order 2026-11-16 (a); stricter; coordinator decision on reviewer recommendation, reversible by owner.
+756189040f2d39b3e5ff793ce115a3a2f7e58f07ac5d9c40403be3d9c7e0d13f  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file
+ea5974394ed52531a91e2aea41ae511aadbf7b9b4d9f86f44c743942862d1943  tests/unit/crisis-input-inventory-2.test.js  # repo file
+7b515a0d425011c0dc07795f511f1c3253c2aa737d36ebe5d5c4df3d0eb8b7c6  tests/e2e/fortune-crisis.e2e.mjs  # repo file (stricter re-lock)
+074e8b3df854f5034f68fc83439f07bf14d18ee5b7b377d6822bc837aaf0a88a  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (v3)
+# re-lock 2026-11-17 (append-only): crisis-net-hotfix-e.e2e.mjs v2: E5 numbers opens the name tab BEFORE the baseline, as in part A (v1 opened it after, so the tab's own label "ชื่อจริง" was counted as an echo of "อยากตายจริงๆ" in TH: found in the first after-fix run, 2/6 TH cases). Assertion unchanged; every other check byte-identical. Field copy: crisis-net-hotfix-r2/crisis-net-hotfix-e.v2.e2e.mjs (v1 kept as crisis-net-hotfix-e.e2e.mjs).
+f312ef6bfa242df5e2052dafeeee29e45b2ef88dd74b801c951ce2a348ed6130  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file (v2)

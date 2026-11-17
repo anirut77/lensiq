@@ -737,6 +737,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return era === "be" ? T("horoscope.x.beToCe", "พ.ศ. {a} = ค.ศ. {b}", { a: y, b: ce }) : T("horoscope.x.ceToBe", "ค.ศ. {a} = พ.ศ. {b}", { a: y, b: ce + 543 });
   }
   function yearHint() {
+    if (crisisHit($("#hsYear").value)) { $("#hsErr").textContent = ""; showCrisis(); return; } // crisis net before the digit filter (hotfix 2026-11-16)
     var raw = $("#hsYear").value.replace(/\D/g, ""), h = $("#hsYearHint");
     if ($("#hsYear").value !== raw) $("#hsYear").value = raw;
     if (raw.length < 4) { h.textContent = ""; return; }
@@ -1108,7 +1109,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- ดวงคู่ ---------- */
   $("#hsPartner").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
-    if (crisisOn() || crisisHit($("#hsPName").value)) { lastPartner = null; crisisCard($("#hsCompat")); return; } // crisis net first: the partner name
+    if (crisisOn() || crisisHit($("#hsPName").value) || crisisHit(pageFields())) { lastPartner = null; crisisCard($("#hsCompat")); return; } // crisis net first: the partner name
     if (!current) return;
     var err = $("#hsPErr"); err.textContent = "";
     var raw = $("#hsPYear").value.replace(/\D/g, ""); $("#hsPYear").value = raw;

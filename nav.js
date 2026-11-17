@@ -650,7 +650,7 @@
     if (!/^(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
     var sc = document.createElement("script");
-    sc.src = "lensiq-report.js?v=1"; sc.async = true;
+    sc.src = "lensiq-report.js?v=2"; sc.async = true;
     (document.head || document.documentElement).appendChild(sc);
   }
   // ---------- fortune pages: belief guidance under a reading (lensiq-merit.js; Merit MVP, owner order 2026-11-12) ----------

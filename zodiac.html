@@ -26,7 +26,7 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=22"></script>
+<script src="nav.js?v=23"></script>
 
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
@@ -92,8 +92,8 @@
   <section id="panelChong" role="tabpanel" aria-labelledby="tabChong" hidden>
     <div class="fk-block">
       <label class="zd-ylabel"><span data-i18n="zodiac.chongYearLabel">ปี</span><select id="zdChongYear"></select></label>
-      <div class="zd-chong" id="zdChongGrid"></div>
-      <p class="fk-small" id="zdChongNote"></p>
+      <div class="zd-chong" id="zdChongGrid" data-lq-result></div>
+      <p class="fk-small" id="zdChongNote" data-lq-result></p>
     </div>
   </section>
 
@@ -104,7 +104,7 @@
       <p class="fk-msg" id="zdPairMsg" role="alert"></p>
       <button data-i18n="zodiac.button2" class="btn primary big full" type="submit">ดูความเข้ากัน</button>
     </form>
-    <div id="zdPairRes" hidden aria-live="polite"></div>
+    <div id="zdPairRes" data-lq-result hidden aria-live="polite"></div>
   </section>
 
   <div class="fk-foot">
@@ -132,13 +132,13 @@
 <script src="i18n/zh-kb-zodiac.js?v=3"></script>
 <script src="lensiq-config.js?v=13"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
-<script src="fortune-read.js?v=16"></script>
+<script src="fortune-read.js?v=17"></script>
 <script src="lensiq-helpline.js?v=1"></script>
-<script src="fortune-crisis.js?v=11"></script>
+<script src="fortune-crisis.js?v=12"></script>
 <script src="fortune-straight.js?v=6"></script>
-<script src="fortune-ai.js?v=31"></script>
+<script src="fortune-ai.js?v=32"></script>
 <script src="fortune-kit.js?v=12"></script>
-<script src="horoscope.js?v=15"></script>
+<script src="horoscope.js?v=16"></script>
 <script src="zodiac-kb.js?v=4"></script>
 <script src="zodiac.js?v=8"></script>
 </body>

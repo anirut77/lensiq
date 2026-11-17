@@ -1,0 +1,945 @@
+{
+ "note": "Every input on every fortune page (18 pages + cat-fortune). phrase = a visitor can type or paste a crisis phrase into it. Locked with the crisis-net-hotfix set; tests/unit/crisis-input-inventory.test.js fails when a free-text input appears on a fortune page without a row here; tests/e2e/crisis-net-hotfix-*.e2e.mjs iterate over the phrase rows.",
+ "pages": [
+  "fortune",
+  "cat-fortune",
+  "faceread",
+  "palm",
+  "horoscope",
+  "tarot",
+  "iching",
+  "bazi",
+  "taksa",
+  "lek7",
+  "numbers",
+  "fengshui",
+  "dream",
+  "zodiac",
+  "astro",
+  "lifegraph",
+  "planner",
+  "luckycolor",
+  "report"
+ ],
+ "inputs": [
+  {
+   "page": "faceread",
+   "sel": "#frFile",
+   "type": "file",
+   "maxlength": null,
+   "phrase": false,
+   "why": "photo picker, no text"
+  },
+  {
+   "page": "faceread",
+   "sel": "#frAge",
+   "type": "number",
+   "maxlength": null,
+   "phrase": false,
+   "why": "type=number: the browser keeps only a number (letters are dropped)"
+  },
+  {
+   "page": "faceread",
+   "sel": "#frNick",
+   "type": "text",
+   "maxlength": 24,
+   "phrase": true
+  },
+  {
+   "page": "faceread",
+   "sel": "#frLeadNick",
+   "type": "text",
+   "maxlength": 40,
+   "phrase": true
+  },
+  {
+   "page": "faceread",
+   "sel": "#frLeadContact",
+   "type": "text",
+   "maxlength": 80,
+   "phrase": true
+  },
+  {
+   "page": "faceread",
+   "sel": "#frLeadConsent",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "faceread",
+   "sel": "#frPhotoCard",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "faceread",
+   "sel": "#frStatsOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "faceread",
+   "sel": "#frSetReco",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "faceread",
+   "sel": "#frSetLeads",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "palm",
+   "sel": "#plFile",
+   "type": "file",
+   "maxlength": null,
+   "phrase": false,
+   "why": "photo picker, no text"
+  },
+  {
+   "page": "palm",
+   "sel": "#plNick",
+   "type": "text",
+   "maxlength": 24,
+   "phrase": true
+  },
+  {
+   "page": "palm",
+   "sel": "#plFateNone",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "palm",
+   "sel": "#plStatsOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsName",
+   "type": "text",
+   "maxlength": 60,
+   "phrase": true
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsYear",
+   "type": "text",
+   "maxlength": 4,
+   "phrase": true
+  },
+  {
+   "page": "horoscope",
+   "sel": "input[name=\"hsEra\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsTime",
+   "type": "time",
+   "maxlength": null,
+   "phrase": false,
+   "why": "time picker"
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsNoTime",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsLat",
+   "type": "number",
+   "maxlength": null,
+   "phrase": false,
+   "why": "type=number: the browser keeps only a number (letters are dropped)"
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsLon",
+   "type": "number",
+   "maxlength": null,
+   "phrase": false,
+   "why": "type=number: the browser keeps only a number (letters are dropped)"
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsSunrise",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsHidden",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsPName",
+   "type": "text",
+   "maxlength": 40,
+   "phrase": true
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsPYear",
+   "type": "text",
+   "maxlength": 4,
+   "phrase": true
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsPTime",
+   "type": "time",
+   "maxlength": null,
+   "phrase": false,
+   "why": "time picker"
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsNameNum",
+   "type": "text",
+   "maxlength": 60,
+   "phrase": true,
+   "dynamic": "horoscope.js renderNum (numerology tab)"
+  },
+  {
+   "page": "horoscope",
+   "sel": "#hsStatsOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "tarot",
+   "sel": "#trQuestion",
+   "type": "textarea",
+   "maxlength": 140,
+   "phrase": true
+  },
+  {
+   "page": "tarot",
+   "sel": "#trReversed",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "tarot",
+   "sel": "#trStatsOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "iching",
+   "sel": "#icQuestion",
+   "type": "textarea",
+   "maxlength": 140,
+   "phrase": true
+  },
+  {
+   "page": "iching",
+   "sel": "#icStatsOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "bazi",
+   "sel": "#lcYear",
+   "type": "text",
+   "maxlength": 4,
+   "phrase": true
+  },
+  {
+   "page": "bazi",
+   "sel": "input[name=\"lcEra\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "bazi",
+   "sel": "#lcTime",
+   "type": "time",
+   "maxlength": null,
+   "phrase": false,
+   "why": "time picker"
+  },
+  {
+   "page": "bazi",
+   "sel": "#lcNoTime",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "bazi",
+   "sel": "#lcSolar",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "bazi",
+   "sel": "#lcLon",
+   "type": "number",
+   "maxlength": null,
+   "phrase": false,
+   "why": "type=number: the browser keeps only a number (letters are dropped)"
+  },
+  {
+   "page": "bazi",
+   "sel": "input[name=\"lcGender\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "taksa",
+   "sel": "#lcYear",
+   "type": "text",
+   "maxlength": 4,
+   "phrase": true
+  },
+  {
+   "page": "taksa",
+   "sel": "input[name=\"lcEra\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "taksa",
+   "sel": "#lcTime",
+   "type": "time",
+   "maxlength": null,
+   "phrase": false,
+   "why": "time picker"
+  },
+  {
+   "page": "taksa",
+   "sel": "#lcNoTime",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "lek7",
+   "sel": "#lcYear",
+   "type": "text",
+   "maxlength": 4,
+   "phrase": true
+  },
+  {
+   "page": "lek7",
+   "sel": "input[name=\"lcEra\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "lek7",
+   "sel": "#lcTime",
+   "type": "time",
+   "maxlength": null,
+   "phrase": false,
+   "why": "time picker"
+  },
+  {
+   "page": "lek7",
+   "sel": "#lcNoTime",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "numbers",
+   "sel": "#nmPhone",
+   "type": "tel",
+   "maxlength": 14,
+   "phrase": true
+  },
+  {
+   "page": "numbers",
+   "sel": "#nmPlate",
+   "type": "text",
+   "maxlength": 12,
+   "phrase": true
+  },
+  {
+   "page": "numbers",
+   "sel": "#nmHouse",
+   "type": "text",
+   "maxlength": 16,
+   "phrase": true
+  },
+  {
+   "page": "numbers",
+   "sel": "#nmAcct",
+   "type": "text",
+   "maxlength": 7,
+   "phrase": true
+  },
+  {
+   "page": "numbers",
+   "sel": "#nmName",
+   "type": "text",
+   "maxlength": 40,
+   "phrase": true
+  },
+  {
+   "page": "numbers",
+   "sel": ".nm-cmp-in",
+   "type": "tel",
+   "maxlength": 14,
+   "count": 5,
+   "phrase": true
+  },
+  {
+   "page": "numbers",
+   "sel": "#nmAll",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "numbers",
+   "sel": "#nmAI",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "numbers",
+   "sel": "#nmStatsOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "fengshui",
+   "sel": "#fsYear",
+   "type": "number",
+   "maxlength": null,
+   "phrase": false,
+   "why": "type=number: the browser keeps only a number (letters are dropped)"
+  },
+  {
+   "page": "fengshui",
+   "sel": "input[name=\"fsGender\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 3,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "fengshui",
+   "sel": "#fsHeadingSlider",
+   "type": "range",
+   "maxlength": null,
+   "phrase": false,
+   "why": "slider"
+  },
+  {
+   "page": "fengshui",
+   "sel": "input[name=\"fsView\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "fengshui",
+   "sel": "#fsPhoto",
+   "type": "file",
+   "maxlength": null,
+   "phrase": false,
+   "why": "photo picker, no text"
+  },
+  {
+   "page": "fengshui",
+   "sel": "#fsConsent",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "fengshui",
+   "sel": "#fsStatsOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "dream",
+   "sel": "#drText",
+   "type": "textarea",
+   "maxlength": 300,
+   "phrase": true
+  },
+  {
+   "page": "dream",
+   "sel": "#drSearch",
+   "type": "search",
+   "maxlength": null,
+   "phrase": true
+  },
+  {
+   "page": "dream",
+   "sel": "#drStatsOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "zodiac",
+   "sel": "#zdBirthYear",
+   "type": "text",
+   "maxlength": 4,
+   "phrase": true
+  },
+  {
+   "page": "zodiac",
+   "sel": "input[name=\"zdEra\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "zodiac",
+   "sel": "#zdStatsOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "astro",
+   "sel": "#asYear",
+   "type": "text",
+   "maxlength": 4,
+   "phrase": true
+  },
+  {
+   "page": "astro",
+   "sel": "input[name=\"asEra\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "astro",
+   "sel": "#asTime",
+   "type": "time",
+   "maxlength": null,
+   "phrase": false,
+   "why": "time picker"
+  },
+  {
+   "page": "astro",
+   "sel": "#asNoTime",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "astro",
+   "sel": "#asLat",
+   "type": "number",
+   "maxlength": null,
+   "phrase": false,
+   "why": "type=number: the browser keeps only a number (letters are dropped)"
+  },
+  {
+   "page": "astro",
+   "sel": "#asLon",
+   "type": "number",
+   "maxlength": null,
+   "phrase": false,
+   "why": "type=number: the browser keeps only a number (letters are dropped)"
+  },
+  {
+   "page": "astro",
+   "sel": "#asStatsOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "lifegraph",
+   "sel": "#lcYear",
+   "type": "text",
+   "maxlength": 4,
+   "phrase": true
+  },
+  {
+   "page": "lifegraph",
+   "sel": "input[name=\"lcEra\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "lifegraph",
+   "sel": "#lcTime",
+   "type": "time",
+   "maxlength": null,
+   "phrase": false,
+   "why": "time picker"
+  },
+  {
+   "page": "lifegraph",
+   "sel": "#lcNoTime",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "lifegraph",
+   "sel": "#lcSolar",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "lifegraph",
+   "sel": "#lcLon",
+   "type": "number",
+   "maxlength": null,
+   "phrase": false,
+   "why": "type=number: the browser keeps only a number (letters are dropped)"
+  },
+  {
+   "page": "lifegraph",
+   "sel": "input[name=\"lcGender\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "planner",
+   "sel": "input[name=\"plEvent\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 3,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "planner",
+   "sel": ".pl-bd",
+   "type": "date",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "date picker"
+  },
+  {
+   "page": "planner",
+   "sel": "#plTime",
+   "type": "time",
+   "maxlength": null,
+   "phrase": false,
+   "why": "time picker"
+  },
+  {
+   "page": "report",
+   "sel": "#rpAYear",
+   "type": "text",
+   "maxlength": 4,
+   "phrase": true
+  },
+  {
+   "page": "report",
+   "sel": "input[name=\"rpAEra\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "report",
+   "sel": "#rpATime",
+   "type": "time",
+   "maxlength": null,
+   "phrase": false,
+   "why": "time picker"
+  },
+  {
+   "page": "report",
+   "sel": "#rpANoTime",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "report",
+   "sel": "input[name=\"rpAGender\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "report",
+   "sel": "#rpBYear",
+   "type": "text",
+   "maxlength": 4,
+   "phrase": true
+  },
+  {
+   "page": "report",
+   "sel": "input[name=\"rpBEra\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "report",
+   "sel": "#rpBTime",
+   "type": "time",
+   "maxlength": null,
+   "phrase": false,
+   "why": "time picker"
+  },
+  {
+   "page": "report",
+   "sel": "#rpBNoTime",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "report",
+   "sel": "input[name=\"rpBGender\"]",
+   "type": "radio",
+   "maxlength": null,
+   "count": 2,
+   "phrase": false,
+   "why": "choice only"
+  },
+  {
+   "page": "report",
+   "sel": "#rpName",
+   "type": "text",
+   "maxlength": 60,
+   "phrase": true
+  },
+  {
+   "page": "tarot",
+   "sel": "input[name=\"topic\"]",
+   "type": "radio",
+   "maxlength": null,
+   "phrase": false,
+   "why": "choice only",
+   "dynamic": "tarot.js"
+  },
+  {
+   "page": "tarot",
+   "sel": "input[name=\"spread\"]",
+   "type": "radio",
+   "maxlength": null,
+   "phrase": false,
+   "why": "choice only",
+   "dynamic": "tarot.js"
+  },
+  {
+   "page": "iching",
+   "sel": "input[name=\"icTopic\"]",
+   "type": "radio",
+   "maxlength": null,
+   "phrase": false,
+   "why": "choice only",
+   "dynamic": "iching.js"
+  },
+  {
+   "page": "dream",
+   "sel": "input[name=\"drMood\"]",
+   "type": "radio",
+   "maxlength": null,
+   "phrase": false,
+   "why": "choice only",
+   "dynamic": "dream.js"
+  },
+  {
+   "page": "dream",
+   "sel": "input[name=\"drTime\"]",
+   "type": "radio",
+   "maxlength": null,
+   "phrase": false,
+   "why": "choice only",
+   "dynamic": "dream.js"
+  },
+  {
+   "page": "zodiac",
+   "sel": ".zd-an input",
+   "type": "radio",
+   "maxlength": null,
+   "phrase": false,
+   "why": "choice only",
+   "dynamic": "zodiac.js"
+  },
+  {
+   "page": "planner",
+   "sel": ".pl-pick input",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only",
+   "dynamic": "planner.js"
+  },
+  {
+   "page": "faceread",
+   "sel": "[data-look-adult] input",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only",
+   "dynamic": "lensiq-look.js"
+  },
+  {
+   "page": "*",
+   "sel": "[data-fs] input",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only",
+   "dynamic": "fortune-straight.js (18+ / read it straight, every reading page)"
+  },
+  {
+   "page": "*",
+   "sel": ".fa-consent input",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only",
+   "dynamic": "fortune-ai.js (AI consent, every reading page)"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-merit-form input[name=\"name\"]",
+   "type": "text",
+   "maxlength": 60,
+   "phrase": true,
+   "dynamic": "lensiq-merit.js interest form (every reading page with the merit panel; off by default: LENSIQ_MERIT_INTEREST_FORM)",
+   "covered_by": "lensiq-merit.js checks the form first and draws the card in its panel; locked tests/e2e/merit-crisis.e2e.mjs; the window gate leaves .lq-merit forms to it"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-merit-form input[name=\"contact\"]",
+   "type": "text",
+   "maxlength": 254,
+   "phrase": true,
+   "dynamic": "lensiq-merit.js interest form (every reading page with the merit panel; off by default: LENSIQ_MERIT_INTEREST_FORM)",
+   "covered_by": "lensiq-merit.js checks the form first and draws the card in its panel; locked tests/e2e/merit-crisis.e2e.mjs; the window gate leaves .lq-merit forms to it"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-merit-form input[name=\"date_from\"]",
+   "type": "date",
+   "maxlength": null,
+   "phrase": false,
+   "why": "date picker",
+   "dynamic": "lensiq-merit.js interest form"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-merit-form input[name=\"date_to\"]",
+   "type": "date",
+   "maxlength": null,
+   "phrase": false,
+   "why": "date picker",
+   "dynamic": "lensiq-merit.js interest form"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-merit-form input[name=\"consent\"]",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only",
+   "dynamic": "lensiq-merit.js interest form"
+  },
+  {
+   "page": "*",
+   "sel": ".lq-rp textarea",
+   "type": "textarea",
+   "maxlength": 600,
+   "phrase": true,
+   "dynamic": "lensiq-report.js \"Report a problem with this reading\" dialog (loaded by nav.js on fortune pages): the note (maxlength 600) and the editable preview",
+   "covered_by": "lensiq-report.js runs the crisis net on the note and the edited preview before anything is saved, copied or mailed: nothing stored, the dialog closes, the card takes over; locked tests/e2e/crisis-net-hotfix-e.e2e.mjs (E4) and tests/unit/crisis-input-inventory-2.test.js"
+  }
+ ]
+}
