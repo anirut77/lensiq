@@ -1,0 +1,5 @@
+# locked 2026-11-17T16:13:56Z (tools/eval-guard.mjs lock, 3 files)
+ad9687ce5ded6a29dceab2ca454efa80460fd21335c07601704471cd77f575c2  tests/unit/fortune-credits.test.js
+becef0f455efdc8e422c11c01f4cf8282981a565b596806c0bde0b70a5ebcdc8  tests/unit/fortune-credits-assets.json
+099991d6f92521bbc9043d18cf3531de0d97da74af649f11baadc1c3c9362058  tests/e2e/fortune-credits.e2e.mjs
+# repo copies (byte-identical), locked BEFORE any product change on branch fortune-credits (base origin/main 5695734). Owner order 2026-11-17 night item 2: remove the reading-source label and the 'เกี่ยวกับคำอ่านนี้' block from every fortune page; credits -> credits.html, principles -> help.html#h-principles, foot links.
