@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="th">
+<html lang="th" class="lq-ft lq-ft-menu">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self';
@@ -21,47 +21,51 @@
 <meta name="description" content="รวมระบบดูดวง โหงวเฮ้งและลายมืออ่านจากกล้อง ส่วนวันเดือนปีเกิด ไพ่ทาโรต์ เซียมซี อี้จิง 12 นักษัตร ราศีตะวันตก ทำนายฝัน ฮวงจุ้ย และเลขมงคล คำนวณตามหลักตำรา สำหรับสร้างสีสันในบูธและอีเวนต์">
 <link rel="stylesheet" href="styles.css?v=20">
 <link rel="stylesheet" href="products.css?v=3">
+<link rel="stylesheet" href="fortune-theme.css?v=1">
 <style>
+/* fortune hub, theme "ราตรีคราม" (fortune-theme.css: palette, cards, pressed state; this block: the hub's own layout) */
 .ft{padding:0 0 80px}
-.ft-hero{background:radial-gradient(circle at 20% 20%,rgba(103,79,242,.45),transparent 50%),radial-gradient(circle at 85% 70%,rgba(34,211,238,.25),transparent 55%),#0e1430;color:#fff;padding:56px 5vw 64px;text-align:center;position:relative;overflow:hidden}
-.ft-hero h1{color:#fff;font-size:clamp(1.9rem,5vw,3rem);margin:8px 0 10px}
-.ft-hero p{color:#c9d0ea;max-width:720px;margin:0 auto;font-size:1.02rem}
-.ft-hero .eyebrow{color:#a99bff;letter-spacing:.25em;font-size:.78rem}
+.ft-hero{padding:44px 16px 40px;text-align:center;position:relative;overflow:hidden}
+.ft-hero h1{font-size:clamp(1.8rem,6vw,2.8rem);margin:8px 0 10px}
+.ft-hero p{max-width:720px;margin:0 auto;font-size:1rem}
+.ft-hero .eyebrow{letter-spacing:.25em;font-size:.78rem}
 .stars{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1.5px 1.5px at 12% 30%,#fff8,transparent),radial-gradient(1px 1px at 72% 18%,#fff9,transparent),radial-gradient(1.5px 1.5px at 40% 80%,#fff7,transparent),radial-gradient(1px 1px at 88% 55%,#fffa,transparent),radial-gradient(1px 1px at 25% 65%,#fff6,transparent),radial-gradient(1.5px 1.5px at 58% 40%,#fff6,transparent)}
-.ft-body{padding:32px 5vw 0;max-width:1200px;margin:auto}
-.ft-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}
-.ft-card{display:flex;flex-direction:column;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);color:inherit;text-decoration:none;transition:transform .15s,border-color .15s;min-height:220px}
-.ft-card:hover,.ft-card:focus-visible{transform:translateY(-3px);border-color:var(--gold)}
-.ft-ic{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,#0e1430,#674ff2);color:#fff;font-size:1.6rem}
-.ft-card h2{font-size:1.15rem;text-align:left;margin:0;color:var(--navy)}
-.ft-card p{margin:0;color:var(--muted);font-size:.9rem}
-.ft-card ul{margin:0;padding-left:18px;color:var(--muted);font-size:.84rem}
-.ft-go{margin-top:auto;color:var(--gold);font-weight:600;font-size:.92rem}
-.ft-note{margin-top:28px;background:#fff6e0;border:1px solid #f1d58a;color:#4d3900;border-radius:14px;padding:14px 16px;font-size:.9rem}
-.ft-use{margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.ft-use div{background:var(--alt);border-radius:14px;padding:16px;font-size:.88rem;color:var(--muted)}
-.ft-use b{display:block;color:var(--navy);margin-bottom:4px;font-size:.95rem}
-.ft-new{position:absolute;top:14px;right:14px;background:#22d3ee;color:#0e1430;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:99px}
-.ft-card{position:relative}
-.ft-org{font-size:.75rem;color:var(--gold);font-weight:600;letter-spacing:.04em}
+.ft-body{padding:24px 16px 0;max-width:1200px;margin:auto}
+.ft-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:14px}
+.ft-card{position:relative;display:flex;flex-direction:column;gap:8px;background:#1E1844;border:1px solid #3B3170;border-radius:18px;padding:16px;
+  color:#F5F1E8;text-decoration:none;min-width:0}
+.ft-card:active{background:#2A2160;border-color:#E8C979}
+.ft-card h2{font-size:1.05rem;line-height:1.35;text-align:left;margin:0;color:#F5F1E8;font-weight:500;overflow-wrap:anywhere}
+.ft-card p{margin:0;color:#BDB5DA;font-size:.88rem;overflow-wrap:anywhere}
+.ft-card ul{margin:0;padding-left:18px;color:#BDB5DA;font-size:.84rem}
+.ft-go{margin-top:auto;color:#E8C979;font-weight:500;font-size:.92rem}
+.ft-new{position:absolute;top:12px;right:12px;background:#E8C979;color:#1A1433;font-size:.72rem;font-weight:500;padding:1px 8px;border-radius:99px}
+.ft-org{font-size:.74rem;color:#E8C979;letter-spacing:.03em;overflow-wrap:anywhere}
+@media (max-width:599.98px){.ft-grid{grid-template-columns:1fr 1fr;gap:12px}.ft-card{padding:14px}.ft-card ul,.ft-go{display:none}}
+.ft-note{margin-top:28px;border-radius:14px;padding:14px 16px;font-size:.9rem}
+.ft-use{margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.ft-use div{border-radius:14px;padding:16px;font-size:.88rem}
+.ft-use b{display:block;margin-bottom:4px;font-size:.95rem}
 .ft-guide{margin:0 0 28px}
-.ft-guide h2{font-size:1.2rem;color:var(--navy);margin:0 0 4px;text-align:left}
-.ft-guide>p{color:var(--muted);font-size:.9rem;margin:0 0 12px}
+.ft h2.pd-allh,.ft-guide h2,.pd-lead h2{font-size:1.2rem;color:#E8C979;margin:0 0 4px;text-align:left;font-weight:500}
+.ft-guide>p,.pd-lead>p{color:#BDB5DA;font-size:.9rem;margin:0 0 12px}
 .ft-goals{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
-.ft-goal{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
-.ft-goal b{display:block;color:var(--navy);margin-bottom:6px}
+.ft-goal{border-radius:14px;padding:14px 16px;min-width:0}
+.ft-goal b{display:block;margin-bottom:6px}
 .ft-goal ul{list-style:none;margin:0;padding:0;display:grid;gap:0;font-size:.88rem}
-.ft-goal a{color:#4b36d6;text-decoration:underline;text-underline-offset:2px;display:inline-flex;align-items:center;min-height:44px;padding-inline:9px;margin-inline:-9px}
-.ft-goal small{color:var(--muted);font-size:.8rem}
-@media (prefers-reduced-motion:reduce){.ft-card{transition:none}}
+.ft-goal a{text-decoration:underline;text-underline-offset:2px;display:inline-flex;align-items:center;min-height:44px;padding-inline:9px;margin-inline:-9px}
+.ft-goal small{font-size:.8rem}
+.pd-lead .pd-card{display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:12px;row-gap:2px;align-items:center}
+.pd-lead .pd-card .ft-ill{grid-row:span 3}
 </style>
 <script src="lensiq-busy.js?v=3"></script>
+<script src="fortune-entry.js?v=1"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=24"></script>
-<script src="i18n/zh-fortune.js?v=10"></script>
-<script src="i18n/zh-fortune-hub.js?v=4"></script>
+<script src="i18n/zh-fortune.js?v=11"></script>
+<script src="i18n/zh-fortune-hub.js?v=5"></script>
 <script src="i18n/zh-products.js?v=4"></script>
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
@@ -83,11 +87,26 @@
       <h2 id="pdLeadH" data-i18n="pd.f.leadH">เริ่มที่ 5 ศาสตร์ยอดนิยม</h2>
       <p data-i18n="pd.f.leadP">เล่นได้ในไม่กี่นาที มีคำทำนายภาษาไทย อังกฤษ และจีน — ทุกศาสตร์ยังอยู่ครบในหัวข้อ "ทุกศาสตร์" ด้านล่าง</p>
       <div class="pd-grid">
-        <a class="pd-card" href="faceread.html"><span class="pd-ic" aria-hidden="true">👁️</span><h3 data-i18n="pd.f.face.h">อ่านโหงวเฮ้ง</h3><p data-i18n="pd.f.face.p">อ่านใบหน้าด้วยกล้อง ไม่เก็บภาพ</p><span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
-        <a class="pd-card" href="palm.html"><span class="pd-ic" aria-hidden="true">✋</span><h3 data-i18n="pd.f.palm.h">ดูลายมือ</h3><p data-i18n="pd.f.palm.p">ถ่ายฝ่ามือ ระบบหาเส้นหลักให้</p><span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
-        <a class="pd-card" href="tarot.html"><span class="pd-ic" aria-hidden="true">🃏</span><h3 data-i18n="pd.f.tarot.h">ไพ่ทาโรต์ &amp; เซียมซี</h3><p data-i18n="pd.f.tarot.p">เลือกไพ่เอง หรือเขย่ามือถือเสี่ยงเซียมซี</p><span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
-        <a class="pd-card" href="horoscope.html"><span class="pd-ic" aria-hidden="true">🌙</span><h3 data-i18n="pd.f.horo.h">ดวงวันเดือนปีเกิด</h3><p data-i18n="pd.f.horo.p">โหราไทย ปาจื้อ และเลขศาสตร์</p><span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
-        <a class="pd-card" href="zodiac.html"><span class="pd-ic" aria-hidden="true">🐉</span><h3 data-i18n="pd.f.zodiac.h">12 นักษัตร · ปีชง</h3><p data-i18n="pd.f.zodiac.p">ดวงรายปี ไม่ต้องกรอกวันเกิด</p><span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
+        <a class="pd-card" href="faceread.html"><svg class="ft-ill" data-ic="faceread" aria-hidden="true" focusable="false"></svg>
+          <h3 data-i18n="pd.f.face.h">อ่านโหงวเฮ้ง</h3>
+          <p data-i18n="pd.f.face.p">อ่านใบหน้าด้วยกล้อง ไม่เก็บภาพ</p>
+          <span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
+        <a class="pd-card" href="palm.html"><svg class="ft-ill" data-ic="palm" aria-hidden="true" focusable="false"></svg>
+          <h3 data-i18n="pd.f.palm.h">ดูลายมือ</h3>
+          <p data-i18n="pd.f.palm.p">ถ่ายฝ่ามือ ระบบหาเส้นหลักให้</p>
+          <span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
+        <a class="pd-card" href="tarot.html"><svg class="ft-ill" data-ic="tarot" aria-hidden="true" focusable="false"></svg>
+          <h3 data-i18n="pd.f.tarot.h">ไพ่ทาโรต์ &amp; เซียมซี</h3>
+          <p data-i18n="pd.f.tarot.p">เลือกไพ่เอง หรือเขย่ามือถือเสี่ยงเซียมซี</p>
+          <span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
+        <a class="pd-card" href="horoscope.html"><svg class="ft-ill" data-ic="horoscope" aria-hidden="true" focusable="false"></svg>
+          <h3 data-i18n="pd.f.horo.h">ดวงวันเดือนปีเกิด</h3>
+          <p data-i18n="pd.f.horo.p">โหราไทย ปาจื้อ และเลขศาสตร์</p>
+          <span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
+        <a class="pd-card" href="zodiac.html"><svg class="ft-ill" data-ic="zodiac" aria-hidden="true" focusable="false"></svg>
+          <h3 data-i18n="pd.f.zodiac.h">12 นักษัตร · ปีชง</h3>
+          <p data-i18n="pd.f.zodiac.p">ดวงรายปี ไม่ต้องกรอกวันเกิด</p>
+          <span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
       </div>
     </section>
     <section class="ft-guide" aria-labelledby="ftGuideH">
@@ -107,25 +126,153 @@
     </section>
     <h2 class="pd-allh" id="pdAllH" data-i18n="pd.f.allH">ทุกศาสตร์</h2>
     <div class="ft-grid">
-      <a class="ft-card" href="faceread.html"><span class="ft-ic" aria-hidden="true">👁️</span><span data-i18n="fortune.hub.card.faceread.org" class="ft-org">จีน · โหงวเฮ้ง</span><h2 data-i18n="fortune.hub.card.faceread.name">อ่านโหงวเฮ้ง</h2><p data-i18n="fortune.hub.card.faceread.desc">อ่านใบหน้าด้วยกล้อง ตามหลักโหงวเฮ้ง</p><ul><li data-i18n="fortune.hub.card.faceread.li1">ธาตุรูปหน้า 5 ธาตุ สามส่วนของใบหน้า</li><li data-i18n="fortune.hub.card.faceread.li2">ห้าอวัยวะ สิบสองวัง ช่วงวัย</li></ul><span data-i18n="fortune.hub.card.faceread.go" class="ft-go">เริ่มอ่านใบหน้า →</span></a>
-      <a class="ft-card" href="palm.html"><span class="ft-ic" aria-hidden="true">✋</span><span data-i18n="fortune.hub.card.palm.org" class="ft-org">สากล · หัตถศาสตร์</span><h2 data-i18n="fortune.hub.card.palm.name">ดูลายมือ</h2><p data-i18n="fortune.hub.card.palm.desc">ถ่ายฝ่ามือ ระบบหาเส้นหลักให้ ปรับแก้เส้นเองได้</p><ul><li data-i18n="fortune.hub.card.palm.li1">เส้นชีวิต สมอง หัวใจ วาสนา</li><li data-i18n="fortune.hub.card.palm.li2">รูปทรงมือตามธาตุ สัดส่วนนิ้ว</li></ul><span data-i18n="fortune.hub.card.palm.go" class="ft-go">เริ่มดูลายมือ →</span></a>
-      <a class="ft-card" href="horoscope.html"><span class="ft-ic" aria-hidden="true">🌙</span><span data-i18n="fortune.hub.card.horoscope.org" class="ft-org">ไทย · จีน · ตัวเลข</span><h2 data-i18n="fortune.hub.card.horoscope.name">ดวงวันเดือนปีเกิด</h2><p data-i18n="fortune.hub.card.horoscope.desc">คำนวณจากวัน เวลา และสถานที่เกิด</p><ul><li data-i18n="fortune.hub.card.horoscope.li1">โหราศาสตร์ไทย ทักษา สีมงคล ราศี ลัคนา</li><li data-i18n="fortune.hub.card.horoscope.li2">ปาจื้อ (สี่เสา) เลขศาสตร์ ดวงวันนี้ ดวงคู่</li></ul><span data-i18n="fortune.hub.card.horoscope.go" class="ft-go">เริ่มดูดวง →</span></a>
-      <a class="ft-card" href="tarot.html"><span class="ft-ic" aria-hidden="true">🃏</span><span data-i18n="fortune.hub.card.tarot.org" class="ft-org">ตะวันตก · ไทย-จีน</span>
+      <a class="ft-card" href="faceread.html"><svg class="ft-ill" data-ic="faceread" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.faceread.org" class="ft-org">จีน · โหงวเฮ้ง</span>
+        <h2 data-i18n="fortune.hub.card.faceread.name">อ่านโหงวเฮ้ง</h2>
+        <p data-i18n="fortune.hub.card.faceread.desc">อ่านใบหน้าด้วยกล้อง ตามหลักโหงวเฮ้ง</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.faceread.li1">ธาตุรูปหน้า 5 ธาตุ สามส่วนของใบหน้า</li>
+        <li data-i18n="fortune.hub.card.faceread.li2">ห้าอวัยวะ สิบสองวัง ช่วงวัย</li></ul>
+        <span data-i18n="fortune.hub.card.faceread.go" class="ft-go">เริ่มอ่านใบหน้า →</span></a>
+      <a class="ft-card" href="palm.html"><svg class="ft-ill" data-ic="palm" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.palm.org" class="ft-org">สากล · หัตถศาสตร์</span>
+        <h2 data-i18n="fortune.hub.card.palm.name">ดูลายมือ</h2>
+        <p data-i18n="fortune.hub.card.palm.desc">ถ่ายฝ่ามือ ระบบหาเส้นหลักให้ ปรับแก้เส้นเองได้</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.palm.li1">เส้นชีวิต สมอง หัวใจ วาสนา</li>
+        <li data-i18n="fortune.hub.card.palm.li2">รูปทรงมือตามธาตุ สัดส่วนนิ้ว</li></ul>
+        <span data-i18n="fortune.hub.card.palm.go" class="ft-go">เริ่มดูลายมือ →</span></a>
+      <a class="ft-card" href="horoscope.html"><svg class="ft-ill" data-ic="horoscope" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.horoscope.org" class="ft-org">ไทย · จีน · ตัวเลข</span>
+        <h2 data-i18n="fortune.hub.card.horoscope.name">ดวงวันเดือนปีเกิด</h2>
+        <p data-i18n="fortune.hub.card.horoscope.desc">คำนวณจากวัน เวลา และสถานที่เกิด</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.horoscope.li1">โหราศาสตร์ไทย ทักษา สีมงคล ราศี ลัคนา</li>
+        <li data-i18n="fortune.hub.card.horoscope.li2">ปาจื้อ (สี่เสา) เลขศาสตร์ ดวงวันนี้ ดวงคู่</li></ul>
+        <span data-i18n="fortune.hub.card.horoscope.go" class="ft-go">เริ่มดูดวง →</span></a>
+      <a class="ft-card" href="tarot.html"><svg class="ft-ill" data-ic="tarot" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.tarot.org" class="ft-org">ตะวันตก · ไทย-จีน</span>
         <h2 data-i18n="fortune.hub.card.tarot.name">ไพ่ทาโรต์ &amp; เซียมซี</h2>
         <p data-i18n="fortune.hub.card.tarot.desc">สับไพ่ เลือกไพ่ด้วยตัวเอง หรือเขย่ามือถือเสี่ยงเซียมซี</p>
         <ul><li data-i18n="fortune.hub.card.tarot.li1">ไพ่ 78 ใบ (ภาพสาธารณสมบัติ)</li>
           <li data-i18n="fortune.hub.card.tarot.li2">ไพ่ 1 / 3 / 5 / 10 ใบ ตามหัวข้อที่ถาม</li></ul>
         <span data-i18n="fortune.hub.card.tarot.go" class="ft-go">เริ่มเปิดไพ่ →</span></a>
-      <a class="ft-card" href="fengshui.html"><span class="ft-ic" aria-hidden="true">🧭</span><span data-i18n="fortune.hub.card.fengshui.org" class="ft-org">จีน · 風水</span><h2 data-i18n="fortune.hub.card.fengshui.name">ฮวงจุ้ย</h2><p data-i18n="fortune.hub.card.fengshui.desc">หาเลขกัว ทิศมงคล และจัดผังบ้านด้วยเข็มทิศบนมือถือ</p><ul><li data-i18n="fortune.hub.card.fengshui.li1">ทิศดี 4 ทิศของคุณ ดาวเหินประจำปี</li><li data-i18n="fortune.hub.card.fengshui.li2">แผนผังแปดทิศ (ปากั้ว) สีและธาตุเสริม</li></ul><span data-i18n="fortune.hub.card.fengshui.go" class="ft-go">เริ่มดูฮวงจุ้ย →</span></a>
-      <a class="ft-card" href="numbers.html"><span class="ft-ic" aria-hidden="true">🔢</span><span data-i18n="fortune.hub.card.numbers.org" class="ft-org">ไทย · ตัวเลข</span><h2 data-i18n="fortune.hub.card.numbers.name">เลขมงคล</h2><p data-i18n="fortune.hub.card.numbers.desc">วิเคราะห์เบอร์โทร ทะเบียนรถ เลขบ้าน และชื่อ</p><ul><li data-i18n="fortune.hub.card.numbers.li1">ความหมายคู่เลข ผลรวม รูปแบบเลข</li><li data-i18n="fortune.hub.card.numbers.li2">เปรียบเทียบหลายเบอร์ เลือกตามเป้าหมาย</li></ul><span data-i18n="fortune.hub.card.numbers.go" class="ft-go">เริ่มวิเคราะห์เลข →</span></a>
-      <a class="ft-card" href="iching.html"><span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><span class="ft-ic" aria-hidden="true">☯️</span><span data-i18n="fortune.hub.card.iching.org" class="ft-org">จีน · 易經</span><h2 data-i18n="fortune.hub.card.iching.name">อี้จิง เสี่ยงกว้า 64</h2><p data-i18n="fortune.hub.card.iching.desc">โยนเหรียญ 3 เหรียญ 6 ครั้ง สร้างกว้าจากล่างขึ้นบน</p><ul><li data-i18n="fortune.hub.card.iching.li1">64 กว้า เส้นเปลี่ยน และกว้าที่จะกลายเป็น</li><li data-i18n="fortune.hub.card.iching.li2">กว้าประจำวัน และตาราง 64 กว้า</li></ul><span data-i18n="fortune.hub.card.iching.go" class="ft-go">เริ่มโยนเหรียญ →</span></a>
-      <a class="ft-card" href="zodiac.html"><span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><span class="ft-ic" aria-hidden="true">🐉</span><span data-i18n="fortune.hub.card.zodiac.org" class="ft-org">จีน · ไทย</span><h2 data-i18n="fortune.hub.card.zodiac.name">12 นักษัตร · ปีชง</h2><p data-i18n="fortune.hub.card.zodiac.desc">ดวงรายปีตามปีนักษัตร ไม่ต้องกรอกวันเกิดก็เล่นได้</p><ul><li data-i18n="fortune.hub.card.zodiac.li1">ชงเต็ม ชงร่วม ปีเสริมดวง สีและทิศ</li><li data-i18n="fortune.hub.card.zodiac.li2">ตารางปีชง และคู่มงคลสองนักษัตร</li></ul><span data-i18n="fortune.hub.card.zodiac.go" class="ft-go">ดูดวงปีนี้ →</span></a>
-      <a class="ft-card" href="astro.html"><span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><span class="ft-ic" aria-hidden="true">♌</span><span data-i18n="fortune.hub.card.astro.org" class="ft-org">ตะวันตก · Tropical</span><h2 data-i18n="fortune.hub.card.astro.name">ราศีตะวันตก Big Three</h2><p data-i18n="fortune.hub.card.astro.desc">ราศีอาทิตย์ จันทร์ และลัคนา คำนวณจากวัน เวลา จังหวัดเกิด</p><ul><li data-i18n="fortune.hub.card.astro.li1">แผนภูมิวงล้อ สมดุลธาตุ</li><li data-i18n="fortune.hub.card.astro.li2">ดวงวันนี้ตามดวงจันทร์ 12 ราศี</li></ul><span data-i18n="fortune.hub.card.astro.go" class="ft-go">คำนวณแผนภูมิ →</span></a>
-      <a class="ft-card" href="dream.html"><span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><span class="ft-ic" aria-hidden="true">🌙</span><span data-i18n="fortune.hub.card.dream.org" class="ft-org">ไทย · ความเชื่อพื้นบ้าน</span><h2 data-i18n="fortune.hub.card.dream.name">ทำนายฝัน</h2><p data-i18n="fortune.hub.card.dream.desc">เล่าความฝัน ระบบหาสัญลักษณ์ให้ ไม่มีเลขเด็ด</p><ul><li data-i18n="fortune.hub.card.dream.li1">104 สัญลักษณ์ 7 หมวด</li><li data-i18n="fortune.hub.card.dream.li2">ประเภทฝัน 4 แบบตามคติไทย</li></ul><span data-i18n="fortune.hub.card.dream.go" class="ft-go">ทำนายฝัน →</span></a>
-      <a class="ft-card" href="bazi.html"><span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><span class="ft-ic" aria-hidden="true">☯</span><span data-i18n="fortune.hub.card.bazi.org" class="ft-org">จีน · 八字</span><h2 data-i18n="fortune.hub.card.bazi.name">แปดอักษร (八字)</h2><p data-i18n="fortune.hub.card.bazi.desc">สี่เสาชะตา เจ้าชะตา ห้าธาตุ และวัยจร 10 ปี</p><ul><li data-i18n="fortune.hub.card.bazi.li1">คำนวณสารท 24 ฤดูจากดวงอาทิตย์</li><li data-i18n="fortune.hub.card.bazi.li2">บอกทั้งจุดแข็งและจุดที่ควรเติม</li></ul><span data-i18n="fortune.hub.card.bazi.go" class="ft-go">ดูผังแปดอักษร →</span></a>
-      <a class="ft-card" href="taksa.html"><span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><span class="ft-ic" aria-hidden="true">🪐</span><span data-i18n="fortune.hub.card.taksa.org" class="ft-org">ไทย · ทักษา</span><h2 data-i18n="fortune.hub.card.taksa.name">ทักษา · มหาทักษา</h2><p data-i18n="fortune.hub.card.taksa.desc">ดาวประจำวันเกิด ภูมิทั้งแปด และมหาทักษา 108 ปี</p><ul><li data-i18n="fortune.hub.card.taksa.li1">ภูมิศรี เดช มนตรี กาลกิณี</li><li data-i18n="fortune.hub.card.taksa.li2">ช่วงอายุที่ดาวแต่ละดวงครอง</li></ul><span data-i18n="fortune.hub.card.taksa.go" class="ft-go">ดูทักษา →</span></a>
-      <a class="ft-card" href="lek7.html"><span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><span class="ft-ic" aria-hidden="true">7️⃣</span><span data-i18n="fortune.hub.card.lek7.org" class="ft-org">ไทย · เลข 7 ตัว</span><h2 data-i18n="fortune.hub.card.lek7.name">เลข 7 ตัว 9 ฐาน</h2><p data-i18n="fortune.hub.card.lek7.desc">ผังเลขจากวัน เดือนจันทรคติ และปีนักษัตร</p><ul><li data-i18n="fortune.hub.card.lek7.li1">ฐานรวมและภพทั้งเจ็ด</li><li data-i18n="fortune.hub.card.lek7.li2">บอกจุดแข็งและด้านที่ควรเติม</li></ul><span data-i18n="fortune.hub.card.lek7.go" class="ft-go">ดูผังเลข →</span></a>
-      <a class="ft-card" href="lifegraph.html"><span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><span class="ft-ic" aria-hidden="true">📈</span><span data-i18n="fortune.hub.card.lifegraph.org" class="ft-org">ไทย · จีน · ตะวันตก</span><h2 data-i18n="fortune.hub.card.lifegraph.name">กราฟชีวิต</h2><p data-i18n="fortune.hub.card.lifegraph.desc">เส้นพลังการงาน การเงิน ความรัก และการดูแลตัวเองตามช่วงอายุ</p><ul><li data-i18n="fortune.hub.card.lifegraph.li1">รวมมหาทักษา 大运 และรอบดาวเสาร์</li><li data-i18n="fortune.hub.card.lifegraph.li2">บอกที่มาของทุกจุดเปลี่ยน</li></ul><span data-i18n="fortune.hub.card.lifegraph.go" class="ft-go">วาดกราฟชีวิต →</span></a>
+      <a class="ft-card" href="fengshui.html"><svg class="ft-ill" data-ic="fengshui" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.fengshui.org" class="ft-org">จีน · 風水</span>
+        <h2 data-i18n="fortune.hub.card.fengshui.name">ฮวงจุ้ย</h2>
+        <p data-i18n="fortune.hub.card.fengshui.desc">หาเลขกัว ทิศมงคล และจัดผังบ้านด้วยเข็มทิศบนมือถือ</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.fengshui.li1">ทิศดี 4 ทิศของคุณ ดาวเหินประจำปี</li>
+        <li data-i18n="fortune.hub.card.fengshui.li2">แผนผังแปดทิศ (ปากั้ว) สีและธาตุเสริม</li></ul>
+        <span data-i18n="fortune.hub.card.fengshui.go" class="ft-go">เริ่มดูฮวงจุ้ย →</span></a>
+      <a class="ft-card" href="numbers.html"><svg class="ft-ill" data-ic="numbers" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.numbers.org" class="ft-org">ไทย · ตัวเลข</span>
+        <h2 data-i18n="fortune.hub.card.numbers.name">เลขมงคล</h2>
+        <p data-i18n="fortune.hub.card.numbers.desc">วิเคราะห์เบอร์โทร ทะเบียนรถ เลขบ้าน และชื่อ</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.numbers.li1">ความหมายคู่เลข ผลรวม รูปแบบเลข</li>
+        <li data-i18n="fortune.hub.card.numbers.li2">เปรียบเทียบหลายเบอร์ เลือกตามเป้าหมาย</li></ul>
+        <span data-i18n="fortune.hub.card.numbers.go" class="ft-go">เริ่มวิเคราะห์เลข →</span></a>
+      <a class="ft-card" href="iching.html">
+        <span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><svg class="ft-ill" data-ic="iching" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.iching.org" class="ft-org">จีน · 易經</span>
+        <h2 data-i18n="fortune.hub.card.iching.name">อี้จิง เสี่ยงกว้า 64</h2>
+        <p data-i18n="fortune.hub.card.iching.desc">โยนเหรียญ 3 เหรียญ 6 ครั้ง สร้างกว้าจากล่างขึ้นบน</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.iching.li1">64 กว้า เส้นเปลี่ยน และกว้าที่จะกลายเป็น</li>
+        <li data-i18n="fortune.hub.card.iching.li2">กว้าประจำวัน และตาราง 64 กว้า</li></ul>
+        <span data-i18n="fortune.hub.card.iching.go" class="ft-go">เริ่มโยนเหรียญ →</span></a>
+      <a class="ft-card" href="zodiac.html">
+        <span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><svg class="ft-ill" data-ic="zodiac" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.zodiac.org" class="ft-org">จีน · ไทย</span>
+        <h2 data-i18n="fortune.hub.card.zodiac.name">12 นักษัตร · ปีชง</h2>
+        <p data-i18n="fortune.hub.card.zodiac.desc">ดวงรายปีตามปีนักษัตร ไม่ต้องกรอกวันเกิดก็เล่นได้</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.zodiac.li1">ชงเต็ม ชงร่วม ปีเสริมดวง สีและทิศ</li>
+        <li data-i18n="fortune.hub.card.zodiac.li2">ตารางปีชง และคู่มงคลสองนักษัตร</li></ul>
+        <span data-i18n="fortune.hub.card.zodiac.go" class="ft-go">ดูดวงปีนี้ →</span></a>
+      <a class="ft-card" href="astro.html">
+        <span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><svg class="ft-ill" data-ic="astro" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.astro.org" class="ft-org">ตะวันตก · Tropical</span>
+        <h2 data-i18n="fortune.hub.card.astro.name">ราศีตะวันตก Big Three</h2>
+        <p data-i18n="fortune.hub.card.astro.desc">ราศีอาทิตย์ จันทร์ และลัคนา คำนวณจากวัน เวลา จังหวัดเกิด</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.astro.li1">แผนภูมิวงล้อ สมดุลธาตุ</li>
+        <li data-i18n="fortune.hub.card.astro.li2">ดวงวันนี้ตามดวงจันทร์ 12 ราศี</li></ul>
+        <span data-i18n="fortune.hub.card.astro.go" class="ft-go">คำนวณแผนภูมิ →</span></a>
+      <a class="ft-card" href="dream.html">
+        <span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><svg class="ft-ill" data-ic="dream" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.dream.org" class="ft-org">ไทย · ความเชื่อพื้นบ้าน</span>
+        <h2 data-i18n="fortune.hub.card.dream.name">ทำนายฝัน</h2>
+        <p data-i18n="fortune.hub.card.dream.desc">เล่าความฝัน ระบบหาสัญลักษณ์ให้ ไม่มีเลขเด็ด</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.dream.li1">104 สัญลักษณ์ 7 หมวด</li>
+        <li data-i18n="fortune.hub.card.dream.li2">ประเภทฝัน 4 แบบตามคติไทย</li></ul>
+        <span data-i18n="fortune.hub.card.dream.go" class="ft-go">ทำนายฝัน →</span></a>
+      <a class="ft-card" href="bazi.html">
+        <span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><svg class="ft-ill" data-ic="bazi" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.bazi.org" class="ft-org">จีน · 八字</span>
+        <h2 data-i18n="fortune.hub.card.bazi.name">แปดอักษร (八字)</h2>
+        <p data-i18n="fortune.hub.card.bazi.desc">สี่เสาชะตา เจ้าชะตา ห้าธาตุ และวัยจร 10 ปี</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.bazi.li1">คำนวณสารท 24 ฤดูจากดวงอาทิตย์</li>
+        <li data-i18n="fortune.hub.card.bazi.li2">บอกทั้งจุดแข็งและจุดที่ควรเติม</li></ul>
+        <span data-i18n="fortune.hub.card.bazi.go" class="ft-go">ดูผังแปดอักษร →</span></a>
+      <a class="ft-card" href="taksa.html">
+        <span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><svg class="ft-ill" data-ic="taksa" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.taksa.org" class="ft-org">ไทย · ทักษา</span>
+        <h2 data-i18n="fortune.hub.card.taksa.name">ทักษา · มหาทักษา</h2>
+        <p data-i18n="fortune.hub.card.taksa.desc">ดาวประจำวันเกิด ภูมิทั้งแปด และมหาทักษา 108 ปี</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.taksa.li1">ภูมิศรี เดช มนตรี กาลกิณี</li>
+        <li data-i18n="fortune.hub.card.taksa.li2">ช่วงอายุที่ดาวแต่ละดวงครอง</li></ul>
+        <span data-i18n="fortune.hub.card.taksa.go" class="ft-go">ดูทักษา →</span></a>
+      <a class="ft-card" href="lek7.html">
+        <span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><svg class="ft-ill" data-ic="lek7" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.lek7.org" class="ft-org">ไทย · เลข 7 ตัว</span>
+        <h2 data-i18n="fortune.hub.card.lek7.name">เลข 7 ตัว 9 ฐาน</h2>
+        <p data-i18n="fortune.hub.card.lek7.desc">ผังเลขจากวัน เดือนจันทรคติ และปีนักษัตร</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.lek7.li1">ฐานรวมและภพทั้งเจ็ด</li>
+        <li data-i18n="fortune.hub.card.lek7.li2">บอกจุดแข็งและด้านที่ควรเติม</li></ul>
+        <span data-i18n="fortune.hub.card.lek7.go" class="ft-go">ดูผังเลข →</span></a>
+      <a class="ft-card" href="lifegraph.html">
+        <span class="ft-new" data-i18n="fortune.hub.new">ใหม่</span><svg class="ft-ill" data-ic="lifegraph" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.lifegraph.org" class="ft-org">ไทย · จีน · ตะวันตก</span>
+        <h2 data-i18n="fortune.hub.card.lifegraph.name">กราฟชีวิต</h2>
+        <p data-i18n="fortune.hub.card.lifegraph.desc">เส้นพลังการงาน การเงิน ความรัก และการดูแลตัวเองตามช่วงอายุ</p>
+        <ul>
+        <li data-i18n="fortune.hub.card.lifegraph.li1">รวมมหาทักษา 大运 และรอบดาวเสาร์</li>
+        <li data-i18n="fortune.hub.card.lifegraph.li2">บอกที่มาของทุกจุดเปลี่ยน</li></ul>
+        <span data-i18n="fortune.hub.card.lifegraph.go" class="ft-go">วาดกราฟชีวิต →</span></a>
+      <a class="ft-card" href="compat.html"><svg class="ft-ill" data-ic="compat" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.compat.org" class="ft-org">ไทย · จีน · พระเวท · ตะวันตก</span>
+        <h2 data-i18n="fortune.hub.card.compat.name">ดวงสมพงษ์</h2>
+        <p data-i18n="fortune.hub.card.compat.desc">ดูว่าสองคนหรือทั้งกลุ่มเข้ากันเรื่องไหน และปรับเข้าหากันอย่างไร</p>
+        <ul><li data-i18n="fortune.hub.card.compat.li1">เทียบสี่ศาสตร์ในหน้าเดียว</li>
+          <li data-i18n="fortune.hub.card.compat.li2">บอกเรื่องที่ควรใส่ใจ ไม่ตัดสินว่าควรคบกันหรือไม่</li></ul>
+        <span data-i18n="fortune.hub.card.compat.go" class="ft-go">ดูดวงสมพงษ์ →</span></a>
+      <a class="ft-card" href="planner.html"><svg class="ft-ill" data-ic="planner" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.planner.org" class="ft-org">ไทย · ฤกษ์มงคล</span>
+        <h2 data-i18n="fortune.hub.card.planner.name">วางแผนฤกษ์มงคล</h2>
+        <p data-i18n="fortune.hub.card.planner.desc">หาวันดีขึ้นบ้านใหม่ เปิดร้าน หรือเริ่มงาน พร้อมเหตุผล</p>
+        <ul><li data-i18n="fortune.hub.card.planner.li1">แสดงเฉพาะวันดี และบอกว่าดีเพราะอะไร</li>
+          <li data-i18n="fortune.hub.card.planner.li2">บันทึกวันที่เลือกลงปฏิทินในมือถือได้</li></ul>
+        <span data-i18n="fortune.hub.card.planner.go" class="ft-go">วางแผนฤกษ์ →</span></a>
+      <a class="ft-card" href="luckycolor.html"><svg class="ft-ill" data-ic="luckycolor" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.luckycolor.org" class="ft-org">ไทย · สีมงคล</span>
+        <h2 data-i18n="fortune.hub.card.luckycolor.name">กระจกส่องสีเสื้อมงคล</h2>
+        <p data-i18n="fortune.hub.card.luckycolor.desc">ส่องกล้องดูสีเสื้อวันนี้กับสีมงคลประจำวัน</p>
+        <ul><li data-i18n="fortune.hub.card.luckycolor.li1">สีมงคลประจำวันตามความเชื่อไทย</li>
+          <li data-i18n="fortune.hub.card.luckycolor.li2">ภาพจากกล้องประมวลผลในเครื่อง ไม่บันทึก</li></ul>
+        <span data-i18n="fortune.hub.card.luckycolor.go" class="ft-go">ส่องสีเสื้อวันนี้ →</span></a>
+      <a class="ft-card" href="report.html"><svg class="ft-ill" data-ic="report" aria-hidden="true" focusable="false"></svg>
+        <span data-i18n="fortune.hub.card.report.org" class="ft-org">หลายศาสตร์ · รายงาน</span>
+        <h2 data-i18n="fortune.hub.card.report.name">รายงานดวงของฉัน</h2>
+        <p data-i18n="fortune.hub.card.report.desc">รวมผลดูดวงหลายศาสตร์เป็นรายงานฉบับเดียว</p>
+        <ul><li data-i18n="fortune.hub.card.report.li1">คำนวณในเครื่อง วันเกิดไม่ถูกส่งออกไปที่ใด</li>
+          <li data-i18n="fortune.hub.card.report.li2">พิมพ์หรือบันทึกเป็น PDF ได้</li></ul>
+        <span data-i18n="fortune.hub.card.report.go" class="ft-go">ทำรายงาน →</span></a>
     </div>
     <div class="ft-use" data-lq-upsell="promo">
       <div data-i18n="fortune.hub.use1"><b data-i18n="fortune.hub.use1H">บูธและอีเวนต์</b>เปิดโหมดคีออสก์บนแท็บเล็ต ให้ผู้เข้าชมเล่นเอง แล้วแชร์การ์ดผลลัพธ์ที่มีโลโก้แบรนด์</div>

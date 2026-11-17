@@ -167,9 +167,12 @@ function card(page, nav, noTag = false) {
     const c = D.CLAIMS[id];
     return `          <li data-src="${c.src}"><span class="cat-src ${c.src}" data-i18n="cat.src.${c.src}">${esc(D.SOURCE[c.src].th)}</span> <span data-i18n="cat.c.${id}">${esc(c.th)}</span></li>`;
   }).join("\n");
-  // noTag (fortune, owner order 2026-11-17): no status chip, no data-status and no "why this status" line
+  // noTag (fortune, owner order 2026-11-17): no status chip, no data-status and no "why this status" line; the fortune theme
+  // (owner approval 2026-11-17) adds the card's gold line illustration slot, filled by fortune-entry.js when in view
+  const chip = noTag ? "" : `<span class="cat-st ${p.st}" data-i18n="cat.st.${p.st}">${esc(D.STATUS[p.st].th)}</span>`;
+  const ill = noTag ? `<svg class="ft-ill" data-ic="${page}" aria-hidden="true" focusable="false"></svg>` : "";
   return `      <article class="pd-card cat-tool" data-page="${page}"${noTag ? "" : ` data-status="${p.st}"`}>
-        <div class="cat-top"><h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3>${noTag ? "" : `<span class="cat-st ${p.st}" data-i18n="cat.st.${p.st}">${esc(D.STATUS[p.st].th)}</span>`}</div>
+        <div class="cat-top">${ill}<h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3>${chip}</div>
         <p data-i18n="nav.${page}.desc">${esc(t.desc)}</p>
         <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
         <ul class="cat-acc">
@@ -198,7 +201,8 @@ export function pageHtml(cat, nav = navEntries()) {
     `        <a href="cat-${c.slug}.html"><span aria-hidden="true">${c.icon}</span><span data-i18n="cat.${c.slug}.name">${esc(c.name.th)}</span></a>`).join("\n");
   return head([
     "<!doctype html>",
-    '<html lang="th">',
+    // the fortune category wears the fortune theme "ราตรีคราม" (owner approval 2026-11-17; fortune-theme.css, fortune-entry.js)
+    cat.slug === "fortune" ? '<html lang="th" class="lq-ft lq-ft-menu">' : '<html lang="th">',
     "<head>",
     '<meta charset="utf-8">',
     cspMeta(),
@@ -212,7 +216,9 @@ export function pageHtml(cat, nav = navEntries()) {
     '<link rel="stylesheet" href="products.css?v=3">',
     '<link rel="stylesheet" href="solutions.css?v=4">',
     '<link rel="stylesheet" href="cat.css?v=1">',
+    cat.slug === "fortune" ? '<link rel="stylesheet" href="fortune-theme.css?v=1">' : "",
     '<script src="lensiq-busy.js?v=3"></script>',
+    cat.slug === "fortune" ? '<script src="fortune-entry.js?v=1"></script>' : "",
     "</head>",
     "<body>",
     '<header class="nav" id="siteNav"></header>',

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 240 300" fill="none" stroke="#E8C979" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shiva">
+<mask id="k"><rect width="240" height="300" fill="#fff"/><use xlink:href="#f" stroke="#000" stroke-width="10"/></mask>
+<g mask="url(#k)" opacity=".55"><path d="M47.3 150A86 86 0 1 1 192.7 150"/><path d="M39.2 150A93 93 0 1 1 200.8 150" stroke-dasharray="1 7"/></g>
+<g id="f">
+<path d="M110 52c-6-10-4-24 10-28 14 4 16 18 10 28M112 38q8-4 16 0M111 46q9-4 18 0M104 30a12 12 0 0 0 18-10 10 10 0 0 1-18 10z"/>
+<path d="M134 34c6 6 8 14 6 22" opacity=".7"/>
+<path d="M104 60h32M106 52h28"/>
+<path d="M104 60c-2 22 4 36 16 36s18-14 16-36"/>
+<path d="M114 64h12M115 67h10" opacity=".8"/><path d="M120 70q-2 3 0 6q2-3 0-6z"/>
+<path d="M110 79q4-3 8 0M122 79q4-3 8 0M110 81q4 2 8 0M122 81q4 2 8 0" opacity=".9"/>
+<path d="M120 83v6l-2 1M116 91q4 2 8 0"/>
+<circle cx="103" cy="86" r="2.5"/><circle cx="137" cy="86" r="2.5"/>
+<path d="M104 64c-8 8-12 24-12 40M136 64c8 8 12 24 12 40" opacity=".75"/>
+<path d="M114 96v6M126 96v6M114 102c-14 2-26 8-32 18M126 102c14 2 26 8 32 18"/>
+<path d="M104 102c2 12 30 12 32 0M136 102c4-2 8-8 10-14M146 88c-4-2-8 0-8 4 2 2 6 2 8 0z"/>
+<path d="M100 108q20 16 40 0" stroke-dasharray="0.1 5" stroke-width="4"/>
+<path d="M100 120c0 12 3 22 6 30M140 120c0 12-3 22-6 30M104 150q16 6 32 0M106 132q14 4 28 0" opacity=".9"/>
+<path d="M82 120c-6 8-8 18-8 28l2 10M158 120c6 8 8 18 8 28"/>
+<path d="M68 172v-14a3 3 0 0 1 6 0v-4a3 3 0 0 1 6 0v4a3 3 0 0 1 6 0v14c-5 5-13 5-18 0z"/>
+<path d="M166 148c4 4 8 4 12 2"/>
+<path d="M178 32v236M166 46v-10c0 10 6 18 12 18s12-8 12-18v10M178 54l0-30M172 30l6-10 6 10M160 36l6-8M196 36l-6-8"/>
+<path d="M170 66l16 12M170 78l16-12M170 66h16M170 78h16"/>
+<path d="M176 146h10a4 4 0 0 1 0 8h-10"/>
+<path d="M106 150c-18 4-32 14-36 30 20 12 80 12 100 0-4-16-18-26-36-30"/>
+<path d="M92 170q28 10 56 0M108 156l-4 18M132 156l4 18" opacity=".7"/>
+<path d="M72 182c6 12 24 18 48 18s42-6 48-18M100 196q20-8 40 0"/>
+<path d="M56 236c2-14 10-24 24-30h80c14 6 22 16 24 30M84 214c10 4 18 4 26 0M130 220c10 4 18 4 26 0M70 228c6 2 12 2 18-2" opacity=".85"/>
+<path d="M44 236h152c-8 14-38 20-76 20s-68-6-76-20z"/>
+<path d="M64 256q56 18 112 0" opacity=".7"/>
+</g>
+</svg>

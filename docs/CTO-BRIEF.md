@@ -7,6 +7,15 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Fortune theme "ราตรีคราม" (owner approval 2026-11-17, branch `fortune-theme`, not merged: owner phone check + independent review first)
+
+- Theme only in the fortune section (fortune pages + cat-fortune): night menu pages with gold line-art cards, night band on
+  reading pages, Prompt in two weights (`fortune-theme.css`, scoped to `html.lq-ft`). Details: docs/FORTUNE-THEME.md.
+- Entry screen with 7 own-drawn deities (Hindu / Brahmin / Chinese folk, no Buddhist figure): all names and blessings ship
+  "pending Merit review", so nothing shows on the live site until approved; never in crisis / calm.
+- Every fortune page is lighter than before (synthetic, headless Chrome): fortune.html 440 -> 408 KB, 24 -> 23 requests;
+  reading pages -60 to -72 KB and -3 to -4 requests (no Inter, no Prompt 600 / 700). Budgets unchanged.
+
 ## Fortune: no "Demo" tag (owner order 2026-11-17, branch `fortune-no-demo`)
 
 - The status chip สาธิต / Demo / 演示 is gone from `cat-fortune.html` (every tool card, the status legend and the tool count:
