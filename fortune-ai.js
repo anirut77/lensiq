@@ -2401,8 +2401,13 @@
     : lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH);
   /* compose: เลือกโหมดก่อน แล้วเรียกตัวเรียบเรียงเดิม — ตาข่ายวิกฤตมาก่อนเสมอเมื่อเป็นโหมดตรง (ข้อ 3) */
   function compose(facts, opts = {}) {
-    const calm = FS.calm ? FS.calm() : false, straight = !calm && (opts.straight != null ? !!opts.straight : straightActive());
-    if (straight && crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
+    // crisis v3 (2026-11-17): a crisis signal sets the flag; the reading is composed calm (gentle, no extras, no plan), never straight, no echo
+    const hit = crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText());
+    if (hit) {
+      if (CR && CR.setActive) CR.setActive();
+      facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: undefined }); opts = Object.assign({}, opts, { userText: "", straight: false });
+    }
+    const calm = hit || (FS.calm ? FS.calm() : false), straight = !calm && (opts.straight != null ? !!opts.straight : straightActive());
     const prev = STRAIGHT, prevC = CALM, prevR = CREC, prevF = FILLS;
     STRAIGHT = straight; CALM = calm; CREC = []; FILLS = { rec: [], F: facts };
     try {
@@ -4188,7 +4193,7 @@
     // ข้อความที่ผู้ใช้พิมพ์เอง (ชื่อเล่น คำถาม) มีสัญญาณวิกฤต → การ์ดช่วยเหลือแทนคำทำนาย (ไม่ส่งไป AI)
     if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) {
       if (CR && CR.setActive) CR.setActive(); // crisis v3 (2026-11-17): the reading goes on, gently, local, never straight, nothing typed echoed
-      facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: "" });
+      facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: undefined });
       opts = Object.assign({}, opts, { userText: "", useAI: false, straight: false });
     }
     // Chinese and English are composed on the device only (the writing assistant and its grounding gate are Thai-only)
@@ -4397,15 +4402,14 @@
      again: no reading, plan, remedy or lucky item, and no hook runs (member light reading, merit or paid offers) */
   const crisisOn = container => !!(CR && CR.active && CR.active(container && container.ownerDocument)), calmAt = c => !!(FS.calm && FS.calm(c && c.ownerDocument));
   function renderWithHooks(container, result, opts) {
-    // crisis net first: any free-text field of the page (name, question, dream …) with a crisis signal → support card, never a reading
-    // crisis v3: a crisis signal puts the page in the crisis state; the reading is still drawn (gentle; closing line at the end)
+    // crisis net first (every free-text field); v3: the flag only, the reading is still drawn
     if (crisisCheck(pageText(container && container.ownerDocument)) && CR && CR.setActive) CR.setActive(container && container.ownerDocument);
     // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step first, never a reading first
     const sl = result && result.lang, card = box => renderSupport(box, supportResult({ lang: sl }));
     if (!(result && result.crisis) && !crisisOn(container) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
     // crisis fix 4 (fail-safe): in a calm page a straight reading composed earlier is never shown (the card instead), nor a plan
     if (result && !result.crisis && calmAt(container)) result = result.mode === "straight" ? Object.assign({}, result, { sections: [], summary: null, plan: undefined }) : Object.assign({}, result, { plan: undefined });
-    if (!HOOKS.length || (result && result.crisis)) return renderSections(container, result, opts); // a support card never goes through hooks
+    if (!HOOKS.length || (result && result.crisis) || crisisOn(container)) return renderSections(container, result, opts); // no hook (merit / paid / straight) in the crisis state
     let shown = result;
     for (const h of HOOKS) if (typeof h.gate === "function") { try { shown = h.gate(shown, opts, container); } catch (e) { /* keep the reading */ } }
     const out = renderSections(container, shown, opts);
