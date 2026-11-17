@@ -31,3 +31,7 @@ a041e7c04d6ecafec66b759ab70c477bf2655aa5aab6d092cf45bddc32516a17  tests/e2e/line
 # the line-wrap pass must not split). No rule, page, width, language or threshold changed. Copy in relock-4/.
 # locked 2026-11-17T10:53:33Z (tools/eval-guard.mjs lock, 1 file)
 df10e7d21650a76a677ea66b26fb83dbc43e2487521a0a659419cd92b5f57a9a  relock-4/tests/e2e/line-wrap-exceptions.json
+# re-lock 2026-11-17 (append-only exceptions list, fifth entry): cameras.html W en "registration | desk" (cell narrower than the two
+# words at 360 / 375 px). No rule, page, width, language or threshold changed. Copy in relock-5/.
+# locked 2026-11-17T12:01:39Z (tools/eval-guard.mjs lock, 1 file)
+b637a848f13006d2cb9d5bb2f426aedc363163a2876e3618937c7168773ab2e7  relock-5/tests/e2e/line-wrap-exceptions.json

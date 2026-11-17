@@ -32,6 +32,14 @@
    "contains": "Inspect | now",
    "reason": "Help list on a camera page: the English label 'Inspect now' is a whole text node owned by the run-time translator (lensiq-i18n-rt.js), which nav.js must not split (splitting it would break switching back to Thai); at 393 px only the two words of this label fall on the last line. Not reproduced at the other four widths.",
    "added": "2026-11-17"
+  },
+  {
+   "page": "cameras.html",
+   "kind": "W",
+   "lang": "en",
+   "contains": "registration | desk",
+   "reason": "Narrow table cell (dd in a two-column list) at 360 / 375 px: the cell is narrower than 'registration desk', so the two words cannot share a line; the nowrap piece wraps inside itself instead of overflowing the cell. Wider phones show it on one line.",
+   "added": "2026-11-17"
   }
  ]
 }
