@@ -52,15 +52,15 @@ No Buddha image and no Buddhist figure. Respectful only: no cartoon humour.
 
 | id | TH / EN / ZH | Tradition | Identifying features | Blessing TH / EN / ZH | Bytes (gzip) |
 |---|---|---|---|---|---|
-| ganesha | พระพิฆเนศ / Ganesha / 象头神 | Hindu | elephant head, large ears, curved trunk; one broken tusk; four arms with axe, noose, blessing hand, bowl of modaka; round belly; lotus seat; mouse at the base | ขอให้วันนี้เริ่มต้นอย่างราบรื่น / May your day begin smoothly. / 愿你今天开端顺遂。 | 2,825 (1,258) |
-| lakshmi | พระแม่ลักษมี / Lakshmi / 吉祥天女 | Hindu | open lotus seat; lotus flowers in the upper hands; coins flowing from one hand; pot (kalasha); tall crown | ขอให้วันนี้มีสิ่งดีงามอยู่รอบตัว / May good things surround your day. / 愿美好常伴你今日。 | 2,562 (1,130) |
-| brahma | พระพรหม / Brahma / 梵天 | Hindu / Brahmin | four faces (three seen from the front) with pointed crowns; scripture and prayer beads; water pot; blessing hand; lotus seat; swan (hamsa) at the base | ขอให้วันนี้คุณใจดีกับตัวเอง / May you be kind to yourself today. / 愿你今天善待自己。 | 2,564 (1,163) |
-| shiva | พระศิวะ / Shiva / 湿婆 | Hindu | high matted hair with a crescent moon; third eye; serpent around the neck; rudraksha beads; trident with a damaru drum; seated on a rock | ขอให้วันนี้ใจคุณนิ่งและแจ่มใส / May your mind be still and clear today. / 愿你今天心静而明朗。 | 2,336 (1,051) |
-| vessavana | ท้าวเวสสุวรรณ / Vessavana / 毗沙门天 | Hindu-origin guardian (Kubera / Vaiśravaṇa) | tall tiered giant's crown with ear ornaments; round eyes, upturned fangs; both hands on an upright club; standing guard; shoulder flares | ขอให้วันนี้คุณรู้สึกปลอดภัยและอุ่นใจ / May you feel safe and at ease today. / 愿你今天平安自在。 | 2,177 (992) |
+| ganesha | พระพิฆเนศ / Ganesha / 象头神 | Hindu | elephant head, large ears, curved trunk; one clearly broken tusk (short stump, flat end) and one full tusk; four arms with axe, noose, blessing hand, bowl of modaka; round belly; lotus seat; mouse at the base | ขอให้วันนี้เริ่มต้นอย่างราบรื่น / May your day begin smoothly. / 愿你今天开端顺遂。 | 2,835 (1,265) |
+| lakshmi | พระแม่ลักษมี / Lakshmi / 拉克什米 | Hindu | open lotus seat; lotus flowers in the upper hands; coins flowing from one hand; pot (kalasha); tall crown | ขอให้วันนี้มีสิ่งดีงามอยู่รอบตัว / May good things surround your day. / 愿美好常伴你今日。 | 2,562 (1,130) |
+| brahma | พระพรหม / Brahma / 梵天 | Hindu / Brahmin | four faces (three seen from the front) with pointed crowns; scripture and prayer beads; water pot; blessing hand; lotus seat; a recognisable swan (hamsa: body, S-neck, beak) at the base | ขอให้วันนี้คุณใจดีกับตัวเอง / May you be kind to yourself today. / 愿你今天善待自己。 | 2,623 (1,179) |
+| shiva | พระศิวะ / Shiva / 湿婆 | Hindu | standing (not seated, so never a Buddha-like silhouette); tall matted locks with a crescent moon; third eye; serpent with raised hood at the neck; rudraksha beads; tall trident with a damaru drum; tiger-skin cloth | ขอให้วันนี้ใจคุณนิ่งและแจ่มใส / May your mind be still and clear today. / 愿你今天心静而明朗。 | 2,308 (1,037) |
+| vessavana | ท้าวเวสสุวรรณ / Vessavana / 毗沙门天 | **buddhist_guardian** (a guardian king in Thai / Chinese Buddhist practice) — locked to pending until the owner's expert decides | tall tiered giant's crown with ear ornaments; calm, dignified face with a moustache (no fangs); both hands on an upright club; standing guard; shoulder flares | ขอให้วันนี้คุณรู้สึกปลอดภัยและอุ่นใจ / May you feel safe and at ease today. / 愿你今天平安自在。 | 2,034 (957) |
 | caishen | ไฉ่ซิงเอี๊ยะ / Caishen / 财神 | Chinese folk | official's hat with two long wings; smiling face, three-strand beard; gold ingot (yuanbao) in both hands; wide-sleeved robe; square-holed coins at the base | ขอให้วันนี้ใจสงบและมั่นคง / Wishing you a calm and steady day. / 愿你今日心安踏实。 | 1,911 (905) |
-| shouxing | เทพซิ่ว / Shou Xing / 寿星 | Chinese folk | high domed forehead; long eyebrows and beard; peach of longevity; tall staff with a gourd | ขอให้วันนี้คุณได้พักและดูแลตัวเอง / May you find time to rest and care for yourself today. / 愿你今天好好休息，照顾自己。 | 1,940 (901) |
+| shouxing | เทพซิ่ว / Shou Xing / 寿星 | Chinese folk | high domed forehead; long eyebrows and beard; peach of longevity held out in one hand (round fruit, pointed tip, two leaves); tall staff with a gourd | ขอให้วันนี้คุณได้พักและดูแลตัวเอง / May you find time to rest and care for yourself today. / 愿你今天好好休息，照顾自己。 | 2,015 (935) |
 
-Reviewer note: ท้าวเวสสุวรรณ was on the owner's list; he is also one of the Four Guardian Kings of Buddhist cosmology, and his
+Reviewer note (independent review of 4c5bf0f6, refined on the same branch): ท้าวเวสสุวรรณ was on the owner's list; he is also one of the Four Guardian Kings of Buddhist cosmology, and his
 Chinese name 毗沙门天 is the Buddhist one. The reviewer should confirm he fits "no Buddhist figure", or drop him (the
 entry screen simply never shows a pending item). Details such as which tusk is broken and the objects in each hand should
 be checked by someone who knows each tradition.
@@ -79,3 +79,13 @@ be checked by someone who knows each tradition.
 
 Theme files: `fortune-theme.css` 9.7 KB (2.7 KB gzip), `fortune-entry.js` about 15 KB (about 6 KB gzip; most of it is the
 review table), one deity image 1.9–2.8 KB per visit and only when an approved item is shown.
+
+## Refinement after the independent review (2026-11-17)
+
+Art and data only, every item still pending: Vessavana re-tagged `buddhist_guardian` (the unit test now forces such an item
+to stay pending) and given a calm face; Lakshmi ZH name 拉克什米 (the Buddhist name 吉祥天女 dropped); Shiva redrawn
+standing with a tall trident, matted locks, crescent, third eye and a hooded serpent; Ganesha's broken tusk, Brahma's swan
+and Shou Xing's peach redrawn to read at a glance. Art version `?v=2`.
+
+Latin-ext font subset: not added. Prompt latin-ext is 9.6–9.8 KB per weight (not tiny); the rare characters it covers
+(for example ā, ṇ in "Vaiśravaṇa") fall back to the system font, and no deity name or page text on the fortune pages uses them.

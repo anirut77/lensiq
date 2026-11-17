@@ -4,7 +4,7 @@
  * "pending Merit review". Rules, how to approve, preview flag and storage keys: docs/FORTUNE-THEME.md. */
 (function (root) {
   "use strict";
-  var V = "1"; // ?v= of art/fortune/* (bump with any art change)
+  var V = "2"; // ?v= of art/fortune/* (bump with any art change)
   /** @type {Array<{id: string, tradition: string, src: string, name: Record<string, string>, bless: Record<string, string>,
    *   features: Record<string, string[]>, status: string, reviewedBy?: string, reviewedAt?: string}>} */
   var DEITIES = [
@@ -15,7 +15,7 @@
         en: ["elephant head, large ears, curved trunk", "one broken tusk (Ekadanta)", "four arms: axe, noose, blessing hand, bowl of modaka sweets",
           "round belly, lotus seat, mouse mount at the base"] } },
     { id: "lakshmi", tradition: "hindu_brahman", src: "art/fortune/deity-lakshmi.svg", status: "pending",
-      name: { th: "พระแม่ลักษมี", en: "Lakshmi", zh: "吉祥天女" },
+      name: { th: "พระแม่ลักษมี", en: "Lakshmi", zh: "拉克什米" },
       bless: { th: "ขอให้วันนี้มีสิ่งดีงามอยู่รอบตัว", en: "May good things surround your day.", zh: "愿美好常伴你今日。" },
       features: { th: ["ประทับบนดอกบัวบาน", "สองกรบนถือดอกบัว", "เหรียญไหลจากพระหัตถ์", "ถือหม้อน้ำ (กลศ) มงกุฎทรงสูง"],
         en: ["seated on an open lotus", "upper hands hold lotus flowers", "coins flowing from one hand", "holds a pot (kalasha), tall crown"] } },
@@ -29,14 +29,15 @@
     { id: "shiva", tradition: "hindu_brahman", src: "art/fortune/deity-shiva.svg", status: "pending",
       name: { th: "พระศิวะ", en: "Shiva", zh: "湿婆" },
       bless: { th: "ขอให้วันนี้ใจคุณนิ่งและแจ่มใส", en: "May your mind be still and clear today.", zh: "愿你今天心静而明朗。" },
-      features: { th: ["มวยผมสูงประดับจันทร์เสี้ยว", "ตาที่สามกลางหน้าผาก", "นาคคล้องพระศอ สร้อยลูกประคำ", "ตรีศูลผูกกลองบัณเฑาะว์ ประทับบนแท่นศิลา"],
-        en: ["high matted hair with a crescent moon", "third eye on the forehead", "serpent around the neck, rudraksha beads",
-          "trident with a damaru drum, seated on a rock"] } },
-    { id: "vessavana", tradition: "hindu_brahman", src: "art/fortune/deity-vessavana.svg", status: "pending",
+      features: { th: ["ชฎามุ่นผมเป็นเกลียวสูง ประดับจันทร์เสี้ยว", "ตาที่สามกลางหน้าผาก", "นาคชูเศียรคล้องพระศอ สร้อยลูกประคำ", "ยืนถือตรีศูลผูกกลองบัณเฑาะว์ นุ่งหนังเสือ"],
+        en: ["tall matted locks with a crescent moon", "third eye on the forehead", "serpent with raised hood around the neck, rudraksha beads",
+          "standing with a tall trident and damaru drum, tiger-skin cloth"] } },
+    { id: "vessavana", tradition: "buddhist_guardian", // a guardian king in Thai / Chinese Buddhist practice: stays pending; the owner's expert decides
+      src: "art/fortune/deity-vessavana.svg", status: "pending",
       name: { th: "ท้าวเวสสุวรรณ", en: "Vessavana", zh: "毗沙门天" },
       bless: { th: "ขอให้วันนี้คุณรู้สึกปลอดภัยและอุ่นใจ", en: "May you feel safe and at ease today.", zh: "愿你今天平安自在。" },
-      features: { th: ["ชฎายักษ์ยอดสูงหลายชั้น มีกรรเจียก", "ตาโปน เขี้ยวงอนที่มุมปาก", "สองมือประคองกระบองตั้งตรงหน้า", "ยืนตรง ชุดทรงเครื่องมีอินทรธนูที่บ่า"],
-        en: ["tall tiered giant's crown with ear ornaments", "round eyes, upturned fangs at the mouth corners", "both hands on a club standing upright",
+      features: { th: ["ชฎายักษ์ยอดสูงหลายชั้น มีกรรเจียก", "ใบหน้าสงบ สง่า มีหนวด", "สองมือประคองกระบองตั้งตรงหน้า", "ยืนตรง ชุดทรงเครื่องมีอินทรธนูที่บ่า"],
+        en: ["tall tiered giant's crown with ear ornaments", "calm, dignified face with a moustache", "both hands on a club standing upright",
           "standing guard, ornate dress with shoulder flares"] } },
     { id: "caishen", tradition: "chinese_folk", src: "art/fortune/deity-caishen.svg", status: "pending",
       name: { th: "ไฉ่ซิงเอี๊ยะ", en: "Caishen", zh: "财神" },
