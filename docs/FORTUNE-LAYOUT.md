@@ -126,3 +126,15 @@ wrong tag shows more text and never hides any.
   `HEADINGS[lang][id]`, `FortuneAI.SECTION_IDS`, `enhance(container, res)`) is unchanged; it is the structure the paid depth
   (`fortune-paid.js`) uses.
 - Tests: `tests/unit/fortune-live.test.js`, `tests/e2e/fortune-live.e2e.mjs` (locked, `evals-locks/fortune-live.sha256`).
+
+## Item 5 test re-lock and a content observation (2026-11-17, branch `layout-item5`)
+
+- `tests/e2e/fortune-layout.e2e.mjs` item 5 failed on dates when the horoscope "ดวงวันนี้" tab (`#pn-td`, closed until tapped)
+  carried caution paragraphs (17 Nov: 6 cautions, 19 problems): the old check counted every caution on the page, including
+  those in closed tabs. Re-lock (7) (`evals-locks/fortune-layout.sha256`, independent reviewer REVIEW-3 recommendation) is
+  stricter: the harness opens every page tab in turn and requires every caution in the open tab to be visible, outside read
+  more, outside a closed `<details>` and not cut short (line clamp, ellipsis, clipped); every caution on the page must pass
+  while shown. Cautions outside tabs keep the earlier rule. `LQ_FAKE_DATE` pins the page clock to prove date robustness.
+- Observation for the fortune team (note only, no product change): on 17 Nov (birth date 15/8/1990) all 6 paragraphs of the
+  today reading carry the caution mark, including a neutral opening ("เมื่อวางดาวลงในดวงชาตาของคุณ จะเห็นจุดที่ส่งเสริมกันชัดเจน…").
+  The composer may over-apply the caution flag on the today tab; over-marking means nothing in that group can be folded.

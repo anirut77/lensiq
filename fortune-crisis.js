@@ -122,7 +122,8 @@
     return TH.some(re => re.test(th)) || EN.some(re => re.test(t) || re.test(leet) || re.test(en2)) || ZH.some(re => re.test(zh)) || ZH.some(re => re.test(t)) ||
       letterRuns(t.replace(/[0134@$]/g, c => LEET[c])).some(r => COMPACT.test(r));
   }
-  const FREE_TEXT = 'textarea, input:not([type]), input[type="text"], input[type="search"]';
+  // crisis-net hotfix 2026-11-16: tel boxes too (they accept any text; numbers' compare boxes printed it back)
+  const FREE_TEXT = 'textarea, input:not([type]), input[type="text"], input[type="search"], input[type="tel"]';
   /** the raw text of every free-text field on the page (empty without a DOM) @param {any} [doc] */
   function fields(doc) {
     try {

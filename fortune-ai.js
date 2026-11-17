@@ -4199,7 +4199,7 @@
     box.appendChild(ul); box.appendChild(el("p", null, s.after)); box.appendChild(el("p", "fa-support-foot", s.foot));
     container.appendChild(box);
     // the page is now in the crisis state: no later reading, remedy, lucky item, paid / merit offer or straight mode on it
-    if (CR && CR.setActive) CR.setActive(doc);
+    if (CR && CR.setActive) CR.setActive(doc); if (root.LQCrisisTakeover) root.LQCrisisTakeover(box); // hotfix 2026-11-16: the card replaces EVERY result area, screen scrolls to it
     return box;
   }
   async function interpret(facts, opts = {}) {

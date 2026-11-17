@@ -11,6 +11,13 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
 
 **2026-11-16 print layout (branch `print-report` on top of fortune-share-print, not merged / not deployed; owner approves PDF samples first):** print now produces a paper report from one renderer (`fortune-print.js` + `.css`, lazy-loaded with the card code): running header (LENSIQ mark, title, name only when the person opts in, date), sections with headings that never end a page, two columns for short lists, labelled icons / swatches for black-and-white, footer with the disclaimer and page X / Y; A4 / A5 portrait and an 80 mm receipt style; refused in crisis. `LQPrint.render(model, {size, paid})` is the same call the paid PDF will use. Also owner decision 76 (option ก): palm drawing and birth-derived sign / animal art off on the share card by default, own switch. Tests locked in `evals-locks/print-report.sha256`; `docs/FORTUNE-PRINT-REPORT.md`.
 
+## Fortune layout item 5 test (2026-11-17, branch `layout-item5`)
+
+- The locked item-5 check failed on some dates on main and every branch (horoscope "today" tab closed but counted as folded).
+  Re-locked stricter: every tab opened in turn, every caution checked while shown (details in `docs/FORTUNE-LAYOUT.md`).
+  Possible over-flagging of cautions on the today tab (17 Nov: all 6 paragraphs, including a neutral opener) is noted for
+  the fortune team; no product change.
+
 ## Fortune go-live (owner order 2026-11-15, branch `fortune-live` = fortune-a + main)
 
 - Final disclaimer "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" (TH / EN / ZH) on every fortune page and the fortune category; no idle "ready, the model loads when …" status on faceread, palm, booth or studio; help line in one place per fortune page (one small "อยากมีคนรับฟัง 1323" tap-to-call button near the top, the only number in the normal state (decision 54 ข; 1669 and the rest on the crisis card), crisis card unchanged). Tests: `tests/{unit,e2e}/fortune-live.*` (locked).
