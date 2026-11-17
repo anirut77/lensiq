@@ -205,7 +205,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   /** รอบ 11: คำถามที่พิมพ์เองมีสัญญาณวิกฤต → แสดงการ์ดช่วยเหลือแทนการทำนาย (ไม่เก็บ/ไม่ส่งข้อความ) — คืน true เมื่อหยุด */
   // round 3: the question is shown back only when it is plain; otherwise a neutral placeholder
-  function echoQ(s) { var CRx = window.LQFortuneCrisis; return !s || !CRx ? s : CRx.plainName(s) || CRx.softText((window.LQI18N && window.LQI18N.lang) || "th").qHidden; }
+  function echoQ(s) {
+    var CRx = window.LQFortuneCrisis, F = window.FortuneAI;
+    if (!s) return s;
+    if (!CRx) return F && F.crisis && F.crisis.check(s) ? "…" : s; // v3: fortune-crisis.js failed to load: still no echo
+    return CRx.plainName(s) || CRx.softText((window.LQI18N && window.LQI18N.lang) || "th").qHidden;
+  }
   function crisisStop(q) {
     var FAx = window.FortuneAI, box = document.getElementById("icSupport");
     var CRx = window.LQFortuneCrisis, lang = (window.LQI18N && window.LQI18N.lang) || "th";

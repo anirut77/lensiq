@@ -873,7 +873,33 @@
   // round 2: after a language switch or a resize the card is brought back to the first screen
   const back = () => { try { const c = root.document.querySelector(".fa-support"); if (c && active(root.document)) root.setTimeout(() => toCard(c), 300); } catch (e) { /* no DOM */ } };
   try { root.addEventListener("lq-lang", back); root.addEventListener("resize", back); } catch (e) { /* no events */ }
+  /** crisis v3 stand-in for fortune-crisis.js (fortune-ai.js uses it only when that file failed to load) @param {(t: any) => boolean} crisisCheck */
+  function standIn(crisisCheck) {
+    const d0 = root.document, FT = 'textarea, input:not([type]), input[type="text"], input[type="search"], input[type="tel"]';
+    const CSS = ":is(html[data-lq-crisis],html[data-lq-calm]) :is([data-lq-remedy],[data-lq-upsell],[id$=Share],[id$=Print],[id$=Stats],[data-lq-share],[data-lq-print]," +
+      ".fa-straight,.fa-plan){display:none!important}.lq-call-mini>a.lq-call-btn{display:inline-flex;align-items:center;min-height:44px;min-width:44px}";
+    const W = { th: ["หากมีเรื่องทุกข์ใจ ลองคุยกับคนใกล้ชิด หรือโทร 1323 มีคนพร้อมรับฟัง", "โทร 1323", "ช่องทางให้คำปรึกษา"],
+      en: ["If something weighs on you, talk to someone close, or call 1323. Someone is ready to listen.", "Call 1323", "Counselling services"],
+      zh: ["如果心里有事，可以和身边的人聊聊，或拨打 1323，有人愿意倾听。", "拨打 1323", "咨询服务渠道"] };
+    const L = l => W[l === "en" || l === "zh" ? l : "th"];
+    const on = d => (d || d0).documentElement.getAttribute("data-lq-crisis") === "1";
+    const calm = d => { if (on(d)) return true; try { return root.sessionStorage.getItem("lq-fortune-calm") === "1"; } catch (e) { return false; } };
+    const fields = d => Array.from((d || d0).querySelectorAll(FT)).map(e => /** @type {any} */ (e).value).filter(Boolean).join("\n");
+    const esc = t => String(t).replace(/[&<>"]/g, c => "&#" + c.charCodeAt(0) + ";");
+    const helpHTML = (l, cls) => { const w = L(l); return '<aside class="lq-helpline' + (cls ? " " + esc(cls) : "") + '" role="note"><p class="lq-helpline-warm">' + esc(w[0]) +
+      '</p><span class="lq-call-mini"><a class="lq-call-btn" href="tel:1323"><b>' + esc(w[1]) + '</b></a></span> <span class="lq-helpline-more"><a href="counselling.html">' + esc(w[2]) + "</a></span></aside>"; };
+    return { check: () => false, unjoke: t => t, fields, active: on, calmOn: calm, allow: (k, d) => !calm(d), helpHTML,
+      setActive(d) {
+        const x = d || d0; x.documentElement.setAttribute("data-lq-crisis", "1");
+        try { root.sessionStorage.setItem("lq-fortune-calm", "1"); } catch (e) { /* page-level only */ }
+        if (!x.getElementById("lq-standin-style")) { const st = x.createElement("style"); st.id = "lq-standin-style"; st.textContent = CSS; x.head.appendChild(st); }
+        try { root.dispatchEvent(new root.CustomEvent("lq-crisis")); } catch (e) { /* no events */ }
+      },
+      distress: d => !!crisisCheck(fields(d)), plainName: t => (t && !crisisCheck(t) && String(t).length <= 40 ? t : ""),
+      helpLine(d, l, cls) { const t = (d || d0).createElement("template"); t.innerHTML = helpHTML(l, cls); return t.content.firstChild; } };
+  }
   /** @type {any} */ (root).LQCrisisTakeover = takeover;
+  /** @type {any} */ (root).LQCrisisStandIn = standIn;
   /** @type {any} */ (root).LQCrisisFirst = first;
 })(typeof window !== "undefined" ? window : globalThis);
 /* END lensiq-crisis-takeover.js */

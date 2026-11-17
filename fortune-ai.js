@@ -4139,7 +4139,9 @@
   const CRISIS_ZH = new RegExp("自杀|自尽|轻生|想死(?!的心)|不想活|活不下去|活着没意思|活着好累|活着没有意义|不想再醒来|不想醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|" +
     "被(?:人)?(?:打|殴打|袭击|虐待|性侵|强奸|侵犯|猥亵)|性侵|强奸|(?:他|她|老公|老婆|丈夫|妻子|男朋友|女朋友|爸爸|妈妈|继父|继母)(?:经常|总是|一直)?(?:打|殴打|虐待)我");
   // fortune-crisis.js (review 2026-11-12): the widened net (tone-mark-insensitive Thai, traditional Chinese, slang) + every free-text field
-  const CR = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis.js") : root.LQFortuneCrisis) || null;
+  // crisis v3: when fortune-crisis.js fails to load, the stand-in in lensiq-crisis-takeover.js keeps the v3 rules (hotfix-e E5)
+  const CR = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis.js") : root.LQFortuneCrisis) ||
+    (root.LQCrisisStandIn ? root.LQCrisisStandIn(crisisCheck) : null);
   const pageText = doc => (CR ? CR.fields(doc) : "");
   function crisisCheck() {
     for (let i = 0; i < arguments.length; i++) {
@@ -4428,7 +4430,7 @@
   try { const q = root.LQFortuneHooks; if (Array.isArray(q)) for (const h of q) registerHooks(h); } catch (e) { /* no queue */ }
 
   const api = {
-    crisis: { check: crisisCheck, result: supportResult, render: renderSupport,
+    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, api: () => CR,
       setActive: d => { if (CR && CR.setActive) CR.setActive(d); }, fields: doc => pageText(doc),
       active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => (CR && CR.allow ? CR.allow(kind, doc) : !(CR && CR.active && CR.active(doc))) },
     straight: Object.assign({}, FS, { isSafe: isSafeStraight, hardLimit }),
