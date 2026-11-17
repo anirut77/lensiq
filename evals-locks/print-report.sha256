@@ -45,3 +45,10 @@ cc591f270be1b318459e9251de0b18745c8fb145ee9bf8ce208628102eb50879  tests/e2e/fort
 c76ede5d0c9d82ec74550df9b309a721cd4dfa0e8f95f0a45b761bd46e323a39  colour-k3-harness-evidence.log
 # RE-LOCK 2026-11-17 (harness fix, check unchanged): K3 brings the pdf.js reader tab to the front before rendering; in a background tab pdf.js page rendering stalls (first run hung 15 min; probe: TIMEOUT in background, rendered after bringToFront; colour-k3-harness-evidence.log).
 451d87303610f649cc48d2989d85e0c903f7c4b7af276592c2f8d1d95e58eef7  tests/e2e/fortune-print-colour.e2e.mjs  # repo file
+# locked 2026-11-17T03:01:18Z (tools/eval-guard.mjs lock, 3 files)
+4443209df143aeb821811e3ac5bf6949ac593aa6a058bb6f1ccd9df0a3bcb9ae  fortune-print-photo.test.js
+e2faf2a3a74303a4af83c3feff6c4fd4fa0ea469af410417e89cfbb2ff240b5f  fortune-print-photo.e2e.mjs
+9e184afe6c07cff4d50ab8c360d8f394575afd7656b60d401c7a1e915307c8bb  photo-base-unit.log
+# repo copies, locked 2026-11-17 BEFORE the build (owner order: decision 82 addition, annotated photo for face / palm reading): screen elements all on paper, print-resolution figure with legend + headline on one page, B/W cues, include-photo ON by default and OFF = neutral outline, no requests, 80 mm compact figure, consent line when given. Base: unit 4 of 5 fail (photo-base-unit.log). face-capture branch: result DOM unchanged; its rear-camera consent line is covered through the page's figure provider (P7).
+4443209df143aeb821811e3ac5bf6949ac593aa6a058bb6f1ccd9df0a3bcb9ae  tests/unit/fortune-print-photo.test.js  # repo file
+e2faf2a3a74303a4af83c3feff6c4fd4fa0ea469af410417e89cfbb2ff240b5f  tests/e2e/fortune-print-photo.e2e.mjs  # repo file
