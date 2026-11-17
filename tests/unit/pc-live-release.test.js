@@ -111,7 +111,7 @@ test("R5 (LIVE-SCAN-RESULTS.md:62, :103): live scan is ticked by default and can
   const html = read("medicine.html");
   assert.match(html, /<input type="checkbox" id="pcLiveOn" checked>/, "the live-scan box is ticked by default");
   const ui = read("lensiq-pc-ui.js");
-  assert.match(ui, /const liveWanted = \(\) => \{[^}]*#pcLiveOn[^}]*c\.checked; \};/, "liveWanted() reads the box");
+  assert.match(ui, /const liveWanted = \(\) => \{.*"#pcLiveOn".*return !c \|\| c\.checked; \};/, "liveWanted() reads the box");
   const i = ui.indexOf("W.LQPCLiveUI.start(video)");
   assert.ok(i > 0, "the live scan is started from lensiq-pc-ui.js");
   assert.match(ui.slice(Math.max(0, i - 300), i), /if \(liveWanted\(\) && W\.LQPCLiveUI/, "the live scan starts only while the box is ticked");
@@ -145,8 +145,9 @@ test("R6 (LIVE-SCAN-RESULTS.md:69, :177, :369): one-tap allowance at most 6 a mi
     async call(r) { calls++; return { ok: true, json: r.output && r.output.name === "pc_claims" ? { signals: [] } : FIELDS, model: "served", usage: { inputTokens: 10, outputTokens: 5 } }; } } };
   const siteverify = async () => new Response(JSON.stringify({ success: true, action: "ai", hostname: "site.example" }));
   const realNow = Date.now;
-  // one Bangkok day: start one minute after local midnight, one request every 61 s (a fresh minute window each time)
-  const day0 = 1700000000 - ((1700000000 + BKK_OFFSET) % 86400) + 86400 + 60;
+  // one Bangkok day: the next local midnight + 1 minute (a date near today: with a 2023 clock this setup answered not_configured), one request
+  // every 61 s (a fresh minute window each time; 151 requests stay inside that day)
+  const t0 = Math.floor(realNow() / 1000), day0 = t0 - ((t0 + BKK_OFFSET) % 86400) + 86400 + 60;
   const post = async (i, auto) => {
     Date.now = () => (day0 + i * 61) * 1000;
     const r = await handle(req("/v1/ai/" + (i % 2 ? "pc_claims" : "pc_fields"), { method: "POST",

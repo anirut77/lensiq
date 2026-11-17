@@ -59,3 +59,10 @@ d5e3845abd97a374697ada465687d2622f88f65ea7a0b1e3778185786d6d862e  tests/unit/pc-
 d5e3845abd97a374697ada465687d2622f88f65ea7a0b1e3778185786d6d862e  pc-guard-onetap-notes.test.d5e3845a.js
 0ac75cf0dae673c49fa6c1684697a78f8741b1eba7403054b4f3317a8e89f471  tests/unit/pc-jako-policy.test.js  # repo file  existing, unchanged, joins the set
 0ac75cf0dae673c49fa6c1684697a78f8741b1eba7403054b4f3317a8e89f471  pc-jako-policy.test.0ac75cf0.js
+# 2026-11-17T16:02:58Z re-lock (2) of tests/unit/pc-live-release.test.js after its first run (branch eval-guard-repo). Test-setup fixes only:
+# R5 regex could not match the JSDoc cast "{HTMLInputElement | null}" in liveWanted (now also requires "return !c || c.checked");
+# R6 used a 2023 clock, which made the gateway answer not_configured before any limit was reached (now the next Bangkok
+# midnight). No assertion changed or loosened. R4 failed on the product: fixed in lensiq-pc-live.js (separate commit), test
+# unchanged. Field copy and lock (new files): pc-live-release.test.0dfbb137.js, locked-2026-11-17-release-criteria-r2.sha256.
+0dfbb137ca3d080b107c135b28ccd1fc43cc5ea42ca2747af61c85848e176dea  tests/unit/pc-live-release.test.js  # repo file  re-lock (2): test-setup fixes R5, R6
+0dfbb137ca3d080b107c135b28ccd1fc43cc5ea42ca2747af61c85848e176dea  pc-live-release.test.0dfbb137.js
