@@ -188,7 +188,7 @@
   // nav.js splits Thai text into <span class="lq-run"> word boxes for line breaking (Thai mode only): join them back
   // into one text node first, so a sentence is translated as a sentence and not word by word
   function unwrapRuns(rootNode) {
-    var runs = rootNode.querySelectorAll ? rootNode.querySelectorAll("span.lq-run,span.lq-t") : [], parents = [];
+    var runs = rootNode.querySelectorAll ? rootNode.querySelectorAll("span.lq-run,.lq-t") : [], parents = [];
     for (var i = 0; i < runs.length; i++) {
       var sp = runs[i], p = sp.parentNode; if (!p) continue;
       p.replaceChild(doc.createTextNode(sp.textContent), sp);

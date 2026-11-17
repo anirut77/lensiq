@@ -80,7 +80,7 @@
    */
   function t(key, vars, l) {
     l = norm(l) || cur;
-    key = String(key);
+    key = String(key).replace(/\u00a0/g, " "); // nav.js line wrap may have joined words of a Thai key
     var s = has(key, l) ? dicts[l][key] : has(key, "th") ? dicts.th[key] : key;
     return fill(s, vars);
   }
@@ -103,12 +103,12 @@
   }
   function setText(el, key, l) {
     // nav.js wraps Thai words in <span class="lq-run"> (a Chinese line end in .lq-t): back to plain text first (re-applied)
-    var w = el.querySelectorAll ? el.querySelectorAll(":scope > span.lq-run, :scope > span.lq-t") : [];
+    var w = el.querySelectorAll ? el.querySelectorAll(":scope > span.lq-run, :scope > .lq-t") : [];
     if (w.length) { for (var i = 0; i < w.length; i++) w[i].replaceWith(doc.createTextNode(w[i].textContent)); el.normalize(); }
     if (el.removeAttribute) el.removeAttribute("data-lqwb");
     var m = memo(el), onlyText = !el.firstElementChild, node = onlyText ? null : firstText(el);
     if (m.text == null) m.text = onlyText ? el.textContent : node ? node.nodeValue : "";
-    var thai = m.text.trim(), k = key || thai;
+    var thai = m.text.trim(), k = key || thai.replace(/\u00a0/g, " ");
     var out = pick(k, thai, l);
     var lead = (m.text.match(/^\s*/) || [""])[0], trail = (m.text.match(/\s*$/) || [""])[0];
     var val = lead + out + trail;

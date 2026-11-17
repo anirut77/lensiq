@@ -444,10 +444,10 @@
       var v = tn.nodeValue, t = words(v), L = len(tn), k = L > (full ? 19 : 11) ? cut(t, L > v.trim().length + 2) : t.length, at = t.slice(0, k).join("").length, pos = 0, buf = "";
       var parts = full ? t.map(function (p) { return [p, THAI.test(p) && p.length >= 4 && p.length <= 14 && !/\s/.test(p) ? 1 : 0]; }) : loanParts(v);
       if (!parts) {
-        if (k >= t.length || /lq-t/.test(tn.nextSibling && tn.nextSibling.className)) return;
-        var tail = document.createElement("span"); tail.className = "lq-w lq-t"; tail.textContent = v.slice(at);
+        if (k >= t.length || !v.slice(0, at).trim() || /lq-t/.test(tn.nextSibling && tn.nextSibling.className)) return;
+        var tail = document.createElement("lq-t"); tail.className = "lq-w lq-t"; tail.textContent = v.slice(at);
         if (!/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail); }
-        else if (!RT(tn)) { var box = document.createElement("span"); box.className = "lq-t"; box.append(v.slice(0, at), tail); tn.replaceWith(box); }
+        else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(v.slice(0, at), tail); tn.replaceWith(box); }
         return;
       }
       if (RT(tn) || k >= t.length && parts.length < 2 && !parts[0][1]) return;
@@ -508,12 +508,12 @@
       var w = document.createTreeWalker(root, 4), n, p, v, x;
       while ((n = w.nextNode())) {
         p = n.parentElement; v = n.nodeValue || "";
-        if (!p || p.closest(SKIP) || (p.getAttribute("data-i18n") === "" && THAI.test(v)) || RT(n)) continue;
+        if (!p || p.closest(SKIP + ",button,.btn,[role=button],#siteNav,.lq-crumbs") || (p.getAttribute("data-i18n") === "" && THAI.test(v)) || RT(n)) continue;
         x = n.previousSibling;
         if (x && /^(B|SPAN|STRONG|EM|A|SMALL|OUTPUT|DATA)$/.test(x.nodeName) && /^[\d.,]*$/.test((x.textContent || "").trim())) v = v.replace(/^ (?=[A-Za-z%\u0e00-\u0e7f\u3040-\u9fff])/, "\u00a0");
         x = /** @type {Element} */ (n.nextSibling);
         var y = n.previousSibling, IN = /^(B|SPAN|STRONG|EM|A|SMALL|CODE)$/;
-        if ((v.trim() || IN.test(y ? y.nodeName : "")) && x && x.nodeType === 1 && !x.nextSibling && (x.textContent || "").trim().length < 6) {
+        if ((v.trim() || IN.test(y ? y.nodeName : "")) && x && IN.test(x.nodeName) && !x.nextSibling && /^\S.{0,4}$/.test((x.textContent || "").trim())) {
           v = v.replace(/\s+$/, "\u00a0"); x.classList.add("lq-w");
         }
         v = gs(v, len(n));
