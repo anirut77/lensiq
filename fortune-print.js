@@ -429,7 +429,7 @@
       if (tag === "CANVAS" || tag === "IMG") { figure(e); return; }
       if (tag === "svg") return; // inline icons on screen; the report draws its own
       if (tag === "HR") return;
-      const kids = [...e.childNodes].filter(n => n.nodeType === 1 ? !skipEl(n, ctx.photo) : n.nodeType === 3 && txt(n.textContent));
+      const kids = [...e.childNodes].filter(n => n.nodeType === 1 ? !skipEl(n, ctx.figure ? "" : ctx.photo) : n.nodeType === 3 && txt(n.textContent));
       // fact cards (label / value / note in small blocks) read as one line on paper; a row of them becomes a short list
       const els = kids.filter(n => n.nodeType === 1);
       if (els.length >= 3 && els.length === kids.length && els.every(n => compact(n))) {
