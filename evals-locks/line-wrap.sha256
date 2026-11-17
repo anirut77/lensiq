@@ -27,3 +27,7 @@ a041e7c04d6ecafec66b759ab70c477bf2655aa5aab6d092cf45bddc32516a17  tests/e2e/line
 # second; the join follows within about 0.15 s). No rule, page, width, language or threshold changed. Copy in relock-3/.
 # locked 2026-11-17T07:49:16Z (tools/eval-guard.mjs lock, 1 file)
 5f2daba74d697a6a79bcc34f9918cb548f18f24cbb961a0a072483c817a0b703  relock-3/tests/e2e/line-wrap-exceptions.json
+# re-lock 2026-11-17 (append-only exceptions list, fourth entry): qc.html W en 393 "Inspect | now" (run-time translated label that
+# the line-wrap pass must not split). No rule, page, width, language or threshold changed. Copy in relock-4/.
+# locked 2026-11-17T10:53:33Z (tools/eval-guard.mjs lock, 1 file)
+df10e7d21650a76a677ea66b26fb83dbc43e2487521a0a659419cd92b5f57a9a  relock-4/tests/e2e/line-wrap-exceptions.json

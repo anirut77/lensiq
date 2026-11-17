@@ -523,6 +523,7 @@
         var nn = nxt(post >= 0 ? /** @type {Node} */ (y) : n), nx = ((nn && nn.textContent) || "").trim();
         var cs = getComputedStyle(p), fl = /flex|grid/.test(cs.display), f = document.createDocumentFragment();
         if (/pre|break/.test(cs.whiteSpace)) return;
+        if (wd && wd[1] >= v.trim().length && (CP.test(nx) || (nn && !nx))) { while (wd[0] < wd[1] && (wt(v.slice(wd[0], wd[1])) > 12 || !bd[wd[0]])) wd[0]++; if (!inner(wd)) wd = null; }
         var first = Math.min(out.length ? out[0][0] : v.length, wd ? wd[0] : v.length);
         if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t lq-b"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
         if (RT(n) && !first) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && wt(v) < 12) p.classList.add("lq-w"); return; }

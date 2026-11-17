@@ -23,6 +23,15 @@
    "contains": "Set maximum 20 | people",
    "reason": "Live dashboard tile: store.js rebuilds it (innerHTML) every second and the run-time translator turns it into English; nav.js joins the number and unit again about 0.15 s after each rebuild, so a measurement can land in that gap. The joined state is the normal state.",
    "added": "2026-11-17"
+  },
+  {
+   "page": "qc.html",
+   "kind": "W",
+   "lang": "en",
+   "width": 393,
+   "contains": "Inspect | now",
+   "reason": "Help list on a camera page: the English label 'Inspect now' is a whole text node owned by the run-time translator (lensiq-i18n-rt.js), which nav.js must not split (splitting it would break switching back to Thai); at 393 px only the two words of this label fall on the last line. Not reproduced at the other four widths.",
+   "added": "2026-11-17"
   }
  ]
 }
