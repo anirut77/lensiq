@@ -152,4 +152,4 @@ The `.venv` also contains `onnxruntime` 1.19.2 (MIT) and `sympy` / `coloredlogs`
 
 ## Keeping this file current
 
-When adding anything under `vendor/` or to `requirements.txt`, add a row with its version, source, licence and status. Also add its credit row to `credits.html` (TH / EN / ZH, `data-credit` id) and to `tests/unit/fortune-credits-assets.json` (locked set `fortune-credits`, re-lock append-only): the unit test fails while a vendor file is neither credited nor exempt. Also put its licence text next to the file (as `FACEPARSE-LICENSE.txt` and `tarot/CREDITS.txt` do) when the licence requires the text to be distributed.
+When adding anything under `vendor/` or to `requirements.txt`, add a row with its version, source, licence and status. Also put its licence text next to the file (as `FACEPARSE-LICENSE.txt` and `tarot/CREDITS.txt` do) when the licence requires the text to be distributed.

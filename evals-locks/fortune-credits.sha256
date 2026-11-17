@@ -11,3 +11,4 @@ cb8c22f3d667f35a667fccc1a2fba1707adf9b3667c1b6591563c2c8e0f3c914  relock/cat-pag
 cb8c22f3d667f35a667fccc1a2fba1707adf9b3667c1b6591563c2c8e0f3c914  tests/unit/cat-pages.test.js  # repo file (fortune-credits relock)
 2d56321d8012ac341c5ddb2c2086544873f85510553dd8f2305256e180052558  tests/unit/fortune-no-demo.test.js  # repo file (fortune-credits relock)
 049f2ed384c3eb109f6d48cd6f6a37ff4ca36d71811390ff05e161e6413097ec  tests/unit/crisis-escape-guard-allow.json  # repo file (fortune-credits relock)
+# SUPERSEDED 2026-11-18 by evals-locks/fortune-credits__v2.sha256 (owner decision 2026-11-18: delete, do not move; ledger there). v1 test files removed from tests/; locked bytes kept in ~/LENSIQ-field/evals/fortune-credits/.
