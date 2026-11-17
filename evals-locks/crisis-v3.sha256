@@ -52,3 +52,7 @@ d34bb2c3cc0e26599265891d2199a85292f95ea4391d8b38e47343a27db7dbfe  tests/unit/cri
 # locked 2026-11-17T01:25:58Z (tools/eval-guard.mjs lock, 1 file)
 dc420bc6e9e5c1f888a35e8daf5bb7df1f4989c8c99decf185c3a72ca0b42968  relock3/crisis-v3.test.js
 dc420bc6e9e5c1f888a35e8daf5bb7df1f4989c8c99decf185c3a72ca0b42968  tests/unit/crisis-v3.test.js  # repo file (relock3)
+# RE-LOCK 4 2026-11-17 (test faults found measuring the build c3847d3..036d99d, run build-1-e2e.log): English harsh list is case-sensitive without the zodiac sign 'Cancer'; 'shop' dropped from the sales words (operator note), a seller link is still caught; Thai echo pieces are 7 characters ('จริงๆ' is a word); report opens without the test backend (with one, the report is a paid product needing sign-in).
+# locked 2026-11-17T01:31:34Z (tools/eval-guard.mjs lock, 1 file)
+ba8531cf68bb6871d03094d04bfea5331b195cdb08f59cdb09de124d6a744f22  relock4/crisis-v3-kit.mjs
+ba8531cf68bb6871d03094d04bfea5331b195cdb08f59cdb09de124d6a744f22  tests/e2e/crisis-v3-kit.mjs  # repo file (relock4)

@@ -31,7 +31,9 @@ export const FLAGGED = {
  *  is a card name, not a prediction): elements marked as titles (h1-h6, b, strong, .fa-card-name, [data-card]) are skipped. */
 export const HARSH = {
   th: /เสียชีวิต|ความตาย(?!ตัว)|(?<!ไม่)ตาย(?!ตัว|ใจ)|อุบัติเหตุ|โรคร้าย|มะเร็ง|ป่วยหนัก|ล้มละลาย|หายนะ|วิบัติ|พังพินาศ|เคราะห์ร้าย|ซวยหนัก|อัปมงคลร้ายแรง|สิ้นหวัง|หย่าร้าง/,
-  en: /\b(?:death|die|dies|dying|dead|fatal|accident\w*|terminal|cancer|disaster\w*|doom\w*|bankrupt\w*|ruin(?:ed|ous)?|catastroph\w*|hopeless|divorce)\b/i,
+  // RE-LOCK 4 2026-11-17 (test fault found measuring the build): "Cancer" is the zodiac sign; the English list is case-sensitive, lower
+  // case words plus the capitalised forms except the sign name
+  en: /\b(?:death|die|dies|dying|dead|fatal|accidents?|terminal|cancer|disasters?|doom\w*|bankrupt\w*|ruin(?:ed|ous)?|catastroph\w*|hopeless|divorce)\b|\b(?:Death|Fatal|Accidents?|Disasters?|Bankrupt\w*|Catastroph\w*|Hopeless|Divorce)\b/,
   zh: /死亡|去世|意外事故|车祸|绝症|癌|灾难|破产|厄运|灾祸|绝望|离婚|丧命/,
 };
 /** sales elements (rule c) */
@@ -41,7 +43,8 @@ export const SALES_SEL = '[data-lq-upsell], [data-lq-remedy], [data-lq-paid], [d
 // print means printing the reading (print this / the reading / your / report / result; 打印 + 结果 / 报告 / 解读 / 本页)
 export const SALES_TEXT = {
   th: /฿|บาท|ราคา|ซื้อ|ชำระเงิน|ปลดล็อก|อ่านฉบับเต็ม.*บาท|แชร์|พิมพ์รายงาน|พิมพ์ผล|บันทึกรูป|สั่งซื้อ|ร้านแนะนำ/,
-  en: /\bTHB\b|\bbaht\b|\bprice|\bbuy\b|\bpurchase|\bunlock|\bpay\b|\bshare\b|\bprint (?:this|the reading|your|report|result)|\bsave as pdf|\bshop\b|\bseller/i,
+  // RE-LOCK 4: "shop" matched the operator note "At a booth or in a shop: print the camera notice"; a shop link is a seller link
+  en: /\bTHB\b|\bbaht\b|\bprice|\bbuy\b|\bpurchase|\bunlock|\bpay\b|\bshare\b|\bprint (?:this|the reading|your|report|result)|\bsave as pdf|\bseller|\bshop now/i,
   zh: /价格|购买|付款|解锁|分享|打印(?:结果|报告|解读|本页)|商店|卖家|\d\s*元|¥/,
 };
 export const OTHER_NUMS = /(?<!\d)(?:1669|191|1300)(?!\d)|02[\s-]?113[\s-]?6789/;
@@ -111,7 +114,7 @@ export const PAGES = {
     await run(p, setv("#nmPhone", "0812345678")); await run(p, `(() => { document.getElementById("nmGo").click(); return true; })()`);
     await p.waitFor(sections(2), 15000);
   } },
-  report: { field: "#rpName", root: "#rpOut", read: async (p, t) => {
+  report: { field: "#rpName", root: "#rpOut", noApi: true, read: async (p, t) => {
     await p.waitFor(() => window.__rp && document.getElementById("rpMode").textContent.length > 10, 8000);
     if (t != null) await run(p, setv("#rpName", t));
     await run(p, `(() => { document.querySelector('[data-rp-type="report_basic"]').click();
@@ -182,7 +185,9 @@ export const NO_READING = ["fortune", "planner", "luckycolor", "cat-fortune"];
 /** open a page (own context) in a language at a width, with analytics recording; `calm` = a later page of the crisis session */
 export async function open(browser, base, p, { lang, width, calm = false, fakeCams }) {
   const cfg = PAGES[p] || {};
-  const init = INIT(lang).concat(calm ? [CALM] : [], cfg.cam ? [fakeCams, DET] : [], cfg.pet ? [PET_DET] : []);
+  // RE-LOCK 4: with a backend configured the report is a paid product that needs sign-in, so report opens without the test backend
+  // (the shipped site has none); its "no analytics" is then trivially true and is covered on every other page
+  const init = (cfg.noApi ? INIT(lang).slice(0, 1) : INIT(lang)).concat(calm ? [CALM] : [], cfg.cam ? [fakeCams, DET] : [], cfg.pet ? [PET_DET] : []);
   const page = await browser.newPage(null, { isolated: true, initScripts: init });
   await page.send("Emulation.setDeviceMetricsOverride", { width, height: width <= 360 ? 740 : 852, deviceScaleFactor: 2, mobile: true });
   const q = cfg.cam ? "?cpu&fakedet&nosw" : cfg.pet ? "?fakedet&nosw" : "?nosw";
@@ -271,7 +276,8 @@ const norm = s => String(s).toLowerCase().replace(/[\s​-‍﻿]/g, "");
  *  any product measurement): the reading is now SHOWN, so 2-character pieces match ordinary words of the reading; a piece is 5
  *  characters (Thai / English, spaces removed) or 3 (Chinese), and the whole typed text never appears */
 export function echo(before, after, typed) {
-  const t = norm(typed), was = norm(before.join("")), out = [], subs = new Set(), n = /[\u3400-\u9fff]/.test(t) ? 3 : 5;
+  // RE-LOCK 4: 5 Thai characters are an ordinary word ("จริงๆ"); a Thai piece is 7 characters (English 5, Chinese 3)
+  const t = norm(typed), was = norm(before.join("")), out = [], subs = new Set(), n = /[\u3400-\u9fff]/.test(t) ? 3 : /[\u0E00-\u0E7F]/.test(t) ? 7 : 5;
   for (let i = 0; i + n <= t.length; i++) subs.add(t.slice(i, i + n));
   subs.add(t);
   for (const node of after) { const n = norm(node); for (const s of subs) if (n.includes(s) && !was.includes(s)) out.push(S(s) + " in " + S(node.trim().slice(0, 40))); }
