@@ -442,9 +442,9 @@
       }
       if (RT(tn) || k >= t.length && parts.length < 2 && !parts[0][1]) return;
       var run = document.createElement("span"), ps = /** @type {Array<Array<any>>} */ (parts);
-      tail = document.createElement("span");
+      tail = document.createElement("lq-t");
       var add = function (el) { if (buf) run.appendChild(document.createTextNode(buf)); buf = ""; if (el) run.appendChild(el); };
-      run.className = "lq-run"; tail.className = "lq-w";
+      run.className = "lq-run"; tail.className = "lq-w lq-t";
       parts.forEach(function (p, i) {
         var f = function (y) { return y.replace(/[ \t]*\n\s*/g, " "); }, x = f(p[0]), e = pos + p[0].length, h = Math.max(0, at - pos);
         pos = e;
