@@ -219,3 +219,5 @@ button,[role=button],.btn,.chip,.tab,input[type=button],input[type=submit],input
   margin-inline-start:8px;vertical-align:-.15em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:lq-busy-spin .7s linear infinite}
 @keyframes lq-busy-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){:is(button,.btn,[role=button])[aria-busy=true]::after{animation:none;border-right-color:currentColor;opacity:.6}}
+/* line wrap (owner 2026-11-17): no lone last word; admin.html has no nav.js glue and no .lq-w boxes */
+.ad-auth p{text-wrap:pretty}

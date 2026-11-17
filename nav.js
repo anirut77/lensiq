@@ -433,8 +433,8 @@
         if (k >= t.length || /lq-t/.test(tn.nextSibling && tn.nextSibling.className)) return;
         var ws = (/\s*$/.exec(v) || [""])[0], tail = document.createElement("lq-t");
         tail.className = "lq-w lq-t"; tail.textContent = v.slice(at, v.length - ws.length);
-        if (v.slice(0, at).trim() && !/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail, ws); }
-        else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(v.slice(0, at), tail, ws); tn.replaceWith(box); }
+        if (v.slice(0, at).trim() && !/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail); if (ws) tail.after(ws); }
+        else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(tail); if (at) tail.before(v.slice(0, at)); if (ws) tail.after(ws); tn.replaceWith(box); }
         return;
       }
       if (RT(tn) || k >= t.length && parts.length < 2 && !parts[0][1]) return;
@@ -521,12 +521,13 @@
           k.textContent = v.slice(q[0], q[1]); k.className = "lq-w lq-t" + (wt(k.textContent) > 14 && q[0] && q[1] < v.trim().length ? " lq-b" : "");
           if (!j && pre && !q[0]) k.prepend(/** @type {Node} */ (x));
           if (post >= 0 && q[1] === v.length) k.append(/** @type {Node} */ (y));
-          DONE.set(t, t.nodeValue || ""); f.append(k, t);
+          DONE.set(t, t.nodeValue || ""); f.append(k); if (t.nodeValue) f.append(t);
         });
         n.nodeValue = v.slice(0, out[0][0]); DONE.set(n, n.nodeValue);
         var tx = /** @type {Text} */ (n);
         if (fl) { var b = document.createElement("lq-t"); b.className = "lq-t"; tx.before(b); b.append(tx, f); }
         else tx.after(f);
+        if (!tx.nodeValue) tx.remove(); // no empty text node is left behind
       });
     }
     function run(root) {
