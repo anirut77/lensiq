@@ -10,7 +10,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     for (const page of Object.keys(FLOWS)) {
       const F = FLOWS[page];
       if (!F.report) continue;
-      await check(`${page}: crisis via the report-dialog note after a reading -> every result element hidden, only the help card`, async () => {
+      await check(`${page}: crisis via the report-dialog note after a reading -> every result element hidden or v3-compliant, closing line last (v3)`, async () => {
         await runCase(browser, base, fakeCams, page, "report");
       });
     }

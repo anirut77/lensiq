@@ -153,3 +153,17 @@ f9d48f0e7d64e30bb0afdb4ea110501012eafe3e8b7cff2ec04b5fa8eae361fc  relock-v3-miss
 f94cc520ded3969a6bd5c5922bf46cf7c78dd504ee81427aab6d8456b4246dc0  relock-v3-missed-2/fortune-straight.e2e.mjs
 f9d48f0e7d64e30bb0afdb4ea110501012eafe3e8b7cff2ec04b5fa8eae361fc  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed-2)
 f94cc520ded3969a6bd5c5922bf46cf7c78dd504ee81427aab6d8456b4246dc0  tests/e2e/fortune-straight.e2e.mjs  # repo file (relock-v3-missed-2)
+# R2-LOCK 2026-11-17 (independent review round 2 of 8cee117, ~/LENSIQ-field/review/crisis-v3/REVIEW.md), BEFORE the round-2 fixes: new crisis-v3-r2.e2e.mjs (R1 fallback no echo, R2 report-note closing line, R3 report no plan / history, R4 fengshui calm closing last, R5 counters hidden when calm, R6 no question placeholder + dream self-care section) and crisis-v3-r2.test.js (N1 missed phrases, N2 stand-in uses the same pattern list); relock-guard-v3: crisis-escape-guard kit MODE v3 (hidden or v3-compliant, no echo, closing line last; CARD -> crisis state, no card), its two test titles; cat-pages.test.js merged content (main no-demo + counselling support row of crisis-rules-1323) had no lock line.
+# locked 2026-11-17T09:09:02Z (tools/eval-guard.mjs lock, 6 files)
+f479834057d4715daf8baff71bd3f5c78c92cc9d4036b46e0ed8ff2c7b2c12ad  r2-lock/crisis-v3-r2.e2e.mjs
+1c43055449f7737e5ae098008c5fa00a1ddbc18461fb52c1d525b1e703889e74  r2-lock/crisis-v3-r2.test.js
+a917dec6ab026eb167b92d85685f99e821c22a38ec7845136bdad687266928b8  r2-lock/crisis-escape-guard-kit.mjs
+525247ead4166bae201d421d1885b2e53e1bc4cb6e6effc8b5fbaff7b055bceb  r2-lock/crisis-escape-guard-report.e2e.mjs
+87ea1e02e062450f2e0f4029e33bd530c0482f28d7d34d2273283db7cc0d9bb3  r2-lock/crisis-escape-guard-field.e2e.mjs
+f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  r2-lock/cat-pages.test.js
+f479834057d4715daf8baff71bd3f5c78c92cc9d4036b46e0ed8ff2c7b2c12ad  tests/e2e/crisis-v3-r2.e2e.mjs  # repo file (r2-lock)
+1c43055449f7737e5ae098008c5fa00a1ddbc18461fb52c1d525b1e703889e74  tests/unit/crisis-v3-r2.test.js  # repo file (r2-lock)
+a917dec6ab026eb167b92d85685f99e821c22a38ec7845136bdad687266928b8  tests/e2e/crisis-escape-guard-kit.mjs  # repo file (r2-lock)
+525247ead4166bae201d421d1885b2e53e1bc4cb6e6effc8b5fbaff7b055bceb  tests/e2e/crisis-escape-guard-report.e2e.mjs  # repo file (r2-lock)
+87ea1e02e062450f2e0f4029e33bd530c0482f28d7d34d2273283db7cc0d9bb3  tests/e2e/crisis-escape-guard-field.e2e.mjs  # repo file (r2-lock)
+f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  tests/unit/cat-pages.test.js  # repo file (r2-lock)

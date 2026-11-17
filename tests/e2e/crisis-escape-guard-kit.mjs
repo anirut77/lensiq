@@ -37,10 +37,19 @@ export const sleep = ms => new Promise(r => setTimeout(r, ms));
 export const PHRASE = { th: "อยากตายจริงๆ", short: "我想死" };
 
 /* ---------------- what is allowed to stay visible in the crisis state (re-target here for crisis v3) ---------------- */
-export const MODE = "v2"; // v2: the help card replaces every result element
-const HELP = ".fa-support, .fa-soft, .lq-helpline, #lqHelpTop, .lq-crisis-slot";
-// v3 hook: when v3 ships, add its rule here, e.g. `|| (MODE === "v3" && !!e.closest("[data-lq-gentle]"))`, in a re-locked commit
-const ALLOWED = `const allowed = e => !vis(e) || !!e.closest(${S(HELP)});`;
+// RE-LOCK v3 2026-11-17 (owner decision 2026-11-17 crisis v3, branch crisis-v3-2; ledger docs/CRISIS-V3-RELOCKS.md, tag
+// relock-guard-v3): the one re-target point. v3 = in the crisis state every result element is either hidden or v3-compliant: not
+// inside a sales / remedy / plan / paid / merit / share / print / counter / straight block, not a card or soft step (those are
+// not shown at all in v3), and its own text never holds the typed phrase. CARD below becomes STATE (crisis state set, no card);
+// runCase also asserts rule d: when a reading is on screen, one closing line with tel:1323 follows its last section and nothing
+// collected or new is shown after it in its result area. Steps 1-5 and the collection are unchanged.
+export const MODE = "v3";
+const HELP = ".lq-helpline, #lqHelpTop, .lq-crisis-slot";
+const FORBID = '.fa-support, .fa-soft, [data-lq-upsell], [data-lq-remedy], [data-lq-paid], [data-lq-merit], .fa-plan, [data-lq-plan], [id$="Share"], [id$="Print"], ' +
+  '[id$="Stats"], [data-lq-share], [data-lq-print], .lq-merit, .lq-paid, .fa-straight, [data-fa-mode="straight"]';
+const ALLOWED = `const typed = (window.__lqTyped || "").replace(/\\s+/g, "").toLowerCase();
+  const echoes = e => !!typed && own(e).replace(/\\s+/g, "").toLowerCase().includes(typed);
+  const allowed = e => !vis(e) || !!e.closest(${S(HELP)}) || (!e.closest(${S(FORBID)}) && !echoes(e));`;
 
 const VIS = `const vis = e => { for (let x = e; x && x.nodeType === 1; x = x.parentElement) { if (x.hidden) return false; const cs = getComputedStyle(x);
   if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") return false; } const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };`;
@@ -87,7 +96,19 @@ export const ESCAPED = `(() => { ${HELPERS} ${ALLOWED}
   for (const e of G.after) if (e.isConnected && vis(e) && content(e) && !exempt(e, G.pre.get(e)) && !allowed(e)) bad.push("new after the trigger: " + desc(e));
   return [...new Set(bad)]; })()`;
 
-export const CARD = `(() => { ${VIS} const c = [...document.querySelectorAll(".fa-support")].find(vis); return !!c && /1323/.test(c.textContent) && document.documentElement.getAttribute("data-lq-crisis") === "1"; })()`;
+export const CARD = `(() => { ${VIS} return document.documentElement.getAttribute("data-lq-crisis") === "1" && ![...document.querySelectorAll(".fa-support, .fa-soft")].some(vis); })()`;
+/** v3 rule d: with a reading on screen, one closing line (tel:1323) after its last section; nothing collected or new after it in its area */
+export const CLOSING = `(() => { ${HELPERS}
+  const secs = [...document.querySelectorAll(".fa-section")].filter(vis); if (!secs.length) return "";
+  const lines = [...document.querySelectorAll(".lq-helpline-result")].filter(e => vis(e) && !e.closest("#lqHelpTop"));
+  if (lines.length !== 1) return "closing lines shown: " + lines.length;
+  const c = lines[0], last = secs[secs.length - 1];
+  if (!c.querySelector('a[href="tel:1323"]')) return "closing line without tel:1323";
+  if (!(last.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING)) return "closing line before the last section";
+  const area = c.closest('[data-lq-result], [id$="Result"], #rpOut') || c.parentElement, G = window.__lqG, bad = [];
+  for (const e of [...(G.cands || []), ...G.after]) if (e.isConnected && vis(e) && content(e) && area.contains(e) && !c.contains(e) && !exempt(e, G.pre.get(e))
+    && (c.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING)) bad.push(desc(e));
+  return bad.length ? "shown after the closing line: " + [...new Set(bad)].slice(0, 8).join("; ") : ""; })()`;
 
 const setVal = (sel, v) => `(() => { const e = document.querySelector(${S(sel)}); if (!e) throw new Error("no field ${sel.replace(/"/g, "'")}");
   e.focus(); e.value = ${S(v)}; e.dispatchEvent(new Event("input", { bubbles: true })); e.dispatchEvent(new Event("change", { bubbles: true })); return true; })()`;
@@ -194,9 +215,12 @@ export async function runCase(browser, base, fakeCams, page, how) {
     const cands = await ev(p, COLLECT);
     assert(cands.length > 0, label + ": no result element collected: the reading did not happen");
     const q = F.short ? PHRASE.short : PHRASE.th;
+    await ev(p, `window.__lqTyped = ${S(q)}; true`);
     if (how === "report") await reportTrigger(p, q); else await F.field(p, q);
-    try { await p.waitFor(CARD, 15000); } catch (e) { throw new Error(label + ": NO CARD after the crisis phrase"); }
+    try { await p.waitFor(CARD, 15000); } catch (e) { throw new Error(label + ": no crisis state (or a card) after the crisis phrase"); }
     await sleep(1500); // the takeover's own timers (scroll at 450 / 1100 ms) and any late page code
+    const closing = await ev(p, CLOSING);
+    assert(!closing, label + ": rule d: " + closing);
     const esc = await ev(p, ESCAPED);
     console.log(`    ${label}: ${cands.length} result elements collected, ${esc.length} visible in the crisis state`);
     assert(!esc.length, `${label}: ${esc.length} of ${cands.length} result elements escaped the crisis takeover (MODE ${MODE}):\n      ` + esc.slice(0, 25).join("\n      "));

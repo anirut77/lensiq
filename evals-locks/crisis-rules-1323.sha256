@@ -117,3 +117,5 @@ a61e32123a05ef83933cb55dd6249415e3adabf62cf4dc3c531bdc81e2503316  tests/e2e/fort
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): fix-1, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
 e152aae01b86b2998afcc8af6ad382c4a2235ea8d9a35a93ce3bae670589abd8  tests/e2e/fortune-crisis-soft.e2e.mjs  # repo file (relock-fix-1)
 cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-fix-1)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): r2-lock, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
+f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  tests/unit/cat-pages.test.js  # repo file (r2-lock)

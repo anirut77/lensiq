@@ -159,3 +159,13 @@ Locked before compat was changed to v3.
 | tests/e2e/fortune-calm-pages.e2e.mjs | real path (tarot, then hub / planner / lucky colour) | waits for the card on tarot | waits for the crisis state on tarot | a | later pages calm, help line in view: same test (unchanged) |
 | tests/e2e/merit.e2e.mjs (tag `relock-v3-missed-2`) | 4b. support card on tarot, then zodiac | waits for the tarot card (#trSupport) | waits for the shared crisis state, no card | a | no Merit panel (free or paid) on the next reading: same test (unchanged) |
 | tests/e2e/fortune-straight.e2e.mjs (tag `relock-v3-missed-2`) | flag on + straight chosen: the crisis net still wins | the tarot card shows, no shuffle | the crisis state is set, no card, and no straight control or straight reading is shown in that session (the shuffle goes on) | a, b | the crisis net before straight: same test |
+
+## Review round 2 (independent review of 8cee117), tag `r2-lock` — locked before the round-2 fixes
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/e2e/crisis-escape-guard-kit.mjs (+ -report, -field titles) | every reading page × (report note, own box): collected result elements | MODE v2: every result element hidden; only the help card visible (waits for the card) | MODE v3: every result element is hidden or v3-compliant (not inside a card / soft step, sales, remedy, plan, paid, merit, share, print, counter or straight block, and its own text never holds the typed phrase); waits for the crisis state with no card; with a reading on screen ONE closing line (tel:1323) follows its last section and nothing collected or new is shown after it in its area | a, c, d, no echo | steps 1-5 (tracking and collection, so a NEW result element can still not escape unnoticed) unchanged; the static half (unit crisis-escape-guard) unchanged |
+| tests/e2e/crisis-v3-r2.e2e.mjs (new) | R1-R6 | — | fallback no echo; report-note closing line; report no plan / history, closing last; fengshui calm closing last; counters hidden when calm; no question placeholder; dream self-care section | a, c, d, e, no echo | — |
+| tests/unit/crisis-v3-r2.test.js (new) | N1, N2 | — | missed phrases caught (TH / EN / ZH); the stand-in answers exactly as fortune-crisis.js for MUST60 + N1 + ordinary text | protection | — |
+| tests/unit/cat-pages.test.js | lock hygiene | the merged content (main's no-demo version + the counselling support row of crisis-rules-1323) matched no lock line | locked as is; no assertion changed | — | — |
+| evals-locks/fortune-honest.sha256 | lock hygiene | the soft-1 line (relock-fix-1) was missing there | appended | — | — |

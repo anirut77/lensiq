@@ -10,3 +10,9 @@ f3c0caaaf521f4c7d7ab29ecf28f24dde003c464d242e74be547878c11fe2bed  crisis-net-hot
 # locked 2026-11-17T03:39:05Z (tools/eval-guard.mjs lock, 2 files)
 4e899434ceb97b937be925c79713055f73fc0b687dac950226d1196611a14859  crisis-escape-guard-kit.v2.mjs
 4e1132d0b86fc2cb0767ee1b84391abea4954e15e375776fb5f0e6f00e83b785  crisis-escape-guard-allow.v2.json
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): r2-lock, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
+a917dec6ab026eb167b92d85685f99e821c22a38ec7845136bdad687266928b8  tests/e2e/crisis-escape-guard-kit.mjs  # repo file (r2-lock)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): r2-lock, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
+525247ead4166bae201d421d1885b2e53e1bc4cb6e6effc8b5fbaff7b055bceb  tests/e2e/crisis-escape-guard-report.e2e.mjs  # repo file (r2-lock)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): r2-lock, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
+87ea1e02e062450f2e0f4029e33bd530c0482f28d7d34d2273283db7cc0d9bb3  tests/e2e/crisis-escape-guard-field.e2e.mjs  # repo file (r2-lock)
