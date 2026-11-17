@@ -17,6 +17,9 @@
 (แก้ได้ในที่เดียว: `lensiq-camhelp.js` ค่าคงที่ `HELP`)
 **Verified on a real device (owner, 2026-11-16):** iPhone 16 Pro, iOS 27.0.1, Safari, Thai — the disclaimer is live, the idle
 technical status is gone, and the camera-refused notice on `faceread.html` shows the upload alternative.
+**Verified on a real device (owner, 2026-11-17):** iPhone 16 Pro, iOS 27.0.1, Safari (and a Samsung Galaxy S23 Ultra,
+Chrome): the new face capture on `faceread.html` passed all 10 tester steps (distance, head, light, manual capture, two
+faces, rear-camera consent, 30 vs 50 cm, crisis card). Pass / fail only. Details: `docs/PHONE-QUALITY.md` section 5.
 
 ที่อยู่: `https://anirut77.github.io/lensiq/<หน้า>` · ใช้ Safari · ก่อนเริ่ม: ตั้งค่า > Safari > ล้างประวัติและข้อมูลเว็บไซต์
 · จดรุ่น iPhone และรุ่น iOS (ตั้งค่า > ทั่วไป > เกี่ยวกับ) ไว้บนผลตรวจ · เปลี่ยนภาษาได้ที่ปุ่มภาษาบนแถบด้านบน
