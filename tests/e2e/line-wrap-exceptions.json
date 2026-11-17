@@ -1,0 +1,4 @@
+{
+ "note": "APPEND-ONLY exceptions of tests/e2e/line-wrap-kit.mjs. Each entry: page (file name), kind (P lone punctuation / W widow / U split number + unit), contains (a text of the finding, at least 4 characters), optional lang and width, reason (why it cannot or should not be changed), added (date).",
+ "exceptions": []
+}

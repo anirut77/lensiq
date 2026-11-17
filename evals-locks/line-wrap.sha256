@@ -1,0 +1,5 @@
+# evals-locks/line-wrap.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/line-wrap/ (owner rule 2026-11-13). Append-only.
+# line wrap (owner request 2026-11-17, dream page: ")" alone on the next line at phone width): every page (73 *.html) × TH / EN / ZH ×
+# 360 / 375 / 393 / 414 / 430 px; kinds P lone punctuation, W widow in a short block, U split number + unit (rules in the kit header).
+# Locked BEFORE any product change on branch line-wrap (base origin/fortune-top-compact 286d813). The harness was tried on
+# dream.html and index.html (TH / EN) only to confirm it reads line boxes; no fix was made before this lock. Exceptions list is append-only.
