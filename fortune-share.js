@@ -276,7 +276,9 @@
     b.setAttribute("data-lq-sp", kind); b.setAttribute("data-lq-sp-own", ""); b.textContent = T(kind); return b;
   }
   function wire() {
-    if (!P) return;
+    // crisis v3 (merge of main 56957344): in the crisis / calm state no share or print control is created at all, so an empty
+    // result area (e.g. the iching Daily tab, whose reading is never drawn then) holds no hidden button text
+    if (!P || !allowed(doc)) return;
     for (const r of P.results) {
       const rootEl = q(r.root); if (!rootEl) continue;
       const s = r.share ? q(r.share) : null, p = r.printBtn ? q(r.printBtn) : null;
@@ -333,6 +335,7 @@
   function resetOpts() { for (const c of doc.querySelectorAll("[data-lq-sp-opt] input")) /** @type {HTMLInputElement} */ (c).checked = false; }
   function sync() {
     const ok = allowed(doc);
+    if (!ok) for (const e of doc.querySelectorAll("[data-lq-sp-bar], [data-lq-sp-own], [data-lq-sp-opt], [data-lq-sp-photo]")) e.remove(); // ours only; wire() re-adds when allowed
     for (const e of doc.querySelectorAll("[data-lq-sp], [data-lq-sp-bar], [data-lq-sp-opt], [data-lq-sp-photo]")) {
       if (ok) e.removeAttribute("data-lq-sp-off"); else e.setAttribute("data-lq-sp-off", "");
       if (e.hasAttribute("data-lq-sp-own") && e.textContent !== T(e.getAttribute("data-lq-sp"))) e.textContent = T(e.getAttribute("data-lq-sp"));

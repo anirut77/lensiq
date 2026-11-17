@@ -119,7 +119,7 @@
   let done = 0;
   const go = () => {
     if (done || w.LQShare || !d.querySelector(R + ",#recBox,.ft-hero")) return;
-    done = 1; const s = d.createElement("script"); s.src = "fortune-share.js?v=4"; s.async = true; d.head.appendChild(s);
+    done = 1; const s = d.createElement("script"); s.src = "fortune-share.js?v=5"; s.async = true; d.head.appendChild(s);
   };
   for (const e of ["pointerdown", "touchstart", "keydown", "scroll", "focusin"]) w.addEventListener(e, go, { capture: true, passive: true, once: true });
   const sh = n => n.nodeType === 1 && (n.matches(".fa-section,.rp-part") || !!n.querySelector(".fa-section,.rp-part") || (n.matches(R) && !n.hidden));
