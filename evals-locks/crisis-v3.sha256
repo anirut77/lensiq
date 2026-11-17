@@ -1,0 +1,14 @@
+# locked 2026-11-17T00:45:14Z (tools/eval-guard.mjs lock, 6 files)
+96b96d46c2a38870aa58f1ff0e6043ae767ee4190992ac78cd4a00dd6b1af11d  crisis-v3-kit.mjs
+b683116fdff69ab67e65afe6db91e2dd02603c3d81f2ccaf31ba14d787c76ca0  crisis-v3-a.e2e.mjs
+f5bdb6e2ba313942eba2f818650d36124ac2caca48e2dd769e772965eda6bf9f  crisis-v3-b.e2e.mjs
+0dac06170802260655246e9275abb0e0170fb5aefc5d3fedcda7aed7534c5800  crisis-v3-c.e2e.mjs
+bcad428d82768a02d83e95531da755f90ac30af5d6ece65c3ba7e5018c5e8441  crisis-v3-d.e2e.mjs
+a9c1d2691000e3c8d74ab755f7be2308dd4ca59b1d8ea68b68324b809bdc2b6d  crisis-v3.test.js
+# repo copies (byte-identical to the locked files above), locked 2026-11-17 BEFORE any v3 product code on branch crisis-v3 (base origin/crisis-rules-1323 7442dad). Owner decision 2026-11-17 crisis v3: the reading continues in the crisis session (gentle, no straight, no sales / share / print, closing line + one tel:1323 button + counselling link at the end only, no card, nothing flagged, one number, no echo, no analytics).
+96b96d46c2a38870aa58f1ff0e6043ae767ee4190992ac78cd4a00dd6b1af11d  tests/e2e/crisis-v3-kit.mjs  # repo file
+b683116fdff69ab67e65afe6db91e2dd02603c3d81f2ccaf31ba14d787c76ca0  tests/e2e/crisis-v3-a.e2e.mjs  # repo file
+f5bdb6e2ba313942eba2f818650d36124ac2caca48e2dd769e772965eda6bf9f  tests/e2e/crisis-v3-b.e2e.mjs  # repo file
+0dac06170802260655246e9275abb0e0170fb5aefc5d3fedcda7aed7534c5800  tests/e2e/crisis-v3-c.e2e.mjs  # repo file
+bcad428d82768a02d83e95531da755f90ac30af5d6ece65c3ba7e5018c5e8441  tests/e2e/crisis-v3-d.e2e.mjs  # repo file
+a9c1d2691000e3c8d74ab755f7be2308dd4ca59b1d8ea68b68324b809bdc2b6d  tests/unit/crisis-v3.test.js  # repo file
