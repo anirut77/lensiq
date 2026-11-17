@@ -17,3 +17,5 @@ aa0fc5e4a7885a2ed5cc9d479195b953e955800697a7269489d8142b10c39af4  crisis-escape-
 3293b9c0ae6b4acbe4007e259382e7c0278860acdb355ea5ad8df098b4d90ee1  crisis-price-scan-menu.e2e.mjs
 78ee5fc8df9adf143232e6a1d244d3d8aef3be066790836e12ca6ea91823d374  crisis-price-scan.test.r2.js
 3a88c00f6db0764faecb3d9065667bb14c003040ae0838eb68d3a4622cf1d35c  crisis-escape-guard-allow.protect.r2.json
+# locked 2026-11-17T23:32:05Z (tools/eval-guard.mjs lock, 1 file)
+84d69a06ad6d90dbccb61ce77e9bfbef3e0797710dcd3481d930652b1fdcf26d  crisis-price-scan-menu.r3.e2e.mjs

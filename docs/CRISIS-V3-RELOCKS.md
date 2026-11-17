@@ -200,7 +200,9 @@ Menus (re-lock 2, coordinator order 2026-11-18: CLAUDE.md rule b makes this a re
 `html[data-lq-calm]` is set (CSS, so they come back when the flag clears). The account link itself stays reachable. They left the
 `priceText` allow-list; the static scan accepts them only with the marker on the same source line (`priceMarked`, P2) and P6
 asserts the marker and the CSS; `tests/e2e/crisis-price-scan-menu.e2e.mjs` opens the menu in the crisis state (0 pricing entries,
-TH / EN / ZH) and after clearing (entries back). Re-lock 2 only adds assertions. nav.js v29, lensiq-config.js v21 (member v5).
+TH / EN / ZH) and after clearing (entries back). Re-lock 2 only adds assertions. Re-lock 3 (test fault, CI run 44189943345): the
+positive control counted sales words in the site menu only, where EN / ZH have one (the pricing title), not two; it now expects at
+least one. In that run the crisis state showed 0 pricing entries in all three languages and every entry came back after clearing. nav.js v29, lensiq-config.js v21 (member v5).
 
 Re-lock 1 (kit, `crisis-price-scan-kit.r1.mjs`, after CI run 44141046161, test fault): report [en] / [zh] never drew a reading
 because the reused flow types the Buddhist year 2533 while the era radio defaults to CE outside Thai; the kit now picks BE first.

@@ -27,7 +27,10 @@ export default async function ({ base, launch, check, fakeCams }) {
           await p.evaluate(`(() => { document.documentElement.removeAttribute("data-lq-crisis"); document.documentElement.removeAttribute("data-lq-calm"); return true; })()`);
           await p.evaluate(`new Promise(r => setTimeout(r, 400))`);
           const back = await p.evaluate(MENU_STATE);
-          assert(back.pricing >= 2 && back.marked >= 3 && back.hits.length >= 2, `M2 [${lang}] after the flag clears the entries are back: ` + S(back));
+          // RE-LOCK 3 2026-11-18 (test fault, CI run 44189943345: EN / ZH showed pricing 2 / marked 3 back, but `hits` only reads
+          // #siteMenu text, where EN / ZH have one sales word (the pricing title) and TH two (title + payment description)); the
+          // restore itself is asserted by pricing >= 2 and marked >= 3, unchanged
+          assert(back.pricing >= 2 && back.marked >= 3 && back.hits.length >= 1, `M2 [${lang}] after the flag clears the entries are back: ` + S(back));
           console.log(`    menu [${lang}]: crisis pricing ${c.pricing} / marked ${c.marked} / hits ${c.hits.length}; cleared pricing ${back.pricing} / marked ${back.marked} / hits ${back.hits.length}`);
         } finally { await p.close(); }
       });
