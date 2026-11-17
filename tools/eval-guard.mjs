@@ -28,6 +28,7 @@ const SHOWN_ROOT = "~/" + relative(homedir(), EVALS_ROOT).split(sep).join("/");
 const SEGMENT_RE = /^[a-z0-9][a-z0-9._-]*$/;
 const LINE_RE = /^([0-9a-f]{64})\s+(\S.*)$/;
 const RETIRE_RE = /^#\s*retired\s+(\S+)\s+reason:\s*(\S.*)$/;
+const PENDING_RE = /^#\s*pending\s+(\S+)\s+branch:\s*(\S+)\s+reason:\s*(\S.*)$/;
 const REPO_MARK_RE = /#\s*repo file\b/;
 
 /** @param {string} p @returns {string} */
@@ -136,17 +137,21 @@ function resolveFiles(phase, files, opts) {
 
 /**
  * Lock events of one lock file, in order: hash lines ("<sha256>  <path> ...") and retirement lines
- * ("# retired <path> reason: <text>"). `marked` = the line says "# repo file".
+ * ("# retired <path> reason: <text>") and pending lines ("# pending <path> branch: <branch> reason: <text>": locked on main
+ * before the code is merged from <branch>; accepted only while the file is absent). `marked` = the line says "# repo file".
  * @param {string} text
- * @returns {{kind: "hash"|"retire", path: string, hash?: string, reason?: string, marked: boolean, line: number}[]}
+ * @returns {{kind: "hash"|"retire"|"pending", path: string, hash?: string, reason?: string, branch?: string, marked: boolean, line: number}[]}
  */
 export function lockEvents(text) {
-  /** @type {{kind: "hash"|"retire", path: string, hash?: string, reason?: string, marked: boolean, line: number}[]} */ const out = [];
+  /** @type {{kind: "hash"|"retire"|"pending", path: string, hash?: string, reason?: string, branch?: string, marked: boolean, line: number}[]} */
+  const out = [];
   text.split(/\r?\n/).forEach((raw, i) => {
     const m = raw.match(LINE_RE);
     if (m) { out.push({ kind: "hash", hash: m[1], path: m[2].split(/\s+/)[0].replace(/^\.\//, ""), marked: REPO_MARK_RE.test(raw), line: i + 1 }); return; }
     const r = raw.trim().match(RETIRE_RE);
-    if (r) out.push({ kind: "retire", path: r[1].replace(/^\.\//, ""), reason: r[2].trim(), marked: false, line: i + 1 });
+    if (r) { out.push({ kind: "retire", path: r[1].replace(/^\.\//, ""), reason: r[2].trim(), marked: false, line: i + 1 }); return; }
+    const q = raw.trim().match(PENDING_RE);
+    if (q && q[2] !== "reason:") out.push({ kind: "pending", path: q[1].replace(/^\.\//, ""), branch: q[2], reason: q[3].trim(), marked: false, line: i + 1 });
   });
   return out;
 }
@@ -188,7 +193,7 @@ export function checkRepoLocks(opts = {}) {
   for (const f of lockFiles) {
     const rel = `evals-locks/${f}`;
     for (const ev of lockEvents(readFileSync(join(lockDir, f), "utf8"))) {
-      if (!isRepoPath(ev, dirs) && !(ev.kind === "retire" && byPath.has(ev.path))) continue;
+      if (!isRepoPath(ev, dirs) && !(ev.kind !== "hash" && byPath.has(ev.path))) continue;
       if (opts.only && !opts.only.has(ev.path)) continue;
       const per = byPath.get(ev.path) || new Map();
       const list = per.get(rel) || [];
@@ -200,6 +205,7 @@ export function checkRepoLocks(opts = {}) {
   /** @type {{path: string, message: string}[]} */ const issues = [];
   /** @type {{path: string, expected: string, actual: string, lockFile: string, line: number}[]} */ const checked = [];
   /** @type {{path: string, reason: string, lockFile: string, line: number}[]} */ const retired = [];
+  /** @type {{path: string, branch: string, reason: string, lockFile: string, line: number}[]} */ const pending = [];
   for (const [path, per] of [...byPath].sort((a, b) => a[0].localeCompare(b[0]))) {
     if (![...per.values()].some(evs => evs.some(e => e.kind === "hash"))) continue; // only retirement lines: nothing locked
     const abs = join(repo, ...path.split("/"));
@@ -207,7 +213,13 @@ export function checkRepoLocks(opts = {}) {
     const actual = present ? sha256(readFileSync(abs)) : "";
     /** @type {{lockFile: string, hash: string, line: number}[]} */ const latest = [];
     /** @type {{lockFile: string, reason: string, line: number}[]} */ const retires = [];
-    for (const [lockFile, evs] of per) {
+    /** @type {{lockFile: string, branch: string, reason: string, line: number}[]} */ const pends = [];
+    for (const [lockFile, all] of per) {
+      let n = all.length; // pending lines after the last hash / retirement line of this lock file
+      while (n > 0 && all[n - 1].kind === "pending") n--;
+      if (n < all.length) { const q = all[all.length - 1]; pends.push({ lockFile, branch: /** @type {string} */ (q.branch), reason: /** @type {string} */ (q.reason), line: q.line }); }
+      const evs = all.slice(0, n);
+      if (!evs.length) continue;
       const last = evs[evs.length - 1];
       if (last.kind === "hash") latest.push({ lockFile, hash: /** @type {string} */ (last.hash), line: last.line });
       else retires.push({ lockFile, reason: /** @type {string} */ (last.reason), line: last.line });
@@ -216,7 +228,7 @@ export function checkRepoLocks(opts = {}) {
     const live = latest.filter(c => ![...per].some(([lf, evs]) => {
       if (lf === c.lockFile) return false;
       const i = evs.findIndex(e => e.kind === "hash" && e.hash === c.hash);
-      return i >= 0 && evs.slice(i + 1).some(e => e.kind === "retire" || e.hash !== c.hash);
+      return i >= 0 && evs.slice(i + 1).some(e => e.kind === "retire" || (e.kind === "hash" && e.hash !== c.hash));
     }));
     const hashes = [...new Set(live.map(c => c.hash))];
     const where = (/** @type {{lockFile: string, line: number}} */ c) => `${c.lockFile} line ${c.line}`;
@@ -238,6 +250,11 @@ export function checkRepoLocks(opts = {}) {
       continue;
     }
     const exp = live.find(c => c.hash === hashes[0]) || live[0];
+    if (!present && pends.length) { // locked before the code; re-checked when the branch is merged
+      const q = pends[0];
+      pending.push({ path, branch: q.branch, reason: q.reason, lockFile: q.lockFile, line: q.line });
+      continue;
+    }
     if (!present) {
       issues.push({ path, message: `${path}: locked in ${where(exp)} (expected ${exp.hash}) but the file is not in the repo. If it was removed on purpose, ` +
         `append to the lock file: "# retired ${path} reason: <why>".` });
@@ -248,7 +265,7 @@ export function checkRepoLocks(opts = {}) {
       issues.push({ path, message: `${path}: differs from its latest lock: expected ${exp.hash} (${where(exp)}), actual ${actual}${older()}.` });
     }
   }
-  return { checked, retired, issues, problems: issues.map(i => i.message), lockFiles: lockFiles.length };
+  return { checked, retired, pending, issues, problems: issues.map(i => i.message), lockFiles: lockFiles.length };
 }
 
 /** @param {string} phase @param {string[]} problems */
@@ -351,7 +368,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
         process.exit(1);
       }
       console.log(`eval-guard repo OK: ${r.checked.length} locked repo file(s) match their latest lock in ${r.lockFiles} lock file(s); ` +
-        `${r.retired.length} retired.`);
+        `${r.retired.length} retired; ${r.pending.length} pending (absent until their branch is merged).`);
     }
     else { console.error(USAGE); process.exit(1); }
   } catch (e) {

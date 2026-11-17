@@ -64,6 +64,9 @@ references.
   disagree are a conflict: append the right hash, with the reason, to the lock file that is out of date.
 - A locked file that is no longer in the repo fails unless a lock file retires it after its last hash line:
   `# retired <path> reason: <why>`. A retired file that is still in the repo fails too.
+- A file locked on main before its code is merged from a feature branch may carry, after its last hash line,
+  `# pending <path> branch: <branch> reason: <why>`. The guard accepts it ONLY while the file is absent from the repo;
+  once the file exists it must equal its latest lock, as without the marker (`tests/unit/eval-guard-pending.test.js`).
 - Never append a hash only to make the check pass: a re-lock is documented (what changed, why, stricter or not) and made
   before measuring. Tests: `tests/unit/eval-guard-repo.test.js` (locked in `evals-locks/eval-guard.sha256`).
 
