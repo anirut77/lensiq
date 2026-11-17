@@ -8,7 +8,8 @@
 //   W2  real detector, loaded only on tap: nothing detector-related requested before the photo; after the photo, within
 //       60 s either a pet is found or a plain "pick the traits yourself" message; the reading still works
 //   W3  camera on / off with the fake camera: every track ended after "off"
-//   W4  crisis typed in the pet's name (TH): the support card replaces the reading, the share card is hidden
+//   W4  crisis typed in the pet's name (TH), crisis v3 (re-lock 2026-11-17): the reading continues, no card, no echo, the share
+//       card is hidden, one closing 1323 line last
 //   W5  English at 390 px: reading and card text have no Thai; ZH: the same
 import { assert } from "./cdp.mjs";
 import { flow, launchWebKit, sleep, waitFor } from "./phone-kit.mjs";
@@ -77,13 +78,23 @@ export default async function ({ base, check }) {
       assert(off.t && off.t.length && off.t.every(x => x === "ended") && !off.src, "tracks after off " + JSON.stringify(off));
     });
 
-    await flow(check, browser, "petread W4: crisis in the pet's name -> support card, no reading, no share card", `${base}/petread.html?fakedet`, { init: [DETS([CAT])] }, async ({ page }) => {
+    // RE-LOCK 2026-11-17 (crisis v3; ledger docs/CRISIS-V3-RELOCKS.md "fortune-pet"): no support card in v3. Kept: no share card.
+    // Added: crisis state set, the reading continues, no card / soft step, no echo, one closing tel:1323 line after the last section.
+    await flow(check, browser, "petread W4: crisis in the pet's name (v3) -> reading continues, nothing flagged, no echo, no share card, closing 1323 line last", `${base}/petread.html?fakedet`, { init: [DETS([CAT])] }, async ({ page }) => {
       await photo(page);
       await waitFor(page, () => window.__LQPET && window.__LQPET.st.detected === true, null, 15000);
       await read(page, "อยากตาย");
-      await waitFor(page, () => !!document.querySelector("#petReading .fa-support"), null, 15000);
-      const r = await page.evaluate(() => ({ s: document.querySelectorAll("#petReading .fa-section").length, card: (() => { const e = document.getElementById("petCardSec"); return !!e && !e.closest("[hidden]") && e.getBoundingClientRect().height > 0; })() }));
-      assert(r.s === 0 && !r.card, "crisis state " + JSON.stringify(r));
+      await waitFor(page, () => document.documentElement.getAttribute("data-lq-crisis") === "1" && document.querySelectorAll("#petReading .fa-section").length >= 2, null, 15000);
+      await new Promise(r => setTimeout(r, 600));
+      const r = await page.evaluate(() => {
+        const vis = e => !!e && !e.closest("[hidden]") && e.getBoundingClientRect().height > 0 && getComputedStyle(e).display !== "none";
+        const secs = [...document.querySelectorAll("#petReading .fa-section")].filter(vis), last = secs[secs.length - 1];
+        const lines = [...document.querySelectorAll(".lq-helpline-result")].filter(vis);
+        return { s: secs.length, flagged: [...document.querySelectorAll(".fa-support, .fa-soft")].some(vis), card: vis(document.getElementById("petCardSec")),
+          echo: document.querySelector("main").innerText.replace(/\s+/g, "").includes("อยากตาย"),
+          close: lines.length === 1 && !!lines[0].querySelector('a[href="tel:1323"]') && !!last && !!(last.compareDocumentPosition(lines[0]) & Node.DOCUMENT_POSITION_FOLLOWING) };
+      });
+      assert(r.s >= 2 && !r.flagged && !r.card && !r.echo && r.close, "crisis state (v3) " + JSON.stringify(r));
     });
 
     for (const lang of ["en", "zh"]) {

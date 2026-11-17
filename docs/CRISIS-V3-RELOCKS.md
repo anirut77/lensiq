@@ -175,3 +175,13 @@ Locked before compat was changed to v3.
 | File | Change | Why |
 |---|---|---|
 | tests/unit/crisis-rules-1323.test.js, tests/e2e/crisis-rules-1323-a / -e.e2e.mjs, tests/e2e/crisis-rules-kit.mjs | the switch name `LENSIQ_HELP_STICKY` → `LENSIQ_HELP_TOP_STICKY`; every assertion unchanged | one sticky switch only (main's mechanism, coordinator instruction 2026-11-17); the branch's own copy of the same switch dropped from lensiq-config.js / nav.js / types |
+
+## Merge of fortune-pet (pet face reading, `petread.html`), tag `relock-pet` (2026-11-17) — locked before the pet page's v3 code
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/e2e/fortune-pet.e2e.mjs | P4 crisis in the pet's name (TH / EN / ZH) | support card replaces the reading (0 sections, tel:1669 in the card), no price, share card hidden | crisis state set; no card or soft step shown; the reading continues (≥ 2 sections); no `lucky` part; the typed phrase not shown in `<main>`; exactly one closing `.lq-helpline-result` with tel:1323 after the last section; no other `tel:` in `<main>`; no price; share card hidden | a, b, c, d | same test (price, share card), crisis-v3-a/b/c/d (petread), crisis-escape-guard-field (petread) |
+| tests/e2e/petread-webkit.e2e.mjs | W4 crisis in the pet's name (TH, WebKit 390 px) | support card, 0 sections, no share card | crisis state; ≥ 2 sections; no card / soft step; no echo; no share card; one closing tel:1323 line after the last section | a, c, d | same test |
+| tests/e2e/crisis-escape-guard-kit.mjs | FLOWS | no petread flow (page not on main) | `petread` flow appended (synthetic photo, scripted detector, name + dates, phrase into `#petName`); nothing else changed | — (registration) | check 4 of the static half |
+| tests/unit/crisis-escape-guard-allow.json | targets | — | 8 petread ids appended (photo area, camera / detector status, trait picker, form message), each with its reason; nothing removed | — (registration) | check 3 (stale entries fail) |
+| tests/e2e/crisis-net-hotfix-inventory.json, docs/CRISIS-INPUT-INVENTORY.md | inputs | — | 7 petread rows appended (`#petName` can hold a phrase) | — (registration) | check 2 |

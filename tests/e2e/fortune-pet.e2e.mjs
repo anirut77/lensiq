@@ -7,7 +7,8 @@
 //       person; reading has the owner-ordered parts and passes the lint (TH / EN / ZH)
 //   P3  share card: photo off by default; drawn; with the photo ticked and a person present the person is blurred;
 //       ZERO network requests from "read" to "save" (nothing uploaded); the card text has the honest line, disclaimer, link
-//   P4  crisis (TH / EN / ZH) typed in the pet's name: the support card replaces the reading, no price, no card
+//   P4  crisis (TH / EN / ZH) typed in the pet's name: crisis v3 (re-lock 2026-11-17): the reading continues gently, no card,
+//       no echo, no price, no share card, no lucky part, one closing 1323 line at the end
 //   P5  camera: the off button stops every track; a refused permission shows a plain message with the iPhone Safari page-menu
 //       path and the Settings fallback, and the photo way forward (TH / EN / ZH)
 //   P6  layout: no horizontal scroll at 360 px (TH / EN / ZH) at load and after a reading; EN / ZH readings have no Thai
@@ -141,15 +142,33 @@ export default async function ({ base, launch, check, fakeCams }) {
       }
     });
 
-    await check("P4 crisis typed in the pet's name: support card replaces the reading, no price, no card (TH / EN / ZH)", async () => {
+    // RE-LOCK 2026-11-17 (crisis v3, owner decision 2026-11-17; ledger docs/CRISIS-V3-RELOCKS.md "fortune-pet"): the old P4 waited
+    // for the support card (tel:1669); v3 has no card. Kept: no price, share card hidden. Added (v3 rules a-e): crisis state set,
+    // no card or soft step shown, the reading continues (>= 2 sections), no lucky part, the typed phrase is not shown back, one
+    // closing line with tel:1323 after the last section and no other tel: number in <main>.
+    await check("P4 crisis typed in the pet's name (v3): reading continues gently, nothing flagged, no echo, no price, no card, no lucky part, one closing 1323 line at the end (TH / EN / ZH)", async () => {
       for (const lang of ["th", "en", "zh"]) {
         const page = await open(browser, base, { lang });
         await usePhoto(page);
         await fillAndRead(page, { name: CRISIS[lang] });
-        await page.waitFor("document.querySelector('#petReading .fa-support')", 8000);
-        const r = await page.evaluate(() => ({ sections: document.querySelectorAll("#petReading .fa-section").length, tel1669: !!document.querySelector('#petReading a[href="tel:1669"]'),
-          main: document.querySelector("main").innerText }));
-        assert(r.sections === 0 && r.tel1669, lang + ": support card instead of a reading " + JSON.stringify({ s: r.sections, t: r.tel1669 }));
+        await page.waitFor("document.documentElement.getAttribute('data-lq-crisis') === '1' && document.querySelectorAll('#petReading .fa-section').length >= 2", 8000);
+        await sleep(600);
+        const r = await page.evaluate(typed => {
+          const vis = e => !!e && !e.closest("[hidden]") && e.getBoundingClientRect().height > 0 && getComputedStyle(e).display !== "none";
+          const secs = [...document.querySelectorAll("#petReading .fa-section")].filter(vis), last = secs[secs.length - 1];
+          const lines = [...document.querySelectorAll(".lq-helpline-result")].filter(vis);
+          const main = document.querySelector("main").innerText;
+          return { sections: secs.length, ids: secs.map(x => x.getAttribute("data-section")), card: [...document.querySelectorAll(".fa-support, .fa-soft")].some(vis),
+            lines: lines.length, tel: lines.length === 1 && !!lines[0].querySelector('a[href="tel:1323"]'),
+            after: lines.length === 1 && !!last && !!(last.compareDocumentPosition(lines[0]) & Node.DOCUMENT_POSITION_FOLLOWING),
+            otherTel: [...document.querySelectorAll('main a[href^="tel:"]')].map(a => a.getAttribute("href")).filter(h => h !== "tel:1323"),
+            echo: main.replace(/\s+/g, "").toLowerCase().includes(typed.replace(/\s+/g, "").toLowerCase()), main };
+        }, CRISIS[lang]);
+        assert(r.sections >= 2 && !r.card, lang + ": the reading continues, no card " + JSON.stringify({ s: r.sections, c: r.card }));
+        assert(!r.ids.includes("lucky"), lang + ": no lucky part in the crisis state " + JSON.stringify(r.ids));
+        assert(!r.echo, lang + ": the typed phrase is shown back");
+        assert(r.lines === 1 && r.tel && r.after, lang + ": one closing 1323 line after the last section " + JSON.stringify({ n: r.lines, t: r.tel, a: r.after }));
+        assert(!r.otherTel.length, lang + ": other numbers " + JSON.stringify(r.otherTel));
         assert(!(await page.evaluate(vis("#petCardSec"))), lang + ": the share card is hidden in the crisis state");
         const m = r.main.match(PRICE); assert(!m, lang + ": price wording in the crisis state: " + (m && m[0]));
         await page.close();
