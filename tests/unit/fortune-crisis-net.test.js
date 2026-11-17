@@ -93,11 +93,14 @@ test("crisis net: interpret() checks the raw text of every free-text field on th
   try {
     for (const name of ["I want to die", "อยากตาย จริงๆ", "我想去死"]) {
       globalThis.document = fakeDoc([name]);
+      // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): a field with a crisis phrase sets the crisis state; the reading goes on (not the card), without the phrase
       const r = await FA.interpret(facts, { seed: 1, useAI: false });
-      assert.equal(r.source, "support", name);
+      assert.notEqual(r.source, "support", name); assert.ok(FA.crisis.active(globalThis.document), name + ": crisis state set");
+      assert.ok(!JSON.stringify(r).includes(name.replace(/\s+/g, " ").trim().slice(0, 7)), name + ": not echoed");
     }
     globalThis.document = fakeDoc(["Somchai Jaidee", "งานใหม่จะดีไหม"]);
     assert.notEqual((await FA.interpret(facts, { seed: 1, useAI: false })).source, "support");
+    assert.ok(!FA.crisis.active(globalThis.document), "a plain page is not in the crisis state");
   } finally { if (oldDoc === undefined) delete globalThis.document; else globalThis.document = oldDoc; }
 });
 

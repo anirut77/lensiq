@@ -76,6 +76,8 @@
   "nav.iching.desc": "Coin toss, 64 hexagrams",
   "nav.zodiac.title": "Chinese Zodiac · Tai Sui",
   "nav.zodiac.desc": "Yearly outlook and compatible signs",
+  "nav.compat.title": "Compatibility",
+  "nav.compat.desc": "Two people or a whole group, across four traditions",
   "nav.astro.title": "Western Astrology",
   "nav.astro.desc": "Sun, Moon and Rising signs",
   "nav.dream.title": "Dream Interpretation",
@@ -515,7 +517,10 @@
   "call.samaritans.go": "Call 02 113 6789",
   "call.samaritans.sub": "A listening line, 12:00–22:00",
   "call.samaritans.org": "Samaritans of Thailand",
+  "counsel.link": "Counselling services",
+  "counsel.doc.title": "Counselling services | LENSIQ",
   "help.line.note": "Outside Thailand, call your local emergency number.",
+  "help.line.close": "If something weighs on you, talk to someone close, or call 1323. Someone is ready to listen.",
   "ft.notice": "The free-tier limits are not enforced yet. We will announce the start date at least 30 days ahead, and the limits start 30 days after the announcement. You can always export your data.",
   "home.pk.ft": "Fortune and the general tools are free. The business products have a limited free tier: Gate 30-day trial (1 lane, 100 plates per day) · Attendance up to 5 people · Exam up to 5 candidates per session · Crowd 2 hours per device per day"
 } });

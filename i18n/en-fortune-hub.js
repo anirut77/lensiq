@@ -13,6 +13,8 @@
     "fortune.hub.s.zodiacPair": "· Quick match, no birth date needed",
     "fortune.hub.g.horoPair": "Birth-date compatibility",
     "fortune.hub.s.horoPair": "· Most detailed",
+    "fortune.hub.g.compat": "Compatibility for two or a group",
+    "fortune.hub.s.compat": "· Four traditions compared: Thai, Chinese, Indian, Western",
     "fortune.hub.g.tarotLove": "Tarot, love theme",
     "fortune.hub.g.iching": "I Ching",
     "fortune.hub.s.iching": "· Ask about a decision you are making",

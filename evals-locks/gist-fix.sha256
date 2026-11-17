@@ -1,0 +1,6 @@
+# evals-locks/gist-fix.sha256 — committed copy of ~/LENSIQ-field/evals/gist-fix/locked.sha256 (owner decision 90 ข, summary-line shortening fix). Append-only. Checked by tools/eval-guard.mjs.
+# locked 2026-11-17T05:40:08Z (tools/eval-guard.mjs lock, 1 file)
+f658c5e34a3074d7e1744276d47fae3cb175e7498a49ceca7631db8c7dc658a3  tests/unit/fortune-gist.test.js
+# RE-LOCK 2026-11-17 (1), before any committed measurement: format-only reflow of 4 lines over 200 characters (tools/format-check.mjs); no logic, rule, input or threshold changed.
+# locked 2026-11-17T05:40:52Z (tools/eval-guard.mjs lock, 1 file)
+356578fb024b94e4facc32aa8079069a5d6608f42cae6e7331a9e713e064f13d  tests/unit/fortune-gist.test.js

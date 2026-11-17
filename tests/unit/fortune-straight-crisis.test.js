@@ -70,7 +70,8 @@ test("straight ON + crisis words in a field: interpret() returns the support car
   const facts = X.factsFor("bazi", 1, X.lcg(11));
   for (const v of ["อยากตาย", "I want to die", "我想死"]) {
     const r = await withPage(page({ fields: [v] }), () => FA.interpret(facts, { seed: 1, useAI: false }));
-    assert.equal(r.source, "support", v);
+    // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): the reading goes on, never straight, without the typed text
+    assert.ok(r.source !== "support" && r.mode !== "straight", v + " -> gentle reading"); assert.ok(!JSON.stringify(r).includes(v), v + " not echoed");
   }
 });
 

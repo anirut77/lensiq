@@ -151,14 +151,16 @@ test("B3 (3) crisis net first: with straight on, compose and interpret return th
   const facts = X.factsFor("bazi", 1, X.lcg(31));
   for (const q of CRISIS) for (const lang of ["th", "en", "zh"]) {
     const f = Object.assign({}, facts, { question: q });
+    // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): the crisis net still comes first, but the reading goes on: gentle (never straight), no plan, the question not echoed
     const c = FA.compose(f, { seed: 5, lang, straight: true });
-    assert.equal(c.source, "support", `compose ${lang}: ${q}`);
-    assert.equal(c.crisis, true);
+    assert.ok(c.source !== "support" && c.mode !== "straight" && !c.plan, `compose ${lang}: ${q} -> gentle reading`);
     const i = await FA.interpret(f, { seed: 5, lang, straight: true, useAI: false });
-    assert.equal(i.source, "support", `interpret ${lang}: ${q}`);
+    assert.ok(i.source !== "support" && i.mode !== "straight", `interpret ${lang}: ${q}`);
     const u = await FA.interpret(facts, { seed: 5, lang, straight: true, useAI: false, userText: q });
-    assert.equal(u.source, "support", `interpret userText ${lang}: ${q}`);
-    assert.ok(!/ทำบุญแทน|merit on your behalf|代为/.test(JSON.stringify(c)), "no paid merit offer on the support card");
+    assert.ok(u.source !== "support" && u.mode !== "straight", `interpret userText ${lang}: ${q}`);
+    const qq = q.replace(/\s+/g, ""), pieces = []; for (let k = 0; k + 8 <= qq.length; k++) pieces.push(qq.slice(k, k + 8)); if (!pieces.length) pieces.push(qq);
+    for (const r of [c, i, u]) { const t = JSON.stringify(r).replace(/\s+/g, ""); assert.ok(!pieces.some(x => t.includes(x)), `${lang}: ${q} not echoed`); }
+    assert.ok(!/ทำบุญแทน|merit on your behalf|代为/.test(JSON.stringify(c)), "no paid merit offer in the crisis reading");
   }
 });
 

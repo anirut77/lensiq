@@ -25,7 +25,7 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=24"></script>
+<script src="nav.js?v=29"></script>
 
 <style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
 .lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
@@ -48,7 +48,8 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 .lq-ftop .eyebrow{display:none}.lq-ftop h1{font-size:1.5rem;line-height:1.25;margin:2px 0 4px}
 .lq-ftop :is(.lead,.ft-hero>p,.pd-hero>p):not(.lq-top){font-size:.9rem;line-height:1.45;margin:0 auto 6px}
 .lq-ftop :is(.ft-hero,.pd-hero){padding:10px 16px 14px}.lq-ftop .lq-top{font-size:.75rem;margin-left:-8px;margin-right:-8px}
-[lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}}</style>
+[lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}}
+.lq-help-dlg a.lq-help-more{margin-top:8px;background:none;color:#0b5d8f;font-weight:400;text-decoration:underline}</style>
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
     <a class="lq-call-btn lq-helpline-tel" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
@@ -69,7 +70,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     <span class="lq-notice-more"><span data-i18n="horoscope.disclaimer2">ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน การงาน หรือความสัมพันธ์</span></span></span></p>
 
   <section class="hs-stage" id="hsStage" aria-label="กรอกวันเกิด" data-i18n-attr="aria-label:horoscope.stageAria">
-    <form class="hs-form" id="hsForm" novalidate>
+    <form class="hs-form" id="hsForm" novalidate data-lq-crisis-own>
       <h2 data-i18n="horoscope.h21">กรอกวันเดือนปีเกิด</h2>
       <label data-i18n="horoscope.nameLabel">ชื่อเล่นหรือชื่อจริง (ไม่บังคับ — ใช้คำนวณเลขศาสตร์ชื่อ)
         <input id="hsName" type="text" maxlength="60" autocomplete="off" placeholder="เช่น สมใจ" data-i18n-attr="placeholder:horoscope.namePh">
@@ -158,7 +159,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     <div role="tabpanel" id="pn-nu" aria-labelledby="tab-nu" class="hs-panel" tabindex="0" hidden></div>
     <div role="tabpanel" id="pn-td" aria-labelledby="tab-td" class="hs-panel" tabindex="0" hidden></div>
     <div role="tabpanel" id="pn-cp" aria-labelledby="tab-cp" class="hs-panel" tabindex="0" hidden>
-      <form class="hs-form hs-partner" id="hsPartner" novalidate>
+      <form class="hs-form hs-partner" id="hsPartner" novalidate data-lq-crisis-own>
         <h3 data-i18n="horoscope.h31">วันเกิดของอีกคน</h3>
         <label data-i18n="horoscope.pNameLabel">ชื่อเล่น (ไม่บังคับ)<input id="hsPName" type="text" maxlength="40" autocomplete="off" placeholder="เช่น ต้นข้าว" data-i18n-attr="placeholder:horoscope.pNamePh"></label>
         <fieldset class="hs-date">
@@ -207,17 +208,17 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <button data-i18n="fortune.common.kioskExit" class="btn primary hs-kiosk-exit" id="hsKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 <div class="toast" id="hsToast" role="status"></div>
 
-<script src="i18n/zh-fortune.js?v=10"></script>
+<script src="i18n/zh-fortune.js?v=11"></script>
 <script src="i18n/zh-fortune-horoscope.js?v=8"></script>
 <script src="i18n/zh-kb-horoscope.js?v=2"></script>
-<script src="lensiq-config.js?v=14"></script>
+<script src="lensiq-config.js?v=20"></script>
 <script src="fortune-straight.js?v=6"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
-<script src="fortune-read.js?v=11"></script>
-<script src="lensiq-helpline.js?v=1"></script>
-<script src="fortune-crisis.js?v=11"></script>
-<script src="fortune-ai.js?v=28"></script>
+<script src="fortune-read.js?v=23"></script>
+<script src="lensiq-helpline.js?v=2"></script>
+<script src="fortune-crisis.js?v=22"></script>
+<script src="fortune-ai.js?v=39"></script>
 <script src="horoscope-kb.js?v=6"></script>
-<script src="horoscope.js?v=15"></script>
+<script src="horoscope.js?v=20"></script>
 </body>
 </html>

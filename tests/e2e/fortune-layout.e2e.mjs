@@ -184,7 +184,10 @@ const NOTICES = `((max) => {
   }
   const help = [...document.querySelectorAll(never)];
   for (const h of help) {
-    if (h.querySelector("button.lq-more, .lq-more-body, .lq-notice-more, details")) bad.push("collapsible parts inside " + h.className);
+    // RE-LOCK 6 2026-11-16 (owner decision 2026-11-16 crisis one-number rules, rule 3): the crisis card's own details.fa-support-more
+    // ("อ่านเพิ่มเติม", longer text only) is the one allowed fold, on .fa-support only; any other fold still fails
+    if ([...h.querySelectorAll("button.lq-more, .lq-more-body, .lq-notice-more, details")].some(x => !(h.matches(".fa-support") && x.matches("details.fa-support-more"))))
+      bad.push("collapsible parts inside " + h.className);
     if (h.closest(".lq-more-body, .lq-notice-more, details:not([open])")) bad.push(h.className + " sits inside a folded part");
     if (h.classList.contains("lq-notice")) bad.push(h.className + " made a notice");
   }
@@ -207,8 +210,53 @@ const openAll = `(() => { let n = 0;
   for (const b of document.querySelectorAll("button.lq-more")) if (b.getAttribute("aria-expanded") === "false" && !b.closest(".lq-helpline, .fa-support")) { b.click(); n++; }
   document.querySelectorAll("details").forEach(d => { d.open = true; }); return n; })()`;
 
+// RE-LOCK 2026-11-17 (7): optional fixed page clock to prove the checks do not depend on the date. Unset (CI and normal
+// runs): the real date. LQ_FAKE_DATE=2026-11-17T12:00:00+07:00 pins the page's Date to that instant (the clock still ticks).
+const FAKE_NOW = process.env.LQ_FAKE_DATE ? [`(() => { const R = Date, off = ${Date.parse(process.env.LQ_FAKE_DATE)} - R.now();
+  if (!isFinite(off)) return;
+  class D extends R { constructor(...a) { if (a.length) super(...a); else super(R.now() + off); } static now() { return R.now() + off; } }
+  window.Date = D; })();`] : [];
+if (process.env.LQ_FAKE_DATE && !isFinite(Date.parse(process.env.LQ_FAKE_DATE))) throw new Error("LQ_FAKE_DATE is not a date: " + process.env.LQ_FAKE_DATE);
+
+// RE-LOCK 2026-11-17 (7), item 5 cautions (reviewer REVIEW-3 recommendation; stricter). Every composer-marked caution paragraph
+// is checked while it can be seen: visible, not inside a read-more part, not inside a closed <details>, not cut short (line
+// clamp, ellipsis, clipped by its own box or by an overflow-hidden ancestor). A caution inside a page tab that is not selected
+// is not passed over: the harness opens every tab in turn and checks the cautions of the open tab; at the end every caution on
+// the page must have passed while shown. Cautions outside any tab keep the earlier rule (hidden = failure).
+const CAUTIONS = `((where) => {
+  const vis = e => { const s = getComputedStyle(e), r = e.getBoundingClientRect(); return s.display !== "none" && s.visibility !== "hidden" && s.opacity !== "0" && r.width > 0 && r.height > 0; };
+  const closedTab = e => { const tp = e.closest('[role="tabpanel"]'); return tp && (tp.hidden || getComputedStyle(tp).display === "none") ? tp : null; };
+  const out = { n: 0, shown: 0, bad: [], waiting: [] };
+  for (const c of document.querySelectorAll(".fa-section .lq-caution")) {
+    out.n++;
+    const tp = closedTab(c);
+    if (tp) { if (!c.__lqCautionOk) out.waiting.push(tp.id || "?"); continue; } // checked when its tab is open (below)
+    const why = [];
+    if (!vis(c)) why.push("hidden");
+    if (c.closest(".lq-more-body")) why.push("inside read more");
+    for (let d = c.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) {
+      const sum = d.querySelector(":scope > summary"); if (!d.open && !(sum && sum.contains(c))) why.push("inside a closed <details>");
+    }
+    const cs = getComputedStyle(c), clamp = cs.webkitLineClamp || cs.getPropertyValue("-webkit-line-clamp");
+    if (clamp && clamp !== "none") why.push("line clamp " + clamp);
+    if (cs.overflowY !== "visible" && c.scrollHeight > c.clientHeight + 2) why.push("cut short (height)");
+    if (cs.textOverflow === "ellipsis" && c.scrollWidth > c.clientWidth + 1) why.push("cut short (ellipsis)");
+    const r = c.getBoundingClientRect();
+    for (let a = c.parentElement; a && a !== document.body; a = a.parentElement) {
+      const as = getComputedStyle(a); if (!/hidden|clip/.test(as.overflowX + " " + as.overflowY)) continue;
+      const ar = a.getBoundingClientRect();
+      if (r.bottom > ar.bottom + 1 || r.top < ar.top - 1 || r.right > ar.right + 1 || r.left < ar.left - 1) { why.push("clipped by " + (a.id ? "#" + a.id : a.className || a.tagName)); break; }
+    }
+    if (why.length) out.bad.push(where + ": caution paragraph " + why.join(", ") + ' "' + c.textContent.trim().slice(0, 40) + '"');
+    else { c.__lqCautionOk = true; out.shown++; }
+  }
+  return out;
+})`;
+const TABS = `[...document.querySelectorAll('[role="tab"][aria-controls]')].filter(t => t.getBoundingClientRect().width > 0).map(t => t.getAttribute("aria-controls"))`;
+const NEVER_SHOWN = `[...document.querySelectorAll(".fa-section .lq-caution")].filter(c => !c.__lqCautionOk).map(c => { const tp = c.closest('[role="tabpanel"]'); return (tp ? "#" + tp.id : "page") + ' "' + c.textContent.trim().slice(0, 40) + '"'; })`;
+
 async function openPage(browser, base, fakeCams, p, lang, width) {
-  const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`].concat(CAM.has(p) ? [fakeCams, detScript] : []);
+  const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`].concat(CAM.has(p) ? [fakeCams, detScript] : []).concat(FAKE_NOW);
   const page = await browser.newPage(null, { initScripts: init, isolated: p === "report" });
   await page.send("Emulation.setDeviceMetricsOverride", { width, height: 800, deviceScaleFactor: 2, mobile: true });
   await page.goto(`${base}/${p}.html${CAM.has(p) ? "?cpu&fakedet&nosw" : "?nosw"}`);
@@ -369,15 +417,19 @@ export default async function ({ base, launch, check, fakeCams }) {
         const page = await openPage(browser, base, fakeCams, "dream", lang, 375);
         try {
           await page.evaluate(() => { const t = document.getElementById("drText"); t.value = "ฝันว่าฆ่าตัวตาย อยากตายจริงๆ"; t.dispatchEvent(new Event("input")); });
-          await page.waitFor(() => !!document.querySelector(".fa-support"), 5000);
+          // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): no card; the A5 checks below then find no card (vacuous) and the closing line is checked by the NOTICES helper
+          await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1", 5000);
           const r = await page.evaluate(`(() => {
             const vis = e => { const s = getComputedStyle(e), r = e.getBoundingClientRect(); return s.display !== "none" && s.visibility !== "hidden" && r.width > 0 && r.height > 0; };
-            return [...document.querySelectorAll(".fa-support")].map(c => ({ shown: vis(c), parts: c.querySelectorAll("button.lq-more, .lq-more-body, .lq-notice-more, details").length,
-              folded: !!c.closest(".lq-more-body, .lq-notice-more, details:not([open])"), hiddenLines: [...c.querySelectorAll("li, p, a")].filter(e => !vis(e)).length,
-              tel: c.querySelectorAll('a[href^="tel:"]').length }));
+            // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules, rule 3): exactly ONE fold is allowed, the card's own
+            // details.fa-support-more ("อ่านเพิ่มเติม", longer text only); every other part stays unfolded; one number, tel:1323
+            return [...document.querySelectorAll(".fa-support")].map(c => ({ shown: vis(c), parts: c.querySelectorAll("button.lq-more, .lq-more-body, .lq-notice-more, details:not(.fa-support-more)").length,
+              more: c.querySelectorAll("details.fa-support-more").length,
+              folded: !!c.closest(".lq-more-body, .lq-notice-more, details:not([open])"), hiddenLines: [...c.querySelectorAll("li, p, a")].filter(e => !vis(e) && !e.closest("details.fa-support-more")).length,
+              tel: c.querySelectorAll('a[href^="tel:"]').length, only1323: [...c.querySelectorAll('a[href^="tel:"]')].every(a => a.getAttribute("href") === "tel:1323") }));
           })()`);
-          if (!r.length) bad.push(lang + ": no crisis card");
-          for (const c of r) { if (!c.shown || c.parts || c.folded || c.hiddenLines || c.tel < 2) bad.push(lang + ": " + S(c)); }
+          if (r.length) bad.push(lang + ": a crisis card is shown (v3: none)");
+          for (const c of r) { if (!c.shown || c.parts || c.more !== 1 || c.folded || c.hiddenLines || c.tel !== 1 || !c.only1323) bad.push(lang + ": " + S(c)); }
           const n = await page.evaluate(`${NOTICES}(${NOTE_MAX[lang]})`);
           for (const b of n.bad.filter(b => /helpline|support|sits inside|made a notice|collapsible/.test(b))) bad.push(lang + ": " + b);
         } finally { await page.close(); }
@@ -396,7 +448,7 @@ export default async function ({ base, launch, check, fakeCams }) {
           await PAGES[p](page); await sleep(400);
           const r = await page.evaluate(`(() => {
             const vis = e => { const s = getComputedStyle(e), r = e.getBoundingClientRect(); return s.display !== "none" && s.visibility !== "hidden" && r.width > 0 && r.height > 0; };
-            const out = { groups: 0, bad: [], caution: 0 };
+            const out = { groups: 0, bad: [] };
             for (const g of document.querySelectorAll(".fa-section")) {
               if (g.closest(".fa-support, .lq-more-body") || !vis(g)) continue;
               out.groups++;
@@ -409,11 +461,24 @@ export default async function ({ base, launch, check, fakeCams }) {
               }
               if (all < 1 || lines > 3) out.bad.push((g.getAttribute("data-section") || "?") + ": " + lines + " lines (" + all + " with caution)");
             }
-            for (const c of document.querySelectorAll(".fa-section .lq-caution")) { out.caution++; if (!vis(c) || c.closest(".lq-more-body")) out.bad.push("caution paragraph hidden"); }
             return out;
           })()`);
-          rows.push(`${p}/${lang}:${r.groups}g/${r.caution}c`);
           for (const b of r.bad) bad.push(`${p} ${lang}: ${b}`);
+          // RE-LOCK 2026-11-17 (7): cautions as first shown, then every page tab opened in turn (see CAUTIONS above)
+          const c0 = await page.evaluate(`${CAUTIONS}("first screen")`);
+          for (const b of c0.bad) bad.push(`${p} ${lang}: ${b}`);
+          const tabs = [...new Set(await page.evaluate(TABS))], perTab = [];
+          for (const w of new Set(c0.waiting)) if (!tabs.includes(w)) bad.push(`${p} ${lang}: cautions in closed panel #${w} without a tab`);
+          for (const id of tabs) {
+            await page.evaluate(`document.querySelector('[role="tab"][aria-controls=${S(id)}]').click()`); await sleep(300);
+            const ci = await page.evaluate(`${CAUTIONS}(${S("tab #" + id)})`);
+            const open = await page.evaluate(`(() => { const e = document.getElementById(${S(id)}); return !!e && !e.hidden && getComputedStyle(e).display !== "none"; })()`);
+            if (!open && c0.waiting.includes(id)) bad.push(`${p} ${lang}: panel #${id} still closed after tapping its tab`);
+            for (const b of ci.bad) bad.push(`${p} ${lang}: ${b}`);
+            perTab.push(`${id}=${ci.shown}`);
+          }
+          for (const b of await page.evaluate(NEVER_SHOWN)) bad.push(`${p} ${lang}: caution never checked while shown: ${b}`);
+          rows.push(`${p}/${lang}:${r.groups}g/${c0.n}c` + (tabs.length ? `[${perTab.join(",")}]` : ""));
         } catch (e) { bad.push(`${p} ${lang}: ${e.message}`); } finally { await page.close(); }
       }
       console.log("    " + rows.join(" "));

@@ -20,13 +20,13 @@
 <title data-i18n="faceread.title">อ่านโหงวเฮ้ง | LENSIQ</title>
 <meta name="description" content="อ่านโหงวเฮ้งจากใบหน้าผ่านกล้องหรือรูปที่อัปโหลด พร้อมเคล็ดเสริมดวง ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ">
 <link rel="stylesheet" href="styles.css?v=22">
-<link rel="stylesheet" href="faceread.css?v=8">
+<link rel="stylesheet" href="faceread.css?v=9">
 <link rel="stylesheet" href="lensiq-capture-hint.css?v=1">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=24"></script>
+<script src="nav.js?v=29"></script>
 
 <style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
 .lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
@@ -49,7 +49,8 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 .lq-ftop .eyebrow{display:none}.lq-ftop h1{font-size:1.5rem;line-height:1.25;margin:2px 0 4px}
 .lq-ftop :is(.lead,.ft-hero>p,.pd-hero>p):not(.lq-top){font-size:.9rem;line-height:1.45;margin:0 auto 6px}
 .lq-ftop :is(.ft-hero,.pd-hero){padding:10px 16px 14px}.lq-ftop .lq-top{font-size:.75rem;margin-left:-8px;margin-right:-8px}
-[lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}}</style>
+[lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}}
+.lq-help-dlg a.lq-help-more{margin-top:8px;background:none;color:#0b5d8f;font-weight:400;text-decoration:underline}</style>
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
     <a class="lq-call-btn lq-helpline-tel" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
@@ -73,9 +74,17 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 
   <section class="fr-stage" id="frStage" aria-label="ถ่ายภาพหรืออัปโหลดรูป" data-i18n-attr="aria-label:faceread.stage">
     <div class="fr-camcard">
+      <div class="fr-mode" id="frMode" role="group" aria-label="ใครเป็นคนถูกถ่าย" data-i18n-attr="aria-label:faceread.mode.aria">
+        <button type="button" class="chip fr-mode-btn" id="frModeSelf" aria-pressed="true" data-i18n="faceread.mode.self">ถ่ายตัวเอง (กล้องหน้า)</button>
+        <button type="button" class="chip fr-mode-btn" id="frModeOther" aria-pressed="false" data-i18n="faceread.mode.other">ถ่ายให้คนอื่น (กล้องหลัง)</button>
+      </div>
+      <div class="fr-consent" id="frConsent" hidden>
+        <p id="frConsentLine" data-i18n="faceread.consent.line">ถ่ายภาพคนอื่นได้เฉพาะเมื่อเจ้าตัวรู้และยินยอมแล้วเท่านั้น ภาพไม่ถูกบันทึกและไม่ถูกส่งออกจากเครื่องนี้</p>
+        <label class="fr-consent-ok"><input type="checkbox" id="frConsentOk"> <span data-i18n="faceread.consent.ok">เจ้าตัวรู้และยินยอมให้ถ่ายแล้ว</span></label>
+      </div>
       <div class="fr-cam" id="frCam">
         <video id="frVideo" autoplay muted playsinline></video>
-        <canvas id="frOverlay" width="640" height="480"></canvas>
+        <canvas id="frOverlay" data-lq-result width="640" height="480"></canvas>
         <div class="fr-cam-hint" id="frCamHint">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
           <p><span data-i18n="faceread.camHint1">กด</span> <b data-i18n="faceread.camHint2">เปิดกล้อง</b> <span data-i18n="faceread.camHint3">แล้วจัดใบหน้าให้อยู่ในวงรี</span><br><span data-i18n="faceread.camHint4">หรือ</span> <b data-i18n="faceread.camHint5">อัปโหลดรูปหน้าตรง</b></p>
@@ -283,20 +292,20 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <div class="toast" id="frToast" role="status"></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="i18n/zh-fortune.js?v=10"></script>
-<script src="i18n/zh-fortune-faceread.js?v=11"></script>
+<script src="i18n/zh-fortune.js?v=11"></script>
+<script src="i18n/zh-fortune-faceread.js?v=13"></script>
 <script src="i18n/zh-kb-face.js?v=1"></script>
-<script src="lensiq-config.js?v=14"></script>
+<script src="lensiq-config.js?v=20"></script>
 <script src="lensiq-track.js?v=3"></script>
 <script src="lensiq-crashguard.js?v=1"></script>
 <script src="lensiq-camera.js?v=8"></script>
 <script src="lensiq-detect.js?v=6"></script>
 <script src="fortune-straight.js?v=6"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
-<script src="fortune-read.js?v=11"></script>
-<script src="lensiq-helpline.js?v=1"></script>
-<script src="fortune-crisis.js?v=11"></script>
-<script src="fortune-ai.js?v=28"></script>
+<script src="fortune-read.js?v=23"></script>
+<script src="lensiq-helpline.js?v=2"></script>
+<script src="fortune-crisis.js?v=22"></script>
+<script src="fortune-ai.js?v=39"></script>
 <script src="lensiq-merit-lint.js?v=1"></script>
 <script src="lensiq-look-lint.js?v=1"></script>
 <script src="lensiq-look-art.js?v=1"></script>
@@ -304,6 +313,6 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="lensiq-look.js?v=1"></script>
 <script src="faceread-kb.js?v=7"></script>
 <script src="lensiq-capture-hint.js?v=1"></script>
-<script src="faceread.js?v=21"></script>
+<script src="faceread.js?v=24"></script>
 </body>
 </html>

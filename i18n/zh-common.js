@@ -79,6 +79,8 @@
   "nav.iching.desc": "掷硬币起卦，六十四卦",
   "nav.zodiac.title": "十二生肖 · 犯太岁",
   "nav.zodiac.desc": "年度运势与吉祥配对",
+  "nav.compat.title": "合婚合盘",
+  "nav.compat.desc": "两人或整个小组的契合度，对照四种传统",
   "nav.astro.title": "西洋星座",
   "nav.astro.desc": "太阳、月亮、上升星座",
   "nav.dream.title": "解梦",
@@ -496,7 +498,7 @@
   "call.1323.btn": "想找人倾听？拨打 1323",
   "call.1323.label": "想找人倾听？",
   "call.1323.go": "拨打 1323",
-  "call.1323.sub": "24 小时随时可以聊，有人愿意倾听",
+  "call.1323.sub": "随时可以聊，24 小时有人愿意倾听",
   "call.1323.org": "泰国心理健康司提供的服务",
   "call.1669.btn": "医疗急救 拨打 1669",
   "call.1669.label": "医疗急救",
@@ -518,7 +520,10 @@
   "call.samaritans.go": "拨打 02 113 6789",
   "call.samaritans.sub": "倾听热线，12:00–22:00",
   "call.samaritans.org": "泰国撒玛利亚会（Samaritans of Thailand）",
+  "counsel.link": "咨询服务渠道",
+  "counsel.doc.title": "咨询服务渠道 | LENSIQ",
   "help.line.note": "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。",
+  "help.line.close": "如果心里有事，可以和身边的人聊聊，或拨打 1323，有人愿意倾听。",
   "ft.notice": "免费方案的限制尚未执行。我们会至少提前 30 天公布开始日期，限制在公告 30 天后开始生效。你随时可以导出自己的数据。",
   "home.pk.ft": "算命和通用工具免费。商业产品提供有限的免费方案：Gate 30 天试用（1 条车道，每天 100 个车牌）· 考勤 最多 5 人 · Exam 每场最多 5 名考生 · Crowd 每台设备每天 2 小时"
 } });

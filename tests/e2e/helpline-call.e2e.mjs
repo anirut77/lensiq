@@ -25,7 +25,9 @@ import { assert } from "./cdp.mjs";
 const S = JSON.stringify;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const PAGES = ["fortune", "cat-fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui",
-  "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report", "medicine", "nutrition", "terms"];
+  "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report", "medicine", "nutrition", "terms", "counselling"];
+// RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): counselling.html (every service, full components) joins the help pages; the crisis card holds the 1323
+// button only (the other numbers are on counselling.html, one link away).
 const FORTUNE = PAGES.slice(0, 19);
 const TELS = { 1323: "1323", 1669: "1669", 191: "191", 1300: "1300", samaritans: "021136789" };
 const FORBIDDEN = {
@@ -131,27 +133,31 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n" + bad.join("\n"));
     });
 
-    await check("crisis state (dream hard net, 360 / 375 / 414): the card is shown, not collapsed, every help line on it a tappable button; help lines still visible", async () => {
+    await check("crisis state (dream hard net, 360 / 375 / 414): no card; the closing line is shown, not collapsed, its 1323 a tappable button; help lines still visible (v3)", async () => {
       for (const w of [360, 375, 414]) {
         const page = await browser.newPage(null, { isolated: true });
         try {
           await phone(page, w);
           await page.goto(`${base}/dream.html?nosw`);
-          await page.evaluate(() => { const t = document.getElementById("drText"); t.value = "ฝันว่าฆ่าตัวตาย อยากตายจริงๆ"; t.dispatchEvent(new Event("input")); });
-          await page.waitFor(() => !!document.querySelector(".fa-support"), 5000);
+          // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the reading goes on (a dream with a symbol); the closing line replaces the card: shown, not collapsed, its one
+          // help line (1323) a tappable button; the top 1323 control still visible
+          await page.evaluate(() => { const t = document.getElementById("drText"); t.value = "ฝันเห็นงูใหญ่ในบ้าน อยากตายจริงๆ"; t.dispatchEvent(new Event("input")); });
+          await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1" && document.querySelectorAll("#drSel .dr-x").length >= 1, 5000);
           await page.evaluate(() => { const f = document.getElementById("drForm"); if (f && f.requestSubmit) f.requestSubmit(); });
+          await page.waitFor(() => !!document.querySelector(".lq-helpline-result"), 15000);
           await sleep(500);
-          const r = await page.evaluate(`(() => { const cards = [...document.querySelectorAll(".fa-support")].filter(c => c.getClientRects().length);
-            const c = cards[0]; return { n: cards.length, why: c ? ${SHOWN}(c) : "no card",
+          const r = await page.evaluate(`(() => { const cards = [...document.querySelectorAll(".lq-helpline-result")].filter(c => c.getClientRects().length);
+            const c = cards[0]; return { n: cards.length, why: c ? ${SHOWN}(c) : "no closing line",
               calls: c ? [...c.querySelectorAll("[data-lq-call]")].map(x => x.getAttribute("data-lq-call")) : [],
               top: ${SHOWN}(document.getElementById("lqHelpTop")) }; })()`);
-          assert(r.n >= 1 && !r.why, w + ": crisis card shown " + S(r));
-          for (const id of Object.keys(TELS)) assert(r.calls.includes(id), w + ": card has the " + id + " button " + S(r.calls));
+          assert(r.n === 1 && !r.why, w + ": closing line shown " + S(r));
+          assert(S(r.calls) === S(["1323"]), w + ": closing line has the 1323 button only " + S(r.calls));
           assert(!r.top, w + ": help button still visible in the crisis state " + S(r));
           const list = await page.evaluate(BUTTONS), bad = [];
           checkButtons(list, "dream crisis " + w, bad);
-          const card = await page.evaluate(`[...document.querySelectorAll(".fa-support a.lq-call-btn")].filter(a => a.getClientRects().length).map(a => a.getAttribute("href"))`);
-          for (const t of Object.values(TELS)) if (!card.includes("tel:" + t)) bad.push(w + ": card button tel:" + t + " not visible");
+          const card = await page.evaluate(`[...document.querySelectorAll(".lq-helpline-result a.lq-call-btn")].filter(a => a.getClientRects().length).map(a => a.getAttribute("href"))`);
+          if (S(card) !== S(["tel:1323"])) bad.push(w + ": closing buttons " + S(card) + " (want tel:1323 only)");
+          if (await page.evaluate(() => !!document.querySelector(".fa-support"))) bad.push(w + ": a card is shown (v3: none)");
           assert(!bad.length, bad.join("\n"));
         } finally { await page.close(); }
       }

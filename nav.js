@@ -77,6 +77,7 @@
       { href: "fengshui.html", title: "ฮวงจุ้ย", desc: "เลขกัว เข็มทิศ ผังบ้าน" },
       { href: "dream.html", title: "ทำนายฝัน", desc: "ความหมายสัญลักษณ์ในฝัน" },
       { href: "zodiac.html", title: "12 นักษัตร · ปีชง", desc: "ดวงรายปี คู่มงคล" },
+      { href: "compat.html", title: "ดวงสมพงษ์", desc: "ความเข้ากันของสองคนหรือทั้งกลุ่ม จากสี่ศาสตร์" },
       { href: "astro.html", title: "ราศีตะวันตก", desc: "ราศีอาทิตย์ จันทร์ ลัคนา" },
       { href: "lifegraph.html", title: "กราฟชีวิต", desc: "เส้นพลังตามช่วงอายุ" },
       { href: "planner.html", title: "วางแผนฤกษ์มงคล", desc: "วันดีขึ้นบ้านใหม่ เปิดร้าน เริ่มงาน" },
@@ -366,11 +367,12 @@
     var d = help.dlg, w = /** @type {any} */ ({ en: ["Call 1323", "Close"], zh: ["拨打 1323", "关闭"] })[window.LQI18N ? String(window.LQI18N.lang) : ""] || ["โทร 1323", "ปิด"];
     if (!d) {
       d = help.dlg = document.body.appendChild(document.createElement("dialog")); d.className = "lq-help-dlg"; d.setAttribute("aria-labelledby", "lqHelpQ");
-      d.innerHTML = '<p id="lqHelpQ"></p><div><a class="lq-call-btn" href="tel:1323"></a><button type="button"></button></div>';
+      d.innerHTML = '<p id="lqHelpQ"></p><div><a class="lq-call-btn" href="tel:1323"></a><button type="button"></button></div><a class="lq-help-more" href="counselling.html"></a>';
       d.querySelector("button").onclick = help.close; d.onclick = function (/** @type {Event} */ e) { if (e.target === d) help.close(); };
       d.onclose = function () { help.link.focus(); };
     }
     d.querySelector("p").textContent = help.link.getAttribute("aria-label"); d.querySelector("a").textContent = w[0]; d.querySelector("button").textContent = w[1];
+    /** @type {HTMLElement} */ (d.querySelector(".lq-help-more")).textContent = T("counsel.link", "ช่องทางให้คำปรึกษา");
     if (!d.open) { d.showModal(); d.querySelector("a").focus(); }
   } };
   function helpMount() {
@@ -711,10 +713,11 @@
   }
   function reportHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
-    if (!/^(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
+    // not the hub (fortune.html): it shows no reading to report (speed budget, 2026-11-17)
+    if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
     var sc = document.createElement("script");
-    sc.src = "lensiq-report.js?v=1"; sc.async = true;
+    sc.src = "lensiq-report.js?v=3"; sc.async = true;
     (document.head || document.documentElement).appendChild(sc);
   }
   function meritHook() {

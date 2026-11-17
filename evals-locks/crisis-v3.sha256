@@ -1,0 +1,181 @@
+# locked 2026-11-17T00:45:14Z (tools/eval-guard.mjs lock, 6 files)
+96b96d46c2a38870aa58f1ff0e6043ae767ee4190992ac78cd4a00dd6b1af11d  crisis-v3-kit.mjs
+b683116fdff69ab67e65afe6db91e2dd02603c3d81f2ccaf31ba14d787c76ca0  crisis-v3-a.e2e.mjs
+f5bdb6e2ba313942eba2f818650d36124ac2caca48e2dd769e772965eda6bf9f  crisis-v3-b.e2e.mjs
+0dac06170802260655246e9275abb0e0170fb5aefc5d3fedcda7aed7534c5800  crisis-v3-c.e2e.mjs
+bcad428d82768a02d83e95531da755f90ac30af5d6ece65c3ba7e5018c5e8441  crisis-v3-d.e2e.mjs
+a9c1d2691000e3c8d74ab755f7be2308dd4ca59b1d8ea68b68324b809bdc2b6d  crisis-v3.test.js
+# repo copies (byte-identical to the locked files above), locked 2026-11-17 BEFORE any v3 product code on branch crisis-v3 (base origin/crisis-rules-1323 7442dad). Owner decision 2026-11-17 crisis v3: the reading continues in the crisis session (gentle, no straight, no sales / share / print, closing line + one tel:1323 button + counselling link at the end only, no card, nothing flagged, one number, no echo, no analytics).
+96b96d46c2a38870aa58f1ff0e6043ae767ee4190992ac78cd4a00dd6b1af11d  tests/e2e/crisis-v3-kit.mjs  # repo file
+b683116fdff69ab67e65afe6db91e2dd02603c3d81f2ccaf31ba14d787c76ca0  tests/e2e/crisis-v3-a.e2e.mjs  # repo file
+f5bdb6e2ba313942eba2f818650d36124ac2caca48e2dd769e772965eda6bf9f  tests/e2e/crisis-v3-b.e2e.mjs  # repo file
+0dac06170802260655246e9275abb0e0170fb5aefc5d3fedcda7aed7534c5800  tests/e2e/crisis-v3-c.e2e.mjs  # repo file
+bcad428d82768a02d83e95531da755f90ac30af5d6ece65c3ba7e5018c5e8441  tests/e2e/crisis-v3-d.e2e.mjs  # repo file
+a9c1d2691000e3c8d74ab755f7be2308dd4ca59b1d8ea68b68324b809bdc2b6d  tests/unit/crisis-v3.test.js  # repo file
+# RE-LOCK 1 2026-11-17 (test faults; e2e not yet measured, unit faults found while running against the first product edits): echo pieces are 5 characters (TH / EN, spaces removed) or 3 (ZH) plus the whole typed text, because the reading is now shown and short pieces match ordinary words ('ากต' in 'พยากรณ์จากตำรา'); U1 asks for at least as many sections as the same facts without the phrase (the sample facts give one Chinese section even without it); U4 counts the closing box itself (its parts lq-helpline-warm / -more also start with 'lq-helpline'). No rule changed.
+# locked 2026-11-17T00:48:56Z (tools/eval-guard.mjs lock, 2 files)
+6b8b91fd21a461ecae8232811363e96e11853b71c869c354cbee9e04082cf032  relock1/crisis-v3.test.js
+b9db473bea8f9e0a1911778827b2a7737426ec00b29f64e91b9cf07703abb798  relock1/crisis-v3-kit.mjs
+6b8b91fd21a461ecae8232811363e96e11853b71c869c354cbee9e04082cf032  tests/unit/crisis-v3.test.js  # repo file (re-lock 1)
+b9db473bea8f9e0a1911778827b2a7737426ec00b29f64e91b9cf07703abb798  tests/e2e/crisis-v3-kit.mjs  # repo file (re-lock 1)
+# RE-LOCK v3-unit 2026-11-17 (owner decision 2026-11-17 crisis v3): unit assertions that required the support card (card replaces the reading / support result / card markup / card fold / card fallback button) now require the reading to go on gently (never straight, no plan, no hook, local, no echo) and the closing line (1323 only, warm line, counselling link, unfolded, 44 px without the component). Kept: crisis check() lists, no echo, no remedies / price / paid merit in crisis, allow() says no, one number. Found by running the unit suite on the first v3 product commit c3847d3 (12 failures: G3, R1, U1 product bug fixed, claims-crisis, net-2, net-3 fixed by code, net, helpline, honest B3, layout A5, live item 3, straight-crisis).
+# locked 2026-11-17T01:11:44Z (tools/eval-guard.mjs lock, 10 files)
+ef56059077c4565f6c34f0c5f45a024efa035c468508e6a0fd16574a4cbd4b55  relock-unit/fortune-claims-crisis.test.js
+96b99947d5dfaaca6fdd5ace8c5df3507e6acab876a93c8b03df4d111c419a9f  relock-unit/fortune-crisis-net.test.js
+604a5d1fc6ba8c1946d894b9efaea16ddefc3532f0eb8ae92f77be0b117318d1  relock-unit/fortune-crisis-net-2.test.js
+ceabab9381abc4f5102624dc1f03234b4d6c4c926313d1c9f8050591c5c17d44  relock-unit/fortune-helpline.test.js
+308000f0ee2fc2389bbd00d5f9c2574a9fa3447b38b5b222436190992e5979b0  relock-unit/fortune-honest.test.js
+494a0f6f153ea77e9dcf935fc771c0a8d079983509673f8db99f28a3b46c220e  relock-unit/fortune-straight-crisis.test.js
+e7875b6755e4fcd7126490dbb3bb8d11e38cdaa794f30da546eac30edfe33cb6  relock-unit/fortune-layout.test.js
+bad29867d49c082b6bb0f7fb26ee0a75b2a8bfe0905ae413f85c8d1d7bc84750  relock-unit/fortune-live.test.js
+f6e296c27f65cedf61ca85cdacad9fa9916879bd6f9e2b53edaa5274d9426618  relock-unit/crisis-rules-1323.test.js
+d34bb2c3cc0e26599265891d2199a85292f95ea4391d8b38e47343a27db7dbfe  relock-unit/crisis-rules-1323-g.test.js
+ef56059077c4565f6c34f0c5f45a024efa035c468508e6a0fd16574a4cbd4b55  tests/unit/fortune-claims-crisis.test.js  # repo file (relock-unit)
+96b99947d5dfaaca6fdd5ace8c5df3507e6acab876a93c8b03df4d111c419a9f  tests/unit/fortune-crisis-net.test.js  # repo file (relock-unit)
+604a5d1fc6ba8c1946d894b9efaea16ddefc3532f0eb8ae92f77be0b117318d1  tests/unit/fortune-crisis-net-2.test.js  # repo file (relock-unit)
+ceabab9381abc4f5102624dc1f03234b4d6c4c926313d1c9f8050591c5c17d44  tests/unit/fortune-helpline.test.js  # repo file (relock-unit)
+308000f0ee2fc2389bbd00d5f9c2574a9fa3447b38b5b222436190992e5979b0  tests/unit/fortune-honest.test.js  # repo file (relock-unit)
+494a0f6f153ea77e9dcf935fc771c0a8d079983509673f8db99f28a3b46c220e  tests/unit/fortune-straight-crisis.test.js  # repo file (relock-unit)
+e7875b6755e4fcd7126490dbb3bb8d11e38cdaa794f30da546eac30edfe33cb6  tests/unit/fortune-layout.test.js  # repo file (relock-unit)
+bad29867d49c082b6bb0f7fb26ee0a75b2a8bfe0905ae413f85c8d1d7bc84750  tests/unit/fortune-live.test.js  # repo file (relock-unit)
+f6e296c27f65cedf61ca85cdacad9fa9916879bd6f9e2b53edaa5274d9426618  tests/unit/crisis-rules-1323.test.js  # repo file (relock-unit)
+d34bb2c3cc0e26599265891d2199a85292f95ea4391d8b38e47343a27db7dbfe  tests/unit/crisis-rules-1323-g.test.js  # repo file (relock-unit)
+# RE-LOCK v3-unit-b 2026-11-17: crisis-rules-1323 R1 re-adds the kept protections (warm line at most 3 sentences and 140 / 60 characters; counselling link text non-empty), see docs/CRISIS-V3-RELOCKS.md.
+# locked 2026-11-17T01:18:02Z (tools/eval-guard.mjs lock, 1 file)
+91f92cf7b50d77449c4fd46056651005b9984b01b1138dc8c21ebc789c8aa9e3  relock-unit-b/crisis-rules-1323.test.js
+91f92cf7b50d77449c4fd46056651005b9984b01b1138dc8c21ebc789c8aa9e3  tests/unit/crisis-rules-1323.test.js  # repo file (relock-unit-b)
+# RE-LOCK 2 2026-11-17 (test fault found on the base run, before the build was measured): SALES_TEXT price in Chinese is a number with 元 / ¥ (元 matched 元素), print means printing the reading (matched the operator camera-notice link).
+# locked 2026-11-17T01:18:51Z (tools/eval-guard.mjs lock, 1 file)
+115869c56128cb84e9e12421a7232508c0335f85a74eb84469ae46f5db1176c3  relock2/crisis-v3-kit.mjs
+115869c56128cb84e9e12421a7232508c0335f85a74eb84469ae46f5db1176c3  tests/e2e/crisis-v3-kit.mjs  # repo file (relock2)
+# RE-LOCK 3 2026-11-17 (test fault): U1 composes the plain and the crisis reading with the same seed (7); without one the composer picks a random seed and the section counts differed by chance in the full suite.
+# locked 2026-11-17T01:25:58Z (tools/eval-guard.mjs lock, 1 file)
+dc420bc6e9e5c1f888a35e8daf5bb7df1f4989c8c99decf185c3a72ca0b42968  relock3/crisis-v3.test.js
+dc420bc6e9e5c1f888a35e8daf5bb7df1f4989c8c99decf185c3a72ca0b42968  tests/unit/crisis-v3.test.js  # repo file (relock3)
+# RE-LOCK 4 2026-11-17 (test faults found measuring the build c3847d3..036d99d, run build-1-e2e.log): English harsh list is case-sensitive without the zodiac sign 'Cancer'; 'shop' dropped from the sales words (operator note), a seller link is still caught; Thai echo pieces are 7 characters ('จริงๆ' is a word); report opens without the test backend (with one, the report is a paid product needing sign-in).
+# locked 2026-11-17T01:31:34Z (tools/eval-guard.mjs lock, 1 file)
+ba8531cf68bb6871d03094d04bfea5331b195cdb08f59cdb09de124d6a744f22  relock4/crisis-v3-kit.mjs
+ba8531cf68bb6871d03094d04bfea5331b195cdb08f59cdb09de124d6a744f22  tests/e2e/crisis-v3-kit.mjs  # repo file (relock4)
+# RE-LOCK v3-e2e 2026-11-17 (owner decision 2026-11-17 crisis v3), before these files are run on the product: card assertions replaced by v3 rules a / d; every protection kept (crisis check before validation on every inventoried input via the crisis state, no echo, no sales / remedy / share / print, one number, closing line 44 px, no analytics). Ledger: docs/CRISIS-V3-RELOCKS.md.
+# locked 2026-11-17T01:39:32Z (tools/eval-guard.mjs lock, 14 files)
+26179a8d28032eeef736285daf5dc9af17f7716d7f90445215fab7787abf90ad  relock-e2e/crisis-net-hotfix-kit.mjs
+30faedf9c260ba9d875d6786eab0ceac657df29246e2e25c196fad73a1ae7700  relock-e2e/crisis-net-hotfix-b.e2e.mjs
+fbd6cd3eb543944e525b5c0d30a7e97c1e5cc36f38c20bcb206d0d44c21f88f7  relock-e2e/fortune-crisis.e2e.mjs
+cd2caae91adb8d5c72a3f354241e499b55e27bcc5813adccff631c5aaba1e234  relock-e2e/fortune-crisis-fields.e2e.mjs
+4792126d2a6354fbcd9215e7049e13af11ec5a0baba14053c9c7e6b3feead086  relock-e2e/fortune-crisis-session.e2e.mjs
+1dfa4f14c86673530bdd985fe3ec9d6a52066c37ee54665b5a0b123f92b1305e  relock-e2e/fortune-crisis-soft.e2e.mjs
+b83207c948b30db300b5e649487cfa4fe1987a21572316295bd41017a5fc1644  relock-e2e/fortune-helpline.e2e.mjs
+f8522c1414e76f8fcb46ba9966d8c2ace48e1125f9e4bf96d72d32f4fcd2c64e  relock-e2e/fortune-live.e2e.mjs
+213c37ad24710e5eff0fd48d541aab7ddb8ca10ad2a505b8ef0ef7a359a80795  relock-e2e/fortune-new.e2e.mjs
+cf34ded8599e7cfdd5dc730aaeedd2a928861801e38ddd9b44131e1a5a197bfc  relock-e2e/helpline-call.e2e.mjs
+e630b5c355593a73a7d984c361dfa5f69e6f7d40d941b51d00de4f5acf262a2e  relock-e2e/merit-crisis.e2e.mjs
+8eef491460a01c05abe5828a237a186affe5bcb067070fdbf426ebbeb58ba13b  relock-e2e/fortune-layout.e2e.mjs
+0c976e99dde5c5c14b540878d3bacb8ef53fff8705e51d6fc728ba8ada7f73f7  relock-e2e/crisis-rules-1323-b.e2e.mjs
+5f3ef019d9bfcdaab5e0f48f554916a628737ca16a7e2a544f1e810c22d5a5d4  relock-e2e/crisis-rules-1323-f.e2e.mjs
+26179a8d28032eeef736285daf5dc9af17f7716d7f90445215fab7787abf90ad  tests/e2e/crisis-net-hotfix-kit.mjs  # repo file (relock-e2e)
+30faedf9c260ba9d875d6786eab0ceac657df29246e2e25c196fad73a1ae7700  tests/e2e/crisis-net-hotfix-b.e2e.mjs  # repo file (relock-e2e)
+fbd6cd3eb543944e525b5c0d30a7e97c1e5cc36f38c20bcb206d0d44c21f88f7  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-e2e)
+cd2caae91adb8d5c72a3f354241e499b55e27bcc5813adccff631c5aaba1e234  tests/e2e/fortune-crisis-fields.e2e.mjs  # repo file (relock-e2e)
+4792126d2a6354fbcd9215e7049e13af11ec5a0baba14053c9c7e6b3feead086  tests/e2e/fortune-crisis-session.e2e.mjs  # repo file (relock-e2e)
+1dfa4f14c86673530bdd985fe3ec9d6a52066c37ee54665b5a0b123f92b1305e  tests/e2e/fortune-crisis-soft.e2e.mjs  # repo file (relock-e2e)
+b83207c948b30db300b5e649487cfa4fe1987a21572316295bd41017a5fc1644  tests/e2e/fortune-helpline.e2e.mjs  # repo file (relock-e2e)
+f8522c1414e76f8fcb46ba9966d8c2ace48e1125f9e4bf96d72d32f4fcd2c64e  tests/e2e/fortune-live.e2e.mjs  # repo file (relock-e2e)
+213c37ad24710e5eff0fd48d541aab7ddb8ca10ad2a505b8ef0ef7a359a80795  tests/e2e/fortune-new.e2e.mjs  # repo file (relock-e2e)
+cf34ded8599e7cfdd5dc730aaeedd2a928861801e38ddd9b44131e1a5a197bfc  tests/e2e/helpline-call.e2e.mjs  # repo file (relock-e2e)
+e630b5c355593a73a7d984c361dfa5f69e6f7d40d941b51d00de4f5acf262a2e  tests/e2e/merit-crisis.e2e.mjs  # repo file (relock-e2e)
+8eef491460a01c05abe5828a237a186affe5bcb067070fdbf426ebbeb58ba13b  tests/e2e/fortune-layout.e2e.mjs  # repo file (relock-e2e)
+0c976e99dde5c5c14b540878d3bacb8ef53fff8705e51d6fc728ba8ada7f73f7  tests/e2e/crisis-rules-1323-b.e2e.mjs  # repo file (relock-e2e)
+5f3ef019d9bfcdaab5e0f48f554916a628737ca16a7e2a544f1e810c22d5a5d4  tests/e2e/crisis-rules-1323-f.e2e.mjs  # repo file (relock-e2e)
+# RE-LOCK v3-e2e-b 2026-11-17: (1) test fault found measuring the build (build-3-e2e.log): English echo pieces are 3 consecutive words, not 5 letters ('night' in 'Knight', 'antto' in 'want to do') in crisis-v3-kit (re-lock 5) and crisis-net-hotfix-kit; (2) v3 re-locks missed in the first pass: fortune-crisis-fields-2 (card -> crisis state, no card; no echo of every variant kept and widened to the whole page) and fortune-helpline WANT (the printed / calm help line is the closing line, rule d).
+# locked 2026-11-17T02:18:49Z (tools/eval-guard.mjs lock, 4 files)
+c011aa221271fe64eb46c981acaf9805ba338c4ee55827cb191ae438e8e03e20  relock-e2e-b/crisis-v3-kit.mjs
+8beff8a6dcac921f5e841a24b45b5c13fd75e0d62ce3f106b72b48b30518a7b7  relock-e2e-b/crisis-net-hotfix-kit.mjs
+f167cde29953d078a045e07498a35dc1f201a88dcdcce26e0446504d2698aab4  relock-e2e-b/fortune-crisis-fields-2.e2e.mjs
+52ec11739663cff705ae2b5799276dcf181b45c97a0a68943db0da52e8641ba2  relock-e2e-b/fortune-helpline.e2e.mjs
+c011aa221271fe64eb46c981acaf9805ba338c4ee55827cb191ae438e8e03e20  tests/e2e/crisis-v3-kit.mjs  # repo file (relock-e2e-b)
+8beff8a6dcac921f5e841a24b45b5c13fd75e0d62ce3f106b72b48b30518a7b7  tests/e2e/crisis-net-hotfix-kit.mjs  # repo file (relock-e2e-b)
+f167cde29953d078a045e07498a35dc1f201a88dcdcce26e0446504d2698aab4  tests/e2e/fortune-crisis-fields-2.e2e.mjs  # repo file (relock-e2e-b)
+52ec11739663cff705ae2b5799276dcf181b45c97a0a68943db0da52e8641ba2  tests/e2e/fortune-helpline.e2e.mjs  # repo file (relock-e2e-b)
+# RE-LOCK merge 2026-11-17 (merge of main 02fdd69 into crisis-v3; owner decision 2026-11-17 crisis v3), before any run of the merged files: crisis-net-hotfix-e (round 2) E2 / E4 / E5 card -> v3 crisis state + no card (E2 the state holds for an ordinary question; E5 the 44 px tel:1323 is the closing line, also when fortune-crisis.js fails); E3 waits for the state, "no daily / siamsee / share" kept; fortune-crisis stricter "flag holds" kept in v3 terms (state holds, no card; fresh tab calm); fortune-layout = the v3 A5 re-lock + main item-5 re-lock (7), merged without edits. Ledger docs/CRISIS-V3-RELOCKS.md.
+# locked 2026-11-17T02:45:17Z (tools/eval-guard.mjs lock, 3 files)
+cab9a2be05cc2fce201c40396463cf852636cc20eb0d075c77b2364389478807  relock-merge/fortune-crisis.e2e.mjs
+11621c933610dcfe981a42414342d29e0cb0eaa695a3dbb4e6d098a6c4c1a65c  relock-merge/crisis-net-hotfix-e.e2e.mjs
+a61e32123a05ef83933cb55dd6249415e3adabf62cf4dc3c531bdc81e2503316  relock-merge/fortune-layout.e2e.mjs
+cab9a2be05cc2fce201c40396463cf852636cc20eb0d075c77b2364389478807  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-merge)
+11621c933610dcfe981a42414342d29e0cb0eaa695a3dbb4e6d098a6c4c1a65c  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file (relock-merge)
+a61e32123a05ef83933cb55dd6249415e3adabf62cf4dc3c531bdc81e2503316  tests/e2e/fortune-layout.e2e.mjs  # repo file (relock-merge)
+# PRE-LOCK 2026-11-17 decision 84 (both options built, owner chooses from the images): new fixed set locked BEFORE the option ข product code: crisis-v3-pre{,-en,-zh}.e2e.mjs (P1 ข + plan phrase: one warm line + one tel:1323 >= 44 px before the reading, then the locked crisis-v3 judge; P2 shipped ก: none; P3 ข + non-plan crisis phrase: none; P4 ข + ordinary reading: none, no closing line), crisis-v3-pre.test.js (P1 switch default ก, P2 / P3 narrow plan list TH / EN / ZH, P4 pre-line wording). Append-only; no existing assertion changed.
+# locked 2026-11-17T02:54:27Z (tools/eval-guard.mjs lock, 4 files)
+d81fd3d1f02b69e41e0afacfcf77b036e8013ea4e897aba70688b75d4b0bf3f8  pre-lock/crisis-v3-pre.e2e.mjs
+ec7d4659915d5403360197499c7432671c1d62dfdb1c9f6c528313573577739c  pre-lock/crisis-v3-pre-en.e2e.mjs
+9cf0c063ce59174a91842790381fd62c8fc9c8cc458ccb188aeef6dfd5a3648f  pre-lock/crisis-v3-pre-zh.e2e.mjs
+65857a89305e25fd560319589a71f514d1dbedacfc9dcfee275b4ec64fa92830  pre-lock/crisis-v3-pre.test.js
+d81fd3d1f02b69e41e0afacfcf77b036e8013ea4e897aba70688b75d4b0bf3f8  tests/e2e/crisis-v3-pre.e2e.mjs  # repo file (pre-lock)
+ec7d4659915d5403360197499c7432671c1d62dfdb1c9f6c528313573577739c  tests/e2e/crisis-v3-pre-en.e2e.mjs  # repo file (pre-lock)
+9cf0c063ce59174a91842790381fd62c8fc9c8cc458ccb188aeef6dfd5a3648f  tests/e2e/crisis-v3-pre-zh.e2e.mjs  # repo file (pre-lock)
+65857a89305e25fd560319589a71f514d1dbedacfc9dcfee275b4ec64fa92830  tests/unit/crisis-v3-pre.test.js  # repo file (pre-lock)
+# RE-LOCK pre-1 2026-11-17 (test fault found on the first run, v3-2-pre-th-1.log): the switch expression returned the window object, which CDP cannot serialise; it now ends with true. No assertion changed.
+# locked 2026-11-17T03:13:12Z (tools/eval-guard.mjs lock, 1 file)
+c3e1c4ebf59edcb99a73573f7763c8341436edadbe86c7f84ab7d5aa59c622a0  pre-lock-1/crisis-v3-pre.e2e.mjs
+c3e1c4ebf59edcb99a73573f7763c8341436edadbe86c7f84ab7d5aa59c622a0  tests/e2e/crisis-v3-pre.e2e.mjs  # repo file (pre-lock-1)
+# RE-LOCK compat 2026-11-17 (compat went live on main bb8f8bd; merged into crisis-v3-2), before compat is changed to v3: fortune-compat X1 / X2 and fortune-compat-crisis N / Y 'the support card replaces the result' -> crisis state, no card / soft step, no 1669; the reading goes on in the free tier (N, X1, X2) with one closing line holding tel:1323 only at the end of #cpResult; Y (no consent) shows no reading; nothing paid / no price and no echo kept (v3 piece sizes); state holds for the next request.
+# locked 2026-11-17T04:01:59Z (tools/eval-guard.mjs lock, 2 files)
+31bd8b5ab44e7d99e0b00b35cf4026481d26b2b37184242a9b48cfee86d104da  relock-compat/fortune-compat.e2e.mjs
+4dda3f0c4a95f453d54b1fb5e2d7abf44e674d0bc6dc7d96a510955d92e39486  relock-compat/fortune-compat-crisis.e2e.mjs
+31bd8b5ab44e7d99e0b00b35cf4026481d26b2b37184242a9b48cfee86d104da  tests/e2e/fortune-compat.e2e.mjs  # repo file (relock-compat)
+4dda3f0c4a95f453d54b1fb5e2d7abf44e674d0bc6dc7d96a510955d92e39486  tests/e2e/fortune-compat-crisis.e2e.mjs  # repo file (relock-compat)
+# RE-LOCK fix-1 2026-11-17 (test faults found on run v3-2-affected-2.log): fortune-crisis-soft (soft-1) a broken selector string (\" in a template literal -> SyntaxError) and a leftover 'no reading under the card' line contradicting rule a, now waits for the reading and the closing line; fortune-crisis (merge-1) a reloaded page of the same tab is in the calm state (data-lq-calm, same protections), accepted as 'the state holds'. Fresh-tab check unchanged.
+# locked 2026-11-17T05:09:09Z (tools/eval-guard.mjs lock, 2 files)
+e152aae01b86b2998afcc8af6ad382c4a2235ea8d9a35a93ce3bae670589abd8  relock-fix-1/fortune-crisis-soft.e2e.mjs
+cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  relock-fix-1/fortune-crisis.e2e.mjs
+e152aae01b86b2998afcc8af6ad382c4a2235ea8d9a35a93ce3bae670589abd8  tests/e2e/fortune-crisis-soft.e2e.mjs  # repo file (relock-fix-1)
+cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-fix-1)
+# REMOVED 2026-11-17: owner decision 84 = option ก (the 1323 line and button only at the END of the reading). Option ข's code (fortune-crisis-pre.js, the LENSIQ_CRISIS_PRELINE switch) cost ~4.5 KB on every reading page, so per the owner's instruction it and its tests (crisis-v3-pre.test.js, crisis-v3-pre{,-en,-zh}.e2e.mjs, tags pre-lock / pre-lock-1) are removed from the repo; the locked copies stay in ~/LENSIQ-field/evals/crisis-v3/pre-lock*/. Ledger: docs/CRISIS-V3-RELOCKS.md.
+# RE-LOCK nodemo 2026-11-17 (merge of main 9f977dd into crisis-v3-2): fortune-no-demo test 5 baseline (taken on main 02fdd69) gains counselling = support, the platform page of the crisis branches (owner decision 2026-11-16) that main does not have yet; every other status unchanged.
+# locked 2026-11-17T05:15:26Z (tools/eval-guard.mjs lock, 1 file)
+0c04589aab924713f29b241787f360f5b844e0dc4dada1f35e2c774245409928  relock-nodemo/fortune-no-demo.test.js
+0c04589aab924713f29b241787f360f5b844e0dc4dada1f35e2c774245409928  tests/unit/fortune-no-demo.test.js  # repo file (relock-nodemo)
+# RE-LOCK fix-2 (merge-2) 2026-11-17 (test fault of relock-merge, run v3-2-affected-3.log): E5 required a closing line right after the question, but tarot / iching only shuffle / cast then and numbers refuses a non-Thai name (no reading, so no closing line). Now: a shown reading must end with the closing-line tel:1323 >= 44 px; in every case a visible tel:1323 >= 44 px (closing line or top bar) is on the page. Crisis state / no card / no echo unchanged.
+# locked 2026-11-17T05:38:04Z (tools/eval-guard.mjs lock, 1 file)
+1363d3d1125284af36df37f489242260ef844f28d7ec95d84e9773afc32b69fd  relock-fix-2/crisis-net-hotfix-e.e2e.mjs
+1363d3d1125284af36df37f489242260ef844f28d7ec95d84e9773afc32b69fd  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file (relock-fix-2)
+# RE-LOCK v3-missed 2026-11-17 (found by CI run 44032543128 on 623dd8b, shard 1/3: fortune-paid (b) waited for the card): three more files still waited for the old support card; v3 rule a: wait for the crisis state (fortune-paid dream: the dream is read, then no paid block / no price unchanged; merit: after a crisis a new reading ending with the closing line tel:1323, no card; interest-form phrase: crisis state, nothing sent, no form unchanged; fortune-calm-pages: crisis state, later calm pages unchanged).
+# locked 2026-11-17T08:00:03Z (tools/eval-guard.mjs lock, 3 files)
+4c619465a0b5259fcb4ad0e213e7ff33310edf51ae3ed29c36683251f4b5567f  relock-v3-missed/fortune-paid.e2e.mjs
+c1cf8330be462e45f33b1efaec8c01e1c3a5eee729593160664a566f3ecb8b47  relock-v3-missed/merit.e2e.mjs
+7a33d5e8e3f131fe49cb4e4f34044e4f3f8c1015b4879ff271fd41567f8cd65c  relock-v3-missed/fortune-calm-pages.e2e.mjs
+4c619465a0b5259fcb4ad0e213e7ff33310edf51ae3ed29c36683251f4b5567f  tests/e2e/fortune-paid.e2e.mjs  # repo file (relock-v3-missed)
+c1cf8330be462e45f33b1efaec8c01e1c3a5eee729593160664a566f3ecb8b47  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed)
+7a33d5e8e3f131fe49cb4e4f34044e4f3f8c1015b4879ff271fd41567f8cd65c  tests/e2e/fortune-calm-pages.e2e.mjs  # repo file (relock-v3-missed)
+# RE-LOCK v3-missed-2 2026-11-17 (found on the local run v3-2-missed-1.log): merit 4b and fortune-straight 'crisis net wins over straight' still waited for the tarot card (#trSupport); now the crisis state, no card (fortune-straight: no straight shown in that session; merit: no merit panel after, unchanged).
+# locked 2026-11-17T08:02:37Z (tools/eval-guard.mjs lock, 2 files)
+f9d48f0e7d64e30bb0afdb4ea110501012eafe3e8b7cff2ec04b5fa8eae361fc  relock-v3-missed-2/merit.e2e.mjs
+f94cc520ded3969a6bd5c5922bf46cf7c78dd504ee81427aab6d8456b4246dc0  relock-v3-missed-2/fortune-straight.e2e.mjs
+f9d48f0e7d64e30bb0afdb4ea110501012eafe3e8b7cff2ec04b5fa8eae361fc  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed-2)
+f94cc520ded3969a6bd5c5922bf46cf7c78dd504ee81427aab6d8456b4246dc0  tests/e2e/fortune-straight.e2e.mjs  # repo file (relock-v3-missed-2)
+# R2-LOCK 2026-11-17 (independent review round 2 of 8cee117, ~/LENSIQ-field/review/crisis-v3/REVIEW.md), BEFORE the round-2 fixes: new crisis-v3-r2.e2e.mjs (R1 fallback no echo, R2 report-note closing line, R3 report no plan / history, R4 fengshui calm closing last, R5 counters hidden when calm, R6 no question placeholder + dream self-care section) and crisis-v3-r2.test.js (N1 missed phrases, N2 stand-in uses the same pattern list); relock-guard-v3: crisis-escape-guard kit MODE v3 (hidden or v3-compliant, no echo, closing line last; CARD -> crisis state, no card), its two test titles; cat-pages.test.js merged content (main no-demo + counselling support row of crisis-rules-1323) had no lock line.
+# locked 2026-11-17T09:09:02Z (tools/eval-guard.mjs lock, 6 files)
+f479834057d4715daf8baff71bd3f5c78c92cc9d4036b46e0ed8ff2c7b2c12ad  r2-lock/crisis-v3-r2.e2e.mjs
+1c43055449f7737e5ae098008c5fa00a1ddbc18461fb52c1d525b1e703889e74  r2-lock/crisis-v3-r2.test.js
+a917dec6ab026eb167b92d85685f99e821c22a38ec7845136bdad687266928b8  r2-lock/crisis-escape-guard-kit.mjs
+525247ead4166bae201d421d1885b2e53e1bc4cb6e6effc8b5fbaff7b055bceb  r2-lock/crisis-escape-guard-report.e2e.mjs
+87ea1e02e062450f2e0f4029e33bd530c0482f28d7d34d2273283db7cc0d9bb3  r2-lock/crisis-escape-guard-field.e2e.mjs
+f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  r2-lock/cat-pages.test.js
+f479834057d4715daf8baff71bd3f5c78c92cc9d4036b46e0ed8ff2c7b2c12ad  tests/e2e/crisis-v3-r2.e2e.mjs  # repo file (r2-lock)
+1c43055449f7737e5ae098008c5fa00a1ddbc18461fb52c1d525b1e703889e74  tests/unit/crisis-v3-r2.test.js  # repo file (r2-lock)
+a917dec6ab026eb167b92d85685f99e821c22a38ec7845136bdad687266928b8  tests/e2e/crisis-escape-guard-kit.mjs  # repo file (r2-lock)
+525247ead4166bae201d421d1885b2e53e1bc4cb6e6effc8b5fbaff7b055bceb  tests/e2e/crisis-escape-guard-report.e2e.mjs  # repo file (r2-lock)
+87ea1e02e062450f2e0f4029e33bd530c0482f28d7d34d2273283db7cc0d9bb3  tests/e2e/crisis-escape-guard-field.e2e.mjs  # repo file (r2-lock)
+f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  tests/unit/cat-pages.test.js  # repo file (r2-lock)
+# RENAME 2026-11-17: tests/unit/crisis-v3-r2.test.js -> tests/unit/crisis-net-fallback.test.js (unit-index rule: feature-named files), same bytes, same hash.
+1c43055449f7737e5ae098008c5fa00a1ddbc18461fb52c1d525b1e703889e74  tests/unit/crisis-net-fallback.test.js  # repo file (r2-lock, renamed)
+# RE-LOCK topsticky 2026-11-17 (merge of main 1eaf14f into crisis-v3-2): one sticky switch, main's LENSIQ_HELP_TOP_STICKY; the crisis-rules-1323 set read LENSIQ_HELP_STICKY (the branch's older name of the same switch). Rename only, every assertion unchanged; crisis-rules-1323.test.js is also the merged content of both sides.
+# locked 2026-11-17T10:07:11Z (tools/eval-guard.mjs lock, 4 files)
+25cf94a1491cbd52f110cb7db53dc6eacb047a380d48bc627123fcba5a8cb250  relock-topsticky/crisis-rules-1323.test.js
+3080cd5a84e5d531cec292eef6f0f825d0e7f9667f69a98b567d12c88b6440eb  relock-topsticky/crisis-rules-1323-a.e2e.mjs
+77fd8d7abe1604a7536fcbc50f87e6ae9c2d005d7f8695327a354879f1cceeee  relock-topsticky/crisis-rules-1323-e.e2e.mjs
+e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  relock-topsticky/crisis-rules-kit.mjs
+25cf94a1491cbd52f110cb7db53dc6eacb047a380d48bc627123fcba5a8cb250  tests/unit/crisis-rules-1323.test.js  # repo file (relock-topsticky)
+3080cd5a84e5d531cec292eef6f0f825d0e7f9667f69a98b567d12c88b6440eb  tests/e2e/crisis-rules-1323-a.e2e.mjs  # repo file (relock-topsticky)
+77fd8d7abe1604a7536fcbc50f87e6ae9c2d005d7f8695327a354879f1cceeee  tests/e2e/crisis-rules-1323-e.e2e.mjs  # repo file (relock-topsticky)
+e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  tests/e2e/crisis-rules-kit.mjs  # repo file (relock-topsticky)

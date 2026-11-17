@@ -25,7 +25,7 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=24"></script>
+<script src="nav.js?v=29"></script>
 
 <style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
 .lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
@@ -48,7 +48,8 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 .lq-ftop .eyebrow{display:none}.lq-ftop h1{font-size:1.5rem;line-height:1.25;margin:2px 0 4px}
 .lq-ftop :is(.lead,.ft-hero>p,.pd-hero>p):not(.lq-top){font-size:.9rem;line-height:1.45;margin:0 auto 6px}
 .lq-ftop :is(.ft-hero,.pd-hero){padding:10px 16px 14px}.lq-ftop .lq-top{font-size:.75rem;margin-left:-8px;margin-right:-8px}
-[lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}}</style>
+[lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}}
+.lq-help-dlg a.lq-help-more{margin-top:8px;background:none;color:#0b5d8f;font-weight:400;text-decoration:underline}</style>
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
     <a class="lq-call-btn lq-helpline-tel" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
@@ -79,7 +80,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
   </div>
 
   <section class="nm-stage">
-    <form class="nm-form" id="nmForm" novalidate role="tabpanel" data-i18n-attr="aria-label:numbers.form.aria" aria-label="กรอกข้อมูล">
+    <form class="nm-form" id="nmForm" novalidate data-lq-crisis-slot="#nmNarr" role="tabpanel" data-i18n-attr="aria-label:numbers.form.aria" aria-label="กรอกข้อมูล">
       <label data-for="phone" data-i18n="numbers.lbl.phone">เบอร์มือถือ 10 หลัก
         <input id="nmPhone" type="tel" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="08x-xxx-xxxx">
       </label>
@@ -91,7 +92,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
         <input id="nmHouse" type="text" inputmode="numeric" autocomplete="off" maxlength="16" data-i18n-attr="placeholder:numbers.ph.house" placeholder="เช่น 99/123 หรือ 1205">
       </label>
       <label data-for="account" hidden data-i18n="numbers.lbl.account">เลขบัญชีเฉพาะ 4–7 ตัวท้าย
-        <input id="nmAcct" type="text" inputmode="numeric" autocomplete="off" maxlength="7" data-i18n-attr="placeholder:numbers.ph.account" placeholder="เช่น 4589">
+        <input id="nmAcct" type="text" data-lq-crisis-live inputmode="numeric" autocomplete="off" maxlength="7" data-i18n-attr="placeholder:numbers.ph.account" placeholder="เช่น 4589">
         <small data-i18n="numbers.account.small">ไม่ต้องกรอกเลขบัญชีเต็ม — ความเชื่อนิยมดูเฉพาะตัวท้าย</small>
       </label>
       <label data-for="name" hidden data-i18n="numbers.lbl.name">ชื่อภาษาไทย (ชื่อจริงหรือชื่อเล่น)
@@ -199,11 +200,11 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     <img class="nm-cardimg" id="nmCardImg" data-i18n-attr="alt:numbers.card.alt" alt="การ์ดผลเลขมงคลสำหรับแชร์" hidden>
   </section>
 
-  <section class="nm-result" id="nmDaily" hidden data-i18n-attr="aria-label:numbers.daily.aria" aria-label="พลังประจำวัน">
+  <section class="nm-result" id="nmDaily" data-lq-result hidden data-i18n-attr="aria-label:numbers.daily.aria" aria-label="พลังประจำวัน">
     <div class="nm-block nm-daily"><h3 data-i18n="numbers.h38">พลังประจำวัน</h3><div id="nmDailyBody"></div></div>
   </section>
 
-  <section class="nm-result" id="nmCompare" hidden data-i18n-attr="aria-label:numbers.cmp.aria" aria-label="ผลเปรียบเทียบ">
+  <section class="nm-result" id="nmCompare" data-lq-result hidden data-i18n-attr="aria-label:numbers.cmp.aria" aria-label="ผลเปรียบเทียบ">
     <div class="nm-block">
       <h3 data-i18n="numbers.h39">เปรียบเทียบหลายเบอร์</h3>
       <div class="table-wrap"><table class="nm-table">
@@ -252,17 +253,17 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <button data-i18n="fortune.common.kioskExit" class="btn primary nm-kiosk-exit" id="nmKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 <div class="toast" id="nmToast" role="status"></div>
 
-<script src="i18n/zh-fortune.js?v=10"></script>
+<script src="i18n/zh-fortune.js?v=11"></script>
 <script src="i18n/zh-fortune-numbers.js?v=6"></script>
 <script src="i18n/zh-kb-numbers.js?v=2"></script>
-<script src="lensiq-config.js?v=14"></script>
+<script src="lensiq-config.js?v=20"></script>
 <script src="fortune-straight.js?v=6"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
-<script src="fortune-read.js?v=11"></script>
-<script src="lensiq-helpline.js?v=1"></script>
-<script src="fortune-crisis.js?v=11"></script>
-<script src="fortune-ai.js?v=28"></script>
+<script src="fortune-read.js?v=23"></script>
+<script src="lensiq-helpline.js?v=2"></script>
+<script src="fortune-crisis.js?v=22"></script>
+<script src="fortune-ai.js?v=39"></script>
 <script src="numbers-kb.js?v=6"></script>
-<script src="numbers.js?v=7"></script>
+<script src="numbers.js?v=8"></script>
 </body>
 </html>
