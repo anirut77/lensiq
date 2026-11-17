@@ -433,7 +433,7 @@
         if (k >= t.length || /lq-t/.test(tn.nextSibling && tn.nextSibling.className)) return;
         var ws = (/\s*$/.exec(v) || [""])[0], tail = document.createElement("lq-t");
         tail.textContent = v.slice(at, v.length - ws.length);
-        var nt = tn.nextSibling || (/^(B|SPAN|STRONG|EM|A|SMALL)$/.test(tn.parentNode.nodeName) && tn.parentNode.nextSibling);
+        var nt = nxt(tn);
         tail.className = "lq-w lq-t" + (!CP.test(((nt && nt.textContent) || "").trim()) ? " lq-b" : "");
         if (v.slice(0, at).trim() && !/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail); if (ws) tail.after(ws); }
         else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(tail); if (at) tail.before(v.slice(0, at)); if (ws) tail.after(ws); tn.replaceWith(box); }
@@ -480,6 +480,7 @@
     }
     var PR = [/\d[\d.,]*[ \t\n]+(?:%|[A-Za-z]{1,8}|[\u0e00-\u0e7f]{1,6}|[\u3040-\u9fff]{1,2})/g, /[฿$][ \t\n]*\d[\d.,]*/g,
       /\S[ \t\n]+[)\].,:;!?ๆฯ…，。、：；！？）」』】]+/g, /[(\[{][ \t\n]+\S{1,6}/g];
+    var nxt = function (n) { for (var e = n; e && !e.nextSibling && e.parentElement && IN.test(e.parentElement.nodeName); ) e = e.parentElement; return e && e.nextSibling; };
     var kf = function (t) { return t.nodeValue + "|" + ((t.previousSibling && t.previousSibling.textContent) || ""); };
     var DONE = new WeakMap(), IN = /^(B|SPAN|STRONG|EM|A|SMALL|CODE|OUTPUT|DATA)$/;
     var len = function (n) {
@@ -519,7 +520,7 @@
         if (wd) out.forEach(function (q) { if (q[0] < wd[1] && q[1] > wd[0]) { wd[0] = Math.min(wd[0], q[0]); wd[1] = Math.max(wd[1], q[1]); } });
         if (wd && !(inner(wd) && !CP.test(v.slice(wd[0], wd[1]).trim()) && wt(v.slice(wd[0], wd[1])) < 23)) wd = null;
         if (!out.length && !wd) return;
-        var nn = (post >= 0 ? /** @type {Node} */ (y).nextSibling : y) || (IN.test(p.nodeName) && p.nextSibling), nx = ((nn && nn.textContent) || "").trim();
+        var nn = nxt(post >= 0 ? /** @type {Node} */ (y) : n), nx = ((nn && nn.textContent) || "").trim();
         var cs = getComputedStyle(p), fl = /flex|grid/.test(cs.display), f = document.createDocumentFragment();
         if (/pre|break/.test(cs.whiteSpace)) return;
         var first = Math.min(out.length ? out[0][0] : v.length, wd ? wd[0] : v.length);
