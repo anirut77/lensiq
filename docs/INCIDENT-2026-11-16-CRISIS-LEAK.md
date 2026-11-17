@@ -1,6 +1,79 @@
 # Incident 2026-11-16: crisis card did not replace the whole result (fortune pages)
 
-Status: fix built on branch `crisis-net-hotfix` (protection only). Ships once the independent reviewer passes it.
+Status: **fixed and live since 2026-11-17 09:52 (+07)** (GitHub Pages deploy of main 02fdd69 completed 02:52:58 UTC; rounds 1
+and 2 of branch `crisis-net-hotfix`, independent re-review PASS on 65c34cab). Guard against a repeat: section "Guard" below
+(branch `incident-note`). Two gaps the guard found on 2026-11-17 are listed there (fengshui, compat inventory).
+
+## บันทึกเหตุการณ์ (ภาษาไทย)
+
+**อะไรรั่ว** เมื่อผู้ใช้พิมพ์ข้อความเสี่ยงทำร้ายตัวเอง หน้าดูดวงแสดงการ์ดช่วยเหลือ (1323 / 1669 / 191 / 1300) แต่การ์ดแทนที่เฉพาะ
+ข้อความคำทำนายในกล่องเดียว ส่วนอื่นของผลยังแสดงอยู่ข้างการ์ด: แผนที่ใบหน้า ธาตุ 12 ตำแหน่ง ภูเขา แม่น้ำ (โหงวเฮ้ง) แผนที่ลายมือ
+(ดูลายมือ) วงคะแนน "100/100 พลังเด่นมาก" ตารางแยกคะแนน และแถบตัวอักษรที่สะกดข้อความที่ผู้ใช้พิมพ์ทีละตัว (เลขศาสตร์ ชื่อ)
+กระดานไพ่ / เหรียญและปุ่ม "แจ้งปัญหาคำทำนายนี้" (ไพ่ทาโรต์ อี้จิง) ไพ่ประจำวัน เซียมซี และ "ประจำวัน" ของอี้จิงยังอ่านได้ในสถานะ
+วิกฤต และช่องหมายเหตุของ "แจ้งปัญหาคำทำนายนี้" ไม่ผ่านการตรวจ: ข้อความวิกฤตไม่ได้การ์ด และถูกเก็บใน localStorage ของเบราว์เซอร์นั้น
+(`lq-report-log`) เมื่อกด "บันทึกในเครื่องนี้" ไม่มีข้อมูลใดถูกส่งออกจากเครื่อง (ไม่มีเซิร์ฟเวอร์ในเส้นทางนี้ อีเมลเปิดเฉพาะเมื่อผู้ใช้กดเอง)
+
+**หน้าไหน และนานเท่าไร** (เวลาไทย, เวลาเริ่ม = deploy แรกของ GitHub Pages ที่มี commit นั้น, เวลาจบ = deploy ของการแก้ 2026-11-17 09:52)
+
+| สิ่งที่รั่ว | หน้า | ตั้งแต่ | ถึง | ระยะเวลา |
+|---|---|---|---|---|
+| แผนที่ใบหน้า ธาตุ ตำแหน่ง ภูเขา แม่น้ำ ข้างการ์ด (D3b) | faceread | 2026-11-08 06:55 (f1d7fba มี 6fe450a) | 2026-11-17 09:52 | ≈ 9 วัน 3 ชม. |
+| แผนที่ลายมือ (`#plEdit`) ข้างการ์ด (รอบ 2 ข้อ 1) | palm | 2026-11-08 06:55 (เหมือนกัน) | 2026-11-17 09:52 | ≈ 9 วัน 3 ชม. |
+| วงคะแนน ตารางคะแนน แถบที่สะกดชื่อที่พิมพ์ (D3a); ชื่อ EN / ZH ได้ข้อความตรวจรูปแบบแทนการ์ด (D4) | numbers | 2026-11-12 08:49 (0f0ae99) | 2026-11-17 09:52 | ≈ 5 วัน 1 ชม. |
+| กระดานไพ่ / เหรียญ และปุ่มแจ้งปัญหา ข้างการ์ดหลังอ่าน (รอบ 2 ข้อ 2) | tarot, iching | 2026-11-08 06:55 (6fe450a) | 2026-11-17 09:52 | ≈ 9 วัน 3 ชม. |
+| คำถามธรรมดาหลังการ์ดเริ่มสับไพ่ / โยนเหรียญ (สถานะวิกฤตไม่คงอยู่; กฎ "คงอยู่ทั้งแท็บ" เริ่ม 4061cfe) (รอบ 2 ข้อ 2) | tarot, iching | 2026-11-12 19:43 (4061cfe) | 2026-11-17 09:52 | ≈ 4 วัน 14 ชม. |
+| ไพ่ประจำวัน เซียมซี อี้จิงประจำวัน อ่านได้ในสถานะวิกฤต (รอบ 2 ข้อ 3) | tarot, iching | 2026-11-12 19:43 (4061cfe: สถานะวิกฤตเริ่มมี) | 2026-11-17 09:52 | ≈ 4 วัน 14 ชม. |
+| ช่องหมายเหตุ "แจ้งปัญหาคำทำนายนี้" ไม่ตรวจ ข้อความถูกเก็บใน localStorage เมื่อกดบันทึก (รอบ 2 ข้อ 4) | ทุกหน้าที่มีคำทำนาย (nav.js ใส่ปุ่มให้) | 2026-11-07 22:53 (e770bc2 ที่เพิ่ม lensiq-report.js) | 2026-11-17 09:52 | ≈ 9 วัน 11 ชม. |
+| ช่องที่ไม่ถูกตรวจเลย หรือตรวจหลังการตรวจรูปแบบ (D5: ช่องปีเกิด ค้นความฝัน เบอร์ / ทะเบียน / บ้าน / บัญชี / เปรียบเทียบ ปีคู่ ฟอร์มลูกค้าโหงวเฮ้ง) | ดู docs/CRISIS-INPUT-INVENTORY.md | ตั้งแต่หน้านั้นเปิดใช้ (วันที่ตาม git log ของแต่ละหน้า) | 2026-11-17 09:52 | ต่างกันตามหน้า |
+
+ก่อน 6fe450a ไม่มีการ์ดช่วยเหลือบนหน้าเหล่านี้เลย (นั่นคือเหตุการณ์ 2026-11-12 แยกต่างหาก: docs/INCIDENT-2026-11-12-CRISIS-NET.md)
+บน zodiac และ astro การ์ดขึ้นบนเว็บจริงไม่ได้ก่อนการแก้ (ช่องข้อความเดียวของสองหน้านี้คือช่องปี ซึ่งไม่ถูกตรวจ = D5) จึงไม่มีช่วงที่
+ตารางปีชง / ราศีแสดงข้างการ์ดบนเว็บจริง
+
+**พบได้อย่างไร** ไม่ได้มาจากผู้ใช้จริง: (1) 2026-11-16 ผู้ตรวจอิสระของ branch `crisis-v2-live` วัดเว็บจริง (main 656712f) ซ้ำ แล้วพบ D3a,
+D3b, D4, D5; (2) 2026-11-17 ผู้ตรวจอิสระสองคนตรวจการแก้รอบแรก (5061f53) แล้วพบข้อ 1–6 ของรอบ 2; (3) ผู้ตรวจอิสระวัดซ้ำรอบ 2 ผ่าน
+(65c34cab, `~/LENSIQ-field/review/crisis-net-hotfix/RECHECK-2.md`) ในบันทึกไม่มีรายงานจากการทดสอบบน iPhone จริงของเจ้าของสำหรับเรื่องนี้
+
+**อะไรกันไม่ให้เกิดซ้ำ** ดูหัวข้อ "Guard" ด้านล่าง: เทสต์ที่ล็อกไว้ (`crisis-escape-guard`) ตกทันทีเมื่อ (ก) มีช่องพิมพ์ข้อความใหม่บนหน้าดูดวง
+ใด ๆ (รวมหน้าใหม่ และช่องที่ JS สร้าง เช่น dialog ที่ nav.js ใส่) โดยไม่อยู่ในรายการ หรือ (ข) มีองค์ประกอบผลคำทำนายใหม่ที่การ์ดไม่ซ่อน
+ทั้งแบบตรวจโค้ด (ทุก id ที่สคริปต์ของหน้าเขียนผลลงไป ต้องอยู่ในพื้นที่ผลที่ถูกซ่อน หรืออยู่ในรายการ "ไม่ใช่คำทำนาย" พร้อมเหตุผล)
+และแบบเปิดเบราว์เซอร์ (อ่านดวงปกติ เก็บทุกองค์ประกอบที่เกิดขึ้นหลังกดอ่าน แล้วทำให้เกิดสถานะวิกฤต ทุกองค์ประกอบต้องหายเหลือแต่การ์ด)
+ไม่ต้องมีใครเพิ่มชื่อองค์ประกอบใหม่ลงรายการก่อน เทสต์จึงจะจับได้ เมื่อเปลี่ยนเป็นวิกฤต v3 (อ่านต่ออย่างนุ่มนวลแทนการ์ด) แก้จุดเดียว
+คือเงื่อนไข "อนุญาตในสถานะวิกฤต" ในชุดทดสอบ
+
+## Incident note (English)
+
+**What leaked.** When a visitor typed a crisis phrase, the fortune pages showed the help card (1323 / 1669 / 191 / 1300), but the
+card replaced only the reading text in one box. The rest of the result stayed beside it: the face map, element, palaces,
+mountains and rivers (faceread), the palm map (palm), the score ring "100/100", the breakdown and a letter strip that spelled the
+typed text letter by letter (numbers, name tab), the card / coin board and the "report a problem" button (tarot, iching). In the
+crisis state the daily tarot card, siamsee and the iching Daily tab still gave readings, and the note of the "report a problem
+with this reading" dialog was not checked: a crisis phrase got no card and, on "save on this device", was kept in that browser's
+localStorage (`lq-report-log`). Nothing left the device (no server on this path; e-mail opens only when the visitor taps it).
+
+**Pages and how long** (Bangkok time; start = first GitHub Pages deploy containing the commit; end = the fix deploy 2026-11-17 09:52):
+
+| Leak | Page(s) | From | To | Duration |
+|---|---|---|---|---|
+| D3b face map, element, palaces, mountains, rivers beside the card | faceread | 2026-11-08 06:55 (f1d7fba, contains 6fe450a) | 2026-11-17 09:52 | ≈ 9 d 3 h |
+| Round 2 #1 palm map `#plEdit` beside the card | palm | 2026-11-08 06:55 | 2026-11-17 09:52 | ≈ 9 d 3 h |
+| D3a ring, breakdown, letter strip echoing the typed name; D4 EN / ZH names got a validation message instead of the card | numbers | 2026-11-12 08:49 (0f0ae99) | 2026-11-17 09:52 | ≈ 5 d 1 h |
+| Round 2 #2 card / coin board and report button beside the card after a reading | tarot, iching | 2026-11-08 06:55 (6fe450a) | 2026-11-17 09:52 | ≈ 9 d 3 h |
+| Round 2 #2 an ordinary question after the card started the shuffle / coin step (the "flag holds for the tab" rule exists since 4061cfe) | tarot, iching | 2026-11-12 19:43 (4061cfe) | 2026-11-17 09:52 | ≈ 4 d 14 h |
+| Round 2 #3 daily card, siamsee, iching Daily readable in the crisis state | tarot, iching | 2026-11-12 19:43 (4061cfe: crisis state introduced) | 2026-11-17 09:52 | ≈ 4 d 14 h |
+| Round 2 #4 report-dialog note unchecked; phrase stored in localStorage on save | every page with a reading (button injected by nav.js) | 2026-11-07 22:53 (e770bc2 added lensiq-report.js) | 2026-11-17 09:52 | ≈ 9 d 11 h |
+| D5 inputs never checked, or checked after a format check | see docs/CRISIS-INPUT-INVENTORY.md | since each page shipped; date per git log | 2026-11-17 09:52 | per page |
+
+Before 6fe450a these pages had no help card at all (the separate incident of 2026-11-12, docs/INCIDENT-2026-11-12-CRISIS-NET.md).
+On zodiac and astro the card could not appear on the live site before the fix (their only free-text box, the year, was unchecked:
+D5), so their clash / sign grids never stood beside a card on the live site.
+
+**How it was found.** Not by a user: (1) 2026-11-16, the independent review of branch `crisis-v2-live` re-measured the LIVE main
+(656712f) and found D3a, D3b, D4, D5; (2) 2026-11-17, two independent reviewers of the first fix (5061f53) found round-2 items 1–6;
+(3) the independent re-check of round 2 passed (65c34cab, `~/LENSIQ-field/review/crisis-net-hotfix/RECHECK-2.md`). The record has
+no report from the owner's real-iPhone testing for this incident.
+
+**What now prevents a repeat:** section "Guard" below.
 
 ## What happened
 
@@ -38,7 +111,7 @@ are UTC, with Bangkok time (UTC+7) in brackets.
 Before 6fe450a there was no crisis card at all on these pages. The leak described here exists from the first deploy with the
 card (2026-11-07 23:55 UTC) until the fix is deployed.
 
-Went live (fix): _to be filled in at deploy (commit, deploy time UTC / Bangkok)._
+Went live (fix): **2026-11-17 09:52 (+07)** = 02:52:58 UTC, GitHub Pages deploy of main 02fdd69 (rounds 1 and 2).
 
 ## Fix (branch `crisis-net-hotfix`)
 
@@ -150,3 +223,69 @@ Regression (after): crisis-net-hotfix a–d, fortune-crisis-fields / -fields-2 /
 speed-budget all pass; unit 2372/2372. fortune-layout "item 5" fails on this branch AND on main 7a51bcf when run on
 2026-11-17: today's horoscope "today" tab (#pn-td, a hidden tab panel) holds caution paragraphs, which the check counts as
 hidden; date-dependent, not caused by this branch (reported to the coordinator; test not changed).
+
+## Guard (2026-11-17, branch `incident-note`): a new input or result element cannot escape the crisis check unnoticed
+
+Owner order 2026-11-17: "what now prevents a new input or result element from escaping the crisis check (a test that fails
+when a new one is added)". What existed before this branch, and what was missing:
+
+- (a) new free-text input: `tests/unit/crisis-input-inventory.test.js` (round 1) and `-2` (round 2, scripts nav.js injects)
+  already failed on an unlisted field, **but only on a fixed list of 19 pages**: compat (live since bb8f8bd) was not scanned,
+  and its 4 free-text boxes were not in the inventory.
+- (b) new result element: **missing**. The e2e sets a–e assert fixed selector lists per page; a new widget outside the
+  takeover roots would pass them.
+
+New locked set `crisis-escape-guard` (written and locked BEFORE measuring: `evals-locks/crisis-escape-guard.sha256`, copies in
+`~/LENSIQ-field/evals/crisis-escape-guard/`; append-only re-lock v2 and inventory v4 before measuring the fix, reasons in the
+lock commits):
+
+1. **Pages are found, not listed**: every `*.html` that loads fortune-read.js, fortune-ai.js or fortune-crisis.js (today 19,
+   incl. compat). A new fortune page is checked the day it is added (proof below).
+2. **Inputs** (`tests/unit/crisis-escape-guard.test.js` check 2): every free-text field (textarea; input text / search / tel /
+   email / url / no type; contenteditable) in the page HTML, its scripts, scripts those load at run time and scripts nav.js
+   injects (report dialog, merit form) needs a phrase row in `tests/e2e/crisis-net-hotfix-inventory.json` and in
+   `docs/CRISIS-INPUT-INVENTORY.md`.
+3. **Result elements, static** (check 3): every element id a page script writes into or reveals (innerHTML / textContent /
+   append… / hidden = false, direct or through a variable) must be inside a takeover root (`[data-lq-result]`, `[id$=Result]`,
+   `[id$=Stats]`, read from lensiq-crisis-takeover.js by check 1) and not inside a form there, or be listed in
+   `tests/unit/crisis-escape-guard-allow.json` as NOT reading content with a reason (field / validation message / camera UI /
+   static reference). Stale entries fail too. Changing that list is a reviewed, re-locked commit.
+4. **Result elements, in the browser** (`tests/e2e/crisis-escape-guard-{report,field}.e2e.mjs`, kit
+   `crisis-escape-guard-kit.mjs`): per page with a crisis entry point (TH, 375 px): run a normal reading; collect EVERY visible
+   content element that is new, newly visible or whose text changed since before the reading (no selector list); trigger the
+   crisis via the report-dialog note and via the page's own box; assert every collected element is hidden except the help card,
+   and nothing new appeared outside it. Check 4 of the unit test fails when a page with an entry point has no flow.
+5. **Crisis v3** (reading continues gently instead of a card, in progress): only the predicate `ALLOWED` / `MODE` in the kit
+   changes ("in the crisis state every result element is either hidden or v3-compliant", e.g. marked `data-lq-gentle`), in a
+   re-locked commit. Collection, pages and the static checks stay as they are.
+
+Limits: the static check sees ids written by the page's own scripts; elements built without an id are the browser half's job.
+The browser half runs TH at 375 px only (the takeover is language-independent; TH / EN / ZH × 375 / 393 stay covered by sets
+a–e). Content drawn inside a visitor's pre-existing form is left to the static check (the takeover keeps forms). Merit interest
+form: off by default, covered by merit-crisis.e2e.mjs.
+
+### What the guard found on its first run (synthetic, headless Chrome on the owner's Mac)
+
+| Finding | Before | After |
+|---|---|---|
+| fengshui: the report-dialog note shows the card (since the round-2 fix went live 09:52 today), but the kua cards, compass verdict, recorded directions, plan grid, advice, photo result, reading, share row and card image stayed beside it: none was a takeover root | 188 of 319 result elements visible beside the card (`baseline-v2-fengshui-4a06544-report.log`) | 0 of 303 (`after-496c7fd-e2e.log`); fix: `data-lq-result` on 10 fengshui containers |
+| compat: 4 free-text boxes (`#cpNick0/1`, `#cpYear0/1`) not in the inventory (the page itself was protected by its own locked test) | static check 2 fails | 9 compat rows added (inventory v4) |
+
+Run 1 (`baseline-4a06544-e2e.log`, harness v1) also flagged harness noise: live camera capture hints, the dream symbol chips the
+visitor picked, a re-labelled submit button and a form legend. Re-lock v2 made the browser half use the same reviewed
+not-reading list as the static half; nothing else changed. Fengshui exposure: from 2026-11-17 09:52 until this branch is
+deployed (before 09:52 the note was unchecked, so no card showed there at all: round-2 item 4).
+
+Numbers (after, harness v2, 496c7fd): unit 12/12 (guard + both inventory tests); browser 29/29 cases (15 field + 14 report),
+0 escaped of 186–705 collected elements per page. After merging main 94115ae (compat go-live, new face-capture DOM on faceread): unit 12/12,
+browser 29/29, 0 escaped (faceread 691–694 and compat 247 elements collected; `after-merge-07a3c75-e2e.log`).
+
+### Proof that the guard fails when something new is added (temporary local edits, not committed)
+
+| Temporary change | Static unit | Browser |
+|---|---|---|
+| numbers: `<p id="nmProofNote" hidden>เลขนำโชค…</p>` outside the roots, revealed after the read | FAIL check 3: "numbers #nmProofNote … outside every result root" | FAIL: "1 of 311 result elements escaped … p#nmProofNote" (`proof-unmarked-nmProofNote-*.log`) |
+| numbers: a new `<input type="text" id="nmWish">` | FAIL check 2: "numbers.html: nmWish" (`proof-static-unmarked.log`) | – |
+| a new page `omen.html` (copy of tarot) | FAIL checks 2, 3 and 4 ("crisis entry point but no flow") (`proof-static-newpage.log`) | – |
+
+Logs: `~/LENSIQ-field/evals/crisis-escape-guard/`.

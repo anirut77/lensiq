@@ -38,6 +38,21 @@ synthetic, headless Chrome). Wording added to L63 for the mental-health professi
   in `docs/PAGE-STATUS.md` (marked "no tag shown on the site"). Accuracy and notice lines unchanged; other categories
   unchanged (teamface, signage, neuro keep their demo chip). Tests locked first: `evals-locks/fortune-no-demo.sha256`
   (new unit + e2e; re-locks of walkfix W-012, cat-pages "status tag" and categories e2e "status tag", fortune only).
+## Crisis-card incident 2026-11-16: closed, with a guard (2026-11-17, branch `incident-note`)
+
+- Leak: the help card replaced only the reading text; maps, score rings, a letter strip echoing the typed name, boards, daily
+  readings and the report button stayed beside it, and the report-dialog note was unchecked. Live exposure (Bangkok time):
+  faceread / palm / tarot / iching board from 2026-11-08 06:55, numbers from 2026-11-12 08:49, report note from 2026-11-07 22:53,
+  all until the fix went live 2026-11-17 09:52 (main 02fdd69). Nothing left the device. Found by independent reviewers, not by
+  users. Full record: `docs/INCIDENT-2026-11-16-CRISIS-LEAK.md`.
+- Guard (locked set `crisis-escape-guard`, `evals-locks/crisis-escape-guard.sha256`): pages are discovered by script, so a new
+  fortune page, a new free-text input (incl. JS-created dialogs) or a new result element that the takeover does not hide fails a
+  test without anyone adding it to a list first. Static half `tests/unit/crisis-escape-guard.test.js`; browser half
+  `tests/e2e/crisis-escape-guard-{report,field}.e2e.mjs` (normal reading, collect every element the reading produced, trigger the
+  crisis, all must be hidden except the help card). Crisis v3 re-targets one predicate (ALLOWED in the kit).
+- The guard found two gaps on its first run: fengshui result areas were not takeover roots (the report-dialog note shows the card
+  there since 09:52 today, with the fengshui reading still beside it), and compat's 4 free-text boxes were not in the input
+  inventory (compat itself was covered by its own locked test). Both fixed on `incident-note`; numbers in the incident record.
 
 ## Fortune layout item 5 test (2026-11-17, branch `layout-item5`)
 
@@ -197,6 +212,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 | Python unittest | 4 files |
 | Gates | lint, typecheck, CSP, ZH/EN coverage, site check, and a mobile audit at 320/360/390 px |
 | Real-phone quality (stream B, 2026-11-13) | WebKit iPhone-width flows (14), crash guard (unit 10 + e2e 5, TH/EN/ZH), memory budget per camera page (9 pages, 60 s, synthetic headless Chrome). Details and numbers: `docs/PHONE-QUALITY.md`. Real-phone checks: `docs/owner-checklists/` |
+| Real-device result (field, owner-run, 2026-11-17) | New face capture on `faceread.html`: all 10 tester steps passed on a real iPhone 16 Pro (iOS 27.0.1, Safari) and a real Samsung S23 Ultra (Chrome). Pass / fail only, no distances or timings recorded. Source: owner test 2026-11-17. Log: `docs/PHONE-QUALITY.md` section 5 |
 | Page speed (speed pass, 2026-11-14) | No model file before the camera opens on any page (locked e2e, 73 pages); page-weight budget per page from the measured baseline (bytes, requests); before/after on an emulated mid-range phone (CPU 4x + Fast 3G, synthetic). Details and numbers: `docs/SPEED.md` |
 
 ### CI

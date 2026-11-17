@@ -127,4 +127,16 @@ after = branch crisis-net-hotfix 64f0d4a (`after-64f0d4a-*.log`). Pages without 
 | every reading page | `.lq-merit-form input[name="consent"]` (created by lensiq-merit.js interest form) | checkbox | – | no: on / off only | n/a | n/a | – |
 | every fortune page with a reading (round 2, 2026-11-17) | `.lq-rp textarea` ×2 (created by lensiq-report.js, loaded by nav.js: the "Report a problem with this reading" note, maxlength 600, and the editable preview) | textarea | 600 | yes | **no** (0/12 cases on 5061f53: the phrase was saved in `lq-report-log`, no card) | yes (12/12 cases on c59eb08: E4 tarot 6/6, iching 6/6) | lensiq-report.js runs the crisis net on the note and the edited preview before anything is saved, copied or mailed: nothing stored, the dialog closes, the card takes over; the report button is hidden in the crisis state. Locked tests/e2e/crisis-net-hotfix-e.e2e.mjs (E4), tests/unit/crisis-input-inventory-2.test.js (scripts nav.js injects are scanned too) |
 
-Totals: 113 input rows, 30 can hold a phrase; covered before 2/30, after 30/30.
+| compat (added 2026-11-17 by the crisis-escape guard: compat went live in bb8f8bd and was not in this list) | `#cpNick0` / `#cpNick1` (created by compat-ui.js, one per person) | text | 80 | yes | n/a (page not live before) | yes: locked fortune-compat-crisis.e2e.mjs (reviewer 210 cases, 0 leaks, bb8f8bd) | compat's own check runs first in go() and on every keystroke (data-lq-crisis-own); card in #cpResult, takeover |
+| compat | `#cpYear0` / `#cpYear1` (created by compat-ui.js) | text | – | yes | n/a | yes: fortune-compat-crisis.e2e.mjs | same |
+| compat | `#cpRel` | select | – | no: choice only | n/a | n/a | – |
+| compat | `#cpConsent` | checkbox | – | no: on / off only | n/a | n/a | – |
+| compat | `[data-cp-person] select[name="d"]` / `[data-cp-person] select[name="m"]` (created by compat-ui.js) | select | – | no: choice only | n/a | n/a | – |
+| compat | `[data-cp-person] input[name="t"]` (created by compat-ui.js) | time | – | no: time picker | n/a | n/a | – |
+
+Totals: 122 input rows, 34 can hold a phrase; covered before 2/30 (compat's 4 were not live), after 34/34.
+
+Since 2026-11-17 the pages are no longer a fixed list for this check: `tests/unit/crisis-escape-guard.test.js` finds every page
+that loads fortune-read.js, fortune-ai.js or fortune-crisis.js and fails on any free-text field there (HTML, the page's scripts,
+scripts those load, scripts nav.js injects, `contenteditable`) without a phrase row here. See
+`docs/INCIDENT-2026-11-16-CRISIS-LEAK.md`, "Guard".

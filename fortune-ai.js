@@ -2319,17 +2319,18 @@
     max = max || 90;
     let t = cleanMeaning(m);
     for (let k = 0; k < 2; k++) t = t.replace(GIST_STRIP, "").trim();
-    const sp = splitLead(t); if (sp && sp.kind !== "wa") t = sp.rest;
-    const parts = t.split(" ");
-    let out = "";
-    for (const p of parts) {
-      const next = out ? out + " " + p : p;
-      if (out && next.length > max) break;
-      out = next;
-      if (out.length >= 44 && /[^\d]$/.test(out)) break;
-    }
-    return out.replace(/(?:และ|ซึ่ง|ที่|เพราะ|แต่|หรือ|คือ|ว่า)$/, "").trim();
+    const sp = splitLead(t); if (sp && sp.kind !== "wa") t = sp.rest; if (t.length <= max) return t; // fits: no cut (decision 90 ข)
+    const sp1 = [...t.matchAll(/\s/g)].map(x => x.index).filter(i => i > 0), sg = SEGW ? Array.from(SEGW.segment(t), g => g.index).filter(i => i > 0 && !/^(?:ที่|ๆ|ฯ)/.test(t.slice(i))) : [];
+    // cut at a space (else a Segmenter word edge), never before ๆ/ที่, inside brackets/quotes or label|number; clause edges first
+    const score = i => { const a = t.slice(0, i).trimEnd(), b = t.slice(i).trimStart(), ok = a.length <= max && a.length >= 20 && gistBal(a);
+      return !ok || /^[ๆฯ\d๐-๙]/.test(b) || /[\d๐-๙]$/.test(a) ? -1 : (a.length >= 44 ? 1e4 : 0) + (/[.!?;,:。]$/.test(a) ? 2e3 : GIST_CLAUSE.test(b) ? 1e3 : 0) + a.length; };
+    const top = cuts => cuts.reduce((m, i) => (score(i) > (m < 0 ? -1 : score(m)) ? i : m), -1), at = top(sp1) >= 0 ? top(sp1) : top(sg);
+    if (at < 0) return t; const best = t.slice(0, at).trimEnd(), tail = /(?:และ|ซึ่ง|ที่|เพราะ|แต่|หรือ|คือ|ว่า)$/.exec(best), c = tail ? best.slice(0, -tail[0].length) : "";
+    const own = c && (/\s$/.test(c) || (tail[0] !== "ที่" && SEGW && Array.from(SEGW.segment(best)).pop().segment === tail[0]));
+    return (own && c.trim().length >= 20 && !/[\d๐-๙]$/.test(c.trim()) ? c : best).replace(/[\s,;:]+$/, "").trim();
   }
+  const GIST_CLAUSE = /^(?:แต่|และ|เพราะ|ซึ่ง|โดย|ส่วน|หรือ|จึง|ทำให้|เพื่อ|ถ้า|หาก|เมื่อ|แล้ว|จน|ขณะ)/, GIST_PAIRS = ["\"\"", "()", "[]", "（）", "「」", "“”"];
+  const gistBal = a => GIST_PAIRS.every(([o, c]) => { let d = 0; for (const x of a) if ((d += x === o ? (o === c && d ? -1 : 1) : x === c ? -1 : 0) < 0) return !1; return !d; });
   function buildSummary(ctx, topicId) {
     const F = ctx.F, lines = [];
     const ov = ctx.secMeanings.overview || [];
