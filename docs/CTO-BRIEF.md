@@ -7,6 +7,22 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Crisis-card incident 2026-11-16: closed, with a guard (2026-11-17, branch `incident-note`)
+
+- Leak: the help card replaced only the reading text; maps, score rings, a letter strip echoing the typed name, boards, daily
+  readings and the report button stayed beside it, and the report-dialog note was unchecked. Live exposure (Bangkok time):
+  faceread / palm / tarot / iching board from 2026-11-08 06:55, numbers from 2026-11-12 08:49, report note from 2026-11-07 22:53,
+  all until the fix went live 2026-11-17 09:52 (main 02fdd69). Nothing left the device. Found by independent reviewers, not by
+  users. Full record: `docs/INCIDENT-2026-11-16-CRISIS-LEAK.md`.
+- Guard (locked set `crisis-escape-guard`, `evals-locks/crisis-escape-guard.sha256`): pages are discovered by script, so a new
+  fortune page, a new free-text input (incl. JS-created dialogs) or a new result element that the takeover does not hide fails a
+  test without anyone adding it to a list first. Static half `tests/unit/crisis-escape-guard.test.js`; browser half
+  `tests/e2e/crisis-escape-guard-{report,field}.e2e.mjs` (normal reading, collect every element the reading produced, trigger the
+  crisis, all must be hidden except the help card). Crisis v3 re-targets one predicate (ALLOWED in the kit).
+- The guard found two gaps on its first run: fengshui result areas were not takeover roots (the report-dialog note shows the card
+  there since 09:52 today, with the fengshui reading still beside it), and compat's 4 free-text boxes were not in the input
+  inventory (compat itself was covered by its own locked test). Both fixed on `incident-note`; numbers in the incident record.
+
 ## Fortune layout item 5 test (2026-11-17, branch `layout-item5`)
 
 - The locked item-5 check failed on some dates on main and every branch (horoscope "today" tab closed but counted as folded).
