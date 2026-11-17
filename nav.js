@@ -502,7 +502,7 @@
         else if (x && IN.test(x.nodeName) && /\S/.test(x.textContent || "") && wt(x.textContent || "") < 13 && (m = /^[)\]}.,:;!?…”’»，。、：；！？）」』】]+/.exec(v))) r.push([0, pre = m[0].length]);
         if (y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim()) && (m = /\S{1,8}[ \t\n]*$/.exec(v))) r.push([post = m.index, v.length]);
         var ctl = p.closest("button,[role=tab],.btn,label,summary,a");
-        if ((L = ctl ? wt(v) : len(n)) > 12) {
+        if ((L = len(n)) > 12) {
           e = v.replace(/\s+$/, "").length; i = e;
           while (i > 0 && wt(v.slice(i, e)) < 10) i--;
           for (m = i; m > 0 && /^\w\w$/.test(v[m - 1] + v[m]); ) m--;
@@ -527,7 +527,7 @@
         var cs = getComputedStyle(p), fl = /flex|grid/.test(cs.display), f = document.createDocumentFragment();
         if (/pre|break/.test(cs.whiteSpace)) return;
         var live = ctl || p.closest(LV);
-        if (wd && (live || (wd[1] >= v.trim().length && (CP.test(nx) || (nn && !nx))))) { while (wd[0] < wd[1] && (wt(v.slice(wd[0], wd[1])) > 12 || !bd[wd[0]])) wd[0]++; if (!inner(wd)) wd = null; }
+        if (wd && (live || (wd[1] >= v.trim().length && (CP.test(nx) || (nn && !nx))))) { while (wd[0] < wd[1] && (wt(v.slice(wd[0], wd[1])) > 12 || !bd[wd[0]])) wd[0]++; out.forEach(function (q) { if (wd && q[0] < wd[0] && wd[0] < q[1]) wd[0] = q[1]; }); if (!inner(wd)) wd = null; }
         var first = Math.min(out.length ? out[0][0] : v.length, wd ? wd[0] : v.length);
         if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t lq-b"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
         if (RT(n) && !first) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && wt(v) < 12) p.classList.add("lq-w"); return; }
