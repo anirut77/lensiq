@@ -46,3 +46,16 @@ cbc9430a501bb8e057d3791cd436f910ae058a65af470fbdfe3ce0a048c1dd9b  tests/e2e/prod
 # locked-2026-11-17-baseline.sha256 (locked.sha256 not modified). Ledger: docs/EVAL-LOCKS.md "live-scan baseline (owner decision 89)".
 7746decb50fdb69e9c9e7a95f2c750f697e74cd4defbabc360593af4ba9f3801  tests/unit/pc-live.test.js  # repo file  baseline accepted, owner decision 89 (2026-11-17); bytes unchanged since dbb38f6f
 7746decb50fdb69e9c9e7a95f2c750f697e74cd4defbabc360593af4ba9f3801  pc-live.test.7746decb.js
+# 2026-11-17T16:00:36Z release-criteria checks (owner decision 89 follow-up, branch eval-guard-repo), locked BEFORE the new test was first run.
+# Criteria from docs/product-check/LIVE-SCAN-RESULTS.md mapped to checks in docs/EVAL-LOCKS.md "live-scan baseline (owner decision 89)".
+# New: tests/unit/pc-live-release.test.js (R1 <= 4 fps; R2 capture at 3 steady frames, blurred <= 8; R3 <= 3 readings per view;
+# R4 content scene cut drops text and barcodes; R5 live scan default and switchable; R6 one-tap 6/min, 150/day enforced;
+# R7 refusal-code notices TH/EN/ZH). Added to the set unchanged (they checked written criteria but were in no lock):
+# pc-guard-onetap-notes.test.js (LIVE-SCAN-RESULTS.md:403 note to a person stops one-tap), pc-jako-policy.test.js
+# (PC-JK-RESULTS.md:29 JA/KO script never one-tap). Field lock (new file): locked-2026-11-17-release-criteria.sha256.
+cc638713fe16f453ec774538faf3d51663f2a95a9000d03e88466551befc38e4  tests/unit/pc-live-release.test.js  # repo file  new checks R1-R7
+cc638713fe16f453ec774538faf3d51663f2a95a9000d03e88466551befc38e4  pc-live-release.test.cc638713.js
+d5e3845abd97a374697ada465687d2622f88f65ea7a0b1e3778185786d6d862e  tests/unit/pc-guard-onetap-notes.test.js  # repo file  existing, unchanged, joins the set
+d5e3845abd97a374697ada465687d2622f88f65ea7a0b1e3778185786d6d862e  pc-guard-onetap-notes.test.d5e3845a.js
+0ac75cf0dae673c49fa6c1684697a78f8741b1eba7403054b4f3317a8e89f471  tests/unit/pc-jako-policy.test.js  # repo file  existing, unchanged, joins the set
+0ac75cf0dae673c49fa6c1684697a78f8741b1eba7403054b4f3317a8e89f471  pc-jako-policy.test.0ac75cf0.js
