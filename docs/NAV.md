@@ -223,3 +223,10 @@ More styles.css comments moved word for word on 2026-11-17 (third batch):
 /* shared tab button (consistency pass 2026-11-14): underline style; .active or aria-selected=true marks the open tab.
    Page CSS only lays out the tab bar (.tabs / .gk-tabs / .md-tabs) and never restyles the buttons. */
 ```
+
+More styles.css comments moved word for word on 2026-11-17 (fourth batch):
+
+```text
+/* owner order 2026-11-15 item 1: no idle technical status. A status line (role=status) with nothing to say is empty and takes
+   no space; it stays in the page so loading and error messages still reach screen readers. */
+```
