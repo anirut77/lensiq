@@ -185,3 +185,13 @@ Locked before compat was changed to v3.
 Also in this merge (product, not a re-lock): `LQShare.allowed()` (fortune-share.js) no longer allows share / print when
 fortune-crisis.js failed to load; it uses the v3 stand-in (`FortuneAI.crisis.api()`) and, with no crisis module at all,
 refuses in the crisis / calm state.
+
+## print-report after the merge of main 56957344, tag `relock-share-print-v3` (coordinator decision ก, 2026-11-18; reversible)
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/e2e/fortune-share-print-kit.mjs (old bytes sha256 `7f8b2ad1…` kept as `~/LENSIQ-field/evals/fortune-share-print/fortune-share-print-kit.mjs`; new `fortune-share-print-kit.v2.mjs`) | real path [th / en / zh]: crisis words in the tarot question | waits for the support card (`.fa-support`); then no share / print button; `LQShare.share()` and `print()` refuse | waits for `data-lq-crisis="1"`; the reading is drawn (auto pick + reveal, >= 3 sections); exactly one closing line `.lq-helpline-result` with a warm line and a visible `tel:1323` >= 44 px, after the last section, nothing shown after it in its area, no support card; then the same no-button and refuse assertions, now with a whole reading on screen | a, d (card removed by crisis v3, owner decision 84 ก) | the same check; STRICTER-OR-EQUAL |
+
+Product fix in the same round (not a re-lock): in the crisis / calm state fortune-share.js creates no share or print control
+and removes its own (an empty result area, the iching Daily tab, held the hidden bar's text: crisis-net-hotfix-e E3 failed in
+CI 44138592932).

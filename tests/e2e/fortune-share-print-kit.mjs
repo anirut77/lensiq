@@ -425,12 +425,42 @@ export async function run({ base, launch, check, fakeCams }, only) {
 
     const CRISIS = { th: "อยากตายจริงๆ ไม่ไหวแล้ว", en: "I want to kill myself", zh: "我不想活了" };
     for (const lang of [only]) {
-      await check(`real path [${lang}]: crisis words in the tarot question → support card, no share or print button`, async () => {
+      // RE-LOCK 2026-11-18 (crisis v3, owner decision 84 ก; coordinator decision ก; ledger docs/CRISIS-V3-RELOCKS.md tag
+      // `relock-share-print-v3`). BEFORE: waited for the support card (.fa-support), which crisis v3 removed (the reading goes on,
+      // gently, and ends with one closing line). NOW: waits for the crisis state; the reading is then drawn (auto pick + reveal)
+      // and must end with exactly one closing line holding tel:1323 (>= 44 px), after the last section, with no card and nothing
+      // shown after it in its area; every earlier assertion (no share / print button, share() and print() refuse) is kept and now
+      // runs with a whole reading on screen. STRICTER-OR-EQUAL.
+      await check(`real path [${lang}]: crisis words in the tarot question → crisis state, the reading ends with the closing line and tel:1323, no card, no share or print button`, async () => {
         const page = await openPage(browser, base, fakeCams, "tarot", lang, [STUBS]);
         try {
           await page.evaluate(t => { document.getElementById("trQuestion").value = t; document.getElementById("trStart").click(); }, CRISIS[lang]);
-          await page.waitFor(() => !!document.querySelector(".fa-support"), 8000);
-          await sleep(500);
+          await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1", 8000);
+          await sleep(600);
+          await page.evaluate(() => { const a = document.getElementById("trAuto"); if (a) a.click(); });
+          await sleep(900);
+          await page.evaluate(() => { const r = document.getElementById("trReveal"); if (r) r.click(); });
+          await page.waitFor(() => [...document.querySelectorAll("#trResult .fa-section")].filter(e => e.getClientRects().length > 0).length >= 3, 25000);
+          await sleep(800);
+          const end = await page.evaluate(`(() => { ${VIS}
+            const cards = [...document.querySelectorAll(".fa-support")].filter(vis).length;
+            const lines = [...document.querySelectorAll(".lq-helpline-result")].filter(e => vis(e) && !e.closest("#lqHelpTop"));
+            if (lines.length !== 1) return "closing lines shown: " + lines.length + (cards ? ", cards: " + cards : "");
+            if (cards) return "a support card is shown: " + cards;
+            const c = lines[0], a = c.querySelector('a[href="tel:1323"]');
+            if (!a || !vis(a)) return "no visible tel:1323 in the closing line";
+            const h = a.getBoundingClientRect().height; if (h < 44) return "closing-line tel:1323 is " + Math.round(h) + " px tall (< 44)";
+            if (!(c.querySelector(".lq-helpline-warm") || { textContent: "" }).textContent.trim()) return "no warm line in the closing line";
+            const secs = [...document.querySelectorAll(".fa-section")].filter(e => e.getClientRects().length > 0);
+            if (!secs.length || !(secs[secs.length - 1].compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING)) return "closing line is not after the last section";
+            const area = c.closest('[data-lq-result], [id$="Result"], #rpOut') || c.parentElement, bad = [];
+            for (const e of area.querySelectorAll("*")) {
+              if (c.contains(e) || !(c.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING) || !vis(e)) continue;
+              let t = ""; for (const n of e.childNodes) if (n.nodeType === 3) t += n.textContent;
+              if (t.trim() || e.matches("img, canvas, svg, a[href], button")) bad.push((e.id ? "#" + e.id : e.tagName.toLowerCase() + "." + String(e.className).split(" ")[0]) + " " + JSON.stringify(t.trim().slice(0, 30)));
+            }
+            return bad.length ? "shown after the closing line: " + bad.slice(0, 6).join("; ") : ""; })()`);
+          assert(!end, "v3 end of reading: " + end);
           const b = await page.evaluate(BUTTONS);
           assert(b.hasApi, "window.LQShare missing");
           assert(!b.share.length && !b.print.length, "buttons next to the support card " + S(b));
