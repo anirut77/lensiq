@@ -20,13 +20,13 @@
 <title data-i18n="faceread.title">อ่านโหงวเฮ้ง | LENSIQ</title>
 <meta name="description" content="อ่านโหงวเฮ้งจากใบหน้าผ่านกล้อง สำหรับบูธและอีเวนต์ ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ">
 <link rel="stylesheet" href="styles.css?v=20">
-<link rel="stylesheet" href="faceread.css?v=7">
+<link rel="stylesheet" href="faceread.css?v=8">
 <link rel="stylesheet" href="lensiq-capture-hint.css?v=1">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=23"></script>
+<script src="nav.js?v=24"></script>
 
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
@@ -51,6 +51,14 @@
 
   <section class="fr-stage" id="frStage" aria-label="ถ่ายภาพหรืออัปโหลดรูป" data-i18n-attr="aria-label:faceread.stage">
     <div class="fr-camcard">
+      <div class="fr-mode" id="frMode" role="group" aria-label="ใครเป็นคนถูกถ่าย" data-i18n-attr="aria-label:faceread.mode.aria">
+        <button type="button" class="chip fr-mode-btn" id="frModeSelf" aria-pressed="true" data-i18n="faceread.mode.self">ถ่ายตัวเอง (กล้องหน้า)</button>
+        <button type="button" class="chip fr-mode-btn" id="frModeOther" aria-pressed="false" data-i18n="faceread.mode.other">ถ่ายให้คนอื่น (กล้องหลัง)</button>
+      </div>
+      <div class="fr-consent" id="frConsent" hidden>
+        <p id="frConsentLine" data-i18n="faceread.consent.line">ถ่ายภาพคนอื่นได้เฉพาะเมื่อเจ้าตัวรู้และยินยอมแล้วเท่านั้น ภาพไม่ถูกบันทึกและไม่ถูกส่งออกจากเครื่องนี้</p>
+        <label class="fr-consent-ok"><input type="checkbox" id="frConsentOk"> <span data-i18n="faceread.consent.ok">เจ้าตัวรู้และยินยอมให้ถ่ายแล้ว</span></label>
+      </div>
       <div class="fr-cam" id="frCam">
         <video id="frVideo" autoplay muted playsinline></video>
         <canvas id="frOverlay" data-lq-result width="640" height="480"></canvas>
@@ -261,7 +269,7 @@
 
 <script src="vendor/face-api.js"></script>
 <script src="i18n/zh-fortune.js?v=10"></script>
-<script src="i18n/zh-fortune-faceread.js?v=11"></script>
+<script src="i18n/zh-fortune-faceread.js?v=13"></script>
 <script src="i18n/zh-kb-face.js?v=1"></script>
 <script src="lensiq-config.js?v=13"></script>
 <script src="lensiq-track.js?v=3"></script>
@@ -281,6 +289,6 @@
 <script src="lensiq-look.js?v=1"></script>
 <script src="faceread-kb.js?v=7"></script>
 <script src="lensiq-capture-hint.js?v=1"></script>
-<script src="faceread.js?v=21"></script>
+<script src="faceread.js?v=25"></script>
 </body>
 </html>

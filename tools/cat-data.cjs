@@ -410,6 +410,7 @@ const PAGES = {
   fengshui: { st: "demo", why: "fortune", claims: ["fortune"] },
   dream: { st: "demo", why: "fortune", claims: ["fortune"] },
   zodiac: { st: "demo", why: "fortune", claims: ["fortune"] },
+  compat: { st: "demo", why: "fortune", claims: ["fortune"] },
   astro: { st: "demo", why: "fortune", claims: ["fortune"] },
   lifegraph: { st: "demo", why: "fortune", claims: ["fortune"] },
   planner: { st: "demo", why: "fortune", claims: ["fortune"] },
@@ -474,7 +475,9 @@ const CATEGORIES = [
       en: "Medicine information for a pharmacist to confirm, alerts when a driver's eyes stay closed, and product inspection on the production line.",
       zh: "药品信息供药剂师确认，驾驶员长时间闭眼时提醒，以及产线上的产品质检。" },
     pages: ["medicine", "nutrition", "driver", "qc"] },
-  { n: 6, slug: "fortune", id: "fortune", icon: "🔮",
+  // owner order 2026-11-17: no status tag (สาธิต / Demo / 演示) on the fortune landing page, its tools or the index count;
+  // the pages keep st "demo" here for docs/PAGE-STATUS.md only. Accuracy and notice lines unchanged.
+  { n: 6, slug: "fortune", id: "fortune", icon: "🔮", noStatusTag: true,
     name: { th: "ดูดวงและฤกษ์มงคล", en: "Fortune & Auspicious Planning", zh: "占卜与择吉" },
     short: { th: "ดูดวง", en: "Fortune", zh: "占卜" },
     intro: { th: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน และวางแผนฤกษ์มงคล เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
@@ -489,7 +492,7 @@ const CATEGORIES = [
       en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
       zh: "基于命理学原则，属个人信仰，请自行判断。" },
     pages: ["fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui", "dream", "zodiac",
-      "astro", "lifegraph", "planner", "luckycolor", "report"] },
+      "compat", "astro", "lifegraph", "planner", "luckycolor", "report"] },
   { n: 7, slug: "studio", id: "photo", icon: "📸",
     name: { th: "สตูดิโอและสื่อ", en: "Studio & Media", zh: "影棚与媒体" },
     short: { th: "สตูดิโอ", en: "Studio", zh: "影棚" },

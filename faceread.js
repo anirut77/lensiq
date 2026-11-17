@@ -927,6 +927,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   // Tapping "open camera" again after the message re-arms the detector (ready) and allows one switch again.
   // Limits: model download 30 s, one detection 8 s, 3 errors in a row. Locked test: tests/e2e/faceread-webkit.e2e.mjs.
   var FAKE = !!(window.LQDetect && LQDetect.isTest()); // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
+  // iBUG 68: index of each point's mirror image (jaw, brows, nose, eyes, mouth) — used by the test seam above
+  var FLIP68 = [16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 27, 28, 29, 30, 35, 34, 33, 32, 31,
+    45, 44, 43, 42, 47, 46, 39, 38, 37, 36, 41, 40, 54, 53, 52, 51, 50, 49, 48, 59, 58, 57, 56, 55, 64, 63, 62, 61, 60, 67, 66, 65];
   var MODEL_MS = 30000, DET_MS = 8000, ERR_MAX = 3, modelsP = null, backendNow = null, switched = false, detGen = 0, useCanvas = false, glLost = false;
   var withTimeout = LQDetect.withTimeout, failKind = LQDetect.failKind, nets = function () { return [faceapi.nets.tinyFaceDetector, faceapi.nets.faceLandmark68Net]; };
   var loadNets = function () { return Promise.all(nets().map(function (n) { return n.loadFromUri("vendor/models/"); })); };
@@ -968,9 +971,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (FAKE) {
       var fk = LQDetect.fake(camera.deviceId || "c1", performance.now()) || [];
       return fk.map(function (d) {
-        var box = { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H };
-        if (input !== video && camera.mirrored) box.x = W - box.x - box.width; // เฟรมที่ถ่ายถูกกลับด้านแล้ว
-        return { box: box, score: d.score, pts: FR.synthFace(box) };
+        var box = { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, flip = input !== video && camera.mirrored;
+        if (flip) box.x = W - box.x - box.width; // เฟรมที่ถ่ายถูกกลับด้านแล้ว
+        // a test face may bring its own 68 points (0..1); on a mirrored copy they are flipped and renumbered like a real detector would
+        var pts = Array.isArray(d.pts) && d.pts.length === 68 ? (flip ? FLIP68.map(function (i) { return [W - d.pts[i][0] * W, d.pts[i][1] * H]; })
+          : d.pts.map(function (p) { return [p[0] * W, p[1] * H]; })) : FR.synthFace(box);
+        return { box: box, score: d.score, pts: pts };
       });
     }
     // .run(): face-api's task.then(ok) ignores the reject handler, so `await task` never settles when detection throws (iOS fault)
@@ -982,7 +988,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
 
   /* ---------- ตรวจคุณภาพสด + วงรีนำทาง ---------- */
-  var probe = document.createElement("canvas"), pctx = probe.getContext("2d", { willReadFrequently: true });
+  var probe = document.createElement("canvas");
   function grabFrame(target, mirror) {
     var w = video.videoWidth, h = video.videoHeight;
     target.width = w; target.height = h;
@@ -1006,43 +1012,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }).join("");
   }
   function qOk(items) { return items.length > 1 && items.every(function (q) { return q.ok || q.id === "light"; }); }
-  function drawGuide(det, ok, others) {
-    var w = ov.width, h = ov.height; octx.clearRect(0, 0, w, h);
-    var rx = Math.min(w, h) * 0.24, ry = rx * 1.3;
-    octx.lineWidth = Math.max(3, w / 220); octx.setLineDash([w / 60, w / 90]);
-    octx.strokeStyle = LQHint.color(ok ? "ok" : "wait");
-    octx.beginPath(); octx.ellipse(w / 2, h * 0.48, rx, ry, 0, 0, Math.PI * 2); octx.stroke(); octx.setLineDash([]);
-    if (det) { // จุดบนใบหน้า (พิกัดภาพดิบ: canvas ถูก mirror ด้วย CSS ไปพร้อมวิดีโอ)
-      octx.fillStyle = ok ? "rgba(34,211,238,.9)" : "rgba(255,255,255,.7)";
-      det.pts.forEach(function (p) { octx.beginPath(); octx.arc(p[0], p[1], Math.max(1.5, w / 500), 0, Math.PI * 2); octx.fill(); });
-    }
-    (others || []).forEach(function (o) { // ใบหน้าอื่น: หรี่ลง ไม่ใช้ในการอ่าน
-      var b = o.box;
-      octx.fillStyle = "rgba(14,20,48,.55)"; octx.fillRect(b.x, b.y, b.width, b.height);
-      octx.strokeStyle = "rgba(255,255,255,.35)"; octx.lineWidth = Math.max(2, w / 400); octx.strokeRect(b.x, b.y, b.width, b.height);
-    });
+  /* ---------- face capture guide (owner order 2026-11-16, item A; lensiq-facecap.js, loaded when the camera starts) ----------
+     Bank-style: an oval sized for a face at about 30-40 cm, ONE live instruction at a time (TH/EN/ZH), green when every check
+     passes, 3-2-1 then an automatic capture while the face holds still (restarts if it moves), a manual capture button
+     whenever exactly one face is found. Rear camera = "photograph someone else": consent tick first, wording for the person
+     holding the phone. Numbers only: no picture is stored or sent; no liveness, identity or emotion check. docs/FACE-CAPTURE.md */
+  var fcapP = null, fc = null, mode = "self";
+  function loadFaceCap() {
+    if (!fcapP) fcapP = new Promise(function (res, rej) { var s = document.createElement("script"); s.src = "lensiq-facecap.js?v=2"; s.onload = res;
+      s.onerror = function () { fcapP = null; rej(Object.assign(new Error("face guide script did not load"), { name: "NetworkError" })); }; document.head.appendChild(s); });
+    return fcapP.then(function () { fc = fc || LQFaceCap.controller({ cam: cam, canvas: ov, count: countEl, button: btnRead, busy: function () { return busy; }, fire: capture }); fc.setMode(mode); });
   }
-  /* ---------- คำแนะนำสดใต้ภาพกล้อง (lensiq-capture-hint.js): ไกลไป / ใกล้ไป / ให้อยู่ในกรอบ / ดีแล้ว อยู่นิ่ง ๆ ---------- */
-  var hintUi = LQHint.mount(cam, { id: "frHint", kind: "face" }), hintTrack = LQHint.createTracker({ far: 0.5, near: 1.05, center: 0.3 });
-  hintUi.el.hidden = true;
-  /** กรอบวงรีนำทาง (ตรงกับ drawGuide) เป็นกล่อง {x,y,w,h} พิกเซลภาพดิบ */
-  var ovalBox = function (W, H) { var rx = Math.min(W, H) * 0.24, ry = rx * 1.3; return { x: W / 2 - rx, y: H * 0.48 - ry, w: 2 * rx, h: 2 * ry }; };
-  /** สถานะคำแนะนำจากรายการตรวจที่มีอยู่แล้ว (FR.quality) + กรอบใบหน้า — ไม่มีโมเดลใหม่ ไม่เก็บภาพ; ปุ่มอ่านใช้เกณฑ์เดิม */
-  function updateHint(det, n, q, light, W, H) {
-    var it = function (id) { return q.filter(function (x) { return x.id === id; })[0]; }, size = it("size"), yaw = it("yaw"), roll = it("roll");
-    var r = hintTrack.update({ subject: det ? { x: det.box.x, y: det.box.y, w: det.box.width, h: det.box.height } : null, frame: ovalBox(W, H), image: { w: W, h: H }, n: n,
-      small: !!(size && !size.ok), tilt: !!((yaw && !yaw.ok) || (roll && !roll.ok)), dark: !!(light && light.mean < FR.QUALITY.lumaLo), blocked: !qOk(q) }, performance.now());
-    // "ok" (green) only while the Read button's own rule passes: the tracker's hold may keep ok for 0.4 s after the face goes
-    // bad, but the Read button turns off at once, so the line shows the new state at once (independent review B1)
-    var st = r.state === "ok" && !qOk(q) ? (r.raw !== "ok" ? r.raw : "wait") : r.state;
-    hintUi.el.hidden = false; hintUi.set(st);
-    return st;
-  }
-  function hideHint() { hintTrack.reset(); hintUi.set("wait"); hintUi.el.hidden = true; }
+  function hideHint() { if (fc) fc.hide(); }
   async function startLoop() {
     if (looping) return; looping = true; var errs = 0, noFaceSince = 0;
     while (camera.active && looping) {
-      if (!busy && ready && video.videoWidth) {
+      if (!busy && ready && fc && video.videoWidth) {
         var gen = detGen, now = performance.now(); try {
           if (glLost) throw Object.assign(new Error("WebGL context lost"), { name: "ContextLost" }); var W = video.videoWidth, H = video.videoHeight, input = video;
           // a phone that hands the detector blank <video> pictures: after 8 s without a face, detect on a canvas copy
@@ -1050,11 +1035,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
           var list = await withTimeout(detectAll(input, 224), DET_MS, "DetectTimeout"); if (gen !== detGen || !looping) throw new Error("stale frame (detector reset)");
           errs = 0; if (list.length || FAKE || useCanvas) noFaceSince = 0; else if (!noFaceSince) noFaceSince = now;
           else if (now - noFaceSince > 8000) { useCanvas = true; console.info("faceread: no face from <video> for 8 s, detecting on a canvas copy"); }
-          var pk = FR.pickFace(list, lockPrev, W, H), det = pk.index >= 0 ? list[pk.index] : null, light = null; lockPrev = pk.boxN;
-          if (det) { if (input !== probe) grabFrame(probe, false); light = FR.lightStats(pctx.getImageData(0, 0, probe.width, probe.height), det.box); }
-          lastQ = FR.quality(det, W, H, light, list.length);
-          if (!busy) { var hs = updateHint(det, list.length, lastQ, light, W, H); renderQc(lastQ); btnRead.disabled = !qOk(lastQ);
-            drawGuide(det, hs === "ok", list.filter(function (d) { return d !== det; })); }
+          var pk = FR.pickFace(list, lockPrev, W, H), det = pk.index >= 0 ? list[pk.index] : null; lockPrev = pk.boxN;
+          var img = fc.read(input, W, H, det), bx = det && det.box; // only the region around the face (D3): read, never kept
+          lastQ = FR.quality(det, W, H, bx ? FR.lightStats(img, { x: bx.x - img.x0, y: bx.y - img.y0, width: bx.width, height: bx.height }) : null, list.length);
+          if (!busy) { renderQc(lastQ); fc.frame(det, list, img, W, H, now); }
         } catch (e) { console.warn(e); if (gen === detGen && looping && (failKind(e) !== "other" || ++errs >= ERR_MAX)) { errs = 0; await recover(e); } }
       }
       await sleep(250);
@@ -1062,28 +1046,50 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     looping = false; hideHint();
   }
 
+  /* ---------- selfie or someone else (rear camera; consent tick first) ---------- */
+  var modeSelf = $("#frModeSelf"), modeOther = $("#frModeOther"), consentBox = $("#frConsent"), consentOk = $("#frConsentOk");
+  var askConsent = function () { engineT("faceread.eng.needConsent", "ถ่ายให้คนอื่น: ขอความยินยอมจากเจ้าตัวก่อน ติ๊กช่องยินยอม แล้วกด เปิดกล้อง", null, "ok"); };
+  function setMode(m) {
+    if (m !== mode) { mode = m; if (m === "other") consentOk.checked = false; }
+    modeSelf.setAttribute("aria-pressed", String(mode === "self")); modeOther.setAttribute("aria-pressed", String(mode === "other"));
+    consentBox.hidden = mode !== "other";
+    if (!btnCam.hidden) btnCam.disabled = mode === "other" && !consentOk.checked;
+    if (fc) fc.setMode(mode);
+    btnRead.dataset.i18n = mode === "other" ? "faceread.frReadOther" : "faceread.frRead"; btnRead.textContent = T(btnRead.dataset.i18n, "อ่านโหงวเฮ้ง");
+  }
+  modeSelf.addEventListener("click", function () { if (busy || mode === "self") return; var wasLive = camera.active; setMode("self"); if (wasLive) { stopLive(); hideHint(); btnCam.click(); } });
+  modeOther.addEventListener("click", function () { if (busy || mode === "other") return; if (camera.active) { stopLive(); hideHint(); } setMode("other"); askConsent(); });
+  // consent withdrawn while the back camera is on (or reading): camera off at once, count cancelled, nothing read (review D1)
+  consentOk.addEventListener("change", function () { if (mode === "other" && !consentOk.checked && (camera.active || busy)) { stopLive(); hideHint(); askConsent(); } setMode(mode); });
+  /** a back camera reached any other way (the flip control, the camera list) without the consent tick is closed at once */
+  camera.listen(function (c, ev) { if (ev.type !== "started" || !c.active) return;
+    if (c.facing === "environment" && !(mode === "other" && consentOk.checked)) { stopLive(); hideHint(); setMode("other"); askConsent(); }
+    else if (c.facing !== "environment" && mode === "other") setMode("self"); });
+
   btnCam.addEventListener("click", async function () {
-    btnCam.disabled = true;
+    if (mode === "other" && !consentOk.checked) return setMode(mode); else btnCam.disabled = true;
     engineT("faceread.eng.opening", "กำลังเปิดกล้องและโหลดโมเดล...");
     try {
-      // speed pass 2026-11-14: models are fetched only once the camera is open (nothing is downloaded if the camera is refused)
-      await camera.start();
-      engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
+      // speed pass 2026-11-14: models (and the face guide script) are fetched only once the camera is open
+      // LQCam's public start(id) takes no facing; flip() opens the other side (start("", {face}) inside) when the facing differs
+      var want = mode === "other" ? "environment" : "user"; await (camera.facing === want ? camera.start() : camera.flip());
+      // closed again at once = a back camera without the consent tick
+      if (!camera.active) return; engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
       // never a live camera without a detector; a retry after liveDead() re-arms the detector (the models are still loaded)
-      try { await loadModels(); } catch (e) { stopLive(); modelMsg(e); return; } ready = true; switched = false; $("#frCamHint").hidden = true;
-      engineT("faceread.eng.camReady", "กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี มองตรง แล้วกด อ่านโหงวเฮ้ง", null, "ok");
-      btnCam.hidden = true; btnRead.hidden = false; } catch (e) { camErr(e); btnCam.disabled = false; }
+      try { await Promise.all([loadModels(), loadFaceCap()]); } catch (e) { stopLive(); modelMsg(e); return; } ready = true; switched = false; $("#frCamHint").hidden = true;
+      if (mode === "other") engineT("faceread.eng.camReadyRear", "กล้องหลังพร้อม — เล็งให้ใบหน้าของเขาอยู่ในวงรี เมื่อวงรีเป็นสีเขียว ระบบจะนับ 3-2-1 แล้วถ่ายเอง", null, "ok");
+      else engineT("faceread.eng.camReadyAuto", "กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี เมื่อวงรีเป็นสีเขียว ระบบจะนับ 3-2-1 แล้วถ่ายเอง หรือกด อ่านโหงวเฮ้ง", null, "ok");
+      btnCam.hidden = true; btnRead.hidden = false; } catch (e) { camErr(e); btnCam.disabled = false; setMode(mode); }
   }); // D-13: the camera-off control (#frStopCam) shows while the start button is hidden (faceread.css)
-  $("#frStopCam").addEventListener("click", function () { if (busy) return; stopLive(); hideHint(); octx.clearRect(0, 0, ov.width, ov.height);
+  $("#frStopCam").addEventListener("click", function () { if (busy) return; stopLive(); hideHint(); octx.clearRect(0, 0, ov.width, ov.height); setMode(mode);
     engineT("faceread.eng.camOff", "ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อใช้ต่อ หรืออัปโหลดรูป", null, "ok"); });
 
-  /* ---------- อ่านจากกล้อง: นับถอยหลัง 3-2-1 แล้วเก็บ ~10 เฟรม ---------- */
-  btnRead.addEventListener("click", async function () {
+  /* ---------- capture: automatic after 3-2-1, or the manual button at once; ~10 frames of the same face are averaged ---------- */
+  async function capture() {
     if (busy || !camera.active) return;
-    busy = true; btnRead.disabled = true; touch();
+    busy = true; btnRead.disabled = true; touch(); if (fc) fc.auto.hold(); var offGreen = !(fc && LQFaceCap.green(fc.state));
     try {
-      for (var n = 3; n >= 1; n--) { countEl.textContent = n; countEl.hidden = false; await sleep(800); }
-      countEl.textContent = T("faceread.count.reading", "กำลังอ่าน..."); countEl.classList.add("small");
+      countEl.textContent = T("faceread.count.reading", "กำลังอ่าน..."); countEl.classList.add("small"); countEl.hidden = false;
       // ล็อกคนแรกที่ผ่านเกณฑ์ แล้วเก็บเฉพาะเฟรมของคนนั้น (ไม่เฉลี่ยจุดของสองคนเข้าด้วยกัน)
       var capt = FR.createCapture({ minIou: 0.3, accept: function (d) { var pose = FR.headPose(d.pts); return Math.abs(pose.yaw) <= FR.QUALITY.yaw * 1.3 && Math.abs(pose.roll) <= FR.QUALITY.roll * 1.3; } });
       var frames = capt.frames, snaps = [];
@@ -1093,13 +1099,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         if (d) snaps.push({ cv: cv, d: d });
         countEl.textContent = T("faceread.count.pct", "กำลังอ่าน {p}%", { p: Math.round(frames.length / FRAMES * 100) });
       }
+      if (mode === "other" && !consentOk.checked) return askConsent(); // consent withdrawn during the reading: nothing shown or counted, the consent line stays (N2)
       if (frames.length < 4) { if (capt.skipped) engineT("faceread.eng.otherFace", "มีใบหน้าอื่นเข้ามาในกรอบ ให้อยู่คนเดียวแล้วลองอีกครั้ง", null, "err"); else engineT("faceread.eng.unstable", "ยังจับใบหน้าได้ไม่นิ่งพอ ลองมองตรงและอยู่นิ่ง ๆ อีกครั้ง", null, "err"); return; }
-      var avg = capt.average();
-      var snap = snaps[Math.floor(snaps.length / 2)];
-      showResult(snap.cv, avg, snap.d.box);
+      var snap = snaps[Math.floor(snaps.length / 2)]; showResult(snap.cv, capt.average(), snap.d.box);
+      if (!offGreen && mode === "other") engineT("faceread.eng.rearDone", "ถ่ายเสร็จแล้ว ถ้าจะถ่ายคนต่อไป ขอความยินยอมจากเจ้าตัวและติ๊กช่องยินยอมใหม่", null, "ok");
+      if (offGreen) engineT("faceread.eng.notGreen", "ถ่ายก่อนวงรีเป็นสีเขียว ผลอาจคลาดเคลื่อน", null, "err"); // review D4
     } catch (e) { console.error(e); if (failKind(e) === "oom") failLine("oom"); else failLine("readFail2"); }
-    finally { countEl.hidden = true; countEl.classList.remove("small"); busy = false; btnRead.disabled = !(lastQ && qOk(lastQ)); }
-  });
+    finally { countEl.hidden = true; countEl.classList.remove("small"); busy = false; btnRead.disabled = !(fc && fc.manualOk());
+      // rear mode: one tick = one person (review D2); the next person needs a new tick and a new start
+      if (mode === "other") { consentOk.checked = false; if (camera.active) { stopLive(); hideHint(); } setMode(mode); } } }
+  btnRead.addEventListener("click", function () { capture(); });
 
   /* ---------- อัปโหลดรูป ---------- */
   fileIn.addEventListener("change", async function () {

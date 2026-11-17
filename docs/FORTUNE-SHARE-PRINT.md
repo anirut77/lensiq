@@ -33,7 +33,7 @@ numbers, fengshui, dream, zodiac, astro, lifegraph, planner, luckycolor, report)
 Nothing is uploaded: the card is drawn on a canvas in the browser, kept as an in-memory `blob:` image and handed to the share
 sheet or saved. The card code (`fortune-share-card.js`) and fonts are fetched once the result is on screen, so making and sharing
 the card makes no network request (locked test S3 / W3 counts zero requests to any origin). LINE and Facebook open only when the
-user taps them, and receive text and the page link, never the image. PDPA note: `docs/PDPA-NOTES-FOR-COUNSEL.md` section L.
+user taps them, and receive text and the page link, never the image. PDPA note: `docs/PDPA-NOTES-FOR-COUNSEL.md` section L2.
 
 ## Files
 

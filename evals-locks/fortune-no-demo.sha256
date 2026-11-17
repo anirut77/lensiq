@@ -1,0 +1,19 @@
+# locked 2026-11-17T02:41:50Z (tools/eval-guard.mjs lock, 3 files)
+520cbdf12ea104e72c3642a4936e3316166b3a504568f9a2bf74ea954b7b687b  fortune-no-demo.test.js
+b59fafda6a2054eb02eaf253ab2f119b3c51f6cd634e1b4400ad1f180d25f34d  fortune-no-demo.e2e.mjs
+c8ab6ef2b2ed7f50ad91adfe85774096d4cbd236557cef8e5281348045ed0d0d  walkfix.test.js
+# repo copies (byte-identical to the locked files above), locked 2026-11-17 BEFORE the change on branch fortune-no-demo (base 02fdd69). Owner order 2026-11-17: remove the สาธิต tag from the fortune category page and every fortune item.
+# walkfix.test.js amendment 6 (re-lock, append-only), reason: "owner order 2026-11-17: remove สาธิต tag from fortune". Only W-012 changes: a solutions.html card that links to a fortune page (category 6) must carry NO status badge; every other card keeps every W-012 check unchanged. Baseline (before the change): fortune-no-demo.test.js 1/5 pass (tests 1-3 fail as expected, 4-5 pass).
+520cbdf12ea104e72c3642a4936e3316166b3a504568f9a2bf74ea954b7b687b  tests/unit/fortune-no-demo.test.js  # repo file
+b59fafda6a2054eb02eaf253ab2f119b3c51f6cd634e1b4400ad1f180d25f34d  tests/e2e/fortune-no-demo.e2e.mjs  # repo file
+c8ab6ef2b2ed7f50ad91adfe85774096d4cbd236557cef8e5281348045ed0d0d  tests/unit/walkfix.test.js  # repo file (amendment 6)
+# locked 2026-11-17T02:46:29Z (tools/eval-guard.mjs lock, 2 files)
+bb54d33de8f216d90a8f12edce78d8249229afeb79d9164e652731624107ee54  cat-pages.test.js
+63a3e6ea430af202989441f165d0f231b1af9554e6b8d56a61da6c174b1c9a74  categories.e2e.mjs
+# re-lock 2026-11-17 (append-only), reason: "owner order 2026-11-17: remove สาธิต tag from fortune". Found when running the unit suite after the change: cat-pages.test.js ("landing pages: static markup ... status tag") and categories.e2e.mjs ("each tool with status tag") asserted a status tag on EVERY card, fortune included. Only that assertion changes: a category with noStatusTag (fortune) must show NO status tag and no data-status; every other category keeps the status-tag check unchanged.
+bb54d33de8f216d90a8f12edce78d8249229afeb79d9164e652731624107ee54  tests/unit/cat-pages.test.js  # repo file
+63a3e6ea430af202989441f165d0f231b1af9554e6b8d56a61da6c174b1c9a74  tests/e2e/categories.e2e.mjs  # repo file
+# locked 2026-11-17T02:57:24Z (tools/eval-guard.mjs lock, 1 file)
+e0d9a801e786a58050588021c6d11dba6588ed6abb7dfdbe903d9e7e827c9876  fortune-no-demo.v2.test.js
+# re-lock 2026-11-17 (append-only): fortune-no-demo.test.js v2 = formatting only (format-check: two lines over 200 characters, BASE_ST and the security counts wrapped). No assertion, expected value or page changed. v1 kept as fortune-no-demo.test.js.
+e0d9a801e786a58050588021c6d11dba6588ed6abb7dfdbe903d9e7e827c9876  tests/unit/fortune-no-demo.test.js  # repo file (v2)

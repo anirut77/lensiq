@@ -1131,7 +1131,7 @@ shows the salon's own catalogue names labelled as the salon's text; may a salon 
 
 (d) **Volunteer set** for field numbers: `docs/LOOK-VOLUNTEER-PROTOCOL.md` (Thai consent form, draft for legal review).
 
-## L. Fortune share and print (owner order 2026-11-16; branch `fortune-share-print`, `docs/FORTUNE-SHARE-PRINT.md`)
+## L2. Fortune share and print (owner order 2026-11-16; branch `fortune-share-print`, `docs/FORTUNE-SHARE-PRINT.md`)
 
 (a) **User-initiated, nothing uploaded.** The result card is drawn in the browser and only leaves the device when the user
 taps the phone's share sheet, LINE, Facebook or save. LENSIQ receives nothing. LINE gets the card text and page link (no
@@ -1146,3 +1146,22 @@ for a face photo the user posts themselves (s.26 biometric question as in K1)?
 
 (c) **Print / PDF** stays on the device (browser print dialog). The camera photo is not printed. Nothing to add for counsel
 unless a kiosk prints for walk-in customers at an event (then the operator holds the paper: retention note in the pilot kit?).
+
+## L. Compatibility (ดวงสมพงษ์, `compat.html`, 2026-11-16, branch fortune-compat; legal packet §15, L72–L73)
+
+(a) **Other people's birth data.** The user enters birth dates (optionally a time and a nickname) of a partner, family member,
+friend or co-worker. Before the second person's fields can be filled the user ticks: "I have informed the person(s) whose
+birth details I am entering, and I am responsible for the data I enter" (TH / EN / ZH). Without the tick nothing is computed.
+Question: is "informed" enough, or should it say "has agreed"? Does the personal / household exemption (s.4(1)) cover the
+user, and what is our position as the tool provider?
+
+(b) **Processing.** Everything runs in the browser (compat.js). Nothing is stored (no localStorage / sessionStorage /
+cookies; checked by the locked e2e test N1), nothing is sent, no AI. The planet calculator is a static same-origin file. No
+share card or PDF is built on this branch; the share / print hook (`data-lq-shareable`) marks only the overview, and the
+share work (branch fortune-share-print) must keep names and birth dates off the card unless the user types them in.
+
+(c) **Belief data (s.26)?** A compatibility reading of a named person may be "belief" data; same question as legal packet
+6.4 for saved readings. Here nothing is saved.
+
+(d) **Group and work use.** Group mode shows a one-line notice that the result is not for hiring, promotion, pay or
+dismissal (L73). Roles are written as strengths; group mode shows no numeric scores.

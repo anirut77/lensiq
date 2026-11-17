@@ -79,6 +79,8 @@
   "nav.iching.desc": "掷硬币起卦，六十四卦",
   "nav.zodiac.title": "十二生肖 · 犯太岁",
   "nav.zodiac.desc": "年度运势与吉祥配对",
+  "nav.compat.title": "合婚合盘",
+  "nav.compat.desc": "两人或整个小组的契合度，对照四种传统",
   "nav.astro.title": "西洋星座",
   "nav.astro.desc": "太阳、月亮、上升星座",
   "nav.dream.title": "解梦",
