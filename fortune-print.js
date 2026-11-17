@@ -249,7 +249,7 @@
   const allowed = () => { const SP = share(); return SP && SP.allowed ? SP.allowed(doc) : false; };
 
   /* ---------- reading a result on screen into the model ---------- */
-  const SKIP = "button,select,input,textarea,form,nav,script,style,template,noscript,dialog,video,audio,iframe,summary,label,legend," +
+  const SKIP = "button,select,input,textarea,form,nav,script,style,template,noscript,dialog,video,audio,iframe,label,legend," +
     ".lq-toc,[data-lq-toc],[data-lq-sp-bar],[data-lq-sp-opt],[data-lq-sp],.rp-actions,.no-print,[data-lq-no-print],.lq-sp-dlg,.lq-helpbar," +
     ".lq-camhelp,.lq-disc-mini,.lq-helpline,[role=tablist],[role=tab],[role=toolbar],[role=menu],[role=dialog],[role=banner],.sr-only,.visually-hidden," +
     ".toast,.lq-demo-banner,.banner,.fa-consent,.fa-ai-badge,button.lq-more";
@@ -275,7 +275,7 @@
   };
   /** visible text of an inline run, without skipped parts; swatches found inside come back as {hex, name} */
   function inlineOf(e, ctx) {
-    let out = ""; const sw = [];
+    let out = ""; const sw = []; const nodes = Array.isArray(e) ? e : [...e.childNodes];
     const walk = n => {
       if (n.nodeType === 3) { out += n.textContent; return; }
       if (n.nodeType !== 1) return;
@@ -287,7 +287,7 @@
       if (n.tagName === "svg" || n.classList.contains("lq-advice") || skipEl(n, ctx.photo)) return; // advice boxes: read on their own
       for (const k of n.childNodes) walk(k);
     };
-    for (const k of e.childNodes) walk(k);
+    for (const k of nodes) walk(k);
     const text = ctx.clean(txt(out));
     // one swatch in a short text: that text is its label (the screen's own); otherwise each swatch gets its colour name
     if (sw.length === 1 && text && text.length <= 40) return { text: "", sw: [{ hex: sw[0].hex, name: text }] };
@@ -428,6 +428,7 @@
       if (tag === "TABLE") { table(e); return; }
       if (tag === "CANVAS" || tag === "IMG") { figure(e); return; }
       if (tag === "svg") return; // inline icons on screen; the report draws its own
+      if (tag === "SUMMARY") { const h = ctx.clean(txt(e.textContent)); if (h) start(3, h); return; } // a <details> label, printed as a heading
       if (tag === "HR") return;
       const kids = [...e.childNodes].filter(n => n.nodeType === 1 ? !skipEl(n, ctx.figure ? "" : ctx.photo) : n.nodeType === 3 && txt(n.textContent));
       // fact cards (label / value / note in small blocks) read as one line on paper; a row of them becomes a short list
@@ -439,7 +440,17 @@
       if (one) { add({ t: "p", text: one }); return; }
       const hasBlock = kids.some(n => n.nodeType === 1 && (isBlock(n) || /^(CANVAS|IMG)$/.test(n.tagName) || n.querySelector("canvas, img, h1, h2, h3, h4, ul, ol, table, p, div, section")));
       if (!hasBlock) { if (isBlock(e) || tag === "P" || tag === "SPAN") para(e, e.classList.contains("lq-caution") ? { caution: true } : null); return; }
-      for (const n of kids) walk(n);
+      // mixed content: each run of inline content between block children is one paragraph, as it reads on screen (bold, spans,
+      // Thai word-break spans stay inside it); block children are walked on their own
+      let run = [];
+      const flushRun = () => { if (!run.length) return; const r = inlineOf(run, ctx); run = []; if (r.text || r.sw.length) add({ t: "p", text: r.text, sw: r.sw }); };
+      for (const n of kids) {
+        const inlineNode = n.nodeType === 3 || (!isBlock(n) && !/^(CANVAS|IMG|SUMMARY)$/.test(n.tagName) && !n.classList.contains("lq-advice") && !n.classList.contains("lq-sw") &&
+          !(ctx.photo && n.matches(ctx.photo)) && !n.querySelector("canvas, img, h1, h2, h3, h4, ul, ol, table, p, div, section"));
+        if (inlineNode) { run.push(n); continue; }
+        flushRun(); walk(n);
+      }
+      flushRun();
     };
     const roots = Array.isArray(rootEl) ? rootEl : [rootEl];
     for (const r of roots) if (r) for (const n of r.childNodes) walk(n);
