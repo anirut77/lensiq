@@ -211,7 +211,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var CRx = window.LQFortuneCrisis, lang = (window.LQI18N && window.LQI18N.lang) || "th";
     // hotfix 2026-11-16: every free-text field of the page, before anything else (the shuffle / coin step itself is not a result;
     // in the crisis state the reading that follows is the card again)
-    var hard = !!(FAx && FAx.crisis && (FAx.crisis.check(q) || FAx.crisis.check(FAx.crisis.fields())));
+    // round 2: once the card was shown the crisis flag holds: an ordinary question shows the card again
+    var hard = document.documentElement.getAttribute("data-lq-crisis") === "1" || !!(FAx && FAx.crisis && (FAx.crisis.check(q) || FAx.crisis.check(FAx.crisis.fields())));
     var soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the soft step
     if (hard) FAx.crisis.setActive(); // crisis v3 (owner decision 2026-11-17): the flag is set and the reading goes on (gentle; closing line with 1323 at its end)
     if (!soft) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
@@ -311,7 +312,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- กว้าประจำวัน ---------- */
   var dailyDone = false;
   function renderDaily() {
-    if (dailyDone) return; dailyDone = true;
+    if (dailyDone || document.documentElement.getAttribute("data-lq-crisis") === "1") return; // round 2: no daily reading in the crisis state
+    dailyDone = true;
     var c = st.daily = st.daily || IC.dailyCast(), P = c.primary;
     var date = (function () { try { return new Date().toLocaleDateString(isZh() ? "zh-CN" : isEn() ? "en-GB" : "th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); } catch (e) { return FK.dayKey(); } })();
     $("#icDaily").innerHTML = '<p class="fk-small">' + esc(date) + "</p>" + hexCard(P, c.bits, c.changing, T("iching.roleDaily", "กว้าประจำวันนี้")) +

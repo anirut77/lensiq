@@ -1,0 +1,23 @@
+# locked 2026-11-16T10:20:55Z (tools/eval-guard.mjs lock, 2 files)
+7cdcbd243db13ce12d8aa1e52b3bb4bd68d2391237d661fb8b54e689188866ae  set.json
+fa38ada9f6877f1ce68039f7a4f8f0dff9db7a29d939e7ebb1ecba785e15b7d8  review-harness.mjs
+# locked 2026-11-16T10:25:39Z (tools/eval-guard.mjs lock, 2 files)
+7cdcbd243db13ce12d8aa1e52b3bb4bd68d2391237d661fb8b54e689188866ae  set.json
+9d66db4ed9e62600e80495dd694febb64c35091b3bcb07b7d8bf88318d08d9a1  review-harness.mjs
+# re-lock (append-only) 2026-11-16: harness v2 after a 3-case trial on numbers: static field hints counted as validation and i18n re-render nodes counted as new (false positives) -> footprint of a normal reading + changed-message check; set.json unchanged
+# locked 2026-11-16T10:27:59Z (tools/eval-guard.mjs lock, 2 files)
+7cdcbd243db13ce12d8aa1e52b3bb4bd68d2391237d661fb8b54e689188866ae  set.json
+36c45906ff9aa80a39eedeae9950c2243090136bb452543d9f6d73040d6d12f6  review-harness.mjs
+# re-lock (append-only) 2026-11-16: harness v3: footprint by result ids only (class signatures such as "b." matched static page text); set.json unchanged
+# locked 2026-11-16T10:30:42Z (tools/eval-guard.mjs lock, 2 files)
+7cdcbd243db13ce12d8aa1e52b3bb4bd68d2391237d661fb8b54e689188866ae  set.json
+dd31b325d1ca7f9441b0db89c117bb4b7a31d6db5e661da5eb02c5612fd8f1ca  review-harness.mjs
+# re-lock (append-only) 2026-11-16: harness v4: static field hints ([id$=Hint], e.g. "(optional)") are not validation messages; set.json unchanged. Final harness for the measurement.
+# locked 2026-11-16T15:45:09Z (tools/eval-guard.mjs lock, 2 files)
+7cdcbd243db13ce12d8aa1e52b3bb4bd68d2391237d661fb8b54e689188866ae  set.json
+5bfed4288a63ac40326c79e303390d6c7fd36bf628c09f4a86d77e8ae6013511  review-harness.mjs
+# re-lock (append-only) 2026-11-16 late: harness v5 after the network outage: (1) the visitor opens a closed <details> before typing into a field inside it (tap on its summary; zodiac birth year, dream search, compat 2nd person were never typed into by v4: "nofocus"); (2) lc pages normal reading uses era BE + 2533 in every language (v4 typed 1990 with the BE default in EN/ZH, no reading). set.json unchanged. v4 results stay valid for every other case.
+# locked 2026-11-16T15:45:25Z (tools/eval-guard.mjs lock, 2 files)
+7cdcbd243db13ce12d8aa1e52b3bb4bd68d2391237d661fb8b54e689188866ae  set.json
+44e42ecc7d9102a116cc6848d99a55ed0f7f82fc0f8b2a8f096e6e8a333c7192  review-harness.mjs
+# re-lock (append-only): harness v6 = v5 with item (1) actually applied (the v5 lock line above was written before the <details> edit landed; v5 was never used to measure). set.json unchanged.

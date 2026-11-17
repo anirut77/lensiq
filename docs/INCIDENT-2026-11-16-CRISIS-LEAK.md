@@ -87,3 +87,66 @@ button after the text, then one small link to `counselling.html` where 1669, 191
 or floating help element. The takeover is unchanged: the result areas stay hidden and the card's contract (`.fa-support`
 with an `h3`) is the same. Placement and wording: `docs/CRISIS-RESOURCES.md`; review item: `docs/LEGAL-PACKET.md` L63;
 tests: `tests/unit/crisis-rules-1323.test.js`, `tests/e2e/crisis-rules-1323-{a,b,c}.e2e.mjs`.
+## Round 2 (2026-11-17): independent review of 5061f53
+
+Two independent reviewers re-measured 5061f53 (reviewer lock `evals-locks/crisis-net-hotfix-review.sha256`, committed in
+e32a7b2: the set was measured before that commit because the lock lived in the reviewer's removed scratch worktree; files
+unchanged, eval-guard OK). Findings, all against owner order 2026-11-16 (a) / (b) / (c):
+
+1. **Palm map stayed visible.** `#plEdit` (palm map canvas, `#plFit` fit label, title, caption) was not a result root.
+2. **Tarot / iching: the crisis flag did not hold.** An ordinary question after the card hid the card and started the
+   shuffle / coin step (the page check ignored the crisis state). The old locked assertion "card hidden again for an
+   ordinary question" (`tests/e2e/fortune-crisis.e2e.mjs`) contradicted order (a) and was re-locked STRICTER (coordinator
+   decision on the reviewer's recommendation, reversible by the owner).
+3. **Tarot daily card, siamsee stick number, iching Daily tab** showed full readings and share buttons in the crisis state.
+4. **"Report a problem with this reading" dialog** (lensiq-report.js, injected by nav.js): its note was an uncovered
+   free-text input: a crisis phrase gave no card and was saved in localStorage `lq-report-log`. The report button was also
+   attached next to the support card itself.
+5. **petread** (branch `fortune-pet` only): sticky Read bar skips the submit gate; `read()` validates species before the net.
+   Not fixed here: `docs/HOTFIX-R2-NOTES.md` for the pet team, with the script versions compat and petread must load at merge.
+6. (second reviewer) **fortune-crisis.js blocked / failing to load**: the early net (takeover) handed every check to it, so
+   the window gate showed no card (numbers showed its validation message instead).
+
+Fix (branch `crisis-net-hotfix`, after merging main 7a51bcf):
+
+- `data-lq-result` on `#plEdit`, `#plGuideBar`, `#trPick`, `.tr-daily`, `#ssFall`, `#icStage`, `#icDaily`, `#zdChongGrid`,
+  `#zdChongNote`, `#asSignGrid`: the takeover hides them with the reading.
+- tarot.js / iching.js: the crisis state counts as a hit, so every later question shows the card again; siamsee and the iching
+  daily do not draw in the crisis state.
+- lensiq-report.js: the crisis net runs on the note and the edited preview before save / copy / mail and on every keystroke;
+  on a hit nothing is stored, the dialog closes and the card takes over (`LQCrisisFirst`). The takeover style hides
+  `.lq-rp-wrap` in the crisis state.
+- lensiq-crisis-takeover.js (copied into fortune-read.js): without fortune-crisis.js the state is the `<html>` flag, the net is
+  `FortuneAI.crisis.check` (fortune-ai.js has its own TH / EN / ZH patterns) and the page fields are scanned locally; after a
+  language switch or a resize the card is brought back to the first screen.
+- Inventory v3: `.lq-rp textarea` (note + preview); `tests/unit/crisis-input-inventory-2.test.js` scans the scripts nav.js
+  injects, so a JS-created field there without a row fails.
+- Versions: fortune-read.js v12, tarot.js v13, iching.js v11, lensiq-report.js v2, nav.js v23.
+
+Fixed test set round 2 (locked before the fix in 538f5d1; field copies `~/LENSIQ-field/evals/crisis-net-hotfix-r2/`):
+`tests/e2e/crisis-net-hotfix-e.e2e.mjs` (E1–E5, TH / EN / ZH at 375 and 393 px), `tests/unit/crisis-input-inventory-2.test.js`,
+inventory v3, stricter `fortune-crisis.e2e.mjs`. One append-only re-lock during the round: E5 numbers opens the name tab
+before the baseline, as part A does (v1 counted the tab's own label "ชื่อจริง" as an echo); assertion unchanged.
+
+Round-2 numbers (synthetic, headless Chrome on the owner's Mac; TH / EN / ZH × 375 / 393 px = 6 cases per check; logs
+`~/LENSIQ-field/evals/crisis-net-hotfix-r2/baseline-5061f53-e.log`, `after1-e.log`, `after-affected.log`):
+
+| Check | Before (5061f53) | After (round 2) |
+|---|---|---|
+| E1 palm map, nickname before the reading | 0/6 | 6/6 |
+| E1 palm map, nickname after the reading | 0/6 | 6/6 |
+| E2 tarot: card only after a reading, flag holds for an ordinary question | 0/6 | 6/6 |
+| E2 iching: same | 0/6 | 6/6 |
+| E3 tarot daily card + siamsee in the crisis state | 0/6 | 6/6 |
+| E3 iching Daily tab in the crisis state | 0/6 | 6/6 |
+| E4 report dialog note, tarot (nothing saved, dialog closed, card) | 0/6 | 6/6 |
+| E4 report dialog note, iching | 0/6 | 6/6 |
+| E5 fortune-crisis.js blocked: numbers name | 0/6 | 6/6 |
+| E5 fortune-crisis.js blocked: tarot question / iching question | 6/6 / 6/6 | 6/6 / 6/6 |
+| fortune-crisis.e2e.mjs (stricter re-lock) | 0/2 | 2/2 |
+| crisis-input-inventory-2 unit | 2/3 | 3/3 |
+
+Regression (after): crisis-net-hotfix a–d, fortune-crisis-fields / -fields-2 / -session / -soft, fortune-helpline, merit-crisis,
+speed-budget all pass; unit 2372/2372. fortune-layout "item 5" fails on this branch AND on main 7a51bcf when run on
+2026-11-17: today's horoscope "today" tab (#pn-td, a hidden tab panel) holds caution paragraphs, which the check counts as
+hidden; date-dependent, not caused by this branch (reported to the coordinator; test not changed).
