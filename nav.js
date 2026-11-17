@@ -434,7 +434,7 @@
         var ws = (/\s*$/.exec(v) || [""])[0], tail = document.createElement("lq-t");
         tail.textContent = v.slice(at, v.length - ws.length);
         var nt = nxt(tn);
-        var lv = tn.parentElement.closest("button,[role=tab],.btn,label,summary,a"); if (lv && wt(tail.textContent) > 12) return;
+        var lv = tn.parentElement.closest("[role=status],[role=alert],button,[role=tab],.btn,label,summary,a"); if (lv && wt(tail.textContent) > 12) return;
         tail.className = "lq-w lq-t" + (!lv && !CP.test(((nt && nt.textContent) || "").trim()) ? " lq-b" : "");
         if (v.slice(0, at).trim() && !/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail); if (ws) tail.after(ws); }
         else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(tail); if (at) tail.before(v.slice(0, at)); if (ws) tail.after(ws); tn.replaceWith(box); }
@@ -494,7 +494,7 @@
       all.forEach(function (n) {
         var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, i, L, z, out = [], wd = null;
         var x = n.previousSibling, y = n.nextSibling, pre = 0, post = -1;
-        if (!p || DONE.get(n) === kf(n) || p.closest(SKIP + ",#siteNav,.lq-crumbs")) return;
+        if (!p || DONE.get(n) === kf(n) || p.closest(SKIP + ",#siteNav,.lq-crumbs,[translate=no]")) return;
         DONE.set(n, kf(n));
         PR.forEach(function (re) { re.lastIndex = 0; while ((m = re.exec(v))) r.push([m.index, m.index + m[0].length]); });
         if (x && IN.test(x.nodeName) && /^[\d.,]+$/.test((x.textContent || "").trim()) && (m = /^[ \t\n]+\S{1,8}/.exec(v))) r.push([0, pre = m[0].length]);
@@ -525,7 +525,7 @@
         var nn = nxt(post >= 0 ? /** @type {Node} */ (y) : n), nx = ((nn && nn.textContent) || "").trim();
         var cs = getComputedStyle(p), fl = /flex|grid/.test(cs.display), f = document.createDocumentFragment();
         if (/pre|break/.test(cs.whiteSpace)) return;
-        var live = ctl;
+        var live = ctl || p.closest("[role=status],[role=alert]");
         if (wd && (live || (wd[1] >= v.trim().length && (CP.test(nx) || (nn && !nx))))) { while (wd[0] < wd[1] && (wt(v.slice(wd[0], wd[1])) > 12 || !bd[wd[0]])) wd[0]++; out.forEach(function (q) { if (wd && q[0] < wd[0] && wd[0] < q[1]) wd[0] = q[1]; }); if (!inner(wd)) wd = null; }
         var first = Math.min(out.length ? out[0][0] : v.length, wd ? wd[0] : v.length);
         if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t lq-b"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
