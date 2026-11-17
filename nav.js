@@ -445,9 +445,10 @@
       var parts = full ? t.map(function (p) { return [p, THAI.test(p) && p.length >= 4 && p.length <= 14 && !/\s/.test(p) ? 1 : 0]; }) : loanParts(v);
       if (!parts) {
         if (k >= t.length || /lq-t/.test(tn.nextSibling && tn.nextSibling.className)) return;
-        var tail = document.createElement("lq-t"); tail.className = "lq-w lq-t"; tail.textContent = v.slice(at);
-        if (v.slice(0, at).trim() && !/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail); }
-        else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(v.slice(0, at), tail); tn.replaceWith(box); }
+        var ws = (/\s*$/.exec(v) || [""])[0], tail = document.createElement("lq-t"); // trailing space stays breakable
+        tail.className = "lq-w lq-t"; tail.textContent = v.slice(at, v.length - ws.length);
+        if (v.slice(0, at).trim() && !/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail, ws); }
+        else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(v.slice(0, at), tail, ws); tn.replaceWith(box); }
         return;
       }
       if (RT(tn) || k >= t.length && parts.length < 2 && !parts[0][1]) return;
@@ -464,7 +465,8 @@
         if (p[1]) { var w = document.createElement("span"); w.className = "lq-w"; w.textContent = x; add(w); } else buf += x;
         if (full && i < ps.length - 1 && !/\s$/.test(p[0]) && THAI.test(p[0]) && !CP.test(ps[i + 1][0])) add(document.createElement("wbr"));
       });
-      add(tail.textContent ? tail : null);
+      ws = (/\s*$/.exec(tail.textContent || "") || [""])[0]; tail.textContent = (tail.textContent || "").slice(0, -ws.length || undefined);
+      add(tail.textContent ? tail : null); buf = ws; add(null);
       tn.parentNode.replaceChild(run, tn);
     }
     function textNodes(el, min) {
