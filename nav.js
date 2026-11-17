@@ -559,7 +559,7 @@
           }
         }
         if (pending.length > 400) pending = [document.body];
-        if (pending.length && !timer) timer = idle(flush, { timeout: 400 });
+        if (pending.length && !timer) timer = idle(flush, { timeout: 150 });
       }).observe(document.body, { childList: true, subtree: true, characterData: true });
     }
     window.addEventListener("lq-lang", function () { run(document.body); });

@@ -15,6 +15,14 @@
    "contains": "日） | 来源",
    "reason": "The Chinese source link (来源, its own <a>) follows the translated sentence after a whitespace-only gap between two elements; keeping it on the sentence's line would mean moving the last words out of the translated <span>, which the translation layer rewrites on every language switch. The link itself never splits (it is kept whole).",
    "added": "2026-11-17"
+  },
+  {
+   "page": "store.html",
+   "kind": "U",
+   "lang": "en",
+   "contains": "Set maximum 20 | people",
+   "reason": "Live dashboard tile: store.js rebuilds it (innerHTML) every second and the run-time translator turns it into English; nav.js joins the number and unit again about 0.15 s after each rebuild, so a measurement can land in that gap. The joined state is the normal state.",
+   "added": "2026-11-17"
   }
  ]
 }
