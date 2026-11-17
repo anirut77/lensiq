@@ -26,13 +26,16 @@ const PANEL = "document.querySelector('.lq-merit')";
 async function readZodiac(page, kind, { afterCrisis = false } = {}) {
   // re-lock 2026-11-12 (rebase onto main 3d37445): on main a page in the crisis state never renders a reading again; the
   // next "reading" is a fresh support card (fortune-ai.js, owner order 2026-11-12). After a crisis we wait for that card.
-  if (afterCrisis) await page.evaluate(() => document.querySelectorAll(".fa-support").forEach(s => s.setAttribute("data-e2e-old", "")));
+  // RE-LOCK v3-missed 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): after a crisis the reading goes on (no card); we wait for a NEW
+  // reading that ends with the closing line (tel:1323), outside the Merit panel
+  if (afterCrisis) await page.evaluate(() => document.querySelectorAll(".fa-section").forEach(s => s.setAttribute("data-e2e-old", "")));
   await page.evaluate(k => {
     const y = +document.getElementById("zdYear").value, ya = ((y - 4) % 12 + 12) % 12, a = k === "chong" ? ya : (ya + 4) % 12;
     document.querySelector(`input[name="zdAnimal"][value="${a}"]`).click(); document.getElementById("zdForm").requestSubmit();
   }, kind);
-  const helpShown = "[...document.querySelectorAll('.fa-support')].some(s => !s.hasAttribute('data-e2e-old')"
-    + " && !s.closest('.lq-merit') && s.getClientRects().length > 0 && /1323/.test(s.textContent))";
+  const helpShown = "[...document.querySelectorAll('.fa-section')].some(s => !s.hasAttribute('data-e2e-old') && s.getClientRects().length > 0)"
+    + " && [...document.querySelectorAll('.lq-helpline-result')].some(h => !h.closest('.lq-merit') && h.getClientRects().length > 0 && !!h.querySelector('a[href=\"tel:1323\"]'))"
+    + " && !document.querySelector('.fa-support')";
   await page.waitFor(afterCrisis ? helpShown : "document.querySelectorAll('.fa-section').length >= 3", 15000);
 }
 const panelOpen = `(() => { const p = ${PANEL}; return !!p && !p.hidden && p.getBoundingClientRect().height > 0 && p.querySelectorAll('.lq-merit-card').length > 0; })()`;
@@ -164,10 +167,11 @@ export default async function ({ base, launch, check, repo }) {
         f.elements.date_from.value = "2027-01-10"; f.elements.date_to.value = "2027-01-20"; f.elements.consent.checked = true;
         f.requestSubmit();
       });
-      await page.waitFor("[...document.querySelectorAll('.fa-support')].some(s => /1323/.test(s.textContent))", 5000);
+      // RE-LOCK v3-missed 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the crisis state is set, no card; nothing sent and no form (below) unchanged
+      await page.waitFor("document.documentElement.getAttribute('data-lq-crisis') === '1' && !document.querySelector('.fa-support')", 5000);
       await sleep(500);
       assert(await page.evaluate(() => window.__meritSent.length) === 0, "nothing sent");
-      assert(await page.evaluate(() => !document.querySelector(".lq-merit-paid form")), "no form next to the support card");
+      assert(await page.evaluate(() => !document.querySelector(".lq-merit-paid form")), "no form after the crisis phrase");
       // re-lock 2026-11-12 (owner decision 2026-11-12, session-only, L59): the shared state, nothing stored by Merit
       assert(await page.evaluate(() => FortuneAI.crisis.active(document)), "shared crisis state set");
       assert(await page.evaluate(() => localStorage.getItem("lq-crisis-at") === null), "no lq-crisis-at stored");

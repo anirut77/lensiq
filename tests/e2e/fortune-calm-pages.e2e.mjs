@@ -73,7 +73,8 @@ export default async function ({ base, launch, check }) {
       try {
         await page.goto(`${base}/tarot.html`);
         await page.evaluate(() => { document.getElementById("trQuestion").value = "อยากตายจริงๆ ไม่ไหวแล้ว"; document.getElementById("trStart").click(); });
-        await page.waitFor(() => !!document.querySelector(".fa-support"), 8000);
+        // RE-LOCK v3-missed 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the crisis state instead of the card; the calm later pages (below) unchanged
+        await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1", 8000);
         for (const p of Object.keys(LUCKY)) {
           const s = await open(page, base, p);
           assert(!s.lucky.length && !s.luckyText && !s.blocks.length, p + " after the card: " + S(s));

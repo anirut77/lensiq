@@ -139,3 +139,11 @@ cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fort
 # locked 2026-11-17T05:38:04Z (tools/eval-guard.mjs lock, 1 file)
 1363d3d1125284af36df37f489242260ef844f28d7ec95d84e9773afc32b69fd  relock-fix-2/crisis-net-hotfix-e.e2e.mjs
 1363d3d1125284af36df37f489242260ef844f28d7ec95d84e9773afc32b69fd  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file (relock-fix-2)
+# RE-LOCK v3-missed 2026-11-17 (found by CI run 44032543128 on 623dd8b, shard 1/3: fortune-paid (b) waited for the card): three more files still waited for the old support card; v3 rule a: wait for the crisis state (fortune-paid dream: the dream is read, then no paid block / no price unchanged; merit: after a crisis a new reading ending with the closing line tel:1323, no card; interest-form phrase: crisis state, nothing sent, no form unchanged; fortune-calm-pages: crisis state, later calm pages unchanged).
+# locked 2026-11-17T08:00:03Z (tools/eval-guard.mjs lock, 3 files)
+4c619465a0b5259fcb4ad0e213e7ff33310edf51ae3ed29c36683251f4b5567f  relock-v3-missed/fortune-paid.e2e.mjs
+c1cf8330be462e45f33b1efaec8c01e1c3a5eee729593160664a566f3ecb8b47  relock-v3-missed/merit.e2e.mjs
+7a33d5e8e3f131fe49cb4e4f34044e4f3f8c1015b4879ff271fd41567f8cd65c  relock-v3-missed/fortune-calm-pages.e2e.mjs
+4c619465a0b5259fcb4ad0e213e7ff33310edf51ae3ed29c36683251f4b5567f  tests/e2e/fortune-paid.e2e.mjs  # repo file (relock-v3-missed)
+c1cf8330be462e45f33b1efaec8c01e1c3a5eee729593160664a566f3ecb8b47  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed)
+7a33d5e8e3f131fe49cb4e4f34044e4f3f8c1015b4879ff271fd41567f8cd65c  tests/e2e/fortune-calm-pages.e2e.mjs  # repo file (relock-v3-missed)

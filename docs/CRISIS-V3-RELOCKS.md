@@ -148,3 +148,12 @@ Locked before compat was changed to v3.
 | File | Test | Old assertion | New assertion | Why | Protection kept by |
 |---|---|---|---|---|---|
 | tests/unit/fortune-no-demo.test.js | 5. other categories unchanged | page statuses equal the baseline taken on main 02fdd69 | the same baseline plus `counselling: support` | counselling.html (owner decision 2026-11-16) exists on the crisis branches, not yet on main; it is a support page outside every category | every other status and the demo chips: same test, unchanged |
+
+## Card waits missed in the earlier passes (tag `relock-v3-missed`, found by CI run 44032543128)
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/e2e/fortune-paid.e2e.mjs | (b) calm session + typed crisis text (dream) | waits for the support card after typing | the dream is read; waits for the crisis state and a reading | a | no paid block, no price: same test (unchanged) |
+| tests/e2e/merit.e2e.mjs | readZodiac after a crisis | waits for a new support card with 1323 | waits for a new reading that ends with the closing line (tel:1323), no card | a, d | no Merit panel / paid offer after a crisis: same tests (unchanged) |
+| same | interest form with a crisis phrase | waits for the card | waits for the crisis state, no card | a | nothing sent, no form, shared state set: same test (unchanged) |
+| tests/e2e/fortune-calm-pages.e2e.mjs | real path (tarot, then hub / planner / lucky colour) | waits for the card on tarot | waits for the crisis state on tarot | a | later pages calm, help line in view: same test (unchanged) |

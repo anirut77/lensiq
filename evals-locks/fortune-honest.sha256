@@ -114,3 +114,7 @@ b83207c948b30db300b5e649487cfa4fe1987a21572316295bd41017a5fc1644  tests/e2e/fort
 # RE-LOCK 2026-11-17 (branch crisis-v3): RE-LOCK v3-e2e-b 2026-11-17: (1) test fault found measuring the build (build-3-e2e.log): English echo pieces are 3 consecutive words, not 5 letters ('night' in 'Knight', 'antto' in 'want to do') in crisis-v3-kit (re-lock 5) and crisis-net-hotfix-kit; (2) v3 re-locks missed in the first pass: fortune-crisis-fields-2 (card -> crisis state, no card; no echo of every variant kept and widened to the whole page) and fortune-helpline WANT (the printed / calm help line is the closing line, rule d). Copy: ~/LENSIQ-field/evals/crisis-v3/relock-e2e-b/.
 f167cde29953d078a045e07498a35dc1f201a88dcdcce26e0446504d2698aab4  tests/e2e/fortune-crisis-fields-2.e2e.mjs  # repo file
 52ec11739663cff705ae2b5799276dcf181b45c97a0a68943db0da52e8641ba2  tests/e2e/fortune-helpline.e2e.mjs  # repo file
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): v3-missed, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
+c1cf8330be462e45f33b1efaec8c01e1c3a5eee729593160664a566f3ecb8b47  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): v3-missed, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
+7a33d5e8e3f131fe49cb4e4f34044e4f3f8c1015b4879ff271fd41567f8cd65c  tests/e2e/fortune-calm-pages.e2e.mjs  # repo file (relock-v3-missed)
