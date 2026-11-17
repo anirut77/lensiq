@@ -1,7 +1,8 @@
 /* fortune-depth.js — the depth layer behind "อ่านเพิ่มเติม" (owner order 2026-11-17 item 3: the expanded part must be clearly
    longer and deeper than the summary and add new substance from the tradition's own material, never a few extra words).
    Generic engine only; the material is data in each discipline's knowledge files:
-     LQ_DEPTH.build[domain](facts)  -> [{ sec, key, vars?, caution? }] in reading order (registered by the Thai kb file)
+     LQ_DEPTH.build[domain](facts)  -> [{ sec, key, vars?, caution? }] in reading order (registered by the Thai kb file);
+                                       without a builder, facts.depth (non-enumerable, set by the engine) is the list
      LQ_DEPTH.text[lang][domain]    -> { key: text | [text] | { t, c } | fn(vars), _title?: section title, _name?: fn(id) }
    A text marked { c: true } (or an entry with caution: true) restrains or warns: compose() marks its paragraph caution, so the
    layout never folds it (owner rule). Entries are added only while the whole reading stays within its language's length
@@ -46,14 +47,14 @@
   function apply(/** @type {any} */ out, /** @type {any} */ facts, /** @type {string} */ lang, /** @type {any} */ opts) {
     opts = opts || {};
     if (!out || out.source !== "local" || !facts || opts.calm || !Array.isArray(out.sections)) return [];
-    const L = lang === "en" || lang === "zh" ? lang : "th", R = reg(), b = R.build[facts.domain], T = R.text[L] && R.text[L][facts.domain];
+    const L = lang === "en" || lang === "zh" ? lang : "th", R = reg(), b = R.build[facts.domain] || (Array.isArray(facts.depth) ? () => facts.depth : null), T = R.text[L] && R.text[L][facts.domain];
     if (typeof b !== "function" || !T) return [];
     let entries;
     try { entries = b(facts) || []; } catch (e) { return []; }
     const S = out.sections, cau = [], sep = L === "zh" ? 0 : 1, added = [];
     let len = S.reduce((n, s) => n + (s.paragraphs || []).reduce((m, p) => m + String(p).length + 1, 0), 0);
     const has = (/** @type {string} */ t) => S.some(s => (s.paragraphs || []).some(p => String(p).indexOf(t) >= 0));
-    // opts.dup(sections) = the composer's near-duplicate count (cross-section, > 0.65): a depth text that adds one is not used
+    // opts.dup(sections) = the composer's count of near-duplicates + lint + semantic findings: a depth text that adds one is not used
     let dups = opts.dup ? opts.dup(S) : 0;
     for (const e of entries) {
       const r = resolve(T, e.key, e.vars, L);

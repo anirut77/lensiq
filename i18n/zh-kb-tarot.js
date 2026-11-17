@@ -184,7 +184,7 @@
   if (typeof module !== "undefined" && module.exports) module.exports = D;
 })(typeof window !== "undefined" ? window : globalThis);
 /* BEGIN depth zh.tarot (fortune-depth.js: material behind "อ่านเพิ่มเติม"; {t, c: true} = restraining, always shown) */
-(function (G) {
+(/** @param {any} G */ function (G) {
   "use strict";
   var R = G.LQ_DEPTH = G.LQ_DEPTH || { build: {}, text: { th: {}, en: {}, zh: {} } };
   var T = {"_title":"牌阵深入解读",

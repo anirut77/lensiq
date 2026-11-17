@@ -1013,14 +1013,14 @@
     return out;
   }
   KB.readName = readName; KB.readEn = readEn; KB.posLeads = posLeads; KB.pairKey = pairKey; KB.pairNotes = pairNotes; KB.allPairKeys = allPairKeys; KB.numberNotes = numberNotes; KB.siamseePhr = siamseePhr;
-  (typeof globalThis !== "undefined" ? globalThis : root).LQ_TAROT_KB = KB; // the depth layer reads card elements / numbers (block at the end)
+  /** @type {any} */ (typeof globalThis !== "undefined" ? globalThis : root).LQ_TAROT_KB = KB; // the depth layer reads card elements / numbers (block at the end)
   KB.sources.push({ label: "Biddy Tarot — ความหมายไพ่และการอ่านคู่ไพ่", url: "https://www.biddytarot.com/tarot-card-meanings/" }, { label: "Labyrinthos — เลขศาสตร์ของไพ่ทาโรต์และธาตุ", url: "https://labyrinthos.co/blogs/learn-tarot-with-labyrinthos-academy" });
 
   if (typeof module !== "undefined" && module.exports) module.exports = KB;
   else root.TAROT_KB = KB;
 })(typeof window !== "undefined" ? window : this);
 /* BEGIN depth th.siamsee (fortune-depth.js: material behind "อ่านเพิ่มเติม"; {t, c: true} = restraining, always shown) */
-(function (G) {
+(/** @param {any} G */ function (G) {
   "use strict";
   var R = G.LQ_DEPTH = G.LQ_DEPTH || { build: {}, text: { th: {}, en: {}, zh: {} } };
   var T = {"_title":"อ่านลึกตามกลอนเซียมซี",
@@ -1331,7 +1331,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this);
 /* END depth th.siamsee */
 /* BEGIN depth build (fortune-depth.js: which material each reading gets, in reading order) */
-(function (G) {
+(/** @param {any} G */ function (G) {
   "use strict";
   var R = G.LQ_DEPTH = G.LQ_DEPTH || { build: {}, text: { th: {}, en: {}, zh: {} } };
   /* Siam Si: the verse explained, then the asked area first, then the slip's answer per area of life */
@@ -1373,7 +1373,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this);
 /* END depth build */
 /* BEGIN depth th.tarot (fortune-depth.js: material behind "อ่านเพิ่มเติม"; {t, c: true} = restraining, always shown) */
-(function (G) {
+(/** @param {any} G */ function (G) {
   "use strict";
   var R = G.LQ_DEPTH = G.LQ_DEPTH || { build: {}, text: { th: {}, en: {}, zh: {} } };
   var T = {"_title":"อ่านลึกตามตำราไพ่",
