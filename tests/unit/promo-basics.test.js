@@ -117,26 +117,33 @@ test("share images: PNG, exactly 1200x630, under 300 KB, one per category (home,
   }
 });
 
-test("404.html: TH / EN / 中文, noindex, CSP meta, links home with absolute URLs from the base, no relative assets", () => {
+// RE-LOCK 2 2026-11-18 (after CI run 44142070390 failed on 404.html, before the fix): the site-wide e2e gates (shared header,
+// 100 % 中文 / English mode, button states) apply to every page, 404.html included, so the not-found page is a normal site page:
+// shared header (nav.js, which also adds the terms / privacy / help footer), styles, TH in the markup and EN / 中文 through its
+// dictionary. Its own files load relative to the address like every page; the links that lead out are absolute (they work
+// from a nested missing path too).
+test("404.html: a normal site page (shared header), noindex, CSP meta, TH / EN / 中文, absolute links home, fortune and help", () => {
   assert.ok(existsSync(join(ROOT, "404.html")), "404.html");
   const html = read("404.html");
   assert.match(html, /^<!doctype html>/i);
   assert.match(html, /<html\b[^>]*\blang="th"/);
   assert.match(html, /<meta\b[^>]*http-equiv="Content-Security-Policy"/i);
   assert.match(html, /<meta\b[^>]*name="robots"[^>]*content="noindex/i);
-  assert.ok(THAI.test(html) && CJK.test(html) && /page (was )?not found/i.test(html), "three languages");
-  assert.ok(html.includes(`href="${BASE}"`), "a link to the home page (absolute base)");
-  // GitHub Pages serves 404.html at any missing path, also nested ones: every link and asset must be absolute.
-  // RE-LOCK 2026-11-18 (before any CI run): the one exception is the legal footer that tests/unit/legal-links.test.js
-  // requires on every page as literal href="terms.html" / "privacy.html" / "help.html"; the same three pages are also
-  // linked absolutely, so they work from nested missing paths too.
-  const LEGAL = new Set(["terms.html", "privacy.html", "help.html"]);
-  for (const m of html.matchAll(/\b(?:href|src)="([^"]*)"/gi)) {
-    const u = m[1];
-    assert.ok(u.startsWith(BASE) || u.startsWith("data:") || u.startsWith("#") || LEGAL.has(u), "relative or foreign URL in 404.html: " + u);
+  assert.match(html, /<header class="nav" id="siteNav"><\/header>/, "shared header");
+  assert.match(html, /<script src="nav\.js\?v=\d+"><\/script>/, "nav.js");
+  assert.match(html, /<link rel="stylesheet" href="styles\.css\?v=\d+">/, "styles.css");
+  const t = titleOf(headOf(html));
+  assert.ok(t && THAI.test(t.text) && /LENSIQ/.test(t.text), "Thai title");
+  const keys = [...html.matchAll(/data-i18n="([^"]+)"/g)].map(m => m[1]);
+  assert.ok(keys.length >= 4, "translated texts: " + keys.length);
+  const D = dictsFor(html);
+  for (const k of keys) for (const lang of ["en", "zh"]) {
+    const v = D[lang][k];
+    assert.ok(v && !THAI.test(v), `404.html ${lang} ${k}: ${v}`);
+    if (lang === "zh") assert.ok(CJK.test(v), `404.html zh ${k}: ${v}`);
   }
-  for (const d of LEGAL) assert.ok(html.includes(`href="${BASE}${d}"`), "absolute link to " + d);
-  assert.ok(!/<script\b[^>]*\bsrc=/i.test(html), "no external scripts");
+  assert.ok(Object.values(D.en).some(v => /page not found/i.test(v)), "English: Page not found");
+  for (const u of [BASE, BASE + "fortune.html", BASE + "help.html"]) assert.ok(html.includes(`href="${u}"`), "absolute link " + u);
 });
 
 test("sitemap.xml lists every public page exactly once (no noindex pages, no 404), robots.txt points at it", () => {
