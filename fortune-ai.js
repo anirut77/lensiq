@@ -4358,7 +4358,9 @@
     if (straightEnabled() && opts.straightControl !== false && FS.mount) FS.mount(container, frag, res);
     // owner order 2026-11-15 item 3: the help line is in ONE place per page (the top button); under a reading only on a calm page
     // (crisis net: crisis state, calm session or distress typed), where fortune-crisis.js makes it sticky next to the reading
-    if (CR && CR.helpLine && CR.calmOn && (CR.calmOn(doc) || CR.distress(doc))) { try { Array.from(doc.querySelectorAll(".lq-helpline-result")).forEach(e => e.remove()); frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ } }
+    if (CR && CR.helpLine && CR.calmOn && (CR.calmOn(doc) || CR.distress(doc))) {
+      try { Array.from(doc.querySelectorAll(".lq-helpline-result")).forEach(e => e.remove()); frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ }
+    }
     container.appendChild(frag); if (CR && CR.calmDock) CR.calmDock(container, res.lang); // crisis fix 4: help line in view when calm
     try { if (root.LQI18N && typeof root.LQI18N.apply === "function") root.LQI18N.apply(container); } catch (e) { /* i18n ไม่พร้อม */ }
     return container;
