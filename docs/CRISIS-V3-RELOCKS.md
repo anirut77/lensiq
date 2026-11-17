@@ -169,3 +169,9 @@ Locked before compat was changed to v3.
 | tests/unit/crisis-net-fallback.test.js (new; first locked as crisis-v3-r2.test.js, renamed with the same bytes) | N1, N2 | — | missed phrases caught (TH / EN / ZH); the stand-in answers exactly as fortune-crisis.js for MUST60 + N1 + ordinary text | protection | — |
 | tests/unit/cat-pages.test.js | lock hygiene | the merged content (main's no-demo version + the counselling support row of crisis-rules-1323) matched no lock line | locked as is; no assertion changed | — | — |
 | evals-locks/fortune-honest.sha256 | lock hygiene | the soft-1 line (relock-fix-1) was missing there | appended | — | — |
+
+## Merge of main 1eaf14f (fortune-top-compact), tag `relock-topsticky`
+
+| File | Change | Why |
+|---|---|---|
+| tests/unit/crisis-rules-1323.test.js, tests/e2e/crisis-rules-1323-a / -e.e2e.mjs, tests/e2e/crisis-rules-kit.mjs | the switch name `LENSIQ_HELP_STICKY` → `LENSIQ_HELP_TOP_STICKY`; every assertion unchanged | one sticky switch only (main's mechanism, coordinator instruction 2026-11-17); the branch's own copy of the same switch dropped from lensiq-config.js / nav.js / types |

@@ -79,7 +79,7 @@ the free comforting guidance (no belief remedy, no price; hard limit 3), the "�
 then one small text link "ช่องทางให้คำปรึกษา". No list of instructions. Nothing interrupts reading: no call button, banner or
 box between content sections, and no sticky or floating help element (the calm-state line is now in the page flow AFTER the
 reading; the old sticky dock is gone). Normal state: the small 1323 control at the top stays (decision 69). Rule 6 switch:
-`window.LENSIQ_HELP_STICKY` in `lensiq-config.js` (one line; shipped on, decision 75 ก): on = the 1323 icon sits INSIDE the sticky
+`window.LENSIQ_HELP_TOP_STICKY` in `lensiq-config.js` (one line; shipped on, decision 75 ก): on = the 1323 icon sits INSIDE the sticky
 top bar and asks first (call 1323, or the counselling-page link); off = it stays at the top of the page content and scrolls away. All result content stays hidden in the crisis state (hotfix 2026-11-16,
 `docs/INCIDENT-2026-11-16-CRISIS-LEAK.md`). Tests (locked first): `tests/unit/crisis-rules-1323.test.js`,
 `tests/e2e/crisis-rules-1323-{a,b,c}.e2e.mjs` (19 fortune pages x TH / EN / ZH x 360 / 393 / 430 px).
@@ -128,7 +128,7 @@ confirmation step before calling add harmful friction?". Tests: `tests/e2e/fortu
 re-locked `tests/e2e/fortune-live.e2e.mjs` H2 and `tests/e2e/fortune-helpline.e2e.mjs` (evals-locks/fortune-top-compact.sha256).
 
 **Stickiness switch (owner crisis rules 2026-11-16; owner decision 75 option ก: the icon stays in the sticky top bar):**
-`window.LENSIQ_HELP_STICKY` in `lensiq-config.js` (default on = decision 75 ก). Off: nav.js leaves `#lqHelpTop` at the top of the page content (class `.lq-helpquiet`, same
+`window.LENSIQ_HELP_TOP_STICKY` in `lensiq-config.js` (default on = decision 75 ก). Off: nav.js leaves `#lqHelpTop` at the top of the page content (class `.lq-helpquiet`, same
 icon + "1323", not sticky); the confirmation step stays. The sticky read bar below is a reading control and never carries
 a help number.
 

@@ -119,3 +119,11 @@ e152aae01b86b2998afcc8af6ad382c4a2235ea8d9a35a93ce3bae670589abd8  tests/e2e/fort
 cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-fix-1)
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): r2-lock, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
 f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  tests/unit/cat-pages.test.js  # repo file (r2-lock)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): topsticky (switch renamed to LENSIQ_HELP_TOP_STICKY), see evals-locks/crisis-v3.sha256.
+25cf94a1491cbd52f110cb7db53dc6eacb047a380d48bc627123fcba5a8cb250  tests/unit/crisis-rules-1323.test.js  # repo file (relock-topsticky)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): topsticky (switch renamed to LENSIQ_HELP_TOP_STICKY), see evals-locks/crisis-v3.sha256.
+3080cd5a84e5d531cec292eef6f0f825d0e7f9667f69a98b567d12c88b6440eb  tests/e2e/crisis-rules-1323-a.e2e.mjs  # repo file (relock-topsticky)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): topsticky (switch renamed to LENSIQ_HELP_TOP_STICKY), see evals-locks/crisis-v3.sha256.
+77fd8d7abe1604a7536fcbc50f87e6ae9c2d005d7f8695327a354879f1cceeee  tests/e2e/crisis-rules-1323-e.e2e.mjs  # repo file (relock-topsticky)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): topsticky (switch renamed to LENSIQ_HELP_TOP_STICKY), see evals-locks/crisis-v3.sha256.
+e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  tests/e2e/crisis-rules-kit.mjs  # repo file (relock-topsticky)

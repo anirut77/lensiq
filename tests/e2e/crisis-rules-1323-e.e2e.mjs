@@ -1,5 +1,5 @@
 // tests/e2e/crisis-rules-1323-e.e2e.mjs — FIXED TEST SET "crisis-rules-1323" part E (independent review 2026-11-17, defect 3):
-// the SHIPPED rule-6 switch (no override; lensiq-config.js says LENSIQ_HELP_STICKY = true, decisions 69 ค + 75 ก: a small 1323
+// the SHIPPED rule-6 switch (no override; lensiq-config.js says LENSIQ_HELP_TOP_STICKY = true, decisions 69 ค + 75 ก: a small 1323
 // icon INSIDE the sticky top bar #siteNav, with the confirmation dialog, never overlapping content). Locked BEFORE the fix.
 // 19 fortune pages x TH / EN / ZH x 360 / 393 / 430 px, at scroll positions 0, 300, 900, 1600, the middle and the bottom:
 //   E1 the top 1323 control is inside #siteNav and its box lies wholly inside the bar's box (it never reaches the page content);

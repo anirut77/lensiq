@@ -9,7 +9,7 @@
 //   4 nothing interrupts reading: no call button, banner or box between sections; in the crisis state the order is short warm
 //     message, free comforting guidance, then the 1323 button and the small link;
 //   5 no sticky or floating help element that follows the reader;
-//   6 normal state keeps the small 1323 control at the top; ONE switch (window.LENSIQ_HELP_STICKY in lensiq-config.js) chooses
+//   6 normal state keeps the small 1323 control at the top; ONE switch (window.LENSIQ_HELP_TOP_STICKY in lensiq-config.js) chooses
 //     the sticky top bar (true) or a non-sticky header area that scrolls away (false, shipped);
 //   7 1323 reachable in one or two taps from every fortune page; all result content hidden in the crisis state; hard limits unchanged.
 // The card contract the tests read: .fa-support > h3 (title), .fa-support-warm (warm lines), details.fa-support-more (summary
@@ -31,7 +31,7 @@ export const OTHER = { 1669: "1669", 191: "191", 1300: "1300", samaritans: "0211
 export const MORE = { th: /อ่านเพิ่มเติม/, en: /Read more/i, zh: /阅读更多/ };
 export const COUNSEL = { th: /ช่องทางให้คำปรึกษา/, en: /counsel/i, zh: /咨询/ };
 /** the switch forced on or off by an init script (lensiq-config.js cannot override it) */
-export const STICKY = on => `Object.defineProperty(window, "LENSIQ_HELP_STICKY", { configurable: true, get: () => ${on ? "true" : "false"}, set: () => {} });`;
+export const STICKY = on => `Object.defineProperty(window, "LENSIQ_HELP_TOP_STICKY", { configurable: true, get: () => ${on ? "true" : "false"}, set: () => {} });`;
 export const LANG_INIT = lang => `try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`;
 
 export async function phone(page, w) {

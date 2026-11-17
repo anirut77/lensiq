@@ -201,5 +201,5 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
 window.LENSIQ_TRYON = window.LENSIQ_TRYON === true;
 /* LENSIQ_CONVERT_SERVER: PDF -> DOCX via server.py only; off = convert in the browser */
 window.LENSIQ_CONVERT_SERVER = window.LENSIQ_CONVERT_SERVER === true;
-/* LENSIQ_HELP_STICKY (75 ก): 1323 icon in the sticky bar; false = in the page */
-window.LENSIQ_HELP_STICKY = window.LENSIQ_HELP_STICKY !== false;
+/* LENSIQ_HELP_TOP_STICKY (75 ก): 1323 icon in the sticky bar; false = in the page */
+window.LENSIQ_HELP_TOP_STICKY = window.LENSIQ_HELP_TOP_STICKY !== false;

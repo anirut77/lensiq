@@ -169,3 +169,13 @@ a917dec6ab026eb167b92d85685f99e821c22a38ec7845136bdad687266928b8  tests/e2e/cris
 f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  tests/unit/cat-pages.test.js  # repo file (r2-lock)
 # RENAME 2026-11-17: tests/unit/crisis-v3-r2.test.js -> tests/unit/crisis-net-fallback.test.js (unit-index rule: feature-named files), same bytes, same hash.
 1c43055449f7737e5ae098008c5fa00a1ddbc18461fb52c1d525b1e703889e74  tests/unit/crisis-net-fallback.test.js  # repo file (r2-lock, renamed)
+# RE-LOCK topsticky 2026-11-17 (merge of main 1eaf14f into crisis-v3-2): one sticky switch, main's LENSIQ_HELP_TOP_STICKY; the crisis-rules-1323 set read LENSIQ_HELP_STICKY (the branch's older name of the same switch). Rename only, every assertion unchanged; crisis-rules-1323.test.js is also the merged content of both sides.
+# locked 2026-11-17T10:07:11Z (tools/eval-guard.mjs lock, 4 files)
+25cf94a1491cbd52f110cb7db53dc6eacb047a380d48bc627123fcba5a8cb250  relock-topsticky/crisis-rules-1323.test.js
+3080cd5a84e5d531cec292eef6f0f825d0e7f9667f69a98b567d12c88b6440eb  relock-topsticky/crisis-rules-1323-a.e2e.mjs
+77fd8d7abe1604a7536fcbc50f87e6ae9c2d005d7f8695327a354879f1cceeee  relock-topsticky/crisis-rules-1323-e.e2e.mjs
+e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  relock-topsticky/crisis-rules-kit.mjs
+25cf94a1491cbd52f110cb7db53dc6eacb047a380d48bc627123fcba5a8cb250  tests/unit/crisis-rules-1323.test.js  # repo file (relock-topsticky)
+3080cd5a84e5d531cec292eef6f0f825d0e7f9667f69a98b567d12c88b6440eb  tests/e2e/crisis-rules-1323-a.e2e.mjs  # repo file (relock-topsticky)
+77fd8d7abe1604a7536fcbc50f87e6ae9c2d005d7f8695327a354879f1cceeee  tests/e2e/crisis-rules-1323-e.e2e.mjs  # repo file (relock-topsticky)
+e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  tests/e2e/crisis-rules-kit.mjs  # repo file (relock-topsticky)

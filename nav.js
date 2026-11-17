@@ -395,7 +395,7 @@
   window.addEventListener("lq-lang", syncLang);
   if (window.LQI18N) { window.LQI18N.apply(header); var cb = document.querySelector(".lq-crumbs"); if (cb) window.LQI18N.apply(cb); syncLang(); }
 
-  // 1323 in the bar + confirmation (decision 69; switch LENSIQ_HELP_STICKY)
+  // 1323 in the bar + confirmation (decision 69; switch LENSIQ_HELP_TOP_STICKY)
   /** @type {any} */
   var help = /** @type {any} */ (window).LQHelpTop = { confirm: true, close: function () { if (help.dlg && help.dlg.open) help.dlg.close(); }, open: function () {
     var d = help.dlg, w = /** @type {any} */ ({ en: ["Call 1323", "Close"], zh: ["拨打 1323", "关闭"] })[window.LQI18N ? String(window.LQI18N.lang) : ""] || ["โทร 1323", "ปิด"];
@@ -412,7 +412,7 @@
   function helpMount() {
     var top = document.getElementById("lqHelpTop"), a = top && top.querySelector("a");
     if (!top || !a || header.contains(top)) return;
-    if (/** @type {any} */ (window).LENSIQ_HELP_STICKY === false) top.classList.add("lq-helpquiet"); // decision 75 switch: stays in the page, not sticky
+    if (/** @type {any} */ (window).LENSIQ_HELP_TOP_STICKY === false) top.classList.add("lq-helpquiet"); // decision 75 switch: stays in the page, not sticky
     else { header.insertBefore(top, header.querySelector(".nav-end") || langBox); top.classList.add("lq-helpnav"); header.classList.add("has-help"); }
     a.setAttribute("aria-haspopup", "dialog"); a.onclick = function (/** @type {Event} */ e) { if (help.confirm) { e.preventDefault(); help.open(); } };
     help.el = top; help.link = a; syncCompact(); setNavH();
@@ -659,7 +659,8 @@
   // ---------- fortune pages: "report a problem with this reading" (lensiq-report.js) ----------
   function reportHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
-    if (!/^(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
+    // not the hub (fortune.html): it shows no reading to report (speed budget, 2026-11-17)
+    if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
     var sc = document.createElement("script");
     sc.src = "lensiq-report.js?v=3"; sc.async = true;

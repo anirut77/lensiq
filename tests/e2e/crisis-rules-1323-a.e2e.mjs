@@ -3,7 +3,7 @@
 //   N1 1669 / 191 / 1300 / Samaritans appear 0 times (visible text and tel: links);
 //   N2 1323 is reachable in at most 2 taps (a visible tel:1323 link >= 44 px, or a top control that opens a dialog with it);
 //   N3 no help element sits between content sections (none inside <main>);
-//   N4 no fixed or sticky help element (switch LENSIQ_HELP_STICKY false = shipped);
+//   N4 no fixed or sticky help element (switch LENSIQ_HELP_TOP_STICKY false = shipped);
 // Rule-6 switch (TH, 393 px, fortune / tarot / dream / cat-fortune):
 //   N5 switch false: after scrolling 1600 px the 1323 control has scrolled away and nothing pinned follows the reader;
 //   N6 switch true: after scrolling 1600 px the 1323 control is still in view, held by the sticky top bar, and it is the only
@@ -41,7 +41,7 @@ export default async function ({ base, launch, check }) {
     });
 
     for (const on of [false, true]) {
-      await check(`N${on ? 6 : 5}: switch LENSIQ_HELP_STICKY=${on}: after scrolling, the 1323 control ${on ? "stays in the sticky top bar (only pinned help element)" : "has scrolled away; nothing pinned"}`, async () => {
+      await check(`N${on ? 6 : 5}: switch LENSIQ_HELP_TOP_STICKY=${on}: after scrolling, the 1323 control ${on ? "stays in the sticky top bar (only pinned help element)" : "has scrolled away; nothing pinned"}`, async () => {
         const bad = [];
         const page = await browser.newPage(null, { isolated: true, initScripts: [STICKY(on)] });
         try {
