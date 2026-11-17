@@ -114,4 +114,17 @@ Locked before the option ข product code. No existing assertion changed.
 | same | P4 | `preHTML(lang)`: one short warm line, one link only (tel:1323), no other number, nothing flagged, no statistics, no Thai in EN / ZH |
 | tests/e2e/crisis-v3-pre{,-en,-zh}.e2e.mjs | per page with a field × TH / EN / ZH, 393 px | P1 ข + plan phrase: exactly one pre-line before the first section, not pinned, tel:1323 ≥ 44 × 44 px, short warm line, nothing flagged; then (pre-line removed) the locked crisis-v3 judge, no echo, no analytics. P2 shipped ก + plan phrase: no pre-line, judge passes. P3 ข + non-plan crisis phrase: no pre-line, judge passes. P4 ข + ordinary reading: no pre-line, no closing line, no crisis state |
 
-| Re-lock pre-1 | first run of the pre-lock set (v3-2-pre-th-1.log) | the switch expression returned the window object (CDP could not serialise it); it now ends with `true` | test fault; no assertion changed |
+Later fixes to the decision-84 set's own test faults:
+
+| Re-lock | When | Change | Why |
+|---|---|---|---|
+| pre-1 | first run of the pre-lock set (v3-2-pre-th-1.log) | the switch expression ends with `true` | it returned the window object, which CDP cannot serialise; no assertion changed |
+
+## Compat (live on main bb8f8bd, merged into crisis-v3-2), tag `relock-compat`
+
+Locked before compat was changed to v3.
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/e2e/fortune-compat.e2e.mjs | X1 (TH / EN / ZH), X2 | the support card (1323 + 1669) replaces the result; it stays for the next request | the crisis state is set; the reading goes on (overview, free tier); no card, no 1669; one closing line with tel:1323 only at the end of `#cpResult`; the state holds for the next request | a, c, d | nothing paid, no price: same tests (unchanged) |
+| tests/e2e/fortune-compat-crisis.e2e.mjs | N / Y (every MUST60 phrase + kit phrases) | the card shows, no reading; no echo of 4- (2- Chinese) character pieces | crisis state set, no card or soft step, no 1669; N: the reading and the closing line at the end; Y (no consent): no reading; no echo with the v3 piece sizes (7 Thai / 3 Chinese characters, 3 English words, whole phrase); the fixed closing line is left out of the compared text like the top bar | a, d | crisis check before consent / validation: same test (state set in Y); R unchanged |
