@@ -35,9 +35,20 @@ function thVal(src, key) {
 }
 
 // baseline at 02fdd69 (origin/main), taken before the change
-const BASE_ST = {"gate":"pilot-ready","parking":"pilot-ready","village":"pilot-ready","gate-notice":"support","cameras":"support","afterhours":"experimental","exam":"pilot-ready","exam-lab":"pilot-ready","exam-hall":"experimental","exam-dashboard":"pilot-ready","omr":"experimental","attendance":"pilot-ready","hr":"pilot-ready","interview":"pilot-ready","case-review":"pilot-ready","teamface":"demo","crowd":"experimental","store":"pilot-ready","retail":"pilot-ready","insights":"experimental","customers":"experimental","signage":"demo","neuro":"demo","queue":"experimental","tables":"experimental","bays":"experimental","checkout":"experimental","creative":"experimental","creative-suite":"experimental","booth":"experimental","medicine":"experimental","nutrition":"experimental","driver":"experimental","qc":"experimental","studio":"experimental","tryon":"experimental","photobooth":"pilot-ready","converter":"experimental","index":"support","solutions":"support","about":"support","help":"support","camera-notice":"support","privacy":"support","terms":"support","pricing":"support","account":"support","admin":"support"};
+const BASE_ST = {
+  "gate": "pilot-ready", "parking": "pilot-ready", "village": "pilot-ready", "gate-notice": "support", "cameras": "support",
+  "afterhours": "experimental", "exam": "pilot-ready", "exam-lab": "pilot-ready", "exam-hall": "experimental", "exam-dashboard": "pilot-ready",
+  "omr": "experimental", "attendance": "pilot-ready", "hr": "pilot-ready", "interview": "pilot-ready", "case-review": "pilot-ready",
+  "teamface": "demo", "crowd": "experimental", "store": "pilot-ready", "retail": "pilot-ready", "insights": "experimental",
+  "customers": "experimental", "signage": "demo", "neuro": "demo", "queue": "experimental", "tables": "experimental", "bays": "experimental",
+  "checkout": "experimental", "creative": "experimental", "creative-suite": "experimental", "booth": "experimental", "medicine": "experimental",
+  "nutrition": "experimental", "driver": "experimental", "qc": "experimental", "studio": "experimental", "tryon": "experimental",
+  "photobooth": "pilot-ready", "converter": "experimental", "index": "support", "solutions": "support", "about": "support", "help": "support",
+  "camera-notice": "support", "privacy": "support", "terms": "support", "pricing": "support", "account": "support", "admin": "support"
+};
 const BASE_COUNT = {
-  security: { th: "6 เครื่องมือ · พร้อมนำร่อง 3 · ทดลอง 1 · สาธิต 0 · หน้าประกอบ 2", en: "6 tools · pilot-ready 3 · experimental 1 · demo 0 · support pages 2", zh: "6 个工具 · 可试点 3 · 实验性 1 · 演示 0 · 辅助页面 2" },
+  security: { th: "6 เครื่องมือ · พร้อมนำร่อง 3 · ทดลอง 1 · สาธิต 0 · หน้าประกอบ 2", en: "6 tools · pilot-ready 3 · experimental 1 · demo 0 · support pages 2",
+    zh: "6 个工具 · 可试点 3 · 实验性 1 · 演示 0 · 辅助页面 2" },
   education: { th: "5 เครื่องมือ · พร้อมนำร่อง 3 · ทดลอง 2 · สาธิต 0", en: "5 tools · pilot-ready 3 · experimental 2 · demo 0", zh: "5 个工具 · 可试点 3 · 实验性 2 · 演示 0" },
   hr: { th: "5 เครื่องมือ · พร้อมนำร่อง 4 · ทดลอง 0 · สาธิต 1", en: "5 tools · pilot-ready 4 · experimental 0 · demo 1", zh: "5 个工具 · 可试点 4 · 实验性 0 · 演示 1" },
   marketing: { th: "14 เครื่องมือ · พร้อมนำร่อง 2 · ทดลอง 10 · สาธิต 2", en: "14 tools · pilot-ready 2 · experimental 10 · demo 2", zh: "14 个工具 · 可试点 2 · 实验性 10 · 演示 2" },

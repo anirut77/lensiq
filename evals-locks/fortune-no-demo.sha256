@@ -13,3 +13,7 @@ bb54d33de8f216d90a8f12edce78d8249229afeb79d9164e652731624107ee54  cat-pages.test
 # re-lock 2026-11-17 (append-only), reason: "owner order 2026-11-17: remove สาธิต tag from fortune". Found when running the unit suite after the change: cat-pages.test.js ("landing pages: static markup ... status tag") and categories.e2e.mjs ("each tool with status tag") asserted a status tag on EVERY card, fortune included. Only that assertion changes: a category with noStatusTag (fortune) must show NO status tag and no data-status; every other category keeps the status-tag check unchanged.
 bb54d33de8f216d90a8f12edce78d8249229afeb79d9164e652731624107ee54  tests/unit/cat-pages.test.js  # repo file
 63a3e6ea430af202989441f165d0f231b1af9554e6b8d56a61da6c174b1c9a74  tests/e2e/categories.e2e.mjs  # repo file
+# locked 2026-11-17T02:57:24Z (tools/eval-guard.mjs lock, 1 file)
+e0d9a801e786a58050588021c6d11dba6588ed6abb7dfdbe903d9e7e827c9876  fortune-no-demo.v2.test.js
+# re-lock 2026-11-17 (append-only): fortune-no-demo.test.js v2 = formatting only (format-check: two lines over 200 characters, BASE_ST and the security counts wrapped). No assertion, expected value or page changed. v1 kept as fortune-no-demo.test.js.
+e0d9a801e786a58050588021c6d11dba6588ed6abb7dfdbe903d9e7e827c9876  tests/unit/fortune-no-demo.test.js  # repo file (v2)
