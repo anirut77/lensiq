@@ -2419,7 +2419,8 @@
         const src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : []; if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, L === "en" ? REMEDY_EN : REMEDY);
         out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
       }
-      if (calm && out) delete out.plan; return out;
+      // calm / crisis (hard limit 3): no plan and no remedy section ("คำแนะนำและเคล็ดเสริมดวง")
+      if (calm && out) { delete out.plan; if (Array.isArray(out.sections)) out.sections = out.sections.filter(x => x.id !== "advice"); } return out;
     } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; FILLS = prevF; }
   }
   function composeBase(facts, opts = {}) {
