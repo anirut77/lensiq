@@ -40,3 +40,8 @@ cc591f270be1b318459e9251de0b18745c8fb145ee9bf8ce208628102eb50879  tests/e2e/fort
 430177a6736616447af51e29dd336d44365b8af621595dbccc13a234429639a6  fortune-print-report-kit.mjs
 # RE-LOCK 2026-11-17 (message only; no assertion changed): a list item / table row not found whole on one page now also prints the PDF text at that place and the first differing code points (CI 43979264779 failed only TH faceread rows with symbols + Chinese; not reproducible locally with CI's Loma + Noto CJK, so CI's own read-back is needed).
 430177a6736616447af51e29dd336d44365b8af621595dbccc13a234429639a6  tests/e2e/fortune-print-report-kit.mjs  # repo file
+# locked 2026-11-17T01:53:04Z (tools/eval-guard.mjs lock, 2 files)
+451d87303610f649cc48d2989d85e0c903f7c4b7af276592c2f8d1d95e58eef7  fortune-print-colour.e2e.mjs
+c76ede5d0c9d82ec74550df9b309a721cd4dfa0e8f95f0a45b761bd46e323a39  colour-k3-harness-evidence.log
+# RE-LOCK 2026-11-17 (harness fix, check unchanged): K3 brings the pdf.js reader tab to the front before rendering; in a background tab pdf.js page rendering stalls (first run hung 15 min; probe: TIMEOUT in background, rendered after bringToFront; colour-k3-harness-evidence.log).
+451d87303610f649cc48d2989d85e0c903f7c4b7af276592c2f8d1d95e58eef7  tests/e2e/fortune-print-colour.e2e.mjs  # repo file

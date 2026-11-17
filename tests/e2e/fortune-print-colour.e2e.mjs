@@ -91,6 +91,8 @@ export default async function ({ base, launch, check }) {
         await check(`K3 [${p}/th] the colour PDF shows colour on page 1`, async () => {
           if (err) throw new Error("no report: " + err.message);
           const pdf = await page.send("Page.printToPDF", { printBackground: true, preferCSSPageSize: true, paperWidth: 8.27, paperHeight: 11.69 });
+          // RE-LOCK 2026-11-17 (harness fix, check unchanged): pdf.js draws in frames; a background tab stalls them (first run hung)
+          await reader.send("Page.bringToFront");
           const share = await reader.evaluate(async (data) => {
             const bin = atob(data), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
             const pdf = await window.pdfjsLib.getDocument({ data: u8 }).promise, pg = await pdf.getPage(1), vp = pg.getViewport({ scale: 1 });
