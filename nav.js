@@ -478,7 +478,7 @@
       return L < 8 || L > 16 ? t.length : c;
     }
     var PR = [/\d[\d.,]*[ \t\n]+(?:%|[A-Za-z]{1,8}|[\u0e00-\u0e7f]{1,6}|[\u3040-\u9fff]{1,2})/g, /[฿$][ \t\n]*\d[\d.,]*/g,
-      /\S[ \t\n]+[)\].,:;!?ๆฯ…，。、：；！？）」』】]+/g, /[(\[{][ \t\n]+\S+/g];
+      /\S[ \t\n]+[)\].,:;!?ๆฯ…，。、：；！？）」』】]+/g, /[(\[{][ \t\n]+\S{1,6}/g];
     var DONE = new WeakMap(), IN = /^(B|SPAN|STRONG|EM|A|SMALL|CODE|OUTPUT|DATA)$/;
     var len = function (n) {
       var p = n.parentNode, x = (p && p.lastChild === n ? (p.closest("p,li,td,th,dd,dt,div,label,summary,h1,h2,h3,h4") || p).textContent : n.nodeValue) || "";
@@ -488,23 +488,25 @@
       var w = document.createTreeWalker(root, 4), all = [], n;
       while ((n = w.nextNode())) all.push(n);
       all.forEach(function (n) {
-        var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, s, z, i = -1, L, out = [];
+        var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, i, L, out = [];
         var x = n.previousSibling, y = n.nextSibling, pre = 0, post = -1;
         if (!p || DONE.get(n) === v || p.closest(SKIP + ",#siteNav,.lq-crumbs")) return;
         DONE.set(n, v);
         PR.forEach(function (re) { re.lastIndex = 0; while ((m = re.exec(v))) r.push([m.index, m.index + m[0].length]); });
         if (x && IN.test(x.nodeName) && /^[\d.,]*$/.test((x.textContent || "").trim()) && (m = /^[ \t\n]+\S{1,8}/.exec(v))) r.push([0, pre = m[0].length]);
         if (y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim()) && (m = /\S{1,8}[ \t\n]*$/.exec(v))) r.push([post = m.index, v.length]);
-        {
-          e = v.replace(/\s+$/, "").length; s = v.lastIndexOf(" ", e - 1); L = len(n);
-          while (L > 9 && s > 0 && e - s < 11 && ((z = v.lastIndexOf(" ", s - 1)) > 0 || L > e) && e - z < 22) { i = z + 1; s = z; }
-          while (i > 0 && !/\s/.test(v[i - 1]) && wt(v.slice(i, e)) < 8) i--;
-          if (i >= 0) r.push([i, e]);
+        if ((L = len(n)) > 12) {
+          e = v.replace(/\s+$/, "").length; i = e;
+          while (i > 0 && wt(v.slice(i, e)) < 8) i--;
+          while (i > 0 && /^\w\w$/.test(v[i - 1] + v[i])) i--;
+          if (i < e && (i > 0 || L > wt(v)) && wt(v.slice(i, e)) < 21) r.push([i, e]);
         }
-        if (!v.trim() && y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim())) y.classList.add("lq-w");
+        if (!v.trim() && y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim())) /** @type {Element} */ (y).classList.add("lq-w");
         if (!r.length) return;
         r.forEach(function (q) { while (q[0] > 0 && (MK.test(v[q[0]]) || LV.test(v[q[0] - 1]))) q[0]--; while (q[1] < v.length && (MK.test(v[q[1]]) || LV.test(v[q[1] - 1]))) q[1]++; });
         r.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (q) { var o = out[out.length - 1]; if (o && q[0] <= o[1]) o[1] = Math.max(o[1], q[1]); else out.push(q); });
+        out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 25; });
+        if (!out.length) return;
         var fl = /flex|grid/.test(getComputedStyle(p).display), f = document.createDocumentFragment();
         if (RT(n) && (fl || !out[0][0])) return;
         out.forEach(function (q, j) {

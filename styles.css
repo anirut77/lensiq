@@ -302,7 +302,7 @@ html:lang(th) .eyebrow,html:lang(th) .kicker,html:lang(th) .tag{letter-spacing:.
    nav.js wraps each Thai word of headings/labels/buttons in .lq-w (nowrap) with <wbr> between words and marks the
    element [data-lqwb], so words such as "แดชบอร์ด" are never split mid-syllable (the browser's Thai dictionary does
    not know many loanwords). overflow-wrap is the last resort for a word wider than its box. */
-.lq-w{white-space:nowrap}
+.lq-w{white-space:nowrap}.lq-t.lq-w *{white-space:nowrap!important}
 [data-lqwb]{overflow-wrap:anywhere}
 :lang(th){line-break:strict}
 /* no text-wrap:balance/pretty: with many inline .lq-w boxes Chrome's balancing can stall layout (seen on signage.html) */
