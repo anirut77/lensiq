@@ -475,7 +475,7 @@
     function cut(t, all) {
       for (var c = t.length, L = 0; c > (all ? 0 : 1) && L < 8; ) L += wt(t[--c]);
       while (c && (CP.test(t[c]) || /[(\[{“‘（「『【]$/.test(t[c - 1]))) c--;
-      return L < 8 || L > 16 ? t.length : c;
+      return L < 8 || L > 14 ? t.length : c;
     }
     var PR = [/\d[\d.,]*[ \t\n]+(?:%|[A-Za-z]{1,8}|[\u0e00-\u0e7f]{1,6}|[\u3040-\u9fff]{1,2})/g, /[฿$][ \t\n]*\d[\d.,]*/g,
       /\S[ \t\n]+[)\].,:;!?ๆฯ…，。、：；！？）」』】]+/g, /[(\[{][ \t\n]+\S{1,6}/g];
@@ -488,7 +488,7 @@
       var w = document.createTreeWalker(root, 4), all = [], n;
       while ((n = w.nextNode())) all.push(n);
       all.forEach(function (n) {
-        var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, i, L, out = [];
+        var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, i, L, z, out = [];
         var x = n.previousSibling, y = n.nextSibling, pre = 0, post = -1;
         if (!p || DONE.get(n) === v || p.closest(SKIP + ",#siteNav,.lq-crumbs")) return;
         DONE.set(n, v);
@@ -497,18 +497,19 @@
         if (y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim()) && (m = /\S{1,8}[ \t\n]*$/.exec(v))) r.push([post = m.index, v.length]);
         if ((L = len(n)) > 12) {
           e = v.replace(/\s+$/, "").length; i = e;
-          while (i > 0 && wt(v.slice(i, e)) < 8) i--;
-          while (i > 0 && /^\w\w$/.test(v[i - 1] + v[i])) i--;
-          if (i < e && (i > 0 || L > wt(v)) && wt(v.slice(i, e)) < 21) r.push([i, e]);
+          while (i > 0 && wt(v.slice(i, e)) < 10) i--;
+          for (m = i; m > 0 && /^\w\w$/.test(v[m - 1] + v[m]); ) m--;
+          if (wt(v.slice(m, e)) < 15 || (z = v.indexOf(" ", i)) < 0 || z >= e - 1) i = m; else i = z + 1;
+          if (i < e && (i > 0 || L > wt(v))) r.push([i, e]);
         }
         if (!v.trim() && y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim())) /** @type {Element} */ (y).classList.add("lq-w");
         if (!r.length) return;
         r.forEach(function (q) { while (q[0] > 0 && (MK.test(v[q[0]]) || LV.test(v[q[0] - 1]))) q[0]--; while (q[1] < v.length && (MK.test(v[q[1]]) || LV.test(v[q[1] - 1]))) q[1]++; });
         r.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (q) { var o = out[out.length - 1]; if (o && q[0] <= o[1]) o[1] = Math.max(o[1], q[1]); else out.push(q); });
-        out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 25; });
+        out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 15; });
         if (!out.length) return;
         var fl = /flex|grid/.test(getComputedStyle(p).display), f = document.createDocumentFragment();
-        if (RT(n) && (fl || !out[0][0])) return;
+        if (RT(n) && (fl || !out[0][0])) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && out[0][1] >= v.trim().length) p.classList.add("lq-w"); return; }
         out.forEach(function (q, j) {
           var k = document.createElement("lq-t"), t = document.createTextNode(v.slice(q[1], out[j + 1] ? out[j + 1][0] : v.length));
           k.className = "lq-w lq-t"; k.textContent = v.slice(q[0], q[1]);
