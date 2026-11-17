@@ -167,3 +167,5 @@ a917dec6ab026eb167b92d85685f99e821c22a38ec7845136bdad687266928b8  tests/e2e/cris
 525247ead4166bae201d421d1885b2e53e1bc4cb6e6effc8b5fbaff7b055bceb  tests/e2e/crisis-escape-guard-report.e2e.mjs  # repo file (r2-lock)
 87ea1e02e062450f2e0f4029e33bd530c0482f28d7d34d2273283db7cc0d9bb3  tests/e2e/crisis-escape-guard-field.e2e.mjs  # repo file (r2-lock)
 f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  tests/unit/cat-pages.test.js  # repo file (r2-lock)
+# RENAME 2026-11-17: tests/unit/crisis-v3-r2.test.js -> tests/unit/crisis-net-fallback.test.js (unit-index rule: feature-named files), same bytes, same hash.
+1c43055449f7737e5ae098008c5fa00a1ddbc18461fb52c1d525b1e703889e74  tests/unit/crisis-net-fallback.test.js  # repo file (r2-lock, renamed)

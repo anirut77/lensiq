@@ -1,7 +1,7 @@
 /* BEGIN fortune-crisis-net.js (copied by tools/fortune-read-embed.mjs; edit fortune-crisis-net.js, then run it) */
 /* fortune-crisis-net.js — the crisis net (patterns + check), ONE source: copied into fortune-crisis.js (tools/fortune-read-embed.mjs);
  * the fortune-read.js stand-in loads it alone when fortune-crisis.js failed to load. Raw text: Thai without spaces / tone marks,
- * traditional Chinese folded, English slang and numerals. Tests: fortune-crisis-net*, crisis-v3-r2. Needs a professional review. */
+ * traditional Chinese folded, English slang and numerals. Tests: fortune-crisis-net*, crisis-net-fallback. Needs a professional review. */
 (function (root) {
   "use strict";
   const TONE = /[็-์]/g;
