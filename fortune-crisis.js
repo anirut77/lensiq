@@ -311,7 +311,8 @@
   function setCalm(doc) { sessionSet(); markCalm(doc); }
   /** @type {WeakSet<object>|null} */
   const ACTIVE = typeof WeakSet !== "undefined" ? new WeakSet() : null;
-  const CRISIS_CSS = "html[data-lq-crisis] [data-lq-remedy]{display:none!important}";
+  // v3: the operator's on-device reading counter (ids ending in Stats) is not shown under the closing line
+  const CRISIS_CSS = "html[data-lq-crisis] :is([data-lq-remedy],[id$=Stats]){display:none!important}";
   /** @param {any} [doc] @returns {any} */
   const docOf = doc => doc || root.document || null;
   /** true when this page is in the crisis state @param {any} [doc] */
