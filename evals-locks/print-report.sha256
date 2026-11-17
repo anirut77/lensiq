@@ -30,3 +30,9 @@ b2a52f5501f2a3f0b2457b07dbbefc13d43cff3d671081fe06465793cca445f2  fortune-print-
 84596bbf6cf8a92676a4a8a5b192d6460ec3df2e080a5dba957d42b2ae997ec2  relock4-evidence-branch-e2e-6.log
 # RE-LOCK 2026-11-17 (implementation fix of coordinator decision 4, same semantics; first local run of 3f39481 = relock4-evidence-branch-e2e-6.log). (a) 'IS a heading line' now means the last 1-3 body lines together EQUAL a heading; 3f39481 matched any line that ended a heading's text (TH paragraph line 'งาน' vs heading 'การงาน'). (b) the cross-check now looks for the first unit of the following block (first list item, table caption or first row): list bullets / numbers are drawn as PDF text but are not in the DOM text, so a whole list's opening never matched. Nothing else changed.
 b2a52f5501f2a3f0b2457b07dbbefc13d43cff3d671081fe06465793cca445f2  tests/e2e/fortune-print-report-kit.mjs  # repo file
+# locked 2026-11-17T00:38:23Z (tools/eval-guard.mjs lock, 2 files)
+6674e7487edefeeb9aa631f60d6074ec6fdf84d0ed177d38bdfc3221958bf1fc  fortune-print-colour.test.js
+cc591f270be1b318459e9251de0b18745c8fb145ee9bf8ce208628102eb50879  fortune-print-colour.e2e.mjs
+# repo copies, locked 2026-11-17 BEFORE the colour was built (owner decision 82 ก: approved layout + tasteful colour for colour printers / PDF, fully clear in black and white; existing B/W checks unchanged): colour tokens, B/W contrast of text >= 7:1, accents chromatic and >= 3:1 (unit >= 4.5:1), light backgrounds, colour pixels in the PDF, labels with every swatch / icon
+6674e7487edefeeb9aa631f60d6074ec6fdf84d0ed177d38bdfc3221958bf1fc  tests/unit/fortune-print-colour.test.js  # repo file
+cc591f270be1b318459e9251de0b18745c8fb145ee9bf8ce208628102eb50879  tests/e2e/fortune-print-colour.e2e.mjs  # repo file
