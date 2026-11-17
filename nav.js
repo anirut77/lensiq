@@ -433,7 +433,8 @@
         if (k >= t.length || /lq-t/.test(tn.nextSibling && tn.nextSibling.className)) return;
         var ws = (/\s*$/.exec(v) || [""])[0], tail = document.createElement("lq-t");
         tail.textContent = v.slice(at, v.length - ws.length);
-        tail.className = "lq-w lq-t" + (!CP.test(((tn.nextSibling && tn.nextSibling.textContent) || "").trim()) ? " lq-b" : "");
+        var nt = tn.nextSibling || (/^(B|SPAN|STRONG|EM|A|SMALL)$/.test(tn.parentNode.nodeName) && tn.parentNode.nextSibling);
+        tail.className = "lq-w lq-t" + (!CP.test(((nt && nt.textContent) || "").trim()) ? " lq-b" : "");
         if (v.slice(0, at).trim() && !/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail); if (ws) tail.after(ws); }
         else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(tail); if (at) tail.before(v.slice(0, at)); if (ws) tail.after(ws); tn.replaceWith(box); }
         return;
@@ -511,9 +512,10 @@
           while (q[1] < v.length && (!bd[q[1]] || CP.test(v[q[1]]))) q[1]++;
         });
         r.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (q) { var o = out[out.length - 1]; if (o && q[0] <= o[1]) o[1] = Math.max(o[1], q[1]); else out.push(q); });
-        out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 31; });
+        var inner = function (q) { for (var k = q[0] + 1; k < q[1]; k++) if (bd[k] && /\S/.test(v[k - 1])) return 1; return 0; };
+        out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 31 && !CP.test(v.slice(q[0], q[1]).trim()) && inner(q); });
         if (wd) out.forEach(function (q) { if (wd && q[0] < wd[1] && q[1] > wd[0]) { if (q[1] >= wd[1]) wd = null; else wd[0] = Math.max(wd[0], q[1]); } });
-        if (wd && /\S/.test(v.slice(wd[0], wd[1]))) { out.push(wd); out.sort(function (a, b) { return a[0] - b[0]; }); }
+        if (wd && inner(wd) && !CP.test(v.slice(wd[0], wd[1]).trim())) { out.push(wd); out.sort(function (a, b) { return a[0] - b[0]; }); }
         if (!out.length) return;
         var nx = ((y || (IN.test(p.nodeName) && p.nextSibling) || {}).textContent || "").trim();
         var cs = getComputedStyle(p), fl = /flex|grid/.test(cs.display), f = document.createDocumentFragment();
@@ -523,7 +525,7 @@
         out.forEach(function (q, j) {
           var k = document.createElement("lq-t"), t = document.createTextNode(v.slice(q[1], out[j + 1] ? out[j + 1][0] : v.length));
           k.textContent = v.slice(q[0], q[1]); var end = q[1] >= v.trim().length;
-          k.className = "lq-w lq-t" + (end && CP.test(nx) ? "" : " lq-b");
+          k.className = "lq-w lq-t" + (end && (CP.test(nx) || (y && !nx)) ? "" : " lq-b");
           if (!j && pre && !q[0]) k.prepend(/** @type {Node} */ (x));
           if (post >= 0 && q[1] === v.length) k.append(/** @type {Node} */ (y));
           DONE.set(t, t.nodeValue || ""); f.append(k); if (t.nodeValue) f.append(t);

@@ -184,3 +184,25 @@ line-wrap code comments moved out of nav.js on 2026-11-17 (budget):
 // inline-block (wraps inside a narrow box instead of widening it) unless a closing mark follows in the next node
 // no empty text node is left behind
 ```
+
+More styles.css comments moved word for word on 2026-11-17:
+
+```text
+/* Compact language switch (nav.js): on very narrow phones (< 341 px, e.g. 320 px iPhone SE 1st gen) — or < 401 px when
+   the member account icon also sits in the bar (.nav.has-acct) — only the current language is shown; tapping it opens
+   the other two below it (.lang-switch.open; Escape / outside tap closes). Every language stays one tap away. */
+
+/* ---------- help line on every fortune page and under every reading (owner order 2026-11-12) ----------
+   Calm, always visible, no detection needed: verified numbers only (docs/CRISIS-RESOURCES.md). In the HTML so it shows
+   without JavaScript (tools/helpline.mjs); fortune-crisis.js builds the same line under each reading. */
+
+/* LENSIQ — shared theme.
+   Variable NAMES are kept from the old theme because every page CSS uses them;
+   only values changed. Roles:
+   --navy  deep ink (primary buttons, headings)   --navy2 hover ink
+   --aqua  electric cyan (focus rings, bars)      --gold  electric violet accent (text/borders on light, AA on #fff)
+*/
+
+/* round 14 (round 16: from 1024 px): all groups on one line at 1024-1440 px. The bar shows the compact group name (.nav-lbl-s, key nav.groups.*),
+   the drawer the full one (.nav-lbl-f); items never shrink or wrap (the Thai <wbr> word breaks stay inside the label) */
+```
