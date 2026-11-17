@@ -98,3 +98,14 @@ f6e296c27f65cedf61ca85cdacad9fa9916879bd6f9e2b53edaa5274d9426618  tests/unit/cri
 d34bb2c3cc0e26599265891d2199a85292f95ea4391d8b38e47343a27db7dbfe  tests/unit/crisis-rules-1323-g.test.js  # repo file
 # RE-LOCK 2026-11-17 (branch crisis-v3): RE-LOCK v3-unit-b 2026-11-17: crisis-rules-1323 R1 re-adds the kept protections (warm line at most 3 sentences and 140 / 60 characters; counselling link text non-empty), see docs/CRISIS-V3-RELOCKS.md. Copy: ~/LENSIQ-field/evals/crisis-v3/relock-unit-b/.
 91f92cf7b50d77449c4fd46056651005b9984b01b1138dc8c21ebc789c8aa9e3  tests/unit/crisis-rules-1323.test.js  # repo file
+# RE-LOCK 2026-11-17 (branch crisis-v3): RE-LOCK v3-e2e 2026-11-17 (owner decision 2026-11-17 crisis v3), before these files are run on the product: card assertions replaced by v3 rules a / d; every protection kept (crisis check before validation on every inventoried input via the crisis state, no echo, no sales / remedy / share / print, one number, closing line 44 px, no analytics). Ledger: docs/CRISIS-V3-RELOCKS.md. Copy: ~/LENSIQ-field/evals/crisis-v3/relock-e2e/.
+fbd6cd3eb543944e525b5c0d30a7e97c1e5cc36f38c20bcb206d0d44c21f88f7  tests/e2e/fortune-crisis.e2e.mjs  # repo file
+cd2caae91adb8d5c72a3f354241e499b55e27bcc5813adccff631c5aaba1e234  tests/e2e/fortune-crisis-fields.e2e.mjs  # repo file
+4792126d2a6354fbcd9215e7049e13af11ec5a0baba14053c9c7e6b3feead086  tests/e2e/fortune-crisis-session.e2e.mjs  # repo file
+b83207c948b30db300b5e649487cfa4fe1987a21572316295bd41017a5fc1644  tests/e2e/fortune-helpline.e2e.mjs  # repo file
+f8522c1414e76f8fcb46ba9966d8c2ace48e1125f9e4bf96d72d32f4fcd2c64e  tests/e2e/fortune-live.e2e.mjs  # repo file
+213c37ad24710e5eff0fd48d541aab7ddb8ca10ad2a505b8ef0ef7a359a80795  tests/e2e/fortune-new.e2e.mjs  # repo file
+cf34ded8599e7cfdd5dc730aaeedd2a928861801e38ddd9b44131e1a5a197bfc  tests/e2e/helpline-call.e2e.mjs  # repo file
+8eef491460a01c05abe5828a237a186affe5bcb067070fdbf426ebbeb58ba13b  tests/e2e/fortune-layout.e2e.mjs  # repo file
+0c976e99dde5c5c14b540878d3bacb8ef53fff8705e51d6fc728ba8ada7f73f7  tests/e2e/crisis-rules-1323-b.e2e.mjs  # repo file
+5f3ef019d9bfcdaab5e0f48f554916a628737ca16a7e2a544f1e810c22d5a5d4  tests/e2e/crisis-rules-1323-f.e2e.mjs  # repo file

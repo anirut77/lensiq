@@ -12,33 +12,34 @@ export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
     let page = await browser.newPage(null);
-    await check("tarot: a self-harm question shows the support card and does not shuffle; an ordinary question shuffles", async () => {
+    await check("tarot: a self-harm question sets the crisis state and the shuffle goes on (v3); an ordinary question shuffles", async () => {
       await page.goto(`${base}/tarot.html`);
       for (const q of PHRASES) {
         await page.evaluate(q2 => { document.getElementById("trQuestion").value = q2; document.getElementById("trStart").click(); }, q);
-        await page.waitFor(cardShown("trSupport"), 5000);
-        const r = await page.evaluate(() => ({ pick: document.getElementById("trPick").hidden, setup: document.getElementById("trSetup").hidden, focus: document.activeElement && document.activeElement.id }));
-        assert(r.pick && !r.setup, q + ": no shuffle, setup stays: " + JSON.stringify(r));
-        assert(r.focus === "trSupport", q + ": focus moves to the card");
+        // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the crisis state is set and the shuffle goes on (no card)
+        await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1" && !document.getElementById("trPick").hidden, 8000);
+        assert(await page.evaluate(() => !document.querySelector(".fa-support") && (!document.getElementById("trSupport") || document.getElementById("trSupport").hidden)), q + ": no card");
+        await page.reload();
       }
       await page.evaluate(() => { document.getElementById("trQuestion").value = "งานใหม่จะดีไหม"; document.getElementById("trStart").click(); });
       await page.waitFor(() => !document.getElementById("trPick").hidden, 8000);
-      assert(await page.evaluate(() => document.getElementById("trSupport").hidden), "card hidden again for an ordinary question");
+      assert(await page.evaluate(() => !document.getElementById("trSupport") || document.getElementById("trSupport").hidden), "no card for an ordinary question");
     });
     await page.close();
 
     page = await browser.newPage(null);
-    await check("iching: a self-harm question shows the support card and does not cast; an ordinary question casts", async () => {
+    await check("iching: a self-harm question sets the crisis state and the cast goes on (v3); an ordinary question casts", async () => {
       await page.goto(`${base}/iching.html`);
       for (const q of PHRASES) {
         await page.evaluate(q2 => { document.getElementById("icQuestion").value = q2; document.getElementById("icStart").click(); }, q);
-        await page.waitFor(cardShown("icSupport"), 5000);
-        const r = await page.evaluate(() => ({ stage: document.getElementById("icStage").hidden, setup: document.getElementById("icSetup").hidden }));
-        assert(r.stage && !r.setup, q + ": no cast, setup stays: " + JSON.stringify(r));
+        // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the crisis state is set and the cast goes on (no card)
+        await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1" && !document.getElementById("icStage").hidden, 8000);
+        assert(await page.evaluate(() => !document.querySelector(".fa-support") && (!document.getElementById("icSupport") || document.getElementById("icSupport").hidden)), q + ": no card");
+        await page.reload();
       }
       await page.evaluate(() => { document.getElementById("icQuestion").value = "ควรเริ่มโปรเจกต์ใหม่ช่วงนี้ไหม"; document.getElementById("icStart").click(); });
       await page.waitFor(() => !document.getElementById("icStage").hidden, 5000);
-      assert(await page.evaluate(() => document.getElementById("icSupport").hidden), "card hidden again for an ordinary question");
+      assert(await page.evaluate(() => !document.getElementById("icSupport") || document.getElementById("icSupport").hidden), "no card for an ordinary question");
     });
     await page.close();
   } finally {

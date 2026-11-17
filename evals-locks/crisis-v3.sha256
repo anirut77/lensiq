@@ -56,3 +56,33 @@ dc420bc6e9e5c1f888a35e8daf5bb7df1f4989c8c99decf185c3a72ca0b42968  tests/unit/cri
 # locked 2026-11-17T01:31:34Z (tools/eval-guard.mjs lock, 1 file)
 ba8531cf68bb6871d03094d04bfea5331b195cdb08f59cdb09de124d6a744f22  relock4/crisis-v3-kit.mjs
 ba8531cf68bb6871d03094d04bfea5331b195cdb08f59cdb09de124d6a744f22  tests/e2e/crisis-v3-kit.mjs  # repo file (relock4)
+# RE-LOCK v3-e2e 2026-11-17 (owner decision 2026-11-17 crisis v3), before these files are run on the product: card assertions replaced by v3 rules a / d; every protection kept (crisis check before validation on every inventoried input via the crisis state, no echo, no sales / remedy / share / print, one number, closing line 44 px, no analytics). Ledger: docs/CRISIS-V3-RELOCKS.md.
+# locked 2026-11-17T01:39:32Z (tools/eval-guard.mjs lock, 14 files)
+26179a8d28032eeef736285daf5dc9af17f7716d7f90445215fab7787abf90ad  relock-e2e/crisis-net-hotfix-kit.mjs
+30faedf9c260ba9d875d6786eab0ceac657df29246e2e25c196fad73a1ae7700  relock-e2e/crisis-net-hotfix-b.e2e.mjs
+fbd6cd3eb543944e525b5c0d30a7e97c1e5cc36f38c20bcb206d0d44c21f88f7  relock-e2e/fortune-crisis.e2e.mjs
+cd2caae91adb8d5c72a3f354241e499b55e27bcc5813adccff631c5aaba1e234  relock-e2e/fortune-crisis-fields.e2e.mjs
+4792126d2a6354fbcd9215e7049e13af11ec5a0baba14053c9c7e6b3feead086  relock-e2e/fortune-crisis-session.e2e.mjs
+1dfa4f14c86673530bdd985fe3ec9d6a52066c37ee54665b5a0b123f92b1305e  relock-e2e/fortune-crisis-soft.e2e.mjs
+b83207c948b30db300b5e649487cfa4fe1987a21572316295bd41017a5fc1644  relock-e2e/fortune-helpline.e2e.mjs
+f8522c1414e76f8fcb46ba9966d8c2ace48e1125f9e4bf96d72d32f4fcd2c64e  relock-e2e/fortune-live.e2e.mjs
+213c37ad24710e5eff0fd48d541aab7ddb8ca10ad2a505b8ef0ef7a359a80795  relock-e2e/fortune-new.e2e.mjs
+cf34ded8599e7cfdd5dc730aaeedd2a928861801e38ddd9b44131e1a5a197bfc  relock-e2e/helpline-call.e2e.mjs
+e630b5c355593a73a7d984c361dfa5f69e6f7d40d941b51d00de4f5acf262a2e  relock-e2e/merit-crisis.e2e.mjs
+8eef491460a01c05abe5828a237a186affe5bcb067070fdbf426ebbeb58ba13b  relock-e2e/fortune-layout.e2e.mjs
+0c976e99dde5c5c14b540878d3bacb8ef53fff8705e51d6fc728ba8ada7f73f7  relock-e2e/crisis-rules-1323-b.e2e.mjs
+5f3ef019d9bfcdaab5e0f48f554916a628737ca16a7e2a544f1e810c22d5a5d4  relock-e2e/crisis-rules-1323-f.e2e.mjs
+26179a8d28032eeef736285daf5dc9af17f7716d7f90445215fab7787abf90ad  tests/e2e/crisis-net-hotfix-kit.mjs  # repo file (relock-e2e)
+30faedf9c260ba9d875d6786eab0ceac657df29246e2e25c196fad73a1ae7700  tests/e2e/crisis-net-hotfix-b.e2e.mjs  # repo file (relock-e2e)
+fbd6cd3eb543944e525b5c0d30a7e97c1e5cc36f38c20bcb206d0d44c21f88f7  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-e2e)
+cd2caae91adb8d5c72a3f354241e499b55e27bcc5813adccff631c5aaba1e234  tests/e2e/fortune-crisis-fields.e2e.mjs  # repo file (relock-e2e)
+4792126d2a6354fbcd9215e7049e13af11ec5a0baba14053c9c7e6b3feead086  tests/e2e/fortune-crisis-session.e2e.mjs  # repo file (relock-e2e)
+1dfa4f14c86673530bdd985fe3ec9d6a52066c37ee54665b5a0b123f92b1305e  tests/e2e/fortune-crisis-soft.e2e.mjs  # repo file (relock-e2e)
+b83207c948b30db300b5e649487cfa4fe1987a21572316295bd41017a5fc1644  tests/e2e/fortune-helpline.e2e.mjs  # repo file (relock-e2e)
+f8522c1414e76f8fcb46ba9966d8c2ace48e1125f9e4bf96d72d32f4fcd2c64e  tests/e2e/fortune-live.e2e.mjs  # repo file (relock-e2e)
+213c37ad24710e5eff0fd48d541aab7ddb8ca10ad2a505b8ef0ef7a359a80795  tests/e2e/fortune-new.e2e.mjs  # repo file (relock-e2e)
+cf34ded8599e7cfdd5dc730aaeedd2a928861801e38ddd9b44131e1a5a197bfc  tests/e2e/helpline-call.e2e.mjs  # repo file (relock-e2e)
+e630b5c355593a73a7d984c361dfa5f69e6f7d40d941b51d00de4f5acf262a2e  tests/e2e/merit-crisis.e2e.mjs  # repo file (relock-e2e)
+8eef491460a01c05abe5828a237a186affe5bcb067070fdbf426ebbeb58ba13b  tests/e2e/fortune-layout.e2e.mjs  # repo file (relock-e2e)
+0c976e99dde5c5c14b540878d3bacb8ef53fff8705e51d6fc728ba8ada7f73f7  tests/e2e/crisis-rules-1323-b.e2e.mjs  # repo file (relock-e2e)
+5f3ef019d9bfcdaab5e0f48f554916a628737ca16a7e2a544f1e810c22d5a5d4  tests/e2e/crisis-rules-1323-f.e2e.mjs  # repo file (relock-e2e)

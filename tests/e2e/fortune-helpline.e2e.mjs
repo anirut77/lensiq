@@ -162,13 +162,13 @@ export default async function ({ base, launch, check }) {
       } finally { await page.close(); }
     });
 
-    await check("crisis state (dream hard net): asking again with harmless text shows the card again, no reading and no remedy / lucky / straight text", async () => {
+    await check("crisis state (dream hard net): asking again gives a gentle reading, no card, no plan and no remedy / lucky / straight text (v3)", async () => {
       const page = await browser.newPage(null);
       try {
         await page.goto(`${base}/dream.html`);
         const base0 = await page.evaluate(markerCount);
         await page.evaluate(() => { const t = document.getElementById("drText"); t.value = "ฝันว่าฆ่าตัวตาย อยากตายจริงๆ"; t.dispatchEvent(new Event("input")); });
-        await page.waitFor(() => !!document.querySelector("#drSupport .fa-support"), 4000);
+        await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1", 4000); // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): state, no card
         await page.evaluate(() => document.getElementById("drForm").requestSubmit());
         assert(await page.evaluate(() => document.documentElement.getAttribute("data-lq-crisis") === "1"), "page is in the crisis state");
         assert(await page.evaluate(() => window.FortuneAI.crisis.active() === true && window.FortuneAI.crisis.allow("remedy") === false &&
@@ -181,13 +181,13 @@ export default async function ({ base, launch, check }) {
         await sleep(1500);
         const r = await page.evaluate(`(() => ({ sections: document.querySelectorAll(".fa-section").length, plan: [...document.querySelectorAll(".fa-plan")].filter(${vis}).length,
           card: [...document.querySelectorAll(".fa-support")].some(${vis}), markers: ${markerCount} }))()`);
-        assert(r.sections === 0 && r.plan === 0, "no reading in the crisis state " + S(r));
-        assert(r.card, "support card shown again " + S(r));
+        // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the next reading goes on gently: sections, no plan, no card, closing line; no remedy / lucky words (below)
+        assert(r.sections >= 2 && r.plan === 0 && !r.card, "gentle reading in the crisis state, no plan, no card " + S(r));
         assert(r.markers <= base0, `remedy / lucky words appeared (${r.markers} > ${base0})`);
       } finally { await page.close(); }
     });
 
-    await check("crisis state (horoscope soft step 'talk'): a later plain name still gets the card, no reading and no lucky-colour / remedy text", async () => {
+    await check("crisis state (horoscope soft step 'talk'): a later plain name gets a gentle reading, no card and no lucky-colour / remedy text (v3)", async () => {
       const page = await browser.newPage(null);
       const birth = `(() => { const d = document.getElementById("hsDay"), m = document.getElementById("hsMonth"); d.value = d.options[14].value; m.value = m.options[5].value;
         document.getElementById("hsYear").value = "2533"; document.getElementById("hsForm").requestSubmit(); })()`;
@@ -199,15 +199,14 @@ export default async function ({ base, launch, check }) {
         await page.evaluate(setName("เหนื่อยจนทนไม่ไหวแล้ว")); await page.evaluate(birth);
         await page.waitFor(() => !!document.querySelector("#hsResult .fa-soft [data-soft=talk]"), 15000);
         await page.evaluate(() => document.querySelector("#hsResult .fa-soft [data-soft=talk]").click());
-        await page.waitFor(() => !!document.querySelector("#hsResult .fa-support"), 5000);
-        assert(await page.evaluate(() => document.documentElement.getAttribute("data-lq-crisis") === "1"), "talk path sets the crisis state");
+        await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1", 5000); // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): state, no card
         await page.evaluate(setName("สมชาย")); await page.evaluate(birth);
         await sleep(2500);
         const r = await page.evaluate(`(() => ({ sections: document.querySelectorAll(".fa-section").length,
           card: [...document.querySelectorAll("#hsResult .fa-support")].some(${vis}), markers: ${markerCount},
           tabs: ["pn-th", "pn-bz", "pn-nu", "pn-td"].map(id => { const e = document.getElementById(id); return e ? e.innerText.trim().length : 0; }) }))()`);
-        assert(r.sections === 0, "no reading after the talk path " + S(r));
-        assert(r.card, "support card still shown " + S(r));
+        // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the reading goes on gently (no card); no remedy / lucky words (below)
+        assert(r.sections >= 2 && !r.card, "gentle reading after the talk path, no card " + S(r));
         assert(r.markers <= base0, `remedy / lucky words appeared (${r.markers} > ${base0}) ${S(r)}`);
       } finally { await page.close(); }
     });

@@ -106,3 +106,8 @@ bfe416e44fab36aba3ebdf6db0c82bcf624243f01ae7d3060281692c73dbb65b  tests/e2e/fort
 ceabab9381abc4f5102624dc1f03234b4d6c4c926313d1c9f8050591c5c17d44  tests/unit/fortune-helpline.test.js  # repo file
 308000f0ee2fc2389bbd00d5f9c2574a9fa3447b38b5b222436190992e5979b0  tests/unit/fortune-honest.test.js  # repo file
 494a0f6f153ea77e9dcf935fc771c0a8d079983509673f8db99f28a3b46c220e  tests/unit/fortune-straight-crisis.test.js  # repo file
+# RE-LOCK 2026-11-17 (branch crisis-v3): RE-LOCK v3-e2e 2026-11-17 (owner decision 2026-11-17 crisis v3), before these files are run on the product: card assertions replaced by v3 rules a / d; every protection kept (crisis check before validation on every inventoried input via the crisis state, no echo, no sales / remedy / share / print, one number, closing line 44 px, no analytics). Ledger: docs/CRISIS-V3-RELOCKS.md. Copy: ~/LENSIQ-field/evals/crisis-v3/relock-e2e/.
+cd2caae91adb8d5c72a3f354241e499b55e27bcc5813adccff631c5aaba1e234  tests/e2e/fortune-crisis-fields.e2e.mjs  # repo file
+4792126d2a6354fbcd9215e7049e13af11ec5a0baba14053c9c7e6b3feead086  tests/e2e/fortune-crisis-session.e2e.mjs  # repo file
+1dfa4f14c86673530bdd985fe3ec9d6a52066c37ee54665b5a0b123f92b1305e  tests/e2e/fortune-crisis-soft.e2e.mjs  # repo file
+b83207c948b30db300b5e649487cfa4fe1987a21572316295bd41017a5fc1644  tests/e2e/fortune-helpline.e2e.mjs  # repo file

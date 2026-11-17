@@ -32,7 +32,9 @@ const SNAP = sc => `(() => {
   const secs = [...box.querySelectorAll(".fa-section")].filter(vis);
   const straight = secs.filter(s => { const h = s.closest("[data-fa-mode]"); return h && h.getAttribute("data-fa-mode") === "straight"; }).length;
   const tel = [...box.querySelectorAll(".lq-helpline .lq-helpline-tel")].concat([...document.querySelectorAll(".fa-support .fa-tel")]).filter(a => /1323/.test(a.textContent));
-  return { sections: secs.length, straight, support: [...document.querySelectorAll(".fa-support")].some(vis), soft: [...document.querySelectorAll(".fa-soft")].some(vis),
+  // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): "support" now means the crisis net
+  // fired on this page (<html data-lq-crisis="1">) and NO card is shown; the closing line with 1323 is helpOnPage
+  return { sections: secs.length, straight, support: document.documentElement.getAttribute("data-lq-crisis") === "1" && ![...document.querySelectorAll(".fa-support")].some(vis), soft: [...document.querySelectorAll(".fa-soft")].some(vis),
     remedies: [...document.querySelectorAll("[data-lq-remedy]")].filter(vis).map(e => e.id || e.className || e.tagName),
     paid: [...document.querySelectorAll("[data-lq-upsell], [data-lq-paid], [data-lq-merit]")].filter(vis).length,
     helpOnPage: tel.some(vis), helpInView: tel.some(full),
@@ -149,7 +151,7 @@ export default async function ({ base, launch, check }) {
         await RUN.tarot.ask(p2, "I can't do this anymore");
         await p2.waitFor(() => [...document.querySelectorAll(".fa-soft")].some(e => e.getBoundingClientRect().height > 0), 10000);
         await p2.evaluate(clickTalk);
-        await p2.waitFor(() => !!document.querySelector(".fa-support"), 5000);
+        await p2.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1", 5000); // v3: the talk path sets the crisis state
         calmReading(await read(p2, "zodiac", ""), "zodiac after 'talk'");
       } finally { await p2.close(); }
       // a new tab: its own sessionStorage, straight reading as chosen

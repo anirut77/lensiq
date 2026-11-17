@@ -20,6 +20,14 @@ New fixed set, locked before any v3 product code (622bf81): `tests/unit/crisis-v
 5 characters (Thai / English) or 3 (Chinese), plus the whole typed text, because 2- or 3-character pieces match ordinary words of
 a reading that is now shown. U1 compares the section count with the plain reading. U4 counts the closing box itself.
 
+Later fixes to the new set's own test faults (no v3 rule changed):
+
+| Re-lock | When | Change | Why |
+|---|---|---|---|
+| 2 (kit) | after the base run, before the build was measured | Chinese price = a number with 元 / ¥; print = printing the reading | "元" matched 元素 (element); "print" matched the operator link "print the camera notice" |
+| 3 (U1) | in the full unit suite | plain and crisis readings composed with the same seed | without a seed the composer picks one at random, so the counts differed by chance |
+| 4 (kit) | after the first build run (build-1-e2e.log) | English harsh list case-sensitive without the zodiac sign "Cancer"; "shop" dropped (a seller link is still caught); Thai echo piece 7 characters; report opened without the test backend | each was a false finding: the sign name, an operator note, the ordinary word "จริงๆ", and report being a paid product when a backend is configured |
+
 ## Unit tests (tag `relock-unit`)
 
 | File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
@@ -55,5 +63,22 @@ crisis state (rule a).
 
 ## End-to-end tests (tag `relock-e2e`)
 
-Listed here before they are measured on the product. Pending: crisis-net-hotfix-kit and a–d; fortune-crisis*, fortune-helpline,
-fortune-live, fortune-new, helpline-call, merit-crisis, fortune-layout A5 exception, crisis-rules-1323-{b,c,f} (card checks).
+Locked before these files are run on the product.
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/e2e/crisis-net-hotfix-kit.mjs (used by a–d) | every inventoried input: "crisis phrase -> …" | the card is visible, its heading on the first screen, no reading widget visible, no echo (2-character pieces) | the crisis state (`html[data-lq-crisis]`) is set by the visitor's own action, even when the page then refuses the input; no card or soft step; no sales / remedy / share / print visible; no help number other than 1323; no echo (7 Thai / 5 English / 3 Chinese characters plus the whole text, because the reading is now shown) | a, c, d | crisis check before validation on every inventoried input: same test (state set on every row); inventory coverage: unit crisis-input-inventory (unchanged) |
+| tests/e2e/crisis-net-hotfix-b.e2e.mjs | faceread / palm: nickname typed AFTER a reading | → only the help card | → crisis state, no card, no echo (same kit function) | a | same |
+| tests/e2e/fortune-crisis.e2e.mjs | tarot / iching: a self-harm question … | card shown, no shuffle / cast, focus on the card | crisis state set, the shuffle / cast goes on, no card; an ordinary question still shuffles / casts with no card | a | no echo: crisis-v3-a/b/c; ordinary-question control unchanged |
+| tests/e2e/fortune-crisis-fields.e2e.mjs | horoscope / numbers / report name fields | `supportIn`: the card in the result, no section; report: no parts under the card | `supportIn`: crisis state, reading drawn, no card, closing line after the last section with tel:1323 and the counselling link, no 1669; report: parts drawn | a, d | ordinary-name control (no card) unchanged |
+| tests/e2e/fortune-crisis-session.e2e.mjs | (b), (b) storage blocked, (d), 'talk' path | `support` = a visible card | `support` = the crisis net fired (`data-lq-crisis`) and no card; the talk path sets the state | a | one sessionStorage boolean, no text stored, later pages calm (no straight, no remedies, no paid), new tab unaffected, joke control, storage-blocked behaviour: unchanged |
+| tests/e2e/fortune-crisis-soft.e2e.mjs | horoscope 'talk' | `card(sel)`: the card in the result | crisis state, no card, the closing line with tel:1323 | a, d | the soft step before any tab, no echo after "Just the reading": unchanged |
+| tests/e2e/fortune-helpline.e2e.mjs | dream hard net; horoscope 'talk' | the card shown again, no reading | a gentle reading (sections), no plan, no card; the remedy / lucky word count does not rise | a, b, c | `allow()` says no (remedy / paid / straight), remedy words not added: same tests; remedy blocks hidden: "crisis state hides data-lq-remedy blocks" (unchanged) |
+| tests/e2e/fortune-live.e2e.mjs | H3 (dream) | the card with tel:1323 ≥ 44 px replaces the reading | crisis state, no card, the reading goes on (a dream with a symbol), the closing line has tel:1323 ≥ 44 px and no other tel: link | a, d | one number, 44 px: same test |
+| same | H3 (every reading page) | `FortuneAI.crisis.render` draws the card (tel:1323 only) and sets the state | `render` sets the state and draws no card and no number | a | — |
+| tests/e2e/fortune-new.e2e.mjs | dream self-harm words | the card with tel:1323 only, no reading | crisis state, no card | a | nothing about the text stored: same test (unchanged) |
+| tests/e2e/helpline-call.e2e.mjs | crisis state (dream) | the card shown, not collapsed, its only button 1323 | no card; the closing line shown, not collapsed, its only button tel:1323, all buttons tappable / 44 px / not covered; the top control still visible | a, d | button checks (`checkButtons`) unchanged |
+| tests/e2e/merit-crisis.e2e.mjs | after a crisis (tarot); state switched on under a drawn form | waits for a new card / a card in the merit panel | waits for the reading with its closing line; the form submit sends nothing (no card drawn) | a | no merit panel, card or paid offer after a crisis; nothing sent: same tests (unchanged) |
+| tests/e2e/fortune-layout.e2e.mjs | A5 exception | the card shown in full, one fold | no card is shown; the NOTICES helper still checks the help line is never folded | a | same test (NOTICES) |
+| tests/e2e/crisis-rules-1323-b.e2e.mjs | C1–C9 | the card: results hidden, order, lines, one number, link, no list, no price, nothing pinned, 44 px, read-more, link opens the page | C9 kept: the counselling link under the closing line opens counselling.html with its five call buttons; on that crisis reading, one number and nothing pinned (C3 / C6) | a, d | C1 (results / sales hidden), C2 (order), C3 (one number), C5 (no list, no price), C6 (pinned), C7 (44 px): crisis-v3 judge and unit crisis-rules-1323 R1; C8 (read-more of the card): replaced by rule a |
+| tests/e2e/crisis-rules-1323-f.e2e.mjs | F1, F2 | the card with the shipped switch; card button ≥ 44 px with the component blocked | F1 → crisis-v3-a/b/c/d (shipped switch); F2 kept for the closing line (component blocked: tel:1323 only, ≥ 44 × 44 px) | a, d | crisis-v3 judge |

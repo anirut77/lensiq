@@ -229,24 +229,27 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n" + bad.join("\n"));
     });
 
-    await check("H3: crisis state (dream hard net, TH / EN / ZH): the full help card shows and the reading is replaced", async () => {
+    await check("H3: crisis state (dream hard net, TH / EN / ZH): the reading goes on with the closing line, tel:1323 only (v3)", async () => {
       const bad = [];
       for (const lang of LANGS) {
         const page = await open(browser, lang);
         try {
           await phone(page, 375);
           await load(page, base, "dream", lang);
-          await page.evaluate(() => { const t = document.getElementById("drText"); t.value = "ฝันว่าฆ่าตัวตาย อยากตายจริงๆ"; t.dispatchEvent(new Event("input")); });
-          await page.waitFor(() => !!document.querySelector(".fa-support"), 5000);
+          // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the crisis state is set, NO card, the reading goes on (a dream with a symbol) and ends with the closing line;
+          // its one number is tel:1323 (>= 44 px), no other tel: link
+          await page.evaluate(() => { const t = document.getElementById("drText"); t.value = "ฝันเห็นงูใหญ่ในบ้าน อยากตายจริงๆ"; t.dispatchEvent(new Event("input")); });
+          await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1" && document.querySelectorAll("#drSel .dr-x").length >= 1, 5000);
           await page.evaluate(() => document.getElementById("drForm").requestSubmit());
-          await sleep(1200);
+          await page.waitFor(() => document.querySelectorAll(".fa-section").length >= 2, 15000);
+          await sleep(800);
           const r = await page.evaluate(`(() => { const cards = [...document.querySelectorAll(".fa-support")].filter(e => e.getClientRects().length);
-            const c = cards[0]; const tels = c ? [...c.querySelectorAll('a[href^="tel:"]')].map(a => { const q = a.getBoundingClientRect(); return { h: a.getAttribute("href"), w: q.width, ht: q.height }; }) : [];
+            const c = document.querySelector(".lq-helpline-result"); const tels = c ? [...c.querySelectorAll('a[href^="tel:"]')].map(a => { const q = a.getBoundingClientRect(); return { h: a.getAttribute("href"), w: q.width, ht: q.height }; }) : [];
             return { crisis: document.documentElement.getAttribute("data-lq-crisis"), cards: cards.length, tels,
               sections: [...document.querySelectorAll(".fa-section")].filter(e => e.getClientRects().length).length }; })()`);
           if (r.crisis !== "1") bad.push(`${lang}: page not in the crisis state ${S(r)}`);
-          if (!r.cards) bad.push(`${lang}: no help card ${S(r)}`);
-          if (r.sections) bad.push(`${lang}: a reading is shown next to the card ${S(r)}`);
+          if (r.cards) bad.push(`${lang}: a card is shown ${S(r)}`);
+          if (r.sections < 2) bad.push(`${lang}: the reading did not go on ${S(r)}`);
           // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the card has one number, 1323 (>= 44 px); no other tel: link
           const t = r.tels.find(x => x.h === "tel:1323");
           if (!t) bad.push(`${lang}: card has no tel:1323 ${S(r.tels)}`); else if (t.w < 44 || t.ht < 44) bad.push(`${lang}: card tel:1323 is ${t.w}×${t.ht}`);
@@ -256,7 +259,7 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n" + bad.join("\n"));
     });
 
-    await check("H3: on every page with the reading engine, the crisis card renders with 1323 and 1669 tap-to-call and sets the crisis state (TH / EN / ZH)", async () => {
+    await check("H3: on every page with the reading engine, FortuneAI.crisis.render sets the crisis state and draws no card (v3, TH / EN / ZH)", async () => {
       const bad = [];
       for (const lang of LANGS) {
         const page = await open(browser, lang);
@@ -270,8 +273,8 @@ export default async function ({ base, launch, check }) {
               window.FortuneAI.crisis.render(d, window.FortuneAI.crisis.result({ lang: ${S(lang)} }));
               const c = d.querySelector(".fa-support"); const tels = c ? [...c.querySelectorAll('a[href^="tel:"]')].filter(a => a.getClientRects().length).map(a => a.getAttribute("href")) : [];
               return { card: !!c && c.getClientRects().length > 0, tels, crisis: document.documentElement.getAttribute("data-lq-crisis") }; })()`);
-            // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): 1323 only on the card
-            if (!r.card || r.crisis !== "1" || !r.tels.includes("tel:1323") || r.tels.some(t => t !== "tel:1323")) bad.push(`${p} ${lang}: ${S(r)}`);
+            // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): render() draws NO card and sets the crisis state; no number is added by it
+            if (r.card || r.crisis !== "1" || r.tels.length) bad.push(`${p} ${lang}: ${S(r)}`);
           }
         } finally { await page.close(); }
       }
