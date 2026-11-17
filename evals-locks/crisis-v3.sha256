@@ -114,3 +114,7 @@ d81fd3d1f02b69e41e0afacfcf77b036e8013ea4e897aba70688b75d4b0bf3f8  tests/e2e/cris
 ec7d4659915d5403360197499c7432671c1d62dfdb1c9f6c528313573577739c  tests/e2e/crisis-v3-pre-en.e2e.mjs  # repo file (pre-lock)
 9cf0c063ce59174a91842790381fd62c8fc9c8cc458ccb188aeef6dfd5a3648f  tests/e2e/crisis-v3-pre-zh.e2e.mjs  # repo file (pre-lock)
 65857a89305e25fd560319589a71f514d1dbedacfc9dcfee275b4ec64fa92830  tests/unit/crisis-v3-pre.test.js  # repo file (pre-lock)
+# RE-LOCK pre-1 2026-11-17 (test fault found on the first run, v3-2-pre-th-1.log): the switch expression returned the window object, which CDP cannot serialise; it now ends with true. No assertion changed.
+# locked 2026-11-17T03:13:12Z (tools/eval-guard.mjs lock, 1 file)
+c3e1c4ebf59edcb99a73573f7763c8341436edadbe86c7f84ab7d5aa59c622a0  pre-lock-1/crisis-v3-pre.e2e.mjs
+c3e1c4ebf59edcb99a73573f7763c8341436edadbe86c7f84ab7d5aa59c622a0  tests/e2e/crisis-v3-pre.e2e.mjs  # repo file (pre-lock-1)

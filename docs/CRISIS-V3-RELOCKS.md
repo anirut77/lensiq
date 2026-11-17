@@ -113,3 +113,5 @@ Locked before the option ข product code. No existing assertion changed.
 | same | P2 / P3 | `LQFortuneCrisis.plan()` true for the narrow listed explicit-plan phrases (TH / EN / ZH; each also caught by the crisis net), false for crisis phrases without a plan and for ordinary text sharing words with the list |
 | same | P4 | `preHTML(lang)`: one short warm line, one link only (tel:1323), no other number, nothing flagged, no statistics, no Thai in EN / ZH |
 | tests/e2e/crisis-v3-pre{,-en,-zh}.e2e.mjs | per page with a field × TH / EN / ZH, 393 px | P1 ข + plan phrase: exactly one pre-line before the first section, not pinned, tel:1323 ≥ 44 × 44 px, short warm line, nothing flagged; then (pre-line removed) the locked crisis-v3 judge, no echo, no analytics. P2 shipped ก + plan phrase: no pre-line, judge passes. P3 ข + non-plan crisis phrase: no pre-line, judge passes. P4 ข + ordinary reading: no pre-line, no closing line, no crisis state |
+
+| Re-lock pre-1 | first run of the pre-lock set (v3-2-pre-th-1.log) | the switch expression returned the window object (CDP could not serialise it); it now ends with `true` | test fault; no assertion changed |

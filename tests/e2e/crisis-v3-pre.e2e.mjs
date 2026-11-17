@@ -20,7 +20,9 @@ export const PRE_LANG = "th";
 export const PLAN = { th: "คืนนี้จะจบชีวิต", en: "I'll kill myself tonight", zh: "今晚就结束生命" };
 const WIDTH = 393;
 /** the switch ข, held against lensiq-config.js (which only sets it when it is not already true) */
-const SWITCH_B = `Object.defineProperty(window, "LENSIQ_CRISIS_PRELINE", { configurable: true, get: () => true, set: () => {} });`;
+// RE-LOCK pre-1 2026-11-17 (test fault, first run v3-2-pre-th-1.log): defineProperty returns the window, which CDP cannot return
+// ("Object reference chain is too long"); the expression now ends with true. No assertion changed.
+const SWITCH_B = `Object.defineProperty(window, "LENSIQ_CRISIS_PRELINE", { configurable: true, get: () => true, set: () => {} }); true`;
 
 const PRE_FACTS = lang => `(() => {
   const vis = e => { if (!e || !e.isConnected) return false; if (e.checkVisibility && !e.checkVisibility({ visibilityProperty: true, opacityProperty: true })) return false;
