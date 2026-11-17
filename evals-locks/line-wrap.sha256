@@ -19,3 +19,7 @@ a041e7c04d6ecafec66b759ab70c477bf2655aa5aab6d092cf45bddc32516a17  tests/e2e/line
 # Copy in relock-1/.
 # locked 2026-11-17T03:44:55Z (tools/eval-guard.mjs lock, 1 file)
 8777ed1f13152f5a47b57ceec72b0ea2f4d86a20e6195e97b33c6c7dbed99d7b  relock-1/tests/e2e/line-wrap-exceptions.json
+# re-lock 2026-11-17 (append-only exceptions list, second entry): exam.html W zh "日） | 来源" (source link after a whitespace-only gap
+# between two elements; the link itself is kept whole). No rule, page, width, language or threshold changed. Copy in relock-2/.
+# locked 2026-11-17T07:44:10Z (tools/eval-guard.mjs lock, 1 file)
+2791632e155f0f6fffd923d9413659b21833437dc7f447441f593e00403534cc  relock-2/tests/e2e/line-wrap-exceptions.json

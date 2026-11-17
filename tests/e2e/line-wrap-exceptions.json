@@ -7,6 +7,14 @@
    "contains": "| ./start.sh mobile",
    "reason": "Not punctuation: the line starts with the shell command ./start.sh (a file path that begins with a dot) inside a <code> box; the command must be shown exactly as typed, so the dot cannot be moved or joined to the Thai / English word before it.",
    "added": "2026-11-17"
+  },
+  {
+   "page": "exam.html",
+   "kind": "W",
+   "lang": "zh",
+   "contains": "日） | 来源",
+   "reason": "The Chinese source link (来源, its own <a>) follows the translated sentence after a whitespace-only gap between two elements; keeping it on the sentence's line would mean moving the last words out of the translated <span>, which the translation layer rewrites on every language switch. The link itself never splits (it is kept whole).",
+   "added": "2026-11-17"
   }
  ]
 }

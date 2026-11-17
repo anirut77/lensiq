@@ -514,7 +514,8 @@
         out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 31; });
         if (!out.length) return;
         var fl = /flex|grid/.test(getComputedStyle(p).display), f = document.createDocumentFragment();
-        if (RT(n) && (fl || !out[0][0])) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && out[0][1] >= v.trim().length) p.classList.add("lq-w"); return; }
+        if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
+        if (RT(n) && !out[0][0]) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && out[0][1] >= v.trim().length) p.classList.add("lq-w"); return; }
         out.forEach(function (q, j) {
           var k = document.createElement("lq-t"), t = document.createTextNode(v.slice(q[1], out[j + 1] ? out[j + 1][0] : v.length));
           k.textContent = v.slice(q[0], q[1]); k.className = "lq-w lq-t" + (wt(k.textContent) > 14 && q[0] && q[1] < v.trim().length ? " lq-b" : "");
