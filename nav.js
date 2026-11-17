@@ -676,7 +676,7 @@
       ["fortune-negstate.js?v=1", "fortune-paid.js?v=1"].forEach(function (f) { var ps = document.createElement("script"); ps.src = f; ps.async = false; d.appendChild(ps); });
     }
     if (W.LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
-    ["lensiq-merit-core.js?v=3", "lensiq-merit-lint.js?v=2", "lensiq-merit.js?v=3"].forEach(function (src) {
+    ["lensiq-merit-core.js?v=4", "lensiq-merit-lint.js?v=2", "lensiq-merit.js?v=4"].forEach(function (src) {
       var sc = document.createElement("script");
       sc.src = src; sc.async = false; // in order: the core first
       (document.head || document.documentElement).appendChild(sc);

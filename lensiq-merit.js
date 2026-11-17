@@ -81,7 +81,7 @@
       ".lq-merit-cards{display:grid;gap:10px}.lq-merit-card{border:1px solid #dde2ef;border-radius:12px;padding:12px;background:#fff;color:#0e1430}" +
       ".lq-merit-badge{display:inline-block;font-size:.78rem;padding:2px 8px;border-radius:99px;background:#fff3cd;color:#6b4f00;margin-bottom:4px}" +
       ".lq-merit-where{font-size:.9rem;color:#525c78}.lq-merit-label{font-size:.88rem;color:#4b36c9;font-weight:600}" +
-      ".lq-merit-foot,.lq-merit-privacy,.lq-merit-notice{font-size:.88rem;opacity:.9}" +
+      ".lq-merit-foot,.lq-merit-privacy,.lq-merit-notice,.lq-merit-focus{font-size:.88rem;opacity:.9}" +
       ".lq-merit-paid{margin-top:18px;padding-top:12px;border-top:1px dashed #b9bfd6}.lq-merit-paid ul{padding-left:1.2em;margin:.4em 0}" +
       ".lq-merit-form{display:grid;gap:10px;margin-top:8px}.lq-merit-form label{display:flex;flex-direction:column;gap:4px}" +
       ".lq-merit-form label.lq-merit-consent{flex-direction:row;align-items:flex-start;gap:10px;min-height:44px}" +
@@ -142,7 +142,8 @@
     var L = lang(), U = C.UI[L];
     if (crisisOn()) { p.textContent = ""; p.hidden = true; return; }
     if (!state.items) { p.hidden = true; load().then(function () { if (p.isConnected) render(p); }); return; }
-    var m = C.panelModel(state.items, { choice: C.loadChoice(store()), keys: C.keysFromFacts(state.facts, page), lang: L,
+    // keys, the result seed (rotation of equal matches) and the "chosen for your result" line all come from the reading's facts
+    var m = C.panelModel(state.items, { choice: C.loadChoice(store()), facts: state.facts, page: page, lang: L,
       pageFlag: W.LENSIQ_MERIT_INTEREST_FORM === true, serverFlag: state.serverFlag, crisis: false, retentionDays: state.retentionDays });
     if (!m) { p.textContent = ""; p.hidden = true; return; }
     p.textContent = "";
@@ -167,6 +168,7 @@
     p.appendChild(el("p", "lq-merit-privacy", U.privacy));
     if (m.off) { p.appendChild(el("p", "lq-merit-off", U.off)); return; }
     if (!m.cards.length) { p.appendChild(el("p", "lq-merit-empty", U.empty)); p.appendChild(el("p", "lq-merit-foot", m.footer)); return; }
+    if (m.focus) p.appendChild(el("p", "lq-merit-focus", m.focus));
     var lastType = "", wrap = el("div", "lq-merit-cards");
     m.cards.forEach(function (/** @type {any} */ c) {
       if (c.type !== lastType) { lastType = c.type; wrap.appendChild(el("h3", "lq-merit-type", c.typeLabel)); }

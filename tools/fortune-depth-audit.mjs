@@ -26,7 +26,8 @@
 //   advice     (a) belief panel = the panel's cards (type label, title, body) joined in order; (b) composer advice = the
 //              plan items + the "advice" section paragraphs. Identity = exact string match.
 //   node tools/fortune-depth-audit.mjs gen           write profiles.json (refuses to overwrite)
-//   node tools/fortune-depth-audit.mjs [--json out]  measure (refuses unless the set is locked and committed)
+//   node tools/fortune-depth-audit.mjs [--json out]  measure (refuses unless the set AND ceilings-v1.json are locked and committed),
+//                                                    then print pass / fail per ceiling C1-C7
 import { createRequire } from "node:module";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -187,7 +188,8 @@ function adviceOf(rd, p) {
   let cards = [];
   if (p.domain !== "report") {
     const items = MC.safeItems(SEED, ML.lintMerit);
-    const m = MC.panelModel(items, { choice: "", keys: MC.keysFromFacts(rd.facts, page), lang: "th", crisis: false });
+    // the same call lensiq-merit.js makes: the reading's facts and the page (keys and the result seed come from them)
+    const m = MC.panelModel(items, { choice: "", keys: MC.keysFromFacts(rd.facts, page), facts: rd.facts, page, lang: "th", crisis: false });
     cards = m ? m.cards : [];
     panel = cards.map(c => `${c.typeLabel}|${c.title}|${c.body}`).join("\n");
   }
@@ -250,6 +252,42 @@ function table(res) {
   return L.join("\n");
 }
 
+/* ---------------- pass / fail against the locked ceilings (ceilings-v1.json, locked before any fix) ----------------
+ * C1 per page: share of readings whose belief panel text equals the most common one        <= C1 max   (pages with a panel)
+ * C2 across every page with a panel: the same share over all panel readings                 <= C2 max
+ * C3 across every page with a panel: share of panel readings that show a given card id, worst card  <= C3 max
+ * C4 per page: share of readings with the most common composer advice text                  <= C4 max
+ * C5 per page: median expanded/visible words >= median_min AND every reading has >= 1 word behind "read more"
+ * C6 per page: median distinct points >= median_min AND min >= per_reading_min
+ * C7 per page: median new% >= median_min AND min >= per_reading_min (readings with nothing expanded fail C5, not C7)
+ * C1-C4: belief / composer advice (team fortune-advice). C5-C7: reading depth (another team). */
+export const CEILINGS = "ceilings-v1.json";
+export function verdict(res, ceil) {
+  const out = [], pass = (id, page, ok, value, limit) => out.push({ id, page, ok: !!ok, value, limit });
+  const c5 = ceil.C5_expanded_over_visible_words, c6 = ceil.C6_distinct_points, c7 = ceil.C7_new_substance_behind_read_more;
+  for (const r of res.rows) {
+    if (r.panel) pass("C1", r.page, r.panel.topShare <= ceil.C1_same_belief_panel_within_page_max_share, r2(r.panel.topShare), "<= " + ceil.C1_same_belief_panel_within_page_max_share);
+    pass("C4", r.page, r.comp.topShare <= ceil.C4_composer_advice_repeat_per_page_max_share, r2(r.comp.topShare), "<= " + ceil.C4_composer_advice_repeat_per_page_max_share);
+    pass("C5", r.page, r.ratio.median >= c5.median_min && r.expWords.min >= c5.per_reading_min_words_behind_read_more, `median ${r.ratio.median}, min words ${r.expWords.min}`,
+      `median >= ${c5.median_min}, min words >= ${c5.per_reading_min_words_behind_read_more}`);
+    pass("C6", r.page, r.points.median >= c6.median_min && r.points.min >= c6.per_reading_min, `median ${r.points.median}, min ${r.points.min}`, `median >= ${c6.median_min}, min >= ${c6.per_reading_min}`);
+    if (r.newPct.median != null) pass("C7", r.page, r.newPct.median >= c7.median_min && r.newPct.min >= c7.per_reading_min, `median ${r.newPct.median}, min ${r.newPct.min}`,
+      `median >= ${c7.median_min}, min >= ${c7.per_reading_min}`);
+  }
+  pass("C2", "all pages", res.across.panel.topShare <= ceil.C2_same_belief_panel_across_pages_max_share, r2(res.across.panel.topShare), "<= " + ceil.C2_same_belief_panel_across_pages_max_share);
+  const n = res.across.panel.n, worst = Object.entries(res.cardUse).sort((a, b) => b[1] - a[1])[0] || ["-", 0];
+  pass("C3", "all pages", n && worst[1] / n <= ceil.C3_one_card_in_readings_max_share, `${worst[0]} ${r2(n ? worst[1] / n : 0)}`, "<= " + ceil.C3_one_card_in_readings_max_share);
+  return out;
+}
+function verdictTable(v) {
+  const L = ["", "| ceiling | page | result | value | limit |", "|---|---|---|---|---|"];
+  for (const x of v) L.push(`| ${x.id} | ${x.page} | ${x.ok ? "pass" : "FAIL"} | ${x.value} | ${x.limit} |`);
+  const by = {};
+  for (const x of v) { by[x.id] = by[x.id] || { pass: 0, fail: 0 }; by[x.id][x.ok ? "pass" : "fail"]++; }
+  L.push("", "Summary: " + Object.keys(by).sort().map(k => `${k} ${by[k].fail ? "FAIL" : "pass"} (${by[k].pass} pass / ${by[k].fail} fail)`).join("; "));
+  return L.join("\n");
+}
+
 const cmd = process.argv[2];
 if (import.meta.url === `file://${process.argv[1]}`) {
   const dir = phaseDir(PHASE), file = join(dir, SET);
@@ -259,11 +297,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     writeFileSync(file, JSON.stringify(makeProfiles(), null, 1) + "\n", { flag: "wx" });
     console.log("wrote " + file + "\nnext: node tools/eval-guard.mjs lock " + PHASE + " " + SET);
   } else {
-    assertLocked(PHASE, [SET]);
-    const set = JSON.parse(readFileSync(file, "utf8"));
+    assertLocked(PHASE, [SET, CEILINGS]);
+    const set = JSON.parse(readFileSync(file, "utf8")), ceil = JSON.parse(readFileSync(join(dir, CEILINGS), "utf8"));
     const res = measure(set);
+    res.verdict = verdict(res, ceil);
     const j = process.argv.indexOf("--json");
     if (j > 0 && process.argv[j + 1]) writeFileSync(process.argv[j + 1], JSON.stringify(res, null, 1));
     console.log(table(res));
+    console.log(verdictTable(res.verdict));
   }
 }
