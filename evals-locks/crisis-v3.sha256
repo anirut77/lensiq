@@ -179,3 +179,4 @@ e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  relock-topstic
 3080cd5a84e5d531cec292eef6f0f825d0e7f9667f69a98b567d12c88b6440eb  tests/e2e/crisis-rules-1323-a.e2e.mjs  # repo file (relock-topsticky)
 77fd8d7abe1604a7536fcbc50f87e6ae9c2d005d7f8695327a354879f1cceeee  tests/e2e/crisis-rules-1323-e.e2e.mjs  # repo file (relock-topsticky)
 e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  tests/e2e/crisis-rules-kit.mjs  # repo file (relock-topsticky)
+# 2026-11-18: tests/unit/cat-pages.test.js / fortune-no-demo.test.js re-locked in evals-locks/promo-basics.sha256 (RE-LOCK 1: 404.html added as a support page)

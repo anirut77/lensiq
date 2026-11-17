@@ -2,3 +2,15 @@
 5950f407f65b747b138da1746613f99fde4e47960ca2a274de81a96d6e857b00  promo-basics.test.js
 # repo copy of the locked file (same hash as above), 2026-11-18
 5950f407f65b747b138da1746613f99fde4e47960ca2a274de81a96d6e857b00  tests/unit/promo-basics.test.js  # repo file
+# RE-LOCK 1 2026-11-18 (append-only, before any CI run of promo-basics). Reasons: (a) promo-basics.test.js: the locked 404 rule (absolute URLs only)
+# contradicted tests/unit/legal-links.test.js (literal href="terms.html|privacy.html|help.html" on every page); now those three relative
+# links are allowed and absolute links to them are required too. (b) cat-pages.test.js and fortune-no-demo.test.js (locked by
+# crisis-rules-1323 / crisis-v3 / fortune-no-demo): 404.html is a new support page, added to the expected support list / baseline
+# (extension, no assertion removed or weakened).
+# locked 2026-11-17T17:50:04Z (tools/eval-guard.mjs lock, 3 files)
+8eb788ecedf3c38ac5acf4ca36c1c2db62f91d09dea1f1a0705ab137f08ac9c6  relock1/promo-basics.test.js
+fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05  relock1/cat-pages.test.js
+047f5a00073268cdae24ac7f5aec3ee856b14fef39de67fdf263a9278cacfc07  relock1/fortune-no-demo.test.js
+8eb788ecedf3c38ac5acf4ca36c1c2db62f91d09dea1f1a0705ab137f08ac9c6  tests/unit/promo-basics.test.js  # repo file (re-lock 1)
+fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05  tests/unit/cat-pages.test.js  # repo file (re-lock 1)
+047f5a00073268cdae24ac7f5aec3ee856b14fef39de67fdf263a9278cacfc07  tests/unit/fortune-no-demo.test.js  # repo file (re-lock 1)

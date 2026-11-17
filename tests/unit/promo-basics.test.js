@@ -126,11 +126,16 @@ test("404.html: TH / EN / 中文, noindex, CSP meta, links home with absolute UR
   assert.match(html, /<meta\b[^>]*name="robots"[^>]*content="noindex/i);
   assert.ok(THAI.test(html) && CJK.test(html) && /page (was )?not found/i.test(html), "three languages");
   assert.ok(html.includes(`href="${BASE}"`), "a link to the home page (absolute base)");
-  // GitHub Pages serves 404.html at any missing path, also nested ones: every link and asset must be absolute
+  // GitHub Pages serves 404.html at any missing path, also nested ones: every link and asset must be absolute.
+  // RE-LOCK 2026-11-18 (before any CI run): the one exception is the legal footer that tests/unit/legal-links.test.js
+  // requires on every page as literal href="terms.html" / "privacy.html" / "help.html"; the same three pages are also
+  // linked absolutely, so they work from nested missing paths too.
+  const LEGAL = new Set(["terms.html", "privacy.html", "help.html"]);
   for (const m of html.matchAll(/\b(?:href|src)="([^"]*)"/gi)) {
     const u = m[1];
-    assert.ok(u.startsWith(BASE) || u.startsWith("data:") || u.startsWith("#"), "relative or foreign URL in 404.html: " + u);
+    assert.ok(u.startsWith(BASE) || u.startsWith("data:") || u.startsWith("#") || LEGAL.has(u), "relative or foreign URL in 404.html: " + u);
   }
+  for (const d of LEGAL) assert.ok(html.includes(`href="${BASE}${d}"`), "absolute link to " + d);
   assert.ok(!/<script\b[^>]*\bsrc=/i.test(html), "no external scripts");
 });
 
