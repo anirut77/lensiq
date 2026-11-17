@@ -427,7 +427,7 @@
       return parts;
     }
     function rebuild(tn, full) {
-      var v = tn.nodeValue, t = words(v), L = len(tn), k = L > (full ? 19 : 11) ? cut(t, L > v.trim().length + 2) : t.length, at = t.slice(0, k).join("").length, pos = 0, buf = "";
+      var v = tn.nodeValue, t = words(v), L = full ? wt(v) : len(tn), k = L > (full ? 19 : 11) ? cut(t, L > v.trim().length + 2) : t.length, at = t.slice(0, k).join("").length, pos = 0, buf = "";
       var parts = full ? t.map(function (p) { return [p, THAI.test(p) && p.length >= 4 && p.length <= 14 && !/\s/.test(p) ? 1 : 0]; }) : loanParts(v);
       if (!parts) {
         if (k >= t.length || /lq-t/.test(tn.nextSibling && tn.nextSibling.className)) return;
@@ -501,7 +501,7 @@
         if (x && IN.test(x.nodeName) && /^[\d.,]+$/.test((x.textContent || "").trim()) && (m = /^[ \t\n]+\S{1,8}/.exec(v))) r.push([0, pre = m[0].length]);
         else if (x && IN.test(x.nodeName) && /\S/.test(x.textContent || "") && wt(x.textContent || "") < 13 && (m = /^[)\]}.,:;!?…”’»，。、：；！？）」』】]+/.exec(v))) r.push([0, pre = m[0].length]);
         if (y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim()) && (m = /\S{1,8}[ \t\n]*$/.exec(v))) r.push([post = m.index, v.length]);
-        if ((L = len(n)) > 12) {
+        if ((L = p.closest("button,[role=tab],.btn,label,summary,a") ? wt(v) : len(n)) > 12) {
           e = v.replace(/\s+$/, "").length; i = e;
           while (i > 0 && wt(v.slice(i, e)) < 10) i--;
           for (m = i; m > 0 && /^\w\w$/.test(v[m - 1] + v[m]); ) m--;
@@ -555,7 +555,7 @@
     }
     function run(root) {
       if (root.nodeType === 3) root = root.parentElement;
-      if (!root || root.nodeType !== 1 || root.closest(SKIP)) return;
+      if (!root || root.nodeType !== 1 || root.closest(SKIP) || !document.body.contains(root)) return;
       glue(root);
       if (!(document.documentElement.lang || "th").indexOf("th")) {
         if (root.matches(SEL)) fix(root);
