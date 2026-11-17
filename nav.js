@@ -516,7 +516,7 @@
         var inner = function (q) { for (var k = q[0] + 1; k < q[1]; k++) if (bd[k] && /\S/.test(v[k - 1])) return 1; return 0; };
         out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 31 && ((pre && !q[0]) || (post >= 0 && q[1] === v.length) || (inner(q) && !CP.test(v.slice(q[0], q[1]).trim()))); });
         if (wd) out.forEach(function (q) { if (q[0] < wd[1] && q[1] > wd[0]) { wd[0] = Math.min(wd[0], q[0]); wd[1] = Math.max(wd[1], q[1]); } });
-        if (wd && !(inner(wd) && !CP.test(v.slice(wd[0], wd[1]).trim()) && wt(v.slice(wd[0], wd[1])) < 31)) wd = null;
+        if (wd && !(inner(wd) && !CP.test(v.slice(wd[0], wd[1]).trim()) && wt(v.slice(wd[0], wd[1])) < 23)) wd = null;
         if (!out.length && !wd) return;
         var nn = (post >= 0 ? /** @type {Node} */ (y).nextSibling : y) || (IN.test(p.nodeName) && p.nextSibling), nx = ((nn && nn.textContent) || "").trim();
         var cs = getComputedStyle(p), fl = /flex|grid/.test(cs.display), f = document.createDocumentFragment();
@@ -532,8 +532,8 @@
         out.forEach(function (q) {
           if (wd && q[0] >= wd[0] && q[1] <= wd[1]) { if (!W) open(); } else if (W && q[0] >= wd[1]) { to(wd[1]); W = null; }
           to(q[0]); var k = piece(q[0], q[1]); k.textContent = v.slice(q[0], q[1]);
-          if (pre && !q[0]) k.prepend(/** @type {Node} */ (x));
-          if (post >= 0 && q[1] === v.length) k.append(/** @type {Node} */ (y));
+          if (pre && !q[0]) { k.prepend(/** @type {Node} */ (x)); k.className = "lq-w lq-t"; }
+          if (post >= 0 && q[1] === v.length) { k.append(/** @type {Node} */ (y)); k.className = "lq-w lq-t"; }
           put(k); pos = q[1];
         });
         if (wd && !W && pos <= wd[0]) open();
