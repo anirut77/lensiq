@@ -6,7 +6,7 @@
   "use strict";
   var V = "2"; // ?v= of art/fortune/* (bump with any art change)
   /** @type {Array<{id: string, tradition: string, src: string, name: Record<string, string>, bless: Record<string, string>,
-   *   features: Record<string, string[]>, status: string, reviewedBy?: string, reviewedAt?: string}>} */
+   *   features: Record<string, string[]>, status: string, reviewedBy?: string, reviewedAt?: string, hidden?: boolean}>} */
   var DEITIES = [
     { id: "ganesha", tradition: "hindu_brahman", src: "art/fortune/deity-ganesha.svg", status: "pending",
       name: { th: "พระพิฆเนศ", en: "Ganesha", zh: "象头神" },

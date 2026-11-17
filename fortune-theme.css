@@ -23,6 +23,8 @@ html.lq-ft{--ft1:#120F2E;--ft2:#2A1B55;--ftg:#E8C979;--ftt:#F5F1E8;--ftm:#BDB5DA
     radial-gradient(1px 1px at 58% 36%,#E8C979,transparent),radial-gradient(1px 1px at 22% 88%,#BDB5DA,transparent)}
 html.lq-ft *{font-family:LQft,"Noto Sans Thai","Leelawadee UI",Thonburi,system-ui,sans-serif}
 html.lq-ft svg.ft-ill{flex:none;width:44px;height:44px;color:var(--ftg);fill:none}
+/* English keeps the site's Latin face (Inter, as on every other page) so the compact top of main stays within its line limits */
+html.lq-ft[lang=en] *{font-family:Inter,LQft,"Noto Sans Thai","Leelawadee UI",Thonburi,system-ui,sans-serif}
 
 /* ---------- reading pages (html.lq-ft-read, decision 94 ก): night band behind the title, light paper body ---------- */
 html.lq-ft-read body{background:#F6F3EC}
@@ -41,9 +43,14 @@ html.lq-ft-read .fs-head .eyebrow,html.lq-ft-read .rp-hero .eyebrow{color:var(--
 html.lq-ft-read .fk-head .lead,html.lq-ft-read .fr-head .lead,html.lq-ft-read .pl-head .lead,html.lq-ft-read .hs-head .lead,html.lq-ft-read .tr-head .lead,
   html.lq-ft-read .nm-head .lead,html.lq-ft-read .fs-head .lead,
 html.lq-ft-read .rp-hero .lead{color:var(--ftm)}
-html.lq-ft-read .rp-hero{padding-left:16px;padding-right:16px}
 html.lq-ft-read .rp-hero .lq-top{color:var(--ftm)}
 html.lq-ft-read .rp-hero .lq-top a,html.lq-ft-read .rp-hero .lq-top button{color:var(--ftg)}
+
+/* phones: the band stays compact so the main action of every page is on the first screen (fortune-top-compact) */
+@media (max-width:560px){
+html.lq-ft-read .fk-head,html.lq-ft-read .fr-head,html.lq-ft-read .pl-head,html.lq-ft-read .hs-head,html.lq-ft-read .tr-head,
+  html.lq-ft-read .nm-head,html.lq-ft-read .fs-head,html.lq-ft-read .rp-hero{margin-bottom:8px;padding-top:6px;padding-bottom:8px}
+}
 
 /* ---------- menu pages (fortune.html, cat-fortune.html): the whole page at night ---------- */
 html.lq-ft-menu body{background:linear-gradient(180deg,var(--ft1),var(--ft2) 85%) fixed var(--ft1);color:var(--ftt)}
@@ -64,6 +71,8 @@ html.lq-ft-menu .pd-card p,html.lq-ft-menu .pd-card ul,html.lq-ft-menu .pd-sub,h
 html.lq-ft-menu .pd-go,html.lq-ft-menu .sl-go,html.lq-ft-menu .ft-goal a,html.lq-ft-menu .pd-note a,html.lq-ft-menu .pd-list a,html.lq-ft-menu .pd-links a,html.lq-ft-menu .cat-h{
   color:var(--ftg)!important}
 html.lq-ft-menu .pd-note,html.lq-ft-menu .ft-note,html.lq-ft-menu .lq-notice{background:var(--ftc);border:1px solid var(--ftl);border-left:3px solid var(--ftg);color:var(--ftt)}
+/* the one-line disclaimer under the title (fortune-top-compact): a plain line, not a box */
+html.lq-ft-menu .ft-note.lq-top,html.lq-ft-menu .lq-notice.lq-top{background:none;border:0;color:var(--ftm)}
 html.lq-ft-menu .pd-body h2{font-weight:500}
 html.lq-ft-menu .pd-cta .btn.primary{background:var(--ftg);border-color:var(--ftg);color:#1A1433}
 html.lq-ft-menu .pd-cta .btn.light{border-color:var(--ftm);color:var(--ftt);background:transparent}
@@ -71,6 +80,7 @@ html.lq-ft-menu .pd-ic,html.lq-ft-menu .ft-ic{display:none}
 html.lq-ft-menu .chip,html.lq-ft-menu .lq-more{color:var(--ftg);border-color:var(--ftl);background:transparent}
 html.lq-ft-menu .cat-tool{position:relative}
 html.lq-ft-menu .cat-tool .sl-go::after{content:"";position:absolute;inset:0;border-radius:inherit}
+html.lq-ft-menu .cat-tool h3{position:relative;z-index:1}
 html.lq-ft-menu .cat-top{justify-content:flex-start;align-items:center;gap:12px}
 html.lq-ft-menu .pd-card ul.cat-acc{color:var(--ftt)}
 html.lq-ft-menu .lq-legal-foot{background:#0E0B24;border-top-color:var(--ftl)}
