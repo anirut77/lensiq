@@ -432,7 +432,8 @@
       if (!parts) {
         if (k >= t.length || /lq-t/.test(tn.nextSibling && tn.nextSibling.className)) return;
         var ws = (/\s*$/.exec(v) || [""])[0], tail = document.createElement("lq-t");
-        tail.className = "lq-w lq-t"; tail.textContent = v.slice(at, v.length - ws.length);
+        tail.textContent = v.slice(at, v.length - ws.length);
+        tail.className = "lq-w lq-t" + (wt(tail.textContent) > 10 && !CP.test(((tn.nextSibling && tn.nextSibling.textContent) || "").trim()) ? " lq-b" : "");
         if (v.slice(0, at).trim() && !/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail); if (ws) tail.after(ws); }
         else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(tail); if (at) tail.before(v.slice(0, at)); if (ws) tail.after(ws); tn.replaceWith(box); }
         return;
@@ -513,12 +514,15 @@
         r.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (q) { var o = out[out.length - 1]; if (o && q[0] <= o[1]) o[1] = Math.max(o[1], q[1]); else out.push(q); });
         out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 31; });
         if (!out.length) return;
-        var fl = /flex|grid/.test(getComputedStyle(p).display), f = document.createDocumentFragment();
+        var cs = getComputedStyle(p), fl = /flex|grid/.test(cs.display), f = document.createDocumentFragment();
+        if (/pre|break/.test(cs.whiteSpace)) return; // laid out by hand: line breaks are content
         if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
         if (RT(n) && !out[0][0]) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && out[0][1] >= v.trim().length) p.classList.add("lq-w"); return; }
         out.forEach(function (q, j) {
           var k = document.createElement("lq-t"), t = document.createTextNode(v.slice(q[1], out[j + 1] ? out[j + 1][0] : v.length));
-          k.textContent = v.slice(q[0], q[1]); k.className = "lq-w lq-t" + (wt(k.textContent) > 14 && q[0] && q[1] < v.trim().length ? " lq-b" : "");
+          k.textContent = v.slice(q[0], q[1]); var end = q[1] >= v.trim().length;
+          // inline-block (wraps inside a narrow box instead of widening it) unless a closing mark follows in the next node
+          k.className = "lq-w lq-t" + ((!end || wt(k.textContent) > 10) && !(end && CP.test(((y && y.textContent) || "").trim())) ? " lq-b" : "");
           if (!j && pre && !q[0]) k.prepend(/** @type {Node} */ (x));
           if (post >= 0 && q[1] === v.length) k.append(/** @type {Node} */ (y));
           DONE.set(t, t.nodeValue || ""); f.append(k); if (t.nodeValue) f.append(t);
