@@ -17,6 +17,9 @@
 //      real flow (crisis text on tarot.html -> support card -> fortune.html): never shown, no deity image requested;
 //   T8 menu cards: every card has its illustration once in view; no overflow at 360 / 393 / 430 px in TH / EN / ZH; the
 //      pressed state paints the pressed colour (#2A2160).
+// Amendment 1 (2026-11-17, append-only re-lock): T7's attribute cases set the attribute when <html> is created (the init
+// script ran before it existed and set nothing); T8's pressed check scrolls instantly (the site scrolls smoothly, so the
+// point was taken before the card arrived). No expectation changed.
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { assert } from "./cdp.mjs";
@@ -30,6 +33,10 @@ const DEITY_RE = /\/art\/fortune\/deity-[a-z]+\.svg/;
 const THEME_RE = /fortune-theme\.css|fortune-entry\.js|\/art\/fortune\//;
 const OTHER = ["index", "solutions", "cat-hr", "cat-security", "gate", "exam", "about", "pricing", "help", "privacy"];
 const CRISIS_TH = "อยากตายจริงๆ";
+// amendment 1 (2026-11-17): an init script runs before <html> exists, so the attribute is set the moment the element is
+// created (before any page script), instead of on a null documentElement (which threw and set nothing)
+const ATTR = a => `(() => { const set = () => { if (!document.documentElement) return false; document.documentElement.setAttribute(${JSON.stringify(a)}, "1"); return true; };
+  if (!set()) new MutationObserver((m, o) => { if (set()) o.disconnect(); }).observe(document, { childList: true }); })();`;
 
 /** in the page: is the entry overlay showing, and what it shows */
 const ENTRY = `(() => { const e = document.getElementById("lqFtEntry");
@@ -259,8 +266,8 @@ export default async function ({ base, launch, check, repo }) {
     await check("T7 crisis / calm: never shown, no deity image (flags and the real crisis flow)", async () => {
       const inits = {
         calm: `try { sessionStorage.setItem("lq-fortune-calm", "1"); } catch (e) {}`,
-        crisisAttr: `document.documentElement.setAttribute("data-lq-crisis", "1");`,
-        calmAttr: `document.documentElement.setAttribute("data-lq-calm", "1");`
+        crisisAttr: ATTR("data-lq-crisis"),
+        calmAttr: ATTR("data-lq-calm")
       };
       for (const [name, init] of Object.entries(inits)) for (const p of ["fortune", "cat-fortune"]) {
         const page = await tab({ init: [init] });
@@ -319,7 +326,7 @@ export default async function ({ base, launch, check, repo }) {
         const page = await tab();
         await open(page, p + ".html");
         const pt = await page.evaluate(s => { document.addEventListener("click", e => e.preventDefault(), true);
-          const c = document.querySelectorAll(s)[2]; c.scrollIntoView({ block: "center" }); const r = c.getBoundingClientRect();
+          const c = document.querySelectorAll(s)[2]; c.scrollIntoView({ block: "center", behavior: "instant" }); const r = c.getBoundingClientRect();
           return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + 12) }; }, sel);
         await sleep(200);
         await page.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: pt.x, y: pt.y });
