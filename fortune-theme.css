@@ -26,17 +26,17 @@ html.lq-ft svg.ft-ill{flex:none;width:44px;height:44px;color:var(--ftg);fill:non
 /* ---------- reading pages: night band behind the title, warm paper below ---------- */
 html.lq-ft main.fk,html.lq-ft main.fr,html.lq-ft main.pl,html.lq-ft main.hs,html.lq-ft main.tr,html.lq-ft main.nm,html.lq-ft main.fs{padding-top:0}
 html.lq-ft .fk-head,html.lq-ft .fr-head,html.lq-ft .pl-head,html.lq-ft .hs-head,html.lq-ft .tr-head,html.lq-ft .nm-head,html.lq-ft .fs-head,html.lq-ft .rp-hero{
-  position:relative;z-index:0;margin:0 calc(50% - 50vw) 22px;padding:28px max(16px,calc(50vw - 560px)) 32px;
-  background:linear-gradient(180deg,var(--ft1),var(--ft2)) var(--ft1);color:var(--ftt);border-radius:0 0 28px 28px}
+  position:relative;z-index:0;margin:0 0 22px;padding:28px 0 32px;color:var(--ftt);
+  background:linear-gradient(180deg,var(--ft1),var(--ft2)) var(--ft1);border-image:linear-gradient(180deg,var(--ft1),var(--ft2)) fill 0//0 100vmax}
 html.lq-ft .fk-head::before,html.lq-ft .fr-head::before,html.lq-ft .pl-head::before,html.lq-ft .hs-head::before,html.lq-ft .tr-head::before,html.lq-ft .nm-head::before,
-html.lq-ft .fs-head::before,html.lq-ft .rp-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--ftsky);border-radius:inherit;pointer-events:none}
+html.lq-ft .fs-head::before,html.lq-ft .rp-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--ftsky);pointer-events:none}
 html.lq-ft .fk-head h1,html.lq-ft .fr-head h1,html.lq-ft .pl-head h1,html.lq-ft .hs-head h1,html.lq-ft .tr-head h1,html.lq-ft .nm-head h1,html.lq-ft .fs-head h1,html.lq-ft .rp-hero h1{
   color:var(--ftt);font-weight:500}
 html.lq-ft .fk-head .eyebrow,html.lq-ft .fr-head .eyebrow,html.lq-ft .pl-head .eyebrow,html.lq-ft .hs-head .eyebrow,html.lq-ft .tr-head .eyebrow,html.lq-ft .nm-head .eyebrow,
 html.lq-ft .fs-head .eyebrow,html.lq-ft .rp-hero .eyebrow{color:var(--ftg)}
 html.lq-ft .fk-head .lead,html.lq-ft .fr-head .lead,html.lq-ft .pl-head .lead,html.lq-ft .hs-head .lead,html.lq-ft .tr-head .lead,html.lq-ft .nm-head .lead,html.lq-ft .fs-head .lead,
 html.lq-ft .rp-hero .lead{color:var(--ftm)}
-html.lq-ft .rp-hero{padding-left:max(16px,calc(50vw - 480px));padding-right:max(16px,calc(50vw - 480px))}
+html.lq-ft .rp-hero{padding-left:16px;padding-right:16px}
 
 /* ---------- menu pages (fortune.html, cat-fortune.html): the whole page at night ---------- */
 html.lq-ft-menu body{background:linear-gradient(180deg,var(--ft1),var(--ft2) 85%) fixed var(--ft1);color:var(--ftt)}
@@ -90,7 +90,7 @@ html.lq-ft-menu .pd-card,html.lq-ft-menu .ft-card,html.lq-ft-menu .pd-others a{t
 }
 @media print{
 html.lq-ft .fk-head,html.lq-ft .fr-head,html.lq-ft .pl-head,html.lq-ft .hs-head,html.lq-ft .tr-head,html.lq-ft .nm-head,html.lq-ft .fs-head,html.lq-ft .rp-hero{
-  background:none;color:#000;margin:0;padding:0}
+  background:none;border-image:none;color:#000;margin:0;padding:0}
 html.lq-ft .fk-head h1,html.lq-ft .fk-head .eyebrow,html.lq-ft .fk-head .lead,html.lq-ft .fr-head h1,html.lq-ft .fr-head .eyebrow,html.lq-ft .fr-head .lead,html.lq-ft .pl-head h1,
 html.lq-ft .pl-head .eyebrow,html.lq-ft .pl-head .lead,html.lq-ft .hs-head h1,html.lq-ft .hs-head .eyebrow,html.lq-ft .hs-head .lead,html.lq-ft .tr-head h1,html.lq-ft .tr-head .eyebrow,
 html.lq-ft .tr-head .lead,html.lq-ft .nm-head h1,html.lq-ft .nm-head .eyebrow,html.lq-ft .nm-head .lead,html.lq-ft .fs-head h1,html.lq-ft .fs-head .eyebrow,html.lq-ft .fs-head .lead,

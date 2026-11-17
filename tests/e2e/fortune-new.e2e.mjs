@@ -23,11 +23,13 @@ export default async function ({ base, launch, check }) {
   try {
     let page = await browser.newPage(null);
 
-    await check("hub: fortune.html lists 14 fortune cards and the goal guide", async () => {
+    await check("hub: fortune.html lists 18 fortune cards (every fortune page, owner brief 2026-11-17) and the goal guide", async () => {
       await page.goto(`${base}/fortune.html`);
       const r = await page.evaluate(() => ({ cards: [...document.querySelectorAll(".ft-card")].map(a => a.getAttribute("href")), goals: document.querySelectorAll(".ft-goal").length }));
-      for (const h of ["iching.html", "zodiac.html", "astro.html", "dream.html", "bazi.html", "taksa.html", "lek7.html", "lifegraph.html"]) assert(r.cards.includes(h), "card " + h);
-      assert(r.cards.length === 14 && r.goals === 4, JSON.stringify(r));
+      // fortune theme (owner brief 2026-11-17): a menu card for every fortune page; compat, planner, luckycolor and report added
+      for (const h of ["iching.html", "zodiac.html", "astro.html", "dream.html", "bazi.html", "taksa.html", "lek7.html", "lifegraph.html",
+        "compat.html", "planner.html", "luckycolor.html", "report.html"]) assert(r.cards.includes(h), "card " + h);
+      assert(r.cards.length === 18 && r.goals === 4, JSON.stringify(r));
       await noOverflow(page, 390); await noOverflow(page, 1280); noErrors(page, base);
     });
     await page.close();
