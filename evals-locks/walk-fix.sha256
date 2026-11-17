@@ -46,3 +46,5 @@ e3109a00358d50e26cea79227f2da6e861549a926304f40beebdd171f2ebcf90  tests/unit/wal
 a6e5a9ee22c6ba57d1d3fd550eab8089099a7b4faf444b5399054c53a93c88e5  walkfix-n.test.js
 # walkfix-n.test.js amendment 2: products.e2e.mjs (older, locked) requires index.html to keep a bare attendance.html link (CI run 43616191465 shard 2 failed on it); the home use case 'องค์กร' that carries it describes training check-in by face, so it stays bare and is exempted. Footer and every other buyer link keep ?mode=employee.
 a6e5a9ee22c6ba57d1d3fd550eab8089099a7b4faf444b5399054c53a93c88e5  tests/unit/walkfix-n.test.js (amendment 2)  # repo file
+# amendment 6 2026-11-17 (walkfix.test.js W-012), reason: "owner order 2026-11-17: remove สาธิต tag from fortune". A solutions.html card that links to a fortune page (category 6) carries NO status badge; every other card keeps every W-012 check unchanged. Field copy and lock: ~/LENSIQ-field/evals/fortune-no-demo/walkfix.test.js, evals-locks/fortune-no-demo.sha256.
+c8ab6ef2b2ed7f50ad91adfe85774096d4cbd236557cef8e5281348045ed0d0d  tests/unit/walkfix.test.js (amendment 6)  # repo file

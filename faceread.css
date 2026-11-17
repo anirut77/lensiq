@@ -208,6 +208,9 @@ body.fr-kiosk .fr-card p,body.fr-kiosk .fr-table{font-size:1rem}
   .fr-stage,.fr-res-top,.fr-two,.fr-foot,.fr-mr{grid-template-columns:1fr}
 }
 @media(max-width:560px){
+  /* owner order 2026-11-16 item 3: the camera buttons on the first screen of a phone (shorter preview until the camera runs) */
+  .fr-cam:not(.live){aspect-ratio:auto;height:clamp(170px,32vh,280px)}
+  .fr-actions .btn{flex:1 1 120px}
   .fr{padding:20px 16px 60px}
   .fr .lead{font-size:.95rem}
   .fr-camcard{padding:10px}
@@ -269,3 +272,18 @@ html[lang=th] .fr-dlead{margin-right:.3em}
 /* walk-through 2026-11-16 D-13: the camera-off control is shown only while the camera is on (the start button is hidden) */
 #frStopCam{display:none}
 #frStartCam[hidden]~#frStopCam{display:inline-flex}
+
+/* ---------- face capture guide (owner order 2026-11-16, item A; lensiq-facecap.js) ---------- */
+.fr-mode{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px;padding:4px;border-radius:14px;background:var(--bg)}
+.fr-mode .fr-mode-btn{min-height:48px;min-width:0;padding:8px 10px;border:0;border-radius:11px;background:transparent;color:inherit;font:inherit;font-size:.92rem;
+  font-weight:600;line-height:1.25;cursor:pointer;overflow-wrap:anywhere}
+.fr-mode .fr-mode-btn[aria-pressed="true"]{background:#fff;color:#0e1430;box-shadow:0 1px 3px rgba(14,20,48,.18)}
+.fr-mode-btn:focus-visible{outline:3px solid #674ff2;outline-offset:2px}
+.fr-consent{margin:0 0 10px;padding:10px 12px;border:1px solid #f3b13c;border-radius:12px;background:#fff8e6;color:#3d2d00;font-size:.92rem;line-height:1.45}
+.fr-consent[hidden]{display:none}
+.fr-consent p{margin:0 0 8px}
+.fr-consent-ok{display:flex;gap:10px;align-items:center;min-height:44px;font-weight:600;cursor:pointer}
+.fr-consent-ok input{flex:none;width:24px;height:24px;margin:0}
+.fr-cam[data-guide="green"]{outline:4px solid #16a34a;outline-offset:2px}
+.lq-fcap[data-state="still"]{background:#15803d}
+@media (max-width:420px){ .fr-mode .fr-mode-btn{padding:6px;font-size:.85rem} }

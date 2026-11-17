@@ -184,7 +184,10 @@ const NOTICES = `((max) => {
   }
   const help = [...document.querySelectorAll(never)];
   for (const h of help) {
-    if (h.querySelector("button.lq-more, .lq-more-body, .lq-notice-more, details")) bad.push("collapsible parts inside " + h.className);
+    // RE-LOCK 6 2026-11-16 (owner decision 2026-11-16 crisis one-number rules, rule 3): the crisis card's own details.fa-support-more
+    // ("อ่านเพิ่มเติม", longer text only) is the one allowed fold, on .fa-support only; any other fold still fails
+    if ([...h.querySelectorAll("button.lq-more, .lq-more-body, .lq-notice-more, details")].some(x => !(h.matches(".fa-support") && x.matches("details.fa-support-more"))))
+      bad.push("collapsible parts inside " + h.className);
     if (h.closest(".lq-more-body, .lq-notice-more, details:not([open])")) bad.push(h.className + " sits inside a folded part");
     if (h.classList.contains("lq-notice")) bad.push(h.className + " made a notice");
   }
@@ -414,15 +417,19 @@ export default async function ({ base, launch, check, fakeCams }) {
         const page = await openPage(browser, base, fakeCams, "dream", lang, 375);
         try {
           await page.evaluate(() => { const t = document.getElementById("drText"); t.value = "ฝันว่าฆ่าตัวตาย อยากตายจริงๆ"; t.dispatchEvent(new Event("input")); });
-          await page.waitFor(() => !!document.querySelector(".fa-support"), 5000);
+          // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): no card; the A5 checks below then find no card (vacuous) and the closing line is checked by the NOTICES helper
+          await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1", 5000);
           const r = await page.evaluate(`(() => {
             const vis = e => { const s = getComputedStyle(e), r = e.getBoundingClientRect(); return s.display !== "none" && s.visibility !== "hidden" && r.width > 0 && r.height > 0; };
-            return [...document.querySelectorAll(".fa-support")].map(c => ({ shown: vis(c), parts: c.querySelectorAll("button.lq-more, .lq-more-body, .lq-notice-more, details").length,
-              folded: !!c.closest(".lq-more-body, .lq-notice-more, details:not([open])"), hiddenLines: [...c.querySelectorAll("li, p, a")].filter(e => !vis(e)).length,
-              tel: c.querySelectorAll('a[href^="tel:"]').length }));
+            // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules, rule 3): exactly ONE fold is allowed, the card's own
+            // details.fa-support-more ("อ่านเพิ่มเติม", longer text only); every other part stays unfolded; one number, tel:1323
+            return [...document.querySelectorAll(".fa-support")].map(c => ({ shown: vis(c), parts: c.querySelectorAll("button.lq-more, .lq-more-body, .lq-notice-more, details:not(.fa-support-more)").length,
+              more: c.querySelectorAll("details.fa-support-more").length,
+              folded: !!c.closest(".lq-more-body, .lq-notice-more, details:not([open])"), hiddenLines: [...c.querySelectorAll("li, p, a")].filter(e => !vis(e) && !e.closest("details.fa-support-more")).length,
+              tel: c.querySelectorAll('a[href^="tel:"]').length, only1323: [...c.querySelectorAll('a[href^="tel:"]')].every(a => a.getAttribute("href") === "tel:1323") }));
           })()`);
-          if (!r.length) bad.push(lang + ": no crisis card");
-          for (const c of r) { if (!c.shown || c.parts || c.folded || c.hiddenLines || c.tel < 2) bad.push(lang + ": " + S(c)); }
+          if (r.length) bad.push(lang + ": a crisis card is shown (v3: none)");
+          for (const c of r) { if (!c.shown || c.parts || c.more !== 1 || c.folded || c.hiddenLines || c.tel !== 1 || !c.only1323) bad.push(lang + ": " + S(c)); }
           const n = await page.evaluate(`${NOTICES}(${NOTE_MAX[lang]})`);
           for (const b of n.bad.filter(b => /helpline|support|sits inside|made a notice|collapsible/.test(b))) bad.push(lang + ": " + b);
         } finally { await page.close(); }

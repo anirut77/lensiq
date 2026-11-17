@@ -12,7 +12,14 @@ const birth = `(() => { const d = document.getElementById("hsDay"), m = document
   document.getElementById("hsYear").value = "2533"; document.getElementById("hsForm").requestSubmit(); })()`;
 const soft = sel => `(() => { const b = document.querySelector(${S(sel)}); return !!b && !!b.querySelector(".fa-soft [data-soft=talk]") && !!b.querySelector(".fa-soft [data-soft=go]"); })()`;
 const click = (sel, which) => `document.querySelector(${S(sel + " .fa-soft [data-soft=" + which + "]")}).click()`;
-const card = sel => `(() => { const b = document.querySelector(${S(sel)}); return !!b && !!b.querySelector(".fa-support") && /1323/.test(b.textContent); })()`;
+// RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the "talk" path no longer shows a card; it
+// sets the crisis state and the reading goes on, ending with the closing line (tel:1323)
+const card = sel => `(() => { const b = document.querySelector(${S(sel)}); return !!b && document.documentElement.getAttribute("data-lq-crisis") === "1" && !document.querySelector(".fa-support")
+  && !!document.querySelector('.lq-helpline-result a[href="tel:1323"]'); })()`;
+// RE-LOCK soft-1 2026-11-17 (test faults found on the first run of this re-lock, v3-2-affected-2.log): the selector above was written
+// with \" inside a template literal, so the page got a broken expression (SyntaxError, the wait could never pass); and the old
+// "no reading under the card" line contradicted the re-lock itself (rule a: after 'talk' the reading goes on). Now: wait for the
+// reading (>= 3 sections) and the closing line; still no card.
 const overflow = `document.documentElement.scrollWidth - innerWidth`;
 const PHRASE = "เหนื่อยจนทนไม่ไหวแล้ว";
 
@@ -41,8 +48,8 @@ export default async function ({ base, launch, check }) {
         await page.evaluate(setVal("hsName", PHRASE)); await page.evaluate(birth);
         await page.waitFor(soft("#hsResult"), 15000);
         await page.evaluate(click("#hsResult", "talk"));
+        await page.waitFor(() => document.querySelectorAll("#hsRd .fa-section").length >= 3, 20000);
         await page.waitFor(card("#hsResult"), 5000);
-        assert(!(await page.evaluate(() => document.querySelectorAll(".fa-section").length)), "reading under the card");
       } finally { await page.close(); }
     });
 

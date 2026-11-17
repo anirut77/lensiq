@@ -19,15 +19,38 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="lek7.title">เลข 7 ตัว 9 ฐาน · ผังเลขจากวัน เดือน ปีเกิด | LENSIQ</title>
 <meta name="description" content="ผังเลข 7 ตัว 9 ฐาน ฐานวัน ฐานเดือนจันทรคติ ฐานปีนักษัตร และฐานรวม พร้อมคำอ่านแต่ละภพ">
-<link rel="stylesheet" href="styles.css?v=20">
+<link rel="stylesheet" href="styles.css?v=21">
 <link rel="stylesheet" href="fortune-kit.css?v=2">
 <link rel="stylesheet" href="lifecal.css?v=4">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=23"></script>
+<script src="nav.js?v=28"></script>
 
+<style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
+.lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
+.lq-helpnav a.lq-call-btn[href]:hover{background:#0b5d8f14;color:#094d77}.lq-helpnav .lq-call-mini-t{display:none}
+.lq-helpquiet a.lq-call-btn[href]{gap:4px;padding:0 6px;background:none;color:#0b5d8f;font-size:.88rem}.lq-helpquiet .lq-call-mini-t{display:none}
+.has-help{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"util util util lang" "logo menu menu help"}
+@media(max-width:1023.98px),(pointer:coarse) and (max-height:600px){
+.has-help{grid-template-columns:auto minmax(0,1fr) auto auto auto;grid-template-areas:"logo . help lang toggle"}}
+@media(max-width:479.98px){.has-help{padding:0 12px;column-gap:6px}.has-help .lang-switch:not(.open) [aria-pressed=false]{display:none}}
+.lq-help-dlg{width:min(340px,90vw);margin:auto;padding:18px;border:1px solid #bcd3e6;border-radius:16px;text-align:center}
+.lq-help-dlg::backdrop{background:#0e143073}.lq-help-dlg div{display:flex;gap:10px}
+.lq-help-dlg :is(a,button){display:flex;align-items:center;justify-content:center;flex:1;min-height:48px;border-radius:12px;font:inherit;
+font-weight:700}
+.lq-help-dlg a{background:#0b5d8f;color:#fff}.lq-help-dlg button{border:1px solid #bcd3e6;background:#fff}
+.lq-top{display:block;margin:0 auto 12px;padding:0;border:0;background:none;color:#5a6280;font-size:.8rem;line-height:1.45;text-align:center}
+.lq-top>svg{display:none}.lq-top b{font-weight:400;color:inherit}
+.lq-top :is(button.lq-more,a){display:inline-flex;align-items:center;min-height:44px;margin:-12px 0;padding:0 3px;border:0;
+background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-hero,.pd-hero) .lq-top{color:#c9d0ea}
+:is(.ft-hero,.pd-hero) .lq-top :is(button,a){color:#d9d1ff}@media(max-width:560px){.lq-ftop:not(.ft,.pd){padding-top:6px}
+.lq-ftop .eyebrow{display:none}.lq-ftop h1{font-size:1.5rem;line-height:1.25;margin:2px 0 4px}
+.lq-ftop :is(.lead,.ft-hero>p,.pd-hero>p):not(.lq-top){font-size:.9rem;line-height:1.45;margin:0 auto 6px}
+.lq-ftop :is(.ft-hero,.pd-hero){padding:10px 16px 14px}.lq-ftop .lq-top{font-size:.75rem;margin-left:-8px;margin-right:-8px}
+[lang=en] .lq-ftop .lq-top{letter-spacing:-.01em}}
+.lq-help-dlg a.lq-help-more{margin-top:8px;background:none;color:#0b5d8f;font-weight:400;text-decoration:underline}</style>
 <aside class="lq-helpline lq-helpbar" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
   <span class="lq-call-mini" data-lq-call="1323">
     <a class="lq-call-btn lq-helpline-tel" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
@@ -35,13 +58,13 @@
     <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
     <span class="lq-call-mini-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span> <b class="lq-call-mini-n">1323</b></a></span>
 </aside>
-<main class="fk lc" id="lcApp" data-page="lek7">
+<main class="fk lc lq-ftop" id="lcApp" data-page="lek7">
   <div class="fk-head">
     <span class="eyebrow" data-i18n="lek7.eyebrow">Thai 7-number chart · เลข 7 ตัว</span>
     <h1 data-i18n="lek7.h1">เลข 7 ตัว 9 ฐาน</h1>
-    <p data-i18n="lek7.lead" class="lead">วางเลข 1–7 ของวันเกิด เดือนจันทรคติ และปีนักษัตรเป็นสามแถว แล้วรวมเป็นฐานรวม อ่านพลังของแต่ละภพ (หน้านี้แสดงฐาน 1–4 ซึ่งเป็นฐานหลัก)</p>
+    <p data-i18n="lek7.lead" class="lead">กรอกวันเกิด แล้วดูผังเลข 7 ตัว พร้อมคำอ่านพลังของแต่ละภพ</p>
   </div>
-  <p class="fk-disclaimer lq-notice" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+  <p class="fk-disclaimer lq-notice lq-top" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
     <span><b class="lq-disc-line"
       data-i18n="fortune.disc.line">เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ</b>
     <span class="lq-notice-more"><span data-i18n="lc.disclaimerRest">คำนวณในเครื่อง ไม่บันทึกวันเกิด บอกทั้งด้านที่ส่งเสริมและด้านที่ควรระวังอย่างนุ่มนวล</span></span></span></p>
@@ -64,7 +87,7 @@
     </fieldset>
     
     <p class="fk-msg" id="lcMsg" role="alert"></p>
-    <button data-i18n="lek7.button" class="btn primary big full" type="submit">ดูผัง</button>
+    <button data-i18n="lek7.button" class="btn primary big full" type="submit" data-lq-read>ดูผัง</button>
   </form>
 
   <section class="lc-result" id="lcResult" hidden aria-labelledby="lcResTitle">
@@ -90,18 +113,18 @@
   </div>
 </main>
 
-<script src="i18n/zh-fortune.js?v=10"></script>
+<script src="i18n/zh-fortune.js?v=11"></script>
 <script src="i18n/zh-fortune-lifecal.js?v=7"></script>
 <script src="i18n/zh-kb-lifecal.js?v=3"></script>
-<script src="lensiq-config.js?v=13"></script>
+<script src="lensiq-config.js?v=20"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
-<script src="fortune-read.js?v=12"></script>
-<script src="lensiq-helpline.js?v=1"></script>
-<script src="fortune-crisis.js?v=12"></script>
+<script src="fortune-read.js?v=23"></script>
+<script src="lensiq-helpline.js?v=2"></script>
+<script src="fortune-crisis.js?v=22"></script>
 <script src="fortune-straight.js?v=6"></script>
-<script src="fortune-ai.js?v=29"></script>
+<script src="fortune-ai.js?v=39"></script>
 <script src="fortune-kit.js?v=12"></script>
-<script src="horoscope.js?v=16"></script>
+<script src="horoscope.js?v=20"></script>
 <script src="lifecal.js?v=4"></script>
 <script src="lifecal-kb.js?v=3"></script>
 <script src="lifecal-ui.js?v=7"></script>

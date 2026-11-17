@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';
+  script-src 'self' 'wasm-unsafe-eval';
+  style-src 'self' 'unsafe-inline';
+  font-src 'self' data:;
+  img-src 'self' data: blob:;
+  media-src 'self' data: blob:;
+  connect-src 'self' data: blob:;
+  worker-src 'self' blob:;
+  manifest-src 'self';
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30'
+ rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none'
+ stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="counsel.doc.title">ช่องทางให้คำปรึกษา | LENSIQ</title>
+<meta name="description" content="สายด่วนให้คำปรึกษาและช่วยเหลือ พร้อมเวลาให้บริการที่ตรวจจากเว็บไซต์ของหน่วยงาน กดปุ่มเพื่อโทร">
+<link rel="stylesheet" href="styles.css?v=21">
+<script src="lensiq-busy.js?v=3"></script>
+<!-- counselling.html (owner decision 2026-11-16 crisis one-number rules): the fortune pages show ONE number, 1323; every other
+     service is here, each on one row with a call button. Linked only from the crisis card / help line, the top-bar dialog,
+     help.html and privacy.html. No reading, no ads, no offers. The rows are the shared component (lensiq-helpline.js), redrawn
+     by tools/helpline.mjs (CALL_PAGES), so tools/helpline-recheck.mjs (daily) covers every number and its hours. -->
+<style>
+.counsel{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+.counsel h1{margin:.2em 0 .3em;font-size:1.6rem;line-height:1.3}
+.counsel .lead{margin:0 0 12px;color:#33506a}
+.counsel-list{list-style:none;margin:0;padding:0}
+.counsel-list li{padding:6px 0;border-bottom:1px solid #e3e7f0}
+.counsel-note{margin:12px 0 0;font-size:.9rem;color:#33506a}
+</style>
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=28"></script>
+
+<main id="main" class="counsel">
+  <h1 data-i18n="counsel.link">ช่องทางให้คำปรึกษา</h1>
+  <ul class="counsel-list">
+    <li>
+      <span class="lq-call" data-lq-call="1323"><span class="lq-call-t" data-i18n="call.1323.label">อยากมีคนรับฟัง</span>
+        <a class="lq-call-btn" href="tel:1323" aria-label="อยากมีคนรับฟัง โทร 1323" data-i18n-attr="aria-label:call.1323.btn">
+        <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
+        <span class="lq-call-go" data-i18n="call.1323.go">โทร 1323</span></a><span class="lq-call-num">1323</span>
+        <span class="lq-call-sub" data-i18n="call.1323.sub">พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง</span></span></li>
+    <li>
+      <span class="lq-call" data-lq-call="1669"><span class="lq-call-t" data-i18n="call.1669.label">เจ็บป่วยฉุกเฉิน</span>
+        <a class="lq-call-btn" href="tel:1669" aria-label="เจ็บป่วยฉุกเฉิน โทร 1669" data-i18n-attr="aria-label:call.1669.btn">
+        <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
+        <span class="lq-call-go" data-i18n="call.1669.go">โทร 1669</span></a><span class="lq-call-num">1669</span>
+        <span class="lq-call-sub" data-i18n="call.1669.sub">ขอรถพยาบาลและความช่วยเหลือทางการแพทย์ฉุกเฉิน</span></span></li>
+    <li>
+      <span class="lq-call" data-lq-call="191"><span class="lq-call-t" data-i18n="call.191.label">แจ้งเหตุด่วนเหตุร้าย</span>
+        <a class="lq-call-btn" href="tel:191" aria-label="แจ้งเหตุด่วนเหตุร้าย โทร 191" data-i18n-attr="aria-label:call.191.btn">
+        <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
+        <span class="lq-call-go" data-i18n="call.191.go">โทร 191</span></a><span class="lq-call-num">191</span>
+        <span class="lq-call-sub" data-i18n="call.191.sub">แจ้งตำรวจได้ตลอด 24 ชั่วโมง</span></span></li>
+    <li>
+      <span class="lq-call" data-lq-call="1300"><span class="lq-call-t" data-i18n="call.1300.label">ศูนย์ช่วยเหลือสังคม</span>
+        <a class="lq-call-btn" href="tel:1300" aria-label="ศูนย์ช่วยเหลือสังคม โทร 1300" data-i18n-attr="aria-label:call.1300.btn">
+        <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
+        <span class="lq-call-go" data-i18n="call.1300.go">โทร 1300</span></a><span class="lq-call-num">1300</span>
+        <span class="lq-call-sub" data-i18n="call.1300.sub">ความรุนแรงในครอบครัว เด็กและเยาวชน ตลอด 24 ชั่วโมง 7 วัน</span></span></li>
+    <li>
+      <span class="lq-call" data-lq-call="samaritans"><span class="lq-call-t" data-i18n="call.samaritans.label">สะมาริตันส์</span>
+        <a class="lq-call-btn" href="tel:021136789" aria-label="สะมาริตันส์ โทร 02 113 6789" data-i18n-attr="aria-label:call.samaritans.btn">
+        <svg class="lq-call-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 3h3l1.5 5-2 1.5a12 12 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2z"/></svg>
+        <span class="lq-call-go" data-i18n="call.samaritans.go">โทร 02 113 6789</span></a><span class="lq-call-num">02 113 6789</span>
+        <span class="lq-call-sub" data-i18n="call.samaritans.sub">รับฟังทุกเรื่องด้วยใจ เวลา 12:00–22:00 น.</span></span></li>
+  </ul>
+  <p class="counsel-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</p>
+</main>
+<script src="lensiq-config.js?v=20"></script>
+<script src="lensiq-thai-canon.js?v=3"></script>
+<script src="lensiq-helpline.js?v=2"></script>
+<script src="fortune-crisis.js?v=22"></script>
+</body>
+</html>

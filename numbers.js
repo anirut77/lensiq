@@ -449,10 +449,12 @@
   /* ---------- แสดงผล ---------- */
   const GCLS = { G: "g2", g: "g1", n: "n", c: "c" };
   function scoreWord(s) { return s >= 85 ? T("numbers.score.w1", "พลังเด่นมาก") : s >= 72 ? T("numbers.score.w2", "พลังดี") : s >= 58 ? T("numbers.score.w3", "พลังสมดุล") : T("numbers.score.w4", "พลังเรียบง่าย ค่อย ๆ เติม"); }
+  // crisis v3 (2026-11-17): in the crisis state nothing the visitor typed is shown back (name, its letters, compared entries)
+  const quietText = () => !!(window.FortuneAI && window.FortuneAI.crisis && window.FortuneAI.crisis.active && window.FortuneAI.crisis.active());
   function renderResult(r, quiet) {
     const sec = $("#nmResult"); sec.hidden = false;
     $("#nmResKind").textContent = kindName(r.kind);
-    $("#nmResNum").textContent = r.kind === "name" ? $("#nmName").value.trim() : r.display;
+    $("#nmResNum").textContent = r.kind === "name" ? (quietText() ? "" : $("#nmName").value.trim()) : r.display;
     $("#nmScore").textContent = r.score;
     $("#nmRing").style.setProperty("--p", r.score);
     $("#nmScoreWord").textContent = scoreWord(r.score);
@@ -460,7 +462,7 @@
       '<li class="tot"><span>' + esc(T("numbers.bd.total", "รวม (ถ่วงน้ำหนัก)")) + '</span><i></i><b>' + r.score + "</b><small>/100</small></li>";
     // แถบตัวเลข/ตัวอักษร
     let strip = "";
-    if (r.kind === "name") strip = r.chars.map(c => '<span class="cell"><b>' + esc(c.ch) + "</b><small>" + c.v + "</small></span>").join("");
+    if (r.kind === "name") strip = quietText() ? "" : r.chars.map(c => '<span class="cell"><b>' + esc(c.ch) + "</b><small>" + c.v + "</small></span>").join("");
     else if (r.kind === "plate") strip = (r.lead ? '<span class="cell"><b>' + r.lead + "</b><small>" + r.lead + "</small></span>" : "") + r.letterVals.map(l => '<span class="cell lt' + (r.kala.indexOf(l.ch) >= 0 ? " kala" : "") + '"><b>' + esc(l.ch) + "</b><small>" + l.v + "</small></span>").join("") + '<span class="gap"></span>' + Array.from(r.num).map(c => '<span class="cell on"><b>' + c + "</b></span>").join("");
     else strip = Array.from(r.digits).map((c, i) => '<span class="cell' + (i + 1 >= r.segStart ? " on" : "") + '"><b>' + c + "</b><small>" + (i + 1) + "</small></span>").join("");
     $("#nmStrip").innerHTML = strip;
@@ -514,8 +516,9 @@
   function renderCompare(rows, quiet) {
     const box = $("#nmCompare"); box.hidden = false; lastCompare = rows;
     const L = { s: esc(T("numbers.th2", "คะแนน")), u: esc(T("numbers.th3", "ผลรวม")), b: esc(T("numbers.th4", "คู่เด่นมาก")), c: esc(T("numbers.th5", "คู่ควรระวัง")) };
-    $("#nmCmpBody").innerHTML = rows.map((r, i) => r.error ? '<tr><th scope="row">—</th><td colspan="4">' + esc(r.input) + ' <small class="err">' + esc(T(r.error, r.error)) + "</small></td></tr>" :
-      '<tr' + (i === 0 ? ' class="top"' : "") + '><th scope="row">' + esc(r.display) + (i === 0 ? ' <span class="badge on">' + esc(T("numbers.cmp.top", "คะแนนสูงสุด")) + '</span>' : "") + '</th><td data-l="' + L.s + '"><b>' + r.score + '</b></td><td data-l="' + L.u + '">' + r.sum + '</td><td data-l="' + L.b + '">' + (r.best.join(", ") || "—") + '</td><td data-l="' + L.c + '">' + (esc(r.care.join(", ")) || esc(T("numbers.cmp.none", "ไม่มี"))) + "</td></tr>").join("");
+    const q = quietText();
+    $("#nmCmpBody").innerHTML = rows.map((r, i) => r.error ? '<tr><th scope="row">—</th><td colspan="4">' + (q ? "#" + (i + 1) : esc(r.input)) + ' <small class="err">' + esc(T(r.error, r.error)) + "</small></td></tr>" :
+      '<tr' + (i === 0 ? ' class="top"' : "") + '><th scope="row">' + (q ? "#" + (i + 1) : esc(r.display)) + (i === 0 ? ' <span class="badge on">' + esc(T("numbers.cmp.top", "คะแนนสูงสุด")) + '</span>' : "") + '</th><td data-l="' + L.s + '"><b>' + r.score + '</b></td><td data-l="' + L.u + '">' + r.sum + '</td><td data-l="' + L.b + '">' + (r.best.join(", ") || "—") + '</td><td data-l="' + L.c + '">' + (esc(r.care.join(", ")) || esc(T("numbers.cmp.none", "ไม่มี"))) + "</td></tr>").join("");
     if (!quiet) box.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 

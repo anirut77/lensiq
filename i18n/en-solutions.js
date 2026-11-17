@@ -207,6 +207,7 @@
   "sl.c.e2.w": "Events, brand booths",
   "sl.c.e3.h": "Fortune readings to draw visitors",
   "sl.c.e3.p": "Thai and Chinese traditions as a booth activity. Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
+  "sl.c.e3.p2": "Livens up booths, events and marketing campaigns: face reading (68 facial landmarks), palm reading (21 hand points), the 78-card tarot deck and Siam Si. Results become shareable cards instantly, drawing visitors to the booth and sparking brand conversation; feng shui also suits booths, events and real estate marketing.",
   "sl.c.e3.w": "Trade fairs, malls, festivals",
   "sl.c.e4.h": "Event check-in",
   "sl.c.e4.p": "Checks in registered attendees who agreed, with a list export.",
