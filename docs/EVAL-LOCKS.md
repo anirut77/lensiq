@@ -50,6 +50,23 @@ if a file that refers to the evals folder does not import the guard and call `as
 there, or that read the measurement-only vendor files, are listed in the test with the reason and a pinned count of
 references.
 
+## Repo files must equal their latest lock (owner decision 85 ก, 2026-11-17)
+
+`node tools/eval-guard.mjs repo` (a blocking CI step after the unit tests) compares every repo file named in any
+`evals-locks/*.sha256` with its locked hash. It reads only `evals-locks/` and the repo, so it runs on CI without
+`~/LENSIQ-field`. `assertLocked` runs the same check for the repo files locked in its phase.
+
+- Repo path: a relative path whose first folder is a folder at the repo root (`tests/…`, `tools/…`, `docs/…`), or any
+  line marked `# repo file`. Bare names (`README.md`), phase sub-folders (`relock/x.mjs`) and absolute paths are the
+  copies under `~/LENSIQ-field` and are checked by `check` only.
+- Latest lock: within a lock file the last line for a path wins. Across lock files, a hash is superseded when another
+  lock file holds the same hash for the path and a later line after it. Two lock files whose latest lines still
+  disagree are a conflict: append the right hash, with the reason, to the lock file that is out of date.
+- A locked file that is no longer in the repo fails unless a lock file retires it after its last hash line:
+  `# retired <path> reason: <why>`. A retired file that is still in the repo fails too.
+- Never append a hash only to make the check pass: a re-lock is documented (what changed, why, stricter or not) and made
+  before measuring. Tests: `tests/unit/eval-guard-repo.test.js` (locked in `evals-locks/eval-guard.sha256`).
+
 ## Harnesses wired (2026-11-13)
 
 | Harness | Phase | Files checked |
