@@ -119,17 +119,7 @@
     {
       "where": "nav.js",
       "text": "กล้องหน้าร้านสำหรับ SME: นับคน อัตราการซื้อ หลายสาขา",
-      "reason": "site menu entry (nav.js): inside the collapsed menu until the visitor opens it, a link to a platform page; not part of the reading or its result area. OPEN ITEM for the owner: hide or keep in the crisis state"
-    },
-    {
-      "where": "nav.js",
-      "text": "แพ็กเกจและราคา",
-      "reason": "site menu entry (nav.js): inside the collapsed menu until the visitor opens it, a link to a platform page; not part of the reading or its result area. OPEN ITEM for the owner: hide or keep in the crisis state"
-    },
-    {
-      "where": "nav.js",
-      "text": "สมาชิกและการชำระเงิน (เมื่อเปิดใช้)",
-      "reason": "site menu entry (nav.js): inside the collapsed menu until the visitor opens it, a link to a platform page; not part of the reading or its result area. OPEN ITEM for the owner: hide or keep in the crisis state"
+      "reason": "site menu description of the store-camera product (\"purchase rate\" is a shop metric the product measures), not a sale, no price or link to a purchase"
     },
     {
       "where": "fortune-crisis.js",
@@ -636,15 +626,28 @@
       "reason": "toast after the visitor's own account action (linking earlier purchases to a new account); no price, no purchase button"
     },
     {
-      "where": "lensiq-member.js",
-      "text": "แพ็กเกจและราคา",
-      "reason": "account menu entry (lensiq-member.js), inside the collapsed account menu and only while the pricing page is on. OPEN ITEM for the owner: hide or keep in the crisis state"
-    },
-    {
       "where": "fortune-crisis-net.js",
       "text": "|เทนนิส|ลูกบอล|กลอง|ราคา|ความ)|ทุบ|ต่อย|เตะ|",
       "reason": "pattern source of a check (crisis net), never drawn on the page"
     }
   ],
-  "priceTextNote": "crisis-v3-protect (2026-11-18): unmarked price / sales words (tests/unit/crisis-price-scan-lib.cjs) allowed where they are not a sale. where = the file the string is in (static scan, tests/unit/crisis-price-scan.test.js P2; an entry that matches nothing fails); browser: true = may also be visible in the crisis state (tests/e2e/crisis-price-scan-kit.mjs), matched by text inside the visible element. Entries without browser: true never count on screen."
+  "priceTextNote": "crisis-v3-protect (2026-11-18): unmarked price / sales words (tests/unit/crisis-price-scan-lib.cjs) allowed where they are not a sale. where = the file the string is in (static scan, tests/unit/crisis-price-scan.test.js P2; an entry that matches nothing fails); browser: true = may also be visible in the crisis state (tests/e2e/crisis-price-scan-kit.mjs), matched by text inside the visible element. Entries without browser: true never count on screen.",
+  "priceMarkedNote": "crisis-v3-protect re-lock 2 (2026-11-18, coordinator order: rule b): menu price / payment entries are no longer allowed as text; they are accepted by the static scan only when the source line that holds them also carries the crisis-sales marker (crisisSales in nav.js MENU, data-lq-crisis-sales in lensiq-member.js), which nav.js hides in the crisis and calm states; the e2e menu test (crisis-price-scan-menu.e2e.mjs) asserts they are hidden in the crisis state and back when it clears",
+  "priceMarked": [
+    {
+      "where": "nav.js",
+      "text": "แพ็กเกจและราคา",
+      "marker": "crisisSales"
+    },
+    {
+      "where": "nav.js",
+      "text": "สมาชิกและการชำระเงิน (เมื่อเปิดใช้)",
+      "marker": "crisisSales"
+    },
+    {
+      "where": "lensiq-member.js",
+      "text": "แพ็กเกจและราคา",
+      "marker": "data-lq-crisis-sales"
+    }
+  ]
 }

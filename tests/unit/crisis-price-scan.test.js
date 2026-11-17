@@ -25,7 +25,12 @@ const L = require("./crisis-escape-guard-lib.cjs");
 const S = require("./crisis-price-scan-lib.cjs");
 
 const ROOT = path.join(__dirname, "..", "..");
-const ALLOW = JSON.parse(fs.readFileSync(path.join(__dirname, "crisis-escape-guard-allow.json"), "utf8")).priceText || [];
+const ALLOW_ALL = JSON.parse(fs.readFileSync(path.join(__dirname, "crisis-escape-guard-allow.json"), "utf8"));
+const ALLOW = ALLOW_ALL.priceText || [];
+// RE-LOCK 2 2026-11-18 (adds assertions only; coordinator order, CLAUDE.md rule b): the menu price / payment entries left the
+// allow-list; a hit is accepted only when the SOURCE LINE that holds it also carries the crisis-sales marker (priceMarked), and P6
+// asserts that the marker hides it in the crisis and calm states
+const MARKED_OK = ALLOW_ALL.priceMarked || [];
 const read = f => fs.readFileSync(path.join(ROOT, f), "utf8");
 const fresh = f => { const p = path.join(ROOT, f); delete require.cache[require.resolve(p)]; return require(p); };
 const isFile = w => /\.(?:js|html)$/.test(w);
@@ -48,8 +53,9 @@ function pageSources(page, over = {}) {
   return out;
 }
 /** P2: every sales hit on every reading page that no static allow-list entry covers; and the entries that were used */
-function staticScan(pages, over) {
+function staticScan(pages, over = {}) {
   const bad = [], used = new Set(), seen = new Set();
+  const markedLine = (f, t) => MARKED_OK.find(e => e.where === f && t === e.text && (f in over ? over[f] : read(f)).split("\n").some(l => l.includes(e.text) && l.includes(e.marker)));
   for (const p of pages) for (const [f, texts] of pageSources(p, over)) {
     if (seen.has(f)) continue;
     seen.add(f);
@@ -58,6 +64,8 @@ function staticScan(pages, over) {
       if (!hits.length) continue;
       const i = S.allowedBy(ALLOW.filter(e => isFile(e.where) || e.where === "*"), f, t);
       if (i >= 0) { used.add(ALLOW.filter(e => isFile(e.where) || e.where === "*")[i]); continue; }
+      const mk = markedLine(f, t);
+      if (mk) { used.add(mk); continue; }
       bad.push(`${f}: [${[...new Set(hits.map(h => h.match))].join(", ")}] "${t.slice(0, 120)}"`);
     }
   }
@@ -83,6 +91,7 @@ test("P2: no unmarked sales word in what a reading page can show (TH / EN / ZH),
   }
   const { bad, used } = staticScan(pages);
   for (const e of ALLOW) if (isFile(e.where) && !used.has(e)) bad.push(`allow-list entry matches nothing any more: ${e.where} "${e.text}"`);
+  for (const e of MARKED_OK) if (!used.has(e)) bad.push(`priceMarked entry matches nothing (text gone or marker missing on its line): ${e.where} "${e.text}"`);
   assert.deepEqual(bad, []);
 });
 
@@ -124,4 +133,16 @@ test("P5: report.js: the paid-mode 'no credit' gate with the link to the report 
   const stmt = src.slice(src.lastIndexOf("g.appendChild(", i), src.indexOf(";", i));
   assert.match(stmt, /h\("p",\s*\{[^}]*"data-lq-upsell"/, "the gate paragraph carries data-lq-upsell: " + stmt.slice(0, 160));
   assert.match(read("fortune-crisis.js"), /html\[data-lq-crisis\] \[data-lq-upsell\]\{?[^}]*display:none!important|html\[data-lq-crisis\] \[data-lq-upsell\][^{]*\{display:none!important/, "[data-lq-upsell] is hidden in the crisis state");
+});
+
+test("P6 (re-lock 2): menu price / payment entries carry the crisis-sales marker, and the marker is hidden in the crisis and calm states", () => {
+  const nav = read("nav.js"), mem = read("lensiq-member.js");
+  assert.match(nav, /:is\(html\[data-lq-crisis\],html\[data-lq-calm\]\) \[data-lq-crisis-sales\]\{display:none!important\}/, "nav.js hides [data-lq-crisis-sales] in the crisis and calm states");
+  assert.match(nav, /href: "pricing\.html", [^\n]*crisisSales: "item"/, "site menu: the pricing entry is marked as a whole");
+  assert.match(nav, /href: "account\.html", [^\n]*สมาชิกและการชำระเงิน[^\n]*crisisSales: "desc"/, "site menu: the account entry's payment description is marked");
+  assert.match(nav, /i\.crisisSales === "item" \? cs/, "nav.js draws the marker on a marked entry");
+  assert.match(nav, /i\.crisisSales === "desc" \? cs/, "nav.js draws the marker on a marked description");
+  assert.match(mem, /el\("li", \{[^}]*"data-lq-crisis-sales": ""[^}]*\}, el\("a", \{[^}]*href: "pricing\.html"/, "account menu: the pricing entry is marked");
+  // every pricing.html link in the site menu data is marked
+  for (const m of nav.matchAll(/\{ href: "pricing\.html"[^\n]*/g)) assert.match(m[0], /crisisSales/, "unmarked site-menu pricing entry: " + m[0].slice(0, 80));
 });

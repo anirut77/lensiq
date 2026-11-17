@@ -89,3 +89,31 @@ export async function runScan(browser, base, fakeCams, page, lang) {
     return bad.length;
   } finally { await p.close(); }
 }
+
+/* ---------------- RE-LOCK 2 2026-11-18 (adds assertions only; coordinator order, CLAUDE.md rule b) ----------------
+ * The site menu's price / payment entries (nav.js, data-lq-crisis-sales) and the account menu's pricing entry (lensiq-member.js)
+ * must be hidden while the crisis or calm state is set, and come back when it clears. Used by crisis-price-scan-menu.e2e.mjs. */
+/** open the site menu drawer and the "about" group (where the pricing and account entries are) */
+export async function openAboutMenu(p) {
+  await ev(p, `(() => { const t = document.querySelector(".nav-toggle"); if (t && t.getAttribute("aria-expanded") !== "true") t.click();
+    const b = document.querySelector('button[aria-controls="navsub-about"]'); if (!b) throw new Error("no about group"); if (b.getAttribute("aria-expanded") !== "true") b.click(); return true; })()`);
+  await sleep(600);
+}
+/** what is visible in the menus: pricing links, marked elements, sales hits in the site menu, the account link */
+export const MENU_STATE = `(() => {
+  const vis = e => { for (let x = e; x && x.nodeType === 1; x = x.parentElement) { if (x.hidden) return false; const cs = getComputedStyle(x);
+    if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") return false; } const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+  const menu = document.getElementById("siteMenu"), hits = [];
+  const tw = document.createTreeWalker(menu, NodeFilter.SHOW_TEXT);
+  for (let n = tw.nextNode(); n; n = tw.nextNode()) { const t = n.textContent.replace(/\\s+/g, " ").trim(); if (t && n.parentElement && vis(n.parentElement) && window.__lqPriceScan(t).length) hits.push(t); }
+  return { pricing: [...document.querySelectorAll('#siteMenu a[href="pricing.html"], .lq-acct-menu a[href="pricing.html"]')].filter(vis).length,
+    marked: [...document.querySelectorAll("[data-lq-crisis-sales]")].filter(vis).length,
+    markedAll: document.querySelectorAll("[data-lq-crisis-sales]").length,
+    account: [...document.querySelectorAll('#siteMenu a[href="account.html"]')].filter(vis).length,
+    aboutOpen: vis(document.getElementById("navsub-about")), hits }; })()`;
+/** an account-menu pricing entry exactly as lensiq-member.js draws it for a signed-in member with pricing on (sign-in is not
+ *  available in the test server); proves the page-wide rule hides it */
+export const FAKE_ACCOUNT_MENU = `(() => { const ul = document.createElement("ul"); ul.className = "lq-acct-menu"; ul.setAttribute("role", "menu"); ul.setAttribute("data-lq-test-inject", "");
+  const li = document.createElement("li"); li.setAttribute("role", "presentation"); li.setAttribute("data-lq-crisis-sales", "");
+  const a = document.createElement("a"); a.setAttribute("role", "menuitem"); a.href = "pricing.html"; a.setAttribute("href", "pricing.html"); a.textContent = "แพ็กเกจและราคา";
+  li.appendChild(a); ul.appendChild(li); ul.style.cssText = "position:fixed;left:0;bottom:0;z-index:2147483647;background:#fff"; document.body.appendChild(ul); return true; })()`;
