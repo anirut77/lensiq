@@ -106,6 +106,52 @@ node "<repo>/tools/eval-guard.mjs" check <phase> <every input file>
 
 If the guard does not print `eval-guard OK`, there is no measurement. Report the refusal instead.
 
+## live-scan baseline (owner decision 89, 2026-11-17)
+
+- **No prior copy existed.** `tests/unit/pc-live.test.js` was locked as `691dd37a` on 2026-11-12, then wrapped (change 2 in
+  `evals-locks/live-scan.sha256`) to `7746decb` with no review or owner record; `691dd37a` was never committed or kept, so
+  nothing exists to compare. Owner decision 89 accepts `7746decb` as the baseline. The bytes are unchanged since `dbb38f6f`.
+  Lock line, field copy `pc-live.test.7746decb.js` and field lock `locked-2026-11-17-baseline.sha256` (new files;
+  `locked.sha256` not modified): commit `08388c9c`. `node tools/eval-guard.mjs repo`: 0 mismatches (was 1).
+- **Release criteria** (written in `docs/product-check/LIVE-SCAN-RESULTS.md`; there is no separate "release criteria"
+  document) mapped to the live-scan set: `pc-live.test.js` (unit), `backend-pc-auto.test.js` (A1-A7),
+  `product-check-live.e2e.mjs` (e2e 1-10), and the checks added on this branch (`pc-live-release.test.js` R1-R7).
+
+| # | Criterion | Source (LIVE-SCAN-RESULTS.md) | Check | Status |
+|---|---|---|---|---|
+| 1 | Live scan by default: camera stays open, framing guide, short live hints, no shutter | :57-58, :103 | pc-live frame checks; e2e 1 | existed |
+| 2 | At most 4 frames analysed per second, on a <= 320 px copy in memory | :61, :102 | pc-live "battery" (<= 5); e2e 1 (<= 5.2) | **added R1** (<= 4) |
+| 3 | Auto-capture after 3 steady good frames; a steady blurred view after 8 | :59, :102 | pc-live auto-capture (2-6 frames) | **added R2** |
+| 4 | At most 3 readings of one side, then stop | :59, :102 | pc-live (2-6); e2e 2 (<= 6) | **added R3** |
+| 5 | Readings merged by vote per line | :59 | pc-live merge; e2e 2 | existed |
+| 6 | Another object (under half the lines in common) starts over; earlier barcodes dropped | :77 (fix 1) | e2e 2 only via a blank frame in between | **added R4**; it failed on the product: fixed `dc936566` |
+| 7 | Checklist barcode / registration number / ingredients | :60 | pc-live checklist; e2e 1 | existed |
+| 8 | Hidden page: no analysis, camera released | :61 | e2e 3 | existed |
+| 9 | "Take this picture" kept; live scan can be switched off | :62 | e2e 1 (fallback only) | **added R5** (default on, switch works) |
+| 10 | Official lookup by itself only with the online opt-in, once per product, derived facts only | :37, :63 | e2e 4 | existed |
+| 11 | No automatic sending: the live scan never sends to AI | :28, :361 | e2e 4, 5 | existed |
+| 12 | One-tap: testers only, one consent with "remember my choice" | :29, :362-363 | e2e 5; A1 | existed |
+| 13 | One-tap only when every filter passes (aiGate, guard, possible name, autoBlock, own unedited OCR, face check ran and found none, page visible) | :30, :363-366 | pc-live auto-send decision + real guard; e2e 6 | existed |
+| 14 | A filter miss: reason shown, usual preview, nothing before "Send this text" | :31, :366 | e2e 6 | existed |
+| 15 | Text sent is shown; both withdraw buttons clear consent and one-tap at once | :32, :368 | e2e 5, 7 | existed |
+| 16 | Text only; no automatic image; a photo only after "Use this picture" | :33, :166, :368 | e2e 8; A7; `pc-ondevice.test.js` | existed |
+| 17 | Public users: preview and confirm every time | :35 | e2e 4 | existed |
+| 18 | One AI round per product / per tap | :66, :163 | pc-live product key, already-sent, session cap; e2e 5 ("one tap = one round") | existed |
+| 19 | Worker: `auto` boolean, tester + valid code, Product Check features only, auto filter | :34, :173-176, :369 | A1-A5 | existed |
+| 20 | Worker one-tap allowance 6 a minute, 150 a day | :69, :177 | A6 (allows 12 / 300; day limit never reached) | **added R6** (<= 6, <= 150, request 151 refused) |
+| 21 | Auto flag, tester code and facts never reach the provider | :177 | A7 | existed |
+| 22 | Documented refusal codes show their own notice in TH / EN / ZH (incl. `ai_off_personal_data`, `ai_off_auto_filter`) | :36, :355-357 | e2e 8 (four codes, Thai) | **added R7** |
+| 23 | A note to a person stops one-tap | :403 | `pc-guard-onetap-notes.test.js` (in no lock) | existed; **joined the set** unchanged |
+| 24 | Japanese / Korean script never one-tap | `PC-JK-RESULTS.md`:29 | `pc-jako-policy.test.js` (in no lock) | existed; **joined the set** unchanged |
+| 25 | EN / ZH complete, 360 px without horizontal scroll, controls >= 44 px | :109 | e2e 10 | existed |
+| 26 | Personal data to AI 0 on P7 / P7b | :71 | `live-leak-score.mjs` (locked measurement) | existed |
+| 27 | First on-device result <= 1 s; AI fields <= 3 s | :139-147 | `live-measure.mjs` (measurement outside the repo, not a pass/fail test) | **no check added**: needs a real phone; a CI timing test would not be deterministic. Still open (4x proxy misses both for OCR / AI) |
+
+- Locks: R1-R7 and the two joining files locked BEFORE the first run (commit `1ff1bd46`, field lock
+  `locked-2026-11-17-release-criteria.sha256`). First run: R4 failed on the product (fixed, test unchanged); R5 and R6 failed
+  on test setup (a regex against a JSDoc cast; a 2023 clock that made the gateway answer `not_configured`). Re-lock (2),
+  setup only, no assertion loosened: commit `686e0bfe`, field lock `locked-2026-11-17-release-criteria-r2.sha256`.
+
 ## Known issues in locked files
 
 Locked files are not edited. Known problems are recorded here and fixed in the next set.
