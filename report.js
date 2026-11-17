@@ -477,7 +477,8 @@
       h("span", { class: "lq-notice-more" }, h("span", { text: T("rp.disclaimer", "ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ ไม่ใช่คำแนะนำทางการแพทย์ การเงิน หรือการจ้างงาน") }))));
     // the help line at the end of every report, kept in the print / PDF view (owner order 2026-11-12)
     var CRh = W.LQFortuneCrisis;
-    if (CRh && CRh.helpLine) out.appendChild(CRh.helpLine(document, rep.lang, "lq-helpline-result lq-helpline-print"));
+    // crisis v3 (2026-11-17): in the crisis session the line is the closing line, on screen too
+    if (CRh && CRh.helpLine) out.appendChild(CRh.helpLine(document, rep.lang, CRh.calmOn && CRh.calmOn() ? "lq-helpline-result" : "lq-helpline-result lq-helpline-print"));
     var act = h("div", { class: "rp-actions no-print" });
     var pr = h("button", { type: "button", class: "btn primary", id: "rpPrint", text: T("rp.print", "พิมพ์ / บันทึกเป็น PDF") });
     pr.addEventListener("click", function () { root.print(); });

@@ -4356,12 +4356,16 @@
     if (res.reminder && opts.reminder !== false) { const n = el("p", "fa-reminder", res.reminder); n.setAttribute("role", "note"); frag.appendChild(n); }
     // ส่วน C: ตัวเลือก "ดูตรง ๆ" — วาดเฉพาะเมื่อเปิดสวิตช์ (ปิดอยู่ในไฟล์ที่ส่งมอบ จึงไม่มีอะไรเปลี่ยนบนหน้า)
     if (straightEnabled() && opts.straightControl !== false && FS.mount) FS.mount(container, frag, res);
-    // owner order 2026-11-15 item 3: the help line is in ONE place per page (the top button); under a reading only on a calm page
-    // (crisis net: crisis state, calm session or distress typed), where fortune-crisis.js makes it sticky next to the reading
+    // crisis v3 (2026-11-17) on a calm page (crisis state, calm session, distress typed): ONE closing line at the end of the page's
+    // reading (its result root, so it shows whichever tab is open); none on a normal page
+    container.appendChild(frag);
     if (CR && CR.helpLine && CR.calmOn && (CR.calmOn(doc) || CR.distress(doc))) {
-      try { Array.from(doc.querySelectorAll(".lq-helpline-result")).forEach(e => e.remove()); frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ }
+      try {
+        Array.from(doc.querySelectorAll(".lq-helpline-result")).forEach(e => e.remove());
+        const up = container.closest ? container.closest('[data-lq-result], [id$="Result"], #rpOut') : null;
+        if (CR.calmOn(doc) || CR.distress(doc)) (up || container).appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result"));
+      } catch (e) { /* no DOM */ }
     }
-    container.appendChild(frag); if (CR && CR.calmDock) CR.calmDock(container, res.lang); // crisis fix 4: help line in view when calm
     try { if (root.LQI18N && typeof root.LQI18N.apply === "function") root.LQI18N.apply(container); } catch (e) { /* i18n ไม่พร้อม */ }
     return container;
   }
