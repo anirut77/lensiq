@@ -48,6 +48,15 @@
    "contains": "Face detection | ready",
    "reason": "Live engine status line (aria-live), rewritten by the page while the camera starts; inside live status lines only short no-wrap pieces are used (longer ones widened narrow result boxes on medicine.html and broke the iPhone camera-refusal checks), and 'detection ready' is longer than that limit.",
    "added": "2026-11-17"
+  },
+  {
+   "page": "counselling.html",
+   "kind": "W",
+   "lang": "en",
+   "width": 360,
+   "contains": "24 hours | a day",
+   "reason": "Crisis help line (the 191 entry of the hotline list, inside [data-lq-call]): the independent review of 2026-11-17 requires the line-wrap wrapper never to touch crisis help nodes, so no no-wrap piece can be used here and the shared crisis wording is not edited; CSS text-wrap:pretty on .lq-call-sub fixes the other widths and the 7 | days split, and at 360 px only the two words a day fall on the last line.",
+   "added": "2026-11-18"
   }
  ]
 }

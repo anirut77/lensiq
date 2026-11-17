@@ -43,3 +43,7 @@ e7fdc73b02536ef3affb6ee3b82c02d8af51d1e1788ad7eada99fd04bfb3f833  relock-6/tests
 # touches crisis help nodes (1323 link, dialog, help / closing line, call links, crisis slot, kept support boxes). No existing rule changed.
 # locked 2026-11-17T20:32:31Z (tools/eval-guard.mjs lock, 1 file)
 906987dc97770877da3d7e92c1b4601575d90185e03068faf6a72c589282553c  relock-7/tests/unit/line-wrap-crisis-skip.test.js
+# re-lock 2026-11-18 (append-only exceptions list, seventh entry): counselling.html W en 360 "24 hours | a day" (crisis help node; the review requires
+# the wrapper never to touch it; CSS text-wrap:pretty fixes the rest). No rule, page, width, language or threshold changed. Copy in relock-8/.
+# locked 2026-11-17T20:54:01Z (tools/eval-guard.mjs lock, 1 file)
+5515fb3d1ace49ec5896e0917287d8260eeb5323b2ad0fd6a9ceb43d63e40193  relock-8/tests/e2e/line-wrap-exceptions.json
