@@ -131,3 +131,20 @@ Moved word for word on 2026-11-17 (fourth batch: every remaining full-line comme
 [nav.js line 697] // ---------- fortune pages: belief guidance under a reading (lensiq-merit.js; Merit MVP, owner order 2026-11-12) ----------
 [nav.js line 712] // ---------- service worker (offline cache for vendor/ models) ----------
 ```
+
+Moved word for word on 2026-11-17 (fifth batch: end-of-line comments):
+
+```text
+[nav.js line 110, end of line] // camera pages added after round 17 (kept on their own line: line width)
+[nav.js line 132, end of line] // keep order: core first, then the dictionary
+[nav.js line 344, end of line] // open switch: Tab walks current, then the others (review 2026-11-16)
+[nav.js line 351, end of line] // lensiq-member.js calls it after adding / removing the account icon
+[nav.js line 379, end of line] // decision 75 switch: stays in the page, not sticky
+[nav.js line 399, end of line] // diagnostics: disable the rewrite
+[nav.js line 434, end of line] // trailing space stays breakable
+[nav.js line 475, end of line] // index of the first segment of the tail that must not wrap (t.length: none)
+[nav.js line 508, end of line] // lensiq-i18n-rt.js keeps this text node: it must stay first
+[nav.js line 546, end of line] // text re-set by page code: redo
+[nav.js line 592, end of line] // label: Thai text doubles as its i18n key
+[nav.js line 696, end of line] // in order: the core first
+```

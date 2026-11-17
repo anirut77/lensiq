@@ -107,7 +107,7 @@
   var LANG_BTNS = [["th", "th", "TH", "ภาษาไทย"], ["en", "en", "EN", "English"], ["zh", "zh-Hans", "中文", "简体中文"]];
 
   var NOFRAME = /^(account|pricing|report|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface|exam-lab|exam-hall|exam-dashboard|queue|tables|afterhours|bays|parking|village|crowd|case-review|medicine|omr|luckycolor)\.html$/;
-  var NOFRAME_MORE = /^(nutrition|tryon)\.html$/; // camera pages added after round 17 (kept on their own line: line width)
+  var NOFRAME_MORE = /^(nutrition|tryon)\.html$/;
   var framed = false;
   try { framed = window.top !== window.self; } catch (e) { framed = true; }
   var pageName = (location.pathname.split("/").pop() || "").toLowerCase();
@@ -129,7 +129,7 @@
     [["lensiq-i18n.js", !window.LQI18N], ["i18n/zh-common.js", true]].forEach(function (f) {
       if (!f[1] || have(f[0])) return;
       var sc = document.createElement("script");
-      sc.src = f[0] + q; sc.async = false; // keep order: core first, then the dictionary
+      sc.src = f[0] + q; sc.async = false;
       if (f[0] === "i18n/zh-common.js") sc.addEventListener("load", function () { if (typeof syncLang === "function" && langBtns) syncLang(); });
       (document.head || document.documentElement).appendChild(sc);
     });
@@ -341,14 +341,14 @@
   function syncCompact() { if (!langBox.classList.contains("open")) setLangOpen(false); }
   window.addEventListener("resize", syncCompact);
   document.addEventListener("click", function (e) { if (langBox.classList.contains("open") && !langBox.contains(/** @type {Node} */ (e.target))) setLangOpen(false); });
-  langBox.addEventListener("keydown", function (e) { // open switch: Tab walks current, then the others (review 2026-11-16)
+  langBox.addEventListener("keydown", function (e) {
     var c = function (/** @type {any} */ b) { return b.getAttribute("aria-pressed") === "true"; }, o = langBtns.filter(c).concat(langBtns.filter(function (/** @type {any} */ b) { return !c(b); })),
       n = o[o.indexOf(/** @type {any} */ (document.activeElement)) + (e.shiftKey ? -1 : 1)];
     if (e.key === "Tab" && langBox.classList.contains("open") && n) { e.preventDefault(); n.focus(); }
   });
   langBox.addEventListener("keydown", function (e) { if (e.key === "Escape" && langBox.classList.contains("open")) { e.stopPropagation(); setLangOpen(false); var c = langBtns.filter(function (b) { return b.getAttribute("aria-pressed") === "true"; })[0]; if (c) c.focus(); } });
   langBox.addEventListener("focusout", function (e) { if (langBox.classList.contains("open") && !langBox.contains(/** @type {Node} */ (e.relatedTarget))) setLangOpen(false); });
-  /** @type {any} */ (window).LQNavCompact = syncCompact; // lensiq-member.js calls it after adding / removing the account icon
+  /** @type {any} */ (window).LQNavCompact = syncCompact;
   langBtns.forEach(function (b) {
     b.addEventListener("click", function () {
       if (b.getAttribute("aria-pressed") === "true" && (langCompact() || langBox.classList.contains("open"))) { setLangOpen(!langBox.classList.contains("open")); return; }
@@ -376,7 +376,7 @@
   function helpMount() {
     var top = document.getElementById("lqHelpTop"), a = top && top.querySelector("a");
     if (!top || !a || header.contains(top)) return;
-    if (/** @type {any} */ (window).LENSIQ_HELP_TOP_STICKY === false) top.classList.add("lq-helpquiet"); // decision 75 switch: stays in the page, not sticky
+    if (/** @type {any} */ (window).LENSIQ_HELP_TOP_STICKY === false) top.classList.add("lq-helpquiet");
     else { header.insertBefore(top, header.querySelector(".nav-end") || langBox); top.classList.add("lq-helpnav"); header.classList.add("has-help"); }
     a.setAttribute("aria-haspopup", "dialog"); a.onclick = function (/** @type {Event} */ e) { if (help.confirm) { e.preventDefault(); help.open(); } };
     help.el = top; help.link = a; syncCompact(); setNavH();
@@ -396,7 +396,7 @@
   meritHook();
 
   function thaiBreaks() {
-    if (/[?&]nowb\b/.test(location.search)) return; // diagnostics: disable the rewrite
+    if (/[?&]nowb\b/.test(location.search)) return;
     if (typeof Intl === "undefined" || typeof Intl.Segmenter !== "function") return;
     var seg;
     try { seg = new Intl.Segmenter("th", { granularity: "word" }); } catch (e) { return; }
@@ -431,7 +431,7 @@
       var parts = full ? t.map(function (p) { return [p, THAI.test(p) && p.length >= 4 && p.length <= 14 && !/\s/.test(p) ? 1 : 0]; }) : loanParts(v);
       if (!parts) {
         if (k >= t.length || /lq-t/.test(tn.nextSibling && tn.nextSibling.className)) return;
-        var ws = (/\s*$/.exec(v) || [""])[0], tail = document.createElement("lq-t"); // trailing space stays breakable
+        var ws = (/\s*$/.exec(v) || [""])[0], tail = document.createElement("lq-t");
         tail.className = "lq-w lq-t"; tail.textContent = v.slice(at, v.length - ws.length);
         if (v.slice(0, at).trim() && !/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail, ws); }
         else if (!RT(tn)) { var box = document.createElement("lq-t"); box.className = "lq-t"; box.append(v.slice(0, at), tail, ws); tn.replaceWith(box); }
@@ -470,10 +470,10 @@
     }
     var RX = function () { return /** @type {any} */ (window).LQI18N_RTX; }, RT = function (n) { return RX() && RX().owns && RX().owns(n); };
     var TC = /[\u0e00-\u0e7f\u3040-\u9fff]/, CP = /^[)\].,:;!?%ๆฯ…，。、：；！？）」』】]/;
-    function cut(t, all) { // index of the first segment of the tail that must not wrap (t.length: none)
-      for (var c = t.length, L = 0, x; c > (all ? 0 : 1) && L < 8; ) {
-        x = t[--c]; if (L || x.trim()) L += /[\u3040-\u9fff]/.test(x) ? 2 * x.length : x.replace(/[\s\u0e31\u0e34-\u0e3a\u0e47-\u0e4e]/g, "").length;
-      }
+    var wt = function (x) { return x.replace(/[\s\u0e31\u0e34-\u0e3a\u0e47-\u0e4e]/g, "").length + (x.match(/[\u3040-\u9fff]/g) || []).length; };
+    var MK = /[\u0e30-\u0e3a\u0e45-\u0e4e]/, LV = /[\u0e40-\u0e44]/;
+    function cut(t, all) {
+      for (var c = t.length, L = 0; c > (all ? 0 : 1) && L < 8; ) L += wt(t[--c]);
       while (c && (CP.test(t[c]) || /[(\[{“‘（「『【]$/.test(t[c - 1]))) c--;
       return L < 8 || L > 16 ? t.length : c;
     }
@@ -493,17 +493,20 @@
         if (!p || DONE.get(n) === v || p.closest(SKIP + ",#siteNav,.lq-crumbs")) return;
         DONE.set(n, v);
         PR.forEach(function (re) { re.lastIndex = 0; while ((m = re.exec(v))) r.push([m.index, m.index + m[0].length]); });
-        if (x && IN.test(x.nodeName) && /^[\d.,]+$/.test((x.textContent || "").trim()) && (m = /^[ \t\n]+\S{1,8}/.exec(v))) r.push([0, pre = m[0].length]);
+        if (x && IN.test(x.nodeName) && /^[\d.,]*$/.test((x.textContent || "").trim()) && (m = /^[ \t\n]+\S{1,8}/.exec(v))) r.push([0, pre = m[0].length]);
         if (y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim()) && (m = /\S{1,8}[ \t\n]*$/.exec(v))) r.push([post = m.index, v.length]);
         {
           e = v.replace(/\s+$/, "").length; s = v.lastIndexOf(" ", e - 1); L = len(n);
           while (L > 9 && s > 0 && e - s < 11 && ((z = v.lastIndexOf(" ", s - 1)) > 0 || L > e) && e - z < 22) { i = z + 1; s = z; }
+          while (i > 0 && !/\s/.test(v[i - 1]) && wt(v.slice(i, e)) < 8) i--;
           if (i >= 0) r.push([i, e]);
         }
+        if (!v.trim() && y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim())) y.classList.add("lq-w");
         if (!r.length) return;
+        r.forEach(function (q) { while (q[0] > 0 && (MK.test(v[q[0]]) || LV.test(v[q[0] - 1]))) q[0]--; while (q[1] < v.length && (MK.test(v[q[1]]) || LV.test(v[q[1] - 1]))) q[1]++; });
         r.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (q) { var o = out[out.length - 1]; if (o && q[0] <= o[1]) o[1] = Math.max(o[1], q[1]); else out.push(q); });
         var fl = /flex|grid/.test(getComputedStyle(p).display), f = document.createDocumentFragment();
-        if (RT(n) && (fl || !out[0][0])) return; // lensiq-i18n-rt.js keeps this text node: it must stay first
+        if (RT(n) && (fl || !out[0][0])) return;
         out.forEach(function (q, j) {
           var k = document.createElement("lq-t"), t = document.createTextNode(v.slice(q[1], out[j + 1] ? out[j + 1][0] : v.length));
           k.className = "lq-w lq-t"; k.textContent = v.slice(q[0], q[1]);
@@ -541,7 +544,7 @@
             var a = /** @type {Element} */ (recs[i].addedNodes[j]);
             if (a.nodeType === 1) { if (a.nodeName !== "WBR" && !/\blq-(run|w|t)\b/.test(a.className)) pending.push(a); }
             else if (a.nodeType === 3 && t.nodeType === 1) {
-              if (t.hasAttribute("data-lqwb")) t.removeAttribute("data-lqwb"); // text re-set by page code: redo
+              if (t.hasAttribute("data-lqwb")) t.removeAttribute("data-lqwb");
               pending.push(t);
             }
           }
@@ -587,7 +590,7 @@
       var text = function () {
         var mb = opts.mb ? " " + (Math.round(opts.mb * 10) / 10) + " MB" : "";
         return T("models.loading", "กำลังโหลดโมเดล{label}{mb} (ครั้งแรกเท่านั้น หลังจากนี้ใช้ได้แม้ออฟไลน์)",
-          { label: opts.label ? " " + T(opts.label, opts.label) : "", mb: mb }); // label: Thai text doubles as its i18n key
+          { label: opts.label ? " " + T(opts.label, opts.label) : "", mb: mb });
       };
       var show = function () {
         if (closed || shown || !document.body) return;
@@ -691,7 +694,7 @@
     if (W.LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
     ["lensiq-merit-core.js?v=3", "lensiq-merit-lint.js?v=2", "lensiq-merit.js?v=3"].forEach(function (src) {
       var sc = document.createElement("script");
-      sc.src = src; sc.async = false; // in order: the core first
+      sc.src = src; sc.async = false;
       (document.head || document.documentElement).appendChild(sc);
     });
   }
