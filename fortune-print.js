@@ -56,9 +56,10 @@
     // Chinese characters inside a Thai or English report (BaZi pillars, I Ching names) use the same simplified-Chinese fonts as
     // a Chinese report, not whatever the system falls back to
     // every report can hold all three scripts (Thai temple names in English, BaZi pillars in Thai): each stack names a Thai and
-    // a simplified-Chinese font, so mixed text never falls back to a font whose PDF text reads back differently
-    th: "Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,Garuda,'Helvetica Neue',Arial,'Liberation Sans','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',sans-serif",
-    en: "'Helvetica Neue',Helvetica,Arial,'Liberation Sans',Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,Garuda,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',sans-serif",
+    // a simplified-Chinese font, so mixed text never falls back to a font whose PDF text reads back differently. Garuda (Linux
+    // Thai) comes last: its minus sign shares a glyph with the soft hyphen, so a PDF made with it loses "−" (CI 43990653272)
+    th: "Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,'Helvetica Neue',Arial,'Liberation Sans','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',Garuda,sans-serif",
+    en: "'Helvetica Neue',Helvetica,Arial,'Liberation Sans',Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',Garuda,sans-serif",
     zh: "'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC','Helvetica Neue',Arial,'Liberation Sans',Tahoma,'Leelawadee UI',Thonburi,'Noto Sans Thai',Loma,Garuda,sans-serif",
   };
   // the LENSIQ mark (same drawing as nav.js); dark square + white corners print in black and white as they are
