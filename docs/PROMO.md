@@ -13,7 +13,8 @@ page dictionaries, a share preview for LINE and Facebook, a not-found page, a si
   og:image:width / height / alt, twitter:card);
 - `sitemap.xml` (every root page except 404.html and pages marked noindex: account, admin, pricing);
 - `robots.txt`;
-- `404.html` (TH / EN / 中文, no script, absolute links to home, fortune and help).
+- `404.html`: a normal site page (shared header and footer from nav.js, TH in the markup, EN / 中文 from
+  `i18n/*-notfound.js`) with absolute buttons to home, fortune and help.
 
 `node tools/promo-meta.mjs --check` (and tests/unit/promo-basics.test.js) fails when any of them is out of date. Edit a
 page title or description in the page itself, then run the tool so the share block follows.
@@ -29,6 +30,10 @@ Social sites do not run the page's JavaScript, so the preview text is the Thai d
 pages themselves (no effect on page weight); only the head tags add about 1.3 KB per page.
 
 ## Known limits
+
+- 404.html loads its styles and scripts relative to the missing address, like every page. At a one-level address
+  (`/lensiq/typo.html`) it looks like the rest of the site; at a nested one (`/lensiq/a/b`) it shows unstyled text, but
+  the three buttons are absolute and still lead home.
 
 - robots.txt is only read at the root of a host. On `anirut77.github.io/lensiq/` crawlers read
   `anirut77.github.io/robots.txt` instead, so until the custom domain is live submit `sitemap.xml` in Google Search
