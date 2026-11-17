@@ -65,6 +65,9 @@ export async function toCrisis(browser, base, fakeCams, page, lang) {
   await sleep(400);
   if (F.prep) await F.prep(p);
   await sleep(300);
+  // RE-LOCK 1 2026-11-18 (test fault, CI run 44141046161: report [en] / [zh] never drew a reading): the reused flow types the
+  // Buddhist year 2533, but in EN / ZH the era radio defaults to CE, so the form refused it; pick BE first as a Thai visitor would
+  if (page === "report") await ev(p, `(() => { const r = document.querySelector('input[name="rpAEra"][value="be"]'); if (r && !r.checked) r.click(); return true; })()`);
   await F.read(p);
   await sleep(1200);
   const q = F.short ? PHRASE.short : PHRASE.th;

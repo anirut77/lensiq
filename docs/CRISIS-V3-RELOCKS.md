@@ -197,5 +197,9 @@ Build found by the static scan: report.js paid-mode "no credit" gate ("ดูร
 Open items for the owner (allow-listed, not changed): the site menu entries "แพ็กเกจและราคา" / "สมาชิกและการชำระเงิน" (nav.js) and the
 account-menu "แพ็กเกจและราคา" (lensiq-member.js, pricing on only) stay reachable in the crisis state inside collapsed menus.
 
+Re-lock 1 (kit, `crisis-price-scan-kit.r1.mjs`, after CI run 44141046161, test fault): report [en] / [zh] never drew a reading
+because the reused flow types the Buddhist year 2533 while the era radio defaults to CE outside Thai; the kit now picks BE first.
+Every other page × language passed in that run (0 visible sales texts), controls 3 / 3 languages passed.
+
 **2. "end it all" false positives (review only, no change).** Set: `end-it-all-set.json` (24 benign, 24 crisis, synthetic), harness
 `end-it-all-measure.mjs`, log `end-it-all-measure-<sha>.log`. Numbers are in the round report; any pattern change needs the owner.
