@@ -106,7 +106,6 @@
   ];
   var LANG_BTNS = [["th", "th", "TH", "ภาษาไทย"], ["en", "en", "EN", "English"], ["zh", "zh-Hans", "中文", "简体中文"]];
 
-  // ---------- frame buster (clickjacking) ----------
   var NOFRAME = /^(account|pricing|report|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface|exam-lab|exam-hall|exam-dashboard|queue|tables|afterhours|bays|parking|village|crowd|case-review|medicine|omr|luckycolor)\.html$/;
   var NOFRAME_MORE = /^(nutrition|tryon)\.html$/; // camera pages added after round 17 (kept on their own line: line width)
   var framed = false;
@@ -121,7 +120,6 @@
     return;
   }
 
-  // ---------- i18n loader (lensiq-i18n.js + common Chinese dictionary) ----------
   var T = function (key, thai, vars) { return window.LQI18N ? window.LQI18N.tf(key, thai, vars) : thai; };
   (function loadI18n() {
     var cs = /** @type {HTMLScriptElement|null} */ (document.currentScript);
@@ -280,11 +278,9 @@
       var n = links[(i + (e.key === "ArrowDown" ? 1 : links.length - 1)) % links.length];
       n.focus();
     });
-    // Desktop: close dropdown when focus leaves it.
     item.addEventListener("focusout", function (e) {
       if (!mq.matches && !item.contains(/** @type {Node} */ (/** @type {FocusEvent} */ (e).relatedTarget))) setSub(btn, false);
     });
-    // Desktop with mouse: open on hover.
     item.addEventListener("mouseenter", function () { if (!mq.matches && hoverMq.matches) { closeSubs(btn); setSub(btn, true); } });
     item.addEventListener("mouseleave", function () { if (!mq.matches && hoverMq.matches) setSub(btn, false); });
   });
@@ -320,7 +316,6 @@
   window.addEventListener("resize", setNavH);
   setNavH();
 
-  // ---------- language switch ----------
   var langBtns = Array.prototype.slice.call(header.querySelectorAll(".lang-switch button"));
   function syncLang() {
     var l = window.LQI18N ? window.LQI18N.lang : "th";
@@ -390,7 +385,6 @@
 
   window.LENSIQ_BRAND = BRAND;
 
-  // ---------- member account chip ----------
   var mountAccount = function () { if (window.LQMember && typeof window.LQMember.mountNav === "function") window.LQMember.mountNav(header); };
   mountAccount();
   window.addEventListener("lq-member-ready", mountAccount);
@@ -401,13 +395,12 @@
   reportHook();
   meritHook();
 
-  // ---------- Thai line breaking: <wbr> at word boundaries ----------
   function thaiBreaks() {
     if (/[?&]nowb\b/.test(location.search)) return; // diagnostics: disable the rewrite
     if (typeof Intl === "undefined" || typeof Intl.Segmenter !== "function") return;
     var seg;
     try { seg = new Intl.Segmenter("th", { granularity: "word" }); } catch (e) { return; }
-    var THAI = /[฀-๿]/;
+    var THAI = /[\u0e00-\u0e7f]/;
     var JOIN = ["แดชบอร์ด", "สติ๊กเกอร์", "โหงวเฮ้ง", "ฮวงจุ้ย", "อัจฉริยะ", "คีออสก์", "เซียมซี", "ทาโรต์", "นักษัตร", "อี้จิง", "เว็บแคม", "แท็บเล็ต", "ดาวน์โหลด", "ออฟไลน์", "ออนไลน์", "เบราว์เซอร์", "แพ็กเกจ", "แบรนด์", "โปรโมชัน", "คอนเทนต์", "อีเวนต์", "สตูดิโอ", "ฟีเจอร์", "เซิร์ฟเวอร์", "ฮาร์ดแวร์", "ซอฟต์แวร์", "แอปพลิเคชัน", "โซเชียล", "หน้าตา"];
     var LOAN = new RegExp(JOIN.join("|"), "g");
     var SEL = "h1,h2,h3,h4,h5,.nav-sub b,.nav-sub small,.mega-k,.mega-d,.lq-crumbs li,.nav-link,.nav-cta,.btn,button,label,.chip,.tag,.kicker,.eyebrow,.pill,summary,th,legend,.lead,.sub,.hint,figcaption,.lq-wb";
@@ -475,10 +468,8 @@
       el.setAttribute("data-lqwb", "");
       textNodes(el, 7).forEach(function (tn) { rebuild(tn, true); });
     }
-    // line wrap 2026-11-17 (docs/NAV.md)
     var RX = function () { return /** @type {any} */ (window).LQI18N_RTX; }, RT = function (n) { return RX() && RX().owns && RX().owns(n); };
-    var TC = /[\u0e00-\u0e7f\u3040-\u9fff]/, CP = /^[)\].,:;!?%ๆฯ]/;
-    var GL = /(\d)[ \t\n]+(?=[A-Za-z%\u0e00-\u0e7f\u3040-\u9fff])|([฿$(\[{])[ \t\n]+(?=\S|$)|[ \t\n]+(?=[)\].,:;!?ๆฯ…])/g;
+    var TC = /[\u0e00-\u0e7f\u3040-\u9fff]/, CP = /^[)\].,:;!?%ๆฯ…，。、：；！？）」』】]/;
     function cut(t, all) { // index of the first segment of the tail that must not wrap (t.length: none)
       for (var c = t.length, L = 0, x; c > (all ? 0 : 1) && L < 8; ) {
         x = t[--c]; if (L || x.trim()) L += /[\u3040-\u9fff]/.test(x) ? 2 * x.length : x.replace(/[\s\u0e31\u0e34-\u0e3a\u0e47-\u0e4e]/g, "").length;
@@ -486,33 +477,45 @@
       while (c && (CP.test(t[c]) || /[(\[{“‘（「『【]$/.test(t[c - 1]))) c--;
       return L < 8 || L > 16 ? t.length : c;
     }
-    function gs(v, L) {
-      var e, s, z, B = "\u00a0";
-      v = v.replace(GL, function (m, a, b) { return (a || b || "") + B; });
-      e = v.replace(/\s+$/, "").length; s = v.lastIndexOf(" ", e - 1);
-      while ((L || e) > 9 && s > 0 && e - s < 11 && ((z = v.lastIndexOf(" ", s - 1)) > 0 || L > e) && e - z < 22) { v = v.slice(0, s) + B + v.slice(s + 1); s = z; }
-      return v;
-    }
-    /** @type {any} */ (window).LQGlue = gs;
+    var PR = [/\d[\d.,]*[ \t\n]+(?:%|[A-Za-z]{1,8}|[\u0e00-\u0e7f]{1,6}|[\u3040-\u9fff]{1,2})/g, /[฿$][ \t\n]*\d[\d.,]*/g,
+      /\S[ \t\n]+[)\].,:;!?ๆฯ…，。、：；！？）」』】]+/g, /[(\[{][ \t\n]+\S+/g];
+    var DONE = new WeakMap(), IN = /^(B|SPAN|STRONG|EM|A|SMALL|CODE|OUTPUT|DATA)$/;
     var len = function (n) {
       var p = n.parentNode, x = (p && p.lastChild === n ? (p.closest("p,li,td,th,dd,dt,div,label,summary,h1,h2,h3,h4") || p).textContent : n.nodeValue) || "";
       return x.trim().length + (x.match(/[\u3040-\u9fff]/g) || []).length;
     };
     function glue(root) {
-      var w = document.createTreeWalker(root, 4), n, p, v, x;
-      while ((n = w.nextNode())) {
-        p = n.parentElement; v = n.nodeValue || "";
-        if (!p || p.closest(SKIP + ",#siteNav,.lq-crumbs") || (p.getAttribute("data-i18n") === "" && THAI.test(v)) || RT(n)) continue;
-        x = n.previousSibling;
-        if (x && /^(B|SPAN|STRONG|EM|A|SMALL|OUTPUT|DATA)$/.test(x.nodeName) && /^[\d.,]*$/.test((x.textContent || "").trim())) v = v.replace(/^ (?=[A-Za-z%\u0e00-\u0e7f\u3040-\u9fff])/, "\u00a0");
-        x = /** @type {Element} */ (n.nextSibling);
-        var y = n.previousSibling, IN = /^(B|SPAN|STRONG|EM|A|SMALL|CODE)$/;
-        if ((v.trim() || IN.test(y ? y.nodeName : "")) && x && IN.test(x.nodeName) && !x.nextSibling && /^\S.{0,4}$/.test((x.textContent || "").trim())) {
-          v = v.replace(/\s+$/, "\u00a0"); x.classList.add("lq-w");
+      var w = document.createTreeWalker(root, 4), all = [], n;
+      while ((n = w.nextNode())) all.push(n);
+      all.forEach(function (n) {
+        var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, s, z, i = -1, L, out = [];
+        var x = n.previousSibling, y = n.nextSibling, pre = 0, post = -1;
+        if (!p || DONE.get(n) === v || p.closest(SKIP + ",#siteNav,.lq-crumbs")) return;
+        DONE.set(n, v);
+        PR.forEach(function (re) { re.lastIndex = 0; while ((m = re.exec(v))) r.push([m.index, m.index + m[0].length]); });
+        if (x && IN.test(x.nodeName) && /^[\d.,]+$/.test((x.textContent || "").trim()) && (m = /^[ \t\n]+\S{1,8}/.exec(v))) r.push([0, pre = m[0].length]);
+        if (y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim()) && (m = /\S{1,8}[ \t\n]*$/.exec(v))) r.push([post = m.index, v.length]);
+        {
+          e = v.replace(/\s+$/, "").length; s = v.lastIndexOf(" ", e - 1); L = len(n);
+          while (L > 9 && s > 0 && e - s < 11 && ((z = v.lastIndexOf(" ", s - 1)) > 0 || L > e) && e - z < 22) { i = z + 1; s = z; }
+          if (i >= 0) r.push([i, e]);
         }
-        v = p.closest("a,button,.btn,[role=button],label,summary") ? v.replace(GL, function (m, a, b) { return (a || b || "") + "\u00a0"; }) : gs(v, len(n));
-        if (v !== n.nodeValue) n.nodeValue = v;
-      }
+        if (!r.length) return;
+        r.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (q) { var o = out[out.length - 1]; if (o && q[0] <= o[1]) o[1] = Math.max(o[1], q[1]); else out.push(q); });
+        var fl = /flex|grid/.test(getComputedStyle(p).display), f = document.createDocumentFragment();
+        if (RT(n) && (fl || !out[0][0])) return; // lensiq-i18n-rt.js keeps this text node: it must stay first
+        out.forEach(function (q, j) {
+          var k = document.createElement("lq-t"), t = document.createTextNode(v.slice(q[1], out[j + 1] ? out[j + 1][0] : v.length));
+          k.className = "lq-w lq-t"; k.textContent = v.slice(q[0], q[1]);
+          if (!j && pre && !q[0]) k.prepend(/** @type {Node} */ (x));
+          if (post >= 0 && q[1] === v.length) k.append(/** @type {Node} */ (y));
+          DONE.set(t, t.nodeValue || ""); f.append(k, t);
+        });
+        n.nodeValue = v.slice(0, out[0][0]); DONE.set(n, n.nodeValue);
+        var tx = /** @type {Text} */ (n);
+        if (fl) { var b = document.createElement("lq-t"); b.className = "lq-t"; tx.before(b); b.append(tx, f); }
+        else tx.after(f);
+      });
     }
     function run(root) {
       if (root.nodeType === 3) root = root.parentElement;
@@ -551,7 +554,6 @@
     if (document.body) start(); else document.addEventListener("DOMContentLoaded", start);
   }
 
-  // ---------- window.LQModels: large model download notice ----------
   function models() {
     if (window.LQModels) return;
     var MODEL_CACHE_PREFIX = "lq-models-";
@@ -642,7 +644,6 @@
     window.LQModels = { loading: loading, isCached: isCached, confirm: confirmDownload, fetch: fetchWithNotice, slowNet: slowNet };
   }
 
-  // ---------- legal footer (terms / privacy / help) on pages without their own <footer> ----------
   function legalFoot() {
     var DOCS = [["terms.html", "foot.terms", "ข้อกำหนดการใช้บริการ"], ["privacy.html", "foot.privacy", "ความเป็นส่วนตัว"], ["help.html", "foot.help", "ช่วยเหลือ"]];
     var add = function () {
@@ -672,7 +673,6 @@
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", add); else add();
   }
-  // ---------- fortune pages: "report a problem with this reading" (lensiq-report.js) ----------
   function reportHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
     if (!/^(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
@@ -681,7 +681,6 @@
     sc.src = "lensiq-report.js?v=1"; sc.async = true;
     (document.head || document.documentElement).appendChild(sc);
   }
-  // ---------- fortune pages: belief guidance under a reading (lensiq-merit.js; Merit MVP, owner order 2026-11-12) ----------
   function meritHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
     if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(p)) return;
@@ -696,7 +695,6 @@
       (document.head || document.documentElement).appendChild(sc);
     });
   }
-  // ---------- service worker (offline cache for vendor/ models) ----------
   function registerSW() {
     if (!("serviceWorker" in navigator) || !window.isSecureContext || /[?&]nosw\b/.test(location.search)) return;
     var go = function () { navigator.serviceWorker.register("sw.js").catch(function () { /* unsupported / blocked: pages work without it */ }); };

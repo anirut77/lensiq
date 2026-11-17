@@ -53,20 +53,19 @@ Moved word for word from `nav.js` on 2026-11-17 (branch line-wrap), again for th
 ```
 
 Added 2026-11-17 (owner request: a lone ")" dropped onto its own line on the dream page at phone width). The Thai
-line-break pass now runs in every language and also keeps lines tidy:
-- `glue()` / `gs()` (no-break space U+00A0 only, so textContent still matches `\s`): a number keeps its unit or currency
-  ("15 นาที", "440 KB", "30 天", "฿ 990"), also when the number sits in its own <b>/<span>; no line starts with ๆ ฯ or
-  closing punctuation after a space; an opening bracket keeps its first word; the last few words of a text (tail under
-  about 10 characters) stay together; a short last link or tag (< 6 characters) stays with the word before it.
-- Thai and Chinese (no spaces): the last words (Intl.Segmenter, at least about 4 Chinese or 8 Thai characters, at most
-  16 weighted) move into a nowrap `<span class="lq-w lq-t">` right after the same text node (inside a flex / grid box:
-  one `<span class="lq-t">` around head + tail, so the layout keeps one item). Headings, labels and buttons (full Thai
-  word split) keep the tail inside their `.lq-run`. No `<wbr>` is written before closing punctuation or ๆ ฯ.
-- lensiq-i18n.js unwraps `.lq-t` like `.lq-run` before it sets a translation; lensiq-i18n-rt.js unwraps it before it
-  restores Thai, never lets nav.js change a text node it translated (`LQI18N_RTX.owns`), and passes its own output
-  through `window.LQGlue`.
-- No CSS `text-wrap: balance / pretty`: both stalled Chrome on pages with many `.lq-w` boxes (tried 2026-11-17: index
-  and privacy hung with balance; pretty plus the nowrap tails hung too).
+line-break pass now runs in every language and keeps lines tidy WITHOUT changing any text (textContent / innerText stay
+exactly as written: tests and page code read them):
+- `glue()`: pieces that must not wrap go into `<lq-t class="lq-w lq-t">` (nowrap): a number with its unit ("15 นาที",
+  "440 KB", "30 天"), a currency sign with its number, a space before closing punctuation / ๆ ฯ / …, an opening bracket with
+  its first word, the last few short words of a text, a number that sits in its own <b>/<span> with the word after it, a
+  short last link / tag (< 6 characters) with the word before it. Inside a flex / grid box everything goes into one `<lq-t
+  class="lq-t">` so the layout keeps one item. A custom element, not a span, so page code that looks up `span` is unaffected.
+- Thai and Chinese (no spaces): the last words (Intl.Segmenter, about 4 Chinese or 8 Thai characters, at most 16 weighted)
+  move into the same kind of nowrap tail; headings, labels and buttons (full Thai word split) keep the tail inside their
+  `.lq-run`. No `<wbr>` before closing punctuation or ๆ ฯ; the trailing space of a tail stays outside it.
+- lensiq-i18n.js unwraps `<lq-t>` (keeping any element inside) before it sets a translation; lensiq-i18n-rt.js does the same
+  before it starts or restores Thai, and a text node it translated is only split when it stays the first piece.
+- No CSS `text-wrap: balance / pretty`: both stalled Chrome on pages with many `.lq-w` boxes (tried 2026-11-17).
 Checked by tests/e2e/line-wrap-*.e2e.mjs (every page x TH / EN / ZH x 360-430 px).
 
 Also moved word for word on 2026-11-17 (same reason; line numbers are those of the file before the move):
@@ -110,4 +109,25 @@ Moved word for word on 2026-11-17 (third batch, page-weight budget; line numbers
 [nav.js line 442] // text node -> .lq-run of .lq-w words + <wbr> (docs/NAV.md)
 [nav.js line 460] // source line break between Thai words = one space (D-05, docs/NAV.md)
 [nav.js line 521] // controls (buttons, links, labels): number + unit only; their words stay as written (tests and page code read them)
+```
+
+Moved word for word on 2026-11-17 (fourth batch: every remaining full-line comment, page-weight budget; line numbers before the move):
+
+```text
+[nav.js line 109] // ---------- frame buster (clickjacking) ----------
+[nav.js line 124] // ---------- i18n loader (lensiq-i18n.js + common Chinese dictionary) ----------
+[nav.js line 283] // Desktop: close dropdown when focus leaves it.
+[nav.js line 287] // Desktop with mouse: open on hover.
+[nav.js line 323] // ---------- language switch ----------
+[nav.js line 393] // ---------- member account chip ----------
+[nav.js line 404] // ---------- Thai line breaking: <wbr> at word boundaries ----------
+[nav.js line 478] // line wrap 2026-11-17 (docs/NAV.md)
+[nav.js line 488] // nowrap pieces (<lq-t class="lq-w lq-t">, text unchanged): number + unit, currency + number, a space before closing marks,
+[nav.js line 489] // an opening bracket + its word, the last short words of a text (docs/NAV.md)
+[nav.js line 507] // <b>12</b> people / … <a>来源</a>: the number or the short last link moves into the piece with its word
+[nav.js line 567] // ---------- window.LQModels: large model download notice ----------
+[nav.js line 658] // ---------- legal footer (terms / privacy / help) on pages without their own <footer> ----------
+[nav.js line 688] // ---------- fortune pages: "report a problem with this reading" (lensiq-report.js) ----------
+[nav.js line 697] // ---------- fortune pages: belief guidance under a reading (lensiq-merit.js; Merit MVP, owner order 2026-11-12) ----------
+[nav.js line 712] // ---------- service worker (offline cache for vendor/ models) ----------
 ```

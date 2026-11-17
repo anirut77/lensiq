@@ -146,8 +146,6 @@
     }
     return false;
   }
-  // nav.js line wrap (window.LQGlue): no-break spaces between a number and its unit, and in the last few words
-  function G(s) { return typeof root.LQGlue === "function" ? root.LQGlue(s) : s; }
   function doText(n) {
     var v = n.nodeValue;
     if (!v || !TH.test(v)) return;
@@ -155,11 +153,11 @@
     var p = n.parentElement; if (!p || skipEl(p)) return;
     if (r && v === r.zh) {
       // already translated: re-translate the Thai original when a dictionary that arrived later knows more
-      var z2 = G(tr(r.th));
+      var z2 = tr(r.th);
       if (z2 !== v) { r.zh = z2; n.nodeValue = z2; }
       return;
     }
-    var z = G(tr(v));
+    var z = tr(v);
     if (z !== v) { if (texts) texts.set(n, { th: v, zh: z }); n.nodeValue = z; }
   }
   function doAttrs(el) {
@@ -191,7 +189,9 @@
     var runs = rootNode.querySelectorAll ? rootNode.querySelectorAll("span.lq-run,.lq-t") : [], parents = [];
     for (var i = 0; i < runs.length; i++) {
       var sp = runs[i], p = sp.parentNode; if (!p) continue;
-      p.replaceChild(doc.createTextNode(sp.textContent), sp);
+      // .lq-t (nav.js line-wrap piece) may hold a page element: keep its children
+      if (sp.classList.contains("lq-t")) sp.replaceWith.apply(sp, Array.prototype.slice.call(sp.childNodes));
+      else p.replaceChild(doc.createTextNode(sp.textContent), sp);
       if (parents.indexOf(p) < 0) parents.push(p);
     }
     for (var j = 0; j < parents.length; j++) { parents[j].normalize(); if (parents[j].removeAttribute) parents[j].removeAttribute("data-lqwb"); }
