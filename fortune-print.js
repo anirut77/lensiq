@@ -130,7 +130,7 @@
       const lg = (b.legend || []).filter(x => x && x.label);
       return '<figure class="lqp-photofig"' + (b.neutral ? ' data-neutral="' + esc(b.neutral) + '"' : "") +
         (b.labelStyle ? ' data-label-style="' + esc(b.labelStyle) + '"' : "") + ">" +
-        '<img class="lqp-fig-img" src="' + src + '" alt="' + esc(b.alt || "") + '"' + (b.w ? ' style="width:' + Math.min(120, Math.max(30, +b.w || 0)) + 'mm"' : "") + ">" +
+        '<img class="lqp-fig-img" src="' + src + '" alt="' + esc(b.alt || "") + '">' + // size per paper comes from fortune-print.css
         '<figcaption class="lqp-fig-side">' + (b.headline ? '<p class="lqp-fig-head">' + esc(b.headline) + "</p>" : "") +
         (b.caption ? '<p class="lqp-fig-cap">' + esc(b.caption) + "</p>" : "") +
         (lg.length ? '<ul class="lqp-fig-legend">' + lg.map(x => '<li><span class="lqp-lg-cue">' + esc(x.cue || "") + "</span> " +
@@ -220,7 +220,7 @@
       life: ["เส้นชีวิต", "เส้นทึบ"], head: ["เส้นสมอง", "เส้นประยาว"], heart: ["เส้นหัวใจ", "เส้นจุดไข่ปลา"], fate: ["เส้นวาสนา", "เส้นประสลับจุด"],
       mountOn: ["เนินเด่น", "จุดใหญ่ + ป้ายกรอบหนา"], mountOther: ["เนินอื่น", "จุดเล็ก + ป้ายกรอบบาง"] },
     en: { brow: ["Eyebrows", "solid line"], eye: ["Eyes", "dotted line"], nose: ["Nose", "long dashes"], mouth: ["Mouth", "dash-dot line"],
-      contour: ["Face outline", "line around the face"], zones: ["Three zones", "horizontal rules + labels upper / middle / lower and %"], points: ["Key points", "round dot + boxed label"],
+      contour: ["Face outline", "line around the face"], zones: ["Face thirds", "horizontal rules + labels upper / middle / lower and %"], points: ["Key points", "round dot + boxed label"],
       palTop: ["Top 3 palaces", "thick outline + number"], palOther: ["Other palaces", "thin outline + number"], palNum: ["Palace number", "matches the twelve-palace list"],
       mtLead: ["Leading mountain", "thick circle"], mtOther: ["Other mountains", "thin circle + name"], rivers: ["Rivers", "lines around eyes, nose and mouth"],
       ageOn: ["Your age range", "thick outline + age range"], ageOther: ["Other age ranges", "thin outline"], ageNum: ["Numbers", "starting age of each range"],
@@ -530,7 +530,7 @@
     const tx = s => { const e = el(s); return e ? txt(e.textContent) : ""; };
     const lang = langOf(String(doc.documentElement.lang || "th").slice(0, 2));
     const box = spec.consent ? el(spec.consent[0]) : null, line = spec.consent ? el(spec.consent[1]) : null;
-    return { t: "photofig", src, w: o.size === "80mm" ? 70 : o.size === "A5" ? 100 : 88, alt: spec.alt || "",
+    return { t: "photofig", src, w: o.size === "80mm" ? 70 : o.size === "A5" ? 60 : 88, alt: spec.alt || "",
       headline: (spec.head || []).map(tx).filter(Boolean).join(" · "), caption: tx(spec.cap), legend: legendOf(spec.page, spec.mode, lang),
       consent: box && line && !box.hidden ? txt(line.textContent) : "", neutral: spec.neutral || "", labelStyle: "#0e1430 on #ffffff" };
   };

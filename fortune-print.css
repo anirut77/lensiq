@@ -137,9 +137,14 @@ ol.lqp-cols>li::before{content:counter(lqp) "."}
 .lqp-fig-legend li{break-inside:avoid;margin:0}
 .lqp-lg-cue{display:inline-block;min-width:22mm;font-weight:700;color:var(--lqp-ink)}
 .lqp-fig-consent{margin:2mm 0 0;border-left:.8mm solid var(--lqp-accent);padding-left:2mm;color:#222}
-.lqp--a5 .lqp-photofig{flex-direction:column}
-.lqp--a5 .lqp-photofig img{width:100mm}
-@media print and (max-width:150mm){.lqp--auto .lqp-photofig{flex-direction:column}.lqp--auto .lqp-photofig img{width:100mm}}
+/* narrow paper: image and legend side by side, small enough that the whole figure fits one A5 page (never split) */
+.lqp--a5 .lqp-photofig{gap:3mm}
+.lqp--a5 .lqp-photofig img{width:60mm}
+.lqp--a5 .lqp-fig-side{font-size:7.5pt}
+.lqp--a5 .lqp-fig-head{font-size:10pt}
+.lqp--a5 .lqp-lg-cue{min-width:0;display:block}
+@media print and (max-width:150mm){.lqp--auto .lqp-photofig{gap:3mm}.lqp--auto .lqp-photofig img{width:60mm}.lqp--auto .lqp-fig-side{font-size:7.5pt}
+  .lqp--auto .lqp-fig-head{font-size:10pt}.lqp--auto .lqp-lg-cue{min-width:0;display:block}}
 .lqp--r80 .lqp-photofig{flex-direction:column;gap:2mm}
 .lqp--r80 .lqp-photofig img{width:100%}
 .lqp--r80 .lqp-fig-side{font-size:7.5pt}
