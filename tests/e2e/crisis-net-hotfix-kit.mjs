@@ -72,37 +72,39 @@ const TEXT_NODES = outside => `(() => { ${VIS}
 export const baseline = page => page.evaluate(TEXT_NODES(false));
 
 const norm = s => String(s).toLowerCase().replace(/[\s​-‍﻿]/g, "");
-const noDigits = s => s.replace(/[0-9๐-๙]/g, "");
 
 /** wait for the card, let scrolling settle, then assert (1)–(3); returns the measured row */
-export async function assertCard(page, { label, typed, before, widgets }) {
-  try {
-    await page.waitFor(`(() => { ${VIS} const c = [...document.querySelectorAll(".fa-support")].find(vis); return !!c && /1323/.test(c.textContent); })()`, 15000);
-  } catch (e) {
-    const msg = await page.evaluate(`(() => { ${VIS} return [...document.querySelectorAll('[role=alert], .fk-msg, .err, [id$="Err"], [id$="Msg"], .fa-soft h3')].filter(vis).map(e => e.textContent.trim()).filter(Boolean).join(" | ").slice(0, 160); })()`).catch(() => "");
-    throw new Error(label + ": NO CARD" + (msg ? " (shown instead: " + msg + ")" : ""));
-  }
-  let last = -1, still = 0; // scrollY unchanged for 500 ms (6 s max)
-  for (let t = 0; t < 6000 && still < 500; t += 100) { const y = await page.evaluate("Math.round(scrollY)"); still = y === last ? still + 100 : 0; last = y; await sleep(100); }
+// RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): the card no longer replaces the reading.
+// Replaced (rule a): "the support card is shown, its heading on the first screen" and "no reading widget is visible".
+// Kept: the crisis check runs before any format or validation check on EVERY inventoried input (now proven by the crisis state
+// <html data-lq-crisis="1"> being set right after the visitor's action, even when the page then refuses the input), no echo
+// (whole page; pieces of 7 Thai / 5 English / 3 Chinese characters and the whole typed text, as the reading is now shown),
+// no sales / remedy / share / print block visible (rule c), one number (no help number other than 1323 on the page), and
+// nothing that tells the person they were flagged (no card, no "are you okay?" step).
+export async function assertCard(page, { label, typed, before }) {
+  try { await page.waitFor(`document.documentElement.getAttribute("data-lq-crisis") === "1"`, 15000); }
+  catch (e) { throw new Error(label + ": the crisis state was not set by the visitor's action"); }
+  await sleep(900);
   const r = await page.evaluate(`(() => { ${VIS}
-    const card = [...document.querySelectorAll(".fa-support")].find(vis), h = card.querySelector("h3") || card, b = h.getBoundingClientRect();
-    const x = Math.min(innerWidth - 2, Math.max(1, b.left + Math.min(b.width, innerWidth - b.left) / 2)), y = Math.min(innerHeight - 1, Math.max(0, b.top + b.height / 2));
-    const top = document.elementFromPoint(x, y), fold = b.top >= 0 && b.bottom <= innerHeight && !!top && card.contains(top);
-    const shown = ${S(widgets)}.flatMap(sel => [...document.querySelectorAll(sel)]
-      .filter(e => !card.contains(e) && !e.contains(card) && vis(e) && (e.textContent.trim() || e.matches("canvas, svg, img") || e.querySelector("canvas, svg, img")))
-      .map(e => sel + (e.id && !sel.includes(e.id) ? "#" + e.id : "")));
-    return { fold, hTop: Math.round(b.top), hBottom: Math.round(b.bottom), vh: innerHeight, covered: top && !card.contains(top) ? String(top.id || top.className || top.tagName).slice(0, 40) : "", shown: [...new Set(shown)] };
-  })()`);
-  const after = await page.evaluate(TEXT_NODES(true));
-  const t = norm(typed), was = norm(before.join("")), echo = [];
-  if (noDigits(norm(after.join(""))).includes(noDigits(t))) echo.push("whole typed text (whitespace / digits removed)");
-  const subs = new Set();
-  for (let i = 0; i < t.length; i++) for (let j = i + 2; j <= t.length; j++) subs.add(t.slice(i, j));
-  for (const node of after) { const n = norm(node); for (const s of subs) if (n.includes(s) && !was.includes(s)) echo.push(S(s) + " in " + S(node.trim().slice(0, 40))); }
+    const cards = [...document.querySelectorAll(".fa-support, .fa-soft")].filter(vis).length;
+    const sales = [...document.querySelectorAll('[data-lq-upsell], [data-lq-remedy], [id$="Share"], [id$="Print"]')]
+      .filter(e => vis(e) && (e.textContent.trim() || e.matches("canvas, svg, img") || e.querySelector("canvas, svg, img"))).map(e => e.id || e.className || e.tagName);
+    const tels = [...document.querySelectorAll('a[href^="tel:"]')].filter(vis).map(a => a.getAttribute("href")).filter(h => h !== "tel:1323");
+    const other = /(?<!\\d)(?:1669|191|1300)(?!\\d)|02[\\s-]?113[\\s-]?6789/.test(document.body.innerText);
+    return { cards, sales: [...new Set(sales)], tels, other }; })()`);
+  const after = await page.evaluate(TEXT_NODES(false));
+  const t = norm(typed), was = norm(before.join("")), echo = [], n = /[\u3400-\u9fff]/.test(t) ? 3 : /[\u0E00-\u0E7F]/.test(t) ? 7 : 5;
+  const subs = new Set([t]);
+  // RE-LOCK (crisis v3, 2): an English piece is 3 consecutive words (5 letters without spaces matched "night" in "Knight")
+  const words = String(typed).toLowerCase().split(/\s+/).filter(Boolean);
+  if (!/[\u0E00-\u0E7F\u3400-\u9fff]/.test(t) && words.length >= 3) for (let i = 0; i + 3 <= words.length; i++) subs.add(norm(words.slice(i, i + 3).join("")));
+  else for (let i = 0; i + n <= t.length; i++) subs.add(t.slice(i, i + n));
+  for (const node of after) { const x = norm(node); for (const sub of subs) if (x.includes(sub) && !was.includes(sub)) echo.push(S(sub) + " in " + S(node.trim().slice(0, 40))); }
   const bad = [];
-  if (!r.fold) bad.push(`card heading not on the first screen (top ${r.hTop}, bottom ${r.hBottom}, viewport ${r.vh}${r.covered ? ", covered by " + r.covered : ""})`);
-  if (r.shown.length) bad.push("widgets visible: " + r.shown.join(", "));
-  if (echo.length) bad.push("echo: " + echo.slice(0, 3).join("; "));
+  if (r.cards) bad.push("a card or the soft step is shown (v3: the reading goes on, nothing flagged)");
+  if (r.sales.length) bad.push("sales / remedy / share / print visible: " + r.sales.join(", "));
+  if (r.tels.length || r.other) bad.push("a help number other than 1323: " + S(r.tels));
+  if (echo.length) bad.push("echo: " + [...new Set(echo)].slice(0, 3).join("; "));
   assert(!bad.length, label + ": " + bad.join(" | "));
 }
 
@@ -123,7 +125,7 @@ export function cases(row, { both = false } = {}) {
 /** one check per inventory row: every case runs (separate page loads), failures are collected, then the check fails if any */
 export async function runRow(check, row, flow, { both = false } = {}) {
   const name = `${row.page} ${row.sel}`;
-  await check(name + ": crisis phrase -> only the help card, on the first screen, nothing echoed", async () => {
+  await check(name + ": crisis phrase -> crisis state before any validation, no card, nothing echoed (v3)", async () => {
     assert(flow, name + ": no flow for this inventory row (add one before adding the field)");
     const list = cases(row, { both }), fails = [];
     for (const [lang, k, width] of list) {

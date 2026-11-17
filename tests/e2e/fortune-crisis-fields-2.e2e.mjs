@@ -10,7 +10,11 @@ const S = JSON.stringify;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const setVal = (id, v) => `(() => { const e = document.getElementById(${S(id)}); e.value = ${S(v)};
   e.dispatchEvent(new Event("input", { bubbles: true })); e.dispatchEvent(new Event("change", { bubbles: true })); })()`;
-const card = sel => `(() => { const b = document.querySelector(${S(sel)}); return !!b && !!b.querySelector(".fa-support") && /1323/.test(b.textContent); })()`;
+// RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): a phrase (spaced, letter-spaced, leet) still trips the net: the crisis state is set and no card is drawn; the
+// reading goes on (rule a). Kept: detection of every variant, no echo of the phrase anywhere on the page, nothing flagged.
+const card = sel => `(() => { const b = document.querySelector(${S(sel)}); return !!b && document.documentElement.getAttribute("data-lq-crisis") === "1" && !document.querySelector(".fa-support"); })()`;
+const noEcho = q => `(() => { const t = ${S(q)}.replace(/\\s+/g, "").toLowerCase(); const b = document.body.cloneNode(true);
+  b.querySelectorAll("input, textarea, select, script, style").forEach(e => e.remove()); return !b.innerText.replace(/\\s+/g, "").toLowerCase().includes(t); })()`;
 const birth = `(() => { const d = document.getElementById("hsDay"), m = document.getElementById("hsMonth"); d.value = d.options[14].value; m.value = m.options[5].value;
   document.getElementById("hsYear").value = "2533"; document.getElementById("hsForm").requestSubmit(); })()`;
 const partner = `(() => { const d = document.getElementById("hsPDay"), m = document.getElementById("hsPMonth"); d.value = d.options[3].value; m.value = m.options[2].value;
@@ -20,7 +24,7 @@ const PHRASES = ["I w a n t t o d i e", "我 想 死", "我 不想 活 了", "�
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
-    await check("horoscope name: spaced / letter-spaced / leet phrases show the card; every other tab is empty and the phrase is not echoed", async () => {
+    await check("horoscope name: spaced / letter-spaced / leet phrases set the crisis state (no card, v3); the phrase is not echoed", async () => {
       for (const q of PHRASES) {
         const page = await browser.newPage(null);
         try {
@@ -30,14 +34,13 @@ export default async function ({ base, launch, check }) {
           const r = await page.evaluate(`(() => ({ others: ["pn-th", "pn-bz", "pn-nu", "pn-td"].map(id => (document.getElementById(id) || { textContent: "" }).textContent.trim().length),
             sections: document.querySelectorAll(".fa-section").length, compat: document.getElementById("hsCompat").textContent.length,
             sub: document.getElementById("hsResSub").textContent, body: document.body.innerText }))()`);
-          assert(r.others.every(n => n === 0), q + ": other tabs still render " + S(r.others));
-          assert(r.sections === 0 && r.compat === 0, q + ": reading content " + S({ s: r.sections, c: r.compat }));
           assert(!r.sub.includes(q.slice(0, 4)), q + ": subtitle echoes the phrase: " + r.sub);
+          assert(await page.evaluate(noEcho(q)), q + ": the phrase is echoed on the page");
         } finally { await page.close(); }
       }
     });
 
-    await check("horoscope partner name and name-number field: a crisis phrase shows the card (no compatibility, no name sum)", async () => {
+    await check("horoscope partner name and name-number field: a crisis phrase sets the crisis state (no card, v3) and is not echoed", async () => {
       for (const q of ["I want to die", "我 想 死", "อยากตาย"]) {
         const page = await browser.newPage(null);
         try {
@@ -46,22 +49,22 @@ export default async function ({ base, launch, check }) {
           await page.waitFor(() => document.querySelectorAll("#hsRd .fa-section").length >= 3, 20000);
           await page.evaluate(setVal("hsPName", q)); await page.evaluate(partner);
           await page.waitFor(card("#hsCompat"), 5000);
-          assert(!(await page.evaluate(() => document.querySelectorAll("#hsCompat .compat").length)), q + ": compatibility still shown");
+          assert(await page.evaluate(noEcho(q)), q + ": the partner name is echoed");
           await page.evaluate(setVal("hsPName", "")); await page.evaluate(setVal("hsNameNum", q));
           await page.waitFor(card("#hsNameOut"), 5000);
-          assert(!(await page.evaluate(() => !!document.querySelector("#hsNameOut .namesum"))), q + ": name sum still shown");
+          assert(await page.evaluate(noEcho(q)), q + ": the name is echoed");
         } finally { await page.close(); }
       }
     });
 
-    await check("tarot question, report name, numbers name: letter-spaced and spaced phrases show the card", async () => {
+    await check("tarot question, report name, numbers name: letter-spaced and spaced phrases set the crisis state (no card, v3), no echo", async () => {
       let page = await browser.newPage(null);
       try {
         await page.goto(`${base}/tarot.html`);
         for (const q of ["I w a n t t o d i e", "我 想 死"]) {
           await page.evaluate(q2 => { document.getElementById("trQuestion").value = q2; document.getElementById("trStart").click(); }, q);
-          await page.waitFor(() => { const b = document.getElementById("trSupport"); return !!b && !b.hidden && /1323/.test(b.textContent); }, 5000);
-          assert(await page.evaluate(() => document.getElementById("trPick").hidden), q + ": tarot shuffled");
+          await page.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1" && !document.querySelector(".fa-support"), 5000);
+          await page.reload();
         }
       } finally { await page.close(); }
       page = await browser.newPage(null, { isolated: true });
@@ -73,7 +76,7 @@ export default async function ({ base, launch, check }) {
           document.getElementById("rpAYear").value = "2533"; document.getElementById("rpGo").click();
         });
         await page.waitFor(card("#rpOut"), 10000);
-        assert(!(await page.evaluate(() => document.querySelectorAll("#rpOut .rp-part").length)), "report parts under the card");
+        assert(await page.evaluate(noEcho("我 想 死")), "the report echoes the name");
       } finally { await page.close(); }
       page = await browser.newPage(null);
       try {
@@ -81,6 +84,7 @@ export default async function ({ base, launch, check }) {
         await page.evaluate(setVal("nmName", "I w a n t t o d i e"));
         await page.evaluate(() => { document.getElementById("nmPhone").value = "0823456789"; document.getElementById("nmGo").click(); });
         await page.waitFor(card("#nmNarr"), 10000);
+        assert(await page.evaluate(noEcho("I w a n t t o d i e")), "the name is echoed");
       } finally { await page.close(); }
     });
 

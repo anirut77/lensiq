@@ -22,9 +22,10 @@
 //       the final disclaimer line in the page language; hard-limit wording absent from the result
 //   G1  group [th, en, zh] at 360 px: 5 people: 10 map cells, 5 roles, the work-use line; add up to 8, then #cpAdd is disabled
 //   P1  paid switch on (LENSIQ_FORTUNE_PAID = true): all 7 categories, the 5 beyond the free two marked data-lq-paid
-//   X1  crisis: a crisis phrase as a nickname shows the full support card (1323 and 1669 tap-to-call) instead of the result,
-//       with no price or paid content even with the paid switch on; the next normal request still shows the card
-//   X2  crisis flag set (LQFortuneCrisis.setActive) before computing, paid switch on: the support card, nothing paid
+//   X1  crisis (v3 re-lock 2026-11-17): a crisis phrase as a nickname sets the crisis state; the reading goes on in the free tier
+//       with no price or paid content even with the paid switch on, no card, the closing line with tel:1323 at the end; the
+//       next normal request keeps the state
+//   X2  crisis flag set (LQFortuneCrisis.setActive) before computing, paid switch on: the same (v3)
 //   X3  calm session (sessionStorage lq-fortune-calm = 1), paid switch on: the reading in the free tier only, nothing paid
 import { assert } from "./cdp.mjs";
 
@@ -242,34 +243,46 @@ export default async function ({ base, launch, check }) {
       } finally { await page.close(); }
     });
 
+    // RE-LOCK 2026-11-17 (crisis v3, owner decision 2026-11-17; branch crisis-v3-2 after the compat go-live merge; ledger
+    // docs/CRISIS-V3-RELOCKS.md): X1 / X2 "the support card replaces the result" -> the crisis state is set, the reading goes on
+    // (overview shown, free tier only, nothing paid, no price), no card, no 1669, and the closing line with tel:1323 sits at the
+    // end of #cpResult; the state holds for the next request. "Nothing paid / no price" kept unchanged.
+    const v3 = `(() => { const r = document.getElementById("cpResult"), vis = e => !!e && e.getClientRects().length > 0;
+      const close = [...r.querySelectorAll(".lq-helpline")].filter(vis), last = r.lastElementChild;
+      return { state: document.documentElement.getAttribute("data-lq-crisis") === "1", card: [...document.querySelectorAll(".fa-support, .fa-soft")].some(vis),
+        lines: close.length, tels: close.length ? [...close[0].querySelectorAll('a[href^="tel:"]')].map(a => a.getAttribute("href")) : [],
+        atEnd: close.length === 1 && (last === close[0] || last.contains(close[0])) }; })()`;
+    const okV3 = (f, c, where) => {
+      assert(c.state, where + ": the crisis state is set");
+      assert(!c.card && !f.support, where + ": no card or soft step");
+      assert(f.overview, where + ": the reading goes on (overview shown)");
+      assert(!f.paidAny && !PRICE.test(f.text), where + ": nothing paid, no price");
+      assert(f.tel1669 === 0, where + ": no 1669");
+      assert(c.lines === 1 && S(c.tels) === S(["tel:1323"]) && c.atEnd, where + ": one closing line with tel:1323 at the end: " + S(c));
+    };
     for (const lang of LANGS) {
-      await check(`X1 [${lang}] crisis phrase as a nickname: the support card replaces the result; nothing paid; stays for the next request`, async () => {
+      await check(`X1 [${lang}] crisis phrase as a nickname: the reading goes on gently (v3), no card, nothing paid, closing line at the end; the state holds`, async () => {
         const page = await open(browser, lang, ["window.LENSIQ_FORTUNE_PAID = true;"]);
         try {
           await phone(page, 375); await load(page, base, lang);
           const phrase = { th: "อยากตาย", en: "I want to die", zh: "我想死" }[lang];
           await tick(page); await fill(page, 0, Object.assign({}, A, { nick: phrase })); await fill(page, 1, B); await go(page);
           await page.waitFor(resultReady, 20000); await sleep(500);
-          let f = await page.evaluate(FACTS);
-          assert(f.support && !f.overview, "support card instead of the result");
-          assert(f.tel1669 >= 1 && f.tel1323 >= 1, "1323 and 1669 tap-to-call in the card");
-          assert(!f.paidAny && !PRICE.test(f.text), "no price or paid content");
+          okV3(await page.evaluate(FACTS), await page.evaluate(v3), "crisis nickname");
           await fill(page, 0, A); await go(page); await sleep(1500);
-          f = await page.evaluate(FACTS);
-          assert(f.support && !f.overview && !f.paidAny, "crisis state holds for the next request");
+          okV3(await page.evaluate(FACTS), await page.evaluate(v3), "next request");
         } finally { await page.close(); }
       });
     }
 
-    await check("X2 crisis flag set before computing (paid switch on): the support card, nothing paid", async () => {
+    await check("X2 crisis flag set before computing (paid switch on): the reading goes on gently (v3), nothing paid, closing line", async () => {
       const page = await open(browser, "th", ["window.LENSIQ_FORTUNE_PAID = true;"]);
       try {
         await phone(page, 375); await load(page, base, "th");
         await page.evaluate(() => { window.LQFortuneCrisis.setActive(document); return true; });
         await tick(page); await fill(page, 0, A); await fill(page, 1, B); await go(page);
         await page.waitFor(resultReady, 20000); await sleep(500);
-        const f = await page.evaluate(FACTS);
-        assert(f.support && !f.overview && !f.paidAny && !PRICE.test(f.text), "support card, nothing paid: " + S({ s: f.support, o: f.overview, p: f.paidAny }));
+        okV3(await page.evaluate(FACTS), await page.evaluate(v3), "flag set first");
       } finally { await page.close(); }
     });
 

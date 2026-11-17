@@ -9,14 +9,13 @@
   const CR = () => /** @type {any} */ (root).LQFortuneCrisis || {};
   const FREE_TEXT = 'textarea, input:not([type]), input[type="text"], input[type="search"], input[type="tel"]';
   // round 2: fortune-crisis.js may fail to load: then the crisis state is the <html> flag, the net is FortuneAI's own patterns
-  // (fortune-ai.js) and the page fields are read here, so the early net still shows the card
+  // (fortune-ai.js) and the page fields are read here, so the early net still sets the crisis state (v3: no card)
   const FAC = () => (/** @type {any} */ (root).FortuneAI || {}).crisis || {};
   const ATTR = "data-lq-crisis";
   const active = (/** @type {any} */ d) => !!(CR().active ? CR().active(d) : d && d.documentElement.getAttribute(ATTR) === "1");
   const setActive = (/** @type {any} */ d) => { if (CR().setActive) CR().setActive(d); else d.documentElement.setAttribute(ATTR, "1"); };
   const check = (/** @type {any} */ t) => !!(CR().check ? CR().check(t) : FAC().check && FAC().check(t));
   const fields = (/** @type {any} */ d) => (CR().fields ? CR().fields(d) : Array.from(d.querySelectorAll(FREE_TEXT)).map((/** @type {any} */ e) => e.value).filter(Boolean).join("\n"));
-  const helpLine = (/** @type {any} */ d, /** @type {string} */ l) => CR().helpLine(d, l);
   /* ---------------- crisis-net hotfix 2026-11-16 (owner order a + b; docs/INCIDENT-2026-11-16-CRISIS-LEAK.md) ----------------
      (a) takeover(card): when the support card is shown, NOTHING from the result area stays visible: every result root of the
      page (an element with data-lq-result or an id ending in "Result" or "Stats") is swept: the branch that holds the card stays, every
@@ -56,7 +55,8 @@
       try {
         if (!card.isConnected) return;
         const h = card.querySelector("h3") || card, nav = d.querySelector(".nav");
-        const navB = nav ? Math.max(0, nav.getBoundingClientRect().bottom) : 0, b = h.getBoundingClientRect();
+        const pin = d.getElementById("lqHelpTop"), pinB = pin && w.getComputedStyle(pin).position === "sticky" ? pin.getBoundingClientRect().bottom : 0; // the 1323 icon in the sticky bar
+        const navB = Math.max(0, nav ? nav.getBoundingClientRect().bottom : 0, pinB), b = h.getBoundingClientRect();
         if (b.top < navB + 4 || b.bottom > w.innerHeight - 8) w.scrollTo(0, Math.max(0, w.scrollY + b.top - navB - 12));
       } catch (e) { /* no layout */ }
     };
@@ -81,34 +81,14 @@
       toCard(card);
     } catch (e) { /* never break the card */ }
   }
-  /** the card container for a form or field: data-lq-crisis-slot, else a slot after the form (outside remedy / paid blocks) @param {any} el */
-  function slotFor(el) {
-    const d = el.ownerDocument, form = el.closest ? el.closest("form") || el : el;
-    const sel = form.getAttribute && form.getAttribute("data-lq-crisis-slot"), named = sel ? d.querySelector(sel) : null;
-    if (named) return named;
-    const after = (form.closest && form.closest("[data-lq-remedy], [data-lq-upsell]")) || form;
-    let slot = after.nextElementSibling;
-    if (!(slot && slot.classList.contains("lq-crisis-slot"))) { slot = d.createElement("div"); slot.className = "lq-crisis-slot"; slot.tabIndex = -1; after.insertAdjacentElement("afterend", slot); }
-    return slot;
-  }
-  /** show the support card in slot (FortuneAI draws it; renderSupport calls takeover) @param {any} slot */
-  function cardIn(slot) {
-    const FA = /** @type {any} */ (root).FortuneAI, d = slot.ownerDocument;
-    for (let a = slot; a && a !== d.body; a = a.parentElement) { a.removeAttribute(HIDE); if (a.hidden) a.hidden = false; }
-    const lang = (root.LQI18N && root.LQI18N.lang) || "th";
-    if (FA && FA.crisis && FA.crisis.render) FA.crisis.render(slot, FA.crisis.result({ lang: lang === "en" || lang === "zh" ? lang : "th" }));
-    else { setActive(d); slot.textContent = ""; slot.appendChild(helpLine(d, lang)); }
-    takeover(slot);
-    try { slot.focus({ preventScroll: true }); } catch (e) { /* no focus */ }
-  }
   /** (b) the crisis net first: true when it stopped the event and showed the card @param {any} el form or field @param {string} [text] */
   function first(el, text) {
     try {
       const d = el && el.ownerDocument;
       if (!d) return false;
       if (!(active(d) || check(text != null ? text : fields(d)))) return false;
-      cardIn(slotFor(el));
-      return true;
+      setActive(d); // crisis v3 (owner decision 2026-11-17): the flag first, then the page goes on (no card; closing line at the end)
+      return false;
     } catch (e) { return false; }
   }
   const LIVE = 'input[type="search"], input[type="tel"], [data-lq-crisis-live]';

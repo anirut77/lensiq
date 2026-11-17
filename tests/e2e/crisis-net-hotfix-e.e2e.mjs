@@ -12,6 +12,12 @@
 // input, (c) every free-text input is covered; once the crisis flag is set it holds for the tab.
 // Every check runs in TH / EN / ZH page language with the phrase of the same language (kit PHRASE, existing locked lists) at
 // 375 and 393 px, separate page loads; assertCard = the kit's (card with 1323 on the first screen, no widget, no echo).
+// RE-LOCK 2026-11-17 (crisis v3, owner decision 2026-11-17; merge of main 02fdd69 into crisis-v3; ledger docs/CRISIS-V3-RELOCKS.md):
+// rule a replaces "the card": assertCard is the v3 kit check (crisis state set by the action, no card, no sales / share /
+// print, one number, no echo). E2: after a crisis question an ordinary question keeps the crisis state and shows no card (the
+// shuffle / coin step goes on, gently). E3: the wait for the card becomes the wait for the crisis state; "no daily reading,
+// siamsee or share in the crisis state" is kept unchanged. E5: the 44 px tel:1323 is the closing line's (not the top bar's),
+// still required when fortune-crisis.js fails to load.
 import { PHRASE, WIDTHS, GENERIC, assertCard, baseline, click, open, setVal, sleep, submit } from "./crisis-net-hotfix-kit.mjs";
 import { assert } from "./cdp.mjs";
 
@@ -90,7 +96,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     });
 
     /* ---------------- E2 tarot / iching: the flag holds; board + report button go ---------------- */
-    await each(check, "E2 tarot: after a reading, crisis question -> card only (no board, no report button); then an ordinary question -> still the card, no shuffle", async ({ lang, width, phrase, label }) => {
+    await each(check, "E2 tarot: after a reading, crisis question -> crisis state, no card, nothing echoed (v3); then an ordinary question -> the state holds, no card", async ({ lang, width, phrase, label }) => {
       const page = await open(browser, base, "tarot.html", { width, lang });
       try {
         await tarotReading(page);
@@ -102,11 +108,11 @@ export default async function ({ base, launch, check, fakeCams }) {
         await page.evaluate(setVal("#trQuestion", ORDINARY[lang])); await page.evaluate(submit("trSetup"));
         await sleep(1500);
         await assertCard(page, { label: label + " ordinary after crisis", typed: phrase, before, widgets: TR });
-        const r = await page.evaluate(() => ({ pick: document.getElementById("trPick").hidden, sup: !document.getElementById("trSupport") || document.getElementById("trSupport").hidden }));
-        assert(r.pick && !r.sup, label + ": ordinary question after the card: shuffle started or card hidden " + JSON.stringify(r));
+        const r = await page.evaluate(() => ({ sup: !document.getElementById("trSupport") || document.getElementById("trSupport").hidden }));
+        assert(r.sup, label + ": ordinary question after the crisis question: a card is shown (v3: none) " + JSON.stringify(r));
       } finally { await page.close(); }
     });
-    await each(check, "E2 iching: after a reading, crisis question -> card only (no report button); then an ordinary question -> still the card, no coin step", async ({ lang, width, phrase, label }) => {
+    await each(check, "E2 iching: after a reading, crisis question -> crisis state, no card, nothing echoed (v3); then an ordinary question -> the state holds, no card", async ({ lang, width, phrase, label }) => {
       const page = await open(browser, base, "iching.html", { width, lang });
       try {
         await ichingReading(page);
@@ -118,8 +124,8 @@ export default async function ({ base, launch, check, fakeCams }) {
         await page.evaluate(setVal("#icQuestion", ORDINARY[lang])); await page.evaluate(click("#icStart"));
         await sleep(1500);
         await assertCard(page, { label: label + " ordinary after crisis", typed: phrase, before, widgets: IC });
-        const r = await page.evaluate(() => ({ stage: document.getElementById("icStage").hidden, sup: !document.getElementById("icSupport") || document.getElementById("icSupport").hidden }));
-        assert(r.stage && !r.sup, label + ": ordinary question after the card: coin step started or card hidden " + JSON.stringify(r));
+        const r = await page.evaluate(() => ({ sup: !document.getElementById("icSupport") || document.getElementById("icSupport").hidden }));
+        assert(r.sup, label + ": ordinary question after the crisis question: a card is shown (v3: none) " + JSON.stringify(r));
       } finally { await page.close(); }
     });
 
@@ -128,7 +134,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       const page = await open(browser, base, "tarot.html", { width, lang });
       try {
         await page.evaluate(setVal("#trQuestion", phrase)); await page.evaluate(submit("trSetup"));
-        await page.waitFor(`!!document.querySelector(".fa-support") && document.documentElement.getAttribute("data-lq-crisis") === "1"`, 8000);
+        await page.waitFor(`document.documentElement.getAttribute("data-lq-crisis") === "1"`, 8000);
         await page.evaluate(click("#tabDaily")); await sleep(300);
         await page.evaluate(click("#trDailyCard")); await sleep(1200);
         const daily = await page.evaluate(shownOf(["#trDailyText dl", "#trDailyText .kws", "#trDailyText .syn-advice", "#trDailyShare", "#trDailyCardImg", "#trDailyImg"]));
@@ -142,7 +148,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       const page = await open(browser, base, "iching.html", { width, lang });
       try {
         await page.evaluate(setVal("#icQuestion", phrase)); await page.evaluate(click("#icStart"));
-        await page.waitFor(`!!document.querySelector(".fa-support") && document.documentElement.getAttribute("data-lq-crisis") === "1"`, 8000);
+        await page.waitFor(`document.documentElement.getAttribute("data-lq-crisis") === "1"`, 8000);
         await page.evaluate(click("#tabDaily")); await sleep(1200);
         const shown = await page.evaluate(shownOf(["#icDaily", "#icDayShare", "#icDayImg"]));
         assert(!shown.length, label + ": shown in the crisis state: " + shown.join(", "));
@@ -151,7 +157,7 @@ export default async function ({ base, launch, check, fakeCams }) {
 
     /* ---------------- E4 the report dialog's note ---------------- */
     for (const [pg, read, widgets] of [["tarot", tarotReading, TR], ["iching", ichingReading, IC]]) {
-      await each(check, `E4 ${pg} report dialog: crisis phrase in the note -> nothing saved, dialog closed, the card takes over`, async ({ lang, width, phrase, label }) => {
+      await each(check, `E4 ${pg} report dialog: crisis phrase in the note -> nothing saved, dialog closed, crisis state, no card (v3)`, async ({ lang, width, phrase, label }) => {
         const page = await open(browser, base, pg + ".html", { width, lang });
         try {
           await read(page);
@@ -183,7 +189,14 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(await page.evaluate("typeof window.LQFortuneCrisis === 'undefined'"), path + ": fortune-crisis.js was not blocked");
       return page;
     };
-    const tel = label => `(() => { ${VIS} const a = [...document.querySelectorAll('.fa-support a[href="tel:1323"]')].find(vis); if (!a) return "no visible tel:1323 link";
+    // RE-LOCK merge-2 2026-11-17 (test fault of relock-merge, run v3-2-affected-3.log): tarot / iching only shuffle / cast on the
+    // question (no reading yet) and numbers refuses a non-Thai name, so no reading is drawn and there is no closing line to look
+    // for. Now: when a reading section is shown, its closing line must hold a visible tel:1323 of >= 44 px; in every case a visible
+    // tel:1323 of >= 44 px is on the page (the closing line or the top bar's 1323 control).
+    const tel = label => `(() => { ${VIS} const secs = [...document.querySelectorAll(".fa-section")].filter(vis).length;
+      const close = [...document.querySelectorAll('.lq-helpline a[href="tel:1323"]')].filter(x => !x.closest("#lqHelpTop")).find(vis);
+      if (secs && !close) return ${S(label)} + ": a reading is shown without the closing-line tel:1323";
+      const a = close || [...document.querySelectorAll('a[href="tel:1323"]')].find(vis); if (!a) return ${S(label)} + ": no visible tel:1323 link";
       const b = a.getBoundingClientRect(); return b.height >= 44 ? "" : ${S(label)} + ": tel:1323 is " + Math.round(b.height) + " px tall (< 44)"; })()`;
     const E5 = [
       // re-lock 2026-11-17 (append-only): the name tab is opened BEFORE the baseline, as in part A (v1 opened it after the
@@ -194,7 +207,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       ["iching question", "iching.html", IC, async (p, q) => { await p.evaluate(setVal("#icQuestion", q)); await p.evaluate(click("#icStart")); }],
     ];
     for (const [name, path, widgets, act, prep] of E5) {
-      await each(check, `E5 ${name}, fortune-crisis.js blocked: crisis phrase -> the card with a 44 px tel:1323, no reading`, async ({ lang, width, phrase, label }) => {
+      await each(check, `E5 ${name}, fortune-crisis.js blocked: crisis phrase -> crisis state, no card, the closing line with a 44 px tel:1323 (v3)`, async ({ lang, width, phrase, label }) => {
         const page = await openBlocked(path, { width, lang });
         try {
           if (prep) { await prep(page); await sleep(300); }

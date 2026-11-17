@@ -1,13 +1,7 @@
-/* fortune-crisis.js — the widened crisis net for every fortune page (independent review 2026-11-12: the patterns in
- * fortune-ai.js caught 19/52 adversarial inputs). Loaded before fortune-ai.js; fortune-ai.js requires it in Node and keeps
- * its own original patterns as well, so the net never gets weaker if this file is missing.
- * check(text) runs on the RAW user text: Thai is matched without spaces and without tone marks (ฆาตัวตาย = ฆ่าตัวตาย),
- * traditional Chinese is folded to simplified (自殺 = 自杀), English is case-insensitive with common slang and numerals
- * ("kms", "unalive", "want 2 die"). Families: suicide and self-harm, wanting to disappear or not wake up, violence by a
- * partner or family member, sexual abuse (incl. of children). fields(doc) returns the text of every free-text field on
- * the page, so a phrase typed into a name box is caught as well as one typed into a question box.
- * Fixed tests (locked before this file was written): tests/unit/fortune-crisis-net.test.js, tests/e2e/fortune-crisis-fields.e2e.mjs.
- * REVIEW: like the support card, these patterns still need a review by a Thai mental-health professional. */
+/* BEGIN fortune-crisis-net.js (copied by tools/fortune-read-embed.mjs; edit fortune-crisis-net.js, then run it) */
+/* fortune-crisis-net.js — the crisis net (patterns + check), ONE source: copied into fortune-crisis.js (tools/fortune-read-embed.mjs);
+ * the fortune-read.js stand-in loads it alone when fortune-crisis.js failed to load. Raw text: Thai without spaces / tone marks,
+ * traditional Chinese folded, English slang and numerals. Tests: fortune-crisis-net*, crisis-net-fallback. Needs a professional review. */
 (function (root) {
   "use strict";
   const TONE = /[็-์]/g;
@@ -24,6 +18,7 @@
     /เชือก[^\s]{0,14}(?:จบ|ตาย)|(?:คืนนี้|วันนี้)(?:จะ|ขอ)จบ(?!งาน|โปรเจ|เรื่อง|การ)|เผาถ่าน/,
     /จับ(?:ตัว)?(?:หนู|ฉัน|ผม)[^\s]{0,14}(?:ไม่เหมาะสม|กลางคืน|ตอนนอน|ในห้อง)|จับตัวหนู/,
     /อยากนอน(?:หลับ)?(?:แล้ว|ไป)?(?:ไม่|ไม่ต้อง)ตื่น|ไม่อยากตื่น|ชีวิต(?:นี้)?ไม่มี(?:ความหมาย|ค่า)|(?:ควร|อยาก)จบ(?:ทุกอย่าง|ทุกสิ่ง|มันซะ|ชีวิต)|จบชีวิต|คิดสั้น/,
+    /จะจบ(?:ทุกอย่าง|ทุกสิ่ง)(?:แล้ว|เลย|คืนนี้|วันนี้|ซะ)/, // review round 2
     /ทำร้ายตัวเอง|ทำร้ายตนเอง|กรีด(?:ข้อมือ|แขน|ตัวเอง)|ปลิดชีพ|กินยา(?:ตาย|เกินขนาด|ฆ่าตัว)|(?:กิน|ทาน)ยา(?:นอนหลับ|ฆ่าแมลง|พิษ|เบื่อ)|ยาพิษ|ผูกคอ|แขวนคอ/,
     /(?:โดด|กระโดด)(?:ตึก|สะพาน|น้ำตาย|ลงจาก|จากตึก|จากที่สูง|ลงมาตาย)/,
     /(?:ถูก|โดน)(?:ทำร้าย(?:ร่างกาย)?|ทุบตี|ตบตี|ซ้อม|ข่มขืน|ล่วงละเมิด|ลวนลาม|ทารุณ|กักขัง|อนาจาร)|ข่มขืน|ล่วงละเมิดทางเพศ|อนาจาร|ความรุนแรงในครอบครัว/,
@@ -51,6 +46,7 @@
     /\btake (?:all|all of) (?:my|the) (?:pills|meds|tablets|sleeping pills)\b|\bhang myself\b|\bslit my wrists?\b/i,
     /\bkys\b|\bbetter off without me\b|\brather (?:not be alive|be dead|not exist|not wake up)\b/i,
     /\bwant (?:it|everything) (?:all )?to (?:stop|end)(?: forever)?\b(?! well| happily)/i,
+    /\bend it all\b(?! with| between| off)/i, // review round 2: "gonna end it all tonight"
     /\b(?:plan(?:ning)?|going|gonna) to end it\b(?! with| between| off)|\bend(?:ing)? things\b(?! with| between| off| on)|\bstockpil\w* (?:pills|meds|tablets|sleeping pills)\b/i,
     /\bmakes? me do things\b|\bwo xiang (?:qu )?si\b|\bbu xiang huo\b/i,
     /\bsuicid\w*|\bunaliv\w*|\bsewer ?slide\b|\boff myself\b|\bdon'?t (?:want to|wanna) (?:be alive|live|exist|be here)\b/i,
@@ -122,6 +118,18 @@
     return TH.some(re => re.test(th)) || EN.some(re => re.test(t) || re.test(leet) || re.test(en2)) || ZH.some(re => re.test(zh)) || ZH.some(re => re.test(t)) ||
       letterRuns(t.replace(/[0134@$]/g, c => LEET[c])).some(r => COMPACT.test(r));
   }
+  const NET = { check, unjoke, canon, toneless, enCopy, TONE, T2S, T2S_RE };
+  if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length) module.exports = NET;
+  /** @type {any} */ (root).LQCrisisNet = NET;
+})(typeof window !== "undefined" ? window : globalThis);
+/* END fortune-crisis-net.js */
+/* fortune-crisis.js — the crisis net for every fortune page: check() and its patterns come from fortune-crisis-net.js (copied
+ * below by tools/fortune-read-embed.mjs), plus fields(doc) (every free-text field of the page), the soft step, the help line and
+ * the crisis / calm state. fortune-ai.js requires it in Node and keeps its own patterns as well.
+ * Tests: tests/unit/fortune-crisis-net.test.js, tests/e2e/fortune-crisis-fields.e2e.mjs. */
+(function (root) {
+  "use strict";
+  const { check, unjoke, canon, toneless, enCopy, TONE, T2S, T2S_RE } = /** @type {any} */ (root).LQCrisisNet;
   // crisis-net hotfix 2026-11-16: tel boxes too (they accept any text; numbers' compare boxes printed it back)
   const FREE_TEXT = 'textarea, input:not([type]), input[type="text"], input[type="search"], input[type="tel"]';
   /** the raw text of every free-text field on the page (empty without a DOM) @param {any} [doc] */
@@ -170,6 +178,7 @@
   const NAME_FIELDS = "#hsName, #hsPName, #hsNameNum, #frNick, #plNick, #nmName, #rpName";
   /** the page's fields need the soft step (and it has not been answered for exactly these values) @param {any} [doc] */
   function pageSoft(doc) {
+    if (active(doc)) return false; // crisis v3: the crisis state never asks "are you okay?" (nothing tells the person)
     const all = fields(doc);
     if (!all || all === answered) return false;
     if (soft(all)) return true;
@@ -220,24 +229,19 @@
     renderSoft(container, lang, () => { ack(doc); proceed(); }, () => card(container));
     return true;
   }
-  /* ---------------- help line (owner order 2026-11-12; tap-to-call buttons 2026-11-14) ----------------
-     A calm line with real help resources on every fortune page and under every reading; it needs no detection.
-     Numbers, hours and cost are only what docs/CRISIS-RESOURCES.md verified on the agency's own page (checked 2026-11-14).
-     Owner order 2026-11-14 (Part B): the numbers are the shared tap-to-call component (lensiq-helpline.js): 1323 with the
-     owner's warm wording ("อยากมีคนรับฟัง โทร 1323" / "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง" / "บริการของกรมสุขภาพจิต"),
-     then 1669 (medical emergency; no hours or cost: not stated on niems.go.th). No verified Chinese-language line exists in
-     Thailand: the note says so in Chinese. HELP keeps the line's own text (label, note); tools/helpline.mjs writes the
-     static line into every fortune page (it shows without JavaScript); i18n/{en,zh}-common.js carry help.line.* and call.*. */
+  /* help line (owner orders 2026-11-12/14/16; docs/CRISIS-RESOURCES.md): the shared component (lensiq-helpline.js), 1323 only,
+     then the link to counselling.html; never sticky, after the reading. HELP keeps the label and the abroad note. */
   const LQH = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-helpline.js") : null);
   /** the shared component (lensiq-helpline.js), looked up at call time in the browser @returns {any} */
   const callKit = () => LQH || /** @type {any} */ (root).LQHelpline || null;
   /** @type {{tel: string[], th: Record<string, string>, en: Record<string, string>, zh: Record<string, string>}} */
   const HELP = {
-    tel: ["1323", "1669"],
-    th: { label: "สายด่วนช่วยเหลือ", note: "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น" },
-    en: { label: "Help lines", note: "Outside Thailand, call your local emergency number." },
-    zh: { label: "求助热线", note: "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。" },
+    tel: ["1323"],
+    th: { label: "สายด่วนช่วยเหลือ", note: "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น", close: "หากมีเรื่องทุกข์ใจ ลองคุยกับคนใกล้ชิด หรือโทร 1323 มีคนพร้อมรับฟัง" },
+    en: { label: "Help lines", note: "Outside Thailand, call your local emergency number.", close: "If something weighs on you, talk to someone close, or call 1323. Someone is ready to listen." },
+    zh: { label: "求助热线", note: "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。", close: "如果心里有事，可以和身边的人聊聊，或拨打 1323，有人愿意倾听。" },
   };
+  const COUNSEL = { th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" };
   const helpLang = (/** @type {any} */ l) => (l === "en" || l === "zh" ? l : "th");
   /** the help line as an element (textContent only). With the page's i18n present it is built in Thai with data-i18n keys
    *  and translated by LQI18N (so it follows later language switches); without it, in the given language.
@@ -247,17 +251,17 @@
     const l = i18n ? "th" : helpLang(lang), L = HELP[l], K = callKit();
     /** @param {string} tag @param {string} [c] @param {string} [t] */
     const el = (tag, c, t) => { const e = d.createElement(tag); if (c) e.className = c; if (t != null) e.textContent = t; return e; };
-    // crisis fix 4: under a reading on a calm page (crisis state, calm session, soft step answered or distress typed) the line is
-    // sticky, so it stays in the viewport next to the reading
+    // under a reading on a calm page (crisis state, calm session, soft step answered or distress typed)
     const calmHere = !!cls && /lq-helpline-result/.test(cls) && (calmOn(d) || distress(d));
     if (calmHere) markCalm(d);
     const box = el("aside", "lq-helpline" + (cls ? " " + cls : "") + (calmHere ? " lq-helpline-calm" : ""));
     box.setAttribute("role", "note"); box.setAttribute("aria-label", L.label); box.setAttribute("data-i18n-attr", "aria-label:help.line.label");
-    for (const n of HELP.tel) {
-      if (K) box.appendChild(K.el(d, n, { lang: l, cls: "lq-helpline-tel", compact: n !== "1323", keys: i18n }));
-      else { const a = el("a", "lq-call-btn lq-helpline-tel", n); a.setAttribute("href", "tel:" + n); box.appendChild(a); } // component missing: the number still calls
-    }
-    const note = el("span", "lq-helpline-note", L.note); note.setAttribute("data-i18n", "help.line.note"); box.appendChild(note);
+    const w = box.appendChild(el("p", "lq-helpline-warm", L.close)); if (i18n) w.setAttribute("data-i18n", "help.line.close");
+    const mini = box.appendChild(el("span", "lq-call-mini")), b = mini.appendChild(el("a", "lq-call-btn lq-helpline-tel"));
+    mini.setAttribute("data-lq-call", "1323"); b.setAttribute("href", "tel:1323"); b.innerHTML = K ? K.ICON : "";
+    b.appendChild(el("b", "lq-call-mini-n", K ? K.LINES["1323"][l].go : "1323")); if (i18n) b.lastChild.setAttribute("data-i18n", "call.1323.go");
+    const more = box.appendChild(el("span", "lq-helpline-more")), a = more.appendChild(el("a", "", COUNSEL[l]));
+    a.setAttribute("href", "counselling.html"); if (i18n) a.setAttribute("data-i18n", "counsel.link");
     if (i18n) { try { I.apply(box); } catch (e) { /* i18n not ready: Thai stays */ } }
     return box;
   }
@@ -265,31 +269,26 @@
   /** the help line as HTML in one language (Thai carries the data-i18n keys) @param {string} [lang] @param {string} [cls] */
   function helpHTML(lang, cls) {
     const l = helpLang(lang), L = HELP[l], K = callKit();
-    const calls = HELP.tel.map(n => K ? K.html(n, { lang: l, cls: "lq-helpline-tel", compact: n !== "1323" })
-      : '<a class="lq-call-btn lq-helpline-tel" href="tel:' + n + '">' + n + "</a>");
-    const note = '<span class="lq-helpline-note"' + (l === "th" ? ' data-i18n="help.line.note"' : "") + ">" + escH(L.note) + "</span>";
+    const calls = ['<p class="lq-helpline-warm"' + (l === "th" ? ' data-i18n="help.line.close"' : "") + ">" + escH(L.close) + '</p><span class="lq-call-mini" data-lq-call="1323">' +
+      '<a class="lq-call-btn lq-helpline-tel" href="tel:1323">' + (K ? K.ICON : "") + '<b class="lq-call-mini-n"' + (l === "th" ? ' data-i18n="call.1323.go"' : "") + ">" +
+      escH(K ? K.LINES["1323"][l].go : "1323") + "</b></a></span>"];
+    const note = '<span class="lq-helpline-more"><a href="counselling.html"' + (l === "th" ? ' data-i18n="counsel.link"' : "") + ">" + COUNSEL[l] + "</a></span>";
     return '<aside class="lq-helpline' + (cls ? " " + escH(cls) : "") + '" role="note" aria-label="' + escH(L.label) + '"' +
       (l === "th" ? ' data-i18n-attr="aria-label:help.line.label"' : "") + ">" + calls.join(" ") + " " + note + "</aside>";
   }
 
-  /* ---------------- crisis state (owner order 2026-11-12) ----------------
-     Once the support card has been shown on a page (hard net, or the soft step's "talk" path), the PAGE is in the crisis
-     state until it is reloaded: FortuneAI shows the support card instead of any later reading, hooks (member, merit,
-     paid services) do not run, and <html data-lq-crisis="1"> hides every block marked data-lq-remedy (lucky items,
-     remedies, recommendations, lead forms, share cards) through styles.css. Any renderer of remedies, lucky items, paid
-     or merit services or straight-mode readings must ask allow(kind) first.
-     Crisis fix 4 (owner decision 2026-11-12): the state also holds for the browser session (this tab). ONE sessionStorage
-     boolean ("lq-fortune-calm" = "1"; no timestamp, no text) is set when the support card is shown or the soft step is
-     answered with "Just the reading". Every fortune page opened later in the same tab is then calm: gentle wording only, no
-     straight reading, no remedy / lucky-item / paid / merit block (<html data-lq-calm>), and the help line stays in view next
-     to the reading. Closing the tab clears it. Without storage the page-level behaviour stays. */
+  /* crisis state (owner orders 2026-11-12, crisis fix 4): after the support card the page is in the crisis state (<html
+     data-lq-crisis>, allow(kind) refuses remedies, paid, merit, straight); one sessionStorage boolean "lq-fortune-calm" keeps
+     later fortune pages in this tab calm. Details: docs/INCIDENT-2026-11-12-CRISIS-NET.md. */
   const SESSION_KEY = "lq-fortune-calm";
   /** the tab's session flag (false when storage is unavailable) */
   function sessionOn() { try { const st = root.sessionStorage; return !!(st && st.getItem(SESSION_KEY) === "1"); } catch (e) { return false; } }
   function sessionSet() { try { const st = root.sessionStorage; if (st) st.setItem(SESSION_KEY, "1"); } catch (e) { /* private mode: page-level only */ } }
   const CALM_CSS = "html[data-lq-calm] [data-lq-remedy],html[data-lq-calm] [data-lq-upsell],html[data-lq-crisis] [data-lq-upsell]{display:none!important}" +
     "html[data-lq-calm] .fa-straight{display:none!important}" +
-    ".lq-helpline-calm,.lq-helpline-dock{position:sticky;bottom:0;z-index:5;box-shadow:0 -2px 10px rgba(20,50,74,.18)}";
+    ':is(html[data-lq-calm],html[data-lq-crisis]) :is([id$="Share"],[id$="Print"],[data-lq-share],[data-lq-print]){display:none!important}' +
+    ".lq-helpline-warm{margin:0 0 8px}" +
+    ".lq-helpline-more{display:block}.lq-helpline-more a{display:inline-flex;align-items:center;min-height:44px;font-size:.9em;color:#0b5d8f;text-decoration:underline}";
   /** mark this page calm (attribute + styles; page-level, nothing stored) @param {any} [doc] */
   function markCalm(doc) {
     const d = doc || root.document;
@@ -299,8 +298,7 @@
       if (d.getElementById && !d.getElementById("lq-calm-style") && d.head) { const st = d.createElement("style"); st.id = "lq-calm-style"; st.textContent = CALM_CSS; d.head.appendChild(st); }
     } catch (e) { /* no DOM */ }
   }
-  /** calm page: one sticky help line docked in the reading's result section (the section can start with large images, so the
-   *  reading's own line may be below the fold); it stays at the bottom of the viewport while that section is on screen
+  /** calm page: one help line at the end of the reading's result section (never sticky); none when the reading has its own
    *  @param {any} container the reading's container @param {string} [lang] */
   function calmDock(container, lang) {
     try {
@@ -312,8 +310,8 @@
       for (let e = up; !sec && e && e !== d.body; e = e.parentElement) if (e.tagName === "SECTION" && !(e.parentElement && e.parentElement.closest("section"))) sec = e;
       if (!sec) return null;
       let dock = sec.querySelector(":scope > .lq-helpline-dock");
+      if (!dock && sec.querySelector(".lq-helpline")) return null; // the reading carries its line: one line per reading
       if (!dock) { dock = helpLine(d, lang, "lq-helpline-result lq-helpline-dock"); sec.appendChild(dock); }
-      Array.from(container.querySelectorAll(".lq-helpline-calm")).forEach(e => e.classList.remove("lq-helpline-calm")); // one sticky line
       return dock;
     } catch (e) { return null; }
   }
@@ -362,6 +360,7 @@
   }
   // a fortune page opened later in a calm session is calm from the start
   try { if (root.document && sessionOn()) markCalm(root.document); } catch (e) { /* no DOM */ }
+  try { root.localStorage.removeItem("lq-support-n"); } catch (e) { /* the old crisis-card counter (2026-11-17: no record kept) */ }
 
   const api = { check, unjoke, fields, soft, softName, plainName, pageSoft, ack, renderSoft, softGate, softText, HELP, helpLine, helpHTML, active, setActive, allow,
     calmOn, setCalm, markCalm, calmDock, distress, SESSION_KEY };

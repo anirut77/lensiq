@@ -4,8 +4,9 @@
  *   consent  the second and later people stay disabled until #cpConsent is ticked; without it nothing is computed
  *   privacy  birth data and names stay in the form; nothing is stored, sent or given to AI; the planet calculator
  *            (vendor/astronomy-engine, same origin) is loaded once on demand, so computing itself makes no request
- *   crisis   a crisis phrase in a name, or the page already in the crisis state, shows the support card instead of the
- *            result (FortuneAI.crisis); distress words get the soft step first; calm pages get the free tier only
+ *   crisis   crisis v3 (owner decision 2026-11-17): a crisis phrase in any field, or the page already in the crisis state,
+ *            sets the crisis state and the reading goes on in the free tier (no card, nothing flagged, nothing typed shown);
+ *            calm / crisis pages end with the one closing line (tel:1323, counselling link); distress words get the soft step
  *   paid     tier from LQCompat.tierFor(window, LQFortuneCrisis): free = overview + 2 categories; the rest only when
  *            LENSIQ_FORTUNE_PAID is exactly true (default off), marked data-lq-paid for the paid framework to take over
  *   share    the overview carries data-lq-shareable="compat-overview" for the share card / print work (fortune-share-print) */
@@ -100,16 +101,11 @@
   const msg = t => { $("cpMsg").textContent = t || ""; };
   function clearResult() { const r = $("cpResult"); r.innerHTML = ""; r.hidden = true; }
   const FA = () => W.FortuneAI, CR = () => W.LQFortuneCrisis;
-  /** crisis takeover: the support card replaces the whole result area (review round 1, D2). One place to switch to the shared
-   *  LQCrisisTakeover helper from main once it lands. */
-  function showSupport() {
-    st.last = null;
-    const r = $("cpResult"); r.innerHTML = ""; r.hidden = false;
-    const box = D.createElement("div"); box.id = "cpSupport"; box.tabIndex = -1; r.appendChild(box);
-    const fa = FA();
-    if (fa && fa.crisis) fa.crisis.render(box, fa.crisis.result({ lang: lang() }));
-    else if (CR() && CR().helpHTML) { box.innerHTML = CR().helpHTML(lang()); if (CR().setActive) CR().setActive(D); }
-    try { r.scrollIntoView({ block: "start" }); box.focus({ preventScroll: true }); } catch (e) { /* old browsers */ }
+  /** crisis v3: the crisis state is set (remedies, paid parts, share and print go; analytics stop); nothing is drawn */
+  function crisisSet() {
+    const fa = FA(), c = CR();
+    try { if (c && c.setActive) c.setActive(D); else if (fa && fa.crisis && fa.crisis.setActive) fa.crisis.setActive(); } catch (e) { /* the html flag below */ }
+    D.documentElement.setAttribute("data-lq-crisis", "1");
   }
   const crisisHit = texts => { const fa = FA(); return !!(fa && fa.crisis && texts.some(t => t && fa.crisis.check(t))); };
   /** every field the visitor can type into (names, years, times), and the crisis net's own field reader */
@@ -117,7 +113,7 @@
     .concat([CR() && CR().fields ? CR().fields(D) : ""]);
   const softNames = () => { const c = CR(); return !!(c && c.softName) && Array.from(D.querySelectorAll('#cpForm input[name="nick"]')).some(e => c.softName(/** @type {any} */ (e).value)); };
   // the crisis check runs while the visitor types, on every field, before any truncation or validation
-  $("cpForm").addEventListener("input", () => { if (!$("cpResult").querySelector(".fa-support") && crisisHit(allTexts())) { msg(""); showSupport(); } });
+  $("cpForm").addEventListener("input", () => { if (!crisisOn() && crisisHit(allTexts())) crisisSet(); });
   const crisisOn = () => { const fa = FA(); return !!(fa && fa.crisis && fa.crisis.active && fa.crisis.active()) || !!(CR() && CR().active && CR().active(D)); };
   const plain = s => { const c = CR(); return c && c.plainName ? c.plainName(s) : s; };
 
@@ -126,7 +122,7 @@
   async function go() {
     if (st.busy) return;
     // the crisis net first, on every field, before consent and before any format check
-    if (crisisOn() || crisisHit(allTexts())) { msg(""); showSupport(); return; }
+    if (!crisisOn() && crisisHit(allTexts())) crisisSet();
     if (!/** @type {any} */ ($("cpConsent")).checked) { msg(T("compat.needConsent", "โปรดติ๊กยืนยันว่าได้แจ้งเจ้าของข้อมูลแล้ว ก่อนกรอกและดูผล")); clearResult(); return; }
     const ppl = readAll(false);
     for (let i = 0; i < ppl.length; i++) {
@@ -140,10 +136,10 @@
       }
     }
     const c = CR();
-    if (c && c.renderSoft && ((c.pageSoft && c.pageSoft()) || softNames())) {
+    if (!crisisOn() && c && c.renderSoft && ((c.pageSoft && c.pageSoft()) || softNames())) {
       const r = $("cpResult"); r.innerHTML = ""; r.hidden = false;
       const box = D.createElement("div"); r.appendChild(box);
-      c.renderSoft(box, lang(), () => { c.ack(); compute(ppl); }, () => showSupport());
+      c.renderSoft(box, lang(), () => { c.ack(); compute(ppl); }, () => { crisisSet(); compute(ppl); });
       return;
     }
     compute(ppl);
@@ -152,7 +148,6 @@
     st.busy = true; msg(T("compat.working", "กำลังคำนวณในเครื่อง…"));
     try {
       const A = await engine();
-      if (crisisOn()) { msg(""); showSupport(); return; }
       const L = C(), opts = { astronomy: A };
       const people = ppl.map(p => L.person({ y: p.y, m: p.m, d: p.d, time: p.time, tz: 7 }, opts));
       const rel = /** @type {any} */ ($("cpRel")).value, names = ppl.map(p => (p.nick && plain(p.nick)) || "");
@@ -291,10 +286,13 @@
     rep.sections.forEach(s => cats.appendChild(sectionEl(s, rep)));
     r.appendChild(cats);
     fitMap();
+    // crisis v3 rule d: on a crisis / calm page the one closing line ends the reading
+    const c = CR();
+    try { if (c && c.helpLine && c.calmOn && (c.calmOn(D) || (c.distress && c.distress(D)))) r.appendChild(c.helpLine(D, lang(), "lq-helpline-result")); } catch (e) { /* no line */ }
     if (W.LQRead && W.LQRead.ensureStyle) try { W.LQRead.ensureStyle(D); } catch (e) { /* layout styles are also in compat.css */ }
   }
 
-  W.addEventListener("lq-lang", () => { renderPeople(true); if (st.last && !crisisOn()) draw(); });
-  W.addEventListener("lq-crisis", () => { if (st.last && !$("cpResult").querySelector(".fa-support")) { st.last = null; showSupport(); } });
+  W.addEventListener("lq-lang", () => { renderPeople(true); if (st.last) draw(); });
+  W.addEventListener("lq-crisis", () => { if (st.last) draw(); }); // v3: the same reading, free tier, closing line
   renderPeople(false);
 })();

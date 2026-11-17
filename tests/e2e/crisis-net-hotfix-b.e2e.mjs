@@ -74,7 +74,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     }
     for (const row of rowsOf(["faceread", "palm"])) await runRow(check, row, FLOWS[row.page + " " + row.sel], { both: row.sel === "#frNick" || row.sel === "#plNick" });
 
-    await check("faceread / palm: nickname typed AFTER a reading (change event) -> only the help card", async () => {
+    await check("faceread / palm: nickname typed AFTER a reading (change event) -> crisis state, no card, no echo (v3)", async () => {
       const fails = [];
       for (const [lang, k] of [["th", "th"], ["en", "en"], ["zh", "zh"]]) for (const width of WIDTHS) {
         const phrase = PHRASE[k];

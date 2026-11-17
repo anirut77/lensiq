@@ -238,7 +238,11 @@ export default async function ({ base, launch, check }) {
         const dream = await openPage(browser, base, "dream", lang, { on: true });
         try {
           await dream.evaluate(() => { const t = document.getElementById("drText"); t.value = "ฝันว่าฆ่าตัวตาย อยากตายจริงๆ"; t.dispatchEvent(new Event("input")); });
-          await dream.waitFor(() => !!document.querySelector(".fa-support"), 5000);
+          // RE-LOCK v3-missed 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): no card any more; the typed crisis text puts the page in the
+          // crisis state when the dream is read (the reading goes on); "no paid block, no price" below is unchanged
+          await dream.evaluate(() => { if (!document.querySelector("#drSel .dr-x")) { const c = document.querySelector(".dr-pop"); if (c) c.click(); }
+            document.getElementById("drForm").requestSubmit(); });
+          await dream.waitFor(() => document.documentElement.getAttribute("data-lq-crisis") === "1" && document.querySelectorAll(".fa-section").length >= 1, 15000);
           await sleep(300);
           const st = await dream.evaluate(`${PAID_STATE}(${S(PAID_SEL)}, ${S(PRICE_RE)})`);
           if (st.n || st.price) bad.push(lang + " dream crisis: " + S(st));
