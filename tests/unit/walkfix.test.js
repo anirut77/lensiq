@@ -194,6 +194,10 @@ test("W-012: solutions.html badges match each linked page's status (cat-data); C
   const bad = [], prCodes = new Set(), otherCodes = new Set();
   for (const [, code, id, body] of cards) {
     const tag = body.match(/<span class="sl-tag (\w+)" data-i18n="([\w.]+)">([^<]+)<\/span>/);
+    // amendment 6 (owner order 2026-11-17: remove สาธิต tag from fortune): a card that links to a fortune page (category 6)
+    // carries NO status badge at all; every other card keeps every check below unchanged
+    const fHref = (body.match(/class="sl-go" href="([a-z0-9-]+)\.html/) || [])[1];
+    if (fHref && D.CATEGORIES.find(c => c.slug === "fortune").pages.includes(fHref)) { if (/class="sl-tag\b/.test(body)) bad.push(id + ": fortune card with a status badge"); continue; }
     if (!tag) { bad.push(id + ": no tag"); continue; }
     // amendment 4: tests/e2e/solutions.e2e.mjs filters on data-status, so the badge class (= filter group) equals data-status again
     const grp = tag[1];
