@@ -410,6 +410,7 @@ const PAGES = {
   fengshui: { st: "demo", why: "fortune", claims: ["fortune"] },
   dream: { st: "demo", why: "fortune", claims: ["fortune"] },
   zodiac: { st: "demo", why: "fortune", claims: ["fortune"] },
+  compat: { st: "demo", why: "fortune", claims: ["fortune"] },
   astro: { st: "demo", why: "fortune", claims: ["fortune"] },
   lifegraph: { st: "demo", why: "fortune", claims: ["fortune"] },
   planner: { st: "demo", why: "fortune", claims: ["fortune"] },
@@ -503,6 +504,7 @@ const CATEGORIES = [
  *  noindex; see docs/PAGE-STATUS.md "Not linked"). */
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
 const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
-  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category" };
+  tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category",
+  compat: "Compatibility (ดวงสมพงษ์, owner order 2026-11-16 A): built on branch fortune-compat, not linked from category 6, the fortune hub or the menu until the owner approves the go-live" };
 
 module.exports = { STATUS, STATUS_DEF, STATUS_DEF_CAT, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };

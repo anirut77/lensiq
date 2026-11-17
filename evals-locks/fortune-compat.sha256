@@ -1,0 +1,18 @@
+# evals-locks/fortune-compat.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-compat/ (owner rule 2026-11-13). Append-only.
+# fortune-compat (owner order 2026-11-16 part A, Compatibility ดวงสมพงษ์) — locked BEFORE any product code on branch fortune-compat (base 6319860 = origin/main).
+# locked 2026-11-16T02:57:07Z (tools/eval-guard.mjs lock, 3 files)
+806567cff27d43455ba0f2e3d42c53b954c3679ab88ce7af68b7452550c0d000  tests/unit/fortune-compat.test.js
+f6f55cd525fd615225caf6b51f3a5667848c47c5a1fed08499a2341a5380924b  tests/e2e/fortune-compat.e2e.mjs
+ba23091fca3d53dd84457f7e41b72334a7bdab47e6aab078fa9550bef0978eee  tests/e2e/fortune-compat-webkit.e2e.mjs
+# RE-LOCK 2026-11-16 (2): coordinator instructions while the owner has not approved the go-live: compat stays UNLINKED (tools/cat-data.cjs; not in cat-fortune.html, fortune.html or nav.js; CLAUDE.md untouched) and the pet page (branch fortune-pet) calls LQCompat.pair(owner, pet, {mode: 'owner-pet', lang}). Unit test only: P link assertion inverted (must NOT link, must be in UNLINKED); new test K for the owner-pet interface. E2E files unchanged. Honest order: the owner-pet code was written first (interface given by the coordinator, checked ad hoc on 3,000 pairs); this test file was not run before this lock line.
+# locked 2026-11-16T05:46:27Z (tools/eval-guard.mjs lock, 1 file)
+8da9074a632e97e2c345959538f17c73b5334ab13b93b6825d1acc4dad136257  tests/unit/fortune-compat.test.js
+# RE-LOCK 2026-11-16 (3), independent review of 5ba333b NOT OK, locked BEFORE the fixes: (a) tests/unit/fortune-compat.test.js golden cases: AGPL-derived value replaced by value derived from onlinejyotish.com yoni-kootam (scale, sworn-enemy pairs) and aaps.space yoni-matching (friendly pairs): Rohini-Swati Yoni 1 -> 2 (total 13.5 -> 14.5), Ashwini-Jyeshtha Yoni 1 -> 3 (total 11 -> 13); this corrects test data, it does not loosen the test. (b) NEW tests/unit/fortune-compat-2.test.js (D1 Yoni rule cell by cell, no PyJHora rows, sources and CC BY-SA flag; D2 static field rules; D3 no repeated line across sections; D4 work-use line for business partners; D5 Moon about ±7°). (c) NEW tests/e2e/fortune-compat-crisis.e2e.mjs (D2: every locked phrase typed for real into the nickname and the year field: card only, no echo; old results cleared).
+# locked 2026-11-16T06:57:44Z (tools/eval-guard.mjs lock, 3 files)
+58dc9cdebe3ce61b182aab25383ee3b6f161ef54bc01edd597ae083dfce3d2a5  tests/unit/fortune-compat.test.js
+226ace471a5eacb3fac141dd4bacc825751597204421b9289a93c8f6794c65aa  tests/unit/fortune-compat-2.test.js
+ffd61fea273a2010df83d863522b7b01e4b0ffffe392e893c46cc57616d77266  tests/e2e/fortune-compat-crisis.e2e.mjs
+# RE-LOCK 2026-11-16 (4), owner decision 72 (every table cell backed by two independent sources, a published text or established reference plus one more; else drop the component): Gana removed (B.V. Raman's Gana pages 78-81 are missing from the only readable scan; his summary rule on p. 186 contradicts the web tables; the web tables disagree on the mixed cells), Ashtakoota out of 30; Yoni = same 4 / 7 sworn-enemy pairs 0 / every other pair 2 (friendly list single-sourced, Monkey-Cat disputed). Unit golden totals 26/14.5/34/13 -> 21/9.5/28/12; fortune-compat-2 D1 rule and source checks updated. Locked BEFORE the code change.
+# locked 2026-11-16T08:02:31Z (tools/eval-guard.mjs lock, 2 files)
+031a86912dd3ede168690af20b3539910e755e373f2863ba97e63e3f6422a264  tests/unit/fortune-compat.test.js
+1d8bc128c7b04ce8b5c560881b2378852feafaea4ce25c31977d4a10ceabf2e5  tests/unit/fortune-compat-2.test.js
