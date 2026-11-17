@@ -51,11 +51,15 @@ test("U1: a crisis phrase in the nickname or question: the reading continues (TH
       const r = await FA.interpret(f, { useAI: false, lang });
       assert.notEqual(r.source, "support", lang + ": not the support card");
       assert.ok(!r.crisis, lang + ": not a crisis result");
-      assert.ok(Array.isArray(r.sections) && r.sections.length >= 2, lang + ": a reading with sections");
+      // RE-LOCK 1 (test fault: the sample facts give one Chinese section even without a crisis phrase): the crisis reading has as many
+      // sections as the same facts without the phrase, and at least one
+      const plain = await FA.interpret(FACTS, { useAI: false, lang });
+      assert.ok(Array.isArray(r.sections) && r.sections.length >= 1 && r.sections.length >= plain.sections.length, lang + ": a full reading (" + r.sections.length + " / " + plain.sections.length + ")");
       assert.notEqual(r.mode, "straight", lang + ": never straight");
-      const text = JSON.stringify(r);
-      for (let i = 0; i + 3 <= PHRASE[lang].length; i++) assert.ok(!text.includes(PHRASE[lang].slice(i, i + 3)) || /^\s/.test(PHRASE[lang].slice(i, i + 3)),
-        lang + ": the typed text is not echoed (" + PHRASE[lang].slice(i, i + 3) + ")");
+      // RE-LOCK 1 2026-11-17 (test fault, before any product measurement): 3-character pieces match ordinary words ("ากต" in
+      // "พยากรณ์จากตำรา"); a piece is now 5 characters (Thai / English, spaces removed) or 3 (Chinese)
+      const text = JSON.stringify(r).replace(/\s+/g, ""), t = PHRASE[lang].replace(/\s+/g, ""), n = lang === "zh" ? 3 : 5;
+      for (let i = 0; i + n <= t.length; i++) assert.ok(!text.includes(t.slice(i, i + n)), lang + ": the typed text is not echoed (" + t.slice(i, i + n) + ")");
     }
   }
 });
@@ -92,7 +96,8 @@ test("U4: a reading drawn in the crisis state: the sections, then the closing li
   const h = ser(box);
   assert.match(h, /fa-section/, "the reading is drawn");
   assert.doesNotMatch(h, /fa-support/, "no card");
-  assert.equal((h.match(/class="lq-helpline/g) || []).length, 1, "closing line once");
+  // RE-LOCK 1 (test fault: the line's own parts lq-helpline-warm / -more also start with "lq-helpline"): count the box itself
+  assert.equal((h.match(/class="lq-helpline(?=[\s"])/g) || []).length, 1, "closing line once");
   assert.ok(h.lastIndexOf("lq-helpline") > h.lastIndexOf("fa-section"), "closing line after the last section");
 });
 

@@ -12,3 +12,9 @@ f5bdb6e2ba313942eba2f818650d36124ac2caca48e2dd769e772965eda6bf9f  tests/e2e/cris
 0dac06170802260655246e9275abb0e0170fb5aefc5d3fedcda7aed7534c5800  tests/e2e/crisis-v3-c.e2e.mjs  # repo file
 bcad428d82768a02d83e95531da755f90ac30af5d6ece65c3ba7e5018c5e8441  tests/e2e/crisis-v3-d.e2e.mjs  # repo file
 a9c1d2691000e3c8d74ab755f7be2308dd4ca59b1d8ea68b68324b809bdc2b6d  tests/unit/crisis-v3.test.js  # repo file
+# RE-LOCK 1 2026-11-17 (test faults; e2e not yet measured, unit faults found while running against the first product edits): echo pieces are 5 characters (TH / EN, spaces removed) or 3 (ZH) plus the whole typed text, because the reading is now shown and short pieces match ordinary words ('ากต' in 'พยากรณ์จากตำรา'); U1 asks for at least as many sections as the same facts without the phrase (the sample facts give one Chinese section even without it); U4 counts the closing box itself (its parts lq-helpline-warm / -more also start with 'lq-helpline'). No rule changed.
+# locked 2026-11-17T00:48:56Z (tools/eval-guard.mjs lock, 2 files)
+6b8b91fd21a461ecae8232811363e96e11853b71c869c354cbee9e04082cf032  relock1/crisis-v3.test.js
+b9db473bea8f9e0a1911778827b2a7737426ec00b29f64e91b9cf07703abb798  relock1/crisis-v3-kit.mjs
+6b8b91fd21a461ecae8232811363e96e11853b71c869c354cbee9e04082cf032  tests/unit/crisis-v3.test.js  # repo file (re-lock 1)
+b9db473bea8f9e0a1911778827b2a7737426ec00b29f64e91b9cf07703abb798  tests/e2e/crisis-v3-kit.mjs  # repo file (re-lock 1)

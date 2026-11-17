@@ -264,10 +264,13 @@ export function judge(f, where, { reading = true } = {}) {
 }
 
 const norm = s => String(s).toLowerCase().replace(/[\s​-‍﻿]/g, "");
-/** no echo: no 2+ character piece of the typed text in visible text that was not visible before typing */
+/** no echo: no piece of the typed text in visible text that was not visible before typing. RE-LOCK 1 2026-11-17 (test fault, before
+ *  any product measurement): the reading is now SHOWN, so 2-character pieces match ordinary words of the reading; a piece is 5
+ *  characters (Thai / English, spaces removed) or 3 (Chinese), and the whole typed text never appears */
 export function echo(before, after, typed) {
-  const t = norm(typed), was = norm(before.join("")), out = [], subs = new Set();
-  for (let i = 0; i < t.length; i++) for (let j = i + 2; j <= t.length; j++) subs.add(t.slice(i, j));
+  const t = norm(typed), was = norm(before.join("")), out = [], subs = new Set(), n = /[\u3400-\u9fff]/.test(t) ? 3 : 5;
+  for (let i = 0; i + n <= t.length; i++) subs.add(t.slice(i, i + n));
+  subs.add(t);
   for (const node of after) { const n = norm(node); for (const s of subs) if (n.includes(s) && !was.includes(s)) out.push(S(s) + " in " + S(node.trim().slice(0, 40))); }
   return [...new Set(out)].slice(0, 4);
 }
