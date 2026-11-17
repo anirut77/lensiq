@@ -175,3 +175,13 @@ Locked before compat was changed to v3.
 | File | Change | Why |
 |---|---|---|
 | tests/unit/crisis-rules-1323.test.js, tests/e2e/crisis-rules-1323-a / -e.e2e.mjs, tests/e2e/crisis-rules-kit.mjs | the switch name `LENSIQ_HELP_STICKY` → `LENSIQ_HELP_TOP_STICKY`; every assertion unchanged | one sticky switch only (main's mechanism, coordinator instruction 2026-11-17); the branch's own copy of the same switch dropped from lensiq-config.js / nav.js / types |
+
+## Merge of main 56957344 into print-report, tag `relock-allow-v3` (coordinator decision, option ก, 2026-11-18; reversible)
+
+| File | Test | Old | New | Why | Protection kept by |
+|---|---|---|---|---|---|
+| tests/unit/crisis-escape-guard-allow.json (v2 sha256 `4e1132d0…` kept in `~/LENSIQ-field/evals/crisis-escape-guard/crisis-escape-guard-allow.v2.json`; new `crisis-escape-guard-allow.v3.json` sha256 `7583d36c…`) | crisis-escape-guard.test.js 3 (every element a reading page writes into is in a takeover root or allow-listed; stale entries must be removed) | 4 entries: `faceread frToast`, `horoscope hsToast`, `horoscope hsNoTime`, `numbers nmToast` | removed; nothing added or changed | entries' targets removed by share/print consolidation into fortune-share.js (the per-page toast / card code is gone on print-report; `hsNoTime` only matched through the old toast function's variable); stricter | the guard test itself (unchanged): any new write target outside a takeover root fails unless a new entry is locked |
+
+Also in this merge (product, not a re-lock): `LQShare.allowed()` (fortune-share.js) no longer allows share / print when
+fortune-crisis.js failed to load; it uses the v3 stand-in (`FortuneAI.crisis.api()`) and, with no crisis module at all,
+refuses in the crisis / calm state.

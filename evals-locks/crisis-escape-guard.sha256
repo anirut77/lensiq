@@ -16,3 +16,7 @@ a917dec6ab026eb167b92d85685f99e821c22a38ec7845136bdad687266928b8  tests/e2e/cris
 525247ead4166bae201d421d1885b2e53e1bc4cb6e6effc8b5fbaff7b055bceb  tests/e2e/crisis-escape-guard-report.e2e.mjs  # repo file (r2-lock)
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): r2-lock, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
 87ea1e02e062450f2e0f4029e33bd530c0482f28d7d34d2273283db7cc0d9bb3  tests/e2e/crisis-escape-guard-field.e2e.mjs  # repo file (r2-lock)
+# locked 2026-11-17T17:34:34Z (print-report merge of main 56957344; coordinator decision, option ก, recorded for the owner, reversible). 1 new file in ~/LENSIQ-field/evals/crisis-escape-guard/; allow.json and allow.v2.json there stay unchanged.
+7583d36ce045e9ea3bd2c48ca144d1f180bc65a7e572db5e13d3a0567f9411f5  crisis-escape-guard-allow.v3.json
+# RE-LOCK: allow-list v2 -> v3 removes exactly 4 entries ("faceread frToast", "horoscope hsToast", "horoscope hsNoTime", "numbers nmToast"); nothing added or changed. Reason: entries' targets removed by share/print consolidation into fortune-share.js (per-page toast / card code gone on branch print-report); the guard's own test 3 requires stale entries be removed. Stricter. Ledger: docs/CRISIS-V3-RELOCKS.md.
+7583d36ce045e9ea3bd2c48ca144d1f180bc65a7e572db5e13d3a0567f9411f5  tests/unit/crisis-escape-guard-allow.json  # repo file (v3)
