@@ -85,6 +85,39 @@ and `tests/e2e/fortune-share-art-optin.e2e.mjs` (locked, `evals-locks/fortune-sh
   U+6236. The paper shows the right characters; copied text from such a PDF can carry these twins.
   Evidence: `~/LENSIQ-field/evals/print-report/relock-evidence-codepoints.log`, `ci-font-readback-evidence.log`.
 
+## Re-lock ledger
+
+### Decision 91 (2026-11-17, option ก): P5 of the photo test counts real network traffic
+
+Test: `tests/e2e/fortune-print-photo.e2e.mjs` (old locked bytes sha256 `07689f4d…` stay in
+`~/LENSIQ-field/evals/print-report/fortune-print-photo.e2e.mjs` and in git at `b16a06d0`; new bytes locked as
+`fortune-print-photo.e2e.v2.mjs`, sha256 `5078990a…`, `evals-locks/print-report.sha256`).
+
+- **Old rule.** P5 failed on every `Network.requestWillBeSent` event of the page from the print tap to the end of
+  `Page.printToPDF`, whatever the scheme: http, https and also `data:` and `blob:`. The printed figure is a `data:image/jpeg`
+  drawn in the page, so P5 failed on the figure itself (CI 44043483183, e2e shard 3/3; locally faceread and palm A4). WebSocket
+  traffic never produced that event, so ws / wss were not seen at all.
+- **New rule** (all must hold, faceread and palm, A4 and A5):
+  - P5a: no http / https / ws / wss request, no `navigator.sendBeacon` call and no form submission from the print tap to the
+    PDF. CDP request events plus hooks in the page (WebSocket and its `send`, `sendBeacon`, submit event, `form.submit()`,
+    fetch and XHR bodies).
+  - P5b: from page load to the PDF, no request of those kinds carries the image: no URL or body containing `data:image`, a
+    `blob:` URL or a 64-character piece of the printed figure's base64 data, and no binary body (Blob, File, ArrayBuffer,
+    typed array, FormData with a file) of 1 KB or more.
+  - P5c: the print view holds no remote image. Every image URL in the document under print media (img src / currentSrc /
+    srcset, `<source>`, SVG `<image>`, video poster, `input[type=image]`, computed background-image, list-style-image,
+    border-image-source, mask-image and content of each element and its ::before / ::after) is `data:` or `blob:`, or a
+    same-origin file that exists in the repo (a shipped static asset). The figure's image (the user's photo) must itself be
+    `data:` or `blob:`; a same-origin URL is not accepted for it.
+- **Why it is not weaker.** The only thing no longer counted is a `data:` / `blob:` URL, which is read inside the browser and
+  is not sent anywhere. Every http(s) request the old rule caught is still caught; ws / wss, beacons and form posts are newly
+  caught; the image check now covers the whole session, not only the print window; a remote image served from cache (no
+  request) is refused by P5c. Negative controls, one leak injected after the print tap each (beacon, fetch carrying the
+  image, 5 KB blob body, remote `<img>`, CSS `url()` to a non-existent same-origin path, WebSocket, form post, the photo from
+  a same-origin URL): every one fails P5; clean run passes
+  (`~/LENSIQ-field/evals/print-report/decision91-negative-control.log`).
+- Product unchanged: the report already keeps the photo on the device; the old check was wrong about `data:`.
+
 ## Known limits
 
 - Page numbers need CSS margin boxes (Chrome / Edge 131+). Safari / iPhone print has no page numbers.
