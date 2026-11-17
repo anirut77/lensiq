@@ -40,3 +40,9 @@
 33a054cb19c844a81b23d3e51a3bc7d874eb4ad689a4171946fbbd2362a2fb07  tests/unit/backend-pc-auto.test.js  # repo file  change 4 (A7 tightened: photo on auto refused); commit dbfcefa7; independent review docs/product-check/LIVE-SCAN-RESULTS.md section 5a
 cbc9430a501bb8e057d3791cd436f910ae058a65af470fbdfe3ce0a048c1dd9b  tests/e2e/product-check-live.e2e.mjs  # repo file  change 5 (checks 5-8 rewritten: no automatic sending, one tap); commit 93b5b6de; owner decisions 1 and 2 of 2026-11-12, LIVE-SCAN-RESULTS.md section 12
 # tests/unit/pc-live.test.js: NOT re-locked (no review or owner record of change 2; the locked original 691dd37a is not kept anywhere) - listed for the owner.
+# 2026-11-17T15:58:52Z owner decision 89 (2026-11-17), branch eval-guard-repo: tests/unit/pc-live.test.js at 7746decb is ACCEPTED AS THE BASELINE of the pc-live set.
+# No earlier locked copy exists to compare (691dd37a was never committed and is not kept anywhere). The bytes are unchanged since
+# commit dbb38f6f (git log -- tests/unit/pc-live.test.js). Field copy (new file): pc-live.test.7746decb.js; field lock (new file):
+# locked-2026-11-17-baseline.sha256 (locked.sha256 not modified). Ledger: docs/EVAL-LOCKS.md "live-scan baseline (owner decision 89)".
+7746decb50fdb69e9c9e7a95f2c750f697e74cd4defbabc360593af4ba9f3801  tests/unit/pc-live.test.js  # repo file  baseline accepted, owner decision 89 (2026-11-17); bytes unchanged since dbb38f6f
+7746decb50fdb69e9c9e7a95f2c750f697e74cd4defbabc360593af4ba9f3801  pc-live.test.7746decb.js
