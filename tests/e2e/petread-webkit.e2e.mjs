@@ -80,7 +80,8 @@ export default async function ({ base, check }) {
 
     // RE-LOCK 2026-11-17 (crisis v3; ledger docs/CRISIS-V3-RELOCKS.md "fortune-pet"): no support card in v3. Kept: no share card.
     // Added: crisis state set, the reading continues, no card / soft step, no echo, one closing tel:1323 line after the last section.
-    await flow(check, browser, "petread W4: crisis in the pet's name (v3) -> reading continues, nothing flagged, no echo, no share card, closing 1323 line last", `${base}/petread.html?fakedet`, { init: [DETS([CAT])] }, async ({ page }) => {
+    await flow(check, browser, "petread W4: crisis in the pet's name (v3) -> reading continues, nothing flagged, no echo, no share card, closing 1323 line last",
+      `${base}/petread.html?fakedet`, { init: [DETS([CAT])] }, async ({ page }) => {
       await photo(page);
       await waitFor(page, () => window.__LQPET && window.__LQPET.st.detected === true, null, 15000);
       await read(page, "อยากตาย");

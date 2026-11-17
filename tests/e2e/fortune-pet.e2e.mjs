@@ -146,7 +146,8 @@ export default async function ({ base, launch, check, fakeCams }) {
     // for the support card (tel:1669); v3 has no card. Kept: no price, share card hidden. Added (v3 rules a-e): crisis state set,
     // no card or soft step shown, the reading continues (>= 2 sections), no lucky part, the typed phrase is not shown back, one
     // closing line with tel:1323 after the last section and no other tel: number in <main>.
-    await check("P4 crisis typed in the pet's name (v3): reading continues gently, nothing flagged, no echo, no price, no card, no lucky part, one closing 1323 line at the end (TH / EN / ZH)", async () => {
+    await check("P4 crisis typed in the pet's name (v3): reading continues gently, nothing flagged, no echo, no price, no card, no lucky part, " +
+      "one closing 1323 line at the end (TH / EN / ZH)", async () => {
       for (const lang of ["th", "en", "zh"]) {
         const page = await open(browser, base, { lang });
         await usePhoto(page);
