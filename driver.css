@@ -42,7 +42,13 @@ body.on-trip #setup{opacity:.55;pointer-events:none}
 .cam-pick select{width:100%;min-width:0}
 .btn.stop{border-color:var(--danger);background:var(--danger);color:#fff;padding:10px 24px}
 .btn.stop:hover{background:#d93030}
-body:not(.on-trip) #stop,body:not(.on-trip) #recal{display:none}
+body:not(.on-trip) #stop,body:not(.on-trip) #recal,body:not(.on-trip) #camPowerLive{display:none}
+/* webkit-flake-fix: during a trip the setup card (with its camera button) takes no taps and driving mode covers it, so the
+   live panel carries its own camera-off button, always on screen in the top action row (privacy rule) */
+.btn.cam-off{min-height:44px}
+/* the setup card's own camera button takes no taps during a trip: hide it then (layout kept), so the only camera-off
+   button on screen is one that works */
+body.on-trip #camPower{visibility:hidden}
 
 .live-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px}
 .cam{position:relative;aspect-ratio:4/3;background:#000;border-radius:12px;overflow:hidden}

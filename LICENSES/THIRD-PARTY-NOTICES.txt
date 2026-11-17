@@ -42,6 +42,8 @@ B. MIT License (text in section E)
   - JSZip 3.10.1 (bundled in vendor/docx.js, used under its MIT option) — Copyright (c) 2009-2016 Stuart Knightley,
     David Duponchel, Franz Buchinger, António Afonso.
   - qrcode-generator 2.0.4 (vendor/qrcode-generator/qrcode.js) — Copyright (c) 2009 Kazuhiko Arase.
+  - astronomy-engine 2.1.19 (vendor/astronomy-engine/astronomy.browser.min.js, licence copy in that folder)
+    — Copyright (c) 2019-2025 Don Cross.
   - barcode-detector 3.2.3 (vendor/zxing/barcode-detector-ponyfill.js) and the zxing-wasm 3.1.6 glue compiled into
     vendor/zxing/zxing_reader.wasm — Copyright (c) 2023 Ze-Zheng Wu.
 

@@ -227,7 +227,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var x = e.target.closest(".dr-x"); if (x) { toggle(x.dataset.id); return; }
     var c = e.target.closest(".dr-cat"); if (c) { st.cat = c.dataset.c; document.querySelectorAll(".dr-cat").forEach(function (y) { y.setAttribute("aria-pressed", String(y === c)); }); renderList(); }
   });
-  $("#drSearch").addEventListener("input", renderList);
+  $("#drSearch").addEventListener("input", function () { if (supportFor(this.value, true)) return; renderList(); }); // crisis net first (hotfix 2026-11-16)
   renderList();
 
   var stats = FK.statsPanel({
@@ -237,7 +237,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   $("#drForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    // ตาข่ายความปลอดภัย: ข้อความเรื่องทำร้ายตัวเอง/ถูกทำร้าย → การ์ดช่วยเหลือ (1323, 1669, 191) แทนคำทำนาย
+    // ตาข่ายความปลอดภัย: ข้อความเรื่องทำร้ายตัวเอง/ถูกทำร้าย → การ์ดช่วยเหลือ (1323 และลิงก์ช่องทางให้คำปรึกษา) แทนคำทำนาย
     if (supportFor($("#drText").value)) return;
     st.detected = detectAll($("#drText").value);
     var ids = selected(); if (!ids.length) { $("#drMsg").textContent = T("dream.errNone", "เลือกหรือพิมพ์สิ่งที่เห็นในฝันอย่างน้อย 1 อย่าง"); return; }
@@ -250,13 +250,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       typing = เรียกระหว่างพิมพ์: แสดงการ์ดโดยไม่ย้ายโฟกัสออกจากช่องพิมพ์ */
   function supportFor(text, typing) {
     var box = document.getElementById("drSupport");
-    if (!FA || !FA.crisis || !FA.crisis.check(text)) { st.support = false; if (box) { box.hidden = true; box.textContent = ""; } return false; }
-    if (typing && st.support && box && !box.hidden) return true;
-    if (!box) { box = document.createElement("div"); box.id = "drSupport"; box.tabIndex = -1; $("#drForm").insertAdjacentElement("afterend", box); }
-    st.res = null; st.support = true; $("#drResult").hidden = true; $("#drMsg").textContent = "";
-    box.hidden = false; FA.crisis.render(box, FA.crisis.result({ lang: isZh() ? "zh" : isEn() ? "en" : "th" }));
-    if (!typing) box.focus();
-    return true;
+    var hit = !!(FA && FA.crisis && (FA.crisis.check(text) || FA.crisis.check(FA.crisis.fields()) || (FA.crisis.active && FA.crisis.active()))); // every field (hotfix 2026-11-16)
+    if (hit) FA.crisis.setActive(); // crisis v3 (owner decision 2026-11-17): the flag is set and the reading goes on (gentle; closing line with 1323 at its end)
+    st.support = false; if (box) { box.hidden = true; box.textContent = ""; } return false;
   }
   /** quiet = วาดใหม่ตอนเปลี่ยนภาษา (ไม่นับสถิติ ไม่ย้ายโฟกัส) */
   function show(ids, mood, time, quiet) {

@@ -1,8 +1,8 @@
 # Real-phone quality (stream B, 2026-11-13)
 
 What is checked automatically about phones, the numbers, and what still needs a real phone in a hand.
-Every number below states its source. **No number here is from a real phone**: they are synthetic, headless
-measurements (CI `ubuntu-latest` and a Mac). Field checks on real iPhones and Android phones are the owner checklists in
+Every number below states its source. **No number here is from a real phone** (the one real-device result is a pass/fail record in section 5, with no
+measured numbers): they are synthetic, headless measurements (CI `ubuntu-latest` and a Mac). Field checks on real iPhones and Android phones are the owner checklists in
 [`docs/owner-checklists/`](owner-checklists/README.md).
 
 Page load speed and weight on an emulated mid-range phone: [`docs/SPEED.md`](SPEED.md) (speed pass 2026-11-14).
@@ -34,6 +34,13 @@ really used the test camera. The quote form is covered by `tests/e2e/lead-form-w
 | Photo booth | one photo -> result sheet |
 
 Results: see section 4.
+
+**iPhone coverage (2026-11-16, owner order night 2026-11-15 item 5):** `tests/e2e/iphone-pages-webkit.e2e.mjs` (locked,
+`evals-locks/iphone-webkit.sha256`) opens every fortune page (19) and every camera page (30) on the same WebKit iPhone 13
+profile in TH / EN / ZH: no page or console error, no horizontal scroll, main controls at least 44 px and not covered, one
+reading per fortune page, the top 1323 tel link, camera refused -> a plain message in the page's language and nothing busy,
+and fake camera start -> stop (or pagehide) leaves no live track. What only a real iPhone can confirm:
+`docs/IPHONE-REAL-DEVICE-CHECKS.md`.
 
 Finding while building the tests: WebKit can give the document a new `navigator.mediaDevices` object after init scripts
 ran, so a test that patches `getUserMedia` silently tests WebKit's own mock camera instead. `phone-kit.mjs` pins the
@@ -123,3 +130,25 @@ file (`*webkit*.e2e.mjs`: the phone flows and the quote-form files) runs in shar
 `e2e-webkit-mac`); the other files keep their 3 balanced Linux shards (`--shard=i/4 --mac-last`, same split as before).
 The "every test file ran exactly once" job checks all 4 manifests. Same `--retry=1`, no skips. The Linux shards no
 longer install WebKit. macOS is also the closer WebKit port to iOS Safari.
+
+## 5. Real-device results (field, owner-run)
+
+Source for everything in this section: **field (real phones, run by the owner)**. These are pass / fail records from the
+owner's own phones, not measurements; no accuracy, distance or timing figures were recorded.
+
+**2026-11-17: new face capture on `faceread.html` (live since 2026-11-17 12:01, main `94115ae`).** Tester steps:
+`FACE-CAPTURE.md` section 9 (the same 10 steps as the owner's `TESTER-STEPS-TH.md`).
+
+| Device | OS / browser | Steps | Result |
+|---|---|---|---|
+| iPhone 16 Pro | iOS 27.0.1, Safari | 10 of 10 | all passed |
+| Samsung Galaxy S23 Ultra | Android, Chrome | 10 of 10 | all passed |
+
+The 10 steps: (1) normal distance 30-40 cm, oval turns green, auto-capture; (2) too near; (3) too far; (4) head turn and
+tilt; (5) light (backlight, dark room); (6) manual capture before green shows the "reading may be off" warning; (7) two
+faces: no auto-capture; (8) rear camera: consent tick per person, unticking stops the camera; (9) the same person at 30
+and 50 cm; (10) crisis card (1323) when the nickname field says a crisis phrase.
+
+Not recorded by the owner (so still unmeasured on real phones): the distance at which the oval turned green, seconds to
+green, how often green is never reached, false blur / glare on beauty-mode cameras, flicker at the far edge, and how close
+the 30 cm and 50 cm readings were. Only "passed" is on record. Source: owner test 2026-11-17.

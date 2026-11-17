@@ -737,6 +737,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return era === "be" ? T("horoscope.x.beToCe", "พ.ศ. {a} = ค.ศ. {b}", { a: y, b: ce }) : T("horoscope.x.ceToBe", "ค.ศ. {a} = พ.ศ. {b}", { a: y, b: ce + 543 });
   }
   function yearHint() {
+    if (crisisHit($("#hsYear").value)) crisisSet(); // crisis net before the digit filter (hotfix 2026-11-16); v3: the flag, then on as usual
     var raw = $("#hsYear").value.replace(/\D/g, ""), h = $("#hsYearHint");
     if ($("#hsYear").value !== raw) $("#hsYear").value = raw;
     if (raw.length < 4) { h.textContent = ""; return; }
@@ -770,7 +771,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#hsForm").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
     // crisis net first (review 2026-11-12): the raw name and every other field, before any calculation or reading
-    if (crisisOn() || crisisHit($("#hsName").value) || crisisHit(pageFields())) { $("#hsErr").textContent = ""; showCrisis(); return; }
+    if (crisisOn() || crisisHit($("#hsName").value) || crisisHit(pageFields())) crisisSet(); // crisis v3 (owner decision 2026-11-17): the flag is set and the reading goes on (gentle; closing line with 1323 at its end)
     // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step before ANY tab is drawn
     if (softHit()) { $("#hsErr").textContent = ""; showSoft(function () { $("#hsForm").requestSubmit(); }); return; }
     var err = $("#hsErr"); err.textContent = "";
@@ -972,7 +973,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       factCard(esc(T("horoscope.x.fBuddha", "พระประจำวันเกิด")), esc(d.buddha), "") + "</div>";
     html += '<div class="hs-grid2"><section class="hs-block"><h3>' + esc(T("horoscope.x.traits", "นิสัยเด่น")) + '</h3><ul class="pills">' + d.traits.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" +
       "</section>" +
-      '<section class="hs-block"><h3>' + esc(T("horoscope.x.luckyColors", "สีมงคลประจำตัว (ตามทักษาวันเกิด)")) + '</h3><ul class="advice">' + colorAdvice(P.thaiDay.planet) + "</ul></section></div>";
+      '<section class="hs-block" data-lq-remedy><h3>' + esc(T("horoscope.x.luckyColors", "สีมงคลประจำตัว (ตามทักษาวันเกิด)")) + '</h3><ul class="advice">' + colorAdvice(P.thaiDay.planet) + "</ul></section></div>";
     html += readingBlock("hsRd", T("fortune.common.readingDetail", "คำทำนายโดยละเอียด"), true);
     $("#pn-ov").innerHTML = html;
     bindReading("hsRd", function (topic, rng) { return HS.buildFacts(P, { topic: topic, nickname: $("#hsName").value, rng: rng }); }, true);
@@ -1075,7 +1076,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var upd = function () {
       var o = $("#hsNameOut");
       var nameNum = $("#hsNameNum").value;
-      if (crisisOn() || crisisHit(nameNum)) { crisisCard(o); return; } // crisis net first: the name-number field
+      if (crisisOn() || crisisHit(nameNum)) crisisSet(); // crisis net first: the name-number field (v3: the flag, then on)
       // round 3: only a plain name is broken into letters (nothing else typed is echoed back)
       if (nameNum.trim() && !plainName(nameNum)) { o.innerHTML = '<p class="muted">' + esc(T("horoscope.x.nameEmpty", "พิมพ์ชื่อเพื่อดูผลรวม")) + "</p>"; return; }
       var r = HS.thaiNameNumber(nameNum);
@@ -1094,7 +1095,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     html += '<div class="hs-grid2"><section class="hs-block"><h3>' + esc(T("horoscope.x.hTaksaToday", "ทักษาจร: วันนี้เป็นวัน \"{b}\" ของคุณ", { b: bh.th })) + "</h3><p>" + esc(bh.day) + '</p><p class="hs-small">' + esc(T("horoscope.x.taksaTodayHow", "เทียบดาววันนี้ ({a}) กับทักษาวันเกิดของคุณ ({b})", { a: DAYS[D.weekday].planet, b: DAYS[P.thaiDay.planet].planet })) + "</p></section>" +
       '<section class="hs-block"><h3>' + esc(T("horoscope.x.hBaziToday", "ปาจื้อวันนี้: ")) + D.pillar.gz + " " + elChip(D.todayEl) + "</h3><p><b>" + esc(rel.th) + "</b> — " + esc(rel.day) + "</p>" +
       (D.clash ? '<p class="note">' + esc(T("horoscope.x.clashToday", "วันนี้กิ่งวันชงกับปีนักษัตรของคุณ (ตามความเชื่อ) แนะนำให้ใจเย็น ค่อย ๆ ตัดสินใจ แล้ววันจะผ่านไปอย่างราบรื่น")) + "</p>" : "") + "</section></div>";
-    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hColorToday", "สีเสื้อวันนี้")) + '</h3><ul class="advice">' +
+    html += '<section class="hs-block" data-lq-remedy><h3>' + esc(T("horoscope.x.hColorToday", "สีเสื้อวันนี้")) + '</h3><ul class="advice">' +
       '<li>' + swatch(tk.sri) + "<span><b>" + esc(K.bhumi.sri.th) + "</b> — " + esc(T("horoscope.x.useSri", "โชคลาภ เสน่ห์")) + "</span></li><li>" + swatch(tk.dech) + "<span><b>" + esc(K.bhumi.dech.th) + "</b> — " + esc(T("horoscope.x.useDech", "การงาน ความน่าเชื่อถือ")) + "</span></li><li>" + swatch(tk.montri) + "<span><b>" + esc(K.bhumi.montri.th) + "</b> — " + esc(T("horoscope.x.useMontri", "ผู้ใหญ่เอ็นดู")) + "</span></li>" +
       '<li class="soft">' + swatch(tk.kalakini) + "<span><b>" + esc(T("horoscope.x.colAvoid", "ควรเลี่ยง")) + "</b> — " + esc(T("horoscope.x.avoidNote", "ตามความเชื่อ (ใส่ได้ถ้าจำเป็น ไม่ต้องกังวล)")) + "</span></li></ul>" +
       '<div class="facts small">' + factCard(esc(T("horoscope.x.fFavToday", "ธาตุเสริมวันนี้")), esc(elN(D.favEl)), esc(EL[D.favEl].boost || T("horoscope.x.favDefault", "ตามธาตุเสริมของดวง"))) + factCard(esc(T("horoscope.x.kLuckyDir", "ทิศมงคล")), esc(EL[D.favEl].dir), esc(T("horoscope.x.byFav", "ตามธาตุเสริม{e}", { e: EL[D.favEl].th }))) + factCard(esc(T("horoscope.x.fSriDir", "ทิศของดาวศรีวันนี้")), esc(DAYS[tk.sri].dir), esc(DAYS[tk.sri].planet)) + "</div></section>";
@@ -1108,7 +1109,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- ดวงคู่ ---------- */
   $("#hsPartner").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
-    if (crisisOn() || crisisHit($("#hsPName").value)) { lastPartner = null; crisisCard($("#hsCompat")); return; } // crisis net first: the partner name
+    if (crisisOn() || crisisHit($("#hsPName").value) || crisisHit(pageFields())) crisisSet(); // crisis net first: the partner name (v3: the flag, then on)
     if (!current) return;
     var err = $("#hsPErr"); err.textContent = "";
     var raw = $("#hsPYear").value.replace(/\D/g, ""); $("#hsPYear").value = raw;
@@ -1116,7 +1117,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (dt.err) { err.textContent = dt.err; return; }
     var s = settings();
     var P2 = HS.analyze(Object.assign({}, s, { y: dt.y, m: dt.m, d: dt.d, time: parseTime($("#hsPTime").value), name: "", lunarMonthOverride: null }));
-    lastPartner = { P2: P2, name: $("#hsPName").value.trim() };
+    lastPartner = { P2: P2, name: plainName($("#hsPName").value.trim()) }; // v3: a crisis partner name is never shown back
     renderCompat(current, P2, lastPartner.name);
   });
   function renderCompat(P1, P2, pname) {
@@ -1154,12 +1155,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
      (no tab with lucky colours, boosting elements or remedies) until the page is reloaded */
   function crisisOn() { var FA = window.FortuneAI; return !!(FA && FA.crisis && FA.crisis.active && FA.crisis.active()); }
   function pageFields() { var FA = window.FortuneAI; return FA && FA.crisis && FA.crisis.fields ? FA.crisis.fields() : ""; }
-  function crisisCard(box) {
-    var FA = window.FortuneAI; box.innerHTML = "";
-    if (FA && FA.crisis) FA.crisis.render(box, FA.crisis.result({ lang: (window.LQI18N && window.LQI18N.lang) || "th" }));
-  }
+  function crisisSet() { var FA = window.FortuneAI; if (FA && FA.crisis && FA.crisis.setActive) FA.crisis.setActive(); }
   /* round 3: names are shown only when they are plain names; the soft step comes before any tab */
-  function plainName(s) { var CRx = window.LQFortuneCrisis; return CRx ? CRx.plainName(s) : String(s || ""); }
+  // review round 2: without fortune-crisis.js the name is still never shown back when the crisis net (FortuneAI's check) fires
+  function plainName(s) {
+    var CRx = window.LQFortuneCrisis, F = window.FortuneAI, t = String(s || "");
+    return CRx ? CRx.plainName(s) : F && F.crisis && F.crisis.check(t) ? "" : t;
+  }
   function softHit() { var CRx = window.LQFortuneCrisis; return !!(CRx && CRx.pageSoft()); }
   function clearResult() {
     current = null; lastPartner = null;
@@ -1171,20 +1173,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var CRx = window.LQFortuneCrisis;
     clearResult();
     var box = document.createElement("div"); $("#pn-ov").appendChild(box);
-    CRx.renderSoft(box, (window.LQI18N && window.LQI18N.lang) || "th", function () { CRx.ack(); cont(); }, function () { showCrisis(); });
+    CRx.renderSoft(box, (window.LQI18N && window.LQI18N.lang) || "th", function () { CRx.ack(); cont(); }, function () { crisisSet(); CRx.ack(); cont(); });
     resultSec.hidden = false; selectTab(tabs[0], false, true);
     resultSec.scrollIntoView({ block: "start" });
-  }
-  function showCrisis() {
-    current = null; lastPartner = null;
-    ["pn-ov", "pn-th", "pn-bz", "pn-nu", "pn-td"].forEach(function (id) { document.getElementById(id).innerHTML = ""; });
-    $("#hsCompat").innerHTML = ""; $("#hsResSub").textContent = ""; $("#hsCardImg").hidden = true;
-    $("#hsTabs").hidden = true; $("#hsShare").hidden = true;
-    var box = document.createElement("div"); box.id = "hsRd"; $("#pn-ov").appendChild(box);
-    crisisCard(box);
-    resultSec.hidden = false; selectTab(tabs[0], false, true);
-    resultSec.scrollIntoView({ block: "start" });
-    box.setAttribute("tabindex", "-1"); box.focus({ preventScroll: true });
   }
   function show(P) {
     current = P; lastPartner = null;

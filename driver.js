@@ -460,10 +460,27 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   });
 
   // D-13: a visible camera on/off control — off stops every track (a running trip ends first: no camera, no monitoring)
+  // review of 6dfaff4: while cam.start() runs, cam.active is still false; the button then said "เปิดกล้อง" (a second tap restarted
+  // the camera) and "start trip" said the camera was off. camStarting covers that window.
+  let camStarting = false;
   function camPowerLabel() {
     const b = $("#camPower"); if (!b) return;
-    b.hidden = false; b.textContent = cam.active ? "ปิดกล้อง" : "เปิดกล้อง";
+    b.hidden = false; b.disabled = camStarting;
+    b.textContent = camStarting ? "กำลังเปิดกล้อง..." : cam.active ? "ปิดกล้อง" : "เปิดกล้อง";
   }
+  /** cam.start() with the "starting" state shown on the camera button */
+  async function camStart() {
+    camStarting = true; camPowerLabel();
+    try { return await cam.start(); } finally { camStarting = false; camPowerLabel(); }
+  }
+  // webkit-flake-fix: during a trip the setup card takes no taps and driving mode covers it, so the live panel has its own
+  // camera-off button (shown only during a trip, by driver.css): ends the trip and stops every track, like #camPower
+  const camOffLive = $("#camPowerLive");
+  if (camOffLive) camOffLive.onclick = () => {
+    if (trip) stopTrip();
+    cam.stop(); overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); camPowerLabel();
+    engine("ปิดกล้องแล้ว — กด เปิดกล้อง เพื่อเฝ้าระวังต่อ", "ok");
+  };
   $("#camPower").onclick = async () => {
     if (cam.active) {
       if (trip) stopTrip();
@@ -473,7 +490,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     }
     if (!ready) return init();
     engine("กำลังเปิดกล้อง...");
-    try { await cam.start(); engine("กล้องพร้อม", "ok"); } catch (err) { if (err.name !== "AbortError") { engine(`เปิดกล้องไม่สำเร็จ: ${cameraError(err) || err.message}`, "err"); addRetry(); } }
+    try { await camStart(); engine("กล้องพร้อม", "ok"); } catch (err) { if (err.name !== "AbortError") { engine(`เปิดกล้องไม่สำเร็จ: ${cameraError(err) || err.message}`, "err"); addRetry(); } }
     camPowerLabel();
   };
 
@@ -484,10 +501,13 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     b.onclick = init; $("#engine").append(b);
   }
 
+  // the iPhone steps (iOS 18+: page-menu icon, older: aA) and the Settings fallback, ending with the retry step; always the END of the
+  // message after " — " so i18n/*-rt-common.js translates it whole (template "{msg} — <hint>")
+  const IOS_CAM = "บน iPhone: แตะชื่อหน้าด้านบนสุด แล้วแตะปุ่มเมนูหน้าเว็บ (aA หรือไอคอนเมนู) > การตั้งค่าเว็บไซต์ > กล้อง > อนุญาต หรือไปที่ การตั้งค่า > แอป > Safari > กล้อง > อนุญาต แล้วกดลองใหม่";
   function cameraError(e) {
     const m = {
       Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
-      NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่เพื่ออนุญาต แล้วกดลองใหม่",
+      NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดไอคอนกล้องที่แถบที่อยู่เพื่ออนุญาต — " + IOS_CAM,
       SecurityError: "เบราว์เซอร์บล็อกการใช้กล้อง",
       NotFoundError: "ไม่พบกล้อง — ตรวจสอบการต่อกล้องหน้ารถ/กล้อง IR",
       NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ — ปิดโปรแกรมนั้นแล้วกดลองใหม่",
@@ -504,7 +524,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     try {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure"), { name: "Insecure" });
       // speed pass 2026-11-14: the face models are fetched only once the camera is open (nothing if it is refused)
-      const camP = cam.start();
+      const camP = camStart();
       const [, backend] = await Promise.all([
         camP,
         TEST ? Promise.resolve("test") : modelsReady ? LQDetect.tfBackend() : camP.then(() => LQDetect.tfBackend()).then(async b => {
@@ -519,7 +539,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     } catch (e) {
       console.warn(e);
       const m = cameraError(e);
-      engine(`ระบบไม่พร้อม: ${m || "โหลดโมเดลไม่สำเร็จ"} (${e.name}: ${e.message || "-"})`, "err");
+      engine(m ? `ระบบไม่พร้อม: ${m}` : `ระบบไม่พร้อม: โหลดโมเดลไม่สำเร็จ (${e.name}: ${e.message || "-"})`, "err"); // the code only for an unknown error
       addRetry();
       if (e.name === "Insecure" && !$("#engine a")) { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "btn ghost"; a.style.cssText = "margin-left:10px;padding:4px 14px"; a.textContent = "วิธีเปิดผ่าน https"; $("#engine").append(a); }
     }
@@ -622,6 +642,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     if (!driver) { tf.driver.focus(); return set("กรุณากรอกชื่อคนขับ", "err"); }
     if (!plate) { tf.plate.focus(); return set("กรุณากรอกทะเบียนรถ", "err"); }
     if (!ready) return set($("#engine").className.includes("err") ? "กล้องหรือโมเดลยังไม่พร้อม — ดูข้อความด้านบนแล้วกดลองใหม่" : "ระบบกำลังโหลด กรุณารอสักครู่", "err");
+    if (!cam.active && camStarting) return set("กำลังเปิดกล้อง รอสักครู่แล้วกดเริ่มเที่ยว", "warn");
     if (!cam.active) return set("กล้องปิดอยู่ — กด เปิดกล้อง ก่อนเริ่มเที่ยว", "err");
     set("", "");
     save("dr-lastDriver", driver); save("dr-lastPlate", plate);

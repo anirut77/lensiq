@@ -49,6 +49,8 @@ interface Window {
   LENSIQ_TRYON?: boolean;
   /** converter uses the local python server.py PDF engine only when true (off as shipped) */
   LENSIQ_CONVERT_SERVER?: boolean;
+  /** rule-6 switch (owner decision 2026-11-16): the top 1323 control in the sticky top bar (true) or scrolling away (false) */
+  LENSIQ_HELP_TOP_STICKY?: boolean;
   LENSIQ_LEADS_NOTICE?: boolean;
   /** fortune-crisis.js (loaded before fortune-ai.js) */
   LQFortuneCrisis?: any;
@@ -79,6 +81,14 @@ interface Window {
   /** lensiq-config.js (org-p1): true = account.html / admin.html may show organisation accounts lite (default false; also
    *  needs the Worker's ORG_ACCOUNTS = "on", reported as /v1/config org_accounts) */
   LENSIQ_ORG_ACCOUNTS?: boolean;
+  /** paid depth on the fortune pages (owner order 2026-11-15, design only): off unless exactly true */
+  LENSIQ_FORTUNE_PAID?: boolean;
+  /** goal-based plan under the paid switch (owner order 2026-11-15 (2), design only): off unless exactly true */
+  LENSIQ_FORTUNE_PLAN?: boolean;
+  /** "recommended sources" (outside seller links) under the paid switch (decision 46, design only): off unless exactly true */
+  LENSIQ_FORTUNE_SOURCES?: boolean;
+  /** recommended-source entries (admin-managed later; none ship) */
+  LQ_FORTUNE_SELLER_LINKS?: any[];
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
   LENSIQ_TURNSTILE_SITEKEY?: string;
   /** lensiq-config.js: public OAuth Client ID for "Sign in with Google" ("" = no member sign-in) */

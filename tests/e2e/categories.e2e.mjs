@@ -79,7 +79,9 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
         assert(JSON.stringify(r.tools.map(t => t.page)) === JSON.stringify(c.pages), c.slug + " tools " + r.tools.map(t => t.page));
         for (const t of r.tools) {
           const want = D.PAGES[t.page];
-          assert(t.st === want.st && t.tag.includes(want.st), `${t.page} status ${t.st}/${t.tag}`);
+          // owner order 2026-11-17 (remove สาธิต tag from fortune): noStatusTag categories show no status tag and no data-status
+          if (c.noStatusTag) assert(t.st === undefined && t.tag === "", `${t.page} must show no status tag: ${t.st}/${t.tag}`);
+          else assert(t.st === want.st && t.tag.includes(want.st), `${t.page} status ${t.st}/${t.tag}`);
           assert(t.src.length === want.claims.length && t.src.every((s, i) => s === D.CLAIMS[want.claims[i]].src + ":" + D.SOURCE[D.CLAIMS[want.claims[i]].src].th), `${t.page} sources ${t.src}`);
           // walk-through 2026-11-16 D-02: the attendance card's page link opens the PIN / QR time clock (exact href)
           assert(t.go === (t.page === "attendance" ? "attendance.html?mode=employee" : t.page + ".html"), t.page + " link " + t.go);

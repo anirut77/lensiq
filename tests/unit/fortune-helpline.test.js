@@ -133,7 +133,8 @@ test("EN / ZH wording: complete, no Thai, verified claims only; the ZH line says
   for (const k of KEYS) { assert.equal(val("en", k), en[k], "HELP.en = en-common " + k); assert.equal(val("zh", k), zh[k], "HELP.zh = zh-common " + k); }
   const topTh = block(read("dream.html"), "lqHelpTop").html;
   for (const k of TOP_KEYS) assert.ok(topTh.includes(val("th", k)), "static Thai = " + k);
-  assert.deepEqual(CR.HELP.tel, ["1323", "1669"]);
+  // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): one number on the help line
+  assert.deepEqual(CR.HELP.tel, ["1323"]);
 });
 
 test("support card: every number is verified; 'free' / '24 hours' only where the verified table says so", () => {
@@ -148,10 +149,12 @@ test("support card: every number is verified; 'free' / '24 hours' only where the
       if (/24\s*(?:ชั่วโมง|ชม|hours?|小时)/i.test(l.t)) assert.match(V[n].hours, /24 hours/, lang + " " + l.n + " claims 24 h: " + l.t);
     }
     const nums = s.lines.map(l => String(l.tel || l.n).replace(/\D/g, ""));
-    for (const n of ["1323", "1669", "191"]) assert.ok(nums.includes(n), lang + " card keeps " + n);
+    // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the card keeps 1323 only
+    assert.deepEqual(nums, ["1323"], lang + " card keeps 1323 only");
   }
-  // 1300's source lists domestic violence and children / young people, not "abuse" in general
-  assert.doesNotMatch(FA.crisis.result({ lang: "en" }).support.lines.find(l => l.n === "1300").t, /\babuse\b/);
+  // 1300's source lists domestic violence and children / young people, not "abuse" in general (1300 is now on counselling.html,
+  // drawn by the shared component: checked there)
+  assert.doesNotMatch(require(join(ROOT, "lensiq-helpline.js")).LINES["1300"].en.sub, /\babuse\b/);
 });
 
 /* ---------- minimal DOM (enough for renderSections / renderSupport) ---------- */
@@ -203,7 +206,9 @@ test("a normal reading carries no help line under it (one place per page); a cal
   const cb = calm.createElement("div");
   FA.renderSections(cb, READING, { aiBadge: false });
   const ch = ser(cb);
-  assert.match(ch, /class="lq-helpline[^"]*"[\s\S]*tel:1323[\s\S]*tel:1669/, "calm page: help line under the reading");
+  // RE-LOCK 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): the calm line is 1323 and the counselling link, no other number
+  assert.match(ch, /class="lq-helpline[^"]*"[\s\S]*tel:1323[\s\S]*counselling\.html/, "calm page: help line under the reading");
+  assert.doesNotMatch(ch, /tel:(?!1323)/, "calm page: no other number");
   assert.ok(ch.lastIndexOf("lq-helpline") > ch.lastIndexOf("fa-section"), "calm page: help line comes after the reading");
 });
 
@@ -224,14 +229,16 @@ test("crisis state: after the support card, the page shows no reading, plan, rem
       const box = doc.createElement("div");
       FA.renderSections(box, Object.assign({}, READING, { lang }), { aiBadge: false });
       const h = ser(box), t = box.textContent;
-      assert.match(h, /fa-support/, lang + ": support card instead");
-      assert.doesNotMatch(h, /fa-section|fa-plan|fa-summary/, lang + ": no reading / plan");
-      assert.ok(!/วิธีปรับ|ข้อแนะนำทั่วไปคือ|เสื้อสีขาว|A simple adjustment|调整的方法/.test(t), lang + ": no remedy text");
-      assert.match(t, /1323/, lang + ": card keeps 1323");
+      // RE-LOCK 2026-11-17 (owner decision 2026-11-17 crisis v3): the reading is drawn (no card), without its plan (remedies), with the
+      // closing line and 1323 after the last section; no hook runs (below). The overview paragraph of this fixture is reading text.
+      assert.doesNotMatch(h, /fa-support/, lang + ": no card");
+      assert.match(h, /fa-section/, lang + ": the reading goes on"); assert.doesNotMatch(h, /fa-plan/, lang + ": no plan");
+      assert.ok(!/วิธีปรับ|เสื้อสีขาว|A simple adjustment|调整的方法/.test(t), lang + ": no remedy text");
+      assert.match(t, /1323/, lang + ": closing line keeps 1323"); assert.ok(h.lastIndexOf("lq-helpline") > h.lastIndexOf("fa-section"), lang + ": closing line at the end");
     }
     assert.equal(calls, 0, "no hook (merit / paid / straight) runs in the crisis state");
     const html = FA.toHTML(READING, { doc });
-    assert.match(html, /fa-support/); assert.doesNotMatch(html, /fa-plan|fa-section/);
+    assert.doesNotMatch(html, /fa-support/); assert.match(html, /fa-section/); // RE-LOCK 2026-11-17 crisis v3: the reading, no card
   } finally { off(); }
   // page-level: another document is not in the crisis state
   const other = fakeDoc(), b2 = other.createElement("div");

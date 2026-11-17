@@ -3,7 +3,7 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
-    "fortune.hub.lead": "汇集泰国、中国和西方最受欢迎的占卜方式 — 面相、手相、生辰八字、塔罗牌、求签、易经、十二生肖、西洋星座、解梦、风水和吉祥数字。结果可立即生成卡片分享到社交平台，帮助展位吸引人流、带动品牌话题。",
+    "fortune.hub.lead": "选择泰式、中式或西方占卜，几分钟即可获得解读与建议。",
     "fortune.hub.guideLead": "不知道从哪里开始？按目标来选。每种占卜在解读中都还可以再选择爱情、事业或财运主题。",
     "fortune.hub.goal.love": "💞 爱情",
     "fortune.hub.goal.work": "💼 事业",
@@ -13,6 +13,8 @@
     "fortune.hub.s.zodiacPair": "· 快速配对，不需要生日",
     "fortune.hub.g.horoPair": "生日合盘",
     "fortune.hub.s.horoPair": "· 最详细",
+    "fortune.hub.g.compat": "两人或小组合盘",
+    "fortune.hub.s.compat": "· 对照泰、中、印、西四种传统",
     "fortune.hub.g.tarotLove": "塔罗牌爱情主题",
     "fortune.hub.g.iching": "易经",
     "fortune.hub.s.iching": "· 为正在做的决定提问",

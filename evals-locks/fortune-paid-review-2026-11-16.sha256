@@ -1,0 +1,5 @@
+# imported 2026-11-16 from ~/LENSIQ-field/evals/fortune-paid-review-2026-11-16/locked.sha256 (the independent reviewer's set; copied as is: tools/eval-locks-import.mjs stopped on an unrelated missing file in pc-f/review). Not used for tuning.
+7062cda869f539f219b324f7df6975518e5c450535225730f37789e00400f82e  set.json
+89e7dacdab6d9b70325ff55701f2ddbaab2afb7080cb11947188a9ad56197f43  detect.json
+7986e2124093ffaf8e1ef65114cc67bd91fcc0b2e50ba46b7f5244e909cd8f2e  README.md
+e3709ab24daaa1c49a0b039ff763bae572f8316efe7237f67673939c5612996d  detect-v2.json

@@ -7,7 +7,7 @@ export const FORTUNE_DOMAINS = ["face", "palm", "horoscope", "tarot", "siamsee",
  *  lensiq-analytics.js carries the same lists (drift test in tests/unit/backend-site.test.js). */
 export const ANALYTICS_PAGES = [
   "about", "account", "afterhours", "astro", "attendance", "bays", "bazi", "booth", "camera-notice", "cameras", "case-review", "cat-education",
-  "cat-fortune", "cat-health", "cat-hr", "cat-marketing", "cat-security", "cat-studio", "checkout", "converter", "creative", "creative-suite",
+  "cat-fortune", "cat-health", "cat-hr", "cat-marketing", "cat-security", "cat-studio", "checkout", "compat", "converter", "creative", "creative-suite",
   "crowd", "customers", "dream", "driver", "exam", "exam-dashboard", "exam-hall", "exam-lab", "faceread", "fengshui", "fortune", "gate",
   "gate-notice", "help", "horoscope", "hr", "iching", "index", "insights", "interview", "lek7", "lifegraph", "luckycolor", "medicine", "neuro", "nutrition", "tryon",
   "numbers", "omr", "palm", "parking", "petread", "photobooth", "planner", "pricing", "privacy", "qc", "queue", "report", "retail", "signage", "solutions",
@@ -17,7 +17,7 @@ export const ANALYTICS_PAGES = [
 /** Feature slugs the analytics accepts; anything else is rejected (the client sends "other"). Add new ones here AND in
  *  lensiq-analytics.js (or via the ANALYTICS_FEATURES var, comma separated) when a page starts sending them. */
 export const ANALYTICS_FEATURES = [
-  "fortune.reading", "fortune.ai", "fortune.local",
+  "fortune.reading", "fortune.ai", "fortune.local", "fortune.paid.overview", "fortune.paid.open", "fortune.paid.tap", "fortune.paid.paid",
   "studio.render", "photobooth.capture", "photobooth.print", "booth.count", "store.count", "signage.play",
   "camera.start", "camera.denied", "attendance.checkin", "customers.lookup", "checkout.scan", "qc.inspect",
   "driver.alert", "neuro.session", "insights.view", "insights.export", "converter.convert", "creative.analyse",

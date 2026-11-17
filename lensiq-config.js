@@ -1,25 +1,20 @@
-/* lensiq-config.js — ค่าตั้งของเว็บ LENSIQ (แก้ได้โดยไม่ต้องแตะโค้ดหน้าอื่น)
- *
- * LENSIQ_API_BASE: ที่อยู่เซิร์ฟเวอร์ API สำหรับฟีเจอร์ AI (ดูดวง AI), สถิติการใช้งาน และการชำระเงิน
- *   ""  (ค่าเริ่มต้น) = ไม่มี backend แยก: ดูดวง AI ใช้เซิร์ฟเวอร์เดียวกับหน้าเว็บ (server.py เช่น http://localhost:8000)
- *       ถ้ามี ไม่เช่นนั้นใช้ตัวเรียบเรียงในเครื่อง — ไม่โหลดสถิติ ไม่ส่งข้อมูลใดออกไป ทุกหน้าใช้งานแบบออฟไลน์ได้เหมือนเดิม
- *   ตัวอย่าง Cloudflare Worker (backend/, ดู docs/BACKEND.md):
- *     window.LENSIQ_API_BASE = window.LENSIQ_API_BASE || "https://api.example.com";
- *   แล้วรัน node tools/csp-meta.mjs เพื่อเพิ่ม origin นี้ใน connect-src ของทุกหน้า และตั้ง ALLOWED_ORIGINS บน Worker
- *   (server.py แบบเดิม: ตั้ง LENSIQ_ALLOW_ORIGIN=https://<ชื่อผู้ใช้>.github.io บนเซิร์ฟเวอร์ — ดู AI-SETUP.md)
- */
+/* lensiq-config.js — LENSIQ site settings (change here, not in page code).
+ * LENSIQ_API_BASE: API server for AI readings, usage statistics and payments. "" (default) = no separate backend: AI readings use
+ *   the page's own server (server.py) if any, else the on-device composer; no statistics, nothing sent, every page works offline.
+ *   Cloudflare Worker (backend/, docs/BACKEND.md): set it to "https://api.example.com" (keeping a value set earlier),
+ *   then run node tools/csp-meta.mjs (adds the origin to connect-src) and set ALLOWED_ORIGINS on the Worker
+ *   (old server.py: LENSIQ_ALLOW_ORIGIN=https://<user>.github.io on the server, AI-SETUP.md) */
 window.LENSIQ_API_BASE = window.LENSIQ_API_BASE || "";
 
-/* LENSIQ_TURNSTILE_SITEKEY: Cloudflare Turnstile site key สำหรับผู้ช่วยเขียน AI บน Worker (ใช้คู่กับ secret TURNSTILE_SECRET)
- *   ""  (ค่าเริ่มต้น) = ไม่ใช้ — **ต้องตั้งก่อนเปิดใช้งานจริง** (กันบอทใช้โควตา AI) แล้วรัน node tools/csp-meta.mjs
- *   (เพิ่ม https://challenges.cloudflare.com ใน CSP เฉพาะเมื่อตั้งค่านี้) */
+/* LENSIQ_TURNSTILE_SITEKEY: Cloudflare Turnstile site key for the AI writing assistant on the Worker (pairs with the secret
+ *   TURNSTILE_SECRET). "" (default) = off; **set it before going live** (keeps bots off the AI quota), then run node tools/csp-meta.mjs
+ *   (adds https://challenges.cloudflare.com to the CSP only when set) */
 window.LENSIQ_TURNSTILE_SITEKEY = window.LENSIQ_TURNSTILE_SITEKEY || "";
 
-/* LENSIQ_GOOGLE_CLIENT_ID: OAuth 2.0 Client ID (ประเภท Web application) จาก Google Cloud Console สำหรับ "เข้าสู่ระบบด้วย Google"
- *   ของสมาชิก — เป็นค่าสาธารณะ (ไม่ใช่ความลับ) ต้องตรงกับ GOOGLE_CLIENT_ID ใน backend/wrangler.toml
- *   ""  (ค่าเริ่มต้น) = ไม่มีระบบสมาชิก: ไม่แสดงปุ่มเข้าสู่ระบบ ไม่จำกัดคำทำนาย ทุกหน้าทำงานเหมือนเดิม
- *   ตั้งค่าแล้วรัน node tools/csp-meta.mjs (เพิ่ม https://accounts.google.com/gsi/ ใน CSP เฉพาะเมื่อตั้งค่านี้)
- *   สคริปต์ของ Google โหลดเฉพาะเมื่อผู้ใช้กดปุ่มเข้าสู่ระบบเท่านั้น — ดู docs/BACKEND.md "Member sign-in" */
+/* LENSIQ_GOOGLE_CLIENT_ID: OAuth 2.0 Web client ID from Google Cloud Console for member "Sign in with Google"; public, not a
+ *   secret; must match GOOGLE_CLIENT_ID in backend/wrangler.toml. "" (default) = no membership: no sign-in button, no reading limit.
+ *   After setting it run node tools/csp-meta.mjs (adds https://accounts.google.com/gsi/ only then). Google's script loads only when
+ *   the visitor taps sign-in (docs/BACKEND.md "Member sign-in"). */
 window.LENSIQ_GOOGLE_CLIENT_ID = window.LENSIQ_GOOGLE_CLIENT_ID || "";
 
 /* LENSIQ_ANALYTICS: เมื่อตั้ง LENSIQ_API_BASE แล้ว จะโหลด lensiq-api.js + lensiq-analytics.js (ถามความยินยอมก่อนเสมอ,
@@ -32,16 +27,16 @@ window.LENSIQ_ANALYTICS = window.LENSIQ_ANALYTICS !== false;
  *   (ตั้ง true อย่างเดียวไม่มีผล ถ้าเซิร์ฟเวอร์ไม่ตอบว่าเปิด) และไม่แสดงเลยระหว่างสถานะวิกฤตของหน้าดูดวง (เฉพาะเซสชันเบราว์เซอร์, L59) */
 window.LENSIQ_MERIT_INTEREST_FORM = window.LENSIQ_MERIT_INTEREST_FORM === true;
 
-/* LENSIQ_ORG_ACCOUNTS (org-p1, 2026-11-14): บัญชีองค์กรแบบย่อ (ชื่อองค์กร ข้อมูลออกเอกสาร ผู้ดูแล/เจ้าหน้าที่ ลิงก์เชิญ ส่งออกข้อมูล)
- *   ในหน้าบัญชี (account-org.js) และแท็บ "บัญชีองค์กร" ในหลังบ้าน
- *   false (ค่าเริ่มต้น) = ไม่แสดงอะไรเลยและไม่ส่งคำขอเรื่ององค์กรใด ๆ · ห้ามเปิดจนกว่าเจ้าของอนุมัติ
- *   ต้องเปิดคู่กับ ORG_ACCOUNTS = "on" บน Worker (ตั้ง true อย่างเดียวไม่มีผล ถ้าเซิร์ฟเวอร์ไม่ตอบว่าเปิด) · ต้องเป็น true จริงเท่านั้น */
+/* LENSIQ_ORG_ACCOUNTS (org-p1, 2026-11-14): short organisation accounts (name, billing details, admins / staff, invite links,
+ *   data export) on the account page (account-org.js) and the "organisation" tab of the back office. false (default) = nothing
+ *   shown, no organisation request sent; do not turn on before the owner approves. Needs ORG_ACCOUNTS = "on" on the Worker too
+ *   (true alone does nothing if the server does not say it is on); only a real true counts. */
 window.LENSIQ_ORG_ACCOUNTS = window.LENSIQ_ORG_ACCOUNTS === true;
 
-/* LENSIQ_FACEPARSE: สตูดิโอแต่งชุดใช้ BiSeNet (vendor/models/faceparse-bisenet-r18-q8.onnx) แทนโมเดลค่าเริ่มต้น
- *   false (ค่าเริ่มต้น) = MediaPipe Selfie Multiclass (Apache-2.0, vendor/models/selfie-multiclass-256-f16.onnx — ใช้เชิงพาณิชย์ได้)
- *   true = BiSeNet: น้ำหนักฝึกจาก CelebAMask-HQ (ใช้ได้เฉพาะงานวิจัย/ไม่ใช่เชิงพาณิชย์) ไฟล์ไม่อยู่ใน git
- *          เปิดเฉพาะเมื่อมีไฟล์โมเดลและสิทธิ์การใช้งานแล้ว (ดู vendor/models/FACEPARSE-LICENSE.txt) หรือทดสอบด้วย ?faceparse=1 */
+/* LENSIQ_FACEPARSE: the outfit studio uses BiSeNet (vendor/models/faceparse-bisenet-r18-q8.onnx) instead of the default model.
+ *   false (default) = MediaPipe Selfie Multiclass (Apache-2.0, commercial use allowed). true = BiSeNet, trained on CelebAMask-HQ
+ *   (research / non-commercial only; file not in git): only with the model file and a licence (vendor/models/FACEPARSE-LICENSE.txt)
+ *   or for testing with ?faceparse=1 */
 window.LENSIQ_FACEPARSE = window.LENSIQ_FACEPARSE === true;
 
 /* LENSIQ_AGE_GENDER: ตัวเลือก "ใช้อายุ/เพศ" ของป้ายโฆษณา (signage.html) — โมเดล face-api.js ageGenderNet ฝึกจาก UTKFace
@@ -55,6 +50,11 @@ window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
  *   ได้ถ้อยคำนุ่มนวล · ระหว่างที่ตาข่ายวิกฤต ขั้นถามความรู้สึก หรือการ์ดช่วยเหลือทำงาน ไม่มีโหมดตรงและไม่มีเคล็ด/ของมงคล
  *   false = ซ่อนตัวเลือกทั้งหมด (tests/unit/fortune-honest.test.js ตรวจค่าที่ส่งมอบ) */
 window.LENSIQ_FORTUNE_STRAIGHT = false;
+
+/* fortune-paid switches: off */
+window.LENSIQ_FORTUNE_PAID = window.LENSIQ_FORTUNE_PAID === true;
+window.LENSIQ_FORTUNE_PLAN = window.LENSIQ_FORTUNE_PLAN === true;
+window.LENSIQ_FORTUNE_SOURCES = window.LENSIQ_FORTUNE_SOURCES === true;
 
 /* LENSIQ_LOOK_SALON (owner decision 2026-11-14, ข้อแนะนำการแต่งลุค ตัวเลือก ก): "โหมดร้าน" ของข้อแนะนำการแต่งลุค (แสดงชื่อแบบจาก
  *   แคตตาล็อกที่ร้านพิมพ์เอง) ปิดตายจนกว่าจะมีขั้นตอนให้คน (เจ้าของหรือ admin) อนุมัติข้อความที่ร้านพิมพ์ก่อนแสดง
@@ -182,13 +182,13 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
   var load = function (file, global) {
     if (/** @type {any} */ (window)[global] || document.querySelector('script[src*="' + file + '"]')) return;
     var s = document.createElement("script");
-    s.src = dir + file + "?v=3";
+    s.src = dir + file + "?v=4";
     s.async = false; // keep order: api before analytics
     (document.head || document.documentElement).appendChild(s);
   };
   load("lensiq-api.js", "LQApi");
-  // the back office (admin.html) and the pricing draft never load analytics
-  if (window.LENSIQ_ANALYTICS !== false && !/\/(admin|pricing)\.html$/.test(location.pathname)) load("lensiq-analytics.js", "LQAnalytics");
+  // not on admin, pricing or counselling (77 ก)
+  if (window.LENSIQ_ANALYTICS !== false && !/\/(admin|pricing|counselling)\.html$/.test(location.pathname)) load("lensiq-analytics.js", "LQAnalytics");
   // member sign-in (account chip in the header, light reading for guests) — inert unless the Worker reports
   // membership and LENSIQ_GOOGLE_CLIENT_ID is set; never on the back office
   // LENSIQ_MEMBER = false (set by a deploy config for a page that needs the API but no sign-in) skips it
@@ -197,9 +197,9 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
   if (/(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(location.pathname)) load("lensiq-fortune-hook.js", "__lqFortuneHook");
 })();
 
-/* LENSIQ_TRYON: สวิตช์ฝั่งหน้าเว็บของบริการลองชุดด้วย AI (photobooth.js) ตรงกับ TRYON = "off" ของ backend (wrangler.toml)
- *   ปิด (ค่าเริ่มต้น): ไม่ถาม /api/tryon/status เลย (ไม่มี 404 ในคอนโซล) · ตั้ง true เฉพาะเมื่อเซิร์ฟเวอร์ลองชุดเปิดใช้งานจริงแล้ว */
+/* LENSIQ_TRYON: AI try-on (photobooth.js), matches backend TRYON; off = no /api/tryon/status call */
 window.LENSIQ_TRYON = window.LENSIQ_TRYON === true;
-/* LENSIQ_CONVERT_SERVER: ตัวแปลง PDF -> DOCX บนเซิร์ฟเวอร์ (converter.js) มีเฉพาะเมื่อเปิดเว็บด้วย server.py ในเครื่อง
- *   ปิด (ค่าเริ่มต้น, เว็บนิ่ง): ไม่เรียก /api/convert และ /api/convert/status แปลงในเบราว์เซอร์แทน · ตั้ง true เมื่อเสิร์ฟด้วย server.py */
+/* LENSIQ_CONVERT_SERVER: PDF -> DOCX via server.py only; off = convert in the browser */
 window.LENSIQ_CONVERT_SERVER = window.LENSIQ_CONVERT_SERVER === true;
+/* LENSIQ_HELP_TOP_STICKY (75 ก): 1323 icon in the sticky bar; false = in the page */
+window.LENSIQ_HELP_TOP_STICKY = window.LENSIQ_HELP_TOP_STICKY !== false;

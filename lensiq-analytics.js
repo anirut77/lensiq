@@ -36,13 +36,18 @@
   var ALLOW = {
     page: [
       "about", "account", "afterhours", "astro", "attendance", "bays", "bazi", "booth", "camera-notice", "cameras", "case-review", "cat-education",
-      "cat-fortune", "cat-health", "cat-hr", "cat-marketing", "cat-security", "cat-studio", "checkout", "converter", "creative", "creative-suite",
+      "cat-fortune", "cat-health", "cat-hr", "cat-marketing", "cat-security", "cat-studio", "checkout", "compat", "converter", "creative", "creative-suite",
       "crowd", "customers", "dream", "driver", "exam", "exam-dashboard", "exam-hall", "exam-lab", "faceread", "fengshui", "fortune", "gate",
       "gate-notice", "help", "horoscope", "hr", "iching", "index", "insights", "interview", "lek7", "lifegraph", "luckycolor", "medicine", "neuro", "nutrition", "tryon",
       "numbers", "omr", "palm", "parking", "petread", "photobooth", "planner", "pricing", "privacy", "qc", "queue", "report", "retail", "signage", "solutions",
       "store", "studio", "tables", "taksa", "tarot", "teamface", "terms", "village", "zodiac", "other"
     ],
-    feature: ["fortune.reading", "fortune.ai", "fortune.local", "studio.render", "photobooth.capture", "photobooth.print", "booth.count", "store.count", "signage.play", "camera.start", "camera.denied", "attendance.checkin", "customers.lookup", "checkout.scan", "qc.inspect", "driver.alert", "neuro.session", "insights.view", "insights.export", "converter.convert", "creative.analyse", "creative.compare", "interview.session", "teamface.card", "pricing.view", "palm", "faceread", "tarot", "horoscope", "other"],
+    feature: ["fortune.reading", "fortune.ai", "fortune.local",
+      "fortune.paid.overview", "fortune.paid.open", "fortune.paid.tap", "fortune.paid.paid",
+      "studio.render", "photobooth.capture", "photobooth.print", "booth.count", "store.count", "signage.play", "camera.start", "camera.denied",
+      "attendance.checkin", "customers.lookup", "checkout.scan", "qc.inspect", "driver.alert", "neuro.session", "insights.view", "insights.export",
+      "converter.convert", "creative.analyse", "creative.compare", "interview.session", "teamface.card", "pricing.view", "palm", "faceread", "tarot",
+      "horoscope", "other"],
     err: ["Error", "TypeError", "RangeError", "ReferenceError", "SyntaxError", "URIError", "EvalError", "AggregateError", "UnhandledRejection", "AbortError", "NotAllowedError", "NotFoundError", "NotReadableError", "OverconstrainedError", "SecurityError", "QuotaExceededError", "NetworkError", "TimeoutError", "InvalidStateError", "DataError", "OperationError", "UnknownError", "EncodingError", "NotSupportedError", "WebGLContextLost", "ModelLoadError", "CameraError", "other"]
   };
   var TEXT = {
@@ -124,7 +129,7 @@
   function flush(useBeacon) {
     if (timer) { clearTimeout(timer); timer = null; }
     var a = api();
-    if (!queue.length || !a || !active()) { queue = []; return; }
+    if (!queue.length || !a || !active() || crisisView()) { queue = []; return; }
     var events = queue.splice(0, 50);
     var body = { v: 1, consent: true, cv: CONSENT_VERSION, events: events };
     if (useBeacon) a.beacon("/v1/events", body);
@@ -134,7 +139,7 @@
 
   /** @param {string} name @param {Record<string, any>} [fields] */
   function track(name, fields) {
-    if (!active() || !NAMES.test(String(name))) return false;
+    if (!active() || crisisView() || !NAMES.test(String(name))) { if (crisisView()) queue = []; return false; }
     /** @type {Record<string, string>} */
     var e = { n: String(name), sid: sid(), lang: lang(), device: device() };
     var f = fields || {};
@@ -181,6 +186,12 @@
     var h = doc && doc.documentElement;
     if (h && h.hasAttribute && (h.hasAttribute("data-lq-calm") || h.hasAttribute("data-lq-crisis"))) return true;
     return sget(SS, "lq-fortune-calm") === "1";
+  }
+  // decision 77 ก (2026-11-16): never count the counselling page or a crisis-state view (no record of who opens crisis help)
+  function crisisView() {
+    var p = (String((root.location && root.location.pathname) || "").split("/").pop() || "").replace(/\.html?$/i, "").toLowerCase();
+    if (/^counsel/.test(p) || calmOrCrisis()) return true;
+    try { return !!(doc && doc.querySelector && doc.querySelector(".fa-support")); } catch (e) { return false; }
   }
   function showBanner() {
     if (!doc || !doc.body || !api() || dnt() || calmOrCrisis()) return null;
