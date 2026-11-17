@@ -5,6 +5,7 @@
 /** shared platform modules, as bare globals (each also sets window.<name>) */
 declare var LQCam: typeof import("../lensiq-camera.js");
 declare var LQHint: typeof import("../lensiq-capture-hint.js");
+declare var LQFaceCap: typeof import("../lensiq-facecap.js");
 declare var LQDetect: typeof import("../lensiq-detect.js");
 declare var LQTrack: typeof import("../lensiq-track.js");
 declare var LQVault: typeof import("../lensiq-facevault.js");
@@ -20,6 +21,7 @@ declare var BarcodeDetector: any;
 interface Window {
   LQCam?: typeof import("../lensiq-camera.js");
   LQHint?: typeof import("../lensiq-capture-hint.js");
+  LQFaceCap?: typeof import("../lensiq-facecap.js");
   LQDetect?: typeof import("../lensiq-detect.js");
   LQTrack?: typeof import("../lensiq-track.js");
   /** Safari < 14.1 */

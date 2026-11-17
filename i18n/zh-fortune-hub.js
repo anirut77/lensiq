@@ -13,6 +13,8 @@
     "fortune.hub.s.zodiacPair": "· 快速配对，不需要生日",
     "fortune.hub.g.horoPair": "生日合盘",
     "fortune.hub.s.horoPair": "· 最详细",
+    "fortune.hub.g.compat": "两人或小组合盘",
+    "fortune.hub.s.compat": "· 对照泰、中、印、西四种传统",
     "fortune.hub.g.tarotLove": "塔罗牌爱情主题",
     "fortune.hub.g.iching": "易经",
     "fortune.hub.s.iching": "· 为正在做的决定提问",
