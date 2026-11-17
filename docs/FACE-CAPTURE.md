@@ -170,6 +170,11 @@ local runs). pixelChecks about 2.8 ms per call in Node on a 16:9 picture (was 14
 
 ## 9. Testers' checklist (real phones; everything above is synthetic)
 
+**Real-device result (field, owner-run, 2026-11-17):** all 10 steps below passed on an iPhone 16 Pro (iOS 27.0.1, Safari)
+and on a Samsung Galaxy S23 Ultra (Chrome), on the live page (main `94115ae`, live 12:01). Pass / fail only: the owner did
+not record green distance, time to green, blur / glare false alarms, far-edge flicker or the 30 vs 50 cm difference, so
+those stay open for a later tester. Source: owner test 2026-11-17; log in `docs/PHONE-QUALITY.md` section 5.
+
 1. At a normal bent arm (30-40 cm) the oval turns green without stretching the arm. Note the phone model and the distance
    where it turns green.
 2. How often green is never reached. Head turn is strict: the "face forward" limit (yaw ratio 0.14, the reading's own rule)
