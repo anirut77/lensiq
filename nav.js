@@ -406,7 +406,9 @@
     var JOIN = ["แดชบอร์ด", "สติ๊กเกอร์", "โหงวเฮ้ง", "ฮวงจุ้ย", "อัจฉริยะ", "คีออสก์", "เซียมซี", "ทาโรต์", "นักษัตร", "อี้จิง", "เว็บแคม", "แท็บเล็ต", "ดาวน์โหลด", "ออฟไลน์", "ออนไลน์", "เบราว์เซอร์", "แพ็กเกจ", "แบรนด์", "โปรโมชัน", "คอนเทนต์", "อีเวนต์", "สตูดิโอ", "ฟีเจอร์", "เซิร์ฟเวอร์", "ฮาร์ดแวร์", "ซอฟต์แวร์", "แอปพลิเคชัน", "โซเชียล", "หน้าตา"];
     var LOAN = new RegExp(JOIN.join("|"), "g");
     var SEL = "h1,h2,h3,h4,h5,.nav-sub b,.nav-sub small,.mega-k,.mega-d,.lq-crumbs li,.nav-link,.nav-cta,.btn,button,label,.chip,.tag,.kicker,.eyebrow,.pill,summary,th,legend,.lead,.sub,.hint,figcaption,.lq-wb";
-    var SKIP = "svg,canvas,script,style,textarea,select,option,pre,code,[contenteditable],.lq-run,.lq-t";
+    var CR = ".lq-helpline,[data-lq-call],#lqHelpTop,.lq-help-dlg,.lq-crisis-slot,.fa-support,.fa-soft,.lq-call-btn";
+    var SKIP = "svg,canvas,script,style,textarea,select,option,pre,code,[contenteditable],.lq-run,.lq-t," + CR;
+    var sk = function (/** @type {any} */ e) { return e && e.nodeType === 1 && (e.matches(CR) || e.querySelector(CR)) ? null : e; };
     function words(text) {
       var parts = [];
       var it = seg.segment(text)[Symbol.iterator](), r;
@@ -497,6 +499,7 @@
         var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, i, L, z, out = [], wd = null;
         var x = n.previousSibling, y = n.nextSibling, pre = 0, post = -1;
         if (!p || DONE.get(n) === kf(n) || p.closest(SKIP + ",#siteNav,.lq-crumbs")) return;
+        x = sk(x); y = sk(y);
         DONE.set(n, kf(n));
         PR.forEach(function (re) { re.lastIndex = 0; while ((m = re.exec(v))) r.push([m.index, m.index + m[0].length]); });
         if (x && IN.test(x.nodeName) && /^[\d.,]+$/.test((x.textContent || "").trim()) && (m = /^[ \t\n]+\S{1,8}/.exec(v))) r.push([0, pre = m[0].length]);
