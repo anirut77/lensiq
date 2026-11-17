@@ -175,3 +175,27 @@ Locked before compat was changed to v3.
 | File | Change | Why |
 |---|---|---|
 | tests/unit/crisis-rules-1323.test.js, tests/e2e/crisis-rules-1323-a / -e.e2e.mjs, tests/e2e/crisis-rules-kit.mjs | the switch name `LENSIQ_HELP_STICKY` → `LENSIQ_HELP_TOP_STICKY`; every assertion unchanged | one sticky switch only (main's mechanism, coordinator instruction 2026-11-17); the branch's own copy of the same switch dropped from lensiq-config.js / nav.js / types |
+
+## Protection round "crisis-v3-protect" (2026-11-18, branch crisis-v3-protect)
+
+Two residual risks of the crisis-v3 review. No crisis-v3 rule and no hard limit changes for users; nothing above was re-locked.
+Locks: `evals-locks/crisis-v3-protect.sha256`, copies in `~/LENSIQ-field/evals/crisis-v3-protect/`, locked before building.
+
+**1. Unmarked price / sales text in the crisis state.** The escape guard only caught elements with a sales marker. New fixed set:
+`tests/unit/crisis-price-scan-lib.cjs` (one scanner for both halves), `tests/unit/crisis-price-scan.test.js` (P1–P5),
+`tests/e2e/crisis-price-scan-{kit,th,en,zh,controls}`. Words: ราคา, ฿, THB, บาท, ซื้อ / สั่งซื้อ, ชำระ, price, buy, purchase, 购买,
+价格, a number + 元, ¥, and any price amount. Known false matches handled in the pattern: บทบาท, พระบาท, ชำระล้าง, 元素 / 四元素 / 元旦,
+"$1". Static half: every text a reading page can show (HTML outside crisis-hidden markers, string literals of every script the page
+gets, its zh / en dictionaries) has no sales word unless allow-listed; browser half: every visible text node in the crisis state, all
+16 reading flows × TH / EN / ZH. Exceptions: `tests/unit/crisis-escape-guard-allow.json` `priceText` (`where` + `text` + `reason`;
+`browser: true` only for text that may really show: reading sentences about the visitor's own spending, "nothing needs to be bought",
+"no payment is taken"). The file's `targets` / `browser` / `noEntry` are unchanged (append note in crisis-escape-guard.sha256).
+Controls: unit P3 (3 injected strings → exactly 3 failures; inside `[data-lq-upsell]` → none; clean → pass); e2e controls C1–C3 on
+dream TH / EN / ZH (clean 0; 3 visible injected flagged, hidden and upsell copies not; clean again after removal).
+Build found by the static scan: report.js paid-mode "no credit" gate ("ดูราคารายงาน" link to pricing) had no marker; it now carries
+`data-lq-upsell` (hidden in the crisis / calm state). Paid mode is off, so nothing visible changes today.
+Open items for the owner (allow-listed, not changed): the site menu entries "แพ็กเกจและราคา" / "สมาชิกและการชำระเงิน" (nav.js) and the
+account-menu "แพ็กเกจและราคา" (lensiq-member.js, pricing on only) stay reachable in the crisis state inside collapsed menus.
+
+**2. "end it all" false positives (review only, no change).** Set: `end-it-all-set.json` (24 benign, 24 crisis, synthetic), harness
+`end-it-all-measure.mjs`, log `end-it-all-measure-<sha>.log`. Numbers are in the round report; any pattern change needs the owner.
