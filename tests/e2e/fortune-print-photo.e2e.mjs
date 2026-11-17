@@ -65,10 +65,24 @@ const VIS = `const vis = e => { if (!e || !e.isConnected) return false; for (let
 const SCREEN = (root, canvas) => `(() => { ${VIS}
   const r = document.querySelector(${S(root)}), out = [];
   const SKIP = "button, select, input, textarea, label, nav, form, [data-lq-sp], [data-lq-sp-bar], [data-lq-sp-opt], [data-lq-sp-photo], .lq-helpline, .lq-camhelp, .lq-toc, [role=tablist], .sr-only, dialog";
+  // RE-LOCK 2026-11-17 (owner decision 88 B). BEFORE: each element's own text nodes were joined, so text with inline children
+  // came apart and was checked as a string that is not on screen ("ธาตุรอง: น้ำ 6%" checked as "ธาตุรอง: 6%"; Thai words in
+  // line-break spans dropped: "ผลอ่านโหงวเฮ้งของคุณ" checked as "ผล ของ คุณ"). NOW: in every visible block element of the result,
+  // each run of inline content between its block children (text + bold / span / word-break spans, without controls) is checked
+  // as ONE piece of the PDF text. STRICTER: every own text node checked before is a contiguous part of a run checked now, and the
+  // whole run must appear unbroken; inline elements are covered inside their parent's run.
+  const inl = n => { const d = getComputedStyle(n).display; return /^inline/.test(d) || d === "contents"; };
+  const runText = n => (n.nodeType === 3 ? n.textContent : n.closest(SKIP) || !vis(n) ? "" : n.innerText || n.textContent || "");
   for (const e of r.querySelectorAll("*")) {
-    if (e.closest(SKIP) || !vis(e)) continue;
-    const own = [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join(" ").replace(/\\s+/g, " ").trim();
-    if (own.length >= 2) out.push(own);
+    if (e.closest(SKIP) || !vis(e) || inl(e)) continue;
+    let run = "";
+    const flush = () => { const t = run.replace(/\\s+/g, " ").trim(); if (t.length >= 2) out.push(t); run = ""; };
+    for (const n of e.childNodes) {
+      if (n.nodeType === 3) run += n.textContent;
+      else if (n.nodeType === 1 && inl(n) && !n.matches(SKIP)) run += runText(n);
+      else if (n.nodeType === 1 && !inl(n)) flush();
+    }
+    flush();
   }
   const c = document.querySelector(${S(canvas)});
   return { texts: [...new Set(out)], canvasW: c ? c.width : 0 };

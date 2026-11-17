@@ -14,6 +14,16 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const sections = n => `document.querySelectorAll(".fa-section").length >= ${n}`;
 const setSel = (id, v) => `(() => { const e = document.getElementById(${S(id)}); e.value = ${S(v)};
   e.dispatchEvent(new Event("input", { bubbles: true })); e.dispatchEvent(new Event("change", { bubbles: true })); })()`;
+// RE-LOCK 2026-11-17 (owner decision 88 A). BEFORE: the tarot reading was random, so some readings had no advice icon and K2
+// ("icons present and in colour") failed on content, not on the report (CI 44001930827, branch-e2e-10-merge.log). NOW: the tarot
+// reading is FIXED: Math.random and crypto.getRandomValues run from a seeded generator (seed 12, measured 3 x identical, 1 advice
+// icon), the same three-card love spread as before. EQUAL: every K2 assertion is unchanged and unconditional (header rule,
+// section bars, icons present and in colour); only the input is fixed so the check can always run.
+const SEEDED = seed => `(() => { let a = ${seed} >>> 0; const next = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  Math.random = next;
+  crypto.getRandomValues = arr => { for (let i = 0; i < arr.length; i++) arr[i] = Math.floor(next() * 4294967296) % (2 ** (8 * (arr.BYTES_PER_ELEMENT || 1))); return arr; }; })();`;
+const TAROT_SEED = 12;
 const PAGES = {
   horoscope: async p => {
     await p.evaluate(setSel("hsDay", "15")); await p.evaluate(setSel("hsMonth", "8")); await p.evaluate(setSel("hsYear", "1990"));
@@ -66,7 +76,8 @@ export default async function ({ base, launch, check }) {
     await reader.goto(`${base}/converter.html?nosw`);
     await reader.waitFor(`!!window.pdfjsLib`, 10000);
     for (const [p, read] of Object.entries(PAGES)) {
-      const page = await browser.newPage(null, { initScripts: [`try { localStorage.setItem("lq-lang", "th"); } catch (e) {}`, `window.print = () => {};`] });
+      const page = await browser.newPage(null, { initScripts: [`try { localStorage.setItem("lq-lang", "th"); } catch (e) {}`, `window.print = () => {};`]
+        .concat(p === "tarot" ? [SEEDED(TAROT_SEED)] : []) }); // decision 88 A: the fixed tarot reading
       let err = null;
       try {
         await page.send("Emulation.setDeviceMetricsOverride", { width: 375, height: 800, deviceScaleFactor: 2, mobile: true });
