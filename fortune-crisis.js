@@ -170,6 +170,7 @@
   const NAME_FIELDS = "#hsName, #hsPName, #hsNameNum, #frNick, #plNick, #nmName, #rpName";
   /** the page's fields need the soft step (and it has not been answered for exactly these values) @param {any} [doc] */
   function pageSoft(doc) {
+    if (active(doc)) return false; // crisis v3: the crisis state never asks "are you okay?" (nothing tells the person)
     const all = fields(doc);
     if (!all || all === answered) return false;
     if (soft(all)) return true;
