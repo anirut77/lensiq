@@ -1,0 +1,6 @@
+astronomy-engine 2.1.19 (Don Cross, https://github.com/cosinekitty/astronomy), MIT licence (LICENSE in this folder).
+File: astronomy.browser.min.js, byte-for-byte the npm package file
+  https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js
+  sha256 f41139a87941ea017ab902b954c9389fa27ea72083d7fab4971756d7769d14e6 (116,424 bytes)
+Used by compat.js (Compatibility page, western synastry planets) only. Loaded on demand, never at page load.
+Licence and provenance check 2026-11-16: docs/COMPAT-SOURCES.md.

@@ -76,6 +76,18 @@ async function darkStill(page) {
     return true;
   })()`, 5000, 100);
 }
+/** amendment face-capture (2026-11-16, locked before the page change): faceread now also checks the picture for glasses
+ *  glare, backlight and blur (owner order item A6). The fake camera's white rectangle sweeping across the eye area is, by
+ *  that rule, glare, so the faceread check shows its <video> a still mid-grey picture instead (set-up only, the same way as
+ *  darkStill). No expected state, text, box, colour or timing changed. */
+async function neutralStill(page) {
+  await page.evaluate(() => {
+    const v = document.querySelector("#frVideo"), c = document.createElement("canvas"); c.width = v.videoWidth || 640; c.height = v.videoHeight || 480;
+    const x = c.getContext("2d"), paint = () => { x.fillStyle = "rgb(128,128,128)"; x.fillRect(0, 0, c.width, c.height); };
+    paint(); setInterval(paint, 50);
+    v.srcObject = c.captureStream(15); v.play().catch(() => {});
+  });
+}
 async function startLang(page, lang) {
   await page.evaluate(l => LQI18N.setLang(l), lang);
   await page.waitFor(`document.documentElement.lang === ${JSON.stringify(lang === "zh" ? "zh-Hans" : lang)}`, 8000);
@@ -152,6 +164,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(await page.evaluate(() => [...document.scripts].some(s => /lensiq-capture-hint\.js\?v=\d+/.test(s.src))), "faceread loads lensiq-capture-hint.js?v=");
       await click(page, "#frStartCam");
       await page.waitFor(`!document.getElementById("frRead").hidden && document.querySelector("#frCam.live")`, 10000);
+      await neutralStill(page); // amendment face-capture 2026-11-16: see neutralStill()
       let h = await hintIs(page, "frHint", "out", "ให้อยู่ในกรอบ");
       assert(h.live === "polite" && h.visible && h.font >= 17 && h.weight >= 600 && h.icon && h.iconHidden === "true", JSON.stringify(h));
       const pos = await page.evaluate(() => {
@@ -190,8 +203,8 @@ export default async function ({ base, launch, check, fakeCams }) {
       await hintIs(page, "frHint", "ok", "ดีแล้ว อยู่นิ่ง ๆ");
       await darkStill(page);
       await hintIs(page, "frHint", "dark", "มืดไป เพิ่มแสงอีกหน่อย", 8000);
-      // no auto-capture: nothing was read
-      assert(await page.evaluate(() => document.getElementById("frResult").hidden), "no auto-capture");
+      // (amendment face-capture 2026-11-16) the "no auto-capture" assertion is withdrawn here: the owner ordered automatic
+      // capture on faceread (item A3); it is tested in tests/e2e/face-capture.e2e.mjs (3-2-1 only while green and still).
       await privacy(page);
       const errs = realErrors(page);
       assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));

@@ -27,6 +27,13 @@ synthetic, headless Chrome). Wording added to L63 for the mental-health professi
   Possible over-flagging of cautions on the today tab (17 Nov: all 6 paragraphs, including a neutral opener) is noted for
   the fortune team; no product change.
 
+## Compatibility ดวงสมพงษ์ (owner order 2026-11-16 A; go-live approved by owner decision 73, branch `compat-staging`)
+
+- New page `compat.html` (go-live, owner decision 73: listed in category 6, the menu and the fortune hub love goals; removed from UNLINKED; unit link test re-locked (5)): two people or a group of 3–8; Thai (birth-day pairs, year animals, Phrommachat year elements), BaZi (Day Masters, stem combinations, branch relations), Vedic Ashtakoota (sidereal Moon, Lahiri; out of 30 without Gana, owner decision 72) and Western synastry, computed on the device; 7 categories with what fits, what needs care and how to adjust; agreement view per method and category; SVG wheel; group map and roles; consent statement before anyone else's data (L72); work-use line in group mode (L73).
+- Library: astronomy-engine 2.1.19 (MIT) vendored for the western planets, loaded on demand; aryaminus/astro and astroceleste-engine checked and not used (`docs/COMPAT-SOURCES.md`). The site's own Moon is within 0.72′ of astronomy-engine (synthetic comparison, 1900–2100).
+- Owner-pet interface for the pet page: `LQCompat.pair(owner, pet, {mode: "owner-pet", lang})` -> `{mode, source, title, lines}` (birth dates only). First screen at 393 px: title, one-line disclaimer, the consent tick and a sticky "ดูความเข้ากัน" button.
+- Paid parts behind `LENSIQ_FORTUNE_PAID` (off): free = overview + 2 categories, every caution free with its step. Locked tests: `evals-locks/fortune-compat.sha256`.
+
 ## Fortune go-live (owner order 2026-11-15, branch `fortune-live` = fortune-a + main)
 
 - Final disclaimer "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ" (TH / EN / ZH) on every fortune page and the fortune category; no idle "ready, the model loads when …" status on faceread, palm, booth or studio; help line in one place per fortune page (one small "อยากมีคนรับฟัง 1323" tap-to-call button near the top, the only number in the normal state (decision 54 ข; 1669 and the rest on the crisis card), crisis card unchanged). Tests: `tests/{unit,e2e}/fortune-live.*` (locked).

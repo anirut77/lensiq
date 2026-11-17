@@ -137,6 +137,7 @@ are added:
 | `fengshui.html` | 6 Fortune & Auspicious Planning | **demo** | Based on astrological principles, a matter of personal belief; can draw visitors to a booth; no accuracy claim | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ | **No accuracy claim:** Based on astrological principles, which are a matter of personal belief. Please use your own judgement. No accuracy claim; readings pass a banned-topics filter | docs/FORTUNE-REVIEW.md |
 | `dream.html` | 6 Fortune & Auspicious Planning | **demo** | Based on astrological principles, a matter of personal belief; can draw visitors to a booth; no accuracy claim | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ | **No accuracy claim:** Based on astrological principles, which are a matter of personal belief. Please use your own judgement. No accuracy claim; readings pass a banned-topics filter | docs/FORTUNE-REVIEW.md |
 | `zodiac.html` | 6 Fortune & Auspicious Planning | **demo** | Based on astrological principles, a matter of personal belief; can draw visitors to a booth; no accuracy claim | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ | **No accuracy claim:** Based on astrological principles, which are a matter of personal belief. Please use your own judgement. No accuracy claim; readings pass a banned-topics filter | docs/FORTUNE-REVIEW.md |
+| `compat.html` | 6 Fortune & Auspicious Planning | **demo** | Based on astrological principles, a matter of personal belief; can draw visitors to a booth; no accuracy claim | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ | **No accuracy claim:** Based on astrological principles, which are a matter of personal belief. Please use your own judgement. No accuracy claim; readings pass a banned-topics filter | docs/FORTUNE-REVIEW.md |
 | `astro.html` | 6 Fortune & Auspicious Planning | **demo** | Based on astrological principles, a matter of personal belief; can draw visitors to a booth; no accuracy claim | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ | **No accuracy claim:** Based on astrological principles, which are a matter of personal belief. Please use your own judgement. No accuracy claim; readings pass a banned-topics filter | docs/FORTUNE-REVIEW.md |
 | `lifegraph.html` | 6 Fortune & Auspicious Planning | **demo** | Based on astrological principles, a matter of personal belief; can draw visitors to a booth; no accuracy claim | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ | **No accuracy claim:** Based on astrological principles, which are a matter of personal belief. Please use your own judgement. No accuracy claim; readings pass a banned-topics filter | docs/FORTUNE-REVIEW.md |
 | `planner.html` | 6 Fortune & Auspicious Planning | **demo** | Based on astrological principles, a matter of personal belief; can draw visitors to a booth; no accuracy claim | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ | **No accuracy claim:** Based on astrological principles, which are a matter of personal belief. Please use your own judgement. No accuracy claim; readings pass a banned-topics filter | docs/FORTUNE-REVIEW.md |
@@ -162,10 +163,10 @@ are added:
 | `cat-hr.html` (new) | 3 HR & Workplace | landing page | Lists the category's 5 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 | `cat-marketing.html` (new) | 4 Marketing, Retail & Events | landing page | Lists the category's 14 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 | `cat-health.html` (new) | 5 Health, Safety & Quality | landing page | Lists the category's 4 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
-| `cat-fortune.html` (new) | 6 Fortune & Auspicious Planning | landing page | Lists the category's 18 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
+| `cat-fortune.html` (new) | 6 Fortune & Auspicious Planning | landing page | Lists the category's 19 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 | `cat-studio.html` (new) | 7 Studio & Media | landing page | Lists the category's 4 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 
-Totals over the 67 existing pages: **54 product pages** — pilot-ready 13 · experimental 20 · demo 21 — and **13 support pages** (directory, notices, information, legal, account; no readiness status, not counted with the products).
+Totals over the 68 existing pages: **55 product pages** — pilot-ready 13 · experimental 20 · demo 22 — and **13 support pages** (directory, notices, information, legal, account; no readiness status, not counted with the products).
 
 Per category (tools; booth counts in 4 and 7):
 
@@ -176,6 +177,6 @@ Per category (tools; booth counts in 4 and 7):
 | 3 | HR & Workplace · HR และที่ทำงาน | 5 | 4 | 0 | 1 | 0 |
 | 4 | Marketing, Retail & Events · การตลาด ค้าปลีก และอีเวนต์ | 14 | 2 | 10 | 2 | 0 |
 | 5 | Health, Safety & Quality · สุขภาพ ความปลอดภัย และคุณภาพ | 4 | 0 | 4 | 0 | 0 |
-| 6 | Fortune & Auspicious Planning · ดูดวงและฤกษ์มงคล | 18 | 0 | 0 | 18 | 0 |
+| 6 | Fortune & Auspicious Planning · ดูดวงและฤกษ์มงคล | 19 | 0 | 0 | 19 | 0 |
 | 7 | Studio & Media · สตูดิโอและสื่อ | 4 | 1 | 3 | 0 | 0 |
 <!-- status-table:end -->
