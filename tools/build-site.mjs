@@ -2,7 +2,7 @@
 // tools/build-site.mjs — assemble the public GitHub Pages site into _site/ from an explicit ALLOWLIST.
 //
 // Only what the browser needs is published: the *.html pages, the root page scripts/styles they load (*.js, *.css,
-// including sw.js), i18n/*.js, vendor/** (models, WASM runtimes, self-hosted fonts), .nojekyll and the licence notices.
+// including sw.js), i18n/*.js, vendor/** (models, WASM runtimes, self-hosted fonts), art/fortune/*.svg, .nojekyll and the licence notices.
 // Server code (server.py, tryon.py, pdfconvert.py, the API Worker in backend/), tests/, tools/, docs/, types/, package*.json, configs, certs/,
 // logs/ and data/ are never copied. Files come from `git ls-files` (tracked files only, so git-ignored local files such
 // as the non-commercial vendor/models/faceparse-*.onnx are never published), read from the working tree.
@@ -39,6 +39,7 @@ export const ALLOW = [
   /^[^/]+\.(js|css)$/,             // page scripts + styles at the root (sw.js, nav.js, lensiq-*.js, *-kb.js …)
   /^i18n\/[^/]+\.js$/,             // 中文 dictionaries
   /^vendor\//,                     // models, WASM runtimes, face-api.js, pdf.js, docx.js, self-hosted fonts, tarot art
+  /^art\/fortune\/[^/]+\.svg$/,     // fortune theme line art (own work, 2026-11; docs/FORTUNE-THEME.md)
   /^\.nojekyll$/,
   /^LICENSE$/, /^LICENSES\/[^/]+$/ // attribution notices for the bundled third-party models/libraries
 ];
