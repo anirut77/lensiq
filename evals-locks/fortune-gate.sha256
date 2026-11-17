@@ -18,3 +18,7 @@
 # the live/ copies and the byte-identical composed output are checked exactly as in the first lock. Live reference and harness unchanged.
 # locked 2026-11-17T03:12:23Z (tools/eval-guard.mjs lock, 1 file)
 0dc7412b69e6510d2238ad665a8eaa191c23b82e44d152f60904b33c16103a58  tests/unit/fortune-gate.test.js
+# RE-LOCK 2 (append-only, 2026-11-17): teamface.html leaves the gate (an HR team page with element roles, no fortune reading; the locked
+# teamface test needs faceread-kb.js / faceread.js loaded from their own paths). Engine pages, ON list, live copies and output: unchanged.
+# locked 2026-11-17T03:43:51Z (tools/eval-guard.mjs lock, 1 file)
+5403ba45ddca0096cbee636be25f62f03a3233f49fd8c37d071b08f84972bdae  tests/unit/fortune-gate.test.js
