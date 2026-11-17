@@ -1,6 +1,6 @@
 {
   "note": "Per-page gate of the fortune-quality changes (owner decision 86 ค, 2026-11-17). Pages listed in 'on' load the new reading scripts; every other reading-engine page (\"engines\") is live main's page, loading each script this branch changed from live/<same path> (byte-identical copies of live). Rebuild with: node tools/fortune-gate.mjs (check: --check). Locked test: tests/unit/fortune-gate.test.js. Pages that show no reading (hub, planner, lucky colour, admin, index and the other product pages) are outside the gate: they keep this branch's wording fixes.",
-  "live": "02fdd692",
+  "live": "94115ae5",
   "on": [
     "astro",
     "dream",
@@ -12,6 +12,7 @@
   "engines": [
     "astro",
     "bazi",
+    "compat",
     "dream",
     "faceread",
     "fengshui",

@@ -84,7 +84,7 @@ export const NEW_FILE_CAPS = {
 };
 
 export default [
-  { ignores: ["vendor/**", "_site/**", "node_modules/**", ".venv/**", ".claude/**", "**/.wrangler/**", "**/*.min.js", "data/**", "logs/**", "certs/**", "*-kb.js"] },
+  { ignores: ["vendor/**", "_site/**", "node_modules/**", ".venv/**", ".claude/**", "**/.wrangler/**", "**/*.min.js", "data/**", "logs/**", "certs/**", "*-kb.js", "live/**"] }, // live/: byte-identical copies of live main scripts for the fortune gate (linted where they live, on main)
   js.configs.recommended,
   { rules: RULES },
   {

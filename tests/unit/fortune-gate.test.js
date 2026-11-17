@@ -30,7 +30,9 @@ const isOn = p => LIVE.on.includes(p.replace(/\.html$/, ""));
 // are checked exactly as before.
 // RE-LOCK 2 (append-only, 2026-11-17): teamface.html is an HR team page (element roles, no fortune reading) and the locked teamface
 // test requires it to load faceread-kb.js / faceread.js from their own paths; it leaves the gate like the other no-reading pages.
-const ENGINE_PAGES = ["astro", "bazi", "dream", "faceread", "fengshui", "horoscope", "iching", "lek7", "lifegraph", "numbers", "palm", "report", "taksa", "tarot", "zodiac"].map(p => p + ".html");
+// RE-LOCK 3 (append-only, 2026-11-17): main moved to 94115ae5 (compat go-live, face-capture); the live reference is rebuilt from it and
+// compat.html, now a fortune page on main, joins the engine pages (OFF: byte-identical to live).
+const ENGINE_PAGES = ["astro", "bazi", "compat", "dream", "faceread", "fengshui", "horoscope", "iching", "lek7", "lifegraph", "numbers", "palm", "report", "taksa", "tarot", "zodiac"].map(p => p + ".html");
 
 test("the gate config lists exactly the ON pages of the owner's decision", () => {
   assert.deepEqual([...CONFIG.on].sort(), [...LIVE.on].sort());

@@ -22,3 +22,9 @@
 # teamface test needs faceread-kb.js / faceread.js loaded from their own paths). Engine pages, ON list, live copies and output: unchanged.
 # locked 2026-11-17T03:43:51Z (tools/eval-guard.mjs lock, 1 file)
 5403ba45ddca0096cbee636be25f62f03a3233f49fd8c37d071b08f84972bdae  tests/unit/fortune-gate.test.js
+# RE-LOCK 3 (append-only, 2026-11-17): main moved to 94115ae5 (compat go-live, face-capture). The live reference
+# tests/unit/fortune-gate-live.json is rebuilt from a worktree at 94115ae5 (scripts, pages, composed output; only zodiac TH output
+# changed on main), and compat.html (now a fortune page on main) joins the engine pages, OFF. Harness unchanged.
+# locked 2026-11-17T03:59:02Z (tools/eval-guard.mjs lock, 2 files)
+9fa7199a2f0f11c003125aef99efbf79ca8e7821190fb5bb0fc381c1c9405667  tests/unit/fortune-gate.test.js
+042e0db2a3293fcde6e072032bba7578922ae72c560144df02e4ad228128fb5a  tests/unit/fortune-gate-live.json
