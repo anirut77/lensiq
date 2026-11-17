@@ -476,7 +476,9 @@ const CATEGORIES = [
       en: "Medicine information for a pharmacist to confirm, alerts when a driver's eyes stay closed, and product inspection on the production line.",
       zh: "药品信息供药剂师确认，驾驶员长时间闭眼时提醒，以及产线上的产品质检。" },
     pages: ["medicine", "nutrition", "driver", "qc"] },
-  { n: 6, slug: "fortune", id: "fortune", icon: "🔮",
+  // owner order 2026-11-17: no status tag (สาธิต / Demo / 演示) on the fortune landing page, its tools or the index count;
+  // the pages keep st "demo" here for docs/PAGE-STATUS.md only. Accuracy and notice lines unchanged.
+  { n: 6, slug: "fortune", id: "fortune", icon: "🔮", noStatusTag: true,
     name: { th: "ดูดวงและฤกษ์มงคล", en: "Fortune & Auspicious Planning", zh: "占卜与择吉" },
     short: { th: "ดูดวง", en: "Fortune", zh: "占卜" },
     // owner order 2026-11-16 item 2: written for the person using the pages; the booth / event wording moved to solutions.html (sol-e3)

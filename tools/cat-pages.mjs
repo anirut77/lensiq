@@ -31,14 +31,15 @@ export function navEntries(navSrc = readFileSync(join(repo, "nav.js"), "utf8")) 
 }
 
 function counts(cat) {
-  const n = { all: cat.pages.length };
+  const n = { all: cat.pages.length, noTag: !!cat.noStatusTag };
   for (const st of Object.keys(D.STATUS)) n[st] = cat.pages.filter(p => D.PAGES[p].st === st).length;
   return n;
 }
 const COUNT_TPL = {
-  th: (n) => `${n.all} เครื่องมือ · พร้อมนำร่อง ${n["pilot-ready"]} · ทดลอง ${n.experimental} · สาธิต ${n.demo}` + (n.support ? ` · หน้าประกอบ ${n.support}` : ""),
-  en: (n) => `${n.all} tools · pilot-ready ${n["pilot-ready"]} · experimental ${n.experimental} · demo ${n.demo}` + (n.support ? ` · support pages ${n.support}` : ""),
-  zh: (n) => `${n.all} 个工具 · 可试点 ${n["pilot-ready"]} · 实验性 ${n.experimental} · 演示 ${n.demo}` + (n.support ? ` · 辅助页面 ${n.support}` : "")
+  // a category without status tags (fortune, owner order 2026-11-17) shows the number of tools only
+  th: (n) => n.noTag ? `${n.all} เครื่องมือ` : `${n.all} เครื่องมือ · พร้อมนำร่อง ${n["pilot-ready"]} · ทดลอง ${n.experimental} · สาธิต ${n.demo}` + (n.support ? ` · หน้าประกอบ ${n.support}` : ""),
+  en: (n) => n.noTag ? `${n.all} tools` : `${n.all} tools · pilot-ready ${n["pilot-ready"]} · experimental ${n.experimental} · demo ${n.demo}` + (n.support ? ` · support pages ${n.support}` : ""),
+  zh: (n) => n.noTag ? `${n.all} 个工具` : `${n.all} 个工具 · 可试点 ${n["pilot-ready"]} · 实验性 ${n.experimental} · 演示 ${n.demo}` + (n.support ? ` · 辅助页面 ${n.support}` : "")
 };
 
 /** Fixed UI strings of the landing pages (and the index.html category chooser). */
@@ -160,22 +161,23 @@ const CAT_INTEREST = { security: "gate", education: "exam", hr: "attendance", ma
 export const FAVICON_ONE_LINE = readFileSync(join(repo, "solutions.html"), "utf8").match(/<link rel="icon"[^>]*>/)[0];
 const FAVICON = splitFavicon(FAVICON_ONE_LINE);
 
-function card(page, nav) {
+function card(page, nav, noTag = false) {
   const p = D.PAGES[page], t = nav[page];
   if (!t) throw new Error(`${page}.html is in a category but not in the nav.js menu`);
   const acc = p.claims.map(id => {
     const c = D.CLAIMS[id];
     return `          <li data-src="${c.src}"><span class="cat-src ${c.src}" data-i18n="cat.src.${c.src}">${esc(D.SOURCE[c.src].th)}</span> <span data-i18n="cat.c.${id}">${esc(c.th)}</span></li>`;
   }).join("\n");
-  return `      <article class="pd-card cat-tool" data-page="${page}" data-status="${p.st}">
-        <div class="cat-top"><h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3><span class="cat-st ${p.st}" data-i18n="cat.st.${p.st}">${esc(D.STATUS[p.st].th)}</span></div>
+  // noTag (fortune, owner order 2026-11-17): no status chip, no data-status and no "why this status" line
+  return `      <article class="pd-card cat-tool" data-page="${page}"${noTag ? "" : ` data-status="${p.st}"`}>
+        <div class="cat-top"><h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3>${noTag ? "" : `<span class="cat-st ${p.st}" data-i18n="cat.st.${p.st}">${esc(D.STATUS[p.st].th)}</span>`}</div>
         <p data-i18n="nav.${page}.desc">${esc(t.desc)}</p>
         <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
         <ul class="cat-acc">
 ${acc}
         </ul>
-        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.${p.why}">${esc(D.REASONS[p.why].th)}</span></p>
-${page === "attendance" ? `        <a class="btn primary cat-entry" href="attendance.html?mode=employee" data-i18n="cat.openTimeclock">เปิดลงเวลาทำงาน PIN / QR</a>
+${noTag ? "" : `        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.${p.why}">${esc(D.REASONS[p.why].th)}</span></p>
+`}${page === "attendance" ? `        <a class="btn primary cat-entry" href="attendance.html?mode=employee" data-i18n="cat.openTimeclock">เปิดลงเวลาทำงาน PIN / QR</a>
 ` : ""}        <a class="sl-go" href="${SL_GO[page] || page + ".html"}"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>`;
 }
@@ -216,7 +218,7 @@ export function pageHtml(cat, nav = navEntries()) {
     "<body>",
     '<header class="nav" id="siteNav"></header>',
     '<script src="nav.js?v=27"></script>',
-    '<script src="i18n/zh-cat.js?v=3"></script>',
+    '<script src="i18n/zh-cat.js?v=4"></script>',
     // the fortune category carries the always-visible help button, in one place (owner orders 2026-11-12, 2026-11-15; tools/helpline.mjs)
     ...(cat.slug === "fortune" ? [topStyle(), helpLine("lqHelpTop")] : []),
     `<main class="pd cat${cat.discMore ? " lq-ftop" : ""}" id="main" data-cat="${cat.slug}">`,
@@ -240,15 +242,21 @@ export function pageHtml(cat, nav = navEntries()) {
     `      <h2 id="catToolsH" data-i18n="cat.tools.h">เครื่องมือในหมวดนี้</h2>`,
     `      <p class="pd-sub" id="catCount" data-i18n="cat.${cat.slug}.count">${esc(COUNT_TPL.th(n))}</p>`,
     `      <div class="pd-grid cat-grid">`,
-    cat.pages.map(p => card(p, nav)).join("\n"),
+    cat.pages.map(p => card(p, nav, !!cat.noStatusTag)).join("\n"),
     `      </div>`,
     `    </section>`,
-    `    <section aria-labelledby="catLegendH">`,
-    `      <h2 id="catLegendH" data-i18n="cat.legend.h">สถานะหมายถึงอะไร</h2>`,
-    `      <ul class="sl-legend cat-legend">`,
-    legend,
-    `      </ul>`,
-    `      <h2 class="cat-h2" data-i18n="cat.src.h">ที่มาของตัวเลข</h2>`,
+    ...(cat.noStatusTag ? [
+      // no status tags in this category (owner order 2026-11-17), so no status legend; the sources part stays
+      `    <section aria-labelledby="catSrcH">`,
+      `      <h2 id="catSrcH" data-i18n="cat.src.h">ที่มาของตัวเลข</h2>`,
+    ] : [
+      `    <section aria-labelledby="catLegendH">`,
+      `      <h2 id="catLegendH" data-i18n="cat.legend.h">สถานะหมายถึงอะไร</h2>`,
+      `      <ul class="sl-legend cat-legend">`,
+      legend,
+      `      </ul>`,
+      `      <h2 class="cat-h2" data-i18n="cat.src.h">ที่มาของตัวเลข</h2>`,
+    ]),
     `      <p class="pd-sub" data-i18n="cat.src.d">${esc(UI["cat.src.d"].th)}</p>`,
     `      <p class="cat-srcs">${srcs}</p>`,
     `      <p class="pd-note"><a href="cameras.html#accuracy" data-i18n="cat.method">วิธีวัดและชุดข้อมูล</a></p>`,
@@ -329,7 +337,8 @@ export function statusTable() {
     const v = D.PAGES[p];
     const acc = v.claims.map(id => `**${D.SOURCE[D.CLAIMS[id].src].en}:** ${D.CLAIMS[id].en}`).join("<br>");
     const ev = [...new Set(v.claims.map(id => D.CLAIMS[id].ref))].join("; ");
-    rows.push(`| \`${p}.html\` | ${catOf[p].join(" + ")} | **${v.st}** | ${D.REASONS[v.why].en} | ${D.REASONS[v.why].th} | ${acc} | ${ev} |`);
+    const noTag = D.CATEGORIES.some(c => c.noStatusTag && c.pages.includes(p)) ? " (no tag shown on the site, owner order 2026-11-17)" : "";
+    rows.push(`| \`${p}.html\` | ${catOf[p].join(" + ")} | **${v.st}**${noTag} | ${D.REASONS[v.why].en} | ${D.REASONS[v.why].th} | ${acc} | ${ev} |`);
   }
   for (const c of D.CATEGORIES) {
     const n = counts(c);

@@ -125,7 +125,7 @@
   "cat.fortune.lead": "泰式、中式与西方占卜，以及为重要事项择吉日。",
   "fortune.disc.line": "基于命理学原则，属个人信仰，请自行判断。",
   "cat.fortune.title": "占卜与择吉 | LENSIQ",
-  "cat.fortune.count": "19 个工具 · 可试点 0 · 实验性 0 · 演示 19",
+  "cat.fortune.count": "19 个工具",
   "cat.studio.name": "影棚与媒体",
   "cat.studio.intro": "形象照与证件照影棚、活动拍照亭、展位分析与文档转换。",
   "cat.studio.title": "影棚与媒体 | LENSIQ",
