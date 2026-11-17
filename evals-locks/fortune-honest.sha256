@@ -118,3 +118,7 @@ f167cde29953d078a045e07498a35dc1f201a88dcdcce26e0446504d2698aab4  tests/e2e/fort
 c1cf8330be462e45f33b1efaec8c01e1c3a5eee729593160664a566f3ecb8b47  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed)
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): v3-missed, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
 7a33d5e8e3f131fe49cb4e4f34044e4f3f8c1015b4879ff271fd41567f8cd65c  tests/e2e/fortune-calm-pages.e2e.mjs  # repo file (relock-v3-missed)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): v3-missed-2, see evals-locks/crisis-v3.sha256.
+f9d48f0e7d64e30bb0afdb4ea110501012eafe3e8b7cff2ec04b5fa8eae361fc  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed-2)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): v3-missed-2, see evals-locks/crisis-v3.sha256.
+f94cc520ded3969a6bd5c5922bf46cf7c78dd504ee81427aab6d8456b4246dc0  tests/e2e/fortune-straight.e2e.mjs  # repo file (relock-v3-missed-2)

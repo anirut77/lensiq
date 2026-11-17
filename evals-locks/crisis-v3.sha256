@@ -147,3 +147,9 @@ c1cf8330be462e45f33b1efaec8c01e1c3a5eee729593160664a566f3ecb8b47  relock-v3-miss
 4c619465a0b5259fcb4ad0e213e7ff33310edf51ae3ed29c36683251f4b5567f  tests/e2e/fortune-paid.e2e.mjs  # repo file (relock-v3-missed)
 c1cf8330be462e45f33b1efaec8c01e1c3a5eee729593160664a566f3ecb8b47  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed)
 7a33d5e8e3f131fe49cb4e4f34044e4f3f8c1015b4879ff271fd41567f8cd65c  tests/e2e/fortune-calm-pages.e2e.mjs  # repo file (relock-v3-missed)
+# RE-LOCK v3-missed-2 2026-11-17 (found on the local run v3-2-missed-1.log): merit 4b and fortune-straight 'crisis net wins over straight' still waited for the tarot card (#trSupport); now the crisis state, no card (fortune-straight: no straight shown in that session; merit: no merit panel after, unchanged).
+# locked 2026-11-17T08:02:37Z (tools/eval-guard.mjs lock, 2 files)
+f9d48f0e7d64e30bb0afdb4ea110501012eafe3e8b7cff2ec04b5fa8eae361fc  relock-v3-missed-2/merit.e2e.mjs
+f94cc520ded3969a6bd5c5922bf46cf7c78dd504ee81427aab6d8456b4246dc0  relock-v3-missed-2/fortune-straight.e2e.mjs
+f9d48f0e7d64e30bb0afdb4ea110501012eafe3e8b7cff2ec04b5fa8eae361fc  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed-2)
+f94cc520ded3969a6bd5c5922bf46cf7c78dd504ee81427aab6d8456b4246dc0  tests/e2e/fortune-straight.e2e.mjs  # repo file (relock-v3-missed-2)

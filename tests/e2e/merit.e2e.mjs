@@ -185,8 +185,8 @@ export default async function ({ base, launch, check, repo }) {
     await check("4b. support card on tarot: no merit panel (free or paid) on the next reading there or on the zodiac page", async () => {
       await page.goto(`${base}/tarot.html`);
       await page.evaluate(() => { document.getElementById("trQuestion").value = "I want to die"; document.getElementById("trStart").click(); });
-      await page.waitFor("(() => { const b = document.getElementById('trSupport'); return !!b && !b.hidden && /1323/.test(b.textContent); })()", 5000);
-      await page.waitFor("FortuneAI.crisis.active(document)", 5000); // shared crisis state set by the support card (re-lock: session-only, L59)
+      // RE-LOCK v3-missed-2 2026-11-17 (owner decision 2026-11-17 crisis v3; ledger docs/CRISIS-V3-RELOCKS.md): no card; the shared crisis state (next line) is what the rest of the test needs
+      await page.waitFor("FortuneAI.crisis.active(document) && !document.querySelector('.fa-support')", 5000); // shared crisis state set by the support card (re-lock: session-only, L59)
       await page.goto(`${base}/zodiac.html`);
       await readZodiac(page, "chong");
       await sleep(2000);

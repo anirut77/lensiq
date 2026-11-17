@@ -106,3 +106,5 @@ cf9be33a44d0e8893f658f5fd171bfd53c2c5a7d5d29c8f440aaf5b364bd7dfd  tests/unit/bac
 e630b5c355593a73a7d984c361dfa5f69e6f7d40d941b51d00de4f5acf262a2e  tests/e2e/merit-crisis.e2e.mjs  # repo file
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): v3-missed, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
 c1cf8330be462e45f33b1efaec8c01e1c3a5eee729593160664a566f3ecb8b47  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): v3-missed-2, see evals-locks/crisis-v3.sha256.
+f9d48f0e7d64e30bb0afdb4ea110501012eafe3e8b7cff2ec04b5fa8eae361fc  tests/e2e/merit.e2e.mjs  # repo file (relock-v3-missed-2)
