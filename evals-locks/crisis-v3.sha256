@@ -131,3 +131,7 @@ cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  relock-fix-1/f
 e152aae01b86b2998afcc8af6ad382c4a2235ea8d9a35a93ce3bae670589abd8  tests/e2e/fortune-crisis-soft.e2e.mjs  # repo file (relock-fix-1)
 cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-fix-1)
 # REMOVED 2026-11-17: owner decision 84 = option ก (the 1323 line and button only at the END of the reading). Option ข's code (fortune-crisis-pre.js, the LENSIQ_CRISIS_PRELINE switch) cost ~4.5 KB on every reading page, so per the owner's instruction it and its tests (crisis-v3-pre.test.js, crisis-v3-pre{,-en,-zh}.e2e.mjs, tags pre-lock / pre-lock-1) are removed from the repo; the locked copies stay in ~/LENSIQ-field/evals/crisis-v3/pre-lock*/. Ledger: docs/CRISIS-V3-RELOCKS.md.
+# RE-LOCK nodemo 2026-11-17 (merge of main 9f977dd into crisis-v3-2): fortune-no-demo test 5 baseline (taken on main 02fdd69) gains counselling = support, the platform page of the crisis branches (owner decision 2026-11-16) that main does not have yet; every other status unchanged.
+# locked 2026-11-17T05:15:26Z (tools/eval-guard.mjs lock, 1 file)
+0c04589aab924713f29b241787f360f5b844e0dc4dada1f35e2c774245409928  relock-nodemo/fortune-no-demo.test.js
+0c04589aab924713f29b241787f360f5b844e0dc4dada1f35e2c774245409928  tests/unit/fortune-no-demo.test.js  # repo file (relock-nodemo)

@@ -141,3 +141,9 @@ Locked before compat was changed to v3.
 | Removed | Reason | Protection kept by |
 |---|---|---|
 | tests/unit/crisis-v3-pre.test.js, tests/e2e/crisis-v3-pre{,-en,-zh}.e2e.mjs (tags `pre-lock`, `pre-lock-1`) and the product code they tested (fortune-crisis-pre.js, `LENSIQ_CRISIS_PRELINE`) | the owner chose ก: the 1323 line and button only at the end of the reading. Option ข's code was not free in page weight (about 4.5 KB on every reading page), so the owner's instruction was to remove it with its tests | rule d (closing line only at the end, nothing in the middle, one number, 44 px): crisis-v3-a/b/c/d judge, unit crisis-v3 U3 / U4, crisis-rules-1323 R1 / G3 (all unchanged). Locked copies of the removed set stay in `~/LENSIQ-field/evals/crisis-v3/pre-lock*/` |
+
+## Merge of main 9f977dd (fortune no-demo), tag `relock-nodemo`
+
+| File | Test | Old assertion | New assertion | Why | Protection kept by |
+|---|---|---|---|---|---|
+| tests/unit/fortune-no-demo.test.js | 5. other categories unchanged | page statuses equal the baseline taken on main 02fdd69 | the same baseline plus `counselling: support` | counselling.html (owner decision 2026-11-16) exists on the crisis branches, not yet on main; it is a support page outside every category | every other status and the demo chips: same test, unchanged |

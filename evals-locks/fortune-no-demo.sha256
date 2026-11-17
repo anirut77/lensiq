@@ -17,3 +17,5 @@ bb54d33de8f216d90a8f12edce78d8249229afeb79d9164e652731624107ee54  tests/unit/cat
 e0d9a801e786a58050588021c6d11dba6588ed6abb7dfdbe903d9e7e827c9876  fortune-no-demo.v2.test.js
 # re-lock 2026-11-17 (append-only): fortune-no-demo.test.js v2 = formatting only (format-check: two lines over 200 characters, BASE_ST and the security counts wrapped). No assertion, expected value or page changed. v1 kept as fortune-no-demo.test.js.
 e0d9a801e786a58050588021c6d11dba6588ed6abb7dfdbe903d9e7e827c9876  tests/unit/fortune-no-demo.test.js  # repo file (v2)
+# RE-LOCK 2026-11-17 (branch crisis-v3-2): test 5 baseline + counselling (support); see evals-locks/crisis-v3.sha256 (relock-nodemo).
+0c04589aab924713f29b241787f360f5b844e0dc4dada1f35e2c774245409928  tests/unit/fortune-no-demo.test.js  # repo file (relock-nodemo)
