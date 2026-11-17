@@ -112,11 +112,17 @@ test("nav.js menu: one group per category with exactly its pages + landing page;
 test("landing pages: static markup lists each tool with a status tag and source-labelled accuracy, no inline script", () => {
   for (const c of D.CATEGORIES) {
     const html = readFileSync(join(ROOT, `cat-${c.slug}.html`), "utf8");
-    const cards = [...html.matchAll(/<article class="pd-card cat-tool" data-page="([a-z0-9-]+)" data-status="([a-z-]+)">([\s\S]*?)<\/article>/g)];
+    // owner order 2026-11-17 (remove สาธิต tag from fortune): a category with noStatusTag (fortune) shows NO status tag and no
+    // data-status on any card; every other category keeps the status tag check unchanged
+    const cards = [...html.matchAll(c.noStatusTag ? /<article class="pd-card cat-tool" data-page="([a-z0-9-]+)"()>([\s\S]*?)<\/article>/g
+      : /<article class="pd-card cat-tool" data-page="([a-z0-9-]+)" data-status="([a-z-]+)">([\s\S]*?)<\/article>/g)];
     assert.deepEqual(cards.map(m => m[1]), c.pages, c.slug + " cards");
     for (const m of cards) {
-      assert.equal(m[2], D.PAGES[m[1]].st, m[1] + " status");
-      assert.match(m[3], new RegExp(`class="cat-st ${m[2]}"`), m[1] + " status tag");
+      if (c.noStatusTag) assert.ok(!/class="cat-st\b/.test(m[3]), m[1] + " has no status tag");
+      else {
+        assert.equal(m[2], D.PAGES[m[1]].st, m[1] + " status");
+        assert.match(m[3], new RegExp(`class="cat-st ${m[2]}"`), m[1] + " status tag");
+      }
       assert.ok((m[3].match(/<li data-src="(synthetic|public|prelim|field|none|na)">/g) || []).length === D.PAGES[m[1]].claims.length, m[1] + " accuracy lines");
       // walk-through 2026-11-16 D-02: the attendance card links the PIN / QR time clock (exact href), every other card its page
       assert.match(m[3], m[1] === "attendance" ? /href="attendance\.html\?mode=employee"/ : new RegExp(`href="${m[1]}\\.html"`), m[1] + " link");
