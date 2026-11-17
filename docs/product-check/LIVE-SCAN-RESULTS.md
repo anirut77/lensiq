@@ -417,3 +417,19 @@ word or a surname + 先生 / 女士 / 小姐 / 老师. It removes nothing. Commi
 Tests: affected unit files 89/89 (new `tests/unit/pc-guard-onetap-notes.test.js`); e2e `product-check-live` +
 `product-check-ai` 18/18. Logs: `~/LENSIQ-field/evals/live-scan/stress-sameframe-2026-11-12-notes.log`,
 `live-leak-run-2026-11-12T16-03-09-672Z.log`. Screenshots not re-taken (no visible change).
+
+## 16. Scene cut tightened (2026-11-17, owner decision 89 follow-up; source: synthetic)
+
+The release criteria in this document were mapped to checks (`docs/EVAL-LOCKS.md`, "live-scan baseline (owner decision
+89)"). New locked check R4 (`tests/unit/pc-live-release.test.js`) found that the content-based scene cut of §5a fix 1
+(`LQPCLive.sameObject`) treated another label as the same object: two Thai drug labels share field words, so
+"เลขทะเบียน 1A 844/39" vs "เลขทะเบียน G 123/45" (similarity 0.65) and "ส่วนประกอบ: พาราเซตามอล 500 มก." vs "ส่วนประกอบ: ขิง
+100 มก." (0.61) passed the merge's 0.6 line similarity: 2 of 4 lines = "same object", and the two products' readings could be
+merged (the e2e check only switched labels through a blank frame, which cuts by itself).
+
+Fix (`dc936566`, `lensiq-pc-live.js?v=5`): for the scene cut a line matches a merged line only when its similarity is
+>= 0.8 (`CFG.sameSim`) AND its digits differ by at most one (an OCR slip such as "844/3" for "844/39" or "TESTO1" for
+"TESTOL"); a line with another registration number, strength or date never matches. The merge's own clustering (0.6) is
+unchanged. Results on the fixed texts: the same label read again (OCR variants, the e2e "noisy" readings) still the same
+object; another label, or one shared line out of five, a new object. Safe direction: more fresh readings, never more
+merging. Test unchanged (fixed the product); unit pc-*, thai-sara-am*, eval-guard*, backend-pc* 350/350.
