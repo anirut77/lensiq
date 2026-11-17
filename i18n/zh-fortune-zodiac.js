@@ -1,6 +1,7 @@
 /* i18n/zh-fortune-zodiac.js — 简体中文：zodiac.html / zodiac.js 的界面文字（泰文保留在页面与 zodiac.js 中）。
    太岁关系、五行关系、配对的名称与正文来自 i18n/zh-kb-zodiac.js；这里是标题、按钮、表格、提示等。 */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "zodiac.metaDesc": "十二生肖年度运势：查看正冲与偏冲太岁、助运之年、开运颜色与方位，以及两个生肖的配对",
   /* 静态页面 */
   "zodiac.disclaimerRest": "本页所说的“犯太岁”只是提醒这一年多一点从容和细心",
   "zodiac.modeLabel": "选择模式",

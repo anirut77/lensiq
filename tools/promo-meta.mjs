@@ -1,0 +1,182 @@
+#!/usr/bin/env node
+// tools/promo-meta.mjs — promotion basics (owner order 2026-11-18 C), generated from ONE value: deploy/site-url.json "base".
+// A hosting move is planned: change "base" there, run `node tools/promo-meta.mjs`, commit. Nothing else holds the address.
+//
+//   node tools/promo-meta.mjs          write: the share block in the <head> of the home page and every category 6 page,
+//                                      sitemap.xml, robots.txt and 404.html
+//   node tools/promo-meta.mjs --check  exit 1 when any of them is out of date (tests/unit/promo-basics.test.js does the same)
+//
+// Share block (between <!--promo--> and <!--/promo-->, right after the meta description): canonical, Open Graph and
+// twitter:card. og:title / og:description are copied from the page's own <title> and meta description (Thai, the page
+// default; LINE and Facebook do not run the page's JavaScript, so the preview is Thai). One share image per category:
+// share/og-home.png (home page), share/og-fortune.png (category 6). Sources and render steps: tools/share-src/README.txt.
+// sitemap.xml: every root *.html except 404.html and pages marked <meta name="robots" content="noindex…">.
+// robots.txt only takes effect at the root of a host (a custom domain); on a project sub-path the sitemap is submitted in
+// the search consoles instead (docs/PROMO.md).
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { apply as applyCsp, configuredPolicy } from "./csp-meta.mjs";
+
+const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+export const SITE_URL_FILE = "deploy/site-url.json";
+const read = f => readFileSync(join(repo, f), "utf8");
+
+/** the one base URL (https, ends with "/") */
+export function readBase() {
+  const base = String(JSON.parse(read(SITE_URL_FILE)).base || "");
+  if (!/^https:\/\/[a-z0-9.-]+(?:\/[\w.-]+)*\/$/.test(base)) throw new Error(`${SITE_URL_FILE}: "base" must be https and end with "/": ${base}`);
+  return base;
+}
+
+/** page -> share-image category: the home page and every category 6 page (tools/cat-data.cjs, same list as CLAUDE.md) */
+export function promoPages() {
+  const D = createRequire(import.meta.url)(join(repo, "tools", "cat-data.cjs"));
+  const out = { index: "home" };
+  for (const p of D.CATEGORIES.find(c => c.n === 6).pages) out[p] = "fortune";
+  return out;
+}
+
+const IMAGE_ALT = { home: "LENSIQ · Computer Vision ภาษาไทย ประมวลผลบนเครื่อง", fortune: "LENSIQ · ศาสตร์ดูดวงและฤกษ์มงคล" };
+const attr = s => String(s).replace(/&(?!(?:amp|lt|gt|quot|#\d+);)/g, "&amp;").replace(/"/g, "&quot;");
+const pageUrl = (base, p) => (p === "index" ? base : base + p + ".html");
+const isNoindex = html => /<meta\b[^>]*name="robots"[^>]*content="[^"]*noindex/i.test(html);
+const BLOCK_RE = /<!--promo-->[\s\S]*?<!--\/promo-->\n?/;
+
+/** the share block for one page */
+export function shareBlock(html, page, cat, base) {
+  const head = html.split(/<\/head>/i)[0].replace(BLOCK_RE, "");
+  const title = (/<title\b[^>]*>([^<]*)<\/title>/i.exec(head) || [])[1];
+  const desc = (/<meta\s+name="description"[^>]*?\scontent="([^"]*)"/i.exec(head) || [])[1];
+  if (!title || !desc) throw new Error(`${page}.html: <title> and <meta name="description"> are required`);
+  const url = pageUrl(base, page), img = `${base}share/og-${cat}.png`;
+  return ["<!--promo-->", `<link rel="canonical" href="${url}">`,
+    '<meta property="og:type" content="website">', '<meta property="og:site_name" content="LENSIQ">', '<meta property="og:locale" content="th_TH">',
+    `<meta property="og:title" content="${attr(title.trim())}">`, `<meta property="og:description"\n  content="${attr(desc)}">`,
+    `<meta property="og:url" content="${url}">`, `<meta property="og:image" content="${img}">`,
+    '<meta property="og:image:width" content="1200">', '<meta property="og:image:height" content="630">',
+    `<meta property="og:image:alt" content="${attr(IMAGE_ALT[cat])}">`, '<meta name="twitter:card" content="summary_large_image">',
+    "<!--/promo-->"].join("\n") + "\n";
+}
+
+/** html with the share block replaced, or inserted after the meta description */
+export function withShareBlock(html, page, cat, base) {
+  const block = shareBlock(html, page, cat, base);
+  if (BLOCK_RE.test(html)) return html.replace(BLOCK_RE, () => block);
+  const m = /<meta\s+name="description"[^>]*>[ \t]*\n/i.exec(html);
+  if (!m) throw new Error(`${page}.html: no <meta name="description"> line`);
+  return html.slice(0, m.index + m[0].length) + block + html.slice(m.index + m[0].length);
+}
+
+export function sitemap(base, pages) {
+  const urls = pages.map(p => `  <url><loc>${pageUrl(base, p)}</loc></url>`).join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+}
+
+export function robots(base) {
+  return `# Generated by tools/promo-meta.mjs from deploy/site-url.json\nUser-agent: *\nAllow: /\n\nSitemap: ${base}sitemap.xml\n`;
+}
+
+/** 404.html: no script, no relative URL (GitHub Pages serves it at any missing path, nested ones too), TH / EN / 中文 */
+export function notFound(base) {
+  const html = `<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0e1430">
+<title>ไม่พบหน้านี้ · Page not found · 找不到页面 | LENSIQ</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0e1430;color:#e8ecfa;padding:24px 16px;box-sizing:border-box;
+  font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:560px;width:100%;text-align:center}
+.mk{width:64px;height:64px;margin:0 auto 12px;display:block}
+h1{font-size:1.5rem;margin:0 0 4px;color:#fff}
+.code{color:#a99bff;letter-spacing:.2em;font-size:.85rem;margin:0}
+section{border-top:1px solid #2a335c;padding:14px 0}
+section:first-of-type{border-top:0}
+p{margin:4px 0;color:#c9d0ea}
+a{display:inline-block;margin:6px 6px 0;padding:10px 16px;border-radius:999px;background:#674ff2;color:#fff;text-decoration:none;font-weight:600;min-height:24px}
+a.alt{background:transparent;border:1px solid #22d3ee;color:#22d3ee}
+a.lnk{background:none;padding:4px;margin:0 4px;color:#c9d0ea;font-weight:400;text-decoration:underline}
+footer{margin-top:8px;font-size:.85rem}
+.small{font-size:.75rem;opacity:.75}
+a:focus-visible{outline:3px solid #22d3ee;outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<svg class="mk" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="9" fill="#151c3f"/>
+<path d="M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4" stroke="#22d3ee" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<circle cx="16" cy="16" r="4.2" fill="#674ff2"/></svg>
+<p class="code">404</p>
+<section lang="th">
+<h1>ไม่พบหน้านี้</h1>
+<p>ลิงก์อาจพิมพ์ผิด หรือหน้านี้ถูกย้ายแล้ว</p>
+<a href="${base}">กลับหน้าแรก</a>
+<a class="alt" href="${base}fortune.html">ศาสตร์ดูดวง</a>
+<a class="alt" href="${base}help.html">ช่วยเหลือ</a>
+</section>
+<section lang="en">
+<h1>Page not found</h1>
+<p>The link may be mistyped, or the page has moved.</p>
+<a href="${base}?lang=en">Home page</a>
+<a class="alt" href="${base}fortune.html?lang=en">Fortune readings</a>
+<a class="alt" href="${base}help.html?lang=en">Help</a>
+</section>
+<section lang="zh-Hans">
+<h1>找不到页面</h1>
+<p>链接可能输入有误，或页面已移动。</p>
+<a href="${base}?lang=zh">返回首页</a>
+<a class="alt" href="${base}fortune.html?lang=zh">占卜</a>
+<a class="alt" href="${base}help.html?lang=zh">帮助</a>
+</section>
+<footer>
+<!-- legal links: absolute (work from any missing path) + the relative form tests/unit/legal-links.test.js asks of every page -->
+<p><a class="lnk" href="${base}terms.html">ข้อกำหนด · Terms · 条款</a>
+<a class="lnk" href="${base}privacy.html">ความเป็นส่วนตัว · Privacy · 隐私</a></p>
+<p class="small"><a class="lnk" href="terms.html">terms</a> · <a class="lnk" href="privacy.html">privacy</a> · <a class="lnk" href="help.html">help</a></p>
+</footer>
+</main>
+</body>
+</html>
+`;
+  let cfg = "";
+  try { cfg = read("lensiq-config.js"); } catch { /* no config file */ }
+  return applyCsp(html, configuredPolicy(cfg));
+}
+
+/** every generated file: { relPath: content } */
+export function build({ base = readBase() } = {}) {
+  const out = {};
+  for (const [page, cat] of Object.entries(promoPages())) out[page + ".html"] = withShareBlock(read(page + ".html"), page, cat, base);
+  const html = readdirSync(repo).filter(f => /^[^/]+\.html$/.test(f) && f !== "404.html").sort();
+  const pub = html.filter(f => !isNoindex(out[f] || read(f))).map(f => f.replace(/\.html$/, ""));
+  pub.sort((a, b) => (a === "index" ? -1 : b === "index" ? 1 : a.localeCompare(b)));
+  out["sitemap.xml"] = sitemap(base, pub);
+  out["robots.txt"] = robots(base);
+  out["404.html"] = notFound(base);
+  return out;
+}
+
+/** paths whose file on disk differs from the generated content */
+export function stale(files = build()) {
+  return Object.entries(files).filter(([f, text]) => { try { return read(f) !== text; } catch { return true; } }).map(([f]) => f);
+}
+
+function main(argv) {
+  const files = build();
+  const old = stale(files);
+  if (argv.includes("--check")) {
+    for (const f of old) console.log(`OUTDATED ${f}`);
+    console.log(`${Object.keys(files).length} file(s), ${old.length} out of date${old.length ? " (run: node tools/promo-meta.mjs)" : ""}`);
+    if (old.length) process.exit(1);
+    return;
+  }
+  for (const f of old) { writeFileSync(join(repo, f), files[f]); console.log(`updated ${f}`); }
+  console.log(`${Object.keys(files).length} file(s), ${old.length} updated`);
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main(process.argv);

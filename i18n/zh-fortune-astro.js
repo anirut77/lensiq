@@ -3,6 +3,7 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
+    "astro.metaDesc": "按西洋占星（回归黄道）根据出生日期、时间和省份计算太阳、月亮与上升星座，并附基于月亮的每日运势",
     /* 静态文字 */
     "astro.discNote": "回归黄道（西洋）星座与「生辰八字与泰国占星」页面使用的泰式恒星黄道相差约 24°，所以得到的星座可能不同",
     "astro.tabsAria": "选择模式",

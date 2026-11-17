@@ -2,6 +2,7 @@
    KB texts are keyed by id (fengshui.dir.N, fengshui.s8.shengqi.name, fengshui.fly.5.cure …) or by index. */
 (function (root) {
   var Z = {
+    "fengshui.metaDesc": "风水：命卦、AR 罗盘、年度飞星宅盘与居家布置建议，仅供民俗与文化参考。在浏览器中计算",
     /* ---------- static markup ---------- */
     "fengshui.disclaimer2": "不能替代建筑、安全、健康或财务方面的专业建议，也不需要购买任何物品。",
     "fengshui.steps.aria": "步骤",
