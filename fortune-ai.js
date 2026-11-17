@@ -2417,8 +2417,10 @@
       if (out && out.source !== "support") {
         const L = out.lang || langOf(opts), RS = rsOf(), tr = (/** @type {any} */ it) => (L === "en" ? (enLoad(), enItem(facts.domain, it)) : L === "zh" ? (zhLoad(), zhItem(facts.domain, it)) : it);
         // fortune-paid (2026-11-15): guidance marks by provenance, section.guidance (fortune-straight.js markGuidance; the layout ignores it)
-        const src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : []; if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, L === "en" ? REMEDY_EN : REMEDY);
-        out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
+        // depth layer (owner order 2026-11-17 item 3): fortune-depth.js adds the discipline's own material behind "อ่านเพิ่มเติม" within the
+        // composer's length cap, never in a calm / crisis reading; its restraining texts join the caution marks (never folded)
+        const DP = typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-depth.js") : root.LQFortuneDepth, dpc = DP ? DP.apply(out, facts, L, { calm, ok: L === "th" ? isSafe : null, dup: S => nearDupPairs(S, L, out._dupNames || []).length }) : [], src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : []; if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, L === "en" ? REMEDY_EN : REMEDY);
+        out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text), dpc)); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
       }
       // calm / crisis (hard limit 3): no plan, no remedy; the advice section stays (rule a) under a plain title without remedy wording
       if (calm && out) { delete out.plan; if (Array.isArray(out.sections)) out.sections = out.sections.map(x => x.id !== "advice" ? x : Object.assign({}, x, { title: CALM_T[out.lang] || CALM_T.th,

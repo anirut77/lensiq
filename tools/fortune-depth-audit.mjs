@@ -27,6 +27,7 @@
 //              plan items + the "advice" section paragraphs. Identity = exact string match.
 //   node tools/fortune-depth-audit.mjs gen           write profiles.json (refuses to overwrite)
 //   node tools/fortune-depth-audit.mjs [--json out]  measure (refuses unless the set is locked and committed)
+//   ... --depth [--strict]                          also C5–C7 pass / fail against ceilings-v1.json (locked)
 import { createRequire } from "node:module";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -250,6 +251,27 @@ function table(res) {
   return L.join("\n");
 }
 
+/* ---------------- C5–C7 depth ceilings (ceilings-v1.json, locked) — pass / fail per page ----------------
+   C5 expanded / visible words: median >= median_min and every reading has >= per_reading_min_words_behind_read_more words
+   behind "อ่านเพิ่มเติม"; C6 distinct points: median >= median_min, min >= per_reading_min; C7 new% behind read more:
+   median >= median_min, min >= per_reading_min. Kept apart from the C1–C4 checks (another stream owns those). */
+export function depthChecks(res, ceil) {
+  const c5 = ceil.C5_expanded_over_visible_words, c6 = ceil.C6_distinct_points, c7 = ceil.C7_new_substance_behind_read_more;
+  return res.rows.map(r => {
+    const C5 = r.ratio.median >= c5.median_min && r.expWords.min >= c5.per_reading_min_words_behind_read_more;
+    const C6 = r.points.median >= c6.median_min && r.points.min >= c6.per_reading_min;
+    const C7 = r.newPct.median != null && r.newPct.median >= c7.median_min && r.newPct.min >= c7.per_reading_min;
+    return { page: r.page, C5, C6, C7, pass: C5 && C6 && C7,
+      values: { C5: `${r.ratio.median} / ${r.expWords.min} words`, C6: `${r.points.median} / ${r.points.min}`, C7: `${r.newPct.median} / ${r.newPct.min}` } };
+  });
+}
+export function depthTable(checks) {
+  const ok = b => (b ? "pass" : "FAIL");
+  return ["| page | C5 exp/vis median / min words | C6 points median / min | C7 new% median / min |", "|---|---|---|---|"]
+    .concat(checks.map(c => `| ${c.page} | ${ok(c.C5)} ${c.values.C5} | ${ok(c.C6)} ${c.values.C6} | ${ok(c.C7)} ${c.values.C7} |`))
+    .concat(["", `C5–C7: ${checks.filter(c => c.pass).length} / ${checks.length} pages pass`]).join("\n");
+}
+
 const cmd = process.argv[2];
 if (import.meta.url === `file://${process.argv[1]}`) {
   const dir = phaseDir(PHASE), file = join(dir, SET);
@@ -265,5 +287,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const j = process.argv.indexOf("--json");
     if (j > 0 && process.argv[j + 1]) writeFileSync(process.argv[j + 1], JSON.stringify(res, null, 1));
     console.log(table(res));
+    if (process.argv.includes("--depth")) { // C5–C7 against the locked ceilings (exit 1 on a miss with --strict)
+      assertLocked(PHASE, [SET, "ceilings-v1.json"]);
+      const checks = depthChecks(res, JSON.parse(readFileSync(join(dir, "ceilings-v1.json"), "utf8")));
+      console.log("\n" + depthTable(checks));
+      if (process.argv.includes("--strict") && checks.some(c => !c.pass)) process.exitCode = 1;
+    }
   }
 }
