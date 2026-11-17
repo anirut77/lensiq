@@ -11,6 +11,7 @@
 //   A6 "chosen for your result" line: TH / EN / ZH, names the discipline and the person's own result facts, passes the shared
 //      wording lint, no Thai in EN / ZH, nothing without facts or when the panel is off
 //   A7 discipline-aware keys: palmistry's Western hand element is not a Chinese five-element key
+//      (the line's wording lives in lensiq-merit-focus.js, loaded with the cards after a reading: speed budgets unchanged)
 //   A8 the audit's pass / fail verdict uses the locked limits as "<=" / ">=" exactly
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -20,6 +21,7 @@ const ROOT = join(__dirname, "..", "..");
 const C = require(join(ROOT, "lensiq-merit-core.js"));
 const SEED = require(join(ROOT, "lensiq-merit-seed.js"));
 const Lint = require(join(ROOT, "lensiq-merit-lint.js"));
+const F = require(join(ROOT, "lensiq-merit-focus.js"));
 const LANGS = ["th", "en", "zh"];
 const THAI = /[฀-๿]/;
 
@@ -30,7 +32,7 @@ const item = (o = {}) => ({
 });
 const facts = (domain, ids, topic = "overall") => ({ domain, topic, items: ids.map(x => (typeof x === "string" ? { id: x } : x)) });
 const ids = m => m.cards.map(c => c.id);
-const panel = (f, o = {}) => C.panelModel(C.safeItems(SEED, Lint.lintMerit), { choice: "", facts: f, page: (f && f.domain ? f.domain : "x") + ".html", lang: "th", crisis: false, ...o });
+const panel = (f, o = {}) => C.panelModel(C.safeItems(SEED, Lint.lintMerit), { choice: "", facts: f, page: (f && f.domain ? f.domain : "x") + ".html", lang: "th", crisis: false, focusLine: F.focusLine, ...o });
 
 test("A1: the same result always gives the same cards; a different result gives a different seed", () => {
   const f = facts("bazi", [{ id: "dm.3", tone: "favourable" }, { id: "el.lo.water", tone: "caution" }]);
@@ -127,22 +129,24 @@ test("A6: the 'chosen for your result' line names the discipline and this person
   for (const [d, f] of Object.entries(SAMPLES)) {
     const line = {};
     for (const lang of LANGS) {
-      const t = C.focusLine(f, d + ".html", lang);
+      const t = F.focusLine(f, d + ".html", lang);
       assert.ok(t.length > 10, d + " " + lang);
       assert.deepEqual(Lint.lintMerit(t), [], `${d}.${lang}: ${t}`);
-      assert.ok(t.includes(C.FOCUS.disc[d][LANGS.indexOf(lang)]), d + " names the discipline in " + lang);
+      assert.ok(t.includes(F.FOCUS.disc[d][LANGS.indexOf(lang)]), d + " names the discipline in " + lang);
       if (lang !== "th") assert.ok(!THAI.test(t), `${d}.${lang} has no Thai: ${t}`);
       assert.ok(!/https?:|฿|บาท|\bbaht\b|\d\s*元|ซื้อ|\bbuy\b|购买/i.test(t), "no price, link or purchase");
       line[lang] = t;
     }
     for (const re of EXPECT[d] || []) assert.match(line.th, re, d);
   }
-  const t1 = C.focusLine(facts("bazi", ["el.lo.wood"]), "bazi.html", "th"), t2 = C.focusLine(facts("bazi", ["el.lo.fire"]), "bazi.html", "th");
+  const t1 = F.focusLine(facts("bazi", ["el.lo.wood"]), "bazi.html", "th"), t2 = F.focusLine(facts("bazi", ["el.lo.fire"]), "bazi.html", "th");
   assert.notEqual(t1, t2, "a different result gives different wording");
-  assert.equal(C.focusLine(null, "bazi.html", "th"), "");
-  assert.equal(C.focusLine({ items: [] }, "index.html", "th"), "");
+  assert.equal(F.focusLine(null, "bazi.html", "th"), "");
+  assert.equal(F.focusLine({ items: [] }, "index.html", "th"), "");
   const m = panel(SAMPLES.bazi);
-  assert.equal(m.focus, C.focusLine(SAMPLES.bazi, "bazi.html", "th"));
+  assert.equal(m.focus, F.focusLine(SAMPLES.bazi, "bazi.html", "th"));
+  assert.equal(panel(SAMPLES.bazi, { focusLine: undefined }).focus, "", "focus module not loaded yet: no line, cards still shown");
+  assert.ok(panel(SAMPLES.bazi, { focusLine: undefined }).cards.length > 0);
   assert.equal(panel(SAMPLES.bazi, { choice: "off" }).focus, "", "off: no line");
   assert.equal(panel(SAMPLES.bazi, { crisis: true }), null, "crisis: nothing");
 });
@@ -152,8 +156,8 @@ test("A6: every fixed focus string passes the shared wording lint in its languag
     if (typeof o === "string") { assert.deepEqual(Lint.lintMerit(o), [], path + ": " + o); return; }
     for (const k of Object.keys(o)) walk(o[k], path + "." + k);
   };
-  walk(C.FOCUS, "FOCUS");
-  for (const k of Object.keys(C.FOCUS.t)) assert.equal(C.FOCUS.t[k].length, 3, k + " has TH / EN / ZH");
+  walk(F.FOCUS, "FOCUS");
+  for (const k of Object.keys(F.FOCUS.t)) assert.equal(F.FOCUS.t[k].length, 3, k + " has TH / EN / ZH");
 });
 
 test("A7: Western palm elements are not Chinese five-element keys; face and BaZi elements are", () => {

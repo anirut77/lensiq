@@ -52,18 +52,28 @@
       (doc.head || doc.documentElement).appendChild(s);
     });
   }
+  /** The "chosen for your result" line (lensiq-merit-focus.js), fetched with the cards, after a reading. Fails quietly: no line. */
+  function focus() {
+    return new Promise(function (resolve) {
+      if (W.LQMeritFocus) return resolve(undefined);
+      var s = doc.createElement("script");
+      s.src = "lensiq-merit-focus.js?v=1"; s.async = true;
+      s.onload = function () { resolve(undefined); }; s.onerror = function () { resolve(undefined); };
+      (doc.head || doc.documentElement).appendChild(s);
+    });
+  }
   /** @returns {Promise<void>} */
   function load() {
     if (state.loading) return state.loading;
-    var base = apiBase();
-    state.loading = !base || typeof W.fetch !== "function" ? seed()
+    var base = apiBase(), f = focus();
+    state.loading = (!base || typeof W.fetch !== "function" ? seed()
       : W.fetch(base + "/v1/merit/guidance", { credentials: "omit", referrerPolicy: "no-referrer" })
         .then(function (/** @type {Response} */ r) { return r.ok ? r.json() : null; })
         .then(function (/** @type {any} */ j) {
           if (!j || !Array.isArray(j.items)) return seed();
           state.items = clean(j.items); state.serverFlag = j.interest_form === true; state.retentionDays = j.interest_retention_days;
           return undefined;
-        }, function () { return seed(); });
+        }, function () { return seed(); })).then(function () { return f; });
     return /** @type {Promise<void>} */ (state.loading);
   }
 
@@ -143,7 +153,7 @@
     if (crisisOn()) { p.textContent = ""; p.hidden = true; return; }
     if (!state.items) { p.hidden = true; load().then(function () { if (p.isConnected) render(p); }); return; }
     // keys, the result seed (rotation of equal matches) and the "chosen for your result" line all come from the reading's facts
-    var m = C.panelModel(state.items, { choice: C.loadChoice(store()), facts: state.facts, page: page, lang: L,
+    var m = C.panelModel(state.items, { choice: C.loadChoice(store()), facts: state.facts, page: page, lang: L, focusLine: W.LQMeritFocus && W.LQMeritFocus.focusLine,
       pageFlag: W.LENSIQ_MERIT_INTEREST_FORM === true, serverFlag: state.serverFlag, crisis: false, retentionDays: state.retentionDays });
     if (!m) { p.textContent = ""; p.hidden = true; return; }
     p.textContent = "";
