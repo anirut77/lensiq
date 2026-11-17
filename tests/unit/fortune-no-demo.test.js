@@ -47,7 +47,10 @@ const BASE_ST = {
   "camera-notice": "support", "privacy": "support", "terms": "support", "pricing": "support", "account": "support", "admin": "support",
   // RE-LOCK 2026-11-17 (branch crisis-v3-2, merge of main 9f977dd; ledger docs/CRISIS-V3-RELOCKS.md): counselling.html (owner decision
   // 2026-11-16, crisis one-number rules) is a support page on the crisis branches, not yet on main when this baseline was taken
-  "counselling": "support"
+  "counselling": "support",
+  // RE-LOCK 2026-11-17 (branch fortune-pet, merge of main; ledger docs/CRISIS-V3-RELOCKS.md "relock-pet"): petread.html (pet face
+  // reading) exists, unlinked, until the owner approves its go-live into category 6; then it leaves this list for FORT
+  "petread": "demo"
 };
 const BASE_COUNT = {
   security: { th: "6 เครื่องมือ · พร้อมนำร่อง 3 · ทดลอง 1 · สาธิต 0 · หน้าประกอบ 2", en: "6 tools · pilot-ready 3 · experimental 1 · demo 0 · support pages 2",
