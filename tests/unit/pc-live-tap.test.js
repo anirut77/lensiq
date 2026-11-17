@@ -148,7 +148,7 @@ test("T3 monthly budget cap: always set for Product Check; a tap over the cap is
     assert.equal(calls, 0, "no provider call over the cap");
     // a small cap: served until it is spent, then every later tap is refused with no provider call
     const e2 = mkEnv();
-    await putGateway(e2.DB, { enabled: true, features: { pc_fields: feat(0.05) } });
+    await putGateway(e2.DB, { enabled: true, features: { pc_fields: feat(0.01) } });
     let refusedAt = -1;
     for (let i = 0; i < 60; i++) {
       const before = calls;
@@ -158,6 +158,6 @@ test("T3 monthly budget cap: always set for Product Check; a tap over the cap is
       assert.equal(calls, before, "a refused tap never reaches the provider");
       if (refusedAt < 0) refusedAt = i + 1;
     }
-    assert.ok(refusedAt > 0, "a 0.05 USD cap is reached within 60 taps of 2,000 + 1,000 tokens");
+    assert.ok(refusedAt > 0, "a 0.01 USD cap is reached within 60 taps of 2,000 + 1,000 tokens (about 700 micro-USD each at the Haiku 5.5 table price)");
   } finally { Date.now = realNow; }
 });

@@ -74,3 +74,8 @@ d5e3845abd97a374697ada465687d2622f88f65ea7a0b1e3778185786d6d862e  pc-guard-oneta
 # Field copy and lock (new files): pc-live-tap.test.ad10e633.js, locked-2026-11-18-tap-rule.sha256.
 ad10e633b59521f70f4951ce9df60bd6e24964389f2ca534e96eddeb824ff75b  tests/unit/pc-live-tap.test.js  # repo file  owner decision 96 checks T1-T3
 ad10e633b59521f70f4951ce9df60bd6e24964389f2ca534e96eddeb824ff75b  pc-live-tap.test.ad10e633.js
+# 2026-11-17T17:40:03Z re-lock (2) of tests/unit/pc-live-tap.test.js after its first run (bytes of the first lock committed in 8f9e9c07).
+# Test setup only: T3's 0.05 USD cap was never reached in 60 taps (700 micro-USD per tap at the Haiku 5.5 table price,
+# 60 x 700 = 42,000 < 50,000); the cap is now 0.01 USD. No assertion changed or loosened. Field files (new): pc-live-tap.test.bf39ca75.js, locked-2026-11-18-tap-rule-r2.sha256.
+bf39ca7587c22fa8f452a7040f779c7fa912ce58ad36e82094aaddf0ffb3149e  tests/unit/pc-live-tap.test.js  # repo file  re-lock (2): T3 cap 0.05 -> 0.01 USD (setup)
+bf39ca7587c22fa8f452a7040f779c7fa912ce58ad36e82094aaddf0ffb3149e  pc-live-tap.test.bf39ca75.js
