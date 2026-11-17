@@ -66,3 +66,11 @@ d5e3845abd97a374697ada465687d2622f88f65ea7a0b1e3778185786d6d862e  pc-guard-oneta
 # unchanged. Field copy and lock (new files): pc-live-release.test.0dfbb137.js, locked-2026-11-17-release-criteria-r2.sha256.
 0dfbb137ca3d080b107c135b28ccd1fc43cc5ea42ca2747af61c85848e176dea  tests/unit/pc-live-release.test.js  # repo file  re-lock (2): test-setup fixes R5, R6
 0dfbb137ca3d080b107c135b28ccd1fc43cc5ea42ca2747af61c85848e176dea  pc-live-release.test.0dfbb137.js
+# 2026-11-17T17:39:20Z owner decision 96 = ก (2026-11-18): the criterion "one AI call per product" becomes "one round per tap, at most three
+# calls, the user taps every time". New tests/unit/pc-live-tap.test.js, locked BEFORE its first run: T1 one tap = at most 3
+# AI requests (fields, claims, translate), each once, no loop; T2 nothing sent without a tap (live scan has no network path;
+# only lensiq-pc-ai.js calls LQAI.send; send paths only from the click handler; other listeners never send); T3 monthly
+# budget cap always set, refuses before any provider call and stays refused. 6/min and 150/day: A6 + R6 (already locked).
+# Field copy and lock (new files): pc-live-tap.test.ad10e633.js, locked-2026-11-18-tap-rule.sha256.
+ad10e633b59521f70f4951ce9df60bd6e24964389f2ca534e96eddeb824ff75b  tests/unit/pc-live-tap.test.js  # repo file  owner decision 96 checks T1-T3
+ad10e633b59521f70f4951ce9df60bd6e24964389f2ca534e96eddeb824ff75b  pc-live-tap.test.ad10e633.js
