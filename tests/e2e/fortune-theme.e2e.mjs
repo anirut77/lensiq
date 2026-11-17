@@ -20,6 +20,9 @@
 // Amendment 1 (2026-11-17, append-only re-lock): T7's attribute cases set the attribute when <html> is created (the init
 // script ran before it existed and set nothing); T8's pressed check scrolls instantly (the site scrolls smoothly, so the
 // point was taken before the card arrived). No expectation changed.
+// Amendment 2 (2026-11-18, append-only re-lock): T7's real crisis flow waited for the support card (.fa-support), which crisis v3
+// (owner decision 2026-11-17, now on main) removed; it now waits for the calm session flag the crisis net sets. The assertions
+// (calm flag set, entry never shown, no deity image) are unchanged.
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { assert } from "./cdp.mjs";
@@ -280,7 +283,9 @@ export default async function ({ base, launch, check, repo }) {
       await open(page, "tarot.html");
       await page.waitFor(() => !!document.getElementById("trQuestion") && !!document.getElementById("trStart"), 15000);
       await page.evaluate(q => { document.getElementById("trQuestion").value = q; document.getElementById("trStart").click(); }, CRISIS_TH);
-      await page.waitFor(() => [...document.querySelectorAll(".fa-support")].some(e => !e.closest("[hidden]") && e.getBoundingClientRect().height > 0), 15000);
+      // amendment 2 (2026-11-18): crisis v3 (owner decision 2026-11-17, merged on main) removed the support card; the reading goes on
+      // and the session carries the calm flag, which is the signal the entry screen reads. Wait for that flag instead of the card.
+      await page.waitFor(() => { try { return sessionStorage.getItem("lq-fortune-calm") === "1"; } catch (e) { return false; } }, 15000);
       assert(await page.evaluate(() => sessionStorage.getItem("lq-fortune-calm")) === "1", "crisis flow set the calm session flag");
       await follow(page, "fortune.html", "ftpreview=1");
       await staysHidden(page, 1800);
