@@ -973,7 +973,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       factCard(esc(T("horoscope.x.fBuddha", "พระประจำวันเกิด")), esc(d.buddha), "") + "</div>";
     html += '<div class="hs-grid2"><section class="hs-block"><h3>' + esc(T("horoscope.x.traits", "นิสัยเด่น")) + '</h3><ul class="pills">' + d.traits.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" +
       "</section>" +
-      '<section class="hs-block"><h3>' + esc(T("horoscope.x.luckyColors", "สีมงคลประจำตัว (ตามทักษาวันเกิด)")) + '</h3><ul class="advice">' + colorAdvice(P.thaiDay.planet) + "</ul></section></div>";
+      '<section class="hs-block" data-lq-remedy><h3>' + esc(T("horoscope.x.luckyColors", "สีมงคลประจำตัว (ตามทักษาวันเกิด)")) + '</h3><ul class="advice">' + colorAdvice(P.thaiDay.planet) + "</ul></section></div>";
     html += readingBlock("hsRd", T("fortune.common.readingDetail", "คำทำนายโดยละเอียด"), true);
     $("#pn-ov").innerHTML = html;
     bindReading("hsRd", function (topic, rng) { return HS.buildFacts(P, { topic: topic, nickname: $("#hsName").value, rng: rng }); }, true);
@@ -1095,7 +1095,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     html += '<div class="hs-grid2"><section class="hs-block"><h3>' + esc(T("horoscope.x.hTaksaToday", "ทักษาจร: วันนี้เป็นวัน \"{b}\" ของคุณ", { b: bh.th })) + "</h3><p>" + esc(bh.day) + '</p><p class="hs-small">' + esc(T("horoscope.x.taksaTodayHow", "เทียบดาววันนี้ ({a}) กับทักษาวันเกิดของคุณ ({b})", { a: DAYS[D.weekday].planet, b: DAYS[P.thaiDay.planet].planet })) + "</p></section>" +
       '<section class="hs-block"><h3>' + esc(T("horoscope.x.hBaziToday", "ปาจื้อวันนี้: ")) + D.pillar.gz + " " + elChip(D.todayEl) + "</h3><p><b>" + esc(rel.th) + "</b> — " + esc(rel.day) + "</p>" +
       (D.clash ? '<p class="note">' + esc(T("horoscope.x.clashToday", "วันนี้กิ่งวันชงกับปีนักษัตรของคุณ (ตามความเชื่อ) แนะนำให้ใจเย็น ค่อย ๆ ตัดสินใจ แล้ววันจะผ่านไปอย่างราบรื่น")) + "</p>" : "") + "</section></div>";
-    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hColorToday", "สีเสื้อวันนี้")) + '</h3><ul class="advice">' +
+    html += '<section class="hs-block" data-lq-remedy><h3>' + esc(T("horoscope.x.hColorToday", "สีเสื้อวันนี้")) + '</h3><ul class="advice">' +
       '<li>' + swatch(tk.sri) + "<span><b>" + esc(K.bhumi.sri.th) + "</b> — " + esc(T("horoscope.x.useSri", "โชคลาภ เสน่ห์")) + "</span></li><li>" + swatch(tk.dech) + "<span><b>" + esc(K.bhumi.dech.th) + "</b> — " + esc(T("horoscope.x.useDech", "การงาน ความน่าเชื่อถือ")) + "</span></li><li>" + swatch(tk.montri) + "<span><b>" + esc(K.bhumi.montri.th) + "</b> — " + esc(T("horoscope.x.useMontri", "ผู้ใหญ่เอ็นดู")) + "</span></li>" +
       '<li class="soft">' + swatch(tk.kalakini) + "<span><b>" + esc(T("horoscope.x.colAvoid", "ควรเลี่ยง")) + "</b> — " + esc(T("horoscope.x.avoidNote", "ตามความเชื่อ (ใส่ได้ถ้าจำเป็น ไม่ต้องกังวล)")) + "</span></li></ul>" +
       '<div class="facts small">' + factCard(esc(T("horoscope.x.fFavToday", "ธาตุเสริมวันนี้")), esc(elN(D.favEl)), esc(EL[D.favEl].boost || T("horoscope.x.favDefault", "ตามธาตุเสริมของดวง"))) + factCard(esc(T("horoscope.x.kLuckyDir", "ทิศมงคล")), esc(EL[D.favEl].dir), esc(T("horoscope.x.byFav", "ตามธาตุเสริม{e}", { e: EL[D.favEl].th }))) + factCard(esc(T("horoscope.x.fSriDir", "ทิศของดาวศรีวันนี้")), esc(DAYS[tk.sri].dir), esc(DAYS[tk.sri].planet)) + "</div></section>";
