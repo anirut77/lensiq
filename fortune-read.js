@@ -334,7 +334,9 @@
     ".fa-plan h3{margin:0 0 .4em;font-size:1rem}.fa-plan ol{margin:0;padding-left:1.2em;display:grid;gap:.4em;line-height:1.55}" +
     ".fa-reminder{margin:1.1em 0 .3em;padding:.7em .9em;border-left:3px solid rgba(103,79,242,.45);font-size:.92em;line-height:1.6;opacity:.9}" +
     "@media (prefers-color-scheme:dark){.fa-summary li b{color:#b9abff}}";
-  const CSS = ".fa-section{scroll-margin-top:96px}.fa-section>p,.fa-section .lq-more-body>p{margin:.55em 0;line-height:1.75}" +
+  // crisis v3: the operator's on-device reading counter box is not shown under the closing line (ids ending in Stats)
+  const CSS = "html[data-lq-crisis] section:has(>[id$=Stats]){display:none!important}" +
+    ".fa-section{scroll-margin-top:96px}.fa-section>p,.fa-section .lq-more-body>p{margin:.55em 0;line-height:1.75}" +
     ".fa-section .lq-gist{font-weight:500}.fa-section .lq-caution{border-left:3px solid rgba(214,120,0,.55);padding-left:.7em}" +
     ".lq-more-body{display:none}.lq-more-body.lq-open{display:block}" +
     // owner item 5: while a group is closed its overview never takes more than 3 lines (marked caution text is never clamped)
