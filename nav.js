@@ -508,16 +508,16 @@
         var bd = { 0: 1 }, at = 0, sg;
         for (sg of seg.segment(v)) bd[at += sg.segment.length] = 1;
         r.concat(wd ? [wd] : []).forEach(function (q) {
-          while (q[0] > 0 && (!bd[q[0]] || /[(\[{“‘（「『【]/.test(v[q[0] - 1]))) q[0]--;
+          while (q[0] > 0 && (!bd[q[0]] || /[(\[{“‘（「『【]/.test(v[q[0] - 1]) || CP.test(v[q[0]]))) q[0]--;
           while (q[1] < v.length && (!bd[q[1]] || CP.test(v[q[1]]))) q[1]++;
         });
         r.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (q) { var o = out[out.length - 1]; if (o && q[0] <= o[1]) o[1] = Math.max(o[1], q[1]); else out.push(q); });
         var inner = function (q) { for (var k = q[0] + 1; k < q[1]; k++) if (bd[k] && /\S/.test(v[k - 1])) return 1; return 0; };
-        out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 31 && !CP.test(v.slice(q[0], q[1]).trim()) && inner(q); });
+        out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 31 && !CP.test(v.slice(q[0], q[1]).trim()) && (inner(q) || (pre && !q[0]) || (post >= 0 && q[1] === v.length)); });
         if (wd) out.forEach(function (q) { if (wd && q[0] < wd[1] && q[1] > wd[0]) { if (q[1] >= wd[1]) wd = null; else wd[0] = Math.max(wd[0], q[1]); } });
         if (wd && inner(wd) && !CP.test(v.slice(wd[0], wd[1]).trim())) { out.push(wd); out.sort(function (a, b) { return a[0] - b[0]; }); }
         if (!out.length) return;
-        var nx = ((y || (IN.test(p.nodeName) && p.nextSibling) || {}).textContent || "").trim();
+        var nx = (((post >= 0 ? /** @type {Node} */ (y).nextSibling : y) || (IN.test(p.nodeName) && p.nextSibling) || {}).textContent || "").trim();
         var cs = getComputedStyle(p), fl = /flex|grid/.test(cs.display), f = document.createDocumentFragment();
         if (/pre|break/.test(cs.whiteSpace)) return;
         if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t lq-b"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
