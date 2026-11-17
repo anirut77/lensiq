@@ -396,7 +396,11 @@
   // crisis net first (review 2026-11-12): a crisis signal typed into the name field shows the support card instead of a report
   // (checked again by FortuneAI on every field); returns true when it stopped. No report is built and no credit is used.
   /** round 3: only a plain name goes on the cover @param {string} s */
-  function plainName(s) { return W.LQFortuneCrisis ? W.LQFortuneCrisis.plainName(s) : s; }
+  // review round 2: without fortune-crisis.js the name is still never shown back when the crisis net (FortuneAI's check) fires
+  function plainName(s) {
+    var F = W.FortuneAI;
+    return W.LQFortuneCrisis ? W.LQFortuneCrisis.plainName(s) : F && F.crisis && F.crisis.check(s) ? "" : s;
+  }
   function crisisStop() {
     var CRx = W.LQFortuneCrisis, out = $("rpOut");
     // crisis state (owner order 2026-11-12): after the support card on this page, every later report is the card again
@@ -411,6 +415,9 @@
   }
   function renderReport(rep) {
     if (crisisStop()) return;
+    // review round 2 (crisis v3 rule c / d): in a crisis or calm session no plan of any kind, no history link, closing line last
+    var CR0 = W.LQFortuneCrisis, calm = document.documentElement.getAttribute("data-lq-crisis") === "1" || !!(CR0 && CR0.calmOn && CR0.calmOn());
+    if (calm) rep = Object.assign({}, rep, { plan: null, plan30: null });
     var out = $("rpOut"); out.textContent = ""; out.hidden = false;
     out.setAttribute("lang", rep.lang === "zh" ? "zh-Hans" : rep.lang || "th");
     var head = h("header", { class: "rp-head" }, h("p", { class: "eyebrow", text: "LENSIQ" }), h("h2", { id: "rpOutH", tabindex: "-1", text: rep.title }));
@@ -476,9 +483,10 @@
         text: T("fortune.disc.line", "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ") }), " ",
       h("span", { class: "lq-notice-more" }, h("span", { text: T("rp.disclaimer", "ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ ไม่ใช่คำแนะนำทางการแพทย์ การเงิน หรือการจ้างงาน") }))));
     // the help line at the end of every report, kept in the print / PDF view (owner order 2026-11-12)
-    var CRh = W.LQFortuneCrisis;
-    // crisis v3 (2026-11-17): in the crisis session the line is the closing line, on screen too
-    if (CRh && CRh.helpLine) out.appendChild(CRh.helpLine(document, rep.lang, CRh.calmOn && CRh.calmOn() ? "lq-helpline-result" : "lq-helpline-result lq-helpline-print"));
+    var CRh = W.LQFortuneCrisis || (W.FortuneAI && W.FortuneAI.crisis.api && W.FortuneAI.crisis.api());
+    // crisis v3 (2026-11-17): in the crisis session the line is the closing line, on screen too, and the last thing of the report
+    var line = CRh && CRh.helpLine ? CRh.helpLine(document, rep.lang, calm ? "lq-helpline-result" : "lq-helpline-result lq-helpline-print") : null;
+    if (line && !calm) out.appendChild(line);
     var act = h("div", { class: "rp-actions no-print" });
     var pr = h("button", { type: "button", class: "btn primary", id: "rpPrint", text: T("rp.print", "พิมพ์ / บันทึกเป็น PDF") });
     pr.addEventListener("click", function () { root.print(); });
@@ -488,8 +496,9 @@
       sv.addEventListener("click", function () { save(rep); });
       act.appendChild(sv);
     }
-    act.appendChild(h("a", { class: "btn ghost", href: "account.html#history", text: T("rp.toHistory", "ประวัติของฉัน") }));
+    if (!calm) act.appendChild(h("a", { class: "btn ghost", href: "account.html#history", text: T("rp.toHistory", "ประวัติของฉัน") }));
     out.appendChild(act);
+    if (line && calm) out.appendChild(line);
     // owner order 2026-11-14 Part A: shared layout (headings, main point first, read more, advice icons, short notices)
     var RD = W.LQRead;
     if (RD) {

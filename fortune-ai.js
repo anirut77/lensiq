@@ -587,8 +587,7 @@
       return Array.from(s.segment("ทิศพายัพ")).length >= 2 ? s : null;
     } catch (e) { return null; }
   })();
-  let SEG = SEG0;
-  const segCache = new Map();
+  let SEG = SEG0; const segCache = new Map();
   // ตำแหน่งรอยต่อคำ (ไม่รวมต้น/ท้ายข้อความ)
   function cuts(text) {
     let c = segCache.get(text);
@@ -642,7 +641,8 @@
      slipped past the filters and the crisis patterns; they all run on the canonical copy (lensiq-thai-canon.js) */
   /** @param {any} s @returns {string} */
   const canon = s => { const C = TC || (TC = typeof require === "function" ? require("./lensiq-thai-canon.js") : root.LQThaiCanon); return C ? C.canon(s) : String(s ?? "").normalize("NFC"); }; /* owner decision 2026-11-14: no JA / KO script to AI (LQThaiCanon.withoutJaKo; the Worker drops it again) */ const jk = (/** @type {any} */ f) => { canon(""); return TC && TC.withoutJaKo ? TC.withoutJaKo(f) : f; };
-  const CALM_T = { th: "การดูแลตัวเอง", en: "Taking care of yourself", zh: "照顾自己" },
+  const CALM_T = { th: "การดูแลตัวเอง", en: "Taking care of yourself", zh: "照顾自己" }, CALM_P = { th: "ช่วงนี้ลองดูแลตัวเองเบา ๆ พักผ่อนให้พอ กินข้าวให้ตรงเวลา และเล่าเรื่องในใจให้คนที่ไว้ใจฟังบ้าง",
+      en: "For now, be gentle with yourself: rest enough, eat regular meals, and share what is on your mind with someone you trust.", zh: "这段时间对自己温柔一点：好好休息，按时吃饭，也可以把心里的事说给信任的人听。" },
     REM_W = /เคล็ด|ข้อแนะนำทั่วไปคือ|A simple adjustment|สีมงคล|สีเสื้อมงคล|ธาตุเสริม|ทำบุญ|วิธีปรับ|เสริมดวง|lucky colou?r|remed|luck tip|幸运色|开运|调整的方法|化解/i;
   let STRAIGHT = false, CALM = false, /** @type {any} */ TC = null; // CALM: crisis net / soft step / support card active on the page (no straight, no remedies)
   const preHL = t => canon(t || "").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
@@ -717,8 +717,7 @@
     return x.index === 0 ? "it" + m.slice(x[0].length) : m.slice(0, x.index) + "this " + g.split(" ").pop() + m.slice(x.index + x[0].length);
   }
   function zhEchoPronoun(m, g) {
-    const i = m.indexOf(g); if (i < 0) return m;
-    const pre = m.slice(Math.max(0, i - 2), i), cut = /你的$/.test(pre) ? 2 : 0;
+    const i = m.indexOf(g); if (i < 0) return m; const pre = m.slice(Math.max(0, i - 2), i), cut = /你的$/.test(pre) ? 2 : 0;
     return i === 0 ? "它" + m.slice(g.length) : m.slice(0, i - cut) + (/数$/.test(g) ? "这个数" : "它") + m.slice(i + g.length);
   }
   const digitsKept = (name, m) => (String(name).match(/\d+/g) || []).every(d => String(m).indexOf(d) >= 0);
@@ -766,8 +765,7 @@
   // "เงิน" เดี่ยว ๆ ในรายการสีเขียนเป็น "สีเงิน" (ไม่ให้อ่านเป็นเรื่องเงิน)
   const colorList = arr => thaiList(Array.from(new Set(arr.flatMap(c => String(c).split(/\s*(?:และ|หรือ|,|、|\/)\s*/)).map(x => x.trim()).filter(Boolean))).map((x, i) => (i && x === "เงิน" ? "สีเงิน" : x)));
   const thaiList = (arr, sp) => arr.length <= 1 ? (arr[0] || "") : arr.slice(0, -1).join(" ") + (sp ? " และ " : " และ") + arr[arr.length - 1];
-  const CJK_RE = /[⺀-鿿豈-﫿]/;
-  const CJK_PAREN = /\s*[(（][^()（）]*[⺀-鿿豈-﫿][^()（）]*[)）]/g;
+  const CJK_RE = /[⺀-鿿豈-﫿]/, CJK_PAREN = /\s*[(（][^()（）]*[⺀-鿿豈-﫿][^()（）]*[)）]/g;
   // คำออกตัวซ้อนกัน เช่น "ว่ากันว่าตามความเชื่อแล้ว คุณ…" → "ว่ากันว่าคุณ…"
   const DOUBLE_HEDGE = /(ว่ากันว่า|เชื่อกันว่า|ตามตำราเชื่อว่า|มีแนวโน้มว่า|ดูเหมือนว่า|ตามตำรามักตีความว่า|ในทางตำรามักตีความว่า|ในความเชื่อหมายความว่า|ซึ่งตามความเชื่อหมายถึง|ตามความเชื่อแล้วบอกว่า)\s*(?:ตามความเชื่อ(?:แล้ว)?|ว่ากันว่า|เชื่อกันว่า|ตามตำราเชื่อว่า)\s*/g;
   // คำซ้ำจากรอยต่อแม่แบบ เช่น "ลอง" + "ลองฟัง…" → "ลองฟัง…" (เฉพาะคำที่ซ้อนกันแล้วผิดไวยากรณ์แน่นอน)
@@ -2424,7 +2422,9 @@
       }
       // calm / crisis (hard limit 3): no plan, no remedy; the advice section stays (rule a) under a plain title without remedy wording
       if (calm && out) { delete out.plan; if (Array.isArray(out.sections)) out.sections = out.sections.map(x => x.id !== "advice" ? x : Object.assign({}, x, { title: CALM_T[out.lang] || CALM_T.th,
-        paragraphs: (x.paragraphs || []).filter(pp => !REM_W.test(JSON.stringify(pp))) })).filter(x => x.id !== "advice" || x.paragraphs.length); } return out;
+        paragraphs: (x.paragraphs || []).filter(pp => !REM_W.test(JSON.stringify(pp))) })).filter(x => x.id !== "advice" || x.paragraphs.length);
+        const L2 = out.lang in CALM_T ? out.lang : "th"; // a calm reading always keeps a self-care advice section (review round 2)
+        if (Array.isArray(out.sections) && !out.sections.some(x => x.id === "advice")) out.sections.push({ id: "advice", title: CALM_T[L2], paragraphs: [CALM_P[L2]] }); } return out;
     } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; FILLS = prevF; }
   }
   function composeBase(facts, opts = {}) {

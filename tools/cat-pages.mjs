@@ -269,7 +269,7 @@ export function pageHtml(cat, nav = navEntries()) {
     `    </section>`,
     `  </div>`,
     `</main>`,
-    '<script src="lensiq-config.js?v=18"></script>',
+    '<script src="lensiq-config.js?v=19"></script>',
     "</body>",
     "</html>",
     ""

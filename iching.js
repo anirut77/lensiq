@@ -208,8 +208,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function echoQ(s) {
     var CRx = window.LQFortuneCrisis, F = window.FortuneAI;
     if (!s) return s;
-    if (!CRx) return F && F.crisis && F.crisis.check(s) ? "…" : s; // v3: fortune-crisis.js failed to load: still no echo
-    return CRx.plainName(s) || CRx.softText((window.LQI18N && window.LQI18N.lang) || "th").qHidden;
+    // review round 2: in a crisis session nothing stands in for the question (no placeholder that hints at the check)
+    var crisis = document.documentElement.getAttribute("data-lq-crisis") === "1" || !!(F && F.crisis && F.crisis.check(s));
+    if (!CRx) return crisis ? "" : s; // fortune-crisis.js failed to load: still no echo
+    return CRx.plainName(s) || (crisis ? "" : CRx.softText((window.LQI18N && window.LQI18N.lang) || "th").qHidden);
   }
   function crisisStop(q) {
     var FAx = window.FortuneAI, box = document.getElementById("icSupport");

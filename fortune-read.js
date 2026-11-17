@@ -464,7 +464,10 @@
     const esc = t => String(t).replace(/[&<>"]/g, c => "&#" + c.charCodeAt(0) + ";");
     const helpHTML = (l, cls) => { const w = L(l); return '<aside class="lq-helpline' + (cls ? " " + esc(cls) : "") + '" role="note"><p class="lq-helpline-warm">' + esc(w[0]) +
       '</p><span class="lq-call-mini"><a class="lq-call-btn" href="tel:1323"><b>' + esc(w[1]) + '</b></a></span> <span class="lq-helpline-more"><a href="counselling.html">' + esc(w[2]) + "</a></span></aside>"; };
-    return { check: () => false, unjoke: t => t, fields, active: on, calmOn: calm, allow: (k, d) => !calm(d), helpHTML,
+    // review round 2: the same pattern list as fortune-crisis.js (fortune-crisis-net.js, loaded here only on this failure path)
+    const net = () => /** @type {any} */ (root).LQCrisisNet || (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis-net.js") : null);
+    if (d0 && !net()) { try { const sc = d0.createElement("script"); sc.src = "fortune-crisis-net.js?v=1"; (d0.head || d0.documentElement).appendChild(sc); } catch (e) { /* no DOM */ } }
+    return { check: t => { const N = net(); return !!(N && N.check(t)); }, unjoke: t => t, fields, active: on, calmOn: calm, allow: (k, d) => !calm(d), helpHTML,
       setActive(d) {
         const x = d || d0; x.documentElement.setAttribute("data-lq-crisis", "1");
         try { root.sessionStorage.setItem("lq-fortune-calm", "1"); } catch (e) { /* page-level only */ }
@@ -474,15 +477,30 @@
       distress: d => !!crisisCheck(fields(d)), plainName: t => (t && !crisisCheck(t) && String(t).length <= 40 ? t : ""),
       helpLine(d, l, cls) { const t = (d || d0).createElement("template"); t.innerHTML = helpHTML(l, cls); return t.content.firstChild; } };
   }
+  /** review round 2 (rule d): when the crisis state starts while a reading is already on screen (e.g. the "report a problem" note),
+   *  ONE closing line is added at the end of that reading's result area; renderSections keeps doing it for later readings */
+  function closeOnCrisis() {
+    try {
+      const d = root.document, R = /** @type {any} */ (root), CR = R.LQFortuneCrisis || (R.FortuneAI && R.FortuneAI.crisis && R.FortuneAI.crisis.api && R.FortuneAI.crisis.api());
+      if (!CR || !CR.helpLine || [...d.querySelectorAll(".lq-helpline-result")].some(e => e.getClientRects().length)) return;
+      const secs = [...d.querySelectorAll(".fa-section")].filter(e => e.getClientRects().length > 0);
+      if (!secs.length) return;
+      const last = secs[secs.length - 1], area = last.closest('[data-lq-result], [id$="Result"], #rpOut') || last.parentElement;
+      const I = R.LQI18N, h = d.documentElement.lang || "th", lang = (I && I.lang) || (/^zh/.test(h) ? "zh" : h.slice(0, 2));
+      area.appendChild(CR.helpLine(d, lang, "lq-helpline-result"));
+    } catch (e) { /* never break the page */ }
+  }
   if (root.document) {
     /** @type {any} */ (root).LQCrisisStandIn = standIn;
-    // crisis v3: the operator's on-device reading counter box (the section holding the *Stats counter) is not shown in the crisis state
-    try { const st = root.document.createElement("style"); st.textContent = "html[data-lq-crisis] section:has(>[id$=Stats]){display:none!important}";
+    try { root.addEventListener("lq-crisis", () => root.setTimeout(closeOnCrisis, 0)); } catch (e) { /* no events */ }
+    // crisis v3: the operator's on-device reading counter box (the section holding the *Stats counter) is not shown in the session
+    try { const st = root.document.createElement("style"); // review round 2: also on the later (calm) pages of the session
+      st.textContent = ":is(html[data-lq-crisis],html[data-lq-calm]) :is(section:has(>[id$=Stats]),[id$=Stats]){display:none!important}";
       (root.document.head || root.document.documentElement).appendChild(st); } catch (e) { /* no DOM */ }
   }
 
   const api = { FA_CSS, OVERVIEW_MAX, LINE, MORE, LESS, TOC, BELIEF, HEADINGS, SEP, MAXLEN, NOTE_MAX, NEVER_COLLAPSE, ICONS, COLOURS,
-    split, plan, planSection, sectionFlags, noticeSplit, colours, adviceKinds, enhance, noticeify, notices, ensureStyle };
+    split, plan, planSection, sectionFlags, noticeSplit, colours, adviceKinds, enhance, noticeify, notices, ensureStyle, standIn };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQRead = api;
 })(typeof window !== "undefined" ? window : globalThis);
 /* BEGIN fortune-restrain.js (copied by tools/fortune-read-embed.mjs; edit fortune-restrain.js, then run it) */

@@ -1157,7 +1157,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function pageFields() { var FA = window.FortuneAI; return FA && FA.crisis && FA.crisis.fields ? FA.crisis.fields() : ""; }
   function crisisSet() { var FA = window.FortuneAI; if (FA && FA.crisis && FA.crisis.setActive) FA.crisis.setActive(); }
   /* round 3: names are shown only when they are plain names; the soft step comes before any tab */
-  function plainName(s) { var CRx = window.LQFortuneCrisis; return CRx ? CRx.plainName(s) : String(s || ""); }
+  // review round 2: without fortune-crisis.js the name is still never shown back when the crisis net (FortuneAI's check) fires
+  function plainName(s) {
+    var CRx = window.LQFortuneCrisis, F = window.FortuneAI, t = String(s || "");
+    return CRx ? CRx.plainName(s) : F && F.crisis && F.crisis.check(t) ? "" : t;
+  }
   function softHit() { var CRx = window.LQFortuneCrisis; return !!(CRx && CRx.pageSoft()); }
   function clearResult() {
     current = null; lastPartner = null;

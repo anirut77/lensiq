@@ -1,13 +1,7 @@
-/* fortune-crisis.js — the widened crisis net for every fortune page (independent review 2026-11-12: the patterns in
- * fortune-ai.js caught 19/52 adversarial inputs). Loaded before fortune-ai.js; fortune-ai.js requires it in Node and keeps
- * its own original patterns as well, so the net never gets weaker if this file is missing.
- * check(text) runs on the RAW user text: Thai is matched without spaces and without tone marks (ฆาตัวตาย = ฆ่าตัวตาย),
- * traditional Chinese is folded to simplified (自殺 = 自杀), English is case-insensitive with common slang and numerals
- * ("kms", "unalive", "want 2 die"). Families: suicide and self-harm, wanting to disappear or not wake up, violence by a
- * partner or family member, sexual abuse (incl. of children). fields(doc) returns the text of every free-text field on
- * the page, so a phrase typed into a name box is caught as well as one typed into a question box.
- * Fixed tests (locked before this file was written): tests/unit/fortune-crisis-net.test.js, tests/e2e/fortune-crisis-fields.e2e.mjs.
- * REVIEW: like the support card, these patterns still need a review by a Thai mental-health professional. */
+/* BEGIN fortune-crisis-net.js (copied by tools/fortune-read-embed.mjs; edit fortune-crisis-net.js, then run it) */
+/* fortune-crisis-net.js — the crisis net (patterns + check), ONE source: copied into fortune-crisis.js (tools/fortune-read-embed.mjs);
+ * the fortune-read.js stand-in loads it alone when fortune-crisis.js failed to load. Raw text: Thai without spaces / tone marks,
+ * traditional Chinese folded, English slang and numerals. Tests: fortune-crisis-net*, crisis-v3-r2. Needs a professional review. */
 (function (root) {
   "use strict";
   const TONE = /[็-์]/g;
@@ -24,6 +18,7 @@
     /เชือก[^\s]{0,14}(?:จบ|ตาย)|(?:คืนนี้|วันนี้)(?:จะ|ขอ)จบ(?!งาน|โปรเจ|เรื่อง|การ)|เผาถ่าน/,
     /จับ(?:ตัว)?(?:หนู|ฉัน|ผม)[^\s]{0,14}(?:ไม่เหมาะสม|กลางคืน|ตอนนอน|ในห้อง)|จับตัวหนู/,
     /อยากนอน(?:หลับ)?(?:แล้ว|ไป)?(?:ไม่|ไม่ต้อง)ตื่น|ไม่อยากตื่น|ชีวิต(?:นี้)?ไม่มี(?:ความหมาย|ค่า)|(?:ควร|อยาก)จบ(?:ทุกอย่าง|ทุกสิ่ง|มันซะ|ชีวิต)|จบชีวิต|คิดสั้น/,
+    /จะจบ(?:ทุกอย่าง|ทุกสิ่ง)(?:แล้ว|เลย|คืนนี้|วันนี้|ซะ)/, // review round 2
     /ทำร้ายตัวเอง|ทำร้ายตนเอง|กรีด(?:ข้อมือ|แขน|ตัวเอง)|ปลิดชีพ|กินยา(?:ตาย|เกินขนาด|ฆ่าตัว)|(?:กิน|ทาน)ยา(?:นอนหลับ|ฆ่าแมลง|พิษ|เบื่อ)|ยาพิษ|ผูกคอ|แขวนคอ/,
     /(?:โดด|กระโดด)(?:ตึก|สะพาน|น้ำตาย|ลงจาก|จากตึก|จากที่สูง|ลงมาตาย)/,
     /(?:ถูก|โดน)(?:ทำร้าย(?:ร่างกาย)?|ทุบตี|ตบตี|ซ้อม|ข่มขืน|ล่วงละเมิด|ลวนลาม|ทารุณ|กักขัง|อนาจาร)|ข่มขืน|ล่วงละเมิดทางเพศ|อนาจาร|ความรุนแรงในครอบครัว/,
@@ -51,6 +46,7 @@
     /\btake (?:all|all of) (?:my|the) (?:pills|meds|tablets|sleeping pills)\b|\bhang myself\b|\bslit my wrists?\b/i,
     /\bkys\b|\bbetter off without me\b|\brather (?:not be alive|be dead|not exist|not wake up)\b/i,
     /\bwant (?:it|everything) (?:all )?to (?:stop|end)(?: forever)?\b(?! well| happily)/i,
+    /\bend it all\b(?! with| between| off)/i, // review round 2: "gonna end it all tonight"
     /\b(?:plan(?:ning)?|going|gonna) to end it\b(?! with| between| off)|\bend(?:ing)? things\b(?! with| between| off| on)|\bstockpil\w* (?:pills|meds|tablets|sleeping pills)\b/i,
     /\bmakes? me do things\b|\bwo xiang (?:qu )?si\b|\bbu xiang huo\b/i,
     /\bsuicid\w*|\bunaliv\w*|\bsewer ?slide\b|\boff myself\b|\bdon'?t (?:want to|wanna) (?:be alive|live|exist|be here)\b/i,
@@ -122,6 +118,18 @@
     return TH.some(re => re.test(th)) || EN.some(re => re.test(t) || re.test(leet) || re.test(en2)) || ZH.some(re => re.test(zh)) || ZH.some(re => re.test(t)) ||
       letterRuns(t.replace(/[0134@$]/g, c => LEET[c])).some(r => COMPACT.test(r));
   }
+  const NET = { check, unjoke, canon, toneless, enCopy, TONE, T2S, T2S_RE };
+  if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length) module.exports = NET;
+  /** @type {any} */ (root).LQCrisisNet = NET;
+})(typeof window !== "undefined" ? window : globalThis);
+/* END fortune-crisis-net.js */
+/* fortune-crisis.js — the crisis net for every fortune page: check() and its patterns come from fortune-crisis-net.js (copied
+ * below by tools/fortune-read-embed.mjs), plus fields(doc) (every free-text field of the page), the soft step, the help line and
+ * the crisis / calm state. fortune-ai.js requires it in Node and keeps its own patterns as well.
+ * Tests: tests/unit/fortune-crisis-net.test.js, tests/e2e/fortune-crisis-fields.e2e.mjs. */
+(function (root) {
+  "use strict";
+  const { check, unjoke, canon, toneless, enCopy, TONE, T2S, T2S_RE } = /** @type {any} */ (root).LQCrisisNet;
   // crisis-net hotfix 2026-11-16: tel boxes too (they accept any text; numbers' compare boxes printed it back)
   const FREE_TEXT = 'textarea, input:not([type]), input[type="text"], input[type="search"], input[type="tel"]';
   /** the raw text of every free-text field on the page (empty without a DOM) @param {any} [doc] */

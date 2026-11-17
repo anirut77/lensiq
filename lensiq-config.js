@@ -6,16 +6,15 @@
  *   (old server.py: LENSIQ_ALLOW_ORIGIN=https://<user>.github.io on the server, AI-SETUP.md) */
 window.LENSIQ_API_BASE = window.LENSIQ_API_BASE || "";
 
-/* LENSIQ_TURNSTILE_SITEKEY: Cloudflare Turnstile site key สำหรับผู้ช่วยเขียน AI บน Worker (ใช้คู่กับ secret TURNSTILE_SECRET)
- *   ""  (ค่าเริ่มต้น) = ไม่ใช้ — **ต้องตั้งก่อนเปิดใช้งานจริง** (กันบอทใช้โควตา AI) แล้วรัน node tools/csp-meta.mjs
- *   (เพิ่ม https://challenges.cloudflare.com ใน CSP เฉพาะเมื่อตั้งค่านี้) */
+/* LENSIQ_TURNSTILE_SITEKEY: Cloudflare Turnstile site key for the AI writing assistant on the Worker (pairs with the secret
+ *   TURNSTILE_SECRET). "" (default) = off; **set it before going live** (keeps bots off the AI quota), then run node tools/csp-meta.mjs
+ *   (adds https://challenges.cloudflare.com to the CSP only when set) */
 window.LENSIQ_TURNSTILE_SITEKEY = window.LENSIQ_TURNSTILE_SITEKEY || "";
 
-/* LENSIQ_GOOGLE_CLIENT_ID: OAuth 2.0 Client ID (ประเภท Web application) จาก Google Cloud Console สำหรับ "เข้าสู่ระบบด้วย Google"
- *   ของสมาชิก — เป็นค่าสาธารณะ (ไม่ใช่ความลับ) ต้องตรงกับ GOOGLE_CLIENT_ID ใน backend/wrangler.toml
- *   ""  (ค่าเริ่มต้น) = ไม่มีระบบสมาชิก: ไม่แสดงปุ่มเข้าสู่ระบบ ไม่จำกัดคำทำนาย ทุกหน้าทำงานเหมือนเดิม
- *   ตั้งค่าแล้วรัน node tools/csp-meta.mjs (เพิ่ม https://accounts.google.com/gsi/ ใน CSP เฉพาะเมื่อตั้งค่านี้)
- *   สคริปต์ของ Google โหลดเฉพาะเมื่อผู้ใช้กดปุ่มเข้าสู่ระบบเท่านั้น — ดู docs/BACKEND.md "Member sign-in" */
+/* LENSIQ_GOOGLE_CLIENT_ID: OAuth 2.0 Web client ID from Google Cloud Console for member "Sign in with Google"; public, not a
+ *   secret; must match GOOGLE_CLIENT_ID in backend/wrangler.toml. "" (default) = no membership: no sign-in button, no reading limit.
+ *   After setting it run node tools/csp-meta.mjs (adds https://accounts.google.com/gsi/ only then). Google's script loads only when
+ *   the visitor taps sign-in (docs/BACKEND.md "Member sign-in"). */
 window.LENSIQ_GOOGLE_CLIENT_ID = window.LENSIQ_GOOGLE_CLIENT_ID || "";
 
 /* LENSIQ_ANALYTICS: เมื่อตั้ง LENSIQ_API_BASE แล้ว จะโหลด lensiq-api.js + lensiq-analytics.js (ถามความยินยอมก่อนเสมอ,
@@ -28,10 +27,10 @@ window.LENSIQ_ANALYTICS = window.LENSIQ_ANALYTICS !== false;
  *   (ตั้ง true อย่างเดียวไม่มีผล ถ้าเซิร์ฟเวอร์ไม่ตอบว่าเปิด) และไม่แสดงเลยระหว่างสถานะวิกฤตของหน้าดูดวง (เฉพาะเซสชันเบราว์เซอร์, L59) */
 window.LENSIQ_MERIT_INTEREST_FORM = window.LENSIQ_MERIT_INTEREST_FORM === true;
 
-/* LENSIQ_ORG_ACCOUNTS (org-p1, 2026-11-14): บัญชีองค์กรแบบย่อ (ชื่อองค์กร ข้อมูลออกเอกสาร ผู้ดูแล/เจ้าหน้าที่ ลิงก์เชิญ ส่งออกข้อมูล)
- *   ในหน้าบัญชี (account-org.js) และแท็บ "บัญชีองค์กร" ในหลังบ้าน
- *   false (ค่าเริ่มต้น) = ไม่แสดงอะไรเลยและไม่ส่งคำขอเรื่ององค์กรใด ๆ · ห้ามเปิดจนกว่าเจ้าของอนุมัติ
- *   ต้องเปิดคู่กับ ORG_ACCOUNTS = "on" บน Worker (ตั้ง true อย่างเดียวไม่มีผล ถ้าเซิร์ฟเวอร์ไม่ตอบว่าเปิด) · ต้องเป็น true จริงเท่านั้น */
+/* LENSIQ_ORG_ACCOUNTS (org-p1, 2026-11-14): short organisation accounts (name, billing details, admins / staff, invite links,
+ *   data export) on the account page (account-org.js) and the "organisation" tab of the back office. false (default) = nothing
+ *   shown, no organisation request sent; do not turn on before the owner approves. Needs ORG_ACCOUNTS = "on" on the Worker too
+ *   (true alone does nothing if the server does not say it is on); only a real true counts. */
 window.LENSIQ_ORG_ACCOUNTS = window.LENSIQ_ORG_ACCOUNTS === true;
 
 /* LENSIQ_FACEPARSE: the outfit studio uses BiSeNet (vendor/models/faceparse-bisenet-r18-q8.onnx) instead of the default model.

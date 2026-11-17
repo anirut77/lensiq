@@ -35,7 +35,9 @@ function embed(rd, parts) {
   }
   return next;
 }
-const TARGETS = [{ name: "fortune-read.js", parts: PARTS }, { name: "planner.js", parts: [{ file: "fortune-readbar.js", at: "end" }] }];
+// fortune-crisis-net.js -> top of fortune-crisis.js (review round 2: one pattern source for the net and its fallback)
+const TARGETS = [{ name: "fortune-read.js", parts: PARTS }, { name: "planner.js", parts: [{ file: "fortune-readbar.js", at: "end" }] },
+  { name: "fortune-crisis.js", parts: [{ file: "fortune-crisis-net.js", at: "top" }] }];
 const stale = [];
 for (const t of TARGETS) {
   const file = join(ROOT, t.name), rd = readFileSync(file, "utf8"), next = embed(rd, t.parts);
