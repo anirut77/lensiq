@@ -1238,8 +1238,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var sameAge = function (a, g) { return !!(a && g && a.from === g.from); };
   var ageOf = function (a) { if (!a) return null; for (var i = 0; i < KB.ageMap.length; i++) if (KB.ageMap[i].from === a.from) return KB.ageMap[i]; return a; };
   var ovlMode = "zones";
-  function drawResultImage(canvas, src, pts, R, mode) {
-    mode = mode || ovlMode;
+  /* opts (print, 2026-11-17): width px (re-drawn from the landmarks), photo: false = neutral outline, print: true = B/W-safe dashes + boxed labels */
+  var NEUTRAL = "#f3f3f6", PRINT_DASH = { contour: [], brow: [], eye: [2, 7], nose: [16, 9], mouth: [24, 8, 4, 8] },
+    PRINT_INK = { contour: "#6b7280", brow: "#5b21b6", eye: "#0e7490", nose: "#b45309", mouth: "#be123c", rule: "#6b7280" };
+  function drawResultImage(canvas, src, pts, R, mode, opts) {
+    mode = mode || ovlMode; opts = opts || {}; var k = (opts.width || 900) / 900, photoOn = opts.photo !== false, prn = !!opts.print;
     var F = FR.frame(pts), a = pts.map(function (p) { return FR.toAligned(F, p); });
     var browY = (function () { var s = 0; for (var i = 17; i <= 26; i++) s += a[i][1]; return s / 10; })();
     var hairY = browY - R.m.upper, noseY = a[33][1], chinY = a[8][1];
@@ -1247,35 +1250,43 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     // กรอบครอป (หน่วย IPD) สัดส่วน 4:5
     var top = hairY - 0.45, bot = chinY + 0.3, h = bot - top, w = Math.max(h * 0.8, (maxX - minX) + 1.6), cxA = (minX + maxX) / 2;
     h = w / 0.8; top = (top + bot) / 2 - h / 2;
-    var W = 900, H = 1125, s = W / w; canvas.width = W; canvas.height = H;
+    var W = Math.round(900 * k), H = Math.round(1125 * k), s = W / w; canvas.width = W; canvas.height = H;
     var c = canvas.getContext("2d");
     c.save();
-    c.fillStyle = "#0e1430"; c.fillRect(0, 0, W, H);
-    c.translate(W / 2, -top * s); c.scale(s / F.ipd, s / F.ipd); c.translate(-cxA * F.ipd, 0); c.rotate(-F.theta); c.translate(-F.c[0], -F.c[1]);
-    c.drawImage(src, 0, 0);
+    c.fillStyle = photoOn ? "#0e1430" : NEUTRAL; c.fillRect(0, 0, W, H);
+    if (photoOn) {
+      c.translate(W / 2, -top * s); c.scale(s / F.ipd, s / F.ipd); c.translate(-cxA * F.ipd, 0); c.rotate(-F.theta); c.translate(-F.c[0], -F.c[1]);
+      c.imageSmoothingQuality = "high"; c.drawImage(src, 0, 0);
+    }
     c.restore();
     var P = function (q) { return [W / 2 + (q[0] - cxA) * s, (q[1] - top) * s]; };
     var fs = Math.round(W / 34);
     c.font = "500 " + fs + "px Prompt, system-ui, sans-serif"; c.textBaseline = "middle";
-    var line = function (idx, close, color, lw) {
-      c.beginPath(); idx.forEach(function (i, k) { var p = P(a[i]); if (k) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); });
-      if (close) c.closePath(); c.strokeStyle = color; c.lineWidth = lw || 3; c.lineJoin = "round"; c.stroke();
+    var line = function (idx, close, color, lw, grp) {
+      c.beginPath(); idx.forEach(function (i, j) { var p = P(a[i]); if (j) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); }); if (close) c.closePath();
+      if (prn && grp) { color = photoOn ? color : PRINT_INK[grp]; c.setLineDash(PRINT_DASH[grp].map(function (d) { return d * k; }));
+        if (photoOn) { c.strokeStyle = "rgba(14,20,48,.7)"; c.lineWidth = ((lw || 3) + 3) * k; c.lineJoin = "round"; c.stroke(); } }
+      c.strokeStyle = color; c.lineWidth = (lw || 3) * k * (prn && grp ? 1.25 : 1); c.lineJoin = "round"; c.stroke(); c.setLineDash([]);
     };
     var poly = function (pl, fill, stroke, lw) {
       c.beginPath(); pl.forEach(function (q, k) { var p = P(q); if (k) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); }); c.closePath();
       if (fill) { c.fillStyle = fill; c.fill(); }
-      if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 2; c.lineJoin = "round"; c.stroke(); }
+      if (stroke) { c.strokeStyle = stroke; c.lineWidth = (lw || 2) * k; c.lineJoin = "round"; c.stroke(); }
     };
     var centroid = function (pl) { var x = 0, y = 0; pl.forEach(function (q) { x += q[0]; y += q[1]; }); return P([x / pl.length, y / pl.length]); };
     var badge = function (x, y, text, bg, fg, r) {
       r = r || fs * 0.62; c.font = "600 " + Math.round(r * 1.05) + "px Prompt, system-ui, sans-serif";
       var tw = Math.max(r * 2, c.measureText(text).width + r * 0.9);
       c.fillStyle = bg; c.beginPath(); if (c.roundRect) c.roundRect(x - tw / 2, y - r, tw, r * 2, r); else c.arc(x, y, r, 0, Math.PI * 2); c.fill();
-      c.strokeStyle = "rgba(14,20,48,.55)"; c.lineWidth = 1.5; c.stroke();
+      c.strokeStyle = "rgba(14,20,48,.55)"; c.lineWidth = 1.5 * k; c.stroke();
       c.fillStyle = fg; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(text, x, y + 1); c.textAlign = "left";
     };
     var rg = function (x, y) { var r = []; for (var i = x; i <= y; i++) r.push(i); return r; };
-    c.fillStyle = mode === "zones" ? "rgba(14,20,48,.18)" : "rgba(14,20,48,.34)"; c.fillRect(0, 0, W, H);
+    if (photoOn) { c.fillStyle = mode === "zones" ? "rgba(14,20,48,.18)" : "rgba(14,20,48,.34)"; c.fillRect(0, 0, W, H); }
+    else { // outline, no photo
+      var hl = P([(a[0][0] + a[16][0]) / 2, hairY]), j0 = P(a[0]), j16 = P(a[16]); c.beginPath(); rg(0, 16).forEach(function (i, j) { var q = P(a[i]); c[j ? "lineTo" : "moveTo"](q[0], q[1]); });
+      c.quadraticCurveTo(j16[0] + (j16[0] - hl[0]) * 0.15, hl[1], hl[0], hl[1]); c.quadraticCurveTo(j0[0] - (hl[0] - j0[0]) * 0.15, hl[1], j0[0], j0[1]);
+      c.strokeStyle = PRINT_INK.contour; c.lineWidth = 4 * k; c.stroke(); }
 
     if (mode === "palaces") {
       var tops = FR.topPalaces(R.palaces, 3).map(function (p) { return p.id; });
@@ -1306,7 +1317,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         var p = P(spots[mt.id]), rr = s * (0.16 + 0.03 * Math.max(-1.5, Math.min(1.5, mt.z)));
         c.beginPath(); c.arc(p[0], p[1], rr, 0, Math.PI * 2);
         c.fillStyle = mt.id === lead ? "rgba(250,204,21,.32)" : "rgba(196,181,253,.25)"; c.fill();
-        c.strokeStyle = mt.id === lead ? "#facc15" : "#c4b5fd"; c.lineWidth = 3; c.stroke();
+        c.strokeStyle = mt.id === lead ? "#facc15" : "#c4b5fd"; c.lineWidth = (mt.id === lead && prn ? 6 : 3) * k; c.stroke();
         badge(p[0], p[1] + rr + fs * 0.75, lab[mt.id], mt.id === lead ? "#facc15" : "rgba(255,255,255,.95)", "#0e1430", fs * 0.5);
       });
       return;
@@ -1335,18 +1346,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.font = "500 " + fs + "px Prompt, system-ui, sans-serif";
     bands.forEach(function (b, i) {
       var y0 = P([0, b[0]])[1], y1 = P([0, b[1]])[1];
-      c.fillStyle = b[2]; c.fillRect(x0, y0, x1 - x0, y1 - y0);
-      c.strokeStyle = "rgba(255,255,255,.55)"; c.lineWidth = 2; c.setLineDash(i === 0 && R.m.upperEstimated ? [10, 8] : []);
+      if (photoOn) { c.fillStyle = b[2]; c.fillRect(x0, y0, x1 - x0, y1 - y0); }
+      c.strokeStyle = photoOn ? "rgba(255,255,255,.55)" : PRINT_INK.rule; c.lineWidth = 2 * k; c.setLineDash(i === 0 && R.m.upperEstimated ? [10 * k, 8 * k] : []);
       c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y0); c.stroke(); c.setLineDash([]);
       var share = Math.round([R.m.upperShare, R.m.middleShare, R.m.lowerShare][i] * 100);
-      pill(c, b[3] + " " + share + "%", 14, (y0 + y1) / 2, fs * 0.85, "left", "rgba(14,20,48,.78)", "#fff");
+      pill(c, b[3] + " " + share + "%", 14 * k, (y0 + y1) / 2, fs * 0.85, "left", "rgba(14,20,48,.78)", "#fff");
     });
-    var yc = P([0, chinY])[1]; c.strokeStyle = "rgba(255,255,255,.55)"; c.beginPath(); c.moveTo(x0, yc); c.lineTo(x1, yc); c.stroke();
-    line(rg(0, 16), false, "rgba(255,255,255,.75)");
-    line(rg(17, 21), false, "#c4b5fd"); line(rg(22, 26), false, "#c4b5fd");
-    line(rg(36, 41), true, "#67e8f9"); line(rg(42, 47), true, "#67e8f9");
-    line(rg(27, 30), false, "#fcd34d"); line([31, 32, 33, 34, 35], false, "#fcd34d");
-    line(rg(48, 59), true, "#fda4af");
+    var yc = P([0, chinY])[1]; c.strokeStyle = photoOn ? "rgba(255,255,255,.55)" : PRINT_INK.rule; c.beginPath(); c.moveTo(x0, yc); c.lineTo(x1, yc); c.stroke();
+    line(rg(0, 16), false, "rgba(255,255,255,.75)", 3, "contour");
+    line(rg(17, 21), false, "#c4b5fd", 3, "brow"); line(rg(22, 26), false, "#c4b5fd", 3, "brow");
+    line(rg(36, 41), true, "#67e8f9", 3, "eye"); line(rg(42, 47), true, "#67e8f9", 3, "eye");
+    line(rg(27, 30), false, "#fcd34d", 3, "nose"); line([31, 32, 33, 34, 35], false, "#fcd34d", 3, "nose");
+    line(rg(48, 59), true, "#fda4af", 3, "mouth");
     var mp = function (i, j) { return [(a[i][0] + a[j][0]) / 2, (a[i][1] + a[j][1]) / 2]; };
     var labels = [
       [[a[27][0], hairY], R.m.upperEstimated ? T("faceread.lbl.hairEst", "แนวผม (ประมาณการ)") : T("faceread.lbl.hair", "แนวผม"), "R"],
@@ -1358,12 +1369,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     ];
     c.font = "500 " + fs + "px Prompt, system-ui, sans-serif";
     labels.forEach(function (l) {
-      var p = P(l[0]), right = l[2] === "R", lx = right ? W - 14 : 14;
-      c.strokeStyle = "rgba(255,255,255,.8)"; c.lineWidth = 2;
-      c.beginPath(); c.arc(p[0], p[1], 6, 0, Math.PI * 2); c.fillStyle = "#22d3ee"; c.fill();
+      var p = P(l[0]), right = l[2] === "R", lx = right ? W - 14 * k : 14 * k;
+      c.strokeStyle = photoOn ? "rgba(255,255,255,.8)" : PRINT_INK.rule; c.lineWidth = 2 * k;
+      c.beginPath(); c.arc(p[0], p[1], 6 * k, 0, Math.PI * 2); c.fillStyle = photoOn ? "#22d3ee" : "#0e1430"; c.fill();
       var tw = c.measureText(l[1]).width + fs, ex = right ? lx - tw : lx + tw;
       c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(ex, p[1]); c.stroke();
-      pill(c, l[1], lx, p[1], fs * 0.85, right ? "right" : "left", "rgba(255,255,255,.95)", "#0e1430");
+      pill(c, l[1], lx, p[1], fs * 0.85, right ? "right" : "left", "rgba(255,255,255,.95)", "#0e1430", prn);
     });
   }
   function setOverlay(mode) {
@@ -1373,12 +1384,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (current) drawResultImage(resCanvas, current.cv, current.pts, current.R, mode);
   }
   document.querySelectorAll(".fr-ovl button").forEach(function (b) { b.addEventListener("click", function () { touch(); setOverlay(b.dataset.mode); }); });
-  function pill(c, text, x, y, size, align, bg, fg) {
+  // print figure (fortune-print.js LQPrint.figure): the overlay on screen re-drawn from the landmarks in memory, on this device only
+  (window.LQPrintFig = window.LQPrintFig || {})["#frResult"] = function (o) {
+    return current && current.R && window.LQPrint ? window.LQPrint.figure(o, { page: "faceread", mode: ovlMode, neutral: NEUTRAL,
+      alt: $("#frResCanvas").getAttribute("aria-label"), draw: function (cv, op) { drawResultImage(cv, current.cv, current.pts, current.R, ovlMode, op); },
+      head: ["frElName", "frElPct", "frElShape"], cap: "frOvlCap", consent: ["frConsent", "frConsentLine"] }) : null; };
+  function pill(c, text, x, y, size, align, bg, fg, boxed) {
     c.font = "500 " + Math.round(size) + "px Prompt, system-ui, sans-serif";
     var w = c.measureText(text).width + size, h = size * 1.6, x0 = align === "right" ? x - w : x;
-    c.fillStyle = bg; c.beginPath();
+    c.fillStyle = boxed ? "#ffffff" : bg; c.beginPath();
     if (c.roundRect) c.roundRect(x0, y - h / 2, w, h, h / 2); else c.rect(x0, y - h / 2, w, h);
-    c.fill(); c.fillStyle = fg; c.textAlign = "left"; c.textBaseline = "middle"; c.fillText(text, x0 + size / 2, y + 1);
+    c.fill(); if (boxed) { c.strokeStyle = "#0e1430"; c.lineWidth = Math.max(1.5, size / 14); c.setLineDash([]); c.stroke(); }
+    c.fillStyle = boxed ? "#0e1430" : fg; c.textAlign = "left"; c.textBaseline = "middle"; c.fillText(text, x0 + size / 2, y + 1);
   }
 
   /** เหตุผลที่แนวผมเป็นค่าประมาณการ (FRCore ส่งเป็นภาษาไทย) → คีย์แปล */

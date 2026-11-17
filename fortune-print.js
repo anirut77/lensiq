@@ -124,6 +124,19 @@
         (b.alt ? "<figcaption>" + esc(b.alt) + "</figcaption>" : "") + "</figure>";
       return "";
     }
+    if (b.t === "photofig") {
+      const src = String(b.src || "");
+      if (!/^data:image\/(?:png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(src)) return "";
+      const lg = (b.legend || []).filter(x => x && x.label);
+      return '<figure class="lqp-photofig"' + (b.neutral ? ' data-neutral="' + esc(b.neutral) + '"' : "") +
+        (b.labelStyle ? ' data-label-style="' + esc(b.labelStyle) + '"' : "") + ">" +
+        '<img class="lqp-fig-img" src="' + src + '" alt="' + esc(b.alt || "") + '"' + (b.w ? ' style="width:' + Math.min(120, Math.max(30, +b.w || 0)) + 'mm"' : "") + ">" +
+        '<figcaption class="lqp-fig-side">' + (b.headline ? '<p class="lqp-fig-head">' + esc(b.headline) + "</p>" : "") +
+        (b.caption ? '<p class="lqp-fig-cap">' + esc(b.caption) + "</p>" : "") +
+        (lg.length ? '<ul class="lqp-fig-legend">' + lg.map(x => '<li><span class="lqp-lg-cue">' + esc(x.cue || "") + "</span> " +
+          '<span class="lqp-lg-label">' + esc(x.label) + "</span></li>").join("") + "</ul>" : "") +
+        (b.consent ? '<p class="lqp-fig-consent">' + esc(b.consent) + "</p>" : "") + "</figcaption></figure>";
+    }
     if (b.t === "advice") {
       const ic = (b.icons || []).filter(k => ICON_PATH[k]).map(k => '<span class="lqp-ico">' + icon(k) + esc(W[lang].icon[k]) + "</span>").join("");
       const parts = ic + sws(b.sw, lang);
@@ -191,7 +204,40 @@
     };
   }
 
-  const api = { W, PAGE_NO, SIZES, FONT, ICON_PATH, render, pageCSS, langOf, CSS_FILE: "fortune-print.css" };
+  /* legend of the annotated photo (face / palm reading): each entry names what it marks and the cue that tells it apart without
+     colour (line style, marker, box) — the figure is drawn with these cues for paper (owner order 2026-11-17) */
+  const LEGEND = {
+    faceread: { zones: ["brow", "eye", "nose", "mouth", "contour", "zones", "points"], palaces: ["palTop", "palOther", "palNum"],
+      mountains: ["mtLead", "mtOther", "rivers"], ages: ["ageOn", "ageOther", "ageNum"] },
+    palm: { default: ["life", "head", "heart", "fate", "mountOn", "mountOther"] },
+  };
+  const LW = {
+    th: { brow: ["คิ้ว", "เส้นทึบ"], eye: ["ตา", "เส้นจุดไข่ปลา"], nose: ["จมูก", "เส้นประยาว"], mouth: ["ปาก", "เส้นประสลับจุด"],
+      contour: ["โครงหน้า", "เส้นรอบใบหน้า"], zones: ["สามส่วน", "เส้นนอนคั่น + ป้าย บน / กลาง / ล่าง และ %"], points: ["จุดสำคัญ", "จุดกลม + ป้ายกรอบ"],
+      palTop: ["วังเด่น 3 อันดับ", "กรอบหนา + ป้ายเลข"], palOther: ["วังอื่น", "กรอบบาง + ป้ายเลข"], palNum: ["หมายเลขวัง", "ตรงกับรายการสิบสองวัง"],
+      mtLead: ["ภูเขาเด่น", "วงกลมเส้นหนา"], mtOther: ["ภูเขาอื่น", "วงกลมเส้นบาง + ป้ายชื่อ"], rivers: ["สายน้ำ", "เส้นรอบตา จมูก และปาก"],
+      ageOn: ["ช่วงวัยของคุณ", "กรอบหนา + ป้ายช่วงอายุ"], ageOther: ["ช่วงวัยอื่น", "กรอบบาง"], ageNum: ["ตัวเลข", "อายุเริ่มของแต่ละช่วง"],
+      life: ["เส้นชีวิต", "เส้นทึบ"], head: ["เส้นสมอง", "เส้นประยาว"], heart: ["เส้นหัวใจ", "เส้นจุดไข่ปลา"], fate: ["เส้นวาสนา", "เส้นประสลับจุด"],
+      mountOn: ["เนินเด่น", "จุดใหญ่ + ป้ายกรอบหนา"], mountOther: ["เนินอื่น", "จุดเล็ก + ป้ายกรอบบาง"] },
+    en: { brow: ["Eyebrows", "solid line"], eye: ["Eyes", "dotted line"], nose: ["Nose", "long dashes"], mouth: ["Mouth", "dash-dot line"],
+      contour: ["Face outline", "line around the face"], zones: ["Three zones", "horizontal rules + labels upper / middle / lower and %"], points: ["Key points", "round dot + boxed label"],
+      palTop: ["Top 3 palaces", "thick outline + number"], palOther: ["Other palaces", "thin outline + number"], palNum: ["Palace number", "matches the twelve-palace list"],
+      mtLead: ["Leading mountain", "thick circle"], mtOther: ["Other mountains", "thin circle + name"], rivers: ["Rivers", "lines around eyes, nose and mouth"],
+      ageOn: ["Your age range", "thick outline + age range"], ageOther: ["Other age ranges", "thin outline"], ageNum: ["Numbers", "starting age of each range"],
+      life: ["Life line", "solid line"], head: ["Head line", "long dashes"], heart: ["Heart line", "dotted line"], fate: ["Fate line", "dash-dot line"],
+      mountOn: ["Prominent mounts", "large dot + thick boxed label"], mountOther: ["Other mounts", "small dot + thin boxed label"] },
+    zh: { brow: ["眉", "实线"], eye: ["眼", "点线"], nose: ["鼻", "长虚线"], mouth: ["口", "点划线"],
+      contour: ["脸型轮廓", "沿脸部外缘的线"], zones: ["三停", "横线分隔 + 上 / 中 / 下 及百分比标签"], points: ["重点部位", "圆点 + 方框标签"],
+      palTop: ["前三宫位", "粗框 + 编号"], palOther: ["其他宫位", "细框 + 编号"], palNum: ["宫位编号", "与十二宫列表对应"],
+      mtLead: ["主山", "粗线圆圈"], mtOther: ["其他山", "细线圆圈 + 名称"], rivers: ["四渎", "眼、鼻、口周围的线"],
+      ageOn: ["你的年龄段", "粗框 + 年龄段标签"], ageOther: ["其他年龄段", "细框"], ageNum: ["数字", "各年龄段的起始年龄"],
+      life: ["生命线", "实线"], head: ["智慧线", "长虚线"], heart: ["感情线", "点线"], fate: ["事业线", "点划线"],
+      mountOn: ["突出的丘", "大圆点 + 粗框标签"], mountOther: ["其他丘", "小圆点 + 细框标签"] },
+  };
+  const legendOf = (page, mode, lang) => { const set = LEGEND[page] ? LEGEND[page][mode] || LEGEND[page].default || LEGEND[page].zones || [] : [];
+    return set.filter(k => LW[langOf(lang)][k]).map(k => ({ label: LW[langOf(lang)][k][0], cue: LW[langOf(lang)][k][1] })); };
+
+  const api = { W, PAGE_NO, SIZES, FONT, ICON_PATH, LEGEND, LW, legendOf, render, pageCSS, langOf, CSS_FILE: "fortune-print.css" };
 
   /* ================================ browser ================================ */
   if (typeof document === "undefined" || (NODE && !root.document)) {
@@ -283,7 +329,7 @@
     const per = o.personal || { names: [], birth: "", ages: [], typed: [] };
     const values = [].concat(per.typed || [], per.names || [], per.ages || [], String(per.birth || "").split(/\s+/).filter(x => x.length >= 3));
     const clean = o.include || !SP || !SP.scrub ? (s => s) : (s => (s ? SP.scrub(s, values, false) : s));
-    const ctx = { lang, photo: o.photo || "", clean };
+    const ctx = { lang, photo: o.photo || "", clean, figure: o.figure || null, figDone: false, capEl: null };
     const line = SP ? txt(SP.LINE[lang]) : "";
     const sections = [];
     let cur = { level: 2, heading: "", blocks: [] }; sections.push(cur);
@@ -354,8 +400,16 @@
       const s = parts.join(" · ");
       return parts.length >= 2 && s.length <= 120 ? s : "";
     };
+    const addFigure = e => {
+      if (!ctx.figure || ctx.figDone) return;
+      const b = ctx.figure(); if (!b) return;
+      ctx.figDone = true; add(b);
+      const f = e.closest("figure"); ctx.capEl = f ? f.querySelector("figcaption") : null; // its text is in the print figure
+    };
     const walk = e => {
       if (e.nodeType === 3) { const t = ctx.clean(txt(e.textContent)); if (t) add({ t: "p", text: t }); return; }
+      if (e.nodeType === 1 && ctx.photo && e.matches(ctx.photo)) { addFigure(e); return; }
+      if (e.nodeType === 1 && ctx.capEl && e === ctx.capEl) return;
       if (e.nodeType !== 1 || skipEl(e, ctx.photo)) return;
       const tag = e.tagName;
       if (/^H[1-6]$/.test(tag)) { const h = ctx.clean(txt(e.textContent)); if (h) start(+tag[1] <= 2 ? 1 : tag === "H3" ? 2 : 3, h); return; }
@@ -449,6 +503,26 @@
     pv.__lqpFit = measure;
   }
   api.fitReceipt = () => { const pv = doc.getElementById("lqPrint"); if (pv && pv.__lqpFit) pv.__lqpFit(); };
+  /**
+   * A page's annotated photo as a print figure. spec = { page, mode, neutral, alt, draw(canvas, {width, photo, print}),
+   * head: [ids of the headline result], cap: id of the caption, consent: [box id, line id] }. Made on this device only.
+   */
+  api.figure = function (o, spec) {
+    o = o || {}; spec = spec || {};
+    if (!allowed() || typeof spec.draw !== "function") return null;
+    const photo = o.photo !== false, cv = doc.createElement("canvas");
+    let src = "";
+    try { spec.draw(cv, { width: o.width || 1800, photo, print: true }); src = photo ? cv.toDataURL("image/jpeg", 0.92) : cv.toDataURL("image/png"); } catch (e) { src = ""; }
+    cv.width = cv.height = 0;
+    if (!src) return null;
+    const el = s => (!s ? null : /^[\w-]+$/.test(s) ? doc.getElementById(s) : doc.querySelector(s));
+    const tx = s => { const e = el(s); return e ? txt(e.textContent) : ""; };
+    const lang = langOf(String(doc.documentElement.lang || "th").slice(0, 2));
+    const box = spec.consent ? el(spec.consent[0]) : null, line = spec.consent ? el(spec.consent[1]) : null;
+    return { t: "photofig", src, w: o.size === "80mm" ? 70 : o.size === "A5" ? 100 : 88, alt: spec.alt || "",
+      headline: (spec.head || []).map(tx).filter(Boolean).join(" · "), caption: tx(spec.cap), legend: legendOf(spec.page, spec.mode, lang),
+      consent: box && line && !box.hidden ? txt(line.textContent) : "", neutral: spec.neutral || "", labelStyle: "#0e1430 on #ffffff" };
+  };
   api.fromDom = fromDom;
   api.mount = mount;
   api.unmount = unmount;
@@ -463,8 +537,12 @@
     const src = (r.printRoot && doc.querySelector(r.printRoot)) || doc.querySelector(r.root);
     if (!src) return null;
     const include = o.include != null ? !!o.include : SP.includeChecked ? SP.includeChecked(r) : false;
-    const model = fromDom(src, { lang: SP.lang(), page: SP.page, photo: P.photo || "", include, personal: SP.personal ? SP.personal() : null, link: SP.link ? SP.link() : "" });
-    return mount(model, { size: o.size || "auto", paid: false });
+    // the annotated photo (face / palm reading): drawn by the page for paper; "include my photo" ON by default (OFF = outline)
+    const prov = root.LQPrintFig && root.LQPrintFig[r.root], size = o.size || "auto";
+    const photoOn = o.photo != null ? !!o.photo : SP.photoChecked ? SP.photoChecked(r) : true;
+    const fig = typeof prov === "function" ? () => { try { return prov({ photo: photoOn, width: size === "80mm" ? 900 : 1800, size }); } catch (e) { return null; } } : null;
+    const model = fromDom(src, { lang: SP.lang(), page: SP.page, photo: P.photo || "", include, personal: SP.personal ? SP.personal() : null, link: SP.link ? SP.link() : "", figure: fig });
+    return mount(model, { size, paid: false });
   };
   api.print = function (o) {
     o = o || {};

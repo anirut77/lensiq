@@ -39,17 +39,17 @@
       native: "แชร์ผ่านแอปในเครื่อง", line: "ส่งทาง LINE", facebook: "แชร์ลิงก์ทาง Facebook", save: "บันทึกรูปการ์ด", close: "ปิด",
       note: "การ์ดสร้างในเครื่องนี้ ไม่อัปโหลดไปที่ใด LINE ได้ข้อความกับลิงก์ Facebook ได้เฉพาะลิงก์หน้าเว็บ",
       saved: "บันทึกรูปการ์ดแล้ว", fail: "สร้างการ์ดไม่สำเร็จ", refused: "ตอนนี้ปิดการแชร์และการพิมพ์ไว้ก่อน", born: "เกิด", preview: "ตัวอย่างการ์ดผลลัพธ์",
-      printed: "พิมพ์เมื่อ", made: "สร้างจาก", include: "ใส่ชื่อและข้อมูลที่กรอกในหน้าที่พิมพ์" },
+      printed: "พิมพ์เมื่อ", made: "สร้างจาก", include: "ใส่ชื่อและข้อมูลที่กรอกในหน้าที่พิมพ์", photoPrint: "ใส่รูปถ่ายในรายงาน" },
     en: { share: "Share result card", print: "Print", title: "Share result card", photo: "Include my photo on the card", birth: "Include birth date, age and name",
       native: "Share with apps", line: "Send on LINE", facebook: "Share link on Facebook", save: "Save card image", close: "Close",
       note: "The card is made on this device and uploaded nowhere. LINE gets the text and link; Facebook gets the page link only.",
       saved: "Card image saved", fail: "Could not make the card", refused: "Sharing and printing are off for now", born: "Born", preview: "Result card preview",
-      printed: "Printed", made: "Made with", include: "Include my name and what I entered when printing" },
+      printed: "Printed", made: "Made with", include: "Include my name and what I entered when printing", photoPrint: "Include my photo in the report" },
     zh: { share: "分享结果卡片", print: "打印", title: "分享结果卡片", photo: "在卡片上放我的照片", birth: "在卡片上放出生日期、年龄和名字",
       native: "用手机应用分享", line: "通过 LINE 发送", facebook: "在 Facebook 分享链接", save: "保存卡片图片", close: "关闭",
       note: "卡片在本机生成，不上传到任何地方。LINE 只收到文字和链接，Facebook 只收到网页链接。",
       saved: "卡片图片已保存", fail: "卡片生成失败", refused: "目前已暂停分享和打印", born: "出生", preview: "结果卡片预览",
-      printed: "打印于", made: "生成自", include: "打印时包含我的姓名和填写的资料" },
+      printed: "打印于", made: "生成自", include: "打印时包含我的姓名和填写的资料", photoPrint: "在报告中放入我的照片" },
   };
   const N3 = (th, en, zh) => ({ th, en, zh });
   /* page → its result(s). root: the result (its visibility = the result is on screen; it is what is printed); share / print:
@@ -183,9 +183,10 @@
 
   /* ---------- print styles ---------- */
   const PRINT_CSS =
-    "[data-lq-sp][data-lq-sp-off],[data-lq-sp-bar][data-lq-sp-off],[data-lq-sp-opt][data-lq-sp-off],[data-lq-sp-opt][hidden]{display:none!important}" +
+    "[data-lq-sp][data-lq-sp-off],[data-lq-sp-bar][data-lq-sp-off],[data-lq-sp-opt][data-lq-sp-off],[data-lq-sp-opt][hidden]," +
+    "[data-lq-sp-photo][data-lq-sp-off],[data-lq-sp-photo][hidden]{display:none!important}" +
     "html[data-lq-crisis] [data-lq-sp],html[data-lq-calm] [data-lq-sp],html[data-lq-crisis] [data-lq-sp-bar],html[data-lq-calm] [data-lq-sp-bar]," +
-    "html[data-lq-crisis] [data-lq-sp-opt],html[data-lq-calm] [data-lq-sp-opt]{display:none!important}" +
+    "html[data-lq-crisis] [data-lq-sp-opt],html[data-lq-calm] [data-lq-sp-opt],html[data-lq-crisis] [data-lq-sp-photo],html[data-lq-calm] [data-lq-sp-photo]{display:none!important}" +
     ".lq-sp-opt{display:inline-flex;align-items:center;gap:.45em;min-height:44px;font-size:.9rem;margin:.2em .4em}.lq-sp-opt input{width:22px;height:22px;flex:none}" +
     ".lq-sp-bar{display:flex;flex-wrap:wrap;gap:.6em;margin:1em 0 .4em}" +
     "#lqPrint{display:none}" +
@@ -201,7 +202,7 @@
     "@media (prefers-color-scheme:dark){.lq-sp-box{background:#161b36;color:#eef1ff}}" +
     "@media print{" +
     "body.lq-printing>*:not(#lqPrint){display:none!important}" +
-    "#siteNav,header.nav,.lq-helpbar,nav,button,select,input,textarea,.lq-toc,[data-lq-sp-bar],[data-lq-sp-opt],.lq-sp-dlg,dialog,.toast{display:none!important}" +
+    "#siteNav,header.nav,.lq-helpbar,nav,button,select,input,textarea,.lq-toc,[data-lq-sp-bar],[data-lq-sp-opt],[data-lq-sp-photo],.lq-sp-dlg,dialog,.toast{display:none!important}" +
     "body.lq-printing{background:#fff!important;color:#111!important;margin:0;padding:0}" +
     "#lqPrint{display:block!important}#lqPrint:not(.lqp){color:#111;background:#fff;font-size:11pt;line-height:1.55}" +
     "#lqPrint *{box-shadow:none!important;text-shadow:none!important;animation:none!important;transition:none!important}" +
@@ -289,6 +290,7 @@
   /* "include my name and what I entered" next to each print button on pages that ask for them: OFF on every page load and
      again after each print (the share card's rule); while it is off the report leaves out names, birth data and typed text */
   function addOpts() {
+    if (P && P.photo) addPhotoOpt();
     if (!P || !P.personal) return;
     for (const b of doc.querySelectorAll('[data-lq-sp="print"]')) {
       const forSel = b.getAttribute("data-lq-sp-for") || "";
@@ -299,6 +301,22 @@
       l.appendChild(c); l.appendChild(t); b.after(l);
     }
   }
+  /* "include my photo in the report" (face / palm reading, owner order 2026-11-17): ON by default; OFF = the annotated figure is
+     drawn on a neutral outline. The share card keeps its own rule (photo OFF by default). */
+  function addPhotoOpt() {
+    for (const b of doc.querySelectorAll('[data-lq-sp="print"]')) {
+      const forSel = b.getAttribute("data-lq-sp-for") || "";
+      if (doc.querySelector('[data-lq-sp-photo][data-lq-sp-for="' + forSel + '"]')) continue;
+      const l = doc.createElement("label"); l.className = "lq-sp-opt"; l.setAttribute("data-lq-sp-photo", ""); l.setAttribute("data-lq-sp-for", forSel);
+      const c = doc.createElement("input"); c.type = "checkbox"; c.checked = true;
+      const t = doc.createElement("span"); t.textContent = T("photoPrint");
+      l.appendChild(c); l.appendChild(t); b.after(l);
+    }
+  }
+  function photoChecked(r) {
+    const l = r ? doc.querySelector('[data-lq-sp-photo][data-lq-sp-for="' + r.root + '"]') : null, c = l && l.querySelector("input");
+    return c ? !!c.checked : true;
+  }
   const hasPersonal = () => { const x = personalOf(); return !!(x.birth || x.names.length || x.ages.length || x.typed.length); };
   function includeChecked(r) {
     const l = r ? doc.querySelector('[data-lq-sp-opt][data-lq-sp-for="' + r.root + '"]') : null, c = l && l.querySelector("input");
@@ -307,9 +325,12 @@
   function resetOpts() { for (const c of doc.querySelectorAll("[data-lq-sp-opt] input")) /** @type {HTMLInputElement} */ (c).checked = false; }
   function sync() {
     const ok = allowed(doc);
-    for (const e of doc.querySelectorAll("[data-lq-sp], [data-lq-sp-bar], [data-lq-sp-opt]")) {
+    for (const e of doc.querySelectorAll("[data-lq-sp], [data-lq-sp-bar], [data-lq-sp-opt], [data-lq-sp-photo]")) {
       if (ok) e.removeAttribute("data-lq-sp-off"); else e.setAttribute("data-lq-sp-off", "");
       if (e.hasAttribute("data-lq-sp-own") && e.textContent !== T(e.getAttribute("data-lq-sp"))) e.textContent = T(e.getAttribute("data-lq-sp"));
+    }
+    for (const l of /** @type {any[]} */ ([...doc.querySelectorAll("[data-lq-sp-photo]")])) {
+      const t = l.querySelector("span"); if (t && t.textContent !== T("photoPrint")) t.textContent = T("photoPrint");
     }
     const opts = doc.querySelectorAll("[data-lq-sp-opt]");
     if (opts.length) {
@@ -394,6 +415,7 @@
   api.personal = personalOf;
   api.link = linkOf;
   api.includeChecked = includeChecked;
+  api.photoChecked = photoChecked;
   /* a page may lend its own symbol art to the card (hexagram, zodiac animal, element glyph …): fn(ctx, x, y, w, h), drawn when
      no photo is on the card; it must not draw the person's photo or any text the user typed */
   const arts = {};

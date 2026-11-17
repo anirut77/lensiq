@@ -126,3 +126,21 @@ ol.lqp-cols>li::before{content:counter(lqp) "."}
 /* site styles must not reach the paper: headings start at the left edge; belief note under a list item */
 .lqp h1,.lqp h2,.lqp h3,.lqp h4,.lqp p,.lqp li{text-align:left;letter-spacing:normal;text-transform:none}
 .lqp-belief-i{display:block;font-size:8pt;color:#333;margin-top:.4mm}
+
+/* the annotated photo (face / palm reading): image, headline, caption and legend stay together on one page */
+.lqp-photofig{display:flex;gap:5mm;align-items:flex-start;margin:1mm 0 4mm;break-inside:avoid;page-break-inside:avoid}
+.lqp-photofig img{display:block;width:88mm;max-width:100%;height:auto;flex:none;border:.5pt solid #777;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lqp-fig-side{flex:1 1 auto;min-width:0;font-size:9pt;line-height:1.45}
+.lqp-fig-head{font-size:12pt;font-weight:700;margin:0 0 2mm;color:var(--lqp-ink)}
+.lqp-fig-cap{margin:0 0 2mm;color:#333}
+.lqp-fig-legend{list-style:none;padding:0;margin:0;display:grid;gap:1mm}
+.lqp-fig-legend li{break-inside:avoid;margin:0}
+.lqp-lg-cue{display:inline-block;min-width:22mm;font-weight:700;color:var(--lqp-ink)}
+.lqp-fig-consent{margin:2mm 0 0;border-left:.8mm solid var(--lqp-accent);padding-left:2mm;color:#222}
+.lqp--a5 .lqp-photofig{flex-direction:column}
+.lqp--a5 .lqp-photofig img{width:100mm}
+@media print and (max-width:150mm){.lqp--auto .lqp-photofig{flex-direction:column}.lqp--auto .lqp-photofig img{width:100mm}}
+.lqp--r80 .lqp-photofig{flex-direction:column;gap:2mm}
+.lqp--r80 .lqp-photofig img{width:100%}
+.lqp--r80 .lqp-fig-side{font-size:7.5pt}
+.lqp--r80 .lqp-fig-head{font-size:9.5pt}
