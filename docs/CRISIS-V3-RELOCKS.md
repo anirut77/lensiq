@@ -194,8 +194,13 @@ Controls: unit P3 (3 injected strings → exactly 3 failures; inside `[data-lq-u
 dream TH / EN / ZH (clean 0; 3 visible injected flagged, hidden and upsell copies not; clean again after removal).
 Build found by the static scan: report.js paid-mode "no credit" gate ("ดูราคารายงาน" link to pricing) had no marker; it now carries
 `data-lq-upsell` (hidden in the crisis / calm state). Paid mode is off, so nothing visible changes today.
-Open items for the owner (allow-listed, not changed): the site menu entries "แพ็กเกจและราคา" / "สมาชิกและการชำระเงิน" (nav.js) and the
-account-menu "แพ็กเกจและราคา" (lensiq-member.js, pricing on only) stay reachable in the crisis state inside collapsed menus.
+Menus (re-lock 2, coordinator order 2026-11-18: CLAUDE.md rule b makes this a required fix, not an owner choice): the site menu's
+"แพ็กเกจและราคา" entry and the "สมาชิกและการชำระเงิน" description of "บัญชีของฉัน" (nav.js), and the account menu's
+"แพ็กเกจและราคา" (lensiq-member.js), carry `data-lq-crisis-sales`; nav.js hides it while `html[data-lq-crisis]` or
+`html[data-lq-calm]` is set (CSS, so they come back when the flag clears). The account link itself stays reachable. They left the
+`priceText` allow-list; the static scan accepts them only with the marker on the same source line (`priceMarked`, P2) and P6
+asserts the marker and the CSS; `tests/e2e/crisis-price-scan-menu.e2e.mjs` opens the menu in the crisis state (0 pricing entries,
+TH / EN / ZH) and after clearing (entries back). Re-lock 2 only adds assertions. nav.js v29, lensiq-config.js v21 (member v5).
 
 Re-lock 1 (kit, `crisis-price-scan-kit.r1.mjs`, after CI run 44141046161, test fault): report [en] / [zh] never drew a reading
 because the reused flow types the Buddhist year 2533 while the era radio defaults to CE outside Thai; the kit now picks BE first.
