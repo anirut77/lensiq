@@ -3,3 +3,11 @@ ad9687ce5ded6a29dceab2ca454efa80460fd21335c07601704471cd77f575c2  tests/unit/for
 becef0f455efdc8e422c11c01f4cf8282981a565b596806c0bde0b70a5ebcdc8  tests/unit/fortune-credits-assets.json
 099991d6f92521bbc9043d18cf3531de0d97da74af649f11baadc1c3c9362058  tests/e2e/fortune-credits.e2e.mjs
 # repo copies (byte-identical), locked BEFORE any product change on branch fortune-credits (base origin/main 5695734). Owner order 2026-11-17 night item 2: remove the reading-source label and the 'เกี่ยวกับคำอ่านนี้' block from every fortune page; credits -> credits.html, principles -> help.html#h-principles, foot links.
+# locked 2026-11-17T16:23:23Z (tools/eval-guard.mjs lock, 3 files)
+cb8c22f3d667f35a667fccc1a2fba1707adf9b3667c1b6591563c2c8e0f3c914  relock/cat-pages.test.js
+2d56321d8012ac341c5ddb2c2086544873f85510553dd8f2305256e180052558  relock/fortune-no-demo.test.js
+049f2ed384c3eb109f6d48cd6f6a37ff4ca36d71811390ff05e161e6413097ec  relock/crisis-escape-guard-allow.json
+# RE-LOCK 2026-11-17 (append-only, branch fortune-credits), reason: owner order 2026-11-17 night item 2. Exact-list amendments only, found by the unit suite after the change: cat-pages.test.js support list + credits (new support page, UNLINKED, like counselling); fortune-no-demo.test.js test 5 BASE_ST + credits: support; crisis-escape-guard-allow.json drops palm plEthics, tarot trCredit, fengshui fsSourcesNote (the elements were removed with the about block; the test requires stale entries to go). No assertion loosened, no other value changed.
+cb8c22f3d667f35a667fccc1a2fba1707adf9b3667c1b6591563c2c8e0f3c914  tests/unit/cat-pages.test.js  # repo file (fortune-credits relock)
+2d56321d8012ac341c5ddb2c2086544873f85510553dd8f2305256e180052558  tests/unit/fortune-no-demo.test.js  # repo file (fortune-credits relock)
+049f2ed384c3eb109f6d48cd6f6a37ff4ca36d71811390ff05e161e6413097ec  tests/unit/crisis-escape-guard-allow.json  # repo file (fortune-credits relock)
