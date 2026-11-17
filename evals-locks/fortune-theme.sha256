@@ -1,0 +1,6 @@
+# locked 2026-11-17T05:30:47Z (tools/eval-guard.mjs lock, 2 files)
+dd14ec7f396e29daf023c071f6e34daebc5d485ff09c78e2f88615e6e5ada2fe  fortune-theme.test.js
+ea683c985e4a27ab59fbff32dc4a4ab1155e3e0c3a5a74919ffad4dad37633b2  fortune-theme.e2e.mjs
+# repo copies (byte-identical to the locked files above), locked 2026-11-17 BEFORE the theme is wired into any page on branch fortune-theme (base origin/main 9f977dd). Owner approval 2026-11-17: direction A "ราตรีคราม" + the gold line-art style. Baseline before the change: fortune-theme.test.js 3/9 pass (1, 2, 4, 5, 7, 8 fail as expected: nothing built; 3 palette, 6 art files drafted, 9 budgets unchanged pass).
+dd14ec7f396e29daf023c071f6e34daebc5d485ff09c78e2f88615e6e5ada2fe  tests/unit/fortune-theme.test.js  # repo file
+ea683c985e4a27ab59fbff32dc4a4ab1155e3e0c3a5a74919ffad4dad37633b2  tests/e2e/fortune-theme.e2e.mjs  # repo file
