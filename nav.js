@@ -658,7 +658,8 @@
   // ---------- fortune pages: "report a problem with this reading" (lensiq-report.js) ----------
   function reportHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
-    if (!/^(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
+    // not the hub (fortune.html): it shows no reading to report (speed budget, 2026-11-17)
+    if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
     var sc = document.createElement("script");
     sc.src = "lensiq-report.js?v=2"; sc.async = true;
