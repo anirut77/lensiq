@@ -160,6 +160,10 @@ If the guard does not print `eval-guard OK`, there is no measurement. Report the
   reached in 60 taps at 700 micro-USD each). Re-lock (2), cap 0.01 USD, no assertion changed: commit `896606c8`, field lock
   `locked-2026-11-18-tap-rule-r2.sha256`. The 6 / minute and 150 / day caps stay locked in A6 and R6.
 
+Reviewer verified (independent, 2026-11-18): the release criteria were rebuilt from LIVE-SCAN-RESULTS.md and PC-JK-RESULTS.md, and every one maps to a check. No criterion lacks a check. Row 18 means "one round per tap" (pc_fields + pc_claims; per-product dedupe applies only to the removed automatic path). Already checked but not listed: allowance refund (A3), provider-chain change ends one-tap (lensiq-ai.test.js), JA/KO Worker rules (pc-jako-policy). The product was mutated in a scratch copy for 11 key mutations: auto photo (A7), 150/day (R6, twice), already-sent and consent (pc-live), tester gate (A1), JA/KO preview, Worker previewed and auto previewed (pc-jako-policy), scene cut (R4), fps (R1), note-to-person (onetap-notes); a twelfth, the allowance refund, was also caught (A3). Every one made a test fail. The test file was committed in the same commit as each lock line (cc638713 in 1ff1bd46, 0dfbb137 in 686e0bfe). Field lock files are new only (locked.sha256 untouched since Nov 12), and eval-guard repo shows 0 mismatches (244 files). Re-lock 2 changes are setup-only: R5 EQUAL, R6 EQUAL. The sameObject fix is a strict subset of the old match, so it only adds fresh readings; the e2e merge check is green. Unit pc/eval-guard/backend-pc 326/326; CI unit 2402/2402 and live e2e 10/10. Item 27 (timing) remains open pending a real phone.
+
+Decision-96 tests T1–T3 (8f9e9c07, 896606c8) reviewed separately — see REVIEW.md addendum.
+
 ## Known issues in locked files
 
 Locked files are not edited. Known problems are recorded here and fixed in the next set.
