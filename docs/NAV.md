@@ -60,6 +60,9 @@ exactly as written: tests and page code read them):
   its first word, the last few short words of a text, a number that sits in its own <b>/<span> with the word after it, a
   short last link / tag (< 6 characters) with the word before it. Inside a flex / grid box everything goes into one `<lq-t
   class="lq-t">` so the layout keeps one item. A custom element, not a span, so page code that looks up `span` is unaffected.
+  Piece edges sit on word boundaries (Intl.Segmenter), take an opening bracket before them and closing marks after them.
+  A long piece in the middle of a text (weight over 14) is `lq-t.lq-b` (inline-block, max-width 100 %): it moves as one unit
+  and wraps inside itself instead of overflowing a narrow box. Re-applied about 0.15 s after page code re-renders.
 - Thai and Chinese (no spaces): the last words (Intl.Segmenter, about 4 Chinese or 8 Thai characters, at most 16 weighted)
   move into the same kind of nowrap tail; headings, labels and buttons (full Thai word split) keep the tail inside their
   `.lq-run`. No `<wbr>` before closing punctuation or ๆ ฯ; the trailing space of a tail stays outside it.
