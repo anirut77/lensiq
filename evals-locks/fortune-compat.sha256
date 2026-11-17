@@ -16,3 +16,6 @@ ffd61fea273a2010df83d863522b7b01e4b0ffffe392e893c46cc57616d77266  tests/e2e/fort
 # locked 2026-11-16T08:02:31Z (tools/eval-guard.mjs lock, 2 files)
 031a86912dd3ede168690af20b3539910e755e373f2863ba97e63e3f6422a264  tests/unit/fortune-compat.test.js
 1d8bc128c7b04ce8b5c560881b2378852feafaea4ce25c31977d4a10ceabf2e5  tests/unit/fortune-compat-2.test.js
+# RE-LOCK 2026-11-17 (5), owner decision 73 (compat go-live): unit test P link assertion back to the original lock (1): compat.html linked from cat-fortune.html, fortune.html and nav.js; plus compat in category 6 and not in UNLINKED of tools/cat-data.cjs. Nothing else changed. Locked BEFORE the go-live code commit on branch compat-staging (the go-live edits were drafted in the working tree first and set aside before this lock).
+# locked 2026-11-17T01:10:26Z (tools/eval-guard.mjs lock, 1 file)
+4de23c9c0a11dca3dbdc03fc1b474ad54004801f8da1c0f0267ea4e9b8d9dd5c  tests/unit/fortune-compat.test.js

@@ -47,9 +47,9 @@
 //    (rule a). Switch on and not calm = "full" (7 categories); switch on in the crisis or calm state = "free".
 // G  Group: 3–8 people: every pair once, one suggested role per person framed as a strength, the work-use line in TH / EN / ZH.
 // P  Page and privacy (static): compat.html has the single top help button (1323 once, 1669 not), the final disclaimer line,
-//    the consent statement in TH (EN / ZH in the dictionaries) and the work-use line; RE-LOCK 2026-11-16 (coordinator, until the
-//    owner approves the go-live): compat.html is NOT linked from cat-fortune.html, fortune.html or nav.js and is listed in
-//    UNLINKED of tools/cat-data.cjs (was: linked from all three); the astronomy engine is not loaded at page load (lazy); compat.js / compat-kb.js make no
+//    the consent statement in TH (EN / ZH in the dictionaries) and the work-use line; RE-LOCK 2026-11-17 (5), owner decision 73
+//    (go-live approved): compat.html IS linked from cat-fortune.html, fortune.html and nav.js, is in category 6 of
+//    tools/cat-data.cjs and NOT in UNLINKED (2026-11-16 (2) had inverted this until the approval); the astronomy engine is not loaded at page load (lazy); compat.js / compat-kb.js make no
 //    network call and write no storage; the vendored engine matches its published sha256 and carries its MIT licence;
 //    credits, sources, legal packet (consent wording, L72) and PDPA note are recorded.
 const test = require("node:test");
@@ -413,9 +413,11 @@ test("P page: help button, disclaimer, consent, work-use line, links, lazy engin
   for (const re of CONSENT.en) assert.match(en, re);
   for (const re of CONSENT.zh) assert.match(zh, re);
   assert.match(en, WORK.en); assert.match(zh, WORK.zh); assert.match(html, WORK.th);
-  // RE-LOCK 2026-11-16: unlinked until the owner approves (coordinator); reachable by its URL only
-  for (const f of ["cat-fortune.html", "fortune.html", "nav.js"]) assert.ok(!read(f).includes("compat.html"), f + " does not link compat.html yet");
-  assert.ok(require(path.join(ROOT, "tools", "cat-data.cjs")).UNLINKED.compat, "compat listed in UNLINKED (tools/cat-data.cjs)");
+  // RE-LOCK 2026-11-17 (5): owner decision 73, go-live: linked from all three, in category 6, not in UNLINKED
+  for (const f of ["cat-fortune.html", "fortune.html", "nav.js"]) assert.ok(read(f).includes('href="compat.html') || read(f).includes('"compat.html"'), f + " links compat.html");
+  const cat = require(path.join(ROOT, "tools", "cat-data.cjs"));
+  assert.ok(!cat.UNLINKED.compat, "compat not in UNLINKED (tools/cat-data.cjs)");
+  assert.ok(cat.CATEGORIES.find(c => c.n === 6).pages.includes("compat"), "compat in category 6 (tools/cat-data.cjs)");
 });
 test("P privacy: no network call, no storage write in the compat code; vendored engine sha256 and licence; records", () => {
   for (const f of ["compat.js", "compat-kb.js"]) {
