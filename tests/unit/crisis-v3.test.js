@@ -48,12 +48,14 @@ test("U1: a crisis phrase in the nickname or question: the reading continues (TH
   for (const lang of LANGS) {
     const FA = fresh("fortune-ai.js");
     for (const f of [Object.assign({}, FACTS, { subject: { nickname: PHRASE[lang] } }), Object.assign({}, FACTS, { question: PHRASE[lang] })]) {
-      const r = await FA.interpret(f, { useAI: false, lang });
+      const r = await FA.interpret(f, { useAI: false, lang, seed: 7 });
       assert.notEqual(r.source, "support", lang + ": not the support card");
       assert.ok(!r.crisis, lang + ": not a crisis result");
       // RE-LOCK 1 (test fault: the sample facts give one Chinese section even without a crisis phrase): the crisis reading has as many
       // sections as the same facts without the phrase, and at least one
-      const plain = await FA.interpret(FACTS, { useAI: false, lang });
+      // RE-LOCK 3 2026-11-17 (test fault: without a seed the composer picks a random seed, so the plain and the crisis reading could
+      // differ in length by chance; both now use seed 7)
+      const plain = await FA.interpret(FACTS, { useAI: false, lang, seed: 7 });
       assert.ok(Array.isArray(r.sections) && r.sections.length >= 1 && r.sections.length >= plain.sections.length, lang + ": a full reading (" + r.sections.length + " / " + plain.sections.length + ")");
       assert.notEqual(r.mode, "straight", lang + ": never straight");
       // RE-LOCK 1 2026-11-17 (test fault, before any product measurement): 3-character pieces match ordinary words ("ากต" in

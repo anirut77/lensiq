@@ -48,3 +48,7 @@ d34bb2c3cc0e26599265891d2199a85292f95ea4391d8b38e47343a27db7dbfe  tests/unit/cri
 # locked 2026-11-17T01:18:51Z (tools/eval-guard.mjs lock, 1 file)
 115869c56128cb84e9e12421a7232508c0335f85a74eb84469ae46f5db1176c3  relock2/crisis-v3-kit.mjs
 115869c56128cb84e9e12421a7232508c0335f85a74eb84469ae46f5db1176c3  tests/e2e/crisis-v3-kit.mjs  # repo file (relock2)
+# RE-LOCK 3 2026-11-17 (test fault): U1 composes the plain and the crisis reading with the same seed (7); without one the composer picks a random seed and the section counts differed by chance in the full suite.
+# locked 2026-11-17T01:25:58Z (tools/eval-guard.mjs lock, 1 file)
+dc420bc6e9e5c1f888a35e8daf5bb7df1f4989c8c99decf185c3a72ca0b42968  relock3/crisis-v3.test.js
+dc420bc6e9e5c1f888a35e8daf5bb7df1f4989c8c99decf185c3a72ca0b42968  tests/unit/crisis-v3.test.js  # repo file (relock3)
