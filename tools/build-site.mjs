@@ -38,6 +38,7 @@ export const ALLOW = [
   /^[^/]+\.html$/,                 // the 27 pages
   /^[^/]+\.(js|css)$/,             // page scripts + styles at the root (sw.js, nav.js, lensiq-*.js, *-kb.js …)
   /^i18n\/[^/]+\.js$/,             // 中文 dictionaries
+  /^live\/(?:i18n\/)?[^/]+\.js$/,  // byte-identical copies of live scripts for the pages the fortune gate keeps OFF (tools/fortune-gate.mjs)
   /^vendor\//,                     // models, WASM runtimes, face-api.js, pdf.js, docx.js, self-hosted fonts, tarot art
   /^\.nojekyll$/,
   /^LICENSE$/, /^LICENSES\/[^/]+$/ // attribution notices for the bundled third-party models/libraries
