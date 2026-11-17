@@ -136,13 +136,16 @@ If the guard does not print `eval-guard OK`, there is no measurement. Report the
 | 15 | Text sent is shown; both withdraw buttons clear consent and one-tap at once | :32, :368 | e2e 5, 7 | existed |
 | 16 | Text only; no automatic image; a photo only after "Use this picture" | :33, :166, :368 | e2e 8; A7; `pc-ondevice.test.js` | existed |
 | 17 | Public users: preview and confirm every time | :35 | e2e 4 | existed |
-| 18 | One AI round per product / per tap | :66, :163 | pc-live product key, already-sent, session cap; e2e 5 ("one tap = one round") | existed |
+| 18 | One AI round per tap (pc_fields + pc_claims; per-product dedupe applies only to the removed automatic path) | :66, :163 | e2e 5 ("one tap = one round": pc_fields 1 + pc_claims 1); pc-live product key, already-sent, session cap (automatic path only) | existed |
 | 19 | Worker: `auto` boolean, tester + valid code, Product Check features only, auto filter | :34, :173-176, :369 | A1-A5 | existed |
 | 20 | Worker one-tap allowance 6 a minute, 150 a day | :69, :177 | A6 (allows 12 / 300; day limit never reached) | **added R6** (<= 6, <= 150, request 151 refused) |
 | 21 | Auto flag, tester code and facts never reach the provider | :177 | A7 | existed |
 | 22 | Documented refusal codes show their own notice in TH / EN / ZH (incl. `ai_off_personal_data`, `ai_off_auto_filter`) | :36, :355-357 | e2e 8 (four codes, Thai) | **added R7** |
 | 23 | A note to a person stops one-tap | :403 | `pc-guard-onetap-notes.test.js` (in no lock) | existed; **joined the set** unchanged |
-| 24 | Japanese / Korean script never one-tap | `PC-JK-RESULTS.md`:29 | `pc-jako-policy.test.js` (in no lock) | existed; **joined the set** unchanged |
+| 24 | Japanese / Korean script never one-tap; preview always open; Worker refuses unpreviewed JA / KO text (`ai_off_jako_preview`), a JA / KO photo (`ai_off_jako_photo`) and auto requests even when previewed | `PC-JK-RESULTS.md`:27-31 | `pc-jako-policy.test.js` (in no lock) | existed; **joined the set** unchanged |
+| 28 | One-tap allowance given back when a request is refused before a provider call | :177 | A3 (fails when the refund is removed) | existed |
+| 29 | A changed provider chain turns one-tap off | :159-160, :364 | `lensiq-ai.test.js` (`LQAI.rememberedConsent`; outside the live-scan set) | existed |
+| 30 | "Turn the pack" hint after a side read with nothing on the checklist | `PC-JK-RESULTS.md` §5 | `pc-live-turn.test.js` (in no lock) | existed; not locked |
 | 25 | EN / ZH complete, 360 px without horizontal scroll, controls >= 44 px | :109 | e2e 10 | existed |
 | 26 | Personal data to AI 0 on P7 / P7b | :71 | `live-leak-score.mjs` (locked measurement) | existed |
 | 27 | First on-device result <= 1 s; AI fields <= 3 s | :139-147 | `live-measure.mjs` (measurement outside the repo, not a pass/fail test) | **no check added**: needs a real phone; a CI timing test would not be deterministic. Still open (4x proxy misses both for OCR / AI) |
