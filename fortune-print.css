@@ -41,7 +41,7 @@
 .lqp-sec{margin:0 0 1mm}
 .lqp-sec-1{margin-top:3mm}
 .lqp-sec+.lqp-sec .lqp-lead>.lqp-h:first-child{margin-top:3.5mm}
-.lqp p{margin:0 0 2mm;orphans:3;widows:3}
+.lqp p{margin:0 0 2mm;orphans:3;widows:3;break-inside:avoid;page-break-inside:avoid} /* a paragraph is never split across pages */
 .lqp-caution{border-left:.8mm dashed var(--lqp-caution);padding-left:2.4mm}
 
 /* lists: an item never splits; short lists in two columns */
