@@ -189,7 +189,14 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(await page.evaluate("typeof window.LQFortuneCrisis === 'undefined'"), path + ": fortune-crisis.js was not blocked");
       return page;
     };
-    const tel = label => `(() => { ${VIS} const a = [...document.querySelectorAll('.lq-helpline a[href="tel:1323"]')].filter(x => !x.closest("#lqHelpTop")).find(vis); if (!a) return ${S(label)} + ": no visible closing-line tel:1323 link";
+    // RE-LOCK merge-2 2026-11-17 (test fault of relock-merge, run v3-2-affected-3.log): tarot / iching only shuffle / cast on the
+    // question (no reading yet) and numbers refuses a non-Thai name, so no reading is drawn and there is no closing line to look
+    // for. Now: when a reading section is shown, its closing line must hold a visible tel:1323 of >= 44 px; in every case a visible
+    // tel:1323 of >= 44 px is on the page (the closing line or the top bar's 1323 control).
+    const tel = label => `(() => { ${VIS} const secs = [...document.querySelectorAll(".fa-section")].filter(vis).length;
+      const close = [...document.querySelectorAll('.lq-helpline a[href="tel:1323"]')].filter(x => !x.closest("#lqHelpTop")).find(vis);
+      if (secs && !close) return ${S(label)} + ": a reading is shown without the closing-line tel:1323";
+      const a = close || [...document.querySelectorAll('a[href="tel:1323"]')].find(vis); if (!a) return ${S(label)} + ": no visible tel:1323 link";
       const b = a.getBoundingClientRect(); return b.height >= 44 ? "" : ${S(label)} + ": tel:1323 is " + Math.round(b.height) + " px tall (< 44)"; })()`;
     const E5 = [
       // re-lock 2026-11-17 (append-only): the name tab is opened BEFORE the baseline, as in part A (v1 opened it after the

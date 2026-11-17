@@ -135,3 +135,7 @@ cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fort
 # locked 2026-11-17T05:15:26Z (tools/eval-guard.mjs lock, 1 file)
 0c04589aab924713f29b241787f360f5b844e0dc4dada1f35e2c774245409928  relock-nodemo/fortune-no-demo.test.js
 0c04589aab924713f29b241787f360f5b844e0dc4dada1f35e2c774245409928  tests/unit/fortune-no-demo.test.js  # repo file (relock-nodemo)
+# RE-LOCK fix-2 (merge-2) 2026-11-17 (test fault of relock-merge, run v3-2-affected-3.log): E5 required a closing line right after the question, but tarot / iching only shuffle / cast then and numbers refuses a non-Thai name (no reading, so no closing line). Now: a shown reading must end with the closing-line tel:1323 >= 44 px; in every case a visible tel:1323 >= 44 px (closing line or top bar) is on the page. Crisis state / no card / no echo unchanged.
+# locked 2026-11-17T05:38:04Z (tools/eval-guard.mjs lock, 1 file)
+1363d3d1125284af36df37f489242260ef844f28d7ec95d84e9773afc32b69fd  relock-fix-2/crisis-net-hotfix-e.e2e.mjs
+1363d3d1125284af36df37f489242260ef844f28d7ec95d84e9773afc32b69fd  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file (relock-fix-2)
