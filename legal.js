@@ -43,6 +43,12 @@
     if (target) { if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1"); target.focus({ preventScroll: true }); }
   });
   window.addEventListener("hashchange", function () { jump(true); });
+  // help.html#h-principles: text loads on first open
+  doc.addEventListener("toggle", function (e) {
+    var d = /** @type {HTMLDetailsElement} */ (e.target), s = d.open && d.getAttribute("data-src"), sc;
+    if (!s || doc.querySelector('script[src="' + s + '"]')) return;
+    sc = doc.createElement("script"); sc.src = s; doc.head.appendChild(sc);
+  }, true);
   window.addEventListener("lq-lang", function () { if (location.hash) setTimeout(function () { jump(false); }, 30); });
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", function () { jump(false); }); else jump(false);
 

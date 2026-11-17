@@ -1,5 +1,7 @@
 /* zh-report.js — Simplified Chinese for report.html (Thai lives in the markup / report.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "fortune.foot.principles": "我们的解读原则",
+  "fortune.foot.credits": "致谢与许可",
   "fortune.disc.line": "基于命理学原则，属个人信仰，请自行判断。",
   "rp.doc.title": "我的占卜报告 | LENSIQ",
   "rp.doc.desc": "LENSIQ 长篇占卜报告：多体系基础报告、合盘报告和按月年度报告，在设备上计算，可保存到账户并打印或另存为 PDF",

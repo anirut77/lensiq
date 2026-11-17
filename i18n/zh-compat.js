@@ -1,6 +1,8 @@
 /* i18n/zh-compat.js — Simplified Chinese for compat.html (Compatibility, compat-ui.js). Thai lives in the markup / page
  * script; the reading itself comes from compat-kb.js in the page language. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "fortune.foot.principles": "我们的解读原则",
+  "fortune.foot.credits": "致谢与许可",
   "fortune.disc.line": "基于命理学原则，属个人信仰，请自行判断。",
   "compat.title": "合婚合盘：两人或小组 | LENSIQ",
   "compat.eyebrow": "合婚合盘 · 泰式 · 八字 · 吠陀 · 西洋",
@@ -25,7 +27,6 @@
   "compat.remove": "删除最后一人",
   "compat.timeHint": "不知道出生时间也可以查看，页面会说明哪些部分可能不够精确。",
   "compat.go": "查看契合度",
-  "compat.aboutH": "关于本解读",
   "compat.about1": "泰式：出生星期组合（朋友、相对、平衡、同元素）、生肖及《梵天书》出生年元素 · 八字：日主五行、天干五合、日支与年支关系 · 吠陀：依月亮星宿（Lahiri 岁差）计算 Ashtakoota，满分30，不含 Gana（各资料计分不一） · 西洋：两张星盘之间的主要相位。",
   "compat.about2": "行星位置在本设备上用天文公式计算（Meeus 与 Don Cross 的 Astronomy Engine，MIT 许可）。输入的生日和名字不会保存或发送，关闭页面即清除。",
   "compat.principle": "原则：每条结果都说明如何互相调和；从不建议结束感情、婚姻或生意，不评判任何一对合适与否，不预测健康或寿命，也不出售化解仪式。",

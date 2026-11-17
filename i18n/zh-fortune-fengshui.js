@@ -92,7 +92,6 @@
     "fengshui.hint.kua": "命卦 {k}", "fengshui.hint.noKua": "尚未计算命卦",
     "fengshui.hint.rest": " · 已记录方位 {r} · 户型图中的房间 {n} · 房间照片 {p}",
     "fengshui.src.ai": "由写作助手（Anthropic 的 Claude）润色（仅基于计算结果）",
-    "fengshui.src.local": "本机生成，不发送数据",
     "fengshui.overview": "总览",
     "fengshui.readFail": "生成解读失败",
     "fengshui.ex.colors": "幸运色", "fengshui.ex.dirs": "吉方", "fengshui.ex.tips": "小贴士",

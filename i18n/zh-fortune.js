@@ -5,6 +5,8 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
+    "fortune.foot.principles": "我们的解读原则",
+    "fortune.foot.credits": "致谢与许可",
     "fortune.disc.line": "基于命理学原则，属个人信仰，请自行判断。",
     "pd.notAssess": "不是评估",
     "astro.asResTitle": "你的 Big Three",
@@ -60,7 +62,6 @@
     "fk.loading": "正在撰写解读…",
     "fk.again": "换一种说法",
     "fk.src.ai": "由写作助手（Anthropic 的 Claude）撰写",
-    "fk.src.local": "在本机撰写 · 每次说法都不同",
     "fk.card.foot": "基于命理学原则，属个人信仰，请自行判断。",
     "fk.card.help": "想找人倾听？拨打 1323 · 随时可以聊，24 小时有人愿意倾听",
     "fk.share.text": "基于命理学原则，属个人信仰，请自行判断。",
@@ -131,7 +132,6 @@
     "fortune.common.readingDetail": "详细解读",
     "fortune.common.regen": "换一种说法",
     "fortune.common.share": "分享结果卡片",
-    "fortune.common.about": "关于本解读",
     "fortune.common.stats": "展位统计（匿名）",
     "fortune.common.statsClear": "清除统计",
     "fortune.common.topic": "想问的主题",

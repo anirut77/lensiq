@@ -427,6 +427,7 @@ const PAGES = {
   about: { st: "support", why: "content", claims: ["info"] },
   help: { st: "support", why: "content", claims: ["info"] },
   counselling: { st: "support", why: "content", claims: ["info"] },
+  credits: { st: "support", why: "content", claims: ["info"] },
   "camera-notice": { st: "support", why: "notice", claims: ["info"] },
   privacy: { st: "support", why: "legal", claims: ["info"] },
   terms: { st: "support", why: "legal", claims: ["info"] },
@@ -510,6 +511,7 @@ const CATEGORIES = [
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
 const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
   tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category",
-  counselling: "Counselling services (owner decision 2026-11-16, crisis one-number rules): linked only from the fortune crisis card and help line, help and privacy; not in the menus" };
+  counselling: "Counselling services (owner decision 2026-11-16, crisis one-number rules): linked only from the fortune crisis card and help line, help and privacy; not in the menus",
+  credits: "Credits and licences (owner order 2026-11-17 night, item 2): linked from the foot of every fortune page; not in the menus" };
 
 module.exports = { STATUS, STATUS_DEF, STATUS_DEF_CAT, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };

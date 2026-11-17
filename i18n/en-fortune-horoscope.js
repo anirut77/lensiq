@@ -95,7 +95,6 @@
     "horoscope.x.topic.work": "Career",
     "horoscope.x.topic.money": "Money",
     "horoscope.x.srcAI": "Composed by the writing assistant (Claude by Anthropic)",
-    "horoscope.x.srcLocal": "Composed on this device · wording varies each time",
     "horoscope.x.heroK": "Born on {d} · color: {c}",
     "horoscope.x.fRasi": "Birth sign (Thai)",
     "horoscope.x.fLagna": "Ascendant",

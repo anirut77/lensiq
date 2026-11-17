@@ -91,7 +91,6 @@
     "fengshui.hint.kua": "Kua number {k}", "fengshui.hint.noKua": "Kua number not calculated yet",
     "fengshui.hint.rest": " · directions recorded {r} · rooms on plan {n} · room photos {p}",
     "fengshui.src.ai": "Phrased by the writing assistant (Claude by Anthropic), based only on the computed results",
-    "fengshui.src.local": "Generated on this device, no data sent",
     "fengshui.overview": "Overview",
     "fengshui.readFail": "Could not create the reading",
     "fengshui.ex.colors": "Lucky colors", "fengshui.ex.dirs": "Favorable directions", "fengshui.ex.tips": "Tips",

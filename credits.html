@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';
+  script-src 'self' 'wasm-unsafe-eval';
+  style-src 'self' 'unsafe-inline';
+  font-src 'self' data:;
+  img-src 'self' data: blob:;
+  media-src 'self' data: blob:;
+  connect-src 'self' data: blob:;
+  worker-src 'self' blob:;
+  manifest-src 'self';
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30'
+ rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none'
+ stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="credits.doc.title">เครดิตและสัญญาอนุญาต | LENSIQ</title>
+<meta name="description" data-i18n-attr="content:credits.doc.desc" content="เครดิตและสัญญาอนุญาตของซอฟต์แวร์ โมเดล ฟอนต์ ภาพ และข้อมูลที่ LENSIQ ใช้">
+<link rel="stylesheet" href="styles.css?v=21">
+<link rel="stylesheet" href="legal.css?v=3">
+<script src="lensiq-busy.js?v=3"></script>
+<!-- credits.html (owner order 2026-11-17 night, item 2): image credits and licences moved here from the "เกี่ยวกับคำอ่านนี้"
+     block of the fortune pages; one row per credited asset (tests/unit/fortune-credits-assets.json, checked by
+     tests/unit/fortune-credits.test.js). Linked from the foot of every fortune page. -->
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=28"></script>
+<script src="i18n/zh-credits.js?v=1"></script>
+
+<main id="main" class="doc">
+
+<article class="lg lg-th" lang="th">
+  <header class="doc-hero">
+    <p class="eyebrow">เครดิต</p>
+    <h1>เครดิตและสัญญาอนุญาต</h1>
+    <p class="lead">LENSIQ ใช้ซอฟต์แวร์ โมเดล ฟอนต์ ภาพ และข้อมูลจากผู้สร้างต่อไปนี้ ขอขอบคุณทุกท่าน โค้ดของ LENSIQ เองใช้สัญญาอนุญาต MIT
+      ส่วนประกอบของผู้อื่นยังอยู่ภายใต้สัญญาอนุญาตของแต่ละราย</p>
+    <p>ข้อความสัญญาอนุญาตฉบับเต็ม: <a href="LICENSES/THIRD-PARTY-NOTICES.txt">THIRD-PARTY-NOTICES.txt</a></p>
+  </header>
+  <section id="c-assets"><h2>ซอฟต์แวร์ โมเดล ฟอนต์ ภาพ และข้อมูล</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>ส่วนประกอบ</th><th>ผู้สร้างหรือเจ้าของ</th><th>สัญญาอนุญาต</th><th>ใช้ที่</th></tr></thead>
+      <tbody>
+        <tr data-credit="face-api">
+          <td>face-api.js 1.7.12 + face models</td>
+          <td>Vincent Mühler; Vladimir Mandic (recognition weights: dlib, Davis E. King, CC0)</td>
+          <td>MIT</td><td>หน้าที่ตรวจหาใบหน้า</td></tr>
+        <tr data-credit="tfjs">
+          <td>TensorFlow.js 4.7.0</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>โมเดลบนเบราว์เซอร์</td></tr>
+        <tr data-credit="mediapipe-tasks">
+          <td>MediaPipe Tasks Vision</td>
+          <td>Google LLC / The MediaPipe Authors</td>
+          <td>Apache-2.0</td><td>โมเดลบนเบราว์เซอร์</td></tr>
+        <tr data-credit="onnxruntime">
+          <td>ONNX Runtime Web 1.20.1</td>
+          <td>Microsoft Corporation</td>
+          <td>MIT</td><td>โมเดลบนเบราว์เซอร์</td></tr>
+        <tr data-credit="pdfjs">
+          <td>PDF.js 3.11.174</td>
+          <td>Mozilla Foundation</td>
+          <td>Apache-2.0</td><td>แปลงเอกสาร</td></tr>
+        <tr data-credit="docx">
+          <td>docx (with JSZip 3.10.1)</td>
+          <td>Dolan Miu; JSZip: Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso</td>
+          <td>MIT</td><td>แปลงเอกสาร</td></tr>
+        <tr data-credit="qrcode-generator">
+          <td>qrcode-generator 2.0.4</td>
+          <td>Kazuhiko Arase</td>
+          <td>MIT</td><td>QR ที่จอดรถและหมู่บ้าน</td></tr>
+        <tr data-credit="astronomy-engine">
+          <td>Astronomy Engine 2.1.19</td>
+          <td>Don Cross</td>
+          <td>MIT</td><td>ตำแหน่งดาวในหน้าดูดวง</td></tr>
+        <tr data-credit="zxing">
+          <td>barcode-detector 3.2.3, zxing-wasm 3.1.6, zxing-cpp</td>
+          <td>Ze-Zheng Wu (MIT); the ZXing authors / zxing-cpp contributors (Apache-2.0)</td>
+          <td>Apache-2.0 + MIT</td><td>อ่านบาร์โค้ด</td></tr>
+        <tr data-credit="yolox">
+          <td>YOLOX-Nano</td>
+          <td>Megvii Inc.</td>
+          <td>Apache-2.0</td><td>นับคน</td></tr>
+        <tr data-credit="coco-ssd">
+          <td>COCO-SSD (TensorFlow.js models)</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>นับคน (สำรอง)</td></tr>
+        <tr data-credit="mobilenet">
+          <td>MobileNet v2 (TensorFlow.js models)</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>จุดชำระเงิน ร้านค้า</td></tr>
+        <tr data-credit="mediapipe-hands">
+          <td>MediaPipe Hands (lite), TensorFlow.js version</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>ดูลายมือ</td></tr>
+        <tr data-credit="hand-landmarker">
+          <td>MediaPipe Hand Landmarker</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>ป้ายโฆษณา</td></tr>
+        <tr data-credit="selfie-segmenter">
+          <td>MediaPipe Selfie Segmenter</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>ตู้ถ่ายรูป ลองเสื้อ</td></tr>
+        <tr data-credit="selfie-multiclass">
+          <td>MediaPipe Selfie Multiclass 256×256 (converted to ONNX fp16 by LENSIQ)</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>สตูดิโอ</td></tr>
+        <tr data-credit="modnet">
+          <td>MODNet portrait matting (ONNX conversion by Xenova)</td>
+          <td>ZHKKKe (MODNet authors)</td>
+          <td>Apache-2.0</td><td>สตูดิโอ ตู้ถ่ายรูป</td></tr>
+        <tr data-credit="face-landmarker">
+          <td>MediaPipe Face Landmarker (modified by LENSIQ: one sub-model removed)</td>
+          <td>Google LLC / The MediaPipe Authors</td>
+          <td>Apache-2.0</td><td>คุมสอบ ลองสินค้า</td></tr>
+        <tr data-credit="blazeface">
+          <td>MediaPipe BlazeFace short range</td>
+          <td>Google LLC / The MediaPipe Authors</td>
+          <td>Apache-2.0</td><td>ตรวจสินค้า</td></tr>
+        <tr data-credit="paddleocr">
+          <td>PaddleOCR PP-OCRv5 text detector and recognisers (Thai, Chinese / Japanese, Korean, Latin)</td>
+          <td>PaddlePaddle Authors</td>
+          <td>Apache-2.0</td><td>อ่านป้ายทะเบียน ตรวจสินค้า</td></tr>
+        <tr data-credit="lpd-yunet">
+          <td>LPD-YuNet licence-plate detector (OpenCV Zoo)</td>
+          <td>OpenCV Zoo contributors (model by Dong Xu, watrix.ai)</td>
+          <td>Apache-2.0</td><td>อ่านป้ายทะเบียน</td></tr>
+        <tr data-credit="font-prompt">
+          <td>Prompt typeface</td>
+          <td>Cadson Demak</td>
+          <td>SIL OFL 1.1</td><td>ทุกหน้า</td></tr>
+        <tr data-credit="font-inter">
+          <td>Inter typeface</td>
+          <td>The Inter Project Authors</td>
+          <td>SIL OFL 1.1</td><td>ทุกหน้า</td></tr>
+        <tr data-credit="coco">
+          <td>COCO dataset annotations (training data of the person and object detectors)</td>
+          <td>COCO Consortium</td>
+          <td>CC BY 4.0</td><td>นับคน</td></tr>
+        <tr data-credit="driver-eye">
+          <td>Open/Closed Eyes dataset (training data of the driver eye-state model)</td>
+          <td>MichalMlodawski (Hugging Face)</td>
+          <td>ODC-BY 1.0</td><td>เฝ้าระวังคนขับ</td></tr>
+        <tr data-credit="tmt">
+          <td>Thai Medicines Terminology (TMT), release 2020-02-17; converted to a lookup table</td>
+          <td>สมสท. / THIS, data.go.th</td>
+          <td>CC BY (Creative Commons Attribution)</td><td>ตรวจสินค้า (ยา)</td></tr>
+        <tr data-credit="nlem">
+          <td>National List of Essential Medicines 2567, compiled from thai-nlem-api</td>
+          <td>Suradet Pratomsak</td>
+          <td>MIT</td><td>ตรวจสินค้า (ยา)</td></tr>
+        <tr data-credit="hc-recalls">
+          <td>Health Canada Recalls and Safety Alerts. Contains information licensed under the Open Government Licence – Canada. Health Canada does not endorse
+            LENSIQ.</td>
+          <td>Health Canada</td>
+          <td>Open Government Licence – Canada</td><td>ตรวจสินค้า</td></tr>
+        <tr data-credit="hc-dpd">
+          <td>Health Canada Drug Product Database, looked up when you ask. Contains information licensed under the Open Government Licence – Canada.</td>
+          <td>Health Canada</td>
+          <td>Open Government Licence – Canada</td><td>ตรวจสินค้า (ค้นเมื่อกดตรวจ)</td></tr>
+        <tr data-credit="rasff">
+          <td>RASFF Window</td>
+          <td>European Commission</td>
+          <td>CC BY 4.0</td><td>ตรวจสินค้า (ค้นเมื่อกดตรวจ)</td></tr>
+        <tr data-credit="hsa">
+          <td>Health Sciences Authority, Listing of Registered Therapeutic Products (data.gov.sg)</td>
+          <td>Health Sciences Authority, Singapore</td>
+          <td>Singapore Open Data Licence v1.0</td><td>ตรวจสินค้า (ค้นเมื่อกดตรวจ)</td></tr>
+        <tr data-credit="nlm">
+          <td>RxNav / RxNorm and DailyMed. This product uses publicly available data from the U.S. National Library of Medicine (NLM); NLM does not endorse this
+            product.</td>
+          <td>U.S. National Library of Medicine</td>
+          <td>NLM terms of service</td><td>ตรวจสินค้า (ค้นเมื่อกดตรวจ)</td></tr>
+        <tr data-credit="tarot">
+          <td>Tarot card images, Rider–Waite–Smith deck (1909), resized; scans from Wikimedia Commons. &quot;Rider-Waite&quot; is a trademark of U.S. Games Systems,
+            Inc.</td>
+          <td>Pamela Colman Smith</td>
+          <td>Public domain (สาธารณสมบัติ)</td><td>ไพ่ทาโรต์</td></tr>
+        <tr data-credit="pillbox">
+          <td>Pillbox pill imprint data</td>
+          <td>U.S. National Library of Medicine</td>
+          <td>Public domain (สาธารณสมบัติ)</td><td>ตรวจยา</td></tr>
+        <tr data-credit="openfda">
+          <td>openFDA. FDA does not endorse LENSIQ.</td>
+          <td>U.S. Food and Drug Administration</td>
+          <td>CC0 (สละสิทธิ์)</td><td>ตรวจสินค้า (ค้นเมื่อกดตรวจ)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+  <section id="c-methods"><h2>หมายเหตุวิธีคำนวณของหน้าดูดวง</h2>
+    <ul>
+      <li><a href="taksa.html">ทักษา</a>: วันไทยเปลี่ยนตอนรุ่งเช้า (06:00) เกิดวันพุธหลัง 18:00 นับเป็นราหู มหาทักษาใช้อายุดาว อาทิตย์ 6 จันทร์ 15 อังคาร 8
+        พุธ 17 เสาร์ 10 พฤหัสบดี 19 ราหู 12 ศุกร์ 21 ปี (รวม 108 ปี)</li>
+      <li><a href="bazi.html">แปดอักษร 八字</a>: ปีเปลี่ยนที่ลี่ชุน (立春) เดือนเปลี่ยนที่สารท &quot;เจี๋ย&quot; 12 สารท วันใช้รอบ 60 วัน ยามจื่อ (23:00)
+        นับเป็นวันถัดไป ใช้เวลาท้องถิ่นตามประวัติเขตเวลา ณ วันเกิด (เลือกเขตเวลาคงที่หรือเวลาสุริยะจริงได้ และผลจะบอกค่าที่ใช้)
+        ความคลาดเคลื่อนของเวลาสารทไม่เกินราว 1 นาที</li>
+      <li><a href="lek7.html">เลข 7 ตัว 9 ฐาน</a>: เดือนจันทรคติคำนวณจากจันทร์ดับและวันเหมายัน (เดือนอ้ายคือเดือนที่มีวันเหมายัน) ปีที่มีอธิกมาสนับเดือน 8
+        หลังแบบไทย ปฏิทินหลวงอาจวางอธิกมาสต่างไป จึงเป็นค่าประมาณ ปีนักษัตรเปลี่ยนราววันสงกรานต์</li>
+      <li><a href="lifegraph.html">กราฟชีวิต</a>: ด้าน &quot;การดูแลตัวเอง&quot; เป็นคำชวนให้ดูแลกายใจ ไม่ใช่การทำนายสุขภาพหรือโรค
+        ระดับในกราฟเป็นการให้น้ำหนักตามตำรา ไม่ใช่การวัดจริง</li>
+      <li><a href="horoscope.html">ดวงวันเดือนปีเกิด</a>: ตำแหน่งดาวคำนวณด้วยสูตรดาราศาสตร์มาตรฐานและตรวจเทียบกับตารางที่เผยแพร่
+        แต่ละสำนักอาจตีความต่างกัน</li>
+      <li><a href="iching.html">อี้จิง</a>: ความหมายเส้นเปลี่ยนเป็นความหมายตามตำแหน่งเส้นแบบทั่วไป ไม่ใช่คำแปลรายเส้นฉบับเต็ม</li>
+      <li><a href="zodiac.html">12 นักษัตร</a>: ตรุษจีนและลี่ชุนคำนวณด้วยสูตรดาราศาสตร์ (เขตเวลาปักกิ่ง)</li>
+      <li><a href="compat.html">ดวงสมพงษ์</a>: ตำราไทย: คู่วันเกิด (มิตร ศัตรู สมพล ธาตุ) ปีนักษัตร และธาตุปีเกิดตามตำราพรหมชาติ · ปาจื้อ: ธาตุเจ้าชะตา
+        ก้านห้าประสาน และความสัมพันธ์ของกิ่งวันและกิ่งปี · พระเวท: อัษฏกูฏ จากนักษัตรของดวงจันทร์ (อายนางศ์ลาหิรี) คิดจาก 30 คะแนน ไม่รวมหมวดคณะ (Gana)
+        เพราะแหล่งอ้างอิงให้คะแนนไม่ตรงกัน · ตะวันตก: มุมหลักระหว่างดาวของสองคน</li>
+      <li><a href="compat.html">ดวงสมพงษ์</a>: ตำแหน่งดาวคำนวณในเครื่องด้วยสูตรดาราศาสตร์ (Meeus และ Astronomy Engine ของ Don Cross ใบอนุญาต MIT)
+        วันเกิดและชื่อที่กรอกไม่ถูกบันทึกและไม่ถูกส่งไปที่ใด ปิดหน้าแล้วข้อมูลหายไป</li>
+      <li><a href="fengshui.html">ฮวงจุ้ย</a>: เนื้อหาเรียบเรียงใหม่ในเชิงบวก แต่ละสำนักอาจตีความต่างกัน โดยเฉพาะแผนผังปากั้วและวิธีแก้
+        ผลคำนวณดาวรายปี/รายเดือนตรวจเทียบกับผังที่เผยแพร่ปี 2024–2027</li>
+    </ul>
+    <p>ตำแหน่งดาวคำนวณด้วยสูตรดาราศาสตร์ (Jean Meeus, Astronomical Algorithms และ Astronomy Engine) หลักการทำนายอยู่ที่ <a
+      href="help.html#h-principles">หลักการทำนายของเรา</a></p>
+  </section>
+</article>
+
+<article class="lg lg-en" lang="en">
+  <header class="doc-hero">
+    <p class="eyebrow">Credits</p>
+    <h1>Credits and licences</h1>
+    <p class="lead">LENSIQ uses software, models, fonts, images and data from the creators below. Thank you to all of them. LENSIQ&#x27;s own code is under the MIT
+      licence; every third-party component stays under its own licence.</p>
+    <p>Full licence texts: <a href="LICENSES/THIRD-PARTY-NOTICES.txt">THIRD-PARTY-NOTICES.txt</a></p>
+  </header>
+  <section id="en-c-assets"><h2>Software, models, fonts, images and data</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Component</th><th>Creator or owner</th><th>Licence</th><th>Used in</th></tr></thead>
+      <tbody>
+        <tr data-credit="face-api">
+          <td>face-api.js 1.7.12 + face models</td>
+          <td>Vincent Mühler; Vladimir Mandic (recognition weights: dlib, Davis E. King, CC0)</td>
+          <td>MIT</td><td>face pages</td></tr>
+        <tr data-credit="tfjs">
+          <td>TensorFlow.js 4.7.0</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>in-browser models</td></tr>
+        <tr data-credit="mediapipe-tasks">
+          <td>MediaPipe Tasks Vision</td>
+          <td>Google LLC / The MediaPipe Authors</td>
+          <td>Apache-2.0</td><td>in-browser models</td></tr>
+        <tr data-credit="onnxruntime">
+          <td>ONNX Runtime Web 1.20.1</td>
+          <td>Microsoft Corporation</td>
+          <td>MIT</td><td>in-browser models</td></tr>
+        <tr data-credit="pdfjs">
+          <td>PDF.js 3.11.174</td>
+          <td>Mozilla Foundation</td>
+          <td>Apache-2.0</td><td>document converter</td></tr>
+        <tr data-credit="docx">
+          <td>docx (with JSZip 3.10.1)</td>
+          <td>Dolan Miu; JSZip: Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso</td>
+          <td>MIT</td><td>document converter</td></tr>
+        <tr data-credit="qrcode-generator">
+          <td>qrcode-generator 2.0.4</td>
+          <td>Kazuhiko Arase</td>
+          <td>MIT</td><td>parking and village QR</td></tr>
+        <tr data-credit="astronomy-engine">
+          <td>Astronomy Engine 2.1.19</td>
+          <td>Don Cross</td>
+          <td>MIT</td><td>planet positions on the fortune pages</td></tr>
+        <tr data-credit="zxing">
+          <td>barcode-detector 3.2.3, zxing-wasm 3.1.6, zxing-cpp</td>
+          <td>Ze-Zheng Wu (MIT); the ZXing authors / zxing-cpp contributors (Apache-2.0)</td>
+          <td>Apache-2.0 + MIT</td><td>barcode reading</td></tr>
+        <tr data-credit="yolox">
+          <td>YOLOX-Nano</td>
+          <td>Megvii Inc.</td>
+          <td>Apache-2.0</td><td>people counting</td></tr>
+        <tr data-credit="coco-ssd">
+          <td>COCO-SSD (TensorFlow.js models)</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>people counting (fallback)</td></tr>
+        <tr data-credit="mobilenet">
+          <td>MobileNet v2 (TensorFlow.js models)</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>checkout, store</td></tr>
+        <tr data-credit="mediapipe-hands">
+          <td>MediaPipe Hands (lite), TensorFlow.js version</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>palm reading</td></tr>
+        <tr data-credit="hand-landmarker">
+          <td>MediaPipe Hand Landmarker</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>signage</td></tr>
+        <tr data-credit="selfie-segmenter">
+          <td>MediaPipe Selfie Segmenter</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>photo booth, try-on</td></tr>
+        <tr data-credit="selfie-multiclass">
+          <td>MediaPipe Selfie Multiclass 256×256 (converted to ONNX fp16 by LENSIQ)</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>studio</td></tr>
+        <tr data-credit="modnet">
+          <td>MODNet portrait matting (ONNX conversion by Xenova)</td>
+          <td>ZHKKKe (MODNet authors)</td>
+          <td>Apache-2.0</td><td>studio, photo booth</td></tr>
+        <tr data-credit="face-landmarker">
+          <td>MediaPipe Face Landmarker (modified by LENSIQ: one sub-model removed)</td>
+          <td>Google LLC / The MediaPipe Authors</td>
+          <td>Apache-2.0</td><td>exam, try-on</td></tr>
+        <tr data-credit="blazeface">
+          <td>MediaPipe BlazeFace short range</td>
+          <td>Google LLC / The MediaPipe Authors</td>
+          <td>Apache-2.0</td><td>product check</td></tr>
+        <tr data-credit="paddleocr">
+          <td>PaddleOCR PP-OCRv5 text detector and recognisers (Thai, Chinese / Japanese, Korean, Latin)</td>
+          <td>PaddlePaddle Authors</td>
+          <td>Apache-2.0</td><td>plate reading, product check</td></tr>
+        <tr data-credit="lpd-yunet">
+          <td>LPD-YuNet licence-plate detector (OpenCV Zoo)</td>
+          <td>OpenCV Zoo contributors (model by Dong Xu, watrix.ai)</td>
+          <td>Apache-2.0</td><td>plate reading</td></tr>
+        <tr data-credit="font-prompt">
+          <td>Prompt typeface</td>
+          <td>Cadson Demak</td>
+          <td>SIL OFL 1.1</td><td>every page</td></tr>
+        <tr data-credit="font-inter">
+          <td>Inter typeface</td>
+          <td>The Inter Project Authors</td>
+          <td>SIL OFL 1.1</td><td>every page</td></tr>
+        <tr data-credit="coco">
+          <td>COCO dataset annotations (training data of the person and object detectors)</td>
+          <td>COCO Consortium</td>
+          <td>CC BY 4.0</td><td>people counting</td></tr>
+        <tr data-credit="driver-eye">
+          <td>Open/Closed Eyes dataset (training data of the driver eye-state model)</td>
+          <td>MichalMlodawski (Hugging Face)</td>
+          <td>ODC-BY 1.0</td><td>driver monitor</td></tr>
+        <tr data-credit="tmt">
+          <td>Thai Medicines Terminology (TMT), release 2020-02-17; converted to a lookup table</td>
+          <td>THIS (Thai Health Information Standards Development Center), data.go.th</td>
+          <td>CC BY (Creative Commons Attribution)</td><td>product check (medicines)</td></tr>
+        <tr data-credit="nlem">
+          <td>National List of Essential Medicines 2567, compiled from thai-nlem-api</td>
+          <td>Suradet Pratomsak</td>
+          <td>MIT</td><td>product check (medicines)</td></tr>
+        <tr data-credit="hc-recalls">
+          <td>Health Canada Recalls and Safety Alerts. Contains information licensed under the Open Government Licence – Canada. Health Canada does not endorse
+            LENSIQ.</td>
+          <td>Health Canada</td>
+          <td>Open Government Licence – Canada</td><td>product check</td></tr>
+        <tr data-credit="hc-dpd">
+          <td>Health Canada Drug Product Database, looked up when you ask. Contains information licensed under the Open Government Licence – Canada.</td>
+          <td>Health Canada</td>
+          <td>Open Government Licence – Canada</td><td>product check (looked up on request)</td></tr>
+        <tr data-credit="rasff">
+          <td>RASFF Window</td>
+          <td>European Commission</td>
+          <td>CC BY 4.0</td><td>product check (looked up on request)</td></tr>
+        <tr data-credit="hsa">
+          <td>Health Sciences Authority, Listing of Registered Therapeutic Products (data.gov.sg)</td>
+          <td>Health Sciences Authority, Singapore</td>
+          <td>Singapore Open Data Licence v1.0</td><td>product check (looked up on request)</td></tr>
+        <tr data-credit="nlm">
+          <td>RxNav / RxNorm and DailyMed. This product uses publicly available data from the U.S. National Library of Medicine (NLM); NLM does not endorse this
+            product.</td>
+          <td>U.S. National Library of Medicine</td>
+          <td>NLM terms of service</td><td>product check (looked up on request)</td></tr>
+        <tr data-credit="tarot">
+          <td>Tarot card images, Rider–Waite–Smith deck (1909), resized; scans from Wikimedia Commons. &quot;Rider-Waite&quot; is a trademark of U.S. Games Systems,
+            Inc.</td>
+          <td>Pamela Colman Smith</td>
+          <td>Public domain</td><td>tarot</td></tr>
+        <tr data-credit="pillbox">
+          <td>Pillbox pill imprint data</td>
+          <td>U.S. National Library of Medicine</td>
+          <td>Public domain</td><td>medicine checker</td></tr>
+        <tr data-credit="openfda">
+          <td>openFDA. FDA does not endorse LENSIQ.</td>
+          <td>U.S. Food and Drug Administration</td>
+          <td>CC0</td><td>product check (looked up on request)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+  <section id="en-c-methods"><h2>Calculation notes for the fortune pages</h2>
+    <ul>
+      <li><a href="taksa.html">Taksa</a>: The Thai day begins at dawn (06:00); Wednesday births after 18:00 count as Rahu; Maha Taksa periods: Sun 6, Moon
+        15, Mars 8, Mercury 17, Saturn 10, Jupiter 19, Rahu 12, Venus 21 years (108 years in total)</li>
+      <li><a href="bazi.html">BaZi</a>: The year changes at Li Chun, months change at the 12 &quot;Jie&quot; solar terms, days follow the 60-day cycle, and
+        the Zi hour (23:00) counts as the next day; local time from the time-zone history of the birth date is used (you can choose a fixed offset or true
+        solar time instead, and the result states the value used); solar-term times are accurate to within about 1 minute</li>
+      <li><a href="lek7.html">Lek 7 Tua 9 Than</a>: Lunar months are computed from new moons and the winter solstice (the month containing the solstice is
+        month 1); in leap years month 8 is counted twice, Thai style; the official almanac may place leap months differently, so results are approximate; the
+        zodiac year changes around Songkran</li>
+      <li><a href="lifegraph.html">Life graph</a>: &quot;Self-care&quot; is a prompt to look after body and mind, not a prediction of health or illness;
+        curve levels are weights based on traditional texts, not real measurements</li>
+      <li><a href="horoscope.html">Birth chart</a>: Planet positions are computed with standard astronomical formulas and checked against published tables;
+        interpretations vary between schools</li>
+      <li><a href="iching.html">I Ching</a>: Changing-line meanings are general interpretations by line position, not full line-by-line translations</li>
+      <li><a href="zodiac.html">Chinese zodiac</a>: Chinese New Year and Lichun are computed with astronomical formulas (Beijing time)</li>
+      <li><a href="compat.html">Compatibility</a>: Thai: birth-day pairs (friend, opposing, balancing, same element), year animals and birth-year elements
+        of the Phrommachat text · BaZi: Day Master elements, the five stem combinations and day and year branch relations · Vedic: Ashtakoota from the
+        Moon&#x27;s nakshatra (Lahiri ayanamsa), out of 30 without Gana, because the sources disagree on its scores · Western: major aspects between the two
+        charts.</li>
+      <li><a href="compat.html">Compatibility</a>: Planet positions are computed on this device with astronomical formulas (Meeus and Don Cross&#x27;s
+        Astronomy Engine, MIT licence). Birth dates and names you enter are not stored or sent anywhere; they are gone when you close the page.</li>
+      <li><a href="fengshui.html">Feng shui</a>: Content has been reorganized in a positive tone; interpretations vary between schools, especially for the
+        Bagua map and remedies. Annual and monthly flying star results have been checked against published charts for 2024–2027</li>
+    </ul>
+    <p>Planet positions use astronomical formulas (Jean Meeus, Astronomical Algorithms, and Astronomy Engine). Our reading principles are on <a
+      href="help.html#h-principles">Our reading principles</a>.</p>
+  </section>
+</article>
+
+<article class="lg lg-zh" lang="zh-Hans">
+  <header class="doc-hero">
+    <p class="eyebrow">致谢</p>
+    <h1>致谢与许可</h1>
+    <p class="lead">LENSIQ 使用了以下创作者的软件、模型、字体、图像和数据，在此一并致谢。LENSIQ 自有代码采用 MIT 许可；第三方组件仍按各自的许可使用。</p>
+    <p>许可全文：<a href="LICENSES/THIRD-PARTY-NOTICES.txt">THIRD-PARTY-NOTICES.txt</a></p>
+  </header>
+  <section id="zh-c-assets"><h2>软件、模型、字体、图像与数据</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>组件</th><th>作者或权利人</th><th>许可</th><th>用于</th></tr></thead>
+      <tbody>
+        <tr data-credit="face-api">
+          <td>face-api.js 1.7.12 + face models</td>
+          <td>Vincent Mühler; Vladimir Mandic (recognition weights: dlib, Davis E. King, CC0)</td>
+          <td>MIT</td><td>人脸相关页面</td></tr>
+        <tr data-credit="tfjs">
+          <td>TensorFlow.js 4.7.0</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>浏览器内模型</td></tr>
+        <tr data-credit="mediapipe-tasks">
+          <td>MediaPipe Tasks Vision</td>
+          <td>Google LLC / The MediaPipe Authors</td>
+          <td>Apache-2.0</td><td>浏览器内模型</td></tr>
+        <tr data-credit="onnxruntime">
+          <td>ONNX Runtime Web 1.20.1</td>
+          <td>Microsoft Corporation</td>
+          <td>MIT</td><td>浏览器内模型</td></tr>
+        <tr data-credit="pdfjs">
+          <td>PDF.js 3.11.174</td>
+          <td>Mozilla Foundation</td>
+          <td>Apache-2.0</td><td>文档转换</td></tr>
+        <tr data-credit="docx">
+          <td>docx (with JSZip 3.10.1)</td>
+          <td>Dolan Miu; JSZip: Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso</td>
+          <td>MIT</td><td>文档转换</td></tr>
+        <tr data-credit="qrcode-generator">
+          <td>qrcode-generator 2.0.4</td>
+          <td>Kazuhiko Arase</td>
+          <td>MIT</td><td>停车场与小区二维码</td></tr>
+        <tr data-credit="astronomy-engine">
+          <td>Astronomy Engine 2.1.19</td>
+          <td>Don Cross</td>
+          <td>MIT</td><td>占卜页面的行星位置</td></tr>
+        <tr data-credit="zxing">
+          <td>barcode-detector 3.2.3, zxing-wasm 3.1.6, zxing-cpp</td>
+          <td>Ze-Zheng Wu (MIT); the ZXing authors / zxing-cpp contributors (Apache-2.0)</td>
+          <td>Apache-2.0 + MIT</td><td>条码读取</td></tr>
+        <tr data-credit="yolox">
+          <td>YOLOX-Nano</td>
+          <td>Megvii Inc.</td>
+          <td>Apache-2.0</td><td>人数统计</td></tr>
+        <tr data-credit="coco-ssd">
+          <td>COCO-SSD (TensorFlow.js models)</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>人数统计（备用）</td></tr>
+        <tr data-credit="mobilenet">
+          <td>MobileNet v2 (TensorFlow.js models)</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>收银、门店</td></tr>
+        <tr data-credit="mediapipe-hands">
+          <td>MediaPipe Hands (lite), TensorFlow.js version</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>手相</td></tr>
+        <tr data-credit="hand-landmarker">
+          <td>MediaPipe Hand Landmarker</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>广告屏</td></tr>
+        <tr data-credit="selfie-segmenter">
+          <td>MediaPipe Selfie Segmenter</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>拍照亭、试穿</td></tr>
+        <tr data-credit="selfie-multiclass">
+          <td>MediaPipe Selfie Multiclass 256×256 (converted to ONNX fp16 by LENSIQ)</td>
+          <td>Google LLC</td>
+          <td>Apache-2.0</td><td>影棚</td></tr>
+        <tr data-credit="modnet">
+          <td>MODNet portrait matting (ONNX conversion by Xenova)</td>
+          <td>ZHKKKe (MODNet authors)</td>
+          <td>Apache-2.0</td><td>影棚、拍照亭</td></tr>
+        <tr data-credit="face-landmarker">
+          <td>MediaPipe Face Landmarker (modified by LENSIQ: one sub-model removed)</td>
+          <td>Google LLC / The MediaPipe Authors</td>
+          <td>Apache-2.0</td><td>监考、试戴</td></tr>
+        <tr data-credit="blazeface">
+          <td>MediaPipe BlazeFace short range</td>
+          <td>Google LLC / The MediaPipe Authors</td>
+          <td>Apache-2.0</td><td>产品核查</td></tr>
+        <tr data-credit="paddleocr">
+          <td>PaddleOCR PP-OCRv5 text detector and recognisers (Thai, Chinese / Japanese, Korean, Latin)</td>
+          <td>PaddlePaddle Authors</td>
+          <td>Apache-2.0</td><td>车牌识别、产品核查</td></tr>
+        <tr data-credit="lpd-yunet">
+          <td>LPD-YuNet licence-plate detector (OpenCV Zoo)</td>
+          <td>OpenCV Zoo contributors (model by Dong Xu, watrix.ai)</td>
+          <td>Apache-2.0</td><td>车牌识别</td></tr>
+        <tr data-credit="font-prompt">
+          <td>Prompt typeface</td>
+          <td>Cadson Demak</td>
+          <td>SIL OFL 1.1</td><td>所有页面</td></tr>
+        <tr data-credit="font-inter">
+          <td>Inter typeface</td>
+          <td>The Inter Project Authors</td>
+          <td>SIL OFL 1.1</td><td>所有页面</td></tr>
+        <tr data-credit="coco">
+          <td>COCO dataset annotations (training data of the person and object detectors)</td>
+          <td>COCO Consortium</td>
+          <td>CC BY 4.0</td><td>人数统计</td></tr>
+        <tr data-credit="driver-eye">
+          <td>Open/Closed Eyes dataset (training data of the driver eye-state model)</td>
+          <td>MichalMlodawski (Hugging Face)</td>
+          <td>ODC-BY 1.0</td><td>驾驶员监测</td></tr>
+        <tr data-credit="tmt">
+          <td>Thai Medicines Terminology (TMT), release 2020-02-17; converted to a lookup table</td>
+          <td>THIS（泰国卫生信息标准发展中心），data.go.th</td>
+          <td>CC BY (Creative Commons Attribution)</td><td>产品核查（药品）</td></tr>
+        <tr data-credit="nlem">
+          <td>National List of Essential Medicines 2567, compiled from thai-nlem-api</td>
+          <td>Suradet Pratomsak</td>
+          <td>MIT</td><td>产品核查（药品）</td></tr>
+        <tr data-credit="hc-recalls">
+          <td>Health Canada Recalls and Safety Alerts. Contains information licensed under the Open Government Licence – Canada. Health Canada does not endorse
+            LENSIQ.</td>
+          <td>Health Canada</td>
+          <td>Open Government Licence – Canada</td><td>产品核查</td></tr>
+        <tr data-credit="hc-dpd">
+          <td>Health Canada Drug Product Database, looked up when you ask. Contains information licensed under the Open Government Licence – Canada.</td>
+          <td>Health Canada</td>
+          <td>Open Government Licence – Canada</td><td>产品核查（按需查询）</td></tr>
+        <tr data-credit="rasff">
+          <td>RASFF Window</td>
+          <td>European Commission</td>
+          <td>CC BY 4.0</td><td>产品核查（按需查询）</td></tr>
+        <tr data-credit="hsa">
+          <td>Health Sciences Authority, Listing of Registered Therapeutic Products (data.gov.sg)</td>
+          <td>Health Sciences Authority, Singapore</td>
+          <td>Singapore Open Data Licence v1.0</td><td>产品核查（按需查询）</td></tr>
+        <tr data-credit="nlm">
+          <td>RxNav / RxNorm and DailyMed. This product uses publicly available data from the U.S. National Library of Medicine (NLM); NLM does not endorse this
+            product.</td>
+          <td>U.S. National Library of Medicine</td>
+          <td>NLM terms of service</td><td>产品核查（按需查询）</td></tr>
+        <tr data-credit="tarot">
+          <td>Tarot card images, Rider–Waite–Smith deck (1909), resized; scans from Wikimedia Commons. &quot;Rider-Waite&quot; is a trademark of U.S. Games Systems,
+            Inc.</td>
+          <td>Pamela Colman Smith</td>
+          <td>Public domain</td><td>塔罗牌</td></tr>
+        <tr data-credit="pillbox">
+          <td>Pillbox pill imprint data</td>
+          <td>U.S. National Library of Medicine</td>
+          <td>Public domain</td><td>药品核对</td></tr>
+        <tr data-credit="openfda">
+          <td>openFDA. FDA does not endorse LENSIQ.</td>
+          <td>U.S. Food and Drug Administration</td>
+          <td>CC0</td><td>产品核查（按需查询）</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+  <section id="zh-c-methods"><h2>占卜页面的计算说明</h2>
+    <ul>
+      <li><a href="taksa.html">泰式大运</a>: 泰历一天从早上六点开始；周三晚上六点后出生算作罗睺；大运年数：太阳六、月亮十五、火星八、水星十七、土星十、木星十九、罗睺十二、金星二十一（共一百零八年）</li>
+      <li><a href="bazi.html">八字</a>: 年以立春为界，月以十二“节”为界，日按六十甲子循环，子时（23:00）算作次日；使用出生当日按时区历史的当地时间（也可选固定时差或真太阳时，结果会注明所用数值），节气时刻误差约一分钟以内</li>
+      <li><a href="lek7.html">七数九宫</a>: 农历月份由朔日和冬至推算（含冬至的月份为一月），闰年按泰式把八月算两次；官方历书的闰月安排可能不同，因此是近似值；生肖年约在泼水节更换</li>
+      <li><a href="lifegraph.html">人生曲线</a>: “自我照顾”只是提醒照顾身心，并不预测健康或疾病；曲线高低是按典籍给出的权重，不是实际测量</li>
+      <li><a href="horoscope.html">生辰命盘</a>: 行星位置采用标准天文公式计算，并对照已公布的表格校验；各派解释可能不同</li>
+      <li><a href="iching.html">易经</a>: 变爻含义为按爻位的通用解释，并非逐爻全文翻译</li>
+      <li><a href="zodiac.html">十二生肖</a>: 春节和立春用天文公式计算（北京时间）</li>
+      <li><a href="compat.html">合婚配对</a>: 泰式：出生星期组合（朋友、相对、平衡、同元素）、生肖及《梵天书》出生年元素 · 八字：日主五行、天干五合、日支与年支关系 · 吠陀：依月亮星宿（Lahiri 岁差）计算 Ashtakoota，满分30，不含
+        Gana（各资料计分不一） · 西洋：两张星盘之间的主要相位。</li>
+      <li><a href="compat.html">合婚配对</a>: 行星位置在本设备上用天文公式计算（Meeus 与 Don Cross 的 Astronomy Engine，MIT 许可）。输入的生日和名字不会保存或发送，关闭页面即清除。</li>
+      <li><a href="fengshui.html">风水</a>: 内容以正面方式重新整理，各流派的解读可能不同，尤其是八卦图和化解方法。年、月飞星的计算结果已与 2024–2027 年公开发布的飞星图核对</li>
+    </ul>
+    <p>行星位置采用天文公式计算（Jean Meeus《Astronomical Algorithms》与 Astronomy Engine）。解读原则见<a href="help.html#h-principles">我们的解读原则</a>。</p>
+  </section>
+</article>
+
+</main>
+<script src="legal.js?v=6"></script>
+</body>
+</html>

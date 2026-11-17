@@ -127,7 +127,6 @@
     "faceread.narr.ai": "Asking the writing assistant (Claude by Anthropic) to phrase the reading...",
     "faceread.narr.local": "Composing the reading...",
     "faceread.src.ai": "Composed by the writing assistant (Claude by Anthropic)",
-    "faceread.src.local": "Composed on this device",
 
     /* ---------- overlays ---------- */
     "faceread.ovl.zones": "Color bands = three face zones · lines = five features · labels = key areas",

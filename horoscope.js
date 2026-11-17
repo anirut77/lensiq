@@ -942,7 +942,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         if (!body.isConnected) return; // แท็บถูกสร้างใหม่ (เช่นสลับภาษา) ระหว่างรอ
         st.result = res; st.lines = isZh() ? [] : res && res.lang === "en" && FA && FA.en ? FA.en.keyLines(res, 3) : keyLines(res, facts, 3);
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
-        src.textContent = res.source === "ai" ? T("horoscope.x.srcAI", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : T("horoscope.x.srcLocal", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
+        src.textContent = res.source === "ai" ? T("horoscope.x.srcAI", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : ""; // owner 2026-11-17: no on-device label
+        src.hidden = res.source !== "ai";
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         root.removeAttribute("aria-busy");
       });

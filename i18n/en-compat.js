@@ -1,6 +1,8 @@
 /* i18n/en-compat.js — English for compat.html (Compatibility, compat-ui.js). Thai lives in the markup / page script; the
  * reading itself comes from compat-kb.js in the page language. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "fortune.foot.principles": "Our reading principles",
+  "fortune.foot.credits": "Credits and licences",
   "fortune.disc.line": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
   "compat.title": "Compatibility for two people or a group | LENSIQ",
   "compat.eyebrow": "Compatibility · Thai · BaZi · Vedic · Western",
@@ -25,7 +27,6 @@
   "compat.remove": "Remove the last person",
   "compat.timeHint": "No birth time? You can still see the result; the page says which parts may be less precise.",
   "compat.go": "See compatibility",
-  "compat.aboutH": "About this reading",
   "compat.about1": "Thai: birth-day pairs (friend, opposing, balancing, same element), year animals and birth-year elements of the Phrommachat text · BaZi: Day Master elements, the five stem combinations and day and year branch relations · Vedic: Ashtakoota from the Moon's nakshatra (Lahiri ayanamsa), out of 30 without Gana, because the sources disagree on its scores · Western: major aspects between the two charts.",
   "compat.about2": "Planet positions are computed on this device with astronomical formulas (Meeus and Don Cross's Astronomy Engine, MIT licence). Birth dates and names you enter are not stored or sent anywhere; they are gone when you close the page.",
   "compat.principle": "Principle: every result says how to adjust towards each other. It never advises ending a relationship, marriage or business, never judges a pair as fitting or not, makes no prediction about health or lifespan, and sells no rituals.",

@@ -3,6 +3,8 @@
 (function (root) {
   "use strict";
   var dict = { en: {
+    "fortune.foot.principles": "Our reading principles",
+    "fortune.foot.credits": "Credits and licences",
     "fortune.disc.line": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
     "pd.notAssess": "Not an assessment",
     "astro.asResTitle": "Your Big Three",
@@ -57,7 +59,6 @@
     "fk.loading": "Composing your reading…",
     "fk.again": "Rephrase",
     "fk.src.ai": "Composed by the writing assistant (Claude by Anthropic)",
-    "fk.src.local": "Composed on this device · worded differently each time",
     "fk.card.foot": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
     "fk.card.help": "Want someone to listen? Call 1323 · Talk any time, 24 hours a day, with someone ready to listen",
     "fk.share.text": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
@@ -128,7 +129,6 @@
     "fortune.common.readingDetail": "Detailed reading",
     "fortune.common.regen": "Rephrase",
     "fortune.common.share": "Share result card",
-    "fortune.common.about": "About this reading",
     "fortune.common.stats": "Booth statistics (anonymous)",
     "fortune.common.statsClear": "Clear statistics",
     "fortune.common.topic": "Topic to ask about",

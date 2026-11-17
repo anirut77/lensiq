@@ -97,7 +97,6 @@
     "horoscope.x.topic.work": "事业",
     "horoscope.x.topic.money": "财运",
     "horoscope.x.srcAI": "由写作助手（Anthropic 的 Claude）撰写",
-    "horoscope.x.srcLocal": "本机撰写 · 每次措辞不同",
     "horoscope.x.heroK": "{d}出生 · 代表色{c}",
     "horoscope.x.fRasi": "出生星座（泰式）",
     "horoscope.x.fLagna": "上升星座",

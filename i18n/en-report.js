@@ -1,5 +1,7 @@
 /* en-report.js — English for report.html (Thai lives in the markup / report.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "fortune.foot.principles": "Our reading principles",
+  "fortune.foot.credits": "Credits and licences",
   "fortune.disc.line": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
   "rp.doc.title": "My fortune reports | LENSIQ",
   "rp.doc.desc": "LENSIQ long-form fortune reports: a multi-system basic report, a compatibility report and a month-by-month annual report, computed on your device, saved to your account and printable as PDF",

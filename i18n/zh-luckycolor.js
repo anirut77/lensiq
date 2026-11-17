@@ -1,5 +1,7 @@
 /* i18n/zh-luckycolor.js — Simplified Chinese for luckycolor.html (luckycolor.js). Thai lives in the markup / page script. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "fortune.foot.principles": "我们的解读原则",
+  "fortune.foot.credits": "致谢与许可",
   "fortune.disc.line": "基于命理学原则，属个人信仰，请自行判断。",
   "lucky.doc.title": "幸运色穿搭镜 | LENSIQ",
   "lucky.doc.desc": "照镜子看看今天的衣服颜色是否符合泰国传统的每日吉祥色（事业、财运或爱情，依据 Taksa 传统）。在设备上处理，不保存图像。",
