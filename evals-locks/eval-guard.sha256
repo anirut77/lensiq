@@ -16,3 +16,8 @@ a1924421c9b6d4495753c90bc1eaf1c76c2e04842c7dca1e9f24bb1866a2a020  eval-guard.tes
 # locked 2026-11-17T02:40:25Z (manual append, 1 file)
 9a009196c8217704d9e41cdcc18e6902981a72176a8c89095b6103b6561b3f08  tests/unit/eval-guard-repo.test.js  # repo file
 9a009196c8217704d9e41cdcc18e6902981a72176a8c89095b6103b6561b3f08  eval-guard-repo.test.v1.js
+# pending marker (coordinator order 2026-11-17, branch eval-guard-repo): new test tests/unit/eval-guard-pending.test.js, locked BEFORE the guard change
+# ("# pending <path> branch: <b> reason: <r>" accepted only while the file is absent). Copy: NEW file ~/LENSIQ-field/evals/eval-guard/eval-guard-pending.test.v1.js.
+# locked 2026-11-17T03:09:27Z (manual append, 1 file)
+934ab3877e47d442692482843ef8aa14dde75805ad4a845c6574a65d8e16597e  tests/unit/eval-guard-pending.test.js  # repo file
+934ab3877e47d442692482843ef8aa14dde75805ad4a845c6574a65d8e16597e  eval-guard-pending.test.v1.js
