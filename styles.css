@@ -373,7 +373,7 @@ html :is(.engine,.fr-engine,.pl-engine,#engine.status):empty{padding:0;margin:0;
 .lq-call-ico{flex:none;width:20px;height:20px;fill:currentColor}
 .lq-call-num{display:none;grid-column:2;grid-row:1;font-size:1.9rem;font-weight:800;letter-spacing:.02em;user-select:all;-webkit-user-select:all;cursor:text;
   font-variant-numeric:tabular-nums}
-.lq-call-sub{grid-column:1;grid-row:2;font-size:.9rem;min-width:0;overflow-wrap:break-word}
+.lq-call-sub{grid-column:1;grid-row:2;font-size:.9rem;min-width:0;overflow-wrap:break-word;text-wrap:pretty}
 .lq-call-org{grid-column:1;grid-row:3;font-size:.78rem;opacity:.85;min-width:0;overflow-wrap:break-word}
 /* crisis card layout (fortune-ai.js draws the card; its border and colours are injected with the card) */
 .fa-support h3{margin:0 0 .4em}.fa-support ul{list-style:none;padding:0;margin:.6em 0}.fa-support li{margin:.45em 0}
