@@ -29,3 +29,10 @@ f69c100128051d515bcc123567106e666775f4469452c62b34e6446cd179a9bd  relock-pet/for
 f69c100128051d515bcc123567106e666775f4469452c62b34e6446cd179a9bd  tests/e2e/fortune-pet.e2e.mjs  # repo file (relock-pet)
 # RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
 186af0ddbe15d93536b3036c6d20ae3edc0d2db3dc9c1827a1d06ff765b6829b  tests/e2e/petread-webkit.e2e.mjs  # repo file (relock-pet)
+# locked 2026-11-17T16:14:20Z (tools/eval-guard.mjs lock, 2 files)
+7a2626cb7fe075b317483b0d1be004dad75ca1b930ddf3269fad59109a564c12  relock-pet-2/fortune-pet.e2e.mjs
+d993b6b206aa086729dee958304cf165d3ea9dcd1a7ca2412ffda6fd8a993b04  relock-pet-2/petread-webkit.e2e.mjs
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet-2 (title wrap only), see docs/CRISIS-V3-RELOCKS.md.
+7a2626cb7fe075b317483b0d1be004dad75ca1b930ddf3269fad59109a564c12  tests/e2e/fortune-pet.e2e.mjs  # repo file (relock-pet-2)
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet-2 (title wrap only), see docs/CRISIS-V3-RELOCKS.md.
+d993b6b206aa086729dee958304cf165d3ea9dcd1a7ca2412ffda6fd8a993b04  tests/e2e/petread-webkit.e2e.mjs  # repo file (relock-pet-2)
