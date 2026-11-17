@@ -14,3 +14,8 @@ cc832b5165b4658a7e894dfc68ba41d15f2c19f5acac2e63f109b64b9fa2750c  tests/e2e/line
 d008721eaef7bfdb5847233ae94a424d8ece233a0c4b1c03072ce2021ffae8e9  tests/e2e/line-wrap-6.e2e.mjs
 b7ef47197e78b74896e18dd1f40b1fac5865a921ec9b4807169ac653cf9c154c  tests/e2e/line-wrap-7.e2e.mjs
 a041e7c04d6ecafec66b759ab70c477bf2655aa5aab6d092cf45bddc32516a17  tests/e2e/line-wrap-8.e2e.mjs
+# re-lock 2026-11-17 (append-only exceptions list, one entry added after the base measurement): cameras.html P "| ./start.sh mobile"
+# (a shell command path that begins with a dot inside <code>, not punctuation). No rule, page, width, language or threshold changed.
+# Copy in relock-1/.
+# locked 2026-11-17T03:44:55Z (tools/eval-guard.mjs lock, 1 file)
+8777ed1f13152f5a47b57ceec72b0ea2f4d86a20e6195e97b33c6c7dbed99d7b  relock-1/tests/e2e/line-wrap-exceptions.json

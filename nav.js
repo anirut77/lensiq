@@ -443,11 +443,9 @@
     function rebuild(tn, full) {
       var v = tn.nodeValue, t = words(v), L = len(tn), k = L > (full ? 19 : 11) ? cut(t, L > v.trim().length + 2) : t.length, at = t.slice(0, k).join("").length, pos = 0, buf = "";
       var parts = full ? t.map(function (p) { return [p, THAI.test(p) && p.length >= 4 && p.length <= 14 && !/\s/.test(p) ? 1 : 0]; }) : loanParts(v);
-      // no loanword: the tail moves into a nowrap span after the same text node (page code and lensiq-i18n-rt.js keep it)
       if (!parts) {
         if (k >= t.length || /lq-t/.test(tn.nextSibling && tn.nextSibling.className)) return;
         var tail = document.createElement("span"); tail.className = "lq-w lq-t"; tail.textContent = v.slice(at);
-        // in a flex / grid box a new span would be its own item: wrap head + tail in one box instead
         if (!/flex|grid/.test(getComputedStyle(tn.parentNode).display)) { tn.nodeValue = v.slice(0, at); tn.after(tail); }
         else if (!RT(tn)) { var box = document.createElement("span"); box.className = "lq-t"; box.append(v.slice(0, at), tail); tn.replaceWith(box); }
         return;
@@ -514,7 +512,10 @@
         x = n.previousSibling;
         if (x && /^(B|SPAN|STRONG|EM|A|SMALL|OUTPUT|DATA)$/.test(x.nodeName) && /^[\d.,]*$/.test((x.textContent || "").trim())) v = v.replace(/^ (?=[A-Za-z%\u0e00-\u0e7f\u3040-\u9fff])/, "\u00a0");
         x = /** @type {Element} */ (n.nextSibling);
-        if (v.trim() && x && x.nodeType === 1 && !x.nextSibling && (x.textContent || "").trim().length < 6) { v = v.replace(/\s+$/, "\u00a0"); x.classList.add("lq-w"); }
+        var y = n.previousSibling, IN = /^(B|SPAN|STRONG|EM|A|SMALL|CODE)$/;
+        if ((v.trim() || IN.test(y ? y.nodeName : "")) && x && x.nodeType === 1 && !x.nextSibling && (x.textContent || "").trim().length < 6) {
+          v = v.replace(/\s+$/, "\u00a0"); x.classList.add("lq-w");
+        }
         v = gs(v, len(n));
         if (v !== n.nodeValue) n.nodeValue = v;
       }
