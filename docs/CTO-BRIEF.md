@@ -7,7 +7,12 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
-## Fortune theme "ราตรีคราม" (owner approval 2026-11-17, branch `fortune-theme`, not merged: owner phone check + independent review first)
+## Fortune theme "ราตรีคราม" (owner approval 2026-11-17; go-live approved 2026-11-18, decisions 92–94: merge when CI is green)
+
+- Go-live conditions built on branch `fortune-theme`: switch back `window.LENSIQ_FORTUNE_THEME = "classic"` in `lensiq-config.js`
+  (previous look exactly, no code revert); Vessavana hidden (`hidden: true`, data and art kept for the expert pack); deity names
+  hidden on the site (`NAMES_ON_SITE = false`); reading pages night band + light paper with WCAG AA text; crisis v3 checked on the
+  themed pages in both modes. Locked set `fortune-theme-golive` (source: synthetic, headless Chrome). Details: docs/FORTUNE-THEME.md.
 
 - Theme only in the fortune section (fortune pages + cat-fortune): night menu pages with gold line-art cards, night band on
   reading pages, Prompt in two weights (`fortune-theme.css`, scoped to `html.lq-ft`). Details: docs/FORTUNE-THEME.md.

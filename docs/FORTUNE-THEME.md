@@ -1,5 +1,40 @@
 # Fortune theme "ราตรีคราม" (direction A)
 
+**Go-live (owner decisions 92–94, 2026-11-18):** direction A with the gold line-art goes live once merged with main and CI is green,
+with a quick switch back, Vessavana hidden, deity names hidden on the site until the expert review, and reading pages as a night
+band over light paper (94 ก). Locked tests: `tests/unit/fortune-theme-golive.test.js`, `tests/e2e/fortune-theme-golive.e2e.mjs`,
+`tests/e2e/fortune-theme-golive-crisis.e2e.mjs` (`evals-locks/fortune-theme-golive.sha256`).
+
+## Switch back to the previous look
+
+One line in `lensiq-config.js`: `window.LENSIQ_FORTUNE_THEME = window.LENSIQ_FORTUNE_THEME || "a";`. To go back, change `"a"` to
+`"classic"`, bump `lensiq-config.js?v=` on every page (`sed -i '' 's/lensiq-config\.js?v=21/lensiq-config.js?v=22/g' *.html
+tools/cat-pages.mjs`), commit, let CI pass and redeploy. No code revert: on a fortune page (`<html class="lq-ft">`) the config
+swaps the theme classes (`lq-ft`, `lq-ft-menu`, `lq-ft-read`, `lq-ft-entry`) for `lq-ft-classic`, so every theme rule stops
+applying and the previous rules of the hub (kept byte for byte in `fortune.html`, scoped `html.lq-ft-classic` where the theme
+replaces them) are back; the new illustration slots are hidden, the emoji tiles return, the entry screen and the theme art are never
+requested, and the previous fonts load again. Other pages are never touched. Back to the theme: `"a"` and bump again. The four hub
+cards added with the theme (compat, planner, luckycolor, report) stay in classic, with an emoji tile. `luckycolor.html` now loads
+`lensiq-config.js` too, so the switch reaches all 20 pages.
+
+## Hidden until the expert review (decision 93)
+
+- **Vessavana (ท้าวเวสสุวรรณ)**: `hidden: true` on his item in `fortune-entry.js`; a hidden item is never eligible, on the site or in
+  the local preview. His data, features and art (`art/fortune/deity-vessavana.svg`) stay in the repo for the expert pack. To unhide
+  after the expert confirms: delete `hidden: true` (then the usual approval below still applies; as a `buddhist_guardian` item the
+  locked unit test keeps him pending until a new owner decision).
+- **Deity names**: `NAMES_ON_SITE = false` in `fortune-entry.js`. Once an item is approved, the site shows the drawing and the
+  blessing line only; the screen-reader label is the generic "คำอวยพร / A blessing / 祝福". Names stay in the data. Set `true`
+  (and bump `fortune-entry.js?v=`) after the expert review.
+- Local preview for the expert (localhost / 127.0.0.1 / `file:` only, never on the live host): `?ftpreview=1` shows every
+  non-hidden item with its name (review mode); `?ftpreview=2` shows them exactly as the live site would (no name).
+
+## Expert pack
+
+What the expert reviews: the `DEITIES` table in `fortune-entry.js` (names TH / EN / ZH, tradition, identifying features, blessing
+line per language, status) and the seven drawings in `art/fortune/deity-*.svg`, including Vessavana; the table "Deities" below
+summarises them. Open `fortune.html?ftpreview=1&deity=<id>&hold=1` locally to see one at a time.
+
 Owner approval 2026-11-17: direction A "ราตรีคราม" and the gold line-art style of the review samples. Branch
 `fortune-theme`. Locked tests: `tests/unit/fortune-theme.test.js`, `tests/e2e/fortune-theme.e2e.mjs`
 (`evals-locks/fortune-theme.sha256`, copies in `~/LENSIQ-field/evals/fortune-theme/`).
@@ -13,7 +48,7 @@ Only inside the fortune section: every fortune page (category 6 of `tools/cat-da
 | Part | What it looks like |
 |---|---|
 | Menu pages (`fortune.html`, `cat-fortune.html`, class `lq-ft-menu`) | Whole page at night: gradient #120F2E → #2A1B55, faint stars (CSS only), cards #1E1844 with a gold line illustration, pressed #2A2160 with a gold border, gold #E8C979 accents, text #F5F1E8 / #BDB5DA. On phones the hub grid is 2 columns of compact cards (icon, origin, name, one line); the two detail bullets and the "start" label show from 600 px up (still in the page). On cat-fortune the whole card is tappable (the "open page" link covers the card). |
-| Reading pages | A night band with stars behind the title (eyebrow gold, title ivory, lead muted); the reading itself stays on warm paper (#F6F3EC) so charts, wheels and long text keep their dark-on-light contrast. Buttons use the deep indigo #1E1844. |
+| Reading pages (`html.lq-ft lq-ft-read`, decision 94 ก) | A night band with stars behind the title (eyebrow gold, title ivory, lead muted); the reading itself on light paper (`html.lq-ft-read body` #F6F3EC) so charts, wheels and long text keep their dark-on-light contrast (WCAG AA for every visible text, e2e G4). Buttons use the deep indigo #1E1844. |
 | Font | Prompt (SIL OFL 1.1, already in `vendor/fonts/prompt`) under the family name `LQft` with two weights only (400 text, 500 headings and bold). Fortune pages no longer download Inter or Prompt 600 / 700. |
 
 Contrast (WCAG 2.1): every palette text pair is ≥ 7.26:1 (unit test 3); rendered text on the menu pages (TH / EN / ZH) and

@@ -203,3 +203,26 @@ window.LENSIQ_TRYON = window.LENSIQ_TRYON === true;
 window.LENSIQ_CONVERT_SERVER = window.LENSIQ_CONVERT_SERVER === true;
 /* LENSIQ_HELP_TOP_STICKY (75 ก): 1323 icon in the sticky bar; false = in the page */
 window.LENSIQ_HELP_TOP_STICKY = window.LENSIQ_HELP_TOP_STICKY !== false;
+
+/* LENSIQ_FORTUNE_THEME (owner decision 92, 2026-11-18): look of the fortune section (fortune pages + cat-fortune.html)
+ *   "a" (default) = theme "ราตรีคราม" (night menu pages, gold line art, night band + light paper on the readings)
+ *   "classic"     = the previous look, exactly, with no code revert: change "a" to "classic" on the next line, bump
+ *                   lensiq-config.js?v= on every page and redeploy (docs/FORTUNE-THEME.md "Switch back")
+ *   Other pages never change. */
+window.LENSIQ_FORTUNE_THEME = window.LENSIQ_FORTUNE_THEME || "a";
+(function () {
+  "use strict";
+  var THEME = ["lq-ft", "lq-ft-menu", "lq-ft-read", "lq-ft-entry"];
+  /** classic: swap the theme classes for html.lq-ft-classic (fortune-theme.css then only hides the new slots) @param {Document} doc */
+  function apply(doc) {
+    var h = doc && doc.documentElement;
+    if (!h || window.LENSIQ_FORTUNE_THEME !== "classic" || !h.classList.contains("lq-ft")) return false;
+    for (var i = 0; i < THEME.length; i++) h.classList.remove(THEME[i]);
+    h.classList.add("lq-ft-classic");
+    var e = doc.getElementById("lqFtEntry");
+    if (e) e.remove();
+    return true;
+  }
+  /** @type {any} */ (window).LQFortuneTheme = { apply: apply };
+  if (typeof document !== "undefined") apply(document);
+})();

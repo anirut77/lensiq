@@ -33,7 +33,9 @@
         en: ["tall matted locks with a crescent moon", "third eye on the forehead", "serpent with raised hood around the neck, rudraksha beads",
           "standing with a tall trident and damaru drum, tiger-skin cloth"] } },
     { id: "vessavana", tradition: "buddhist_guardian", // a guardian king in Thai / Chinese Buddhist practice: stays pending; the owner's expert decides
-      src: "art/fortune/deity-vessavana.svg", status: "pending",
+      // hidden: true (owner decision 93, 2026-11-18): never shown on the site, not even in the local preview, until the owner's
+      // expert confirms; data and art stay for the expert pack. Delete the flag (or set false) to unhide.
+      src: "art/fortune/deity-vessavana.svg", status: "pending", hidden: true,
       name: { th: "ท้าวเวสสุวรรณ", en: "Vessavana", zh: "毗沙门天" },
       bless: { th: "ขอให้วันนี้คุณรู้สึกปลอดภัยและอุ่นใจ", en: "May you feel safe and at ease today.", zh: "愿你今天平安自在。" },
       features: { th: ["ชฎายักษ์ยอดสูงหลายชั้น มีกรรเจียก", "ใบหน้าสงบ สง่า มีหนวด", "สองมือประคองกระบองตั้งตรงหน้า", "ยืนตรง ชุดทรงเครื่องมีอินทรธนูที่บ่า"],
@@ -51,13 +53,18 @@
       features: { th: ["หน้าผากสูงโหนก", "คิ้วยาว เคราขาวยาวถึงอก", "ถือลูกท้อแห่งอายุยืน", "ไม้เท้ายาวผูกน้ำเต้า"],
         en: ["high domed forehead", "long eyebrows, long beard to the chest", "holds the peach of longevity", "tall staff with a gourd tied on"] } }
   ];
+  // deity names on the site (owner decision 93, 2026-11-18): hidden until the expert review; the drawing and the blessing line may
+  // show. true = names show on the site. The local review preview (?ftpreview=1) shows them to the reviewer.
+  var NAMES_ON_SITE = false;
+  /** generic name of the entry screen for screen readers while names are hidden */
+  var LABEL = { th: "คำอวยพร", en: "A blessing", zh: "祝福" };
   var SKIP = { th: "แตะที่ใดก็ได้เพื่อข้าม", en: "Tap anywhere to skip", zh: "轻触任意处跳过" };
   var PREVIEW = { th: "ตัวอย่างในเครื่อง ชื่อและคำอวยพรยังรอผู้รู้ตรวจ", en: "Local preview, names and lines pending Merit review", zh: "本机预览，名称与祝福语待审核" };
   var SECTION = /^(fortune|faceread|palm|horoscope|tarot|iching|bazi|taksa|lek7|numbers|fengshui|dream|zodiac|compat|astro|lifegraph|planner|luckycolor|report|petread|cat-fortune)\.html$/;
   var SEEN = "lq-fortune-entry", LAST = "lq-fortune-entry-last", CALM = "lq-fortune-calm";
 
-  /** items the entry screen may use: approved ones; every item in a local preview */
-  function eligible(list, preview) { return (list || []).filter(function (d) { return preview || d.status === "approved"; }); }
+  /** items the entry screen may use: approved ones; every item in a local preview; never a hidden one */
+  function eligible(list, preview) { return (list || []).filter(function (d) { return !d.hidden && (preview || d.status === "approved"); }); }
   /** a random item, not the one shown last time when another exists */
   function pick(list, last, rnd) {
     if (!list || !list.length) return null;
@@ -76,6 +83,15 @@
     if (!loc || !/(?:^\?|&)ftpreview=1(?:&|$)/.test(loc.search || "")) return false;
     return loc.protocol === "file:" || /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/.test(loc.hostname || "");
   }
+  /** 0 = live site; local only (localhost / 127.0.0.1 / file:): 1 = review preview (?ftpreview=1, names shown to the reviewer),
+   *  2 = site view (?ftpreview=2: every item treated as approved, rendered exactly as on the live site) */
+  function previewMode(loc) {
+    if (!loc || !(loc.protocol === "file:" || /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/.test(loc.hostname || ""))) return 0;
+    var m = /(?:^\?|&)ftpreview=([12])(?:&|$)/.exec(loc.search || "");
+    return m ? +m[1] : 0;
+  }
+  /** is the deity's name shown? only in the local review preview, or once names are allowed on the site */
+  function showName(mode) { return mode === 1 || NAMES_ON_SITE; }
   /** does this page view start a new visit to the section? */
   function newVisit(ref, origin, navType) {
     if (navType === "reload" || navType === "back_forward") return false;
@@ -85,7 +101,8 @@
     var file = u.slice(origin.length + 1).split(/[?#]/)[0].split("/").pop() || "index.html";
     return !SECTION.test(file);
   }
-  var api = { DEITIES: DEITIES, SKIP: SKIP, eligible: eligible, pick: pick, isBlocked: isBlocked, previewAllowed: previewAllowed, newVisit: newVisit };
+  var api = { DEITIES: DEITIES, SKIP: SKIP, LABEL: LABEL, NAMES_ON_SITE: NAMES_ON_SITE, eligible: eligible, pick: pick, isBlocked: isBlocked,
+    previewAllowed: previewAllowed, previewMode: previewMode, showName: showName, newVisit: newVisit };
   if (typeof module !== "undefined" && module.exports) { module.exports = api; return; }
   root.LQFortuneEntry = api;
 
@@ -96,6 +113,9 @@
   var get = function (s, k) { try { return s ? s.getItem(k) : null; } catch (e) { return null; } };
   var set = function (s, k, v) { try { if (s) s.setItem(k, v); } catch (e) { /* storage blocked: harmless */ } };
   var q = root.location.search || "";
+  // the switch back (lensiq-config.js LENSIQ_FORTUNE_THEME = "classic", read once the page is parsed): no art, no entry screen
+  var classic = function () { return root.LENSIQ_FORTUNE_THEME === "classic" || !html.classList.contains("lq-ft"); };
+  var whenReady = function (fn) { if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", fn); else fn(); };
   var param = function (k) { var m = new RegExp("(?:^\\?|&)" + k + "=([^&]*)").exec(q); return m ? decodeURIComponent(m[1]) : null; };
 
   // ---------- menu card illustrations: the sprite is fetched once, only when a card comes near the screen ----------
@@ -113,6 +133,7 @@
     return sprite;
   }
   function icons() {
+    if (classic()) return;
     var slots = [].slice.call(doc.querySelectorAll("svg.ft-ill[data-ic]"));
     var fill = function (svg) {
       loadSprite().then(function () {
@@ -129,10 +150,10 @@
     }, { rootMargin: "240px 0px" });
     slots.forEach(function (s) { io.observe(s); });
   }
-  if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", icons); else icons();
+  whenReady(icons);
 
   // ---------- entry screen ----------
-  var preview = previewAllowed(root.location);
+  var mode = previewMode(root.location), preview = mode > 0;
   if (isBlocked(doc, ss)) return;
   /** @type {any} */
   var nav = null;
@@ -151,12 +172,12 @@
 
   var el = doc.createElement("div");
   el.id = "lqFtEntry"; el.className = "ft-entry";
-  el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", d.name[lang]);
+  el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", showName(mode) ? d.name[lang] : LABEL[lang]);
   el.setAttribute("data-deity", d.id);
   var img = doc.createElement("img");
   img.className = "ft-entry-img"; img.alt = ""; img.width = 240; img.height = 300; img.decoding = "async";
   el.appendChild(img);
-  [["ft-entry-nm", d.name[lang]], ["ft-entry-bl", d.bless[lang]], ["ft-entry-skip", SKIP[lang]]].concat(preview ? [["ft-entry-pv", PREVIEW[lang]]] : [])
+  (showName(mode) ? [["ft-entry-nm", d.name[lang]]] : []).concat([["ft-entry-bl", d.bless[lang]], ["ft-entry-skip", SKIP[lang]]], preview ? [["ft-entry-pv", PREVIEW[lang]]] : [])
     .forEach(function (p) { var x = doc.createElement("div"); x.className = p[0]; x.textContent = p[1]; el.appendChild(x); });
   html.classList.add("lq-ft-entry");
   html.appendChild(el);
@@ -179,8 +200,8 @@
   function start() {
     if (started || done) return;
     started = true;
-    // a crisis or calm signal that arrived meanwhile: stop at once
-    if (isBlocked(doc, ss)) { finish(); return; }
+    // a crisis or calm signal that arrived meanwhile, or the switch back: stop at once
+    if (isBlocked(doc, ss) || classic()) { finish(); return; }
     root.requestAnimationFrame(function () { el.classList.add("in"); });
     if (!hold) timer = setTimeout(finish, 1500);
   }
@@ -189,7 +210,8 @@
   // the illustration is requested only now, when the entry screen really shows; without it the words still show
   img.onload = start;
   img.onerror = function () { img.remove(); start(); };
-  img.src = d.src + "?v=" + V;
+  // requested once the page is parsed (lensiq-config.js has then said whether the theme is on); never in classic
+  whenReady(function () { if (classic()) finish(); else if (!done) img.src = d.src + "?v=" + V; });
   setTimeout(start, 600); // slow network: never wait long
   setTimeout(function () { if (!hold) finish(); }, 4000); // safety net: the page is never left covered
 })(typeof window !== "undefined" ? window : globalThis);

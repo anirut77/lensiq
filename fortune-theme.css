@@ -3,7 +3,8 @@
    Palette A (WCAG 2.1, tests/unit/fortune-theme.test.js): night #120F2E -> #2A1B55, soft gold #E8C979, text #F5F1E8,
    muted #BDB5DA, card #1E1844, pressed #2A2160 (lowest text pair 7.26:1).
    Menu pages (html.lq-ft-menu: fortune.html, cat-fortune.html): the whole page at night, cards with gold line art.
-   Reading pages: a night band behind the title, the reading itself on warm paper (charts and long text stay dark-on-light).
+   Reading pages (html.lq-ft-read, decision 94 ก): a night band behind the title, the reading on light paper #F6F3EC.
+   Switch back: lensiq-config.js swaps these classes for html.lq-ft-classic, which only hides the new illustration slots.
    Font: Prompt (SIL OFL, vendor/fonts/prompt) under its own family name LQft with two files per script (400 for text,
    500 for headings and bold), so a fortune page downloads fewer font files than before and no Inter.
    Generated selectors are written out in full (no :is() lists). */
@@ -23,20 +24,26 @@ html.lq-ft{--ft1:#120F2E;--ft2:#2A1B55;--ftg:#E8C979;--ftt:#F5F1E8;--ftm:#BDB5DA
 html.lq-ft *{font-family:LQft,"Noto Sans Thai","Leelawadee UI",Thonburi,system-ui,sans-serif}
 html.lq-ft svg.ft-ill{flex:none;width:44px;height:44px;color:var(--ftg);fill:none}
 
-/* ---------- reading pages: night band behind the title, warm paper below ---------- */
+/* ---------- reading pages (html.lq-ft-read, decision 94 ก): night band behind the title, light paper body ---------- */
+html.lq-ft-read body{background:#F6F3EC}
 html.lq-ft main.fk,html.lq-ft main.fr,html.lq-ft main.pl,html.lq-ft main.hs,html.lq-ft main.tr,html.lq-ft main.nm,html.lq-ft main.fs{padding-top:0}
-html.lq-ft .fk-head,html.lq-ft .fr-head,html.lq-ft .pl-head,html.lq-ft .hs-head,html.lq-ft .tr-head,html.lq-ft .nm-head,html.lq-ft .fs-head,html.lq-ft .rp-hero{
+html.lq-ft-read .fk-head,html.lq-ft-read .fr-head,html.lq-ft-read .pl-head,html.lq-ft-read .hs-head,html.lq-ft-read .tr-head,html.lq-ft-read .nm-head,html.lq-ft-read .fs-head,html.lq-ft-read .rp-hero{
   position:relative;z-index:0;margin:0 0 22px;padding:28px 0 32px;color:var(--ftt);
   background:linear-gradient(180deg,var(--ft1),var(--ft2)) var(--ft1);border-image:linear-gradient(180deg,var(--ft1),var(--ft2)) fill 0//0 100vmax}
-html.lq-ft .fk-head::before,html.lq-ft .fr-head::before,html.lq-ft .pl-head::before,html.lq-ft .hs-head::before,html.lq-ft .tr-head::before,html.lq-ft .nm-head::before,
-html.lq-ft .fs-head::before,html.lq-ft .rp-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--ftsky);pointer-events:none}
-html.lq-ft .fk-head h1,html.lq-ft .fr-head h1,html.lq-ft .pl-head h1,html.lq-ft .hs-head h1,html.lq-ft .tr-head h1,html.lq-ft .nm-head h1,html.lq-ft .fs-head h1,html.lq-ft .rp-hero h1{
+html.lq-ft-read .fk-head::before,html.lq-ft-read .fr-head::before,html.lq-ft-read .pl-head::before,html.lq-ft-read .hs-head::before,html.lq-ft-read .tr-head::before,html.lq-ft-read .nm-head::before,
+html.lq-ft-read .fs-head::before,html.lq-ft-read .rp-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--ftsky);pointer-events:none}
+html.lq-ft-read .fk-head h1,html.lq-ft-read .fr-head h1,html.lq-ft-read .pl-head h1,html.lq-ft-read .hs-head h1,html.lq-ft-read .tr-head h1,html.lq-ft-read .nm-head h1,
+  html.lq-ft-read .fs-head h1,html.lq-ft-read .rp-hero h1{
   color:var(--ftt);font-weight:500}
-html.lq-ft .fk-head .eyebrow,html.lq-ft .fr-head .eyebrow,html.lq-ft .pl-head .eyebrow,html.lq-ft .hs-head .eyebrow,html.lq-ft .tr-head .eyebrow,html.lq-ft .nm-head .eyebrow,
-html.lq-ft .fs-head .eyebrow,html.lq-ft .rp-hero .eyebrow{color:var(--ftg)}
-html.lq-ft .fk-head .lead,html.lq-ft .fr-head .lead,html.lq-ft .pl-head .lead,html.lq-ft .hs-head .lead,html.lq-ft .tr-head .lead,html.lq-ft .nm-head .lead,html.lq-ft .fs-head .lead,
-html.lq-ft .rp-hero .lead{color:var(--ftm)}
-html.lq-ft .rp-hero{padding-left:16px;padding-right:16px}
+html.lq-ft-read .fk-head .eyebrow,html.lq-ft-read .fr-head .eyebrow,html.lq-ft-read .pl-head .eyebrow,html.lq-ft-read .hs-head .eyebrow,html.lq-ft-read .tr-head .eyebrow,
+  html.lq-ft-read .nm-head .eyebrow,
+html.lq-ft-read .fs-head .eyebrow,html.lq-ft-read .rp-hero .eyebrow{color:var(--ftg)}
+html.lq-ft-read .fk-head .lead,html.lq-ft-read .fr-head .lead,html.lq-ft-read .pl-head .lead,html.lq-ft-read .hs-head .lead,html.lq-ft-read .tr-head .lead,
+  html.lq-ft-read .nm-head .lead,html.lq-ft-read .fs-head .lead,
+html.lq-ft-read .rp-hero .lead{color:var(--ftm)}
+html.lq-ft-read .rp-hero{padding-left:16px;padding-right:16px}
+html.lq-ft-read .rp-hero .lq-top{color:var(--ftm)}
+html.lq-ft-read .rp-hero .lq-top a,html.lq-ft-read .rp-hero .lq-top button{color:var(--ftg)}
 
 /* ---------- menu pages (fortune.html, cat-fortune.html): the whole page at night ---------- */
 html.lq-ft-menu body{background:linear-gradient(180deg,var(--ft1),var(--ft2) 85%) fixed var(--ft1);color:var(--ftt)}
@@ -60,7 +67,7 @@ html.lq-ft-menu .pd-note,html.lq-ft-menu .ft-note,html.lq-ft-menu .lq-notice{bac
 html.lq-ft-menu .pd-body h2{font-weight:500}
 html.lq-ft-menu .pd-cta .btn.primary{background:var(--ftg);border-color:var(--ftg);color:#1A1433}
 html.lq-ft-menu .pd-cta .btn.light{border-color:var(--ftm);color:var(--ftt);background:transparent}
-html.lq-ft-menu .pd-ic{display:none}
+html.lq-ft-menu .pd-ic,html.lq-ft-menu .ft-ic{display:none}
 html.lq-ft-menu .chip,html.lq-ft-menu .lq-more{color:var(--ftg);border-color:var(--ftl);background:transparent}
 html.lq-ft-menu .cat-tool{position:relative}
 html.lq-ft-menu .cat-tool .sl-go::after{content:"";position:absolute;inset:0;border-radius:inherit}
@@ -89,12 +96,19 @@ html.lq-ft .ft-entry,html.lq-ft .ft-entry-img,html.lq-ft .ft-entry-nm,html.lq-ft
 html.lq-ft-menu .pd-card,html.lq-ft-menu .ft-card,html.lq-ft-menu .pd-others a{transition:none!important;transform:none!important}
 }
 @media print{
-html.lq-ft .fk-head,html.lq-ft .fr-head,html.lq-ft .pl-head,html.lq-ft .hs-head,html.lq-ft .tr-head,html.lq-ft .nm-head,html.lq-ft .fs-head,html.lq-ft .rp-hero{
+html.lq-ft-read .fk-head,html.lq-ft-read .fr-head,html.lq-ft-read .pl-head,html.lq-ft-read .hs-head,html.lq-ft-read .tr-head,html.lq-ft-read .nm-head,html.lq-ft-read .fs-head,html.lq-ft-read .rp-hero{
   background:none;border-image:none;color:#000;margin:0;padding:0}
-html.lq-ft .fk-head h1,html.lq-ft .fk-head .eyebrow,html.lq-ft .fk-head .lead,html.lq-ft .fr-head h1,html.lq-ft .fr-head .eyebrow,html.lq-ft .fr-head .lead,html.lq-ft .pl-head h1,
-html.lq-ft .pl-head .eyebrow,html.lq-ft .pl-head .lead,html.lq-ft .hs-head h1,html.lq-ft .hs-head .eyebrow,html.lq-ft .hs-head .lead,html.lq-ft .tr-head h1,html.lq-ft .tr-head .eyebrow,
-html.lq-ft .tr-head .lead,html.lq-ft .nm-head h1,html.lq-ft .nm-head .eyebrow,html.lq-ft .nm-head .lead,html.lq-ft .fs-head h1,html.lq-ft .fs-head .eyebrow,html.lq-ft .fs-head .lead,
-html.lq-ft .rp-hero h1,html.lq-ft .rp-hero .eyebrow,html.lq-ft .rp-hero .lead{color:#000}
+html.lq-ft-read .fk-head h1,html.lq-ft-read .fk-head .eyebrow,html.lq-ft-read .fk-head .lead,html.lq-ft-read .fr-head h1,html.lq-ft-read .fr-head .eyebrow,
+  html.lq-ft-read .fr-head .lead,html.lq-ft-read .pl-head h1,
+html.lq-ft-read .pl-head .eyebrow,html.lq-ft-read .pl-head .lead,html.lq-ft-read .hs-head h1,html.lq-ft-read .hs-head .eyebrow,html.lq-ft-read .hs-head .lead,
+  html.lq-ft-read .tr-head h1,html.lq-ft-read .tr-head .eyebrow,
+html.lq-ft-read .tr-head .lead,html.lq-ft-read .nm-head h1,html.lq-ft-read .nm-head .eyebrow,html.lq-ft-read .nm-head .lead,html.lq-ft-read .fs-head h1,
+  html.lq-ft-read .fs-head .eyebrow,html.lq-ft-read .fs-head .lead,
+html.lq-ft-read .rp-hero h1,html.lq-ft-read .rp-hero .eyebrow,html.lq-ft-read .rp-hero .lead{color:#000}
 html.lq-ft .ft-entry{display:none}
 html.lq-ft-menu body{background:#fff;color:#000}
+html.lq-ft-read body{background:#fff}
 }
+
+/* ---------- switch back (lensiq-config.js LENSIQ_FORTUNE_THEME = "classic"): the previous look; only the new slots are hidden ---------- */
+html.lq-ft-classic svg.ft-ill{display:none}
