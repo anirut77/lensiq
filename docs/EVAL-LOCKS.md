@@ -136,7 +136,7 @@ If the guard does not print `eval-guard OK`, there is no measurement. Report the
 | 15 | Text sent is shown; both withdraw buttons clear consent and one-tap at once | :32, :368 | e2e 5, 7 | existed |
 | 16 | Text only; no automatic image; a photo only after "Use this picture" | :33, :166, :368 | e2e 8; A7; `pc-ondevice.test.js` | existed |
 | 17 | Public users: preview and confirm every time | :35 | e2e 4 | existed |
-| 18 | One AI round per tap (pc_fields + pc_claims; per-product dedupe applies only to the removed automatic path) | :66, :163 | e2e 5 ("one tap = one round": pc_fields 1 + pc_claims 1); pc-live product key, already-sent, session cap (automatic path only) | existed |
+| 18 | **Owner decision 96 = ก (2026-11-18)**: one round per tap, at most three calls (pc_fields, pc_claims, pc_translate), the user taps every time (replaces "one AI call per product"; per-product dedupe applied only to the removed automatic path) | :66, :163, §17 | `pc-live-tap.test.js` T1 (at most 3 requests, each feature once, no loop) and T2 (nothing without a tap); e2e 5 ("one tap = one round": pc_fields 1 + pc_claims 1) | **added T1, T2** |
 | 19 | Worker: `auto` boolean, tester + valid code, Product Check features only, auto filter | :34, :173-176, :369 | A1-A5 | existed |
 | 20 | Worker one-tap allowance 6 a minute, 150 a day | :69, :177 | A6 (allows 12 / 300; day limit never reached) | **added R6** (<= 6, <= 150, request 151 refused) |
 | 21 | Auto flag, tester code and facts never reach the provider | :177 | A7 | existed |
@@ -146,6 +146,7 @@ If the guard does not print `eval-guard OK`, there is no measurement. Report the
 | 28 | One-tap allowance given back when a request is refused before a provider call | :177 | A3 (fails when the refund is removed) | existed |
 | 29 | A changed provider chain turns one-tap off | :159-160, :364 | `lensiq-ai.test.js` (`LQAI.rememberedConsent`; outside the live-scan set) | existed |
 | 30 | "Turn the pack" hint after a side read with nothing on the checklist | `PC-JK-RESULTS.md` §5 | `pc-live-turn.test.js` (in no lock) | existed; not locked |
+| 31 | Monthly budget cap per Product Check feature: always set; over the cap refused before any provider call | owner decision 96; `backend/src/ai/gateway.js` (reserveBudget) | `pc-live-tap.test.js` T3 (gateway-wide budget tests in `backend-ai-gateway.test.js` are in no lock) | **added T3** |
 | 25 | EN / ZH complete, 360 px without horizontal scroll, controls >= 44 px | :109 | e2e 10 | existed |
 | 26 | Personal data to AI 0 on P7 / P7b | :71 | `live-leak-score.mjs` (locked measurement) | existed |
 | 27 | First on-device result <= 1 s; AI fields <= 3 s | :139-147 | `live-measure.mjs` (measurement outside the repo, not a pass/fail test) | **no check added**: needs a real phone; a CI timing test would not be deterministic. Still open (4x proxy misses both for OCR / AI) |
@@ -154,6 +155,10 @@ If the guard does not print `eval-guard OK`, there is no measurement. Report the
   `locked-2026-11-17-release-criteria.sha256`). First run: R4 failed on the product (fixed, test unchanged); R5 and R6 failed
   on test setup (a regex against a JSDoc cast; a 2023 clock that made the gateway answer `not_configured`). Re-lock (2),
   setup only, no assertion loosened: commit `686e0bfe`, field lock `locked-2026-11-17-release-criteria-r2.sha256`.
+- Owner decision 96 = ก (2026-11-18): `tests/unit/pc-live-tap.test.js` T1-T3 locked before the first run (commit `8f9e9c07`,
+  field lock `locked-2026-11-18-tap-rule.sha256`). First run: T1, T2 pass; T3 failed on test setup (a 0.05 USD cap is not
+  reached in 60 taps at 700 micro-USD each). Re-lock (2), cap 0.01 USD, no assertion changed: commit `896606c8`, field lock
+  `locked-2026-11-18-tap-rule-r2.sha256`. The 6 / minute and 150 / day caps stay locked in A6 and R6.
 
 ## Known issues in locked files
 
