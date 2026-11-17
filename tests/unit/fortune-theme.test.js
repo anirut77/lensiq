@@ -8,7 +8,8 @@
 //   2. fortune-theme.css: every rule is scoped to html.lq-ft; its own font family only (no Prompt / Inter redefinition);
 //      the palette A tokens are present;
 //   3. contrast >= 4.5:1 for every text / surface pair of palette A (WCAG 2.1 formula);
-//   4. deities: 6-8 items, Hindu / Brahmin / Chinese folk traditions only, no Buddha or Buddhist figure, names and blessing
+//   4. deities: 6-8 items, Hindu / Brahmin / Chinese folk traditions (a Buddhist guardian is tagged so and stays pending,
+//      amendment 1), no Buddha or Buddhist figure in names, names and blessing
 //      lines in TH / EN / ZH that pass the Merit wording lint (no promise, price, fear, lottery ...), identifying features
 //      listed, a review status per item ("pending" | "approved"; approved needs a reviewer and a date);
 //   5. selection logic: only approved items are eligible (the local preview flag works on localhost / 127.0.0.1 / file:
@@ -111,7 +112,11 @@ test("4. deities: 6-8, allowed traditions, no Buddhist figure, TH/EN/ZH names an
   for (const d of E.DEITIES) {
     assert.match(d.id, /^[a-z]+$/, "id " + d.id);
     assert.ok(!ids.has(d.id), "duplicate " + d.id); ids.add(d.id);
-    assert.ok(["hindu_brahman", "chinese_folk"].includes(d.tradition), d.id + " tradition " + d.tradition);
+    assert.ok(["hindu_brahman", "chinese_folk", "buddhist_guardian"].includes(d.tradition), d.id + " tradition " + d.tradition);
+    // amendment 1 (2026-11-17, review note): a figure that is a Buddhist guardian in Thai / Chinese practice (Vessavana) is
+    // tagged as such and can never be approved here: it stays pending until the owner's expert decides (a new owner decision
+    // and a new test change would be needed)
+    if (d.tradition === "buddhist_guardian") assert.equal(d.status, "pending", d.id + ": a Buddhist guardian figure stays pending");
     assert.equal(d.src, "art/fortune/deity-" + d.id + ".svg", d.id + " src");
     assert.ok(existsSync(join(ROOT, d.src)), d.src + " exists");
     for (const l of ["th", "en", "zh"]) {
