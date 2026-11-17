@@ -124,7 +124,7 @@
   "cat.fortune.lead": "源自泰国与中国传统的互动活动以及择吉规划。",
   "fortune.disc.line": "基于命理学原则，属个人信仰，请自行判断。",
   "cat.fortune.title": "占卜与择吉 | LENSIQ",
-  "cat.fortune.count": "18 个工具",
+  "cat.fortune.count": "19 个工具",
   "cat.studio.name": "影棚与媒体",
   "cat.studio.intro": "形象照与证件照影棚、活动拍照亭、展位分析与文档转换。",
   "cat.studio.title": "影棚与媒体 | LENSIQ",
