@@ -5,8 +5,6 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
-    "fortune.foot.principles": "我们的解读原则",
-    "fortune.foot.credits": "致谢与许可",
     "fortune.disc.line": "基于命理学原则，属个人信仰，请自行判断。",
     "pd.notAssess": "不是评估",
     "astro.asResTitle": "你的 Big Three",

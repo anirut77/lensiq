@@ -3,8 +3,6 @@
 (function (root) {
   "use strict";
   var dict = { en: {
-    "fortune.foot.principles": "Our reading principles",
-    "fortune.foot.credits": "Credits and licences",
     "fortune.disc.line": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
     "pd.notAssess": "Not an assessment",
     "astro.asResTitle": "Your Big Three",

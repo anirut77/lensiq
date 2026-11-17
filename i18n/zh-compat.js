@@ -1,8 +1,6 @@
 /* i18n/zh-compat.js — Simplified Chinese for compat.html (Compatibility, compat-ui.js). Thai lives in the markup / page
  * script; the reading itself comes from compat-kb.js in the page language. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
-  "fortune.foot.principles": "我们的解读原则",
-  "fortune.foot.credits": "致谢与许可",
   "fortune.disc.line": "基于命理学原则，属个人信仰，请自行判断。",
   "compat.title": "合婚合盘：两人或小组 | LENSIQ",
   "compat.eyebrow": "合婚合盘 · 泰式 · 八字 · 吠陀 · 西洋",

@@ -1,7 +1,5 @@
 /* i18n/en-luckycolor.js — English for luckycolor.html (luckycolor.js). Thai lives in the markup / page script. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
-  "fortune.foot.principles": "Our reading principles",
-  "fortune.foot.credits": "Credits and licences",
   "fortune.disc.line": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
   "lucky.doc.title": "Lucky-colour outfit mirror | LENSIQ",
   "lucky.doc.desc": "Check in a mirror whether the colour you are wearing matches the Thai lucky colours of the day for work, money or love (Taksa tradition). Processed on the device; no images are kept.",

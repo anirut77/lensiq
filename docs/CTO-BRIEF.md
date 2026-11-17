@@ -7,15 +7,15 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
-## Fortune credits and principles (owner order 2026-11-17 night, item 2; branch `fortune-credits`, CI on the branch)
+## Fortune label and about block deleted (owner order 2026-11-17 night item 2, corrected by owner decision 2026-11-18; branch `fortune-credits`)
 
-Fix to what is live, no new feature. Every fortune page (category 6 + compat, 19 pages) loses the reading-source label
-("เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง" and variants; the AI label stays when the writing assistant is used) and the whole
-"เกี่ยวกับคำอ่านนี้" block, in TH / EN / ZH. Moved, not lost: image / model / data credits and licences to the new platform page
-`credits.html` (35 rows, TH / EN / ZH, UNLINKED like counselling; the per-page calculation notes are kept there too); the
-principles to `help.html#h-principles` "หลักการทำนายของเรา" (plain words, no straight-mode wording; text loaded on first open
-from `help-principles.js` so help's first load grows by about 0.7 KB only). Each fortune page ends with one small link to each.
-Fixed set `fortune-credits` locked first (unit + e2e + asset list); every git-tracked vendor file must be credited or exempt.
+Fix to what is live, no new feature: delete, do not move. Every fortune page (category 6 + compat, 19 pages) loses the
+reading-source label ("เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง" and variants, TH / EN / ZH; the AI label stays when the writing
+assistant is used) and the whole "เกี่ยวกับคำอ่านนี้" block (tarot image credit + vendor path, palm model note, principles
+paragraph, calculation notes); astro's principles paragraph too. No help section, no credits page, no new links: the rules
+stay enforced in code and tests, only not displayed. Licence audit of every asset the fortune pages load: no licence requires
+a visible attribution (MIT / Apache-2.0 / OFL notices ship with the files and in `LICENSES/THIRD-PARTY-NOTICES.txt`; the tarot
+art is public domain), so no credits page. Fixed set `fortune-credits__v2` (v1 superseded, ledger in its lock file).
 
 ## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
 

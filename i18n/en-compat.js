@@ -1,8 +1,6 @@
 /* i18n/en-compat.js — English for compat.html (Compatibility, compat-ui.js). Thai lives in the markup / page script; the
  * reading itself comes from compat-kb.js in the page language. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
-  "fortune.foot.principles": "Our reading principles",
-  "fortune.foot.credits": "Credits and licences",
   "fortune.disc.line": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
   "compat.title": "Compatibility for two people or a group | LENSIQ",
   "compat.eyebrow": "Compatibility · Thai · BaZi · Vedic · Western",

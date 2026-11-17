@@ -922,7 +922,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#trKioskExit").addEventListener("click", function () { setKiosk(false); });
   document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
 
-  // card-image credit: credits.html (owner order 2026-11-17 night item 2)
+  // card-image credit: not shown (public domain; owner decision 2026-11-18)
 
   // เปลี่ยนภาษา (และครั้งแรกตอนโหลด): วาดข้อความไดนามิกใหม่ทั้งหมด ผลที่แสดงอยู่จะเรียบเรียงคำทำนายใหม่ในภาษานั้น
   window.addEventListener("lq-lang", function () {
