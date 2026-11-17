@@ -1,0 +1,13 @@
+# evals-locks/fortune-gate.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-gate/ (owner rule 2026-11-13). Append-only.
+# fortune-gate (owner decision 86 ค, 2026-11-17, after RECHECK-7 STOP): ship the fortune-quality changes only on the pages whose
+# readings the blind review found better than live in every language (astro, dream, fengshui, lek7, tarot with Siam Si, zodiac);
+# every other page must stay byte-identical to live main 02fdd69. Locked BEFORE the gate was built:
+#   tests/unit/fortune-gate-live.json  sha256 of each published script this branch changed (as on live 02fdd69), of each live page,
+#                                      and of live main's composed output for the harness below (computed in a worktree at 02fdd69)
+#   tools/fortune-gate-compose.mjs     harness: 15 engines x 6 synthetic inputs x TH/EN/ZH + report basic/annual/compat
+#   tests/unit/fortune-gate.test.js    ON/OFF config, live/ copies byte-identical, OFF pages' HTML = live, OFF engines' output =
+#                                      live, ON engines take the new path
+# locked 2026-11-17T02:45:38Z (tools/eval-guard.mjs lock, 3 files)
+3c312fb0a7c118821a6344e1abb5b9234dd519942a8bd91d135ac31441404f5f  tools/fortune-gate-compose.mjs
+5336e24e3f2f2ab095904c5304666e0d386b705221d444caa1b94b89862bdeae  tests/unit/fortune-gate.test.js
+00efff7590868774ac317eb3b9a1a683d73f73b2e340440b776fbbea99451fdc  tests/unit/fortune-gate-live.json
