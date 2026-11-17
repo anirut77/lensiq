@@ -642,6 +642,8 @@
      slipped past the filters and the crisis patterns; they all run on the canonical copy (lensiq-thai-canon.js) */
   /** @param {any} s @returns {string} */
   const canon = s => { const C = TC || (TC = typeof require === "function" ? require("./lensiq-thai-canon.js") : root.LQThaiCanon); return C ? C.canon(s) : String(s ?? "").normalize("NFC"); }; /* owner decision 2026-11-14: no JA / KO script to AI (LQThaiCanon.withoutJaKo; the Worker drops it again) */ const jk = (/** @type {any} */ f) => { canon(""); return TC && TC.withoutJaKo ? TC.withoutJaKo(f) : f; };
+  const CALM_T = { th: "การดูแลตัวเอง", en: "Taking care of yourself", zh: "照顾自己" },
+    REM_W = /เคล็ด|ข้อแนะนำทั่วไปคือ|A simple adjustment|สีมงคล|สีเสื้อมงคล|ธาตุเสริม|ทำบุญ|วิธีปรับ|เสริมดวง|lucky colou?r|remed|luck tip|幸运色|开运|调整的方法|化解/i;
   let STRAIGHT = false, CALM = false, /** @type {any} */ TC = null; // CALM: crisis net / soft step / support card active on the page (no straight, no remedies)
   const preHL = t => canon(t || "").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
   const hardLimit = text => FS.hardLimit(preHL(text));
@@ -2419,8 +2421,9 @@
         const src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : []; if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, L === "en" ? REMEDY_EN : REMEDY);
         out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
       }
-      // calm / crisis (hard limit 3): no plan and no remedy section ("คำแนะนำและเคล็ดเสริมดวง")
-      if (calm && out) { delete out.plan; if (Array.isArray(out.sections)) out.sections = out.sections.filter(x => x.id !== "advice"); } return out;
+      // calm / crisis (hard limit 3): no plan, no remedy; the advice section stays (rule a) under a plain title without remedy wording
+      if (calm && out) { delete out.plan; if (Array.isArray(out.sections)) out.sections = out.sections.map(x => x.id !== "advice" ? x : Object.assign({}, x, { title: CALM_T[out.lang] || CALM_T.th,
+        paragraphs: (x.paragraphs || []).filter(pp => !REM_W.test(JSON.stringify(pp))) })).filter(x => x.id !== "advice" || x.paragraphs.length); } return out;
     } finally { STRAIGHT = prev; CALM = prevC; CREC = prevR; FILLS = prevF; }
   }
   function composeBase(facts, opts = {}) {
