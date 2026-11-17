@@ -44,3 +44,7 @@ d34bb2c3cc0e26599265891d2199a85292f95ea4391d8b38e47343a27db7dbfe  tests/unit/cri
 # locked 2026-11-17T01:18:02Z (tools/eval-guard.mjs lock, 1 file)
 91f92cf7b50d77449c4fd46056651005b9984b01b1138dc8c21ebc789c8aa9e3  relock-unit-b/crisis-rules-1323.test.js
 91f92cf7b50d77449c4fd46056651005b9984b01b1138dc8c21ebc789c8aa9e3  tests/unit/crisis-rules-1323.test.js  # repo file (relock-unit-b)
+# RE-LOCK 2 2026-11-17 (test fault found on the base run, before the build was measured): SALES_TEXT price in Chinese is a number with 元 / ¥ (元 matched 元素), print means printing the reading (matched the operator camera-notice link).
+# locked 2026-11-17T01:18:51Z (tools/eval-guard.mjs lock, 1 file)
+115869c56128cb84e9e12421a7232508c0335f85a74eb84469ae46f5db1176c3  relock2/crisis-v3-kit.mjs
+115869c56128cb84e9e12421a7232508c0335f85a74eb84469ae46f5db1176c3  tests/e2e/crisis-v3-kit.mjs  # repo file (relock2)

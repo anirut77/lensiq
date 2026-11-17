@@ -36,10 +36,13 @@ export const HARSH = {
 };
 /** sales elements (rule c) */
 export const SALES_SEL = '[data-lq-upsell], [data-lq-remedy], [data-lq-paid], [data-lq-merit], .fa-plan, [data-lq-plan], [id$="Share"], [id$="Print"], [data-lq-share], [data-lq-print], .lq-merit, .lq-paid';
+// RE-LOCK 2 2026-11-17 (test fault found on the BASE run, before the build was measured): "元" matched 元素 (element) on every
+// Chinese page and "print" matched the operator link "print the camera notice (sign D)"; a price is now a number with 元 / ¥, and
+// print means printing the reading (print this / the reading / your / report / result; 打印 + 结果 / 报告 / 解读 / 本页)
 export const SALES_TEXT = {
   th: /฿|บาท|ราคา|ซื้อ|ชำระเงิน|ปลดล็อก|อ่านฉบับเต็ม.*บาท|แชร์|พิมพ์รายงาน|พิมพ์ผล|บันทึกรูป|สั่งซื้อ|ร้านแนะนำ/,
-  en: /\bTHB\b|\bbaht\b|\bprice|\bbuy\b|\bpurchase|\bunlock|\bpay\b|\bshare\b|\bprint\b|\bshop\b|\bseller/i,
-  zh: /价格|购买|付款|解锁|分享|打印|商店|卖家|元/,
+  en: /\bTHB\b|\bbaht\b|\bprice|\bbuy\b|\bpurchase|\bunlock|\bpay\b|\bshare\b|\bprint (?:this|the reading|your|report|result)|\bsave as pdf|\bshop\b|\bseller/i,
+  zh: /价格|购买|付款|解锁|分享|打印(?:结果|报告|解读|本页)|商店|卖家|\d\s*元|¥/,
 };
 export const OTHER_NUMS = /(?<!\d)(?:1669|191|1300)(?!\d)|02[\s-]?113[\s-]?6789/;
 
