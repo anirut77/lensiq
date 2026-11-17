@@ -1,13 +1,9 @@
-/* lensiq-config.js — ค่าตั้งของเว็บ LENSIQ (แก้ได้โดยไม่ต้องแตะโค้ดหน้าอื่น)
- *
- * LENSIQ_API_BASE: ที่อยู่เซิร์ฟเวอร์ API สำหรับฟีเจอร์ AI (ดูดวง AI), สถิติการใช้งาน และการชำระเงิน
- *   ""  (ค่าเริ่มต้น) = ไม่มี backend แยก: ดูดวง AI ใช้เซิร์ฟเวอร์เดียวกับหน้าเว็บ (server.py เช่น http://localhost:8000)
- *       ถ้ามี ไม่เช่นนั้นใช้ตัวเรียบเรียงในเครื่อง — ไม่โหลดสถิติ ไม่ส่งข้อมูลใดออกไป ทุกหน้าใช้งานแบบออฟไลน์ได้เหมือนเดิม
- *   ตัวอย่าง Cloudflare Worker (backend/, ดู docs/BACKEND.md):
- *     window.LENSIQ_API_BASE = window.LENSIQ_API_BASE || "https://api.example.com";
- *   แล้วรัน node tools/csp-meta.mjs เพื่อเพิ่ม origin นี้ใน connect-src ของทุกหน้า และตั้ง ALLOWED_ORIGINS บน Worker
- *   (server.py แบบเดิม: ตั้ง LENSIQ_ALLOW_ORIGIN=https://<ชื่อผู้ใช้>.github.io บนเซิร์ฟเวอร์ — ดู AI-SETUP.md)
- */
+/* lensiq-config.js — LENSIQ site settings (change here, not in page code).
+ * LENSIQ_API_BASE: API server for AI readings, usage statistics and payments. "" (default) = no separate backend: AI readings use
+ *   the page's own server (server.py) if any, else the on-device composer; no statistics, nothing sent, every page works offline.
+ *   Cloudflare Worker (backend/, docs/BACKEND.md): set it to "https://api.example.com" (keeping a value set earlier),
+ *   then run node tools/csp-meta.mjs (adds the origin to connect-src) and set ALLOWED_ORIGINS on the Worker
+ *   (old server.py: LENSIQ_ALLOW_ORIGIN=https://<user>.github.io on the server, AI-SETUP.md) */
 window.LENSIQ_API_BASE = window.LENSIQ_API_BASE || "";
 
 /* LENSIQ_TURNSTILE_SITEKEY: Cloudflare Turnstile site key สำหรับผู้ช่วยเขียน AI บน Worker (ใช้คู่กับ secret TURNSTILE_SECRET)
@@ -38,10 +34,10 @@ window.LENSIQ_MERIT_INTEREST_FORM = window.LENSIQ_MERIT_INTEREST_FORM === true;
  *   ต้องเปิดคู่กับ ORG_ACCOUNTS = "on" บน Worker (ตั้ง true อย่างเดียวไม่มีผล ถ้าเซิร์ฟเวอร์ไม่ตอบว่าเปิด) · ต้องเป็น true จริงเท่านั้น */
 window.LENSIQ_ORG_ACCOUNTS = window.LENSIQ_ORG_ACCOUNTS === true;
 
-/* LENSIQ_FACEPARSE: สตูดิโอแต่งชุดใช้ BiSeNet (vendor/models/faceparse-bisenet-r18-q8.onnx) แทนโมเดลค่าเริ่มต้น
- *   false (ค่าเริ่มต้น) = MediaPipe Selfie Multiclass (Apache-2.0, vendor/models/selfie-multiclass-256-f16.onnx — ใช้เชิงพาณิชย์ได้)
- *   true = BiSeNet: น้ำหนักฝึกจาก CelebAMask-HQ (ใช้ได้เฉพาะงานวิจัย/ไม่ใช่เชิงพาณิชย์) ไฟล์ไม่อยู่ใน git
- *          เปิดเฉพาะเมื่อมีไฟล์โมเดลและสิทธิ์การใช้งานแล้ว (ดู vendor/models/FACEPARSE-LICENSE.txt) หรือทดสอบด้วย ?faceparse=1 */
+/* LENSIQ_FACEPARSE: the outfit studio uses BiSeNet (vendor/models/faceparse-bisenet-r18-q8.onnx) instead of the default model.
+ *   false (default) = MediaPipe Selfie Multiclass (Apache-2.0, commercial use allowed). true = BiSeNet, trained on CelebAMask-HQ
+ *   (research / non-commercial only; file not in git): only with the model file and a licence (vendor/models/FACEPARSE-LICENSE.txt)
+ *   or for testing with ?faceparse=1 */
 window.LENSIQ_FACEPARSE = window.LENSIQ_FACEPARSE === true;
 
 /* LENSIQ_AGE_GENDER: ตัวเลือก "ใช้อายุ/เพศ" ของป้ายโฆษณา (signage.html) — โมเดล face-api.js ageGenderNet ฝึกจาก UTKFace
