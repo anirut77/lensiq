@@ -97,3 +97,17 @@ Also moved word for word on 2026-11-17 (same reason; line numbers are those of t
 [nav.js line 656] // a page with its own <footer>: add whichever of terms / privacy / help it does not link yet
 [nav.js line 694] // the pages that run FortuneAI readings (planner / luckycolor do not: nothing to attach to)
 ```
+
+Moved word for word on 2026-11-17 (third batch, page-weight budget; line numbers before the move):
+
+```text
+[nav.js line 8] // menu: docs/NAV.md (moved word for word 2026-11-17)
+[nav.js line 176] // mega-menu panel: intro column (group name, one-line scope, link to the directory) + link grid
+[nav.js line 216] // Skip link target: first <main>, else hide the link.
+[nav.js line 254] // On mobile, expand the group containing the current page.
+[nav.js line 313] // Keep focus inside the drawer while it is open (mobile).
+[nav.js line 374] // 1323 in the bar + confirmation (decision 69; CRISIS-RESOURCES)
+[nav.js line 442] // text node -> .lq-run of .lq-w words + <wbr> (docs/NAV.md)
+[nav.js line 460] // source line break between Thai words = one space (D-05, docs/NAV.md)
+[nav.js line 521] // controls (buttons, links, labels): number + unit only; their words stay as written (tests and page code read them)
+```

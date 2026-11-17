@@ -5,7 +5,6 @@
 
   var BRAND = { name: "LENS", accent: "IQ", full: "LENSIQ", tagline: "Computer Vision ประมวลผลบนเครื่อง เพื่อการตลาดและการวิเคราะห์" };
 
-  // menu: docs/NAV.md (moved word for word 2026-11-17)
   var ENTRY = { "attendance.html": "attendance.html?mode=employee" };
   var MENU = [
     { label: "ความปลอดภัยและการเข้าออก", short: "เข้าออก", id: "gate", cat: "security",
@@ -173,7 +172,6 @@
     if (g.items) {
       var cur = g.items.filter(function (i) { return isCur(i.href); })[0];
       if (cur && !curGroup) { curGroup = g; curItem = cur; }
-      // mega-menu panel: intro column (group name, one-line scope, link to the directory) + link grid
       html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span class="nav-lbl-s" data-i18n="nav.groups.' + g.id + '">' + esc(g.short || g.label) + '</span><span class="nav-lbl-f" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
         '<div class="nav-sub" id="navsub-' + g.id + '"><div class="mega">' +
           '<div class="mega-intro"><p class="mega-k" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</p><p class="mega-d" data-i18n="nav.groupd.' + g.id + '">' + esc(g.intro) + '</p>' +
@@ -213,7 +211,6 @@
     header.insertAdjacentElement("afterend", crumbs);
   }
 
-  // Skip link target: first <main>, else hide the link.
   var main = document.querySelector("main");
   var skip = /** @type {HTMLElement} */ (header.querySelector(".skip-link"));
   if (main) { if (!main.id) main.id = "main"; skip.setAttribute("href", "#" + main.id); }
@@ -251,7 +248,6 @@
     document.documentElement.classList.toggle("nav-locked", open);
     if (open) {
       setNavH();
-      // On mobile, expand the group containing the current page.
       subBtns.forEach(function (b) { if (b.classList.contains("is-current")) setSub(b, true); });
       var first = /** @type {HTMLElement|null} */ (menu.querySelector("a, button"));
       if (first) first.focus({ preventScroll: true });
@@ -310,7 +306,6 @@
     if (openBtn) { closeSubs(); openBtn.focus(); }
   });
 
-  // Keep focus inside the drawer while it is open (mobile).
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Tab" || !header.classList.contains("menu-open")) return;
     /** @type {HTMLElement[]} */
@@ -371,7 +366,6 @@
   window.addEventListener("lq-lang", syncLang);
   if (window.LQI18N) { window.LQI18N.apply(header); var cb = document.querySelector(".lq-crumbs"); if (cb) window.LQI18N.apply(cb); syncLang(); }
 
-  // 1323 in the bar + confirmation (decision 69; CRISIS-RESOURCES)
   /** @type {any} */
   var help = /** @type {any} */ (window).LQHelpTop = { confirm: true, close: function () { if (help.dlg && help.dlg.open) help.dlg.close(); }, open: function () {
     var d = help.dlg, w = /** @type {any} */ ({ en: ["Call 1323", "Close"], zh: ["拨打 1323", "关闭"] })[window.LQI18N ? String(window.LQI18N.lang) : ""] || ["โทร 1323", "ปิด"];
@@ -439,7 +433,6 @@
       if (last < text.length) parts.push([text.slice(last), 0]);
       return parts;
     }
-    // text node -> .lq-run of .lq-w words + <wbr> (docs/NAV.md)
     function rebuild(tn, full) {
       var v = tn.nodeValue, t = words(v), L = len(tn), k = L > (full ? 19 : 11) ? cut(t, L > v.trim().length + 2) : t.length, at = t.slice(0, k).join("").length, pos = 0, buf = "";
       var parts = full ? t.map(function (p) { return [p, THAI.test(p) && p.length >= 4 && p.length <= 14 && !/\s/.test(p) ? 1 : 0]; }) : loanParts(v);
@@ -457,7 +450,6 @@
       var add = function (el) { if (buf) run.appendChild(document.createTextNode(buf)); buf = ""; if (el) run.appendChild(el); };
       run.className = "lq-run"; tail.className = "lq-w";
       parts.forEach(function (p, i) {
-        // source line break between Thai words = one space (D-05, docs/NAV.md)
         var f = function (y) { return y.replace(/[ \t]*\n\s*/g, " "); }, x = f(p[0]), e = pos + p[0].length, h = Math.max(0, at - pos);
         pos = e;
         if (e > at && (p[1] || !h)) { tail.textContent += x; return; }
@@ -518,7 +510,7 @@
         if ((v.trim() || IN.test(y ? y.nodeName : "")) && x && IN.test(x.nodeName) && !x.nextSibling && /^\S.{0,4}$/.test((x.textContent || "").trim())) {
           v = v.replace(/\s+$/, "\u00a0"); x.classList.add("lq-w");
         }
-        v = gs(v, p.closest("button,.btn,[role=button]") ? 0 : len(n)); // a button: only its own text counts
+        v = p.closest("a,button,.btn,[role=button],label,summary") ? v.replace(GL, function (m, a, b) { return (a || b || "") + "\u00a0"; }) : gs(v, len(n));
         if (v !== n.nodeValue) n.nodeValue = v;
       }
     }
