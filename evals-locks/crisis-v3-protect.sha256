@@ -7,3 +7,6 @@ aecedd731891a19dd446f8c9b11bf368b090cf7467918513a0528d18148ee364  crisis-price-s
 e2b87e8ec4aad1589c63f5d0494b4516d54bb26d2d0d171899159a04a162694c  crisis-price-scan-zh.e2e.mjs
 e2b7046004f600c386404cdefb0f47f5ce09adc155f77ce7ede33909b66443e6  crisis-price-scan-controls.e2e.mjs
 aa0fc5e4a7885a2ed5cc9d479195b953e955800697a7269489d8142b10c39af4  crisis-escape-guard-allow.protect.json
+# locked 2026-11-17T17:46:57Z (tools/eval-guard.mjs lock, 2 files)
+8b62de1a0470cd55edeee9e83a63f9de86736b6d6ca640467a968eef73f7e023  end-it-all-set.json
+34c36acf53672eb2989bd637fc507f29d0264b02236898429b971305797ad16d  end-it-all-measure.mjs
