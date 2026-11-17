@@ -402,11 +402,11 @@
     // crisis state (owner order 2026-11-12): after the support card on this page, every later report is the card again
     var hard = !!(FA.crisis && ((FA.crisis.active && FA.crisis.active()) || FA.crisis.check(($("rpName") && $("rpName").value) || "") || FA.crisis.check(FA.crisis.fields())));
     var soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the gentle "are you okay?" step before any report
-    if (!hard && !soft) return false;
+    if (hard && FA.crisis.setActive) FA.crisis.setActive(); // crisis v3 (owner decision 2026-11-17): the flag is set and the reading goes on (gentle; closing line with 1323 at its end)
+    if (!soft) return false;
     out.textContent = ""; out.hidden = false;
-    var card = function () { out.textContent = ""; FA.crisis.render(out, FA.crisis.result({ lang: lang() })); };
+    var card = function () { FA.crisis.setActive(); CRx.ack(); $("rpForm").requestSubmit(); };
     if (soft) { CRx.renderSoft(out, lang(), function () { CRx.ack(); $("rpForm").requestSubmit(); }, card); return true; }
-    card();
     return true;
   }
   function renderReport(rep) {

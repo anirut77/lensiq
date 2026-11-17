@@ -228,9 +228,9 @@
   /** @type {{tel: string[], th: Record<string, string>, en: Record<string, string>, zh: Record<string, string>}} */
   const HELP = {
     tel: ["1323"],
-    th: { label: "สายด่วนช่วยเหลือ", note: "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น" },
-    en: { label: "Help lines", note: "Outside Thailand, call your local emergency number." },
-    zh: { label: "求助热线", note: "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。" },
+    th: { label: "สายด่วนช่วยเหลือ", note: "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น", close: "หากมีเรื่องทุกข์ใจ ลองคุยกับคนใกล้ชิด หรือโทร 1323 มีคนพร้อมรับฟัง" },
+    en: { label: "Help lines", note: "Outside Thailand, call your local emergency number.", close: "If something weighs on you, talk to someone close, or call 1323. Someone is ready to listen." },
+    zh: { label: "求助热线", note: "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。", close: "如果心里有事，可以和身边的人聊聊，或拨打 1323，有人愿意倾听。" },
   };
   const COUNSEL = { th: "ช่องทางให้คำปรึกษา", en: "Counselling services", zh: "咨询服务渠道" };
   const helpLang = (/** @type {any} */ l) => (l === "en" || l === "zh" ? l : "th");
@@ -247,10 +247,10 @@
     if (calmHere) markCalm(d);
     const box = el("aside", "lq-helpline" + (cls ? " " + cls : "") + (calmHere ? " lq-helpline-calm" : ""));
     box.setAttribute("role", "note"); box.setAttribute("aria-label", L.label); box.setAttribute("data-i18n-attr", "aria-label:help.line.label");
-    for (const n of HELP.tel) {
-      if (K) box.appendChild(K.el(d, n, { lang: l, cls: "lq-helpline-tel", compact: n !== "1323", keys: i18n }));
-      else { const a = el("a", "lq-call-btn lq-helpline-tel", n); a.setAttribute("href", "tel:" + n); box.appendChild(a); } // component missing: the number still calls
-    }
+    const w = box.appendChild(el("p", "lq-helpline-warm", L.close)); if (i18n) w.setAttribute("data-i18n", "help.line.close");
+    const mini = box.appendChild(el("span", "lq-call-mini")), b = mini.appendChild(el("a", "lq-call-btn lq-helpline-tel"));
+    mini.setAttribute("data-lq-call", "1323"); b.setAttribute("href", "tel:1323"); b.innerHTML = K ? K.ICON : "";
+    b.appendChild(el("b", "lq-call-mini-n", K ? K.LINES["1323"][l].go : "1323")); if (i18n) b.lastChild.setAttribute("data-i18n", "call.1323.go");
     const more = box.appendChild(el("span", "lq-helpline-more")), a = more.appendChild(el("a", "", COUNSEL[l]));
     a.setAttribute("href", "counselling.html"); if (i18n) a.setAttribute("data-i18n", "counsel.link");
     if (i18n) { try { I.apply(box); } catch (e) { /* i18n not ready: Thai stays */ } }
@@ -260,8 +260,9 @@
   /** the help line as HTML in one language (Thai carries the data-i18n keys) @param {string} [lang] @param {string} [cls] */
   function helpHTML(lang, cls) {
     const l = helpLang(lang), L = HELP[l], K = callKit();
-    const calls = HELP.tel.map(n => K ? K.html(n, { lang: l, cls: "lq-helpline-tel", compact: n !== "1323" })
-      : '<a class="lq-call-btn lq-helpline-tel" href="tel:' + n + '">' + n + "</a>");
+    const calls = ['<p class="lq-helpline-warm"' + (l === "th" ? ' data-i18n="help.line.close"' : "") + ">" + escH(L.close) + '</p><span class="lq-call-mini" data-lq-call="1323">' +
+      '<a class="lq-call-btn lq-helpline-tel" href="tel:1323">' + (K ? K.ICON : "") + '<b class="lq-call-mini-n"' + (l === "th" ? ' data-i18n="call.1323.go"' : "") + ">" +
+      escH(K ? K.LINES["1323"][l].go : "1323") + "</b></a></span>"];
     const note = '<span class="lq-helpline-more"><a href="counselling.html"' + (l === "th" ? ' data-i18n="counsel.link"' : "") + ">" + COUNSEL[l] + "</a></span>";
     return '<aside class="lq-helpline' + (cls ? " " + escH(cls) : "") + '" role="note" aria-label="' + escH(L.label) + '"' +
       (l === "th" ? ' data-i18n-attr="aria-label:help.line.label"' : "") + ">" + calls.join(" ") + " " + note + "</aside>";
@@ -276,6 +277,8 @@
   function sessionSet() { try { const st = root.sessionStorage; if (st) st.setItem(SESSION_KEY, "1"); } catch (e) { /* private mode: page-level only */ } }
   const CALM_CSS = "html[data-lq-calm] [data-lq-remedy],html[data-lq-calm] [data-lq-upsell],html[data-lq-crisis] [data-lq-upsell]{display:none!important}" +
     "html[data-lq-calm] .fa-straight{display:none!important}" +
+    ':is(html[data-lq-calm],html[data-lq-crisis]) :is([id$="Share"],[id$="Print"],[data-lq-share],[data-lq-print]){display:none!important}' +
+    ".lq-helpline-warm{margin:0 0 8px}" +
     ".lq-helpline-more{display:block}.lq-helpline-more a{display:inline-flex;align-items:center;min-height:44px;font-size:.9em;color:#0b5d8f;text-decoration:underline}";
   /** mark this page calm (attribute + styles; page-level, nothing stored) @param {any} [doc] */
   function markCalm(doc) {

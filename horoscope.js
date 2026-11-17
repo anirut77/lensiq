@@ -737,7 +737,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return era === "be" ? T("horoscope.x.beToCe", "พ.ศ. {a} = ค.ศ. {b}", { a: y, b: ce }) : T("horoscope.x.ceToBe", "ค.ศ. {a} = พ.ศ. {b}", { a: y, b: ce + 543 });
   }
   function yearHint() {
-    if (crisisHit($("#hsYear").value)) { $("#hsErr").textContent = ""; showCrisis(); return; } // crisis net before the digit filter (hotfix 2026-11-16)
+    if (crisisHit($("#hsYear").value)) crisisSet(); // crisis net before the digit filter (hotfix 2026-11-16); v3: the flag, then on as usual
     var raw = $("#hsYear").value.replace(/\D/g, ""), h = $("#hsYearHint");
     if ($("#hsYear").value !== raw) $("#hsYear").value = raw;
     if (raw.length < 4) { h.textContent = ""; return; }
@@ -771,7 +771,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#hsForm").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
     // crisis net first (review 2026-11-12): the raw name and every other field, before any calculation or reading
-    if (crisisOn() || crisisHit($("#hsName").value) || crisisHit(pageFields())) { $("#hsErr").textContent = ""; showCrisis(); return; }
+    if (crisisOn() || crisisHit($("#hsName").value) || crisisHit(pageFields())) crisisSet(); // crisis v3 (owner decision 2026-11-17): the flag is set and the reading goes on (gentle; closing line with 1323 at its end)
     // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step before ANY tab is drawn
     if (softHit()) { $("#hsErr").textContent = ""; showSoft(function () { $("#hsForm").requestSubmit(); }); return; }
     var err = $("#hsErr"); err.textContent = "";
@@ -1076,7 +1076,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var upd = function () {
       var o = $("#hsNameOut");
       var nameNum = $("#hsNameNum").value;
-      if (crisisOn() || crisisHit(nameNum)) { crisisCard(o); return; } // crisis net first: the name-number field
+      if (crisisOn() || crisisHit(nameNum)) crisisSet(); // crisis net first: the name-number field (v3: the flag, then on)
       // round 3: only a plain name is broken into letters (nothing else typed is echoed back)
       if (nameNum.trim() && !plainName(nameNum)) { o.innerHTML = '<p class="muted">' + esc(T("horoscope.x.nameEmpty", "พิมพ์ชื่อเพื่อดูผลรวม")) + "</p>"; return; }
       var r = HS.thaiNameNumber(nameNum);
@@ -1109,7 +1109,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- ดวงคู่ ---------- */
   $("#hsPartner").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
-    if (crisisOn() || crisisHit($("#hsPName").value) || crisisHit(pageFields())) { lastPartner = null; crisisCard($("#hsCompat")); return; } // crisis net first: the partner name
+    if (crisisOn() || crisisHit($("#hsPName").value) || crisisHit(pageFields())) crisisSet(); // crisis net first: the partner name (v3: the flag, then on)
     if (!current) return;
     var err = $("#hsPErr"); err.textContent = "";
     var raw = $("#hsPYear").value.replace(/\D/g, ""); $("#hsPYear").value = raw;
@@ -1155,10 +1155,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
      (no tab with lucky colours, boosting elements or remedies) until the page is reloaded */
   function crisisOn() { var FA = window.FortuneAI; return !!(FA && FA.crisis && FA.crisis.active && FA.crisis.active()); }
   function pageFields() { var FA = window.FortuneAI; return FA && FA.crisis && FA.crisis.fields ? FA.crisis.fields() : ""; }
-  function crisisCard(box) {
-    var FA = window.FortuneAI; box.innerHTML = "";
-    if (FA && FA.crisis) FA.crisis.render(box, FA.crisis.result({ lang: (window.LQI18N && window.LQI18N.lang) || "th" }));
-  }
+  function crisisSet() { var FA = window.FortuneAI; if (FA && FA.crisis && FA.crisis.setActive) FA.crisis.setActive(); }
   /* round 3: names are shown only when they are plain names; the soft step comes before any tab */
   function plainName(s) { var CRx = window.LQFortuneCrisis; return CRx ? CRx.plainName(s) : String(s || ""); }
   function softHit() { var CRx = window.LQFortuneCrisis; return !!(CRx && CRx.pageSoft()); }
@@ -1172,20 +1169,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var CRx = window.LQFortuneCrisis;
     clearResult();
     var box = document.createElement("div"); $("#pn-ov").appendChild(box);
-    CRx.renderSoft(box, (window.LQI18N && window.LQI18N.lang) || "th", function () { CRx.ack(); cont(); }, function () { showCrisis(); });
+    CRx.renderSoft(box, (window.LQI18N && window.LQI18N.lang) || "th", function () { CRx.ack(); cont(); }, function () { crisisSet(); CRx.ack(); cont(); });
     resultSec.hidden = false; selectTab(tabs[0], false, true);
     resultSec.scrollIntoView({ block: "start" });
-  }
-  function showCrisis() {
-    current = null; lastPartner = null;
-    ["pn-ov", "pn-th", "pn-bz", "pn-nu", "pn-td"].forEach(function (id) { document.getElementById(id).innerHTML = ""; });
-    $("#hsCompat").innerHTML = ""; $("#hsResSub").textContent = ""; $("#hsCardImg").hidden = true;
-    $("#hsTabs").hidden = true; $("#hsShare").hidden = true;
-    var box = document.createElement("div"); box.id = "hsRd"; $("#pn-ov").appendChild(box);
-    crisisCard(box);
-    resultSec.hidden = false; selectTab(tabs[0], false, true);
-    resultSec.scrollIntoView({ block: "start" });
-    box.setAttribute("tabindex", "-1"); box.focus({ preventScroll: true });
   }
   function show(P) {
     current = P; lastPartner = null;

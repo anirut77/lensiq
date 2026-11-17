@@ -322,9 +322,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     // in the crisis state the reading that follows is the card again)
     var hard = !!(FAx && FAx.crisis && (FAx.crisis.check(q) || FAx.crisis.check(FAx.crisis.fields())));
     var soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the soft step
-    if (!hard && !soft) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
+    if (hard) FAx.crisis.setActive(); // crisis v3 (owner decision 2026-11-17): the flag is set and the reading goes on (gentle; closing line with 1323 at its end)
+    if (!soft) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
     if (!box) { box = document.createElement("div"); box.id = "trSupport"; box.tabIndex = -1; $("#trSetup").insertAdjacentElement("afterend", box); }
-    var card = function () { box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: lang })); box.focus(); };
+    var card = function () { FAx.crisis.setActive(); CRx.ack(); box.hidden = true; box.textContent = ""; startShuffle(); };
     box.hidden = false;
     if (soft) { CRx.renderSoft(box, lang, function () { CRx.ack(); box.hidden = true; box.textContent = ""; $("#trSetup").requestSubmit(); }, card); return true; }
     FAx.crisis.render(box, FAx.crisis.result({ lang: lang }));

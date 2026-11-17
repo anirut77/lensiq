@@ -4175,36 +4175,22 @@
       sections: [{ id: "support", title: S0.title, paragraphs: [S0.warm, S0.guide].concat(S0.lines.map(l => l.btn + " — " + l.t)) }],
     };
   }
-  const SUPPORT_CSS = ".fa-support{border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin:8px 0;background:rgba(125,211,252,.08)}.fa-support-warm{margin:0 0 .5em}" +
-    ".fa-support-more>summary{display:inline-flex;align-items:center;min-height:44px;cursor:pointer;color:#0b5d8f;text-decoration:underline}.fa-support-guide{margin:.4em 0}" +
-    ".fa-support-more>p{margin:.2em 0 .6em}.fa-support-link a,.lq-helpline-more a{display:inline-flex;align-items:center;min-height:44px;color:#0b5d8f;text-decoration:underline}";
   /** วาดการ์ดช่วยเหลือ (ใช้ textContent ทั้งหมด) — container จะถูกล้างก่อน */
+  /** crisis v3 (owner decision 2026-11-17): no card replaces the reading; this only puts the page in the crisis state (gentle wording,
+   *  no sales, share or print, the closing line with 1323 at the end of the reading) @param {any} container @param {any} [res] */
+  // eslint-disable-next-line no-unused-vars
   function renderSupport(container, res) {
-    if (!container) return null;
-    const doc = container.ownerDocument || root.document, s = (res && res.support) || supportResult().support;
-    container.textContent = "";
-    try { if (!doc.getElementById("fa-support-style")) { const st = doc.createElement("style"); st.id = "fa-support-style"; st.textContent = SUPPORT_CSS; doc.head.appendChild(st); } } catch (e) { /* ไม่มี DOM */ }
-    try { if (res && res.lang === "zh") container.setAttribute("lang", "zh-Hans"); else if (res && res.lang === "en") container.setAttribute("lang", "en"); else container.removeAttribute("lang"); } catch (e) { /* ไม่มี DOM */ }
-    const el = (tag, cls, text) => { const e = doc.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
-    const box = el("section", "fa-support"), h = el("h3", null, s.title);
-    h.id = "fa-h-" + (++uid); box.setAttribute("aria-labelledby", h.id); box.setAttribute("role", "region"); box.setAttribute("data-review", "pending-professional-review");
-    box.appendChild(h); box.appendChild(el("p", "fa-support-warm", s.warm));
-    const more = el("details", "fa-support-more"); more.appendChild(el("summary", null, s.moreLabel));
-    (s.more || []).forEach((t, i, a) => more.appendChild(el("p", i === a.length - 1 ? "fa-support-foot" : null, t)));
-    box.appendChild(more); box.appendChild(el("p", "fa-support-guide", s.guide));
-    const K = callKit(), lng = res && (res.lang === "en" || res.lang === "zh") ? res.lang : "th";
-    for (const l of s.lines) box.appendChild(K && K.LINES[l.id] ? K.el(doc, l.id, { lang: lng, cls: "fa-tel" })
-      : Object.assign(el("a", "lq-call-btn fa-tel", l.n), { href: "tel:" + l.tel, style: "display:inline-flex;align-items:center;min-height:44px;min-width:44px" }));
-    const lp = el("p", "fa-support-link"), a = el("a", "lq-counsel-link", (s.counsel && s.counsel.text) || counselText(lng));
-    a.setAttribute("href", "counselling.html"); lp.appendChild(a); box.appendChild(lp);
-    container.appendChild(box);
-    // the page is now in the crisis state: no later reading, remedy, lucky item, paid / merit offer or straight mode on it
-    if (CR && CR.setActive) CR.setActive(doc); if (root.LQCrisisTakeover) root.LQCrisisTakeover(box); // hotfix 2026-11-16: the card replaces EVERY result area, screen scrolls to it
-    return box;
+    const doc = (container && container.ownerDocument) || root.document;
+    if (CR && CR.setActive) CR.setActive(doc);
+    return null;
   }
   async function interpret(facts, opts = {}) {
     // ข้อความที่ผู้ใช้พิมพ์เอง (ชื่อเล่น คำถาม) มีสัญญาณวิกฤต → การ์ดช่วยเหลือแทนคำทำนาย (ไม่ส่งไป AI)
-    if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
+    if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) {
+      if (CR && CR.setActive) CR.setActive(); // crisis v3 (2026-11-17): the reading goes on, gently, local, never straight, nothing typed echoed
+      facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: "" });
+      opts = Object.assign({}, opts, { userText: "", useAI: false, straight: false });
+    }
     // Chinese and English are composed on the device only (the writing assistant and its grounding gate are Thai-only)
     // ส่วน C: โหมดตรงเรียบเรียงในเครื่องเท่านั้น (ผู้ช่วยเขียน AI ยังใช้ถ้อยคำนุ่มนวลจนกว่าเจ้าของอนุมัติ)
     const straight = opts.straight != null ? !!opts.straight : straightActive();
@@ -4269,7 +4255,7 @@
   }
   function toHTML(result, opts = {}) {
     let res = result || { sections: [] };
-    if (!res.crisis && CR && CR.active && CR.active(opts.doc)) res = supportResult({ lang: res.lang }); // crisis state: never a reading
+    if (res.crisis && res.support) return ""; // crisis v3: no card
     if (res.crisis && res.support) {
       const sp = res.support, K = callKit(), more = sp.more || [];
       return '<section class="fa-support" role="region" data-review="pending-professional-review"><h3>' + escapeHtml(sp.title) + '</h3><p class="fa-support-warm">' + escapeHtml(sp.warm) +
@@ -4412,12 +4398,13 @@
   const crisisOn = container => !!(CR && CR.active && CR.active(container && container.ownerDocument)), calmAt = c => !!(FS.calm && FS.calm(c && c.ownerDocument));
   function renderWithHooks(container, result, opts) {
     // crisis net first: any free-text field of the page (name, question, dream …) with a crisis signal → support card, never a reading
-    if (!(result && result.crisis) && (crisisOn(container) || crisisCheck(pageText(container && container.ownerDocument)))) result = supportResult({ lang: result && result.lang });
+    // crisis v3: a crisis signal puts the page in the crisis state; the reading is still drawn (gentle; closing line at the end)
+    if (crisisCheck(pageText(container && container.ownerDocument)) && CR && CR.setActive) CR.setActive(container && container.ownerDocument);
     // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step first, never a reading first
     const sl = result && result.lang, card = box => renderSupport(box, supportResult({ lang: sl }));
-    if (!(result && result.crisis) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
+    if (!(result && result.crisis) && !crisisOn(container) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
     // crisis fix 4 (fail-safe): in a calm page a straight reading composed earlier is never shown (the card instead), nor a plan
-    if (result && !result.crisis && calmAt(container)) result = result.mode === "straight" ? supportResult({ lang: result.lang }) : Object.assign({}, result, { plan: undefined });
+    if (result && !result.crisis && calmAt(container)) result = result.mode === "straight" ? Object.assign({}, result, { sections: [], summary: null, plan: undefined }) : Object.assign({}, result, { plan: undefined });
     if (!HOOKS.length || (result && result.crisis)) return renderSections(container, result, opts); // a support card never goes through hooks
     let shown = result;
     for (const h of HOOKS) if (typeof h.gate === "function") { try { shown = h.gate(shown, opts, container); } catch (e) { /* keep the reading */ } }
@@ -4428,7 +4415,7 @@
   try { const q = root.LQFortuneHooks; if (Array.isArray(q)) for (const h of q) registerHooks(h); } catch (e) { /* no queue */ }
 
   const api = {
-    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, fields: doc => pageText(doc),
+    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, setActive: d => { if (CR && CR.setActive) CR.setActive(d); }, fields: doc => pageText(doc),
       active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => (CR && CR.allow ? CR.allow(kind, doc) : !(CR && CR.active && CR.active(doc))) },
     straight: Object.assign({}, FS, { isSafe: isSafeStraight, hardLimit }),
     privacy: { jakoScript: s => { canon(s); return TC && TC.jakoScript ? TC.jakoScript(s) : true; }, withoutJaKo: jk }, compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,

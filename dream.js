@@ -251,13 +251,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function supportFor(text, typing) {
     var box = document.getElementById("drSupport");
     var hit = !!(FA && FA.crisis && (FA.crisis.check(text) || FA.crisis.check(FA.crisis.fields()) || (FA.crisis.active && FA.crisis.active()))); // every field (hotfix 2026-11-16)
-    if (!hit) { st.support = false; if (box) { box.hidden = true; box.textContent = ""; } return false; }
-    if (typing && st.support && box && !box.hidden) return true;
-    if (!box) { box = document.createElement("div"); box.id = "drSupport"; box.tabIndex = -1; $("#drForm").insertAdjacentElement("afterend", box); }
-    st.res = null; st.support = true; $("#drResult").hidden = true; $("#drMsg").textContent = "";
-    box.hidden = false; FA.crisis.render(box, FA.crisis.result({ lang: isZh() ? "zh" : isEn() ? "en" : "th" }));
-    if (!typing) box.focus();
-    return true;
+    if (hit) FA.crisis.setActive(); // crisis v3 (owner decision 2026-11-17): the flag is set and the reading goes on (gentle; closing line with 1323 at its end)
+    st.support = false; if (box) { box.hidden = true; box.textContent = ""; } return false;
   }
   /** quiet = วาดใหม่ตอนเปลี่ยนภาษา (ไม่นับสถิติ ไม่ย้ายโฟกัส) */
   function show(ids, mood, time, quiet) {
