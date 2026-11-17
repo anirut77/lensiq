@@ -470,7 +470,7 @@
       textNodes(el, 7).forEach(function (tn) { rebuild(tn, true); });
     }
     var RX = function () { return /** @type {any} */ (window).LQI18N_RTX; }, RT = function (n) { return RX() && RX().owns && RX().owns(n); };
-    var TC = /[\u0e00-\u0e7f\u3040-\u9fff]/, CP = /^[)\].,:;!?%ๆฯ…，。、：；！？）」』】]/;
+    var TC = /[\u0e00-\u0e7f\u3040-\u9fff]/, CP = /^[)\]}.,:;!?%ๆฯ…”’»，。、：；！？）」』】]/;
     var wt = function (x) { return x.replace(/[\s\u0e31\u0e34-\u0e3a\u0e47-\u0e4e]/g, "").length + (x.match(/[\u3040-\u9fff]/g) || []).length; };
     function cut(t, all) {
       for (var c = t.length, L = 0; c > (all ? 0 : 1) && L < 8; ) L += wt(t[--c]);
@@ -488,7 +488,7 @@
       var w = document.createTreeWalker(root, 4), all = [], n;
       while ((n = w.nextNode())) all.push(n);
       all.forEach(function (n) {
-        var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, i, L, z, out = [];
+        var p = n.parentElement, v = n.nodeValue || "", r = [], m, e, i, L, z, out = [], wd = null;
         var x = n.previousSibling, y = n.nextSibling, pre = 0, post = -1;
         if (!p || DONE.get(n) === v || p.closest(SKIP + ",#siteNav,.lq-crumbs")) return;
         DONE.set(n, v);
@@ -500,29 +500,30 @@
           while (i > 0 && wt(v.slice(i, e)) < 10) i--;
           for (m = i; m > 0 && /^\w\w$/.test(v[m - 1] + v[m]); ) m--;
           if (wt(v.slice(m, e)) < 19 || (z = v.indexOf(" ", i)) < 0 || z >= e - 1) i = m; else i = z + 1;
-          if (i < e && (i > 0 || L > wt(v))) r.push([i, e]);
+          if (i < e && (i > 0 || L > wt(v))) wd = [i, e];
         }
         if (!v.trim() && y && IN.test(y.nodeName) && !y.nextSibling && /^\S.{0,4}$/.test((y.textContent || "").trim())) /** @type {Element} */ (y).classList.add("lq-w");
-        if (!r.length) return;
-        // piece edges on word boundaries (Intl.Segmenter), with an opening bracket before and closing marks after
+        if (!r.length && !wd) return;
         var bd = { 0: 1 }, at = 0, sg;
         for (sg of seg.segment(v)) bd[at += sg.segment.length] = 1;
-        r.forEach(function (q) {
+        r.concat(wd ? [wd] : []).forEach(function (q) {
           while (q[0] > 0 && (!bd[q[0]] || /[(\[{“‘（「『【]/.test(v[q[0] - 1]))) q[0]--;
           while (q[1] < v.length && (!bd[q[1]] || CP.test(v[q[1]]))) q[1]++;
         });
         r.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (q) { var o = out[out.length - 1]; if (o && q[0] <= o[1]) o[1] = Math.max(o[1], q[1]); else out.push(q); });
         out = out.filter(function (q) { return wt(v.slice(q[0], q[1])) < 31; });
+        if (wd) out.forEach(function (q) { if (wd && q[0] < wd[1] && q[1] > wd[0]) { if (q[1] >= wd[1]) wd = null; else wd[0] = Math.max(wd[0], q[1]); } });
+        if (wd && /\S/.test(v.slice(wd[0], wd[1]))) { out.push(wd); out.sort(function (a, b) { return a[0] - b[0]; }); }
         if (!out.length) return;
+        var nx = ((y || (IN.test(p.nodeName) && p.nextSibling) || {}).textContent || "").trim();
         var cs = getComputedStyle(p), fl = /flex|grid/.test(cs.display), f = document.createDocumentFragment();
-        if (/pre|break/.test(cs.whiteSpace)) return; // laid out by hand: line breaks are content
+        if (/pre|break/.test(cs.whiteSpace)) return;
         if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
         if (RT(n) && !out[0][0]) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && out[0][1] >= v.trim().length) p.classList.add("lq-w"); return; }
         out.forEach(function (q, j) {
           var k = document.createElement("lq-t"), t = document.createTextNode(v.slice(q[1], out[j + 1] ? out[j + 1][0] : v.length));
           k.textContent = v.slice(q[0], q[1]); var end = q[1] >= v.trim().length;
-          // inline-block (wraps inside a narrow box instead of widening it) unless a closing mark follows in the next node
-          k.className = "lq-w lq-t" + ((!end || wt(k.textContent) > 10) && !(end && CP.test(((y && y.textContent) || "").trim())) ? " lq-b" : "");
+          k.className = "lq-w lq-t" + (q === wd && wt(k.textContent) > 10 && !(end && CP.test(nx)) ? " lq-b" : "");
           if (!j && pre && !q[0]) k.prepend(/** @type {Node} */ (x));
           if (post >= 0 && q[1] === v.length) k.append(/** @type {Node} */ (y));
           DONE.set(t, t.nodeValue || ""); f.append(k); if (t.nodeValue) f.append(t);
@@ -531,7 +532,7 @@
         var tx = /** @type {Text} */ (n);
         if (fl) { var b = document.createElement("lq-t"); b.className = "lq-t"; tx.before(b); b.append(tx, f); }
         else tx.after(f);
-        if (!tx.nodeValue) tx.remove(); // no empty text node is left behind
+        if (!tx.nodeValue) tx.remove();
       });
     }
     function run(root) {

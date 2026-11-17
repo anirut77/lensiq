@@ -174,3 +174,13 @@ styles.css comments moved word for word on 2026-11-17 (page-weight budget; each 
    element [data-lqwb], so words such as "แดชบอร์ด" are never split mid-syllable (the browser's Thai dictionary does
    not know many loanwords). overflow-wrap is the last resort for a word wider than its box. */
 ```
+
+line-wrap code comments moved out of nav.js on 2026-11-17 (budget):
+
+```text
+// piece edges on word boundaries (Intl.Segmenter), with an opening bracket before and closing marks after
+// the last-words piece never swallows a short piece (it would lose that piece's no-wrap): it starts after it, or is dropped
+// laid out by hand: line breaks are content
+// inline-block (wraps inside a narrow box instead of widening it) unless a closing mark follows in the next node
+// no empty text node is left behind
+```
