@@ -2338,7 +2338,7 @@
       out = next;
       if (out.length >= 44 && /[^\d]$/.test(out)) break;
     }
-    return out.replace(/(?:และ|ซึ่ง|ที่|เพราะ|แต่|หรือ|คือ|ว่า)$/, "").trim();
+    return out.replace(/\s*[(（][^)）]*$/, "").replace(/(?:และ|ซึ่ง|ที่|เพราะ|แต่|หรือ|คือ|ว่า)$/, "").trim(); // gate fix: never end inside an unclosed bracket ("…(เทียนอี")
   }
   function buildSummary(ctx, topicId) {
     const F = ctx.F, lines = [];
