@@ -278,3 +278,7 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   (R1–R8) and `tests/integration/backend-seller-workerd-r1.test.mjs` (log-sink canary) locked before the fixes: unit 0 / 8.
 - `seller-settings` re-lock (4) (2026-11-18): round-2 review OK on 69d36fe with low items; `tests/unit/backend-seller-r2.test.js`
   (H1 health probe, U2 unavailable-line note, V3 VAT fixed at 7 %) locked before the fixes. Earlier files unchanged.
+- `seller-settings` rename (2026-11-18, file names only, bytes identical): `tests/unit/backend-seller-r1.test.js` is now
+  `tests/unit/backend-seller-frozen-docs.test.js` and `tests/unit/backend-seller-r2.test.js` is now
+  `tests/unit/backend-seller-health.test.js` (`tests/unit/unit-index.test.js`: no round-named unit files). The header line
+  inside each file still names the old file (content unchanged). Lock lines for the new paths: owner, OWNER-LINES-MORNING.md.
