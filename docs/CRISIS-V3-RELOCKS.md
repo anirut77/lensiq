@@ -267,3 +267,12 @@ back). After the merge both files hold promo-basics RE-LOCK 1 bytes (fc67978e…
 and the current repo-file lines are appended to crisis-rules-1323, crisis-v3, fortune-no-demo and fortune-credits `.sha256`.
 
 Open: the reviewer confirms in writing that the combined list is equal to or stricter than both parents (condition 3).
+
+## Merge of main 0bd5b24b (A1) into fortune-pet, tag `merge-pet-a1` (2026-11-18) — lock hygiene only (owner decision 110, condition 4)
+
+Merge union of locked parents; no assertion changed. Both files were merged by git without a conflict and matched no lock line.
+
+| File | Parent on main (locked) | Parent on fortune-pet (locked) | Merged content |
+|---|---|---|---|
+| tests/unit/crisis-escape-guard-allow.json | cfab9eef, combined A1 (`evals-locks/crisis-escape-guard.sha256`): crisis-v3-protect's list 3a88c00f (priceText / priceTextNote) minus the 3 dead entries palm plEthics, tarot trCredit, fengshui fsSourcesNote | e994f310, relock-pet: 8 petread ids (petTraits, petMsg, petEmpty, petVideo, petView, petCamMsg, petDetMsg, petHuman) with their reasons | cfab9eef + the 8 petread ids (48bd6504) |
+| tests/unit/fortune-no-demo.test.js | 047f5a00, promo-basics RE-LOCK 1: `"404": "support"` in test 5's BASE_ST | 340830f3, relock-pet-golive (owner decision 100): no `"petread": "demo"` row (petread in category 6) | main's file + the two relock-pet-golive comment lines (d970d7c6); BASE_ST = counselling + 404, no petread |
