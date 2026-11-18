@@ -7,6 +7,15 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+
+## Acceptance sheets "Define 90" (owner standing order 2026-11-18, branch `acceptance-sheets`)
+
+17 product sheets in `docs/acceptance/`, locked before scoring (`evals-locks/acceptance.sha256`, 2026-11-18T16:16:40Z,
+commit `a87ca898`). Round-1 scores from existing results only, no product above 90 yet; Exam lab (max 86, pilot),
+planner (88, practitioner), studio, nutrition, crowd, gate, exam hall, try-on, personal colour and look need outside
+inputs to reach 90. Product Check is capped at 50 by the measured pc-jk privacy miss (29 values on explicit send).
+OMR pending its locked set. Table and Wave 1: `docs/acceptance/SCORES.md`.
+
 ## Fortune label and about block deleted (owner order 2026-11-17 night item 2, corrected by owner decision 2026-11-18; branch `fortune-credits`)
 
 Fix to what is live, no new feature: delete, do not move. Every fortune page (category 6 + compat, 19 pages) loses the
