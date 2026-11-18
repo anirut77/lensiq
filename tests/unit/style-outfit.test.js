@@ -91,8 +91,12 @@ test("pairRaw equals the published two-colour model (Ou & Luo 2006) and is symme
 });
 
 test("pairRaw follows the published principles (direction only)", () => {
-  // a lightness difference raises harmony (same hue and chroma)
-  assert.ok(O.pairRaw(LCh(70, 20, 60), LCh(40, 20, 60)) > O.pairRaw(LCh(70, 20, 60), LCh(66, 20, 60)));
+  // a lightness difference raises harmony (same hue and chroma, same lightness sum 110)
+  // re-lock 2026-11-18 (before any measurement): the first version compared 70 + 40 with 70 + 66, so the pairs differed in
+  // lightness SUM (110 vs 136) as well as difference, and the model's lightness-sum term (a separate, stronger published
+  // effect) decided it. The principle is about the difference at a fixed sum; both pairs now sum to 110. Not looser: the
+  // product formula is still pinned to the published equations by the test above.
+  assert.ok(O.pairRaw(LCh(70, 20, 60), LCh(40, 20, 60)) > O.pairRaw(LCh(57, 20, 60), LCh(53, 20, 60)));
   // a higher lightness sum raises harmony
   assert.ok(O.pairRaw(LCh(85, 20, 200), LCh(60, 20, 200)) > O.pairRaw(LCh(45, 20, 200), LCh(20, 20, 200)));
   // two strong near-complementary colours at the same lightness are less harmonious than a tonal pair

@@ -54,7 +54,10 @@ test("unlinked: no other page, menu, category, catalogue, sitemap or analytics l
   const hits = files.filter(f => /(href\s*=\s*["']\/?style\.html|["'`]\/?style\.html["'`#?]|\/style\.html)/.test(read(f)));
   assert.deepEqual(hits, [], "files linking style.html");
   const cat = require(path.join(ROOT, "tools", "cat-data.cjs"));
-  assert.ok(!cat.PAGES.style, "not in the category pages");
+  // re-lock 2026-11-18 (before any measurement): the first version asserted !cat.PAGES.style, but PAGES is the status table
+  // that tests/unit/cat-pages.test.js requires for EVERY page in the repo (tryon, also unlinked, is in it); the category lists
+  // are CATEGORIES (checked below). Replaced by the stricter rule: the page must be registered in UNLINKED.
+  assert.ok(cat.UNLINKED && cat.UNLINKED.style, "registered as an unlinked page (tools/cat-data.cjs UNLINKED)");
   assert.ok(!cat.CATEGORIES.some(c => JSON.stringify(c).includes('"style"')), "not in any category");
   assert.doesNotMatch(read("nav.js"), /style\.html|["']style["']\s*:/);
 });

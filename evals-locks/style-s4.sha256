@@ -24,3 +24,17 @@ f17b00b4c2f6d659142de754fd55e5e813ccbc7be53d6e7d2d6cc657d4d47b57  tests/unit/sty
 015de14af6e15169764394eaf3ee611ca54dab0ab36faf2e6f30958289bbcedb  tests/unit/style-s4-colour.test.js  # repo file (same commit as lock 2026-11-18T16:12:30Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-s4-colour.test.js)
 5f9ab4158c6ae0c60223a37d28a148b8acfa942c89712683831aa2be7f1e90cc  tests/e2e/style-s4.e2e.mjs  # repo file (same commit as lock 2026-11-18T16:12:30Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-s4.e2e.mjs)
 01af0d1bbfdc9fde1aab6cb9e125b43caa466e80d156f534cd3c782e7e7b53d2  tools/style-s4-eval.mjs  # repo file (same commit as lock 2026-11-18T16:12:30Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-s4-eval.mjs)
+#
+# Re-lock 1, 2026-11-18, before any measurement with the harness (tools/style-s4-eval.mjs not yet run). Two test-design errors
+# found by the first unit run of the product; no assertion made looser:
+# - tests/unit/style-outfit.test.js, "published principles": the lightness-difference check compared 70+40 with 70+66, i.e.
+#   pairs that also differ in lightness SUM (110 vs 136); the model's separate lightness-sum term decided it. Both pairs now
+#   sum to 110 (70+40 vs 57+53). The formula itself stays pinned to the published equations by the reference test.
+# - tests/unit/style-s4-flag.test.js, "unlinked": asserted !cat.PAGES.style, but PAGES is the status table that
+#   tests/unit/cat-pages.test.js requires for every page (tryon, also unlinked, is in it). Now requires cat.UNLINKED.style
+#   (stricter); the CATEGORIES, nav.js and link checks are unchanged.
+# locked 2026-11-18T16:28:51Z (tools/eval-guard.mjs lock, 2 files)
+589e61505f86e8d98d146a3c98c5738a74c31098c1eb7b68378a4dd14341befe  copies/style-outfit.test.r1.js
+75178403edb3c8cafa4f7b9f3e70ae6f83639467557aff96b77b48ba715a39bc  copies/style-s4-flag.test.r1.js
+589e61505f86e8d98d146a3c98c5738a74c31098c1eb7b68378a4dd14341befe  tests/unit/style-outfit.test.js  # repo file (same commit as lock 2026-11-18T16:28:51Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-outfit.test.r1.js)
+75178403edb3c8cafa4f7b9f3e70ae6f83639467557aff96b77b48ba715a39bc  tests/unit/style-s4-flag.test.js  # repo file (same commit as lock 2026-11-18T16:28:51Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-s4-flag.test.r1.js)
