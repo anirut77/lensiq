@@ -35,7 +35,7 @@
 - 6. ดูดวง และบริการทำบุญแทน
 - 7. ภาษีและใบกำกับภาษี
 - 8. สัญญา การนำร่อง และงาน HR
-- 9. สิทธิ์ใช้โมเดล ข้อมูล และสื่อ (licences)
+- 9. สิทธิ์ใช้โมเดล ข้อมูล และสื่อ (licences) — เริ่มที่ 9.0 คำถามเดียวเรื่องโมเดล tier 2
 - 10. ความปลอดภัย (security)
 - 11. ภาคผนวก ก: รายการที่ปิดแล้ว
 - 12. ภาคผนวก ข: แถวกฎหมายที่เสนอในเอกสารออกแบบ (ยังไม่อยู่ในตาราง L)
@@ -642,6 +642,53 @@
 
 ## 9. สิทธิ์ใช้โมเดล ข้อมูล และสื่อ (licences)
 
+### 9.0 คำถามเดียวเรื่องโมเดลระดับ tier 2 (permissive model, ข้อมูลฝึกเพื่อการวิจัยเท่านั้น) [เพิ่ม 2026-11-18 ก่อนขาย 4 ผลิตภัณฑ์]
+
+**ที่มา:** คำสั่งเจ้าของ 2026-11-18 ให้ใช้ระดับ tier 1 เท่านั้นใน customer build และส่งทนายเพียงคำถามเดียวเรื่อง tier 2 แบ่งระดับตาม
+`LICENSES/TIERS.md` (tier 1 = โมเดลและข้อมูลสะอาด, tier 2 = โมเดลสัญญาอนุญาตแบบเปิดแต่ข้อมูลฝึกเป็นแบบวิจัยเท่านั้นหรือไม่ทราบที่มา,
+tier 3 = สัญญาอนุญาตของโมเดลเองห้ามใช้เชิงพาณิชย์ ซึ่งไม่อยู่ในคำถามนี้)
+
+**คำถาม (TH):** โมเดลที่เผยแพร่ภายใต้สัญญาอนุญาตแบบเปิด (เช่น MIT / Apache-2.0) แต่ฝึกด้วยชุดข้อมูลที่อนุญาตเฉพาะการวิจัยที่ไม่ใช่เชิงพาณิชย์
+สามารถนำไปใช้ในผลิตภัณฑ์เชิงพาณิชย์ที่ขายในประเทศไทยได้หรือไม่ และการที่เราไม่ได้แจกจ่ายชุดข้อมูลนั้นต่อ (ส่งเฉพาะน้ำหนักโมเดล) มีผลต่อคำตอบหรือไม่
+
+**Question (EN):** May a model released under a permissive licence (e.g. MIT/Apache-2.0) but trained on a dataset licensed for non-commercial research only
+be used in a commercial product sold in Thailand, and does it matter whether the dataset itself is redistributed?
+
+**ข้อเท็จจริงที่ทนายต้องใช้ / Facts for counsel**
+1. เราแจกจ่ายเฉพาะไฟล์น้ำหนักโมเดล (ONNX / TF.js / TFLite) ให้รันในเบราว์เซอร์ของลูกค้า ไม่แจกจ่ายชุดข้อมูล ภาพฝึก หรือป้ายกำกับ ผู้ถือสิทธิ์น้ำหนักโมเดลสัญญาอนุญาตแบบเปิด
+   (YuNet: MIT, ฝึกด้วย WIDER FACE ซึ่งเป็น cc by-nc-nd และป้ายกำกับจากโมเดล insightface ที่ "non-commercial research purposes only";
+   face-api.js / dlib: MIT / CC0 ฝึกด้วย VGG Face, FaceScrub ฯลฯ; age/gender: MIT ฝึกด้วย UTKFace "non-commercial research purposes only")
+   ผู้ให้สัญญาอนุญาตน้ำหนักโมเดลไม่ใช่เจ้าของชุดข้อมูลทุกราย และเจ้าของภาพเดิมในชุดข้อมูลไม่ได้ให้สิทธิ์ใด ๆ
+   (The licensor of the weights is not the owner of every image in the dataset.)
+2. กรณีที่ชุดข้อมูล **ห้ามอนุพันธ์เชิงพาณิชย์ไว้ชัดเจน** ต่างจากกรณีที่ไม่ได้พูดถึง: NWPU-Crowd ("any derivative work for commercial purposes" ห้าม),
+   JHU-Crowd++ ("academic and non-commercial uses"), CelebAMask-HQ, UTKFace ส่วน ImageNet ใช้เป็น backbone ซึ่งเงื่อนไขเป็น "non-commercial research and educational purposes"
+   ขอให้ตอบแยกกรณี "ห้ามชัดเจน" กับกรณี "ไม่ทราบ / ไม่ได้ระบุ" (เช่น LPD-YuNet, PP-OCR, Google MediaPipe บางรุ่น ที่เอกสารไม่ระบุชุดข้อมูล)
+3. ผู้ใช้ปลายทางคือลูกค้าในไทย (โรงเรียน/สถานสอบ ที่จอด ผู้จัดอีเวนต์ ฝ่ายบุคคล) ประมวลผลบนเครื่องของลูกค้า ไม่มีภาพออกจากเครื่อง
+   ราคาขายตามใบเสนอราคา (ไม่ออนไลน์) ข้อมูลทั้งหมดและการจัดระดับรายตัวอยู่ใน `LICENSES/TIERS.md`
+   (We distribute weights only, on-device; no dataset, training image or label leaves us; customers are in Thailand; per-model detail is in `LICENSES/TIERS.md`.)
+
+**ตอนนี้ระบบทำอย่างไร:** customer build ใช้ tier 1 เท่านั้นตามคำสั่งเจ้าของ รายการ tier 2 ยังอยู่ในโค้ดและโหมดสาธิต (age/gender และ expression ถูกล็อกปิดใน customer build แต่ไฟล์น้ำหนักยังอยู่ในชุดไฟล์ ดูข้อ 9.1)
+**ผลของคำตอบ:** ถ้า "ใช้ได้ (ตามเงื่อนไข)" รายการ tier 2 ด้านล่างปลดล็อกได้ ถ้า "ใช้ไม่ได้" เราคงใช้ tier 1 ต่อไปและ **ไม่เสียอะไรที่ขายอยู่แล้ว** (ดูท้ายข้อ)
+**รหัส:** L23 (คำถามหลักเดิม ตอนนี้ย่อเหลือคำถามเดียวนี้; ไม่ตั้งรหัส L ใหม่ เพราะ L66 ขึ้นไปถูกจองไว้โดยบน branch `kiosk-design`), LRP-M1 ถึง M3 **เอกสาร:** `LICENSES/TIERS.md`, `LICENSES/THIRD_PARTY.md` F5 / F6 / A4 / A5, `docs/LICENCE-REQUESTS.md`
+
+**สิ่งที่ tier 2 จะปลดล็อก แยกตามผลิตภัณฑ์ (what tier 2 would unlock)**
+
+| ผลิตภัณฑ์ / Product | ตอนนี้ (tier 1 เท่านั้น) | ถ้าทนายตอบว่าใช้ได้ จะปลดล็อก | ตัวเลขที่เกี่ยวข้อง (แหล่ง) |
+|---|---|---|---|
+| **Exam hall** (ทดลอง) | Face Landmarker หาใบหน้าเล็ก / ไกลไม่ได้ | ตัวหาใบหน้าเล็ก YuNet (MIT, ฝึก WIDER FACE) บน onnxruntime ที่มีอยู่แล้ว เพื่อนับใบหน้าในห้องสอบ อาจเลิกเป็น "ทดลอง" หลังวัดผลใหม่ | ใบหน้ากว้าง 24 ถึง 48 px หาได้ 0 / 195; ภาพกว้างหาได้ 7 / 81 (ภาพสาธารณะ Open Images V7 ไม่ใช่ห้องสอบจริง; `docs/exam/FACE-ENGINE-RESULTS.md` 7.1) |
+| **Exam lab** | ตัวนับคนใช้ COCO-SSD (tier 2-U) | คงใช้ COCO-SSD ต่อ (**ไม่ต้องรอทนาย:** สลับเป็น YOLOX-Nano ซึ่งเป็น tier 1 ได้ หลังวัดผลใหม่) | `LICENSES/TIERS.md` M11 |
+| **Attendance โหมดใบหน้า** | PIN / QR เท่านั้น (สะอาด) | การจดจำใบหน้า face-api.js (dlib ResNet) และตัวตรวจ / จุดใบหน้า, หรือโมเดลที่แม่นกว่า (SFace Apache-2.0, EdgeFace, AdaFace) แทนการซื้อสัญญาอนุญาตเชิงพาณิชย์ (insightface ราคาไม่ประกาศ) | ของเรา: CASIA-FaceV5 รู้จำได้ 66 ถึง 76% (ชุดวิจัย ไม่ใช้เป็นข้ออ้างขายเพียงอย่างเดียว; `docs/ATTENDANCE-READINESS.md` B2). SFace รายงาน LFW 0.9940 (แหล่งผู้พัฒนา ไม่ได้วัดเอง) |
+| **Crowd (ฝูงชนหนาแน่น)** | นับด้วยตัวตรวจ (YOLOX-Nano) ที่ประมาณ 300 คนนับได้ 0 ถึง 2 จึงต้องมีคำเตือนห้ามใช้ในฝูงชนหนาแน่น | น้ำหนักที่เผยแพร่ของโมเดลนับความหนาแน่น: PET, APGCC, SASNet, LSC-CNN (ShanghaiTech, สิทธิ์ภาพไม่ชัด), DM-Count และ CLTR (**ฝึกด้วย NWPU ที่ห้ามอนุพันธ์เชิงพาณิชย์ชัดเจน จึงอยู่นอกขอบเขตคำตอบ "ใช่" แบบกว้าง**) | `docs/CROWD-ACCURACY.md`, `docs/CROWD-DENSITY-MODELS.md` (เราไม่ได้วัดโมเดลเหล่านี้; ยังไม่มีตัวเลขของเรา) |
+| **Gate** | ผู้ตรวจยืนยันทุกป้าย | คงใช้ LPD-YuNet (ฝึกกับป้ายจีน ไม่ระบุชุดข้อมูล) และ PP-OCRv5 ไทย (ไม่เปิดเผยข้อมูลฝึก) ในชุดที่ส่งลูกค้า | `docs/GATE.md`; ทางสะอาดคือฝึกตัวตรวจป้ายไทยจากภาพของเราเอง (ทำอยู่ ยังไม่ส่งมอบ) |
+| **ร้านค้า / เช็กเอาต์ / ที่เหลือ** | ปิดหรือสาธิตเท่านั้น | ตัวตรวจ / จุดใบหน้า face-api.js ราว 25 หน้า, MobileNetV2 (ImageNet), มือ, ตัดพื้นหลัง MODNet / Selfie, BiSeNet แยกส่วนใบหน้า (ไม่ส่งมอบ) | `LICENSES/TIERS.md` ส่วน A |
+| **Signage / neuro (สาธิตวิจัย)** | อายุ / เพศ / สีหน้าล็อกปิด | อายุ / เพศ (UTKFace) และสีหน้า ใช้ได้ในงานลูกค้าถ้าทนายตอบกว้างมาก (**ไม่แนะนำ:** ข้อมูลเป็น "non-commercial research" ชัดเจน และมีประเด็น PDPA แยกต่างหาก ข้อ 2.4) | `LICENSES/THIRD_PARTY.md` F5 |
+| **Product Check** | อ่านฉลากได้ด้วย PP-OCRv5 (tier 2-U) ที่ยังอยู่ | ตัวหาใบหน้าสำหรับเบลอ (YuNet) เพื่อลดใบหน้าที่ไม่ถูกเบลอ | ใบหน้าจริงที่ไม่ถูกเบลอ 34.7% [29.3 ถึง 40.5], ภาพสาธารณะ (`docs/product-check/FACE-BLUR-RESULTS.md`) |
+
+**ไม่ถูกแตะโดยคำถามนี้ (tier 3):** insightface open weights ("non-commercial research purposes only" ในสัญญาอนุญาตของน้ำหนักเอง), P2PNet (academic research only), โมเดลลองชุด IDM-VTON / OOTDiffusion / CatVTON (CC BY-NC-SA 4.0), BRIA RMBG แบบติดตั้งเอง, โมเดลที่ไม่มีไฟล์สัญญาอนุญาต (CSRNet ทางการ, Bayesian Loss) และโค้ด GPL / AGPL
+(Tier 3 is outside the question: the model licence itself forbids commercial use or grants nothing.)
+
+**What tier 2 would unlock, in English (summary):** Exam hall: YuNet small-face detection (today 0 / 195 faces of 24 to 48 px found; public photos, not a hall). Attendance face mode: keep or upgrade the recogniser instead of buying a commercial licence (PIN / QR stays the default either way). Crowd: published density weights for dense scenes (none measured by us yet; NWPU / JHU-trained weights carry an explicit derivative ban and need a separate answer). Gate: keep LPD-YuNet and PP-OCRv5 Thai (data undocumented). Product Check: a better face detector for blurring. Signage / neuro: age, gender and expression back on (not recommended). If the answer is no, customer builds stay tier-1-only and nothing already sold is affected; the swaps that need no legal answer are listed in `LICENSES/TIERS.md` section E.
+
 ### 9.1 โมเดลใบหน้า face-api.js [ก่อนขาย 4 ผลิตภัณฑ์ — Attendance โหมดใบหน้า]
 - **คำถาม:** เงื่อนไขชุดข้อมูลเพื่อการวิจัยผูกพันผู้ใช้น้ำหนักโมเดลที่เป็น MIT / CC0 ไหม (ตัวตรวจ จุดใบหน้า การจดจำ) อายุ / เพศ ฝึกบน UTKFace (ไม่ใช่เชิงพาณิชย์)
   ImageNet backbone (ความเสี่ยงต่ำกว่า) การฟิตตัวเลข 7 ตัวบน MIT1003 สร้างภาระไหม
@@ -794,6 +841,7 @@
 - `docs/product-check/P7-RESULTS.md`, `docs/product-check/FACE-BLUR-RESULTS.md`, `docs/product-check/DRUG-DATA-SOURCES.md`
 
 **สิทธิ์ใช้งานและจดหมาย**
+- `LICENSES/TIERS.md` — ตารางระดับสิทธิ์ (tier 1 / 2 / 3) ของทุกโมเดลและชุดข้อมูล (2026-11-18)
 - `LICENSES/THIRD_PARTY.md`, `LICENSES/THIRD-PARTY-NOTICES.txt`
 - `docs/LICENCE-REQUESTS.md` — ร่างจดหมายขอสิทธิ์ A–P (ยังไม่ส่ง)
 - `docs/legal/FDA-PERMISSION-REQUEST-TH.md`, `docs/legal/WHO-PERMISSION-REQUEST.md`, `docs/legal/UBU-PHARMACY-COLLAB-TH.md` (ยังไม่ส่ง)
