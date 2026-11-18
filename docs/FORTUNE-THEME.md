@@ -133,4 +133,4 @@ margin, lead margin 2 px) and report's first heading has a 12 px top margin. Mea
 buttons end at 626 px (was 642), report EN first type card at 622 px (was 644), astro TH month field centre at 559 px, above the
 fixed read bar that starts at 575 px (was 575, covered). 393 px and wider are unchanged.
 cat-fortune card titles: the title stays above the card-wide link (main's compact-top check needs it uncovered), and
-`fortune-entry.js?v=4` passes a tap on the title on to the card's link (modifier keys kept), so the title opens its page again.
+`fortune-entry.js?v=5` passes a tap on the title on to the card's link (modifier keys kept), so the title opens its page again.

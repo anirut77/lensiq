@@ -158,7 +158,7 @@
     var a = h && h.closest(".cat-tool").querySelector("a.sl-go[href]");
     if (!a) return;
     e.preventDefault();
-    a.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: root, ctrlKey: e.ctrlKey, metaKey: e.metaKey,
+    a.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ctrlKey: e.ctrlKey, metaKey: e.metaKey,
       shiftKey: e.shiftKey, altKey: e.altKey }));
   });
 

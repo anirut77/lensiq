@@ -219,7 +219,7 @@ export function pageHtml(cat, nav = navEntries()) {
     '<link rel="stylesheet" href="cat.css?v=1">',
     cat.slug === "fortune" ? '<link rel="stylesheet" href="fortune-theme.css?v=3">' : "",
     '<script src="lensiq-busy.js?v=3"></script>',
-    cat.slug === "fortune" ? '<script src="fortune-entry.js?v=4"></script>' : "",
+    cat.slug === "fortune" ? '<script src="fortune-entry.js?v=5"></script>' : "",
     "</head>",
     "<body>",
     '<header class="nav" id="siteNav"></header>',
