@@ -1,6 +1,6 @@
 // tests/unit/e2e-shards.test.js — CI e2e shards (owner decision 2026-11-11, gate time option ค): the split covers every file
 // exactly once for any shard count, and the shard check fails on every way a file could be missed or run twice. The CI
-// workflow wires 3 shards, one site-wide check per shard, and two phone / language parts with every gate step in one part.
+// workflow wires 4 Linux shards (owner decision 102, 2026-11-18) + the macOS shard, one site-wide check in each of shards 1-3, and two phone / language parts with every gate step in one part.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
@@ -89,13 +89,13 @@ test("assign macLast: WebKit files only in the last shard, the rest exactly as a
   assert.ok(m.checkManifests(noMac, files).some(e => /shard 4\/4: no manifest/.test(e)), "a missing macOS manifest fails the check");
 });
 
-test("ci.yml: 3 Linux e2e shards + the macOS WebKit shard with manifests and the check job; site checks once each; audit steps split into two parts", () => {
-  assert.match(CI, /shard: \[1, 2, 3\]/);
-  assert.match(CI, /npm run test:e2e:ci -- --shard=\$\{\{ matrix\.shard \}\}\/4 --mac-last --manifest=e2e-shard-\$\{\{ matrix\.shard \}\}\.json/);
+test("ci.yml: 4 Linux e2e shards + the macOS WebKit shard with manifests and the check job; site checks once each; audit steps split into two parts", () => {
+  assert.match(CI, /shard: \[1, 2, 3, 4\]/);
+  assert.match(CI, /npm run test:e2e:ci -- --shard=\$\{\{ matrix\.shard \}\}\/5 --mac-last --manifest=e2e-shard-\$\{\{ matrix\.shard \}\}\.json/);
   const macJob = CI.slice(CI.indexOf("  e2e-webkit-mac:"), CI.indexOf("  e2e-shards:"));
   assert.match(macJob, /runs-on: macos-latest/);
-  assert.match(macJob, /npm run test:e2e:ci -- --shard=4\/4 --mac-last --manifest=e2e-shard-4\.json/);
-  assert.match(macJob, /if: always\(\)\n\s+with:\n\s+name: e2e-shard-4\n\s+path: e2e-shard-4\.json/);
+  assert.match(macJob, /npm run test:e2e:ci -- --shard=5\/5 --mac-last --manifest=e2e-shard-5\.json/);
+  assert.match(macJob, /if: always\(\)\n\s+with:\n\s+name: e2e-shard-5\n\s+path: e2e-shard-5\.json/);
   assert.doesNotMatch(CI.slice(0, CI.indexOf("  e2e-webkit-mac:")), /playwright install/, "no WebKit install in the Linux jobs (no WebKit file runs there)");
   assert.match(CI, /e2e-shards:\n[\s\S]*?needs: \[e2e, e2e-webkit-mac\]\n\s+if: always\(\)[\s\S]*?node tools\/e2e-shards\.mjs --check e2e-shards/);
   for (const [k, re] of [[1, /check-site\.mjs/], [2, /check-external\.mjs/], [3, /check-csp\.mjs/]]) {

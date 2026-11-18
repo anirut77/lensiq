@@ -1,5 +1,6 @@
 /* i18n/en-fortune-zodiac.js — English for zodiac.html / zodiac.js UI (mirrors zh-fortune-zodiac.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "zodiac.metaDesc": "Yearly outlook by the 12 Chinese zodiac animals: check direct and indirect Tai Sui clashes, supportive years, lucky colours and directions, and the compatibility of two signs",
   /* Static page */
   "zodiac.disclaimerRest": "On this page, \"Tai Sui clash year\" only means a year to stay calm and careful",
   "zodiac.modeLabel": "Choose mode",

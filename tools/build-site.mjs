@@ -40,6 +40,8 @@ export const ALLOW = [
   /^i18n\/[^/]+\.js$/,             // 中文 dictionaries
   /^vendor\//,                     // models, WASM runtimes, face-api.js, pdf.js, docx.js, self-hosted fonts, tarot art
   /^\.nojekyll$/,
+  /^(404\.html|sitemap\.xml|robots\.txt)$/, // promotion basics (tools/promo-meta.mjs)
+  /^share\/og-[a-z]+\.png$/,     // share preview images, one per category (tools/share-src/)
   /^LICENSE$/, /^LICENSES\/[^/]+$/ // attribution notices for the bundled third-party models/libraries
 ];
 

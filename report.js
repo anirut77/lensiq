@@ -361,7 +361,8 @@
       g.appendChild(b);
     } else if (st.mode === "paid" && c != null && c < 1) {
       go.disabled = true;
-      g.appendChild(h("p", null, T("rp.gate.none", "ยังไม่มีเครดิตของรายงานนี้") + " ", h("a", { href: "pricing.html", text: T("rp.gate.buy", "ดูราคารายงาน") })));
+      // crisis-v3-protect: the price link is a sale; [data-lq-upsell] hides it in the crisis / calm state (fortune-crisis.js CALM_CSS)
+      g.appendChild(h("p", { "data-lq-upsell": "report" }, T("rp.gate.none", "ยังไม่มีเครดิตของรายงานนี้") + " ", h("a", { href: "pricing.html", text: T("rp.gate.buy", "ดูราคารายงาน") })));
     } else if (st.mode === "free" && !signed && m && m.possible && m.possible()) {
       var b2 = h("button", { type: "button", class: "btn ghost", text: T("rp.gate.saveSignin", "เข้าสู่ระบบเพื่อบันทึกรายงานไว้ในบัญชี") });
       b2.addEventListener("click", function () { if (M()) M().signIn(); });
@@ -422,7 +423,10 @@
     out.setAttribute("lang", rep.lang === "zh" ? "zh-Hans" : rep.lang || "th");
     var head = h("header", { class: "rp-head" }, h("p", { class: "eyebrow", text: "LENSIQ" }), h("h2", { id: "rpOutH", tabindex: "-1", text: rep.title }));
     head.appendChild(h("p", { class: "rp-meta", text: T("rp.meta", "สร้างเมื่อ {d} · คำนวณในเครื่องจากตำรา ไม่ได้ใช้ผู้ช่วยเขียน", { d: new Date().toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" }) }) }));
-    if (st.mode === "sample") head.appendChild(h("p", { class: "rp-sample", role: "note", text: T("rp.sampleTag", "ตัวอย่างรายงาน (โหมดเดโม) — ไม่มีการชำระเงิน ไม่บันทึก") }));
+    // crisis-v3 rule b: the sample tag names payment ("no payment"), so it is hidden while html[data-lq-crisis] or
+    // html[data-lq-calm] is set and comes back when the flag clears: [data-lq-upsell] (fortune-crisis.js CALM_CSS) and
+    // [data-lq-crisis-sales] (nav.js, pure CSS on every page)
+    if (st.mode === "sample") head.appendChild(h("p", { class: "rp-sample", role: "note", "data-lq-upsell": "sample", "data-lq-crisis-sales": "", text: T("rp.sampleTag", "ตัวอย่างรายงาน (โหมดเดโม) — ไม่มีการชำระเงิน ไม่บันทึก") }));
     // personal cover line (name typed on this page only — never saved or sent) + table of contents
     var forName = plainName(String(($("rpName") && $("rpName").value) || "").trim().slice(0, 60));
     if (forName) head.appendChild(h("p", { class: "rp-for", text: T("rp.for", "จัดทำสำหรับ {name}", { name: forName }) }));
