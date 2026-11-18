@@ -9,3 +9,9 @@
 93fe40b1a85779cfa595402822957d631b55d0d2ae64e2b16b463c671cdddce2  tests/unit/fixtures/planner-regression-3.json
 5dc35bce037d6f92dce9ee8b9f603a6c53a65403e0586597873b270ef28c3ce8  tests/e2e/planner-occasions.e2e.mjs
 81bc3a28a3ac0d1e8d5db2165cad68c468090c45c165148eb96bba01d77d3997  regression-snapshot-gen.js
+# re-lock 2026-11-18 (relock-1, before any measurement of the build; the only run so far stopped at require() because the product file did
+# not exist): the sources for ไหว้ครู (NECTEC dontri encyclopedia, peamitar / มนตรี ตราโมท) say Thursday only; for an owner whose kalakini day
+# is Thursday (born Wednesday night) the page lists no day, as for every kalakini day. O6 now asserts exactly that (no days) for a one-weekday
+# rule on the owner's kalakini day, and "some days" for every other occasion x birth weekday. No other check, string list or threshold changed.
+# locked 2026-11-18T04:00:53Z (tools/eval-guard.mjs lock, 1 file)
+2a19da8f64893105dc85dad2587ad1bb99d8e43494db40ea125a5cb636c6a12e  relock-1/tests/unit/planner-occasions.test.js

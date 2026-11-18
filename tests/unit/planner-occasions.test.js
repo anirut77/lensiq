@@ -170,7 +170,10 @@ test("O6 every new occasion: good days only, by its recorded rule; kalakini / cl
     for (let planet = 0; planet <= 7; planet++) {
       const owners = [{ planet, animal: (planet * 7 + 2) % 12 }];
       const days = P.plan({ event: e, from: FROM, to: TO, owners });
-      assert.ok(days.length > 0, `${e}/${planet}: some days`);
+      // re-lock 1 (before any measurement of the build): a rule with ONE recorded weekday (waikru: Thursday only, the music texts say
+      // "ต้องทำในวันพฤหัสบดีเท่านั้น") that is the owner's kalakini day lists nothing (good days only, never a warning); else some days
+      if (R.days && R.days.length === 1 && HS.bhumiOf(planet, R.days[0]) === "kalakini") assert.equal(days.length, 0, `${e}/${planet}: the only weekday is kalakini`);
+      else assert.ok(days.length > 0, `${e}/${planet}: some days`);
       for (const x of days.concat(planet === 0 ? plain : [])) {
         const L = P.lunarDay(x.y, x.m, x.d);
         if (R.days && R.days.length) assert.ok(R.days.includes(x.wd), `${e}: weekday ${x.wd} not in the recorded rule`);

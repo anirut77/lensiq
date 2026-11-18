@@ -133,3 +133,7 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   its `locked.sha256` as is (`tools/eval-locks-import.mjs` stopped on an unrelated missing file in `pc-f/review`). Re-measure
   only; never tuned against. The builder's 0 / 0 on `fortune-paid-fresh-2026-11-16b` came after tuning on that set and is not
   an independent number. `fortune-paid` re-lock (10): review D1–D3 and the switch-off identity test, before the fix.
+- `planner-occasions` (2026-11-18): locked before the occasions build on planner.html (unit O1–O6, e2e G1–G5, regression
+  snapshot of move / shop / work from origin/main b2a6e76). Re-lock (1), before any measurement of the build: the ไหว้ครู
+  sources say Thursday only, so for an owner whose kalakini day is Thursday the planner lists no day; O6 asserts exactly that
+  for a one-weekday rule on the owner's kalakini day and "some days" everywhere else. Nothing else changed.
