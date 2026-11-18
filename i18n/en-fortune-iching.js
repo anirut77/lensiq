@@ -1,5 +1,6 @@
 /* i18n/en-fortune-iching.js — English for iching.html / iching.js (mirrors zh-fortune-iching.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "iching.metaDesc": "I Ching (易經) divination: toss 3 coins 6 times to get 1 of the 64 hexagrams, with the changing lines and the hexagram it turns into",
   /* Static page */
   "iching.desc": "Toss three coins six times to cast one of the 64 hexagrams, with changing lines and the relating hexagram, for booths and events, based on belief",
   "iching.disclaimerRest": "Do not use it for decisions about health, finances, legal matters or important relationships",

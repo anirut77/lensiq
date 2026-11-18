@@ -2,6 +2,7 @@
 (function (root) {
   "use strict";
   var dict = { en: {
+    "horoscope.metaDesc": "Horoscope from your birth date: Thai astrology, Taksa, zodiac sign, ascendant, BaZi, numerology, today's reading and couple compatibility. According to belief; calculated in your browser, nothing is saved",
     /* ---------- static UI ---------- */
     "horoscope.disclaimer2": "Do not use this as a basis for health, financial, career or relationship decisions",
     "horoscope.stageAria": "Enter your date of birth",
