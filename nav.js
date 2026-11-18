@@ -420,7 +420,7 @@
     var LOAN = new RegExp(JOIN.join("|"), "g");
     var SEL = "h1,h2,h3,h4,h5,.nav-sub b,.nav-sub small,.mega-k,.mega-d,.lq-crumbs li,.nav-link,.nav-cta,.btn,button,label,.chip,.tag,.kicker,.eyebrow,.pill,summary,th,legend,.lead,.sub,.hint,figcaption,.lq-wb";
     var CR = ".lq-helpline,[data-lq-call],#lqHelpTop,.lq-help-dlg,.lq-crisis-slot,.fa-support,.fa-soft,.lq-call-btn";
-    var SKIP = "svg,canvas,script,style,textarea,select,option,pre,code,[contenteditable],.lq-run,.lq-t," + CR;
+    var SKIP = "svg,canvas,script,style,textarea,select,option,.lq-sel-full,pre,code,[contenteditable],.lq-run,.lq-t," + CR;
     var sk = function (/** @type {any} */ e) { return e && e.nodeType === 1 && (e.matches(CR) || e.querySelector(CR)) ? null : e; };
     function words(text) {
       var parts = [];
@@ -750,7 +750,7 @@
       (document.head || document.documentElement).appendChild(sc);
     });
   }
-  function selFull() { // docs/NAV.md
+  function selFull() {
     var x, r = 0, D = document, n = parseFloat, fit = function () {
       r = 0; x = x || D.createElement("canvas").getContext("2d");
       [].forEach.call(D.querySelectorAll("select"), function (/** @type {any} */ s) {
