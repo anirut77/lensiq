@@ -467,3 +467,30 @@ format, then wait for approval. CI green before the next phase.
 - Research cited in this design: Thong, Joniak, Xiang 2023 (arXiv 2309.05148); Ly et al. 2020 (J Invest Dermatol
   140(1)); Chulalongkorn University repository items 123456789/78676 and /81665; Google MST-E blog (2023); Sony FHIBE
   terms (2025); smartphone colorimetry studies PMC7662536, PMC10247498, arXiv 2512.21988.
+
+## 8. S4 build status (2026-11-18, branch `style-s4`, behind `LENSIQ_STYLE = false`, unlinked)
+
+Owner order 2026-11-18 night: Personal Colour (undertone / season, §1.2–1.3) is parked after missing its target three
+times; only the part of §1.4 that does not need a palette is built: `style.html` "จับคู่สีชุดประจำวัน".
+
+- Built: flat-lay or garment photo (file picker, no camera stage, no person needed) → `lensiq-outfit.js` (Lab k-means,
+  k by silhouette, CIEDE2000 merge, border background model, optional white-card correction via `lensiq-colour.js`, ported
+  unchanged from `style-mvp`) → colour chips → "คะแนนความกลมกลืนของสี" 0–100 (Ou & Luo 2006 two-colour model,
+  share-weighted pairs) with reasons; optional lucky colour of the day (`LQLucky.evaluate` unchanged, belief label);
+  adults-only (18+, in memory only) hair colour match against the outfit and reversible colour suggestions (swap one piece
+  to a neutral, add a lighter / darker piece, an accent in today's colour, a hair-accessory colour). Hair colour is chosen
+  from a list, not measured. No palette fit (needs Personal Colour). Nothing stored, nothing sent, the photo is dropped
+  after decoding.
+- Locked set: `~/LENSIQ-field/evals/style-s4/` (`evals-locks/style-s4.sha256`), synthetic: 150 harmony combinations with
+  rule-based expected ratings, 60 rendered flat lays (186 garments). Results 2026-11-18 (harness `tools/style-s4-eval.mjs`,
+  source synthetic): Spearman ρ 0.86 (target ≥ 0.6), AUC tonal vs clash 1.00 (≥ 0.95), class means in the fixed order;
+  garment ΔE00 median 0.94 neutral light / 0.91 cast + card (≤ 6), lucky-colour family 100 % / 93.7 % (≥ 85 %), exact
+  garment count 100 % / 95 % (≥ 80 %), lucky main-colour family 90.0 % (≥ 85 %); cast without a card (reported only) ΔE00 median 7.0, family 67.7 %. Speed: run 1
+  438 ms median per 640 × 480 extract (missed ≤ 300 ms, machine load average ≈ 147); after lowering the sample budget
+  (30 000 → 16 000 pixels, silhouette subsample 600 → 400) run 2 66 ms (pass); ΔE00 unchanged (±0.02), cast + card family 95.2 → 93.7 %, lucky main-colour family
+  97.5 → 90.0 % (target ≥ 85 %). Both runs are kept in the field folder (results-2026-11-18-run1.*, results-2026-11-18.*).
+  Page weight: off 304 KB / 15 requests, on 363 KB / 20 requests (budgets 480 / 24 and 560 / 28).
+- Not measured: real photos of clothes (set D), people's harmony ratings (set E, ≥ 7 raters). The harmony expectations
+  encode the same published principles as the model, so the synthetic pass shows the model works as published, not that
+  people agree. The Ou & Luo coefficients are re-implemented from the published equations [SECONDARY]; confirm against the
+  paper before any claim.

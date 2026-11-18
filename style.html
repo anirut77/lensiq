@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';
+  script-src 'self' 'wasm-unsafe-eval';
+  style-src 'self' 'unsafe-inline';
+  font-src 'self' data:;
+  img-src 'self' data: blob:;
+  media-src 'self' data: blob:;
+  connect-src 'self' data: blob:;
+  worker-src 'self' blob:;
+  manifest-src 'self';
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E
+  %3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E
+  %3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E
+  %3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="sty.title">จับคู่สีชุดประจำวัน (ทดลอง) | LENSIQ</title>
+<link rel="stylesheet" href="styles.css?v=23">
+<link rel="stylesheet" href="style.css?v=1">
+<script src="lensiq-busy.js?v=3"></script>
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=31"></script>
+<script src="i18n/zh-style.js?v=1"></script>
+
+<main class="sty-page" id="main">
+  <!-- Off switch (lensiq-config.js LENSIQ_STYLE, default false): this notice is all a visitor sees until the owner approves -->
+  <section class="card sty-off" id="styOff" aria-label="LENSIQ">
+    <p lang="th" class="sty-off-line">หน้านี้ยังไม่เปิดให้ใช้งาน</p>
+    <p lang="en" class="sty-off-line" translate="no">This page is not available yet.</p>
+    <p lang="zh-Hans" class="sty-off-line" translate="no">此页面尚未开放。</p>
+    <p class="sty-off-home"><a class="btn ghost sm" href="index.html" translate="no">LENSIQ</a></p>
+  </section>
+
+  <div id="styApp" hidden>
+    <p class="eyebrow" data-i18n="sty.eyebrow">LENSIQ · สีของชุด (ทดลอง)</p>
+    <h1 data-i18n="sty.h1">จับคู่สีชุดประจำวัน</h1>
+    <p class="lead" data-i18n="sty.lead">ถ่ายรูปเสื้อผ้าที่วางบนพื้นเรียบ ดูว่าสีของแต่ละชิ้นเข้ากันแค่ไหน</p>
+    <p class="sty-notice" data-i18n="sty.notice">วิเคราะห์สีของเสื้อผ้า ไม่ใช่ตัวคุณ · ประมวลผลในเครื่องนี้ · ไม่เก็บภาพ</p>
+    <p class="sty-small" data-i18n="sty.acc">ทดสอบกับชุดสีสังเคราะห์เท่านั้น ยังไม่ได้วัดกับรูปถ่ายจริงหรือความเห็นของคน</p>
+
+    <section class="card" id="styIn" aria-labelledby="styInH">
+      <h2 id="styInH" data-i18n="sty.in.h">รูปเสื้อผ้า</h2>
+      <ul class="sty-list">
+        <li data-i18n="sty.in.flat">วางเสื้อผ้าบนพื้นหรือผ้าปูสีเรียบสีเดียว ไม่ต้องมีคนในภาพ</li>
+        <li data-i18n="sty.in.light">ถ่ายในแสงเดียวกันทั้งภาพ ปิดฟิลเตอร์ของกล้อง</li>
+      </ul>
+      <label class="sty-check"><input type="checkbox" id="styCard"> <span data-i18n="sty.in.card">มีการ์ดหรือกระดาษสีขาววางอยู่ในภาพ (ช่วยแก้สีของแสง)</span></label>
+      <label class="sty-check"><input type="checkbox" id="styWhole"> <span data-i18n="sty.in.whole">เสื้อผ้าเต็มภาพ (ไม่มีพื้นหลัง)</span></label>
+      <label class="btn primary sty-file"><span data-i18n="sty.in.pick">เลือกรูปหรือถ่ายรูปเสื้อผ้า</span>
+        <input type="file" id="styFile" accept="image/*" multiple></label>
+      <p class="sty-status" id="styMsg" role="status"></p>
+      <div class="sty-pickrow">
+        <label class="sty-pick"><span data-i18n="sty.in.byhand">หรือเลือกสีเอง</span> <input type="color" id="styPick" value="#1c3f94"></label>
+        <button class="btn ghost sm" id="styPickAdd" type="button" data-i18n="sty.in.add">เพิ่มสีนี้</button>
+      </div>
+      <div class="sty-chips" id="styChips"></div>
+      <div class="sty-actions">
+        <button class="btn ghost sm" id="styClear" type="button" data-i18n="sty.in.clear">ล้างทั้งหมด</button>
+      </div>
+    </section>
+
+    <section class="card" id="styResult" hidden aria-labelledby="styResultH">
+      <h2 id="styResultH" data-i18n="sty.res.h">คะแนนความกลมกลืนของสี</h2>
+      <p class="sty-score" id="styScore"></p>
+      <ul class="sty-list" id="styReasons"></ul>
+      <p class="sty-disc" data-i18n="sty.res.only">คะแนนนี้เทียบสีกับสีเท่านั้น ไม่ได้ประเมินตัวคุณ คนแต่ละคนชอบสีต่างกันได้</p>
+      <p class="sty-small" data-i18n="sty.res.model">แบบจำลองความกลมกลืนของสีสองสี (Ou และ Luo, 2006)</p>
+    </section>
+
+    <section class="card" id="styLucky" hidden aria-labelledby="styLuckyH">
+      <h2 id="styLuckyH" data-i18n="sty.lucky.h">สีมงคลประจำวัน (ไม่บังคับ)</h2>
+      <label class="sty-check"><input type="checkbox" id="styLuckyOn"> <span data-i18n="sty.lucky.on">ดูสีมงคลประจำวันของชุดนี้ด้วย</span></label>
+      <div id="styLuckyCtl" hidden>
+        <label class="sty-field"><span data-i18n="sty.lucky.day">วัน</span>
+          <select id="styDay">
+            <option value="auto" data-i18n="sty.day.auto">วันนี้ (อัตโนมัติ)</option>
+            <option value="0" data-i18n="sty.day.0">วันอาทิตย์</option>
+            <option value="1" data-i18n="sty.day.1">วันจันทร์</option>
+            <option value="2" data-i18n="sty.day.2">วันอังคาร</option>
+            <option value="3" data-i18n="sty.day.3">วันพุธ</option>
+            <option value="4" data-i18n="sty.day.4">วันพฤหัสบดี</option>
+            <option value="5" data-i18n="sty.day.5">วันศุกร์</option>
+            <option value="6" data-i18n="sty.day.6">วันเสาร์</option>
+          </select>
+        </label>
+        <label class="sty-field"><span data-i18n="sty.lucky.goal">เรื่องที่อยากเสริม</span>
+          <select id="styGoal">
+            <option value="work" data-i18n="sty.goal.work">การงาน</option>
+            <option value="money" data-i18n="sty.goal.money">โชคลาภ</option>
+            <option value="love" data-i18n="sty.goal.love">ความรัก</option>
+            <option value="support" data-i18n="sty.goal.support">ผู้ใหญ่อุปถัมภ์</option>
+          </select>
+        </label>
+      </div>
+      <div id="styLuckyOut" class="sty-lucky" hidden></div>
+    </section>
+
+    <section class="card" id="styLook" hidden aria-labelledby="styLookH">
+      <h2 id="styLookH" data-i18n="sty.look.h">คำแนะนำการแต่งตัวและสีผม</h2>
+      <label class="sty-check"><input type="checkbox" id="styAdult"> <span data-i18n="sty.look.adult">ฉันอายุ 18 ปีขึ้นไป (ไม่บันทึก ถามใหม่ทุกครั้ง)</span></label>
+      <div id="styLookBody" hidden>
+        <label class="sty-field"><span data-i18n="sty.hair.label">สีผมตอนนี้ (ไม่บังคับ)</span>
+          <select id="styHair">
+            <option value="" data-i18n="sty.hair.none">ไม่ระบุ</option>
+            <option value="black" data-i18n="sty.hair.black">ดำ</option>
+            <option value="darkBrown" data-i18n="sty.hair.darkBrown">น้ำตาลเข้ม</option>
+            <option value="brown" data-i18n="sty.hair.brown">น้ำตาล</option>
+            <option value="lightBrown" data-i18n="sty.hair.lightBrown">น้ำตาลอ่อน</option>
+            <option value="blonde" data-i18n="sty.hair.blonde">บลอนด์</option>
+            <option value="auburn" data-i18n="sty.hair.auburn">น้ำตาลแดง</option>
+            <option value="grey" data-i18n="sty.hair.grey">เทาเงิน</option>
+          </select>
+        </label>
+        <p class="sty-score" id="styHairScore"></p>
+        <ul class="sty-list" id="stySuggest"></ul>
+        <p class="sty-small" data-i18n="sty.look.note">คำแนะนำเป็นเรื่องสีของเสื้อผ้าและเครื่องประดับ ปรับเปลี่ยนกลับได้ทุกเมื่อ ใช้วิจารณญาณของคุณเอง</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="lensiq-config.js?v=21"></script>
+<script src="style.js?v=1"></script>
+</body>
+</html>

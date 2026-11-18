@@ -79,6 +79,12 @@ window.LENSIQ_LOOK_SALON = false;
  *   true = เปิด (เจ้าของตัดสินใจเท่านั้น) · ต้องเป็น true จริงเท่านั้น ค่าอื่นถือว่าปิด */
 window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
 
+/* LENSIQ_STYLE (Style S4, คำสั่งเจ้าของ 18 พ.ย. 2569): หน้า "จับคู่สีชุดประจำวัน" (สีของเสื้อผ้าจากรูปวางราบ คะแนนความกลมกลืนของสี
+ *   และสีมงคลประจำวันแบบเลือกได้) · false (ค่าเริ่มต้น) = ปิด: ไม่มีลิงก์จากเมนู หน้าหมวด หรือแคตตาล็อก เปิด URL ตรง ๆ จะเห็นเพียง
+ *   ข้อความ "ยังไม่เปิดให้ใช้งาน" 3 ภาษา และไม่โหลดสคริปต์วิเคราะห์ใด ๆ · true = เปิด (เจ้าของอนุมัติเท่านั้น) · ต้องเป็น true จริงเท่านั้น
+ *   ค่าอื่นถือว่าปิด ไม่มีพารามิเตอร์ URL หรือค่าในเครื่องที่เปิดได้ (tests/unit/style-s4-flag.test.js) */
+window.LENSIQ_STYLE = window.LENSIQ_STYLE === true;
+
 /* LENSIQ_PROFILE: ชุดค่าการติดตั้ง — "commercial" (ค่าเริ่มต้นตั้งแต่ round 16: โหมดลูกค้า ทุกเว็บรวม GitHub Pages) | "demo"
  *   โหมดลูกค้า: LENSIQ_AGE_GENDER = LENSIQ_EXPRESSION = LENSIQ_FACEPARSE = false — ไม่โหลดและไม่แสดงโมเดลอายุ/เพศ (UTKFace)
  *   และโมเดลสีหน้า · BiSeNet (ไม่ใช่เชิงพาณิชย์) ปิดค่าเริ่มต้น ลิงก์ทดสอบ ?faceparse=1 ใช้ได้เฉพาะเมื่อ LENSIQ_PROFILE === "demo" และเปิดเดโมงานวิจัย

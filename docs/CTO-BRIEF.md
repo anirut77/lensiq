@@ -503,6 +503,9 @@ No module is production-ready. None has completed a field pilot, and the backend
   `STYLE-DESIGN.md`): MVP first, built after Product Check and LICENCE-REQUESTS, in the order Nutrition, Try-On, Merit,
   Style, then org accounts P1–P3. Back-office phase 1 uses the platform admin login (BO-1). Thai plate model (YOLOX-nano)
   is integrated as soon as the owner delivers the ONNX file; YOLOv9 not used (L41).
+- Style S4 (2026-11-18, branch `style-s4`, off and unlinked): outfit colour match from a flat-lay photo, colour harmony
+  score, optional lucky colour, 18+ hair colour match; synthetic set only (ρ 0.86, garment ΔE00 median 0.9). Personal
+  Colour stays parked. `docs/STYLE-DESIGN.md` §8.
 - Drug data (owner request 2026-11-10): `docs/product-check/DRUG-DATA-SOURCES.md` (24 sources). TMT 2563 snapshot on
   data.go.th is CC BY and is used; the current TMT release (this.or.th, catalogue label "Open Data Common", login) has
   no stated licence, so it stays out until THIS gives written permission (L29). Letter to the UBU Faculty of

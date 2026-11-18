@@ -206,6 +206,10 @@ const CLAIMS = {
     th: "ยังไม่ได้วัดกับภาพฉลากจริง ผลทดสอบมีเฉพาะกับฉลากที่สร้างขึ้นเอง ค่าทุกค่าแสดงพร้อมบรรทัดที่มาให้ผู้ใช้ตรวจกับฉลาก",
     en: "Not measured on photos of real labels yet; tested on generated labels only. Every value is shown with its source line for the user to check",
     zh: "尚未用真实标签照片测量，仅用生成的标签测试。每个数值都附来源行，供用户与标签核对" },
+  style: { src: "none", ref: "docs/STYLE-DESIGN.md §8 (outfit colour extraction and colour harmony measured on a synthetic set only; no photos of real clothes, no people's ratings)",
+    th: "ยังไม่ได้วัดกับรูปถ่ายเสื้อผ้าจริงหรือความเห็นของคน ทดสอบการอ่านสีและคะแนนความกลมกลืนของสีกับชุดสีสังเคราะห์เท่านั้น",
+    en: "Not measured on photos of real clothes or against people's ratings; colour reading and the colour harmony score are tested on a synthetic set only",
+    zh: "尚未用真实衣服照片或人们的评价测量；颜色读取和色彩协调度仅用合成数据集测试" },
   tryon: { src: "none", ref: "docs/TRYON-DESIGN.md §4 (real-camera measurement not done; garment fit tested on a synthetic set only)",
     th: "ยังไม่ได้วัดกับภาพกล้องจริง การวางแว่น หมวก ต่างหู และเสื้อทดสอบกับข้อมูลสังเคราะห์เท่านั้น เป็นภาพจำลอง ไม่ใช่ภาพสวมใส่จริง",
     en: "Not measured on real camera pictures; placing glasses, hats, earrings and tops is tested on synthetic data only. A preview, not a real fit",
@@ -330,6 +334,10 @@ const REASONS = {
   fortune: { th: "เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ ไม่มีตัวเลขความแม่นยำ",
     en: "Based on astrological principles, a matter of personal belief; can draw visitors to a booth; no accuracy claim",
     zh: "基于命理学原则，属个人信仰；可吸引访客到展位；无准确率声明" },
+  style: { th: "อ่านสีเสื้อผ้าจากรูปวางราบบนเครื่อง ให้คะแนนความกลมกลืนของสี และดูสีมงคลประจำวันได้ ปิดอยู่จนกว่าเจ้าของอนุมัติ ยังไม่ได้วัดกับรูปจริง",
+    en: "Reads clothing colours from a flat-lay photo on the device, gives a colour harmony score and an optional lucky colour " +
+      "of the day; switched off until the owner approves; not measured on real photos",
+    zh: "在本机从平铺照片读取服装颜色，给出色彩协调度并可选显示每日幸运色；在负责人批准前保持关闭；尚未用真实照片测量" },
   tryon: { th: "ลองแว่น หมวก ต่างหู และเสื้อบนภาพกล้องสดบนเครื่อง พร้อมหลังบ้านแคตตาล็อกร้าน ยังไม่ได้วัดกับภาพจริงและยังไม่ได้เปิดระบบหลังบ้าน",
     en: "Try glasses, hats, earrings and tops on the live camera picture on the device, with a shop catalogue back office; not measured on real pictures and the backend is not deployed",
     zh: "在本机实时摄像头画面上试戴眼镜、帽子、耳环和上衣，并配有店铺目录后台；尚未用真实画面测量，后端尚未部署" },
@@ -419,6 +427,7 @@ const PAGES = {
   // 7 Studio & Media
   studio: { st: "experimental", why: "studio", claims: ["studio"] },
   tryon: { st: "experimental", why: "tryon", claims: ["tryon"] },
+  style: { st: "experimental", why: "style", claims: ["style"] },
   photobooth: { st: "pilot-ready", why: "photobooth", claims: ["photobooth"] },
   converter: { st: "experimental", why: "converter", claims: ["converter"] },
   // Platform (not a category)
@@ -511,6 +520,7 @@ const CATEGORIES = [
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
 const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
   tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category",
+  style: "Style S4 (daily outfit and hair colour match), behind the LENSIQ_STYLE switch (off): not linked anywhere until the owner approves",
   "404": "Not-found page (owner order 2026-11-18 C, promotion basics): GitHub Pages shows it for any missing address; noindex, not in the menus or the sitemap",
   counselling: "Counselling services (owner decision 2026-11-16, crisis one-number rules): linked only from the fortune crisis card and help line, help and privacy; not in the menus" };
 
