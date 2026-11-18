@@ -51,6 +51,8 @@ interface Window {
   LENSIQ_CONVERT_SERVER?: boolean;
   /** rule-6 switch (owner decision 2026-11-16): the top 1323 control in the sticky top bar (true) or scrolling away (false) */
   LENSIQ_HELP_TOP_STICKY?: boolean;
+  /** fortune section look (owner decision 92): "a" = theme ราตรีคราม, "classic" = the previous look */
+  LENSIQ_FORTUNE_THEME?: string;
   LENSIQ_LEADS_NOTICE?: boolean;
   /** fortune-crisis.js (loaded before fortune-ai.js) */
   LQFortuneCrisis?: any;

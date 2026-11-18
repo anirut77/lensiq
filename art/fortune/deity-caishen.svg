@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 240 300" fill="none" stroke="#E8C979" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Caishen">
+<mask id="k"><rect width="240" height="300" fill="#fff"/><use xlink:href="#f" stroke="#000" stroke-width="10"/></mask>
+<g mask="url(#k)" opacity=".55"><path d="M56.5 162A86 86 0 1 1 183.5 162"/><path d="M47.3 162A93 93 0 1 1 192.7 162" stroke-dasharray="1 7"/></g>
+<g id="f">
+<path d="M98 70c0-18 8-26 22-26s22 8 22 26M106 50c0-12 6-18 14-18s14 6 14 18M92 70h56v9H92zM120 70v9"/>
+<circle cx="120" cy="61" r="3"/>
+<path d="M104 56H44a5 5 0 0 0 0 10h56M136 56h60a5 5 0 0 1 0 10h-56"/>
+<path d="M96 79c-2 26 8 44 24 46 16-2 26-20 24-46"/>
+<path d="M95 92c-5 0-6 10 1 12M145 92c5 0 6 10-1 12" opacity=".8"/>
+<path d="M102 88q7-4 14-1M124 87q7-3 14 1"/>
+<path d="M104 96q6-4 12 0M124 96q6-4 12 0"/>
+<path d="M120 98v8q-3 3-6 2M120 106q3 3 6 2"/>
+<path d="M120 114c-6-3-12-2-16 4M120 114c6-3 12-2 16 4"/>
+<path d="M114 119q6 3 12 0"/>
+<path d="M120 124c-2 14 2 28 0 44M112 122c-6 14-4 28-8 40M128 122c6 14 4 28 8 40" opacity=".9"/>
+<path d="M104 126c-24 4-42 18-48 44M136 126c24 4 42 18 48 44"/>
+<path d="M98 128c2 14 10 20 22 20s20-6 22-20"/>
+<path d="M56 170c-6 32-4 62 10 90M184 170c6 32 4 62-10 90"/>
+<path d="M66 260q54 10 108 0"/>
+<path d="M74 180c4 14 8 24 18 32M166 180c-4 14-8 24-18 32"/>
+<path d="M64 212c8-6 22-6 28 0l-2 16c-8 4-20 4-26-2zM176 212c-8-6-22-6-28 0l2 16c8 4 20 4 26-2z"/><path d="M70 216q8-3 16 0M170 216q-8-3-16 0" opacity=".7"/>
+<path d="M88 202q8 10 20 4h24q12 6 20-4M90 205c4 20 56 20 60 0M106 205c2-16 26-16 28 0"/>
+<path d="M114 194q4-4 8-2" opacity=".7"/>
+<path d="M80 236q40 14 80 0M96 240v6M120 243v6M144 240v6" opacity=".8"/>
+<circle cx="96" cy="282" r="10"/>
+<circle cx="144" cy="282" r="10"/>
+<path d="M93 279h6v6h-6zM141 279h6v6h-6z"/>
+</g>
+</svg>

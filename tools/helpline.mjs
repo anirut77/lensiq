@@ -24,7 +24,7 @@ const LQH = require("../lensiq-helpline.js");
 
 /** the hand-written fortune pages (cat-fortune.html comes from tools/cat-pages.mjs) */
 export const PAGES = ["fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui",
-  "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report", "compat"];
+  "dream", "zodiac", "astro", "lifegraph", "planner", "luckycolor", "report", "compat", "petread"];
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 

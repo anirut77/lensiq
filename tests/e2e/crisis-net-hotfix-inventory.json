@@ -1019,6 +1019,63 @@
    "phrase": false,
    "why": "time picker",
    "dynamic": "compat-ui.js"
+  },
+  {
+   "page": "petread",
+   "sel": "#petName",
+   "type": "text",
+   "maxlength": 30,
+   "phrase": true,
+   "covered_by": "tests/e2e/crisis-escape-guard-field.e2e.mjs (petread flow), tests/e2e/crisis-v3-{a,b,c,d}.e2e.mjs (petread), tests/e2e/fortune-pet.e2e.mjs P4, tests/e2e/petread-webkit.e2e.mjs W4"
+  },
+  {
+   "page": "petread",
+   "sel": "#petBirth",
+   "type": "date",
+   "maxlength": null,
+   "phrase": false,
+   "why": "date picker"
+  },
+  {
+   "page": "petread",
+   "sel": "#petOwnerBirth",
+   "type": "date",
+   "maxlength": null,
+   "phrase": false,
+   "why": "date picker"
+  },
+  {
+   "page": "petread",
+   "sel": "#petFile",
+   "type": "file",
+   "maxlength": null,
+   "phrase": false,
+   "why": "photo picker"
+  },
+  {
+   "page": "petread",
+   "sel": "#petPhotoOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "petread",
+   "sel": "#petQrOn",
+   "type": "checkbox",
+   "maxlength": null,
+   "phrase": false,
+   "why": "on / off only"
+  },
+  {
+   "page": "petread",
+   "sel": "#petTraits input",
+   "type": "radio",
+   "maxlength": null,
+   "phrase": false,
+   "why": "choice only (radio, and checkbox for marks)",
+   "dynamic": "petread.js renderTraits"
   }
  ]
 }

@@ -1,0 +1,135 @@
+/* fortune-theme.css — fortune section theme "ราตรีคราม" (owner approval 2026-11-17, direction A). Loaded ONLY by the
+   fortune pages and cat-fortune.html, and every rule is scoped to html.lq-ft, so nothing changes anywhere else.
+   Palette A (WCAG 2.1, tests/unit/fortune-theme.test.js): night #120F2E -> #2A1B55, soft gold #E8C979, text #F5F1E8,
+   muted #BDB5DA, card #1E1844, pressed #2A2160 (lowest text pair 7.26:1).
+   Menu pages (html.lq-ft-menu: fortune.html, cat-fortune.html): the whole page at night, cards with gold line art.
+   Reading pages (html.lq-ft-read, decision 94 ก): a night band behind the title, the reading on light paper #F6F3EC.
+   Switch back: lensiq-config.js swaps these classes for html.lq-ft-classic, which only hides the new illustration slots.
+   Font: Prompt (SIL OFL, vendor/fonts/prompt) under its own family name LQft with two files per script (400 for text,
+   500 for headings and bold), so a fortune page downloads fewer font files than before and no Inter.
+   Generated selectors are written out in full (no :is() lists). */
+@font-face{font-family:LQft;font-weight:100 449;font-display:swap;src:url(vendor/fonts/prompt/prompt-400-thai.woff2) format("woff2");
+  unicode-range:U+0E01-0E5B,U+200C-200D,U+25CC}
+@font-face{font-family:LQft;font-weight:100 449;font-display:swap;src:url(vendor/fonts/prompt/prompt-400-latin.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+2122,U+2190-2193,U+2212}
+@font-face{font-family:LQft;font-weight:450 900;font-display:swap;src:url(vendor/fonts/prompt/prompt-500-thai.woff2) format("woff2");
+  unicode-range:U+0E01-0E5B,U+200C-200D,U+25CC}
+@font-face{font-family:LQft;font-weight:450 900;font-display:swap;src:url(vendor/fonts/prompt/prompt-500-latin.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+2122,U+2190-2193,U+2212}
+html.lq-ft{--ft1:#120F2E;--ft2:#2A1B55;--ftg:#E8C979;--ftt:#F5F1E8;--ftm:#BDB5DA;--ftc:#1E1844;--ftp:#2A2160;--ftl:#3B3170;
+  --navy:#1E1844;--navy2:#2A2160;--bg:#F6F3EC;
+  --ftsky:radial-gradient(1.5px 1.5px at 12% 22%,#F5F1E8,transparent),radial-gradient(1px 1px at 78% 14%,#E8C979,transparent),
+    radial-gradient(1px 1px at 38% 70%,#BDB5DA,transparent),radial-gradient(1.5px 1.5px at 90% 62%,#F5F1E8,transparent),
+    radial-gradient(1px 1px at 58% 36%,#E8C979,transparent),radial-gradient(1px 1px at 22% 88%,#BDB5DA,transparent)}
+html.lq-ft *{font-family:LQft,"Noto Sans Thai","Leelawadee UI",Thonburi,system-ui,sans-serif}
+html.lq-ft svg.ft-ill{flex:none;width:44px;height:44px;color:var(--ftg);fill:none}
+/* English keeps the site's Latin face (Inter, as on every other page) so the compact top of main stays within its line limits */
+html.lq-ft[lang=en] *{font-family:Inter,LQft,"Noto Sans Thai","Leelawadee UI",Thonburi,system-ui,sans-serif}
+
+/* ---------- reading pages (html.lq-ft-read, decision 94 ก): night band behind the title, light paper body ---------- */
+html.lq-ft-read body{background:#F6F3EC}
+html.lq-ft main.fk,html.lq-ft main.fr,html.lq-ft main.pl,html.lq-ft main.hs,html.lq-ft main.tr,html.lq-ft main.nm,html.lq-ft main.fs{padding-top:0}
+html.lq-ft-read .fk-head,html.lq-ft-read .fr-head,html.lq-ft-read .pl-head,html.lq-ft-read .hs-head,html.lq-ft-read .tr-head,html.lq-ft-read .nm-head,html.lq-ft-read .fs-head,html.lq-ft-read .rp-hero{
+  position:relative;z-index:0;margin:0 0 22px;padding:28px 0 32px;color:var(--ftt);
+  background:linear-gradient(180deg,var(--ft1),var(--ft2)) var(--ft1);border-image:linear-gradient(180deg,var(--ft1),var(--ft2)) fill 0//0 100vmax}
+html.lq-ft-read .fk-head::before,html.lq-ft-read .fr-head::before,html.lq-ft-read .pl-head::before,html.lq-ft-read .hs-head::before,html.lq-ft-read .tr-head::before,html.lq-ft-read .nm-head::before,
+html.lq-ft-read .fs-head::before,html.lq-ft-read .rp-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--ftsky);pointer-events:none}
+html.lq-ft-read .fk-head h1,html.lq-ft-read .fr-head h1,html.lq-ft-read .pl-head h1,html.lq-ft-read .hs-head h1,html.lq-ft-read .tr-head h1,html.lq-ft-read .nm-head h1,
+  html.lq-ft-read .fs-head h1,html.lq-ft-read .rp-hero h1{
+  color:var(--ftt);font-weight:500}
+html.lq-ft-read .fk-head .eyebrow,html.lq-ft-read .fr-head .eyebrow,html.lq-ft-read .pl-head .eyebrow,html.lq-ft-read .hs-head .eyebrow,html.lq-ft-read .tr-head .eyebrow,
+  html.lq-ft-read .nm-head .eyebrow,
+html.lq-ft-read .fs-head .eyebrow,html.lq-ft-read .rp-hero .eyebrow{color:var(--ftg)}
+html.lq-ft-read .fk-head .lead,html.lq-ft-read .fr-head .lead,html.lq-ft-read .pl-head .lead,html.lq-ft-read .hs-head .lead,html.lq-ft-read .tr-head .lead,
+  html.lq-ft-read .nm-head .lead,html.lq-ft-read .fs-head .lead,
+html.lq-ft-read .rp-hero .lead{color:var(--ftm)}
+html.lq-ft-read .rp-hero .lq-top{color:var(--ftm)}
+html.lq-ft-read .rp-hero .lq-top a,html.lq-ft-read .rp-hero .lq-top button{color:var(--ftg)}
+
+/* phones: the band stays compact so the main action of every page is on the first screen (fortune-top-compact) */
+@media (max-width:560px){
+html.lq-ft-read .fk-head,html.lq-ft-read .fr-head,html.lq-ft-read .pl-head,html.lq-ft-read .hs-head,html.lq-ft-read .tr-head,
+  html.lq-ft-read .nm-head,html.lq-ft-read .fs-head,html.lq-ft-read .rp-hero{margin-bottom:8px;padding-top:6px;padding-bottom:8px}
+}
+/* the narrowest phones (360 px, 640 px first screen): a tighter band, so faceread's camera buttons, report's first type card and
+   astro's month field (above the fixed read bar) stay inside the first screen (fortune-top-compact C1, round 3) */
+@media (max-width:380px){
+html.lq-ft-read .fk-head,html.lq-ft-read .fr-head,html.lq-ft-read .pl-head,html.lq-ft-read .hs-head,html.lq-ft-read .tr-head,
+  html.lq-ft-read .nm-head,html.lq-ft-read .fs-head,html.lq-ft-read .rp-hero{margin-bottom:4px;padding-top:2px;padding-bottom:6px}
+html.lq-ft-read .fk-head h1,html.lq-ft-read .fr-head h1,html.lq-ft-read .pl-head h1,html.lq-ft-read .hs-head h1,html.lq-ft-read .tr-head h1,
+  html.lq-ft-read .nm-head h1,html.lq-ft-read .fs-head h1,html.lq-ft-read .rp-hero h1{margin-top:0}
+html.lq-ft.lq-ft-read .fk-head .lead,html.lq-ft.lq-ft-read .fr-head .lead,html.lq-ft.lq-ft-read .pl-head .lead,html.lq-ft.lq-ft-read .hs-head .lead,
+  html.lq-ft.lq-ft-read .tr-head .lead,html.lq-ft.lq-ft-read .nm-head .lead,html.lq-ft.lq-ft-read .fs-head .lead,html.lq-ft.lq-ft-read .rp-hero .lead{margin-bottom:2px}
+html.lq-ft-read .rp-types>.rp-h2:first-child{margin-top:12px}
+}
+
+/* ---------- menu pages (fortune.html, cat-fortune.html): the whole page at night ---------- */
+html.lq-ft-menu body{background:linear-gradient(180deg,var(--ft1),var(--ft2) 85%) fixed var(--ft1);color:var(--ftt)}
+html.lq-ft-menu body::before{content:"";position:fixed;inset:0;z-index:-1;background:var(--ftsky);pointer-events:none}
+html.lq-ft-menu main{--navy:#F5F1E8;--text:#F5F1E8;--muted:#BDB5DA;--line:#3B3170;--gold:#E8C979;--alt:#1E1844;--shadow:none;
+  color:var(--ftt)}
+html.lq-ft-menu .pd-hero,html.lq-ft-menu .ft-hero{background:radial-gradient(70% 60% at 50% 0,#272150,var(--ft1) 70%) var(--ft1);color:var(--ftt)}
+html.lq-ft-menu .pd-hero h1,html.lq-ft-menu .ft-hero h1{color:var(--ftt);font-weight:500}
+html.lq-ft-menu .pd-hero p,html.lq-ft-menu .ft-hero p{color:var(--ftm)}
+html.lq-ft-menu .pd-hero .eyebrow,html.lq-ft-menu .ft-hero .eyebrow{color:var(--ftg)}
+html.lq-ft-menu .pd-card,html.lq-ft-menu .pd-others a,html.lq-ft-menu .ft-goal,html.lq-ft-menu .ft-use div,html.lq-ft-menu .pd-list li{
+  background:var(--ftc);border:1px solid var(--ftl);color:var(--ftt);box-shadow:none}
+html.lq-ft-menu .pd-card,html.lq-ft-menu .ft-card{-webkit-tap-highlight-color:transparent;transition:background-color .12s,border-color .12s,transform .12s}
+html.lq-ft-menu .pd-card:hover,html.lq-ft-menu .ft-card:hover,html.lq-ft-menu .pd-card:focus-within,html.lq-ft-menu .ft-card:focus-within{border-color:var(--ftg);transform:none}
+html.lq-ft-menu .pd-card:active,html.lq-ft-menu .ft-card:active,html.lq-ft-menu .pd-others a:active{background:var(--ftp);border-color:var(--ftg);transform:scale(.985)}
+html.lq-ft-menu .pd-card h3,html.lq-ft-menu .pd-others a,html.lq-ft-menu .ft-goal b,html.lq-ft-menu .ft-use b,html.lq-ft-menu .pd-list b,html.lq-ft-menu .pd-body h2{color:var(--ftt)}
+html.lq-ft-menu .pd-card p,html.lq-ft-menu .pd-card ul,html.lq-ft-menu .pd-sub,html.lq-ft-menu .ft-use div,html.lq-ft-menu .pd-list li,html.lq-ft-menu .ft-goal small{color:var(--ftm)}
+html.lq-ft-menu .pd-go,html.lq-ft-menu .sl-go,html.lq-ft-menu .ft-goal a,html.lq-ft-menu .pd-note a,html.lq-ft-menu .pd-list a,html.lq-ft-menu .pd-links a,html.lq-ft-menu .cat-h{
+  color:var(--ftg)!important}
+html.lq-ft-menu .pd-note,html.lq-ft-menu .ft-note,html.lq-ft-menu .lq-notice{background:var(--ftc);border:1px solid var(--ftl);border-left:3px solid var(--ftg);color:var(--ftt)}
+/* the one-line disclaimer under the title (fortune-top-compact): a plain line, not a box */
+html.lq-ft-menu .ft-note.lq-top,html.lq-ft-menu .lq-notice.lq-top{background:none;border:0;color:var(--ftm)}
+html.lq-ft-menu .pd-body h2{font-weight:500}
+html.lq-ft-menu .pd-cta .btn.primary{background:var(--ftg);border-color:var(--ftg);color:#1A1433}
+html.lq-ft-menu .pd-cta .btn.light{border-color:var(--ftm);color:var(--ftt);background:transparent}
+html.lq-ft-menu .pd-ic,html.lq-ft-menu .ft-ic{display:none}
+html.lq-ft-menu .chip,html.lq-ft-menu .lq-more{color:var(--ftg);border-color:var(--ftl);background:transparent}
+/* cat-fortune one-link cards: the gold line drawing replaces the emoji tile it sits in */
+html.lq-ft-menu .cat-ill{width:auto;height:auto;background:none;border-radius:0}
+html.lq-ft-menu .cat-ill::before{content:none}
+html.lq-ft-menu .cat-top{justify-content:flex-start;align-items:center;gap:12px}
+html.lq-ft-menu .pd-card ul.cat-acc{color:var(--ftt)}
+html.lq-ft-menu .lq-legal-foot{background:#0E0B24;border-top-color:var(--ftl)}
+html.lq-ft-menu .lq-legal-foot p{color:var(--ftm)}
+html.lq-ft-menu .lq-legal-foot a{color:var(--ftt);text-decoration-color:var(--ftm)}
+
+/* ---------- entry screen (fortune-entry.js; only when an approved deity exists and no crisis / calm signal) ---------- */
+html.lq-ft.lq-ft-entry body{visibility:hidden;animation:lqftShow 0s 4.5s forwards}
+@keyframes lqftShow{to{visibility:visible}}
+html.lq-ft .ft-entry{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  padding:24px 16px 72px;background:radial-gradient(70% 45% at 50% 38%,rgba(232,201,121,.10),transparent 70%),linear-gradient(180deg,var(--ft1),var(--ft2));
+  color:var(--ftt);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .3s ease;text-align:center}
+html.lq-ft .ft-entry-img{width:min(64vw,280px);height:auto;max-height:52vh;opacity:0;transform:scale(.97);
+  transition:opacity .45s ease,transform .6s ease}
+html.lq-ft .ft-entry-nm{font-weight:500;font-size:1.4rem;color:var(--ftg);opacity:0;transition:opacity .4s ease .2s}
+html.lq-ft .ft-entry-bl{font-size:1.05rem;line-height:1.6;max-width:22em;color:var(--ftt);opacity:0;transition:opacity .4s ease .3s}
+html.lq-ft .ft-entry-skip{position:absolute;bottom:20px;left:0;right:0;font-size:.85rem;color:var(--ftm)}
+html.lq-ft .ft-entry-pv{position:absolute;top:14px;left:12px;right:12px;font-size:.78rem;color:var(--ftm)}
+html.lq-ft .ft-entry.in .ft-entry-img,html.lq-ft .ft-entry.in .ft-entry-nm,html.lq-ft .ft-entry.in .ft-entry-bl{opacity:1;transform:none}
+html.lq-ft .ft-entry.out{opacity:0}
+@media (prefers-reduced-motion:reduce){
+html.lq-ft .ft-entry,html.lq-ft .ft-entry-img,html.lq-ft .ft-entry-nm,html.lq-ft .ft-entry-bl{transition:none!important;transform:none!important}
+html.lq-ft-menu .pd-card,html.lq-ft-menu .ft-card,html.lq-ft-menu .pd-others a{transition:none!important;transform:none!important}
+}
+@media print{
+html.lq-ft-read .fk-head,html.lq-ft-read .fr-head,html.lq-ft-read .pl-head,html.lq-ft-read .hs-head,html.lq-ft-read .tr-head,html.lq-ft-read .nm-head,html.lq-ft-read .fs-head,html.lq-ft-read .rp-hero{
+  background:none;border-image:none;color:#000;margin:0;padding:0}
+html.lq-ft-read .fk-head h1,html.lq-ft-read .fk-head .eyebrow,html.lq-ft-read .fk-head .lead,html.lq-ft-read .fr-head h1,html.lq-ft-read .fr-head .eyebrow,
+  html.lq-ft-read .fr-head .lead,html.lq-ft-read .pl-head h1,
+html.lq-ft-read .pl-head .eyebrow,html.lq-ft-read .pl-head .lead,html.lq-ft-read .hs-head h1,html.lq-ft-read .hs-head .eyebrow,html.lq-ft-read .hs-head .lead,
+  html.lq-ft-read .tr-head h1,html.lq-ft-read .tr-head .eyebrow,
+html.lq-ft-read .tr-head .lead,html.lq-ft-read .nm-head h1,html.lq-ft-read .nm-head .eyebrow,html.lq-ft-read .nm-head .lead,html.lq-ft-read .fs-head h1,
+  html.lq-ft-read .fs-head .eyebrow,html.lq-ft-read .fs-head .lead,
+html.lq-ft-read .rp-hero h1,html.lq-ft-read .rp-hero .eyebrow,html.lq-ft-read .rp-hero .lead{color:#000}
+html.lq-ft .ft-entry{display:none}
+html.lq-ft-menu body{background:#fff;color:#000}
+html.lq-ft-read body{background:#fff}
+}
+
+/* ---------- switch back (lensiq-config.js LENSIQ_FORTUNE_THEME = "classic"): the previous look; only the new slots are hidden ---------- */
+html.lq-ft-classic svg.ft-ill{display:none}

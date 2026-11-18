@@ -62,8 +62,8 @@
       { href: "qc.html", title: "ตรวจคุณภาพสินค้า", desc: "ตรวจชิ้นงานบนสายการผลิต" }
     ] },
     { label: "ดูดวงและฤกษ์มงคล", short: "ดูดวง", id: "fortune", cat: "fortune",
-      intro: "ดูดวงศาสตร์ไทย จีน และตะวันตก และหาฤกษ์มงคล ตามความเชื่อ โปรดใช้วิจารณญาณ", items: [
-      { href: "cat-fortune.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
+      intro: "ดูดวงศาสตร์ไทย จีน และตะวันตก และหาฤกษ์มงคล", items: [
+      { href: "cat-fortune.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "fortune.html", title: "รวมศาสตร์ดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
       { href: "faceread.html", title: "อ่านโหงวเฮ้ง", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
       { href: "palm.html", title: "ดูลายมือ", desc: "ถ่ายฝ่ามือ อ่านเส้นหลัก" },
@@ -82,6 +82,7 @@
       { href: "lifegraph.html", title: "กราฟชีวิต", desc: "เส้นพลังตามช่วงอายุ" },
       { href: "planner.html", title: "วางแผนฤกษ์มงคล", desc: "วันดีขึ้นบ้านใหม่ เปิดร้าน เริ่มงาน" },
       { href: "luckycolor.html", title: "กระจกส่องสีเสื้อมงคล", desc: "ส่องกล้องดูสีเสื้อวันนี้กับสีมงคลประจำวัน" },
+      { href: "petread.html", title: "ดูลักษณะน้องหมาน้องแมว", desc: "นิสัย สีมงคล วันดี จากรูปน้อง ประมวลผลบนเครื่อง" },
       { href: "report.html", title: "รายงานดวงของฉัน", desc: "รวมผลดูดวงเป็นรายงานฉบับเดียว" }
     ] },
     { label: "สตูดิโอและสื่อ", short: "สตูดิโอ", id: "photo", cat: "studio",
@@ -108,7 +109,7 @@
   var LANG_BTNS = [["th", "th", "TH", "ภาษาไทย"], ["en", "en", "EN", "English"], ["zh", "zh-Hans", "中文", "简体中文"]];
 
   var NOFRAME = /^(account|pricing|report|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface|exam-lab|exam-hall|exam-dashboard|queue|tables|afterhours|bays|parking|village|crowd|case-review|medicine|omr|luckycolor)\.html$/;
-  var NOFRAME_MORE = /^(nutrition|tryon)\.html$/;
+  var NOFRAME_MORE = /^(nutrition|tryon|petread)\.html$/;
   var framed = false;
   try { framed = window.top !== window.self; } catch (e) { framed = true; }
   var pageName = (location.pathname.split("/").pop() || "").toLowerCase();
@@ -184,7 +185,9 @@
       html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span class="nav-lbl-s" data-i18n="nav.groups.' + g.id + '">' + esc(g.short || g.label) + '</span><span class="nav-lbl-f" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
         '<div class="nav-sub" id="navsub-' + g.id + '"><div class="mega">' +
           '<div class="mega-intro"><p class="mega-k" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</p><p class="mega-d" data-i18n="nav.groupd.' + g.id + '">' + esc(g.intro) + '</p>' +
-          (g.cat ? '<a class="mega-all" href="cat-' + g.cat + '.html"><span data-i18n="nav.viewcat">ดูหน้าหมวดนี้: สถานะและความแม่นยำ</span>' + arrow + '</a></div>'
+          // owner order 2026-11-18: the fortune panel's link names no status or accuracy (fortune cards carry neither)
+          (g.cat ? '<a class="mega-all" href="cat-' + g.cat + '.html">' + (g.cat === "fortune" ? '<span data-i18n="nav.viewcat.fortune">ดูหน้าหมวดนี้</span>'
+            : '<span data-i18n="nav.viewcat">ดูหน้าหมวดนี้: สถานะและความแม่นยำ</span>') + arrow + '</a></div>'
             : '<a class="mega-all" href="cameras.html"><span data-i18n="nav.viewall">ดูระบบทั้งหมด</span>' + arrow + '</a></div>') +
           '<ul class="mega-links' + (g.items.length > 6 ? " cols-3" : g.items.length > 3 ? " cols-2" : "") + '">';
       g.items.forEach(function (i) {
@@ -548,7 +551,11 @@
         if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t lq-b"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
         if (RT(n) && !first) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && wt(v) < 12) p.classList.add("lq-w"); return; }
         var pos = first, W = null, made = [n];
-        var piece = function (a, b2) { var k = document.createElement("lq-t"); k.className = "lq-w lq-t" + (live || (b2 >= v.trim().length && (CP.test(nx) || (nn && !nx)) && wt(v.slice(a, b2)) < 13) ? "" : " lq-b"); return k; };
+        var piece = function (a, b2) {
+          var w = wt(v.slice(a, b2)), k = document.createElement("lq-t");
+          k.className = "lq-w lq-t" + (live || (b2 >= v.trim().length && (CP.test(nx) || (nn && !nx)) && w < 13) || (/\s/.test(v[a - 1] || "") && w < 17) ? "" : " lq-b");
+          return k;
+        };
         var put = function (node) { (W || f).append(node); };
         var to = function (e2) { if (e2 > pos) { var t = document.createTextNode(v.slice(pos, e2)); made.push(t); put(t); pos = e2; } };
         var open = function () { var q = /** @type {number[]} */ (wd); to(q[0]); W = piece(q[0], q[1]); f.append(W); };
