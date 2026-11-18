@@ -1,0 +1,11 @@
+# evals-locks/planner-occasions.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/planner-occasions/ (owner rule 2026-11-13). Append-only.
+# planner occasions (owner order 2026-11-18): more occasions in groups on planner.html. Unit O1-O6 (occasions offered in groups, >= 2 independent
+# sources + plain reason TH/EN/ZH, excluded occasions absent with synonyms, no promise wording via FortuneAI.safety + LQMeritLint + word list,
+# move/shop/work identical to the snapshot made on origin/main b2a6e76, good days only by the recorded rule) and e2e G1-G5 (groups first,
+# no orphan half row at 360/375/390/412/430 px x TH/EN/ZH, tap opens one group, one result per language). Crisis v3 on planner: the locked
+# crisis-v3 sets run unchanged. Locked BEFORE any product change on branch planner-occasions (base origin/main b2a6e76).
+# locked 2026-11-18T03:55:35Z (tools/eval-guard.mjs lock, 4 files)
+1fd57d0aa27411901c9791b96f39b5a2849be2c964a2b78ff02df3269485128a  tests/unit/planner-occasions.test.js
+93fe40b1a85779cfa595402822957d631b55d0d2ae64e2b16b463c671cdddce2  tests/unit/fixtures/planner-regression-3.json
+5dc35bce037d6f92dce9ee8b9f603a6c53a65403e0586597873b270ef28c3ce8  tests/e2e/planner-occasions.e2e.mjs
+81bc3a28a3ac0d1e8d5db2165cad68c468090c45c165148eb96bba01d77d3997  regression-snapshot-gen.js
