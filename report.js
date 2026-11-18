@@ -361,7 +361,8 @@
       g.appendChild(b);
     } else if (st.mode === "paid" && c != null && c < 1) {
       go.disabled = true;
-      g.appendChild(h("p", null, T("rp.gate.none", "ยังไม่มีเครดิตของรายงานนี้") + " ", h("a", { href: "pricing.html", text: T("rp.gate.buy", "ดูราคารายงาน") })));
+      // crisis-v3-protect: the price link is a sale; [data-lq-upsell] hides it in the crisis / calm state (fortune-crisis.js CALM_CSS)
+      g.appendChild(h("p", { "data-lq-upsell": "report" }, T("rp.gate.none", "ยังไม่มีเครดิตของรายงานนี้") + " ", h("a", { href: "pricing.html", text: T("rp.gate.buy", "ดูราคารายงาน") })));
     } else if (st.mode === "free" && !signed && m && m.possible && m.possible()) {
       var b2 = h("button", { type: "button", class: "btn ghost", text: T("rp.gate.saveSignin", "เข้าสู่ระบบเพื่อบันทึกรายงานไว้ในบัญชี") });
       b2.addEventListener("click", function () { if (M()) M().signIn(); });
