@@ -1,0 +1,9 @@
+# evals-locks/examlab-90.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/examlab-90/ (owner rule 2026-11-13, locked sets persist). Append-only.
+# Exam lab to 90 (owner standing order 2026-11-18, sheet docs/acceptance/exam-lab.md on acceptance-sheets): tests for P3 (exam.html + dashboard in WebKit 390),
+# P4 (main flows at 360 / 430 px), E (error and empty states), X (candidate's own log), L3 (output language) and the S2 harness, locked BEFORE any product
+# change of branch examlab-90 (base origin/main a9950944).
+# locked 2026-11-18T16:29:40Z (tools/eval-guard.mjs lock, 4 files)
+7cb2630b8f8d2e63e956173c59ce4a4aabb9defb7343836cce2e7bf49e8b80d2  tests/e2e/exam-states.e2e.mjs
+2e5dcbf7781915df3760960803f70d333878adf124d3a2a07e2d7ca3e69a9eab  tests/e2e/exam-pages-webkit.e2e.mjs
+b7de7edd805d32107cdefd6043ba51a2331741bc1e4acaba4464f50aa13de379  tests/e2e/exam-widths.e2e.mjs
+64032b4ef85919f85949a0b1abf3770a0fdf1b2161be44db7f41cb195b3592ca  tools/exam-s2.mjs
