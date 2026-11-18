@@ -18,7 +18,7 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="cameras.s1">ระบบทั้งหมด | LENSIQ</title>
-<link rel="stylesheet" href="styles.css?v=21">
+<link rel="stylesheet" href="styles.css?v=23">
 <style>
 .hub{max-width:1200px;margin:auto;padding:40px 5vw 90px}
 .hub-head{text-align:center;margin-bottom:8px}
@@ -46,7 +46,7 @@
 .app.feature .ic{background:rgba(255,255,255,.1);color:#22d3ee}
 .badge{display:inline-block;background:var(--gold);color:#fff;border-radius:6px;padding:0 7px;font-size:.75rem;font-weight:500;margin-left:6px;vertical-align:middle}
 .howto{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;font-size:.92rem;line-height:1.75}
-.howto ol{padding-left:22px;margin:10px 0}.howto li{margin:4px 0}.howto code{background:var(--alt);padding:1px 6px;border-radius:6px;font-size:.88em;word-break:break-all}
+.howto ol{padding-left:22px;margin:10px 0}.howto li{margin:4px 0}.howto code{background:var(--alt);padding:1px 6px;border-radius:6px;font-size:.88em;overflow-wrap:anywhere}
 .howto h3{margin:18px 0 6px;font-size:1rem;color:var(--navy);font-weight:500}
 .group > p.hint > a:only-child{display:inline-flex;align-items:center;min-height:44px}
 .acc-wrap{overflow-x:auto;margin:12px 0}
@@ -61,9 +61,9 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=28"></script>
+<script src="nav.js?v=30"></script>
 <script src="i18n/zh-cameras.js?v=5"></script>
-<script src="lensiq-i18n-rt.js?v=1"></script>
+<script src="lensiq-i18n-rt.js?v=2"></script>
 <script src="i18n/zh-rt-common.js?v=7"></script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
@@ -281,8 +281,12 @@
       <p data-i18n="cameras.s232">ตั้งมือถือหรือแท็บเล็ต 1 เครื่องต่อ 1 จุด (ประตูหน้า ประตูหลัง โซนสินค้า) แล้วให้คอมพิวเตอร์ในร้านเป็นเครื่องหลักที่รวมยอด</p>
       <ol>
         <li><span data-i18n="cameras.s233">บนคอมพิวเตอร์เครื่องหลัก รัน</span> <code>./start.sh mobile</code> <span data-i18n="cameras.s234">หน้าจอจะแสดงที่อยู่ เช่น</span> <code>https://192.168.1.20:8443</code> <span data-i18n="cameras.s235">และรหัสจับคู่</span></li>
-        <li><span data-i18n="cameras.s236">บนคอมพิวเตอร์เครื่องเดียวกัน เปิด</span> <code>https://localhost:8443/store.html</code> <span data-i18n="cameras.s237">เลื่อนไปที่ “เชื่อมหลายเครื่อง” แล้วเลือก “เครื่องหลัก (รวมยอด)” จะเห็นรหัสจับคู่และปุ่มคัดลอกลิงก์จับคู่</span></li>
-        <li><span data-i18n="cameras.s238">บนมือถือแต่ละเครื่อง เปิด</span> <code>https://192.168.1.20:8443/store.html</code> <span data-i18n="cameras.s239">(ใช้ IP ของเครื่องหลัก) เลือก “เครื่องลูก (จุดนับ)” ตั้งชื่อจุด ใส่รหัสจับคู่ แล้วกด “จับคู่” หรือเปิดลิงก์จับคู่ที่ส่งมาจากเครื่องหลัก</span></li>
+        <li><span data-i18n="cameras.s236">บนคอมพิวเตอร์เครื่องเดียวกัน เปิด</span> <code>https://localhost:8443<wbr>/store.html</code>
+          <span data-i18n="cameras.s237">เลื่อนไปที่ “เชื่อมหลายเครื่อง” แล้วเลือก “เครื่องหลัก (รวมยอด)”
+          จะเห็นรหัสจับคู่และปุ่มคัดลอกลิงก์จับคู่</span></li>
+        <li><span data-i18n="cameras.s238">บนมือถือแต่ละเครื่อง เปิด</span> <code>https://192.168.1.20:8443<wbr>/store.html</code>
+          <span data-i18n="cameras.s239">(ใช้ IP ของเครื่องหลัก) เลือก “เครื่องลูก (จุดนับ)” ตั้งชื่อจุด ใส่รหัสจับคู่ แล้วกด “จับคู่”
+          หรือเปิดลิงก์จับคู่ที่ส่งมาจากเครื่องหลัก</span></li>
         <li data-i18n="cameras.s240">บนมือถือ กด “เปิดกล้อง” วาดเส้นนับ/โซนตามปกติ เครื่องจะส่งยอดให้เครื่องหลักทุก 15 วินาที ถ้าเน็ตหลุดจะเก็บไว้แล้วส่งให้เองเมื่อเชื่อมต่อได้</li>
       </ol>
       <p class="hint" data-i18n="cameras.s241">มือถือส่งเฉพาะตัวเลขสรุปรายวัน (จำนวนเข้า–ออก รายชั่วโมง โซน คิว และชื่อจุด) ไม่ส่งภาพ วิดีโอ หรือฮีตแมป เซิร์ฟเวอร์รับเฉพาะเครื่องในวง LAN ที่จับคู่แล้ว เครื่องหลักลบเครื่องลูกหรือเปลี่ยนรหัสได้ตลอด ยอดรวมจะแสดงในหน้า “วิเคราะห์หน้าร้าน” และ “แดชบอร์ดรวม” ของเครื่องหลัก บนเว็บสาธิต (GitHub Pages) ไม่มีเซิร์ฟเวอร์กลาง ให้ใช้ “ส่งต่อด้วยไฟล์” แทน</p>
@@ -310,13 +314,16 @@
       <h3 data-i18n="cameras.ip.h1">วิธีที่ 1: OBS Studio (Windows / macOS / Linux)</h3>
       <ol>
         <li data-i18n="cameras.ip.o1">ติดตั้ง OBS Studio (ฟรี โอเพนซอร์ส) บนคอมพิวเตอร์ที่อยู่ในเครือข่ายเดียวกับกล้อง</li>
-        <li><span data-i18n="cameras.ip.o2">ใน OBS กด + ที่ “แหล่งที่มา” เลือก “แหล่งสื่อ (Media Source)” เอาเครื่องหมายถูก “ไฟล์ในเครื่อง” ออก แล้วใส่ที่อยู่ RTSP ของกล้อง เช่น</span> <code>rtsp://user:pass@192.168.1.64:554/stream1</code> <span data-i18n="cameras.ip.o3">(ดูรูปแบบที่อยู่ในคู่มือกล้อง)</span></li>
+        <li><span data-i18n="cameras.ip.o2">ใน OBS กด + ที่ “แหล่งที่มา” เลือก “แหล่งสื่อ (Media Source)” เอาเครื่องหมายถูก “ไฟล์ในเครื่อง” ออก
+          แล้วใส่ที่อยู่ RTSP ของกล้อง เช่น</span> <code>rtsp://user:pass@<wbr>192.168.1.64:554<wbr>/stream1</code>
+          <span data-i18n="cameras.ip.o3">(ดูรูปแบบที่อยู่ในคู่มือกล้อง)</span></li>
         <li data-i18n="cameras.ip.o4">กด “เริ่มกล้องเสมือน (Start Virtual Camera)” ที่มุมขวาล่างของ OBS</li>
         <li data-i18n="cameras.ip.o5">เปิดหน้าระบบในเบราว์เซอร์บนเครื่องเดียวกัน อนุญาตกล้อง แล้วเลือก “OBS Virtual Camera” ในรายการกล้อง</li>
       </ol>
       <h3 data-i18n="cameras.ip.h2">วิธีที่ 2: go2rtc (เครื่องที่เปิดทิ้งไว้ หรือหลายกล้อง)</h3>
       <ol>
-        <li><span data-i18n="cameras.ip.g1">ติดตั้ง go2rtc (โอเพนซอร์ส MIT) แล้วเพิ่มกล้องในไฟล์ตั้งค่า เช่น</span> <code>streams: { door: rtsp://user:pass@192.168.1.64:554/stream1 }</code></li>
+        <li><span data-i18n="cameras.ip.g1">ติดตั้ง go2rtc (โอเพนซอร์ส MIT) แล้วเพิ่มกล้องในไฟล์ตั้งค่า เช่น</span> <code>streams:
+          <span class="lq-w">{ door:</span> rtsp://user:pass@<wbr>192.168.1.64:554<wbr><span class="lq-w">/stream1 }</span></code></li>
         <li data-i18n="cameras.ip.g2">เปิดหน้าเว็บของ go2rtc ตรวจว่าเห็นภาพ แล้วส่งภาพนั้นเข้าเว็บแคมเสมือน (OBS Virtual Camera หรือ v4l2loopback บน Linux)</li>
         <li data-i18n="cameras.ip.g3">เลือกเว็บแคมเสมือนนั้นในหน้าระบบ เหมือนวิธีที่ 1</li>
       </ol>

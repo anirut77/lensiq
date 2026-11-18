@@ -186,10 +186,12 @@
   // nav.js splits Thai text into <span class="lq-run"> word boxes for line breaking (Thai mode only): join them back
   // into one text node first, so a sentence is translated as a sentence and not word by word
   function unwrapRuns(rootNode) {
-    var runs = rootNode.querySelectorAll ? rootNode.querySelectorAll("span.lq-run") : [], parents = [];
+    var runs = rootNode.querySelectorAll ? rootNode.querySelectorAll("span.lq-run,.lq-t") : [], parents = [];
     for (var i = 0; i < runs.length; i++) {
       var sp = runs[i], p = sp.parentNode; if (!p) continue;
-      p.replaceChild(doc.createTextNode(sp.textContent), sp);
+      // .lq-t (nav.js line-wrap piece) may hold a page element: keep its children
+      if (sp.classList.contains("lq-t")) sp.replaceWith.apply(sp, Array.prototype.slice.call(sp.childNodes));
+      else p.replaceChild(doc.createTextNode(sp.textContent), sp);
       if (parents.indexOf(p) < 0) parents.push(p);
     }
     for (var j = 0; j < parents.length; j++) { parents[j].normalize(); if (parents[j].removeAttribute) parents[j].removeAttribute("data-lqwb"); }
@@ -269,6 +271,7 @@
     if (!active) return;
     active = false;
     if (observer) { observer.disconnect(); observer = null; }
+    unwrapRuns(doc.documentElement); // nav.js line-wrap tails (.lq-t) back into their text node first
     restore(doc.documentElement);
   }
   function sync(lang) {
@@ -278,7 +281,7 @@
   var q = root.LQI18N_RT;
   if (q && q.length) for (var i = 0; i < q.length; i++) add(q[i]);
   root.LQI18N_RT = { push: function (d) { add(d); return 0; }, length: 0 };
-  root.LQI18N_RTX = { tr: tr, add: add, config: config, get active() { return active; }, get lang() { return active ? L : null; },
+  root.LQI18N_RTX = { tr: tr, owns: function (n) { return !!(texts && texts.get(n)); }, add: add, config: config, get active() { return active; }, get lang() { return active ? L : null; },
     stats: function (lang) { var S = D[LANGS[lang] ? lang : L]; return { phrases: Object.keys(S.dict).length, templates: S.tmpls.length, translated: nTr }; } };
   wrapDialogs();
   wrapCanvas();

@@ -20,7 +20,7 @@ import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { closeAll, launch, leftoverProfiles, openBrowsers, sweepStale } from "./cdp.mjs";
-import { allFiles, assign, parseShard, weights } from "../../tools/e2e-shards.mjs";
+import { allFiles, assign, baseFor, parseShard, weights } from "../../tools/e2e-shards.mjs";
 import { EXIT_LOW_DISK, assertFreeSpace, checkFreeSpace } from "../../tools/disk-guard.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -67,7 +67,7 @@ process.on("SIGINT", () => { stopServer(); process.exit(130); });
 const fakeCams = readFileSync(join(here, "fake-cams.js"), "utf8");
 const MAC_LAST = argv.includes("--mac-last");
 if (MAC_LAST && !SHARD) { console.error("--mac-last needs --shard=i/n"); process.exit(2); }
-const files = SHARD ? assign(allFiles(), weights(), SHARD.n, { macLast: MAC_LAST })[SHARD.i - 1]
+const files = SHARD ? assign(allFiles(), weights(), SHARD.n, { macLast: MAC_LAST, base: baseFor(SHARD.n, MAC_LAST) })[SHARD.i - 1]
   : readdirSync(here).filter(f => f.endsWith(".e2e.mjs") && (!filters.length || filters.some(w => f.includes(w)))).sort();
 const ran = [];
 let pass = 0, fail = 0, skipped = 0;

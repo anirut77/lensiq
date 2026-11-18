@@ -91,6 +91,11 @@ Every fortune page now carries `fortune-top.css` inline (about 2.3 KB) and nav.j
 fortune.html or in nav.js / styles.css / lensiq-config.js (loaded by every page) will fail the budget on fortune.html and
 help.html first. Measure those two pages before merging any of those branches.
 
+2026-11-17 (branch line-wrap, owner request on line breaks): nav.js gained the line-wrap pass (nowrap / inline-block pieces, Thai /
+Chinese line ends), lensiq-i18n.js / lensiq-i18n-rt.js an unwrap step. To pay for it, nav.js and styles.css comments moved word for word
+to `docs/NAV.md`: nav.js 58,289 B -> 60,957 B (+2668 B), styles.css 38,020 B -> 35,071 B (-2949 B), lensiq-i18n.js 20,500 B -> 20,590 B (+90 B) (net -191 B on every page).
+Measured locally with speed-budget: fortune.html 440 KB (budget 440 KB), help.html 399 KB (budget 400 KB), all pages within budget.
+
 ## Before / after per page
 
 Before = origin/main 4413bc3 (2026-11-14). After = speed-pass d78ba51 (includes the other teams' work merged from main

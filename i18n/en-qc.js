@@ -106,5 +106,5 @@
   "qc.s104": "Test sound",
   "qc.s105": "Send JSON to a webhook on reject (off by default)",
   "qc.s106": "Webhook URL (POST)",
-  "qc.s107": "Payload example: {\"event\":\"reject\",\"time\":\"…\",\"lane\":\"L1\",\"laneNo\":1,\"recipe\":\"…\",\"reasons\":[\"capMissing\"],…} (lane drives that line's reject arm). The receiver must allow CORS from this page. All data stays in this browser only (empty-background images and reject thumbnails are kept in IndexedDB, not localStorage)"
+  "qc.s107": "Payload example: {\"event\": \"reject\", \"time\": \"…\", \"lane\": \"L1\", \"laneNo\": 1, \"recipe\": \"…\", \"reasons\": [\"capMissing\"], …} (lane drives that line's reject arm). The receiver must allow CORS from this page. All data stays in this browser only (empty-background images and reject thumbnails are kept in IndexedDB, not localStorage)"
 } });
