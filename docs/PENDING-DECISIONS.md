@@ -88,3 +88,17 @@ Running list, append only. Each entry: date, what changes, status, what happens 
 - **Owner's words:** "Later topic, not started: protecting paid content from being shared, resold, or used to run a paid reading
   service for others. Owner will discuss after current work is finished."
 - **Status:** open, not started. Nothing is built or changed for it; the owner raises it after the current work.
+
+## 2026-11-18: resale readiness (owner order, item 4): design only, do not build
+
+- **Owner order:** write a short design note on what another organisation would need to run this whole system under its own
+  brand: admin settings, a separate deployment per buyer, what stays ours (models, licences, test sets) and the licence and
+  legal questions for the lawyer.
+- **Written:** `docs/RESALE-READINESS.md` (design, 12 lawyer questions) and `docs/OWNER-VALUES-INVENTORY.md` (every
+  owner-specific value in code and content, where it lives, and whether it should move to the admin panel).
+- **Status: DESIGN ONLY, DO NOT BUILD.** No product code changed; users see nothing different. The seller-details admin page
+  is a separate branch (`seller-settings`).
+- **Decision needed later (not now):** whether to pursue resale at all; if so, the price and support terms, and sending the 12
+  questions to counsel. Recommendation: first finish `seller-settings`, then ask counsel Q1, Q2 and Q10 (licence of the
+  research-limited models, MIT versus a commercial package, crisis-line duties), because their answers decide whether
+  resale is possible. **If the owner does not answer:** nothing is built and nothing changes.
