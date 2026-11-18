@@ -62,7 +62,7 @@
       if (opt.raw && r.ok) return r;
       return r.json().catch(function () { return {}; }).then(function (j) {
         if (!r.ok) {
-          var e = /** @type {any} */ (new Error(j.error || ("HTTP " + r.status))); e.status = r.status; e.code = j.code;
+          var e = /** @type {any} */ (new Error(j.error || ("HTTP " + r.status))); e.status = r.status; e.code = j.code; e.fields = j.fields;
           e.retry = Number(r.headers.get("Retry-After")) || 0;
           // round 11: sensitive edits need a recent re-auth — ask once, open the 5-min window (POST /reauth), retry once
           if (j.code === "reauth_required" && !opt.noReauth && path !== "/reauth") {
@@ -209,7 +209,8 @@
     flow.first = false; flow.pw = ""; flow.back = "";
     // a merit reviewer sees the merit tab only, a try-on account (tryon_admin / tryon_editor, migration 0017) the try-on tab
     // only (the Worker refuses everything else anyway: 403 forbidden_role)
-    var only = me.role === "reviewer" ? "merit" : /^tryon_/.test(String(me.role)) ? "tryon" : "";
+    // a salon catalogue account (lensiq_admin / salon_editor, migration 0022) the salon catalogue tab only
+    var only = me.role === "reviewer" ? "merit" : /^tryon_/.test(String(me.role)) ? "tryon" : me.role === "lensiq_admin" || me.role === "salon_editor" ? "lsalon" : "";
     // org-p1: the Organisations tab needs both switches (window.LENSIQ_ORG_ACCOUNTS === true and the Worker's ORG_ACCOUNTS = "on")
     var orgsOn = /** @type {any} */ (window).LENSIQ_ORG_ACCOUNTS === true && me.org_accounts === true;
     // Try-On: the tab needs the Worker's TRYON = "on" (GET /me tryon; owner decision 2026-11-14, Try-On ships off)
@@ -1574,7 +1575,8 @@
     return G("ar.st." + st, ({ pending: "รอผู้ตรวจตั้งค่าครั้งแรก", active: "ใช้งานได้", disabled: "ปิดการใช้งาน" })[st] || st);
   };
   /** @param {string} r */
-  var arRole = function (r) { return G("ar.role." + r, ({ merit: "ผู้ตรวจคำแนะนำตามความเชื่อ", tryon_admin: "ผู้ดูแลแคตตาล็อกลองสินค้า", tryon_editor: "ผู้แก้ไขแคตตาล็อกลองสินค้า" })[r] || r); };
+  var arRole = function (r) { return G("ar.role." + r, ({ merit: "ผู้ตรวจคำแนะนำตามความเชื่อ", tryon_admin: "ผู้ดูแลแคตตาล็อกลองสินค้า", tryon_editor: "ผู้แก้ไขแคตตาล็อกลองสินค้า",
+    lensiq_admin: "ผู้ดูแล LENSIQ (แคตตาล็อกร้าน)", salon_editor: "ผู้แก้ไขแคตตาล็อกของร้าน" })[r] || r); };
   function arRender() {
     var box = $("arList"); box.textContent = "";
     var list = (ar.data && ar.data.reviewers) || [];

@@ -57,6 +57,9 @@
 //   setup code), GET|POST /admin/api/reviewers, POST /admin/api/reviewers/:id/disable|enable|reset, DELETE …/:id (owner,
 //   re-auth); merit review: POST /admin/api/merit/items/:id/review, GET …/:id/history, POST /admin/api/merit/import (owner,
 //   re-auth). A reviewer session may use ONLY REVIEWER_ROUTES; every other admin route answers 403 forbidden_role.
+// Salon catalogue approval step (look-salon.js, migration 0022; owner decision 2026-11-18): GET /v1/look/salon/catalog
+//   (approved entries only; 404 look_salon_off unless LOOK_SALON = "on"); /admin/api/look-salon/entries[/:id[/approve|reject|
+//   hide|history]] (owner; restricted roles lensiq_admin / salon_editor; approvers per LOOK_SALON_APPROVERS, default owner only)
 // Admin (ADMIN_ORIGINS, credentials; see auth.js): /admin/api/*
 import * as analytics from "./analytics.js";
 import * as auth from "./auth.js";
@@ -76,6 +79,7 @@ import { medRoute } from "./med.js";
 import * as merit from "./merit.js";
 import * as reviewers from "./reviewers.js";
 import * as tryon from "./tryon.js";
+import * as lookSalon from "./look-salon.js";
 import { adminPcLookup, pcRoute, putPcSettings } from "./pc.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
@@ -130,6 +134,8 @@ async function publicRoute(request, env, url, deps) {
   if (orgs.isOrgMemberPath(p) && !orgs.orgsEnabled(env)) return reply(orgs.ORGS_OFF_BODY, 404);
   // Try-On OFF unless TRYON = "on" (owner decision 2026-11-14) — refused before any database or R2 access
   if (tryon.isTryonPublicPath(p) && !tryon.tryonEnabled(env)) return reply(tryon.TRYON_OFF_BODY, 404);
+  // salon catalogue OFF unless LOOK_SALON = "on" (owner decision 2026-11-18) — refused before any database access
+  if (lookSalon.isLookSalonPublicPath(p) && !lookSalon.lookSalonEnabled(env)) return reply(lookSalon.LOOK_SALON_OFF_BODY, 404);
   const capped = await countRequest(env);
   if (!capped.ok) return json(capBody(capped.code), capped.code === "config_invalid" ? 503 : 429, { ...cors, "Retry-After": String(capped.retryAfter) });
   // deploy B3: tester access code (TESTER_GATE=required). Checked only on the gated routes below.
@@ -159,6 +165,7 @@ async function publicRoute(request, env, url, deps) {
     return reply(await leads.submitLead(env, request, await readJson(request, 8192), deps), 201);
   }
   // Try-On MVP (tryon.js): published catalogue + garment cut-outs; nothing about the visitor is read or stored
+  if (p === "/v1/look/salon/catalog" && m === "GET") return json(await lookSalon.publicCatalog(env), 200, { ...cors, "Cache-Control": "public, max-age=60" });
   if (p === "/v1/tryon/catalog" && m === "GET") return json(await tryon.publicCatalog(env), 200, { ...cors, "Cache-Control": "public, max-age=120" });
   const ta = /^\/v1\/tryon\/asset\/([^/]{1,40})$/.exec(p);
   if (ta && m === "GET") {
@@ -401,7 +408,8 @@ async function adminRoute(request, env, url, deps) {
     return reply(r);
   }
 
-  const sess = await auth.requireAdmin(env, request);
+  // salon catalogue routes answer 403 (not 401) to anonymous callers (look-salon.js anonymous)
+  const sess = await auth.requireAdmin(env, request).catch(e => { throw lookSalon.anonymous(route, e); });
   const ipHash = await callerHash(env, request, "admin");
   const isReviewer = sess.role === "reviewer";
   // restricted accounts (admin_reviewers): role "merit" = the merit reviewer; "tryon_admin" / "tryon_editor" = try-on catalogue (0017)
@@ -411,7 +419,7 @@ async function adminRoute(request, env, url, deps) {
   const act = (action, detail) => audit(env, who.actor, action, detail, ipHash);
   if (isReviewer) {
     // enforced here, on the Worker, for every request (the page only hides what it cannot use)
-    if (!(accRole === "merit" ? reviewerAllowed(m, route) : tryon.roleAllowed(accRole, m, route))) {
+    if (!(accRole === "merit" ? reviewerAllowed(m, route) : lookSalon.isLookSalonRole(accRole) ? lookSalon.roleAllowed(accRole, m, route) : tryon.roleAllowed(accRole, m, route))) {
       await act("role.denied", { route: (m + " " + route).slice(0, 80) });
       throw new HttpError(403, "not allowed for a reviewer account (forbidden_role)", { code: "forbidden_role" });
     }
@@ -716,6 +724,11 @@ async function adminRoute(request, env, url, deps) {
   // Try-On MVP catalogue (tryon.js): owner + tryon_admin everything; tryon_editor create / edit / upload only (the role
   // matrix above already refused the rest). Audit: ids, field names, statuses and image size only (never the image, a price
   // value or a name).
+  // salon catalogue approval step (look-salon.js): every action audited by act() with ids / codes only
+  if (lookSalon.isLookSalonAdminRoute(route)) {
+    const r = await lookSalon.adminRoute(env, m, route, body, who, act);
+    return r ? reply(r.body, r.status) : reply({ error: "not found", code: "not_found" }, 404);
+  }
   if (route === "/tryon/items" && m === "GET") return reply(await tryon.adminList(env));
   if (route === "/tryon/items" && m === "POST") {
     const it = await tryon.adminCreate(env, await body(), who);
@@ -844,7 +857,7 @@ export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin
   "/lensiq-busy.js",
   // Try-On catalogue tab: face blur of product photos on the merchant's device before upload (Product Check detector,
   // BlazeFace short range + MediaPipe Tasks runtime, Apache-2.0) and the plain-background cut-out (studio-core.js)
-  "/admin-tryon.js", "/lensiq-tryon-core.js", "/lensiq-pc.js", "/lensiq-pc-run.js", "/studio-core.js", "/vendor/mediapipe/vision_bundle.mjs",
+  "/admin-tryon.js", "/admin-look-salon.js", "/lensiq-tryon-core.js", "/lensiq-pc.js", "/lensiq-pc-run.js", "/studio-core.js", "/vendor/mediapipe/vision_bundle.mjs",
   "/vendor/mediapipe/wasm/vision_wasm_internal.js", "/vendor/mediapipe/wasm/vision_wasm_internal.wasm",
   "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.js", "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
   "/vendor/models/face-gate/blaze_face_short_range.tflite"]);
@@ -889,7 +902,10 @@ export async function handle(request, env, deps = {}) {
     const cors = corsHeaders(request, allow, { credentials: url.pathname.startsWith("/admin/") });
     if (e instanceof HttpError) {
       const extra = e.extra && e.extra.retryAfter ? { "Retry-After": String(e.extra.retryAfter) } : {};
-      return json(e.extra && e.extra.code ? { error: e.message, code: e.extra.code } : { error: e.message }, e.status, { ...cors, ...extra });
+      const out = e.extra && e.extra.code ? { error: e.message, code: e.extra.code } : { error: e.message };
+      // look-salon.js lint_failed: which field failed and the lint codes (never the matched words)
+      if (e.extra && Array.isArray(e.extra.fields)) out.fields = e.extra.fields;
+      return json(out, e.status, { ...cors, ...extra });
     }
     log("unhandled", { name: (e && e.name) || "Error", path: url.pathname.slice(0, 60) });
     return json({ error: "internal error" }, 500, cors);

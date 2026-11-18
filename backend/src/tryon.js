@@ -32,7 +32,7 @@ export const CATEGORIES = [
   { id: "trousers", anchor: "pose" }
 ];
 const CAT = new Map(CATEGORIES.map(c => [c.id, c.anchor]));
-export const ROLES = ["merit", "tryon_admin", "tryon_editor"];
+export const ROLES = ["merit", "tryon_admin", "tryon_editor", "lensiq_admin", "salon_editor"]; // last two: look-salon.js (0022)
 export const STATUSES = ["draft", "in_review", "published", "hidden"];
 export const ASSET_MAX_BODY = 1400 * 1024;
 export const MAX_PX = 2048;

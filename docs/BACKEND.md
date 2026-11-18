@@ -576,6 +576,14 @@ Local dev with the Turnstile bypass: put `GO_LIVE_GATE=report` in `.dev.vars` (t
 > sign-ins stop writing over this many statements an hour; a correct sign-in is never refused). All are unset in the default configuration, where nothing changes. `POST /v1/tester/check`
 > answers `{ok:true}` for a valid code. The generic steps below describe a fresh install on an account of its own.
 
+> **Salon catalogue approval step (2026-11-18): apply migration `0022_look_salon.sql` BEFORE deploying this Worker.**
+> (Numbered 0022: branch seller-settings adds 0021.) Routes: `/admin/api/look-salon/entries[/:id[/approve|reject|hide|history]]`
+> (owner; restricted roles `lensiq_admin` / `salon_editor`, created in the Security tab) and `GET /v1/look/salon/catalog`
+> (approved entries only). Vars: `LOOK_SALON = "off"` (public list closed; the approval tab works either way) and
+> `LOOK_SALON_APPROVERS = "owner"` (`"owner,lensiq_admin"` also lets LENSIQ admins approve). Add `/v1/look/salon/catalog` to
+> `PUBLIC_ROUTES` where that list is set, only when the owner opens salon mode. Anonymous calls to the salon admin routes
+> answer 403. `/health/deep` names 0022 when it is missing.
+
 > **Try-On MVP (2026-11-14): apply migration `0017_tryon.sql` BEFORE deploying this Worker.** From this version on,
 > creating any restricted back-office account writes `admin_reviewers.role` and the try-on routes read `tryon_items` /
 > `tryon_assets`; a Worker deployed on a database without 0017 refuses new reviewer accounts and `/health/deep` names

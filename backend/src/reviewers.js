@@ -94,7 +94,7 @@ async function newSetupCode(env) {
 export async function createReviewer(env, body, owner) {
   const role = cleanRole(body && body.role); // migration 0017: merit (default) | tryon_admin | tryon_editor
   // a try-on account is useless while Try-On is switched off (TRYON != "on"): refused, nothing written
-  if (role !== "merit" && !tryonEnabled(env)) {
+  if (/^tryon_/.test(role) && !tryonEnabled(env)) {
     throw new HttpError(409, "try-on is not enabled on this server, so try-on roles cannot be given (tryon_role_off)", { code: "tryon_role_off" });
   }
   const username = String((body && body.username) || "").trim();

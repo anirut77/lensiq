@@ -179,6 +179,7 @@
       <button type="button" role="tab" data-tab="fsources" aria-selected="false" data-i18n="adf.tab">แหล่งอ้างอิงดูดวง</button>
       <button type="button" role="tab" data-tab="merit" aria-selected="false" data-i18n="am.tab">คำแนะนำตามความเชื่อ</button>
       <button type="button" role="tab" data-tab="tryon" aria-selected="false" data-i18n="at.tab">แคตตาล็อกลองสินค้า</button>
+      <button type="button" role="tab" data-tab="lsalon" aria-selected="false" data-i18n="ls.tab">แคตตาล็อกร้าน (อนุมัติ)</button>
     </nav>
 
     <div class="ad-panel" data-panel="analytics" role="tabpanel">
@@ -438,6 +439,8 @@
               <option value="merit" data-i18n="ar.role.merit">ผู้ตรวจคำแนะนำตามความเชื่อ</option>
               <option value="tryon_admin" data-i18n="ar.role.tryon_admin">ผู้ดูแลแคตตาล็อกลองสินค้า</option>
               <option value="tryon_editor" data-i18n="ar.role.tryon_editor">ผู้แก้ไขแคตตาล็อกลองสินค้า</option>
+              <option value="lensiq_admin" data-i18n="ar.role.lensiq_admin">ผู้ดูแล LENSIQ (แคตตาล็อกร้าน)</option>
+              <option value="salon_editor" data-i18n="ar.role.salon_editor">ผู้แก้ไขแคตตาล็อกของร้าน</option>
             </select></label>
           <button class="ad-btn" type="button" id="arCreate" data-i18n="ar.create">สร้างบัญชีและลิงก์ตั้งค่า</button>
         </form>
@@ -617,6 +620,80 @@
         </div>
       </div>
     </div>
+    <div class="ad-panel" data-panel="lsalon" role="tabpanel" hidden>
+      <!-- Salon catalogue approval step (backend/src/look-salon.js, migration 0022; owner decision 2026-11-18;
+           docs/BEAUTY-IMAGE-DESIGN.md §4). Every entry starts pending; the LENSIQ owner approves the exact version
+           (LOOK_SALON_APPROVERS may add LENSIQ admins); any edit needs approval again; every action is audited without the
+           salon's text. No photo upload. TH default; EN / ZH in i18n/en-admin.js, i18n/zh-admin.js (ls.*) -->
+      <div class="ad-card">
+        <h2 data-i18n="ls.h">แคตตาล็อกของร้าน: อนุมัติก่อนแสดง</h2>
+        <p class="ad-muted" data-i18n="ls.intro">รายการของร้าน (ทรงคิ้ว สีปาก สไตล์อายไลเนอร์ ภาพวาดทรงผม) ใช้ประกอบการปรึกษาเรื่องรูปทรงเท่านั้น
+          ทุกรายการเริ่มเป็น "รออนุมัติ" และแสดงต่อลูกค้าหลังได้รับอนุมัติเท่านั้น แก้ไขเมื่อใดต้องอนุมัติใหม่ ไม่มีการอัปโหลดภาพถ่าย</p>
+        <p class="ad-warn" data-i18n="ls.lintNote">ตัวตรวจถ้อยคำเป็นด่านแรกเท่านั้น ไม่ใช่ตัวกรองที่กันได้ทั้งหมด คนต้องอ่านและอนุมัติทุกรายการ
+          ข้อความที่มีชื่อหัตถการหรือวิธีทำทางการแพทย์และความงาม การทำให้ผิวขาว การบอกว่าส่วนใดของใบหน้าไม่ดี คะแนนความงาม ราคา
+          หรือลิงก์ บันทึกไม่ได้และอนุมัติไม่ได้</p>
+        <p class="ad-muted" id="lsApprover" role="status"></p>
+        <div class="ad-row"><button class="ad-btn" type="button" id="lsNew" data-i18n="ls.new">เพิ่มรายการใหม่</button></div>
+        <div id="lsList" class="am-list"></div>
+      </div>
+      <div class="ad-card" id="lsEdit" hidden>
+        <h2 id="lsEditH" data-i18n="ls.edit.h">รายละเอียดรายการ</h2>
+        <form id="lsForm" class="ad-form" autocomplete="off" novalidate>
+          <label><span data-i18n="ls.f.kind">ประเภท</span> <select name="kind" id="lsKind">
+            <option value="brow" data-i18n="ls.k.brow">ทรงคิ้ว</option>
+            <option value="lip" data-i18n="ls.k.lip">สีปาก</option>
+            <option value="liner" data-i18n="ls.k.liner">สไตล์อายไลเนอร์</option>
+            <option value="hair" data-i18n="ls.k.hair">ภาพวาดทรงผม</option>
+          </select></label>
+          <label><span data-i18n="ls.f.name_th">ชื่อ (ไทย)</span> <input name="name_th" maxlength="80" required></label>
+          <label><span data-i18n="ls.f.name_en">ชื่อ (อังกฤษ ไม่บังคับ)</span> <input name="name_en" maxlength="80"></label>
+          <label><span data-i18n="ls.f.name_zh">ชื่อ (จีน ไม่บังคับ)</span> <input name="name_zh" maxlength="80"></label>
+          <label><span data-i18n="ls.f.desc_th">คำอธิบายรูปทรง (ไทย ไม่บังคับ)</span> <textarea name="desc_th" rows="2" maxlength="300"></textarea></label>
+          <label><span data-i18n="ls.f.desc_en">คำอธิบายรูปทรง (อังกฤษ ไม่บังคับ)</span> <textarea name="desc_en" rows="2" maxlength="300"></textarea></label>
+          <label><span data-i18n="ls.f.desc_zh">คำอธิบายรูปทรง (จีน ไม่บังคับ)</span> <textarea name="desc_zh" rows="2" maxlength="300"></textarea></label>
+          <label data-ls-for="brow lip"><span data-i18n="ls.f.card">แบบภาพประกอบ</span> <select name="card" id="lsCard"></select></label>
+          <label data-ls-for="brow"><span data-i18n="ls.f.points">จุดของเส้นคิ้ว (ไม่บังคับ: x,y คั่นด้วย ; ค่า 0 ถึง 1)</span>
+            <textarea name="points" rows="2" placeholder="0.05,0.7; 0.4,0.3; 0.95,0.55"></textarea></label>
+          <label data-ls-for="lip"><span data-i18n="ls.f.hex">สี</span> <input name="hex" type="color" value="#b5523b"></label>
+          <label data-ls-for="lip"><span data-i18n="ls.f.gloss">ความเงา (0 ด้าน ถึง 1 เงา)</span> <input name="gloss" type="number" min="0" max="1" step="0.1" inputmode="decimal"></label>
+          <label data-ls-for="lip"><span data-i18n="ls.f.code">รหัสสีของร้าน (ไม่บังคับ)</span> <input name="code" maxlength="24"></label>
+          <label data-ls-for="liner"><span data-i18n="ls.f.style">สไตล์</span> <select name="style">
+            <option value="thin" data-i18n="ls.st.thin">เส้นบาง</option>
+            <option value="wing-short" data-i18n="ls.st.wing-short">หางสั้น</option>
+            <option value="wing-long" data-i18n="ls.st.wing-long">หางยาว</option>
+            <option value="tight" data-i18n="ls.st.tight">กรอบชิดขนตา</option>
+          </select></label>
+          <label data-ls-for="hair"><span data-i18n="ls.f.path">ภาพวาดทรงผม (ข้อมูลเส้น SVG path จากเครื่องมือวาด เช่น M10 10 C 20 40 ...)</span>
+            <textarea name="path" rows="3" maxlength="4000" spellcheck="false"></textarea></label>
+          <label class="ad-check"><input type="checkbox" name="rights_ok"> <span data-i18n="ls.f.rights">ร้านเป็นเจ้าของหรือมีสิทธิ์ใช้รูปทรงหรือภาพวาดนี้</span></label>
+          <p class="ad-alert ad-bad" id="lsErr" role="alert" hidden></p>
+          <div class="ad-row">
+            <button class="ad-btn" type="button" id="lsSave" data-i18n="ls.save">บันทึก (ส่งรออนุมัติ)</button>
+            <button class="ad-btn ad-ghost" type="button" id="lsCancel" data-i18n="ls.cancel">ยกเลิก</button>
+          </div>
+        </form>
+      </div>
+      <div class="ad-card" id="lsHistBox" hidden>
+        <h2 data-i18n="ls.hist.h">ประวัติของรายการ</h2>
+        <ul id="lsHist" class="ls-hist"></ul>
+      </div>
+      <dialog id="lsRejectDlg" class="ad-reauth">
+        <form method="dialog">
+          <p data-i18n="ls.rej.p">เลือกเหตุผลที่ส่งกลับให้ร้านแก้</p>
+          <select name="reason">
+            <option value="wording" data-i18n="ls.r.wording">ถ้อยคำ</option>
+            <option value="procedure" data-i18n="ls.r.procedure">มีชื่อหัตถการหรือวิธีทำ</option>
+            <option value="rights" data-i18n="ls.r.rights">สิทธิ์ในรูปทรงหรือภาพวาด</option>
+            <option value="shape" data-i18n="ls.r.shape">รูปทรงไม่ชัดหรือไม่ถูกต้อง</option>
+            <option value="other" data-i18n="ls.r.other">อื่น ๆ (แจ้งร้านทางช่องทางปกติ)</option>
+          </select>
+          <div class="ad-row">
+            <button class="ad-btn" value="ok" data-i18n="ls.rej.ok">ส่งกลับ</button>
+            <button class="ad-btn ad-ghost" value="cancel" data-i18n="ls.cancel">ยกเลิก</button>
+          </div>
+        </form>
+      </dialog>
+    </div><!-- /lsalon -->
   </section>
   <p id="adMsg" class="ad-msg" role="status" aria-live="polite"></p>
 </main>
@@ -634,5 +711,6 @@
 <script src="lensiq-tryon-core.js?v=2"></script>
 <script src="admin-tryon.js?v=2"></script>
 <script src="admin-orgs.js?v=1"></script>
+<script src="admin-look-salon.js?v=1"></script>
 </body>
 </html>

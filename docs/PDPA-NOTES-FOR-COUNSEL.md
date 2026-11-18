@@ -1131,6 +1131,15 @@ shows the salon's own catalogue names labelled as the salon's text; may a salon 
 
 (d) **Volunteer set** for field numbers: `docs/LOOK-VOLUNTEER-PROTOCOL.md` (Thai consent form, draft for legal review).
 
+(e) **Salon catalogue approval step (2026-11-18, `backend/src/look-salon.js`, migration 0022).** Stored: the salon's catalogue
+text (names, descriptions, colour codes), shapes (vector points, preset cards, colour hex, liner style, SVG path data), a rights
+tick, status and who approved which version. No photo of any person is uploaded or stored (no image column). Staff accounts are
+the existing restricted back-office accounts (username, password hash, 2-step key). The audit log and the per-entry history hold
+ids, versions, statuses, field names and wording-check codes only, never the text. Procedure names are refused (stricter than
+question (c) above anticipated; owner decision 2026-11-18). Questions: is the salon a controller for its own catalogue text and
+LENSIQ a processor (DPA template)? Is the "rights" tick enough for a salon's drawings, or does the terms of service need a
+licence clause from the salon?
+
 ## Crisis help is never counted (owner decision 77 ก, 2026-11-16)
 
 No record of who opens crisis help. The opt-in usage analytics (`lensiq-analytics.js`) never counts the counselling page

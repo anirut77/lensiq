@@ -375,13 +375,14 @@
      with a neutral note that it is the salon's own name in Thai; we never translate or rewrite salon text. The back office may
      later ask for EN / ZH names, but does not require them. */
   var SALON_TH_NOTE = { th: "", en: "(the salon's own name, in Thai)", zh: "（店家自己的名称，泰文）" };
-  /* salon mode switch (owner decision 2026-11-14, option ก): salon mode stays OFF until the human-approval step for
-     salon-typed text exists (docs/BEAUTY-IMAGE-DESIGN.md §4: owner or LENSIQ admin approves each entry in the back office,
-     re-approval after an edit, audit log). That step is NOT built, so SALON_APPROVAL_STEP is false and salonEnabled() is
-     false whatever window.LENSIQ_LOOK_SALON says (lensiq-config.js also ships it hard off). render() has no salon path; the
-     pure helpers salonItem() / salonHTML() are not called by any page (tests/unit/look-salon-off.test.js O3).
-     Only the change that builds the approval step may set SALON_APPROVAL_STEP, with a new locked test set. */
-  var SALON_APPROVAL_STEP = false;
+  /* salon mode switch. 2026-11-14 (option ก): OFF until the human-approval step for salon-typed text exists.
+     2026-11-18 (owner decision "build the salon content approval step so salon mode can be switched on"): the step exists
+     (backend/src/look-salon.js + the admin "salon catalogue" tab: every entry starts pending, the LENSIQ owner approves the
+     exact version, any edit needs approval again, every action audited; locked set evals-locks/salon-approval.sha256), so
+     SALON_APPROVAL_STEP is true and window.LENSIQ_LOOK_SALON alone decides. lensiq-config.js still ships it hard off: the
+     owner switches it on. render() (the face-reading page) still has no salon path; salon content is drawn only by
+     salonRender() below, from approved entries only. */
+  var SALON_APPROVAL_STEP = true;
   function salonEnabled() { return SALON_APPROVAL_STEP && /** @type {any} */ (root).LENSIQ_LOOK_SALON === true; }
   function salonItem(entry, lang) {
     var l = langOf(lang), names = (entry && entry.name) || {};
@@ -397,13 +398,79 @@
   function salonHTML(items, lang) {
     var l = langOf(lang), t = SALON_TEXT[l], A = art(), L = lint();
     var ok = (items || []).filter(function (it) { return it && it.source === "salon" && !salonErrors(L, it.text).length; });
-    return '<div class="lq-look-salon" data-lq-look><h4>' + esc(t.title) + '</h4><p class="lq-look-intro">' + esc(t.note) + '</p><ul class="lq-look-list">' +
+    return '<div class="lq-look-salon" data-lq-look><h4>' + escText(t.title) + '</h4><p class="lq-look-intro">' + escText(t.note) + '</p><ul class="lq-look-list">' +
       ok.map(function (it) {
         var card = it.card && A ? A.svg(it.card) : "";
         return '<li class="lq-look-item lq-look-salon-item" data-look-id="' + esc(it.id) + '" data-lq-look>' + (card ? '<div class="lq-look-card">' + card + "</div>" : "") +
           '<div class="lq-look-body"><p class="lq-look-text"><span lang="' + esc(it.nameLang || l) + '">' + esc(it.text) + "</span>" +
-          (it.note ? ' <small class="lq-look-note">' + escText(it.note) + "</small>" : "") + '</p><p class="lq-look-label">' + esc(SALON_LABEL[l]) + "</p></div></li>";
+          (it.note ? ' <small class="lq-look-note">' + escText(it.note) + "</small>" : "") + "</p>" +
+          (it.desc ? '<p class="lq-look-desc"><span lang="' + esc(l) + '">' + esc(it.desc) + "</span></p>" : "") +
+          (it.code ? '<p class="lq-look-code"><span lang="' + esc(l) + '">' + esc(it.code) + "</span></p>" : "") +
+          '<p class="lq-look-label">' + escText(SALON_LABEL[l]) + "</p></div></li>";
       }).join("") + "</ul></div>";
+  }
+
+  /* ---------------- approved salon entries (approval step, 2026-11-18) ----------------
+     Entries come from GET /v1/look/salon/catalog (backend/src/look-salon.js): {id, kind, status, version, name: {th, en, zh},
+     desc: {th, en, zh}, code, shape}. The page keeps an entry only when its status is exactly "approved", its kind is known
+     and EVERY salon text passes the STRICT lint (no salon exception: a procedure name is never shown, even if a stored entry
+     holds one). Without the lint nothing is shown (fail closed). */
+  var SALON_KINDS = ["brow", "lip", "liner", "hair"];
+  /** @param {any} e */
+  function salonTexts(e) {
+    var out = /** @type {string[]} */ ([]);
+    ["name", "desc"].forEach(function (k) { var o = e[k]; if (o && typeof o === "object") LANGS.forEach(function (l) { if (o[l] != null && o[l] !== "") out.push(String(o[l])); }); });
+    if (e.code != null && e.code !== "") out.push(String(e.code));
+    return out;
+  }
+  /** an approved, known-kind entry whose every text passes the strict lint @param {any} e */
+  function salonOk(e) {
+    if (!e || typeof e !== "object" || e.status !== "approved" || SALON_KINDS.indexOf(e.kind) < 0) return false;
+    if (!e.name || typeof e.name !== "object" || !String(e.name.th || "").trim()) return false;
+    var L = lint();
+    if (!L) return false;
+    return salonTexts(e).every(function (t) { return !L.lintLook(t).some(function (/** @type {any} */ h) { return h.code !== "markup"; }); });
+  }
+  /** approved entries -> salon items (salonItem form + desc / code in the page language) @param {any} entries @param {string} lang */
+  function salonApproved(entries, lang) {
+    var l = langOf(lang);
+    return (Array.isArray(entries) ? entries : []).filter(salonOk).map(function (e) {
+      var sh = e.shape && typeof e.shape === "object" ? e.shape : {};
+      var card = sh.card ? String(sh.card) : e.kind === "liner" && sh.style ? "liner-" + String(sh.style) : null;
+      var r = salonItem({ id: e.id, kind: e.kind, shape: card, name: e.name }, l);
+      if (!r.ok) return null;
+      var d = e.desc && typeof e.desc === "object" ? e.desc : {};
+      r.item.desc = d[l] ? String(d[l]) : "";
+      r.item.code = e.code ? String(e.code) : "";
+      return r.item;
+    }).filter(Boolean);
+  }
+  /** draws approved salon entries into container; hidden when the switch is off, the tab is calm / in crisis / holds
+   *  distress words, the 18+ confirmation is missing or the look section is off on this device @param {any} container
+   *  @param {any} entries @returns {boolean} shown */
+  function salonRender(container, entries) {
+    if (!container) return false;
+    var d = container.ownerDocument || root.document;
+    var hide = function () { container.hidden = true; container.innerHTML = ""; return false; };
+    if (!salonEnabled()) return hide();
+    if (!canShow(d).ok) return hide();
+    var l = curLang(), items = salonApproved(entries, l);
+    if (!items.length) return hide();
+    css(d);
+    container.setAttribute("data-lq-look", "");
+    container.hidden = false;
+    container.innerHTML = salonHTML(items, l);
+    return true;
+  }
+  /** fetches the approved catalogue (only while salon mode is on; no call otherwise) @param {{base?: string}} [o] */
+  function salonLoad(o) {
+    if (!salonEnabled()) return Promise.resolve([]);
+    var base = (o && o.base) || /** @type {any} */ (root).LENSIQ_API_BASE || "";
+    var f = /** @type {any} */ (root).fetch;
+    if (!base || typeof f !== "function") return Promise.resolve([]);
+    return Promise.resolve(f(String(base).replace(/\/+$/, "") + "/v1/look/salon/catalog", { method: "GET", credentials: "omit" }))
+      .then(function (/** @type {any} */ r) { return r && r.ok ? r.json() : { entries: [] }; })
+      .then(function (/** @type {any} */ j) { return (j && Array.isArray(j.entries) ? j.entries : []).filter(salonOk); }, function () { return []; });
   }
 
   var CSS = "html[data-lq-calm] [data-lq-look],html[data-lq-crisis] [data-lq-look]{display:none!important}" +
@@ -482,7 +549,8 @@
   }
 
   var api = { __setLintForTest: function (/** @type {any} */ L) { LINT_OVR = L; },
-    RULES: RULES, LABEL: LABEL, SALON_LABEL: SALON_LABEL, SALON_TEXT: SALON_TEXT, salonItem: salonItem, salonHTML: salonHTML, salonEnabled: salonEnabled, CSS: CSS, SLOTS: SLOTS,
+    RULES: RULES, LABEL: LABEL, SALON_LABEL: SALON_LABEL, SALON_TEXT: SALON_TEXT, salonItem: salonItem, salonHTML: salonHTML, salonEnabled: salonEnabled,
+    salonApproved: salonApproved, salonRender: salonRender, salonLoad: salonLoad, CSS: CSS, SLOTS: SLOTS,
     suggest: suggest, canShow: canShow, confirmAdult: confirmAdult, html: html, render: render, TEXT: TXT };
   if (NODE) module.exports = api; else /** @type {any} */ (root).LQLook = api;
 })(typeof window !== "undefined" ? window : globalThis);
