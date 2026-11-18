@@ -21,3 +21,6 @@ e0d9a801e786a58050588021c6d11dba6588ed6abb7dfdbe903d9e7e827c9876  tests/unit/for
 0c04589aab924713f29b241787f360f5b844e0dc4dada1f35e2c774245409928  tests/unit/fortune-no-demo.test.js  # repo file (relock-nodemo)
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): r2-lock, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
 f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  tests/unit/cat-pages.test.js  # repo file (r2-lock)
+# RE-LOCK 2026-11-18 (branch fortune-cards-clean), owner decision 2026-11-18: fortune cards carry no accuracy field; business products unchanged. See evals-locks/fortune-cards.sha256 (relock-1) and docs/EVAL-LOCKS.md.
+a7e7cd55c8b85c423abe1659b6beabf0bbc897ce9a76c1f8a884f31643af9886  tests/unit/cat-pages.test.js  # repo file (fortune-cards relock-1)
+0290a823d9fddc2c97c8c7e15170fcab1ef2eefbb515e6e3640795d8af0a87db  tests/e2e/categories.e2e.mjs  # repo file (fortune-cards relock-1)

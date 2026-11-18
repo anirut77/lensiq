@@ -1,0 +1,27 @@
+# evals-locks/fortune-cards.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-cards/ (owner rule 2026-11-13). Append-only.
+# fortune-cards (owner order 2026-11-18, fortune only): fortune cards show only name + one short line + small illustration, the whole
+# card is one link; no "ความแม่นยำที่วัดได้" heading, no "ไม่มีตัวเลขความแม่นยำ" tag, no per-card disclaimer, no filter / banned-topic
+# wording wherever a fortune item is listed (cat-fortune, index, solutions, menu, hub), TH / EN / ZH incl. i18n keys; the disclaimer once,
+# small, near the top of cat-fortune.html; business products unchanged (C4 fingerprint pinned at base b2a6e76). Locked BEFORE any product
+# change on branch fortune-cards-clean (base b2a6e76 = origin/main). Before the build: unit fortune-cards 2/8 pass (C4 x2 pass, C1-C3 and
+# C5 fail); e2e fortune-cards 2/5 pass (E4 business, E5 crisis pass; E1, E2, E3 fail). Logs: ~/LENSIQ-field/evals/fortune-cards/runs/run-0-*.
+# RE-LOCK (relock-1/), reason: "owner decision 2026-11-18: fortune cards carry no accuracy field; business products unchanged".
+#   cat-pages.test.js: "every page ... accuracy lines" required claims.length >= 1 for EVERY page; now a page of a noAccuracy category
+#     must have 0 and only category 6 may be noAccuracy; every other page still needs >= 1 line with a source label (unchanged).
+#   categories.e2e.mjs: the page link of a card is .sl-go, or the card's one link when the card is a single link (fortune); adds: only
+#     category 6 may show no accuracy line, every other card needs >= 1. Source-label and count checks unchanged.
+#   fortune-live.test.js (item 2): cat.c.fortune (the removed fortune accuracy line) is no longer required in i18n/{en,zh}-cat.js; the
+#     index chooser card may show cat.fortune.lead (intro without the disclaimer, owner order: no per-card disclaimer). No-old-wording
+#     checks unchanged; every crisis / helpline assertion unchanged.
+# locked 2026-11-18T03:33:07Z (tools/eval-guard.mjs lock, 5 files)
+8a2d571d7c10ad09c7ed53594c84921107c8fcc61655e41304776af2949a61a1  fortune-cards.test.js
+2bb2023688790dae08cbfd7970cfb4de417adbd6b6202b668c8ea055ad837b8e  fortune-cards.e2e.mjs
+a7e7cd55c8b85c423abe1659b6beabf0bbc897ce9a76c1f8a884f31643af9886  relock-1/cat-pages.test.js
+0290a823d9fddc2c97c8c7e15170fcab1ef2eefbb515e6e3640795d8af0a87db  relock-1/categories.e2e.mjs
+ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e  relock-1/fortune-live.test.js
+# repo copies (byte-identical to the locked files above)
+8a2d571d7c10ad09c7ed53594c84921107c8fcc61655e41304776af2949a61a1  tests/unit/fortune-cards.test.js  # repo file
+2bb2023688790dae08cbfd7970cfb4de417adbd6b6202b668c8ea055ad837b8e  tests/e2e/fortune-cards.e2e.mjs  # repo file
+a7e7cd55c8b85c423abe1659b6beabf0bbc897ce9a76c1f8a884f31643af9886  tests/unit/cat-pages.test.js  # repo file (relock-1)
+0290a823d9fddc2c97c8c7e15170fcab1ef2eefbb515e6e3640795d8af0a87db  tests/e2e/categories.e2e.mjs  # repo file (relock-1)
+ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e  tests/unit/fortune-live.test.js  # repo file (relock-1)
