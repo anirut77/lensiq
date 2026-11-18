@@ -537,7 +537,11 @@
         if (RT(n) && pre && !fl && wt(v) < 15) { var h = document.createElement("lq-t"); h.className = "lq-w lq-t lq-b"; /** @type {Text} */ (n).before(h); h.append(/** @type {Node} */ (x), n); return; }
         if (RT(n) && !first) { if (!fl && IN.test(p.nodeName) && p.childNodes.length < 2 && wt(v) < 12) p.classList.add("lq-w"); return; }
         var pos = first, W = null, made = [n];
-        var piece = function (a, b2) { var k = document.createElement("lq-t"); k.className = "lq-w lq-t" + (live || (b2 >= v.trim().length && (CP.test(nx) || (nn && !nx)) && wt(v.slice(a, b2)) < 13) ? "" : " lq-b"); return k; };
+        var piece = function (a, b2) {
+          var w = wt(v.slice(a, b2)), k = document.createElement("lq-t");
+          k.className = "lq-w lq-t" + (live || (b2 >= v.trim().length && (CP.test(nx) || (nn && !nx)) && w < 13) || (/\s/.test(v[a - 1] || "") && w < 17) ? "" : " lq-b");
+          return k;
+        };
         var put = function (node) { (W || f).append(node); };
         var to = function (e2) { if (e2 > pos) { var t = document.createTextNode(v.slice(pos, e2)); made.push(t); put(t); pos = e2; } };
         var open = function () { var q = /** @type {number[]} */ (wd); to(q[0]); W = piece(q[0], q[1]); f.append(W); };

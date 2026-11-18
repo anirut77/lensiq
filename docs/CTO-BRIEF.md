@@ -15,8 +15,8 @@ compatibility through the `LQCompat.pair(owner, pet, {mode: "owner-pet"})` inter
 grouped fortune layout; free share card on a canvas (photo off by default, persons pixelated, nothing uploaded). Detector on the
 locked Oxford-IIIT Pet set (public dataset, 296 images): pet found 95.3 %, species 89.5 % (target 90 %: missed), head inside the
 box 97.9 %. Research, licences and numbers: `docs/PET-READING-RESEARCH.md`, `docs/PET-READING-SOURCES.md`. Owner decision 100
-(2026-11-18): live in category 6 (CLAUDE.md table, cat-fortune, fortune hub card, fortune menu; TH / EN / ZH), merged to main
-only after CI is green on the branch.
+(2026-11-18): live in category 6 (CLAUDE.md table, cat-fortune listing, fortune menu; TH / EN / ZH; no fortune-hub card, so the
+locked hub test keeps 14 cards), merged to main only after CI is green on the branch.
 
 ## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
 
