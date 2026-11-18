@@ -157,6 +157,7 @@ body.att-emp .tr-only{display:none !important}
 .badge-card{display:grid;justify-items:center;gap:4px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#fff;color:#0e1430;max-width:100%}
 .badge-card svg{max-width:100%;height:auto}
 .badge-card b{font-size:1.05rem}
+.badge-card .badge-t{font-style:normal;font-size:.8rem;font-weight:600;letter-spacing:.02em}
 .hr-admin .hint,.hr-notice .hint{font-size:.83rem;color:#4a5068}
 .hr-notice .hint a{display:inline-flex;align-items:center;min-height:44px}
 @media(max-width:640px){
