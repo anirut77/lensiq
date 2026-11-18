@@ -221,3 +221,9 @@ button,[role=button],.btn,.chip,.tab,input[type=button],input[type=submit],input
 @media (prefers-reduced-motion:reduce){:is(button,.btn,[role=button])[aria-busy=true]::after{animation:none;border-right-color:currentColor;opacity:.6}}
 /* line wrap (owner 2026-11-17): no lone last word; admin.html has no nav.js glue and no .lq-w boxes */
 .ad-auth p{text-wrap:pretty}
+/* seller details tab (admin-seller.js): document preview */
+.ads-preview { width: 100%; min-height: 70vh; border: 1px solid var(--ad-line); border-radius: 10px; background: #fff; margin-top: 8px; }
+.ads-doc { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+[data-panel="seller"] select { width: 100%; min-width: 0; max-width: 100%; }
+[data-panel="seller"] .ads-doc > span { min-width: 0; overflow-wrap: anywhere; }
+[data-panel="seller"] input[type=file], [data-panel="seller"] .ad-row label, .ads-preview { max-width: 100%; min-width: 0; }

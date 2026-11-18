@@ -14,7 +14,7 @@ export const MIGRATIONS = [
   "0009_round12_backend.sql", "0010_ai_gateway.sql", "0011_admin_recovery.sql", "0012_ai_keys.sql", "0013_recovery_slow_hash.sql",
   "0014_leads_viewed.sql",
   "0015_merit.sql", "0016_merit_review.sql", "0017_tryon.sql", "0018_accounts.sql",
-  "0019_merit_batches.sql", "0020_lead_notify.sql"
+  "0019_merit_batches.sql", "0020_lead_notify.sql", "0021_seller.sql"
 ];
 /** Columns / tables added by migrations 0008 and later, with the migration that adds each (schema probe): a failing
  *  probe names exactly the migration that is missing. */
@@ -51,7 +51,10 @@ const PROBES = [
   ["0018_accounts.sql", "SELECT id, product, unit FROM licence_plans LIMIT 0"],
   ["0018_accounts.sql", "SELECT id, org_id, plan_id, quantity, amount_satang FROM org_licences LIMIT 0"],
   ["0019_merit_batches.sql", "SELECT batch, count, imported_at, actor FROM merit_batches LIMIT 0"],
-  ["0020_lead_notify.sql", "SELECT notify_state, notify_detail, notify_at FROM leads LIMIT 0"]
+  ["0020_lead_notify.sql", "SELECT notify_state, notify_detail, notify_at FROM leads LIMIT 0"],
+  ["0021_seller.sql", "SELECT legal_name, logo_data FROM seller_profile LIMIT 0"],
+  ["0021_seller.sql", "SELECT number, seller_json FROM seller_docs LIMIT 0"],
+  ["0021_seller.sql", "SELECT doc_type, last FROM seller_doc_seq LIMIT 0"]
 ];
 
 /** @param {Env} env */
