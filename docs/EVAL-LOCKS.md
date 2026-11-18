@@ -142,3 +142,5 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   Re-lock 2 (same reason, found by the full unit suite after the build): `tests/unit/fortune-sources.test.js` required the
   "where the numbers come from" section on `cat-fortune.html`; now all six non-fortune category pages must keep it and
   `cat-fortune.html` must not have it.
+  Re-lock 3 (test-setup only, after the first e2e run on the build): `fortune-cards.e2e.mjs` scrolls cards into view with
+  behavior "instant" (the site's smooth scrolling made the test read a card's position mid-scroll). No assertion changed.

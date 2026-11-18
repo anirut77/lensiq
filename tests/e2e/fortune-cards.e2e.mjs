@@ -107,7 +107,7 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
         for (const p of FORT.pages) {
           const m = await page.evaluate(async (p) => {
             const c = document.querySelector(`.cat-tool[data-page='${p}']`);
-            c.scrollIntoView({ block: "center" });
+            c.scrollIntoView({ block: "center", behavior: "instant" }); // site scrolls smoothly: instant, so the rect is final (re-lock 3)
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
             const r = c.getBoundingClientRect(), a = c.querySelector("a");
             const pts = [[r.left + 3, r.top + 3], [r.right - 3, r.top + 3], [r.left + 3, r.bottom - 3], [r.right - 3, r.bottom - 3],
@@ -128,7 +128,7 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
         const page = await open("cat-fortune.html", lang);
         const pt = await page.evaluate(async () => {
           const c = document.querySelector(".cat-tool[data-page='palm']");
-          c.scrollIntoView({ block: "center" });
+          c.scrollIntoView({ block: "center", behavior: "instant" }); // site scrolls smoothly: instant, so the rect is final (re-lock 3)
           await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
           const r = c.getBoundingClientRect();
           return { x: r.right - 6, y: r.bottom - 6 };

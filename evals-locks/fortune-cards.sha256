@@ -33,3 +33,10 @@ ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e  tests/unit/for
 # locked 2026-11-18T03:45:15Z (tools/eval-guard.mjs lock, 1 file)
 7d44d8f31c9f75af516fa94209f2bf1f2f1a62b0ae1af01df79df5341a4b4b10  relock-2/fortune-sources.test.js
 7d44d8f31c9f75af516fa94209f2bf1f2f1a62b0ae1af01df79df5341a4b4b10  tests/unit/fortune-sources.test.js  # repo file (relock-2)
+# RE-LOCK 3 2026-11-18 (append-only), TEST-SETUP FIX ONLY, after the first e2e run on the build (run-2: E1 tap points and E2 corner tap
+# failed). Cause, shown by a probe: styles.css sets html{scroll-behavior:smooth}, so scrollIntoView({block:"center"}) was still scrolling
+# when the test read the card's rect (palm: rect top 701 px mid-scroll, 270 px once settled); with behavior "instant" the centre point hits
+# the card link. Both scrollIntoView calls now pass behavior: "instant". No assertion, threshold, width, language or page changed.
+# locked 2026-11-18T04:10:15Z (tools/eval-guard.mjs lock, 1 file)
+767ed933a7534f82e92716b52f7b03ab42c769af9ab7bb935f0cf8bc5fa3c4f8  relock-3/fortune-cards.e2e.mjs
+767ed933a7534f82e92716b52f7b03ab42c769af9ab7bb935f0cf8bc5fa3c4f8  tests/e2e/fortune-cards.e2e.mjs  # repo file (relock-3)
