@@ -116,16 +116,18 @@ jobs:
   # once the 7 category pages were added. Neither job skips or loosens anything.
   # Owner decision 2026-11-11 (gate time, option ค): the e2e files run in 3 parallel shards (tools/e2e-shards.mjs, balanced by
   # tests/e2e/shard-weights.json) and the phone / language gates in 2 parallel parts. Same checks, same flags, same single
-  # retry per failing file. The job "e2e shards: every test file ran exactly once" turns CI red when any shard is missing,
+  # retry per failing file. Owner decision 102 ก (2026-11-18): a 4th Linux shard (4 Linux + the macOS WebKit shard = 5) so
+  # each job is about 48 min or less; nothing dropped, same 75-min timeout, no added retries.
+  # The job "e2e shards: every test file ran exactly once" turns CI red when any shard is missing,
   # any file ran twice or not at all, or a shard ran a file it was not given.
   e2e:
-    name: End-to-end (headless Chrome) ${{ matrix.shard }}/3
+    name: End-to-end (headless Chrome) ${{ matrix.shard }}/4
     runs-on: ubuntu-latest
     timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4]
     env:
       CI: "1"
     steps:
@@ -166,10 +168,10 @@ jobs:
           key: ci-fonts-${{ hashFiles('tools/ci-fonts.lock') }}
       - name: Thai + CJK fonts (line-breaking checks need real glyphs)
         run: node tools/ci-fonts.mjs install ~/.cache/ci-fonts
-      # The WebKit files (*webkit*.e2e.mjs) are not in these three shards: they form shard 4/4 on macOS (job e2e-webkit-mac
+      # The WebKit files (*webkit*.e2e.mjs) are not in these four shards: they form shard 5/5 on macOS (job e2e-webkit-mac
       # below), so the Linux shards need no WebKit install.
-      - name: e2e shard ${{ matrix.shard }}/3 of the Linux files (one retry per failing file)
-        run: npm run test:e2e:ci -- --shard=${{ matrix.shard }}/4 --mac-last --manifest=e2e-shard-${{ matrix.shard }}.json
+      - name: e2e shard ${{ matrix.shard }}/4 of the Linux files (one retry per failing file)
+        run: npm run test:e2e:ci -- --shard=${{ matrix.shard }}/5 --mac-last --manifest=e2e-shard-${{ matrix.shard }}.json
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -178,7 +180,7 @@ jobs:
           name: e2e-shard-${{ matrix.shard }}
           path: e2e-shard-${{ matrix.shard }}.json
           if-no-files-found: ignore
-      # the three site-wide checks, one per shard (each runs exactly once per CI run)
+      # the three site-wide checks, one per shard 1-3 (each runs exactly once per CI run; shard 4 has none)
       - name: built _site — every page loads under /lensiq/ in TH + 中文 with no 404 (same as the Pages deploy)
         if: matrix.shard == 1
         run: node tools/build-site.mjs && node tools/check-site.mjs
@@ -195,13 +197,13 @@ jobs:
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
 
-  # Shard 4/4: every WebKit (iOS engine) e2e file, on macOS. Linux WebKit plays no camera video at all (stream B, 4
+  # Shard 5/5: every WebKit (iOS engine) e2e file, on macOS. Linux WebKit plays no camera video at all (stream B, 4
   # diagnostic runs, docs/PHONE-QUALITY.md §4), so the camera flows of tests/e2e/phone-webkit-*.e2e.mjs can only run on
   # macOS WebKit, which is also the closer engine to iOS Safari. The quote-form WebKit files run here too, so all WebKit
   # files share one engine. Same runner, same --retry=1 rule, no skips. Coordinator decision 2026-11-14 (option 1, public
-  # repo: macOS runners cost nothing). Its manifest is checked by e2e-shards like the other three.
+  # repo: macOS runners cost nothing). Its manifest is checked by e2e-shards like the other four.
   e2e-webkit-mac:
-    name: End-to-end (WebKit, iPhone width, macOS) 4/4
+    name: End-to-end (WebKit, iPhone width, macOS) 5/5
     runs-on: macos-latest
     timeout-minutes: 60
     env:
@@ -230,13 +232,13 @@ jobs:
           key: pw-webkit-mac-${{ hashFiles('package-lock.json') }}
       - name: WebKit for the iPhone-width e2e files
         run: npx playwright install webkit
-      - name: e2e shard 4/4, the WebKit files (one retry per failing file)
-        run: npm run test:e2e:ci -- --shard=4/4 --mac-last --manifest=e2e-shard-4.json
+      - name: e2e shard 5/5, the WebKit files (one retry per failing file)
+        run: npm run test:e2e:ci -- --shard=5/5 --mac-last --manifest=e2e-shard-5.json
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: e2e-shard-4
-          path: e2e-shard-4.json
+          name: e2e-shard-5
+          path: e2e-shard-5.json
           if-no-files-found: ignore
 
   e2e-shards:
@@ -254,7 +256,7 @@ jobs:
         with:
           pattern: e2e-shard-*
           path: e2e-shards
-      - name: every *.e2e.mjs ran in exactly one shard; all 4 shards reported
+      - name: every *.e2e.mjs ran in exactly one shard; all 5 shards reported
         run: |
           mkdir -p e2e-shards
           node tools/e2e-shards.mjs --check e2e-shards
