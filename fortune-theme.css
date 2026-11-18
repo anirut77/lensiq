@@ -51,6 +51,17 @@ html.lq-ft-read .rp-hero .lq-top a,html.lq-ft-read .rp-hero .lq-top button{color
 html.lq-ft-read .fk-head,html.lq-ft-read .fr-head,html.lq-ft-read .pl-head,html.lq-ft-read .hs-head,html.lq-ft-read .tr-head,
   html.lq-ft-read .nm-head,html.lq-ft-read .fs-head,html.lq-ft-read .rp-hero{margin-bottom:8px;padding-top:6px;padding-bottom:8px}
 }
+/* the narrowest phones (360 px, 640 px first screen): a tighter band, so faceread's camera buttons, report's first type card and
+   astro's month field (above the fixed read bar) stay inside the first screen (fortune-top-compact C1, round 3) */
+@media (max-width:380px){
+html.lq-ft-read .fk-head,html.lq-ft-read .fr-head,html.lq-ft-read .pl-head,html.lq-ft-read .hs-head,html.lq-ft-read .tr-head,
+  html.lq-ft-read .nm-head,html.lq-ft-read .fs-head,html.lq-ft-read .rp-hero{margin-bottom:4px;padding-top:2px;padding-bottom:6px}
+html.lq-ft-read .fk-head h1,html.lq-ft-read .fr-head h1,html.lq-ft-read .pl-head h1,html.lq-ft-read .hs-head h1,html.lq-ft-read .tr-head h1,
+  html.lq-ft-read .nm-head h1,html.lq-ft-read .fs-head h1,html.lq-ft-read .rp-hero h1{margin-top:0}
+html.lq-ft.lq-ft-read .fk-head .lead,html.lq-ft.lq-ft-read .fr-head .lead,html.lq-ft.lq-ft-read .pl-head .lead,html.lq-ft.lq-ft-read .hs-head .lead,
+  html.lq-ft.lq-ft-read .tr-head .lead,html.lq-ft.lq-ft-read .nm-head .lead,html.lq-ft.lq-ft-read .fs-head .lead,html.lq-ft.lq-ft-read .rp-hero .lead{margin-bottom:2px}
+html.lq-ft-read .rp-types>.rp-h2:first-child{margin-top:12px}
+}
 
 /* ---------- menu pages (fortune.html, cat-fortune.html): the whole page at night ---------- */
 html.lq-ft-menu body{background:linear-gradient(180deg,var(--ft1),var(--ft2) 85%) fixed var(--ft1);color:var(--ftt)}
@@ -80,7 +91,7 @@ html.lq-ft-menu .pd-ic,html.lq-ft-menu .ft-ic{display:none}
 html.lq-ft-menu .chip,html.lq-ft-menu .lq-more{color:var(--ftg);border-color:var(--ftl);background:transparent}
 html.lq-ft-menu .cat-tool{position:relative}
 html.lq-ft-menu .cat-tool .sl-go::after{content:"";position:absolute;inset:0;border-radius:inherit}
-html.lq-ft-menu .cat-tool h3{position:relative;z-index:1}
+html.lq-ft-menu .cat-tool h3{position:relative;z-index:1;cursor:pointer} /* above the card-wide link; fortune-entry.js passes a tap on to it */
 html.lq-ft-menu .cat-top{justify-content:flex-start;align-items:center;gap:12px}
 html.lq-ft-menu .pd-card ul.cat-acc{color:var(--ftt)}
 html.lq-ft-menu .lq-legal-foot{background:#0E0B24;border-top-color:var(--ftl)}

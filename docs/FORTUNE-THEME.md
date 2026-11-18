@@ -124,3 +124,13 @@ and Shou Xing's peach redrawn to read at a glance. Art version `?v=2`.
 
 Latin-ext font subset: not added. Prompt latin-ext is 9.6–9.8 KB per weight (not tiny); the rare characters it covers
 (for example ā, ṇ in "Vaiśravaṇa") fall back to the system font, and no deity name or page text on the fortune pages uses them.
+
+## Round 3 fixes at 360 px (owner decision 104 ก, 2026-11-18)
+
+fortune-top-compact C1 at 360 × 640 had 4 problems on round 2 (the 4th found by a local run: report EN `.rp-type` ended at
+644 px). `fortune-theme.css?v=3`: below 381 px wide the reading band is tighter (padding 2 / 6 px, margin 4 px, no h1 top
+margin, lead margin 2 px) and report's first heading has a 12 px top margin. Measured locally at 360 × 640: faceread EN camera
+buttons end at 626 px (was 642), report EN first type card at 622 px (was 644), astro TH month field centre at 559 px, above the
+fixed read bar that starts at 575 px (was 575, covered). 393 px and wider are unchanged.
+cat-fortune card titles: the title stays above the card-wide link (main's compact-top check needs it uncovered), and
+`fortune-entry.js?v=4` passes a tap on the title on to the card's link (modifier keys kept), so the title opens its page again.
