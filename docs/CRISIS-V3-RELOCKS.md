@@ -186,3 +186,9 @@ Locked before compat was changed to v3.
 | tests/unit/crisis-escape-guard-allow.json | targets | — | 8 petread ids appended (photo area, camera / detector status, trait picker, form message), each with its reason; nothing removed | — (registration) | check 3 (stale entries fail) |
 | tests/e2e/crisis-net-hotfix-inventory.json, docs/CRISIS-INPUT-INVENTORY.md | inputs | — | 7 petread rows appended (`#petName` can hold a phrase) | — (registration) | check 2 |
 | tests/unit/fortune-no-demo.test.js | 5. other categories unchanged | exact status map of every non-category-6 page (petread absent) | the same exact map with `petread: "demo"` appended (the page exists, unlinked, until its go-live into category 6); no status changed | — (registration, as counselling) | same test |
+
+## Pet reading go-live (owner decision 100, 2026-11-18), tag `relock-pet-golive` — locked before the go-live change
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/unit/fortune-no-demo.test.js | 5. other categories unchanged | exact status map of every non-category-6 page, with `petread: "demo"` (relock-pet: the page existed, unlinked) | the same exact map without the petread row: petread is now in category 6 (`FORT.pages`), so tests 1 and 4 cover it (no status chip, no demo key, count = category 6 size) | — (registration, as compat at owner decision 73) | tests 1-4 now include petread through FORT.pages; every other status and demo chip unchanged |

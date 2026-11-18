@@ -25,3 +25,7 @@ f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  tests/unit/cat
 18bb561e4323b6f8b0a402c92728c2edf9ec5dcdf554cac33abc423e5cd49f0e  relock-pet/fortune-no-demo.test.js
 # RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
 18bb561e4323b6f8b0a402c92728c2edf9ec5dcdf554cac33abc423e5cd49f0e  tests/unit/fortune-no-demo.test.js  # repo file (relock-pet)
+# locked 2026-11-18T02:22:20Z (tools/eval-guard.mjs lock, 1 file)
+340830f3babd11ef9689bb9e5a620b2bf6477bab72522aad6733602fc8a3f57e  relock-pet-golive/fortune-no-demo.test.js
+# RE-LOCK 2026-11-18 (branch fortune-pet, append-only), reason: "owner decision 100" (pet reading goes live and is added to the fortune menu); tag relock-pet-golive, see docs/CRISIS-V3-RELOCKS.md. Test 5: the "petread": "demo" row leaves the non-fortune status baseline because petread joins category 6 (FORT.pages); no other status, chip or assertion changed. Baseline before the change: 4/5 pass (test 5 fails as expected once the test is re-locked).
+340830f3babd11ef9689bb9e5a620b2bf6477bab72522aad6733602fc8a3f57e  tests/unit/fortune-no-demo.test.js  # repo file (relock-pet-golive)
