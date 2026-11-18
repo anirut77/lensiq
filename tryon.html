@@ -20,34 +20,38 @@
   %3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E
   %3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E
   %3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title data-i18n="to.title">ลองสินค้าบนตัวคุณด้วยกล้อง (ภาพจำลอง) | LENSIQ</title>
-<meta name="description" content="ลองแว่น หมวก ต่างหู และเสื้อจากแคตตาล็อกร้านค้าบนภาพกล้องสด ประมวลผลบนเครื่องนี้ ไม่ส่งและไม่เก็บภาพ
-  เป็นภาพจำลอง ไม่ใช่ภาพการสวมใส่จริง">
+<title data-i18n="to.title">ลองสินค้าบนตัวคุณด้วยกล้องหรือรูป (ภาพจำลอง) | LENSIQ</title>
+<meta name="description" content="ลองแว่น หมวก ต่างหู และเสื้อผ้าจากแคตตาล็อกร้านค้าบนภาพกล้องหรือรูปของคุณ ประมวลผลบนเครื่องนี้ ไม่ส่งและไม่เก็บภาพ
+  เป็นภาพตัวอย่างตำแหน่งและสี ไม่ใช่การลองสวมที่สมจริง">
 <link rel="stylesheet" href="styles.css?v=23">
-<link rel="stylesheet" href="tryon.css?v=1">
+<link rel="stylesheet" href="tryon.css?v=2">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=32"></script>
-<script src="i18n/zh-tryon.js?v=2"></script>
+<script src="i18n/zh-tryon.js?v=3"></script>
 
 <main class="to-page" id="main">
   <p class="eyebrow" data-i18n="to.eyebrow">LENSIQ · ลองสินค้า (ทดลอง)</p>
-  <h1 data-i18n="to.h1">ลองสินค้าบนตัวคุณด้วยกล้อง</h1>
-  <p class="lead" data-i18n="to.lead">เลือกสินค้าจากแคตตาล็อกของร้าน แล้วดูบนภาพกล้องสดของคุณ เป็นภาพจำลองเพื่อดูแนวทาง ไม่ใช่ภาพการสวมใส่จริง
-    ขนาด ทรง และการทิ้งตัวของผ้าอาจต่างจากของจริง</p>
+  <h1 data-i18n="to.h1">ลองสินค้าบนตัวคุณด้วยกล้องหรือรูป</h1>
+  <p class="lead" data-i18n="to.lead">ลองแว่น หมวก และเสื้อผ้าจากแคตตาล็อกร้านบนภาพกล้องหรือรูปของคุณ ประมวลผลบนเครื่องนี้</p>
 
   <section class="card to-consent" id="toConsentCard" aria-labelledby="toConsentH">
-    <h2 id="toConsentH" data-i18n="to.consent.h">ก่อนเปิดกล้อง</h2>
+    <h2 id="toConsentH" data-i18n="to.consent.h">ก่อนเปิดกล้องหรือเลือกรูป</h2>
     <ul class="to-list">
-      <li data-i18n="to.consent.device">กล้องทำงานบนเครื่องนี้เท่านั้น ไม่ส่งภาพออกนอกเครื่องและไม่เก็บภาพ</li>
+      <li data-i18n="to.consent.device">กล้องและรูปที่เลือกทำงานบนเครื่องนี้เท่านั้น ไม่ส่งภาพออกนอกเครื่องและไม่เก็บภาพ</li>
       <li data-i18n="to.consent.preview">ภาพที่เห็นเป็นภาพจำลอง ทุกภาพที่บันทึกมีป้าย "ภาพจำลอง" ติดอยู่</li>
       <li data-i18n="to.consent.save">ภาพจะถูกบันทึกลงเครื่องเฉพาะเมื่อคุณกดปุ่มบันทึกเอง</li>
-      <li data-i18n="to.consent.one">ใช้กับตัวคุณเองเท่านั้น หน้านี้ไม่มีช่องอัปโหลดรูปของผู้อื่น</li>
+      <li data-i18n="to.consent.one">ใช้กล้องหรือรูปของตัวคุณเอง หรือของผู้ที่รู้และยินยอมแล้วเท่านั้น รูปที่เลือกเปิดบนเครื่องนี้ ไม่อัปโหลด</li>
     </ul>
-    <label class="to-check"><input type="checkbox" id="toConsent"> <span data-i18n="to.consent.ok">เข้าใจแล้ว เปิดกล้องบนเครื่องนี้</span></label>
-    <button class="btn primary" id="toStart" type="button" disabled data-i18n="to.start">เปิดกล้อง</button>
+    <label class="to-check"><input type="checkbox" id="toConsent"> <span data-i18n="to.consent.ok">เข้าใจแล้ว ใช้กล้องหรือรูปบนเครื่องนี้</span></label>
+    <div class="to-src-row">
+      <button class="btn primary" id="toStart" type="button" disabled data-i18n="to.start">เปิดกล้อง</button>
+      <label class="btn ghost to-photo-btn is-disabled" id="toPhotoLabel" for="toPhoto" aria-disabled="true"><span data-i18n="to.photo">เลือกรูปจากเครื่องนี้</span></label>
+      <input type="file" id="toPhoto" accept="image/*" disabled class="to-file" aria-labelledby="toPhotoLabel">
+    </div>
+    <p class="to-src" data-i18n="to.photo.hint">รูปหน้าตรง คนเดียว เห็นตั้งแต่ศีรษะ สำหรับกางเกงขายาวให้เห็นถึงข้อเท้า</p>
   </section>
 
   <section class="card to-stage-card" aria-labelledby="toStageH">
@@ -57,11 +61,12 @@
       <canvas id="toCanvas" aria-label="ภาพกล้องพร้อมสินค้าที่เลือก" data-i18n-attr="aria-label:to.canvasAria"></canvas>
       <div class="to-mark" id="toMark" translate="no">ภาพจำลอง · Virtual try-on preview · 虚拟试穿预览</div>
     </div>
-    <p class="to-status" id="toStatus" role="status" data-i18n="to.st.idle">ยังไม่ได้เปิดกล้อง</p>
+    <p class="to-note" id="toPoseNote" data-i18n="to.pose.note">ภาพตัวอย่างตำแหน่งและสี ไม่ใช่การลองสวมที่สมจริง ขนาด ทรง และการทิ้งตัวของผ้าอาจต่างจากของจริง</p>
+    <p class="to-status" id="toStatus" role="status" data-i18n="to.st.idle">ยังไม่ได้เปิดกล้องหรือเลือกรูป</p>
     <div class="to-actions">
       <button class="btn ghost sm" id="toSnap" type="button" disabled data-i18n="to.snap">บันทึกภาพลงเครื่อง</button>
       <button class="btn ghost sm" id="toClear" type="button" data-i18n="to.clear">ถอดทั้งหมด</button>
-      <button class="btn ghost sm" id="toStop" type="button" disabled data-i18n="to.stop">ปิดกล้อง</button>
+      <button class="btn ghost sm" id="toStop" type="button" disabled data-i18n="to.stop">ปิดกล้องหรือรูป</button>
     </div>
   </section>
 
@@ -75,9 +80,12 @@
     <h2 id="toHelpH" data-i18n="to.help.h">ข้อจำกัดที่ควรรู้</h2>
     <ul class="to-list">
       <li data-i18n="to.help.face">แว่น หมวก และต่างหู วางตามจุดบนใบหน้า 478 จุด (MediaPipe Face Landmarker) ใช้เฉพาะตำแหน่ง ไม่ระบุตัวตน ไม่อ่านอารมณ์</li>
-      <li data-i18n="to.help.top">เสื้อวางตามคอ ไหล่ และชายเสื้อที่วัดจากรูปทรงตัวคนในภาพ เป็นภาพ 2 มิติ ไม่แสดงการทิ้งตัวหรือขนาดที่พอดีจริง</li>
+      <li data-i18n="to.help.pose">เสื้อผ้าวางและย่อขยายตามจุดบนร่างกาย 33 จุด (MediaPipe Pose Landmarker) ใช้เฉพาะตำแหน่ง ไม่ระบุตัวตน
+        รองรับเฉพาะภาพหน้าตรงคนเดียว ตัวหาจุดโหลดเมื่อคุณเลือกเสื้อผ้าเท่านั้น</li>
+      <li data-i18n="to.help.length">ความยาวที่เห็นเป็นระดับมาตรฐานของแต่ละประเภท (เสื้อถึงสะโพก เดรสและกระโปรงถึงเข่า กางเกงถึงข้อเท้า) ไม่ใช่ความยาวจริงของสินค้า และไม่ได้บอกไซซ์</li>
+      <li data-i18n="to.help.top">ถ้าเครื่องเปิดตัวหาจุดบนร่างกายไม่ได้ เสื้อจะวางตามคอ ไหล่ และชายเสื้อที่วัดจากรูปทรงตัวคนในภาพแทน เป็นภาพ 2 มิติ ไม่แสดงการทิ้งตัวหรือขนาดที่พอดีจริง</li>
       <li data-i18n="to.help.acc">ความแม่นยำบนภาพจริงยังไม่ได้วัด ตัวเลขที่มีอยู่มาจากชุดทดสอบสังเคราะห์เท่านั้น</li>
-      <li data-i18n="to.help.misuse">ระบบลดโอกาสการลองบนรูปของผู้อื่นได้ (ไม่มีช่องอัปโหลด) แต่พิสูจน์ไม่ได้ว่าคนหน้ากล้องคือผู้ที่ยินยอม</li>
+      <li data-i18n="to.help.misuse">ระบบพิสูจน์ไม่ได้ว่าคนหน้ากล้องหรือในรูปคือผู้ที่ยินยอม ใช้เฉพาะกับตัวคุณเองหรือผู้ที่ยินยอมแล้ว</li>
     </ul>
   </section>
 </main>
@@ -86,7 +94,7 @@
 <script src="lensiq-api.js?v=3"></script>
 <script src="lensiq-camera.js?v=8"></script>
 <script src="studio-core.js?v=7"></script>
-<script src="lensiq-tryon-core.js?v=2"></script>
-<script src="tryon.js?v=2"></script>
+<script src="lensiq-tryon-core.js?v=3"></script>
+<script src="tryon.js?v=3"></script>
 </body>
 </html>
