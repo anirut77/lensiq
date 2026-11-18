@@ -33,6 +33,7 @@
 
   let phase = "notice", room = "", seat = "", link = null, mon = null, cam = null, coco = null, modelsReady = false;
   let faceEng = null, faceOff = false, faceOffSent = false, faceRuns = 0;
+  let noFrames = false, lastFrameAt = 0, camOnAt = 0; // a camera that is on but sends no picture (acceptance sheet E)
   let running = false, profile = null, lastQ = { ok: true, code: "ok", score: 0 }, lastFaces = [], frames = 0, fpsEma = 0, lastTick = 0;
   let calSamples = [], calEnd = 0, calLen = 120, hbTimer = null, promptTimer = null, wasFs = false, reloadPending = false;
   const own = U.store.get(K.log, []).filter(e => e && E.SIGNALS[e.sig]);
@@ -136,6 +137,15 @@
   const faceOffText = () => T("exam.lab.faceOff",
     "ตัวตรวจใบหน้าทำงานในเครื่องนี้ไม่ได้ (เช่น เบราว์เซอร์ไม่รองรับ WebGL หรือ WebAssembly): ระบบจะไม่ดูใบหน้า จำนวนใบหน้า และการหันศีรษะ ผู้คุมสอบจะเห็นว่าต้องปรับการติดตั้ง ไม่ใช่ความผิดของคุณ");
   /** the face engine cannot run here: face signals off, said so once to the invigilator ("fix setup", not an alert) */
+  const noFramesText = () => T("exam.lab.noFrames",
+    "กล้องเปิดแล้วแต่ไม่ส่งภาพ: ลองปิดโปรแกรมอื่นที่ใช้กล้อง เลือกกล้องตัวอื่น หรือโหลดหน้านี้ใหม่ ถ้ายังไม่ได้ โปรดแจ้งผู้คุมสอบ ไม่ใช่ความผิดของคุณ");
+  /** the camera is on but no frame arrives (stalled or busy camera): said plainly; cleared when frames come */
+  function setNoFrames(on) {
+    if (on === noFrames) return;
+    noFrames = on;
+    if (on) engine(noFramesText, "warn"); else if (faceOff) engine(faceOffText, "warn"); else engine(() => "", "ok");
+    if (phase === "cam") renderChecks();
+  }
   function setFaceOff() {
     if (!faceOff) { faceOff = true; lastFaces = []; engine(faceOffText, "warn"); renderChecks(); }
     if (phase === "exam" && !faceOffSent) { faceOffSent = true; handle([{ sig: "setup", lvl: "setup", t: Date.now(), code: "faceoff" }]); }
@@ -165,6 +175,8 @@
       try { cam.attach($("#camPick")); } catch (e) { /* single camera */ }
       engine(() => "", "ok"); // owner rule 2026-11-15: no idle status at rest (loading or failure only)
       if (faceOff) { faceOff = false; setFaceOff(); }
+      camOnAt = performance.now(); lastFrameAt = 0;
+      if (!video.videoWidth) setNoFrames(true); // LQCam already waited 4 s for a first frame
       running = true; loop();
       renderChecks();
     } catch (e) {
@@ -184,7 +196,7 @@
     items.push(E.isVirtualCamLabel(label) ? ["warn", T("exam.lab.chkVirt", "กล้องที่เลือกดูเหมือนกล้องเสมือน (เช่น OBS) — โปรดเลือกกล้องจริง")] : ["ok", T("exam.lab.chkCam", "กล้อง: {l}", { l: label || T("exam.lab.camUnnamed", "ไม่มีชื่อ") })]);
     const ext = window.screen && /** @type {any} */ (window.screen).isExtended;
     items.push(ext === true ? ["warn", T("exam.lab.chkScreens", "พบจอภาพมากกว่าหนึ่งจอ — ถ้าไม่ได้รับอนุญาตโปรดถอดจอที่สอง")] : ["ok", ext === false ? T("exam.lab.chkOne", "จอภาพ: หนึ่งจอ") : T("exam.lab.chkUnknown", "เบราว์เซอร์นี้ไม่บอกจำนวนจอภาพ")]);
-    items.push(faceOff ? ["warn", T("exam.lab.chkFaceOff", "ตัวตรวจใบหน้าทำงานในเครื่องนี้ไม่ได้ — ระบบจะไม่ดูใบหน้าและการหันศีรษะ")]
+    items.push(noFrames ? ["warn", noFramesText()] : faceOff ? ["warn", T("exam.lab.chkFaceOff", "ตัวตรวจใบหน้าทำงานในเครื่องนี้ไม่ได้ — ระบบจะไม่ดูใบหน้าและการหันศีรษะ")]
       : lastFaces.length === 1 ? ["ok", T("exam.lab.chkFace", "เห็นใบหน้าหนึ่งใบหน้า")]
       : ["warn", lastFaces.length ? T("exam.lab.chkMany", "เห็น {n} ใบหน้า — ควรมีเพียงคุณในภาพ", { n: lastFaces.length })
         : T("exam.lab.chkNoFace", "ยังไม่เห็นใบหน้า — ขยับให้อยู่ในกรอบและเพิ่มแสง")]);
@@ -253,7 +265,9 @@
     const t0 = performance.now();
     try {
       const o = await observe();
+      if (!o && running && t0 - Math.max(lastFrameAt, camOnAt) > 4000) setNoFrames(true);
       if (o) {
+        lastFrameAt = t0; if (noFrames) setNoFrames(false);
         const now = Date.now(), q = quality(t0);
         lastFaces = o.faces; draw(o); frames++;
         if (lastTick) fpsEma = fpsEma ? fpsEma * 0.8 + 0.2 * (1000 / Math.max(1, t0 - lastTick)) : 1000 / Math.max(1, t0 - lastTick);
@@ -268,6 +282,7 @@
 
   /* ---------- calibration ---------- */
   function startCal() {
+    if (!frames || noFrames) { noFrames = false; setNoFrames(true); return; } // no picture yet: a calibration could never finish
     const q = Number(P.get("calsec"));
     calLen = Number.isFinite(q) && q >= 1 && q <= 300 ? q : Number($("#calLen").value) || 120;
     calSamples = []; calEnd = Date.now() + calLen * 1000;

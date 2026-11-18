@@ -171,7 +171,6 @@
     "exam-lab.js",
     "exam-hall.js",
     "exam-dashboard.js",
-    "exam-landing.js",
     "i18n/en-exam.js",
     "i18n/zh-exam.js",
     "lensiq-timeclock.js",
