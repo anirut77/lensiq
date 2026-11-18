@@ -133,3 +133,7 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   its `locked.sha256` as is (`tools/eval-locks-import.mjs` stopped on an unrelated missing file in `pc-f/review`). Re-measure
   only; never tuned against. The builder's 0 / 0 on `fortune-paid-fresh-2026-11-16b` came after tuning on that set and is not
   an independent number. `fortune-paid` re-lock (10): review D1–D3 and the switch-off identity test, before the fix.
+- `crisis-endall` (2026-11-18): owner decision 105 ค ("end it all": both patterns). Locked before the product change: the
+  crisis-v3-protect 24 + 24 synthetic set (same bytes, sha256 8b62de1a…), the union harness and `tests/unit/crisis-endall.test.js`
+  (E1–E4). Re-lock (1), before the first commit and any measurement: format fault only (the reference regex split over two
+  lines; same pattern). Ledger: `docs/CRISIS-EXPERT-REVIEW.md`, "Locks".

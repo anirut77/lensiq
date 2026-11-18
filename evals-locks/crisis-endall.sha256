@@ -1,0 +1,11 @@
+# locked 2026-11-18T02:22:25Z (tools/eval-guard.mjs lock, 3 files)
+8b62de1a0470cd55edeee9e83a63f9de86736b6d6ca640467a968eef73f7e023  end-it-all-set.json
+57204a57ca6ab71f725d60ff512c2e6ae692d7df537a256327754c3201d46b4e  end-it-all-union-measure.mjs
+4b57f7b77a099b24124e1ba417885a4f62452251fbe5cf9f2c5abb09ad98944f  crisis-endall.test.js
+# repo copies (byte-identical to the locked files above), locked 2026-11-18 BEFORE the product change on branch crisis-endall (base origin/main b2a6e76c). Owner decision 105 ค (2026-11-18): the crisis net uses BOTH "end it all" patterns (line-48 pattern ∪ crisis-v3-protect proposal). end-it-all-set.json = crisis-v3-protect lock da741853, same bytes.
+8b62de1a0470cd55edeee9e83a63f9de86736b6d6ca640467a968eef73f7e023  tests/fixtures/crisis-endall/end-it-all-set.json  # repo file
+4b57f7b77a099b24124e1ba417885a4f62452251fbe5cf9f2c5abb09ad98944f  tests/unit/crisis-endall.test.js  # repo file
+# locked 2026-11-18T02:23:01Z (tools/eval-guard.mjs lock, 1 file)
+7a682881315ecd47bd06095d8a66292190483a3d71003e23a6d2826407375f51  crisis-endall.r1.test.js
+# re-lock 1 (2026-11-18, before the first commit and before any measurement or product change): format fault only; the PROP reference regex split over two lines (format-check: max 200 characters); same pattern (source and flags compared equal), no assertion changed. Ledger: docs/CRISIS-EXPERT-REVIEW.md "Locks".
+7a682881315ecd47bd06095d8a66292190483a3d71003e23a6d2826407375f51  tests/unit/crisis-endall.test.js  # repo file (re-lock 1)
