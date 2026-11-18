@@ -152,3 +152,16 @@ and 50 cm; (10) crisis card (1323) when the nickname field says a crisis phrase.
 Not recorded by the owner (so still unmeasured on real phones): the distance at which the oval turned green, seconds to
 green, how often green is never reached, false blur / glare on beauty-mode cameras, flicker at the far edge, and how close
 the 30 cm and 50 cm readings were. Only "passed" is on record. Source: owner test 2026-11-17.
+
+### Owner real-device test 2026-11-18 (iPhone 16 Pro, live site)
+
+The 15-minute iPhone list from the 2026-11-18 08:00 board, run by the owner on the live site; all 6 items passed:
+1. Tarot with a crisis phrase in the question: gentle reading, no share or print, one closing line with a working
+   tel:1323 button at the end (crisis v3).
+2. Dream in the same tab: still gentle, no prices or plans.
+3. Fresh tab, normal tarot reading: lucky part and share present, no 1323 line.
+4. Face reading: camera starts, or a plain stop message appears (no silent hang).
+5. Fortune hub: compact top, sticky read bar, no sideways scroll.
+6. Compatibility with two people in TH/EN/ZH: text complete.
+
+Only "passed" is on record (no timings). Source: owner test 2026-11-18.
