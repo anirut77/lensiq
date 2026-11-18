@@ -414,6 +414,7 @@
         <form id="adsForm" class="ad-form" novalidate>
           <label><span data-i18n="ads.f.legal_name">ชื่อกิจการหรือชื่อนิติบุคคล</span> <input name="legal_name" autocomplete="off" maxlength="160"></label>
           <label><span data-i18n="ads.f.tax_id">เลขประจำตัวผู้เสียภาษี (13 หลัก)</span> <input name="tax_id" autocomplete="off" inputmode="numeric" maxlength="17" data-masked="1"></label>
+          <label class="ad-inline"><input type="checkbox" name="clear_tax_id"> <span data-i18n="ads.clear">ลบค่าที่ตั้งไว้ในช่องนี้</span></label>
           <label><span data-i18n="ads.f.branch">สาขา (เช่น สำนักงานใหญ่)</span> <input name="branch" autocomplete="off" maxlength="60"></label>
           <label><span data-i18n="ads.f.address">ที่อยู่ตามทะเบียน</span> <input name="address" autocomplete="off" maxlength="300"></label>
           <label><span data-i18n="ads.f.vat">สถานะภาษีมูลค่าเพิ่ม</span> <select name="vat_registered">
@@ -423,7 +424,9 @@
           <label><span data-i18n="ads.f.bank_name">ธนาคาร</span> <input name="bank_name" autocomplete="off" maxlength="80"></label>
           <label><span data-i18n="ads.f.bank_account_name">ชื่อบัญชี</span> <input name="bank_account_name" autocomplete="off" maxlength="120"></label>
           <label><span data-i18n="ads.f.bank_account_no">เลขที่บัญชี</span> <input name="bank_account_no" autocomplete="off" inputmode="numeric" maxlength="24" data-masked="1"></label>
+          <label class="ad-inline"><input type="checkbox" name="clear_bank_account_no"> <span data-i18n="ads.clear">ลบค่าที่ตั้งไว้ในช่องนี้</span></label>
           <label><span data-i18n="ads.f.contact_phone">โทรศัพท์ติดต่อ</span> <input name="contact_phone" autocomplete="off" inputmode="tel" maxlength="20" data-masked="1"></label>
+          <label class="ad-inline"><input type="checkbox" name="clear_contact_phone"> <span data-i18n="ads.clear">ลบค่าที่ตั้งไว้ในช่องนี้</span></label>
           <label><span data-i18n="ads.f.contact_email">อีเมลติดต่อ</span> <input name="contact_email" autocomplete="off" type="email" maxlength="254"></label>
           <label><span data-i18n="ads.f.contact_line">LINE ID หรือ LINE OA</span> <input name="contact_line" autocomplete="off" maxlength="41"></label>
           <label><span data-i18n="ads.f.doc_prefix">อักษรนำหน้าเลขที่เอกสาร (เช่น LQ)</span> <input name="doc_prefix" autocomplete="off" maxlength="10" autocapitalize="characters"></label>
@@ -679,7 +682,7 @@
   </section>
   <p id="adMsg" class="ad-msg" role="status" aria-live="polite"></p>
 </main>
-<script src="i18n/zh-admin.js?v=14"></script>
+<script src="i18n/zh-admin.js?v=15"></script>
 <script src="lensiq-i18n.js?v=2"></script>
 <script src="attendance-qr.js?v=1"></script>
 <script src="lensiq-api.js?v=3"></script>
@@ -693,6 +696,6 @@
 <script src="lensiq-tryon-core.js?v=2"></script>
 <script src="admin-tryon.js?v=2"></script>
 <script src="admin-orgs.js?v=1"></script>
-<script src="admin-seller.js?v=1"></script>
+<script src="admin-seller.js?v=2"></script>
 </body>
 </html>

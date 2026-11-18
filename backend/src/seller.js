@@ -23,7 +23,7 @@
 // at most LOGO_MAX_BYTES, kept in D1 (this Cloudflare account has no R2 binding today; see tryon-store.js).
 import { baht, thaiDate } from "./receipt.js";
 import { PRICE_LINES, lineAmount, priceLine } from "./price-list.js";
-import { fromB64, randomId, randomToken, toB64 } from "./crypto.js";
+import { fromB64, randomId, randomToken, sha256Hex, toB64 } from "./crypto.js";
 import { HttpError, now } from "./util.js";
 
 export const LOGO_MAX_BYTES = 200000;
@@ -56,7 +56,8 @@ const FIELDS = {
   branch: text(60),
   address: text(300, true),
   vat_registered: (v, f) => { if (typeof v !== "boolean") throw bad(f); return v ? 1 : 0; },
-  vat_rate_bp: (v, f) => { if (!Number.isInteger(v) || v < 0 || v > 1000) throw bad(f); return v; },
+  // approved prices are excl. 7 % VAT: a VAT-registered seller charges 7 % (another rate needs an owner decision first)
+  vat_rate_bp: (v, f) => { if (v !== 700) throw bad(f); return v; },
   bank_name: text(80),
   bank_account_name: text(120),
   bank_account_no: pattern(/^\d{6,20}$/, digits),
@@ -92,6 +93,9 @@ export function missingFields(p) {
 }
 
 const mask = v => (filled(v) ? "•".repeat(Math.max(4, String(v).length - 4)) + String(v).slice(-4) : null);
+
+/** The single seller row exists (re-created if it was removed by hand), so an update answered 200 is really stored. @param {any} db */
+const ensureRow = db => db.prepare("INSERT INTO seller_profile (id) VALUES (1) ON CONFLICT (id) DO NOTHING").run();
 
 /** @param {any} db */
 async function row(db) {
@@ -148,6 +152,7 @@ export async function applyUpdate(env, u) {
     sets.push(`${k} = ?${vals.length + 1}`); vals.push(v);
   }
   sets.push(`updated_at = ?${vals.length + 1}`); vals.push(now());
+  await ensureRow(env.DB);
   await env.DB.prepare(`UPDATE seller_profile SET ${sets.join(", ")} WHERE id = 1`).bind(...vals).run();
   return getSeller(env);
 }
@@ -176,11 +181,13 @@ export function checkLogo(b) {
 }
 /** @param {any} env @param {{mime: string, bytes: Uint8Array}} l */
 export async function setLogo(env, l) {
+  await ensureRow(env.DB);
   await env.DB.prepare("UPDATE seller_profile SET logo_mime = ?1, logo_data = ?2, logo_bytes = ?3, updated_at = ?4 WHERE id = 1").bind(l.mime, toB64(l.bytes), l.bytes.length, now()).run();
   return getSeller(env);
 }
 /** @param {any} env */
 export async function removeLogo(env) {
+  await ensureRow(env.DB);
   await env.DB.prepare("UPDATE seller_profile SET logo_mime = NULL, logo_data = NULL, logo_bytes = NULL, updated_at = ?1 WHERE id = 1").bind(now()).run();
   return getSeller(env);
 }
@@ -200,7 +207,12 @@ const BUYER_KEYS = { name: text(160), tax_id: pattern(/^\d{13}$/, digits), addre
 const EXTRA_KEYS = {
   valid_days: (v, f) => { if (!Number.isInteger(v) || v < 1 || v > 180) throw bad(f); return v; },
   due_days: (v, f) => { if (!Number.isInteger(v) || v < 0 || v > 180) throw bad(f); return v; },
-  paid_on: pattern(/^\d{4}-\d{2}-\d{2}$/), ref: text(80), note: text(300, true)
+  paid_on: (v, f) => {
+    const m = typeof v === "string" ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(v) : null;
+    const t = m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : NaN;
+    if (!m || +m[1] < 2020 || +m[1] > 2100 || new Date(t).toISOString().slice(0, 10) !== v) throw bad(f);
+    return v;
+  }, ref: text(80), note: text(300, true)
 };
 
 /** POST /seller/docs @param {any} env @param {any} b */
@@ -242,64 +254,107 @@ export async function createDoc(env, b) {
 const summary = d => ({ id: d.id, doc_type: d.doc_type, status: d.status, number: d.number, buyer_name: d.buyer.name, subtotal_satang: d.subtotal_satang,
   vat_satang: d.vat_satang, total_satang: d.total_satang, created_at: d.created_at, issued_at: d.issued_at, issuable: d.issuable, missing_seller_fields: d.missing_seller_fields });
 
-/** @param {any} env */
-export async function listDocs(env) {
-  const rows = (await env.DB.prepare("SELECT id FROM seller_docs ORDER BY created_at DESC, id LIMIT 200").all()).results || [];
-  const p = await row(env.DB);
-  const out = [];
-  for (const r of rows) out.push(summary(await docData(env, r.id, p)));
-  return { docs: out };
+/** Lines of a draft from the CURRENT price list; a line that left the list is marked unavailable (amount 0, not issuable).
+ *  @param {{id: string, qty: number}[]} raw */
+function draftLines(raw) {
+  return raw.map(l => {
+    const pl = priceLine(l.id);
+    if (!pl) {
+      return { id: l.id, qty: l.qty, unavailable: true, name_th: l.id, name_en: l.id, name_zh: l.id, unit_th: "", unit_en: "", unit_zh: "", unit_satang: 0, min_satang: 0,
+        regular_th: "—", regular_en: "—", regular_zh: "—", amount_satang: 0 };
+    }
+    return { id: l.id, qty: l.qty, name_th: pl.name_th, name_en: pl.name_en, name_zh: pl.name_zh, unit_th: pl.unit_th, unit_en: pl.unit_en, unit_zh: pl.unit_zh,
+      unit_satang: pl.pilot_satang, min_satang: pl.min_satang || 0, regular_th: pl.regular_th, regular_en: pl.regular_en, regular_zh: pl.regular_zh,
+      amount_satang: lineAmount(pl, l.qty) };
+  });
 }
 
-const SELLER_SNAPSHOT_KEYS = [...TEXT_KEYS, "vat_registered", "vat_rate_bp", "logo_mime", "logo_data"];
-
-/** Structured document: a draft uses the current seller details, an issued / void one its frozen copy.
- *  @param {any} env @param {string} id @param {any} [current] */
-export async function docData(env, id, current) {
-  const r = await env.DB.prepare("SELECT * FROM seller_docs WHERE id = ?1").bind(id).first();
-  if (!r) throw new HttpError(404, "document not found");
-  const frozen = r.seller_json ? JSON.parse(r.seller_json) : null;
-  const p = frozen || current || await row(env.DB);
-  const missing = missingFields(p);
-  const seller = {};
-  for (const k of SELLER_SNAPSHOT_KEYS) seller[k] = p[k] == null ? null : p[k];
-  const lines = JSON.parse(r.lines_json).map(l => {
-    const pl = /** @type {any} */ (priceLine(l.id));
-    return { id: l.id, qty: l.qty, name_th: pl.name_th, name_en: pl.name_en, name_zh: pl.name_zh, unit_th: pl.unit_th, unit_en: pl.unit_en, unit_zh: pl.unit_zh,
-      unit_satang: pl.pilot_satang, min_satang: pl.min_satang || 0, regular_th: pl.regular_th, amount_satang: lineAmount(pl, l.qty) };
-  });
-  let subtotal = lines.reduce((s, l) => s + l.amount_satang, 0), rate = p.vat_registered ? Number(p.vat_rate_bp == null ? 700 : p.vat_rate_bp) : 0;
+/** Totals of a document row: frozen at issue time, or computed for a draft from the current list and seller VAT status.
+ *  @param {any} r seller_docs row @param {any} p seller details (current, or the frozen copy) */
+function figures(r, p) {
+  const frozen = r.status !== "draft" && r.lines_frozen_json;
+  const lines = frozen ? JSON.parse(r.lines_frozen_json) : draftLines(JSON.parse(r.lines_json));
+  let subtotal = lines.reduce((x, l) => x + l.amount_satang, 0), rate = p.vat_registered ? Number(p.vat_rate_bp == null ? 700 : p.vat_rate_bp) : 0;
   let vat = Math.round(subtotal * rate / 10000), total = subtotal + vat;
   if (r.status !== "draft" && r.subtotal_satang != null) { subtotal = r.subtotal_satang; rate = r.vat_rate_bp || 0; vat = r.vat_satang; total = r.total_satang; }
+  return { lines, subtotal, rate, vat, total, unavailable: lines.some(l => l.unavailable) };
+}
+
+/** Builds the structured document from a row (no further query). @param {any} r @param {any} p @param {any} [logo] */
+function build(r, p, logo) {
+  const missing = missingFields(p);
+  const f = figures(r, p);
+  const seller = {};
+  for (const k of SELLER_SNAPSHOT_KEYS) seller[k] = p[k] == null ? null : p[k];
+  seller.logo_data = logo ? logo.data : null;
+  seller.logo_mime = logo ? logo.mime : null;
   return {
     id: r.id, doc_type: r.doc_type, status: r.status, number: r.number, created_at: r.created_at, issued_at: r.issued_at, voided_at: r.voided_at,
-    buyer: JSON.parse(r.buyer_json), extra: r.extra_json ? JSON.parse(r.extra_json) : {}, lines,
-    vat_registered: p.vat_registered == null ? null : !!p.vat_registered, vat_rate_bp: rate, subtotal_satang: subtotal, vat_satang: vat, total_satang: total,
-    seller: missing.length ? null : seller, missing_seller_fields: missing, issuable: r.status === "draft" && missing.length === 0
+    buyer: JSON.parse(r.buyer_json), extra: r.extra_json ? JSON.parse(r.extra_json) : {}, lines: f.lines,
+    vat_registered: p.vat_registered == null ? null : !!p.vat_registered, vat_rate_bp: f.rate, subtotal_satang: f.subtotal, vat_satang: f.vat, total_satang: f.total,
+    seller: missing.length ? null : seller, missing_seller_fields: missing, unavailable_lines: f.lines.filter(l => l.unavailable).map(l => l.id),
+    issuable: r.status === "draft" && missing.length === 0 && !f.unavailable
   };
 }
 
-/** Pre-check of POST /docs/:id/issue (no secret needed): 404 / 409 already_issued, or the missing fields. @param {any} env @param {string} id */
+const LIST_COLS = "id, doc_type, status, number, buyer_json, lines_json, lines_frozen_json, extra_json, seller_json, subtotal_satang, vat_rate_bp, vat_satang, " +
+  "total_satang, created_at, issued_at, voided_at";
+
+/** GET /seller/docs: ONE query for the documents + one for the seller row, whatever the number of documents (Workers Free
+ *  allows 50 D1 queries per request). The frozen seller copy is read only for its VAT status. @param {any} env */
+export async function listDocs(env) {
+  const rows = (await env.DB.prepare(`SELECT ${LIST_COLS} FROM seller_docs ORDER BY created_at DESC, id LIMIT 200`).all()).results || [];
+  const p = await row(env.DB);
+  return { docs: rows.map(r => summary(build(r, r.seller_json ? JSON.parse(r.seller_json) : p, null))) };
+}
+
+const SELLER_SNAPSHOT_KEYS = [...TEXT_KEYS, "vat_registered", "vat_rate_bp"];
+
+/** Structured document: a draft uses the current seller details and price list, an issued / void one its frozen copy.
+ *  @param {any} env @param {string} id */
+export async function docData(env, id) {
+  const r = await env.DB.prepare(`SELECT ${LIST_COLS}, logo_hash FROM seller_docs WHERE id = ?1`).bind(id).first();
+  if (!r) throw new HttpError(404, "document not found");
+  if (r.seller_json) {
+    const logo = r.logo_hash ? await env.DB.prepare("SELECT mime, data FROM seller_logos WHERE hash = ?1").bind(r.logo_hash).first() : null;
+    return build(r, JSON.parse(r.seller_json), logo);
+  }
+  const p = await row(env.DB);
+  return build(r, p, p.logo_data ? { mime: p.logo_mime, data: p.logo_data } : null);
+}
+
+/** Pre-check of POST /docs/:id/issue (no secret needed): 404 / 409 already_issued / 409 not_on_price_list, or the missing
+ *  fields. @param {any} env @param {string} id */
 export async function issueCheck(env, id) {
   const d = await docData(env, id);
   if (d.status !== "draft") throw new HttpError(409, "this document was already issued or voided (already_issued)", { code: "already_issued" });
+  if (d.unavailable_lines.length) throw new HttpError(409, "a line of this draft is no longer on the price list (not_on_price_list)", { code: "not_on_price_list" });
   return { missing: d.missing_seller_fields };
 }
 
-/** Takes the next number of the document type and freezes the seller details, all in ONE D1 batch: the sequence moves
- *  only when this request turned the draft into "issued" (changes() = 1), so numbers are gap-free and never reused.
+/** Takes the next number of the document type and freezes the seller details, the lines and the logo reference, all in ONE
+ *  D1 batch: the sequence moves only when this request turned the draft into "issued" (changes() = 1), so numbers are
+ *  gap-free and never reused. The logo is stored once per distinct image (seller_logos, content hash).
  *  @param {any} env @param {string} id */
 export async function issueDoc(env, id) {
   const p = await row(env.DB);
   const missing = missingFields(p);
   if (missing.length) return { missing };
-  const d = await docData(env, id, p);
+  const r = await env.DB.prepare(`SELECT ${LIST_COLS} FROM seller_docs WHERE id = ?1`).bind(id).first();
+  if (!r) throw new HttpError(404, "document not found");
+  const d = build(r, p, null);
+  if (d.unavailable_lines.length) throw new HttpError(409, "a line of this draft is no longer on the price list (not_on_price_list)", { code: "not_on_price_list" });
   const snap = {};
   for (const k of SELLER_SNAPSHOT_KEYS) snap[k] = p[k] == null ? null : p[k];
+  const logoHash = p.logo_data ? await sha256Hex(String(p.logo_data)) : null;
   const tok = randomToken(16), t = now(), db = env.DB;
+  const logoStmt = logoHash
+    ? [db.prepare("INSERT INTO seller_logos (hash, mime, data, created_at) VALUES (?1, ?2, ?3, ?4) ON CONFLICT (hash) DO NOTHING").bind(logoHash, p.logo_mime, p.logo_data, t)] : [];
   await db.batch([
-    db.prepare("UPDATE seller_docs SET status = 'issued', issued_at = ?1, issue_token = ?2, seller_json = ?3, subtotal_satang = ?4, vat_rate_bp = ?5, vat_satang = ?6, total_satang = ?7 " +
-      "WHERE id = ?8 AND status = 'draft'").bind(t, tok, JSON.stringify(snap), d.subtotal_satang, d.vat_rate_bp, d.vat_satang, d.total_satang, id),
+    ...logoStmt,
+    db.prepare("UPDATE seller_docs SET status = 'issued', issued_at = ?1, issue_token = ?2, seller_json = ?3, subtotal_satang = ?4, vat_rate_bp = ?5, vat_satang = ?6, " +
+      "total_satang = ?7, lines_frozen_json = ?8, logo_hash = ?9 WHERE id = ?10 AND status = 'draft'")
+      .bind(t, tok, JSON.stringify(snap), d.subtotal_satang, d.vat_rate_bp, d.vat_satang, d.total_satang, JSON.stringify(d.lines), logoHash, id),
     db.prepare("INSERT INTO seller_doc_seq (doc_type, last) SELECT ?1, 1 WHERE changes() = 1 ON CONFLICT (doc_type) DO UPDATE SET last = last + 1").bind(d.doc_type),
     db.prepare("UPDATE seller_docs SET seq = (SELECT last FROM seller_doc_seq WHERE doc_type = ?1), " +
       "number = ?2 || '-' || ?3 || '-' || printf('%06d', (SELECT last FROM seller_doc_seq WHERE doc_type = ?1)) WHERE id = ?4 AND issue_token = ?5")
@@ -368,11 +423,12 @@ export function renderDoc(d) {
   } else {
     const contact = [s.contact_phone && sf("contact_phone", s.contact_phone), s.contact_email && sf("contact_email", s.contact_email),
       s.contact_line && sf("contact_line", "LINE " + s.contact_line)].filter(Boolean).join(" · ");
+    const branchHtml = s.branch ? sf("branch", s.branch) : `<span data-seller-field="branch">${tri(["สำนักงานใหญ่", "Head office", "总公司"])}</span>`;
     sellerBlock = `<div class="party">
   ${s.logo_data ? `<img class="logo" alt="" src="data:${esc(s.logo_mime)};base64,${esc(s.logo_data)}">` : ""}
   <div><b>${sf("legal_name", s.legal_name)}</b></div>
   <div>${sf("address", s.address)}</div>
-  <div>${tri(LABELS.tax_id)} ${sf("tax_id", s.tax_id)} · ${tri(L.branch)} ${sf("branch", s.branch || "สำนักงานใหญ่")}</div>
+  <div>${tri(LABELS.tax_id)} ${sf("tax_id", s.tax_id)} · ${tri(L.branch)} ${branchHtml}</div>
   <div>${tri(LABELS.contact)} ${contact}</div>
 </div>`;
   }
@@ -380,9 +436,10 @@ export function renderDoc(d) {
   const quote = d.doc_type === "quotation";
   const head = `<tr><th>#</th><th>${tri(L.desc)}</th><th class="num">${tri(L.qty)}</th><th class="num">${tri(L.unit)}</th>` +
     `${quote ? `<th class="num">${tri(L.regular)}</th>` : ""}<th class="num">${tri(L.amount)}</th></tr>`;
+  const regCell = l => `<td class="num">${esc(l.regular_th)}<small>${esc(l.regular_en)} · ${esc(l.regular_zh)}</small></td>`;
   const rows = d.lines.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(l.name_th)}<small>${esc(l.name_en)} · ${esc(l.name_zh)}</small>` +
     `<small>${esc(l.unit_th)} · ${esc(l.unit_en)} · ${esc(l.unit_zh)}${l.min_satang ? ` · ขั้นต่ำ / minimum / 最低 ${baht(l.min_satang)}` : ""}</small></td>` +
-    `<td class="num">${l.qty}</td><td class="num">${baht(l.unit_satang)}</td>${quote ? `<td class="num">${esc(l.regular_th)}</td>` : ""}<td class="num">${baht(l.amount_satang)}</td></tr>`).join("");
+    `<td class="num">${l.qty}</td><td class="num">${baht(l.unit_satang)}</td>${quote ? regCell(l) : ""}<td class="num">${baht(l.amount_satang)}</td></tr>`).join("");
   const span = quote ? 5 : 4;
   const vatRow = d.vat_registered === true
     ? `<tr><td colspan="${span}">ภาษีมูลค่าเพิ่ม ${(d.vat_rate_bp / 100).toFixed(0)}%<small>VAT · 增值税</small></td><td class="num">${baht(d.vat_satang)}</td></tr>`

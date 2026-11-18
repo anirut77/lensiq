@@ -677,5 +677,7 @@
   "ads.created": "草稿已创建",
   "ads.issued": "单据已开具，编号 {n}",
   "ads.voidConfirm": "作废此单据？其编号永不重复使用。",
-  "ads.voided": "单据已作废"
+  "ads.voided": "单据已作废",
+  "ads.clear": "删除此字段已保存的值",
+  "ads.e.price": "此草稿中的项目已不在批准的价目表中，请新建草稿。"
 } });

@@ -1167,7 +1167,8 @@ and rate, bank name / account name / account number for transfers, contact phone
 prefix and an optional logo (PNG / JPEG / WebP, at most 200 kB, base64 in D1: this Cloudflare account has no R2 binding).
 If the seller is a sole trader, name, tax ID (= national ID number for an individual), address, phone and bank account
 are personal data of the owner. Documents (`seller_docs`) also store the **buyer's** name, address, tax ID and branch as
-typed by the owner, and a frozen copy of the seller details at the time each document is issued.
+typed by the owner, a frozen copy of the seller details and of the lines at the time each document is issued, and the
+logo printed on it (stored once per distinct image in `seller_logos`, referenced by its hash; review round 1).
 
 (b) **Where it is kept and who sees it.** In the Worker's D1 database only. Never in the repository (public), never in a
 log line, an audit row, analytics or an outbound request, never sent to AI (tested with marker values in every sink:

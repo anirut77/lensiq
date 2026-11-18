@@ -677,5 +677,7 @@
   "ads.created": "Draft created",
   "ads.issued": "Document issued, number {n}",
   "ads.voidConfirm": "Void this document? Its number will never be reused.",
-  "ads.voided": "Document voided"
+  "ads.voided": "Document voided",
+  "ads.clear": "Remove the stored value of this field",
+  "ads.e.price": "A line of this draft is no longer on the approved price list. Create a new draft."
 } });

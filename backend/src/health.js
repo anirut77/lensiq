@@ -54,7 +54,8 @@ const PROBES = [
   ["0020_lead_notify.sql", "SELECT notify_state, notify_detail, notify_at FROM leads LIMIT 0"],
   ["0021_seller.sql", "SELECT legal_name, logo_data FROM seller_profile LIMIT 0"],
   ["0021_seller.sql", "SELECT number, seller_json FROM seller_docs LIMIT 0"],
-  ["0021_seller.sql", "SELECT doc_type, last FROM seller_doc_seq LIMIT 0"]
+  ["0021_seller.sql", "SELECT doc_type, last FROM seller_doc_seq LIMIT 0"],
+  ["0021_seller.sql", "SELECT hash, mime, data FROM seller_logos LIMIT 0"]
 ];
 
 /** @param {Env} env */

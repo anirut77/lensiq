@@ -27,6 +27,7 @@
   /** plain message for the codes this tab can get */
   function bad(/** @type {any} */ e) {
     if (e && e.code === "owner_totp_required") return msg(G("ads.e.totp", "เปิดการยืนยันตัวตนสองชั้น (แท็บความปลอดภัย) ก่อนแก้ข้อมูลกิจการ"), true);
+    if (e && e.code === "not_on_price_list") return msg(G("ads.e.price", "รายการในฉบับร่างนี้ไม่อยู่ในรายการราคาที่อนุมัติแล้ว สร้างฉบับร่างใหม่"), true);
     if (e && e.code === "seller_incomplete") return msg(G("ads.e.incomplete", "ยังไม่ได้กรอกข้อมูลกิจการ: กรอกข้อมูลกิจการให้ครบก่อนออกเอกสาร"), true);
     if (e && (e.code === "bad_field" || e.code === "unknown_field")) return msg(G("ads.e.field", "ข้อมูลบางช่องไม่ถูกรูปแบบ กรุณาตรวจอีกครั้ง"), true);
     if (e && (e.code === "logo_type" || e.code === "logo_too_large")) return msg(G("ads.e.logo", "โลโก้ต้องเป็น PNG, JPEG หรือ WebP ขนาดไม่เกิน 200 KB"), true);
@@ -45,7 +46,7 @@
     var f = /** @type {any} */ ($("adsForm")).elements, p = v.profile;
     PLAIN.forEach(function (k) { f[k].value = p[k] || ""; f[k].setAttribute("data-user-value", "1"); });
     Object.keys(MASKED).forEach(function (k) {
-      f[k].value = "";
+      f[k].value = ""; f["clear_" + k].checked = false;
       var m = p[MASKED[k]];
       f[k].placeholder = m ? G("ads.keep", "ตั้งไว้แล้ว {m} (เว้นว่าง = ไม่เปลี่ยน)", { m: m }) : "";
     });
@@ -94,7 +95,8 @@
     e.preventDefault();
     var f = /** @type {any} */ ($("adsForm")).elements, p = (ads.view || { profile: {} }).profile, out = /** @type {Record<string, any>} */ ({});
     PLAIN.forEach(function (k) { var v = String(f[k].value || "").trim(); if (v !== (p[k] || "")) out[k] = v; });
-    Object.keys(MASKED).forEach(function (k) { var v = String(f[k].value || "").trim(); if (v) out[k] = v; });
+    // masked fields: empty = keep; the "remove" box sends "" (clears the stored value)
+    Object.keys(MASKED).forEach(function (k) { var v = String(f[k].value || "").trim(); if (v) out[k] = v; else if (f["clear_" + k].checked) out[k] = ""; });
     var vr = f.vat_registered.value;
     if (vr === "yes" || vr === "no") {
       var want = vr === "yes";

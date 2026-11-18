@@ -38,7 +38,10 @@ CREATE TABLE seller_docs (
   buyer_json TEXT NOT NULL,       -- {name, tax_id?, address?, branch?}
   lines_json TEXT NOT NULL,       -- [{id, qty}] — prices are read from backend/src/price-list.js, never from the client
   extra_json TEXT,                -- {valid_days?, due_days?, paid_on?, ref?, note?}
-  seller_json TEXT,               -- frozen seller details at issue time
+  seller_json TEXT,               -- frozen seller details at issue time (without the logo bytes: see logo_hash)
+  lines_frozen_json TEXT,         -- frozen lines at issue time (names TH/EN/ZH, unit price, minimum, amount): a later price
+                                  -- change or a removed price line never changes an issued document
+  logo_hash TEXT,                 -- the logo printed on the issued document (seller_logos.hash), NULL = no logo
   subtotal_satang INTEGER,        -- frozen at issue time (excl. VAT)
   vat_rate_bp INTEGER,
   vat_satang INTEGER,
@@ -49,6 +52,14 @@ CREATE TABLE seller_docs (
 );
 CREATE UNIQUE INDEX seller_docs_type_seq ON seller_docs (doc_type, seq);
 CREATE INDEX seller_docs_created ON seller_docs (created_at);
+
+-- logos printed on issued documents, one row per distinct logo (content hash), so documents do not each copy the image
+CREATE TABLE seller_logos (
+  hash TEXT PRIMARY KEY,          -- sha256 hex of the base64 data
+  mime TEXT NOT NULL,
+  data TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
 
 -- the number sequence per document type: only ever incremented (inside the issuing D1 batch), never reset
 CREATE TABLE seller_doc_seq (
