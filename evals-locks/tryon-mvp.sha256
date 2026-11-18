@@ -53,3 +53,10 @@ f7080559bc5003d667c43b60ea5472eed447e424798ee9e2572367d0a4fa4ec4  tests/unit/try
 # locked 2026-11-18T04:31:15Z (tools/eval-guard.mjs lock, 2 files)
 6e50458a14d49ad6aa48a551fae272eb7a5e64755e248327c6bd8b9a16d40ba4  relock-pose-2026-11-18/tests/unit/tryon-core.test.js
 e0315c711444957d779b3876014629afe9df6f1458fd6bef8f7bd665ed28cefb  relock-pose-2026-11-18/tests/e2e/tryon.e2e.mjs
+#
+# Re-lock 2026-11-18b (tryon-pose, during the build; ledger docs/TRYON-POSE-RESULTS.md): tests/unit/tryon-review.test.js V3
+# pinned DRAWABLE to the 7 categories drawable before; skirts and trousers are drawable now (pose anchors, proven by the
+# locked tryon-pose Q3-Q5). Added a check that every listed category has a drawing path. No other case changed.
+# Hash fd771114… superseded. Copy in relock-pose-2026-11-18b/.
+# locked 2026-11-18T04:42:34Z (tools/eval-guard.mjs lock, 1 file)
+8fc6d1b2bbb0516244c3691152acde8dcd435143812567296f914c3de92e2594  relock-pose-2026-11-18b/tests/unit/tryon-review.test.js
