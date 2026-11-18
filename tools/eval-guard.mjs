@@ -245,7 +245,8 @@ const fieldRef = (phase, rel) => `${FIELD_PREFIX}${phase.split("__").join("/")}/
  * Ledger rule (owner decision 110 ก condition 4, 2026-11-18). For lock blocks stamped "# locked <UTC>" at or after LEDGER_FROM:
  *   L1 a field lock line whose file has a repo copy needs, in the same lock file (same block or later), a repo ledger line with
  *      the same hash, or "# field only <rel>";
- *   L2 a "# repo file" line needs its field copy: a same-hash field line in the same lock file, or a valid "field:" reference.
+ *   L2 a "# repo file" line needs its field copy: a same-hash field line in the same lock file (an unmarked line with the same
+ *      hash and the same path counts: mirrored field folders), or a valid "field:" reference.
  * On every line: a "field:" reference must name a hash line (same hash, same path) of evals-locks/<phase>.sha256, and a
  * "late entry" line must carry one. With opts.field, every field copy of those lines must exist on disk under the evals
  * root with that hash and be listed in its phase's locked.sha256. L1 gaps in earlier blocks are returned as history.
@@ -307,7 +308,8 @@ function checkLedger(repo, lockFiles, dirs, opts) {
         } else if (LATE_RE.test(line)) {
           problems.push(`${where}: ${e.path}: a late entry must name its field copy ("field: ${FIELD_PREFIX}<phase>/<rel>").`);
         } else if (isNew && e.marked) {
-          const copy = events.find(x => x.hash === e.hash && !isRepoPath(x, dirs));
+          // field copy: a same-hash field line, or (mirrored field folder) an unmarked line with the same hash and the same path
+          const copy = events.find(x => x.hash === e.hash && (!isRepoPath(x, dirs) || (!x.marked && x.path === e.path)));
           if (!copy) problems.push(`${where}: ${e.path}: repo ledger line without a field copy (no field line with ${e.hash} in this lock file, no "field:" reference).`);
         } else if (isNew) disk(phase, e.path, /** @type {string} */ (e.hash), where); // the field file sits at its repo path
         continue;

@@ -35,3 +35,9 @@ e04c4829784e9353ce17272e0ecaf1d842fcebb0a116d7215336a23e69d9eda4  tests/unit/eva
 # locked 2026-11-18T07:15:55Z (tools/eval-guard.mjs lock, 1 file)
 bf5732b126eb70766c8402cd464cf6daa90e8e11efb4325dd0d9ca6030dc85f1  pin-2/eval-guard-ledger-mirror.test.js
 bf5732b126eb70766c8402cd464cf6daa90e8e11efb4325dd0d9ca6030dc85f1  tests/unit/eval-guard-ledger-mirror.test.js  # repo file (same commit as lock 2026-11-18T07:15:55Z; field: ~/LENSIQ-field/evals/eval-guard/pin-2/eval-guard-ledger-mirror.test.js)
+# RE-LOCK 2026-11-18 (coordinator decision under owner decision 110 ก condition 4): tools/eval-guard.mjs L2 also accepts, as the field copy
+# of a '# repo file' line, an unmarked line with the same hash and the same path in the same lock file (mirrored field folders such as
+# fortune-credits__v4). Test locked first: eval-guard-ledger-mirror.test.js (3 pass / 1 fail before, 4 / 4 after). No other change.
+# locked 2026-11-18T07:16:08Z (tools/eval-guard.mjs lock, 1 file)
+da28268aaf89e3c39bf82e6c4b95b06d947c50583b06f581a52786c7b3eff6f1  pin-3/eval-guard.mjs
+da28268aaf89e3c39bf82e6c4b95b06d947c50583b06f581a52786c7b3eff6f1  tools/eval-guard.mjs  # repo file (same commit as lock 2026-11-18T07:16:08Z; field: ~/LENSIQ-field/evals/eval-guard/pin-3/eval-guard.mjs)
