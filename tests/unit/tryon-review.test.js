@@ -54,8 +54,13 @@ test("V2: checkbox label and status message use different keys, all in TH / EN /
   }
 });
 
+// V3 RE-LOCK 2026-11-18 (tryon-pose, owner decision 2026-11-18; ledger docs/TRYON-POSE-RESULTS.md): skirts and trousers are
+// drawable now (pose anchors, tests/unit/tryon-pose.test.js Q3-Q5). Added: every listed category has a drawing path (face
+// placement or pose targets), so the list still holds only what the page can draw.
 test("V3: the page lists only categories it can draw", () => {
-  assert.deepEqual([...TO.DRAWABLE].sort(), ["dresses", "earrings", "glasses", "hats", "necklaces", "outerwear", "tops"]);
+  assert.deepEqual([...TO.DRAWABLE].sort(), ["dresses", "earrings", "glasses", "hats", "necklaces", "outerwear", "skirts", "tops", "trousers"]);
+  const A = TO.faceAnchors(Array.from({ length: 478 }, (_, i) => ({ x: .4 + (i % 9) * .02, y: .3 + (i % 11) * .02 })), 640, 480);
+  for (const c of TO.DRAWABLE) assert.ok(TO.place(c, A) || (TO.POSE_NEEDS && TO.POSE_NEEDS[c]), "no drawing path for " + c);
   assert.match(read("tryon.js"), /TO\.DRAWABLE/);
 });
 

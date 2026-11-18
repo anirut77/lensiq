@@ -83,6 +83,28 @@ Running list, append only. Each entry: date, what changes, status, what happens 
 - **Decision taken on the owner's behalf (reversible):** 49 THB does not include the PDF (the order lists 99, 199 and Plus only).
 - **If the owner does not answer:** nothing changes for users; it stays off.
 
+## 2026-11-17: FUTURE item, do not start: real-time Q&A chat about a reading (owner order, night item 2)
+
+- **Idea (owner):** a real-time chat in which an AI helps the person understand a reading they have already received
+  (what a term means, why a period is marked as weak, how two parts of the reading fit together).
+- **Status: FUTURE, do not start.** Nothing is designed or built; no page, switch, prompt or backend route exists for it.
+- **Points to settle before any work:**
+  1. **AI cost:** every message is a paid model call (no fixed price per reading as today); needs a per-user cap, a
+     monthly budget in the Worker like `/api/fortune`, and a decision on whether it is free, paid or Plus only.
+  2. **Age rule:** who may use it (18+ only, like the straight reading, or everyone with gentle wording), and how that is
+     checked on a shared or booth device.
+  3. **Crisis handling:** every message must pass the crisis net before and after the model; when it triggers, the chat
+     stops and shows the crisis help (1323 on fortune pages) with no reading, offer or price, the same as crisis v3. Free
+     text in a chat is the hardest input to screen; this needs its own locked test set and review first.
+  4. **Lawyer's view:** PDPA (chat text may hold sensitive data: health, relationships, beliefs), cross-border transfer to
+     the AI provider, retention (proposal: nothing stored), and liability for advice-like answers (no medical, investment
+     or relationship-ending instructions, the same hard limits as the readings).
+  5. **How it differs from the 2026-11-13 "no vent-to-AI chat" decision:** that decision rules out an open chat where a
+     person pours out feelings or problems to an AI. This idea is limited to explaining a reading the person already has;
+     the owner must confirm the boundary (topic lock to the reading, refusal and crisis hand-off when the talk turns to
+     distress) and that it does not reopen the vent-to-AI chat.
+- **If the owner does not answer:** nothing is built; the item stays here as FUTURE.
+
 ## 2026-11-17: open item (owner, recorded during the line-wrap work)
 
 - **Owner's words:** "Later topic, not started: protecting paid content from being shared, resold, or used to run a paid reading

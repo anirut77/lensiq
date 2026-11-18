@@ -156,7 +156,6 @@
     "palm.topic.money": "财运",
     "palm.narr.loading": "正在撰写解读...",
     "palm.narr.loadingAI": "正在请写作助手（Anthropic 的 Claude）撰写解读...",
-    "palm.src.local": "本机生成",
     "palm.src.ai": "由写作助手（Anthropic 的 Claude）撰写",
     "palm.sec.personality": "性格",
     "palm.sec.work": "事业",

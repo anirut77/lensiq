@@ -780,8 +780,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     AI = AI || window.FortuneAI;
     $("#fsReading").hidden = false;
     var badge = $("#fsSource");
-    badge.textContent = res.source === "ai" ? T("fengshui.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) จากผลคำนวณเท่านั้น") : T("fengshui.src.local", "เรียบเรียงในเครื่อง ไม่ส่งข้อมูลออก");
+    badge.textContent = res.source === "ai" ? T("fengshui.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) จากผลคำนวณเท่านั้น") : ""; // owner 2026-11-17: no on-device label
     badge.className = "fs-badge " + (res.source === "ai" ? "ai" : "local");
+    badge.hidden = res.source !== "ai";
     if (AI && typeof AI.renderSections === "function") {
       try { host.innerHTML = ""; var r = AI.renderSections(host, res, { domain: "fengshui" }); if (typeof r === "string") host.innerHTML = r; else if (r && r.nodeType && r !== host) host.append(r); /* renderSections fills host itself and returns it */ used = host.childNodes.length > 0; } catch (e) { used = false; }
     }
@@ -943,7 +944,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   // แหล่งอ้างอิง/ข้อความจาก KB
   function renderKbText() {
-    $("#fsSourcesNote").textContent = T("fengshui.sourcesNote", KB.sourcesNote);
     $("#fsLichunNote").textContent = T("fengshui.lichunNote", KB.lichunNote);
     $("#fsPeriodNote").textContent = T("fengshui.period", KB.period.text) + " · " + T("fengshui.baguaNote", KB.baguaNote);
     $("#fsElNote").textContent = T("fengshui.elementsNote", KB.elementsNote);

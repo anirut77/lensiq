@@ -16,3 +16,12 @@
 .to-item[aria-pressed="true"] { background: #674ff2; border-color: #674ff2; color: #fff; }
 .to-src { color: var(--muted, #64748b); font-size: 14px; }
 #toStageH { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* camera or photo (2026-11-18): the photo input is visually hidden; its label is the button */
+.to-src-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.to-file { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.to-photo-btn { cursor: pointer; }
+.to-photo-btn.is-disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+.to-src-row :focus-visible, .to-file:focus-visible + * { outline: 2px solid #674ff2; outline-offset: 2px; }
+.to-note { margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; background: #fff7ed; color: #7c2d12; font-size: 14px; line-height: 1.5;
+  border: 1px solid #fed7aa; overflow-wrap: anywhere; }
+.to-item { max-width: 100%; white-space: normal; }

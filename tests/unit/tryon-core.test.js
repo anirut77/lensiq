@@ -10,8 +10,12 @@
 //      forehead and wider than the face; one earring under each ear point, mirrored
 //   C3 categories on the page = the Worker's list (one source of truth), none of underwear / swimwear
 //   C4 preview mark "ภาพจำลอง · Virtual try-on preview · 虚拟试穿预览" is burned into every snapshot (stamp draws it)
-//   C5 tryon.html: live camera only (no file input, no drop / paste handler), consent before the camera, no POST and no
-//      storage of frames; the only network call is GET /v1/tryon/catalog (+ asset images); TH / EN / ZH keys complete
+//   C5 tryon.html: consent before the camera; no drop / paste handler, no POST and no storage of frames; the only
+//      network call is GET /v1/tryon/catalog (+ asset images); TH / EN / ZH keys complete
+//      RE-LOCK 2026-11-18 (owner decision 2026-11-18 "Photo or camera on the device"; ledger: docs/TRYON-POSE-RESULTS.md
+//      "Re-lock ledger", evals-locks/tryon-mvp.sha256). BEFORE: "no file input" anywhere in tryon.html / tryon.js. NOW: at
+//      most one file input, in the markup only (tryon.js never creates one), image only (accept="image/*"), no capture
+//      attribute, no multiple, DISABLED in the markup and enabled by the consent tick; everything else unchanged
 //   C6 admin back-office section: admin.html has the try-on tab; admin-tryon.js runs the Product Check face blur
 //      (LQPCRun.faceRuns + LQPC.faceBlurPlan + LQPCRun.faceBlur) before upload, needs the "no visible face remains" tick,
 //      refuses when the detector cannot run, and its strings exist in TH / EN / ZH
@@ -88,9 +92,18 @@ test("C4: the preview mark is burned into every snapshot in TH / EN / ZH", () =>
   assert.match(read("tryon.js"), /TO\.stamp\(/);
 });
 
-test("C5: tryon.html is live-camera only, consent first, no POST / storage; i18n complete", () => {
+test("C5: tryon.html: consent first (camera and photo), no POST / storage; i18n complete", () => {
   const html = read("tryon.html"), js = read("tryon.js");
-  assert.ok(!/<input[^>]+type=["']?file/i.test(html) && !/type\s*=\s*["']file/.test(js), "no file input");
+  const files = [...html.matchAll(/<input[^>]+type=["']?file[^>]*>/gi)].map(m => m[0]);
+  assert.ok(files.length <= 1, "at most one file input: " + files.length);
+  assert.ok(!/type\s*=\s*["']file/.test(js) && !/createElement\(\s*["']input["']\s*\)/.test(js), "tryon.js creates no file input");
+  for (const f of files) {
+    assert.match(f, /accept="image\/\*"/, "image only"); assert.match(f, /\sdisabled[\s>]/, "disabled until consent");
+    assert.ok(!/\scapture\b/.test(f) && !/\smultiple\b/.test(f), "no capture / multiple");
+    const id = (/id="([^"]+)"/.exec(f) || [])[1];
+    assert.ok(id, "file input has an id");
+    assert.ok(new RegExp("toConsent[\\s\\S]{0,600}" + id).test(js), "the consent tick enables the photo input");
+  }
   assert.ok(!/addEventListener\(\s*["'](drop|paste|dragover)["']/.test(js) && !/on(drop|paste)\s*=/.test(js + html), "no drop / paste");
   assert.match(js, /getUserMedia|LQCam/);
   assert.match(html, /id="toConsent"/); assert.match(html, /id="toStart"[^>]*disabled/);

@@ -1,0 +1,28 @@
+# locked 2026-11-17T17:32:18Z (tools/eval-guard.mjs lock, 3 files)
+61f2f8feecdc9c77a77dfc597b99be69731e8cf9be4004f6f608c715357d4b4e  tests/unit/fortune-credits-v2.test.js
+681d5f3f11c85ded8520566e1da1b3eba2acc1df6b63abdc6df5ce28b0fc350f  tests/unit/fortune-credits-v2-assets.json
+a70ea84367b3800a98db062f3b18450edbf6b0a6af228d3a1ab8a6a8be3d9728  tests/e2e/fortune-credits-v2.e2e.mjs
+# LEDGER (append-only) — owner decision 2026-11-18: delete, do not move. Supersedes set fortune-credits (v1, locked bytes kept:
+# evals-locks/fortune-credits.sha256 + ~/LENSIQ-field/evals/fortune-credits/). v1 files leave tests/ (their assertions no longer
+# reflect the owner's requirement); v2 above is the set from now on. Repo copies are byte-identical to the locked files.
+# REMOVED (v1 -> v2): C3 credits.html registered with TH/EN/ZH copies; C3 every asset of the 35-row list has a credits row;
+#   C3 every git-tracked vendor file credited or exempt (site-wide credits list); C3 moved items + method notes on credits.html;
+#   C4 help.html "หลักการทำนายของเรา" section in TH/EN/ZH; C5 foot links to credits.html and help.html#h-principles on every
+#   fortune page; e2e R1 foot links visible + targets 200, R2 help#h-principles opens with text, R3 credits rows rendered.
+# KEPT: C1 label absent (HTML, own scripts, loaded dictionaries, TH/EN/ZH) = D1; C2 about block absent, no vendor/ path = D2;
+#   e2e R1 absence of label / block in rendered TH/EN/ZH = V1.
+# ADDED / STRENGTHENED: D2 no tarot image credit on any reading page (Pamela Colman Smith, Rider–Waite–Smith, Wikimedia Commons,
+#   CREDITS.txt, card-image labels; KB.imageCredit not shown) and no principle data-i18n keys (luckycolor's own block excepted);
+#   D3 help.html has no principles section / lazily loaded section, help-principles.js absent, no fortune page or its scripts
+#   links credits.html or help.html#h-principles, no foot keys; D4 licence audit of every vendor asset the fortune pages load
+#   (16 entries, clause per licence, notice files shipped, listed in LICENSES/THIRD-PARTY-NOTICES.txt); credits.html must not
+#   exist unless an audited licence requires on-page attribution, then linked only from the nav.js footer; D5 terms.html
+#   byte-identical to origin/main 5695734; e2e V2 no credits / principles link inside <main> in TH/EN/ZH.
+61f2f8feecdc9c77a77dfc597b99be69731e8cf9be4004f6f608c715357d4b4e  tests/unit/fortune-credits-v2.test.js  # repo file
+681d5f3f11c85ded8520566e1da1b3eba2acc1df6b63abdc6df5ce28b0fc350f  tests/unit/fortune-credits-v2-assets.json  # repo file
+a70ea84367b3800a98db062f3b18450edbf6b0a6af228d3a1ab8a6a8be3d9728  tests/e2e/fortune-credits-v2.e2e.mjs  # repo file
+# Related re-locks: tests/unit/cat-pages.test.js and tests/unit/fortune-no-demo.test.js return to their pre-branch bytes (f548d089…,
+# 0c04589a…, already locked) because credits.html is not created; the a770d72 relock lines for them are moot. Kept:
+# tests/unit/crisis-escape-guard-allow.json without palm plEthics / tarot trCredit / fengshui fsSourcesNote (elements deleted).
+# SUPERSEDED (e2e only) 2026-11-18 by evals-locks/fortune-credits__v3.sha256 (harness fix; ledger there).
+# SUPERSEDED (unit D5 only) 2026-11-18 by evals-locks/fortune-credits__v4.sha256 (owner decision 109: ?v= bumps allowed, text unchanged; ledger there).
