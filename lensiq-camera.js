@@ -84,7 +84,7 @@
           if (root.LQCamHelp) root.LQCamHelp.refused();
           else if (!root.__lqCamHelpLoading) {
             root.__lqCamHelpLoading = 1;
-            const s = document.createElement("script"); s.src = "lensiq-camhelp.js?v=2"; (document.head || document.documentElement).appendChild(s);
+            const s = document.createElement("script"); s.src = "lensiq-camhelp.js?v=3"; (document.head || document.documentElement).appendChild(s);
           }
         }
         throw e;

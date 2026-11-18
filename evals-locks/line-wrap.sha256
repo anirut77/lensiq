@@ -1,0 +1,49 @@
+# evals-locks/line-wrap.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/line-wrap/ (owner rule 2026-11-13). Append-only.
+# line wrap (owner request 2026-11-17, dream page: ")" alone on the next line at phone width): every page (73 *.html) × TH / EN / ZH ×
+# 360 / 375 / 393 / 414 / 430 px; kinds P lone punctuation, W widow in a short block, U split number + unit (rules in the kit header).
+# Locked BEFORE any product change on branch line-wrap (base origin/fortune-top-compact 286d813). The harness was tried on
+# dream.html and index.html (TH / EN) only to confirm it reads line boxes; no fix was made before this lock. Exceptions list is append-only.
+# locked 2026-11-17T00:43:54Z (tools/eval-guard.mjs lock, 10 files)
+85ef86c541624224eb5e532cc2f3fcb912b26f61385db3cadd52b2744af71667  tests/e2e/line-wrap-kit.mjs
+1d1e2212efc69e94cc296ebc3159b72aa6876fe9f64a2298f2b1a541cea34cd2  tests/e2e/line-wrap-exceptions.json
+85ad81c23ebcc14590047320a4f904373e47035378b9ff12a5f48be5f5d151cc  tests/e2e/line-wrap-1.e2e.mjs
+571e1cf450b861a4cf38944c5a39cf6bcfb16f0c6a8e32a2b486ee5662f4cc36  tests/e2e/line-wrap-2.e2e.mjs
+cc832b5165b4658a7e894dfc68ba41d15f2c19f5acac2e63f109b64b9fa2750c  tests/e2e/line-wrap-3.e2e.mjs
+34382a6b090f88e57deb06b091e88233fe03da37f3f8e9ddb12392245911b521  tests/e2e/line-wrap-4.e2e.mjs
+935e3faa35955da25aef05f9ed93cac250630305015a3d099ced338b93d99959  tests/e2e/line-wrap-5.e2e.mjs
+d008721eaef7bfdb5847233ae94a424d8ece233a0c4b1c03072ce2021ffae8e9  tests/e2e/line-wrap-6.e2e.mjs
+b7ef47197e78b74896e18dd1f40b1fac5865a921ec9b4807169ac653cf9c154c  tests/e2e/line-wrap-7.e2e.mjs
+a041e7c04d6ecafec66b759ab70c477bf2655aa5aab6d092cf45bddc32516a17  tests/e2e/line-wrap-8.e2e.mjs
+# re-lock 2026-11-17 (append-only exceptions list, one entry added after the base measurement): cameras.html P "| ./start.sh mobile"
+# (a shell command path that begins with a dot inside <code>, not punctuation). No rule, page, width, language or threshold changed.
+# Copy in relock-1/.
+# locked 2026-11-17T03:44:55Z (tools/eval-guard.mjs lock, 1 file)
+8777ed1f13152f5a47b57ceec72b0ea2f4d86a20e6195e97b33c6c7dbed99d7b  relock-1/tests/e2e/line-wrap-exceptions.json
+# re-lock 2026-11-17 (append-only exceptions list, second entry): exam.html W zh "日） | 来源" (source link after a whitespace-only gap
+# between two elements; the link itself is kept whole). No rule, page, width, language or threshold changed. Copy in relock-2/.
+# locked 2026-11-17T07:44:10Z (tools/eval-guard.mjs lock, 1 file)
+2791632e155f0f6fffd923d9413659b21833437dc7f447441f593e00403534cc  relock-2/tests/e2e/line-wrap-exceptions.json
+# re-lock 2026-11-17 (append-only exceptions list, third entry): store.html U en "Set maximum 20 | people" (live tile rebuilt every
+# second; the join follows within about 0.15 s). No rule, page, width, language or threshold changed. Copy in relock-3/.
+# locked 2026-11-17T07:49:16Z (tools/eval-guard.mjs lock, 1 file)
+5f2daba74d697a6a79bcc34f9918cb548f18f24cbb961a0a072483c817a0b703  relock-3/tests/e2e/line-wrap-exceptions.json
+# re-lock 2026-11-17 (append-only exceptions list, fourth entry): qc.html W en 393 "Inspect | now" (run-time translated label that
+# the line-wrap pass must not split). No rule, page, width, language or threshold changed. Copy in relock-4/.
+# locked 2026-11-17T10:53:33Z (tools/eval-guard.mjs lock, 1 file)
+df10e7d21650a76a677ea66b26fb83dbc43e2487521a0a659419cd92b5f57a9a  relock-4/tests/e2e/line-wrap-exceptions.json
+# re-lock 2026-11-17 (append-only exceptions list, fifth entry): cameras.html W en "registration | desk" (cell narrower than the two
+# words at 360 / 375 px). No rule, page, width, language or threshold changed. Copy in relock-5/.
+# locked 2026-11-17T12:01:39Z (tools/eval-guard.mjs lock, 1 file)
+b637a848f13006d2cb9d5bb2f426aedc363163a2876e3618937c7168773ab2e7  relock-5/tests/e2e/line-wrap-exceptions.json
+# re-lock 2026-11-17 (append-only exceptions list, sixth entry): photobooth.html W en "Face detection | ready" (live status line,
+# short pieces only there). No rule, page, width, language or threshold changed. Copy in relock-6/.
+# locked 2026-11-17T12:17:28Z (tools/eval-guard.mjs lock, 1 file)
+e7fdc73b02536ef3affb6ee3b82c02d8af51d1e1788ad7eada99fd04bfb3f833  relock-6/tests/e2e/line-wrap-exceptions.json
+# relock-7 2026-11-18 (new file only; independent review required fix): tests/unit/line-wrap-crisis-skip.test.js, the wrapper never
+# touches crisis help nodes (1323 link, dialog, help / closing line, call links, crisis slot, kept support boxes). No existing rule changed.
+# locked 2026-11-17T20:32:31Z (tools/eval-guard.mjs lock, 1 file)
+906987dc97770877da3d7e92c1b4601575d90185e03068faf6a72c589282553c  relock-7/tests/unit/line-wrap-crisis-skip.test.js
+# re-lock 2026-11-18 (append-only exceptions list, seventh entry): counselling.html W en 360 "24 hours | a day" (crisis help node; the review requires
+# the wrapper never to touch it; CSS text-wrap:pretty fixes the rest). No rule, page, width, language or threshold changed. Copy in relock-8/.
+# locked 2026-11-17T20:54:01Z (tools/eval-guard.mjs lock, 1 file)
+5515fb3d1ace49ec5896e0917287d8260eeb5323b2ad0fd6a9ceb43d63e40193  relock-8/tests/e2e/line-wrap-exceptions.json

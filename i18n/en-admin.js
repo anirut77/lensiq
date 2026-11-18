@@ -58,7 +58,7 @@
   "adm.lang": "Language",
   "adm.logout": "Sign out",
   "adm.off.h": "The back office is not ready yet",
-  "adm.off.p": "This page is not connected to the LENSIQ system yet. Please open it from the link your system administrator gave you, or contact them.",
+  "adm.off.p": "This page is not connected to the LENSIQ system yet. Please open it from the link your system administrator gave you, or contact\u00a0them.",
   "adm.steps": "Setup steps",
   "adm.step1": "Create account",
   "adm.step2": "2-step verification",
