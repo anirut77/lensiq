@@ -423,7 +423,10 @@
     out.setAttribute("lang", rep.lang === "zh" ? "zh-Hans" : rep.lang || "th");
     var head = h("header", { class: "rp-head" }, h("p", { class: "eyebrow", text: "LENSIQ" }), h("h2", { id: "rpOutH", tabindex: "-1", text: rep.title }));
     head.appendChild(h("p", { class: "rp-meta", text: T("rp.meta", "สร้างเมื่อ {d} · คำนวณในเครื่องจากตำรา ไม่ได้ใช้ผู้ช่วยเขียน", { d: new Date().toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" }) }) }));
-    if (st.mode === "sample") head.appendChild(h("p", { class: "rp-sample", role: "note", text: T("rp.sampleTag", "ตัวอย่างรายงาน (โหมดเดโม) — ไม่มีการชำระเงิน ไม่บันทึก") }));
+    // crisis-v3 rule b: the sample tag names payment ("no payment"), so it is hidden while html[data-lq-crisis] or
+    // html[data-lq-calm] is set and comes back when the flag clears: [data-lq-upsell] (fortune-crisis.js CALM_CSS) and
+    // [data-lq-crisis-sales] (nav.js, pure CSS on every page)
+    if (st.mode === "sample") head.appendChild(h("p", { class: "rp-sample", role: "note", "data-lq-upsell": "sample", "data-lq-crisis-sales": "", text: T("rp.sampleTag", "ตัวอย่างรายงาน (โหมดเดโม) — ไม่มีการชำระเงิน ไม่บันทึก") }));
     // personal cover line (name typed on this page only — never saved or sent) + table of contents
     var forName = plainName(String(($("rpName") && $("rpName").value) || "").trim().slice(0, 60));
     if (forName) head.appendChild(h("p", { class: "rp-for", text: T("rp.for", "จัดทำสำหรับ {name}", { name: forName }) }));
