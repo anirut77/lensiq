@@ -276,3 +276,9 @@ Merge union of locked parents; no assertion changed. Both files were merged by g
 |---|---|---|---|
 | tests/unit/crisis-escape-guard-allow.json | cfab9eef, combined A1 (`evals-locks/crisis-escape-guard.sha256`): crisis-v3-protect's list 3a88c00f (priceText / priceTextNote) minus the 3 dead entries palm plEthics, tarot trCredit, fengshui fsSourcesNote | e994f310, relock-pet: 8 petread ids (petTraits, petMsg, petEmpty, petVideo, petView, petCamMsg, petDetMsg, petHuman) with their reasons | cfab9eef + the 8 petread ids (48bd6504) |
 | tests/unit/fortune-no-demo.test.js | 047f5a00, promo-basics RE-LOCK 1: `"404": "support"` in test 5's BASE_ST | 340830f3, relock-pet-golive (owner decision 100): no `"petread": "demo"` row (petread in category 6) | main's file + the two relock-pet-golive comment lines (d970d7c6); BASE_ST = counselling + 404, no petread |
+
+## fortune-credits audit list for petread (owner decision 100), tag `relock-pet` in `evals-locks/fortune-credits__v4.sha256` (2026-11-18)
+
+| File | Test | Old | New | Reason | Protection kept by |
+|---|---|---|---|---|---|
+| tests/unit/fortune-credits-v2-assets.json | fortune-credits-v2 D4 licence audit | 16 audited assets; petread (category 6 since owner decision 100) loads `vendor/qrcode-generator/qrcode.js`, not audited, so D4 failed | the same 16 plus `qrcode-generator` (MIT, no on-page attribution, notice `vendor/qrcode-generator/LICENSE`, needle "qrcode-generator 2.0.4" in LICENSES/THIRD-PARTY-NOTICES.txt) | owner decision 100: petread joins category 6; adds one audited asset, stricter | D4 unchanged: every vendor asset of every category 6 page must be audited and its notice must ship |
