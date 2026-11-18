@@ -57,6 +57,9 @@
     A.call("/look-salon/entries").then((/** @type {any} */ r) => { st.data = r; render(); }, (/** @type {any} */ e) => A.msg(err(e), true));
   }
   A.loaders.lsalon = load;
+  // the restricted salon roles (migration 0022) see this tab only; their labels in the Security tab's account list
+  if (A.roleTabs) { A.roleTabs.lensiq_admin = "lsalon"; A.roleTabs.salon_editor = "lsalon"; }
+  if (A.roleLabels) { A.roleLabels.lensiq_admin = "ผู้ดูแล LENSIQ (แคตตาล็อกร้าน)"; A.roleLabels.salon_editor = "ผู้แก้ไขแคตตาล็อกของร้าน"; }
 
   /** the salon's own text: shown as text, never translated by the browser */
   const salonText = (/** @type {string} */ t, /** @type {string} */ l) => h("div", { class: "ls-name", lang: l, translate: "no" }, t);

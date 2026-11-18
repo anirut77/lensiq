@@ -105,6 +105,9 @@
     ฝั่งหน้าเว็บ `LQLook.salonLoad / salonApproved / salonRender` แสดงเฉพาะรายการที่อนุมัติ ซ่อนเมื่อแท็บสงบหรือวิกฤต เฉพาะผู้ยืนยันอายุ
     18 ปีขึ้นไป ไม่เก็บภาพ **โหมดร้านยังปิด** (`window.LENSIQ_LOOK_SALON = false` และ `LOOK_SALON = "off"`) เจ้าของเป็นผู้เปิด
     ยังไม่มีหน้าจอช่าง (§5 ข้อ 4) จึงยังไม่มีหน้าใดเรียก `salonRender` นี่คืองานถัดไปถ้าเจ้าของต้องการ
+  - ผู้ตรวจอิสระผ่าน (175 การโจมตี ไม่พลาด) ตัวตรวจจับรูปสะกดผิดของชื่อหัตถการได้ 54/58 (ข้อมูลสังเคราะห์ของผู้ตรวจ) จึงเพิ่มรูปสะกดผิดที่พบบ่อย
+    TH/EN/ZH และการแปลงตัวเลขแทนตัวอักษร (0→o, 1→i/l, 3→e) เทสต์ล็อกก่อนแก้ `tests/unit/look-lint-variants.test.js` + รายการโจมตีของผู้ตรวจ
+    `tests/unit/fixtures/salon-review-attacks.json` (ตอนนี้ 58/58 เป็นชุดที่ใช้พัฒนา ไม่ใช่ชุดแยก) ยังไม่ใช่ตัวกรองที่กันได้ทั้งหมด คนอนุมัติทุกรายการ
   - The approval step exists (2026-11-18): entries start pending; the LENSIQ owner approves the exact version (config
     `LOOK_SALON_APPROVERS` may add LENSIQ admins; reversible); any edit needs approval again; procedure words are refused by
     the strict lint and cannot be approved; audit and history hold no free text. Salon mode stays off until the owner switches it on.

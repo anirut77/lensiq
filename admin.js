@@ -209,8 +209,8 @@
     flow.first = false; flow.pw = ""; flow.back = "";
     // a merit reviewer sees the merit tab only, a try-on account (tryon_admin / tryon_editor, migration 0017) the try-on tab
     // only (the Worker refuses everything else anyway: 403 forbidden_role)
-    // a salon catalogue account (lensiq_admin / salon_editor, migration 0022) the salon catalogue tab only
-    var only = me.role === "reviewer" ? "merit" : /^tryon_/.test(String(me.role)) ? "tryon" : me.role === "lensiq_admin" || me.role === "salon_editor" ? "lsalon" : "";
+    // other restricted roles see only the tab their section script registered (roleTabs)
+    var only = me.role === "reviewer" ? "merit" : /^tryon_/.test(String(me.role)) ? "tryon" : roleTabs[String(me.role)] || "";
     // org-p1: the Organisations tab needs both switches (window.LENSIQ_ORG_ACCOUNTS === true and the Worker's ORG_ACCOUNTS = "on")
     var orgsOn = /** @type {any} */ (window).LENSIQ_ORG_ACCOUNTS === true && me.org_accounts === true;
     // Try-On: the tab needs the Worker's TRYON = "on" (GET /me tryon; owner decision 2026-11-14, Try-On ships off)
@@ -425,6 +425,8 @@
 
   /* ---------------- tabs ---------------- */
   var loaders = /** @type {Record<string, () => void>} */ ({});
+  /** restricted account role -> the only tab it sees, and role -> Thai label; filled by section scripts loaded after this one */
+  var roleTabs = /** @type {Record<string, string>} */ ({}), roleLabels = /** @type {Record<string, string>} */ ({});
   function tab(/** @type {string} */ name) {
     document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) { b.setAttribute("aria-selected", String(b.getAttribute("data-tab") === name)); });
     document.querySelectorAll(".ad-panel").forEach(function (p) { /** @type {HTMLElement} */ (p).hidden = p.getAttribute("data-panel") !== name; });
@@ -1575,8 +1577,8 @@
     return G("ar.st." + st, ({ pending: "รอผู้ตรวจตั้งค่าครั้งแรก", active: "ใช้งานได้", disabled: "ปิดการใช้งาน" })[st] || st);
   };
   /** @param {string} r */
-  var arRole = function (r) { return G("ar.role." + r, ({ merit: "ผู้ตรวจคำแนะนำตามความเชื่อ", tryon_admin: "ผู้ดูแลแคตตาล็อกลองสินค้า", tryon_editor: "ผู้แก้ไขแคตตาล็อกลองสินค้า",
-    lensiq_admin: "ผู้ดูแล LENSIQ (แคตตาล็อกร้าน)", salon_editor: "ผู้แก้ไขแคตตาล็อกของร้าน" })[r] || r); };
+  var arRole = function (r) { return G("ar.role." + r, ({ merit: "ผู้ตรวจคำแนะนำตามความเชื่อ", tryon_admin: "ผู้ดูแลแคตตาล็อกลองสินค้า", tryon_editor: "ผู้แก้ไขแคตตาล็อกลองสินค้า" })[r] ||
+    roleLabels[r] || r); };
   function arRender() {
     var box = $("arList"); box.textContent = "";
     var list = (ar.data && ar.data.reviewers) || [];
@@ -1643,7 +1645,8 @@
   });
 
   // the try-on catalogue section (admin-tryon.js) uses the same session, request helper and tab loaders
-  /** @type {any} */ (window).__LQAdmin = { call: call, loaders: loaders, h: h, G: G, msg: msg, friendly: friendly, me: function () { return state.me; } };
+  /** @type {any} */ (window).__LQAdmin = { call: call, loaders: loaders, h: h, G: G, msg: msg, friendly: friendly, me: function () { return state.me; },
+    roleTabs: roleTabs, roleLabels: roleLabels };
   // stream G: the Organisations tab lives in admin-orgs.js (admin.js is at its size cap); it uses these helpers
   /** @type {any} */ (window).LQAdminKit = { call: call, h: h, G: G, gLang: gLang, msg: msg, fail: fail, baht: baht, loaders: loaders, $: $ };
 

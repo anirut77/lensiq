@@ -177,6 +177,19 @@
       zh: /加购|预约|预订/
     }
   };
+  /* procedure-word variants (independent review of salon-approval a0bb5cc1, 2026-11-18: misses "เลเซอ", "lazer", "tatt00",
+     "m1croblading"): common misspellings in TH / EN / ZH. Digits typed for letters (0 -> o, 1 -> i / l, 3 -> e) are folded in
+     lintLook() before these and the procedure rules above run again. Not a complete filter; a person approves salon text. */
+  /** @type {Record<string, {th?: RegExp, en?: RegExp, zh?: RegExp, sq?: RegExp}>} */
+  var VARIANTS = {
+    procedure: {
+      th: /เลเซอ|เลสเซอ|เลเซร์|ไมโคเบล|ไมโครเบร|ไมโครเบลท|ฟ[ิี]ลเล[่]?อ|ศัลกรรม|สัลยกรรม|ศัลยกรม|โบท[็๊]?อ[กค]/,
+      en: new RegExp("\\blaz[eo]r\\w*|\\btat+o+\\w*|\\bmi(?:cr|rc)o[- ]?b(?:la|al)d\\w*|\\bmicrobladd\\w*|\\bs[eu]rg[ae]ry\\b|\\bsurgi\\w*|" +
+        "\\bperm[ae]n[ae]nt (?:make-?up|pigment|liner|eyeliner|brows?|lips?)\\b|\\bsemi[- ]?perm[ae]n[ae]nt\\b|\\bth(?:r|i|l)?(?:e|i)?ad[- ]?lifts?\\b"),
+      sq: /lazer|tattoo|microblad|mircoblad|microbald|semiperman|semipermen/,
+      zh: /雷射|纹秀|紋秀|漂眉|超声刀|超聲刀|肉毒/
+    }
+  };
   // Thai marks that are often mistyped or used to break a word (tone marks, thanthakhat, phinthu, nikhahit, yamakkan, mai taikhu)
   var MARKS = /[็-๎ฺ]/g;
   /** "bare" Thai: SARA AM -> SARA AA and every mark removed, so "สัก์คิ้ว", "ผิวขำว" read like "สักคิว", "ผิวขาว" @param {string} s */
@@ -200,7 +213,7 @@
   }
   /** @type {{code: string, rx: RegExp}[]} */
   var BARE = [];
-  [LINT, EXTRA, FAMILY, FAMILY2].forEach(function (T) {
+  [LINT, EXTRA, FAMILY, FAMILY2, VARIANTS].forEach(function (T) {
     Object.keys(T).forEach(function (code) { var r = T[code].th && bareRx(T[code].th); if (r) BARE.push({ code: code, rx: r }); });
   });
   var OWN = Object.keys(LINT);
@@ -227,7 +240,7 @@
       if (m) out.push({ code: OWN[i], match: m[0].slice(0, 40) });
     }
     var has = function (/** @type {string} */ c) { return out.some(function (h) { return h.code === c; }); };
-    [EXTRA, FAMILY, FAMILY2].forEach(function (T) {
+    [EXTRA, FAMILY, FAMILY2, VARIANTS].forEach(function (T) {
       for (var code in T) {
         if ((salon && code === "procedure") || has(code)) continue;
         var x = T[code], k = null;
@@ -238,6 +251,22 @@
         if (k) out.push({ code: code, match: k[0].slice(0, 40) });
       }
     });
+    // digits typed for letters ("tatt00", "m1croblading", "surg3ry"): fold 0 -> o, 1 -> i (and 1 -> l), 3 -> e in words that
+    // mix digits and Latin letters, then run the procedure rules again on the folded text (procedure only: scores need digits)
+    if (!(salon) && !has("procedure") && /[a-z][013]|[013][a-z]/.test(lower)) {
+      var foldWord = function (/** @type {string} */ s, /** @type {string} */ one) {
+        return s.replace(/[a-z0-9]+/g, function (w) { return /[a-z]/.test(w) && /[013]/.test(w) ? w.replace(/0/g, "o").replace(/1/g, one).replace(/3/g, "e") : w; });
+      };
+      var folds = [foldWord(lower, "i"), foldWord(lower, "l")];
+      for (var fi = 0; fi < folds.length && !has("procedure"); fi++) {
+        var fl = folds[fi], fsq = fl.replace(/[^\p{L}\p{M}\p{N}]+/gu, "");
+        [LINT, EXTRA, FAMILY, FAMILY2, VARIANTS].forEach(function (T) {
+          var x = T.procedure; if (!x || has("procedure")) return;
+          var k = (x.en && x.en.exec(fl)) || (x.sq && x.sq.exec(fsq));
+          if (k) out.push({ code: "procedure", match: k[0].slice(0, 40) });
+        });
+      }
+    }
     var b = bare(squash);
     BARE.forEach(function (e) {
       if ((salon && e.code === "procedure") || has(e.code)) return;
