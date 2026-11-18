@@ -420,7 +420,8 @@
           <label><span data-i18n="ads.f.vat">สถานะภาษีมูลค่าเพิ่ม</span> <select name="vat_registered">
             <option value="" data-i18n="ads.vat.unset">ยังไม่ได้ระบุ</option><option value="yes" data-i18n="ads.vat.yes">จดทะเบียนภาษีมูลค่าเพิ่มแล้ว</option>
             <option value="no" data-i18n="ads.vat.no">ไม่ได้จดทะเบียนภาษีมูลค่าเพิ่ม</option></select></label>
-          <label><span data-i18n="ads.f.vat_rate">อัตราภาษีมูลค่าเพิ่ม (%)</span> <input name="vat_rate" autocomplete="off" type="number" min="0" max="10" step="0.01"></label>
+          <label><span data-i18n="ads.f.vat_rate">อัตราภาษีมูลค่าเพิ่ม (%)</span> <input name="vat_rate" autocomplete="off" type="number" value="7" readonly>
+            <small data-i18n="ads.f.vatNote">ราคาที่อนุมัติแล้วไม่รวมภาษีมูลค่าเพิ่ม 7% อัตราอื่นต้องให้เจ้าของตัดสินก่อน</small></label>
           <label><span data-i18n="ads.f.bank_name">ธนาคาร</span> <input name="bank_name" autocomplete="off" maxlength="80"></label>
           <label><span data-i18n="ads.f.bank_account_name">ชื่อบัญชี</span> <input name="bank_account_name" autocomplete="off" maxlength="120"></label>
           <label><span data-i18n="ads.f.bank_account_no">เลขที่บัญชี</span> <input name="bank_account_no" autocomplete="off" inputmode="numeric" maxlength="24" data-masked="1"></label>
@@ -682,7 +683,7 @@
   </section>
   <p id="adMsg" class="ad-msg" role="status" aria-live="polite"></p>
 </main>
-<script src="i18n/zh-admin.js?v=15"></script>
+<script src="i18n/zh-admin.js?v=16"></script>
 <script src="lensiq-i18n.js?v=2"></script>
 <script src="attendance-qr.js?v=1"></script>
 <script src="lensiq-api.js?v=3"></script>
@@ -696,6 +697,6 @@
 <script src="lensiq-tryon-core.js?v=2"></script>
 <script src="admin-tryon.js?v=2"></script>
 <script src="admin-orgs.js?v=1"></script>
-<script src="admin-seller.js?v=2"></script>
+<script src="admin-seller.js?v=3"></script>
 </body>
 </html>

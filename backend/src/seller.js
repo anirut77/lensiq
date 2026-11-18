@@ -252,7 +252,8 @@ export async function createDoc(env, b) {
 
 /** @param {any} d */
 const summary = d => ({ id: d.id, doc_type: d.doc_type, status: d.status, number: d.number, buyer_name: d.buyer.name, subtotal_satang: d.subtotal_satang,
-  vat_satang: d.vat_satang, total_satang: d.total_satang, created_at: d.created_at, issued_at: d.issued_at, issuable: d.issuable, missing_seller_fields: d.missing_seller_fields });
+  vat_satang: d.vat_satang, total_satang: d.total_satang, created_at: d.created_at, issued_at: d.issued_at, issuable: d.issuable, missing_seller_fields: d.missing_seller_fields,
+  unavailable_lines: d.unavailable_lines });
 
 /** Lines of a draft from the CURRENT price list; a line that left the list is marked unavailable (amount 0, not issuable).
  *  @param {{id: string, qty: number}[]} raw */
@@ -437,7 +438,10 @@ export function renderDoc(d) {
   const head = `<tr><th>#</th><th>${tri(L.desc)}</th><th class="num">${tri(L.qty)}</th><th class="num">${tri(L.unit)}</th>` +
     `${quote ? `<th class="num">${tri(L.regular)}</th>` : ""}<th class="num">${tri(L.amount)}</th></tr>`;
   const regCell = l => `<td class="num">${esc(l.regular_th)}<small>${esc(l.regular_en)} · ${esc(l.regular_zh)}</small></td>`;
-  const rows = d.lines.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(l.name_th)}<small>${esc(l.name_en)} · ${esc(l.name_zh)}</small>` +
+  const gone = (l, i) => `<tr data-unavailable-line="${esc(l.id)}"><td>${i + 1}</td>` +
+    `<td>${tri(["ไม่อยู่ในรายการราคาที่อนุมัติแล้ว", "No longer on the approved price list", "已不在批准的价目表中"])}</td>` +
+    `<td class="num">${l.qty}</td><td class="num">—</td>${quote ? `<td class="num">—</td>` : ""}<td class="num">—</td></tr>`;
+  const rows = d.lines.map((l, i) => l.unavailable ? gone(l, i) : `<tr><td>${i + 1}</td><td>${esc(l.name_th)}<small>${esc(l.name_en)} · ${esc(l.name_zh)}</small>` +
     `<small>${esc(l.unit_th)} · ${esc(l.unit_en)} · ${esc(l.unit_zh)}${l.min_satang ? ` · ขั้นต่ำ / minimum / 最低 ${baht(l.min_satang)}` : ""}</small></td>` +
     `<td class="num">${l.qty}</td><td class="num">${baht(l.unit_satang)}</td>${quote ? regCell(l) : ""}<td class="num">${baht(l.amount_satang)}</td></tr>`).join("");
   const span = quote ? 5 : 4;

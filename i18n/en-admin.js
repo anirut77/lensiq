@@ -679,5 +679,7 @@
   "ads.voidConfirm": "Void this document? Its number will never be reused.",
   "ads.voided": "Document voided",
   "ads.clear": "Remove the stored value of this field",
-  "ads.e.price": "A line of this draft is no longer on the approved price list. Create a new draft."
+  "ads.e.price": "A line of this draft is no longer on the approved price list. Create a new draft.",
+  "ads.f.vatNote": "Approved prices are excl. 7% VAT. Any other rate needs the owner's decision first.",
+  "ads.unavailable": "A line is no longer on the approved price list: this draft cannot be issued. Create a new draft."
 } });

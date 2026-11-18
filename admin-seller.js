@@ -51,7 +51,7 @@
       f[k].placeholder = m ? G("ads.keep", "ตั้งไว้แล้ว {m} (เว้นว่าง = ไม่เปลี่ยน)", { m: m }) : "";
     });
     f.vat_registered.value = p.vat_registered === true ? "yes" : p.vat_registered === false ? "no" : "";
-    f.vat_rate.value = p.vat_rate_bp != null ? String(p.vat_rate_bp / 100) : "";
+    f.vat_rate.value = "7"; // fixed: approved prices are excl. 7 % VAT (the Worker accepts only 700)
     $("adsLogoState").textContent = v.logo.set ? G("ads.logoSet", "มีโลโก้แล้ว ({kb} KB)", { kb: Math.ceil(v.logo.bytes / 1024) }) : G("ads.logoNone", "ยังไม่มีโลโก้");
   }
   function renderPrices() {
@@ -79,6 +79,9 @@
       btn("preview", "ads.open", "เปิดดู / พิมพ์", function () { preview(d.id); });
       if (d.status === "draft") btn("issue", "ads.issue", "ออกเลขที่เอกสาร", function () { issue(d.id); });
       if (d.status !== "void") btn("void", "ads.void", "ยกเลิกเอกสาร", function () { voidDoc(d.id); });
+      if (d.unavailable_lines && d.unavailable_lines.length) {
+        li.appendChild(h("span", { class: "ad-warn", text: G("ads.unavailable", "มีรายการที่ไม่อยู่ในรายการราคาที่อนุมัติแล้ว ออกเลขที่ไม่ได้ สร้างฉบับร่างใหม่") }));
+      }
       ul.appendChild(li);
     });
   }
@@ -102,8 +105,7 @@
       var want = vr === "yes";
       if (want !== p.vat_registered) out.vat_registered = want;
       if (want) {
-        var rate = Math.round(parseFloat(f.vat_rate.value || "7") * 100);
-        if (isFinite(rate) && rate !== p.vat_rate_bp) out.vat_rate_bp = rate;
+        if (p.vat_rate_bp !== 700) out.vat_rate_bp = 700;
       }
     }
     if (!Object.keys(out).length) { msg(G("ads.nothing", "ไม่มีอะไรเปลี่ยน")); return; }
