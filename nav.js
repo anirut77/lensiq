@@ -62,8 +62,8 @@
       { href: "qc.html", title: "ตรวจคุณภาพสินค้า", desc: "ตรวจชิ้นงานบนสายการผลิต" }
     ] },
     { label: "ดูดวงและฤกษ์มงคล", short: "ดูดวง", id: "fortune", cat: "fortune",
-      intro: "ดูดวงศาสตร์ไทย จีน และตะวันตก และหาฤกษ์มงคล ตามความเชื่อ โปรดใช้วิจารณญาณ", items: [
-      { href: "cat-fortune.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
+      intro: "ดูดวงศาสตร์ไทย จีน และตะวันตก และหาฤกษ์มงคล", items: [
+      { href: "cat-fortune.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "fortune.html", title: "รวมศาสตร์ดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
       { href: "faceread.html", title: "อ่านโหงวเฮ้ง", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
       { href: "palm.html", title: "ดูลายมือ", desc: "ถ่ายฝ่ามือ อ่านเส้นหลัก" },
@@ -174,7 +174,9 @@
       html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span class="nav-lbl-s" data-i18n="nav.groups.' + g.id + '">' + esc(g.short || g.label) + '</span><span class="nav-lbl-f" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
         '<div class="nav-sub" id="navsub-' + g.id + '"><div class="mega">' +
           '<div class="mega-intro"><p class="mega-k" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</p><p class="mega-d" data-i18n="nav.groupd.' + g.id + '">' + esc(g.intro) + '</p>' +
-          (g.cat ? '<a class="mega-all" href="cat-' + g.cat + '.html"><span data-i18n="nav.viewcat">ดูหน้าหมวดนี้: สถานะและความแม่นยำ</span>' + arrow + '</a></div>'
+          // owner order 2026-11-18: the fortune panel's link names no status or accuracy (fortune cards carry neither)
+          (g.cat ? '<a class="mega-all" href="cat-' + g.cat + '.html">' + (g.cat === "fortune" ? '<span data-i18n="nav.viewcat.fortune">ดูหน้าหมวดนี้</span>'
+            : '<span data-i18n="nav.viewcat">ดูหน้าหมวดนี้: สถานะและความแม่นยำ</span>') + arrow + '</a></div>'
             : '<a class="mega-all" href="cameras.html"><span data-i18n="nav.viewall">ดูระบบทั้งหมด</span>' + arrow + '</a></div>') +
           '<ul class="mega-links' + (g.items.length > 6 ? " cols-3" : g.items.length > 3 ? " cols-2" : "") + '">';
       g.items.forEach(function (i) {

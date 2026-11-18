@@ -89,9 +89,9 @@ html.lq-ft-menu .pd-cta .btn.primary{background:var(--ftg);border-color:var(--ft
 html.lq-ft-menu .pd-cta .btn.light{border-color:var(--ftm);color:var(--ftt);background:transparent}
 html.lq-ft-menu .pd-ic,html.lq-ft-menu .ft-ic{display:none}
 html.lq-ft-menu .chip,html.lq-ft-menu .lq-more{color:var(--ftg);border-color:var(--ftl);background:transparent}
-html.lq-ft-menu .cat-tool{position:relative}
-html.lq-ft-menu .cat-tool .sl-go::after{content:"";position:absolute;inset:0;border-radius:inherit}
-html.lq-ft-menu .cat-tool h3{position:relative;z-index:1;cursor:pointer} /* above the card-wide link; fortune-entry.js passes a tap on to it */
+/* cat-fortune one-link cards: the gold line drawing replaces the emoji tile it sits in */
+html.lq-ft-menu .cat-ill{width:auto;height:auto;background:none;border-radius:0}
+html.lq-ft-menu .cat-ill::before{content:none}
 html.lq-ft-menu .cat-top{justify-content:flex-start;align-items:center;gap:12px}
 html.lq-ft-menu .pd-card ul.cat-acc{color:var(--ftt)}
 html.lq-ft-menu .lq-legal-foot{background:#0E0B24;border-top-color:var(--ftl)}

@@ -133,3 +133,14 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   its `locked.sha256` as is (`tools/eval-locks-import.mjs` stopped on an unrelated missing file in `pc-f/review`). Re-measure
   only; never tuned against. The builder's 0 / 0 on `fortune-paid-fresh-2026-11-16b` came after tuning on that set and is not
   an independent number. `fortune-paid` re-lock (10): review D1–D3 and the switch-off identity test, before the fix.
+- `fortune-cards` (2026-11-18, branch `fortune-cards-clean`, base b2a6e76): owner order 2026-11-18 (fortune cards clean, disclaimer
+  once). New `tests/unit/fortune-cards.test.js` and `tests/e2e/fortune-cards.e2e.mjs` locked before the change (unit 2/8, e2e 2/5 before).
+  Re-lock (relock-1) of `cat-pages.test.js`, `categories.e2e.mjs` and `fortune-live.test.js`, reason "owner decision 2026-11-18: fortune
+  cards carry no accuracy field; business products unchanged": only category 6 may have no accuracy line; every other page and card
+  keeps the at-least-one-line-with-source rule; the fortune claim key `cat.c.fortune` and the index per-card disclaimer are no longer
+  required. Pointer lines appended to `evals-locks/fortune-no-demo.sha256` and `evals-locks/fortune-live.sha256`.
+  Re-lock 2 (same reason, found by the full unit suite after the build): `tests/unit/fortune-sources.test.js` required the
+  "where the numbers come from" section on `cat-fortune.html`; now all six non-fortune category pages must keep it and
+  `cat-fortune.html` must not have it.
+  Re-lock 3 (test-setup only, after the first e2e run on the build): `fortune-cards.e2e.mjs` scrolls cards into view with
+  behavior "instant" (the site's smooth scrolling made the test read a card's position mid-scroll). No assertion changed.

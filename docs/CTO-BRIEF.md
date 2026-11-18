@@ -21,6 +21,15 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
 - Every fortune page is lighter than before (synthetic, headless Chrome): fortune.html 440 -> 408 KB, 24 -> 23 requests;
   reading pages -60 to -72 KB and -3 to -4 requests (no Inter, no Prompt 600 / 700). Budgets unchanged.
 
+## Fortune cards clean (owner order 2026-11-18, branch `fortune-cards-clean`, waiting for CI and the coordinator's merge)
+
+- Fortune cards (cat-fortune) show only the name, one short line and a small illustration; the whole card is one link. Removed
+  wherever fortune is listed (cat-fortune, index, solutions, menu): "ความแม่นยำที่วัดได้", "ไม่มีตัวเลขความแม่นยำ", per-card
+  disclaimers, filter / banned-topic wording (TH / EN / ZH, keys included). The disclaimer shows once, small, at the top of cat-fortune.
+- Business categories unchanged: tests/unit/fortune-cards.test.js pins a fingerprint of every non-fortune accuracy line and source.
+  Only category 6 may carry no accuracy field (cat-pages / categories / fortune-live / fortune-sources re-locked with that reason).
+- Future rule recorded in docs/PENDING-DECISIONS.md: reading ratings stay in the back office, never shown as an accuracy figure.
+
 ## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
 
 With the crisis flag set the reading goes on in full structure, gently, never straight; no card and nothing that says the person

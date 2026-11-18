@@ -152,16 +152,6 @@
   }
   whenReady(icons);
 
-  // ---------- cat-fortune: the card title sits above the card-wide link (fortune-theme.css), so a tap on it is passed on to the link ----------
-  doc.addEventListener("click", function (/** @type {any} */ e) {
-    var t = e.target, h = !e.defaultPrevented && e.button === 0 && !classic() && t && t.closest ? t.closest(".cat-tool h3") : null;
-    var a = h && h.closest(".cat-tool").querySelector("a.sl-go[href]");
-    if (!a) return;
-    e.preventDefault();
-    a.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ctrlKey: e.ctrlKey, metaKey: e.metaKey,
-      shiftKey: e.shiftKey, altKey: e.altKey }));
-  });
-
   // ---------- entry screen ----------
   var mode = previewMode(root.location), preview = mode > 0;
   if (isBlocked(doc, ss)) return;

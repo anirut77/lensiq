@@ -134,3 +134,12 @@ buttons end at 626 px (was 642), report EN first type card at 622 px (was 644), 
 fixed read bar that starts at 575 px (was 575, covered). 393 px and wider are unchanged.
 cat-fortune card titles: the title stays above the card-wide link (main's compact-top check needs it uncovered), and
 `fortune-entry.js?v=5` passes a tap on the title on to the card's link (modifier keys kept), so the title opens its page again.
+
+## Round 4 (owner decision 118 ก, 2026-11-18)
+
+- Merged `fortune-cards-clean`: every cat-fortune card is one link (name, one line, small illustration). The emoji tile
+  (`span.cat-ill`) now holds the theme's gold line slot (`svg.ft-ill`): theme A hides the emoji and shows the gold drawing
+  (`fortune-theme.css`, `html.lq-ft-menu .cat-ill`), classic hides the slot and keeps the emoji (no new classic rule).
+- The round-3 title-tap relay in `fortune-entry.js` and its `.sl-go::after` / title `z-index` rules are gone: the title is
+  inside the card's one link now, and no test used the relay. `fortune-entry.js?v=5` and `fortune-theme.css?v=3` were never
+  deployed (neither is on main), so they keep their version numbers.
