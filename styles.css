@@ -1,9 +1,4 @@
-/* LENSIQ — shared theme.
-   Variable NAMES are kept from the old theme because every page CSS uses them;
-   only values changed. Roles:
-   --navy  deep ink (primary buttons, headings)   --navy2 hover ink
-   --aqua  electric cyan (focus rings, bars)      --gold  electric violet accent (text/borders on light, AA on #fff)
-*/
+/* LENSIQ — shared theme. (docs/NAV.md) */
 /* the HTML hidden attribute always wins over component display rules (.btn{display:inline-flex} etc.) */
 [hidden]{display:none!important}
 
@@ -46,9 +41,7 @@ img,svg,canvas,video{max-width:100%}
 .skip-link{position:absolute;left:12px;top:-60px;z-index:100;background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px}
 .skip-link:focus{top:10px}
 
-/* ---------- Site header (rendered by nav.js) ----------
-   Utility strip (tagline, language) that scrolls away + sticky main bar (logo, mega-menu groups, CTA).
-   Restrained palette: ink, slate, hairlines; the violet accent only marks the current location. */
+/* ---------- Site header (rendered by nav.js) ---------- (docs/NAV.md) */
 .nav{--ink:#0e1430;--slate:#4a5470;--hair:#e3e7f0;position:sticky;top:calc(-1 * var(--nav-util,0px));z-index:60;display:grid;
   grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"util util lang" "logo menu menu";align-items:center;column-gap:24px;
   padding:0 max(24px,calc((100vw - 1240px) / 2));background:#fff;border-bottom:1px solid var(--hair);
@@ -77,8 +70,7 @@ img,svg,canvas,video{max-width:100%}
 .nav-cta{display:inline-flex;align-items:center;min-height:40px;margin-left:12px;padding:8px 16px;border:1px solid var(--ink);border-radius:6px;background:var(--ink);color:#fff;font-weight:500;font-size:.88rem;white-space:nowrap;transition:background .15s,color .15s}
 .nav-cta:hover{background:#fff;color:var(--ink)}
 .nav-cta[aria-current=page]{background:#fff;color:var(--ink)}
-/* round 14 (round 16: from 1024 px): all groups on one line at 1024-1440 px. The bar shows the compact group name (.nav-lbl-s, key nav.groups.*),
-   the drawer the full one (.nav-lbl-f); items never shrink or wrap (the Thai <wbr> word breaks stay inside the label) */
+/* round 14 (round 16: from 1024 px): all groups on one line (docs/NAV.md) */
 .nav-lbl-f{display:none}
 .nav-item{flex:none}
 .nav-link[data-lqwb],.nav-cta[data-lqwb]{overflow-wrap:normal}
@@ -163,8 +155,7 @@ img,svg,canvas,video{max-width:100%}
 @media (pointer:coarse){.lq-crumbs a{min-height:44px;min-width:44px;display:inline-flex;align-items:center}}
 [class*="-kiosk"] .lq-crumbs,[class*="-kiosk"] ~ .lq-crumbs{display:none}
 @media print{.lq-crumbs{display:none!important}}
-/* round 12: on phones the breadcrumb stays ONE line — the separator is part of the item it precedes (never orphaned at
-   the start of a wrapped line), the group label shrinks first, the page title is ellipsised, Home keeps its text width */
+/* round 12: on phones the breadcrumb stays ONE line — the s (docs/NAV.md) */
 @media(max-width:719.98px){
   .lq-crumbs ol{flex-wrap:nowrap;white-space:nowrap;overflow:hidden}
   .lq-crumbs li{flex:none;min-width:0}
@@ -187,10 +178,7 @@ h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.2;color:var(--navy);margin:12p
 .btn.primary{background:var(--navy);color:#fff}.btn.primary:hover{background:var(--navy2);border-color:var(--navy2)}
 .btn.ghost{color:var(--navy);background:transparent}.btn.ghost:hover{background:var(--navy);color:#fff}
 .btn.full{width:100%;text-align:center}
-/* Tap feedback, busy state and double-tap safety for every button (owner report 2026-11-14, iPhone Safari: "I cannot tell
-   whether a tap registered, and repeated taps highlight the text inside the button"). Button text cannot be selected,
-   long-press shows no callout, a double tap never zooms, a press is visible (:active), and a button whose work is running
-   (aria-busy="true", set by lensiq-busy.js) shows a spinner and ignores taps. Reading text and text fields stay selectable. */
+/* Tap feedback, busy state and double-tap safety for every button (ow (docs/NAV.md) */
 button,[role=button],.btn,.chip,.tab,input[type=button],input[type=submit],input[type=reset],a.lq-call-btn{
   -webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 :is(button,[role=button],.btn,.chip,.tab,input[type=button],input[type=submit],input[type=reset],a.lq-call-btn):active:not(:disabled):not([aria-disabled=true]){
@@ -214,13 +202,11 @@ h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:600;line-height:1.3;text-align
 
 .chip{background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 18px;color:var(--muted)}
 .chip.active{background:var(--navy);color:#fff;border-color:var(--navy)}
-/* shared tab button (consistency pass 2026-11-14): underline style; .active or aria-selected=true marks the open tab.
-   Page CSS only lays out the tab bar (.tabs / .gk-tabs / .md-tabs) and never restyles the buttons. */
+/* shared tab button (consistency pass 2026-11-14): underlin (docs/NAV.md) */
 .tab{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 14px;min-height:44px;white-space:nowrap;color:var(--muted);font:inherit;cursor:pointer}
 .tab:hover{color:var(--navy)}
 .tab.active,.tab[aria-selected=true]{color:var(--navy);border-bottom-color:var(--gold);font-weight:500}
-/* nav.js puts <wbr> between Thai words and Chrome breaks at <wbr> even under nowrap, so a tab label wrapped one word per line
-   (walkthrough W-026); a tab label keeps its words together, and a tab bar too wide for the screen scrolls sideways */
+/* nav.js puts <wbr> between Thai words and Chrome breaks at (docs/NAV.md) */
 .tab wbr{display:none}
 @media (max-width:640px){.tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.tabs>.tab{flex:0 0 auto}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px}
@@ -267,9 +253,7 @@ footer{text-align:center;padding:28px;background:var(--navy);color:#b3bcd9;font-
   .lang-switch button[aria-pressed=true]{background:#0e1430;color:#fff;border-radius:6px;text-decoration:none}
 }
 @media(max-width:374px){.lang-switch button{min-width:44px;padding:0 4px}.logo{gap:8px;letter-spacing:.08em}}
-/* Compact language switch (nav.js): on very narrow phones (< 341 px, e.g. 320 px iPhone SE 1st gen) — or < 401 px when
-   the member account icon also sits in the bar (.nav.has-acct) — only the current language is shown; tapping it opens
-   the other two below it (.lang-switch.open; Escape / outside tap closes). Every language stays one tap away. */
+/* Compact language switch (nav.js): on very narrow phones ( (docs/NAV.md) */
 @media(max-width:340.98px){
   .nav{padding:0 12px;column-gap:6px}
   .lang-switch:not(.open) button[aria-pressed=false]{display:none}
@@ -298,11 +282,9 @@ html[lang^=zh] .eyebrow,html[lang^=zh] .kicker{letter-spacing:.06em}
 /* Thai script is never letter-spaced or upper-cased (tracking breaks the stacked vowel / tone marks apart) */
 html:lang(th) .eyebrow,html:lang(th) .kicker,html:lang(th) .tag{letter-spacing:.02em;text-transform:none}
 
-/* ---------- Thai line breaking ----------
-   nav.js wraps each Thai word of headings/labels/buttons in .lq-w (nowrap) with <wbr> between words and marks the
-   element [data-lqwb], so words such as "แดชบอร์ด" are never split mid-syllable (the browser's Thai dictionary does
-   not know many loanwords). overflow-wrap is the last resort for a word wider than its box. */
+/* ---------- Thai line breaking ---------- (docs/NAV.md) */
 .lq-w{white-space:nowrap}
+.lq-t.lq-w *{white-space:nowrap!important}lq-t.lq-b{display:inline-block;max-width:100%;white-space:normal;text-decoration:inherit}
 [data-lqwb]{overflow-wrap:anywhere}
 :lang(th){line-break:strict}
 /* no text-wrap:balance/pretty: with many inline .lq-w boxes Chrome's balancing can stall layout (seen on signage.html) */
@@ -358,16 +340,12 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 .about-foot .foot-legal a{min-width:44px;justify-content:center}
 .about .hint a[href^="LICENSES/"]{display:inline-flex;align-items:center;min-height:44px;color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
 
-/* ---------- help line on every fortune page and under every reading (owner order 2026-11-12) ----------
-   Calm, always visible, no detection needed: verified numbers only (docs/CRISIS-RESOURCES.md). In the HTML so it shows
-   without JavaScript (tools/helpline.mjs); fortune-crisis.js builds the same line under each reading. */
+/* ---------- help line on every fortune page and under ever (docs/NAV.md) */
 .lq-helpline{display:block;width:calc(100% - 24px);max-width:1120px;margin:10px auto;padding:10px 14px;border:1px solid #bcd3e6;border-radius:14px;
   background:#eef5fb;color:#14324a;font-size:.95rem;line-height:1.7;overflow-wrap:anywhere}
 .lq-helpline-result{width:auto;margin:14px 0 4px}
 .lq-helpline-note{display:block;margin-top:2px;font-size:.85rem;color:#33506a}
-/* owner order 2026-11-15 item 3: the help line is in ONE place per fortune page, a small row of tap-to-call buttons near the top
-   (tools/helpline.mjs): only "อยากมีคนรับฟัง 1323" (owner decision 54 ข: 1669 and the other numbers only on the crisis card). In
-   the normal page flow (never fixed), so it cannot cover the header or the menu; the button is at least 44 px. */
+/* owner order 2026-11-15 item 3: the help line is in ONE place per fo (docs/NAV.md) */
 .lq-helpline.lq-helpbar{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding:0;border:0;background:none;margin:8px auto 4px;line-height:1.3}
 .lq-call-mini{display:inline-flex;max-width:100%}
 .lq-call-mini>a.lq-call-btn[href]{display:inline-flex;align-items:center;gap:6px;min-height:44px;min-width:44px;max-width:100%;padding:4px 14px;border-radius:999px;
@@ -378,16 +356,12 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 .lq-call-mini>a.lq-call-btn[href]>*{pointer-events:none}
 .lq-call-mini-n{font-variant-numeric:tabular-nums;white-space:nowrap;user-select:all;-webkit-user-select:all}
 @media (min-width:1024px),(hover:hover) and (pointer:fine) and (min-width:600px){.lq-call-mini-n{font-size:1.5rem;line-height:1.1}}
-/* owner order 2026-11-15 item 1: no idle technical status. A status line (role=status) with nothing to say is empty and takes
-   no space; it stays in the page so loading and error messages still reach screen readers. */
+/* owner order 2026-11-15 item 1: no idle technica (docs/NAV.md) */
 html :is(.engine,.fr-engine,.pl-engine,#engine.status):empty{padding:0;margin:0;min-height:0;border:0;background:none}
 /* the printed report keeps the full help line; on screen the top button is the one place (owner order 2026-11-15 item 3) */
 .lq-helpline.lq-helpline-print{display:none}
 @media print{.lq-helpline.lq-helpline-print{display:block}}
-/* ---------- tap-to-call help-line component (lensiq-helpline.js; owner order 2026-11-14 Part B) ----------
-   One compact row on a phone (owner addition 2026-11-14): short label | call button with the number; the second line and
-   the small print wrap under the label, never under the button. Tap target at least 44 px tall. On a computer (no touch,
-   or a wide screen) the number is also shown as large text that can be selected and copied. */
+/* ---------- tap-to-call help-line component (lensiq-helpline.js; own (docs/NAV.md) */
 .lq-call{overflow-wrap:break-word;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:0;align-items:center;margin:6px 0;line-height:1.45;text-align:start}
 .lq-call-t{grid-column:1;grid-row:1;font-weight:700;min-width:0;overflow-wrap:break-word}
 .lq-call>a.lq-call-btn[href]{grid-column:2;grid-row:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;min-width:44px;
@@ -399,7 +373,7 @@ html :is(.engine,.fr-engine,.pl-engine,#engine.status):empty{padding:0;margin:0;
 .lq-call-ico{flex:none;width:20px;height:20px;fill:currentColor}
 .lq-call-num{display:none;grid-column:2;grid-row:1;font-size:1.9rem;font-weight:800;letter-spacing:.02em;user-select:all;-webkit-user-select:all;cursor:text;
   font-variant-numeric:tabular-nums}
-.lq-call-sub{grid-column:1;grid-row:2;font-size:.9rem;min-width:0;overflow-wrap:break-word}
+.lq-call-sub{grid-column:1;grid-row:2;font-size:.9rem;min-width:0;overflow-wrap:break-word;text-wrap:pretty}
 .lq-call-org{grid-column:1;grid-row:3;font-size:.78rem;opacity:.85;min-width:0;overflow-wrap:break-word}
 /* crisis card layout (fortune-ai.js draws the card; its border and colours are injected with the card) */
 .fa-support h3{margin:0 0 .4em}.fa-support ul{list-style:none;padding:0;margin:.6em 0}.fa-support li{margin:.45em 0}

@@ -182,3 +182,4 @@ e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  tests/e2e/cris
 # RE-LOCK 2026-11-17 (branch fortune-credits): see evals-locks/fortune-credits.sha256 (relock/).
 cb8c22f3d667f35a667fccc1a2fba1707adf9b3667c1b6591563c2c8e0f3c914  tests/unit/cat-pages.test.js  # repo file (fortune-credits relock)
 2d56321d8012ac341c5ddb2c2086544873f85510553dd8f2305256e180052558  tests/unit/fortune-no-demo.test.js  # repo file (fortune-credits relock)
+# 2026-11-18: tests/unit/cat-pages.test.js / fortune-no-demo.test.js re-locked in evals-locks/promo-basics.sha256 (RE-LOCK 1: 404.html added as a support page)

@@ -1,6 +1,7 @@
 /* i18n/en-fortune-fengshui.js — English for fengshui.html and the display data in fengshui-kb.js (mirrors zh-fortune-fengshui.js). */
 (function (root) {
   var Z = {
+    "fengshui.metaDesc": "Feng shui: your Kua number, an AR compass, the annual flying-star house chart and home layout tips, according to belief and culture. Calculated in your browser",
     /* ---------- static markup ---------- */
     "fengshui.disclaimer2": "It does not replace professional advice on building, safety, health or finance, and you never need to buy anything.",
     "fengshui.steps.aria": "Steps",

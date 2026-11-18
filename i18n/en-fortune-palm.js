@@ -2,6 +2,7 @@
 (function (root) {
   "use strict";
   var dict = { en: {
+    "palm.metaDesc": "Palm reading from a photo of your palm, with tips to boost your luck. Processed in your browser; no photo is saved",
     /* ---------- Static page ---------- */
     "palm.disclaimerRest": "Do not use it for hiring, financial or relationship decisions or to judge others; the life line has nothing to do with lifespan",
     "palm.steps": "Steps",

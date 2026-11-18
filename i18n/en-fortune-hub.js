@@ -3,6 +3,7 @@
 (function (root) {
   "use strict";
   var dict = { en: {
+    "fortune.hub.metaDesc": "Fortune readings in one place: face and palm reading from the camera, plus birth-date horoscopes, tarot, Siam Si, I Ching, the Chinese zodiac, Western astrology, dreams, feng shui and lucky numbers, calculated by the traditional rules",
     "fortune.hub.lead": "Pick a reading from Thai, Chinese or Western traditions and get your result in a few minutes.",
     "fortune.hub.guideLead": "Not sure where to start? Choose by goal. Every reading also lets you pick a love, career or money theme.",
     "fortune.hub.goal.love": "💞 Love",

@@ -4,6 +4,7 @@
   // th: Thai label override for a string whose Thai default lives in page JS owned by the fortune team
   // (no bare "AI" wording; the optional writing assistant is named with its provider for PDPA transparency)
   var dict = { th: { "numbers.src.ai": "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)" }, zh: {
+    "numbers.metaDesc": "按泰国数字命理的民间信仰分析手机号、车牌、门牌号、账号与姓名。在浏览器中计算，不保存数字",
     /* ---------- static markup ---------- */
     "numbers.disclaimer2": "不用于赌博或博取运气，也不应作为重要决定的依据。各流派的解释各不相同。",
     "numbers.tabs.aria": "选择要分析的内容",

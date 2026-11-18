@@ -31,7 +31,7 @@
 .md-safety-h{margin:0 0 8px;font-weight:600;color:#123a7a;text-align:center}
 .md-tel{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .md-call{background:#fff;border:1.5px solid #2753c9;color:#1b3a8c;flex:1 1 220px;display:inline-flex;gap:8px;align-items:center;justify-content:center;text-decoration:none}
-.md-call b{font-size:1.15rem}
+.md-call b{font-size:1.15rem;white-space:nowrap}
 .md-emerg{border:3px solid #a12b20;background:#fdecea;color:#5c140b;border-radius:16px;padding:16px;margin:0 0 16px}
 .md-emerg h2{color:#7a1f12}
 .md-emerg a:not(.lq-call-btn){color:#7a1f12;display:inline-block;min-height:44px;min-width:56px;line-height:44px;font-size:1.2rem}

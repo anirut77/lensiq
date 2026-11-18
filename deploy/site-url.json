@@ -1,0 +1,4 @@
+{
+  "_note": "The one public base URL of the site (https, ends with /). After a hosting move: change it, run node tools/promo-meta.mjs, commit. Used for canonical, og:url, og:image, sitemap.xml, robots.txt and 404.html links. See docs/PROMO.md.",
+  "base": "https://anirut77.github.io/lensiq/"
+}

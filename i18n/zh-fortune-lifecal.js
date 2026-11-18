@@ -1,6 +1,10 @@
 /* i18n/zh-fortune-lifecal.js — 简体中文：bazi.html · taksa.html · lek7.html · lifegraph.html 的界面文字
    （泰文保留在页面与 lifecal-ui.js 中；解读正文来自 i18n/zh-kb-lifecal.js）。英文可另加 i18n/en-*.js，键相同。 */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "lifegraph.metaDesc": "贯穿一生的人生曲线：事业、财运、感情与自我照顾的运势线，来自塔克萨（大塔克萨）、八字大运与西洋占星，每个点都注明出处",
+  "lek7.metaDesc": "泰式七数九基命盘：日基、阴历月基、生肖年基与总基，并附每一宫的解读",
+  "taksa.metaDesc": "泰国塔克萨占星：出生日守护星、八宫（眷属、寿命、权威、吉祥、根基、勤奋、辅佐、凶煞）与 108 年大塔克萨",
+  "bazi.metaDesc": "根据出生日期与时间排八字命盘：日主、五行平衡与十年大运，节气按天文公式计算",
   "bazi.eyebrow": "BaZi · 八字", "taksa.eyebrow": "泰国塔克萨命理", "lek7.eyebrow": "泰式七数九基", "lifegraph.eyebrow": "人生曲线",
   "bazi.title": "八字 · 日主 五行 大运 | LENSIQ", "bazi.h1": "八字 · 四柱命盘",
   "bazi.lead": "填写出生日期和时间，查看四柱、日主、五行平衡与十年大运。",

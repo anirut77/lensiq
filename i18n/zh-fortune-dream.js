@@ -4,6 +4,7 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
+    "dream.metaDesc": "讲述你的梦，系统帮你找出象征：按泰国民间信仰解梦，收录 100 多个象征与 4 种梦的类型。不提供彩票号码，不保存文字",
     "dream.discNote": "本页不提供任何号码，也不用于博彩；梦境文字只在本机处理，不会被保存",
     "dream.textLbl": "说说你的梦（可选 · 不保存、不上传）",
     "dream.textPh": "例如：梦见家里有一条大蛇，后来坐飞机去了海边",

@@ -104,3 +104,9 @@ Running list, append only. Each entry: date, what changes, status, what happens 
      the owner must confirm the boundary (topic lock to the reading, refusal and crisis hand-off when the talk turns to
      distress) and that it does not reopen the vent-to-AI chat.
 - **If the owner does not answer:** nothing is built; the item stays here as FUTURE.
+
+## 2026-11-17: open item (owner, recorded during the line-wrap work)
+
+- **Owner's words:** "Later topic, not started: protecting paid content from being shared, resold, or used to run a paid reading
+  service for others. Owner will discuss after current work is finished."
+- **Status:** open, not started. Nothing is built or changed for it; the owner raises it after the current work.

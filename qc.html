@@ -18,16 +18,16 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="qc.s1">ตรวจคุณภาพสินค้าบนสายการผลิต | LENSIQ</title>
-<link rel="stylesheet" href="styles.css?v=21">
+<link rel="stylesheet" href="styles.css?v=23">
 <link rel="stylesheet" href="qc.css?v=4">
 <link rel="stylesheet" href="lensiq-sitecheck.css?v=3">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=28"></script>
-<script src="i18n/zh-qc.js?v=1"></script>
-<script src="lensiq-i18n-rt.js?v=1"></script>
+<script src="nav.js?v=31"></script>
+<script src="i18n/zh-qc.js?v=2"></script>
+<script src="lensiq-i18n-rt.js?v=2"></script>
 <script src="i18n/zh-rt-common.js?v=7"></script>
 <script src="i18n/zh-rt-qc.js?v=1"></script>
 <script src="i18n/zh-rt-sitecheck.js?v=3"></script>
@@ -196,14 +196,16 @@
       <button class="btn ghost tiny" id="testBeep" type="button" data-i18n="qc.s104">ทดสอบเสียง</button>
       <label class="check"><input id="webhookOn" type="checkbox"> <span data-i18n="qc.s105">ส่ง JSON ไปยังเว็บฮุกเมื่อคัดทิ้ง (ปิดไว้เป็นค่าเริ่มต้น)</span></label>
       <label><span data-i18n="qc.s106">URL เว็บฮุก (POST)</span><input id="webhook" type="url" placeholder="http://192.168.1.50:8080/reject" maxlength="300"></label>
-      <p class="hint" data-i18n="qc.s107">ตัวอย่างข้อมูลที่ส่ง: {"event":"reject","time":"…","lane":"L1","laneNo":1,"recipe":"…","reasons":["capMissing"],…} (lane ใช้สั่งแขนคัดทิ้งของไลน์นั้น) ปลายทางต้องอนุญาต CORS จากหน้านี้ ข้อมูลทั้งหมดเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น (ภาพพื้นหลังว่างและรูปย่อขวดที่คัดทิ้งอยู่ใน IndexedDB ไม่ใช่ localStorage)</p>
+      <p class="hint" data-i18n="qc.s107">ตัวอย่างข้อมูลที่ส่ง: {"event": "reject", "time": "…", "lane": "L1", "laneNo": 1, "recipe": "…", "reasons":
+        ["capMissing"], …} (lane ใช้สั่งแขนคัดทิ้งของไลน์นั้น) ปลายทางต้องอนุญาต CORS จากหน้านี้ ข้อมูลทั้งหมดเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น
+        (ภาพพื้นหลังว่างและรูปย่อขวดที่คัดทิ้งอยู่ใน IndexedDB ไม่ใช่ localStorage)</p>
     </section>
   </div>
 </main>
 
-<script src="lensiq-camera.js?v=7"></script>
+<script src="lensiq-camera.js?v=8"></script>
 <script src="lensiq-sitecheck.js?v=4"></script>
 <script src="qc.js?v=11"></script>
-<script src="lensiq-config.js?v=20"></script>
+<script src="lensiq-config.js?v=21"></script>
 </body>
 </html>
