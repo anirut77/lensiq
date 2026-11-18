@@ -4,3 +4,6 @@ b742777e08fb68c88c7d6efc2b49a39113e55c5b55aeca0347c14b2cda281df9  tests/unit/bac
 4cf847873cbbec29cef4c6912b2f00a7bb05cd4b8fb17572c62a9364c2a8e892  tests/unit/backend-ai-keys.test.js  # repo file
 286ee9b02391bc6942c1a92553fd85353214c30760371383e5c834b433df3371  tests/unit/backend-ai-keys.test.js  (v3: line wrapping only)  # repo file
 394035e26e97c7c7928cf015a8f5efd56095885b455b6defd3dc782bc1f61016  tests/unit/backend-ai-keys.test.js  (v4: after independent review — K5 no http field, K6b real gateway path)  # repo file
+#
+# 2026-11-17T03:12:00Z eval-guard repo check (coordinator order 2026-11-17, branch eval-guard-repo): one unambiguous latest hash per path.
+b46285a43e695d0a80ce00cc2df81aa042c6d65e9ec57c11382a733b476745bc  tests/unit/backend-ai-keys.test.js  # repo file  superseded by evals-locks/totp-deterministic.sha256 line 18 (TOTP clock frozen, 2026-11-14; no assertion changed)

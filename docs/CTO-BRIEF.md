@@ -687,6 +687,17 @@ without the user's own send 23 → 0, photo 33 → 0, explicit send if the user 
 (only with `imageModeAllowed` on, default off) — owner decision. Every "0 personal data reached AI" claim names its languages.
 Live scan: a side read with nothing on the checklist says "turn the pack". `docs/product-check/PC-JK-RESULTS.md`.
 
+### Live scan baseline and scene cut (2026-11-17, branch `eval-guard-repo`, owner decision 89)
+
+`tests/unit/pc-live.test.js` at `7746decb` accepted as the live-scan baseline (no earlier locked copy existed). The 27 written
+release criteria in `docs/product-check/LIVE-SCAN-RESULTS.md` are mapped to checks in `docs/EVAL-LOCKS.md`; 7 had none and got
+one (`tests/unit/pc-live-release.test.js` R1-R7, locked before the first run). R4 found a product gap: the content-based
+scene cut (`LQPCLive.sameObject`) counted two different Thai drug labels as one object, because lines that share field words
+("เลขทะเบียน", "ส่วนประกอบ:") reached the merge's 0.6 similarity (2 of 4 lines), so two products' readings could be merged.
+Fix (`dc936566`): for the scene cut a line matches only at similarity >= 0.8 (`CFG.sameSim`) AND with its digits differing
+by at most one (an OCR slip; another registration number, strength or date never matches). Safe direction: more fresh
+readings, never more merging. Source: synthetic texts. Still open: latency targets need a real phone (§3 of the results).
+
 ### Merit import safety (2026-11-15, branch `merit-import-safe`)
 
 `tools/merit-import-guard.mjs` (`npm run merit:import:drafts` / `merit:import:places`) is the step before the admin-page import: it prints batch id, item count and sha256, refuses a file of the wrong kind or batch id, a re-confirmed batch (unless `--idempotent-confirmed`), changed content under a known batch id, and the second batch of the same 35 places; the owner types the batch id to confirm. It imports nothing and writes only `~/LENSIQ-field/merit/import-ledger.json`. `tools/merit-places-notes.mjs` builds the complete replacement batch `places-2026-11-14-notes` (reviewer warnings per verification level in the back-office `uncertain` note) without touching the original. Locked tests `tests/unit/merit-import.test.js` (`evals-locks/merit-import.sha256`). The guard is a local safety net: the Worker still has no rule against two place batches with the same `draft_id`s (open item, would need a backend change and deploy).

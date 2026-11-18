@@ -417,3 +417,30 @@ word or a surname + 先生 / 女士 / 小姐 / 老师. It removes nothing. Commi
 Tests: affected unit files 89/89 (new `tests/unit/pc-guard-onetap-notes.test.js`); e2e `product-check-live` +
 `product-check-ai` 18/18. Logs: `~/LENSIQ-field/evals/live-scan/stress-sameframe-2026-11-12-notes.log`,
 `live-leak-run-2026-11-12T16-03-09-672Z.log`. Screenshots not re-taken (no visible change).
+
+## 16. Scene cut tightened (2026-11-17, owner decision 89 follow-up; source: synthetic)
+
+The release criteria in this document were mapped to checks (`docs/EVAL-LOCKS.md`, "live-scan baseline (owner decision
+89)"). New locked check R4 (`tests/unit/pc-live-release.test.js`) found that the content-based scene cut of §5a fix 1
+(`LQPCLive.sameObject`) treated another label as the same object: two Thai drug labels share field words, so
+"เลขทะเบียน 1A 844/39" vs "เลขทะเบียน G 123/45" (similarity 0.65) and "ส่วนประกอบ: พาราเซตามอล 500 มก." vs "ส่วนประกอบ: ขิง
+100 มก." (0.61) passed the merge's 0.6 line similarity: 2 of 4 lines = "same object", and the two products' readings could be
+merged (the e2e check only switched labels through a blank frame, which cuts by itself).
+
+Fix (`dc936566`, `lensiq-pc-live.js?v=5`): for the scene cut a line matches a merged line only when its similarity is
+>= 0.8 (`CFG.sameSim`) AND its digits differ by at most one (an OCR slip such as "844/3" for "844/39" or "TESTO1" for
+"TESTOL"); a line with another registration number, strength or date never matches. The merge's own clustering (0.6) is
+unchanged. Results on the fixed texts: the same label read again (OCR variants, the e2e "noisy" readings) still the same
+object; another label, or one shared line out of five, a new object. Safe direction: more fresh readings, never more
+merging. Test unchanged (fixed the product); unit pc-*, thai-sara-am*, eval-guard*, backend-pc* 350/350.
+
+## 17. Criterion "one AI call per product" replaced (owner decision 96 = ก, 2026-11-18)
+
+The written criterion is now: **one round per tap, at most three calls (pc_fields, pc_claims, pc_translate), and the user
+taps every time.** "One AI call per product" (§4, summary of round 1) described the removed automatic path; since §12 the
+product never sends without a tap and one tap sends one round. Locked checks (`tests/unit/pc-live-tap.test.js`, live-scan
+set): T1 one tap = at most three AI requests, each feature once, no loop; T2 nothing is sent without a tap (the live scan has
+no network path; only `lensiq-pc-ai.js` calls `LQAI.send`; the send paths run only from the click handler; page load,
+visibility, language, tester, card and live-scan events never send); T3 the monthly budget cap is always set for Product
+Check and a tap over it is refused before any provider call. The Worker caps of 6 a minute and 150 a day stay locked
+(`backend-pc-auto.test.js` A6, `pc-live-release.test.js` R6). Mapping: `docs/EVAL-LOCKS.md`, rows 18, 20 and 31.
