@@ -190,6 +190,14 @@
   }
 
   // ------------------------------------------------------------ mode / kiosk / clock
+  // S2 2026-11-18: this file runs before attendance.js (the PIN pad is usable first); until attendance.js has wired the tabs,
+  // the PIN tab is shown here, and attendance.js takes over on DOMContentLoaded (see the end of this file)
+  function showPin(t) {
+    t.click();
+    if (!$("#pane-pin").hidden) return;
+    $all(".tab").forEach(x => x.classList.toggle("active", x === t));
+    ["checkin", "register", "records", "check", "pin"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== "pin"; });
+  }
   function setMode(m, first) {
     S.mode = m === "employee" ? "employee" : "training"; saveSet();
     document.body.classList.toggle("att-emp", S.mode === "employee");
@@ -213,7 +221,7 @@
     else {
       if (!S.noticeSeen) { $("#hrNotice").open = true; S.noticeSeen = true; saveSet(); }
       // PIN / QR is the default way to clock in (face optional): the employee time clock opens on the PIN / QR tab
-      const t = $("#tabPin"); if (t && !S.kiosk && !t.classList.contains("active")) t.click();
+      const t = $("#tabPin"); if (t && !S.kiosk && !t.classList.contains("active")) showPin(t);
     }
     if (!first) renderAll();
   }
@@ -624,6 +632,11 @@
   const qp = new URLSearchParams(location.search);
   if (qp.get("mode") === "employee") S.mode = "employee";
   setMode(S.mode, true);
-  if (S.mode === "employee" && (S.kiosk || qp.has("kiosk"))) enterKiosk(false);
+  const kioskStart = () => { if (S.mode === "employee" && (S.kiosk || qp.has("kiosk"))) enterKiosk(false); };
+  if (W.__ATT_CORE) kioskStart();
+  else document.addEventListener("DOMContentLoaded", () => { // the face part (attendance.js) is loaded now
+    const t = $("#tabPin"); if (S.mode === "employee" && !S.kiosk && t && t.classList.contains("active")) t.click();
+    kioskStart(); renderAll();
+  }, { once: true });
   renderAll();
 })();
