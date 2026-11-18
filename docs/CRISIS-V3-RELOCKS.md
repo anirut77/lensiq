@@ -282,3 +282,18 @@ Merge union of locked parents; no assertion changed. Both files were merged by g
 | File | Test | Old | New | Reason | Protection kept by |
 |---|---|---|---|---|---|
 | tests/unit/fortune-credits-v2-assets.json | fortune-credits-v2 D4 licence audit | 16 audited assets; petread (category 6 since owner decision 100) loads `vendor/qrcode-generator/qrcode.js`, not audited, so D4 failed | the same 16 plus `qrcode-generator` (MIT, no on-page attribution, notice `vendor/qrcode-generator/LICENSE`, needle "qrcode-generator 2.0.4" in LICENSES/THIRD-PARTY-NOTICES.txt) | owner decision 100: petread joins category 6; adds one audited asset, stricter | D4 unchanged: every vendor asset of every category 6 page must be audited and its notice must ship |
+
+## Fortune hub with every fortune page, pet card 19, tag `relock-pet-hub` (2026-11-18, branch `fortune-theme`)
+
+Reason: "owner decision 118 ก + pet card". Locked before the file was run on the product.
+
+| File | Test | Old assertion (23e70d65, round 2 of 90e5d5c1; main holds 213c37ad) | New assertion (d56f5a47) | Protection kept by |
+|---|---|---|---|---|
+| tests/e2e/fortune-new.e2e.mjs | hub | 12 named cards required (iching, zodiac, astro, dream, bazi, taksa, lek7, lifegraph, compat, planner, luckycolor, report), exactly 18 cards, 4 goals; overflow at 390 / 1280 px in TH; no console errors | all 19 fortune pages named one by one (the 18 hub pages of 90e5d5c1 plus petread.html), exactly 19 cards, 19 distinct, 4 goals; the petread card caption in TH / EN / ZH is longer than 10 characters, has no "แชร์ / share / 分享" (case-insensitive) and no Thai left in EN / ZH; overflow at 390 / 1280 px in TH, EN and ZH; no console errors over all four loads | every old assertion kept or tightened: named cards 12 -> 19 (superset), count 18 -> 19 = every fortune page, overflow TH -> TH + EN + ZH, no-errors over more loads; all other checks in the file unchanged byte for byte |
+
+Lock lines (same commit): field copy `~/LENSIQ-field/evals/crisis-v3/relock-pet-hub/fortune-new.e2e.mjs`, locked with
+`tools/eval-guard.mjs lock` at 2026-11-18T08:21:56Z in `evals-locks/crisis-v3.sha256` and the field `locked.sha256`; repository
+ledger line `d56f5a47…  tests/e2e/fortune-new.e2e.mjs  # repo file (relock-pet-hub)` in `evals-locks/crisis-v3.sha256` and
+`evals-locks/crisis-rules-1323.sha256`. Old bytes are in git at ca6c9ef8.
+
+Open: the independent reviewer confirms in writing that the new test is equal to or stricter than the old one.
