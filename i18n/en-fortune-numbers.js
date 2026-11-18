@@ -115,7 +115,6 @@
     "numbers.noComposer": "Reading composer not found (fortune-ai.js)",
     "numbers.loading": "Preparing the reading...",
     "numbers.src.ai": "Phrased by the writing assistant (Claude by Anthropic)",
-    "numbers.src.local": "Generated on this device",
     "numbers.card.brand": "LENSIQ · Lucky Numbers",
     "numbers.card.score": "Score / 100",
     "numbers.card.sum": "Sum {s} · {g}",

@@ -179,6 +179,9 @@ e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  relock-topstic
 3080cd5a84e5d531cec292eef6f0f825d0e7f9667f69a98b567d12c88b6440eb  tests/e2e/crisis-rules-1323-a.e2e.mjs  # repo file (relock-topsticky)
 77fd8d7abe1604a7536fcbc50f87e6ae9c2d005d7f8695327a354879f1cceeee  tests/e2e/crisis-rules-1323-e.e2e.mjs  # repo file (relock-topsticky)
 e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  tests/e2e/crisis-rules-kit.mjs  # repo file (relock-topsticky)
+# RE-LOCK 2026-11-17 (branch fortune-credits): see evals-locks/fortune-credits.sha256 (relock/).
+cb8c22f3d667f35a667fccc1a2fba1707adf9b3667c1b6591563c2c8e0f3c914  tests/unit/cat-pages.test.js  # repo file (fortune-credits relock)
+2d56321d8012ac341c5ddb2c2086544873f85510553dd8f2305256e180052558  tests/unit/fortune-no-demo.test.js  # repo file (fortune-credits relock)
 # 2026-11-18: tests/unit/cat-pages.test.js / fortune-no-demo.test.js re-locked in evals-locks/promo-basics.sha256 (RE-LOCK 1: 404.html added as a support page)
 # 2026-11-17T22:09:32Z lock records reconciled (coordinator order, option ข, branch eval-guard-repo; docs/EVAL-LOCKS.md "Lock records reconciled 2026-11-18"):
 # retired tests/e2e/crisis-v3-pre.e2e.mjs reason: deleted in f45b9aa7, owner decision 84 = ก (option ข pre-line removed with its code; CRISIS-V3-RELOCKS.md:144); successors crisis-v3-a/b/c/d.e2e, crisis-v3.test.js U3/U4 (crisis-v3.sha256), crisis-rules-1323 R1/G3 (crisis-rules-1323.sha256)
@@ -186,3 +189,6 @@ e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  tests/e2e/cris
 # retired tests/e2e/crisis-v3-pre-zh.e2e.mjs reason: deleted in f45b9aa7, owner decision 84 = ก (CRISIS-V3-RELOCKS.md:144); successors crisis-v3-a/b/c/d.e2e, crisis-v3.test.js U3/U4, crisis-rules-1323 R1/G3
 # retired tests/unit/crisis-v3-pre.test.js reason: deleted in f45b9aa7, owner decision 84 = ก (LENSIQ_CRISIS_PRELINE removed; CRISIS-V3-RELOCKS.md:144); successors crisis-v3.test.js U3/U4, crisis-rules-1323 R1/G3
 # retired tests/unit/crisis-v3-r2.test.js reason: renamed in 08ec51f6 to tests/unit/crisis-net-fallback.test.js, same bytes 1c430554 (crisis-v3.sha256:170-171; CRISIS-V3-RELOCKS.md:169)
+# LOCK-RECORD FIX 2026-11-18 (branch fortune-credits, A1, append-only): the a770d724 lines above for tests/unit/cat-pages.test.js (cb8c22f3…) and tests/unit/fortune-no-demo.test.js (2d56321d…) are stale: credits.html was never shipped (fortune-credits__v2, fab01e95 put both files back), and after the merge of staging-1118b 689206d3 the files hold promo-basics RE-LOCK 1 bytes (404.html support page). Evidence: sha256 of the repo files = sha256 of ~/LENSIQ-field/evals/promo-basics/relock1/{cat-pages,fortune-no-demo}.test.js, locked in evals-locks/promo-basics.sha256 at 2026-11-17T17:50:04Z. No byte of either test changed here.
+fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05  tests/unit/cat-pages.test.js  # repo file (promo-basics relock1, A1 record fix)
+047f5a00073268cdae24ac7f5aec3ee856b14fef39de67fdf263a9278cacfc07  tests/unit/fortune-no-demo.test.js  # repo file (promo-basics relock1, A1 record fix)

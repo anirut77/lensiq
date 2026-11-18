@@ -30,6 +30,8 @@ A. Apache License 2.0 (full text in section D)
     licence copy in that folder) — Copyright Google LLC / The MediaPipe Authors. MODIFIED by the LENSIQ project
     (2026-11-10): the facial-movement score model was removed from the original face_landmarker.task bundle; the other
     three members are unchanged (vendor/models/face-landmarker/README.txt).
+  - MediaPipe Pose Landmarker lite (BlazePose GHUM 3D lite; vendor/models/pose-landmarker/pose_landmarker_lite.task,
+    licence copy in that folder, unchanged) — Copyright Google LLC / The MediaPipe Authors.
   - zxing-cpp, compiled into vendor/zxing/zxing_reader.wasm (licence copy vendor/zxing/LICENSE-zxing-cpp-Apache-2.0)
     — Copyright the ZXing authors / zxing-cpp contributors.
 

@@ -79,9 +79,6 @@
   "วาดกราฟชีวิต →": "Draw life graph →",
 
   /* Shared reading labels */
-  "เรียบเรียงในเครื่อง": "Composed on this device",
-  "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง": "Composed on this device · worded differently each time",
-  "เรียบเรียงในเครื่อง ไม่ส่งข้อมูลออก": "Composed on this device; no data is sent",
   "ภาพรวม": "Overview",
   "บุคลิกและตัวตน": "Personality and self",
   "การงานและการเรียน": "Career and studies",

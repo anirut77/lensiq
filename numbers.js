@@ -534,7 +534,8 @@
     }
     if (!done) fallbackRender(res, box);
     const ai = res.source === "ai";
-    const b = $("#nmSrc"); b.textContent = ai ? T("numbers.src.ai", "เรียบเรียงโดย Claude AI") : T("numbers.src.local", "เรียบเรียงในเครื่อง"); b.className = "src-badge " + (ai ? "ai" : "local");
+    // owner 2026-11-17: no on-device label
+    const b = $("#nmSrc"); b.textContent = ai ? T("numbers.src.ai", "เรียบเรียงโดย Claude AI") : ""; b.className = "src-badge " + (ai ? "ai" : "local"); b.hidden = !ai;
     $("#nmNarrNote").textContent = res.note || "";
   }
   async function narrate(again) {
