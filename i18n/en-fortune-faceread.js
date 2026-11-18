@@ -2,6 +2,7 @@
 (function (root) {
   "use strict";
   var dict = { en: {
+    "faceread.metaDesc": "Face reading from your camera or an uploaded photo, with tips to boost your luck. Processed in your browser; no photo is saved",
     /* ---------- static ---------- */
     "faceread.desc": "Face reading from the camera to add fun to booths and events; processed in the browser, no photos stored",
     "faceread.disclaimerRest": "Do not use it for hiring, financial or relationship decisions, or to judge others",

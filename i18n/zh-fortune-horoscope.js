@@ -4,6 +4,7 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
+    "horoscope.metaDesc": "根据出生日期看运势：泰国占星、塔克萨、星座、上升、八字、数字命理、今日运势与双人配对。仅供民俗参考，在浏览器中计算，不保存资料",
     /* ---------- 静态界面 ---------- */
     "horoscope.disclaimer2": "请勿以此作为健康、财务、工作或感情决定的依据",
     "horoscope.stageAria": "填写出生日期",

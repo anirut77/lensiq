@@ -4,6 +4,7 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
+    "palm.metaDesc": "根据手掌照片解读手相，并附开运建议。在浏览器中处理，不保存照片",
     /* ---------- 静态页面 ---------- */
     "palm.disclaimerRest": "不应用于招聘、财务、感情方面的决定或评价他人，生命线也与寿命长短无关",
     "palm.steps": "步骤",

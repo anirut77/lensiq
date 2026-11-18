@@ -2,6 +2,7 @@
 (function (root) {
   "use strict";
   var dict = { en: {
+    "astro.metaDesc": "Your Sun, Moon and rising signs in Western (tropical) astrology from your birth date, time and province, plus a daily reading from the Moon",
     /* Static text */
     "astro.discNote": "Tropical (Western) signs differ by about 24° from the Thai sidereal zodiac used on the Birth-date Horoscope page, so your sign may differ",
     "astro.tabsAria": "Choose mode",
