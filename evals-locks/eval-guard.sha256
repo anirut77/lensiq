@@ -32,3 +32,6 @@ e04c4829784e9353ce17272e0ecaf1d842fcebb0a116d7215336a23e69d9eda4  pin-1/eval-gua
 59da5983eda1c2d59db4399843cfb4f872ec6caf88115e90a38a91c283554dfd  pin-1/eval-guard.mjs
 e04c4829784e9353ce17272e0ecaf1d842fcebb0a116d7215336a23e69d9eda4  tests/unit/eval-guard-ledger-pin.test.js  # repo file (same commit as lock 2026-11-18T05:25:51Z; field: ~/LENSIQ-field/evals/eval-guard/pin-1/eval-guard-ledger-pin.test.js)
 59da5983eda1c2d59db4399843cfb4f872ec6caf88115e90a38a91c283554dfd  tools/eval-guard.mjs  # repo file (same commit as lock 2026-11-18T05:25:51Z; field: ~/LENSIQ-field/evals/eval-guard/pin-1/eval-guard.mjs)
+# locked 2026-11-18T07:15:55Z (tools/eval-guard.mjs lock, 1 file)
+bf5732b126eb70766c8402cd464cf6daa90e8e11efb4325dd0d9ca6030dc85f1  pin-2/eval-guard-ledger-mirror.test.js
+bf5732b126eb70766c8402cd464cf6daa90e8e11efb4325dd0d9ca6030dc85f1  tests/unit/eval-guard-ledger-mirror.test.js  # repo file (same commit as lock 2026-11-18T07:15:55Z; field: ~/LENSIQ-field/evals/eval-guard/pin-2/eval-guard-ledger-mirror.test.js)
