@@ -1,0 +1,137 @@
+# locked 2026-11-18T16:21:41Z (tools/eval-guard.mjs lock, 68 files)
+97347bca5b7a4e062ef18213b009ebd993f90940cb2baa0b0c3ad5f332d1e73f  PROTOCOL.md
+6cbe2c962f090cc7e8e529eccdb6703aadda14ff3f08fd955e53965478496478  ladder-truth.json
+af5a8e0b772c8af17106e751ee43b7e4eec301862937100bb71045437d2c2012  crowd-ladder.mjs
+dc53e5b180cb5a37a4dc26c42ac671be4ceace98c8e92689453c26dac037144f  far-n10-s0.jpg
+97510bcdedfe6a4e5a86f0e2bbcaa4a1276eb4437bf8504e165d518fd4bf0229  far-n10-s1.jpg
+ffda2e3212760c3ab92bc558ea0c2404a687a90ba074f65531549d457a909b25  far-n10-s2.jpg
+34d360e915149536aa47835fe4bf0a867a8cb24fe9bea363a1651da568deebeb  far-n10-s3.jpg
+00404a203295d24716904033df09d22be57576ff0784ed492160ac63f826319c  far-n10-s4.jpg
+1eff3dc411deac7e8266d588826169f3b3d89ed1076c06aa2f578680e282f8d2  far-n160-s0.jpg
+ba86866786e561cae26200fa757dd79980470ff32fcb0737960fd20a7c947507  far-n160-s1.jpg
+e24bd57bbd49c960eb79f7308c3fc0265f338584cc454deaa071df99473dbe6c  far-n160-s2.jpg
+53163a11a64e6f9f4e4b9cfa0c4986b770d4f81a55e4fe4b78dd94ba86dcec07  far-n160-s3.jpg
+3db6bea506058cd3b0a057cd71dc584b6cdb5fc5f01357011a53780f408d8fcd  far-n160-s4.jpg
+e2606e6a75688a931281ddb01f15625f301a1e3a6f5fe23d03d5a751c0c5fdad  far-n20-s0.jpg
+506515f21267c9d10a6caec139031a83e374a690ebcdd927b27698b3e73edd5e  far-n20-s1.jpg
+440802f705b2cc61f2f1788253fccf67189b6d2b2e27a8cae9f91d13464ed0eb  far-n20-s2.jpg
+5114dd084ccc1c32238695ca8ddad6c9a5b8c37942acb41eb3a119178707a889  far-n20-s3.jpg
+d617dc272ef29fc31f4f673b9209efdc52dacf8a80df20bea0c22c6296a6d6b3  far-n20-s4.jpg
+7e7ce9eb2f7ea4a27265bdcc28b8dfc2f82e3bc487822ed1975c0de837a0e643  far-n320-s0.jpg
+94caf1cc31f9a7195c67c82380256050f95238f0f38d39a61c1773510faeccf2  far-n320-s1.jpg
+27bfc23a3a8452c7416f41c5324c5eb7be5e602994f0b1677e23a4a6140873c6  far-n320-s2.jpg
+ef227fd5935e48e85839937ffccea6ab39eff616fed50ff68f75f831f84cf79f  far-n320-s3.jpg
+25b60172d51f5fb6ebe3189205c6dd5d6cf0cea72ab29d02af5c718da59d189f  far-n320-s4.jpg
+f47629648865b53b374169148148c34b6c50af431912cb06bd8fe5358fa51b81  far-n40-s0.jpg
+45a5cc6a635d30bfc7c805e57c97e24463ab41b3fd0caae87ecd6c5a02b87d8b  far-n40-s1.jpg
+5230453a8548ca470b918724fe18bf50ee87ba498147547fa7e07560a867a1b6  far-n40-s2.jpg
+77f19208d298bee71e8a7681b6783f5c0cc4bca1279b821098a90d84911563a2  far-n40-s3.jpg
+32c31120865855ebe2a3cf51127c51a44332fa5b32c62a7091879b2fc45b82bb  far-n40-s4.jpg
+f5b89b74fcabb0109f342d4e8ec6282fdd60c1bddaab92b5af20e9b23047d2f0  far-n5-s0.jpg
+fd5b7e5b599dc530601831ecd5b21763e7b763b5bd48e19e3abec08a29f62ea8  far-n5-s1.jpg
+e9b26532e771d192cf397bd5b42350dcf3b14d33cf2c25f3de588854b884a8d8  far-n5-s2.jpg
+94136b0a058080c5b323e96c6d3404e3fff5d4e8b623dad74e1b3b944221446b  far-n5-s3.jpg
+9544f68a0c89e0f2e02ce55d0018655e1935a4b22cceab0b40c7322378c25f64  far-n5-s4.jpg
+df7b3beb99a7b3cbf6476d6d8b38989964144ca9a3328e7880eed9a3a6014f5f  far-n80-s0.jpg
+00d8742b76e755fdd666158ffe03a13809f4ea4f2d0c973d62d72d54c303dc72  far-n80-s1.jpg
+ebbe651787dcc6b3d07f266fd2b533e2dda8ee4ce1cfc453ffe7df02dcc9bb29  far-n80-s2.jpg
+97c26cba62750f1780912849d7c679d3f6d44e6f347022851793a6c4e1b2dd63  far-n80-s3.jpg
+2e358aa46f9e987460ab7170c2a48bc2542f54d6a8862992469efcbab88ab6ce  far-n80-s4.jpg
+b96cbd8b5d8e4701ea8d7c60a0f118560350d875c4edf18037eb22bd36608e83  near-n10-s0.jpg
+9734670e1a0b3ff61bd2bd8f5fa95e42bb7dd4a2608d7dff9a21011a55a64111  near-n10-s1.jpg
+efc55a1d21956314b913197b88cf5c4689dea44f3cf17910d895df756bbb5354  near-n10-s2.jpg
+ec0bf0a57b4c9e74259931af5fe95e987da39c03f80fb115c783fea00ad6342e  near-n10-s3.jpg
+86abf78fe057e976364339e76c0508f2b642464ff57c4121718e0413b9d1323b  near-n10-s4.jpg
+c361bcc40ccd3440c1eec665a103b1e2614f5c58324c909d7d3b276acdc4129a  near-n160-s0.jpg
+f2442cd228db5571324c18d193e4848101a7c9749abb86daa909aef6a3996713  near-n160-s1.jpg
+b3d718a697f30cd8738dcfd2aa366b91eeb9ebc0df70a738463ddc3491d994af  near-n160-s2.jpg
+2ec89c8ff511c34ca2bd5ceaaf1fd6e58c50cd4e165729e65ce59ad9c0398def  near-n160-s3.jpg
+e7f297809526c2e3a8d99eb405fa7df9cd2bd8acb3864dc90ec4a03ba6687260  near-n160-s4.jpg
+e0f2963ed73a15ae303a63eec2fdf58baefb8742af136e593876ccd87f3523d1  near-n20-s0.jpg
+c90e58fa746f9845ff1d7e5f9b89cbceff0838805288a2230d10eb8969a7e378  near-n20-s1.jpg
+d8a54ae9e10b469ac70794555c0245d418a29a72f554f9f2ccd6ee6b9682d719  near-n20-s2.jpg
+9aa4b9cafbb98aa511d42fc73e5abbd29cc4ae38d94521cf8fe40b66bf9c9ac5  near-n20-s3.jpg
+2c74b33a64f15b0683faf3ba4b357ccd2071e18fedc486385ae565df1262ca43  near-n20-s4.jpg
+1884ef5e891d84a489cec9635adc18c37cbdfdcc8c37741bf0a6c7175892b0ad  near-n40-s0.jpg
+58fc386d3d37afa0de13a2135d0b58d2d1907f19876c9c7869a195297bfc6381  near-n40-s1.jpg
+c8b06f137c323e36bec7a1c0bca469a753b4ae8af3d1f078a29e55f06d38efa0  near-n40-s2.jpg
+3d5f83b2a035be62b29aed399656d0f624b70e4263adeef668ffae162c7d10e3  near-n40-s3.jpg
+cece2cdf32f95781a61a2107e8e7d1af14d83b7cf9fa52a130d7c19252bcfcf0  near-n40-s4.jpg
+e89c37a11bd49fbb3d8542679e8901ed8682c43a737a482aa4c47160b2cb876c  near-n5-s0.jpg
+4860f74655ab89cbee37ffcf17853e0e3190d490ac2986a46208f84b6cc7eb2b  near-n5-s1.jpg
+0108c24b8a8e5a8e5c8729451142bf107f667bd20660853ddab289d5a4ad7fe4  near-n5-s2.jpg
+e62bebd982612d14900eeada3e16274ee5265042d58306761f1b9f5bd57fd50b  near-n5-s3.jpg
+ed3f3e16c3ff6593bb0d1ff6460cd0fd76a417327393ad49106bc94e677f3de1  near-n5-s4.jpg
+b753ca5330add1ce2215fbc6cb3556a658865b3eb51938151a36092807a1b39b  near-n80-s0.jpg
+94887645e3e626d9a228834837351a28f68194b0cb3ea71a1c94b87ccdf6899d  near-n80-s1.jpg
+5e5ca9675126e5270f0740e73467604a0f76fde14aaea21ede2ba24a752be898  near-n80-s2.jpg
+10bbe1df11d2ebb720e13ce08466ec8d57b226c7a8ef603674e8d14cd7054a65  near-n80-s3.jpg
+4965ff6501ee42f39028875c7e91fa6e4cbcd0a2020271fa76edd44b9838a00f  near-n80-s4.jpg
+af5a8e0b772c8af17106e751ee43b7e4eec301862937100bb71045437d2c2012  tools/crowd-ladder.mjs  # repo file (same commit as lock 2026-11-18T16:21:41Z; field: ~/LENSIQ-field/evals/crowd-ladder/crowd-ladder.mjs)
+# field only PROTOCOL.md (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only ladder-truth.json (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n10-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n10-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n10-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n10-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n10-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n160-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n160-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n160-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n160-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n160-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n20-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n20-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n20-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n20-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n20-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n320-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n320-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n320-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n320-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n320-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n40-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n40-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n40-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n40-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n40-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n5-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n5-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n5-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n5-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n5-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n80-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n80-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n80-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n80-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only far-n80-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n10-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n10-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n10-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n10-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n10-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n160-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n160-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n160-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n160-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n160-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n20-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n20-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n20-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n20-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n20-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n40-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n40-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n40-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n40-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n40-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n5-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n5-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n5-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n5-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n5-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n80-s0.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n80-s1.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n80-s2.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n80-s3.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
+# field only near-n80-s4.jpg (lock 2026-11-18T16:21:41Z: no repo file uses it)
