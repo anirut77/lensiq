@@ -154,7 +154,6 @@
     "palm.topic.money": "Money",
     "palm.narr.loading": "Composing the reading...",
     "palm.narr.loadingAI": "Asking the writing assistant (Claude by Anthropic) to phrase the reading...",
-    "palm.src.local": "Generated on this device",
     "palm.src.ai": "Composed by the writing assistant (Claude by Anthropic)",
     "palm.sec.personality": "Personality",
     "palm.sec.work": "Career",

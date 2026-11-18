@@ -227,3 +227,43 @@ Every other page × language passed in that run (0 visible sales texts), control
 
 **2. "end it all" false positives (review only, no change).** Set: `end-it-all-set.json` (24 benign, 24 crisis, synthetic), harness
 `end-it-all-measure.mjs`, log `end-it-all-measure-<sha>.log`. Numbers are in the round report; any pattern change needs the owner.
+
+## Combined re-lock A1 (2026-11-18, branch fortune-credits; owner decision 110 ก, conditions 3 and 4)
+
+Order kept: A1 first merged the post-v3 protection work (origin/staging-1118b 689206d3 = main + crisis-v3-protect d1fbc90d +
+promo-basics + fix-r12 + fortune-advice; merge 89c84925), then re-locked the combined exception list in one commit that also writes
+the lock lines (condition 4).
+
+| File | Parent: crisis-v3-protect | Parent: fortune-credits | Combined (sha256 cfab9eef…) |
+|---|---|---|---|
+| tests/unit/crisis-escape-guard-allow.json | 3a88c00f…: targets incl. palm plEthics, tarot trCredit, fengshui fsSourcesNote; browser; noEntry; priceText (94); priceTextNote; priceMarked (3); priceMarkedNote | 049f2ed3…: targets without those 3; browser; noEntry; no price scan | crisis-v3-protect's bytes minus exactly the 3 lines `"palm plEthics"`, `"tarot trCredit"`, `"fengshui fsSourcesNote"` |
+
+**The combined list = crisis-v3-protect's list minus 3 dead entries.** Nothing is added and no other key or value changes. The three
+elements were deleted with the "about this reading" block (fortune-credits, owner order 2026-11-17 night item 2); `git grep` on the
+merged tree finds the ids only in tests that assert they are absent (`tests/unit/fortune-credits-v2.test.js` GONE_IDS,
+`tests/e2e/fortune-sources.e2e.mjs`) and in lock comments; no page, script or dictionary defines them.
+
+Why it is equal to or stricter than both parents:
+
+- **vs crisis-v3-protect:** every exception left is identical; three exceptions are removed. An allow-list only exempts elements
+  and texts from the escape guard and the price scan, so removing entries can never let more through. The removed entries named
+  elements that no longer exist, so they exempted nothing; the guard also fails on stale entries, so keeping them was not possible.
+  Equal in effect, stricter in text.
+- **vs fortune-credits:** `note`, `targets`, `browser` and `noEntry` are identical (checked key by key). The combined file adds
+  crisis-v3-protect's price scan (`priceText` / `priceMarked`). Those entries are exceptions to a check that the fortune-credits
+  parent did not have at all; with the scan, any price or sales text outside those exact source strings fails, where the parent
+  checked nothing. Stricter.
+
+Lock lines (same commit): field copy `~/LENSIQ-field/evals/crisis-escape-guard/crisis-escape-guard-allow.v4-combined.json` (new file;
+`.v3.json` there belongs to the print-report branch's own chain and is not a parent of this list), locked with `tools/eval-guard.mjs
+lock` at 2026-11-18T02:22:42Z in `evals-locks/crisis-escape-guard.sha256` and the field `locked.sha256`; repository ledger line
+`cfab9eef…  tests/unit/crisis-escape-guard-allow.json  # repo file (combined A1)` in `evals-locks/crisis-escape-guard.sha256`, with a
+pointer and the same line in `evals-locks/crisis-v3-protect.sha256`. Test at lock time: `tests/unit/crisis-escape-guard.test.js` 5/5.
+
+Lock-record fix in the same commit (append-only, no test byte changed): the a770d724 lines for `tests/unit/cat-pages.test.js`
+(cb8c22f3…) and `tests/unit/fortune-no-demo.test.js` (2d56321d…) were stale (credits.html never shipped; fab01e95 put both files
+back). After the merge both files hold promo-basics RE-LOCK 1 bytes (fc67978e… / 047f5a00…, 404.html support page), equal to
+`~/LENSIQ-field/evals/promo-basics/relock1/` and locked in `evals-locks/promo-basics.sha256` at 2026-11-17T17:50:04Z. That evidence
+and the current repo-file lines are appended to crisis-rules-1323, crisis-v3, fortune-no-demo and fortune-credits `.sha256`.
+
+Open: the reviewer confirms in writing that the combined list is equal to or stricter than both parents (condition 3).

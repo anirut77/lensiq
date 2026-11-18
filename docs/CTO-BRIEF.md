@@ -18,6 +18,16 @@ box 97.9 %. Research, licences and numbers: `docs/PET-READING-RESEARCH.md`, `doc
 (2026-11-18): live in category 6 (CLAUDE.md table, cat-fortune listing, fortune menu; TH / EN / ZH; no fortune-hub card, so the
 locked hub test keeps 14 cards), merged to main only after CI is green on the branch.
 
+## Fortune label and about block deleted (owner order 2026-11-17 night item 2, corrected by owner decision 2026-11-18; branch `fortune-credits`)
+
+Fix to what is live, no new feature: delete, do not move. Every fortune page (category 6 + compat, 19 pages) loses the
+reading-source label ("เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง" and variants, TH / EN / ZH; the AI label stays when the writing
+assistant is used) and the whole "เกี่ยวกับคำอ่านนี้" block (tarot image credit + vendor path, palm model note, principles
+paragraph, calculation notes); astro's principles paragraph too. No help section, no credits page, no new links: the rules
+stay enforced in code and tests, only not displayed. Licence audit of every asset the fortune pages load: no licence requires
+a visible attribution (MIT / Apache-2.0 / OFL notices ship with the files and in `LICENSES/THIRD-PARTY-NOTICES.txt`; the tarot
+art is public domain), so no credits page. Fixed set `fortune-credits__v2` (v1 superseded, ledger in its lock file).
+
 ## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
 
 With the crisis flag set the reading goes on in full structure, gently, never straight; no card and nothing that says the person

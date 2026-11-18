@@ -169,7 +169,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     <section class="fr-block fa-reading" id="frReading" aria-labelledby="frReadTitle">
       <div class="fa-head">
         <h3 data-i18n="fortune.common.readingDetail" id="frReadTitle">คำทำนายโดยละเอียด</h3>
-        <span class="fa-src" id="frSrc"></span>
+        <span class="fa-src" id="frSrc" hidden></span>
       </div>
       <div class="fa-topics" role="radiogroup" aria-label="หัวข้อที่สนใจ" data-i18n-attr="aria-label:faceread.topicsAria" data-topics></div>
       <div class="fa-consent-wrap" id="frConsent"></div>
@@ -293,12 +293,6 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
         <p class="fr-small" data-i18n="faceread.leadsNote">ข้อมูลลูกค้าเก็บเฉพาะในเบราว์เซอร์เครื่องนี้ (localStorage “fr-leads”) ไม่มีภาพใบหน้า ควรส่งออกและลบเมื่อจบงาน และแจ้งวัตถุประสงค์ตาม PDPA</p>
       </details>
     </section>
-    <section class="fr-block">
-      <h3 data-i18n="fortune.common.about">เกี่ยวกับคำอ่านนี้</h3>
-      <p class="fr-small" data-i18n="faceread.principle">หลักการ: เมื่อคุณเลือก "ดูตรง ๆ" (ยืนยันว่าอายุ 18 ปีขึ้นไป) ผลที่ไม่ดีตามที่ศาสตร์คำนวณได้จะบอกตรง ๆ
-        ไม่เช่นนั้นใช้ถ้อยคำนุ่มนวล ไม่ทำนายความตาย โรคร้ายระยะสุดท้าย หรืออุบัติเหตุแบบฟันธงหรือระบุวัน ไม่สั่งให้หยุดยา ลงทุน หรือเลิกกับใคร ไม่ให้เลขเสี่ยงโชค
-        และไม่มีการขายพิธีแก้ดวง ไม่ให้คะแนนความสวยงาม และไม่อ้างอิงเพศหรือเชื้อชาติ</p>
-    </section>
   </div>
 </main>
 
@@ -307,8 +301,8 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <div class="toast" id="frToast" role="status"></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="i18n/zh-fortune.js?v=11"></script>
-<script src="i18n/zh-fortune-faceread.js?v=13"></script>
+<script src="i18n/zh-fortune.js?v=12"></script>
+<script src="i18n/zh-fortune-faceread.js?v=15"></script>
 <script src="i18n/zh-kb-face.js?v=1"></script>
 <script src="lensiq-config.js?v=22"></script>
 <script src="lensiq-track.js?v=3"></script>
@@ -328,6 +322,6 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="lensiq-look.js?v=1"></script>
 <script src="faceread-kb.js?v=7"></script>
 <script src="lensiq-capture-hint.js?v=1"></script>
-<script src="faceread.js?v=24"></script>
+<script src="faceread.js?v=25"></script>
 </body>
 </html>

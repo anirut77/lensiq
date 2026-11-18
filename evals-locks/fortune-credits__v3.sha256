@@ -1,0 +1,12 @@
+# locked 2026-11-17T19:26:12Z (tools/eval-guard.mjs lock, 3 files)
+61f2f8feecdc9c77a77dfc597b99be69731e8cf9be4004f6f608c715357d4b4e  tests/unit/fortune-credits-v2.test.js
+681d5f3f11c85ded8520566e1da1b3eba2acc1df6b63abdc6df5ce28b0fc350f  tests/unit/fortune-credits-v2-assets.json
+f542a65eb30f0e3b412a82e764c3ad6e581bdd2136d097ea157f1442db5ed6d8  tests/e2e/fortune-credits-v3.e2e.mjs
+# LEDGER (append-only) — v3 = v2 with one e2e harness fix, after CI run 44139285815 (round 1 of 2): fortune-credits-v2.e2e.mjs failed only on
+# console errors from the optional /api/fortune/status probe (404 on the static test server, no backend), the same probe fortune-new.e2e.mjs
+# ignores. v3 ignores exactly that 404 and nothing else; every product assertion (V1 label / block / tarot credit / vendor path absent,
+# V2 no credits or principles link) is unchanged. Unit half and audit list byte-identical to v2. v2 e2e removed from tests/ (bytes kept in v2/).
+61f2f8feecdc9c77a77dfc597b99be69731e8cf9be4004f6f608c715357d4b4e  tests/unit/fortune-credits-v2.test.js  # repo file
+681d5f3f11c85ded8520566e1da1b3eba2acc1df6b63abdc6df5ce28b0fc350f  tests/unit/fortune-credits-v2-assets.json  # repo file
+f542a65eb30f0e3b412a82e764c3ad6e581bdd2136d097ea157f1442db5ed6d8  tests/e2e/fortune-credits-v3.e2e.mjs  # repo file
+# SUPERSEDED (unit D5 only) 2026-11-18 by evals-locks/fortune-credits__v4.sha256 (owner decision 109: ?v= bumps allowed, text unchanged; ledger there).

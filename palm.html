@@ -229,7 +229,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     <section class="pl-block fa-reading" id="plReading" aria-labelledby="plReadTitle">
       <div class="fa-head">
         <h3 data-i18n="fortune.common.readingDetail" id="plReadTitle">คำทำนายโดยละเอียด</h3>
-        <span class="fa-src" id="plSrc">เรียบเรียงในเครื่อง</span>
+        <span class="fa-src" id="plSrc" hidden></span>
       </div>
       <div class="fa-topics" role="radiogroup" aria-label="หัวข้อที่สนใจ" data-i18n-attr="aria-label:palm.topicsAria" data-topics></div>
       <div class="fa-consent-wrap" id="plConsent"></div>
@@ -298,11 +298,6 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
       <label class="pl-check" data-i18n="palm.statsOn"><input type="checkbox" id="plStatsOn"> นับจำนวนครั้งและสัดส่วนธาตุในเครื่องนี้</label>
       <button data-i18n="fortune.common.statsClear" class="btn ghost" id="plStatsClear" type="button">ล้างสถิติ</button>
     </section>
-    <section class="pl-block">
-      <h3 data-i18n="fortune.common.about">เกี่ยวกับคำอ่านนี้</h3>
-      <p class="pl-small" id="plEthics"></p>
-      <p class="pl-small" data-i18n="palm.modelNote">โมเดลจุดบนมือ: MediaPipe Hands (lite) เวอร์ชัน TensorFlow.js — Apache License 2.0</p>
-    </section>
   </div>
 </main>
 
@@ -311,8 +306,8 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <div class="toast" id="plToast" role="status"></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="i18n/zh-fortune.js?v=11"></script>
-<script src="i18n/zh-fortune-palm.js?v=8"></script>
+<script src="i18n/zh-fortune.js?v=12"></script>
+<script src="i18n/zh-fortune-palm.js?v=10"></script>
 <script src="i18n/zh-kb-palm.js?v=1"></script>
 <script src="lensiq-config.js?v=22"></script>
 <script src="lensiq-track.js?v=3"></script>
@@ -327,6 +322,6 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="fortune-ai.js?v=39"></script>
 <script src="palm-kb.js?v=10"></script>
 <script src="lensiq-capture-hint.js?v=1"></script>
-<script src="palm.js?v=18"></script>
+<script src="palm.js?v=19"></script>
 </body>
 </html>

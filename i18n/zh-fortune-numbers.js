@@ -117,7 +117,6 @@
     "numbers.noComposer": "未找到解读生成器（fortune-ai.js）",
     "numbers.loading": "正在整理解读...",
     "numbers.src.ai": "由写作助手（Anthropic 的 Claude）润色",
-    "numbers.src.local": "本机生成",
     "numbers.card.brand": "LENSIQ · 吉祥数字",
     "numbers.card.score": "分数 / 100",
     "numbers.card.sum": "总和 {s} · {g}",
