@@ -65,6 +65,7 @@
     "fortune.hub.card.taksa.org": "泰国 · 塔克萨", "fortune.hub.card.taksa.name": "塔克萨 · 大运", "fortune.hub.card.taksa.desc": "出生日守护星、八宫和一百零八年大运", "fortune.hub.card.taksa.li1": "吉祥宫、威权宫、辅佐宫、忌星宫", "fortune.hub.card.taksa.li2": "每个年龄段由哪颗星主导", "fortune.hub.card.taksa.go": "看塔克萨 →",
     "fortune.hub.card.lek7.org": "泰国 · 七数", "fortune.hub.card.lek7.name": "七数九基", "fortune.hub.card.lek7.desc": "由星期、农历月和生肖年排出的数字盘", "fortune.hub.card.lek7.li1": "总和行和七个宫位", "fortune.hub.card.lek7.li2": "长处和需要补足的地方", "fortune.hub.card.lek7.go": "看数字盘 →",
     "fortune.hub.card.lifegraph.org": "泰国 · 中国 · 西方", "fortune.hub.card.lifegraph.name": "人生曲线", "fortune.hub.card.lifegraph.desc": "按年龄段看工作、财运、感情和自我照顾", "fortune.hub.card.lifegraph.li1": "结合塔克萨大运、八字大运和土星回归", "fortune.hub.card.lifegraph.li2": "每个转折点都注明来源", "fortune.hub.card.lifegraph.go": "画人生曲线 →",
+    "fortune.hub.card.petread.org": "泰国 · 猫经、梵天历", "fortune.hub.card.petread.name": "猫狗面相解读", "fortune.hub.card.petread.desc": "根据宠物照片和你选择的特征，照片只在本设备处理", "fortune.hub.card.petread.li1": "性格、喜好以及与你的感情", "fortune.hub.card.petread.li2": "幸运色和好日子（塔克萨），免费分享卡", "fortune.hub.card.petread.go": "看看我的宠物 →",
     "fortune.hub.card.dream.desc": "说说你的梦，系统自动找出象征，不提供任何号码",
     "fortune.hub.card.dream.li1": "104 个象征，7 个分类",
     "fortune.hub.card.dream.li2": "泰国传统的四种梦境类型",

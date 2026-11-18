@@ -7,15 +7,16 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
-## Pet face reading (owner order 2026-11-16 part B, branch `fortune-pet`, waiting for owner approval; not linked yet)
+## Pet face reading (owner order 2026-11-16 part B, branch `fortune-pet`; go-live approved: owner decision 100 = ก, 2026-11-18)
 
 `petread.html` (dogs and cats): photo or camera on the device, the shipped YOLOX-Nano (Apache-2.0, no new model) pre-fills species
 and a coat hint, the owner confirms the traits; reading (personality, likes, bond, lucky colour and day by Taksa, owner-pet
 compatibility through the `LQCompat.pair(owner, pet, {mode: "owner-pet"})` interface with a local stub until part A lands) in the
 grouped fortune layout; free share card on a canvas (photo off by default, persons pixelated, nothing uploaded). Detector on the
 locked Oxford-IIIT Pet set (public dataset, 296 images): pet found 95.3 %, species 89.5 % (target 90 %: missed), head inside the
-box 97.9 %. Research, licences and numbers: `docs/PET-READING-RESEARCH.md`, `docs/PET-READING-SOURCES.md`. The page joins
-category 6 (CLAUDE.md table, cat-fortune, fortune hub) only when the owner approves go-live.
+box 97.9 %. Research, licences and numbers: `docs/PET-READING-RESEARCH.md`, `docs/PET-READING-SOURCES.md`. Owner decision 100
+(2026-11-18): live in category 6 (CLAUDE.md table, cat-fortune, fortune hub card, fortune menu; TH / EN / ZH), merged to main
+only after CI is green on the branch.
 
 ## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
 

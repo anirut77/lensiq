@@ -496,7 +496,7 @@ const CATEGORIES = [
       en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
       zh: "基于命理学原则，属个人信仰，请自行判断。" },
     pages: ["fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui", "dream", "zodiac",
-      "compat", "astro", "lifegraph", "planner", "luckycolor", "report"] },
+      "compat", "astro", "lifegraph", "planner", "luckycolor", "petread", "report"] },
   { n: 7, slug: "studio", id: "photo", icon: "📸",
     name: { th: "สตูดิโอและสื่อ", en: "Studio & Media", zh: "影棚与媒体" },
     short: { th: "สตูดิโอ", en: "Studio", zh: "影棚" },
@@ -511,8 +511,6 @@ const CATEGORIES = [
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
 const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
   tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category",
-  petread: "Pet face reading (dogs and cats, owner order 2026-11-16 part B): built on branch fortune-pet; " +
-    "joins category 6 (CLAUDE.md table, cat-fortune, fortune hub) when the owner approves go-live",
   counselling: "Counselling services (owner decision 2026-11-16, crisis one-number rules): linked only from the fortune crisis card and help line, help and privacy; not in the menus" };
 
 module.exports = { STATUS, STATUS_DEF, STATUS_DEF_CAT, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };

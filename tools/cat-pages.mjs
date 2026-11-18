@@ -218,7 +218,7 @@ export function pageHtml(cat, nav = navEntries()) {
     "<body>",
     '<header class="nav" id="siteNav"></header>',
     '<script src="nav.js?v=31"></script>',
-    '<script src="i18n/zh-cat.js?v=4"></script>',
+    '<script src="i18n/zh-cat.js?v=5"></script>',
     // the fortune category carries the always-visible help button, in one place (owner orders 2026-11-12, 2026-11-15; tools/helpline.mjs)
     ...(cat.slug === "fortune" ? [topStyle(), helpLine("lqHelpTop")] : []),
     `<main class="pd cat${cat.discMore ? " lq-ftop" : ""}" id="main" data-cat="${cat.slug}">`,
