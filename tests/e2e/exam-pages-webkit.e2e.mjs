@@ -33,7 +33,8 @@ export default async function ({ base, check }) {
       await page.evaluate(() => window.LQI18N.setLang("en"));
       await waitFor(page, () => window.LQI18N.lang === "en", null, 5000);
       await sleep(900);
-      const thai = await page.evaluate(() => (document.querySelector("main").innerText.match(/[฀-๿]/g) || []).length);
+      // Thai letters only: the baht sign (U+0E3F, in the Thai block) is a currency symbol and stays in English prices
+      const thai = await page.evaluate(() => (document.querySelector("main").innerText.match(/[\u0E01-\u0E3A\u0E40-\u0E5B]/g) || []).length);
       assert(thai === 0, "exam.html in English still has " + thai + " Thai letters");
     });
 

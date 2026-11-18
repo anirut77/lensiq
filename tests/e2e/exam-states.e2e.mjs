@@ -18,7 +18,7 @@
 import { assert } from "./cdp.mjs";
 import { exceptions, sleep } from "./exam-kit.mjs";
 
-const THAI = /[฀-๿]/;
+const THAI = /[\u0E01-\u0E3A\u0E40-\u0E5B]/; // Thai letters, not the baht sign U+0E3F (a currency symbol)
 const LANGS = ["th", "en", "zh"];
 const FACE = { x: 0.32, y: 0.18, w: 0.34, h: 0.5, score: 0.95, yaw: 0, pitch: 0 };
 const lang = l => `try { localStorage.setItem("lq-lang", ${JSON.stringify(l)}); } catch (e) {}`;
