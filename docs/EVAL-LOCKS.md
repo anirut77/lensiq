@@ -164,6 +164,41 @@ Reviewer verified (independent, 2026-11-18): the release criteria were rebuilt f
 
 Decision-96 tests T1–T3 (8f9e9c07, 896606c8) reviewed separately — see REVIEW.md addendum.
 
+## Ledger lines land with the lock (owner decision 110 ก condition 4, 2026-11-18)
+
+Three re-locks had no repo ledger line (2026-11-18): `lock` wrote only the copy name (`relock-8/tests/e2e/…`,
+`relock1/cat-pages.test.js`), and a re-lock in `promo-basics.sha256` did not replace the older hash in the other lock
+files. They were fixed by three late entries (owner decision 110 ก, below). The cause is fixed in `tools/eval-guard.mjs`:
+
+- `lock <phase> <file>[=<repo path>|=-]` writes, in the same block of `evals-locks/<phase>.sha256`, one
+  `<sha256>  <repo path>  # repo file (same commit as lock <UTC>; field: ~/LENSIQ-field/evals/<phase>/<rel>)` line for every
+  field file whose repo copy it finds (a trailing part of its path, or the same unversioned name for code / JSON files under
+  `tests/`, `tools/`, `docs/` or in the ledger; `a.test.r2.js` → `a.test.js`), or that is named after `=`. `=-` records
+  `# field only <rel>`. It refuses and writes nothing when the repo copy differs, so the repo file is copied first and the
+  lock, the field record and the ledger line go into one commit. Other lock files whose latest hash for that repo path is
+  older get the same repo line appended (no cross-file conflict left behind).
+- `repo` fails, for lock blocks stamped `# locked <UTC>` at or after `LEDGER_FROM` (2026-11-18T02:26:42Z): L1 a field lock
+  whose file has a repo copy without a same-hash repo ledger line (or `# field only`); L2 a `# repo file` line without its
+  field copy (a same-hash field line in that lock file, or a `field:` reference). On every line, a `field:` reference must
+  name a hash line of `evals-locks/<phase>.sha256`, and a `late entry` line must carry one.
+- `repo --field` (local only; CI has no `~/LENSIQ-field`) also checks on disk that every such field copy exists with that
+  hash and is listed in its phase's `locked.sha256`. `repo --history` lists L1 gaps in blocks stamped before
+  `LEDGER_FROM` (57 on 2026-11-18; reported, not failed: fixing them needs late entries, an owner decision).
+- Tests: `tests/unit/eval-guard-ledger.test.js` (locked in `evals-locks/eval-guard.sha256` before the change), with negative
+  controls: a field lock without its ledger line fails; a ledger line without its field copy fails; a late entry without a
+  valid `field:` reference fails; `--field` fails on a missing, changed or unlisted field copy.
+
+Late entries 2026-11-18 (owner decision 110 ก; additions only, each checked against the file and the field record):
+
+| File | sha256 | Original re-lock | Commit | Field record | Appended to |
+|---|---|---|---|---|---|
+| `tests/e2e/line-wrap-exceptions.json` | 5515fb3d | line-wrap relock-8, 2026-11-17T20:54:01Z (`line-wrap.sha256:49`) | 9cc74c28 | `~/LENSIQ-field/evals/line-wrap/relock-8/…`, `locked.sha256:27` | `line-wrap.sha256` |
+| `tests/unit/cat-pages.test.js` | fc67978e | promo-basics RE-LOCK 1, 2026-11-17T17:50:04Z (`promo-basics.sha256:12,15`) | 20526484 | `~/LENSIQ-field/evals/promo-basics/relock1/cat-pages.test.js`, `locked.sha256:5` | `fortune-no-demo.sha256` |
+| `tests/unit/fortune-no-demo.test.js` | 047f5a00 | promo-basics RE-LOCK 1, 2026-11-17T17:50:04Z (`promo-basics.sha256:13,16`) | 20526484 | `~/LENSIQ-field/evals/promo-basics/relock1/fortune-no-demo.test.js`, `locked.sha256:6` | `fortune-no-demo.sha256` |
+
+`fortune-no-demo.sha256` held the older hashes of both files, so the new line there supersedes the older entries in
+`crisis-v3.sha256` and `crisis-rules-1323.sha256` too. After: `eval-guard repo` 0 mismatches.
+
 ## Lock records reconciled 2026-11-18
 
 Merge of main 8a0f5c7d into eval-guard-repo (commit a7552075; conflicts in `fortune-honest.sha256` and `merit.sha256`
