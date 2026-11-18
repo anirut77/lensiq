@@ -1,0 +1,28 @@
+# evals-locks/planner-defects.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/planner-defects/ (owner rule 2026-11-13). Append-only.
+# planner defects (owner report 2026-11-18, Samsung Android default browser, planner.html): a ")" alone on the next line in the
+# add-person part (a), the start-month <select> cutting "พฤศจิกายน 256(9)" (b), the sticky "หาวันดี" read bar letting faint page
+# text show through (c). Widths 360 / 375 / 393 / 412 / 430 × TH / EN / ZH. (a) planner-people-wrap: locked line-wrap probe on
+# #plForm, 4 states + 300-440 px sweep; (b) select-fit-kit + 4 parts: every page, the shown text of every shown <select> fits
+# (text + padding + border + 24 px arrow), or its full text is visible right under it (.lq-sel-full); planner #plFrom: every
+# month must fit in the select itself; (c) readbar-solid: every page with the read bar, 5 scroll positions: background alpha 1,
+# body padding >= bar height, no text over/through it, at the bottom no text behind it and the last content above it.
+# Locked BEFORE any product change on branch planner-defects (base origin/main b2a6e76c). Trial runs before this lock, used only
+# to make the harnesses read correctly (no product file touched): (b) first checked every option of every select (58/229
+# failed, mostly long descriptive options that need new wording; narrowed to the coordinator's spec "the selected option text",
+# planner #plFrom kept on every option) and one regex escaping fault fixed; (c) "bar shown on planner at scroll 0 at every
+# width" changed to "at least once per language" (the read button is on the first 800 px screen at 375 / 393 px).
+# Results on main b2a6e76c: (a) 4/4 pass (line-wrap already fixes it; against the pre-line-wrap base 286d813 TH fails with 5
+# lone ")" lines); (b) 35 of 229 page × language checks fail (19 pages); (c) 32 of 52 fail (alpha 0.96 on 11 pages).
+# locked 2026-11-18T04:12:25Z (tools/eval-guard.mjs lock, 7 files)
+814164ad2ebcc287b971a80084d0ebf59865becce4c5827862d4764e9c0e3495  tests/e2e/select-fit-kit.mjs
+785426f89829a3d612e17c115591cf05892bd86a73a087e50276f37ce848966a  tests/e2e/select-fit-1.e2e.mjs
+8eae02fdbceeeed9f64d1253a3deeb8932bb0b9e9d4803060ec1fd88d61d28aa  tests/e2e/select-fit-2.e2e.mjs
+f010d67e09f2d86d79f65eb735453e0ecb5424a6dc2dfcbb06d16021c8499e19  tests/e2e/select-fit-3.e2e.mjs
+06395dcc73d4742596471b5650f0ed6873aeaf8aabd88d08edde179aedc6ae60  tests/e2e/select-fit-4.e2e.mjs
+eec068c5ba7f94db9c08f93066b66323b554943d9b244c3d9e2759d0a47f39f4  tests/e2e/readbar-solid.e2e.mjs
+af59df8279d0ee2730e10c2794855f01ac8442059fb3dcb9e13525d93daa0416  tests/e2e/planner-people-wrap.e2e.mjs
+# relock-1 2026-11-18 (formatting only, before the first commit and before any product change): three code lines over the 200-character
+# format limit wrapped (readbar-solid alpha() and last-content message, select-fit-kit name()). No rule, page, width, language or threshold changed. Copy in relock-1/.
+# locked 2026-11-18T04:12:54Z (tools/eval-guard.mjs lock, 2 files)
+242deef5ce90b546b50e4b0d902c1f793ca6e4e08b5b09759666ee49b19ede8c  relock-1/tests/e2e/select-fit-kit.mjs
+b589713035999c09d6bf740da3a45f093cfd727fc6beeadca6cae29294b348bd  relock-1/tests/e2e/readbar-solid.e2e.mjs
