@@ -108,7 +108,7 @@ function wilson(k, n) {
   return [(c - m) / d, (c + m) / d];
 }
 const pct = v => (v * 100).toFixed(1) + " %";
-const frac = (k, n) => { const [lo, hi] = wilson(k, n); return `${k} / ${n} = ${pct(n ? k / n : 0)} [${pct(lo)} – ${pct(hi)}]`; };
+const frac = (k, n) => { const [lo, hi] = wilson(k, n).map(v => Math.min(1, Math.max(0, v))); return `${k} / ${n} = ${pct(n ? k / n : 0)} [${pct(lo)} – ${pct(hi)}]`; };
 
 /* ---------- browser kit ---------- */
 const limit = (p, ms, what) => Promise.race([p, new Promise((_, rej) => { const t = setTimeout(() => rej(new Error(what + " timed out")), ms); t.unref(); })]);
