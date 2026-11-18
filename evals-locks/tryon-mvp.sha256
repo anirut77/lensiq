@@ -40,3 +40,16 @@ e7fd40f572796c2d46f89ea323110e85bfe10a510fc42e472d327b4eae1469f9  tests/unit/try
 # assertion is unchanged. Hashes 4b4c5805… (backend-tryon) and e7fd4…  (tryon-reauth) superseded by:
 274fbb9f7aa0338385b989a9b796fd6e71fa9b74456066dd3b758b09e139cf1d  tests/unit/backend-tryon.test.js
 f7080559bc5003d667c43b60ea5472eed447e424798ee9e2572367d0a4fa4ec4  tests/unit/tryon-reauth.test.js
+#
+# Re-lock 2026-11-18 (tryon-pose; owner decision 2026-11-18 "Try-On, on-device overlay ... Photo or camera on the device";
+# ledger: docs/TRYON-POSE-RESULTS.md "Re-lock ledger"). Locked BEFORE the photo input was built. Base b2a6e76.
+#  - tests/unit/tryon-core.test.js C5: BEFORE "no file input in tryon.html / tryon.js". NOW at most one file input, in the
+#    markup only (tryon.js creates none), accept="image/*", no capture, no multiple, disabled in the markup and enabled by
+#    the consent tick. No drop / paste, no POST, no stored frames, consent before the camera, i18n: all unchanged.
+#  - tests/e2e/tryon.e2e.mjs check 1: BEFORE "no file input"; NOW "no ENABLED file input before consent". Every other
+#    assertion unchanged. The photo path itself is covered by the new tests/e2e/tryon-pose.e2e.mjs E3 / E4 (evals-locks/
+#    tryon-pose.sha256): consent first, image only, nothing leaves the device (request hooks), nothing stored.
+#    Hashes c554b76f… (tryon-core) and d05517c8… (tryon.e2e) superseded. Copies in relock-pose-2026-11-18/.
+# locked 2026-11-18T04:31:15Z (tools/eval-guard.mjs lock, 2 files)
+6e50458a14d49ad6aa48a551fae272eb7a5e64755e248327c6bd8b9a16d40ba4  relock-pose-2026-11-18/tests/unit/tryon-core.test.js
+e0315c711444957d779b3876014629afe9df6f1458fd6bef8f7bd665ed28cefb  relock-pose-2026-11-18/tests/e2e/tryon.e2e.mjs
