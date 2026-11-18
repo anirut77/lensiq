@@ -2,6 +2,7 @@
    KB texts (grades, digits, weekdays, goals, tips, daily words, sources) are keyed by id or index. */
 (function (root) {
   var dict = { en: {
+    "numbers.metaDesc": "Lucky-number check for phone numbers, licence plates, house numbers, account numbers and names, according to Thai numerology beliefs. Calculated in your browser; numbers are not saved",
     /* ---------- static markup ---------- */
     "numbers.disclaimer2": "Not for gambling or chasing luck, and not a basis for important decisions. Interpretations vary between schools.",
     "numbers.tabs.aria": "Choose what to analyze",
@@ -114,7 +115,6 @@
     "numbers.noComposer": "Reading composer not found (fortune-ai.js)",
     "numbers.loading": "Preparing the reading...",
     "numbers.src.ai": "Phrased by the writing assistant (Claude by Anthropic)",
-    "numbers.src.local": "Generated on this device",
     "numbers.card.brand": "LENSIQ · Lucky Numbers",
     "numbers.card.score": "Score / 100",
     "numbers.card.sum": "Sum {s} · {g}",

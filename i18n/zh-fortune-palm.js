@@ -4,6 +4,7 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
+    "palm.metaDesc": "根据手掌照片解读手相，并附开运建议。在浏览器中处理，不保存照片",
     /* ---------- 静态页面 ---------- */
     "palm.disclaimerRest": "不应用于招聘、财务、感情方面的决定或评价他人，生命线也与寿命长短无关",
     "palm.steps": "步骤",
@@ -155,7 +156,6 @@
     "palm.topic.money": "财运",
     "palm.narr.loading": "正在撰写解读...",
     "palm.narr.loadingAI": "正在请写作助手（Anthropic 的 Claude）撰写解读...",
-    "palm.src.local": "本机生成",
     "palm.src.ai": "由写作助手（Anthropic 的 Claude）撰写",
     "palm.sec.personality": "性格",
     "palm.sec.work": "事业",

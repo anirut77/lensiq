@@ -424,6 +424,7 @@ const PAGES = {
   about: { st: "support", why: "content", claims: ["info"] },
   help: { st: "support", why: "content", claims: ["info"] },
   counselling: { st: "support", why: "content", claims: ["info"] },
+  "404": { st: "support", why: "content", claims: ["info"] },
   "camera-notice": { st: "support", why: "notice", claims: ["info"] },
   privacy: { st: "support", why: "legal", claims: ["info"] },
   terms: { st: "support", why: "legal", claims: ["info"] },
@@ -513,6 +514,7 @@ const CATEGORIES = [
 const PLATFORM = ["about", "solutions", "pricing", "help", "privacy", "terms", "camera-notice", "account"];
 const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked from any page since round 9",
   tryon: "Try-On MVP customer page, opened from a shop link; not in the menus until the owner picks its category",
+  "404": "Not-found page (owner order 2026-11-18 C, promotion basics): GitHub Pages shows it for any missing address; noindex, not in the menus or the sitemap",
   counselling: "Counselling services (owner decision 2026-11-16, crisis one-number rules): linked only from the fortune crisis card and help line, help and privacy; not in the menus" };
 
 module.exports = { STATUS, STATUS_DEF, STATUS_DEF_CAT, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };

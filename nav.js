@@ -96,12 +96,12 @@
       intro: "เกี่ยวกับ LENSIQ โซลูชันตามอุตสาหกรรม แพ็กเกจ ความช่วยเหลือ และเอกสารด้านกฎหมาย", items: [
       { href: "about.html", title: "เกี่ยวกับ", desc: "ทำงานบนเครื่อง ความเป็นส่วนตัว และสัญญาอนุญาต" },
       { href: "solutions.html", title: "โซลูชันตามอุตสาหกรรม", desc: "เลือกตามธุรกิจ: พร้อมใช้ นำร่อง และเร็ว ๆ นี้" },
-      { href: "pricing.html", title: "แพ็กเกจและราคา", desc: "แพ็กเกจรายเดือนและค่าบริการ" },
+      { href: "pricing.html", title: "แพ็กเกจและราคา", desc: "แพ็กเกจรายเดือนและค่าบริการ", crisisSales: "item" },
       { href: "help.html", title: "ช่วยเหลือ", desc: "คำถามที่พบบ่อยและการติดต่อ" },
       { href: "privacy.html", title: "ความเป็นส่วนตัว", desc: "ประกาศความเป็นส่วนตัว (PDPA)" },
       { href: "terms.html", title: "ข้อกำหนดการใช้บริการ", desc: "เงื่อนไขการใช้งาน LENSIQ" },
       { href: "camera-notice.html", title: "ป้ายแจ้งการใช้กล้อง", desc: "ป้ายแจ้ง 3 ภาษา พิมพ์ A4" },
-      { href: "account.html", title: "บัญชีของฉัน", desc: "สมาชิกและการชำระเงิน (เมื่อเปิดใช้)" }
+      { href: "account.html", title: "บัญชีของฉัน", desc: "สมาชิกและการชำระเงิน (เมื่อเปิดใช้)", crisisSales: "desc" }
     ] },
     { label: "ระบบทั้งหมด", href: "cameras.html", cta: true }
   ];
@@ -120,6 +120,16 @@
     try { /** @type {any} */ (window.top).location = window.self.location.href; } catch (e) { /* sandboxed frame: stay blank */ }
     return;
   }
+
+  // ---------- crisis-v3-protect (rule b: no prices, purchase buttons, plans or seller links while the crisis flag is set): menu
+  // entries marked data-lq-crisis-sales (site menu pricing / payment, account-menu pricing) are hidden while html[data-lq-crisis]
+  // or html[data-lq-calm] is set, and come back when the flag clears (pure CSS: no listener to miss) ----------
+  (function () {
+    var st = document.createElement("style");
+    st.id = "lq-crisis-sales-style";
+    st.textContent = ":is(html[data-lq-crisis],html[data-lq-calm]) [data-lq-crisis-sales]{display:none!important}";
+    (document.head || document.documentElement).appendChild(st);
+  })();
 
   var T = function (key, thai, vars) { return window.LQI18N ? window.LQI18N.tf(key, thai, vars) : thai; };
   (function loadI18n() {
@@ -180,9 +190,11 @@
             : '<a class="mega-all" href="cameras.html"><span data-i18n="nav.viewall">ดูระบบทั้งหมด</span>' + arrow + '</a></div>') +
           '<ul class="mega-links' + (g.items.length > 6 ? " cols-3" : g.items.length > 3 ? " cols-2" : "") + '">';
       g.items.forEach(function (i) {
-        html += '<li><a href="' + (ENTRY[i.href] || i.href) + '"'
+        // crisisSales (crisis-v3-protect, rule b): a price / payment entry is hidden while the crisis or calm state is set
+        var cs = ' data-lq-crisis-sales=""';
+        html += '<li' + (i.crisisSales === "item" ? cs : "") + '><a href="' + (ENTRY[i.href] || i.href) + '"'
           + (isCur(i.href) ? ' aria-current="page"' : "") + '><b data-i18n="' + key(i.href) + '.title">' + esc(i.title) + '</b>'
-          + '<small data-i18n="' + key(i.href) + '.desc">' + esc(i.desc) + '</small></a></li>';
+          + '<small' + (i.crisisSales === "desc" ? cs : "") + ' data-i18n="' + key(i.href) + '.desc">' + esc(i.desc) + '</small></a></li>';
       });
       html += '</ul></div></div></li>';
     } else {
@@ -733,7 +745,7 @@
       ["fortune-negstate.js?v=1", "fortune-paid.js?v=1"].forEach(function (f) { var ps = document.createElement("script"); ps.src = f; ps.async = false; d.appendChild(ps); });
     }
     if (W.LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
-    ["lensiq-merit-core.js?v=3", "lensiq-merit-lint.js?v=2", "lensiq-merit.js?v=3"].forEach(function (src) {
+    ["lensiq-merit-core.js?v=4", "lensiq-merit-lint.js?v=2", "lensiq-merit.js?v=4"].forEach(function (src) {
       var sc = document.createElement("script");
       sc.src = src; sc.async = false;
       (document.head || document.documentElement).appendChild(sc);

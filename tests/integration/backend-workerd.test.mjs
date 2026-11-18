@@ -32,6 +32,14 @@ const ADMIN_TOKEN = "bootstrap-" + "t".repeat(40);
 const ADMIN_PW = "correct horse battery staple";
 const ORIGIN = "https://site.example";
 const nowS = () => Math.floor(Date.now() / 1000);
+// The backend's rate limits are FIXED windows aligned to multiples of winSec (store.js windowStart; daily salts roll at
+// 00:00 UTC, also a multiple of 900 s). A burst that straddles a boundary is split across two buckets and never reaches
+// its limit (CI run 44159797819: the IPv6 loop ran across 20:15:00 UTC and saw 11x 401). Before a burst, wait until
+// the current window has at least needSec left, so every attempt lands in ONE window. Same limits, same assertions.
+const sameWindow = async (winSec, needSec = 20) => {
+  const left = winSec * 1000 - (Date.now() % (winSec * 1000));
+  if (left < needSec * 1000) await new Promise(r => setTimeout(r, left + 250));
+};
 
 const b64u = b => Buffer.from(b).toString("base64url");
 const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
@@ -235,6 +243,7 @@ test("workerd r12: abuse paths — Turnstile action/hostname, webhook signature/
     // guest purchase + claim brute force: 10 wrong tokens per member per hour, then 429 (even with the right one)
     const g = await call("/v1/billing/checkout", { method: "POST", headers: { "X-Turnstile-Token": "good:checkout" }, body: { plan_id: "report_basic", accept_terms: true, age_confirm: "adult" } });
     assert.equal(g.status, 201, g.text); assert.ok(g.j.order_token);
+    await sameWindow(3600);
     const codes = [];
     for (let i = 0; i < 10; i++) codes.push((await call("/v1/billing/claim", { method: "POST", token: a.j.token, body: { customer_id: g.j.customer_id, order_token: "x".repeat(30) + i } })).status);
     assert.deepEqual([...new Set(codes)], [403]);
@@ -264,6 +273,7 @@ test("workerd r12: abuse paths — Turnstile action/hostname, webhook signature/
     assert.equal((await call("/api/me", { token: a.j.token })).status, 401);
     assert.equal((await member(call, "9001")).j.code, "account_disabled");
     // IPv6: 10 sign-in attempts per caller per 15 min, keyed on the /64 — rotating the low 64 bits does not help
+    await sameWindow(900);
     const st = [];
     for (let i = 1; i <= 11; i++) st.push((await call("/api/auth/google", { method: "POST", headers: { "CF-Connecting-IP": `2001:db8:99:1::${i.toString(16)}`, "X-Turnstile-Token": "good:signin" }, body: {} })).status);
     assert.equal(st.at(-1), 429, st.join(","));
@@ -310,6 +320,7 @@ test("workerd r12: duplicate-subscription race, expiry sweep via scheduled(), te
     // admin test charge: re-auth required, then capped (TEST_CHARGE_HOUR=2)
     const A = await adminOf(call);
     assert.equal((await A("/billing/test-charge", { method: "POST", body: { amount_satang: 2000 } })).j.code, "reauth_required");
+    await sameWindow(3600);
     const tc = [];
     for (let i = 0; i < 3; i++) tc.push((await A("/billing/test-charge", { method: "POST", body: { amount_satang: 2000, password: ADMIN_PW } })).status);
     assert.deepEqual(tc, [201, 201, 429]);
