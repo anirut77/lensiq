@@ -1,0 +1,9 @@
+# locked 2026-11-18T16:17:56Z (tools/eval-guard.mjs lock, 7 files)
+09d68801e7e7804677756f0665b18e381b6a81fc8f9b3af28e3758f267345772  README.md
+5d6da09657ec754bd1eed053e62c027ed4d92771c69915f9b61e712764f5d389  gen-set.mjs
+c4779d546c97719d814461d8a12938250b4b3f5165d4a1edec0bb72844372af9  set.json
+05b4bd02b7e1cbb768faa22d8e1134bca1a43d0dc4f725da480d43d4f6c2d6fc  render.mjs
+c529c07f3897c7d6c6721cf794f0027bf63a5f8917c1672c93f0f752cf2ba157  score.mjs
+4f58b986a2a4f25f1ae525d5bd30ab882bf31409e012753a3837cbbe86fdc67b  targets.json
+cd693f0d63dbc0c4d59e37447d42240a5a0fe76c10ae0296a1f50fd84ac46978  colour-protocol-eval.mjs
+cd693f0d63dbc0c4d59e37447d42240a5a0fe76c10ae0296a1f50fd84ac46978  tools/colour-protocol-eval.mjs  # repo file (same commit as lock 2026-11-18T16:17:56Z; field: ~/LENSIQ-field/evals/personal-colour-protocol/colour-protocol-eval.mjs)
