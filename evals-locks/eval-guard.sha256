@@ -10,3 +10,34 @@ a1924421c9b6d4495753c90bc1eaf1c76c2e04842c7dca1e9f24bb1866a2a020  eval-guard.tes
 # locked 2026-11-13T15:57:11Z
 7e39a05ec6796a18c9a0511677b5bc9c08d7c46db154f0f4b33691d5d643f8a1  tests/unit/eval-guard.test.js
 7e39a05ec6796a18c9a0511677b5bc9c08d7c46db154f0f4b33691d5d643f8a1  eval-guard.test.v3.js
+# repo check (owner decision 85 ก, 2026-11-17, branch eval-guard-repo, base origin/main 02fdd69): new test tests/unit/eval-guard-repo.test.js, locked BEFORE the
+# product change in tools/eval-guard.mjs (every repo file named in evals-locks/ must equal its latest lock; retirement lines; CI step). Copy kept as a NEW file
+# ~/LENSIQ-field/evals/eval-guard/eval-guard-repo.test.v1.js (the existing files there, locked.sha256 included, are not modified).
+# locked 2026-11-17T02:40:25Z (manual append, 1 file)
+9a009196c8217704d9e41cdcc18e6902981a72176a8c89095b6103b6561b3f08  tests/unit/eval-guard-repo.test.js  # repo file
+9a009196c8217704d9e41cdcc18e6902981a72176a8c89095b6103b6561b3f08  eval-guard-repo.test.v1.js
+# pending marker (coordinator order 2026-11-17, branch eval-guard-repo): new test tests/unit/eval-guard-pending.test.js, locked BEFORE the guard change
+# ("# pending <path> branch: <b> reason: <r>" accepted only while the file is absent). Copy: NEW file ~/LENSIQ-field/evals/eval-guard/eval-guard-pending.test.v1.js.
+# locked 2026-11-17T03:09:27Z (manual append, 1 file)
+934ab3877e47d442692482843ef8aa14dde75805ad4a845c6574a65d8e16597e  tests/unit/eval-guard-pending.test.js  # repo file
+934ab3877e47d442692482843ef8aa14dde75805ad4a845c6574a65d8e16597e  eval-guard-pending.test.v1.js
+# ledger rule (owner decision 110 ก condition 4, 2026-11-18, branch lock-records-1118, base origin/staging-1118b): new test tests/unit/eval-guard-ledger.test.js,
+# locked BEFORE the guard change (lock writes the repo ledger line in the same commit; repo fails on a field lock without its ledger line or a ledger line
+# without its field copy). Copy: NEW file ~/LENSIQ-field/evals/eval-guard/eval-guard-ledger.test.v1.js; field record appended to its locked.sha256.
+# locked 2026-11-18T02:26:42Z (manual append, 1 file)
+0187a20cd247242b21aeac7ef92f591a69e3ef137f287b654f740ada55fec506  eval-guard-ledger.test.v1.js
+0187a20cd247242b21aeac7ef92f591a69e3ef137f287b654f740ada55fec506  tests/unit/eval-guard-ledger.test.js  # repo file (same commit as the field lock; field: ~/LENSIQ-field/evals/eval-guard/eval-guard-ledger.test.v1.js)
+# locked 2026-11-18T05:25:51Z (tools/eval-guard.mjs lock, 2 files)
+e04c4829784e9353ce17272e0ecaf1d842fcebb0a116d7215336a23e69d9eda4  pin-1/eval-guard-ledger-pin.test.js
+59da5983eda1c2d59db4399843cfb4f872ec6caf88115e90a38a91c283554dfd  pin-1/eval-guard.mjs
+e04c4829784e9353ce17272e0ecaf1d842fcebb0a116d7215336a23e69d9eda4  tests/unit/eval-guard-ledger-pin.test.js  # repo file (same commit as lock 2026-11-18T05:25:51Z; field: ~/LENSIQ-field/evals/eval-guard/pin-1/eval-guard-ledger-pin.test.js)
+59da5983eda1c2d59db4399843cfb4f872ec6caf88115e90a38a91c283554dfd  tools/eval-guard.mjs  # repo file (same commit as lock 2026-11-18T05:25:51Z; field: ~/LENSIQ-field/evals/eval-guard/pin-1/eval-guard.mjs)
+# locked 2026-11-18T07:15:55Z (tools/eval-guard.mjs lock, 1 file)
+bf5732b126eb70766c8402cd464cf6daa90e8e11efb4325dd0d9ca6030dc85f1  pin-2/eval-guard-ledger-mirror.test.js
+bf5732b126eb70766c8402cd464cf6daa90e8e11efb4325dd0d9ca6030dc85f1  tests/unit/eval-guard-ledger-mirror.test.js  # repo file (same commit as lock 2026-11-18T07:15:55Z; field: ~/LENSIQ-field/evals/eval-guard/pin-2/eval-guard-ledger-mirror.test.js)
+# RE-LOCK 2026-11-18 (coordinator decision under owner decision 110 ก condition 4): tools/eval-guard.mjs L2 also accepts, as the field copy
+# of a '# repo file' line, an unmarked line with the same hash and the same path in the same lock file (mirrored field folders such as
+# fortune-credits__v4). Test locked first: eval-guard-ledger-mirror.test.js (3 pass / 1 fail before, 4 / 4 after). No other change.
+# locked 2026-11-18T07:16:08Z (tools/eval-guard.mjs lock, 1 file)
+da28268aaf89e3c39bf82e6c4b95b06d947c50583b06f581a52786c7b3eff6f1  pin-3/eval-guard.mjs
+da28268aaf89e3c39bf82e6c4b95b06d947c50583b06f581a52786c7b3eff6f1  tools/eval-guard.mjs  # repo file (same commit as lock 2026-11-18T07:16:08Z; field: ~/LENSIQ-field/evals/eval-guard/pin-3/eval-guard.mjs)

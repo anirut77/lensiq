@@ -2,6 +2,7 @@
    KB texts are keyed by id (fengshui.dir.N, fengshui.s8.shengqi.name, fengshui.fly.5.cure …) or by index. */
 (function (root) {
   var Z = {
+    "fengshui.metaDesc": "风水：命卦、AR 罗盘、年度飞星宅盘与居家布置建议，仅供民俗与文化参考。在浏览器中计算",
     /* ---------- static markup ---------- */
     "fengshui.disclaimer2": "不能替代建筑、安全、健康或财务方面的专业建议，也不需要购买任何物品。",
     "fengshui.steps.aria": "步骤",
@@ -92,7 +93,6 @@
     "fengshui.hint.kua": "命卦 {k}", "fengshui.hint.noKua": "尚未计算命卦",
     "fengshui.hint.rest": " · 已记录方位 {r} · 户型图中的房间 {n} · 房间照片 {p}",
     "fengshui.src.ai": "由写作助手（Anthropic 的 Claude）润色（仅基于计算结果）",
-    "fengshui.src.local": "本机生成，不发送数据",
     "fengshui.overview": "总览",
     "fengshui.readFail": "生成解读失败",
     "fengshui.ex.colors": "幸运色", "fengshui.ex.dirs": "吉方", "fengshui.ex.tips": "小贴士",

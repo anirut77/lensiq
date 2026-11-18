@@ -1,6 +1,7 @@
 /* i18n/zh-fortune-iching.js — 简体中文：iching.html / iching.js 的界面文字（泰文保留在页面与 iching.js 中）。
    卦名与卦义正文来自 i18n/zh-kb-iching.js；这里是标题、按钮、提示、卦的中文副标题（iching.hn.N）与关键词（iching.kw.N）。 */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "iching.metaDesc": "易经占卜：三枚硬币掷六次，得出六十四卦之一，并显示变爻与之卦",
   /* 静态页面 */
   "iching.desc": "用三枚硬币掷六次起卦，得出六十四卦之一，附变爻与之卦，适合展位和活动，依据传统信仰",
   "iching.disclaimerRest": "请勿用于健康、财务、法律或重要感情方面的决定",
