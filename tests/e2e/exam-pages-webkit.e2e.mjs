@@ -44,7 +44,7 @@ export default async function ({ base, check }) {
         await page.locator("#joinForm [type=submit]").first().tap();
         await waitFor(page, () => window.__LQ_EXAM_DB.room === "IPH1", null, 5000);
         await page.locator("#demoBtn").tap();
-        await waitFor(page, () => window.__LQ_EXAM_DB.room === "DEMO" && document.querySelectorAll("#queue .alert").length === 5, null, 6000);
+        await waitFor(page, () => window.__LQ_EXAM_DB.room === "IPH1" && document.querySelectorAll("#queue .alert").length === 5, null, 6000); // into the open room
         await setVal(page, "#who", "อ.ทดสอบ");
         const phone = page.locator("#queue .alert", { hasText: "โทรศัพท์" }).first();
         await phone.locator("[data-act=going]").tap();

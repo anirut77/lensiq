@@ -10,3 +10,8 @@ b7de7edd805d32107cdefd6043ba51a2331741bc1e4acaba4464f50aa13de379  tests/e2e/exam
 # test-defect re-lock (before any product change): plain() asked for >= 6 characters, which refused correct Chinese empty-state text ("暂无事件" = 4 characters); now >= 2 in Chinese, >= 6 in Thai / English. Base run at 4aac0db before this fix: 12 passed, 8 failed (E2 no-frames x3, E3 crash guard x3 fail as expected; E5 zh and X zh failed only on this defect). No flow, fault, wait or other assertion changed.
 # locked 2026-11-18T16:31:28Z (tools/eval-guard.mjs lock, 1 file)
 e6c08d8b70afab30837e266acdc2eb3c72aaa4440efcb603adbbfde2deed27da  tests/e2e/exam-states.e2e.mjs
+# test-defect re-lock (before any product change). Defects seen on the unchanged product: (1) exam-widths / exam-pages-webkit waited for room DEMO after the flow had joined a room, but the demo button fills the room that is open (exam-dashboard.js, by design): now waits for the joined room; (2) the Thai-letter check counted the baht sign (U+0E3F, a currency symbol in the Thai block; English prices keep it): now Thai letters only. A local run of the defect fix (unlocked, before this line): exam-widths 6/6, exam-pages-webkit dashboard ok, exam.html failed only on the baht sign. No flow, fault, wait time or other assertion changed.
+# locked 2026-11-18T16:33:18Z (tools/eval-guard.mjs lock, 3 files)
+e6c08d8b70afab30837e266acdc2eb3c72aaa4440efcb603adbbfde2deed27da  tests/e2e/exam-states.e2e.mjs
+d533420cd8342326439dee3aa87f9cba6683d18ba4cc492fb9d2044978b9730b  tests/e2e/exam-pages-webkit.e2e.mjs
+6832e5ab83ab5c5fbad9731f3a15a7b7374633b82731720f058463666c23c15f  tests/e2e/exam-widths.e2e.mjs

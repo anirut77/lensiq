@@ -94,7 +94,8 @@ export default async function ({ base, launch, check, fakeCams }) {
           });
           await page.waitFor("__LQ_EXAM_DB.room === 'W' + innerWidth", 4000);
           await page.evaluate(() => document.querySelector("#demoBtn").click());
-          await page.waitFor("__LQ_EXAM_DB.room === 'DEMO' && document.querySelectorAll('#queue .alert').length === 5", 4000);
+          // demo flags go into the room that is open (the joined room), as on the real page
+          await page.waitFor("__LQ_EXAM_DB.room === 'W' + innerWidth && document.querySelectorAll('#queue .alert').length === 5", 4000);
           await page.evaluate(() => {
             document.querySelector("#who").value = "อ.ทดสอบ";
             const c = [...document.querySelectorAll("#queue .alert")].find(x => /โทรศัพท์/.test(x.textContent)); c.querySelector("[data-act=going]").click();
