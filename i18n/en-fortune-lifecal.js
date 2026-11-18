@@ -1,5 +1,9 @@
 /* i18n/en-fortune-lifecal.js — English for bazi.html · taksa.html · lek7.html · lifegraph.html (mirrors zh-fortune-lifecal.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "lifegraph.metaDesc": "A life graph across your ages: energy lines for work, money, love and self-care from Thai Taksa (Maha Taksa), BaZi (大运) and Western astrology, with the source of every point",
+  "lek7.metaDesc": "The Thai 7-number, 9-base chart: day base, lunar-month base, zodiac-year base and the total base, with a reading for each house",
+  "taksa.metaDesc": "Thai Taksa astrology: your birth-day planet, the eight bhumi (Boriwan, Ayu, Det, Sri, Mula, Utsaha, Montri, Kalakini) and the 108-year Maha Taksa",
+  "bazi.metaDesc": "Four Pillars (八字) chart from your birth date and time: Day Master, five-element balance and 10-year luck pillars, with solar terms computed by astronomical formulas",
   "bazi.eyebrow": "BaZi · Four Pillars", "taksa.eyebrow": "Thai Taksa", "lek7.eyebrow": "Thai 7-number chart", "lifegraph.eyebrow": "Life graph",
   "bazi.title": "Four Pillars (BaZi) · Day Master, Five Elements, Luck Pillars | LENSIQ", "bazi.h1": "Four Pillars (BaZi)",
   "bazi.lead": "Your Four Pillars, Day Master, Five Elements and 10-year luck from your birth date and time.",
