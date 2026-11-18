@@ -7,6 +7,17 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Planner defects from a Samsung phone (owner report 2026-11-18, branch `planner-defects`, not merged)
+
+Locked first (`evals-locks/planner-defects.sha256`; source: synthetic, headless Chrome, 360 / 375 / 393 / 412 / 430 px × TH / EN / ZH).
+(a) lone ")" in the planner's add-person part: already fixed by line-wrap on main (test passes on main; fails 5× in TH on the
+pre-line-wrap base). (b) cut `<select>` text: 35 of 229 page × language checks failed on main (19 pages); fix = select right
+padding 4 px (styles.css), planner start month one column under 480 px, small per-page CSS (admin language, horoscope date row),
+and `nav.js` `selFull()`: a select whose chosen text still does not fit shows the full text on a small line under it (no wording
+changed). (c) see-through sticky read bar: 32 of 52 failed on main (alpha 0.96 on 11 of 17 pages); bar now solid white.
+Open for the owner: long descriptive option labels (booth mode, studio cover, crowd tiles, zodiac year EN ...) still need the
+caption line on phones; shorter wording is a separate decision.
+
 ## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
 
 With the crisis flag set the reading goes on in full structure, gently, never straight; no card and nothing that says the person

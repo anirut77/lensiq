@@ -396,6 +396,7 @@
   legalFoot();
   reportHook();
   meritHook();
+  selFull();
 
   function thaiBreaks() {
     if (/[?&]nowb\b/.test(location.search)) return;
@@ -621,7 +622,7 @@
       document.body.appendChild(box);
       return box;
     }
-    /** แสดง "กำลังโหลดโมเดล {label} {mb} MB" ; คืน {progress(0..1), done(), fail(msg)} ; ไม่แสดงถ้าอยู่ในแคชแล้ว (opts.url) */
+    /** model loading line; returns {progress(0..1), done(), fail(msg)}; nothing when opts.url is cached */
     function loading(opts) {
       opts = opts || {};
       var shown = false, closed = false, b = null;
@@ -650,7 +651,7 @@
         }
       };
     }
-    /** ถามก่อนดาวน์โหลดเมื่อเน็ตช้า/ประหยัดข้อมูล หรือไฟล์ใหญ่กว่า opts.askOverMb (ค่าเริ่ม 40) ; อยู่ในแคชแล้ว = true ทันที */
+    /** ask first on a slow / data-saver link or over opts.askOverMb (40); cached = true at once */
     function confirmDownload(opts) {
       opts = opts || {};
       return isCached(opts.url).then(function (hit) {
@@ -736,6 +737,26 @@
       sc.src = src; sc.async = false;
       (document.head || document.documentElement).appendChild(sc);
     });
+  }
+  function selFull() { // cut <select> text shown in full under it (docs/NAV.md, owner report 2026-11-18)
+    var cx, raf = 0, n = function (v) { return parseFloat(v) || 0; };
+    function fit() {
+      raf = 0; cx = cx || document.createElement("canvas").getContext("2d");
+      [].forEach.call(document.querySelectorAll("select"), function (/** @type {any} */ s) {
+        var c = s.nextElementSibling, o = s.options[s.selectedIndex], t = o ? (o.label || o.text).replace(/\s+/g, " ").trim() : "", y = getComputedStyle(s), cut = false;
+        if (cx && t && !s.multiple && !(s.size > 1) && s.getClientRects().length) {
+          cx.font = [y.fontStyle, y.fontWeight, y.fontSize, y.fontFamily].join(" ");
+          cut = Math.ceil(cx.measureText(t).width + n(y.paddingLeft) + n(y.paddingRight) + n(y.borderLeftWidth) + n(y.borderRightWidth) +
+            (y.appearance === "none" ? 0 : 24)) > s.getBoundingClientRect().width + .5;
+        }
+        if (!(c && c.classList.contains("lq-sel-full"))) { if (!cut) return; c = document.createElement("span"); c.className = "lq-sel-full"; c.setAttribute("aria-hidden", "true"); s.after(c); }
+        c.hidden = !cut; if (cut && c.textContent.replace(/\s+/g, " ").trim() !== t) c.textContent = t;
+      });
+    }
+    var later = function () { raf = raf || requestAnimationFrame(fit); }, soon = function () { later(); setTimeout(later, 300); };
+    ["resize", "load", "lq-lang"].forEach(function (e) { window.addEventListener(e, soon); });
+    document.addEventListener("change", later, true); document.addEventListener("click", soon, true);
+    later();
   }
   function registerSW() {
     if (!("serviceWorker" in navigator) || !window.isSecureContext || /[?&]nosw\b/.test(location.search)) return;

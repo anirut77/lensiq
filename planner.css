@@ -2,6 +2,8 @@
 .pl .fk-form{margin-bottom:18px}
 .pl-events .fk-opt{min-height:64px}
 .pl-calc{margin-top:8px}
+/* owner report 2026-11-18 (Samsung): the start month ("พฤศจิกายน 2569") was cut in a half-width select; one column on phones */
+@media (max-width:480px){.pl-range{grid-template-columns:1fr}}
 .pl-calc summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:#0e7490;font-size:.92rem;text-decoration:underline;text-underline-offset:3px}
 .pl-calc label{display:grid;gap:4px;margin-top:4px}
 .pl .fk-form label > span{display:block;font-size:.88rem;color:var(--muted);margin-bottom:4px}

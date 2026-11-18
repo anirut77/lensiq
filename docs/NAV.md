@@ -230,3 +230,13 @@ More styles.css comments moved word for word on 2026-11-17 (fourth batch):
 /* owner order 2026-11-15 item 1: no idle technical status. A status line (role=status) with nothing to say is empty and takes
    no space; it stays in the page so loading and error messages still reach screen readers. */
 ```
+
+## Cut `<select>` text (`selFull`, owner report 2026-11-18)
+
+A closed `<select>` shows one line and cannot wrap. `selFull()` measures the chosen option's text with a canvas in the
+select's own font; when text + padding + border + 24 px (the native arrow and its inner space; 0 with `appearance: none`)
+is wider than the select, the full text is shown on a small line right under it (`span.lq-sel-full`, `aria-hidden`, the
+select itself already gives screen readers the full text). It re-checks on load, resize, `change`, a click anywhere (a tab
+that shows a form) and a language switch. No wording changes. styles.css gives every select a 4 px right padding (the
+arrow keeps its own space). Locked test: `tests/e2e/select-fit-*.e2e.mjs` (`evals-locks/planner-defects.sha256`).
+Bytes: the two Thai JSDoc lines in the model loader were shortened to English so nav.js stays inside the page budgets.
