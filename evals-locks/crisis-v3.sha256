@@ -179,6 +179,8 @@ e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  relock-topstic
 3080cd5a84e5d531cec292eef6f0f825d0e7f9667f69a98b567d12c88b6440eb  tests/e2e/crisis-rules-1323-a.e2e.mjs  # repo file (relock-topsticky)
 77fd8d7abe1604a7536fcbc50f87e6ae9c2d005d7f8695327a354879f1cceeee  tests/e2e/crisis-rules-1323-e.e2e.mjs  # repo file (relock-topsticky)
 e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  tests/e2e/crisis-rules-kit.mjs  # repo file (relock-topsticky)
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
+18bb561e4323b6f8b0a402c92728c2edf9ec5dcdf554cac33abc423e5cd49f0e  tests/unit/fortune-no-demo.test.js  # repo file (relock-pet)
 # RE-LOCK 2026-11-17 (branch fortune-credits): see evals-locks/fortune-credits.sha256 (relock/).
 cb8c22f3d667f35a667fccc1a2fba1707adf9b3667c1b6591563c2c8e0f3c914  tests/unit/cat-pages.test.js  # repo file (fortune-credits relock)
 2d56321d8012ac341c5ddb2c2086544873f85510553dd8f2305256e180052558  tests/unit/fortune-no-demo.test.js  # repo file (fortune-credits relock)

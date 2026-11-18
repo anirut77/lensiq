@@ -147,6 +147,8 @@
   "nav.planner.desc": "入宅、开业、开工的好日子",
   "nav.luckycolor.title": "幸运色穿搭镜",
   "nav.luckycolor.desc": "用摄像头看看今天的衣服颜色与当日幸运色",
+  "nav.petread.title": "猫狗面相解读",
+  "nav.petread.desc": "从猫狗照片看性格、幸运色和好日子，在本设备上处理",
   "nav.medicine.title": "药品信息核对",
   "nav.medicine.desc": "泰国FDA注册号、条形码、药名与药片外观，务必向药剂师确认",
   "nav.nutrition.title": "营养标签读取",

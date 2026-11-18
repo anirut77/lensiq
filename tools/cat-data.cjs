@@ -412,6 +412,7 @@ const PAGES = {
   lifegraph: { st: "demo", why: "fortune", claims: [] },
   planner: { st: "demo", why: "fortune", claims: [] },
   luckycolor: { st: "demo", why: "fortune", claims: [] },
+  petread: { st: "demo", why: "fortune", claims: [] },
   report: { st: "demo", why: "fortune", claims: [] },
   // 7 Studio & Media
   studio: { st: "experimental", why: "studio", claims: ["studio"] },
@@ -482,7 +483,7 @@ const CATEGORIES = [
   { n: 6, slug: "fortune", id: "fortune", icon: "🔮", noStatusTag: true, noAccuracy: true,
     ill: { fortune: "🔮", faceread: "👁️", palm: "✋", horoscope: "🌙", tarot: "🃏", iching: "☯️", bazi: "☯", taksa: "🪐", lek7: "7️⃣",
       numbers: "🔢", fengshui: "🧭", dream: "💭", zodiac: "🐉", compat: "💞", astro: "♌", lifegraph: "📈", planner: "📅", luckycolor: "👕",
-      report: "📜" },
+      petread: "🐾", report: "📜" },
     name: { th: "ดูดวงและฤกษ์มงคล", en: "Fortune & Auspicious Planning", zh: "占卜与择吉" },
     short: { th: "ดูดวง", en: "Fortune", zh: "占卜" },
     // owner order 2026-11-16 item 2: written for the person using the pages; the booth / event wording moved to solutions.html (sol-e3)
@@ -499,7 +500,7 @@ const CATEGORIES = [
       en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
       zh: "基于命理学原则，属个人信仰，请自行判断。" },
     pages: ["fortune", "faceread", "palm", "horoscope", "tarot", "iching", "bazi", "taksa", "lek7", "numbers", "fengshui", "dream", "zodiac",
-      "compat", "astro", "lifegraph", "planner", "luckycolor", "report"] },
+      "compat", "astro", "lifegraph", "planner", "luckycolor", "petread", "report"] },
   { n: 7, slug: "studio", id: "photo", icon: "📸",
     name: { th: "สตูดิโอและสื่อ", en: "Studio & Media", zh: "影棚与媒体" },
     short: { th: "สตูดิโอ", en: "Studio", zh: "影棚" },

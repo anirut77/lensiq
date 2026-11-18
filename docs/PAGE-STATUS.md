@@ -142,6 +142,7 @@ are added:
 | `lifegraph.html` | 6 Fortune & Auspicious Planning | **demo** (no tag shown on the site, owner order 2026-11-17) | Based on astrological principles, a matter of personal belief; can draw visitors to a booth | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ | none shown (owner decision 2026-11-18: fortune cards carry no accuracy field) | — |
 | `planner.html` | 6 Fortune & Auspicious Planning | **demo** (no tag shown on the site, owner order 2026-11-17) | Based on astrological principles, a matter of personal belief; can draw visitors to a booth | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ | none shown (owner decision 2026-11-18: fortune cards carry no accuracy field) | — |
 | `luckycolor.html` | 6 Fortune & Auspicious Planning | **demo** (no tag shown on the site, owner order 2026-11-17) | Based on astrological principles, a matter of personal belief; can draw visitors to a booth | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ | none shown (owner decision 2026-11-18: fortune cards carry no accuracy field) | — |
+| `petread.html` | 6 Fortune & Auspicious Planning | **demo** (no tag shown on the site, owner order 2026-11-17) | Based on astrological principles, a matter of personal belief; can draw visitors to a booth | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ | none shown (owner decision 2026-11-18: fortune cards carry no accuracy field) | — |
 | `report.html` | 6 Fortune & Auspicious Planning | **demo** (no tag shown on the site, owner order 2026-11-17) | Based on astrological principles, a matter of personal belief; can draw visitors to a booth | เป็นหลักโหราศาสตร์ซึ่งเป็นความเชื่อส่วนบุคคล ใช้ดึงคนเข้าบูธได้ | none shown (owner decision 2026-11-18: fortune cards carry no accuracy field) | — |
 | `studio.html` | 7 Studio & Media | **experimental** | The no-outfit version works; outfit renders still have many defects, so they are off by default | แบบไม่เปลี่ยนชุดใช้ได้ แบบเปลี่ยนชุดยังบกพร่องมากจึงปิดเป็นค่าเริ่มต้น | **Public dataset:** Without an outfit (new background and retouch): a visible defect in 23% (8/35) · n = 35 held-out people (public portraits, AI-rated). Outfit renders have more defects, so outfits are off by default | ACCURACY.md §11 (35 held-out people, AI-rated) |
 | `photobooth.html` | 7 Studio & Media | **pilot-ready** | The event photo booth works end to end; drawn outfits are off by default | ตู้ถ่ายรูปสำหรับอีเวนต์ใช้ได้ครบ ชุดจำลองปิดเป็นค่าเริ่มต้น | **Public dataset:** Drawn outfits on ID photos were defective in 124/124 renders · n = 124 renders (public portraits, AI-rated), so they are off by default; frames and stickers carry no accuracy claim | ACCURACY.md §11b / round 12 (124/124 drawn outfits defective) |
@@ -164,10 +165,10 @@ are added:
 | `cat-hr.html` (new) | 3 HR & Workplace | landing page | Lists the category's 5 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 | `cat-marketing.html` (new) | 4 Marketing, Retail & Events | landing page | Lists the category's 14 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 | `cat-health.html` (new) | 5 Health, Safety & Quality | landing page | Lists the category's 4 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
-| `cat-fortune.html` (new) | 6 Fortune & Auspicious Planning | landing page | Lists the category's 19 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
+| `cat-fortune.html` (new) | 6 Fortune & Auspicious Planning | landing page | Lists the category's 20 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 | `cat-studio.html` (new) | 7 Studio & Media | landing page | Lists the category's 4 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 
-Totals over the 69 existing pages: **55 product pages** — pilot-ready 13 · experimental 20 · demo 22 — and **14 support pages** (directory, notices, information, legal, account; no readiness status, not counted with the products).
+Totals over the 70 existing pages: **56 product pages** — pilot-ready 13 · experimental 20 · demo 23 — and **14 support pages** (directory, notices, information, legal, account; no readiness status, not counted with the products).
 
 Per category (tools; booth counts in 4 and 7):
 
@@ -178,6 +179,6 @@ Per category (tools; booth counts in 4 and 7):
 | 3 | HR & Workplace · HR และที่ทำงาน | 5 | 4 | 0 | 1 | 0 |
 | 4 | Marketing, Retail & Events · การตลาด ค้าปลีก และอีเวนต์ | 14 | 2 | 10 | 2 | 0 |
 | 5 | Health, Safety & Quality · สุขภาพ ความปลอดภัย และคุณภาพ | 4 | 0 | 4 | 0 | 0 |
-| 6 | Fortune & Auspicious Planning · ดูดวงและฤกษ์มงคล | 19 | 0 | 0 | 19 | 0 |
+| 6 | Fortune & Auspicious Planning · ดูดวงและฤกษ์มงคล | 20 | 0 | 0 | 20 | 0 |
 | 7 | Studio & Media · สตูดิโอและสื่อ | 4 | 1 | 3 | 0 | 0 |
 <!-- status-table:end -->

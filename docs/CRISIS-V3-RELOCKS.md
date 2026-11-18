@@ -176,6 +176,23 @@ Locked before compat was changed to v3.
 |---|---|---|
 | tests/unit/crisis-rules-1323.test.js, tests/e2e/crisis-rules-1323-a / -e.e2e.mjs, tests/e2e/crisis-rules-kit.mjs | the switch name `LENSIQ_HELP_STICKY` → `LENSIQ_HELP_TOP_STICKY`; every assertion unchanged | one sticky switch only (main's mechanism, coordinator instruction 2026-11-17); the branch's own copy of the same switch dropped from lensiq-config.js / nav.js / types |
 
+## Merge of fortune-pet (pet face reading, `petread.html`), tag `relock-pet` (2026-11-17) — locked before the pet page's v3 code
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/e2e/fortune-pet.e2e.mjs | P4 crisis in the pet's name (TH / EN / ZH) | support card replaces the reading (0 sections, tel:1669 in the card), no price, share card hidden | crisis state set; no card or soft step shown; the reading continues (≥ 2 sections); no `lucky` part; the typed phrase not shown in `<main>`; exactly one closing `.lq-helpline-result` with tel:1323 after the last section; no other `tel:` in `<main>`; no price; share card hidden | a, b, c, d | same test (price, share card), crisis-v3-a/b/c/d (petread), crisis-escape-guard-field (petread) |
+| tests/e2e/petread-webkit.e2e.mjs | W4 crisis in the pet's name (TH, WebKit 390 px) | support card, 0 sections, no share card | crisis state; ≥ 2 sections; no card / soft step; no echo; no share card; one closing tel:1323 line after the last section | a, c, d | same test |
+| tests/e2e/crisis-escape-guard-kit.mjs | FLOWS | no petread flow (page not on main) | `petread` flow appended (synthetic photo, scripted detector, name + dates, phrase into `#petName`); nothing else changed | — (registration) | check 4 of the static half |
+| tests/unit/crisis-escape-guard-allow.json | targets | — | 8 petread ids appended (photo area, camera / detector status, trait picker, form message), each with its reason; nothing removed | — (registration) | check 3 (stale entries fail) |
+| tests/e2e/crisis-net-hotfix-inventory.json, docs/CRISIS-INPUT-INVENTORY.md | inputs | — | 7 petread rows appended (`#petName` can hold a phrase) | — (registration) | check 2 |
+| tests/unit/fortune-no-demo.test.js | 5. other categories unchanged | exact status map of every non-category-6 page (petread absent) | the same exact map with `petread: "demo"` appended (the page exists, unlinked, until its go-live into category 6); no status changed | — (registration, as counselling) | same test |
+
+## Pet reading go-live (owner decision 100, 2026-11-18), tag `relock-pet-golive` — locked before the go-live change
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/unit/fortune-no-demo.test.js | 5. other categories unchanged | exact status map of every non-category-6 page, with `petread: "demo"` (relock-pet: the page existed, unlinked) | the same exact map without the petread row: petread is now in category 6 (`FORT.pages`), so tests 1 and 4 cover it (no status chip, no demo key, count = category 6 size) | — (registration, as compat at owner decision 73) | tests 1-4 now include petread through FORT.pages; every other status and demo chip unchanged |
+
 ## Protection round "crisis-v3-protect" (2026-11-18, branch crisis-v3-protect)
 
 Two residual risks of the crisis-v3 review. No crisis-v3 rule and no hard limit changes for users; nothing above was re-locked.
@@ -250,3 +267,18 @@ back). After the merge both files hold promo-basics RE-LOCK 1 bytes (fc67978e…
 and the current repo-file lines are appended to crisis-rules-1323, crisis-v3, fortune-no-demo and fortune-credits `.sha256`.
 
 Open: the reviewer confirms in writing that the combined list is equal to or stricter than both parents (condition 3).
+
+## Merge of main 0bd5b24b (A1) into fortune-pet, tag `merge-pet-a1` (2026-11-18) — lock hygiene only (owner decision 110, condition 4)
+
+Merge union of locked parents; no assertion changed. Both files were merged by git without a conflict and matched no lock line.
+
+| File | Parent on main (locked) | Parent on fortune-pet (locked) | Merged content |
+|---|---|---|---|
+| tests/unit/crisis-escape-guard-allow.json | cfab9eef, combined A1 (`evals-locks/crisis-escape-guard.sha256`): crisis-v3-protect's list 3a88c00f (priceText / priceTextNote) minus the 3 dead entries palm plEthics, tarot trCredit, fengshui fsSourcesNote | e994f310, relock-pet: 8 petread ids (petTraits, petMsg, petEmpty, petVideo, petView, petCamMsg, petDetMsg, petHuman) with their reasons | cfab9eef + the 8 petread ids (48bd6504) |
+| tests/unit/fortune-no-demo.test.js | 047f5a00, promo-basics RE-LOCK 1: `"404": "support"` in test 5's BASE_ST | 340830f3, relock-pet-golive (owner decision 100): no `"petread": "demo"` row (petread in category 6) | main's file + the two relock-pet-golive comment lines (d970d7c6); BASE_ST = counselling + 404, no petread |
+
+## fortune-credits audit list for petread (owner decision 100), tag `relock-pet` in `evals-locks/fortune-credits__v4.sha256` (2026-11-18)
+
+| File | Test | Old | New | Reason | Protection kept by |
+|---|---|---|---|---|---|
+| tests/unit/fortune-credits-v2-assets.json | fortune-credits-v2 D4 licence audit | 16 audited assets; petread (category 6 since owner decision 100) loads `vendor/qrcode-generator/qrcode.js`, not audited, so D4 failed | the same 16 plus `qrcode-generator` (MIT, no on-page attribution, notice `vendor/qrcode-generator/LICENSE`, needle "qrcode-generator 2.0.4" in LICENSES/THIRD-PARTY-NOTICES.txt) | owner decision 100: petread joins category 6; adds one audited asset, stricter | D4 unchanged: every vendor asset of every category 6 page must be audited and its notice must ship |

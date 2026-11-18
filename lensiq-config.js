@@ -182,7 +182,7 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
   var load = function (file, global) {
     if (/** @type {any} */ (window)[global] || document.querySelector('script[src*="' + file + '"]')) return;
     var s = document.createElement("script");
-    s.src = dir + file + "?v=5"; // v5: crisis-v3-protect (lensiq-member.js account-menu pricing marked)
+    s.src = dir + file + "?v=6"; // v6: fortune-pet merge (analytics page list)
     s.async = false; // keep order: api before analytics
     (document.head || document.documentElement).appendChild(s);
   };

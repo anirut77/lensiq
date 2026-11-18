@@ -144,6 +144,8 @@
   "nav.planner.desc": "Good days to move house, open a shop or start work",
   "nav.luckycolor.title": "Lucky-colour outfit mirror",
   "nav.luckycolor.desc": "Check today's outfit colour against the lucky colour of the day",
+  "nav.petread.title": "Pet face reading",
+  "nav.petread.desc": "Personality, lucky colour and good days from your dog's or cat's photo, on this device",
   "nav.medicine.title": "Medicine checker",
   "nav.medicine.desc": "Thai FDA number, barcode, drug name and pill look-up; always confirm with a pharmacist",
   "nav.nutrition.title": "Nutrition label reader",

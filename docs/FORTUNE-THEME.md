@@ -8,7 +8,7 @@ band over light paper (94 ก). Locked tests: `tests/unit/fortune-theme-golive.t
 ## Switch back to the previous look
 
 One line in `lensiq-config.js`: `window.LENSIQ_FORTUNE_THEME = window.LENSIQ_FORTUNE_THEME || "a";`. To go back, change `"a"` to
-`"classic"`, bump `lensiq-config.js?v=` on every page (`sed -i '' 's/lensiq-config\.js?v=22/lensiq-config.js?v=23/g' *.html
+`"classic"`, bump `lensiq-config.js?v=` on every page (`sed -i '' 's/lensiq-config\.js?v=23/lensiq-config.js?v=24/g' *.html
 tools/cat-pages.mjs`), commit, let CI pass and redeploy. No code revert: on a fortune page (`<html class="lq-ft">`) the config
 swaps the theme classes (`lq-ft`, `lq-ft-menu`, `lq-ft-read`, `lq-ft-entry`) for `lq-ft-classic`, so every theme rule stops
 applying and the previous rules of the hub (kept byte for byte in `fortune.html`, scoped `html.lq-ft-classic` where the theme

@@ -30,6 +30,17 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
   Only category 6 may carry no accuracy field (cat-pages / categories / fortune-live / fortune-sources re-locked with that reason).
 - Future rule recorded in docs/PENDING-DECISIONS.md: reading ratings stay in the back office, never shown as an accuracy figure.
 
+## Pet face reading (owner order 2026-11-16 part B, branch `fortune-pet`; go-live approved: owner decision 100 = ก, 2026-11-18)
+
+`petread.html` (dogs and cats): photo or camera on the device, the shipped YOLOX-Nano (Apache-2.0, no new model) pre-fills species
+and a coat hint, the owner confirms the traits; reading (personality, likes, bond, lucky colour and day by Taksa, owner-pet
+compatibility through the `LQCompat.pair(owner, pet, {mode: "owner-pet"})` interface with a local stub until part A lands) in the
+grouped fortune layout; free share card on a canvas (photo off by default, persons pixelated, nothing uploaded). Detector on the
+locked Oxford-IIIT Pet set (public dataset, 296 images): pet found 95.3 %, species 89.5 % (target 90 %: missed), head inside the
+box 97.9 %. Research, licences and numbers: `docs/PET-READING-RESEARCH.md`, `docs/PET-READING-SOURCES.md`. Owner decision 100
+(2026-11-18): live in category 6 (CLAUDE.md table, cat-fortune listing, fortune menu; TH / EN / ZH; no fortune-hub card, so the
+locked hub test keeps 14 cards), merged to main only after CI is green on the branch.
+
 ## Fortune label and about block deleted (owner order 2026-11-17 night item 2, corrected by owner decision 2026-11-18; branch `fortune-credits`)
 
 Fix to what is live, no new feature: delete, do not move. Every fortune page (category 6 + compat, 19 pages) loses the
