@@ -192,7 +192,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       $("#plResH").focus();
     };
     // the three first occasions are in lensiq-planner.js (same tick, as before); the others wait for their rules
-    if (P.EVENTS.indexOf(f.event) >= 0) run(); else loadOcc().then(run);
+    if (P.EVENTS.indexOf(f.event) >= 0) run();
+    else loadOcc().then(function () {
+      if (P.EVENTS.indexOf(f.event) >= 0) run();
+      else { occReady = null; $("#plMsg").textContent = T("pl.f.loadErr", "โหลดข้อมูลงานนี้ไม่สำเร็จ ตรวจการเชื่อมต่อแล้วกดหาวันดีอีกครั้ง"); }
+    });
   });
   $("#plList").addEventListener("change", function (e) {
     var t = e.target; if (!t || !t.getAttribute || !t.getAttribute("data-k")) return;

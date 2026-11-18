@@ -272,7 +272,8 @@
      "excerpt_th": "ห้ามย้ายเข้าบ้านในวันอาทิตย์เด็ดขาด เพราะว่าเป็นคู่ขัดสำหรับวันจันทร์",
      "supports": "birth-weekday rules (Monday-born avoid Sunday; Friday-born avoid Wednesday)"
     }
-   ]
+   ],
+   "rule_note": "Existing rule kept unchanged (locked regression). Sources confirm Mon / Wed / Thu / Fri; the waxing moon is not confirmed by the fetched sources, and only one source gives months (2, 4, 6, 9, 12, not all even). Owner decision pending."
   },
   {
    "id": "pillar",
@@ -321,7 +322,8 @@
      "excerpt_th": "ผู้ใดปลูกเรือนเดือนห้า ทุกข์เท่าฟ้ามาถึงตน ปลูกเดือนนี้ไม่มีผล ทุกข์ล้นพ้นภัยมีมา",
      "supports": "month 5 avoided; birth-weekday avoid list"
     }
-   ]
+   ],
+   "rule_note": "Months (1, 2, 4, 6, 9, 12, required) from LG and Thaiger (independent). The Monday / Wednesday / Thursday bonus rests on one root text (Thaihometown; Kapook reprints it), so it is an extra point only, labelled 'one text'."
   },
   {
    "id": "pile",
@@ -360,7 +362,8 @@
      "excerpt_th": "แต่งงาน วางศิลาฤกษ์ ลงเสาเข็ม ลงเสาเอก ยกศาลพระภูมิ ปลูกบ้านเรือน หรือเปลี่ยนชื่อเปลี่ยนนามสกุล",
      "supports": "วันอธิบดี suits ลงเสาเข็ม; กาลโยคเปลี่ยนทุก 16 เมษายน"
     }
-   ]
+   ],
+   "rule_note": "Months only (1, 2, 4, 6, 9, 12, required), from the house-building texts (LG, Thaiger). No fetched source gives a weekday for piling; PPTV and phalangsattha point to the year's adhibodi day, which the page does not compute."
   },
   {
    "id": "spirit",
@@ -448,7 +451,8 @@
      "excerpt_th": "ควรเชิญพระเข้าบ้านในช่วงเช้าหรือช่วงเย็น แต่ไม่ควรเชิญพระเข้าบ้านในเวลากลางคืน",
      "supports": "time of day"
     }
-   ]
+   ],
+   "rule_note": "Thursday / Friday; Buddhist holy days (wan phra) are not listed (thaideemove); another source calls them suitable, so the stricter reading is used."
   },
   {
    "id": "shop",
@@ -507,7 +511,8 @@
      "excerpt_th": "เจ้าของร้านจำเป็นต้องตรวจสอบวันกาลกิณีประจำวันเกิดของตนเองควบคู่ไปด้วย",
      "supports": "year-specific ธงชัย (Sat)/อธิบดี (Wed) for 2569; check birth-weekday กาลกิณี"
     }
-   ]
+   ],
+   "rule_note": "Existing rule kept unchanged (locked regression). Thu / Fri are clean; Sunday and Wednesday are favoured by some sources (Sanook; THAKSA, duang-d) and disfavoured by Wongnai. Owner decision pending."
   },
   {
    "id": "compreg",
@@ -536,7 +541,8 @@
      "excerpt_th": "วันครู ซึ่งปกติคนไทยมักจะเชื่อว่าเป็นวันที่ดี",
      "supports": "Thursday reason; Mon/Thu most chosen; 9/9, 8/8 dates"
     }
-   ]
+   ],
+   "rule_note": "Practice, not almanac: both sources report the same Department of Business Development registration statistics (Mon and Thu most popular). Owner decision pending on keeping a statistics-based rule."
   },
   {
    "id": "newco",
@@ -742,7 +748,8 @@
      "excerpt_th": "เหมาะกับการออกรถคันใหม่, ซื้อเครื่องใช้ไฟฟ้า, ซื้อของมีคม",
      "supports": "วันอังคารเป็นวันดีทั่วไปสำหรับออกรถ"
     }
-   ]
+   ],
+   "rule_note": "Birth-weekday table = days on which KTC and Thairath agree (KTC alone also gives Wednesday for people born on Sunday, Monday, Wednesday by day and Thursday)."
   },
   {
    "id": "journey",
@@ -810,7 +817,8 @@
      "excerpt_th": "เหมาะกับการเริ่มต้นทำอะไรใหม่ ๆ / เหมาะกับการเจรจาธุรกิจ เข้ารับตำแหน่งใหม่ ขึ้นบ้านใหม่",
      "supports": "Mon (new starts), Thu (new position); Wed/Sun/Sat named as days to avoid for new long-term starts"
     }
-   ]
+   ],
+   "rule_note": "Existing rule kept unchanged (locked regression). Mon / Thu confirmed; Wednesday is favoured by Sanook and disfavoured by Wongnai; Friday is favoured by both but not in the rule. Owner decision pending."
   },
   {
    "id": "waikru",
@@ -859,7 +867,8 @@
      "excerpt_th": "จะต้องทำในวันพฤหัสบดีเท่านั้นเพราะถือว่าพระพฤหัสบดีเป็นครูทั่วทุกวิชา",
      "supports": "Thursday only"
     }
-   ]
+   ],
+   "rule_note": "Thursday only (NECTEC, peamitar / Montri Tramote); even lunar months and month 9, and the waxing moon, from OpenBase (banramthai); months are required."
   },
   {
    "id": "launch",
@@ -908,7 +917,8 @@
      "excerpt_th": "เป็นฤกษ์ดีสำหรับการเปิดตัวสินค้าใหม่และธุรกิจด้านไอที",
      "supports": "dated list only"
     }
-   ]
+   ],
+   "rule_note": "Weak evidence: Monday (Wongnai, new beginnings) and Wednesday (Sanook, starting projects; Wongnai disagrees). No source gives launch-specific weekdays. Owner decision pending."
   }
  ]
 }

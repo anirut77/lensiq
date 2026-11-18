@@ -102,6 +102,7 @@
   "pl.col.0": "red", "pl.col.1": "yellow / cream", "pl.col.2": "pink", "pl.col.3": "green", "pl.col.4": "orange", "pl.col.5": "light blue / blue", "pl.col.6": "purple / black", "pl.col.7": "grey / smoke",
   "pl.mon.1": "January", "pl.mon.2": "February", "pl.mon.3": "March", "pl.mon.4": "April", "pl.mon.5": "May", "pl.mon.6": "June", "pl.mon.7": "July", "pl.mon.8": "August", "pl.mon.9": "September", "pl.mon.10": "October", "pl.mon.11": "November", "pl.mon.12": "December",
   "pl.f.cur": "Chosen:",
+  "pl.f.loadErr": "Could not load this occasion. Check the connection, then search again.",
   "pl.g.family": "Family and celebrations",
   "pl.g.home": "Home and land",
   "pl.g.biz": "Business and trade",
