@@ -198,3 +198,4 @@ fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05  tests/unit/cat
 d56f5a4709d8f37a2270a539b408252c0ff100b2903606eedd0f5ac5faf63fe4  relock-pet-hub/fortune-new.e2e.mjs
 # RE-LOCK 2026-11-18 (branch fortune-theme, append-only), reason: "owner decision 118 ก + pet card": fortune.html hub requires all 19 fortune cards (petread as card 19), no share wording on the pet card; tag relock-pet-hub, field copy crisis-v3/relock-pet-hub/, see docs/CRISIS-V3-RELOCKS.md.
 d56f5a4709d8f37a2270a539b408252c0ff100b2903606eedd0f5ac5faf63fe4  tests/e2e/fortune-new.e2e.mjs  # repo file (relock-pet-hub)
+dcb60eface0b2e5e0e1840d1fd8a5a6a71d9b15b3ebf0d08615405a03196464c  tests/unit/cat-pages.test.js  # repo file (re-locked in evals-locks/fortune-cards.sha256 at 2026-11-18T16:15:08Z, replaces fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05 of line 195; field: ~/LENSIQ-field/evals/fortune-cards/merge-theme/cat-pages.test.js)

@@ -40,3 +40,6 @@ ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e  tests/unit/for
 # locked 2026-11-18T04:10:15Z (tools/eval-guard.mjs lock, 1 file)
 767ed933a7534f82e92716b52f7b03ab42c769af9ab7bb935f0cf8bc5fa3c4f8  relock-3/fortune-cards.e2e.mjs
 767ed933a7534f82e92716b52f7b03ab42c769af9ab7bb935f0cf8bc5fa3c4f8  tests/e2e/fortune-cards.e2e.mjs  # repo file (relock-3)
+# locked 2026-11-18T16:15:08Z (tools/eval-guard.mjs lock, 1 file)
+dcb60eface0b2e5e0e1840d1fd8a5a6a71d9b15b3ebf0d08615405a03196464c  merge-theme/cat-pages.test.js
+dcb60eface0b2e5e0e1840d1fd8a5a6a71d9b15b3ebf0d08615405a03196464c  tests/unit/cat-pages.test.js  # repo file (same commit as lock 2026-11-18T16:15:08Z; field: ~/LENSIQ-field/evals/fortune-cards/merge-theme/cat-pages.test.js)
