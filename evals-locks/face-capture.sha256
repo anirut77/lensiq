@@ -33,3 +33,5 @@ ecca79740686b1c3f193db5af909999151bc0a4560a5b4d3d243fabd98190289  tests/unit/fac
 # N2 (independent re-review of 9f255cd PASS with note N2, 2026-11-17) — new test locked BEFORE the fix, append-only: face-capture-consent-reading.e2e.mjs (rear mode, consent withdrawn during the 10-frame reading -> no reading, camera off, consent line in TH/EN/ZH, not the 'another face' / 'not steady' line). Nothing else changed.
 # locked 2026-11-16T23:18:45Z (tools/eval-guard.mjs lock, 1 file)
 5c604ed1c0e7b09ddb5b3c8b64ac48c76f5caf160d423662a86b46f0e8a6564c  tests/e2e/face-capture-consent-reading.e2e.mjs
+# 2026-11-17T22:09:32Z lock records reconciled (coordinator order, option ข, branch eval-guard-repo; docs/EVAL-LOCKS.md "Lock records reconciled 2026-11-18"):
+# retired tests/unit/face-capture-r2.test.js reason: renamed in 9f255cdb to tests/unit/face-capture-stability.test.js, same bytes 7edcbeb9 (face-capture.sha256:30-32)

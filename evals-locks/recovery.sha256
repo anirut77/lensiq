@@ -1,3 +1,6 @@
 # evals-locks/recovery.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/recovery/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
 # --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/recovery/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
 c4205de3c976179f16ad82fa21f331cd6e677bb70c77452780506d73e393f2fb  tests/unit/backend-recovery-slow.test.js  # repo file
+#
+# 2026-11-17T03:12:00Z eval-guard repo check (coordinator order 2026-11-17, branch eval-guard-repo): one unambiguous latest hash per path.
+9a958dbe7e92c3b4abfd842ac959dcadb238a90934053ce912cfa860d8478d22  tests/unit/backend-recovery-slow.test.js  # repo file  superseded by evals-locks/totp-deterministic.sha256 line 20 (TOTP clock frozen, 2026-11-14; no assertion changed)

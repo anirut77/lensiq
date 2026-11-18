@@ -3,6 +3,7 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
+    "fortune.hub.metaDesc": "占卜合集：用摄像头看面相和手相，另有生辰占星、塔罗牌、求签、易经、十二生肖、西洋星座、解梦、风水与吉祥数字，按传统典籍规则计算",
     "fortune.hub.lead": "选择泰式、中式或西方占卜，几分钟即可获得解读与建议。",
     "fortune.hub.guideLead": "不知道从哪里开始？按目标来选。每种占卜在解读中都还可以再选择爱情、事业或财运主题。",
     "fortune.hub.goal.love": "💞 爱情",

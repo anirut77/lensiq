@@ -1201,7 +1201,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       current.narr = res;
       if (FA && FA.renderSections) FA.renderSections(box, res, { aiBadge: false }); else renderPlain(box, res);
       var src = $("#frSrc"), ai = res.source === "ai";
-      src.textContent = ai ? T("faceread.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : T("faceread.src.local", "เรียบเรียงในเครื่อง");
+      src.textContent = ai ? T("faceread.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : ""; // owner 2026-11-17: no on-device label
+      src.hidden = !ai;
       src.classList.toggle("ai", ai);
       box.removeAttribute("aria-busy"); btn.disabled = false;
     });
@@ -1741,7 +1742,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderStatic() {
     $("#frElNote").textContent = KB.elementsNote;
     $("#frOvlCap").textContent = OVL_CAP(ovlMode);
-    if (!current) $("#frSrc").textContent = T("faceread.src.local", "เรียบเรียงในเครื่อง");
   }
   renderStatic();
   renderQc(lastQc);

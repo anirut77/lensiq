@@ -36,7 +36,7 @@ export function weights() {
   try { return JSON.parse(readFileSync(join(E2E, "shard-weights.json"), "utf8")).seconds || {}; } catch { return {}; }
 }
 
-/** Fixed seconds per shard for the CI split (ci.yml: 3 Linux shards of 4 with --mac-last), from shard-weights.json "base".
+/** Fixed seconds per shard for the CI split (ci.yml: 4 Linux shards of 5 with --mac-last), from shard-weights.json "base".
  * Any other split gets no base (plain balance by test time).
  * @param {number} n @param {boolean} [macLast] @returns {number[] | undefined} */
 export function baseFor(n, macLast) {

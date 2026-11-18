@@ -21,3 +21,8 @@ acffc930e122977c78b2ab1139e6cd90c4c7df47c82f072154c8beff77b90f26  tests/e2e/phon
 41c0208c1466ea864ab651e1b695d2497e2a8d9b96b21cbe5819f4783dd9ca42  tests/unit/e2e-shards.test.js
 # locked 2026-11-13T18:09:31Z re-lock (STRICTER, reviewer finding): phone-memory.e2e.mjs now FAILS when the renderer RSS figure is 0 on Linux or macOS (before, a 0 skipped the RSS budget). Budgets, pages, duration and sampling unchanged.
 e51f5ffac84b73074179fa1a543985bb5a35d0af1020108eb91f7f8e1ebf677d  tests/e2e/phone-memory.e2e.mjs
+# owner decision 102 (2026-11-18), step 1 of the re-lock: the bytes BEFORE the change, tests/unit/e2e-shards.test.js as on origin/main b2a6e76c (field copy kept as tests/unit/e2e-shards.test.js.pre-102)
+41c0208c1466ea864ab651e1b695d2497e2a8d9b96b21cbe5819f4783dd9ca42  tests/unit/e2e-shards.test.js
+# re-lock 2026-11-18, reason: owner decision 102 (ก: a 4th Linux Chrome e2e shard). tests/unit/e2e-shards.test.js: EQUAL in strength, only the CI wiring numbers changed (matrix shard: [1, 2, 3, 4], --shard=i/5 --mac-last on the Linux shards, macOS WebKit shard 5/5 with manifest e2e-shard-5). Every assertion kept; no test dropped, 75-min timeout unchanged, no retries added.
+# locked 2026-11-18T02:21:37Z (tools/eval-guard.mjs lock, 1 file)
+90f033480cb98fbee0d269362caec26442fce6253bf6cb816a45098e7297a3ab  tests/unit/e2e-shards.test.js
