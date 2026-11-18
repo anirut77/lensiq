@@ -13,6 +13,10 @@
 //   D4 credits  every vendor asset a fortune page loads is in the licence audit with its notice shipped; credits.html exists only
 //               if an audited licence requires on-page attribution, and then is linked only from the site footer (nav.js)
 //   D5 terms    terms.html is byte-identical to main at the base (origin/main 5695734)
+//               RE-LOCK 2026-11-18 (owner decision 109: ?v= bumps allowed, text unchanged): terms.html, help.html and legal.js,
+//               with every "?v=…" query stripped, are byte-identical to the same stripped form of their base bytes
+//               (tests/unit/fixtures/d5-base/*.txt = origin/main 5695734; terms copy has the old TERMS_SHA256_MAIN). Controls:
+//               a ?v= bump alone passes; one changed word of the terms text fails.
 // Fortune pages = category 6 of tools/cat-data.cjs (+ compat). Run: node --test tests/unit/fortune-credits-v2.test.js
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -27,6 +31,13 @@ const D = require(path.join(ROOT, "tools", "cat-data.cjs"));
 const AUDIT = JSON.parse(fs.readFileSync(path.join(__dirname, "fortune-credits-v2-assets.json"), "utf8"));
 const FORT = [...new Set(D.CATEGORIES.find(c => c.n === 6).pages.concat(["compat"]))].filter(p => exists(p + ".html"));
 const TERMS_SHA256_MAIN = "d9fcc8c0f5693a20ce3dbc7e3784474519657e94b82377f2f2fd9850f61af103"; // terms.html at origin/main 5695734
+// D5 base bytes (origin/main 5695734), committed as fixtures before this re-lock; the sha256 pins each copy
+const D5_BASE = {
+  "terms.html": TERMS_SHA256_MAIN,
+  "help.html": "0a81f9a076a8a5a3402d0ea4044e27b1711b468e760ab8a5e119e629955b5109",
+  "legal.js": "75b23b385d63d938fcc08a9ff7d1ec6bb36acd223ebb92757a9a5860578f6bc8"
+};
+const stripV = s => s.replace(/\?v=[^"'\s>]*/g, "");
 
 /** local scripts and styles of a page: own scripts (not vendor/, not i18n/), dictionaries (+ en- sibling of each zh-), css */
 function partsOf(html) {
@@ -141,7 +152,23 @@ test("D4 licence audit: every vendor asset a fortune page loads is audited, its 
   }
 });
 
-test("D5 terms.html is byte-identical to main (not touched)", () => {
-  const h = createHash("sha256").update(fs.readFileSync(path.join(ROOT, "terms.html"))).digest("hex");
-  assert.equal(h, TERMS_SHA256_MAIN);
+const d5Base = f => {
+  const b = fs.readFileSync(path.join(__dirname, "fixtures", "d5-base", f + ".txt"));
+  assert.equal(createHash("sha256").update(b).digest("hex"), D5_BASE[f], f + ": base fixture is not the locked base bytes");
+  return b.toString("utf8");
+};
+
+test("D5 terms.html, help.html, legal.js: text byte-identical to main 5695734 apart from ?v= (owner decision 109)", () => {
+  for (const f of Object.keys(D5_BASE)) assert.ok(stripV(read(f)) === stripV(d5Base(f)), f + ": text changed (only ?v= bumps are allowed)");
+});
+
+test("D5 controls: a ?v= bump alone passes; one changed word of the terms text fails", () => {
+  const base = stripV(d5Base("terms.html")), cur = read("terms.html");
+  const bumped = cur.replace(/\?v=(\d+)/, (m, n) => "?v=" + (Number(n) + 1));
+  assert.notEqual(bumped, cur, "control needs a ?v= in terms.html");
+  assert.ok(stripV(bumped) === base, "a ?v= bump alone must pass");
+  const at = cur.indexOf("ข้อกำหนดการใช้บริการ LENSIQ</h1>");
+  assert.ok(at > 0, "control word not found");
+  const oneWord = cur.slice(0, at) + cur.slice(at).replace("LENSIQ", "LENSIX");
+  assert.ok(stripV(oneWord) !== base, "one changed word must fail");
 });
