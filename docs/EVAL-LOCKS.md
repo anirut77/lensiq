@@ -138,3 +138,6 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   `admin-seller.js` existed: `tests/unit/backend-seller.test.js` (S1–S11), `tests/integration/backend-seller-workerd.test.mjs`
   (workerd + real D1) and `tests/e2e/admin-seller.e2e.mjs` (real browser, Chrome print-to-PDF read back with pdf.js).
   Before the build: unit 0 pass / 11 fail, integration 0 / 1. Synthetic values only.
+- `seller-settings` re-lock A1 (2026-11-18): `tests/integration/backend-seller-workerd.test.mjs`, test setup only: the
+  installed Miniflare 5.x rejects `handleRuntimeStdio`; workerd's console is captured through `handleStructuredLogs`
+  (a canary `console.log` was confirmed captured). No assertion changed; reason in `evals-locks/seller-settings.sha256`.

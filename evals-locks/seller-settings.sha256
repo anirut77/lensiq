@@ -11,3 +11,9 @@ eb8c35e33dfc5ef7b3435d4c23d103d6145e5a781053ebf302db7838a7eb8947  backend-seller
 eb8c35e33dfc5ef7b3435d4c23d103d6145e5a781053ebf302db7838a7eb8947  tests/unit/backend-seller.test.js  # repo file
 56641e63248214c9e9da98127e56f30d9f59d1e92200f27d19eb08e3905ed859  tests/e2e/admin-seller.e2e.mjs  # repo file
 19ba8bf4082ccdb088123a85c29bc6a4dae38aa8c447c942a79e25765b5d2775  tests/integration/backend-seller-workerd.test.mjs  # repo file
+# locked 2026-11-18T03:27:59Z (tools/eval-guard.mjs lock, 1 file)
+2e462d60ee01710e3268d3e2a9df600922ada6ffb99913cec1c00f2c17f4e1a7  backend-seller-workerd.test.mjs
+# re-lock A1 2026-11-18 (test setup only, no assertion changed): the installed Miniflare 5.x refuses the handleRuntimeStdio
+# option (constructor validation error, the test never reached the Worker). workerd's console output is captured with
+# handleStructuredLogs instead (checked separately: a worker console.log of a canary is captured). Unit and e2e files unchanged.
+2e462d60ee01710e3268d3e2a9df600922ada6ffb99913cec1c00f2c17f4e1a7  tests/integration/backend-seller-workerd.test.mjs (after amendment A1)  # repo file

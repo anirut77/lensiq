@@ -48,7 +48,9 @@ async function start() {
   for (const [k, v] of Object.entries(vars)) env[k] = { type: "text", value: String(v) };
   const mf = new Miniflare({
     log: new CaptureLog(),
-    handleRuntimeStdio: (out, err) => { out.on("data", d => lines.push(String(d))); err.on("data", d => lines.push(String(d))); },
+    // amendment A1 (re-lock 2026-11-18, test setup only): this Miniflare (5.x) has no handleRuntimeStdio option; workerd's
+    // console output reaches the test through handleStructuredLogs instead
+    handleStructuredLogs: l => lines.push(JSON.stringify(l)),
     workers: [{
       config: { name: "lensiq", compatibilityDate: "2026-10-01", compatibilityFlags: ["nodejs_compat"],
         manifest: { mainModule: "worker.js", modules: { "worker.js": { type: "esm", contents: built.outputFiles[0].text } } }, env },
