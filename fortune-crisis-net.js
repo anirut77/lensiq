@@ -1,13 +1,11 @@
-/* fortune-crisis-net.js — the crisis net (patterns + check), ONE source: copied into fortune-crisis.js (tools/fortune-read-embed.mjs);
- * the fortune-read.js stand-in loads it alone when fortune-crisis.js failed to load. Raw text: Thai without spaces / tone marks,
- * traditional Chinese folded, English slang and numerals. Tests: fortune-crisis-net*, crisis-net-fallback. Needs a professional review. */
+/* fortune-crisis-net.js — crisis net (patterns + check), one source, embedded in fortune-crisis.js (tools/fortune-read-embed.mjs);
+ * fortune-read.js loads it alone as a fallback. Tests: fortune-crisis-net*, crisis-net-fallback. Needs a professional review. */
 (function (root) {
   "use strict";
   const TONE = /[็-์]/g;
   /** Thai pattern written normally; matched against text with spaces and tone marks removed @param {RegExp} re */
   const toneless = re => new RegExp(re.source.replace(TONE, ""), re.flags);
-  /* review 2026-11-14: sara am ำ arrives decomposed (nikhahit + sara aa), with the tone mark after it, or with zero-width
-     characters inside a word; every check runs on the canonical copy (lensiq-thai-canon.js, looked up at call time) */
+  /* review 2026-11-14: every check runs on the canonical copy (lensiq-thai-canon.js: decomposed sara am, zero-width) */
   const TC = typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./lensiq-thai-canon.js") : null;
   /** @param {any} s @returns {string} */
   const canon = s => { const C = TC || root.LQThaiCanon; return C ? C.canon(s) : String(s == null ? "" : s).normalize("NFC"); };
@@ -21,7 +19,7 @@
     /ทำร้ายตัวเอง|ทำร้ายตนเอง|กรีด(?:ข้อมือ|แขน|ตัวเอง)|ปลิดชีพ|กินยา(?:ตาย|เกินขนาด|ฆ่าตัว)|(?:กิน|ทาน)ยา(?:นอนหลับ|ฆ่าแมลง|พิษ|เบื่อ)|ยาพิษ|ผูกคอ|แขวนคอ/,
     /(?:โดด|กระโดด)(?:ตึก|สะพาน|น้ำตาย|ลงจาก|จากตึก|จากที่สูง|ลงมาตาย)/,
     /(?:ถูก|โดน)(?:ทำร้าย(?:ร่างกาย)?|ทุบตี|ตบตี|ซ้อม|ข่มขืน|ล่วงละเมิด|ลวนลาม|ทารุณ|กักขัง|อนาจาร)|ข่มขืน|ล่วงละเมิดทางเพศ|อนาจาร|ความรุนแรงในครอบครัว/,
-    // round 3 (review 2026-11-12): more ways to say it, plans and methods, threats, sexual abuse of children
+    // round 3 (review 2026-11-12)
     /ไม่อยาก(?:เป็น)?อยู่(?:ใน|บน)?โลก|ไม่อยาก(?:เป็น)?อยู่(?:แล้ว|ต่อ|อีกต่อไป)|อยาก(?:นอน|หลับ)(?:หลับ)?(?:แล้ว|ไป)?(?:ไม่|ไม่ต้อง)ตื่น/,
     /อยาก(?:จะ)?(?:ไป)?(?:ตุย|ม่องเท่ง)|จดหมายลาตาย|ลาโลก|ตาย(?:ๆ)?ไป(?:ซะ|เสีย)(?:ดีกว่า)?|ตายๆไป|ยาฆ่าหญ้า|ยาเบื่อหนู/,
     /ขู่(?:จะ)?ฆ่า|มีด(?:มา)?จ่อ|(?:แฟน|สามี|ภรรยา|ผัว|เมีย|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง)[^\s]{0,10}บีบคอ/,
@@ -29,8 +27,7 @@
     new RegExp("(?:แฟน|สามี|ภรรยา|ผัว|เมีย|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง|ลุง|น้า|อา|พี่ชาย|ครู|ญาติ)[^\\s]{0,16}?" +
       "(?:ตบ(?!มุก)|ตี(?!กอล์ฟ|เทนนิส|ลูกบอล|กลอง|ราคา|ความ)|ทุบ|ต่อย|เตะ|กระทืบ|ชก|ฟาด|หวด|เฆี่ยน|ทำร้าย|ซ้อม|บีบคอ|" +
       "ข่มขืน|ลวนลาม|ล่วงละเมิด|จับ(?:หน้าอก|ของสงวน))[^\\s]{0,8}?(?:ฉัน|หนู|ผม|เรา|ดิฉัน|กู)"),
-    // crisis fix 4 (fresh review 2026-11-12 misses, dev data): pills by the bottle, a burden, farewell letters, sleeping forever,
-    // "tomorrow I won't be here", gas in a car, mixed English + Thai
+    // crisis fix 4 (review 2026-11-12 misses)
     /(?:กิน|ทาน|กลืน)ยา[^\s]{0,6}(?:ให้หมด|ทั้ง)(?:ขวด|แผง|กระปุก|กล่อง)|(?:จะ|อยาก)(?:กิน|ทาน|กลืน)ยา[^\s]{0,6}หมด(?:ขวด|แผง|กระปุก|กล่อง)(?!ตาม)/,
     /อยู่ไป(?:ก็)?(?:เป็นภาระ|ไม่มีประโยชน์|เปล่าประโยชน์|ไร้ค่า)|เป็นภาระ[^\s]{0,10}(?:ไปให้พ้น|หายไป|ตายไป|ไม่อยู่)/,
     /จดหมายลา(?!ออก|ป่วย|งาน|กิจ|พัก|บวช|คลอด|เรียน|หยุด|ศึกษา|ไปเรียน|เที่ยว)|เขียน(?:จดหมาย|โน้ต)?ลา(?:ทุกคน|โลก|ครั้งสุดท้าย)/,
@@ -46,9 +43,7 @@
     /\bkys\b|\bbetter off without me\b|\brather (?:not be alive|be dead|not exist|not wake up)\b/i,
     /\bwant (?:it|everything) (?:all )?to (?:stop|end)(?: forever)?\b(?! well| happily)/i,
     /\bend it all\b(?! with| between| off)/i, // review round 2: "gonna end it all tonight"
-    // owner decision 105 ค (2026-11-18): BOTH "end it all" patterns. The line above OR this one: a first-person / intent word within
-    // 25 characters before "end(ing) it all", or pills / rope / bridge / tonight / forever within 20 after (no with / between / off
-    // exclusion here). Set: crisis-endall (synthetic). On the expert review list: docs/CRISIS-EXPERT-REVIEW.md
+    // decision 105 ค: 2nd "end it all" pattern, OR the line above (docs/CRISIS-EXPERT-REVIEW.md)
     new RegExp("\\b(?:i|i'm|im|i'll|ill|i've|ive|i'd|me|wanna|gonna|gotta|want(?:s|ed)? to|going to|ready to|decided to|time to|" +
       "planning to|plan to|might|just)\\b[^.!?\\n]{0,25}?\\bend(?:ing)? it all\\b|\\bend(?:ing)? it all\\b[^.!?\\n]{0,20}\\b(?:pills?|rope|bridge|tonight|forever)\\b", "i"),
     /\b(?:plan(?:ning)?|going|gonna) to end it\b(?! with| between| off)|\bend(?:ing)? things\b(?! with| between| off| on)|\bstockpil\w* (?:pills|meds|tablets|sleeping pills)\b/i,
@@ -74,7 +69,7 @@
     /죽고\s?싶|자살|\b(?:nak|mahu|ingin) mati\b|bunuh diri|muốn chết|tự tử|tự sát|消えて(?:しまい)?たい/i,
     /没有我[^。]{0,8}更好/,
     /死にたい|消えたい|自殺したい|生きていたくない|死のう/,
-    // crisis fix 4: "nothing left to live for", the homophone slang 紫砂 (= 自杀; not the teapot), hurting oneself
+    // crisis fix 4: 生无可恋, slang 紫砂 (= 自杀), hurting oneself
     /生无可恋(?!脸|表情|的表情)|(?:想|要|去|准备|打算)紫砂(?!壶|杯|锅|陶)|伤害自己|弄伤自己|划伤自己|伤自己/,
   ];
   // traditional → simplified for the characters these patterns use
