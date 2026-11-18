@@ -47,6 +47,11 @@
     /\bkys\b|\bbetter off without me\b|\brather (?:not be alive|be dead|not exist|not wake up)\b/i,
     /\bwant (?:it|everything) (?:all )?to (?:stop|end)(?: forever)?\b(?! well| happily)/i,
     /\bend it all\b(?! with| between| off)/i, // review round 2: "gonna end it all tonight"
+    // owner decision 105 ค (2026-11-18): BOTH "end it all" patterns. The line above OR this one: a first-person / intent word within
+    // 25 characters before "end(ing) it all", or pills / rope / bridge / tonight / forever within 20 after (no with / between / off
+    // exclusion here). Set: crisis-endall (synthetic). On the expert review list: docs/CRISIS-EXPERT-REVIEW.md
+    new RegExp("\\b(?:i|i'm|im|i'll|ill|i've|ive|i'd|me|wanna|gonna|gotta|want(?:s|ed)? to|going to|ready to|decided to|time to|" +
+      "planning to|plan to|might|just)\\b[^.!?\\n]{0,25}?\\bend(?:ing)? it all\\b|\\bend(?:ing)? it all\\b[^.!?\\n]{0,20}\\b(?:pills?|rope|bridge|tonight|forever)\\b", "i"),
     /\b(?:plan(?:ning)?|going|gonna) to end it\b(?! with| between| off)|\bend(?:ing)? things\b(?! with| between| off| on)|\bstockpil\w* (?:pills|meds|tablets|sleeping pills)\b/i,
     /\bmakes? me do things\b|\bwo xiang (?:qu )?si\b|\bbu xiang huo\b/i,
     /\bsuicid\w*|\bunaliv\w*|\bsewer ?slide\b|\boff myself\b|\bdon'?t (?:want to|wanna) (?:be alive|live|exist|be here)\b/i,

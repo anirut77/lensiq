@@ -88,3 +88,11 @@ Running list, append only. Each entry: date, what changes, status, what happens 
 - **Owner's words:** "Later topic, not started: protecting paid content from being shared, resold, or used to run a paid reading
   service for others. Owner will discuss after current work is finished."
 - **Status:** open, not started. Nothing is built or changed for it; the owner raises it after the current work.
+
+## 2026-11-18: decision 105 ค decided (owner): "end it all" uses both patterns, topic added to the crisis expert's list
+
+The crisis net now catches English "end it all" with either the old pattern or the proposed one (first-person / intent word
+before, or pills / rope / bridge / tonight / forever after; "ending it all" too). Source: synthetic, 24 crisis + 24 ordinary
+sentences (lock `crisis-endall`). Crisis caught 20 / 24 → 23 / 24; ordinary sentences flagged 21 / 24 → 21 / 24 (unchanged,
+still high). Branch `crisis-endall`. The expert is asked to review this and the full TH / EN / ZH phrase list:
+`docs/CRISIS-EXPERT-REVIEW.md`, topic 1. Nothing is waiting on the owner for this item.

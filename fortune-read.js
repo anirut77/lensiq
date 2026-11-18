@@ -466,7 +466,7 @@
       '</p><span class="lq-call-mini"><a class="lq-call-btn" href="tel:1323"><b>' + esc(w[1]) + '</b></a></span> <span class="lq-helpline-more"><a href="counselling.html">' + esc(w[2]) + "</a></span></aside>"; };
     // review round 2: the same pattern list as fortune-crisis.js (fortune-crisis-net.js, loaded here only on this failure path)
     const net = () => /** @type {any} */ (root).LQCrisisNet || (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis-net.js") : null);
-    if (d0 && !net()) { try { const sc = d0.createElement("script"); sc.src = "fortune-crisis-net.js?v=1"; (d0.head || d0.documentElement).appendChild(sc); } catch (e) { /* no DOM */ } }
+    if (d0 && !net()) { try { const sc = d0.createElement("script"); sc.src = "fortune-crisis-net.js?v=2"; (d0.head || d0.documentElement).appendChild(sc); } catch (e) { /* no DOM */ } }
     return { check: t => { const N = net(); return !!(N && N.check(t)); }, unjoke: t => t, fields, active: on, calmOn: calm, allow: (k, d) => !calm(d), helpHTML,
       setActive(d) {
         const x = d || d0; x.documentElement.setAttribute("data-lq-crisis", "1");
