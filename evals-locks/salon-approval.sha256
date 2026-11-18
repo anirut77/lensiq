@@ -8,3 +8,8 @@ d3eac3b47379347a9bca8158d34afc0db686bfd5d269764faa994205310000d7  backend-look-s
 #   tests/unit/backend-look-salon.test.js (L1-L8, Worker on the in-memory D1), tests/unit/look-salon-approval.test.js (P1-P6,
 #   lensiq-look.js), tests/e2e/admin-look-salon.e2e.mjs (1-6, admin page + Worker), tests/integration/backend-look-salon-workerd.test.mjs
 #   (W1-W4, workerd + real D1). Same commit re-locks tests/unit/look-salon-off.test.js (ledger line in evals-locks/beauty-look.sha256).
+# locked 2026-11-18T04:32:55Z (tools/eval-guard.mjs lock, 1 file)
+3e902ec421b6f5d0b3fae730b2a13746e0cbd518c9e9f4c9dd81357635534a1b  relock-1/look-salon-approval.test.js
+# re-lock 1 (2026-11-18, test fault found on the first build run): P6 checks that the salon's text is escaped ("&" -> "&amp;")
+#   on the TH, EN and ZH page, but the ZH name of its fixture had no "&", so the ZH case could never pass. Only change: the ZH
+#   fixture name "<u>弯</u>眉" -> "<u>弯</u> & 眉". No assertion changed. Old copy in salon-approval/, new copy in relock-1/.

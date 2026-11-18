@@ -176,7 +176,7 @@ test("P6 when shown: approved only, escaped, labelled as the salon's text, wrapp
       /** @type {any} */ (globalThis).LQI18N = { lang: l };
       try {
         const c = box(fakeDoc());
-        const list = [entry({ name: { th: "<b>ทรง</b> & โค้ง", en: "<i>Soft</i> & arch", zh: "<u>弯</u>眉" } }), entry({ id: "dddddddddddd", status: "pending", name: { th: "รออนุมัติ", en: "Waiting", zh: "等待" } })];
+        const list = [entry({ name: { th: "<b>ทรง</b> & โค้ง", en: "<i>Soft</i> & arch", zh: "<u>弯</u> & 眉" } }), entry({ id: "dddddddddddd", status: "pending", name: { th: "รออนุมัติ", en: "Waiting", zh: "等待" } })];
         assert.equal(L.salonRender(c, list), true, l);
         const h = c.innerHTML;
         assert.ok(h.includes(SALON_LABEL[l]), l + " label");
