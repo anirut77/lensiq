@@ -174,7 +174,8 @@
         // the plain fallback asks it for the same light result
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false });
         else plainRender(body, root.LQMember && root.LQMember.gate ? root.LQMember.gate(res) : res);
-        src.textContent = res.source === "ai" ? T("fk.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : T("fk.src.local", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
+        src.textContent = res.source === "ai" ? T("fk.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : ""; // owner 2026-11-17: no label for the on-device composer
+        src.hidden = res.source !== "ai";
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         box.removeAttribute("aria-busy");
         if (opts.onDone) opts.onDone(st);

@@ -2,6 +2,9 @@
 // BEFORE tryon.html / tryon.js were written. Fake camera (no real person); the face mesh comes from the test seam
 // ?fakelm (window.__LQ_FAKE_LM returns a synthetic 478-point mesh), because MediaPipe needs a GL context that headless
 // Chrome on a Mac may not have. Demo catalogue (no backend): built-in drawn items only, no image of anyone.
+// RE-LOCK 2026-11-18 (owner decision 2026-11-18 "Photo or camera on the device"; ledger: docs/TRYON-POSE-RESULTS.md
+// "Re-lock ledger"): BEFORE "no file input" on the page; NOW "no ENABLED file input before the consent tick" (the photo
+// path is tested in tests/e2e/tryon-pose.e2e.mjs E3 / E4). Every other assertion unchanged.
 import { assert, privacyScan } from "./cdp.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -15,13 +18,13 @@ export default async function ({ base, launch, check, fakeCams }) {
   const browser = await launch();
   try {
     let page;
-    await check("tryon: consent before the camera; no file input; demo catalogue drawn", async () => {
+    await check("tryon: consent before the camera and the photo; no enabled file input before it; demo catalogue drawn", async () => {
       page = await browser.newPage(null, { initScripts: [fakeCams, "window.__LQ_FAKE_CAMS = { n: 1, mode: 'ok' };", FAKE_LM] });
       await page.goto(`${base}/tryon.html?demo=1&fakelm=1`);
       const s0 = await page.evaluate(() => ({ start: document.getElementById("toStart").disabled,
-        files: document.querySelectorAll("input[type=file]").length, items: document.querySelectorAll("#toItems [data-item]").length }));
+        files: [...document.querySelectorAll("input[type=file]")].filter(i => !i.disabled).length, items: document.querySelectorAll("#toItems [data-item]").length }));
       assert(s0.start === true, "start disabled before consent");
-      assert(s0.files === 0, "no file input");
+      assert(s0.files === 0, "no enabled file input before consent");
       assert(s0.items >= 4, "demo items listed: " + s0.items);
       assert(await page.evaluate(() => !window.__tryon || !window.__tryon.state.camera), "camera not opened before consent");
     });

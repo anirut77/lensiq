@@ -705,7 +705,9 @@ if (typeof document !== "undefined") (() => {
     const msg = $("#bcMsg"); msg.textContent = ""; msg.className = "form-msg";
     if (normBarcode(v)) return handleBarcode(normBarcode(v), "บาร์โค้ด");
     // D2-010: an empty search says what to do (next to the form) instead of doing nothing
-    msg.textContent = "กรุณาพิมพ์หรือยิงบาร์โค้ดก่อนกดค้นหา"; msg.className = "form-msg err"; $("#bcIn").focus();
+    msg.textContent = "กรุณาพิมพ์หรือยิงบาร์โค้ดก่อนกดค้นหา"; msg.className = "form-msg err";
+    // focus() can stop a page scroll mid-way and leave the message just below the screen edge: keep it in view
+    $("#bcIn").focus({ preventScroll: true }); msg.scrollIntoView({ block: "nearest" });
   };
 
   // ---------- แท็บ ----------
