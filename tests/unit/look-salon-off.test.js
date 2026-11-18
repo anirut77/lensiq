@@ -21,6 +21,8 @@
 //      exactly true, with or without approval-shaped objects; true only with the switch exactly true (the owner's decision)
 //   O4 (was: no shipped file outside the look modules mentions a salon) -> no PUBLIC page or script mentions a salon: salon
 //      text is entered only in the back office (admin.html, admin*.js, i18n/*-admin.js) and stored by the Worker (backend/)
+// RE-LOCK 2026-11-18b (STRICTER, after the independent review): the O4 exemption is narrowed from every admin*.js to
+//   admin-look-salon.js only (admin.html, i18n/*-admin.js and backend/ unchanged). Ledger line in evals-locks/beauty-look.sha256.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync, readdirSync, statSync } = require("node:fs");
@@ -109,7 +111,8 @@ test("O4 no PUBLIC page or script mentions a salon: salon text is entered only i
   // (not "แคตตาล็อกของร้าน" alone: Try-On uses it for a SHOP's product catalogue, which is not salon mode)
   const RE = /salon|ซาลอน|ร้านเสริมสวย|ร้านทำคิ้ว|美容院|发廊|店家目录/i;
   // back office (admin page, its scripts and its EN / ZH text) and the Worker; the look modules; the switch's own name
-  const BACK = /^(?:admin\.html|admin(?:-[a-z-]+)?\.js|i18n\/(?:en|zh)-admin\.js|backend\/.*|lensiq-look(?:-lint)?\.js)$/;
+  // re-lock 2026-11-18b (independent review note, STRICTER): only the salon tab's own script, not every admin-*.js
+  const BACK = /^(?:admin\.html|admin-look-salon\.js|i18n\/(?:en|zh)-admin\.js|backend\/.*|lensiq-look(?:-lint)?\.js)$/;
   const hits = shipped().filter(f => !BACK.test(f.rel) && RE.test(f.src.replace(/LENSIQ_LOOK_SALON/g, ""))).map(f => f.rel);
   assert.deepEqual(hits, []);
   // the only free-text salon inputs are in admin.html's salon tab (inside the back-office app, after sign-in)

@@ -103,3 +103,8 @@ f84cc9b66dfb8571f89c499b0bcaaf9caed58391639b5ce38bc6adaea22fa05d  tests/unit/loo
 #   admin.html's salon tab. O1 (config ships the switch hard off), O3 (no page calls the salon renderers; render() has no salon
 #   path) and O5 are unchanged; tests/e2e/look-salon-off.e2e.mjs is unchanged. New set for the step: evals-locks/salon-approval.sha256.
 #   Old copies kept in salon-off/ and salon-off-v2/, new copy in salon-off-v3/. Repo copy: tests/unit/look-salon-off.test.js.
+# locked 2026-11-18T05:16:20Z (tools/eval-guard.mjs lock, 1 file)
+fa3639645f730b91cbc175ff24c1b0347ffd71944306d71cd5394e84b26aaa64  salon-off-v4/look-salon-off.test.js
+# 2026-11-18b re-lock of look-salon-off.test.js, STRICTER (independent review note: the O4 exemption covered every admin-*.js):
+#   O4 now exempts only admin.html (salon tab), admin-look-salon.js, i18n/*-admin.js, backend/ and the look modules. No other
+#   assertion changed. Locked before admin.js was changed (fails on a0bb5cc1: admin.js names the salon roles). Copy: salon-off-v4/.

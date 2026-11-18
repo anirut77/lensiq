@@ -13,3 +13,15 @@ d3eac3b47379347a9bca8158d34afc0db686bfd5d269764faa994205310000d7  backend-look-s
 # re-lock 1 (2026-11-18, test fault found on the first build run): P6 checks that the salon's text is escaped ("&" -> "&amp;")
 #   on the TH, EN and ZH page, but the ZH name of its fixture had no "&", so the ZH case could never pass. Only change: the ZH
 #   fixture name "<u>弯</u>眉" -> "<u>弯</u> & 眉". No assertion changed. Old copy in salon-approval/, new copy in relock-1/.
+# locked 2026-11-18T05:16:20Z (tools/eval-guard.mjs lock, 6 files)
+56b2afb99f87e0cf851ec934f381ba25bb051f3b8f7dbf41cd249b45515a6843  variants-1/look-lint-variants.test.js
+d2679e103773ec168806cafb31608b68c140b1a51f4a2f0dabb9a804c11744ae  variants-1/salon-review-attacks.json
+0eff55b08d1a06105b035ef271542c61becc68de0b601bffc815a185047664de  review-1/attack.mjs
+a0362bb0632ce180c31171daff4e7aec41630f46829edf0d49837f3da1aea0bc  review-1/attack.log
+0270a956c873c4120b33cf8ccd8dc20ae67f45db146dd0477fd6d0638d428367  review-1/REVIEW.md
+c9e257df4e432ae78508d18b53dc953410c023ab8717d2c2f5c5c29ad7ebf830  review-1/front.cjs
+# 2026-11-18 coordinator follow-up after the independent review (PASS, 175 attacks / 0 fail; lint variants 54/58): locked BEFORE
+#   the lint change. variants-1/: tests/unit/look-lint-variants.test.js (V1-V4) + tests/unit/fixtures/salon-review-attacks.json
+#   (the reviewer's 58 variant phrases, verbatim). review-1/: the reviewer's attack.mjs, attack.log, REVIEW.md, front.cjs, kept
+#   as the locked attack fixture (outside the repo; copied from ~/Desktop/LENSIQ-review/salon/). Before the change: V1-V3 fail,
+#   V4 (no false positives) passes. Log: variants-before-build.log.
