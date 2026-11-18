@@ -68,9 +68,24 @@ headless Chrome with the fake camera). The original `tests/e2e/attendance.e2e.mj
 | Face check-in (on device, several people at once, 2-frame confirmation, ask-to-confirm when unsure) | done | This is the existing engine. In employee mode a face check-in becomes a time punch, and repeats within 60 s are ignored. |
 | Non-biometric alternative for people who decline face data | done | PIN (salted, iterated SHA-256; lock after 5 misses, kiosk-wide lock after 15) and a QR badge (printable; reissue revokes the old one). |
 | Opt-out enforced | done | An employee marked "no face" cannot be enrolled on the Register tab, and the face punch path refuses them. |
-| Badge scanning with the camera | partial | Works where `BarcodeDetector` exists (Chrome on Android / macOS / ChromeOS). Elsewhere, use a USB or Bluetooth badge reader in keyboard mode, or the PIN. |
+| Badge scanning with the camera | done (2026-11-18) | Native `BarcodeDetector` where the browser has one, otherwise the self-hosted zxing-wasm reader (`vendor/zxing`, MIT + Apache-2.0), so iPhone Safari, Firefox and desktop Chrome on Windows / Linux scan too (`tests/e2e/attendance-qr-webkit.e2e.mjs`, WebKit at iPhone width; a real-iPhone run is still open). The QR camera loads no face library or face model. A USB / Bluetooth badge reader in keyboard mode and the PIN still work. |
 | Buddy-punching resistance | partial | Optional liveness head-turn (existing, unmeasured), PIN lockout, badge reissue, and the method shown per punch in reports. A PIN or badge can still be shared, and there is no photo-on-punch, by design: no images are stored. |
 | Trusted time | partial | A punch earlier than this device's previous punch is warned about (clock set back). There is no NTP or server timestamp. |
+
+### Acceptance round 2026-11-18 (sheet `docs/acceptance/attendance.md`, branch `attendance-90`)
+
+All numbers SYNTHETIC (no real staff, no real payroll).
+
+| Criterion | Result | Source |
+|---|---|---|
+| A1 time maths | 89 / 89 staff-months exact (84 generated from the rule text + 5 worked by hand; every compared total and every payroll CSV cell) | locked set `~/LENSIQ-field/evals/attendance-time/`, `tools/attendance-time-eval.mjs` |
+| S2 speed, PIN mode | PIN pad usable 18.4 s -> ~4.5 s, first paint 4.8 s -> 2.4 s, face library / models requested: none | `tools/attendance-speed.mjs` (docs/SPEED.md profile: CPU 4x, Fast 3G, 390 px) |
+| L3 | payroll / daily / audit CSV headers in TH / EN / ZH (English key kept in every language); badge card title | `tests/unit/attendance-csv-lang.test.js`, `tests/e2e/attendance-pinqr.e2e.mjs` |
+| E / X / P4 | storage near-full line (TH/EN/ZH); badge print (only the card prints, its QR decodes); main flow at 360 and 430 px | `tests/e2e/attendance-pinqr.e2e.mjs` |
+
+Finding for every page: a `<meta http-equiv="Content-Security-Policy">` turns off Chrome's preload scanner, so a page's
+scripts are fetched one after another (one round trip each). attendance.html now lists its scripts as
+`<link rel="preload">`; other pages are unchanged.
 
 ## 5. Approvals and audit
 
