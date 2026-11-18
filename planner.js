@@ -15,7 +15,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var WD_TH = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์", "พุธกลางคืน"];
   var ANIMAL_TH = ["ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง", "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน"];
   var MONTH_TH = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-  var EVENT_TH = { move: "ขึ้นบ้านใหม่", shop: "เปิดร้าน / กิจการ", work: "เริ่มงานใหม่" };
+  var EVENT_TH = { move: "ขึ้นบ้านใหม่", shop: "เปิดร้าน / กิจการ", work: "เริ่มงานใหม่", wedding: "แต่งงาน", engage: "หมั้น / สู่ขอ",
+    regmarry: "จดทะเบียนสมรส", ordain: "บวช", bdaymerit: "ทำบุญวันเกิด", haircut: "โกนผมไฟ", pillar: "ยกเสาเอก", pile: "ลงเสาเข็ม",
+    spirit: "ตั้งศาลพระภูมิ", shrine: "ตั้งหิ้งพระ", compreg: "จดทะเบียนบริษัท", newco: "เริ่มกิจการใหม่", contract: "เซ็นสัญญา",
+    branch: "เปิดสาขา", car: "ออกรถใหม่", journey: "เดินทางไกล", waikru: "ไหว้ครู", launch: "เปิดตัวสินค้า" };
   var wdName = function (p) { return T("pl.wd." + p, WD_TH[p]); };
   var animalName = function (a) { return T("pl.an." + a, ANIMAL_TH[a]); };
   var bhumiName = function (b) { return T("pl.bh." + b, K.bhumi[b].th); };
@@ -25,6 +28,39 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var yearOut = function (y) { return lang() === "th" ? y + 543 : y; };
 
   var st = { res: null, ev: "move", sort: "date", picked: {} };
+
+  /* ---------- grouped occasion chooser (owner order 2026-11-18): groups first, a tap opens one group, a second tap closes it.
+     The added occasions' rules and wording (lensiq-planner-occ.js, i18n/*-planner-occ.js) load on the first tap, not with the page. ---------- */
+  var occReady = null;
+  function loadOcc() {
+    if (occReady) return occReady;
+    var add = function (src) {
+      return new Promise(function (res) {
+        var sc = document.createElement("script"); sc.src = src; sc.async = false;
+        sc.onload = sc.onerror = function () { res(); }; document.head.appendChild(sc);
+      });
+    };
+    occReady = Promise.all([add("lensiq-planner-occ.js?v=1"), add("i18n/zh-planner-occ.js?v=1")]).then(function () {
+      var I = W.LQI18N; return I && I.loadSiblings && String(lang()) === "en" ? I.loadSiblings("en") : null;
+    }).then(function () { renderResult(); });
+    return occReady;
+  }
+  function syncGroups() {
+    $$("input[name=plGroup]").forEach(function (g) { var p = $('.pl-occs[data-group="' + g.value + '"]'); if (p) p.hidden = !g.checked; });
+    $("#plCur").textContent = eventName(($("input[name=plEvent]:checked") || {}).value || "move");
+  }
+  $$(".pl-grp").forEach(function (lb) {
+    lb.addEventListener("click", function (e) {
+      e.preventDefault();
+      var g = $("input", lb), was = g.checked;
+      $$("input[name=plGroup]").forEach(function (x) { x.checked = false; });
+      g.checked = !was; if (!was) { g.focus({ preventScroll: true }); loadOcc(); }
+      syncGroups();
+    });
+  });
+  $$("input[name=plGroup]").forEach(function (g) { g.addEventListener("change", function () { syncGroups(); loadOcc(); }); });
+  $$("input[name=plEvent]").forEach(function (r) { r.addEventListener("change", syncGroups); });
+  syncGroups();
 
   /* ---------- form ---------- */
   function keep(el, html) { var v = el.value; el.innerHTML = html; if (v) el.value = v; }
@@ -112,6 +148,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (!st.res) return;
     var f = st.form, max = P.maxScore(f);
     $("#plResH").textContent = T("pl.res.h", "วันดีสำหรับ{event} ({n} วัน)", { event: eventName(st.ev), n: st.res.length });
+    $("#plWhy").innerHTML = "<b>" + esc(T("pl.why.belief", "ตามความเชื่อ โปรดใช้วิจารณญาณ")) + "</b> " + esc(T("pl.why." + st.ev, P.WHY[st.ev] || ""));
+    var needOwner = P.OCC[st.ev] && P.OCC[st.ev].needsOwner && !f.owners.length;
+    $("#plEmpty").textContent = needOwner ? T("pl.emptyOwner", "งานนี้ดูจากวันเกิดของเจ้าของงาน ใส่วันเกิดในช่องเจ้าของ แล้วกดหาวันดีอีกครั้ง")
+      : T("pl.empty", "ช่วงนี้ยังไม่มีวันที่ตรงเกณฑ์ ลองดูเพิ่มเป็น 3 เดือน หรือเลือกเดือนถัดไป");
     $("#plResSub").textContent = T("pl.res.sub", "{a} – {b} · เรียงตามที่คุณเลือก ติ๊กวันที่สนใจเพื่อบันทึกลงปฏิทิน", { a: fmtDate(f.from), b: fmtDate(f.to) }) +
       (f.owners.length ? "" : " " + T("pl.res.noOwner", "(ยังไม่ได้ใส่วันเกิดของเจ้าของ ใส่เพิ่มเพื่อให้ตรงกับดวงของคุณมากขึ้น)"));
     $$(".pl-seg").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-sort") === st.sort)); });
@@ -144,11 +184,15 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var f = readForm();
     if (!f.from.y) { $("#plMsg").textContent = T("pl.f.err", "กรุณาเลือกเดือน"); return; }
     $("#plMsg").textContent = "";
-    st.form = f; st.ev = f.event; st.picked = {};
-    st.res = P.plan(f);
-    renderResult();
-    $("#plResult").hidden = false;
-    $("#plResH").focus();
+    var run = function () {
+      st.form = f; st.ev = f.event; st.picked = {};
+      st.res = P.plan(f);
+      renderResult();
+      $("#plResult").hidden = false;
+      $("#plResH").focus();
+    };
+    // the three first occasions are in lensiq-planner.js (same tick, as before); the others wait for their rules
+    if (P.EVENTS.indexOf(f.event) >= 0) run(); else loadOcc().then(run);
   });
   $("#plList").addEventListener("change", function (e) {
     var t = e.target; if (!t || !t.getAttribute || !t.getAttribute("data-k")) return;
@@ -176,7 +220,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
 
   window.addEventListener("lq-lang", function () {
-    renderOptions(); renderResult();
+    renderOptions(); renderResult(); syncGroups();
     var b = $("#plAddOwner"), open = !$("#plOwner2").hidden;
     b.textContent = open ? T("pl.f.remove2", "− ไม่ใส่เจ้าของคนที่ 2") : T("pl.f.add2", "+ เพิ่มเจ้าของคนที่ 2 (เช่น คู่สมรส หุ้นส่วน)");
   });

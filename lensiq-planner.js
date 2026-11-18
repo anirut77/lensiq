@@ -98,6 +98,15 @@
     "phra": "วันพระ: นิยมทำบุญตักบาตรควบคู่ หากจะนิมนต์พระควรติดต่อวัดล่วงหน้า"
   };
 
+  // เหตุผลภาษาง่ายของแต่ละงาน (แสดงเหนือรายการวัน) — งานอื่น ๆ อยู่ใน lensiq-planner-occ.js (โหลดเมื่อผู้ใช้แตะกลุ่มงาน)
+  var WHY = {
+    move: "ตำราขึ้นบ้านใหม่นิยมวันจันทร์ พุธ พฤหัสบดี และศุกร์ หน้านี้ดูข้างขึ้นและเดือนคู่ตามจันทรคติประกอบ แล้วเทียบกับวันเกิดของเจ้าบ้าน",
+    shop: "ตำราเปิดร้านนิยมวันพฤหัสบดีและศุกร์ บางตำรานิยมวันพุธ (การค้า) และวันอาทิตย์ หน้านี้ดูข้างขึ้นประกอบ แล้วเทียบกับวันเกิดของเจ้าของร้าน",
+    work: "ตำราเริ่มงานใหม่นิยมวันจันทร์และพฤหัสบดี (วันครู) บางตำรานิยมวันพุธ หน้านี้ดูข้างขึ้นประกอบ แล้วเทียบกับวันเกิดของคุณ"
+  };
+  // งานที่เพิ่มภายหลัง (LQPlanner.addOccasions from lensiq-planner-occ.js: rules, wording and their planOcc / maxOcc)
+  var OCC = {}, GROUPS = [];
+
   /** weekday 0..6 (อาทิตย์ = 0) */
   function weekday(y, m, d) { return HS.weekday(y, m, d); }
 
@@ -109,6 +118,7 @@
    */
   function plan(o) {
     var ev = EVENTS.indexOf(o.event) >= 0 ? o.event : "move";
+    if (OCC[ev]) return API.planOcc(o, ev, OCC[ev]);
     var owners = (o.owners || []).filter(function (w) { return w && w.planet >= 0 && w.planet <= 7; }).slice(0, 3);
     var a = HS.jdn(o.from.y, o.from.m, o.from.d), b = HS.jdn(o.to.y, o.to.m, o.to.d);
     if (b < a) { var t = a; a = b; b = t; }
@@ -143,9 +153,24 @@
     return out;
   }
 
+  /** register the added occasions (lensiq-planner-occ.js) */
+  function addOccasions(pack) {
+    Object.keys(pack.OCC).forEach(function (id) {
+      var R = pack.OCC[id];
+      if (EVENTS.indexOf(id) < 0) EVENTS.push(id);
+      OCC[id] = R; EVENT_STAR[id] = R.star; if (R.extra) EVENT_EXTRA[id] = R.extra;
+    });
+    Object.keys(pack.TH).forEach(function (k) { TH[k] = pack.TH[k]; });
+    Object.keys(pack.WHY).forEach(function (k) { WHY[k] = pack.WHY[k]; });
+    GROUPS.length = 0; pack.GROUPS.forEach(function (g) { GROUPS.push(g); });
+    API.planOcc = pack.planOcc; API.maxOcc = pack.maxOcc;
+    return API;
+  }
+
   /** maximum score a day can reach for this event / owners (used for the "matches n of N" label) */
   function maxScore(o) {
     var owners = (o.owners || []).filter(function (w) { return w && w.planet >= 0 && w.planet <= 7; });
+    if (OCC[o.event]) return API.maxOcc(OCC[o.event], owners);
     return 3 + (o.event === "move" ? 1 : 0) + owners.reduce(function (s, w) { return s + 3 + (w.animal != null && w.animal >= 0 ? 1 : 0); }, 0);
   }
 
@@ -193,8 +218,9 @@
     return L.map(fold).join("\r\n") + "\r\n";
   }
 
-  var API = { EVENTS: EVENTS, TH: TH, MIN_SCORE: MIN_SCORE, EVENT_DAYS: EVENT_DAYS, EVENT_STAR: EVENT_STAR, fullMoonOf: fullMoonOf,
-    lunarDay: lunarDay, plan: plan, maxScore: maxScore, ics: ics, fold: fold, weekday: weekday };
+  var API = { EVENTS: EVENTS, TH: TH, WHY: WHY, OCC: OCC, GROUPS: GROUPS, MIN_SCORE: MIN_SCORE, EVENT_DAYS: EVENT_DAYS, EVENT_STAR: EVENT_STAR, fullMoonOf: fullMoonOf,
+    lunarDay: lunarDay, plan: plan, maxScore: maxScore, addOccasions: addOccasions, ics: ics, fold: fold, weekday: weekday,
+    BHUMI_PTS: BHUMI_PTS, EVENT_EXTRA: EVENT_EXTRA, planOcc: null, maxOcc: null };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   root.LQPlanner = API;
 })(typeof window !== "undefined" ? window : globalThis);
