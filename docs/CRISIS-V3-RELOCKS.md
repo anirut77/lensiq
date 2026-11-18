@@ -175,3 +175,38 @@ Locked before compat was changed to v3.
 | File | Change | Why |
 |---|---|---|
 | tests/unit/crisis-rules-1323.test.js, tests/e2e/crisis-rules-1323-a / -e.e2e.mjs, tests/e2e/crisis-rules-kit.mjs | the switch name `LENSIQ_HELP_STICKY` → `LENSIQ_HELP_TOP_STICKY`; every assertion unchanged | one sticky switch only (main's mechanism, coordinator instruction 2026-11-17); the branch's own copy of the same switch dropped from lensiq-config.js / nav.js / types |
+
+## Protection round "crisis-v3-protect" (2026-11-18, branch crisis-v3-protect)
+
+Two residual risks of the crisis-v3 review. No crisis-v3 rule and no hard limit changes for users; nothing above was re-locked.
+Locks: `evals-locks/crisis-v3-protect.sha256`, copies in `~/LENSIQ-field/evals/crisis-v3-protect/`, locked before building.
+
+**1. Unmarked price / sales text in the crisis state.** The escape guard only caught elements with a sales marker. New fixed set:
+`tests/unit/crisis-price-scan-lib.cjs` (one scanner for both halves), `tests/unit/crisis-price-scan.test.js` (P1–P5),
+`tests/e2e/crisis-price-scan-{kit,th,en,zh,controls}`. Words: ราคา, ฿, THB, บาท, ซื้อ / สั่งซื้อ, ชำระ, price, buy, purchase, 购买,
+价格, a number + 元, ¥, and any price amount. Known false matches handled in the pattern: บทบาท, พระบาท, ชำระล้าง, 元素 / 四元素 / 元旦,
+"$1". Static half: every text a reading page can show (HTML outside crisis-hidden markers, string literals of every script the page
+gets, its zh / en dictionaries) has no sales word unless allow-listed; browser half: every visible text node in the crisis state, all
+16 reading flows × TH / EN / ZH. Exceptions: `tests/unit/crisis-escape-guard-allow.json` `priceText` (`where` + `text` + `reason`;
+`browser: true` only for text that may really show: reading sentences about the visitor's own spending, "nothing needs to be bought",
+"no payment is taken"). The file's `targets` / `browser` / `noEntry` are unchanged (append note in crisis-escape-guard.sha256).
+Controls: unit P3 (3 injected strings → exactly 3 failures; inside `[data-lq-upsell]` → none; clean → pass); e2e controls C1–C3 on
+dream TH / EN / ZH (clean 0; 3 visible injected flagged, hidden and upsell copies not; clean again after removal).
+Build found by the static scan: report.js paid-mode "no credit" gate ("ดูราคารายงาน" link to pricing) had no marker; it now carries
+`data-lq-upsell` (hidden in the crisis / calm state). Paid mode is off, so nothing visible changes today.
+Menus (re-lock 2, coordinator order 2026-11-18: CLAUDE.md rule b makes this a required fix, not an owner choice): the site menu's
+"แพ็กเกจและราคา" entry and the "สมาชิกและการชำระเงิน" description of "บัญชีของฉัน" (nav.js), and the account menu's
+"แพ็กเกจและราคา" (lensiq-member.js), carry `data-lq-crisis-sales`; nav.js hides it while `html[data-lq-crisis]` or
+`html[data-lq-calm]` is set (CSS, so they come back when the flag clears). The account link itself stays reachable. They left the
+`priceText` allow-list; the static scan accepts them only with the marker on the same source line (`priceMarked`, P2) and P6
+asserts the marker and the CSS; `tests/e2e/crisis-price-scan-menu.e2e.mjs` opens the menu in the crisis state (0 pricing entries,
+TH / EN / ZH) and after clearing (entries back). Re-lock 2 only adds assertions. Re-lock 3 (test fault, CI run 44189943345): the
+positive control counted sales words in the site menu only, where EN / ZH have one (the pricing title), not two; it now expects at
+least one. In that run the crisis state showed 0 pricing entries in all three languages and every entry came back after clearing. nav.js v29, lensiq-config.js v21 (member v5).
+
+Re-lock 1 (kit, `crisis-price-scan-kit.r1.mjs`, after CI run 44141046161, test fault): report [en] / [zh] never drew a reading
+because the reused flow types the Buddhist year 2533 while the era radio defaults to CE outside Thai; the kit now picks BE first.
+Every other page × language passed in that run (0 visible sales texts), controls 3 / 3 languages passed.
+
+**2. "end it all" false positives (review only, no change).** Set: `end-it-all-set.json` (24 benign, 24 crisis, synthetic), harness
+`end-it-all-measure.mjs`, log `end-it-all-measure-<sha>.log`. Numbers are in the round report; any pattern change needs the owner.
