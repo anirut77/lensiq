@@ -25,3 +25,11 @@ ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e  relock-1/fortu
 a7e7cd55c8b85c423abe1659b6beabf0bbc897ce9a76c1f8a884f31643af9886  tests/unit/cat-pages.test.js  # repo file (relock-1)
 0290a823d9fddc2c97c8c7e15170fcab1ef2eefbb515e6e3640795d8af0a87db  tests/e2e/categories.e2e.mjs  # repo file (relock-1)
 ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e  tests/unit/fortune-live.test.js  # repo file (relock-1)
+# RE-LOCK 2 2026-11-18 (append-only), reason: "owner decision 2026-11-18: fortune cards carry no accuracy field; business products
+# unchanged". Found by running the full unit suite after the build (2462/2463 pass): tests/unit/fortune-sources.test.js ("non-fortune
+# pages keep their sources") listed cat-fortune.html among the pages that must show the "ที่มาของตัวเลข" (where the numbers come from)
+# section, whose source legend carries the removed "ไม่มีตัวเลขความแม่นยำ" tag. Now: all six non-fortune category pages must keep the
+# section (was: health and security only) and cat-fortune.html must not have it. The file had no earlier lock line in evals-locks/.
+# locked 2026-11-18T03:45:15Z (tools/eval-guard.mjs lock, 1 file)
+7d44d8f31c9f75af516fa94209f2bf1f2f1a62b0ae1af01df79df5341a4b4b10  relock-2/fortune-sources.test.js
+7d44d8f31c9f75af516fa94209f2bf1f2f1a62b0ae1af01df79df5341a4b4b10  tests/unit/fortune-sources.test.js  # repo file (relock-2)
