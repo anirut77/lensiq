@@ -17,3 +17,10 @@ eb8c35e33dfc5ef7b3435d4c23d103d6145e5a781053ebf302db7838a7eb8947  tests/unit/bac
 # option (constructor validation error, the test never reached the Worker). workerd's console output is captured with
 # handleStructuredLogs instead (checked separately: a worker console.log of a canary is captured). Unit and e2e files unchanged.
 2e462d60ee01710e3268d3e2a9df600922ada6ffb99913cec1c00f2c17f4e1a7  tests/integration/backend-seller-workerd.test.mjs (after amendment A1)  # repo file
+# locked 2026-11-18T03:30:23Z (tools/eval-guard.mjs lock, 1 file)
+d925c82e3d65c07096d572dc768df6e7f9cf1591588b12ed72488ae18aa64182  admin-seller.e2e.mjs
+# re-lock A2 2026-11-18 (test setup only): pdf.js reads Chrome's print-to-PDF without the Thai above / below marks (they come
+# back as U+0000), so the TH missing-data phrase never matched although it is printed. The comparison now drops those marks,
+# U+0000 and spaces on BOTH sides (EN / ZH phrases and the Latin seller values are compared exactly as before). First e2e run
+# on the product: 4 pass / 2 fail (this one + a real 320 px overflow in the tab, fixed in the product CSS, not in the test).
+d925c82e3d65c07096d572dc768df6e7f9cf1591588b12ed72488ae18aa64182  tests/e2e/admin-seller.e2e.mjs (after amendment A2)  # repo file

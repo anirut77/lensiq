@@ -141,3 +141,6 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
 - `seller-settings` re-lock A1 (2026-11-18): `tests/integration/backend-seller-workerd.test.mjs`, test setup only: the
   installed Miniflare 5.x rejects `handleRuntimeStdio`; workerd's console is captured through `handleStructuredLogs`
   (a canary `console.log` was confirmed captured). No assertion changed; reason in `evals-locks/seller-settings.sha256`.
+- `seller-settings` re-lock A2 (2026-11-18): `tests/e2e/admin-seller.e2e.mjs`, test setup only: pdf.js returns Thai
+  above / below marks from Chrome's PDF as U+0000, so the Thai phrase is compared without those marks on both sides. The
+  other failure of that run (320 px overflow) was fixed in the product. Reason in `evals-locks/seller-settings.sha256`.

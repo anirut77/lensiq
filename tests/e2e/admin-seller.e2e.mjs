@@ -60,7 +60,10 @@ export default async function ({ launch, check, repo, base }) {
       } finally { await r.close(); }
     } finally { await p.close(); }
   }
-  const squash = s => String(s).replace(/\s+/g, "");
+  // amendment A2 (re-lock 2026-11-18, test setup only): pdf.js reads Chrome's PDF without Thai above / below marks
+  // (ั ิ ี ึ ื ุ ู ฺ ็ ่ ้ ๊ ๋ ์ ํ come back as U+0000: "ยังไม่ได้" reads "ย\0งไม\0ได\0"), so both sides drop those marks, U+0000
+  // and spaces before comparing
+  const squash = s => String(s).replace(/[\u0000\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/g, "").replace(/\s+/g, "");
   const reauth = async (totp, pw = PW) => {
     await page.waitFor("!!document.querySelector('dialog.ad-reauth[open]')", 6000);
     await page.evaluate((pw, c) => {
