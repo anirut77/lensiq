@@ -15,3 +15,5 @@
 # rule on the owner's kalakini day, and "some days" for every other occasion x birth weekday. No other check, string list or threshold changed.
 # locked 2026-11-18T04:00:53Z (tools/eval-guard.mjs lock, 1 file)
 2a19da8f64893105dc85dad2587ad1bb99d8e43494db40ea125a5cb636c6a12e  relock-1/tests/unit/planner-occasions.test.js
+# LATE ENTRIES 2026-11-18 (owner, decision 120 ก / rule 110 ข; append-only): repo ledger lines for field locks written without them; older versions first, so the current file stays the latest lock.
+2a19da8f64893105dc85dad2587ad1bb99d8e43494db40ea125a5cb636c6a12e  tests/unit/planner-occasions.test.js  # repo file (late entry 2026-11-18, added by the owner under decision 120 ก / rule 110 ข; original re-lock 2026-11-18T04:00:53Z, evals-locks/planner-occasions.sha256:17; commit 528da822; file sha256 2a19da8f64893105dc85dad2587ad1bb99d8e43494db40ea125a5cb636c6a12e; field: ~/LENSIQ-field/evals/planner-occasions/relock-1/tests/unit/planner-occasions.test.js, record ~/LENSIQ-field/evals/planner-occasions/locked.sha256:7)
