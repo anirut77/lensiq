@@ -26,3 +26,4 @@ e994f310a1bde2d44c456be392928bd20d6f73a82cc3f1873a9e3b0245448053  relock-pet/cri
 e994f310a1bde2d44c456be392928bd20d6f73a82cc3f1873a9e3b0245448053  tests/unit/crisis-escape-guard-allow.json  # repo file (relock-pet)
 # RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
 6418053e164eeb05afba82a1bb26df31f0a65905de3dd26882d6f661c10baade  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (relock-pet)
+# 2026-11-18 (branch crisis-v3-protect): tests/unit/crisis-escape-guard-allow.json gains "priceText" / "priceTextNote" only (targets, browser, noEntry unchanged); locked as crisis-escape-guard-allow.protect.json in evals-locks/crisis-v3-protect.sha256

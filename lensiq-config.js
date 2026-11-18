@@ -182,7 +182,7 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
   var load = function (file, global) {
     if (/** @type {any} */ (window)[global] || document.querySelector('script[src*="' + file + '"]')) return;
     var s = document.createElement("script");
-    s.src = dir + file + "?v=4";
+    s.src = dir + file + "?v=6"; // v6: merge of fortune-pet (lensiq-analytics.js page list + petread); v5: crisis-v3-protect
     s.async = false; // keep order: api before analytics
     (document.head || document.documentElement).appendChild(s);
   };

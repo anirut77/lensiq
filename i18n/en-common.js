@@ -310,7 +310,7 @@
 
   // ---------- index.html ----------
   "home.doc.title": "LENSIQ | Computer vision for marketing and analytics",
-  "home.doc.desc": "LENSIQ is a Thai-language computer vision platform for marketing, store analytics and photo booths. Uses your existing cameras, processes on the device, and is designed for PDPA.",
+  "home.doc.desc": "LENSIQ is a Thai-language computer vision platform. It uses your existing cameras, processes on the device and is designed for PDPA: security, education and exams, HR, marketing, health, fortune readings and studio.",
   "home.hero.pill": "On-device processing · Thai, English and Chinese",
   "home.hero.t1": "Turn ordinary cameras",
   "home.hero.t2": "into ",
