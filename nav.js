@@ -760,7 +760,7 @@
           w = Math.ceil(x.measureText(t).width + n(y.paddingLeft) + n(y.paddingRight) + n(y.borderLeftWidth) + n(y.borderRightWidth) + 24) > s.getBoundingClientRect().width + .5;
         }
         if (!c || c.className !== "lq-sel-full") { if (!w) return; c = D.createElement("span"); c.className = "lq-sel-full"; c.ariaHidden = "true"; s.after(c); }
-        c.hidden = !w; if (w && c.textContent !== t) c.textContent = t;
+        c.hidden = !w; s.parentElement.classList.toggle("lq-sel-wrap", w); if (w && c.textContent !== t) c.textContent = t;
       });
     }, go = function () { r = r || requestAnimationFrame(fit); setTimeout(fit, 300); };
     ["resize", "load", "lq-lang"].forEach(function (e) { addEventListener(e, go); });

@@ -236,8 +236,8 @@ More styles.css comments moved word for word on 2026-11-17 (fourth batch):
 A closed `<select>` shows one line and cannot wrap. `selFull()` measures the chosen option's text with a canvas in the
 select's own font; when text + padding + border + 24 px (the native arrow and its inner space; 0 with `appearance: none`)
 is wider than the select, the full text is shown on a small line right under it (`span.lq-sel-full`, `aria-hidden`, the
-select itself already gives screen readers the full text). The line takes the full width (`width:100%`, `order:9`) and a flex parent that holds a shown line wraps
-(`:has(>.lq-sel-full:not([hidden])){flex-wrap:wrap}`), so the select keeps its width in a row with a button (checkout
+select itself already gives screen readers the full text). The line takes the full width (`width:100%`, `order:9`) and the select's parent gets `.lq-sel-wrap` while the line is shown
+(`flex-wrap:wrap`; no `:has`, so older iOS / Samsung browsers behave the same), so the select keeps its width in a row with a button (checkout
 `#manualSel`, CI 2026-11-18); the line-wrap pass skips it. It re-checks on load, resize, `change`, a click anywhere (a tab
 that shows a form) and a language switch. No wording changes. styles.css gives every select a 4 px right padding (the
 arrow keeps its own space). Locked test: `tests/e2e/select-fit-*.e2e.mjs` (`evals-locks/planner-defects.sha256`).

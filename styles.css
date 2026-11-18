@@ -217,7 +217,7 @@ label{display:grid;gap:4px;font-size:.88rem;color:var(--muted)}
 input,select,textarea{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
 select{padding-left:10px;padding-right:4px}
 .lq-sel-full{display:block;width:100%;order:9;margin-top:4px;font-size:.85rem;line-height:1.4;color:var(--muted);overflow-wrap:anywhere}
-:has(>.lq-sel-full:not([hidden])){flex-wrap:wrap}
+.lq-sel-wrap{flex-wrap:wrap}
 input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--aqua);outline-offset:1px;border-color:var(--aqua)}
 .form-msg{font-size:.9rem;min-height:1.4em}.form-msg.ok{color:#11734a}.form-msg.err{color:#b42318}
 
