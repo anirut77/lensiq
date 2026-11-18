@@ -27,3 +27,8 @@ a1924421c9b6d4495753c90bc1eaf1c76c2e04842c7dca1e9f24bb1866a2a020  eval-guard.tes
 # locked 2026-11-18T02:26:42Z (manual append, 1 file)
 0187a20cd247242b21aeac7ef92f591a69e3ef137f287b654f740ada55fec506  eval-guard-ledger.test.v1.js
 0187a20cd247242b21aeac7ef92f591a69e3ef137f287b654f740ada55fec506  tests/unit/eval-guard-ledger.test.js  # repo file (same commit as the field lock; field: ~/LENSIQ-field/evals/eval-guard/eval-guard-ledger.test.v1.js)
+# locked 2026-11-18T05:25:51Z (tools/eval-guard.mjs lock, 2 files)
+e04c4829784e9353ce17272e0ecaf1d842fcebb0a116d7215336a23e69d9eda4  pin-1/eval-guard-ledger-pin.test.js
+59da5983eda1c2d59db4399843cfb4f872ec6caf88115e90a38a91c283554dfd  pin-1/eval-guard.mjs
+e04c4829784e9353ce17272e0ecaf1d842fcebb0a116d7215336a23e69d9eda4  tests/unit/eval-guard-ledger-pin.test.js  # repo file (same commit as lock 2026-11-18T05:25:51Z; field: ~/LENSIQ-field/evals/eval-guard/pin-1/eval-guard-ledger-pin.test.js)
+59da5983eda1c2d59db4399843cfb4f872ec6caf88115e90a38a91c283554dfd  tools/eval-guard.mjs  # repo file (same commit as lock 2026-11-18T05:25:51Z; field: ~/LENSIQ-field/evals/eval-guard/pin-1/eval-guard.mjs)
