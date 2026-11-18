@@ -7,6 +7,15 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Fortune cards clean (owner order 2026-11-18, branch `fortune-cards-clean`, waiting for CI and the coordinator's merge)
+
+- Fortune cards (cat-fortune) show only the name, one short line and a small illustration; the whole card is one link. Removed
+  wherever fortune is listed (cat-fortune, index, solutions, menu): "ความแม่นยำที่วัดได้", "ไม่มีตัวเลขความแม่นยำ", per-card
+  disclaimers, filter / banned-topic wording (TH / EN / ZH, keys included). The disclaimer shows once, small, at the top of cat-fortune.
+- Business categories unchanged: tests/unit/fortune-cards.test.js pins a fingerprint of every non-fortune accuracy line and source.
+  Only category 6 may carry no accuracy field (cat-pages / categories / fortune-live / fortune-sources re-locked with that reason).
+- Future rule recorded in docs/PENDING-DECISIONS.md: reading ratings stay in the back office, never shown as an accuracy figure.
+
 ## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
 
 With the crisis flag set the reading goes on in full structure, gently, never straight; no card and nothing that says the person
