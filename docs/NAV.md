@@ -240,3 +240,33 @@ select itself already gives screen readers the full text). It re-checks on load,
 that shows a form) and a language switch. No wording changes. styles.css gives every select a 4 px right padding (the
 arrow keeps its own space). Locked test: `tests/e2e/select-fit-*.e2e.mjs` (`evals-locks/planner-defects.sha256`).
 Bytes: the two Thai JSDoc lines in the model loader were shortened to English so nav.js stays inside the page budgets.
+
+## styles.css notes (moved from the stylesheet 2026-11-18 to keep pages inside their byte budgets)
+
+Each comment below stood in `styles.css`; the stylesheet keeps its first words and a pointer here.
+
+```text
+/* the HTML hidden attribute always wins over component display rules (.btn{display:inline-flex} etc.) */
+/* ---------- Self-hosted web font (no request to Google: PDPA / privacy) ----------
+   Prompt (Cadson Demak, SIL OFL 1.1 — vendor/fonts/prompt/OFL.txt), woff2 subsets thai / latin-ext / latin, 300–700.
+   unicode-range means a page only downloads the subsets it renders (~7–11 KB each).
+   Chinese is NOT vendored (a CJK font is 5–20 MB): zh text falls through to the OS CJK font in the stacks below.
+   Regenerate with: node tools/self-host-fonts.mjs --fetch (needs network once). */
+/* Inter (The Inter Project Authors, SIL OFL 1.1 — vendor/fonts/inter/OFL.txt): Latin companion for the header and
+   for English pages; variable weight 100–900, latin subset only (Thai keeps Prompt, Chinese the OS CJK font). */
+/* ---------- Section header: breadcrumb under the bar (nav.js .lq-crumbs) ---------- */
+/* Tap feedback, busy state and double-tap safety for every button (ow (docs/NAV.md) */
+/* English mode on fortune pages: "readings are in Thai / Chinese" note (i18n/en-fortune.js) */
+/* Thai script is never letter-spaced or upper-cased (tracking breaks the stacked vowel / tone marks apart) */
+/* no text-wrap:balance/pretty: with many inline .lq-w boxes Chrome's balancing can stall layout (seen on signage.html) */
+/* ---------- Touch targets (WCAG 2.5.5 / Apple HIG: 44×44 CSS px) on touch screens ---------- */
+/* inline text links inside paragraphs keep their size; links that act as controls get a 44px row */
+/* ---------- Minimum readable text: 12px floor for the small text classes ---------- */
+/* ---------- Legal footer (nav.js legalFoot: pages without their own <footer>) ---------- */
+/* owner order 2026-11-15 item 3: the help line is in ONE place per fo (docs/NAV.md) */
+/* the printed report keeps the full help line; on screen the top button is the one place (owner order 2026-11-15 item 3) */
+/* ---------- tap-to-call help-line component (lensiq-helpline.js; own (docs/NAV.md) */
+/* crisis card layout (fortune-ai.js draws the card; its border and colours are injected with the card) */
+/* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
+   and share cards stay hidden on that page */
+```

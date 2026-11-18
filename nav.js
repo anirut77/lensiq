@@ -750,25 +750,21 @@
       (document.head || document.documentElement).appendChild(sc);
     });
   }
-  function selFull() { // cut <select> text shown in full under it (docs/NAV.md, owner report 2026-11-18)
-    var cx, raf = 0, n = function (v) { return parseFloat(v) || 0; };
-    function fit() {
-      raf = 0; cx = cx || document.createElement("canvas").getContext("2d");
-      [].forEach.call(document.querySelectorAll("select"), function (/** @type {any} */ s) {
-        var c = s.nextElementSibling, o = s.options[s.selectedIndex], t = o ? (o.label || o.text).replace(/\s+/g, " ").trim() : "", y = getComputedStyle(s), cut = false;
-        if (cx && t && !s.multiple && !(s.size > 1) && s.getClientRects().length) {
-          cx.font = [y.fontStyle, y.fontWeight, y.fontSize, y.fontFamily].join(" ");
-          cut = Math.ceil(cx.measureText(t).width + n(y.paddingLeft) + n(y.paddingRight) + n(y.borderLeftWidth) + n(y.borderRightWidth) +
-            (y.appearance === "none" ? 0 : 24)) > s.getBoundingClientRect().width + .5;
+  function selFull() { // docs/NAV.md
+    var x, r = 0, D = document, n = parseFloat, fit = function () {
+      r = 0; x = x || D.createElement("canvas").getContext("2d");
+      [].forEach.call(D.querySelectorAll("select"), function (/** @type {any} */ s) {
+        var c = s.nextElementSibling, o = s.options[s.selectedIndex], t = o ? o.text.replace(/\s+/g, " ").trim() : "", y = getComputedStyle(s), w = false;
+        if (x && t && !s.multiple && s.getClientRects().length) {
+          x.font = [y.fontStyle, y.fontWeight, y.fontSize, y.fontFamily].join(" ");
+          w = Math.ceil(x.measureText(t).width + n(y.paddingLeft) + n(y.paddingRight) + n(y.borderLeftWidth) + n(y.borderRightWidth) + 24) > s.getBoundingClientRect().width + .5;
         }
-        if (!(c && c.classList.contains("lq-sel-full"))) { if (!cut) return; c = document.createElement("span"); c.className = "lq-sel-full"; c.setAttribute("aria-hidden", "true"); s.after(c); }
-        c.hidden = !cut; if (cut && c.textContent.replace(/\s+/g, " ").trim() !== t) c.textContent = t;
+        if (!c || c.className !== "lq-sel-full") { if (!w) return; c = D.createElement("span"); c.className = "lq-sel-full"; c.ariaHidden = "true"; s.after(c); }
+        c.hidden = !w; if (w && c.textContent !== t) c.textContent = t;
       });
-    }
-    var later = function () { raf = raf || requestAnimationFrame(fit); }, soon = function () { later(); setTimeout(later, 300); };
-    ["resize", "load", "lq-lang"].forEach(function (e) { window.addEventListener(e, soon); });
-    document.addEventListener("change", later, true); document.addEventListener("click", soon, true);
-    later();
+    }, go = function () { r = r || requestAnimationFrame(fit); setTimeout(fit, 300); };
+    ["resize", "load", "lq-lang"].forEach(function (e) { addEventListener(e, go); });
+    D.addEventListener("change", go, true); D.addEventListener("click", go, true); go();
   }
   function registerSW() {
     if (!("serviceWorker" in navigator) || !window.isSecureContext || /[?&]nosw\b/.test(location.search)) return;
