@@ -79,7 +79,7 @@ real camera pictures or photos. Length shown is the category's usual line, not t
 | Item | Measured | Budget |
 |---|---|---|
 | Pose model | 5.5 MiB, fetched only after a clothes item is picked (E1) | 6,000,000 bytes (Q8) |
-| tryon.html before any action | 622 KB, 20 requests, 0 KB of models (unthrottled, 1 run, loaded machine) | 630 KB, 21 requests (speed-budget) |
+| tryon.html before any action | 622 KB, 20 requests, 0 KB of models (unthrottled, 1 run, loaded machine) | 630 KB, 21 requests (speed-budget); about 8 KB and 1 request of headroom left for the later menu change |
 | Pose update | about 3 times a second on the camera, once per photo | — |
 
 The 5.5 MiB model downloads over about 30 s on "Fast 3G"; the status line says it is loading.
@@ -94,7 +94,7 @@ The 5.5 MiB model downloads over about 30 s on "Fast 3G"; the status line says i
 | `tools/tryon-pose-eval.mjs` | Scorer (eval-guard, refuses to overwrite results) | same |
 
 Local results 2026-11-18: unit tryon-pose 8/8, tryon-core 6/6, tryon-review 10/10; e2e tryon-pose 6/6, tryon 3/3
-(first run, no retry).
+(first run, no retry). After re-lock 1 (E4 storage hooks + negative control): e2e tryon-pose 6/6, tryon 3/3.
 
 ## Re-lock ledger
 
@@ -102,6 +102,7 @@ Local results 2026-11-18: unit tryon-pose 8/8, tryon-core 6/6, tryon-review 10/1
 |---|---|---|---|---|---|
 | 2026-11-18, before the photo input was built | `tests/unit/tryon-core.test.js` C5 | No file input anywhere in `tryon.html` / `tryon.js` | At most one file input, in the markup only; `accept="image/*"`; no `capture`, no `multiple`; disabled in the markup and enabled by the consent tick | Owner decision 2026-11-18: "Photo or camera on the device" | No drop / paste, no POST, no stored frames, consent first: unchanged. The new E3 / E4 tests check the photo path end to end (nothing leaves the device, nothing stored) |
 | same | `tests/e2e/tryon.e2e.mjs` check 1 | No file input on the page | No enabled file input before the consent tick | same | same |
+| 2026-11-18, after the independent review (tryon-pose re-lock 1, stricter) | `tests/e2e/tryon-pose.e2e.mjs` E4 | Storage hook replaced `setItem` on the storage object (never catches a write) | `Storage.prototype` setItem / removeItem / clear, `IDBFactory.prototype.open`, `Cache.prototype` put / add / addAll hooked; only `lq-lang` (th / en / zh), no IndexedDB, only the shipped model cache (`lq-models-*`, same-origin `vendor/` files in the repo); negative control: a page script writing a key, opening IndexedDB or caching a non-model file must fail | Review required fix | Every earlier E1-E6 assertion kept; writes that were invisible before are now caught; old bytes kept in the field `set/` copy |
 | 2026-11-18, during the build (re-lock b) | `tests/unit/tryon-review.test.js` V3 | `DRAWABLE` equals the 7 categories drawable before | The same list plus skirts and trousers; new check that every listed category has a drawing path | Skirts and trousers became drawable (pose anchors) | The rule "only categories the page can draw" is kept and now checked for every entry; the new categories are proven by the locked Q3-Q5 |
 
 The consent wording that said "this page has no way to upload a photo" is replaced, because it would no longer be true.

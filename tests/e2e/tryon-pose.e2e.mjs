@@ -14,6 +14,11 @@
 //   E4 nothing leaves the device (request hooks as in the print P5 re-lock): no non-GET request, no beacon / WebSocket / form,
 //      no request body of 1 KB or more, no URL or body holding "data:image", a blob: URL or a piece of the photo's own data;
 //      every network request is a same-origin GET of a file shipped in this repo; nothing with image data is stored
+//      RE-LOCK 1 2026-11-18 (independent review, STRICTER; ledger docs/TRYON-POSE-RESULTS.md): the storage hook replaced
+//      setItem on the storage object, which never catches a write. Now Storage.prototype setItem / removeItem / clear,
+//      IDBFactory.open and Cache put / add / addAll are hooked; allowed: the language key only, no IndexedDB, and only the
+//      shipped model cache (lq-models-*, same-origin vendor/ files in the repo). Negative control: writes made by a page
+//      script (storage key, IndexedDB, cache) must fail the check. Every earlier assertion kept.
 //   E5 the disclaimer "a preview of placement and colour, not a realistic fitting" is visible in the result card in TH / EN / ZH
 //   E6 no horizontal overflow at 360 / 375 / 390 / 414 / 430 px in TH / EN / ZH (page and every element of the main column)
 import { assert } from "./cdp.mjs";
@@ -74,15 +79,55 @@ const NET_HOOK = `(() => {
   const fd = f => { try { return new FormData(f); } catch (e) { return null; } };
   window.addEventListener("submit", e => rec("form", abs(e.target.action || location.href), fd(e.target), "POST"), true);
   const FS = HTMLFormElement.prototype.submit; HTMLFormElement.prototype.submit = function () { rec("form", abs(this.action || location.href), fd(this), "POST"); return FS.apply(this, arguments); };
-  const wrap = (st, name) => {
-    try {
-      const set = st.setItem.bind(st);
-      st.setItem = (k, v) => { S.push({ where: name, k: String(k), n: String(v).length, img: /data:image|blob:/i.test(String(v)) }); return set(k, v); };
-    } catch (e) {}
-  };
-  wrap(window.localStorage, "local"); wrap(window.sessionStorage, "session");
-  try { const o = indexedDB.open.bind(indexedDB); indexedDB.open = (...a) => { S.push({ where: "idb", k: String(a[0]), n: 0, img: false }); return o(...a); }; } catch (e) {}
+  // RE-LOCK 1 (2026-11-18, independent review): hook the PROTOTYPES. Assigning setItem on the storage object itself stores
+  // an item named "setItem" and never sees a write; Storage.prototype catches localStorage and sessionStorage alike.
+  const img = v => /data:image|blob:/i.test(String(v));
+  const where = st => { try { return st === window.localStorage ? "local" : st === window.sessionStorage ? "session" : "other"; } catch (e) { return "other"; } };
+  try {
+    const SP = Storage.prototype, set = SP.setItem, del = SP.removeItem, clr = SP.clear;
+    SP.setItem = function (k, v) {
+      S.push({ op: "set", where: where(this), k: String(k), v: String(v).slice(0, 200), n: String(v).length, img: img(v) }); return set.apply(this, arguments);
+    };
+    SP.removeItem = function (k) { S.push({ op: "remove", where: where(this), k: String(k), n: 0, img: false }); return del.apply(this, arguments); };
+    SP.clear = function () { S.push({ op: "clear", where: where(this), k: "", n: 0, img: false }); return clr.apply(this, arguments); };
+  } catch (e) { S.push({ op: "hook-failed", where: "storage", k: String(e), n: 0, img: false }); }
+  try {
+    const IF = IDBFactory.prototype, o = IF.open;
+    IF.open = function (name) { S.push({ op: "idb-open", where: "idb", k: String(name), n: 0, img: false }); return o.apply(this, arguments); };
+  } catch (e) { S.push({ op: "hook-failed", where: "idb", k: String(e), n: 0, img: false }); }
+  try {
+    const names = new WeakMap(), CS = CacheStorage.prototype, open = CS.open, C = Cache.prototype;
+    CS.open = function (name) { return open.apply(this, arguments).then(c => { names.set(c, String(name)); return c; }); };
+    const url = r => { try { return new URL(r && r.url ? r.url : String(r), location.href).href; } catch (e) { return String(r); } };
+    for (const m of ["put", "add"]) {
+      const f = C[m]; C[m] = function (r) { S.push({ op: "cache-" + m, where: "cache", cache: names.get(this) || "?", k: url(r), n: 0, img: img(url(r)) }); return f.apply(this, arguments); };
+    }
+    const all = C.addAll;
+    C.addAll = function (rs) {
+      for (const r of rs || []) S.push({ op: "cache-add", where: "cache", cache: names.get(this) || "?", k: url(r), n: 0, img: img(url(r)) });
+      return all.apply(this, arguments);
+    };
+  } catch (e) { S.push({ op: "hook-failed", where: "cache", k: String(e), n: 0, img: false }); }
 })();`;
+/**
+ * RE-LOCK 1: what the page may write in the browser. Storage: only the language choice ("lq-lang" = th / en / zh); remove /
+ * clear of that key only. IndexedDB: nothing. Cache Storage: only the shipped static model cache ("lq-models-*") and only
+ * same-origin files under vendor/ that exist in this repo. A hook that failed to install fails too. Returns the bad entries.
+ */
+function storeBad(store, origin) {
+  return store.filter(s => {
+    if (s.op === "hook-failed" || s.img) return true;
+    if (s.op === "set") return !(s.k === "lq-lang" && /^(th|en|zh)$/.test(s.v));
+    if (s.op === "remove") return s.k !== "lq-lang";
+    if (s.op === "clear" || s.op === "idb-open") return true;
+    if (/^cache-/.test(s.op)) {
+      let u; try { u = new URL(s.k); } catch (e) { return true; }
+      const f = decodeURIComponent(u.pathname).replace(/^\//, "");
+      return !/^lq-models-/.test(s.cache) || u.origin !== origin || !/^vendor\//.test(f) || !existsSync(REPO + f);
+    }
+    return true;
+  });
+}
 // a synthetic "photo": 480 x 640 grey with a white box (no person), put into the page's file input like a user pick
 const PICK_PHOTO = `(async () => {
   const c = document.createElement("canvas"); c.width = 480; c.height = 640; const x = c.getContext("2d");
@@ -192,10 +237,28 @@ export default async function ({ base, launch, check, fakeCams }) {
         const missing = net.map(r => decodeURIComponent(new URL(r.url).pathname).replace(/^\//, "")).filter(f => f && !existsSync(REPO + f));
         assert(!missing.length, "requests for files that are not shipped static files: " + missing.join(", "));
         assert(!store.some(s => s.img || /tryon|frame|snap|photo|pose/i.test(s.k)), "stored: " + JSON.stringify(store));
+        const bad = storeBad(store, origin);
+        assert(!bad.length, "written in the browser: " + JSON.stringify(bad.slice(0, 5)));
       }
       const after = page.p2.requests.slice(page.p2.mark).filter(r => /^(https?|wss?):/i.test(r.url));
       assert(after.every(r => r.method === "GET"), "after the photo pick: only GETs");
       await page.p2.close();
+      // negative control (RE-LOCK 1): a page script that writes a key, opens IndexedDB or caches a non-model file must fail
+      const neg = await browser.newPage(null, { initScripts: [fakeCams, cams, FAKE_LM, POSE, NET_HOOK] });
+      await neg.goto(`${base}/tryon.html?demo=1&fakelm=1&fakepose=1`);
+      const origin = new URL(base).origin;
+      for (const [what, js] of [["localStorage key", "localStorage.setItem('tryon-neg', '1')"], ["sessionStorage key", "sessionStorage.setItem('x', 'y')"],
+        ["IndexedDB", "indexedDB.open('neg-db')"], ["cache put", "caches.open('neg').then(c => c.put('tryon.html', new Response('x')))"],
+        ["model cache, foreign file", "caches.open('lq-models-neg').then(c => c.put('/not-shipped.bin', new Response('x')))"]]) {
+        const n0 = await neg.evaluate(() => window.__lqStore.length);
+        await neg.evaluate(`(async () => { await ${js}; })()`);
+        await sleep(150);
+        const added = (await neg.evaluate(() => window.__lqStore)).slice(n0);
+        assert(added.length && storeBad(added, origin).length, "negative control not caught: " + what + " " + JSON.stringify(added));
+      }
+      await neg.evaluate(() => caches.keys().then(ks => Promise.all(ks.filter(k => /neg/.test(k)).map(k => caches.delete(k)))));
+      await neg.evaluate(() => { localStorage.removeItem("tryon-neg"); sessionStorage.removeItem("x"); indexedDB.deleteDatabase("neg-db"); });
+      await neg.close();
     });
 
     await check("tryon-pose E5: disclaimer visible in the result card in TH / EN / ZH", async () => {
