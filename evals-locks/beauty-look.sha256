@@ -93,3 +93,13 @@ f84cc9b66dfb8571f89c499b0bcaaf9caed58391639b5ce38bc6adaea22fa05d  tests/unit/loo
 98689a887dd06cf6fe53dd43a109572055a8010a0b8dc7e856166c32fe4d1640  salon-off-v2/look-salon-off.test.js
 # re-lock 2026-11-15T13:52:09Z (coordinator): disk-guard commit 480ea46 added an import of tools/disk-guard.mjs and one assertFreeSpace() call before the first browser launch; no assertion, threshold, input or measurement logic changed. Append-only.
 4ef6178552ccbced4f4e2bbf304db9baff03deed97c70e7c5e14c577f997a693  tools/look-preview-eval.mjs
+# locked 2026-11-18T04:28:27Z (tools/eval-guard.mjs lock, 1 file)
+4a746be1fd77fabb4f9d3d03c3c5a17bb7ae21d3719c448f3845376cc86d1819  salon-off-v3/look-salon-off.test.js
+# 2026-11-18 re-lock of look-salon-off.test.js (owner decision 2026-11-18 "build the salon content approval step so salon mode
+#   can be switched on"; the file itself said it is replaced by a new locked set when the step is built). Only the two
+#   assertions that said the step does not exist change: O2 salonEnabled() is now true only when window.LENSIQ_LOOK_SALON is
+#   exactly true (every other value, and any approval-shaped object, still false); O4 salon wording is allowed only in the
+#   back office (admin.html, admin*.js, i18n/*-admin.js) and the Worker (backend/), and the only salon text inputs sit inside
+#   admin.html's salon tab. O1 (config ships the switch hard off), O3 (no page calls the salon renderers; render() has no salon
+#   path) and O5 are unchanged; tests/e2e/look-salon-off.e2e.mjs is unchanged. New set for the step: evals-locks/salon-approval.sha256.
+#   Old copies kept in salon-off/ and salon-off-v2/, new copy in salon-off-v3/. Repo copy: tests/unit/look-salon-off.test.js.

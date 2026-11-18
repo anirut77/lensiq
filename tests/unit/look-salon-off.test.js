@@ -14,6 +14,13 @@
 //   O4 no shipped page or script outside the look modules mentions a salon at all: there is no free-text salon input
 //      (catalogue form, back-office field) anywhere
 //   O5 the suggestions the page renders (suggest() + html()) never contain salon items, the salon label or salon wording
+// RE-LOCK 2026-11-18 (owner decision 2026-11-18 "build the salon content approval step so salon mode can be switched on";
+// ledger line in evals-locks/beauty-look.sha256, new set evals-locks/salon-approval.sha256). The approval step now exists, so
+// only the two assertions that said it does not are replaced; O1, O3 and O5 are unchanged, and the switch still ships off:
+//   O2 (was: false even with the switch true, because no approval step exists) -> false for every switch value that is not
+//      exactly true, with or without approval-shaped objects; true only with the switch exactly true (the owner's decision)
+//   O4 (was: no shipped file outside the look modules mentions a salon) -> no PUBLIC page or script mentions a salon: salon
+//      text is entered only in the back office (admin.html, admin*.js, i18n/*-admin.js) and stored by the Worker (backend/)
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync, readdirSync, statSync } = require("node:fs");
@@ -66,18 +73,18 @@ test("O1 lensiq-config.js ships salon mode hard off; nothing else assigns the sw
   assert.deepEqual(others, [], "no other shipped file assigns LENSIQ_LOOK_SALON");
 });
 
-test("O2 salonEnabled() is false by default, for non-true values, and with the switch alone (no approval step)", () => {
+test("O2 salonEnabled() is false for every switch value that is not exactly true (approval objects do not count); true only for true", () => {
   const L = look();
   assert.equal(typeof L.salonEnabled, "function", "LQLook.salonEnabled exists");
   for (const v of [undefined, false, "true", 1, "1", "on", {}, null]) {
     withGlobals(v, undefined, () => assert.equal(L.salonEnabled(), false, "switch " + JSON.stringify(v)));
+    // an approval object of any shape never switches it on
+    for (const a of [true, 1, "yes", {}, { approved: true }, { approved: function () { return true; }, ready: true }]) {
+      withGlobals(v, a, () => assert.equal(L.salonEnabled(), false, "switch " + JSON.stringify(v) + ", approval " + JSON.stringify(a)));
+    }
   }
-  // the switch alone is not enough: the human-approval step for salon-typed text is required and is not built
-  withGlobals(true, undefined, () => assert.equal(L.salonEnabled(), false, "switch true, no approval step"));
-  // an approval object of the wrong shape does not count either
-  for (const a of [true, 1, "yes", {}, { approved: true }]) {
-    withGlobals(true, a, () => assert.equal(L.salonEnabled(), false, "switch true, approval " + JSON.stringify(a)));
-  }
+  // the human-approval step exists (backend/src/look-salon.js, admin.html salon tab): the owner's switch alone decides
+  withGlobals(true, undefined, () => assert.equal(L.salonEnabled(), true, "switch exactly true"));
 });
 
 test("O3 no shipped page or script calls the salon renderers or carries the salon block, except lensiq-look.js", () => {
@@ -98,12 +105,22 @@ test("O3 no shipped page or script calls the salon renderers or carries the salo
   assert.ok(!/salonHTML|salonItem|lq-look-salon/.test(m[0]), "render() has no salon path");
 });
 
-test("O4 no free-text salon input anywhere: no shipped file outside the look modules mentions a salon", () => {
+test("O4 no PUBLIC page or script mentions a salon: salon text is entered only in the back office and stored by the Worker", () => {
   // (not "แคตตาล็อกของร้าน" alone: Try-On uses it for a SHOP's product catalogue, which is not salon mode)
   const RE = /salon|ซาลอน|ร้านเสริมสวย|ร้านทำคิ้ว|美容院|发廊|店家目录/i;
-  // the switch's own name (required by O1 in lensiq-config.js) is not a salon input; re-lock 2026-11-14, see the lock file
-  const hits = shipped().filter(f => !/^lensiq-look(-lint)?\.js$/.test(f.rel) && RE.test(f.src.replace(/LENSIQ_LOOK_SALON/g, ""))).map(f => f.rel);
+  // back office (admin page, its scripts and its EN / ZH text) and the Worker; the look modules; the switch's own name
+  const BACK = /^(?:admin\.html|admin(?:-[a-z-]+)?\.js|i18n\/(?:en|zh)-admin\.js|backend\/.*|lensiq-look(?:-lint)?\.js)$/;
+  const hits = shipped().filter(f => !BACK.test(f.rel) && RE.test(f.src.replace(/LENSIQ_LOOK_SALON/g, ""))).map(f => f.rel);
   assert.deepEqual(hits, []);
+  // the only free-text salon inputs are in admin.html's salon tab (inside the back-office app, after sign-in)
+  const admin = readFileSync(join(ROOT, "admin.html"), "utf8");
+  const panel = admin.match(/<div class="ad-panel" data-panel="lsalon"[\s\S]*?<!-- \/lsalon -->/);
+  assert.ok(panel, "salon tab panel in admin.html");
+  assert.ok(admin.indexOf(panel[0]) > admin.indexOf('id="adApp"'), "inside the signed-in app");
+  const outside = admin.replace(panel[0], "");
+  assert.ok(!RE.test(outside.replace(/LENSIQ_LOOK_SALON/g, "").replace(/data-tab="lsalon"[^>]*>[^<]*</, "").replace(/<option value="(?:salon_editor|lensiq_admin)"[^>]*>[^<]*</g, "")
+    .replace(/<script src="admin-look-salon\.js(?:\?v=\d+)?"><\/script>/, "")),
+    "no salon wording or input outside the salon tab (except its tab button and the account-role options)");
 });
 
 test("O5 rendered suggestions (suggest + html) never carry salon items, the salon label or salon wording", () => {

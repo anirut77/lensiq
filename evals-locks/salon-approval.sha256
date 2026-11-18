@@ -1,0 +1,10 @@
+# locked 2026-11-18T04:28:26Z (tools/eval-guard.mjs lock, 4 files)
+d3eac3b47379347a9bca8158d34afc0db686bfd5d269764faa994205310000d7  backend-look-salon.test.js
+2809c810507c0e6e6214ff72153a89c042be2d25cbc894549193e11349a00e44  look-salon-approval.test.js
+79368d744de402fada260c2d12baaa0a086cb8dcc11feaa7b33e579a02a7ce17  admin-look-salon.e2e.mjs
+4d2250ad13aa3650582d477864f52eae1e6f90ccea14a876cba119914e4acf91  backend-look-salon-workerd.test.mjs
+# Owner decision 2026-11-18 "build the salon content approval step so salon mode can be switched on" (docs/BEAUTY-IMAGE-DESIGN.md §4).
+# Locked BEFORE any product code (branch salon-approval, base origin/main b2a6e76). Byte-identical repo copies:
+#   tests/unit/backend-look-salon.test.js (L1-L8, Worker on the in-memory D1), tests/unit/look-salon-approval.test.js (P1-P6,
+#   lensiq-look.js), tests/e2e/admin-look-salon.e2e.mjs (1-6, admin page + Worker), tests/integration/backend-look-salon-workerd.test.mjs
+#   (W1-W4, workerd + real D1). Same commit re-locks tests/unit/look-salon-off.test.js (ledger line in evals-locks/beauty-look.sha256).
