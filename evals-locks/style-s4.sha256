@@ -1,0 +1,26 @@
+# evals-locks/style-s4.sha256 — Style S4 (daily outfit and hair colour match; docs/STYLE-DESIGN.md §1.4, §3.4; owner order
+# 2026-11-18 night: only the part that does not depend on undertone, behind LENSIQ_STYLE = false, unlinked). Fixed tests,
+# synthetic set (150 harmony combinations with rule-based expected ratings, 60 rendered flat lays), targets and harness,
+# locked BEFORE lensiq-outfit.js, style.html, style.js, i18n/*-style.js and the LENSIQ_STYLE line were written and before any
+# measurement. Branch style-s4, base origin/main a9950944. Source label: synthetic. tests/unit/style-s4-colour.test.js is a byte
+# copy of the style-mvp branch test (b02b047c) for the ported lensiq-colour.js. Folder: ~/LENSIQ-field/evals/style-s4/. Append-only.
+# (A first lock block written by mistake with tests/ and tools/ field sub-folders was never committed; see the note in the
+# field locked.sha256. Field copies of the repo tests and harness live in copies/.)
+# locked 2026-11-18T16:12:30Z (tools/eval-guard.mjs lock, 11 files)
+da0da94af18bab606a7056705ce9fea73c9982dc9c9a88dc76aaccbdcfc787f5  README.md
+b1be301d843e87c9474675ce38b98be84f1ce71d7f7299dae40c347419d029e7  gen-set.mjs
+0332f4add58cf200d53ea66c15b4bb422b01a1df8f5582e9208ea25da04f2d62  render.mjs
+a8c74c8b5c5a224d14871314527ac9809f8660ce3c133c9e5e40ca6e609db35c  set.json
+a8559dcc8b171592a8a7ceaddb6d330ac217f0c9da8884bc0601b987c285134f  targets.json
+aaaaa0b3b15e9e7da0208ee1e764228aa57f0ae85cc2013132ded6e55ba07624  copies/style-outfit.test.js
+514278f5854feb34e756a57687cda0e588033d9d9f0c92918d5f224ec5d1ea18  copies/style-s4-flag.test.js
+f17b00b4c2f6d659142de754fd55e5e813ccbc7be53d6e7d2d6cc657d4d47b57  copies/style-s4-wording.test.js
+015de14af6e15169764394eaf3ee611ca54dab0ab36faf2e6f30958289bbcedb  copies/style-s4-colour.test.js
+5f9ab4158c6ae0c60223a37d28a148b8acfa942c89712683831aa2be7f1e90cc  copies/style-s4.e2e.mjs
+01af0d1bbfdc9fde1aab6cb9e125b43caa466e80d156f534cd3c782e7e7b53d2  copies/style-s4-eval.mjs
+aaaaa0b3b15e9e7da0208ee1e764228aa57f0ae85cc2013132ded6e55ba07624  tests/unit/style-outfit.test.js  # repo file (same commit as lock 2026-11-18T16:12:30Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-outfit.test.js)
+514278f5854feb34e756a57687cda0e588033d9d9f0c92918d5f224ec5d1ea18  tests/unit/style-s4-flag.test.js  # repo file (same commit as lock 2026-11-18T16:12:30Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-s4-flag.test.js)
+f17b00b4c2f6d659142de754fd55e5e813ccbc7be53d6e7d2d6cc657d4d47b57  tests/unit/style-s4-wording.test.js  # repo file (same commit as lock 2026-11-18T16:12:30Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-s4-wording.test.js)
+015de14af6e15169764394eaf3ee611ca54dab0ab36faf2e6f30958289bbcedb  tests/unit/style-s4-colour.test.js  # repo file (same commit as lock 2026-11-18T16:12:30Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-s4-colour.test.js)
+5f9ab4158c6ae0c60223a37d28a148b8acfa942c89712683831aa2be7f1e90cc  tests/e2e/style-s4.e2e.mjs  # repo file (same commit as lock 2026-11-18T16:12:30Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-s4.e2e.mjs)
+01af0d1bbfdc9fde1aab6cb9e125b43caa466e80d156f534cd3c782e7e7b53d2  tools/style-s4-eval.mjs  # repo file (same commit as lock 2026-11-18T16:12:30Z; field: ~/LENSIQ-field/evals/style-s4/copies/style-s4-eval.mjs)
