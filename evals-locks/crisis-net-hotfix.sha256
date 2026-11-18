@@ -38,5 +38,17 @@ cab9a2be05cc2fce201c40396463cf852636cc20eb0d075c77b2364389478807  tests/e2e/fort
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): fix-1, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
 e152aae01b86b2998afcc8af6ad382c4a2235ea8d9a35a93ce3bae670589abd8  tests/e2e/fortune-crisis-soft.e2e.mjs  # repo file (relock-fix-1)
 cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-fix-1)
+# 2026-11-17T22:09:32Z lock records reconciled (coordinator order, option ข, branch eval-guard-repo; docs/EVAL-LOCKS.md "Lock records reconciled 2026-11-18"):
+# crisis-net-hotfix-e.e2e.mjs: this file's latest line (f312ef6b, v2, commit e4c15069) was superseded on main by relock-merge
+# 11621c93 (commit 58c9a850; crisis-v3.sha256:96-105; docs/CRISIS-V3-RELOCKS.md row 95, owner decision 2026-11-17 crisis v3)
+# and relock-fix-2 1363d3d1 (commit 44f8d16f; crisis-v3.sha256:138-141 and crisis-net-hotfix-r2.sha256:15-16; CRISIS-V3-RELOCKS.md
+# row 137, test fault). Versus f312ef6b: WEAKER in letter by owner decision (card / no-shuffle assertions became the v3 crisis
+# state with no card; E5 accepts the top-bar tel:1323 when no reading is shown), already recorded; this line only aligns the file.
+1363d3d1125284af36df37f489242260ef844f28d7ec95d84e9773afc32b69fd  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file  aligned to crisis-v3.sha256:141 (relock-fix-2)
+# crisis-net-hotfix-inventory.json, LATE RECORD: 074e8b3d -> f3c0caaa in commit 4fbec46c (crisis escape guard findings: compat
+# inputs added). git diff: 79 lines added, 0 removed (compat rows only). STRICTER (more inputs inventoried). The new bytes were
+# locked at the time as a field copy (crisis-escape-guard.sha256:9, crisis-net-hotfix-inventory.v4.json, 2026-11-17T03:33:13Z)
+# but the repo-path line was never written.
+f3c0caaaf521f4c7d7ab29ecf28f24dde003c464d242e74be547878c11fe2bed  tests/e2e/crisis-net-hotfix-inventory.json  # repo file  late record: commit 4fbec46c, adds compat rows only; field copy crisis-escape-guard.sha256:9
 # RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
 6418053e164eeb05afba82a1bb26df31f0a65905de3dd26882d6f661c10baade  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (relock-pet)

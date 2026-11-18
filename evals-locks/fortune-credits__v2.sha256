@@ -26,3 +26,5 @@ a70ea84367b3800a98db062f3b18450edbf6b0a6af228d3a1ab8a6a8be3d9728  tests/e2e/fort
 # tests/unit/crisis-escape-guard-allow.json without palm plEthics / tarot trCredit / fengshui fsSourcesNote (elements deleted).
 # SUPERSEDED (e2e only) 2026-11-18 by evals-locks/fortune-credits__v3.sha256 (harness fix; ledger there).
 # SUPERSEDED (unit D5 only) 2026-11-18 by evals-locks/fortune-credits__v4.sha256 (owner decision 109: ?v= bumps allowed, text unchanged; ledger there).
+# A1 record fix 2026-11-18 (coordinator decision under owner decision 110 ก cond. 4; append-only):
+# retired tests/e2e/fortune-credits-v2.e2e.mjs reason: renamed in 6fec6299 to tests/e2e/fortune-credits-v3.e2e.mjs with one harness fix (bytes at 6fec6299^ = a70ea843, lines 4 and 23; successor f542a65e locked in fortune-credits__v3.sha256 and __v4.sha256)

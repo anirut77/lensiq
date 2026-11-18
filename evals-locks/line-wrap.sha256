@@ -47,3 +47,4 @@ e7fdc73b02536ef3affb6ee3b82c02d8af51d1e1788ad7eada99fd04bfb3f833  relock-6/tests
 # the wrapper never to touch it; CSS text-wrap:pretty fixes the rest). No rule, page, width, language or threshold changed. Copy in relock-8/.
 # locked 2026-11-17T20:54:01Z (tools/eval-guard.mjs lock, 1 file)
 5515fb3d1ace49ec5896e0917287d8260eeb5323b2ad0fd6a9ceb43d63e40193  relock-8/tests/e2e/line-wrap-exceptions.json
+5515fb3d1ace49ec5896e0917287d8260eeb5323b2ad0fd6a9ceb43d63e40193  tests/e2e/line-wrap-exceptions.json  # repo file (late entry 2026-11-18, owner decision 110 ก; original re-lock: line-wrap relock-8 locked 2026-11-17T20:54:01Z, evals-locks/line-wrap.sha256:49; commit 9cc74c28; file sha256 5515fb3d1ace49ec5896e0917287d8260eeb5323b2ad0fd6a9ceb43d63e40193; field: ~/LENSIQ-field/evals/line-wrap/relock-8/tests/e2e/line-wrap-exceptions.json, record ~/LENSIQ-field/evals/line-wrap/locked.sha256:27)
