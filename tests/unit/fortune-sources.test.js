@@ -109,5 +109,10 @@ test("non-fortune pages keep their sources: medicine, product check, category ac
   assert.match(med, /data-i18n="md\.ab\.h">แหล่งข้อมูลและข้อจำกัด</);
   assert.match(med, /National Librar/);
   assert.match(read("lensiq-pc-ui.js"), /แหล่งข้อมูลทางการ/);
-  for (const c of ["cat-fortune.html", "cat-health.html", "cat-security.html"]) assert.match(read(c), /data-i18n="cat\.src\.h">ที่มาของตัวเลข</, c);
+  // re-lock 2026-11-18 (owner decision 2026-11-18: fortune cards carry no accuracy field; business products unchanged):
+  // cat-fortune.html has no numbers, so no "where the numbers come from" section; every non-fortune category page keeps it
+  for (const c of ["cat-health.html", "cat-security.html", "cat-education.html", "cat-hr.html", "cat-marketing.html", "cat-studio.html"]) {
+    assert.match(read(c), /data-i18n="cat\.src\.h">ที่มาของตัวเลข</, c);
+  }
+  assert.doesNotMatch(read("cat-fortune.html"), /data-i18n="cat\.src\.h"/, "cat-fortune.html: no sources-of-numbers section");
 });
