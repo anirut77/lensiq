@@ -7,6 +7,16 @@ Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
+## Fortune label and about block deleted (owner order 2026-11-17 night item 2, corrected by owner decision 2026-11-18; branch `fortune-credits`)
+
+Fix to what is live, no new feature: delete, do not move. Every fortune page (category 6 + compat, 19 pages) loses the
+reading-source label ("เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง" and variants, TH / EN / ZH; the AI label stays when the writing
+assistant is used) and the whole "เกี่ยวกับคำอ่านนี้" block (tarot image credit + vendor path, palm model note, principles
+paragraph, calculation notes); astro's principles paragraph too. No help section, no credits page, no new links: the rules
+stay enforced in code and tests, only not displayed. Licence audit of every asset the fortune pages load: no licence requires
+a visible attribution (MIT / Apache-2.0 / OFL notices ship with the files and in `LICENSES/THIRD-PARTY-NOTICES.txt`; the tarot
+art is public domain), so no credits page. Fixed set `fortune-credits__v2` (v1 superseded, ledger in its lock file).
+
 ## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
 
 With the crisis flag set the reading goes on in full structure, gently, never straight; no card and nothing that says the person
@@ -686,6 +696,17 @@ without the user's own send 23 → 0, photo 33 → 0, explicit send if the user 
 0.624 → 0.714, product false removals 9 → 10 / 110. Open: photo of a JA / KO label read by an OCR model without that script
 (only with `imageModeAllowed` on, default off) — owner decision. Every "0 personal data reached AI" claim names its languages.
 Live scan: a side read with nothing on the checklist says "turn the pack". `docs/product-check/PC-JK-RESULTS.md`.
+
+### Live scan baseline and scene cut (2026-11-17, branch `eval-guard-repo`, owner decision 89)
+
+`tests/unit/pc-live.test.js` at `7746decb` accepted as the live-scan baseline (no earlier locked copy existed). The 27 written
+release criteria in `docs/product-check/LIVE-SCAN-RESULTS.md` are mapped to checks in `docs/EVAL-LOCKS.md`; 7 had none and got
+one (`tests/unit/pc-live-release.test.js` R1-R7, locked before the first run). R4 found a product gap: the content-based
+scene cut (`LQPCLive.sameObject`) counted two different Thai drug labels as one object, because lines that share field words
+("เลขทะเบียน", "ส่วนประกอบ:") reached the merge's 0.6 similarity (2 of 4 lines), so two products' readings could be merged.
+Fix (`dc936566`): for the scene cut a line matches only at similarity >= 0.8 (`CFG.sameSim`) AND with its digits differing
+by at most one (an OCR slip; another registration number, strength or date never matches). Safe direction: more fresh
+readings, never more merging. Source: synthetic texts. Still open: latency targets need a real phone (§3 of the results).
 
 ### Merit import safety (2026-11-15, branch `merit-import-safe`)
 

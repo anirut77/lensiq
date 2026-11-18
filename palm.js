@@ -1640,7 +1640,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       }
       if (FA && FA.renderSections) FA.renderSections(box, shown, { aiBadge: false }); else renderPlain(box, shown);
       var src = $("#plSrc"), ai = res.source === "ai";
-      src.textContent = ai ? T("palm.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : T("palm.src.local", "เรียบเรียงในเครื่อง");
+      src.textContent = ai ? T("palm.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : ""; // owner 2026-11-17: no on-device label
+      src.hidden = !ai;
       src.classList.toggle("ai", ai);
       box.removeAttribute("aria-busy"); btn.disabled = false;
     });
@@ -2010,10 +2011,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
   window.addEventListener("resize", function () { if (!editSec.hidden) renderEditor(); });
 
-  function renderSources() {
-    $("#plEthics").textContent = KT("ethics", KB.ethics);
-  }
-  renderSources();
 
   if (!window.isSecureContext) showHttpsNote($("#plEngine"));
   // speed pass 2026-11-14: no model download at page load; the hand model loads when the camera opens or a photo is chosen
@@ -2024,7 +2021,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   /* ---------- สลับภาษา (TH | 中文): วาดข้อความที่สร้างจาก JS ใหม่ และเรียบเรียงคำทำนายใหม่จากผลวัดชุดเดิม ---------- */
   window.addEventListener("lq-lang", function () {
-    renderSide(); renderTradition(); renderTopics(); renderMinor(); renderMounts(); renderMountNote(); renderSources(); renderStats();
+    renderSide(); renderTradition(); renderTopics(); renderMinor(); renderMounts(); renderMountNote(); renderStats();
     if (lastQcItems) renderQc(lastQcItems);
     if (lastEngine && typeof lastEngine[0] === "function") engine(lastEngine[0], lastEngine[1]);
     if (S.hand) renderReadSide();

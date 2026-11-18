@@ -5,6 +5,7 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
+    "faceread.metaDesc": "通过摄像头或上传的照片解读面相，并附开运建议。在浏览器中处理，不保存照片",
     /* ---------- 静态 ---------- */
     "faceread.desc": "通过摄像头解读面相，为展位和活动增添乐趣；在浏览器内处理，不保存照片",
     "faceread.disclaimerRest": "不应用于招聘、财务、感情等决策，也不应用来评价他人",
@@ -130,7 +131,6 @@
     "faceread.narr.ai": "正在请写作助手（Anthropic 的 Claude）组织解读文字...",
     "faceread.narr.local": "正在组织解读文字...",
     "faceread.src.ai": "由写作助手（Anthropic 的 Claude）撰写",
-    "faceread.src.local": "本机生成",
 
     /* ---------- 叠加图 ---------- */
     "faceread.ovl.zones": "色带 = 面部三停 · 线条 = 五官 · 标签 = 重要部位",

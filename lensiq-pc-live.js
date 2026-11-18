@@ -19,7 +19,8 @@
  *     (Levenshtein, >= CFG.lineSim); per cluster the most-voted reading wins, a tie goes to the longest; a line is kept
  *     when seen at least twice, or while fewer than three readings exist; the label's order is kept
  *   similarity(a, b) -> 0..1
- *   sameObject(mergedLines, newLines) -> boolean   at least half of the new reading's lines match a merged line; otherwise
+ *   sameObject(mergedLines, newLines) -> boolean   at least half of the new reading's lines match a merged line (similarity
+ *     >= CFG.sameSim and digits differing by at most one, so another label with the same field words is not a match); otherwise
  *     the new reading is another object and the merged reading starts over (a content-based scene cut, added after the
  *     independent review: two objects must never end up in one text)
  * CHECKLIST · PRODUCT KEY
@@ -44,7 +45,7 @@
     fps: 4, side: 320, cell: 20, edgeT: 60, cellDensity: 0.06, thumbW: 64, thumbH: 48,
     stableFrames: 3, motionMax: 8, cutMotion: 30, sharpMin: 500, blurPatience: 8,
     textArea: 0.12, glareBlob: 0.006, glareV: 250, glareS: 0.12, dark: 45, darkClip: 0.35, brightClip: 0.25,
-    readsPerScene: 3, lineSim: 0.6, maxLines: 80, autoCap: 10
+    readsPerScene: 3, lineSim: 0.6, sameSim: 0.8, maxLines: 80, autoCap: 10
   });
 
   /* ---------------- per-frame statistics ---------------- */
@@ -236,7 +237,12 @@
   function sameObject(merged, next, cfg) {
     const c = cfg || CFG, a = (merged || []).map(normLine).filter(Boolean), b = (next || []).map(normLine).filter(Boolean);
     if (!a.length || !b.length) return true;
-    const hit = b.filter(l => a.some(m => similarity(m, l) >= c.lineSim)).length;
+    // stricter than the merge's line clustering: two labels share field words ("เลขทะเบียน", "ส่วนประกอบ:"), so a line
+    // matches only when it is nearly the same (CFG.sameSim) AND its digits differ by at most one (an OCR slip), never
+    // when it carries another number (registration, strength, date); review of owner decision 89, 2026-11-17
+    const digits = (/** @type {string} */ s) => s.normalize("NFKC").replace(/[^0-9]/g, "");
+    const same = (/** @type {string} */ m, /** @type {string} */ l) => similarity(m, l) >= Math.max(c.lineSim, c.sameSim || 0) && lev(digits(m), digits(l)) <= 1;
+    const hit = b.filter(l => a.some(m => same(m, l))).length;
     return hit / b.length >= 0.5;
   }
 

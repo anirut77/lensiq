@@ -1,13 +1,14 @@
 {
  "note": "Seconds per e2e file, from the GitHub Actions logs of the Chrome shard jobs (2026-11-18: main run 44076823740 and fortune-pet run 44124312036; the longer value wins; WebKit-only files keep their local 2026-11-11 values). Refresh with: node tools/e2e-shards.mjs --weights-from <job logs> > this file. Only used to balance CI shards; a file missing here gets the median. Any value is safe: tools/e2e-shards.mjs --check proves every file ran exactly once.",
  "base": {
-  "note": "Seconds of the CI steps that run after the tests in one Linux shard only (ci.yml): 1 = built _site check, 2 = no third-party origin, 3 = CSP <meta> check. Same runs as the seconds. Used only for the CI split (4 shards, --mac-last).",
-  "shards": 4,
+  "note": "Seconds of the CI steps that run after the tests in one Linux shard only (ci.yml): 1 = built _site check, 2 = no third-party origin, 3 = CSP <meta> check, 4 = none. Same runs as the seconds. Used only for the CI split (5 shards: 4 Linux + macOS, --mac-last; owner decision 102).",
+  "shards": 5,
   "macLast": true,
   "seconds": [
    567,
    342,
-   136
+   136,
+   0
   ]
  },
  "seconds": {

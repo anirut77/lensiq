@@ -2,6 +2,7 @@
 (function (root) {
   "use strict";
   var dict = { en: {
+    "faceread.metaDesc": "Face reading from your camera or an uploaded photo, with tips to boost your luck. Processed in your browser; no photo is saved",
     /* ---------- static ---------- */
     "faceread.desc": "Face reading from the camera to add fun to booths and events; processed in the browser, no photos stored",
     "faceread.disclaimerRest": "Do not use it for hiring, financial or relationship decisions, or to judge others",
@@ -127,7 +128,6 @@
     "faceread.narr.ai": "Asking the writing assistant (Claude by Anthropic) to phrase the reading...",
     "faceread.narr.local": "Composing the reading...",
     "faceread.src.ai": "Composed by the writing assistant (Claude by Anthropic)",
-    "faceread.src.local": "Composed on this device",
 
     /* ---------- overlays ---------- */
     "faceread.ovl.zones": "Color bands = three face zones · lines = five features · labels = key areas",

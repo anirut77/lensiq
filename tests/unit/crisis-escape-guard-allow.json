@@ -58,7 +58,6 @@
     "palm plMulti": "msg: capture status (one hand only)",
     "palm plWrong": "msg: capture status (no palm found)",
     "palm plSideNote": "msg: capture status (which hand was detected)",
-    "palm plEthics": "ref: static ethics note",
     "palm plTradition": "ref: static list of palm traditions",
     "report rpGate": "field: part of the report form",
     "report rpLegendA": "field: form legend",
@@ -66,7 +65,6 @@
     "report rpMsg": "msg: form validation message",
     "report rpYear": "field: year select",
     "tarot ssShake": "ui: siamsee shake button",
-    "tarot trCredit": "ref: card-image credit",
     "tarot trIdle": "ui: booth idle screen",
     "tarot trToast": "ui: status toast",
     "tarot trSetup": "field: the question form",
@@ -96,7 +94,6 @@
     "fengshui fsPeriodNote": "ref: static principle note",
     "fengshui fsElNote": "ref: static principle note",
     "fengshui fsThaiTips": "ref: static Thai tips list",
-    "fengshui fsSourcesNote": "ref: static sources note",
     "fengshui fsIdle": "ui: booth idle screen",
     "fengshui fsToast": "ui: status toast",
     "fengshui fsAgain": "ui: 'another wording' button",
@@ -108,6 +105,546 @@
     "palm plHint": "msg: live camera capture hint (lensiq-capture-hint.js), changes with every camera frame"
   },
   "noEntry": {
-    "planner": { "why": "no free-text field of its own and no FortuneAI reading; it loads horoscope.js only as the calendar library, whose #hsNameNum box is drawn inside #hsResult, which planner.html does not have", "absent": ["hsResult"] }
-  }
+    "planner": {
+      "why": "no free-text field of its own and no FortuneAI reading; it loads horoscope.js only as the calendar library, whose #hsNameNum box is drawn inside #hsResult, which planner.html does not have",
+      "absent": [
+        "hsResult"
+      ]
+    }
+  },
+  "priceText": [
+    {
+      "where": "nav.js",
+      "text": "กล้องหน้าร้านสำหรับ SME: นับคน อัตราการซื้อ หลายสาขา",
+      "reason": "site menu description of the store-camera product (\"purchase rate\" is a shop metric the product measures), not a sale, no price or link to a purchase"
+    },
+    {
+      "where": "fortune-crisis.js",
+      "text": "|เทนนิส|ลูกบอล|กลอง|ราคา|ความ)|ทุบ|ต่อย|เตะ|",
+      "reason": "pattern source of a check (crisis net, claims / lottery filter, merit lint, dream symbol matcher), never drawn on the page"
+    },
+    {
+      "where": "fortune-ai.js",
+      "text": "ซื้อสลาก",
+      "reason": "pattern source of a check (crisis net, claims / lottery filter, merit lint, dream symbol matcher), never drawn on the page"
+    },
+    {
+      "where": "fortune-ai.js",
+      "text": "มา)(?:ลงทุน|เปิด|ทำ|ซื้อ|เล่น)|",
+      "reason": "pattern source of a check (crisis net, claims / lottery filter, merit lint, dream symbol matcher), never drawn on the page"
+    },
+    {
+      "where": "fortune-ai.js",
+      "text": "ิต|หมดตัว)(?:ไป)?(?:ซื้อ|ลงทุน|เล่น)|",
+      "reason": "pattern source of a check (crisis net, claims / lottery filter, merit lint, dream symbol matcher), never drawn on the page"
+    },
+    {
+      "where": "fortune-ai.js",
+      "text": "(?:ลงทุน|ซื้อ)(?:ใน)?[^\\\\s]",
+      "reason": "pattern source of a check (crisis net, claims / lottery filter, merit lint, dream symbol matcher), never drawn on the page"
+    },
+    {
+      "where": "fortune-ai.js",
+      "text": "(?:ไป|มา)?(?:ซื้อ|เปิดร้าน|เปิดกิจการ",
+      "reason": "pattern source of a check (crisis net, claims / lottery filter, merit lint, dream symbol matcher), never drawn on the page"
+    },
+    {
+      "where": "astro-kb.js",
+      "text": "งกฎรอ 24 ชั่วโมงก่อนซื้อของชิ้นใหญ่",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "astro-kb.js",
+      "text": "คุณวางแผนการเงินได้ดีเยี่ยมและรู้ว่าเงินทุกบาทไปไหน",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "i18n/en-kb-astro.js",
+      "text": " a day before a big purchase keeps you steadier",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "i18n/en-kb-lifecal.js",
+      "text": "od at negotiating a price",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "dream-kb.js",
+      "text": "ตลาด|ห้าง|ซื้อของ|ช้อปปิ้ง",
+      "reason": "pattern source of a check (crisis net, claims / lottery filter, merit lint, dream symbol matcher), never drawn on the page"
+    },
+    {
+      "where": "dream-kb.js",
+      "text": "ตลาดหรือการซื้อของในฝันหมายถึงทางเลือกและโอกาสที่หลากหลาย",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "lensiq-merit-lint.js",
+      "text": "\\\\d[\\\\d,.]*บาท|ราคา|ค่าบูชา|ค่าใช้จ่าย|",
+      "reason": "pattern source of a check (crisis net, claims / lottery filter, merit lint, dream symbol matcher), never drawn on the page"
+    },
+    {
+      "where": "lensiq-merit-lint.js",
+      "text": "บาท",
+      "reason": "pattern source of a check (crisis net, claims / lottery filter, merit lint, dream symbol matcher), never drawn on the page"
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "ักคิดสักหนึ่งคืนก่อนซื้อของชิ้นใหญ่จะช่วยให้",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "ักชอบกาแฟแบบไหน แล้วซื้อไปให้โดยไม่ต้องบอก",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "่างรอบคอบ คุณคิดก่อนซื้อเสมอ เงินจึงไม่รั่วไ",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "มากกว่าของถูกที่ต้องซื้อบ่อย",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "้ เช่น งานขาย งานจัดซื้อ หรือการดูแลงบประมาณ",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "ในตัวเอง คุณกล้าเสนอราคาและต่อรองเพื่อผลงานท",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "้เงินอย่างตั้งใจ ทุกบาทมีเหตุผล จึงไม่ค่อยเ",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "นนักเลือกตัวจริง ไม่ซื้อเยอะแต่ซื้อของดีที่ใ",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "ใช้ในบ้านที่คุ้มค่า ซื้อครั้งเดียวใช้ได้นาน ",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "ะเห็นภาพชัดและวางแผนซื้อของชิ้นใหญ่ได้สบายใจ",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "faceread-kb.js",
+      "text": "กาสที่ดี การตัดสินใจซื้อหรือลงทุนของคุณจึงมั",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "i18n/en-kb-face.js",
+      "text": "budget before large purchases so generosity and s",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "fengshui.html",
+      "text": "งิน และไม่จำเป็นต้องซื้อสิ่งของใดๆ",
+      "reason": "says that nothing needs to be bought (the opposite of a sale)",
+      "browser": true
+    },
+    {
+      "where": "fengshui-kb.js",
+      "text": "ปรับทีละน้อยด้วยของที่มีอยู่แล้ว ไม่จำเป็นต้องซื้อของใหม่",
+      "reason": "says that nothing needs to be bought (the opposite of a sale)",
+      "browser": true
+    },
+    {
+      "where": "i18n/zh-fortune-fengshui.js",
+      "text": "不能替代建筑、安全、健康或财务方面的专业建议，也不需要购买任何物品。",
+      "reason": "says that nothing needs to be bought (the opposite of a sale)",
+      "browser": true
+    },
+    {
+      "where": "i18n/en-fortune-fengshui.js",
+      "text": "d you never need to buy anything.",
+      "reason": "says that nothing needs to be bought (the opposite of a sale)",
+      "browser": true
+    },
+    {
+      "where": "i18n/en-fortune-fengshui.js",
+      "text": "there is no need to buy anything new",
+      "reason": "says that nothing needs to be bought (the opposite of a sale)",
+      "browser": true
+    },
+    {
+      "where": "i18n/zh-products.js",
+      "text": "套餐与价格",
+      "reason": "products dictionary shared with index / retail / hr / creative-suite: fortune.html uses only its pd.f.* keys, so this string is not shown on a reading page"
+    },
+    {
+      "where": "i18n/zh-products.js",
+      "text": "知道多少顾客进店、多少人购买，而无需保存图像",
+      "reason": "products dictionary shared with index / retail / hr / creative-suite: fortune.html uses only its pd.f.* keys, so this string is not shown on a reading page"
+    },
+    {
+      "where": "i18n/zh-products.js",
+      "text": "检查标志、价格和关键信息是否位于人们可能注视的位置",
+      "reason": "products dictionary shared with index / retail / hr / creative-suite: fortune.html uses only its pd.f.* keys, so this string is not shown on a reading page"
+    },
+    {
+      "where": "i18n/en-products.js",
+      "text": "Plans and pricing",
+      "reason": "products dictionary shared with index / retail / hr / creative-suite: fortune.html uses only its pd.f.* keys, so this string is not shown on a reading page"
+    },
+    {
+      "where": "i18n/en-products.js",
+      "text": "alk in and how many buy, without keeping im",
+      "reason": "products dictionary shared with index / retail / hr / creative-suite: fortune.html uses only its pd.f.* keys, so this string is not shown on a reading page"
+    },
+    {
+      "where": "i18n/en-products.js",
+      "text": "heck that the logo, price and key message sit",
+      "reason": "products dictionary shared with index / retail / hr / creative-suite: fortune.html uses only its pd.f.* keys, so this string is not shown on a reading page"
+    },
+    {
+      "where": "i18n/en-kb-horoscope.js",
+      "text": "o hold off on large purchases, because today is b",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "i18n/en-kb-iching.js",
+      "text": "big purchases can wait until you ",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "ช้เงินอย่างมีเหตุผล ซื้อของที่ใช้ได้นานมากกว",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "อบกาแฟแบบไหน หรือแวะซื้อของที่เขาขาดกลับบ้าน",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "งมีเหตุผล คุณไม่ค่อยซื้อของตามอารมณ์ จึงมีเง",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "านรีวิวครบทุกอันก่อนซื้อของ และมักรู้ข้อมูลท",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "ก่อนซื้อของชิ้นใหญ่ ลองรอให้",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "้ให้ตัวเองด้วย เช่น ซื้อดอกไม้ให้ตัวเองสักช่",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "สน่ห์ส่วนตัว ลองตั้งราคาให้สมคุณค่าของงาน",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "าตญาณเรื่องตัวเลขและราคา ซื้อของเมื่อไรมักได",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "ช่วยให้ทีมคุ้มค่าทุกบาท",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "านะจากความพยายาม ทุกบาทที่เก็บได้จึงมีความห",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "ทักษะการเจรจาช่วยให้คุณต่อรองราคาและได้ข้อเสนอที่ดีบ่อย ๆ",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "ทักษะการต่อรองของคุณช่วยให้ได้ราคาที่คุ้มค่าเสมอ",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "palm-kb.js",
+      "text": "คุณวางงบประมาณได้ละเอียด และรู้ว่าเงินแต่ละบาทไปไหน",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "i18n/en-kb-palm.js",
+      "text": " yourself too, like buying yourself flowers af",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "zodiac-kb.js",
+      "text": "คุณบริหารเงินอย่างเป็นระบบและรู้ว่าเงินทุกบาทไปอยู่ที่ไหน",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "report.js",
+      "text": "อย่างได้ฟรี ไม่มีการชำระเงิน และไม่บันท",
+      "reason": "report sample / demo mode note: says that no payment is taken",
+      "browser": true
+    },
+    {
+      "where": "report.js",
+      "text": "เข้าสู่ระบบเพื่อใช้สิทธิ์รายงานที่ซื้อไว้",
+      "reason": "paid mode only (off until billing goes live): a sign-in prompt to use reports already owned; no price, no purchase button"
+    },
+    {
+      "where": "report.js",
+      "text": "ดูราคารายงาน",
+      "reason": "rendered inside [data-lq-upsell] (report.html rp-foot link; report.js no-credit gate, asserted by P5), hidden in the crisis state by fortune-crisis.js CALM_CSS"
+    },
+    {
+      "where": "report.js",
+      "text": "ตัวอย่างรายงาน (โหมดเดโม) — ไม่มีการชำระเงิน ไม่บันทึก",
+      "reason": "report sample / demo mode note: says that no payment is taken",
+      "browser": true
+    },
+    {
+      "where": "i18n/zh-report.js",
+      "text": "套餐与价格",
+      "reason": "rendered inside [data-lq-upsell] (report.html rp-foot link; report.js no-credit gate, asserted by P5), hidden in the crisis state by fortune-crisis.js CALM_CSS"
+    },
+    {
+      "where": "i18n/zh-report.js",
+      "text": "登录后即可使用已购买的报告额度",
+      "reason": "paid mode only (off until billing goes live): a sign-in prompt to use reports already owned; no price, no purchase button"
+    },
+    {
+      "where": "i18n/zh-report.js",
+      "text": "查看报告价格",
+      "reason": "rendered inside [data-lq-upsell] (report.html rp-foot link; report.js no-credit gate, asserted by P5), hidden in the crisis state by fortune-crisis.js CALM_CSS"
+    },
+    {
+      "where": "i18n/en-report.js",
+      "text": "Plans and pricing",
+      "reason": "rendered inside [data-lq-upsell] (report.html rp-foot link; report.js no-credit gate, asserted by P5), hidden in the crisis state by fortune-crisis.js CALM_CSS"
+    },
+    {
+      "where": "i18n/en-report.js",
+      "text": "See report prices",
+      "reason": "rendered inside [data-lq-upsell] (report.html rp-foot link; report.js no-credit gate, asserted by P5), hidden in the crisis state by fortune-crisis.js CALM_CSS"
+    },
+    {
+      "where": "tarot-kb.js",
+      "text": "2}มาใช้ในการตัดสินใจซื้อแต่ละครั้ง",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "i18n/en-kb-tarot.js",
+      "text": "before an emotional purchase, because waiting a ",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "i18n/en-kb-siamsee.js",
+      "text": "you can put off big purchases for a little while",
+      "reason": "reading text about the visitor's own spending, saving or work habits (part of the gentle reading that crisis v3 keeps on); names no price, product, seller or paid service",
+      "browser": true
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "บาท",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "งไม่เปิดขาย ระบบสั่งซื้อยังไม่เชื่อมต่อ และไ",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "ราคาทั้งหมด",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "ก่อนชำระเงิน: สิ่งที่จะได้อ่าน",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "ชำระด้วย PromptPay ได้โด",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "ลิงก์พันธมิตร: เราอาจได้รับค่าตอบแทนเมื่อซื้อผ่านลิงก์นี้",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "THB",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "All prices",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "a commission if you buy through it",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "全部价格",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "联盟链接：通过此链接购买时我们可能获得佣金",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": ".lq-paid-price{margin:0 0 .3em;fon",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "button.lq-paid-buy{display:inline-flex",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "lq-paid-price",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "chip lq-paid-buy",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "fortune-paid.js",
+      "text": "data-lq-buy",
+      "reason": "fortune-paid.js draws every offer, price, preview, plan and seller link inside a [data-lq-paid] container (hidden in the crisis and calm states by its own CSS, and removed when the crisis state is set); CSS / class names are never drawn; paid stays behind its off switch"
+    },
+    {
+      "where": "lensiq-merit-core.js",
+      "text": "ด้ฟรีและไม่ผูกกับการซื้อสิ่งใด",
+      "reason": "Merit block text (lensiq-merit.js), not drawn while the crisis state is set (lensiq-merit-core.js crisisActive); the lines say the content is free and not a purchase"
+    },
+    {
+      "where": "lensiq-merit-core.js",
+      "text": " and is not tied to buying anything.",
+      "reason": "Merit block text (lensiq-merit.js), not drawn while the crisis state is set (lensiq-merit-core.js crisisActive); the lines say the content is free and not a purchase"
+    },
+    {
+      "where": "lensiq-merit-core.js",
+      "text": "以上内容不保证任何结果。此信息免费提供，与购买任何东西无关。",
+      "reason": "Merit block text (lensiq-merit.js), not drawn while the crisis state is set (lensiq-merit-core.js crisisActive); the lines say the content is free and not a purchase"
+    },
+    {
+      "where": "lensiq-merit-core.js",
+      "text": "งของทีมงาน ไม่ใช่การซื้อผลลัพธ์ คำแนะนำด้านบ",
+      "reason": "Merit block text (lensiq-merit.js), not drawn while the crisis state is set (lensiq-merit-core.js crisisActive); the lines say the content is free and not a purchase"
+    },
+    {
+      "where": "lensiq-merit-core.js",
+      "text": "e and travel, not a purchase of any result. The ",
+      "reason": "Merit block text (lensiq-merit.js), not drawn while the crisis state is set (lensiq-merit-core.js crisisActive); the lines say the content is free and not a purchase"
+    },
+    {
+      "where": "lensiq-merit-core.js",
+      "text": "供奉。这是工作人员时间和交通的服务，不是购买任何结果。上方的建议无需此服务即可免费使",
+      "reason": "Merit block text (lensiq-merit.js), not drawn while the crisis state is set (lensiq-merit-core.js crisisActive); the lines say the content is free and not a purchase"
+    },
+    {
+      "where": "lensiq-analytics.js",
+      "text": "pricing",
+      "reason": "page id in the analytics allow-list, never drawn"
+    },
+    {
+      "where": "lensiq-member.js",
+      "text": "ดูรายงานดวงแบบซื้อครั้งเดียว",
+      "reason": "inside [data-lq-upsell] (lensiq-member.js sign-in gate, pricing on only), hidden in the crisis state by fortune-crisis.js CALM_CSS"
+    },
+    {
+      "where": "lensiq-member.js",
+      "text": "ประวัติการใช้งาน/การชำระเงิน (ฐานสัญญา ม.24(",
+      "reason": "sign-in dialog privacy notice (lawful basis for account data), shown only when the visitor opens sign-in; no price, no purchase button"
+    },
+    {
+      "where": "lensiq-member.js",
+      "text": "ผูกการซื้อก่อนหน้า ",
+      "reason": "toast after the visitor's own account action (linking earlier purchases to a new account); no price, no purchase button"
+    },
+    {
+      "where": "fortune-crisis-net.js",
+      "text": "|เทนนิส|ลูกบอล|กลอง|ราคา|ความ)|ทุบ|ต่อย|เตะ|",
+      "reason": "pattern source of a check (crisis net), never drawn on the page"
+    }
+  ],
+  "priceTextNote": "crisis-v3-protect (2026-11-18): unmarked price / sales words (tests/unit/crisis-price-scan-lib.cjs) allowed where they are not a sale. where = the file the string is in (static scan, tests/unit/crisis-price-scan.test.js P2; an entry that matches nothing fails); browser: true = may also be visible in the crisis state (tests/e2e/crisis-price-scan-kit.mjs), matched by text inside the visible element. Entries without browser: true never count on screen.",
+  "priceMarkedNote": "crisis-v3-protect re-lock 2 (2026-11-18, coordinator order: rule b): menu price / payment entries are no longer allowed as text; they are accepted by the static scan only when the source line that holds them also carries the crisis-sales marker (crisisSales in nav.js MENU, data-lq-crisis-sales in lensiq-member.js), which nav.js hides in the crisis and calm states; the e2e menu test (crisis-price-scan-menu.e2e.mjs) asserts they are hidden in the crisis state and back when it clears",
+  "priceMarked": [
+    {
+      "where": "nav.js",
+      "text": "แพ็กเกจและราคา",
+      "marker": "crisisSales"
+    },
+    {
+      "where": "nav.js",
+      "text": "สมาชิกและการชำระเงิน (เมื่อเปิดใช้)",
+      "marker": "crisisSales"
+    },
+    {
+      "where": "lensiq-member.js",
+      "text": "แพ็กเกจและราคา",
+      "marker": "data-lq-crisis-sales"
+    }
+  ]
 }

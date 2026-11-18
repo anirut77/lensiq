@@ -1,0 +1,23 @@
+# locked 2026-11-17T17:42:16Z (tools/eval-guard.mjs lock, 8 files)
+0bae7c7a3a58d665b2039f5404615f1c1431a1fbfe54a5952b965d2a25fb67b1  crisis-price-scan-lib.cjs
+aecedd731891a19dd446f8c9b11bf368b090cf7467918513a0528d18148ee364  crisis-price-scan.test.js
+74391a6b26fa10748b5385f03b1ff7b486cabb8720faa819da6674a37986b6bb  crisis-price-scan-kit.mjs
+1385737648b47fae8c9fe3300512f207b995a969f288ddb4cee224307eac6a62  crisis-price-scan-th.e2e.mjs
+71a90e2c06be1325a5c99a744ed7d1515ca51187e597bdbc8f20d40d44905c4b  crisis-price-scan-en.e2e.mjs
+e2b87e8ec4aad1589c63f5d0494b4516d54bb26d2d0d171899159a04a162694c  crisis-price-scan-zh.e2e.mjs
+e2b7046004f600c386404cdefb0f47f5ce09adc155f77ce7ede33909b66443e6  crisis-price-scan-controls.e2e.mjs
+aa0fc5e4a7885a2ed5cc9d479195b953e955800697a7269489d8142b10c39af4  crisis-escape-guard-allow.protect.json
+# locked 2026-11-17T17:46:57Z (tools/eval-guard.mjs lock, 2 files)
+8b62de1a0470cd55edeee9e83a63f9de86736b6d6ca640467a968eef73f7e023  end-it-all-set.json
+34c36acf53672eb2989bd637fc507f29d0264b02236898429b971305797ad16d  end-it-all-measure.mjs
+# locked 2026-11-17T20:35:50Z (tools/eval-guard.mjs lock, 1 file)
+6a4fbd1f7fcde7ddff32e4045ae9c0159d1201bd09979f67016c799499d1d283  crisis-price-scan-kit.r1.mjs
+# locked 2026-11-17T22:22:50Z (tools/eval-guard.mjs lock, 4 files)
+0ae24852f1ebe7f39c0a102b0d3419c4c3f58fa848558574d75c31f37d5c02d5  crisis-price-scan-kit.r2.mjs
+3293b9c0ae6b4acbe4007e259382e7c0278860acdb355ea5ad8df098b4d90ee1  crisis-price-scan-menu.e2e.mjs
+78ee5fc8df9adf143232e6a1d244d3d8aef3be066790836e12ca6ea91823d374  crisis-price-scan.test.r2.js
+3a88c00f6db0764faecb3d9065667bb14c003040ae0838eb68d3a4622cf1d35c  crisis-escape-guard-allow.protect.r2.json
+# locked 2026-11-17T23:32:05Z (tools/eval-guard.mjs lock, 1 file)
+84d69a06ad6d90dbccb61ce77e9bfbef3e0797710dcd3481d930652b1fdcf26d  crisis-price-scan-menu.r3.e2e.mjs
+# RE-LOCK 2026-11-18 (branch fortune-credits, owner decision 110 ก conditions 3 + 4): tests/unit/crisis-escape-guard-allow.json = crisis-escape-guard-allow.protect.r2.json (3a88c00f) minus "palm plEthics", "tarot trCredit", "fengshui fsSourcesNote" (deleted elements). Lock and field copy in evals-locks/crisis-escape-guard.sha256 (crisis-escape-guard-allow.v4-combined.json); ledger docs/CRISIS-V3-RELOCKS.md "Combined re-lock A1".
+cfab9eeff3e15114435067eb16889c632778afae60eef6cb2e80e5e5fc6a8d7c  tests/unit/crisis-escape-guard-allow.json  # repo file (combined A1)

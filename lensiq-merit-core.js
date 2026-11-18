@@ -230,7 +230,8 @@
       if ((m = /^animal\.(\d{1,2})$/.exec(id)) && +m[1] <= 11) add("animal:" + (+m[1]));
       if (CHONG_REL.test(id) || /^today\.clash$/.test(id)) add("chong");
       if ((m = /(?:^|\.)(?:useful|lack|lo)\.(wood|fire|earth|metal|water)$/.exec(id))) add("element:" + m[1]);
-      if ((m = /^element\.(wood|fire|earth|metal|water)$/.exec(id))) add("element:" + m[1]);
+      // palm elements are Western, not the Chinese five
+      if ((m = /^element\.(wood|fire|earth|metal|water)$/.exec(id)) && d !== "palm") add("element:" + m[1]);
       if (it.polarity === "challenge" || it.tone === "caution" || id === "str.weak") add("weak");
     }
     return out;
@@ -244,9 +245,28 @@
     return it.tradition === choice || it.tradition === "general";
   }
 
-  /** @param {any[]} items @param {{choice?: string, keys?: string[], perType?: number, max?: number}} o */
+  /** FNV-1a + murmur3 finalizer: stable, non-secret. @param {string} s */
+  function hash32(s) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+    h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16;
+    return h >>> 0;
+  }
+  /** Stable id of a reading's RESULT (discipline, topic, fact ids + tone); rotates equal cards. Device only. @param {any} facts @param {string} [page] */
+  function resultSeed(facts, page) {
+    var f = facts && typeof facts === "object" ? facts : null;
+    if (!f) return "";
+    var d = typeof f.domain === "string" && DOMAINS.indexOf(f.domain) >= 0 ? f.domain : (typeof page === "string" && PAGE_DOMAIN[page.split("/").pop() || ""]) || "";
+    var ids = (Array.isArray(f.items) ? f.items : []).filter(function (/** @type {any} */ it) { return it && typeof it.id === "string"; })
+      .map(function (/** @type {any} */ it) { return it.id + "/" + (it.polarity || it.tone || ""); }).sort();
+    if (!ids.length) return "";
+    return d + "|" + (typeof f.topic === "string" ? f.topic : "") + "|" + ids.join(",");
+  }
+
+  /** @param {any[]} items @param {{choice?: string, keys?: string[], perType?: number, max?: number, seed?: string, mix?: boolean}} o */
   function match(items, o) {
     var opt = o || {}, choice = normChoice(opt.choice), keys = Array.isArray(opt.keys) ? opt.keys : ["any"];
+    var seed = typeof opt.seed === "string" ? opt.seed : "", mix = opt.mix === true;
     var perType = opt.perType == null ? 2 : opt.perType, max = opt.max == null ? 8 : opt.max;
     var chong = keys.indexOf("chong") >= 0;
     /** @type {any[]} */
@@ -263,8 +283,20 @@
     var out = /** @type {any[]} */ ([]);
     TYPES.forEach(function (ty) {
       var c = cand.filter(function (x) { return x.it.type === ty; });
-      c.sort(function (a, b) { return b.score - a.score || (Number(a.it.sort) || 0) - (Number(b.it.sort) || 0) || String(a.it.id).localeCompare(String(b.it.id)); });
-      c.slice(0, perType).forEach(function (x) { if (out.length < max) out.push(x.it); });
+      // equal matches rotate by hash(result, item) (owner order 2026-11-17 4b, route ก); no facts: sort, then id
+      if (seed) c.forEach(function (x) { x.rot = hash32(seed + "\u0001" + String(x.it.id)); });
+      c.sort(function (a, b) {
+        return b.score - a.score || (seed ? a.rot - b.rot : 0) || (Number(a.it.sort) || 0) - (Number(b.it.sort) || 0) || String(a.it.id).localeCompare(String(b.it.id));
+      });
+      var pick = c.slice(0, perType);
+      // mix (no tradition chosen): closest specific match + one rotated card per type
+      if (mix && seed) {
+        pick = c.length && c[0].score > 0 ? [c[0]] : [];
+        var rest = c.filter(function (x) { return pick.indexOf(x) < 0; }).sort(function (a, b) { return a.rot - b.rot; });
+        if (rest.length) pick.push(rest[0]);
+        pick = pick.slice(0, perType);
+      }
+      pick.forEach(function (x) { if (out.length < max) out.push(x.it); });
     });
     return out;
   }
@@ -272,12 +304,14 @@
   /** @param {{pageFlag?: any, serverFlag?: any, crisis?: any}} o */
   function paidAllowed(o) { return !!o && o.pageFlag === true && o.serverFlag === true && o.crisis === false; }
 
-  /** @param {any[]} items @param {{choice?: string, keys?: string[], lang?: string, pageFlag?: any, serverFlag?: any, crisis?: boolean, retentionDays?: any}} o */
+  /** @param {any[]} items @param {{choice?: string, keys?: string[], facts?: any, page?: string, seed?: string, focusLine?: Function, lang?: string, pageFlag?: any, serverFlag?: any, crisis?: boolean, retentionDays?: any}} o */
   function panelModel(items, o) {
     var opt = o || {};
     if (opt.crisis) return null;
     var lang = normLang(opt.lang), U = UI[lang], choice = normChoice(opt.choice);
-    var shown = match(items, { choice: choice, keys: opt.keys });
+    var keys = Array.isArray(opt.keys) ? opt.keys : keysFromFacts(opt.facts, opt.page);
+    var seed = typeof opt.seed === "string" ? opt.seed : resultSeed(opt.facts, opt.page);
+    var shown = match(items, { choice: choice, keys: keys, seed: seed, mix: !choice });
     var cards = shown.map(function (it) {
       return { id: String(it.id), type: it.type, tradition: it.tradition, typeLabel: U["t." + it.type], title: text(it.title, lang), body: text(it.body, lang),
         place: it.place ? text(it.place, lang) : "", area: it.area ? text(it.area, lang) : "", sample: it.sample === true, label: LABEL[lang] };
@@ -291,7 +325,8 @@
       t["f.notice"] = Number.isInteger(days) && days > 0 && days <= 3650 ? U["f.notice"].replace("{n}", String(days)) : U["f.noticeNoDays"];
       paid = { after: "guidance", text: t, fields: PAID_FIELDS.slice(), items: cards.map(function (c) { return { id: c.id, title: c.title }; }) };
     }
-    return { lang: lang, choice: choice, off: choice === "off", cards: cards, footer: NO_GUARANTEE[lang], paid: paid };
+    var focus = cards.length && choice !== "off" && typeof opt.focusLine === "function" ? String(opt.focusLine(opt.facts, opt.page, lang) || "") : "";
+    return { lang: lang, choice: choice, off: choice === "off", cards: cards, focus: focus, footer: NO_GUARANTEE[lang], paid: paid };
   }
 
   var api = {
@@ -299,7 +334,7 @@
     LABEL: LABEL, NO_GUARANTEE: NO_GUARANTEE, UI: UI,
     normChoice: normChoice, normLang: normLang, text: text, loadChoice: loadChoice, saveChoice: saveChoice, crisisActive: crisisActive,
     safeItems: safeItems,
-    keysFromFacts: keysFromFacts, match: match, paidAllowed: paidAllowed, panelModel: panelModel
+    keysFromFacts: keysFromFacts, resultSeed: resultSeed, hash32: hash32, PAGE_DOMAIN: PAGE_DOMAIN, match: match, paidAllowed: paidAllowed, panelModel: panelModel
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else /** @type {any} */ (root).LQMeritCore = api;

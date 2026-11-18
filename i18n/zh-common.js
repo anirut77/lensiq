@@ -311,7 +311,7 @@
 
   // ---------- index.html ----------
   "home.doc.title": "LENSIQ | 面向营销与分析的计算机视觉",
-  "home.doc.desc": "LENSIQ 是泰语计算机视觉平台，适用于营销、门店分析与拍照亭。利用现有摄像头，在设备端处理，遵循 PDPA 设计。",
+  "home.doc.desc": "LENSIQ 是泰语计算机视觉平台。利用现有摄像头，在设备端处理，遵循 PDPA 设计：安防、教育与考试、人事、营销、健康、占卜，以及影棚。",
   "home.hero.pill": "设备端处理 · 原生泰语系统",
   "home.hero.t1": "让普通摄像头",
   "home.hero.t2": "变成",
