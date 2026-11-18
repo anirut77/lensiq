@@ -143,3 +143,8 @@ cat-fortune card titles: the title stays above the card-wide link (main's compac
 - The round-3 title-tap relay in `fortune-entry.js` and its `.sl-go::after` / title `z-index` rules are gone: the title is
   inside the card's one link now, and no test used the relay. `fortune-entry.js?v=5` and `fortune-theme.css?v=3` were never
   deployed (neither is on main), so they keep their version numbers.
+- Pet reading (`petread.html`, from branch `fortune-pet`, owner decision 100) joins the theme: `<html class="lq-ft lq-ft-read">`,
+  `fortune-theme.css?v=3` (its `.fk-head` gets the night band), a gold paw-print symbol `ic-petread` in `art/fortune/icons.svg`
+  (own drawing, line only), and hub card 19 on `fortune.html` (owner decision 118 ก) in TH / EN / ZH with no share wording
+  ("แชร์ / share / 分享" never in the caption). `nav.petread.desc` (EN) shortened to 77 characters for the one-line card.
+  Versions: zh-fortune.js 14, zh-fortune-hub.js 8.
