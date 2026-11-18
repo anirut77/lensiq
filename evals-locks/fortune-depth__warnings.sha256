@@ -1,0 +1,4 @@
+# locked 2026-11-18T02:45:40Z (tools/eval-guard.mjs lock, 2 files)
+bce2b1e59e25b859277b76832031c1b71509071d717578d7a24cb4158d5d955c  tests/unit/fortune-depth-warnings.test.js
+3e550e38f60d44eb3f2396b9b9208611da01b5664b392f40b7dbc46ba9a4d2a0  tools/fortune-depth-audit.mjs
+# NEW SET 2026-11-18, fortune-depth review round 3 (owner decision 99 ก: warning sentences are never folded; lock the test). Locked BEFORE the fix at base 50f76ded. tools/fortune-depth-audit.mjs: readingOf gained an optional lang (default th; the C1-C7 measures are unchanged). Before the fix (pre-lock dry run, 28-char window): 0/4 tests pass (12 fixture marks missing, 18 unmarked warning texts, 52 folded warning parts).

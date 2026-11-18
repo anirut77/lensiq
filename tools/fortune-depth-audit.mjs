@@ -135,17 +135,18 @@ function factsOf(p, now) {
   }
   throw new Error("unknown domain " + p.domain);
 }
-/** { summary[], plan[], sections:[{id, paragraphs, caution}], facts } in Thai, as the page composes it offline */
-export function readingOf(p, now) {
+/** { summary[], plan[], sections:[{id, paragraphs, caution}], facts } as the page composes it offline (Thai by default; the
+ *  measures above use Thai only, lang is for tests/unit/fortune-depth-warnings.test.js) */
+export function readingOf(p, now, lang = "th") {
   const { FA, RP } = load();
   if (p.domain === "report") {
-    const rep = RP.buildBasic(p.input, { lang: "th", now });
+    const rep = RP.buildBasic(p.input, { lang, now });
     const sections = rep.parts.flatMap(x => x.sections || []);
     const facts = { domain: "bazi", items: [] }; // the report page has no belief panel (nav.js meritHook page list)
     return { summary: rep.summary, plan: rep.plan, sections, facts, plan30: rep.plan30 };
   }
   const facts = factsOf(p, now);
-  const res = FA.compose(facts, { seed: p.seed, lang: "th" });
+  const res = FA.compose(facts, { seed: p.seed, lang });
   return { summary: res.summary, plan: res.plan, sections: res.sections || [], facts };
 }
 
