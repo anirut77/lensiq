@@ -1,0 +1,62 @@
+{
+ "note": "APPEND-ONLY exceptions of tests/e2e/line-wrap-kit.mjs. Each entry: page (file name), kind (P lone punctuation / W widow / U split number + unit), contains (a text of the finding, at least 4 characters), optional lang and width, reason (why it cannot or should not be changed), added (date).",
+ "exceptions": [
+  {
+   "page": "cameras.html",
+   "kind": "P",
+   "contains": "| ./start.sh mobile",
+   "reason": "Not punctuation: the line starts with the shell command ./start.sh (a file path that begins with a dot) inside a <code> box; the command must be shown exactly as typed, so the dot cannot be moved or joined to the Thai / English word before it.",
+   "added": "2026-11-17"
+  },
+  {
+   "page": "exam.html",
+   "kind": "W",
+   "lang": "zh",
+   "contains": "日） | 来源",
+   "reason": "The Chinese source link (来源, its own <a>) follows the translated sentence after a whitespace-only gap between two elements; keeping it on the sentence's line would mean moving the last words out of the translated <span>, which the translation layer rewrites on every language switch. The link itself never splits (it is kept whole).",
+   "added": "2026-11-17"
+  },
+  {
+   "page": "store.html",
+   "kind": "U",
+   "lang": "en",
+   "contains": "Set maximum 20 | people",
+   "reason": "Live dashboard tile: store.js rebuilds it (innerHTML) every second and the run-time translator turns it into English; nav.js joins the number and unit again about 0.15 s after each rebuild, so a measurement can land in that gap. The joined state is the normal state.",
+   "added": "2026-11-17"
+  },
+  {
+   "page": "qc.html",
+   "kind": "W",
+   "lang": "en",
+   "width": 393,
+   "contains": "Inspect | now",
+   "reason": "Help list on a camera page: the English label 'Inspect now' is a whole text node owned by the run-time translator (lensiq-i18n-rt.js), which nav.js must not split (splitting it would break switching back to Thai); at 393 px only the two words of this label fall on the last line. Not reproduced at the other four widths.",
+   "added": "2026-11-17"
+  },
+  {
+   "page": "cameras.html",
+   "kind": "W",
+   "lang": "en",
+   "contains": "registration | desk",
+   "reason": "Narrow table cell (dd in a two-column list) at 360 / 375 px: the cell is narrower than 'registration desk', so the two words cannot share a line; the nowrap piece wraps inside itself instead of overflowing the cell. Wider phones show it on one line.",
+   "added": "2026-11-17"
+  },
+  {
+   "page": "photobooth.html",
+   "kind": "W",
+   "lang": "en",
+   "contains": "Face detection | ready",
+   "reason": "Live engine status line (aria-live), rewritten by the page while the camera starts; inside live status lines only short no-wrap pieces are used (longer ones widened narrow result boxes on medicine.html and broke the iPhone camera-refusal checks), and 'detection ready' is longer than that limit.",
+   "added": "2026-11-17"
+  },
+  {
+   "page": "counselling.html",
+   "kind": "W",
+   "lang": "en",
+   "width": 360,
+   "contains": "24 hours | a day",
+   "reason": "Crisis help line (the 191 entry of the hotline list, inside [data-lq-call]): the independent review of 2026-11-17 requires the line-wrap wrapper never to touch crisis help nodes, so no no-wrap piece can be used here and the shared crisis wording is not edited; CSS text-wrap:pretty on .lq-call-sub fixes the other widths and the 7 | days split, and at 360 px only the two words a day fall on the last line.",
+   "added": "2026-11-18"
+  }
+ ]
+}

@@ -108,5 +108,5 @@
   "qc.s104": "测试声音",
   "qc.s105": "剔除时向 Webhook 发送 JSON（默认关闭）",
   "qc.s106": "Webhook URL（POST）",
-  "qc.s107": "发送数据示例：{\"event\":\"reject\",\"time\":\"…\",\"lane\":\"L1\",\"laneNo\":1,\"recipe\":\"…\",\"reasons\":[\"capMissing\"],…}（lane 用于控制该产线的剔除机械臂）。接收端须允许来自本页面的 CORS。所有数据仅保存在本机浏览器中（空背景图和剔除瓶缩略图存于 IndexedDB，而非 localStorage）"
+  "qc.s107": "发送数据示例：{\"event\": \"reject\", \"time\": \"…\", \"lane\": \"L1\", \"laneNo\": 1, \"recipe\": \"…\", \"reasons\": [\"capMissing\"], …}（lane 用于控制该产线的剔除机械臂）。接收端须允许来自本页面的 CORS。所有数据仅保存在本机浏览器中（空背景图和剔除瓶缩略图存于 IndexedDB，而非 localStorage）"
 } });

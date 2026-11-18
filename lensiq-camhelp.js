@@ -51,7 +51,7 @@
   };
   // a refusal notice names the camera AND the permission (same words as tests/e2e/iphone-pages-webkit.e2e.mjs)
   const NOTICE = [[/กล้อง/, /อนุญาต|สิทธิ์|ถูกปฏิเสธ/], [/camera/i, /permission|allow|denied|blocked/i], [/摄像头|相机|镜头/, /权限|允许|拒绝/]];
-  const SKIP = "#siteNav, header.nav, footer, .lq-helpline, .lq-camhelp, button, a, label, summary, option, select, textarea, script, style, noscript";
+  const SKIP = "#siteNav, header.nav, footer, .lq-helpline, .lq-camhelp, lq-t, button, a, label, summary, option, select, textarea, script, style, noscript";
 
   const lang = () => {
     const l = (root.LQI18N && root.LQI18N.lang) || document.documentElement.lang || "th";
