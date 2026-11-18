@@ -54,6 +54,10 @@ jobs:
         run: npm run typecheck
       - name: unit tests (includes backend/ Worker — auth, analytics validation, retention, entitlements, Opn webhook, AI proxy — on an in-memory D1 shim)
         run: npm run test:unit
+      # Owner decision 85 ก (2026-11-17): every repo file named in any evals-locks/*.sha256 must equal its LATEST locked
+      # hash; a deleted locked file needs a "# retired <path> reason: <why>" line. Uses only evals-locks/ + repo files.
+      - name: locked test files match their latest lock (tools/eval-guard.mjs repo)
+        run: node tools/eval-guard.mjs repo
       # Ratchet: type errors across ALL root *.js (npm run typecheck:report) may only go down. When you fix files, lower
       # TYPECHECK_MAX to the new total in the same commit; never raise it. Lower it at the end of EVERY round:
       #   round 10: 800 (measured 790)   round 11: 714 (palm.js 46 -> 0 and gated; pricing/account/report/legal/leads gated)

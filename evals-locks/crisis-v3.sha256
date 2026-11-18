@@ -180,3 +180,9 @@ e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  relock-topstic
 77fd8d7abe1604a7536fcbc50f87e6ae9c2d005d7f8695327a354879f1cceeee  tests/e2e/crisis-rules-1323-e.e2e.mjs  # repo file (relock-topsticky)
 e1b2664f7aecc1b554d5bac221e9cf65846622a57d00fa2c32a6b8d5bc1e2b1c  tests/e2e/crisis-rules-kit.mjs  # repo file (relock-topsticky)
 # 2026-11-18: tests/unit/cat-pages.test.js / fortune-no-demo.test.js re-locked in evals-locks/promo-basics.sha256 (RE-LOCK 1: 404.html added as a support page)
+# 2026-11-17T22:09:32Z lock records reconciled (coordinator order, option ข, branch eval-guard-repo; docs/EVAL-LOCKS.md "Lock records reconciled 2026-11-18"):
+# retired tests/e2e/crisis-v3-pre.e2e.mjs reason: deleted in f45b9aa7, owner decision 84 = ก (option ข pre-line removed with its code; CRISIS-V3-RELOCKS.md:144); successors crisis-v3-a/b/c/d.e2e, crisis-v3.test.js U3/U4 (crisis-v3.sha256), crisis-rules-1323 R1/G3 (crisis-rules-1323.sha256)
+# retired tests/e2e/crisis-v3-pre-en.e2e.mjs reason: deleted in f45b9aa7, owner decision 84 = ก (CRISIS-V3-RELOCKS.md:144); successors crisis-v3-a/b/c/d.e2e, crisis-v3.test.js U3/U4, crisis-rules-1323 R1/G3
+# retired tests/e2e/crisis-v3-pre-zh.e2e.mjs reason: deleted in f45b9aa7, owner decision 84 = ก (CRISIS-V3-RELOCKS.md:144); successors crisis-v3-a/b/c/d.e2e, crisis-v3.test.js U3/U4, crisis-rules-1323 R1/G3
+# retired tests/unit/crisis-v3-pre.test.js reason: deleted in f45b9aa7, owner decision 84 = ก (LENSIQ_CRISIS_PRELINE removed; CRISIS-V3-RELOCKS.md:144); successors crisis-v3.test.js U3/U4, crisis-rules-1323 R1/G3
+# retired tests/unit/crisis-v3-r2.test.js reason: renamed in 08ec51f6 to tests/unit/crisis-net-fallback.test.js, same bytes 1c430554 (crisis-v3.sha256:170-171; CRISIS-V3-RELOCKS.md:169)

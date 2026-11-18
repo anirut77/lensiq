@@ -6,6 +6,9 @@
 // worktree), its sha256 is listed in the COMMITTED evals-locks/<phase>.sha256 (read from HEAD), and that file has no
 // uncommitted change.
 //   node tools/eval-guard.mjs check <phase> <files...>   exit 0 = locked and committed, 1 = refused (reasons on stderr)
+//   node tools/eval-guard.mjs repo                       exit 0 = every repo file named in any evals-locks/*.sha256 equals its LATEST
+//                                                        locked hash (owner decision 85 ก, 2026-11-17); 1 = mismatches on stderr.
+//                                                        Reads only evals-locks/ and the repo files (CI has no ~/LENSIQ-field).
 //   node tools/eval-guard.mjs lock  <phase> <files...>   append "# locked <UTC>" + "<sha256>  <path>" lines to
 //                                                        evals-locks/<phase>.sha256, then ~/LENSIQ-field/evals/<phase>/locked.sha256;
 //                                                        prints the git command to commit
@@ -14,7 +17,7 @@
 // Docs: docs/EVAL-LOCKS.md.
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, realpathSync, statSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -24,6 +27,9 @@ export const EVALS_ROOT = join(homedir(), "LENSIQ-field", "evals");
 const SHOWN_ROOT = "~/" + relative(homedir(), EVALS_ROOT).split(sep).join("/");
 const SEGMENT_RE = /^[a-z0-9][a-z0-9._-]*$/;
 const LINE_RE = /^([0-9a-f]{64})\s+(\S.*)$/;
+const RETIRE_RE = /^#\s*retired\s+(\S+)\s+reason:\s*(\S.*)$/;
+const PENDING_RE = /^#\s*pending\s+(\S+)\s+branch:\s*(\S+)\s+reason:\s*(\S.*)$/;
+const REPO_MARK_RE = /#\s*repo file\b/;
 
 /** @param {string} p @returns {string} */
 const real = p => { try { return realpathSync.native(p); } catch { return resolve(p); } };
@@ -129,6 +135,139 @@ function resolveFiles(phase, files, opts) {
   return { dir, dirReal, ok, problems };
 }
 
+/**
+ * Lock events of one lock file, in order: hash lines ("<sha256>  <path> ...") and retirement lines
+ * ("# retired <path> reason: <text>") and pending lines ("# pending <path> branch: <branch> reason: <text>": locked on main
+ * before the code is merged from <branch>; accepted only while the file is absent). `marked` = the line says "# repo file".
+ * @param {string} text
+ * @returns {{kind: "hash"|"retire"|"pending", path: string, hash?: string, reason?: string, branch?: string, marked: boolean, line: number}[]}
+ */
+export function lockEvents(text) {
+  /** @type {{kind: "hash"|"retire"|"pending", path: string, hash?: string, reason?: string, branch?: string, marked: boolean, line: number}[]} */
+  const out = [];
+  text.split(/\r?\n/).forEach((raw, i) => {
+    const m = raw.match(LINE_RE);
+    if (m) { out.push({ kind: "hash", hash: m[1], path: m[2].split(/\s+/)[0].replace(/^\.\//, ""), marked: REPO_MARK_RE.test(raw), line: i + 1 }); return; }
+    const r = raw.trim().match(RETIRE_RE);
+    if (r) { out.push({ kind: "retire", path: r[1].replace(/^\.\//, ""), reason: r[2].trim(), marked: false, line: i + 1 }); return; }
+    const q = raw.trim().match(PENDING_RE);
+    if (q && q[2] !== "reason:") out.push({ kind: "pending", path: q[1].replace(/^\.\//, ""), branch: q[2], reason: q[3].trim(), marked: false, line: i + 1 });
+  });
+  return out;
+}
+
+/** folders at the repo root (a lock path whose first folder is one of these is a repo path) @param {string} repo */
+function repoRootDirs(repo) {
+  try {
+    return new Set(readdirSync(repo, { withFileTypes: true }).filter(d => d.isDirectory() && !d.name.startsWith(".") && d.name !== "node_modules").map(d => d.name));
+  } catch { return new Set(); }
+}
+
+/**
+ * Is a lock path a file of this repo (not a copy under ~/LENSIQ-field)? Lines marked "# repo file" always are; otherwise a
+ * relative path whose first folder is a folder at the repo root. Bare names, phase sub-folders and absolute paths are not.
+ * @param {{path: string, marked: boolean}} ev @param {Set<string>} dirs
+ */
+function isRepoPath(ev, dirs) {
+  const p = ev.path;
+  if (!p || isAbsolute(p) || p.startsWith("~") || p.split("/").includes("..")) return false;
+  if (ev.marked) return true;
+  return p.includes("/") && dirs.has(p.split("/")[0]);
+}
+
+/**
+ * Owner decision 85 ก (2026-11-17): every repo file named in any evals-locks/*.sha256 must equal its LATEST locked hash.
+ * Locks are append-only: within a lock file the last entry for a path wins; across lock files a hash that another lock file
+ * later replaced (it holds that hash and then a newer line for the path) is superseded; lock files that still disagree are a
+ * conflict. A locked file that is gone from the repo fails unless a lock file retires it after its last hash line:
+ * "# retired <path> reason: <text>". Reads only evals-locks/ (working tree) and the repo files: no ~/LENSIQ-field needed.
+ * @param {{repo?: string, only?: Set<string>}} [opts] (repo: tests only; only: limit to these paths)
+ */
+export function checkRepoLocks(opts = {}) {
+  checkOverrides(opts);
+  const repo = opts.repo || REPO;
+  const lockDir = join(repo, "evals-locks");
+  const dirs = repoRootDirs(repo);
+  /** @type {Map<string, Map<string, ReturnType<typeof lockEvents>>>} path -> lock file -> events */ const byPath = new Map();
+  const lockFiles = existsSync(lockDir) ? readdirSync(lockDir).filter(f => f.endsWith(".sha256")).sort() : [];
+  for (const f of lockFiles) {
+    const rel = `evals-locks/${f}`;
+    for (const ev of lockEvents(readFileSync(join(lockDir, f), "utf8"))) {
+      if (!isRepoPath(ev, dirs) && !(ev.kind !== "hash" && byPath.has(ev.path))) continue;
+      if (opts.only && !opts.only.has(ev.path)) continue;
+      const per = byPath.get(ev.path) || new Map();
+      const list = per.get(rel) || [];
+      list.push(ev);
+      per.set(rel, list);
+      byPath.set(ev.path, per);
+    }
+  }
+  /** @type {{path: string, message: string}[]} */ const issues = [];
+  /** @type {{path: string, expected: string, actual: string, lockFile: string, line: number}[]} */ const checked = [];
+  /** @type {{path: string, reason: string, lockFile: string, line: number}[]} */ const retired = [];
+  /** @type {{path: string, branch: string, reason: string, lockFile: string, line: number}[]} */ const pending = [];
+  for (const [path, per] of [...byPath].sort((a, b) => a[0].localeCompare(b[0]))) {
+    if (![...per.values()].some(evs => evs.some(e => e.kind === "hash"))) continue; // only retirement lines: nothing locked
+    const abs = join(repo, ...path.split("/"));
+    const present = existsSync(abs) && statSync(abs).isFile();
+    const actual = present ? sha256(readFileSync(abs)) : "";
+    /** @type {{lockFile: string, hash: string, line: number}[]} */ const latest = [];
+    /** @type {{lockFile: string, reason: string, line: number}[]} */ const retires = [];
+    /** @type {{lockFile: string, branch: string, reason: string, line: number}[]} */ const pends = [];
+    for (const [lockFile, all] of per) {
+      let n = all.length; // pending lines after the last hash / retirement line of this lock file
+      while (n > 0 && all[n - 1].kind === "pending") n--;
+      if (n < all.length) { const q = all[all.length - 1]; pends.push({ lockFile, branch: /** @type {string} */ (q.branch), reason: /** @type {string} */ (q.reason), line: q.line }); }
+      const evs = all.slice(0, n);
+      if (!evs.length) continue;
+      const last = evs[evs.length - 1];
+      if (last.kind === "hash") latest.push({ lockFile, hash: /** @type {string} */ (last.hash), line: last.line });
+      else retires.push({ lockFile, reason: /** @type {string} */ (last.reason), line: last.line });
+    }
+    // superseded: another lock file holds this hash for the path and has a later line (new hash or retirement) after it
+    const live = latest.filter(c => ![...per].some(([lf, evs]) => {
+      if (lf === c.lockFile) return false;
+      const i = evs.findIndex(e => e.kind === "hash" && e.hash === c.hash);
+      return i >= 0 && evs.slice(i + 1).some(e => e.kind === "retire" || (e.kind === "hash" && e.hash !== c.hash));
+    }));
+    const hashes = [...new Set(live.map(c => c.hash))];
+    const where = (/** @type {{lockFile: string, line: number}} */ c) => `${c.lockFile} line ${c.line}`;
+    const older = () => {
+      if (!present) return "";
+      for (const [lf, evs] of per) { const e = evs.find(x => x.kind === "hash" && x.hash === actual); if (e) return ` (the repo file equals an OLDER lock entry: ${lf} line ${e.line})`; }
+      return " (the repo file's hash is in no lock file: changed after locking)";
+    };
+    if (hashes.length > 1 || (!hashes.length && !retires.length)) {
+      const all = (hashes.length ? live : latest).map(c => `${where(c)} = ${c.hash}`).join("; ");
+      issues.push({ path, message: `${path}: conflicting latest locks: ${all}; actual ${present ? actual : "(file not in the repo)"}. ` +
+        "No lock file replaces the other. Append the right hash, with the reason, as a documented re-lock to the lock file that is out of date." });
+      continue;
+    }
+    if (!hashes.length) { // every lock file retired it (or the hashes were superseded by a retirement)
+      const r = retires[0];
+      if (present) issues.push({ path, message: `${path}: retired in ${where(r)} ("${r.reason}") but still in the repo; lock it again or remove it.` });
+      else retired.push({ path, reason: r.reason, lockFile: r.lockFile, line: r.line });
+      continue;
+    }
+    const exp = live.find(c => c.hash === hashes[0]) || live[0];
+    if (!present && pends.length) { // locked before the code; re-checked when the branch is merged
+      const q = pends[0];
+      pending.push({ path, branch: q.branch, reason: q.reason, lockFile: q.lockFile, line: q.line });
+      continue;
+    }
+    if (!present) {
+      issues.push({ path, message: `${path}: locked in ${where(exp)} (expected ${exp.hash}) but the file is not in the repo. If it was removed on purpose, ` +
+        `append to the lock file: "# retired ${path} reason: <why>".` });
+      continue;
+    }
+    checked.push({ path, expected: exp.hash, actual, lockFile: exp.lockFile, line: exp.line });
+    if (actual !== exp.hash) {
+      issues.push({ path, message: `${path}: differs from its latest lock: expected ${exp.hash} (${where(exp)}), actual ${actual}${older()}.` });
+    }
+  }
+  return { checked, retired, pending, issues, problems: issues.map(i => i.message), lockFiles: lockFiles.length };
+}
+
 /** @param {string} phase @param {string[]} problems */
 const refuse = (phase, problems) => new Error(`eval-guard: refusing to measure phase "${phase}":\n  - ${problems.join("\n  - ")}\n` +
   `  Rule: the set lives in ${SHOWN_ROOT}/<phase>/ and its sha256 is committed in evals-locks/<phase>.sha256 BEFORE measuring` +
@@ -155,6 +294,11 @@ export function assertLocked(phase, files, opts = {}) {
     const head = gitRun(repo, ["show", `HEAD:${rel}`]);
     if (!head.ok) problems.push(`${rel} could not be read from HEAD: ${head.out.trim()}`);
     else { locked = parseLock(head.out); lockCommit = gitRun(repo, ["log", "-1", "--format=%h", "--", rel]).out.trim(); }
+  }
+  if (locked) { // owner decision 85 ก: repo files locked in this phase must equal their latest lock (in any lock file)
+    const dirs = repoRootDirs(repo);
+    const only = new Set(lockEvents(gitRun(repo, ["show", `HEAD:${rel}`]).out).filter(e => e.kind === "hash" && isRepoPath(e, dirs)).map(e => e.path));
+    if (only.size) for (const p of checkRepoLocks({ ...(opts.repo ? { repo } : {}), only }).problems) problems.push(p);
   }
   /** @type {{path: string, sha256: string}[]} */ const out = [];
   for (const f of ok) {
@@ -204,7 +348,8 @@ export function lock(phase, files, opts = {}) {
   return { phase, files: items.map(i => ({ path: i.path, sha256: i.sha256 })), git };
 }
 
-const USAGE = "usage: node tools/eval-guard.mjs check <phase> <files...>   |   node tools/eval-guard.mjs lock <phase> <files...>";
+const USAGE = "usage: node tools/eval-guard.mjs check <phase> <files...>   |   node tools/eval-guard.mjs lock <phase> <files...>   |   " +
+  "node tools/eval-guard.mjs repo";
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const [cmd, phase, ...files] = process.argv.slice(2);
@@ -214,6 +359,17 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
       console.log(`eval-guard OK: phase "${r.phase}", ${r.files.length} file(s) match ${r.lockFile} (committed in ${r.lockCommit})`);
       for (const f of r.files) console.log(`  ${f.sha256}  ${f.path}`);
     } else if (cmd === "lock" && phase) lock(phase, files);
+    else if (cmd === "repo") {
+      const args = process.argv.slice(3), i = args.indexOf("--repo");
+      const r = checkRepoLocks(i >= 0 ? { repo: resolve(args[i + 1] || "") } : {});
+      if (r.problems.length) {
+        console.error(`eval-guard repo: ${r.problems.length} locked repo file(s) differ from their latest lock (owner decision 85 ก):\n  - ` +
+          r.problems.join("\n  - ") + "\n  Never edit a lock to match a changed test without a documented re-lock (docs/EVAL-LOCKS.md).");
+        process.exit(1);
+      }
+      console.log(`eval-guard repo OK: ${r.checked.length} locked repo file(s) match their latest lock in ${r.lockFiles} lock file(s); ` +
+        `${r.retired.length} retired; ${r.pending.length} pending (absent until their branch is merged).`);
+    }
     else { console.error(USAGE); process.exit(1); }
   } catch (e) {
     console.error(String(/** @type {any} */ (e).message || e));
