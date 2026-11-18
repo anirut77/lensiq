@@ -37,7 +37,8 @@ async function plain(page, sel, l, label, re) {
     const el = document.querySelector(s);
     return { text: el ? el.textContent.trim() : null, busy: document.querySelectorAll("[aria-busy=true]").length };
   }, sel);
-  assert(r.text && r.text.length >= 6, `${label} [${l}]: no message in ${sel}: ${JSON.stringify(r.text)}`);
+  // a word is 2+ characters in Chinese ("暂无事件" = "no events yet"), 6+ in Thai / English
+  assert(r.text && r.text.length >= (l === "zh" ? 2 : 6), `${label} [${l}]: no message in ${sel}: ${JSON.stringify(r.text)}`);
   if (l !== "th") assert(!THAI.test(r.text), `${label} [${l}]: Thai letters in ${sel}: ${r.text.slice(0, 160)}`);
   if (re && re[l]) assert(re[l].test(r.text), `${label} [${l}]: ${sel} does not say it: ${r.text.slice(0, 160)}`);
   assert(r.busy === 0, `${label} [${l}]: ${r.busy} control(s) left busy`);

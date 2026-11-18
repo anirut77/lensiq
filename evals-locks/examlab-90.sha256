@@ -7,3 +7,6 @@
 2e5dcbf7781915df3760960803f70d333878adf124d3a2a07e2d7ca3e69a9eab  tests/e2e/exam-pages-webkit.e2e.mjs
 b7de7edd805d32107cdefd6043ba51a2331741bc1e4acaba4464f50aa13de379  tests/e2e/exam-widths.e2e.mjs
 64032b4ef85919f85949a0b1abf3770a0fdf1b2161be44db7f41cb195b3592ca  tools/exam-s2.mjs
+# test-defect re-lock (before any product change): plain() asked for >= 6 characters, which refused correct Chinese empty-state text ("暂无事件" = 4 characters); now >= 2 in Chinese, >= 6 in Thai / English. Base run at 4aac0db before this fix: 12 passed, 8 failed (E2 no-frames x3, E3 crash guard x3 fail as expected; E5 zh and X zh failed only on this defect). No flow, fault, wait or other assertion changed.
+# locked 2026-11-18T16:31:28Z (tools/eval-guard.mjs lock, 1 file)
+e6c08d8b70afab30837e266acdc2eb3c72aaa4440efcb603adbbfde2deed27da  tests/e2e/exam-states.e2e.mjs
