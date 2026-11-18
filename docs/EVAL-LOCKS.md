@@ -144,3 +144,6 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
 - `seller-settings` re-lock A2 (2026-11-18): `tests/e2e/admin-seller.e2e.mjs`, test setup only: pdf.js returns Thai
   above / below marks from Chrome's PDF as U+0000, so the Thai phrase is compared without those marks on both sides. The
   other failure of that run (320 px overflow) was fixed in the product. Reason in `evals-locks/seller-settings.sha256`.
+- `seller-settings` re-lock (3) (2026-11-18): independent review of 13cf281 NOT OK (issued documents not fully frozen; list
+  query count over the Free-plan limit; logo copied per document; minor items). New files `tests/unit/backend-seller-r1.test.js`
+  (R1–R8) and `tests/integration/backend-seller-workerd-r1.test.mjs` (log-sink canary) locked before the fixes: unit 0 / 8.

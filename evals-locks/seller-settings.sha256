@@ -24,3 +24,14 @@ d925c82e3d65c07096d572dc768df6e7f9cf1591588b12ed72488ae18aa64182  admin-seller.e
 # U+0000 and spaces on BOTH sides (EN / ZH phrases and the Latin seller values are compared exactly as before). First e2e run
 # on the product: 4 pass / 2 fail (this one + a real 320 px overflow in the tab, fixed in the product CSS, not in the test).
 d925c82e3d65c07096d572dc768df6e7f9cf1591588b12ed72488ae18aa64182  tests/e2e/admin-seller.e2e.mjs (after amendment A2)  # repo file
+# locked 2026-11-18T04:00:42Z (tools/eval-guard.mjs lock, 2 files)
+f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7  backend-seller-r1.test.js
+4e08cee273cc05309b15b6b66424aa5712483aafeabe77b46823610f9ae7e9ae  backend-seller-workerd-r1.test.mjs
+# Review round 1 (independent reviewer NOT OK on 13cf281, 2026-11-18): new files locked BEFORE the fixes; earlier files unchanged.
+#  R1 issued documents fully frozen (price change / removed line); R2 list = fixed statement count (Workers Free 50 queries);
+#  R3 one stored copy per logo; R4 missing profile row recreated; R5 VAT 7 % only; R6 branch + regular price TH/EN/ZH;
+#  R7 clear control for masked fields; R8 real calendar date; workerd-r1 = log-sink canary (finding 9).
+# On 13cf281: unit 0 pass / 8 fail; workerd-r1 1 pass / 0 fail (the sink works; this test makes that proven from now on).
+# Logs: r1-unit-before-fix.log, r1-integration-before-fix.log
+f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7  tests/unit/backend-seller-r1.test.js  # repo file
+4e08cee273cc05309b15b6b66424aa5712483aafeabe77b46823610f9ae7e9ae  tests/integration/backend-seller-workerd-r1.test.mjs  # repo file
