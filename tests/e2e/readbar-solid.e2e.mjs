@@ -9,8 +9,8 @@
 //   2. room: the page keeps bottom space for it: the body's computed padding-bottom >= the bar's height;
 //   3. nothing shows over or through it: every text box (Range.getClientRects of each shown text node outside the bar) that
 //      intersects the bar's box is under the bar: document.elementFromPoint at the middle of the overlap and 1 px inside its
-//      four corners hits the bar (or something inside it). A fixed bar always has page text passing BEHIND it while the page
-//      scrolls; with check 1 that text is not visible;
+//      four corners (clamped to the overlap's middle) hits the bar (or something inside it). A fixed bar always has page
+//      text passing BEHIND it while the page scrolls; with check 1 that text is not visible;
 //   4. at the bottom of the page (100 %): NO text box intersects the bar at all, and the last shown content element of the
 //      page (the last element child of <body> in normal flow, not the bar) ends at or above the bar's top.
 // The bar must show on planner.html at least once per language (some width and scroll position; at 800 px screen height
@@ -65,7 +65,10 @@ const PROBE = `((atBottom) => {
       const txt = t.nodeValue.replace(/\\s+/g, " ").trim().slice(0, 40);
       under++;
       if (atBottom) { out.push("text under the bar at the bottom of the page: \\"" + txt + "\\""); continue; }
-      const pts = [[(l + rt) / 2, (tp + bt) / 2], [l + 1, tp + 1], [rt - 1, tp + 1], [l + 1, bt - 1], [rt - 1, bt - 1]];
+      // 1 px inside each corner, but never past the middle: an overlap under 2 px high (text 0.5 px into the bar's top edge
+      // at the bottom of the screen) would otherwise put a point at y = innerHeight, outside the screen (relock-2)
+      const ix = Math.min(1, (rt - l) / 2), iy = Math.min(1, (bt - tp) / 2);
+      const pts = [[(l + rt) / 2, (tp + bt) / 2], [l + ix, tp + iy], [rt - ix, tp + iy], [l + ix, bt - iy], [rt - ix, bt - iy]];
       if (!pts.every(([x, y]) => hit(x, y))) out.push("text shows over the bar: \\"" + txt + "\\"");
     }
   }

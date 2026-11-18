@@ -26,3 +26,12 @@ af59df8279d0ee2730e10c2794855f01ac8442059fb3dcb9e13525d93daa0416  tests/e2e/plan
 # locked 2026-11-18T04:12:54Z (tools/eval-guard.mjs lock, 2 files)
 242deef5ce90b546b50e4b0d902c1f793ca6e4e08b5b09759666ee49b19ede8c  relock-1/tests/e2e/select-fit-kit.mjs
 b589713035999c09d6bf740da3a45f093cfd727fc6beeadca6cae29294b348bd  relock-1/tests/e2e/readbar-solid.e2e.mjs
+# relock-2 2026-11-18 (test fault found by the first run after the fix): readbar-solid check 3 put its corner points 1 px inside the overlap of
+# a text box and the bar; dream.html TH 430 px had a 1-px-high overlap at the screen's bottom edge, so a point fell at y = innerHeight (outside the
+# screen, elementFromPoint null) and was counted as text over the bar while the bar covered the text (the middle point hit the bar). Fix: the
+# 1 px inset is clamped to half the overlap. No rule, page, width, language, position or threshold changed. Copy in relock-2/.
+# locked 2026-11-18T04:37:44Z (tools/eval-guard.mjs lock, 1 file)
+14dac6d543d1b7fe9eae74914eb3c97b92fec51cb462f63dd7523e3ba231ab29  relock-2/tests/e2e/readbar-solid.e2e.mjs
+# relock-3 2026-11-18 (formatting only, same commit as relock-2): one header comment line of readbar-solid wrapped under 200 characters. Copy in relock-3/.
+# locked 2026-11-18T04:38:07Z (tools/eval-guard.mjs lock, 1 file)
+935f0f346027dd8e7a6e10c6417e4803f90d4fe498609909a7dd118983125d09  relock-3/tests/e2e/readbar-solid.e2e.mjs
