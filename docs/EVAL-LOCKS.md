@@ -147,3 +147,5 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
 - `seller-settings` re-lock (3) (2026-11-18): independent review of 13cf281 NOT OK (issued documents not fully frozen; list
   query count over the Free-plan limit; logo copied per document; minor items). New files `tests/unit/backend-seller-r1.test.js`
   (R1–R8) and `tests/integration/backend-seller-workerd-r1.test.mjs` (log-sink canary) locked before the fixes: unit 0 / 8.
+- `seller-settings` re-lock (4) (2026-11-18): round-2 review OK on 69d36fe with low items; `tests/unit/backend-seller-r2.test.js`
+  (H1 health probe, U2 unavailable-line note, V3 VAT fixed at 7 %) locked before the fixes. Earlier files unchanged.

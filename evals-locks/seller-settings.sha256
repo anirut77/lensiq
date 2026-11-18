@@ -35,3 +35,10 @@ f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7  backend-seller
 # Logs: r1-unit-before-fix.log, r1-integration-before-fix.log
 f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7  tests/unit/backend-seller-r1.test.js  # repo file
 4e08cee273cc05309b15b6b66424aa5712483aafeabe77b46823610f9ae7e9ae  tests/integration/backend-seller-workerd-r1.test.mjs  # repo file
+# locked 2026-11-18T04:07:37Z (tools/eval-guard.mjs lock, 1 file)
+5f43b817bc286ff09160c8086155ff918419b4655873ff8df0597cd41b320dff  backend-seller-r2.test.js
+# Review round 2 (independent reviewer OK on 69d36fe with 4 low items; coordinator 2026-11-18 ordered items 1-3 fixed): new file
+# locked BEFORE the fixes; every earlier file unchanged. H1 health probe for the round-1 columns; U2 TH/EN/ZH note on a draft
+# line that left the price list + unavailable_lines in the list; V3 VAT rate fixed at 7 % on the admin page.
+# On 69d36fe: see r2-unit-before-fix.log
+5f43b817bc286ff09160c8086155ff918419b4655873ff8df0597cd41b320dff  tests/unit/backend-seller-r2.test.js  # repo file
