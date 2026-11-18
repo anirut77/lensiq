@@ -133,3 +133,8 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   its `locked.sha256` as is (`tools/eval-locks-import.mjs` stopped on an unrelated missing file in `pc-f/review`). Re-measure
   only; never tuned against. The builder's 0 / 0 on `fortune-paid-fresh-2026-11-16b` came after tuning on that set and is not
   an independent number. `fortune-paid` re-lock (10): review D1–D3 and the switch-off identity test, before the fix.
+- `seller-settings` (2026-11-18): owner order "needed for selling" (seller details page + quotation / invoice / receipt).
+  Three files locked before `backend/src/seller.js`, `backend/src/price-list.js`, migration `0021_seller.sql` and
+  `admin-seller.js` existed: `tests/unit/backend-seller.test.js` (S1–S11), `tests/integration/backend-seller-workerd.test.mjs`
+  (workerd + real D1) and `tests/e2e/admin-seller.e2e.mjs` (real browser, Chrome print-to-PDF read back with pdf.js).
+  Before the build: unit 0 pass / 11 fail, integration 0 / 1. Synthetic values only.

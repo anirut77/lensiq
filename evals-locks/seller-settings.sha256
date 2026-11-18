@@ -1,0 +1,13 @@
+# locked 2026-11-18T03:20:06Z (tools/eval-guard.mjs lock, 3 files)
+eb8c35e33dfc5ef7b3435d4c23d103d6145e5a781053ebf302db7838a7eb8947  backend-seller.test.js
+56641e63248214c9e9da98127e56f30d9f59d1e92200f27d19eb08e3905ed859  admin-seller.e2e.mjs
+19ba8bf4082ccdb088123a85c29bc6a4dae38aa8c447c942a79e25765b5d2775  backend-seller-workerd.test.mjs
+# Owner order 2026-11-18 "needed for selling": the "ข้อมูลกิจการ" (seller details) admin page, owner only, step-up to change,
+# and quotation / invoice / receipt documents generated from it. Coordinator 2026-11-18: READ is owner-only too (anonymous,
+# admin and staff get 403 on read), and the three documents are complete in TH / EN / ZH. Locked BEFORE any product code
+# (base b2a6e76). The three files are byte-identical copies of the repo files below. Before the build: unit 0 pass / 11 fail,
+# workerd integration 0 pass / 1 fail (no seller routes); e2e not run before the build (no tab exists).
+# Logs: ~/LENSIQ-field/evals/seller-settings/{unit,integration}-before-build.log
+eb8c35e33dfc5ef7b3435d4c23d103d6145e5a781053ebf302db7838a7eb8947  tests/unit/backend-seller.test.js  # repo file
+56641e63248214c9e9da98127e56f30d9f59d1e92200f27d19eb08e3905ed859  tests/e2e/admin-seller.e2e.mjs  # repo file
+19ba8bf4082ccdb088123a85c29bc6a4dae38aa8c447c942a79e25765b5d2775  tests/integration/backend-seller-workerd.test.mjs  # repo file
