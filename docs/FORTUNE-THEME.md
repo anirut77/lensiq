@@ -148,3 +148,7 @@ cat-fortune card titles: the title stays above the card-wide link (main's compac
   (own drawing, line only), and hub card 19 on `fortune.html` (owner decision 118 ก) in TH / EN / ZH with no share wording
   ("แชร์ / share / 分享" never in the caption). `nav.petread.desc` (EN) shortened to 77 characters for the one-line card.
   Versions: zh-fortune.js 14, zh-fortune-hub.js 8.
+- Speed budget: help.html measured 401 KB > 400 KB after the merges (lensiq-config.js theme switch +1.3 KB, nav.js / zh-common
+  petread and cards-clean text). The switch block in `lensiq-config.js` is now compact (same behaviour, comment moved here): help.html
+  400 KB, 20 requests (main 399 KB). fortune.html 406 KB / 22, cat-fortune 304 KB / 18, luckycolor 505 KB / 26 (synthetic, headless
+  Chrome, local). No budget raised.
