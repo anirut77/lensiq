@@ -818,7 +818,8 @@
         el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "account.html#history", text: T("mem.menu.history", "ประวัติการดูดวงของฉัน") })),
         el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "account.html#plan", text: T("mem.menu.plan", "แพ็กเกจและโควตา") })),
         el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "report.html", text: T("mem.menu.reports", "รายงานดวงของฉัน") })),
-        pricingOn() ? el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "pricing.html", text: T("mem.menu.pricing", "แพ็กเกจและราคา") })) : null,
+        // crisis-v3-protect: hidden while the crisis / calm state is set (nav.js style for data-lq-crisis-sales)
+        pricingOn() ? el("li", { role: "presentation", "data-lq-crisis-sales": "" }, el("a", { role: "menuitem", href: "pricing.html", text: T("mem.menu.pricing", "แพ็กเกจและราคา") })) : null,
         el("li", { role: "presentation" }, el("button", { type: "button", role: "menuitem", "data-lq-signout": "", text: T("mem.menu.signout", "ออกจากระบบ") })),
         el("li", { role: "presentation" }, el("a", { role: "menuitem", class: "danger", href: "account.html#delete", text: T("mem.menu.delete", "ลบบัญชี") })));
       var rn = renewalDue(planForRenewal(st.me));
