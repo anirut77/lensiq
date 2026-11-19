@@ -40,17 +40,22 @@ figure was measured on n = 26. Source label for any number measured on it: **pub
 | Candidates | 350 | 160 |
 | Kept after hand-check | **223** (80 test + 143 train) | **135** |
 
-Phone size in the positives (`phoneLong` = longest phone box side as a fraction of the image side): < 0.15: 11 ·
-0.15 – 0.4: 70 · >= 0.4 (close-up): 142. Public phone photos are mostly close-ups; the harness reports recall per size
-band so the desk-distance view (< 0.4, 81 frames) is visible on its own.
+Phone size in the positives: < 0.15: 11 · 0.15 – 0.4: 70 · >= 0.4 (close-up): 142. `phoneLong` is
+max(normalised box width, normalised box height) of the largest phone box, relative to the original image, so for a
+portrait image it is larger than the phone's share of the 640 x 480 frame after letterboxing. Public phone photos are
+mostly close-ups, so A2 is decided on the 81 positives with `phoneLong` < 0.4 only.
 
 ## Protocol (in `tools/examlab-phone-eval.mjs`)
 
 Letterbox each image into 640 x 480 (the lab camera request); run the lab page's own call
 `LQDetect.detectCocoMulti(coco, frame, [{classes: [76, 83, 72, 71], minScore: 0.4, max: 10}])` in headless Chrome
 (`exam-lab.html?cpu`); a frame is flagged when a phone detection scores >= `LQExam.DEFAULTS.phoneConf` (0.6).
-Primary: recall on positives with a Wilson 95 % interval, target >= 80 %. Reported only: false flags on negatives,
-score cuts 0.4 and 0.5, recall by size band. Not measured yet: the Exam lab team measures after merge.
+A2 decision (primary): recall on the positives with `phoneLong` < 0.4 only (n = 81, >= 50), Wilson 95 % interval,
+target >= 80 %. Secondary rows only, never used for the decision: recall on all 223 positives, recall on the >= 0.4
+close-up band and the two smaller bands, false flags on the 135 negatives, score cuts 0.4 and 0.5. Every number from
+this set is stated as **public stills, not lab webcam; field pilot confirms**. `--from` refuses a saved run unless its
+`manifestSha256` equals the locked manifest hash and its frame ids match the manifest ids one for one. Not measured
+yet: the Exam lab team measures after merge.
 
 ## Licence and credits
 

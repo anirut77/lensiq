@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // tools/examlab-phone-eval.mjs — LENSIQ Exam lab: phone-in-hand recall on a locked public still-image set
 // (acceptance sheet docs/acceptance/exam-lab.md, criterion A2 "phone recall at desk distance >= 80 % on a locked set of
-// >= 50 phone-in-hand frames"; owner decision 134). Source: public dataset (Open Images V7 test split, images CC BY 2.0,
+// >= 50 phone-in-hand frames"; owner decision 134). Source: public dataset (Open Images V7 test and train splits, images CC BY 2.0,
 // annotations CC BY 4.0; credits in ~/LENSIQ-field/evals/examlab-phone/ATTRIBUTION.csv and docs/exam/EXAMLAB-PHONE-SET.md).
 //
 // The images are photos of real people: they stay OUTSIDE the repo (~/LENSIQ-field/evals/examlab-phone/images/) and are
@@ -15,11 +15,13 @@
 //   - a frame is FLAGGED when a class-76 ("phone") detection has score >= LQExam.DEFAULTS.phoneConf (the lab threshold).
 //     A still image repeated gives the same result every frame, so the k-of-n gate (phoneK of phoneN) fires exactly when
 //     the single frame is flagged;
-//   - primary: recall = flagged positives / positives (labels.csv label "pos"), Wilson 95 % interval; target >= 80 %;
-//   - secondary (reported, no target in the sheet): false flags = flagged negatives / negatives;
-//   - sensitivity rows at score >= 0.4 (the decode floor) and 0.5 are reported, never used for the pass decision;
-//   - recall is also reported by phone size (manifest phoneLong = longest phone box side / image side: < 0.15 desk-like,
-//     0.15 – 0.4, >= 0.4 close-up). Most public phone photos are close-ups, so the < 0.4 rows are the desk-distance view.
+//   - phoneLong (manifest) = max(normalised box width, normalised box height) of the largest phone box, i.e. relative to
+//     the ORIGINAL image; after letterboxing a portrait image into 640 x 480 the phone is smaller in the frame than this;
+//   - A2 decision (primary): recall at score >= phoneConf on the positives with phoneLong < 0.4 only (desk-like sizes;
+//     81 frames in the locked set, >= 50), Wilson 95 % interval; target >= 80 %;
+//   - secondary rows only, never used for the decision: recall on all positives, recall on the >= 0.4 close-up band,
+//     the < 0.15 and 0.15 – 0.4 bands, false flags = flagged negatives / negatives, score cuts 0.4 and 0.5;
+//   - every number is "public stills, not lab webcam; field pilot confirms".
 //
 //   node tools/examlab-phone-eval.mjs --run            measure (refuses unless the set is locked and committed)
 //   node tools/examlab-phone-eval.mjs --from <json>    tables of a saved run (also guarded)
@@ -66,30 +68,55 @@ export function parseLabels(text) {
   return m;
 }
 
-/** @param {{frames: Array<{id: string, label: string, phone: number, phoneLong: number}>, machine?: any}} out */
+export const DESK_MAX = 0.4;
+export const CAVEAT = "public stills, not lab webcam; field pilot confirms";
+
+/** A2 is decided on the positives with phoneLong < DESK_MAX only; everything else is a secondary row.
+ * @param {{frames: Array<{id: string, label: string, phone: number, phoneLong: number}>, machine?: any}} out */
 export function summarise(out) {
-  const rows = [];
-  for (const cut of [PHONE_CONF, ...SENS]) {
-    const pos = out.frames.filter(f => f.label === "pos"), neg = out.frames.filter(f => f.label === "neg");
-    const tp = pos.filter(f => f.phone >= cut).length, fp = neg.filter(f => f.phone >= cut).length;
-    rows.push({ cut, primary: cut === PHONE_CONF, tp, pos: pos.length, recall: pos.length ? tp / pos.length : 0, ci: wilson(tp, pos.length),
-      fp, neg: neg.length, falseRate: neg.length ? fp / neg.length : 0, fci: wilson(fp, neg.length) });
-  }
-  const bands = [["< 0.15", 0, 0.15], ["0.15 – 0.4", 0.15, 0.4], [">= 0.4", 0.4, 9]].map(([name, lo, hi]) => {
-    const fr = out.frames.filter(f => f.label === "pos" && f.phoneLong >= lo && f.phoneLong < hi), k = fr.filter(f => f.phone >= PHONE_CONF).length;
-    return { name, k, n: fr.length, ci: wilson(k, fr.length) };
-  });
-  const p = rows[0];
-  const pass = p.pos >= MIN_POS && p.recall >= TARGET;
+  const pos = out.frames.filter(f => f.label === "pos"), neg = out.frames.filter(f => f.label === "neg");
+  const row = (/** @type {string} */ name, /** @type {any[]} */ fr, /** @type {number} */ cut, /** @type {boolean} */ primary) => {
+    const k = fr.filter(f => f.phone >= cut).length;
+    return { name, cut, primary, k, n: fr.length, rate: fr.length ? k / fr.length : 0, ci: wilson(k, fr.length) };
+  };
+  const desk = pos.filter(f => f.phoneLong < DESK_MAX);
+  const band = (/** @type {number} */ lo, /** @type {number} */ hi) => pos.filter(f => f.phoneLong >= lo && f.phoneLong < hi);
+  const primary = row(`recall, positives with phoneLong < ${DESK_MAX} (A2 decision)`, desk, PHONE_CONF, true);
+  const rows = [primary,
+    row("recall, all positives", pos, PHONE_CONF, false),
+    row(`recall, close-up band phoneLong >= ${DESK_MAX}`, band(DESK_MAX, 9), PHONE_CONF, false),
+    row("recall, band phoneLong < 0.15", band(0, 0.15), PHONE_CONF, false),
+    row(`recall, band 0.15 <= phoneLong < ${DESK_MAX}`, band(0.15, DESK_MAX), PHONE_CONF, false),
+    ...SENS.map(c => row(`recall, positives with phoneLong < ${DESK_MAX}, score cut ${c}`, desk, c, false)),
+    row("false flags, negatives", neg, PHONE_CONF, false),
+    ...SENS.map(c => row(`false flags, negatives, score cut ${c}`, neg, c, false))];
+  const pass = primary.n >= MIN_POS && primary.rate >= TARGET;
   const pc = (/** @type {number} */ v) => (100 * v).toFixed(1) + " %";
-  const L = ["## Exam lab phone-in-hand set (public dataset: Open Images V7, CC BY 2.0 images)", "",
-    "| Score cut | Use | Recall (positives) | 95 % CI | False flags (negatives) | 95 % CI |", "|---|---|---|---|---|---|"];
-  for (const r of rows) L.push(`| ${r.cut} | ${r.primary ? "**primary (lab phoneConf)**" : "sensitivity only"} | ${pc(r.recall)} (${r.tp} / ${r.pos}) | ${pc(r.ci[0])} – ${pc(r.ci[1])} | ${pc(r.falseRate)} (${r.fp} / ${r.neg}) | ${pc(r.fci[0])} – ${pc(r.fci[1])} |`);
-  L.push("", `Recall by phone size at score >= ${PHONE_CONF}:`, "", "| Phone long side / image | Recall | 95 % CI |", "|---|---|---|");
-  for (const b of bands) L.push(`| ${b.name} | ${b.n ? pc(b.k / b.n) : "–"} (${b.k} / ${b.n}) | ${pc(b.ci[0])} – ${pc(b.ci[1])} |`);
-  L.push("", `A2 (recall >= ${pc(TARGET)} on >= ${MIN_POS} phone-in-hand frames): **${pass ? "pass" : "fail"}** · source: public dataset`);
+  const L = [`## Exam lab phone-in-hand set (public dataset: Open Images V7, CC BY 2.0 images; ${CAVEAT})`, "",
+    "| Row | Use | Score cut | Rate | 95 % CI |", "|---|---|---|---|---|"];
+  for (const r of rows) L.push(`| ${r.name} | ${r.primary ? "**primary**" : "secondary"} | ${r.cut} | ${r.n ? pc(r.rate) : "–"} (${r.k} / ${r.n}) | ${pc(r.ci[0])} – ${pc(r.ci[1])} |`);
+  L.push("", `A2 (recall >= ${pc(TARGET)} on >= ${MIN_POS} phone-in-hand frames with phoneLong < ${DESK_MAX}): **${pass ? "pass" : "fail"}** · source: public dataset · ${CAVEAT}`);
   if (out.machine) L.push("", "Machine: " + JSON.stringify(out.machine));
-  return { text: L.join("\n"), rows, bands, pass };
+  return { text: L.join("\n"), rows, pass };
+}
+
+/** --from: a saved run counts only if it was made on the locked manifest and covers its frames one for one.
+ * @param {{manifestSha256?: string, frames?: Array<{id: string}>}} out @param {string} manifestText @returns {string[]} reasons (empty = OK) */
+export function savedRunProblems(out, manifestText) {
+  const why = [];
+  const sha = createHash("sha256").update(manifestText).digest("hex");
+  if (!out || out.manifestSha256 !== sha) why.push(`manifestSha256 ${out && out.manifestSha256} != locked manifest ${sha}`);
+  const ids = manifestText.trim().split("\n").map(l => JSON.parse(l).id);
+  const got = (out && Array.isArray(out.frames) ? out.frames : []).map(f => f.id);
+  const want = new Set(ids), seen = new Set();
+  for (const id of got) {
+    if (!want.has(id)) why.push("frame not in the manifest: " + id);
+    else if (seen.has(id)) why.push("frame twice: " + id);
+    seen.add(id);
+  }
+  for (const id of ids) if (!seen.has(id)) why.push("manifest frame missing from the run: " + id);
+  if (got.length !== ids.length) why.push(`run has ${got.length} frames, manifest ${ids.length}`);
+  return why;
 }
 
 /* ---------- in-page part (exam-lab.html?cpu in headless Chrome) ---------- */
@@ -131,7 +158,7 @@ async function run() {
   }
   if (labels.size !== manifest.length) throw new Error("labels.csv and manifest.jsonl differ in size");
   const srv = await serve(repo), browser = await launch();
-  const out = { tool: "tools/examlab-phone-eval.mjs", date: new Date().toISOString(), source: "public dataset (Open Images V7 test split)",
+  const out = { tool: "tools/examlab-phone-eval.mjs", date: new Date().toISOString(), source: "public dataset (Open Images V7 test and train splits; " + CAVEAT + ")",
     manifestSha256: createHash("sha256").update(readFileSync(join(DIR, "manifest.jsonl"))).digest("hex"),
     phoneConf: PHONE_CONF, frame: [FW, FH], machine: {}, frames: /** @type {any[]} */ ([]) };
   try {
@@ -162,7 +189,12 @@ if (main) {
       const g = assertLocked(phaseOf(DIR), LOCKED);
       console.error(`eval-guard OK: phase ${g.phase}, ${LOCKED.length} files in ${g.lockFile} (commit ${g.lockCommit})`);
     } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(2); }
-    const out = has("--from") ? JSON.parse(readFileSync(resolve(String(opt("--from"))), "utf8")) : await run();
+    let out;
+    if (has("--from")) {
+      out = JSON.parse(readFileSync(resolve(String(opt("--from"))), "utf8"));
+      const why = savedRunProblems(out, readFileSync(join(DIR, "manifest.jsonl"), "utf8"));
+      if (why.length) { console.error("examlab-phone-eval: refused --from:\n  " + why.slice(0, 20).join("\n  ")); process.exit(2); }
+    } else out = await run();
     const s = summarise(out);
     console.log(s.text);
     if (opt("--md")) writeFileSync(resolve(String(opt("--md"))), s.text + "\n");
