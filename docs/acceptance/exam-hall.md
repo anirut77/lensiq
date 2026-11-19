@@ -18,8 +18,8 @@ There is no face identification.
 | ID | Criterion | Target | How measured | Weight |
 |---|---|---|---|---|
 | F | Must-do 1–6, per item | each exercised by a test on main | `exam-hall*.e2e.mjs`, `hall-seatwatch-*.test.js` (lock `gate-hall-h`) | 20 |
-| A1 | Empty, back, aisle | recall Wilson lower bound ≥ 80 % (≥ 55 / 60 events) (existing proposal: `docs/pilot/PILOT-HALL-SEATWATCH.md`) | mock exam, locked replay | 12 |
-| A2 | Extra person, lean | recall ≥ 70 % (existing proposal) | mock exam | 8 |
+| A1 | Empty, back, aisle | recall Wilson lower bound ≥ 80 % per signal (empty ≥ 55 / 60, back ≥ 63 / 70, aisle ≥ 65 / 72 events; `docs/pilot/PILOT-HALL-SEATWATCH.md:176`) (existing proposal: `docs/pilot/PILOT-HALL-SEATWATCH.md`) | mock exam, locked replay | 12 |
+| A2 | Extra person, lean | recall Wilson lower bound ≥ 70 % each (≥ 49 / 60 events each) (existing proposal: `docs/pilot/PILOT-HALL-SEATWATCH.md:177`) | mock exam | 8 |
 | A3 | False alerts | ≤ 3 per 30-seat, 3-hour session; of these, Watch / Check ≤ 1 (existing proposal: `docs/pilot/PILOT-HALL-SEATWATCH.md:179`, T4) | mock exam | 8 |
 | A4 | Timing | alert: median ≤ H + 5 s and 90th percentile ≤ H + 10 s; time-away error median ≤ 10 s; ≥ 2 rounds per second (existing proposal: `docs/pilot/PILOT-HALL-SEATWATCH.md:181-183`, T5–T7) | replay harness | 7 |
 | P | P1–P5, per item | all pass | README P | 8 |

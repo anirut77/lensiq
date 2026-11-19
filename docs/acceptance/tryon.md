@@ -18,9 +18,9 @@ office. The disclaimer reads "a preview of placement and colour, not a realistic
 | ID | Criterion | Target | How measured | Weight |
 |---|---|---|---|---|
 | F | Must-do 1–6, per item | each exercised by a test on main | `tryon*.e2e.mjs`, locks `tryon-mvp`, `tryon-fit`, `tryon-pose`, `tryon-off` | 20 |
-| A1 | Pose anchors (synthetic, locked) | all anchors within their mean and p90 limits; place-or-refuse 100 % (existing, lock `tryon-pose`). Counts only with a set whose fixture ranges are independent of the code offsets (reviewer note, `REVIEW-pose.md`) | locked synthetic set | 10 |
+| A1 | Pose anchors (synthetic, locked) | all anchors within their mean / p90 limits (fractions of the shoulder-tip width B): neck base 0.05 / 0.09, shoulder tips 0.06 / 0.10, waist 0.08 / 0.13, hip outline 0.08 / 0.13, crotch 0.10 / 0.16, knee outline 0.09 / 0.15, ankle outline 0.09 / 0.15; place-or-refuse 100 % (existing, lock `tryon-pose`; `docs/TRYON-POSE-RESULTS.md:35-45`). Counts only with a set whose fixture ranges are independent of the code offsets (reviewer note, `REVIEW-pose.md`) | locked synthetic set | 10 |
 | A2 | Real people | anchor limits of A1 met on ≥ 24 consenting volunteers (existing plan: `docs/TRYON-DESIGN.md` M-targets) | volunteer set | 10 |
-| A3 | Realistic try-on (cloud) | artefacts ≤ 20 %, identity preserved ≥ 95 %, p95 ≤ 20 s (existing: TRYON-DESIGN M1–M10) | cloud eval, 3 blind raters | 10 |
+| A3 | Realistic try-on (cloud) | fit realism mean ≥ 3.5 (1–5, default cloud chain, held-out); garment fidelity ≥ 3.5; identity preserved ≥ 95 %; artefacts ≤ 20 %; rater agreement Krippendorff's alpha ≥ 0.6; p95 ≤ 20 s; cut-out mask IoU ≥ 0.90 on flat-lay and fix time ≤ 60 s median; false blocks of modest items ≤ 5 %; live-only enforcement 100 % (existing: `docs/TRYON-DESIGN.md:358-369`, M1–M4, M6, M7, M9, M10, M12) | cloud eval, 3 blind raters | 10 |
 | P | P1–P5, per item | all pass | README P | 10 |
 | L | L1–L3, per item | all pass | README L | 8 |
 | S | S1; S2 plus ≥ 15 fps on a real phone (existing M-target); per item | both pass | README S | 7 |

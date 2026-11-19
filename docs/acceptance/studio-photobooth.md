@@ -22,7 +22,7 @@ outfits stay off until they meet their bar.
 | F | Must-do 1–8, per item | each exercised by a test on main | `studio.e2e.mjs`; a photobooth e2e is needed | 20 |
 | A1 | No-outfit quality | visible defect ≤ 5 % (existing: `ACCURACY.md` "5 % target"), rated blind by ≥ 2 human raters on a locked consented portrait set of ≥ 60 people, for studio and photobooth separately | locked set `~/LENSIQ-field/evals/studio-portraits/`; `tests/bench/studio.bench.mjs` | 20 |
 | A2 | Outfits stay off | outfits shown only when defect ≤ 50 % (existing bar, `ACCURACY.md`), measured as A1; otherwise the switch stays off | config test | 5 |
-| A3 | ID-photo spec | 100 % of booth exports meet the chosen print size, head-size range and plain background on the locked set (**proposed**) | bench | 5 |
+| A3 | ID-photo spec | 100 % of booth exports meet the chosen print size, head-size range and plain background on the locked set (**proposed**); the checker's limits: 300 DPI pixel size, head height (crown to chin) 50–75 % of the photo, background RGB deviation < 10 (existing: `ACCURACY.md:928-930`) | bench | 5 |
 | P | P1–P5, per item | all pass | README P | 10 |
 | L | L1–L3, per item | all pass | README L | 8 |
 | S | S1, plus S2 with "result ≤ 10 s after the shot" (**proposed**), per item | both pass | README S | 7 |

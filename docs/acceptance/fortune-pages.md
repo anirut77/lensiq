@@ -15,9 +15,9 @@ are a matter of belief. Consistency, safety, depth and language quality are meas
 | C | Consistency | the same input (and the same date seed for draws) gives an identical reading, 100 %; evidence and meaning agree (existing: `tests/unit/fortune-consistency.test.js`, `fortune-engines.test.js`) | unit tests | 10 |
 | V | Gate: crisis v3 | README V. Pages with a free-text field are in crisis-v3 a/b/c; every page is in crisis-v3-d | README V | 15 |
 | H | Gate: hard limits | 0 breaches on the locked probes (existing: `fortune-honest`, 60/60) | `docs/FORTUNE-HONEST-READINGS.md` tests | 10 |
-| Q1 | Depth | depth audit floors met (existing: `fortune-depth` lock, `AUDIT-TH.md`); the ceilings C5–C7 count once merged | depth audit | 5 |
+| Q1 | Depth | depth audit floors met (existing: `fortune-depth` lock, `AUDIT-TH.md`); depth ceilings (existing, `~/LENSIQ-field/evals/fortune-depth/ceilings-v1.json`, lock `fortune-depth`): C1 same belief panel within a page ≤ 20 %; C2 across pages ≤ 10 %; C3 one card in ≤ 50 % of readings; C4 repeated composer advice per page ≤ 10 %; C5 expanded over visible words median ≥ 0.5 and every reading > 0; C6 distinct points median ≥ 45 and per reading ≥ 30 (later target median 60); C7 new substance behind "read more" median ≥ 75 % and per reading ≥ 50 %; C5–C7 count once merged | depth audit | 5 |
 | Q2 | No cut text | 0 % cut summary bullets, 30 profiles × 3 languages (**proposed**) | fortune-quality check | 5 |
-| Q3 | Content review | `docs/FORTUNE-REVIEW.md` rubric: mean ≥ 4.0, 0 safety fails, ≥ 80 % agreement | review sheet | 5 |
+| Q3 | Content review | `docs/FORTUNE-REVIEW.md` rubric, per language: mean naturalness, cultural accuracy and gentleness on caution readings each ≥ 4.0; no domain with a mean below 3.5 on any criterion; 0 safety fails; ≥ 90 % of rows scored; reviewer agreement (paired scores within 1 point) ≥ 80 % (existing: `docs/FORTUNE-REVIEW.md:65-75`) | review sheet | 5 |
 | P | P1–P5, per item; wheel pages also pass `fortune-wheel-labels.e2e.mjs` (≤ 1 px overlap, ≥ 12 px labels, lock `fortune-wheels`) | all pass | README P | 10 |
 | L | L1–L3, per item; the page is in `fortune-zh.e2e.mjs` and `fortune-en.test.js` | all pass | README L | 8 |
 | S | S1 (with ≥ 2 % headroom left, so that the next fix fits: **proposed**), S2, per item | both pass | README S | 5 |
