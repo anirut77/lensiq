@@ -34,6 +34,7 @@
   let phase = "notice", room = "", seat = "", link = null, mon = null, cam = null, coco = null, modelsReady = false;
   let faceEng = null, faceOff = false, faceOffSent = false, faceRuns = 0;
   let noFrames = false, lastFrameAt = 0, camOnAt = 0; // a camera that is on but sends no picture (acceptance sheet E)
+  let calWanted = false; // calibrate was tapped while the camera was still starting: it begins on the first frame
   let running = false, profile = null, lastQ = { ok: true, code: "ok", score: 0 }, lastFaces = [], frames = 0, fpsEma = 0, lastTick = 0;
   let calSamples = [], calEnd = 0, calLen = 120, hbTimer = null, promptTimer = null, wasFs = false, reloadPending = false;
   const own = U.store.get(K.log, []).filter(e => e && E.SIGNALS[e.sig]);
@@ -141,6 +142,7 @@
     "กล้องเปิดแล้วแต่ไม่ส่งภาพ: ลองปิดโปรแกรมอื่นที่ใช้กล้อง เลือกกล้องตัวอื่น หรือโหลดหน้านี้ใหม่ ถ้ายังไม่ได้ โปรดแจ้งผู้คุมสอบ ไม่ใช่ความผิดของคุณ");
   /** the camera is on but no frame arrives (stalled or busy camera): said plainly; cleared when frames come */
   function setNoFrames(on) {
+    if (on) calWanted = false; // a camera that sends nothing cancels a waiting calibration; the user taps again later
     if (on === noFrames) return;
     noFrames = on;
     if (on) engine(noFramesText, "warn"); else if (faceOff) engine(faceOffText, "warn"); else engine(() => "", "ok");
@@ -180,7 +182,7 @@
       running = true; loop();
       renderChecks();
     } catch (e) {
-      console.warn(e);
+      console.warn(e); calWanted = false;
       const msg = window.LQCam && LQCam.errorText ? LQCam.errorText(e) : e.message;
       engine(() => T("exam.lab.camErr", "เปิดกล้องไม่สำเร็จ: {m}", { m: msg || e.name }), "err");
     }
@@ -273,6 +275,7 @@
         if (lastTick) fpsEma = fpsEma ? fpsEma * 0.8 + 0.2 * (1000 / Math.max(1, t0 - lastTick)) : 1000 / Math.max(1, t0 - lastTick);
         lastTick = t0;
         if (phase === "cam" && frames % 4 === 0) renderChecks();
+        if (phase === "cam" && calWanted) startCal();
         if (phase === "cal") calStep(now, o);
         if (phase === "exam" && mon) handle(mon.frame(now, { faces: o.faces, objects: o.objects, people: o.people, quality: q, faceOff: o.faceOff }));
       }
@@ -282,7 +285,11 @@
 
   /* ---------- calibration ---------- */
   function startCal() {
-    if (!frames || noFrames) { noFrames = false; setNoFrames(true); return; } // no picture yet: a calibration could never finish
+    if (noFrames) { noFrames = false; setNoFrames(true); return; } // the camera sends no picture: a calibration could never finish
+    // tapped just after the camera started, before its first frame: wait for that frame instead of refusing (the camera
+    // start shows its loading line; if no frame comes, setNoFrames(true) cancels the wait and says so plainly)
+    if (!frames) { calWanted = true; return; }
+    calWanted = false;
     const q = Number(P.get("calsec"));
     calLen = Number.isFinite(q) && q >= 1 && q <= 300 ? q : Number($("#calLen").value) || 120;
     calSamples = []; calEnd = Date.now() + calLen * 1000;
