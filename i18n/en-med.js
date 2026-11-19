@@ -604,6 +604,8 @@
   "md.pc.ai.prevJako": "This text has Japanese or Korean script. The check cannot find every name that has no label word, so read every line and delete any person's name yourself before sending. Text like this is never sent automatically",
   "md.pc.ai.n.preview": "The server does not send text you have not checked. Press \"Ask AI\" again to see the text before it is sent",
   "md.pc.ai.n.jakoPreview": "The server does not send Japanese or Korean text that you have not checked. Press \"Ask AI\" again to see the text before it is sent",
+  "md.pc.ai.n.previewPhoto": "The server does not send a photo of a label from which some text was removed. You can send the text only, after you check it",
+  "md.pc.ai.offerAuto": "This photo is not sent: {n} part(s) that may be personal data were removed from the text, but they cannot be removed from the photo, so only the text can be sent",
   "md.pc.ai.n.jakoPhoto": "The server does not send a photo of a Japanese or Korean label. You can send the text only, after you check it",
   "md.pc.tap.w.jako": "Not sent at once: the text has Japanese or Korean script, which is never sent by one tap. Check the text below and send it yourself if you wish",
   "md.pc.tap.w.edited": "Not sent at once: the text was edited or did not come from reading the label on this device. Check the text below before sending",

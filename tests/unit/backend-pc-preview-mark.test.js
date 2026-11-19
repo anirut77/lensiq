@@ -17,7 +17,7 @@ const TEXTS = {
 test("every script: no preview mark -> refused before any call; the mark (true only) -> accepted", async () => {
   const P = await import("../../backend/src/ai/pc-features.js");
   const code = fn => { try { fn(); return "ok"; } catch (e) { return P.refusalCode(e) || "error:" + e.message; } };
-  assert.deepEqual([...P.PREVIEW_REFUSAL_CODES], ["ai_off_preview"]);
+  assert.deepEqual([...P.PREVIEW_REFUSAL_CODES], ["ai_off_preview", "ai_off_preview_photo"]);
   for (const [lang, text] of Object.entries(TEXTS)) {
     const want = lang === "ja" || lang === "ko" ? "ai_off_jako_preview" : "ai_off_preview";
     const gtins = [text.split("\n").pop()].filter(x => /^\d+$/.test(x));
@@ -43,4 +43,18 @@ test("auto (from the gateway only) skips the mark and meets the one-tap filter, 
   assert.equal(code(() => { P.buildFields(sticker, { mode: "text", auto: true }); P.autoCheck(sticker); }), "ai_off_auto_filter", "a bare name line: refused");
   const bank = { text: TEXTS.en + "\nPay to 123-4-56789-0", gtins: ["0012345678905"] };
   assert.equal(code(() => { P.buildFields(bank, { mode: "text", auto: true }); P.autoCheck(bank); }), "ai_off_auto_filter", "an account number: refused");
+});
+
+// route 3 (owner decision 146): a photo goes only with a text the device removed nothing from (a photo cannot be redacted)
+test("photo: refused with a text that holds the placeholder; a clean previewed label photo is unchanged", async () => {
+  const P = await import("../../backend/src/ai/pc-features.js");
+  const code = fn => { try { fn(); return "ok"; } catch (e) { return P.refusalCode(e) || "error:" + e.message; } };
+  const img = [{ mime: "image/jpeg", base64: "AA==", width: 1, height: 1 }];
+  for (const lang of ["th", "en", "zh"]) {
+    const base = { text: TEXTS[lang], gtins: [TEXTS[lang].split("\n").pop()].filter(x => /^\d+$/.test(x)), previewed: true, images: img };
+    assert.equal(code(() => P.buildFields(base, { mode: "image" })), "ok", `${lang}: clean label photo`);
+    assert.equal(code(() => P.buildFields({ ...base, text: base.text + "\n[removed]" }, { mode: "image" })), "ai_off_preview_photo", `${lang}: removed text + photo`);
+    assert.equal(code(() => P.buildFields({ ...base, text: base.text + "\n[removed]", images: undefined }, { mode: "text" })), "ok", `${lang}: the same text alone is fine`);
+  }
+  assert.deepEqual([...P.PREVIEW_REFUSAL_CODES], ["ai_off_preview", "ai_off_preview_photo"]);
 });

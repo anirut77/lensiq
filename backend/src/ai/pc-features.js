@@ -172,8 +172,10 @@ export const AUTO_REFUSAL_CODES = Object.freeze(["ai_off_auto_filter"]);
  * carry previewed: true (the page sets it only after the user's own "Send this text" on the preview, whose automatic removal
  * runs on the device: LQPCGuard.previewRedact). Japanese / Korean keep their own code above.
  *   ai_off_preview        refused: no preview mark on a non-auto request
+ *   ai_off_preview_photo  refused: a photo with a text from which the device removed something (route 3: a photo cannot be
+ *                         redacted; the page sends a photo only when the automatic removal found nothing)
  */
-export const PREVIEW_REFUSAL_CODES = Object.freeze(["ai_off_preview"]);
+export const PREVIEW_REFUSAL_CODES = Object.freeze(["ai_off_preview", "ai_off_preview_photo"]);
 const GATE_CODE = /** @type {Record<string, string>} */ ({ dispensing: "ai_off_dispensing", "personal-doc": "ai_off_personal_doc", "no-product": "ai_off_no_product" });
 /** @param {string} code one of INPUT_REFUSAL_CODES @param {string} message */
 function refusal(code, message) { return Object.assign(new Error(message), { code }); }
@@ -206,6 +208,8 @@ function cleanText(input, o = {}) {
     if (o.images) throw refusal("ai_off_jako_photo", "no photo of a Japanese / Korean label");
     if (input.previewed !== true) throw refusal("ai_off_jako_preview", "Japanese / Korean text needs the user's preview");
   }
+  // owner decision 146 (route 3): no photo with a text the device removed something from (the photo would still show it)
+  if (o.images && t.includes(Guard.PLACEHOLDER)) throw refusal("ai_off_preview_photo", "no photo of a label with removed text");
   // owner decision 146: every other script needs the preview mark too, unless this is a tester one-tap (auto) request, which
   // the gateway sends through autoCheck below instead
   if (o.auto !== true && input.previewed !== true) throw refusal("ai_off_preview", "text needs the user's preview");

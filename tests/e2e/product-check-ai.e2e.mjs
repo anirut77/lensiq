@@ -317,6 +317,30 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
+    await check("pc-ai: route 3 (owner decision 146) — a label line the automatic removal takes (a bare name the old guard does not find) BLOCKS " +
+      "image mode: no photo preview, no POST, the offer says why; text only goes through the open preview without that line", async () => {
+      const page = await browser.newPage(null, { initScripts: [INIT, NET, REMEMBER_IMAGE], isolated: true });
+      await page.goto(`${base}/medicine.html?fakeface`);
+      await openTab(page);
+      await setLabel(page, LABEL + "\nfor Misaki");
+      await page.evaluate(() => document.querySelector("#pcAiGo").click());
+      await page.waitFor(`document.querySelector("#pcAiOffer")`, 8000);
+      const o = await page.evaluate(() => ({ t: document.querySelector("#pcAiOffer").innerText, prev: document.querySelector("#pcPrev").hidden }));
+      assert(o.prev, "no photo preview: the photo path never starts");
+      assert(/ลบออกจากภาพไม่ได้/.test(o.t) && /1 จุด/.test(o.t), "the offer says the removal cannot be made on a photo " + o.t);
+      assert((await posts(page)).length === 0, "nothing sent before the choice");
+      await page.evaluate(() => document.querySelector("#pcAiOfferGo").click());
+      const pv = await preview(page);
+      // exactly 1 placeholder: the "for Misaki" line is the only removal on this label
+      assert(pv.open && pv.shown === LABEL + "\n[removed]" && pv.marks === 1 && (await posts(page)).length === 0, "open preview without the line " + JSON.stringify(pv));
+      await sendText(page);
+      await page.waitFor(`document.querySelector("#pcAiOut")`, 8000);
+      const p = await posts(page);
+      // exactly 2 requests (pc_fields + pc_claims): the label is mostly Thai on a Thai page, so no pc_translate
+      assert(p.length === 2 && p.every(x => x.mode === "text" && !x.images.length && x.text === pv.shown && !/Misaki/.test(x.text)), "text only, = shown " + JSON.stringify(p));
+      await page.close();
+    });
+
     await check("pc-ai: dispensing / prescription label — default setting 'off': no consent screen, no request at all, on-device results stay; " +
       "'text-preview' setting: photo blocked, text only after the open preview", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT, NET, REMEMBER_IMAGE], isolated: true });

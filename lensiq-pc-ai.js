@@ -68,7 +68,7 @@
  *   its own filter and a per-caller limit). The text sent is shown (#pcAiAutoText) with "stop one-tap and withdraw"
  *   (#pcAiAutoStop); any withdraw clears the consent AND the one-tap choice at once.
  * SERVER REFUSALS: a refusal with a documented code (ai_off_dispensing / ai_off_personal_doc / ai_off_no_product /
- *   ai_off_personal_data / ai_off_auto_filter / ai_off_preview / ai_off_jako_preview / ai_off_jako_photo) shows its own notice instead of the generic "AI unavailable".
+ *   ai_off_personal_data / ai_off_auto_filter / ai_off_preview / ai_off_preview_photo / ai_off_jako_preview / ai_off_jako_photo) shows its own notice instead of the generic "AI unavailable".
  * Test hook: window.__LQ_PCAI = {st, ask(forceText), paint(), auto}.
  */
 (function (root, factory) {
@@ -292,7 +292,9 @@
       // the device's own OCR output decides, not the editable text box (independent review: deleting the kana lines in the box
       // must not bring the photo back)
       const jako = jakoOf(ocrText() || text) || jakoOf(text);
-      const g = W.LQPCGuard.previewRedact ? W.LQPCGuard.previewRedact(text, gopt()) : W.LQPCGuard.redact(text, gopt()), img = W.LQPCGuard.imageCheck(text, gopt());
+      const g = W.LQPCGuard.previewRedact ? W.LQPCGuard.previewRedact(text, gopt()) : W.LQPCGuard.redact(text, gopt()), img0 = W.LQPCGuard.imageCheck(text, gopt());
+      // owner decision 146 (route 3): a photo cannot be redacted, so it goes only when the automatic preview removal finds nothing
+      const autoN = g.items ? g.count : 0, img = autoN > 0 ? { ...img0, block: true, auto: autoN } : img0;
       st.busy = true; paint();
       try {
         // tester one-tap: sent at once when every filter passes; otherwise the usual consent / preview below
@@ -302,7 +304,7 @@
         // a tester who ticked "remember my choice" on the screen that explains one-tap: the next taps send at once
         if (c.saved && tester()) { oneTapRemember(c.info); if (await oneTap(text)) return; }
         const d = decide({ mode: c.mode, image: img, features: c.info.features, jako });
-        if (d.offer) { st.offer = { c, g: W.LQPCGuard.redact(text, gopt()), pr: g, img, jako }; return; } // image blocked: the user chooses text only (after the preview) or nothing
+        if (d.offer) { st.offer = { c, g: W.LQPCGuard.redact(text, gopt()), pr: g, img, jako, autoN }; return; } // image blocked: the user chooses text only (after the preview) or nothing
         // mandatory text preview: open when anything was removed, the text looks like a dispensing label, or nothing is
         // remembered; collapsed (one tap away) only for a clean product text with a remembered choice
         // Japanese / Korean script (owner decision 2026-11-14): the preview is always OPEN, never collapsed
@@ -486,6 +488,8 @@
         h += `<div class="md-cand" id="pcAiOffer"><p class="md-status" data-kind="warn">` +
           `${esc(st.offer.jako && !st.offer.g.count ? T("md.pc.ai.offerJako", "ไม่ส่งภาพนี้: ฉลากมีอักษรญี่ปุ่นหรือเกาหลี ซึ่งระบบหาชื่อคนได้ไม่ครบ จึงไม่ส่งภาพเลย ส่งได้เฉพาะข้อความหลังจากคุณตรวจแล้ว")
             : st.offer.g.count ? T("md.pc.ai.offerH", "ไม่ส่งภาพนี้: บนฉลากมีชื่อหรือข้อมูลส่วนตัว {n} จุด", { n: st.offer.g.count })
+            : st.offer.autoN && !st.offer.img.dispensing ? T("md.pc.ai.offerAuto",
+              "ไม่ส่งภาพนี้: ระบบลบส่วนที่อาจเป็นข้อมูลส่วนตัว {n} จุดออกจากข้อความ แต่ลบออกจากภาพไม่ได้ จึงส่งได้เฉพาะข้อความ", { n: st.offer.autoN })
             : T("md.pc.ai.offerLabel", "ไม่ส่งภาพนี้: ดูเหมือนฉลากยาที่จ่ายให้ผู้ป่วยหรือใบสั่งยา ซึ่งอาจมีชื่อคนที่ระบบหาไม่พบ"))}</p>` +
           (st.offer.g.count ? `<ul class="md-list">${st.offer.g.removed.map(r => `<li>${esc(k[r.kind] || r.kind)}: ${raw(r.text)}</li>`).join("")}</ul>` : "") +
           `<p class="hint">${esc(T("md.pc.ai.offerT", "ส่งเฉพาะข้อความโดยลบส่วนเหล่านี้ออกได้ หรือไม่ส่งเลย"))}</p><div class="md-row">` +
@@ -565,6 +569,7 @@
       ai_off_auto_filter: T("md.pc.ai.n.tapFilter", "เซิร์ฟเวอร์ไม่รับการส่งแบบแตะครั้งเดียวสำหรับข้อความนี้ กด \"ขอความเห็นจาก AI\" อีกครั้งเพื่อดูข้อความก่อนส่ง"),
       ai_off_preview: T("md.pc.ai.n.preview", "เซิร์ฟเวอร์ไม่ส่งข้อความที่ยังไม่ผ่านการตรวจของคุณ กด \"ขอความเห็นจาก AI\" อีกครั้งเพื่อดูข้อความก่อนส่ง"),
       ai_off_jako_preview: T("md.pc.ai.n.jakoPreview", "เซิร์ฟเวอร์ไม่ส่งข้อความภาษาญี่ปุ่นหรือเกาหลีที่ยังไม่ผ่านการตรวจของคุณ กด \"ขอความเห็นจาก AI\" อีกครั้งเพื่อดูข้อความก่อนส่ง"),
+      ai_off_preview_photo: T("md.pc.ai.n.previewPhoto", "เซิร์ฟเวอร์ไม่ส่งภาพของฉลากที่ระบบลบข้อความบางส่วนออก ส่งได้เฉพาะข้อความหลังจากคุณตรวจแล้ว"),
       ai_off_jako_photo: T("md.pc.ai.n.jakoPhoto", "เซิร์ฟเวอร์ไม่ส่งภาพของฉลากภาษาญี่ปุ่นหรือเกาหลี ส่งได้เฉพาะข้อความหลังจากคุณตรวจแล้ว") });
     function fbLine(x) {
       const own = x && x.code ? CODE_NOTE()[x.code] : "";
