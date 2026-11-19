@@ -35,7 +35,7 @@
 - 6. ดูดวง และบริการทำบุญแทน
 - 7. ภาษีและใบกำกับภาษี
 - 8. สัญญา การนำร่อง และงาน HR
-- 9. สิทธิ์ใช้โมเดล ข้อมูล และสื่อ (licences)
+- 9. สิทธิ์ใช้โมเดล ข้อมูล และสื่อ (licences) — เริ่มที่ 9.0 คำถามเดียวเรื่องโมเดล tier 2
 - 10. ความปลอดภัย (security)
 - 11. ภาคผนวก ก: รายการที่ปิดแล้ว
 - 12. ภาคผนวก ข: แถวกฎหมายที่เสนอในเอกสารออกแบบ (ยังไม่อยู่ในตาราง L)
@@ -642,6 +642,55 @@
 
 ## 9. สิทธิ์ใช้โมเดล ข้อมูล และสื่อ (licences)
 
+### 9.0 คำถามเดียวเรื่องโมเดลระดับ tier 2 (permissive model, ข้อมูลฝึกเพื่อการวิจัยเท่านั้น) [เพิ่ม 2026-11-18 ก่อนขาย 4 ผลิตภัณฑ์]
+
+**ที่มา:** คำสั่งเจ้าของ 2026-11-18 ให้ใช้ระดับ tier 1 เท่านั้นใน customer build และส่งทนายเพียงคำถามเดียวเรื่อง tier 2 แบ่งระดับตาม
+`LICENSES/TIERS.md` (tier 1 = โมเดลและข้อมูลสะอาด, tier 2 = โมเดลสัญญาอนุญาตแบบเปิดแต่ข้อมูลฝึกเป็นแบบวิจัยเท่านั้นหรือไม่ทราบที่มา,
+tier 3 = สัญญาอนุญาตของโมเดลเองห้ามใช้เชิงพาณิชย์ ซึ่งไม่อยู่ในคำถามนี้)
+
+**คำถาม (TH):** โมเดลที่เผยแพร่ภายใต้สัญญาอนุญาตแบบเปิด (เช่น MIT / Apache-2.0) แต่ฝึกด้วยชุดข้อมูลที่อนุญาตเฉพาะการวิจัยที่ไม่ใช่เชิงพาณิชย์
+สามารถนำไปใช้ในผลิตภัณฑ์เชิงพาณิชย์ที่ขายในประเทศไทยได้หรือไม่ และการที่เราไม่ได้แจกจ่ายชุดข้อมูลนั้นต่อ (ส่งเฉพาะน้ำหนักโมเดล) มีผลต่อคำตอบหรือไม่
+
+**Question (EN):** May a model released under a permissive licence (e.g. MIT/Apache-2.0) but trained on a dataset licensed for non-commercial research only
+be used in a commercial product sold in Thailand, and does it matter whether the dataset itself is redistributed?
+
+**ข้อเท็จจริงที่ทนายต้องใช้ / Facts for counsel**
+1. เราแจกจ่ายเฉพาะไฟล์น้ำหนักโมเดล (ONNX / TF.js / TFLite) ให้รันในเบราว์เซอร์ของลูกค้า ไม่แจกจ่ายชุดข้อมูล ภาพฝึก หรือป้ายกำกับ ผู้ถือสิทธิ์น้ำหนักโมเดลสัญญาอนุญาตแบบเปิด
+   (YOLOX-Nano: Apache-2.0, ฝึกด้วย COCO ซึ่งภาพมีสัญญาอนุญาตรายภาพรวม BY-NC / BY-NC-SA / BY-NC-ND [อ่านที่ต้นทาง: `vendor/models/yolox/LICENSE` และ `README.txt` บรรทัด 5 และ 7 สำหรับ Apache-2.0 และ "ภาพมีสัญญาอนุญาต Flickr รายภาพ"; รายการ BY-NC ฯลฯ เป็นการอนุมานจากหน้า cocodataset.org]; YuNet (ตัวเลือกที่ยังไม่ได้ vendor และไม่ได้แจกจ่าย; `LICENSES/TIERS.md` C1): MIT, ฝึกด้วย WIDER FACE ซึ่งเป็น cc by-nc-nd และป้ายกำกับจากโมเดล insightface ที่ "non-commercial research purposes only" [อ่านที่ต้นทาง: `docs/product-check/FACE-BLUR-RESULTS.md` ข้อ 4, ตรวจ 2026-11-10];
+   face-api.js / dlib: MIT / CC0 ฝึกด้วย VGG Face, FaceScrub ฯลฯ [MIT และ CC0 อ่านที่ต้นทาง: `LICENSES/THIRD-PARTY-NOTICES.txt` บรรทัด 38 ถึง 40 และ `docs/ATTENDANCE-READINESS.md` บรรทัด 216; ชุดข้อมูลฝึกเป็นการอนุมาน: ตามเอกสารต้นทางที่ `THIRD_PARTY.md` F5 อ้าง ยังไม่ได้อ่านซ้ำ]; age/gender: MIT ฝึกด้วย UTKFace "non-commercial research purposes only" [อนุมาน: "ฝึกด้วย UTKFace" ตามเอกสารต้นทางที่ `THIRD_PARTY.md` F5 อ้าง; เงื่อนไขของ UTKFace มีเพียงลิงก์ ไม่มีไฟล์ใน repo บันทึกว่าอ่านแล้ว])
+   ผู้ให้สัญญาอนุญาตน้ำหนักโมเดลไม่ใช่เจ้าของชุดข้อมูลทุกราย และเจ้าของภาพเดิมในชุดข้อมูลไม่ได้ให้สิทธิ์ใด ๆ
+   (The licensor of the weights is not the owner of every image in the dataset.)
+2. กรณีที่ชุดข้อมูล **ห้ามอนุพันธ์เชิงพาณิชย์ไว้ชัดเจน** ต่างจากกรณีที่ไม่ได้พูดถึง: NWPU-Crowd ("any derivative work for commercial purposes" ห้าม),
+   JHU-Crowd++ ("academic and non-commercial uses") [อ่านที่ต้นทาง: `docs/CROWD-DENSITY-MODELS.md` บรรทัด 3 ถึง 5, ตรวจ 2026-11-08], CelebAMask-HQ [อ่านที่ต้นทาง: `vendor/models/FACEPARSE-LICENSE.txt` บรรทัด 36 ถึง 37], UTKFace [อนุมาน: ลิงก์เท่านั้น] ส่วน ImageNet ใช้เป็น backbone ซึ่งเงื่อนไขเป็น "non-commercial research and educational purposes" [อนุมาน: ลิงก์ image-net.org ใน `LICENSES/TIERS.md` M12 ไม่มีไฟล์ใน repo บันทึกว่าอ่านแล้ว]
+   ขอให้ตอบแยกกรณี "ห้ามชัดเจน" กับกรณี "ไม่ทราบ / ไม่ได้ระบุ" (เช่น LPD-YuNet [อ่านที่ต้นทาง: `vendor/models/plate-det/README.txt` บรรทัด 8], PP-OCR [อ่านคำอธิบายที่ `vendor/models/plate-ocr-th/README.txt` บรรทัด 11; "ไม่เปิดเผยแหล่ง" เป็นการอนุมาน], Google MediaPipe บางรุ่น ที่เอกสารไม่ระบุชุดข้อมูล [Selfie Multiclass (M9): อ่านบัตรแล้ว 2026-11-18 บันทึกใน `LICENSES/TIERS.md` เท่านั้น; Selfie Segmenter (M8): อนุมาน ยังไม่ได้อ่านบัตรซ้ำ])
+3. ผู้ใช้ปลายทางคือลูกค้าในไทย (โรงเรียน/สถานสอบ ที่จอด ผู้จัดอีเวนต์ ฝ่ายบุคคล) ประมวลผลบนเครื่องของลูกค้า ไม่มีภาพออกจากเครื่อง
+   ราคาขายตามใบเสนอราคา (ไม่ออนไลน์) ข้อมูลทั้งหมดและการจัดระดับรายตัวอยู่ใน `LICENSES/TIERS.md`
+   (We distribute weights only, on-device; no dataset, training image or label leaves us; customers are in Thailand; per-model detail is in `LICENSES/TIERS.md`.)
+
+**ป้ายแหล่งที่มา / Source labels (2026-11-19):** "อ่านที่ต้นทาง / READ" = อ่านจากบัตรโมเดล ไฟล์สัญญาอนุญาต หรือ README ต้นทาง และไฟล์ที่อ้างบันทึกการอ่านนั้นไว้; "อนุมาน / INFERRED" = ยังไม่ได้อ่านซ้ำที่ต้นทาง ใช้ข้อมูลจากรุ่นพี่น้อง ถ้อยคำที่จำได้ เอกสารรอง หรือ "ไม่ระบุ" (READ = read at the source and a repo file records it; INFERRED = not re-read at the source). ป้ายไม่เปลี่ยนระดับ tier ใด ๆ
+
+**ตอนนี้ระบบทำอย่างไร:** customer build ใช้ tier 1 เท่านั้นตามคำสั่งเจ้าของ รายการ tier 2 ยังอยู่ในโค้ดและโหมดสาธิต (age/gender และ expression ถูกล็อกปิดใน customer build แต่ไฟล์น้ำหนักยังอยู่ในชุดไฟล์ ดูข้อ 9.1)
+**ผลของคำตอบ:** ถ้า "ใช้ได้ (ตามเงื่อนไข)" รายการ tier 2 ด้านล่างปลดล็อกได้ ถ้า "ใช้ไม่ได้" customer build ใช้ tier 1 เท่านั้น: PIN / QR ของ Attendance และ Face Landmarker ของ Exam ไม่กระทบ แต่ **ตัวนับคน (YOLOX-Nano / COCO-SSD) ของ Crowd, Exam hall และร้านค้าไม่ใช่ tier 1** จึงต้องสร้างตัวตรวจที่ฝึกเองก่อน (ดูแถว Exam / Crowd ด้านล่างและ `LICENSES/TIERS.md` ส่วน E)
+**รหัส:** L23 (คำถามหลักเดิม ตอนนี้ย่อเหลือคำถามเดียวนี้; ไม่ตั้งรหัส L ใหม่ในรอบนี้; สถานะจริง: L66–L71 ใช้โดย branch `kiosk-design` และ L72–L73 ใช้ในข้อ 15 ของไฟล์นี้ จึงว่างตั้งแต่ L74 เป็นต้นไป), LRP-M1 ถึง M3 **เอกสาร:** `LICENSES/TIERS.md`, `LICENSES/THIRD_PARTY.md` F5 / F6 / A4 / A5, `docs/LICENCE-REQUESTS.md`
+
+**สิ่งที่ tier 2 จะปลดล็อก แยกตามผลิตภัณฑ์ (what tier 2 would unlock)**
+
+| ผลิตภัณฑ์ / Product | ตอนนี้ (tier 1 เท่านั้น) | ถ้าทนายตอบว่าใช้ได้ จะปลดล็อก | ตัวเลขที่เกี่ยวข้อง (แหล่ง) |
+|---|---|---|---|
+| **Exam hall** (ทดลอง) | Face Landmarker หาใบหน้าเล็ก / ไกลไม่ได้ | ตัวหาใบหน้าเล็ก YuNet (MIT, ฝึก WIDER FACE; เป็นตัวเลือกที่ยังไม่ได้ vendor และไม่ได้แจกจ่าย) บน onnxruntime ที่มีอยู่แล้ว เพื่อนับใบหน้าในห้องสอบ อาจเลิกเป็น "ทดลอง" หลังวัดผลใหม่ | ใบหน้ากว้าง 24 ถึง 48 px หาได้ 0 / 195; ตัวเลือก tier 1 ที่วัดแล้ว: BlazeFace full range (Apache-2.0 [อ่านที่ต้นทาง: `docs/exam/FACE-ENGINE-RESULTS.md` บรรทัด 331]; tier 1 เป็นชั่วคราว: ข้อมูลฝึกว่า "ได้รับความยินยอม" เป็นการอนุมานจากบัตร BlazeFace รุ่นสั้น ยังไม่ได้อ่านบัตร Full Range ซ้ำ, `LICENSES/TIERS.md` C33 และข้อ F8) แบบกระเบื้อง 3×3 หาได้ 62.6% ที่ 24 ถึง 48 px (ชุดกันไว้ 122 / 195) แต่ไม่ได้เปิดใช้เพราะกล่องผิด 0.40 กล่องต่อเฟรม (`docs/EXAM.md` บรรทัด 112, `docs/ACCURACY-CLAIMS.md` บรรทัด 103); ใบหน้าใหญ่กว่า 64 px หาได้ 7 / 81 (ชุดรวม) (ภาพสาธารณะ Open Images V7 ไม่ใช่ห้องสอบจริง; `docs/exam/FACE-ENGINE-RESULTS.md` 7.1) |
+| **Exam lab / hall (ตัวนับคน)** | ตัวนับคนใช้ COCO-SSD (tier 2-NC: ภาพ COCO มีสัญญาอนุญาตรายภาพที่รวม BY-NC / BY-NC-SA / BY-NC-ND และ backbone ImageNet) | คงใช้ COCO-SSD ต่อ หรือสลับเป็น YOLOX-Nano ซึ่ง **ก็เป็น tier 2-NC เช่นกัน (ไม่ถึง tier 1)** ทางสะอาดคือตัวตรวจหัว / คนที่ฝึกเองจากศูนย์บน Open Images (ภาพ CC BY 2.0, ป้ายกำกับ CC BY 4.0) ซึ่งเป็น tier 1 ภายใต้เงื่อนไขของทนาย (ตรวจสิทธิ์รายภาพ ตัดกล่อง IsDepiction และสิทธิ์ของบุคคลในภาพซึ่ง CC ไม่คุ้มครอง) | `LICENSES/TIERS.md` M1, M11, C32 |
+| **Attendance โหมดใบหน้า** | PIN / QR เท่านั้น (สะอาด) | การจดจำใบหน้า face-api.js (dlib ResNet) และตัวตรวจ / จุดใบหน้า, หรือโมเดลที่แม่นกว่า (SFace Apache-2.0, EdgeFace, AdaFace) แทนการซื้อสัญญาอนุญาตเชิงพาณิชย์ (insightface ราคาไม่ประกาศ) | ของเรา: CASIA-FaceV5 รู้จำได้ 66 ถึง 76% (ชุดวิจัย ไม่ใช้เป็นข้ออ้างขายเพียงอย่างเดียว; `docs/ATTENDANCE-READINESS.md` B2). SFace รายงาน LFW 0.9940 (แหล่งผู้พัฒนา ไม่ได้วัดเอง) |
+| **Crowd** | นับด้วยตัวตรวจ YOLOX-Nano ซึ่ง **เป็น tier 2-NC** (ฝึกบน COCO ที่ภาพบางส่วนมีสัญญาอนุญาตแบบไม่ใช่เชิงพาณิชย์ [อ่านที่ต้นทางบางส่วน: `vendor/models/yolox/README.txt` บรรทัด 7 บอกเพียง "สัญญาอนุญาต Flickr รายภาพ"; ส่วนที่ว่าไม่ใช่เชิงพาณิชย์เป็นการอนุมานจากหน้า cocodataset.org]) ที่ประมาณ 300 คนนับได้ 0 ถึง 2 จึงต้องมีคำเตือนห้ามใช้ในฝูงชนหนาแน่น | ตัวนับ YOLOX-Nano เองจะใช้ในผลิตภัณฑ์ได้อย่างเปิดเผยถ้าคำตอบเป็น "ใช้ได้" (ไม่เช่นนั้นต้องใช้ตัวตรวจหัวที่ฝึกเองจากศูนย์บน Open Images ซึ่งยังไม่ได้สร้าง) และน้ำหนักที่เผยแพร่ของโมเดลนับความหนาแน่น: PET, APGCC, SASNet, LSC-CNN (ShanghaiTech, สิทธิ์ภาพไม่ชัด), DM-Count และ CLTR (**ฝึกด้วย NWPU ที่ห้ามอนุพันธ์เชิงพาณิชย์ชัดเจน จึงอยู่นอกขอบเขตคำตอบ "ใช่" แบบกว้าง**) | `docs/CROWD-ACCURACY.md`, `docs/CROWD-DENSITY-MODELS.md` (เราไม่ได้วัดโมเดลเหล่านี้; ยังไม่มีตัวเลขของเรา) |
+| **Gate** | ผู้ตรวจยืนยันทุกป้าย | คงใช้ LPD-YuNet (ฝึกกับป้ายจีน ไม่ระบุชุดข้อมูล [อ่านที่ต้นทาง: `vendor/models/plate-det/README.txt` บรรทัด 8]) และ PP-OCRv5 ไทย (ไม่เปิดเผยข้อมูลฝึก [อนุมาน: ดู `LICENSES/TIERS.md` M13]) ในชุดที่ส่งลูกค้า | `docs/GATE.md`; ทางสะอาดคือฝึกตัวตรวจป้ายไทยจากภาพของเราเอง (ทำอยู่ ยังไม่ส่งมอบ) |
+| **ร้านค้า / เช็กเอาต์ / ที่เหลือ** | ปิดหรือสาธิตเท่านั้น | ตัวตรวจ / จุดใบหน้า face-api.js ราว 25 หน้า, MobileNetV2 (ImageNet), มือ, ตัดพื้นหลัง MODNet / Selfie, BiSeNet แยกส่วนใบหน้า (ไม่ส่งมอบ) | `LICENSES/TIERS.md` ส่วน A |
+| **Signage / neuro (สาธิตวิจัย)** | อายุ / เพศ / สีหน้าล็อกปิด | อายุ / เพศ (UTKFace) และสีหน้า ใช้ได้ในงานลูกค้าถ้าทนายตอบกว้างมาก (**ไม่แนะนำ:** ข้อมูลเป็น "non-commercial research" ชัดเจน และมีประเด็น PDPA แยกต่างหาก ข้อ 2.4) | `LICENSES/THIRD_PARTY.md` F5 |
+| **Product Check** | อ่านฉลากได้ด้วย PP-OCRv5 (tier 2-U) ที่ยังอยู่ | ตัวหาใบหน้าสำหรับเบลอ (YuNet; ตัวเลือกที่ยังไม่ได้ vendor และไม่ได้แจกจ่าย) เพื่อลดใบหน้าที่ไม่ถูกเบลอ | ใบหน้าจริงที่ไม่ถูกเบลอ 34.7% [29.3 ถึง 40.5], ภาพสาธารณะ (`docs/product-check/FACE-BLUR-RESULTS.md`) |
+
+**ไม่ถูกแตะโดยคำถามนี้ (tier 3):** insightface open weights ("non-commercial research purposes only" ในสัญญาอนุญาตของน้ำหนักเอง), P2PNet (academic research only), โมเดลลองชุด IDM-VTON / OOTDiffusion / CatVTON (CC BY-NC-SA 4.0), BRIA RMBG แบบติดตั้งเอง, โมเดลที่ไม่มีไฟล์สัญญาอนุญาต (CSRNet ทางการ, Bayesian Loss) และโค้ด GPL / AGPL
+(Tier 3 is outside the question: the model licence itself forbids commercial use or grants nothing.)
+
+**What tier 2 would unlock, in English (summary):** Exam hall: YuNet small-face detection (a candidate, not vendored and not distributed; today 0 / 195 faces of 24 to 48 px found, and 7 / 81 faces larger than 64 px, whole set; public photos, not a hall). A tier-1 option is already measured: BlazeFace full range (Apache-2.0, READ in `docs/exam/FACE-ENGINE-RESULTS.md` line 331; its tier 1 is provisional because its consented training data is INFERRED from the M2 / M3 BlazeFace cards and the Full Range card has not been re-read, `LICENSES/TIERS.md` C33 and F8) on 3×3 tiles found 62.6% of faces at 24 to 48 px (122 / 195, held out), but it is not switched on because of 0.40 false boxes per frame (`docs/EXAM.md` line 112, `docs/ACCURACY-CLAIMS.md` line 103). Attendance face mode: keep or upgrade the recogniser instead of buying a commercial licence (PIN / QR stays the default either way). Crowd and store (and Exam hall's person count): the shipped YOLOX-Nano and COCO-SSD people detectors, which are tier 2-NC because COCO's images include BY-NC, BY-NC-SA and BY-NC-ND Flickr licences (a "yes" keeps them; a "no" leaves no tier-1 counter until an own head detector trained from scratch on Open Images is built, tier 1 subject to counsel: per-image licence check, drop IsDepiction boxes, CC does not cover the rights of the people pictured); published density weights for dense scenes (none measured by us yet; NWPU / JHU-trained weights carry an explicit derivative ban and need a separate answer). Gate: keep LPD-YuNet and PP-OCRv5 Thai (data undocumented: LPD-YuNet READ in `vendor/models/plate-det/README.txt` line 8; PP-OCRv5 "not published" INFERRED). Product Check: a better face detector for blurring (YuNet is a candidate, not vendored and not distributed). Signage / neuro: age, gender and expression back on (not recommended). If the answer is no, customer builds stay tier-1-only: Attendance (PIN / QR) and Exam's face engine are unaffected, but the people counters of Crowd, Exam hall and store are not tier 1 and need the own detector first (`LICENSES/TIERS.md` section E).
+
 ### 9.1 โมเดลใบหน้า face-api.js [ก่อนขาย 4 ผลิตภัณฑ์ — Attendance โหมดใบหน้า]
 - **คำถาม:** เงื่อนไขชุดข้อมูลเพื่อการวิจัยผูกพันผู้ใช้น้ำหนักโมเดลที่เป็น MIT / CC0 ไหม (ตัวตรวจ จุดใบหน้า การจดจำ) อายุ / เพศ ฝึกบน UTKFace (ไม่ใช่เชิงพาณิชย์)
   ImageNet backbone (ความเสี่ยงต่ำกว่า) การฟิตตัวเลข 7 ตัวบน MIT1003 สร้างภาระไหม
@@ -794,6 +843,7 @@
 - `docs/product-check/P7-RESULTS.md`, `docs/product-check/FACE-BLUR-RESULTS.md`, `docs/product-check/DRUG-DATA-SOURCES.md`
 
 **สิทธิ์ใช้งานและจดหมาย**
+- `LICENSES/TIERS.md` — ตารางระดับสิทธิ์ (tier 1 / 2 / 3) ของทุกโมเดลและชุดข้อมูล (2026-11-18)
 - `LICENSES/THIRD_PARTY.md`, `LICENSES/THIRD-PARTY-NOTICES.txt`
 - `docs/LICENCE-REQUESTS.md` — ร่างจดหมายขอสิทธิ์ A–P (ยังไม่ส่ง)
 - `docs/legal/FDA-PERMISSION-REQUEST-TH.md`, `docs/legal/WHO-PERMISSION-REQUEST.md`, `docs/legal/UBU-PHARMACY-COLLAB-TH.md` (ยังไม่ส่ง)

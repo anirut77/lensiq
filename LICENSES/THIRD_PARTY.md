@@ -6,6 +6,8 @@ Inventory of everything LENSIQ vendors, loads or depends on. It was compiled fro
 
 The repository's own code (`*.html`, `*.js`, `*.css`, `*.py` outside `vendor/`) is **MIT**, Copyright (c) 2026 anirut77 (see [`/LICENSE`](../LICENSE)). The MIT licence does **not** extend to the components below.
 
+**Licence tiers (owner order 2026-11-18).** [`TIERS.md`](TIERS.md) classifies every model and dataset as tier 1 (clean model and data), tier 2 (permissive model, research-only or unknown training data) or tier 3 (non-commercial model licence), with where it is used, whether it ships in customer builds and what replaces it. Customer builds use tier 1 only. This file stays the per-component inventory; TIERS.md is the decision view. The one open legal question on tier 2 is `docs/LEGAL-PACKET.md` section 9.0.
+
 Status legend: **OK** (permissive, keep the notice) · **OK-ATTR** (permissive, attribution or NOTICE required) · **COPYLEFT** (usable, with source-disclosure obligations) · **RESTRICTED** (commercial use needs a paid licence or carries significant conditions) · **NON-COMMERCIAL** (cannot be used commercially as-is) · **VERIFY** (the licence is permissive but provenance or training-data terms are uncertain)
 
 ---
