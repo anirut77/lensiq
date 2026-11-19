@@ -758,6 +758,16 @@
     });
   }
   function selFull() {
+    // the full-text line keeps a number with its unit / era (NBSP) so the line never ends on a lone "CE", "min", "%" ... (all pages, all languages)
+    var EN = "CE|BE|AD|BC|KB|MB|GB|TB|px|ms|fps|FPS|s|sec|secs|seconds?|mins?|minutes?|h|hrs?|hours?|days?|weeks?|months?|years?|yrs?|" +
+      "people|persons?|seats?|cameras?|pages?|photos?|images?|points?|times|THB|baht|kg|g|cm|mm|km|m|kcal|cal|ml|L|x",
+      TH = "\u0e1a\u0e32\u0e17|\u0e19\u0e32\u0e17\u0e35|\u0e27\u0e34\u0e19\u0e32\u0e17\u0e35|\u0e0a\u0e31\u0e48\u0e27\u0e42\u0e21\u0e07|\u0e27\u0e31\u0e19|" +
+      "\u0e2a\u0e31\u0e1b\u0e14\u0e32\u0e2b\u0e4c|\u0e40\u0e14\u0e37\u0e2d\u0e19|\u0e1b\u0e35|\u0e04\u0e19|\u0e04\u0e23\u0e31\u0e49\u0e07|\u0e02\u0e49\u0e2d|" +
+      "\u0e2b\u0e19\u0e49\u0e32|\u0e20\u0e32\u0e1e|\u0e23\u0e39\u0e1b|\u0e01\u0e25\u0e49\u0e2d\u0e07|\u0e08\u0e38\u0e14|\u0e40\u0e17\u0e48\u0e32",
+      ZH = "\u5206\u949f|\u5206|\u79d2|\u5c0f\u65f6|\u5929|\u5468|\u4e2a\u6708|\u6708|\u5e74|\u5c81|\u4eba|\u6b21|\u4e2a|\u5f20|\u9875|\u5143|\u6cf0\u94e2|\u500d",
+      U = new RegExp("(\\d)[ ]+(?=(?:" + EN + ")(?![A-Za-z])|(?:%|\u00b0|" + TH + "|" + ZH + "))", "g"),
+      E = /(\u0e1e\.\u0e28\.|\u0e04\.\u0e28\.)[ ]+(?=\d)/g,
+      glue = function (/** @type {string} */ v) { return v.replace(U, "$1\u00a0").replace(E, "$1\u00a0"); };
     var x, r = 0, D = document, n = parseFloat, fit = function () {
       r = 0; x = x || D.createElement("canvas").getContext("2d");
       [].forEach.call(D.querySelectorAll("select"), function (/** @type {any} */ s) {
@@ -767,7 +777,7 @@
           w = Math.ceil(x.measureText(t).width + n(y.paddingLeft) + n(y.paddingRight) + n(y.borderLeftWidth) + n(y.borderRightWidth) + 24) > s.getBoundingClientRect().width + .5;
         }
         if (!c || c.className !== "lq-sel-full") { if (!w) return; c = D.createElement("span"); c.className = "lq-sel-full"; c.ariaHidden = "true"; s.after(c); }
-        c.hidden = !w; s.parentElement.classList.toggle("lq-sel-wrap", w); if (w && c.textContent !== t) c.textContent = t;
+        c.hidden = !w; s.parentElement.classList.toggle("lq-sel-wrap", w); if (w) { var g = glue(t); if (c.textContent !== g) c.textContent = g; }
       });
     }, go = function () { r = r || requestAnimationFrame(fit); setTimeout(fit, 300); };
     ["resize", "load", "lq-lang"].forEach(function (e) { addEventListener(e, go); });
