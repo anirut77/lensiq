@@ -11,6 +11,8 @@
  *     overlaps the pet box (a face inside or next to the pet cannot be told apart from the pet); every other person box is
  *     pixelated in WHOLE (coarse mosaic, no hole). info = {photo, blur, refused: "" | "nodet" | "person", theme, size, qr,
  *     frame: [x, y, w, h] of the picture area in canvas pixels}
+ *   opts.skin: a zodiac template from lensiq-pet-zodiac-art.js (LQPetZodiacArt.skin(id, label)): its colours, background, border,
+ *     art over the picture frame and footer "จาก LENSIQ · <link>" (model.from); info.template = its id. Without it: the 4 themes.
  *   wrap(ctx, text, maxWidth, lang) -> lines (Thai / Chinese without spaces: by word segments when the browser has them)
  * Browser: window.LQPetCard · Node: module.exports (no canvas work at load). */
 (function (root) {
@@ -151,16 +153,20 @@
   }
 
   function draw(canvas, model, opts) {
-    const o = opts || {}, th = THEMES[o.theme || model.theme] || THEMES.sunny, lang = model.lang || "th";
+    // o.skin (zodiac card mode, lensiq-pet-zodiac-art.js): {id, theme, background(c, W, H), border(c, W, H), overFrame(c, fx, fy, fw,
+    // fh, env), after(c, W, H, env)} replaces the colour theme, background, border and adds the template art; text layout unchanged
+    const o = opts || {}, sk = o.skin || null, th = sk ? sk.theme : (THEMES[o.theme || model.theme] || THEMES.sunny), lang = model.lang || "th";
     const sizeKey = SIZES[o.size || model.size] ? (o.size || model.size) : "post", S = SIZES[sizeKey], W = S.w, H = S.h, story = sizeKey === "story";
     canvas.width = W; canvas.height = H;
     const c = canvas.getContext("2d"), font = FONT();
-    const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, th.bg[0]); g.addColorStop(1, th.bg[1]);
-    c.fillStyle = g; c.fillRect(0, 0, W, H);
-    c.globalAlpha = 0.09;
-    for (const [x, y, s] of [[110, 120, 60], [960, 230, 46], [80, H - 340, 52], [990, H - 370, 64], [540, H - 60, 40]]) paw(c, x, y, s, th.ink);
-    c.globalAlpha = 1;
-    c.strokeStyle = th.accent; c.lineWidth = 6; roundRect(c, 24, 24, W - 48, H - 48, 48); c.stroke();
+    if (sk) { sk.background(c, W, H); sk.border(c, W, H); } else {
+      const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, th.bg[0]); g.addColorStop(1, th.bg[1]);
+      c.fillStyle = g; c.fillRect(0, 0, W, H);
+      c.globalAlpha = 0.09;
+      for (const [x, y, s] of [[110, 120, 60], [960, 230, 46], [80, H - 340, 52], [990, H - 370, 64], [540, H - 60, 40]]) paw(c, x, y, s, th.ink);
+      c.globalAlpha = 1;
+      c.strokeStyle = th.accent; c.lineWidth = 6; roundRect(c, 24, 24, W - 48, H - 48, 48); c.stroke();
+    }
     const PAD = 76, TW = W - PAD * 2;
     c.textBaseline = "top"; c.textAlign = "left";
     // header: brand line, the typed pet name (big), the headline type
@@ -174,7 +180,8 @@
     }
     // picture frame
     const fy = y + 10, fh = story ? 760 : 430, fx = PAD, fw = TW;
-    const info = { photo: false, blur: 0, refused: "", theme: o.theme || model.theme || "sunny", size: sizeKey, qr: false, frame: [fx, fy, fw, fh] };
+    const info = { photo: false, blur: 0, refused: "", theme: sk ? "" : (o.theme || model.theme || "sunny"), template: sk ? sk.id : "", size: sizeKey, qr: false,
+      frame: [fx, fy, fw, fh] };
     if (model.photo && o.photo) {
       if (o.detOk === false) info.refused = "nodet";
       else { const r = drawPhoto(c, o.photo, o.pet, o.persons, fx, fy, fw, fh); info.blur = r.blur; info.refused = r.refused; info.photo = !r.refused; }
@@ -185,6 +192,8 @@
       c.fillStyle = model.hex || th.accent; c.globalAlpha = 0.3; c.beginPath(); c.arc(W / 2, fy + fh / 2, fh * 0.36, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
       drawPet(c, W / 2, fy + fh / 2 + fh * 0.07, fh * 0.29, model);
     }
+    const env = { story, font, lang, roundRect };
+    if (sk && sk.overFrame) sk.overFrame(c, fx, fy, fw, fh, env);
     y = fy + fh + 30;
     // lucky chip
     if (model.lucky) {
@@ -209,11 +218,15 @@
     const qs = 170, tw2 = o.qr ? TW - qs - 24 : TW;
     let fy2 = footTop; c.fillStyle = th.soft; c.font = `500 25px ${font}`;
     for (const t of [model.honest, model.disclaimer]) for (const l of wrap(c, t, tw2, lang).slice(0, 2)) { c.fillText(l, PAD, fy2); fy2 += 34; }
-    c.fillStyle = th.accent; c.font = `700 28px ${font}`; c.fillText(String(model.link || "").replace(/^https:\/\//, ""), PAD, Math.max(fy2 + 8, H - 92));
+    c.fillStyle = th.accent; c.font = `700 28px ${font}`;
+    const foot = sk && model.from ? model.from : String(model.link || "").replace(/^https:\/\//, "");
+    if (sk) for (let f = 28; f > 18 && c.measureText(foot).width > tw2; f--) c.font = `700 ${f - 1}px ${font}`; // one line, never cut
+    c.fillText(foot, PAD, Math.max(fy2 + 8, H - 92));
     if (o.qr && o.qr.n) { drawQR(c, o.qr, W - PAD - qs, H - 64 - qs, qs); info.qr = true; }
+    if (sk && sk.after) sk.after(c, W, H, env);
     return info;
   }
 
-  const api = { THEMES, SIZES, draw, wrap, W: SIZES.post.w, H: SIZES.post.h };
+  const api = { THEMES, SIZES, draw, wrap, paw, roundRect, W: SIZES.post.w, H: SIZES.post.h };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQPetCard = api;
 })(typeof window !== "undefined" ? window : globalThis);

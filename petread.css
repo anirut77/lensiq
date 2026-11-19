@@ -41,3 +41,14 @@
 .pet-readbar .btn{width:100%;max-width:520px;min-height:52px}
 .pet-readbar[hidden]{display:none}
 body.pet-bar-on main.pet{padding-bottom:110px}
+/* zodiac cards (owner spec 2026-11-19, behind LENSIQ_PET_ZODIAC): drawn card name, odds line, draw again, collection */
+.pet-zodiac[hidden],.pet-zcol[hidden],.pet-themes[hidden]{display:none}
+.pet-zgot{margin:4px 0 2px;font-weight:700;color:var(--navy)}
+.pet-zodds{margin:0 0 8px;white-space:pre-line}
+.pet-zodiac .btn{min-height:46px;margin-bottom:8px}
+.pet-zcol h3{margin:16px 0 4px}
+.pet-zgrid{list-style:none;margin:8px 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;min-width:0}
+.pet-zslot{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;text-align:center;font-size:.74rem;line-height:1.25;color:var(--muted)}
+.pet-zslot canvas{display:block;width:100%;max-width:96px;height:auto;aspect-ratio:1}
+.pet-zslot b{color:var(--text);font-weight:600;overflow-wrap:anywhere}
+.pet-zslot[data-secret="1"] canvas{border-radius:22px;box-shadow:0 0 0 2px #fcc419}
