@@ -1,5 +1,5 @@
 {
- "_about": "Allow-list for tools/pii-scan.mjs (owner decision 111). Only synthetic fixtures, public organisation / help-line contacts and false positives. Secrets: synthetic or false-positive only, never a real key. Never add real personal data. Each entry: path, max hits per type, kind (synthetic | public | false-positive), reason. A forbidden path (.wrangler/, .dev.vars, .env) cannot be listed.",
+ "_about": "Allow-list for tools/pii-scan.mjs (owner decision 111). Only synthetic fixtures, public organisation / help-line contacts and false positives. Secrets: synthetic or false-positive only, never a real key. Never add real personal data. Each entry: path, max hits per type, kind (synthetic | public | false-positive), reason. A forbidden path (.wrangler/, .dev.vars, .env) cannot be listed. Optional \"kinds\" gives a kind per type when one file holds two kinds.",
  "entries": [
   {
    "path": "CHANGELOG.md",
@@ -67,14 +67,6 @@
    },
    "kind": "public",
    "reason": "public contact details (address, phone) of licensing / data-source organisations, not of a person; public contact e-mail of a licensing / data-source organisation, not a person"
-  },
-  {
-   "path": "docs/NUTRITION-DESIGN.md",
-   "types": {
-    "email": 2
-   },
-   "kind": "public",
-   "reason": "public contact e-mail of a licensing / data-source organisation, not a person"
   },
   {
    "path": "docs/PET-READING-RESEARCH.md",
@@ -147,7 +139,11 @@
     "email": 1
    },
    "kind": "public",
-   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md; placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+   "reason": "phone: the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md; email: a placeholder address (company.com) shown as a form hint, synthetic",
+   "kinds": {
+    "phone": "public",
+    "email": "synthetic"
+   }
   },
   {
    "path": "i18n/en-luckycolor.js",
@@ -164,7 +160,11 @@
     "email": 1
    },
    "kind": "public",
-   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md; placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+   "reason": "phone: the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md; email: a placeholder address (company.com) shown as a form hint, synthetic",
+   "kinds": {
+    "phone": "public",
+    "email": "synthetic"
+   }
   },
   {
    "path": "i18n/zh-luckycolor.js",

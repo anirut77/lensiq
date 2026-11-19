@@ -120,30 +120,74 @@ function entropy(v) {
   for (const ch of v) c[ch] = (c[ch] || 0) + 1;
   return Object.values(c).reduce((e, n) => e - (n / v.length) * Math.log2(n / v.length), 0);
 }
-/** a placeholder, not a key: repeated runs, low entropy or placeholder words @param {string} v */
+// placeholder words count only as the whole value, as two or more words split on - _ . or space ("your-secret-here",
+// "TURNSTILE_SECRET_VALUE"), or as a single-case run made only of such words plus one repeated filler ("SECRETVALUEAAAA");
+// never as a substring of a random key ("…Xdemo3…" is a key)
+const PH_WORDS = new Set(["example", "placeholder", "dummy", "fake", "sample", "redacted", "changeme", "change", "your", "here", "replace",
+  "insert", "random", "bytes", "generate", "generated", "secret", "value", "token", "test", "demo", "canary", "notreal", "none", "null", "undefined", "todo", "password", "pass", "key"]);
+const PH_GLUED = /^(?:example|placeholder|dummy|fake|sample|redacted|changeme|secret|value|token|canary|demo|test|key|your|here|api)+(?:(.)\1*)?$/i;
+/** a placeholder, not a key @param {string} v */
 function placeholder(v) {
-  return /(.)\1{3,}/.test(v) || entropy(v) < 3 || ALPHA_RUN.test(v) ||
-    /example|placeholder|dummy|fake|sample|redacted|changeme|change-me|your[-_]|secretvalue|xxxx|test[-_]?key|not[-_]?real|canary|demo/i.test(v);
+  if (!v) return true;
+  if (/^(?:x+|0+|\*+|\.+|-+|_+|<[^>]*>|\$\{[^}]*\}|\{\{[^}]*\}\}|%[A-Z_]+%)$/i.test(v)) return true; // whole-value fillers
+  if (/(.)\1{7,}/.test(v)) return true; // a run of 8+ identical characters
+  const maxRun = Math.max(...(v.match(/(.)\1*/g) || [""]).map(r => r.length));
+  if (maxRun * 2 >= v.length) return true; // one run is half the value or more
+  if (new Set(v).size <= 6 || (v.length < 24 && entropy(v) < 3)) return true; // few distinct characters / short and flat
+  if (ALPHA_RUN.test(v)) return true; // "abcdef", "123456": typed by hand
+  const words = v.split(/[-_.\s]+/).filter(Boolean).map(w => w.toLowerCase());
+  if (words.filter(w => PH_WORDS.has(w)).length >= 2) return true;
+  if (words.length === 1 && PH_WORDS.has(words[0])) return true;
+  for (const run of v.match(/[A-Z]{8,}|[a-z]{8,}/g) || []) if (PH_GLUED.test(run)) return true;
+  return false;
 }
+/** entropy floor for a value of this alphabet and length (75 % of the most a random value could reach) @param {string} v */
+function entropyFloor(v) {
+  const alphabet = /^[0-9a-f]+$/i.test(v) ? 16 : /^\d+$/.test(v) ? 10 : /^[A-Za-z0-9]+$/.test(v) ? 62 : 64;
+  return 0.75 * Math.min(Math.log2(alphabet), Math.log2(v.length));
+}
+/** a random-looking value: not a placeholder, entropy above the alphabet's floor, and not a plain name @param {string} v */
+const randomish = v => !placeholder(v) && entropy(v) >= entropyFloor(v) &&
+  (/\d/.test(v) || (/[a-z]/.test(v) && /[A-Z]/.test(v)));
 /** @param {RegExpExecArray} m */
 const realKey = m => !placeholder(m[1] ?? m[0]);
+/** @param {number} n characters of a fixed prefix @returns {(m: RegExpExecArray) => boolean} */
+const after = n => m => !placeholder(m[1].slice(n));
+const SECRET_NAME = "(?:secret|token|passw(?:or)?d|pwd|api[_-]?key|apikey|access[_-]?key|private[_-]?key|client[_-]?secret)";
+const URL_PH = /^(?:pass(?:word)?|pwd|secret|changeme|x+|\*+|\$\{[^}]*\}|\$[A-Z_]+|<[^>]*>|\{\{[^}]*\}\}|%[A-Z_]+%)$/i;
 /** @type {Array<[string, RegExp, (m: RegExpExecArray, line: string) => boolean]>} */
 const SECRET_RULES = [
   ["email", /(?<![\w.+-])([A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})(?![\w@-])/g, m => realEmail(m[1])],
-  ["secret", /\b((?:AKIA|ASIA)[0-9A-Z]{16})\b/g, realKey],
+  ["secret", /\b((?:AKIA|ASIA)[0-9A-Z]{16})\b/g, after(4)],
   ["secret", /aws_?secret_?access_?key["']?\s*[:=]\s*["']?([A-Za-z0-9/+]{40})(?![A-Za-z0-9/+])/gi, realKey],
-  ["secret", /\b((?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,})\b/g, m => !placeholder(m[1].slice(4))],
-  ["secret", /\b(github_pat_[A-Za-z0-9_]{60,})\b/g, m => !placeholder(m[1].slice(11))],
-  ["secret", /(?<![\w-])(sk-(?:ant-(?:api\d\d-)?|proj-|or-v1-|or-)?[A-Za-z0-9_-]{20,})(?![\w-])/g, m => !placeholder(m[1].replace(/^sk-(?:ant-(?:api\d\d-)?|proj-|or-v1-|or-)?/, ""))],
-  ["secret", /\b(xox[abposr]-[A-Za-z0-9-]{10,})\b/g, m => !placeholder(m[1].slice(5))],
-  ["secret", /(?<![\w-])(AIza[0-9A-Za-z_-]{35})(?![\w-])/g, m => !placeholder(m[1].slice(4))],
-  ["secret", /\b((?:sk|rk)_live_[0-9A-Za-z]{20,})\b/g, m => !placeholder(m[1].slice(8))],
+  ["secret", /\b((?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,})\b/g, after(4)],
+  ["secret", /\b(github_pat_[A-Za-z0-9_]{60,})\b/g, after(11)],
+  ["secret", /(?<![\w-])(sk-(?:ant-(?:api\d\d-)?|proj-|or-v1-|or-)?[A-Za-z0-9_-]{20,})(?![\w-])/g,
+    m => !placeholder(m[1].replace(/^sk-(?:ant-(?:api\d\d-)?|proj-|or-v1-|or-)?/, ""))],
+  ["secret", /\b(xox[abposr]-[A-Za-z0-9-]{10,})\b/g, after(5)],
+  ["secret", /(?<![\w-])(AIza[0-9A-Za-z_-]{35})(?![\w-])/g, after(4)],
+  ["secret", /\b((?:sk|rk)_(?:live|test)_[0-9A-Za-z]{20,})\b/g, m => !placeholder(m[1].replace(/^\w\w_\w+?_/, ""))],
+  ["secret", /\b(hf_[A-Za-z0-9]{30,})\b/g, after(3)],
+  ["secret", /\b(npm_[A-Za-z0-9]{36})\b/g, after(4)],
+  ["secret", /\b(SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43})(?![\w-])/g, after(3)],
+  ["secret", /(?<![\w:])(\d{8,10}:AA[A-Za-z0-9_-]{33})(?![\w-])/g, m => !placeholder(m[1].slice(m[1].indexOf(":") + 3))],
+  ["secret", /\b(GOCSPX-[A-Za-z0-9_-]{28})(?![\w-])/g, after(7)],
+  // Cloudflare Turnstile secret: 0x4 + a run of A + a random tail of 18+ (the public SITE key has a 14-character tail and
+  // is meant to be in the page; the documented test keys start 1x / 2x / 3x)
+  ["secret", /(?<![\w])(0x4A{5,}[A-Za-z0-9_-]{16,})(?![\w-])/g, m => {
+    const tail = m[1].replace(/^0x4A+/, "");
+    return tail.length >= 18 && !placeholder(tail);
+  }],
   ["secret", /(?<![\w-])(eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})(?![\w-])/g, realKey],
   ["secret", /(-----BEGIN (?:RSA |EC |DSA |OPENSSH |ENCRYPTED |PGP )?PRIVATE KEY(?: BLOCK)?-----)/g, () => true],
-  ["secret", /(?:secret|token|passw(?:or)?d|pwd|api[_-]?key|apikey|access[_-]?key|private[_-]?key|client[_-]?secret)[\w-]*["']?\s*[:=]\s*["'`]([\x21\x23-\x26\x28-\x5f\x61-\x7e]{20,})["'`]/gi,
-    // a value that looks random: digits, or upper and lower case mixed ("max_completion_tokens" is a name, not a key)
-    (m, line) => !placeholder(m[1]) && entropy(m[1]) >= 3.5 && (/\d/.test(m[1]) || (/[a-z]/.test(m[1]) && /[A-Z]/.test(m[1]))) &&
-      !/^(?:sha(?:256|384|512)-|https?:|\.{0,2}\/)/.test(m[1]) && !/integrity\s*=/.test(line)]
+  // a password in a URL: scheme://user:password@host
+  ["secret", /\b[a-z][a-z0-9+.-]*:\/\/[^\s:@/"'`]*:([^\s:@/"'`]{4,})@[A-Za-z0-9.-]+/gi, m => !URL_PH.test(m[1]) && !placeholder(m[1])],
+  // a quoted value assigned to a secret-like name
+  ["secret", new RegExp(`${SECRET_NAME}[\\w-]*["']?\\s*[:=]\\s*["'\`]([\\x21\\x23-\\x26\\x28-\\x5f\\x61-\\x7e]{20,})["'\`]`, "gi"),
+    (m, line) => randomish(m[1]) && !/^(?:sha(?:256|384|512)-|https?:|\.{0,2}\/)/.test(m[1]) && !/integrity\s*=/.test(line)],
+  // an unquoted value (NAME=value, name: value): key-like characters only, so code (process.env.X, calls) is not read
+  ["secret", new RegExp(`${SECRET_NAME}[\\w-]*\\s*[:=]\\s*([A-Za-z0-9_+/=-]{20,})(?![\\w.(+/=-])`, "gi"),
+    m => randomish(m[1]) && /[A-Za-z]/.test(m[1]) && !/^[a-z]{2,}(?:[A-Z][a-z]{2,})+\d*$/.test(m[1])] // not a camelCase name
 ];
 RULES.push(...SECRET_RULES);
 
@@ -212,7 +256,15 @@ export function loadAllow(file) {
       if (!TYPES.has(t)) throw new Error(`${where}: type ${t} cannot be allow-listed`);
       if (!Number.isInteger(n) || n <= 0) throw new Error(`${where}: max for ${t} must be a positive integer`);
     }
-    if (e.types.secret && e.kind === "public") throw new Error(`${where}: a secret can only be synthetic or a false positive`);
+    if (e.kinds !== undefined) { // optional kind per type, when one file holds e.g. a public help line and a placeholder e-mail
+      if (!e.kinds || typeof e.kinds !== "object") throw new Error(`${where}: kinds must be an object`);
+      for (const [t, k] of Object.entries(e.kinds)) {
+        if (!e.types[t]) throw new Error(`${where}: kinds names ${t}, which is not in types`);
+        if (!["synthetic", "public", "false-positive"].includes(String(k))) throw new Error(`${where}: kinds.${t} must be synthetic, public or false-positive`);
+      }
+    }
+    const secretKind = (e.kinds && e.kinds.secret) || e.kind;
+    if (e.types.secret && secretKind === "public") throw new Error(`${where}: a secret can only be synthetic or a false positive`);
     if (map.has(e.path)) throw new Error(`${where}: duplicate path`);
     map.set(e.path, e.types);
   }
