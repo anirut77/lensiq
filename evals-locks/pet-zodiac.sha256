@@ -17,3 +17,12 @@ ca99367160080d31bcc0f784763b722a2560febaad7802bb0bedf2cf7c5a4096  tests/unit/pet
 17a4ccb8fd400126b1498d2fbe18712f2f39640e88f0980ef2c1c4ffb49ad976  relock-1/pet-zodiac.e2e.mjs
 8411d4ea2b377f8609070b1f85943bcdb3b60e77d1a03dcac7b598e892356312  tests/unit/pet-zodiac.test.js  # repo file (same commit as lock 2026-11-19T02:10:13Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-1/pet-zodiac.test.js)
 17a4ccb8fd400126b1498d2fbe18712f2f39640e88f0980ef2c1c4ffb49ad976  tests/e2e/pet-zodiac.e2e.mjs  # repo file (same commit as lock 2026-11-19T02:10:13Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-1/pet-zodiac.e2e.mjs)
+# LOCK 3 2026-11-19 (branch pet-zodiac-cards): owner's full pet-reading scope relayed by the coordinator, items 1 (capture guide
+# frame like faceread, camera only on tap and released on close) and 2 (required / optional markers matching what the code
+# needs), both behind LENSIQ_PET_ZODIAC. New files, locked BEFORE their product code; earlier files unchanged. Before the build:
+# unit 1/4, Chrome e2e 1/5 (G4 flag off already holds). Logs: ~/LENSIQ-field/evals/pet-zodiac/run-2-capture-before-build-*.log
+# locked 2026-11-19T02:25:10Z (tools/eval-guard.mjs lock, 2 files)
+425a2febe2d2353a9807117d767890efe02e1160f94439e758bfc8ca24fb95a8  capture/pet-capture.test.js
+27b04776b3ac4dadc7eecb52d4436a7c7299e1d6e396d546641b92e4128e4c5a  capture/pet-capture.e2e.mjs
+425a2febe2d2353a9807117d767890efe02e1160f94439e758bfc8ca24fb95a8  tests/unit/pet-capture.test.js  # repo file (same commit as lock 2026-11-19T02:25:10Z; field: ~/LENSIQ-field/evals/pet-zodiac/capture/pet-capture.test.js)
+27b04776b3ac4dadc7eecb52d4436a7c7299e1d6e396d546641b92e4128e4c5a  tests/e2e/pet-capture.e2e.mjs  # repo file (same commit as lock 2026-11-19T02:25:10Z; field: ~/LENSIQ-field/evals/pet-zodiac/capture/pet-capture.e2e.mjs)
