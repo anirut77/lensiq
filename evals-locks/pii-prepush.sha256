@@ -1,0 +1,5 @@
+# locked 2026-11-19T04:31:55Z (tools/eval-guard.mjs lock, 2 files)
+fd506285eba4ef662d76c2ced0c559aa3474e6121046d7ace8bb8694bf32a763  pii-prepush.test.js
+7946f285801d2e8c20381e4056a41035dd20e6233f47927c9cd9c723fd8fffe3  pushed-ranges.tsv
+fd506285eba4ef662d76c2ced0c559aa3474e6121046d7ace8bb8694bf32a763  tests/unit/pii-prepush.test.js  # repo file (same commit as lock 2026-11-19T04:31:55Z; field: ~/LENSIQ-field/evals/pii-prepush/pii-prepush.test.js)
+# field only pushed-ranges.tsv (lock 2026-11-19T04:31:55Z: no repo file uses it)
