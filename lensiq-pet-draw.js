@@ -16,7 +16,8 @@
  *   draw(config, ctx, rand?) -> {id, rule, p}      rand() in [0, 1); default random() = crypto.getRandomValues (53 bits)
  *   oddsText(config, ctx, lang) -> [one short odds line, the INDEPENDENT line]   every number generated from odds()
  *   label(id, lang) · short(id, lang) · FROM {th, en, zh} · INDEPENDENT {th, en, zh}
- *   dayBranch(date) -> 0..11 · isFullMoonDay(date) · today(d?) -> local "YYYY-MM-DD"
+ *   dayBranch(date) -> 0..11 · isFullMoonDay(date) · today(d?) -> the Bangkok (UTC+7) date "YYYY-MM-DD", the same basis as
+ *     the full-moon rule (Bangkok date of full moon − 12 h), so "today" and "full-moon day" never disagree
  *   Collection on the device (localStorage, every access in try/catch): STORE_KEY = {"v":1,"found":{id: "YYYY-MM-DD"}} (template
  *   ids and the first-found date only)
  *     loadCollection(storage) -> {id: date} · recordFind(storage, id, today) -> {found, isNew}
@@ -45,7 +46,8 @@
     day: { th: "โอกาสวันนี้: การ์ด{n} {zb} (การ์ดประจำวัน ×{f}) · ใบอื่นใบละ {z} · การ์ด Secret {s}{moon}",
       en: "Today's odds: {n} card {zb} (card of the day, ×{f}) · each other card {z} · Secret Card {s}{moon}",
       zh: "今日概率：{n}卡 {zb}（当日生肖 ×{f}）· 其他每张 {z} · 隐藏卡 {s}{moon}" },
-    moon: { th: " (วันเพ็ญ)", en: " (full-moon day)", zh: "（满月日）" },
+    moon: { th: " (วันเพ็ญ โดยประมาณ)", en: " (approx. full-moon day)", zh: "（约满月日）" },
+    moonRule: { th: " (วันเพ็ญ โดยประมาณ {f})", en: " ({f} on an approx. full-moon day)", zh: "（约满月日 {f}）" },
   };
   var langOf = function (l) { return l === "en" || l === "zh" ? l : "th"; };
   var fill = function (s, v) { return s.replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }); };
@@ -115,9 +117,11 @@
   }
   /** branch of the day in the sexagenary cycle: 0 = 子 rat … 11 = 亥 pig (HSCore.dayPillarJDN: branch = (JDN + 1) mod 12) */
   function dayBranch(date) { var p = parse(date); if (!p) return -1; return (((jdn(p.y, p.m, p.d) + 1) % 12) + 12) % 12; }
+  /** today's date on ONE basis with the full-moon rule: the Bangkok (UTC+7) calendar date of the instant, whatever the device's
+   *  time zone (review round 1: the device's local date and the Bangkok full-moon date could disagree around midnight) */
   function today(d) {
-    var x = d instanceof Date ? d : new Date(), p = function (n) { return String(n).padStart(2, "0"); };
-    return x.getFullYear() + "-" + p(x.getMonth() + 1) + "-" + p(x.getDate());
+    var x = new Date((d instanceof Date ? d.getTime() : Date.now()) + 7 * 3600000), p = function (n) { return String(n).padStart(2, "0"); };
+    return x.getUTCFullYear() + "-" + p(x.getUTCMonth() + 1) + "-" + p(x.getUTCDate());
   }
 
   /* ---------- odds and the draw ---------- */
@@ -149,7 +153,9 @@
   var pct = function (x) { return (Math.round(x * 10000) / 100).toFixed(2).replace(/\.?0+$/, "") + "%"; };
   /** one short line generated from the active config (+ the INDEPENDENT line) */
   function oddsText(cfg, ctx, lang) {
-    var l = langOf(lang), o = odds(cfg || CONFIGS[DEFAULT], ctx), moon = o.fullMoon ? TXT.moon[l] : "", line;
+    var c = cfg || CONFIGS[DEFAULT], l = langOf(lang), o = odds(c, ctx), line;
+    // the full-moon rule is named every day: on the day itself as a tag, otherwise as a short clause with its rate
+    var moon = o.fullMoon ? TXT.moon[l] : (c.fullMoonSecret != null ? fill(TXT.moonRule[l], { f: pct(c.fullMoonSecret) }) : "");
     var others = ZODIAC.filter(function (z) { return z !== o.dayAnimal; });
     var vals = others.map(function (z) { return o.p[z]; }), same = vals.every(function (v) { return Math.abs(v - vals[0]) < 1e-12; });
     if (o.dayAnimal && same) line = fill(TXT.day[l], { n: short(o.dayAnimal, l), zb: pct(o.p[o.dayAnimal]), f: o.factor, z: pct(vals[0]), s: pct(o.p.secret), moon: moon });

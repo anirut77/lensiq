@@ -5,7 +5,9 @@
  *
  *   STYLES {rat … pig, secret}: {name, bg [2], ink, soft, accent, chip, frame, glow, border, stickers [names], motif, effect?}
  *   ANIMALS {id: (ctx, cx, cy, r) => void}   the illustration of each template, about 2r wide
- *   skin(id, label) -> the opts.skin object for LQPetCard.draw (colours, background, border, art over the picture frame)
+ *   skin(id, label) -> the opts.skin object for LQPetCard.draw: {base (gradient / foil), decor (sprinkles, margin stickers, border),
+ *     overFrame (medallion + label ribbon, returns their rectangles), after (corner sticker, the secret card's edge sparkles)};
+ *     LQPetCard.draw erases every text box from the decor and after layers, so no art sits under text
  *   drawCard(canvas, model, opts) = LQPetCard.draw(canvas, model, {...opts, skin: skin(opts.template, opts.label)})
  *   drawSlot(canvas, id, {found}) -> one collection slot: found = the template's colours and animal; missing = a grey
  *     silhouette with "?"; the secret slot keeps its star outline so it reads as the secret slot
@@ -256,12 +258,12 @@
   /* ---------- backgrounds, borders, art over the frame ---------- */
   /** a small seeded generator for the fixed sprinkle positions (the look of a template never changes between draws) */
   function seeded(n) { let s = n * 9301 + 49297; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; }
-  function background(id) {
-    const st = STYLES[id], idx = IDS.indexOf(id);
+  /** base layer: the gradient (and the secret card's holographic foil) — no stickers, sprinkles or border */
+  function base(id) {
+    const st = STYLES[id];
     return function (c, W, H) {
       const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, st.bg[0]); g.addColorStop(1, st.bg[1]);
       c.fillStyle = g; c.fillRect(0, 0, W, H);
-      const rnd = seeded(idx + 3);
       if (st.effect === "holo") {
         c.save(); c.globalCompositeOperation = "screen";
         const cols = ["#ff6ec7", "#7afcff", "#feff9c", "#b28dff", "#7cffcb"];
@@ -271,6 +273,16 @@
           c.globalAlpha = 0.16; c.fillStyle = hg; c.beginPath(); c.moveTo(x0, 0); c.lineTo(x0 + W * 0.22, 0); c.lineTo(x0 + W * 0.62, H); c.lineTo(x0 + W * 0.4, H); c.closePath(); c.fill();
         }
         c.restore();
+      }
+    };
+  }
+  /** decoration layer (drawn behind the card's content, with every text box erased by lensiq-pet-card.js): sprinkles, the
+   *  faint stickers in the side margins, and the border */
+  function decor(id) {
+    const st = STYLES[id], idx = IDS.indexOf(id), drawBorder = border(id);
+    return function (c, W, H) {
+      const rnd = seeded(idx + 3);
+      if (st.effect === "holo") {
         for (let i = 0; i < 110; i++) { c.globalAlpha = 0.25 + rnd() * 0.6; circ(c, rnd() * W, rnd() * H, 1 + rnd() * 2.6, "#ffffff"); }
         c.globalAlpha = 1;
       } else {
@@ -278,12 +290,14 @@
         for (let i = 0; i < 46; i++) circ(c, rnd() * W, rnd() * H, 4 + rnd() * 7, st.ink);
         c.globalAlpha = 1;
       }
-      const spots = [[112, 122, 64], [962, 232, 50], [82, H - 342, 56], [990, H - 372, 66], [540, H - 58, 42], [948, H * 0.5, 44], [132, H * 0.46, 42]];
+      // side margins only (review round 1: nothing in the header or footer text area)
+      const spots = [[962, 236, 46], [48, H * 0.36, 38], [W - 48, H * 0.44, 40], [48, H * 0.64, 40], [W - 48, H * 0.6, 38], [W - 48, H * 0.78, 40], [46, H * 0.84, 36]];
       spots.forEach(([x, y, s], i) => {
         c.globalAlpha = st.effect ? 0.4 : 0.15;
         STICK[st.stickers[i % st.stickers.length]](c, x, y, s, i % 2 ? st.accent : st.ink);
       });
       c.globalAlpha = 1;
+      drawBorder(c, W, H);
     };
   }
   function edgePoints(x, y, w, h, step) {
@@ -322,7 +336,8 @@
         }
         case "ticket": {
           c.lineWidth = 6; rr(c, x, y, w, h, 48); c.stroke();
-          c.fillStyle = A; for (const [cx, cy] of [[x + 54, y + 54], [x + w - 54, y + 54], [x + 54, y + h - 54], [x + w - 54, y + h - 54]]) { starPath(c, cx, cy, 4, 20, 6, 0); c.fill(); }
+          // corner stars on the rounded corners of the border, clear of the brand line and the footer text (review round 1)
+          c.fillStyle = A; for (const [cx, cy] of [[x + 14, y + 14], [x + w - 14, y + 14], [x + 14, y + h - 14], [x + w - 14, y + h - 14]]) { starPath(c, cx, cy, 4, 18, 5, 0); c.fill(); }
           break;
         }
         case "royal": {
@@ -358,26 +373,32 @@
   function overFrame(id, label) {
     const st = STYLES[id];
     return function (c, fx, fy, fw, fh, env) {
-      const font = env.font, story = env.story, R = story ? 132 : 104;
-      medallion(c, id, fx + fw - R - 18, fy + fh - R - 18, R);
-      if (!label) return;
-      if (st.effect) { // the secret card: a big gold ribbon across the top of the picture
+      const font = env.font, story = env.story, R = story ? 132 : 104, mx = fx + fw - R - 18, my = fy + fh - R - 18;
+      medallion(c, id, mx, my, R);
+      const out = { ribbon: null, medallion: { x: mx - R, y: my - R, w: 2 * R, h: 2 * R } };
+      if (!label) return out;
+      if (st.effect) { // the secret card: a big gold ribbon along the BOTTOM of the picture (review round 1: never over the pet's head)
         let fs = story ? 54 : 46; c.font = `800 ${fs}px ${font}`;
-        while (c.measureText(label).width > fw - 220 && fs > 26) { fs -= 2; c.font = `800 ${fs}px ${font}`; }
-        const tw = c.measureText(label).width, bw = tw + 120, bh = fs + 40, bx = fx + (fw - bw) / 2, by = fy + 22;
+        const room = fw - 2 * R - 18 - 26 - 70 - 26; // from the left edge (+ point) to the medallion, with the sparkle
+        while (c.measureText(label).width + 120 > room && fs > 26) { fs -= 2; c.font = `800 ${fs}px ${font}`; }
+        const tw = c.measureText(label).width, bw = tw + 120, bh = fs + 40, bx = fx + 22 + 26, by = fy + fh - bh - 24;
         const gg = c.createLinearGradient(bx, by, bx + bw, by + bh); gg.addColorStop(0, "#fff3bf"); gg.addColorStop(0.45, "#fcc419"); gg.addColorStop(1, "#f08c00");
         c.save(); c.shadowColor = "rgba(255,209,102,.7)"; c.shadowBlur = 26;
         poly(c, [[bx - 26, by + bh / 2], [bx, by], [bx + bw, by], [bx + bw + 26, by + bh / 2], [bx + bw, by + bh], [bx, by + bh]], gg); c.restore();
-        c.fillStyle = "#2b1055"; c.textBaseline = "middle"; c.textAlign = "center"; c.fillText(label, fx + fw / 2, by + bh / 2 + 2);
+        c.fillStyle = "#2b1055"; c.textBaseline = "middle"; c.textAlign = "center"; c.fillText(label, bx + bw / 2, by + bh / 2 + 2);
         c.textAlign = "left"; c.textBaseline = "top";
-        for (const s of [-1, 1]) { starPath(c, fx + fw / 2 + s * (bw / 2 + 52), by + bh / 2, 4, 22, 6, 0); c.fillStyle = "#fff9db"; c.fill(); }
-        return;
+        starPath(c, bx + bw + 58, by + bh / 2, 4, 22, 6, 0); c.fillStyle = "#fff9db"; c.fill();
+        starPath(c, bx + bw * 0.5, by - 18, 4, 14, 4, 0); c.fill();
+        out.ribbon = { x: bx - 26, y: by, w: bw + 52, h: bh };
+        return out;
       }
       let fs = story ? 38 : 32; c.font = `700 ${fs}px ${font}`;
       while (c.measureText(label).width > fw - 2 * R - 120 && fs > 20) { fs -= 2; c.font = `700 ${fs}px ${font}`; }
       const tw = c.measureText(label).width, bw = tw + 48, bh = fs + 26, bx = fx + 18, by = fy + 18;
       c.save(); c.shadowColor = "rgba(0,0,0,.18)"; c.shadowBlur = 12; rr(c, bx, by, bw, bh, bh / 2); c.fillStyle = st.accent; c.fill(); c.restore();
       c.fillStyle = id === "horse" ? "#1b2a4a" : "#ffffff"; c.textBaseline = "middle"; c.fillText(label, bx + 24, by + bh / 2 + 1); c.textBaseline = "top";
+      out.ribbon = { x: bx, y: by, w: bw, h: bh };
+      return out;
     };
   }
   function after(id) {
@@ -392,8 +413,8 @@
         const rnd = seeded(77);
         for (let i = 0; i < 26; i++) {
           // on the gold border only (never over the footer text): within 14 px of the edge line
-          const side = i % 4, t = rnd(), x = side === 0 || side === 2 ? 40 + t * (W - 80) : (side === 1 ? W - 24 - rnd() * 14 : 24 + rnd() * 14),
-            y = side === 1 || side === 3 ? 40 + t * (H - 80) : (side === 2 ? H - 24 - rnd() * 14 : 24 + rnd() * 14), s = 7 + rnd() * 12;
+          const side = i % 4, t = rnd(), x = side === 0 || side === 2 ? 40 + t * (W - 80) : (side === 1 ? W - 22 - rnd() * 8 : 22 + rnd() * 8),
+            y = side === 1 || side === 3 ? 40 + t * (H - 80) : (side === 2 ? H - 22 - rnd() * 8 : 22 + rnd() * 8), s = 6 + rnd() * 9;
           c.globalAlpha = 0.6 + rnd() * 0.4; starPath(c, x, y, 4, s, s * 0.25, 0); c.fillStyle = i % 3 ? "#fff9db" : "#ffd166"; c.fill();
         }
         c.globalAlpha = 1;
@@ -402,7 +423,7 @@
   }
   function skin(id, label) {
     const k = STYLES[id] ? id : "rat";
-    return { id: k, theme: STYLES[k], background: background(k), border: border(k), overFrame: overFrame(k, label || ""), after: after(k) };
+    return { id: k, theme: STYLES[k], base: base(k), decor: decor(k), overFrame: overFrame(k, label || ""), after: after(k) };
   }
   function drawCard(canvas, model, opts) {
     const o = Object.assign({}, opts || {}), id = o.template || model.template;
