@@ -1,0 +1,19 @@
+# locked 2026-11-19T16:29:27Z (tools/eval-guard.mjs lock, 8 files)
+36a0fb28592dec06a7e05dc2b9077e96a381e0161569fb26b9add6af1f1185a1  set/tests/unit/palm-v2-kit.js
+ed0e58d7dc2dfc3eea42b6eea70909840557164c7c1a9a2ada70bab4afdd92df  set/tests/unit/palm-v2-layers.test.js
+ee6b04943cbad2e832ce4f05d1e31f60ad8ba57a9843a902272e3549325657f2  set/tests/unit/palm-v2-reading.test.js
+c824a04fb7e958bc1b05ecf520f0b082c6cb2324bc9f15ed6f480e1a3da61385  set/tests/unit/palm-v2-capture.test.js
+a318af98ca0ed3c14df6cb24650e97064eb8a26ba31bc349ae3d8341eeac36c1  set/tests/unit/palm-v2-detect.test.js
+9e9c8589109fef838c212362383b3bf24cc86599f749f1fb5b120c592df56cb9  set/tests/e2e/palm-v2.e2e.mjs
+5a46bee147d903cabdd753bde4f914609faa793ef2afb73a903b99eaa89380c2  set/tests/fixtures/palm-v2/synth-hand.js
+0935e7016da62a5bda037d55cd6f4f43dd092168cf4c6ce216fef87e7e561757  set/docs/acceptance/palm.md
+36a0fb28592dec06a7e05dc2b9077e96a381e0161569fb26b9add6af1f1185a1  tests/unit/palm-v2-kit.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/unit/palm-v2-kit.js)
+ed0e58d7dc2dfc3eea42b6eea70909840557164c7c1a9a2ada70bab4afdd92df  tests/unit/palm-v2-layers.test.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/unit/palm-v2-layers.test.js)
+ee6b04943cbad2e832ce4f05d1e31f60ad8ba57a9843a902272e3549325657f2  tests/unit/palm-v2-reading.test.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/unit/palm-v2-reading.test.js)
+c824a04fb7e958bc1b05ecf520f0b082c6cb2324bc9f15ed6f480e1a3da61385  tests/unit/palm-v2-capture.test.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/unit/palm-v2-capture.test.js)
+a318af98ca0ed3c14df6cb24650e97064eb8a26ba31bc349ae3d8341eeac36c1  tests/unit/palm-v2-detect.test.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/unit/palm-v2-detect.test.js)
+9e9c8589109fef838c212362383b3bf24cc86599f749f1fb5b120c592df56cb9  tests/e2e/palm-v2.e2e.mjs  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/e2e/palm-v2.e2e.mjs)
+5a46bee147d903cabdd753bde4f914609faa793ef2afb73a903b99eaa89380c2  tests/fixtures/palm-v2/synth-hand.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/fixtures/palm-v2/synth-hand.js)
+0935e7016da62a5bda037d55cd6f4f43dd092168cf4c6ce216fef87e7e561757  docs/acceptance/palm.md  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/docs/acceptance/palm.md)
+# palm reading upgrade v1 (owner order 2026-11-19, switch LENSIQ_PALM_V2 = false): tests + acceptance sheet locked BEFORE any product code, base origin/main d158e363.
+# field copies live under ~/LENSIQ-field/evals/palm-layers/set/ (an empty folder tests/unit/palm-v2-kit.js was made there by a shell mistake before the lock; left in place, no file in it).
