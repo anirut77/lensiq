@@ -92,7 +92,12 @@ locked set v5; `docs/nutrition/NUTRITION-ACCURACY.md` "Status".) The "branch onl
 3. Per branch: a worktree in `~/LENSIQ-field/work/`, `node_modules` symlinked from the main repo, merge `origin/main`
    in, run the affected suites locally and read the result, push, `gh workflow run ci.yml --ref <branch>`, poll at most
    every 4 minutes. Merge to main only on a green branch run and a recorded independent review. Push risky fixes as
-   their own commit.
+   their own commit. Personal-data hooks (pre-push + pre-commit, `tools/git-hooks/`): `node tools/install-hooks.mjs`
+   once per machine copies them to `~/.config/lensiq/git-hooks` and sets `core.hooksPath` in the shared repo config, so
+   every worktree, old or new, gets them (check: `git -C <worktree> config core.hooksPath`; a worktree's own
+   `config.worktree` could override it). NOT turned on yet (2026-11-19): pushes take 0.2–0.5 s, but 2 of the locked 30
+   real pushes (`evals-locks/pii-prepush.sha256`) stop on synthetic test fixtures that are not allow-listed; owner
+   decision pending.
 4. No local full gate while other agents run (at most one, other CPU-heavy agents paused).
 5. Order after the open branches: the Sellable pack list in `CLAUDE.md` (items 1–9), then the queue (CI sharding ค,
    adverts on-device, hall-mode detector switch, P8 after the owner's credit, P9, Merit, Nutrition, Try-On, Style,

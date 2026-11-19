@@ -1,7 +1,16 @@
 #!/bin/sh
-# tools/git-hooks/pre-commit — optional local hook (owner decision 111): blocks a commit whose staged lines hold personal
-# data (coordinates, postcode + city, phone, Thai ID, public IP, street address) or a forbidden path (.wrangler/,
-# .dev.vars, .env). Values are never printed. Enable once per clone:
-#   git config core.hooksPath tools/git-hooks
-# (or copy this file to .git/hooks/pre-commit). Disable: git config --unset core.hooksPath. CI runs the same scanner.
-cd "$(git rev-parse --show-toplevel)" && exec node tools/pii-scan.mjs --staged
+# tools/git-hooks/pre-commit — owner decision 111 + owner order 2026-11-19: blocks a commit whose staged lines hold
+# personal data (coordinates, postcode + city, phone, Thai ID, public IP, street address) or a forbidden path
+# (.wrangler/, .dev.vars, .env). Runs pii-hook.mjs (next to this file), i.e. tools/pii-scan.mjs --staged, with the
+# scanner from this worktree's origin/main (or origin/pii-guard), so it also works on branches without the scanner.
+# Values are never printed. Fails closed when node is missing or the check errors.
+# Installed for every worktree by: node tools/install-hooks.mjs (copies to ~/.config/lensiq/git-hooks, sets core.hooksPath).
+# Bypass (owner only, after checking by hand): git commit --no-verify. CI runs the same scanner.
+NODE="${LENSIQ_HOOK_NODE:-node}"
+HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if ! command -v "$NODE" >/dev/null 2>&1; then
+  echo "pii-commit: node was not found ($NODE), so the personal-data check cannot run. Commit BLOCKED (fails closed)." >&2
+  echo "Install Node.js (or fix PATH) and commit again. Owner only, after checking by hand: git commit --no-verify" >&2
+  exit 2
+fi
+exec "$NODE" "$HERE/pii-hook.mjs" commit

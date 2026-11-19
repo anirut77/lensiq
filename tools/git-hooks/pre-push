@@ -1,0 +1,15 @@
+#!/bin/sh
+# tools/git-hooks/pre-push — owner order 2026-11-19: block personal data at push time (pushing is when it leaks).
+# Runs pii-hook.mjs (next to this file), which scans only the commits being pushed with tools/pii-scan.mjs loaded from
+# origin/main (or origin/pii-guard), so it works on branches that do not contain the scanner. Types and paths only, never
+# values. Fails closed when node is missing or the check errors.
+# Installed for every worktree by: node tools/install-hooks.mjs (copies to ~/.config/lensiq/git-hooks, sets core.hooksPath).
+# Bypass (owner only, after checking by hand): git push --no-verify
+NODE="${LENSIQ_HOOK_NODE:-node}"
+HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if ! command -v "$NODE" >/dev/null 2>&1; then
+  echo "pii-push: node was not found ($NODE), so the personal-data check cannot run. Push BLOCKED (fails closed)." >&2
+  echo "Install Node.js (or fix PATH) and push again. Owner only, after checking by hand: git push --no-verify" >&2
+  exit 2
+fi
+exec "$NODE" "$HERE/pii-hook.mjs" push "$@"
