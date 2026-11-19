@@ -15,7 +15,10 @@
        4 combined map -> hysteresis inside the palm mask -> Zhang-Suen skeleton -> segments (pruned, gaps joined)
        5 each line id takes the segments that lie in its zone along its direction (heart, head, life, fate first; minors on what
          is left); confidence from coverage, strength and fit; control points are skeleton points (they come from the photo) */
-    var DET = { s: 240, u0: -0.3, u1: 1.25, v0: -0.06, v1: 1.16, PROVISIONAL: true };
+    /* PROVISIONAL constants (synthetic set only): hi / lo = absolute hysteresis on R (relative valley depth x shape);
+       joinGap / chainGap = the widest gap (palm widths) bridged between pieces; bridgeGap = up to this only over a valley; minCover / minLongest / minDepth = gates */
+    var DET = { s: 240, u0: -0.3, u1: 1.25, v0: -0.06, v1: 1.16, frangiC: 6, gaborK: 60, hi: 0.1, lo: 0.055, joinGap: 0.02, chainGap: 0.025, bridgeGap: 0.1,
+      minCover: 0.45, minLongest: 0.3, minDepth: 0.12, PROVISIONAL: true };
     function gaussBlur(src, w, h, sigma) {
       var r = Math.max(1, Math.ceil(sigma * 3)), k = new Float32Array(2 * r + 1), s = 0, i, x, y;
       for (i = -r; i <= r; i++) { k[i + r] = Math.exp(-i * i / (2 * sigma * sigma)); s += k[i + r]; }
@@ -26,23 +29,6 @@
       for (y = 0; y < h; y++) for (x = 0; x < w; x++) { var b = 0; for (i = -r; i <= r; i++) { var yy = y + i; yy = yy < 0 ? 0 : yy >= h ? h - 1 : yy; b += tmp[yy * w + x] * k[i + r];
         } out[y * w + x] = b; }
       return out;
-    }
-    function boxMean(src, w, h, r) {
-      var I = new Float64Array((w + 1) * (h + 1)), x, y;
-      for (y = 0; y < h; y++) { var row = 0; for (x = 0; x < w; x++) { row += src[y * w + x]; I[(y + 1) * (w + 1) + x + 1] = I[y * (w + 1) + x + 1] + row; } }
-      var out = new Float32Array(w * h);
-      for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
-        var x0 = Math.max(0, x - r), x1 = Math.min(w, x + r + 1), y0 = Math.max(0, y - r), y1 = Math.min(h, y + r + 1);
-        out[y * w + x] = (I[y1 * (w + 1) + x1] - I[y0 * (w + 1) + x1] - I[y1 * (w + 1) + x0] + I[y0 * (w + 1) + x0]) / ((x1 - x0) * (y1 - y0));
-      }
-      return out;
-    }
-    function pct(arr, mask, q) {
-      var s = [];
-      for (var i = 0; i < arr.length; i += 2) if (!mask || mask[i]) s.push(arr[i]);
-      if (!s.length) return 0;
-      s.sort(function (a, b) { return a - b; });
-      return s[Math.min(s.length - 1, Math.floor(s.length * q))];
     }
     /** canonical grey image + skin / palm mask */
     function canonical(rgba, W, H, F, s) {
@@ -81,7 +67,8 @@
       return out;
     }
     /** Frangi-type valley measure (dark line on lighter skin) over scales; also the line direction */
-    function frangi(g, w, h, sigmas) {
+    /** fixedC: an absolute structureness constant (input units); without it, half the 98th percentile (relative) */
+    function frangi(g, w, h, sigmas, fixedC) {
       var resp = new Float32Array(w * h), dir = new Float32Array(w * h);
       sigmas.forEach(function (sg) {
         var L = gaussBlur(g, w, h, sg), s2 = sg * sg, vals = new Float32Array(w * h), Ss = [];
@@ -96,7 +83,7 @@
           if (l1 > 0 && (i & 3) === 0) Ss.push(Math.hypot(l1, l2));
         }
         Ss.sort(function (p, q) { return p - q; });
-        var cc = (Ss[Math.floor(Ss.length * 0.98)] || 1) * 0.5, beta = 0.5;
+        var cc = fixedC || (Ss[Math.floor(Ss.length * 0.98)] || 1) * 0.5, beta = 0.5;
         for (var j = 0; j < w * h; j++) {
           var L1 = l1a[j], L2 = l2a[j];
           if (L1 <= 0) continue;
@@ -245,20 +232,38 @@
           cands.push({ si: si, P: P, len: len, t0: ts[0], t1: ts[ts.length - 1], fin: fin, ag: ag, str: str / P.length, off: off, score: len * fin * ag });
         });
         cands.sort(function (a, b) { return b.score - a.score; });
+        // chain only pieces whose ends nearly touch (review round 1, M2: never bridge a gap wider than a few pixels)
+        // a wider gap (up to bridgeGap) is joined only where the photo itself shows a valley under the bridge (a crease crossing)
+        var gapPx = DET.chainGap * s, bridgePx = DET.bridgeGap * s;
+        var onValley = function (p, q) {
+          var ok = 0, n0 = 12;
+          for (var t = 0; t <= n0; t++) {
+            var x = Math.round(p[0] + (q[0] - p[0]) * t / n0), y = Math.round(p[1] + (q[1] - p[1]) * t / n0), m = 0;
+            for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var yy = y + dy, xx = x + dx; if (xx >= 0 && yy >= 0 && xx < D.w && yy < D.h) m = Math.max(m, D.R[yy * D.w + xx]); }
+            if (m >= DET.lo) ok++;
+          }
+          return ok >= 0.9 * (n0 + 1);
+        };
+        var endGap = function (a, b) {
+          var A = [a.P[0], a.P[a.P.length - 1]], B = [b.P[0], b.P[b.P.length - 1]], m = Infinity, pq = /** @type {any} */ (null);
+          A.forEach(function (p) { B.forEach(function (q) { var d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d < m) { m = d; pq = [p, q]; } }); });
+          return m <= gapPx ? 0 : m <= bridgePx && onValley(pq[0], pq[1]) ? 0 : m;
+        };
         var chain = [];
         cands.forEach(function (c) {
           if (!chain.length) { chain.push(c); return; }
           var overlap = chain.some(function (o) { return Math.min(o.t1, c.t1) - Math.max(o.t0, c.t0) > 0.15 * Math.min(o.t1 - o.t0, c.t1 - c.t0) + 0.02; });
-          var near = chain.some(function (o) { var gapT = Math.max(c.t0 - o.t1, o.t0 - c.t1); return gapT < 0.22; });
-          if (!overlap && near && Math.abs(c.off - chain[0].off) < 0.045 * s) chain.push(c);
+          var touch = chain.some(function (o) { return endGap(o, c) <= gapPx; });
+          if (!overlap && touch && Math.abs(c.off - chain[0].off) < 0.045 * s) chain.push(c);
         });
         if (!chain.length) { out[id] = { cp: null, conf: 0 }; return; }
         chain.sort(function (a, b) { return a.t0 - b.t0; });
+        // coverage from the real pieces only (the bridged gaps are not counted)
         var cover = chain.reduce(function (a, c) { return a + (c.t1 - c.t0); }, 0);
+        // every piece of the chain touches the next or is joined over a valley, so the chain is one continuous run in the photo
+        var longest = cover;
         var strength = chain.reduce(function (a, c) { return a + c.str * c.len; }, 0) / chain.reduce(function (a, c) { return a + c.len; }, 0);
         var fit = chain.reduce(function (a, c) { return a + c.fin * c.ag * c.len; }, 0) / chain.reduce(function (a, c) { return a + c.len; }, 0);
-        // PROVISIONAL logistic: set on the synthetic set only
-        var conf = sigmoid(9 * (cover - 0.42) + 4 * (strength - 0.35) + 4 * (fit - 0.8));
         // control points: skeleton points of the chain, ordered along the guide
         var pts = [];
         chain.forEach(function (c) {
@@ -281,13 +286,17 @@
         }
         deps.sort(function (a, b) { return a - b; });
         var depth = deps[Math.floor(deps.length / 2)] || 0;
-        conf = conf * sigmoid(40 * (depth - 0.07));
+        // confidence = the WEAKEST of the gates (no factor can make up for another; PROVISIONAL, synthetic set only):
+        // coverage, longest single piece, valley depth in the photo, fit to the zone
+        var conf = Math.min(sigmoid(12 * (cover - DET.minCover)), sigmoid(14 * (longest - DET.minLongest)), sigmoid(45 * (depth - DET.minDepth)),
+          sigmoid(20 * (fit - 0.78)));
         var pick = resample(pts, 7).map(function (q) { // snap each resampled point back to the nearest skeleton point
           var bi = 0, bd = Infinity;
           for (var k = 0; k < pts.length; k++) { var d = Math.hypot(pts[k][0] - q[0], pts[k][1] - q[1]); if (d < bd) { bd = d; bi = k; } }
           return pts[bi];
         });
-        out[id] = { cp: pick.map(function (p) { var q = toUV([p[0] + 0.5, p[1] + 0.5]); return [r4(q[0]), r4(q[1])]; }), conf: Math.round(conf * 1000) / 1000, cover: Math.round(cover * 100) / 100,
+        out[id] = { cp: pick.map(function (p) { var q = toUV([p[0] + 0.5, p[1] + 0.5]); return [r4(q[0]), r4(q[1])]; }), conf: Math.round(conf * 1000) / 1000,
+          cover: Math.round(cover * 100) / 100, longest: Math.round(longest * 100) / 100,
           strength: Math.round(strength * 100) / 100, depth: Math.round(depth * 1000) / 1000 };
         if (conf >= 0.3) chain.forEach(function (c) { used[c.si] = true; });
       });
@@ -300,28 +309,28 @@
       var s = Math.round(Math.min(opts.s || DET.s, Math.max(120, F.pw)));
       var C = canonical(rgba, W, H, F, s), w = C.w, h = C.h, n = w * h, i;
       var k = s / 240;
-      var hp = gaussBlur(C.g, w, h, 0.1 * s), g = new Float32Array(n);
-      for (i = 0; i < n; i++) g[i] = C.g[i] - hp[i];
-      var m1 = boxMean(g, w, h, Math.round(0.05 * s)), sq = new Float32Array(n);
-      for (i = 0; i < n; i++) { var dd = g[i] - m1[i]; sq[i] = dd * dd; }
-      var sd = boxMean(sq, w, h, Math.round(0.05 * s));
-      for (i = 0; i < n; i++) g[i] = clamp((g[i] - m1[i]) / (Math.sqrt(sd[i]) + 3), -3, 3);
-      var Fr = frangi(g, w, h, [1.3 * k, 1.9 * k, 2.7 * k]);
-      var Gb = gabor(g, w, h, 7 * k);
-      var r = Math.max(1, Math.round(2.4 * k)), bh = minmax(minmax(g, w, h, r, true), w, h, r, false);
-      for (i = 0; i < n; i++) bh[i] -= g[i];
-      var nrm = function (a) { var p = pct(a, C.mask, 0.99) || 1; for (var j = 0; j < n; j++) a[j] = C.mask[j] ? clamp(a[j] / p, 0, 1) : 0; return a; };
-      nrm(Fr.resp); nrm(Gb); nrm(bh);
+      // ABSOLUTE valley map (review round 1, M1): relative darkness of thin dark structures against the local background, in the
+      // photo's own grey units; no percentile normalisation, so plain skin texture stays low however it is stretched
+      var sm = gaussBlur(C.g, w, h, 0.8 * k), bg = gaussBlur(C.g, w, h, 0.06 * s), X = new Float32Array(n);
+      for (i = 0; i < n; i++) X[i] = C.mask[i] ? -100 * clamp((bg[i] - sm[i]) / Math.max(bg[i], 20), 0, 1) : 0; // percent darker, as a valley
+      var Fr = frangi(X, w, h, [1.3 * k, 1.9 * k, 2.7 * k], DET.frangiC);
+      var r = Math.max(1, Math.round(2.4 * k)), bh = minmax(minmax(sm, w, h, r, true), w, h, r, false); // black-hat on the smoothed grey
+      var gb = gabor(X, w, h, 7 * k);
       var R = new Float32Array(n);
-      for (i = 0; i < n; i++) R[i] = C.mask[i] ? 0.45 * Fr.resp[i] + 0.3 * Gb[i] + 0.25 * bh[i] : 0;
-      // hysteresis
-      var hi = Math.max(0.42, pct(R, C.mask, 0.93)), lo = hi * 0.55, on = new Uint8Array(n), stack = [];
+      for (i = 0; i < n; i++) {
+        if (!C.mask[i]) continue;
+        var rel = clamp((bh[i] - sm[i]) / Math.max(bg[i], 20), 0, 1); // black-hat depth, relative to the skin brightness
+        var orient = clamp(gb[i] / DET.gaborK, 0, 1); // oriented (elongated) evidence, absolute scale
+        R[i] = rel * (0.35 + 0.4 * Fr.resp[i] + 0.25 * orient);
+      }
+      // hysteresis with ABSOLUTE thresholds (PROVISIONAL, synthetic set): no percentile
+      var hi = DET.hi, lo = DET.lo, on = new Uint8Array(n), stack = [];
       for (i = 0; i < n; i++) if (R[i] >= hi && !on[i]) { on[i] = 1; stack.push(i); while (stack.length) { var p = stack.pop(), x = p % w, y = (p - x) / w;
         for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue; var q = yy * w + xx;
           if (!on[q] && R[q] >= lo) { on[q] = 1; stack.push(q); } } } }
       var sk = thin(on, w, h);
       var segs = segments(sk, w, h).filter(function (P) { return P.length >= Math.max(4, Math.round(0.02 * s)); });
-      segs = joinSegments(segs, 0.045 * s);
+      segs = joinSegments(segs, DET.joinGap * s);
       var D = { segs: segs, R: R, g: C.g, w: w, h: h, s: s, asp: F.asp };
       var lines = classify(D, opts.school || "thai");
       return { lines: lines, asp: Math.round(F.asp * 1000) / 1000, s: s, ms: Date.now() - t0, lowRes: F.pw < 350, _D: D };
