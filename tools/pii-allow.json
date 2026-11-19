@@ -10,6 +10,14 @@
    "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
   },
   {
+   "path": "LICENSES/TIERS.md",
+   "types": {
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "public contact e-mail of a licensing / data-source organisation, not a person (same address as the docs/ATTENDANCE-READINESS.md entry)"
+  },
+  {
    "path": "backend/src/mail.js",
    "types": {
     "email": 1
