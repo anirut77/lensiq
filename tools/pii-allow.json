@@ -819,12 +819,21 @@
    "reason": "synthetic: made-up GTIN barcodes and a made-up phone in session-evidence tests"
   },
   {
-   "path": "tests/unit/promptpay.test.js",
+   "path": "tests/unit/promptpay-fixture-synthetic.test.js",
    "types": {
-    "phone": 14
+    "thai-id": 2
    },
    "kind": "synthetic",
-   "reason": "PromptPay test vectors: a sequential test phone"
+   "reason": "constructed synthetic Thai ID, decision 143"
+  },
+  {
+   "path": "tests/unit/promptpay.test.js",
+   "types": {
+    "phone": 14,
+    "thai-id": 2
+   },
+   "kind": "synthetic",
+   "reason": "PromptPay test vectors: a sequential test phone; thai-id: constructed synthetic Thai ID, decision 143"
   },
   {
    "path": "tests/unit/teamface.test.js",
