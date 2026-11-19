@@ -26,3 +26,18 @@ ca99367160080d31bcc0f784763b722a2560febaad7802bb0bedf2cf7c5a4096  tests/unit/pet
 27b04776b3ac4dadc7eecb52d4436a7c7299e1d6e396d546641b92e4128e4c5a  capture/pet-capture.e2e.mjs
 425a2febe2d2353a9807117d767890efe02e1160f94439e758bfc8ca24fb95a8  tests/unit/pet-capture.test.js  # repo file (same commit as lock 2026-11-19T02:25:10Z; field: ~/LENSIQ-field/evals/pet-zodiac/capture/pet-capture.test.js)
 27b04776b3ac4dadc7eecb52d4436a7c7299e1d6e396d546641b92e4128e4c5a  tests/e2e/pet-capture.e2e.mjs  # repo file (same commit as lock 2026-11-19T02:25:10Z; field: ~/LENSIQ-field/evals/pet-zodiac/capture/pet-capture.e2e.mjs)
+# RE-LOCK 2 / LOCK 4 2026-11-19 (branch pet-zodiac-cards): independent review round 1 FAILED on bdeeed49. Locked BEFORE the fixes.
+# Re-lock 2 of tests/unit/pet-zodiac.test.js: Z6 only, stricter (full-moon rule with the approximation word on every day; every
+# percentage is the day's odds or the full-moon rate; same length limits). New: tests/unit/pet-zodiac-r2.test.js (W1 one Bangkok
+# date basis, W2 full-moon 100k distribution, W3 approximation wording, W4 text boxes + decor switch) and
+# tests/e2e/pet-zodiac-r2.e2e.mjs (X1 exclusion zones under all text boxes for 13 templates x post / story x TH / EN, X2 secret
+# ribbon off the top of the picture, X3 person blur per template vs a no-person baseline at scores 0.9 / 0.2, X4 detector
+# unavailable refuses the photo per template). Before the fix: unit 15/18 (W1 passes on this Mac because its clock is set to
+# Bangkok; it fails on a UTC runner), e2e 2/4 (X3 X4 already hold). Logs: run-3-review1-before-fix-*.log
+# locked 2026-11-19T02:46:20Z (tools/eval-guard.mjs lock, 3 files)
+90d8c66bfd7ed5f8f7157698fa74e3b43ecb4709301abee4f6e8e8d225ae4b52  relock-2/pet-zodiac.test.js
+5a36820d0e1b32f448e1b78911b19324b926ba362ca12137e3cafcf877e6cf5a  relock-2/pet-zodiac-r2.test.js
+3b83048b75beb33efe634f47c8917dd7d1ef9a8937073b85340e6a2258a7d40a  relock-2/pet-zodiac-r2.e2e.mjs
+90d8c66bfd7ed5f8f7157698fa74e3b43ecb4709301abee4f6e8e8d225ae4b52  tests/unit/pet-zodiac.test.js  # repo file (same commit as lock 2026-11-19T02:46:20Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-2/pet-zodiac.test.js)
+5a36820d0e1b32f448e1b78911b19324b926ba362ca12137e3cafcf877e6cf5a  tests/unit/pet-zodiac-r2.test.js  # repo file (same commit as lock 2026-11-19T02:46:20Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-2/pet-zodiac-r2.test.js)
+3b83048b75beb33efe634f47c8917dd7d1ef9a8937073b85340e6a2258a7d40a  tests/e2e/pet-zodiac-r2.e2e.mjs  # repo file (same commit as lock 2026-11-19T02:46:20Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-2/pet-zodiac-r2.e2e.mjs)

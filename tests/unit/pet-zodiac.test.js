@@ -7,6 +7,10 @@
 // birthday can be set to today); one short odds line generated from the active config; the classic themes stay behind
 // PET_CARD_CLASSIC (default false). Changed: Z2, Z3, Z5, Z6, Z8 (birthday marker lines removed), Z11; the rest
 // is unchanged.
+// RE-LOCK 2 (2026-11-19, independent review round 1 FAILED on bdeeed49), Z6 only, stricter: the line names the full-moon rule
+// on every day (ordinary days: a short clause with the config's full-moon rate) and always with the approximation word
+// (TH "วันเพ็ญ โดยประมาณ" / EN "approx. full-moon day" / ZH "约满月日"); every percentage is the day's odds or that full-moon
+// rate; the length limits are unchanged.
 //   Z1  13 templates: the 12 Chinese zodiac animals in branch order (rat … pig) + "secret"; names in TH / EN / ZH; the secret
 //       card's words are exactly "การ์ด Secret" / "Secret Card" / "隐藏卡"
 //   Z2  the draw is a pure module (lensiq-pet-draw.js) with an odds config object; DEFAULT config "b" (owner decision 137 ข);
@@ -206,7 +210,8 @@ test("Z6 odds text is generated from the active config (TH / EN / ZH), says the 
   const cfg = M.config(M.DEFAULT);
   for (const [y, m, d] of days(2025, 2026)) {
     const t = iso(y, m, d), o = M.odds(cfg, { today: t });
-    const allowed = new Set(Object.values(o.p).map(pct));
+    const allowed = new Set(Object.values(o.p).map(pct).concat([pct(cfg.fullMoonSecret)]));
+    const APPROX = { th: "วันเพ็ญ โดยประมาณ", en: "approx. full-moon day", zh: "约满月日" };
     for (const l of LANGS) {
       const lines = M.oddsText(cfg, { today: t }, l), first = lines[0];
       assert.ok(lines.length <= 2 && first.length <= (l === "zh" ? 70 : l === "th" ? 150 : 170), `${l} ${t}: one short line (+ the independent line) "${first}"`);
@@ -215,6 +220,8 @@ test("Z6 odds text is generated from the active config (TH / EN / ZH), says the 
       assert.ok(first.includes(pct(o.p.secret)) && first.includes(pct(o.p[o.dayAnimal])), `${l} ${t}: secret + day animal odds`);
       assert.ok(first.includes(M.short(o.dayAnimal, l)), `${l} ${t}: names the day's animal`);
       if (o.fullMoon) assert.ok(first.includes("10%"), `${l} ${t}: full-moon odds`);
+      assert.ok(first.includes(APPROX[l]) && first.includes(pct(cfg.fullMoonSecret)), `${l} ${t}: the full-moon rule with the approximation word "${first}"`);
+      assert.equal((first.match(new RegExp(pct(cfg.fullMoonSecret).replace(".", "\\."), "g")) || []).length, 1, `${l} ${t}: the full-moon rate once`);
     }
   }
   assert.equal(M.dayBranch("2000-01-01"), 6); assert.ok(M.oddsText(cfg, { today: "2000-01-01" }, "th")[0].includes(NAME.th.horse));
