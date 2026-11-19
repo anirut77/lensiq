@@ -1,7 +1,8 @@
 /* admin-seller.js — back-office "ข้อมูลกิจการ" tab (owner order 2026-11-18): the seller's business details and the
  * quotation / invoice / receipt documents generated from them (backend/src/seller.js). Owner only (the Worker refuses
- * everyone else, read included). Loaded after admin.js, which exposes window.LQAdminKit: call() asks for the password and
- * the 6-digit code when the Worker answers reauth_required / reauth_inline_required.
+ * everyone else, read included). Fetched by admin-orgs.js the first time the tab is opened (not on page load: admin.html
+ * speed budget); admin.js exposes window.LQAdminKit: call() asks for the password and the 6-digit code when the Worker
+ * answers reauth_required / reauth_inline_required.
  * Privacy: tax ID, bank account number and phone come back masked (last 4) and are never put back into the form; the
  * owner's entries are kept in memory only (no browser storage) and sent only to the admin API. TH default; EN / ZH in
  * i18n/en-admin.js, i18n/zh-admin.js (ads.*). Documents: print-ready A4 HTML from the Worker, shown in a sandboxed frame
