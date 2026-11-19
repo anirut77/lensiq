@@ -119,14 +119,18 @@ test("item 2: the fortune category text (cat-data, i18n/{en,zh}-cat.js, index.ht
   for (const l of LANGS) assert.doesNotMatch(cat.intro[l], OLD[l], "fortune intro " + l);
   for (const l of LANGS) assert.ok(cat.intro[l].includes(NEW[l].replace(/\.$/, "")) || cat.intro[l].includes(NEW[l]), "fortune intro carries the final line (" + l + ")");
   for (const l of ["en", "zh"]) {
-    for (const k of ["cat.fortune.intro", "cat.c.fortune", "cat.r.fortune"]) {
+    // re-lock 2026-11-18 (owner order 2026-11-18): cat.c.fortune, the fortune card's accuracy line, is removed with the card's
+    // accuracy field; the remaining fortune category keys are checked exactly as before
+    for (const k of ["cat.fortune.intro", "cat.r.fortune"]) {
       const v = entry("i18n/" + l + "-cat.js", k);
       assert.ok(v, l + "-cat.js " + k);
       assert.doesNotMatch(v, OLD[l], l + "-cat.js " + k + ": " + v);
     }
   }
   const idx = read("index.html");
-  const intro = idx.match(/data-i18n="cat\.fortune\.intro">([^<]*)</);
+  // re-lock 2026-11-18 (owner order 2026-11-18: no per-card disclaimer where fortune is listed): the chooser card shows the
+  // fortune lead (cat.fortune.lead, the intro without the disclaimer line); the no-old-wording check is unchanged
+  const intro = idx.match(/data-i18n="cat\.fortune\.(?:intro|lead)">([^<]*)</);
   assert.ok(intro, "index.html fortune chooser intro");
   assert.doesNotMatch(intro[1], OLD.th);
 });

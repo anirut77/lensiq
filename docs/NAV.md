@@ -63,6 +63,9 @@ exactly as written: tests and page code read them):
   Piece edges sit on word boundaries (Intl.Segmenter), take an opening bracket before them and closing marks after them.
   A long piece in the middle of a text (weight over 14) is `lq-t.lq-b` (inline-block, max-width 100 %): it moves as one unit
   and wraps inside itself instead of overflowing a narrow box. Re-applied about 0.15 s after page code re-renders.
+  Exception (2026-11-18, branch fortune-pet): a piece that starts right after a space and weighs under 17 stays inline
+  (nowrap, no inline-block). WebKit drops that space from innerText when the line breaks before an inline-block, which broke
+  "innerText stays exactly as written" (petread honest line on iPhone width).
 - Thai and Chinese (no spaces): the last words (Intl.Segmenter, about 4 Chinese or 8 Thai characters, at most 16 weighted)
   move into the same kind of nowrap tail; headings, labels and buttons (full Thai word split) keep the tail inside their
   `.lq-run`. No `<wbr>` before closing punctuation or ๆ ฯ; the trailing space of a tail stays outside it.

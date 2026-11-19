@@ -21,3 +21,4 @@ fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05  tests/unit/cat
 # locked 2026-11-17T19:26:05Z (tools/eval-guard.mjs lock, 1 file)
 84d9d851c263f57f8665cd550eb5f584b0e542fc2c1d4f2e93eb8fa1c2db9ad1  relock2/promo-basics.test.js
 84d9d851c263f57f8665cd550eb5f584b0e542fc2c1d4f2e93eb8fa1c2db9ad1  tests/unit/promo-basics.test.js  # repo file (re-lock 2)
+dcb60eface0b2e5e0e1840d1fd8a5a6a71d9b15b3ebf0d08615405a03196464c  tests/unit/cat-pages.test.js  # repo file (re-locked in evals-locks/fortune-cards.sha256 at 2026-11-18T16:15:08Z, replaces fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05 of line 15; field: ~/LENSIQ-field/evals/fortune-cards/merge-theme/cat-pages.test.js)

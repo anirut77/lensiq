@@ -31,3 +31,15 @@
 /* index.html footer: a "work categories" column beside the four existing ones */
 @media(min-width:1020.02px){.foot-grid.has-cats{grid-template-columns:1.2fr repeat(5,1fr);gap:24px}}
 .cat .pd-note a{display:inline-flex;align-items:center;min-height:44px}
+/* fortune (owner decision 2026-11-18): each card is one link (.cat-card) covering the whole card; a small illustration drawn
+   from data-ic, the name and one short line; the card itself has no padding and the link has square corners, so every tap point
+   inside the card, its rounded corners included, is the link */
+.cat-tool:has(>a.cat-card){padding:0}
+.cat-tool>a.cat-card{display:flex;flex-direction:column;gap:6px;flex:1;min-height:44px;padding:14px 16px;color:inherit;
+  text-decoration:none}
+.cat-tool:has(>a.cat-card:hover),.cat-tool:has(>a.cat-card:focus-visible){border-color:var(--gold)}
+.cat-tool>a.cat-card:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.cat-card .cat-top{justify-content:flex-start;align-items:center;gap:12px}
+.cat-ill{flex:none;display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;background:#f3f1ff;font-size:1.35rem;
+  line-height:1}
+.cat-ill::before{content:attr(data-ic)}

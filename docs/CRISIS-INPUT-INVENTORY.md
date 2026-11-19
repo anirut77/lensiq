@@ -133,8 +133,14 @@ after = branch crisis-net-hotfix 64f0d4a (`after-64f0d4a-*.log`). Pages without 
 | compat | `#cpConsent` | checkbox | – | no: on / off only | n/a | n/a | – |
 | compat | `[data-cp-person] select[name="d"]` / `[data-cp-person] select[name="m"]` (created by compat-ui.js) | select | – | no: choice only | n/a | n/a | – |
 | compat | `[data-cp-person] input[name="t"]` (created by compat-ui.js) | time | – | no: time picker | n/a | n/a | – |
+| petread (added 2026-11-17 with the merge of fortune-pet; page not linked until the owner approves go-live) | `#petName` | text | 30 | yes | n/a (page not live before) | yes: crisis-escape-guard-field (petread flow), crisis-v3-{a,b,c,d} (petread), fortune-pet P4, petread-webkit W4 | crisis v3: FortuneAI net on every field (renderWithHooks), page drops the typed name and the lucky part, card section hidden ([data-lq-remedy]) |
+| petread | `#petBirth` / `#petOwnerBirth` | date | – | no: date picker | n/a | n/a | – |
+| petread | `#petFile` | file | – | no: photo picker | n/a | n/a | – |
+| petread | `#petPhotoOn` / `#petQrOn` | checkbox | – | no: on / off only | n/a | n/a | – |
+| petread | `#petTraits input` (created by petread.js renderTraits) | radio / checkbox | – | no: choice only | n/a | n/a | – |
 
 Totals: 122 input rows, 34 can hold a phrase; covered before 2/30 (compat's 4 were not live), after 34/34.
+With petread (2026-11-17): 130 input rows, 36 can hold a phrase (JSON count).
 
 Since 2026-11-17 the pages are no longer a fixed list for this check: `tests/unit/crisis-escape-guard.test.js` finds every page
 that loads fortune-read.js, fortune-ai.js or fortune-crisis.js and fails on any free-text field there (HTML, the page's scripts,

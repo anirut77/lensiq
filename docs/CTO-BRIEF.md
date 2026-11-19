@@ -16,6 +16,40 @@ planner (88, practitioner), studio, nutrition, crowd, gate, exam hall, try-on, p
 inputs to reach 90. Product Check is capped at 50 by the measured pc-jk privacy miss (29 values on explicit send).
 OMR pending its locked set. Table and Wave 1: `docs/acceptance/SCORES.md`.
 
+## Fortune theme "ราตรีคราม" (owner approval 2026-11-17; go-live approved 2026-11-18, decisions 92–94: merge when CI is green)
+
+- Go-live conditions built on branch `fortune-theme`: switch back `window.LENSIQ_FORTUNE_THEME = "classic"` in `lensiq-config.js`
+  (previous look exactly, no code revert); Vessavana hidden (`hidden: true`, data and art kept for the expert pack); deity names
+  hidden on the site (`NAMES_ON_SITE = false`); reading pages night band + light paper with WCAG AA text; crisis v3 checked on the
+  themed pages in both modes. Locked set `fortune-theme-golive` (source: synthetic, headless Chrome). Details: docs/FORTUNE-THEME.md.
+
+- Theme only in the fortune section (fortune pages + cat-fortune): night menu pages with gold line-art cards, night band on
+  reading pages, Prompt in two weights (`fortune-theme.css`, scoped to `html.lq-ft`). Details: docs/FORTUNE-THEME.md.
+- Entry screen with 7 own-drawn deities (Hindu / Brahmin / Chinese folk, no Buddhist figure): all names and blessings ship
+  "pending Merit review", so nothing shows on the live site until approved; never in crisis / calm.
+- Every fortune page is lighter than before (synthetic, headless Chrome): fortune.html 440 -> 408 KB, 24 -> 23 requests;
+  reading pages -60 to -72 KB and -3 to -4 requests (no Inter, no Prompt 600 / 700). Budgets unchanged.
+
+## Fortune cards clean (owner order 2026-11-18, branch `fortune-cards-clean`, waiting for CI and the coordinator's merge)
+
+- Fortune cards (cat-fortune) show only the name, one short line and a small illustration; the whole card is one link. Removed
+  wherever fortune is listed (cat-fortune, index, solutions, menu): "ความแม่นยำที่วัดได้", "ไม่มีตัวเลขความแม่นยำ", per-card
+  disclaimers, filter / banned-topic wording (TH / EN / ZH, keys included). The disclaimer shows once, small, at the top of cat-fortune.
+- Business categories unchanged: tests/unit/fortune-cards.test.js pins a fingerprint of every non-fortune accuracy line and source.
+  Only category 6 may carry no accuracy field (cat-pages / categories / fortune-live / fortune-sources re-locked with that reason).
+- Future rule recorded in docs/PENDING-DECISIONS.md: reading ratings stay in the back office, never shown as an accuracy figure.
+
+## Pet face reading (owner order 2026-11-16 part B, branch `fortune-pet`; go-live approved: owner decision 100 = ก, 2026-11-18)
+
+`petread.html` (dogs and cats): photo or camera on the device, the shipped YOLOX-Nano (Apache-2.0, no new model) pre-fills species
+and a coat hint, the owner confirms the traits; reading (personality, likes, bond, lucky colour and day by Taksa, owner-pet
+compatibility through the `LQCompat.pair(owner, pet, {mode: "owner-pet"})` interface with a local stub until part A lands) in the
+grouped fortune layout; free share card on a canvas (photo off by default, persons pixelated, nothing uploaded). Detector on the
+locked Oxford-IIIT Pet set (public dataset, 296 images): pet found 95.3 %, species 89.5 % (target 90 %: missed), head inside the
+box 97.9 %. Research, licences and numbers: `docs/PET-READING-RESEARCH.md`, `docs/PET-READING-SOURCES.md`. Owner decision 100
+(2026-11-18): live in category 6 (CLAUDE.md table, cat-fortune listing, fortune menu; TH / EN / ZH; no fortune-hub card, so the
+locked hub test keeps 14 cards), merged to main only after CI is green on the branch.
+
 ## Fortune label and about block deleted (owner order 2026-11-17 night item 2, corrected by owner decision 2026-11-18; branch `fortune-credits`)
 
 Fix to what is live, no new feature: delete, do not move. Every fortune page (category 6 + compat, 19 pages) loses the

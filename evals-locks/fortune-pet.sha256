@@ -1,0 +1,38 @@
+# evals-locks/fortune-pet.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-pet/ (owner rule 2026-11-13). Append-only.
+# fortune-pet (owner order 2026-11-16 part B, Pet face reading for dogs and cats) — locked BEFORE any product code on branch fortune-pet
+# (base origin/main 6319860). Set: 296 Oxford-IIIT Pet trainval images (select.mjs, 8 per breed; images stay outside the repo) + targets.json;
+# fixed unit / Chrome e2e / WebKit 390 px e2e / detector bench files. Before the build: unit file fails (lensiq-pet.js missing, 13 tests
+# unreachable), Chrome e2e 0/7. Logs: ~/LENSIQ-field/evals/fortune-pet/run-0-before-build-*.log
+# locked 2026-11-16T02:54:00Z (tools/eval-guard.mjs lock, 7 files)
+288a116629df2f412c12756ef7b5ba4c216f93f10fed2b2c55f6cd9b74b5a614  manifest.json
+db47d6e0d68785bee2fffaddc5aa705bc5056745f69de28abc9430bdc9eb1d99  targets.json
+696f9491fa9cc57e4141717bfce0a9b7e06ebc0babd707bccde4684311c26b16  select.mjs
+846779d65e4a0a90b7221bcbf8b99cdd06095fb3c9aec6a2283b131da43e8105  tests/unit/fortune-pet.test.js
+fa1319567232bdd7dfc05f7d6ad6f1355d97e080052e7794d84f2a7580f117d4  tests/e2e/fortune-pet.e2e.mjs
+9ac5578400198d30eecc513f17f53930f4136303fd6742b475991fda6f8ae2b3  tests/e2e/petread-webkit.e2e.mjs
+f6b653cc4affcfe84dc0386a6e625651b2f2d33565f99135a4f5ee4c436febc1  tests/bench/pet.bench.mjs
+# LOCK 2026-11-16 (2), review round 1 (independent review of 36c6594: NOT OK), new files locked BEFORE the fixes; the earlier
+# files are unchanged. D1 privacy: a person may appear sharp on the card (overlap below 50 % left a hole in the mosaic; no person
+# check when the detector failed; persons below 0.4 not blurred) -> no sharp person region at 10/25/49 % overlap, far and
+# low-score persons, photo refused when the detector cannot load. D2 (owner ruling): photo + camera buttons on the first screen at
+# 360-430 x 659 px, disclaimer under the title, description <= 2 lines, Read reachable after a photo. D3: camera-denied first step
+# "แตะชื่อหน้าด้านบนสุด". Card: typed name kept in every language (model.petName; the generated cardText stays in the page
+# language, which the first file's lint still checks), headline type, 9:16 story size, optional on-device QR. Docs fixes.
+# On 36c6594: unit 0/6 pass. Log: ~/LENSIQ-field/evals/fortune-pet/run-4-review1-before-fix-unit.log (e2e: see the next note)
+# locked 2026-11-16T05:48:56Z (tools/eval-guard.mjs lock, 2 files)
+5a3c6f15b2b3c46e506cda2a1e9372904998a7a3a78ca9ef2086496fb3657835  tests/unit/fortune-pet-2.test.js
+8395f2e764f26f1815ae4247cc8a37ecdcc80626de9fcd862de16d52d2665b81  tests/e2e/fortune-pet-2.e2e.mjs
+# locked 2026-11-17T16:09:27Z (tools/eval-guard.mjs lock, 2 files)
+f69c100128051d515bcc123567106e666775f4469452c62b34e6446cd179a9bd  relock-pet/fortune-pet.e2e.mjs
+186af0ddbe15d93536b3036c6d20ae3edc0d2db3dc9c1827a1d06ff765b6829b  relock-pet/petread-webkit.e2e.mjs
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
+f69c100128051d515bcc123567106e666775f4469452c62b34e6446cd179a9bd  tests/e2e/fortune-pet.e2e.mjs  # repo file (relock-pet)
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
+186af0ddbe15d93536b3036c6d20ae3edc0d2db3dc9c1827a1d06ff765b6829b  tests/e2e/petread-webkit.e2e.mjs  # repo file (relock-pet)
+# locked 2026-11-17T16:14:20Z (tools/eval-guard.mjs lock, 2 files)
+7a2626cb7fe075b317483b0d1be004dad75ca1b930ddf3269fad59109a564c12  relock-pet-2/fortune-pet.e2e.mjs
+d993b6b206aa086729dee958304cf165d3ea9dcd1a7ca2412ffda6fd8a993b04  relock-pet-2/petread-webkit.e2e.mjs
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet-2 (title wrap only), see docs/CRISIS-V3-RELOCKS.md.
+7a2626cb7fe075b317483b0d1be004dad75ca1b930ddf3269fad59109a564c12  tests/e2e/fortune-pet.e2e.mjs  # repo file (relock-pet-2)
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet-2 (title wrap only), see docs/CRISIS-V3-RELOCKS.md.
+d993b6b206aa086729dee958304cf165d3ea9dcd1a7ca2412ffda6fd8a993b04  tests/e2e/petread-webkit.e2e.mjs  # repo file (relock-pet-2)
