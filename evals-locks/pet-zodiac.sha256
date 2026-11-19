@@ -41,3 +41,14 @@ ca99367160080d31bcc0f784763b722a2560febaad7802bb0bedf2cf7c5a4096  tests/unit/pet
 90d8c66bfd7ed5f8f7157698fa74e3b43ecb4709301abee4f6e8e8d225ae4b52  tests/unit/pet-zodiac.test.js  # repo file (same commit as lock 2026-11-19T02:46:20Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-2/pet-zodiac.test.js)
 5a36820d0e1b32f448e1b78911b19324b926ba362ca12137e3cafcf877e6cf5a  tests/unit/pet-zodiac-r2.test.js  # repo file (same commit as lock 2026-11-19T02:46:20Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-2/pet-zodiac-r2.test.js)
 3b83048b75beb33efe634f47c8917dd7d1ef9a8937073b85340e6a2258a7d40a  tests/e2e/pet-zodiac-r2.e2e.mjs  # repo file (same commit as lock 2026-11-19T02:46:20Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-2/pet-zodiac-r2.e2e.mjs)
+# RE-LOCK 3 2026-11-19 (branch pet-zodiac-cards), NAME ONLY: tests/unit/unit-index.test.js requires feature-named test files (no
+# *-rN). pet-zodiac-r2.{test.js,e2e.mjs} are renamed to pet-zodiac-layout.{test.js,e2e.mjs}; the only change is the file name in
+# their header comments; every assertion is byte-identical (equal strictness). Found by the full unit run of the round-2 fixes
+# (2609/2610, the one failure being this naming rule), before any fix was committed.
+# retired tests/unit/pet-zodiac-r2.test.js reason: renamed to tests/unit/pet-zodiac-layout.test.js (feature-named file rule, unit-index.test.js); assertions unchanged
+# retired tests/e2e/pet-zodiac-r2.e2e.mjs reason: renamed to tests/e2e/pet-zodiac-layout.e2e.mjs (feature-named, same rule); assertions unchanged
+# locked 2026-11-19T03:08:11Z (tools/eval-guard.mjs lock, 2 files)
+a9bd34500c7920f68e2fbfd27f87f53e8b1554d2209ee41ab9e05974dc666a3d  relock-3/pet-zodiac-layout.test.js
+e469cac9d63fd8400995a2d75f7dcdd15d09751746e6b2a6a507f4e74f1bedcd  relock-3/pet-zodiac-layout.e2e.mjs
+a9bd34500c7920f68e2fbfd27f87f53e8b1554d2209ee41ab9e05974dc666a3d  tests/unit/pet-zodiac-layout.test.js  # repo file (same commit as lock 2026-11-19T03:08:11Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-3/pet-zodiac-layout.test.js)
+e469cac9d63fd8400995a2d75f7dcdd15d09751746e6b2a6a507f4e74f1bedcd  tests/e2e/pet-zodiac-layout.e2e.mjs  # repo file (same commit as lock 2026-11-19T03:08:11Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-3/pet-zodiac-layout.e2e.mjs)

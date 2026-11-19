@@ -1,4 +1,4 @@
-// tests/e2e/pet-zodiac-r2.e2e.mjs — FIXED TEST SET, review round 2 of the Pet zodiac cards (independent review round 1 FAILED
+// tests/e2e/pet-zodiac-layout.e2e.mjs — FIXED TEST SET, review round 2 of the Pet zodiac cards (independent review round 1 FAILED
 // on bdeeed49, 2026-11-19), headless Chrome. Locked (evals-locks/pet-zodiac.sha256) BEFORE the fixes. Pictures are synthetic.
 //   X1  exclusion zones, all 13 templates x post / story x TH / EN, with a long pet name: the card is drawn twice from the same
 //       model, with decoration and with opts.decor === false; inside every text box the renderer reports (header: brand line,

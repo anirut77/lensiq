@@ -1,6 +1,6 @@
 "use strict";
-// tests/unit/pet-zodiac-r2.test.js — FIXED TEST SET, review round 2 of the Pet zodiac cards (independent review round 1 FAILED
-// on bdeeed49, 2026-11-19). Locked (evals-locks/pet-zodiac.sha256) BEFORE the fixes. Browser half: tests/e2e/pet-zodiac-r2.e2e.mjs.
+// tests/unit/pet-zodiac-layout.test.js — FIXED TEST SET, review round 2 of the Pet zodiac cards (independent review round 1 FAILED
+// on bdeeed49, 2026-11-19). Locked (evals-locks/pet-zodiac.sha256) BEFORE the fixes. Browser half: tests/e2e/pet-zodiac-layout.e2e.mjs.
 //   W1  one date basis: LQPetDraw.today() is the Bangkok (UTC+7) calendar date, the same basis as the full-moon rule; petread.js
 //       builds the draw's "today" with LQPetDraw.today(); the module documents the Bangkok basis
 //   W2  full-moon day distribution: 100 000 draws of the default config on a full-moon day (2025-11-05) match the config
