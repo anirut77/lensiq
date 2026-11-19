@@ -449,7 +449,12 @@
     }
     return { first: first, last: last, coverage: cnt / n, span: (last - first + 1) / n, breaks: gaps, mean: sum / (last - first + 1) };
   }
-  /** ตรวจเส้นหลักทั้งสี่ → จุดควบคุม 5 จุดต่อเส้น (u, v) + ความมั่นใจ */
+  /** ตรวจเส้นหลักทั้งสี่ → จุดควบคุม 5 จุดต่อเส้น (u, v) + ความมั่นใจ
+      ถ้าหลักฐานไม่ถึงเกณฑ์ของตัวตรวจเอง (เส้นชีวิต/สมอง/หัวใจ: conf < LINE_MIN_CONF = ระดับ "ไม่ชัด" บนปุ่มเลือกเส้น;
+      เส้นวาสนา: coverage < 0.3 หรือ span < 0.35) เส้นนั้นได้สถานะ "ไม่ชัดในภาพนี้": present = false, unclear = true
+      ไม่วาดเป็นเส้นที่ตรวจพบ ไม่นำไปอ่าน และไม่สร้างเส้นแทนจากแม่แบบ (owner decision 163 ก, 2026-11-19)
+      cp ของเส้นที่ไม่ชัด = จุดแม่แบบ ใช้เป็นจุดเริ่มให้ผู้ใช้ลากวางเองเท่านั้น */
+  var LINE_MIN_CONF = 0.3;
   function detectLines(R, F) {
     var out = {};
     LINE_IDS.forEach(function (id) {
@@ -457,21 +462,15 @@
       var bandPx = T.band * F.opt.s;
       var tr = traceAlong(R, tplPx, bandPx, { n: 40 });
       var st = analyzeStrength(tr.strength);
-      var N = tr.path.length, a, b, present = true;
-      if (id === "fate") {
-        present = st.coverage >= 0.3 && st.span >= 0.35;
-        a = st.first < 0 ? 0 : st.first; b = st.last < 0 ? N - 1 : st.last;
-        if (!present) { a = 0; b = N - 1; }
-      } else {
-        // เส้นชีวิต/สมอง/หัวใจ: จุดเริ่มยึดตามแม่แบบ (ขอบมือมักจาง) และยาวอย่างน้อยครึ่งแม่แบบ
-        a = st.first < 0 ? 0 : Math.min(st.first, Math.round(N * 0.15));
-        b = st.last < 0 ? N - 1 : Math.max(st.last, Math.round(N * 0.5));
-        if (id === "heart") { a = st.first < 0 ? 0 : Math.min(st.first, Math.round(N * 0.2)); }
-      }
+      var N = tr.path.length, a, b, conf = round(clamp(st.coverage * 1.3, 0, 1), 2), auto = { coverage: round(st.coverage, 3), breaks: st.breaks, mean: round(st.mean, 3), conf: conf };
+      var present = st.first >= 0 && (id === "fate" ? st.coverage >= 0.3 && st.span >= 0.35 : conf >= LINE_MIN_CONF);
+      if (!present) { out[id] = { cp: T.pts.map(function (q) { return [q[0], q[1]]; }), present: false, unclear: true, auto: auto }; return; }
+      // เส้นชีวิต/สมอง/หัวใจที่ตรวจพบ: จุดเริ่มยึดตามแม่แบบ (ขอบมือมักจาง) และยาวอย่างน้อยครึ่งแม่แบบ; เส้นวาสนา: ช่วงที่พบจริง
+      if (id === "fate") { a = st.first; b = st.last; } else { a = Math.min(st.first, Math.round(N * (id === "heart" ? 0.2 : 0.15))); b = Math.max(st.last, Math.round(N * 0.5)); }
       var seg = tr.path.slice(a, b + 1);
       if (seg.length < 2) seg = tr.path;
       var cp = resample(seg, 5).map(function (p) { var q = F.pxToUV(p); return [round(q[0], 4), round(q[1], 4)]; });
-      out[id] = { cp: cp, present: present, auto: { coverage: round(st.coverage, 3), breaks: st.breaks, mean: round(st.mean, 3), conf: round(clamp(st.coverage * 1.3, 0, 1), 2) } };
+      out[id] = { cp: cp, present: true, auto: auto };
     });
     return out;
   }
@@ -497,10 +496,14 @@
   }
   var LT = { deep: 0.42, faint: 0.2, lifeWide: 0.34, lifeLong: 0.86, joined: 0.09, headStraight: 13, headSloping: 27, headLong: 0.8, headShort: 0.56, heartIndex: 0.06, heartBetween: 0.24, heartCurved: 0.07, fateLong: 0.28 };
   function depthCat(d) { return d == null ? null : d >= LT.deep ? "deep" : d < LT.faint ? "faint" : "medium"; }
-  /** จัดหมวดเส้นทั้งหมด: lines = {id: {cp, present}} */
+  /** เส้นที่นำไปอ่านได้: มีเส้นและไม่ได้อยู่ในสถานะ "ไม่ชัด" / ผู้ใช้ไม่ได้ติ๊กว่ามองไม่เห็น (present !== false) */
+  function lineRead(L) { return !!(L && L.present !== false); }
+  /** เส้นวาสนาที่ "ผู้ใช้ยืนยันเองว่ามองไม่เห็น" (ติ๊กช่อง) — ต่างจากตัวตรวจหาไม่เจอ (unclear) ซึ่งไม่นำไปอ่านเลย */
+  function fateUserNone(L) { return !!(L && L.present === false && !L.unclear); }
+  /** จัดหมวดเส้นทั้งหมด: lines = {id: {cp, present, unclear}} — เส้นที่ไม่ชัด (present false) ไม่ถูกวัดและไม่ถูกอ่าน */
   function classifyLines(lines, asp, R, F) {
     var M = {}, C = {};
-    LINE_IDS.forEach(function (id) { if (lines[id]) M[id] = measureLine(id, lines[id].cp, asp, R, F); });
+    LINE_IDS.forEach(function (id) { if (lineRead(lines[id])) M[id] = measureLine(id, lines[id].cp, asp, R, F); });
     var L = M.life, H = M.head, Ht = M.heart, Ft = M.fate;
     if (L) {
       var lcats = [L.maxU >= LT.lifeWide ? "wide" : "close", L.end[1] >= LT.lifeLong ? "long" : "short"];
@@ -525,16 +528,14 @@
       if (Ht.breaks > 0) tc.push("breaks");
       C.heart = tc;
     }
-    if (lines.fate) {
-      if (!lines.fate.present || !Ft) C.fate = ["absent"];
-      else {
-        var bot = Ft.start[1] >= Ft.end[1] ? Ft.start : Ft.end, top = bot === Ft.start ? Ft.end : Ft.start;
-        var fc = [bot[1] < 0.72 ? "fromMiddle" : bot[0] < 0.33 ? "fromLife" : bot[0] > 0.62 ? "fromMoon" : "fromWrist"];
-        if (top[1] <= LT.fateLong) fc.push("long");
-        if (depthCat(Ft.depth) === "deep") fc.push("deep");
-        if (Ft.breaks > 0) fc.push("breaks");
-        C.fate = fc;
-      }
+    if (fateUserNone(lines.fate)) C.fate = ["absent"];
+    else if (Ft) {
+      var bot = Ft.start[1] >= Ft.end[1] ? Ft.start : Ft.end, top = bot === Ft.start ? Ft.end : Ft.start;
+      var fc = [bot[1] < 0.72 ? "fromMiddle" : bot[0] < 0.33 ? "fromLife" : bot[0] > 0.62 ? "fromMoon" : "fromWrist"];
+      if (top[1] <= LT.fateLong) fc.push("long");
+      if (depthCat(Ft.depth) === "deep") fc.push("deep");
+      if (Ft.breaks > 0) fc.push("breaks");
+      C.fate = fc;
     }
     return { m: M, cats: C };
   }
@@ -557,7 +558,7 @@
     pers.push(KB.fingers[fc].meaning);
     var work = [E.work];
     if (has("head", "straight")) work.push(S.work["head.straight"]); else if (has("head", "sloping")) work.push(S.work["head.sloping"]); else if (has("head", "gentle")) work.push(S.work["head.gentle"]);
-    work.push(has("fate", "absent") ? S.work["fate.absent"] : S.work["fate.present"]);
+    if (C.fate) work.push(has("fate", "absent") ? S.work["fate.absent"] : S.work["fate.present"]);
     var money = [E.money];
     if (has("head", "long")) money.push(S.money["head.long"]); else if (has("head", "short")) money.push(S.money["head.short"]);
     if (minor.money === true) money.push(S.money["minor.money"]);
@@ -586,7 +587,7 @@
       thumb: { cat: tcat, label: KB.thumb[tcat].label, meaning: KB.thumb[tcat].meaning },
       personality: pers.join(" "), work: work.join(" "), money: money.join(" "), love: love.join(" "),
       minor: minorRows, mounts: mountRows, tips: tips, colors: E.colors, side: side,
-      highlights: [E.traits[0], (lineRows[1] && lineRows[1].items[0].label) ? KB.lines.head.th + ": " + lineRows[1].items[0].label : E.traits[1], KB.lines.heart.th + ": " + (C.heart ? KB.lines.heart.cats[C.heart[0]].label : "—")]
+      highlights: [E.traits[0], C.head ? KB.lines.head.th + ": " + KB.lines.head.cats[C.head[0]].label : E.traits[1], C.heart ? KB.lines.heart.th + ": " + KB.lines.heart.cats[C.heart[0]].label : E.traits[2]]
     };
   }
 
@@ -596,7 +597,9 @@
     var lc = classifyLines(o.lines, o.F ? o.F.asp : hm.palmL / hm.palmW, o.R || null, o.F || null);
     var est = KB ? estimateMounts(hm, lc, o.R || null, o.F || null) : null;
     var reading = KB ? buildReading({ el: el, hm: hm, lc: lc, est: est, minor: o.minor, mounts: o.mounts, isDominant: o.isDominant, seed: o.seed }) : null;
-    return { hm: hm, el: el, lc: lc, mounts: est, side: o.side || null, reading: reading };
+    // เส้นที่ "ไม่ชัดในภาพนี้": แสดงสถานะเท่านั้น ไม่มีคำอ่าน
+    var unclear = LINE_IDS.filter(function (id) { return o.lines[id] && !lineRead(o.lines[id]) && !fateUserNone(o.lines[id]); });
+    return { hm: hm, el: el, lc: lc, mounts: est, side: o.side || null, reading: reading, unclear: unclear };
   }
 
   /** สถิติแบบไม่ระบุตัวตน (localStorage "palm-stats") — รับ/คืนออบเจ็กต์ ไม่แตะ storage เอง */
@@ -914,7 +917,7 @@
     GUIDE_HAND: GUIDE_HAND, guideTemplate: guideTemplate, handContour: handContour, fitScore: fitScore,
     MOUNT_IDS: MOUNT_IDS, estimateMounts: estimateMounts, compareHands: compareHands, buildComparison: buildComparison,
     palmFrame: palmFrame, grayFrom: grayFrom, gaussBlur: gaussBlur, localContrast: localContrast, ridgeFilter: ridgeFilter, skinMask: skinMask, sample: sample,
-    spline: spline, resample: resample, traceAlong: traceAlong, analyzeStrength: analyzeStrength, detectLines: detectLines,
+    spline: spline, resample: resample, traceAlong: traceAlong, analyzeStrength: analyzeStrength, detectLines: detectLines, LINE_MIN_CONF: LINE_MIN_CONF, lineRead: lineRead, fateUserNone: fateUserNone,
     measureLine: measureLine, classifyLines: classifyLines, buildReading: buildReading, analyze: analyze, addStat: addStat
   };
   if (typeof module !== "undefined" && module.exports) module.exports = PalmCore;
@@ -1396,7 +1399,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     S.auto = PC.detectLines(S.R, F);
     S.lines = JSON.parse(JSON.stringify(S.auto));
     S.active = "life"; S.mode = "edit";
-    $("#plFateNone").checked = !S.lines.fate.present;
+    $("#plFateNone").checked = PC.fateUserNone(S.lines.fate);
     showEditor();
     engine(msg || function () { return T("palm.eng.editReady", "พร้อมปรับเส้น"); }, cls || "ok");
   }
@@ -1404,6 +1407,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- ขั้นที่ 2: ตัวแก้ไขเส้น / ปักจุดเอง ---------- */
   var TAP_LABELS = { wrist: "กึ่งกลางข้อมือ", indexBase: "โคนนิ้วชี้", pinkyBase: "โคนนิ้วก้อย", indexTip: "ปลายนิ้วชี้", middleTip: "ปลายนิ้วกลาง", ringTip: "ปลายนิ้วนาง", pinkyTip: "ปลายนิ้วก้อย" };
   var tapLabel = function (k) { return T("palm.tap." + k, TAP_LABELS[k]); };
+  var unclearLabel = function () { return T("palm.line.unclear", "ไม่ชัดในภาพนี้"); };
   function showEditor() {
     editSec.hidden = false; setStep(2);
     $("#plTapBar").hidden = S.mode !== "tap";
@@ -1430,14 +1434,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#plTapMode").addEventListener("click", function () { if (S.src) startTap(); });
   function renderLineChips() {
     $("#plLineChips").innerHTML = PC.LINE_IDS.map(function (id) {
-      var L = KB.lines[id], a = S.lines && S.lines[id] && S.lines[id].auto;
-      var conf = a ? (a.conf >= 0.6 ? T("palm.conf.hi", "ชัด") : a.conf >= 0.3 ? T("palm.conf.mid", "พอเห็น") : T("palm.conf.lo", "ไม่ชัด")) : "";
+      var L = KB.lines[id], SL = S.lines && S.lines[id], a = SL && !SL.placed && SL.auto;
+      // ตัวตรวจหาเส้นไม่ถึงเกณฑ์ = "ไม่ชัดในภาพนี้" (ไม่วาด ไม่อ่าน) — owner decision 163 ก
+      var conf = SL && SL.unclear ? unclearLabel() : a ? (a.conf >= 0.6 ? T("palm.conf.hi", "ชัด") : a.conf >= 0.3 ? T("palm.conf.mid", "พอเห็น") : T("palm.conf.lo", "ไม่ชัด")) : "";
       return '<button type="button" role="radio" class="chip-btn" style="--c:' + L.color + '" data-line="' + id + '" aria-checked="' + (S.active === id) + '"><i></i>' + esc(KT("lines." + id + ".th", L.th)) + (conf ? " <small>(" + conf + ")</small>" : "") + "</button>";
     }).join("");
     $$("#plLineChips [data-line]").forEach(function (b) { b.addEventListener("click", function () { S.active = b.dataset.line; renderLineChips(); renderEditor(); }); });
   }
-  $("#plFateNone").addEventListener("change", /** @this {HTMLInputElement} */ function () { if (S.lines) { S.lines.fate.present = !this.checked; if (!this.checked) S.active = "fate"; renderLineChips(); renderEditor(); } });
-  $("#plResetLines").addEventListener("click", function () { if (S.auto) { S.lines = JSON.parse(JSON.stringify(S.auto)); $("#plFateNone").checked = !S.lines.fate.present; renderLineChips(); renderEditor(); toast(T("palm.toast.reset", "คืนค่าเส้นอัตโนมัติแล้ว")); } });
+  // ติ๊ก = ผู้ใช้ยืนยันเองว่ามองไม่เห็นเส้นวาสนา; เลิกติ๊ก = กลับไปสถานะเดิม (ตรวจพบ / ผู้ใช้วางเอง / ไม่ชัดในภาพนี้)
+  $("#plFateNone").addEventListener("change", /** @this {HTMLInputElement} */ function () {
+    var L = S.lines && S.lines.fate; if (!L) return;
+    if (this.checked) { L.present = false; L.unclear = false; } else { L.present = !!(L.placed || (S.auto && S.auto.fate.present)); L.unclear = !L.present; S.active = "fate"; }
+    renderLineChips(); renderEditor();
+  });
+  $("#plResetLines").addEventListener("click", function () { if (S.auto) { S.lines = JSON.parse(JSON.stringify(S.auto)); $("#plFateNone").checked = PC.fateUserNone(S.lines.fate); renderLineChips(); renderEditor(); toast(T("palm.toast.reset", "คืนค่าเส้นอัตโนมัติแล้ว")); } });
 
   // แสดงผลภาพมาตรฐาน: กลับซ้าย-ขวาเมื่อกรอบถูกสะท้อน (มือขวา) เพื่อให้ภาพตรงกับมือจริง
   function dispX(x) { return S.F && S.F.mirrored ? S.F.w - x : x; }
@@ -1483,17 +1493,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     PC.LINE_IDS.forEach(function (id) {
       var L = S.lines[id]; if (!L) return;
       var on = id === S.active;
-      if (id === "fate" && !L.present) { if (on) strokeLine(c, L.cp, "rgba(167,139,250,.5)", 2 * sc, true); return; }
+      // เส้นที่ไม่ชัด / ผู้ใช้ติ๊กว่ามองไม่เห็น: ไม่วาดเป็นเส้นที่ตรวจพบ (ไม่ใช้สีของเส้น) — เส้นที่เลือกอยู่แสดงเป็นเส้นประสีกลางเพื่อให้ลากวางเองได้
+      if (!L.present) { if (on && L.unclear) strokeLine(c, L.cp, "rgba(255,255,255,.55)", 2 * sc, true); return; }
       strokeLine(c, L.cp, KB.lines[id].color, (on ? 4 : 2.5) * sc, false);
     });
-    var A = S.lines[S.active];
-    if (A && (S.active !== "fate" || A.present)) A.cp.forEach(function (q, i) {
+    var A = S.lines[S.active], ring = A && A.present ? KB.lines[S.active].color : "#94a3b8";
+    if (A && (A.present || A.unclear)) A.cp.forEach(function (q, i) {
       var p = uvToDisp(q), r = 11 * sc;
       c.beginPath(); c.arc(p[0], p[1], r, 0, Math.PI * 2); c.fillStyle = "#fff"; c.fill();
-      c.lineWidth = 4 * sc; c.strokeStyle = KB.lines[S.active].color; c.stroke();
-      if (i === 0) { c.beginPath(); c.arc(p[0], p[1], r * 0.35, 0, Math.PI * 2); c.fillStyle = KB.lines[S.active].color; c.fill(); }
+      c.lineWidth = 4 * sc; c.strokeStyle = ring; c.stroke();
+      if (i === 0) { c.beginPath(); c.arc(p[0], p[1], r * 0.35, 0, Math.PI * 2); c.fillStyle = ring; c.fill(); }
     });
-    $("#plEditCap").textContent = T("palm.edit.cap", "กำลังปรับ: {line} — {where} · ลากจุดกลมให้ทับรอยเส้นจริง", { line: KT("lines." + S.active + ".th", KB.lines[S.active].th), where: KT("lines." + S.active + ".where", KB.lines[S.active].where) });
+    var capV = { line: KT("lines." + S.active + ".th", KB.lines[S.active].th), where: KT("lines." + S.active + ".where", KB.lines[S.active].where) };
+    $("#plEditCap").textContent = A && A.unclear ? T("palm.edit.capUnclear", "{line}: ไม่ชัดในภาพนี้ จึงไม่นำไปอ่าน · ถ้าเห็นเส้นนี้บนมือจริง ลากจุดกลมให้ทับรอยเส้น", capV)
+      : T("palm.edit.cap", "กำลังปรับ: {line} — {where} · ลากจุดกลมให้ทับรอยเส้นจริง", capV);
   }
   function evtPt(e) { var r = edCv.getBoundingClientRect(); return [(e.clientX - r.left) * edCv.width / r.width, (e.clientY - r.top) * edCv.height / r.height]; }
   var drag = null;
@@ -1516,7 +1529,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var best = null, bd = 30 * cssScale();
     var order = [S.active].concat(PC.LINE_IDS.filter(function (id) { return id !== S.active; }));
     order.forEach(function (id) {
-      var L = S.lines[id]; if (!L || (id === "fate" && !L.present)) return;
+      // เส้นที่ไม่ชัดลากได้เฉพาะเมื่อเลือกเส้นนั้นอยู่ (จุดของมันไม่ได้วาดไว้ตอนไม่ได้เลือก)
+      var L = S.lines[id]; if (!L || !(L.present || (L.unclear && id === S.active))) return;
       L.cp.forEach(function (q, i) { var d = PC.dist(uvToDisp(q), p) - (id === S.active ? 6 : 0); if (d < bd) { bd = d; best = { id: id, i: i }; } });
     });
     if (!best) return;
@@ -1528,8 +1542,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
   edCv.addEventListener("pointermove", function (e) {
     if (!drag) return;
-    var q = dispToUv(evtPt(e));
-    S.lines[drag.id].cp[drag.i] = [PC.round(Math.max(-0.42, Math.min(1.32, q[0])), 4), PC.round(Math.max(-0.4, Math.min(1.12, q[1])), 4)];
+    var q = dispToUv(evtPt(e)), DL = S.lines[drag.id];
+    DL.cp[drag.i] = [PC.round(Math.max(-0.42, Math.min(1.32, q[0])), 4), PC.round(Math.max(-0.4, Math.min(1.12, q[1])), 4)];
+    // ผู้ใช้วางเส้นเอง: เส้นนี้นำไปอ่านได้ (เป็นข้อมูลที่ผู้ใช้ยืนยัน ไม่ใช่เส้นแทนจากแม่แบบ)
+    DL.placed = true; if (DL.unclear) { DL.unclear = false; DL.present = true; renderLineChips(); }
     renderEditor();
   });
   var endDrag = function () { if (drag) { drag = null; edCv.classList.remove("dragging"); renderEditor(); } };
@@ -1571,7 +1587,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (!S.hand || !S.lines) return;
     touch();
     var lines = {};
-    PC.LINE_IDS.forEach(function (id) { lines[id] = { cp: S.lines[id].cp, present: id !== "fate" || S.lines[id].present }; });
+    PC.LINE_IDS.forEach(function (id) { var L = S.lines[id]; lines[id] = { cp: L.cp, present: L.present !== false, unclear: !!L.unclear }; });
     var seed = Math.round(S.hand.wrist[0] + S.hand.wrist[1]);
     var R = PC.analyze({ hand: S.hand, lines: lines, R: S.R, F: S.F, minor: S.minor, mounts: S.mounts, isDominant: S.side === S.dom, side: S.side, seed: seed });
     S.result = R; S.narr = null; S.cmp = null; S.cmpFirst = null;
@@ -1698,7 +1714,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var sc = F.w / 420;
     PC.LINE_IDS.forEach(function (id) {
       var L = S.lines[id];
-      if (id === "fate" && !L.present) return;
+      if (!L || L.present === false) return; // ไม่ชัดในภาพนี้ / ผู้ใช้ยืนยันว่ามองไม่เห็น: ไม่วาด
       strokeLine(c, L.cp, KB.lines[id].color, 4 * sc, false);
     });
     // เนิน (วาดทับเส้น พร้อมพื้นหลังป้าย)
@@ -1741,9 +1757,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plSideBadge").innerHTML = "<b>" + esc(T("palm.badge.from", "อ่านจาก{side}", { side: sideTh(S.side) })) + "</b>" + (sk ? esc(KT("sides." + sk + ".th", rd.side.th) + " · " + KT("sides." + sk + ".short", rd.side.short) + " — " + KT("sides." + sk + ".text", rd.side.text)) : "") +
       (S.sideSrc === "detect" ? ' <small class="muted">' + esc(T("palm.fromImage", "(ตรวจจากภาพ)")) + "</small>" : "") + (S.sideMode === "both" ? ' <small class="muted">· ' + esc(T("palm.handNof2", "มือที่ {n}/2", { n: S.pairStep + 1 })) + "</small>" : "");
     $("#plLines").innerHTML = rd.lines.map(function (l) {
-      return '<div class="line-card" style="--c:' + l.color + '"><h4>' + esc(KT("lines." + l.id + ".th", l.th)) + "<span>" + esc(T("palm.lineEn." + l.id, l.cn)) + '</span></h4><p class="about">' + esc(KT("lines." + l.id + ".about", l.about)) + "</p><ul>" +
+      return '<div class="line-card" data-line="' + l.id + '" style="--c:' + l.color + '"><h4>' + esc(KT("lines." + l.id + ".th", l.th)) + "<span>" + esc(T("palm.lineEn." + l.id, l.cn)) + '</span></h4><p class="about">' + esc(KT("lines." + l.id + ".about", l.about)) + "</p><ul>" +
         l.items.map(function (it) { return "<li><b>" + esc(lineCatLabel(l.id, it.cat)) + "</b>" + esc(ZM(l.id + "." + it.cat, it.meaning, LINE_ORDER[l.id])) + "</li>"; }).join("") + "</ul></div>";
-    }).join("");
+    }).join("") + (R.unclear || []).map(function (id) { // สถานะเท่านั้น ไม่มีคำอ่าน (owner decision 163 ก)
+      return '<div class="line-card unclear" data-line="' + id + '"><h4>' + esc(KT("lines." + id + ".th", KB.lines[id].th)) + '</h4><p class="about">' + esc(unclearLabel()) + "</p></div>"; }).join("");
     $("#plLifeNote").textContent = KT("lifeLineNote", KB.lifeLineNote);
     var hm = R.hm;
     var li = function (x, grp) { return x ? "<li><b>" + esc(grpLabel(grp, x.cat, x.label)) + "</b>" + esc(grpMeaning(grp, x.cat, x.meaning)) + "</li>" : ""; };
@@ -1780,7 +1797,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       [T("palm.raw.spread", "ช่องห่างนิ้วเฉลี่ย"), fmt(hm.spread, 0) + "°", T("palm.raw.spreadD", "> 15° กางห่าง · < 6° ชิด")]
     ];
     PC.LINE_IDS.forEach(function (id) {
-      var m = M[id]; if (!m || (id === "fate" && !S.lines.fate.present)) return;
+      var m = M[id]; if (!m) return; // วัดเฉพาะเส้นที่นำไปอ่าน
       rows.push([KT("lines." + id + ".th", KB.lines[id].th), T("palm.raw.lineV", "ยาว {len} · ลึก {depth}", { len: fmt(m.length, 2), depth: fmt(m.depth, 2) }),
         T("palm.raw.lineD", "ความยาวเป็นเท่าของความกว้างฝ่ามือ · ความลึก 0–1 จากความเข้มของร่อง") + (id === "head" ? T("palm.raw.slope", " · ลาดลง {deg}°", { deg: fmt(m.angle, 0) }) : "") + (m.breaks ? T("palm.raw.breaks", " · ช่วงขาด {n}", { n: m.breaks }) : "")]);
     });
@@ -1831,7 +1848,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plCmpA").textContent = sideTh(S.cmp.A.side) + " · " + roleInborn();
     $("#plCmpB").textContent = sideTh(S.cmp.B.side) + " · " + roleMade();
     $("#plCmpSum").textContent = T("palm.cmp.sum", "เหมือนกัน {same} จาก {total} หัวข้อ — {verdict} (อ่านคำอธิบายในคำทำนายด้านบน)", { same: c.same, total: c.total, verdict: c.similar ? T("palm.cmp.similar", "สองมือไปในทางเดียวกัน") : T("palm.cmp.differ", "สองมือต่างกันอย่างน่าสนใจ") });
-    $("#plCmpRows").innerHTML = cv.rows.map(function (r) { return "<tr><td>" + esc(r.th) + '</td><td class="' + (r.same ? "same" : "") + '">' + esc(r.a) + '</td><td class="' + (r.same ? "same" : "") + '">' + esc(r.b) + (r.same ? " ✓" : "") + "</td></tr>"; }).join("");
+    $("#plCmpRows").innerHTML = cv.rows.map(function (r) { return "<tr><td>" + esc(r.th) + '</td><td class="' + (r.same ? "same" : "") + '">' + esc(r.a) + '</td><td class="' + (r.same ? "same" : "") + '">' + esc(r.b) + (r.same ? " ✓" : "") + "</td></tr>"; }).join("") +
+      // เส้นที่ไม่ชัดในภาพของมือใดมือหนึ่ง: แสดงสถานะ ไม่นับในการเทียบ (owner decision 163 ก)
+      PC.LINE_IDS.filter(function (id) { return [S.cmp.A.R, S.cmp.B.R].some(function (R) { return (R.unclear || []).indexOf(id) >= 0; }); }).map(function (id) { var cell = function (R) { var k = (R.lc.cats[id] || [])[0]; return esc(k ? lineCatLabel(id, k) : unclearLabel()); }; return '<tr class="unclear" data-line="' + id + '"><td>' + esc(cmpRowName(id, KB.lines[id].th)) + "</td><td>" + cell(S.cmp.A.R) + "</td><td>" + cell(S.cmp.B.R) + "</td></tr>"; }).join("");
   }
   $("#plNextHand").addEventListener("click", function () {
     if (!S.result) return;
@@ -1913,7 +1932,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     [[0, 0.62], [0.33, 0.72], [0.66, 0.66], [0.98, 0.5]].forEach(function (f) { var a = P([f[0], -0.06]), b = P([f[0], -0.06 - f[1] / asp]); c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.lineWidth = k * 0.2; c.stroke(); });
     var t0 = P([-0.2, 0.6]), t1 = P([-0.5, 0.25]); c.beginPath(); c.moveTo(t0[0], t0[1]); c.lineTo(t1[0], t1[1]); c.lineWidth = k * 0.22; c.stroke();
     PC.LINE_IDS.forEach(function (id) {
-      var L = lines[id]; if (!L || (id === "fate" && !L.present)) return;
+      var L = lines[id]; if (!L || L.present === false) return;
       var sp = PC.spline(L.cp, 50).map(P);
       c.strokeStyle = KB.lines[id].color; c.lineWidth = 9;
       c.beginPath(); sp.forEach(function (p, i) { if (i) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); }); c.stroke();
