@@ -1,5 +1,5 @@
 {
- "_about": "Allow-list for tools/pii-scan.mjs (owner decision 111). Only synthetic fixtures, public organisation / help-line numbers and false positives. Never add real personal data. Each entry: path, max hits per type, kind (synthetic | public | false-positive), reason. A forbidden path (.wrangler/, .dev.vars, .env) cannot be listed.",
+ "_about": "Allow-list for tools/pii-scan.mjs (owner decision 111). Only synthetic fixtures, public organisation / help-line contacts and false positives. Secrets: synthetic or false-positive only, never a real key. Never add real personal data. Each entry: path, max hits per type, kind (synthetic | public | false-positive), reason. A forbidden path (.wrangler/, .dev.vars, .env) cannot be listed. Optional \"kinds\" gives a kind per type when one file holds two kinds.",
  "entries": [
   {
    "path": "CHANGELOG.md",
@@ -10,12 +10,28 @@
    "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
   },
   {
+   "path": "backend/src/mail.js",
+   "types": {
+    "email": 1
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
    "path": "counselling.html",
    "types": {
     "phone": 4
    },
    "kind": "public",
    "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "docs/ATTENDANCE-READINESS.md",
+   "types": {
+    "email": 3
+   },
+   "kind": "public",
+   "reason": "public contact e-mail of a licensing / data-source organisation, not a person"
   },
   {
    "path": "docs/BACKEND.md",
@@ -46,10 +62,11 @@
    "types": {
     "street-address": 1,
     "postcode-city": 2,
-    "phone": 5
+    "phone": 5,
+    "email": 1
    },
    "kind": "public",
-   "reason": "public contact details (address, phone) of licensing / data-source organisations, not of a person"
+   "reason": "public contact details (address, phone) of licensing / data-source organisations, not of a person; public contact e-mail of a licensing / data-source organisation, not a person"
   },
   {
    "path": "docs/PET-READING-RESEARCH.md",
@@ -62,10 +79,11 @@
   {
    "path": "docs/product-check/DRUG-DATA-SOURCES.md",
    "types": {
-    "phone": 1
+    "phone": 1,
+    "email": 1
    },
    "kind": "public",
-   "reason": "public contact details (address, phone) of licensing / data-source organisations, not of a person"
+   "reason": "public contact details (address, phone) of licensing / data-source organisations, not of a person; public contact e-mail of a licensing / data-source organisation, not a person"
   },
   {
    "path": "docs/product-check/p7-evidence-testset.json",
@@ -107,12 +125,25 @@
    "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
   },
   {
+   "path": "home.js",
+   "types": {
+    "email": 1
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
    "path": "i18n/en-common.js",
    "types": {
-    "phone": 2
+    "phone": 2,
+    "email": 1
    },
    "kind": "public",
-   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+   "reason": "phone: the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md; email: a placeholder address (company.com) shown as a form hint, synthetic",
+   "kinds": {
+    "phone": "public",
+    "email": "synthetic"
+   }
   },
   {
    "path": "i18n/en-luckycolor.js",
@@ -125,10 +156,15 @@
   {
    "path": "i18n/zh-common.js",
    "types": {
-    "phone": 2
+    "phone": 2,
+    "email": 1
    },
    "kind": "public",
-   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+   "reason": "phone: the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md; email: a placeholder address (company.com) shown as a form hint, synthetic",
+   "kinds": {
+    "phone": "public",
+    "email": "synthetic"
+   }
   },
   {
    "path": "i18n/zh-luckycolor.js",
@@ -438,6 +474,14 @@
    "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
   },
   {
+   "path": "tests/unit/backend-analytics.test.js",
+   "types": {
+    "email": 2
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
    "path": "tests/unit/backend-billing-receipts.test.js",
    "types": {
     "postcode-city": 1
@@ -489,10 +533,11 @@
   {
    "path": "tests/unit/backend-merit.test.js",
    "types": {
-    "phone": 5
+    "phone": 5,
+    "email": 4
    },
    "kind": "synthetic",
-   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line; placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
   },
   {
    "path": "tests/unit/backend-org-p1.test.js",
@@ -536,12 +581,44 @@
    "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
   },
   {
+   "path": "tests/unit/backend-site.test.js",
+   "types": {
+    "email": 3
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "tests/unit/commercial-collateral.test.js",
+   "types": {
+    "email": 4
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "tests/unit/commercial-r11.test.js",
+   "types": {
+    "email": 4
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
    "path": "tests/unit/crisis-rules-1323.test.js",
    "types": {
     "phone": 2
    },
    "kind": "public",
    "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/unit/deploy-tools.test.js",
+   "types": {
+    "email": 1
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
   },
   {
    "path": "tests/unit/fixtures/pc/thfda-synthetic.xml",
@@ -753,10 +830,11 @@
   {
    "path": "tests/unit/teamface.test.js",
    "types": {
-    "phone": 1
+    "phone": 1,
+    "email": 1
    },
    "kind": "synthetic",
-   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line; placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
   },
   {
    "path": "tests/unit/thai-canon-2.test.js",
@@ -826,6 +904,30 @@
    },
    "kind": "false-positive",
    "reason": "false positive: made-up GTIN barcodes for synthetic reference images"
+  },
+  {
+   "path": "vendor/astronomy-engine/LICENSE",
+   "types": {
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "e-mail of the third-party author in a vendored licence / bundle header (public attribution)"
+  },
+  {
+   "path": "vendor/astronomy-engine/astronomy.browser.min.js",
+   "types": {
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "e-mail of the third-party author in a vendored licence / bundle header (public attribution)"
+  },
+  {
+   "path": "vendor/fonts/prompt/OFL.txt",
+   "types": {
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "e-mail of the third-party author in a vendored licence / bundle header (public attribution)"
   },
   {
    "path": "vendor/pc-alerts/th.json",
