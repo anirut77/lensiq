@@ -1,3 +1,6 @@
 # locked 2026-11-19T02:36:05Z (tools/eval-guard.mjs lock, 1 file)
 667606de4b747a42f2c51c8e82a2a3f8ca4abc792106b5753563329cc0ece984  pii-guard.test.js
 667606de4b747a42f2c51c8e82a2a3f8ca4abc792106b5753563329cc0ece984  tests/unit/pii-guard.test.js  # repo file (same commit as lock 2026-11-19T02:36:05Z; field: ~/LENSIQ-field/evals/pii-guard/pii-guard.test.js)
+# locked 2026-11-19T02:40:01Z (tools/eval-guard.mjs lock, 1 file)
+ae429945ba4ba49adac04c937574788fd6f77942f9c320c843ca74c4914c85e8  pii-guard.test.js
+ae429945ba4ba49adac04c937574788fd6f77942f9c320c843ca74c4914c85e8  tests/unit/pii-guard.test.js  # repo file (same commit as lock 2026-11-19T02:40:01Z; field: ~/LENSIQ-field/evals/pii-guard/pii-guard.test.js)

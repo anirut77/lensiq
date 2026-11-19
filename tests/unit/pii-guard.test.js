@@ -28,7 +28,7 @@ const thaiId = first12 => {
   for (let i = 0; i < 12; i++) s += Number(first12[i]) * (13 - i);
   return first12 + String((11 - (s % 11)) % 10);
 };
-const ID_OK = thaiId(J("3", "1012", "0045", "67"));
+const ID_OK = thaiId(J("3", "1012", "00456", "78")); // 12 digits + check digit (re-lock A1: the first lock had 11)
 const ID_BAD = ID_OK.slice(0, 12) + String((Number(ID_OK[12]) + 1) % 10);
 const dashedId = id => [id[0], id.slice(1, 5), id.slice(5, 10), id.slice(10, 12), id[12]].join("-");
 
