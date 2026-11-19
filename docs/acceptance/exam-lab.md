@@ -25,7 +25,7 @@ one.
 | A2 | Phone recall at desk distance | ≥ 80 % (existing, PILOT-EXAM) on a locked set of ≥ 50 phone-in-hand frames | locked set | 4 |
 | A3 | Browser events | fullscreen exit and second screen caught 100 % (existing, PILOT-EXAM) | exam-lab e2e | 3 |
 | A4 | No over-claim | 0 page or document claims beyond the measurement; "detects a second person" only at ≥ 90 % (existing, owner 2026-11-10) | `npm run accuracy:check`, `tests/unit/claim-rules.test.js` | 3 |
-| A5 | Field: precision and noise | flag precision Wilson lower bound ≥ 70 % for signals with ≥ 20 flags; extra flags ≤ 1 per volunteer-hour; light or skin-tone gap ≤ 5 points; invigilator response ≤ 60 s (existing, PILOT-EXAM; the Wilson rule is still an owner decision) | pilot result sheet `docs/pilot/exam-lab/` | 12 |
+| A5 | Field: precision and noise | flag precision Wilson lower bound ≥ 70 % for signals with ≥ 20 flags; extra flags ≤ 1 per volunteer-hour; light or skin-tone gap ≤ 5 points; invigilator response ≤ 60 s; staged exam: empty-seat recall ≥ 95 %; candidates rating "fair and clear" (1–5) ≥ 4.0; 100 % of decliners sit the exam by the alternative (existing, PILOT-EXAM §6: `docs/pilot/PILOT-EXAM.md:279`, `:284`, `:285`; the Wilson rule is still an owner decision) | pilot result sheet `docs/pilot/exam-lab/` | 12 |
 | P | P1–P5, plus P3 also for `exam.html` and the dashboard, per item | all pass | README P | 10 |
 | L | L1–L3, per item | all pass (`tests/unit/exam-i18n.test.js`) | README L | 8 |
 | S | S1, plus S2 camera ready ≤ 15 s, per item | both pass | README S | 7 |

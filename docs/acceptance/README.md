@@ -46,7 +46,11 @@ Sheets refer to these by letter, and they are measured the same way on every she
   - P2: overlap at 360×640, 375×667, 414×736 and 1280×800 (`tests/e2e/overlap-*.e2e.mjs`, locks `overlap-d`, `overlap-d2`);
   - P3: the product's main flow in WebKit at 390 px (`iphone-pages-webkit`, `phone-webkit-a/b` or a product WebKit file);
   - P4: the product's main flow (not only the landing) in Chrome at 360 px and at 430 px;
-  - P5: one owner run on a real phone, recorded in `docs/PHONE-QUALITY.md` §5.
+  - P5: one owner run on a real phone, recorded in `docs/PHONE-QUALITY.md` §5. It passes only when every step of the
+    product's checklist in `docs/owner-checklists/*.md` passes, including the real-phone times written there (existing:
+    page loads ≤ 10 s: `attendance.md:11`, `exam-lab.md:14`; camera ready ≤ 10 s after "allow": `exam-lab.md:16`,
+    `gate.md:15`, `nutrition.md:14`; faceread live image ≤ 3 s after "allow": `docs/IPHONE-REAL-DEVICE-CHECKS.md:31`;
+    tarot reading ≤ 20 s: `fortune.md:14`; studio ready ≤ 30 s: `studio.md:12`; and any other time limit in those files).
 - **L (languages).** Scored per item:
   - L1: `tests/unit/i18n-integrity.test.js` reports 0 missing keys;
   - L2: an e2e flow of the product in EN and one in ZH;

@@ -20,7 +20,7 @@
 |---|---|---|---|---|
 | F | Must-do 1–8, per item | each exercised by a test on main | `gate*.e2e.mjs`, unit `gate-*.test.js` | 20 |
 | A1 | Field exact read | day ≥ 95 %, night ≥ 85 % (Wilson 95 % lower bound) over ≥ 200 reads (night ≥ 40, motorcycles ≥ 30) (existing: `docs/pilot/PILOT-GATE.md`, owner Wilson rule 2026-11-09) | pilot result sheet | 15 |
-| A2 | Taps needed | ≤ 10 % (Wilson upper bound) (existing, PILOT-GATE) on the owner's locked photo set (phase 0, ~100 photos), then in the field | locked set `~/LENSIQ-field/evals/gate-owner/` | 8 |
+| A2 | Taps needed | ≤ 10 % (Wilson upper bound) (existing, PILOT-GATE) on the owner's locked photo set (phase 0, ~100 photos), then in the field; phase 0 also: no category above 10 % wrong-text automatic reads (`docs/pilot/PILOT-GATE.md:200`) and plate finder det ≥ 90 % per category (`docs/GATE.md:166`) | locked set `~/LENSIQ-field/evals/gate-owner/` | 8 |
 | A3 | No plate, no auto-read | 0 automatic reads on ≥ 15 photos without a plate (existing phase-0 gate, PILOT-GATE) | public set labels v3, then the owner set | 5 |
 | A4 | No silent wrong save | 0 (existing, PILOT-GATE): every saved plate was confirmed or corrected by the guard | gate-guard e2e and unit tests | 7 |
 | P | P1–P5, per item; P3 includes `gate.html` itself | all pass | README P | 10 |

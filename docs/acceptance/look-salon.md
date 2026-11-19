@@ -20,7 +20,7 @@ please use your own judgement". Salon mode is a consultation aid on SHAPE, using
 | ID | Criterion | Target | How measured | Weight |
 |---|---|---|---|---|
 | F | Must-do 1–8, per item | each exercised by a test on main | `look*.e2e.mjs`, `tests/unit/look-*.test.js` | 20 |
-| A1 | Preview fit (synthetic, locked) | lip IoU ≥ 0.80, brow IoU ≥ 0.60, jitter ≤ 0.008 IPD (existing: `docs/LOOK-PREVIEW-EVAL.md`, lock `beauty-look`), for each preview type that is on | locked synthetic set | 12 |
+| A1 | Preview fit (synthetic, locked) | lip outer contour distance median / p90 ≤ 0.05 / 0.08 IPD; lip IoU median ≥ 0.80; eyeliner contour distance median / p90 ≤ 0.04 / 0.06 IPD; brow IoU median ≥ 0.60; brow coverage by the overlay median ≥ 0.85; brow arch change: erased-area ΔE76 vs skin median ≤ 8; jitter median ≤ 0.008 IPD; glasses (if on) anchor error median / p90 ≤ 0.05 / 0.08 IPD (existing: `docs/LOOK-PREVIEW-EVAL.md:36-42`, lock `beauty-look`), for each preview type that is on | locked synthetic set | 12 |
 | A2 | Real faces | A1 targets met on ≥ 20 consenting adult volunteers (existing protocol: `docs/LOOK-VOLUNTEER-PROTOCOL.md`) | volunteer set | 8 |
 | A3 | Frame rate | ≥ 20 fps on a real phone (existing, LOOK-PREVIEW-EVAL) | real phone | 5 |
 | G1 | Gate: wording | 0 procedure names (tattoo, microblading, semi-permanent pigment, injection, thread lift, laser, surgery), whitening, beauty score or "feature is bad" wording reaches the screen, on the locked attack set and its misspelling variants, in TH/EN/ZH (existing: salon review, 175 checks; lint `lensiq-look-lint.js`) | `look-lint*.test.js`, salon attack harness | 15 |

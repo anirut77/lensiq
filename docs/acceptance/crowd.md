@@ -24,7 +24,7 @@ age, gender or expression. It is not for dense crowds.
 | A2 | Zone count | MAPE ≤ 20 % (existing, PILOT-CROWD), same reference | as A1 | 8 |
 | A3 | Line count | error ≤ 10 % per 15 min (existing, PILOT-CROWD) on ≥ 50 human-counted crossings | locked clips | 4 |
 | A4 | Dense-scene warning | a warning appears on ≥ 95 % of locked dense frames (≥ 100 people) and on ≤ 5 % of sparse frames (**proposed**) | locked dense / sparse clip set | 6 |
-| A5 | Field | ≥ 70 % of snapshots within band at 1–2 event sites (existing, PILOT-CROWD) | pilot result sheet | 2 |
+| A5 | Field | ≥ 70 % of snapshots within band at 1–2 event sites; system uptime ≥ 99 % during opening hours (existing, PILOT-CROWD: `docs/pilot/PILOT-CROWD.md:102`, `:210`) | pilot result sheet | 2 |
 | P | P1–P5, per item | all pass | README P | 10 |
 | L | L1–L3, per item | all pass | README L | 8 |
 | S | S1; S2 plus ≥ 2 counts per second on a real mid-range phone (existing, PILOT-CROWD); per item | all pass | README S | 7 |

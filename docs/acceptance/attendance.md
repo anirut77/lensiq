@@ -22,6 +22,7 @@ OT, and exports payroll CSV. Face check-in is optional and needs consent.
 | F | Must-do 1–8, per item | each item exercised by a test on main, CI green | `tests/e2e/attendance.e2e.mjs`, `tests/e2e/attendance-hr.e2e.mjs`, `tests/unit/attendance-timeclock.test.js` | 25 |
 | A1 | Time maths on a locked set | 100 % of hours, OT, night-shift and holiday totals equal the hand-worked answer, on ≥ 60 synthetic staff-months covering every rule (**proposed**) | new locked set `~/LENSIQ-field/evals/attendance-time/`, harness calls `tools/eval-guard.mjs` | 15 |
 | A2 | Field payroll match | one month's payroll CSV matches the shop's own records with 0 unexplained differences (existing: `docs/PILOT-PLAN.md` §3.2) | pilot result sheet | 5 |
+| A3 | Face mode pilot (only if face mode is offered; volunteers who consented) | false accept ≤ 1 %; false reject ≤ 10 % (existing: `docs/PILOT-PLAN.md` §3.2, lines 67–68; `docs/LAUNCH-READINESS.md:115`) | pilot result sheet | 0 until face mode is offered |
 | P | P1–P5 (README), per item | all pass | README P | 10 |
 | L | L1–L3, per item | all pass; L3 includes CSV headers and the badge print | README L | 10 |
 | S | S1, plus S2 with "PIN pad usable ≤ 5 s; PIN mode loads no face model" (**proposed**), per item | both pass | `speed-budget.e2e.mjs`; timing run per `docs/SPEED.md` | 8 |
