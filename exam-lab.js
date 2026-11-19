@@ -58,6 +58,7 @@
   }
   function show(p) {
     phase = p;
+    if (p !== "cam") calWanted = false; // a waiting calibrate tap belongs to this camera step only, never to a later one
     for (const [id, step] of [["stepNotice", "notice"], ["stepCam", "cam"], ["stepCal", "cal"], ["stepExam", "exam"]]) $("#" + id).hidden = step !== p && !(p === "done" && step === "exam");
     document.querySelectorAll("#steps li").forEach((/** @type {HTMLElement} */ li) => { if (li.dataset.step === p) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current"); });
     $("#monitor").hidden = !(p === "cal" || p === "exam");
@@ -162,6 +163,7 @@
     modelsReady = true; return b;
   }
   async function startCamera() {
+    frames = 0; lastFrameAt = 0; calWanted = false; // a restarted camera proves itself again (no frames carried over)
     engine(() => T("exam.lab.loading", "กำลังเปิดกล้องและโหลดโมเดล (ในเครื่องนี้)..."));
     try {
       if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw Object.assign(new Error("insecure"), { name: "Insecure" });
