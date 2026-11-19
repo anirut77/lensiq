@@ -1,4 +1,4 @@
-// tests/unit/pii-guard-r1.test.js — independent review round 1 of pii-guard (f82f2034) found fail-open gaps in
+// tests/unit/pii-guard-gaps.test.js — independent review round 1 of pii-guard (f82f2034) found fail-open gaps in
 // tools/pii-scan.mjs and the CI step. One test per finding; locked (evals-locks/pii-guard.sha256) BEFORE the fixes and
 // shown failing on f82f2034. Every sample is built at run time so this file holds none.
 //   R1 long lines (> 20k chars) and files > 2 MB were skipped silently
