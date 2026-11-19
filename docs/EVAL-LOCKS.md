@@ -277,3 +277,8 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   `cat-fortune.html` must not have it.
   Re-lock 3 (test-setup only, after the first e2e run on the build): `fortune-cards.e2e.mjs` scrolls cards into view with
   behavior "instant" (the site's smooth scrolling made the test read a card's position mid-scroll). No assertion changed.
+- `planner-occasions-labels` (2026-11-19, branch `planner-occasions`): owner decisions 114–117. Locked before the build: unit C1–C5
+  (`tests/unit/planner-occasions-labels.test.js`: every occasion and rule has a source class text / modern in the code and in
+  `docs/planner-occasion-sources.json`; the classification; the label in TH / EN / ZH; no tradition wording on modern items, with the
+  Thai `evenMonth` reason of move declared as frozen by the locked planner-occasions O5 snapshot until the move / shop / work work; source
+  notes stay internal) and e2e V1–V4 (`tests/e2e/planner-occasions-labels.e2e.mjs`: label visible and whole at 360 px, TH / EN / ZH).

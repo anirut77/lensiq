@@ -1,0 +1,7 @@
+# evals-locks/planner-occasions-labels.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/planner-occasions-labels/ (owner rule 2026-11-13). Append-only.
+# owner decisions 114-117 (2026-11-19): every occasion / rule not from a traditional text is labelled 'ตามความนิยมสมัยใหม่' / 'Modern practice' / '现代习俗'.
+# Unit C1-C5 (class per occasion and rule, code = sources file; the classification; label TH/EN/ZH; no tradition wording on modern items, evenMonth Thai
+# frozen by planner-occasions O5 declared; notes internal) and e2e V1-V4 (label visible at 360 px TH/EN/ZH). Locked BEFORE any product change.
+# locked 2026-11-19T02:33:25Z (tools/eval-guard.mjs lock, 2 files)
+b2eeb8cd5436f754b63b9b34c99d9c1878470c17136096a6bae87a88956b9e34  tests/unit/planner-occasions-labels.test.js
+ebcd43079e5e80c2bec4c3a4f8f0f12b5db4dfd30374a43b64299fac95cdcaed  tests/e2e/planner-occasions-labels.e2e.mjs
