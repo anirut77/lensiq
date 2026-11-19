@@ -47,7 +47,19 @@
       }
       fs.appendChild(grid); box.appendChild(fs);
     }
-    syncChips();
+    syncChips(); markFields();
+  }
+  /** required / optional markers (owner scope item 2, zodiac mode only): the reading needs only the species (read() checks it);
+   *  every other trait group is optional; the photo, name and date fields already say optional in their own labels */
+  function markFields() {
+    if (!zMode()) return;
+    for (const fs of document.querySelectorAll("#petTraits fieldset")) {
+      const lg = fs.querySelector("legend"), sp = !!fs.querySelector('input[name="petSpecies"]'), m = document.createElement("span");
+      m.className = sp ? "pet-req" : "pet-opt";
+      m.textContent = sp ? T("pet.z.req", "(จำเป็น)") : T("pet.z.opt", "(ไม่บังคับ)");
+      lg.appendChild(m);
+      if (sp) { const g = fs.querySelector(".fk-opts"); g.setAttribute("role", "radiogroup"); g.setAttribute("aria-required", "true"); g.setAttribute("aria-label", lg.textContent); }
+    }
   }
   function syncChips() { for (const l of document.querySelectorAll("#petTraits .fk-opt")) l.classList.toggle("on", !!l.querySelector("input:checked")); }
   function checked(name) { const el = $(`input[name="${name}"]:checked`); return el ? el.value : null; }
@@ -140,6 +152,11 @@
     if (!window.isSecureContext || n === "Insecure") return T("pet.cam.https", "กล้องใช้ได้เฉพาะหน้าเว็บที่เปิดด้วย https ใช้ปุ่ม เลือกรูป แทนได้");
     return T("pet.cam.other", "เปิดกล้องไม่สำเร็จ ใช้ปุ่ม เลือกรูป แทนได้");
   }
+  /** capture guide (owner scope item 1, zodiac mode only): a pet-head frame over the live picture and a one-line hint */
+  function showGuide(on) {
+    const v = !!on && zMode();
+    $("#petGuide").toggleAttribute("hidden", !v); $("#petGuideHint").hidden = !v; // an <svg> has no .hidden property
+  }
   async function camOn() {
     const m = $("#petCamMsg");
     try {
@@ -149,14 +166,14 @@
       st.stream = s; api.lastStream = s;
       const v = $("#petVideo"); v.srcObject = s; v.hidden = false; $("#petView").hidden = true; $("#petEmpty").hidden = true;
       try { await v.play(); } catch (e) { /* autoplay muted */ }
-      $("#petSnap").disabled = false; $("#petCamOff").disabled = false;
+      $("#petSnap").disabled = false; $("#petCamOff").disabled = false; showGuide(true);
       m.textContent = T("pet.cam.on", "กล้องเปิดอยู่ จัดหน้าน้องให้อยู่กลางภาพ แล้วกด ถ่ายรูป");
     } catch (e) { m.textContent = camMsg(e); }
   }
   function camOff(quiet) {
     const v = $("#petVideo");
     if (st.stream) for (const t of st.stream.getTracks()) t.stop();
-    st.stream = null; v.srcObject = null; v.hidden = true;
+    st.stream = null; v.srcObject = null; v.hidden = true; showGuide(false);
     $("#petSnap").disabled = true; $("#petCamOff").disabled = true;
     if (st.img) $("#petView").hidden = false; else $("#petEmpty").hidden = false;
     if (!quiet) $("#petCamMsg").textContent = T("pet.cam.off", "ปิดกล้องแล้ว");

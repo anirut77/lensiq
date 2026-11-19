@@ -101,6 +101,9 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
       <video id="petVideo" autoplay muted playsinline hidden></video>
       <canvas id="petView" hidden role="img" aria-label="รูปน้องที่เลือก (อยู่ในเครื่องนี้เท่านั้น)" data-i18n-attr="aria-label:pet.viewAria"></canvas>
       <p class="pet-stage-empty" id="petEmpty" data-i18n="pet.empty">ยังไม่มีรูป ข้ามขั้นนี้ได้ แล้วเลือกลักษณะเองด้านล่าง</p>
+      <svg class="pet-guide" id="petGuide" aria-hidden="true" hidden viewBox="0 0 200 200" focusable="false">
+        <path d="M38 92 L30 22 L82 52 Q100 47 118 52 L170 22 L162 92 Q176 120 160 150 Q138 186 100 186 Q62 186 40 150 Q24 120 38 92 Z"/></svg>
+      <p class="pet-guide-hint" id="petGuideHint" data-i18n="pet.z.guide" hidden>จัดหน้าน้องให้อยู่ในกรอบ แล้วกด ถ่ายรูป</p>
     </div>
     <p class="hint" id="petCamMsg" role="status"></p>
     <p class="hint" id="petDetMsg" role="status"></p>

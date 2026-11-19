@@ -81,5 +81,8 @@
   "pet.z.found": "Got on {d}",
   "pet.z.missing": "Not yet found",
   "pet.z.secretSlot": "Secret Card slot",
-  "pet.z.loadFail": "The card designs could not load, so the classic card is used instead."
+  "pet.z.loadFail": "The card designs could not load, so the classic card is used instead.",
+  "pet.z.guide": "Fit your pet's face inside the frame, then tap Take photo.",
+  "pet.z.req": "(required)",
+  "pet.z.opt": "(optional)"
 } });

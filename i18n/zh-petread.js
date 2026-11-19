@@ -81,5 +81,8 @@
   "pet.z.found": "获得于 {d}",
   "pet.z.missing": "尚未获得",
   "pet.z.secretSlot": "隐藏卡格",
-  "pet.z.loadFail": "卡面图案加载失败，改用经典卡片。"
+  "pet.z.loadFail": "卡面图案加载失败，改用经典卡片。",
+  "pet.z.guide": "把宠物的脸放进框内，然后轻点\"拍照\"。",
+  "pet.z.req": "（必选）",
+  "pet.z.opt": "（可选）"
 } });
