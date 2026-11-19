@@ -25,6 +25,7 @@ import { baht, thaiDate } from "./receipt.js";
 import { PRICE_LINES, lineAmount, priceLine } from "./price-list.js";
 import { fromB64, randomId, randomToken, sha256Hex, toB64 } from "./crypto.js";
 import { HttpError, now } from "./util.js";
+import { DOC_FONT_CSS, DOC_FONT_FAMILY } from "./doc-font.js";
 
 export const LOGO_MAX_BYTES = 200000;
 export const LOGO_TYPES = ["image/png", "image/jpeg", "image/webp"];
@@ -465,8 +466,9 @@ export function renderDoc(d) {
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>${esc(title[0])} ${esc(d.number || "")}</title>
 <style>
+${DOC_FONT_CSS /* self-hosted Thai font inline: no machine fallback, no U+F700–F71A in the PDF (decision 161) */}
   :root { color-scheme: light; }
-  body { font: 13px/1.5 "Sarabun","Noto Sans Thai","Noto Sans SC",system-ui,sans-serif; color: #111; background: #fff; margin: 0; padding: 24px; }
+  body { font: 13px/1.5 ${DOC_FONT_FAMILY},"Noto Sans SC",system-ui,sans-serif; color: #111; background: #fff; margin: 0; padding: 24px; }
   .doc { max-width: 780px; margin: 0 auto; } h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 15px; margin: 14px 0 4px; }
   small { display: block; font-size: 10.5px; color: #555; font-weight: 400; }
   .head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 10px; }
@@ -509,7 +511,7 @@ export const DOC_HEADERS = {
   "Cache-Control": "no-store",
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "no-referrer",
-  "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+  "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
 };
 
 /** Every /admin/api/seller route (owner only, read included). @param {string} route */

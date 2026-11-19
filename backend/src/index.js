@@ -939,9 +939,11 @@ export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin
   "/vendor/mediapipe/wasm/vision_wasm_internal.js", "/vendor/mediapipe/wasm/vision_wasm_internal.wasm",
   "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.js", "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
   "/vendor/models/face-gate/blaze_face_short_range.tflite"]);
+// font-src data: (decision 161, 2026-11-19): the seller document preview (srcdoc iframe, inherits this policy) carries
+// its Thai font inline so the printed PDF never falls back to a machine font; same as admin.html's own <meta> CSP.
 export const ADMIN_PAGE_HEADERS = {
   "Content-Security-Policy": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
-    "font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; report-uri /v1/csp-report; report-to csp",
+    "font-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; report-uri /v1/csp-report; report-to csp",
   "Reporting-Endpoints": 'csp="/v1/csp-report"',
   "X-Frame-Options": "DENY",
   "X-Content-Type-Options": "nosniff",
