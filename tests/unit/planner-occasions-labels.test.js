@@ -18,6 +18,9 @@
 //       plain reason, and every reason of a modern rule. Declared exception: the Thai reason "evenMonth" of move is frozen by the
 //       locked planner-occasions O5 snapshot and is rewritten in the separate move / shop / work work (owner, 2026-11-19); it is
 //       labelled here, and its EN / ZH stay word-for-word with the Thai until then
+//       RE-LOCK 2 (stricter, reviewer round 1): no exception any more (the evenMonth reason is reworded in all three languages);
+//       the "how a day is chosen" list (pl.b.*) is checked too, in TH / EN / ZH, and its even-month sentence carries the label;
+//       a modern item also may not use the teachers'-day framing ("วันครู" / "teachers' day" / "老师日")
 //   C5  the source notes stay internal: no shipped planner file names the sources file or a source URL
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -128,7 +131,7 @@ const TRAD_TH = /ตำรา|โบราณ|ประเพณี|ดั้ง
 const TRAD_EN = /\btradition(al|ally|s)?\b|\btexts?\b|\bancient\b|\balmanacs?\b|\bcustom(s|ary|arily)?\b|\bscriptures?\b|\bclassical\b/i;
 const TRAD_ZH = /传统|古籍|典籍|古法|古书|旧俗|习俗上|老规矩|古训|古人|经典/;
 // declared exception (see the header): Thai frozen by the locked planner-occasions O5 snapshot; rewritten in the move / shop / work work
-const FROZEN = new Set(["evenMonth"]);
+const FROZEN = new Set();
 
 test("C4 no modern item is worded as tradition (TH / EN / ZH)", () => {
   const items = [];
@@ -150,8 +153,23 @@ test("C4 no modern item is worded as tradition (TH / EN / ZH)", () => {
     assert.ok(s && String(s).trim(), where + ": missing");
     assert.ok(!re.test(s), `${where}: tradition wording "${(String(s).match(re) || [])[0]}" in: ${s}`);
   }
-  // the frozen Thai reason is still labelled modern (it is not dropped from the label, only from the wording check)
+  // the even-month reason is labelled modern and checked like every other modern reason
   assert.equal(P.reasonClass("move", "evenMonth"), "modern");
+  const TEACH = /วันครู|teachers'? day|老师日/i;
+  for (const [where, s] of items) assert.ok(!TEACH.test(s), `${where}: teachers'-day framing on a modern item: ${s}`);
+  // the basis list (pl.b.*), TH / EN / ZH
+  const bKeys = Object.keys(TH_HTML).filter(k => /^pl\.b\./.test(k));
+  assert.ok(bKeys.length >= 6, "basis keys " + bKeys.length);
+  for (const k of bKeys) for (const [where, s, re] of [["TH " + k, TH_HTML[k], TRAD_TH], ["EN " + k, EN[k], TRAD_EN], ["ZH " + k, ZH[k], TRAD_ZH]]) {
+    assert.ok(s && String(s).trim(), where + ": missing");
+    assert.ok(!re.test(s), `${where}: tradition wording "${(String(s).match(re) || [])[0]}" in: ${s}`);
+  }
+  // the even-month sentence of the basis list is followed by the label (its own element, translated by pl.modern)
+  const li = (HTML.match(/<li>\s*<span data-i18n="pl\.b\.lunar">[^<]*<\/span>\s*<span class="pl-modern" data-i18n="pl\.modern">([^<]*)<\/span>\s*<\/li>/) || [])[1];
+  assert.equal(li, "ตามความนิยมสมัยใหม่", "basis list: the label after the even-month sentence (pl.b.lunar)");
+  const lastEn = EN["pl.b.lunar"].trim().split(/\.\s+/).pop(), lastZh = ZH["pl.b.lunar"].trim().split("。").filter(Boolean).pop();
+  assert.ok(/เดือนคู่\S*$/.test(TH_HTML["pl.b.lunar"]) && /even/i.test(lastEn) && /双/.test(lastZh),
+    "basis list: pl.b.lunar ends with the even-month sentence, so the label follows it");
 });
 
 test("C5 the source notes stay internal: no shipped planner file names the sources file or a source URL", () => {

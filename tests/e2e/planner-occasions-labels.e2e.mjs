@@ -12,6 +12,11 @@
 import { assert } from "./cdp.mjs";
 
 const S = JSON.stringify;
+// re-lock 2 (stricter, reviewer round 1): a fixed clock (2026-11-19 10:00 Bangkok) so the month list and the chosen start month never
+// depend on the day the test runs
+const CLOCK = `(() => { const T = Date.UTC(2026, 10, 19, 3, 0, 0), D = Date;
+  function FD(...a) { if (!(this instanceof FD)) return new D(T).toString(); return a.length ? new D(...a) : new D(T); }
+  FD.prototype = D.prototype; FD.now = () => T; FD.UTC = D.UTC; FD.parse = D.parse; window.Date = FD; })();`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const LANGS = ["th", "en", "zh"];
 const LABEL = { th: "ตามความนิยมสมัยใหม่", en: "Modern practice", zh: "现代习俗" };
@@ -50,7 +55,7 @@ export default async function ({ base, launch, check }) {
   try {
     for (const lang of LANGS) {
       await check(`planner occasion labels: ${lang} 360 px — modern occasions and modern rules show "${LABEL[lang]}", tradition ones do not`, async () => {
-        const page = await browser.newPage(null, { initScripts: [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`] });
+        const page = await browser.newPage(null, { initScripts: [CLOCK, `try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`] });
         await page.goto(`${base}/planner.html`);
         await page.waitFor(`!!window.__pl && !!window.LQI18N && LQI18N.lang === ${S(lang)}`, 8000);
         await page.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
@@ -68,7 +73,7 @@ export default async function ({ base, launch, check }) {
             wd.value = ${S(OWNER.wd)}; wd.dispatchEvent(new Event("change", { bubbles: true }));
             zd.value = ${S(OWNER.zd)}; zd.dispatchEvent(new Event("change", { bubbles: true }));
             const sp = document.getElementById("plSpan"); sp.value = "3";
-            const fr = document.getElementById("plFrom"); const want = [...fr.options].find(o => o.value === "2027-5"); if (want) fr.value = want.value;
+            const fr = document.getElementById("plFrom"); if (![...fr.options].some(o => o.value === "2027-5")) throw new Error("no 2027-5 in the month list"); fr.value = "2027-5";
             document.getElementById("plGo").click();
           })()`);
           first = false;

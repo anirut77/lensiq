@@ -282,3 +282,8 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   `docs/planner-occasion-sources.json`; the classification; the label in TH / EN / ZH; no tradition wording on modern items, with the
   Thai `evenMonth` reason of move declared as frozen by the locked planner-occasions O5 snapshot until the move / shop / work work; source
   notes stay internal) and e2e V1–V4 (`tests/e2e/planner-occasions-labels.e2e.mjs`: label visible and whole at 360 px, TH / EN / ZH).
+  Re-lock 2 (2026-11-19, stricter, independent review round 1 of f31a9d24): C4 has no evenMonth exception, also checks every
+  `pl.b.*` basis string in TH / EN / ZH and the label after the even-month sentence, and forbids the teachers'-day framing on modern
+  items; the e2e runs on a fixed clock (2026-11-19) with start month 2027-5 required. Same review: `planner-occasions` re-lock 2 changes
+  only `TH.evenMonth` in `planner-regression-3.json` (all 114 day snapshots byte-identical, equal strictness) and puts G4 of
+  `planner-occasions.e2e.mjs` on the same fixed clock and month (stricter).

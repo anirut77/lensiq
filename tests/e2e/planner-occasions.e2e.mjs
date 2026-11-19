@@ -13,6 +13,11 @@
 import { assert } from "./cdp.mjs";
 
 const S = JSON.stringify;
+// re-lock 2 (stricter, reviewer round 1): a fixed clock (2026-11-19 10:00 Bangkok) so the month list and the chosen start month never
+// depend on the day the test runs
+const CLOCK = `(() => { const T = Date.UTC(2026, 10, 19, 3, 0, 0), D = Date;
+  function FD(...a) { if (!(this instanceof FD)) return new D(T).toString(); return a.length ? new D(...a) : new D(T); }
+  FD.prototype = D.prototype; FD.now = () => T; FD.UTC = D.UTC; FD.parse = D.parse; window.Date = FD; })();`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const LANGS = ["th", "en", "zh"];
 const WIDTHS = [360, 375, 390, 412, 430];
@@ -86,7 +91,7 @@ export default async function ({ base, launch, check }) {
       });
 
       await check(`planner occasions: ${lang} 390 px — a new occasion gives good days with the plain reason; birth-weekday occasion without one shows the empty message`, async () => {
-        const page = await browser.newPage(null, { initScripts: [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`] });
+        const page = await browser.newPage(null, { initScripts: [CLOCK, `try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`] });
         await page.goto(`${base}/planner.html`);
         await page.waitFor(`!!window.__pl && !!window.LQI18N && LQI18N.lang === ${S(lang)}`, 8000);
         await page.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
@@ -94,6 +99,7 @@ export default async function ({ base, launch, check }) {
           document.querySelector('input[name=plGroup][value="family"]').closest("label").click();
           document.querySelector('input[name=plEvent][value="wedding"]').closest("label").click();
           document.getElementById("plSpan").value = "3";
+          const fr = document.getElementById("plFrom"); if (![...fr.options].some(o => o.value === "2027-5")) throw new Error("no 2027-5 in the month list"); fr.value = "2027-5";
           document.getElementById("plGo").click();
         })()`);
         await page.waitFor(`document.querySelectorAll(".pl-day").length > 0 && !document.getElementById("plResult").hidden && (document.getElementById("plWhy") || {}).textContent`, 8000);
