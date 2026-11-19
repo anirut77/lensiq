@@ -146,7 +146,9 @@ export function lint(html) {
   }
   if (/<[a-z][^>]*\son[a-z]+\s*=\s*["'][^"']*["']/i.test(html.replace(/<script\b[\s\S]*?<\/script>/gi, ""))) problems.push("inline on*= handler");
   if (/(href|src|action)\s*=\s*["']\s*javascript:/i.test(html)) problems.push("javascript: URL");
-  if (/<(script|link)\b[^>]*(src|href)\s*=\s*["']https?:\/\//i.test(html)) problems.push("third-party script/style origin (fonts are self-hosted: node tools/self-host-fonts.mjs)");
+  // a canonical / alternate <link> names this page's own public address; it loads nothing, so it is not a third-party origin
+  const loads = html.replace(/<link\b[^>]*\brel="(?:canonical|alternate)"[^>]*>/gi, "");
+  if (/<(script|link)\b[^>]*(src|href)\s*=\s*["']https?:\/\//i.test(loads)) problems.push("third-party script/style origin (fonts are self-hosted: node tools/self-host-fonts.mjs)");
   return problems;
 }
 

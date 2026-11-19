@@ -21,3 +21,28 @@ e0d9a801e786a58050588021c6d11dba6588ed6abb7dfdbe903d9e7e827c9876  tests/unit/for
 0c04589aab924713f29b241787f360f5b844e0dc4dada1f35e2c774245409928  tests/unit/fortune-no-demo.test.js  # repo file (relock-nodemo)
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): r2-lock, see evals-locks/crisis-v3.sha256 and docs/CRISIS-V3-RELOCKS.md.
 f548d08941192e46d1a8a3cafe87df2d9be761e4eafe0ba0b41aa55a466577ae  tests/unit/cat-pages.test.js  # repo file (r2-lock)
+# RE-LOCK 2026-11-18 (branch fortune-cards-clean), owner decision 2026-11-18: fortune cards carry no accuracy field; business products unchanged. See evals-locks/fortune-cards.sha256 (relock-1) and docs/EVAL-LOCKS.md.
+a7e7cd55c8b85c423abe1659b6beabf0bbc897ce9a76c1f8a884f31643af9886  tests/unit/cat-pages.test.js  # repo file (fortune-cards relock-1)
+0290a823d9fddc2c97c8c7e15170fcab1ef2eefbb515e6e3640795d8af0a87db  tests/e2e/categories.e2e.mjs  # repo file (fortune-cards relock-1)
+# locked 2026-11-17T16:15:20Z (tools/eval-guard.mjs lock, 1 file)
+18bb561e4323b6f8b0a402c92728c2edf9ec5dcdf554cac33abc423e5cd49f0e  relock-pet/fortune-no-demo.test.js
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
+18bb561e4323b6f8b0a402c92728c2edf9ec5dcdf554cac33abc423e5cd49f0e  tests/unit/fortune-no-demo.test.js  # repo file (relock-pet)
+# locked 2026-11-18T02:22:20Z (tools/eval-guard.mjs lock, 1 file)
+340830f3babd11ef9689bb9e5a620b2bf6477bab72522aad6733602fc8a3f57e  relock-pet-golive/fortune-no-demo.test.js
+# RE-LOCK 2026-11-18 (branch fortune-pet, append-only), reason: "owner decision 100" (pet reading goes live and is added to the fortune menu); tag relock-pet-golive, see docs/CRISIS-V3-RELOCKS.md. Test 5: the "petread": "demo" row leaves the non-fortune status baseline because petread joins category 6 (FORT.pages); no other status, chip or assertion changed. Baseline before the change: 4/5 pass (test 5 fails as expected once the test is re-locked).
+340830f3babd11ef9689bb9e5a620b2bf6477bab72522aad6733602fc8a3f57e  tests/unit/fortune-no-demo.test.js  # repo file (relock-pet-golive)
+# RE-LOCK 2026-11-17 (branch fortune-credits): see evals-locks/fortune-credits.sha256 (relock/).
+cb8c22f3d667f35a667fccc1a2fba1707adf9b3667c1b6591563c2c8e0f3c914  tests/unit/cat-pages.test.js  # repo file (fortune-credits relock)
+2d56321d8012ac341c5ddb2c2086544873f85510553dd8f2305256e180052558  tests/unit/fortune-no-demo.test.js  # repo file (fortune-credits relock)
+# 2026-11-18: tests/unit/cat-pages.test.js / fortune-no-demo.test.js re-locked in evals-locks/promo-basics.sha256 (RE-LOCK 1: 404.html added as a support page)
+fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05  tests/unit/cat-pages.test.js  # repo file (late entry 2026-11-18, owner decision 110 ก; original re-lock: promo-basics RE-LOCK 1 locked 2026-11-17T17:50:04Z, evals-locks/promo-basics.sha256:12,15; commit 20526484; file sha256 fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05; field: ~/LENSIQ-field/evals/promo-basics/relock1/cat-pages.test.js, record ~/LENSIQ-field/evals/promo-basics/locked.sha256:5)
+047f5a00073268cdae24ac7f5aec3ee856b14fef39de67fdf263a9278cacfc07  tests/unit/fortune-no-demo.test.js  # repo file (late entry 2026-11-18, owner decision 110 ก; original re-lock: promo-basics RE-LOCK 1 locked 2026-11-17T17:50:04Z, evals-locks/promo-basics.sha256:13,16; commit 20526484; file sha256 047f5a00073268cdae24ac7f5aec3ee856b14fef39de67fdf263a9278cacfc07; field: ~/LENSIQ-field/evals/promo-basics/relock1/fortune-no-demo.test.js, record ~/LENSIQ-field/evals/promo-basics/locked.sha256:6)
+# LOCK-RECORD FIX 2026-11-18 (branch fortune-credits, A1, append-only): the a770d724 lines above for tests/unit/cat-pages.test.js (cb8c22f3…) and tests/unit/fortune-no-demo.test.js (2d56321d…) are stale: credits.html was never shipped (fortune-credits__v2, fab01e95 put both files back), and after the merge of staging-1118b 689206d3 the files hold promo-basics RE-LOCK 1 bytes (404.html support page). Evidence: sha256 of the repo files = sha256 of ~/LENSIQ-field/evals/promo-basics/relock1/{cat-pages,fortune-no-demo}.test.js, locked in evals-locks/promo-basics.sha256 at 2026-11-17T17:50:04Z. No byte of either test changed here.
+fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05  tests/unit/cat-pages.test.js  # repo file (promo-basics relock1, A1 record fix)
+047f5a00073268cdae24ac7f5aec3ee856b14fef39de67fdf263a9278cacfc07  tests/unit/fortune-no-demo.test.js  # repo file (promo-basics relock1, A1 record fix)
+# locked 2026-11-18T05:24:03Z (tools/eval-guard.mjs lock, 1 file)
+d970d7c66d444647c02fa056bb188fe1929a52b9b79e957f3b6e414d23f82146  merge-pet-a1/fortune-no-demo.test.js
+# RE-LOCK 2026-11-18 (branch fortune-pet, merge of origin/main; owner decision 110 condition 4), tag merge-pet-a1, ledger docs/CRISIS-V3-RELOCKS.md: merge union of locked parents; no assertion changed. Parents: main 047f5a00 (promo-basics RE-LOCK 1: "404": "support" row in test 5's BASE_ST) + fortune-pet 340830f3 (relock-pet-golive, owner decision 100: no "petread": "demo" row, petread in category 6). Merged = main's file plus the two relock-pet-golive comment lines; BASE_ST has counselling + 404, no petread.
+d970d7c66d444647c02fa056bb188fe1929a52b9b79e957f3b6e414d23f82146  tests/unit/fortune-no-demo.test.js  # repo file (merge-pet-a1)
+dcb60eface0b2e5e0e1840d1fd8a5a6a71d9b15b3ebf0d08615405a03196464c  tests/unit/cat-pages.test.js  # repo file (re-locked in evals-locks/fortune-cards.sha256 at 2026-11-18T16:15:08Z, replaces fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05 of line 42; field: ~/LENSIQ-field/evals/fortune-cards/merge-theme/cat-pages.test.js)

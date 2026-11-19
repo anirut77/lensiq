@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 240 300" fill="none" stroke="#E8C979" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shiva">
+<mask id="k"><rect width="240" height="300" fill="#fff"/><use xlink:href="#f" stroke="#000" stroke-width="10"/></mask>
+<g mask="url(#k)" opacity=".55"><path d="M47.3 150A86 86 0 1 1 192.7 150"/><path d="M39.2 150A93 93 0 1 1 200.8 150" stroke-dasharray="1 7"/></g>
+<g id="f">
+<path d="M103 58c-6-12-2-28 6-34 4 6 6 10 6 14 0-8 2-14 5-18 3 4 5 10 5 18 0-4 2-8 6-14 8 6 12 22 6 34"/>
+<path d="M108 30q-4 8 0 16M132 30q4 8 0 16M120 22v20" opacity=".7"/>
+<path d="M140 22a11 11 0 1 0 8 18 9 9 0 1 1-8-18z"/>
+<path d="M103 58h34"/>
+<path d="M103 58c-2 22 4 36 17 36s19-14 17-36"/>
+<path d="M112 64h16M113 67h14" opacity=".8"/><path d="M120 70q-3 4 0 8q3-4 0-8z"/>
+<path d="M109 81q4-3 8 0M123 81q4-3 8 0M109 83q4 2 8 0M123 83q4 2 8 0" opacity=".9"/>
+<path d="M120 85v5l-2 1M116 92q4 2 8 0"/>
+<circle cx="102" cy="86" r="2.5"/><circle cx="138" cy="86" r="2.5"/>
+<path d="M103 62c-10 12-14 32-12 52M106 66c-6 14-6 30-4 44M137 62c10 12 14 32 12 52M134 66c6 14 6 30 4 44" opacity=".75"/>
+<path d="M114 94v8M126 94v8M114 102c-14 2-26 8-30 16M126 102c14 2 26 8 30 16"/>
+<path d="M104 104c4 10 28 10 32 0M136 104c6-2 10-8 12-16"/>
+<path d="M148 90c-8-10-20-4-18 6 1 6 6 8 10 6l4 4 4-4c4 2 9 0 10-6 2-10-10-16-10-6z"/><path d="M144 96v4" opacity=".7"/>
+<path d="M102 112q18 16 36 0" stroke-dasharray="0.1 5" stroke-width="4"/>
+<path d="M84 118c-4 12-6 24-4 34l2 6M156 118c4 10 6 20 8 30"/>
+<path d="M78 150c-6-6-8-14-6-22M82 158c-6-2-10-6-10-12"/>
+<path d="M68 132v-14a3 3 0 0 1 6 0v-4a3 3 0 0 1 6 0v4a3 3 0 0 1 6 0v14c-5 5-13 5-18 0z"/>
+<path d="M164 148c4 2 8 2 12 0M170 142h14v12h-14z"/>
+<path d="M98 120c0 18 2 34 2 50M142 120c0 18-2 34-2 50M100 136q20 6 40 0" opacity=".9"/>
+<path d="M98 170h44l6 48H92zM102 182l8 4M130 186l8-4M106 202l8 4M128 206l8-4"/>
+<path d="M104 218l-2 58M136 218l2 58M114 218l-2 58M126 218l2 58" opacity=".85"/>
+<path d="M90 278h22M128 278h22"/>
+<path d="M177 22v264M163 44c0 14 6 22 14 22s14-8 14-22M163 44l-3-8M191 44l3-8M173 32l4-12 4 12M177 66v-34"/>
+<path d="M169 76l16 12M169 88l16-12M169 76h16M169 88h16"/>
+<path d="M70 290h130" opacity=".6"/>
+</g>
+</svg>

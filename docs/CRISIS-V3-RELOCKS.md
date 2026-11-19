@@ -175,3 +175,125 @@ Locked before compat was changed to v3.
 | File | Change | Why |
 |---|---|---|
 | tests/unit/crisis-rules-1323.test.js, tests/e2e/crisis-rules-1323-a / -e.e2e.mjs, tests/e2e/crisis-rules-kit.mjs | the switch name `LENSIQ_HELP_STICKY` → `LENSIQ_HELP_TOP_STICKY`; every assertion unchanged | one sticky switch only (main's mechanism, coordinator instruction 2026-11-17); the branch's own copy of the same switch dropped from lensiq-config.js / nav.js / types |
+
+## Merge of fortune-pet (pet face reading, `petread.html`), tag `relock-pet` (2026-11-17) — locked before the pet page's v3 code
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/e2e/fortune-pet.e2e.mjs | P4 crisis in the pet's name (TH / EN / ZH) | support card replaces the reading (0 sections, tel:1669 in the card), no price, share card hidden | crisis state set; no card or soft step shown; the reading continues (≥ 2 sections); no `lucky` part; the typed phrase not shown in `<main>`; exactly one closing `.lq-helpline-result` with tel:1323 after the last section; no other `tel:` in `<main>`; no price; share card hidden | a, b, c, d | same test (price, share card), crisis-v3-a/b/c/d (petread), crisis-escape-guard-field (petread) |
+| tests/e2e/petread-webkit.e2e.mjs | W4 crisis in the pet's name (TH, WebKit 390 px) | support card, 0 sections, no share card | crisis state; ≥ 2 sections; no card / soft step; no echo; no share card; one closing tel:1323 line after the last section | a, c, d | same test |
+| tests/e2e/crisis-escape-guard-kit.mjs | FLOWS | no petread flow (page not on main) | `petread` flow appended (synthetic photo, scripted detector, name + dates, phrase into `#petName`); nothing else changed | — (registration) | check 4 of the static half |
+| tests/unit/crisis-escape-guard-allow.json | targets | — | 8 petread ids appended (photo area, camera / detector status, trait picker, form message), each with its reason; nothing removed | — (registration) | check 3 (stale entries fail) |
+| tests/e2e/crisis-net-hotfix-inventory.json, docs/CRISIS-INPUT-INVENTORY.md | inputs | — | 7 petread rows appended (`#petName` can hold a phrase) | — (registration) | check 2 |
+| tests/unit/fortune-no-demo.test.js | 5. other categories unchanged | exact status map of every non-category-6 page (petread absent) | the same exact map with `petread: "demo"` appended (the page exists, unlinked, until its go-live into category 6); no status changed | — (registration, as counselling) | same test |
+
+## Pet reading go-live (owner decision 100, 2026-11-18), tag `relock-pet-golive` — locked before the go-live change
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/unit/fortune-no-demo.test.js | 5. other categories unchanged | exact status map of every non-category-6 page, with `petread: "demo"` (relock-pet: the page existed, unlinked) | the same exact map without the petread row: petread is now in category 6 (`FORT.pages`), so tests 1 and 4 cover it (no status chip, no demo key, count = category 6 size) | — (registration, as compat at owner decision 73) | tests 1-4 now include petread through FORT.pages; every other status and demo chip unchanged |
+
+## Protection round "crisis-v3-protect" (2026-11-18, branch crisis-v3-protect)
+
+Two residual risks of the crisis-v3 review. No crisis-v3 rule and no hard limit changes for users; nothing above was re-locked.
+Locks: `evals-locks/crisis-v3-protect.sha256`, copies in `~/LENSIQ-field/evals/crisis-v3-protect/`, locked before building.
+
+**1. Unmarked price / sales text in the crisis state.** The escape guard only caught elements with a sales marker. New fixed set:
+`tests/unit/crisis-price-scan-lib.cjs` (one scanner for both halves), `tests/unit/crisis-price-scan.test.js` (P1–P5),
+`tests/e2e/crisis-price-scan-{kit,th,en,zh,controls}`. Words: ราคา, ฿, THB, บาท, ซื้อ / สั่งซื้อ, ชำระ, price, buy, purchase, 购买,
+价格, a number + 元, ¥, and any price amount. Known false matches handled in the pattern: บทบาท, พระบาท, ชำระล้าง, 元素 / 四元素 / 元旦,
+"$1". Static half: every text a reading page can show (HTML outside crisis-hidden markers, string literals of every script the page
+gets, its zh / en dictionaries) has no sales word unless allow-listed; browser half: every visible text node in the crisis state, all
+16 reading flows × TH / EN / ZH. Exceptions: `tests/unit/crisis-escape-guard-allow.json` `priceText` (`where` + `text` + `reason`;
+`browser: true` only for text that may really show: reading sentences about the visitor's own spending, "nothing needs to be bought",
+"no payment is taken"). The file's `targets` / `browser` / `noEntry` are unchanged (append note in crisis-escape-guard.sha256).
+Controls: unit P3 (3 injected strings → exactly 3 failures; inside `[data-lq-upsell]` → none; clean → pass); e2e controls C1–C3 on
+dream TH / EN / ZH (clean 0; 3 visible injected flagged, hidden and upsell copies not; clean again after removal).
+Build found by the static scan: report.js paid-mode "no credit" gate ("ดูราคารายงาน" link to pricing) had no marker; it now carries
+`data-lq-upsell` (hidden in the crisis / calm state). Paid mode is off, so nothing visible changes today.
+Menus (re-lock 2, coordinator order 2026-11-18: CLAUDE.md rule b makes this a required fix, not an owner choice): the site menu's
+"แพ็กเกจและราคา" entry and the "สมาชิกและการชำระเงิน" description of "บัญชีของฉัน" (nav.js), and the account menu's
+"แพ็กเกจและราคา" (lensiq-member.js), carry `data-lq-crisis-sales`; nav.js hides it while `html[data-lq-crisis]` or
+`html[data-lq-calm]` is set (CSS, so they come back when the flag clears). The account link itself stays reachable. They left the
+`priceText` allow-list; the static scan accepts them only with the marker on the same source line (`priceMarked`, P2) and P6
+asserts the marker and the CSS; `tests/e2e/crisis-price-scan-menu.e2e.mjs` opens the menu in the crisis state (0 pricing entries,
+TH / EN / ZH) and after clearing (entries back). Re-lock 2 only adds assertions. Re-lock 3 (test fault, CI run 44189943345): the
+positive control counted sales words in the site menu only, where EN / ZH have one (the pricing title), not two; it now expects at
+least one. In that run the crisis state showed 0 pricing entries in all three languages and every entry came back after clearing. nav.js v29, lensiq-config.js v21 (member v5).
+
+Re-lock 1 (kit, `crisis-price-scan-kit.r1.mjs`, after CI run 44141046161, test fault): report [en] / [zh] never drew a reading
+because the reused flow types the Buddhist year 2533 while the era radio defaults to CE outside Thai; the kit now picks BE first.
+Every other page × language passed in that run (0 visible sales texts), controls 3 / 3 languages passed.
+
+**2. "end it all" false positives (review only, no change).** Set: `end-it-all-set.json` (24 benign, 24 crisis, synthetic), harness
+`end-it-all-measure.mjs`, log `end-it-all-measure-<sha>.log`. Numbers are in the round report; any pattern change needs the owner.
+
+## Combined re-lock A1 (2026-11-18, branch fortune-credits; owner decision 110 ก, conditions 3 and 4)
+
+Order kept: A1 first merged the post-v3 protection work (origin/staging-1118b 689206d3 = main + crisis-v3-protect d1fbc90d +
+promo-basics + fix-r12 + fortune-advice; merge 89c84925), then re-locked the combined exception list in one commit that also writes
+the lock lines (condition 4).
+
+| File | Parent: crisis-v3-protect | Parent: fortune-credits | Combined (sha256 cfab9eef…) |
+|---|---|---|---|
+| tests/unit/crisis-escape-guard-allow.json | 3a88c00f…: targets incl. palm plEthics, tarot trCredit, fengshui fsSourcesNote; browser; noEntry; priceText (94); priceTextNote; priceMarked (3); priceMarkedNote | 049f2ed3…: targets without those 3; browser; noEntry; no price scan | crisis-v3-protect's bytes minus exactly the 3 lines `"palm plEthics"`, `"tarot trCredit"`, `"fengshui fsSourcesNote"` |
+
+**The combined list = crisis-v3-protect's list minus 3 dead entries.** Nothing is added and no other key or value changes. The three
+elements were deleted with the "about this reading" block (fortune-credits, owner order 2026-11-17 night item 2); `git grep` on the
+merged tree finds the ids only in tests that assert they are absent (`tests/unit/fortune-credits-v2.test.js` GONE_IDS,
+`tests/e2e/fortune-sources.e2e.mjs`) and in lock comments; no page, script or dictionary defines them.
+
+Why it is equal to or stricter than both parents:
+
+- **vs crisis-v3-protect:** every exception left is identical; three exceptions are removed. An allow-list only exempts elements
+  and texts from the escape guard and the price scan, so removing entries can never let more through. The removed entries named
+  elements that no longer exist, so they exempted nothing; the guard also fails on stale entries, so keeping them was not possible.
+  Equal in effect, stricter in text.
+- **vs fortune-credits:** `note`, `targets`, `browser` and `noEntry` are identical (checked key by key). The combined file adds
+  crisis-v3-protect's price scan (`priceText` / `priceMarked`). Those entries are exceptions to a check that the fortune-credits
+  parent did not have at all; with the scan, any price or sales text outside those exact source strings fails, where the parent
+  checked nothing. Stricter.
+
+Lock lines (same commit): field copy `~/LENSIQ-field/evals/crisis-escape-guard/crisis-escape-guard-allow.v4-combined.json` (new file;
+`.v3.json` there belongs to the print-report branch's own chain and is not a parent of this list), locked with `tools/eval-guard.mjs
+lock` at 2026-11-18T02:22:42Z in `evals-locks/crisis-escape-guard.sha256` and the field `locked.sha256`; repository ledger line
+`cfab9eef…  tests/unit/crisis-escape-guard-allow.json  # repo file (combined A1)` in `evals-locks/crisis-escape-guard.sha256`, with a
+pointer and the same line in `evals-locks/crisis-v3-protect.sha256`. Test at lock time: `tests/unit/crisis-escape-guard.test.js` 5/5.
+
+Lock-record fix in the same commit (append-only, no test byte changed): the a770d724 lines for `tests/unit/cat-pages.test.js`
+(cb8c22f3…) and `tests/unit/fortune-no-demo.test.js` (2d56321d…) were stale (credits.html never shipped; fab01e95 put both files
+back). After the merge both files hold promo-basics RE-LOCK 1 bytes (fc67978e… / 047f5a00…, 404.html support page), equal to
+`~/LENSIQ-field/evals/promo-basics/relock1/` and locked in `evals-locks/promo-basics.sha256` at 2026-11-17T17:50:04Z. That evidence
+and the current repo-file lines are appended to crisis-rules-1323, crisis-v3, fortune-no-demo and fortune-credits `.sha256`.
+
+Open: the reviewer confirms in writing that the combined list is equal to or stricter than both parents (condition 3).
+
+## Merge of main 0bd5b24b (A1) into fortune-pet, tag `merge-pet-a1` (2026-11-18) — lock hygiene only (owner decision 110, condition 4)
+
+Merge union of locked parents; no assertion changed. Both files were merged by git without a conflict and matched no lock line.
+
+| File | Parent on main (locked) | Parent on fortune-pet (locked) | Merged content |
+|---|---|---|---|
+| tests/unit/crisis-escape-guard-allow.json | cfab9eef, combined A1 (`evals-locks/crisis-escape-guard.sha256`): crisis-v3-protect's list 3a88c00f (priceText / priceTextNote) minus the 3 dead entries palm plEthics, tarot trCredit, fengshui fsSourcesNote | e994f310, relock-pet: 8 petread ids (petTraits, petMsg, petEmpty, petVideo, petView, petCamMsg, petDetMsg, petHuman) with their reasons | cfab9eef + the 8 petread ids (48bd6504) |
+| tests/unit/fortune-no-demo.test.js | 047f5a00, promo-basics RE-LOCK 1: `"404": "support"` in test 5's BASE_ST | 340830f3, relock-pet-golive (owner decision 100): no `"petread": "demo"` row (petread in category 6) | main's file + the two relock-pet-golive comment lines (d970d7c6); BASE_ST = counselling + 404, no petread |
+
+## fortune-credits audit list for petread (owner decision 100), tag `relock-pet` in `evals-locks/fortune-credits__v4.sha256` (2026-11-18)
+
+| File | Test | Old | New | Reason | Protection kept by |
+|---|---|---|---|---|---|
+| tests/unit/fortune-credits-v2-assets.json | fortune-credits-v2 D4 licence audit | 16 audited assets; petread (category 6 since owner decision 100) loads `vendor/qrcode-generator/qrcode.js`, not audited, so D4 failed | the same 16 plus `qrcode-generator` (MIT, no on-page attribution, notice `vendor/qrcode-generator/LICENSE`, needle "qrcode-generator 2.0.4" in LICENSES/THIRD-PARTY-NOTICES.txt) | owner decision 100: petread joins category 6; adds one audited asset, stricter | D4 unchanged: every vendor asset of every category 6 page must be audited and its notice must ship |
+
+## Fortune hub with every fortune page, pet card 19, tag `relock-pet-hub` (2026-11-18, branch `fortune-theme`)
+
+Reason: "owner decision 118 ก + pet card". Locked before the file was run on the product.
+
+| File | Test | Old assertion (23e70d65, round 2 of 90e5d5c1; main holds 213c37ad) | New assertion (d56f5a47) | Protection kept by |
+|---|---|---|---|---|
+| tests/e2e/fortune-new.e2e.mjs | hub | 12 named cards required (iching, zodiac, astro, dream, bazi, taksa, lek7, lifegraph, compat, planner, luckycolor, report), exactly 18 cards, 4 goals; overflow at 390 / 1280 px in TH; no console errors | all 19 fortune pages named one by one (the 18 hub pages of 90e5d5c1 plus petread.html), exactly 19 cards, 19 distinct, 4 goals; the petread card caption in TH / EN / ZH is longer than 10 characters, has no "แชร์ / share / 分享" (case-insensitive) and no Thai left in EN / ZH; overflow at 390 / 1280 px in TH, EN and ZH; no console errors over all four loads | every old assertion kept or tightened: named cards 12 -> 19 (superset), count 18 -> 19 = every fortune page, overflow TH -> TH + EN + ZH, no-errors over more loads; all other checks in the file unchanged byte for byte |
+
+Lock lines (same commit): field copy `~/LENSIQ-field/evals/crisis-v3/relock-pet-hub/fortune-new.e2e.mjs`, locked with
+`tools/eval-guard.mjs lock` at 2026-11-18T08:21:56Z in `evals-locks/crisis-v3.sha256` and the field `locked.sha256`; repository
+ledger line `d56f5a47…  tests/e2e/fortune-new.e2e.mjs  # repo file (relock-pet-hub)` in `evals-locks/crisis-v3.sha256` and
+`evals-locks/crisis-rules-1323.sha256`. Old bytes are in git at ca6c9ef8.
+
+Open: the independent reviewer confirms in writing that the new test is equal to or stricter than the old one.

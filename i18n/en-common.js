@@ -12,7 +12,7 @@
   "nav.crumbs": "Breadcrumb",
   "nav.viewall": "View all solutions",
   "nav.groupd.tools": "Utilities and the full solution directory.",
-  "nav.groupd.fortune": "Thai, Chinese and Western readings, and auspicious dates. Based on belief; please use your own judgement.",
+  "nav.groupd.fortune": "Thai, Chinese and Western readings, and auspicious dates.",
   "nav.groupd.work": "Time clock by PIN or QR (face optional), structured interviews, case review and team activities. People always make the decisions about people.",
   "nav.groupd.photo": "Portrait and ID photo studio, event photo booth, booth analytics and document conversion.",
   "nav.groupd.ana": "People counts and density, store, queues, tables, bays, signage and booths, anonymous and processed on the device.",
@@ -144,6 +144,8 @@
   "nav.planner.desc": "Good days to move house, open a shop or start work",
   "nav.luckycolor.title": "Lucky-colour outfit mirror",
   "nav.luckycolor.desc": "Check today's outfit colour against the lucky colour of the day",
+  "nav.petread.title": "Pet face reading",
+  "nav.petread.desc": "Personality, lucky colour and good days from your pet's photo, on this device",
   "nav.medicine.title": "Medicine checker",
   "nav.medicine.desc": "Thai FDA number, barcode, drug name and pill look-up; always confirm with a pharmacist",
   "nav.nutrition.title": "Nutrition label reader",
@@ -157,6 +159,7 @@
   "nav.groups.about": "About",
   "nav.groupd.about": "About LENSIQ, solutions by industry, plans, help and legal documents.",
   "nav.viewcat": "Open this category: status and accuracy",
+  "nav.viewcat.fortune": "Open this category",
   "nav.gate-notice.title": "Plate camera sign",
   "nav.gate-notice.desc": "PDPA sign and privacy notice, printable",
   "nav.about.desc": "On-device processing, privacy and licences",
@@ -185,7 +188,7 @@
   "nav.cat-health.title": "Category overview",
   "nav.cat-health.desc": "Tools, status and measured accuracy with its source",
   "nav.cat-fortune.title": "Category overview",
-  "nav.cat-fortune.desc": "Tools, status and measured accuracy with its source",
+  "nav.cat-fortune.desc": "Every tool in this category",
   "nav.cat-studio.title": "Category overview",
   "nav.cat-studio.desc": "Tools, status and measured accuracy with its source",
   // ---------- about.html ----------
@@ -308,7 +311,7 @@
 
   // ---------- index.html ----------
   "home.doc.title": "LENSIQ | Computer vision for marketing and analytics",
-  "home.doc.desc": "LENSIQ is a Thai-language computer vision platform for marketing, store analytics and photo booths. Uses your existing cameras, processes on the device, and is designed for PDPA.",
+  "home.doc.desc": "LENSIQ is a Thai-language computer vision platform. It uses your existing cameras, processes on the device and is designed for PDPA: security, education and exams, HR, marketing, health, fortune readings and studio.",
   "home.hero.pill": "On-device processing · Thai, English and Chinese",
   "home.hero.t1": "Turn ordinary cameras",
   "home.hero.t2": "into ",

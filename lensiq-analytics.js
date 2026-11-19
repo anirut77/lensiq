@@ -35,11 +35,11 @@
   // A value that is not listed is sent as "other": the Worker rejects unlisted values.
   var ALLOW = {
     page: [
-      "about", "account", "afterhours", "astro", "attendance", "bays", "bazi", "booth", "camera-notice", "cameras", "case-review", "cat-education",
+      "404", "about", "account", "afterhours", "astro", "attendance", "bays", "bazi", "booth", "camera-notice", "cameras", "case-review", "cat-education",
       "cat-fortune", "cat-health", "cat-hr", "cat-marketing", "cat-security", "cat-studio", "checkout", "compat", "converter", "creative", "creative-suite",
       "crowd", "customers", "dream", "driver", "exam", "exam-dashboard", "exam-hall", "exam-lab", "faceread", "fengshui", "fortune", "gate",
       "gate-notice", "help", "horoscope", "hr", "iching", "index", "insights", "interview", "lek7", "lifegraph", "luckycolor", "medicine", "neuro", "nutrition", "tryon",
-      "numbers", "omr", "palm", "parking", "photobooth", "planner", "pricing", "privacy", "qc", "queue", "report", "retail", "signage", "solutions",
+      "numbers", "omr", "palm", "parking", "petread", "photobooth", "planner", "pricing", "privacy", "qc", "queue", "report", "retail", "signage", "solutions",
       "store", "studio", "tables", "taksa", "tarot", "teamface", "terms", "village", "zodiac", "other"
     ],
     feature: ["fortune.reading", "fortune.ai", "fortune.local",

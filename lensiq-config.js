@@ -182,7 +182,7 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
   var load = function (file, global) {
     if (/** @type {any} */ (window)[global] || document.querySelector('script[src*="' + file + '"]')) return;
     var s = document.createElement("script");
-    s.src = dir + file + "?v=4";
+    s.src = dir + file + "?v=6"; // v6: fortune-pet merge (analytics page list)
     s.async = false; // keep order: api before analytics
     (document.head || document.documentElement).appendChild(s);
   };
@@ -203,3 +203,20 @@ window.LENSIQ_TRYON = window.LENSIQ_TRYON === true;
 window.LENSIQ_CONVERT_SERVER = window.LENSIQ_CONVERT_SERVER === true;
 /* LENSIQ_HELP_TOP_STICKY (75 ก): 1323 icon in the sticky bar; false = in the page */
 window.LENSIQ_HELP_TOP_STICKY = window.LENSIQ_HELP_TOP_STICKY !== false;
+
+/* LENSIQ_FORTUNE_THEME (decision 92): "a" = fortune theme; "classic" = previous look (docs/FORTUNE-THEME.md "Switch back") */
+window.LENSIQ_FORTUNE_THEME = window.LENSIQ_FORTUNE_THEME || "a";
+(function () {
+  /** @param {Document} doc */
+  function apply(doc) {
+    var h = doc && doc.documentElement, t = ["lq-ft", "lq-ft-menu", "lq-ft-read", "lq-ft-entry"];
+    if (!h || window.LENSIQ_FORTUNE_THEME !== "classic" || !h.classList.contains("lq-ft")) return false;
+    for (var i = 0; i < t.length; i++) h.classList.remove(t[i]);
+    h.classList.add("lq-ft-classic");
+    var e = doc.getElementById("lqFtEntry");
+    if (e) e.remove();
+    return true;
+  }
+  /** @type {any} */ (window).LQFortuneTheme = { apply: apply };
+  if (typeof document !== "undefined") apply(document);
+})();

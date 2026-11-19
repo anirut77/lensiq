@@ -1,0 +1,271 @@
+"use strict";
+// tests/unit/fortune-cards.test.js — owner order 2026-11-18 (fortune only): clean fortune cards. FIXED TEST: written and
+// locked (~/LENSIQ-field/evals/fortune-cards/, sha256 in evals-locks/fortune-cards.sha256) BEFORE the change on branch
+// fortune-cards-clean (base b2a6e76 = origin/main).
+//   C1  cat-fortune.html and every other place a fortune item is listed (index.html, solutions.html, nav.js menu, the
+//       fortune.html hub) carry no "measured accuracy" heading, no "no accuracy claim" tag, no per-card disclaimer and no
+//       mention of filters or banned topics: TH markup, EN / ZH dictionaries, i18n keys;
+//   C2  every fortune card on cat-fortune.html is ONE link (the whole card) holding the name, one short line and a small
+//       illustration, and nothing else: no status chip, no accuracy list, no separate "open page" link;
+//   C3  the disclaimer is on cat-fortune.html exactly ONCE, small (the .lq-top notice line), in the hero above the cards;
+//   C4  business products unchanged: every non-fortune category card keeps its measured-accuracy heading and its accuracy
+//       lines with their source labels, exactly as at base b2a6e76 (fingerprint pinned below, TH markup + EN / ZH values +
+//       tools/cat-data.cjs claims + the docs/PAGE-STATUS.md rows of non-fortune pages);
+//   C5  the cat-pages accuracy rule still holds for every non-fortune page (at least one accuracy line, each with a source);
+//       only category 6 may have none.
+// Static, synthetic; no network. Browser check (rendered, 360-430 px, TH / EN / ZH): tests/e2e/fortune-cards.e2e.mjs.
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const { readFileSync } = require("node:fs");
+const { createHash } = require("node:crypto");
+const { join } = require("node:path");
+
+const ROOT = join(__dirname, "..", "..");
+const read = f => readFileSync(join(ROOT, f), "utf8");
+const D = require(join(ROOT, "tools", "cat-data.cjs"));
+const FORT = D.CATEGORIES.find(c => c.slug === "fortune");
+const FORT_SET = new Set(FORT.pages);
+const LANGS = ["th", "en", "zh"];
+const stripComments = s => s.replace(/<!--[\s\S]*?-->/g, "");
+const squash = s => String(s).replace(/\s+/g, " ").trim();
+const text = s => squash(stripComments(s).replace(/<[^>]+>/g, " "));
+
+const DISC = {
+  th: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ",
+  en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
+  zh: "基于命理学原则，属个人信仰，请自行判断。",
+};
+// the words of the disclaimer, so a re-wrapped or shortened copy is caught too
+const DISC_RE = { th: /โปรดใช้วิจารณญาณ|ความเชื่อส่วนบุคคล/, en: /use your own judgement|matter of personal belief/i, zh: /请自行判断|属个人信仰/ };
+// removed items: measured-accuracy heading, "no accuracy claim" tag, filters / banned topics
+const REMOVED = {
+  th: /ความแม่นยำที่วัดได้|ไม่มีตัวเลขความแม่นยำ|ความแม่นยำ|หัวข้อต้องห้าม|ต้องห้าม|ตัวกรอง|กรองคำ|กรองถ้อยคำ/,
+  en: /measured accuracy|no accuracy claim|accuracy|banned[- ]topics?|banned|forbidden|filter/i,
+  zh: /已测准确率|无准确率声明|准确率|禁用话题|禁用|过滤|违禁/,
+};
+const REMOVED_KEYS = /data-i18n(?:-attr)?="[^"]*\b(?:cat\.acc\.h|cat\.src\.na|cat\.src\.h|cat\.src\.d|cat\.method|cat\.c\.fortune|cat\.open|cat\.why|cat\.r\.fortune)\b/;
+
+function dicts(lang) {
+  const out = {};
+  const fs = require("node:fs");
+  for (const f of fs.readdirSync(join(ROOT, "i18n"))) {
+    if (!f.startsWith(lang + "-") || !f.endsWith(".js")) continue;
+    for (const m of read("i18n/" + f).matchAll(/^\s*("(?:[^"\\]|\\.)*")\s*:\s*("(?:[^"\\]|\\.)*")/gm)) {
+      const k = JSON.parse(m[1]);
+      (out[k] = out[k] || []).push({ file: f, value: JSON.parse(m[2]) });
+    }
+  }
+  return out;
+}
+const DICT = { en: dicts("en"), zh: dicts("zh") };
+/** every value of the keys used in a markup fragment: TH from the markup, EN / ZH from the dictionaries */
+function valuesOf(fragment) {
+  const keys = [...fragment.matchAll(/data-i18n="([^"]+)"/g)].map(m => m[1])
+    .concat([...fragment.matchAll(/data-i18n-attr="([^"]+)"/g)].flatMap(m => m[1].split(";").map(s => s.split(":")[1])));
+  const out = { th: text(fragment), keys };
+  for (const l of ["en", "zh"]) out[l] = keys.flatMap(k => (DICT[l][k] || []).map(v => v.value)).join(" | ");
+  return out;
+}
+function checkFragment(where, fragment, bad, { disc = true } = {}) {
+  const v = valuesOf(fragment);
+  for (const l of LANGS) {
+    const m = v[l].match(REMOVED[l]);
+    if (m) bad.push(`${where} (${l}): removed item "${m[0]}"`);
+    if (disc) { const d = v[l].match(DISC_RE[l]); if (d) bad.push(`${where} (${l}): per-card disclaimer "${d[0]}"`); }
+  }
+  const k = fragment.match(REMOVED_KEYS);
+  if (k) bad.push(`${where}: removed key ${k[0]}`);
+}
+
+const catHtml = () => stripComments(read("cat-fortune.html"));
+const cards = html => [...html.matchAll(/<article class="pd-card cat-tool" data-page="([a-z0-9-]+)"([^>]*)>([\s\S]*?)<\/article>/g)];
+
+test("C1 cat-fortune.html: no accuracy heading, no 'no accuracy' tag, no filter / banned-topic wording, no removed key (TH / EN / ZH)", () => {
+  const html = catHtml();
+  const main = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
+  assert.ok(main.length > 1000, "cat-fortune.html main");
+  const bad = [];
+  // the whole main: removed items and keys (the single disclaimer is checked in C3)
+  checkFragment("cat-fortune main", main, bad, { disc: false });
+  for (const m of cards(html)) checkFragment("card " + m[1], m[0], bad);
+  assert.deepEqual(bad, []);
+  for (const re of [/class="cat-acc\b/, /class="cat-h\b/, /class="cat-src\b/, /class="cat-srcs\b/, /class="sl-go\b/, /class="cat-why\b/, /id="catSrcH"/])
+    assert.doesNotMatch(main, re, "cat-fortune.html still has " + re);
+});
+
+test("C1 i18n: the fortune claim key is gone and no fortune dictionary value names accuracy, filters or banned topics (EN / ZH)", () => {
+  for (const l of ["en", "zh"]) {
+    const f = read(`i18n/${l}-cat.js`);
+    assert.ok(!/"cat\.c\.fortune"/.test(f), `${l}-cat.js still has cat.c.fortune`);
+    for (const k of Object.keys(DICT[l]).filter(k => /(^|\.)fortune(\.|$)/.test(k) && /^(cat|nav|sl\.cats|pd\.i|pd\.p)\./.test(k))) {
+      for (const v of DICT[l][k]) {
+        const m = v.value.match(REMOVED[l]);
+        assert.ok(!m, `${v.file} ${k}: "${m && m[0]}" in ${v.value}`);
+      }
+    }
+  }
+  assert.ok(!D.CLAIMS.fortune, "tools/cat-data.cjs CLAIMS.fortune (the per-card fortune accuracy line) is gone");
+  const r = D.REASONS.fortune;
+  for (const l of LANGS) assert.doesNotMatch(r[l], REMOVED[l], "REASONS.fortune." + l);
+});
+
+test("C1 other listings: index.html, solutions.html, the nav.js menu and the fortune.html hub list fortune items without the removed items", () => {
+  const bad = [];
+  // index.html: the fortune product card and the fortune category card of the chooser
+  const idx = stripComments(read("index.html"));
+  const prod = idx.match(/<a class="pd-card" href="fortune\.html">[\s\S]*?<\/a>/);
+  assert.ok(prod, "index.html fortune product card");
+  checkFragment("index fortune product card", prod[0], bad);
+  const chooser = idx.match(/<a class="pd-card" href="cat-fortune\.html">[\s\S]*?<\/a>/);
+  assert.ok(chooser, "index.html fortune category card");
+  checkFragment("index fortune category card", chooser[0], bad);
+  // solutions.html: every card that links a fortune page, and the fortune ideas without a page yet (e10-e13)
+  const sol = stripComments(read("solutions.html"));
+  let n = 0;
+  for (const m of sol.matchAll(/<article class="sl-card"[^>]*id="sol-([a-z0-9]+)">([\s\S]*?)<\/article>/g)) {
+    const go = (m[2].match(/class="sl-go" href="([a-z0-9-]+)\.html/) || [])[1];
+    if (!(go && FORT_SET.has(go)) && !["e3", "e8", "e9", "e10", "e11", "e12", "e13"].includes(m[1])) continue;
+    n++;
+    checkFragment("solutions sol-" + m[1], m[0], bad);
+  }
+  assert.ok(n >= 7, "solutions fortune cards found: " + n);
+  // nav.js: the fortune menu group (intro, overview link, items) and its "open this category" link
+  const nav = read("nav.js");
+  const g = nav.match(/\{ label: "ดูดวงและฤกษ์มงคล"[\s\S]*?\n {4}\] \}/);
+  assert.ok(g, "nav.js fortune group");
+  const intro = g[0].match(/intro: "([^"]+)"/)[1];
+  for (const re of [REMOVED.th, DISC_RE.th]) if (re.test(intro)) bad.push("nav.js fortune intro: " + intro);
+  for (const it of g[0].matchAll(/\{ href: "([a-z0-9-]+)\.html", title: "([^"]+)", desc: "([^"]+)" \}/g)) {
+    for (const re of [REMOVED.th, DISC_RE.th]) if (re.test(it[2] + " " + it[3])) bad.push("nav.js " + it[1] + ": " + it[3]);
+    for (const l of ["en", "zh"]) for (const k of ["title", "desc"]) for (const v of DICT[l][`nav.${it[1]}.${k}`] || []) {
+      if (REMOVED[l].test(v.value) || DISC_RE[l].test(v.value)) bad.push(`${v.file} nav.${it[1]}.${k}: ${v.value}`);
+    }
+  }
+  for (const l of ["en", "zh"]) for (const v of DICT[l]["nav.groupd.fortune"] || []) {
+    if (REMOVED[l].test(v.value) || DISC_RE[l].test(v.value)) bad.push(`${v.file} nav.groupd.fortune: ${v.value}`);
+  }
+  // the "open this category" link of a menu panel: the fortune panel's text names no status / accuracy (TH / EN / ZH)
+  const viewcat = nav.match(/g\.cat \?([\s\S]*?)\n\s*: '<a class="mega-all" href="cameras\.html"/);
+  assert.ok(viewcat, "nav.js mega-all link");
+  const fortuneLink = viewcat[1].match(/g\.cat === "fortune"[\s\S]*?data-i18n="([a-z.]+)">([^<]+)</);
+  assert.ok(fortuneLink, "nav.js: the fortune panel has its own 'open this category' wording");
+  assert.doesNotMatch(fortuneLink[2], REMOVED.th, "nav.js fortune panel link: " + fortuneLink[2]);
+  for (const l of ["en", "zh"]) {
+    const v = (DICT[l][fortuneLink[1]] || [])[0];
+    assert.ok(v && !REMOVED[l].test(v.value), `${l} ${fortuneLink[1]}: ${v && v.value}`);
+  }
+  // fortune.html hub: its cards carry none of the removed items and no per-card disclaimer (the page keeps its one top line)
+  const hub = stripComments(read("fortune.html"));
+  const hubCards = [...hub.matchAll(/<a class="(?:pd-card|ft-card)" href="[a-z0-9-]+\.html[^"]*">[\s\S]*?<\/a>/g)];
+  assert.ok(hubCards.length >= 14, "fortune.html cards: " + hubCards.length);
+  for (const c of hubCards) checkFragment("fortune.html card " + c[0].slice(0, 60), c[0], bad);
+  assert.deepEqual(bad, []);
+});
+
+test("C2 each fortune card is one link (the whole card) holding the name, one short line and the illustration, nothing else", () => {
+  const html = catHtml();
+  const list = cards(html);
+  assert.deepEqual(list.map(m => m[1]), FORT.pages, "cards in category order");
+  for (const [, page, attrs, body] of list) {
+    assert.ok(!/data-status=/.test(attrs), page + ": data-status");
+    const links = [...body.matchAll(/<a\b[^>]*>/g)];
+    assert.equal(links.length, 1, page + ": links in the card: " + links.map(l => l[0]).join(" "));
+    assert.match(links[0][0], new RegExp(`href="${page}\\.html"`), page + ": card link");
+    // the link wraps the whole card content: nothing but white space outside it
+    const outside = body.replace(/<a\b[^>]*>[\s\S]*<\/a>/, "");
+    assert.equal(outside.trim(), "", page + ": content outside the card link: " + outside.trim().slice(0, 80));
+    const inner = body.match(/<a\b[^>]*>([\s\S]*)<\/a>/)[1];
+    assert.equal((inner.match(new RegExp(`<h3[^>]*data-i18n="nav\\.${page}\\.title"`, "g")) || []).length, 1, page + ": name");
+    assert.equal((inner.match(new RegExp(`<p[^>]*data-i18n="nav\\.${page}\\.desc"`, "g")) || []).length, 1, page + ": one short line");
+    assert.equal((inner.match(/<p\b/g) || []).length, 1, page + ": exactly one line of text under the name");
+    assert.ok(/class="(?:cat-ill|ft-ill)\b/.test(inner), page + ": illustration");
+    assert.ok(!/class="cat-st\b|class="cat-acc\b|class="cat-h\b|class="sl-go\b|cat-arrow/.test(inner), page + ": extra item in the card");
+    const line = text(inner.match(new RegExp(`<p[^>]*data-i18n="nav\\.${page}\\.desc"[^>]*>([\\s\\S]*?)</p>`))[1]);
+    assert.ok(line.length > 3 && line.length <= 60, `${page}: short line "${line}"`);
+    for (const l of ["en", "zh"]) {
+      const v = (DICT[l][`nav.${page}.desc`] || [])[0];
+      assert.ok(v && v.value.length > 3 && v.value.length <= 80, `${l} nav.${page}.desc: ${v && v.value}`);
+    }
+  }
+});
+
+test("C3 the disclaimer is on cat-fortune.html exactly once, small, in the hero above the cards (TH key + EN / ZH values)", () => {
+  const html = catHtml();
+  const body = html.slice(html.indexOf("<body"));
+  const visible = text(body.replace(/<script[\s\S]*?<\/script>/g, "").replace(/<style[\s\S]*?<\/style>/g, ""));
+  assert.equal(visible.split(DISC.th).length - 1, 1, "the Thai disclaimer, visible text: " + (visible.split(DISC.th).length - 1));
+  assert.equal((visible.match(/โปรดใช้วิจารณญาณ/g) || []).length, 1, "โปรดใช้วิจารณญาณ appears once");
+  assert.equal((body.match(/data-i18n="fortune\.disc\.line"/g) || []).length, 1, "one fortune.disc.line");
+  const note = body.match(/<p class="lq-notice lq-top"[^>]*>[\s\S]*?<\/p>/);
+  assert.ok(note && note[0].includes('data-i18n="fortune.disc.line"'), "the line is the small .lq-top notice");
+  const hero = body.indexOf('class="pd-hero"'), grid = body.indexOf('class="pd-grid cat-grid"');
+  assert.ok(hero > 0 && body.indexOf("fortune.disc.line") > hero && body.indexOf("fortune.disc.line") < grid, "in the hero, above the cards");
+  for (const l of ["en", "zh"]) {
+    const vals = (DICT[l]["fortune.disc.line"] || []).filter(v => v.file === `${l}-cat.js`);
+    assert.ok(vals.length === 1 && vals[0].value === DISC[l], `${l}-cat.js fortune.disc.line`);
+  }
+});
+
+// ---------------------------------------------------------------------------------------------------------- C4 / C5
+/** canonical text of everything that shows business accuracy: card accuracy blocks and the sources section on the six
+ *  non-fortune category pages, the EN / ZH values of their keys, their claims in tools/cat-data.cjs, their PAGE-STATUS rows */
+function businessFingerprint() {
+  const parts = [];
+  const keys = new Set();
+  const claimIds = new Set();
+  for (const c of D.CATEGORIES.filter(c => c.slug !== "fortune")) {
+    const html = stripComments(read(`cat-${c.slug}.html`));
+    for (const [, page, attrs, body] of cards(html)) {
+      const acc = body.match(/<p class="cat-h"[\s\S]*?<\/ul>/);
+      parts.push([c.slug, page, squash(attrs), acc ? squash(acc[0]) : "NO ACCURACY BLOCK"]);
+      if (acc) for (const m of acc[0].matchAll(/data-i18n="([^"]+)"/g)) keys.add(m[1]);
+      for (const id of D.PAGES[page].claims) claimIds.add(id);
+    }
+    const src = html.match(/<section aria-labelledby="catLegendH">[\s\S]*?<\/section>/);
+    parts.push([c.slug, "sources", src ? squash(src[0]) : "NO SOURCES SECTION"]);
+    if (src) for (const m of src[0].matchAll(/data-i18n="([^"]+)"/g)) keys.add(m[1]);
+  }
+  for (const k of [...keys].sort()) for (const l of ["en", "zh"]) parts.push([l, k, (DICT[l][k] || []).filter(v => v.file === `${l}-cat.js`).map(v => v.value)]);
+  for (const id of [...claimIds].sort()) { const c = D.CLAIMS[id] || {}; parts.push(["claim", id, c.src, c.ref, c.th, c.en, c.zh, !!c.optimistic]); }
+  const md = read("docs/PAGE-STATUS.md");
+  for (const c of D.CATEGORIES.filter(c => c.slug !== "fortune")) for (const p of c.pages) {
+    parts.push(["row", p, (md.match(new RegExp("^\\| `" + p.replace(/-/g, "\\-") + "\\.html` \\|.*$", "m")) || ["NO ROW"])[0]]);
+  }
+  return { parts, sha: createHash("sha256").update(JSON.stringify(parts)).digest("hex") };
+}
+// pinned at base b2a6e76 (origin/main, 2026-11-18) before the change; 6 categories, 38 non-fortune cards
+const BUSINESS_SHA = "23a66e68c0325337cdc8c66c44b9a02b3401e01cc9e3169f221855a245dbf5e3";
+const BUSINESS_CARDS = 38;
+
+test("C4 business products unchanged: every non-fortune card's accuracy lines and sources are exactly as at base b2a6e76", () => {
+  const { parts, sha } = businessFingerprint();
+  const cardsN = parts.filter(p => p.length === 4 && p[0] !== "claim").length;
+  assert.equal(cardsN, BUSINESS_CARDS, "non-fortune cards");
+  assert.ok(!parts.some(p => p.includes("NO ACCURACY BLOCK") || p.includes("NO SOURCES SECTION") || p.includes("NO ROW")), "a non-fortune card lost its accuracy");
+  assert.equal(sha, BUSINESS_SHA, "business accuracy fingerprint changed");
+});
+
+test("C4 named business products: Exam, Attendance, Gate and Crowd still show their measured figures with a source label", () => {
+  const want = { exam: "education", attendance: "hr", gate: "security", crowd: "marketing" };
+  for (const [page, slug] of Object.entries(want)) {
+    const html = stripComments(read(`cat-${slug}.html`));
+    const m = cards(html).find(x => x[1] === page);
+    assert.ok(m, page + " card on cat-" + slug);
+    assert.match(m[3], /data-i18n="cat\.acc\.h">ความแม่นยำที่วัดได้</, page + ": measured-accuracy heading");
+    const lis = [...m[3].matchAll(/<li data-src="(synthetic|public|prelim|field|none|na)"><span class="cat-src \1" data-i18n="cat\.src\.\1">/g)];
+    assert.equal(lis.length, D.PAGES[page].claims.length, page + ": accuracy lines with a source label");
+    assert.ok(D.PAGES[page].claims.length >= 1, page + ": claims");
+  }
+  assert.ok(D.PAGES.crowd.claims.includes("crowdDense"), "Crowd keeps the dense-crowd limit");
+});
+
+test("C5 accuracy rule: every non-fortune page has accuracy lines with a source; only category 6 may have none", () => {
+  for (const [p, v] of Object.entries(D.PAGES)) {
+    if (FORT_SET.has(p)) { assert.equal(v.claims.length, 0, p + ": fortune page with an accuracy line"); continue; }
+    assert.ok(v.claims.length >= 1, p + ": no accuracy line");
+    for (const id of v.claims) assert.ok(D.CLAIMS[id] && D.SOURCE[D.CLAIMS[id].src], `${p}: claim ${id}`);
+  }
+  assert.equal(FORT.noAccuracy, true, "category 6 is the only category marked noAccuracy");
+  assert.deepEqual(D.CATEGORIES.filter(c => c.noAccuracy).map(c => c.slug), ["fortune"]);
+});
+

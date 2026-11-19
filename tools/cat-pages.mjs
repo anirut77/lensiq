@@ -161,16 +161,34 @@ const CAT_INTEREST = { security: "gate", education: "exam", hr: "attendance", ma
 export const FAVICON_ONE_LINE = readFileSync(join(repo, "solutions.html"), "utf8").match(/<link rel="icon"[^>]*>/)[0];
 const FAVICON = splitFavicon(FAVICON_ONE_LINE);
 
-function card(page, nav, noTag = false) {
+/** A fortune card (owner decision 2026-11-18): the whole card is one link holding the small illustration, the name and one
+ *  short line (the nav.js menu line); no status, no accuracy, no disclaimer, no separate "open page" link. The illustration is
+ *  drawn by CSS from data-ic (cat.css) so the card's text is only the name and the line. Inside it sits the theme's gold line
+ *  illustration slot (svg.ft-ill, filled by fortune-entry.js): the theme shows the gold drawing instead of the emoji
+ *  (fortune-theme.css), classic hides the slot and keeps the emoji. */
+function oneLinkCard(page, t, ill) {
+  return `      <article class="pd-card cat-tool" data-page="${page}">
+        <a class="cat-card" href="${SL_GO[page] || page + ".html"}">
+          <div class="cat-top"><span class="cat-ill" data-ic="${ill || ""}" aria-hidden="true"><svg class="ft-ill" data-ic="${page}" aria-hidden="true" focusable="false"></svg></span><h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3></div>
+          <p data-i18n="nav.${page}.desc">${esc(t.desc)}</p>
+        </a>
+      </article>`;
+}
+
+function card(page, nav, noTag = false, cat = null) {
   const p = D.PAGES[page], t = nav[page];
   if (!t) throw new Error(`${page}.html is in a category but not in the nav.js menu`);
+  if (cat && cat.noAccuracy) return oneLinkCard(page, t, (cat.ill || {})[page] || cat.icon);
   const acc = p.claims.map(id => {
     const c = D.CLAIMS[id];
     return `          <li data-src="${c.src}"><span class="cat-src ${c.src}" data-i18n="cat.src.${c.src}">${esc(D.SOURCE[c.src].th)}</span> <span data-i18n="cat.c.${id}">${esc(c.th)}</span></li>`;
   }).join("\n");
-  // noTag (fortune, owner order 2026-11-17): no status chip, no data-status and no "why this status" line
+  // noTag (fortune, owner order 2026-11-17): no status chip, no data-status and no "why this status" line; the fortune theme
+  // (owner approval 2026-11-17) adds the card's gold line illustration slot, filled by fortune-entry.js when in view
+  const chip = noTag ? "" : `<span class="cat-st ${p.st}" data-i18n="cat.st.${p.st}">${esc(D.STATUS[p.st].th)}</span>`;
+  const ill = noTag ? `<svg class="ft-ill" data-ic="${page}" aria-hidden="true" focusable="false"></svg>` : "";
   return `      <article class="pd-card cat-tool" data-page="${page}"${noTag ? "" : ` data-status="${p.st}"`}>
-        <div class="cat-top"><h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3>${noTag ? "" : `<span class="cat-st ${p.st}" data-i18n="cat.st.${p.st}">${esc(D.STATUS[p.st].th)}</span>`}</div>
+        <div class="cat-top">${ill}<h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3>${chip}</div>
         <p data-i18n="nav.${page}.desc">${esc(t.desc)}</p>
         <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
         <ul class="cat-acc">
@@ -199,7 +217,8 @@ export function pageHtml(cat, nav = navEntries()) {
     `        <a href="cat-${c.slug}.html"><span aria-hidden="true">${c.icon}</span><span data-i18n="cat.${c.slug}.name">${esc(c.name.th)}</span></a>`).join("\n");
   return head([
     "<!doctype html>",
-    '<html lang="th">',
+    // the fortune category wears the fortune theme "ราตรีคราม" (owner approval 2026-11-17; fortune-theme.css, fortune-entry.js)
+    cat.slug === "fortune" ? '<html lang="th" class="lq-ft lq-ft-menu">' : '<html lang="th">',
     "<head>",
     '<meta charset="utf-8">',
     cspMeta(),
@@ -212,13 +231,15 @@ export function pageHtml(cat, nav = navEntries()) {
     '<link rel="stylesheet" href="styles.css?v=23">',
     '<link rel="stylesheet" href="products.css?v=3">',
     '<link rel="stylesheet" href="solutions.css?v=4">',
-    '<link rel="stylesheet" href="cat.css?v=1">',
+    '<link rel="stylesheet" href="cat.css?v=2">',
+    cat.slug === "fortune" ? '<link rel="stylesheet" href="fortune-theme.css?v=3">' : "",
     '<script src="lensiq-busy.js?v=3"></script>',
+    cat.slug === "fortune" ? '<script src="fortune-entry.js?v=5"></script>' : "",
     "</head>",
     "<body>",
     '<header class="nav" id="siteNav"></header>',
-    '<script src="nav.js?v=30"></script>',
-    '<script src="i18n/zh-cat.js?v=4"></script>',
+    '<script src="nav.js?v=33"></script>',
+    '<script src="i18n/zh-cat.js?v=6"></script>',
     // the fortune category carries the always-visible help button, in one place (owner orders 2026-11-12, 2026-11-15; tools/helpline.mjs)
     ...(cat.slug === "fortune" ? [topStyle(), helpLine("lqHelpTop")] : []),
     `<main class="pd cat${cat.discMore ? " lq-ftop" : ""}" id="main" data-cat="${cat.slug}">`,
@@ -242,10 +263,11 @@ export function pageHtml(cat, nav = navEntries()) {
     `      <h2 id="catToolsH" data-i18n="cat.tools.h">เครื่องมือในหมวดนี้</h2>`,
     `      <p class="pd-sub" id="catCount" data-i18n="cat.${cat.slug}.count">${esc(COUNT_TPL.th(n))}</p>`,
     `      <div class="pd-grid cat-grid">`,
-    cat.pages.map(p => card(p, nav, !!cat.noStatusTag)).join("\n"),
+    cat.pages.map(p => card(p, nav, !!cat.noStatusTag, cat)).join("\n"),
     `      </div>`,
     `    </section>`,
-    ...(cat.noStatusTag ? [
+    // a category without an accuracy field (fortune, owner decision 2026-11-18) has no "where the numbers come from" section
+    ...(cat.noAccuracy ? [] : cat.noStatusTag ? [
       // no status tags in this category (owner order 2026-11-17), so no status legend; the sources part stays
       `    <section aria-labelledby="catSrcH">`,
       `      <h2 id="catSrcH" data-i18n="cat.src.h">ที่มาของตัวเลข</h2>`,
@@ -257,10 +279,11 @@ export function pageHtml(cat, nav = navEntries()) {
       `      </ul>`,
       `      <h2 class="cat-h2" data-i18n="cat.src.h">ที่มาของตัวเลข</h2>`,
     ]),
-    `      <p class="pd-sub" data-i18n="cat.src.d">${esc(UI["cat.src.d"].th)}</p>`,
-    `      <p class="cat-srcs">${srcs}</p>`,
-    `      <p class="pd-note"><a href="cameras.html#accuracy" data-i18n="cat.method">วิธีวัดและชุดข้อมูล</a></p>`,
-    `    </section>`,
+    ...(cat.noAccuracy ? [] : [
+      `      <p class="pd-sub" data-i18n="cat.src.d">${esc(UI["cat.src.d"].th)}</p>`,
+      `      <p class="cat-srcs">${srcs}</p>`,
+      `      <p class="pd-note"><a href="cameras.html#accuracy" data-i18n="cat.method">วิธีวัดและชุดข้อมูล</a></p>`,
+      `    </section>`]),
     `    <section aria-labelledby="catOthersH">`,
     `      <h2 id="catOthersH" data-i18n="cat.others.h">หมวดอื่น</h2>`,
     `      <nav class="pd-others" aria-labelledby="catOthersH">`,
@@ -269,7 +292,7 @@ export function pageHtml(cat, nav = navEntries()) {
     `    </section>`,
     `  </div>`,
     `</main>`,
-    '<script src="lensiq-config.js?v=20"></script>',
+    '<script src="lensiq-config.js?v=23"></script>',
     "</body>",
     "</html>",
     ""
@@ -279,7 +302,9 @@ export function pageHtml(cat, nav = navEntries()) {
 /** index.html regions between <!-- name:start --> / <!-- name:end --> markers: category chooser + footer column. */
 export function indexRegions() {
   const cards = D.CATEGORIES.map(c => `      <a class="pd-card" href="cat-${c.slug}.html"><span class="pd-ic" aria-hidden="true">${c.icon}</span>` +
-    `<h3 data-i18n="cat.${c.slug}.name">${esc(c.name.th)}</h3><p data-i18n="cat.${c.slug}.intro">${esc(c.intro.th)}</p>` +
+    // owner order 2026-11-18: no per-card disclaimer where fortune is listed, so a category with a lead + notice line shows the lead
+    (c.lead && c.disc ? `<h3 data-i18n="cat.${c.slug}.name">${esc(c.name.th)}</h3><p data-i18n="cat.${c.slug}.lead">${esc(c.lead.th)}</p>`
+      : `<h3 data-i18n="cat.${c.slug}.name">${esc(c.name.th)}</h3><p data-i18n="cat.${c.slug}.intro">${esc(c.intro.th)}</p>`) +
     `<p class="cat-n" data-i18n="cat.${c.slug}.count">${esc(COUNT_TPL.th(counts(c)))}</p><span class="pd-go" data-i18n="cat.go">ดูหมวดนี้ →</span></a>`).join("\n");
   const chooser = [
     `  <section class="pd-chooser cat-chooser" id="categories" aria-labelledby="catAllH">`,
@@ -335,8 +360,10 @@ export function statusTable() {
     if (seen.has(p)) continue;
     seen.add(p);
     const v = D.PAGES[p];
-    const acc = v.claims.map(id => `**${D.SOURCE[D.CLAIMS[id].src].en}:** ${D.CLAIMS[id].en}`).join("<br>");
-    const ev = [...new Set(v.claims.map(id => D.CLAIMS[id].ref))].join("; ");
+    const noAcc = D.CATEGORIES.some(c => c.noAccuracy && c.pages.includes(p));
+    const acc = noAcc ? "none shown (owner decision 2026-11-18: fortune cards carry no accuracy field)"
+      : v.claims.map(id => `**${D.SOURCE[D.CLAIMS[id].src].en}:** ${D.CLAIMS[id].en}`).join("<br>");
+    const ev = noAcc ? "—" : [...new Set(v.claims.map(id => D.CLAIMS[id].ref))].join("; ");
     const noTag = D.CATEGORIES.some(c => c.noStatusTag && c.pages.includes(p)) ? " (no tag shown on the site, owner order 2026-11-17)" : "";
     rows.push(`| \`${p}.html\` | ${catOf[p].join(" + ")} | **${v.st}**${noTag} | ${D.REASONS[v.why].en} | ${D.REASONS[v.why].th} | ${acc} | ${ev} |`);
   }

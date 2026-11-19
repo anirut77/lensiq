@@ -1,0 +1,28 @@
+# locked 2026-11-18T02:55:58Z (tools/eval-guard.mjs lock, 6 files)
+b306c63274b72e0c20e258b26c7c9132d87ff9c4cb81bec597fff7d3570f640a  tests/unit/fortune-credits-v2.test.js
+681d5f3f11c85ded8520566e1da1b3eba2acc1df6b63abdc6df5ce28b0fc350f  tests/unit/fortune-credits-v2-assets.json
+f542a65eb30f0e3b412a82e764c3ad6e581bdd2136d097ea157f1442db5ed6d8  tests/e2e/fortune-credits-v3.e2e.mjs
+d9fcc8c0f5693a20ce3dbc7e3784474519657e94b82377f2f2fd9850f61af103  tests/unit/fixtures/d5-base/terms.html.txt
+0a81f9a076a8a5a3402d0ea4044e27b1711b468e760ab8a5e119e629955b5109  tests/unit/fixtures/d5-base/help.html.txt
+75b23b385d63d938fcc08a9ff7d1ec6bb36acd223ebb92757a9a5860578f6bc8  tests/unit/fixtures/d5-base/legal.js.txt
+# LEDGER (append-only) 2026-11-18, branch fortune-credits. Reason: owner decision 109: ?v= bumps allowed, text unchanged (109 ก).
+# v4 = v3 with D5 re-locked; assets list and e2e byte-identical to v3. Old D5: sha256(terms.html) == d9fcc8c0 (origin/main 5695734).
+# New D5: terms.html, help.html, legal.js with every "?v=…" query stripped are byte-identical to the same stripped form of their base
+# bytes, committed first as tests/unit/fixtures/d5-base/*.txt (commit 2d5c7c82; each copy pinned by sha256, terms copy = d9fcc8c0).
+# EQUAL to D5's intent: D5 exists to prove this branch did not touch the terms text. The only bytes the new form ignores are ?v=
+# cache-busting query values, which carry no terms text, and the owner allowed them (109). Every other byte of terms.html must still
+# match the base exactly. help.html and legal.js are added under the same rule (stricter: before, nothing protected them here).
+# Controls (in the test): a ?v= bump alone passes; one changed word ("LENSIQ" -> "LENSIX" in the terms <h1>) fails. Also run on the
+# real file: that one-word change in terms.html makes both D5 tests fail (2 of 11), restored file passes 11/11.
+# Disclosure: the draft test was run once against the merged tree before this lock was written (to confirm it ran); no assertion was
+# changed after that run.
+b306c63274b72e0c20e258b26c7c9132d87ff9c4cb81bec597fff7d3570f640a  tests/unit/fortune-credits-v2.test.js  # repo file
+681d5f3f11c85ded8520566e1da1b3eba2acc1df6b63abdc6df5ce28b0fc350f  tests/unit/fortune-credits-v2-assets.json  # repo file
+f542a65eb30f0e3b412a82e764c3ad6e581bdd2136d097ea157f1442db5ed6d8  tests/e2e/fortune-credits-v3.e2e.mjs  # repo file
+d9fcc8c0f5693a20ce3dbc7e3784474519657e94b82377f2f2fd9850f61af103  tests/unit/fixtures/d5-base/terms.html.txt  # repo file
+0a81f9a076a8a5a3402d0ea4044e27b1711b468e760ab8a5e119e629955b5109  tests/unit/fixtures/d5-base/help.html.txt  # repo file
+75b23b385d63d938fcc08a9ff7d1ec6bb36acd223ebb92757a9a5860578f6bc8  tests/unit/fixtures/d5-base/legal.js.txt  # repo file
+# locked 2026-11-18T05:31:17Z (tools/eval-guard.mjs lock, 1 file)
+596dae0d2f10028c71282ae05c1a28cef4ba184c403f6471be463f8ae371d2e3  relock-pet/fortune-credits-v2-assets.json
+# RE-LOCK 2026-11-18 (append-only, branch fortune-pet, tag relock-pet), reason: "owner decision 100: petread joins category 6; adds one audited asset, stricter" (coordinator approval under owner decisions 100 and 110 condition 4). fortune-credits-v2-assets.json gains ONE entry, qrcode-generator (MIT, onPageAttributionRequired false, notice vendor/qrcode-generator/LICENSE, needle "qrcode-generator 2.0.4" in LICENSES/THIRD-PARTY-NOTICES.txt; also LICENSES/THIRD_PARTY.md). Every other entry and the test file are unchanged; D4 now also checks that notice. Before: D4 failed on petread (vendor/qrcode-generator/qrcode.js not audited); after: 7/7.
+596dae0d2f10028c71282ae05c1a28cef4ba184c403f6471be463f8ae371d2e3  tests/unit/fortune-credits-v2-assets.json  # repo file (relock-pet)

@@ -552,7 +552,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return p.catch(function () { return localFallback(facts); }).then(function (res) {
         st2.result = res; st2.lines = keyLines(res, facts, 3);
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
-        src.textContent = res.source === "ai" ? T("tarot.srcAI", "เรียบเรียงโดย AI (Claude)") : T("tarot.srcLocal", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
+        src.textContent = res.source === "ai" ? T("tarot.srcAI", "เรียบเรียงโดย AI (Claude)") : ""; // owner 2026-11-17: no on-device label
+        src.hidden = res.source !== "ai";
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         root.removeAttribute("aria-busy");
       });
@@ -921,15 +922,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#trKioskExit").addEventListener("click", function () { setKiosk(false); });
   document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
 
-  // เครดิตภาพไพ่ (เครดิตสื่อ ไม่ใช่การอ้างอิง) — รายการอ้างอิงอยู่หลังบ้าน/เอกสารเท่านั้น (owner order 2026-11-12)
-  function renderSources() {
-    $("#trCredit").textContent = T("tarot.credit", KB.imageCredit + " · รายละเอียดใน vendor/tarot/CREDITS.txt");
-  }
-  renderSources();
+  // card-image credit: not shown (public domain; owner decision 2026-11-18)
 
   // เปลี่ยนภาษา (และครั้งแรกตอนโหลด): วาดข้อความไดนามิกใหม่ทั้งหมด ผลที่แสดงอยู่จะเรียบเรียงคำทำนายใหม่ในภาษานั้น
   window.addEventListener("lq-lang", function () {
-    renderSetup(); renderSources(); renderStats(); renderShakeBtns(); renderDailyStatic();
+    renderSetup(); renderStats(); renderShakeBtns(); renderDailyStatic();
     if (!pickSec.hidden) { renderPickHead(); renderBoard(); if (st.phase === "pick" && st.deck) renderFan(false); }
     if (current && current.kind === "tarot" && !$("#trResult").hidden) renderResult();
     if (ssCurrent && !$("#ssResult").hidden) renderSiamsee();

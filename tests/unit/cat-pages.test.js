@@ -44,7 +44,7 @@ test("categories equal the CLAUDE.md table (names, pages, booth in 4 and 7)", ()
   assert.ok(D.CATEGORIES.find(c => c.n === 4).pages.includes("booth") && D.CATEGORIES.find(c => c.n === 7).pages.includes("booth"));
 });
 
-test("every page in the repo has a proposed status, a reason and accuracy lines with a source label", () => {
+test("every page in the repo has a proposed status, a reason and accuracy lines with a source label (category 6: none)", () => {
   const existing = pages.filter(p => !catPages.includes(p));
   assert.ok(existing.length >= 64, "pages: " + existing.length);
   assert.deepEqual(existing.filter(p => !D.PAGES[p]), [], "pages without a status");
@@ -53,9 +53,15 @@ test("every page in the repo has a proposed status, a reason and accuracy lines 
   for (const [p, v] of Object.entries(D.PAGES)) {
     assert.ok(D.STATUS[v.st], `${p}: status ${v.st}`);
     assert.ok(D.REASONS[v.why], `${p}: reason ${v.why}`);
-    assert.ok(v.claims.length >= 1, `${p}: no accuracy line`);
+    // re-lock 2026-11-18, owner decision 2026-11-18: fortune cards carry no accuracy field; business products unchanged. Only a
+    // page of a noAccuracy category (category 6, fortune, and no other) may have no accuracy line, and then it must have none;
+    // every other page still needs at least one accuracy line with a source label, exactly as before.
+    const noAcc = D.CATEGORIES.some(c => c.noAccuracy && c.pages.includes(p));
+    if (noAcc) assert.equal(v.claims.length, 0, `${p}: a fortune card with an accuracy line`);
+    else assert.ok(v.claims.length >= 1, `${p}: no accuracy line`);
     for (const id of v.claims) assert.ok(D.CLAIMS[id] && D.SOURCE[D.CLAIMS[id].src], `${p}: claim ${id}`);
   }
+  assert.deepEqual(D.CATEGORIES.filter(c => c.noAccuracy).map(c => c.n), [6], "only category 6 may carry no accuracy field");
   // every category page is classified; platform pages and the deliberate exception too
   for (const c of D.CATEGORIES) for (const p of c.pages) assert.ok(D.PAGES[p], p);
   for (const p of D.PLATFORM.concat(Object.keys(D.UNLINKED))) assert.ok(D.PAGES[p], p);
@@ -217,7 +223,8 @@ test("accuracy lines are tied to docs/ACCURACY-CLAIMS.md rows or quoted source f
 test("support pages: directory / notice / info / legal / account pages carry no readiness status", () => {
   const support = Object.entries(D.PAGES).filter(([, v]) => v.st === "support").map(([p]) => p).sort();
   // counselling: added 2026-11-16 (owner decision 2026-11-16 crisis one-number rules): a support page outside the menus (UNLINKED)
-  assert.deepEqual(support, [...D.PLATFORM, "index", "admin", "cameras", "gate-notice", "counselling"].sort());
+  // 404: added 2026-11-18 (owner order 2026-11-18 C, promotion basics): the not-found page, outside the menus (UNLINKED)
+  assert.deepEqual(support, [...D.PLATFORM, "index", "admin", "cameras", "gate-notice", "counselling", "404"].sort());
   for (const p of support) assert.ok(D.PAGES[p].claims.every(id => D.CLAIMS[id].src === "na"), p + ": support page with a measured claim");
   const md = readFileSync(join(ROOT, "docs", "PAGE-STATUS.md"), "utf8");
   assert.match(md, new RegExp(`\\*\\*${Object.keys(D.PAGES).length - support.length} product pages\\*\\*`));

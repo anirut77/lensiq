@@ -1,0 +1,43 @@
+/* petread.css — Pet face reading (petread.html); builds on styles.css + fortune-kit.css */
+.pet{max-width:900px}
+.pet .fk-block{margin:0 auto 16px;max-width:860px}
+.pet-honest{max-width:860px;margin:-6px auto 16px;text-align:center;font-size:.9rem;color:var(--muted);font-style:italic}
+.pet-actions{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.pet-actions .btn{min-height:46px;flex:1 1 140px}
+.pet-file{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.pet-file input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.pet-file:focus-within{outline:3px solid #674ff2;outline-offset:2px}
+.pet-stage{position:relative;border-radius:16px;background:#f4f1ff;min-height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.pet-stage video,.pet-stage canvas{display:block;width:100%;height:auto;max-height:62vh;object-fit:contain}
+.pet-stage-empty{margin:0;padding:24px 16px;text-align:center;color:var(--muted);font-size:.95rem}
+.pet-human{margin:8px 0 0;padding:10px 12px;border-radius:12px;background:#fff6e0;border:1px solid #f1d58a;color:#4d3900;font-size:.92rem}
+.pet-traits-g legend{font-weight:600;color:var(--navy);margin-bottom:8px}
+.pet-traits-g .fk-opts{grid-template-columns:repeat(auto-fit,minmax(min(100%,118px),1fr))}
+.pet .fk-opt{min-height:48px}
+.pet .fk-opt:has(input:checked){border-color:var(--gold,#e8590c);background:#fff4e6;box-shadow:0 0 0 2px rgba(232,89,12,.25) inset}
+.pet .fk-opt.on{border-color:var(--gold,#e8590c);background:#fff4e6;box-shadow:0 0 0 2px rgba(232,89,12,.25) inset}
+.pet .fk-opt:focus-within{outline:3px solid #674ff2;outline-offset:2px}
+.pet-fields{margin-top:12px}
+.pet-fields label{display:flex;flex-direction:column;gap:6px;font-size:.92rem;min-width:0}
+.pet-result .fk-block{padding:18px}
+.pet-themes{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
+.pet-theme,.pet-size{min-height:44px;min-width:44px;padding:6px 16px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--text);font:inherit;cursor:pointer}
+.pet-theme[aria-pressed=true],.pet-size[aria-pressed=true]{border-color:#e8590c;background:#fff4e6;font-weight:600}
+.pet-card-wrap{max-width:420px;margin:8px auto}
+.pet-card-wrap canvas{display:block;width:100%;height:auto;border-radius:18px;box-shadow:0 8px 24px rgba(14,20,48,.18)}
+.pet-novet{font-weight:600}
+/* review round 1 (D2): the photo and camera buttons on the first phone screen; a Read bar once a photo is set */
+.fk.pet{padding-top:12px}
+.pet-head h1{font-size:clamp(1.4rem,6vw,2.1rem);margin:2px 0 6px}
+.pet-head .pet-disc{margin:0 auto 6px;padding:8px 12px;font-size:.84rem;gap:8px}
+.pet-head .pet-disc svg{width:20px;height:20px}
+.pet-head .pet-lead{margin:0 auto 10px;font-size:.95rem;line-height:1.45}
+.pet-photo{padding:14px 16px}
+.pet-photo h2{margin-bottom:6px}
+.pet-photo .pet-actions{margin:4px 0 8px}
+.pet-photo .pet-honest{text-align:left;margin:4px 0 8px}
+.pet-readbar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  background:rgba(255,255,255,.94);box-shadow:0 -6px 18px rgba(14,20,48,.12);display:flex;justify-content:center}
+.pet-readbar .btn{width:100%;max-width:520px;min-height:52px}
+.pet-readbar[hidden]{display:none}
+body.pet-bar-on main.pet{padding-bottom:110px}
