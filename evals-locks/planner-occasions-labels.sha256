@@ -5,3 +5,9 @@
 # locked 2026-11-19T02:33:25Z (tools/eval-guard.mjs lock, 2 files)
 b2eeb8cd5436f754b63b9b34c99d9c1878470c17136096a6bae87a88956b9e34  tests/unit/planner-occasions-labels.test.js
 ebcd43079e5e80c2bec4c3a4f8f0f12b5db4dfd30374a43b64299fac95cdcaed  tests/e2e/planner-occasions-labels.e2e.mjs
+# re-lock 2026-11-19 (relock-1): C1 asked for >= 24 occasions; the planner has 21 in all (18 added + move / shop / work, the count in
+# README-TH.md "งานทั้งหมด 21 งาน"). Found on the first unit run of the build (19 / 20 pass, C1 stopped at that line before any class
+# check ran). Now C1 asserts exactly 21. No other check, list, wording pattern or threshold changed.
+# locked 2026-11-19T02:35:48Z (tools/eval-guard.mjs lock, 1 file)
+ade0d84483f606f653036549866844a9b48970810e2ddc28a31d92a96fa337a8  relock-1/tests/unit/planner-occasions-labels.test.js
+ade0d84483f606f653036549866844a9b48970810e2ddc28a31d92a96fa337a8  tests/unit/planner-occasions-labels.test.js  # repo file (same commit as lock 2026-11-19T02:35:48Z; field: ~/LENSIQ-field/evals/planner-occasions-labels/relock-1/tests/unit/planner-occasions-labels.test.js)

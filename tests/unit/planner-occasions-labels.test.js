@@ -65,7 +65,8 @@ function allReasonIds(e) {
 }
 
 test("C1 every occasion and every rule has a source class (text / modern), in the code and in the sources file; every reason maps to a rule", () => {
-  assert.ok(P.EVENTS.length >= 24, "occasions loaded: " + P.EVENTS.length);
+  // re-lock 1: the planner has 21 occasions in all (18 added + move / shop / work), not 21 added; the first lock asked for >= 24
+  assert.equal(P.EVENTS.length, 21, "occasions loaded: " + P.EVENTS.length);
   assert.ok(P.SRC_CLASS && typeof P.reasonRule === "function" && typeof P.reasonClass === "function", "LQPlanner.SRC_CLASS / reasonRule / reasonClass");
   const rows = Object.fromEntries(SRC.occasions.map(o => [o.id, o]));
   for (const e of P.EVENTS) {
