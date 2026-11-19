@@ -34,8 +34,8 @@ test("targets: type detection, formatting, validation (Thai ID checksum)", () =>
   assert.equal(PP.targetType("0812345678"), "01"); assert.equal(PP.targetType("1234567890123"), "02"); assert.equal(PP.targetType("123456789012345"), "03");
   assert.equal(PP.formatTarget("0812345678"), "0066812345678");
   assert.equal(PP.validTarget("0812345678"), true); assert.equal(PP.validTarget("0212345678"), false, "landline");
-  assert.equal(PP.thaiIdOk("1101700230708"), true); assert.equal(PP.thaiIdOk("1101700230705"), false);
-  assert.equal(PP.validTarget("1101700230708"), true);
+  assert.equal(PP.thaiIdOk("1234567890121"), true); assert.equal(PP.thaiIdOk("1234567890122"), false);
+  assert.equal(PP.validTarget("1234567890121"), true);
 });
 
 test("matrix: vendored qrcode-generator encodes the payload (finder patterns, version size)", () => {
