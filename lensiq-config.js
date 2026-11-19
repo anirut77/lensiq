@@ -79,13 +79,8 @@ window.LENSIQ_LOOK_SALON = false;
  *   true = เปิด (เจ้าของตัดสินใจเท่านั้น) · ต้องเป็น true จริงเท่านั้น ค่าอื่นถือว่าปิด */
 window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
 
-/* LENSIQ_PALM_V2 (owner order 2026-11-19, palm reading upgrade v1): หน้าดูลายมือรุ่นใหม่ (ถ่ายภาพนิ่งความละเอียดเต็ม, หาเส้นแบบคลาสสิก,
- *   วาด 3 ชั้น: เส้นที่พบ / เส้นนำ "ไม่พบในภาพ" / เส้นที่เพิ่มเอง, รายการเส้น 3 สำนัก) · ปิดเป็นค่าเริ่มต้น ไม่มีอะไรขึ้นจริง
- *   ต้องเป็น true จริงเท่านั้น ค่าอื่นถือว่าปิด (tests/unit/palm-v2-reading.test.js ตรวจค่าที่ส่งมอบ) · docs/acceptance/palm.md */
+/* palm v2 (2026-11-19, docs/acceptance/palm.md): off unless exactly true · LANDMARKS = MediaPipe hands (tier 2-U), demo profile only */
 window.LENSIQ_PALM_V2 = window.LENSIQ_PALM_V2 === true;
-/* LENSIQ_PALM_LANDMARKS (owner decision D-P1 2026-11-19): จุดบนมืออัตโนมัติใน palm v2 (คำแนะนำสดและถ่ายอัตโนมัติ) ใช้โมเดล MediaPipe Hands
- *   (vendor/models/hand, M7 ใน LICENSES/TIERS.md = tier 2-U: ข้อมูลฝึกยังไม่ยืนยัน) · ใช้ได้เฉพาะโหมดเดโมงานวิจัย (ปิดในเวอร์ชันลูกค้า
- *   ด้านล่าง) และขึ้นจริงได้เมื่อทนายตอบเรื่อง tier 2 (decision 132) · ปิดอยู่ใช้โหมดแตะ 7 จุดเอง (tier 1) */
 window.LENSIQ_PALM_LANDMARKS = window.LENSIQ_PALM_LANDMARKS !== false;
 
 /* LENSIQ_PROFILE: ชุดค่าการติดตั้ง — "commercial" (ค่าเริ่มต้นตั้งแต่ round 16: โหมดลูกค้า ทุกเว็บรวม GitHub Pages) | "demo"

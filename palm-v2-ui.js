@@ -11,12 +11,12 @@
 (function () {
   "use strict";
   if (typeof window === "undefined" || typeof document === "undefined" || window.LENSIQ_PALM_V2 !== true) return;
-  var box = document.getElementById("plV2"), PV = window.PalmV2;
+  var WIN = /** @type {any} */ (window), box = document.getElementById("plV2"), PV = WIN.PalmV2;
   if (!box || !PV || !PV.detect) return;
   var $ = function (s) { return box.querySelector(s); };
   var $$ = function (s) { return Array.prototype.slice.call(box.querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var lang = function () { var l = window.LQI18N && window.LQI18N.lang; return l === "en" || l === "zh" ? l : "th"; };
+  var lang = function () { var l = /** @type {string} */ (WIN.LQI18N && WIN.LQI18N.lang); return l === "en" || l === "zh" ? l : "th"; };
   var T = function (k) { return PV.T(k, lang()); };
   var LOCAL = {
     title: ["ดูลายมือ (รุ่นใหม่ ทดลอง)", "Palm reading (new, trial)", "看手相（新版，试用）"],
@@ -37,7 +37,7 @@
 
   /* ---------- the legacy flow stays in the page but hidden while v2 is on ---------- */
   ["plStage", "plEdit", "plResult", "plEngine"].forEach(function (id) { var e = document.getElementById(id); if (e) e.hidden = true; });
-  var steps = document.querySelector(".pl-steps"); if (steps) steps.hidden = true;
+  var steps = /** @type {HTMLElement|null} */ (document.querySelector(".pl-steps")); if (steps) steps.hidden = true;
   // the page's nickname field (#plNick, covered by the crisis net and its inventory) moves into the v2 panel; v2 never shows or
   // sends what is typed there
   var nickLabel = document.getElementById("plNick") && document.getElementById("plNick").closest("label");
@@ -72,7 +72,7 @@
     if (b.hasAttribute("data-pv2-school")) { setSchool(b.getAttribute("data-pv2-school")); }
     renderChoices();
   });
-  $("#pv2Consent").addEventListener("change", function () { if (!this.checked && S.mode === "other") stopCam(); renderChoices(); });
+  $("#pv2Consent").addEventListener("change", /** @this {HTMLInputElement} */ function () { if (!this.checked && S.mode === "other") stopCam(); renderChoices(); });
 
   /* ---------- camera, live hints, automatic and manual capture ---------- */
   var video = $("#pv2Video"), ov = $("#pv2Guide"), octx = ov.getContext("2d"), cam = null, loop = 0, shutter = PV.createAutoShutter({ countMs: 2400 });
@@ -158,7 +158,7 @@
       return usePhoto(r.image);
     }).catch(function (e) { S.busy = false; console.error(e); });
   }
-  $("#pv2File").addEventListener("change", function () {
+  $("#pv2File").addEventListener("change", /** @this {HTMLInputElement} */ function () {
     var f = this.files && this.files[0]; if (!f) return;
     S.beforeGreen = false;
     var p = window.createImageBitmap ? window.createImageBitmap(f, { imageOrientation: "from-image" }) : Promise.reject(new Error("no createImageBitmap"));
@@ -388,7 +388,7 @@
   /* ---------- reading (crisis first) ---------- */
   function crisisNow() {
     var cr = CR(), fa = FA(), text = "";
-    var nk = document.getElementById("plNick");
+    var nk = /** @type {HTMLInputElement|null} */ (document.getElementById("plNick"));
     try { text = cr && cr.fields ? cr.fields(document) : nk ? nk.value : ""; } catch (e) { text = nk ? nk.value : ""; }
     if (cr && cr.active && cr.active(document)) return true;
     if (cr && cr.check) return !!cr.check(text);
@@ -413,7 +413,7 @@
     var rd = PV.readingFor(S.st, { lang: lang() }), out = $("#pv2Reading");
     var head = S.school !== "thai" ? '<p class="pv2-draft">' + esc(T("draft.school")) + "</p>" : "";
     // the nickname (#plNick) titles the reading only when it is a plain name and the page is not calm (crisis v3: no echo)
-    var nk = document.getElementById("plNick"), nick = nk ? nk.value.trim() : "", cr0 = CR();
+    var nk = /** @type {HTMLInputElement|null} */ (document.getElementById("plNick")), nick = nk ? nk.value.trim() : "", cr0 = CR();
     var calm = cr0 && cr0.calmOn ? cr0.calmOn(document) : document.documentElement.hasAttribute("data-lq-crisis");
     $("#pv2ResTitle").textContent = nick && !calm && cr0 && cr0.plainName && cr0.plainName(nick) ? T("reading.title") + " · " + nick : T("reading.title");
     out.innerHTML = head + (rd.items.length ? rd.items.map(function (i) {
@@ -481,7 +481,7 @@
       return { id: id, status: Ln.status, hidden: !!Ln.outside || (simian && (id === "heart" || id === "head")), px: cp ? PV.catmull(cp, 40).map(Lo.toPx) : null };
     }) };
   }
-  window.__palmV2 = {
+  WIN.__palmV2 = {
     ready: true,
     get busy() { return S.busy; },
     get lastStill() { return S.lastStill; },
