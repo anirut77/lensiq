@@ -282,3 +282,7 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   `tests/unit/backend-seller-frozen-docs.test.js` and `tests/unit/backend-seller-r2.test.js` is now
   `tests/unit/backend-seller-health.test.js` (`tests/unit/unit-index.test.js`: no round-named unit files). The header line
   inside each file still names the old file (content unchanged). Lock lines for the new paths: owner, OWNER-LINES-MORNING.md.
+
+### Incident 2026-11-18: seller-settings field copies overwritten in place (recorded 2026-11-19, owner decision 131 ก)
+
+On 2026-11-18 the seller team overwrote two field copies in ~/LENSIQ-field/evals/seller-settings/ in place (rule: never modify existing field files): admin-seller.e2e.mjs (locked 56641e63248214c9e9da98127e56f30d9f59d1e92200f27d19eb08e3905ed859, now d925c82e3d65c07096d572dc768df6e7f9cf1591588b12ed72488ae18aa64182) and backend-seller-workerd.test.mjs (locked 19ba8bf4082ccdb088123a85c29bc6a4dae38aa8c447c942a79e25765b5d2775, now 2e462d60ee01710e3268d3e2a9df600922ada6ffb99913cec1c00f2c17f4e1a7). The original bytes were restored from git 88f09055 into the new folder ~/LENSIQ-field/evals/seller-settings/restored-88f09055/ by the owner on 2026-11-19; the overwritten files were left as they are. Lock lines are unchanged.
