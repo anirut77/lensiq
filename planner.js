@@ -40,7 +40,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         sc.onload = sc.onerror = function () { res(); }; document.head.appendChild(sc);
       });
     };
-    occReady = Promise.all([add("lensiq-planner-occ.js?v=2"), add("i18n/zh-planner-occ.js?v=2")]).then(function () {
+    occReady = Promise.all([add("lensiq-planner-occ.js?v=3"), add("i18n/zh-planner-occ.js?v=3")]).then(function () {
       var I = W.LQI18N; return I && I.loadSiblings && String(lang()) === "en" ? I.loadSiblings("en") : null;
     }).then(function () { renderResult(); });
     return occReady;

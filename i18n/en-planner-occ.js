@@ -12,7 +12,7 @@
   "pl.r.wd.shrine.4": "Thursday: teachers' day, favoured for rites with sacred objects such as placing a Buddha image",
   "pl.r.wd.shrine.5": "Friday: a day of happiness and growth, favoured for setting up a shrine",
   "pl.r.wd.compreg.1": "Monday: the first day of the week, one of the most popular days to register a company",
-  "pl.r.wd.compreg.4": "Thursday: teachers' day, one of the most popular days to register a company",
+  "pl.r.wd.compreg.4": "Thursday: one of the most popular days to register a company",
   "pl.r.wd.newco.4": "Thursday: trade texts see it as a day of trustworthiness, favoured for starting a business",
   "pl.r.wd.newco.5": "Friday: trade texts see it as a day that draws customers, favoured for starting a business",
   "pl.r.wd.contract.3": "Wednesday: Mercury, negotiation and trade; favoured for signing contracts",
