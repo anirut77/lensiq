@@ -51,6 +51,17 @@ stay enforced in code and tests, only not displayed. Licence audit of every asse
 a visible attribution (MIT / Apache-2.0 / OFL notices ship with the files and in `LICENSES/THIRD-PARTY-NOTICES.txt`; the tarot
 art is public domain), so no credits page. Fixed set `fortune-credits__v2` (v1 superseded, ledger in its lock file).
 
+## Planner defects from a Samsung phone (owner report 2026-11-18, branch `planner-defects`, not merged)
+
+Locked first (`evals-locks/planner-defects.sha256`; source: synthetic, headless Chrome, 360 / 375 / 393 / 412 / 430 px × TH / EN / ZH).
+(a) lone ")" in the planner's add-person part: already fixed by line-wrap on main (test passes on main; fails 5× in TH on the
+pre-line-wrap base). (b) cut `<select>` text: 35 of 229 page × language checks failed on main (19 pages); fix = select right
+padding 4 px (styles.css), planner start month one column under 480 px, small per-page CSS (admin language, horoscope date row),
+and `nav.js` `selFull()`: a select whose chosen text still does not fit shows the full text on a small line under it (no wording
+changed). (c) see-through sticky read bar: 32 of 52 failed on main (alpha 0.96 on 11 of 17 pages); bar now solid white.
+Open for the owner: long descriptive option labels (booth mode, studio cover, crowd tiles, zodiac year EN ...) still need the
+caption line on phones; shorter wording is a separate decision.
+
 ## Crisis v3 (owner decision 2026-11-17; decision 84 = ก; branch `crisis-v3-2`, waiting for the independent reviewer)
 
 With the crisis flag set the reading goes on in full structure, gently, never straight; no card and nothing that says the person

@@ -411,6 +411,7 @@
   legalFoot();
   reportHook();
   meritHook();
+  selFull();
 
   function thaiBreaks() {
     if (/[?&]nowb\b/.test(location.search)) return;
@@ -422,7 +423,7 @@
     var LOAN = new RegExp(JOIN.join("|"), "g");
     var SEL = "h1,h2,h3,h4,h5,.nav-sub b,.nav-sub small,.mega-k,.mega-d,.lq-crumbs li,.nav-link,.nav-cta,.btn,button,label,.chip,.tag,.kicker,.eyebrow,.pill,summary,th,legend,.lead,.sub,.hint,figcaption,.lq-wb";
     var CR = ".lq-helpline,[data-lq-call],#lqHelpTop,.lq-help-dlg,.lq-crisis-slot,.fa-support,.fa-soft,.lq-call-btn";
-    var SKIP = "svg,canvas,script,style,textarea,select,option,pre,code,[contenteditable],.lq-run,.lq-t," + CR;
+    var SKIP = "svg,canvas,script,style,textarea,select,option,.lq-sel-full,pre,code,[contenteditable],.lq-run,.lq-t," + CR;
     var sk = function (/** @type {any} */ e) { return e && e.nodeType === 1 && (e.matches(CR) || e.querySelector(CR)) ? null : e; };
     function words(text) {
       var parts = [];
@@ -640,7 +641,7 @@
       document.body.appendChild(box);
       return box;
     }
-    /** แสดง "กำลังโหลดโมเดล {label} {mb} MB" ; คืน {progress(0..1), done(), fail(msg)} ; ไม่แสดงถ้าอยู่ในแคชแล้ว (opts.url) */
+    /** model loading line; returns {progress(0..1), done(), fail(msg)}; nothing when opts.url is cached */
     function loading(opts) {
       opts = opts || {};
       var shown = false, closed = false, b = null;
@@ -669,7 +670,7 @@
         }
       };
     }
-    /** ถามก่อนดาวน์โหลดเมื่อเน็ตช้า/ประหยัดข้อมูล หรือไฟล์ใหญ่กว่า opts.askOverMb (ค่าเริ่ม 40) ; อยู่ในแคชแล้ว = true ทันที */
+    /** ask first on a slow / data-saver link or over opts.askOverMb (40); cached = true at once */
     function confirmDownload(opts) {
       opts = opts || {};
       return isCached(opts.url).then(function (hit) {
@@ -755,6 +756,22 @@
       sc.src = src; sc.async = false;
       (document.head || document.documentElement).appendChild(sc);
     });
+  }
+  function selFull() {
+    var x, r = 0, D = document, n = parseFloat, fit = function () {
+      r = 0; x = x || D.createElement("canvas").getContext("2d");
+      [].forEach.call(D.querySelectorAll("select"), function (/** @type {any} */ s) {
+        var c = s.nextElementSibling, o = s.options[s.selectedIndex], t = o ? o.text.replace(/\s+/g, " ").trim() : "", y = getComputedStyle(s), w = false;
+        if (x && t && !s.multiple && s.getClientRects().length) {
+          x.font = [y.fontStyle, y.fontWeight, y.fontSize, y.fontFamily].join(" ");
+          w = Math.ceil(x.measureText(t).width + n(y.paddingLeft) + n(y.paddingRight) + n(y.borderLeftWidth) + n(y.borderRightWidth) + 24) > s.getBoundingClientRect().width + .5;
+        }
+        if (!c || c.className !== "lq-sel-full") { if (!w) return; c = D.createElement("span"); c.className = "lq-sel-full"; c.ariaHidden = "true"; s.after(c); }
+        c.hidden = !w; s.parentElement.classList.toggle("lq-sel-wrap", w); if (w && c.textContent !== t) c.textContent = t;
+      });
+    }, go = function () { r = r || requestAnimationFrame(fit); setTimeout(fit, 300); };
+    ["resize", "load", "lq-lang"].forEach(function (e) { addEventListener(e, go); });
+    D.addEventListener("change", go, true); D.addEventListener("click", go, true); go();
   }
   function registerSW() {
     if (!("serviceWorker" in navigator) || !window.isSecureContext || /[?&]nosw\b/.test(location.search)) return;
