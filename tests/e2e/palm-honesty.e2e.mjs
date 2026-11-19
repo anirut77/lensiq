@@ -59,6 +59,14 @@ const readingText = page => page.evaluate(() => {
   document.querySelectorAll("#plLines .line-card:not(.unclear)").forEach(e => parts.push(e.textContent));
   return parts.join("\n");
 });
+/** same rule as palm-hands.e2e.mjs: the GET /api/<x>/status probes (feature switches, no user data) are not a privacy leak */
+async function privacy(page) {
+  for (let i = page.requests.length - 1; i >= 0; i--) {
+    const r = page.requests[i];
+    if (r.method === "GET" && /\/api\/[a-z]+\/status$/.test(new URL(r.url).pathname)) page.requests.splice(i, 1);
+  }
+  return privacyScan(page);
+}
 function realErrors(page) {
   return page.consoleErrors.filter(e => !/\/api\/[a-z]+\/status/.test((e.url || "") + " " + (e.text || "")) && !(e.kind !== "exception" && /404/.test(e.text || "") && /\/api\//.test(e.url || "")));
 }
@@ -113,7 +121,7 @@ export default async function ({ base, launch, check }) {
           const mest = await page.evaluate(() => (document.querySelector('[data-i18n="palm.mestSmall"]') || {}).textContent || "");
           assert(mest.trim(), `${lang}: mounts label missing`);
           assert(mest.trim() !== OLD_MEST[lang], `${lang}: old mounts label still shown "${mest}"`);
-          await privacyScan(page);
+          await privacy(page);
           const errs = realErrors(page);
           assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
         } finally { await page.close(); }
