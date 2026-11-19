@@ -14,3 +14,5 @@ e152aae01b86b2998afcc8af6ad382c4a2235ea8d9a35a93ce3bae670589abd8  tests/e2e/fort
 cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fortune-crisis.e2e.mjs  # repo file (relock-fix-1)
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): fix-2, see evals-locks/crisis-v3.sha256.
 1363d3d1125284af36df37f489242260ef844f28d7ec95d84e9773afc32b69fd  tests/e2e/crisis-net-hotfix-e.e2e.mjs  # repo file (relock-fix-2)
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
+6418053e164eeb05afba82a1bb26df31f0a65905de3dd26882d6f661c10baade  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (relock-pet)
