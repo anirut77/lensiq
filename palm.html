@@ -38,6 +38,7 @@
 <link rel="stylesheet" href="palm.css?v=7">
 <link rel="stylesheet" href="lensiq-capture-hint.css?v=1">
 <link rel="stylesheet" href="fortune-theme.css?v=3">
+<link rel="stylesheet" href="palm-v2.css?v=1">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
@@ -94,6 +95,70 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     <li data-step="2"><b>2</b><span data-i18n="palm.step2">ตรวจและปรับเส้น</span></li>
     <li data-step="3"><b>3</b><span data-i18n="palm.step3">อ่านลายมือ</span></li>
   </ol>
+
+  <!-- palm reading upgrade v1 (owner order 2026-11-19): shown only when window.LENSIQ_PALM_V2 === true (lensiq-config.js ships false).
+       The work area and the result carry data-lq-result: the crisis support card replaces them (crisis v3, hotfix rule a). -->
+  <section class="pv2" id="plV2" hidden data-lq-result aria-labelledby="pv2Title">
+    <h2 id="pv2Title" data-pv2-l="title">ดูลายมือ (รุ่นใหม่ ทดลอง)</h2>
+    <p class="pv2-small pv2-privacy" data-pv2-t="privacy"></p>
+    <div class="pv2-capture" id="pv2Capture">
+      <div class="seg" role="radiogroup" aria-label="mode">
+        <button type="button" role="radio" aria-checked="true" data-pv2-mode="self" data-pv2-t="mode.self"></button>
+        <button type="button" role="radio" aria-checked="false" data-pv2-mode="other" data-pv2-t="mode.other"></button>
+      </div>
+      <p class="pv2-consent" id="pv2ConsentWrap" hidden><span id="pv2ConsentText" data-pv2-t="consent.other"></span>
+        <label class="pl-check"><input type="checkbox" id="pv2Consent"> <span data-pv2-t="consent.box"></span></label></p>
+      <div class="seg" role="radiogroup" aria-label="hand">
+        <button type="button" role="radio" aria-checked="false" data-pv2-side="left" data-pv2-t="side.left"></button>
+        <button type="button" role="radio" aria-checked="true" data-pv2-side="right" data-pv2-t="side.right"></button>
+      </div>
+      <div class="pv2-cam" id="pv2Cam">
+        <video id="pv2Video" autoplay muted playsinline></video>
+        <canvas id="pv2Guide" aria-hidden="true"></canvas>
+        <p class="pv2-hint" id="pv2Hint" role="status" aria-live="polite"></p>
+        <div class="pv2-count" id="pv2Count" hidden aria-live="assertive"></div>
+      </div>
+      <p class="pv2-small" data-pv2-l="auto"></p>
+      <div class="pv2-actions">
+        <button class="btn primary big" id="pv2Start" type="button" data-pv2-l="start"></button>
+        <button class="btn primary big" id="pv2Snap" type="button" hidden data-pv2-l="snap"></button>
+        <button class="btn ghost big" id="pv2Stop" type="button" hidden data-pv2-l="stop"></button>
+        <label class="btn ghost big pl-upload"><span data-pv2-l="upload"></span><input id="pv2File" type="file" accept="image/*"></label>
+      </div>
+      <p class="pv2-small" id="pv2LmNote" hidden></p>
+    </div>
+    <div class="pv2-work" id="pv2Work" hidden data-lq-result>
+      <p class="pv2-tapmsg" id="pv2TapMsg" role="status" aria-live="polite"></p>
+      <button class="btn ghost" id="pv2TapUndo" type="button" hidden data-pv2-l="tapUndo"></button>
+      <div class="seg" role="radiogroup" aria-label="school">
+        <span class="pv2-small" data-pv2-t="school.label"></span>
+        <button type="button" role="radio" aria-checked="true" data-pv2-school="thai"></button>
+        <button type="button" role="radio" aria-checked="false" data-pv2-school="chinese"></button>
+        <button type="button" role="radio" aria-checked="false" data-pv2-school="western"></button>
+      </div>
+      <div class="pv2-canvas-wrap"><canvas id="pv2Canvas" data-pv2-target="screen" role="img" width="360" height="480"></canvas></div>
+      <p class="pv2-small" data-pv2-t="legend"></p>
+      <p class="pv2-small" data-pv2-t="guide.note"></p>
+      <p class="pv2-msg" id="pv2Msg" role="status" aria-live="polite"></p>
+      <h3 data-pv2-t="list.title"></h3>
+      <ol class="pv2-list" id="pv2List"></ol>
+      <p class="pv2-small" data-pv2-t="readingUsesOnly"></p>
+      <div id="pv2NickSlot"></div>
+      <button class="btn primary big full" id="pv2Read" type="button" data-pv2-l="read"></button>
+      <button class="btn ghost full" id="pv2Again" type="button" data-pv2-l="again"></button>
+    </div>
+    <section class="pv2-result" id="pv2Result" hidden data-lq-result aria-labelledby="pv2ResTitle">
+      <h3 id="pv2ResTitle" data-pv2-t="reading.title"></h3>
+      <div class="fa-body" id="pv2Reading" aria-live="polite"></div>
+      <div class="pv2-actions">
+        <button class="btn ghost big" id="pv2Print" type="button" data-pv2-l="print"></button>
+        <button class="btn primary big" id="pv2Share" type="button" data-pv2-l="share"></button>
+      </div>
+      <img class="pv2-card" id="pv2Card" alt="" hidden>
+      <canvas id="pv2PrintCanvas" data-pv2-target="print" hidden></canvas>
+      <img class="pv2-print-img" id="pv2PrintImg" alt="" hidden>
+    </section>
+  </section>
 
   <!-- ขั้นที่ 1: ถ่ายภาพ / อัปโหลด -->
   <section class="pl-stage" id="plStage" aria-label="ถ่ายภาพหรืออัปโหลดรูปฝ่ามือ" data-i18n-attr="aria-label:palm.stageAria">
@@ -323,6 +388,10 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="fortune-ai.js?v=39"></script>
 <script src="palm-kb.js?v=10"></script>
 <script src="lensiq-capture-hint.js?v=1"></script>
-<script src="palm.js?v=19"></script>
+<script src="palm.js?v=20"></script>
+<script src="palm-v2-kb.js?v=1"></script>
+<script src="palm-v2-detect.js?v=1"></script>
+<script src="palm-v2.js?v=1"></script>
+<script src="palm-v2-ui.js?v=1"></script>
 </body>
 </html>

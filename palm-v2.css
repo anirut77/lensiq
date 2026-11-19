@@ -1,0 +1,45 @@
+/* palm-v2.css — palm reading upgrade v1 (palm.html #plV2, only when window.LENSIQ_PALM_V2 === true) */
+.pv2{display:grid;gap:12px;margin:0 auto 24px;max-width:680px}
+.pv2 h2{margin:0}
+.pv2-small{font-size:.85rem;color:#5a6280;margin:0}
+.pv2 .seg{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pv2 .seg button{min-height:44px;padding:0 12px;border:1px solid #bcd3e6;border-radius:10px;background:#fff;font:inherit}
+.pv2 .seg button[aria-checked="true"]{background:#0e1430;color:#fff;border-color:#0e1430}
+.pv2-consent{display:grid;gap:6px;padding:10px 12px;border:1px solid #f0c36d;border-radius:12px;background:#fff8e6;margin:0}
+.pv2-cam{position:relative;width:100%;aspect-ratio:3/4;max-height:70vh;background:#0b1020;border-radius:14px;overflow:hidden}
+.pv2-cam video,.pv2-cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pv2-hint{position:absolute;left:8px;right:8px;bottom:8px;margin:0;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.6);color:#fff;
+  font-size:.95rem;text-align:center}
+.pv2-hint:empty{display:none}
+.pv2-hint[data-s="ok"]{background:rgba(21,128,61,.85)}
+.pv2-count{position:absolute;top:12px;right:12px;width:52px;height:52px;border-radius:50%;background:#16a34a;color:#fff;display:grid;
+  place-items:center;font-size:1.6rem;font-weight:700}
+.pv2-actions{display:flex;flex-wrap:wrap;gap:8px}
+.pv2-canvas-wrap{width:100%}
+.pv2-canvas-wrap canvas{display:block;max-width:100%;border-radius:12px;touch-action:pan-y}
+.pv2-canvas-wrap canvas.pv2-drawing{touch-action:none;outline:3px solid #22d3ee}
+.pv2-tapmsg{margin:0;font-weight:600}
+.pv2-tapmsg:empty{display:none}
+.pv2-msg{margin:0;color:#7c2d12}
+.pv2-msg:empty{display:none}
+.pv2-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.pv2-list li{padding:10px 12px;border:1px solid #dde5f0;border-radius:12px;background:#fff}
+.pv2-list .pv2-num{display:inline-grid;place-items:center;min-width:22px;height:22px;margin-right:6px;border-radius:50%;background:#0e1430;color:#fff;
+  font-size:.8rem}
+.pv2-list .pv2-status{font-size:.88rem;color:#334}
+.pv2-list li[data-status="notFound"] .pv2-status{color:#6b7280}
+.pv2-about{margin:4px 0 6px;font-size:.88rem;color:#4b5563}
+.pv2-acts{display:flex;flex-wrap:wrap;gap:6px}
+.pv2-acts .btn{min-height:44px}
+.pv2-sw{display:inline-block;width:26px;height:0;margin-right:6px;vertical-align:middle;border-top:4px solid var(--c)}
+.pv2-sw.pv2-dashed{border-top:3px dashed #9ca3af}
+.pv2-sw.pv2-none{border-top:3px solid transparent}
+.pv2-draft{margin:0 0 8px;padding:6px 10px;border-radius:8px;background:#eef2ff;color:#3730a3;font-size:.85rem}
+.pv2-card{display:block;width:100%;max-width:420px;border-radius:12px}
+.pv2-print-img{display:none}
+@media print{
+  body *{visibility:hidden}
+  #pv2PrintImg,#pv2PrintImg *{visibility:visible}
+  #pv2PrintImg{display:block!important;position:absolute;left:0;top:0;width:100%}
+}
+@media (max-width:480px){.pv2{padding:0 4px}}

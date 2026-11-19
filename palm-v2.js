@@ -356,11 +356,12 @@
     var simian = st.lines.simian && (st.lines.simian.status === STATUS.FOUND || st.lines.simian.status === STATUS.ADDED);
     var px = function (cp) { return catmull(cp, 40).map(toPx); };
     var path = function (P) { ctx.beginPath(); ctx.moveTo(P[0][0], P[0][1]); for (var i = 1; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]); };
+    var small = Math.round(10 * sc) + "px system-ui, sans-serif";
     var font = Math.round(12 * sc) + "px system-ui, -apple-system, 'Noto Sans Thai', 'Noto Sans SC', sans-serif";
     var label = function (text, at, color, faint) {
       ctx.save();
       ctx.setLineDash([]);
-      ctx.font = font; ctx.textBaseline = "middle";
+      ctx.font = faint ? small : font; ctx.textBaseline = "middle";
       var w = ctx.measureText(text).width, h = 16 * sc, x = clamp(at[0] + 6 * sc, 2, Math.max(2, (ctx.canvas && ctx.canvas.width || 9999) - w - 10 * sc)), y = at[1];
       ctx.globalAlpha = faint ? 0.72 : 0.9;
       ctx.fillStyle = faint ? "rgba(30,30,30,0.75)" : "rgba(255,255,255,0.92)";

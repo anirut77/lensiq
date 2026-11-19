@@ -2037,5 +2037,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     renderPair();
     if (S.result) { renderResult(S.result); $("#plCardImg").hidden = true; narrate(false); }
   });
+  // palm v2 (owner decision D-P1 2026-11-19): automatic hand points for palm-v2-ui.js, only with LENSIQ_PALM_V2 and
+  // LENSIQ_PALM_LANDMARKS (demo profile; MediaPipe hands = tier 2-U, off in customer builds). The 7-tap mode is the fallback.
+  if (window.LENSIQ_PALM_V2 === true && window.LENSIQ_PALM_LANDMARKS === true) {
+    window.LQPalmLandmarks = { detect: function (src) { return loadModels().then(function () { return detectHand(src, false); }); } };
+  }
   window.__palm = { get S() { return S; }, get guide() { return S.guide; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, detectHands: detectHands, loadModels: loadModels }; // ใช้ทดสอบ
 })();
