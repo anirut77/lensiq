@@ -1,6 +1,8 @@
 // tests/e2e/pet-zodiac.e2e.mjs — FIXED TEST SET for the Pet zodiac share cards (owner spec 2026-11-19, branch pet-zodiac-cards),
 // headless Chrome. Locked (evals-locks/pet-zodiac.sha256) BEFORE any product code; node half: tests/unit/pet-zodiac.test.js.
 // Pictures are synthetic (a flat background and a flat orange ellipse); no real photo.
+// RE-LOCK 1 (2026-11-19, owner decisions 137 ข / 138 ข, before any product commit): default odds = option b; the birthday rule
+// is removed (P7 now checks it is gone); P2 checks the page's odds line is the one generated from the active config.
 // Page seams used (the build adds them): window.__LQPET.zodiacDraw(id) draws that template (localhost only, for tests and
 // owner samples); the card canvas carries data-template / data-label / data-rule; #petZ is the zodiac block with #petZOdds,
 // #petZRedraw, #petZCol (.pet-zslot[data-id][data-state="found"|"missing"], the secret slot data-secret="1") and #petZCount;
@@ -8,7 +10,8 @@
 //   P1  flag off (live default): classic card with the 4 theme buttons; no zodiac block; the draw module and the art are never
 //       requested
 //   P2  flag on: nothing of the zodiac mode is requested before the card is made; after Read the card has one of the 13 templates,
-//       the theme buttons are hidden, the odds line comes from the config (2 %), the collection has 13 slots with 1 found
+//       the theme buttons are hidden, the odds line on the page is exactly the text LQPetDraw.oddsText generates from the active
+//       config for today (default b), the collection has 13 slots with 1 found
 //   P3  the reading on the page is identical for all 13 templates (forced one by one); the 13 cards look different; the secret
 //       card's label is "การ์ด Secret" / "Secret Card" / "隐藏卡" in TH / EN / ZH
 //   P4  crisis: a crisis phrase in the name field (TH / EN / ZH) or a calm session: no card, no zodiac block, no art requested,
@@ -17,8 +20,8 @@
 //       saved as an image (download link); no network request
 //   P6  collection: survives a reload; missing slots are silhouettes, the secret slot is marked; localStorage holds no image or
 //       name; 25 free draws in a row work (no limit, no payment)
-//   P7  option c (birthday): with the pet's birth date set to today's month-day, the first draw is the secret card
-//       (data-rule="birthday"); the next draw and a reload do not repeat the guarantee
+//   P7  no birthday rule: with the pet's birth date set to today's month-day, draws are ordinary (never data-rule="birthday", not
+//       all secret) and the odds line does not mention a birthday
 //   P8  phone width 360 and 390: the card section and the collection fit without horizontal scrolling
 import { assert } from "./cdp.mjs";
 import { sleep } from "./zones-lib.mjs";
@@ -95,7 +98,11 @@ export default async function ({ base, launch, check }) {
         found: document.querySelectorAll('#petZCol .pet-zslot[data-state="found"]').length, redraw: ${vis("#petZRedraw")} })`);
       assert(ALL.includes(r.tpl), "template id " + r.tpl);
       assert(!r.themes && r.z && r.redraw, "zodiac block shown, classic themes hidden " + JSON.stringify(r));
-      assert(/(^|[^\d.])2(\.0+)?\s?%/.test(r.odds) && /8\.17\s?%/.test(r.odds), "odds line from config a: " + r.odds);
+      const want = await page.evaluate(() => { const D = window.LQPetDraw, cfg = D.config(window.LENSIQ_PET_ZODIAC_ODDS), t = D.today();
+        return { lines: D.oddsText(cfg, { today: t }, "th"), id: cfg.id, p: D.odds(cfg, { today: t }) }; });
+      assert(want.id === "b", "active config is the default b: " + want.id);
+      assert(want.lines.every(l => r.odds.includes(l)), "odds line generated from the config: " + r.odds + " vs " + JSON.stringify(want.lines));
+      assert(/%/.test(r.odds) && r.odds.length < 400, "short odds line: " + r.odds);
       assert(r.slots === 13 && r.found === 1, "13 slots, 1 found " + JSON.stringify(r));
       assert(zReq(page).length >= 1, "the art was loaded when the card was made");
       await page.close();
@@ -191,22 +198,22 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
-    await check("P7 option c: first draw on the pet's birthday is the secret card; not repeated by the next draw or a reload", async () => {
-      const page = await open(browser, base, { init: [`window.LENSIQ_PET_ZODIAC_ODDS = "c";`] });
+    await check("P7 no birthday rule: a birth date on today's month-day gives ordinary draws", async () => {
+      const page = await open(browser, base);
       const today = await page.evaluate(() => { const d = new Date(), p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; });
       const bd = (Number(today.slice(0, 4)) - 4) + today.slice(4); // 4 years back: a 29 Feb stays valid
       await fill(page, { birth: bd }); await readNow(page); await page.waitFor(cardDone, 10000);
-      const r1 = await page.evaluate(() => ({ t: document.getElementById("petCard").dataset.template, rule: document.getElementById("petCard").dataset.rule }));
-      assert(r1.t === "secret" && r1.rule === "birthday", "first birthday draw " + JSON.stringify(r1));
+      const seen = [];
+      for (let i = 0; i < 8; i++) {
+        const r = await page.evaluate(() => ({ t: document.getElementById("petCard").dataset.template, rule: document.getElementById("petCard").dataset.rule || "", s: document.getElementById("petCard").dataset.drawSeq || "" }));
+        seen.push(r);
+        await page.evaluate(() => document.getElementById("petZRedraw").click());
+        await page.waitFor(`(document.getElementById("petCard").dataset.drawSeq || "") !== ${JSON.stringify(r.s)}`, 6000);
+      }
+      assert(seen.every(r => r.rule !== "birthday"), "a birthday rule fired " + JSON.stringify(seen));
+      assert(!seen.every(r => r.t === "secret"), "every draw was the secret card " + JSON.stringify(seen));
       const odds = await page.evaluate(() => document.getElementById("petZOdds").textContent);
-      assert(odds.includes(SECRET.th) || /Secret/.test(odds), "the odds line says what the birthday rule does: " + odds);
-      await page.evaluate(() => document.getElementById("petZRedraw").click()); await sleep(500);
-      const r2 = await page.evaluate(() => document.getElementById("petCard").dataset.rule || "");
-      assert(r2 !== "birthday", "the guarantee is used once");
-      await page.reload(); await page.waitFor("window.__LQPET && window.__LQPET.ready", 15000);
-      await fill(page, { birth: bd, photo: false }); await readNow(page); await page.waitFor(cardDone, 10000);
-      const r3 = await page.evaluate(() => document.getElementById("petCard").dataset.rule || "");
-      assert(r3 !== "birthday", "not repeated after a reload the same day");
+      assert(!/วันเกิด|birthday|生日/i.test(odds), "the odds line mentions a birthday: " + odds);
       await page.close();
     });
 

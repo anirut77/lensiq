@@ -6,3 +6,14 @@
 # locked 2026-11-19T02:01:35Z (tools/eval-guard.mjs lock, 2 files)
 ca99367160080d31bcc0f784763b722a2560febaad7802bb0bedf2cf7c5a4096  tests/unit/pet-zodiac.test.js
 5f647263cc918da9b4997f2601d9f0494429a05a34e689e439466065dd0645eb  tests/e2e/pet-zodiac.e2e.mjs
+# RE-LOCK 1 2026-11-19 (branch pet-zodiac-cards), owner decisions 137 ข and 138 ข relayed by the coordinator mid-build: option b
+# (day's zodiac animal x2; secret 1 in 50, 1 in 10 on full-moon days) is the DEFAULT; the birthday rule (option c) is removed
+# entirely (abusable: a typed birthday can be set to today); one short odds line generated from the active config; classic
+# themes stay behind PET_CARD_CLASSIC (default false). Locked BEFORE any product commit. Disclosure: an uncommitted draft of
+# lensiq-pet-draw.js had been run once against the first lock (unit 7/14) before the decision arrived; no product code is
+# committed under the first lock. Changed tests: unit Z2 Z3 Z5 Z6 Z8 Z11, e2e P2 P7 (see each file's header).
+# locked 2026-11-19T02:10:13Z (tools/eval-guard.mjs lock, 2 files)
+8411d4ea2b377f8609070b1f85943bcdb3b60e77d1a03dcac7b598e892356312  relock-1/pet-zodiac.test.js
+17a4ccb8fd400126b1498d2fbe18712f2f39640e88f0980ef2c1c4ffb49ad976  relock-1/pet-zodiac.e2e.mjs
+8411d4ea2b377f8609070b1f85943bcdb3b60e77d1a03dcac7b598e892356312  tests/unit/pet-zodiac.test.js  # repo file (same commit as lock 2026-11-19T02:10:13Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-1/pet-zodiac.test.js)
+17a4ccb8fd400126b1498d2fbe18712f2f39640e88f0980ef2c1c4ffb49ad976  tests/e2e/pet-zodiac.e2e.mjs  # repo file (same commit as lock 2026-11-19T02:10:13Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-1/pet-zodiac.e2e.mjs)

@@ -2,24 +2,29 @@
 // tests/unit/pet-zodiac.test.js — FIXED TEST SET for the Pet zodiac share cards (owner spec 2026-11-19, branch pet-zodiac-cards).
 // Locked (evals-locks/pet-zodiac.sha256, ~/LENSIQ-field/evals/pet-zodiac/) BEFORE any product code. Browser half:
 // tests/e2e/pet-zodiac.e2e.mjs. Inputs are synthetic (no photos).
+// RE-LOCK 1 (2026-11-19, owner decisions 137 ข and 138 ข, before any product commit): option b (the day's zodiac animal x2,
+// secret 1 in 50, 1 in 10 on full-moon days) is the DEFAULT; the birthday rule (old option c) is removed entirely (a typed
+// birthday can be set to today); one short odds line generated from the active config; the classic themes stay behind
+// PET_CARD_CLASSIC (default false). Changed: Z2, Z3, Z5, Z6, Z8 (birthday marker lines removed), Z11; the rest
+// is unchanged.
 //   Z1  13 templates: the 12 Chinese zodiac animals in branch order (rat … pig) + "secret"; names in TH / EN / ZH; the secret
 //       card's words are exactly "การ์ด Secret" / "Secret Card" / "隐藏卡"
-//   Z2  the draw is a pure module (lensiq-pet-draw.js) with an odds config object; default config "a" = 12 zodiac cards equal,
-//       secret 1 in 50; odds always sum to 1
-//   Z3  distribution: 100 000 draws with crypto.getRandomValues match the config (chi-square, 12 df, below 40 = p < 0.0001)
-//       and the secret rate is within ±0.3 percentage points of 2 %; no Math.random in the module
+//   Z2  the draw is a pure module (lensiq-pet-draw.js) with an odds config object; DEFAULT config "b" (owner decision 137 ข);
+//       preset "a" (12 equal, secret 1 in 50, no date rule) kept for comparison; odds always sum to 1
+//   Z3  distribution: 100 000 draws of the default config on an ordinary day with crypto.getRandomValues match the config
+//       (chi-square, 12 df, below 40 = p < 0.0001) and the secret rate is within ±0.3 percentage points of 2 %; no Math.random
 //   Z4  option b: the zodiac animal of the day (12-day branch cycle, same as horoscope.js HSCore.dayPillarJDN) gets double
 //       weight; on full-moon days (the site's own "ขึ้น 15 ค่ำ" rule, lensiq-planner.js lunarDay) the secret is 1 in 10
-//   Z5  option c: the first draw made on the pet's birthday (month-day of the entered birth date) is the secret card; later
-//       draws that day and other days use 1 in 50; 29 Feb births on 28 Feb in other years
-//   Z6  odds shown are generated from the active config (TH / EN / ZH), with the "independent of the reading" line; no
-//       rarity words
+//   Z5  no birthday rule anywhere (owner decision 137 ข): no preset has it, a birth date on today's month-day changes nothing
+//   Z6  the one short odds line is generated from the active config (TH / EN / ZH): every percentage in it is one of the
+//       config's odds for that day and the day's animal, the x2 and the full-moon 1 in 10 are stated when they apply; plus the
+//       "independent of the reading" line; no rarity words
 //   Z7  the reading never changes because of the card: the card model's reading text is identical for all 13 templates
 //   Z8  collection storage: only template ids + first-found date (YYYY-MM-DD); try/catch around storage; no image data
 //   Z9  TH / EN / ZH keys complete for every data-i18n key on petread.html and every pet.z.* key in petread.js
 //   Z10 no price / buy / pay words or links near the card (card section markup, the new modules, the pet.z.* strings)
 //   Z11 flags: window.LENSIQ_PET_ZODIAC default false; window.LENSIQ_PET_CARD_CLASSIC (spec name PET_CARD_CLASSIC) default
-//       false; the 4 classic themes and their buttons are kept; odds preset switch window.LENSIQ_PET_ZODIAC_ODDS (a / b / c)
+//       false; the 4 classic themes and their buttons are kept; odds preset switch window.LENSIQ_PET_ZODIAC_ODDS default "b"
 //   Z12 lazy: petread.html loads neither the draw module nor the template art; petread.js loads them on demand only
 //   Z13 licence: the template art is recorded as original, LENSIQ in LICENSES/THIRD_PARTY.md
 //   Z14 the art module defines 13 distinct styles (colours, border, stickers) and an illustration for each template
@@ -76,19 +81,23 @@ test("Z1 13 templates: 12 zodiac animals in branch order + secret; names in TH /
   for (const l of LANGS) assert.equal(new Set(ALL.map(id => M.label(id, l))).size, 13, l + " labels distinct");
 });
 
-test("Z2 pure draw module with an odds config; default a = 12 equal, secret 1 in 50; odds sum to 1", () => {
+test("Z2 pure draw module with an odds config; default b (day animal x2, secret 1 in 50 / 1 in 10 on full moon); odds sum to 1", () => {
   const M = D();
-  assert.equal(M.DEFAULT, "a");
-  for (const k of ["a", "b", "c"]) {
+  assert.equal(M.DEFAULT, "b");
+  assert.deepEqual(Object.keys(M.CONFIGS).sort(), ["a", "b"], "presets a and b only (no birthday preset)");
+  const bb = M.CONFIGS.b;
+  assert.ok(ZODIAC.every(z => bb.weights[z] === bb.weights.rat) && bb.dayBranchFactor === 2 && close(bb.secret, 1 / 50) && close(bb.fullMoonSecret, 1 / 10), "b as decided");
+  for (const k of ["a", "b"]) {
     const c = M.CONFIGS[k];
     assert.ok(c && typeof c === "object" && c.weights && typeof c.secret === "number", "config " + k);
     assert.deepEqual(Object.keys(c.weights).sort(), ZODIAC.slice().sort(), k + " weights per zodiac template");
   }
-  assert.equal(M.config("nope"), M.CONFIGS.a, "unknown preset -> a");
+  assert.equal(M.config("nope"), M.CONFIGS.b, "unknown preset -> the default b");
+  assert.equal(M.config(undefined), M.CONFIGS.b, "no preset -> the default b");
   const a = M.CONFIGS.a;
   assert.ok(ZODIAC.every(z => a.weights[z] === a.weights.rat), "a: equal zodiac weights");
   assert.ok(close(a.secret, 1 / 50), "a: secret 1 in 50");
-  for (const today of ["2026-11-19", "2025-11-05", "2026-03-14"]) for (const k of ["a", "b", "c"]) {
+  for (const today of ["2026-11-19", "2025-11-05", "2026-03-14"]) for (const k of ["a", "b"]) {
     const o = M.odds(M.CONFIGS[k], { today, birth: "2021-03-14", birthdayDone: false });
     assert.deepEqual(Object.keys(o.p).sort(), ALL.slice().sort());
     assert.ok(close(sum(o.p), 1, 1e-12), `${k} ${today} sums to 1`);
@@ -103,7 +112,7 @@ test("Z2 pure draw module with an odds config; default a = 12 equal, secret 1 in
   assert.doesNotMatch(s, /\bfetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket|document\.|\.innerHTML/, "pure module");
 });
 
-test("Z3 100 000 draws with crypto.getRandomValues match config a: chi-square < 40 (12 df), secret within ±0.3 pp of 2 %", () => {
+test("Z3 100 000 draws of the default config (ordinary day) with crypto.getRandomValues: chi-square < 40 (12 df), secret ±0.3 pp of 2 %", () => {
   const M = D();
   const src = read("lensiq-pet-draw.js").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   assert.doesNotMatch(src, /Math\.random/, "no Math.random in the draw");
@@ -113,10 +122,12 @@ test("Z3 100 000 draws with crypto.getRandomValues match config a: chi-square < 
   const spy = a => { calls++; return real(a); };
   Object.defineProperty(globalThis.crypto, "getRandomValues", { value: spy, configurable: true, writable: true });
   const N = 100000, n = Object.fromEntries(ALL.map(k => [k, 0]));
-  try { for (let i = 0; i < N; i++) n[M.draw(M.CONFIGS.a, { today: "2026-11-19" }).id]++; }
+  assert.ok(!M.isFullMoonDay("2026-11-19"), "2026-11-19 is an ordinary day");
+  const cfg = M.config(M.DEFAULT);
+  try { for (let i = 0; i < N; i++) n[M.draw(cfg, { today: "2026-11-19" }).id]++; }
   finally { Object.defineProperty(globalThis.crypto, "getRandomValues", { value: real, configurable: true, writable: true }); }
   assert.ok(calls >= N, `getRandomValues used for every draw (${calls} calls)`);
-  const p = M.odds(M.CONFIGS.a, { today: "2026-11-19" }).p;
+  const p = M.odds(cfg, { today: "2026-11-19" }).p;
   let chi = 0; for (const k of ALL) { const e = N * p[k]; chi += (n[k] - e) ** 2 / e; }
   assert.ok(chi < 40, `chi-square ${chi.toFixed(2)} >= 40 (counts ${JSON.stringify(n)})`);
   const rate = n.secret / N;
@@ -153,29 +164,26 @@ test("Z4 option b: the day's branch animal x2 (same cycle as HSCore.dayPillarJDN
   assert.ok(close(M.odds(M.CONFIGS.a, { today: "2025-11-05" }).p.secret, 0.02), "a ignores the full moon");
 });
 
-test("Z5 option c: the first draw on the pet's birthday is the secret card; later draws and other days 1 in 50", () => {
-  const M = D(), c = M.CONFIGS.c;
-  assert.ok(M.isBirthday("2026-03-14", "2021-03-14"));
-  assert.ok(!M.isBirthday("2026-03-15", "2021-03-14"));
-  assert.ok(M.isBirthday("2026-02-28", "2020-02-29"), "29 Feb -> 28 Feb in a common year");
-  assert.ok(M.isBirthday("2028-02-29", "2020-02-29") && !M.isBirthday("2028-02-28", "2020-02-29"), "leap year: 29 Feb itself");
-  assert.ok(!M.isBirthday("2026-03-14", null) && !M.isBirthday("2026-03-14", "") && !M.isBirthday("2026-03-14", "garbage"));
-  for (let i = 0; i < 2000; i++) {
-    const r = M.draw(c, { today: "2026-03-14", birth: "2021-03-14", birthdayDone: false });
-    assert.equal(r.id, "secret"); assert.equal(r.rule, "birthday");
+test("Z5 no birthday rule anywhere: a birth date on today's month-day changes nothing", () => {
+  const M = D();
+  assert.equal(M.isBirthday, undefined, "no birthday helper");
+  assert.equal(M.markBirthday, undefined, "no birthday marker");
+  for (const k of Object.keys(M.CONFIGS)) assert.ok(!("birthdaySecret" in M.CONFIGS[k]), k + " has no birthday rule");
+  for (const k of Object.keys(M.CONFIGS)) {
+    const a = M.odds(M.CONFIGS[k], { today: "2026-03-14", birth: "2021-03-14", birthdayDone: false });
+    const b = M.odds(M.CONFIGS[k], { today: "2026-03-14" });
+    assert.deepEqual(a.p, b.p, k + ": the birth date does not change the odds");
+    assert.ok(!a.rule, k + ": no rule");
   }
-  const later = M.odds(c, { today: "2026-03-14", birth: "2021-03-14", birthdayDone: true });
-  assert.ok(close(later.p.secret, 0.02) && later.rule === "", "second draw on the birthday: 1 in 50");
-  const other = M.odds(c, { today: "2026-03-15", birth: "2021-03-14", birthdayDone: false });
-  assert.ok(close(other.p.secret, 0.02) && other.rule === "", "another day: 1 in 50");
-  const a = M.odds(M.CONFIGS.a, { today: "2026-03-14", birth: "2021-03-14", birthdayDone: false });
-  assert.ok(close(a.p.secret, 0.02), "a has no birthday rule");
+  const s = read("lensiq-pet-draw.js") + read("petread.js");
+  assert.doesNotMatch(s, /birthday|BDAY_KEY|petBirth[^"]*"\)\.value[^;]*draw/i, "no birthday rule code");
 });
 
 test("Z6 odds text is generated from the active config (TH / EN / ZH), says the card is independent of the reading, no rarity words", () => {
   const M = D();
   const cases = [
     [M.CONFIGS.a, { today: "2026-11-19" }, ["2%", "8.17%"]],
+    [M.config(M.DEFAULT), { today: "2025-11-05" }, ["10%"]],
     [M.CONFIGS.b, { today: "2025-11-05" }, ["10%"]],
     [M.CONFIGS.b, { today: "2026-11-19" }, ["2%", "15.08%", "7.54%"]],
   ];
@@ -187,13 +195,30 @@ test("Z6 odds text is generated from the active config (TH / EN / ZH), says the 
       assert.doesNotMatch(t, MONEY, l + " odds text money");
       if (l !== "th") assert.doesNotMatch(t, THAI, l + " odds text has Thai");
     }
-    const bd = M.oddsText(M.CONFIGS.c, { today: "2026-03-14", birth: "2021-03-14", birthdayDone: false }, l).join("\n");
-    assert.ok(bd.includes(SECRET[l]), l + " birthday line names the secret card");
     // a made-up config: the text follows it (nothing hard-coded)
     const odd = Object.assign({}, M.CONFIGS.a, { id: "x", secret: 0.05 });
     assert.ok(M.oddsText(odd, { today: "2026-11-19" }, l).join("\n").includes("5%"), l + " follows the config");
     assert.ok(M.oddsText(odd, { today: "2026-11-19" }, l).join("\n").includes("7.92%"), l + " zodiac share follows the config");
   }
+  // every percentage in the line is one of the config's odds that day; the day's animal and the full-moon rule are named
+  const pct = x => (Math.round(x * 10000) / 100).toFixed(2).replace(/\.?0+$/, "") + "%";
+  const NAME = { th: { horse: "ม้า" }, en: { horse: "Horse" }, zh: { horse: "马" } };
+  const cfg = M.config(M.DEFAULT);
+  for (const [y, m, d] of days(2025, 2026)) {
+    const t = iso(y, m, d), o = M.odds(cfg, { today: t });
+    const allowed = new Set(Object.values(o.p).map(pct));
+    for (const l of LANGS) {
+      const lines = M.oddsText(cfg, { today: t }, l), first = lines[0];
+      assert.ok(lines.length <= 2 && first.length <= (l === "zh" ? 70 : l === "th" ? 150 : 170), `${l} ${t}: one short line (+ the independent line) "${first}"`);
+      const nums = first.match(/\d+(?:\.\d+)?%/g) || [];
+      assert.ok(nums.length >= 2 && nums.every(n => allowed.has(n)), `${l} ${t}: ${first} vs ${[...allowed]}`);
+      assert.ok(first.includes(pct(o.p.secret)) && first.includes(pct(o.p[o.dayAnimal])), `${l} ${t}: secret + day animal odds`);
+      assert.ok(first.includes(M.short(o.dayAnimal, l)), `${l} ${t}: names the day's animal`);
+      if (o.fullMoon) assert.ok(first.includes("10%"), `${l} ${t}: full-moon odds`);
+    }
+  }
+  assert.equal(M.dayBranch("2000-01-01"), 6); assert.ok(M.oddsText(cfg, { today: "2000-01-01" }, "th")[0].includes(NAME.th.horse));
+  assert.ok(M.oddsText(cfg, { today: "2000-01-01" }, "en")[0].includes(NAME.en.horse) && M.oddsText(cfg, { today: "2000-01-01" }, "zh")[0].includes(NAME.zh.horse));
   const ind = { th: /คำอ่าน/, en: /reading/i, zh: /解读/ };
   for (const l of LANGS) assert.match(M.INDEPENDENT[l], ind[l], l + " independent-of-the-reading line");
 });
@@ -238,16 +263,10 @@ test("Z8 collection storage: ids + first-found date only; try/catch; no image da
       assert.match(String(vv), /^\d{4}-\d\d-\d\d$/, "only dates");
     }
   }
-  // birthday marker: a date only
-  M.markBirthday(s, "2026-03-14");
-  assert.equal(M.birthdayDone(s, "2026-03-14"), true);
-  assert.equal(M.birthdayDone(s, "2026-03-15"), false);
   // storage that throws, garbage JSON, no storage
   const bad = { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); }, removeItem() { throw new Error("x"); } };
   assert.deepEqual(M.loadCollection(bad), {});
   assert.doesNotThrow(() => M.recordFind(bad, "ox", "2026-11-19"));
-  assert.doesNotThrow(() => M.markBirthday(bad, "2026-11-19"));
-  assert.equal(M.birthdayDone(bad, "2026-11-19"), false);
   const g = mem(); g.setItem(M.STORE_KEY, "{not json"); assert.deepEqual(M.loadCollection(g), {});
   g.setItem(M.STORE_KEY, JSON.stringify({ v: 1, found: { ox: "2026-01-01", evil: "data:image/png;base64,AAAA", pig: "data:x" } }));
   assert.deepEqual(M.loadCollection(g), { ox: "2026-01-01" });
@@ -310,7 +329,7 @@ test("Z10 no price, buy or pay words or links near the card; draws are free and 
   assert.doesNotMatch(read("lensiq-pet-draw.js"), /max(?:Draws|PerDay)|limit|quota|cooldown/i, "no draw limit");
 });
 
-test("Z11 flags: LENSIQ_PET_ZODIAC default false, LENSIQ_PET_CARD_CLASSIC default false, odds preset a; classic themes kept", () => {
+test("Z11 flags: LENSIQ_PET_ZODIAC default false, LENSIQ_PET_CARD_CLASSIC default false, odds preset b; classic themes kept", () => {
   const cfg = read("lensiq-config.js");
   assert.match(cfg, /window\.LENSIQ_PET_ZODIAC\s*=\s*window\.LENSIQ_PET_ZODIAC\s*===\s*true/);
   assert.match(cfg, /window\.LENSIQ_PET_CARD_CLASSIC\s*=\s*window\.LENSIQ_PET_CARD_CLASSIC\s*===\s*true/);
@@ -319,7 +338,7 @@ test("Z11 flags: LENSIQ_PET_ZODIAC default false, LENSIQ_PET_CARD_CLASSIC defaul
   try { vm.runInNewContext(cfg, { window: W, document: undefined, location: W.location, navigator: {}, console }); } catch (e) { /* DOM parts */ }
   assert.equal(W.LENSIQ_PET_ZODIAC, false, "zodiac mode off on the live site");
   assert.equal(W.LENSIQ_PET_CARD_CLASSIC, false, "classic flag default false (= zodiac draw mode when zodiac is on)");
-  assert.equal(W.LENSIQ_PET_ZODIAC_ODDS, "a", "odds preset a");
+  assert.equal(W.LENSIQ_PET_ZODIAC_ODDS, "b", "odds preset b (owner decision 137 ข)");
   const C = require("../../lensiq-pet-card.js");
   assert.deepEqual(Object.keys(C.THEMES).sort(), ["blossom", "mint", "night", "sunny"], "the 4 classic themes are kept");
   const h = read("petread.html");
