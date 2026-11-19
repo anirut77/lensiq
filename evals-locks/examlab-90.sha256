@@ -19,3 +19,6 @@ d533420cd8342326439dee3aa87f9cba6683d18ba4cc492fb9d2044978b9730b  tests/e2e/exam
 # locked 2026-11-18T16:33:41Z (tools/eval-guard.mjs lock, 2 files)
 aa0edead8e31ca106386d87890ce6c051e708af3207fbe168e609ff1b0ef308e  tests/e2e/exam-states.e2e.mjs
 bf3637ba21cfe6afa39fff452e2a0e5baeb53b5812562b6365d354b1881f1c4b  tests/e2e/exam-pages-webkit.e2e.mjs
+# reviewer round 1 of delta 39ac5013 -> 1fa699eb: new test exam-lab-restart (R1 stale calibrate tap after camera off + consent again; R2 silent camera after restart: calibrate never sticks in "cal"), locked BEFORE the product fix. Run on 1fa699eb (unfixed): R1 3/3 pass (this path already clears the waiting tap on 1fa699eb; kept as a regression guard for the reviewer show()/startCamera() resets), R2 3/3 FAIL (phase "cal", videoWidth 0) as expected. exam-states, exam-widths, exam-pages-webkit unchanged.
+# locked 2026-11-19T06:14:33Z (tools/eval-guard.mjs lock, 1 file)
+8802364598b51f95b453f633aeed700f88db9ace223688466298f02d3ce58b6a  tests/e2e/exam-lab-restart.e2e.mjs
