@@ -68,7 +68,7 @@
  *   its own filter and a per-caller limit). The text sent is shown (#pcAiAutoText) with "stop one-tap and withdraw"
  *   (#pcAiAutoStop); any withdraw clears the consent AND the one-tap choice at once.
  * SERVER REFUSALS: a refusal with a documented code (ai_off_dispensing / ai_off_personal_doc / ai_off_no_product /
- *   ai_off_personal_data / ai_off_auto_filter / ai_off_jako_preview / ai_off_jako_photo) shows its own notice instead of the generic "AI unavailable".
+ *   ai_off_personal_data / ai_off_auto_filter / ai_off_preview / ai_off_jako_preview / ai_off_jako_photo) shows its own notice instead of the generic "AI unavailable".
  * Test hook: window.__LQ_PCAI = {st, ask(forceText), paint(), auto}.
  */
 (function (root, factory) {
@@ -561,6 +561,7 @@
     const CODE_NOTE = () => ({ ai_off_dispensing: NOTE().dispOff, ai_off_personal_doc: NOTE().personalDoc, ai_off_no_product: NOTE().noProduct,
       ai_off_personal_data: T("md.pc.ai.n.personalData", "เซิร์ฟเวอร์ไม่ส่งข้อความนี้ให้ AI เพราะยังพบชื่อหรือข้อมูลส่วนตัว ผลตรวจในเครื่องด้านบนยังใช้ได้ตามเดิม"),
       ai_off_auto_filter: T("md.pc.ai.n.tapFilter", "เซิร์ฟเวอร์ไม่รับการส่งแบบแตะครั้งเดียวสำหรับข้อความนี้ กด \"ขอความเห็นจาก AI\" อีกครั้งเพื่อดูข้อความก่อนส่ง"),
+      ai_off_preview: T("md.pc.ai.n.preview", "เซิร์ฟเวอร์ไม่ส่งข้อความที่ยังไม่ผ่านการตรวจของคุณ กด \"ขอความเห็นจาก AI\" อีกครั้งเพื่อดูข้อความก่อนส่ง"),
       ai_off_jako_preview: T("md.pc.ai.n.jakoPreview", "เซิร์ฟเวอร์ไม่ส่งข้อความภาษาญี่ปุ่นหรือเกาหลีที่ยังไม่ผ่านการตรวจของคุณ กด \"ขอความเห็นจาก AI\" อีกครั้งเพื่อดูข้อความก่อนส่ง"),
       ai_off_jako_photo: T("md.pc.ai.n.jakoPhoto", "เซิร์ฟเวอร์ไม่ส่งภาพของฉลากภาษาญี่ปุ่นหรือเกาหลี ส่งได้เฉพาะข้อความหลังจากคุณตรวจแล้ว") });
     function fbLine(x) {

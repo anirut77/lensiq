@@ -64,11 +64,19 @@ test("Worker (second check): JA / KO text needs previewed: true, never a photo, 
   }
   const lat = { text: "Vitamin C 60 tablets\nIngredients ascorbic acid\nMade by X Co., Ltd.", gtins: ["8801234567893"] };
   assert.equal(code(() => P.buildFields({ ...lat, script: "ko" }, { mode: "text" })), "ai_off_jako_preview", "script ko counts");
-  assert.equal(code(() => P.buildFields(lat, { mode: "text" })), "ok");
+  // owner decision 146 (2026-11-19, option ก): every script now needs the preview mark (stricter than the JA / KO-only rule above,
+  // which keeps its own code); with the mark the public flow is unchanged
+  assert.equal(code(() => P.buildFields(lat, { mode: "text" })), "ai_off_preview", "no preview mark, Latin text");
+  assert.equal(code(() => P.buildFields({ ...lat, previewed: true }, { mode: "text" })), "ok");
   for (const t of [ZH_S, TH]) {
     const base = { text: t, gtins: [t.split("\n").pop()] };
-    assert.equal(code(() => P.buildFields(base, { mode: "text" })), "ok", "public flow without the mark is unchanged for " + t.slice(0, 8));
-    assert.equal(code(() => P.buildFields({ ...base, images: img }, { mode: "image" })), "ok");
+    for (const b of [P.buildFields, P.buildClaims, P.buildTranslate]) {
+      assert.equal(code(() => b(base, { mode: "text" })), "ai_off_preview", "no preview mark for " + t.slice(0, 8));
+      assert.equal(code(() => b({ ...base, previewed: "yes" }, { mode: "text" })), "ai_off_preview", "the mark must be true");
+    }
+    assert.equal(code(() => P.buildFields({ ...base, previewed: true }, { mode: "text" })), "ok", "the public flow with the mark is unchanged for " + t.slice(0, 8));
+    assert.equal(code(() => P.buildFields({ ...base, images: img }, { mode: "image" })), "ai_off_preview");
+    assert.equal(code(() => P.buildFields({ ...base, previewed: true, images: img }, { mode: "image" })), "ok");
   }
   assert.deepEqual([...P.JAKO_REFUSAL_CODES], ["ai_off_jako_preview", "ai_off_jako_photo"]);
 });

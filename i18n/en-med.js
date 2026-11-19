@@ -602,6 +602,7 @@
   "md.pc.tap.w.doc": "Not sent at once: this looks like a personal document, not a product label",
   "md.pc.ai.offerJako": "This photo is not sent: the label has Japanese or Korean script, where the check cannot find every name, so no photo is sent at all. You can send the text only, after you check it",
   "md.pc.ai.prevJako": "This text has Japanese or Korean script. The check cannot find every name that has no label word, so read every line and delete any person's name yourself before sending. Text like this is never sent automatically",
+  "md.pc.ai.n.preview": "The server does not send text you have not checked. Press \"Ask AI\" again to see the text before it is sent",
   "md.pc.ai.n.jakoPreview": "The server does not send Japanese or Korean text that you have not checked. Press \"Ask AI\" again to see the text before it is sent",
   "md.pc.ai.n.jakoPhoto": "The server does not send a photo of a Japanese or Korean label. You can send the text only, after you check it",
   "md.pc.tap.w.jako": "Not sent at once: the text has Japanese or Korean script, which is never sent by one tap. Check the text below and send it yourself if you wish",

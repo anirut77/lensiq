@@ -360,7 +360,7 @@ export async function aiRoute(env, request, featureId, deps = {}, ctx = {}) {
   const evalLocal = evalLocalMode(env, request);
   let nreq;
   try {
-    nreq = meta.build(input, { mode, evalLocal });
+    nreq = meta.build(input, { mode, evalLocal, auto }); // auto: a tester one-tap request (autoCheck below instead of the preview mark)
     if (auto) meta.autoCheck(input); // tester one-tap send: the stricter filter, after every check of build()
     if (!nreq || typeof nreq.system !== "string" || typeof nreq.text !== "string" || !nreq.output || !nreq.output.schema) throw new Error("bad build");
   } catch (e) { // refused before any provider call; a documented refusal of this text adds its code (pc-features.js INPUT_REFUSAL_CODES)

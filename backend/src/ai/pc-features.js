@@ -31,7 +31,9 @@
 import GuardModule from "../../../lensiq-pc-guard.js";
 
 /** @type {{scan: (t: string) => any[], isDispensingLabel: (t: string) => boolean, DEFAULTS: {dispensingAI: string}, PLACEHOLDER: string,
- *   possibleNames: (t: string) => any[], autoBlock: (t: string) => boolean, jakoScript: (t: string, o?: {script?: string}) => boolean, aiGate: (t: string, facts?: {gtins?: string[], regs?: string[]}, opts?: any) => {allow: boolean, reason: string}}} */
+ *   possibleNames: (t: string) => any[], previewRedact: (t: string, o?: any) => {count: number},
+ *   autoBlock: (t: string) => boolean, jakoScript: (t: string, o?: {script?: string}) => boolean,
+ *   aiGate: (t: string, facts?: {gtins?: string[], regs?: string[]}, opts?: any) => {allow: boolean, reason: string}}} */
 const Guard = GuardModule;
 export const MAX_TEXT = 8000;
 const S = (n = 200) => ({ type: ["string", "null"], maxLength: n });
@@ -164,13 +166,21 @@ export const JAKO_REFUSAL_CODES = Object.freeze(["ai_off_jako_preview", "ai_off_
  *                         decision 2026-11-14: never one-tap)
  */
 export const AUTO_REFUSAL_CODES = Object.freeze(["ai_off_auto_filter"]);
+/**
+ * Every script (owner decision 146, option ก, 2026-11-19): a text request that is not a tester one-tap (auto) request must
+ * carry previewed: true (the page sets it only after the user's own "Send this text" on the preview, whose automatic removal
+ * runs on the device: LQPCGuard.previewRedact). Japanese / Korean keep their own code above.
+ *   ai_off_preview        refused: no preview mark on a non-auto request
+ */
+export const PREVIEW_REFUSAL_CODES = Object.freeze(["ai_off_preview"]);
 const GATE_CODE = /** @type {Record<string, string>} */ ({ dispensing: "ai_off_dispensing", "personal-doc": "ai_off_personal_doc", "no-product": "ai_off_no_product" });
 /** @param {string} code one of INPUT_REFUSAL_CODES @param {string} message */
 function refusal(code, message) { return Object.assign(new Error(message), { code }); }
 /** The documented refusal code of a build error, or null (any other error). @param {any} e @returns {string|null} */
-export const refusalCode = e => (e && typeof e.code === "string" && (INPUT_REFUSAL_CODES.includes(e.code) || AUTO_REFUSAL_CODES.includes(e.code) || JAKO_REFUSAL_CODES.includes(e.code)) ? e.code : null);
+export const refusalCode = e => (e && typeof e.code === "string" && (INPUT_REFUSAL_CODES.includes(e.code) || AUTO_REFUSAL_CODES.includes(e.code) ||
+  JAKO_REFUSAL_CODES.includes(e.code) || PREVIEW_REFUSAL_CODES.includes(e.code)) ? e.code : null);
 
-/** @param {any} input @param {{images?: boolean, evalLocal?: boolean}} [o] */
+/** @param {any} input @param {{images?: boolean, evalLocal?: boolean, auto?: boolean}} [o] */
 function cleanText(input, o = {}) {
   const jako = typeof input.text === "string" && Guard.jakoScript(input.text, { script: typeof input.script === "string" ? input.script : "" });
   const t = typeof input.text === "string" ? input.text.normalize("NFC").replace(/\r\n?/g, "\n").trim() : "";
@@ -195,6 +205,9 @@ function cleanText(input, o = {}) {
     if (o.images) throw refusal("ai_off_jako_photo", "no photo of a Japanese / Korean label");
     if (input.previewed !== true) throw refusal("ai_off_jako_preview", "Japanese / Korean text needs the user's preview");
   }
+  // owner decision 146: every other script needs the preview mark too, unless this is a tester one-tap (auto) request, which
+  // the gateway sends through autoCheck below instead
+  if (o.auto !== true && input.previewed !== true) throw refusal("ai_off_preview", "text needs the user's preview");
   return t;
 }
 
@@ -280,10 +293,10 @@ export function verifyTranslate(text) {
 
 /* ---------------------------------------- builders ---------------------------------------- */
 
-/** @param {any} input @param {{mode: string, evalLocal?: boolean}} o */
+/** @param {any} input @param {{mode: string, evalLocal?: boolean, auto?: boolean}} o */
 export function buildFields(input, o) {
   const image = o && o.mode === "image";
-  const text = cleanText(input, { images: image, evalLocal: !!o && o.evalLocal === true });
+  const text = cleanText(input, { images: image, evalLocal: !!o && o.evalLocal === true, auto: !!o && o.auto === true });
   const script = ["th", "cjk", "ko", "latin"].includes(input.script) ? input.script : "unknown";
   return {
     system: PROMPTS.pc_fields,
@@ -294,9 +307,9 @@ export function buildFields(input, o) {
   };
 }
 
-/** @param {any} input @param {{mode?: string, evalLocal?: boolean}} [o] */
+/** @param {any} input @param {{mode?: string, evalLocal?: boolean, auto?: boolean}} [o] */
 export function buildClaims(input, o) {
-  const text = cleanText(input, { evalLocal: !!o && o.evalLocal === true });
+  const text = cleanText(input, { evalLocal: !!o && o.evalLocal === true, auto: !!o && o.auto === true });
   const cat = CATEGORIES.includes(input.category) ? input.category : null;
   const rules = claimRulesFor(cat);
   return {
@@ -307,9 +320,9 @@ export function buildClaims(input, o) {
   };
 }
 
-/** @param {any} input @param {{mode?: string, evalLocal?: boolean}} [o] */
+/** @param {any} input @param {{mode?: string, evalLocal?: boolean, auto?: boolean}} [o] */
 export function buildTranslate(input, o) {
-  const text = cleanText(input, { evalLocal: !!o && o.evalLocal === true });
+  const text = cleanText(input, { evalLocal: !!o && o.evalLocal === true, auto: !!o && o.auto === true });
   const target = LANGS.includes(input.target) ? input.target : "th";
   return {
     system: PROMPTS.pc_translate,

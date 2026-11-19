@@ -151,7 +151,8 @@ test("R6 (LIVE-SCAN-RESULTS.md:69, :177, :369): one-tap allowance at most 6 a mi
   const post = async (i, auto) => {
     Date.now = () => (day0 + i * 61) * 1000;
     const r = await handle(req("/v1/ai/" + (i % 2 ? "pc_claims" : "pc_fields"), { method: "POST",
-      body: { consent: true, providers: ["anthropic"], mode: "text", input: { text: LABEL }, ...(auto ? { auto: true } : {}) },
+      // owner decision 146: a non-auto request carries the page's preview mark (the Worker refuses it otherwise: ai_off_preview)
+      body: { consent: true, providers: ["anthropic"], mode: "text", input: { text: LABEL, ...(auto ? {} : { previewed: true }) }, ...(auto ? { auto: true } : {}) },
       headers: { "X-Turnstile-Token": "good", "X-Tester-Code": CODE }, origin: "https://site.example", ip: "198.51.100.31" }), env,
     { fetch: siteverify, aiAdapters: adapters, sleep: async () => {} });
     return { status: r.status, j: await r.json() };

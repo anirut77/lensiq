@@ -59,7 +59,11 @@ async function post(env, feature, body, a, o = {}) {
     ...(o.deps || {}) });
   return { status: r.status, j: await r.json() };
 }
-const body = (input, extra = {}, mode = "text") => ({ consent: true, providers: ["anthropic"], mode, input, ...extra });
+// owner decision 146 (2026-11-19): the Worker refuses a non-auto request without the page's preview mark (ai_off_preview), so
+// a non-auto request here carries previewed: true exactly as the page sends it after "Send this text"; auto requests never do
+// (the refusal without the mark is asserted in tests/unit/backend-pc-preview-mark.test.js)
+const body = (input, extra = {}, mode = "text") => ({ consent: true, providers: ["anthropic"], mode,
+  input: extra.auto === true ? input : { previewed: true, ...input }, ...extra });
 
 test("A1 auto needs the tester gate ON and a valid tester code; otherwise refused before any provider call", async () => {
   // no gate at all (public site without the closed test, local, on-premise): auto is never allowed

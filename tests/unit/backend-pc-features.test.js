@@ -32,7 +32,9 @@ async function post(env, feature, body, adapters, opts = {}) {
     { fetch: siteverify, aiAdapters: adapters, sleep: async () => {} });
   return { status: r.status, j: await r.json() };
 }
-const body = (input, mode = "text") => ({ consent: true, providers: ["anthropic", "openai"], mode, input });
+// owner decision 146: a request carries the page's preview mark, as the page sends it after "Send this text" (the refusal
+// without it: tests/unit/backend-pc-preview-mark.test.js)
+const body = (input, mode = "text") => ({ consent: true, providers: ["anthropic", "openai"], mode, input: { previewed: true, ...input } });
 
 test("P7-1 registry: pc_fields / pc_claims / pc_translate are live with a build; a new install keeps them OFF with budget 0 and no image mode", async () => {
   const { FEATURES } = await import(B + "ai/features.js");
@@ -80,9 +82,9 @@ test("P7-3 pc_claims rule ids = the text-detectable rules of RULES.md (lensiq-cl
   assert.deepEqual(P.PC_CLAIM_RULES.map(r => r[0]), text.map(r => r.id));
   for (const [id, title] of P.PC_CLAIM_RULES) assert.equal(title, LQClaims.RULES.find(r => r.id === id).title_en, id);
   assert.deepEqual(P.CLAIMS_SCHEMA.properties.signals.items.properties.rule_id.enum, text.map(r => r.id));
-  const b = P.buildClaims({ text: LABEL, category: "drug" });
+  const b = P.buildClaims({ text: LABEL, category: "drug", previewed: true });
   assert.match(b.system, /D01: Miraculous/); assert.doesNotMatch(b.system, /F13:|C01:|H01:/, "only the category's rule family is offered");
-  assert.match(P.buildClaims({ text: LABEL }).system, /C08:/, "unknown category: every rule");
+  assert.match(P.buildClaims({ text: LABEL, previewed: true }).system, /C08:/, "unknown category: every rule");
 });
 
 test("P7-4 pc_claims: verbatim evidence spans pass; a span that is not in the text sent is rejected (retried, then the next provider)", async () => {
@@ -383,7 +385,7 @@ test("P7-9d not settable from the request: body, input, query string and headers
     assert.throws(() => build({ text: AD }, { mode: "text", evalLocal: "1" }), /no-product/, "only the boolean true from the gateway counts");
     assert.throws(() => build({ text: DISPENSING }, { mode: "text", evalLocal: true }), /dispensing/);
     assert.throws(() => build({ text: WITH_NAME }, { mode: "text", evalLocal: true }), /personal data left/);
-    assert.ok(build({ text: AD }, { mode: "text", evalLocal: true }).text.includes(AD));
+    assert.ok(build({ text: AD, previewed: true }, { mode: "text", evalLocal: true }).text.includes(AD));
   }
 });
 
@@ -418,7 +420,7 @@ test("P7-9e not settable from the admin API / panel or any stored setting; produ
   assert.equal((gwSrc.match(/env\.AI_EVAL_LOCAL/g) || []).length, 1, "one read");
   assert.match(gwSrc, /export const evalLocalMode = \(env, request\) => String\(env\.AI_EVAL_LOCAL \|\| ""\) === "1" && isLocalRequestUrl\(request\) && isLocalOrigin\(request\);/);
   assert.match(gwSrc, /const evalLocal = evalLocalMode\(env, request\);/);
-  assert.match(gwSrc, /meta\.build\(input, \{ mode, evalLocal \}\)/);
+  assert.match(gwSrc, /meta\.build\(input, \{ mode, evalLocal, auto \}\)/);
   for (const f of src) {
     const s = readFileSync(f, "utf8");
     assert.ok(!/AI_EVAL_LOCAL\s*=[^=]/.test(s.replace(/AI_EVAL_LOCAL=1/g, "")), f + ": never assigned");

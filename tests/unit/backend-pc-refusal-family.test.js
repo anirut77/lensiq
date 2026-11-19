@@ -45,7 +45,9 @@ async function post(env, feature, body, adapters, opts = {}) {
     { fetch: siteverify, aiAdapters: adapters, sleep: async () => {} });
   return { status: r.status, j: await r.json() };
 }
-const body = (input, mode = "text") => ({ consent: true, providers: ["anthropic", "openai"], mode, input });
+// owner decision 146: a request carries the page's preview mark, as the page sends it after "Send this text" (the refusal
+// without it: tests/unit/backend-pc-preview-mark.test.js)
+const body = (input, mode = "text") => ({ consent: true, providers: ["anthropic", "openai"], mode, input: { previewed: true, ...input } });
 
 /* ------------------------------ F1: documented refusal codes ------------------------------ */
 
@@ -156,7 +158,7 @@ test("F2-2 F22 (infant formula) only for food: dropped on supplement and every o
   for (const cat of ["drug", "herbal", "cosmetic"]) assert.deepEqual(P.verifyClaims(FOOD, cat)(s).json.signals, [], cat);
   // the filter is the SAME list the prompt offers (claimRulesFor), for every category
   for (const cat of ["drug", "supplement", "food", "herbal", "cosmetic"]) {
-    const listed = [...P.buildClaims({ text: LABEL, category: cat }).system.matchAll(/^([A-Z]\d\d): /gm)].map(m => m[1]);
+    const listed = [...P.buildClaims({ text: LABEL, category: cat, previewed: true }).system.matchAll(/^([A-Z]\d\d): /gm)].map(m => m[1]);
     assert.deepEqual(listed, P.claimRulesFor(cat).map(r => r[0]), cat);
     const all = { signals: P.RULE_IDS.map(id => ({ rule_id: id, evidence: "TESTOL" })) };
     const kept = P.verifyClaims(LABEL, cat)(all);
