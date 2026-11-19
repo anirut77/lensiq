@@ -249,3 +249,11 @@ lensiq-luckycolor.js moved here word for word (3,273 B -> one pointer line). No 
  *     1 = supports another area today (bhumi named) · 0 = a good neutral base, add an accent (no negative wording)
  */
 ```
+
+### Comments moved out of lensiq-config.js (2026-11-19, branch help-budget, page weight)
+
+help.html measured 400 KB (409,768 B) against its 400 KB budget on main 3781bb58, so any growth in a shared file failed
+the speed budget (planner-defects ac25bfe4 and pet-zodiac-cards 101acb60: 401 KB; seller-settings 5173311b: admin.html
+707 KB > 700 KB). The budgets were not raised: the long comments of lensiq-config.js (26,457 B -> 12,410 B) moved word
+for word to docs/CONFIG-NOTES.md, one summary line kept per setting. No code changed (identical JavaScript tokens,
+checked with acorn). lensiq-config.js?v=24 on every page. Source: synthetic, headless Chrome, local, no throttling.
