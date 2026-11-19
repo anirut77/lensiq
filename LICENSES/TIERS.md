@@ -32,7 +32,7 @@ never requested.
 
 | ID | Model (file) | Model licence | Training data and its licence (source) | Tier | Used where | Ships in customer builds | If not tier 1: what replaces it |
 |---|---|---|---|---|---|---|---|
-| M1 | **YOLOX-Nano 416** (`yolox/yolox_nano_416.onnx`) | Apache-2.0 (Megvii) | MS COCO 2017: annotations CC BY 4.0, but the **images carry per-image Flickr licences, including BY-NC, BY-NC-SA and BY-NC-ND** ([cocodataset.org/#termsofuse](https://cocodataset.org/#termsofuse)); Nano is trained from scratch on COCO, no ImageNet backbone [recalled, check arXiv:2107.08430 before quoting] | **2-NC** (corrected 2026-11-18: "COCO posture accepted" in `vendor/models/yolox/README.txt` is a policy exception, not tier 1 under the tier definition) | store (people count, default); crowd; Crowd events | Yes, loaded | Own head / person detector trained from scratch on Open Images (C32, tier 1 subject to counsel; not built). Until then detector-only counting stays on a tier-2 model |
+| M1 | **YOLOX-Nano 416** (`yolox/yolox_nano_416.onnx`) | Apache-2.0 (Megvii) | MS COCO 2017: annotations CC BY 4.0, but the **images carry per-image Flickr licences, including BY-NC, BY-NC-SA and BY-NC-ND** ([cocodataset.org/#termsofuse](https://cocodataset.org/#termsofuse)); Nano is trained from scratch on COCO, no ImageNet backbone [recalled, check arXiv:2107.08430 before quoting] | **2-NC** (corrected 2026-11-18: the COCO posture recorded in `docs/CROWD-DENSITY-MODELS.md` (line 64, which refers to `vendor/models/yolox/README.txt`) is a policy exception, not tier 1 under the tier definition) | store (people count, default); crowd; Crowd events | Yes, loaded | Own head / person detector trained from scratch on Open Images (C32, tier 1 subject to counsel; not built). Until then detector-only counting stays on a tier-2 model |
 | M2 | **MediaPipe Face Landmarker** bundle (`face-landmarker/face_landmarker_lm.task`: BlazeFace short range + Face Mesh V2 + geometry; blendshape model removed) | Apache-2.0 (cards: Face Mesh V2, 2022-09-15; BlazeFace short range, 2021-06-09) | Images captured by Google with smartphone cameras through an AR app, consented (`vendor/models/face-landmarker/README.txt`; BlazeFace card re-read 2026-11-18: "consented images of people using a mobile AR application captured with smartphone cameras") | **1** | Exam lab / hall (face count, head pose); faceread look preview; Try-On landmarks | Yes, loaded | (tier 1) |
 | M3 | **MediaPipe BlazeFace short range** (`face-gate/blaze_face_short_range.tflite`) | Apache-2.0 (card 2021-06-09) | As M2: consented Google AR-app smartphone images (card, read 2026-11-18, link: [card PDF](https://storage.googleapis.com/mediapipe-assets/MediaPipe%20BlazeFace%20Model%20Card%20(Short%20Range).pdf)) | **1** | Product Check face gate and face blur; Try-On product-photo blur; owner-side plate labeller | Yes, loaded | (tier 1) |
 | M4 | **MediaPipe Pose Landmarker lite** (`pose-landmarker/pose_landmarker_lite.task`) | Apache-2.0 (card 2021-04-16) | Google AR-app smartphone images: 30K consented images + 85K fitness poses (card, `vendor/models/pose-landmarker/README.txt`) | **1** | Try-On (garment placement) | Yes, loaded when a pose item is picked | (tier 1) |
@@ -76,6 +76,7 @@ itself blocks commercial use or grants nothing.
 | C4 | **insightface open weights** (buffalo_l, antelopev2, ArcFace, SCRFD; InspireFace) | Code MIT; **weights "available for non-commercial research purposes only"** | MS1MV2/3, Glint360K, WebFace (research) | **3** | Face recognition / detection | Not vendored. A **commercial licence is sold** (recognition-oss-pack@insightface.ai; price not published) |
 | C5 | **Commercial face SDKs** (VeriLook EUR 339 / 859 published, Paravision, Innovatrics, FacePlugin, KBY-AI, Regula, Luxand, iApp, AWS Rekognition) | Proprietary, commercial licence, warranty by contract | Vendor-held | **1 (by contract, if bought)** | Attendance face mode | Not bought. `ATTENDANCE-READINESS.md` B4 / B5 |
 | C6 | **NVIDIA PeopleNet** | NVIDIA Open Model License (forum thread adds EULA caveats) | NVIDIA data, unstated | **2-U** | Person / face detector | Not used (large, still collapses in dense crowds) |
+| C33 | **MediaPipe BlazeFace full range** (`blaze_face_full_range.tflite`, 1,083,786 bytes; `vendor/models/face-gate/README.txt` "Not vendored") | Apache-2.0 (card "MediaPipe BlazeFace Model Card (Full Range)", 2021-01-19; `LICENSES/THIRD_PARTY.md` line 100, `docs/exam/FACE-ENGINE-RESULTS.md` line 331) | Consented data (as the other BlazeFace cards, M2 / M3) | **1** | Measurement only (Exam hall option (b) / (d), `FACE-ENGINE-RESULTS.md` section 6.3). Kept outside the repo, under `~/LENSIQ-field/evals/exam-followups/vendor/` (section 7.3) | Not vendored and not shipped: the vendored Tasks bundle rejects it at run time ("2304 vs. 896"); no page loads it (section 7.3). Replacement today: BlazeFace short range tiles (M3) |
 
 ### B2. Crowd counting (published checkpoints, `docs/CROWD-DENSITY-MODELS.md`)
 
@@ -122,7 +123,7 @@ For tier 2 the useful "published crowd weights" are C7 to C16. **NWPU- and JHU-t
 | C31 | Deep saliency models (DeepGaze, SalGAN, TranSalNet, UNISAL) | SALICON / MIT1003 / CAT2000 data research-only or unstated | **2-U** (not used; M22 uses published algorithms instead) |
 | C32 | **Own head / person detector (not built):** YOLOX code (Apache-2.0) trained **from scratch** (no COCO or ImageNet start weights) on Open Images V7 | Ours (Apache-2.0 code, own weights) | Open Images V7: images listed as CC BY 2.0, labels / boxes CC BY 4.0 ([storage.googleapis.com/openimages](https://storage.googleapis.com/openimages/web/factsfigures_v7.html)); classes "Person" and "Human head". **Conditions, all subject to counsel:** (1) verify each image's licence from the metadata (Google does not guarantee the Flickr licences); (2) drop boxes with `IsDepiction = 1` (drawings, paintings, pictures of people); (3) CC covers copyright only: **the rights of the people pictured (PDPA, personality and image rights, faces as biometric data) are not covered by CC**; (4) keep attribution and do not ship any image; (5) from scratch, because any COCO or ImageNet start weights bring tier 2-NC back | **1 (subject to counsel)** | People / head counting for Crowd, store and Exam hall, replacing M1 and M11 | Not built. Needs a locked eval set first (`tools/eval-guard.mjs`), a GPU run and a measured comparison; an owner decision (scope) |
 
-**Counts, section B (32 rows): tier 1 = 3 (C5, C24 by contract, not bought; C32 own detector, subject to counsel, not built); tier 2 = 18 (2-NC = 7: C1, C7, C8, C11, C12, C21, C26; 2-U = 11: C2, C3, C6, C9, C10, C13, C14, C15, C16, C27, C31); tier 3 = 10 (C4, C17, C18, C19, C20, C22, C23, C25, C28, C29); not assessed = 1 (C30).** C25 (BRIA) is tier 3 when self-hosted and tier 1 only through the paid API.
+**Counts, section B (33 rows): tier 1 = 4 (C5, C24 by contract, not bought; C32 own detector, subject to counsel, not built; C33 BlazeFace full range, measurement only, not shipped); tier 2 = 18 (2-NC = 7: C1, C7, C8, C11, C12, C21, C26; 2-U = 11: C2, C3, C6, C9, C10, C13, C14, C15, C16, C27, C31); tier 3 = 10 (C4, C17, C18, C19, C20, C22, C23, C25, C28, C29); not assessed = 1 (C30).** C25 (BRIA) is tier 3 when self-hosted and tier 1 only through the paid API.
 
 ---
 
@@ -133,7 +134,7 @@ the owner asked for every dataset; evaluation use does not put weights in the pr
 
 | ID | Dataset | Licence / terms (source) | Commercial use of the data | Used for | Status |
 |---|---|---|---|---|---|
-| D1 | MS COCO 2017 | Annotations CC BY 4.0, **but the images carry per-image Flickr licences, including BY-NC, BY-NC-SA and BY-NC-ND** ([terms](https://cocodataset.org/#termsofuse)) | **No / mixed** (corrected 2026-11-18; not tier 1) | trained M1, M11 (upstream) | Tier 2-NC driver; the old "accepted posture" is a policy exception |
+| D1 | MS COCO 2017 | Annotations CC BY 4.0, **but the images carry per-image Flickr licences, including BY-NC, BY-NC-SA and BY-NC-ND** ([terms](https://cocodataset.org/#termsofuse)) | **No / mixed** (corrected 2026-11-18; not tier 1) | trained M1, M11 (upstream) | Tier 2-NC driver; the COCO posture recorded in `docs/CROWD-DENSITY-MODELS.md` (line 64) is a policy exception |
 | D2 | ImageNet (ILSVRC) | "non-commercial research and educational purposes" ([terms](https://www.image-net.org/download.php)) | **No** (grey area in industry) | backbone pretraining of M12, M11 (probable), most crowd models | Tier 2 driver |
 | D3 | UTKFace | Non-commercial research only ([page](https://susanqq.github.io/UTKFace/)) | **No** | trained M20 | Tier 2-NC |
 | D4 | IMDB-WIKI and related age sets | Research use (upstream docs) | **No** [unverified] | trained M20 | Tier 2-NC |
@@ -158,7 +159,6 @@ the owner asked for every dataset; evaluation use does not put weights in the pr
 | D23 | SA-1B | Research-only | **No** | trained SAM (C26) | Tier 2-NC |
 | D24 | VITON-HD (CC BY-NC 4.0), DressCode (not released to private companies) | Non-commercial | **No** | try-on models C20, C21 | Tier 3 models |
 | D25 | CASIA-FaceV5 | Research use | **No** | **evaluation only** (Attendance; internal benchmark, not the only basis of a sales claim) | Eval only |
-
 | D26 | Open Images V7 (faces; group photos; Person / Human head boxes) | Images listed as CC BY 2.0, annotations CC BY 4.0 ([facts and figures](https://storage.googleapis.com/openimages/web/factsfigures_v7.html)). Per-image licences are not guaranteed by Google; the people pictured are not covered by CC | **Yes** (attribution), subject to the C32 conditions (per-image licence check, drop `IsDepiction` boxes, people's rights) | **evaluation** (Exam face engine, Product Check face blur); candidate training source for C32 | Eval only today |
 | D27 | LFW, MOT17, Wikimedia Commons, Open Food Facts packs, public plate photos | Public research data / CC / Open Database terms (see `ACCURACY-CLAIMS.md` for the `public` label) | per source | evaluation | Eval only |
 | D28 | Monk Skin Tone Examples (MST-E), Sony FHIBE | MST-E "research or human-annotator-training only, not for training ML models"; FHIBE "research or evaluate bias in AI systems", commercial evaluation allowed | MST-E **No**; FHIBE evaluation only | Style design (not built) | Not used |
@@ -174,8 +174,8 @@ Reference-data sets (not training data; see `THIRD_PARTY.md` Assets for each lic
 | | Tier 1 | Tier 2-U | Tier 2-NC | Tier 2 total | Tier 3 | Not assessed | Rows |
 |---|---|---|---|---|---|---|---|
 | A. In the repo | 4 | 13 | 5 | 18 | 0 | 0 | 22 |
-| B. Reviewed, not in the repo | 3 (2 by contract, not bought; 1 own detector, not built, subject to counsel) | 11 | 7 | 18 | 10 | 1 | 32 |
-| **All** | **7** | **24** | **12** | **36** | **10** | **1** | **54** |
+| B. Reviewed, not in the repo | 4 (2 by contract, not bought; 1 own detector, not built, subject to counsel; 1 BlazeFace full range, measurement only, not shipped) | 11 | 7 | 18 | 10 | 1 | 33 |
+| **All** | **8** | **24** | **12** | **36** | **10** | **1** | **55** |
 
 **Datasets (28 rows)**
 
@@ -203,7 +203,7 @@ Read it as: **of the 22 model files and weights the code uses, 4 are tier 1 toda
 1. Record the Selfie Segmenter (M8) and Selfie Multiclass (M9) training-data statements from Google, or ask for them; **if Google states consented AR-app data, M8 and M9 move to tier 1**.
 2. Record the rest of the Hand card's data statement (M6, M7), same effect.
 3. Record the exact Xenova/modnet commit and MODNet's training sets (M10).
-4. Verify COCO-SSD's backbone initialisation for the vendored build (M11). Check `vendor/models/yolox/README.txt` wording ("COCO posture accepted") so it no longer reads as tier 1.
+4. Verify COCO-SSD's backbone initialisation for the vendored build (M11). Check the COCO posture wording in `docs/CROWD-DENSITY-MODELS.md` (line 64, which refers to `vendor/models/yolox/README.txt`) so it no longer reads as tier 1.
 5. Ask PaddlePaddle which sources the collected Thai text came from (M13, M14).
 6. Name the dataset LPD-YuNet was trained on (M15), via an OpenCV Zoo issue.
 7. Scope C32 (own head / person detector from scratch on Open Images) with a locked eval set; owner decision.
