@@ -821,11 +821,10 @@
   {
    "path": "tests/unit/promptpay.test.js",
    "types": {
-    "phone": 14,
-    "thai-id": 2
+    "phone": 14
    },
    "kind": "synthetic",
-   "reason": "PromptPay test vectors: a sequential test phone and a checksum-valid example ID (owner to confirm it is not a real person's)"
+   "reason": "PromptPay test vectors: a sequential test phone"
   },
   {
    "path": "tests/unit/teamface.test.js",
