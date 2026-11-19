@@ -1,0 +1,13 @@
+# locked 2026-11-19T02:36:05Z (tools/eval-guard.mjs lock, 1 file)
+667606de4b747a42f2c51c8e82a2a3f8ca4abc792106b5753563329cc0ece984  pii-guard.test.js
+667606de4b747a42f2c51c8e82a2a3f8ca4abc792106b5753563329cc0ece984  tests/unit/pii-guard.test.js  # repo file (same commit as lock 2026-11-19T02:36:05Z; field: ~/LENSIQ-field/evals/pii-guard/pii-guard.test.js)
+# locked 2026-11-19T02:40:01Z (tools/eval-guard.mjs lock, 1 file)
+ae429945ba4ba49adac04c937574788fd6f77942f9c320c843ca74c4914c85e8  pii-guard.test.js
+ae429945ba4ba49adac04c937574788fd6f77942f9c320c843ca74c4914c85e8  tests/unit/pii-guard.test.js  # repo file (same commit as lock 2026-11-19T02:40:01Z; field: ~/LENSIQ-field/evals/pii-guard/pii-guard.test.js)
+# locked 2026-11-19T03:56:42Z (tools/eval-guard.mjs lock, 1 file)
+dbcbe97cde13550b0557dcbfaf557c8735e1589b390d0bdde09eeac5ab773419  pii-guard-r1.test.js
+dbcbe97cde13550b0557dcbfaf557c8735e1589b390d0bdde09eeac5ab773419  tests/unit/pii-guard-r1.test.js  # repo file (same commit as lock 2026-11-19T03:56:42Z; field: ~/LENSIQ-field/evals/pii-guard/pii-guard-r1.test.js)
+# locked 2026-11-19T04:09:22Z (tools/eval-guard.mjs lock, 1 file)
+2cdd548e538b36916634dafdc151c8f684fbbc34ce6b2becc4fa5ca996db64ae  pii-guard-gaps.test.js
+2cdd548e538b36916634dafdc151c8f684fbbc34ce6b2becc4fa5ca996db64ae  tests/unit/pii-guard-gaps.test.js  # repo file (same commit as lock 2026-11-19T04:09:22Z; field: ~/LENSIQ-field/evals/pii-guard/pii-guard-gaps.test.js)
+# retired tests/unit/pii-guard-r1.test.js reason: renamed to tests/unit/pii-guard-gaps.test.js (unit-index forbids round-named files); bytes identical except the file name in the line-1 header comment (old dbcbe97c, new 2cdd548e)

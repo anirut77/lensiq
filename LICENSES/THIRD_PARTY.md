@@ -152,6 +152,7 @@ The `.venv` also contains `onnxruntime` 1.19.2 (MIT) and `sympy` / `coloredlogs`
 | Item | Where | Licence | Notes |
 |---|---|---|---|
 | Liberation Sans 2.1.5 (Regular, Bold) | `tests/fixtures/fonts/liberation/` | SIL OFL 1.1 (LICENSE alongside) | Arial-metric font used only by e2e OCR tests so CI and dev machines render identical text. `tests/` is excluded by build-site. |
+| Exam lab phone-in-hand eval set (owner decision 134; criterion A2 of `docs/acceptance/exam-lab.md`) | images ONLY in `~/LENSIQ-field/evals/examlab-phone/images/`, never in the repo or the site; the repo holds the lock (`evals-locks/examlab-phone.sha256`), the image-hash manifest and the credits (`docs/exam/examlab-phone/`) | Images: CC BY 2.0, checked per image in the Open Images V7 metadata (`License` field), every other licence refused. Annotations: Open Images V7 (Google LLC), CC BY 4.0 | Eval-only, not shipped, nothing trained on it. Photos of real people from Flickr via the Open Images V7 test and train splits; per-image author, original URL and licence in `docs/exam/examlab-phone/ATTRIBUTION.csv`; titles only in the field copy `~/LENSIQ-field/evals/examlab-phone/ATTRIBUTION.csv`, because the repo copy withholds them (Flickr titles can name the people pictured). Measured by `tools/examlab-phone-eval.mjs` (source label: public dataset). |
 
 ## Keeping this file current
 

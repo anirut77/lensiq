@@ -14,6 +14,14 @@ https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
   run is green; deploy only from green main. Before every commit, run the affected suites locally and read the result;
   the full gate must be green on the branch in CI before merging to main. No local full gates while agents are working
   (at most one, with other CPU-heavy agents paused).
+- Batch merges (owner decision 156, 2026-11-19): a batch of branches that each have the independent reviewer's
+  pass may run the full gate once on one integration branch built from current main, instead of one gate per
+  branch. Each branch's own CI result is kept as evidence. The independent reviewer checks every merge commit in
+  the integration branch (both sides kept, no lock file resolved by hand, eval-guard repo OK). Only the
+  integration commit that is green on that exact commit and reviewed reaches main, by fast-forward. If the run
+  fails, the failing branch is removed and the gate runs again; the report names it. No force-push, no history
+  rewrite. The disk guard is not waived: a batch starts only when free disk is above 5 GB, and the local
+  affected-suite run before each commit still applies.
 - Ask the owner before changing approved scope or order. Don't start and report later.
 - Every round: fixed test set before building, real numbers per condition, an independent reviewer agent that re-measures.
 - Locked sets persist (owner rule 2026-11-13, after a locked set was lost twice): every fixed test / eval set is written
