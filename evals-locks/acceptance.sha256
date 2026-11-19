@@ -81,3 +81,7 @@ e202c247e6dacf4c50c21a6970a6f82e28827dda2ce9b4ec2815c23bbcab4bc1  docs/acceptanc
 9294c0046b3bb2065572275939b8903d26fe212e8ca697da3573512713f6fa9b  relock-3/personal-colour.md
 9294c0046b3bb2065572275939b8903d26fe212e8ca697da3573512713f6fa9b  docs/acceptance/personal-colour.md  # repo file (same commit as lock 2026-11-19T04:10:31Z; field: ~/LENSIQ-field/evals/acceptance/relock-3/personal-colour.md)
 # RE-LOCK 3 (2026-11-19, before any measurement, owner decision 140 ก): equal or stricter: restores a dropped §4.2 target (personal-colour A5: app–analyst agreement within 10 points of analyst–analyst, set B, ≥ 40 people). Copy in relock-3/. No weight changed.
+# locked 2026-11-19T04:29:21Z (tools/eval-guard.mjs lock, 1 file)
+8d8ab1694cd2e19c6705f35e548f2a8324f0fb3d67bcb3437114b9ce2024c57f  relock-4/personal-colour.md
+8d8ab1694cd2e19c6705f35e548f2a8324f0fb3d67bcb3437114b9ce2024c57f  docs/acceptance/personal-colour.md  # repo file (same commit as lock 2026-11-19T04:29:21Z; field: ~/LENSIQ-field/evals/acceptance/relock-4/personal-colour.md)
+# RE-LOCK 4 (2026-11-19, owner decision 148 ก, last round): equal: wording aligned to source §4.2:284; no number, weight or target changed (personal-colour A5). Copy in relock-4/.

@@ -21,7 +21,7 @@ card. The owner parked it on 2026-11-14 and allowed one paper round on 2026-11-1
 | A2 | Undertone across lights | the same undertone ≥ 80 % (existing C4) | as A1 | 10 |
 | A3 | Season | the same top-1 season ≥ 70 %; the top-2 contains the usual season ≥ 90 % (existing C4) | as A1 | 10 |
 | A4 | Fairness | gap between skin-lightness groups ≤ 10 points (existing C4) | as A1 | 7 |
-| A5 | Real people | A1–A4 on ≥ 30 consenting volunteers under real lights; and app–analyst agreement within 10 points of analyst–analyst agreement (Cohen's κ for undertone, % for 4-season, top-2 hit for 12-season) on ≥ 40 people draped by two independent analysts, blind to the app, reported as agreement, never as accuracy (existing: `docs/STYLE-DESIGN.md` §4.2, set B: lines 284 and 302) | volunteer set | 5 |
+| A5 | Real people | A1–A4 on ≥ 30 consenting volunteers under real lights; and app–analyst agreement within 10 points of analyst–analyst agreement (Cohen's κ for undertone, % for 4-season, top-2 hit for 12-season) on ≥ 40 consented adults draped in person by two professional colour analysts working independently (undertone recorded in 5 bands), blind to the app, reported as agreement, never as accuracy (existing: `docs/STYLE-DESIGN.md` §4.2, set B: lines 284 and 302) | volunteer set | 5 |
 | P | P1–P5, per item | all pass | README P | 10 |
 | L | L1–L3, per item | all pass | README L | 8 |
 | S | S1; S2 plus time to result ≤ 3 s after capture on a mid-range Android (existing: `docs/STYLE-DESIGN.md:305`, §4.2); per item | both pass | README S | 5 |
