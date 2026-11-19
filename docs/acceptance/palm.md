@@ -32,6 +32,12 @@ owner decision D-P3 pending) or **public dataset** (none usable: every public pa
 | G | Guides are computed from the palm frame only, so any landmark source (7 taps today, a tier-1 landmarker later) gives the same guides | `palm-v2-layers.test.js` | code |
 | L-synth | Classical finder on the drawn hand: majors + fate found within 0.04 PW mean distance and >= 60 % of their length, left and right; every control point on a dark valley; 0 found lines on a palm without lines; lines not drawn are not found; heavy blur finds fewer and never a template | `palm-v2-detect.test.js` | **synthetic only** |
 | HL | Legacy engine honest mode (used when the switch is on): no heart / head / life / fate line without a crease; "not found" is not "absent" | `palm-v2-detect.test.js` | code |
+| R2-M1 | Crease-free textures (noise σ4 / σ10, paper grain, skin pores + hatching, stronger hatching, skin + short random creases), palm without lines, left / right, 3 schools: 0 lines found (majors and minors) and every confidence >= 0.15 below its threshold | `palm-v2-textures.test.js` M1 (relock3, independent review round 1) | **synthetic only** |
+| R2-T | True creases still found: heart / head / life in every image on plain skin, skin texture and noise10; fate >= 75 %; faint creases (depth 0.5) >= 75 % of majors; mean distance <= 0.04 PW, worst point <= 0.06 PW | `palm-v2-textures.test.js` T | **synthetic only** |
+| R2-M2 | Partial crease among distractors: a found line stays within 0.04 PW of the crease, is at most 0.06 PW longer, and is never drawn over plain skin | `palm-v2-textures.test.js` M2 | **synthetic only** |
+| R2-a | Uploading another person's hand is gated by the same consent line, cleared after a photo is used | `palm-v2-r2.e2e.mjs` a | code |
+| R2-c | Switch off: no palm v2 code or style is downloaded | `palm-v2-r2.e2e.mjs` c | code |
+| R2-d | Line finding never stalls the main thread > 500 ms; detection time reported | `palm-v2-r2.e2e.mjs` d | measured (Chrome, desktop) |
 | LIC | Only tier-1 code and data ship: our own code; landmarks from the 7-tap mode (the MediaPipe hand model M6 / M7 is tier 2-U and is not used by v2) | review | `LICENSES/TIERS.md` |
 
 ## Field rows (targets from design B6.1; NOT MEASURED; need consented photos, owner decision D-P3)
