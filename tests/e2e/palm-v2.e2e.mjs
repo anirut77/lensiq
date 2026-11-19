@@ -10,7 +10,8 @@
 //  CAM still: ImageCapture.takePhoto when available, otherwise the full track frame (video.videoWidth), never the preview;
 //       rear camera; another person's hand: the consent line (TH / EN / ZH) is shown and the camera stays shut until it is ticked;
 //       the tick is cleared after the capture.
-//  CR  crisis v3: a crisis phrase hides the reading, the share / print card and paid content; the 1323 help stays.
+//  CR  crisis v3 (re-lock 1): with a crisis phrase the reading continues gently (no card replaces it), no share / print / card /
+//       paid content, one warm end line with the 1323 button, the top 1323 icon stays, the crisis text is not echoed.
 // TH / EN / ZH at 393 px.
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -287,26 +288,41 @@ export default async function ({ base, launch, check, fakeCams }) {
       } finally { await page.close(); }
     });
 
-    await check("CR crisis v3: a crisis phrase hides the reading, the share / print card and paid content; 1323 stays (TH / EN / ZH)", async () => {
-      for (const lang of LANGS) {
-        const page = await open(browser, base, { lang });
-        try {
-          await page.evaluate(t => { const e = document.getElementById("pv2Nick"); e.value = t; e.dispatchEvent(new Event("input", { bubbles: true })); e.dispatchEvent(new Event("change", {
-            bubbles: true })); }, PHRASE[lang]);
-          await loadAndTap(page);
-          await click(page, "#pv2Read").catch(() => {});
-          await page.waitFor(`!!document.querySelector(".fa-support") && document.querySelector(".fa-support").offsetParent !== null`, 10000);
-          await sleep(500);
-          const f = await page.evaluate(() => {
-            const vis = e => !!(e && e.offsetParent !== null && e.getClientRects().length);
-            const reading = document.getElementById("pv2Reading");
-            return { reading: vis(reading) ? reading.textContent.trim().length : 0, share: vis(document.getElementById("pv2Share")), print: vis(document.getElementById("pv2Print")),
-              card: vis(document.getElementById("pv2Card")), paid: [...document.querySelectorAll("[data-lq-paid], [data-lq-remedy], [data-lq-upsell], .lq-paid")].filter(vis).length,
-              lines: vis(document.getElementById("pv2List")), tel: [...document.querySelectorAll('a[href="tel:1323"]')].some(vis) };
-          });
-          assert(f.reading === 0 && !f.share && !f.print && !f.card && f.paid === 0 && f.tel, `${lang}: crisis ${S(f)}`);
-        } finally { await page.close(); }
-      }
-    });
+    // RE-LOCK 1 2026-11-19 (test fault found on the first run, before any measurement): the first version expected a support
+    // card in place of the reading (crisis v2). Crisis v3 (owner decision 2026-11-17, which the palm spec keeps unchanged):
+    // rule a the reading continues, no card replaces it; c no share / print / card / paid; d one warm line + tel:1323 at the END
+    // of the reading only; no echo of the crisis text.
+    await check("CR crisis v3: with a crisis phrase the reading continues gently, no card replaces it, no share / print / paid, one end line with 1323 (TH / EN / ZH)",
+      async () => {
+        for (const lang of LANGS) {
+          const page = await open(browser, base, { lang });
+          try {
+            await page.evaluate(t => { const e = document.getElementById("pv2Nick"); e.value = t; e.dispatchEvent(new Event("input", { bubbles: true }));
+              e.dispatchEvent(new Event("change", { bubbles: true })); }, PHRASE[lang]);
+            await loadAndTap(page);
+            await click(page, "#pv2Read");
+            await page.waitFor(`document.querySelectorAll("#pv2Reading .fa-section").length >= 1`, 10000);
+            await sleep(600);
+            const f = await page.evaluate(ph => {
+              const vis = e => !!(e && e.offsetParent !== null && e.getClientRects().length);
+              const res = document.getElementById("pv2Result"), secs = [...res.querySelectorAll(".fa-section")].filter(vis);
+              const helps = [...res.querySelectorAll(".lq-helpline")].filter(vis), last = secs[secs.length - 1];
+              const tel = helps.length ? helps[0].querySelector('a[href="tel:1323"]') : null;
+              return { flagged: document.documentElement.getAttribute("data-lq-crisis") === "1" || document.documentElement.getAttribute("data-lq-calm") === "1",
+                sections: secs.length, card: [...document.querySelectorAll(".fa-support")].filter(vis).length,
+                share: vis(document.getElementById("pv2Share")), print: vis(document.getElementById("pv2Print")), img: vis(document.getElementById("pv2Card")),
+                paid: [...document.querySelectorAll("[data-lq-paid], [data-lq-remedy], [data-lq-upsell], .lq-paid")].filter(vis).length,
+                helps: helps.length, atEnd: !!(last && helps[0] && (last.compareDocumentPosition(helps[0]) & Node.DOCUMENT_POSITION_FOLLOWING)),
+                telH: tel ? tel.getBoundingClientRect().height : 0, top: vis(document.querySelector("#lqHelpTop a[href='tel:1323']")),
+                echo: document.getElementById("plV2").innerText.includes(ph) };
+            }, PHRASE[lang]);
+            assert(f.flagged && f.sections >= 1 && f.card === 0, `${lang}: a: the reading continues, no card ${S(f)}`);
+            assert(!f.share && !f.print && !f.img && f.paid === 0, `${lang}: c: share / print / card / paid shown ${S(f)}`);
+            assert(f.helps === 1 && f.atEnd && f.telH >= 44, `${lang}: d: one end line with a 1323 button >= 44 px ${S(f)}`);
+            assert(f.top, `${lang}: the top 1323 icon stays ${S(f)}`);
+            assert(!f.echo, `${lang}: the crisis text is echoed ${S(f)}`);
+          } finally { await page.close(); }
+        }
+      });
   } finally { await browser.close(); }
 }

@@ -17,3 +17,9 @@ a318af98ca0ed3c14df6cb24650e97064eb8a26ba31bc349ae3d8341eeac36c1  tests/unit/pal
 0935e7016da62a5bda037d55cd6f4f43dd092168cf4c6ce216fef87e7e561757  docs/acceptance/palm.md  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/docs/acceptance/palm.md)
 # palm reading upgrade v1 (owner order 2026-11-19, switch LENSIQ_PALM_V2 = false): tests + acceptance sheet locked BEFORE any product code, base origin/main d158e363.
 # field copies live under ~/LENSIQ-field/evals/palm-layers/set/ (an empty folder tests/unit/palm-v2-kit.js was made there by a shell mistake before the lock; left in place, no file in it).
+# locked 2026-11-19T16:51:56Z (tools/eval-guard.mjs lock, 2 files)
+3cff183817f2cefc3aae6ddf93aac61be5e7aa84e6fdd83ad2535f1c69ad040c  relock1/tests/e2e/palm-v2.e2e.mjs
+da33a11fb1b74f44f40354cb0e6cb742d6e049cb1f05782699f27967ba323115  relock1/docs/acceptance/palm.md
+3cff183817f2cefc3aae6ddf93aac61be5e7aa84e6fdd83ad2535f1c69ad040c  tests/e2e/palm-v2.e2e.mjs  # repo file (same commit as lock 2026-11-19T16:51:56Z; field: ~/LENSIQ-field/evals/palm-layers/relock1/tests/e2e/palm-v2.e2e.mjs)
+da33a11fb1b74f44f40354cb0e6cb742d6e049cb1f05782699f27967ba323115  docs/acceptance/palm.md  # repo file (same commit as lock 2026-11-19T16:51:56Z; field: ~/LENSIQ-field/evals/palm-layers/relock1/docs/acceptance/palm.md)
+# re-lock 1 (2026-11-19, before any measurement): the CR check and acceptance row V expected a support card in place of the reading (crisis v2); crisis v3 (owner decision 2026-11-17, kept unchanged by the palm spec item 6) keeps the reading, shows no card, no share / print / paid, one end line with 1323. Found on the first e2e run of the build; no other assertion changed.
