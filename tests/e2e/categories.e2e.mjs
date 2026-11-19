@@ -65,7 +65,9 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
           tools: [...document.querySelectorAll(".cat-tool")].map(a => ({
             page: a.dataset.page, st: a.dataset.status, tag: (a.querySelector(".cat-st") || {}).className || "",
             src: [...a.querySelectorAll(".cat-acc li")].map(li => li.dataset.src + ":" + (li.querySelector(".cat-src") || {}).textContent),
-            go: (a.querySelector(".sl-go") || {}).getAttribute ? a.querySelector(".sl-go").getAttribute("href") : "", text: a.textContent
+            // re-lock 2026-11-18 (owner decision 2026-11-18: fortune cards carry no accuracy field; business products unchanged):
+            // a fortune card is one link, so its page link is that link; every other card keeps its .sl-go page link
+            go: (a.querySelector(".sl-go") || a.querySelector("a[href]") || { getAttribute: () => "" }).getAttribute("href"), text: a.textContent
           })),
           count: document.getElementById("catCount").textContent
         }));
@@ -79,6 +81,8 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
         assert(JSON.stringify(r.tools.map(t => t.page)) === JSON.stringify(c.pages), c.slug + " tools " + r.tools.map(t => t.page));
         for (const t of r.tools) {
           const want = D.PAGES[t.page];
+          // re-lock 2026-11-18: only category 6 (noAccuracy) may show no accuracy line; every other card needs at least one
+          assert(c.noAccuracy ? (c.n === 6 && want.claims.length === 0) : want.claims.length >= 1, `${t.page} accuracy lines expected: ${want.claims.length}`);
           // owner order 2026-11-17 (remove สาธิต tag from fortune): noStatusTag categories show no status tag and no data-status
           if (c.noStatusTag) assert(t.st === undefined && t.tag === "", `${t.page} must show no status tag: ${t.st}/${t.tag}`);
           else assert(t.st === want.st && t.tag.includes(want.st), `${t.page} status ${t.st}/${t.tag}`);

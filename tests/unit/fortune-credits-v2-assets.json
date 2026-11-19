@@ -32,6 +32,10 @@
     { "id": "tarot", "prefixes": ["vendor/tarot/"], "licence": "Public domain", "onPageAttributionRequired": false, "noticeFiles": ["vendor/tarot/CREDITS.txt"], "noticeNeedle": "Tarot card images",
       "clause": "Public domain (Pamela Colman Smith, d. 1951, artwork of 1909; faithful 2-D scans): no licence, no attribution duty" },
     { "id": "faceparse", "prefixes": ["vendor/models/faceparse-bisenet-r18-q8.onnx", "vendor/models/FACEPARSE-LICENSE.txt"], "licence": "MIT code / CelebAMask-HQ non-commercial", "onPageAttributionRequired": false, "noticeFiles": ["vendor/models/FACEPARSE-LICENSE.txt"], "noticeNeedle": "",
-      "clause": "Not shipped: git-ignored, off by default (THIRD_PARTY F1); only named in lensiq-config.js" }
+      "clause": "Not shipped: git-ignored, off by default (THIRD_PARTY F1); only named in lensiq-config.js" },
+    { "id": "qrcode-generator", "prefixes": ["vendor/qrcode-generator/"], "licence": "MIT", "onPageAttributionRequired": false,
+      "noticeFiles": ["vendor/qrcode-generator/LICENSE"], "noticeNeedle": "qrcode-generator 2.0.4",
+      "clause": "MIT: notice included in all copies or substantial portions (vendor/qrcode-generator/LICENSE; LICENSES/THIRD_PARTY.md)",
+      "added": "2026-11-18, owner decision 100: petread joins category 6 (optional on-device QR on its share card)" }
   ]
 }

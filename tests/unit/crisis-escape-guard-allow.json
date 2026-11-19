@@ -97,7 +97,15 @@
     "fengshui fsIdle": "ui: booth idle screen",
     "fengshui fsToast": "ui: status toast",
     "fengshui fsAgain": "ui: 'another wording' button",
-    "fengshui fsYearInfo": "ref: this year's flying-star line, same for every visitor (not derived from the birth date)"
+    "fengshui fsYearInfo": "ref: this year's flying-star line, same for every visitor (not derived from the birth date)",
+    "petread petTraits": "field: trait picker (radio / checkbox chips drawn by petread.js from the KB; the visitor's own choices, no reading text)",
+    "petread petMsg": "msg: form validation message",
+    "petread petEmpty": "ui: 'no photo yet' placeholder of the photo area",
+    "petread petVideo": "ui: live camera preview (the visitor's own camera, nothing drawn on it)",
+    "petread petView": "ui: preview of the visitor's own photo with the detector boxes (no reading text)",
+    "petread petCamMsg": "msg: camera status (on / off / permission steps)",
+    "petread petDetMsg": "msg: on-device detector status (cat / dog found, pre-filled traits)",
+    "petread petHuman": "msg: notice that a person in the photo is not read and is blurred on the card"
   },
   "browser": {
     "faceread frHint": "msg: live camera capture hint (lensiq-capture-hint.js), changes with every camera frame",

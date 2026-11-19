@@ -51,6 +51,8 @@ const BASE_ST = {
   // RE-LOCK 2026-11-18 (branch promo-basics, evals-locks/promo-basics.sha256): 404.html (owner order 2026-11-18 C, promotion
   // basics) is a new support page, not a status change of an existing page
   "404": "support"
+  // RE-LOCK 2026-11-18 (branch fortune-pet, owner decision 100; ledger docs/CRISIS-V3-RELOCKS.md "relock-pet-golive"): petread.html
+  // (pet face reading) went live in category 6, so its "petread": "demo" row (relock-pet) left this list for FORT.pages
 };
 const BASE_COUNT = {
   security: { th: "6 เครื่องมือ · พร้อมนำร่อง 3 · ทดลอง 1 · สาธิต 0 · หน้าประกอบ 2", en: "6 tools · pilot-ready 3 · experimental 1 · demo 0 · support pages 2",

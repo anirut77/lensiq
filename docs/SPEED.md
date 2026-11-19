@@ -225,3 +225,45 @@ Causes seen in the page source (not yet measured one by one): exam-lab and the d
 the table above); exam-lab loads TF.js (`vendor/tfjs/*`, about 1.5 MB) synchronously before `exam-lab.js`, so the
 consent button is wired only after TF.js arrives. Next step (needs its own measured round): load the demo data and its
 dictionary after `<main>`, and TF.js only after consent.
+
+### Comment moved out of lensiq-luckycolor.js (2026-11-18, branch fortune-pet, page weight)
+
+luckycolor.html measured 551 KB against its 550 KB budget in CI run 44245545701 (the fortune-pet menu entry, the line-wrap fix and
+main's crisis-sales menu code in nav.js, plus the menu strings). The budget was not raised: the header comment of
+lensiq-luckycolor.js moved here word for word (3,273 B -> one pointer line). No code changed.
+
+```text
+/* lensiq-luckycolor.js — LQLucky: pure logic for the lucky-colour outfit mirror (luckycolor.html).
+ * Browser: window.LQLucky · Node: module.exports. No DOM, no network, no storage: numbers and colour names only.
+ *
+ * Tradition (สีมงคลประจำวัน, ทักษาจร): today's weekday planet starts the Taksa wheel at "บริวาร" and walks the Taksa
+ * order (อาทิตย์ จันทร์ อังคาร พุธ เสาร์ พฤหัสบดี ราหู ศุกร์) — the same rule as horoscope.js taksa(). Each bhumi (ภูมิ)
+ * then names the planet whose colour supports one area of life today:
+ *   work (การงาน) = เดช (+ อุตสาหะ) · money (โชคลาภ) = ศรี (+ มูละ) · love (เสน่ห์ ความรัก) = ศรี (+ อายุ)
+ *   support (ผู้ใหญ่อุปถัมภ์) = มนตรี (+ บริวาร)
+ * POSITIVE FRAMING ONLY: the result never says "avoid" / "bad luck" and never names กาลกิณี. A colour that is not one of
+ * today's supporting colours (or a neutral such as white / brown) is "a good base" with a suggested accent colour.
+ *
+ * API
+ *   PLANETS[0..7]            {key, hexes} 0 Sun … 6 Sat, 7 Rahu (เทา)
+ *   FAMILIES                 {key: {hex, planet|null}} colour families the classifier returns
+ *   BHUMI                    bhumi keys in wheel order
+ *   GOALS                    {work|money|love|support: {primary, secondary}} (bhumi keys)
+ *   taksa(planet) -> {bhumi: planet}       bhumiOf(dayPlanet, planet) -> bhumi key | null
+ *   dayPlanet(date) -> 0..6 (calendar weekday; the wearing tradition follows the calendar day)
+ *   rgbToHsl(r, g, b) -> [h 0..360, s 0..1, l 0..1]     classify(r, g, b) -> family key
+ *   familiesOf(planet) -> family keys                    recommend(dayPlanet, goal) -> {primary:{bhumi, planet, families}, secondary:{…}}
+ *   faceBoxFromProb(prob, S, {cls=3, thr=.5, minPx}) -> {x0,y0,x1,y1} (mask px) | null
+ *   clothesMaskFromProb(prob, S, {thr=.5, face}) -> {mask:Uint8Array(S*S), w:S, h:S, face, n, noFace}
+ *     prob = softmax CHW from PBHQ.multiclassParse (0 bg, 1 hair, 2 body-skin, 3 face-skin, 4 clothes, 5 others);
+ *     keeps clothes pixels strictly BELOW the face box (a hat or a collar above the chin is not "the outfit").
+ *   personMask(alpha, w, h, {thr=.5, headFrac=.24}) -> same shape (fallback: MediaPipe person mask minus the head band)
+ *   guideMask(w, h) -> same shape (last fallback: a fixed box over the chest, the user frames the shirt)
+ *   dominantColors(rgba, w, h, mask, {step=1, minShare=.04}) -> {n, list:[{family, share, rgb:[r,g,b]}]} (share desc)
+ *     the mask (any size) is mapped onto the pixel grid by normalised coordinates
+ *   smooth(prev, next, a=.5) -> blended list (EMA of shares, to stop flicker between frames)
+ *   evaluate(list, dayPlanet, goal) -> {level 0..3, family, planet, bhumi|null, accent:[family], support:[{family, bhumi}]}
+ *     3 = matches today's main colour for the goal · 2 = today's second colour for the goal ·
+ *     1 = supports another area today (bhumi named) · 0 = a good neutral base, add an accent (no negative wording)
+ */
+```
