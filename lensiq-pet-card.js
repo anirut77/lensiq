@@ -163,6 +163,7 @@
     canvas.width = W; canvas.height = H;
     const c = canvas.getContext("2d"), font = FONT();
     /** text boxes: kind "header" | "body" | "footer", in canvas pixels, around the drawn text */
+    const info0 = { headline: "" }; // the headline as drawn (reported as info.headline)
     const boxes = [], tb = (kind, x, y, w, fsz) => boxes.push({ kind, x: x - 6, y: y - fsz * 0.3, w: w + 12, h: fsz * 1.6 });
     if (!sk) {
       const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, th.bg[0]); g.addColorStop(1, th.bg[1]);
@@ -182,14 +183,19 @@
     const nfs = story ? 96 : 80; c.fillStyle = th.ink; c.font = `800 ${nfs}px ${font}`;
     for (const l of wrap(c, model.petName || "", HW, lang).slice(0, 1)) { c.fillText(l, PAD, y); tb("header", PAD, y, c.measureText(l).width, nfs); y += story ? 112 : 92; }
     if (model.headline) {
-      const hfs = story ? 52 : 44, hl = wrap(c, model.headline, HW, lang)[0] || "";
+      // review round 2: measure with the HEADLINE font (it was wrapped with the pet-name font and cut early); one line, and an
+      // ellipsis when it really overflows, as the reading lines do
+      const hfs = story ? 52 : 44;
       c.fillStyle = th.accent; c.font = `700 ${hfs}px ${font}`;
-      c.fillText(hl, PAD, y); tb("header", PAD, y, c.measureText(hl).width, hfs); y += story ? 74 : 62;
+      const hls = wrap(c, model.headline, HW, lang);
+      let hl = hls[0] || "";
+      if (hls.length > 1) { hl = hl.trimEnd(); while (hl.length > 1 && c.measureText(hl + "…").width > HW) hl = hl.slice(0, -1).trimEnd(); hl += "…"; }
+      c.fillText(hl, PAD, y); tb("header", PAD, y, c.measureText(hl).width, hfs); info0.headline = hl; y += story ? 74 : 62;
     }
     // picture frame
     const fy = y + 10, fh = story ? 760 : 430, fx = PAD, fw = TW;
     const info = { photo: false, blur: 0, refused: "", theme: sk ? "" : (o.theme || model.theme || "sunny"), template: sk ? sk.id : "", size: sizeKey, qr: false,
-      frame: [fx, fy, fw, fh] };
+      frame: [fx, fy, fw, fh], headline: info0.headline };
     if (model.photo && o.photo) {
       if (o.detOk === false) info.refused = "nodet";
       else { const r = drawPhoto(c, o.photo, o.pet, o.persons, fx, fy, fw, fh); info.blur = r.blur; info.refused = r.refused; info.photo = !r.refused; }
