@@ -1,0 +1,8 @@
+# evals-locks/pet-zodiac.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/pet-zodiac/ (owner rule 2026-11-13). Append-only.
+# pet-zodiac (owner spec 2026-11-19: 13 share-card templates for petread, 12 Chinese zodiac animals + a secret card, drawn by the
+# system independently of the reading; odds config a/b/c; on-device collection) — locked BEFORE any product code on branch
+# pet-zodiac-cards (base origin/main 943ef3d1). Synthetic inputs only. Before the build: unit 0/14, Chrome e2e 1/8 (P4 crisis
+# already holds: the card section is hidden in a crisis session). Logs: ~/LENSIQ-field/evals/pet-zodiac/run-0-before-build-*.log
+# locked 2026-11-19T02:01:35Z (tools/eval-guard.mjs lock, 2 files)
+ca99367160080d31bcc0f784763b722a2560febaad7802bb0bedf2cf7c5a4096  tests/unit/pet-zodiac.test.js
+5f647263cc918da9b4997f2601d9f0494429a05a34e689e439466065dd0645eb  tests/e2e/pet-zodiac.e2e.mjs
