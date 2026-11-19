@@ -1,0 +1,5 @@
+# locked 2026-11-19T02:45:08Z (tools/eval-guard.mjs lock, 2 files)
+ac5e3fd7674cfa94c17414f4fde3756e8a18d9e4e490ecb176015d8f2218c939  pc-pii-set-1.json
+dead4923c63182ce3069acc84af1ffcfbb41ee4122a08d37221d16cc652a9885  pc-pii-score.mjs
+dead4923c63182ce3069acc84af1ffcfbb41ee4122a08d37221d16cc652a9885  tools/pc-pii-score.mjs  # repo file (same commit as lock 2026-11-19T02:45:08Z; field: ~/LENSIQ-field/evals/pc-pii/pc-pii-score.mjs)
+# field only pc-pii-set-1.json (lock 2026-11-19T02:45:08Z: no repo file uses it)
