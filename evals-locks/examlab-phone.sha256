@@ -1,0 +1,5 @@
+# locked 2026-11-19T03:18:43Z (tools/eval-guard.mjs lock, 3 files)
+5050eb727b43bb632aeeb6b631f59a6a13ec8dee5a3efc420e84369ec6f950c5  manifest.jsonl
+7bcb4e8ae9067a5ff2d5b13577d6111a9b8fb689ff81cc82b439d43615eb12f5  labels.csv
+f4d117480dfd796ac949ab0ecc6ebc9e6e88f5931a766c0eb7eda98810513123  ATTRIBUTION.csv
+5050eb727b43bb632aeeb6b631f59a6a13ec8dee5a3efc420e84369ec6f950c5  docs/exam/examlab-phone/manifest.jsonl  # repo file  late record 2026-11-19 (owner): original lock 2026-11-19T03:18:43Z commit 4469d58f; field copy ~/LENSIQ-field/evals/examlab-phone/manifest.jsonl same hash; missed because the ledger check does not match .jsonl
