@@ -75,3 +75,19 @@ test("previewRedact stays linear on adversarial text (8x text, at most 24x time)
     assert.ok(big / small <= 24, `${f.toString()}: ${small.toFixed(1)} ms -> ${big.toFixed(1)} ms`);
   }
 });
+
+test("ownership and addressee markers on a sticker or a handwritten warning (review round 1, item 9; written without the reviewer's set)", () => {
+  const cases = [
+    ["Vitamin C 500 mg Tablets\nIngredients: ascorbic acid\nProperty of Jane Roe – do not use!\n0012345678905", ["Jane Roe"]],
+    ["Ibuprofen 200 mg Tablets\nPROPERTY OF Dr. Alan Smithers - DO NOT TAKE\n0012345678905", ["Alan Smithers"]],
+    ["Cough Syrup 100 ml\nWarning: Tom's pills - do not share\nThis belongs to Maria Lopez\nprescribed for Kevin O'Hara\n0012345678905", ["Tom", "Maria Lopez", "Kevin O'Hara"]],
+    ["ยาแก้ไอ ตราใบไม้\nส่วนประกอบ กลีเซอรีน\nยานี้เป็นของ คุณสมศรี ห้ามใช้\n8851234567898", ["สมศรี"]],
+    ["かぜ薬 第2類医薬品\n成分 アセトアミノフェン 300mg\n健太の薬 さわらないで\n持ち主: 佐藤 花子\n4901234567894", ["健太", "佐藤 花子"]],
+    ["감기약 1일 3회\n성분 아세트아미노펜\n주인: 김민지\n민준이 꺼! 먹지 마\n8801234567893", ["김민지", "민준"]],
+    ["感冒灵颗粒 每日3次\n成分：对乙酰氨基酚\n属于：王小明\n李华的药 别动\n6901234567892", ["王小明", "李华"]]
+  ];
+  for (const [text, values] of cases) for (const v of values) assert.ok(gone(text, v), `"${v}" stayed in ${JSON.stringify(G.previewRedact(text).text)}`);
+  // label wording with the same words is kept
+  const keep = "Pain Relief Tablets 200 mg\nFor external use only. Only for adults\nThis is a medicine. Read the leaflet\nKeep out of reach of children\n0012345678905";
+  assert.equal(G.previewRedact(keep).text, keep);
+});

@@ -84,3 +84,44 @@ Product labels whose default payload the Worker would refuse (AI lost by the rem
 | A request without the preview mark | 58 | no page path sends one; the Worker enforces the mark only for JA / KO |
 
 Before AI goes on, these need their own decision (see the round report).
+
+## 5. Round 2 (2026-11-19): independent review round 1 fixes and owner decision 146 ก (three routes)
+
+Commits, one per route in the owner's order, then the review fixes:
+1. `56f60c9d` route 1: the Worker refuses every non-auto text request without the preview mark (`ai_off_preview`; JA / KO keep
+   `ai_off_jako_preview`). Locked tests re-locked append-only in `evals-locks/live-scan.sha256` (equal or stricter; reasons there).
+2. `71938203` route 2: tester one-tap refuses (page reason `name-guard`; Worker `ai_off_auto_filter`) when `previewRedact` finds
+   anything. Also: a maker line ("Made by X Co., Ltd.") counts as label text; the possible-name pass decides once per line.
+   **Regression in this commit, fixed in the next one:** "co." inside an e-mail domain (`example.co.kr`) read as a company
+   suffix and kept a staff contact line (1 Korean leak on the locked set). Fixed: the suffix must be a word, not inside an
+   e-mail or web address.
+3. `6d97db9b` route 3: the page blocks the photo whenever `previewRedact` finds anything; the Worker refuses a photo with a
+   text that holds the placeholder (`ai_off_preview_photo`). `imageCheck()` itself is unchanged (see the commit: putting the rule
+   there breaks locked P7 utility tests that assert the old photo rule).
+4. Review fixes: exact counts in the e2e (1 placeholder = 1 highlight; exactly 2 requests, reason in a comment), the
+   possible-name hint covered again (restore with confirm -> hint shown; deleted -> hint hidden), restore refused when no
+   confirm dialog exists, the edited text gets the same automatic removal on "Send this text" (a removed item typed back from
+   the label is removed again unless the user restored exactly that text), ownership / addressee markers ("Property of X",
+   "belongs to", "prescribed for", "X's pills", เป็นของ, 持ち主, Xの薬, 주인, X 꺼, 属于, X的药). The reviewer's set
+   (`~/LENSIQ-field/evals/pc-pii-review/`) was NOT opened.
+
+Numbers on the locked pc-pii set after round 2 (synthetic; NOT blind: this set was seen in round 1):
+
+| Language | Leaks (explicit send, defaults) | Labels with any removal | Product characters removed |
+|---|---|---|---|
+| Thai | 0 / 46 | 13 / 16 | 457 / 4,935 |
+| English | 0 / 43 | 15 / 16 | 536 / 4,937 |
+| Chinese | 0 / 37 | 13 / 16 | 324 / 2,574 |
+| Japanese | 0 / 54 | 20 / 24 | 508 / 3,902 |
+| Korean | 0 / 54 | 17 / 24 | 288 / 3,484 |
+| **All** | **0 / 234** | **78 / 96** | **2,113 / 19,832 (10.7 %)** |
+
+Photo route and tester one-tap route with the new rules: 0 personal values in every language (before: 47 and 8). Cost: the
+photo is no longer offered for 89 of 96 pure product labels and one-tap for 90 of 96 (48 of the 96 are Japanese / Korean,
+which never had either), because almost every label has some line the removal takes.
+
+**What "no label lost its AI answer" means (AI is off; no provider was called).** It is the Worker's own input check only:
+for each pure product label whose ORIGINAL text the gate (`aiGate`) allows, the scorer builds the default payload
+(`previewRedact` -> `provenance` -> `redact`) and calls `buildFields(payload, {mode: "text"})` from
+`backend/src/ai/pc-features.js` with `previewed: true`; "lost" = that call throws (a refusal such as `ai_off_no_product`).
+0 of 96 threw. It says the request would be ACCEPTED by the Worker; it says nothing about what the AI would answer or how well.

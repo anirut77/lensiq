@@ -132,9 +132,12 @@ export default async function ({ base, launch, check }) {
       await agree(page);
       const pv = await preview(page);
       assert((await posts(page)).length === 0, "NO request before 'Send this text'");
-      // owner decision 127: the whole sticker line (name + phone) is one removed span now (one highlight); the list still names
-      // each kind, and none of the personal values is shown
-      assert(pv.open && pv.marks >= 1 && !/สมมติ|ใจทดสอบ|081-234-5678/.test(pv.shown) && /\[removed\]/.test(pv.shown) && pv.view === pv.shown,
+      // owner decision 127: PII is ONE line ("คุณสมมติ ใจทดสอบ โทร 081-234-5678") and LABEL has no personal data, so the automatic
+      // removal takes that whole line as ONE span: exactly 1 placeholder and exactly 1 highlight, one per placeholder (the list
+      // below still names each kind found in it: line, name, phone)
+      const placeholders = pv.shown.split("[removed]").length - 1;
+      assert(pv.open && pv.marks === 1 && placeholders === 1 && pv.marks === placeholders && pv.shown === "[removed]\n" + LABEL &&
+        !/สมมติ|ใจทดสอบ|081-234-5678/.test(pv.shown) && pv.view === pv.shown,
         "the exact redacted text, removed parts highlighted, open " + JSON.stringify(pv));
       assert(pv.removed.includes("name") && pv.removed.includes("phone"), "what was removed is listed " + pv.removed);
       // the user deletes more (the TESTOL line) before sending; what is sent = what the box shows
@@ -189,7 +192,8 @@ export default async function ({ base, launch, check }) {
     });
 
     await check("pc-ai: automatic removal (owner decision 127) — a bare name and a maker phone on the label are REMOVED by default and listed; " +
-      "each can be restored only knowingly (a confirm); a cancelled confirm keeps it removed; a restored item is sent, an edit not on the label never", async () => {
+      "retyped from the label they are removed again; each can be restored only knowingly (a confirm; no confirm available = refused); " +
+      "a restored likely name is underlined with the hint, which goes when it is deleted; what is sent equals the box", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT, NET], isolated: true });
       await page.goto(`${base}/medicine.html?fakeface`);
       await openTab(page);
@@ -199,34 +203,73 @@ export default async function ({ base, launch, check }) {
       await page.waitFor(`document.querySelector("dialog.lq-ai-consent") && document.querySelector("dialog.lq-ai-consent").open`, 8000);
       await agree(page);
       const pv = await preview(page);
-      assert(pv.open && !/Grace|Exampleton|02-315-4421/.test(pv.shown) && pv.shown.includes(LABEL) && pv.view === pv.shown,
-        "by default the name and the phone are removed, the label text stays, the preview is open " + JSON.stringify(pv));
+      const DEFAULT = "[removed]\n" + LABEL + "\nผลิตโดย บริษัท สาธิต จำกัด โทร [removed]";
+      assert(pv.open && pv.shown === DEFAULT && pv.marks === 2 && pv.view === pv.shown,
+        "by default exactly the name line and the phone are removed (2 placeholders, 2 highlights), the label text stays " + JSON.stringify(pv));
       const items = () => page.evaluate(() => [...document.querySelectorAll("#pcAiPrevRemoved li")].map(l => ({ kind: l.dataset.kind, text: l.querySelector("span[translate=no]").textContent,
-        restore: l.querySelector("[data-restore]") ? l.querySelector("[data-restore]").getAttribute("data-restore") : null, restored: l.hasAttribute("data-restored") })));
+        restore: l.querySelector("[data-restore]") ? l.querySelector("[data-restore]").getAttribute("data-restore") : null,
+        rm: l.querySelector("[data-rm]") ? l.querySelector("[data-rm]").getAttribute("data-rm") : null, restored: l.hasAttribute("data-restored") })));
       const li = await items();
+      assert(li.length === 2, "exactly two removals listed " + JSON.stringify(li));
       const nm = li.find(x => x.text === "Grace Exampleton"), ph = li.find(x => x.text === "02-315-4421");
       assert(nm && nm.restore != null && ph && ph.restore != null, "both listed, each with a restore button " + JSON.stringify(li));
       assert(await page.evaluate(() => !!document.querySelector("#pcAiPrevAuto")), "the preview says the removal is automatic and on this device");
+      // the name RETYPED into the box (it is on the label, so provenance keeps it): removed again on send, shown again, nothing sent
+      await preview(page, "Grace Exampleton\n" + DEFAULT);
+      await sendText(page);
+      await page.waitFor(`document.querySelector("#pcAiPrevWarn")`, 8000);
+      const again = await preview(page);
+      assert((await posts(page)).length === 0 && !/Grace/.test(again.shown) && (await items()).some(x => x.text === "Grace Exampleton" && !x.restored),
+        "a retyped removed name is removed again and listed, nothing sent " + JSON.stringify(again));
+      // start over: cancel, ask again (same page session: no consent screen) -> a fresh preview from the label
+      await page.evaluate(() => document.querySelector("#pcAiPrevCancel").click());
+      await page.waitFor(`!document.querySelector("#pcAiPreview")`, 8000);
+      await page.evaluate(() => document.querySelector("#pcAiGo").click());
+      const fresh = await preview(page);
+      assert(fresh.shown === DEFAULT && (await items()).length === 2 && (await posts(page)).length === 0, "a fresh preview after cancel " + JSON.stringify(fresh));
+      // no confirm dialog available: the restore is refused (never restored silently)
+      await page.evaluate(id => { window.confirm = undefined; document.querySelector(`#pcAiPrevRemoved [data-restore="${(id)}"]`).click(); },
+        (await items()).find(x => x.text === "Grace Exampleton").restore);
+      assert(!/Grace/.test((await preview(page)).shown), "without a confirm dialog nothing is restored");
       // a cancelled confirm: nothing comes back
-      await page.evaluate(id => { window.confirm = () => false; document.querySelector(`#pcAiPrevRemoved [data-restore="${id}"]`).click(); }, nm.restore);
+      await page.evaluate(id => { window.confirm = () => false; document.querySelector(`#pcAiPrevRemoved [data-restore="${id}"]`).click(); },
+        (await items()).find(x => x.text === "Grace Exampleton").restore);
       assert(!/Grace/.test((await preview(page)).shown), "a cancelled confirm keeps the name removed");
       // the maker phone restored knowingly
-      await page.evaluate(id => { window.confirm = () => true; document.querySelector(`#pcAiPrevRemoved [data-restore="${id}"]`).click(); }, ph.restore);
+      await page.evaluate(id => { window.confirm = () => true; document.querySelector(`#pcAiPrevRemoved [data-restore="${id}"]`).click(); },
+        (await items()).find(x => x.text === "02-315-4421").restore);
       const pv2 = await preview(page);
-      assert(/02-315-4421/.test(pv2.shown) && !/Grace/.test(pv2.shown) &&
-        (await items()).find(x => x.text === "02-315-4421").restored, "the restored phone is back, marked restored " + JSON.stringify(pv2));
-      // the user then changes ONE digit of it: a number not on the label is struck through and never sent
-      await preview(page, pv2.shown.replace("02-315-4421", "02-315-4422"));
+      assert(pv2.shown === "[removed]\n" + LABEL + MAKER && (await items()).find(x => x.text === "02-315-4421").restored,
+        "the restored phone is back, marked restored " + JSON.stringify(pv2));
+      // the likely name restored knowingly: underlined in the view, with the hint
+      await page.evaluate(id => { window.confirm = () => true; document.querySelector(`#pcAiPrevRemoved [data-restore="${id}"]`).click(); },
+        (await items()).find(x => x.text === "Grace Exampleton").restore);
+      const pv3 = await preview(page);
+      const maybe = await page.evaluate(() => ({ m: [...document.querySelectorAll("#pcAiPrevView mark[data-maybe]")].map(e => e.textContent),
+        hint: !document.querySelector("#pcAiPrevMaybe").hidden, t: document.querySelector("#pcAiPrevMaybe").innerText }));
+      assert(pv3.shown === "Grace Exampleton\n" + LABEL + MAKER && maybe.m.join() === "Grace Exampleton" && maybe.hint && /อาจเป็นชื่อคน/.test(maybe.t),
+        "restored likely name underlined with the hint " + JSON.stringify({ pv3, maybe }));
+      // deleted in the box: the hint goes
+      await preview(page, LABEL + MAKER);
+      assert(await page.evaluate(() => document.querySelector("#pcAiPrevMaybe").hidden), "hint gone once the name is deleted");
+      // a one-digit edit of the restored phone is not on the label: struck through, never sent
+      await preview(page, LABEL + MAKER.replace("4421", "4422"));
       const del = await page.evaluate(() => [...document.querySelectorAll("#pcAiPrevView del[data-dropped]")].map(e => e.textContent));
       assert(del.join() === "02-315-4422", "the one-digit-off phone is struck through " + JSON.stringify(del));
-      await preview(page, pv2.shown);
+      // "remove again" on the name: the text is rebuilt from the label with the name removed and the phone still restored
+      await page.evaluate(id => document.querySelector(`#pcAiPrevRemoved [data-rm="${id}"]`).click(), (await items()).find(x => x.text === "Grace Exampleton").rm);
+      const pv4 = await preview(page);
+      assert(pv4.shown === "[removed]\n" + LABEL + MAKER && !(await items()).find(x => x.text === "Grace Exampleton").restored, "removed again " + JSON.stringify(pv4));
       await sendText(page);
       await page.waitFor(`document.querySelector("#pcAiOut")`, 8000);
       const p = await posts(page);
-      assert(p.length >= 2 && p.every(x => x.text === pv2.shown), "sent = exactly the box after the restore " + JSON.stringify(p.map(x => x.text)));
+      // exactly 2 requests: pc_fields + pc_claims; no pc_translate because the label text is mostly Thai and the page is Thai
+      // (translateTarget returns null), as in the first check
+      assert(p.length === 2 && p.some(x => x.f === "pc_fields") && p.some(x => x.f === "pc_claims") && p.every(x => x.text === pv4.shown),
+        "sent = exactly the box after the restore " + JSON.stringify(p.map(x => [x.f, x.text])));
       assert(!p.some(x => /Grace|Exampleton|4422/.test(JSON.stringify(x))), "the removed name and a typed number are NEVER in a request");
       const out = await page.evaluate(() => [...document.querySelectorAll("#pcAiRemoved li")].map(l => l.innerText));
-      assert(out.some(t => /Grace Exampleton/.test(t)) && !out.some(t => /02-315-4421/.test(t)), "the result lists what was removed (not the restored phone) " + JSON.stringify(out));
+      assert(out.length === 1 && /Grace Exampleton/.test(out[0]), "the result lists exactly what was removed (the name; not the restored phone) " + JSON.stringify(out));
       await page.close();
     });
 

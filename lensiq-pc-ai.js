@@ -205,7 +205,7 @@
       // session: this capture is allowed only through codes scanned earlier in the session (option ข): say so in the preview
       const session = !!gate(ocr || g.text).session;
       return new Promise(resolve => { const jako = jakoOf(ocr || g.text);
-      st.preview = { text: g.text, ocr, removed: g.removed, auto: g.items ? g : null, restored: [],
+      st.preview = { text: g.text, ocr, removed: g.removed, auto: g.items ? g : null, restored: [], prior: [],
         open: open || jako || g.count > 0 || f.dropped.length > 0 || session, warn: "", session, jako, resolve }; paint(); });
     }
     /** Put one automatically removed item back (the user confirmed it is not personal data), or remove it again.
@@ -218,12 +218,15 @@
       if (back) {
         const q = T("md.pc.ai.restoreQ", "ส่ง \"{t}\" ไปให้ AI ด้วย? กดตกลงเฉพาะเมื่อคุณแน่ใจว่าไม่ใช่ชื่อ เบอร์โทร ที่อยู่ เลขบัญชี หรือข้อมูลส่วนตัวของใคร",
           { t: it.text });
-        const ok = typeof W.confirm !== "function" || W.confirm(q);
+        // no confirm dialog available (embedded / blocked): the item stays removed (never restored without the user's own yes)
+        if (typeof W.confirm !== "function") return;
+        let ok = false;
+        try { ok = W.confirm(q) === true; } catch { ok = false; }
         if (!ok) return;
         if (!p.restored.includes(id)) p.restored.push(id);
       } else p.restored = p.restored.filter((/** @type {number} */ x) => x !== id);
       const g = W.LQPCGuard.previewRedact(p.auto.source, { ...(gopt() || {}), restore: p.restored });
-      p.auto = g; p.text = g.text; p.removed = g.removed; p.open = true; p.warn = "";
+      p.auto = g; p.text = g.text; p.removed = p.prior.concat(g.removed); p.open = true; p.warn = "";
       paint();
     }
     function closePreview(/** @type {string|null} */ v) {
@@ -239,9 +242,24 @@
       // option b: anything not on the label is dropped (the view already shows it struck through)
       const v = W.LQPCGuard.provenance(typed, p.ocr).text;
       if (!v.trim()) { p.text = typed; p.warn = T("md.pc.ai.prevEmpty", "ไม่มีข้อความให้ส่ง"); paint(); return; }
-      const again = W.LQPCGuard.redact(v, gopt());
+      // the edited text gets the SAME automatic removal (owner decision 127, review round 1): anything removed before and typed
+      // back from the label is removed again unless the user restored exactly that text with the confirm
+      const keep = p.auto ? p.auto.items.filter((/** @type {any} */ x) => x.restored).map((/** @type {any} */ x) => x.text) : [];
+      let again = W.LQPCGuard.previewRedact ? W.LQPCGuard.previewRedact(v, gopt()) : W.LQPCGuard.redact(v, gopt());
+      if (again.items) {
+        const ids = again.items.filter((/** @type {any} */ x) => x.restorable && keep.includes(x.text)).map((/** @type {any} */ x) => x.id);
+        if (ids.length) again = W.LQPCGuard.previewRedact(v, { ...(gopt() || {}), restore: ids });
+      }
       if (again.count) { // the user typed or left personal data: remove it and show the text again (never sent unseen)
-        p.text = again.text; p.removed = p.removed.concat(again.removed); p.open = true; p.auto = null; // the list now shows every removal; nothing more to restore
+        const before = p.auto ? p.auto.items.filter((/** @type {any} */ x) => !x.restored).map((/** @type {any} */ x) => ({ kind: x.kind, text: x.text })) : p.removed.slice();
+        // what was removed earlier stays listed (it is a placeholder in the edited text now, so it cannot be restored here: ask
+        // again for a fresh preview); a text found again is listed once, with its restore button
+        const now = again.items ? again.items.map((/** @type {any} */ x) => x.text) : [];
+        p.prior = (p.auto ? p.prior : []).concat(before).filter((/** @type {any} */ x) => !now.includes(x.text));
+        p.text = again.text; p.open = true;
+        if (again.items) { p.auto = again; p.restored = again.items.filter((/** @type {any} */ x) => x.restored).map((/** @type {any} */ x) => x.id); }
+        else p.auto = null;
+        p.removed = p.prior.concat(again.removed);
         p.warn = T("md.pc.ai.prevAgain", "พบข้อมูลส่วนตัวเพิ่มในข้อความที่แก้ จึงลบออกแล้ว ตรวจอีกครั้งก่อนส่ง"); paint(); return;
       }
       // the edited text is decided again: still a product label, no personal-document sign, not a dispensing label
@@ -510,9 +528,9 @@
             "ระบบลบข้อมูลที่อาจเป็นข้อมูลส่วนตัวออกให้อัตโนมัติบนเครื่องนี้ ส่งให้ AI เฉพาะข้อความฉลากสินค้า " +
             "ถ้าส่วนใดไม่ใช่ข้อมูลส่วนตัว กด \"คืนค่า\" เพื่อส่งไปด้วย (การคืนค่าจะแทนที่ข้อความที่คุณแก้ในช่องด้านล่าง)"))}</p>` : "") +
           (p.removed.length || (p.auto && p.restored.length) ? `<p class="hint">${esc(T("md.pc.ai.removed", "ลบออกก่อนส่ง {n} จุด (อยู่ในเครื่องนี้เท่านั้น):", { n: p.removed.length }))}</p>` +
-            `<ul class="md-list" id="pcAiPrevRemoved">${(p.auto ? p.auto.items : p.removed).map((/** @type {any} */ x) =>
+            `<ul class="md-list" id="pcAiPrevRemoved">${(p.auto ? p.prior.concat(p.auto.items) : p.removed).map((/** @type {any} */ x) =>
               `<li data-kind="${esc(x.kind)}"${x.restored ? " data-restored" : ""}>${esc(k[x.kind] || x.kind)}: ${raw(x.text)}` +
-              (!p.auto ? "" : x.restored ? ` <em>${esc(T("md.pc.ai.restored", "(คุณคืนค่าแล้ว จะส่งไปด้วย)"))}</em>` +
+              (!p.auto || x.id == null ? "" : x.restored ? ` <em>${esc(T("md.pc.ai.restored", "(คุณคืนค่าแล้ว จะส่งไปด้วย)"))}</em>` +
                 ` <button class="btn ghost small" type="button" data-rm="${x.id}">${esc(T("md.pc.ai.reRemove", "ลบออกอีกครั้ง"))}</button>`
                 : x.restorable ? ` <button class="btn ghost small" type="button" data-restore="${x.id}">${esc(T("md.pc.ai.restore", "คืนค่า"))}</button>` : "") + `</li>`).join("")}</ul>` : "") +
           `<div id="pcAiPrevView" translate="no" style="white-space:pre-wrap;overflow-wrap:anywhere">${marked(p.text)}</div>` +

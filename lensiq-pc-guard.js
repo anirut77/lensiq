@@ -1501,7 +1501,22 @@
   const KIN_EN = "(?:grand(?:ma|pa|mother|father|son|daughter)|granny|nana|mum|mom|mother|dad|father|son|daughter|sister|brother|aunt(?:ie)?|uncle|wife|husband|baby)";
   const KIN_ZH = "(?:奶奶|爷爷|爺爺|外婆|外公|姥姥|姥爷|妈妈|媽媽|爸爸|母亲|母親|父亲|父親|儿子|兒子|女儿|女兒|孙子|孫子|孙女|孫女|老公|老婆|哥哥|姐姐|弟弟|妹妹|叔叔|阿姨|舅舅|姑姑|伯伯)";
   const NAME_TOKEN = "(?:[一-鿿々ぁ-ゖァ-ヺー]{1,5}(?:[ \\t\\u3000][一-鿿々ぁ-ゖァ-ヺー]{1,5})?|[가-힣]{2,4}|[A-Z][a-z]{1,14}(?:[ \\t][A-Z][a-z]{1,14})?)";
+  /** a regex source whose ASCII letters match either case (the captured name after it keeps its capital) @param {string} src */
+  const caseless = src => src.replace(/\\.|[a-z]/g, ch => (ch.length === 1 ? `[${ch}${ch.toUpperCase()}]` : ch));
   const NOTE_NAME = [
+    // ownership / addressee markers on a sticker or a handwritten warning ("Property of Jane Roe - do not use!", "belongs to",
+    // "prescribed for", "เป็นของ", "持ち主", "주인", "属于"), and a possessive before a medicine word ("Tom's pills", "健太の薬")
+    new RegExp(caseless("\\b(?:property\\s+of|belongs?\\s+to|owned\\s+by|owner\\s*[:：]?|reserved\\s+for|only\\s+for|prescribed\\s+(?:to|for)|dispensed\\s+(?:to|for)|" +
+      "for\\s+use\\s+by|kept\\s+by|returns?\\s+to|if\\s+found[^\\n]{0,12}?(?:call|contact|return\\s+to)|this\\s+(?:is|belongs\\s+to))") + "[ \\t]*[:：]?[ \\t]*" +
+      "((?:(?:Mr|Mrs|Ms|Miss|Dr)\\.?[ \\t]+)?[A-Z][A-Za-z'’.-]+(?:[ \\t]+[A-Z][A-Za-z'’.-]+){0,2})", "gu"),
+    /\b([A-Z][a-z]{1,14}(?:[ \t][A-Z][a-z]{1,14})?)['’]s[ \t]+(?:medicine|meds|pills?|tablets?|capsules?|cream|ointment|drops|inhaler|bottle|box|stuff|vitamins?|dose|supply)\b/gu,
+    /(?:เป็นของ|เจ้าของ|ของใช้ของ|ยาของ)[ \t]*(?:คุณ|นาย|นาง|น้อง|พี่)?[ \t]*([ก-๙]{2,20}(?:[ \t][ก-๙]{2,20})?)/gu,
+    new RegExp(`(?:持ち主|所有者|名前|なまえ)[ \\t\\u3000]*[:：]?[ \\t\\u3000]*(${NAME_TOKEN})`, "gu"),
+    /(?:^|(?<=[\s(（、。]))([一-鿿々ぁ-ゖァ-ヺー]{2,6})の(?:もの|物|私物|薬|くすり|おくすり)(?![一-鿿ぁ-ゖ])/gmu,
+    /(?:주인|소유자|이름)[ \t]*[:：]?[ \t]*([가-힣]{2,4})/gu,
+    /(?:^|(?<=[\s(]))([가-힣]{2,4})(?:의[ \t]*(?:것|약|물건)|[ \t]?꺼)(?=[ \t!.]|$)/gmu,
+    /(?:属于|屬於|物主|主人|姓名|名字)[ \t]*[:：]?[ \t]*([一-鿿]{2,3})/gu,
+    /(?:^|(?<=[\s(（，,]))([一-鿿]{2,3})(?:的(?:药|藥|东西|東西|物品))/gmu,
     // kinship word (+ 用 / の / へ / 의 / 's) then a name
     new RegExp(`${KIN_JA}(?:用|の|へ|宛)?[ \\t\\u3000]*(${NAME_TOKEN})`, "gu"),
     new RegExp(`${KIN_KO}(?:의|용)?[ \\t]+([가-힣]{2,4})`, "gu"),
@@ -1526,7 +1541,8 @@
   const MAKER_CUE = new RegExp([
     "ผลิตโดย|ผลิตที่|บรรจุโดย|จัดจำหน่ายโดย|จำหน่ายโดย|นำเข้าโดย|ผลิตและจำหน่าย|บริษัท|วิสาหกิจ|สหกรณ์|\\b(?:dist(?:ributed)?\\.?\\s+by|",
     "manufactured\\s+(?:by|for)|made\\s+by|handmade\\s+by|baked\\s+by|packed\\s+(?:by|for)|imported\\s+by|marketed\\s+by|authori[sz]ation\\s+holder)\\b|",
-    "\\b(?:ltd|inc|llc|pty|gmbh|corp|co\\.)\\b|製造販売元|販売元|製造者|販売者|発売元|輸入元|製造元|株式会社|\\(株\\)|제조원|판매원|제조사|수입원|제조판매원|\\(주\\)|주식회사|生产商|制造商|经销商|經銷商|生产企业|生產企業|",
+    // (a company suffix as a word, never inside an e-mail or a web address: "example.co.kr", "corp.example.com")
+    "(?<![.@\\w-])(?:ltd|inc|llc|pty|gmbh|corp)\\b(?!\\.[a-z])|(?<![.@\\w-])co\\.(?![a-z])|製造販売元|販売元|製造者|販売者|発売元|輸入元|製造元|株式会社|\\(株\\)|제조원|판매원|제조사|수입원|제조판매원|\\(주\\)|주식회사|生产商|制造商|经销商|經銷商|生产企业|生產企業|",
     "製造廠|制造厂|進口商|进口商|委托方|受托方|有限公司|股份"
   ].join(""), "iu");
   const NUM_KEEP_CUE = /\b(?:lot|batch|exp|mfg|mfd|reg|ndc|din|npn|gtin|ean|jan|upc)\b|批号|批號|批准|注册|註冊|备案|備案|届出|承認|製造番号|製造記号|허가|신고|품목|제조번호|ทะเบียน|เลขที่ผลิต|อย\.|สารบบ|จดแจ้ง/iu;
