@@ -1,0 +1,158 @@
+"use strict";
+// tests/unit/palm-honesty.test.js — owner decision 163 ก (2026-11-19), LIVE palm page honesty fix. Locked BEFORE the fix
+// (phase palm-honesty). Synthetic images only (source: synthetic; no photo of a person).
+//   H1  a palm image with no crease: heart / head / life (and fate) are NOT detected; each carries the "not clear" state
+//       (present === false, unclear === true) instead of a placeholder placed on the template
+//   H1c control: the same palm with dark creases drawn along life / head / heart IS detected (the detector is not simply off)
+//   H2  the reading never references a line in the "not clear" state (reading rows, summaries, highlights, tips, facts
+//       for FortuneAI and the locally composed narrative), in TH; EN / ZH strings are checked in the e2e
+//   H3  a fate line that is not found is never read as "absent / no fate line"
+//   H4  the "not clear" label is exactly ไม่ชัดในภาพนี้ / Not clear in this photo / 此照片中不清楚
+//   H5  placeholder until the owner approves the wording: the old misleading mounts label is gone in TH / EN / ZH
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const ROOT = path.join(__dirname, "..", "..");
+const KB = require(path.join(ROOT, "palm-kb.js"));
+global.PALM_KB = KB;
+const PC = require(path.join(ROOT, "palm.js"));
+const FA = require(path.join(ROOT, "fortune-ai.js"));
+const EN = require(path.join(ROOT, "i18n", "en-fortune-palm.js")).en;
+const ZH = require(path.join(ROOT, "i18n", "zh-fortune-palm.js")).zh;
+
+const MAJOR = ["life", "head", "heart"];
+const UNCLEAR = { th: "ไม่ชัดในภาพนี้", en: "Not clear in this photo", zh: "此照片中不清楚" };
+
+/** synthetic hand (21 points) from the built-in guide template, rotated / scaled / mirrored */
+function hand(side, rot, scale) {
+  const sx = side === "right" ? -1 : 1, k = 100 * (scale || 1);
+  return PC.handFromLandmarks(PC.GUIDE_HAND.map(p => { const x = p[0] * sx * k, y = p[1] * k; return [640 + x * Math.cos(rot) - y * Math.sin(rot), 600 + x * Math.sin(rot) + y * Math.cos(rot)]; }));
+}
+/** canonical palm image: flat skin tone with a smooth illumination gradient (no crease), optional dark creases drawn on templates */
+function palmImage(F, creases) {
+  const g = new Float32Array(F.w * F.h);
+  for (let y = 0; y < F.h; y++) for (let x = 0; x < F.w; x++) g[y * F.w + x] = 150 + 30 * x / F.w + 12 * y / F.h;
+  for (const id of creases || []) {
+    for (const p of PC.spline(PC.TEMPLATES[id].pts.map(F.uvToPx), 400)) {
+      for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) {
+        const x = Math.round(p[0] + dx), y = Math.round(p[1] + dy); if (x < 0 || y < 0 || x >= F.w || y >= F.h) continue;
+        const d = Math.hypot(dx, dy), i = y * F.w + x; g[i] = Math.min(g[i], g[i] - 45 * Math.exp(-d * d / 2.5));
+      }
+    }
+  }
+  return g;
+}
+function detect(h, creases) {
+  const F = PC.palmFrame(h), R = PC.ridgeFilter(PC.localContrast(palmImage(F, creases), F.w, F.h, 12), F.w, F.h, [1.6, 2.4, 3.4], null);
+  return { F, R, lines: PC.detectLines(R, F) };
+}
+const HANDS = [["left", 0, 1], ["right", 0, 1], ["left", 0.4, 1.3], ["right", -0.3, 0.8]];
+const NAMES = { life: ["เส้นชีวิต"], head: ["เส้นสมอง"], heart: ["เส้นหัวใจ"], fate: ["เส้นวาสนา", "วาสนา"] };
+/** every piece of text the reading shows or hands to the narrator */
+function readingTexts(R, facts) {
+  const rd = R.reading, out = [rd.personality, rd.work, rd.money, rd.love].concat(rd.highlights, rd.tips);
+  rd.lines.forEach(l => { out.push(l.th, l.about); l.items.forEach(it => out.push(it.label, it.meaning)); });
+  facts.items.forEach(it => { out.push(it.label, it.evidence, it.group, it.short || ""); Object.values(it.meanings).forEach(a => out.push(a.join(" "))); });
+  out.push(facts.headline || "");
+  return out.filter(Boolean).join("\n");
+}
+async function narrative(facts) {
+  const res = await FA.compose(facts);
+  assert.ok(res && Array.isArray(res.sections) && res.sections.length >= 2, "narrative not composed");
+  return JSON.stringify(res);
+}
+
+test("H1: palm image with no crease -> heart / head / life / fate are not detected; each is in the 'not clear' state", () => {
+  for (const [side, rot, sc] of HANDS) {
+    const { lines } = detect(hand(side, rot, sc), null);
+    for (const id of PC.LINE_IDS) {
+      const L = lines[id], tag = `${side} rot ${rot} scale ${sc} ${id}`;
+      assert.ok(L, tag + " missing");
+      assert.equal(L.present, false, tag + ": drawn / read as detected although the image has no crease");
+      assert.equal(L.unclear, true, tag + ": no 'not clear' state");
+      assert.ok(L.auto && typeof L.auto.conf === "number" && L.auto.conf < 0.3, tag + ": detector score " + JSON.stringify(L.auto));
+    }
+  }
+});
+
+test("H1c control: creases drawn along life / head / heart are detected; fate (no crease) stays not clear", () => {
+  for (const [side, rot, sc] of HANDS) {
+    const { lines } = detect(hand(side, rot, sc), MAJOR);
+    for (const id of MAJOR) {
+      assert.equal(lines[id].present, true, `${side} ${rot} ${id}: a real crease was not detected ` + JSON.stringify(lines[id].auto));
+      assert.ok(!lines[id].unclear, `${side} ${rot} ${id}: found line marked not clear`);
+    }
+    assert.equal(lines.fate.present, false, `${side} ${rot} fate found without a crease`);
+    assert.equal(lines.fate.unclear, true, `${side} ${rot} fate not marked not clear`);
+  }
+});
+
+test("H2: the reading never references a line in the 'not clear' state (all four, and heart alone)", async () => {
+  // a) nothing found
+  for (const [side, rot, sc] of HANDS) {
+    const h = hand(side, rot, sc), d = detect(h, null);
+    for (let seed = 0; seed < 4; seed++) {
+      const R = PC.analyze({ hand: h, lines: d.lines, R: d.R, F: d.F, seed, side, isDominant: side === "right" });
+      assert.deepEqual(R.reading.lines, [], "reading rows for unclear lines");
+      for (const id of PC.LINE_IDS) assert.equal(R.lc.cats[id], undefined, id + " classified although not clear");
+      for (const id of PC.LINE_IDS) assert.equal(R.lc.m[id], undefined, id + " measured into the reading although not clear");
+      const facts = PC.buildFacts(R, { topic: ["overall", "love", "work", "money"][seed], side, isDominant: side === "right" });
+      for (const it of facts.items) assert.ok(!/^(life|head|heart|fate)\./.test(it.id), "fact for an unclear line: " + it.id);
+      const txt = readingTexts(R, facts) + "\n" + await narrative(facts);
+      for (const id of PC.LINE_IDS) for (const n of NAMES[id]) assert.ok(!txt.includes(n), `${side} seed ${seed}: reading names ${n} (${id} not clear): ` + txt.slice(Math.max(0, txt.indexOf(n) - 60), txt.indexOf(n) + 60));
+    }
+  }
+  // b) life + head found, heart not clear (no crease) -> heart never named, life/head are read
+  const h = hand("left", 0, 1), d = detect(h, ["life", "head"]);
+  assert.equal(d.lines.heart.unclear, true, "heart should be not clear");
+  for (let seed = 0; seed < 4; seed++) {
+    const R = PC.analyze({ hand: h, lines: d.lines, R: d.R, F: d.F, seed });
+    assert.deepEqual(R.reading.lines.map(l => l.id).sort(), ["head", "life"]);
+    const facts = PC.buildFacts(R, { topic: "love" });
+    const txt = readingTexts(R, facts) + "\n" + await narrative(facts);
+    assert.ok(!txt.includes("เส้นหัวใจ"), "heart named while not clear: " + txt.slice(Math.max(0, txt.indexOf("เส้นหัวใจ") - 60), txt.indexOf("เส้นหัวใจ") + 60));
+    assert.ok(!txt.includes("เส้นวาสนา"), "fate named while not clear");
+    assert.ok(txt.includes("เส้นชีวิต") && txt.includes("เส้นสมอง"), "found lines must still be read");
+  }
+});
+
+test("H3: a fate line that is not found is never read as 'absent / no fate line'", async () => {
+  const absentLabel = KB.lines.fate.cats.absent.label, absentMeaning = KB.lines.fate.cats.absent.meaning;
+  const S = KB.summary.work;
+  for (const creases of [null, MAJOR, ["life"]]) {
+    for (const [side, rot, sc] of HANDS) {
+      const h = hand(side, rot, sc), d = detect(h, creases);
+      assert.equal(d.lines.fate.present, false); assert.equal(d.lines.fate.unclear, true);
+      const R = PC.analyze({ hand: h, lines: d.lines, R: d.R, F: d.F, seed: 1 });
+      assert.equal(R.lc.cats.fate, undefined, "fate classified: " + JSON.stringify(R.lc.cats.fate));
+      assert.ok(!R.reading.lines.some(l => l.id === "fate"), "fate row in the reading");
+      assert.ok(!R.reading.work.includes(S["fate.absent"]), "work summary reads an absent fate line");
+      assert.ok(!R.reading.work.includes(S["fate.present"]), "work summary reads a present fate line");
+      const facts = PC.buildFacts(R, { topic: "work" });
+      assert.ok(!facts.items.some(it => it.id === "fate.absent" || /^fate\./.test(it.id)), "fate fact: " + facts.items.map(i => i.id).join(","));
+      const txt = readingTexts(R, facts) + "\n" + await narrative(facts);
+      assert.ok(!txt.includes(absentMeaning), "absent meaning in the reading");
+      assert.ok(!txt.includes("มองไม่เห็นเส้นวาสนา") && !txt.includes("ไม่มีเส้นวาสนา") && !txt.includes(absentLabel), "reads 'no fate line'");
+    }
+  }
+});
+
+test("H4: the 'not clear' label is exact in TH / EN / ZH", () => {
+  const src = fs.readFileSync(path.join(ROOT, "palm.js"), "utf8");
+  assert.ok(src.includes('T("palm.line.unclear", "' + UNCLEAR.th + '")'), "TH label (palm.js default for key palm.line.unclear)");
+  assert.equal(EN["palm.line.unclear"], UNCLEAR.en);
+  assert.equal(ZH["palm.line.unclear"], UNCLEAR.zh);
+});
+
+test("H5 (placeholder until the owner approves the wording): the old misleading mounts label is gone in TH / EN / ZH", () => {
+  const html = fs.readFileSync(path.join(ROOT, "palm.html"), "utf8");
+  const m = html.match(/data-i18n="palm\.mestSmall">([^<]*)</);
+  assert.ok(m && m[1].trim(), "mounts label missing in palm.html");
+  assert.notEqual(m[1].trim(), "(ประเมินจากภาพ)", "old TH label");
+  assert.ok(/นิ้ว/.test(m[1]) && /ผิว/.test(m[1]), "TH label must say finger proportions and skin: " + m[1]);
+  assert.ok(EN["palm.mestSmall"] && EN["palm.mestSmall"].trim() !== "(estimated from the photo)", "old EN label");
+  assert.ok(/finger/i.test(EN["palm.mestSmall"]) && /skin/i.test(EN["palm.mestSmall"]), "EN label: " + EN["palm.mestSmall"]);
+  assert.ok(ZH["palm.mestSmall"] && ZH["palm.mestSmall"].trim() !== "（根据照片估算）", "old ZH label");
+  assert.ok(/手指/.test(ZH["palm.mestSmall"]) && /皮肤/.test(ZH["palm.mestSmall"]), "ZH label: " + ZH["palm.mestSmall"]);
+});

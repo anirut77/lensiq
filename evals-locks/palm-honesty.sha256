@@ -1,0 +1,6 @@
+# locked 2026-11-19T16:35:16Z (tools/eval-guard.mjs lock, 2 files)
+71d2f5c387d6039bdfbbcaa814b7e05c8f1bb09a9eca4a6795dd536736517452  palm-honesty.test.js
+7037058abd10508d83add5d8af39107adacc11102dd2ed1c7e38c57eb47664d1  palm-honesty.e2e.mjs
+71d2f5c387d6039bdfbbcaa814b7e05c8f1bb09a9eca4a6795dd536736517452  tests/unit/palm-honesty.test.js  # repo file (same commit as lock 2026-11-19T16:35:16Z; field: ~/LENSIQ-field/evals/palm-honesty/palm-honesty.test.js)
+7037058abd10508d83add5d8af39107adacc11102dd2ed1c7e38c57eb47664d1  tests/e2e/palm-honesty.e2e.mjs  # repo file (same commit as lock 2026-11-19T16:35:16Z; field: ~/LENSIQ-field/evals/palm-honesty/palm-honesty.e2e.mjs)
+# note: owner decision 163 ก (2026-11-19, LIVE palm page honesty). Locked BEFORE any product change on branch palm-honesty-fix (base d158e363). Baseline on d158e363: unit 0/6 pass, Chrome e2e 0/4 pass (logs ~/LENSIQ-field/evals/palm-honesty/baseline-*.log). H5/E3 are placeholders (old mounts label gone); the exact approved TH/EN/ZH label is locked in a re-lock after the owner approves the wording. Append-only.
