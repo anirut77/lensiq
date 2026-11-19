@@ -288,6 +288,9 @@ export default async function ({ base, launch, check, fakeCams }) {
       } finally { await page.close(); }
     });
 
+    // RE-LOCK 2 2026-11-19 (before any measurement): the phrase is typed into the page's existing nickname field #plNick (shown
+    // inside the v2 panel), not a new #pv2Nick: a new free-text field would need a row and a flow in the locked crisis inventory
+    // (crisis-net-hotfix); #plNick already has them. No assertion changed.
     // RE-LOCK 1 2026-11-19 (test fault found on the first run, before any measurement): the first version expected a support
     // card in place of the reading (crisis v2). Crisis v3 (owner decision 2026-11-17, which the palm spec keeps unchanged):
     // rule a the reading continues, no card replaces it; c no share / print / card / paid; d one warm line + tel:1323 at the END
@@ -297,7 +300,7 @@ export default async function ({ base, launch, check, fakeCams }) {
         for (const lang of LANGS) {
           const page = await open(browser, base, { lang });
           try {
-            await page.evaluate(t => { const e = document.getElementById("pv2Nick"); e.value = t; e.dispatchEvent(new Event("input", { bubbles: true }));
+            await page.evaluate(t => { const e = document.getElementById("plNick"); e.value = t; e.dispatchEvent(new Event("input", { bubbles: true }));
               e.dispatchEvent(new Event("change", { bubbles: true })); }, PHRASE[lang]);
             await loadAndTap(page);
             await click(page, "#pv2Read");
