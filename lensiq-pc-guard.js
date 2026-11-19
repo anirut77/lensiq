@@ -1449,6 +1449,254 @@
     return { block: personal > 0 || dispensing, personal, dispensing };
   }
 
-  return { scan, scanAll, redact, imageCheck, isDispensingLabel, fold, thaiIdOk, DEFAULTS, PLACEHOLDER, KINDS: ["name", "hn", "phone", "id", "email", "dob", "address"], possibleNames, provenance,
+  /* ---------------- automatic removal in the preview (owner decision 127, 2026-11-19) ----------------
+     The preview no longer starts from redact() alone. previewRedact() starts from an ALLOW-LIST: what goes to the AI by
+     default is product-label text only (derived facts), everything else is removed on the device and listed:
+       1. every span redact() removes (never restorable: the Worker refuses a text that still holds one);
+       2. a line with NO product-label cue (no label cue type, registration number, barcode, product word, ingredient
+          word, dose line or list of ingredients) is removed whole, kind "line" (a bare name, a note, a sticker, a contact);
+       3. on the lines kept: every phone (also a company's), every e-mail, every bank account / ID-like number (7+ digits
+          that are not a barcode, a registration number, a lot or a date), every address that is not the maker's, a name
+          after a kinship word or a note marker ("お母さん用 けいこ", "할머니 순자", "for Misaki", "給奶奶 王秀英"), name-shaped
+          words at the start or end of a dose line ("ミナ 1日2回"), and the guard's own possible names.
+     Items of 2 and 3 are restorable: the user sees each one and may put it back knowingly (lensiq-pc-ai.js asks first).
+     ON BY DEFAULT and on the device; nothing here sends anything. Measured on the locked pc-pii set (docs/product-check/
+     PC-PII-RESULTS.md). previewRedact(text, {restore?: number[]}) -> {source, text, items: [{id, kind, text, start, end,
+     restorable}], spans, removed, count}. */
+  const KEEP_VOCAB = new RegExp([
+    // ja
+    "薬|錠|カプセル|顆粒|散剤|液|目薬|点眼|軟膏|クリーム|ローション|化粧水|乳液|美容液|シャンプー|リンス|サプリ|ビタミン|茶|飴|あめ|のど|胃腸|鼻炎|かぜ|風邪|便秘|湿布|入浴剤|",
+    "ゼリー|ドリンク|粉末|食品|ミルク|ボディ|ヘア|トリートメント|洗顔|石鹸|せっけん|歯磨|ハミガキ|パック|オイル|グミ|タブレット|無香料|香料|医薬|内容量|原材料|全成分|",
+    // ko
+    "약(?![사국])|정제|캡슐|시럽|연고|크림|로션|토너|세럼|에센스|샴푸|비타민|젤리|치약|마스크팩|티백|과자|음료|분말|건강|영양|유산균|오메가|루테인|홍삼|밴드|파스|패치|",
+    "인공눈물|제품|식품|화장품|의약|원재료|전성분|내용량|",
+    // advertising / health claims (what pc_claims checks) and percentages
+    "\\d\\s*%|รักษา|หายขาด|ผลข้างเคียง|ป้องกัน|บำรุง|ช่วยให้|ช่วยลด|ลดน้ำหนัก|เห็นผล|ปลอดภัย|ธรรมชาติ|ขาวใส|ผิวขาว|ตรา(?=[ \\t]*[ก-๙A-Za-z])|น้ำดื่ม|น้ำแร่|น้ำผลไม้|",
+    "\\b(?:cures?|heals?|treats?|prevents?|guarantee[sd]?|clinically|proven|miracle|boosts?|detox|side\\s+effects?|safe|results?)\\b|治疗|治療|治愈|治癒|根治|副作用|疗效|療效|保证|保證|神效|特效|",
+    "治る|効く|効き目|副作用|改善|若返|치료|완치|부작용|효과|개선|특효|",
+    "青汁|酢|湯|みそ|味噌|醤油|おかゆ|粥|絆創膏|医療機器|冷蔵|乳脂肪|栄養|発売元|輸入元|製造元|販売元|反찬|반찬|볶음|된장|김치|곡물|차단|자외선|숙취|",
+    "糊|膏|浆|漿|枸杞|芝麻|字号|字號|准字|备字|械注|许可|許可|产地|產地|原产|原產|进口商|進口商|经销|經銷|製造廠|制造厂|图案|圖案|",
+    // label sections and claims (not the person words 使用者 / 사용자 / 服用者)
+    "効果|効能|改善|予防|注意|保管|保存|使用(?!者)|服用(?!者)|飲み方|召し上がり|お湯|水で|味|名称|種類別|賞味|消費|요냉장|냉장|보관|주의|사용(?!자)|섭취|복용(?!자)|효과|효능|맛|포장|",
+    "ใช้|เก็บ|ห้าม|ควร|สรรพคุณ|ประโยชน์|คุณภาพ|คุณสมบัติ|อย\\.|อ\\.ย\\.|\\b(?:brand|drug|leaflet|insert|steep|keep|store|read|dissolve)\\b|服用(?!者)|饮用|飲用|食用|用量|适用|適用|适宜|適宜|标准|標準|执行|執行|生产|製造|厂|廠|出品|口味|段|月龄|月齡|功效|注意|保存|贮藏|貯藏|",
+    // th
+    "(?<![ก-๙])(?:ยา(?!ย)|ชา(?!ย)|รส|ผง|ซอง|ขวด|หลอด|เม็ด|เจล|สูตร|กลิ่น)|\\d\\s*(?:เม็ด|ซอง|ขวด|หลอด|แคปซูล)|แคปซูล|ครีม|โลชั่น|กาแฟ|วิตามิน|ผลิตภัณฑ์|อาหาร|เสริม|สมุนไพร|แชมพู|สบู่|เซรั่ม|ขนม|เครื่องดื่ม|กล่อง|น้ำมัน|น้ำผึ้ง|",
+    // zh
+    "药|藥|片|胶囊|膠囊|颗粒|顆粒|口服液|糖浆|糖漿|软膏|軟膏|乳膏|精华|精華|洗发|洗髮|牙膏|维生素|維生素|保健|营养|營養|饮料|飲料|喷雾|噴霧|食品|饼干|餅乾|",
+    // en
+    "\\b(?:tablets?|capsules?|caplets?|softgels?|syrup|cream|lotion|ointment|gel|serum|shampoo|soap|vitamins?|supplements?|tea|honey|drinks?|powder|gumm(?:y|ies)|",
+    "lozenges?|drops|spray|balm|toothpaste|mouthwash|oil|extract|formula|flavou?r|herbal|medicine|relief|pain|cough|allergy|protein|collagen|probiotics?|omega|",
+    "calcium|iron|zinc|magnesium|organic|food|snacks?|juice|milk|coffee|chocolate|candy|sugar|salt|sauce|mg|ml|apply|discard|opening|opened|drive|machinery|brew|boiled|",
+    "massage|gluten|artificial|colou?rs?|preservatives?|free|flavou?red|rice|cookies?|butter|bake[dr]?|cook|serve|microwave|refrigerat\\w*|shake|rinse|avoid|contact|eyes|",
+    "children|adults?|sun|spf|uva|uvb|skin|hands?|hair|face|body|natural|vegan|halal|kosher|recycl\\w*)\\b|ผลิตที่|บรรจุโดย|ผลิตโดย|จัดจำหน่ายโดย|นำเข้าโดย|วิธี|เหมาะสำหรับ|บรรเทา|อาการ"
+  ].join(""), "iu");
+  const INGR_MORPH = /エキス|ナトリウム|カルシウム|グリセリン|塩酸|硫酸|酸化|추출물|나트륨|정제수|글리세린|提取物|甘油|extract|acid|oxide|sodium|glycerin|citrate|chloride|สารสกัด|กรด|โซเดียม|กลีเซอรีน/iu;
+  const DOSE = new RegExp([
+    "1日\\d回|\\d回|毎食|食後|食前|寝る前|就寝|朝食|夕食|하루|\\d번|\\d회|아침|저녁|식후|식전|자기\\s?전|취침|วันละ|ครั้งละ|ก่อนอาหาร|หลังอาหาร|ก่อนนอน|",
+    "\\btimes?\\s+(?:a|per)\\s+day\\b|\\bdaily\\b|\\bat\\s+bedtime\\b|\\bevery\\s+\\d+\\s*h|\\btwice\\b|每[日天次]|早晚|[饭飯][前后後]|睡前"
+  ].join(""), "iu");
+  const KIN_JA = "(?:おばあちゃん|おじいちゃん|ばあちゃん|じいちゃん|おばあさん|おじいさん|お母さん|お父さん|おかあさん|おとうさん|ママ|パパ|祖母|祖父|母|父|娘|息子|妻|夫|主人|長男|長女|次男|次女|孫|姉|兄|妹|弟)";
+  const KIN_KO = "(?:외할머니|외할아버지|할머니|할아버지|할머님|할아버님|어머니|아버지|어머님|아버님|엄마|아빠|아들|딸|손자|손녀|남편|아내|와이프|막내|동생|언니|오빠|누나|형|이모|삼촌|고모)";
+  const KIN_TH = "(?:คุณยาย|คุณตา|คุณย่า|คุณปู่|คุณแม่|คุณพ่อ|ยาย|ตา|ย่า|ปู่|แม่|พ่อ|ป้า|ลุง|น้า|อา|น้อง|พี่|หลาน|ลูก)";
+  const KIN_EN = "(?:grand(?:ma|pa|mother|father|son|daughter)|granny|nana|mum|mom|mother|dad|father|son|daughter|sister|brother|aunt(?:ie)?|uncle|wife|husband|baby)";
+  const KIN_ZH = "(?:奶奶|爷爷|爺爺|外婆|外公|姥姥|姥爷|妈妈|媽媽|爸爸|母亲|母親|父亲|父親|儿子|兒子|女儿|女兒|孙子|孫子|孙女|孫女|老公|老婆|哥哥|姐姐|弟弟|妹妹|叔叔|阿姨|舅舅|姑姑|伯伯)";
+  const NAME_TOKEN = "(?:[一-鿿々ぁ-ゖァ-ヺー]{1,5}(?:[ \\t\\u3000][一-鿿々ぁ-ゖァ-ヺー]{1,5})?|[가-힣]{2,4}|[A-Z][a-z]{1,14}(?:[ \\t][A-Z][a-z]{1,14})?)";
+  const NOTE_NAME = [
+    // kinship word (+ 用 / の / へ / 의 / 's) then a name
+    new RegExp(`${KIN_JA}(?:用|の|へ|宛)?[ \\t\\u3000]*(${NAME_TOKEN})`, "gu"),
+    new RegExp(`${KIN_KO}(?:의|용)?[ \\t]+([가-힣]{2,4})`, "gu"),
+    new RegExp(`(?:ของ|สำหรับ|ให้|ไว้ให้|ถึง|แด่)[ \\t]*${KIN_TH}[ \\t]*([ก-๙]{2,20})`, "gu"),
+    new RegExp(`\\b${KIN_EN}(?:'s)?[ \\t]+([A-Z][a-z]{1,14}(?:[ \\t][A-Z][a-z]{1,14})?)`, "giu"),
+    new RegExp(`(?:给|給|送)?${KIN_ZH}(?:的|用)?[ \\t]*([一-鿿]{2,3})(?=[ \\t]|$|[，,。])`, "gmu"),
+    // note markers: for / to / attn + a name; 给 / 給 + a name; X꺼 / X거; X様用 is the guard's own
+    /\b(?:for|to|attn)\b[.:]?[ \t]+([A-Z][a-z]{1,14}(?:[ \t][A-Z][a-z]{1,14})?)(?![ \t]*(?:\d|[a-z]))/gu,
+    /(?:^|[\s(])(?:给|給)[ \t]*([一-鿿]{2,3})(?=[ \t]|$|[，,。])/gmu,
+    /(?:^|(?<=[\s(]))([가-힣]{2,4})(?:이)?(?:꺼|거)(?=[ \t]|$)/gmu,
+    /\bTo[.:][ \t]*([가-힣]{2,4}|[ぁ-ゖァ-ヺー一-鿿]{1,6})/gu
+  ];
+  const NAME_STOP_EN = /^(?:adults?|children|kids|use|external|oral|men|women|ages?|all|sensitive|dry|oily|normal|daily|the|a|an|best|more|details|information|you|your|one|two|three)$/i;
+  const LONG_NUM = /(?<![\p{L}\d])(?:[A-Z]{1,2}[ \-]?)?\d(?:[ \-–.\/]?\d){6,}[Xx]?(?![\p{L}\d])/gu;
+  const IBAN = new RegExp([
+    "\\b(?:GB|DE|FR|NL|IE|ES|IT|BE|CH|AT|SE|NO|DK|FI|PL|PT|LU|CZ|HU|RO|GR|HR|SI|SK|LT|LV|EE|BG|CY|MT|IS|LI|MC|SM|AE|SA|QA|TR|IL|JO|KW|BH|PK|MU|BR|",
+    "UA|KZ)\\d{2}(?:[ ]?[A-Z0-9]{4}){2,7}(?:[ ]?[A-Z0-9]{1,3})?\\b"
+  ].join(""), "gu");
+  const EMAIL_ANY = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/gu;
+  const DATE_ONLY = /^(?:\d{4}[./\-]\d{1,2}(?:[./\-]\d{1,2})?|\d{1,2}[./\-]\d{1,2}[./\-]\d{2,4})$/;
+  // a maker / distributor line: an address on it, or on the two lines after it, is the maker's
+  const MAKER_CUE = new RegExp([
+    "ผลิตโดย|ผลิตที่|บรรจุโดย|จัดจำหน่ายโดย|จำหน่ายโดย|นำเข้าโดย|ผลิตและจำหน่าย|บริษัท|วิสาหกิจ|สหกรณ์|\\b(?:dist(?:ributed)?\\.?\\s+by|",
+    "manufactured\\s+(?:by|for)|made\\s+by|handmade\\s+by|baked\\s+by|packed\\s+(?:by|for)|imported\\s+by|marketed\\s+by|authori[sz]ation\\s+holder)\\b|",
+    "\\b(?:ltd|inc|llc|pty|gmbh|corp|co\\.)\\b|製造販売元|販売元|製造者|販売者|発売元|輸入元|製造元|株式会社|\\(株\\)|제조원|판매원|제조사|수입원|제조판매원|\\(주\\)|주식회사|生产商|制造商|经销商|經銷商|生产企业|生產企業|",
+    "製造廠|制造厂|進口商|进口商|委托方|受托方|有限公司|股份"
+  ].join(""), "iu");
+  const NUM_KEEP_CUE = /\b(?:lot|batch|exp|mfg|mfd|reg|ndc|din|npn|gtin|ean|jan|upc)\b|批号|批號|批准|注册|註冊|备案|備案|届出|承認|製造番号|製造記号|허가|신고|품목|제조번호|ทะเบียน|เลขที่ผลิต|อย\.|สารบบ|จดแจ้ง/iu;
+  // a maker's customer-service line, and the numbers such a line carries (free dial / service shapes only: a mobile number
+  // is never a service number and is removed)
+  const SERVICE_LINE = new RegExp([
+    "お客様相談室|お客様センター|お問い合わせ|お問合せ|相談窓口|고객센터|고객상담|소비자상담|상담실|客服|服务热线|服務專線|服务电话|服務電話|消费者热线|消費者專線|消費者服務|查詢熱線|热线|熱線|customer\\s+(?:service|care)|",
+    "consumer\\s+(?:care|hotline|service)|hotline|call\\s*cent(?:er|re)|toll[- ]free|ศูนย์บริการลูกค้า|ฝ่ายบริการลูกค้า|สายด่วน|คอลเซ็นเตอร์|",
+    "ผู้บริโภคสัมพันธ์"
+  ].join(""), "iu");
+  const SERVICE_NUM = new RegExp([
+    "^(?:\\(?0120|\\(?0800|\\(?0570|\\(?0088|1588|1577|1544|1566|1600|1644|1661|1668|1670|1688|1899|080[ \\-.]?\\d{3}[ \\-.]?\\d{4}$|400|800|",
+    "\\+?1[ \\-.]?8(?:00|88|77|66|55|44|33)|1[ \\-.]?8(?:00|88|77|66|55)|\\(?02[ \\-.)]|\\(?0[3-6]\\d?[ \\-.)]|\\(?852|\\(?886|\\(?0[2-8][ \\-.)])"
+  ].join(""), "u");
+  const MOBILE = new RegExp([
+    "^(?:\\+?81[ \\-.]?)?0[789]0[ \\-.]?\\d{4}[ \\-.]?\\d{4}$|^(?:\\+?82[ \\-.]?)?01[016789][ \\-.]?\\d{3,4}[ \\-.]?\\d{4}$|",
+    "^(?:\\+?86[ \\-.]?)?1[3-9]\\d[ \\-.]?\\d{4}[ \\-.]?\\d{4}$|^(?:\\+?66[ \\-.]?|0)[689]\\d[ \\-.]?\\d{3}[ \\-.]?\\d{4}$"
+  ].join(""), "u");
+  /** a phone on a customer-service line that has a service shape (kept) @param {string} line @param {string} v */
+  const serviceNumber = (line, v) => SERVICE_LINE.test(line) && SERVICE_NUM.test(v.trim()) &&
+    ((/[가-힣]/u.test(line) && /^080[ \-.]?\d{3}[ \-.]?\d{4}$/.test(v.trim())) || !MOBILE.test(v.replace(/[()]/g, "").trim()));
+  // a personal number field on a line (insurance, member, points card, bank account, passport, ID): the line goes
+  const PERSONAL_NUM = new RegExp([
+    "保険|会員|口座|銀行|信用金庫|ゆうちょ|은행|뱅크|ポイント|カード番号|マイナンバー|個人番号|振込|계좌|회원|카드번호|주민|여권|입금|身份证|身分證|会员|會員|账号|帳號|账户|帳戶|卡号|卡號|银行|銀行|汇款|匯款|\\bbank\\b|\\baccount\\b|",
+    "\\bacct\\b|\\bmember(?:ship)?\\b|\\bcard\\s*(?:no|number|#)|\\bpassport\\b|\\bssn\\b|\\biban\\b|\\bsort\\s*code\\b|\\brouting\\b|\\bpoints?\\b|บัญชี|สมาชิก|",
+    "บัตร|ประชาชน|หนังสือเดินทาง|ธนาคาร|โอนเงิน|พร้อมเพย์|promptpay"
+  ].join(""), "iu");
+  // a person field on a line (name, recipient, patient, sender) that is not a product-name field: the line goes
+  const PERSON_FIELD = new RegExp([
+    "ชื่อ|ผู้รับ|ผู้ส่ง|ผู้ป่วย|คนไข้|\\b(?:name|patient|recipient|sender|customer|ship\\s*to|attn)\\b|氏名|名前|お名前|患者|受取人|送り主|宛先|이름|성명|환자|받는\\s?분|",
+    "보내는\\s?분|수령인|보낸이|받는이|姓名|收件人|收貨人|收货人|寄件人|病人|患者"
+  ].join(""), "iu");
+  const PRODUCT_FIELD = new RegExp([
+    "ชื่อ(?:สินค้า|การค้า|ผลิตภัณฑ์|ยา|สามัญ|ทางการค้า|อาหาร)|ชื่อและที่ตั้ง|\\b(?:product|brand|drug|trade|generic|chemical|common|proprietary|",
+    "scientific|botanical|inci|latin)\\s+name\\b|商品名|品名|名称|名稱|販売名|一般名|제품명|품명|상품명|제품의\\s?명칭|通用名|商品名称|产品名称|產品名稱|藥品名稱|药品名称"
+  ].join(""), "iu");
+  /** a line that carries product-label text @param {string} line */
+  function productLine(line, thai) {
+    if (!line.trim()) return false;
+    if (PERSON_FIELD.test(line) && !PRODUCT_FIELD.test(line)) return false;
+    const c = labelCues(line, undefined);
+    if (c.ev.size) return true;
+    const d = line.replace(/[ \t]/g, "");
+    // a barcode line: digits with a valid check digit (not a Thai ID shape), or JAN / EAN / UPC + digits
+    // (a 13-digit number that is also a valid Thai ID counts as a barcode on a Thai text only with the Thai prefix 885, and on
+    // a text without Thai script only with a foreign GS1 prefix: Japan 45 / 49, Korea 880, China 690-699, Taiwan 471)
+    if (/^\d{8}$|^\d{12,14}$/.test(d) && gtinOk(d) && !(d.length === 13 && thaiIdOk(d) && !/^885/.test(d) && (thai || !/^(?:45|49|880|69|471)/.test(d)))) return true;
+    if (/\b(?:JAN|EAN|UPC|GTIN)\b[^\n]*\d{4}/iu.test(line)) return true;
+    if (SERVICE_LINE.test(line)) return true;
+    if (KEEP_VOCAB.test(line) || INGR_MORPH.test(line) || DOSE.test(line)) return true;
+    return (line.match(/[、,，;；]/gu) || []).length >= 2;
+  }
+  /** name-shaped token at the edge of a dose line @param {string} w */
+  const HON_ANY = new RegExp("(?:(?<![ก-๙])(?:นางสาว|นาย|นาง|น\\.ส\\.|ด\\.ช\\.|ด\\.ญ\\.|คุณ(?!ภาพ|สมบัติ|ค่า|ประโยชน์|ลักษณะ|ยาย|ตา|ย่า|ปู่|แม่|พ่อ))[ \\t]?([ก-๙]{2,20})|" +
+    "\\b(?:Mr|Mrs|Ms|Miss|Mstr|Dr|Khun)\\.?[ \\t]+([A-Z][A-Za-z]+(?:[ \\t][A-Z][A-Za-z]+){0,2}))", "gu");
+  const SEP_NAME = /(?:[(（\[［「『]|[-–—→⇒\/／][ \t]*)([^\s()（）\[\]［］「」『』,，、。:：\-–—→⇒\/／\d]{1,15})(?=[ \t]*(?:$|[)）\]］」』,，、。]|[ \t])|(?<=[はが이가는은])\d)|^[ \t]*([^\s\d]{1,15})(?=[ \t]*[-–—→⇒])/gmu;
+  const KO_EDGE_NOT = /(?:에|을|를|은|는|로|으로|에서|금지|미만|이상|이하)$|^(?:도포|두피|분무|점안|환부|세안|양치|가글|입안|피부|눈가|얼굴|전신|모발|손등|국소)$/u;
+  const TH_EDGE_NOT = new RegExp([
+    "ชั่วโมง|ครั้ง|ช้อน|ครรภ์|นาที|วัน|มื้อ|อาหาร|ทุก|หรือ|และ|ก่อน|หลัง|เวลา|ตาม|อาการ|ไข้|ปวด|เด็ก|ผู้ใหญ่|เช้า|เย็น|กลาง|ทา|ทาน|กิน|ดื่ม|หยด|",
+    "เม็ด|ขวบ|อายุ|ปี|ละลาย|น้ำ|เขย่า|ผิว|แผล|บริเวณ"
+  ].join(""), "u");
+  const EN_EDGE_NOT = new RegExp([
+    "^(?:recommended|suggested|adults?|children|take|apply|use|shake|dissolve|mix|swallow|chew|dose|dosage|directions|morning|evening|night|",
+    "daily|once|twice|every|each|with|after|before|food|meals?|water|or|and|then|times?|hours?|tablets?|capsules?|until|as|needed|directed|by|",
+    "doctor|time)$"
+  ].join(""), "i");
+  const edgeName = w => !/\d/.test(w) && !KO_EDGE_NOT.test(w) && !TH_EDGE_NOT.test(w) && !EN_EDGE_NOT.test(w)
+    && !KEEP_VOCAB.test(w) && !DOSE.test(w) && !INGR_MORPH.test(w) && !labelCues(w, undefined).ev.size &&
+    !/^(?:大人|成人|小児|子供|子ども|幼児|어른|성인|어린이|소아|유아|ผู้ใหญ่|เด็ก|adults?|children|kids|take|apply|use|成人|儿童|兒童|老人)$/iu.test(w) &&
+    !NOTE_NOT.test(w) && (/^[一-鿿々ぁ-ゖァ-ヺー]{1,6}$/u.test(w) || /^[가-힣]{2,5}$/u.test(w) || /^[A-Z][a-z]{1,14}$/u.test(w) || /^[ก-๙]{2,20}$/u.test(w));
+  /** @param {any} input @param {{restore?: number[], companyPhones?: "keep"|"remove"}} [opts] */
+  function previewRedact(input, opts) {
+    const src = canon(input), t = fold(src), thaiText = /[ก-๙]/u.test(t);
+    /** @type {{kind: string, start: number, end: number, restorable: boolean}[]} */ const raw = [];
+    for (const s of scan(src, opts)) raw.push({ kind: s.kind, start: s.start, end: s.end, restorable: false });
+    const fixed = raw.slice();
+    const inFixed = (/** @type {number} */ a, /** @type {number} */ b) => fixed.some(s => s.start <= a && b <= s.end);
+    const add = (/** @type {string} */ kind, /** @type {number} */ a, /** @type {number} */ b) => {
+      while (a < b && /\s/.test(t[a])) a++;
+      while (b > a && /\s/.test(t[b - 1])) b--;
+      if (b > a && !inFixed(a, b) && !raw.some(s => s.start <= a && b <= s.end) && t.slice(a, b).split(PLACEHOLDER).join("").trim()) raw.push({ kind, start: a, end: b, restorable: true });
+    };
+    for (const s of scanAll(src).filter(x => x.company)) {
+      const ls = t.lastIndexOf("\n", s.start - 1) + 1, le = t.indexOf("\n", s.end) < 0 ? t.length : t.indexOf("\n", s.end);
+      if (!serviceNumber(t.slice(ls, le), t.slice(s.start, s.end))) add(s.kind, s.start, s.end);
+    }
+    let at = 0;
+    for (const line of t.split("\n")) {
+      const a = at, b = at + line.length;
+      at = b + 1;
+      if (!line.trim()) continue;
+      if (!productLine(line, thaiText)) { add("line", a, b); continue; }
+      const prev = t.slice(Math.max(0, t.lastIndexOf("\n", a - 2) + 1), a);
+      const prev2 = t.slice(Math.max(0, t.lastIndexOf("\n", Math.max(0, t.lastIndexOf("\n", a - 2) - 1)) + 1), a);
+      if (PERSONAL_NUM.test(line) && /\d{3}/.test(line) && !NUM_KEEP_CUE.test(line)) { add("id", a, b); continue; }
+      // contacts
+      for (const m of line.matchAll(EMAIL_ANY)) add("email", a + /** @type {number} */ (m.index), a + /** @type {number} */ (m.index) + m[0].length);
+      for (const m of line.matchAll(IBAN)) if (/\d{4}/.test(m[0])) add("account", a + /** @type {number} */ (m.index), a + /** @type {number} */ (m.index) + m[0].length);
+      const keepNums = NUM_KEEP_CUE.test(line);
+      for (const m of line.matchAll(LONG_NUM)) {
+        const v = m[0], d = v.replace(/\D/g, "");
+        if (DATE_ONLY.test(v.trim())) continue;
+        if ([8, 12, 13, 14].includes(d.length) && /^\d+$/.test(v.replace(/[ \-]/g, ""))
+          && gtinOk(d) && !(d.length === 13 && thaiIdOk(d) && !/^885/.test(d) && (thaiText || !/^(?:45|49|880|69|471)/.test(d)))) continue;
+        if (REG_SHAPE.test(pnorm(v)) || keepNums) continue;
+        if (serviceNumber(line, v)) continue;
+        add(/[A-Z]/.test(v) ? "id" : phonesIn(v).length ? "phone" : "account", a + /** @type {number} */ (m.index), a + /** @type {number} */ (m.index) + v.length);
+      }
+      if (addressLine(line) || JAKO_ADDR.some(re => { re.lastIndex = 0; return re.test(line); })) {
+        if (!COMPANY_NM.test(line) && !COMPANY_NM.test(prev) && !MAKER_CUE.test(line) && !MAKER_CUE.test(prev2) && !NUM_KEEP_CUE.test(line)) add("address", a, b);
+      }
+      // names after a kinship word or a note marker
+      for (const re of NOTE_NAME) {
+        re.lastIndex = 0;
+        for (const m of line.matchAll(re)) {
+          let v = m[1];
+          const bad = (/** @type {string} */ x) => !x || NAME_STOP_EN.test(x.split(/[ \t]/)[0]) || KEEP_VOCAB.test(x) || DOSE.test(x) || notName(x) || /\d/.test(x);
+          if (v && bad(v)) v = v.split(/[ \t\u3000]/)[0];
+          if (bad(v)) continue;
+          const s = a + /** @type {number} */ (m.index) + m[0].lastIndexOf(m[1]);
+          add("name", s, s + v.length);
+        }
+      }
+      // a title + a name on a kept line (a brand in the possessive, "Mrs. Bee's", stays)
+      for (const m of line.matchAll(HON_ANY)) {
+        const v = m[1] || m[2];
+        if (!v || /^'s\b|^’s\b/.test(line.slice(/** @type {number} */ (m.index) + m[0].length)) || KEEP_VOCAB.test(v) || notName(v)) continue;
+        const s = a + /** @type {number} */ (m.index);
+        add("name", s, s + m[0].length);
+      }
+      // a name next to a separator or in brackets ("Liam - 2 gummies", "→ 和夫", "—小雯", "(경수)", "（ゆうたは1回1錠）")
+      for (const m of line.matchAll(SEP_NAME)) {
+        const w = m[1] || m[2] || "", v = w.replace(/(?:は|が|の|も|이|가|는|은|의|님|도)$/u, "");
+        if (!v || (v.length < 2 && !/[A-Za-z]/.test(v)) || !edgeName(v) || DRUG_LIKE.test(v) || PRODUCT_WORDS_EN.test(v) || LABEL_EN.test(v) || notName(v) || KO_EDGE_NOT.test(w)) continue;
+        const s = a + /** @type {number} */ (m.index) + m[0].lastIndexOf(w);
+        add("name", s, s + v.length);
+      }
+      // name-shaped words at the start / end of a dose line
+      if (DOSE.test(line)) {
+        const toks = [...line.matchAll(/[^ \t　]+/gu)];
+        for (let i = 0; i < toks.length - 1 && edgeName(toks[i][0]); i++) add("name", a + /** @type {number} */ (toks[i].index), a + /** @type {number} */ (toks[i].index) + toks[i][0].length);
+        for (let i = toks.length - 1; i > 0 && edgeName(toks[i][0]); i--) add("name", a + /** @type {number} */ (toks[i].index), a + /** @type {number} */ (toks[i].index) + toks[i][0].length);
+      }
+    }
+    for (const p of possibleNames(src)) {
+      const v = t.slice(p.start, p.end);
+      // not on a maker / company line or an ingredients list (INCI names, company names, the maker's street)
+      const ls = t.lastIndexOf("\n", p.start - 1) + 1, le = t.indexOf("\n", p.end) < 0 ? t.length : t.indexOf("\n", p.end), pl = t.slice(ls, le);
+      const pp = t.slice(Math.max(0, t.lastIndexOf("\n", Math.max(0, t.lastIndexOf("\n", ls - 2) - 1)) + 1), ls);
+      if (MAKER_CUE.test(pl) || (MAKER_CUE.test(pp) && addressLine(pl)) || (pl.match(/[、,，;；]/gu) || []).length >= 2 || labelCues(pl, undefined).ev.has("ingredients")) continue;
+      if (KEEP_VOCAB.test(v) || INGR_MORPH.test(v) || labelCues(v, undefined).ev.size || PRODUCT_WORDS_EN.test(v) || JAKO_PROD.test(v.replace(/\s+/g, ""))) continue;
+      add("name", p.start, p.end);
+    }
+    // ids in order of position; restored items stay in the list (marked) and out of the removal
+    raw.sort((x, y) => x.start - y.start || y.end - x.end);
+    const restore = new Set((opts && opts.restore) || []);
+    const items = raw.map((s, id) => ({ id, kind: s.kind, text: src.slice(s.start, s.end), start: s.start, end: s.end, restorable: s.restorable, restored: s.restorable && restore.has(id) }));
+    /** @type {{start: number, end: number}[]} */ const spans = [];
+    for (const s of items.filter(x => !x.restored).sort((x, y) => x.start - y.start)) {
+      const l = spans[spans.length - 1];
+      if (l && s.start <= l.end) l.end = Math.max(l.end, s.end); else spans.push({ start: s.start, end: s.end });
+    }
+    let out = "", p = 0;
+    for (const s of spans) { out += src.slice(p, s.start) + PLACEHOLDER; p = s.end; }
+    out += src.slice(p);
+    const removed = items.filter(x => !x.restored);
+    return { source: src, text: out, items, spans, removed, count: removed.length };
+  }
+
+  return { scan, scanAll, redact, imageCheck, isDispensingLabel, fold, thaiIdOk, DEFAULTS, PLACEHOLDER, KINDS: ["name", "hn", "phone", "id", "email", "dob", "address"],
+    possibleNames, provenance, previewRedact,
     productEvidence, aiGate, autoBlock, jakoScript, twIdOk, gtinOk, nameLineCount: (/** @type {any} */ t) => nameLines(fold(String(t == null ? "" : t))).length };
 });

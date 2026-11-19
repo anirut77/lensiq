@@ -143,13 +143,14 @@
     const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
     const raw = s => `<span translate="no">${esc(s)}</span>`;
     /** @type {any} */
-    const st = { busy: false, text: "", res: null, removed: [], notice: "", why: "", offer: null, via: "", preview: null, ready: false, whyCapture: false };
+    const st = { busy: false, text: "", res: null, removed: [], lastRemoved: /** @type {any} */ (null), notice: "", why: "", offer: null, via: "", preview: null, ready: false, whyCapture: false };
     W.__LQ_PCAI = { st };
     // closed test (lensiq-tester.js): with the tester gate on, the step exists only for a visitor who entered the code
     const api = () => !!(W.LQApi && W.LQApi.enabled && W.LQApi.enabled() && W.LQAI && W.LQPCGuard && (!W.LQTester || W.LQTester.unlocked()));
     const pcl = () => (W.__LQ_PCL && W.__LQ_PCL.st) || {};
     const KIND = () => ({ name: T("md.pc.ai.k.name", "ชื่อ"), hn: T("md.pc.ai.k.hn", "เลขผู้ป่วย (HN)"), phone: T("md.pc.ai.k.phone", "เบอร์โทร"),
-      id: T("md.pc.ai.k.id", "เลขบัตรประชาชน"), email: T("md.pc.ai.k.email", "อีเมล"), dob: T("md.pc.ai.k.dob", "วันเกิด"), address: T("md.pc.ai.k.address", "ที่อยู่") });
+      id: T("md.pc.ai.k.id", "เลขบัตรประชาชน"), email: T("md.pc.ai.k.email", "อีเมล"), dob: T("md.pc.ai.k.dob", "วันเกิด"), address: T("md.pc.ai.k.address", "ที่อยู่"),
+      account: T("md.pc.ai.k.account", "เลขบัญชีหรือเลขบัตร"), line: T("md.pc.ai.k.line", "บรรทัดที่ไม่ใช่ข้อมูลฉลาก") });
     const NOTE = () => ({
       guard: T("md.pc.ai.n.guard", "ไม่ได้ส่งภาพ เพราะบนฉลากอาจมีชื่อหรือข้อมูลส่วนตัว ส่งเฉพาะข้อความที่ลบส่วนที่พบแล้ว"),
       faceTextOnly: T("md.pc.ai.n.face", "ไม่ได้ส่งภาพ เพราะตัวหาใบหน้าบนเครื่องนี้ทำงานไม่ได้ ส่งเฉพาะข้อความแทน"),
@@ -196,12 +197,34 @@
     const ocrText = () => (W.__LQ_PC && W.__LQ_PC.st && W.__LQ_PC.st.ocr ? String(W.__LQ_PC.st.ocr.text || "") : "");
     function previewText(g, open) {
       const ocr = ocrText();
+      // owner decision 127: the preview starts from the AUTOMATIC REMOVAL (LQPCGuard.previewRedact, on by default, on this
+      // device): only product-label text is kept; every removed part is listed and the restorable ones can be put back knowingly
+      if (!g.items && W.LQPCGuard.previewRedact) g = W.LQPCGuard.previewRedact(g.source || g.text, gopt());
       // words that are not on the label (e.g. typed into the OCR text box above) are shown struck through and never sent
       const f = W.LQPCGuard.provenance(g.text, ocr);
       // session: this capture is allowed only through codes scanned earlier in the session (option ข): say so in the preview
       const session = !!gate(ocr || g.text).session;
       return new Promise(resolve => { const jako = jakoOf(ocr || g.text);
-      st.preview = { text: g.text, ocr, removed: g.removed, open: open || jako || f.dropped.length > 0 || session, warn: "", session, jako, resolve }; paint(); });
+      st.preview = { text: g.text, ocr, removed: g.removed, auto: g.items ? g : null, restored: [],
+        open: open || jako || g.count > 0 || f.dropped.length > 0 || session, warn: "", session, jako, resolve }; paint(); });
+    }
+    /** Put one automatically removed item back (the user confirmed it is not personal data), or remove it again.
+     *  Rebuilds the preview text from the label text; edits in the box are replaced (said in the hint). @param {number} id @param {boolean} back */
+    function restoreItem(id, back) {
+      const p = st.preview;
+      if (!p || !p.auto) return;
+      const it = p.auto.items.find((/** @type {any} */ x) => x.id === id);
+      if (!it || !it.restorable) return; // a name, phone, ID ... the guard itself finds is never restored (the server refuses it)
+      if (back) {
+        const q = T("md.pc.ai.restoreQ", "ส่ง \"{t}\" ไปให้ AI ด้วย? กดตกลงเฉพาะเมื่อคุณแน่ใจว่าไม่ใช่ชื่อ เบอร์โทร ที่อยู่ เลขบัญชี หรือข้อมูลส่วนตัวของใคร",
+          { t: it.text });
+        const ok = typeof W.confirm !== "function" || W.confirm(q);
+        if (!ok) return;
+        if (!p.restored.includes(id)) p.restored.push(id);
+      } else p.restored = p.restored.filter((/** @type {number} */ x) => x !== id);
+      const g = W.LQPCGuard.previewRedact(p.auto.source, { ...(gopt() || {}), restore: p.restored });
+      p.auto = g; p.text = g.text; p.removed = g.removed; p.open = true; p.warn = "";
+      paint();
     }
     function closePreview(/** @type {string|null} */ v) {
       const p = st.preview;
@@ -218,12 +241,13 @@
       if (!v.trim()) { p.text = typed; p.warn = T("md.pc.ai.prevEmpty", "ไม่มีข้อความให้ส่ง"); paint(); return; }
       const again = W.LQPCGuard.redact(v, gopt());
       if (again.count) { // the user typed or left personal data: remove it and show the text again (never sent unseen)
-        p.text = again.text; p.removed = p.removed.concat(again.removed); p.open = true;
+        p.text = again.text; p.removed = p.removed.concat(again.removed); p.open = true; p.auto = null; // the list now shows every removal; nothing more to restore
         p.warn = T("md.pc.ai.prevAgain", "พบข้อมูลส่วนตัวเพิ่มในข้อความที่แก้ จึงลบออกแล้ว ตรวจอีกครั้งก่อนส่ง"); paint(); return;
       }
       // the edited text is decided again: still a product label, no personal-document sign, not a dispensing label
       const g2 = gate(v);
       if (!g2.allow) { closePreview(null); refuse(g2.reason); return; }
+      st.lastRemoved = p.removed;
       closePreview(v);
     }
     const ph = (/** @type {string} */ t) => esc(t).split(esc(W.LQPCGuard.PLACEHOLDER)).join(`<mark data-removed>${esc(W.LQPCGuard.PLACEHOLDER)}</mark>`);
@@ -259,7 +283,7 @@
     async function ask(forceText) {
       if (st.busy || !api()) return;
       const text = String(pcl().text || "").trim();
-      st.offer = null; st.notice = ""; st.via = ""; st.why = ""; st.ready = false;
+      st.offer = null; st.notice = ""; st.via = ""; st.why = ""; st.ready = false; st.lastRemoved = null;
       const disp = W.LQPCGuard.isDispensingLabel(text);
       // no product-label evidence, signs of a personal document, or a dispensing label (setting "off"): no consent screen,
       // nothing sent (text or photo), the on-device results stay
@@ -268,7 +292,7 @@
       // the device's own OCR output decides, not the editable text box (independent review: deleting the kana lines in the box
       // must not bring the photo back)
       const jako = jakoOf(ocrText() || text) || jakoOf(text);
-      const g = W.LQPCGuard.redact(text, gopt()), img = W.LQPCGuard.imageCheck(text, gopt());
+      const g = W.LQPCGuard.previewRedact ? W.LQPCGuard.previewRedact(text, gopt()) : W.LQPCGuard.redact(text, gopt()), img = W.LQPCGuard.imageCheck(text, gopt());
       st.busy = true; paint();
       try {
         // tester one-tap: sent at once when every filter passes; otherwise the usual consent / preview below
@@ -278,7 +302,7 @@
         // a tester who ticked "remember my choice" on the screen that explains one-tap: the next taps send at once
         if (c.saved && tester()) { oneTapRemember(c.info); if (await oneTap(text)) return; }
         const d = decide({ mode: c.mode, image: img, features: c.info.features, jako });
-        if (d.offer) { st.offer = { c, g, img, jako }; return; } // image blocked: the user chooses text only (after the preview) or nothing
+        if (d.offer) { st.offer = { c, g: W.LQPCGuard.redact(text, gopt()), pr: g, img, jako }; return; } // image blocked: the user chooses text only (after the preview) or nothing
         // mandatory text preview: open when anything was removed, the text looks like a dispensing label, or nothing is
         // remembered; collapsed (one tap away) only for a clean product text with a remembered choice
         // Japanese / Korean script (owner decision 2026-11-14): the preview is always OPEN, never collapsed
@@ -290,7 +314,7 @@
           if (up && up.blob) images = [await toImage(up.blob)];
           else { mode = "text"; via = up && up.textOnly ? "faceTextOnly" : "cancelled"; }
         }
-        await sendAll(c, mode, v, g.removed, images, via);
+        await sendAll(c, mode, v, sentRemoved(g), images, via);
       } finally { st.busy = false; paint(); }
     }
     /** @param {any} c @param {string} mode @param {string} text EXACTLY what the preview showed @param {any[]} removed */
@@ -324,14 +348,16 @@
       // P9: the travel card (lensiq-pc-travel.js) accepts the AI's ingredient list only when each INN resolves on the device
       try { W.dispatchEvent(new CustomEvent("lq-pc-ai")); } catch { /* old browser: the travel card keeps the on-device list */ }
     }
+    /** what was removed from the text that went out (the preview's own list, restored items left out) @param {any} g */
+    function sentRemoved(g) { return st.lastRemoved || g.removed; }
     async function acceptOffer() {
       if (!st.offer || st.busy) return;
-      const { c, g } = st.offer;
-      st.offer = null; st.busy = true; paint();
+      const { c, pr } = st.offer, g = pr;
+      st.offer = null; st.busy = true; st.lastRemoved = null; paint();
       try {
         const v = await previewText(g, true);
         if (v == null) { if (!st.notice) st.notice = NOTE().declined; return; }
-        await sendAll(c, "text", v, g.removed, null, "guard");
+        await sendAll(c, "text", v, sentRemoved(g), null, "guard");
       } finally { st.busy = false; paint(); }
     }
     W.__LQ_PCAI.ask = ask;
@@ -474,9 +500,15 @@
           `<p class="hint">${esc(T("md.pc.ai.ocrOnly", "ส่งได้เฉพาะข้อความที่อ่านจากฉลากเท่านั้น ลบหรือแก้คำที่อ่านผิดได้ แต่คำที่พิมพ์เพิ่มจะไม่ถูกส่ง"))}</p>` +
           `<details id="pcAiPrevDetails"${p.open ? " open" : ""}><summary>${esc(T("md.pc.ai.prevShow", "ดูและแก้ข้อความที่จะส่ง"))}</summary>` +
           `<p class="hint">${esc(T("md.pc.ai.prevHint", "ส่วนที่ไฮไลต์ถูกลบออกบนเครื่องนี้แล้ว แก้หรือลบเพิ่มได้ก่อนส่ง ข้อความในช่องนี้คือสิ่งที่จะส่งทั้งหมด"))}</p>` +
-          (p.removed.length ? `<p class="hint">${esc(T("md.pc.ai.removed", "ลบออกก่อนส่ง {n} จุด (อยู่ในเครื่องนี้เท่านั้น):", { n: p.removed.length }))}</p>` +
-            `<ul class="md-list" id="pcAiPrevRemoved">${p.removed.map((/** @type {any} */ x) =>
-              `<li data-kind="${esc(x.kind)}">${esc(k[x.kind] || x.kind)}: ${raw(x.text)}</li>`).join("")}</ul>` : "") +
+          (p.auto ? `<p class="hint" id="pcAiPrevAuto">${esc(T("md.pc.ai.autoRm",
+            "ระบบลบข้อมูลที่อาจเป็นข้อมูลส่วนตัวออกให้อัตโนมัติบนเครื่องนี้ ส่งให้ AI เฉพาะข้อความฉลากสินค้า " +
+            "ถ้าส่วนใดไม่ใช่ข้อมูลส่วนตัว กด \"คืนค่า\" เพื่อส่งไปด้วย (การคืนค่าจะแทนที่ข้อความที่คุณแก้ในช่องด้านล่าง)"))}</p>` : "") +
+          (p.removed.length || (p.auto && p.restored.length) ? `<p class="hint">${esc(T("md.pc.ai.removed", "ลบออกก่อนส่ง {n} จุด (อยู่ในเครื่องนี้เท่านั้น):", { n: p.removed.length }))}</p>` +
+            `<ul class="md-list" id="pcAiPrevRemoved">${(p.auto ? p.auto.items : p.removed).map((/** @type {any} */ x) =>
+              `<li data-kind="${esc(x.kind)}"${x.restored ? " data-restored" : ""}>${esc(k[x.kind] || x.kind)}: ${raw(x.text)}` +
+              (!p.auto ? "" : x.restored ? ` <em>${esc(T("md.pc.ai.restored", "(คุณคืนค่าแล้ว จะส่งไปด้วย)"))}</em>` +
+                ` <button class="btn ghost small" type="button" data-rm="${x.id}">${esc(T("md.pc.ai.reRemove", "ลบออกอีกครั้ง"))}</button>`
+                : x.restorable ? ` <button class="btn ghost small" type="button" data-restore="${x.id}">${esc(T("md.pc.ai.restore", "คืนค่า"))}</button>` : "") + `</li>`).join("")}</ul>` : "") +
           `<div id="pcAiPrevView" translate="no" style="white-space:pre-wrap;overflow-wrap:anywhere">${marked(p.text)}</div>` +
           `<p class="md-status" data-kind="warn" id="pcAiPrevMaybe"${maybeHint(p.text) ? "" : " hidden"}>${esc(maybeHint(p.text))}</p>` +
           `<p class="md-status" data-kind="warn" id="pcAiPrevDropped"${droppedHint(p.text) ? "" : " hidden"}>${esc(droppedHint(p.text))}</p>` +
@@ -615,6 +647,8 @@
       else if (t.closest("#pcAiOfferGo")) acceptOffer();
       else if (t.closest("#pcAiOfferNo")) { st.offer = null; st.why = ""; st.notice = NOTE().declined; paint(); }
       else if (t.closest("#pcAiPrevSend")) previewSend();
+      else if (t.closest("[data-restore]") && t.closest("#pcAiPrevRemoved")) restoreItem(Number(t.closest("[data-restore]").getAttribute("data-restore")), true);
+      else if (t.closest("[data-rm]") && t.closest("#pcAiPrevRemoved")) restoreItem(Number(t.closest("[data-rm]").getAttribute("data-rm")), false);
       // one tap to the page's own controls (nothing is sent): the barcode scan of the current picture, or the camera
       else if (t.closest("#pcAiGuideBar")) { const b = /** @type {HTMLElement | null} */ (document.querySelector("#pcBar")); if (b) b.click(); }
       else if (t.closest("#pcAiGuideShot")) {

@@ -132,7 +132,9 @@ export default async function ({ base, launch, check }) {
       await agree(page);
       const pv = await preview(page);
       assert((await posts(page)).length === 0, "NO request before 'Send this text'");
-      assert(pv.open && pv.marks >= 2 && !/สมมติ|ใจทดสอบ|081-234-5678/.test(pv.shown) && /\[removed\]/.test(pv.shown) && pv.view === pv.shown,
+      // owner decision 127: the whole sticker line (name + phone) is one removed span now (one highlight); the list still names
+      // each kind, and none of the personal values is shown
+      assert(pv.open && pv.marks >= 1 && !/สมมติ|ใจทดสอบ|081-234-5678/.test(pv.shown) && /\[removed\]/.test(pv.shown) && pv.view === pv.shown,
         "the exact redacted text, removed parts highlighted, open " + JSON.stringify(pv));
       assert(pv.removed.includes("name") && pv.removed.includes("phone"), "what was removed is listed " + pv.removed);
       // the user deletes more (the TESTOL line) before sending; what is sent = what the box shows
@@ -186,7 +188,8 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
-    await check("pc-ai: a likely name that IS on the label is underlined in the preview (not removed; the user decides); once deleted it is not sent", async () => {
+    await check("pc-ai: automatic removal (owner decision 127) — a bare name and a maker phone on the label are REMOVED by default and listed; " +
+      "each can be restored only knowingly (a confirm); a cancelled confirm keeps it removed; a restored item is sent, an edit not on the label never", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT, NET], isolated: true });
       await page.goto(`${base}/medicine.html?fakeface`);
       await openTab(page);
@@ -196,20 +199,34 @@ export default async function ({ base, launch, check }) {
       await page.waitFor(`document.querySelector("dialog.lq-ai-consent") && document.querySelector("dialog.lq-ai-consent").open`, 8000);
       await agree(page);
       const pv = await preview(page);
-      const maybe = await page.evaluate(() => ({ m: [...document.querySelectorAll("#pcAiPrevView mark[data-maybe]")].map(e => e.textContent), hint: !document.querySelector("#pcAiPrevMaybe").hidden,
-        t: document.querySelector("#pcAiPrevMaybe").innerText }));
-      assert(/Grace Exampleton/.test(pv.shown) && maybe.m.join() === "Grace Exampleton" && maybe.hint && /อาจเป็นชื่อคน/.test(maybe.t), "possible name underlined " + JSON.stringify(maybe));
-      assert(/02-315-4421/.test(pv.shown), "the maker phone on the label is kept in the box");
-      // the user deletes the name and changes ONE digit of the maker phone: a number not on the label is never sent
-      await preview(page, LABEL + "\nโทร 02-315-4422");
-      assert(await page.evaluate(() => document.querySelector("#pcAiPrevMaybe").hidden), "hint gone once deleted");
+      assert(pv.open && !/Grace|Exampleton|02-315-4421/.test(pv.shown) && pv.shown.includes(LABEL) && pv.view === pv.shown,
+        "by default the name and the phone are removed, the label text stays, the preview is open " + JSON.stringify(pv));
+      const items = () => page.evaluate(() => [...document.querySelectorAll("#pcAiPrevRemoved li")].map(l => ({ kind: l.dataset.kind, text: l.querySelector("span[translate=no]").textContent,
+        restore: l.querySelector("[data-restore]") ? l.querySelector("[data-restore]").getAttribute("data-restore") : null, restored: l.hasAttribute("data-restored") })));
+      const li = await items();
+      const nm = li.find(x => x.text === "Grace Exampleton"), ph = li.find(x => x.text === "02-315-4421");
+      assert(nm && nm.restore != null && ph && ph.restore != null, "both listed, each with a restore button " + JSON.stringify(li));
+      assert(await page.evaluate(() => !!document.querySelector("#pcAiPrevAuto")), "the preview says the removal is automatic and on this device");
+      // a cancelled confirm: nothing comes back
+      await page.evaluate(id => { window.confirm = () => false; document.querySelector(`#pcAiPrevRemoved [data-restore="${id}"]`).click(); }, nm.restore);
+      assert(!/Grace/.test((await preview(page)).shown), "a cancelled confirm keeps the name removed");
+      // the maker phone restored knowingly
+      await page.evaluate(id => { window.confirm = () => true; document.querySelector(`#pcAiPrevRemoved [data-restore="${id}"]`).click(); }, ph.restore);
+      const pv2 = await preview(page);
+      assert(/02-315-4421/.test(pv2.shown) && !/Grace/.test(pv2.shown) &&
+        (await items()).find(x => x.text === "02-315-4421").restored, "the restored phone is back, marked restored " + JSON.stringify(pv2));
+      // the user then changes ONE digit of it: a number not on the label is struck through and never sent
+      await preview(page, pv2.shown.replace("02-315-4421", "02-315-4422"));
       const del = await page.evaluate(() => [...document.querySelectorAll("#pcAiPrevView del[data-dropped]")].map(e => e.textContent));
       assert(del.join() === "02-315-4422", "the one-digit-off phone is struck through " + JSON.stringify(del));
+      await preview(page, pv2.shown);
       await sendText(page);
       await page.waitFor(`document.querySelector("#pcAiOut")`, 8000);
       const p = await posts(page);
-      assert(p.length === 2 && p.every(x => x.text === LABEL + "\nโทร"), "sent = the box minus what was struck " + JSON.stringify(p.map(x => x.text)));
-      assert(!p.some(x => /4422|02-315/.test(JSON.stringify(x))), "a typed phone one digit off a label phone is NEVER in a request");
+      assert(p.length >= 2 && p.every(x => x.text === pv2.shown), "sent = exactly the box after the restore " + JSON.stringify(p.map(x => x.text)));
+      assert(!p.some(x => /Grace|Exampleton|4422/.test(JSON.stringify(x))), "the removed name and a typed number are NEVER in a request");
+      const out = await page.evaluate(() => [...document.querySelectorAll("#pcAiRemoved li")].map(l => l.innerText));
+      assert(out.some(t => /Grace Exampleton/.test(t)) && !out.some(t => /02-315-4421/.test(t)), "the result lists what was removed (not the restored phone) " + JSON.stringify(out));
       await page.close();
     });
 

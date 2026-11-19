@@ -731,6 +731,17 @@ without the user's own send 23 → 0, photo 33 → 0, explicit send if the user 
 (only with `imageModeAllowed` on, default off) — owner decision. Every "0 personal data reached AI" claim names its languages.
 Live scan: a side read with nothing on the checklist says "turn the pack". `docs/product-check/PC-JK-RESULTS.md`.
 
+### Product Check automatic removal in the AI preview (2026-11-19, branch `pc-pii-redact`, owner decision 127)
+
+The preview now starts from an on-device allow-list (`LQPCGuard.previewRedact`, on by default): only product-label lines go
+to the AI; other lines, phones, e-mails, account / ID numbers, non-maker addresses and names next to kinship words, titles,
+arrows or brackets are removed and listed, each restorable after a confirm (the guard's own finds are not restorable). New
+locked set pc-pii (240 labels, TH / EN / ZH / JA / KO, 234 personal values; synthetic; written by an independent agent and
+locked with its scorer before building): personal values reaching the AI with the defaults 109 (main) → 14 (first, blind run)
+→ 0 in every language (after rules fixed from that run: not blind; an independent re-measure on a fresh set is needed before
+AI goes on). Cost: 80 of 96 pure product labels lose something (11.6 % of characters), restorable; no label loses AI. AI stays
+off. Photo (47) and tester one-tap (8) paths still leak on this set: owner decision. `docs/product-check/PC-PII-RESULTS.md`.
+
 ### Live scan baseline and scene cut (2026-11-17, branch `eval-guard-repo`, owner decision 89)
 
 `tests/unit/pc-live.test.js` at `7746decb` accepted as the live-scan baseline (no earlier locked copy existed). The 27 written
