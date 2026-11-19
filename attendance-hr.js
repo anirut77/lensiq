@@ -193,8 +193,10 @@
   // S2 2026-11-18: this file runs before attendance.js (the PIN pad is usable first); until attendance.js has wired the tabs,
   // the PIN tab is shown here, and attendance.js takes over on DOMContentLoaded (see the end of this file)
   function showPin(t) {
+    // attendance.js already loaded: its tab handler does everything. Not loaded yet: this file's own tab listener only
+    // un-hides the PIN pane, so the active tab and the other panes are set here (a plain "pane is shown" test is not enough)
+    if (W.__ATT_CORE) return t.click();
     t.click();
-    if (!$("#pane-pin").hidden) return;
     $all(".tab").forEach(x => x.classList.toggle("active", x === t));
     ["checkin", "register", "records", "check", "pin"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== "pin"; });
   }
