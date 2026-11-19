@@ -7,7 +7,7 @@
 //   node tools/pii-scan.mjs --staged             added lines of the staged change (tools/git-hooks/pre-commit)
 //   options: --repo DIR (default: the git top level of the current folder), --allow FILE (default: <repo>/tools/pii-allow.json),
 //            --json (machine output). Exit 0 = clean, 1 = findings, 2 = usage or allow-list error.
-// Detectors: coordinates, postcode-city, phone, thai-id, ipv4, ipv6, street-address, forbidden-path.
+// Detectors: coordinates, postcode-city, phone, thai-id, ipv4, ipv6, street-address, email, secret, forbidden-path.
 // The scanner NEVER prints a matched value: output is type, path:line, commit and a masked shape (digits -> #, letters -> x).
 // Allow-list (tools/pii-allow.json): { entries: [{ path, types: { <type>: <max count> }, kind: synthetic|public|false-positive,
 // reason }] }. In --tracked mode a file may hold at most <max> hits of a type; one more and every hit of that type is reported.
@@ -29,6 +29,12 @@ export function isThaiId(d) {
   return (11 - (s % 11)) % 10 === Number(d[12]);
 }
 
+/** masked shape of a finding: never the value @param {string} type @param {string} v */
+const shape = (type, v) => {
+  if (type === "email") { const d = v.slice(v.lastIndexOf("@") + 1); return `x…@x….${mask(d.split(".").pop() || "")} (len ${v.length})`; }
+  if (type === "secret") return `${mask(v.slice(0, 12))}… (len ${v.length})`;
+  return mask(v).slice(0, 40);
+};
 /** @param {string} v */
 const mask = v => v.replace(/\d/g, "#").replace(/[A-Za-z]/g, "x").replace(/[฀-๿]/g, "ก");
 
@@ -92,6 +98,55 @@ const RULES = [
     "[a-z]+\\s){1,3}(?:road|rd\\.?|street|st\\.|avenue|ave\\.?|soi|boulevard|blvd\\.?)(?![a-z])", "g"), () => true]
 ];
 
+// ---- e-mail and secrets (owner decision 147 ก) ----
+const RESERVED_MAIL = /(?:^|\.)(?:example\.(?:com|org|net)|[^.]+\.example|example|test|invalid|localhost)$|(?:^|\.)users\.noreply\.github\.com$/i;
+const FILE_EXT = /^(?:png|jpe?g|webp|gif|svg|avif|ico|js|mjs|cjs|css|json|map|html?|md|txt|woff2?|ttf)$/i;
+/** @param {string} addr */
+function realEmail(addr) {
+  const at = addr.lastIndexOf("@");
+  const local = addr.slice(0, at), domain = addr.slice(at + 1).toLowerCase();
+  const tld = domain.split(".").pop() || "";
+  if (FILE_EXT.test(tld) || /^\d+x$/i.test(domain.split(".")[0])) return false; // icon@2x.png
+  if (RESERVED_MAIL.test(domain) || domain.endsWith(".example") || domain.endsWith(".test") || domain.endsWith(".invalid")) return false;
+  if (/^(?:no-?reply|do-?not-?reply|mailer-daemon|postmaster)$/i.test(local)) return false;
+  return true;
+}
+// six letters or digits in alphabet order ("abcdef", "mnopqr", "123456"): a hand-typed placeholder, not a random key
+const ALPHA_RUN = new RegExp(["abcdefghijklmnopqrstuvwxyz", "0123456789"].flatMap(a => Array.from({ length: a.length - 5 }, (_, i) => a.slice(i, i + 6))).join("|"), "i");
+/** Shannon entropy in bits per character @param {string} v */
+function entropy(v) {
+  /** @type {Record<string, number>} */
+  const c = {};
+  for (const ch of v) c[ch] = (c[ch] || 0) + 1;
+  return Object.values(c).reduce((e, n) => e - (n / v.length) * Math.log2(n / v.length), 0);
+}
+/** a placeholder, not a key: repeated runs, low entropy or placeholder words @param {string} v */
+function placeholder(v) {
+  return /(.)\1{3,}/.test(v) || entropy(v) < 3 || ALPHA_RUN.test(v) ||
+    /example|placeholder|dummy|fake|sample|redacted|changeme|change-me|your[-_]|secretvalue|xxxx|test[-_]?key|not[-_]?real|canary|demo/i.test(v);
+}
+/** @param {RegExpExecArray} m */
+const realKey = m => !placeholder(m[1] ?? m[0]);
+/** @type {Array<[string, RegExp, (m: RegExpExecArray, line: string) => boolean]>} */
+const SECRET_RULES = [
+  ["email", /(?<![\w.+-])([A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})(?![\w@-])/g, m => realEmail(m[1])],
+  ["secret", /\b((?:AKIA|ASIA)[0-9A-Z]{16})\b/g, realKey],
+  ["secret", /aws_?secret_?access_?key["']?\s*[:=]\s*["']?([A-Za-z0-9/+]{40})(?![A-Za-z0-9/+])/gi, realKey],
+  ["secret", /\b((?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,})\b/g, m => !placeholder(m[1].slice(4))],
+  ["secret", /\b(github_pat_[A-Za-z0-9_]{60,})\b/g, m => !placeholder(m[1].slice(11))],
+  ["secret", /(?<![\w-])(sk-(?:ant-(?:api\d\d-)?|proj-|or-v1-|or-)?[A-Za-z0-9_-]{20,})(?![\w-])/g, m => !placeholder(m[1].replace(/^sk-(?:ant-(?:api\d\d-)?|proj-|or-v1-|or-)?/, ""))],
+  ["secret", /\b(xox[abposr]-[A-Za-z0-9-]{10,})\b/g, m => !placeholder(m[1].slice(5))],
+  ["secret", /(?<![\w-])(AIza[0-9A-Za-z_-]{35})(?![\w-])/g, m => !placeholder(m[1].slice(4))],
+  ["secret", /\b((?:sk|rk)_live_[0-9A-Za-z]{20,})\b/g, m => !placeholder(m[1].slice(8))],
+  ["secret", /(?<![\w-])(eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})(?![\w-])/g, realKey],
+  ["secret", /(-----BEGIN (?:RSA |EC |DSA |OPENSSH |ENCRYPTED |PGP )?PRIVATE KEY(?: BLOCK)?-----)/g, () => true],
+  ["secret", /(?:secret|token|passw(?:or)?d|pwd|api[_-]?key|apikey|access[_-]?key|private[_-]?key|client[_-]?secret)[\w-]*["']?\s*[:=]\s*["'`]([\x21\x23-\x26\x28-\x5f\x61-\x7e]{20,})["'`]/gi,
+    // a value that looks random: digits, or upper and lower case mixed ("max_completion_tokens" is a name, not a key)
+    (m, line) => !placeholder(m[1]) && entropy(m[1]) >= 3.5 && (/\d/.test(m[1]) || (/[a-z]/.test(m[1]) && /[A-Z]/.test(m[1]))) &&
+      !/^(?:sha(?:256|384|512)-|https?:|\.{0,2}\/)/.test(m[1]) && !/integrity\s*=/.test(line)]
+];
+RULES.push(...SECRET_RULES);
+
 /**
  * Personal-data findings in a text. Never returns the matched value.
  * @param {string} text @param {string} [path]
@@ -117,7 +172,7 @@ export function scanText(text, path = "") {
           const key = type + ":" + (start + m.index);
           if (seen.has(key)) continue;
           seen.add(key);
-          out.push({ type, line: i + 1, masked: mask(m[1] ?? m[0]).slice(0, 40) });
+          out.push({ type, line: i + 1, masked: shape(type, m[1] ?? m[0]) });
         }
       }
       if (full.length <= MAX_LINE) break;
@@ -139,7 +194,7 @@ export function scanPath(p) {
   return [];
 }
 
-const TYPES = new Set(["coordinates", "postcode-city", "phone", "thai-id", "ipv4", "ipv6", "street-address"]);
+const TYPES = new Set(["coordinates", "postcode-city", "phone", "thai-id", "ipv4", "ipv6", "street-address", "email", "secret"]);
 /** @param {string} file */
 export function loadAllow(file) {
   if (!file || !existsSync(file)) return new Map();
@@ -157,6 +212,7 @@ export function loadAllow(file) {
       if (!TYPES.has(t)) throw new Error(`${where}: type ${t} cannot be allow-listed`);
       if (!Number.isInteger(n) || n <= 0) throw new Error(`${where}: max for ${t} must be a positive integer`);
     }
+    if (e.types.secret && e.kind === "public") throw new Error(`${where}: a secret can only be synthetic or a false positive`);
     if (map.has(e.path)) throw new Error(`${where}: duplicate path`);
     map.set(e.path, e.types);
   }
