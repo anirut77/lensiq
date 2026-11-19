@@ -21,7 +21,7 @@
   "pd.i.kicker": "Products",
   "pd.i.h": "Choose a LENSIQ product",
   "pd.i.sub": "Four products on one engine, one account and one back office — every tool is still listed below",
-  "pd.i.fortune": "Face reading, palm reading, tarot, birth-date horoscopes and 10+ more traditions, with readings in Thai, English and Chinese. Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
+  "pd.i.fortune": "Face reading, palm reading, tarot, birth-date horoscopes and 10+ more traditions, with readings in Thai, English and Chinese.",
   "pd.i.retail": "Door counts, estimated conversion, queues and multi-branch totals for shops and SMEs, with published accuracy",
   "pd.i.hr": "Structured interviews, independent scoring before discussion, a check for questions to avoid, and a candidate practice mode",
   "pd.i.creative": "Creative Lab artwork checks, a portrait & ID photo studio, and a photo booth for events",

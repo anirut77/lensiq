@@ -23,12 +23,31 @@ export default async function ({ base, launch, check }) {
   try {
     let page = await browser.newPage(null);
 
-    await check("hub: fortune.html lists 14 fortune cards and the goal guide", async () => {
+    // RE-LOCK 2026-11-18, owner decision 118 ก + pet card (ledger: docs/CRISIS-V3-RELOCKS.md, tag relock-pet-hub): the hub requires
+    // EVERY fortune page as a card, named one by one (the 18 of 90e5d5c1 plus petread.html as card 19), exactly 19 distinct
+    // cards, the 4 goals; the pet card's caption carries no share wording in TH / EN / ZH; overflow and no-errors kept.
+    const HUB = ["faceread.html", "palm.html", "horoscope.html", "tarot.html", "iching.html", "bazi.html", "taksa.html", "lek7.html",
+      "numbers.html", "fengshui.html", "dream.html", "zodiac.html", "compat.html", "astro.html", "lifegraph.html", "planner.html",
+      "luckycolor.html", "report.html", "petread.html"];
+    const SHARE = /แชร์|share|分享/i;
+    await check("hub: fortune.html lists all 19 fortune cards (every fortune page, petread as card 19), the goal guide, no share wording on the pet card", async () => {
       await page.goto(`${base}/fortune.html`);
       const r = await page.evaluate(() => ({ cards: [...document.querySelectorAll(".ft-card")].map(a => a.getAttribute("href")), goals: document.querySelectorAll(".ft-goal").length }));
-      for (const h of ["iching.html", "zodiac.html", "astro.html", "dream.html", "bazi.html", "taksa.html", "lek7.html", "lifegraph.html"]) assert(r.cards.includes(h), "card " + h);
-      assert(r.cards.length === 14 && r.goals === 4, JSON.stringify(r));
-      await noOverflow(page, 390); await noOverflow(page, 1280); noErrors(page, base);
+      assert(HUB.length === 19, "fixed list of 19");
+      for (const h of HUB) assert(r.cards.includes(h), "card " + h);
+      assert(r.cards.length === 19 && new Set(r.cards).size === 19 && r.goals === 4, JSON.stringify(r));
+      // TH last, so the language the later checks start in is the same as before (the choice is remembered per device)
+      for (const lang of ["en", "zh", "th"]) {
+        await page.goto(`${base}/fortune.html?lang=${lang}`);
+        await page.waitFor(`!!window.LQI18N && LQI18N.lang === ${JSON.stringify(lang)}`, 10000);
+        if (lang !== "th") await page.waitFor(`(() => { const c = document.querySelector('.ft-card[href="petread.html"]'); return !!c && !/[\u0E00-\u0E7F]/.test(c.innerText); })()`, 10000);
+        const t = await page.evaluate(() => { const c = document.querySelector('.ft-card[href="petread.html"]'); return c ? c.innerText.replace(/\s+/g, " ").trim() : ""; });
+        assert(t.length > 10, lang + ": pet card caption " + JSON.stringify(t));
+        assert(!SHARE.test(t), lang + ": share wording in the pet card caption: " + t);
+        if (lang !== "th") assert(!/[\u0E00-\u0E7F]/.test(t), lang + ": Thai left in the pet card: " + t);
+        await noOverflow(page, 390); await noOverflow(page, 1280);
+      }
+      noErrors(page, base);
     });
     await page.close();
 

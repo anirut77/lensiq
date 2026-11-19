@@ -1158,6 +1158,17 @@ share work (branch fortune-share-print) must keep names and birth dates off the 
 (d) **Group and work use.** Group mode shows a one-line notice that the result is not for hiring, promotion, pay or
 dismissal (L73). Roles are written as strengths; group mode shows no numeric scores.
 
+## Pet face reading (`petread.html`, branch `fortune-pet`, 2026-11-16, not live)
+
+Data: a photo of a pet (file or camera), the pet's traits, an optional pet name and birth date, and an optional owner birth date
+(used only for the compatibility line). Everything stays in the browser's memory; nothing is stored or sent; the share card is
+saved locally or handed to the phone's share sheet by the user. A person who appears in the photo is detected only as a box
+(YOLOX "person"): the reading ignores them, the page says so, and on the card every person region outside the pet box is
+pixelated (the photo is refused when a person covers more than half of the pet). No face recognition, no biometric template.
+Questions: (a) is the person-box step (detection without identification, never stored) processing of personal data under
+PDPA s. 6, and does the on-screen notice suffice? (b) the card includes the pet photo only when the user ticks it (off by
+default); is a reminder not to share photos showing other people enough?
+
 ## Seller details page ("ข้อมูลกิจการ") and quotation / invoice / receipt documents (2026-11-18, branch `seller-settings`)
 
 Owner order 2026-11-18 ("needed for selling"). Migration `0021_seller.sql`, `backend/src/seller.js`, `admin-seller.js`.
