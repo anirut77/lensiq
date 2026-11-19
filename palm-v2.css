@@ -43,3 +43,4 @@
   #pv2PrintImg{display:block!important;position:absolute;left:0;top:0;width:100%}
 }
 @media (max-width:480px){.pv2{padding:0 4px}}
+.pv2 .pv2-off{opacity:.5;pointer-events:none}

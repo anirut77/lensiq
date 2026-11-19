@@ -63,7 +63,8 @@ try {
       const W = im.naturalWidth, H = im.naturalHeight, c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").drawImage(im, 0, 0);
       let hand = null, source = "taps";
       if (taps) hand = PV.handFromTaps(taps);
-      else if (window.LQPalmLandmarks) { const h = await window.LQPalmLandmarks.detect(c); if (h && h.pts) { hand = window.PalmCore.handFromLandmarks(h.pts);
+      else if (window.__palm && window.__palm.loadModels) { await window.__palm.loadModels(); const h = await window.__palm.detectHand(c, false); if (h && h.pts) {
+        hand = window.PalmCore.handFromLandmarks(h.pts);
         source = "landmarks (tier 2-U, trial only)"; } }
       if (!hand) return { error: "no hand points" };
       const F = PV.frameFromHand(hand);

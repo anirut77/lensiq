@@ -38,7 +38,6 @@
 <link rel="stylesheet" href="palm.css?v=7">
 <link rel="stylesheet" href="lensiq-capture-hint.css?v=1">
 <link rel="stylesheet" href="fortune-theme.css?v=3">
-<link rel="stylesheet" href="palm-v2.css?v=1">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
@@ -294,7 +293,8 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
   </section>
 
   <!-- palm reading upgrade v1 (owner order 2026-11-19): shown only when window.LENSIQ_PALM_V2 === true (lensiq-config.js ships false).
-       The work area and the result carry data-lq-result: the crisis support card replaces them (crisis v3, hotfix rule a). -->
+       Its code and style are loaded by palm.js only when the switch is on. Result areas carry data-lq-result (hotfix rule a); crisis v3
+       (owner decision 2026-11-17): the reading continues gently, no card replaces it, no share / print / paid, one 1323 line at the end. -->
   <section class="pv2" id="plV2" hidden data-lq-result aria-labelledby="pv2Title">
     <h2 id="pv2Title" data-pv2-l="title">ดูลายมือ (รุ่นใหม่ ทดลอง)</h2>
     <p class="pv2-small pv2-privacy" data-pv2-t="privacy"></p>
@@ -388,10 +388,6 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="fortune-ai.js?v=39"></script>
 <script src="palm-kb.js?v=10"></script>
 <script src="lensiq-capture-hint.js?v=1"></script>
-<script src="palm.js?v=20"></script>
-<script src="palm-v2-kb.js?v=1"></script>
-<script src="palm-v2-detect.js?v=1"></script>
-<script src="palm-v2.js?v=1"></script>
-<script src="palm-v2-ui.js?v=1"></script>
+<script src="palm.js?v=21"></script>
 </body>
 </html>

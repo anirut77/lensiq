@@ -1,6 +1,8 @@
 /* palm-v2-ui.js — page part of the palm reading upgrade v1 (palm.html). Runs ONLY when window.LENSIQ_PALM_V2 === true
    (lensiq-config.js ships false). Uses PalmV2 (palm-v2.js + palm-v2-detect.js + palm-v2-kb.js), LQCam (lensiq-camera.js),
-   PalmCore (palm.js, guide outline only), LQFortuneCrisis / FortuneAI (crisis v3: the support card replaces the result).
+   PalmCore (palm.js, guide outline only), LQFortuneCrisis (crisis v3, owner decision 2026-11-17: with a crisis signal the reading
+   continues gently, no card replaces it, no share / print / paid content, one warm line with the 1323 button at the end).
+   Loaded by palm.js only when the switch is on; the line finder runs in a Web Worker (palm-v2-worker.js), main thread fallback.
    Flow: choose own / another person's hand (consent line first) and left / right -> rear camera with the hand outline, live
    hints, automatic capture after a steady green count or the manual button -> full-resolution still (ImageCapture.takePhoto,
    else the full track frame) or an uploaded photo -> 7 taps (tier 1) or automatic hand points (LENSIQ_PALM_LANDMARKS, demo
@@ -63,6 +65,8 @@
     var gate = PV.cameraGate({ mode: S.mode, consent: $("#pv2Consent").checked });
     $("#pv2ConsentWrap").hidden = !gate.consentRequired;
     $("#pv2Start").disabled = !gate.open;
+    $("#pv2File").disabled = !gate.open; // an uploaded photo of another person's hand needs the same consent (review round 1, a)
+    var up = $("#pv2File").closest("label"); if (up) up.classList.toggle("pv2-off", !gate.open);
   }
   box.addEventListener("click", function (e) {
     var t = /** @type {any} */ (e.target), b = t && t.closest ? t.closest("[data-pv2-mode],[data-pv2-side],[data-pv2-school]") : null;
@@ -176,18 +180,22 @@
     var c = document.createElement("canvas"); c.width = W; c.height = H;
     c.getContext("2d").drawImage(img, 0, 0, W, H);
     if (img.close) try { img.close(); } catch (e) { /* not a bitmap */ }
+    if (S.mode === "other") { $("#pv2Consent").checked = PV.consentAfterCapture({ mode: S.mode, consent: true }); renderChoices(); } // one tick per photo
     S.photo = c; S.W = W; S.H = H; S.taps = []; S.hand = null; S.F = null; S.det = null; S.tracing = null; S.adjusting = null;
     S.st = PV.newState({ side: S.side, school: S.school });
     $("#pv2Work").hidden = false; $("#pv2Result").hidden = true; S.resultShown = false;
     $("#pv2List").innerHTML = "";
     msg(S.beforeGreen ? T("capture.beforeGreen") : "");
     layoutCanvas();
-    var lm = window.LENSIQ_PALM_LANDMARKS === true && window.LQPalmLandmarks;
+    // automatic hand points (owner decision D-P1): palm.js's MediaPipe hand model (tier 2-U), only with LENSIQ_PALM_LANDMARKS (demo
+    // profile; off in customer builds); otherwise, or when it finds no hand, the 7-tap mode (tier 1)
+    var P0 = WIN.__palm, lm = WIN.LENSIQ_PALM_LANDMARKS === true && P0 && P0.loadModels && P0.detectHand ?
+      { detect: function (src) { return P0.loadModels().then(function () { return P0.detectHand(src, false); }); } } : null;
     $("#pv2LmNote").hidden = !lm;
     if (lm) {
       setTapMsg(T("detect.busy"));
       return lm.detect(c).then(function (h) {
-        if (h && h.pts && window.PalmCore) { S.hand = window.PalmCore.handFromLandmarks(h.pts); return runDetect(); }
+        if (h && h.pts && WIN.PalmCore) { S.hand = WIN.PalmCore.handFromLandmarks(h.pts); return runDetect(); }
         startTaps();
       }).catch(function () { startTaps(); });
     }
@@ -332,7 +340,8 @@
       var h = S.hand, hc = { source: h.source, wrist: mp(h.wrist), mcp: { index: mp(h.mcp.index), middle: mp(h.mcp.middle), ring: mp(h.mcp.ring), pinky: mp(h.mcp.pinky) }, tip: {},
         thumbBase: null, pts: null };
       stopCam();
-      S.det = PV.detect(px, cw, ch, hc, { school: S.school });
+      return findLines(px, cw, ch, hc, S.school).then(function (det) {
+      S.det = det; S.lastDetectMs = det.ms;
       S.F = F0;
       var st = PV.newState({ side: S.side, school: S.school, asp: S.det.asp });
       PV.applyDetection(st, S.det);
@@ -340,7 +349,32 @@
       S.busy = false; setTapMsg("");
       msg(S.det.lowRes ? T("capture.lowRes") : S.beforeGreen ? T("capture.beforeGreen") : "");
       changed();
+      });
     }).catch(function (e) { S.busy = false; console.error(e); setTapMsg(""); });
+  }
+  /* the line finder runs in a Web Worker so the phone never freezes (review round 1, d); main-thread fallback */
+  var worker = null, workerBroken = false, jobN = 0;
+  function findLines(px, w, h, hand, school) {
+    if (!workerBroken && typeof Worker === "function") {
+      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=1"); } catch (e) { workerBroken = true; }
+    }
+    if (!worker || workerBroken) return new Promise(function (res) { setTimeout(function () { res(PV.detect(px, w, h, hand, { school: school })); }, 0); });
+    var id = ++jobN;
+    return new Promise(function (res, rej) {
+      var done = function (ev) {
+        var d = ev.data || {};
+        if (d.id !== id) return;
+        worker.removeEventListener("message", done); worker.removeEventListener("error", fail);
+        if (d.error) rej(new Error(d.error)); else res(d.det);
+      };
+      var fail = function () {
+        worker.removeEventListener("message", done); worker.removeEventListener("error", fail);
+        workerBroken = true; res(PV.detect(px, w, h, hand, { school: school }));
+      };
+      worker.addEventListener("message", done); worker.addEventListener("error", fail);
+      var copy = new Uint8ClampedArray(px); // the photo crop goes to the worker on this device only, and is not kept
+      worker.postMessage({ id: id, rgba: copy, w: w, h: h, hand: hand, school: school }, [copy.buffer]);
+    });
   }
   function setSchool(school) {
     if (PV.SCHOOLS.indexOf(school) < 0) return;
@@ -485,6 +519,7 @@
     ready: true,
     get busy() { return S.busy; },
     get lastStill() { return S.lastStill; },
+    get lastDetectMs() { return S.lastDetectMs; },
     state: function () { return JSON.parse(PV.serialize(S.st)) && { side: S.st.side, school: S.st.school, lines: JSON.parse(JSON.stringify(S.st.lines)) }; },
     useImage: useImageUrl,
     imgToClient: imgToClient,

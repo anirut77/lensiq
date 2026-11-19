@@ -89,8 +89,6 @@ interface Window {
   LENSIQ_PALM_V2?: boolean;
   /** palm v2 automatic hand points (MediaPipe hands, tier 2-U): research-demo profile only */
   LENSIQ_PALM_LANDMARKS?: boolean;
-  /** palm.js -> palm-v2-ui.js: automatic hand points when both switches above are on */
-  LQPalmLandmarks?: { detect(src: any): Promise<any> };
   /** goal-based plan under the paid switch (owner order 2026-11-15 (2), design only): off unless exactly true */
   LENSIQ_FORTUNE_PLAN?: boolean;
   /** "recommended sources" (outside seller links) under the paid switch (decision 46, design only): off unless exactly true */
