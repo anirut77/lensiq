@@ -52,3 +52,9 @@ a9bd34500c7920f68e2fbfd27f87f53e8b1554d2209ee41ab9e05974dc666a3d  relock-3/pet-z
 e469cac9d63fd8400995a2d75f7dcdd15d09751746e6b2a6a507f4e74f1bedcd  relock-3/pet-zodiac-layout.e2e.mjs
 a9bd34500c7920f68e2fbfd27f87f53e8b1554d2209ee41ab9e05974dc666a3d  tests/unit/pet-zodiac-layout.test.js  # repo file (same commit as lock 2026-11-19T03:08:11Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-3/pet-zodiac-layout.test.js)
 e469cac9d63fd8400995a2d75f7dcdd15d09751746e6b2a6a507f4e74f1bedcd  tests/e2e/pet-zodiac-layout.e2e.mjs  # repo file (same commit as lock 2026-11-19T03:08:11Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-3/pet-zodiac-layout.e2e.mjs)
+# LOCK 5 2026-11-19 (branch pet-zodiac-cards), review round 2 / owner decision 145 ก (round 3 = last round, headline cut only):
+# tests/e2e/pet-card-headline.e2e.mjs, locked BEFORE the fix. Before the fix: 0/1 (info.headline not reported; the headline was
+# wrapped with the pet-name font, so a medium headline was cut early). Log: run-4-headline-before-fix-e2e.log
+# locked 2026-11-19T06:02:32Z (tools/eval-guard.mjs lock, 1 file)
+e5d6b2ee1a6c34621e972189c15822bd27fd1610e0c6b2d3b18bb994643db6b9  headline/pet-card-headline.e2e.mjs
+e5d6b2ee1a6c34621e972189c15822bd27fd1610e0c6b2d3b18bb994643db6b9  tests/e2e/pet-card-headline.e2e.mjs  # repo file (same commit as lock 2026-11-19T06:02:32Z; field: ~/LENSIQ-field/evals/pet-zodiac/headline/pet-card-headline.e2e.mjs)
