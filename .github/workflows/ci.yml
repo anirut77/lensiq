@@ -122,11 +122,26 @@ jobs:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           git fetch --no-tags origin main
+          head=$(git rev-parse HEAD)
           if [ "$EVENT" = "pull_request" ]; then base="$PR_BASE"
-          elif [ "$EVENT" = "push" ] && [ -n "$BEFORE" ] && ! echo "$BEFORE" | grep -qE '^0+$' && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then base="$BEFORE"
-          else base=$(git merge-base FETCH_HEAD HEAD); fi
-          echo "scanning $base..HEAD"
-          node tools/pii-scan.mjs --range "$base..HEAD"
+          elif [ "$EVENT" = "push" ]; then
+            # a push: scan exactly the pushed commits. No usable "before" (new ref, or a force-push whose old tip is gone):
+            # fail closed by scanning the FULL history of HEAD (old synthetic fixtures in deleted files then fail too;
+            # the owner decides). Never an empty range.
+            if [ -n "$BEFORE" ] && ! echo "$BEFORE" | grep -qE '^0+$' && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then base="$BEFORE"
+            else base=""; fi
+          else
+            # workflow_dispatch: the branch's own commits; on main itself (merge-base = HEAD) the tip commit
+            base=$(git merge-base FETCH_HEAD HEAD || true)
+            if [ "$base" = "$head" ]; then base=$(git rev-parse HEAD~1 2>/dev/null || true); fi
+          fi
+          if [ -z "$base" ]; then
+            echo "no usable base: scanning the full history of HEAD"
+            node tools/pii-scan.mjs --range HEAD
+          else
+            echo "scanning $base..HEAD"
+            node tools/pii-scan.mjs --range "$base..HEAD"
+          fi
 
   python:
     name: Server tests (Python 3.11)

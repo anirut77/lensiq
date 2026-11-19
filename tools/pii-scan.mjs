@@ -3,7 +3,7 @@
 // (2026-11-18) carried .wrangler/cache/cf.json, Miniflare's cached request metadata with the owner's device location.
 //   node tools/pii-scan.mjs --tracked            every tracked text file (CI, every push)
 //   node tools/pii-scan.mjs --range A..B         added lines of EVERY commit in A..B, so data added and removed again in one
-//                                                push is still caught (CI: the pushed commits)
+//                                                push is still caught (CI: the pushed commits); --range HEAD = full history
 //   node tools/pii-scan.mjs --staged             added lines of the staged change (tools/git-hooks/pre-commit)
 //   options: --repo DIR (default: the git top level of the current folder), --allow FILE (default: <repo>/tools/pii-allow.json),
 //            --json (machine output). Exit 0 = clean, 1 = findings, 2 = usage or allow-list error.
@@ -18,8 +18,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const MAX_BYTES = 2 * 1024 * 1024;
-const MAX_LINE = 20000;
+const MAX_LINE = 20000; // window size for long lines
+const OVERLAP = 1000; // window overlap (longer than any match the rules allow)
 
 /** @param {string} d 13 digits @returns {boolean} */
 export function isThaiId(d) {
@@ -73,7 +73,9 @@ const RULES = [
     m => Math.abs(+m[1]) <= 180 && Math.abs(+m[1]) >= 0.001],
   ["postcode-city", /["']?\b(?:postal_?code|post_?code|zip_?code|zip)["']?\s*[:=]\s*["']?(\d{5})(?!\d)/gi, () => true],
   ["postcode-city", new RegExp(`(?:${PROVINCE})[^\\n\\d]{0,40}?(?<!\\d)([1-9]\\d{4})(?![\\d.])`, "g"), m => +m[1] >= 10000 && +m[1] <= 96999],
-  ["phone", new RegExp(`${NB}(?:\\+66[\\s-]?|0)(?:[689]\\d[\\s-]?\\d{3}[\\s-]?\\d{4}|[2-7][\\s-]?\\d{3}[\\s-]?\\d{4})${NA}`, "g"), () => true],
+  // Thai numbers: 0…, +66 / 0066 / 66 …, (0##) ### ####, 0##.###.####, 0#-####-####; separators space, dot or dash
+  ["phone", new RegExp(`${NB}(?:(?:(?:\\+|00)?66[\\s.-]?|0)(?:[689]\\d[\\s.-]?\\d{3}[\\s.-]?\\d{4}|[2-7][\\s.-]?\\d{3}[\\s.-]?\\d{4})` +
+    `|0[689][\\s.-]\\d{4}[\\s.-]\\d{4}|\\(0(?:[689]\\d|[2-7])\\)[\\s.-]?\\d{3}[\\s.-]?\\d{4})${NA}`, "g"), () => true],
   ["phone", /(?<![\w.+])\+(?!66)[1-9]\d{0,2}[\s-]?\(?\d{1,4}\)?[\s-]\d{2,4}[\s-]\d{3,4}(?![\w.]\d|\w)/g, () => true],
   ["thai-id", /(?<![\w.\-/#])(\d[\s-]?\d{4}[\s-]?\d{5}[\s-]?\d{2}[\s-]?\d)(?![\w.]\d|\w|-\d)/g,
     (m, line) => isThaiId(m[1].replace(/[\s-]/g, "")) && !/\b(?:gtin|ean|jan|barcode|upc|isbn)\b/i.test(line)],
@@ -84,7 +86,10 @@ const RULES = [
   ["ipv6", /(?<![\w:])((?:[0-9a-f]{1,4}:){1,7}(?::|(?::[0-9a-f]{1,4}){1,6}|[0-9a-f]{1,4}))(?![\w:])/gi, m => publicIpv6(m[1])],
   ["street-address", /(?:บ้านเลขที่|เลขที่)?\s*\d{1,5}(?:\/\d{1,4})?\s*(?:หมู่|ม\.|ซอย|ซ\.|ถนน|ถ\.)[^\n]{0,40}?(?:แขวง|ตำบล|ต\.|เขต|อำเภอ|อ\.|ถนน|ถ\.)\s*[฀-๿]/g,
     () => true],
-  ["street-address", /\b\d{1,5}\s+(?:[A-Z][a-z]+\s){1,3}(?:Road|Rd\.?|Street|St\.|Avenue|Ave\.?|Lane|Soi|Boulevard|Blvd\.?)(?![a-z])/g, () => true]
+  ["street-address", /\b\d{1,5}\s+(?:[A-Z][a-z]+\s){1,3}(?:Road|Rd\.?|Street|St\.|Avenue|Ave\.?|Lane|Soi|Boulevard|Blvd\.?)(?![a-z])/g, () => true],
+  // lower-case ("### baker street"); "lane" and common words are left out ("3 lanes", "per lane", "a busy street")
+  ["street-address", new RegExp("\\b\\d{1,5}\\s+(?:(?!(?:per|a|an|the|of|on|in|at|to|for|and|or|with|busy|main|side|one|each|every|x)\\b)" +
+    "[a-z]+\\s){1,3}(?:road|rd\\.?|street|st\\.|avenue|ave\\.?|soi|boulevard|blvd\\.?)(?![a-z])", "g"), () => true]
 ];
 
 /**
@@ -98,20 +103,24 @@ export function scanText(text, path = "") {
   const out = [];
   const lines = text.split("\n");
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (line.length > MAX_LINE) continue;
+    const full = lines[i];
     const seen = new Set();
-    for (const [type, re, ok] of RULES) {
-      re.lastIndex = 0;
-      let m;
-      while ((m = re.exec(line))) {
-        if (m[0].length === 0) { re.lastIndex++; continue; }
-        if (!ok(m, line)) continue;
-        const key = type + ":" + m.index;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push({ type, line: i + 1, masked: mask(m[1] ?? m[0]).slice(0, 40) });
+    // long lines (minified JSON, one-line caches) are scanned in overlapping windows, never skipped
+    for (let start = 0; start === 0 || start < full.length; start += MAX_LINE - OVERLAP) {
+      const line = full.length > MAX_LINE ? full.slice(start, start + MAX_LINE) : full;
+      for (const [type, re, ok] of RULES) {
+        re.lastIndex = 0;
+        let m;
+        while ((m = re.exec(line))) {
+          if (m[0].length === 0) { re.lastIndex++; continue; }
+          if (!ok(m, line)) continue;
+          const key = type + ":" + (start + m.index);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          out.push({ type, line: i + 1, masked: mask(m[1] ?? m[0]).slice(0, 40) });
+        }
       }
+      if (full.length <= MAX_LINE) break;
     }
   }
   return out;
@@ -155,7 +164,7 @@ export function loadAllow(file) {
 }
 
 /** @param {string} repo @param {string[]} args */
-const git = (repo, args) => execFileSync("git", ["-C", repo, ...args], { maxBuffer: 1 << 30 });
+const git = (repo, args) => execFileSync("git", ["-C", repo, "-c", "core.quotePath=false", ...args], { maxBuffer: 1 << 30 });
 /** @param {Buffer} b */
 const isBinary = b => b.subarray(0, 8000).includes(0);
 
@@ -168,7 +177,7 @@ function scanTracked(repo, allow) {
     for (const f of scanPath(path)) findings.push({ ...f, path });
     let buf;
     try { buf = readFileSync(join(repo, path)); } catch { continue; } // deleted in the work tree, a submodule or a dangling link
-    if (buf.length > MAX_BYTES || isBinary(buf)) continue;
+    if (isBinary(buf)) continue; // every text file is scanned, whatever its size
     const hits = scanText(buf.toString("utf8"), path);
     const max = allow.get(path) || {};
     /** @type {Record<string, typeof hits>} */
@@ -184,20 +193,36 @@ function scanTracked(repo, allow) {
   return findings;
 }
 
-/** added lines of a unified diff stream (`git log -p` or `git diff`) @param {string} text @param {Map<string, Record<string, number>>} allow */
+/** a path from a "+++ " header (git -c core.quotePath=false still C-quotes names with tabs, quotes or backslashes) @param {string} s */
+function headerPath(s) {
+  s = s.replace(/\t$/, ""); // git ends the header with a tab when the name has a space
+  if (s.startsWith('"')) {
+    try { s = JSON.parse(s.replace(/\\([0-7]{3})/g, (_, o) => "\\u00" + parseInt(o, 8).toString(16).padStart(2, "0"))); }
+    catch { s = s.replace(/^"|"$/g, ""); }
+  }
+  return s.replace(/^b\//, "");
+}
+
+/**
+ * added lines of a unified diff stream (`git log -p` or `git diff`). Headers ("diff --git", "--- ", "+++ ") are read only
+ * before the first "@@" of a file, so an added line whose text starts with "++ " is content, not a header.
+ * @param {string} text @param {Map<string, Record<string, number>>} allow
+ */
 function scanPatch(text, allow) {
   /** @type {Array<{type: string, path: string, line: number, masked: string, commit?: string}>} */
   const findings = [];
-  let commit = "", path = "", ln = 0, skip = false;
+  let commit = "", path = "", ln = 0, skip = false, inHunk = false, sawMinus = false;
   for (const raw of text.split("\n")) {
-    if (raw.startsWith("@@@COMMIT ")) { commit = raw.slice(10).trim(); continue; }
-    if (raw.startsWith("+++ ")) {
-      path = raw.slice(4).replace(/^b\//, "");
-      skip = path === "/dev/null";
-      if (!skip) for (const f of scanPath(path)) findings.push({ ...f, path, ...(commit ? { commit } : {}) });
-      continue;
+    if (raw.startsWith("@@@COMMIT ")) { commit = raw.slice(10).trim(); inHunk = false; continue; }
+    if (raw.startsWith("diff --git ") || raw.startsWith("diff --cc ") || raw.startsWith("diff --combined ")) {
+      inHunk = false; sawMinus = false; path = ""; skip = true; continue;
     }
-    if (raw.startsWith("@@ ")) { const m = /\+(\d+)/.exec(raw); ln = m ? +m[1] : 0; continue; }
+    if (!inHunk) {
+      if (raw.startsWith("--- ")) { sawMinus = true; continue; }
+      if (sawMinus && raw.startsWith("+++ ")) { path = headerPath(raw.slice(4)); skip = path === "/dev/null"; continue; }
+      if (!raw.startsWith("@@")) continue;
+    }
+    if (/^@@+ -/.test(raw)) { const m = /\+(\d+)/.exec(raw); ln = m ? +m[1] : 0; inHunk = true; continue; }
     if (raw.startsWith("+") && !skip) {
       const allowed = allow.get(path) || {};
       for (const h of scanText(raw.slice(1), path)) {
@@ -208,6 +233,24 @@ function scanPatch(text, allow) {
     }
   }
   return findings;
+}
+
+/** forbidden paths added or changed by each commit of a range (merges: against the first parent) @param {string} repo @param {string} range */
+function forbiddenInRange(repo, range) {
+  /** @type {Array<{type: string, path: string, line: number, masked: string, commit: string}>} */
+  const out = [];
+  for (const row of git(repo, ["rev-list", "--parents", range, "--"]).toString("utf8").split("\n").filter(Boolean)) {
+    const [sha, parent] = row.split(" ");
+    const args = parent ? ["diff", "--name-only", "-z", "--no-renames", "--diff-filter=ACMRT", parent, sha]
+      : ["diff-tree", "--root", "-r", "--no-commit-id", "--name-only", "-z", "--no-renames", "--diff-filter=ACMRT", sha];
+    for (const p of git(repo, args).toString("utf8").split("\0").filter(Boolean)) for (const f of scanPath(p)) out.push({ ...f, path: p, commit: sha });
+  }
+  return out;
+}
+/** forbidden paths in the staged change @param {string} repo */
+function forbiddenStaged(repo) {
+  const names = git(repo, ["diff", "--cached", "--name-only", "-z", "--no-renames", "--diff-filter=ACMRT"]).toString("utf8");
+  return names.split("\0").filter(Boolean).flatMap(p => scanPath(p).map(f => ({ ...f, path: p })));
 }
 
 const DIFF_OPTS = ["--no-color", "--no-renames", "--unified=0", "--no-ext-diff", "--text"];
@@ -225,7 +268,10 @@ export function main(argv) {
     else { console.error(`pii-scan: unknown argument ${a}`); return 2; }
   }
   if (!opt.mode) opt.mode = "tracked";
-  if (opt.mode === "range" && !/^\S+\.\.\.?\S+$/.test(opt.range)) { console.error("pii-scan: --range needs A..B"); return 2; }
+  // --range A..B, or a single revision (e.g. HEAD) for its full history
+  if (opt.mode === "range" && (!/^\S+$/.test(opt.range) || opt.range.startsWith("-"))) {
+    console.error("pii-scan: --range needs A..B or a revision"); return 2;
+  }
   let repo;
   try { repo = opt.repo ? resolve(opt.repo) : execFileSync("git", ["rev-parse", "--show-toplevel"]).toString().trim(); }
   catch { console.error("pii-scan: not inside a git repository (use --repo)"); return 2; }
@@ -236,8 +282,12 @@ export function main(argv) {
   let findings;
   try {
     if (opt.mode === "tracked") findings = scanTracked(repo, allow);
-    else if (opt.mode === "staged") findings = scanPatch(git(repo, ["diff", "--cached", ...DIFF_OPTS]).toString("utf8"), allow);
-    else findings = scanPatch(git(repo, ["log", "-p", ...DIFF_OPTS, "--format=@@@COMMIT %H", opt.range, "--"]).toString("utf8"), allow);
+    else if (opt.mode === "staged") {
+      findings = [...forbiddenStaged(repo), ...scanPatch(git(repo, ["diff", "--cached", ...DIFF_OPTS]).toString("utf8"), allow)];
+    } else {
+      findings = [...forbiddenInRange(repo, opt.range),
+        ...scanPatch(git(repo, ["log", "-p", ...DIFF_OPTS, "--format=@@@COMMIT %H", opt.range, "--"]).toString("utf8"), allow)];
+    }
   } catch (e) { console.error(`pii-scan: git failed: ${/** @type {Error} */ (e).message.split("\n")[0]}`); return 2; }
 
   if (opt.json) {

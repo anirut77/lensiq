@@ -81,7 +81,7 @@
   {
    "path": "docs/product-check/p7-guard-holdout.json",
    "types": {
-    "phone": 19
+    "phone": 21
    },
    "kind": "synthetic",
    "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
@@ -89,7 +89,7 @@
   {
    "path": "docs/product-check/p7-guard-testset.json",
    "types": {
-    "phone": 49,
+    "phone": 55,
     "thai-id": 10,
     "postcode-city": 8,
     "street-address": 7
@@ -334,7 +334,7 @@
   {
    "path": "tests/e2e/gate-parking.e2e.mjs",
    "types": {
-    "phone": 1
+    "phone": 2
    },
    "kind": "synthetic",
    "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
@@ -674,7 +674,7 @@
   {
    "path": "tests/unit/merit-review.test.js",
    "types": {
-    "phone": 4
+    "phone": 5
    },
    "kind": "synthetic",
    "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
@@ -706,7 +706,7 @@
   {
    "path": "tests/unit/pc-guard.test.js",
    "types": {
-    "phone": 18,
+    "phone": 21,
     "postcode-city": 18,
     "street-address": 15
    },
@@ -744,7 +744,7 @@
   {
    "path": "tests/unit/promptpay.test.js",
    "types": {
-    "phone": 12,
+    "phone": 14,
     "thai-id": 2
    },
    "kind": "synthetic",
@@ -804,7 +804,7 @@
   {
    "path": "tools/pc-guard-testset.mjs",
    "types": {
-    "phone": 37,
+    "phone": 43,
     "postcode-city": 8,
     "street-address": 7
    },
