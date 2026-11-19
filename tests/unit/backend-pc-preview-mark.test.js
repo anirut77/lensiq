@@ -31,3 +31,16 @@ test("every script: no preview mark -> refused before any call; the mark (true o
     }
   }
 });
+
+// route 2 (owner decision 146): a tester one-tap request skips the mark (auto comes from the gateway only) and meets the one-tap
+// filter, which now also refuses anything the automatic preview removal (LQPCGuard.previewRedact) would take out
+test("auto (from the gateway only) skips the mark and meets the one-tap filter, which refuses anything the preview removal would take", async () => {
+  const P = await import("../../backend/src/ai/pc-features.js");
+  const code = fn => { try { fn(); return "ok"; } catch (e) { return P.refusalCode(e) || "error:" + e.message; } };
+  const clean = { text: TEXTS.en, gtins: ["0012345678905"] };
+  assert.equal(code(() => { P.buildFields(clean, { mode: "text", auto: true }); P.autoCheck(clean); }), "ok", "a clean label: one tap allowed");
+  const sticker = { text: TEXTS.en + "\nfor Misaki", gtins: ["0012345678905"] };
+  assert.equal(code(() => { P.buildFields(sticker, { mode: "text", auto: true }); P.autoCheck(sticker); }), "ai_off_auto_filter", "a bare name line: refused");
+  const bank = { text: TEXTS.en + "\nPay to 123-4-56789-0", gtins: ["0012345678905"] };
+  assert.equal(code(() => { P.buildFields(bank, { mode: "text", auto: true }); P.autoCheck(bank); }), "ai_off_auto_filter", "an account number: refused");
+});

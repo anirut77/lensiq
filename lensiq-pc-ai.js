@@ -399,6 +399,8 @@
       if (!LV || !tester() || !autoOn()) return false;
       const pc = W.__LQ_PC && W.__LQ_PC.st;
       if (!pc || !pc.ocr || String(pc.ocr.text || "").trim() !== text) { setSkip("edited"); return false; } // only the device's own reading
+      // owner decision 146 (route 2): no one-tap send when the automatic preview removal finds anything (the usual preview follows)
+      if (W.LQPCGuard.previewRedact && W.LQPCGuard.previewRedact(text, gopt()).count > 0) { setSkip("name-guard"); return false; }
       const fx = facts(), key = LV.productKey({ ...fx, text });
       const base = () => ({ tester: tester(), autoOn: autoOn(), hidden: !!document.hidden, ...LV.autoTextCheck(W.LQPCGuard, text, fx, { script: pcScript() }), key, sent: [], count: 0, cap: 1 });
       let d = LV.autoDecision({ ...base(), face: { ran: true, faces: 0 } }); // the face detector runs only when it matters

@@ -163,7 +163,8 @@ export const JAKO_REFUSAL_CODES = Object.freeze(["ai_off_jako_preview", "ai_off_
  *                         guard found nothing), a POSSIBLE name (LQPCGuard.possibleNames, underlined in the manual
  *                         preview), session evidence (option ข), no text at all, or a photo (one-tap send is text only:
  *                         a photo needs the user's own preview and confirmation), or Japanese / Korean script (owner
- *                         decision 2026-11-14: never one-tap)
+ *                         decision 2026-11-14: never one-tap), or anything the automatic preview removal
+ *                         (LQPCGuard.previewRedact) would take out (owner decision 146, 2026-11-19)
  */
 export const AUTO_REFUSAL_CODES = Object.freeze(["ai_off_auto_filter"]);
 /**
@@ -222,7 +223,9 @@ export function autoCheck(input) {
   const session = strList(input.sessionGtins).length > 0 || strList(input.sessionRegs).length > 0;
   const photo = Array.isArray(input.images) && input.images.length > 0;
   const jako = Guard.jakoScript(t, { script: typeof input.script === "string" ? input.script : "" });
-  if (!t || photo || jako || t.includes(Guard.PLACEHOLDER) || Guard.possibleNames(t).length > 0 || Guard.autoBlock(t) || session) {
+  // owner decision 146 (route 2): nothing the automatic preview removal would take out (LQPCGuard.previewRedact) goes by one tap
+  const auto = typeof Guard.previewRedact === "function" && Guard.previewRedact(t).count > 0;
+  if (!t || photo || jako || auto || t.includes(Guard.PLACEHOLDER) || Guard.possibleNames(t).length > 0 || Guard.autoBlock(t) || session) {
     throw refusal("ai_off_auto_filter", "one-tap send filter");
   }
 }

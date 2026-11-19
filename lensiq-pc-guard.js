@@ -1575,7 +1575,7 @@
     // a text without Thai script only with a foreign GS1 prefix: Japan 45 / 49, Korea 880, China 690-699, Taiwan 471)
     if (/^\d{8}$|^\d{12,14}$/.test(d) && gtinOk(d) && !(d.length === 13 && thaiIdOk(d) && !/^885/.test(d) && (thai || !/^(?:45|49|880|69|471)/.test(d)))) return true;
     if (/\b(?:JAN|EAN|UPC|GTIN)\b[^\n]*\d{4}/iu.test(line)) return true;
-    if (SERVICE_LINE.test(line)) return true;
+    if (SERVICE_LINE.test(line) || MAKER_CUE.test(line)) return true;
     if (KEEP_VOCAB.test(line) || INGR_MORPH.test(line) || DOSE.test(line)) return true;
     return (line.match(/[、,，;；]/gu) || []).length >= 2;
   }
@@ -1671,12 +1671,20 @@
         for (let i = toks.length - 1; i > 0 && edgeName(toks[i][0]); i--) add("name", a + /** @type {number} */ (toks[i].index), a + /** @type {number} */ (toks[i].index) + toks[i][0].length);
       }
     }
+    /** @type {Map<number, boolean>} */ const lineSkip = new Map();
     for (const p of possibleNames(src)) {
       const v = t.slice(p.start, p.end);
       // not on a maker / company line or an ingredients list (INCI names, company names, the maker's street)
-      const ls = t.lastIndexOf("\n", p.start - 1) + 1, le = t.indexOf("\n", p.end) < 0 ? t.length : t.indexOf("\n", p.end), pl = t.slice(ls, le);
-      const pp = t.slice(Math.max(0, t.lastIndexOf("\n", Math.max(0, t.lastIndexOf("\n", ls - 2) - 1)) + 1), ls);
-      if (MAKER_CUE.test(pl) || (MAKER_CUE.test(pp) && addressLine(pl)) || (pl.match(/[、,，;；]/gu) || []).length >= 2 || labelCues(pl, undefined).ev.has("ingredients")) continue;
+      const ls = t.lastIndexOf("\n", p.start - 1) + 1;
+      // one decision per line (a long line with many possible names is read once: linear, tests/unit/pc-guard-complexity.test.js)
+      let skip = lineSkip.get(ls);
+      if (skip === undefined) {
+        const le = t.indexOf("\n", p.end) < 0 ? t.length : t.indexOf("\n", p.end), pl = t.slice(ls, le);
+        const pp = t.slice(Math.max(0, t.lastIndexOf("\n", Math.max(0, t.lastIndexOf("\n", ls - 2) - 1)) + 1), ls);
+        skip = MAKER_CUE.test(pl) || (MAKER_CUE.test(pp) && addressLine(pl)) || (pl.match(/[、,，;；]/gu) || []).length >= 2 || labelCues(pl, undefined).ev.has("ingredients");
+        lineSkip.set(ls, skip);
+      }
+      if (skip) continue;
       if (KEEP_VOCAB.test(v) || INGR_MORPH.test(v) || labelCues(v, undefined).ev.size || PRODUCT_WORDS_EN.test(v) || JAKO_PROD.test(v.replace(/\s+/g, ""))) continue;
       add("name", p.start, p.end);
     }
