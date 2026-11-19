@@ -50,3 +50,5 @@ cd0a74f5c2f57afe0aee1fea50f28840ffed50673e7e5f9a181aeef2d9054fa3  tests/e2e/fort
 # locked at the time as a field copy (crisis-escape-guard.sha256:9, crisis-net-hotfix-inventory.v4.json, 2026-11-17T03:33:13Z)
 # but the repo-path line was never written.
 f3c0caaaf521f4c7d7ab29ecf28f24dde003c464d242e74be547878c11fe2bed  tests/e2e/crisis-net-hotfix-inventory.json  # repo file  late record: commit 4fbec46c, adds compat rows only; field copy crisis-escape-guard.sha256:9
+# RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet, see docs/CRISIS-V3-RELOCKS.md.
+6418053e164eeb05afba82a1bb26df31f0a65905de3dd26882d6f661c10baade  tests/e2e/crisis-net-hotfix-inventory.json  # repo file (relock-pet)

@@ -1,0 +1,8 @@
+# locked 2026-11-17T17:41:49Z (tools/eval-guard.mjs lock, 3 files)
+6a6025122ee63e8b5b789bceb9e148395ed157ec5f03e4076070cb9aad15770e  fortune-theme-golive.test.js
+d148eb6afd825b84cf37a0e42d9abec57bd891a49bffa8aed12a10883e094b2c  fortune-theme-golive.e2e.mjs
+05999f5463fc8b51eabbf419c0ef42524d1d5cb56ad773e596036a276422f7ea  fortune-theme-golive-crisis.e2e.mjs
+# repo copies (byte-identical to the locked files above), locked 2026-11-18 BEFORE any of decisions 92-94 is built (branch fortune-theme, head 9ebbf57b, before the merge of origin/main). Owner decisions 92 (theme A + gold line art go live with a quick switch back), 93 (Vessavana hidden; deity names hidden on the site until the expert review), 94 ก (reading pages: night band + light paper, WCAG AA body text). Baseline: unit 0/5 pass (nothing built).
+6a6025122ee63e8b5b789bceb9e148395ed157ec5f03e4076070cb9aad15770e  tests/unit/fortune-theme-golive.test.js  # repo file
+d148eb6afd825b84cf37a0e42d9abec57bd891a49bffa8aed12a10883e094b2c  tests/e2e/fortune-theme-golive.e2e.mjs  # repo file
+05999f5463fc8b51eabbf419c0ef42524d1d5cb56ad773e596036a276422f7ea  tests/e2e/fortune-theme-golive-crisis.e2e.mjs  # repo file

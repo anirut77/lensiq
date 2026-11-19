@@ -182,6 +182,18 @@ export const FLOWS = {
     read: async p => { await ev(p, `(() => { const c = document.getElementById("cpConsent"); if (!c.checked) c.click(); return true; })()`);
       await ev(p, fillPerson(0, 14, 2, 1988)); await ev(p, fillPerson(1, 3, 9, 1992)); await ev(p, click("#cpGo")); await p.waitFor(`!!document.querySelector("#cpResult [data-compat-overview]")`, 20000); },
     field: async (p, q) => { await ev(p, setVal("#cpNick0", q)); await ev(p, click("#cpGo")); }, report: false },
+  // ADDED 2026-11-17 (append-only, merge of fortune-pet): pet face reading. A synthetic photo (no person) through the scripted
+  // on-device detector (localhost + ?fakedet, as the fortune-pet and crisis-v3 sets), name + birth dates, Read; the phrase then goes
+  // into the pet's name box. nav.js injects no report button on petread (report: false).
+  petread: { url: "petread.html?fakedet",
+    prep: async p => { await p.waitFor(`!!(window.__LQPET && window.__LQPET.ready)`, 15000);
+      await ev(p, `(() => { window.__LQ_FAKE_DET = k => k === "pet" ? [{ cls: 15, score: 0.91, x: 0.2, y: 0.15, w: 0.5, h: 0.7 }] : []; return true; })()`); },
+    read: async p => { await ev(p, `window.__LQPET.useImage((() => { const c = document.createElement("canvas"); c.width = 640; c.height = 480; const x = c.getContext("2d");
+        x.fillStyle = "#5b8bd6"; x.fillRect(0, 0, 640, 480); x.fillStyle = "#e08a2e"; x.beginPath(); x.ellipse(300, 280, 150, 120, 0, 0, 7); x.fill(); return c; })()).then(() => true)`);
+      await p.waitFor(`window.__LQPET.st.detected === true`, 15000);
+      await ev(p, setVal("#petName", "Mochi")); await ev(p, setVal("#petBirth", "2021-03-14")); await ev(p, setVal("#petOwnerBirth", "1990-07-02"));
+      await ev(p, click("#petRead")); await p.waitFor(sections(2, "#petReading") + ` && document.getElementById("petCard").dataset.drawn === "1"`, 15000); },
+    field: async (p, q) => { await ev(p, setVal("#petName", q)); await ev(p, click("#petRead")); }, report: false },
 };
 
 /** the report dialog trigger: open it from the reading's button, type the phrase into the note */

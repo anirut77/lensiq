@@ -110,3 +110,12 @@ Running list, append only. Each entry: date, what changes, status, what happens 
 - **Owner's words:** "Later topic, not started: protecting paid content from being shared, resold, or used to run a paid reading
   service for others. Owner will discuss after current work is finished."
 - **Status:** open, not started. Nothing is built or changed for it; the owner raises it after the current work.
+
+## 2026-11-18: future, record only: ratings of a reading (owner order 2026-11-18 item 7)
+
+- **Owner rule (future):** if we later let people rate a reading, the ratings are stored for us in the back office to improve
+  content and are not shown publicly as an accuracy figure.
+  (ถ้าวันหน้าเปิดให้ผู้ใช้ให้คะแนนคำทำนาย คะแนนเก็บไว้ในหลังบ้านให้เราใช้ปรับปรุงเนื้อหาเท่านั้น และไม่แสดงต่อสาธารณะเป็นตัวเลขความแม่นยำ)
+- **Status: record only.** Nothing is built; no rating control exists today. Fortune cards carry no accuracy field
+  (owner decision 2026-11-18, branch `fortune-cards-clean`), so a rating must never come back as one.
+- **If the owner does not answer:** nothing to decide now; this rule applies when a rating feature is proposed.

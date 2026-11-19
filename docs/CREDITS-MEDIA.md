@@ -147,3 +147,11 @@ colour values with the colour name written beside them.
 No credit line is required on the page (own work). A new icon from a third party must be MIT, Apache-2.0, CC0 or CC BY
 (with credit) and must be added to this table, to `LICENSES/THIRD_PARTY.md` and to `ICONS` with its licence and source;
 `tests/unit/fortune-layout.test.js` checks all three.
+
+## Fortune theme art (art/fortune/, 2026-11)
+
+Seven deity line drawings (`deity-ganesha.svg`, `deity-lakshmi.svg`, `deity-brahma.svg`, `deity-shiva.svg`,
+`deity-vessavana.svg`, `deity-caishen.svg`, `deity-shouxing.svg`) and the menu icon sprite (`icons.svg`, 19 icons):
+**own work, drawn for LENSIQ, 2026-11** (hand-written SVG coordinates; nothing taken or traced from the web; no bitmap, no
+external reference). No credit line is required on the page. Details, identifying features and review status:
+docs/FORTUNE-THEME.md. TH: ภาพเส้นทองทั้งหมดวาดขึ้นเองสำหรับ LENSIQ (2026-11) ไม่ได้นำหรือลอกลายจากเว็บ

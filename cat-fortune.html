@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="th">
+<html lang="th" class="lq-ft lq-ft-menu">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self';
@@ -26,13 +26,15 @@
 <link rel="stylesheet" href="styles.css?v=24">
 <link rel="stylesheet" href="products.css?v=3">
 <link rel="stylesheet" href="solutions.css?v=4">
-<link rel="stylesheet" href="cat.css?v=1">
+<link rel="stylesheet" href="cat.css?v=2">
+<link rel="stylesheet" href="fortune-theme.css?v=3">
 <script src="lensiq-busy.js?v=3"></script>
+<script src="fortune-entry.js?v=5"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=32"></script>
-<script src="i18n/zh-cat.js?v=4"></script>
+<script src="nav.js?v=34"></script>
+<script src="i18n/zh-cat.js?v=6"></script>
 <style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
 .lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
 .lq-helpnav a.lq-call-btn[href]:hover{background:#0b5d8f14;color:#094d77}.lq-helpnav .lq-call-mini-t{display:none}
@@ -78,209 +80,149 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
   <div class="pd-body">
     <section aria-labelledby="catToolsH">
       <h2 id="catToolsH" data-i18n="cat.tools.h">เครื่องมือในหมวดนี้</h2>
-      <p class="pd-sub" id="catCount" data-i18n="cat.fortune.count">19 เครื่องมือ</p>
+      <p class="pd-sub" id="catCount" data-i18n="cat.fortune.count">20 เครื่องมือ</p>
       <div class="pd-grid cat-grid">
       <article class="pd-card cat-tool" data-page="fortune">
-        <div class="cat-top"><h3 data-i18n="nav.fortune.title">รวมศาสตร์ดูดวง</h3></div>
-        <p data-i18n="nav.fortune.desc">เลือกศาสตร์ที่ต้องการ</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="fortune.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="fortune.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="🔮" aria-hidden="true"><svg class="ft-ill" data-ic="fortune" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.fortune.title">รวมศาสตร์ดูดวง</h3></div>
+          <p data-i18n="nav.fortune.desc">เลือกศาสตร์ที่ต้องการ</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="faceread">
-        <div class="cat-top"><h3 data-i18n="nav.faceread.title">อ่านโหงวเฮ้ง</h3></div>
-        <p data-i18n="nav.faceread.desc">อ่านโหงวเฮ้งจากใบหน้า</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="faceread.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="faceread.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="👁️" aria-hidden="true"><svg class="ft-ill" data-ic="faceread" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.faceread.title">อ่านโหงวเฮ้ง</h3></div>
+          <p data-i18n="nav.faceread.desc">อ่านโหงวเฮ้งจากใบหน้า</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="palm">
-        <div class="cat-top"><h3 data-i18n="nav.palm.title">ดูลายมือ</h3></div>
-        <p data-i18n="nav.palm.desc">ถ่ายฝ่ามือ อ่านเส้นหลัก</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="palm.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="palm.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="✋" aria-hidden="true"><svg class="ft-ill" data-ic="palm" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.palm.title">ดูลายมือ</h3></div>
+          <p data-i18n="nav.palm.desc">ถ่ายฝ่ามือ อ่านเส้นหลัก</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="horoscope">
-        <div class="cat-top"><h3 data-i18n="nav.horoscope.title">ดวงวันเดือนปีเกิด</h3></div>
-        <p data-i18n="nav.horoscope.desc">โหราไทย ปาจื้อ เลขศาสตร์</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="horoscope.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="horoscope.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="🌙" aria-hidden="true"><svg class="ft-ill" data-ic="horoscope" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.horoscope.title">ดวงวันเดือนปีเกิด</h3></div>
+          <p data-i18n="nav.horoscope.desc">โหราไทย ปาจื้อ เลขศาสตร์</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="tarot">
-        <div class="cat-top"><h3 data-i18n="nav.tarot.title">ไพ่ทาโรต์ &amp; เซียมซี</h3></div>
-        <p data-i18n="nav.tarot.desc">เปิดไพ่ เสี่ยงเซียมซี</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="tarot.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="tarot.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="🃏" aria-hidden="true"><svg class="ft-ill" data-ic="tarot" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.tarot.title">ไพ่ทาโรต์ &amp; เซียมซี</h3></div>
+          <p data-i18n="nav.tarot.desc">เปิดไพ่ เสี่ยงเซียมซี</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="iching">
-        <div class="cat-top"><h3 data-i18n="nav.iching.title">อี้จิง เสี่ยงกว้า</h3></div>
-        <p data-i18n="nav.iching.desc">โยนเหรียญ 64 กว้า</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="iching.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="iching.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="☯️" aria-hidden="true"><svg class="ft-ill" data-ic="iching" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.iching.title">อี้จิง เสี่ยงกว้า</h3></div>
+          <p data-i18n="nav.iching.desc">โยนเหรียญ 64 กว้า</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="bazi">
-        <div class="cat-top"><h3 data-i18n="nav.bazi.title">แปดอักษร 八字</h3></div>
-        <p data-i18n="nav.bazi.desc">เจ้าชะตา ห้าธาตุ วัยจร</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="bazi.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="bazi.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="☯" aria-hidden="true"><svg class="ft-ill" data-ic="bazi" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.bazi.title">แปดอักษร 八字</h3></div>
+          <p data-i18n="nav.bazi.desc">เจ้าชะตา ห้าธาตุ วัยจร</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="taksa">
-        <div class="cat-top"><h3 data-i18n="nav.taksa.title">ทักษา</h3></div>
-        <p data-i18n="nav.taksa.desc">ภูมิทั้งแปด มหาทักษา</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="taksa.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="taksa.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="🪐" aria-hidden="true"><svg class="ft-ill" data-ic="taksa" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.taksa.title">ทักษา</h3></div>
+          <p data-i18n="nav.taksa.desc">ภูมิทั้งแปด มหาทักษา</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="lek7">
-        <div class="cat-top"><h3 data-i18n="nav.lek7.title">เลข 7 ตัว 9 ฐาน</h3></div>
-        <p data-i18n="nav.lek7.desc">ผังเลขวันเดือนปีเกิด</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="lek7.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="lek7.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="7️⃣" aria-hidden="true"><svg class="ft-ill" data-ic="lek7" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.lek7.title">เลข 7 ตัว 9 ฐาน</h3></div>
+          <p data-i18n="nav.lek7.desc">ผังเลขวันเดือนปีเกิด</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="numbers">
-        <div class="cat-top"><h3 data-i18n="nav.numbers.title">เลขมงคล</h3></div>
-        <p data-i18n="nav.numbers.desc">เบอร์โทร ทะเบียนรถ เลขบ้าน</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="numbers.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="numbers.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="🔢" aria-hidden="true"><svg class="ft-ill" data-ic="numbers" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.numbers.title">เลขมงคล</h3></div>
+          <p data-i18n="nav.numbers.desc">เบอร์โทร ทะเบียนรถ เลขบ้าน</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="fengshui">
-        <div class="cat-top"><h3 data-i18n="nav.fengshui.title">ฮวงจุ้ย</h3></div>
-        <p data-i18n="nav.fengshui.desc">เลขกัว เข็มทิศ ผังบ้าน</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="fengshui.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="fengshui.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="🧭" aria-hidden="true"><svg class="ft-ill" data-ic="fengshui" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.fengshui.title">ฮวงจุ้ย</h3></div>
+          <p data-i18n="nav.fengshui.desc">เลขกัว เข็มทิศ ผังบ้าน</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="dream">
-        <div class="cat-top"><h3 data-i18n="nav.dream.title">ทำนายฝัน</h3></div>
-        <p data-i18n="nav.dream.desc">ความหมายสัญลักษณ์ในฝัน</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="dream.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="dream.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="💭" aria-hidden="true"><svg class="ft-ill" data-ic="dream" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.dream.title">ทำนายฝัน</h3></div>
+          <p data-i18n="nav.dream.desc">ความหมายสัญลักษณ์ในฝัน</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="zodiac">
-        <div class="cat-top"><h3 data-i18n="nav.zodiac.title">12 นักษัตร · ปีชง</h3></div>
-        <p data-i18n="nav.zodiac.desc">ดวงรายปี คู่มงคล</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="zodiac.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="zodiac.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="🐉" aria-hidden="true"><svg class="ft-ill" data-ic="zodiac" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.zodiac.title">12 นักษัตร · ปีชง</h3></div>
+          <p data-i18n="nav.zodiac.desc">ดวงรายปี คู่มงคล</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="compat">
-        <div class="cat-top"><h3 data-i18n="nav.compat.title">ดวงสมพงษ์</h3></div>
-        <p data-i18n="nav.compat.desc">ความเข้ากันของสองคนหรือทั้งกลุ่ม จากสี่ศาสตร์</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="compat.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="compat.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="💞" aria-hidden="true"><svg class="ft-ill" data-ic="compat" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.compat.title">ดวงสมพงษ์</h3></div>
+          <p data-i18n="nav.compat.desc">ความเข้ากันของสองคนหรือทั้งกลุ่ม จากสี่ศาสตร์</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="astro">
-        <div class="cat-top"><h3 data-i18n="nav.astro.title">ราศีตะวันตก</h3></div>
-        <p data-i18n="nav.astro.desc">ราศีอาทิตย์ จันทร์ ลัคนา</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="astro.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="astro.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="♌" aria-hidden="true"><svg class="ft-ill" data-ic="astro" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.astro.title">ราศีตะวันตก</h3></div>
+          <p data-i18n="nav.astro.desc">ราศีอาทิตย์ จันทร์ ลัคนา</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="lifegraph">
-        <div class="cat-top"><h3 data-i18n="nav.lifegraph.title">กราฟชีวิต</h3></div>
-        <p data-i18n="nav.lifegraph.desc">เส้นพลังตามช่วงอายุ</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="lifegraph.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="lifegraph.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="📈" aria-hidden="true"><svg class="ft-ill" data-ic="lifegraph" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.lifegraph.title">กราฟชีวิต</h3></div>
+          <p data-i18n="nav.lifegraph.desc">เส้นพลังตามช่วงอายุ</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="planner">
-        <div class="cat-top"><h3 data-i18n="nav.planner.title">วางแผนฤกษ์มงคล</h3></div>
-        <p data-i18n="nav.planner.desc">วันดีขึ้นบ้านใหม่ เปิดร้าน เริ่มงาน</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="planner.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="planner.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="📅" aria-hidden="true"><svg class="ft-ill" data-ic="planner" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.planner.title">วางแผนฤกษ์มงคล</h3></div>
+          <p data-i18n="nav.planner.desc">วันดีขึ้นบ้านใหม่ เปิดร้าน เริ่มงาน</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="luckycolor">
-        <div class="cat-top"><h3 data-i18n="nav.luckycolor.title">กระจกส่องสีเสื้อมงคล</h3></div>
-        <p data-i18n="nav.luckycolor.desc">ส่องกล้องดูสีเสื้อวันนี้กับสีมงคลประจำวัน</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="luckycolor.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="luckycolor.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="👕" aria-hidden="true"><svg class="ft-ill" data-ic="luckycolor" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.luckycolor.title">กระจกส่องสีเสื้อมงคล</h3></div>
+          <p data-i18n="nav.luckycolor.desc">ส่องกล้องดูสีเสื้อวันนี้กับสีมงคลประจำวัน</p>
+        </a>
+      </article>
+      <article class="pd-card cat-tool" data-page="petread">
+        <a class="cat-card" href="petread.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="🐾" aria-hidden="true"><svg class="ft-ill" data-ic="petread" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.petread.title">ดูลักษณะน้องหมาน้องแมว</h3></div>
+          <p data-i18n="nav.petread.desc">นิสัย สีมงคล วันดี จากรูปน้อง ประมวลผลบนเครื่อง</p>
+        </a>
       </article>
       <article class="pd-card cat-tool" data-page="report">
-        <div class="cat-top"><h3 data-i18n="nav.report.title">รายงานดวงของฉัน</h3></div>
-        <p data-i18n="nav.report.desc">รวมผลดูดวงเป็นรายงานฉบับเดียว</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="na"><span class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span> <span data-i18n="cat.c.fortune">เป็นหลักโหราศาสตร์
-            ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ ไม่มีตัวเลขความแม่นยำ คำทำนายผ่านตัวกรองหัวข้อต้องห้าม</span></li>
-        </ul>
-        <a class="sl-go" href="report.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+        <a class="cat-card" href="report.html">
+          <div class="cat-top"><span class="cat-ill" data-ic="📜" aria-hidden="true"><svg class="ft-ill" data-ic="report" aria-hidden="true"
+            focusable="false"></svg></span><h3 data-i18n="nav.report.title">รายงานดวงของฉัน</h3></div>
+          <p data-i18n="nav.report.desc">รวมผลดูดวงเป็นรายงานฉบับเดียว</p>
+        </a>
       </article>
       </div>
-    </section>
-    <section aria-labelledby="catSrcH">
-      <h2 id="catSrcH" data-i18n="cat.src.h">ที่มาของตัวเลข</h2>
-      <p class="pd-sub" data-i18n="cat.src.d">ทุกตัวเลขบอกที่มา: ข้อมูลสังเคราะห์ ชุดข้อมูลสาธารณะ หรือภาคสนาม ยังไม่มีระบบใดมีตัวเลขภาคสนาม
-        ก่อนใช้ตัวเลขจริงให้ทดลองหน้างานพร้อมนับเทียบ</p>
-      <p class="cat-srcs"><span class="cat-src synthetic" data-i18n="cat.src.synthetic">ข้อมูลสังเคราะห์</span> <span class="cat-src public"
-        data-i18n="cat.src.public">ชุดข้อมูลสาธารณะ</span> <span class="cat-src prelim" data-i18n="cat.src.prelim">ชุดข้อมูลสาธารณะ · เบื้องต้น</span> <span
-        class="cat-src field" data-i18n="cat.src.field">ภาคสนาม</span> <span class="cat-src none" data-i18n="cat.src.none">ยังไม่ได้วัด</span> <span
-        class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span></p>
-      <p class="pd-note"><a href="cameras.html#accuracy" data-i18n="cat.method">วิธีวัดและชุดข้อมูล</a></p>
     </section>
     <section aria-labelledby="catOthersH">
       <h2 id="catOthersH" data-i18n="cat.others.h">หมวดอื่น</h2>
@@ -295,6 +237,6 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     </section>
   </div>
 </main>
-<script src="lensiq-config.js?v=21"></script>
+<script src="lensiq-config.js?v=23"></script>
 </body>
 </html>
