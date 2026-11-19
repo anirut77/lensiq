@@ -107,6 +107,46 @@
   // งานที่เพิ่มภายหลัง (LQPlanner.addOccasions from lensiq-planner-occ.js: rules, wording and their planOcc / maxOcc)
   var OCC = {}, GROUPS = [];
 
+  /* ---------------- ที่มาของเกณฑ์ (owner decisions 114–117, 2026-11-19) ----------------
+   * Every occasion and every rule inside it is "text" (from a traditional text) or "modern" (statistics, office practice, thin
+   * evidence, or not confirmed by the recorded sources). Modern items carry the label MODERN_TH ("Modern practice" / "现代习俗") on the
+   * page and are never worded as tradition. The source notes behind each class are internal (the occasion sources table in
+   * docs/, per occasion and per rule); the page never shows them. Shared rules: taksa (ทักษาปกรณ์), zodiac (Chinese almanac day branch),
+   * phra (the Buddhist holy-day note). Added occasions bring their own class (OCC[ev].src, lensiq-planner-occ.js). */
+  var MODERN_TH = "ตามความนิยมสมัยใหม่";
+  // short names of modern rules inside a text occasion (shown after the label in the plain-reason box)
+  var RULE_TH = { waxing: "คะแนนข้างขึ้น", evenMonth: "คะแนนเดือนคู่" };
+  var SRC_CLASS = {
+    move: { cls: "text", rules: { days: "text", waxing: "modern", evenMonth: "modern", taksa: "text", zodiac: "text", phra: "text" } },
+    shop: { cls: "text", rules: { days: "text", waxing: "modern", taksa: "text", zodiac: "text", phra: "text" } },
+    work: { cls: "text", rules: { days: "text", waxing: "modern", taksa: "text", zodiac: "text", phra: "text" } }
+  };
+  /** the rule of an occasion that produced a reason id */
+  function reasonRule(ev, id) {
+    if (/^bh\./.test(id) || id === "star") return "taksa";
+    if (id === "zHarmony" || id === "zTrine" || id === "zSame") return "zodiac";
+    if (id === "phra") return "phra";
+    if (id === "waxing" || id === "full") return "waxing";
+    if (id === "evenMonth") return "evenMonth";
+    var R = OCC[ev];
+    if (id.indexOf("wd." + ev + ".") === 0) return R && R.fav ? "fav" : "days";
+    if (!R) return null;
+    var tail = id.slice(ev.length + 1);
+    if (id.indexOf(ev + ".") !== 0) return null;
+    return { month: "months", season: "prelent", lday: "lunarDays", gen: "general", birth: R.byBirth ? "byBirth" : "needsOwner" }[tail] || null;
+  }
+  /** "text" | "modern" for a reason id of an occasion (null when unknown) */
+  function reasonClass(ev, id) {
+    var c = SRC_CLASS[ev], k = reasonRule(ev, id);
+    return c && k && c.rules[k] || null;
+  }
+  /** modern rules of a text occasion (names shown after the label), [] for a modern occasion (labelled as a whole) */
+  function modernRules(ev) {
+    var c = SRC_CLASS[ev];
+    if (!c || c.cls === "modern") return [];
+    return Object.keys(c.rules).filter(function (k) { return c.rules[k] === "modern"; });
+  }
+
   /** weekday 0..6 (อาทิตย์ = 0) */
   function weekday(y, m, d) { return HS.weekday(y, m, d); }
 
@@ -159,6 +199,7 @@
       var R = pack.OCC[id];
       if (EVENTS.indexOf(id) < 0) EVENTS.push(id);
       OCC[id] = R; EVENT_STAR[id] = R.star; if (R.extra) EVENT_EXTRA[id] = R.extra;
+      if (R.src) SRC_CLASS[id] = R.src;
     });
     Object.keys(pack.TH).forEach(function (k) { TH[k] = pack.TH[k]; });
     Object.keys(pack.WHY).forEach(function (k) { WHY[k] = pack.WHY[k]; });
@@ -220,7 +261,8 @@
 
   var API = { EVENTS: EVENTS, TH: TH, WHY: WHY, OCC: OCC, GROUPS: GROUPS, MIN_SCORE: MIN_SCORE, EVENT_DAYS: EVENT_DAYS, EVENT_STAR: EVENT_STAR, fullMoonOf: fullMoonOf,
     lunarDay: lunarDay, plan: plan, maxScore: maxScore, addOccasions: addOccasions, ics: ics, fold: fold, weekday: weekday,
-    BHUMI_PTS: BHUMI_PTS, EVENT_EXTRA: EVENT_EXTRA, planOcc: null, maxOcc: null };
+    BHUMI_PTS: BHUMI_PTS, EVENT_EXTRA: EVENT_EXTRA, planOcc: null, maxOcc: null,
+    SRC_CLASS: SRC_CLASS, MODERN_TH: MODERN_TH, RULE_TH: RULE_TH, reasonRule: reasonRule, reasonClass: reasonClass, modernRules: modernRules };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   root.LQPlanner = API;
 })(typeof window !== "undefined" ? window : globalThis);

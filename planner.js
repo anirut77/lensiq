@@ -40,7 +40,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         sc.onload = sc.onerror = function () { res(); }; document.head.appendChild(sc);
       });
     };
-    occReady = Promise.all([add("lensiq-planner-occ.js?v=1"), add("i18n/zh-planner-occ.js?v=1")]).then(function () {
+    occReady = Promise.all([add("lensiq-planner-occ.js?v=2"), add("i18n/zh-planner-occ.js?v=2")]).then(function () {
       var I = W.LQI18N; return I && I.loadSiblings && String(lang()) === "en" ? I.loadSiblings("en") : null;
     }).then(function () { renderResult(); });
     return occReady;
@@ -137,6 +137,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (v.star) s += " · " + T("pl.r.star", P.TH.star, { bhumi: bhumiName(v.bhumi), event: eventName(st.ev) });
     return s;
   }
+  /* "Modern practice" label (owner decisions 114–117): an occasion or a rule that does not come from a traditional text */
+  function modernTag() { return '<span class="pl-modern">' + esc(T("pl.modern", P.MODERN_TH)) + "</span>"; }
+  function whyHtml(ev) {
+    var h = "<b>" + esc(T("pl.why.belief", "ตามความเชื่อ โปรดใช้วิจารณญาณ")) + "</b> ";
+    var c = P.SRC_CLASS && P.SRC_CLASS[ev];
+    if (c && c.cls === "modern") h += modernTag() + " ";
+    h += esc(T("pl.why." + ev, P.WHY[ev] || ""));
+    var mr = P.modernRules ? P.modernRules(ev) : [];
+    if (mr.length) h += '<span class="pl-modline">' + modernTag() + " " +
+      esc(mr.map(function (k) { return T("pl.modern.rule." + k, P.RULE_TH[k]); }).join(", ")) + "</span>";
+    return h;
+  }
+  function reasonLi(r) {
+    var modern = P.reasonClass && P.reasonClass(st.ev, r.id) === "modern";
+    return '<li data-r="' + esc(r.id) + '">' + esc(reasonText(r)) + (modern ? " " + modernTag() : "") + "</li>";
+  }
   function sorted() {
     var a = st.res.slice();
     if (st.sort === "score") a.sort(function (p, q) { return q.score - p.score || (p.y - q.y) || (p.m - q.m) || (p.d - q.d); });
@@ -148,7 +164,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (!st.res) return;
     var f = st.form, max = P.maxScore(f);
     $("#plResH").textContent = T("pl.res.h", "วันดีสำหรับ{event} ({n} วัน)", { event: eventName(st.ev), n: st.res.length });
-    $("#plWhy").innerHTML = "<b>" + esc(T("pl.why.belief", "ตามความเชื่อ โปรดใช้วิจารณญาณ")) + "</b> " + esc(T("pl.why." + st.ev, P.WHY[st.ev] || ""));
+    $("#plWhy").innerHTML = whyHtml(st.ev);
     var needOwner = P.OCC[st.ev] && P.OCC[st.ev].needsOwner && !f.owners.length;
     $("#plEmpty").textContent = needOwner ? T("pl.emptyOwner", "งานนี้ดูจากวันเกิดของเจ้าของงาน ใส่วันเกิดในช่องเจ้าของ แล้วกดหาวันดีอีกครั้ง")
       : T("pl.empty", "ช่วงนี้ยังไม่มีวันที่ตรงเกณฑ์ ลองดูเพิ่มเป็น 3 เดือน หรือเลือกเดือนถัดไป");
@@ -166,7 +182,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         '<span class="pl-chip">' + esc(lunarText(x.lunar)) + "</span>" +
         '<span class="pl-chip" data-lq-remedy>' + swatch(x.colour.lucky) + esc(T("pl.luckyColour", "สีเสื้อเสริมมงคล: {c}", { c: colourName(x.colour.lucky) })) + "</span>" +
         '<span class="pl-chip pl-score">' + esc(T("pl.score", "ตรงเกณฑ์ {s} จาก {max} คะแนน", { s: x.score, max: max })) + "</span></div>" +
-        '<ul class="pl-why">' + main.map(function (r) { return "<li>" + esc(reasonText(r)) + "</li>"; }).join("") + "</ul>" +
+        '<ul class="pl-why">' + main.map(reasonLi).join("") + "</ul>" +
         (notes.length ? '<p class="fk-small pl-note">' + notes.map(function (r) { return esc(reasonText(r)); }).join(" ") + "</p>" : "") +
         "</li>";
     }).join("");

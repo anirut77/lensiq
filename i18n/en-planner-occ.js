@@ -26,7 +26,7 @@
   "pl.r.wd.journey.4": "Thursday: a day of knowledge and care, favoured for long journeys",
   "pl.r.wd.waikru.4": "Thursday: Jupiter is the teacher of every subject; the wai khru texts use Thursday",
   "pl.r.wd.launch.1": "Monday: the start of the week, favoured for beginning something new",
-  "pl.r.wd.launch.3": "Wednesday: texts favour it for starting projects and new work",
+  "pl.r.wd.launch.3": "Wednesday: a popular day for starting projects and new work",
   "pl.r.wedding.month": "Lunar month {m}: wedding texts favour even months (a life as a pair) and month 9 (progress)",
   "pl.r.engage.month": "Lunar month {m}: an engagement follows the wedding rules, which favour even months and month 9",
   "pl.r.regmarry.month": "Lunar month {m}: a popular wedding month; couples often register in the month of the wedding",
@@ -40,7 +40,7 @@
   "pl.r.car.gen": "{day}: car texts give it to people born on many weekdays; add a birth weekday to see your own",
   "pl.why.wedding": "Wedding texts favour Friday (love), the even lunar months (a life as a pair) or month 9 (progress), and the waxing moon. This page shows Fridays, Sundays and Mondays in those months, then compares them with the couple's birth weekdays.",
   "pl.why.engage": "An engagement date is usually chosen with the wedding dates, so the same rules apply: Friday, even months or month 9, and the waxing moon, compared with both partners' birth weekdays.",
-  "pl.why.regmarry": "The texts give no weekday for registering a marriage. Couples often register in the month of the wedding (an even month or month 9). This page shows Monday to Friday only, when the office is open.",
+  "pl.why.regmarry": "Registering a marriage is an office procedure with no set weekday. Couples often register in the month of the wedding (an even month or month 9). This page shows Monday to Friday only, when the office is open.",
   "pl.why.ordain": "Ordination is customarily held before the Buddhist Lent (lunar month 7 to mid month 8), so the new monk can stay for the retreat. The temple and the preceptor set the actual day and time.",
   "pl.why.bdaymerit": "Birthday merit is customarily made on the weekday you were born, or on your birthday. Enter the birth weekday of the person to see the days.",
   "pl.why.haircut": "The first-haircut ceremony was held when the baby turned one month old; today it can be up to about six months. Haircut texts favour Friday; with the child's birth weekday, the list follows that weekday and can include Sundays, Mondays, Thursdays or Saturdays.",
@@ -55,5 +55,5 @@
   "pl.why.car": "The day to take out a new car follows the owner's birth weekday. Add it to see your days; without it the page shows Monday and Friday, which suit people born on many weekdays. A rested, careful driver matters most.",
   "pl.why.journey": "Travel texts favour Sunday, Monday, Wednesday and Thursday; several texts agree on Monday and Thursday. Check that people and the vehicle are ready, too.",
   "pl.why.waikru": "Wai khru texts for music and dance use Thursday, because Jupiter is the teacher of every subject, and favour the waxing moon and even months. The actual day is usually set by the teacher who leads the rite.",
-  "pl.why.launch": "Texts favour Monday and Wednesday for starting something new. There is little on product launches as such, so this page uses the starting-work rules, compared with the owner's birth weekday."
+  "pl.why.launch": "There is little evidence on days for product launches. This page uses the common preference for starting new things on Monday (the start of the week) and Wednesday, compared with the owner's birth weekday."
 } });

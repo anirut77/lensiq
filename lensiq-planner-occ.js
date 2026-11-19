@@ -1,6 +1,6 @@
 /* lensiq-planner-occ.js — the added occasions of planner.html (owner order 2026-11-18), loaded on demand by planner.js when the user
  * opens an occasion group (never by a <script> tag: the speed budget counts the page before any user action). Registers itself with
- * LQPlanner.addOccasions. Rules: docs/planner-occasion-sources.json (two sources per occasion, title, publisher, URL, date read).
+ * LQPlanner.addOccasions. Rules: the occasion sources table in docs/ (internal; two sources per occasion, title, publisher, URL, date read).
  * Good days only (no bad-day label, no warning); every reason is belief wording, never a promise. EN / ZH: i18n/en-planner-occ.js,
  * i18n/zh-planner-occ.js ("pl.r.<id>", "pl.why.<id>"). Excluded on purpose: caesarean or any medical procedure; investing, shares, gold. */
 (function (root) {
@@ -8,27 +8,36 @@
   var P = root.LQPlanner || (typeof require === "function" ? require("./lensiq-planner.js") : null);
   var HS = root.HSCore || (typeof require === "function" ? (function () { var hsPath = "./horoscope.js"; return require(hsPath); })() : null);
   var HOME_MONTHS = [1, 2, 4, 6, 9, 12], WED_MONTHS = [2, 4, 6, 9, 10];
+  /* Source class (owner decisions 114–117, 2026-11-19): src(cls, rules) — "text" = from a traditional text, "modern" = statistics,
+   * office practice or thin evidence (labelled "ตามความนิยมสมัยใหม่" on the page, never worded as tradition). The rules listed are
+   * the occasion's own; the shared rules taksa, zodiac and the วันพระ note are text. The source note behind each class is internal
+   * (the occasion sources table in docs/, per occasion and per rule). */
+  function src(cls, rules) {
+    var r = { taksa: "text", zodiac: "text", phra: "text" };
+    rules.split(" ").forEach(function (k) { r[k] = cls; });
+    return { cls: cls, rules: r };
+  }
   // weekday 0 Sunday … 6 Saturday; birth planet 7 = Wednesday night (ราหู)
   var OCC = {
-    wedding: { days: [0, 1, 5], fav: [5], months: WED_MONTHS, monthsRequired: true, waxing: true, star: "sri" },
-    engage: { days: [0, 1, 5], fav: [5], months: WED_MONTHS, monthsRequired: true, waxing: true, star: "sri" },
-    regmarry: { office: true, months: WED_MONTHS, monthsRequired: true, star: "mula" },
-    ordain: { prelent: true, months: [7, 8], monthsRequired: true, star: "montri" },
-    bdaymerit: { needsOwner: true, star: "montri" },
-    haircut: { days: [0, 1, 4, 5, 6], fav: [5], star: "montri" },
-    pillar: { fav: [1, 3, 4], months: HOME_MONTHS, monthsRequired: true, star: "mula", extra: "ayu" },
-    pile: { months: HOME_MONTHS, monthsRequired: true, star: "mula", extra: "ayu" },
+    wedding: { days: [0, 1, 5], fav: [5], months: WED_MONTHS, monthsRequired: true, waxing: true, star: "sri", src: src("text", "days fav months waxing") },
+    engage: { days: [0, 1, 5], fav: [5], months: WED_MONTHS, monthsRequired: true, waxing: true, star: "sri", src: src("text", "days fav months waxing") },
+    regmarry: { office: true, months: WED_MONTHS, monthsRequired: true, star: "mula", src: src("modern", "office months") },
+    ordain: { prelent: true, months: [7, 8], monthsRequired: true, star: "montri", src: src("text", "prelent months") },
+    bdaymerit: { needsOwner: true, star: "montri", src: src("text", "needsOwner") },
+    haircut: { days: [0, 1, 4, 5, 6], fav: [5], star: "montri", src: src("text", "days fav") },
+    pillar: { fav: [1, 3, 4], months: HOME_MONTHS, monthsRequired: true, star: "mula", extra: "ayu", src: src("text", "fav months") },
+    pile: { months: HOME_MONTHS, monthsRequired: true, star: "mula", extra: "ayu", src: src("text", "months") },
     spirit: { days: [3, 4], fav: [3, 4], lunarDays: [2, 4, 6, 9, 11], star: "mula", extra: "ayu",
-      monthBan: { 1: [4, 6], 5: [4, 6], 9: [4, 6], 2: [3, 5], 6: [3, 5], 10: [3, 5], 3: [2, 6], 7: [2, 6], 11: [2, 6], 4: [1], 8: [1], 12: [1] } },
-    shrine: { days: [4, 5], fav: [4, 5], star: "montri", extra: "ayu", skipPhra: true },
-    compreg: { days: [1, 4], fav: [1, 4], star: "dech", extra: "boriwan" },
-    newco: { days: [4, 5], fav: [4, 5], star: "sri", extra: "boriwan" },
-    contract: { days: [3, 4, 5], fav: [3, 4, 5], star: "dech", extra: "utsaha" },
-    branch: { days: [4, 5], fav: [4, 5], star: "sri", extra: "boriwan" },
-    car: { byBirth: { 0: [1], 1: [1, 5], 2: [5], 3: [1, 5], 7: [1, 5], 4: [5], 5: [1, 5], 6: [1] }, general: [1, 5], star: "montri" },
-    journey: { days: [0, 1, 3, 4], fav: [0, 1, 3, 4], star: "montri" },
-    waikru: { days: [4], fav: [4], months: [2, 4, 6, 8, 9, 10, 12], monthsRequired: true, waxing: true, star: "montri", extra: "utsaha" },
-    launch: { days: [1, 3], fav: [1, 3], star: "sri", extra: "boriwan" }
+      monthBan: { 1: [4, 6], 5: [4, 6], 9: [4, 6], 2: [3, 5], 6: [3, 5], 10: [3, 5], 3: [2, 6], 7: [2, 6], 11: [2, 6], 4: [1], 8: [1], 12: [1] }, src: src("text", "days fav lunarDays monthBan") },
+    shrine: { days: [4, 5], fav: [4, 5], star: "montri", extra: "ayu", skipPhra: true, src: src("text", "days fav skipPhra") },
+    compreg: { days: [1, 4], fav: [1, 4], star: "dech", extra: "boriwan", src: src("modern", "days fav") },
+    newco: { days: [4, 5], fav: [4, 5], star: "sri", extra: "boriwan", src: src("text", "days fav") },
+    contract: { days: [3, 4, 5], fav: [3, 4, 5], star: "dech", extra: "utsaha", src: src("text", "days fav") },
+    branch: { days: [4, 5], fav: [4, 5], star: "sri", extra: "boriwan", src: src("text", "days fav") },
+    car: { byBirth: { 0: [1], 1: [1, 5], 2: [5], 3: [1, 5], 7: [1, 5], 4: [5], 5: [1, 5], 6: [1] }, general: [1, 5], star: "montri", src: src("text", "byBirth general") },
+    journey: { days: [0, 1, 3, 4], fav: [0, 1, 3, 4], star: "montri", src: src("text", "days fav") },
+    waikru: { days: [4], fav: [4], months: [2, 4, 6, 8, 9, 10, 12], monthsRequired: true, waxing: true, star: "montri", extra: "utsaha", src: src("text", "days fav months waxing") },
+    launch: { days: [1, 3], fav: [1, 3], star: "sri", extra: "boriwan", src: src("modern", "days fav") }
   };
   var GROUPS = [
     { id: "family", ev: ["wedding", "engage", "regmarry", "ordain", "bdaymerit", "haircut"] },
@@ -54,7 +63,7 @@
     "wd.journey.0": "วันอาทิตย์: อยู่ในช่วงวันอาทิตย์ถึงพฤหัสบดีที่นิยมออกเดินทาง", "wd.journey.1": "วันจันทร์: นิยมใช้ออกเดินทางและติดต่อธุระ",
     "wd.journey.3": "วันพุธ: อยู่ในช่วงวันอาทิตย์ถึงพฤหัสบดีที่นิยมออกเดินทาง", "wd.journey.4": "วันพฤหัสบดี: วันแห่งความรู้และความรอบคอบ นิยมใช้ออกเดินทางไกล",
     "wd.waikru.4": "วันพฤหัสบดี: พระพฤหัสบดีเป็นครูของทุกวิชา ตำราไหว้ครูใช้วันพฤหัสบดี",
-    "wd.launch.1": "วันจันทร์: วันเริ่มต้นสัปดาห์ นิยมใช้เริ่มสิ่งใหม่", "wd.launch.3": "วันพุธ: ตำรานิยมใช้ริเริ่มโครงการและงานใหม่",
+    "wd.launch.1": "วันจันทร์: วันเริ่มต้นสัปดาห์ นิยมใช้เริ่มสิ่งใหม่", "wd.launch.3": "วันพุธ: นิยมใช้ริเริ่มโครงการและงานใหม่",
     "wedding.month": "เดือน {m}: ตำราแต่งงานนิยมเดือนคู่ (ชีวิตคู่) และเดือน 9 (ก้าวหน้า)",
     "engage.month": "เดือน {m}: การหมั้นใช้หลักเดียวกับงานแต่ง ซึ่งนิยมเดือนคู่และเดือน 9",
     "regmarry.month": "เดือน {m}: เดือนที่นิยมแต่งงาน คู่บ่าวสาวมักจดทะเบียนในเดือนเดียวกับงานแต่ง",
@@ -71,7 +80,7 @@
     wedding: "ตำรางานแต่งนิยมวันศุกร์ (ความรัก) เดือนคู่ตามจันทรคติ (ชีวิตคู่) หรือเดือน 9 (ก้าวหน้า) และข้างขึ้น " +
       "หน้านี้แสดงวันศุกร์ วันอาทิตย์ และวันจันทร์ในเดือนเหล่านั้น แล้วเทียบกับวันเกิดของคู่บ่าวสาว",
     engage: "การหมั้นมักหาฤกษ์พร้อมงานแต่ง จึงใช้หลักเดียวกัน: วันศุกร์ เดือนคู่ หรือเดือน 9 และข้างขึ้น แล้วเทียบกับวันเกิดของทั้งสองฝ่าย",
-    regmarry: "ตำราไม่ได้กำหนดวันในสัปดาห์สำหรับจดทะเบียนสมรส คนนิยมจดในเดือนเดียวกับงานแต่ง (เดือนคู่หรือเดือน 9) หน้านี้แสดงเฉพาะวันจันทร์ถึงศุกร์ที่สำนักงานเปิด",
+    regmarry: "การจดทะเบียนสมรสเป็นขั้นตอนทางราชการ ไม่มีวันในสัปดาห์ที่กำหนดไว้ คนนิยมจดในเดือนเดียวกับงานแต่ง (เดือนคู่หรือเดือน 9) หน้านี้แสดงเฉพาะวันจันทร์ถึงศุกร์ที่สำนักงานเปิด",
     ordain: "นิยมบวชช่วงก่อนเข้าพรรษา (เดือน 7 ถึงกลางเดือน 8) เพื่อให้ทันจำพรรษา วันและเวลาจริงให้พระอุปัชฌาย์และวัดเป็นผู้กำหนด",
     bdaymerit: "นิยมทำบุญวันเกิดตรงกับวันในสัปดาห์ที่ตนเกิด หรือวันเกิดประจำปี ใส่วันเกิดของเจ้าของงานเพื่อดูวัน",
     haircut: "พิธีโกนผมไฟเดิมทำเมื่อเด็กอายุครบ 1 เดือน ปัจจุบันยืดได้ถึงราว 6 เดือน ตำราตัดผมนิยมวันศุกร์ " +
@@ -89,7 +98,7 @@
     car: "ฤกษ์ออกรถดูจากวันเกิดของเจ้าของรถเป็นหลัก ใส่วันเกิดเพื่อดูวันของคุณ ถ้าไม่ใส่จะแสดงวันจันทร์และวันศุกร์ซึ่งเข้ากับคนเกิดหลายวัน ความพร้อมของผู้ขับสำคัญที่สุด",
     journey: "ตำราเดินทางนิยมวันอาทิตย์ จันทร์ พุธ และพฤหัสบดี โดยวันจันทร์และวันพฤหัสบดีเป็นวันที่หลายตำราตรงกัน ควรดูความพร้อมของคนและรถประกอบด้วย",
     waikru: "ตำราไหว้ครูดนตรีและนาฏศิลป์ใช้วันพฤหัสบดี เพราะพระพฤหัสบดีเป็นครูของทุกวิชา นิยมข้างขึ้นและเดือนคู่ วันจริงมักเป็นของครูผู้ประกอบพิธี",
-    launch: "ตำรานิยมเริ่มสิ่งใหม่วันจันทร์และวันพุธ หลักฐานเฉพาะการเปิดตัวสินค้ามีน้อย หน้านี้จึงใช้หลักการเริ่มงานใหม่ แล้วเทียบกับวันเกิดของเจ้าของ"
+    launch: "เรื่องวันเปิดตัวสินค้ามีหลักฐานน้อย หน้านี้ใช้ความนิยมทั่วไปที่เริ่มสิ่งใหม่วันจันทร์ (ต้นสัปดาห์) และวันพุธ แล้วเทียบกับวันเกิดของเจ้าของ"
   };
   /** owners' taksa (ทักษา) and zodiac year, shared with planOcc: {skip} when a kalakini / clash day (never shown as a warning) */
   function ownerPoints(owners, ev, wd, branch, reasons) {

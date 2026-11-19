@@ -1,5 +1,5 @@
 {
- "note": "Sources for the occasions of planner.html (owner order 2026-11-18). Two or more independent publishers per occasion, each page fetched and read on the date given; excerpt_th is the supporting line as read. Not shown on the page (fortune pages show no citations, owner order 2026-11-12). Rule = what lensiq-planner.js / lensiq-planner-occ.js use.",
+ "note": "Sources for the occasions of planner.html (owner order 2026-11-18). Two or more independent publishers per occasion, each page fetched and read on the date given; excerpt_th is the supporting line as read. Not shown on the page (fortune pages show no citations, owner order 2026-11-12). Rule = what lensiq-planner.js / lensiq-planner-occ.js use. Source class (owner decisions 114-117, 2026-11-19): \"class\" per occasion and \"rule_class\" per rule, \"text\" (from a traditional text) or \"modern\" (labelled \"ตามความนิยมสมัยใหม่\" / \"Modern practice\" / \"现代习俗\" on the page). Internal: the page never shows these notes.",
  "occasions": [
   {
    "id": "wedding",
@@ -58,7 +58,38 @@
      "excerpt_th": "ฤกษ์แต่งงานให้ใช้ข้างขึ้น 7 10 13 ค่ำ ข้างแรม 4 8 10 และ 14 ค่ำ",
      "supports": "ดิถีเรียงหมอน; ระบุเลี่ยงวันพระ วันพฤหัสบดี วันพุธ วันเสาร์ และวันอุบาทว์"
     }
-   ]
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Fri favoured; Sun / Mon listed as days the wedding texts do not advise against (thaifolk, Wongnai)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Friday (Venus, love): Thai PBS, thaifolk, Krungsri, Wongnai."
+    },
+    "months": {
+     "class": "text",
+     "note": "Even lunar months and month 9: Thai PBS, thaifolk."
+    },
+    "waxing": {
+     "class": "text",
+     "note": "Waxing moon for weddings: thaifolk wedding customs (การหาฤกษ์)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "engage",
@@ -87,7 +118,38 @@
      "excerpt_th": "โดยหาฤกษ์วันเวลาที่ยกขันหมาก ฤกษ์หมั้น ฤกษ์รดน้ำสังข์ และส่งตัวคู่บ่าวสาวไว้เรียบร้อย",
      "supports": "ฤกษ์หมั้นหาไปพร้อมกับฤกษ์แต่งงาน (ใช้หลักเดียวกัน) — ไม่ได้ให้กฎวันหรือเดือนแยก"
     }
-   ]
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Same weekday rule as the wedding; the engagement is part of the wedding customs (thaifolk)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Friday: wedding customs (thaifolk) and Wongnai weekday beliefs."
+    },
+    "months": {
+     "class": "text",
+     "note": "Even months / month 9 from the wedding customs (thaifolk)."
+    },
+    "waxing": {
+     "class": "text",
+     "note": "Waxing moon from the wedding customs (thaifolk)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "regmarry",
@@ -116,7 +178,30 @@
      "excerpt_th": "คนไทยนิยมแต่งงานกันในเดือนคู่",
      "supports": "บทความเดียวกันครอบคลุมทั้งแต่งงานและจดทะเบียน ให้หลักเดือนคู่และวันไม่นิยม (อังคาร พุธ พฤหัสบดี เสาร์) — แต่ประโยคเรื่องเดือนพูดถึงแต่งงาน ไม่ได้พูดถึงการจดโดยตรง"
     }
-   ]
+   ],
+   "class": "modern",
+   "rule_class": {
+    "office": {
+     "class": "modern",
+     "note": "Mon-Fri only because the district office is open; office hours, not a text."
+    },
+    "months": {
+     "class": "modern",
+     "note": "Couples register in the month of the wedding (Thairath, Thai PBS): practice, the texts give no rule for civil registration."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "ordain",
@@ -145,7 +230,30 @@
      "excerpt_th": "หากต้องการบวชในช่วงเข้าพรรษา ก็ควรเลือกฤกษ์ที่อยู่ในช่วงเวลานั้น",
      "supports": "เลือกฤกษ์ในช่วงเข้าพรรษา"
     }
-   ]
+   ],
+   "class": "text",
+   "rule_class": {
+    "prelent": {
+     "class": "text",
+     "note": "Ordination before Buddhist Lent (month 7 to mid month 8): Buddhist custom (Thai PBS, Shopee blog)."
+    },
+    "months": {
+     "class": "text",
+     "note": "Lunar months 7-8, the pre-Lent season (same custom)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "bdaymerit",
@@ -174,7 +282,26 @@
      "excerpt_th": "(English page, no Thai text) \"it is not mandatory to perform this act on the actual birthdate.\" / \"those born on Sunday often give alms to monks every Sunday.\"",
      "supports": "ทำบุญวันเกิดประจำปี ไม่บังคับตรงวันเกิดจริง; ทำบุญตามวันในสัปดาห์ที่เกิด; จำนวนพระ = อายุ + 1"
     }
-   ]
+   ],
+   "class": "text",
+   "rule_class": {
+    "needsOwner": {
+     "class": "text",
+     "note": "Merit on one's own birth weekday: Thai birth-weekday custom (Thairath, Thailand Foundation)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "haircut",
@@ -213,7 +340,30 @@
      "excerpt_th": "แนะนำว่าควรเป็นช่วงลูกน้อยมีอายุ 1 เดือนขึ้นไป",
      "supports": "อายุเด็ก 1 เดือนขึ้นไป"
     }
-   ]
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Tue / Wed left out: haircut weekday text (Wongnai, Enfa, Sale Here)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Friday favoured by the haircut weekday text."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "move",
@@ -273,7 +423,34 @@
      "supports": "birth-weekday rules (Monday-born avoid Sunday; Friday-born avoid Wednesday)"
     }
    ],
-   "rule_note": "Existing rule kept unchanged (locked regression). Sources confirm Mon / Wed / Thu / Fri; the waxing moon is not confirmed by the fetched sources, and only one source gives months (2, 4, 6, 9, 12, not all even). Owner decision pending."
+   "rule_note": "Existing rule kept unchanged (locked regression). Sources confirm Mon / Wed / Thu / Fri; the waxing moon is not confirmed by the fetched sources, and only one source gives months (2, 4, 6, 9, 12, not all even). Owner decision pending.",
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Mon / Wed / Thu / Fri confirmed (Sanook, Wongnai, KTC, ennxo, Thairath)."
+    },
+    "waxing": {
+     "class": "modern",
+     "note": "Waxing-moon point: not confirmed by the fetched sources; labelled modern practice until the move/shop/work work."
+    },
+    "evenMonth": {
+     "class": "modern",
+     "note": "Even-month point: only one source gives months (2, 4, 6, 9, 12, not all even); labelled modern practice. Thai reason wording frozen by planner-occasions O5 until the move/shop/work work."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "pillar",
@@ -323,7 +500,30 @@
      "supports": "month 5 avoided; birth-weekday avoid list"
     }
    ],
-   "rule_note": "Months (1, 2, 4, 6, 9, 12, required) from LG and Thaiger (independent). The Monday / Wednesday / Thursday bonus rests on one root text (Thaihometown; Kapook reprints it), so it is an extra point only, labelled 'one text'."
+   "rule_note": "Months (1, 2, 4, 6, 9, 12, required) from LG and Thaiger (independent). The Monday / Wednesday / Thursday bonus rests on one root text (Thaihometown; Kapook reprints it), so it is an extra point only, labelled 'one text'.",
+   "class": "text",
+   "rule_class": {
+    "fav": {
+     "class": "text",
+     "note": "Mon / Wed / Thu: one house-building text (Thaihometown; Kapook reprints it), extra point only."
+    },
+    "months": {
+     "class": "text",
+     "note": "Lunar months 1, 2, 4, 6, 9, 12: house-building texts (LG, Thaiger)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "pile",
@@ -363,7 +563,26 @@
      "supports": "วันอธิบดี suits ลงเสาเข็ม; กาลโยคเปลี่ยนทุก 16 เมษายน"
     }
    ],
-   "rule_note": "Months only (1, 2, 4, 6, 9, 12, required), from the house-building texts (LG, Thaiger). No fetched source gives a weekday for piling; PPTV and phalangsattha point to the year's adhibodi day, which the page does not compute."
+   "rule_note": "Months only (1, 2, 4, 6, 9, 12, required), from the house-building texts (LG, Thaiger). No fetched source gives a weekday for piling; PPTV and phalangsattha point to the year's adhibodi day, which the page does not compute.",
+   "class": "text",
+   "rule_class": {
+    "months": {
+     "class": "text",
+     "note": "Lunar months 1, 2, 4, 6, 9, 12: house-building texts (LG, Thaiger); piling = start of building."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "spirit",
@@ -412,7 +631,38 @@
      "excerpt_th": "แต่ถ้าวันข้างขึ้น หรือข้างแรมดังกล่าวไปตรงกับวันต้องห้าม ของเดือนใด ให้เลี่ยงไปใช้วันอื่นเสีย",
      "supports": "month-forbidden rule; Sunday not forbidden but not preferred"
     }
-   ]
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Wed / Thu morning: spirit-house texts (Kapook, Sansiri, AP, Review Your Living)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Wed / Thu favoured (same texts)."
+    },
+    "lunarDays": {
+     "class": "text",
+     "note": "Lunar days 2, 4, 6, 9, 11 (same texts)."
+    },
+    "monthBan": {
+     "class": "text",
+     "note": "Weekdays left out per lunar month: the texts' monthly table."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "shrine",
@@ -452,7 +702,34 @@
      "supports": "time of day"
     }
    ],
-   "rule_note": "Thursday / Friday; Buddhist holy days (wan phra) are not listed (thaideemove); another source calls them suitable, so the stricter reading is used."
+   "rule_note": "Thursday / Friday; Buddhist holy days (wan phra) are not listed (thaideemove); another source calls them suitable, so the stricter reading is used.",
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Thu / Fri: shrine texts (thaideemove, Nayoo, MoveHomeThailand)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Thu (teachers' day) / Fri (happiness), same texts."
+    },
+    "skipPhra": {
+     "class": "text",
+     "note": "Holy days not listed (thaideemove); another source calls them suitable; stricter belief reading kept."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "shop",
@@ -512,7 +789,30 @@
      "supports": "year-specific ธงชัย (Sat)/อธิบดี (Wed) for 2569; check birth-weekday กาลกิณี"
     }
    ],
-   "rule_note": "Existing rule kept unchanged (locked regression). Thu / Fri are clean; Sunday and Wednesday are favoured by some sources (Sanook; THAKSA, duang-d) and disfavoured by Wongnai. Owner decision pending."
+   "rule_note": "Existing rule kept unchanged (locked regression). Thu / Fri are clean; Sunday and Wednesday are favoured by some sources (Sanook; THAKSA, duang-d) and disfavoured by Wongnai. Owner decision pending.",
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Thu / Fri clean; Sun / Wed favoured by some texts (Sanook; THAKSA, duang-d), disfavoured by Wongnai. Rule kept; separate move/shop/work work this week."
+    },
+    "waxing": {
+     "class": "modern",
+     "note": "Waxing-moon point: not confirmed by the recorded sources; labelled modern practice until the move/shop/work work."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "compreg",
@@ -542,7 +842,30 @@
      "supports": "Thursday reason; Mon/Thu most chosen; 9/9, 8/8 dates"
     }
    ],
-   "rule_note": "Practice, not almanac: both sources report the same Department of Business Development registration statistics (Mon and Thu most popular). Owner decision pending on keeping a statistics-based rule."
+   "rule_note": "Practice, not almanac: both sources report the same Department of Business Development registration statistics (Mon and Thu most popular). Owner decision pending on keeping a statistics-based rule.",
+   "class": "modern",
+   "rule_class": {
+    "days": {
+     "class": "modern",
+     "note": "Mon / Thu: Department of Business Development registration statistics (Daily News, InfoQuest), not a text."
+    },
+    "fav": {
+     "class": "modern",
+     "note": "Same statistics."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "newco",
@@ -591,7 +914,30 @@
      "excerpt_th": "ไม่เหมาะกับการเริ่มต้นทำส่ิงใหม่ที่ใช้ระยะเวลานาน เช่น การเปิดร้านใหม่",
      "supports": "Wed named to avoid for long-term new ventures; Sun avoid new beginnings; Sat 'วันแห่งความล่าช้า'"
     }
-   ]
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Thu / Fri: trade weekday beliefs (Lotus's, THAKSA, Sanook, Wongnai)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Thu / Fri: trade weekday beliefs (Lotus's, THAKSA, Sanook, Wongnai)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "contract",
@@ -650,7 +996,30 @@
      "excerpt_th": "เหมาะกับการเข้าพบผู้ใหญ่ ติดต่อราชการ หรือการเซ็นสัญญาโปรเจกต์ระดับใหญ่",
      "supports": "ราชาฤกษ์ for big contracts"
     }
-   ]
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Wed-Fri: trade weekday beliefs (THAKSA, Lotus's, Sanook, Wongnai, KTC)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Wed-Fri: trade weekday beliefs (THAKSA, Lotus's, Sanook, Wongnai, KTC)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "branch",
@@ -709,7 +1078,30 @@
      "excerpt_th": "เป็นฤกษ์ดีสำหรับธุรกิจใหม่และการเปิดสาขาเพิ่มเติม",
      "supports": "dated list only (no weekday rule)"
     }
-   ]
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Thu / Fri: business-opening beliefs (Sanook, KTC, THAKSA, Wongnai, OFM)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Thu / Fri: business-opening beliefs (Sanook, KTC, THAKSA, Wongnai, OFM)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "car",
@@ -749,7 +1141,30 @@
      "supports": "วันอังคารเป็นวันดีทั่วไปสำหรับออกรถ"
     }
    ],
-   "rule_note": "Birth-weekday table = days on which KTC and Thairath agree (KTC alone also gives Wednesday for people born on Sunday, Monday, Wednesday by day and Thursday)."
+   "rule_note": "Birth-weekday table = days on which KTC and Thairath agree (KTC alone also gives Wednesday for people born on Sunday, Monday, Wednesday by day and Thursday).",
+   "class": "text",
+   "rule_class": {
+    "byBirth": {
+     "class": "text",
+     "note": "Birth-weekday table: days on which KTC and Thairath agree."
+    },
+    "general": {
+     "class": "text",
+     "note": "Without a birth weekday: Mon / Fri, the days the same table gives to most birth weekdays (summary of the text table)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "journey",
@@ -788,7 +1203,30 @@
      "excerpt_th": "การใส่เสื้อสีสันสวยงาม เดินทางไกลก็จะรับโชค",
      "supports": "วันศุกร์ดีสำหรับเดินทางไกล (ขัดกับ OOHOO จึงไม่ใส่ในรายการ)"
     }
-   ]
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Sun / Mon / Wed / Thu: travel texts (OOHOO, Kitsada / ยามอุบากอง, Wongnai)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Sun / Mon / Wed / Thu: travel texts (OOHOO, Kitsada / ยามอุบากอง, Wongnai)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "work",
@@ -818,7 +1256,30 @@
      "supports": "Mon (new starts), Thu (new position); Wed/Sun/Sat named as days to avoid for new long-term starts"
     }
    ],
-   "rule_note": "Existing rule kept unchanged (locked regression). Mon / Thu confirmed; Wednesday is favoured by Sanook and disfavoured by Wongnai; Friday is favoured by both but not in the rule. Owner decision pending."
+   "rule_note": "Existing rule kept unchanged (locked regression). Mon / Thu confirmed; Wednesday is favoured by Sanook and disfavoured by Wongnai; Friday is favoured by both but not in the rule. Owner decision pending.",
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Mon / Thu confirmed; Wed favoured by Sanook, disfavoured by Wongnai. Rule kept; separate move/shop/work work."
+    },
+    "waxing": {
+     "class": "modern",
+     "note": "Waxing-moon point: not confirmed by the recorded sources; labelled modern practice until the move/shop/work work."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "waikru",
@@ -868,7 +1329,38 @@
      "supports": "Thursday only"
     }
    ],
-   "rule_note": "Thursday only (NECTEC, peamitar / Montri Tramote); even lunar months and month 9, and the waxing moon, from OpenBase (banramthai); months are required."
+   "rule_note": "Thursday only (NECTEC, peamitar / Montri Tramote); even lunar months and month 9, and the waxing moon, from OpenBase (banramthai); months are required.",
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Thursday only: NECTEC Thai music encyclopedia, Montri Tramote (peamitar), Thaiger."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Thursday only: NECTEC Thai music encyclopedia, Montri Tramote (peamitar), Thaiger."
+    },
+    "months": {
+     "class": "text",
+     "note": "Even months and month 9: OpenBase (banramthai)."
+    },
+    "waxing": {
+     "class": "text",
+     "note": "Waxing moon: OpenBase (banramthai)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   },
   {
    "id": "launch",
@@ -918,7 +1410,30 @@
      "supports": "dated list only"
     }
    ],
-   "rule_note": "Weak evidence: Monday (Wongnai, new beginnings) and Wednesday (Sanook, starting projects; Wongnai disagrees). No source gives launch-specific weekdays. Owner decision pending."
+   "rule_note": "Weak evidence: Monday (Wongnai, new beginnings) and Wednesday (Sanook, starting projects; Wongnai disagrees). No source gives launch-specific weekdays. Owner decision pending.",
+   "class": "modern",
+   "rule_class": {
+    "days": {
+     "class": "modern",
+     "note": "Mon / Wed: weak evidence, no source gives launch-specific weekdays (owner: thin evidence)."
+    },
+    "fav": {
+     "class": "modern",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Mon / Wed: weak evidence, no source gives launch-specific weekdays (owner: thin evidence)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
   }
  ]
 }
