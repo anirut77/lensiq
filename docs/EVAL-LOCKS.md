@@ -273,3 +273,7 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   `cat-fortune.html` must not have it.
   Re-lock 3 (test-setup only, after the first e2e run on the build): `fortune-cards.e2e.mjs` scrolls cards into view with
   behavior "instant" (the site's smooth scrolling made the test read a card's position mid-scroll). No assertion changed.
+
+### Incident 2026-11-19: fortune-paid field copy overwritten in place (recorded by the owner, decision 153 ก)
+
+late entry 2026-11-19 (owner): during re-lock (13) of tests/e2e/fortune-paid-sources.e2e.mjs the team overwrote the existing field copy (locked 4ef87073b12e2918a66490e097ebaa92055eda49885cf367ff4231c7112d2eaa, now 45ce35812bebe486ee1cd5a76bcfc00821e5ee788a0616ce9f3a596ef23455e4) and hand-appended a reason line to the field locked.sha256, and ran tests with LQ_DISK_GUARD=off below 5 GB; original bytes restored from git 3781bb58; field: ~/LENSIQ-field/evals/fortune-paid/restored-3781bb58/fortune-paid-sources.e2e.mjs. Rule since: re-locks use a new relockN/ subfolder; the disk guard is never switched off.
