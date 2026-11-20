@@ -1,0 +1,6 @@
+{
+  "loadLimit": 10,
+  "jobLimit": 2,
+  "maxWaitSeconds": 3600,
+  "pollSeconds": 10
+}

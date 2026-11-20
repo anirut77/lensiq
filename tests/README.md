@@ -12,6 +12,7 @@ Needs Node 22+, `python3` and Google Chrome. `npm ci` is only needed for `npm ru
 | `node tools/check-csp.mjs [--as-is]` | every page in headless Chrome under the Pages `<meta>` policy (injects it on the fly unless `--as-is`) |
 | `node tools/mobile-audit.mjs [--lang zh] [--json f] [--selftest]` | 390 px phone audit per page: overflow, targets < 44 px, text < 12 px, mid-word Thai breaks |
 | `node tools/check-legal.mjs [--billing] [--dir _site]` | legal guard: fails on raw `[placeholder]` text in help / terms / privacy, and when billing is on (`LENSIQ_SELLER.sales_open`, `BILLING_ENABLED`, `FREE_MODE=false` or `--billing`) while seller details are missing |
+| `node tools/load-guard.mjs -- <cmd>` / `--status` | load guard (owner decision 205): queues a heavy suite while the 1-minute load is over 10 or 2 heavy jobs run; exit 75 after the maximum wait |
 | `node tools/disk-guard.mjs [--min 5]` | disk guard (owner order 2026-11-15): exit 75 when free disk space under `$HOME` is under 5 GB, 0 otherwise |
 
 CI (`.github/workflows/ci.yml`) runs lint, unit, csp-meta `--check`, Python (3.11, pinned `requirements.txt`),
@@ -33,6 +34,42 @@ CI choice: the guard is an **environment precondition, not a test result**, so i
 skipped on CI runners (GitHub Actions sets `CI=true`; the runner disk is ephemeral and not the owner's) and with the explicit
 override `LQ_DISK_GUARD=off`, so no workflow edit is needed and a runner can never be blocked by it. Every test keeps the
 same pass rule on CI and locally. `tests/unit/disk-guard.test.js` is locked in `evals-locks/disk-guard.sha256`.
+
+## Load guard (owner decision 205, 2026-11-20)
+
+Owner rule 203 ก: start no heavy suite while the 1-minute load average is above the load limit, and never run more heavy
+suites at once than the job limit. `tools/load-guard.mjs` enforces it before every heavy local suite. It **never fails
+because the machine is busy**: it waits in rounds and prints
+
+    load-guard: queued: load 12.40 (limit 10), running 2 (limit 2), waited 30s of 3600s — <job>
+
+and starts the job as soon as the load is at or under the limit and a slot is free. Only after the maximum wait does it
+give up with exit code **75** (same as the disk guard) and a message naming the load, the jobs and the limits.
+
+- **Limits, one place:** `tools/load-guard.config.json` (`loadLimit` 10, `jobLimit` 2, `maxWaitSeconds` 3600,
+  `pollSeconds` 10; polling is never faster than every 5 s). The values are shown in every queued message.
+- **Running jobs:** one lock file per job in `~/LENSIQ-field/run/` (`slot-<i>.json`, created atomically, holding pid,
+  start time, command). A file whose pid is dead is stale and is removed. The slot is released on normal exit, on an error
+  and on SIGINT / SIGTERM / SIGHUP. Child processes inherit `LQ_LOAD_GUARD_HELD` and never take a second slot.
+- **Where it runs:** `tests/e2e/run.mjs` (after the disk guard, before the server), `launch()` in `tests/e2e/cdp.mjs`
+  (so every `tools/*.mjs` browser harness), the WebKit path of `tools/buttons-probe.mjs`, and the preload
+  `tools/load-guard-hold.mjs`: `node --require` in `npm run test:unit` and `test:integration` (the `node --test` runner
+  runs `--require` preloads in its own process but not `--import` ones; each test file then sees the parent's slot) and
+  `node --import` in `csp:check`;
+  `npm run test:py` runs through the wrapper `node tools/load-guard.mjs -- <command>`. `npm run load:guard` shows the
+  config, the load and the running jobs.
+- **Cheap:** `os.loadavg()` and one directory listing per round; no process scans, no shell commands. Measured idle
+  overhead (2026-11-20): acquire + release about 0.6 ms in-process; a node process started with the preload about 11-14 ms
+  more than plain node (only fs, os and path load up front); a test file under a guarded `node --test` only checks the
+  parent's token; the wrapper `node tools/load-guard.mjs --` about 70 ms (one extra node process), so it is used only
+  for the non-node `test:py`. The locked test fails above 50 ms.
+- **Override (owner only):** `LQ_LOAD_GUARD=owner-override:<reason>` with a non-empty reason starts the job at once and
+  appends `<UTC time> <command> <reason>` to `~/LENSIQ-field/load-guard.log`. Any other value of `LQ_LOAD_GUARD` has no
+  effect. **Teams never use the override**; any use by a team is reported to the owner as an incident.
+- **CI:** a no-op on CI runners (`CI=true` or `GITHUB_ACTIONS=true`), where each job has its own machine. Like the disk
+  guard it is an environment precondition: it only decides when a suite may start on the owner's Mac and never changes
+  what a test expects, so CI and a local run keep the same pass rule. `tests/unit/load-guard.test.js` is locked in
+  `evals-locks/load-guard.sha256` (written before the tool existed).
 
 ## Unit tests (pure JS, no browser)
 

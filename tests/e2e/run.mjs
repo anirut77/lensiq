@@ -13,6 +13,8 @@
 // Disk guard (owner order 2026-11-15): tools/disk-guard.mjs stops the run with exit 75 when free disk space is under 5 GB, before the
 // server or Chrome starts and again before every test file (browsers closed, profile folders removed, server stopped). Skipped on
 // CI runners and with LQ_DISK_GUARD=off: an environment precondition, not a test result. LQ_DISK_MIN_GB changes the limit.
+// Load guard (owner decision 205, 2026-11-20): tools/load-guard.mjs then holds one heavy-job slot for the whole run (queues while the
+// 1-minute load is over the limit or the slots are full; exit 75 after the maximum wait). A no-op on CI runners.
 // Each *.e2e.mjs exports `default async function (ctx)`; ctx = {base, launch, check(name, fn), skip(name, why), fakeCams}.
 import { spawn } from "node:child_process";
 import { readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -22,6 +24,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { closeAll, launch, leftoverProfiles, openBrowsers, sweepStale } from "./cdp.mjs";
 import { allFiles, assign, baseFor, parseShard, weights } from "../../tools/e2e-shards.mjs";
 import { EXIT_LOW_DISK, assertFreeSpace, checkFreeSpace } from "../../tools/disk-guard.mjs";
+import { holdSlot } from "../../tools/load-guard.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, "..", "..");
@@ -36,6 +39,7 @@ const SHARD = shardArg ? parseShard(shardArg.slice(8)) : null;
 if (SHARD && filters.length) { console.error("--shard cannot be combined with filter words"); process.exit(2); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 assertFreeSpace({ label: "tests/e2e/run.mjs" }); // before the server and before any Chrome
+await holdSlot({ label: "tests/e2e/run.mjs" }); // load guard: queues while the load is over the limit or the job slots are full
 
 function freePort() {
   return new Promise((res, rej) => {
