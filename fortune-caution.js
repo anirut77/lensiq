@@ -21,12 +21,12 @@
   if (typeof module !== "undefined" && module.exports) { module.exports = { TEXT: TEXT, ACK_KEY: ACK, V: V }; return; }
   var W = /** @type {any} */ (root), d = document, mem = false, /** @type {any[]} */ live = [], /** @type {Record<string, Promise<any>>} */ got = {};
   var DOM = ["horoscope", "bazi", "taksa", "lek7", "lifegraph", "zodiac"];
-  var CSS = ".lq-caution{margin:16px 0;padding:12px 14px;border:1px solid rgba(127,127,127,.4);border-radius:12px}" +
-    ".lq-caution h3{margin:0 0 8px;font-size:1.05em}.lq-caution h4{margin:14px 0 4px;font-size:1em}.lq-caution h5{margin:10px 0 2px;font-size:.95em}" +
-    ".lq-caution p{margin:4px 0}.lq-caution ol{margin:4px 0;padding-left:1.5em}.lq-caution li{margin:2px 0}" +
-    ".lq-caution button{min-height:44px;padding:8px 14px;margin:6px 8px 0 0;border:1px solid currentColor;border-radius:10px;background:transparent;color:inherit;font:inherit}" +
+  var CSS = ".lq-caution-sec{margin:16px 0;padding:12px 14px;border:1px solid rgba(127,127,127,.4);border-radius:12px}" +
+    ".lq-caution-sec h3{margin:0 0 8px;font-size:1.05em}.lq-caution-sec h4{margin:14px 0 4px;font-size:1em}.lq-caution-sec h5{margin:10px 0 2px;font-size:.95em}" +
+    ".lq-caution-sec p{margin:4px 0}.lq-caution-sec ol{margin:4px 0;padding-left:1.5em}.lq-caution-sec li{margin:2px 0}" +
+    ".lq-caution-sec button{min-height:44px;padding:8px 14px;margin:6px 8px 0 0;border:1px solid currentColor;border-radius:10px;background:transparent;color:inherit;font:inherit}" +
     ".lq-caution-tag{font-size:.8em;opacity:.75;white-space:nowrap}.lq-caution-top{font-size:.9em;opacity:.8}" +
-    "html[data-lq-calm] .lq-caution,html[data-lq-crisis] .lq-caution{display:none!important}";
+    "html[data-lq-calm] .lq-caution-sec,html[data-lq-crisis] .lq-caution-sec{display:none!important}";
   var calm = function () { var c = W.LQFortuneCrisis; try { return !c || !!(c.calmOn(d) || c.distress(d)); } catch (e) { return true; } };
   var acked = function () { try { return mem || W.sessionStorage.getItem(ACK) === "1"; } catch (e) { return mem; } };
   var kill = function () { live.forEach(function (s) { if (s.parentNode) s.parentNode.removeChild(s); }); live = []; };
@@ -62,11 +62,11 @@
    */
   function mount(host, input) {
     if (W.LENSIQ_FORTUNE_CAUTIONS !== true || !host || !input || DOM.indexOf(input.domain) < 0) return null;
-    [].slice.call(host.querySelectorAll(".lq-caution")).forEach(function (/** @type {any} */ s) { s.parentNode.removeChild(s); });
+    [].slice.call(host.querySelectorAll(".lq-caution-sec")).forEach(function (/** @type {any} */ s) { s.parentNode.removeChild(s); });
     if (calm()) return null;
     hook();
     var l = input.lang || (W.LQI18N && W.LQI18N.lang) || "th", lang = l === "en" || l === "zh" ? l : "th";
-    var sec = el("section", "lq-caution");
+    var sec = el("section", "lq-caution-sec");
     sec.setAttribute("aria-label", TEXT.title[lang]);
     var guard = function () { if (calm()) { kill(); return true; } return !sec.isConnected; };
     var clear = function () { sec.textContent = ""; sec.appendChild(el("h3", "lq-caution-title", TEXT.title[lang])); };

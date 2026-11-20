@@ -645,6 +645,22 @@
       extras: { luckyColors: [K.days[D.taksaToday.sri].color, K.days[D.taksaToday.dech].color], energyWords: ["ธาตุ" + K.elements[D.favEl].th], directions: [K.elements[D.favEl].dir.split(" /")[0]] } };
   }
 
+  /* item 177: engine items of the closed "สิ่งที่ควรระวัง" section (fortune-caution.js), built BESIDE the reading (the reading's facts
+     never change): the birth kalakini, today's taksa, day / month clash, a duty month (七杀 / 正官), a weak chart, lacking elements */
+  var CAUTION_PERIOD = { span: "day", th: "วันนี้และเดือนนี้", en: "Today and this month", zh: "今天和本月" };
+  function cautionItems(P, D, mo) {
+    var it = [{ id: "thai.kalakini." + P.taksa.kalakini, tone: "caution", strength: 0.7 }];
+    it.push(D.bhumi === "kalakini" ? { id: "today.bhumi.kalakini", polarity: "challenge", strength: 0.8 } : { id: "today.bhumi." + D.bhumi, strength: 0.9 });
+    if (D.clash) it.push({ id: "today.clash", polarity: "challenge", strength: 0.5 });
+    if (mo.branchRel === "clash") it.push({ id: "month.clash", polarity: "challenge", strength: 0.55 });
+    var g = tenGod(P.bazi.day.stem, mo.pillar.stem);
+    if (g === "QS" || g === "ZG") it.push({ id: "month.officer", tone: "caution", strength: 0.55 });
+    if (!P.favorable.strong) it.push({ id: "bazi.strength.weak", tone: "caution", strength: 0.45 });
+    var tot = ELEMENTS.reduce(function (s, k) { return s + P.counts[k]; }, 0) || 1;
+    ELEMENTS.filter(function (k) { return P.counts[k] / tot < 0.07; }).slice(0, 2).forEach(function (k) { it.push({ id: "bazi.lack." + k, polarity: "challenge", strength: 0.42 }); });
+    return it;
+  }
+
   var HS = {
     julianDay: julianDay, jdn: jdn, fromJD: fromJD, localFromJD: localFromJD, weekday: weekday, toCE: toCE, validateDate: validateDate, daysInMonth: daysInMonth,
     deltaT: deltaT, ttFromUT: ttFromUT, utFromTT: utFromTT, sunLongitude: sunLongitude, sunLongitudeLow: sunLongitudeLow, solarTerm: solarTerm, sunAtLongitude: sunAtLongitude, newMoonJDE: newMoonJDE, newMoonBefore: newMoonBefore,
@@ -655,7 +671,8 @@
     branchRel: branchRel, compatibility: compatibility, daily: daily, monthly: monthly, analyze: analyze, addStat: addStat, cyc: cyc,
     STEMS: STEMS, BRANCHES: BRANCHES, STEM_EL: STEM_EL, BRANCH_EL: BRANCH_EL, HIDDEN: HIDDEN, ELEMENTS: ELEMENTS, GEN: GEN, CTRL: CTRL,
     TAKSA_ORDER: TAKSA_ORDER, BHUMI: BHUMI, PLANET_NUM: PLANET_NUM, TERM_NAMES: TERM_NAMES, pad2: pad2,
-    tenGod: tenGod, tenGods: tenGods, GOD_KEYS: GOD_KEYS, GOD_ZH: GOD_ZH, GOD_TH: GOD_TH, buildFacts: buildFacts, buildDailyFacts: buildDailyFacts
+    tenGod: tenGod, tenGods: tenGods, GOD_KEYS: GOD_KEYS, GOD_ZH: GOD_ZH, GOD_TH: GOD_TH, buildFacts: buildFacts, buildDailyFacts: buildDailyFacts,
+    cautionItems: cautionItems, CAUTION_PERIOD: CAUTION_PERIOD
   };
   if (typeof module !== "undefined" && module.exports) module.exports = HS;
   root.HSCore = HS;
@@ -978,6 +995,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     html += readingBlock("hsRd", T("fortune.common.readingDetail", "คำทำนายโดยละเอียด"), true);
     $("#pn-ov").innerHTML = html;
     bindReading("hsRd", function (topic, rng) { return HS.buildFacts(P, { topic: topic, nickname: $("#hsName").value, rng: rng }); }, true);
+    mountCaution(P);
+  }
+  /* item 177: the closed "สิ่งที่ควรระวัง" section after the detailed reading (nothing unless LENSIQ_FORTUNE_CAUTIONS is on) */
+  function mountCaution(P) {
+    var LC = window.LQFortuneCaution, pn = $("#pn-ov");
+    if (!LC || !pn) return;
+    var now = new Date(), td = { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() };
+    var D = HS.daily(P, td), mo = HS.monthly(P, HS.julianDay(td.y, td.m, td.d, now.getHours() + now.getMinutes() / 60) - 7 / 24);
+    var host = document.createElement("div");
+    host.id = "hsCaution";
+    pn.appendChild(host);
+    if (!LC.mount(host, { domain: "horoscope", facts: { items: HS.cautionItems(P, D, mo) }, period: HS.CAUTION_PERIOD })) pn.removeChild(host);
   }
 
   function renderThai(P) {
