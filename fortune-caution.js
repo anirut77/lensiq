@@ -3,7 +3,7 @@
  * removed under the crisis or calm flag. V: version of the lazy files (tools/fortune-caution-pack.mjs). */
 (function (root) {
   "use strict";
-  var V = "c43a272d";
+  var V = "6f0bf7ca";
   var ACK = "lq-caution-ack";
   /** @param {string} th @param {string} en @param {string} zh */
   var T = function (th, en, zh) { return { th: th, en: en, zh: zh }; };
@@ -20,7 +20,7 @@
   };
   if (typeof module !== "undefined" && module.exports) { module.exports = { TEXT: TEXT, ACK_KEY: ACK, V: V }; return; }
   var W = /** @type {any} */ (root), d = document, mem = false, /** @type {any[]} */ live = [], /** @type {Record<string, Promise<any>>} */ got = {};
-  var DOM = ["horoscope", "bazi", "taksa", "zodiac"];
+  var DOM = ["horoscope", "bazi", "taksa", "zodiac", "astro"];
   var CSS = ".lq-caution-sec{margin:16px 0;padding:12px 14px;border:1px solid rgba(127,127,127,.4);border-radius:12px}" +
     ".lq-caution-sec h3{margin:0 0 8px;font-size:1.05em}.lq-caution-sec h4{margin:14px 0 4px;font-size:1em}.lq-caution-sec h5{margin:10px 0 2px;font-size:.95em}" +
     ".lq-caution-sec p{margin:4px 0}.lq-caution-sec ol{margin:4px 0;padding-left:1.5em}.lq-caution-sec li{margin:2px 0}" +

@@ -27,7 +27,7 @@
   /** page domain -> rule schools and whether the discipline reads by time period (wave 0: the pages whose rules exist) */
   var DOMAINS = {
     horoscope: { schools: ["th", "cn"], periodic: true }, bazi: { schools: ["cn"], periodic: true }, taksa: { schools: ["th"], periodic: true },
-    zodiac: { schools: ["cn"], periodic: true },
+    zodiac: { schools: ["cn"], periodic: true }, astro: { schools: ["w"], periodic: true },
   };
   // D-4, D-5, the hub (a menu, not a reading); lek7 (its rule has one source, T5) and lifegraph (team weights, no source): review 2026-11-20
   var EXCLUDED = ["planner", "petread", "fortune", "lek7", "lifegraph"];
@@ -42,7 +42,7 @@
   /** every rule loaded (Node: the full registry; browser: the page's pack) */
   function rules() {
     if (NODE) {
-      if (!nodeRules) nodeRules = require("./fortune-caution-rules-th.js").concat(require("./fortune-caution-rules-cn.js"));
+      if (!nodeRules) nodeRules = require("./fortune-caution-rules-th.js").concat(require("./fortune-caution-rules-cn.js"), require("./fortune-caution-rules-w.js"));
       return nodeRules.slice();
     }
     return (root.LQCautionRules || []).slice();
@@ -107,10 +107,11 @@
       if (extra) p.guide.push({ n: null, rule: extra[0].id, text: tx(extra[0], "do") });
       return p;
     }
-    var parts = [mk("overall")];
+    // a part shows only when the page has an available rule of that kind (never an empty "nothing to watch" for rules not built)
+    var parts = avail.some(function (r) { return r.kind === "overall"; }) ? [mk("overall")] : [];
     if (!D.periodic) parts.push({ part: "period", period: null, none: false, noPeriod: true, mind: [], cheer: [], guide: [] });
     else if (perRules) parts.push(mk("period"));
-    return { domain: domain, lang: lang, parts: parts };
+    return parts.length ? { domain: domain, lang: lang, parts: parts } : null;
   }
 
   /** @param {any} s */
