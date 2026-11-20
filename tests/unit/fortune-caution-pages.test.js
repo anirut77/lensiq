@@ -52,7 +52,10 @@ test("T15 the horoscope reading's own facts are unchanged, character for charact
     if (c.kind === "natal") f = HS.buildFacts(P, { topic: c.topic, rng: lcg(y * 31 + m * 7 + d) });
     else {
       const [ty, tm, tdd] = c.day, D = HS.daily(P, { y: ty, m: tm, d: tdd }), mo = HS.monthly(P, HS.julianDay(ty, tm, tdd, 12) - 7 / 24);
-      f = HS.buildDailyFacts(P, D, mo, { topic: "overall", rng: lcg(ty + tm + tdd + y) });
+      // RELOCK wave1-relock1: buildDailyFacts draws the today.bhumi meaning from Math.random, so it is pinned during the call
+      const MR = Math.random;
+      Math.random = lcg(ty + tm + tdd + y + 1);
+      try { f = HS.buildDailyFacts(P, D, mo, { topic: "overall", rng: lcg(ty + tm + tdd + y) }); } finally { Math.random = MR; }
     }
     assert.equal(sha(f), c.sha256, c.kind + " " + c.b.join("-") + " " + (c.topic || c.day.join("-")));
   }

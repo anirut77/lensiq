@@ -28,3 +28,12 @@ d70787afacad6f5af7a8bdef8a9cfb4157de310579bc838d6576602f26726720  wave1/fortune-
 6acaf1b84b47591fbef680e64ff22c283353d4733fe1660f7f2b5032ba75cbbd  tests/unit/fortune-caution-pages.test.js  # repo file (same commit as lock 2026-11-20T05:58:13Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1/fortune-caution-pages.test.js)
 d70787afacad6f5af7a8bdef8a9cfb4157de310579bc838d6576602f26726720  tests/unit/fixtures/fortune-caution-horoscope-snapshot.json  # repo file (same commit as lock 2026-11-20T05:58:13Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1/fortune-caution-horoscope-snapshot.json)
 192ab976855e439684c4fc9793e681762e2d7cae2a2806e35f7ea80fb367800f  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T05:58:13Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1/fortune-caution-horoscope.e2e.mjs)
+# RELOCK wave1-relock1 2026-11-20, still BEFORE any page is wired (7c3d9fd1 product): T15 snapshot only. horoscope.js buildDailyFacts draws the today.bhumi
+# meaning from Math.random (horoscope.js:637 calls meaningsRandom without the rng), so the 18 daily cases were random per call and failed even on the
+# unwired code (baseline log wave1/run-0-before-wiring-unit.log). Daily cases now pin Math.random to lcg(seed + 1) during the call, in the snapshot and in
+# the test; natal cases unchanged. No other test changed.
+# locked 2026-11-20T05:59:01Z (tools/eval-guard.mjs lock, 2 files)
+a4c5967664c3ff05f9abe5721d0ef0bd9c8bd998fa9dfe886e3d92edadb48c56  wave1-relock1/fortune-caution-pages.test.js
+b821f3983ad8a7225809afb932e06c60f1f08b793ad6481d114edab39cf50e00  wave1-relock1/fortune-caution-horoscope-snapshot.json
+a4c5967664c3ff05f9abe5721d0ef0bd9c8bd998fa9dfe886e3d92edadb48c56  tests/unit/fortune-caution-pages.test.js  # repo file (same commit as lock 2026-11-20T05:59:01Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1-relock1/fortune-caution-pages.test.js)
+b821f3983ad8a7225809afb932e06c60f1f08b793ad6481d114edab39cf50e00  tests/unit/fixtures/fortune-caution-horoscope-snapshot.json  # repo file (same commit as lock 2026-11-20T05:59:01Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1-relock1/fortune-caution-horoscope-snapshot.json)
