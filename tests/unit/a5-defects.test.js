@@ -9,8 +9,9 @@
 //      page that was read and lost the number or its sentence is CHANGED (exit 1) with the sentence around the number.
 //   4. gate.html / gate-notice.html: nav.js reads window.LENSIQ_HELP_TOP_STICKY (a lensiq-config.js switch), so every page
 //      that loads a script reading a lensiq-config.js switch loads lensiq-config.js, at the site's one ?v=.
-//   5. palm line cards: the found-line heading is the line name in the page language only (no other-language subtitle:
-//      "เส้นชีวิต生命線", "生命线Life line", "Life lineLife line"); the line names in each language hold no other script.
+//   5. palm line cards (relock2): the Thai heading keeps its kanji subtitle exactly as before ("เส้นชีวิต" + "生命線", design
+//      since 3808a3cb); English and Chinese show one name only (no "Life lineLife line", no "生命线Life line"); the line
+//      names in each language hold no other script.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync, readdirSync } = require("node:fs");
@@ -205,14 +206,30 @@ test("4: every page that loads a script reading a lensiq-config.js switch loads 
 /* ---------- 5. palm line cards: one language per heading ---------- */
 const THAI = /[฀-๿]/, CJK = /[㐀-鿿]/, LATIN = /[A-Za-z]/;
 
-test("5: the found-line card heading is the line name in the page language only (no other-language subtitle)", () => {
+test("5: line-card heading per language: TH keeps its kanji subtitle (design since 3808a3cb); EN / ZH show one name only", () => {
+  // relock2 (coordinator review 2026-11-21): the Thai subtitle stays exactly as before; only the EN duplicate ("Life lineLife
+  // line") and the ZH English tail ("生命线Life line") go. Checked by running the heading code of palm.js per language.
   const js = read("palm.js"), m = js.match(/\$\("#plLines"\)\.innerHTML = [\s\S]*?\.join\(""\);/);
   assert.ok(m, "the #plLines render in palm.js");
-  const heads = [...m[0].matchAll(/<h4>([\s\S]*?)<\/h4>/g)].map(x => x[1]);
-  assert.equal(heads.length, 2, "found and unclear card headings");
-  for (const h of heads) {
-    assert.doesNotMatch(h, /lineEn|\.cn\b|<span/, "heading: " + h);
-    assert.match(h, /KT\("lines\." \+ (l\.)?id \+ "\.th"/, "heading = the line name via KT (the page language)");
+  const found = m[0].match(/<h4>' \+ ([\s\S]*?) \+ "<\/h4>"/), unclear = m[0].match(/line-card unclear[\s\S]*?<h4>' \+ ([\s\S]*?) \+ '<\/h4>/);
+  assert.ok(found && unclear, "found and unclear card headings");
+  assert.doesNotMatch(unclear[1], /lineEn|\.cn\b|<span/, "unclear heading: " + unclear[1]);
+  const KB = require(join(ROOT, "palm-kb.js"));
+  const D = { th: {}, en: require(join(ROOT, "i18n", "en-fortune-palm.js")).en, zh: require(join(ROOT, "i18n", "zh-fortune-palm.js")).zh };
+  for (const lang of ["th", "en", "zh"]) {
+    const T = (k, th) => (D[lang][k] != null ? D[lang][k] : th), KT = (p, th) => T("palm.kb." + p, th);
+    const head = Function("KT", "T", "trL", "esc", "l", "return " + found[1]);
+    for (const id of ["life", "head", "heart", "fate"]) {
+      const l = { id, th: KB.lines[id].th, cn: KB.lines[id].cn };
+      const html = head(KT, T, () => lang !== "th", x => String(x), l), text = html.replace(/<[^>]+>/g, "");
+      if (lang === "th") {
+        assert.equal(html, KB.lines[id].th + "<span>" + KB.lines[id].cn + "</span>", "TH " + id + " unchanged: " + html);
+      } else {
+        assert.equal(text, D[lang]["palm.kb.lines." + id + ".th"], lang + " " + id + ": one name only: " + text);
+        assert.doesNotMatch(html, /<span/, lang + " " + id);
+        assert.ok(lang === "en" ? !CJK.test(text) && !THAI.test(text) : !LATIN.test(text) && !THAI.test(text), lang + " " + id + ": " + text);
+      }
+    }
   }
 });
 
