@@ -203,6 +203,16 @@ A page may appear in two categories. Pages not listed under a category are platf
   Thai-school rules may go live first.
   The auspicious-date planner and the pet reading do not carry this section.
   Every allowed and forbidden item has locked tests in TH/EN/ZH.
+  Scope details (owner decision 196, 2026-11-20):
+  - Guidance in this section carries no lucky colours; practical steps (planning, checking papers, rest) sit under
+    "be mindful (มีสติ)" (decision 181).
+  - Health wording is relaxed for this section only; the main reading's filter is unchanged (decision 177-2).
+  - Every caution has its own paired guidance line.
+  - The section always uses measured wording; it does not follow the "read it straight / ดูตรง ๆ" switch.
+  - The accepted disclaimer is remembered for the browser tab only, and the section closes again on every new reading.
+  - At most two luck lines per part.
+  - Accident, illness and travel cautions may appear under "this period" when that period is a broad month range,
+    never under a single day or date (decision 177-1, as replaced by the owner's month-range rule).
 - Look suggestions (owner request and wording 2026-11-13): the tool suggests reversible styling with a fortune reading
   and previews it: brows (shape, thickness, arch), hairstyle, hair colour, facial hair, make-up (lip colour, eye
   make-up, eyeliner, emphasis or softening with make-up) and accessories (earrings, glasses, necklaces). Each names the
