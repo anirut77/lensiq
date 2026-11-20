@@ -220,5 +220,10 @@
   "gk.need.reads": "识别（约再 {n} 辆）",
   "gk.need.night": "夜间识别（约再 {n} 辆）",
   "ft.gate": "免费方案：30 天试用，1 条车道，每天最多 100 个车牌",
-  "gate.lvl.pilot": "试点价格"
+  "gate.lvl.pilot": "试点价格",
+  /* buy.* = the same text as i18n/zh-buy.js, kept here so gate.html needs one request less (A5 page budget, 2026-11-21) */
+  "buy.quote": "索取报价",
+  "buy.demo": "查看演示",
+  "buy.h": "下一步",
+  "buy.p": "索取报价或预约演示，团队会与你联系。演示页面使用示例数据，并非真实数据。"
 } });

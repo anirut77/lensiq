@@ -1,78 +1,53 @@
-/* lensiq-config.js — LENSIQ site settings (change here, not in page code). Full notes per setting: docs/CONFIG-NOTES.md.
- * LENSIQ_API_BASE: API server (AI readings, statistics, payments); "" = no backend, every page works offline. */
+/* lensiq-config.js — LENSIQ site settings (change here, not in page code). Notes per setting and the comments that stood here: docs/CONFIG-NOTES.md. */
 window.LENSIQ_API_BASE = window.LENSIQ_API_BASE || "";
 
-/* LENSIQ_TURNSTILE_SITEKEY: Turnstile site key for the AI writing assistant; "" = off; set before going live */
 window.LENSIQ_TURNSTILE_SITEKEY = window.LENSIQ_TURNSTILE_SITEKEY || "";
 
-/* LENSIQ_GOOGLE_CLIENT_ID: public OAuth client ID for member sign-in; "" = no membership */
 window.LENSIQ_GOOGLE_CLIENT_ID = window.LENSIQ_GOOGLE_CLIENT_ID || "";
 
-/* LENSIQ_ANALYTICS: with LENSIQ_API_BASE, consent-gated statistics; false = all statistics off */
 window.LENSIQ_ANALYTICS = window.LENSIQ_ANALYTICS !== false;
 
-/* LENSIQ_MERIT_INTEREST_FORM (Merit MVP): paid merit-service interest form; off until L42/L43 and the owner; needs the Worker switch */
 window.LENSIQ_MERIT_INTEREST_FORM = window.LENSIQ_MERIT_INTEREST_FORM === true;
 
-/* LENSIQ_ORG_ACCOUNTS (org-p1): organisation accounts; off until the owner approves; needs ORG_ACCOUNTS = "on" on the Worker */
 window.LENSIQ_ORG_ACCOUNTS = window.LENSIQ_ORG_ACCOUNTS === true;
 
-/* LENSIQ_FACEPARSE: true = BiSeNet (non-commercial, file not in git); false = MediaPipe Selfie Multiclass (Apache-2.0) */
 window.LENSIQ_FACEPARSE = window.LENSIQ_FACEPARSE === true;
 
-/* LENSIQ_AGE_GENDER: signage age/gender option (UTKFace, research only, F5); research demo only; false = never loaded */
 window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
 
-/* LENSIQ_FORTUNE_STRAIGHT: "read it straight" option, 18+ confirm; OFF since 2026-11-12 (docs/INCIDENT-2026-11-12-STRAIGHT-OFF.md) */
 window.LENSIQ_FORTUNE_STRAIGHT = false;
 
-/* fortune-paid switches: off */
 window.LENSIQ_FORTUNE_PAID = window.LENSIQ_FORTUNE_PAID === true;
 window.LENSIQ_FORTUNE_PLAN = window.LENSIQ_FORTUNE_PLAN === true;
 window.LENSIQ_FORTUNE_SOURCES = window.LENSIQ_FORTUNE_SOURCES === true;
-/* LENSIQ_FORTUNE_CAUTIONS (item 177): the closed "สิ่งที่ควรระวัง" section (fortune-caution.js); off until the owner says "177 ขึ้นเว็บ".
- * _CN_WEST (D-6): Chinese and Western rules, off until expert review; _DRAFTS: rules not yet expert-reviewed (preview only) */
+
 window.LENSIQ_FORTUNE_CAUTIONS = window.LENSIQ_FORTUNE_CAUTIONS === true;
 window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST = window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST === true;
 window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS = window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS === true;
-/* LENSIQ_PET_ZODIAC (owner spec 2026-11-19): the petread share card becomes a card the system draws (12 zodiac animals + a
- * secret card, independent of the reading, free) with a collection kept on this device. Off on the live site until the owner
- * approves the samples. LENSIQ_PET_CARD_CLASSIC (spec name PET_CARD_CLASSIC, decision 138 ข): true = the 4 classic colour
- * themes even with zodiac on; default false. LENSIQ_PET_ZODIAC_ODDS: odds preset of lensiq-pet-draw.js, "b" (decision 137 ข:
- * day's animal x2, secret 1 in 50, 1 in 10 on full-moon days) or "a" (all equal, 1 in 50). */
+
 window.LENSIQ_PET_ZODIAC = window.LENSIQ_PET_ZODIAC === true;
 window.LENSIQ_PET_CARD_CLASSIC = window.LENSIQ_PET_CARD_CLASSIC === true;
 window.LENSIQ_PET_ZODIAC_ODDS = window.LENSIQ_PET_ZODIAC_ODDS || "b";
-/* LENSIQ_CARD_BRAND (owner decision 184 ก, 2026-11-20): the brand printed on the pet share card ("จาก <brand>" / "From <brand>" /
- * "来自 <brand>" and the card header), one setting for every card template and the save-image / text fallback; a shared card
- * cannot be corrected later. LENSIQ_CARD_SHOW_ADDRESS (owner change 2026-11-20): false = the card prints the brand only, with no
- * site address and no QR code (the QR encodes the address), until the site is live on its own domain; then set true in the same
- * commit that points LQPet.LINK (lensiq-pet.js, the one address setting) at the new domain (docs/PRODUCTION-MOVE-PLAN.md 2.6). */
+
 window.LENSIQ_CARD_BRAND = typeof window.LENSIQ_CARD_BRAND === "string" && window.LENSIQ_CARD_BRAND.trim() ? window.LENSIQ_CARD_BRAND : "LENSIQ";
 window.LENSIQ_CARD_SHOW_ADDRESS = window.LENSIQ_CARD_SHOW_ADDRESS === true;
 
-/* LENSIQ_LOOK_SALON (decision 2026-11-14 ก): shop-catalogue mode of the look suggestions; off until a human approval step exists */
 window.LENSIQ_LOOK_SALON = false;
 
-/* LENSIQ_EXPRESSION (round 16): faceExpressionNet (F5) on neuro, signage, booth, photobooth; research demo only */
 /** @type {any} */ (window).LENSIQ_EXPRESSION = /** @type {any} */ (window).LENSIQ_EXPRESSION !== false;
 
-/* LENSIQ_RESEARCH_DEMO (round 16): per-device research demo switch; false = customer installation, locked off */
-/** @type {any} */ (window).LENSIQ_RESEARCH_DEMO = /** @type {any} */ (window).LENSIQ_RESEARCH_DEMO !== false; // customer installation: = false
+/** @type {any} */ (window).LENSIQ_RESEARCH_DEMO = /** @type {any} */ (window).LENSIQ_RESEARCH_DEMO !== false;
 
-/* LENSIQ_PC_THAI_EQUIV (round 17 P9): Thai same-ingredient list on the travel card; off until the owner decides (L13) */
 window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
 
-/* palm v2 (2026-11-19, docs/acceptance/palm.md): off unless exactly true · LANDMARKS = MediaPipe hands (tier 2-U), demo profile only */
 window.LENSIQ_PALM_V2 = window.LENSIQ_PALM_V2 === true;
 window.LENSIQ_PALM_LANDMARKS = window.LENSIQ_PALM_LANDMARKS !== false;
 
-/* LENSIQ_PROFILE: "commercial" (default, customer mode: research models off) | "demo"; result in window.LENSIQ_RESEARCH */
 (function () {
   "use strict";
   var W = /** @type {any} */ (window), KEY = "lq-research-demo";
   var pre = W.LENSIQ_PROFILE, stored = null, legacy = null;
-  try { if (typeof localStorage !== "undefined") { stored = localStorage.getItem(KEY); legacy = localStorage.getItem("lq-profile"); } } catch (e) { /* storage blocked: customer mode */ }
+  try { if (typeof localStorage !== "undefined") { stored = localStorage.getItem(KEY); legacy = localStorage.getItem("lq-profile"); } } catch (e) {  }
   var locked = W.LENSIQ_RESEARCH_DEMO === false ? "operator" : pre === "commercial" ? "profile" : null;
   var on = locked ? false : stored === "on" ? true : stored === "off" || legacy === "commercial" ? false : pre === "demo";
   W.LENSIQ_PROFILE = on ? "demo" : "commercial";
@@ -80,34 +55,30 @@ window.LENSIQ_PALM_LANDMARKS = window.LENSIQ_PALM_LANDMARKS !== false;
   if (!on) { W.LENSIQ_AGE_GENDER = false; W.LENSIQ_EXPRESSION = false; W.LENSIQ_FACEPARSE = false; W.LENSIQ_PALM_LANDMARKS = false; }
 })();
 
-/* LENSIQ_SELLER: seller details read by help, terms, privacy, the contact form and pricing; empty = neutral text.
- *   sales_open: true only when selling; tools/check-legal.mjs checks the required fields */
 window.LENSIQ_SELLER = window.LENSIQ_SELLER || {
-  sales_open: false,     // เปิดขายบริการแบบชำระเงินแล้วหรือยัง
-  name: "",              // ชื่อนิติบุคคล/บุคคลผู้ให้บริการ (= SELLER_NAME)
-  tax_id: "",            // เลขประจำตัวผู้เสียภาษี 13 หลัก (= SELLER_TAX_ID)
-  address: "",           // ที่อยู่ (= SELLER_ADDRESS)
-  email: "",             // อีเมลฝ่ายช่วยเหลือ
-  line: "",              // LINE Official Account เช่น "@lensiq" (ช่องทางสำรองของแบบฟอร์มทั่วไป: กรอกแล้วแสดงบนหน้าเว็บทันที)
-  quote_line: "@632yliiw", // LINE Official Account "LENSIQ" ของแบรนด์ สำหรับขอใบเสนอราคา (12 พ.ย. 2569) แสดงเฉพาะเมื่อ LENSIQ_LEADS_FORM เปิด
-  dpo_name: "",          // ชื่อ / ตำแหน่ง DPO หรือผู้ติดต่อด้านข้อมูลส่วนบุคคล
-  dpo_email: "",         // อีเมล DPO
-  status_url: "",        // หน้าสถานะระบบ (https://…)
-  effective_date: "",    // วันที่มีผลของข้อกำหนด/นโยบาย เช่น "1 ธันวาคม 2569"
-  email_provider: "",    // ผู้ให้บริการอีเมลฝ่ายช่วยเหลือ (นโยบายความเป็นส่วนตัว ข้อผู้รับข้อมูล)
+  sales_open: false,
+  name: "",
+  tax_id: "",
+  address: "",
+  email: "",
+  line: "",
+  quote_line: "@632yliiw",
+  dpo_name: "",
+  dpo_email: "",
+  status_url: "",
+  effective_date: "",
+  email_provider: "",
   email_provider_location: "",
-  cookie_name: "",       // คุกกี้เซสชันสมาชิก (ปัจจุบันไม่มี: ใช้ Bearer token ใน sessionStorage)
+  cookie_name: "",
   cookie_duration: "",
   anthropic_retention: "",
-  counsel_confirmed: false // ทนายความยืนยันเกณฑ์อายุ ฐานการส่งข้อมูลต่างประเทศ และระยะเวลาเก็บแล้ว
+  counsel_confirmed: false
 };
 
-/* LENSIQ_LEADS_FORM: quote requests to POST /v1/leads (on by owner order 2026-11-12); false = kept in the browser only */
 window.LENSIQ_LEADS_FORM = window.LENSIQ_LEADS_FORM !== false;
-/* LENSIQ_LEADS_NOTICE: "if sending fails, use LINE" note; off since 2026-11-16 (owner order); true turns it back on */
+
 window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
 
-/* round 12: warning bar on camera pages when the research demo is on outside the demo site (?profilebanner=1 forces it) */
 (function () {
   "use strict";
   if (typeof document === "undefined" || typeof location === "undefined") return;
@@ -137,7 +108,6 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", banner); else banner();
 })();
 
-/* loader: only with LENSIQ_API_BASE; same-origin files (CSP script-src 'self') */
 (function () {
   "use strict";
   if (!/^https?:\/\//.test(String(window.LENSIQ_API_BASE || "")) || typeof document === "undefined") return;
@@ -147,29 +117,25 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
   var load = function (file, global) {
     if (/** @type {any} */ (window)[global] || document.querySelector('script[src*="' + file + '"]')) return;
     var s = document.createElement("script");
-    s.src = dir + file + "?v=6"; // v6: fortune-pet merge (analytics page list)
-    s.async = false; // keep order: api before analytics
+    s.src = dir + file + "?v=6";
+    s.async = false;
     (document.head || document.documentElement).appendChild(s);
   };
   load("lensiq-api.js", "LQApi");
-  // not on admin, pricing or counselling (77 ก)
+
   if (window.LENSIQ_ANALYTICS !== false && !/\/(admin|pricing|counselling)\.html$/.test(location.pathname)) load("lensiq-analytics.js", "LQAnalytics");
-  // member sign-in (account chip in the header, light reading for guests) — inert unless the Worker reports
-  // membership and LENSIQ_GOOGLE_CLIENT_ID is set; never on the back office
-  // LENSIQ_MEMBER = false (set by a deploy config for a page that needs the API but no sign-in) skips it
+
   if (/** @type {any} */ (window).LENSIQ_MEMBER !== false && !/\/admin\.html$/.test(location.pathname)) load("lensiq-member.js", "LQMember");
-  // fortune pages: analytics hook (no-op without consent) + Turnstile token for the AI writing assistant (when configured)
+
   if (/(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(location.pathname)) load("lensiq-fortune-hook.js", "__lqFortuneHook");
 })();
 
-/* LENSIQ_TRYON: AI try-on (photobooth.js), matches backend TRYON; off = no /api/tryon/status call */
 window.LENSIQ_TRYON = window.LENSIQ_TRYON === true;
-/* LENSIQ_CONVERT_SERVER: PDF -> DOCX via server.py only; off = convert in the browser */
+
 window.LENSIQ_CONVERT_SERVER = window.LENSIQ_CONVERT_SERVER === true;
-/* LENSIQ_HELP_TOP_STICKY (75 ก): 1323 icon in the sticky bar; false = in the page */
+
 window.LENSIQ_HELP_TOP_STICKY = window.LENSIQ_HELP_TOP_STICKY !== false;
 
-/* LENSIQ_FORTUNE_THEME (decision 92): "a" = fortune theme; "classic" = previous look (docs/FORTUNE-THEME.md "Switch back") */
 window.LENSIQ_FORTUNE_THEME = window.LENSIQ_FORTUNE_THEME || "a";
 (function () {
   /** @param {Document} doc */

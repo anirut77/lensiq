@@ -219,5 +219,10 @@
   "gk.need.reads": "reads (about {n} more vehicles)",
   "gk.need.night": "night reads (about {n} more vehicles)",
   "ft.gate": "Free tier: 30-day trial, 1 lane, up to 100 plates per day",
-  "gate.lvl.pilot": "Pilot price"
+  "gate.lvl.pilot": "Pilot price",
+  /* buy.* = the same text as i18n/en-buy.js, kept here so gate.html needs one request less (A5 page budget, 2026-11-21) */
+  "buy.quote": "Request a quote",
+  "buy.demo": "See the demo",
+  "buy.h": "Next step",
+  "buy.p": "Request a quote or a demo meeting and the team will contact you. The demo page uses sample data, not real data."
 } });
