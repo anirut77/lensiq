@@ -6,7 +6,9 @@
      index -> little finger, a right hand lands in the same layout as a left hand (mirrored). Two scales: s = 224 px per palm width
      for the majors, 640 for the minors. Area-averaged sampling (no aliasing from a 1000 px palm).
    2 photometric normalisation: grey = (G + B) / 2 (creases show best in G and B; R is weakest: measured on the owner's development
-     photos, dev only), divided by a large masked Gaussian blur (sigma 0.06 PW), then CLAHE. Creases are dark valleys: every filter
+     photos, dev only), divided by the masked Gaussian skin background (sigma 0.06 PW); near a hard shadow step, where an
+     edge-aware (bilateral, range 0.18 on the log ratio) background differs from it by more than 2-5 %, the edge-aware one is used,
+     so no dark halo appears along the step (owner item 185-2, dev seeds only); then CLAHE. Creases are dark valleys: every filter
      looks for minima.
    3 line energy + direction, three methods (selectable): "mfrat" (Huang, Jia & Zhang, Pattern Recognition 2008: 12 directions in a
      p x p window, line width matched to the crease, energy = window mean - darkest line mean, direction = argmin), "wld" (wide line
@@ -27,7 +29,7 @@
 (function (root) {
   "use strict";
   var CFG = { sMaj: 224, sMin: 512, u0: -0.3, u1: 1.25, v0: -0.08, v1: 1.15, normSigma: 0.06, claheTiles: 8, claheClip: 2.5,
-    method: "mfrat", cap: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_CAP) || 1e9),
+    method: "mfrat", norm: (typeof process !== "undefined" && process.env && process.env.LQ_V3_NORM) || "hybrid", bilRange: 0.18, hybLo: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_HLO) || 0.02), hybHi: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_HHI) || 0.05), cap: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_CAP) || 1e9),
         erode: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_ERODE) || 0), nRandom: 500, nSearch: 1200, PROVISIONAL: true };
   /* PROVISIONAL z limit, set 2026-11-20 on DEV synthetic seeds only (never on the locked test seeds, never on a photo), for the
      MFRAT map with the two-flank valley check: 153 crease-free dev textures (seeds 201-213: textures.js, tex2.js crease-free
@@ -131,11 +133,38 @@
     }
     return out;
   }
+  /** skin background for the normalisation. "gauss": masked Gaussian (sigma 0.06 PW). "bilateral" (185-2): the same, but each
+      pixel's background averages only skin of similar brightness (range weight on the log ratio, sigma CFG.bilRange), computed at
+      full resolution on a sparse support, so the far side of a hard shadow step does not leak into it and no
+      dark halo appears along the step; crease-level darkening (8-14 %) stays inside the range kernel. */
+  function background(R) {
+    var w = R.w, h = R.h, n = w * h, i, sg = CFG.normSigma * R.s;
+    var mf = new Float32Array(n), gm = new Float32Array(n); for (i = 0; i < n; i++) { mf[i] = R.mask[i]; gm[i] = R.mask[i] ? R.g[i] : 0; }
+    var bg = blur(gm, w, h, sg), bm = blur(mf, w, h, sg), out = new Float32Array(n);
+    for (i = 0; i < n; i++) out[i] = bm[i] > 1e-3 ? bg[i] / bm[i] : 1;
+    if (CFG.norm !== "bilateral" && CFG.norm !== "hybrid") return out;
+    // full resolution, sparse support: every 3rd pixel within 2.2 sigma; range weight on the log ratio to this pixel's own
+    // (lightly smoothed) brightness, so skin across a hard shadow step does not count
+    var g0 = blur(R.g, w, h, 0.7), lg = new Float32Array(n), x, y; for (i = 0; i < n; i++) lg[i] = Math.log(Math.max(1, g0[i]));
+    var st = 3, rad = Math.ceil(2.2 * sg / st) * st, rs = CFG.bilRange, out2 = new Float32Array(n), offs = [];
+    for (var dy = -rad; dy <= rad; dy += st) for (var dx = -rad; dx <= rad; dx += st) { var sp = Math.exp(-(dx * dx + dy * dy) / (2 * sg * sg)); if (sp > 0.01) offs.push(dx, dy, sp); }
+    var inv = 1 / (2 * rs * rs);
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+      i = y * w + x; if (!R.mask[i]) { out2[i] = 1; continue; }
+      var c0 = lg[i], sw = 0, sv = 0;
+      for (var k = 0; k < offs.length; k += 3) { var xx = x + offs[k], yy = y + offs[k + 1]; if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue; var q = yy * w + xx; if (!R.mask[q]) continue;
+        var dr = lg[q] - c0, wt = offs[k + 2] * Math.exp(-dr * dr * inv); sw += wt; sv += wt * lg[q]; }
+      out2[i] = sw ? Math.exp(sv / sw) : Math.max(1, g0[i]);
+    }
+    if (CFG.norm === "hybrid") { // the edge-aware background only where it differs strongly from the plain one (near a hard step)
+      for (i = 0; i < n; i++) { if (!R.mask[i]) continue; var lr = Math.abs(Math.log(Math.max(1, out2[i]) / Math.max(1, out[i]))), wb = clamp((lr - CFG.hybLo) / (CFG.hybHi - CFG.hybLo), 0, 1);
+        out2[i] = Math.exp((1 - wb) * Math.log(Math.max(1, out[i])) + wb * Math.log(Math.max(1, out2[i]))); }
+    }
+    return out2;
+  }
   function normalise(R) {
-    var w = R.w, h = R.h, n = w * h, mf = new Float32Array(n), gm = new Float32Array(n), i;
-    for (i = 0; i < n; i++) { mf[i] = R.mask[i]; gm[i] = R.mask[i] ? R.g[i] : 0; }
-    var sg = CFG.normSigma * R.s, bg = blur(gm, w, h, sg), bm = blur(mf, w, h, sg), v = new Float32Array(n);
-    for (i = 0; i < n; i++) { var b = bm[i] > 1e-3 ? bg[i] / bm[i] : 1; v[i] = R.mask[i] ? clamp(128 + (R.g[i] / Math.max(b, 1) - 1) * 400, 0, 255) : 128; }
+    var w = R.w, h = R.h, n = w * h, i, b = background(R), v = new Float32Array(n);
+    for (i = 0; i < n; i++) v[i] = R.mask[i] ? clamp(128 + (R.g[i] / Math.max(b[i], 1) - 1) * 400, 0, 255) : 128;
     var c = clahe(v, R.mask, w, h, CFG.claheTiles, CFG.claheClip);
     return blur(c, w, h, 0.6);
   }
