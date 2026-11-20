@@ -1413,7 +1413,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plTapBar").hidden = S.mode !== "tap";
     $("#plLineTools").hidden = S.mode === "tap";
     $("#plRead").disabled = S.mode === "tap";
-    $("#plHonest").hidden = S.mode === "tap";
+    $("#plHonest").hidden = S.mode === "tap"; $("#plLinesNoteEdit").hidden = S.mode === "tap";
     renderReadSide(); renderLineChips(); renderEditor();
     editSec.scrollIntoView({ behavior: smooth(), block: "start" });
     $("#plEditTitle").focus({ preventScroll: true });
@@ -1434,9 +1434,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#plTapMode").addEventListener("click", function () { if (S.src) startTap(); });
   function renderLineChips() {
     $("#plLineChips").innerHTML = PC.LINE_IDS.map(function (id) {
-      var L = KB.lines[id], SL = S.lines && S.lines[id], a = SL && !SL.placed && SL.auto;
-      // ตัวตรวจหาเส้นไม่ถึงเกณฑ์ = "ไม่ชัดในภาพนี้" (ไม่วาด ไม่อ่าน) — owner decision 163 ก
-      var conf = SL && SL.unclear ? unclearLabel() : a ? (a.conf >= 0.6 ? T("palm.conf.hi", "ชัด") : a.conf >= 0.3 ? T("palm.conf.mid", "พอเห็น") : T("palm.conf.lo", "ไม่ชัด")) : "";
+      // ไม่มีป้ายความมั่นใจ (ชัด / พอเห็น) ข้างเส้น — ความแม่นยำยังไม่ได้วัด (owner decision 165 ก); เหลือเฉพาะสถานะ "ไม่ชัดในภาพนี้" (163 ก)
+      var L = KB.lines[id], SL = S.lines && S.lines[id], conf = SL && SL.unclear ? unclearLabel() : "";
       return '<button type="button" role="radio" class="chip-btn" style="--c:' + L.color + '" data-line="' + id + '" aria-checked="' + (S.active === id) + '"><i></i>' + esc(KT("lines." + id + ".th", L.th)) + (conf ? " <small>(" + conf + ")</small>" : "") + "</button>";
     }).join("");
     $$("#plLineChips [data-line]").forEach(function (b) { b.addEventListener("click", function () { S.active = b.dataset.line; renderLineChips(); renderEditor(); }); });
@@ -1519,7 +1518,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       if (S.taps.length === 7) {
         var t = {}; PC.TAP_ORDER.forEach(function (key, i) { t[key] = S.taps[i]; });
         S.hand = PC.handFromTaps(t); applyDetectedSide(PC.resolveSide({ hand: S.hand })); renderReadSide();
-        S.mode = "edit"; $("#plTapBar").hidden = true; $("#plLineTools").hidden = false; $("#plRead").disabled = false; $("#plHonest").hidden = false;
+        S.mode = "edit"; $("#plTapBar").hidden = true; $("#plLineTools").hidden = false; $("#plRead").disabled = false; $("#plHonest").hidden = false; $("#plLinesNoteEdit").hidden = false;
         buildFromHand(function () { return T("palm.eng.tapsDone", "ปักจุดครบแล้ว ตรวจและปรับเส้นได้เลย"); }, "ok");
       }
       return;

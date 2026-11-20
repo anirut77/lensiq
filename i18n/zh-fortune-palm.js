@@ -146,6 +146,7 @@
     "palm.conf.lo": "不清楚",
     "palm.edit.cap": "正在调整：{line} — {where} · 拖动圆点使其与真实掌纹重合",
     "palm.line.unclear": "此照片中不清楚",
+    "palm.linesNote": "图中显示的掌纹是根据照片自动估算的，尚未在真实手掌上测量准确度。请与自己的手对照，可以拖动圆点把线移到真实的纹路上。",
     "palm.edit.capUnclear": "{line}：此照片中不清楚，因此不作解读 · 如果在手上能看到这条线，请拖动圆点使其与掌纹重合",
     "palm.toast.reset": "已恢复自动识别的掌纹",
     "palm.minor.yes": "看得到",
