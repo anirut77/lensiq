@@ -8,7 +8,7 @@
 //      Samaritans 0 times, 1323 in <= 2 taps, no pinned help element.
 //   K2 calm reading (dream, TH / EN / ZH, 393 px): the help line comes AFTER the reading (below the last section), holds only
 //      tel:1323 and the counselling link, and is not sticky or fixed.
-import { FORTUNE, LANGS, PINNED, S, STICKY, VIS, WIDTHS, COUNSEL, assert, load, noOtherNumbers, phone, sleep, taps1323 } from "./crisis-rules-kit.mjs";
+import { FORTUNE, LANGS, PINNED, S, STICKY, VIS, WIDTHS, COUNSEL, assert, load, noOtherNumbers, phone, sleep, taps1323, loadFailText } from "./crisis-rules-kit.mjs";
 
 const CALM = `try { sessionStorage.setItem("lq-fortune-calm", "1"); } catch (e) {}`;
 const TITLE = { th: /ช่องทางให้คำปรึกษา/, en: /counsel/i, zh: /咨询/ };
@@ -24,7 +24,7 @@ export default async function ({ base, launch, check }) {
           for (const w of WIDTHS) {
             await phone(page, w);
             const where = `counselling ${lang} ${w}px`;
-            try { await load(page, base, "counselling", lang); } catch (e) { bad.push(`${where}: did not load`); continue; }
+            try { await load(page, base, "counselling", lang); } catch (e) { bad.push(`${where}: ${loadFailText(e)}`); continue; }
             const r = await page.evaluate(`(() => { ${VIS}
               const rows = [...document.querySelectorAll("main [data-lq-call]")].filter(vis).map(c => {
                 const a = c.querySelector('a[href^="tel:"]'), l = c.querySelector(".lq-call-t");
@@ -71,7 +71,7 @@ export default async function ({ base, launch, check }) {
           await phone(page, 393);
           for (const p of FORTUNE) {
             const where = `${p} ${lang} calm`;
-            try { await load(page, base, p, lang); } catch (e) { bad.push(`${where}: did not load`); continue; }
+            try { await load(page, base, p, lang); } catch (e) { bad.push(`${where}: ${loadFailText(e)}`); continue; }
             bad.push(...await noOtherNumbers(page, where));
             if (await taps1323(page) > 2) bad.push(`${where}: 1323 not reachable in 2 taps`);
             const pins = await page.evaluate(PINNED(false));

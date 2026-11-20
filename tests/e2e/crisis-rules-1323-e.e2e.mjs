@@ -10,7 +10,7 @@
 //      element inside <main>, and no pinned help element except the icon in the bar.
 //   E5 the icon opens the confirmation dialog: a tel:1323 call button (>= 44 px) and the "ช่องทางให้คำปรึกษา" link to
 //      counselling.html (TH / EN / ZH, 393 px, tarot and fortune).
-import { FORTUNE, LANGS, WIDTHS, COUNSEL, IN_CONTENT, PINNED, S, VIS, assert, load, noOtherNumbers, phone, sleep, taps1323 } from "./crisis-rules-kit.mjs";
+import { FORTUNE, LANGS, WIDTHS, COUNSEL, IN_CONTENT, PINNED, S, VIS, assert, load, noOtherNumbers, phone, sleep, taps1323, loadFailText } from "./crisis-rules-kit.mjs";
 
 const ICON = `(() => { ${VIS}
   const nav = document.getElementById("siteNav");
@@ -49,7 +49,7 @@ export default async function ({ base, launch, check }) {
             for (const p of FORTUNE) {
               const where = `${p} ${lang} ${w}px`;
               cases++;
-              try { await load(page, base, p, lang); } catch (e) { bad.push(`${where}: did not load`); continue; }
+              try { await load(page, base, p, lang); } catch (e) { bad.push(`${where}: ${loadFailText(e)}`); continue; }
               bad.push(...await noOtherNumbers(page, where));
               if (await taps1323(page) > 2) bad.push(`${where}: 1323 not reachable in 2 taps`);
               const inContent = await page.evaluate(IN_CONTENT);
