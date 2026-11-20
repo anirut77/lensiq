@@ -21,3 +21,6 @@ field-data/
 
 # Wrangler / Miniflare local state: holds the request location of the machine; never commit (owner decision 111)
 .wrangler/
+
+# palm tap-to-trace labels (tools/palm-trace/, owner decision 174 ก): owner ground truth, kept next to the photo or in ~/LENSIQ-field/, never committed
+*.palm-trace.json
