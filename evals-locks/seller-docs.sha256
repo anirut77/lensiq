@@ -1,0 +1,14 @@
+# locked 2026-11-20T17:15:22Z (tools/eval-guard.mjs lock, 4 files)
+a412485e45563ecef5e5f3e3085b1c5ac1a7e625283b206b3525906b3bc34111  seller-doc-lang.test.js
+e4c395968f274e5113669c6b52860e31d7fa086085efe87c3102dc4ac46532c2  backend-lead-notify-health.test.js
+d8c252ef6b414f576271680757cd7e493ccb429df094d75ff837cc8375370869  seller-doc-narrow.e2e.mjs
+ca7ead2bce841327204bdeb807a31e1ce60adc0d0852ec57868eee7243138d03  admin-lead-notify-health.e2e.mjs
+a412485e45563ecef5e5f3e3085b1c5ac1a7e625283b206b3525906b3bc34111  tests/unit/seller-doc-lang.test.js  # repo file (same commit as lock 2026-11-20T17:15:22Z; field: ~/LENSIQ-field/evals/seller-docs/seller-doc-lang.test.js)
+e4c395968f274e5113669c6b52860e31d7fa086085efe87c3102dc4ac46532c2  tests/unit/backend-lead-notify-health.test.js  # repo file (same commit as lock 2026-11-20T17:15:22Z; field: ~/LENSIQ-field/evals/seller-docs/backend-lead-notify-health.test.js)
+d8c252ef6b414f576271680757cd7e493ccb429df094d75ff837cc8375370869  tests/e2e/seller-doc-narrow.e2e.mjs  # repo file (same commit as lock 2026-11-20T17:15:22Z; field: ~/LENSIQ-field/evals/seller-docs/seller-doc-narrow.e2e.mjs)
+ca7ead2bce841327204bdeb807a31e1ce60adc0d0852ec57868eee7243138d03  tests/e2e/admin-lead-notify-health.e2e.mjs  # repo file (same commit as lock 2026-11-20T17:15:22Z; field: ~/LENSIQ-field/evals/seller-docs/admin-lead-notify-health.e2e.mjs)
+# Owner night order A3 (2026-11-20, branch seller-docs): 199 ข seller default document language Thai + English (switch
+# SELLER_DOC_LANG, off), the 320 px overflow of the seller documents (decision 192 review: the largest amount ran 15-25 px
+# past the screen), and lead-notify-health (switch LEAD_NOTIFY_HEALTH, off). NEW files, locked BEFORE any product code
+# (base ac637587 = main 0b51b0fb + seller-onepage 07db91b1). The four files are byte-identical copies of the repo files above.
+# Before-build logs: ~/LENSIQ-field/evals/seller-docs/{unit,e2e-narrow,e2e-health}-before-build.log
