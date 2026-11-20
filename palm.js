@@ -453,9 +453,12 @@
       ถ้าหลักฐานไม่ถึงเกณฑ์ของตัวตรวจเอง (เส้นชีวิต/สมอง/หัวใจ: conf < LINE_MIN_CONF = ระดับ "ไม่ชัด" บนปุ่มเลือกเส้น;
       เส้นวาสนา: coverage < 0.3 หรือ span < 0.35) เส้นนั้นได้สถานะ "ไม่ชัดในภาพนี้": present = false, unclear = true
       ไม่วาดเป็นเส้นที่ตรวจพบ ไม่นำไปอ่าน และไม่สร้างเส้นแทนจากแม่แบบ (owner decision 163 ก, 2026-11-19)
-      cp ของเส้นที่ไม่ชัด = จุดแม่แบบ ใช้เป็นจุดเริ่มให้ผู้ใช้ลากวางเองเท่านั้น */
+      cp ของเส้นที่ไม่ชัด = จุดแม่แบบ ใช้เป็นจุดเริ่มให้ผู้ใช้ลากวางเองเท่านั้น
+      opt.honest (palm v2, owner order 2026-11-19; ใช้เมื่อ LENSIQ_PALM_V2 เปิด): ไม่บังคับ present และไม่ยึดจุดเริ่ม/ความยาวขั้นต่ำ
+      ทุกเส้นใช้เกณฑ์เดียวกับเส้นวาสนา เส้นที่ไม่ผ่านได้ notFound = true (ไม่พบในภาพ ≠ มือไม่มีเส้น) · ค่าเริ่มต้น = สถานะ "ไม่ชัด" ข้างบน */
   var LINE_MIN_CONF = 0.3;
-  function detectLines(R, F) {
+  function detectLines(R, F, opt) {
+    var honest = !!(opt && opt.honest);
     var out = {};
     LINE_IDS.forEach(function (id) {
       var T = TEMPLATES[id], tplPx = T.pts.map(F.uvToPx);
@@ -463,14 +466,15 @@
       var tr = traceAlong(R, tplPx, bandPx, { n: 40 });
       var st = analyzeStrength(tr.strength);
       var N = tr.path.length, a, b, conf = round(clamp(st.coverage * 1.3, 0, 1), 2), auto = { coverage: round(st.coverage, 3), breaks: st.breaks, mean: round(st.mean, 3), conf: conf };
-      var present = st.first >= 0 && (id === "fate" ? st.coverage >= 0.3 && st.span >= 0.35 : conf >= LINE_MIN_CONF);
-      if (!present) { out[id] = { cp: T.pts.map(function (q) { return [q[0], q[1]]; }), present: false, unclear: true, auto: auto }; return; }
+      var present = st.first >= 0 && (honest || id === "fate" ? st.coverage >= 0.3 && st.span >= 0.35 : conf >= LINE_MIN_CONF);
+      if (honest) { a = st.first < 0 ? 0 : st.first; b = st.last < 0 ? N - 1 : st.last; } // palm v2: every line uses the fate rule; a failed line is notFound
+      else if (!present) { out[id] = { cp: T.pts.map(function (q) { return [q[0], q[1]]; }), present: false, unclear: true, auto: auto }; return; }
       // เส้นชีวิต/สมอง/หัวใจที่ตรวจพบ: จุดเริ่มยึดตามแม่แบบ (ขอบมือมักจาง) และยาวอย่างน้อยครึ่งแม่แบบ; เส้นวาสนา: ช่วงที่พบจริง
-      if (id === "fate") { a = st.first; b = st.last; } else { a = Math.min(st.first, Math.round(N * (id === "heart" ? 0.2 : 0.15))); b = Math.max(st.last, Math.round(N * 0.5)); }
+      else if (id === "fate") { a = st.first; b = st.last; } else { a = Math.min(st.first, Math.round(N * (id === "heart" ? 0.2 : 0.15))); b = Math.max(st.last, Math.round(N * 0.5)); }
       var seg = tr.path.slice(a, b + 1);
       if (seg.length < 2) seg = tr.path;
       var cp = resample(seg, 5).map(function (p) { var q = F.pxToUV(p); return [round(q[0], 4), round(q[1], 4)]; });
-      out[id] = { cp: cp, present: true, auto: auto };
+      out[id] = honest ? { cp: cp, present: present, notFound: !present, auto: auto } : { cp: cp, present: true, auto: auto };
     });
     return out;
   }
@@ -499,11 +503,12 @@
   /** เส้นที่นำไปอ่านได้: มีเส้นและไม่ได้อยู่ในสถานะ "ไม่ชัด" / ผู้ใช้ไม่ได้ติ๊กว่ามองไม่เห็น (present !== false) */
   function lineRead(L) { return !!(L && L.present !== false); }
   /** เส้นวาสนาที่ "ผู้ใช้ยืนยันเองว่ามองไม่เห็น" (ติ๊กช่อง) — ต่างจากตัวตรวจหาไม่เจอ (unclear) ซึ่งไม่นำไปอ่านเลย */
-  function fateUserNone(L) { return !!(L && L.present === false && !L.unclear); }
+  function fateUserNone(L) { return !!(L && L.present === false && !L.unclear && !L.notFound); }
   /** จัดหมวดเส้นทั้งหมด: lines = {id: {cp, present, unclear}} — เส้นที่ไม่ชัด (present false) ไม่ถูกวัดและไม่ถูกอ่าน */
   function classifyLines(lines, asp, R, F) {
     var M = {}, C = {};
-    LINE_IDS.forEach(function (id) { if (lineRead(lines[id])) M[id] = measureLine(id, lines[id].cp, asp, R, F); });
+    // a line "not found in the photo" (v2 honest mode) or unclear is neither measured nor read; it is not "absent" either
+    LINE_IDS.forEach(function (id) { if (lineRead(lines[id]) && !lines[id].notFound) M[id] = measureLine(id, lines[id].cp, asp, R, F); });
     var L = M.life, H = M.head, Ht = M.heart, Ft = M.fate;
     if (L) {
       var lcats = [L.maxU >= LT.lifeWide ? "wide" : "close", L.end[1] >= LT.lifeLong ? "long" : "short"];
@@ -2049,3 +2054,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
   window.__palm = { get S() { return S; }, get guide() { return S.guide; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, detectHands: detectHands, loadModels: loadModels }; // ใช้ทดสอบ
 })();
+
+/* palm reading upgrade v1 (switch window.LENSIQ_PALM_V2, lensiq-config.js ships false): its code and style are downloaded ONLY when
+   the switch is on (independent review round 1, c); dynamic scripts with async = false run in order */
+if (typeof window !== "undefined" && typeof document !== "undefined" && window.LENSIQ_PALM_V2 === true && document.getElementById("plV2")) {
+  var pv2css = document.createElement("link"); pv2css.rel = "stylesheet"; pv2css.href = "palm-v2.css?v=2"; document.head.appendChild(pv2css);
+  var pv2js = ["palm-v2-kb.js?v=1", "palm-v2-detect.js?v=2", "palm-v2.js?v=2", "palm-v2-ui.js?v=2"];
+  pv2js.forEach(function (src) { var el = document.createElement("script"); el.src = src; el.async = false; document.body.appendChild(el); });
+}

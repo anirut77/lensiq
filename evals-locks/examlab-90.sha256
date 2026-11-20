@@ -1,0 +1,24 @@
+# evals-locks/examlab-90.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/examlab-90/ (owner rule 2026-11-13, locked sets persist). Append-only.
+# Exam lab to 90 (owner standing order 2026-11-18, sheet docs/acceptance/exam-lab.md on acceptance-sheets): tests for P3 (exam.html + dashboard in WebKit 390),
+# P4 (main flows at 360 / 430 px), E (error and empty states), X (candidate's own log), L3 (output language) and the S2 harness, locked BEFORE any product
+# change of branch examlab-90 (base origin/main a9950944).
+# locked 2026-11-18T16:29:40Z (tools/eval-guard.mjs lock, 4 files)
+7cb2630b8f8d2e63e956173c59ce4a4aabb9defb7343836cce2e7bf49e8b80d2  tests/e2e/exam-states.e2e.mjs
+2e5dcbf7781915df3760960803f70d333878adf124d3a2a07e2d7ca3e69a9eab  tests/e2e/exam-pages-webkit.e2e.mjs
+b7de7edd805d32107cdefd6043ba51a2331741bc1e4acaba4464f50aa13de379  tests/e2e/exam-widths.e2e.mjs
+64032b4ef85919f85949a0b1abf3770a0fdf1b2161be44db7f41cb195b3592ca  tools/exam-s2.mjs
+# test-defect re-lock (before any product change): plain() asked for >= 6 characters, which refused correct Chinese empty-state text ("暂无事件" = 4 characters); now >= 2 in Chinese, >= 6 in Thai / English. Base run at 4aac0db before this fix: 12 passed, 8 failed (E2 no-frames x3, E3 crash guard x3 fail as expected; E5 zh and X zh failed only on this defect). No flow, fault, wait or other assertion changed.
+# locked 2026-11-18T16:31:28Z (tools/eval-guard.mjs lock, 1 file)
+e6c08d8b70afab30837e266acdc2eb3c72aaa4440efcb603adbbfde2deed27da  tests/e2e/exam-states.e2e.mjs
+# test-defect re-lock (before any product change). Defects seen on the unchanged product: (1) exam-widths / exam-pages-webkit waited for room DEMO after the flow had joined a room, but the demo button fills the room that is open (exam-dashboard.js, by design): now waits for the joined room; (2) the Thai-letter check counted the baht sign (U+0E3F, a currency symbol in the Thai block; English prices keep it): now Thai letters only. A local run of the defect fix (unlocked, before this line): exam-widths 6/6, exam-pages-webkit dashboard ok, exam.html failed only on the baht sign. No flow, fault, wait time or other assertion changed.
+# locked 2026-11-18T16:33:18Z (tools/eval-guard.mjs lock, 3 files)
+e6c08d8b70afab30837e266acdc2eb3c72aaa4440efcb603adbbfde2deed27da  tests/e2e/exam-states.e2e.mjs
+d533420cd8342326439dee3aa87f9cba6683d18ba4cc492fb9d2044978b9730b  tests/e2e/exam-pages-webkit.e2e.mjs
+6832e5ab83ab5c5fbad9731f3a15a7b7374633b82731720f058463666c23c15f  tests/e2e/exam-widths.e2e.mjs
+# correction: the block at 2026-11-18T16:33:18Z locked exam-states and exam-pages-webkit WITHOUT defect fix (2) (the edit script failed; the room fix (1) was in). This block adds fix (2), still before any product change and before any run of these two files since 16:33:18Z.
+# locked 2026-11-18T16:33:41Z (tools/eval-guard.mjs lock, 2 files)
+aa0edead8e31ca106386d87890ce6c051e708af3207fbe168e609ff1b0ef308e  tests/e2e/exam-states.e2e.mjs
+bf3637ba21cfe6afa39fff452e2a0e5baeb53b5812562b6365d354b1881f1c4b  tests/e2e/exam-pages-webkit.e2e.mjs
+# reviewer round 1 of delta 39ac5013 -> 1fa699eb: new test exam-lab-restart (R1 stale calibrate tap after camera off + consent again; R2 silent camera after restart: calibrate never sticks in "cal"), locked BEFORE the product fix. Run on 1fa699eb (unfixed): R1 3/3 pass (this path already clears the waiting tap on 1fa699eb; kept as a regression guard for the reviewer show()/startCamera() resets), R2 3/3 FAIL (phase "cal", videoWidth 0) as expected. exam-states, exam-widths, exam-pages-webkit unchanged.
+# locked 2026-11-19T06:14:33Z (tools/eval-guard.mjs lock, 1 file)
+8802364598b51f95b453f633aeed700f88db9ace223688466298f02d3ce58b6a  tests/e2e/exam-lab-restart.e2e.mjs

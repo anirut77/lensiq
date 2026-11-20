@@ -98,6 +98,51 @@ jobs:
       - name: legal pages have no raw [placeholders]; seller details complete whenever billing is on
         run: node tools/check-legal.mjs
 
+  # Owner decision 111 (2026-11-19): personal data must not be committed again (commit 8e44c420 carried a Wrangler cache
+  # file with the owner's device location). Blocking: the tracked tree, and the added lines of EVERY pushed commit, so
+  # data added and removed again within one push still fails. Values are never printed. Allow-list: tools/pii-allow.json.
+  pii:
+    name: No personal data (tracked files + pushed commits)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          lfs: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: tracked files (node tools/pii-scan.mjs --tracked)
+        run: node tools/pii-scan.mjs --tracked
+      - name: added lines of the pushed commits (node tools/pii-scan.mjs --range)
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --no-tags origin main
+          head=$(git rev-parse HEAD)
+          if [ "$EVENT" = "pull_request" ]; then base="$PR_BASE"
+          elif [ "$EVENT" = "push" ]; then
+            # a push: scan exactly the pushed commits. No usable "before" (new ref, or a force-push whose old tip is gone):
+            # fail closed by scanning the FULL history of HEAD (old synthetic fixtures in deleted files then fail too;
+            # the owner decides). Never an empty range.
+            if [ -n "$BEFORE" ] && ! echo "$BEFORE" | grep -qE '^0+$' && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then base="$BEFORE"
+            else base=""; fi
+          else
+            # workflow_dispatch: the branch's own commits; on main itself (merge-base = HEAD) the tip commit
+            base=$(git merge-base FETCH_HEAD HEAD || true)
+            if [ "$base" = "$head" ]; then base=$(git rev-parse HEAD~1 2>/dev/null || true); fi
+          fi
+          if [ -z "$base" ]; then
+            echo "no usable base: scanning the full history of HEAD"
+            node tools/pii-scan.mjs --range HEAD
+          else
+            echo "scanning $base..HEAD"
+            node tools/pii-scan.mjs --range "$base..HEAD"
+          fi
+
   python:
     name: Server tests (Python 3.11)
     runs-on: ubuntu-latest

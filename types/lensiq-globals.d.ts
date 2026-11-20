@@ -47,6 +47,10 @@ interface Window {
   LENSIQ_LEADS_FORM?: boolean;
   /** photobooth try-on server status is asked only when true (mirrors the backend TRYON switch; off as shipped) */
   LENSIQ_TRYON?: boolean;
+  /** petread zodiac share cards (owner spec 2026-11-19): mode switch, classic-theme switch (PET_CARD_CLASSIC), odds preset a / b */
+  LENSIQ_PET_ZODIAC?: boolean;
+  LENSIQ_PET_CARD_CLASSIC?: boolean;
+  LENSIQ_PET_ZODIAC_ODDS?: string;
   /** converter uses the local python server.py PDF engine only when true (off as shipped) */
   LENSIQ_CONVERT_SERVER?: boolean;
   /** rule-6 switch (owner decision 2026-11-16): the top 1323 control in the sticky top bar (true) or scrolling away (false) */
@@ -85,6 +89,10 @@ interface Window {
   LENSIQ_ORG_ACCOUNTS?: boolean;
   /** paid depth on the fortune pages (owner order 2026-11-15, design only): off unless exactly true */
   LENSIQ_FORTUNE_PAID?: boolean;
+  /** palm reading upgrade v1 (owner order 2026-11-19): off unless exactly true */
+  LENSIQ_PALM_V2?: boolean;
+  /** palm v2 automatic hand points (MediaPipe hands, tier 2-U): research-demo profile only */
+  LENSIQ_PALM_LANDMARKS?: boolean;
   /** goal-based plan under the paid switch (owner order 2026-11-15 (2), design only): off unless exactly true */
   LENSIQ_FORTUNE_PLAN?: boolean;
   /** "recommended sources" (outside seller links) under the paid switch (decision 46, design only): off unless exactly true */

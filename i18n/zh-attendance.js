@@ -323,6 +323,8 @@
   "attendance.hr.chainBad": "发现 {n} 条历史记录顺序不符或在系统外被修改——待核查",
   "attendance.hr.noAudit": "尚无修改",
   "attendance.hr.usage": "{p} 条打卡 · {a} 条历史 · 约占用 {kb} KB（浏览器上限约 5,000 KB——请每月导出备份文件）",
+  "attendance.hr.nearFull": "存储空间即将用完——请立即导出备份文件",
+  "attendance.hr.badgeTitle": "考勤卡",
   "attendance.hr.saved": "已保存",
   "attendance.hr.merged": "已合并：新打卡 {p} 条 · 历史 {a} 条 · 新员工 {e} 人",
   "attendance.hr.mergeBad": " · 无法使用的文件 {n} 个",

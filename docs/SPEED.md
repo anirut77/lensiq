@@ -208,6 +208,24 @@ in parallel: consistency-pass, beauty-look, org-p1, stale-docs, pc-jk; a few KB 
 
 
 
+## Exam lab S2 (acceptance sheet, 2026-11-19, branch examlab-90)
+
+Harness `tools/exam-s2.mjs` (locked in `evals-locks/examlab-90.sha256` before measuring; profile above; 3 cold runs per
+page, median; a run with a 1-minute load average >= 20 does not count). Source: synthetic, emulated mid-range phone.
+Run at ccebfdb9 (lock e9bbac78), result `~/LENSIQ-field/evals/examlab-90/results/s2-2026-11-18T16-55-41-146Z.json`.
+
+| Page | FCP ms (target <= 3000) | First usable control ms (<= 8000) | Camera ready ms (<= 15000) | Counted runs | Result |
+|---|---|---|---|---|---|
+| exam | 2652–2688 | 5308–5420 | – | 0 of 3 (load 20.3–21.9) | not counted (busy machine) |
+| exam-lab | 4560 | 23435 | 140 (fake camera; on-device models not ready within 90 s) | 2 of 3 | FAIL |
+| exam-dashboard | 4544 | 11490 | – | 3 of 3 | FAIL |
+
+Causes seen in the page source (not yet measured one by one): exam-lab and the dashboard load `lensiq-demo.js`,
+`lensiq-demo-data.js` and `i18n/zh-demo.js` in `<head>` (pages with them have FCP about 4 s, pages without about 2 s in
+the table above); exam-lab loads TF.js (`vendor/tfjs/*`, about 1.5 MB) synchronously before `exam-lab.js`, so the
+consent button is wired only after TF.js arrives. Next step (needs its own measured round): load the demo data and its
+dictionary after `<main>`, and TF.js only after consent.
+
 ### Comment moved out of lensiq-luckycolor.js (2026-11-18, branch fortune-pet, page weight)
 
 luckycolor.html measured 551 KB against its 550 KB budget in CI run 44245545701 (the fortune-pet menu entry, the line-wrap fix and
@@ -249,3 +267,11 @@ lensiq-luckycolor.js moved here word for word (3,273 B -> one pointer line). No 
  *     1 = supports another area today (bhumi named) · 0 = a good neutral base, add an accent (no negative wording)
  */
 ```
+
+### Comments moved out of lensiq-config.js (2026-11-19, branch help-budget, page weight)
+
+help.html measured 400 KB (409,768 B) against its 400 KB budget on main 3781bb58, so any growth in a shared file failed
+the speed budget (planner-defects ac25bfe4 and pet-zodiac-cards 101acb60: 401 KB; seller-settings 5173311b: admin.html
+707 KB > 700 KB). The budgets were not raised: the long comments of lensiq-config.js (26,457 B -> 12,410 B) moved word
+for word to docs/CONFIG-NOTES.md, one summary line kept per setting. No code changed (identical JavaScript tokens,
+checked with acorn). lensiq-config.js?v=24 on every page. Source: synthetic, headless Chrome, local, no throttling.

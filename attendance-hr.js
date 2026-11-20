@@ -1,6 +1,6 @@
 /* attendance-hr.js — employee time attendance on attendance.html (added on top of the training check-in; nothing removed).
    Mode switch "เช็คชื่ออบรม/กิจกรรม" (the original page, default) | "ลงเวลาทำงานพนักงาน" (this file):
-     punches        face (attendance.js checkIn -> LQHR.facePunch), PIN, QR badge (scanner / BarcodeDetector) — PIN/QR is
+     punches        face (attendance.js checkIn -> LQHR.facePunch), PIN, QR badge (scanner / camera) — PIN/QR is
                     also the non-biometric alternative for employees who decline face data (PDPA s.26)
      admin          employees + departments, shifts (grace, OT rules, night shifts), Thai holidays + leave, monthly summary
                     + payroll / daily / audit CSV, manager corrections (append-only, hash-chained audit log), kiosk mode,
@@ -138,15 +138,36 @@
     showPunch(doPunch(e, "qr"));
   }
   $("#hrQr").addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); const v = ev.target.value; ev.target.value = ""; if (v.trim()) handleQr(v); } });
-  // camera QR scan: BarcodeDetector (Chrome / Android / macOS) on the page's camera; test mode reads window.__LQ_FAKE_QR()
-  let qrTimer = 0, qrDet = null;
-  if ("BarcodeDetector" in W || CORE().isTest) $("#hrQrCam").hidden = false;
+  // camera QR scan on the page's camera: the browser's BarcodeDetector where it has one (Chrome on Android / macOS), otherwise
+  // the self-hosted zxing-wasm reader (vendor/zxing: MIT + Apache-2.0, LICENSES/THIRD_PARTY.md; iPhone Safari, Firefox,
+  // desktop Chrome on Windows / Linux). The QR camera loads no face library and no face model. Test mode reads window.__LQ_FAKE_QR().
+  let qrTimer = 0, qrDet = null, zxP = null;
+  const loadScript = src => new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = src;
+    s.onload = () => res(); s.onerror = () => { s.remove(); rej(new Error(src)); }; document.head.append(s);
+  });
+  function qrDetector() {
+    if ("BarcodeDetector" in W) { try { return Promise.resolve(new W.BarcodeDetector({ formats: ["qr_code"] })); } catch { /* no QR format here: the reader below */ } }
+    if (!zxP) zxP = (async () => {
+      if (!W.BarcodeDetectionAPI) await loadScript("vendor/zxing/barcode-detector-ponyfill.js");
+      const api = W.BarcodeDetectionAPI; // the wasm comes from vendor/zxing, never a CDN (CSP connect-src 'self')
+      api.prepareZXingModule({ overrides: { locateFile: (path, prefix) => (path.endsWith(".wasm") ? new URL("vendor/zxing/" + path, location.href).href : prefix + path) } });
+      return new api.BarcodeDetector({ formats: ["qr_code"] });
+    })();
+    zxP.catch(() => { zxP = null; });
+    return zxP;
+  }
+  $("#hrQrCam").hidden = false;
+  const camOk = () => !!(CORE().camReady || CORE().ready);
   $("#hrQrCam").addEventListener("click", async () => {
     if (qrTimer) { clearInterval(qrTimer); qrTimer = 0; $("#hrQrCam").textContent = T("qrCam", "สแกนบัตร QR ด้วยกล้อง"); return; }
     // walk-through 2026-11-16 D-01: the time clock opens with the camera off; scanning a QR card with the camera turns it on
-    if (!CORE().ready && CORE().startCamera) { msg("#hrPunchMsg", T("camOpening", "กำลังเปิดกล้อง..."), ""); await CORE().startCamera(); }
-    if (!CORE().ready) return msg("#hrPunchMsg", T("camNo", "กล้องยังไม่พร้อม"), "err");
-    try { if (!CORE().isTest) qrDet = new W.BarcodeDetector({ formats: ["qr_code"] }); } catch { return msg("#hrPunchMsg", T("qrNo", "เบราว์เซอร์นี้สแกน QR ด้วยกล้องไม่ได้ — ใช้เครื่องอ่านบัตรหรือ PIN"), "err"); }
+    const detP = CORE().isTest ? Promise.resolve(null) : qrDetector();
+    detP.catch(() => {});
+    if (!camOk() && CORE().startCamera) { msg("#hrPunchMsg", T("camOpening", "กำลังเปิดกล้อง..."), ""); await CORE().startCamera({ qr: true }); }
+    if (!camOk()) return msg("#hrPunchMsg", T("camNo", "กล้องยังไม่พร้อม"), "err");
+    try { qrDet = await detP; } catch { return msg("#hrPunchMsg", T("qrNo", "เบราว์เซอร์นี้สแกน QR ด้วยกล้องไม่ได้ — ใช้เครื่องอ่านบัตรหรือ PIN"), "err"); }
+    if (qrTimer) return; // a second tap while the reader was loading
     $("#hrQrCam").textContent = T("qrStop", "หยุดสแกน QR");
     msg("#hrPunchMsg", T("qrShow", "ยกบัตร QR ให้กล้องเห็น"), "");
     let busy = false, lastText = "", lastAt = 0;
@@ -169,6 +190,16 @@
   }
 
   // ------------------------------------------------------------ mode / kiosk / clock
+  // S2 2026-11-18: this file runs before attendance.js (the PIN pad is usable first); until attendance.js has wired the tabs,
+  // the PIN tab is shown here, and attendance.js takes over on DOMContentLoaded (see the end of this file)
+  function showPin(t) {
+    // attendance.js already loaded: its tab handler does everything. Not loaded yet: this file's own tab listener only
+    // un-hides the PIN pane, so the active tab and the other panes are set here (a plain "pane is shown" test is not enough)
+    if (W.__ATT_CORE) return t.click();
+    t.click();
+    $all(".tab").forEach(x => x.classList.toggle("active", x === t));
+    ["checkin", "register", "records", "check", "pin"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== "pin"; });
+  }
   function setMode(m, first) {
     S.mode = m === "employee" ? "employee" : "training"; saveSet();
     document.body.classList.toggle("att-emp", S.mode === "employee");
@@ -192,7 +223,7 @@
     else {
       if (!S.noticeSeen) { $("#hrNotice").open = true; S.noticeSeen = true; saveSet(); }
       // PIN / QR is the default way to clock in (face optional): the employee time clock opens on the PIN / QR tab
-      const t = $("#tabPin"); if (t && !S.kiosk && !t.classList.contains("active")) t.click();
+      const t = $("#tabPin"); if (t && !S.kiosk && !t.classList.contains("active")) showPin(t);
     }
     if (!first) renderAll();
   }
@@ -305,7 +336,7 @@
     const box = $("#hrBadge");
     if (!e.qr) { e.qr = C.newToken(20); save(KEY.emps, emps); }
     let svg = ""; try { svg = Q ? Q.svg(C.qrPayload(e.code, e.qr), { scale: 5, label: "QR " + e.code }) : ""; } catch { svg = ""; }
-    box.innerHTML = `<div class="badge-card">${svg}<b>${U(e.name)}</b><span>${U(e.code)}</span><small>${U(e.dept || "")}</small></div>
+    box.innerHTML = `<div class="badge-card">${svg}<em class="badge-t">${esc(T("badgeTitle", "บัตรลงเวลา"))}</em><b>${U(e.name)}</b><span>${U(e.code)}</span><small>${U(e.dept || "")}</small></div>
       <div class="hr-actions"><button type="button" class="btn primary" data-print>${esc(T("print", "พิมพ์บัตร"))}</button><button type="button" class="btn ghost" data-renew>${esc(T("renew", "ออกบัตรใหม่ (บัตรเดิมใช้ไม่ได้)"))}</button><button type="button" class="btn ghost" data-close>${esc(T("close", "ปิด"))}</button></div>
       <p class="hint">${esc(T("badgeHint", "บัตรนี้ใช้แทนใบหน้าได้ เก็บให้ดีเหมือนกุญแจ หากหายให้กด ออกบัตรใหม่"))}</p>`;
     box.hidden = false; box.dataset.emp = e.id;
@@ -462,16 +493,18 @@
     } else if (fx) { $(".hr-tab[data-h=audit]").click(); $("#hrFixEmp").value = dayEmp; $("#hrFixDate").value = fx.dataset.fix; renderFix(); }
   });
   const csvName = k => `lensiq-${k}-${month()}${$("#hrDeptM").value ? "-dept" : ""}.csv`;
-  $("#hrPayCsv").addEventListener("click", () => download(csvName("payroll"), C.payrollCsv(summary())));
-  $("#hrDetailCsv").addEventListener("click", () => download(csvName("timesheet"), C.detailCsv(summary())));
+  const lang = () => (W.LQI18N && W.LQI18N.lang) || "th"; // CSV headers in the page language (the English key stays in every one)
+  $("#hrPayCsv").addEventListener("click", () => download(csvName("payroll"), C.payrollCsv(summary(), lang())));
+  $("#hrDetailCsv").addEventListener("click", () => download(csvName("timesheet"), C.detailCsv(summary(), undefined, lang())));
   // PDPA s.30 right of access: one employee's own time records (+ the corrections made to them) for the chosen month
   $("#hrEmpCsv").addEventListener("click", () => {
     const s = summary(), r = s.rows.find(x => x.emp === dayEmp); if (!r) return;
     const e = empById(dayEmp);
     // one file (browsers may block a second download): the daily records, a blank line, then the change history
-    download(`lensiq-my-records-${month()}-${e.code}.csv`, C.detailCsv({ month: s.month, rows: [r], days: s.days }) + "\r\n\r\n" + C.auditCsv(audit.filter(a => a.emp === dayEmp), emps).replace(/^\ufeff/, ""));
+    const mine = C.auditCsv(audit.filter(a => a.emp === dayEmp), emps, undefined, lang()).replace(/^\ufeff/, "");
+    download(`lensiq-my-records-${month()}-${e.code}.csv`, C.detailCsv({ month: s.month, rows: [r], days: s.days }, undefined, lang()) + "\r\n\r\n" + mine);
   });
-  $("#hrAuditCsv").addEventListener("click", () => download(`lensiq-audit-${today()}.csv`, C.auditCsv(audit, emps)));
+  $("#hrAuditCsv").addEventListener("click", () => download(`lensiq-audit-${today()}.csv`, C.auditCsv(audit, emps, undefined, lang())));
 
   // ---- corrections + audit log
   function renderFix() {
@@ -529,7 +562,10 @@
     $("#hrDevName").value = S.devName || ""; $("#hrRet").value = String(S.retYears);
     let bytes = 0; try { for (const k of Object.values(KEY)) bytes += (localStorage.getItem(k) || "").length * 2; } catch {}
     const kb = Math.round(bytes / 1024);
-    msg("#hrDataMsg", T("usage", "บันทึกเวลา {p} รายการ · ประวัติ {a} รายการ · ใช้พื้นที่ประมาณ {kb} KB (เบราว์เซอร์จำกัดราว 5,000 KB — ส่งออกไฟล์สำรองทุกเดือน)", { p: punches.length, a: audit.length, kb }), kb > 3500 ? "warn" : "");
+    const near = kb > 3500; // near full: its own line first (acceptance E "storage near full")
+    const use = T("usage", "บันทึกเวลา {p} รายการ · ประวัติ {a} รายการ · ใช้พื้นที่ประมาณ {kb} KB (เบราว์เซอร์จำกัดราว 5,000 KB — ส่งออกไฟล์สำรองทุกเดือน)",
+      { p: punches.length, a: audit.length, kb });
+    msg("#hrDataMsg", (near ? T("nearFull", "พื้นที่จัดเก็บใกล้เต็ม — ส่งออกไฟล์สำรองตอนนี้") + " · " : "") + use, near ? "warn" : "");
   }
   $("#hrDataSave").addEventListener("click", () => {
     const pin = $("#hrMgrPinNew").value, before = { devName: S.devName, retYears: S.retYears, mgrPin: S.mgrHash ? "set" : "none" };
@@ -598,6 +634,11 @@
   const qp = new URLSearchParams(location.search);
   if (qp.get("mode") === "employee") S.mode = "employee";
   setMode(S.mode, true);
-  if (S.mode === "employee" && (S.kiosk || qp.has("kiosk"))) enterKiosk(false);
+  const kioskStart = () => { if (S.mode === "employee" && (S.kiosk || qp.has("kiosk"))) enterKiosk(false); };
+  if (W.__ATT_CORE) kioskStart();
+  else document.addEventListener("DOMContentLoaded", () => { // the face part (attendance.js) is loaded now
+    const t = $("#tabPin"); if (S.mode === "employee" && !S.kiosk && t && t.classList.contains("active")) t.click();
+    kioskStart(); renderAll();
+  }, { once: true });
   renderAll();
 })();
