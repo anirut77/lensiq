@@ -137,7 +137,7 @@ expects it and its limits are documented above; switching later is a deploy-tool
 | `TURNSTILE_HOSTNAMES` | `anirut77.github.io` | `www.<domain>,<domain>` |
 | `SITE_URL` | `https://anirut77.github.io/lensiq` | `https://www.<domain>` |
 | `LINE_LOGIN_REDIRECT_URI` | `…github.io/lensiq/account.html` | `https://www.<domain>/account.html` |
-| `TESTER_GATE` | `required` | owner decision (see "รอคุณตัดสิน" D-3); recommendation: `required` until terms/privacy are signed off |
+| `TESTER_GATE` | `required` | `required` (D-3 answered 2026-11-19: enforce) until terms/privacy are signed off; checked by `tools/lib/tester-policy.mjs`, switch `deploy/tester-gate.json` (docs/DEPLOY.md "Tester gate policy (D-3)") |
 | `PC_BUILD` | `demo` | `customer` (licence-limited sources off, CLAUDE.md "customer builds") |
 | `DAILY_REQUEST_CAP` | `20000` | `20000` on Free; raise only after Workers Paid |
 | `D1_WRITE_BUDGET` | `5000` | same on Free |

@@ -1,0 +1,4 @@
+{
+  "note": "Owner decision D-3 (2026-11-19): the tester code is enforced while LEGAL_TERMS_READY / LEGAL_PRIVACY_READY are not both true. enforce false = tools/backend-deploy.mjs and tools/build-site.mjs only WARN when a deployment or the public site would serve AI / testing-only sources without the tester gate; true = they refuse. Read by tools/lib/tester-policy.mjs. docs/DEPLOY.md 'Tester gate policy (D-3)'.",
+  "enforce": false
+}

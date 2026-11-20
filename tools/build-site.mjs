@@ -307,6 +307,24 @@ export function customerSiteConfig(file) {
   return { ...cfg, testerGate: false, file: relative(repo, abs) || abs };
 }
 
+/* ---------------- tester gate policy (owner decision D-3, deploy/tester-gate.json; tools/lib/tester-policy.mjs) ----------------
+ * The public site config must keep the page side of the tester gate while the terms / privacy notice are not signed off.
+ * enforce off = a warning; on = the build fails before the output folder is touched. A customer bundle is never checked:
+ * it runs the customer's own deployment and its tester gate is always off (customerSiteConfig). */
+/** tools/lib/tester-policy.mjs, or null when this tool runs on its own without tools/lib (a copy of the tool or a release
+ *  tarball): then the check is skipped and the build says so. Any other load error is thrown. @type {any} */
+const TP = await import("./lib/tester-policy.mjs").catch(e => { if (e && e.code === "ERR_MODULE_NOT_FOUND" && /tester-policy\.mjs/.test(String(e.message))) return null; throw e; });
+
+/** @param {any} sc readSiteConfig() / customerSiteConfig() result (null = no API)
+ *  @param {{policy?: {enforce: boolean}, vars?: Record<string, any>, customer?: boolean}} [o] defaults: the switch file and
+ *  [env.test.vars] of backend/wrangler.toml @returns {{enforce: boolean, problems: string[], refuse: boolean, skipped?: boolean}} */
+export function siteTesterGateCheck(sc, o = {}) {
+  if (!TP) return { enforce: false, problems: [], refuse: false, skipped: true };
+  const policy = o.policy || TP.readTesterPolicy();
+  if (o.customer) return { enforce: policy.enforce === true, problems: [], refuse: false };
+  return TP.testerVerdict(policy, TP.siteTesterProblems(sc, o.vars || TP.repoTestVars()));
+}
+
 /** Locks out/lensiq-config.js and verifies it. Throws when the file is missing or the check fails. */
 export async function applyCustomerLock(out) {
   const file = join(out, "lensiq-config.js");
@@ -334,6 +352,11 @@ if (isMain) {
     if (si >= 0 && !customer) throw new Error("--site-config is only for --customer bundles");
     if (si >= 0 && (!args[si + 1] || args[si + 1].startsWith("--"))) throw new Error("--site-config needs a file");
     sc = customer ? customerSiteConfig(si >= 0 ? args[si + 1] : null) : readSiteConfig();
+    // owner decision D-3: the public site keeps the tester gate until the terms / privacy notice are signed off
+    const tg = siteTesterGateCheck(sc, { customer });
+    if (tg.skipped) console.log("build-site: tester gate policy (D-3) not checked — tools/lib/tester-policy.mjs is not next to this tool");
+    if (tg.refuse) throw new Error(tg.problems.join("; ") + " (deploy/tester-gate.json enforce is on)");
+    for (const p of tg.problems) console.warn("build-site: WARNING — " + p);
   }
   catch (e) { console.error("build-site: FAILED — " + e.message); process.exit(1); }
   rmSync(out, { recursive: true, force: true });
