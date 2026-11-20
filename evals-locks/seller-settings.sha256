@@ -71,3 +71,11 @@ a2726b8b9e01bb7b772217f75e3a5251fee57fefe2fd56e5c85774092fe02c7e  tests/unit/bac
 # flagged the invented marker phone numbers (Thai mobile shape 08#########). The leading 08 / 089 became 00 / 000 in the
 # unit file (2 values) and both workerd files (1 value): still 10 digits (product rule ^\+?\d{9,15}$), same last 4 digits for
 # the masking checks, still unique canaries, no longer a dialable Thai number. Synthetic addresses stay and are allow-listed.
+# locked 2026-11-20T09:26:25Z (tools/eval-guard.mjs lock, 1 file)
+cb989c28ddc62947945055576a85cfe85f08d512cdb129fc475715280fd622c4  relock3/seller-doc-onepage.e2e.mjs
+cb989c28ddc62947945055576a85cfe85f08d512cdb129fc475715280fd622c4  tests/e2e/seller-doc-onepage.e2e.mjs  # repo file (same commit as lock 2026-11-20T09:26:25Z; field: ~/LENSIQ-field/evals/seller-settings/relock3/seller-doc-onepage.e2e.mjs)
+# One page (owner decision 192 ก, 2026-11-20): NEW file locked BEFORE the fix (base 299370b8); earlier files unchanged. A
+# quotation / invoice / receipt with 1 to 5 lines (real renderDoc, synthetic data, seller and buyer names / addresses at the
+# 160 / 300-character limits in TH and ZH, logo, 300-character note) prints on exactly 1 A4 page; every quantity, unit
+# price, amount, subtotal, VAT, total (and regular price on the quotation) is in the PDF; no cell past the printable width;
+# 20 lines still paginate. Log before the fix: ~/LENSIQ-field/evals/seller-settings/relock3/onepage-before-fix.log
