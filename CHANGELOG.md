@@ -4,6 +4,17 @@ All notable changes to LENSIQ are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Auspicious planner: 21 occasions in 5 groups (owner order 2026-11-18)
+- `planner.html` (วางแผนฤกษ์มงคล): groups first (family and celebrations, home and land, business and trade, car and travel, work and
+  study); a tap opens one group, a second tap closes it; occasions in a two-column grid where an odd last card spans the row. 18 new
+  occasions next to move / shop / work. Each result shows a plain-words reason with the "according to belief, please use your own
+  judgement" framing. Good days only, as before; no promise wording; caesarean / medical procedures and investing / shares / gold excluded.
+- Rules and wording of the new occasions load on the first tap (`lensiq-planner-occ.js`, `i18n/{en,zh}-planner-occ.js`), not with the
+  page: planner.html 757 -> 772 KB, 28 requests (budget 780 KB, 28). Sources (two or more publishers each, date read):
+  `docs/planner-occasion-sources.json`; not shown on the page (fortune pages show no citations).
+- Fixed tests locked first (`evals-locks/planner-occasions.sha256`): `tests/unit/planner-occasions.test.js` (O1-O6, with a regression
+  snapshot of move / shop / work taken on origin/main b2a6e76) and `tests/e2e/planner-occasions.e2e.mjs` (G1-G5, 5 widths x 3 languages).
+
 ### Tap-to-call help lines, warm 1323 wording, daily source re-check (owner order 2026-11-14, Part B)
 - One shared component `lensiq-helpline.js` draws every help number (1323, 1669, 191, 1300, Samaritans 02 113 6789) as a tap-to-call button with a phone icon (`tel:`, ≥ 44 px): the fortune help lines, the crisis card, medicine, nutrition and terms. One compact row on a phone (short label, then the call button; second line under the label: owner addition 2026-11-14). On a computer the number also shows as large selectable text.
 - 1323 wording as the owner wrote it: "อยากมีคนรับฟัง โทร 1323" / "พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง" / "บริการของกรมสุขภาพจิต"; EN / ZH in the same spirit; forbidden words never on a button or second line (TH / EN / ZH lists in the component).

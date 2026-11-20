@@ -36,14 +36,14 @@
 <!--/promo-->
 <link rel="stylesheet" href="styles.css?v=24">
 <link rel="stylesheet" href="fortune-kit.css?v=2">
-<link rel="stylesheet" href="planner.css?v=2">
+<link rel="stylesheet" href="planner.css?v=4">
 <link rel="stylesheet" href="fortune-theme.css?v=3">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=36"></script>
-<script src="i18n/zh-planner.js?v=3"></script>
+<script src="i18n/zh-planner.js?v=7"></script>
 
 <style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
 .lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
@@ -89,11 +89,66 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
       <span data-i18n="pl.disc.rest">ตำราแต่ละสายต่างกัน ควรสอบถามพระหรือผู้รู้ที่คุณเคารพก่อนกำหนดวันจริง คำนวณในเครื่องนี้ ไม่บันทึกและไม่ส่งวันเกิดไปที่ใด</span></span></span></p>
 
   <form class="fk-form fk-stack fk-block" id="plForm" novalidate>
-    <fieldset><legend data-i18n="pl.f.event">งานที่จะทำ</legend>
-      <div class="fk-opts pl-events">
-        <label class="fk-opt"><input type="radio" name="plEvent" value="move" checked><b data-i18n="pl.ev.move">ขึ้นบ้านใหม่</b><small data-i18n="pl.ev.moveS">ย้ายเข้า ทำบุญบ้าน</small></label>
-        <label class="fk-opt"><input type="radio" name="plEvent" value="shop"><b data-i18n="pl.ev.shop">เปิดร้าน / กิจการ</b><small data-i18n="pl.ev.shopS">วันเปิดขายวันแรก</small></label>
-        <label class="fk-opt"><input type="radio" name="plEvent" value="work"><b data-i18n="pl.ev.work">เริ่มงานใหม่</b><small data-i18n="pl.ev.workS">เริ่มงาน เริ่มโปรเจกต์ เริ่มเรียน</small></label>
+    <fieldset class="pl-chooser"><legend data-i18n="pl.f.event">งานที่จะทำ</legend>
+      <p class="fk-small pl-cur" aria-live="polite"><span data-i18n="pl.f.cur">งานที่เลือก:</span> <b id="plCur">ขึ้นบ้านใหม่</b></p>
+      <div class="pl-groups pl-events">
+        <label class="pl-grp"><input type="radio" name="plGroup" value="family"><b data-i18n="pl.g.family">ครอบครัวและงานมงคล</b><small>6</small></label>
+        <div class="fk-opts pl-occs" data-group="family" hidden>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="wedding"><b data-i18n="pl.ev.wedding">แต่งงาน</b>
+            <small data-i18n="pl.ev.weddingS">งานมงคลสมรส</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="engage"><b data-i18n="pl.ev.engage">หมั้น / สู่ขอ</b>
+            <small data-i18n="pl.ev.engageS">ยกขันหมากหมั้น</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="regmarry"><b data-i18n="pl.ev.regmarry">จดทะเบียนสมรส</b>
+            <small data-i18n="pl.ev.regmarryS">ที่สำนักงานเขต / อำเภอ</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="ordain"><b data-i18n="pl.ev.ordain">บวช</b>
+            <small data-i18n="pl.ev.ordainS">อุปสมบท บรรพชา</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="bdaymerit"><b data-i18n="pl.ev.bdaymerit">ทำบุญวันเกิด</b>
+            <small data-i18n="pl.ev.bdaymeritS">วันเกิด ทำบุญอายุ</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="haircut"><b data-i18n="pl.ev.haircut">โกนผมไฟ</b>
+            <small data-i18n="pl.ev.haircutS">ผมไฟลูกน้อย</small></label>
+        </div>
+        <label class="pl-grp"><input type="radio" name="plGroup" value="home"><b data-i18n="pl.g.home">บ้านและที่ดิน</b><small>5</small></label>
+        <div class="fk-opts pl-occs" data-group="home" hidden>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="move" checked><b data-i18n="pl.ev.move">ขึ้นบ้านใหม่</b>
+            <small data-i18n="pl.ev.moveS">ย้ายเข้า ทำบุญบ้าน</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="pillar"><b data-i18n="pl.ev.pillar">ยกเสาเอก</b>
+            <small data-i18n="pl.ev.pillarS">เริ่มตั้งเสาบ้าน</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="pile"><b data-i18n="pl.ev.pile">ลงเสาเข็ม</b>
+            <small data-i18n="pl.ev.pileS">เริ่มงานสร้างบ้าน</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="spirit"><b data-i18n="pl.ev.spirit">ตั้งศาลพระภูมิ</b>
+            <small data-i18n="pl.ev.spiritS">ศาลพระภูมิ ศาลเจ้าที่</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="shrine"><b data-i18n="pl.ev.shrine">ตั้งหิ้งพระ</b>
+            <small data-i18n="pl.ev.shrineS">อัญเชิญพระขึ้นหิ้ง</small></label>
+        </div>
+        <label class="pl-grp"><input type="radio" name="plGroup" value="biz"><b data-i18n="pl.g.biz">ธุรกิจและการค้า</b><small>5</small></label>
+        <div class="fk-opts pl-occs" data-group="biz" hidden>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="shop"><b data-i18n="pl.ev.shop">เปิดร้าน / กิจการ</b>
+            <small data-i18n="pl.ev.shopS">วันเปิดขายวันแรก</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="compreg"><b data-i18n="pl.ev.compreg">จดทะเบียนบริษัท</b>
+            <small data-i18n="pl.ev.compregS">จดทะเบียนนิติบุคคล</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="newco"><b data-i18n="pl.ev.newco">เริ่มกิจการใหม่</b>
+            <small data-i18n="pl.ev.newcoS">ก่อตั้งบริษัท</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="contract"><b data-i18n="pl.ev.contract">เซ็นสัญญา</b>
+            <small data-i18n="pl.ev.contractS">ลงนามข้อตกลง</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="branch"><b data-i18n="pl.ev.branch">เปิดสาขา</b>
+            <small data-i18n="pl.ev.branchS">สาขาใหม่</small></label>
+        </div>
+        <label class="pl-grp"><input type="radio" name="plGroup" value="travel"><b data-i18n="pl.g.travel">รถและการเดินทาง</b><small>2</small></label>
+        <div class="fk-opts pl-occs" data-group="travel" hidden>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="car"><b data-i18n="pl.ev.car">ออกรถใหม่</b>
+            <small data-i18n="pl.ev.carS">รับรถคันใหม่</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="journey"><b data-i18n="pl.ev.journey">เดินทางไกล</b>
+            <small data-i18n="pl.ev.journeyS">ออกเดินทาง</small></label>
+        </div>
+        <label class="pl-grp"><input type="radio" name="plGroup" value="study"><b data-i18n="pl.g.study">งานและการเรียน</b><small>3</small></label>
+        <div class="fk-opts pl-occs" data-group="study" hidden>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="work"><b data-i18n="pl.ev.work">เริ่มงานใหม่</b>
+            <small data-i18n="pl.ev.workS">เริ่มงาน เริ่มโปรเจกต์ เริ่มเรียน</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="waikru"><b data-i18n="pl.ev.waikru">ไหว้ครู</b>
+            <small data-i18n="pl.ev.waikruS">ดนตรี นาฏศิลป์ โรงเรียน</small></label>
+          <label class="fk-opt"><input type="radio" name="plEvent" value="launch"><b data-i18n="pl.ev.launch">เปิดตัวสินค้า</b>
+            <small data-i18n="pl.ev.launchS">เปิดตัวสินค้า / โครงการ</small></label>
+        </div>
       </div>
     </fieldset>
     <fieldset><legend data-i18n="pl.f.range">ช่วงเวลา</legend>
@@ -136,13 +191,14 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     <div class="pl-res-head">
       <h2 id="plResH" tabindex="-1"></h2>
       <p class="fk-small" id="plResSub"></p>
+      <p class="pl-whybox" id="plWhy"></p>
       <div class="pl-sort" role="group" aria-label="เรียงลำดับ" data-i18n-attr="aria-label:pl.sortAria">
         <button type="button" class="pl-seg" data-sort="date" aria-pressed="true" data-i18n="pl.sort.date">เรียงตามวันที่</button>
         <button type="button" class="pl-seg" data-sort="score" aria-pressed="false" data-i18n="pl.sort.score">ตรงเกณฑ์มากก่อน</button>
       </div>
     </div>
     <ol class="pl-list" id="plList"></ol>
-    <p class="fk-small pl-empty" id="plEmpty" hidden data-i18n="pl.empty">ช่วงนี้ยังไม่มีวันที่ตรงเกณฑ์ ลองดูเพิ่มเป็น 3 เดือน หรือเลือกเดือนถัดไป</p>
+    <p class="fk-small pl-empty" id="plEmpty" hidden></p>
     <div class="fk-block pl-export">
       <h3 data-i18n="pl.x.h">บันทึกวันที่เลือกลงปฏิทิน</h3>
       <p class="fk-small" data-i18n="pl.x.hint">ติ๊กวันที่สนใจในรายการ แล้วกดบันทึก จะได้ไฟล์ .ics
@@ -165,7 +221,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
       <ul>
         <li data-i18n="pl.b.wd">วันในสัปดาห์และสีประจำวัน: แต่ละวันมีดาวประจำวันและสีประจำวัน
           (อาทิตย์แดง จันทร์เหลือง อังคารชมพู พุธเขียว พฤหัสบดีส้ม ศุกร์ฟ้า เสาร์ม่วง) งานแต่ละแบบมีวันที่นิยมต่างกัน</li>
-        <li data-i18n="pl.b.lunar">ข้างขึ้นข้างแรม: ข้างขึ้น (ขึ้น 1–15 ค่ำ) จันทร์กำลังสว่างขึ้น ตามความเชื่อเป็นช่วงเจริญงอกงาม ขึ้นบ้านใหม่นิยมเดือนคู่ตามจันทรคติ</li>
+        <li><span data-i18n="pl.b.lunar">ข้างขึ้นข้างแรม: ข้างขึ้น (ขึ้น 1–15 ค่ำ) จันทร์กำลังสว่างขึ้น ตามความเชื่อเป็นช่วงเจริญงอกงาม ขึ้นบ้านใหม่หลายคนนิยมเดือนคู่ตามจันทรคติ</span> <span class="pl-modern" data-i18n="pl.modern">ตามความนิยมสมัยใหม่</span></li>
         <li data-i18n="pl.b.taksa">วันเกิดของเจ้าของ (ทักษา): นับวงทักษาจากดาววันเกิด วันที่ตกภูมิศรี (โชคลาภ) เดช (การงาน) มนตรี (ผู้สนับสนุน) หรือมูละ (หลักฐาน) นับเป็นวันส่งเสริม</li>
         <li data-i18n="pl.b.zodiac">ปีนักษัตร (ถ้าใส่): วันที่นักษัตรประจำวันตามปฏิทินจีนเข้ากันกับปีเกิด (หกประสาน หรือสามประสาน) ได้คะแนนเพิ่ม</li>
         <li data-i18n="pl.b.colour">สีเสื้อเสริมมงคล: สีของดาวที่อยู่ภูมิศรีในทักษาของวันนั้น (แบบเดียวกับสีเสื้อมงคลรายวัน)</li>
@@ -180,11 +236,11 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="lensiq-config.js?v=26"></script>
 <script src="horoscope-kb.js?v=6"></script>
 <script src="horoscope.js?v=21"></script>
-<script src="lensiq-planner.js?v=1"></script>
+<script src="lensiq-planner.js?v=4"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
 <script src="fortune-notice.js?v=2"></script>
 <script src="lensiq-helpline.js?v=2"></script>
 <script src="fortune-crisis.js?v=22"></script>
-<script src="planner.js?v=4"></script>
+<script src="planner.js?v=7"></script>
 </body>
 </html>

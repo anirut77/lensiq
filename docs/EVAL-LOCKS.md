@@ -262,6 +262,10 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   its `locked.sha256` as is (`tools/eval-locks-import.mjs` stopped on an unrelated missing file in `pc-f/review`). Re-measure
   only; never tuned against. The builder's 0 / 0 on `fortune-paid-fresh-2026-11-16b` came after tuning on that set and is not
   an independent number. `fortune-paid` re-lock (10): review D1–D3 and the switch-off identity test, before the fix.
+- `planner-occasions` (2026-11-18): locked before the occasions build on planner.html (unit O1–O6, e2e G1–G5, regression
+  snapshot of move / shop / work from origin/main b2a6e76). Re-lock (1), before any measurement of the build: the ไหว้ครู
+  sources say Thursday only, so for an owner whose kalakini day is Thursday the planner lists no day; O6 asserts exactly that
+  for a one-weekday rule on the owner's kalakini day and "some days" everywhere else. Nothing else changed.
 - `fortune-cards` (2026-11-18, branch `fortune-cards-clean`, base b2a6e76): owner order 2026-11-18 (fortune cards clean, disclaimer
   once). New `tests/unit/fortune-cards.test.js` and `tests/e2e/fortune-cards.e2e.mjs` locked before the change (unit 2/8, e2e 2/5 before).
   Re-lock (relock-1) of `cat-pages.test.js`, `categories.e2e.mjs` and `fortune-live.test.js`, reason "owner decision 2026-11-18: fortune
@@ -273,6 +277,16 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   `cat-fortune.html` must not have it.
   Re-lock 3 (test-setup only, after the first e2e run on the build): `fortune-cards.e2e.mjs` scrolls cards into view with
   behavior "instant" (the site's smooth scrolling made the test read a card's position mid-scroll). No assertion changed.
+- `planner-occasions-labels` (2026-11-19, branch `planner-occasions`): owner decisions 114–117. Locked before the build: unit C1–C5
+  (`tests/unit/planner-occasions-labels.test.js`: every occasion and rule has a source class text / modern in the code and in
+  `docs/planner-occasion-sources.json`; the classification; the label in TH / EN / ZH; no tradition wording on modern items, with the
+  Thai `evenMonth` reason of move declared as frozen by the locked planner-occasions O5 snapshot until the move / shop / work work; source
+  notes stay internal) and e2e V1–V4 (`tests/e2e/planner-occasions-labels.e2e.mjs`: label visible and whole at 360 px, TH / EN / ZH).
+  Re-lock 2 (2026-11-19, stricter, independent review round 1 of f31a9d24): C4 has no evenMonth exception, also checks every
+  `pl.b.*` basis string in TH / EN / ZH and the label after the even-month sentence, and forbids the teachers'-day framing on modern
+  items; the e2e runs on a fixed clock (2026-11-19) with start month 2027-5 required. Same review: `planner-occasions` re-lock 2 changes
+  only `TH.evenMonth` in `planner-regression-3.json` (all 114 day snapshots byte-identical, equal strictness) and puts G4 of
+  `planner-occasions.e2e.mjs` on the same fixed clock and month (stricter).
 
 - `seller-settings` (2026-11-18): owner order "needed for selling" (seller details page + quotation / invoice / receipt).
   Three files locked before `backend/src/seller.js`, `backend/src/price-list.js`, migration `0021_seller.sql` and

@@ -1,0 +1,1439 @@
+{
+ "note": "Sources for the occasions of planner.html (owner order 2026-11-18). Two or more independent publishers per occasion, each page fetched and read on the date given; excerpt_th is the supporting line as read. Not shown on the page (fortune pages show no citations, owner order 2026-11-12). Rule = what lensiq-planner.js / lensiq-planner-occ.js use. Source class (owner decisions 114-117, 2026-11-19): \"class\" per occasion and \"rule_class\" per rule, \"text\" (from a traditional text) or \"modern\" (labelled \"ตามความนิยมสมัยใหม่\" / \"Modern practice\" / \"现代习俗\" on the page). Internal: the page never shows these notes.",
+ "occasions": [
+  {
+   "id": "wedding",
+   "group": "family",
+   "th": "แต่งงาน",
+   "en": "Wedding",
+   "rule_th": "ตำรางานแต่งนิยมวันศุกร์ (ความรัก) เดือนคู่ตามจันทรคติ (ชีวิตคู่) หรือเดือน 9 (ก้าวหน้า) และข้างขึ้น หน้านี้จึงแสดงวันในเดือนเหล่านั้นที่ไม่ตรงกับวันที่ตำราไม่นิยม แล้วเทียบกับวันเกิดของคู่บ่าวสาว",
+   "sources": [
+    {
+     "title": "รู้จัก \"วันฤกษ์ดี เดือนมงคล\" ก่อน \"แต่งงาน - จดทะเบียนสมรส\"",
+     "publisher": "Thai PBS (ไทยพีบีเอส)",
+     "author": null,
+     "url": "https://www.thaipbs.or.th/news/content/341193",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "คนไทยนิยมแต่งงานกันในเดือนคู่ ... ส่วนในเรื่องที่ไม่นิยมแต่งงานกันใน วันพุธ วันอังคาร และวันเสาร์ รวมถึงวันพฤหัสบดี ด้วยนั้น",
+     "supports": "เดือนคู่ 2/4/6, เดือน 9, เดือน 6 นิยมสุด, เลี่ยงเดือน 12 และบางตำราเลี่ยงเดือน 8; ระบุวันอังคาร พุธ พฤหัสบดี เสาร์ เป็นวันไม่นิยม (อ้าง อ.วัฒนะ บุญจับ)"
+    },
+    {
+     "title": "การแต่งงาน (หัวข้อ การหาฤกษ์)",
+     "publisher": "thaifolk.com (เว็บไซต์คติชนและวัฒนธรรมไทย)",
+     "author": null,
+     "url": "https://www.thaifolk.com/doc/wedding.htm",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ส่วนมากมักจะแต่งกันในเดือนคู่ เพื่อจะได้อยู่คู่เคียงกันตลอดไปนั่นเอง ... ถ้าเป็นข้างขึ้นถือว่าดีกว่าข้างแรมเพื่อให้ชีวิตจะได้เจริญรุ่งเรืองสว่างไสว",
+     "supports": "เดือนคู่, ข้างขึ้น, เดือน 6 นิยมที่สุด, ไม่นิยมเดือน 12"
+    },
+    {
+     "title": "ส่องฤกษ์แต่งงานปี 2568 เลือกวันดี ครองคู่ครองรักกันยืนยาว",
+     "publisher": "บัตรเครดิตกรุงศรี (krungsricard.com)",
+     "author": null,
+     "url": "https://www.krungsricard.com/en/article/best-wedding-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "จะเลือกแต่งงานเดือนที่เป็นเลขคู่ อย่างเดือน 2, 4, 6, 10 ตามปฏิทินจันทรคติไทย",
+     "supports": "เดือนคู่ 2/4/6/10, เดือน 9 (ก้าวหน้า), ดิถีเรียงหมอน ขึ้น 7/10/13 แรม 4/8/10/14"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เหมาะกับการจัดพิธีมงคล เช่น พิธีหมั้น แต่งงาน",
+     "supports": "วันศุกร์เป็นวันดีสำหรับหมั้นและแต่งงาน; วันพุธไม่เหมาะเริ่มสิ่งระยะยาวรวมถึงแต่งงาน"
+    },
+    {
+     "title": "เช็คลิสต์ ฤกษ์แต่งงาน 2566 เตรียมความพร้อมสร้างเรือนหอ",
+     "publisher": "LG Electronics Thailand (blog)",
+     "author": null,
+     "url": "https://www.lg.com/th/blog-list/auspicious-wedding-2023/",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ฤกษ์แต่งงานให้ใช้ข้างขึ้น 7 10 13 ค่ำ ข้างแรม 4 8 10 และ 14 ค่ำ",
+     "supports": "ดิถีเรียงหมอน; ระบุเลี่ยงวันพระ วันพฤหัสบดี วันพุธ วันเสาร์ และวันอุบาทว์"
+    }
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Fri favoured; Sun / Mon listed as days the wedding texts do not advise against (thaifolk, Wongnai)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Friday (Venus, love): Thai PBS, thaifolk, Krungsri, Wongnai."
+    },
+    "months": {
+     "class": "text",
+     "note": "Even lunar months and month 9: Thai PBS, thaifolk."
+    },
+    "waxing": {
+     "class": "text",
+     "note": "Waxing moon for weddings: thaifolk wedding customs (การหาฤกษ์)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "engage",
+   "group": "family",
+   "th": "หมั้น / สู่ขอ",
+   "en": "Engagement",
+   "rule_th": "การหมั้นมักหาฤกษ์พร้อมงานแต่ง จึงใช้หลักเดียวกัน: วันศุกร์ เดือนคู่ หรือเดือน 9 และข้างขึ้น แล้วเทียบกับวันเกิดของทั้งสองฝ่าย",
+   "sources": [
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เหมาะกับการจัดพิธีมงคล เช่น พิธีหมั้น แต่งงาน",
+     "supports": "วันศุกร์ดีสำหรับพิธีหมั้น"
+    },
+    {
+     "title": "การแต่งงาน (หัวข้อ การหาฤกษ์)",
+     "publisher": "thaifolk.com (เว็บไซต์คติชนและวัฒนธรรมไทย)",
+     "author": null,
+     "url": "https://www.thaifolk.com/doc/wedding.htm",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "โดยหาฤกษ์วันเวลาที่ยกขันหมาก ฤกษ์หมั้น ฤกษ์รดน้ำสังข์ และส่งตัวคู่บ่าวสาวไว้เรียบร้อย",
+     "supports": "ฤกษ์หมั้นหาไปพร้อมกับฤกษ์แต่งงาน (ใช้หลักเดียวกัน) — ไม่ได้ให้กฎวันหรือเดือนแยก"
+    }
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Same weekday rule as the wedding; the engagement is part of the wedding customs (thaifolk)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Friday: wedding customs (thaifolk) and Wongnai weekday beliefs."
+    },
+    "months": {
+     "class": "text",
+     "note": "Even months / month 9 from the wedding customs (thaifolk)."
+    },
+    "waxing": {
+     "class": "text",
+     "note": "Waxing moon from the wedding customs (thaifolk)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "regmarry",
+   "group": "family",
+   "th": "จดทะเบียนสมรส",
+   "en": "Registering a marriage",
+   "rule_th": "ตำราไม่ได้กำหนดวันในสัปดาห์สำหรับจดทะเบียนสมรส คนนิยมจดในเดือนเดียวกับงานแต่ง (เดือนคู่หรือเดือน 9) หน้านี้แสดงเฉพาะวันจันทร์ถึงศุกร์ที่สำนักงานเปิด",
+   "sources": [
+    {
+     "title": "ฤกษ์แต่งงาน 2565 ฤกษ์ดิถีเรียงหมอน ฤกษ์จดทะเบียนสมรส",
+     "publisher": "ไทยรัฐออนไลน์",
+     "author": null,
+     "url": "https://www.thairath.co.th/horoscope/belief/2406542",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "แนะนำให้จดทะเบียนสมรสในเดือนเดียวกันหรือจัดในวันเดียวกับการจัดพิธีแต่งงาน",
+     "supports": "การจดทะเบียนอิงเดือน/วันของงานแต่ง"
+    },
+    {
+     "title": "รู้จัก \"วันฤกษ์ดี เดือนมงคล\" ก่อน \"แต่งงาน - จดทะเบียนสมรส\"",
+     "publisher": "Thai PBS (ไทยพีบีเอส)",
+     "author": null,
+     "url": "https://www.thaipbs.or.th/news/content/341193",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "คนไทยนิยมแต่งงานกันในเดือนคู่",
+     "supports": "บทความเดียวกันครอบคลุมทั้งแต่งงานและจดทะเบียน ให้หลักเดือนคู่และวันไม่นิยม (อังคาร พุธ พฤหัสบดี เสาร์) — แต่ประโยคเรื่องเดือนพูดถึงแต่งงาน ไม่ได้พูดถึงการจดโดยตรง"
+    }
+   ],
+   "class": "modern",
+   "rule_class": {
+    "office": {
+     "class": "modern",
+     "note": "Mon-Fri only because the district office is open; office hours, not a text."
+    },
+    "months": {
+     "class": "modern",
+     "note": "Couples register in the month of the wedding (Thairath, Thai PBS): practice, the texts give no rule for civil registration."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "ordain",
+   "group": "family",
+   "th": "บวช",
+   "en": "Ordination",
+   "rule_th": "นิยมบวชช่วงก่อนเข้าพรรษา (เดือน 7 ถึงกลางเดือน 8) เพื่อให้ทันจำพรรษา วันและเวลาจริงให้พระอุปัชฌาย์และวัดเป็นผู้กำหนด",
+   "sources": [
+    {
+     "title": "เข้าพรรษา 2568 \"บวชเณร-พระ\" สืบสานพุทธศาสนาและพัฒนาตน",
+     "publisher": "Thai PBS (ไทยพีบีเอส)",
+     "author": null,
+     "url": "https://www.thaipbs.or.th/news/content/353909",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "กำหนดวันและฤกษ์ เลือกวันที่เหมาะสม โดยมักเลือกช่วงเข้าพรรษาหรือวันสำคัญทางศาสนา",
+     "supports": "ช่วงเวลาของปี: เข้าพรรษา / วันสำคัญทางศาสนา"
+    },
+    {
+     "title": "รวมฤกษ์บวช 2569 สำหรับเตรียมตัวบวชเพื่อพ่อแม่ และตนเอง",
+     "publisher": "Shopee Blog",
+     "author": "Peem",
+     "url": "https://shopee.co.th/blog/best-time-ordination",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "หากต้องการบวชในช่วงเข้าพรรษา ก็ควรเลือกฤกษ์ที่อยู่ในช่วงเวลานั้น",
+     "supports": "เลือกฤกษ์ในช่วงเข้าพรรษา"
+    }
+   ],
+   "class": "text",
+   "rule_class": {
+    "prelent": {
+     "class": "text",
+     "note": "Ordination before Buddhist Lent (month 7 to mid month 8): Buddhist custom (Thai PBS, Shopee blog)."
+    },
+    "months": {
+     "class": "text",
+     "note": "Lunar months 7-8, the pre-Lent season (same custom)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "bdaymerit",
+   "group": "family",
+   "th": "ทำบุญวันเกิด",
+   "en": "Merit-making for a birthday or age",
+   "rule_th": "นิยมทำบุญวันเกิดตรงกับวันในสัปดาห์ที่ตนเกิด หรือวันเกิดประจำปี ใส่วันเกิดของเจ้าของงานเพื่อดูวัน",
+   "sources": [
+    {
+     "title": "เคล็ดลับ ทำบุญวันเกิด เสริมดวง 7 วันเกิด ทำบุญอย่างไรให้ตรงธาตุ ชีวิตราบรื่น",
+     "publisher": "ไทยรัฐออนไลน์",
+     "author": null,
+     "url": "https://www.thairath.co.th/lifestyle/life/2946966",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "การทำบุญวันเกิดในธรรมเนียมไทยมีความหมายมากกว่าแค่การฉลอง",
+     "supports": "ทำบุญวันเกิดตามวันเกิดทั้ง 7 วัน (พุธแยกกลางวัน/กลางคืน) พร้อมของถวายตามธาตุ"
+    },
+    {
+     "title": "How Thai People Celebrate Birthdays",
+     "publisher": "Thailand Foundation (มูลนิธิไทย)",
+     "author": "Soonyata Mianlamai",
+     "url": "https://thailandfoundation.or.th/?p=518830",
+     "kind": "official",
+     "read": "2026-11-18",
+     "excerpt_th": "(English page, no Thai text) \"it is not mandatory to perform this act on the actual birthdate.\" / \"those born on Sunday often give alms to monks every Sunday.\"",
+     "supports": "ทำบุญวันเกิดประจำปี ไม่บังคับตรงวันเกิดจริง; ทำบุญตามวันในสัปดาห์ที่เกิด; จำนวนพระ = อายุ + 1"
+    }
+   ],
+   "class": "text",
+   "rule_class": {
+    "needsOwner": {
+     "class": "text",
+     "note": "Merit on one's own birth weekday: Thai birth-weekday custom (Thairath, Thailand Foundation)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "haircut",
+   "group": "family",
+   "th": "โกนผมไฟ",
+   "en": "A baby's first haircut",
+   "rule_th": "พิธีโกนผมไฟเดิมทำเมื่อเด็กอายุครบ 1 เดือน ปัจจุบันยืดได้ถึงราว 6 เดือน ตำราตัดผมนิยมวันศุกร์ หน้านี้ไม่แสดงวันอังคารและวันพุธซึ่งตำราไม่นิยมตัดผม",
+   "sources": [
+    {
+     "title": "ฤกษ์โกนผมไฟ ธันวาคม 2569 ฤกษ์โกนผมไฟตามวันเกิด",
+     "publisher": "Enfa Baby (enfababy.com)",
+     "author": "การะเกต์ ศรีปริญญาศิลป์ (การะเกต์พยากรณ์)",
+     "url": "https://www.enfababy.com/blogs/lifestyle-astrology/thai-fire-shaving-ceremony-dates-december-2026",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ในสมัยก่อนจะใช้สมฤกษ์เป็นหลัก เพราะถือว่าจะเป็นวันแห่งการคุ้มครอง ปกปักรักษา",
+     "supports": "อายุเด็ก 30 วัน–6 เดือน, สมโณฤกษ์; ระบุเลี่ยงวันอังคาร (ของมีคม) และวันพุธ (พุธห้ามตัด)"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ตัดและสระผมวันศุกร์ก็จะอยู่ดีมีสุข",
+     "supports": "วันศุกร์ดีสำหรับตัดผม; ระบุวันพุธห้ามตัด และวันอังคารไม่ควรโกนจุกเด็ก"
+    },
+    {
+     "title": "บอกต่อ! โกนผมไฟวันไหนดี ฤกษ์ดีที่คุณแม่ห้ามพลาด!",
+     "publisher": "Sale Here",
+     "author": "Sale Here Editor",
+     "url": "https://salehere.co.th/articles/auspicious-hair-present-at-birth",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "แนะนำว่าควรเป็นช่วงลูกน้อยมีอายุ 1 เดือนขึ้นไป",
+     "supports": "อายุเด็ก 1 เดือนขึ้นไป"
+    }
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Tue / Wed left out: haircut weekday text (Wongnai, Enfa, Sale Here)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Friday favoured by the haircut weekday text."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "move",
+   "group": "home",
+   "th": "ขึ้นบ้านใหม่",
+   "en": "Moving into a new home",
+   "rule_th": "ตำราขึ้นบ้านใหม่นิยมวันจันทร์ พุธ พฤหัสบดี และศุกร์ หน้านี้ดูข้างขึ้นและเดือนคู่ตามจันทรคติประกอบ แล้วเทียบกับวันเกิดของเจ้าบ้าน",
+   "sources": [
+    {
+     "title": "ขึ้นบ้านใหม่วันไหนดี ตามความเชื่อโบราณ",
+     "publisher": "Sanook (sanook.com)",
+     "author": null,
+     "url": "https://www.sanook.com/horoscope/230493/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "ให้ขึ้นในวันพุธ วันพฤหัสบดี และวันศุกร์ จะเป็นการดี",
+     "supports": "weekdays 3,4,5"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เหมาะกับการเจรจาธุรกิจ เข้ารับตำแหน่งใหม่ ขึ้นบ้านใหม่ / ห้ามทำการสิ่งใดที่เป็นการเริ่มต้นใหม่ เช่น การย้ายบ้าน",
+     "supports": "Thursday good; Monday good for new starts; Friday good; Sunday and Saturday named as days to avoid for moving"
+    },
+    {
+     "title": "ฤกษ์ขึ้นบ้านใหม่ 2568 ฉบับปฏิทินไทย-จีน รวมวันดี วันมงคลตามวันเกิด",
+     "publisher": "KTC (บัตรกรุงไทย)",
+     "author": null,
+     "url": "https://www.ktc.co.th/article/lifestyle/home-decoration/new-home-auspicious-day",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "สำหรับวันมงคลของผู้ที่เกิดวันอาทิตย์ คือ วันจันทร์หรือวันพฤหัสบดี",
+     "supports": "Monday and Thursday favoured (Monday = start of week, new beginnings); birth-weekday avoid list"
+    },
+    {
+     "title": "ฤกษ์ขึ้นบ้านใหม่ 2569 ดูวันดีมงคลย้ายเข้า ทำบุญบ้าน 12 เดือน",
+     "publisher": "ennxo",
+     "author": "N.M. Phoebe",
+     "url": "https://www.ennxo.com/horoscope/auspicious-days-for-new-house-2026",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เดือนที่นิยมขึ้นบ้านใหม่ตามตำรา คือ เดือน 2, 4, 6, 9, 12",
+     "supports": "lunar months 2,4,6,9,12"
+    },
+    {
+     "title": "ฤกษ์ขึ้นบ้านใหม่ ฤกษ์ย้ายเข้าบ้านตามวันเกิด ฤกษ์ดีตามวันเกิด",
+     "publisher": "ไทยรัฐออนไลน์",
+     "author": "แมน การิน",
+     "url": "https://www.thairath.co.th/horoscope/belief/2808749",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "ห้ามย้ายเข้าบ้านในวันอาทิตย์เด็ดขาด เพราะว่าเป็นคู่ขัดสำหรับวันจันทร์",
+     "supports": "birth-weekday rules (Monday-born avoid Sunday; Friday-born avoid Wednesday)"
+    }
+   ],
+   "rule_note": "Existing rule kept unchanged (locked regression). Sources confirm Mon / Wed / Thu / Fri; the waxing moon is not confirmed by the fetched sources, and only one source gives months (2, 4, 6, 9, 12, not all even). Owner decision pending.",
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Mon / Wed / Thu / Fri confirmed (Sanook, Wongnai, KTC, ennxo, Thairath)."
+    },
+    "waxing": {
+     "class": "modern",
+     "note": "Waxing-moon point: not confirmed by the fetched sources; labelled modern practice until the move/shop/work work."
+    },
+    "evenMonth": {
+     "class": "modern",
+     "note": "Even-month point: only one source gives months (2, 4, 6, 9, 12, not all even); labelled modern practice. Thai reason wording frozen by planner-occasions O5 until the move/shop/work work."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "pillar",
+   "group": "home",
+   "th": "ยกเสาเอก",
+   "en": "Raising the main pillar",
+   "rule_th": "ตำราปลูกเรือนนิยมวันจันทร์ พุธ และพฤหัสบดี ในเดือน 1, 2, 4, 6, 9, 12 ตามจันทรคติ แล้วเทียบกับวันเกิดของเจ้าบ้าน",
+   "sources": [
+    {
+     "title": "พิธียกเสาเอก หาฤกษ์งามยามดีให้เหมาะสม เตรียมพร้อมก่อนสร้างบ้าน",
+     "publisher": "Thaihometown",
+     "author": null,
+     "url": "https://www.thaihometown.com/fengshui/3444/",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ฤกษ์ปลูกเรือนตามเดือน เดือนดีคือ 6,9,12,1,2,4 (เดือนไทย) ฤกษ์ปลูกเรือนตามวัน วันดีคือ จันทร์, พุธ, พฤหัสบดี",
+     "supports": "months 1,2,4,6,9,12; weekdays Mon, Wed, Thu; birth-weekday exceptions; direction by month (page is TIS-620; WebFetch returned garbled text, so the excerpt was verified by downloading and converting the same URL)"
+    },
+    {
+     "title": "การลงเสาเอก พิธีตั้งเสาเอก ฤกษ์ดีก่อนสร้างบ้าน",
+     "publisher": "Kapook (home.kapook.com), credits homethaidd.com",
+     "author": null,
+     "url": "https://home.kapook.com/view44142.html",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เดือนดีคือ 6,9,12,1,2,4 (เดือนไทย) / วันดีคือ จันทร์, พุธ, พฤหัสบดี",
+     "supports": "same rules (same root text as Thaihometown)"
+    },
+    {
+     "title": "ฤกษ์สร้างบ้านใหม่ปี 2566 เสริมสิริมงคล อยู่เย็นเป็นสุข",
+     "publisher": "LG Electronics Thailand",
+     "author": null,
+     "url": "https://www.lg.com/th/blog-list/auspicious-time-to-build-new-house-in-2023/",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ฤกษ์ปลูกบ้านที่ดีคือเดือน 1 2 4 6 9 และ 12",
+     "supports": "months 1,2,4,6,9,12; month 5 to avoid; birth-weekday avoid list"
+    },
+    {
+     "title": "ฤกษ์ลงเสาเอก 2567 ปลูกบ้านใหม่ วางศิลาฤกษ์ในเดือนมงคล เงินทองไหลมาเทมา",
+     "publisher": "Thaiger (thethaiger.com)",
+     "author": "Thosapol",
+     "url": "https://thethaiger.com/th/news/720738/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "ผู้ใดปลูกเรือนเดือนห้า ทุกข์เท่าฟ้ามาถึงตน ปลูกเดือนนี้ไม่มีผล ทุกข์ล้นพ้นภัยมีมา",
+     "supports": "month 5 avoided; birth-weekday avoid list"
+    }
+   ],
+   "rule_note": "Months (1, 2, 4, 6, 9, 12, required) from LG and Thaiger (independent). The Monday / Wednesday / Thursday bonus rests on one root text (Thaihometown; Kapook reprints it), so it is an extra point only, labelled 'one text'.",
+   "class": "text",
+   "rule_class": {
+    "fav": {
+     "class": "text",
+     "note": "Mon / Wed / Thu: one house-building text (Thaihometown; Kapook reprints it), extra point only."
+    },
+    "months": {
+     "class": "text",
+     "note": "Lunar months 1, 2, 4, 6, 9, 12: house-building texts (LG, Thaiger)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "pile",
+   "group": "home",
+   "th": "ลงเสาเข็ม",
+   "en": "Driving the first pile",
+   "rule_th": "การลงเสาเข็มคือการเริ่มสร้างบ้าน หน้านี้ใช้ตำราปลูกเรือน (วันจันทร์ พุธ พฤหัสบดี เดือน 1, 2, 4, 6, 9, 12) บางตำราใช้วันอธิบดีประจำปีซึ่งควรถามผู้รู้",
+   "sources": [
+    {
+     "title": "ฤกษ์สร้างบ้านใหม่ปี 2566 เสริมสิริมงคล อยู่เย็นเป็นสุข",
+     "publisher": "LG Electronics Thailand",
+     "author": null,
+     "url": "https://www.lg.com/th/blog-list/auspicious-time-to-build-new-house-in-2023/",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ฤกษ์ปลูกบ้านที่ดีคือเดือน 1 2 4 6 9 และ 12",
+     "supports": "months 1,2,4,6,9,12; month 5 to avoid; birth-weekday avoid list"
+    },
+    {
+     "title": "ฤกษ์ลงเสาเอก 2567 ปลูกบ้านใหม่ วางศิลาฤกษ์ในเดือนมงคล เงินทองไหลมาเทมา",
+     "publisher": "Thaiger (thethaiger.com)",
+     "author": "Thosapol",
+     "url": "https://thethaiger.com/th/news/720738/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "ผู้ใดปลูกเรือนเดือนห้า ทุกข์เท่าฟ้ามาถึงตน ปลูกเดือนนี้ไม่มีผล ทุกข์ล้นพ้นภัยมีมา",
+     "supports": "month 5 avoided; birth-weekday avoid list"
+    },
+    {
+     "title": "รู้จัก \"วันอธิบดี\" และ \"วันธงชัย\" ดูฤกษ์มงคลก่อนจัดงานสำคัญ",
+     "publisher": "PPTV HD 36",
+     "author": "PPTV Online",
+     "url": "https://www.pptvhd36.com/news/%E0%B9%84%E0%B8%A5%E0%B8%9F%E0%B9%8C%E0%B8%AA%E0%B9%84%E0%B8%95%E0%B8%A5%E0%B9%8C/190891",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "แต่งงาน วางศิลาฤกษ์ ลงเสาเข็ม ลงเสาเอก ยกศาลพระภูมิ ปลูกบ้านเรือน หรือเปลี่ยนชื่อเปลี่ยนนามสกุล",
+     "supports": "วันอธิบดี suits ลงเสาเข็ม; กาลโยคเปลี่ยนทุก 16 เมษายน"
+    }
+   ],
+   "rule_note": "Months only (1, 2, 4, 6, 9, 12, required), from the house-building texts (LG, Thaiger). No fetched source gives a weekday for piling; PPTV and phalangsattha point to the year's adhibodi day, which the page does not compute.",
+   "class": "text",
+   "rule_class": {
+    "months": {
+     "class": "text",
+     "note": "Lunar months 1, 2, 4, 6, 9, 12: house-building texts (LG, Thaiger); piling = start of building."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "spirit",
+   "group": "home",
+   "th": "ตั้งศาลพระภูมิ",
+   "en": "Setting up a spirit house",
+   "rule_th": "ตำราตั้งศาลพระภูมินิยมช่วงเช้าวันพุธหรือพฤหัสบดี ในวัน 2, 4, 6, 9, 11 ค่ำ และไม่ใช้วันที่ตำราเว้นไว้ในเดือนนั้น ควรเลี่ยงเวลาเที่ยงตรง",
+   "sources": [
+    {
+     "title": "วิธีตั้งศาลพระภูมิ พร้อมของไหว้และบทสวดบูชา",
+     "publisher": "Kapook (home.kapook.com)",
+     "author": null,
+     "url": "https://home.kapook.com/view265236.html",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "นิยมทำพิธีในช่วงเช้าของวันพุธหรือวันพฤหัสบดี",
+     "supports": "Wed, Thu mornings; month-forbidden weekdays"
+    },
+    {
+     "title": "ฤกษ์ตั้งศาลพระภูมิ 2569 วิธีตั้งศาล ของไหว้ ฉบับเจาะลึก โดย คุณบิงโก",
+     "publisher": "Sansiri (แสนสิริ)",
+     "author": "ศุภวงศ์ ฉายเรืองเกียรติ",
+     "url": "https://www.sansiri.com/content/view/%E0%B8%95%E0%B8%A3%E0%B8%A7%E0%B8%88%E0%B8%9A%E0%B9%89%E0%B8%B2%E0%B8%99%E0%B9%82%E0%B8%AD%E0%B8%99%E0%B8%9A%E0%B9%89%E0%B8%B2%E0%B8%99-%E0%B8%A4%E0%B8%81%E0%B8%A9%E0%B9%8C%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B8%A8%E0%B8%B2%E0%B8%A5%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%A0%E0%B8%B9%E0%B8%A1%E0%B8%B4-%E0%B8%A7%E0%B8%B4%E0%B8%98%E0%B8%B5%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B8%A8%E0%B8%B2%E0%B8%A5%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%A0%E0%B8%B9%E0%B8%A1%E0%B8%B4/th",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ให้เลือกวัน \"ข้างขึ้น\" หรือวัน \"ข้างแรม\" ที่ตรงกับ 2, 4, 6, 9, 11 ค่ำ",
+     "supports": "lunar days 2,4,6,9,11 either phase; month-forbidden weekdays; avoid noon; ภูมิปาโลฤกษ์"
+    },
+    {
+     "title": "รวมข้อมูลเกี่ยวกับศาลพระภูมิ พร้อมวิธีตั้งศาลและฤกษ์ดี",
+     "publisher": "AP Thai (เอพี ไทยแลนด์)",
+     "author": null,
+     "url": "https://www.apthai.com/th/blog/know-how/how-to-set-up-spirit-house",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "วันข้างขึ้น: 2 ค่ำ, 4 ค่ำ, 6 ค่ำ, 9 ค่ำ, 11 ค่ำ",
+     "supports": "lunar days; month-forbidden weekday table; times per weekday"
+    },
+    {
+     "title": "เรื่องควรรู้ การตั้งศาลพระภูมิ ที่คุณอาจมองข้าม",
+     "publisher": "Review Your Living",
+     "author": null,
+     "url": "https://www.reviewyourliving.com/life-style/how-to-set-up-spirit-house-082018/",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "แต่ถ้าวันข้างขึ้น หรือข้างแรมดังกล่าวไปตรงกับวันต้องห้าม ของเดือนใด ให้เลี่ยงไปใช้วันอื่นเสีย",
+     "supports": "month-forbidden rule; Sunday not forbidden but not preferred"
+    }
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Wed / Thu morning: spirit-house texts (Kapook, Sansiri, AP, Review Your Living)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Wed / Thu favoured (same texts)."
+    },
+    "lunarDays": {
+     "class": "text",
+     "note": "Lunar days 2, 4, 6, 9, 11 (same texts)."
+    },
+    "monthBan": {
+     "class": "text",
+     "note": "Weekdays left out per lunar month: the texts' monthly table."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "shrine",
+   "group": "home",
+   "th": "ตั้งหิ้งพระ",
+   "en": "Setting up a home shrine",
+   "rule_th": "ตำราตั้งหิ้งพระนิยมวันพฤหัสบดี (วันครู) และวันศุกร์ (ความสุข) ช่วงเช้าหรือเย็น เวลาที่ทุกคนในบ้านสะดวกก็นับเป็นมงคล",
+   "sources": [
+    {
+     "title": "ย้ายพระพุทธรูป เข้าบ้านใหม่ 2026 ขั้นตอน บทสวด และฤกษ์ดีสิริมงคล",
+     "publisher": "Thai Dee Move (thaideemove.com)",
+     "author": null,
+     "url": "https://www.thaideemove.com/moving-the-buddha/",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ถือเป็นวันครู / เหมาะแก่การประกอบพิธีมงคลเกี่ยวกับสิ่งศักดิ์สิทธิ์ / เชื่อกันว่าเป็นวันแห่งความสุข ความเจริญรุ่งเรือง",
+     "supports": "Thu, Fri favoured; avoid วันพระ"
+    },
+    {
+     "title": "อัญเชิญพระเข้าบ้านใหม่ เริ่มยังไง? คู่มือฉบับเข้าใจง่ายสำหรับคนซื้อบ้าน",
+     "publisher": "Nayoo (nayoo.co)",
+     "author": null,
+     "url": "https://nayoo.co/blogs/inviting-buddha-into-home-thai-ceremony",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "แนะนำทำพิธีวันจันทร์หรือวันพฤหัสบดี จะช่วยเสริมความสงบสุขร่มเย็น",
+     "supports": "birth-weekday mapping (Thu and Fri recur most often)"
+    },
+    {
+     "title": "ย้ายหิ้งพระวันไหนดี เช็กฤกษ์มงคลอัพเดทปีใหม่ พร้อมวิธีเตรียมตัวอย่างถูกต้อง",
+     "publisher": "MoveHomeThailand",
+     "author": null,
+     "url": "https://movehomethailand.com/what-day-best-move-the-buddha-altar/",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ควรเชิญพระเข้าบ้านในช่วงเช้าหรือช่วงเย็น แต่ไม่ควรเชิญพระเข้าบ้านในเวลากลางคืน",
+     "supports": "time of day"
+    }
+   ],
+   "rule_note": "Thursday / Friday; Buddhist holy days (wan phra) are not listed (thaideemove); another source calls them suitable, so the stricter reading is used.",
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Thu / Fri: shrine texts (thaideemove, Nayoo, MoveHomeThailand)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Thu (teachers' day) / Fri (happiness), same texts."
+    },
+    "skipPhra": {
+     "class": "text",
+     "note": "Holy days not listed (thaideemove); another source calls them suitable; stricter belief reading kept."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "shop",
+   "group": "biz",
+   "th": "เปิดร้าน / กิจการ",
+   "en": "Opening a shop",
+   "rule_th": "ตำราเปิดร้านนิยมวันพฤหัสบดีและศุกร์ บางตำรานิยมวันพุธ (การค้า) และวันอาทิตย์ หน้านี้ดูข้างขึ้นประกอบ แล้วเทียบกับวันเกิดของเจ้าของร้าน",
+   "sources": [
+    {
+     "title": "ฤกษ์เปิดกิจการ 2569 วันมงคล ตามวันเกิด ฟรี | THAKSA",
+     "publisher": "THAKSA (บริษัท วัชระทรัพย์ จำกัด)",
+     "author": null,
+     "url": "https://thaksa.ai/tools/auspicious/%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B8%94%E0%B8%81%E0%B8%B4%E0%B8%88%E0%B8%81%E0%B8%B2%E0%B8%A3",
+     "kind": "almanac",
+     "read": "2026-11-18",
+     "excerpt_th": "ตำราถือวันพุธ (การสื่อสารและการค้า) วันพฤหัสบดี (โชคลาภ) และวันศุกร์ (ดึงดูดลูกค้า) เป็นวันดีของการเปิดร้าน",
+     "supports": "Wed, Thu, Fri favoured with planet reasons"
+    },
+    {
+     "title": "ฤกษ์ดี วันมงคล เปิดร้าน เปิดกิจการ",
+     "publisher": "duang-d.com",
+     "author": "ทีมดูดวง duang-d",
+     "url": "https://www.duang-d.com/article/auspicious-date-open-shop-1768964099-1",
+     "kind": "almanac",
+     "read": "2026-11-18",
+     "excerpt_th": "วันที่เหมาะสมส่วนใหญ่มักจะเป็นวันพุธและวันศุกร์ เพราะเชื่อกันว่าเป็นวันที่ดีในการเริ่มต้นสิ่งใหม่ๆ",
+     "supports": "Wed, Fri favoured"
+    },
+    {
+     "title": "วันดีๆ เสริมสิริมงคลตามวันเกิด",
+     "publisher": "Sanook (sanook.com)",
+     "author": null,
+     "url": "https://www.sanook.com/horoscope/17677/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "เปิดกิจการ ขยายกิจการ ขึ้นบ้านใหม่ จะร่ำรวย รุ่งโรจน์",
+     "supports": "Sunday favoured for opening/expanding a business (conflicts with Wongnai)"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ไม่เหมาะกับการเริ่มต้นทำส่ิงใหม่ที่ใช้ระยะเวลานาน เช่น การเปิดร้านใหม่",
+     "supports": "names Wednesday as a day to avoid for opening a shop; Sunday avoid new beginnings"
+    },
+    {
+     "title": "ฤกษ์เปิดร้าน 2569 เช็กวันมงคลรายเดือน ค้าขายรุ่งเรืองรับทรัพย์",
+     "publisher": "KTC (บัตรกรุงไทย)",
+     "author": null,
+     "url": "https://www.ktc.co.th/article/knowledge/auspicious-days-to-open-shop-this-year",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เจ้าของร้านจำเป็นต้องตรวจสอบวันกาลกิณีประจำวันเกิดของตนเองควบคู่ไปด้วย",
+     "supports": "year-specific ธงชัย (Sat)/อธิบดี (Wed) for 2569; check birth-weekday กาลกิณี"
+    }
+   ],
+   "rule_note": "Existing rule kept unchanged (locked regression). Thu / Fri are clean; Sunday and Wednesday are favoured by some sources (Sanook; THAKSA, duang-d) and disfavoured by Wongnai. Owner decision pending.",
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Thu / Fri clean; Sun / Wed favoured by some texts (Sanook; THAKSA, duang-d), disfavoured by Wongnai. Rule kept; separate move/shop/work work this week."
+    },
+    "waxing": {
+     "class": "modern",
+     "note": "Waxing-moon point: not confirmed by the recorded sources; labelled modern practice until the move/shop/work work."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "compreg",
+   "group": "biz",
+   "th": "จดทะเบียนบริษัท",
+   "en": "Registering a company",
+   "rule_th": "วันจันทร์และวันพฤหัสบดีเป็นวันที่คนนิยมจดทะเบียนบริษัทมากที่สุดตามสถิติของกรมพัฒนาธุรกิจการค้า จดได้เฉพาะวันทำการ",
+   "sources": [
+    {
+     "title": "เปิดสถิติวันมงคล ที่คนไทยถือฤกษ์จดทะเบียนตั้งธุรกิจเยอะสุดรอบปี",
+     "publisher": "เดลินิวส์ (Daily News)",
+     "author": null,
+     "url": "https://www.dailynews.co.th/news/4167188/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "วันจันทร์และวันพฤหัสบดี เป็นวันที่มีจำนวนการจดทะเบียนธุรกิจสูงที่สุดในกลุ่มวันทำการทั่วไป",
+     "supports": "Mon, Thu most chosen; reason Mon first day, Thu teacher's day"
+    },
+    {
+     "title": "สายมูไม่พลาด! พาณิชย์ พาส่อง \"วันมงคล\" ดันจดทะเบียนตั้งบริษัทใหม่สูงกว่าปกติ",
+     "publisher": "InfoQuest (อินโฟเควสท์)",
+     "author": null,
+     "url": "https://www.infoquest.co.th/?p=452094",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "วันครู ซึ่งปกติคนไทยมักจะเชื่อว่าเป็นวันที่ดี",
+     "supports": "Thursday reason; Mon/Thu most chosen; 9/9, 8/8 dates"
+    }
+   ],
+   "rule_note": "Practice, not almanac: both sources report the same Department of Business Development registration statistics (Mon and Thu most popular). Owner decision pending on keeping a statistics-based rule.",
+   "class": "modern",
+   "rule_class": {
+    "days": {
+     "class": "modern",
+     "note": "Mon / Thu: Department of Business Development registration statistics (Daily News, InfoQuest), not a text."
+    },
+    "fav": {
+     "class": "modern",
+     "note": "Same statistics."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "newco",
+   "group": "biz",
+   "th": "เริ่มกิจการใหม่",
+   "en": "Starting a new company",
+   "rule_th": "ตำราการค้านิยมเริ่มกิจการวันพฤหัสบดี (ความน่าเชื่อถือ) และวันศุกร์ (ดึงดูดลูกค้า) แล้วเทียบกับวันเกิดของเจ้าของกิจการ",
+   "sources": [
+    {
+     "title": "ฤกษ์ดี 2569 รวมวันมงคล ขึ้นบ้านใหม่ ออกรถ เริ่มธุรกิจ",
+     "publisher": "Lotus's (my.lotuss.com)",
+     "author": null,
+     "url": "https://my.lotuss.com/articles/1463/en",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ควรเลือกให้ตรงกับ วันธงชัยประจำเดือน หรือ วันพฤหัสบดี เพื่อเพิ่มความน่าเชื่อถือในสายตาคู่ค้า",
+     "supports": "Thursday for starting a business / contracts"
+    },
+    {
+     "title": "ฤกษ์เปิดกิจการ 2569 วันมงคล ตามวันเกิด ฟรี | THAKSA",
+     "publisher": "THAKSA (บริษัท วัชระทรัพย์ จำกัด)",
+     "author": null,
+     "url": "https://thaksa.ai/tools/auspicious/%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B8%94%E0%B8%81%E0%B8%B4%E0%B8%88%E0%B8%81%E0%B8%B2%E0%B8%A3",
+     "kind": "almanac",
+     "read": "2026-11-18",
+     "excerpt_th": "ตำราถือวันพุธ (การสื่อสารและการค้า) วันพฤหัสบดี (โชคลาภ) และวันศุกร์ (ดึงดูดลูกค้า) เป็นวันดีของการเปิดร้าน",
+     "supports": "Wed, Thu, Fri"
+    },
+    {
+     "title": "วันดีๆ เสริมสิริมงคลตามวันเกิด",
+     "publisher": "Sanook (sanook.com)",
+     "author": null,
+     "url": "https://www.sanook.com/horoscope/17677/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "เปิดกิจการ ขยายกิจการ ขึ้นบ้านใหม่ จะร่ำรวย รุ่งโรจน์",
+     "supports": "Sunday favoured (conflicts with Wongnai)"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ไม่เหมาะกับการเริ่มต้นทำส่ิงใหม่ที่ใช้ระยะเวลานาน เช่น การเปิดร้านใหม่",
+     "supports": "Wed named to avoid for long-term new ventures; Sun avoid new beginnings; Sat 'วันแห่งความล่าช้า'"
+    }
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Thu / Fri: trade weekday beliefs (Lotus's, THAKSA, Sanook, Wongnai)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Thu / Fri: trade weekday beliefs (Lotus's, THAKSA, Sanook, Wongnai)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "contract",
+   "group": "biz",
+   "th": "เซ็นสัญญา",
+   "en": "Signing a contract",
+   "rule_th": "ตำราการค้านิยมวันพุธถึงศุกร์สำหรับเจรจาและลงนาม วันพฤหัสบดีนับเป็นวันความน่าเชื่อถือ แล้วเทียบกับวันเกิดของผู้ลงนาม",
+   "sources": [
+    {
+     "title": "ฤกษ์เซ็นสัญญา 2569 วันมงคล ตามวันเกิด ฟรี | THAKSA",
+     "publisher": "THAKSA (บริษัท วัชระทรัพย์ จำกัด)",
+     "author": null,
+     "url": "https://thaksa.ai/tools/auspicious/%E0%B9%80%E0%B8%8B%E0%B9%87%E0%B8%99%E0%B8%AA%E0%B8%B1%E0%B8%8D%E0%B8%8D%E0%B8%B2",
+     "kind": "almanac",
+     "read": "2026-11-18",
+     "excerpt_th": "ตำราถือวันพุธถึงวันศุกร์เป็นช่วงวันที่เอื้อต่อการเจรจาและลงนามครับ",
+     "supports": "Wed, Thu, Fri"
+    },
+    {
+     "title": "ฤกษ์ดี 2569 รวมวันมงคล ขึ้นบ้านใหม่ ออกรถ เริ่มธุรกิจ",
+     "publisher": "Lotus's (my.lotuss.com)",
+     "author": null,
+     "url": "https://my.lotuss.com/articles/1463/en",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ควรเลือกให้ตรงกับ วันธงชัยประจำเดือน หรือ วันพฤหัสบดี เพื่อเพิ่มความน่าเชื่อถือในสายตาคู่ค้า",
+     "supports": "Thursday"
+    },
+    {
+     "title": "วันดีๆ เสริมสิริมงคลตามวันเกิด",
+     "publisher": "Sanook (sanook.com)",
+     "author": null,
+     "url": "https://www.sanook.com/horoscope/17677/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "ทำ contact ต่างๆ จะมั่งคั่งร่ำรวย",
+     "supports": "Thursday (text says 'contact', clearly meaning contract)"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เหมาะกับการซื้อขาย ทำธุรกรรม หรือซื้อเฟอร์นิเจอร์เข้าบ้าน",
+     "supports": "Wednesday (transactions); Thursday (business negotiation)"
+    },
+    {
+     "title": "วันฤกษ์ดีปี 2569 รับทรัพย์ครึ่งปีหลัง เปิดกิจการ ค้าขาย วันเริ่มแคมเปญที่คนทำธุรกิจไม่ควรพลาด",
+     "publisher": "KTC (บัตรกรุงไทย)",
+     "author": null,
+     "url": "https://www.ktc.co.th/article/knowledge/business/auspicious-days-for-business",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เหมาะกับการเข้าพบผู้ใหญ่ ติดต่อราชการ หรือการเซ็นสัญญาโปรเจกต์ระดับใหญ่",
+     "supports": "ราชาฤกษ์ for big contracts"
+    }
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Wed-Fri: trade weekday beliefs (THAKSA, Lotus's, Sanook, Wongnai, KTC)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Wed-Fri: trade weekday beliefs (THAKSA, Lotus's, Sanook, Wongnai, KTC)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "branch",
+   "group": "biz",
+   "th": "เปิดสาขา",
+   "en": "Opening a branch",
+   "rule_th": "การเปิดสาขาใช้หลักเดียวกับเปิดร้าน: วันพฤหัสบดีและวันศุกร์ แล้วเทียบกับวันเกิดของเจ้าของ",
+   "sources": [
+    {
+     "title": "วันดีๆ เสริมสิริมงคลตามวันเกิด",
+     "publisher": "Sanook (sanook.com)",
+     "author": null,
+     "url": "https://www.sanook.com/horoscope/17677/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "เปิดกิจการ ขยายกิจการ ขึ้นบ้านใหม่ จะร่ำรวย รุ่งโรจน์",
+     "supports": "Sunday for expanding a business (conflicts with Wongnai)"
+    },
+    {
+     "title": "วันฤกษ์ดีปี 2569 รับทรัพย์ครึ่งปีหลัง เปิดกิจการ ค้าขาย วันเริ่มแคมเปญที่คนทำธุรกิจไม่ควรพลาด",
+     "publisher": "KTC (บัตรกรุงไทย)",
+     "author": null,
+     "url": "https://www.ktc.co.th/article/knowledge/business/auspicious-days-for-business",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ฤกษ์ดีที่สุดสำหรับการเปิดกิจการแฟรนไชส์ หรือการขยายฐานลูกค้าสู่ต่างจังหวัด",
+     "supports": "มหัทธโนฤกษ์ for branches/franchise"
+    },
+    {
+     "title": "ฤกษ์เปิดกิจการ 2569 วันมงคล ตามวันเกิด ฟรี | THAKSA",
+     "publisher": "THAKSA (บริษัท วัชระทรัพย์ จำกัด)",
+     "author": null,
+     "url": "https://thaksa.ai/tools/auspicious/%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B8%94%E0%B8%81%E0%B8%B4%E0%B8%88%E0%B8%81%E0%B8%B2%E0%B8%A3",
+     "kind": "almanac",
+     "read": "2026-11-18",
+     "excerpt_th": "ตำราถือวันพุธ (การสื่อสารและการค้า) วันพฤหัสบดี (โชคลาภ) และวันศุกร์ (ดึงดูดลูกค้า) เป็นวันดีของการเปิดร้าน",
+     "supports": "Wed, Thu, Fri for opening a shop (applies to a branch shop)"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ไม่เหมาะกับการเริ่มต้นทำส่ิงใหม่ที่ใช้ระยะเวลานาน เช่น การเปิดร้านใหม่",
+     "supports": "Wed named to avoid; Sun avoid new beginnings"
+    },
+    {
+     "title": "เช็กฤกษ์เปิดกิจการ 2568 ฤกษ์มงคล กิจการรุ่งเรือง",
+     "publisher": "OfficeMate (OFM Blog)",
+     "author": null,
+     "url": "https://www.ofm.co.th/blog/best-dates-to-launch-your-business-2025/",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เป็นฤกษ์ดีสำหรับธุรกิจใหม่และการเปิดสาขาเพิ่มเติม",
+     "supports": "dated list only (no weekday rule)"
+    }
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Thu / Fri: business-opening beliefs (Sanook, KTC, THAKSA, Wongnai, OFM)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Thu / Fri: business-opening beliefs (Sanook, KTC, THAKSA, Wongnai, OFM)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "car",
+   "group": "travel",
+   "th": "ออกรถใหม่",
+   "en": "Taking delivery of a new car",
+   "rule_th": "ฤกษ์ออกรถดูจากวันเกิดของเจ้าของรถเป็นหลัก ใส่วันเกิดเพื่อดูวันของคุณ ถ้าไม่ใส่จะแสดงวันจันทร์และวันศุกร์ซึ่งเข้ากับคนเกิดหลายวัน ความพร้อมของผู้ขับสำคัญที่สุด",
+   "sources": [
+    {
+     "title": "ฤกษ์ออกรถ 2569 ตามเดือน เวลา วันเกิด เสริมโชคให้มีชีวิตมงคล ร่ำรวย",
+     "publisher": "KTC (บัตรกรุงไทย)",
+     "author": null,
+     "url": "https://www.ktc.co.th/article/auto/car/auspicious-dates-to-buy-a-car",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ฤกษ์ดี: วันจันทร์ วันพุธ หรือวันศุกร์",
+     "supports": "ตารางวันดี/วันเลี่ยงตามวันเกิดทั้ง 8 (excerpt คือของคนเกิดวันจันทร์)"
+    },
+    {
+     "title": "ฤกษ์ออกรถเดือนสิงหาคม 2569 วันไหนดี? เสริมดวงโชคลาภ แคล้วคลาด ปลอดภัย",
+     "publisher": "ไทยรัฐออนไลน์",
+     "author": null,
+     "url": "https://www.thairath.co.th/horoscope/belief/2947232",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "วันมงคลที่ควรออกรถ วันจันทร์, วันศุกร์, วันเสาร์",
+     "supports": "ตารางวันดี/วันเลี่ยงตามวันเกิดทั้ง 8 (excerpt คือของคนเกิดวันจันทร์)"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เหมาะกับการออกรถคันใหม่, ซื้อเครื่องใช้ไฟฟ้า, ซื้อของมีคม",
+     "supports": "วันอังคารเป็นวันดีทั่วไปสำหรับออกรถ"
+    }
+   ],
+   "rule_note": "Birth-weekday table = days on which KTC and Thairath agree (KTC alone also gives Wednesday for people born on Sunday, Monday, Wednesday by day and Thursday).",
+   "class": "text",
+   "rule_class": {
+    "byBirth": {
+     "class": "text",
+     "note": "Birth-weekday table: days on which KTC and Thairath agree."
+    },
+    "general": {
+     "class": "text",
+     "note": "Without a birth weekday: Mon / Fri, the days the same table gives to most birth weekdays (summary of the text table)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "journey",
+   "group": "travel",
+   "th": "เดินทางไกล",
+   "en": "A long journey",
+   "rule_th": "ตำราเดินทางนิยมวันอาทิตย์ จันทร์ พุธ และพฤหัสบดี โดยวันจันทร์และวันพฤหัสบดีเป็นวันที่หลายตำราตรงกัน ควรดูความพร้อมของคนและรถประกอบด้วย",
+   "sources": [
+    {
+     "title": "ฤกษ์เดินทางไกลวันไหนดี ขับรถปลอดภัย ไร้อุบัติเหตุ",
+     "publisher": "OOHOO (oohoo.io)",
+     "author": "OOHOO Team",
+     "url": "https://www.oohoo.io/news/869",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เป็นวันที่พลังงานรวมตัวดี เหมาะสำหรับออกเดินทาง",
+     "supports": "วันอาทิตย์–พฤหัสบดีเหมาะออกเดินทางไกล; ระบุวันศุกร์–เสาร์ไม่แนะนำ"
+    },
+    {
+     "title": "ฤกษ์ดีมีชัย เดินทางตามตำรายามอุบากอง เลือกวันไหนดี?",
+     "publisher": "Kitsada Good Car (kitsadagoodcar.com)",
+     "author": null,
+     "url": "https://www.kitsadagoodcar.com/news/%E0%B8%A4%E0%B8%81%E0%B8%A9%E0%B9%8C%E0%B8%94%E0%B8%B5%E0%B8%A1%E0%B8%B5%E0%B8%8A%E0%B8%B1%E0%B8%A2-%E0%B9%80%E0%B8%94%E0%B8%B4%E0%B8%99%E0%B8%97%E0%B8%B2%E0%B8%87%E0%B8%95%E0%B8%B2%E0%B8%A1%E0%B8%95%E0%B8%B3%E0%B8%A3%E0%B8%B2%E0%B8%A2%E0%B8%B2%E0%B8%A1%E0%B8%AD%E0%B8%B8%E0%B8%9A%E0%B8%B2%E0%B8%81%E0%B8%AD%E0%B8%87-%E0%B9%80%E0%B8%A5%E0%B8%B7%E0%B8%AD%E0%B8%81%E0%B8%A7%E0%B8%B1%E0%B8%99%E0%B9%84%E0%B8%AB%E0%B8%99%E0%B8%94%E0%B8%B5/",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "ถือเป็นวันแห่งความรู้และความรอบคอบ เหมาะกับการเดินทางไกล",
+     "supports": "วันพฤหัสบดี (เดินทางไกล), วันจันทร์ (เดินทางทั่วไป), วันศุกร์ (ท่องเที่ยว); ระบุระวังวันอังคารและวันเสาร์"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "การใส่เสื้อสีสันสวยงาม เดินทางไกลก็จะรับโชค",
+     "supports": "วันศุกร์ดีสำหรับเดินทางไกล (ขัดกับ OOHOO จึงไม่ใส่ในรายการ)"
+    }
+   ],
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Sun / Mon / Wed / Thu: travel texts (OOHOO, Kitsada / ยามอุบากอง, Wongnai)."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Sun / Mon / Wed / Thu: travel texts (OOHOO, Kitsada / ยามอุบากอง, Wongnai)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "work",
+   "group": "study",
+   "th": "เริ่มงานใหม่",
+   "en": "Starting a new job",
+   "rule_th": "ตำราเริ่มงานใหม่นิยมวันจันทร์และพฤหัสบดี (วันครู) บางตำรานิยมวันพุธ หน้านี้ดูข้างขึ้นประกอบ แล้วเทียบกับวันเกิดของคุณ",
+   "sources": [
+    {
+     "title": "วันดีๆ เสริมสิริมงคลตามวันเกิด",
+     "publisher": "Sanook (sanook.com)",
+     "author": null,
+     "url": "https://www.sanook.com/horoscope/17677/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "เริ่มต้นทำงานวันแรก หรือ เข้ารับตำแหน่งใหม่ / เริ่มงานวันแรก หรือเข้ารับตำแหน่งใหม่ จะได้เป็นเจ้าคนนายคน / รับตำแหน่งใหม่หรือเริ่มงานวันแรก จะมีหน้ามีตา มีชื่อเสียง",
+     "supports": "Mon, Thu, Fri favoured; Wed 'ริเริ่มโครงการ งานหรือกิจกรรมใหม่ๆ จะรุ่งเรือง'"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เหมาะกับการเริ่มต้นทำอะไรใหม่ ๆ / เหมาะกับการเจรจาธุรกิจ เข้ารับตำแหน่งใหม่ ขึ้นบ้านใหม่",
+     "supports": "Mon (new starts), Thu (new position); Wed/Sun/Sat named as days to avoid for new long-term starts"
+    }
+   ],
+   "rule_note": "Existing rule kept unchanged (locked regression). Mon / Thu confirmed; Wednesday is favoured by Sanook and disfavoured by Wongnai; Friday is favoured by both but not in the rule. Owner decision pending.",
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Mon / Thu confirmed; Wed favoured by Sanook, disfavoured by Wongnai. Rule kept; separate move/shop/work work."
+    },
+    "waxing": {
+     "class": "modern",
+     "note": "Waxing-moon point: not confirmed by the recorded sources; labelled modern practice until the move/shop/work work."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "waikru",
+   "group": "study",
+   "th": "ไหว้ครู",
+   "en": "Teacher-homage ceremony (wai khru)",
+   "rule_th": "ตำราไหว้ครูดนตรีและนาฏศิลป์ใช้วันพฤหัสบดี เพราะพระพฤหัสบดีเป็นครูของทุกวิชา นิยมข้างขึ้นและเดือนคู่ วันจริงมักเป็นของครูผู้ประกอบพิธี",
+   "sources": [
+    {
+     "title": "สารานุกรมศัพท์ดนตรีไทย ภาคคีตะ-ดุริยางค์ (พิมพ์ครั้งที่ ๓) — ไหว้ครู",
+     "publisher": "NECTEC (lst.nectec.or.th)",
+     "author": null,
+     "url": "https://lst.nectec.or.th/encyclopedia/wikipedia/dontri/view/index.php?namelink=%E0%B9%84%E0%B8%AB%E0%B8%A7%E0%B9%89%E0%B8%84%E0%B8%A3%E0%B8%B9",
+     "kind": "official",
+     "read": "2026-11-18",
+     "excerpt_th": "การประกอบพิธีไหว้ครูต้องทำในวันพฤหัสบดีเท่านั้นเพราะถือว่าพระพฤหัสบดีเป็นครูทั่วทุกวิชา",
+     "supports": "Thursday only, with reason; morning"
+    },
+    {
+     "title": "พิธีไหว้ครูนาฎศิลป์ -ข้อกำหนดและขั้นตอนการไหว้ครู",
+     "publisher": "OpenBase.in.th (from banramthai.com)",
+     "author": "lik_dream",
+     "url": "https://www.openbase.in.th/node/3425",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "จะนิยมวันพฤหัสบดีข้างขึ้น นับว่าเป็นมงคลยิ่ง / นิยมให้ประกอบพิธีไหว้ครูและครอบครูในเดือนคู่",
+     "supports": "Thursday, waxing, even months, month 9 allowed"
+    },
+    {
+     "title": "รู้แล้ว ทำไมต้องจัดพิธีไหว้ครู ในวันพฤหัสบดี ตามความเชื่อ พราหมณ์-ฮินดู",
+     "publisher": "Thaiger (thethaiger.com)",
+     "author": "Lirisa Muanlamai",
+     "url": "https://thethaiger.com/th/news/1045619/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "ได้มีการนับถือเทพเจ้าที่มีนามว่า พระพฤหัสบดี หรือพระนามเดิมคือ ครุเทว ที่หมายถึงเป็นครูของเทวดา",
+     "supports": "Thursday reason"
+    },
+    {
+     "title": "การไหว้ครูดนตรีไทย",
+     "publisher": "peamitar.wixsite.com (reproduces text by มนตรี ตราโมท)",
+     "author": "มนตรี ตราโมท",
+     "url": "https://peamitar.wixsite.com/thaimusicceremony/blank-14",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "จะต้องทำในวันพฤหัสบดีเท่านั้นเพราะถือว่าพระพฤหัสบดีเป็นครูทั่วทุกวิชา",
+     "supports": "Thursday only"
+    }
+   ],
+   "rule_note": "Thursday only (NECTEC, peamitar / Montri Tramote); even lunar months and month 9, and the waxing moon, from OpenBase (banramthai); months are required.",
+   "class": "text",
+   "rule_class": {
+    "days": {
+     "class": "text",
+     "note": "Thursday only: NECTEC Thai music encyclopedia, Montri Tramote (peamitar), Thaiger."
+    },
+    "fav": {
+     "class": "text",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Thursday only: NECTEC Thai music encyclopedia, Montri Tramote (peamitar), Thaiger."
+    },
+    "months": {
+     "class": "text",
+     "note": "Even months and month 9: OpenBase (banramthai)."
+    },
+    "waxing": {
+     "class": "text",
+     "note": "Waxing moon: OpenBase (banramthai)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  },
+  {
+   "id": "launch",
+   "group": "study",
+   "th": "เปิดตัวสินค้า",
+   "en": "Product launch",
+   "rule_th": "ตำรานิยมเริ่มสิ่งใหม่วันจันทร์และวันพุธ หลักฐานเฉพาะการเปิดตัวสินค้ามีน้อย หน้านี้จึงใช้หลักการเริ่มงานใหม่ แล้วเทียบกับวันเกิดของเจ้าของ",
+   "sources": [
+    {
+     "title": "วันฤกษ์ดีปี 2569 รับทรัพย์ครึ่งปีหลัง เปิดกิจการ ค้าขาย วันเริ่มแคมเปญที่คนทำธุรกิจไม่ควรพลาด",
+     "publisher": "KTC (บัตรกรุงไทย)",
+     "author": null,
+     "url": "https://www.ktc.co.th/article/knowledge/business/auspicious-days-for-business",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เด่นมากเรื่องการเปิดตัวสินค้า (Product Launch) หรือการรีแบรนด์ร้านใหม่",
+     "supports": "มหัทธโนฤกษ์; avoid กาลกิณี/วันดับ"
+    },
+    {
+     "title": "วันดีๆ เสริมสิริมงคลตามวันเกิด",
+     "publisher": "Sanook (sanook.com)",
+     "author": null,
+     "url": "https://www.sanook.com/horoscope/17677/",
+     "kind": "news",
+     "read": "2026-11-18",
+     "excerpt_th": "ริเริ่มโครงการ งานหรือกิจกรรมใหม่ๆ จะรุ่งเรือง",
+     "supports": "Wednesday for launching projects"
+    },
+    {
+     "title": "เปิดตำรา! ความเชื่อกับวันทั้ง 7 วันไหนทำอะไรดี-ไม่ดีบ้าง ?",
+     "publisher": "Wongnai",
+     "author": "kodlnwbright",
+     "url": "https://www.wongnai.com/articles/thai-belief-7-days",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เหมาะกับการเริ่มต้นทำอะไรใหม่ ๆ",
+     "supports": "Monday new starts; Sunday/Saturday avoid"
+    },
+    {
+     "title": "เช็กฤกษ์เปิดกิจการ 2568 ฤกษ์มงคล กิจการรุ่งเรือง",
+     "publisher": "OfficeMate (OFM Blog)",
+     "author": null,
+     "url": "https://www.ofm.co.th/blog/best-dates-to-launch-your-business-2025/",
+     "kind": "lifestyle",
+     "read": "2026-11-18",
+     "excerpt_th": "เป็นฤกษ์ดีสำหรับการเปิดตัวสินค้าใหม่และธุรกิจด้านไอที",
+     "supports": "dated list only"
+    }
+   ],
+   "rule_note": "Weak evidence: Monday (Wongnai, new beginnings) and Wednesday (Sanook, starting projects; Wongnai disagrees). No source gives launch-specific weekdays. Owner decision pending.",
+   "class": "modern",
+   "rule_class": {
+    "days": {
+     "class": "modern",
+     "note": "Mon / Wed: weak evidence, no source gives launch-specific weekdays (owner: thin evidence)."
+    },
+    "fav": {
+     "class": "modern",
+     "note": "Favoured weekdays (extra point), same sources as the weekday rule: Mon / Wed: weak evidence, no source gives launch-specific weekdays (owner: thin evidence)."
+    },
+    "taksa": {
+     "class": "text",
+     "note": "Taksa (ทักษาปกรณ์) of the owner's birth weekday: Thai astrology text; kalakini days left out silently."
+    },
+    "zodiac": {
+     "class": "text",
+     "note": "Chinese almanac day branch vs birth-year animal (六合 / 三合 / 冲): traditional almanac rule."
+    },
+    "phra": {
+     "class": "text",
+     "note": "Buddhist holy-day note (merit-making custom); a note only, it selects no day."
+    }
+   }
+  }
+ ]
+}
