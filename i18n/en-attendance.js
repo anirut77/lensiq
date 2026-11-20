@@ -321,6 +321,8 @@
   "attendance.hr.chainBad": "{n} history entries are out of sequence or were edited outside the system — to check",
   "attendance.hr.noAudit": "No changes yet",
   "attendance.hr.usage": "{p} punches · {a} history entries · about {kb} KB used (the browser allows about 5,000 KB — export a backup file every month)",
+  "attendance.hr.nearFull": "Storage is almost full — export a backup file now",
+  "attendance.hr.badgeTitle": "Time card",
   "attendance.hr.saved": "Saved",
   "attendance.hr.merged": "Merged: {p} new punches · {a} history entries · {e} new employees",
   "attendance.hr.mergeBad": " · {n} unusable files",
