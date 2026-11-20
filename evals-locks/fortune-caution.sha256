@@ -89,3 +89,11 @@ e0dfa894a51a75d7d6844ba59c0cc86a4f734565660b60a38b274dafd607c0df  wave1b/fortune
 076616e1b9fed9a7bb6cabd8ddf470b9016c1359d12e7720f25f9013a357203e  tests/unit/fortune-caution-pages-b.test.js  # repo file (same commit as lock 2026-11-20T07:54:35Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1b/fortune-caution-pages-b.test.js)
 e0dfa894a51a75d7d6844ba59c0cc86a4f734565660b60a38b274dafd607c0df  tests/unit/fixtures/fortune-caution-bazi-astro-snapshot.json  # repo file (same commit as lock 2026-11-20T07:54:35Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1b/fortune-caution-bazi-astro-snapshot.json)
 09312350c706070e638d4b7e61380f3b9f335cb4a2a6088b81a4802875328ace  tests/e2e/fortune-caution-bazi-astro.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:54:35Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1b/fortune-caution-bazi-astro.e2e.mjs)
+# RELOCK 5 2026-11-20 (wave 1b, before measuring the wired bazi/astro product): the locked rule "every registry rule fires in at least two locked readings"
+# needs readings for the new Western rule w.saturn.return: astro readings F41 / F42 and the astro period (span years) added to the fixture. T23 "overall
+# first" now applies when the page has an overall rule (astro has no Western natal rule yet, so its section has the period part only). Nothing removed.
+# locked 2026-11-20T07:56:49Z (tools/eval-guard.mjs lock, 2 files)
+635551341359ee4a61ffb4cee7c8a04db43fee6f71ba1102a844c8c125f27a40  relock5/fortune-caution-profiles.json
+23cb0cacb738503d5fc9bc7e37a8bf0d2d080848c7e522c9f6e2d12e0d78a596  relock5/fortune-caution-rules.test.js
+635551341359ee4a61ffb4cee7c8a04db43fee6f71ba1102a844c8c125f27a40  tests/unit/fixtures/fortune-caution-profiles.json  # repo file (same commit as lock 2026-11-20T07:56:49Z; field: ~/LENSIQ-field/evals/fortune-caution/relock5/fortune-caution-profiles.json)
+23cb0cacb738503d5fc9bc7e37a8bf0d2d080848c7e522c9f6e2d12e0d78a596  tests/unit/fortune-caution-rules.test.js  # repo file (same commit as lock 2026-11-20T07:56:49Z; field: ~/LENSIQ-field/evals/fortune-caution/relock5/fortune-caution-rules.test.js)

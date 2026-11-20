@@ -1,4 +1,5 @@
 "use strict";
+// RELOCK 5 2026-11-20 (wave 1b): T23 "overall first" applies when the page has an overall rule (astro has none yet: period part only).
 // tests/unit/fortune-caution-rules.test.js — FIXED TEST SET fortune-caution (owner item 177, 2026-11-20: the closed
 // "สิ่งที่ควรระวัง / Things to be mindful of / 需要留意的事项" section of the fortune readings). Locked BEFORE any product code
 // (evals-locks/fortune-caution.sha256, ~/LENSIQ-field/evals/fortune-caution/). Design: ~/Desktop/LENSIQ-review/fortune-cautions/
@@ -153,9 +154,12 @@ test("T3 every caution has a non-empty paired 'what to do' with the same number;
 });
 
 test("T23 three parts in order (mind, cheer, guide), caps, cheer only from this reading, numbered guidance", () => {
-  for (const r of FIX.readings) for (const lang of LANGS) {
+  for (const r0 of FIX.readings) for (const lang of LANGS) {
+    const r = r0;
     const m = build(r, lang), h = core.html(m), at = r.name + " " + lang;
-    assert.equal(m.parts[0].part, "overall", at + ": overall first");
+    // RELOCK 5: a page with no overall rule (astro: no Western natal rule yet) has no "overall" part
+    if (RULES.some(r => r.kind === "overall" && r.domains.includes(r0.domain))) assert.equal(m.parts[0].part, "overall", at + ": overall first");
+    else assert.ok(m.parts.every(p => p.part === "period"), at + ": period only");
     if (m.parts[1]) assert.equal(m.parts[1].part, "period", at + ": then this period");
     assert.ok(m.parts.length <= 2, at + ": two parts at most");
     const L = k => core.LABELS[k][lang];

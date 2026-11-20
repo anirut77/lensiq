@@ -1,5 +1,5 @@
 {
- "about": "FIXED TEST SET fortune-caution (item 177 wave 0). SYNTHETIC: every reading below is made up (engine-shaped facts, not a real person). Locked before any product code (evals-locks/fortune-caution.sha256). Each reading lists the engine items it holds (id, tone / polarity, strength) and the rule ids the section must show: mind = 'be mindful of' items in order (strength high to low, at most 3), good = favourable rules that fire in that part (any order). period null = the reading has no time period. span (owner refinement 2026-11-20 10:25): day | month | year | years | decade; accident, illness and travel cautions never sit under a single day. RELOCK 3 (2026-11-20, reviewer of wave 0 + owner rule 2026-11-20: month ranges, never a single day): horoscope's period is the month (span month); the day-level rules (taksa of the day, day clash) are gone, so the horoscope readings carry month items only; lek7 (one source, fails T5) and lifegraph (team weights, no source) are excluded from the section, so their readings are gone; two taksa readings added so every remaining rule fires at least twice.",
+ "about": "FIXED TEST SET fortune-caution (item 177 wave 0). SYNTHETIC: every reading below is made up (engine-shaped facts, not a real person). Locked before any product code (evals-locks/fortune-caution.sha256). Each reading lists the engine items it holds (id, tone / polarity, strength) and the rule ids the section must show: mind = 'be mindful of' items in order (strength high to low, at most 3), good = favourable rules that fire in that part (any order). period null = the reading has no time period. span (owner refinement 2026-11-20 10:25): day | month | year | years | decade; accident, illness and travel cautions never sit under a single day. RELOCK 3 (2026-11-20, reviewer of wave 0 + owner rule 2026-11-20: month ranges, never a single day): horoscope's period is the month (span month); the day-level rules (taksa of the day, day clash) are gone, so the horoscope readings carry month items only; lek7 (one source, fails T5) and lifegraph (team weights, no source) are excluded from the section, so their readings are gone; two taksa readings added so every remaining rule fires at least twice. RELOCK 5 (wave 1b): astro readings F41 / F42 for the new Western rule w.saturn.return (span years; astro has no Western natal rule yet, so no 'overall' part).",
  "periods": {
   "bazi": {
    "span": "decade",
@@ -24,6 +24,12 @@
    "th": "มหาทักษาดาวเสาร์ (อายุ 30–39 ปี)",
    "en": "Maha Taksa of Saturn (age 30–39)",
    "zh": "土星大塔克萨（30–39 岁）"
+  },
+  "astro": {
+   "span": "years",
+   "th": "ช่วงอายุราว 28–31 ปี",
+   "en": "About age 28–31",
+   "zh": "约 28–31 岁"
   }
  },
  "readings": [
@@ -1018,6 +1024,50 @@
      "good": [
       "th.maha.good"
      ]
+    }
+   }
+  },
+  {
+   "name": "F41 astro inside the first Saturn return",
+   "domain": "astro",
+   "period": "astro",
+   "items": [
+    {
+     "id": "saturn.return",
+     "tone": "caution",
+     "strength": 0.8
+    }
+   ],
+   "expect": {
+    "period": {
+     "mind": [
+      "w.saturn.return"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F42 astro inside the second Saturn return (same rule)",
+   "domain": "astro",
+   "period": "astro",
+   "items": [
+    {
+     "id": "saturn.return",
+     "tone": "caution",
+     "strength": 0.8
+    },
+    {
+     "id": "sun.4",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "period": {
+     "mind": [
+      "w.saturn.return"
+     ],
+     "good": []
     }
    }
   }
