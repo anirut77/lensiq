@@ -105,4 +105,9 @@ note here, not in the config file. See docs/SPEED.md "Comments moved out of lens
  *   ว่าโมเดลใบอนุญาตวิจัยเปิดอยู่ พร้อมลิงก์ไปปิด (?profilebanner=1 บังคับแสดงเพื่อทดสอบ) ; สวิตช์อยู่ใน lensiq-research.js */
 
 /* ตัวโหลด: เฉพาะเมื่อมี LENSIQ_API_BASE — ไฟล์มาจากต้นทางเดียวกับหน้าเว็บ (CSP script-src 'self') */
+
+/* LENSIQ_DEVICE_EXPORT (D-4, 19 พ.ย. 2569): ส่วน "ข้อมูลของฉันในเครื่องนี้: บันทึกเป็นไฟล์ / โหลดจากไฟล์" ท้าย privacy.html
+ *   (lensiq-device-data.js) ปิดเว้นแต่ตั้งเป็น true พอดี และปิดเสมอในชุดติดตั้งของลูกค้า (LENSIQ_RESEARCH_DEMO = false)
+ *   เปิด: เพิ่มบรรทัด window.LENSIQ_DEVICE_EXPORT = true; ใน lensiq-config.js (และเพิ่ม ?v= ของ lensiq-config.js ทุกหน้า)
+ *   ไม่มีการส่งข้อมูลออกจากเครื่อง ดู docs/PDPA-NOTES-FOR-COUNSEL.md หัวข้อ D-4 */
 ```

@@ -1231,3 +1231,31 @@ Prevention going forward: reference-line labelling will use a local tap-to-trace
 see each other's work.
 Questions: (a) given that the photos were the owner's own, does this need any record or notice under PDPA, or is an
 internal record enough? (b) does the pilot consent form need a clause stating this rule?
+
+## D-4: "my data on this device" save / load (owner decision D-4, 2026-11-19; branch `d3-d4`, not switched on)
+
+Draft for legal review, not legal advice.
+
+Why: what LENSIQ keeps in a browser belongs to the web address (`docs/PRODUCTION-MOVE-PLAN.md` §2.7). When the site moves
+to its own domain, a person's settings would be lost. `lensiq-device-data.js` adds a section to `privacy.html` that saves
+those settings to a file on the person's own device and loads such a file on the new address.
+
+- **Switch:** `window.LENSIQ_DEVICE_EXPORT`, off unless exactly `true`; always off in a customer bundle (operator lock).
+  While off, nothing is shown. The owner switches it on separately (one line in `lensiq-config.js`).
+- **No processing by us:** the file is made and read in the browser. Nothing is sent to LENSIQ or anyone else; there is
+  no server route for it. LENSIQ does not receive, see or keep the file.
+- **What is in the file:** only an allow-list of the person's own data on that device: language, catalogue filter,
+  nutrition display, Merit tradition choice, the 18+ "read it straight" confirmation, and, only if the person ticks the
+  "records" box, the medicine look-up history (text the person typed or scanned) and the pet card collection. Never:
+  images, face data, sign-in tokens, the tester code, consents, owner/admin keys, quote requests, or business data about
+  other people (Attendance, Exam, Gate, Crowd and similar stores).
+- **Sensitive data:** the medicine look-up history can reveal health information (PDPA s.26). It is off by default and
+  the box says so. The file sits wherever the person saves it; the section tells them to keep it safe.
+- **Age:** a file that carries an 18+ confirmation does not set it on the new address by itself. The person has to tick
+  "I am 18 or older" again on that device.
+- **Loading:** strict. Unknown keys are ignored and never written. One invalid value means the whole file is refused.
+  Nothing changes until the person presses "Use this data".
+
+Questions: (a) is a self-service export to the person's own device, with no transfer to us, enough for the data
+portability right (s.31) for on-device data, or does the privacy notice need a sentence on it before it is switched on?
+(b) should the medicine look-up history be left out of the file entirely rather than offered behind a box?
