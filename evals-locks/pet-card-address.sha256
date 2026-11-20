@@ -33,3 +33,9 @@ fa21b0b9f86743c342d16ddbe4244084aa7af79d1a05afd0e0458172002d629e  tests/e2e/pet-
 # locked 2026-11-20T13:41:18Z (tools/eval-guard.mjs lock, 1 file)
 e294f928c1365daf4b0a39d2b420ac62a61e885fe11ca882c6d4e21e45ec6902  relock-3/pet-card-hint.e2e.mjs
 e294f928c1365daf4b0a39d2b420ac62a61e885fe11ca882c6d4e21e45ec6902  tests/e2e/pet-card-hint.e2e.mjs  # repo file (same commit as lock 2026-11-20T13:41:18Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-3/pet-card-hint.e2e.mjs)
+# LOCK 5 2026-11-20 relock-4 (owner decision 198, test fix, equal scope): tests/unit/pet-card-hint.test.js K5 re-locked. Its ?v= regex
+# for petread.js also matched the zh-petread.js tag first (reading 2, not the petread.js version); it now anchors on the full
+# src="..." attribute. K1-K4 unchanged. Found when the product change (not yet committed) was run against the locked file: 4/5.
+# locked 2026-11-20T13:41:54Z (tools/eval-guard.mjs lock, 1 file)
+74a6752f80444651680162990881fbc0cfc3a465a3cde4ccd30225b81fd827c2  relock-4/pet-card-hint.test.js
+74a6752f80444651680162990881fbc0cfc3a465a3cde4ccd30225b81fd827c2  tests/unit/pet-card-hint.test.js  # repo file (same commit as lock 2026-11-20T13:41:54Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-4/pet-card-hint.test.js)

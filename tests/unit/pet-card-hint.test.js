@@ -65,6 +65,6 @@ test("K4 petread.js chooses the key by the address switch", () => {
 test("K5 petread.html: bumped ?v= for the changed scripts", () => {
   const html = read("petread.html");
   const v = re => { const m = re.exec(html); return m ? Number(m[1]) : null; };
-  assert.ok(v(/petread\.js\?v=(\d+)/) >= 5, "petread.js ?v= >= 5 (was 4)");
-  assert.ok(v(/zh-petread\.js\?v=(\d+)/) >= 2, "zh-petread.js ?v= >= 2 (was 1)");
+  assert.ok(v(/src="petread\.js\?v=(\d+)"/) >= 5, "petread.js ?v= >= 5 (was 4)");
+  assert.ok(v(/src="i18n\/zh-petread\.js\?v=(\d+)"/) >= 2, "zh-petread.js ?v= >= 2 (was 1)");
 });
