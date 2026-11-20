@@ -295,3 +295,8 @@ late entry 2026-11-19 (owner): during re-lock (13) of tests/e2e/fortune-paid-sou
 - relock5 (same day): `palm-v3-switch.test.js` C5's tool rule flagged four existing build tools that never touch the v3 flags;
   replaced by a stricter check that the real customer bundle (`tools/build-site.mjs --customer`) keeps v3 off. Run once before
   this lock. Nothing loosened.
+- relock6 (same day, after the independent review of `0f3490f1`): restores the C5(b) protection removed in relock5, in a
+  corrected form (no false positive on build-site/cat-pages/csp-meta/promo-meta); relock5's ledger line wrongly said nothing
+  loosened; relock5 was run once before locking. C5(b): no file under `tools/` (or anywhere in the repo except the build
+  output) writes to a path that resolves to the repo's `lensiq-config.js`; the detector is checked on examples. Locked before
+  it was run.
