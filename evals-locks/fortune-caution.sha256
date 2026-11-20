@@ -1,0 +1,11 @@
+# evals-locks/fortune-caution.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-caution/ (owner rule 2026-11-13, locked sets persist). Append-only.
+# fortune-caution (owner item 177, 2026-11-20: closed "สิ่งที่ควรระวัง" section of the fortune readings), wave 0 — locked BEFORE any product code on
+# branch fortune-cautions (base origin/main 2a61736c). Design ~/Desktop/LENSIQ-review/fortune-cautions/DESIGN-TH.md T1-T23; coordinator defaults (a)-(f),
+# D-2..D-6; owner refinement 2026-11-20 about 10:25 (time: month ranges ok, never a single day, replaces D-1; no prohibition wording; people only in broad
+# terms; broad body areas; travel; guidance whitelist mindful / precepts / merit / parents / religion) folded in before this first lock. SYNTHETIC set.
+# locked 2026-11-20T03:38:44Z (tools/eval-guard.mjs lock, 5 files)
+903cec11e0a8e8565164d5c63a36170123cea2c3b1bcc7969f24c9248584d5bb  tests/unit/fortune-caution-rules.test.js
+25aee7da18bc6fb6f768e2cec72cd54a0ac8ce34adb2ef4b6d2d230f9a3325b6  tests/unit/fortune-caution-limits.test.js
+a70dbc31256245903d29babfabba62c5f8e798ab20055453b286aa20343e109f  tests/unit/fixtures/fortune-caution-profiles.json
+ddc4503ba7d65f1fbbdfeb347ee748849c3fe39584573f76e1fc0de7a97d1983  tests/e2e/fortune-caution.e2e.mjs
+aab6446694ec17d66b7a1db7530de106ec53a634183a5601300e5f5ea32e2951  tests/e2e/fortune-caution-wrap.e2e.mjs
