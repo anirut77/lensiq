@@ -1,0 +1,8 @@
+# locked 2026-11-20T15:23:36Z (tools/eval-guard.mjs lock, 1 file)
+5f2d3b27ff9cc7ca75c3fa71efdecddd41a1c0256bb302ec171819b7d4542f38  tests/unit/exam-face.test.js
+5f2d3b27ff9cc7ca75c3fa71efdecddd41a1c0256bb302ec171819b7d4542f38  tests/unit/exam-face.test.js  # repo file (same commit as lock 2026-11-20T15:23:36Z; field: ~/LENSIQ-field/evals/examlab-s2/relock1/tests/unit/exam-face.test.js)
+# examlab-s2 re-lock 1 (test defect, BEFORE any product change was committed or measured): the changed exam-face test read exam-lab.js
+# with its comments, and the file's header comment documents the face-api.js research-only route ("face-api.js is never loaded
+# unless ..."), so "exam-lab.js never names face-api.js" refused a correct product. Now it reads code only, with the same
+# comment-stripping as the lensiq-exam-face.js check in the same test. No other assertion changed. Run on the unchanged product
+# (299370b8 + lock b3142691): 25 pass, 4 fail (the same 4 new / changed guards), as expected.

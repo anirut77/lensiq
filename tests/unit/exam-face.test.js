@@ -133,7 +133,7 @@ test("Exam pages: the lab and hall pages load TF.js on its own (the lab on deman
     // backend, never face-api.js; the same guard plus the preload order is in tests/unit/exam-s2-load.test.js
     if (p === "exam-lab.html") {
       assert.ok(!scripts.some(s => s.startsWith("vendor/tfjs/")), p + " TF.js is loaded on demand, not as a page script");
-      const lab = read("exam-lab.js");
+      const lab = read("exam-lab.js").replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1"); // code only
       const a = lab.indexOf('"vendor/tfjs/tf.es2017.min.js"'), b = lab.indexOf('"vendor/tfjs/tf-backend-wasm.es2017.min.js"');
       assert.ok(a >= 0 && b > a, "exam-lab.js loads TF.js + wasm backend, in that order");
       assert.ok(!/face-api/.test(lab), "exam-lab.js never names face-api.js");
