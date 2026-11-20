@@ -11,6 +11,11 @@
 // replacing D-1: accident, illness and travel cautions may sit under a month range or a longer period, never under a
 // single day or date (rule field spans, period field span); "be careful" wording only, no prohibitions; people only in broad
 // terms; broad body areas allowed, no diagnosis or treatment; guidance = mindset and good deeds (whitelist: limits test).
+// RELOCK 3 (2026-11-20, independent review of wave 0 + owner rule 2026-11-20 "month ranges, never a single day"), STRICTER: no rule
+// may have span "day" and a period with span "day" gets no "this period" part; lifegraph (its "sources" were the team's own
+// weights) and lek7 (one real source, fails T5; T5 not weakened) are excluded page domains; school "mix" is gone; a period part
+// shows only when the page has an available rule of that kind for its span. Item count floor 120 (fewer rules after the
+// day-level ones were removed). T14: lek7's own cautions stay free in the lek7 reading (asserted), as its rule is excluded.
 // Contract of the product module fortune-caution-core.js (Node: module.exports; browser: window.LQFortuneCautionCore):
 //   rules()            every rule of the registry (Node loads every registry file)
 //   DOMAINS            { <page domain>: { schools: string[], periodic: boolean } }      EXCLUDED: page domains with no section
@@ -27,7 +32,7 @@
 //   topic, trigger: [{ id: <RegExp source>, tone?, polarity? }], traditional, modern, sources: [>= 2], kbRef: "<file>:<key>",
 //   status: "draft" | "expert-ok", caution: mind + do (+ cheer) / good: luck (+ do), each { th, en, zh }; doCat: the
 //   guidance category of do ("mindful" | "precepts" | "merit" | "parents" | "religion"); spans: the period spans a period
-//   rule may show under ("day" | "month" | "year" | "years" | "decade") }. Input period: { span, th, en, zh }.
+//   rule may show under ("month" | "year" | "years" | "decade"; never "day") }. Input period: { span, th, en, zh }.
 // Same strength: registry order. Readings with period null have no "this period" part when the domain reads by period.
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -50,13 +55,14 @@ const THAI = /[฀-๿]/, CJK = /[㐀-鿿豈-﫿]/;
 const textFields = r => (r.polarity === "caution" ? ["mind", "do", "cheer"] : ["luck", "do"]).filter(f => r[f]);
 
 test("T4 / T5 registry: every rule is complete, traceable to its source and has two sources", () => {
-  assert.ok(RULES.length >= 30, "the wave-0 registry holds the Thai and Chinese rules of the design (2.1, 2.2, 2.9): " + RULES.length);
+  assert.ok(RULES.length >= 20, "the wave-0 registry holds the Thai and Chinese rules of the design (2.1, 2.2, 2.9): " + RULES.length);
+  for (const id of ["lek7.weakbase", "lg.band.work", "lg.band.money", "lg.band.love", "lg.band.care"]) assert.ok(!RULES.some(r => r.id === id), id + " is excluded");
   const seen = new Set();
   for (const r of RULES) {
     const at = "rule " + (r && r.id);
     assert.ok(typeof r.id === "string" && /^[a-z0-9]+(\.[a-z0-9]+)+$/.test(r.id), at + ": id");
     assert.ok(!seen.has(r.id), at + ": duplicate id"); seen.add(r.id);
-    assert.ok(["th", "cn", "mix", "w"].includes(r.school), at + ": school");
+    assert.ok(["th", "cn", "w"].includes(r.school), at + ": school");
     assert.ok(Array.isArray(r.domains) && r.domains.length && r.domains.every(d => core.DOMAINS[d]), at + ": domains " + S(r.domains));
     assert.ok(["overall", "period"].includes(r.kind), at + ": kind");
     assert.ok(["caution", "good"].includes(r.polarity), at + ": polarity");
@@ -75,7 +81,7 @@ test("T4 / T5 registry: every rule is complete, traceable to its source and has 
     if (r.polarity === "caution") assert.ok(r.mind && r.do, at + ": mind + do");
     else assert.ok(r.luck, at + ": good rule carries its 'may' line");
     if (r.do) assert.ok(["mindful", "precepts", "merit", "parents", "religion"].includes(r.doCat), at + ": guidance category " + r.doCat);
-    if (r.kind === "period") assert.ok(Array.isArray(r.spans) && r.spans.length && r.spans.every(x => ["day", "month", "year", "years", "decade"].includes(x)), at + ": spans");
+    if (r.kind === "period") assert.ok(Array.isArray(r.spans) && r.spans.length && r.spans.every(x => ["month", "year", "years", "decade"].includes(x)), at + ": spans (never a day)");
     if (/accident|illness|travel|health/.test(r.topic) && r.kind === "period") assert.ok(!r.spans.includes("day"), at + ": never under a single day (owner 2026-11-20)");
   }
 });
@@ -91,7 +97,7 @@ test("T10 unit: every rule text and label exists in Thai, English and Chinese; E
     assert.ok(!THAI.test(v.en) && !CJK.test(v.en), k + ": en has Thai or Chinese: " + v.en);
     assert.ok(!THAI.test(v.zh) && CJK.test(v.zh), k + ": zh: " + v.zh);
   }
-  for (const k of ["title", "top", "overall", "period", "mind", "cheer", "guide", "none", "noPeriod", "close", "modern", "school.th", "school.cn", "school.mix", "school.w"]) {
+  for (const k of ["title", "top", "overall", "period", "mind", "cheer", "guide", "none", "noPeriod", "close", "modern", "school.th", "school.cn", "school.w"]) {
     assert.ok(core.LABELS[k], "label " + k);
   }
 });
@@ -143,7 +149,7 @@ test("T3 every caution has a non-empty paired 'what to do' with the same number;
       });
     }
   }
-  assert.ok(items >= 150, "caution items checked: " + items);
+  assert.ok(items >= 120, "caution items checked: " + items);
 });
 
 test("T23 three parts in order (mind, cheer, guide), caps, cheer only from this reading, numbered guidance", () => {
@@ -186,22 +192,27 @@ test("T17 no matching rule: the plain 'nothing in particular' line, and no stand
   }
 });
 
-test("T16 core: no time period -> the 'does not read by time period' line; planner, petread and the hub get no section", () => {
-  const periodic = Object.entries(core.DOMAINS).filter(([, d]) => !d.periodic).map(([k]) => k);
-  assert.ok(periodic.includes("lek7"), "lek7 does not read by period in wave 0");
-  for (const r of FIX.readings.filter(x => x.domain === "lek7")) for (const lang of LANGS) {
-    const m = build(r, lang), p = partOf(m, "period");
-    assert.ok(p && p.noPeriod === true, r.name + " " + lang + ": noPeriod");
-    assert.ok(core.html(m).includes(core.LABELS.noPeriod[lang]), r.name + ": line shown");
+test("T16 core: no time period -> the 'does not read by time period' line; planner, petread, the hub, lek7 and lifegraph get no section", () => {
+  for (const [d, D] of Object.entries(core.DOMAINS).filter(([, x]) => !x.periodic)) for (const lang of LANGS) {
+    const m = core.build({ domain: d, facts: { items: [] }, period: null, lang }, ON), p = m && partOf(m, "period");
+    assert.ok(!m || (p && p.noPeriod === true && core.html(m).includes(core.LABELS.noPeriod[lang])), d + " " + lang + ": noPeriod line " + D);
   }
   for (const r of FIX.readings.filter(x => x.period === null && core.DOMAINS[x.domain].periodic)) {
     assert.equal(build(r, "th").parts.length, 1, r.name + ": no period part when the reading has none");
   }
-  for (const d of ["planner", "petread", "fortune"]) {
-    assert.ok(core.EXCLUDED.includes(d), d + " excluded");
-    assert.equal(core.build({ domain: d, facts: { items: [] }, period: null, lang: "th" }, ON), null, d + ": no section");
+  for (const d of ["planner", "petread", "fortune", "lek7", "lifegraph"]) {
+    assert.ok(core.EXCLUDED.includes(d) && !core.DOMAINS[d], d + " excluded");
+    assert.equal(core.build({ domain: d, facts: { items: [{ id: "l7.0.caution", tone: "caution", strength: 1 }] }, period: null, lang: "th" }, ON), null, d + ": no section");
   }
   assert.equal(core.build({ domain: "no-such-page", facts: { items: [] }, period: null, lang: "th" }, ON), null, "unknown domain");
+});
+
+test("owner rule 2026-11-20: never a single day: a one-day period gets no 'this period' part", () => {
+  for (const r of FIX.readings.filter(x => x.period)) for (const lang of LANGS) {
+    const per = Object.assign({}, FIX.periods[r.period], { span: "day" });
+    const m = core.build({ domain: r.domain, facts: { items: r.items }, period: per, lang }, ON);
+    assert.ok(m && !m.parts.some(p => p.part === "period"), r.name + " " + lang + ": period part under a one-day span");
+  }
 });
 
 test("D-6 switch: with Chinese and Western rules off only Thai-school rules show; drafts off hides draft rules", () => {
@@ -224,7 +235,7 @@ test("D-6 switch: with Chinese and Western rules off only Thai-school rules show
 
 test("T14 report parity: every caution the paid report can show has a free rule in this section", () => {
   const LC = require(join(ROOT, "lifecal.js")), KB = require(join(ROOT, "lifecal-kb.js")), ZD = require(join(ROOT, "zodiac.js")), RP = require(join(ROOT, "report.js"));
-  const FREE = new Set(["bazi", "taksa", "lek7", "zodiac", "horoscope", "lifegraph"]);
+  const FREE = new Set(["bazi", "taksa", "zodiac", "horoscope"]);
   const need = new Map();
   const add = (domain, it) => { const k = domain + " " + it.id; if (!need.has(k)) need.set(k, { domain, it }); };
   const careful = it => it.tone === "caution" || it.polarity === "challenge";
@@ -245,6 +256,8 @@ test("T14 report parity: every caution the paid report can show has a free rule 
   for (const { domain, it } of need.values()) {
     const ids = core.match(domain, it).filter(id => BY_ID.get(id) && BY_ID.get(id).polarity === "caution");
     const ok = ids.some(id => !BY_ID.get(id).paid && BY_ID.get(id).domains.some(d => FREE.has(d)));
+    // lek7's rule is excluded (one source, T5); its cautions stay free in the lek7 reading itself, with their advice
+    if (!ok && domain === "lek7") { assert.ok(it.meanings && it.meanings.advice && it.meanings.advice.length, "lek7 caution free with advice: " + it.id); continue; }
     if (!ok) missing.push(domain + " " + it.id);
   }
   assert.deepEqual(missing, [], "report cautions with no free rule");

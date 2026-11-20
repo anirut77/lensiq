@@ -1,4 +1,7 @@
 // tests/e2e/fortune-caution-wrap.e2e.mjs — FIXED TEST SET fortune-caution (owner item 177, 2026-11-20), T11. Locked BEFORE any
+// RELOCK 3 2026-11-20 (independent review of wave 0 + owner rule "month ranges, never a single day"): readings F23 / F26 (lek7, lifegraph;
+// both page domains now excluded) replaced by F15 / F22; console-error checks count script exceptions and errors naming a
+// fortune-caution file (the page's own 404 of /api/fortune/status on the local test server is not the section's).
 // RELOCK relock2 2026-11-20: the section's root class is .lq-caution-sec (was .lq-caution, which the reading already uses for its own caution
 // paragraphs, fortune-read.js); only that selector changed, no assertion.
 // product code (evals-locks/fortune-caution.sha256). The open section (closed state, disclaimer, content) at phone widths 360,
@@ -43,7 +46,7 @@ export default async function ({ base, launch, check }) {
           await pg.evaluate(() => { const h = document.createElement("div"); h.id = "lqCautionHost"; (document.querySelector("main") || document.body).appendChild(h); return 1; });
           const bad = [];
           let states = 0;
-          for (const name of ["F1", "F17", "F21", "F23", "F26", "F38"]) {
+          for (const name of ["F1", "F17", "F21", "F15", "F22", "F38"]) {
             const mounted = await pg.evaluate(`!!window.LQFortuneCaution.mount(document.getElementById("lqCautionHost"), ${S(inputOf(reading(name), lang))})`);
             assert(mounted, name + ": mounted");
             await pg.evaluate(ISOLATE);

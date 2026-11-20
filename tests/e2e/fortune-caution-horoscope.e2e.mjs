@@ -1,4 +1,8 @@
 // tests/e2e/fortune-caution-horoscope.e2e.mjs — FIXED TEST SET fortune-caution wave 1, pilot page horoscope.html (owner item 177;
+// RELOCK 3 2026-11-20 (owner rule "month ranges, never a single day" + independent review of wave 0): horoscope's "this period" is the
+// month ("เดือนนี้ / This month / 本月"); the day-level rules are gone, so with LENSIQ_FORTUNE_CAUTIONS_CN_WEST off (live) the pilot shows
+// "overall" only (the birth kalakini) and no period part; a CN-on preview check shows the month part. Console-error checks count
+// script exceptions and errors naming a fortune-caution file (the page's own 404 of /api/fortune/status is not the section's).
 // RELOCK wave1-relock2 2026-11-20: the section's root class is .lq-caution-sec (was .lq-caution, which the reading already uses for its own caution
 // paragraphs, fortune-read.js); only that selector changed, no assertion.
 // waves 0 + 1 approved with the switch off, 2026-11-20). Locked BEFORE the page is wired (evals-locks/fortune-caution.sha256,
@@ -25,8 +29,9 @@ const DISCLAIMER = {
   en: "This section is this system's prediction according to the beliefs of this discipline. It does not decide what is right or wrong, true or untrue. Please use your own judgement.",
   zh: "本部分是本系统依据该术数的传统信仰所作的推测，并不判定任何事情的对错或真假。请运用您自己的判断。",
 };
-const PERIOD = { th: "วันนี้และเดือนนี้", en: "Today and this month", zh: "今天和本月" };
+const PERIOD = { th: "เดือนนี้", en: "This month", zh: "本月" };
 const ON = "window.LENSIQ_FORTUNE_CAUTIONS = true; window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS = true;";
+const CN = "window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST = true;";
 const LANG = l => `try { localStorage.setItem("lq-lang", ${S(l)}); } catch (e) {}`;
 const DATA = /fortune-caution-(?:core|pack|rules|filter)/;
 const isCaution = u => /\/fortune-caution[^/]*\.js/.test(u);
@@ -41,9 +46,11 @@ const STATE = `(() => {
     discText: txt(q(".lq-caution-disc p")), body: !!q(".lq-caution-body"), text: txt(sec), html: sec ? sec.innerHTML : "",
     rules: sec ? [...sec.querySelectorAll("[data-rule]")].map(e => e.dataset.rule) : [],
     overallRules: sec ? [...sec.querySelectorAll('.lq-caution-part[data-part="overall"] .lq-caution-mind li')].map(e => e.dataset.rule) : [],
-    period: txt(q(".lq-caution-period")), links: sec ? sec.querySelectorAll("a[href], [data-lq-upsell], [data-lq-remedy], [data-lq-paid]").length : 0,
+    period: txt(q(".lq-caution-period")),
+    periodPart: !!q('.lq-caution-part[data-part="period"]'), links: sec ? sec.querySelectorAll("a[href], [data-lq-upsell], [data-lq-remedy], [data-lq-paid]").length : 0,
     small: sec ? [...sec.querySelectorAll("button")].filter(b => b.getBoundingClientRect().height < 44).map(b => b.className) : [] };
 })()`;
+const ownErrors = pg => pg.consoleErrors.filter(e => e.kind === "exception" || /fortune-caution/.test(String(e.url || "") + " " + String(e.text || "")));
 const click = (pg, sel) => pg.evaluate(`(() => { const e = document.querySelector(${S(sel)}); if (!e) return false; e.click(); return true; })()`);
 
 async function reading(browser, base, { lang = "th", on = true, init = [], name = "" } = {}) {
@@ -71,7 +78,7 @@ export default async function ({ base, launch, check }) {
         assert(!s.sec, "section shown with the switch off");
         assert(!pg.requests.some(q => DATA.test(q.url)), "rule data fetched with the switch off");
         assert((await pg.evaluate("window.LENSIQ_FORTUNE_CAUTIONS")) === false, "switch default");
-        assert(!pg.consoleErrors.length, "console errors: " + S(pg.consoleErrors).slice(0, 300));
+        assert(!ownErrors(pg).length, "console errors: " + S(ownErrors(pg)).slice(0, 300));
       } finally { await pg.close(); }
     });
 
@@ -94,7 +101,7 @@ export default async function ({ base, launch, check }) {
           s = await pg.evaluate(STATE);
           assert(s.overallRules.includes("th.kalakini"), lang + ": birth kalakini under overall " + S(s.overallRules));
           assert(s.rules.every(r => /^th\./.test(r)), lang + ": Thai rules only with the Chinese switch off " + S(s.rules));
-          assert(s.period.includes(PERIOD[lang]), lang + ": period label " + s.period);
+          assert(!s.periodPart, lang + ": no 'this period' part with the Chinese switch off (no Thai month-level rule)");
           assert(s.links === 0, lang + ": link or paid block");
           assert(s.small.length === 0, lang + ": buttons under 44 px " + S(s.small));
           if (lang === "en") assert(!/[฀-๿㐀-鿿]/.test(s.text), "en: Thai or Chinese in the section");
@@ -106,10 +113,24 @@ export default async function ({ base, launch, check }) {
           await pg.waitFor("!!document.querySelector('.lq-caution-sec')", 5000);
           s = await pg.evaluate(STATE);
           assert(s.n === 1 && s.open && !s.body, lang + ": a new reading starts closed again");
-          assert(!pg.consoleErrors.length, lang + ": console errors " + S(pg.consoleErrors).slice(0, 300));
+          assert(!ownErrors(pg).length, lang + ": console errors " + S(ownErrors(pg)).slice(0, 300));
         } finally { await pg.close(); }
       });
     }
+
+    await check("CN-on preview (D-6 switch, off live): the month part with its label in TH / EN / ZH, never a day", async () => {
+      for (const lang of LANGS) {
+        const pg = await reading(browser, base, { lang, init: [CN] });
+        try {
+          await pg.waitFor(READY, 15000); await pg.waitFor("!!document.querySelector('.lq-caution-sec')", 5000);
+          await openBody(pg);
+          const s = await pg.evaluate(STATE);
+          assert(s.periodPart && s.period.includes(PERIOD[lang]), lang + ": month label " + s.period);
+          assert(!/วันนี้|พรุ่งนี้|\btoday\b|\btomorrow\b|今天|明天/i.test(s.text), lang + ": a day in the section");
+          assert(s.overallRules.includes("th.kalakini"), lang + ": birth kalakini");
+        } finally { await pg.close(); }
+      }
+    });
 
     await check("T9 crisis words in the name (TH / EN / ZH) or the tab's calm flag: no section", async () => {
       for (const name of ["ไม่อยากมีชีวิตอยู่แล้ว", "I want to kill myself", "我不想活了"]) {

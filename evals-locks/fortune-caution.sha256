@@ -48,3 +48,27 @@ de461b99c69b86f5eabd52d10ba35255a0f1011893083d5d87bcfcd648402782  wave1-relock2/
 bc4a285395b393a1f5c2e9ec90010c61872ac782201a5af8a03d0915d31e1f85  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:24:39Z; field: ~/LENSIQ-field/evals/fortune-caution/relock2/fortune-caution.e2e.mjs)
 a53b49ac267da4fbd8cd9c3ec159b6720890e6bf2e6be11d1df7a7df4eb845bd  tests/e2e/fortune-caution-wrap.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:24:39Z; field: ~/LENSIQ-field/evals/fortune-caution/relock2/fortune-caution-wrap.e2e.mjs)
 de461b99c69b86f5eabd52d10ba35255a0f1011893083d5d87bcfcd648402782  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:24:39Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1-relock2/fortune-caution-horoscope.e2e.mjs)
+# RELOCK 3 2026-11-20 (branch fortune-cautions), BEFORE the product fixes; the change is STRICTER. Independent review of wave 0 at 7c3d9fd1 failed: the
+# filter let 42 of the reviewer's 60 new forbidden probes through (18/60 refused, 16/16 allowed at 132a4a20). Added: the reviewer's 60 + 16 probes verbatim
+# and our generalisations (49 forbidden, 9 allowed); dates refused on every topic; anything under a one-day period refused; new test scans (certainty with loss
+# verbs, ไม่ควร / at all costs, accident types beyond cars, named diseases and remedies, named / described / regional / ethnic / birth-day people, digital
+# assets, 断了, skipped-offering conditionals, named monks, large amounts, Chinese numerals, plates, 大奖). Owner rule 2026-11-20: month ranges, never a
+# single day: no rule may have span "day", the fixture's horoscope period is the month, day-level readings removed. Sources: lifegraph (team weights) and
+# lek7 (one real source, fails T5, T5 unchanged) are excluded page domains; their readings removed. E2E: readings F23/F26 -> F15/F22, horoscope month part
+# (CN-on preview), console-error checks limited to exceptions and fortune-caution files (the page's own /api/fortune/status 404 was counted:
+# wave1/run-3-after-relock2-e2e.log 18/22, every section assert passed).
+# locked 2026-11-20T07:04:14Z (tools/eval-guard.mjs lock, 7 files)
+425f1df7313089cc02cddd9fe005d10eeb96b6447ff44eacd0da5c301d031070  relock3/fortune-caution-rules.test.js
+01acb5b73a94e86083ebd181a40d4808de8ed7304d204439abedc6064c9e55ad  relock3/fortune-caution-limits.test.js
+d1a0f282e5b381cacacd4b6e5ca09a606e9696999800dd1d71d31d9908590adf  relock3/fortune-caution-profiles.json
+22d6909911002bee716bf79ca1c2a2f2d34508abcdf62d0fa56b98f287d162be  relock3/fortune-caution-pages.test.js
+55ea14322e943a524bf115906b96d316e6fc856d719e9b00fc6b11fc9092f32e  relock3/fortune-caution.e2e.mjs
+d98442907069e5918b3b8301592af9bed7bf54f99ca242b9ba37fba847646f9e  relock3/fortune-caution-wrap.e2e.mjs
+3735ff1f967324bcff03f084c91c51667b70c8d50ac12be164962147c737d252  relock3/fortune-caution-horoscope.e2e.mjs
+425f1df7313089cc02cddd9fe005d10eeb96b6447ff44eacd0da5c301d031070  tests/unit/fortune-caution-rules.test.js  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-rules.test.js)
+01acb5b73a94e86083ebd181a40d4808de8ed7304d204439abedc6064c9e55ad  tests/unit/fortune-caution-limits.test.js  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-limits.test.js)
+d1a0f282e5b381cacacd4b6e5ca09a606e9696999800dd1d71d31d9908590adf  tests/unit/fixtures/fortune-caution-profiles.json  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-profiles.json)
+22d6909911002bee716bf79ca1c2a2f2d34508abcdf62d0fa56b98f287d162be  tests/unit/fortune-caution-pages.test.js  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-pages.test.js)
+55ea14322e943a524bf115906b96d316e6fc856d719e9b00fc6b11fc9092f32e  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution.e2e.mjs)
+d98442907069e5918b3b8301592af9bed7bf54f99ca242b9ba37fba847646f9e  tests/e2e/fortune-caution-wrap.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-wrap.e2e.mjs)
+3735ff1f967324bcff03f084c91c51667b70c8d50ac12be164962147c737d252  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-horoscope.e2e.mjs)

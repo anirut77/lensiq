@@ -1,4 +1,7 @@
 // tests/e2e/fortune-caution.e2e.mjs — FIXED TEST SET fortune-caution (owner item 177, 2026-11-20). Locked BEFORE any product
+// RELOCK 3 2026-11-20 (independent review of wave 0 + owner rule "month ranges, never a single day"): readings F23 / F26 (lek7, lifegraph;
+// both page domains now excluded) replaced by F15 / F22; console-error checks count script exceptions and errors naming a
+// fortune-caution file (the page's own 404 of /api/fortune/status on the local test server is not the section's).
 // RELOCK relock2 2026-11-20: the section's root class is .lq-caution-sec (was .lq-caution, which the reading already uses for its own caution
 // paragraphs, fortune-read.js); only that selector changed, no assertion.
 // code (evals-locks/fortune-caution.sha256, ~/LENSIQ-field/evals/fortune-caution/). Design ~/Desktop/LENSIQ-review/
@@ -78,6 +81,8 @@ async function toBody(pg) {
   await pg.waitFor("!!document.querySelector('.lq-caution-body') || !!document.querySelector('.lq-caution-fail')", 8000);
 }
 
+const ownErrors = pg => pg.consoleErrors.filter(e => e.kind === "exception" || /fortune-caution/.test(String(e.url || "") + " " + String(e.text || "")));
+
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
@@ -136,7 +141,7 @@ export default async function ({ base, launch, check }) {
           await mount(pg, reading("F1"), lang);
           const s = await pg.evaluate(STATE);
           assert(s.n === 1 && s.openBtn && !s.body, "new reading: closed again");
-          assert(!pg.consoleErrors.length, "console errors: " + S(pg.consoleErrors).slice(0, 400));
+          assert(!ownErrors(pg).length, "console errors: " + S(ownErrors(pg)).slice(0, 400));
         } finally { await pg.close(); }
       });
     }
@@ -217,7 +222,7 @@ export default async function ({ base, launch, check }) {
       for (const lang of LANGS) {
         const pg = await open(browser, base, { lang, isolated: true });
         try {
-          for (const name of ["F1", "F17", "F23", "F26"]) {
+          for (const name of ["F1", "F17", "F15", "F22"]) {
             await mount(pg, reading(name), lang); await toBody(pg);
             const d = await pg.evaluate(`(() => {
               const sec = document.querySelector(".lq-caution-sec");
@@ -253,7 +258,7 @@ export default async function ({ base, launch, check }) {
     await check("T12 page weight: shell <= 8 KB, one caution request before the tap, the files loaded after it <= 30 KB per page", async () => {
       const size = u => statSync(join(repo, new URL(u).pathname.replace(/^\//, ""))).size;
       assert(statSync(join(repo, "fortune-caution.js")).size <= 8192, "fortune-caution.js is " + statSync(join(repo, "fortune-caution.js")).size + " bytes");
-      for (const [name, lang] of [["F1", "th"], ["F17", "th"], ["F17", "zh"], ["F21", "en"], ["F26", "th"], ["F7", "zh"], ["F23", "en"]]) {
+      for (const [name, lang] of [["F1", "th"], ["F17", "th"], ["F17", "zh"], ["F21", "en"], ["F22", "th"], ["F7", "zh"], ["F15", "en"]]) {
         const pg = await open(browser, base, { lang, isolated: true });
         try {
           await mount(pg, reading(name), lang);

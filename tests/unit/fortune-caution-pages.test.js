@@ -1,4 +1,7 @@
 "use strict";
+// RELOCK 3 2026-11-20 (owner rule "month ranges, never a single day" + independent review of wave 0): the adapter is
+// HS.cautionItems(P, mo) with month items only (no taksa of the day, no day clash); HS.CAUTION_PERIOD = { span: "month", th:
+// "เดือนนี้", en: "This month", zh: "本月" }; with the Chinese switch off the pilot shows "overall" only. T15 and the page list unchanged.
 // tests/unit/fortune-caution-pages.test.js — FIXED TEST SET fortune-caution wave 1 (owner item 177; owner approved waves 0 and 1
 // with the switch off, 2026-11-20). Locked BEFORE any page is wired (evals-locks/fortune-caution.sha256, folder wave1/).
 // Wave 1 page list: horoscope (pilot, Thai rules), bazi and astro (Chinese / Western rules behind LENSIQ_FORTUNE_CAUTIONS_CN_WEST,
@@ -75,14 +78,13 @@ function* cases() {
 test("horoscope adapter: the items follow the engine's own findings, one for one", () => {
   assert.equal(typeof HS.cautionItems, "function", "HS.cautionItems");
   let n = 0;
-  const seen = { clash: 0, mclash: 0, officer: 0, weak: 0, lack: 0, kalaDay: 0 };
+  const seen = { mclash: 0, officer: 0, weak: 0, lack: 0 };
   for (const { P, D, mo, at } of cases()) {
     n++;
-    const it = HS.cautionItems(P, D, mo), ids = it.map(x => x.id);
+    const it = HS.cautionItems(P, mo), ids = it.map(x => x.id);
     assert.ok(it.every(x => x && typeof x.id === "string" && typeof x.strength === "number"), at + ": items");
     assert.ok(ids.includes("thai.kalakini." + P.taksa.kalakini), at + ": birth kalakini");
-    assert.ok(ids.includes("today.bhumi." + D.bhumi), at + ": today's bhumi");
-    assert.equal(ids.includes("today.clash"), !!D.clash, at + ": day clash"); if (D.clash) seen.clash++;
+    assert.ok(!ids.some(x => /^today\./.test(x)) && D, at + ": no day-level item (never a single day)");
     assert.equal(ids.includes("month.clash"), mo.branchRel === "clash", at + ": month clash"); if (mo.branchRel === "clash") seen.mclash++;
     const god = HS.tenGod(P.bazi.day.stem, mo.pillar.stem), off = god === "QS" || god === "ZG";
     assert.equal(ids.includes("month.officer"), off, at + ": duty month (" + god + ")"); if (off) seen.officer++;
@@ -90,29 +92,28 @@ test("horoscope adapter: the items follow the engine's own findings, one for one
     const tot = Object.values(P.counts).reduce((a, b) => a + b, 0) || 1;
     const lack = HS.ELEMENTS.filter(k => P.counts[k] / tot < 0.07).slice(0, 2).map(k => "bazi.lack." + k);
     assert.deepEqual(ids.filter(x => x.startsWith("bazi.lack.")), lack, at + ": lacking elements"); if (lack.length) seen.lack++;
-    if (D.bhumi === "kalakini") { seen.kalaDay++; assert.equal(it.find(x => x.id === "today.bhumi.kalakini").polarity, "challenge", at); }
     assert.equal(new Set(ids).size, ids.length, at + ": no duplicate item");
   }
   assert.ok(n >= 400, "cases: " + n);
   for (const [k, v] of Object.entries(seen)) assert.ok(v >= 3, "the locked dates reach " + k + " (" + v + ")");
 });
 
-test("horoscope pilot, live switches (drafts preview, Chinese and Western off): Thai rules only, kalakini always, one-day period", () => {
+test("horoscope pilot, live switches (drafts preview, Chinese and Western off): Thai rules only, kalakini always, month period", () => {
   const per = HS.CAUTION_PERIOD;
   assert.deepEqual(Object.keys(per || {}).sort(), ["en", "span", "th", "zh"]);
-  assert.equal(per.span, "day");
-  assert.equal(per.th, "วันนี้และเดือนนี้"); assert.equal(per.en, "Today and this month"); assert.equal(per.zh, "今天和本月");
-  let kalaDay = 0;
+  assert.equal(per.span, "month");
+  assert.equal(per.th, "เดือนนี้"); assert.equal(per.en, "This month"); assert.equal(per.zh, "本月");
   for (const { P, D, mo, at } of cases()) for (const lang of ["th", "en", "zh"]) {
-    const m = core.build({ domain: "horoscope", facts: { items: HS.cautionItems(P, D, mo) }, period: per, lang }, { drafts: true, cnWest: false });
-    assert.ok(m && m.parts.length === 2, at + " " + lang + ": overall + this period");
+    const m = core.build({ domain: "horoscope", facts: { items: HS.cautionItems(P, mo) }, period: per, lang }, { drafts: true, cnWest: false });
+    assert.ok(m && m.parts.length === 1 && D, at + " " + lang + ": overall only (no Thai month-level rule; Chinese switch off)");
     for (const p of m.parts) for (const x of p.mind.concat(p.cheer, p.guide)) assert.ok(/^th\./.test(x.rule), at + ": non-Thai rule with the switch off: " + x.rule);
     assert.ok(m.parts[0].mind.some(x => x.rule === "th.kalakini"), at + " " + lang + ": birth kalakini in 'overall'");
-    if (D.bhumi === "kalakini") { kalaDay++; assert.ok(m.parts[1].mind.some(x => x.rule === "th.taksajorn.kalakini"), at + ": kalakini day"); }
-    assert.equal(m.parts[1].period, per[lang], at + ": period label");
   }
-  assert.ok(kalaDay >= 3, "kalakini days reached: " + kalaDay);
-  const withCn = [...cases()].some(({ P, D, mo }) => core.build({ domain: "horoscope", facts: { items: HS.cautionItems(P, D, mo) }, period: per, lang: "th" },
-    { drafts: true, cnWest: true }).parts.some(p => p.mind.some(x => /^(?:cn|bz)\./.test(x.rule))));
-  assert.ok(withCn, "with the Chinese switch on, the Chinese horoscope rules can show (wired, just off)");
+  let withCn = 0;
+  for (const { P, mo } of cases()) {
+    const m = core.build({ domain: "horoscope", facts: { items: HS.cautionItems(P, mo) }, period: per, lang: "en" }, { drafts: true, cnWest: true });
+    assert.equal(m.parts[1].period, per.en, "with the Chinese switch on: the month part");
+    if (m.parts[1].mind.some(x => /^cn\.month\./.test(x.rule))) withCn++;
+  }
+  assert.ok(withCn >= 10, "with the Chinese switch on, month clash or duty month show: " + withCn);
 });

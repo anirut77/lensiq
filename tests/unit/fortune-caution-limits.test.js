@@ -12,6 +12,12 @@
 // whitelist mindful / precepts / merit / parents / religion, religion-inclusive wording, no amounts, no named recipients,
 // no big donations, no links, no ritual sequences.
 // The test owns its own scan lists; the product's check() is only measured by the probes (T7).
+// RELOCK 3 (2026-11-20, independent review of wave 0 at 7c3d9fd1 + owner rule "month ranges, never a single day"), STRICTER: the
+// reviewer's 60 forbidden and 16 allowed probes (REVIEW_*) and our generalisations of each gap (GEN_*) are added; a day or date
+// is refused on EVERY topic and anything under a one-day period is refused; new test scans: certainty with loss or illness
+// verbs, ไม่ควร / "at all costs", accident types beyond cars (motorbike, drowning, fire, bloodshed), named diseases and remedies,
+// people named, described, by region, ethnicity or birth day, digital assets, 断了, skipped-offering conditionals, named monks,
+// large amounts and Chinese numerals, plates and 大奖.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
@@ -59,6 +65,25 @@ const SCAN = {
     /华人|中国人|泰国人|外国人|老外|穆斯林|基督徒|佛教徒|印度教|属[鼠牛虎兔龙蛇马羊猴鸡狗猪]|男人|女人|戴眼镜/),
   ritualSeq: /แล้วจึง|จุดธูป|สวดมนต์\s*\d|ถวายสังฆทาน|พิธี|\britual|ceremon|incense|then (?:light|chant|pray)|仪式|法事|上香|烧香|然后(?:拜|念)/i,
   recipient: /วัด[ก-ฮ]|มูลนิธิ[ก-ฮ]|โรงพยาบาล[ก-ฮ]|\b[A-Z][a-z]+ (?:Temple|Foundation|Hospital|Church|Mosque|Shrine)\b|\bWat [A-Z]|[一-鿿]{1,4}寺(?!庙)|基金会/,
+};
+const SCAN3 = {
+  cert: /จะ(?:เสีย|ป่วย|เจ็บ|สูญ|ขาดทุน|โดน|ถูกโกง|แย่)|(?:你|您)?会(?:破财|生病|患病|出事|失去|损失|倒霉|受伤|遇到麻烦|赔)|\byou will (?:lose|fall|get sick|be ill)/i,
+  prohib: /ไม่ควร|\bat all costs\b|\bavoid\b[^.]*\bat all\b|不应该|不宜/i,
+  accType: /มอเตอร์ไซค์|รถล้ม|จมน้ำ|ไฟไหม้|เพลิงไหม้|เลือดตกยางออก|ถูกแทง|\b(?:drown\w*|bloodshed|blood|fire|motorbike|motorcycle|stabb\w*)\b|溺水|火灾|血光|淹|摔车/i,
+  disease: /โรค|หัวใจวาย|เบาหวาน|ความดันสูง|อัมพาต|\b(?:heart (?:disease|attack)|diabetes|stroke|hypertension|asthma|cancer|covid)\b|心脏病|糖尿病|高血压|中风|哮喘|心梗/i,
+  remedy: /เพื่อรักษา|รักษาอาการ|รักษาโรค|แก้โรค|(?:ดื่ม|กิน|ทาน)\S{0,16}ทุกวัน\S{0,6}(?:รักษา|หาย)|\b(?:to (?:treat|cure|heal)|remedy for|treatment for)\b|治疗|治病|疗法|偏方/i,
+  person: /ชื่อ\s?[ก-ฮ]|ที่ชื่อ|คนที่(?:ขับ|ใส่|สวม|มีรถ)|(?:รถ|เสื้อ|ผม)สี[ก-๙]|\b(?:with the \w+ (?:car|shirt|hair)|named|called [A-Z])\b|姓\S{1,2}的|叫\S{1,3}的人|开\S{0,3}车的|穿\S{0,4}的人/,
+  group: rx("", /คน(?:อีสาน|เหนือ|ใต้|ภาค|กรุง|ญี่ปุ่น|อินเดีย|เกาหลี|เวียดนาม|ญวน|มอญ)|คนเกิดวัน/,
+    /ชาว(?:อีสาน|เขา|ญี่ปุ่น|อินเดีย|จีน)/,
+    /\b(?:Indians?|Japanese|Koreans?|Vietnamese|Africans?|Europeans?|Americans?|Westerners?|Asians?|northerners|southerners|people born on)\b/,
+    /日本人|韩国人|印度人|越南人|外地人|南方人|北方人|东北人|黑人|白人|洋人|星期\S出生的人/),
+  asset2: /เงินดิจิทัล|เหรียญดิจิทัล|โทเคน|ฟอเร็กซ์|เทรด|\b(?:digital (?:money|currency|coins?)|tokens?|NFTs?|forex|trading)\b|数字货币|虚拟币|币圈|炒股|外汇/i,
+  endRel2: /断了|散了|分开吧|เลิกคบ/,
+  fear2: /(?:ถ้า|หาก)(?:คุณ)?ไม่(?:ได้)?(?:ไป)?(?:ไหว้|ใส่บาตร|สวด)|\bif you (?:skip|miss|forget|ignore|neglect)\b/i,
+  merit2: rx("i", /พระ(?:อาจารย์|ครู|มหา|อธิการ)|หลวง(?:พ่อ|ปู่|ตา)|จำนวนมาก|มหาศาล/,
+    /\b(?:a (?:lot of|large sum of) money|(?:a |one )?(?:hundred|thousand|million) (?:baht|dollars?))\b/,
+    /[一二三四五六七八九十百千万亿两]+\s*(?:元|块|万)/),
+  luck2: /เลขทะเบียน|ทะเบียนรถ|เลขเบอร์|\b(?:licen[cs]e plate|plate number)\b|大奖/i,
 };
 const ACC_ILL_TRAVEL = /อุบัติเหตุ|บาดเจ็บ|ป่วย|ไม่สบาย|เป็นไข้|เจ็บ|เดินทาง|\baccident|\binjur|\bill\b|\billness|\bsick|\bfever|\bunwell|\btravel|意外|事故|受伤|生病|发烧|不适|出行|旅行|出门|远行/i;
 const MONTHS_TH = "ม\\.ค|ก\\.พ|มี\\.ค|เม\\.ย|พ\\.ค|มิ\\.ย|ก\\.ค|ส\\.ค|ก\\.ย|ต\\.ค|พ\\.ย|ธ\\.ค|มกรา|กุมภา|มีนา|เมษา|พฤษภา|มิถุนา|กรกฎา|สิงหา|กันยา|ตุลา|พฤศจิกา|ธันวา";
@@ -118,7 +143,9 @@ test("T6 hard limits: no text the section can show touches death, terminal illne
 
 test("T6 / N7 time (owner 2026-11-20): accident, illness and travel never with a single day or date, never under a one-day period", () => {
   const hits = [];
-  for (const x of RULE_TEXTS) if (ACC_ILL_TRAVEL.test(x.text) && DAY_DATE.test(x.text)) hits.push(x.where + " " + x.lang + ": " + x.text);
+  for (const x of RULE_TEXTS) if (DAY_DATE.test(x.text)) hits.push(x.where + " " + x.lang + " (a day or date, any topic): " + x.text);
+  for (const x of RENDERED) if (DAY_DATE.test(x.text)) hits.push(x.r.name + " " + x.lang + " rendered: a day or date");
+  for (const x of RULE_TEXTS) for (const [k, re] of Object.entries(SCAN3)) if (re.test(x.text)) hits.push(x.where + " " + x.lang + " " + k + ": " + x.text);
   for (const x of RENDERED) {
     const p = x.m.parts.find(q => q.part === "period");
     if (!p || !x.per || x.per.span !== "day") continue;
@@ -323,6 +350,80 @@ test("the probe lists are self-consistent (every forbidden probe hits a test sca
   const weak = [];
   for (const l of LANGS) for (const kind of ["mind", "do", "luck"]) for (const t of FORBID[l][kind]) {
     if (!Object.values(SCAN).some(re => re.test(t)) && !struct(t, kind) && !FS.hardLimit(t)) weak.push(l + " " + kind + ": " + t);
+  }
+  assert.deepEqual(weak, []);
+});
+
+/* ---------------- RELOCK 3: the reviewer's probes (verbatim) and our generalisations of each gap ---------------- */
+const REVIEW_FORBID = [
+  ["ระวังการใช้จ่ายในวันที่ 5", "mind"], ["วันจันทร์นี้ควรระวังการตัดสินใจเรื่องเงิน", "mind"], ["วันจันทร์นี้ระวังการเดินทาง", "mind"], ["5日留意开支。", "mind"],
+  ["5日小心出行。", "mind"], ["Be careful with spending on the 5th.", "mind"], ["Be careful with money on March 5.", "mind"], ["ระวังเรื่องงานในวันพฤหัสบดีหน้า", "mind"],
+  ["ระวังคุณจะเสียเงินก้อนโต", "mind"], ["ปีนี้คุณจะเสียทรัพย์ ควรระวัง", "mind"], ["你会破财，要小心。", "mind"], ["今年你会生病，要留意。", "mind"],
+  ["ไม่ควรเดินทางไกล ระวังด้วย", "mind"], ["ระวังอย่าไปไหนคนเดียว", "mind"], ["Avoid travelling at all costs; be careful.", "mind"], ["ระวังมอเตอร์ไซค์ล้ม", "mind"],
+  ["ระวังจมน้ำช่วงนี้", "mind"], ["ระวังไฟไหม้บ้าน", "mind"], ["Be careful of drowning this year.", "mind"], ["留意溺水。", "mind"], ["ระวังโรคหัวใจ", "mind"],
+  ["ระวังโรคเบาหวานกำเริบ", "mind"], ["Be careful of a heart attack.", "mind"], ["留意心脏病。", "mind"], ["ระวังสุขภาพ ควรดื่มน้ำขิงทุกวันเพื่อรักษา", "mind"],
+  ["ระวังเพื่อนร่วมงานที่ชื่อสมชาย", "mind"], ["小心姓王的人。", "mind"], ["ระวังคนที่ขับรถสีแดง", "mind"], ["Be careful of your neighbour with the red car.", "mind"],
+  ["ระวังคนอีสาน", "mind"], ["Be careful of Indians at work.", "mind"], ["小心日本人。", "mind"], ["ระวังการลงทุนในเงินดิจิทัล", "mind"],
+  ["Be careful but buy Tesla shares now.", "mind"], ["ระวังพลาด ควรซื้อสลากออมสิน", "mind"], ["ระวัง ควรเลิกคบแฟนคนนี้", "mind"], ["小心，跟他断了吧。", "mind"],
+  ["Be careful; it's time to leave your wife.", "mind"], ["ระวังเคราะห์ร้ายตามมาถ้าไม่ไปไหว้", "mind"], ["Be careful; bad luck follows if you skip the offering.", "mind"],
+  ["ทำบุญ 9 วัด 9 พระ", "do"], ["ถวายสังฆทาน 9 ชุด", "do"], ["ทำบุญให้พระอาจารย์สมชาย", "do"], ["บริจาคเงินจำนวนมากให้วัด", "do"],
+  ["Donate a thousand baht to the temple.", "do"], ["捐一万元给寺庙。", "do"], ["ไปทำบุญที่วัดพระธาตุดอยสุเทพ", "do"], ["อาจมีโชคจากเลขทะเบียนรถ", "luck"],
+  ["อาจถูกหวยงวดหน้า", "luck"], ["You may win the lottery soon.", "luck"], ["可能会中大奖。", "luck"], ["อาจมีโชคถ้าซื้อพระเครื่อง", "luck"], ["อาจรวยจากการเทรดหุ้น", "luck"],
+  ["อาจมีโชคถ้าทำบุญหนัก ๆ", "luck"], ["คุณจะได้โชคใหญ่", "luck"], ["ระวังเลือดตกยางออก", "mind"], ["ระวังอันตรายถึงชีวิต", "mind"], ["小心血光之灾。", "mind"],
+  ["Be careful of bloodshed this year.", "mind"], ["ระวังคนเกิดวันอังคาร", "mind"],
+];
+const REVIEW_ALLOW = [
+  ["ระวังการใช้จ่ายเกินตัวในช่วงเดือน มี.ค.–เม.ย.", "mind", "month"], ["ช่วงกลางปีควรระวังการเดินทางไกล", "mind"], ["ระวังสุขภาพบริเวณหลังและไหล่ ถ้าไม่สบายควรพบแพทย์", "mind"],
+  ["ระวังการถูกหลอกให้โอนเงิน", "mind"], ["ระวังคนที่ไม่หวังดี", "mind"], ["Be careful of being tricked into paying for something.", "mind"], ["留意被骗付款。", "mind"],
+  ["三月到五月出行多留意。", "mind", "month"], ["Be mindful of your back and shoulders; see a doctor if unwell.", "mind"], ["ใส่บาตรและทำบุญตามกำลัง", "do"],
+  ["ช่วยเหลือเพื่อนบ้านที่ลำบาก", "do"], ["孝敬父母，多陪伴家人。", "do"], ["อาจมีผู้ใหญ่ช่วยเหลือในช่วงนี้", "luck"], ["You may find support from colleagues.", "luck"],
+  ["这段时间可能有贵人相助。", "luck"], ["ระวังการพูดจาที่อาจทำให้เข้าใจผิด", "mind"],
+];
+// our generalisations: the same gap in other words and the other languages
+const GEN_FORBID = [
+  ["ระวังเรื่องเงินวันศุกร์หน้า", "mind"], ["ช่วงวันที่ 12 ควรระวังคำพูด", "mind"], ["Be careful at work this Friday.", "mind"], ["Be careful with contracts on the 21st.", "mind"],
+  ["本月12号留意合同。", "mind"], ["星期五小心说话。", "mind"], ["ระวังไว้ คุณจะป่วยหนักปีนี้", "mind"], ["Be careful, you will lose money this year.", "mind"],
+  ["留意，您会损失一笔钱。", "mind"], ["ช่วงนี้ไม่ควรเซ็นสัญญา ระวังด้วย", "mind"], ["Be careful and avoid parties at all costs.", "mind"], ["留意，今年不宜出远门。", "mind"],
+  ["ระวังถูกแทงช่วงนี้", "mind"], ["ระวังเพลิงไหม้ในที่ทำงาน", "mind"], ["Be careful of a motorbike fall.", "mind"], ["Watch out for fire at home this year.", "mind"],
+  ["留意火灾。", "mind"], ["小心摔车。", "mind"], ["ระวังความดันสูง", "mind"], ["Be careful of a stroke this year.", "mind"], ["留意高血压。", "mind"],
+  ["ระวังปวดหัว ควรกินยาหม่องเพื่อรักษา", "mind"], ["Be careful with your stomach and drink ginger tea to treat it.", "mind"], ["留意胃，用偏方调理。", "mind"],
+  ["ระวังหัวหน้าที่ชื่อวิชัย", "mind"], ["Be careful of a colleague named John.", "mind"], ["小心叫小李的人。", "mind"], ["ระวังคนที่ใส่เสื้อสีดำ", "mind"],
+  ["Be careful of the man with the black car.", "mind"], ["小心开白车的人。", "mind"], ["ระวังคนภาคใต้", "mind"], ["Be careful of Koreans at work.", "mind"], ["小心南方人。", "mind"],
+  ["Be careful of people born on Saturday.", "mind"], ["小心星期六出生的人。", "mind"], ["ระวังการเทรดฟอเร็กซ์", "mind"], ["Be careful with crypto tokens.", "mind"],
+  ["留意数字货币。", "mind"], ["留意，和她散了吧。", "mind"], ["ระวังเคราะห์ถ้าไม่ใส่บาตร", "mind"], ["Be careful; trouble comes if you miss the ritual.", "mind"],
+  ["ทำบุญกับหลวงพ่อของวัดนี้", "do"], ["Donate a hundred dollars to the shrine.", "do"], ["捐三千元行善。", "do"], ["บริจาคเงินมหาศาลให้มูลนิธิ", "do"],
+  ["อาจมีโชคจากเลขเบอร์โทร", "luck"], ["You may get lucky with your licence plate.", "luck"], ["或许能中大奖。", "luck"],
+];
+const GEN_ALLOW = [
+  ["ช่วงเดือน ก.ค.–ส.ค. ควรระวังสุขภาพ ถ้าไม่สบายควรพบแพทย์", "mind", "month"], ["Between June and July, be careful with spending.", "mind", "month"],
+  ["六月到七月留意开支。", "mind", "month"], ["ระวังการตัดสินใจเรื่องเงินแบบรีบร้อน", "mind"], ["Be careful not to rush money decisions.", "mind"], ["留意仓促做决定。", "mind"],
+  ["รักษาศีลและมีสติ", "do"], ["Keep the precepts and stay mindful.", "do"], ["持戒并保持正念。", "do"],
+];
+const ctxOf = sp => (sp ? { part: "period", span: sp } : { part: "overall" });
+
+test("RELOCK 3 forbidden probes: the reviewer's 60 and our generalisations are all refused", () => {
+  const pass = [];
+  for (const [t, k] of REVIEW_FORBID.concat(GEN_FORBID)) if (!core.check(t, k, OVERALL)) pass.push(k + ": " + t);
+  assert.equal(REVIEW_FORBID.length, 60);
+  assert.deepEqual(pass, [], "probes the filter let through");
+});
+
+test("RELOCK 3 allowed probes: the reviewer's 16 and ours pass", () => {
+  const refused = [];
+  for (const [t, k, sp] of REVIEW_ALLOW.concat(GEN_ALLOW)) { const why = core.check(t, k, ctxOf(sp)); if (why) refused.push(k + ": " + t + " -> " + why); }
+  assert.equal(REVIEW_ALLOW.length, 16);
+  assert.deepEqual(refused, []);
+});
+
+test("RELOCK 3 never a single day: every text under a one-day period is refused, on every topic", () => {
+  for (const [t, k] of REVIEW_ALLOW.concat(GEN_ALLOW).filter(x => x[1] !== "do")) assert.ok(core.check(t, k, DAY), "allowed under a one-day period: " + t);
+});
+
+test("RELOCK 3 the new probes are recognised by the test's own scans (no weak probe)", () => {
+  const weak = [];
+  const struct = (t, kind) => (kind === "luck" && (!MAY.test(t) || PROMISE.test(t) || LUCK_BUY.test(t))) || (kind === "do" && /\d/.test(t)) || DAY_DATE.test(t);
+  for (const [t, k] of REVIEW_FORBID.concat(GEN_FORBID)) {
+    if (![...Object.values(SCAN), ...Object.values(SCAN3)].some(re => re.test(t)) && !struct(t, k) && !FS.hardLimit(t)) weak.push(k + ": " + t);
   }
   assert.deepEqual(weak, []);
 });
