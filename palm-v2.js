@@ -88,14 +88,10 @@
     "lm.label": ["จุดบนมืออัตโนมัติ (โมเดลทดลอง ใบอนุญาตรอทนายยืนยัน ปิดในเวอร์ชันลูกค้า)", "Automatic hand points (trial model; licence awaiting legal review; off in customer builds)",
       "自动手部关键点（试用模型；许可待法律确认；客户版关闭）"],
     "draft.school": ["ร่างคำอ่าน รอผู้เชี่ยวชาญตรวจ", "Draft reading, awaiting the expert check", "解读草稿，待专家审核"],
-    /* owner orders 2026-11-20 (photo trial 2: daylight best, flash worst, a stretched-flat hand flattens the creases) */
-    "tips.title": ["ถ่ายให้เห็นเส้นชัด", "For clear lines", "让掌纹更清楚"],
-    "tips.light": ["ถ่ายในที่สว่างทั่วถึง แสงกลางวันดีที่สุด ถ้าทำได้ให้แสงมาจากด้านข้าง เส้นจะมีเงาและเห็นชัดขึ้น",
-      "Use bright, even light: daylight is best, ideally from the side, so the lines cast a little shadow and show clearly.",
-      "在明亮均匀的光线下拍摄，日光最好，光线尽量从侧面照来，掌纹会有阴影、更清楚。"],
-    "tips.flash": ["ไม่ใช้แฟลช แสงแฟลชลบเงาในร่องเส้นจนมองไม่เห็น", "No flash: a flash washes the shadows out of the lines.", "不开闪光灯：闪光灯会把掌纹的阴影照没。"],
-    "tips.hand": ["ผ่อนมือตามสบาย ให้ฝ่ามือห่อเล็กน้อย ไม่ต้องเหยียดตึงจนแบน", "Keep your hand relaxed and slightly cupped, not stretched flat.",
-      "手放松，掌心微微拱起，不要把手绷直撑平。"],
+    /* pre-capture guidance: owner-approved wording, decision 172 (2026-11-20), EXACT (byte for byte; do not edit) */
+    "tips.guide": ["ถ่ายข้างหน้าต่างให้แสงส่องฝ่ามือจากด้านข้าง ไม่ใช่จากด้านหน้า ปิดแฟลช (ตั้งเป็น 'ปิด' ไม่ใช่ 'อัตโนมัติ') ปล่อยมือสบาย ๆ งุ้มเล็กน้อย ไม่ต้องเหยียดตึง และให้เห็นทั้งฝ่ามือและนิ้วอยู่ในกรอบ",
+      "Stand beside a window so the light falls across your palm from the side, not from the front. Turn the flash off (set it to 'off', not 'auto'). Keep your hand relaxed and slightly cupped, not stretched flat, with the whole palm and fingers inside the frame.",
+      "站在窗边，让光线从侧面照到手掌，而不是从正面。关闭闪光灯（设为“关闭”，不要用“自动”）。手放松、略微弯曲，不要用力伸平，并让整个手掌和手指都在画面内。"],
     /* the upload minimum message: owner-approved wording 2026-11-20, EXACT */
     "quality.retake": ["ภาพนี้เล็กหรือไม่คมพอสำหรับหาเส้นลายมือ ถ่ายใหม่ให้ฝ่ามือเต็มกรอบ ในที่สว่างทั่วถึง ไม่ใช้แฟลช และถือให้นิ่ง หรือจะวาดเส้นเองบนภาพนี้ก็ได้",
       "This photo is too small or not sharp enough to find palm lines. Retake it with your palm filling the frame, in bright even light, without flash, holding still, or draw the lines yourself on this photo.",
@@ -618,9 +614,11 @@
 
   /* ================= photo minimum (owner order 2026-11-20) =================
      PROVISIONAL first values, accepted by the owner to calibrate on the pilot (trial 2: flash S x 10^4 0.72-0.85, dim light 0.98-1.11,
-     daylight 1.17-2.17; blown-out 12 % and 67 % with flash). Uploads: palm width, sharpness and blow-out; camera stills: blow-out only
-     (the live hints already gate size and sharpness before the shutter). */
-  var UPLOAD_MIN = { PROVISIONAL: true, pw: 360, sharp: 1.0, clip: 0.02 };
+     daylight 1.17-2.17; blown-out 12 % and 67 % with flash). Uploads: palm width and blow-out; camera stills: blow-out only (the live
+     hints already gate size before the shutter). Owner decision 171 ก (2026-11-20): sharpness is NOT part of the minimum (the best real
+     photo pair scored S x 10^4 0.42-0.99); photoQuality still measures it as a value to look at only; it never blocks a photo and is
+     never shown to the user. */
+  var UPLOAD_MIN = { PROVISIONAL: true, pw: 360, clip: 0.02 };
   var GK5 = [0.0545, 0.2442, 0.4026, 0.2442, 0.0545]; // Gaussian, sigma 1
   /** the B2.3 measure on the palm ROI (u 0..1, v 0.05..0.95 of the palm frame) resampled to 256 px wide (box average of the source):
       sharp = S x 10^4, S = variance of the 4-neighbour Laplacian of the sigma-1 Gaussian of Y (BT.601) / mean(Y)^2; clip = share of
@@ -648,11 +646,10 @@
     var lapVar = ln ? ls2 / ln - (ls / ln) * (ls / ln) : 0;
     return { pw: (o && o.pw) || F.pw, sharp: lapVar / (mean * mean + 1e-6) * 1e4, clip: nclip / n, mean: mean };
   }
-  /** which limits a photo misses: source "upload" (default) checks pw, sharp and clip; "camera" checks clip only */
+  /** which limits a photo misses: source "upload" (default) checks pw and clip; "camera" checks clip only; sharpness never (171 ก) */
   function qualityVerdict(q, o) {
     var M = UPLOAD_MIN, cam = o && o.source === "camera", fails = [];
     if (!cam && !(q.pw >= M.pw)) fails.push("pw");
-    if (!cam && !(q.sharp >= M.sharp)) fails.push("sharp");
     if (!(q.clip <= M.clip)) fails.push("clip");
     return { ok: fails.length === 0, fails: fails };
   }

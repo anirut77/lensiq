@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   var W = /** @type {any} */ (self);
-  W.importScripts("palm-v2-kb.js?v=1", "palm-v2-detect.js?v=2", "palm-v2.js?v=2");
+  W.importScripts("palm-v2-kb.js?v=1", "palm-v2-detect.js?v=2", "palm-v2.js?v=3");
   var PV = W.PalmV2;
   W.addEventListener("message", function (ev) {
     var m = ev.data || {};

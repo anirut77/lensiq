@@ -335,7 +335,8 @@
     S.busy = true; setTapMsg(T("detect.busy"));
     return new Promise(function (res) { setTimeout(res, 30); }).then(function () {
       var F0 = PV.frameFromHand(S.hand);
-      // photo minimum (owner order 2026-11-20, PROVISIONAL): uploads palm width / sharpness / blow-out, camera stills blow-out only
+      // photo minimum (owner order 2026-11-20, PROVISIONAL; 171 ก): uploads palm width / blow-out, camera stills blow-out only;
+      // sharpness is measured for review (S.quality.sharp) and never blocks or is shown
       var qv = photoCheck(F0);
       S.quality = qv;
       if (!qv.ok) {
@@ -412,7 +413,7 @@
   var worker = null, workerBroken = false, jobN = 0;
   function findLines(px, w, h, hand, school) {
     if (!workerBroken && typeof Worker === "function") {
-      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=1"); } catch (e) { workerBroken = true; }
+      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=2"); } catch (e) { workerBroken = true; }
     }
     if (!worker || workerBroken) return new Promise(function (res) { setTimeout(function () { res(PV.detect(px, w, h, hand, { school: school })); }, 0); });
     var id = ++jobN;
