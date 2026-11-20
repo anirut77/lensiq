@@ -1,13 +1,17 @@
 "use strict";
-// tests/unit/palm-v2-capture2.test.js — FIXED TEST SET "palm-layers" relock4 (palm v2 capture, owner orders 2026-11-20), locked in
-// evals-locks/palm-layers.sha256 BEFORE the product change. DRAWN SYNTHETIC images and landmark sets only
+// tests/unit/palm-v2-capture2.test.js — FIXED TEST SET "palm-layers" relock4 (palm v2 capture, owner orders 2026-11-20), changed and
+// re-locked as relock5 (owner decisions 171 ก and 172, 2026-11-20) in evals-locks/palm-layers.sha256 BEFORE the product change.
+//   171 ก: the sharpness gate (S x 10^4 >= 1.0) is removed from the photo pass / fail minimum (owner-approved loosening: the best
+//          real photo pair scored 0.42-0.99); the minimum keeps palm width >= 360 px and blown-out <= 2 %. Sharpness is still measured
+//          (a value to look at only) and never blocks a photo or appears as a score to the user.
+//   172:   the pre-capture guidance is EXACTLY the owner-approved text (TH / EN / ZH); the earlier tip texts are gone. DRAWN SYNTHETIC images and landmark sets only
 // (tests/fixtures/palm-v2/synth-capture.js); every number here is SYNTHETIC.
 // Contract under test (palm-v2.js, browser global PalmV2):
-//   UPLOAD_MIN = { PROVISIONAL: true, pw: 360, sharp: 1.0, clip: 0.02 }   (sharp = S x 10^4; clip = fraction of blown-out pixels)
+//   UPLOAD_MIN = { PROVISIONAL: true, pw: 360, clip: 0.02 }   (clip = fraction of blown-out pixels; no sharpness key, 171 ก)
 //   photoQuality(rgba, w, h, hand) -> { pw, sharp, clip, mean }: the B2.3 measure. Palm ROI u 0..1, v 0.05..0.95 of the palm frame,
 //     resampled to 256 px wide; Y = BT.601; S = variance of the 4-neighbour Laplacian of the Gaussian (sigma 1) smoothed Y / mean(Y)^2;
 //     blown-out = any channel >= 250; pw = index-to-little-finger knuckle distance in image px.
-//   qualityVerdict(q, { source }) -> { ok, fails[] }: source "upload" checks pw, sharp and clip; "camera" checks clip (no flash).
+//   qualityVerdict(q, { source }) -> { ok, fails[] }: source "upload" checks pw and clip; "camera" checks clip (no flash); sharp never.
 //   T("quality.retake", lang) = the owner-approved retake message, EXACTLY (TH / EN / ZH).
 //   handSide({ hand, facing, mirrored, handedness }) -> { side: "left" | "right" | null, ... }: from the thumb position relative to
 //     the palm (landmark geometry); facing "user" = a mirrored image unless `mirrored` says otherwise; the model's handedness label
@@ -16,8 +20,9 @@
 //   sideAskText(detected, chosen, lang): the confirmation question (TH / EN / ZH).
 //   CAM_OPTS.torch === false; photoSettings(caps) -> { fillLightMode: "off" } when the track supports it, else null;
 //   grabStill asks takePhoto for fillLightMode "off" when supported.
-//   Texts: tips.light / tips.flash / tips.hand (pre-capture tips) and the live hints carry the daylight, no-flash and
-//   relaxed / slightly cupped hand guidance in TH / EN / ZH; no text tells the user to stretch the hand flat.
+//   Texts: T("tips.guide", lang) = the owner-approved guidance (172), EXACTLY; tips.light / tips.flash / tips.hand and their texts are
+//   gone; the live hints carry the daylight, no-flash and relaxed / slightly cupped hand guidance in TH / EN / ZH; no text tells the
+//   user to stretch the hand flat; no text shows a sharpness value.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
@@ -31,21 +36,37 @@ const RETAKE = {
   en: "This photo is too small or not sharp enough to find palm lines. Retake it with your palm filling the frame, in bright even light, without flash, holding still, or draw the lines yourself on this photo.",
   zh: "这张照片太小或不够清晰，无法找到掌纹。请让手掌占满画面，在明亮均匀的光线下、不开闪光灯、保持稳定后重拍，也可以直接在这张照片上自己画线。"
 };
+/* owner decision 172 (2026-11-20): byte for byte */
+const GUIDE = {
+  th: "ถ่ายข้างหน้าต่างให้แสงส่องฝ่ามือจากด้านข้าง ไม่ใช่จากด้านหน้า ปิดแฟลช (ตั้งเป็น 'ปิด' ไม่ใช่ 'อัตโนมัติ') ปล่อยมือสบาย ๆ งุ้มเล็กน้อย ไม่ต้องเหยียดตึง และให้เห็นทั้งฝ่ามือและนิ้วอยู่ในกรอบ",
+  en: "Stand beside a window so the light falls across your palm from the side, not from the front. Turn the flash off (set it to 'off', not 'auto'). Keep your hand relaxed and slightly cupped, not stretched flat, with the whole palm and fingers inside the frame.",
+  zh: "站在窗边，让光线从侧面照到手掌，而不是从正面。关闭闪光灯（设为“关闭”，不要用“自动”）。手放松、略微弯曲，不要用力伸平，并让整个手掌和手指都在画面内。"
+};
+/* the relock4 tip texts that 172 replaces: none may remain anywhere */
+const OLD_TIPS = [
+  "ถ่ายให้เห็นเส้นชัด", "For clear lines", "让掌纹更清楚",
+  "ถ่ายในที่สว่างทั่วถึง แสงกลางวันดีที่สุด ถ้าทำได้ให้แสงมาจากด้านข้าง เส้นจะมีเงาและเห็นชัดขึ้น",
+  "Use bright, even light: daylight is best, ideally from the side, so the lines cast a little shadow and show clearly.",
+  "在明亮均匀的光线下拍摄，日光最好，光线尽量从侧面照来，掌纹会有阴影、更清楚。",
+  "ไม่ใช้แฟลช แสงแฟลชลบเงาในร่องเส้นจนมองไม่เห็น", "No flash: a flash washes the shadows out of the lines.", "不开闪光灯：闪光灯会把掌纹的阴影照没。",
+  "ผ่อนมือตามสบาย ให้ฝ่ามือห่อเล็กน้อย ไม่ต้องเหยียดตึงจนแบน", "Keep your hand relaxed and slightly cupped, not stretched flat.",
+  "手放松，掌心微微拱起，不要把手绷直撑平。"
+];
 const NO_FLASH = { th: /ไม่ใช้แฟลช|ปิดแฟลช/, en: /\b(no flash|without (the )?flash|flash off|turn off the flash)\b/i, zh: /不开闪光灯|关闭闪光灯|不要用闪光灯|不用闪光灯/ };
 const CUPPED = { th: /ห่อ/, en: /\bcupped\b/i, zh: /微微拱起|微拱|稍微弯曲|微弯/ };
 const RELAXED = { th: /ผ่อน|สบาย/, en: /\brelax/i, zh: /放松/ };
 const DAYLIGHT = { th: /แสงกลางวัน/, en: /\bdaylight\b/i, zh: /日光|白天的光/ };
-const SIDE_LIGHT = { th: /ด้านข้าง/, en: /\bfrom the side\b/i, zh: /侧面|侧光/ };
 const NOT_FLAT = { th: /ไม่ต้องเหยียด|อย่าเหยียด|ไม่เหยียด/, en: /\bnot (stretched|stretch(ed)? flat)|don't stretch|do not stretch/i, zh: /不要(把手)?(伸直|绷直|撑平)|不用(伸直|绷直|撑平)/ };
 const FLAT_ORDER = { th: /เหยียดมือให้ตรง|กางนิ้วออก/, en: /\b(straighten your fingers|open your hand and|stretch (your hand|it) flat)\b/i, zh: /把手伸直|张开手指/ };
 
 const imgQ = o => { const im = SY.palmImage(o); return { im, q: PV.photoQuality(im.rgba, im.w, im.h, PV.handFromTaps(im.taps)) }; };
 
-test("upload minimum: PROVISIONAL constants pw >= 360, S x 10^4 >= 1.0, blown-out <= 2 %", () => {
+test("upload minimum: PROVISIONAL constants pw >= 360, blown-out <= 2 %; no sharpness limit (171 ก)", () => {
   assert.equal(PV.UPLOAD_MIN.PROVISIONAL, true, "marked PROVISIONAL until calibrated on the pilot");
   assert.equal(PV.UPLOAD_MIN.pw, 360);
-  assert.equal(PV.UPLOAD_MIN.sharp, 1.0);
   assert.equal(PV.UPLOAD_MIN.clip, 0.02);
+  assert.ok(!("sharp" in PV.UPLOAD_MIN), "sharpness is not part of the minimum " + JSON.stringify(PV.UPLOAD_MIN));
+  assert.deepEqual(Object.keys(PV.UPLOAD_MIN).sort(), ["PROVISIONAL", "clip", "pw"]);
 });
 
 test("upload minimum: the verdict at each limit (below rejected, at or above passes)", () => {
@@ -54,16 +75,32 @@ test("upload minimum: the verdict at each limit (below rejected, at or above pas
   assert.deepEqual(v({}), { ok: true, fails: [] });
   assert.deepEqual(v({ pw: 359.9 }).fails, ["pw"]); assert.equal(v({ pw: 359.9 }).ok, false);
   assert.equal(v({ pw: 360 }).ok, true);
-  assert.deepEqual(v({ sharp: 0.99 }).fails, ["sharp"]); assert.equal(v({ sharp: 1.0 }).ok, true);
   assert.deepEqual(v({ clip: 0.0201 }).fails, ["clip"]); assert.equal(v({ clip: 0.02 }).ok, true);
-  assert.deepEqual(v({ pw: 200, sharp: 0.2, clip: 0.5 }).fails.sort(), ["clip", "pw", "sharp"]);
+  assert.deepEqual(v({ pw: 200, sharp: 0.2, clip: 0.5 }).fails.sort(), ["clip", "pw"]);
+  // 171 ก: sharpness never blocks a photo, whatever its value (the owner's best real pair scored 0.42-0.99)
+  for (const sharp of [0, 0.01, 0.42, 0.5, 0.99, 0.999, 1.0, 5, -1, NaN, undefined, null, Infinity]) for (const source of ["upload", "camera"]) {
+    const r = v({ sharp }, source);
+    assert.deepEqual(r, { ok: true, fails: [] }, `sharp ${sharp} ${source} -> ${JSON.stringify(r)}`);
+    const r2 = v({ pw: 359, sharp }, source);
+    assert.ok(!r2.fails.includes("sharp"), `sharp ${sharp} ${source} with pw 359 -> ${JSON.stringify(r2)}`);
+  }
+  // the two remaining limits still block, alone and together, at any sharpness
+  for (const sharp of [0.2, 1.8]) {
+    assert.deepEqual(v({ pw: 359.9, sharp }).fails, ["pw"]);
+    assert.deepEqual(v({ clip: 0.0201, sharp }).fails, ["clip"]);
+    assert.deepEqual(v({ pw: 0, clip: 1, sharp }).fails.sort(), ["clip", "pw"]);
+    assert.deepEqual(v({ clip: 0.0201, sharp }, "camera").fails, ["clip"]);
+  }
+  // a missing or broken measure fails closed on the two remaining limits
+  assert.ok(v({ pw: NaN }).fails.includes("pw")); assert.ok(v({ clip: NaN }).fails.includes("clip"));
+  assert.ok(v({ pw: undefined }).fails.includes("pw")); assert.ok(v({ clip: undefined }, "camera").fails.includes("clip"));
   // a camera still: no flash blow-out (the live hints already ask for a sharp, close palm)
   assert.equal(v({ clip: 0.05 }, "camera").ok, false);
   assert.deepEqual(v({ clip: 0.05 }, "camera").fails, ["clip"]);
   assert.equal(v({ clip: 0.01 }, "camera").ok, true);
 });
 
-test("upload minimum on synthetic photos: small and blurred photos are rejected, good ones pass (B2.3 measure)", () => {
+test("upload minimum on synthetic photos: small photos are rejected, blurred ones pass with S still measured, good ones pass (B2.3 measure)", () => {
   const good = imgQ({ pw: 480 });
   assert.ok(Math.abs(good.q.pw - 480) < 1, "pw " + good.q.pw);
   assert.ok(good.q.sharp >= 1.4 && good.q.clip === 0, "good photo " + JSON.stringify(good.q));
@@ -78,8 +115,14 @@ test("upload minimum on synthetic photos: small and blurred photos are rejected,
   const tiny = imgQ({ pw: 200 });
   assert.ok(PV.qualityVerdict(tiny.q, { source: "upload" }).fails.includes("pw"));
   const soft = imgQ({ pw: 480, blur: 0.008 });
-  assert.ok(soft.q.sharp < 1.0, "blurred S " + soft.q.sharp);
-  assert.deepEqual(PV.qualityVerdict(soft.q, { source: "upload" }).fails, ["sharp"]);
+  assert.ok(Number.isFinite(soft.q.sharp) && soft.q.sharp < 1.0, "blurred S still measured " + soft.q.sharp);
+  assert.deepEqual(PV.qualityVerdict(soft.q, { source: "upload" }), { ok: true, fails: [] }, "171 ก: a blurred photo is not blocked " + JSON.stringify(soft.q));
+  // a small AND blurred photo is rejected for its size only
+  const smallSoft = imgQ({ pw: 340, blur: 0.008 });
+  assert.deepEqual(PV.qualityVerdict(smallSoft.q, { source: "upload" }).fails, ["pw"], "pw 340 blurred " + JSON.stringify(smallSoft.q));
+  // a blurred, blown-out photo is rejected for the blow-out only
+  const softBlown = imgQ({ pw: 480, blur: 0.008, clip: 0.03 });
+  assert.deepEqual(PV.qualityVerdict(softBlown.q, { source: "upload" }).fails, ["clip"], "blurred blown-out " + JSON.stringify(softBlown.q));
   const lightBlur = imgQ({ pw: 480, blur: 0.003 });
   assert.equal(PV.qualityVerdict(lightBlur.q, { source: "upload" }).ok, true, "slight blur " + JSON.stringify(lightBlur.q));
   // the measure is scale-free: the same palm at 480 and 900 px gives about the same S
@@ -189,16 +232,12 @@ test("flash / torch off: the camera never turns the torch on; takePhoto asks for
   assert.equal(calls2.length, 1); assert.ok(!(calls2[0] && calls2[0].fillLightMode === "flash"), "never asks for flash");
 });
 
-test("guidance texts: daylight from the side, no flash, relaxed slightly cupped hand (pre-capture tips and live hints, TH / EN / ZH)", () => {
+test("guidance texts: the pre-capture guidance is EXACTLY the owner-approved 172 text; live hints: daylight, no flash, relaxed slightly cupped hand (TH / EN / ZH)", () => {
   for (const l of LANGS) {
-    const tips = ["tips.light", "tips.flash", "tips.hand"].map(k => PV.T(k, l));
-    tips.forEach((t, i) => assert.ok(t && t.length > 8 && !/^tips\./.test(t), `${l} tip ${i}: ${t}`));
-    const all = tips.join(" ");
-    assert.ok(DAYLIGHT[l].test(all), `${l}: daylight in the tips: ${all}`);
-    assert.ok(SIDE_LIGHT[l].test(all), `${l}: light from the side in the tips: ${all}`);
-    assert.ok(NO_FLASH[l].test(all), `${l}: no flash in the tips: ${all}`);
-    assert.ok(CUPPED[l].test(all) && RELAXED[l].test(all), `${l}: relaxed, slightly cupped hand in the tips: ${all}`);
-    assert.ok(NOT_FLAT[l].test(all), `${l}: "not stretched flat" in the tips: ${all}`);
+    assert.equal(PV.T("tips.guide", l), GUIDE[l], `${l}: 172 text byte for byte`);
+    assert.ok(Buffer.from(PV.T("tips.guide", l), "utf8").equals(Buffer.from(GUIDE[l], "utf8")), `${l}: bytes differ`);
+    // the earlier tip keys are gone (T returns the key for an unknown key)
+    for (const k of ["tips.light", "tips.flash", "tips.hand", "tips.title"]) assert.equal(PV.T(k, l), k, `${l}: old key ${k} still defined: ${PV.T(k, l)}`);
     for (const other of [false, true]) {
       const h = id => PV.hintText(id, l, other);
       assert.ok(NO_FLASH[l].test(h("glare")), `${l} glare hint: no flash: ${h("glare")}`);
@@ -211,7 +250,42 @@ test("guidance texts: daylight from the side, no flash, relaxed slightly cupped 
   // no text tells the user to stretch the hand flat or open it wide
   const bad = PV.allTexts().filter(t => (t.kind === "hint" || t.kind === "ui") && FLAT_ORDER[t.lang] && FLAT_ORDER[t.lang].test(t.text));
   assert.deepEqual(bad.map(t => `${t.key} ${t.lang}: ${t.text}`), []);
-  // the tips are listed for the hard-limit scan
-  const keys = new Set(PV.allTexts().filter(t => t.kind === "ui").map(t => t.key));
-  for (const k of ["tips.light", "tips.flash", "tips.hand", "quality.retake"]) assert.ok(keys.has(k), k + " in allTexts");
+  // the guidance is listed for the hard-limit scan, once per language; the old tip keys are not
+  const ui = PV.allTexts().filter(t => t.kind === "ui");
+  const keys = new Set(ui.map(t => t.key));
+  for (const k of ["tips.guide", "quality.retake"]) assert.ok(keys.has(k), k + " in allTexts");
+  for (const k of ["tips.light", "tips.flash", "tips.hand", "tips.title"]) assert.ok(!keys.has(k), k + " still in allTexts");
+  const g = ui.filter(t => t.key === "tips.guide");
+  assert.equal(g.length, 3);
+  for (const t of g) assert.equal(t.text, GUIDE[t.lang], t.lang);
+  // the old tip texts are gone from every text (whole or as a part)
+  const left = PV.allTexts().filter(t => OLD_TIPS.some(o => t.text.includes(o)));
+  assert.deepEqual(left.map(t => `${t.key} ${t.lang}: ${t.text}`), []);
+});
+
+test("palm.html: the guidance block shows only the 172 key; the old tip keys and texts are not in the page source", () => {
+  const fs = require("node:fs");
+  const html = fs.readFileSync(path.join(ROOT, "palm.html"), "utf8");
+  const block = (html.match(/<div class="pv2-tips" id="pv2Tips">([\s\S]*?)<\/div>/) || [])[1];
+  assert.ok(block, "#pv2Tips block in palm.html");
+  const keys = [...block.matchAll(/data-pv2-t="([^"]+)"/g)].map(m => m[1]);
+  assert.deepEqual(keys, ["tips.guide"], "guidance keys in #pv2Tips " + JSON.stringify(keys));
+  for (const k of ["tips.light", "tips.flash", "tips.hand", "tips.title"]) assert.ok(!html.includes(`"${k}"`), `palm.html still names ${k}`);
+  for (const f of ["palm.html", "palm-v2.js", "palm-v2-ui.js"]) {
+    const src = fs.readFileSync(path.join(ROOT, f), "utf8");
+    const left = OLD_TIPS.filter(o => src.includes(o));
+    assert.deepEqual(left, [], `${f} still holds old tip text`);
+  }
+});
+
+test("no sharpness number is shown to the user: no user text names sharpness with a value or a placeholder (TH / EN / ZH)", () => {
+  const SHARP_WORD = /sharpness|\bsharp\b|ความคม|คมชัด|清晰度|锐度/i;
+  const NUM_OR_SLOT = /\d|\{[^}]*\}|%s|\$\{/;
+  const bad = PV.allTexts().filter(t => SHARP_WORD.test(t.text) && NUM_OR_SLOT.test(t.text));
+  assert.deepEqual(bad.map(t => `${t.key} ${t.lang}: ${t.text}`), []);
+  // the UI module never writes the measured sharpness into the page
+  const fs = require("node:fs");
+  const ui = fs.readFileSync(path.join(ROOT, "palm-v2-ui.js"), "utf8");
+  const writes = ui.split("\n").filter(l => /\.sharp\b/.test(l) && /textContent|innerHTML|innerText|insertAdjacent|msg\(|setTapMsg\(|setAttribute|\.title\s*=|aria-label/.test(l));
+  assert.deepEqual(writes, [], "palm-v2-ui.js writes sharpness into the page");
 });

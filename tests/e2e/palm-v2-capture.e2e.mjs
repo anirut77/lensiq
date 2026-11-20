@@ -1,15 +1,18 @@
-// tests/e2e/palm-v2-capture.e2e.mjs — FIXED TEST SET "palm-layers" relock4 (palm v2 capture, owner orders 2026-11-20), locked in
-// evals-locks/palm-layers.sha256 BEFORE the product change. palm.html with window.LENSIQ_PALM_V2 = true (set before load).
+// tests/e2e/palm-v2-capture.e2e.mjs — FIXED TEST SET "palm-layers" relock4 (palm v2 capture, owner orders 2026-11-20), changed and
+// re-locked as relock5 (owner decisions 171 ก and 172, 2026-11-20) in evals-locks/palm-layers.sha256 BEFORE the product change.
+// 171 ก (owner-approved loosening): sharpness no longer blocks a photo; the minimum is palm width >= 360 px and blown-out <= 2 %;
+// sharpness is measured for review only and never shown. 172: the pre-capture guidance is EXACTLY the approved text. palm.html with window.LENSIQ_PALM_V2 = true (set before load).
 // DRAWN SYNTHETIC images only (tests/fixtures/palm-v2/synth-capture.js), never a photo of a person; numbers are SYNTHETIC.
-//  U  upload minimum through the real upload control (#pv2File): a photo with a palm narrower than 360 px, a blurred photo
-//     (S x 10^4 < 1.0) and a photo with > 2 % blown-out palm pixels show EXACTLY the approved message (TH / EN / ZH) after the
-//     7 taps, the line finder does not run, every line is "not found", and the user can still trace a line by hand on that
-//     photo; a good photo shows no such message and the finder runs.
+//  U  upload minimum through the real upload control (#pv2File): a photo with a palm narrower than 360 px (300 px; 350 px; 300 px
+//     and blurred) and a photo with > 2 % blown-out palm pixels (also when blurred) show EXACTLY the approved message (TH / EN / ZH)
+//     after the 7 taps, the line finder does not run, every line is "not found", and the user can still trace a line by hand on that
+//     photo; a good photo and a blurred photo (S x 10^4 < 1.0, still measured) show no such message, the finder runs, and no
+//     sharpness value appears anywhere on the page.
 //  F  camera still with a flash blow-out (> 2 %) is rejected with the same message; a good still is not.
 //  H  handedness: the user chose the right hand and the photo is a left hand: a confirmation question (TH / EN / ZH) appears,
 //     the reading button waits, the side stays "right" until the user answers; answering "left" sets left. A matching photo
 //     asks nothing.
-//  T  pre-capture tips are shown with the daylight, no-flash and relaxed, slightly cupped hand guidance (TH / EN / ZH).
+//  T  the pre-capture guidance shows EXACTLY the owner-approved 172 text (TH / EN / ZH) and none of the earlier tip texts.
 // 393 px wide, one browser.
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -27,10 +30,26 @@ const RETAKE = {
   en: "This photo is too small or not sharp enough to find palm lines. Retake it with your palm filling the frame, in bright even light, without flash, holding still, or draw the lines yourself on this photo.",
   zh: "这张照片太小或不够清晰，无法找到掌纹。请让手掌占满画面，在明亮均匀的光线下、不开闪光灯、保持稳定后重拍，也可以直接在这张照片上自己画线。"
 };
+/* owner decision 172 (2026-11-20): byte for byte */
+const GUIDE = {
+  th: "ถ่ายข้างหน้าต่างให้แสงส่องฝ่ามือจากด้านข้าง ไม่ใช่จากด้านหน้า ปิดแฟลช (ตั้งเป็น 'ปิด' ไม่ใช่ 'อัตโนมัติ') ปล่อยมือสบาย ๆ งุ้มเล็กน้อย ไม่ต้องเหยียดตึง และให้เห็นทั้งฝ่ามือและนิ้วอยู่ในกรอบ",
+  en: "Stand beside a window so the light falls across your palm from the side, not from the front. Turn the flash off (set it to 'off', not 'auto'). Keep your hand relaxed and slightly cupped, not stretched flat, with the whole palm and fingers inside the frame.",
+  zh: "站在窗边，让光线从侧面照到手掌，而不是从正面。关闭闪光灯（设为“关闭”，不要用“自动”）。手放松、略微弯曲，不要用力伸平，并让整个手掌和手指都在画面内。"
+};
+const OLD_TIPS = [
+  "ถ่ายให้เห็นเส้นชัด", "For clear lines", "让掌纹更清楚",
+  "ถ่ายในที่สว่างทั่วถึง แสงกลางวันดีที่สุด", "daylight is best, ideally from the side", "日光最好，光线尽量从侧面照来",
+  "แสงแฟลชลบเงาในร่องเส้นจนมองไม่เห็น", "a flash washes the shadows out of the lines", "闪光灯会把掌纹的阴影照没",
+  "ให้ฝ่ามือห่อเล็กน้อย ไม่ต้องเหยียดตึงจนแบน", "Keep your hand relaxed and slightly cupped, not stretched flat.", "掌心微微拱起，不要把手绷直撑平"
+];
+/** the page shows no sharpness value: no measured S (in any rounding) next to a sharpness word, no sharpness word with a number */
+const SHARP_SHOWN = (text, sharp) => {
+  const words = /sharpness|\bsharp\b|ความคม|คมชัด|清晰度|锐度/i, out = [];
+  for (const line of text.split(/\n+/)) if (words.test(line) && /\d/.test(line)) out.push(line);
+  if (typeof sharp === "number") for (const d of [2, 3]) { const v = sharp.toFixed(d); if (Number(v) !== 0 && text.includes(v)) out.push("value " + v); }
+  return out;
+};
 const ADDED = { th: "เพิ่มเอง", en: "Added by you", zh: "自行添加" };
-const NO_FLASH = { th: /ไม่ใช้แฟลช|ปิดแฟลช/, en: /\b(no flash|without (the )?flash|flash off|turn off the flash)\b/i, zh: /不开闪光灯|关闭闪光灯|不要用闪光灯|不用闪光灯/ };
-const CUPPED = { th: /ห่อ/, en: /\bcupped\b/i, zh: /微微拱起|微拱|稍微弯曲|微弯/ };
-const DAYLIGHT = { th: /แสงกลางวัน/, en: /\bdaylight\b/i, zh: /日光|白天的光/ };
 
 const LANG = lang => `try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`;
 /* ImageCapture whose takePhoto() returns a synthetic palm (window.__stillOpts picks the image) */
@@ -79,22 +98,29 @@ export default async function ({ base, launch, check, fakeCams }) {
       for (const lang of LANGS) {
         const page = await open(browser, base, { lang });
         try {
-          const t = await page.evaluate(() => { const e = document.getElementById("pv2Tips"); return e ? { text: e.innerText, shown: !!e.offsetParent } : null; });
-          assert(t && t.shown, `${lang}: tips not shown ${S(t)}`);
-          assert(DAYLIGHT[lang].test(t.text) && NO_FLASH[lang].test(t.text) && CUPPED[lang].test(t.text), `${lang}: tips ${S(t.text)}`);
+          const t = await page.evaluate(() => { const e = document.getElementById("pv2Tips"); if (!e) return null;
+            const g = e.querySelector('[data-pv2-t="tips.guide"]');
+            return { text: e.innerText, shown: !!e.offsetParent, guide: g ? g.textContent : null, guideShown: !!(g && g.offsetParent),
+              body: document.body.innerText, html: document.documentElement.outerHTML }; });
+          assert(t && t.shown && t.guideShown, `${lang}: guidance not shown ${S(t && { shown: t.shown, guideShown: t.guideShown })}`);
+          assert(t.guide === GUIDE[lang], `${lang}: guidance is not the exact 172 text: ${S(t.guide)}`);
+          assert(t.text.trim() === GUIDE[lang], `${lang}: the guidance block holds more than the 172 text: ${S(t.text)}`);
+          const left = OLD_TIPS.filter(o => t.body.includes(o) || t.html.includes(o));
+          assert(left.length === 0, `${lang}: old tip text still on the page ${S(left)}`);
         } finally { await page.close(); }
       }
     });
 
     for (const lang of LANGS) {
-      await check(`U ${lang}: upload minimum: small, blurred and blown-out photos rejected with the exact message, trace still possible; a good photo passes`, async () => {
+      await check(`U ${lang}: upload minimum: small and blown-out photos rejected with the exact message, trace still possible; a good photo and a blurred photo pass, no sharpness shown`, async () => {
         const page = await open(browser, base, { lang });
         try {
-          for (const [name, o, fail] of [["small (palm 300 px)", { pw: 300 }, "pw"], ["blurred", { pw: 480, blur: 0.008 }, "sharp"], ["blown-out 3 %", { pw: 480, clip: 0.03 }, "clip"]]) {
+          for (const [name, o, fail] of [["small (palm 300 px)", { pw: 300 }, "pw"], ["small (palm 350 px)", { pw: 350 }, "pw"], ["small and blurred", { pw: 300, blur: 0.008 }, "pw"],
+            ["blown-out 3 %", { pw: 480, clip: 0.03 }, "clip"], ["blown-out 3 % and blurred", { pw: 480, clip: 0.03, blur: 0.008 }, "clip"]]) {
             await tapAll(page, await upload(page, o));
             const f = await facts(page);
             assert(f.msg === RETAKE[lang], `${lang} ${name}: message ${S(f.msg)}`);
-            assert(f.q && f.q.ok === false && f.q.fails.includes(fail), `${lang} ${name}: verdict ${S(f.q)}`);
+            assert(f.q && f.q.ok === false && f.q.fails.includes(fail) && !f.q.fails.includes("sharp"), `${lang} ${name}: verdict ${S(f.q)}`);
             assert(f.ms == null, `${lang} ${name}: the finder ran (${f.ms} ms)`);
             assert(f.rows.length === 10 && f.rows.every(s => s === "notFound"), `${lang} ${name}: rows ${S(f.rows)}`);
             assert(f.trace, `${lang} ${name}: no trace button`);
@@ -118,6 +144,17 @@ export default async function ({ base, launch, check, fakeCams }) {
           assert(g.q && g.q.ok === true, `${lang} good: verdict ${S(g.q)}`);
           assert(!g.msg.includes(RETAKE[lang]), `${lang} good: message shown ${S(g.msg)}`);
           assert(typeof g.ms === "number", `${lang} good: the finder did not run ${S(g)}`);
+          // 171 ก: a blurred photo (S x 10^4 < 1.0) is not blocked; S is still measured; no sharpness value is shown
+          await tapAll(page, await upload(page, { pw: 480, blur: 0.008 }));
+          const b = await facts(page);
+          assert(b.q && b.q.ok === true && b.q.fails.length === 0, `${lang} blurred: verdict ${S(b.q)}`);
+          assert(typeof b.q.sharp === "number" && b.q.sharp < 1.0, `${lang} blurred: S not measured or not below 1.0 ${S(b.q)}`);
+          assert(!b.msg.includes(RETAKE[lang]), `${lang} blurred: retake message shown ${S(b.msg)}`);
+          assert(typeof b.ms === "number", `${lang} blurred: the finder did not run ${S(b)}`);
+          const shown = await page.evaluate(() => document.body.innerText + "\n" + [...document.querySelectorAll("[title],[aria-label],[alt]")]
+            .map(e => [e.getAttribute("title"), e.getAttribute("aria-label"), e.getAttribute("alt")].filter(Boolean).join(" ")).join("\n"));
+          const leak = SHARP_SHOWN(shown, b.q.sharp);
+          assert(leak.length === 0, `${lang} blurred: sharpness shown to the user ${S(leak)}`);
         } finally { await page.close(); }
       });
     }
