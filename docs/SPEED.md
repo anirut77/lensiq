@@ -208,6 +208,24 @@ in parallel: consistency-pass, beauty-look, org-p1, stale-docs, pc-jk; a few KB 
 
 
 
+## Exam lab S2 (acceptance sheet, 2026-11-19, branch examlab-90)
+
+Harness `tools/exam-s2.mjs` (locked in `evals-locks/examlab-90.sha256` before measuring; profile above; 3 cold runs per
+page, median; a run with a 1-minute load average >= 20 does not count). Source: synthetic, emulated mid-range phone.
+Run at ccebfdb9 (lock e9bbac78), result `~/LENSIQ-field/evals/examlab-90/results/s2-2026-11-18T16-55-41-146Z.json`.
+
+| Page | FCP ms (target <= 3000) | First usable control ms (<= 8000) | Camera ready ms (<= 15000) | Counted runs | Result |
+|---|---|---|---|---|---|
+| exam | 2652–2688 | 5308–5420 | – | 0 of 3 (load 20.3–21.9) | not counted (busy machine) |
+| exam-lab | 4560 | 23435 | 140 (fake camera; on-device models not ready within 90 s) | 2 of 3 | FAIL |
+| exam-dashboard | 4544 | 11490 | – | 3 of 3 | FAIL |
+
+Causes seen in the page source (not yet measured one by one): exam-lab and the dashboard load `lensiq-demo.js`,
+`lensiq-demo-data.js` and `i18n/zh-demo.js` in `<head>` (pages with them have FCP about 4 s, pages without about 2 s in
+the table above); exam-lab loads TF.js (`vendor/tfjs/*`, about 1.5 MB) synchronously before `exam-lab.js`, so the
+consent button is wired only after TF.js arrives. Next step (needs its own measured round): load the demo data and its
+dictionary after `<main>`, and TF.js only after consent.
+
 ### Comment moved out of lensiq-luckycolor.js (2026-11-18, branch fortune-pet, page weight)
 
 luckycolor.html measured 551 KB against its 550 KB budget in CI run 44245545701 (the fortune-pet menu entry, the line-wrap fix and

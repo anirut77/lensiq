@@ -384,6 +384,7 @@
   "exam.lab.calRun": "Calibrating... look at the screen as usual, {n} s left",
   "exam.lab.camBack": "Camera is back",
   "exam.lab.camErr": "Could not open the camera: {m}",
+  "exam.lab.noFrames": "The camera is on but is not sending a picture: close other apps that use the camera, choose another camera, or reload this page. If it still does not work, tell the invigilator. This is not your fault.",
   "exam.lab.camH": "Camera and light check",
   "exam.lab.camLost": "Camera signal lost — trying to reconnect",
   "exam.lab.camTip": "Sit so your whole face is visible, with light in front of you and not a window behind you. If the system cannot see your face well, that is a setup issue, not your fault",

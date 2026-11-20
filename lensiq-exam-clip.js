@@ -29,6 +29,10 @@
     root.LQExamClip = m;
     // auto-delete expired clips on every page that loads this file (exam.html / exam-dashboard.html too), not only the camera pages
     if (root.setTimeout) root.setTimeout(() => { m.purgeDevice(); }, 0);
+    // exam.html: print button for the notice / consent template (was exam-landing.js; merged here to keep exam.html within its
+    // locked request budget after lensiq-crashguard.js was added, docs/SPEED.md)
+    const pn = root.document && root.document.getElementById("printNotice");
+    if (pn) pn.addEventListener("click", () => root.print());
   }
 })(typeof self !== "undefined" ? self : this, function (root) {
   "use strict";
