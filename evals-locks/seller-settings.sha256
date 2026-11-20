@@ -60,3 +60,14 @@ c3830fe3ace7c979d41fbc5f985d6aa802854db24b3024879bec61cd8400017e  tests/e2e/sell
 # quotation / invoice / receipt (real renderDoc, synthetic data, long TH/EN/ZH description) carry every quantity, unit
 # price, amount, subtotal, VAT and total in the A4 PDF text, and no th / td ends past the A4 printable width.
 # Log before the fix: ~/LENSIQ-field/evals/seller-settings/layout-before-fix.log
+# locked 2026-11-20T02:09:07Z (tools/eval-guard.mjs lock, 3 files)
+a2726b8b9e01bb7b772217f75e3a5251fee57fefe2fd56e5c85774092fe02c7e  relock2/backend-seller.test.js
+4e0312e3503ec52b7b940b49f1ae5992a02249ed4f30c98489edba570100fb58  relock2/backend-seller-workerd.test.mjs
+1a56a739a743b0fac360a2d96362e39304950c3f7ef6d03427371f7a56df786d  relock2/backend-seller-workerd-r1.test.mjs
+a2726b8b9e01bb7b772217f75e3a5251fee57fefe2fd56e5c85774092fe02c7e  tests/unit/backend-seller.test.js  # repo file (same commit as lock 2026-11-20T02:09:07Z; field: ~/LENSIQ-field/evals/seller-settings/relock2/backend-seller.test.js)
+4e0312e3503ec52b7b940b49f1ae5992a02249ed4f30c98489edba570100fb58  tests/integration/backend-seller-workerd.test.mjs  # repo file (same commit as lock 2026-11-20T02:09:07Z; field: ~/LENSIQ-field/evals/seller-settings/relock2/backend-seller-workerd.test.mjs)
+1a56a739a743b0fac360a2d96362e39304950c3f7ef6d03427371f7a56df786d  tests/integration/backend-seller-workerd-r1.test.mjs  # repo file (same commit as lock 2026-11-20T02:09:07Z; field: ~/LENSIQ-field/evals/seller-settings/relock2/backend-seller-workerd-r1.test.mjs)
+# re-lock relock2 2026-11-20 (fixture values only, no assertion changed): main's PII scanner (tools/pii-scan.mjs, decision 111)
+# flagged the invented marker phone numbers (Thai mobile shape 08#########). The leading 08 / 089 became 00 / 000 in the
+# unit file (2 values) and both workerd files (1 value): still 10 digits (product rule ^\+?\d{9,15}$), same last 4 digits for
+# the masking checks, still unique canaries, no longer a dialable Thai number. Synthetic addresses stay and are allow-listed.

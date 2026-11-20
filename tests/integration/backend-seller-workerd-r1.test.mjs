@@ -21,7 +21,7 @@ const require = createRequire(join(BACKEND, "package.json"));
 const ADMIN_TOKEN = "bootstrap-" + "w".repeat(40);
 const PW = "correct horse battery staple workerd seller";
 const ORIGIN = "https://site.example";
-const MARKS = ["MKWNAMEa1b2", "0000000731906", "MKWADDRc3d4", "8842731905", "0817319066", "mkw.mail9"];
+const MARKS = ["MKWNAMEa1b2", "0000000731906", "MKWADDRc3d4", "8842731905", "0017319066", "mkw.mail9"];
 
 /** Splits a migration into statements (same as backend-workerd.test.mjs; copied so that file's tests do not run twice). */
 function sqlStatements(src) {

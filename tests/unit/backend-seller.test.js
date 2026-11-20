@@ -49,9 +49,9 @@ const FILLED = {
 const MARK = {
   legal_name: "ทดสอบ จำกัด MKNAMEq7Zx", tax_id: "0000000731905", branch: "สาขา MKBRANCHu2", address: "MKADDRp9Vw ถนนทดสอบ",
   vat_registered: true, vat_rate_bp: 700, bank_name: "ธนาคาร MKBANKk3Jd", bank_account_name: "MKACCNAMEr5", bank_account_no: "7319058842",
-  contact_phone: "0817319055", contact_email: "mkmail.z8@seller.example", contact_line: "@mkline4qa", doc_prefix: "MKPX"
+  contact_phone: "0017319055", contact_email: "mkmail.z8@seller.example", contact_line: "@mkline4qa", doc_prefix: "MKPX"
 };
-const MARK_STRINGS = ["MKNAMEq7Zx", "0000000731905", "MKBRANCHu2", "MKADDRp9Vw", "MKBANKk3Jd", "MKACCNAMEr5", "7319058842", "0817319055",
+const MARK_STRINGS = ["MKNAMEq7Zx", "0000000731905", "MKBRANCHu2", "MKADDRp9Vw", "MKBANKk3Jd", "MKACCNAMEr5", "7319058842", "0017319055",
   "mkmail.z8", "mkline4qa", "MKPX", "MKBUYERx1", "MKBUYADDRy2", "0105500073190"];
 const SEC_KEYS = ["legal_name", "tax_id", "branch", "address", "bank_name", "bank_account_name", "bank_account_no", "contact_phone",
   "contact_email", "contact_line", "doc_prefix"];
@@ -241,8 +241,8 @@ test("S3: masked display: tax ID, bank account number and phone show the last 4 
   assert.equal(g.j.complete, true); assert.deepEqual(g.j.missing, []);
   for (const k of SEC_KEYS) assert.equal(g.j.set[k], true, k);
   // the PUT answer is the same masked view
-  const u = await s.putSeller({ contact_phone: "0891234567" });
-  assert.ok(!u.text.includes("0891234567"));
+  const u = await s.putSeller({ contact_phone: "0001234567" });
+  assert.ok(!u.text.includes("0001234567"));
   assert.match(u.j.profile.contact_phone_masked, /4567$/);
 });
 

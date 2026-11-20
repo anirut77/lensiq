@@ -18,7 +18,7 @@ const require = createRequire(join(BACKEND, "package.json"));
 const ADMIN_TOKEN = "bootstrap-" + "w".repeat(40);
 const PW = "correct horse battery staple workerd seller";
 const ORIGIN = "https://site.example";
-const MARKS = ["MKWNAMEa1b2", "0000000731906", "MKWADDRc3d4", "8842731905", "0817319066", "mkw.mail9"];
+const MARKS = ["MKWNAMEa1b2", "0000000731906", "MKWADDRc3d4", "8842731905", "0017319066", "mkw.mail9"];
 
 /** Splits a migration into statements (same as backend-workerd.test.mjs; copied so that file's tests do not run twice). */
 function sqlStatements(src) {
@@ -101,12 +101,12 @@ test("workerd: seller details are owner-only (read too), need step-up, issue num
 
       // step-up: without password + code refused, with them stored
       const fields = { legal_name: "ทดสอบ จำกัด MKWNAMEa1b2", tax_id: "0000000731906", address: "MKWADDRc3d4 กรุงเทพฯ", vat_registered: true, vat_rate_bp: 700,
-        bank_name: "ธนาคารทดสอบ", bank_account_name: "ทดสอบ จำกัด", bank_account_no: "8842731905", contact_phone: "0817319066", contact_email: "mkw.mail9@seller.example",
+        bank_name: "ธนาคารทดสอบ", bank_account_name: "ทดสอบ จำกัด", bank_account_no: "8842731905", contact_phone: "0017319066", contact_email: "mkw.mail9@seller.example",
         contact_line: "@sellertest", doc_prefix: "WK" };
       assert.equal((await O("/seller", { method: "PUT", body: fields })).j.code, "reauth_inline_required");
       const put = await O("/seller", { method: "PUT", body: { ...fields, ...(await step()) } });
       assert.equal(put.status, 200, put.text);
-      assert.ok(!put.text.includes("0000000731906") && !put.text.includes("8842731905") && !put.text.includes("0817319066"), "masked");
+      assert.ok(!put.text.includes("0000000731906") && !put.text.includes("8842731905") && !put.text.includes("0017319066"), "masked");
 
       // twelve drafts issued at once inside the sudo window: unique, gap-free numbers from the D1 batch
       const ids = [];
