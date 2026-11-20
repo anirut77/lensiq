@@ -19,5 +19,5 @@ review-out/
 
 field-data/
 
-# Miniflare / wrangler local cache (holds the request location of the machine; never commit)
+# Wrangler / Miniflare local state: holds the request location of the machine; never commit (owner decision 111)
 .wrangler/

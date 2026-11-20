@@ -1,0 +1,957 @@
+{
+ "_about": "Allow-list for tools/pii-scan.mjs (owner decision 111). Only synthetic fixtures, public organisation / help-line contacts and false positives. Secrets: synthetic or false-positive only, never a real key. Never add real personal data. Each entry: path, max hits per type, kind (synthetic | public | false-positive), reason. A forbidden path (.wrangler/, .dev.vars, .env) cannot be listed. Optional \"kinds\" gives a kind per type when one file holds two kinds.",
+ "entries": [
+  {
+   "path": "CHANGELOG.md",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "LICENSES/TIERS.md",
+   "types": {
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "public contact e-mail of a licensing / data-source organisation, not a person (same address as the docs/ATTENDANCE-READINESS.md entry)"
+  },
+  {
+   "path": "backend/src/mail.js",
+   "types": {
+    "email": 1
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "counselling.html",
+   "types": {
+    "phone": 4
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "docs/ATTENDANCE-READINESS.md",
+   "types": {
+    "email": 3
+   },
+   "kind": "public",
+   "reason": "public contact e-mail of a licensing / data-source organisation, not a person"
+  },
+  {
+   "path": "docs/BACKEND.md",
+   "types": {
+    "phone": 1
+   },
+   "kind": "false-positive",
+   "reason": "false positive: describes the phone / ID patterns the redaction catches; no real number"
+  },
+  {
+   "path": "docs/CRISIS-RESOURCES.md",
+   "types": {
+    "phone": 11
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "docs/LEGAL-PACKET.md",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "docs/LICENCE-REQUESTS.md",
+   "types": {
+    "street-address": 1,
+    "postcode-city": 2,
+    "phone": 5,
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "public contact details (address, phone) of licensing / data-source organisations, not of a person; public contact e-mail of a licensing / data-source organisation, not a person"
+  },
+  {
+   "path": "docs/PET-READING-RESEARCH.md",
+   "types": {
+    "postcode-city": 1
+   },
+   "kind": "false-positive",
+   "reason": "false positive: a numeric page id in a cited URL next to the word Thailand"
+  },
+  {
+   "path": "docs/product-check/DRUG-DATA-SOURCES.md",
+   "types": {
+    "phone": 1,
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "public contact details (address, phone) of licensing / data-source organisations, not of a person; public contact e-mail of a licensing / data-source organisation, not a person"
+  },
+  {
+   "path": "docs/product-check/p7-evidence-testset.json",
+   "types": {
+    "street-address": 39,
+    "phone": 43,
+    "postcode-city": 26,
+    "thai-id": 5
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "docs/product-check/p7-guard-holdout.json",
+   "types": {
+    "phone": 21
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "docs/product-check/p7-guard-testset.json",
+   "types": {
+    "phone": 55,
+    "thai-id": 10,
+    "postcode-city": 8,
+    "street-address": 7
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "docs/product-check/pcf-jako-testset.json",
+   "types": {
+    "phone": 9,
+    "thai-id": 10
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "home.js",
+   "types": {
+    "email": 1
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "i18n/en-common.js",
+   "types": {
+    "phone": 2,
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "phone: the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md; email: a placeholder address (company.com) shown as a form hint, synthetic",
+   "kinds": {
+    "phone": "public",
+    "email": "synthetic"
+   }
+  },
+  {
+   "path": "i18n/en-luckycolor.js",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "i18n/zh-common.js",
+   "types": {
+    "phone": 2,
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "phone: the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md; email: a placeholder address (company.com) shown as a form hint, synthetic",
+   "kinds": {
+    "phone": "public",
+    "email": "synthetic"
+   }
+  },
+  {
+   "path": "i18n/zh-luckycolor.js",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "lensiq-helpline.js",
+   "types": {
+    "phone": 9
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "lensiq-pc-guard.js",
+   "types": {
+    "thai-id": 1,
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "synthetic: example phone numbers and a barcode in code comments that explain the redaction rules"
+  },
+  {
+   "path": "tests/e2e/accounts.e2e.mjs",
+   "types": {
+    "street-address": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/admin-leads.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/admin-orgs.e2e.mjs",
+   "types": {
+    "street-address": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/crisis-escape-guard-kit.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/crisis-rules-1323-b.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/e2e/crisis-rules-1323-c.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/e2e/crisis-rules-kit.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/e2e/crisis-v3-kit.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/customers.e2e.mjs",
+   "types": {
+    "phone": 3
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/demo-mode.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/face-insecure.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/face-scan-fault.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/fortune-crisis-fields-2.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/fortune-crisis-fields.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/fortune-crisis-session.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/fortune-en.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/fortune-layout.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/fortune-live-2.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/fortune-live.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/e2e/fortune-sources.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/fortune-wheel-labels.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/fortune-zh.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/gate-parking.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/gate.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/helpline-call.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/e2e/iphone-pages-webkit.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/lead-form-e-lib.mjs",
+   "types": {
+    "phone": 3
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/lead-form-e2-lib.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/lead-form-webkit-slow.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/lead-form-webkit.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/numbers.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/e2e/product-check-advert.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "tests/e2e/product-check-ai.e2e.mjs",
+   "types": {
+    "phone": 10,
+    "postcode-city": 1,
+    "street-address": 1
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "tests/e2e/product-check-live.e2e.mjs",
+   "types": {
+    "phone": 3
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "tests/integration/backend-workerd.test.mjs",
+   "types": {
+    "postcode-city": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-analytics.test.js",
+   "types": {
+    "email": 2
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "tests/unit/backend-billing-receipts.test.js",
+   "types": {
+    "postcode-city": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-deploy-gate.test.js",
+   "types": {
+    "phone": 3
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-fortune.test.js",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-fulfilment-refunds.test.js",
+   "types": {
+    "postcode-city": 1,
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-lead-notify.test.js",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-leads-inbox.test.js",
+   "types": {
+    "phone": 4
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-merit.test.js",
+   "types": {
+    "phone": 5,
+    "email": 4
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line; placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "tests/unit/backend-org-p1.test.js",
+   "types": {
+    "street-address": 3
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-org-p1b.test.js",
+   "types": {
+    "street-address": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-orgs.test.js",
+   "types": {
+    "postcode-city": 1,
+    "street-address": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-pc-auto.test.js",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-pc-features.test.js",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-site.test.js",
+   "types": {
+    "email": 3
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "tests/unit/commercial-collateral.test.js",
+   "types": {
+    "email": 4
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "tests/unit/commercial-r11.test.js",
+   "types": {
+    "email": 4
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "tests/unit/crisis-rules-1323.test.js",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/unit/deploy-tools.test.js",
+   "types": {
+    "email": 1
+   },
+   "kind": "synthetic",
+   "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "tests/unit/fixtures/pc/thfda-synthetic.xml",
+   "types": {
+    "street-address": 3
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/fortune-crisis-net-3.test.js",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/fortune-en.test.js",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/fortune-engines.test.js",
+   "types": {
+    "phone": 16
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/fortune-grammar.test.js",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/fortune-helpline.test.js",
+   "types": {
+    "phone": 1
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/unit/fortune-live.test.js",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/unit/fortune-pet.test.js",
+   "types": {
+    "phone": 1
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/unit/fortune-safety-lint.test.js",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/fortune-topic-grounding.test.js",
+   "types": {
+    "phone": 8
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/helpline-call.test.js",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/unit/leads-form-e.test.js",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/leads-form-e2.test.js",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/lifecal.test.js",
+   "types": {
+    "phone": 5
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/med.test.js",
+   "types": {
+    "thai-id": 1
+   },
+   "kind": "false-positive",
+   "reason": "false positive: an EAN-13 barcode in a checksum test"
+  },
+  {
+   "path": "tests/unit/merit-lint-sara-am.test.js",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/merit-review.test.js",
+   "types": {
+    "phone": 5
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/numbers.test.js",
+   "types": {
+    "phone": 9
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/pc-advert.test.js",
+   "types": {
+    "phone": 4
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "tests/unit/pc-guard-complexity.test.js",
+   "types": {
+    "phone": 4
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "tests/unit/pc-guard.test.js",
+   "types": {
+    "phone": 21,
+    "postcode-city": 18,
+    "street-address": 15
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "tests/unit/pc-live.test.js",
+   "types": {
+    "postcode-city": 1,
+    "phone": 2,
+    "street-address": 1
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "tests/unit/pc-ondevice.test.js",
+   "types": {
+    "phone": 1,
+    "thai-id": 1
+   },
+   "kind": "synthetic",
+   "reason": "synthetic: a JAN barcode prefix test and a made-up phone; no personal data"
+  },
+  {
+   "path": "tests/unit/pc-session-evidence.test.js",
+   "types": {
+    "thai-id": 4,
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "synthetic: made-up GTIN barcodes and a made-up phone in session-evidence tests"
+  },
+  {
+   "path": "tests/unit/promptpay-fixture-synthetic.test.js",
+   "types": {
+    "thai-id": 2
+   },
+   "kind": "synthetic",
+   "reason": "constructed synthetic Thai ID, decision 143"
+  },
+  {
+   "path": "tests/unit/promptpay.test.js",
+   "types": {
+    "phone": 14,
+    "thai-id": 2
+   },
+   "kind": "synthetic",
+   "reason": "PromptPay test vectors: a sequential test phone; thai-id: constructed synthetic Thai ID, decision 143"
+  },
+  {
+   "path": "tests/unit/teamface.test.js",
+   "types": {
+    "phone": 1,
+    "email": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line; placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "tests/unit/thai-canon-2.test.js",
+   "types": {
+    "phone": 3
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/thai-sara-am-pc.test.js",
+   "types": {
+    "phone": 3
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tools/helpline-sources.json",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tools/pc-alerts-th.src.json",
+   "types": {
+    "phone": 1
+   },
+   "kind": "false-positive",
+   "reason": "false positive: a product lot number in a public Thai FDA alert"
+  },
+  {
+   "path": "tools/pc-evidence-testset.mjs",
+   "types": {
+    "street-address": 12,
+    "phone": 16,
+    "postcode-city": 10,
+    "thai-id": 1
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "tools/pc-guard-testset.mjs",
+   "types": {
+    "phone": 43,
+    "postcode-city": 8,
+    "street-address": 7
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "tools/pc-jako-testset.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
+  },
+  {
+   "path": "tools/pc-refimg.mjs",
+   "types": {
+    "thai-id": 1
+   },
+   "kind": "false-positive",
+   "reason": "false positive: made-up GTIN barcodes for synthetic reference images"
+  },
+  {
+   "path": "vendor/astronomy-engine/LICENSE",
+   "types": {
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "e-mail of the third-party author in a vendored licence / bundle header (public attribution)"
+  },
+  {
+   "path": "vendor/astronomy-engine/astronomy.browser.min.js",
+   "types": {
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "e-mail of the third-party author in a vendored licence / bundle header (public attribution)"
+  },
+  {
+   "path": "vendor/fonts/prompt/OFL.txt",
+   "types": {
+    "email": 1
+   },
+   "kind": "public",
+   "reason": "e-mail of the third-party author in a vendored licence / bundle header (public attribution)"
+  },
+  {
+   "path": "vendor/pc-alerts/th.json",
+   "types": {
+    "phone": 1
+   },
+   "kind": "false-positive",
+   "reason": "false positive: a product lot number in a public Thai FDA alert"
+  }
+ ]
+}
