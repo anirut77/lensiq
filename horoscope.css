@@ -180,6 +180,7 @@ body.hs-kiosk .hs-tabs [role=tab]{min-height:56px;font-size:1.05rem}
   .hs-form{padding:16px}
   .hs-date-row{grid-template-columns:minmax(0,.7fr) minmax(0,1.4fr) minmax(0,1fr);gap:6px}
   .hs-date-row select,.hs-date-row input{padding:10px 8px}
+  .hs-date-row select{padding-right:2px} /* owner report 2026-11-18: the native arrow keeps its own space; room for the chosen text */
   .hs-time{grid-template-columns:1fr}
   .hero{flex-direction:column;align-items:flex-start;padding:16px}
   .hero-dot{width:64px;height:64px;font-size:1.2rem}
