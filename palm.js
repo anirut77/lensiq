@@ -2055,10 +2055,3 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   window.__palm = { get S() { return S; }, get guide() { return S.guide; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, detectHands: detectHands, loadModels: loadModels }; // ใช้ทดสอบ
 })();
 
-/* palm reading upgrade v1 (switch window.LENSIQ_PALM_V2, lensiq-config.js ships false): its code and style are downloaded ONLY when
-   the switch is on (independent review round 1, c); dynamic scripts with async = false run in order */
-if (typeof window !== "undefined" && typeof document !== "undefined" && window.LENSIQ_PALM_V2 === true && document.getElementById("plV2")) {
-  var pv2css = document.createElement("link"); pv2css.rel = "stylesheet"; pv2css.href = "palm-v2.css?v=2"; document.head.appendChild(pv2css);
-  var pv2js = ["palm-v2-kb.js?v=1", "palm-v2-detect.js?v=2", "palm-v2.js?v=2", "palm-v2-ui.js?v=2"];
-  pv2js.forEach(function (src) { var el = document.createElement("script"); el.src = src; el.async = false; document.body.appendChild(el); });
-}
