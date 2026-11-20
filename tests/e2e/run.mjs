@@ -39,7 +39,18 @@ const SHARD = shardArg ? parseShard(shardArg.slice(8)) : null;
 if (SHARD && filters.length) { console.error("--shard cannot be combined with filter words"); process.exit(2); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 assertFreeSpace({ label: "tests/e2e/run.mjs" }); // before the server and before any Chrome
-await holdSlot({ label: "tests/e2e/run.mjs" }); // load guard: queues while the load is over the limit or the job slots are full
+// load guard: queues while the load is over the limit or the job slots are full. While queued, the disk guard is re-checked every
+// round, so a run that waits stops with exit 75 as soon as the disk fills (nothing has started yet: no server, no Chrome).
+await holdSlot({
+  label: "tests/e2e/run.mjs",
+  onQueued() {
+    const room = checkFreeSpace({ label: "tests/e2e/run.mjs" });
+    if (room.ok) return;
+    console.error(room.message);
+    console.error("disk-guard: stopping tests/e2e/run.mjs while it was queued for a load-guard slot (no test file started)");
+    process.exit(EXIT_LOW_DISK);
+  }
+});
 
 function freePort() {
   return new Promise((res, rej) => {

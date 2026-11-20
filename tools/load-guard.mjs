@@ -160,6 +160,7 @@ function* attempt(o) {
           + `Run it again when the other heavy jobs have finished. Exit code ${EXIT_BUSY}.` };
     }
     log(`load-guard: queued: ${state}, waited ${Math.round(waited / 1000)}s of ${W}s — ${label}`);
+    if (o.onQueued) o.onQueued({ load, running: live.length, waitedMs: waited }); // e.g. run.mjs re-checks the disk guard each round
     yield P * 1000;
   }
 }
@@ -175,7 +176,9 @@ function heldBy(/** @type {Record<string, string|undefined>} */ env, /** @type {
 /**
  * @typedef {{label?: string, cmd?: string, env?: Record<string, string|undefined>, config?: ReturnType<typeof readConfig>, configFile?: string,
  *   dir?: string, logFile?: string, loadavg?: () => number[], now?: () => number, sleep?: (ms: number) => unknown,
- *   isAlive?: (pid: number) => boolean, pid?: number, log?: (m: string) => void, fs?: typeof fs}} AcquireOptions
+ *   isAlive?: (pid: number) => boolean, pid?: number, log?: (m: string) => void, fs?: typeof fs,
+ *   onQueued?: (state: {load: number, running: number, waitedMs: number}) => void}} AcquireOptions
+ * onQueued runs once per queued round, before the wait (no slot is held then); run.mjs uses it to re-check the free disk space.
  */
 /** Wait for a job slot. Never throws because the machine is busy. @param {AcquireOptions} [o] */
 export async function acquire(o = {}) {

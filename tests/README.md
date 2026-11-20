@@ -51,9 +51,11 @@ give up with exit code **75** (same as the disk guard) and a message naming the 
 - **Running jobs:** one lock file per job in `~/LENSIQ-field/run/` (`slot-<i>.json`, created atomically, holding pid,
   start time, command). A file whose pid is dead is stale and is removed. The slot is released on normal exit, on an error
   and on SIGINT / SIGTERM / SIGHUP. Child processes inherit `LQ_LOAD_GUARD_HELD` and never take a second slot.
-- **Where it runs:** `tests/e2e/run.mjs` (after the disk guard, before the server), `launch()` in `tests/e2e/cdp.mjs`
+- **Where it runs:** `tests/e2e/run.mjs` (after the disk guard, before the server; while it is queued it re-checks the
+  disk guard every round and stops with exit 75 when the disk fills), `launch()` in `tests/e2e/cdp.mjs`
   (so every `tools/*.mjs` browser harness), the WebKit path of `tools/buttons-probe.mjs`, and the preload
-  `tools/load-guard-hold.mjs`: `node --require` in `npm run test:unit` and `test:integration` (the `node --test` runner
+  `tools/load-guard-hold.mjs`: `node --experimental-require-module --require` in `npm run test:unit` and `test:integration` (the flag lets
+  Node 22.0-22.11 load an `.mjs` preload with `--require`; from 22.12 it is the default) (the `node --test` runner
   runs `--require` preloads in its own process but not `--import` ones; each test file then sees the parent's slot) and
   `node --import` in `csp:check`;
   `npm run test:py` runs through the wrapper `node tools/load-guard.mjs -- <command>`. `npm run load:guard` shows the

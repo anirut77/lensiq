@@ -10,9 +10,9 @@
   },
   "scripts": {
     "test": "npm run test:unit && npm run test:py",
-    "test:unit": "node --require ./tools/load-guard-hold.mjs --test tests/unit/*.test.js",
+    "test:unit": "node --experimental-require-module --require ./tools/load-guard-hold.mjs --test tests/unit/*.test.js",
     "test:backend": "node --test tests/unit/backend-*.test.js",
-    "test:integration": "node --require ./tools/load-guard-hold.mjs --test tests/integration/*.test.mjs",
+    "test:integration": "node --experimental-require-module --require ./tools/load-guard-hold.mjs --test tests/integration/*.test.mjs",
     "test:py": "node tools/load-guard.mjs -- .venv/bin/python -m unittest discover -s tests/python",
     "test:py:ci": "python -m unittest discover -s tests/python",
     "test:e2e": "node tests/e2e/run.mjs",

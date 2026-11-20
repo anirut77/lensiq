@@ -1,6 +1,8 @@
 // tools/load-guard-hold.mjs — holds one load-guard job slot for a whole node process, before its main code runs:
-//   node --require ./tools/load-guard-hold.mjs --test ...   (npm run test:unit, test:integration: the node --test runner runs --require
-//                                                            preloads in its own process, but not --import ones)
+//   node --experimental-require-module --require ./tools/load-guard-hold.mjs --test ...
+//                                                           (npm run test:unit, test:integration: the node --test runner runs --require
+//                                                            preloads in its own process, but not --import ones; the flag lets Node
+//                                                            22.0-22.11 require() this ES module, the default from 22.12)
 //   node --import ./tools/load-guard-hold.mjs <script>      (csp:check)
 // Queues while the machine is busy, exits 75 after the maximum wait (tools/load-guard.mjs). No top-level await, so it loads under both.
 // Child processes (each test file) inherit LQ_LOAD_GUARD_HELD; the fast path below checks it with node:fs only, so a test file pays
