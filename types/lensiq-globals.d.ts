@@ -51,6 +51,9 @@ interface Window {
   LENSIQ_PET_ZODIAC?: boolean;
   LENSIQ_PET_CARD_CLASSIC?: boolean;
   LENSIQ_PET_ZODIAC_ODDS?: string;
+  /** pet card footer (decision 184 ก): brand text from one setting; address line off as shipped */
+  LENSIQ_CARD_BRAND?: string;
+  LENSIQ_CARD_SHOW_ADDRESS?: boolean;
   /** converter uses the local python server.py PDF engine only when true (off as shipped) */
   LENSIQ_CONVERT_SERVER?: boolean;
   /** rule-6 switch (owner decision 2026-11-16): the top 1323 control in the sticky top bar (true) or scrolling away (false) */
