@@ -233,8 +233,10 @@
 
   /* ---------- the card ---------- */
   let qrLib = null;
+  // the QR encodes the site address: only with LENSIQ_CARD_SHOW_ADDRESS on (owner change 2026-11-20)
+  const addrOn = () => W.LENSIQ_CARD_SHOW_ADDRESS === true;
   function qrMatrix() {
-    const q = W.qrcode; if (typeof q !== "function") return null;
+    const q = W.qrcode; if (!addrOn() || typeof q !== "function") return null;
     const m = q(0, "M"); m.addData(P.LINK); m.make();
     return { n: m.getModuleCount(), dark: (r, c) => m.isDark(r, c) };
   }
@@ -256,7 +258,7 @@
   /** the draw module and the template art, on the first zodiac card only */
   function loadZodiac() {
     if (zReady()) return Promise.resolve();
-    if (!zLib) zLib = loadScript("lensiq-pet-draw.js?v=1").then(() => loadScript("lensiq-pet-zodiac-art.js?v=1")).catch(e => { zLib = null; throw e; });
+    if (!zLib) zLib = loadScript("lensiq-pet-draw.js?v=2").then(() => loadScript("lensiq-pet-zodiac-art.js?v=1")).catch(e => { zLib = null; throw e; });
     return zLib;
   }
   const store = () => { try { return W.localStorage; } catch (e) { return null; } };
@@ -311,7 +313,7 @@
     }
     const zOn = zm && zReady();
     if (zOn && (st.zNeed || !st.z)) zDraw();
-    const want = $("#petPhotoOn").checked, on = want && !!st.img, qrOn = $("#petQrOn").checked;
+    const want = $("#petPhotoOn").checked, on = want && !!st.img, qrOn = addrOn() && $("#petQrOn").checked;
     if (qrOn && !W.qrcode) { loadQr().then(drawCard, () => { $("#petQrOn").checked = false; drawCard(); }); }
     st.model = P.cardModel(st.res, { photo: on, theme: st.theme, size: st.size, template: zOn ? st.z.id : undefined });
     const cv = $("#petCard");
@@ -345,7 +347,7 @@
     const b = await cardBlob(); if (!b) return;
     const f = typeof File === "function" ? new File([b], "lensiq-pet-card.png", { type: "image/png" }) : null;
     try {
-      if (f && navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], text: P.LINK }); return; }
+      if (f && navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share(addrOn() ? { files: [f], text: P.LINK } : { files: [f] }); return; }
     } catch (e) { if (e && e.name === "AbortError") return; }
     save();
   }
@@ -365,6 +367,7 @@
     $("#petZRedraw").addEventListener("click", () => { st.zNeed = true; drawCard(); });
     $("#petPhotoOn").addEventListener("change", drawCard);
     $("#petQrOn").addEventListener("change", drawCard);
+    if (!addrOn()) { const q = $("#petQrOn"); q.checked = false; const lb = q.closest("label"); if (lb) lb.hidden = true; }
     for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".pet-size"))) b.addEventListener("click", () => {
       st.size = b.dataset.size;
       for (const o of document.querySelectorAll(".pet-size")) o.setAttribute("aria-pressed", String(o === b));

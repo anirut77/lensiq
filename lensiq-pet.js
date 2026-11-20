@@ -37,6 +37,10 @@
     zh: "基于命理学原则，属个人信仰，请自行判断。",
   };
   const LINK = "https://anirut77.github.io/lensiq/petread.html";
+  // the card brand and the address switch come from lensiq-config.js (LENSIQ_CARD_BRAND, LENSIQ_CARD_SHOW_ADDRESS), read at draw
+  // time; the fallback is for Node without the config
+  const brand = () => { const b = root.LENSIQ_CARD_BRAND; return typeof b === "string" && b.trim() ? b.trim() : "LENSIQ"; };
+  const showAddress = () => root.LENSIQ_CARD_SHOW_ADDRESS === true;
   const CLASSES = { person: 0, cat: 15, dog: 16 };
   const TRAITS = { species: ["cat", "dog"] };
   // the detector half works without the content file (the bench loads lensiq-pet.js alone); the reading needs lensiq-pet-kb.js
@@ -131,7 +135,7 @@
 
   /* ---- the share card's data (drawn by lensiq-pet-card.js) ---- */
   const CARD_T = {
-    title: { th: "ดูลักษณะน้อง{sp} · LENSIQ", en: "Pet face reading · LENSIQ", zh: "宠物相术 · LENSIQ" },
+    title: { th: "ดูลักษณะน้อง{sp} · {brand}", en: "Pet face reading · {brand}", zh: "宠物相术 · {brand}" },
     lucky: { th: "สีมงคล {c} · วันดี {d}", en: "Lucky colour {c} · good day {d}", zh: "幸运色 {c} · 好日子 {d}" },
   };
   /** the card's data. petName = the name the owner typed, in whatever script (it is the owner's own word, drawn as the
@@ -146,18 +150,21 @@
     const m = {
       lang, species: sp, coat, eyes: res.eyes || "gold", ears: res.ears || "up", photo: !!o.photo, theme: o.theme || "sunny", size: o.size || "post",
       petName: typed || KB.defName[sp][lang].replace(/^./, c => (lang === "en" ? c.toUpperCase() : c)),
-      headline: hl, title: fill(CARD_T.title[lang], { sp: KB.species[sp][lang] }),
+      headline: hl, title: fill(CARD_T.title[lang], { sp: KB.species[sp][lang], brand: brand() }),
       lines, lucky: lk.colour ? fill(CARD_T.lucky[lang], { c: lk.colour.name, d: lk.day.name }) : "",
       hex: lk.colour ? lk.colour.hex : "#f2b705",
-      honest: HONEST[lang], disclaimer: DISC[lang], link: LINK,
+      honest: HONEST[lang], disclaimer: DISC[lang],
     }, tpl = o.template ? String(o.template) : "";
     // zodiac card mode (owner spec 2026-11-19): the template only changes the look; every reading string above stays the same.
-    // Footer "จาก LENSIQ" + the site address from the one setting (LINK); FROM is the same text as LQPetDraw.FROM.
-    if (tpl) { m.template = tpl; m.from = FROM[lang] + " · " + LINK.replace(/^https:\/\//, ""); }
+    if (tpl) m.template = tpl;
+    // footer of every card (zodiac and classic): "จาก <brand>" (LQPetDraw.FROM is the same text); the site address from the one
+    // setting (LINK) only while LENSIQ_CARD_SHOW_ADDRESS is true (owner change 2026-11-20: a shared card cannot be corrected)
+    m.from = FROM[lang] + " " + brand();
+    if (showAddress()) { m.link = LINK; m.from += " · " + LINK.replace(/^https:\/\//, ""); }
     return m;
   }
-  const FROM = { th: "จาก LENSIQ", en: "From LENSIQ", zh: "来自 LENSIQ" };
-  function cardText(m) { return [m.title, m.headline].concat(m.lines, m.lucky ? [m.lucky] : [], [m.honest, m.disclaimer, m.from || m.link]).filter(Boolean); }
+  const FROM = { th: "จาก", en: "From", zh: "来自" };
+  function cardText(m) { return [m.title, m.headline].concat(m.lines, m.lucky ? [m.lucky] : [], [m.honest, m.disclaimer, m.from]).filter(Boolean); }
 
   /* ---- detections ---- */
   // privacy (review round 1, D1): every person box at or above PRIVACY_MIN is blurred on the card, far below the 0.4 used for
@@ -225,6 +232,6 @@
     } catch (e) { return null; }
   }
 
-  const api = { HONEST, DISC, LINK, CLASSES, PRIVACY_MIN, TRAITS, PLANET_HEX, compose, cardModel, cardText, pickDetections, loadDetector, detect, coatGuess, lint, taksaSri, weekday, KB };
+  const api = { HONEST, DISC, LINK, brand, showAddress, CLASSES, PRIVACY_MIN, TRAITS, PLANET_HEX, compose, cardModel, cardText, pickDetections, loadDetector, detect, coatGuess, lint, taksaSri, weekday, KB };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQPet = api;
 })(typeof window !== "undefined" ? window : globalThis);
