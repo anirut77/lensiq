@@ -78,3 +78,14 @@ d98442907069e5918b3b8301592af9bed7bf54f99ca242b9ba37fba847646f9e  tests/e2e/fort
 # locked 2026-11-20T07:06:31Z (tools/eval-guard.mjs lock, 1 file)
 34167270edc8e8263a9579ed6465e1cf20a401c428225eabbac19dcf63f058cc  relock4/fortune-caution-limits.test.js
 34167270edc8e8263a9579ed6465e1cf20a401c428225eabbac19dcf63f058cc  tests/unit/fortune-caution-limits.test.js  # repo file (same commit as lock 2026-11-20T07:06:31Z; field: ~/LENSIQ-field/evals/fortune-caution/relock4/fortune-caution-limits.test.js)
+# WAVE 1b 2026-11-20 (coordinator: go for bazi and astro, both behind _CN_WEST off, D-6; month or longer periods only), locked BEFORE either page is wired, at
+# 852bc307: bazi adapter LIFECAL_KB.baziCautions (engine items + 流年 relation via LifeCal.yearRelation == Zodiac.relation, 大运 period), astro adapter
+# AS.cautionItems / AS.cautionPeriod (Saturn return only, years period, rule w.saturn.return modern), T15 snapshot of baziFacts / astro buildFacts from the
+# unwired code (112 cases, SYNTHETIC), pilot e2e on both pages. Astro's transits, retrogrades and hard aspects need planet positions: not in this wave.
+# locked 2026-11-20T07:54:35Z (tools/eval-guard.mjs lock, 3 files)
+076616e1b9fed9a7bb6cabd8ddf470b9016c1359d12e7720f25f9013a357203e  wave1b/fortune-caution-pages-b.test.js
+e0dfa894a51a75d7d6844ba59c0cc86a4f734565660b60a38b274dafd607c0df  wave1b/fortune-caution-bazi-astro-snapshot.json
+09312350c706070e638d4b7e61380f3b9f335cb4a2a6088b81a4802875328ace  wave1b/fortune-caution-bazi-astro.e2e.mjs
+076616e1b9fed9a7bb6cabd8ddf470b9016c1359d12e7720f25f9013a357203e  tests/unit/fortune-caution-pages-b.test.js  # repo file (same commit as lock 2026-11-20T07:54:35Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1b/fortune-caution-pages-b.test.js)
+e0dfa894a51a75d7d6844ba59c0cc86a4f734565660b60a38b274dafd607c0df  tests/unit/fixtures/fortune-caution-bazi-astro-snapshot.json  # repo file (same commit as lock 2026-11-20T07:54:35Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1b/fortune-caution-bazi-astro-snapshot.json)
+09312350c706070e638d4b7e61380f3b9f335cb4a2a6088b81a4802875328ace  tests/e2e/fortune-caution-bazi-astro.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:54:35Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1b/fortune-caution-bazi-astro.e2e.mjs)
