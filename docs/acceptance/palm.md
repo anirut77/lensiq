@@ -56,6 +56,18 @@ owner decision D-P3 pending) or **public dataset** (none usable: every public pa
 | C1 | Capture checks on real photos | bad accepted <= 5 %, good rejected <= 10 % per phone | not measured: thresholds PROVISIONAL |
 | C2 | Real phones | median time to green <= 6 s; <= 1 retake per person | not measured |
 
+## Go-live rows for the v2 / v3 line finder (owner decisions 204 ก and 186, 2026-11-20; must pass before any v2 / v3 go-live)
+
+Re-lock `palm-v3-lines/relock7`: stricter, adds must-pass rows (owner 204 ก, 186). Speed is measured on real devices, from the
+shutter press to the lines on screen, with 20 real pilot photos per device (consented pilot photos, never the owner's test photos).
+
+| ID | Criterion | Target | Status |
+|---|---|---|---|
+| SPD-A | Line finding speed, mid-range Android (about 7,000-10,000 THB) | median <= 3 s, slowest <= 6 s | not measured |
+| SPD-I | Line finding speed, iPhone 12 or newer | median <= 2 s, slowest <= 4 s | not measured |
+| SPD-UI | While lines are found a progress message is shown and the screen never freezes | must pass on both devices | not measured on phones (desktop Chrome: Web Worker, longest main-thread stall <= 500 ms, `palm-v2-r2.e2e.mjs` d, `palm-v3.e2e.mjs` b) |
+| TORCH | The torch is OFF by default on the v2 / v3 camera path (owner decision 186) | must pass | **fails today**: `palm-v2-ui.js` line 86 asks for `torch: true` |
+
 The owner's two test photos (`~/LENSIQ-field/evals/palm/owner-photos/`) are a smoke look only and are never used for any number.
 
 ## Contract (palm-v2.js, browser global `PalmV2`, Node `require("./palm-v2.js")`)
