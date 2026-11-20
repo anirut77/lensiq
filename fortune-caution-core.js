@@ -38,11 +38,29 @@
   var check = function (text, kind, ctx) { return FILTER ? FILTER.check(text, kind, ctx) : "no-filter"; };
 
   /* ---------------- rules ---------------- */
-  var nodeRules = null;
-  /** every rule loaded (Node: the full registry; browser: the page's pack) */
+  var nodeRules = null, TEXT_FIELDS = ["mind", "do", "cheer", "luck"], RANK = { draft: 0, reviewed: 1, "expert-ok": 2 };
+  /** Node: a registry rule with its wording ids resolved from the approved-wording register (fortune-caution-wording.js); wordingRank = the
+   *  lowest status of its entries (an unknown id leaves the text out, so the rule can never show) @param {any} r @param {Map<string, any>} by */
+  function resolve(r, by) {
+    var o = Object.assign({}, r), rank = 2;
+    TEXT_FIELDS.forEach(function (f) {
+      if (r[f] === undefined) return;
+      var e = by.get(r[f]);
+      if (!e) { delete o[f]; rank = -1; return; }
+      o[f] = { th: e.th, en: e.en, zh: e.zh };
+      rank = Math.min(rank, RANK[e.status] == null ? -1 : RANK[e.status]);
+    });
+    o.wordingRank = rank;
+    return o;
+  }
+  /** every rule loaded (Node: the full registry, texts from the register; browser: the page's packs, texts already from the register) */
   function rules() {
     if (NODE) {
-      if (!nodeRules) nodeRules = require("./fortune-caution-rules-th.js").concat(require("./fortune-caution-rules-cn.js"), require("./fortune-caution-rules-w.js"));
+      if (!nodeRules) {
+        var W = require("./fortune-caution-wording.js"), by = new Map(W.ENTRIES.map(function (e) { return [e.id, e]; }));
+        nodeRules = require("./fortune-caution-rules-th.js").concat(require("./fortune-caution-rules-cn.js"), require("./fortune-caution-rules-w.js"))
+          .map(function (r) { return resolve(r, by); });
+      }
       return nodeRules.slice();
     }
     return (root.LQCautionRules || []).slice();
@@ -57,8 +75,13 @@
   function match(domain, item) {
     return rules().filter(function (r) { return r.domains.indexOf(domain) >= 0 && fires(r, item); }).map(function (r) { return r.id; });
   }
-  /** the pack file of a page domain in one language (browser) @param {string} domain @param {string} lang */
-  function files(domain, lang) { return DOMAINS[domain] ? ["fortune-caution-pack-" + domain + "-" + (LANGS.indexOf(lang) >= 0 ? lang : "th") + ".js"] : []; }
+  /** the pack files of a page domain in one language (browser): the live pack (reviewed wording only) and, only with the drafts switch,
+   *  the draft pack @param {string} domain @param {string} lang @param {boolean} [drafts] */
+  function files(domain, lang, drafts) {
+    if (!DOMAINS[domain]) return [];
+    var f = "fortune-caution-pack-" + domain + "-" + (LANGS.indexOf(lang) >= 0 ? lang : "th");
+    return drafts === true ? [f + ".js", f + "-draft.js"] : [f + ".js"];
+  }
 
   /**
    * The section model of one reading, or null (no section).
@@ -70,7 +93,8 @@
     if (!D || EXCLUDED.indexOf(domain) >= 0) return null;
     var lang = LANGS.indexOf(input.lang) >= 0 ? input.lang : "th";
     var avail = rules().filter(function (r) {
-      return r.domains.indexOf(domain) >= 0 && D.schools.indexOf(r.school) >= 0 && (o.cnWest === true || r.school === "th") && (o.drafts === true || r.status === "expert-ok");
+      return r.domains.indexOf(domain) >= 0 && D.schools.indexOf(r.school) >= 0 && (o.cnWest === true || r.school === "th") &&
+        (o.drafts === true || (r.status === "expert-ok" && !(r.wordingRank < 1)));
     });
     if (!avail.length) return null;
     var items = (input.facts && Array.isArray(input.facts.items)) ? input.facts.items : [];

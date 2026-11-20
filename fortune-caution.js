@@ -1,9 +1,8 @@
-/* fortune-caution.js — shell of the "สิ่งที่ควรระวัง" section (owner item 177), behind LENSIQ_FORTUNE_CAUTIONS (off). Closed on
- * every reading; the core and the page's rule pack load only after the disclaimer (sessionStorage "lq-caution-ack", per tab);
- * removed under the crisis or calm flag. V: version of the lazy files (tools/fortune-caution-pack.mjs). */
+/* fortune-caution.js — shell of the "สิ่งที่ควรระวัง" section (item 177), behind LENSIQ_FORTUNE_CAUTIONS (off): closed on every reading;
+ * core + rule packs load only after the disclaimer (per tab); gone under the crisis or calm flag. V, SCHOOLS: tools/fortune-caution-pack.mjs. */
 (function (root) {
   "use strict";
-  var V = "6f0bf7ca";
+  var V = "e7821180";
   var ACK = "lq-caution-ack";
   /** @param {string} th @param {string} en @param {string} zh */
   var T = function (th, en, zh) { return { th: th, en: en, zh: zh }; };
@@ -20,21 +19,19 @@
   };
   if (typeof module !== "undefined" && module.exports) { module.exports = { TEXT: TEXT, ACK_KEY: ACK, V: V }; return; }
   var W = /** @type {any} */ (root), d = document, mem = false, /** @type {any[]} */ live = [], /** @type {Record<string, Promise<any>>} */ got = {};
-  var DOM = ["horoscope", "bazi", "taksa", "zodiac", "astro"];
-  var CSS = ".lq-caution-sec{margin:16px 0;padding:12px 14px;border:1px solid rgba(127,127,127,.4);border-radius:12px}" +
-    ".lq-caution-sec h3{margin:0 0 8px;font-size:1.05em}.lq-caution-sec h4{margin:14px 0 4px;font-size:1em}.lq-caution-sec h5{margin:10px 0 2px;font-size:.95em}" +
-    ".lq-caution-sec p{margin:4px 0}.lq-caution-sec ol{margin:4px 0;padding-left:1.5em}.lq-caution-sec li{margin:2px 0}" +
-    ".lq-caution-sec button{min-height:44px;padding:8px 14px;margin:6px 8px 0 0;border:1px solid currentColor;border-radius:10px;background:transparent;color:inherit;font:inherit}" +
+  var SCHOOLS = {"all":{"horoscope":["cn","th"],"bazi":["cn"],"taksa":["th"],"zodiac":["cn"],"astro":["w"]},"live":{}};
+  var K = ".lq-caution-sec", CSS = K + "{margin:16px 0;padding:12px 14px;border:1px solid rgba(127,127,127,.4);border-radius:12px}" +
+    K + " h3{margin:0 0 8px;font-size:1.05em}" + K + " h4{margin:14px 0 4px;font-size:1em}" + K + " h5{margin:10px 0 2px;font-size:.95em}" +
+    K + " p{margin:4px 0}" + K + " ol{margin:4px 0;padding-left:1.5em}" + K + " li{margin:2px 0}" +
+    K + " button{min-height:44px;padding:8px 14px;margin:6px 8px 0 0;border:1px solid;border-radius:10px;background:none;color:inherit;font:inherit}" +
     ".lq-caution-tag{font-size:.8em;opacity:.75;white-space:nowrap}.lq-caution-top{font-size:.9em;opacity:.8}" +
-    "html[data-lq-calm] .lq-caution-sec,html[data-lq-crisis] .lq-caution-sec{display:none!important}";
+    "html[data-lq-calm] " + K + ",html[data-lq-crisis] " + K + "{display:none!important}";
   var calm = function () { var c = W.LQFortuneCrisis; try { return !c || !!(c.calmOn(d) || c.distress(d)); } catch (e) { return true; } };
   var acked = function () { try { return mem || W.sessionStorage.getItem(ACK) === "1"; } catch (e) { return mem; } };
   var kill = function () { live.forEach(function (s) { if (s.parentNode) s.parentNode.removeChild(s); }); live = []; };
-  /** @param {string} tag @param {string} cls @param {string} [text] */
   var el = function (tag, cls, text) { var e = d.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
-  /** @param {string} cls @param {string} text @param {() => void} fn */
   var btn = function (cls, text, fn) { var b = el("button", cls, text); b.type = "button"; b.addEventListener("click", fn); return b; };
-  /** load one lazy file once (a failed load is forgotten so "try again" asks again) @param {string} src */
+  /** load a lazy file once (a failed load is forgotten for "try again") @param {string} src */
   function load(src) {
     if (!got[src]) {
       got[src] = new Promise(function (res, rej) {
@@ -56,12 +53,12 @@
     } catch (e) { /* the CSS rule still hides it */ }
     if (!d.getElementById("lq-caution-style")) { var st = el("style", ""); st.id = "lq-caution-style"; st.textContent = CSS; d.head.appendChild(st); }
   }
-  /**
-   * Mount the closed section for one reading (replaces the host's earlier one). Returns the section or null.
-   * @param {HTMLElement} host @param {{domain: string, facts?: any, period?: any, lang?: string}} input
-   */
+  /** mount the closed section of one reading (replaces the host's earlier one) -> the section or null @param {HTMLElement} host @param {any} input */
   function mount(host, input) {
-    if (W.LENSIQ_FORTUNE_CAUTIONS !== true || !host || !input || DOM.indexOf(input.domain) < 0) return null;
+    var dr = W.LENSIQ_FORTUNE_CAUTIONS_DRAFTS === true, sc = input && ((dr ? SCHOOLS.all : SCHOOLS.live) || {})[input.domain];
+    // a page with a rule it may show only (Chinese / Western: their switch; draft wording: the drafts switch)
+    sc = (sc || []).filter(function (x) { return x === "th" || W.LENSIQ_FORTUNE_CAUTIONS_CN_WEST === true; });
+    if (W.LENSIQ_FORTUNE_CAUTIONS !== true || !host || !sc.length) return null;
     [].slice.call(host.querySelectorAll(".lq-caution-sec")).forEach(function (/** @type {any} */ s) { s.parentNode.removeChild(s); });
     if (calm()) return null;
     hook();
@@ -90,11 +87,11 @@
     function show() {
       clear();
       load("fortune-caution-core.js").then(function () {
-        return Promise.all(W.LQFortuneCautionCore.files(input.domain, lang).map(load));
+        return Promise.all(W.LQFortuneCautionCore.files(input.domain, lang, dr).map(load));
       }).then(function () {
         if (guard()) return;
         var C = W.LQFortuneCautionCore;
-        var m = C.build(Object.assign({}, input, { lang: lang }), { drafts: W.LENSIQ_FORTUNE_CAUTIONS_DRAFTS === true, cnWest: W.LENSIQ_FORTUNE_CAUTIONS_CN_WEST === true });
+        var m = C.build(Object.assign({}, input, { lang: lang }), { drafts: dr, cnWest: W.LENSIQ_FORTUNE_CAUTIONS_CN_WEST === true });
         if (!m) { if (sec.parentNode) sec.parentNode.removeChild(sec); return; }
         clear();
         var b = el("div", "lq-caution-body");

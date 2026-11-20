@@ -11,6 +11,8 @@
   /** @param {string} flags @param {...RegExp} parts */
   var rx = function (flags) { return new RegExp([].slice.call(arguments, 1).map(function (r) { return r.source; }).join("|"), flags); };
   var MONTHS_TH = "ม\\.ค|ก\\.พ|มี\\.ค|เม\\.ย|พ\\.ค|มิ\\.ย|ก\\.ค|ส\\.ค|ก\\.ย|ต\\.ค|พ\\.ย|ธ\\.ค|มกรา|กุมภา|มีนา|เมษา|พฤษภา|มิถุนา|กรกฎา|สิงหา|กันยา|ตุลา|พฤศจิกา|ธันวา";
+  var NUMW_TH = "หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า|สิบ|ยี่สิบ|ร้อย|พัน|หมื่น|แสน|ล้าน";
+  var NUMW = NUMW_TH + "|\\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|thirty|forty|fifty|hundred|thousand|million)\\b|[一二三四五六七八九十百千万两]";
   var RE = {
     // a single day or a full date (month names and month ranges alone are allowed)
     day: rx("i", new RegExp("วันที่\\s*\\d|\\d{1,2}\\s*(?:" + MONTHS_TH + ")|\\d{1,2}\\s*/\\s*\\d{1,2}|วัน(?:จันทร์|อังคาร|พุธ|พฤหัส|ศุกร์|เสาร์|อาทิตย์)|วันนี้|พรุ่งนี้|มะรืน|คืนนี้"),
@@ -70,6 +72,16 @@
     merit2: rx("i", /พระ(?:อาจารย์|ครู|มหา|อธิการ)|หลวง(?:พ่อ|ปู่|ตา)|จำนวนมาก|มหาศาล/,
       /\b(?:a (?:lot of|large sum of) money|(?:a |one )?(?:hundred|thousand|million) (?:baht|dollars?))\b/, /[一二三四五六七八九十百千万亿两]+\s*(?:元|块|万)/),
     luck2: /เลขทะเบียน|ทะเบียนรถ|เลขเบอร์|\b(?:licen[cs]e plate|plate number)\b|大奖/i,
+    /* general checks after the review, round 2 (defence in depth; the approved-wording register is the control) */
+    // (1) จะ / 会 / 将 / will / going to + a negative outcome
+    certNeg: rx("i", /จะ\s?(?:ต้อง)?(?:เสีย|แย่|ป่วย|เจ็บ|พัง|ล้ม|ตก(?:งาน|ต่ำ)|ขาดทุน|ซวย|โชคร้าย|เคราะห์|เจอปัญหา|โดน|ถูก(?:โกง|หลอก|ไล่|ปลด)|หย่า|เลิก|หมด|สูญ|ไม่รอด|ไม่ดี)/,
+      /\b(?:will|(?:is|are|am)\s+going\s+to|gonna)\s+(?:\w+\s+){0,2}?(?:lose|fail|fall|get (?:sick|ill|hurt|fired)|be (?:ill|sick|hurt|fired|ruined)|suffer|break|crash|go wrong|die|end)\b/,
+      /(?:必|将|会|一定)会?\s*(?:失|破|损|病|伤|倒|输|离|出事|麻烦|坏|亏|死|灾)/),
+    // (2) a number word (Thai, English, Chinese) or เลข near a luck word
+    numLuck: new RegExp("(?:" + NUMW + "|เลข|number)[\\s\\S]{0,20}(?:โชค|ลาภ|\\bluck|运|奖|彩)|(?:โชค|ลาภ|\\bluck|运|奖|彩)[\\s\\S]{0,20}(?:" + NUMW + "|เลข|number)", "i"),
+    // (3) a date in number words: วันที่ + Thai number word, a number word + a month, "on the fifth"
+    dateWords: new RegExp("วันที่\\s*(?:" + NUMW_TH + ")|(?:" + NUMW_TH + ")\\s*(?:" + MONTHS_TH + "|ธันวาคม|มกราคม)|" +
+      "\\bon the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|\\w+(?:th|st|nd|rd))\\b", "i"),
     luckBuy: /บูชา|เช่า|ของมงคล|เครื่องราง|จ่าย|\b(?:amulet|talisman|worship|purchase|pay)\w*|供奉|护身符|开运物|购买/i,
   };
   var straight = function () { return root.LQFortuneStraight || (NODE ? require("./fortune-straight.js") : null); };
@@ -86,7 +98,7 @@
     var hl = FS.hardLimit(t);
     if (hl && hl !== "1:accident") return hl; // accidents: this section's own rules below (month ranges allowed)
     var order = ["death", "terminal", "medication", "med", "disease", "remedy", "asset", "asset2", "endRel", "endRel2", "fear", "fear2", "merit", "merit2",
-      "lottery", "luck2", "sales", "money", "certLoss"];
+      "lottery", "luck2", "sales", "money", "certLoss", "certNeg", "dateWords"];
     for (var i = 0; i < order.length; i++) if (RE[order[i]].test(t)) return order[i];
     if (RE.accType.test(t) || RE.accType2.test(t)) return "accident-type";
     // owner rule 2026-11-20: month ranges, never a single day — on every topic, and nothing under a one-day period
@@ -97,6 +109,7 @@
     if (RE.prohib.test(t) || RE.prohib2.test(t)) return "prohibition";
     if (RE.people.test(t) || RE.person.test(t) || RE.group.test(t)) return "people";
     if (kind === "mind") { if (!RE.caution.test(t)) return "no-caution-verb"; if (RE.cert.test(t)) return "certain"; }
+    if ((kind === "luck" || RE.may.test(t)) && RE.numLuck.test(t)) return "number-near-luck";
     if (kind === "luck") { if (!RE.may.test(t)) return "no-may"; if (RE.promise.test(t)) return "promise"; if (RE.luckBuy.test(t)) return "luck-tied"; }
     if (kind === "cheer" && RE.promise.test(t)) return "promise";
     if (kind === "do") { if (/\d/.test(t)) return "number"; if (RE.recipient.test(t)) return "recipient"; if (RE.ritual.test(t)) return "ritual"; }
