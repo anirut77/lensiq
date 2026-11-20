@@ -2,7 +2,7 @@
  * core + rule packs load only after the disclaimer (per tab); gone under the crisis or calm flag. V, SCHOOLS: tools/fortune-caution-pack.mjs. */
 (function (root) {
   "use strict";
-  var V = "e7821180";
+  var V = "c682c63c";
   var ACK = "lq-caution-ack";
   /** @param {string} th @param {string} en @param {string} zh */
   var T = function (th, en, zh) { return { th: th, en: en, zh: zh }; };

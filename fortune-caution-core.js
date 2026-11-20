@@ -42,7 +42,7 @@
   /** Node: a registry rule with its wording ids resolved from the approved-wording register (fortune-caution-wording.js); wordingRank = the
    *  lowest status of its entries (an unknown id leaves the text out, so the rule can never show) @param {any} r @param {Map<string, any>} by */
   function resolve(r, by) {
-    var o = Object.assign({}, r), rank = 2;
+    var o = Object.assign({}, r), rank = TEXT_FIELDS.some(function (f) { return r[f] !== undefined; }) ? 2 : -1; // no text: never live
     TEXT_FIELDS.forEach(function (f) {
       if (r[f] === undefined) return;
       var e = by.get(r[f]);

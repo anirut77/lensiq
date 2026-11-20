@@ -149,7 +149,7 @@
    "en": "Stay mindful: split big tasks into small steps and put rest into your schedule."
   },
   "cheer": {
-   "en": "The pressure of this month helps you grow."
+   "en": "The pressure of this month can help you grow."
   },
   "wordingRank": 0
  }

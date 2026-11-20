@@ -117,13 +117,13 @@
   "modern": false,
   "status": "draft",
   "mind": {
-   "en": "This year's branch is in punishment with your birth year; be mindful of patience and careful with the terms of contracts."
+   "en": "This year's branch is in punishment with your birth year; be mindful to stay a little more patient, and be careful with the terms of contracts."
   },
   "do": {
    "en": "Stay mindful: read terms closely and follow every step."
   },
   "cheer": {
-   "en": "A punishment year trains discipline; steady work on your plan brings results to be proud of."
+   "en": "A punishment year trains discipline; steady work on your plan may bring results to be proud of."
   },
   "wordingRank": 0
  },
@@ -182,7 +182,7 @@
    "en": "Stay mindful, speak gently, listen more than you talk, and agree on important matters together."
   },
   "cheer": {
-   "en": "What you both understand and do matters more than any tradition."
+   "en": "By tradition, the differences in this pair are a chance to learn new views from each other, when you respect and listen to each other."
   },
   "wordingRank": 0
  },
@@ -238,7 +238,7 @@
    "en": "Make merit or donate as you can to a temple, place of worship, charity or care home, to share the good."
   },
   "luck": {
-   "en": "This year's energy runs with your goals, so it may be a year when action finds support."
+   "en": "This year's branch forms a trine with your birth year, so it may be a year when action finds support."
   },
   "wordingRank": 0
  }

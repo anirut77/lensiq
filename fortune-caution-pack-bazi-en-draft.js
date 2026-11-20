@@ -120,7 +120,7 @@
    "en": "Stay mindful and keep your own money separate from money shared with others."
   },
   "cheer": {
-   "en": "In this period friends and your network can back you up."
+   "en": "In this period friends and your network may back you up."
   },
   "wordingRank": 0
  },
@@ -150,7 +150,7 @@
    "en": "Stay mindful: set clear priorities, break big tasks into small steps, and keep some rest time every day."
   },
   "cheer": {
-   "en": "The pressure of this period lets people see how responsible you are."
+   "en": "The pressure of this period is a chance for people around you to see how responsible you are."
   },
   "wordingRank": 0
  },
@@ -268,13 +268,13 @@
   "modern": false,
   "status": "draft",
   "mind": {
-   "en": "This year's branch is in punishment with your birth year; be mindful of patience and careful with the terms of contracts."
+   "en": "This year's branch is in punishment with your birth year; be mindful to stay a little more patient, and be careful with the terms of contracts."
   },
   "do": {
    "en": "Stay mindful: read terms closely and follow every step."
   },
   "cheer": {
-   "en": "A punishment year trains discipline; steady work on your plan brings results to be proud of."
+   "en": "A punishment year trains discipline; steady work on your plan may bring results to be proud of."
   },
   "wordingRank": 0
  },
@@ -383,7 +383,7 @@
   "modern": false,
   "status": "draft",
   "do": {
-   "en": "Share part of what you earn to help society and people in need, as you can."
+   "en": "Help society and people in need, as you can."
   },
   "luck": {
    "en": "In this luck period your income may grow from hard work and planning."
@@ -469,7 +469,7 @@
    "en": "Make merit or donate as you can to a temple, place of worship, charity or care home, to share the good."
   },
   "luck": {
-   "en": "This year's energy runs with your goals, so it may be a year when action finds support."
+   "en": "This year's branch forms a trine with your birth year, so it may be a year when action finds support."
   },
   "wordingRank": 0
  }

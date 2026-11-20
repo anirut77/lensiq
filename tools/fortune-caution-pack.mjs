@@ -44,7 +44,15 @@ export function checkRules(rules, wording, o = {}) {
 }
 
 const rawRules = () => RULE_FILES.flatMap(f => require(join(repo, f)));
-const rankOf = (r, by) => Math.min(...TEXTS.filter(f => r[f] !== undefined).map(f => RANK[by.get(r[f]).status]));
+/** lowest status rank of a rule's register entries; -1 for a rule with no text, an unknown id or an unknown status (never live)
+ * @param {any} r @param {Map<string, any>} by */
+const rankBy = (r, by) => {
+  const ks = TEXTS.filter(f => r[f] !== undefined);
+  if (!ks.length) return -1;
+  return Math.min(...ks.map(f => { const e = typeof r[f] === "string" ? by.get(r[f]) : null; return e && RANK[e.status] != null ? RANK[e.status] : -1; }));
+};
+/** @param {any} r raw rule @param {{ENTRIES: any[]}} wording */
+export const rankOf = (r, wording) => rankBy(r, new Map(wording.ENTRIES.map(e => [e.id, e])));
 
 /** @returns {{files: Record<string, string>, all: Record<string, string[]>, live: Record<string, string[]>}} */
 export function build() {
@@ -63,15 +71,15 @@ export function build() {
   for (const domain of Object.keys(core.DOMAINS)) {
     const mine = raw.filter(r => r.domains.includes(domain));
     all[domain] = [...new Set(mine.map(r => r.school))].sort();
-    const lv = [...new Set(mine.filter(r => r.status === "expert-ok" && rankOf(r, by) >= 1).map(r => r.school))].sort();
+    const lv = [...new Set(mine.filter(r => r.status === "expert-ok" && rankBy(r, by) >= 1).map(r => r.school))].sort();
     if (lv.length) live[domain] = lv; // pages with no live rule are left out (the shell mounts nothing there)
     for (const lang of LANGS) for (const draft of [false, true]) {
-      const list = mine.filter(r => (rankOf(r, by) >= 1) !== draft).map(r => {
+      const list = mine.filter(r => (rankBy(r, by) >= 1) !== draft).map(r => {
         /** @type {Record<string, any>} */
         const o = { domains: [domain] };
         for (const k of KEEP) if (r[k] !== undefined) o[k] = r[k];
         for (const f of TEXTS) if (r[f] !== undefined) o[f] = { [lang]: by.get(r[f])[lang] };
-        o.wordingRank = rankOf(r, by);
+        o.wordingRank = rankBy(r, by);
         return o;
       });
       const name = `fortune-caution-pack-${domain}-${lang}${draft ? "-draft" : ""}.js`;
