@@ -6,3 +6,13 @@ be800ed7b7f0eaf5828ec776bef478e8576a804d0741d77918ff7ff378b8b38c  tests/unit/pal
 c951d29bc930a82c7ff7bdeca84a7d086609a2ff30f8f78c47ede4fa3fea1c01  tests/fixtures/palm-v3/synth-real.js  # repo file (same commit as lock 2026-11-20T01:07:43Z; field: ~/LENSIQ-field/evals/palm-v3-lines/set/tests/fixtures/palm-v3/synth-real.js)
 d4fc7a76dd92ebb007f4ebcc56bce37fe95f85f808443f8f0ca9931cb53b168d  tests/fixtures/palm-v3/tex2.js  # repo file (same commit as lock 2026-11-20T01:07:43Z; field: ~/LENSIQ-field/evals/palm-v3-lines/set/tests/fixtures/palm-v3/tex2.js)
 # palm v3 line-finder spike (owner order 2026-11-20, branch palm-lines-v3 from origin/palm-v2 0a0526fc): tests + fixtures locked BEFORE the module palm-v3-lines.js. synth-real.js crease depth / width set from the spike's dev measurement on the owner's daylight development photos (no accuracy figure from them). tex2.js = reviewer rev2 texture library, unchanged.
+# locked 2026-11-20T06:32:56Z (tools/eval-guard.mjs lock, 2 files)
+a51e722664f94636a4de17615a3fc8987e1a5665f402c3500caa6fb8ad68a815  relock1/tests/unit/palm-v3-hard.test.js
+cbb7479ce6dd27917724121e3d5f89a7fa77220c6bafded26ab9d32c61408e62  relock1/tests/e2e/palm-v3.e2e.mjs
+a51e722664f94636a4de17615a3fc8987e1a5665f402c3500caa6fb8ad68a815  tests/unit/palm-v3-hard.test.js  # repo file (same commit as lock 2026-11-20T06:32:56Z; field: ~/LENSIQ-field/evals/palm-v3-lines/relock1/tests/unit/palm-v3-hard.test.js)
+cbb7479ce6dd27917724121e3d5f89a7fa77220c6bafded26ab9d32c61408e62  tests/e2e/palm-v3.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:32:56Z; field: ~/LENSIQ-field/evals/palm-v3-lines/relock1/tests/e2e/palm-v3.e2e.mjs)
+# locked 2026-11-20T06:33:17Z (tools/eval-guard.mjs lock, 1 file)
+3d786e1bd90524de7592823c16c6503b7c201fe07848899b1d74ae50d2d00bf2  relock2/tests/unit/palm-v3-hard.test.js
+3d786e1bd90524de7592823c16c6503b7c201fe07848899b1d74ae50d2d00bf2  tests/unit/palm-v3-hard.test.js  # repo file (same commit as lock 2026-11-20T06:33:17Z; field: ~/LENSIQ-field/evals/palm-v3-lines/relock2/tests/unit/palm-v3-hard.test.js)
+# relock1 (2026-11-20 evening, before the majors-finish change): palm-v3-hard.test.js (harder null H, fresh realistic seeds R, timing T) + palm-v3.e2e.mjs (sub-switch on, synthetic hands only).
+# relock2: palm-v3-hard.test.js re-locked only to wrap two lines over 200 characters (format rule) found right after relock1; no test had been run; no assertion changed.
