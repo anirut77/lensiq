@@ -1,0 +1,5 @@
+# locked 2026-11-20T14:29:05Z (tools/eval-guard.mjs lock, 2 files)
+8cab4d5ae270e4f0cfe83ecf20073a18f049e1aa00459eb8be29d0fa750782bb  load-guard.test.js
+73db91f1ce59f4b2cac2b779244330a3928468e7c6c88e5ae338b6d730fd48dc  fake-loadavg.cjs
+8cab4d5ae270e4f0cfe83ecf20073a18f049e1aa00459eb8be29d0fa750782bb  tests/unit/load-guard.test.js  # repo file (same commit as lock 2026-11-20T14:29:05Z; field: ~/LENSIQ-field/evals/load-guard/load-guard.test.js)
+73db91f1ce59f4b2cac2b779244330a3928468e7c6c88e5ae338b6d730fd48dc  tests/unit/fixtures/fake-loadavg.cjs  # repo file (same commit as lock 2026-11-20T14:29:05Z; field: ~/LENSIQ-field/evals/load-guard/fake-loadavg.cjs)

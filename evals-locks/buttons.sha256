@@ -45,3 +45,9 @@ a138b16b998bb1f87fdea5b0732b1ce13bcb055cda78fd4fef227ed7ca14840b  tools/buttons-
 # re-lock 2026-11-15T13:52:09Z (coordinator): disk-guard commit 480ea46 added an import of tools/disk-guard.mjs and one assertFreeSpace() call before the first browser launch; no assertion, threshold, input or measurement logic changed. Append-only.
 6446b3c391a7807b744e4d0470ee1276e85a6d03f62e04abe9a2b64cb089f5ed  tools/buttons-probe.mjs
 f02a2307c68455ff1e76d20669122bad59cc705edcc6a9d1e0bbfb79adba212f  tools/buttons-busy-discover.mjs
+# re-lock 2026-11-20 (load-guard, owner decision 205; field: relock1/ with NOTE.txt): EQUAL re-lock of tools/buttons-probe.mjs: one import of ./load-guard.mjs and one await holdSlot() before webkit.launch(); no assertion, threshold, input or measurement logic changed. Append-only.
+# locked 2026-11-20T14:32:23Z (tools/eval-guard.mjs lock, 2 files)
+58ec60543778cd1a2621488a6315b4ed68fd3b0697cf394a921ddfcb168ea26b  relock1/buttons-probe.mjs
+d90ba2777b0150e9a6d124e37608351e3caa126b266be884b92db590aef46381  relock1/NOTE.txt
+58ec60543778cd1a2621488a6315b4ed68fd3b0697cf394a921ddfcb168ea26b  tools/buttons-probe.mjs  # repo file (same commit as lock 2026-11-20T14:32:23Z; field: ~/LENSIQ-field/evals/buttons/relock1/buttons-probe.mjs)
+# field only relock1/NOTE.txt (lock 2026-11-20T14:32:23Z: no repo file uses it)

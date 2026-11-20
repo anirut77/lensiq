@@ -5,6 +5,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, readdirSync, rmSync, existsSync, lstatSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { holdSlot } from "../../tools/load-guard.mjs";
 
 // Chrome binary: LQ_CHROME / CHROME_PATH (browser-actions/setup-chrome output), else the usual macOS / Linux / Windows paths
 const CANDIDATES = [
@@ -90,6 +91,7 @@ export function sweepStale(root = tmpdir()) {
 }
 
 export async function launch({ headless = true, extraArgs = [] } = {}) {
+  await holdSlot({ label: "browser launch (" + (process.argv[1] || "node") + ")" }); // load guard: one heavy-job slot per process (no-op when held)
   const dir = mkdtempSync(join(tmpdir(), PREFIX));
   created.push(dir);
   writeFileSync(join(dir, ".lq-owner"), String(process.pid));
