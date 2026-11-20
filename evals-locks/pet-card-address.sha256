@@ -1,0 +1,12 @@
+# evals-locks/pet-card-address.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/pet-card-address/ (owner rule 2026-11-13). Append-only.
+# pet-card-address (owner change 2026-11-20 with go-live decision 152): until the site is live on its own domain the pet share card
+# prints the brand only ("จาก LENSIQ" / "From LENSIQ" / "来自 LENSIQ"), no URL anywhere on the card (13 zodiac templates, 4 classic
+# themes, save-image / share / text fallback); window.LENSIQ_CARD_SHOW_ADDRESS (lensiq-config.js, default false) brings the address
+# (still the single setting LQPet.LINK) back; coordinator decision: the QR follows the same switch. Locked BEFORE any product code on
+# branch pet-zodiac-live (base origin/main 2a61736c). Synthetic inputs only. Disclosure: the unit file was run once while it was
+# written (to check the recording canvas mock draws all 13 templates); no product code was changed.
+# locked 2026-11-20T06:46:56Z (tools/eval-guard.mjs lock, 2 files)
+51dba5b1768f93f005cfa8718f812d5820f4ec368c90b278090f666bba580cb6  pet-card-address.test.js
+13276192d963c00d610426f235246ad2d4ab92cfc13cb0a83d97b0e0d0ad219a  pet-card-address.e2e.mjs
+51dba5b1768f93f005cfa8718f812d5820f4ec368c90b278090f666bba580cb6  tests/unit/pet-card-address.test.js  # repo file (same commit as lock 2026-11-20T06:46:56Z; field: ~/LENSIQ-field/evals/pet-card-address/pet-card-address.test.js)
+13276192d963c00d610426f235246ad2d4ab92cfc13cb0a83d97b0e0d0ad219a  tests/e2e/pet-card-address.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:46:56Z; field: ~/LENSIQ-field/evals/pet-card-address/pet-card-address.e2e.mjs)
