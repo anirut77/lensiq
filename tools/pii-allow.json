@@ -492,6 +492,15 @@
    "reason": "invented seller / buyer fixture addresses named Test / Buyer road (TH: ถนนทดสอบ, แขวงทดสอบ, เขตทดสอบ = \"test road / test district\") with the generic postcode 10000 or 10100; no real person or premises"
   },
   {
+   "path": "tests/e2e/seller-doc-onepage.e2e.mjs",
+   "types": {
+    "street-address": 2,
+    "postcode-city": 2
+   },
+   "kind": "synthetic",
+   "reason": "invented seller / buyer fixture addresses (TH: อาคารทดสอบสังเคราะห์, ถนนทดสอบ, ซอยลูกค้าทดสอบ = \"synthetic test building / test road / test customer lane\"; ZH: 合成测试 = \"synthetic test\") with the generic postcode 10000 or 10100, repeated to the product 300-character limit; no real person or premises"
+  },
+  {
    "path": "tests/integration/backend-workerd.test.mjs",
    "types": {
     "postcode-city": 1

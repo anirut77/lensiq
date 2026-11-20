@@ -381,13 +381,16 @@ export async function voidDoc(env, id) {
 
 // ---- rendering (print-ready A4 HTML; the browser saves it as PDF) -------------------------------------------------------
 const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-/** "TH <small>EN · ZH</small>" @param {string[]} l */
+/** "TH <small>EN · ZH</small>" (EN · ZH on its own line) @param {string[]} l */
 const tri = l => `${esc(l[0])}<small>${esc(l[1])} · ${esc(l[2])}</small>`;
+/** "TH <small>EN · ZH</small>" on ONE line (labels: keeps the header and tables short, decision 192 ก) @param {string[]} l */
+const triI = l => `${esc(l[0])} <small class="i">${esc(l[1])} · ${esc(l[2])}</small>`;
 const L = {
   seller: ["ผู้ขาย", "Seller", "卖方"], customer: ["ลูกค้า", "Customer", "客户"], no: ["เลขที่", "No.", "编号"], date: ["วันที่", "Date", "日期"],
   desc: ["รายการ", "Description", "项目"], qty: ["จำนวน", "Quantity", "数量"], unit: ["ราคานำร่องต่อหน่วย", "Pilot unit price", "试点单价"],
   amount: ["จำนวนเงิน (บาท)", "Amount (THB)", "金额（泰铢）"],
   regular: ["ราคาปกติหลังผ่านเกณฑ์นำร่อง (เพื่อเปรียบเทียบ ไม่คิดเงิน)", "Regular price after the pilot thresholds (for comparison, not charged)", "试点达标后的正常价格（仅供比较，不收费）"],
+  regularShort: ["ราคาปกติ *", "Regular price *", "正常价格 *"],
   subtotal: ["รวมเป็นเงิน (ไม่รวมภาษีมูลค่าเพิ่ม)", "Subtotal (excl. VAT)", "小计（不含增值税）"], total: ["รวมทั้งสิ้น", "Total", "合计"],
   pay: ["โอนเงินเข้าบัญชี", "Bank transfer", "银行转账"], validUntil: ["ใช้ได้ถึง", "Valid until", "有效期至"], due: ["กำหนดชำระ", "Payment due", "付款期限"],
   paidOn: ["วันที่รับชำระ", "Paid on", "付款日期"], ref: ["อ้างอิง", "Reference", "参考"], note: ["หมายเหตุ", "Note", "备注"], branch: ["สาขา", "Branch", "分支"]
@@ -395,7 +398,10 @@ const L = {
 const TITLE = { quotation: ["ใบเสนอราคา", "Quotation", "报价单"], invoice: ["ใบแจ้งหนี้", "Invoice", "账单"], receipt: ["ใบเสร็จรับเงิน", "Receipt", "收据"] };
 const addDaysT = (t, n) => t + n * 86400;
 
-/** @param {any} d */
+/** Print-ready A4 HTML. Layout (owner decision 192 ก, 2026-11-20): a two-column header (seller on the left; number, dates
+ *  and buyer on the right), one-line trilingual labels and a short "regular price *" column header with its full text as a
+ *  footnote, so a document with up to 5 lines fits on ONE A4 page; longer documents paginate (the table header repeats).
+ *  Locked test: tests/e2e/seller-doc-onepage.e2e.mjs. @param {any} d */
 export function renderDoc(d) {
   const title = TITLE[d.doc_type];
   const s = d.seller;
@@ -403,14 +409,14 @@ export function renderDoc(d) {
   const dateT = d.issued_at || d.created_at;
   const dt = thaiDate(dateT);
   const metaRows = [
-    `<tr><th>${tri(L.no)}</th><td>${d.number ? esc(d.number) : "—"}</td></tr>`,
-    `<tr><th>${tri(L.date)}</th><td>${esc(dt.th)} (${esc(dt.iso)})</td></tr>`
+    `<tr><th>${triI(L.no)}</th><td>${d.number ? esc(d.number) : "—"}</td></tr>`,
+    `<tr><th>${triI(L.date)}</th><td>${esc(dt.th)} (${esc(dt.iso)})</td></tr>`
   ];
-  const dateRow = (lab, t) => { const v = thaiDate(t); metaRows.push(`<tr><th>${tri(lab)}</th><td>${esc(v.th)} (${esc(v.iso)})</td></tr>`); };
+  const dateRow = (lab, t) => { const v = thaiDate(t); metaRows.push(`<tr><th>${triI(lab)}</th><td>${esc(v.th)} (${esc(v.iso)})</td></tr>`); };
   if (d.doc_type === "quotation" && d.extra.valid_days) dateRow(L.validUntil, addDaysT(dateT, d.extra.valid_days));
   if (d.doc_type === "invoice" && d.extra.due_days != null) dateRow(L.due, addDaysT(dateT, d.extra.due_days));
-  if (d.doc_type === "receipt" && d.extra.paid_on) metaRows.push(`<tr><th>${tri(L.paidOn)}</th><td>${esc(d.extra.paid_on)}</td></tr>`);
-  if (d.extra.ref) metaRows.push(`<tr><th>${tri(L.ref)}</th><td>${esc(d.extra.ref)}</td></tr>`);
+  if (d.doc_type === "receipt" && d.extra.paid_on) metaRows.push(`<tr><th>${triI(L.paidOn)}</th><td>${esc(d.extra.paid_on)}</td></tr>`);
+  if (d.extra.ref) metaRows.push(`<tr><th>${triI(L.ref)}</th><td>${esc(d.extra.ref)}</td></tr>`);
 
   let sellerBlock;
   if (!s) {
@@ -425,40 +431,46 @@ export function renderDoc(d) {
   } else {
     const contact = [s.contact_phone && sf("contact_phone", s.contact_phone), s.contact_email && sf("contact_email", s.contact_email),
       s.contact_line && sf("contact_line", "LINE " + s.contact_line)].filter(Boolean).join(" · ");
-    const branchHtml = s.branch ? sf("branch", s.branch) : `<span data-seller-field="branch">${tri(["สำนักงานใหญ่", "Head office", "总公司"])}</span>`;
+    const branchHtml = s.branch ? sf("branch", s.branch) : `<span data-seller-field="branch">${triI(["สำนักงานใหญ่", "Head office", "总公司"])}</span>`;
     sellerBlock = `<div class="party">
-  ${s.logo_data ? `<img class="logo" alt="" src="data:${esc(s.logo_mime)};base64,${esc(s.logo_data)}">` : ""}
-  <div><b>${sf("legal_name", s.legal_name)}</b></div>
+  <div class="name">${sf("legal_name", s.legal_name)}</div>
   <div>${sf("address", s.address)}</div>
-  <div>${tri(LABELS.tax_id)} ${sf("tax_id", s.tax_id)} · ${tri(L.branch)} ${branchHtml}</div>
-  <div>${tri(LABELS.contact)} ${contact}</div>
+  <div><span class="k">${triI(LABELS.tax_id)}</span> ${sf("tax_id", s.tax_id)} · <span class="k">${triI(L.branch)}</span> ${branchHtml}</div>
+  <div><span class="k">${triI(LABELS.contact)}</span> ${contact}</div>
 </div>`;
   }
   const b = d.buyer;
+  const buyerBlock = `<div class="party">
+  <div class="name"><span class="k">${triI(LABELS.legal_name)}</span> ${esc(b.name)}</div>
+  <div><span class="k">${triI(LABELS.address)}</span> ${esc(b.address || "—")}</div>
+  ${b.tax_id ? `<div><span class="k">${triI(LABELS.tax_id)}</span> ${esc(b.tax_id)}${b.branch ? " · " + esc(b.branch) : ""}</div>` : ""}
+</div>`;
   const quote = d.doc_type === "quotation";
   // fixed column widths (A4 fits in TH / EN / ZH): headers and the regular-price ranges wrap, amounts stay on one line
-  const head = `<tr><th class="c-no">#</th><th>${tri(L.desc)}</th><th class="num c-qty">${tri(L.qty)}</th><th class="num c-unit">${tri(L.unit)}</th>` +
-    `${quote ? `<th class="num c-reg">${tri(L.regular)}</th>` : ""}<th class="num c-amt">${tri(L.amount)}</th></tr>`;
-  const regCell = l => `<td class="num reg">${esc(l.regular_th)}<small>${esc(l.regular_en)} · ${esc(l.regular_zh)}</small></td>`;
+  const head = `<tr><th class="c-no">#</th><th>${triI(L.desc)}</th><th class="num c-qty">${triI(L.qty)}</th><th class="num c-unit">${triI(L.unit)}</th>` +
+    `${quote ? `<th class="num c-reg">${triI(L.regularShort)}</th>` : ""}<th class="num c-amt">${triI(L.amount)}</th></tr>`;
+  // the regular price is written once when TH / EN / ZH read the same (a plain number range), else in all three
+  const regCell = l => `<td class="num reg">${esc(l.regular_th)}` +
+    `${l.regular_en === l.regular_th && l.regular_zh === l.regular_th ? "" : `<small>${esc(l.regular_en)} · ${esc(l.regular_zh)}</small>`}</td>`;
   const gone = (l, i) => `<tr data-unavailable-line="${esc(l.id)}"><td>${i + 1}</td>` +
     `<td>${tri(["ไม่อยู่ในรายการราคาที่อนุมัติแล้ว", "No longer on the approved price list", "已不在批准的价目表中"])}</td>` +
     `<td class="num">${l.qty}</td><td class="num">—</td>${quote ? `<td class="num">—</td>` : ""}<td class="num">—</td></tr>`;
-  const rows = d.lines.map((l, i) => l.unavailable ? gone(l, i) : `<tr><td>${i + 1}</td><td>${esc(l.name_th)}<small>${esc(l.name_en)} · ${esc(l.name_zh)}</small>` +
-    `<small>${esc(l.unit_th)} · ${esc(l.unit_en)} · ${esc(l.unit_zh)}${l.min_satang ? ` · ขั้นต่ำ / minimum / 最低 ${baht(l.min_satang)}` : ""}</small></td>` +
+  const rows = d.lines.map((l, i) => l.unavailable ? gone(l, i) : `<tr><td>${i + 1}</td><td>${esc(l.name_th)}<small>${esc(l.name_en)} · ${esc(l.name_zh)}` +
+    ` — ${esc(l.unit_th)} · ${esc(l.unit_en)} · ${esc(l.unit_zh)}${l.min_satang ? ` · ขั้นต่ำ / minimum / 最低 ${baht(l.min_satang)}` : ""}</small></td>` +
     `<td class="num">${l.qty}</td><td class="num">${baht(l.unit_satang)}</td>${quote ? regCell(l) : ""}<td class="num">${baht(l.amount_satang)}</td></tr>`).join("");
   const span = quote ? 5 : 4;
   const vatRow = d.vat_registered === true
-    ? `<tr><td colspan="${span}">ภาษีมูลค่าเพิ่ม ${(d.vat_rate_bp / 100).toFixed(0)}%<small>VAT · 增值税</small></td><td class="num">${baht(d.vat_satang)}</td></tr>`
+    ? `<tr><td colspan="${span}">ภาษีมูลค่าเพิ่ม ${(d.vat_rate_bp / 100).toFixed(0)}% <small class="i">VAT · 增值税</small></td><td class="num">${baht(d.vat_satang)}</td></tr>`
     : d.vat_registered === false ? `<tr><td colspan="${span + 1}" class="muted">ผู้ขายไม่ได้จดทะเบียนภาษีมูลค่าเพิ่ม ไม่มีภาษีมูลค่าเพิ่ม
       <small>Seller not VAT-registered: no VAT charged · 卖方未登记增值税，不收增值税</small></td></tr>`
-      : `<tr><td colspan="${span}">ภาษีมูลค่าเพิ่ม: ยังไม่ได้ระบุ<small>VAT: not stated yet · 增值税：尚未填写</small></td><td class="num">—</td></tr>`;
+      : `<tr><td colspan="${span}">ภาษีมูลค่าเพิ่ม: ยังไม่ได้ระบุ <small class="i">VAT: not stated yet · 增值税：尚未填写</small></td><td class="num">—</td></tr>`;
   let payBlock = "";
   if (d.doc_type !== "receipt") {
-    payBlock = `<section class="pay"><h2>${tri(L.pay)}</h2>${s ? `<table class="meta">
-  <tr><th>${tri(LABELS.bank_name)}</th><td>${sf("bank_name", s.bank_name)}</td></tr>
-  <tr><th>${tri(LABELS.bank_account_name)}</th><td>${sf("bank_account_name", s.bank_account_name)}</td></tr>
-  <tr><th>${tri(LABELS.bank_account_no)}</th><td>${sf("bank_account_no", s.bank_account_no)}</td></tr></table>
-  <p class="muted">ระบุเลขที่เอกสารในบันทึกการโอน ไม่มีการชำระเงินออนไลน์<small>Put the document number in the transfer note. No online payment · 转账备注请填写单据编号，不提供在线支付</small></p>`
+    payBlock = `<section class="pay"><h2>${triI(L.pay)}</h2>${s ? `<div class="party">
+  <div><span class="k">${triI(LABELS.bank_name)}</span> ${sf("bank_name", s.bank_name)}</div>
+  <div><span class="k">${triI(LABELS.bank_account_name)}</span> ${sf("bank_account_name", s.bank_account_name)}</div>
+  <div><span class="k">${triI(LABELS.bank_account_no)}</span> <b>${sf("bank_account_no", s.bank_account_no)}</b></div></div>
+  <p class="muted">ระบุเลขที่เอกสารในบันทึกการโอน ไม่มีการชำระเงินออนไลน์ <small class="i">Put the document number in the transfer note. No online payment · 转账备注请填写单据编号，不提供在线支付</small></p>`
       : `<p class="muted">ดูรายการที่ยังขาดด้านบน<small>See the missing details above · 见上方缺少的信息</small></p>`}</section>`;
   }
   const status = d.status === "void" ? `<p class="stamp">ยกเลิก<small>VOID · 作废</small></p>`
@@ -470,42 +482,47 @@ export function renderDoc(d) {
 ${DOC_FONT_CSS /* self-hosted Thai font inline: no machine fallback, no U+F700–F71A in the PDF (decision 161) */}
   :root { color-scheme: light; }
   body { font: 13px/1.5 ${DOC_FONT_FAMILY},"Noto Sans SC",system-ui,sans-serif; color: #111; background: #fff; margin: 0; padding: 24px; }
-  .doc { max-width: 780px; margin: 0 auto; } h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 15px; margin: 14px 0 4px; }
-  small { display: block; font-size: 10.5px; color: #555; font-weight: 400; }
-  .head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 10px; }
-  .logo { max-height: 56px; max-width: 200px; display: block; margin-bottom: 6px; }
-  table { width: 100%; border-collapse: collapse; } th, td { text-align: left; vertical-align: top; padding: 5px 6px; }
-  .meta { width: auto; } .meta th { font-weight: 600; padding-right: 12px; }
-  .items { margin-top: 12px; border-top: 1px solid #999; } .items thead th { border-bottom: 1px solid #999; background: #f3f3f3; font-weight: 600; }
+  .doc { max-width: 780px; margin: 0 auto; } h1 { font-size: 20px; line-height: 1.25; margin: 0 0 6px; } h2 { font-size: 13px; margin: 8px 0 2px; }
+  small { display: block; font-size: 10.5px; color: #555; font-weight: 400; } small.i { display: inline; }
+  .head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 20px; align-items: start; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 4px; }
+  .head > div { min-width: 0; overflow-wrap: anywhere; } .head h2:first-child { margin-top: 0; }
+  .party > div { margin: 0 0 1px; } .party .name { font-weight: 700; } .party .k { font-weight: 400; color: #333; }
+  .logo { max-height: 56px; max-width: 200px; display: block; margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; } th, td { text-align: left; vertical-align: top; padding: 2px 4px; }
+  .meta { width: 100%; } .meta th { font-weight: 600; padding: 1px 10px 1px 0; width: 1%; white-space: nowrap; } .meta td { padding: 1px 0; overflow-wrap: anywhere; }
+  .items { margin-top: 8px; border-top: 1px solid #999; } .items thead th { border-bottom: 1px solid #999; background: #f3f3f3; font-weight: 600; }
+  .items tbody tr { break-inside: avoid; }
   .items { table-layout: fixed; } .items th, .items td { overflow-wrap: anywhere; }
-  .items .c-no { width: 5%; } .items .c-qty { width: 9%; } .items .c-unit { width: 14%; } .items .c-reg { width: 16%; } .items .c-amt { width: 18%; }
+  .items .c-no { width: 4%; } .items .c-qty { width: 9%; } .items .c-unit { width: 12%; } .items .c-reg { width: 13%; } .items .c-amt { width: 16%; }
   .num { text-align: right; white-space: nowrap; overflow-wrap: normal; } th.num, td.reg { white-space: normal; } .total td { border-top: 2px solid #111; font-weight: 700; font-size: 15px; }
-  .muted { color: #444; font-size: 12px; } .stamp { border: 3px solid #b00; color: #b00; padding: 4px 10px; font-weight: 700; display: inline-block; margin: 6px 0; }
+  .muted { color: #444; font-size: 12px; margin: 3px 0; } .stamp { border: 3px solid #b00; color: #b00; padding: 2px 10px; font-weight: 700; display: inline-block; margin: 0 0 6px; }
+  .foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; align-items: start; margin-top: 4px; break-inside: avoid; }
+  .foot > div { min-width: 0; overflow-wrap: anywhere; } .foot.solo { grid-template-columns: minmax(0, 1fr); } .pay h2 { margin-top: 3px; }
   .missing { border: 3px solid #b00; padding: 10px 14px; margin: 8px 0; } .missing .big { font-size: 18px; font-weight: 700; color: #b00; margin: 0 0 6px; }
-  @media print { body { padding: 0; } @page { size: A4; margin: 14mm; } }
+  @media screen and (max-width: 560px) { .head, .foot { grid-template-columns: minmax(0, 1fr); } }
+  @media print {
+    body { padding: 0; font-size: 11.5px; line-height: 1.35; } small { font-size: 9.5px; } h1 { font-size: 18px; } .muted { font-size: 10.5px; } .total td { font-size: 13px; }
+    @page { size: A4; margin: 10mm 14mm; }
+  }
 </style></head><body><div class="doc" data-doc-type="${esc(d.doc_type)}">
 ${status}
 <div class="head">
-  <div><h1>${tri(title)}</h1><h2>${tri(L.seller)}</h2>${sellerBlock}</div>
-  <table class="meta">${metaRows.join("")}</table>
+  <div>${s && s.logo_data ? `<img class="logo" alt="" src="data:${esc(s.logo_mime)};base64,${esc(s.logo_data)}">` : ""}<h1>${triI(title)}</h1><h2>${triI(L.seller)}</h2>${sellerBlock}</div>
+  <div><table class="meta">${metaRows.join("")}</table><h2>${triI(L.customer)}</h2>${buyerBlock}</div>
 </div>
-<h2>${tri(L.customer)}</h2>
-<table class="meta">
-  <tr><th>${tri(LABELS.legal_name)}</th><td>${esc(b.name)}</td></tr>
-  <tr><th>${tri(LABELS.address)}</th><td>${esc(b.address || "—")}</td></tr>
-  ${b.tax_id ? `<tr><th>${tri(LABELS.tax_id)}</th><td>${esc(b.tax_id)}${b.branch ? " · " + esc(b.branch) : ""}</td></tr>` : ""}
-</table>
 <table class="items"><thead>${head}</thead><tbody>${rows}
-  <tr><td colspan="${span}">${tri(L.subtotal)}</td><td class="num">${baht(d.subtotal_satang)}</td></tr>
+  <tr><td colspan="${span}">${triI(L.subtotal)}</td><td class="num">${baht(d.subtotal_satang)}</td></tr>
   ${vatRow}
-  <tr class="total"><td colspan="${span}">${tri(L.total)}</td><td class="num">${baht(d.total_satang)}</td></tr>
+  <tr class="total"><td colspan="${span}">${triI(L.total)}</td><td class="num">${baht(d.total_satang)}</td></tr>
 </tbody></table>
+<div class="foot${payBlock ? "" : " solo"}">${payBlock ? `<div>${payBlock}</div>` : ""}<div>
+${quote ? `<p class="muted">* ${triI(L.regular)}</p>` : ""}
 ${d.vat_registered === false ? `<p class="muted">ราคานำร่องตามรายการราคาที่อนุมัติ ผู้ขายไม่เรียกเก็บภาษีมูลค่าเพิ่ม
-  <small>Pilot prices from the approved price list; the seller charges no VAT · 批准价目表中的试点价格；卖方不收增值税</small></p>`
+  <small class="i">Pilot prices from the approved price list; the seller charges no VAT · 批准价目表中的试点价格；卖方不收增值税</small></p>`
     : `<p class="muted">ราคาไม่รวมภาษีมูลค่าเพิ่ม${d.vat_registered ? " " + (d.vat_rate_bp / 100).toFixed(0) + "%" : ""} (ราคานำร่องตามรายการราคาที่อนุมัติ)
-    <small>Prices excl. VAT (pilot prices from the approved price list) · 价格不含增值税（批准价目表中的试点价格）</small></p>`}
-${payBlock}
-${d.extra.note ? `<p class="muted">${tri(L.note)} ${esc(d.extra.note)}</p>` : ""}
+    <small class="i">Prices excl. VAT (pilot prices from the approved price list) · 价格不含增值税（批准价目表中的试点价格）</small></p>`}
+${d.extra.note ? `<p class="muted">${triI(L.note)} ${esc(d.extra.note)}</p>` : ""}
+</div></div>
 </div></body></html>`;
 }
 
