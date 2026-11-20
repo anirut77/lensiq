@@ -153,9 +153,27 @@
     if (!faceOff) { faceOff = true; lastFaces = []; engine(faceOffText, "warn"); renderChecks(); }
     if (phase === "exam" && !faceOffSent) { faceOffSent = true; handle([{ sig: "setup", lvl: "setup", t: Date.now(), code: "faceoff" }]); }
   }
+  /** TF.js (COCO-SSD runtime, 1.25 MB) is loaded only when the camera starts, never with the page (S2, 2026-11-20: as a page
+   * script it held the first usable control back by seconds on a slow phone). Same files and order as the former script tags:
+   * the runtime, then its wasm backend; never face-api.js. Resolves when window.tf is ready to use; a failed load rejects
+   * (loadModels() then falls back exactly as before when LQDetect.tfBackend() finds no TF.js). */
+  let tfP = null;
+  function loadTf() {
+    if (W.tf && W.tf.loadGraphModel) return Promise.resolve();
+    if (tfP) return tfP;
+    tfP = ["vendor/tfjs/tf.es2017.min.js", "vendor/tfjs/tf-backend-wasm.es2017.min.js"].reduce((p, src) => p.then(() => new Promise((res, rej) => {
+      const sc = document.createElement("script");
+      sc.src = src; sc.async = false;
+      sc.onload = () => res(undefined); sc.onerror = () => rej(new Error("could not load " + src));
+      document.head.appendChild(sc);
+    })), Promise.resolve());
+    tfP.catch(() => { tfP = null; });
+    return tfP;
+  }
   async function loadModels() {
     if (modelsReady) return TEST ? "test" : "ok";
     if (TEST) { modelsReady = true; return "test"; }
+    try { await loadTf(); } catch (e) { console.warn("TF.js", e); }
     const b = await LQDetect.tfBackend();
     faceEng = F.create(F.pickEngine(window));
     try { await faceEng.init(); } catch (e) { console.warn("face engine", e); faceOff = true; }
@@ -452,7 +470,8 @@
   /** @type {any} */ (window).__LQ_EXAM_LAB = {
     get phase() { return phase; }, get mon() { return mon; }, get baseline() { return mon && mon.baseline; },
     own, sent, get link() { return link; }, get quality() { return lastQ; }, get faces() { return lastFaces; }, nodeId, clips, get clipCfg() { return clipCfg; },
-    get faceEngine() { return faceEng ? faceEng.name : TEST ? "test" : null; }, get faceOff() { return faceOff; }, get faceRuns() { return faceRuns; }
+    get faceEngine() { return faceEng ? faceEng.name : TEST ? "test" : null; }, get faceOff() { return faceOff; }, get faceRuns() { return faceRuns; },
+    loadTf // measuring harnesses (tools/examlab-phone-eval.mjs) load TF.js the way the page does
   };
   // demo mode only: a simulated event goes through the same path as a real one (own log, gentle prompt, room link)
   if (DEMO) /** @type {any} */ (window).__LQ_EXAM_LAB.demoEvent = (/** @type {string} */ sig) => {
