@@ -1,0 +1,8 @@
+# locked 2026-11-20T01:07:43Z (tools/eval-guard.mjs lock, 3 files)
+be800ed7b7f0eaf5828ec776bef478e8576a804d0741d77918ff7ff378b8b38c  set/tests/unit/palm-v3-lines.test.js
+c951d29bc930a82c7ff7bdeca84a7d086609a2ff30f8f78c47ede4fa3fea1c01  set/tests/fixtures/palm-v3/synth-real.js
+d4fc7a76dd92ebb007f4ebcc56bce37fe95f85f808443f8f0ca9931cb53b168d  set/tests/fixtures/palm-v3/tex2.js
+be800ed7b7f0eaf5828ec776bef478e8576a804d0741d77918ff7ff378b8b38c  tests/unit/palm-v3-lines.test.js  # repo file (same commit as lock 2026-11-20T01:07:43Z; field: ~/LENSIQ-field/evals/palm-v3-lines/set/tests/unit/palm-v3-lines.test.js)
+c951d29bc930a82c7ff7bdeca84a7d086609a2ff30f8f78c47ede4fa3fea1c01  tests/fixtures/palm-v3/synth-real.js  # repo file (same commit as lock 2026-11-20T01:07:43Z; field: ~/LENSIQ-field/evals/palm-v3-lines/set/tests/fixtures/palm-v3/synth-real.js)
+d4fc7a76dd92ebb007f4ebcc56bce37fe95f85f808443f8f0ca9931cb53b168d  tests/fixtures/palm-v3/tex2.js  # repo file (same commit as lock 2026-11-20T01:07:43Z; field: ~/LENSIQ-field/evals/palm-v3-lines/set/tests/fixtures/palm-v3/tex2.js)
+# palm v3 line-finder spike (owner order 2026-11-20, branch palm-lines-v3 from origin/palm-v2 0a0526fc): tests + fixtures locked BEFORE the module palm-v3-lines.js. synth-real.js crease depth / width set from the spike's dev measurement on the owner's daylight development photos (no accuracy figure from them). tex2.js = reviewer rev2 texture library, unchanged.
