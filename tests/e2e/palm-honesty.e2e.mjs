@@ -9,10 +9,16 @@
 //      "not clear", not drawn, not read and not read as absent
 //   E3 (TH, EN, ZH) placeholder until the owner approves the wording: the old mounts label "(ประเมินจากภาพ)" /
 //      "(estimated from the photo)" / "（根据照片估算）" is gone
+// re-lock 2 (owner decisions 164 / 165 ก, 2026-11-20):
+//   E3 now asserts the owner-approved mounts label exactly (stricter than the placeholder)
+//   E4 (TH, EN, ZH) no "clear / faint / unclear" badge and no confidence number next to a line: line buttons, result line
+//      cards, share card, and (TH) the two-hand comparison table; the ไม่ชัดในภาพนี้ state stays
+//   E5 (TH, EN, ZH) the approved note on the lines is shown, exactly, in the edit area and in the result area
 import { assert, assertNoWebGL, privacyScan } from "./cdp.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const HAND = { x: 0.3, y: 0.15, w: 0.4, h: 0.7, score: 0.95, side: "left" };
+const HAND_R = Object.assign({}, HAND, { side: "right" });
 const IDS = ["life", "head", "heart", "fate"];
 const UNCLEAR = { th: "ไม่ชัดในภาพนี้", en: "Not clear in this photo", zh: "此照片中不清楚" };
 const NAMES = {
@@ -21,6 +27,18 @@ const NAMES = {
   zh: { life: ["生命线"], head: ["智慧线"], heart: ["感情线"], fate: ["事业线"] }
 };
 const ABSENT = { th: ["มองไม่เห็นเส้นวาสนา", "ไม่มีเส้นวาสนา"], en: ["no fate line", "not distinct"], zh: ["看不到事业线", "没有事业线", "不明显"] };
+const MEST = {
+  th: "(ประเมินจากสัดส่วนนิ้วและฝ่ามือ มุมนิ้วโป้ง รูปเส้นหลักที่ใช้อ่าน และความเรียบของผิวในภาพ)",
+  en: "(estimated from finger and palm proportions, thumb angle, the shape of the main lines used in the reading and skin smoothness in the photo)",
+  zh: "（根据照片中手指和手掌的比例、拇指角度、用于解读的主线形状以及皮肤平滑度估算）"
+};
+const NOTE = {
+  th: "เส้นที่แสดงเป็นการประมาณจากภาพโดยอัตโนมัติ และยังไม่ได้วัดความแม่นยำกับมือจริง โปรดเทียบกับมือของคุณ และลากจุดกลมเพื่อปรับเส้นให้ตรงกับรอยจริงได้",
+  en: "The lines shown are estimated automatically from the photo, and their accuracy has not been measured on real hands. Please compare them with your own hand; you can drag the round dots to move a line onto the real crease.",
+  zh: "图中显示的掌纹是根据照片自动估算的，尚未在真实手掌上测量准确度。请与自己的手对照，可以拖动圆点把线移到真实的纹路上。"
+};
+/** a confidence badge: clear / faint / unclear in brackets (any language), a digit or a percent sign */
+const BADGE = /[(（]\s*(ชัด|พอเห็น|ไม่ชัด|clear|faint|unclear|清楚|清晰|隐约可见|不清楚)\s*[)）]|\d|%/i;
 const OLD_MEST = { th: "(ประเมินจากภาพ)", en: "(estimated from the photo)", zh: "（根据照片估算）" };
 const COLORS = { life: "#f97316", head: "#22d3ee", heart: "#f472b6", fate: "#a78bfa" };
 
@@ -121,12 +139,71 @@ export default async function ({ base, launch, check }) {
           const mest = await page.evaluate(() => (document.querySelector('[data-i18n="palm.mestSmall"]') || {}).textContent || "");
           assert(mest.trim(), `${lang}: mounts label missing`);
           assert(mest.trim() !== OLD_MEST[lang], `${lang}: old mounts label still shown "${mest}"`);
+          assert(mest === MEST[lang], `${lang}: mounts label is not the approved text: "${mest}"`);
           await privacy(page);
           const errs = realErrors(page);
           assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
         } finally { await page.close(); }
       });
     }
+
+    for (const lang of ["th", "en", "zh"]) {
+      await check(`palm honesty ${lang}: no confidence badge or number next to a line (buttons, result cards, share card); approved line note in edit and result areas`, async () => {
+        const page = await open(browser, base, lang);
+        try {
+          await upload(page, ["life", "head", "heart"]);
+          const names = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll("#plLineChips [data-line]")].map(b => [b.dataset.line, b.textContent])));
+          for (const id of IDS) {
+            const t = names[id].trim(), nm = NAMES[lang][id][0];
+            assert(t.toLowerCase().startsWith(nm.toLowerCase()), `${lang} button ${id}: "${t}"`);
+            const rest = t.slice(nm.length).trim();
+            assert(rest === "" || rest === `(${UNCLEAR[lang]})`, `${lang} button ${id} carries a badge: "${t}"`);
+            assert(!BADGE.test(t), `${lang} button ${id}: "${t}"`);
+            if (id !== "fate") assert(rest === "", `${lang}: found line ${id} must show no badge: "${t}"`);
+          }
+          assert(names.fate.includes(UNCLEAR[lang]), `${lang}: fate not-clear state must stay: ` + names.fate);
+          const n1 = await page.evaluate(() => [...document.querySelectorAll('#plEdit [data-i18n="palm.linesNote"]')].filter(e => e.offsetWidth > 0).map(e => e.textContent));
+          assert(n1.length === 1 && n1[0] === NOTE[lang], `${lang}: edit-area note ` + JSON.stringify(n1));
+          await read(page);
+          const n2 = await page.evaluate(() => [...document.querySelectorAll('#plResult [data-i18n="palm.linesNote"]')].filter(e => e.offsetWidth > 0).map(e => e.textContent));
+          assert(n2.length === 1 && n2[0] === NOTE[lang], `${lang}: result-area note ` + JSON.stringify(n2));
+          const cards = await page.evaluate(() => [...document.querySelectorAll("#plLines .line-card")].map(e => ({ id: e.dataset.line, t: e.textContent, small: e.querySelectorAll("small, .badge, .conf").length })));
+          assert(cards.length === 4, `${lang} cards ` + cards.length);
+          for (const c of cards) assert(!BADGE.test(c.t) && !c.small, `${lang} result card ${c.id} carries a badge or number: ${c.t.slice(0, 160)}`);
+          // share card: record every text drawn; a text that names a line has no badge or number
+          await page.evaluate(() => { window.__cardTexts = []; const f = CanvasRenderingContext2D.prototype.fillText; CanvasRenderingContext2D.prototype.fillText = function (t, ...a) { window.__cardTexts.push(String(t)); return f.call(this, t, ...a); }; });
+          await page.evaluate(() => window.__palm.makeCard());
+          await sleep(300);
+          const drawn = await page.evaluate(() => window.__cardTexts);
+          const lineTexts = drawn.filter(t => Object.values(NAMES[lang]).some(a => a.some(nm => t.toLowerCase().includes(nm.toLowerCase()))));
+          assert(lineTexts.length >= 1, `${lang}: share card names no found line (${drawn.length} texts)`);
+          for (const t of lineTexts) assert(!BADGE.test(t), `${lang} share card line text carries a badge or number: "${t}"`);
+          const errs = realErrors(page);
+          assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
+        } finally { await page.close(); }
+      });
+    }
+
+    await check("palm honesty th: two-hand comparison table shows no confidence badge or number on line rows; not-clear state stays", async () => {
+      const page = await open(browser, base, "th");
+      try {
+        await page.evaluate(() => document.querySelector('[data-side="both"]').click());
+        await upload(page, ["life", "head", "heart"]);
+        await read(page);
+        await page.evaluate(() => document.getElementById("plNextHand").click());
+        await page.evaluate(d => { window.__dets = d; }, [Object.assign({}, HAND_R)]);
+        await upload(page, ["life", "head"]);
+        await read(page);
+        await page.waitFor(`!document.getElementById("plCompare").hidden && document.querySelectorAll("#plCmpRows tr").length > 0`, 10000);
+        const rows = await page.evaluate(() => [...document.querySelectorAll("#plCmpRows tr")].map(r => ({ cells: [...r.cells].map(c => c.textContent), cls: r.className })));
+        const names = ["เส้นชีวิต", "เส้นสมอง", "เส้นหัวใจ", "เส้นวาสนา"];
+        const lr = rows.filter(r => names.includes(r.cells[0]));
+        assert(lr.length >= 3, "line rows " + JSON.stringify(rows));
+        for (const r of lr) assert(!BADGE.test(r.cells.join(" ")), "comparison line row carries a badge or number: " + r.cells.join(" | "));
+        assert(lr.some(r => r.cells[0] === "เส้นวาสนา" && r.cells.slice(1).every(c => c === UNCLEAR.th)), "fate not-clear state in the table: " + JSON.stringify(lr));
+        assert(lr.some(r => r.cells[0] === "เส้นหัวใจ" && r.cells[2] === UNCLEAR.th && r.cells[1] !== UNCLEAR.th), "heart: found on hand 1, not clear on hand 2: " + JSON.stringify(lr));
+      } finally { await page.close(); }
+    });
 
     await check("palm honesty control (th): creases on life/head/heart -> detected, drawn, read; fate without crease -> not clear, not drawn, not read as absent", async () => {
       const page = await open(browser, base, "th");

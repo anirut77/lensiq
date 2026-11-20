@@ -8,7 +8,8 @@
 //       for FortuneAI and the locally composed narrative), in TH; EN / ZH strings are checked in the e2e
 //   H3  a fate line that is not found is never read as "absent / no fate line"
 //   H4  the "not clear" label is exactly ไม่ชัดในภาพนี้ / Not clear in this photo / 此照片中不清楚
-//   H5  placeholder until the owner approves the wording: the old misleading mounts label is gone in TH / EN / ZH
+//   H5  the mounts label is the owner-approved text (decision 164; placeholder until re-lock 2)
+//   H6-H8 see re-lock 2 below
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -145,14 +146,52 @@ test("H4: the 'not clear' label is exact in TH / EN / ZH", () => {
   assert.equal(ZH["palm.line.unclear"], UNCLEAR.zh);
 });
 
-test("H5 (placeholder until the owner approves the wording): the old misleading mounts label is gone in TH / EN / ZH", () => {
+// re-lock 2 (owner decisions 164 / 165 ก / 167, 2026-11-20): H5 now asserts the owner-approved text exactly (stricter than
+// the placeholder); H6 the approved line note; H7 no confidence badge renderer; H8 the mount evidence wording (no "%")
+const MEST = {
+  th: "(ประเมินจากสัดส่วนนิ้วและฝ่ามือ มุมนิ้วโป้ง รูปเส้นหลักที่ใช้อ่าน และความเรียบของผิวในภาพ)",
+  en: "(estimated from finger and palm proportions, thumb angle, the shape of the main lines used in the reading and skin smoothness in the photo)",
+  zh: "（根据照片中手指和手掌的比例、拇指角度、用于解读的主线形状以及皮肤平滑度估算）"
+};
+const NOTE = {
+  th: "เส้นที่แสดงเป็นการประมาณจากภาพโดยอัตโนมัติ และยังไม่ได้วัดความแม่นยำกับมือจริง โปรดเทียบกับมือของคุณ และลากจุดกลมเพื่อปรับเส้นให้ตรงกับรอยจริงได้",
+  en: "The lines shown are estimated automatically from the photo, and their accuracy has not been measured on real hands. Please compare them with your own hand; you can drag the round dots to move a line onto the real crease.",
+  zh: "图中显示的掌纹是根据照片自动估算的，尚未在真实手掌上测量准确度。请与自己的手对照，可以拖动圆点把线移到真实的纹路上。"
+};
+const MOUNT_EV = "ประเมินจากสัดส่วนนิ้วและฝ่ามือ มุมนิ้วโป้ง รูปเส้นหลักที่ใช้อ่าน และความเรียบของผิวในภาพ";
+
+test("H5 (owner decision 164): the mounts label is exactly the approved text in TH / EN / ZH", () => {
   const html = fs.readFileSync(path.join(ROOT, "palm.html"), "utf8");
   const m = html.match(/data-i18n="palm\.mestSmall">([^<]*)</);
-  assert.ok(m && m[1].trim(), "mounts label missing in palm.html");
-  assert.notEqual(m[1].trim(), "(ประเมินจากภาพ)", "old TH label");
-  assert.ok(/นิ้ว/.test(m[1]) && /ผิว/.test(m[1]), "TH label must say finger proportions and skin: " + m[1]);
-  assert.ok(EN["palm.mestSmall"] && EN["palm.mestSmall"].trim() !== "(estimated from the photo)", "old EN label");
-  assert.ok(/finger/i.test(EN["palm.mestSmall"]) && /skin/i.test(EN["palm.mestSmall"]), "EN label: " + EN["palm.mestSmall"]);
-  assert.ok(ZH["palm.mestSmall"] && ZH["palm.mestSmall"].trim() !== "（根据照片估算）", "old ZH label");
-  assert.ok(/手指/.test(ZH["palm.mestSmall"]) && /皮肤/.test(ZH["palm.mestSmall"]), "ZH label: " + ZH["palm.mestSmall"]);
+  assert.ok(m, "mounts label missing in palm.html");
+  assert.equal(m[1], MEST.th);
+  assert.equal(EN["palm.mestSmall"], MEST.en);
+  assert.equal(ZH["palm.mestSmall"], MEST.zh);
+});
+
+test("H6 (owner decision 165 ก): the line note is exactly the approved text in TH / EN / ZH, in the edit and result areas", () => {
+  const html = fs.readFileSync(path.join(ROOT, "palm.html"), "utf8");
+  const th = [...html.matchAll(/data-i18n="palm\.linesNote">([^<]*)</g)].map(x => x[1]);
+  assert.equal(th.length, 2, "the note must appear twice (edit area and result area): " + th.length);
+  for (const t of th) assert.equal(t, NOTE.th);
+  assert.equal(EN["palm.linesNote"], NOTE.en);
+  assert.equal(ZH["palm.linesNote"], NOTE.zh);
+});
+
+test("H7 (owner decision 165 ก condition): palm.js renders no clear / faint / unclear confidence badge for a line", () => {
+  const src = fs.readFileSync(path.join(ROOT, "palm.js"), "utf8");
+  assert.ok(!/T\("palm\.conf\.(hi|mid|lo)"/.test(src), "a palm.conf.* badge is still rendered");
+});
+
+test("H8 (owner decision 167): mount evidence uses the approved wording and no '%' or level number", () => {
+  assert.ok(KB.evidence.mountEst.startsWith(MOUNT_EV), KB.evidence.mountEst);
+  assert.ok(!/%|\{level\}/.test(KB.evidence.mountEst), KB.evidence.mountEst);
+  for (const [side, rot, sc] of HANDS) {
+    const h = hand(side, rot, sc), d = detect(h, MAJOR);
+    const R = PC.analyze({ hand: h, lines: d.lines, R: d.R, F: d.F, seed: 2 });
+    const f = PC.buildFacts(R, {});
+    const ms = f.items.filter(i => /^mount\./.test(i.id));
+    assert.ok(ms.length >= 1, "no mount item");
+    for (const it of ms) { assert.ok(it.evidence.includes(MOUNT_EV), it.evidence); assert.ok(!/%|\d/.test(it.evidence), "number in mount evidence: " + it.evidence); }
+  }
 });
