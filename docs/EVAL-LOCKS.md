@@ -292,3 +292,6 @@ late entry 2026-11-19 (owner): during re-lock (13) of tests/e2e/fortune-paid-sou
 - New `tests/e2e/palm-v3-edit.e2e.mjs`: every v3-drawn line can be adjusted and removed; the approved 165 ก note (exact text)
   stays visible. `tests/e2e/palm-v3.e2e.mjs` is opened in the demo profile (no assertion changed).
 - All four files locked before the product change.
+- relock5 (same day): `palm-v3-switch.test.js` C5's tool rule flagged four existing build tools that never touch the v3 flags;
+  replaced by a stricter check that the real customer bundle (`tools/build-site.mjs --customer`) keeps v3 off. Run once before
+  this lock. Nothing loosened.

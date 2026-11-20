@@ -1,5 +1,7 @@
 "use strict";
-// tests/unit/palm-v3-switch.test.js — FIXED TEST SET "palm-v3-lines" relock4 (owner decision 185 ข, condition 2, 2026-11-20).
+// tests/unit/palm-v3-switch.test.js — FIXED TEST SET "palm-v3-lines" relock5 (owner decision 185 ข, condition 2, 2026-11-20). relock5: the
+// relock4 C5 tool rule ("a tool that names lensiq-config.js and writes files") flagged four existing build tools that never touch
+// the v3 flags; it is replaced by a stricter check of the real customer bundle (tools/build-site.mjs --customer). Nothing loosened.
 // The v3 line finder stays OFF in every customer / commercial build until it is measured on real pilot hands, on the locked split,
 // with at most 5 % false lines per line (D-P8), and no synthetic result can switch it on.
 // C1  shipped default: LENSIQ_PALM_V3_LINES is false.
@@ -8,8 +10,8 @@
 // C3  only the demo / development profile honours LENSIQ_PALM_V3_LINES = true.
 // C4  the field gate LENSIQ_PALM_V3_FIELD_OK is false in the repo and cannot be pre-set from outside (lensiq-config.js always
 //     writes false): flipping it needs a source change, i.e. a new owner decision after the D-P8 field measurement.
-// C5  no other file writes LENSIQ_PALM_V3_LINES or LENSIQ_PALM_V3_FIELD_OK (no test, tool or finder result can turn v3 on), and no
-//     tool rewrites lensiq-config.js.
+// C5  no other file writes LENSIQ_PALM_V3_LINES or LENSIQ_PALM_V3_FIELD_OK (no test, tool or finder result can turn v3 on), and the
+//     customer bundle that tools/build-site.mjs --customer writes keeps v3 off even when the page pre-sets v3 and the demo profile.
 // C6  the withdrawn shadow-band retake message (owner decision 185 item 4) is shipped nowhere (TH / EN / ZH drafts).
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -57,16 +59,22 @@ function sources() {
   return out;
 }
 
-test("C5 nothing but lensiq-config.js writes the v3 switch or the field gate; no tool rewrites lensiq-config.js", () => {
+test("C5 nothing but lensiq-config.js writes the v3 switch or the field gate; the customer bundle keeps v3 off", async () => {
   const bad = [];
   for (const f of sources()) {
     const rel = path.relative(ROOT, f), t = fs.readFileSync(f, "utf8");
     if (rel === "lensiq-config.js") continue;
     if (/LENSIQ_PALM_V3_(LINES|FIELD_OK)\s*=(?!=)/.test(t)) bad.push(`${rel} assigns the v3 switch / field gate`);
     if (/LENSIQ_PALM_V3_FIELD_OK/.test(t)) bad.push(`${rel} reads the field gate`);
-    if (/^tools\//.test(rel) && /lensiq-config\.js/.test(t) && /writeFileSync|appendFileSync/.test(t)) bad.push(`${rel} may rewrite lensiq-config.js`);
   }
   assert.deepEqual(bad, []);
+  const B = await import(require("node:url").pathToFileURL(path.join(ROOT, "tools", "build-site.mjs")).href);
+  const bundle = B.lockCustomerConfig(SRC);
+  for (const pre of [{}, { LENSIQ_PALM_V3_LINES: true }, { LENSIQ_PALM_V3_LINES: true, LENSIQ_PROFILE: "demo" }, { LENSIQ_PALM_V3_LINES: true, LENSIQ_PALM_V3_FIELD_OK: true }]) {
+    const w = Object.assign({}, pre); w.window = w;
+    vm.runInNewContext(bundle, { window: w, document: undefined, location: { pathname: "/palm.html", search: "" }, navigator: { userAgent: "node" } });
+    assert.equal(w.LENSIQ_PALM_V3_LINES, false, "customer bundle " + JSON.stringify(pre));
+  }
 });
 
 test("C6 the withdrawn shadow-band retake message is shipped nowhere", () => {
