@@ -1,0 +1,4 @@
+# locked 2026-11-20T17:01:02Z (tools/eval-guard.mjs lock, 1 file)
+5c75ffb6b26a25c516244c226e2338c1aca0b11215dc29eb710945ca26e6d3dc  tools/examlab-phone-eval.mjs
+5c75ffb6b26a25c516244c226e2338c1aca0b11215dc29eb710945ca26e6d3dc  tools/examlab-phone-eval.mjs  # repo file (same commit as lock 2026-11-20T17:01:02Z; field: ~/LENSIQ-field/evals/examlab-phone/harness1/tools/examlab-phone-eval.mjs)
+# A2 harness tools/examlab-phone-eval.mjs locked as it stands at 4b424a68 (reviewer finding, LOW: it was not hash-locked anywhere). It includes the 2026-11-20 S2 line (load TF.js via window.__LQ_EXAM_LAB.loadTf before tfBackend); the A2 result 24 / 81 was measured with the version before that line (main 299370b8) and re-measured with this version: identical. Data stays locked in evals-locks/examlab-phone.sha256.

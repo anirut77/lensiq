@@ -55,7 +55,43 @@ target >= 80 %. Secondary rows only, never used for the decision: recall on all 
 close-up band and the two smaller bands, false flags on the 135 negatives, score cuts 0.4 and 0.5. Every number from
 this set is stated as **public stills, not lab webcam; field pilot confirms**. `--from` refuses a saved run unless its
 `manifestSha256` equals the locked manifest hash and its frame ids match the manifest ids one for one. Not measured
-yet: the Exam lab team measures after merge.
+yet: the Exam lab team measures after merge. **Measured 2026-11-20, see Result below.**
+
+## Result (first measurement, 2026-11-20, branch examlab-s2 on main 299370b8)
+
+Run: `node tools/examlab-phone-eval.mjs --run` (eval-guard OK, phase examlab-phone, lock commit 6583d967), headless Chrome,
+TF.js wasm backend, Apple M1 (re-run on the branch after the S2 change, TF.js loaded on demand: identical, 24 / 81;
+`results/examlab-phone-2026-11-20-after-s2.json`). Result file (image ids and scores only, no images):
+`~/LENSIQ-field/evals/examlab-phone/results/examlab-phone-2026-11-20.json`. Source: **public dataset**; public stills, not
+lab webcam; the field pilot confirms.
+
+**A2: fail. Recall at desk-like sizes (phoneLong < 0.4) = 29.6 % (24 / 81), Wilson 95 % 20.8 % – 40.3 %, target >= 80 %.**
+The model finds close-up phones (90.8 %, 129 / 142) but misses most phones that are small in the frame (0 / 11 below 0.15;
+24 / 70 between 0.15 and 0.4). No false flags on the 135 negatives at any cut. Lowering the cut to 0.4 would give 48.1 %
+(39 / 81), still far under the target, and is not changed (no threshold is tuned on this locked set).
+
+What this means for the product: the "phone in view" signal is an aid that catches a phone held close to the webcam; it
+should not be described as catching a phone held low at the desk. No page states a phone rate today
+(`docs/ACCURACY-CLAIMS.md`, "phone / book detection on exam footage: not measured"), so no wording changes here.
+
+### Table (public dataset: Open Images V7, CC BY 2.0 images; public stills, not lab webcam; field pilot confirms)
+
+| Row | Use | Score cut | Rate | 95 % CI |
+|---|---|---|---|---|
+| recall, positives with phoneLong < 0.4 (A2 decision) | **primary** | 0.6 | 29.6 % (24 / 81) | 20.8 % – 40.3 % |
+| recall, all positives | secondary | 0.6 | 68.6 % (153 / 223) | 62.2 % – 74.3 % |
+| recall, close-up band phoneLong >= 0.4 | secondary | 0.6 | 90.8 % (129 / 142) | 85.0 % – 94.6 % |
+| recall, band phoneLong < 0.15 | secondary | 0.6 | 0.0 % (0 / 11) | 0.0 % – 25.9 % |
+| recall, band 0.15 <= phoneLong < 0.4 | secondary | 0.6 | 34.3 % (24 / 70) | 24.2 % – 46.0 % |
+| recall, positives with phoneLong < 0.4, score cut 0.4 | secondary | 0.4 | 48.1 % (39 / 81) | 37.6 % – 58.9 % |
+| recall, positives with phoneLong < 0.4, score cut 0.5 | secondary | 0.5 | 37.0 % (30 / 81) | 27.3 % – 47.9 % |
+| false flags, negatives | secondary | 0.6 | 0.0 % (0 / 135) | 0.0 % – 2.8 % |
+| false flags, negatives, score cut 0.4 | secondary | 0.4 | 0.0 % (0 / 135) | 0.0 % – 2.8 % |
+| false flags, negatives, score cut 0.5 | secondary | 0.5 | 0.0 % (0 / 135) | 0.0 % – 2.8 % |
+
+A2 (recall >= 80.0 % on >= 50 phone-in-hand frames with phoneLong < 0.4): **fail** · source: public dataset · public stills, not lab webcam; field pilot confirms
+
+Machine: {"tf":"wasm","cpu":"Apple M1","cores":8,"ramGB":8,"os":"darwin 25.5.0"}
 
 ## Licence and credits
 
