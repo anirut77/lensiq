@@ -215,7 +215,8 @@ test("owner rule 2026-11-20: never a single day: a one-day period gets no 'this 
   for (const r of FIX.readings.filter(x => x.period)) for (const lang of LANGS) {
     const per = Object.assign({}, FIX.periods[r.period], { span: "day" });
     const m = core.build({ domain: r.domain, facts: { items: r.items }, period: per, lang }, ON);
-    assert.ok(m && !m.parts.some(p => p.part === "period"), r.name + " " + lang + ": period part under a one-day span");
+    // RELOCK 6: a page with no overall rule (astro) then has nothing to show at all (no section), which also has no period part
+    assert.ok(!m || !m.parts.some(p => p.part === "period"), r.name + " " + lang + ": period part under a one-day span");
   }
 });
 

@@ -97,3 +97,9 @@ e0dfa894a51a75d7d6844ba59c0cc86a4f734565660b60a38b274dafd607c0df  tests/unit/fix
 23cb0cacb738503d5fc9bc7e37a8bf0d2d080848c7e522c9f6e2d12e0d78a596  relock5/fortune-caution-rules.test.js
 635551341359ee4a61ffb4cee7c8a04db43fee6f71ba1102a844c8c125f27a40  tests/unit/fixtures/fortune-caution-profiles.json  # repo file (same commit as lock 2026-11-20T07:56:49Z; field: ~/LENSIQ-field/evals/fortune-caution/relock5/fortune-caution-profiles.json)
 23cb0cacb738503d5fc9bc7e37a8bf0d2d080848c7e522c9f6e2d12e0d78a596  tests/unit/fortune-caution-rules.test.js  # repo file (same commit as lock 2026-11-20T07:56:49Z; field: ~/LENSIQ-field/evals/fortune-caution/relock5/fortune-caution-rules.test.js)
+# RELOCK 6 2026-11-20 (wave 1b): tests/unit/fortune-caution-rules.test.js "never a single day" check: an astro reading under a one-day span gives no section at
+# all (null: no overall rule, and no period part under a day), which the check required to be a model; now "no section, or a section without a period part".
+# Measured before this relock on relock 5: 40/41 (relock5/run-1-after-wiring-unit.log). Nothing else changed.
+# locked 2026-11-20T07:57:04Z (tools/eval-guard.mjs lock, 1 file)
+21fcf50492518d0dbb1efda24958ad0d8713db26134dfc0bded42b79320705aa  relock6/fortune-caution-rules.test.js
+21fcf50492518d0dbb1efda24958ad0d8713db26134dfc0bded42b79320705aa  tests/unit/fortune-caution-rules.test.js  # repo file (same commit as lock 2026-11-20T07:57:04Z; field: ~/LENSIQ-field/evals/fortune-caution/relock6/fortune-caution-rules.test.js)
