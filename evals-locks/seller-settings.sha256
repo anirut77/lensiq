@@ -53,3 +53,10 @@ f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7  tests/unit/bac
 # locked 2026-11-20T01:02:04Z (tools/eval-guard.mjs lock, 1 file)
 87b444f47bd8c656a782d5c241aeec0f163e4b7628055ee1e0ec7228420639c1  relock1/backend-seller.test.js
 87b444f47bd8c656a782d5c241aeec0f163e4b7628055ee1e0ec7228420639c1  tests/unit/backend-seller.test.js  # repo file (same commit as lock 2026-11-20T01:02:04Z; field: ~/LENSIQ-field/evals/seller-settings/relock1/backend-seller.test.js)
+# locked 2026-11-20T01:14:21Z (tools/eval-guard.mjs lock, 1 file)
+c3830fe3ace7c979d41fbc5f985d6aa802854db24b3024879bec61cd8400017e  seller-doc-layout.e2e.mjs
+c3830fe3ace7c979d41fbc5f985d6aa802854db24b3024879bec61cd8400017e  tests/e2e/seller-doc-layout.e2e.mjs  # repo file (same commit as lock 2026-11-20T01:14:21Z; field: ~/LENSIQ-field/evals/seller-settings/seller-doc-layout.e2e.mjs)
+# Layout (independent review at f06271c6, 2026-11-20): NEW file locked BEFORE the fix; earlier files unchanged. The printed
+# quotation / invoice / receipt (real renderDoc, synthetic data, long TH/EN/ZH description) carry every quantity, unit
+# price, amount, subtotal, VAT and total in the A4 PDF text, and no th / td ends past the A4 printable width.
+# Log before the fix: ~/LENSIQ-field/evals/seller-settings/layout-before-fix.log
