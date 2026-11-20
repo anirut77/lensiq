@@ -38,6 +38,10 @@ owner decision D-P3 pending) or **public dataset** (none usable: every public pa
 | R2-a | Uploading another person's hand is gated by the same consent line, cleared after a photo is used | `palm-v2-r2.e2e.mjs` a | code |
 | R2-c | Switch off: no palm v2 code or style is downloaded | `palm-v2-r2.e2e.mjs` c | code |
 | R2-d | Line finding never stalls the main thread > 500 ms; detection time reported | `palm-v2-r2.e2e.mjs` d | measured (Chrome, desktop) |
+| R4-Q | Upload minimum (owner order 2026-11-20, PROVISIONAL first values, to calibrate on the pilot): palm width (index-to-little-finger knuckle) >= 360 px, sharpness S x 10^4 >= 1.0 (B2.3 measure), blown-out palm pixels <= 2 %; below any limit the EXACT approved message (TH / EN / ZH), no line finding, every line "not found", tracing by hand still works; above all limits the finder runs | `palm-v2-capture2.test.js` (verdict, synthetic photos), `palm-v2-capture.e2e.mjs` U (relock4) | **synthetic only** |
+| R4-F | No flash: a photo (upload or camera still) with > 2 % blown-out palm pixels is rejected; the camera never turns the torch on and takePhoto asks for fillLightMode "off" where supported | `palm-v2-capture2.test.js`, `palm-v2-capture.e2e.mjs` F | **synthetic only** |
+| R4-H | Handedness from the thumb position relative to the palm (landmark geometry), front camera = mirrored image unless told otherwise; the model's left / right label never decides; a disagreement with the user's choice asks the user (TH / EN / ZH) and never overrides silently | `palm-v2-capture2.test.js`, `palm-v2-capture.e2e.mjs` H | **synthetic only** (6 / 6 owner rear-camera photos had the model label reversed: trial 2, owner's eyes only, not a number) |
+| R4-T | Guidance: pre-capture tips and live hints say bright, even daylight, light from the side, no flash, relaxed and slightly cupped hand (not stretched flat), TH / EN / ZH | `palm-v2-capture2.test.js`, `palm-v2-capture.e2e.mjs` T | code |
 | LIC | Only tier-1 code and data ship: our own code; landmarks from the 7-tap mode (the MediaPipe hand model M6 / M7 is tier 2-U and is not used by v2) | review | `LICENSES/TIERS.md` |
 
 ## Field rows (targets from design B6.1; NOT MEASURED; need consented photos, owner decision D-P3)
@@ -71,5 +75,10 @@ lang, scale})` (target screen / print / share) · `serialize` / `deserialize` / 
 `CAPTURE_T` (`PROVISIONAL: true`) · `captureHint({metrics, hand})` · `hintText(id, lang, other)` · `handFromSkin(rgba, w, h)` ·
 `createAutoShutter({countMs})` · `stillPlan(...)` · `grabStill({track, video, ImageCapture, createCanvas, decode})` ·
 `cameraGate({mode, consent})` · `consentAfterCapture(...)` · `detect(rgba, w, h, hand, {school})` -> `{lines:{id:{cp, conf}}, ms}`.
+relock4 (2026-11-20): `UPLOAD_MIN` (`PROVISIONAL: true`) · `photoQuality(rgba, w, h, hand)` -> `{pw, sharp, clip, mean}` ·
+`qualityVerdict(q, {source: "upload" | "camera"})` -> `{ok, fails}` · `handSide({hand, facing, mirrored, handedness})` -> `{side}` ·
+`sideCheck(chosen, geo)` -> `{side, ask, detected}` · `sideAskText(detected, chosen, lang)` · `CAM_OPTS` · `photoSettings(caps)`. The upload minimum applies to
+photos chosen with the upload control (`#pv2File`); a camera still, and an image given to the page hook `useImage(url)`, gets the
+no-flash (blow-out) check only, because the live hints already gate size and sharpness before the shutter.
 Page hook (palm.html, switch on): `window.__palmV2` = `{ready, busy, state(), useImage(url), imgToClient(p), uvToClient(uv),
-layout(target), redraw(), setLine(id, o), lastStill}`; canvases carry `data-pv2-target` = screen / print / share.
+layout(target), redraw(), setLine(id, o), lastStill, quality (relock4)}`; canvases carry `data-pv2-target` = screen / print / share.
