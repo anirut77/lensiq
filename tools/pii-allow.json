@@ -492,6 +492,22 @@
    "reason": "invented seller / buyer fixture addresses named Test / Buyer road (TH: ถนนทดสอบ, แขวงทดสอบ, เขตทดสอบ = \"test road / test district\") with the generic postcode 10000 or 10100; no real person or premises"
   },
   {
+   "path": "tests/integration/backend-seller-workerd-r1.test.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "history only: invented marker phone numbers (10 digits, Thai mobile shape) in branch seller-settings commits 88f09055 / d07e0562, already pushed; replaced on 2026-11-20 by 00-prefixed markers that are not a Thai number (re-lock relock2). The current file has 0 phone hits; the cap is the minimum the format allows (1). Needed because CI --range scans the branch history and force-push is not allowed"
+  },
+  {
+   "path": "tests/integration/backend-seller-workerd.test.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "history only: invented marker phone numbers (10 digits, Thai mobile shape) in branch seller-settings commits 88f09055 / d07e0562, already pushed; replaced on 2026-11-20 by 00-prefixed markers that are not a Thai number (re-lock relock2). The current file has 0 phone hits; the cap is the minimum the format allows (1). Needed because CI --range scans the branch history and force-push is not allowed"
+  },
+  {
    "path": "tests/integration/backend-workerd.test.mjs",
    "types": {
     "postcode-city": 1
@@ -618,10 +634,11 @@
    "path": "tests/unit/backend-seller.test.js",
    "types": {
     "street-address": 1,
-    "postcode-city": 1
+    "postcode-city": 1,
+    "phone": 1
    },
    "kind": "synthetic",
-   "reason": "invented seller / buyer fixture addresses named Test / Buyer road (TH: ถนนทดสอบ, แขวงทดสอบ, เขตทดสอบ = \"test road / test district\") with the generic postcode 10000 or 10100; no real person or premises"
+   "reason": "invented seller / buyer fixture addresses named Test / Buyer road (TH: ถนนทดสอบ, แขวงทดสอบ, เขตทดสอบ = \"test road / test district\") with the generic postcode 10000 or 10100; no real person or premises; phone: history only: invented marker phone numbers (10 digits, Thai mobile shape) in branch seller-settings commits 88f09055 / d07e0562, already pushed; replaced on 2026-11-20 by 00-prefixed markers that are not a Thai number (re-lock relock2). The current file has 0 phone hits; the cap is the minimum the format allows (1). Needed because CI --range scans the branch history and force-push is not allowed"
   },
   {
    "path": "tests/unit/backend-site.test.js",
