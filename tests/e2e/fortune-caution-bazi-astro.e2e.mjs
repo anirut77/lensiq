@@ -1,4 +1,7 @@
 // tests/e2e/fortune-caution-bazi-astro.e2e.mjs — FIXED TEST SET fortune-caution wave 1b: bazi.html and astro.html (owner approved wave
+// RELOCK 11 2026-11-21 (owner 189 ข), STRICTER: restores whole-page console errors. Every console error on the page fails
+// (pg.consoleErrors, unfiltered); the relock-3 subset (script exceptions and errors naming a fortune-caution file) is gone.
+// api-status-guard (decision 190 / 192) keeps the page from requesting /api/fortune/status without an API base.
 // 1 = three pilot pages, switch off; both behind LENSIQ_FORTUNE_CAUTIONS_CN_WEST, off, D-6; never a single day). Locked BEFORE either
 // page is wired (evals-locks/fortune-caution.sha256, wave1b/). SYNTHETIC births only. Bazi: 12 May 2533, section after the reading
 // (#lcReadWrap) in host #lcCaution. Astro: a birth about 29.5 years before today (inside the Saturn-return window) and one about
@@ -53,7 +56,6 @@ const STATE = p => `(() => {
     small: sec ? [...sec.querySelectorAll("button")].filter(b => b.getBoundingClientRect().height < 44).map(b => b.className) : [] };
 })()`;
 const click = (pg, sel) => pg.evaluate(`(() => { const e = document.querySelector(${S(sel)}); if (!e) return false; e.click(); return true; })()`);
-const ownErrors = pg => pg.consoleErrors.filter(e => e.kind === "exception" || /fortune-caution/.test(String(e.url || "") + " " + String(e.text || "")));
 
 async function reading(browser, base, p, birth, { lang = "th", init = [] } = {}) {
   const pg = await browser.newPage(null, { initScripts: [LANG(lang)].concat(init), isolated: true });
@@ -82,7 +84,7 @@ export default async function ({ base, launch, check }) {
             await pg.waitFor(ready(p), 15000); await sleep(600);
             assert(!(await pg.evaluate(STATE(p))).sec, p + ": section " + S(init));
             assert(!pg.requests.some(q => DATA.test(q.url)), p + ": rule data fetched " + S(init));
-            assert(!ownErrors(pg).length, p + ": console errors " + S(ownErrors(pg)).slice(0, 300));
+            assert(!pg.consoleErrors.length, p + ": console errors " + S(pg.consoleErrors).slice(0, 300));
           } finally { await pg.close(); }
         }
       });
@@ -122,7 +124,7 @@ export default async function ({ base, launch, check }) {
             await pg.waitFor("!!document.querySelector('.lq-caution-sec')", 8000);
             s = await pg.evaluate(STATE(p));
             assert(s.n === 1 && s.open && !s.body, lang + ": closed again on a new reading");
-            assert(!ownErrors(pg).length, lang + ": console errors " + S(ownErrors(pg)).slice(0, 300));
+            assert(!pg.consoleErrors.length, lang + ": console errors " + S(pg.consoleErrors).slice(0, 300));
           } finally { await pg.close(); }
         });
       }

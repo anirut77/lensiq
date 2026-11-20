@@ -143,3 +143,14 @@ bd669581a848a435383bc2b924bda93e285aaa2eef0c48e77024bff18d693b92  tests/unit/for
 # locked 2026-11-20T09:47:01Z (tools/eval-guard.mjs lock, 1 file)
 f627ed7b2a957a4a83f853b189d35a132ce7965f45e2e4cc743162fcfd147890  relock10/fortune-caution-wording.js
 f627ed7b2a957a4a83f853b189d35a132ce7965f45e2e4cc743162fcfd147890  fortune-caution-wording.js  # repo file (same commit as lock 2026-11-20T09:47:01Z; field: ~/LENSIQ-field/evals/fortune-caution/relock10/fortune-caution-wording.js)
+# RELOCK 11 2026-11-21 (owner 189 ข), STRICTER: restores whole-page console errors. relock 3 / wave 1b counted only script exceptions and errors
+# naming a fortune-caution file (the page requested /api/fortune/status, 404 locally). api-status-guard (decision 190 / 192) is on main c346449f, so
+# the ownErrors filter is removed from fortune-caution.e2e.mjs, fortune-caution-horoscope.e2e.mjs and fortune-caution-bazi-astro.e2e.mjs: every
+# console error on the page fails. Nothing else changed. Field note: relock11/NOTE.txt.
+# locked 2026-11-20T18:06:34Z (tools/eval-guard.mjs lock, 3 files)
+d5b9b4bbf9f80a2532ec015bfdfd45878505763d34e59daf21b3031c8f7de748  relock11/fortune-caution.e2e.mjs
+b321e664913f4979ec72a35eb7c896e3857089a67ecbdcdd75b4969bbaeb1ad0  relock11/fortune-caution-horoscope.e2e.mjs
+3dc23aac68f232de94ddc474794d9c1c2ffcd928ae980ceb5ee2f2ef766a3971  relock11/fortune-caution-bazi-astro.e2e.mjs
+d5b9b4bbf9f80a2532ec015bfdfd45878505763d34e59daf21b3031c8f7de748  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:06:34Z; field: ~/LENSIQ-field/evals/fortune-caution/relock11/fortune-caution.e2e.mjs)
+b321e664913f4979ec72a35eb7c896e3857089a67ecbdcdd75b4969bbaeb1ad0  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:06:34Z; field: ~/LENSIQ-field/evals/fortune-caution/relock11/fortune-caution-horoscope.e2e.mjs)
+3dc23aac68f232de94ddc474794d9c1c2ffcd928ae980ceb5ee2f2ef766a3971  tests/e2e/fortune-caution-bazi-astro.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:06:34Z; field: ~/LENSIQ-field/evals/fortune-caution/relock11/fortune-caution-bazi-astro.e2e.mjs)
