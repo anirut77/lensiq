@@ -125,11 +125,20 @@ test("vendored Face Landmarker: landmarks only (no facial-movement score model),
   for (const doc of ["LICENSES/THIRD_PARTY.md", "LICENSES/THIRD-PARTY-NOTICES.txt", "about.html"]) assert.match(read(doc), /Face Landmarker/, doc);
 });
 
-test("Exam pages: the lab and hall pages load TF.js on its own and never vendor/face-api.js; the lab loads the face engine after LQExam", () => {
+test("Exam pages: the lab and hall pages load TF.js on its own (the lab on demand) and never vendor/face-api.js; the lab loads the face engine after LQExam", () => {
   for (const p of ["exam-lab.html", "exam-hall.html", "exam.html", "exam-dashboard.html"]) {
     const scripts = [...read(p).matchAll(/<script src="([^"]+)"/g)].map(m => m[1].replace(/\?.*$/, ""));
     assert.ok(!scripts.includes("vendor/face-api.js"), p + " loads face-api.js");
-    if (p === "exam-lab.html" || p === "exam-hall.html") {
+    // exam-lab.html (S2, branch examlab-s2): TF.js is no page script; exam-lab.js loads it on demand, TF.js before its wasm
+    // backend, never face-api.js; the same guard plus the preload order is in tests/unit/exam-s2-load.test.js
+    if (p === "exam-lab.html") {
+      assert.ok(!scripts.some(s => s.startsWith("vendor/tfjs/")), p + " TF.js is loaded on demand, not as a page script");
+      const lab = read("exam-lab.js");
+      const a = lab.indexOf('"vendor/tfjs/tf.es2017.min.js"'), b = lab.indexOf('"vendor/tfjs/tf-backend-wasm.es2017.min.js"');
+      assert.ok(a >= 0 && b > a, "exam-lab.js loads TF.js + wasm backend, in that order");
+      assert.ok(!/face-api/.test(lab), "exam-lab.js never names face-api.js");
+    }
+    if (p === "exam-hall.html") {
       const tf = scripts.indexOf("vendor/tfjs/tf.es2017.min.js");
       assert.ok(tf >= 0 && tf < scripts.indexOf("vendor/tfjs/tf-backend-wasm.es2017.min.js"), p + " TF.js + wasm backend");
       assert.ok(scripts.indexOf("vendor/tfjs/tf-backend-wasm.es2017.min.js") < scripts.indexOf("lensiq-detect.js"), p + " TF.js before lensiq-detect.js");
