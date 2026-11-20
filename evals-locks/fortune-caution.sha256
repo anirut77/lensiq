@@ -17,3 +17,14 @@ aab6446694ec17d66b7a1db7530de106ec53a634183a5601300e5f5ea32e2951  tests/e2e/fort
 # locked 2026-11-20T05:43:45Z (tools/eval-guard.mjs lock, 1 file)
 4d4548ea050cb95ac60b82f8e1ab9f9f409d3766d498a0df6bc0b41b4fc491de  relock1/fortune-caution.e2e.mjs
 4d4548ea050cb95ac60b82f8e1ab9f9f409d3766d498a0df6bc0b41b4fc491de  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T05:43:45Z; field: ~/LENSIQ-field/evals/fortune-caution/relock1/fortune-caution.e2e.mjs)
+# WAVE 1 2026-11-20 (owner approved waves 0 and 1, switch off; coordinator order: horoscope pilot first, bazi and astro behind _CN_WEST), locked BEFORE any
+# page is wired, at 7c3d9fd1. Page list horoscope / bazi / astro (planner, petread, hub never); horoscope adapter HS.cautionItems + HS.CAUTION_PERIOD (span
+# day); T15 snapshot of the horoscope reading facts taken from the unwired horoscope.js (sha256 per case, 42 cases, SYNTHETIC births); pilot e2e on the real
+# page (Thai rules only with _CN_WEST off). Bazi / astro page tests are locked in a later block before those pages are wired.
+# locked 2026-11-20T05:58:13Z (tools/eval-guard.mjs lock, 3 files)
+6acaf1b84b47591fbef680e64ff22c283353d4733fe1660f7f2b5032ba75cbbd  wave1/fortune-caution-pages.test.js
+d70787afacad6f5af7a8bdef8a9cfb4157de310579bc838d6576602f26726720  wave1/fortune-caution-horoscope-snapshot.json
+192ab976855e439684c4fc9793e681762e2d7cae2a2806e35f7ea80fb367800f  wave1/fortune-caution-horoscope.e2e.mjs
+6acaf1b84b47591fbef680e64ff22c283353d4733fe1660f7f2b5032ba75cbbd  tests/unit/fortune-caution-pages.test.js  # repo file (same commit as lock 2026-11-20T05:58:13Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1/fortune-caution-pages.test.js)
+d70787afacad6f5af7a8bdef8a9cfb4157de310579bc838d6576602f26726720  tests/unit/fixtures/fortune-caution-horoscope-snapshot.json  # repo file (same commit as lock 2026-11-20T05:58:13Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1/fortune-caution-horoscope-snapshot.json)
+192ab976855e439684c4fc9793e681762e2d7cae2a2806e35f7ea80fb367800f  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T05:58:13Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1/fortune-caution-horoscope.e2e.mjs)
