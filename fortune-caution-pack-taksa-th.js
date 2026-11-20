@@ -38,8 +38,6 @@
   "school": "th",
   "kind": "period",
   "spans": [
-   "day",
-   "years",
    "decade"
   ],
   "polarity": "caution",
@@ -47,10 +45,6 @@
   "trigger": [
    {
     "id": "^maha\\.\\d\\.kalakini$"
-   },
-   {
-    "id": "^lg\\.maha\\.",
-    "tone": "caution"
    }
   ],
   "modern": false,
@@ -96,7 +90,6 @@
   "school": "th",
   "kind": "period",
   "spans": [
-   "day",
    "decade"
   ],
   "polarity": "good",

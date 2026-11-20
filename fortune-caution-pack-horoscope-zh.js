@@ -34,175 +34,6 @@
   "domains": [
    "horoscope"
   ],
-  "id": "th.taksajorn.kalakini",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "caution",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.kalakini$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "mind": {
-   "zh": "按当日塔克萨，今天的星落在您的“卡拉吉尼”位置，大决定请多想一想，留意仓促行事。"
-  },
-  "do": {
-   "zh": "保持正念与平和，交出工作前仔细核对。"
-  },
-  "cheer": {
-   "zh": "需要沉着的日子，正是练习细心的日子；您的努力依然能带来好事。"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.maha.kalakini",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day",
-   "years",
-   "decade"
-  ],
-  "polarity": "caution",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^maha\\.\\d\\.kalakini$"
-   },
-   {
-    "id": "^lg\\.maha\\.",
-    "tone": "caution"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "mind": {
-   "zh": "这段人生阶段处于落在“卡拉吉尼”位置的大塔克萨期，按传统要留意仓促做大决定。"
-  },
-  "do": {
-   "zh": "保持正念，一步一步来，行动前先与信任的人商量。"
-  },
-  "cheer": {
-   "zh": "需要放慢脚步的阶段，正适合打下稳固的基础。"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.taksajorn.sri",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "good",
-  "topic": "money",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.sri$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "zh": "保持正念，按计划开支。"
-  },
-  "luck": {
-   "zh": "按当日塔克萨，今天是您的“希利”日，可能在钱财或人缘上有好消息。"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.taksajorn.montri",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "good",
-  "topic": "people",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.montri$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "zh": "孝敬父母，感谢曾帮助过您的长辈。"
-  },
-  "luck": {
-   "zh": "今天是您的“蒙德里”日，可能会有长辈关照或给予建议。"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.taksajorn.det",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "good",
-  "topic": "work",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.de(?:t|ch)$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "zh": "带头时保持正念，说话温和。"
-  },
-  "luck": {
-   "zh": "今天是您的“德”日，可能在工作上表现突出、赢得信任。"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.maha.good",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day",
-   "decade"
-  ],
-  "polarity": "good",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^maha\\.\\d\\.(?:sri|montri|det|utsaha)$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "zh": "持戒，坚持行善。"
-  },
-  "luck": {
-   "zh": "这段人生阶段处于吉利的大塔克萨位置，可能是努力见成果的时候。"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
   "id": "bz.dm.weak",
   "school": "cn",
   "kind": "overall",
@@ -261,40 +92,10 @@
   "domains": [
    "horoscope"
   ],
-  "id": "cn.day.clash",
-  "school": "cn",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "caution",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^today\\.clash$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "mind": {
-   "zh": "按传统，今天的地支与您的生肖相冲，保持冷静，留意匆忙行事。"
-  },
-  "do": {
-   "zh": "保持正念，每个约会多留些时间，一次做一件事。"
-  },
-  "cheer": {
-   "zh": "需要冷静的日子，只要预留时间，就能顺利度过。"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
   "id": "cn.month.clash",
   "school": "cn",
   "kind": "period",
   "spans": [
-   "day",
    "month"
   ],
   "polarity": "caution",
@@ -324,7 +125,6 @@
   "school": "cn",
   "kind": "period",
   "spans": [
-   "day",
    "month"
   ],
   "polarity": "caution",

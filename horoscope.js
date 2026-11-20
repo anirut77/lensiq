@@ -646,12 +646,11 @@
   }
 
   /* item 177: engine items of the closed "สิ่งที่ควรระวัง" section (fortune-caution.js), built BESIDE the reading (the reading's facts
-     never change): the birth kalakini, today's taksa, day / month clash, a duty month (七杀 / 正官), a weak chart, lacking elements */
-  var CAUTION_PERIOD = { span: "day", th: "วันนี้และเดือนนี้", en: "Today and this month", zh: "今天和本月" };
-  function cautionItems(P, D, mo) {
+     never change): the birth kalakini, a month clash, a duty month (七杀 / 正官), a weak chart, lacking elements. Owner rule 2026-11-20:
+     month ranges, never a single day, so the period is the month and nothing comes from the day */
+  var CAUTION_PERIOD = { span: "month", th: "เดือนนี้", en: "This month", zh: "本月" };
+  function cautionItems(P, mo) {
     var it = [{ id: "thai.kalakini." + P.taksa.kalakini, tone: "caution", strength: 0.7 }];
-    it.push(D.bhumi === "kalakini" ? { id: "today.bhumi.kalakini", polarity: "challenge", strength: 0.8 } : { id: "today.bhumi." + D.bhumi, strength: 0.9 });
-    if (D.clash) it.push({ id: "today.clash", polarity: "challenge", strength: 0.5 });
     if (mo.branchRel === "clash") it.push({ id: "month.clash", polarity: "challenge", strength: 0.55 });
     var g = tenGod(P.bazi.day.stem, mo.pillar.stem);
     if (g === "QS" || g === "ZG") it.push({ id: "month.officer", tone: "caution", strength: 0.55 });
@@ -1002,11 +1001,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var LC = window.LQFortuneCaution, pn = $("#pn-ov");
     if (!LC || !pn) return;
     var now = new Date(), td = { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() };
-    var D = HS.daily(P, td), mo = HS.monthly(P, HS.julianDay(td.y, td.m, td.d, now.getHours() + now.getMinutes() / 60) - 7 / 24);
+    var mo = HS.monthly(P, HS.julianDay(td.y, td.m, td.d, now.getHours() + now.getMinutes() / 60) - 7 / 24);
     var host = document.createElement("div");
     host.id = "hsCaution";
     pn.appendChild(host);
-    if (!LC.mount(host, { domain: "horoscope", facts: { items: HS.cautionItems(P, D, mo) }, period: HS.CAUTION_PERIOD })) pn.removeChild(host);
+    if (!LC.mount(host, { domain: "horoscope", facts: { items: HS.cautionItems(P, mo) }, period: HS.CAUTION_PERIOD })) pn.removeChild(host);
   }
 
   function renderThai(P) {

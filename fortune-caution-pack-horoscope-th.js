@@ -34,175 +34,6 @@
   "domains": [
    "horoscope"
   ],
-  "id": "th.taksajorn.kalakini",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "caution",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.kalakini$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "mind": {
-   "th": "วันนี้ดาวประจำวันตกภูมิกาลกิณีของคุณตามทักษาจร ควรระวังการรีบตัดสินใจเรื่องใหญ่"
-  },
-  "do": {
-   "th": "มีสติ ใจเย็น และตรวจทานงานให้รอบคอบก่อนส่ง"
-  },
-  "cheer": {
-   "th": "วันที่ต้องใจเย็นคือวันที่ฝึกความรอบคอบ ความตั้งใจของคุณยังพาเรื่องดี ๆ มาได้"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.maha.kalakini",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day",
-   "years",
-   "decade"
-  ],
-  "polarity": "caution",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^maha\\.\\d\\.kalakini$"
-   },
-   {
-    "id": "^lg\\.maha\\.",
-    "tone": "caution"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "mind": {
-   "th": "ช่วงอายุนี้อยู่ในมหาทักษาที่ตกภูมิกาลกิณี ตำราชี้ให้ระวังการตัดสินใจเรื่องใหญ่อย่างเร่งรีบ"
-  },
-  "do": {
-   "th": "มีสติ ทำทีละขั้น และปรึกษาคนที่ไว้ใจก่อนลงมือ"
-  },
-  "cheer": {
-   "th": "ช่วงที่ต้องค่อย ๆ เดินคือช่วงที่วางรากฐานได้มั่นคง"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.taksajorn.sri",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "good",
-  "topic": "money",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.sri$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "th": "มีสติและใช้จ่ายตามแผนที่วางไว้"
-  },
-  "luck": {
-   "th": "วันนี้เป็นวันภูมิศรีของคุณตามทักษาจร อาจมีเรื่องดีด้านการเงินหรือเสน่ห์"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.taksajorn.montri",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "good",
-  "topic": "people",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.montri$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "th": "ไหว้และขอบคุณพ่อแม่หรือผู้ใหญ่ที่เคยช่วยเหลือคุณ"
-  },
-  "luck": {
-   "th": "วันนี้เป็นวันภูมิมนตรีของคุณตามทักษาจร อาจมีผู้ใหญ่เมตตาหรือให้คำแนะนำ"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.taksajorn.det",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "good",
-  "topic": "work",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.de(?:t|ch)$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "th": "มีสติและพูดอย่างสุภาพเมื่อได้เป็นผู้นำ"
-  },
-  "luck": {
-   "th": "วันนี้เป็นวันภูมิเดชของคุณตามทักษาจร อาจเด่นเรื่องงานและได้รับความเชื่อถือ"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.maha.good",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day",
-   "decade"
-  ],
-  "polarity": "good",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^maha\\.\\d\\.(?:sri|montri|det|utsaha)$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "th": "รักษาศีลและทำความดีอย่างสม่ำเสมอ"
-  },
-  "luck": {
-   "th": "ช่วงอายุนี้อยู่ในมหาทักษาที่ตกภูมิดี อาจเป็นช่วงที่ความพยายามเห็นผล"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
   "id": "bz.dm.weak",
   "school": "cn",
   "kind": "overall",
@@ -261,40 +92,10 @@
   "domains": [
    "horoscope"
   ],
-  "id": "cn.day.clash",
-  "school": "cn",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "caution",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^today\\.clash$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "mind": {
-   "th": "กิ่งของวันนี้ชงกับปีนักษัตรของคุณตามความเชื่อ ควรใจเย็นและระวังการรีบร้อน"
-  },
-  "do": {
-   "th": "มีสติ เผื่อเวลาให้ทุกนัดหมาย และค่อย ๆ ทำทีละเรื่อง"
-  },
-  "cheer": {
-   "th": "วันที่ต้องใจเย็นผ่านไปได้อย่างราบรื่นเมื่อคุณเผื่อเวลาไว้"
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
   "id": "cn.month.clash",
   "school": "cn",
   "kind": "period",
   "spans": [
-   "day",
    "month"
   ],
   "polarity": "caution",
@@ -324,7 +125,6 @@
   "school": "cn",
   "kind": "period",
   "spans": [
-   "day",
    "month"
   ],
   "polarity": "caution",

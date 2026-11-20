@@ -22,15 +22,15 @@
     modern: T("ตามความนิยมสมัยใหม่", "Modern practice", "现代流行做法"),
     "school.th": T("ตำราไทย", "Thai tradition", "泰式传统"),
     "school.cn": T("ตำราจีน", "Chinese tradition", "中式传统"),
-    "school.mix": T("หลายตำรารวมกัน", "Several traditions combined", "多种传统综合"),
     "school.w": T("ตำราตะวันตก", "Western tradition", "西方传统"),
   };
   /** page domain -> rule schools and whether the discipline reads by time period (wave 0: the pages whose rules exist) */
   var DOMAINS = {
     horoscope: { schools: ["th", "cn"], periodic: true }, bazi: { schools: ["cn"], periodic: true }, taksa: { schools: ["th"], periodic: true },
-    lek7: { schools: ["th"], periodic: false }, lifegraph: { schools: ["th", "mix"], periodic: true }, zodiac: { schools: ["cn"], periodic: true },
+    zodiac: { schools: ["cn"], periodic: true },
   };
-  var EXCLUDED = ["planner", "petread", "fortune"]; // D-4, D-5 and the hub (a menu, not a reading)
+  // D-4, D-5, the hub (a menu, not a reading); lek7 (its rule has one source, T5) and lifegraph (team weights, no source): review 2026-11-20
+  var EXCLUDED = ["planner", "petread", "fortune", "lek7", "lifegraph"];
 
   /* the section's filter (fortune-caution-filter.js): Node only; the browser packs hold only texts it allowed */
   var FILTER = NODE ? require("./fortune-caution-filter.js") : root.LQFortuneCautionFilter || null;
@@ -79,7 +79,9 @@
     items.forEach(function (it) {
       avail.forEach(function (r) { if (fires(r, it)) { var s = Number(it.strength) || 0; fired.set(r, Math.max(fired.has(r) ? /** @type {number} */ (fired.get(r)) : -1, s)); } });
     });
-    var per = input.period && typeof input.period === "object" ? input.period : null;
+    // owner rule 2026-11-20: month ranges, never a single day — a one-day period gets no "this period" part
+    var per = input.period && typeof input.period === "object" && input.period.span !== "day" ? input.period : null;
+    var perRules = per && avail.some(function (r) { return r.kind === "period" && (r.spans || []).indexOf(per.span) >= 0; });
     /** @param {any} r @param {string} f */
     var tx = function (r, f) { return r[f] && typeof r[f][lang] === "string" ? r[f][lang] : ""; };
     /** @param {string} part */
@@ -107,7 +109,7 @@
     }
     var parts = [mk("overall")];
     if (!D.periodic) parts.push({ part: "period", period: null, none: false, noPeriod: true, mind: [], cheer: [], guide: [] });
-    else if (per) parts.push(mk("period"));
+    else if (perRules) parts.push(mk("period"));
     return { domain: domain, lang: lang, parts: parts };
   }
 

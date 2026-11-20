@@ -14,7 +14,7 @@ test("fortune-caution packs and the lazy-file version are up to date", () => {
   try { out = execFileSync(process.execPath, [join(ROOT, "tools", "fortune-caution-pack.mjs"), "--check"], { encoding: "utf8", stdio: "pipe" }); } catch (e) {
     assert.fail("run `node tools/fortune-caution-pack.mjs` and commit: " + String(e.stderr || e.message));
   }
-  assert.match(out, /packs OK \(18 files/);
+  assert.match(out, /packs OK \(12 files/);
 });
 
 test("the shell loads nothing but its own file before the tap and stays under 8 KB", () => {

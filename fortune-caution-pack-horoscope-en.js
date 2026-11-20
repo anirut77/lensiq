@@ -34,175 +34,6 @@
   "domains": [
    "horoscope"
   ],
-  "id": "th.taksajorn.kalakini",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "caution",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.kalakini$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "mind": {
-   "en": "Today's planet falls on your kalakini position in the taksa of the day; be careful with hasty big decisions."
-  },
-  "do": {
-   "en": "Stay mindful and calm, and check your work carefully before you hand it in."
-  },
-  "cheer": {
-   "en": "A day that asks for calm is a day to practise care; your effort can still bring good things."
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.maha.kalakini",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day",
-   "years",
-   "decade"
-  ],
-  "polarity": "caution",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^maha\\.\\d\\.kalakini$"
-   },
-   {
-    "id": "^lg\\.maha\\.",
-    "tone": "caution"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "mind": {
-   "en": "This stage of life falls in a Maha Taksa period on your kalakini position; tradition asks you to be careful with rushed big decisions."
-  },
-  "do": {
-   "en": "Stay mindful, go one step at a time, and talk to someone you trust before you act."
-  },
-  "cheer": {
-   "en": "A stage that asks you to go slowly is a good stage for building firm foundations."
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.taksajorn.sri",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "good",
-  "topic": "money",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.sri$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "en": "Stay mindful and spend according to your plan."
-  },
-  "luck": {
-   "en": "Today falls on your sri position in the taksa of the day; you may see good news about money or charm."
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.taksajorn.montri",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "good",
-  "topic": "people",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.montri$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "en": "Pay respect to your parents and thank the elders who have helped you."
-  },
-  "luck": {
-   "en": "Today falls on your montri position; a senior person may be kind to you or offer advice."
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.taksajorn.det",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "good",
-  "topic": "work",
-  "trigger": [
-   {
-    "id": "^today\\.bhumi\\.de(?:t|ch)$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "en": "Stay mindful and speak kindly when you take the lead."
-  },
-  "luck": {
-   "en": "Today falls on your det position; you may stand out at work and earn trust."
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
-  "id": "th.maha.good",
-  "school": "th",
-  "kind": "period",
-  "spans": [
-   "day",
-   "decade"
-  ],
-  "polarity": "good",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^maha\\.\\d\\.(?:sri|montri|det|utsaha)$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "do": {
-   "en": "Keep the precepts and keep doing good, steadily."
-  },
-  "luck": {
-   "en": "This stage of life falls in a favourable Maha Taksa position; it may be a time when effort shows results."
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
   "id": "bz.dm.weak",
   "school": "cn",
   "kind": "overall",
@@ -261,40 +92,10 @@
   "domains": [
    "horoscope"
   ],
-  "id": "cn.day.clash",
-  "school": "cn",
-  "kind": "period",
-  "spans": [
-   "day"
-  ],
-  "polarity": "caution",
-  "topic": "general",
-  "trigger": [
-   {
-    "id": "^today\\.clash$"
-   }
-  ],
-  "modern": false,
-  "status": "draft",
-  "mind": {
-   "en": "By tradition today's branch clashes with your zodiac year; stay calm and be careful about rushing."
-  },
-  "do": {
-   "en": "Stay mindful, leave extra time for every appointment, and do one thing at a time."
-  },
-  "cheer": {
-   "en": "A day that asks for calm goes smoothly when you leave yourself time."
-  }
- },
- {
-  "domains": [
-   "horoscope"
-  ],
   "id": "cn.month.clash",
   "school": "cn",
   "kind": "period",
   "spans": [
-   "day",
    "month"
   ],
   "polarity": "caution",
@@ -324,7 +125,6 @@
   "school": "cn",
   "kind": "period",
   "spans": [
-   "day",
    "month"
   ],
   "polarity": "caution",

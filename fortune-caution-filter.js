@@ -49,6 +49,27 @@
       /华人|中国人|泰国人|外国人|老外|穆斯林|基督徒|佛教徒|印度教|属[鼠牛虎兔龙蛇马羊猴鸡狗猪]|男人|女人|戴眼镜/),
     recipient: /วัด[ก-ฮ]|มูลนิธิ[ก-ฮ]|โรงพยาบาล[ก-ฮ]|\b[A-Z][a-z]+ (?:Temple|Foundation|Hospital|Church|Mosque|Shrine)\b|\bWat [A-Z]|[一-鿿]{1,4}寺(?!庙)|基金会/,
     ritual: /แล้วจึง|จุดธูป|สวดมนต์\s*\d|ถวายสังฆทาน|พิธี|\britual|ceremon|incense|then (?:light|chant|pray)|仪式|法事|上香|烧香|然后(?:拜|念)/i,
+    /* independent review of wave 0 (2026-11-20): general rules for each gap the reviewer's probes found */
+    certLoss: /จะ(?:เสีย|ป่วย|เจ็บ|สูญ|ขาดทุน|โดน|ถูกโกง|แย่)|(?:你|您)?会(?:破财|生病|患病|出事|失去|损失|倒霉|受伤|遇到麻烦|赔)|\byou will (?:lose|fall|get sick|be ill)/i,
+    prohib2: /ไม่ควร|\bat all costs\b|\bavoid\b[^.]*\bat all\b|不应该|不宜/i,
+    accType2: rx("i", /มอเตอร์ไซค์|รถล้ม|จมน้ำ|ไฟไหม้|เพลิงไหม้|เลือดตกยางออก|ถูกแทง|ถูกยิง|ตกที่สูง|ไฟดูด/,
+      /\b(?:drown\w*|bloodshed|blood|fire|motorbike|motorcycle|stabb\w*|shot|electrocut\w*)\b|溺水|火灾|失火|血光|淹|摔车|触电/),
+    disease: rx("i", /โรค|หัวใจวาย|เบาหวาน|ความดันสูง|อัมพาต|ไมเกรน/,
+      /\b(?:heart (?:disease|attack)|diabetes|stroke|hypertension|asthma|covid|migraine|kidney disease|liver disease)\b/,
+      /心脏病|糖尿病|高血压|中风|哮喘|心梗|肝病|肾病|偏头痛/),
+    remedy: rx("i", /เพื่อรักษา|รักษาอาการ|รักษาโรค|แก้โรค|(?:ดื่ม|กิน|ทาน)\S{0,16}ทุกวัน\S{0,6}(?:รักษา|หาย)/,
+      /\b(?:to (?:treat|cure|heal)|remedy for|treatment for)\b|治疗|治病|疗法|偏方|调理/),
+    person: rx("", /(?<!เ)ชื่อ\s?[ก-ฮ]|ที่ชื่อ|คนที่(?:ขับ|ใส่|สวม|มีรถ)|(?:รถ|เสื้อ|ผม)สี[ก-๙]/,
+      /\b(?:with the \w+ (?:car|shirt|hair)|named|called [A-Z])\b/, /姓\S{1,2}的|叫\S{1,3}的人|开\S{0,3}车的|穿\S{0,4}的人/),
+    group: rx("", /คน(?:อีสาน|เหนือ|ใต้|ภาค|กรุง|ญี่ปุ่น|อินเดีย|เกาหลี|เวียดนาม|ญวน|มอญ)|คนเกิดวัน|ชาว(?:อีสาน|เขา|ญี่ปุ่น|อินเดีย|จีน)/,
+      /\b(?:Indians?|Japanese|Koreans?|Vietnamese|Africans?|Europeans?|Americans?|Westerners?|Asians?|northerners|southerners|people born on)\b/,
+      /日本人|韩国人|印度人|越南人|外地人|南方人|北方人|东北人|黑人|白人|洋人|星期\S出生的人/),
+    asset2: /เงินดิจิทัล|เหรียญดิจิทัล|โทเคน|ฟอเร็กซ์|เทรด|\b(?:digital (?:money|currency|coins?)|tokens?|NFTs?|forex|trading)\b|数字货币|虚拟币|币圈|炒股|外汇/i,
+    endRel2: /断了|散了|分开吧|เลิกคบ/,
+    fear2: /(?:ถ้า|หาก)(?:คุณ)?ไม่(?:ได้)?(?:ไป)?(?:ไหว้|ใส่บาตร|สวด)|\bif you (?:skip|miss|forget|ignore|neglect)\b/i,
+    merit2: rx("i", /พระ(?:อาจารย์|ครู|มหา|อธิการ)|หลวง(?:พ่อ|ปู่|ตา)|จำนวนมาก|มหาศาล/,
+      /\b(?:a (?:lot of|large sum of) money|(?:a |one )?(?:hundred|thousand|million) (?:baht|dollars?))\b/, /[一二三四五六七八九十百千万亿两]+\s*(?:元|块|万)/),
+    luck2: /เลขทะเบียน|ทะเบียนรถ|เลขเบอร์|\b(?:licen[cs]e plate|plate number)\b|大奖/i,
     luckBuy: /บูชา|เช่า|ของมงคล|เครื่องราง|จ่าย|\b(?:amulet|talisman|worship|purchase|pay)\w*|供奉|护身符|开运物|购买/i,
   };
   var straight = function () { return root.LQFortuneStraight || (NODE ? require("./fortune-straight.js") : null); };
@@ -64,15 +85,17 @@
     if (!FS) return "no-filter"; // fail closed: the shared hard limits are missing
     var hl = FS.hardLimit(t);
     if (hl && hl !== "1:accident") return hl; // accidents: this section's own rules below (month ranges allowed)
-    var order = ["death", "terminal", "medication", "med", "asset", "endRel", "fear", "merit", "lottery", "sales", "money"];
+    var order = ["death", "terminal", "medication", "med", "disease", "remedy", "asset", "asset2", "endRel", "endRel2", "fear", "fear2", "merit", "merit2",
+      "lottery", "luck2", "sales", "money", "certLoss"];
     for (var i = 0; i < order.length; i++) if (RE[order[i]].test(t)) return order[i];
-    if (RE.accType.test(t)) return "accident-type";
-    var ait = RE.accIllTravel.test(t);
-    if (ait && (RE.day.test(t) || RE.cert.test(t))) return "accident-dated-or-certain";
-    if (ait && c.part === "period" && c.span === "day") return "one-day-period";
+    if (RE.accType.test(t) || RE.accType2.test(t)) return "accident-type";
+    // owner rule 2026-11-20: month ranges, never a single day — on every topic, and nothing under a one-day period
+    if (RE.day.test(t)) return "date";
+    if (c.part === "period" && c.span === "day") return "one-day-period";
+    if (RE.accIllTravel.test(t) && RE.cert.test(t)) return "accident-certain";
     if (kind === "label") return "";
-    if (RE.prohib.test(t)) return "prohibition";
-    if (RE.people.test(t)) return "people";
+    if (RE.prohib.test(t) || RE.prohib2.test(t)) return "prohibition";
+    if (RE.people.test(t) || RE.person.test(t) || RE.group.test(t)) return "people";
     if (kind === "mind") { if (!RE.caution.test(t)) return "no-caution-verb"; if (RE.cert.test(t)) return "certain"; }
     if (kind === "luck") { if (!RE.may.test(t)) return "no-may"; if (RE.promise.test(t)) return "promise"; if (RE.luckBuy.test(t)) return "luck-tied"; }
     if (kind === "cheer" && RE.promise.test(t)) return "promise";
