@@ -1,4 +1,6 @@
 // tests/e2e/fortune-caution.e2e.mjs — FIXED TEST SET fortune-caution (owner item 177, 2026-11-20). Locked BEFORE any product
+// RELOCK relock2 2026-11-20: the section's root class is .lq-caution-sec (was .lq-caution, which the reading already uses for its own caution
+// paragraphs, fortune-read.js); only that selector changed, no assertion.
 // code (evals-locks/fortune-caution.sha256, ~/LENSIQ-field/evals/fortune-caution/). Design ~/Desktop/LENSIQ-review/
 // fortune-cautions/DESIGN-TH.md 3, 4(b), 4(c), 5.1: T1 closed by default on every new reading, T2 nothing before the disclaimer
 // is accepted (no caution text in the DOM, no request for the rule data), T9 the crisis or calm flag hides everything, T10 page
@@ -10,7 +12,7 @@
 // tests/unit/fixtures/fortune-caution-profiles.json. Each later wave locks its own page list before wiring the pages.
 // Shell contract (window.LQFortuneCaution): mount(host, { domain, facts: { items }, period, lang? }) -> the section element
 // or null; TEXT { title, open, disclaimer, accept, later, fail, retry } each { th, en, zh }; ACK_KEY "lq-caution-ack".
-// Section DOM: section.lq-caution > button.lq-caution-open (closed) | .lq-caution-disc (disclaimer: p + button.lq-caution-accept
+// Section DOM: section.lq-caution-sec > button.lq-caution-open (closed) | .lq-caution-disc (disclaimer: p + button.lq-caution-accept
 // + button.lq-caution-later) | .lq-caution-body (top line, .lq-caution-part[data-part] with .lq-caution-mind li[data-rule][data-n],
 // .lq-caution-cheer [data-rule], .lq-caution-guide li[data-rule][data-n], .lq-caution-period, button.lq-caution-close) |
 // .lq-caution-fail (+ button.lq-caution-retry). Switches: LENSIQ_FORTUNE_CAUTIONS, LENSIQ_FORTUNE_CAUTIONS_CN_WEST,
@@ -62,10 +64,10 @@ async function open(browser, base, { lang = "th", on = true, init = [], page = "
 }
 const mount = (pg, r, lang) => pg.evaluate(`(() => { const s = window.LQFortuneCaution.mount(document.getElementById("lqCautionHost"), ${S(r ? inputOf(r, lang) : null)}); return !!s; })()`);
 const STATE = `(() => {
-  const sec = document.querySelector(".lq-caution"), q = s => sec && sec.querySelector(s);
+  const sec = document.querySelector(".lq-caution-sec"), q = s => sec && sec.querySelector(s);
   const txt = e => (e ? e.textContent : "").replace(/\\s+/g, " ").trim();
   const vis = e => !!e && !e.closest("[hidden]") && getComputedStyle(e).display !== "none" && e.getBoundingClientRect().height > 0;
-  return { sec: !!sec, n: document.querySelectorAll(".lq-caution").length, openBtn: vis(q(".lq-caution-open")), disc: vis(q(".lq-caution-disc")), discText: txt(q(".lq-caution-disc p")),
+  return { sec: !!sec, n: document.querySelectorAll(".lq-caution-sec").length, openBtn: vis(q(".lq-caution-open")), disc: vis(q(".lq-caution-disc")), discText: txt(q(".lq-caution-disc p")),
     body: !!q(".lq-caution-body"), fail: !!q(".lq-caution-fail"), text: txt(sec), html: sec ? sec.innerHTML : "" };
 })()`;
 const click = (pg, sel) => pg.evaluate(`(() => { const e = document.querySelector(${S(sel)}); if (!e) return false; e.click(); return true; })()`);
@@ -218,7 +220,7 @@ export default async function ({ base, launch, check }) {
           for (const name of ["F1", "F17", "F23", "F26"]) {
             await mount(pg, reading(name), lang); await toBody(pg);
             const d = await pg.evaluate(`(() => {
-              const sec = document.querySelector(".lq-caution");
+              const sec = document.querySelector(".lq-caution-sec");
               const parts = [...sec.querySelectorAll(".lq-caution-part")].map(p => {
                 const pos = s => { const e = p.querySelector(s); return e ? [...p.querySelectorAll("*")].indexOf(e) : -1; };
                 return { part: p.dataset.part, mind: [...p.querySelectorAll(".lq-caution-mind li")].map(li => [li.dataset.n, li.dataset.rule]),

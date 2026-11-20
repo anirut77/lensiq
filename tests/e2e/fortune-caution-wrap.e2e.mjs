@@ -1,4 +1,6 @@
 // tests/e2e/fortune-caution-wrap.e2e.mjs — FIXED TEST SET fortune-caution (owner item 177, 2026-11-20), T11. Locked BEFORE any
+// RELOCK relock2 2026-11-20: the section's root class is .lq-caution-sec (was .lq-caution, which the reading already uses for its own caution
+// paragraphs, fortune-read.js); only that selector changed, no assertion.
 // product code (evals-locks/fortune-caution.sha256). The open section (closed state, disclaimer, content) at phone widths 360,
 // 393 and 430 px in TH / EN / ZH: no lone bracket or punctuation, no one-word last line, no number split from its unit, using
 // the item-78 line-wrap probe (tests/e2e/line-wrap-kit.mjs PROBE) with no exception. The section is mounted on horoscope.html
@@ -20,7 +22,7 @@ const WIDTHS = [360, 393, 430];
 const reading = name => FIX.readings.find(r => r.name.startsWith(name + " "));
 const inputOf = (r, lang) => ({ domain: r.domain, facts: { domain: r.domain, items: r.items }, period: r.period ? FIX.periods[r.period] : null, lang });
 const ISOLATE = `(() => {
-  const sec = document.querySelector(".lq-caution");
+  const sec = document.querySelector(".lq-caution-sec");
   for (let e = sec; e && e !== document.body; e = e.parentElement) for (const s of e.parentElement.children) if (s !== e && !s.contains(sec)) s.style.setProperty("display", "none", "important");
   return 1;
 })()`;

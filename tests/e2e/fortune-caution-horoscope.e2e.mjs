@@ -1,4 +1,6 @@
 // tests/e2e/fortune-caution-horoscope.e2e.mjs — FIXED TEST SET fortune-caution wave 1, pilot page horoscope.html (owner item 177;
+// RELOCK wave1-relock2 2026-11-20: the section's root class is .lq-caution-sec (was .lq-caution, which the reading already uses for its own caution
+// paragraphs, fortune-read.js); only that selector changed, no assertion.
 // waves 0 + 1 approved with the switch off, 2026-11-20). Locked BEFORE the page is wired (evals-locks/fortune-caution.sha256,
 // folder wave1/). The real page with a SYNTHETIC birth (15 June 2533 / 1990, no name): the section sits in the overview tab
 // (#pn-ov) after the detailed reading (#hsRd), host #hsCaution. Live switches for the pilot preview: LENSIQ_FORTUNE_CAUTIONS and
@@ -32,9 +34,9 @@ const BIRTH = name => `(() => { const d = document.getElementById("hsDay"), m = 
   document.getElementById("hsName").value = ${S(name || "")}; document.getElementById("hsYear").value = "2533"; document.getElementById("hsForm").requestSubmit(); return 1; })()`;
 const READY = `(() => { const r = document.getElementById("hsResult"), b = document.getElementById("hsRd-body"); return !!r && !r.hidden && !!b && b.textContent.trim().length > 40; })()`;
 const STATE = `(() => {
-  const sec = document.querySelector(".lq-caution"), q = s => sec && sec.querySelector(s), ov = document.getElementById("pn-ov"), rd = document.getElementById("hsRd");
+  const sec = document.querySelector(".lq-caution-sec"), q = s => sec && sec.querySelector(s), ov = document.getElementById("pn-ov"), rd = document.getElementById("hsRd");
   const txt = e => (e ? e.textContent : "").replace(/\\s+/g, " ").trim();
-  return { sec: !!sec, n: document.querySelectorAll(".lq-caution").length, inOv: !!(sec && ov && ov.contains(sec)), host: !!(sec && sec.closest("#hsCaution")),
+  return { sec: !!sec, n: document.querySelectorAll(".lq-caution-sec").length, inOv: !!(sec && ov && ov.contains(sec)), host: !!(sec && sec.closest("#hsCaution")),
     afterReading: !!(sec && rd && (rd.compareDocumentPosition(sec) & Node.DOCUMENT_POSITION_FOLLOWING)), open: !!q(".lq-caution-open"), disc: !!q(".lq-caution-disc"),
     discText: txt(q(".lq-caution-disc p")), body: !!q(".lq-caution-body"), text: txt(sec), html: sec ? sec.innerHTML : "",
     rules: sec ? [...sec.querySelectorAll("[data-rule]")].map(e => e.dataset.rule) : [],
@@ -77,7 +79,7 @@ export default async function ({ base, launch, check }) {
       await check(`pilot ${lang}: closed after the reading, disclaimer, Thai content with the birth kalakini, closed again on a new reading`, async () => {
         const pg = await reading(browser, base, { lang });
         try {
-          await pg.waitFor(READY, 15000); await pg.waitFor("!!document.querySelector('.lq-caution')", 5000);
+          await pg.waitFor(READY, 15000); await pg.waitFor("!!document.querySelector('.lq-caution-sec')", 5000);
           let s = await pg.evaluate(STATE);
           assert(s.n === 1 && s.inOv && s.host && s.afterReading, lang + ": one section, in the overview tab, after the reading " + S(s).slice(0, 200));
           assert(s.open && !s.disc && !s.body && s.rules.length === 0, lang + ": closed, no rule text");
@@ -101,7 +103,7 @@ export default async function ({ base, launch, check }) {
           const bytes = after.reduce((a, u) => a + statSync(join(repo, new URL(u).pathname.replace(/^\//, ""))).size, 0);
           assert(after.length >= 1 && bytes <= 30720, lang + ": " + bytes + " bytes after the tap");
           await pg.evaluate(`document.getElementById("hsForm").requestSubmit()`); await sleep(800);
-          await pg.waitFor("!!document.querySelector('.lq-caution')", 5000);
+          await pg.waitFor("!!document.querySelector('.lq-caution-sec')", 5000);
           s = await pg.evaluate(STATE);
           assert(s.n === 1 && s.open && !s.body, lang + ": a new reading starts closed again");
           assert(!pg.consoleErrors.length, lang + ": console errors " + S(pg.consoleErrors).slice(0, 300));
@@ -130,9 +132,9 @@ export default async function ({ base, launch, check }) {
       await check(`T11 ${lang}: the open section at 360 / 393 / 430 px has no lone punctuation, widow or split number`, async () => {
         const pg = await reading(browser, base, { lang });
         try {
-          await pg.waitFor(READY, 15000); await pg.waitFor("!!document.querySelector('.lq-caution')", 5000);
+          await pg.waitFor(READY, 15000); await pg.waitFor("!!document.querySelector('.lq-caution-sec')", 5000);
           await openBody(pg);
-          await pg.evaluate(`(() => { const sec = document.querySelector(".lq-caution");
+          await pg.evaluate(`(() => { const sec = document.querySelector(".lq-caution-sec");
             for (let e = sec; e && e !== document.body; e = e.parentElement) {
               for (const x of e.parentElement.children) if (x !== e && !x.contains(sec)) x.style.setProperty("display", "none", "important");
             }

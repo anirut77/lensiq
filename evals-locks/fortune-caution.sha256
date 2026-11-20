@@ -37,3 +37,14 @@ a4c5967664c3ff05f9abe5721d0ef0bd9c8bd998fa9dfe886e3d92edadb48c56  wave1-relock1/
 b821f3983ad8a7225809afb932e06c60f1f08b793ad6481d114edab39cf50e00  wave1-relock1/fortune-caution-horoscope-snapshot.json
 a4c5967664c3ff05f9abe5721d0ef0bd9c8bd998fa9dfe886e3d92edadb48c56  tests/unit/fortune-caution-pages.test.js  # repo file (same commit as lock 2026-11-20T05:59:01Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1-relock1/fortune-caution-pages.test.js)
 b821f3983ad8a7225809afb932e06c60f1f08b793ad6481d114edab39cf50e00  tests/unit/fixtures/fortune-caution-horoscope-snapshot.json  # repo file (same commit as lock 2026-11-20T05:59:01Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1-relock1/fortune-caution-horoscope-snapshot.json)
+# RELOCK relock2 + wave1-relock2 2026-11-20, BEFORE the product fix: the section's root class becomes .lq-caution-sec. The locked contract named the root
+# .lq-caution, which the reading already uses for its own caution paragraphs (fortune-read.js:400, compat-ui.js); on the wired horoscope page the tests' selector
+# matched the reading (run log wave1/run-2-after-wiring-e2e.log: 17/22) and the shell's CSS, including the calm rule, would have hit the reading's caution
+# paragraphs (a product bug). Only the root selector changed in fortune-caution.e2e.mjs, fortune-caution-wrap.e2e.mjs and fortune-caution-horoscope.e2e.mjs.
+# locked 2026-11-20T06:24:39Z (tools/eval-guard.mjs lock, 3 files)
+bc4a285395b393a1f5c2e9ec90010c61872ac782201a5af8a03d0915d31e1f85  relock2/fortune-caution.e2e.mjs
+a53b49ac267da4fbd8cd9c3ec159b6720890e6bf2e6be11d1df7a7df4eb845bd  relock2/fortune-caution-wrap.e2e.mjs
+de461b99c69b86f5eabd52d10ba35255a0f1011893083d5d87bcfcd648402782  wave1-relock2/fortune-caution-horoscope.e2e.mjs
+bc4a285395b393a1f5c2e9ec90010c61872ac782201a5af8a03d0915d31e1f85  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:24:39Z; field: ~/LENSIQ-field/evals/fortune-caution/relock2/fortune-caution.e2e.mjs)
+a53b49ac267da4fbd8cd9c3ec159b6720890e6bf2e6be11d1df7a7df4eb845bd  tests/e2e/fortune-caution-wrap.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:24:39Z; field: ~/LENSIQ-field/evals/fortune-caution/relock2/fortune-caution-wrap.e2e.mjs)
+de461b99c69b86f5eabd52d10ba35255a0f1011893083d5d87bcfcd648402782  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:24:39Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1-relock2/fortune-caution-horoscope.e2e.mjs)
