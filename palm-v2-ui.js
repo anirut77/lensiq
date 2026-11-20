@@ -379,15 +379,15 @@
       }
       // the canonical layout BEFORE line finding: turned so the fingers point up and mirrored so the index knuckle is on the right
       // (PV.canonicalTransform, the same matrix as PV.detectOriented), at most 360 px per palm width
-      var T = PV.canonicalTransform(S.hand, { scale: Math.min(1, 360 / Math.max(1, F0.pw)) }), cw = T.w, ch = T.h;
+      var CT = PV.canonicalTransform(S.hand, { scale: Math.min(1, 360 / Math.max(1, F0.pw)) }), cw = CT.w, ch = CT.h;
       var c = document.createElement("canvas"); c.width = cw; c.height = ch;
       var g = c.getContext("2d", { willReadFrequently: true });
-      g.setTransform(T.m[0], T.m[1], T.m[2], T.m[3], T.m[4], T.m[5]); g.drawImage(S.photo, 0, 0); g.setTransform(1, 0, 0, 1, 0, 0);
+      g.setTransform(CT.m[0], CT.m[1], CT.m[2], CT.m[3], CT.m[4], CT.m[5]); g.drawImage(S.photo, 0, 0); g.setTransform(1, 0, 0, 1, 0, 0);
       var px = g.getImageData(0, 0, cw, ch).data;
-      var mp = function (p) { return p ? PV.applyAffine(T.m, p) : p; };
+      var mp = function (p) { return p ? PV.applyAffine(CT.m, p) : p; };
       var h = S.hand, hc = { source: h.source, wrist: mp(h.wrist), mcp: { index: mp(h.mcp.index), middle: mp(h.mcp.middle), ring: mp(h.mcp.ring), pinky: mp(h.mcp.pinky) }, tip: {},
         thumbBase: null, pts: null };
-      S.canon = { angle: Math.round(T.angle * 10) / 10, quarter: T.quarter, mirror: T.mirror };
+      S.canon = { angle: Math.round(CT.angle * 10) / 10, quarter: CT.quarter, mirror: CT.mirror };
       stopCam();
       return findLines(px, cw, ch, hc, S.school).then(function (det) {
       S.det = det; S.lastDetectMs = det.ms;
