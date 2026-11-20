@@ -57,6 +57,10 @@ window.LENSIQ_PALM_LANDMARKS = window.LENSIQ_PALM_LANDMARKS !== false;
 /* palm v3 line finder (SPIKE 2026-11-20, palm-v3-lines.js): only inside palm v2 and only when exactly true; does not replace
  * palm-v2-detect.js until the reviewer and the owner agree */
 window.LENSIQ_PALM_V3_LINES = window.LENSIQ_PALM_V3_LINES === true;
+/* field gate (owner decision 185 ข condition 2, D-P8): v3 stays OFF in every customer / commercial build until it is measured on
+ * real pilot hands, on the locked split, with at most 5 % false lines per line. Always false here; it is changed in this file
+ * only, by a new owner decision after that measurement (tests/unit/palm-v3-switch.test.js) */
+window.LENSIQ_PALM_V3_FIELD_OK = false;
 
 /* LENSIQ_PROFILE: "commercial" (default, customer mode: research models off) | "demo"; result in window.LENSIQ_RESEARCH */
 (function () {
@@ -69,6 +73,7 @@ window.LENSIQ_PALM_V3_LINES = window.LENSIQ_PALM_V3_LINES === true;
   W.LENSIQ_PROFILE = on ? "demo" : "commercial";
   W.LENSIQ_RESEARCH = { on: on, locked: locked, key: KEY, operatorDemo: pre === "demo" && !locked };
   if (!on) { W.LENSIQ_AGE_GENDER = false; W.LENSIQ_EXPRESSION = false; W.LENSIQ_FACEPARSE = false; W.LENSIQ_PALM_LANDMARKS = false; }
+  if (!on && W.LENSIQ_PALM_V3_FIELD_OK !== true) W.LENSIQ_PALM_V3_LINES = false; // palm v3: customer / commercial builds stay off (D-P8)
 })();
 
 /* LENSIQ_SELLER: seller details read by help, terms, privacy, the contact form and pricing; empty = neutral text.

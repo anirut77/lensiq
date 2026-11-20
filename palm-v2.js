@@ -46,6 +46,11 @@
     "status.added": ["เพิ่มเอง", "Added by you", "自行添加"],
     "status.absentConfirmed": ["มือฉันไม่มีเส้นนี้", "My hand doesn't have this line", "我的手没有这条线"],
     "status.unclear": ["ไม่ชัดในภาพนี้", "Not clear in this photo", "此照片中不清楚"],
+    // owner decision 165 ก (approved text, exact): shown while lines found automatically are on screen
+    "lines.note": ["เส้นที่แสดงเป็นการประมาณจากภาพโดยอัตโนมัติ และยังไม่ได้วัดความแม่นยำกับมือจริง โปรดเทียบกับมือของคุณ และลากจุดกลมเพื่อปรับเส้นให้ตรงกับรอยจริงได้",
+      "The lines shown are estimated automatically from the photo, and their accuracy has not been measured on real hands. " +
+      "Please compare them with your own hand; you can drag the round dots to move a line onto the real crease.",
+      "图中显示的掌纹是根据照片自动估算的，尚未在真实手掌上测量准确度。请与自己的手对照，可以拖动圆点把线移到真实的纹路上。"],
     "status.outside": ["อยู่นอกภาพ", "Outside the photo", "不在照片范围内"],
     "readingUsesOnly": ["คำอ่านใช้เฉพาะเส้นที่พบและเส้นที่คุณยืนยัน", "The reading uses only lines that were found or that you confirmed", "解读只使用已找到或您确认过的掌纹"],
     "consent.other": ["ถ่ายภาพมือของคนอื่นได้เฉพาะเมื่อเจ้าของมือรู้และยินยอมแล้วเท่านั้น ภาพไม่ถูกบันทึกและไม่ถูกส่งออกจากเครื่องนี้",

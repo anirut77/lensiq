@@ -395,7 +395,16 @@
   }
 
   /* ---------- list below the photo ---------- */
+  /** the approved 165 ก note: visible while lines found by the v3 finder are on screen (inserted above the list) */
+  function renderNote() {
+    var list = $("#pv2List"), note = document.getElementById("pv2LinesNote");
+    if (!note && list && list.parentNode) { note = document.createElement("p"); note.id = "pv2LinesNote"; note.className = "pl-small"; list.parentNode.insertBefore(note, list); }
+    if (!note) return;
+    var on = !!(S.F && S.det && S.det.v3);
+    note.hidden = !on; note.textContent = on ? T("lines.note") : "";
+  }
   function renderList() {
+    renderNote();
     if (!S.F) { $("#pv2List").innerHTML = ""; return; }
     var rows = PV.listRows(S.st, lang());
     $("#pv2List").innerHTML = rows.map(function (r) {
