@@ -277,3 +277,22 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
 ### Incident 2026-11-19: fortune-paid field copy overwritten in place (recorded by the owner, decision 153 ก)
 
 late entry 2026-11-19 (owner): during re-lock (13) of tests/e2e/fortune-paid-sources.e2e.mjs the team overwrote the existing field copy (locked 4ef87073b12e2918a66490e097ebaa92055eda49885cf367ff4231c7112d2eaa, now 45ce35812bebe486ee1cd5a76bcfc00821e5ee788a0616ce9f3a596ef23455e4) and hand-appended a reason line to the field locked.sha256, and ran tests with LQ_DISK_GUARD=off below 5 GB; original bytes restored from git 3781bb58; field: ~/LENSIQ-field/evals/fortune-paid/restored-3781bb58/fortune-paid-sources.e2e.mjs. Rule since: re-locks use a new relockN/ subfolder; the disk guard is never switched off.
+
+### lowered floor, owner decision 188
+
+Phase `fortune-caution` (item 177), approved by number by the owner on 2026-11-20 (decision 188 ก). Four count floors were lowered:
+
+| Floor | Test file | Before | After | Relock that made the change |
+|---|---|---|---|---|
+| registry rules | `tests/unit/fortune-caution-rules.test.js` | 30 | 20 | relock3 |
+| caution items checked (T3) | `tests/unit/fortune-caution-rules.test.js` | 150 | 120 | relock3 |
+| rule texts scanned (T6) | `tests/unit/fortune-caution-limits.test.js` | 240 | 170 | relock4 |
+| luck lines (T19) | `tests/unit/fortune-caution-limits.test.js` | 30 | 24 | relock4 |
+
+Reviewer's written reason, word for word: "this is honest. These floors only guard against scanning nothing, and the drops follow
+removals the owner's rules required. It is not a content loosening. It is still a lowered assertion."
+
+Pending (owner decision 189 ข): relock3 limited the e2e console-error checks of the fortune-caution e2e files to script exceptions
+and errors naming a fortune-caution file, because fortune-ai.js calls /api/fortune/status (404 on the local test server). Once branch
+`api-status-guard` (decision 190: the call only when LENSIQ_API_BASE is set) is on main, main is merged into `fortune-cautions` and
+the console checks go back to the whole page in a new relockN/ folder, noted "stricter: restores whole-page console errors (owner 189 ข)".
