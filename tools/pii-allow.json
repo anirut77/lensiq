@@ -509,6 +509,14 @@
    "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
   },
   {
+   "path": "tests/unit/a5-defects.test.js",
+   "types": {
+    "phone": 6
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md; help-line re-check classification tests (A5, 197 ค)"
+  },
+  {
    "path": "tests/unit/backend-analytics.test.js",
    "types": {
     "email": 2
@@ -671,6 +679,14 @@
    },
    "kind": "synthetic",
    "reason": "placeholder e-mail domains used in tests / UI examples (b.co, ex.com, x.dev, company.com, example.co.th); no real address"
+  },
+  {
+   "path": "tests/unit/fixtures/helpline-recheck/samaritans-reformatted.html",
+   "types": {
+    "phone": 1
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md; synthetic page for the help-line re-check test (A5, 197 ค)"
   },
   {
    "path": "tests/unit/fixtures/pc/thfda-synthetic.xml",

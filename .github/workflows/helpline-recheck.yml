@@ -1,6 +1,9 @@
 # Help line re-check (owner order 2026-11-14, Part B): every day, fetch each agency's own page and fail when the number or
 # hours we show (docs/CRISIS-RESOURCES.md) are no longer stated there, so GitHub alerts the owner. No secrets, read-only
 # token, changes nothing. Not part of the CI gate (ci.yml): it never runs on pushes or pull requests.
+# Owner decision 197 ค (2026-11-21): each page is fetched up to 3 times; a page the runner cannot fetch is a WARNING
+# annotation ("could not fetch", the run stays green), never reported as a number change; a page that was read and no
+# longer states the number or its sentence FAILS the run, with the sentence around the number in the log.
 name: Help line re-check
 
 on:

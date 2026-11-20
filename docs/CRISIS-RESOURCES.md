@@ -58,10 +58,21 @@ Notes on the table:
 
 `.github/workflows/helpline-recheck.yml` ("Help line re-check") runs every day at 01:17 UTC (08:17 Bangkok) and on
 demand. It runs `node tools/helpline-recheck.mjs`, which fetches each official page in `tools/helpline-sources.json` and
-fails when a quoted phrase above (number and hours) is no longer on the page, or the page cannot be fetched. GitHub
-emails the owner when a scheduled run fails. It uses no secrets, has a read-only token, changes nothing, and is not part
+fails when a quoted phrase above (number and hours) is no longer on the page (a page it cannot fetch is a warning: see
+below). GitHub emails the owner when a scheduled run fails. It uses no secrets, has a read-only token, changes nothing, and is not part
 of the CI gate (`ci.yml`), so it adds no time to the gate. When it fails: open the page, re-check the number and hours,
 update this table and the component, and only then update the phrase in `tools/helpline-sources.json`.
+
+Owner decision 197 ค (2026-11-21), because the GitHub runner often cannot reach the 1669 and 1300 pages (this machine can):
+- Each page is fetched up to 3 times (5 s, then 10 s apart).
+- Three outcomes are reported separately. **ok**: the quoted phrase is on the page (a spacing-only difference such as
+  "ตลอด24" / "ตลอด 24" is ok and noted). **CHANGED**: the page was read and the phrase is gone; the log says whether the
+  number itself is no longer on the page or the number is still there but its sentence (hours, wording) changed, and
+  prints the sentence around the number. **could not fetch**: the page was not read, so nothing is known about the number.
+- Only CHANGED fails the run (GitHub emails the owner). "could not fetch" is a yellow warning annotation on a green run and
+  a line in the log; it is never reported as a number change and never passes silently. When it repeats, open the page by
+  hand from a Thai connection.
+- Tests: `tests/unit/a5-defects.test.js` (fixtures in `tests/unit/fixtures/helpline-recheck/`, no network).
 
 ## Where each number appears
 
