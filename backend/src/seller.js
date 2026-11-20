@@ -436,9 +436,10 @@ export function renderDoc(d) {
   }
   const b = d.buyer;
   const quote = d.doc_type === "quotation";
-  const head = `<tr><th>#</th><th>${tri(L.desc)}</th><th class="num">${tri(L.qty)}</th><th class="num">${tri(L.unit)}</th>` +
-    `${quote ? `<th class="num">${tri(L.regular)}</th>` : ""}<th class="num">${tri(L.amount)}</th></tr>`;
-  const regCell = l => `<td class="num">${esc(l.regular_th)}<small>${esc(l.regular_en)} · ${esc(l.regular_zh)}</small></td>`;
+  // fixed column widths (A4 fits in TH / EN / ZH): headers and the regular-price ranges wrap, amounts stay on one line
+  const head = `<tr><th class="c-no">#</th><th>${tri(L.desc)}</th><th class="num c-qty">${tri(L.qty)}</th><th class="num c-unit">${tri(L.unit)}</th>` +
+    `${quote ? `<th class="num c-reg">${tri(L.regular)}</th>` : ""}<th class="num c-amt">${tri(L.amount)}</th></tr>`;
+  const regCell = l => `<td class="num reg">${esc(l.regular_th)}<small>${esc(l.regular_en)} · ${esc(l.regular_zh)}</small></td>`;
   const gone = (l, i) => `<tr data-unavailable-line="${esc(l.id)}"><td>${i + 1}</td>` +
     `<td>${tri(["ไม่อยู่ในรายการราคาที่อนุมัติแล้ว", "No longer on the approved price list", "已不在批准的价目表中"])}</td>` +
     `<td class="num">${l.qty}</td><td class="num">—</td>${quote ? `<td class="num">—</td>` : ""}<td class="num">—</td></tr>`;
@@ -476,7 +477,9 @@ ${DOC_FONT_CSS /* self-hosted Thai font inline: no machine fallback, no U+F700�
   table { width: 100%; border-collapse: collapse; } th, td { text-align: left; vertical-align: top; padding: 5px 6px; }
   .meta { width: auto; } .meta th { font-weight: 600; padding-right: 12px; }
   .items { margin-top: 12px; border-top: 1px solid #999; } .items thead th { border-bottom: 1px solid #999; background: #f3f3f3; font-weight: 600; }
-  .num { text-align: right; white-space: nowrap; } .total td { border-top: 2px solid #111; font-weight: 700; font-size: 15px; }
+  .items { table-layout: fixed; } .items th, .items td { overflow-wrap: anywhere; }
+  .items .c-no { width: 5%; } .items .c-qty { width: 9%; } .items .c-unit { width: 14%; } .items .c-reg { width: 16%; } .items .c-amt { width: 18%; }
+  .num { text-align: right; white-space: nowrap; overflow-wrap: normal; } th.num, td.reg { white-space: normal; } .total td { border-top: 2px solid #111; font-weight: 700; font-size: 15px; }
   .muted { color: #444; font-size: 12px; } .stamp { border: 3px solid #b00; color: #b00; padding: 4px 10px; font-weight: 700; display: inline-block; margin: 6px 0; }
   .missing { border: 3px solid #b00; padding: 10px 14px; margin: 8px 0; } .missing .big { font-size: 18px; font-weight: 700; color: #b00; margin: 0 0 6px; }
   @media print { body { padding: 0; } @page { size: A4; margin: 14mm; } }
