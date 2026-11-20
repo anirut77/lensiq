@@ -1,4 +1,4 @@
-// tests/e2e/palm-v3.e2e.mjs — FIXED TEST SET "palm-v3-lines" relock1 (palm v3 majors, owner order 2026-11-20 evening), locked
+// tests/e2e/palm-v3.e2e.mjs — FIXED TEST SET "palm-v3-lines" relock3 (relock1 called the page hook layout() without its target) (palm v3 majors, owner order 2026-11-20 evening), locked
 // BEFORE the majors-finish change. palm.html with LENSIQ_PALM_V2 = true AND LENSIQ_PALM_V3_LINES = true; DRAWN SYNTHETIC hands only
 // (tests/fixtures/palm-v2/synth-hand.js, textures.js, tests/fixtures/palm-v3/synth-real.js); no photo of any person.
 //  a  sub-switch off (V2 on, V3 not set): palm-v3-lines.js is not downloaded and the v2 finder answers.
@@ -69,7 +69,7 @@ export default async function ({ base, launch, check }) {
         assert(r.finder === "v3", "finder with the sub-switch on: " + r.finder);
         const found = ["heart", "head", "life"].filter(id => r.lines[id].status === "found");
         assert(found.length >= 2, "majors found " + S(found));
-        const lay = await page.evaluate(() => window.__palmV2.layout());
+        const lay = await page.evaluate(() => window.__palmV2.layout("screen"));
         for (const id of found) { const L = lay.lines.find(l => l.id === id); assert(L && L.px && L.px.length > 1 && L.status === "found", `${id} not drawn ${S(L)}`); }
         assert(r.beats >= 3 && r.gap <= 500, "main thread stalled " + S({ gap: r.gap, beats: r.beats }));
       } finally { await page.close(); }

@@ -16,3 +16,7 @@ cbb7479ce6dd27917724121e3d5f89a7fa77220c6bafded26ab9d32c61408e62  tests/e2e/palm
 3d786e1bd90524de7592823c16c6503b7c201fe07848899b1d74ae50d2d00bf2  tests/unit/palm-v3-hard.test.js  # repo file (same commit as lock 2026-11-20T06:33:17Z; field: ~/LENSIQ-field/evals/palm-v3-lines/relock2/tests/unit/palm-v3-hard.test.js)
 # relock1 (2026-11-20 evening, before the majors-finish change): palm-v3-hard.test.js (harder null H, fresh realistic seeds R, timing T) + palm-v3.e2e.mjs (sub-switch on, synthetic hands only).
 # relock2: palm-v3-hard.test.js re-locked only to wrap two lines over 200 characters (format rule) found right after relock1; no test had been run; no assertion changed.
+# locked 2026-11-20T07:00:44Z (tools/eval-guard.mjs lock, 1 file)
+e7b9e138eb9c155166ad6859be273f5fc2ecbcb28f749f2a0c115f061090eb6b  relock3/tests/e2e/palm-v3.e2e.mjs
+e7b9e138eb9c155166ad6859be273f5fc2ecbcb28f749f2a0c115f061090eb6b  tests/e2e/palm-v3.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:00:44Z; field: ~/LENSIQ-field/evals/palm-v3-lines/relock3/tests/e2e/palm-v3.e2e.mjs)
+# relock3 (2026-11-20, after the first e2e run): palm-v3.e2e.mjs check b called the page test hook layout() without its required target, so it threw before asserting the drawing; now layout("screen"). No assertion changed or removed; the check is now able to run.
