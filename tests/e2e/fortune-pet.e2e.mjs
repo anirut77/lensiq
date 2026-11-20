@@ -22,6 +22,8 @@ const LINK = "anirut77.github.io/lensiq/petread.html";
 // RE-LOCK 2026-11-20 (owner decision 184 ก; ledger evals-locks/fortune-pet.sha256 "relock-pet-3"): the site address is on the
 // card only when window.LENSIQ_CARD_SHOW_ADDRESS is true (default false). P3 now checks the default card text has the brand line
 // and no address, and (new page per language, switch on) that the address comes back: equal or stricter. Nothing else changed.
+// RE-LOCK 2026-11-20 relock-pet-4: test fix only, the switch-on page now sets the photo first (as the first page does) so the
+// reading starts; without it the page had no species and never read. Same assertions; equal.
 const BRAND_LINE = { th: "จาก LENSIQ", en: "From LENSIQ", zh: "来自 LENSIQ" };
 const BAN = {
   th: /สุขภาพ|ป่วย|โรค|อาการ|เจ็บ|ปวด|ตาย|เสียชีวิต|อายุ|สัตวแพทย์|หมอ|รักษา|ให้ยา|กินยา|วัคซีน|แข็งแรง|ร่างกาย|น้ำหนัก|อ้วน|เลขเด็ด|เลขนำโชค|หวย|ซวย|โชคร้าย|กาลกิณี/,
@@ -145,6 +147,7 @@ export default async function ({ base, launch, check, fakeCams }) {
         await privacyScan(page);
         await page.close();
         const on = await open(browser, base, { lang, init: ["window.LENSIQ_CARD_SHOW_ADDRESS = true;"] });
+        await usePhoto(on); // re-lock relock-pet-4: the switch-on page needs the species like the first page (a photo sets it)
         await fillAndRead(on);
         await on.waitFor("document.getElementById('petCard').dataset.drawn === '1'", 8000);
         const txtOn = await on.evaluate(() => window.__LQPET.cardText());

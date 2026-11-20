@@ -51,3 +51,10 @@ aee93e92b47ff9464f99455823b3950cf24ab4c831a08290374ec3401645810e  relock-pet-3/f
 a7848405b5f9f91a381ae28fe633c88775b8126b8bf22d1ce20ff16f0eb09c2f  tests/unit/fortune-pet.test.js  # repo file (same commit as lock 2026-11-20T08:49:57Z; field: ~/LENSIQ-field/evals/fortune-pet/relock-pet-3/fortune-pet.test.js)
 b2de9fc740a00ebb7af55f534170da50408880bf5231a4158d547d8d126c461e  tests/e2e/fortune-pet.e2e.mjs  # repo file (same commit as lock 2026-11-20T08:49:57Z; field: ~/LENSIQ-field/evals/fortune-pet/relock-pet-3/fortune-pet.e2e.mjs)
 aee93e92b47ff9464f99455823b3950cf24ab4c831a08290374ec3401645810e  tests/e2e/fortune-pet-2.e2e.mjs  # repo file (same commit as lock 2026-11-20T08:49:57Z; field: ~/LENSIQ-field/evals/fortune-pet/relock-pet-3/fortune-pet-2.e2e.mjs)
+# RE-LOCK 2026-11-20 relock-pet-4 (branch pet-zodiac-live): TEST FIX of relock-pet-3 found by its first run (product uncommitted):
+# P3's new switch-on page called fillAndRead without the photo, so no species was set and no reading started (timeout before any
+# assertion). It now calls usePhoto first, exactly like the first page. Same assertions (EQUAL). Log:
+# ~/LENSIQ-field/evals/pet-card-address/run-3-product-pet-e2e.log. Locked BEFORE the product commit.
+# locked 2026-11-20T09:16:47Z (tools/eval-guard.mjs lock, 1 file)
+3067a280e213c30e3a2774264f47780526788dcf332d5151c4f9c87bfdee1e26  relock-pet-4/fortune-pet.e2e.mjs
+3067a280e213c30e3a2774264f47780526788dcf332d5151c4f9c87bfdee1e26  tests/e2e/fortune-pet.e2e.mjs  # repo file (same commit as lock 2026-11-20T09:16:47Z; field: ~/LENSIQ-field/evals/fortune-pet/relock-pet-4/fortune-pet.e2e.mjs)
