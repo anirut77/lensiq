@@ -1,4 +1,6 @@
 "use strict";
+// RELOCK 8 2026-11-20 (before measuring relock 7 on the code): "ได้ใจคน" (win people over) added to the Thai fixed phrases; its English
+// counterpart "people over" was already listed. Nothing else changed.
 // tests/unit/fortune-caution-wording.test.js — FIXED TEST SET fortune-caution, APPROVED-WORDING GATE (coordinator order 2026-11-20 after the
 // independent review, round 2: "stop the probe arms race, change the control"). Locked BEFORE the code (relock7/).
 // Primary control: every caution, encouragement, guidance and luck text that can ship is an entry of the register fortune-caution-wording.js
@@ -28,7 +30,7 @@ const loadPack = file => { const w = {}; vm.runInNewContext(readFileSync(join(RO
 /* fixed broad phrases (locked) */
 const PEOPLE_OK = {
   th: ["บ้านพักคนชรา", "คนที่ไว้ใจได้", "คนที่ไว้ใจ", "คนที่ลำบาก", "คนเดียว", "คนรอบตัว", "คนอื่น", "ทุกคน", "เลือกคน", "ผู้อื่น", "ผู้ใหญ่", "ผู้ที่ช่วยเหลือ",
-    "ผู้อุปถัมภ์", "พ่อแม่", "คู่นี้", "เพื่อนร่วมทาง", "เพื่อน", "คนที่ไม่หวังดี", "คนแปลกหน้า", "คนใกล้ตัว", "ผู้สูงอายุ"],
+    "ผู้อุปถัมภ์", "พ่อแม่", "คู่นี้", "เพื่อนร่วมทาง", "เพื่อน", "คนที่ไม่หวังดี", "คนแปลกหน้า", "คนใกล้ตัว", "ผู้สูงอายุ", "ได้ใจคน"],
   en: ["someone you trust", "people in need", "the right people", "people around you", "helpful people", "people see", "people over", "with others",
     "others miss", "friends", "your parents", "the elders", "a senior person", "those who help you", "this pair", "strangers", "people who wish you ill"],
   zh: ["每个人", "信任的人", "可信的人", "有需要的人", "一个人", "选对人", "朋友", "个人", "他人", "人脉", "身边的人", "人生", "替人", "人心", "别人", "这一对",

@@ -119,3 +119,8 @@ b6360c253b7e8d818e593b11513ff0132d7e757805f6ec03b5efa5d838651c1f  relock7/fortun
 b4f54aa515d8b43ea9b73cfcb64bd737d03837a6ac842aa3a590f51a386e469f  tests/unit/fortune-caution-wording.test.js  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-wording.test.js)
 07d9cdf968d80fc931c04c437060da385823fb556ffcaeba43bde6381656a383  tests/unit/fortune-caution-probes2.test.js  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-probes2.test.js)
 b6360c253b7e8d818e593b11513ff0132d7e757805f6ec03b5efa5d838651c1f  tests/e2e/fortune-caution-reading-visible.e2e.mjs  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-reading-visible.e2e.mjs)
+# RELOCK 8 2026-11-20, before relock 7 is measured on the code: tests/unit/fortune-caution-wording.test.js only: the Thai fixed broad phrases gain "ได้ใจคน"
+# (win people over; the English counterpart "people over" was already in the list), which register entry bz.year.harm.cheer uses. Nothing else changed.
+# locked 2026-11-20T08:39:05Z (tools/eval-guard.mjs lock, 1 file)
+98a5e0da39cbaa7d5ba90a8299414b65af69140986951496e7cf8573052d8e15  relock8/fortune-caution-wording.test.js
+98a5e0da39cbaa7d5ba90a8299414b65af69140986951496e7cf8573052d8e15  tests/unit/fortune-caution-wording.test.js  # repo file (same commit as lock 2026-11-20T08:39:05Z; field: ~/LENSIQ-field/evals/fortune-caution/relock8/fortune-caution-wording.test.js)
