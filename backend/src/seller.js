@@ -17,6 +17,14 @@
 //                                               takes the next number in one D1 batch and freezes the seller details
 //   POST   /admin/api/seller/docs/:id/void      re-auth; the number stays used (never reused)
 //
+// Document language (owner decision 199 ข, 2026-11-20): ONE seller default for every new document, Thai + English when not
+// set. Behind the Worker var SELLER_DOC_LANG ("on" enables it; "off" in wrangler.toml for the template / customer build and
+// the test deployment). Off = documents in TH + EN + ZH exactly as before, GET /seller has no doc_langs and a PUT naming
+// it is refused (unknown_field). On = GET /seller reports {value, effective, options}, PUT accepts doc_langs th | th-en |
+// th-en-zh ("" = back to the default), stored in the settings table (no migration). Issuing freezes the language with the
+// seller details, so an issued or void document never changes; documents issued without one stay TH + EN + ZH. A
+// per-document choice is not built (owner: later). Lawyer question: docs/LEGAL-PACKET.md 7.4 (L77).
+//
 // Privacy rules (owner order): the details live in D1 only (never in the repository, which is public); this module never
 // writes a log line and imports nothing that talks to AI, mail, LINE or analytics; error messages name the field, never
 // the value; the audit (index.js) records who / when / which fields only. Logo: PNG / JPEG / WebP checked by their bytes,
@@ -25,11 +33,29 @@ import { baht, thaiDate } from "./receipt.js";
 import { PRICE_LINES, lineAmount, priceLine } from "./price-list.js";
 import { fromB64, randomId, randomToken, sha256Hex, toB64 } from "./crypto.js";
 import { HttpError, now } from "./util.js";
+import { getSetting, putSetting } from "./store.js";
 import { DOC_FONT_CSS, DOC_FONT_FAMILY } from "./doc-font.js";
 
 export const LOGO_MAX_BYTES = 200000;
 export const LOGO_TYPES = ["image/png", "image/jpeg", "image/webp"];
 export const DOC_TYPES = ["quotation", "invoice", "receipt"];
+/** Document language sets: Thai is always first (owner decision 199). */
+export const DOC_LANGS = ["th", "th-en", "th-en-zh"];
+/** the seller default while SELLER_DOC_LANG is on and the owner has not chosen (owner decision 199 ข) */
+export const DEFAULT_DOC_LANGS = "th-en";
+/** documents while the switch is off, and documents issued without a frozen language */
+export const LEGACY_DOC_LANGS = "th-en-zh";
+const LANG_SETTING = "seller_doc_langs";
+/** SELLER_DOC_LANG = "on" (trimmed, any case) @param {any} env */
+export const docLangOn = env => String((env && env.SELLER_DOC_LANG) || "").trim().toLowerCase() === "on";
+/** @param {any} v */
+const langOf = v => (DOC_LANGS.includes(v) ? v : null);
+/** stored seller default, or null @param {any} db */
+const storedLangs = async db => langOf(await getSetting(db, LANG_SETTING, null));
+/** language set of a NEW document (draft, or one being issued now) @param {any} env */
+export const draftLangs = async env => (docLangOn(env) ? (await storedLangs(env.DB)) || DEFAULT_DOC_LANGS : LEGACY_DOC_LANGS);
+/** language set frozen in an issued / void document's seller copy @param {any} snap */
+const frozenLangs = snap => langOf(snap && snap.doc_langs) || LEGACY_DOC_LANGS;
 const DOC_CODE = { quotation: "QT", invoice: "IV", receipt: "RC" };
 
 const CTRL = /[\u0000-\u0008\u000b-\u001f\u007f]/;
@@ -123,17 +149,34 @@ export function maskedView(p) {
   };
 }
 
-/** GET /seller @param {any} env */
-export async function getSeller(env) { return maskedView(await row(env.DB)); }
+/** GET /seller (+ doc_langs while SELLER_DOC_LANG is on) @param {any} env */
+export async function getSeller(env) {
+  /** @type {any} */
+  const v = maskedView(await row(env.DB));
+  if (docLangOn(env)) {
+    const value = await storedLangs(env.DB);
+    v.doc_langs = { value, effective: value || DEFAULT_DOC_LANGS, options: DOC_LANGS.slice() };
+  }
+  return v;
+}
 
 /**
- * Validates a PUT body (without password / totp). Returns {cols: {column: value}, fields: [names]}. Unknown keys are refused
- * without echoing them. @param {any} b
+ * Validates a PUT body (without password / totp). Returns {cols: {column: value}, fields: [names], langs?}. Unknown keys are
+ * refused without echoing them; doc_langs is a known key only while SELLER_DOC_LANG is on (o.docLangs).
+ * @param {any} b @param {{docLangs?: boolean}} [o]
  */
-export function cleanUpdate(b) {
+export function cleanUpdate(b, o = {}) {
   if (!b || typeof b !== "object" || Array.isArray(b)) throw new HttpError(400, "invalid request body", { code: "bad_body" });
   const cols = {};
+  /** @type {string|null|undefined} */
+  let langs;
   for (const [k, v] of Object.entries(b)) {
+    if (k === "doc_langs" && o.docLangs) {
+      if (v === null || v === "") { langs = null; continue; }
+      if (!langOf(v)) throw bad(k);
+      langs = v;
+      continue;
+    }
     if (!Object.prototype.hasOwnProperty.call(FIELDS, k)) throw new HttpError(400, "unknown field in the request (unknown_field)", { code: "unknown_field" });
     if (v === null || v === "") { cols[k] = null; continue; }
     cols[k] = FIELDS[k](v, k);
@@ -141,12 +184,14 @@ export function cleanUpdate(b) {
   }
   if (cols.vat_registered === 1 && !("vat_rate_bp" in cols)) cols.vat_rate_bp_default = 700;
   const fields = Object.keys(cols).filter(k => k !== "vat_rate_bp_default");
+  if (langs !== undefined) fields.push("doc_langs");
   if (!fields.length) throw new HttpError(400, "nothing to change", { code: "empty" });
-  return { cols, fields };
+  return langs === undefined ? { cols, fields } : { cols, fields, langs };
 }
 
-/** Applies a cleaned update. @param {any} env @param {{cols: Record<string, any>}} u */
+/** Applies a cleaned update. @param {any} env @param {{cols: Record<string, any>, langs?: string|null}} u */
 export async function applyUpdate(env, u) {
+  if (u.langs !== undefined) await putSetting(env.DB, LANG_SETTING, u.langs);
   const sets = [], vals = [];
   for (const [k, v] of Object.entries(u.cols)) {
     if (k === "vat_rate_bp_default") { sets.push("vat_rate_bp = COALESCE(vat_rate_bp, ?" + (vals.length + 1) + ")"); vals.push(v); continue; }
@@ -282,8 +327,9 @@ function figures(r, p) {
   return { lines, subtotal, rate, vat, total, unavailable: lines.some(l => l.unavailable) };
 }
 
-/** Builds the structured document from a row (no further query). @param {any} r @param {any} p @param {any} [logo] */
-function build(r, p, logo) {
+/** Builds the structured document from a row (no further query). @param {any} r @param {any} p @param {any} [logo]
+ *  @param {string} [langs] language set of a draft (an issued / void document uses its frozen one) */
+function build(r, p, logo, langs = LEGACY_DOC_LANGS) {
   const missing = missingFields(p);
   const f = figures(r, p);
   const seller = {};
@@ -292,6 +338,7 @@ function build(r, p, logo) {
   seller.logo_mime = logo ? logo.mime : null;
   return {
     id: r.id, doc_type: r.doc_type, status: r.status, number: r.number, created_at: r.created_at, issued_at: r.issued_at, voided_at: r.voided_at,
+    langs: r.seller_json ? frozenLangs(p) : langs,
     buyer: JSON.parse(r.buyer_json), extra: r.extra_json ? JSON.parse(r.extra_json) : {}, lines: f.lines,
     vat_registered: p.vat_registered == null ? null : !!p.vat_registered, vat_rate_bp: f.rate, subtotal_satang: f.subtotal, vat_satang: f.vat, total_satang: f.total,
     seller: missing.length ? null : seller, missing_seller_fields: missing, unavailable_lines: f.lines.filter(l => l.unavailable).map(l => l.id),
@@ -322,7 +369,7 @@ export async function docData(env, id) {
     return build(r, JSON.parse(r.seller_json), logo);
   }
   const p = await row(env.DB);
-  return build(r, p, p.logo_data ? { mime: p.logo_mime, data: p.logo_data } : null);
+  return build(r, p, p.logo_data ? { mime: p.logo_mime, data: p.logo_data } : null, await draftLangs(env));
 }
 
 /** Pre-check of POST /docs/:id/issue (no secret needed): 404 / 409 already_issued / 409 not_on_price_list, or the missing
@@ -348,6 +395,7 @@ export async function issueDoc(env, id) {
   if (d.unavailable_lines.length) throw new HttpError(409, "a line of this draft is no longer on the price list (not_on_price_list)", { code: "not_on_price_list" });
   const snap = {};
   for (const k of SELLER_SNAPSHOT_KEYS) snap[k] = p[k] == null ? null : p[k];
+  if (docLangOn(env)) snap.doc_langs = await draftLangs(env); // frozen with the details (switch off: no key = TH + EN + ZH)
   const logoHash = p.logo_data ? await sha256Hex(String(p.logo_data)) : null;
   const tok = randomToken(16), t = now(), db = env.DB;
   const logoStmt = logoHash
@@ -381,10 +429,28 @@ export async function voidDoc(env, id) {
 
 // ---- rendering (print-ready A4 HTML; the browser saves it as PDF) -------------------------------------------------------
 const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-/** "TH <small>EN · ZH</small>" (EN · ZH on its own line) @param {string[]} l */
-const tri = l => `${esc(l[0])}<small>${esc(l[1])} · ${esc(l[2])}</small>`;
-/** "TH <small>EN · ZH</small>" on ONE line (labels: keeps the header and tables short, decision 192 ก) @param {string[]} l */
-const triI = l => `${esc(l[0])} <small class="i">${esc(l[1])} · ${esc(l[2])}</small>`;
+/** indexes into a [TH, EN, ZH] text triple for each language set (Thai always first) */
+const LANG_IX = { th: [0], "th-en": [0, 1], "th-en-zh": [0, 1, 2] };
+/** Text helpers for one language set (owner decision 199). With TH + EN + ZH the output is the same as before the switch.
+ *  @param {string} langs */
+function langKit(langs) {
+  const ix = LANG_IX[langs] || LANG_IX[LEGACY_DOC_LANGS];
+  /** @param {string[]} l */
+  const rest = l => ix.slice(1).map(i => l[i]);
+  return {
+    rest,
+    /** "TH <small>EN · ZH</small>" (EN · ZH on its own line) @param {string[]} l */
+    tri: l => { const r = rest(l); return esc(l[0]) + (r.length ? `<small>${r.map(esc).join(" · ")}</small>` : ""); },
+    /** "TH <small>EN · ZH</small>" on ONE line (labels: keeps the header and tables short, decision 192 ก) @param {string[]} l */
+    triI: l => { const r = rest(l); return esc(l[0]) + (r.length ? ` <small class="i">${r.map(esc).join(" · ")}</small>` : ""); },
+    /** plain "TH · EN · ZH" (the column name above a value on a narrow screen) @param {string[]} l */
+    plain: l => ix.map(i => l[i]).join(" · "),
+    /** "TH / EN / ZH" @param {string[]} l */
+    slash: l => ix.map(i => l[i]).join(" / "),
+    /** the texts of this language set @param {string[]} l */
+    pick: l => ix.map(i => l[i])
+  };
+}
 const L = {
   seller: ["ผู้ขาย", "Seller", "卖方"], customer: ["ลูกค้า", "Customer", "客户"], no: ["เลขที่", "No.", "编号"], date: ["วันที่", "Date", "日期"],
   desc: ["รายการ", "Description", "项目"], qty: ["จำนวน", "Quantity", "数量"], unit: ["ราคานำร่องต่อหน่วย", "Pilot unit price", "试点单价"],
@@ -393,16 +459,32 @@ const L = {
   regularShort: ["ราคาปกติ *", "Regular price *", "正常价格 *"],
   subtotal: ["รวมเป็นเงิน (ไม่รวมภาษีมูลค่าเพิ่ม)", "Subtotal (excl. VAT)", "小计（不含增值税）"], total: ["รวมทั้งสิ้น", "Total", "合计"],
   pay: ["โอนเงินเข้าบัญชี", "Bank transfer", "银行转账"], validUntil: ["ใช้ได้ถึง", "Valid until", "有效期至"], due: ["กำหนดชำระ", "Payment due", "付款期限"],
-  paidOn: ["วันที่รับชำระ", "Paid on", "付款日期"], ref: ["อ้างอิง", "Reference", "参考"], note: ["หมายเหตุ", "Note", "备注"], branch: ["สาขา", "Branch", "分支"]
+  paidOn: ["วันที่รับชำระ", "Paid on", "付款日期"], ref: ["อ้างอิง", "Reference", "参考"], note: ["หมายเหตุ", "Note", "备注"], branch: ["สาขา", "Branch", "分支"],
+  headOffice: ["สำนักงานใหญ่", "Head office", "总公司"], minimum: ["ขั้นต่ำ", "minimum", "最低"],
+  missingBig: ["ยังไม่ได้กรอกข้อมูลกิจการ", "Business details not filled in yet", "尚未填写商家信息"],
+  missingWhy: ["เอกสารนี้ยังออกเป็นฉบับจริงไม่ได้ กรุณากรอกในหน้า \"ข้อมูลกิจการ\" ของหลังบ้าน",
+    "This document cannot be issued until the owner fills in the \"Business details\" page of the back office", "在后台\"商家信息\"页面填写完整之前，本单据不能正式开具"],
+  stillMissing: ["ยังขาด", "Still missing", "尚缺"], seeMissing: ["ดูรายการที่ยังขาดด้านบน", "See the missing details above", "见上方缺少的信息"],
+  gone: ["ไม่อยู่ในรายการราคาที่อนุมัติแล้ว", "No longer on the approved price list", "已不在批准的价目表中"],
+  noVat: ["ผู้ขายไม่ได้จดทะเบียนภาษีมูลค่าเพิ่ม ไม่มีภาษีมูลค่าเพิ่ม", "Seller not VAT-registered: no VAT charged", "卖方未登记增值税，不收增值税"],
+  vatUnset: ["ภาษีมูลค่าเพิ่ม: ยังไม่ได้ระบุ", "VAT: not stated yet", "增值税：尚未填写"],
+  transferNote: ["ระบุเลขที่เอกสารในบันทึกการโอน ไม่มีการชำระเงินออนไลน์", "Put the document number in the transfer note. No online payment", "转账备注请填写单据编号，不提供在线支付"],
+  void: ["ยกเลิก", "VOID", "作废"], draft: ["ฉบับร่าง ยังไม่ได้ออกเลขที่", "DRAFT, not issued", "草稿，未开具"],
+  pilotNoVat: ["ราคานำร่องตามรายการราคาที่อนุมัติ ผู้ขายไม่เรียกเก็บภาษีมูลค่าเพิ่ม", "Pilot prices from the approved price list; the seller charges no VAT", "批准价目表中的试点价格；卖方不收增值税"],
+  exVatEnZh: ["", "Prices excl. VAT (pilot prices from the approved price list)", "价格不含增值税（批准价目表中的试点价格）"]
 };
 const TITLE = { quotation: ["ใบเสนอราคา", "Quotation", "报价单"], invoice: ["ใบแจ้งหนี้", "Invoice", "账单"], receipt: ["ใบเสร็จรับเงิน", "Receipt", "收据"] };
 const addDaysT = (t, n) => t + n * 86400;
 
 /** Print-ready A4 HTML. Layout (owner decision 192 ก, 2026-11-20): a two-column header (seller on the left; number, dates
- *  and buyer on the right), one-line trilingual labels and a short "regular price *" column header with its full text as a
+ *  and buyer on the right), one-line labels and a short "regular price *" column header with its full text as a
  *  footnote, so a document with up to 5 lines fits on ONE A4 page; longer documents paginate (the table header repeats).
- *  Locked test: tests/e2e/seller-doc-onepage.e2e.mjs. @param {any} d */
+ *  Languages: d.langs (th | th-en | th-en-zh, owner decision 199; TH + EN + ZH when absent). On a screen up to 560 px wide
+ *  (a phone, or the admin preview on a phone) the item table turns into one block per line with each column's name
+ *  above its value, so the largest amounts stay on the screen (A3 2026-11-20); print is unchanged.
+ *  Locked tests: tests/e2e/seller-doc-onepage.e2e.mjs, tests/e2e/seller-doc-narrow.e2e.mjs. @param {any} d */
 export function renderDoc(d) {
+  const { rest, tri, triI, plain, slash, pick } = langKit(d.langs || LEGACY_DOC_LANGS);
   const title = TITLE[d.doc_type];
   const s = d.seller;
   const sf = (k, v) => `<span data-seller-field="${k}">${esc(v)}</span>`;
@@ -421,17 +503,15 @@ export function renderDoc(d) {
   let sellerBlock;
   if (!s) {
     sellerBlock = `<section class="missing" data-seller-missing role="alert">
-  <p class="big">ยังไม่ได้กรอกข้อมูลกิจการ<small>Business details not filled in yet · 尚未填写商家信息</small></p>
-  <p>เอกสารนี้ยังออกเป็นฉบับจริงไม่ได้ กรุณากรอกในหน้า "ข้อมูลกิจการ" ของหลังบ้าน
-    <small>This document cannot be issued until the owner fills in the "Business details" page of the back office ·
-    在后台"商家信息"页面填写完整之前，本单据不能正式开具</small></p>
-  <p>ยังขาด <small>Still missing · 尚缺</small></p>
+  <p class="big">${tri(L.missingBig)}</p>
+  <p>${tri(L.missingWhy)}</p>
+  <p>${tri(L.stillMissing)}</p>
   <ul>${d.missing_seller_fields.map(k => `<li data-missing="${esc(k)}">${tri(LABELS[k])}</li>`).join("")}</ul>
 </section>`;
   } else {
     const contact = [s.contact_phone && sf("contact_phone", s.contact_phone), s.contact_email && sf("contact_email", s.contact_email),
       s.contact_line && sf("contact_line", "LINE " + s.contact_line)].filter(Boolean).join(" · ");
-    const branchHtml = s.branch ? sf("branch", s.branch) : `<span data-seller-field="branch">${triI(["สำนักงานใหญ่", "Head office", "总公司"])}</span>`;
+    const branchHtml = s.branch ? sf("branch", s.branch) : `<span data-seller-field="branch">${triI(L.headOffice)}</span>`;
     sellerBlock = `<div class="party">
   <div class="name">${sf("legal_name", s.legal_name)}</div>
   <div>${sf("address", s.address)}</div>
@@ -446,35 +526,44 @@ export function renderDoc(d) {
   ${b.tax_id ? `<div><span class="k">${triI(LABELS.tax_id)}</span> ${esc(b.tax_id)}${b.branch ? " · " + esc(b.branch) : ""}</div>` : ""}
 </div>`;
   const quote = d.doc_type === "quotation";
+  // column names repeated on each cell (data-label) for the narrow-screen layout; the table header is the wide one
+  const lab = l => ` data-label="${esc(plain(l))}"`;
   // fixed column widths (A4 fits in TH / EN / ZH): headers and the regular-price ranges wrap, amounts stay on one line
   const head = `<tr><th class="c-no">#</th><th>${triI(L.desc)}</th><th class="num c-qty">${triI(L.qty)}</th><th class="num c-unit">${triI(L.unit)}</th>` +
     `${quote ? `<th class="num c-reg">${triI(L.regularShort)}</th>` : ""}<th class="num c-amt">${triI(L.amount)}</th></tr>`;
-  // the regular price is written once when TH / EN / ZH read the same (a plain number range), else in all three
-  const regCell = l => `<td class="num reg">${esc(l.regular_th)}` +
-    `${l.regular_en === l.regular_th && l.regular_zh === l.regular_th ? "" : `<small>${esc(l.regular_en)} · ${esc(l.regular_zh)}</small>`}</td>`;
-  const gone = (l, i) => `<tr data-unavailable-line="${esc(l.id)}"><td>${i + 1}</td>` +
-    `<td>${tri(["ไม่อยู่ในรายการราคาที่อนุมัติแล้ว", "No longer on the approved price list", "已不在批准的价目表中"])}</td>` +
-    `<td class="num">${l.qty}</td><td class="num">—</td>${quote ? `<td class="num">—</td>` : ""}<td class="num">—</td></tr>`;
-  const rows = d.lines.map((l, i) => l.unavailable ? gone(l, i) : `<tr><td>${i + 1}</td><td>${esc(l.name_th)}<small>${esc(l.name_en)} · ${esc(l.name_zh)}` +
-    ` — ${esc(l.unit_th)} · ${esc(l.unit_en)} · ${esc(l.unit_zh)}${l.min_satang ? ` · ขั้นต่ำ / minimum / 最低 ${baht(l.min_satang)}` : ""}</small></td>` +
-    `<td class="num">${l.qty}</td><td class="num">${baht(l.unit_satang)}</td>${quote ? regCell(l) : ""}<td class="num">${baht(l.amount_satang)}</td></tr>`).join("");
+  // the regular price is written once when every language reads the same (a plain number range), else in each language
+  const regCell = l => {
+    const r = rest([l.regular_th, l.regular_en, l.regular_zh]);
+    return `<td class="num reg"${lab(L.regularShort)}>${esc(l.regular_th)}${r.every(x => x === l.regular_th) ? "" : `<small>${r.map(esc).join(" · ")}</small>`}</td>`;
+  };
+  const gone = (l, i) => `<tr data-unavailable-line="${esc(l.id)}"><td class="c-no">${i + 1}</td>` +
+    `<td>${tri(L.gone)}</td>` +
+    `<td class="num"${lab(L.qty)}>${l.qty}</td><td class="num"${lab(L.unit)}>—</td>${quote ? `<td class="num"${lab(L.regularShort)}>—</td>` : ""}<td class="num"${lab(L.amount)}>—</td></tr>`;
+  const lineText = l => {
+    const names = rest([l.name_th, l.name_en, l.name_zh]).map(esc).join(" · ");
+    const units = pick([l.unit_th, l.unit_en, l.unit_zh]).map(esc).join(" · ");
+    const min = l.min_satang ? ` · ${esc(slash(L.minimum))} ${baht(l.min_satang)}` : "";
+    return `${esc(l.name_th)}<small>${names ? names + " — " : ""}${units}${min}</small>`;
+  };
+  const rows = d.lines.map((l, i) => l.unavailable ? gone(l, i) : `<tr><td class="c-no">${i + 1}</td><td>${lineText(l)}</td>` +
+    `<td class="num"${lab(L.qty)}>${l.qty}</td><td class="num"${lab(L.unit)}>${baht(l.unit_satang)}</td>${quote ? regCell(l) : ""}` +
+    `<td class="num"${lab(L.amount)}>${baht(l.amount_satang)}</td></tr>`).join("");
   const span = quote ? 5 : 4;
   const vatRow = d.vat_registered === true
-    ? `<tr><td colspan="${span}">ภาษีมูลค่าเพิ่ม ${(d.vat_rate_bp / 100).toFixed(0)}% <small class="i">VAT · 增值税</small></td><td class="num">${baht(d.vat_satang)}</td></tr>`
-    : d.vat_registered === false ? `<tr><td colspan="${span + 1}" class="muted">ผู้ขายไม่ได้จดทะเบียนภาษีมูลค่าเพิ่ม ไม่มีภาษีมูลค่าเพิ่ม
-      <small>Seller not VAT-registered: no VAT charged · 卖方未登记增值税，不收增值税</small></td></tr>`
-      : `<tr><td colspan="${span}">ภาษีมูลค่าเพิ่ม: ยังไม่ได้ระบุ <small class="i">VAT: not stated yet · 增值税：尚未填写</small></td><td class="num">—</td></tr>`;
+    ? `<tr class="sum"><td colspan="${span}">${triI([`ภาษีมูลค่าเพิ่ม ${(d.vat_rate_bp / 100).toFixed(0)}%`, "VAT", "增值税"])}</td><td class="num">${baht(d.vat_satang)}</td></tr>`
+    : d.vat_registered === false ? `<tr><td colspan="${span + 1}" class="muted">${tri(L.noVat)}</td></tr>`
+      : `<tr class="sum"><td colspan="${span}">${triI(L.vatUnset)}</td><td class="num">—</td></tr>`;
   let payBlock = "";
   if (d.doc_type !== "receipt") {
     payBlock = `<section class="pay"><h2>${triI(L.pay)}</h2>${s ? `<div class="party">
   <div><span class="k">${triI(LABELS.bank_name)}</span> ${sf("bank_name", s.bank_name)}</div>
   <div><span class="k">${triI(LABELS.bank_account_name)}</span> ${sf("bank_account_name", s.bank_account_name)}</div>
   <div><span class="k">${triI(LABELS.bank_account_no)}</span> <b>${sf("bank_account_no", s.bank_account_no)}</b></div></div>
-  <p class="muted">ระบุเลขที่เอกสารในบันทึกการโอน ไม่มีการชำระเงินออนไลน์ <small class="i">Put the document number in the transfer note. No online payment · 转账备注请填写单据编号，不提供在线支付</small></p>`
-      : `<p class="muted">ดูรายการที่ยังขาดด้านบน<small>See the missing details above · 见上方缺少的信息</small></p>`}</section>`;
+  <p class="muted">${triI(L.transferNote)}</p>`
+      : `<p class="muted">${tri(L.seeMissing)}</p>`}</section>`;
   }
-  const status = d.status === "void" ? `<p class="stamp">ยกเลิก<small>VOID · 作废</small></p>`
-    : d.status === "draft" ? `<p class="stamp">ฉบับร่าง ยังไม่ได้ออกเลขที่<small>DRAFT, not issued · 草稿，未开具</small></p>` : "";
+  const status = d.status === "void" ? `<p class="stamp">${tri(L.void)}</p>` : d.status === "draft" ? `<p class="stamp">${tri(L.draft)}</p>` : "";
+  const exVat = `ราคาไม่รวมภาษีมูลค่าเพิ่ม${d.vat_registered ? " " + (d.vat_rate_bp / 100).toFixed(0) + "%" : ""} (ราคานำร่องตามรายการราคาที่อนุมัติ)`;
   return `<!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>${esc(title[0])} ${esc(d.number || "")}</title>
@@ -499,28 +588,36 @@ ${DOC_FONT_CSS /* self-hosted Thai font inline: no machine fallback, no U+F700�
   .foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; align-items: start; margin-top: 4px; break-inside: avoid; }
   .foot > div { min-width: 0; overflow-wrap: anywhere; } .foot.solo { grid-template-columns: minmax(0, 1fr); } .pay h2 { margin-top: 3px; }
   .missing { border: 3px solid #b00; padding: 10px 14px; margin: 8px 0; } .missing .big { font-size: 18px; font-weight: 700; color: #b00; margin: 0 0 6px; }
-  @media screen and (max-width: 560px) { .head, .foot { grid-template-columns: minmax(0, 1fr); } }
+  @media screen and (max-width: 560px) {
+    body { padding: 12px; } .head, .foot { grid-template-columns: minmax(0, 1fr); }
+    .meta th { white-space: normal; width: 40%; } .stamp { max-width: 100%; box-sizing: border-box; }
+    .items, .items tbody, .items tr, .items td { display: block; width: auto; } .items thead { display: none; }
+    .items tbody tr { border-bottom: 1px solid #ccc; padding: 4px 0; } .items td { padding: 1px 0; }
+    .items td.c-no { font-weight: 600; }
+    .items td.num { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0 8px; text-align: right; }
+    .items td[data-label]::before { content: attr(data-label); font-size: 10.5px; color: #555; font-weight: 400; text-align: left; white-space: normal; flex: 1 1 8em; }
+    .items td.reg small { flex-basis: 100%; }
+    .items tr.sum, .items tr.total { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0 8px; }
+    .items tr.sum td, .items tr.total td { flex: 0 1 auto; min-width: 0; } .items tr.sum td.num, .items tr.total td.num { margin-left: auto; }
+  }
   @media print {
     body { padding: 0; font-size: 11.5px; line-height: 1.35; } small { font-size: 9.5px; } h1 { font-size: 18px; } .muted { font-size: 10.5px; } .total td { font-size: 13px; }
     @page { size: A4; margin: 10mm 14mm; }
   }
-</style></head><body><div class="doc" data-doc-type="${esc(d.doc_type)}">
+</style></head><body><div class="doc" data-doc-type="${esc(d.doc_type)}" data-langs="${esc(d.langs || LEGACY_DOC_LANGS)}">
 ${status}
 <div class="head">
   <div>${s && s.logo_data ? `<img class="logo" alt="" src="data:${esc(s.logo_mime)};base64,${esc(s.logo_data)}">` : ""}<h1>${triI(title)}</h1><h2>${triI(L.seller)}</h2>${sellerBlock}</div>
   <div><table class="meta">${metaRows.join("")}</table><h2>${triI(L.customer)}</h2>${buyerBlock}</div>
 </div>
 <table class="items"><thead>${head}</thead><tbody>${rows}
-  <tr><td colspan="${span}">${triI(L.subtotal)}</td><td class="num">${baht(d.subtotal_satang)}</td></tr>
+  <tr class="sum"><td colspan="${span}">${triI(L.subtotal)}</td><td class="num">${baht(d.subtotal_satang)}</td></tr>
   ${vatRow}
   <tr class="total"><td colspan="${span}">${triI(L.total)}</td><td class="num">${baht(d.total_satang)}</td></tr>
 </tbody></table>
 <div class="foot${payBlock ? "" : " solo"}">${payBlock ? `<div>${payBlock}</div>` : ""}<div>
 ${quote ? `<p class="muted">* ${triI(L.regular)}</p>` : ""}
-${d.vat_registered === false ? `<p class="muted">ราคานำร่องตามรายการราคาที่อนุมัติ ผู้ขายไม่เรียกเก็บภาษีมูลค่าเพิ่ม
-  <small class="i">Pilot prices from the approved price list; the seller charges no VAT · 批准价目表中的试点价格；卖方不收增值税</small></p>`
-    : `<p class="muted">ราคาไม่รวมภาษีมูลค่าเพิ่ม${d.vat_registered ? " " + (d.vat_rate_bp / 100).toFixed(0) + "%" : ""} (ราคานำร่องตามรายการราคาที่อนุมัติ)
-    <small class="i">Prices excl. VAT (pilot prices from the approved price list) · 价格不含增值税（批准价目表中的试点价格）</small></p>`}
+${d.vat_registered === false ? `<p class="muted">${triI(L.pilotNoVat)}</p>` : `<p class="muted">${triI([exVat, L.exVatEnZh[1], L.exVatEnZh[2]])}</p>`}
 ${d.extra.note ? `<p class="muted">${triI(L.note)} ${esc(d.extra.note)}</p>` : ""}
 </div></div>
 </div></body></html>`;

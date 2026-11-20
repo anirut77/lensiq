@@ -167,7 +167,7 @@
   var sellerJs = /** @type {HTMLScriptElement|null} */ (null), sellerStub = function () {
     if (sellerJs) return;
     var sc = sellerJs = document.createElement("script");
-    sc.src = "admin-seller.js?v=4";
+    sc.src = "admin-seller.js?v=5";
     sc.onload = function () {
       if (loaders.seller === sellerStub) { sellerFail(); return; }
       var open = !$("adApp").hidden && !/** @type {HTMLElement} */ (document.querySelector('[data-panel="seller"]')).hidden;
