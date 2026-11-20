@@ -22,6 +22,12 @@
 .pv2-tapmsg:empty{display:none}
 .pv2-msg{margin:0;color:#7c2d12}
 .pv2-msg:empty{display:none}
+.pv2-tips{font-size:.88rem;color:#3b4262;padding:8px 12px;border:1px solid #d9def0;border-radius:12px;background:#f6f8ff}
+.pv2-tips ul{margin:4px 0 0;padding-left:1.2em}
+.pv2-tips li{margin:2px 0}
+.pv2-sideask{display:grid;gap:8px;padding:10px 12px;border:1px solid #f0c36d;border-radius:12px;background:#fff8e6}
+.pv2-sideask p{margin:0}
+.pv2-sideask[hidden]{display:none}
 .pv2-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .pv2-list li{padding:10px 12px;border:1px solid #dde5f0;border-radius:12px;background:#fff}
 .pv2-list .pv2-num{display:inline-grid;place-items:center;min-width:22px;height:22px;margin-right:6px;border-radius:50%;background:#0e1430;color:#fff;

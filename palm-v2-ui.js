@@ -35,7 +35,7 @@
 
   var S = { mode: "self", side: "right", school: "thai", photo: null, W: 0, H: 0, taps: [], hand: null, F: null, det: null, crop: null,
     st: PV.newState({ side: "right", school: "thai" }), tracing: null, trace: null, adjusting: null, drag: null, busy: false, lastStill: null,
-    layouts: {}, beforeGreen: false, resultShown: false };
+    layouts: {}, beforeGreen: false, resultShown: false, source: "image", facing: null, mirrored: null, quality: null, sideAsk: null };
 
   /* ---------- the legacy flow stays in the page but hidden while v2 is on ---------- */
   ["plStage", "plEdit", "plResult", "plEngine"].forEach(function (id) { var e = document.getElementById(id); if (e) e.hidden = true; });
@@ -72,7 +72,7 @@
     var t = /** @type {any} */ (e.target), b = t && t.closest ? t.closest("[data-pv2-mode],[data-pv2-side],[data-pv2-school]") : null;
     if (!b) return;
     if (b.hasAttribute("data-pv2-mode")) { S.mode = b.getAttribute("data-pv2-mode"); $("#pv2Consent").checked = false; if (S.mode === "other") stopCam(); }
-    if (b.hasAttribute("data-pv2-side")) { S.side = b.getAttribute("data-pv2-side"); S.st.side = S.side; save(); }
+    if (b.hasAttribute("data-pv2-side")) { S.side = b.getAttribute("data-pv2-side"); S.st.side = S.side; if (S.sideAsk === S.side) S.sideAsk = null; renderSideAsk(); save(); }
     if (b.hasAttribute("data-pv2-school")) { setSchool(b.getAttribute("data-pv2-school")); }
     renderChoices();
   });
@@ -83,7 +83,8 @@
   var small = document.createElement("canvas"), prevC = null, lastHint = "noHand", hintSince = 0, shownHint = "";
   function getCam() {
     if (cam || !window.LQCam) return cam;
-    cam = window.LQCam.create(video, { facing: "environment", ideal: { width: 3840, height: 2160 }, torch: true, // "ideal" never fails for being too high
+    // no flash (owner order 2026-11-20): the torch is never turned on (PV.CAM_OPTS.torch false) and is switched off where supported
+    cam = window.LQCam.create(video, { facing: PV.CAM_OPTS.facing, ideal: { width: 3840, height: 2160 }, torch: PV.CAM_OPTS.torch, // "ideal" never fails for being too high
       onChange: function (c, ev) { if (ev.type === "started") startLoop(); } });
     return cam;
   }
@@ -94,7 +95,7 @@
     if (!gate.open) return;
     var c = getCam(); if (!c) return;
     shutter.reset();
-    c.start().then(function () { $("#pv2Cam").classList.add("live"); $("#pv2Snap").hidden = false; $("#pv2Stop").hidden = false; startLoop(); })
+    c.start().then(function () { if (c.torchSupported && c.setTorch) c.setTorch(false); $("#pv2Cam").classList.add("live"); $("#pv2Snap").hidden = false; $("#pv2Stop").hidden = false; startLoop(); })
       .catch(function (e) { msg(window.LQCam.errorText ? window.LQCam.errorText(e) : String(e && e.message || e)); });
   });
   $("#pv2Stop").addEventListener("click", stopCam);
@@ -152,6 +153,9 @@
     S.busy = true;
     PV.grabStill({ track: track, video: video, ImageCapture: /** @type {any} */ (window).ImageCapture }).then(function (r) {
       S.lastStill = { source: r.source, width: r.width, height: r.height, auto: !!auto };
+      // the still is the raw track frame / photo: its pixels are never mirrored (a mirrored preview is CSS only)
+      var set = track && track.getSettings ? track.getSettings() : {};
+      S.source = "camera"; S.facing = (set && set.facingMode) || (cam && cam.facing) || "environment"; S.mirrored = false;
       $("#pv2Consent").checked = PV.consentAfterCapture({ mode: S.mode, consent: true }) && S.mode !== "other";
       S.beforeGreen = !!beforeGreen;
       // another person's hand: the consent tick is cleared, so the camera closes; own hand: the live check pauses and the camera
@@ -164,12 +168,14 @@
   }
   $("#pv2File").addEventListener("change", /** @this {HTMLInputElement} */ function () {
     var f = this.files && this.files[0]; if (!f) return;
-    S.beforeGreen = false;
+    S.beforeGreen = false; S.source = "upload"; S.facing = null; S.mirrored = null; // facing unknown: read as not mirrored, a disagreement asks
     var p = window.createImageBitmap ? window.createImageBitmap(f, { imageOrientation: "from-image" }) : Promise.reject(new Error("no createImageBitmap"));
     p.then(usePhoto).catch(function (e) { console.error(e); });
     this.value = "";
   });
-  function useImageUrl(url) {
+  /** test / smoke hook: an image handed to the page like a camera still (no-flash check only); {source: "upload"} = the upload rules */
+  function useImageUrl(url, o) {
+    S.source = o && o.source === "upload" ? "upload" : "image"; S.facing = (o && o.facing) || null; S.mirrored = o && o.mirrored != null ? !!o.mirrored : null;
     return new Promise(function (res, rej) { var im = new Image(); im.onload = function () { res(im); }; im.onerror = rej; im.src = url; }).then(usePhoto);
   }
 
@@ -181,7 +187,8 @@
     c.getContext("2d").drawImage(img, 0, 0, W, H);
     if (img.close) try { img.close(); } catch (e) { /* not a bitmap */ }
     if (S.mode === "other") { $("#pv2Consent").checked = PV.consentAfterCapture({ mode: S.mode, consent: true }); renderChoices(); } // one tick per photo
-    S.photo = c; S.W = W; S.H = H; S.taps = []; S.hand = null; S.F = null; S.det = null; S.tracing = null; S.adjusting = null;
+    S.photo = c; S.W = W; S.H = H; S.taps = []; S.hand = null; S.F = null; S.det = null; S.tracing = null; S.adjusting = null; S.quality = null; S.sideAsk = null;
+    S.lastDetectMs = null; renderSideAsk();
     S.st = PV.newState({ side: S.side, school: S.school });
     $("#pv2Work").hidden = false; $("#pv2Result").hidden = true; S.resultShown = false;
     $("#pv2List").innerHTML = "";
@@ -328,6 +335,17 @@
     S.busy = true; setTapMsg(T("detect.busy"));
     return new Promise(function (res) { setTimeout(res, 30); }).then(function () {
       var F0 = PV.frameFromHand(S.hand);
+      // photo minimum (owner order 2026-11-20, PROVISIONAL): uploads palm width / sharpness / blow-out, camera stills blow-out only
+      var qv = photoCheck(F0);
+      S.quality = qv;
+      if (!qv.ok) {
+        stopCam();
+        S.det = null; S.F = F0; S.st = PV.newState({ side: S.side, school: S.school }); S.busy = false; setTapMsg("");
+        checkSide();
+        msg(T("quality.retake")); // every line stays "not found"; tracing by hand still works on this photo
+        changed();
+        return;
+      }
       var corners = [[-0.4, -0.15], [1.35, -0.15], [1.35, 1.25], [-0.4, 1.25]].map(F0.toImg);
       var xs = corners.map(function (p) { return p[0]; }), ys = corners.map(function (p) { return p[1]; });
       var rx = Math.max(0, Math.floor(Math.min.apply(null, xs))), ry = Math.max(0, Math.floor(Math.min.apply(null, ys)));
@@ -347,11 +365,49 @@
       PV.applyDetection(st, S.det);
       S.st = st;
       S.busy = false; setTapMsg("");
+      checkSide();
       msg(S.det.lowRes ? T("capture.lowRes") : S.beforeGreen ? T("capture.beforeGreen") : "");
       changed();
       });
     }).catch(function (e) { S.busy = false; console.error(e); setTapMsg(""); });
   }
+  /** the B2.3 measure on the palm ROI of the full-resolution photo (a crop, scaled so the palm is at most 1024 px wide) */
+  function photoCheck(F0) {
+    var corners = [[0, 0.05], [1, 0.05], [1, 0.95], [0, 0.95]].map(F0.toImg);
+    var xs = corners.map(function (p) { return p[0]; }), ys = corners.map(function (p) { return p[1]; });
+    var qx = Math.max(0, Math.floor(Math.min.apply(null, xs)) - 2), qy = Math.max(0, Math.floor(Math.min.apply(null, ys)) - 2);
+    var qw = Math.max(1, Math.min(S.W, Math.ceil(Math.max.apply(null, xs)) + 2) - qx), qh = Math.max(1, Math.min(S.H, Math.ceil(Math.max.apply(null, ys)) + 2) - qy);
+    var f = Math.min(1, 1024 / Math.max(1, F0.pw)), cw = Math.max(1, Math.round(qw * f)), ch = Math.max(1, Math.round(qh * f));
+    var c = document.createElement("canvas"); c.width = cw; c.height = ch;
+    var g = c.getContext("2d", { willReadFrequently: true }); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
+    g.drawImage(S.photo, qx, qy, qw, qh, 0, 0, cw, ch);
+    var mp = function (p) { return p ? [(p[0] - qx) * f, (p[1] - qy) * f] : p; }, h = S.hand;
+    var hc = { wrist: mp(h.wrist), mcp: { index: mp(h.mcp.index), middle: mp(h.mcp.middle), ring: mp(h.mcp.ring), pinky: mp(h.mcp.pinky) }, tip: {} };
+    var q = PV.photoQuality(g.getImageData(0, 0, cw, ch).data, cw, ch, hc, { pw: F0.pw });
+    var v = PV.qualityVerdict(q, { source: S.source === "upload" ? "upload" : "camera" });
+    return { ok: v.ok, fails: v.fails, source: S.source, pw: Math.round(q.pw), sharp: Math.round(q.sharp * 100) / 100, clip: Math.round(q.clip * 10000) / 10000 };
+  }
+  /* handedness (owner order 2026-11-20): from the thumb position (landmark geometry), never the model's label; a disagreement with the
+     user's left / right choice asks the user and the reading waits for the answer; the choice is never changed silently */
+  function checkSide() {
+    var geo = PV.handSide({ hand: S.hand, facing: S.facing, mirrored: S.mirrored });
+    var chk = PV.sideCheck(S.side, geo);
+    S.sideAsk = chk.ask ? chk.detected : null;
+    renderSideAsk();
+  }
+  function renderSideAsk() {
+    var el = $("#pv2SideAsk"); if (!el) return;
+    el.hidden = !S.sideAsk;
+    $("#pv2SideAskText").textContent = S.sideAsk ? PV.sideAskText(S.sideAsk, S.side, lang()) : "";
+    $("#pv2Read").disabled = !!S.sideAsk;
+  }
+  box.addEventListener("click", function (e) {
+    var t = /** @type {any} */ (e.target), b = t && t.closest ? t.closest("[data-pv2-side-answer]") : null;
+    if (!b) return;
+    S.side = b.getAttribute("data-pv2-side-answer") === "left" ? "left" : "right"; S.st.side = S.side; S.sideAsk = null;
+    renderChoices(); renderSideAsk(); save();
+    if (S.resultShown) renderReading();
+  });
   /* the line finder runs in a Web Worker so the phone never freezes (review round 1, d); main-thread fallback */
   var worker = null, workerBroken = false, jobN = 0;
   function findLines(px, w, h, hand, school) {
@@ -498,11 +554,12 @@
   });
   $("#pv2Again").addEventListener("click", function () {
     S.photo = null; S.F = null; S.hand = null; S.det = null; $("#pv2Work").hidden = true; $("#pv2Result").hidden = true; S.resultShown = false;
-    $("#pv2Card").hidden = true; $("#pv2PrintImg").hidden = true; renderChoices();
+    $("#pv2Card").hidden = true; $("#pv2PrintImg").hidden = true; S.sideAsk = null; renderSideAsk(); renderChoices();
     try { $("#pv2Capture").scrollIntoView({ block: "start", behavior: "instant" }); } catch (e) { /* old browser */ }
   });
 
-  window.addEventListener("lq-lang", function () { renderTexts(); setTapMsg(S.busy ? T("detect.busy") : undefined); renderList(); redraw();
+  window.addEventListener("lq-lang", function () { renderTexts(); renderSideAsk(); if (S.quality && !S.quality.ok) msg(T("quality.retake"));
+    setTapMsg(S.busy ? T("detect.busy") : undefined); renderList(); redraw();
     if (S.resultShown && !document.querySelector(".fa-support")) renderReading(); shownHint = ""; });
   renderTexts(); renderChoices();
 
@@ -520,6 +577,8 @@
     get busy() { return S.busy; },
     get lastStill() { return S.lastStill; },
     get lastDetectMs() { return S.lastDetectMs; },
+    get quality() { return S.quality; },
+    get sideAsk() { return S.sideAsk; },
     state: function () { return JSON.parse(PV.serialize(S.st)) && { side: S.st.side, school: S.st.school, lines: JSON.parse(JSON.stringify(S.st.lines)) }; },
     useImage: useImageUrl,
     imgToClient: imgToClient,

@@ -9,7 +9,7 @@
    Parts: texts and states (statuses found / notFound / added / absentConfirmed) · guides per school · the drawing layer used for
    screen, print and share · reading and AI facts · capture metrics, hints, auto shutter, full-resolution still · the classical
    line finder (ridge / valley filters: Frangi-type Hessian, Gabor, black-hat; skeleton; geometry).
-   PROVISIONAL: every threshold (CAPTURE_T, THRESH, the finder's constants) until calibrated on consented real photos. */
+   PROVISIONAL: every threshold (CAPTURE_T, THRESH, UPLOAD_MIN, the finder's constants) until calibrated on consented real photos. */
 (function (root) {
   "use strict";
   var KB = root.PALM_V2_KB || (typeof require === "function" ? require("./palm-v2-kb.js") : null);
@@ -87,14 +87,26 @@
       "照片只留在本设备上，不保存也不发送。你描画的掌纹只保存在此标签页中。"],
     "lm.label": ["จุดบนมืออัตโนมัติ (โมเดลทดลอง ใบอนุญาตรอทนายยืนยัน ปิดในเวอร์ชันลูกค้า)", "Automatic hand points (trial model; licence awaiting legal review; off in customer builds)",
       "自动手部关键点（试用模型；许可待法律确认；客户版关闭）"],
-    "draft.school": ["ร่างคำอ่าน รอผู้เชี่ยวชาญตรวจ", "Draft reading, awaiting the expert check", "解读草稿，待专家审核"]
+    "draft.school": ["ร่างคำอ่าน รอผู้เชี่ยวชาญตรวจ", "Draft reading, awaiting the expert check", "解读草稿，待专家审核"],
+    /* owner orders 2026-11-20 (photo trial 2: daylight best, flash worst, a stretched-flat hand flattens the creases) */
+    "tips.title": ["ถ่ายให้เห็นเส้นชัด", "For clear lines", "让掌纹更清楚"],
+    "tips.light": ["ถ่ายในที่สว่างทั่วถึง แสงกลางวันดีที่สุด ถ้าทำได้ให้แสงมาจากด้านข้าง เส้นจะมีเงาและเห็นชัดขึ้น",
+      "Use bright, even light: daylight is best, ideally from the side, so the lines cast a little shadow and show clearly.",
+      "在明亮均匀的光线下拍摄，日光最好，光线尽量从侧面照来，掌纹会有阴影、更清楚。"],
+    "tips.flash": ["ไม่ใช้แฟลช แสงแฟลชลบเงาในร่องเส้นจนมองไม่เห็น", "No flash: a flash washes the shadows out of the lines.", "不开闪光灯：闪光灯会把掌纹的阴影照没。"],
+    "tips.hand": ["ผ่อนมือตามสบาย ให้ฝ่ามือห่อเล็กน้อย ไม่ต้องเหยียดตึงจนแบน", "Keep your hand relaxed and slightly cupped, not stretched flat.",
+      "手放松，掌心微微拱起，不要把手绷直撑平。"],
+    /* the upload minimum message: owner-approved wording 2026-11-20, EXACT */
+    "quality.retake": ["ภาพนี้เล็กหรือไม่คมพอสำหรับหาเส้นลายมือ ถ่ายใหม่ให้ฝ่ามือเต็มกรอบ ในที่สว่างทั่วถึง ไม่ใช้แฟลช และถือให้นิ่ง หรือจะวาดเส้นเองบนภาพนี้ก็ได้",
+      "This photo is too small or not sharp enough to find palm lines. Retake it with your palm filling the frame, in bright even light, without flash, holding still, or draw the lines yourself on this photo.",
+      "这张照片太小或不够清晰，无法找到掌纹。请让手掌占满画面，在明亮均匀的光线下、不开闪光灯、保持稳定后重拍，也可以直接在这张照片上自己画线。"]
   };
   function T(key, lang) { var e = UI[key]; return e ? e[LI[lang3(lang)]] : key; }
 
   /* live hints: [self, other] x [th, en, zh] */
   var HINTS = {
-    noHand: [["แบฝ่ามือให้อยู่ในกรอบ", "Hold your open palm inside the outline", "请把张开的手掌放进轮廓内"], ["ขอให้เจ้าของมือแบฝ่ามือในกรอบ", "Ask them to hold their open palm inside the outline",
-      "请对方把张开的手掌放进轮廓内"]],
+    noHand: [["วางฝ่ามือในกรอบ ปล่อยมือตามสบาย", "Hold your palm inside the outline, hand relaxed", "把手掌放进轮廓内，手放松"], ["ขอให้เจ้าของมือวางฝ่ามือในกรอบ ปล่อยมือตามสบาย",
+      "Ask them to hold their palm inside the outline, hand relaxed", "请对方把手掌放进轮廓内，手放松"]],
     many: [["ใช้มือเดียวในกรอบ", "One hand in the frame, please", "画面中只放一只手"], ["ใช้มือเดียวในกรอบ", "One hand in the frame, please", "画面中只放一只手"]],
     back: [["หันฝ่ามือเข้าหากล้อง", "Turn your palm towards the camera", "请将掌心朝向镜头"], ["ขอให้เขาหันฝ่ามือเข้าหากล้อง", "Ask them to turn their palm towards the camera", "请对方将掌心朝向镜头"]],
     far: [["ขยับมือเข้าใกล้อีกนิด", "Bring your hand a little closer", "手再靠近一点"], ["ขยับกล้องเข้าใกล้มืออีกนิด", "Move the phone a little closer to their hand", "把手机再靠近对方的手一点"]],
@@ -102,18 +114,22 @@
       ["ถอยกล้องออกเล็กน้อย ให้เห็นนิ้วและข้อมือครบ", "Move the phone back a little so their fingers and wrist show", "手机稍微后退，让对方的手指和手腕都在画面内"]],
     center: [["เลื่อนมือมาไว้กลางกรอบ", "Move your hand to the centre of the outline", "把手移到轮廓中间"], ["เลื่อนกล้องให้มืออยู่กลางกรอบ", "Move the phone so their hand is in the centre",
       "移动手机，让对方的手在轮廓中间"]],
-    open: [["กางนิ้วออก เหยียดมือให้ตรง", "Open your hand and straighten your fingers", "张开手指，把手伸直"], ["ขอให้เขากางนิ้วออกและเหยียดมือให้ตรง",
-      "Ask them to open their hand and straighten their fingers", "请对方张开手指，把手伸直"]],
+    open: [["ผ่อนมือตามสบาย นิ้วแยกกันเล็กน้อย ฝ่ามือห่อเล็กน้อย ไม่ต้องเหยียดตึง", "Relax your hand: fingers slightly apart, palm slightly cupped, not stretched flat",
+      "手放松：手指稍微分开，掌心微微拱起，不要绷直撑平"], ["ขอให้เขาผ่อนมือตามสบาย นิ้วแยกกันเล็กน้อย ฝ่ามือห่อเล็กน้อย ไม่ต้องเหยียดตึง",
+      "Ask them to relax their hand: fingers slightly apart, palm slightly cupped, not stretched flat", "请对方手放松：手指稍微分开，掌心微微拱起，不要绷直撑平"]],
     tilt: [["ตั้งมือให้ตรงกับกรอบ", "Straighten your hand to match the outline", "把手摆正，与轮廓对齐"], ["ขอให้เขาตั้งมือให้ตรงกับกรอบ", "Ask them to straighten their hand to match the outline",
       "请对方把手摆正，与轮廓对齐"]],
-    turn: [["วางฝ่ามือให้ขนานกับกล้อง ไม่เอียงเข้าออก", "Keep your palm flat to the camera, not angled", "手掌与镜头保持平行，不要倾斜"], ["ขอให้เขาวางฝ่ามือขนานกับกล้อง",
-      "Ask them to keep their palm flat to the camera", "请对方让手掌与镜头保持平行"]],
-    dark: [["แสงน้อย ขยับไปที่สว่างขึ้นหรือเปิดไฟ", "Too dark: move to brighter light", "光线太暗，请到更亮的地方"], ["แสงน้อย ขยับไปที่สว่างขึ้นหรือเปิดไฟ", "Too dark: move to brighter light", "光线太暗，请到更亮的地方"]],
-    bright: [["แสงจ้าเกินไป เลี่ยงแสงส่องตรง", "Too bright: avoid direct light", "光线太强，请避开直射光"], ["แสงจ้าเกินไป เลี่ยงแสงส่องตรง", "Too bright: avoid direct light", "光线太强，请避开直射光"]],
+    turn: [["วางฝ่ามือให้ขนานกับกล้อง ไม่เอียงเข้าออก", "Face your palm straight at the camera, not angled", "手掌与镜头保持平行，不要倾斜"], ["ขอให้เขาวางฝ่ามือขนานกับกล้อง",
+      "Ask them to face their palm straight at the camera", "请对方让手掌与镜头保持平行"]],
+    dark: [["แสงน้อย ไปที่สว่างทั่วถึง เช่นแสงกลางวันจากด้านข้าง ไม่ใช้แฟลช", "Too dark: move to bright, even daylight, ideally from the side; no flash",
+      "光线太暗：请到明亮均匀的日光下，最好光从侧面来，不开闪光灯"], ["แสงน้อย ไปที่สว่างทั่วถึง เช่นแสงกลางวันจากด้านข้าง ไม่ใช้แฟลช",
+      "Too dark: move to bright, even daylight, ideally from the side; no flash", "光线太暗：请到明亮均匀的日光下，最好光从侧面来，不开闪光灯"]],
+    bright: [["แสงจ้าเกินไป เลี่ยงแสงส่องตรง และไม่ใช้แฟลช", "Too bright: avoid direct light; no flash", "光线太强：请避开直射光，不开闪光灯"], ["แสงจ้าเกินไป เลี่ยงแสงส่องตรง และไม่ใช้แฟลช",
+      "Too bright: avoid direct light; no flash", "光线太强：请避开直射光，不开闪光灯"]],
     uneven: [["แสงไม่สม่ำเสมอ ขยับให้เงาไม่ตกบนฝ่ามือ", "Uneven light: keep shadows off the palm", "光线不均匀，别让阴影落在掌心"], ["แสงไม่สม่ำเสมอ ขยับให้เงาไม่ตกบนฝ่ามือ",
       "Uneven light: keep shadows off the palm", "光线不均匀，别让阴影落在掌心"]],
-    glare: [["มีแสงสะท้อนบนฝ่ามือ ปรับมุมมือหรือปิดไฟฉาย", "Glare on the palm: tilt slightly or turn off the torch", "掌心有反光，请稍微调整角度或关闭手电筒"],
-      ["มีแสงสะท้อนบนฝ่ามือ ปรับมุมกล้องหรือปิดไฟฉาย", "Glare on the palm: change the angle or turn off the torch", "掌心有反光，请调整角度或关闭手电筒"]],
+    glare: [["มีแสงสะท้อนบนฝ่ามือ ไม่ใช้แฟลชหรือไฟฉาย แล้วเอียงมือเล็กน้อย", "Glare on the palm: no flash or torch, and tilt your hand slightly", "掌心有反光：不开闪光灯或手电筒，稍微调整手的角度"],
+      ["มีแสงสะท้อนบนฝ่ามือ ไม่ใช้แฟลชหรือไฟฉาย แล้วปรับมุมกล้อง", "Glare on the palm: no flash or torch, and change the angle", "掌心有反光：不开闪光灯或手电筒，调整拍摄角度"]],
     blur: [["ภาพไม่ชัด เช็ดเลนส์แล้วถือให้นิ่ง", "Blurry: wipe the lens and hold still", "画面模糊，请擦拭镜头并保持稳定"], ["ภาพไม่ชัด เช็ดเลนส์แล้วถือกล้องให้นิ่ง",
       "Blurry: wipe the lens and hold the phone still", "画面模糊，请擦拭镜头并拿稳手机"]],
     still: [["ถือนิ่ง ๆ สักครู่", "Hold still for a moment", "请保持不动"], ["ขอให้เขาถือมือนิ่ง ๆ สักครู่", "Ask them to hold still for a moment", "请对方保持不动"]],
@@ -315,6 +331,8 @@
       LANGS.forEach(function (lang) { out.push({ kind: "ui", key: "school." + school, lang: lang, text: schoolName(school, lang) }); });
     });
     Object.keys(UI).forEach(function (k) { LANGS.forEach(function (lang) { out.push({ kind: "ui", key: k, lang: lang, text: T(k, lang) }); }); });
+    ["left", "right"].forEach(function (d) { LANGS.forEach(function (lang) {
+      out.push({ kind: "ui", key: "side.ask." + d, lang: lang, text: sideAskText(d, d === "left" ? "right" : "left", lang) }); }); });
     Object.keys(HINTS).forEach(function (k) { [0, 1].forEach(function (o) { LANGS.forEach(function (lang) { out.push({ kind: "hint", key: k + (o ? ".other" : ""), lang: lang,
       text: hintText(k, lang, !!o) }); }); }); });
     return out;
@@ -576,7 +594,13 @@
     };
     if (typeof IC === "function" && track && track.readyState !== "ended") {
       var p;
-      try { p = new IC(track).takePhoto(); } catch (e) { p = Promise.reject(e); }
+      try {
+        var ic = new IC(track);
+        // no flash (owner order 2026-11-20): ask for fillLightMode "off" when the track lists it; otherwise the plain call
+        var caps = typeof ic.getPhotoCapabilities === "function" ? Promise.resolve().then(function () { return ic.getPhotoCapabilities(); }).catch(function () { return null; }) :
+          Promise.resolve(null);
+        p = caps.then(function (c) { var set = photoSettings(c); return set ? ic.takePhoto(set) : ic.takePhoto(); });
+      } catch (e) { p = Promise.reject(e); }
       return Promise.resolve(p).then(function (blob) {
         if (!blob) throw new Error("no photo");
         return decode(blob).then(function (img) { return { source: "takePhoto", width: img.width, height: img.height, image: img }; });
@@ -584,6 +608,94 @@
     }
     return frame();
   }
+  /** takePhoto settings: the flash off where the track supports it (never "flash" or "auto") */
+  function photoSettings(caps) {
+    var m = caps && caps.fillLightMode;
+    return Array.isArray(m) && m.indexOf("off") >= 0 ? { fillLightMode: "off" } : null;
+  }
+  /** camera options for LQCam.create: rear camera, the torch never turned on (owner order 2026-11-20: no flash) */
+  var CAM_OPTS = { facing: "environment", torch: false };
+
+  /* ================= photo minimum (owner order 2026-11-20) =================
+     PROVISIONAL first values, accepted by the owner to calibrate on the pilot (trial 2: flash S x 10^4 0.72-0.85, dim light 0.98-1.11,
+     daylight 1.17-2.17; blown-out 12 % and 67 % with flash). Uploads: palm width, sharpness and blow-out; camera stills: blow-out only
+     (the live hints already gate size and sharpness before the shutter). */
+  var UPLOAD_MIN = { PROVISIONAL: true, pw: 360, sharp: 1.0, clip: 0.02 };
+  var GK5 = [0.0545, 0.2442, 0.4026, 0.2442, 0.0545]; // Gaussian, sigma 1
+  /** the B2.3 measure on the palm ROI (u 0..1, v 0.05..0.95 of the palm frame) resampled to 256 px wide (box average of the source):
+      sharp = S x 10^4, S = variance of the 4-neighbour Laplacian of the sigma-1 Gaussian of Y (BT.601) / mean(Y)^2; clip = share of
+      ROI pixels with a channel >= 250; pw = index-to-little-finger knuckle distance (image px; o.pw when rgba is a scaled crop) */
+  function photoQuality(rgba, w, h, hand, o) {
+    var F = frameFromHand(hand), RW = 256, RH = Math.max(8, Math.round(0.9 * F.asp * 256)), n = RW * RH, Y = new Float32Array(n), nclip = 0, x, y, i;
+    var k = Math.max(1, Math.min(4, Math.ceil(F.pw / 256)));
+    for (y = 0; y < RH; y++) for (x = 0; x < RW; x++) {
+      var r = 0, g = 0, b = 0, c = 0;
+      for (var sy = 0; sy < k; sy++) for (var sx = 0; sx < k; sx++) {
+        var p = F.toImg([(x + (sx + 0.5) / k) / RW, 0.05 + 0.9 * (y + (sy + 0.5) / k) / RH]);
+        var px = clamp(Math.floor(p[0]), 0, w - 1), py = clamp(Math.floor(p[1]), 0, h - 1), j = (py * w + px) * 4;
+        r += rgba[j]; g += rgba[j + 1]; b += rgba[j + 2]; c++;
+      }
+      r /= c; g /= c; b /= c;
+      Y[y * RW + x] = 0.299 * r + 0.587 * g + 0.114 * b;
+      if (r >= 250 || g >= 250 || b >= 250) nclip++;
+    }
+    var mean = 0; for (i = 0; i < n; i++) mean += Y[i]; mean /= n;
+    var G1 = new Float32Array(n), G2 = new Float32Array(n), s, t;
+    for (y = 0; y < RH; y++) for (x = 0; x < RW; x++) { s = 0; for (t = -2; t <= 2; t++) s += GK5[t + 2] * Y[y * RW + clamp(x + t, 0, RW - 1)]; G1[y * RW + x] = s; }
+    for (y = 0; y < RH; y++) for (x = 0; x < RW; x++) { s = 0; for (t = -2; t <= 2; t++) s += GK5[t + 2] * G1[clamp(y + t, 0, RH - 1) * RW + x]; G2[y * RW + x] = s; }
+    var ls = 0, ls2 = 0, ln = 0;
+    for (y = 3; y < RH - 3; y++) for (x = 3; x < RW - 3; x++) { i = y * RW + x; var L = G2[i - 1] + G2[i + 1] + G2[i - RW] + G2[i + RW] - 4 * G2[i]; ls += L; ls2 += L * L; ln++; }
+    var lapVar = ln ? ls2 / ln - (ls / ln) * (ls / ln) : 0;
+    return { pw: (o && o.pw) || F.pw, sharp: lapVar / (mean * mean + 1e-6) * 1e4, clip: nclip / n, mean: mean };
+  }
+  /** which limits a photo misses: source "upload" (default) checks pw, sharp and clip; "camera" checks clip only */
+  function qualityVerdict(q, o) {
+    var M = UPLOAD_MIN, cam = o && o.source === "camera", fails = [];
+    if (!cam && !(q.pw >= M.pw)) fails.push("pw");
+    if (!cam && !(q.sharp >= M.sharp)) fails.push("sharp");
+    if (!(q.clip <= M.clip)) fails.push("clip");
+    return { ok: fails.length === 0, fails: fails };
+  }
+
+  /* ================= handedness (owner order 2026-11-20: the landmark model's label was reversed on 6 / 6 rear-camera photos) =====
+     Decided from the thumb position relative to the palm only; the model's handedness label is NOT read. Palm side, image not
+     mirrored: with the fingers up, a right hand has its thumb (and index knuckle) on the image right. A mirrored image (front camera
+     preview, mirrored selfie) flips that; facing "user" counts as mirrored unless o.mirrored says what the pixels are. */
+  var flipSide = function (s) { return s === "left" ? "right" : s === "right" ? "left" : s; };
+  function handSide(o) {
+    o = o || {};
+    var h = o.hand, none = { side: null, raw: null, by: null, conf: 0, mirrored: false };
+    if (!h || !h.wrist || !h.mcp || !h.mcp.index || !h.mcp.pinky) return none;
+    var W = h.wrist, I = h.mcp.index, P = h.mcp.pinky, C = lerp(I, P, 0.5), Mm = h.mcp.middle || C;
+    var b = [Mm[0] - W[0], Mm[1] - W[1]], bl = Math.hypot(b[0], b[1]), pw = Math.hypot(I[0] - P[0], I[1] - P[1]);
+    if (!(bl > 0 && pw > 0)) return none;
+    var perp = [-b[1] / bl, b[0] / bl]; // the image right when the fingers point up
+    var off = function (q) { return ((q[0] - W[0]) * perp[0] + (q[1] - W[1]) * perp[1]) / pw; };
+    var idx = off(I) - off(P), th = h.tip && h.tip.thumb ? off(h.tip.thumb) - off(C) : null, s, by;
+    if (th != null) {
+      if (Math.abs(th) < 0.25 || (th > 0) !== (idx > 0)) return Object.assign({}, none, { by: "thumb" }); // folded thumb: no decision
+      s = th; by = "thumb";
+    } else {
+      if (Math.abs(idx) < 0.3) return Object.assign({}, none, { by: "index" });
+      s = idx; by = "index";
+    }
+    var raw = s > 0 ? "right" : "left", mir = o.mirrored != null ? !!o.mirrored : o.facing === "user";
+    return { side: mir ? flipSide(raw) : raw, raw: raw, by: by, conf: Math.round(Math.min(1, Math.abs(s)) * 100) / 100, mirrored: mir };
+  }
+  /** the user's choice stays the side; a geometry that disagrees asks the user (never a silent override) */
+  function sideCheck(chosen, geo) {
+    var d = geo && geo.side;
+    return { side: chosen, ask: !!(d && chosen && d !== chosen), detected: d || null };
+  }
+  function sideAskText(detected, chosen, lang) {
+    var l = LI[lang3(lang)], nm = function (s) { return s === "left" ? ["ซ้าย", "left", "左"][l] : ["ขวา", "right", "右"][l]; };
+    return [
+      "ดูจากตำแหน่งนิ้วโป้ง ภาพนี้น่าจะเป็นมือ" + nm(detected) + " แต่คุณเลือกมือ" + nm(chosen) + " ช่วยยืนยันว่าเป็นมือข้างไหน",
+      "From the thumb position, this looks like a " + nm(detected) + " hand, but you chose the " + nm(chosen) + " hand. Please confirm which hand it is.",
+      "从拇指的位置看，这像是" + nm(detected) + "手，但您选择的是" + nm(chosen) + "手。请确认是哪只手。"
+    ][l];
+  }
+
   /** rear camera always; another person's hand: consent first */
   function cameraGate(o) { var other = o && o.mode === "other"; return { facing: "environment", consentRequired: other, open: !other || !!(o && o.consent) }; }
   function consentAfterCapture() { return false; }
@@ -597,6 +709,8 @@
     drawLineLayer: drawLineLayer,
     CAPTURE_T: CAPTURE_T, captureMetrics: captureMetrics, captureHint: captureHint, handFromSkin: handFromSkin, createAutoShutter: createAutoShutter,
     stillPlan: stillPlan, grabStill: grabStill, cameraGate: cameraGate, consentAfterCapture: consentAfterCapture,
+    CAM_OPTS: CAM_OPTS, photoSettings: photoSettings, UPLOAD_MIN: UPLOAD_MIN, photoQuality: photoQuality, qualityVerdict: qualityVerdict,
+    handSide: handSide, sideCheck: sideCheck, sideAskText: sideAskText,
     _util: { clamp: clamp, lerp: lerp, r4: r4, sigmoid: sigmoid, resample: resample }
   };
   // the classical line finder lives in palm-v2-detect.js (loaded first in the browser): PV.detect, PV.classify, PV.DET

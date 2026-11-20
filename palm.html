@@ -309,6 +309,8 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
         <button type="button" role="radio" aria-checked="false" data-pv2-side="left" data-pv2-t="side.left"></button>
         <button type="button" role="radio" aria-checked="true" data-pv2-side="right" data-pv2-t="side.right"></button>
       </div>
+      <div class="pv2-tips" id="pv2Tips"><b data-pv2-t="tips.title"></b>
+        <ul><li data-pv2-t="tips.light"></li><li data-pv2-t="tips.flash"></li><li data-pv2-t="tips.hand"></li></ul></div>
       <div class="pv2-cam" id="pv2Cam">
         <video id="pv2Video" autoplay muted playsinline></video>
         <canvas id="pv2Guide" aria-hidden="true"></canvas>
@@ -327,6 +329,11 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     <div class="pv2-work" id="pv2Work" hidden data-lq-result>
       <p class="pv2-tapmsg" id="pv2TapMsg" role="status" aria-live="polite"></p>
       <button class="btn ghost" id="pv2TapUndo" type="button" hidden data-pv2-l="tapUndo"></button>
+      <div class="pv2-sideask" id="pv2SideAsk" hidden role="group" aria-labelledby="pv2SideAskText">
+        <p id="pv2SideAskText" role="status" aria-live="polite"></p>
+        <div class="pv2-actions"><button class="btn ghost" type="button" data-pv2-side-answer="left" data-pv2-t="side.left"></button>
+          <button class="btn ghost" type="button" data-pv2-side-answer="right" data-pv2-t="side.right"></button></div>
+      </div>
       <div class="seg" role="radiogroup" aria-label="school">
         <span class="pv2-small" data-pv2-t="school.label"></span>
         <button type="button" role="radio" aria-checked="true" data-pv2-school="thai"></button>
