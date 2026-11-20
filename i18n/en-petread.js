@@ -71,5 +71,18 @@
   "pet.err.species": "First pick whether your pet is a cat or a dog.",
   "pet.card.noimg": "No photo of your pet yet, so the card uses a drawing.",
   "pet.card.refused": "A person is right next to your pet in this photo, so the card uses a drawing instead of the photo. Try a photo with only your pet.",
-  "pet.card.blur": "A person is in the photo; that part is blurred on the card. If you can still see a face, leave the photo off the card."
+  "pet.card.blur": "A person is in the photo; that part is blurred on the card. If you can still see a face, leave the photo off the card.",
+  "pet.z.redraw": "Draw another card (free)",
+  "pet.z.got": "Your card: {name}",
+  "pet.z.colH": "Card collection",
+  "pet.z.colAria": "Card collection, 13 slots",
+  "pet.z.colPriv": "The collection stays on this device only. It remembers which cards you have had and the date of the first one. It does not keep photos or your pet's name.",
+  "pet.z.count": "Collected {n}/13",
+  "pet.z.found": "Got on {d}",
+  "pet.z.missing": "Not yet found",
+  "pet.z.secretSlot": "Secret Card slot",
+  "pet.z.loadFail": "The card designs could not load, so the classic card is used instead.",
+  "pet.z.guide": "Fit your pet's face inside the frame, then tap Take photo.",
+  "pet.z.req": "(required)",
+  "pet.z.opt": "(optional)"
 } });

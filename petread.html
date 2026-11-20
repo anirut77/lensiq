@@ -38,7 +38,7 @@
 <!--/promo-->
 <link rel="stylesheet" href="styles.css?v=23">
 <link rel="stylesheet" href="fortune-kit.css?v=2">
-<link rel="stylesheet" href="petread.css?v=1">
+<link rel="stylesheet" href="petread.css?v=2">
 <link rel="stylesheet" href="fortune-theme.css?v=3">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
@@ -101,6 +101,9 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
       <video id="petVideo" autoplay muted playsinline hidden></video>
       <canvas id="petView" hidden role="img" aria-label="รูปน้องที่เลือก (อยู่ในเครื่องนี้เท่านั้น)" data-i18n-attr="aria-label:pet.viewAria"></canvas>
       <p class="pet-stage-empty" id="petEmpty" data-i18n="pet.empty">ยังไม่มีรูป ข้ามขั้นนี้ได้ แล้วเลือกลักษณะเองด้านล่าง</p>
+      <svg class="pet-guide" id="petGuide" aria-hidden="true" hidden viewBox="0 0 200 200" focusable="false">
+        <path d="M38 92 L30 22 L82 52 Q100 47 118 52 L170 22 L162 92 Q176 120 160 150 Q138 186 100 186 Q62 186 40 150 Q24 120 38 92 Z"/></svg>
+      <p class="pet-guide-hint" id="petGuideHint" data-i18n="pet.z.guide" hidden>จัดหน้าน้องให้อยู่ในกรอบ แล้วกด ถ่ายรูป</p>
     </div>
     <p class="hint" id="petCamMsg" role="status"></p>
     <p class="hint" id="petDetMsg" role="status"></p>
@@ -135,7 +138,12 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 
   <section class="fk-block pet-card-sec" id="petCardSec" hidden data-lq-remedy data-lq-result data-lq-share aria-labelledby="petCardH">
     <h2 id="petCardH" data-i18n="pet.cardH">การ์ดแชร์ของน้อง (ฟรี)</h2>
-    <div class="pet-themes" role="group" aria-labelledby="petCardH">
+    <div class="pet-zodiac" id="petZ" hidden>
+      <p class="pet-zgot" id="petZGot" role="status"></p>
+      <p class="fk-small pet-zodds" id="petZOdds"></p>
+      <button class="btn ghost" id="petZRedraw" type="button" data-i18n="pet.z.redraw">สุ่มการ์ดใบใหม่ (ฟรี)</button>
+    </div>
+    <div class="pet-themes" id="petThemes" role="group" aria-labelledby="petCardH">
       <button class="pet-theme" type="button" data-theme="sunny" aria-pressed="true" data-i18n="pet.theme.sunny">แดดอุ่น</button>
       <button class="pet-theme" type="button" data-theme="night" aria-pressed="false" data-i18n="pet.theme.night">คืนดาว</button>
       <button class="pet-theme" type="button" data-theme="mint" aria-pressed="false" data-i18n="pet.theme.mint">มินต์</button>
@@ -155,6 +163,12 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
       <button class="btn ghost" id="petCardShare" type="button" data-i18n="pet.share">แชร์การ์ด</button>
     </div>
     <p class="fk-small" data-i18n="pet.cardPriv">การ์ดสร้างในเครื่องนี้ บันทึกเป็นไฟล์รูปในเครื่อง หรือส่งต่อผ่านเมนูแชร์ของโทรศัพท์เอง ระบบไม่อัปโหลดอะไร</p>
+    <div class="pet-zcol" id="petZColWrap" hidden>
+      <h3 data-i18n="pet.z.colH">สมุดสะสมการ์ด</h3>
+      <p class="fk-small" id="petZCount"></p>
+      <ul class="pet-zgrid" id="petZCol" data-i18n-attr="aria-label:pet.z.colAria" aria-label="สมุดสะสมการ์ด 13 ช่อง"></ul>
+      <p class="fk-small" data-i18n="pet.z.colPriv">สมุดสะสมเก็บไว้ในเครื่องนี้เท่านั้น จำแค่ว่าเคยได้การ์ดใบไหนและวันที่ได้ครั้งแรก ไม่เก็บรูปหรือชื่อน้อง</p>
+    </div>
   </section>
 
   <div class="fk-foot">
@@ -171,7 +185,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 
 <script src="i18n/zh-fortune.js?v=14"></script>
 <script src="i18n/zh-petread.js?v=1"></script>
-<script src="lensiq-config.js?v=25"></script>
+<script src="lensiq-config.js?v=26"></script>
 <script src="lensiq-crashguard.js?v=1"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
 <script src="fortune-read.js?v=23"></script>
@@ -181,8 +195,8 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="fortune-ai.js?v=39"></script>
 <script src="lensiq-compat-stub.js?v=1"></script>
 <script src="lensiq-pet-kb.js?v=1"></script>
-<script src="lensiq-pet.js?v=1"></script>
-<script src="lensiq-pet-card.js?v=1"></script>
-<script src="petread.js?v=2"></script>
+<script src="lensiq-pet.js?v=2"></script>
+<script src="lensiq-pet-card.js?v=3"></script>
+<script src="petread.js?v=3"></script>
 </body>
 </html>

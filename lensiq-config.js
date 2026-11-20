@@ -30,6 +30,14 @@ window.LENSIQ_FORTUNE_STRAIGHT = false;
 window.LENSIQ_FORTUNE_PAID = window.LENSIQ_FORTUNE_PAID === true;
 window.LENSIQ_FORTUNE_PLAN = window.LENSIQ_FORTUNE_PLAN === true;
 window.LENSIQ_FORTUNE_SOURCES = window.LENSIQ_FORTUNE_SOURCES === true;
+/* LENSIQ_PET_ZODIAC (owner spec 2026-11-19): the petread share card becomes a card the system draws (12 zodiac animals + a
+ * secret card, independent of the reading, free) with a collection kept on this device. Off on the live site until the owner
+ * approves the samples. LENSIQ_PET_CARD_CLASSIC (spec name PET_CARD_CLASSIC, decision 138 ข): true = the 4 classic colour
+ * themes even with zodiac on; default false. LENSIQ_PET_ZODIAC_ODDS: odds preset of lensiq-pet-draw.js, "b" (decision 137 ข:
+ * day's animal x2, secret 1 in 50, 1 in 10 on full-moon days) or "a" (all equal, 1 in 50). */
+window.LENSIQ_PET_ZODIAC = window.LENSIQ_PET_ZODIAC === true;
+window.LENSIQ_PET_CARD_CLASSIC = window.LENSIQ_PET_CARD_CLASSIC === true;
+window.LENSIQ_PET_ZODIAC_ODDS = window.LENSIQ_PET_ZODIAC_ODDS || "b";
 
 /* LENSIQ_LOOK_SALON (decision 2026-11-14 ก): shop-catalogue mode of the look suggestions; off until a human approval step exists */
 window.LENSIQ_LOOK_SALON = false;

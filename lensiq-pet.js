@@ -14,7 +14,8 @@
  *     input = {species, name, traits:{coat, marks[], eyes, ears, face, size, energy}, birth:"YYYY-MM-DD"|null, owner:{birth}|null, humanSeen}
  *     sections: overview, personality, likes, bond, lucky, compat (compat only with the owner's birth date, through
  *     LQCompat.pair(owner, pet, {mode:"owner-pet", lang}); window.LQCompat is looked up at call time, else lensiq-compat-stub.js)
- *   cardModel(result, {photo=false, theme}) -> plain data for the share card (lensiq-pet-card.js) · cardText(model) -> strings drawn
+ *   cardModel(result, {photo=false, theme, size, template?}) -> plain data for the share card (lensiq-pet-card.js; template = a
+ *     zodiac card id: adds {template, from} only, the reading strings never change) · cardText(model) -> strings drawn
  *   pickDetections(dets) -> {pet, species, persons}   YOLOX classes person 0 / cat 15 / dog 16
  *   loadDetector() -> Promise<model> (browser: loads vendor/ort + lensiq-detect.js + YOLOX-Nano on first call only)
  *   detect(model, img) -> Promise<pickDetections()> · coatGuess(src, box) -> coat key | null (a hint the owner confirms)
@@ -142,16 +143,21 @@
     const lines = [sec("personality")[0], sec("likes")[1] || sec("likes")[0], sec("bond")[0]].filter(Boolean);
     const lk = res.lucky || {}, typed = String(res.typedName || "").trim();
     const hl = KB && KB.headline && KB.headline[coat] ? KB.headline[coat][lang] : "";
-    return {
+    const m = {
       lang, species: sp, coat, eyes: res.eyes || "gold", ears: res.ears || "up", photo: !!o.photo, theme: o.theme || "sunny", size: o.size || "post",
       petName: typed || KB.defName[sp][lang].replace(/^./, c => (lang === "en" ? c.toUpperCase() : c)),
       headline: hl, title: fill(CARD_T.title[lang], { sp: KB.species[sp][lang] }),
       lines, lucky: lk.colour ? fill(CARD_T.lucky[lang], { c: lk.colour.name, d: lk.day.name }) : "",
       hex: lk.colour ? lk.colour.hex : "#f2b705",
       honest: HONEST[lang], disclaimer: DISC[lang], link: LINK,
-    };
+    }, tpl = o.template ? String(o.template) : "";
+    // zodiac card mode (owner spec 2026-11-19): the template only changes the look; every reading string above stays the same.
+    // Footer "จาก LENSIQ" + the site address from the one setting (LINK); FROM is the same text as LQPetDraw.FROM.
+    if (tpl) { m.template = tpl; m.from = FROM[lang] + " · " + LINK.replace(/^https:\/\//, ""); }
+    return m;
   }
-  function cardText(m) { return [m.title, m.headline].concat(m.lines, m.lucky ? [m.lucky] : [], [m.honest, m.disclaimer, m.link]).filter(Boolean); }
+  const FROM = { th: "จาก LENSIQ", en: "From LENSIQ", zh: "来自 LENSIQ" };
+  function cardText(m) { return [m.title, m.headline].concat(m.lines, m.lucky ? [m.lucky] : [], [m.honest, m.disclaimer, m.from || m.link]).filter(Boolean); }
 
   /* ---- detections ---- */
   // privacy (review round 1, D1): every person box at or above PRIVACY_MIN is blurred on the card, far below the 0.4 used for

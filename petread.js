@@ -3,7 +3,11 @@
  * species and coat -> the owner confirms the traits -> LQPet.compose -> FortuneAI.renderSections (crisis net, grouped layout)
  * -> the share card (lensiq-pet-card.js). Nothing is stored or uploaded; the card is saved locally or shared through the
  * phone's own share sheet. A person in the photo is never read: the reading ignores them and the card pixelates them.
- * Test seam (any host): window.__LQPET = {ready, st, useImage(src), cardText(), lastStream}. Scripted detections only on
+ * Zodiac cards (owner spec 2026-11-19, window.LENSIQ_PET_ZODIAC, off on the live site; LENSIQ_PET_CARD_CLASSIC keeps the 4 colour
+ * themes): on each Read the system draws one of 13 templates (lensiq-pet-draw.js, odds from LENSIQ_PET_ZODIAC_ODDS, default b)
+ * and records it in the on-device collection (template ids + first-found date only). The draw never touches the reading. The
+ * draw module and the art (lensiq-pet-zodiac-art.js) load only when a card is made, never in a crisis or calm session.
+ * Test seam (any host): window.__LQPET = {ready, st, useImage(src), cardText(), lastStream}; zodiacDraw(id) on localhost only. Scripted detections only on
  * localhost with ?fakedet (window.__LQ_FAKE_DET("pet")), as in lensiq-detect.js. */
 (function () {
   "use strict";
@@ -15,7 +19,8 @@
   const KB = W.LQPetKB, P = W.LQPet;
   const isTest = () => /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("fakedet");
   const st = { img: null, det: null, detected: false, detFailed: false, stream: null, res: null, theme: "sunny", size: "post", busy: 0 };
-  const api = { ready: false, st, useImage, cardText: () => (st.model ? P.cardText(st.model) : []), model: () => st.model || null, lastStream: null };
+  const api = { ready: false, st, useImage, cardText: () => (st.model ? P.cardText(st.model) : []), model: () => st.model || null, lastStream: null,
+    zodiacDraw };
   W.__LQPET = api;
 
   /* ---------- trait picker (rendered from the KB in the page language) ---------- */
@@ -42,7 +47,19 @@
       }
       fs.appendChild(grid); box.appendChild(fs);
     }
-    syncChips();
+    syncChips(); markFields();
+  }
+  /** required / optional markers (owner scope item 2, zodiac mode only): the reading needs only the species (read() checks it);
+   *  every other trait group is optional; the photo, name and date fields already say optional in their own labels */
+  function markFields() {
+    if (!zMode()) return;
+    for (const fs of document.querySelectorAll("#petTraits fieldset")) {
+      const lg = fs.querySelector("legend"), sp = !!fs.querySelector('input[name="petSpecies"]'), m = document.createElement("span");
+      m.className = sp ? "pet-req" : "pet-opt";
+      m.textContent = sp ? T("pet.z.req", "(จำเป็น)") : T("pet.z.opt", "(ไม่บังคับ)");
+      lg.appendChild(m);
+      if (sp) { const g = fs.querySelector(".fk-opts"); g.setAttribute("role", "radiogroup"); g.setAttribute("aria-required", "true"); g.setAttribute("aria-label", lg.textContent); }
+    }
   }
   function syncChips() { for (const l of document.querySelectorAll("#petTraits .fk-opt")) l.classList.toggle("on", !!l.querySelector("input:checked")); }
   function checked(name) { const el = $(`input[name="${name}"]:checked`); return el ? el.value : null; }
@@ -135,6 +152,11 @@
     if (!window.isSecureContext || n === "Insecure") return T("pet.cam.https", "กล้องใช้ได้เฉพาะหน้าเว็บที่เปิดด้วย https ใช้ปุ่ม เลือกรูป แทนได้");
     return T("pet.cam.other", "เปิดกล้องไม่สำเร็จ ใช้ปุ่ม เลือกรูป แทนได้");
   }
+  /** capture guide (owner scope item 1, zodiac mode only): a pet-head frame over the live picture and a one-line hint */
+  function showGuide(on) {
+    const v = !!on && zMode();
+    $("#petGuide").toggleAttribute("hidden", !v); $("#petGuideHint").hidden = !v; // an <svg> has no .hidden property
+  }
   async function camOn() {
     const m = $("#petCamMsg");
     try {
@@ -144,14 +166,14 @@
       st.stream = s; api.lastStream = s;
       const v = $("#petVideo"); v.srcObject = s; v.hidden = false; $("#petView").hidden = true; $("#petEmpty").hidden = true;
       try { await v.play(); } catch (e) { /* autoplay muted */ }
-      $("#petSnap").disabled = false; $("#petCamOff").disabled = false;
+      $("#petSnap").disabled = false; $("#petCamOff").disabled = false; showGuide(true);
       m.textContent = T("pet.cam.on", "กล้องเปิดอยู่ จัดหน้าน้องให้อยู่กลางภาพ แล้วกด ถ่ายรูป");
     } catch (e) { m.textContent = camMsg(e); }
   }
   function camOff(quiet) {
     const v = $("#petVideo");
     if (st.stream) for (const t of st.stream.getTracks()) t.stop();
-    st.stream = null; v.srcObject = null; v.hidden = true;
+    st.stream = null; v.srcObject = null; v.hidden = true; showGuide(false);
     $("#petSnap").disabled = true; $("#petCamOff").disabled = true;
     if (st.img) $("#petView").hidden = false; else $("#petEmpty").hidden = false;
     if (!quiet) $("#petCamMsg").textContent = T("pet.cam.off", "ปิดกล้องแล้ว");
@@ -224,16 +246,84 @@
     });
     return qrLib;
   }
+  /* ---------- zodiac cards ---------- */
+  const zMode = () => W.LENSIQ_PET_ZODIAC === true && W.LENSIQ_PET_CARD_CLASSIC !== true;
+  const zReady = () => !!(W.LQPetDraw && W.LQPetZodiacArt);
+  let zLib = null;
+  function loadScript(src) {
+    return new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = () => ok(); s.onerror = () => no(new Error(src)); document.head.appendChild(s); });
+  }
+  /** the draw module and the template art, on the first zodiac card only */
+  function loadZodiac() {
+    if (zReady()) return Promise.resolve();
+    if (!zLib) zLib = loadScript("lensiq-pet-draw.js?v=1").then(() => loadScript("lensiq-pet-zodiac-art.js?v=1")).catch(e => { zLib = null; throw e; });
+    return zLib;
+  }
+  const store = () => { try { return W.localStorage; } catch (e) { return null; } };
+  /** the system picks the card: a new draw for every Read and every "draw again"; free, nothing counts draws */
+  function zDraw() {
+    const D = W.LQPetDraw, cfg = D.config(W.LENSIQ_PET_ZODIAC_ODDS), ctx = { today: D.today() };
+    const r = D.draw(cfg, ctx);
+    D.recordFind(store(), r.id, ctx.today);
+    st.z = { id: r.id, rule: r.rule || "", cfg, ctx, seq: (st.z ? st.z.seq : 0) + 1 };
+    st.zNeed = false;
+  }
+  /** test seam (localhost only): draw a given template, not recorded in the collection */
+  function zodiacDraw(id) {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return Promise.resolve(false);
+    return loadZodiac().then(() => {
+      const D = W.LQPetDraw; if (D.TEMPLATES.indexOf(id) < 0) return false;
+      const cfg = D.config(W.LENSIQ_PET_ZODIAC_ODDS);
+      st.z = { id, rule: "", cfg, ctx: { today: D.today() }, seq: (st.z ? st.z.seq : 0) + 1 }; st.zNeed = false;
+      drawCard(); return true;
+    });
+  }
+  const fmtDay = d => { try { return new Date(d + "T00:00:00").toLocaleDateString({ th: "th-TH", en: "en-GB", zh: "zh-CN" }[lang()], { day: "numeric", month: "short", year: "numeric" }); } catch (e) { return d; } };
+  function renderZ() {
+    const D = W.LQPetDraw, on = zMode() && zReady() && !!st.z;
+    $("#petZ").hidden = !on; $("#petZColWrap").hidden = !on; $("#petThemes").hidden = on;
+    if (!on) return;
+    const l = lang(), A = W.LQPetZodiacArt;
+    $("#petZGot").textContent = T("pet.z.got", "การ์ดที่ได้: {name}", { name: D.label(st.z.id, l) });
+    $("#petZOdds").textContent = D.oddsText(st.z.cfg, st.z.ctx, l).join("\n");
+    const found = D.loadCollection(store()), n = Object.keys(found).length;
+    $("#petZCount").textContent = T("pet.z.count", "สะสมแล้ว {n}/13 ใบ", { n });
+    const ul = $("#petZCol"); ul.textContent = "";
+    for (const id of D.TEMPLATES) {
+      const li = document.createElement("li"), cv = document.createElement("canvas"), b = document.createElement("b"), sm = document.createElement("span");
+      li.className = "pet-zslot"; li.dataset.id = id; li.dataset.state = found[id] ? "found" : "missing";
+      if (id === "secret") li.dataset.secret = "1";
+      cv.setAttribute("aria-hidden", "true");
+      A.drawSlot(cv, id, { found: !!found[id] });
+      b.textContent = found[id] || id !== "secret" ? D.short(id, l) : T("pet.z.secretSlot", "ช่องการ์ด Secret");
+      sm.textContent = found[id] ? T("pet.z.found", "ได้เมื่อ {d}", { d: fmtDay(found[id]) }) : T("pet.z.missing", "ยังไม่พบ");
+      li.append(cv, b, sm); ul.appendChild(li);
+    }
+  }
+
   function drawCard() {
     if (!st.res) return;
+    const zm = zMode();
+    if (zm && !zReady() && !st.zFail) {
+      loadZodiac().then(() => { if (st.res && !$("#petCardSec").hidden) drawCard(); },
+        () => { st.zFail = true; $("#petCardNote").textContent = T("pet.z.loadFail", "โหลดลายการ์ดไม่สำเร็จ ใช้การ์ดแบบเดิมแทน"); drawCard(); });
+      return;
+    }
+    const zOn = zm && zReady();
+    if (zOn && (st.zNeed || !st.z)) zDraw();
     const want = $("#petPhotoOn").checked, on = want && !!st.img, qrOn = $("#petQrOn").checked;
     if (qrOn && !W.qrcode) { loadQr().then(drawCard, () => { $("#petQrOn").checked = false; drawCard(); }); }
-    st.model = P.cardModel(st.res, { photo: on, theme: st.theme, size: st.size });
+    st.model = P.cardModel(st.res, { photo: on, theme: st.theme, size: st.size, template: zOn ? st.z.id : undefined });
     const cv = $("#petCard");
     // privacy (review round 1, D1): the photo only after the detector ran; every person box it found, down to PRIVACY_MIN
     const detOk = !!st.det && st.detected && !st.detFailed;
-    const info = W.LQPetCard.draw(cv, st.model, { theme: st.theme, size: st.size, photo: on ? st.img : null, detOk,
-      pet: st.det && st.det.pet, persons: (st.det && (st.det.blur || st.det.persons)) || [], qr: qrOn ? qrMatrix() : null });
+    const opts = { theme: st.theme, size: st.size, photo: on ? st.img : null, detOk,
+      pet: st.det && st.det.pet, persons: (st.det && (st.det.blur || st.det.persons)) || [], qr: qrOn ? qrMatrix() : null };
+    const label = zOn ? W.LQPetDraw.label(st.z.id, lang()) : "";
+    const info = zOn ? W.LQPetZodiacArt.drawCard(cv, st.model, Object.assign(opts, { template: st.z.id, label })) : W.LQPetCard.draw(cv, st.model, opts);
+    cv.dataset.template = zOn ? st.z.id : ""; cv.dataset.label = label; cv.dataset.rule = zOn ? st.z.rule : "";
+    cv.dataset.drawSeq = zOn ? String(st.z.seq) : "";
+    renderZ();
     cv.dataset.drawn = "1"; cv.dataset.photo = info.photo ? "1" : "0"; cv.dataset.blur = String(info.blur || 0); cv.dataset.theme = info.theme;
     cv.dataset.size = info.size; cv.dataset.qr = info.qr ? "1" : "0"; cv.dataset.frame = info.frame.join(",");
     const note = $("#petCardNote");
@@ -242,7 +332,7 @@
       note.textContent = T("pet.card.nodet", "ตัวช่วยดูรูปยังไม่ได้ตรวจรูปนี้ว่ามีคนอยู่หรือไม่ จึงไม่ใส่รูปในการ์ด ใช้ภาพวาดแทน");
     else if (want && info.refused) note.textContent = T("pet.card.refused", "มีคนอยู่ติดกับน้องในรูป จึงไม่ใส่รูปในการ์ด ใช้ภาพวาดแทน ลองใช้รูปที่มีแต่น้อง");
     else if (info.blur) note.textContent = T("pet.card.blur", "พบคนในรูป ส่วนที่เป็นคนถูกเบลอบนการ์ดแล้ว ถ้ายังเห็นหน้าคน อย่าใส่รูปในการ์ด");
-    else note.textContent = "";
+    else if (!st.zFail || !zm) note.textContent = "";
   }
   function cardBlob() { return new Promise(ok => $("#petCard").toBlob(b => ok(b), "image/png")); }
   async function save() {
@@ -271,7 +361,8 @@
     $("#petCamOn").addEventListener("click", camOn);
     $("#petCamOff").addEventListener("click", () => camOff(false));
     $("#petSnap").addEventListener("click", snap);
-    $("#petForm").addEventListener("submit", e => { e.preventDefault(); read(false); });
+    $("#petForm").addEventListener("submit", e => { e.preventDefault(); st.zNeed = true; read(false); });
+    $("#petZRedraw").addEventListener("click", () => { st.zNeed = true; drawCard(); });
     $("#petPhotoOn").addEventListener("change", drawCard);
     $("#petQrOn").addEventListener("change", drawCard);
     for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".pet-size"))) b.addEventListener("click", () => {
@@ -292,7 +383,7 @@
       io.observe($("#petRead")); io.observe($("#petResult"));
     }
     $("#petTraits").addEventListener("change", bar);
-    $("#petReadBar").addEventListener("click", () => { read(false); bar(); });
+    $("#petReadBar").addEventListener("click", () => { st.zNeed = true; read(false); bar(); });
     for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".pet-theme[data-theme]"))) b.addEventListener("click", () => {
       st.theme = b.dataset.theme;
       for (const o of document.querySelectorAll(".pet-theme[data-theme]")) o.setAttribute("aria-pressed", String(o === b));

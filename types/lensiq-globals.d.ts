@@ -47,6 +47,10 @@ interface Window {
   LENSIQ_LEADS_FORM?: boolean;
   /** photobooth try-on server status is asked only when true (mirrors the backend TRYON switch; off as shipped) */
   LENSIQ_TRYON?: boolean;
+  /** petread zodiac share cards (owner spec 2026-11-19): mode switch, classic-theme switch (PET_CARD_CLASSIC), odds preset a / b */
+  LENSIQ_PET_ZODIAC?: boolean;
+  LENSIQ_PET_CARD_CLASSIC?: boolean;
+  LENSIQ_PET_ZODIAC_ODDS?: string;
   /** converter uses the local python server.py PDF engine only when true (off as shipped) */
   LENSIQ_CONVERT_SERVER?: boolean;
   /** rule-6 switch (owner decision 2026-11-16): the top 1323 control in the sticky top bar (true) or scrolling away (false) */
