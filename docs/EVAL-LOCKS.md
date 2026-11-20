@@ -339,6 +339,8 @@ Pending (owner decision 189 ข): relock3 limited the e2e console-error checks o
 and errors naming a fortune-caution file, because fortune-ai.js calls /api/fortune/status (404 on the local test server). Once branch
 `api-status-guard` (decision 190: the call only when LENSIQ_API_BASE is set) is on main, main is merged into `fortune-cautions` and
 the console checks go back to the whole page in a new relockN/ folder, noted "stricter: restores whole-page console errors (owner 189 ข)".
+Done 2026-11-21 (branch `console-189b`, base main c346449f): relock11/ restores the unfiltered `pg.consoleErrors` check in
+`fortune-caution.e2e.mjs`, `fortune-caution-horoscope.e2e.mjs` and `fortune-caution-bazi-astro.e2e.mjs` (NOTE.txt in the field folder).
 
 Relock 9 (2026-11-20, independent review at 51ffb7ac), stricter: narrows relock 6. relock 6 had changed the "never a single day" check in
 `tests/unit/fortune-caution-rules.test.js` from `m && …` to `!m || …`, which accepted "no section" on every page and was covered by no owner
