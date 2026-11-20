@@ -1,5 +1,7 @@
-// tests/e2e/palm-v3.e2e.mjs — FIXED TEST SET "palm-v3-lines" relock3 (relock1 called the page hook layout() without its target) (palm v3 majors, owner order 2026-11-20 evening), locked
-// BEFORE the majors-finish change. palm.html with LENSIQ_PALM_V2 = true AND LENSIQ_PALM_V3_LINES = true; DRAWN SYNTHETIC hands only
+// tests/e2e/palm-v3.e2e.mjs — FIXED TEST SET "palm-v3-lines" relock4 (relock3: layout("screen"); relock4: opened in the demo profile,
+// because owner decision 185 ข condition 2 keeps v3 off in every customer / commercial build; no assertion changed).
+// relock1: palm v3 majors, owner order 2026-11-20 evening, locked BEFORE the majors-finish change.
+// palm.html with LENSIQ_PALM_V2 = true AND LENSIQ_PALM_V3_LINES = true; DRAWN SYNTHETIC hands only
 // (tests/fixtures/palm-v2/synth-hand.js, textures.js, tests/fixtures/palm-v3/synth-real.js); no photo of any person.
 //  a  sub-switch off (V2 on, V3 not set): palm-v3-lines.js is not downloaded and the v2 finder answers.
 //  b  sub-switch on, realistic shallow creases (synth-real): the v3 finder answers (from the Web Worker); at least two of heart /
@@ -20,7 +22,9 @@ const TAP_ORDER = ["wrist", "indexBase", "pinkyBase", "indexTip", "middleTip", "
 const UNCLEAR = { th: "ไม่ชัดในภาพนี้", en: "Not clear in this photo", zh: "此照片中不清楚" };
 
 async function open(browser, base, { lang = "th", v3 = true } = {}) {
-  const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`].concat(FIX, ["window.LENSIQ_PALM_V2 = true;"], v3 ? ["window.LENSIQ_PALM_V3_LINES = true;"] : []);
+  // relock4 (owner decision 185 ข condition 2): v3 now runs only in the demo / development profile, so the page is opened in it
+  const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`].concat(FIX, ['window.LENSIQ_PROFILE = "demo"; window.LENSIQ_PALM_V2 = true;'],
+    v3 ? ["window.LENSIQ_PALM_V3_LINES = true;"] : []);
   const page = await browser.newPage(null, { initScripts: init });
   await page.send("Emulation.setDeviceMetricsOverride", { width: 393, height: 852, deviceScaleFactor: 2, mobile: true });
   await page.goto(`${base}/palm.html?cpu`);

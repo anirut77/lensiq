@@ -1,11 +1,19 @@
 "use strict";
-// tests/unit/palm-v3-hard.test.js — FIXED TEST SET "palm-v3-lines" relock2 (relock1 had two lines over 200 characters, never run) (palm v3 majors, owner order 2026-11-20 evening), locked
-// BEFORE the majors-finish change. All numbers are SYNTHETIC (drawn hand + drawn textures), never field numbers; no photo is used.
-// H   HARDER null control: textures stacked and denser wrinkles on a palm with no principal line, seeds 41-43, left and right:
+// tests/unit/palm-v3-hard.test.js — FIXED TEST SET "palm-v3-lines" relock4 (2026-11-20). Earlier: relock1 / relock2 (written and locked
+// BEFORE the majors-finish change). All numbers are SYNTHETIC (drawn hand + drawn textures), never field numbers; no photo is used.
+// relock4 = owner decision 185 ข (approved by number, 2026-11-20): loosened by owner decision 185 ข: real creases under side light
+// look like the band, so rejecting it removes real lines. The "lighting" (light-band) cases are REPORT-ONLY but still run every
+// time, with a regression check against today's locked-set baseline. Nothing else is loosened.
+// H   HARDER null control, strict: on a palm with no principal line, seeds 41-43, left and right:
 //       - synth-hand with 280 short distractor creases (twice the default) + textures.js skinCreases;
-//       - textures.js skinStrong + tex2 lighting;  - tex2 darkSkin + noise8 + motion;  - tex2 fingerprint + hardShadow;
-//       - synth-real texture alone + tex2 lighting + noise8;  - synth-real texture + tex2 lowContrast + darkSkin;
+//       - tex2 darkSkin + noise8 + motion;  - tex2 fingerprint + hardShadow (owner item 185-2: NOT loosened, must pass);
+//       - synth-real texture + tex2 lowContrast + darkSkin;
 //     no line of any kind is drawn solid, nothing reaches "found" in the v2 state, and every major's z stays below the limit.
+// HL  light band (tex2 "lighting": textures.js skinStrong + lighting; synth-real texture + lighting + noise8), seeds 41-43, left and
+//     right = 12 hands: REPORT-ONLY. Every run prints the false-line count and the z range (test output, CI output and one line for
+//     the owner's board). REGRESSION CHECK (fails): more than 1 hand with a solid major, more than 1 solid major, or a major z above
+//     12.07 (today's locked-set baseline at the relock: 1 of 12 hands, 1 solid major (life), major z 2.05-12.07). Dev baseline for
+//     reference: 27 false majors in 312 dev hands.
 // R   the majors on realistic creases keep their geometry rules on fresh seeds 51-56 (left / right): every SOLID line lies on its
 //     crease (mean <= 0.03 PW, worst point <= 0.08 PW) and covers >= 60 % of it; heart, head and life each solid in >= 10 / 12.
 // T   timing is reported (synthetic hand, Node, majors only): median and worst detection time; not a pass rule (machines differ).
@@ -31,17 +39,26 @@ function hardCases() {
     const k = seed * 10 + (side === "left" ? 1 : 0);
     out.push([`dense-wrinkles+skinCreases s${seed} ${side}`, () => {
       const h = SYN.synthHand({ lines: [], seed, side, distract: 280 }); TEX.apply(h, TEX.texture("skinCreases", h.w, h.h, k, h.pw)); return h; }]);
-    out.push([`skinStrong+lighting s${seed} ${side}`, () => {
-      const h = SYN.synthHand({ lines: [], seed, side, distract: 140 }); TEX.apply(h, TEX.texture("skinStrong", h.w, h.h, k, h.pw)); X2.applyAll(h, ["lighting"], k); return h; }]);
     out.push([`darkSkin+noise8+motion s${seed} ${side}`, () => { const h = SYN.synthHand({ lines: [], seed, side, distract: 140 }); X2.applyAll(h, ["darkSkin", "noise8", "motion"], k); return h; }]);
     out.push([`fingerprint+hardShadow s${seed} ${side}`, () => { const h = SYN.synthHand({ lines: [], seed, side, distract: 140 }); X2.applyAll(h, ["fingerprint", "hardShadow"], k); return h; }]);
-    out.push([`real-texture+lighting+noise8 s${seed} ${side}`, () => { const h = REAL.synthReal({ seed, side, noCreases: true }); X2.applyAll(h, ["lighting", "noise8"], k); return h; }]);
     out.push([`real-texture+lowContrast+darkSkin s${seed} ${side}`, () => { const h = REAL.synthReal({ seed, side, noCreases: true }); X2.applyAll(h, ["lowContrast", "darkSkin"], k); return h; }]);
   }
   return out;
 }
+/** the light-band cases (owner decision 185 ข: report-only with a regression check) */
+function lightCases() {
+  const out = [];
+  for (const seed of [41, 42, 43]) for (const side of ["right", "left"]) {
+    const k = seed * 10 + (side === "left" ? 1 : 0);
+    out.push([`skinStrong+lighting s${seed} ${side}`, () => {
+      const h = SYN.synthHand({ lines: [], seed, side, distract: 140 }); TEX.apply(h, TEX.texture("skinStrong", h.w, h.h, k, h.pw)); X2.applyAll(h, ["lighting"], k); return h; }]);
+    out.push([`real-texture+lighting+noise8 s${seed} ${side}`, () => { const h = REAL.synthReal({ seed, side, noCreases: true }); X2.applyAll(h, ["lighting", "noise8"], k); return h; }]);
+  }
+  return out;
+}
+const LIGHT_BASE = { hands: 12, handsWithSolid: 1, solidMajors: 1, zMax: 12.07 };
 
-test("H harder null control: stacked textures and denser wrinkles, no line drawn solid, nothing found, every major z below the limit", () => {
+test("H harder null control (strict, incl. 185-2 fingerprint + hard shadow): no line drawn solid, nothing found, every major z below the limit", () => {
   const bad = [], zmax = {};
   for (const [name, make] of hardCases()) {
     const h = make(), det = run(h);
@@ -56,6 +73,33 @@ test("H harder null control: stacked textures and denser wrinkles, no line drawn
     for (const id of PV.LINES) if (st.lines[id].status === "found") bad.push(`${name}: ${id} FOUND in the v2 state`);
   }
   console.log("harder null, max z per line (synthetic):", JSON.stringify(Object.fromEntries(Object.entries(zmax).map(([k, v]) => [k, Math.round(v * 100) / 100]))));
+  assert.deepEqual(bad, []);
+});
+
+test("HL light band (owner decision 185 ข): report-only, but fails on a regression against the locked-set baseline", () => {
+  let hands = 0, handsWithSolid = 0, solidMajors = 0, zMin = Infinity, zMax = -Infinity;
+  const which = [];
+  for (const [name, make] of lightCases()) {
+    const h = make(), det = run(h);
+    hands++;
+    let any = false;
+    for (const id of MAJ) {
+      const L = det.lines[id];
+      if (!L || typeof L.z !== "number") continue;
+      zMin = Math.min(zMin, L.z); zMax = Math.max(zMax, L.z);
+      if (L.solid) { solidMajors++; any = true; which.push(`${name} ${id} z ${L.z}`); }
+    }
+    if (any) handsWithSolid++;
+  }
+  const line = `PALM-V3 LIGHT-BAND (report-only, owner decision 185 ข; synthetic): ${handsWithSolid}/${hands} locked hands with a solid major, ` +
+    `${solidMajors} solid major(s), major z ${zMin.toFixed(2)}-${zMax.toFixed(2)} (baseline ${LIGHT_BASE.handsWithSolid}/${LIGHT_BASE.hands}, ` +
+    `${LIGHT_BASE.solidMajors}, max z ${LIGHT_BASE.zMax}; dev baseline 27 false majors in 312 dev hands)` + (which.length ? ` · ${which.join("; ")}` : "");
+  console.log(line);
+  const bad = [];
+  if (hands !== LIGHT_BASE.hands) bad.push(`ran ${hands} light-band hands, expected ${LIGHT_BASE.hands}`);
+  if (handsWithSolid > LIGHT_BASE.handsWithSolid) bad.push(`REGRESSION: ${handsWithSolid} hands with a solid major (baseline ${LIGHT_BASE.handsWithSolid})`);
+  if (solidMajors > LIGHT_BASE.solidMajors) bad.push(`REGRESSION: ${solidMajors} solid majors (baseline ${LIGHT_BASE.solidMajors})`);
+  if (zMax > LIGHT_BASE.zMax) bad.push(`REGRESSION: major z ${zMax} above the baseline ${LIGHT_BASE.zMax}`);
   assert.deepEqual(bad, []);
 });
 

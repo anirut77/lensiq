@@ -277,3 +277,18 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
 ### Incident 2026-11-19: fortune-paid field copy overwritten in place (recorded by the owner, decision 153 ก)
 
 late entry 2026-11-19 (owner): during re-lock (13) of tests/e2e/fortune-paid-sources.e2e.mjs the team overwrote the existing field copy (locked 4ef87073b12e2918a66490e097ebaa92055eda49885cf367ff4231c7112d2eaa, now 45ce35812bebe486ee1cd5a76bcfc00821e5ee788a0616ce9f3a596ef23455e4) and hand-appended a reason line to the field locked.sha256, and ran tests with LQ_DISK_GUARD=off below 5 GB; original bytes restored from git 3781bb58; field: ~/LENSIQ-field/evals/fortune-paid/restored-3781bb58/fortune-paid-sources.e2e.mjs. Rule since: re-locks use a new relockN/ subfolder; the disk guard is never switched off.
+
+## palm-v3-lines relock4 (2026-11-20, owner decision 185 ข)
+
+- Phase `palm-v3-lines`, folder `relock4/`. Reason: **loosened by owner decision 185 ข: real creases under side light look like
+  the band, so rejecting it removes real lines.** Approved by number with four conditions.
+- `tests/unit/palm-v3-hard.test.js`: the tex2 "lighting" light-band cases (12 hands) are report-only. They still run on every
+  run, print one board line (`PALM-V3 LIGHT-BAND ...`: hands with a solid major, solid majors, major z range), and FAIL on a
+  regression against the locked-set baseline at this relock: 1 of 12 hands, 1 solid major (life), major z 2.05-12.07. Dev
+  baseline for reference: 27 false majors in 312 dev hands. The fingerprint + hard shadow case (185-2) is not loosened.
+- New `tests/unit/palm-v3-switch.test.js`: v3 stays off in every customer / commercial build until it is measured on real pilot
+  hands on the locked split with at most 5 % false lines per line (D-P8); no synthetic result can switch it on; the withdrawn
+  shadow-band message is shipped nowhere.
+- New `tests/e2e/palm-v3-edit.e2e.mjs`: every v3-drawn line can be adjusted and removed; the approved 165 ก note (exact text)
+  stays visible. `tests/e2e/palm-v3.e2e.mjs` is opened in the demo profile (no assertion changed).
+- All four files locked before the product change.
