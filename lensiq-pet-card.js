@@ -12,7 +12,8 @@
  *     pixelated in WHOLE (coarse mosaic, no hole). info = {photo, blur, refused: "" | "nodet" | "person", theme, size, qr,
  *     frame: [x, y, w, h] of the picture area in canvas pixels}
  *   opts.skin: a zodiac template from lensiq-pet-zodiac-art.js (LQPetZodiacArt.skin(id, label)): its colours, background, border,
- *     art over the picture frame and footer "จาก LENSIQ · <link>" (model.from); info.template = its id. Without it: the 4 themes.
+ *     art over the picture frame; info.template = its id. Without it: the 4 themes. Footer of every card: model.from ("จาก <brand>",
+ *     plus " · <address>" only with LENSIQ_CARD_SHOW_ADDRESS); the QR (it encodes the address) is drawn only with that switch on.
  *   wrap(ctx, text, maxWidth, lang) -> lines (Thai / Chinese without spaces: by word segments when the browser has them)
  * Browser: window.LQPetCard · Node: module.exports (no canvas work at load). */
 (function (root) {
@@ -162,6 +163,7 @@
     const sizeKey = SIZES[o.size || model.size] ? (o.size || model.size) : "post", S = SIZES[sizeKey], W = S.w, H = S.h, story = sizeKey === "story";
     canvas.width = W; canvas.height = H;
     const c = canvas.getContext("2d"), font = FONT();
+    const qr = o.qr && o.qr.n && root.LENSIQ_CARD_SHOW_ADDRESS === true ? o.qr : null; // owner change 2026-11-20
     /** text boxes: kind "header" | "body" | "footer", in canvas pixels, around the drawn text */
     const info0 = { headline: "" }; // the headline as drawn (reported as info.headline)
     const boxes = [], tb = (kind, x, y, w, fsz) => boxes.push({ kind, x: x - 6, y: y - fsz * 0.3, w: w + 12, h: fsz * 1.6 });
@@ -177,8 +179,8 @@
     c.textBaseline = "top"; c.textAlign = "left";
     // header: brand line, the typed pet name (big), the headline type
     const HW = sk ? TW - 140 : TW; // zodiac mode: the header text stays clear of the corner sticker
-    c.fillStyle = th.accent; c.font = `700 30px ${font}`; paw(c, PAD + 18, 86, 26, th.accent); c.fillText(model.title || "LENSIQ", PAD + 56, 70);
-    boxes.push({ kind: "header", x: PAD - 14, y: 52, w: 56 + c.measureText(model.title || "LENSIQ").width + 26, h: 64 });
+    c.fillStyle = th.accent; c.font = `700 30px ${font}`; paw(c, PAD + 18, 86, 26, th.accent); c.fillText(model.title || "", PAD + 56, 70);
+    boxes.push({ kind: "header", x: PAD - 14, y: 52, w: 56 + c.measureText(model.title || "").width + 26, h: 64 });
     let y = story ? 150 : 128;
     const nfs = story ? 96 : 80; c.fillStyle = th.ink; c.font = `800 ${nfs}px ${font}`;
     for (const l of wrap(c, model.petName || "", HW, lang).slice(0, 1)) { c.fillText(l, PAD, y); tb("header", PAD, y, c.measureText(l).width, nfs); y += story ? 112 : 92; }
@@ -219,7 +221,7 @@
       y += 96;
     }
     // reading lines: the space down to the footer is shared out
-    const footTop = H - (o.qr ? 250 : 230), fs = story ? 40 : 35, LH = Math.round(fs * 1.38);
+    const footTop = H - (qr ? 250 : 230), fs = story ? 40 : 35, LH = Math.round(fs * 1.38);
     c.font = `500 ${fs}px ${font}`; c.fillStyle = th.ink;
     const paras = (model.lines || []).map(p => wrap(c, p, TW, lang));
     let budget = Math.floor((footTop - 20 - y) / LH) - (paras.length - 1) * 0.4;
@@ -230,16 +232,17 @@
         c.fillText(t, PAD, y); tb("body", PAD, y, c.measureText(t).width, fs); y += LH; }
       budget -= take + 0.4; y += Math.round(LH * 0.4);
     }
-    // footer: honest line, disclaimer, link back (and the optional QR code to the same link)
-    const qs = 170, tw2 = o.qr ? TW - qs - 24 : TW;
+    // footer: honest line, disclaimer, "จาก <brand>" (+ the address and the optional QR code only with the address switch on)
+    const qs = 170, tw2 = qr ? TW - qs - 24 : TW;
     let fy2 = footTop; c.fillStyle = th.soft; c.font = `500 25px ${font}`;
     for (const t of [model.honest, model.disclaimer]) for (const l of wrap(c, t, tw2, lang).slice(0, 2)) { c.fillText(l, PAD, fy2); tb("footer", PAD, fy2, c.measureText(l).width, 25); fy2 += 34; }
-    c.fillStyle = th.accent; c.font = `700 28px ${font}`;
-    const foot = sk && model.from ? model.from : String(model.link || "").replace(/^https:\/\//, "");
-    if (sk) for (let f = 28; f > 18 && c.measureText(foot).width > tw2; f--) c.font = `700 ${f - 1}px ${font}`; // one line, never cut
+    // the brand-only footer (no address) is drawn larger (40 px) so it reads as the card's signature; with the address 28 px
+    const foot = String(model.from || ""), f0 = model.link ? 28 : 40;
+    c.fillStyle = th.accent; c.font = `700 ${f0}px ${font}`;
+    for (let f = f0; f > 18 && c.measureText(foot).width > tw2; f--) c.font = `700 ${f - 1}px ${font}`; // one line, never cut
     const ly = Math.max(fy2 + 8, H - 92), lfs = parseInt(/(\d+)px/.exec(c.font)[1], 10);
     c.fillText(foot, PAD, ly); tb("footer", PAD, ly, c.measureText(foot).width, lfs);
-    if (o.qr && o.qr.n) { drawQR(c, o.qr, W - PAD - qs, H - 64 - qs, qs); info.qr = true; boxes.push({ kind: "footer", x: W - PAD - qs - 6, y: H - 64 - qs - 6, w: qs + 12, h: qs + 12 }); }
+    if (qr) { drawQR(c, qr, W - PAD - qs, H - 64 - qs, qs); info.qr = true; boxes.push({ kind: "footer", x: W - PAD - qs - 6, y: H - 64 - qs - 6, w: qs + 12, h: qs + 12 }); }
     info.textBoxes = boxes;
     if (sk) skinLayers(c, sk, W, H, env, boxes, o.decor !== false);
     return info;

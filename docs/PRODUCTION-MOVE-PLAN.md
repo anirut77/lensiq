@@ -41,6 +41,8 @@ production เอง (`npm run secrets:setup`); แก้ callback ใน LINE D
 **ชื่อโดเมนที่เสนอ (คุณต้องตรวจว่าว่างหรือไม่เอง):** `lensiq.ai`, `lensiq.app`, `getlensiq.com`, `lensiq.co.th`
 (ต้องมีบริษัท/เครื่องหมายการค้าชื่อตรงกัน), `lensiqthai.com`
 
+**ที่อยู่เดิมทุกหน้าต้องพาไปหน้าเดียวกันที่โดเมนใหม่ (เพิ่ม 2026-11-20):** `anirut77.github.io/lensiq/<หน้า>` → `www.<domain>/<หน้าเดิม>` หน้าต่อหน้า และเก็บ query string ไว้ GitHub Pages ส่ง 301 จากเซิร์ฟเวอร์ไม่ได้ จึงใช้หน้าพาไปทีละหน้า (meta refresh + `<link rel=canonical>` + JS location.replace ที่เก็บ path และ query) และ 404.html เป็นตัวสำรอง (ดูข้อ 2.6) การ์ดแชร์ของน้องไม่พิมพ์ที่อยู่เว็บและไม่มี QR จนกว่าโดเมนใหม่จะเปิดใช้จริง แล้วจึงเปิดสวิตช์ `LENSIQ_CARD_SHOW_ADDRESS`
+
 **ความเสี่ยงสำคัญ:** ข้อมูลที่ผู้ใช้เก็บไว้ในเครื่อง (localStorage/IndexedDB) ผูกกับที่อยู่เว็บเดิม เมื่อย้ายโดเมนข้อมูลจะไม่ตามไป
 ต้องมีหน้าส่งออกข้อมูลที่ที่อยู่เดิม (ดูข้อ 2.7) — รายการ "รอคุณตัดสิน" อยู่ท้ายเอกสาร
 
@@ -203,6 +205,24 @@ models) built by a new `tools/build-redirect-site.mjs`:
 
 The production site carries `<link rel="canonical">` to its own `https://www.<domain>/…` URL on every page.
 
+**Rule (owner change 2026-11-20, pet share card):** every old address `https://anirut77.github.io/lensiq/<page>` redirects to
+the **same page** on the new domain, page for page (`petread.html` → `https://www.<domain>/petread.html`, never to the home
+page), keeping the query string and `#hash`. GitHub Pages cannot send a server-side 301, so the method is the one above:
+a per-page stub with `<meta http-equiv="refresh">` + `<link rel="canonical">` + `location.replace(<new origin> + same path +
+location.search + location.hash)`, and `404.html` as the fallback for any path without a stub (it maps
+`location.pathname` minus `/lensiq` to the new origin and keeps `location.search` + `location.hash`). The build test of
+`tools/build-redirect-site.mjs` checks that every page of the full site has a stub and that the stub's target equals its
+own path.
+
+**Card address switch:** `LENSIQ_CARD_SHOW_ADDRESS` in `lensiq-config.js` (default `false`; tests locked 2026-11-20 in
+`evals-locks/pet-card-address.sha256`, older pet tests re-locked under owner decision 184 ก) keeps the site address and
+the QR code (which encodes the address) off the pet share card, which prints only "จาก LENSIQ / From LENSIQ / 来自 LENSIQ".
+The brand on the card is the single setting `LENSIQ_CARD_BRAND` (same file, default `"LENSIQ"`).
+A shared card cannot be corrected later, so the switch is turned on **only after the new domain is live** (cut-over
+step 2 confirmed), in one commit that also changes the single address setting `LQPet.LINK` (`lensiq-pet.js`) to
+`https://www.<domain>/petread.html`. Cards shared before 2026-11-20 that print the old address still work through the
+redirect above.
+
 ### 2.7 On-device data does not follow the move (risk)
 
 Everything LENSIQ stores on a phone (settings, the 18+ "read it straight" choice, local records in localStorage /
@@ -324,12 +344,16 @@ Cut-over (T, about 2 h, owner present):
 5. [ ] A: update `docs/CTO-BRIEF.md`, `docs/FIELD-PILOT.md`, `docs/CUSTOM-DOMAIN.md`, `docs/DEPLOY.md`, sales templates
        (quotation/invoice footers) with the new URL; commit on a branch, CI, merge.
 6. [ ] A: watch `lensiq-prod-api` errors and 429s for 2 h; report numbers.
+7. [ ] A: after step 2 passes, one commit: `LQPet.LINK` = `https://www.<domain>/petread.html` and
+       `LENSIQ_CARD_SHOW_ADDRESS = true` (pet card footer and QR show the new address); CI, merge.
 
 After:
 - [ ] Day +1: owner test checklist again on real phones.
 - [ ] Day +7: remove the old LINE Login callback; decide whether `lensiq-api-test` stays as the test environment
       (recommended: yes, it keeps serving testers).
 - [ ] No quotation goes out with the `github.io` address after T.
+- [ ] `backend/src/mail.js:36` accepts `SITE_URL` only without a path, so receipt, refund and renewal e-mails currently go
+      out with no link; fix when the site moves to its own domain (owner decision 183 ข, 2026-11-20).
 
 ---
 

@@ -34,7 +34,12 @@
     pig: { th: "กุน (หมู)", en: "Pig", zh: "猪" }, secret: { th: "การ์ด Secret", en: "Secret Card", zh: "隐藏卡" },
   };
   var CARD = { th: "การ์ดนักษัตร · {n}", en: "Zodiac card · {n}", zh: "生肖卡 · {n}" };
-  var FROM = { th: "จาก LENSIQ", en: "From LENSIQ", zh: "来自 LENSIQ" };
+  // the card footer words + the one brand setting (lensiq-config.js LENSIQ_CARD_BRAND; fallback for Node without the config)
+  var FROM = {}, FROM_WORD = { th: "จาก", en: "From", zh: "来自" };
+  Object.keys(FROM_WORD).forEach(function (l) {
+    Object.defineProperty(FROM, l, { enumerable: true, get: function () {
+      var b = root.LENSIQ_CARD_BRAND; return FROM_WORD[l] + " " + (typeof b === "string" && b.trim() ? b.trim() : "LENSIQ"); } });
+  });
   var INDEPENDENT = {
     th: "การ์ดสุ่มแยกจากคำอ่าน ทุกใบมีความหมายเท่ากัน คำอ่านของน้องเหมือนเดิมไม่ว่าจะได้ใบไหน",
     en: "The card is drawn separately from the reading. Every card counts the same, and the reading stays the same whichever card comes up.",

@@ -19,6 +19,12 @@ import { sleep } from "./zones-lib.mjs";
 const HONEST = { th: "คำอ่านนี้ดัดแปลงจากความเชื่อเรื่องการดูลักษณะ ไม่ใช่ตำราดั้งเดิม", en: "Adapted from face-reading tradition, not a classical text.", zh: "改编自相术传统，并非古籍原文。" };
 const DISC = { th: "เป็นหลักโหราศาสตร์ ซึ่งเป็นความเชื่อส่วนบุคคล โปรดใช้วิจารณญาณ", en: "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.", zh: "基于命理学原则，属个人信仰，请自行判断。" };
 const LINK = "anirut77.github.io/lensiq/petread.html";
+// RE-LOCK 2026-11-20 (owner decision 184 ก; ledger evals-locks/fortune-pet.sha256 "relock-pet-3"): the site address is on the
+// card only when window.LENSIQ_CARD_SHOW_ADDRESS is true (default false). P3 now checks the default card text has the brand line
+// and no address, and (new page per language, switch on) that the address comes back: equal or stricter. Nothing else changed.
+// RE-LOCK 2026-11-20 relock-pet-4: test fix only, the switch-on page now sets the photo first (as the first page does) so the
+// reading starts; without it the page had no species and never read. Same assertions; equal.
+const BRAND_LINE = { th: "จาก LENSIQ", en: "From LENSIQ", zh: "来自 LENSIQ" };
 const BAN = {
   th: /สุขภาพ|ป่วย|โรค|อาการ|เจ็บ|ปวด|ตาย|เสียชีวิต|อายุ|สัตวแพทย์|หมอ|รักษา|ให้ยา|กินยา|วัคซีน|แข็งแรง|ร่างกาย|น้ำหนัก|อ้วน|เลขเด็ด|เลขนำโชค|หวย|ซวย|โชคร้าย|กาลกิณี/,
   en: /\b(?:health\w*|ill|illness|sick\w*|disease\w*|vet|vets|veterinar\w*|lifespan|longevity|long life|die|dies|died|dying|death|dead|cure\w*|treatment|medic\w*|symptom\w*|weight|vaccin\w*|lucky numbers?|lottery|bad luck|misfortune|unlucky)\b/i,
@@ -133,12 +139,20 @@ export default async function ({ base, launch, check, fakeCams }) {
         const net = httpReq(page);
         assert(net.length === 0, lang + ": network requests during read + card + save: " + net.map(r => r.method + " " + r.url).join(", "));
         const txt = await page.evaluate(() => window.__LQPET.cardText());
-        assert(txt.includes(HONEST[lang]) && txt.includes(DISC[lang]) && txt.some(t => t.includes(LINK)), lang + ": card text " + JSON.stringify(txt).slice(0, 300));
+        assert(txt.includes(HONEST[lang]) && txt.includes(DISC[lang]) && txt.includes(BRAND_LINE[lang]), lang + ": card text " + JSON.stringify(txt).slice(0, 300));
+        assert(!txt.some(t => t.includes(LINK) || /github|https?:/i.test(t)), lang + ": address on the card while the switch is off " + JSON.stringify(txt).slice(-200));
         const bad = txt.filter(t => !t.includes(LINK) && BAN[lang].test(t));
         assert(!bad.length, lang + ": card lint " + bad.join(" | "));
         assert(!page.requests.some(r => r.method !== "GET"), "a non-GET request was sent");
         await privacyScan(page);
         await page.close();
+        const on = await open(browser, base, { lang, init: ["window.LENSIQ_CARD_SHOW_ADDRESS = true;"] });
+        await usePhoto(on); // re-lock relock-pet-4: the switch-on page needs the species like the first page (a photo sets it)
+        await fillAndRead(on);
+        await on.waitFor("document.getElementById('petCard').dataset.drawn === '1'", 8000);
+        const txtOn = await on.evaluate(() => window.__LQPET.cardText());
+        assert(txtOn.includes(HONEST[lang]) && txtOn.includes(DISC[lang]) && txtOn.some(t => t.includes(LINK)), lang + ": card text, switch on " + JSON.stringify(txtOn).slice(-200));
+        await on.close();
       }
     });
 
