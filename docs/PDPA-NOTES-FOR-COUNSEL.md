@@ -1192,7 +1192,7 @@ palm photos (downscaled thumbnails, contrast-enhanced crops, overlays). Opening 
 model provider. That breached the owner's rule that nothing leaves the machine.
 Scope: no original photo was copied, uploaded, committed or modified. No other person's photo was involved. The derived
 images are kept on disk by owner decision; the path list is held outside the repo, in the owner's review folder.
-New standing rule (owner decision 174 a): no photo of a pilot participant, and nothing derived from one, is ever opened
+New standing rule (owner decision 174 ก): no photo of a pilot participant, and nothing derived from one, is ever opened
 in a session or sent to any model or service. Numbers only. This applies to the owner's photos too.
 Prevention going forward: reference-line labelling will use a local tap-to-trace tool, operated by two labellers who cannot
 see each other's work.
