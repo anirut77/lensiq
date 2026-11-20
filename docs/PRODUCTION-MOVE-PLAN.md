@@ -149,6 +149,10 @@ expects it and its limits are documented above; switching later is a deploy-tool
 The site build gets a second config `deploy/public-site.prod.json` (apiBase `https://api.<domain>`, new site key) so
 test and production builds cannot mix.
 
+- `/api/fortune/status` is called only when `LENSIQ_API_BASE` is set (decision 190, 2026-11-20); the site never guesses
+  from the host name. Set it for the new domain if the AI writer is ever enabled. With no API base the fortune pages make
+  no status request and the AI writer stays off (same as on `github.io` today). Locked test: `api-status-guard`.
+
 ### 2.4 Secrets (names only; the owner enters every value in his own terminal)
 
 Entered with `npm run secrets:setup -- --env production` (step A2 adds the flag). **New values for production**; never
