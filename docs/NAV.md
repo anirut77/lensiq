@@ -288,5 +288,9 @@ line) was added; the JS tokens are unchanged. The line number is where the comme
 188: // owner order 2026-11-18: the fortune panel's link names no status or accuracy (fortune cards carry neither)
 194: // crisisSales (crisis-v3-protect, rule b): a price / payment entry is hidden while the crisis or calm state is set
 739: // not the hub (fortune.html): it shows no reading to report (speed budget, 2026-11-17)
-761: // full-text line: number + unit / era joined by NBSP (no lone "CE", "min", "%"); no currency units (none in a select)
+761: // the full-text line keeps a number with its unit / era (NBSP) so the line never ends on a lone "CE", "min", "%" ... (all pages, all languages)
 ```
+
+Note (not a moved comment): the currency units (THB, baht, บาท, 元, 泰铢) were removed from glue() in 310b6fc0 for
+the crisis price scan (tests/unit/crisis-price-scan.test.js). Money appears in select options only as ฿+number with no
+space (customers.js, checkout.js), which glue() never joined, so removing the currency units changes nothing.
