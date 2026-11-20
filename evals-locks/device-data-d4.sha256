@@ -1,0 +1,6 @@
+# locked 2026-11-20T18:04:15Z (tools/eval-guard.mjs lock, 2 files)
+364a398de1966d78f86659d302020a7f308cc3d779cfa6f6e4ad091f212c3eb0  device-data-d4.test.js
+4f14c80f9b59ee6bc0739f36e46122ef04e58f630a5268c2ea619daf6abe3789  device-data-d4.e2e.mjs
+364a398de1966d78f86659d302020a7f308cc3d779cfa6f6e4ad091f212c3eb0  tests/unit/device-data-d4.test.js  # repo file (same commit as lock 2026-11-20T18:04:15Z; field: ~/LENSIQ-field/evals/device-data-d4/device-data-d4.test.js)
+4f14c80f9b59ee6bc0739f36e46122ef04e58f630a5268c2ea619daf6abe3789  tests/e2e/device-data-d4.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:04:15Z; field: ~/LENSIQ-field/evals/device-data-d4/device-data-d4.e2e.mjs)
+# device-data-d4 (owner decision D-4 2026-11-19 'data export page', night order A3): NEW tests/unit/device-data-d4.test.js + tests/e2e/device-data-d4.e2e.mjs committed BEFORE the product change (lensiq-device-data.js, privacy.html slot, switch LENSIQ_DEVICE_EXPORT off). Branch d3-d4, base 0b51b0fb. Baseline on 0b51b0fb: unit 0/11 pass (~/LENSIQ-field/evals/device-data-d4/baseline-unit.log); e2e not run at baseline (module absent: every check fails by construction).
