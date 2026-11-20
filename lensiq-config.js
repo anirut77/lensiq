@@ -30,6 +30,11 @@ window.LENSIQ_FORTUNE_STRAIGHT = false;
 window.LENSIQ_FORTUNE_PAID = window.LENSIQ_FORTUNE_PAID === true;
 window.LENSIQ_FORTUNE_PLAN = window.LENSIQ_FORTUNE_PLAN === true;
 window.LENSIQ_FORTUNE_SOURCES = window.LENSIQ_FORTUNE_SOURCES === true;
+/* LENSIQ_FORTUNE_CAUTIONS (item 177): the closed "สิ่งที่ควรระวัง" section (fortune-caution.js); off until the owner says "177 ขึ้นเว็บ".
+ * _CN_WEST (D-6): Chinese and Western rules, off until expert review; _DRAFTS: rules not yet expert-reviewed (preview only) */
+window.LENSIQ_FORTUNE_CAUTIONS = window.LENSIQ_FORTUNE_CAUTIONS === true;
+window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST = window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST === true;
+window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS = window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS === true;
 /* LENSIQ_PET_ZODIAC (owner spec 2026-11-19): the petread share card becomes a card the system draws (12 zodiac animals + a
  * secret card, independent of the reading, free) with a collection kept on this device. Off on the live site until the owner
  * approves the samples. LENSIQ_PET_CARD_CLASSIC (spec name PET_CARD_CLASSIC, decision 138 ข): true = the 4 classic colour

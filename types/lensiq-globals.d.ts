@@ -97,6 +97,12 @@ interface Window {
   LENSIQ_FORTUNE_PLAN?: boolean;
   /** "recommended sources" (outside seller links) under the paid switch (decision 46, design only): off unless exactly true */
   LENSIQ_FORTUNE_SOURCES?: boolean;
+  /** item 177: the closed "สิ่งที่ควรระวัง" section (fortune-caution.js); off until the owner says "177 ขึ้นเว็บ" */
+  LENSIQ_FORTUNE_CAUTIONS?: boolean;
+  /** item 177 D-6: Chinese and Western caution rules (off until expert review) */
+  LENSIQ_FORTUNE_CAUTIONS_CN_WEST?: boolean;
+  /** item 177: show caution rules not yet expert-reviewed (preview only) */
+  LENSIQ_FORTUNE_CAUTIONS_DRAFTS?: boolean;
   /** recommended-source entries (admin-managed later; none ship) */
   LQ_FORTUNE_SELLER_LINKS?: any[];
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */

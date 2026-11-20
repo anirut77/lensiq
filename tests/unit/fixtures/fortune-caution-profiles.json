@@ -1,0 +1,1173 @@
+{
+ "about": "FIXED TEST SET fortune-caution (item 177 wave 0). SYNTHETIC: every reading below is made up (engine-shaped facts, not a real person). Locked before any product code (evals-locks/fortune-caution.sha256). Each reading lists the engine items it holds (id, tone / polarity, strength) and the rule ids the section must show: mind = 'be mindful of' items in order (strength high to low, at most 3), good = favourable rules that fire in that part (any order). period null = the reading has no time period. span (owner refinement 2026-11-20 10:25): day | month | year | years | decade; accident, illness and travel cautions never sit under a single day. RELOCK 3 (2026-11-20, reviewer of wave 0 + owner rule 2026-11-20: month ranges, never a single day): horoscope's period is the month (span month); the day-level rules (taksa of the day, day clash) are gone, so the horoscope readings carry month items only; lek7 (one source, fails T5) and lifegraph (team weights, no source) are excluded from the section, so their readings are gone; two taksa readings added so every remaining rule fires at least twice. RELOCK 5 (wave 1b): astro readings F41 / F42 for the new Western rule w.saturn.return (span years; astro has no Western natal rule yet, so no 'overall' part).",
+ "periods": {
+  "bazi": {
+   "span": "decade",
+   "th": "วัยจร 庚申 (อายุราว 34–44 ปี) และปีนี้",
+   "en": "Luck period 庚申 (about age 34–44) and this year",
+   "zh": "大运 庚申（约 34–44 岁）与今年"
+  },
+  "zodiac": {
+   "span": "year",
+   "th": "ปีนี้ (ปีมะเมีย)",
+   "en": "This year (Year of the Horse)",
+   "zh": "今年（马年）"
+  },
+  "horoscope": {
+   "span": "month",
+   "th": "เดือนนี้",
+   "en": "This month",
+   "zh": "本月"
+  },
+  "taksa": {
+   "span": "decade",
+   "th": "มหาทักษาดาวเสาร์ (อายุ 30–39 ปี)",
+   "en": "Maha Taksa of Saturn (age 30–39)",
+   "zh": "土星大塔克萨（30–39 岁）"
+  },
+  "astro": {
+   "span": "years",
+   "th": "ช่วงอายุราว 28–31 ปี",
+   "en": "About age 28–31",
+   "zh": "约 28–31 岁"
+  }
+ },
+ "readings": [
+  {
+   "name": "F1 bazi weak, officer luck period not supporting, year clash",
+   "domain": "bazi",
+   "period": "bazi",
+   "items": [
+    {
+     "id": "str.weak",
+     "tone": "caution",
+     "strength": 0.8
+    },
+    {
+     "id": "el.lo.wood",
+     "tone": "caution",
+     "strength": 0.62
+    },
+    {
+     "id": "luck.officer",
+     "tone": "caution",
+     "strength": 0.85
+    },
+    {
+     "id": "year.clash",
+     "polarity": "challenge",
+     "strength": 0.9
+    },
+    {
+     "id": "dm.6",
+     "tone": "favourable",
+     "strength": 0.96
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "bz.dm.weak",
+      "bz.el.lack"
+     ],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.year.clash",
+      "bz.luck.unfav",
+      "bz.luck.officer.care"
+     ],
+     "good": [
+      "bz.luck.officer"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F2 bazi weak, peer luck period not supporting, year harm",
+   "domain": "bazi",
+   "period": "bazi",
+   "items": [
+    {
+     "id": "str.weak",
+     "tone": "caution",
+     "strength": 0.8
+    },
+    {
+     "id": "el.lo.fire",
+     "tone": "caution",
+     "strength": 0.62
+    },
+    {
+     "id": "luck.peer",
+     "tone": "caution",
+     "strength": 0.85
+    },
+    {
+     "id": "year.harm",
+     "polarity": "challenge",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "bz.dm.weak",
+      "bz.el.lack"
+     ],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.year.harm",
+      "bz.luck.unfav",
+      "bz.luck.bijie"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F3 bazi strong, resource luck period, year harmony",
+   "domain": "bazi",
+   "period": "bazi",
+   "items": [
+    {
+     "id": "str.strong",
+     "tone": "favourable",
+     "strength": 0.8
+    },
+    {
+     "id": "el.lo.metal",
+     "tone": "caution",
+     "strength": 0.62
+    },
+    {
+     "id": "luck.resource",
+     "tone": "favourable",
+     "strength": 0.85
+    },
+    {
+     "id": "year.harmony",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "bz.el.lack"
+     ],
+     "good": []
+    },
+    "period": {
+     "mind": [],
+     "good": [
+      "bz.luck.resource",
+      "bz.year.harmony"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F4 bazi wealth luck period, year punishment",
+   "domain": "bazi",
+   "period": "bazi",
+   "items": [
+    {
+     "id": "el.lo.water",
+     "tone": "caution",
+     "strength": 0.62
+    },
+    {
+     "id": "luck.wealth",
+     "tone": "favourable",
+     "strength": 0.85
+    },
+    {
+     "id": "year.punish",
+     "polarity": "challenge",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "bz.el.lack"
+     ],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.year.punish"
+     ],
+     "good": [
+      "bz.luck.wealth"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F5 bazi output luck period, year break",
+   "domain": "bazi",
+   "period": "bazi",
+   "items": [
+    {
+     "id": "str.balanced",
+     "tone": "favourable",
+     "strength": 0.8
+    },
+    {
+     "id": "luck.output",
+     "tone": "favourable",
+     "strength": 0.85
+    },
+    {
+     "id": "year.break",
+     "polarity": "challenge",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.year.break"
+     ],
+     "good": [
+      "bz.luck.output"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F6 bazi weak, peer luck period supporting, own year",
+   "domain": "bazi",
+   "period": "bazi",
+   "items": [
+    {
+     "id": "str.weak",
+     "tone": "caution",
+     "strength": 0.8
+    },
+    {
+     "id": "luck.peer",
+     "tone": "neutral",
+     "strength": 0.85
+    },
+    {
+     "id": "year.same",
+     "polarity": "challenge",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "bz.dm.weak"
+     ],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.year.same",
+      "bz.luck.bijie"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F7 zodiac year clash",
+   "domain": "zodiac",
+   "period": "zodiac",
+   "items": [
+    {
+     "id": "animal.6",
+     "strength": 0.84
+    },
+    {
+     "id": "rel.clash",
+     "polarity": "challenge",
+     "strength": 0.95
+    },
+    {
+     "id": "el.gen",
+     "strength": 0.78
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.year.clash"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F8 zodiac own year",
+   "domain": "zodiac",
+   "period": "zodiac",
+   "items": [
+    {
+     "id": "animal.2",
+     "strength": 0.84
+    },
+    {
+     "id": "rel.same",
+     "polarity": "challenge",
+     "strength": 0.95
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.year.same"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F9 zodiac year harm",
+   "domain": "zodiac",
+   "period": "zodiac",
+   "items": [
+    {
+     "id": "animal.1",
+     "strength": 0.84
+    },
+    {
+     "id": "rel.harm",
+     "polarity": "challenge",
+     "strength": 0.95
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.year.harm"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F10 zodiac year punishment",
+   "domain": "zodiac",
+   "period": "zodiac",
+   "items": [
+    {
+     "id": "animal.3",
+     "strength": 0.84
+    },
+    {
+     "id": "rel.punish",
+     "polarity": "challenge",
+     "strength": 0.95
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.year.punish"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F11 zodiac year break",
+   "domain": "zodiac",
+   "period": "zodiac",
+   "items": [
+    {
+     "id": "animal.9",
+     "strength": 0.84
+    },
+    {
+     "id": "rel.break",
+     "polarity": "challenge",
+     "strength": 0.95
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.year.break"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F12 zodiac year harmony",
+   "domain": "zodiac",
+   "period": "zodiac",
+   "items": [
+    {
+     "id": "animal.7",
+     "strength": 0.84
+    },
+    {
+     "id": "rel.harmony",
+     "strength": 0.95
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [],
+     "good": [
+      "bz.year.harmony"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F13 zodiac year trine",
+   "domain": "zodiac",
+   "period": "zodiac",
+   "items": [
+    {
+     "id": "animal.10",
+     "strength": 0.84
+    },
+    {
+     "id": "rel.trine",
+     "strength": 0.95
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [],
+     "good": [
+      "bz.year.trine"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F14 zodiac ordinary year (no rule fires)",
+   "domain": "zodiac",
+   "period": "zodiac",
+   "items": [
+    {
+     "id": "animal.4",
+     "strength": 0.84
+    },
+    {
+     "id": "rel.neutral",
+     "strength": 0.95
+    },
+    {
+     "id": "support",
+     "strength": 0.66
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F15 zodiac pair that clashes (no time period)",
+   "domain": "zodiac",
+   "period": null,
+   "items": [
+    {
+     "id": "pair.clash",
+     "polarity": "challenge",
+     "strength": 0.95
+    },
+    {
+     "id": "a.0",
+     "strength": 0.7
+    },
+    {
+     "id": "b.6",
+     "strength": 0.68
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "cn.pair.care"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F16 zodiac pair with punishment (no time period)",
+   "domain": "zodiac",
+   "period": null,
+   "items": [
+    {
+     "id": "pair.punish",
+     "polarity": "challenge",
+     "strength": 0.95
+    },
+    {
+     "id": "a.2",
+     "strength": 0.7
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "cn.pair.care"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F17 horoscope birth kalakini, weak chart, lacking fire, month clash",
+   "domain": "horoscope",
+   "period": "horoscope",
+   "items": [
+    {
+     "id": "thai.kalakini.2",
+     "tone": "caution",
+     "strength": 0.7
+    },
+    {
+     "id": "bazi.strength.weak",
+     "tone": "caution",
+     "strength": 0.45
+    },
+    {
+     "id": "bazi.lack.fire",
+     "polarity": "challenge",
+     "strength": 0.42
+    },
+    {
+     "id": "month.clash",
+     "polarity": "challenge",
+     "strength": 0.55
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "th.kalakini",
+      "bz.dm.weak",
+      "bz.el.lack"
+     ],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "cn.month.clash"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F18 horoscope birth kalakini, duty month",
+   "domain": "horoscope",
+   "period": "horoscope",
+   "items": [
+    {
+     "id": "thai.kalakini.6",
+     "tone": "caution",
+     "strength": 0.7
+    },
+    {
+     "id": "month.officer",
+     "tone": "caution",
+     "strength": 0.55
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "th.kalakini"
+     ],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "cn.month.officer"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F19 horoscope with nothing to watch this month",
+   "domain": "horoscope",
+   "period": "horoscope",
+   "items": [
+    {
+     "id": "thai.day.1",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F20 horoscope month clash and duty month",
+   "domain": "horoscope",
+   "period": "horoscope",
+   "items": [
+    {
+     "id": "month.clash",
+     "polarity": "challenge",
+     "strength": 0.6
+    },
+    {
+     "id": "month.officer",
+     "tone": "caution",
+     "strength": 0.55
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "cn.month.clash",
+      "cn.month.officer"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F21 taksa kalakini planet, maha taksa kalakini",
+   "domain": "taksa",
+   "period": "taksa",
+   "items": [
+    {
+     "id": "tk.boriwan.3",
+     "tone": "favourable",
+     "strength": 0.95
+    },
+    {
+     "id": "tk.sri.5",
+     "tone": "favourable",
+     "strength": 0.88
+    },
+    {
+     "id": "tk.kalakini.2",
+     "tone": "caution",
+     "strength": 0.63
+    },
+    {
+     "id": "maha.7.kalakini",
+     "tone": "caution",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "th.kalakini"
+     ],
+     "good": [
+      "th.sri"
+     ]
+    },
+    "period": {
+     "mind": [
+      "th.maha.kalakini"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F22 taksa kalakini planet, maha taksa montri",
+   "domain": "taksa",
+   "period": "taksa",
+   "items": [
+    {
+     "id": "tk.sri.1",
+     "tone": "favourable",
+     "strength": 0.88
+    },
+    {
+     "id": "tk.kalakini.8",
+     "tone": "caution",
+     "strength": 0.63
+    },
+    {
+     "id": "maha.3.montri",
+     "tone": "favourable",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "th.kalakini"
+     ],
+     "good": [
+      "th.sri"
+     ]
+    },
+    "period": {
+     "mind": [],
+     "good": [
+      "th.maha.good"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F30 horoscope duty month",
+   "domain": "horoscope",
+   "period": "horoscope",
+   "items": [
+    {
+     "id": "month.officer",
+     "tone": "caution",
+     "strength": 0.55
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "cn.month.officer"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F32 horoscope month clash",
+   "domain": "horoscope",
+   "period": "horoscope",
+   "items": [
+    {
+     "id": "month.clash",
+     "polarity": "challenge",
+     "strength": 0.55
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "cn.month.clash"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F34 bazi officer luck period that supports the chart",
+   "domain": "bazi",
+   "period": "bazi",
+   "items": [
+    {
+     "id": "str.balanced",
+     "tone": "favourable",
+     "strength": 0.8
+    },
+    {
+     "id": "luck.officer",
+     "tone": "neutral",
+     "strength": 0.85
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [
+      "bz.luck.officer.care"
+     ],
+     "good": [
+      "bz.luck.officer"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F35 bazi resource luck period, year trine",
+   "domain": "bazi",
+   "period": "bazi",
+   "items": [
+    {
+     "id": "luck.resource",
+     "tone": "favourable",
+     "strength": 0.85
+    },
+    {
+     "id": "year.trine",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [],
+     "good": [
+      "bz.luck.resource",
+      "bz.year.trine"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F36 bazi strong, wealth luck period",
+   "domain": "bazi",
+   "period": "bazi",
+   "items": [
+    {
+     "id": "str.strong",
+     "tone": "favourable",
+     "strength": 0.8
+    },
+    {
+     "id": "luck.wealth",
+     "tone": "favourable",
+     "strength": 0.85
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [],
+     "good": [
+      "bz.luck.wealth"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F37 bazi output luck period, lacking earth",
+   "domain": "bazi",
+   "period": "bazi",
+   "items": [
+    {
+     "id": "el.lo.earth",
+     "tone": "caution",
+     "strength": 0.62
+    },
+    {
+     "id": "luck.output",
+     "tone": "favourable",
+     "strength": 0.85
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "bz.el.lack"
+     ],
+     "good": []
+    },
+    "period": {
+     "mind": [],
+     "good": [
+      "bz.luck.output"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F38 horoscope with no rule that fires",
+   "domain": "horoscope",
+   "period": "horoscope",
+   "items": [
+    {
+     "id": "thai.day.1",
+     "strength": 0.9
+    },
+    {
+     "id": "num.lp.7",
+     "strength": 0.7
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [],
+     "good": []
+    },
+    "period": {
+     "mind": [],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F39 taksa kalakini planet, maha taksa kalakini (second reading)",
+   "domain": "taksa",
+   "period": "taksa",
+   "items": [
+    {
+     "id": "tk.sri.2",
+     "tone": "favourable",
+     "strength": 0.88
+    },
+    {
+     "id": "tk.kalakini.4",
+     "tone": "caution",
+     "strength": 0.63
+    },
+    {
+     "id": "maha.1.kalakini",
+     "tone": "caution",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "th.kalakini"
+     ],
+     "good": [
+      "th.sri"
+     ]
+    },
+    "period": {
+     "mind": [
+      "th.maha.kalakini"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F40 taksa maha taksa det (second favourable maha reading)",
+   "domain": "taksa",
+   "period": "taksa",
+   "items": [
+    {
+     "id": "tk.kalakini.5",
+     "tone": "caution",
+     "strength": 0.63
+    },
+    {
+     "id": "maha.4.det",
+     "tone": "favourable",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "overall": {
+     "mind": [
+      "th.kalakini"
+     ],
+     "good": []
+    },
+    "period": {
+     "mind": [],
+     "good": [
+      "th.maha.good"
+     ]
+    }
+   }
+  },
+  {
+   "name": "F41 astro inside the first Saturn return",
+   "domain": "astro",
+   "period": "astro",
+   "items": [
+    {
+     "id": "saturn.return",
+     "tone": "caution",
+     "strength": 0.8
+    }
+   ],
+   "expect": {
+    "period": {
+     "mind": [
+      "w.saturn.return"
+     ],
+     "good": []
+    }
+   }
+  },
+  {
+   "name": "F42 astro inside the second Saturn return (same rule)",
+   "domain": "astro",
+   "period": "astro",
+   "items": [
+    {
+     "id": "saturn.return",
+     "tone": "caution",
+     "strength": 0.8
+    },
+    {
+     "id": "sun.4",
+     "strength": 0.9
+    }
+   ],
+   "expect": {
+    "period": {
+     "mind": [
+      "w.saturn.return"
+     ],
+     "good": []
+    }
+   }
+  }
+ ],
+ "births": [
+  {
+   "y": 1960,
+   "m": 1,
+   "d": 9,
+   "h": 6,
+   "mi": 30,
+   "gender": "f"
+  },
+  {
+   "y": 1966,
+   "m": 5,
+   "d": 21,
+   "h": 14,
+   "mi": 0,
+   "gender": "m"
+  },
+  {
+   "y": 1971,
+   "m": 8,
+   "d": 3,
+   "h": 22,
+   "mi": 15,
+   "gender": "f"
+  },
+  {
+   "y": 1975,
+   "m": 11,
+   "d": 28,
+   "h": 9,
+   "mi": 45,
+   "gender": "m"
+  },
+  {
+   "y": 1979,
+   "m": 2,
+   "d": 14,
+   "h": 3,
+   "mi": 10,
+   "gender": "f"
+  },
+  {
+   "y": 1983,
+   "m": 6,
+   "d": 30,
+   "h": 17,
+   "mi": 20,
+   "gender": "m"
+  },
+  {
+   "y": 1986,
+   "m": 10,
+   "d": 12,
+   "h": 12,
+   "mi": 0,
+   "gender": "f"
+  },
+  {
+   "y": 1990,
+   "m": 3,
+   "d": 7,
+   "h": 20,
+   "mi": 40,
+   "gender": "m"
+  },
+  {
+   "y": 1993,
+   "m": 7,
+   "d": 19,
+   "h": 1,
+   "mi": 5,
+   "gender": "f"
+  },
+  {
+   "y": 1997,
+   "m": 12,
+   "d": 25,
+   "h": 15,
+   "mi": 55,
+   "gender": "m"
+  },
+  {
+   "y": 2001,
+   "m": 4,
+   "d": 2,
+   "h": 8,
+   "mi": 25,
+   "gender": "f"
+  },
+  {
+   "y": 2004,
+   "m": 9,
+   "d": 16,
+   "h": 19,
+   "mi": 35,
+   "gender": "m"
+  }
+ ]
+}

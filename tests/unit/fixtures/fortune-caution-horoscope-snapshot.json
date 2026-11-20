@@ -1,0 +1,642 @@
+{
+ "about": "FIXED TEST SET fortune-caution wave 1 (horoscope pilot), T15: buildFacts / buildDailyFacts output of horoscope.js BEFORE the section was wired (origin fortune-cautions 7c3d9fd1), SYNTHETIC births, seeded rng (LCG); daily cases also pin Math.random to lcg(seed + 1) during the call (buildDailyFacts draws the today.bhumi meaning from Math.random). The wired page must produce the same facts (sha256 of JSON.stringify(facts)) character for character.",
+ "births": [
+  [
+   1960,
+   1,
+   9,
+   6,
+   30
+  ],
+  [
+   1971,
+   8,
+   3,
+   22,
+   15
+  ],
+  [
+   1983,
+   6,
+   30,
+   17,
+   20
+  ],
+  [
+   1990,
+   3,
+   7,
+   20,
+   40
+  ],
+  [
+   1997,
+   12,
+   25,
+   15,
+   55
+  ],
+  [
+   2004,
+   9,
+   16,
+   19,
+   35
+  ]
+ ],
+ "days": [
+  [
+   2026,
+   11,
+   20
+  ],
+  [
+   2027,
+   2,
+   3
+  ],
+  [
+   2027,
+   6,
+   14
+  ]
+ ],
+ "cases": [
+  {
+   "kind": "natal",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "overall",
+   "sha256": "4cff4144850ef4edcf4f47b93813ce28492b78aac1f0cec69c1aef7807eef5a7"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "love",
+   "sha256": "0dca94c00c2095fe56d22fb13a0c3484edf694c0101d9e51e2d804729beec497"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "work",
+   "sha256": "d02729da543c5a92275d8d1accb550e3954d3d5d363d08ffe7c73f4840975e2b"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "money",
+   "sha256": "32665c46ac3be3ec9eb298da4e01cc25de6936632590804e4751a0be21a35127"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "day": [
+    2026,
+    11,
+    20
+   ],
+   "sha256": "a1a3923211f572de79d5f7ffa2ddb8eb4c6c70ae3179c8bd539587322c6cca12"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "day": [
+    2027,
+    2,
+    3
+   ],
+   "sha256": "06bc44d90396b65e407a8b033d8876da3e7b594e224727c5a24b430ea1364759"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "day": [
+    2027,
+    6,
+    14
+   ],
+   "sha256": "b4b7dd1db6fc2899cd2be939690f342a3d5bef74bc006f803bee5a408afdd925"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "overall",
+   "sha256": "6bab0b332416d69923e0de2f635b9673a0ba994eec65015eddab50238d1e41d2"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "love",
+   "sha256": "f9f835a6147aa436aef27f26e85f10649ac111a1902635da000906569603b8db"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "work",
+   "sha256": "4d01241f6ffddc0c0b7e7011faffda4ee6721db81b50b5f8dbac90163ae54bd0"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "money",
+   "sha256": "b75526dbe3a698fc51c3c0db9ba292743669aaef5db5988e43eb8854ad05356a"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "day": [
+    2026,
+    11,
+    20
+   ],
+   "sha256": "fed55040ee2cee019b2adcd92c738988e9e462e47e494f32c61b4a1dd0d81910"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "day": [
+    2027,
+    2,
+    3
+   ],
+   "sha256": "864092a3c81b8135cc21e3f12f139b2210d6d23a42fcf7e587b963947102154e"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "day": [
+    2027,
+    6,
+    14
+   ],
+   "sha256": "4354814806850d81f743bba746963be20574124ea23eaeae05d46725fe604221"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "overall",
+   "sha256": "86a746eb0883fbe39d6f1467d73d4c335ba71bc707c5022abd5748d14a79f93f"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "love",
+   "sha256": "eac8296c5428de14283fd55dad5bea936a0beb20e6f100bc93517cfbb8373a45"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "work",
+   "sha256": "1d425b11ab8c46b2ef4765a5d0eac3f03741686cdf00a0fadab35e5de6fb4755"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "money",
+   "sha256": "e52fd4cab547e88f41c262fcd1775c7f82bbd669ecea97123003489a76770647"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "day": [
+    2026,
+    11,
+    20
+   ],
+   "sha256": "0c911b9499b6cb15245890859e0733a5568d732b36092a67cb4eb497ddc551bb"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "day": [
+    2027,
+    2,
+    3
+   ],
+   "sha256": "b618f7f3a90f6ac3ad3c4355c22838a6d473ccc67a2a408342aa9c9d4d53e088"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "day": [
+    2027,
+    6,
+    14
+   ],
+   "sha256": "8af652f18adf46833f35eb3dedb4053422a3543e5d86b489c8e6ec894fcada04"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "overall",
+   "sha256": "b9e00a509f31ca4d4dc6eb8a4700dfdee04c41a8b59273955768fc7c64248cca"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "love",
+   "sha256": "fd3a83bb3e47596fcc1e779ec15b63a879bae87149981623fc7e45cc10a64d61"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "work",
+   "sha256": "6b18e964ef219e2d5fdf438cb9c29ee66d05e924397426a20c5e8031295f9ea9"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "money",
+   "sha256": "ed1076738a94a34c5533d8712cc754df21c107b93f5f6245299d5142e103cf76"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "day": [
+    2026,
+    11,
+    20
+   ],
+   "sha256": "7bbdd63fb275688ed3e6c86f13753129dabe7a43086d36cfb402e461cdc63877"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "day": [
+    2027,
+    2,
+    3
+   ],
+   "sha256": "a2b5ee93e3238ac89d9d6e3df3a5ec171c2585c5b1d8fea1d675d24f2078aeac"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "day": [
+    2027,
+    6,
+    14
+   ],
+   "sha256": "01ffee05b4b1f72dd00dc9c3553554250cc1302b29d8b144c0dcbacb1caee75c"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1997,
+    12,
+    25,
+    15,
+    55
+   ],
+   "topic": "overall",
+   "sha256": "2bb4122ac155b3906899184c68a879e021157c5e904e5b2e815790eba779dc5d"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1997,
+    12,
+    25,
+    15,
+    55
+   ],
+   "topic": "love",
+   "sha256": "e215accaa9d382da6287ca75df35aaed5901cbcbfbb9e645bb905c9ce086e35f"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1997,
+    12,
+    25,
+    15,
+    55
+   ],
+   "topic": "work",
+   "sha256": "3b3f8cd5a04ad41cdc67013f76df6dc4f307a8505c4712734bf916a79a94cc44"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    1997,
+    12,
+    25,
+    15,
+    55
+   ],
+   "topic": "money",
+   "sha256": "5bcd0285b8984b082db2e9622a2e3d2dad533af1cb5297c8912fd282b042f3e2"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1997,
+    12,
+    25,
+    15,
+    55
+   ],
+   "day": [
+    2026,
+    11,
+    20
+   ],
+   "sha256": "52520684d400614515478ca43b2d4df8fe8e892a25ae2c7a4ff4b54a5b846ab1"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1997,
+    12,
+    25,
+    15,
+    55
+   ],
+   "day": [
+    2027,
+    2,
+    3
+   ],
+   "sha256": "30a4716ce04d6178484122dd7abf4f6da48ebbec74ca1e4995b746253545a07d"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    1997,
+    12,
+    25,
+    15,
+    55
+   ],
+   "day": [
+    2027,
+    6,
+    14
+   ],
+   "sha256": "6c97942d70136b012bc7f78b3f87b2d715a0ecfbe8f49336e72018583693aa7f"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "overall",
+   "sha256": "2b73c8b3298aba362815911a4219e914136f60d1a88a6af5e472d94c98173bc1"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "love",
+   "sha256": "48b591405f83735260897320d38d303a7771acf97619c6eb4fcabd0101732910"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "work",
+   "sha256": "01aec91c5d1f93efcddb337c0011c09de8b342f5b03c410c0a403881890900bc"
+  },
+  {
+   "kind": "natal",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "money",
+   "sha256": "f939b04a406410ecad467e1f6b8b4514ec4842df32c9b5a15650fc7dfeddd324"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "day": [
+    2026,
+    11,
+    20
+   ],
+   "sha256": "52b7acccf956620e86fdcf01b5f52695bc777a6f9b8f800bd1271d1b733cd5c2"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "day": [
+    2027,
+    2,
+    3
+   ],
+   "sha256": "dbc8eb822d0c0165a5ef1b341445f2016cb25c5a3a8835be38186da057f4a761"
+  },
+  {
+   "kind": "daily",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "day": [
+    2027,
+    6,
+    14
+   ],
+   "sha256": "1ede998eab6d6b8e2470496d6367646e69f8b00c7249af96381e9df31fdb0ab3"
+  }
+ ]
+}

@@ -224,8 +224,24 @@
     west: "ตามโหราศาสตร์ตะวันตก จุดนี้เป็นช่วงจัดระเบียบชีวิตใหม่ เหมาะกับการทบทวนว่าอะไรสำคัญจริง",
   };
 
+  /* item 177: engine items of the closed "สิ่งที่ควรระวัง" section on bazi.html, built BESIDE the reading (its facts never change):
+     every baziFacts item + this year's 流年 relation; period = the current 大运 and this year (or this year before the first luck period) */
+  var YEAR_CHONG = ["clash", "same", "harm", "punish", "break"];
+  function baziCautions(B, age, now) {
+    var items = baziFacts(B, "overall", { age: age }).items.slice();
+    var yb = LC.bazi({ y: now.y, m: now.m, d: now.d, h: 12, mi: 0, tz: 7, noTime: false }).pillars.year.branch, rel = LC.yearRelation(B.pillars.year.branch, yb);
+    if (rel !== "neutral") items.push(YEAR_CHONG.indexOf(rel) >= 0 ? { id: "year." + rel, polarity: "challenge", strength: 0.9 } : { id: "year." + rel, strength: 0.9 });
+    var L = LC.luckAt(B, age), period;
+    if (L) {
+      var a = Math.round(L.from) + "–" + Math.round(L.to), zh = L.pillar.zh;
+      period = { span: "decade", th: "วัยจร " + zh + " (อายุราว " + a + " ปี) และปีนี้", en: "Luck period " + zh + " (about age " + a + ") and this year", zh: "大运 " + zh + "（约 " + a + " 岁）与今年" };
+    } else period = { span: "year", th: "ปีนี้", en: "This year", zh: "今年" };
+    return { items: items, period: period };
+  }
+
   var KB = { EL: EL, STEM: STEM, STRENGTH: STRENGTH, GOD: GOD, PLANET: PLANET, BHUMI_TH: BHUMI_TH, HOUSE: HOUSE, DOMS: DOMS, DOM_TH: DOM_TH, DOM_LINE: DOM_LINE, DOM_ACT: DOM_ACT, TURN_LINE: TURN_LINE,
     PLANET_W: PLANET_W, BHUMI_W: BHUMI_W, GOD_W: GOD_W, baziFacts: baziFacts, taksaFacts: taksaFacts, lek7Facts: lek7Facts, lifeCurves: lifeCurves, lifeFacts: lifeFacts, bandSummary: bandSummary, BANDS: BANDS, TONE_OF: TONE_OF };
+  KB.baziCautions = baziCautions;
   if (typeof module !== "undefined" && module.exports) module.exports = KB;
   root.LIFECAL_KB = KB;
 })(typeof window !== "undefined" ? window : globalThis);

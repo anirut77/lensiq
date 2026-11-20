@@ -191,7 +191,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#lcChart").innerHTML = tzNote(R) + unsureNotes(R) + (page === "bazi" ? renderBazi(R.bazi) : page === "taksa" ? renderTaksa(R.taksa) : page === "lek7" ? renderLek7(R.lek7) : renderLife(R));
     $("#lcReadWrap").innerHTML = FK.readingBlock("lcRd", T("lc.rdTitle", "คำอ่านตามตำรา"), true);
     FK.bindReading("lcRd", DOMAIN[page], function (topic) { return factsFor(topic); }, { withTopics: true });
+    if (page === "bazi") mountCaution(R);
     if (focus) $("#lcResTitle").focus();
+  }
+  /* item 177: the closed "สิ่งที่ควรระวัง" section after the reading (nothing unless LENSIQ_FORTUNE_CAUTIONS and, for bazi's Chinese rules,
+     LENSIQ_FORTUNE_CAUTIONS_CN_WEST are on); its items are built beside the reading, the reading's facts never change */
+  function mountCaution(R) {
+    var LQC = window.LQFortuneCaution, wrap = $("#lcReadWrap");
+    if (!LQC || !wrap) return;
+    var now = new Date(), c = KB.baziCautions(R.bazi, R.age, { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() });
+    var host = document.createElement("div");
+    host.id = "lcCaution";
+    wrap.appendChild(host);
+    if (!LQC.mount(host, { domain: "bazi", facts: { items: c.items }, period: c.period })) wrap.removeChild(host);
   }
   window.addEventListener("lq-lang", function () { renderOptions(); showMsg(); if (st.res && !$("#lcResult").hidden) render(false); });
   window.__lc = { state: st, compute: compute, render: render, page: page };
