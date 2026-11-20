@@ -1168,3 +1168,17 @@ pixelated (the photo is refused when a person covers more than half of the pet).
 Questions: (a) is the person-box step (detection without identification, never stored) processing of personal data under
 PDPA s. 6, and does the on-screen notice suffice? (b) the card includes the pet photo only when the user ticks it (off by
 default); is a reminder not to share photos showing other people enough?
+
+## Owner location in a public commit (decision 111, 2026-11-19)
+
+What happened: on 2026-11-18 a commit pushed to the public repository (`8e44c420`, branch `seller-settings`) included
+`.wrangler/cache/cf.json`, a cache file that the local Worker test tool writes by itself. It held the owner's approximate
+device location (coordinates, postcode, city, region), the network provider and TLS fingerprint values. It held no IP
+address and no credential. The branch was amended 28 seconds later and the commit is on no branch, tag or PR. No fork
+exists, but GitHub still serves the commit by its SHA until GitHub Support purges it. The owner sends that request.
+Only the owner's own data was involved; no customer or user data. A scan of the full history (all refs) found no other
+real personal data. Synthetic test data and public organisation contacts are listed in `tools/pii-allow.json`.
+Prevention: `tools/pii-scan.mjs` blocks in CI (tracked files and the added lines of every pushed commit), `.wrangler/` is
+ignored, and an optional pre-commit hook is available (`git config core.hooksPath tools/git-hooks`).
+Question: (a) when the only data exposed is the owner's own (the owner is the controller), is any notification under PDPA s. 37(4)
+needed, or is an internal record enough?

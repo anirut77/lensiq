@@ -17,16 +17,36 @@ const sections = n => `document.querySelectorAll(".fa-section").length >= ${n} &
 // re-lock (9): the sample entries go to LQ_FORTUNE_SELLER_LINKS (LQ_FORTUNE_SOURCES is the back office's citation list)
 // re-lock (11), review D1: fewer offers per reading now, so the flag-on check uses the first reading (zodiac, then iching, two
 // tries each) that has an offer panel; the assertions are unchanged
+// re-lock (13), stricter: fixed clock / seed. Whether a reading has paid depth (and so an offer panel) depends on the reading's
+// wording seed (Math.random in fortune-kit.js), the iching coins (crypto.getRandomValues) and the zodiac year (the date); with
+// real randomness (probe, 8 tries each) en had offers on zodiac 0 / 8 and iching 6 / 8, zh on 5 / 8 and 4 / 8, so a run could
+// draw four readings without paid depth and fail "not exercised" by chance
+// (run 44453642398). Every page now gets a fixed page clock (FIXED_NOW; it still ticks) and a seeded Math.random +
+// crypto.getRandomValues, and the readings are tried in a fixed order of (page, seed) pairs, so the same readings are drawn on
+// every run and every date. LQ_FAKE_DATE=<ISO date> moves the page clock (to prove the result does not depend on the date).
+// "not exercised" still fails the test; no assertion removed.
+const FIXED_NOW = Date.parse(process.env.LQ_FAKE_DATE || "2026-11-19T05:12:00Z");
+if (!isFinite(FIXED_NOW)) throw new Error("LQ_FAKE_DATE is not a date: " + process.env.LQ_FAKE_DATE);
+const CLOCK = `(() => { const R = Date, off = ${FIXED_NOW} - R.now();
+  class D extends R { constructor(...a) { if (a.length) super(...a); else super(R.now() + off); } static now() { return R.now() + off; } }
+  window.Date = D; })();`;
+const SEEDED = seed => `(() => { let a = ${seed >>> 0}; const r = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  Math.random = r; const g = crypto.getRandomValues.bind(crypto);
+  crypto.getRandomValues = x => { if (x && x.BYTES_PER_ELEMENT) { const m = 2 ** (8 * x.BYTES_PER_ELEMENT); for (let i = 0; i < x.length; i++) x[i] = Math.floor(r() * m); return x; } return g(x); }; })();`;
+// measured 2026-11-19 (probe, 4 page clocks 2026-01-15 .. 2027-03-01): iching seed 1 -> 6 / 4 / 3 offers (th / en / zh), seed 4 ->
+// 8 / 8 / 6, identical on every clock and on repeat; zodiac (year of the Horse, animal 6) seed 1 -> 2 / 0 / 2 (en has no paid depth)
+const TRIES = [["iching", 1], ["iching", 4], ["zodiac", 1], ["zodiac", 5]];
 async function openWithOffers(browser, base, lang) {
-  for (const pg of ["zodiac", "iching", "zodiac", "iching"]) {
-    const page = await open(browser, base, lang, true, pg);
+  for (const [pg, seed] of TRIES) {
+    const page = await open(browser, base, lang, true, pg, seed);
     if (await page.evaluate(`!!document.querySelector("[data-lq-offer]")`)) return page;
     await page.close();
   }
-  return open(browser, base, lang, true);
+  return open(browser, base, lang, true, "iching", 1);
 }
-async function open(browser, base, lang, flag, pg) {
-  const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`, "window.LENSIQ_FORTUNE_PAID = true;", `window.LQ_FORTUNE_SELLER_LINKS = ${S(LIST)};`];
+async function open(browser, base, lang, flag, pg, seed) {
+  const init = [CLOCK, SEEDED(seed || 1), `try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`, "window.LENSIQ_FORTUNE_PAID = true;", `window.LQ_FORTUNE_SELLER_LINKS = ${S(LIST)};`];
   if (flag) init.push("window.LENSIQ_FORTUNE_SOURCES = true;");
   const page = await browser.newPage(null, { initScripts: init });
   await page.send("Emulation.setDeviceMetricsOverride", { width: 375, height: 800, deviceScaleFactor: 2, mobile: true });
