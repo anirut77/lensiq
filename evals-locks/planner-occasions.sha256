@@ -1,0 +1,30 @@
+# evals-locks/planner-occasions.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/planner-occasions/ (owner rule 2026-11-13). Append-only.
+# planner occasions (owner order 2026-11-18): more occasions in groups on planner.html. Unit O1-O6 (occasions offered in groups, >= 2 independent
+# sources + plain reason TH/EN/ZH, excluded occasions absent with synonyms, no promise wording via FortuneAI.safety + LQMeritLint + word list,
+# move/shop/work identical to the snapshot made on origin/main b2a6e76, good days only by the recorded rule) and e2e G1-G5 (groups first,
+# no orphan half row at 360/375/390/412/430 px x TH/EN/ZH, tap opens one group, one result per language). Crisis v3 on planner: the locked
+# crisis-v3 sets run unchanged. Locked BEFORE any product change on branch planner-occasions (base origin/main b2a6e76).
+# locked 2026-11-18T03:55:35Z (tools/eval-guard.mjs lock, 4 files)
+1fd57d0aa27411901c9791b96f39b5a2849be2c964a2b78ff02df3269485128a  tests/unit/planner-occasions.test.js
+93fe40b1a85779cfa595402822957d631b55d0d2ae64e2b16b463c671cdddce2  tests/unit/fixtures/planner-regression-3.json
+5dc35bce037d6f92dce9ee8b9f603a6c53a65403e0586597873b270ef28c3ce8  tests/e2e/planner-occasions.e2e.mjs
+81bc3a28a3ac0d1e8d5db2165cad68c468090c45c165148eb96bba01d77d3997  regression-snapshot-gen.js
+# re-lock 2026-11-18 (relock-1, before any measurement of the build; the only run so far stopped at require() because the product file did
+# not exist): the sources for ไหว้ครู (NECTEC dontri encyclopedia, peamitar / มนตรี ตราโมท) say Thursday only; for an owner whose kalakini day
+# is Thursday (born Wednesday night) the page lists no day, as for every kalakini day. O6 now asserts exactly that (no days) for a one-weekday
+# rule on the owner's kalakini day, and "some days" for every other occasion x birth weekday. No other check, string list or threshold changed.
+# locked 2026-11-18T04:00:53Z (tools/eval-guard.mjs lock, 1 file)
+2a19da8f64893105dc85dad2587ad1bb99d8e43494db40ea125a5cb636c6a12e  relock-1/tests/unit/planner-occasions.test.js
+# LATE ENTRIES 2026-11-18 (owner, decision 120 ก / rule 110 ข; append-only): repo ledger lines for field locks written without them; older versions first, so the current file stays the latest lock.
+2a19da8f64893105dc85dad2587ad1bb99d8e43494db40ea125a5cb636c6a12e  tests/unit/planner-occasions.test.js  # repo file (late entry 2026-11-18, added by the owner under decision 120 ก / rule 110 ข; original re-lock 2026-11-18T04:00:53Z, evals-locks/planner-occasions.sha256:17; commit 528da822; file sha256 2a19da8f64893105dc85dad2587ad1bb99d8e43494db40ea125a5cb636c6a12e; field: ~/LENSIQ-field/evals/planner-occasions/relock-1/tests/unit/planner-occasions.test.js, record ~/LENSIQ-field/evals/planner-occasions/locked.sha256:7)
+# re-lock 2026-11-19 (relock-2, independent review round 1 of planner-occasions f31a9d24; owner decisions 115-117: a rule not from a
+# traditional text is never worded as tradition). Fixture tests/unit/fixtures/planner-regression-3.json: ONLY the Thai string
+# TH.evenMonth changes ("ตำราขึ้นบ้านใหม่หลายสายนิยมเดือนคู่" -> "ปัจจุบันหลายคนนิยมขึ้นบ้านใหม่ในเดือนคู่"); all 114 cases (days, sha256 of the
+# days, counts, max scores) are byte-identical, so O5 still proves move / shop / work compute the same days (equal strictness).
+# e2e G4 (STRICTER): fixed clock (2026-11-19 10:00 Bangkok) and start month 2027-5 required, so the wedding check cannot fall in a
+# 3-month window without wedding months. No check removed or weakened.
+# locked 2026-11-19T03:56:28Z (tools/eval-guard.mjs lock, 2 files)
+e69a8efefdf77a755e268b679008e02c9eef29d96fb16d57e6340195d3a407f5  relock-2/tests/unit/fixtures/planner-regression-3.json
+08b5add5af02a1ce6aba7f3114f4ede7a0a9b76dbb9a2db83b0db4e8c8c2b142  relock-2/tests/e2e/planner-occasions.e2e.mjs
+e69a8efefdf77a755e268b679008e02c9eef29d96fb16d57e6340195d3a407f5  tests/unit/fixtures/planner-regression-3.json  # repo file (same commit as lock 2026-11-19T03:56:28Z; field: ~/LENSIQ-field/evals/planner-occasions/relock-2/tests/unit/fixtures/planner-regression-3.json)
+08b5add5af02a1ce6aba7f3114f4ede7a0a9b76dbb9a2db83b0db4e8c8c2b142  tests/e2e/planner-occasions.e2e.mjs  # repo file (same commit as lock 2026-11-19T03:56:28Z; field: ~/LENSIQ-field/evals/planner-occasions/relock-2/tests/e2e/planner-occasions.e2e.mjs)

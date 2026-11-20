@@ -1,12 +1,8 @@
 /* LENSIQ — shared theme. (docs/NAV.md) */
-/* the HTML hidden attribute always wins over component display rules (.btn{display:inline-flex} etc.) */
+/* the HTML hidden attribute al (docs/NAV.md) */
 [hidden]{display:none!important}
 
-/* ---------- Self-hosted web font (no request to Google: PDPA / privacy) ----------
-   Prompt (Cadson Demak, SIL OFL 1.1 — vendor/fonts/prompt/OFL.txt), woff2 subsets thai / latin-ext / latin, 300–700.
-   unicode-range means a page only downloads the subsets it renders (~7–11 KB each).
-   Chinese is NOT vendored (a CJK font is 5–20 MB): zh text falls through to the OS CJK font in the stacks below.
-   Regenerate with: node tools/self-host-fonts.mjs --fetch (needs network once). */
+/* Self-hosted fonts: Prompt (Cadson Demak, SIL OFL 1.1, vendor/fonts/prompt/OFL.txt) (docs/NAV.md) */
 @font-face{font-family:Prompt;font-style:normal;font-weight:300;font-display:swap;src:url(vendor/fonts/prompt/prompt-300-thai.woff2) format("woff2");unicode-range:U+02D7,U+0303,U+0331,U+0E01-0E5B,U+200C-200D,U+25CC}
 @font-face{font-family:Prompt;font-style:normal;font-weight:300;font-display:swap;src:url(vendor/fonts/prompt/prompt-300-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:Prompt;font-style:normal;font-weight:300;font-display:swap;src:url(vendor/fonts/prompt/prompt-300-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -22,8 +18,7 @@
 @font-face{font-family:Prompt;font-style:normal;font-weight:700;font-display:swap;src:url(vendor/fonts/prompt/prompt-700-thai.woff2) format("woff2");unicode-range:U+02D7,U+0303,U+0331,U+0E01-0E5B,U+200C-200D,U+25CC}
 @font-face{font-family:Prompt;font-style:normal;font-weight:700;font-display:swap;src:url(vendor/fonts/prompt/prompt-700-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:Prompt;font-style:normal;font-weight:700;font-display:swap;src:url(vendor/fonts/prompt/prompt-700-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-/* Inter (The Inter Project Authors, SIL OFL 1.1 — vendor/fonts/inter/OFL.txt): Latin companion for the header and
-   for English pages; variable weight 100–900, latin subset only (Thai keeps Prompt, Chinese the OS CJK font). */
+/* Inter (The Inter Project Authors, SIL OFL 1.1, vendor/fonts/inter/OFL.txt) (docs/NAV.md) */
 @font-face{font-family:Inter;font-style:normal;font-weight:100 900;font-display:swap;src:url(vendor/fonts/inter/inter-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 :root{
   --navy:#0e1430; --navy2:#1e2a5a; --aqua:#0891b2; --gold:#674ff2;
@@ -142,7 +137,7 @@ img,svg,canvas,video{max-width:100%}
   html.nav-locked,html.nav-locked body{overflow:hidden}
 }
 
-/* ---------- Section header: breadcrumb under the bar (nav.js .lq-crumbs) ---------- */
+/* Section header: breadcrumb u (docs/NAV.md) */
 .lq-crumbs{background:#fff;border-bottom:1px solid #e3e7f0;font-family:Inter,Prompt,"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif}
 .lq-crumbs ol{display:flex;flex-wrap:wrap;align-items:center;gap:0;list-style:none;margin:0 auto;max-width:1240px;padding:6px max(24px,calc((100vw - 1240px) / 2));font-size:max(12px,.8rem);color:#4a5470}
 @media(min-width:1288px){.lq-crumbs ol{padding:6px 0}}
@@ -178,7 +173,7 @@ h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.2;color:var(--navy);margin:12p
 .btn.primary{background:var(--navy);color:#fff}.btn.primary:hover{background:var(--navy2);border-color:var(--navy2)}
 .btn.ghost{color:var(--navy);background:transparent}.btn.ghost:hover{background:var(--navy);color:#fff}
 .btn.full{width:100%;text-align:center}
-/* Tap feedback, busy state and double-tap safety for every button (ow (docs/NAV.md) */
+/* Tap feedback, busy state and (docs/NAV.md) */
 button,[role=button],.btn,.chip,.tab,input[type=button],input[type=submit],input[type=reset],a.lq-call-btn{
   -webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 :is(button,[role=button],.btn,.chip,.tab,input[type=button],input[type=submit],input[type=reset],a.lq-call-btn):active:not(:disabled):not([aria-disabled=true]){
@@ -220,6 +215,9 @@ h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:600;line-height:1.3;text-align
 form{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:28px;display:grid;gap:14px;box-shadow:var(--shadow)}
 label{display:grid;gap:4px;font-size:.88rem;color:var(--muted)}
 input,select,textarea{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
+select{padding-left:10px;padding-right:4px}
+.lq-sel-full{display:block;width:100%;order:9;margin-top:4px;font-size:.85rem;line-height:1.4;color:var(--muted);overflow-wrap:anywhere}
+.lq-sel-wrap{flex-wrap:wrap}
 input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--aqua);outline-offset:1px;border-color:var(--aqua)}
 .form-msg{font-size:.9rem;min-height:1.4em}.form-msg.ok{color:#11734a}.form-msg.err{color:#b42318}
 
@@ -270,7 +268,7 @@ footer{text-align:center;padding:28px;background:var(--navy);color:#b3bcd9;font-
 html[lang=en] body{font-family:Inter,Prompt,system-ui,-apple-system,"Segoe UI",sans-serif}
 html[lang=en] h1,html[lang=en] h2{letter-spacing:-.01em}
 
-/* English mode on fortune pages: "readings are in Thai / Chinese" note (i18n/en-fortune.js) */
+/* English mode on fortune page (docs/NAV.md) */
 .lq-lang-note{max-width:760px;margin:12px auto 0;padding:10px 14px;border:1px solid #e3e7f0;border-left:3px solid #5b47e0;border-radius:6px;background:#fff;color:#4a5470;font-size:.88rem;line-height:1.5;text-align:left}
 .lq-lang-note button{min-height:32px;margin:2px 2px 0 0;padding:2px 12px;border:1px solid #0e1430;border-radius:6px;background:#fff;color:#0e1430;font:inherit;font-size:.85rem}
 .lq-lang-note button:hover{background:#0e1430;color:#fff}
@@ -279,7 +277,7 @@ html[lang=en] h1,html[lang=en] h2{letter-spacing:-.01em}
 /* ---------- Simplified Chinese ---------- */
 html[lang^=zh] body{font-family:Prompt,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",system-ui,sans-serif}
 html[lang^=zh] .eyebrow,html[lang^=zh] .kicker{letter-spacing:.06em}
-/* Thai script is never letter-spaced or upper-cased (tracking breaks the stacked vowel / tone marks apart) */
+/* Thai script is never letter- (docs/NAV.md) */
 html:lang(th) .eyebrow,html:lang(th) .kicker,html:lang(th) .tag{letter-spacing:.02em;text-transform:none}
 
 /* ---------- Thai line breaking ---------- (docs/NAV.md) */
@@ -287,9 +285,9 @@ html:lang(th) .eyebrow,html:lang(th) .kicker,html:lang(th) .tag{letter-spacing:.
 .lq-t.lq-w *{white-space:nowrap!important}lq-t.lq-b{display:inline-block;max-width:100%;white-space:normal;text-decoration:inherit}
 [data-lqwb]{overflow-wrap:anywhere}
 :lang(th){line-break:strict}
-/* no text-wrap:balance/pretty: with many inline .lq-w boxes Chrome's balancing can stall layout (seen on signage.html) */
+/* no text-wrap:balance/pretty: (docs/NAV.md) */
 
-/* ---------- Touch targets (WCAG 2.5.5 / Apple HIG: 44×44 CSS px) on touch screens ---------- */
+/* Touch targets (WCAG 2.5.5 / (docs/NAV.md) */
 @media (pointer:coarse){
   .btn,.chip,.nav-link,.nav-cta,.nav-sub a,.mega-all,.nav-toggle,.lang-switch button,
   button:not(.lq-bare),[role=button],[type=button],[type=submit],[type=reset],summary,
@@ -304,12 +302,12 @@ html:lang(th) .eyebrow,html:lang(th) .kicker,html:lang(th) .tag{letter-spacing:.
   input[type=file]{font-size:.9rem;padding:8px}
   input[type=file]::file-selector-button{min-height:36px;padding:6px 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit}
   .qty button{width:44px;height:44px}
-  /* inline text links inside paragraphs keep their size; links that act as controls get a 44px row */
+  /* inline text links inside par (docs/NAV.md) */
   nav a,.links a,.site-foot nav a,.card a.btn,a.chip{min-height:44px;display:inline-flex;align-items:center}
   input,select,textarea{font-size:max(16px,1em)} /* iOS: no zoom on focus */
 }
 
-/* ---------- Minimum readable text: 12px floor for the small text classes ---------- */
+/* Minimum readable text: 12px (docs/NAV.md) */
 .tag,.hint,.eyebrow,small,.small,.muted,.note,.caption,figcaption,.badge,.legend,.meta,.sub small,.row.small,
 .nav-sub a small,.stats span,.vis-bar,.pill{font-size:max(12px,var(--fs,1em))}
 .tag{--fs:.75rem}.hint{--fs:.82rem}.eyebrow{--fs:.78rem}.nav-sub a small{--fs:.78rem}.stats span{--fs:.82rem}.vis-bar{--fs:.75rem}
@@ -326,7 +324,7 @@ small,.small{--fs:.85em}
 .lq-model-note.err .lq-spin{display:none}
 @keyframes lqspin{to{transform:rotate(360deg)}}
 
-/* ---------- Legal footer (nav.js legalFoot: pages without their own <footer>) ---------- */
+/* Legal footer (nav.js legalFo (docs/NAV.md) */
 .lq-legal-foot{background:#f6f7fb;border-top:1px solid #e3e7f0;margin-top:48px;font-family:Inter,Prompt,"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif}
 .lq-legal-foot p{max-width:1240px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:0 18px;font-size:.82rem;color:#4a5470}
 .lq-legal-foot a{color:#2b3352;text-decoration:underline;text-decoration-color:#b9c0d6;text-underline-offset:3px;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px}
@@ -345,7 +343,7 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
   background:#eef5fb;color:#14324a;font-size:.95rem;line-height:1.7;overflow-wrap:anywhere}
 .lq-helpline-result{width:auto;margin:14px 0 4px}
 .lq-helpline-note{display:block;margin-top:2px;font-size:.85rem;color:#33506a}
-/* owner order 2026-11-15 item 3: the help line is in ONE place per fo (docs/NAV.md) */
+/* owner order 2026-11-15 item (docs/NAV.md) */
 .lq-helpline.lq-helpbar{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding:0;border:0;background:none;margin:8px auto 4px;line-height:1.3}
 .lq-call-mini{display:inline-flex;max-width:100%}
 .lq-call-mini>a.lq-call-btn[href]{display:inline-flex;align-items:center;gap:6px;min-height:44px;min-width:44px;max-width:100%;padding:4px 14px;border-radius:999px;
@@ -358,10 +356,10 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 @media (min-width:1024px),(hover:hover) and (pointer:fine) and (min-width:600px){.lq-call-mini-n{font-size:1.5rem;line-height:1.1}}
 /* owner order 2026-11-15 item 1: no idle technica (docs/NAV.md) */
 html :is(.engine,.fr-engine,.pl-engine,#engine.status):empty{padding:0;margin:0;min-height:0;border:0;background:none}
-/* the printed report keeps the full help line; on screen the top button is the one place (owner order 2026-11-15 item 3) */
+/* the printed report keeps the (docs/NAV.md) */
 .lq-helpline.lq-helpline-print{display:none}
 @media print{.lq-helpline.lq-helpline-print{display:block}}
-/* ---------- tap-to-call help-line component (lensiq-helpline.js; own (docs/NAV.md) */
+/* tap-to-call help-line compon (docs/NAV.md) */
 .lq-call{overflow-wrap:break-word;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:0;align-items:center;margin:6px 0;line-height:1.45;text-align:start}
 .lq-call-t{grid-column:1;grid-row:1;font-weight:700;min-width:0;overflow-wrap:break-word}
 .lq-call>a.lq-call-btn[href]{grid-column:2;grid-row:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;min-width:44px;
@@ -375,7 +373,7 @@ html :is(.engine,.fr-engine,.pl-engine,#engine.status):empty{padding:0;margin:0;
   font-variant-numeric:tabular-nums}
 .lq-call-sub{grid-column:1;grid-row:2;font-size:.9rem;min-width:0;overflow-wrap:break-word;text-wrap:pretty}
 .lq-call-org{grid-column:1;grid-row:3;font-size:.78rem;opacity:.85;min-width:0;overflow-wrap:break-word}
-/* crisis card layout (fortune-ai.js draws the card; its border and colours are injected with the card) */
+/* crisis card layout (fortune- (docs/NAV.md) */
 .fa-support h3{margin:0 0 .4em}.fa-support ul{list-style:none;padding:0;margin:.6em 0}.fa-support li{margin:.45em 0}
 @media (min-width:1024px),(hover:hover) and (pointer:fine) and (min-width:600px){
   .lq-call{grid-template-columns:auto auto auto;justify-content:start;column-gap:14px}
@@ -383,8 +381,7 @@ html :is(.engine,.fr-engine,.pl-engine,#engine.status):empty{padding:0;margin:0;
   .lq-call>a.lq-call-btn[href]{grid-column:3}
   .lq-call-sub,.lq-call-org{grid-column:1 / -1}
 }
-/* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
-   and share cards stay hidden on that page */
+/* crisis state (fortune-crisis (docs/NAV.md) */
 html[data-lq-crisis] [data-lq-remedy]{display:none!important}
 @media print{
   .lq-helpline{background:#fff;border-color:#888;color:#000;break-inside:avoid}

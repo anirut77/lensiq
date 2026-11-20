@@ -20,7 +20,7 @@
 <meta name="theme-color" content="#0e1430">
 <title>LENSIQ หลังบ้าน</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="admin.css?v=9">
+<link rel="stylesheet" href="admin.css?v=11">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
@@ -174,6 +174,7 @@
       <button type="button" role="tab" data-tab="leads" aria-selected="false"><span data-i18n="adl.tab">คำขอใบเสนอราคา</span><span
         id="adlBadge" class="adl-badge" hidden></span></button>
       <button type="button" role="tab" data-tab="orgs" aria-selected="false" data-i18n="ado.tab" hidden>บัญชีองค์กร</button>
+      <button type="button" role="tab" data-tab="seller" aria-selected="false" data-i18n="ads.tab">ข้อมูลกิจการ</button>
       <button type="button" role="tab" data-tab="security" aria-selected="false">ความปลอดภัย</button>
       <button type="button" role="tab" data-tab="retention" aria-selected="false">การเก็บรักษาข้อมูล</button>
       <button type="button" role="tab" data-tab="fsources" aria-selected="false" data-i18n="adf.tab">แหล่งอ้างอิงดูดวง</button>
@@ -404,6 +405,68 @@
       <div class="ad-card" id="adoDetail" hidden></div>
     </div>
 
+    <div class="ad-panel" data-panel="seller" role="tabpanel" hidden>
+      <div class="ad-card">
+        <h2 data-i18n="ads.h">ข้อมูลกิจการ</h2>
+        <p class="ad-muted" data-i18n="ads.lead">ข้อมูลผู้ขายที่ใช้ในใบเสนอราคา ใบแจ้งหนี้ และใบเสร็จรับเงิน เก็บในฐานข้อมูลของระบบเท่านั้น ไม่อยู่ในโค้ด ไม่อยู่ในบันทึกระบบ และไม่ส่งให้ AI
+          ดูหรือแก้ได้เฉพาะเจ้าของระบบ การแก้ไขทุกครั้งต้องยืนยันรหัสผ่านและรหัส 6 หลัก</p>
+        <p id="adsState" class="ad-warn" role="status"></p>
+        <form id="adsForm" class="ad-form" novalidate>
+          <label><span data-i18n="ads.f.legal_name">ชื่อกิจการหรือชื่อนิติบุคคล</span> <input name="legal_name" autocomplete="off" maxlength="160"></label>
+          <label><span data-i18n="ads.f.tax_id">เลขประจำตัวผู้เสียภาษี (13 หลัก)</span> <input name="tax_id" autocomplete="off" inputmode="numeric" maxlength="17" data-masked="1"></label>
+          <label class="ad-inline"><input type="checkbox" name="clear_tax_id"> <span data-i18n="ads.clear">ลบค่าที่ตั้งไว้ในช่องนี้</span></label>
+          <label><span data-i18n="ads.f.branch">สาขา (เช่น สำนักงานใหญ่)</span> <input name="branch" autocomplete="off" maxlength="60"></label>
+          <label><span data-i18n="ads.f.address">ที่อยู่ตามทะเบียน</span> <input name="address" autocomplete="off" maxlength="300"></label>
+          <label><span data-i18n="ads.f.vat">สถานะภาษีมูลค่าเพิ่ม</span> <select name="vat_registered">
+            <option value="" data-i18n="ads.vat.unset">ยังไม่ได้ระบุ</option><option value="yes" data-i18n="ads.vat.yes">จดทะเบียนภาษีมูลค่าเพิ่มแล้ว</option>
+            <option value="no" data-i18n="ads.vat.no">ไม่ได้จดทะเบียนภาษีมูลค่าเพิ่ม</option></select></label>
+          <label><span data-i18n="ads.f.vat_rate">อัตราภาษีมูลค่าเพิ่ม (%)</span> <input name="vat_rate" autocomplete="off" type="number" value="7" readonly>
+            <small data-i18n="ads.f.vatNote">ราคาที่อนุมัติแล้วไม่รวมภาษีมูลค่าเพิ่ม 7% อัตราอื่นต้องให้เจ้าของตัดสินก่อน</small></label>
+          <label><span data-i18n="ads.f.bank_name">ธนาคาร</span> <input name="bank_name" autocomplete="off" maxlength="80"></label>
+          <label><span data-i18n="ads.f.bank_account_name">ชื่อบัญชี</span> <input name="bank_account_name" autocomplete="off" maxlength="120"></label>
+          <label><span data-i18n="ads.f.bank_account_no">เลขที่บัญชี</span> <input name="bank_account_no" autocomplete="off" inputmode="numeric" maxlength="24" data-masked="1"></label>
+          <label class="ad-inline"><input type="checkbox" name="clear_bank_account_no"> <span data-i18n="ads.clear">ลบค่าที่ตั้งไว้ในช่องนี้</span></label>
+          <label><span data-i18n="ads.f.contact_phone">โทรศัพท์ติดต่อ</span> <input name="contact_phone" autocomplete="off" inputmode="tel" maxlength="20" data-masked="1"></label>
+          <label class="ad-inline"><input type="checkbox" name="clear_contact_phone"> <span data-i18n="ads.clear">ลบค่าที่ตั้งไว้ในช่องนี้</span></label>
+          <label><span data-i18n="ads.f.contact_email">อีเมลติดต่อ</span> <input name="contact_email" autocomplete="off" type="email" maxlength="254"></label>
+          <label><span data-i18n="ads.f.contact_line">LINE ID หรือ LINE OA</span> <input name="contact_line" autocomplete="off" maxlength="41"></label>
+          <label><span data-i18n="ads.f.doc_prefix">อักษรนำหน้าเลขที่เอกสาร (เช่น LQ)</span> <input name="doc_prefix" autocomplete="off" maxlength="10" autocapitalize="characters"></label>
+          <button class="ad-btn" type="submit" data-i18n="ads.save">บันทึก (ยืนยันรหัสผ่านและรหัส 6 หลัก)</button>
+        </form>
+        <h3 data-i18n="ads.logoH">โลโก้บนเอกสาร</h3>
+        <p class="ad-muted" data-i18n="ads.logoP">PNG, JPEG หรือ WebP ไม่เกิน 200 KB เก็บในฐานข้อมูล</p>
+        <p id="adsLogoState" class="ad-muted"></p>
+        <div class="ad-row">
+          <label><span data-i18n="ads.logoPick">เลือกไฟล์โลโก้</span> <input id="adsLogoFile" type="file" accept="image/png,image/jpeg,image/webp"></label>
+          <button class="ad-btn ad-ghost" type="button" id="adsLogoDel" data-i18n="ads.logoDel">ลบโลโก้</button>
+        </div>
+      </div>
+      <div class="ad-card">
+        <h2 data-i18n="ads.docsH">ใบเสนอราคา ใบแจ้งหนี้ ใบเสร็จรับเงิน</h2>
+        <p class="ad-muted" data-i18n="ads.docsP">ราคามาจากรายการราคาที่อนุมัติแล้ว ไม่รวมภาษีมูลค่าเพิ่ม 7% เปิดดูแล้วกด "พิมพ์ / บันทึกเป็น PDF"
+          เอกสารออกเลขที่ได้เมื่อกรอกข้อมูลกิจการครบเท่านั้น เลขที่ไม่ซ้ำและไม่นำกลับมาใช้</p>
+        <form id="adsDocForm" class="ad-form" novalidate>
+          <label><span data-i18n="ads.d.type">ชนิดเอกสาร</span> <select name="doc_type">
+            <option value="quotation" data-i18n="ads.t.quotation">ใบเสนอราคา</option><option value="invoice" data-i18n="ads.t.invoice">ใบแจ้งหนี้</option>
+            <option value="receipt" data-i18n="ads.t.receipt">ใบเสร็จรับเงิน</option></select></label>
+          <label><span data-i18n="ads.d.buyer">ชื่อลูกค้า</span> <input name="buyer_name" maxlength="160" required autocomplete="off"></label>
+          <label><span data-i18n="ads.d.buyerTax">เลขประจำตัวผู้เสียภาษีของลูกค้า (ถ้ามี)</span> <input name="buyer_tax_id" inputmode="numeric" maxlength="17" autocomplete="off"></label>
+          <label><span data-i18n="ads.d.buyerAddr">ที่อยู่ลูกค้า</span> <input name="buyer_address" maxlength="300" autocomplete="off"></label>
+          <label><span data-i18n="ads.d.line">รายการ</span> <select name="line_id"></select></label>
+          <label><span data-i18n="ads.d.qty">จำนวน</span> <input name="line_qty" type="number" min="1" max="100000" step="1" value="1"></label>
+          <label><span data-i18n="ads.d.days">ใช้ได้ / ครบกำหนดชำระภายใน (วัน, ไม่บังคับ)</span> <input name="days" type="number" min="0" max="180" step="1"></label>
+          <label><span data-i18n="ads.d.paidOn">วันที่รับชำระ (ใบเสร็จ, ไม่บังคับ)</span> <input name="paid_on" type="date"></label>
+          <label><span data-i18n="ads.d.ref">อ้างอิง (เช่น เลขที่ใบเสนอราคา, ไม่บังคับ)</span> <input name="ref" maxlength="80" autocomplete="off"></label>
+          <button class="ad-btn" type="submit" data-i18n="ads.d.create">สร้างฉบับร่าง</button>
+        </form>
+        <ul id="adsDocs" class="ado-list"></ul>
+        <div id="adsPreviewBox" hidden>
+          <div class="ad-row"><button class="ad-btn" type="button" id="adsPrint" data-i18n="ads.print">พิมพ์ / บันทึกเป็น PDF</button></div>
+          <iframe id="adsPreview" class="ads-preview" title="ตัวอย่างเอกสาร" data-i18n-attr="title:ads.preview" sandbox="allow-same-origin allow-modals"></iframe>
+        </div>
+      </div>
+    </div>
+
     <div class="ad-panel" data-panel="security" role="tabpanel" hidden>
       <div class="ad-card">
         <h2 data-i18n="adm.sec.h">ยืนยันตัวตนสองชั้น</h2>
@@ -620,7 +683,7 @@
   </section>
   <p id="adMsg" class="ad-msg" role="status" aria-live="polite"></p>
 </main>
-<script src="i18n/zh-admin.js?v=13"></script>
+<script src="i18n/zh-admin.js?v=16"></script>
 <script src="lensiq-i18n.js?v=2"></script>
 <script src="attendance-qr.js?v=1"></script>
 <script src="lensiq-api.js?v=3"></script>
@@ -633,6 +696,6 @@
 <script src="studio-core.js?v=7"></script>
 <script src="lensiq-tryon-core.js?v=3"></script>
 <script src="admin-tryon.js?v=2"></script>
-<script src="admin-orgs.js?v=1"></script>
+<script src="admin-orgs.js?v=2"></script>
 </body>
 </html>

@@ -1169,6 +1169,39 @@ Questions: (a) is the person-box step (detection without identification, never s
 PDPA s. 6, and does the on-screen notice suffice? (b) the card includes the pet photo only when the user ticks it (off by
 default); is a reminder not to share photos showing other people enough?
 
+## Seller details page ("ข้อมูลกิจการ") and quotation / invoice / receipt documents (2026-11-18, branch `seller-settings`)
+
+Owner order 2026-11-18 ("needed for selling"). Migration `0021_seller.sql`, `backend/src/seller.js`, `admin-seller.js`.
+
+(a) **What is stored.** One row `seller_profile`: the seller's business or legal name, tax ID, branch, address, VAT status
+and rate, bank name / account name / account number for transfers, contact phone, e-mail and LINE, the document number
+prefix and an optional logo (PNG / JPEG / WebP, at most 200 kB, base64 in D1: this Cloudflare account has no R2 binding).
+If the seller is a sole trader, name, tax ID (= national ID number for an individual), address, phone and bank account
+are personal data of the owner. Documents (`seller_docs`) also store the **buyer's** name, address, tax ID and branch as
+typed by the owner, a frozen copy of the seller details and of the lines at the time each document is issued, and the
+logo printed on it (stored once per distinct image in `seller_logos`, referenced by its hash; review round 1).
+
+(b) **Where it is kept and who sees it.** In the Worker's D1 database only. Never in the repository (public), never in a
+log line, an audit row, analytics or an outbound request, never sent to AI (tested with marker values in every sink:
+`tests/unit/backend-seller.test.js` S5, `tests/integration/backend-seller-workerd.test.mjs`). Only the owner account can
+read or change it (merit reviewer and try-on accounts get 403; no credential = 403). Tax ID, bank account number and phone
+are shown masked (last 4 digits) in the settings view; the full values appear only in the documents themselves, which must
+carry them. Every change needs the owner's password + a 6-digit code in that request; the audit log records who, when and
+which fields, never a value.
+
+(c) **Questions for counsel.**
+1. Buyer data in `seller_docs`: business contact data of a customer organisation (and of individuals when the buyer is a
+   person). Lawful basis = contract / legal obligation (Revenue Code record keeping)? Retention: the Revenue Code asks for
+   5 years for tax documents (`docs/LEGAL-REVIEW-PACK.md` §3.5 R5); no automatic deletion is built. Confirm the period
+   and whether the privacy notice must mention it.
+2. Issued documents keep a frozen copy of the seller details (needed so an old document is not silently changed). Is that
+   acceptable for a sole trader's own data, and for how long?
+3. Is the document number series (prefix + type + 6 digits, per type, never reset or reused; void keeps the number)
+   acceptable to the accountant for quotations, invoices and receipts? Tax invoices are NOT produced (R1–R2, OP-02/03 open):
+   the documents never say "ใบกำกับภาษี".
+4. Backups / exports of D1 contain these values in plain text (Cloudflare encrypts D1 at rest). Should the bank account
+   number be encrypted with the existing key-encryption key as well?
+
 ## Owner location in a public commit (decision 111, 2026-11-19)
 
 What happened: on 2026-11-18 a commit pushed to the public repository (`8e44c420`, branch `seller-settings`) included
