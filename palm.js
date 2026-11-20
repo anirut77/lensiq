@@ -1062,7 +1062,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   renderSide();
 
-  /* ---------- กล้อง (LQCam.create: กล้องหลัง 1920×1080 + ไฟฉาย; สำรองข้อจำกัดทีละขั้นโดยไม่ทิ้งความละเอียดที่ขอ) ---------- */
+  /* ---------- กล้อง (LQCam.create: กล้องหลัง 1920×1080 + ปุ่มไฟฉาย ปิดไว้ตอนเริ่ม; สำรองข้อจำกัดทีละขั้นโดยไม่ทิ้งความละเอียดที่ขอ) ---------- */
   /** ปุ่มไฟฉาย (เมื่อกล้องรองรับ) + สลับกล้อง + ตัวเลือกกล้อง (เมื่อมี ≥ 2 ตัว) วางทับมุมขวาบนของกรอบกล้อง */
   function mountCamCtl(host, c, onError) {
     var box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
@@ -1103,7 +1103,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   var renderCamCtl = function () {};
   var camera = LQCam.create(video, {
-    facing: "environment", ideal: { width: 1920, height: 1080 }, torch: true,
+    facing: "environment", ideal: { width: 1920, height: 1080 }, torch: false, // decision 186 ก: off at start; the user toggle (.cam-torch) stays
     onChange: function (c, ev) {
       renderCamCtl();
       if (ev.type === "devices") return;

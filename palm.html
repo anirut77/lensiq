@@ -150,8 +150,9 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
         <ul class="pl-qc" id="plQc" aria-live="polite">
           <li class="no"><span class="dot" aria-hidden="true">!</span><span><span data-i18n="palm.qc.hand">พบมือ</span> <small data-i18n="palm.qc.start">— เปิดกล้องหรืออัปโหลดรูป</small></span></li>
         </ul>
-        <p class="pl-small" data-i18n="palm.howTo">ถ่ายข้างหน้าต่างให้แสงส่องฝ่ามือจากด้านข้าง ไม่ใช่จากด้านหน้า
-          ปิดแฟลช (ตั้งเป็น 'ปิด' ไม่ใช่ 'อัตโนมัติ') ปล่อยมือสบาย ๆ งุ้มเล็กน้อย ไม่ต้องเหยียดตึง และให้เห็นทั้งฝ่ามือและนิ้วอยู่ในกรอบ</p>
+        <p class="pl-small" data-i18n="palm.howTo">
+          ถ่ายข้างหน้าต่างให้แสงส่องฝ่ามือจากด้านข้าง ไม่ใช่จากด้านหน้า ปิดแฟลช (ตั้งเป็น 'ปิด' ไม่ใช่ 'อัตโนมัติ') ปล่อยมือสบาย ๆ งุ้มเล็กน้อย ไม่ต้องเหยียดตึง และให้เห็นทั้งฝ่ามือและนิ้วอยู่ในกรอบ
+        </p>
         <div class="pl-opts">
           <button data-i18n="fortune.common.kiosk" class="btn ghost" id="plKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
         </div>
@@ -296,7 +297,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
   </section>
 
   <!-- palm reading upgrade v1 (owner order 2026-11-19): shown only when window.LENSIQ_PALM_V2 === true (lensiq-config.js ships false).
-       Its code and style are loaded by palm.js only when the switch is on. Result areas carry data-lq-result (hotfix rule a); crisis v3
+       Its code and style are loaded by palm-switch-loader.js only when the switch is on. Result areas carry data-lq-result (hotfix rule a); crisis v3
        (owner decision 2026-11-17): the reading continues gently, no card replaces it, no share / print / paid, one 1323 line at the end. -->
   <section class="pv2" id="plV2" hidden data-lq-result aria-labelledby="pv2Title">
     <h2 id="pv2Title" data-pv2-l="title">ดูลายมือ (รุ่นใหม่ ทดลอง)</h2>
@@ -391,7 +392,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="fortune-ai.js?v=39"></script>
 <script src="palm-kb.js?v=12"></script>
 <script src="lensiq-capture-hint.js?v=1"></script>
-<script src="palm.js?v=23"></script>
+<script src="palm.js?v=24"></script>
 <script src="palm-switch-loader.js?v=1"></script>
 </body>
 </html>
