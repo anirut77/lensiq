@@ -8,3 +8,5 @@ dd92d02730929b716b964aa18599232a8c90e7f8a792f0d66d09184b06f5adcd  tests/unit/exa
 # a page script, exam-lab.js loads TF.js before its wasm backend, never face-api.js; exam-hall unchanged), locked BEFORE any product
 # change (base origin/main 299370b8). Run on 299370b8 before any product change: 25 pass, 4 fail (the 4 new / changed guards), as expected.
 # The S2 harness tools/exam-s2.mjs stays the one locked in evals-locks/examlab-90.sha256 (unchanged).
+5f2d3b27ff9cc7ca75c3fa71efdecddd41a1c0256bb302ec171819b7d4542f38  tests/unit/exam-face.test.js  # repo file (re-locked in evals-locks/examlab-s2__relock1.sha256 at 2026-11-20T15:23:36Z, replaces 16d99bf800fa96d841c405628f849e592b8994d63753ea1aba9e8a71632f5285 of line 5; field: ~/LENSIQ-field/evals/examlab-s2/relock1/tests/unit/exam-face.test.js)
+# reason for the line above: re-lock 1 (test defect: exam-face test read exam-lab.js comments; now code only, as its lensiq-exam-face.js check), see evals-locks/examlab-s2__relock1.sha256; 5f2d3b27 replaces 16d99bf8 of line 5. Written by the lock tool on 2026-11-20 but left out of commit 300695fa; committed now (reviewer finding 1).
