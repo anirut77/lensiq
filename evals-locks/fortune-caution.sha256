@@ -9,3 +9,11 @@
 a70dbc31256245903d29babfabba62c5f8e798ab20055453b286aa20343e109f  tests/unit/fixtures/fortune-caution-profiles.json
 ddc4503ba7d65f1fbbdfeb347ee748849c3fe39584573f76e1fc0de7a97d1983  tests/e2e/fortune-caution.e2e.mjs
 aab6446694ec17d66b7a1db7530de106ec53a634183a5601300e5f5ea32e2951  tests/e2e/fortune-caution-wrap.e2e.mjs
+# RELOCK 1 2026-11-20 (branch fortune-cautions), before any product change made for it: tests/e2e/fortune-caution.e2e.mjs, check "T9 crisis words in any
+# text field" only. Crisis words in horoscope.html #hsYear start the existing crisis takeover, which keeps the tab calm (crisis v3, by design), so the first
+# lock's "clear the fields and mount again" step could never pass and every later field check in that tab was vacuous. Now each field x language and each
+# "typed after mounting" case runs in a fresh tab, plus a "no rule data fetched" assert per case (stricter). No other check changed. Run before relock:
+# 13/14 (~/LENSIQ-field/evals/fortune-caution/run-1-after-build-e2e.log).
+# locked 2026-11-20T05:43:45Z (tools/eval-guard.mjs lock, 1 file)
+4d4548ea050cb95ac60b82f8e1ab9f9f409d3766d498a0df6bc0b41b4fc491de  relock1/fortune-caution.e2e.mjs
+4d4548ea050cb95ac60b82f8e1ab9f9f409d3766d498a0df6bc0b41b4fc491de  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T05:43:45Z; field: ~/LENSIQ-field/evals/fortune-caution/relock1/fortune-caution.e2e.mjs)

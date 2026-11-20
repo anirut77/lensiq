@@ -179,24 +179,36 @@ export default async function ({ base, launch, check }) {
     });
 
     await check("T9 crisis words in any text field of the page (TH / EN / ZH): no section, and a closed one disappears on the tap", async () => {
-      const pg = await open(browser, base, { isolated: true });
-      try {
-        const ids = await pg.evaluate(`[...document.querySelectorAll('input[type="text"], input:not([type]), textarea, input[type="search"]')].map(e => e.id).filter(Boolean)`);
-        assert(ids.length >= 2, "text fields found: " + S(ids));
-        const setField = (id, v) => pg.evaluate(`(() => { const e = document.getElementById(${S(id)}); e.value = ${S(v)}; e.dispatchEvent(new Event("input", { bubbles: true })); return 1; })()`);
-        for (const id of ids) for (const lang of LANGS) {
-          await setField(id, CRISIS[lang]);
+      // RELOCK 1 (2026-11-20, before any fix to the product): each field x language runs in a fresh tab. Crisis words in some
+      // fields (horoscope.html #hsYear) start the crisis takeover, which keeps the whole tab calm (crisis v3, by design), so
+      // the first lock's "clear the fields and mount again" could never pass and every later field check in that tab was vacuous.
+      const setField = (pg, id, v) => pg.evaluate(`(() => { const e = document.getElementById(${S(id)}); e.value = ${S(v)}; e.dispatchEvent(new Event("input", { bubbles: true })); return 1; })()`);
+      const probe = await open(browser, base, { isolated: true });
+      let ids;
+      try { ids = await probe.evaluate(`[...document.querySelectorAll('input[type="text"], input:not([type]), textarea, input[type="search"]')].map(e => e.id).filter(Boolean)`); }
+      finally { await probe.close(); }
+      assert(ids.length >= 2, "text fields found: " + S(ids));
+      for (const id of ids) for (const lang of LANGS) {
+        const pg = await open(browser, base, { isolated: true });
+        try {
+          assert(!(await pg.evaluate(STATE)).sec, id + " " + lang + ": clean tab");
+          await setField(pg, id, CRISIS[lang]);
           assert((await mount(pg, reading("F1"), lang)) === false, id + " " + lang + ": mount must refuse");
           assert(!(await pg.evaluate(STATE)).sec, id + " " + lang + ": no section");
-          await setField(id, "");
-        }
-        assert(await mount(pg, reading("F1"), "th"), "fields cleared: mounted");
-        await setField(ids[0], CRISIS.th);
-        await click(pg, ".lq-caution-open"); await sleep(300);
-        const s = await pg.evaluate(STATE);
-        assert(!s.sec || (!s.body && !s.disc), "crisis words typed after mounting: the tap shows nothing " + S(s).slice(0, 200));
-        assert(!pg.requests.some(q => DATA.test(q.url)), "no rule data fetched");
-      } finally { await pg.close(); }
+          assert(!pg.requests.some(q => DATA.test(q.url)), id + " " + lang + ": no rule data fetched");
+        } finally { await pg.close(); }
+      }
+      for (const id of ids) {
+        const pg = await open(browser, base, { isolated: true });
+        try {
+          assert(await mount(pg, reading("F1"), "th"), id + ": clean tab: mounted");
+          await setField(pg, id, CRISIS.th);
+          await click(pg, ".lq-caution-open"); await sleep(300);
+          const s = await pg.evaluate(STATE);
+          assert(!s.sec || (!s.body && !s.disc), id + ": crisis words typed after mounting: the tap shows nothing " + S(s).slice(0, 200));
+          assert(!pg.requests.some(q => DATA.test(q.url)), id + ": no rule data fetched");
+        } finally { await pg.close(); }
+      }
     });
 
     await check("T10 / T13 / T23 in the page: language, no link or paid block, parts in order with paired guidance, 44 px buttons", async () => {
