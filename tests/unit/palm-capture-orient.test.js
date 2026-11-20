@@ -10,7 +10,7 @@
 //     for distance and position only; no live hint depends on which way the fingers point.
 //   2 the guide follows the hand when hand points are available (LENSIQ_PALM_LANDMARKS, tier 2-U, off in customer builds).
 //   3 fallback without hand points: "own hand" / "for someone else" flip the guide 180 degrees; a "rotate frame" button flips it
-//     too; default own hand; draft EN / ZH labels (owner approval pending).
+//     too; default own hand; EN / ZH labels approved by the owner as exact text (decision 191, 2026-11-20; relock1).
 //   4 left / right from the thumb position in the captured photo, never from the guide or the camera label; shown as a chip the
 //     user can confirm or change; the reading follows the confirmed hand.
 // Contract under test (palm-v2.js, browser global PalmV2):
@@ -42,13 +42,13 @@ const SY = require(path.join(ROOT, "tests", "fixtures", "palm-v2", "synth-captur
 const OR = require(path.join(ROOT, "tests", "fixtures", "palm-v2", "synth-orient.js"));
 
 const LANGS = ["th", "en", "zh"];
-/* owner spec 2026-11-20 (TH approved wording; EN / ZH = drafts for owner approval) */
+/* owner spec 2026-11-20; TH, EN and ZH approved by the owner (decision 191, 2026-11-20): EXACT text */
 const TEXTS = {
   "mode.self": ["ถ่ายมือตัวเอง", "Photo of my hand", "拍自己的手"],
   "mode.other": ["ถ่ายให้คนอื่น", "Photo for someone else", "帮别人拍"],
   "guide.rotate": ["หมุนกรอบ", "Rotate frame", "旋转框"],
-  "side.chip.right": ["มือขวา ✓ แตะเพื่อเปลี่ยน", "Right hand ✓ tap to change", "右手 ✓ 点按更改"],
-  "side.chip.left": ["มือซ้าย ✓ แตะเพื่อเปลี่ยน", "Left hand ✓ tap to change", "左手 ✓ 点按更改"],
+  "side.chip.right": ["มือขวา ✓ แตะเพื่อเปลี่ยน", "Right hand ✓ Tap to change", "右手 ✓ 点击更改"],
+  "side.chip.left": ["มือซ้าย ✓ แตะเพื่อเปลี่ยน", "Left hand ✓ Tap to change", "左手 ✓ 点击更改"],
   "reading.side.right": ["อ่านจากมือขวา", "Reading of the right hand", "解读的是右手"],
   "reading.side.left": ["อ่านจากมือซ้าย", "Reading of the left hand", "解读的是左手"]
 };

@@ -5,7 +5,7 @@
 // DRAWN SYNTHETIC hands only (tests/fixtures/palm-v2/synth-capture.js + synth-orient.js), never a photo of a person; every
 // number is SYNTHETIC. The test camera streams a canvas with the drawn hand (plus sensor grain) at the scripted turn.
 //  D  default own hand (TH / EN / ZH): "ถ่ายมือตัวเอง" is selected at load, each mode button has an icon and the exact label
-//     (EN / ZH = drafts for owner approval), the consent line is hidden, the "rotate frame" button has its exact label, the
+//     (TH / EN / ZH exact, owner decision 191), the consent line is hidden, the "rotate frame" button has its exact label, the
 //     guide points up (angle 0, from the mode).
 //  C  "ถ่ายให้คนอื่น" (TH / EN / ZH): the existing consent line appears with its exact text, the camera waits for the tick, the
 //     guide turns 180 degrees; back to own hand: the line hides and the guide points up again.
@@ -40,8 +40,8 @@ const TEXTS = {
   "mode.self": ["ถ่ายมือตัวเอง", "Photo of my hand", "拍自己的手"],
   "mode.other": ["ถ่ายให้คนอื่น", "Photo for someone else", "帮别人拍"],
   "guide.rotate": ["หมุนกรอบ", "Rotate frame", "旋转框"],
-  "side.chip.right": ["มือขวา ✓ แตะเพื่อเปลี่ยน", "Right hand ✓ tap to change", "右手 ✓ 点按更改"],
-  "side.chip.left": ["มือซ้าย ✓ แตะเพื่อเปลี่ยน", "Left hand ✓ tap to change", "左手 ✓ 点按更改"],
+  "side.chip.right": ["มือขวา ✓ แตะเพื่อเปลี่ยน", "Right hand ✓ Tap to change", "右手 ✓ 点击更改"],
+  "side.chip.left": ["มือซ้าย ✓ แตะเพื่อเปลี่ยน", "Left hand ✓ Tap to change", "左手 ✓ 点击更改"],
   "reading.side.right": ["อ่านจากมือขวา", "Reading of the right hand", "解读的是右手"],
   "reading.side.left": ["อ่านจากมือซ้าย", "Reading of the left hand", "解读的是左手"]
 };
