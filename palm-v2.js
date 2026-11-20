@@ -66,8 +66,14 @@
     "legend": ["เส้นทึบ = พบในภาพ · เส้นประ = ไม่พบในภาพ (ไม่ได้นำมาอ่าน) · ✋ = เพิ่มเอง", "Solid = found in the photo · Dashed = not found in this photo (not read) · ✋ = added by you",
       "实线 = 照片中找到 · 虚线 = 照片中未找到（不参与解读）· ✋ = 自行添加"],
     "guide.note": ["เส้นประคือตำแหน่งที่ตำรามักพบเส้นนั้น ไม่ใช่เส้นที่พบในภาพ", "A dashed line shows where the line usually lies; it was not found in this photo", "虚线表示该掌纹通常的位置，并非照片中找到的掌纹"],
-    "mode.self": ["ถ่ายมือตัวเอง", "My own hand", "拍自己的手"],
-    "mode.other": ["ถ่ายมือคนอื่น (กล้องหลัง)", "Another person's hand (rear camera)", "拍别人的手（后置摄像头）"],
+    /* capture orientation (owner request 2026-11-20): TH / EN / ZH approved by the owner, decision 191 (2026-11-20), EXACT (byte for byte; do not edit) */
+    "mode.self": ["ถ่ายมือตัวเอง", "Photo of my hand", "拍自己的手"],
+    "mode.other": ["ถ่ายให้คนอื่น", "Photo for someone else", "帮别人拍"],
+    "guide.rotate": ["หมุนกรอบ", "Rotate frame", "旋转框"],
+    "side.chip.right": ["มือขวา ✓ แตะเพื่อเปลี่ยน", "Right hand ✓ Tap to change", "右手 ✓ 点击更改"],
+    "side.chip.left": ["มือซ้าย ✓ แตะเพื่อเปลี่ยน", "Left hand ✓ Tap to change", "左手 ✓ 点击更改"],
+    "reading.side.right": ["อ่านจากมือขวา", "Reading of the right hand", "解读的是右手"],
+    "reading.side.left": ["อ่านจากมือซ้าย", "Reading of the left hand", "解读的是左手"],
     "side.left": ["มือซ้าย", "Left hand", "左手"], "side.right": ["มือขวา", "Right hand", "右手"],
     "school.label": ["สำนัก", "School", "流派"],
     "tap.wrist": ["แตะกลางข้อมือ", "Tap the middle of the wrist", "点按手腕中央"],
@@ -536,21 +542,44 @@
     if (!big || big.n < n * 0.02) return { found: false, count: 0 };
     var count = comps.filter(function (c) { return c.n >= big.n * 0.25; }).length;
     var mx = big.sx / big.n, my = big.sy / big.n, cxx = big.sxx / big.n - mx * mx, cyy = big.syy / big.n - my * my, cxy = big.sxy / big.n - mx * my;
-    var tilt = 0.5 * Math.atan2(2 * cxy, cyy - cxx) * 180 / Math.PI; // angle of the major axis from vertical
-    var fill = ((big.x1 - big.x0 + 1) * (big.y1 - big.y0 + 1)) / n;
+    var tilt = 0.5 * Math.atan2(2 * cxy, cyy - cxx) * 180 / Math.PI; // angle of the major axis from vertical (measured; the live hint never uses it)
+    // orientation-free (owner request 2026-11-20: the hand may point any way): extents along the blob's own long axis (a) and across
+    // it (b); fill = that box / frame; open = a cut across the axis near EITHER end crosses >= 3 separate fingers
+    var tr = tilt * Math.PI / 180, ax = [Math.sin(tr), Math.cos(tr)], bx = [Math.cos(tr), -Math.sin(tr)], a0 = 1e9, a1 = -1e9, b0 = 1e9, b1 = -1e9;
+    for (i = 0; i < n; i++) {
+      if (lab[i] !== big.id) continue;
+      var qx = i % W - mx, qy = (i - i % W) / W - my, pa = qx * ax[0] + qy * ax[1], pb = qx * bx[0] + qy * bx[1];
+      if (pa < a0) a0 = pa; if (pa > a1) a1 = pa; if (pb < b0) b0 = pb; if (pb > b1) b1 = pb;
+    }
+    var fill = ((a1 - a0 + 1) * (b1 - b0 + 1)) / n;
     var offset = Math.hypot(mx / W - 0.5, my / H - 0.5);
-    // open hand: in the top part of the blob, a row crosses >= 3 separate fingers
-    var runsMax = 0, bh = big.y1 - big.y0 + 1;
-    for (y = big.y0 + Math.floor(bh * 0.08); y <= big.y0 + Math.floor(bh * 0.3); y++) {
+    var runsAt = function (t) { // runs of the hand along the cut across the axis at axis position t
       var runs = 0, on = false, len = 0;
-      for (x = big.x0; x <= big.x1; x++) {
-        var s = lab[y * W + x] === big.id;
+      for (var u = Math.floor(b0) - 1; u <= Math.ceil(b1) + 1; u++) {
+        var X = Math.round(mx + ax[0] * t + bx[0] * u), Y = Math.round(my + ax[1] * t + bx[1] * u);
+        var s = X >= 0 && Y >= 0 && X < W && Y < H && lab[Y * W + X] === big.id;
         if (s) { len++; if (!on) on = true; } else { if (on && len >= 2) runs++; on = false; len = 0; }
       }
-      if (on && len >= 2) runs++;
-      if (runs > runsMax) runsMax = runs;
-    }
-    return { found: true, count: count, fill: fill, offset: offset, open: runsMax >= 3, tilt: tilt, back: false, fingers: runsMax };
+      return runs;
+    };
+    var runsMax = 0, al = a1 - a0 + 1;
+    for (var t = Math.floor(al * 0.08); t <= Math.floor(al * 0.3); t++) runsMax = Math.max(runsMax, runsAt(a0 + t), runsAt(a1 - t));
+    // palm centre: the hand pixel farthest from the hand's edge (chamfer 3-4 distance), the same whichever way the hand points
+    var dist = new Uint16Array(n), big1 = 0, pcx = mx, pcy = my;
+    for (i = 0; i < n; i++) dist[i] = lab[i] === big.id ? 65535 : 0;
+    var relax = function (i0, j, c) { if (dist[j] + c < dist[i0]) dist[i0] = dist[j] + c; };
+    for (y = 0; y < H; y++) for (x = 0; x < W; x++) { i = y * W + x; if (!dist[i]) continue;
+      if (x === 0 || y === 0 || x === W - 1 || y === H - 1) { dist[i] = 3; continue; }
+      relax(i, i - 1, 3); relax(i, i - W, 3); relax(i, i - W - 1, 4); relax(i, i - W + 1, 4); }
+    for (y = H - 1; y >= 0; y--) for (x = W - 1; x >= 0; x--) { i = y * W + x; if (!dist[i] || x === 0 || y === 0 || x === W - 1 || y === H - 1) continue;
+      relax(i, i + 1, 3); relax(i, i + W, 3); relax(i, i + W + 1, 4); relax(i, i + W - 1, 4); if (dist[i] > big1) big1 = dist[i]; }
+    // the centre of the whole near-maximum plateau (not the first maximum in scan order, which moves with the hand's direction)
+    if (big1) { var px0 = 0, py0 = 0, pn = 0, lim = big1 * 0.9;
+      for (i = 0; i < n; i++) if (lab[i] === big.id && dist[i] >= lim) { px0 += i % W; py0 += (i - i % W) / W; pn++; }
+      if (pn) { pcx = px0 / pn; pcy = py0 / pn; } }
+    var mask = new Uint8Array(n); for (i = 0; i < n; i++) mask[i] = lab[i] === big.id ? 1 : 0;
+    return { found: true, count: count, fill: fill, offset: offset, open: runsMax >= 3, tilt: tilt, back: false, fingers: runsMax, cx: mx / W, cy: my / H,
+      across: (b1 - b0 + 1) / W, palm: [(pcx + 0.5) / W, (pcy + 0.5) / H], _mask: mask, _w: W, _h: H };
   }
   /** automatic capture: a steady green count of countMs fires once; movement restarts the count; re-armed after rearmMs off green */
   function createAutoShutter(o) {
@@ -696,6 +725,103 @@
     ][l];
   }
 
+  /* ================= capture orientation (owner request 2026-11-20: another person takes the photo) =================
+     The hand may point any way and the picture may be mirrored. After capture the photo is turned and mirrored into the canonical
+     layout (fingers up, index knuckle on the image right) from the wrist-to-finger direction, BEFORE the line finder runs. The
+     live guide is for distance and position only: no live hint depends on which way the fingers point. */
+  /** direction wrist -> knuckle midpoint: angle in degrees (0 = fingers up, clockwise positive, (-180, 180]); quarter = the nearest
+      quarter turn 0..3; mirror = once the fingers point up the index knuckle is on the image left */
+  function orientPose(h) {
+    var W = h.wrist, I = h.mcp.index, P = h.mcp.pinky, M = lerp(I, P, 0.5), dx = M[0] - W[0], dy = M[1] - W[1];
+    var angle = Math.atan2(dx, -dy) * 180 / Math.PI;
+    if (angle <= -180) angle += 360;
+    var r = -angle * Math.PI / 180, ux = P[0] - I[0], uy = P[1] - I[1], u2 = ux * Math.cos(r) - uy * Math.sin(r);
+    return { angle: angle, quarter: ((Math.round(angle / 90) % 4) + 4) % 4, mirror: u2 > 0 };
+  }
+  /** image px -> canonical px (canvas setTransform order [a, b, c, d, e, f]): turn by -angle, mirror if needed, scale; the output
+      covers the palm frame u -0.4..1.35, v -0.15..1.25 (the line finder's crop) */
+  function canonicalTransform(hand, o) {
+    var p = orientPose(hand), F = frameFromHand(hand), sc = o && o.scale > 0 ? o.scale : 1;
+    var r = -p.angle * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r), mx = p.mirror ? -1 : 1;
+    var A = sc * mx * c, C = -sc * mx * sn, B = sc * sn, D = sc * c;
+    var pts = [[-0.4, -0.15], [1.35, -0.15], [1.35, 1.25], [-0.4, 1.25]].map(F.toImg).map(function (q) { return [A * q[0] + C * q[1], B * q[0] + D * q[1]]; });
+    var xs = pts.map(function (q) { return q[0]; }), ys = pts.map(function (q) { return q[1]; });
+    var x0 = Math.min.apply(null, xs), y0 = Math.min.apply(null, ys);
+    return { m: [A, B, C, D, -x0, -y0], w: Math.max(1, Math.ceil(Math.max.apply(null, xs) - x0)), h: Math.max(1, Math.ceil(Math.max.apply(null, ys) - y0)),
+      angle: p.angle, quarter: p.quarter, mirror: p.mirror, scale: sc };
+  }
+  function applyAffine(m, q) { return [m[0] * q[0] + m[2] * q[1] + m[4], m[1] * q[0] + m[3] * q[1] + m[5]]; }
+  /** a copy of a hand with every point through fn (wrist, knuckles, tips, thumb base, the 21 points) */
+  function mapHand(h, fn) {
+    var pt = function (q) { return Array.isArray(q) && typeof q[0] === "number" ? fn(q) : q == null ? q : q; };
+    var obj = function (o) { if (!o) return o; var r = {}; Object.keys(o).forEach(function (k) { r[k] = pt(o[k]); }); return r; };
+    return { source: h.source, wrist: pt(h.wrist), mcp: obj(h.mcp), tip: obj(h.tip), thumbBase: pt(h.thumbBase), pts: h.pts ? h.pts.map(pt) : h.pts };
+  }
+  /** the canonical image (T from canonicalTransform): bilinear, pixel centres; outside the photo = 0 (transparent) */
+  function warpRGBA(rgba, w, h, T) {
+    var m = T.m, det = m[0] * m[3] - m[1] * m[2], out = new Uint8ClampedArray(T.w * T.h * 4);
+    for (var Y = 0; Y < T.h; Y++) for (var X = 0; X < T.w; X++) {
+      var px = X + 0.5 - m[4], py = Y + 0.5 - m[5], x = (m[3] * px - m[2] * py) / det - 0.5, y = (-m[1] * px + m[0] * py) / det - 0.5;
+      var x0 = Math.floor(x), y0 = Math.floor(y);
+      if (x0 < 0 || y0 < 0 || x0 >= w - 1 || y0 >= h - 1) continue;
+      var fx = x - x0, fy = y - y0, a = (y0 * w + x0) * 4, b = a + 4, c = a + w * 4, d = c + 4, o = (Y * T.w + X) * 4;
+      for (var k = 0; k < 4; k++) out[o + k] = (rgba[a + k] * (1 - fx) + rgba[b + k] * fx) * (1 - fy) + (rgba[c + k] * (1 - fx) + rgba[d + k] * fx) * fy;
+    }
+    return out;
+  }
+  /** the line finder on the canonical image (scale: at most 360 px per palm width, as the page's crop); lines are in palm-frame
+      u, v, so they map back onto the photo through the photo's own palm frame */
+  function detectOriented(rgba, w, h, hand, o) {
+    var F = frameFromHand(hand), sc = o && o.scale > 0 ? o.scale : Math.min(1, 360 / Math.max(1, F.pw)), T = canonicalTransform(hand, { scale: sc });
+    var det = api.detect(warpRGBA(rgba, w, h, T), T.w, T.h, mapHand(hand, function (q) { return applyAffine(T.m, q); }), o);
+    det.canon = { angle: T.angle, quarter: T.quarter, mirror: T.mirror, w: T.w, h: T.h, scale: sc };
+    return det;
+  }
+  /** the live check of one preview frame (about 160 px wide): skin blob, light / sharpness metrics on a square around the blob
+      centre, captureHint. The pointing direction is never passed on (tilt null), so the guide cannot block capture because of it */
+  function liveHint(rgba, w, h, o) {
+    o = o || {};
+    var hand = handFromSkin(rgba, w, h), roi;
+    hand.tilt = null;
+    if (o.still != null) hand.still = !!o.still;
+    var src = rgba;
+    if (hand.found) {
+      // the same ROI size as the fixed centre ROI the thresholds were set on (0.4 of the frame), centred on the palm (the hand pixel
+      // farthest from its edge) and square, so it does not depend on the hand's direction
+      var sd = clamp(Math.round(0.4 * Math.min(w, h)), 8, Math.min(w, h));
+      roi = { x: clamp(Math.round(hand.palm[0] * w - sd / 2), 0, w - sd), y: clamp(Math.round(hand.palm[1] * h - sd / 2), 0, h - sd), w: sd, h: sd };
+      // light, evenness and sharpness of the HAND only: background inside the ROI (between the fingers, beside a small hand) is
+      // painted with the hand's mean colour there, so it never reads as shadow or as a dark corner
+      var M = hand._mask, mw = hand._w, mh = hand._h, inHand = function (x, y) { return M[Math.min(mh - 1, Math.floor(y * mh / h)) * mw + Math.min(mw - 1, Math.floor(x * mw / w))]; };
+      var sr = 0, sg = 0, sb = 0, sn = 0, x, y, j;
+      for (y = roi.y; y < roi.y + roi.h; y++) for (x = roi.x; x < roi.x + roi.w; x++) if (inHand(x, y)) { j = (y * w + x) * 4; sr += rgba[j]; sg += rgba[j + 1]; sb += rgba[j + 2]; sn++; }
+      if (sn && sn < roi.w * roi.h) {
+        src = new Uint8ClampedArray(rgba);
+        for (y = roi.y; y < roi.y + roi.h; y++) for (x = roi.x; x < roi.x + roi.w; x++) if (!inHand(x, y)) { j = (y * w + x) * 4; src[j] = sr / sn; src[j + 1] = sg / sn; src[j + 2] = sb / sn; }
+      }
+    } else roi = { x: Math.round(w * 0.3), y: Math.round(h * 0.4), w: Math.round(w * 0.4), h: Math.round(h * 0.3) };
+    var m = captureMetrics(src, w, h, roi);
+    return { hint: captureHint({ metrics: m, hand: hand }), hand: hand, metrics: m, roi: roi };
+  }
+  /** the dashed guide's pose: with hand points it follows the hand (angle, and the side the hand looks like to the camera);
+      without, own hand = fingers up, someone else = fingers down (the photographer faces the owner), the rotate button adds 180 */
+  function guidePose(o) {
+    o = o || {};
+    var h = o.hand;
+    if (h && h.wrist && h.mcp && h.mcp.index && h.mcp.pinky) {
+      var p = orientPose(h), sd = handSide({ hand: h, mirrored: false });
+      return { angle: p.angle, side: sd.raw || (p.mirror ? "left" : "right"), by: "landmarks", flip: !!o.flip };
+    }
+    return { angle: ((o.mode === "other" ? 180 : 0) + (o.flip ? 180 : 0)) % 360, side: null, by: "mode", flip: !!o.flip };
+  }
+  /** the guide outline turned by pose.angle about the frame centre, scaled down about the centre only if it would leave the frame */
+  function poseContour(contour, w, h, pose) {
+    var a = ((pose && pose.angle) || 0) * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a), cx = w / 2, cy = h / 2, k = 1;
+    var P = contour.map(function (q) { var x = q[0] - cx, y = q[1] - cy; return [x * c - y * sn, x * sn + y * c]; });
+    P.forEach(function (q) { if (Math.abs(q[0]) > cx) k = Math.min(k, cx * 0.98 / Math.abs(q[0])); if (Math.abs(q[1]) > cy) k = Math.min(k, cy * 0.98 / Math.abs(q[1])); });
+    return P.map(function (q) { return [cx + q[0] * k, cy + q[1] * k]; });
+  }
+
   /** rear camera always; another person's hand: consent first */
   function cameraGate(o) { var other = o && o.mode === "other"; return { facing: "environment", consentRequired: other, open: !other || !!(o && o.consent) }; }
   function consentAfterCapture() { return false; }
@@ -711,6 +837,8 @@
     stillPlan: stillPlan, grabStill: grabStill, cameraGate: cameraGate, consentAfterCapture: consentAfterCapture,
     CAM_OPTS: CAM_OPTS, photoSettings: photoSettings, UPLOAD_MIN: UPLOAD_MIN, photoQuality: photoQuality, qualityVerdict: qualityVerdict,
     handSide: handSide, sideCheck: sideCheck, sideAskText: sideAskText,
+    orientPose: orientPose, canonicalTransform: canonicalTransform, applyAffine: applyAffine, mapHand: mapHand, warpRGBA: warpRGBA,
+    detectOriented: detectOriented, liveHint: liveHint, guidePose: guidePose, poseContour: poseContour,
     _util: { clamp: clamp, lerp: lerp, r4: r4, sigmoid: sigmoid, resample: resample }
   };
   // the classical line finder lives in palm-v2-detect.js (loaded first in the browser): PV.detect, PV.classify, PV.DET

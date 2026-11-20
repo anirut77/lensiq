@@ -35,7 +35,10 @@
 
   var S = { mode: "self", side: "right", school: "thai", photo: null, W: 0, H: 0, taps: [], hand: null, F: null, det: null, crop: null,
     st: PV.newState({ side: "right", school: "thai" }), tracing: null, trace: null, adjusting: null, drag: null, busy: false, lastStill: null,
-    layouts: {}, beforeGreen: false, resultShown: false, source: "image", facing: null, mirrored: null, quality: null, sideAsk: null };
+    layouts: {}, beforeGreen: false, resultShown: false, source: "image", facing: null, mirrored: null, quality: null, sideAsk: null,
+    // capture orientation (owner request 2026-11-20): flip = the "rotate frame" button; lmHand = the live hand points (tier 2-U only);
+    // sideSet = the user chose left / right themselves (buttons, the question or the chip); until then the photo's thumb decides
+    flip: false, lmHand: null, sideSet: false };
 
   /* ---------- the legacy flow stays in the page but hidden while v2 is on ---------- */
   ["plStage", "plEdit", "plResult", "plEngine"].forEach(function (id) { var e = document.getElementById(id); if (e) e.hidden = true; });
@@ -55,6 +58,7 @@
     $("#pv2Canvas").setAttribute("aria-label", L("canvasAria"));
     $("#pv2Card").setAttribute("alt", L("card"));
     $("#pv2LmNote").textContent = T("lm.label");
+    renderChip();
   }
 
   /* ---------- choices: own / another person's hand, consent, side, school ---------- */
@@ -67,12 +71,13 @@
     $("#pv2Start").disabled = !gate.open;
     $("#pv2File").disabled = !gate.open; // an uploaded photo of another person's hand needs the same consent (review round 1, a)
     var up = $("#pv2File").closest("label"); if (up) up.classList.toggle("pv2-off", !gate.open);
+    if (!loop) drawGuide(false); // the guide shows its direction before the camera opens too
   }
   box.addEventListener("click", function (e) {
     var t = /** @type {any} */ (e.target), b = t && t.closest ? t.closest("[data-pv2-mode],[data-pv2-side],[data-pv2-school]") : null;
     if (!b) return;
-    if (b.hasAttribute("data-pv2-mode")) { S.mode = b.getAttribute("data-pv2-mode"); $("#pv2Consent").checked = false; if (S.mode === "other") stopCam(); }
-    if (b.hasAttribute("data-pv2-side")) { S.side = b.getAttribute("data-pv2-side"); S.st.side = S.side; if (S.sideAsk === S.side) S.sideAsk = null; renderSideAsk(); save(); }
+    if (b.hasAttribute("data-pv2-mode")) { S.mode = b.getAttribute("data-pv2-mode"); S.flip = false; $("#pv2Consent").checked = false; if (S.mode === "other") stopCam(); }
+    if (b.hasAttribute("data-pv2-side")) { S.side = b.getAttribute("data-pv2-side"); S.st.side = S.side; S.sideSet = true; if (S.sideAsk === S.side) S.sideAsk = null; renderSideAsk(); save(); }
     if (b.hasAttribute("data-pv2-school")) { setSchool(b.getAttribute("data-pv2-school")); }
     renderChoices();
   });
@@ -89,7 +94,7 @@
     return cam;
   }
   function stopCam() { if (cam) cam.stop(); cancelAnimationFrame(loop); loop = 0; $("#pv2Cam").classList.remove("live"); $("#pv2Snap").hidden = true; $("#pv2Stop").hidden = true;
-    $("#pv2Count").hidden = true; }
+    $("#pv2Count").hidden = true; S.lmHand = null; drawGuide(false); }
   $("#pv2Start").addEventListener("click", function () {
     var gate = PV.cameraGate({ mode: S.mode, consent: $("#pv2Consent").checked });
     if (!gate.open) return;
@@ -110,10 +115,26 @@
     };
     loop = requestAnimationFrame(tick);
   }
-  function guideContour(w, h) {
-    var PC = window.PalmCore;
-    if (PC && PC.guideTemplate) { try { return PC.guideTemplate(S.side, w, h, { mirrored: false }).contour; } catch (e) { /* fall back */ } }
-    return [[w * 0.3, h * 0.9], [w * 0.28, h * 0.45], [w * 0.36, h * 0.15], [w * 0.64, h * 0.15], [w * 0.72, h * 0.45], [w * 0.7, h * 0.9]];
+  /* the dashed guide (owner request 2026-11-20): for distance and position only. With live hand points (LENSIQ_PALM_LANDMARKS, tier
+     2-U, off in customer builds) it turns and mirrors with the detected hand; without, own hand = fingers up, someone else =
+     fingers down (the photographer faces the hand's owner), and the "rotate frame" button turns it 180 degrees */
+  function guidePose() { return PV.guidePose({ mode: S.mode, flip: S.flip, hand: S.lmHand }); }
+  function guideContour(w, h, pose) {
+    var PC = window.PalmCore, side = pose.side || S.side, base = null;
+    if (PC && PC.guideTemplate) { try { base = PC.guideTemplate(side, w, h, { mirrored: false }).contour; } catch (e) { /* fall back */ } }
+    if (!base) base = [[w * 0.3, h * 0.9], [w * 0.28, h * 0.45], [w * 0.36, h * 0.15], [w * 0.64, h * 0.15], [w * 0.72, h * 0.45], [w * 0.7, h * 0.9]];
+    return PV.poseContour(base, w, h, pose);
+  }
+  /* live hand points for the guide (tier 2-U only): palm.js's hand model on the preview, at most every 400 ms */
+  var lmBusy = false, lmLast = 0;
+  function lmOn() { var P0 = WIN.__palm; return WIN.LENSIQ_PALM_LANDMARKS === true && !!(P0 && P0.loadModels && P0.detectHand && window.PalmCore); }
+  function pollLandmarks(t) {
+    if (!lmOn() || lmBusy || t - lmLast < 400) return;
+    lmBusy = true; lmLast = t;
+    var P0 = WIN.__palm;
+    P0.loadModels().then(function () { return loop ? P0.detectHand(video, true) : null; }).then(function (h) {
+      S.lmHand = loop && h && h.pts ? window.PalmCore.handFromLandmarks(h.pts) : null;
+    }).catch(function () { S.lmHand = null; }).then(function () { lmBusy = false; });
   }
   function liveCheck(t) {
     var vw = video.videoWidth, vh = video.videoHeight, sw = 160, sh = Math.round(sw * vh / vw);
@@ -121,11 +142,12 @@
     var sx = small.getContext("2d", { willReadFrequently: true });
     sx.drawImage(video, 0, 0, sw, sh);
     var px = sx.getImageData(0, 0, sw, sh).data;
-    var hand = PV.handFromSkin(px, sw, sh), roi = { x: Math.round(sw * 0.3), y: Math.round(sh * 0.4), w: Math.round(sw * 0.4), h: Math.round(sh * 0.3) };
+    pollLandmarks(t);
+    // orientation-free live check (PV.liveHint): the pointing direction never produces a hint
+    var r = PV.liveHint(px, sw, sh), hand = r.hand, m = r.metrics;
     var c = hand.found ? [hand.offset, hand.fill] : null;
     hand.still = !!(c && prevC && Math.abs(c[0] - prevC[0]) < 0.02 && Math.abs(c[1] - prevC[1]) < 0.03);
     prevC = c;
-    var m = PV.captureMetrics(px, sw, sh, roi);
     var hint = PV.captureHint({ metrics: m, hand: hand });
     if (hint !== lastHint) { lastHint = hint; hintSince = t; }
     if (t - hintSince >= 300 && shownHint !== hint) { shownHint = hint; $("#pv2Hint").textContent = PV.hintText(hint, lang(), S.mode === "other");
@@ -139,13 +161,16 @@
   function drawGuide(ok) {
     var r = ov.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
     ov.width = Math.max(1, Math.round(r.width * dpr)); ov.height = Math.max(1, Math.round(r.height * dpr));
-    var w = ov.width, h = ov.height, P = guideContour(w, h);
+    var w = ov.width, h = ov.height, pose = guidePose(), P = guideContour(w, h, pose);
+    S.guide = { angle: Math.round(pose.angle * 10) / 10, side: pose.side, by: pose.by, flip: S.flip };
+    var rb = $("#pv2Rotate"); if (rb) rb.hidden = pose.by === "landmarks";
     octx.clearRect(0, 0, w, h);
     octx.lineWidth = Math.max(3, w / 160); octx.setLineDash(ok ? [] : [w / 50, w / 80]);
     octx.strokeStyle = ok ? "#22c55e" : "rgba(255,255,255,0.9)";
     octx.beginPath(); P.forEach(function (q, i) { if (i) octx.lineTo(q[0], q[1]); else octx.moveTo(q[0], q[1]); }); octx.closePath(); octx.stroke();
     octx.setLineDash([]);
   }
+  $("#pv2Rotate").addEventListener("click", function () { S.flip = !S.flip; drawGuide(lastHint === "ok" && !!loop); });
   $("#pv2Snap").addEventListener("click", function () { var m = shutter.manual({ ok: lastHint === "ok" }); snap(false, m.beforeGreen); });
   function snap(auto, beforeGreen) {
     if (S.busy || !cam || !cam.stream) return;
@@ -334,6 +359,10 @@
   function runDetect() {
     S.busy = true; setTapMsg(T("detect.busy"));
     return new Promise(function (res) { setTimeout(res, 30); }).then(function () {
+      // capture orientation (owner request 2026-11-20): the photo is shown fingers-up (nearest quarter turn, lossless); the line
+      // finder gets the canonical layout (exact turn + mirror from the wrist-to-finger direction) below
+      var q = PV.orientPose(S.hand).quarter;
+      if (q) turnPhoto(q);
       var F0 = PV.frameFromHand(S.hand);
       // photo minimum (owner order 2026-11-20, PROVISIONAL; 171 ก, 170 ก): uploads and manual stills before green palm width /
       // blow-out (on the full-resolution photo), camera stills on green blow-out only;
@@ -348,17 +377,17 @@
         changed();
         return;
       }
-      var corners = [[-0.4, -0.15], [1.35, -0.15], [1.35, 1.25], [-0.4, 1.25]].map(F0.toImg);
-      var xs = corners.map(function (p) { return p[0]; }), ys = corners.map(function (p) { return p[1]; });
-      var rx = Math.max(0, Math.floor(Math.min.apply(null, xs))), ry = Math.max(0, Math.floor(Math.min.apply(null, ys)));
-      var rw = Math.min(S.W, Math.ceil(Math.max.apply(null, xs))) - rx, rh = Math.min(S.H, Math.ceil(Math.max.apply(null, ys))) - ry;
-      var f = Math.min(1, 360 / Math.max(1, F0.pw)), cw = Math.max(1, Math.round(rw * f)), ch = Math.max(1, Math.round(rh * f));
+      // the canonical layout BEFORE line finding: turned so the fingers point up and mirrored so the index knuckle is on the right
+      // (PV.canonicalTransform, the same matrix as PV.detectOriented), at most 360 px per palm width
+      var T = PV.canonicalTransform(S.hand, { scale: Math.min(1, 360 / Math.max(1, F0.pw)) }), cw = T.w, ch = T.h;
       var c = document.createElement("canvas"); c.width = cw; c.height = ch;
-      var g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(S.photo, rx, ry, rw, rh, 0, 0, cw, ch);
+      var g = c.getContext("2d", { willReadFrequently: true });
+      g.setTransform(T.m[0], T.m[1], T.m[2], T.m[3], T.m[4], T.m[5]); g.drawImage(S.photo, 0, 0); g.setTransform(1, 0, 0, 1, 0, 0);
       var px = g.getImageData(0, 0, cw, ch).data;
-      var mp = function (p) { return p ? [(p[0] - rx) * f, (p[1] - ry) * f] : p; };
+      var mp = function (p) { return p ? PV.applyAffine(T.m, p) : p; };
       var h = S.hand, hc = { source: h.source, wrist: mp(h.wrist), mcp: { index: mp(h.mcp.index), middle: mp(h.mcp.middle), ring: mp(h.mcp.ring), pinky: mp(h.mcp.pinky) }, tip: {},
         thumbBase: null, pts: null };
+      S.canon = { angle: Math.round(T.angle * 10) / 10, quarter: T.quarter, mirror: T.mirror };
       stopCam();
       return findLines(px, cw, ch, hc, S.school).then(function (det) {
       S.det = det; S.lastDetectMs = det.ms;
@@ -372,6 +401,20 @@
       changed();
       });
     }).catch(function (e) { S.busy = false; console.error(e); setTapMsg(""); });
+  }
+  /** turn the photo in memory by q quarter turns counter-clockwise (undoing a hand that points right / down / left), with its points */
+  function turnPhoto(q) {
+    var W = S.W, H = S.H, c = document.createElement("canvas"), g, fn;
+    if (q === 2) { c.width = W; c.height = H; } else { c.width = H; c.height = W; }
+    g = c.getContext("2d");
+    if (q === 1) { g.translate(0, W); g.rotate(-Math.PI / 2); fn = function (p) { return [p[1], W - p[0]]; }; }
+    else if (q === 2) { g.translate(W, H); g.rotate(Math.PI); fn = function (p) { return [W - p[0], H - p[1]]; }; }
+    else { g.translate(H, 0); g.rotate(Math.PI / 2); fn = function (p) { return [H - p[1], p[0]]; }; }
+    g.drawImage(S.photo, 0, 0);
+    S.photo = c; S.W = c.width; S.H = c.height;
+    S.hand = PV.mapHand(S.hand, fn);
+    S.taps = S.taps.map(fn);
+    layoutCanvas();
   }
   /** the B2.3 measure on the palm ROI of the full-resolution photo (a crop, scaled so the palm is at most 1024 px wide) */
   function photoCheck(F0) {
@@ -391,10 +434,13 @@
   }
   /* handedness (owner order 2026-11-20): from the thumb position (landmark geometry), never the model's label; a disagreement with the
      user's left / right choice asks the user and the reading waits for the answer; the choice is never changed silently */
+  /* capture orientation (owner request 2026-11-20): left / right comes from the thumb in the captured photo, never from the guide
+     or a camera label. Until the user has chosen a side themselves, the photo's side is shown on the chip ("มือขวา ✓ แตะเพื่อเปลี่ยน")
+     and the user can change it; once they have chosen, a disagreeing photo asks (the choice is never changed silently) */
   function checkSide() {
     var geo = PV.handSide({ hand: S.hand, facing: S.facing, mirrored: S.mirrored });
-    var chk = PV.sideCheck(S.side, geo);
-    S.sideAsk = chk.ask ? chk.detected : null;
+    if (!S.sideSet && geo.side) { S.side = geo.side; S.st.side = S.side; S.sideAsk = null; renderChoices(); save(); }
+    else { var chk = PV.sideCheck(S.side, geo); S.sideAsk = chk.ask ? chk.detected : null; }
     renderSideAsk();
   }
   function renderSideAsk() {
@@ -402,11 +448,22 @@
     el.hidden = !S.sideAsk;
     $("#pv2SideAskText").textContent = S.sideAsk ? PV.sideAskText(S.sideAsk, S.side, lang()) : "";
     $("#pv2Read").disabled = !!S.sideAsk;
+    renderChip();
   }
+  function renderChip() {
+    var chip = $("#pv2SideChip"); if (!chip) return;
+    chip.hidden = !(S.photo && S.F) || !!S.sideAsk;
+    chip.textContent = T("side.chip." + (S.side === "left" ? "left" : "right"));
+  }
+  $("#pv2SideChip").addEventListener("click", function () {
+    S.side = S.side === "left" ? "right" : "left"; S.st.side = S.side; S.sideSet = true;
+    renderChoices(); renderSideAsk(); save();
+    if (S.resultShown) renderReading();
+  });
   box.addEventListener("click", function (e) {
     var t = /** @type {any} */ (e.target), b = t && t.closest ? t.closest("[data-pv2-side-answer]") : null;
     if (!b) return;
-    S.side = b.getAttribute("data-pv2-side-answer") === "left" ? "left" : "right"; S.st.side = S.side; S.sideAsk = null;
+    S.side = b.getAttribute("data-pv2-side-answer") === "left" ? "left" : "right"; S.st.side = S.side; S.sideAsk = null; S.sideSet = true;
     renderChoices(); renderSideAsk(); save();
     if (S.resultShown) renderReading();
   });
@@ -414,7 +471,7 @@
   var worker = null, workerBroken = false, jobN = 0;
   function findLines(px, w, h, hand, school) {
     if (!workerBroken && typeof Worker === "function") {
-      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=3"); } catch (e) { workerBroken = true; }
+      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=4"); } catch (e) { workerBroken = true; }
     }
     if (!worker || workerBroken) return new Promise(function (res) { setTimeout(function () { res(PV.detect(px, w, h, hand, { school: school })); }, 0); });
     var id = ++jobN;
@@ -503,7 +560,8 @@
   });
   function renderReading() {
     var rd = PV.readingFor(S.st, { lang: lang() }), out = $("#pv2Reading");
-    var head = S.school !== "thai" ? '<p class="pv2-draft">' + esc(T("draft.school")) + "</p>" : "";
+    var head = '<p class="pv2-readside">' + esc(T("reading.side." + (S.side === "left" ? "left" : "right"))) + "</p>" +
+      (S.school !== "thai" ? '<p class="pv2-draft">' + esc(T("draft.school")) + "</p>" : "");
     // the nickname (#plNick) titles the reading only when it is a plain name and the page is not calm (crisis v3: no echo)
     var nk = /** @type {HTMLInputElement|null} */ (document.getElementById("plNick")), nick = nk ? nk.value.trim() : "", cr0 = CR();
     var calm = cr0 && cr0.calmOn ? cr0.calmOn(document) : document.documentElement.hasAttribute("data-lq-crisis");
@@ -581,6 +639,8 @@
     get lastDetectMs() { return S.lastDetectMs; },
     get quality() { return S.quality; },
     get sideAsk() { return S.sideAsk; },
+    get guide() { return S.guide ? Object.assign({}, S.guide) : null; },
+    get canon() { return S.canon || null; },
     state: function () { return JSON.parse(PV.serialize(S.st)) && { side: S.st.side, school: S.st.school, lines: JSON.parse(JSON.stringify(S.st.lines)) }; },
     useImage: useImageUrl,
     imgToClient: imgToClient,

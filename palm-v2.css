@@ -47,5 +47,13 @@
   #pv2PrintImg,#pv2PrintImg *{visibility:visible}
   #pv2PrintImg{display:block!important;position:absolute;left:0;top:0;width:100%}
 }
+.pv2 .seg button .pv2-ico{vertical-align:-5px;margin-right:6px;flex:none}
+.pv2-rotate{position:absolute;top:8px;left:8px;display:inline-flex;align-items:center;gap:4px;min-height:40px;padding:0 12px;border:0;border-radius:20px;
+  background:rgba(0,0,0,.6);color:#fff;font:inherit;font-size:.85rem;cursor:pointer}
+.pv2-rotate[hidden]{display:none}
+.pv2-chip{justify-self:start;display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid #0e1430;border-radius:22px;background:#eef2ff;
+  color:#0e1430;font:inherit;font-weight:600;cursor:pointer}
+.pv2-chip[hidden]{display:none}
+.pv2-readside{margin:0 0 8px;font-weight:600}
 @media (max-width:480px){.pv2{padding:0 4px}}
 .pv2 .pv2-off{opacity:.5;pointer-events:none}

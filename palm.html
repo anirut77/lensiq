@@ -300,8 +300,16 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     <p class="pv2-small pv2-privacy" data-pv2-t="privacy"></p>
     <div class="pv2-capture" id="pv2Capture">
       <div class="seg" role="radiogroup" aria-label="mode">
-        <button type="button" role="radio" aria-checked="true" data-pv2-mode="self" data-pv2-t="mode.self"></button>
-        <button type="button" role="radio" aria-checked="false" data-pv2-mode="other" data-pv2-t="mode.other"></button>
+        <button type="button" role="radio" aria-checked="true" data-pv2-mode="self"><svg class="pv2-ico" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"
+          focusable="false"><path
+          d="M7 21v-6l-3-3.5 1.4-1.2L8 12.5V5a1.2 1.2 0 0 1 2.4 0v6V3.5a1.2 1.2 0 0 1 2.4 0V11V4.5a1.2 1.2 0 0 1 2.4 0v7V7a1.2 1.2 0 0 1 2.4 0v9c0 3-2 5-5 5z"
+          fill="none" stroke="currentColor" stroke-width="1.6"
+          stroke-linejoin="round"/></svg><span data-pv2-t="mode.self"></span></button>
+        <button type="button" role="radio" aria-checked="false" data-pv2-mode="other"><svg class="pv2-ico" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"
+          focusable="false"><g transform="rotate(180 12 12)"><path
+          d="M7 21v-6l-3-3.5 1.4-1.2L8 12.5V5a1.2 1.2 0 0 1 2.4 0v6V3.5a1.2 1.2 0 0 1 2.4 0V11V4.5a1.2 1.2 0 0 1 2.4 0v7V7a1.2 1.2 0 0 1 2.4 0v9c0 3-2 5-5 5z"
+          fill="none" stroke="currentColor" stroke-width="1.6"
+          stroke-linejoin="round"/></g></svg><span data-pv2-t="mode.other"></span></button>
       </div>
       <p class="pv2-consent" id="pv2ConsentWrap" hidden><span id="pv2ConsentText" data-pv2-t="consent.other"></span>
         <label class="pl-check"><input type="checkbox" id="pv2Consent"> <span data-pv2-t="consent.box"></span></label></p>
@@ -313,6 +321,9 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
       <div class="pv2-cam" id="pv2Cam">
         <video id="pv2Video" autoplay muted playsinline></video>
         <canvas id="pv2Guide" aria-hidden="true"></canvas>
+        <button class="pv2-rotate" id="pv2Rotate" type="button"><svg class="pv2-ico" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path
+          d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span
+          data-pv2-t="guide.rotate"></span></button>
         <p class="pv2-hint" id="pv2Hint" role="status" aria-live="polite"></p>
         <div class="pv2-count" id="pv2Count" hidden aria-live="assertive"></div>
       </div>
@@ -333,6 +344,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
         <div class="pv2-actions"><button class="btn ghost" type="button" data-pv2-side-answer="left" data-pv2-t="side.left"></button>
           <button class="btn ghost" type="button" data-pv2-side-answer="right" data-pv2-t="side.right"></button></div>
       </div>
+      <button class="pv2-chip" id="pv2SideChip" type="button" hidden></button>
       <div class="seg" role="radiogroup" aria-label="school">
         <span class="pv2-small" data-pv2-t="school.label"></span>
         <button type="button" role="radio" aria-checked="true" data-pv2-school="thai"></button>
@@ -394,6 +406,6 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="fortune-ai.js?v=39"></script>
 <script src="palm-kb.js?v=10"></script>
 <script src="lensiq-capture-hint.js?v=1"></script>
-<script src="palm.js?v=23"></script>
+<script src="palm.js?v=24"></script>
 </body>
 </html>
