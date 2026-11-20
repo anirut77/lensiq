@@ -79,3 +79,13 @@ cb989c28ddc62947945055576a85cfe85f08d512cdb129fc475715280fd622c4  tests/e2e/sell
 # 160 / 300-character limits in TH and ZH, logo, 300-character note) prints on exactly 1 A4 page; every quantity, unit
 # price, amount, subtotal, VAT, total (and regular price on the quotation) is in the PDF; no cell past the printable width;
 # 20 lines still paginate. Log before the fix: ~/LENSIQ-field/evals/seller-settings/relock3/onepage-before-fix.log
+# locked 2026-11-20T21:31:23Z (tools/eval-guard.mjs lock, 4 files)
+104028c8ba9d40369cdb1cf246fb00c45c092ecd486115b780511ec58e1e320d  relock4/backend-seller.test.js
+9ba1e629887fb62691fa882db5ed19d553ae40fa1cbb56b04e636980df421c67  relock4/backend-seller-frozen-docs.test.js
+19309b788ff6e9758a4f00b7dcad70405d130ba8b7bf130d4c66d9699d0ad307  relock4/backend-seller-workerd.test.mjs
+feb4044646ccb52c9844f94c0bd6b63141cc1f2639d692a4a805813ff32631f4  relock4/NOTE.txt
+104028c8ba9d40369cdb1cf246fb00c45c092ecd486115b780511ec58e1e320d  tests/unit/backend-seller.test.js  # repo file (same commit as lock 2026-11-20T21:31:23Z; field: ~/LENSIQ-field/evals/seller-settings/relock4/backend-seller.test.js)
+9ba1e629887fb62691fa882db5ed19d553ae40fa1cbb56b04e636980df421c67  tests/unit/backend-seller-frozen-docs.test.js  # repo file (same commit as lock 2026-11-20T21:31:23Z; field: ~/LENSIQ-field/evals/seller-settings/relock4/backend-seller-frozen-docs.test.js)
+19309b788ff6e9758a4f00b7dcad70405d130ba8b7bf130d4c66d9699d0ad307  tests/integration/backend-seller-workerd.test.mjs  # repo file (same commit as lock 2026-11-20T21:31:23Z; field: ~/LENSIQ-field/evals/seller-settings/relock4/backend-seller-workerd.test.mjs)
+# field only relock4/NOTE.txt (lock 2026-11-20T21:31:23Z: no repo file uses it)
+# re-lock 2026-11-21 (A5 review, branch a5-defects; field: relock dir with NOTE.txt): EQUAL test-bug re-lock: frozen TOTP clock (tests/unit/totp-clock.js) in the unit files, previous-step code kept 3 s away from a step boundary in the workerd file; a totp(secret, -1) code failed when a 30 s boundary fell between generating and verifying. No assertion changed.

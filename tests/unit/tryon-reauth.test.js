@@ -8,6 +8,9 @@
 //       the session can no longer be used
 //   S1c the right password + code on an unlocked account still deletes (200)
 const test = require("node:test");
+// test-bug re-lock 2026-11-21 (A5 review): one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js);
+// totp(secret, -1) failed when a 30 s step boundary fell between generating and verifying ("400 !== 200", backend-seller.test.js:96)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { createEnv, req } = require("./backend-d1-shim.js");
 

@@ -14,6 +14,9 @@
 //   R7 (low)   the page can clear tax ID / bank account number / phone (one "remove" control per masked field)
 //   R8 (low)   the receipt payment date must be a real calendar date
 const test = require("node:test");
+// test-bug re-lock 2026-11-21 (A5 review): one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js);
+// totp(secret, -1) failed when a 30 s step boundary fell between generating and verifying ("400 !== 200", backend-seller.test.js:96)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 const { join } = require("node:path");

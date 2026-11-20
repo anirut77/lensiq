@@ -5,3 +5,13 @@ f7080559bc5003d667c43b60ea5472eed447e424798ee9e2572367d0a4fa4ec4  tests/unit/try
 # tryon-off (owner decision 2026-11-14: Try-On gets no R2 and no server deploy; coordinator: Try-On must be unreachable in the Worker deploy for Merit): fixed tests locked BEFORE the switch code. Branch tryon-off, base 24bb50a. Paths = repo paths; the copies in ~/LENSIQ-field/evals/tryon-off/ are byte-identical.
 # NEW: tests/unit/tryon-off.test.js (W1 wrangler.toml TRYON = "off" in [vars] + [env.test.vars]; W2 every Try-On route 404 tryon_off for anonymous / owner / tryon_admin / tryon_editor, any Origin, zero SQL, zero R2 calls, catalogue unchanged; W3 /v1/config + /admin/api/me tryon flag; W4 switch on = routes work as before; W5 admin Try-On tab hidden unless /me tryon === true, at.off text TH/EN/ZH).
 # Amendments to tests locked in tryon-mvp (fixture only, no case or assertion changed, nothing loosened): A-TO-1 backend-tryon.test.js setup() env gets TRYON: "on" (before ...vars); A-TO-2 tryon-reauth.test.js setup() env gets TRYON: "on". Reason: the Worker switch now ships off, so these suites must switch it on to keep testing the same behaviour (same approach as org-p1 A-P1-1..3).
+# locked 2026-11-20T21:31:23Z (tools/eval-guard.mjs lock, 4 files)
+2a5c73f5abf02772fc4a0fa7aff55b268c032346c165c31f0d049bc948bb4465  relock1/backend-tryon.test.js
+b80886ef8c215f6193024eaa1ff9ed3feaa7dc7196b036e0185ec59817de3639  relock1/tryon-reauth.test.js
+e7bcc27358951110b35bbc63cdfd8e465220be88734078b3da6e2bb6cfb70b35  relock1/tryon-off.test.js
+feb4044646ccb52c9844f94c0bd6b63141cc1f2639d692a4a805813ff32631f4  relock1/NOTE.txt
+2a5c73f5abf02772fc4a0fa7aff55b268c032346c165c31f0d049bc948bb4465  tests/unit/backend-tryon.test.js  # repo file (same commit as lock 2026-11-20T21:31:23Z; field: ~/LENSIQ-field/evals/tryon-off/relock1/backend-tryon.test.js)
+b80886ef8c215f6193024eaa1ff9ed3feaa7dc7196b036e0185ec59817de3639  tests/unit/tryon-reauth.test.js  # repo file (same commit as lock 2026-11-20T21:31:23Z; field: ~/LENSIQ-field/evals/tryon-off/relock1/tryon-reauth.test.js)
+e7bcc27358951110b35bbc63cdfd8e465220be88734078b3da6e2bb6cfb70b35  tests/unit/tryon-off.test.js  # repo file (same commit as lock 2026-11-20T21:31:23Z; field: ~/LENSIQ-field/evals/tryon-off/relock1/tryon-off.test.js)
+# field only relock1/NOTE.txt (lock 2026-11-20T21:31:23Z: no repo file uses it)
+# re-lock 2026-11-21 (A5 review, branch a5-defects; field: relock dir with NOTE.txt): EQUAL test-bug re-lock: frozen TOTP clock (tests/unit/totp-clock.js) in the unit files, previous-step code kept 3 s away from a step boundary in the workerd file; a totp(secret, -1) code failed when a 30 s boundary fell between generating and verifying. No assertion changed.

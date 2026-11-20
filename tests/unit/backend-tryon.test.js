@@ -30,6 +30,9 @@
 // own password + code in the request); T5 JPEG and WebP sizes are read from the file (SOF / VP8X / VP8 / VP8L) and must
 // equal the declared size, an unreadable size is refused (size_unreadable). The test helpers now build real headers.
 const test = require("node:test");
+// test-bug re-lock 2026-11-21 (A5 review): one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js);
+// totp(secret, -1) failed when a 30 s step boundary fell between generating and verifying ("400 !== 200", backend-seller.test.js:96)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { readFileSync, existsSync } = require("node:fs");
 const { join } = require("node:path");

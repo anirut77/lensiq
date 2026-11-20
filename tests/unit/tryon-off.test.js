@@ -17,6 +17,9 @@
 //   W5 admin UI: the Try-On tab is hidden unless GET /me says tryon === true; a try-on account sees a "switched off"
 //      message (TH default, EN / ZH in i18n/en-admin.js, i18n/zh-admin.js) instead of the catalogue
 const test = require("node:test");
+// test-bug re-lock 2026-11-21 (A5 review): one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js);
+// totp(secret, -1) failed when a 30 s step boundary fell between generating and verifying ("400 !== 200", backend-seller.test.js:96)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");

@@ -26,6 +26,9 @@
 //   S10 logo: PNG / JPEG / WebP only (magic bytes), size cap, no SVG; stored in D1 (no R2 binding today)
 //   S11 migration 0021_seller.sql is listed in health.js with a schema probe
 const test = require("node:test");
+// test-bug re-lock 2026-11-21 (A5 review): one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js);
+// totp(secret, -1) failed when a 30 s step boundary fell between generating and verifying ("400 !== 200", backend-seller.test.js:96)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { readFileSync, existsSync } = require("node:fs");
 const { join } = require("node:path");

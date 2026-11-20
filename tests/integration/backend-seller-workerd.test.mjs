@@ -79,7 +79,12 @@ test("workerd: seller details are owner-only (read too), need step-up, issue num
     const { mf, db, call, lines } = await start();
     try {
       const crypto = await import(pathToFileURL(join(BACKEND, "src", "crypto.js")).href);
-      const totp = async (s, d = 0) => crypto.totpAt(crypto.base32Decode(s), Math.floor(Date.now() / 30000) + d);
+      // test-bug re-lock 2026-11-21 (A5 review): workerd keeps its own clock, so a previous-step code (d = -1) is made at
+      // least 3 s before a 30 s step boundary (it failed when the boundary fell between generating and verifying)
+      const totp = async (s, d = 0) => {
+        if (d < 0 && 30000 - (Date.now() % 30000) < 3000) await new Promise(r => setTimeout(r, 30000 - (Date.now() % 30000) + 100));
+        return crypto.totpAt(crypto.base32Decode(s), Math.floor(Date.now() / 30000) + d);
+      };
       assert.equal((await call("/admin/api/bootstrap", { method: "POST", body: { token: ADMIN_TOKEN, username: "owner", password: PW } })).status, 201);
       const tok = (await call("/admin/api/login", { method: "POST", body: { username: "owner", password: PW, mode: "bearer" } })).j.token;
       const O = (p, o = {}) => call("/admin/api" + p, { ...o, token: tok });
