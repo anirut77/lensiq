@@ -122,9 +122,6 @@
     return;
   }
 
-  // ---------- crisis-v3-protect (rule b: no prices, purchase buttons, plans or seller links while the crisis flag is set): menu
-  // entries marked data-lq-crisis-sales (site menu pricing / payment, account-menu pricing) are hidden while html[data-lq-crisis]
-  // or html[data-lq-calm] is set, and come back when the flag clears (pure CSS: no listener to miss) ----------
   (function () {
     var st = document.createElement("style");
     st.id = "lq-crisis-sales-style";
@@ -185,13 +182,11 @@
       html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span class="nav-lbl-s" data-i18n="nav.groups.' + g.id + '">' + esc(g.short || g.label) + '</span><span class="nav-lbl-f" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
         '<div class="nav-sub" id="navsub-' + g.id + '"><div class="mega">' +
           '<div class="mega-intro"><p class="mega-k" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</p><p class="mega-d" data-i18n="nav.groupd.' + g.id + '">' + esc(g.intro) + '</p>' +
-          // owner order 2026-11-18: the fortune panel's link names no status or accuracy (fortune cards carry neither)
           (g.cat ? '<a class="mega-all" href="cat-' + g.cat + '.html">' + (g.cat === "fortune" ? '<span data-i18n="nav.viewcat.fortune">ดูหน้าหมวดนี้</span>'
             : '<span data-i18n="nav.viewcat">ดูหน้าหมวดนี้: สถานะและความแม่นยำ</span>') + arrow + '</a></div>'
             : '<a class="mega-all" href="cameras.html"><span data-i18n="nav.viewall">ดูระบบทั้งหมด</span>' + arrow + '</a></div>') +
           '<ul class="mega-links' + (g.items.length > 6 ? " cols-3" : g.items.length > 3 ? " cols-2" : "") + '">';
       g.items.forEach(function (i) {
-        // crisisSales (crisis-v3-protect, rule b): a price / payment entry is hidden while the crisis or calm state is set
         var cs = ' data-lq-crisis-sales=""';
         html += '<li' + (i.crisisSales === "item" ? cs : "") + '><a href="' + (ENTRY[i.href] || i.href) + '"'
           + (isCur(i.href) ? ' aria-current="page"' : "") + '><b data-i18n="' + key(i.href) + '.title">' + esc(i.title) + '</b>'
@@ -736,7 +731,6 @@
   }
   function reportHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
-    // not the hub (fortune.html): it shows no reading to report (speed budget, 2026-11-17)
     if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
     var sc = document.createElement("script");
@@ -758,13 +752,12 @@
     });
   }
   function selFull() {
-    // the full-text line keeps a number with its unit / era (NBSP) so the line never ends on a lone "CE", "min", "%" ... (all pages, all languages)
     var EN = "CE|BE|AD|BC|KB|MB|GB|TB|px|ms|fps|FPS|s|sec|secs|seconds?|mins?|minutes?|h|hrs?|hours?|days?|weeks?|months?|years?|yrs?|" +
-      "people|persons?|seats?|cameras?|pages?|photos?|images?|points?|times|THB|baht|kg|g|cm|mm|km|m|kcal|cal|ml|L|x",
-      TH = "\u0e1a\u0e32\u0e17|\u0e19\u0e32\u0e17\u0e35|\u0e27\u0e34\u0e19\u0e32\u0e17\u0e35|\u0e0a\u0e31\u0e48\u0e27\u0e42\u0e21\u0e07|\u0e27\u0e31\u0e19|" +
-      "\u0e2a\u0e31\u0e1b\u0e14\u0e32\u0e2b\u0e4c|\u0e40\u0e14\u0e37\u0e2d\u0e19|\u0e1b\u0e35|\u0e04\u0e19|\u0e04\u0e23\u0e31\u0e49\u0e07|\u0e02\u0e49\u0e2d|" +
-      "\u0e2b\u0e19\u0e49\u0e32|\u0e20\u0e32\u0e1e|\u0e23\u0e39\u0e1b|\u0e01\u0e25\u0e49\u0e2d\u0e07|\u0e08\u0e38\u0e14|\u0e40\u0e17\u0e48\u0e32",
-      ZH = "\u5206\u949f|\u5206|\u79d2|\u5c0f\u65f6|\u5929|\u5468|\u4e2a\u6708|\u6708|\u5e74|\u5c81|\u4eba|\u6b21|\u4e2a|\u5f20|\u9875|\u5143|\u6cf0\u94e2|\u500d",
+      "people|persons?|seats?|cameras?|pages?|photos?|images?|points?|times|kg|g|cm|mm|km|m|kcal|cal|ml|L|x",
+      TH = "นาที|วินาที|ชั่วโมง|วัน|" +
+      "สัปดาห์|เดือน|ปี|คน|ครั้ง|ข้อ|" +
+      "หน้า|ภาพ|รูป|กล้อง|จุด|เท่า",
+      ZH = "分钟|分|秒|小时|天|周|个月|月|年|岁|人|次|个|张|页|倍",
       U = new RegExp("(\\d)[ ]+(?=(?:" + EN + ")(?![A-Za-z])|(?:%|\u00b0|" + TH + "|" + ZH + "))", "g"),
       E = /(\u0e1e\.\u0e28\.|\u0e04\.\u0e28\.)[ ]+(?=\d)/g,
       glue = function (/** @type {string} */ v) { return v.replace(U, "$1\u00a0").replace(E, "$1\u00a0"); };

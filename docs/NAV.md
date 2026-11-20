@@ -275,3 +275,18 @@ Each comment below stood in `styles.css`; the stylesheet keeps its first words a
 /* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
    and share cards stay hidden on that page */
 ```
+
+## Inline comments moved from nav.js (2026-11-20, branch planner-defects)
+
+Moved here word for word so help.html stays inside its 400 KB page-weight budget after selFull() (the select full-text
+line) was added; the JS tokens are unchanged. The line number is where the comment stood in nav.js before the move.
+
+```text
+125: // ---------- crisis-v3-protect (rule b: no prices, purchase buttons, plans or seller links while the crisis flag is set): menu
+126: // entries marked data-lq-crisis-sales (site menu pricing / payment, account-menu pricing) are hidden while html[data-lq-crisis]
+127: // or html[data-lq-calm] is set, and come back when the flag clears (pure CSS: no listener to miss) ----------
+188: // owner order 2026-11-18: the fortune panel's link names no status or accuracy (fortune cards carry neither)
+194: // crisisSales (crisis-v3-protect, rule b): a price / payment entry is hidden while the crisis or calm state is set
+739: // not the hub (fortune.html): it shows no reading to report (speed budget, 2026-11-17)
+761: // full-text line: number + unit / era joined by NBSP (no lone "CE", "min", "%"); no currency units (none in a select)
+```
