@@ -795,7 +795,9 @@ test("hall setup check on the page: the panel, the camera ladder, TH / EN / ZH s
   assert.match(js, /PROC_W = 1280/); assert.match(js, /const src = tiles && video\.videoWidth > PROC_W \? procFrame\(\) : video;/);
   assert.match(js, /clipSource\(\)\.then\(s => \{ if \(s && monitoring && clipCfg\.on\) clips\.arm\(s\);/); assert.doesNotMatch(js, /clips\.arm\(video\.srcObject\)/);
   assert.match(js, /ok = a\.width > 0 && a\.width <= PROC_W && !\(m\.width < Wv\);/);
-  assert.match(html, /lensiq-camera\.js\?v=5/); assert.ok(+(html.match(/exam-hall\.js\?v=(\d+)/) || [])[1] >= 4, "exam-hall.js cache-busted at v4 or later (v5: owner rule 2026-11-15, no idle status)"); assert.match(html, /lensiq-exam-face\.js\?v=3/);
+  assert.ok(+(html.match(/lensiq-camera\.js\?v=(\d+)/) || [])[1] >= 8, "lensiq-camera.js at the site version, v8 or later (A5 2026-11-21: one version on every page, walkfix-cp.test.js)");
+  assert.ok(+(html.match(/exam-hall\.js\?v=(\d+)/) || [])[1] >= 4, "exam-hall.js cache-busted at v4 or later (v5: owner rule 2026-11-15, no idle status)");
+  assert.match(html, /lensiq-exam-face\.js\?v=3/);
   // docs: the section, the pilot kit (use it during room setup; the owner tests with a 4K webcam), one line each in the briefs
   const doc = read("docs/EXAM.md");
   assert.match(doc, /### Hall setup check \(2026-11-10\): face width in px in the live view/); assert.match(doc, /place a camera with the guide above/);

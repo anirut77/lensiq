@@ -7,6 +7,11 @@
 //   3. every page that loads the same stylesheet loads it with the same ?v= (no stale cache number on one page), and the
 //      stylesheets both branches changed carry new numbers: attendance.css >= 10, exam.css >= 4.
 //   4. exam.css has one import-file overflow rule set (no duplicate input[type=file] rules).
+//   5. (re-lock 2026-11-21, owner night order A5, STRICTER: rule 3 extended from stylesheets to scripts) every page that
+//      loads the same script (<script src> or <link rel=preload href>) loads it with the same ?v=; a script nav.js injects
+//      (lensiq-i18n.js, i18n/zh-common.js: nav.js's own ?v=) has that same ?v= where a page loads it directly; every
+//      page that loads lensiq-camera.js loads it with a ?v= (none bare), one version site-wide, v8 or later (exam-hall.html
+//      was on v5).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync, readdirSync } = require("node:fs");
@@ -50,4 +55,25 @@ test("one ?v= per stylesheet across pages; attendance.css >= 10, exam.css >= 4",
 test("exam.css: one import-file overflow rule set", () => {
   const n = (read("exam.css").match(/input\[type=["']?file["']?\]/g) || []).length;
   assert.equal(n, 1, "input[type=file] rules in exam.css: " + n);
+});
+
+test("re-lock A5 2026-11-21: one ?v= per script across pages; nav.js-injected scripts match direct loads; lensiq-camera.js one version >= 8", () => {
+  const seen = {}, pages = readdirSync(ROOT).filter(x => x.endsWith(".html"));
+  const add = (file, v, page) => ((seen[file] = seen[file] || {})[v] = (seen[file][v] || []).concat(page));
+  for (const f of pages) {
+    const html = read(f);
+    for (const m of html.matchAll(/<script\b[^>]*\ssrc="([a-z0-9][a-z0-9/._-]*\.js)\?v=(\d+)"/g)) add(m[1], m[2], f);
+    for (const m of html.matchAll(/<link\b[^>]*\shref="([a-z0-9][a-z0-9/._-]*\.js)\?v=(\d+)"/g)) add(m[1], m[2], f);
+    const nav = html.match(/<script\b[^>]*\ssrc="nav\.js\?v=(\d+)"/);
+    if (nav) for (const inj of ["lensiq-i18n.js", "i18n/zh-common.js"]) add(inj, nav[1], f + " (injected by nav.js)");
+  }
+  const short = v => Object.fromEntries(Object.entries(v).map(([n, ps]) => [n, ps.length > 4 ? ps.slice(0, 3).concat("... " + ps.length + " pages") : ps]));
+  const bad = Object.entries(seen).filter(([, v]) => Object.keys(v).length > 1).map(([k, v]) => k + " " + JSON.stringify(short(v)));
+  assert.deepEqual(bad, []);
+  const cam = pages.filter(f => /lensiq-camera\.js/.test(read(f)));
+  assert.ok(cam.length >= 20, "pages that load lensiq-camera.js: " + cam.length);
+  for (const f of cam) assert.match(read(f), /<script src="lensiq-camera\.js\?v=\d+"><\/script>/, f + ": lensiq-camera.js loaded with a ?v=");
+  assert.ok(cam.includes("exam-hall.html"), "exam-hall.html loads lensiq-camera.js");
+  assert.equal(Object.keys(seen["lensiq-camera.js"]).length, 1, "one lensiq-camera.js version");
+  assert.ok(Number(Object.keys(seen["lensiq-camera.js"])[0]) >= 8, "lensiq-camera.js v");
 });

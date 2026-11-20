@@ -48,3 +48,9 @@ a6e5a9ee22c6ba57d1d3fd550eab8089099a7b4faf444b5399054c53a93c88e5  walkfix-n.test
 a6e5a9ee22c6ba57d1d3fd550eab8089099a7b4faf444b5399054c53a93c88e5  tests/unit/walkfix-n.test.js (amendment 2)  # repo file
 # amendment 6 2026-11-17 (walkfix.test.js W-012), reason: "owner order 2026-11-17: remove สาธิต tag from fortune". A solutions.html card that links to a fortune page (category 6) carries NO status badge; every other card keeps every W-012 check unchanged. Field copy and lock: ~/LENSIQ-field/evals/fortune-no-demo/walkfix.test.js, evals-locks/fortune-no-demo.sha256.
 c8ab6ef2b2ed7f50ad91adfe85774096d4cbd236557cef8e5281348045ed0d0d  tests/unit/walkfix.test.js (amendment 6)  # repo file
+# locked 2026-11-20T20:04:33Z (tools/eval-guard.mjs lock, 2 files)
+e4e978b291c34aa437429a27ffbce0c73205ba4132585e762b7a1489cf8e993c  relock1/walkfix-cp.test.js
+c8559733d5707bc1f338bbf86a8bc47702368bd74ec791bb9f413703939e2a4d  relock1/NOTE.txt
+e4e978b291c34aa437429a27ffbce0c73205ba4132585e762b7a1489cf8e993c  tests/unit/walkfix-cp.test.js  # repo file (same commit as lock 2026-11-20T20:04:33Z; field: ~/LENSIQ-field/evals/walk-fix/relock1/walkfix-cp.test.js)
+# field only relock1/NOTE.txt (lock 2026-11-20T20:04:33Z: no repo file uses it)
+# re-lock A5 2026-11-21 (branch a5-defects, owner night order A5; field: relock1/ with NOTE.txt): STRICTER re-lock of tests/unit/walkfix-cp.test.js: rule 3 (one ?v= per stylesheet) extended to scripts as rule 5 (src + preload, nav.js-injected loads, lensiq-camera.js one version >= 8). Tests 1-4 unchanged. Locked before the fixes.

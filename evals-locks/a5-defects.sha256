@@ -1,0 +1,28 @@
+# evals-locks/a5-defects.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/a5-defects/ (owner night order A5, 2026-11-21, branch a5-defects). Locked BEFORE any product code; see NOTE.txt there. Append-only.
+# locked 2026-11-20T20:04:29Z (tools/eval-guard.mjs lock, 9 files)
+166595f8c3aa95f21713904093dc27afe39697ae23f80566ef3557c87f95d2c3  a5-defects.test.js
+7255751db9e78ae4d14e4036c28c6bbda32840fb288e2a462a6fe5c87e0164a9  exam-face.test.js
+15134194ce17b1e50fea4655a8d528bed4c5ff2e6657df327319acd3018c1b1c  fixtures/helpline-recheck/1300-ok.html
+25ac5019f2f29af255b8fd49d3c651721e2da25a61ba6a14521f97df91005ebf  fixtures/helpline-recheck/1300-spacing.html
+4a09a7c54c97b2a1eb4c50f997cf2403d314edf7e4531e4a3bc2471533f483a6  fixtures/helpline-recheck/1300-hours-changed.html
+414415d21ce6ba015ef3e115fdf38338ebb5661684fb9f34604069e9923044cf  fixtures/helpline-recheck/1669-number-changed.html
+fbec73bfdee60b2cfcaae5016c85c9b9992b5cdda76f5397e4dd7a67353356d7  fixtures/helpline-recheck/samaritans-reformatted.html
+06a4b64120abb18f0ea96c29e9237b9e3700378ac5a24fc712559c3c377ba6fc  NOTE.txt
+f1c4cc780a8b70bd33fc25af5eb4a31421024340535e031c7f24f85e0ec9da64  before-unit.log
+166595f8c3aa95f21713904093dc27afe39697ae23f80566ef3557c87f95d2c3  tests/unit/a5-defects.test.js  # repo file (same commit as lock 2026-11-20T20:04:29Z; field: ~/LENSIQ-field/evals/a5-defects/a5-defects.test.js)
+7255751db9e78ae4d14e4036c28c6bbda32840fb288e2a462a6fe5c87e0164a9  tests/unit/exam-face.test.js  # repo file (same commit as lock 2026-11-20T20:04:29Z; field: ~/LENSIQ-field/evals/a5-defects/exam-face.test.js)
+15134194ce17b1e50fea4655a8d528bed4c5ff2e6657df327319acd3018c1b1c  tests/unit/fixtures/helpline-recheck/1300-ok.html  # repo file (same commit as lock 2026-11-20T20:04:29Z; field: ~/LENSIQ-field/evals/a5-defects/fixtures/helpline-recheck/1300-ok.html)
+25ac5019f2f29af255b8fd49d3c651721e2da25a61ba6a14521f97df91005ebf  tests/unit/fixtures/helpline-recheck/1300-spacing.html  # repo file (same commit as lock 2026-11-20T20:04:29Z; field: ~/LENSIQ-field/evals/a5-defects/fixtures/helpline-recheck/1300-spacing.html)
+4a09a7c54c97b2a1eb4c50f997cf2403d314edf7e4531e4a3bc2471533f483a6  tests/unit/fixtures/helpline-recheck/1300-hours-changed.html  # repo file (same commit as lock 2026-11-20T20:04:29Z; field: ~/LENSIQ-field/evals/a5-defects/fixtures/helpline-recheck/1300-hours-changed.html)
+414415d21ce6ba015ef3e115fdf38338ebb5661684fb9f34604069e9923044cf  tests/unit/fixtures/helpline-recheck/1669-number-changed.html  # repo file (same commit as lock 2026-11-20T20:04:29Z; field: ~/LENSIQ-field/evals/a5-defects/fixtures/helpline-recheck/1669-number-changed.html)
+fbec73bfdee60b2cfcaae5016c85c9b9992b5cdda76f5397e4dd7a67353356d7  tests/unit/fixtures/helpline-recheck/samaritans-reformatted.html  # repo file (same commit as lock 2026-11-20T20:04:29Z; field: ~/LENSIQ-field/evals/a5-defects/fixtures/helpline-recheck/samaritans-reformatted.html)
+# field only NOTE.txt (lock 2026-11-20T20:04:29Z: no repo file uses it)
+# field only before-unit.log (lock 2026-11-20T20:04:29Z: no repo file uses it)
+# locked 2026-11-20T20:05:09Z (tools/eval-guard.mjs lock, 3 files)
+6d50fbbd26bfcf63631ca62a28ba946d57730582898bb10dba7a929b4188341d  relock1/a5-defects.test.js
+3c42dace336c77c1fa53f264999ccb92c2780987bd9319ba0b0d8f06aba84248  relock1/exam-face.test.js
+c1cf7d63f9b96824cd6e60c623dba75b4b127e5b96644fc7b4b4fca2727a1235  relock1/NOTE.txt
+6d50fbbd26bfcf63631ca62a28ba946d57730582898bb10dba7a929b4188341d  tests/unit/a5-defects.test.js  # repo file (same commit as lock 2026-11-20T20:05:09Z; field: ~/LENSIQ-field/evals/a5-defects/relock1/a5-defects.test.js)
+3c42dace336c77c1fa53f264999ccb92c2780987bd9319ba0b0d8f06aba84248  tests/unit/exam-face.test.js  # repo file (same commit as lock 2026-11-20T20:05:09Z; field: ~/LENSIQ-field/evals/a5-defects/relock1/exam-face.test.js)
+# field only relock1/NOTE.txt (lock 2026-11-20T20:05:09Z: no repo file uses it)
+# re-lock 1 2026-11-21 (field: relock1/ with NOTE.txt): EQUAL re-lock, formatting only (eslint no-regex-spaces, lines over 200 characters wrapped) of tests/unit/a5-defects.test.js and tests/unit/exam-face.test.js, before any product code; no assertion, threshold or input changed.
