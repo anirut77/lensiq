@@ -12,3 +12,12 @@ ca7ead2bce841327204bdeb807a31e1ce60adc0d0852ec57868eee7243138d03  tests/e2e/admi
 # past the screen), and lead-notify-health (switch LEAD_NOTIFY_HEALTH, off). NEW files, locked BEFORE any product code
 # (base ac637587 = main 0b51b0fb + seller-onepage 07db91b1). The four files are byte-identical copies of the repo files above.
 # Before-build logs: ~/LENSIQ-field/evals/seller-docs/{unit,e2e-narrow,e2e-health}-before-build.log
+# locked 2026-11-20T17:22:32Z (tools/eval-guard.mjs lock, 2 files)
+dc852047b8249eaa607722747f1ba9ae851b04c623cef0e7ddb7295122bd524d  relock1/seller-doc-lang.test.js
+38b12bdb7245ff6a16292bb177d2ae1fc69bd5675bc89518b4cc073291ae1eb0  relock1/backend-lead-notify-health.test.js
+dc852047b8249eaa607722747f1ba9ae851b04c623cef0e7ddb7295122bd524d  tests/unit/seller-doc-lang.test.js  # repo file (same commit as lock 2026-11-20T17:22:32Z; field: ~/LENSIQ-field/evals/seller-docs/relock1/seller-doc-lang.test.js)
+38b12bdb7245ff6a16292bb177d2ae1fc69bd5675bc89518b4cc073291ae1eb0  tests/unit/backend-lead-notify-health.test.js  # repo file (same commit as lock 2026-11-20T17:22:32Z; field: ~/LENSIQ-field/evals/seller-docs/relock1/backend-lead-notify-health.test.js)
+# re-lock relock1 2026-11-21 (test setup only, no assertion changed): L7 / N7 cut backend/wrangler.toml at the first
+# "[env.test]", which is in the file's header comment, so the [vars] section came out empty and the check could never pass.
+# The cut now uses the section headers at the start of a line, and a guard asserts that both sections were found. The
+# e2e files are unchanged. Disclosure: the amended files were run once on the built branch before this lock (16 / 16 pass).

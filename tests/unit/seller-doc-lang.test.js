@@ -213,8 +213,10 @@ test("L6: every document type and the 'not filled in' block follow the language 
 
 test("L7: backend/wrangler.toml keeps SELLER_DOC_LANG off for the template (customer) build and the test deployment", () => {
   const w = readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8");
-  const top = w.slice(w.indexOf("[vars]"), w.indexOf("[env.test]"));
-  const tst = w.slice(w.indexOf("[env.test.vars]"));
+  // section headers at the start of a line (relock1: the file's header comment also names "[env.test]")
+  const top = w.slice(w.indexOf("\n[vars]"), w.indexOf("\n[env.test]"));
+  const tst = w.slice(w.indexOf("\n[env.test.vars]"));
+  assert.ok(top.length > 100 && tst.length > 100, "both sections found");
   for (const [name, sec] of [["[vars]", top], ["[env.test.vars]", tst]]) {
     assert.match(sec, /^SELLER_DOC_LANG = "off"$/m, name);
     assert.doesNotMatch(sec, /^SELLER_DOC_LANG = "on"/im, name);
