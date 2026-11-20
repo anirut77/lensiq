@@ -1233,7 +1233,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var d = x.getImageData(0, 0, 32, 32).data, s = 0; for (var i = 0; i < d.length; i += 4) s += 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
     var lum = s / (d.length / 4);
     q.push({ id: "light", lum: lum, label: ["palm.qc.light", "แสงพอดี"], ok: lum > 80 && lum < 235,
-      tip: lum <= 80 ? ["palm.qc.dark", "แสงน้อย ลองเปิดไฟฉายหรือหันเข้าหาแสง"] : ["palm.qc.bright", "แสงจ้าเกินไป ลองเลี่ยงแสงสะท้อน"] });
+      tip: lum <= 80 ? ["palm.qc.dark", "แสงน้อย ลองถ่ายข้างหน้าต่างให้แสงส่องฝ่ามือจากด้านข้าง"] : ["palm.qc.bright", "แสงจ้าเกินไป ลองเลี่ยงแสงสะท้อน"] });
     return q;
   }
   var lastQ = null, prevHand = null;
