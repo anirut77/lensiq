@@ -274,6 +274,31 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   Re-lock 3 (test-setup only, after the first e2e run on the build): `fortune-cards.e2e.mjs` scrolls cards into view with
   behavior "instant" (the site's smooth scrolling made the test read a card's position mid-scroll). No assertion changed.
 
+- `seller-settings` (2026-11-18): owner order "needed for selling" (seller details page + quotation / invoice / receipt).
+  Three files locked before `backend/src/seller.js`, `backend/src/price-list.js`, migration `0021_seller.sql` and
+  `admin-seller.js` existed: `tests/unit/backend-seller.test.js` (S1–S11), `tests/integration/backend-seller-workerd.test.mjs`
+  (workerd + real D1) and `tests/e2e/admin-seller.e2e.mjs` (real browser, Chrome print-to-PDF read back with pdf.js).
+  Before the build: unit 0 pass / 11 fail, integration 0 / 1. Synthetic values only.
+- `seller-settings` re-lock A1 (2026-11-18): `tests/integration/backend-seller-workerd.test.mjs`, test setup only: the
+  installed Miniflare 5.x rejects `handleRuntimeStdio`; workerd's console is captured through `handleStructuredLogs`
+  (a canary `console.log` was confirmed captured). No assertion changed; reason in `evals-locks/seller-settings.sha256`.
+- `seller-settings` re-lock A2 (2026-11-18): `tests/e2e/admin-seller.e2e.mjs`, test setup only: pdf.js returns Thai
+  above / below marks from Chrome's PDF as U+0000, so the Thai phrase is compared without those marks on both sides. The
+  other failure of that run (320 px overflow) was fixed in the product. Reason in `evals-locks/seller-settings.sha256`.
+- `seller-settings` re-lock (3) (2026-11-18): independent review of 13cf281 NOT OK (issued documents not fully frozen; list
+  query count over the Free-plan limit; logo copied per document; minor items). New files `tests/unit/backend-seller-r1.test.js`
+  (R1–R8) and `tests/integration/backend-seller-workerd-r1.test.mjs` (log-sink canary) locked before the fixes: unit 0 / 8.
+- `seller-settings` re-lock (4) (2026-11-18): round-2 review OK on 69d36fe with low items; `tests/unit/backend-seller-r2.test.js`
+  (H1 health probe, U2 unavailable-line note, V3 VAT fixed at 7 %) locked before the fixes. Earlier files unchanged.
+- `seller-settings` rename (2026-11-18, file names only, bytes identical): `tests/unit/backend-seller-r1.test.js` is now
+  `tests/unit/backend-seller-frozen-docs.test.js` and `tests/unit/backend-seller-r2.test.js` is now
+  `tests/unit/backend-seller-health.test.js` (`tests/unit/unit-index.test.js`: no round-named unit files). The header line
+  inside each file still names the old file (content unchanged). Lock lines for the new paths: owner, OWNER-LINES-MORNING.md.
+
+### Incident 2026-11-18: seller-settings field copies overwritten in place (recorded 2026-11-19, owner decision 131 ก)
+
+On 2026-11-18 the seller team overwrote two field copies in ~/LENSIQ-field/evals/seller-settings/ in place (rule: never modify existing field files): admin-seller.e2e.mjs (locked 56641e63248214c9e9da98127e56f30d9f59d1e92200f27d19eb08e3905ed859, now d925c82e3d65c07096d572dc768df6e7f9cf1591588b12ed72488ae18aa64182) and backend-seller-workerd.test.mjs (locked 19ba8bf4082ccdb088123a85c29bc6a4dae38aa8c447c942a79e25765b5d2775, now 2e462d60ee01710e3268d3e2a9df600922ada6ffb99913cec1c00f2c17f4e1a7). The original bytes were restored from git 88f09055 into the new folder ~/LENSIQ-field/evals/seller-settings/restored-88f09055/ by the owner on 2026-11-19; the overwritten files were left as they are. Lock lines are unchanged.
+
 ### Incident 2026-11-19: fortune-paid field copy overwritten in place (recorded by the owner, decision 153 ก)
 
 late entry 2026-11-19 (owner): during re-lock (13) of tests/e2e/fortune-paid-sources.e2e.mjs the team overwrote the existing field copy (locked 4ef87073b12e2918a66490e097ebaa92055eda49885cf367ff4231c7112d2eaa, now 45ce35812bebe486ee1cd5a76bcfc00821e5ee788a0616ce9f3a596ef23455e4) and hand-appended a reason line to the field locked.sha256, and ran tests with LQ_DISK_GUARD=off below 5 GB; original bytes restored from git 3781bb58; field: ~/LENSIQ-field/evals/fortune-paid/restored-3781bb58/fortune-paid-sources.e2e.mjs. Rule since: re-locks use a new relockN/ subfolder; the disk guard is never switched off.

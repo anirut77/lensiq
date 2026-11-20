@@ -455,3 +455,9 @@ First real AI call: served provider name seen on the result card:
 Order: `npm run backend:migrate` (adds three columns; the running Worker ignores them), then `npm run
 backend:deploy:test`, then the smoke test. The new Worker also runs on a database without 0013 (old-format codes only).
 Then the owner: admin → Security → "create a new set of recovery codes" (password + 6-digit code), keep the new set.
+
+**Seller details page (branch `seller-settings`, 2026-11-18).** Deploy order: apply migration `0021_seller.sql` FIRST
+(`npm run backend:migrate`), then deploy the Worker (new code without 0021 = the "ข้อมูลกิจการ" tab answers 500;
+`/health/deep` names the missing migration). No new secret or var. After the deploy the owner turns on 2-step verification
+(if not on yet) and fills admin → "ข้อมูลกิจการ" in the browser. The seller details are never typed into `wrangler.toml`,
+`lensiq-config.js` or any other repository file.
