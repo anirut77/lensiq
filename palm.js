@@ -1761,7 +1761,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plSideBadge").innerHTML = "<b>" + esc(T("palm.badge.from", "อ่านจาก{side}", { side: sideTh(S.side) })) + "</b>" + (sk ? esc(KT("sides." + sk + ".th", rd.side.th) + " · " + KT("sides." + sk + ".short", rd.side.short) + " — " + KT("sides." + sk + ".text", rd.side.text)) : "") +
       (S.sideSrc === "detect" ? ' <small class="muted">' + esc(T("palm.fromImage", "(ตรวจจากภาพ)")) + "</small>" : "") + (S.sideMode === "both" ? ' <small class="muted">· ' + esc(T("palm.handNof2", "มือที่ {n}/2", { n: S.pairStep + 1 })) + "</small>" : "");
     $("#plLines").innerHTML = rd.lines.map(function (l) {
-      return '<div class="line-card" data-line="' + l.id + '" style="--c:' + l.color + '"><h4>' + esc(KT("lines." + l.id + ".th", l.th)) + "<span>" + esc(T("palm.lineEn." + l.id, l.cn)) + '</span></h4><p class="about">' + esc(KT("lines." + l.id + ".about", l.about)) + "</p><ul>" +
+      return '<div class="line-card" data-line="' + l.id + '" style="--c:' + l.color + '"><h4>' + esc(KT("lines." + l.id + ".th", l.th)) + "</h4>" +
+        '<p class="about">' + esc(KT("lines." + l.id + ".about", l.about)) + "</p><ul>" +
         l.items.map(function (it) { return "<li><b>" + esc(lineCatLabel(l.id, it.cat)) + "</b>" + esc(ZM(l.id + "." + it.cat, it.meaning, LINE_ORDER[l.id])) + "</li>"; }).join("") + "</ul></div>";
     }).join("") + (R.unclear || []).map(function (id) { // สถานะเท่านั้น ไม่มีคำอ่าน (owner decision 163 ก)
       return '<div class="line-card unclear" data-line="' + id + '"><h4>' + esc(KT("lines." + id + ".th", KB.lines[id].th)) + '</h4><p class="about">' + esc(unclearLabel()) + "</p></div>"; }).join("");
