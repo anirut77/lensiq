@@ -335,7 +335,8 @@
     S.busy = true; setTapMsg(T("detect.busy"));
     return new Promise(function (res) { setTimeout(res, 30); }).then(function () {
       var F0 = PV.frameFromHand(S.hand);
-      // photo minimum (owner order 2026-11-20, PROVISIONAL; 171 ก): uploads palm width / blow-out, camera stills blow-out only;
+      // photo minimum (owner order 2026-11-20, PROVISIONAL; 171 ก, 170 ก): uploads and manual stills before green palm width /
+      // blow-out (on the full-resolution photo), camera stills on green blow-out only;
       // sharpness is measured for review (S.quality.sharp) and never blocks or is shown
       var qv = photoCheck(F0);
       S.quality = qv;
@@ -385,8 +386,8 @@
     var mp = function (p) { return p ? [(p[0] - qx) * f, (p[1] - qy) * f] : p; }, h = S.hand;
     var hc = { wrist: mp(h.wrist), mcp: { index: mp(h.mcp.index), middle: mp(h.mcp.middle), ring: mp(h.mcp.ring), pinky: mp(h.mcp.pinky) }, tip: {} };
     var q = PV.photoQuality(g.getImageData(0, 0, cw, ch).data, cw, ch, hc, { pw: F0.pw });
-    var v = PV.qualityVerdict(q, { source: S.source === "upload" ? "upload" : "camera" });
-    return { ok: v.ok, fails: v.fails, source: S.source, pw: Math.round(q.pw), sharp: Math.round(q.sharp * 100) / 100, clip: Math.round(q.clip * 10000) / 10000 };
+    var v = PV.qualityVerdict(q, { source: S.source === "upload" ? "upload" : "camera", beforeGreen: S.source === "camera" && !!S.beforeGreen });
+    return { ok: v.ok, fails: v.fails, source: S.source, beforeGreen: S.source === "camera" && !!S.beforeGreen, pw: Math.round(q.pw), sharp: Math.round(q.sharp * 100) / 100, clip: Math.round(q.clip * 10000) / 10000 };
   }
   /* handedness (owner order 2026-11-20): from the thumb position (landmark geometry), never the model's label; a disagreement with the
      user's left / right choice asks the user and the reading waits for the answer; the choice is never changed silently */
@@ -413,7 +414,7 @@
   var worker = null, workerBroken = false, jobN = 0;
   function findLines(px, w, h, hand, school) {
     if (!workerBroken && typeof Worker === "function") {
-      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=2"); } catch (e) { workerBroken = true; }
+      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=3"); } catch (e) { workerBroken = true; }
     }
     if (!worker || workerBroken) return new Promise(function (res) { setTimeout(function () { res(PV.detect(px, w, h, hand, { school: school })); }, 0); });
     var id = ++jobN;

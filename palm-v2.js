@@ -92,10 +92,10 @@
     "tips.guide": ["ถ่ายข้างหน้าต่างให้แสงส่องฝ่ามือจากด้านข้าง ไม่ใช่จากด้านหน้า ปิดแฟลช (ตั้งเป็น 'ปิด' ไม่ใช่ 'อัตโนมัติ') ปล่อยมือสบาย ๆ งุ้มเล็กน้อย ไม่ต้องเหยียดตึง และให้เห็นทั้งฝ่ามือและนิ้วอยู่ในกรอบ",
       "Stand beside a window so the light falls across your palm from the side, not from the front. Turn the flash off (set it to 'off', not 'auto'). Keep your hand relaxed and slightly cupped, not stretched flat, with the whole palm and fingers inside the frame.",
       "站在窗边，让光线从侧面照到手掌，而不是从正面。关闭闪光灯（设为“关闭”，不要用“自动”）。手放松、略微弯曲，不要用力伸平，并让整个手掌和手指都在画面内。"],
-    /* the upload minimum message: owner-approved wording 2026-11-20, EXACT */
-    "quality.retake": ["ภาพนี้เล็กหรือไม่คมพอสำหรับหาเส้นลายมือ ถ่ายใหม่ให้ฝ่ามือเต็มกรอบ ในที่สว่างทั่วถึง ไม่ใช้แฟลช และถือให้นิ่ง หรือจะวาดเส้นเองบนภาพนี้ก็ได้",
-      "This photo is too small or not sharp enough to find palm lines. Retake it with your palm filling the frame, in bright even light, without flash, holding still, or draw the lines yourself on this photo.",
-      "这张照片太小或不够清晰，无法找到掌纹。请让手掌占满画面，在明亮均匀的光线下、不开闪光灯、保持稳定后重拍，也可以直接在这张照片上自己画线。"]
+    /* the retake message: owner decision 179 ก (2026-11-20), EXACT (byte for byte; do not edit) */
+    "quality.retake": ["ภาพเล็กเกินไปหรือสว่างจ้าจากแฟลช ลองถ่ายใหม่ให้ฝ่ามือเต็มกรอบและปิดแฟลช",
+      "The photo is too small or washed out by the flash. Please retake it with your palm filling the frame and the flash off.",
+      "照片太小或被闪光灯照得过亮。请让手掌占满画面并关闭闪光灯后重新拍摄。"]
   };
   function T(key, lang) { var e = UI[key]; return e ? e[LI[lang3(lang)]] : key; }
 
@@ -614,8 +614,8 @@
 
   /* ================= photo minimum (owner order 2026-11-20) =================
      PROVISIONAL first values, accepted by the owner to calibrate on the pilot (trial 2: flash S x 10^4 0.72-0.85, dim light 0.98-1.11,
-     daylight 1.17-2.17; blown-out 12 % and 67 % with flash). Uploads: palm width and blow-out; camera stills: blow-out only (the live
-     hints already gate size before the shutter). Owner decision 171 ก (2026-11-20): sharpness is NOT part of the minimum (the best real
+     daylight 1.17-2.17; blown-out 12 % and 67 % with flash). Uploads: palm width and blow-out; camera stills taken on green: blow-out only
+     (the live hints already gate size before the shutter); a manual still before green: the full minimum (170 ก). Owner decision 171 ก (2026-11-20): sharpness is NOT part of the minimum (the best real
      photo pair scored S x 10^4 0.42-0.99); photoQuality still measures it as a value to look at only; it never blocks a photo and is
      never shown to the user. */
   var UPLOAD_MIN = { PROVISIONAL: true, pw: 360, clip: 0.02 };
@@ -646,11 +646,14 @@
     var lapVar = ln ? ls2 / ln - (ls / ln) * (ls / ln) : 0;
     return { pw: (o && o.pw) || F.pw, sharp: lapVar / (mean * mean + 1e-6) * 1e4, clip: nclip / n, mean: mean };
   }
-  /** which limits a photo misses: source "upload" (default) checks pw and clip; "camera" checks clip only; sharpness never (171 ก) */
+  /** which limits a photo misses: source "upload" (default) checks pw and clip; "camera" checks clip only, except a still taken with
+      the manual button before the outline turned green (o.beforeGreen, owner decision 170 ก, 2026-11-20), which must pass the full
+      minimum (pw and clip) because the live hints never confirmed its size; sharpness never (171 ก) */
   function qualityVerdict(q, o) {
-    var M = UPLOAD_MIN, cam = o && o.source === "camera", fails = [];
-    if (!cam && !(q.pw >= M.pw)) fails.push("pw");
-    if (!(q.clip <= M.clip)) fails.push("clip");
+    var M = UPLOAD_MIN, cam = o && o.source === "camera" && !o.beforeGreen, fails = [];
+    var num = function (x) { return typeof x === "number" && x === x; }; // a missing, null or NaN measure fails closed
+    if (!cam && !(num(q.pw) && q.pw >= M.pw)) fails.push("pw");
+    if (!(num(q.clip) && q.clip <= M.clip)) fails.push("clip");
     return { ok: fails.length === 0, fails: fails };
   }
 
