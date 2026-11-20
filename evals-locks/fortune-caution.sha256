@@ -103,3 +103,19 @@ e0dfa894a51a75d7d6844ba59c0cc86a4f734565660b60a38b274dafd607c0df  tests/unit/fix
 # locked 2026-11-20T07:57:04Z (tools/eval-guard.mjs lock, 1 file)
 21fcf50492518d0dbb1efda24958ad0d8713db26134dfc0bded42b79320705aa  relock6/fortune-caution-rules.test.js
 21fcf50492518d0dbb1efda24958ad0d8713db26134dfc0bded42b79320705aa  tests/unit/fortune-caution-rules.test.js  # repo file (same commit as lock 2026-11-20T07:57:04Z; field: ~/LENSIQ-field/evals/fortune-caution/relock6/fortune-caution-rules.test.js)
+# RELOCK 7 2026-11-20 (coordinator order after the independent review round 2: FAIL, the filter was word lists fitted to probes, 11/36 on new probes;
+# 2-round cap, change the control), locked BEFORE the code: the APPROVED-WORDING REGISTER fortune-caution-wording.js itself (64 entries: 16 caution, 24
+# guidance, 16 encouragement, 8 luck; all draft; any change is a relock an independent reviewer reads line by line) and its gate tests: rules hold register
+# ids only; every shipped text is a register entry; live packs only reviewed / expert-ok entries, draft entries only in draft packs (LENSIQ_FORTUNE_CAUTIONS_DRAFTS);
+# the pack tool refuses text outside the register; every entry passes the filter; people only in fixed broad phrases, health only broad body areas, never
+# organs. Probe round 2 (36 forbidden, 12 allowed) locked: allowed and the probes of the three new general checks are gates, the rest measured. E2E: the
+# reading's own .lq-caution paragraphs stay visible with the section mounted (the reviewer's gap).
+# locked 2026-11-20T08:31:06Z (tools/eval-guard.mjs lock, 4 files)
+56206803d78f218e73859dd974cf66e0de0c94a7e9811fc223a95143a7fd47e9  relock7/fortune-caution-wording.js
+b4f54aa515d8b43ea9b73cfcb64bd737d03837a6ac842aa3a590f51a386e469f  relock7/fortune-caution-wording.test.js
+07d9cdf968d80fc931c04c437060da385823fb556ffcaeba43bde6381656a383  relock7/fortune-caution-probes2.test.js
+b6360c253b7e8d818e593b11513ff0132d7e757805f6ec03b5efa5d838651c1f  relock7/fortune-caution-reading-visible.e2e.mjs
+56206803d78f218e73859dd974cf66e0de0c94a7e9811fc223a95143a7fd47e9  fortune-caution-wording.js  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-wording.js)
+b4f54aa515d8b43ea9b73cfcb64bd737d03837a6ac842aa3a590f51a386e469f  tests/unit/fortune-caution-wording.test.js  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-wording.test.js)
+07d9cdf968d80fc931c04c437060da385823fb556ffcaeba43bde6381656a383  tests/unit/fortune-caution-probes2.test.js  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-probes2.test.js)
+b6360c253b7e8d818e593b11513ff0132d7e757805f6ec03b5efa5d838651c1f  tests/e2e/fortune-caution-reading-visible.e2e.mjs  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-reading-visible.e2e.mjs)
