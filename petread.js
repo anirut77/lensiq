@@ -368,6 +368,15 @@
     $("#petPhotoOn").addEventListener("change", drawCard);
     $("#petQrOn").addEventListener("change", drawCard);
     if (!addrOn()) { const q = $("#petQrOn"); q.checked = false; const lb = q.closest("label"); if (lb) lb.hidden = true; }
+    else {
+      // switch on: the QR option shows, so the hint is the two-option text again (a fresh element: the i18n memo keeps the first Thai text)
+      const h = $("#petPhotoHint");
+      if (h) {
+        const n = document.createElement("p"); n.className = h.className; n.id = h.id; n.setAttribute("data-i18n", "pet.photoOnHintQr");
+        n.textContent = "ทั้งสองข้อปิดไว้ก่อน รูปและ QR สร้างในเครื่อง ไม่ถูกส่งออก";
+        h.replaceWith(n); if (W.LQI18N && W.LQI18N.apply) W.LQI18N.apply(n);
+      }
+    }
     for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".pet-size"))) b.addEventListener("click", () => {
       st.size = b.dataset.size;
       for (const o of document.querySelectorAll(".pet-size")) o.setAttribute("aria-pressed", String(o === b));
