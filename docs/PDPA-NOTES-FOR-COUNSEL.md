@@ -1182,3 +1182,19 @@ Prevention: `tools/pii-scan.mjs` blocks in CI (tracked files and the added lines
 ignored, and an optional pre-commit hook is available (`git config core.hooksPath tools/git-hooks`).
 Question: (a) when the only data exposed is the owner's own (the owner is the controller), is any notification under PDPA s. 37(4)
 needed, or is an internal record enough?
+
+## Incident 174: images derived from the owner's own palm photos opened in an agent session (2026-11-20)
+
+Draft for legal review, not legal advice. Legal packet item L75 (`docs/LEGAL-PACKET.md` section 17.1).
+
+What happened: during palm line-finder development, an agent session opened about 26 images derived from the owner's own
+palm photos (downscaled thumbnails, contrast-enhanced crops, overlays). Opening an image in a session sends it to the AI
+model provider. That breached the owner's rule that nothing leaves the machine.
+Scope: no original photo was copied, uploaded, committed or modified. No other person's photo was involved. The derived
+images are kept on disk by owner decision; the path list is held outside the repo, in the owner's review folder.
+New standing rule (owner decision 174 a): no photo of a pilot participant, and nothing derived from one, is ever opened
+in a session or sent to any model or service. Numbers only. This applies to the owner's photos too.
+Prevention going forward: reference-line labelling will use a local tap-to-trace tool, operated by two labellers who cannot
+see each other's work.
+Questions: (a) given that the photos were the owner's own, does this need any record or notice under PDPA, or is an
+internal record enough? (b) does the pilot consent form need a clause stating this rule?
