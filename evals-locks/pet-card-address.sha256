@@ -10,3 +10,10 @@
 13276192d963c00d610426f235246ad2d4ab92cfc13cb0a83d97b0e0d0ad219a  pet-card-address.e2e.mjs
 51dba5b1768f93f005cfa8718f812d5820f4ec368c90b278090f666bba580cb6  tests/unit/pet-card-address.test.js  # repo file (same commit as lock 2026-11-20T06:46:56Z; field: ~/LENSIQ-field/evals/pet-card-address/pet-card-address.test.js)
 13276192d963c00d610426f235246ad2d4ab92cfc13cb0a83d97b0e0d0ad219a  tests/e2e/pet-card-address.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:46:56Z; field: ~/LENSIQ-field/evals/pet-card-address/pet-card-address.e2e.mjs)
+# LOCK 2 2026-11-20 relock-1 (owner decision 184 ก + coordinator order: the card brand comes from one setting
+# window.LENSIQ_CARD_BRAND, default "LENSIQ"): new file tests/unit/pet-card-brand.test.js (N1-N4), same commit as the re-locks
+# relock-pet-3 (fortune-pet) and relock-4 (pet-zodiac), BEFORE the product change. Earlier files unchanged. Disclosure: the
+# file was run once while written (0/4, no product code changed).
+# locked 2026-11-20T08:49:58Z (tools/eval-guard.mjs lock, 1 file)
+6ce9856dca1d8cc0ddd1cef41aaa1446271096cc7df218be03053cc9404451d8  relock-1/pet-card-brand.test.js
+6ce9856dca1d8cc0ddd1cef41aaa1446271096cc7df218be03053cc9404451d8  tests/unit/pet-card-brand.test.js  # repo file (same commit as lock 2026-11-20T08:49:58Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-1/pet-card-brand.test.js)

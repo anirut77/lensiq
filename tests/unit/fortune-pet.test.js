@@ -10,7 +10,7 @@
 //      page, in the result and on the card, TH / EN / ZH.
 //   B  the single help button rule: one "อยากมีคนรับฟัง" 1323 button before <main>, no other help number on the page.
 //   C  the share card: photo off by default; card text passes the same lint; carries the honest line, the disclaimer and
-//      the link back; the card section is hidden in the crisis state (data-lq-remedy); no upload code in the pet modules.
+//      the link back ONLY when LENSIQ_CARD_SHOW_ADDRESS is true (else the brand line and no address); the card section is hidden in the crisis state (data-lq-remedy); no upload code in the pet modules.
 //   D  detections: YOLOX classes person 0 / cat 15 / dog 16 -> pet box, species and the persons (to blur, never to read).
 //   K  owner-pet compatibility goes through the LQCompat.pair(personA, personB, {mode: "owner-pet"}) interface.
 //   S  the detector is loaded only on tap (no ONNX Runtime / model in the page's script tags).
@@ -35,6 +35,13 @@ const DISC = {
   zh: "基于命理学原则，属个人信仰，请自行判断。",
 };
 const LINK = "https://anirut77.github.io/lensiq/petread.html";
+// RE-LOCK 2026-11-20 (owner decision 184 ก; ledger evals-locks/fortune-pet.sha256 "relock-pet-3"): the site address is on the
+// card only when window.LENSIQ_CARD_SHOW_ADDRESS is true (default false, until the site is live on its own domain). Every
+// earlier address assertion is kept for the switch-on case and a new one is added for the default (no address anywhere in
+// the card model or the card text, the brand line present): equal or stricter. Nothing else in this file changed.
+const BRAND_LINE = { th: "จาก LENSIQ", en: "From LENSIQ", zh: "来自 LENSIQ" };
+const HOST = LINK.replace(/^https:\/\//, "");
+const withAddress = fn => { globalThis.LENSIQ_CARD_SHOW_ADDRESS = true; try { return fn(); } finally { delete globalThis.LENSIQ_CARD_SHOW_ADDRESS; } };
 
 /* ---- the lint (independent of the module's own) ---- */
 const BAN = {
@@ -166,7 +173,10 @@ test("L1: honest line and the final disclaimer: exact wording in the result, on 
     assert.equal(r.honest, HONEST[lang]); assert.equal(r.disclaimer, DISC[lang]);
     const t = P.cardText(P.cardModel(r, { photo: false }));
     assert.ok(t.includes(HONEST[lang]), lang + " card honest line"); assert.ok(t.includes(DISC[lang]), lang + " card disclaimer");
-    assert.ok(t.includes(LINK), lang + " card link back");
+    assert.ok(!t.some(s => s.includes(HOST) || /github|https?:/i.test(s)), lang + " no address on the card while the switch is off");
+    assert.ok(t.includes(BRAND_LINE[lang]), lang + " card brand line");
+    const tOn = withAddress(() => P.cardText(P.cardModel(r, { photo: false })));
+    assert.ok(tOn.some(s => s.includes(HOST)), lang + " card link back (switch on)");
   }
   const h = read("petread.html");
   assert.ok(h.includes('data-i18n="pet.honest"') && h.includes(HONEST.th), "petread.html honest line (TH)");
@@ -203,7 +213,8 @@ test("C1: share card: photo off by default, a link back, honest line and disclai
     const m0 = P.cardModel(r);
     assert.equal(m0.photo, false, "default card model has no photo");
     assert.equal(P.cardModel(r, { photo: true }).photo, true);
-    assert.equal(m0.link, LINK);
+    assert.ok(!m0.link && !Object.values(m0).some(v => typeof v === "string" && (v.includes(HOST) || /github|https?:/i.test(v))), lang + " no address in the default card model");
+    assert.equal(withAddress(() => P.cardModel(r)).link, LINK);
     const t = P.cardText(m0);
     assert.ok(t.length >= 5 && t.every(s => typeof s === "string" && s.length), "card text lines");
     assert.deepEqual(t.filter(s => s !== LINK).flatMap(s => lintText(s, lang)), [], lang + " card lint");
