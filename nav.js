@@ -122,9 +122,6 @@
     return;
   }
 
-  // ---------- crisis-v3-protect (rule b: no prices, purchase buttons, plans or seller links while the crisis flag is set): menu
-  // entries marked data-lq-crisis-sales (site menu pricing / payment, account-menu pricing) are hidden while html[data-lq-crisis]
-  // or html[data-lq-calm] is set, and come back when the flag clears (pure CSS: no listener to miss) ----------
   (function () {
     var st = document.createElement("style");
     st.id = "lq-crisis-sales-style";
@@ -185,13 +182,11 @@
       html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span class="nav-lbl-s" data-i18n="nav.groups.' + g.id + '">' + esc(g.short || g.label) + '</span><span class="nav-lbl-f" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
         '<div class="nav-sub" id="navsub-' + g.id + '"><div class="mega">' +
           '<div class="mega-intro"><p class="mega-k" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</p><p class="mega-d" data-i18n="nav.groupd.' + g.id + '">' + esc(g.intro) + '</p>' +
-          // owner order 2026-11-18: the fortune panel's link names no status or accuracy (fortune cards carry neither)
           (g.cat ? '<a class="mega-all" href="cat-' + g.cat + '.html">' + (g.cat === "fortune" ? '<span data-i18n="nav.viewcat.fortune">ดูหน้าหมวดนี้</span>'
             : '<span data-i18n="nav.viewcat">ดูหน้าหมวดนี้: สถานะและความแม่นยำ</span>') + arrow + '</a></div>'
             : '<a class="mega-all" href="cameras.html"><span data-i18n="nav.viewall">ดูระบบทั้งหมด</span>' + arrow + '</a></div>') +
           '<ul class="mega-links' + (g.items.length > 6 ? " cols-3" : g.items.length > 3 ? " cols-2" : "") + '">';
       g.items.forEach(function (i) {
-        // crisisSales (crisis-v3-protect, rule b): a price / payment entry is hidden while the crisis or calm state is set
         var cs = ' data-lq-crisis-sales=""';
         html += '<li' + (i.crisisSales === "item" ? cs : "") + '><a href="' + (ENTRY[i.href] || i.href) + '"'
           + (isCur(i.href) ? ' aria-current="page"' : "") + '><b data-i18n="' + key(i.href) + '.title">' + esc(i.title) + '</b>'
@@ -736,7 +731,6 @@
   }
   function reportHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
-    // not the hub (fortune.html): it shows no reading to report (speed budget, 2026-11-17)
     if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
     var sc = document.createElement("script");
@@ -758,6 +752,15 @@
     });
   }
   function selFull() {
+    var EN = "CE|BE|AD|BC|KB|MB|GB|TB|px|ms|fps|FPS|s|sec|secs|seconds?|mins?|minutes?|h|hrs?|hours?|days?|weeks?|months?|years?|yrs?|" +
+      "people|persons?|seats?|cameras?|pages?|photos?|images?|points?|times|kg|g|cm|mm|km|m|kcal|cal|ml|L|x",
+      TH = "นาที|วินาที|ชั่วโมง|วัน|" +
+      "สัปดาห์|เดือน|ปี|คน|ครั้ง|ข้อ|" +
+      "หน้า|ภาพ|รูป|กล้อง|จุด|เท่า",
+      ZH = "分钟|分|秒|小时|天|周|个月|月|年|岁|人|次|个|张|页|倍",
+      U = new RegExp("(\\d)[ ]+(?=(?:" + EN + ")(?![A-Za-z])|(?:%|\u00b0|" + TH + "|" + ZH + "))", "g"),
+      E = /(\u0e1e\.\u0e28\.|\u0e04\.\u0e28\.)[ ]+(?=\d)/g,
+      glue = function (/** @type {string} */ v) { return v.replace(U, "$1\u00a0").replace(E, "$1\u00a0"); };
     var x, r = 0, D = document, n = parseFloat, fit = function () {
       r = 0; x = x || D.createElement("canvas").getContext("2d");
       [].forEach.call(D.querySelectorAll("select"), function (/** @type {any} */ s) {
@@ -767,7 +770,7 @@
           w = Math.ceil(x.measureText(t).width + n(y.paddingLeft) + n(y.paddingRight) + n(y.borderLeftWidth) + n(y.borderRightWidth) + 24) > s.getBoundingClientRect().width + .5;
         }
         if (!c || c.className !== "lq-sel-full") { if (!w) return; c = D.createElement("span"); c.className = "lq-sel-full"; c.ariaHidden = "true"; s.after(c); }
-        c.hidden = !w; s.parentElement.classList.toggle("lq-sel-wrap", w); if (w && c.textContent !== t) c.textContent = t;
+        c.hidden = !w; s.parentElement.classList.toggle("lq-sel-wrap", w); if (w) { var g = glue(t); if (c.textContent !== g) c.textContent = g; }
       });
     }, go = function () { r = r || requestAnimationFrame(fit); setTimeout(fit, 300); };
     ["resize", "load", "lq-lang"].forEach(function (e) { addEventListener(e, go); });

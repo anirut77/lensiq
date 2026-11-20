@@ -1,0 +1,87 @@
+# locked 2026-11-18T16:16:40Z (tools/eval-guard.mjs lock, 18 files)
+e332e3d8fb9dee22afaa2e4883d066315a46b9e855b50ae7a55d16343be0f704  README.md
+fdd4fd4d5641da0115728a1d842331ae19aeb74e2fc631b4a83b50cd4613a16f  attendance.md
+690c020655f42b177db8b0f856d775a42307887d682c5c47ed9aae444ac98ee3  compat.md
+67b20fd8dc0ff3ee2353cb2ba11beaaa4476ee25161dd84ab797718c8be8d5d9  crowd.md
+98065e682b1448ac3142e12afb5cf7ce33a990ab67c6384b85ab03bff4e25459  exam-hall.md
+74aaaca1c447f56d930ea877a16106f33045144f1e8ebc24abadd603319bd366  exam-lab.md
+21d2c956fa36119c5b28fd45ca7f6cecfc1f8bcef6a3258acf1158a6914554c5  faceread.md
+692f8d3d4de2f2a45ef227afa1baa1f2bbccde807cecd771eba039fb1686b2a5  fortune-pages.md
+c86fe570520dcaa03b0545966e87a648b69edea241e19930d64fff33a88e2206  gate.md
+446d368c191f81aa9b2f06119e0e3eefc88f40457f9604a082ca54be37a482d0  look-salon.md
+d98a18d14d3e9fc61de5a79d9d28e0f139e4c2f97a4bf6df86943ab81cc7ffcf  nutrition.md
+b899001c9e8c742168d2a51d8bc59a9779968709b05ad5d11132ce68b7ee7be0  omr.md
+864135dbf8509c4d2a6504554e6bbcd0200067d07d739f142171fe94ae130ed1  personal-colour.md
+aafc3deb0f3305cd80a6f967fa5602a8d1467e6fad4904947279d3e82080eb70  petread.md
+f349c167e45d4bc2bb1c4e89314a200d7c20f967a12fbe3c12ffe27d3ebf62b4  planner.md
+625e4ea3bf5c8051b5b323a37aedbf0ddedb8ffd23fcd97336d23692d2067d4c  product-check.md
+e8f33d244cd513655c2027f46c7cbd1730de8d0113cf852862dc81b66306d521  studio-photobooth.md
+153655ff264125c0b4716a01553f85f7c384f7a8db2fd7124378992f1ba0bce5  tryon.md
+e332e3d8fb9dee22afaa2e4883d066315a46b9e855b50ae7a55d16343be0f704  docs/acceptance/README.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/README.md)
+fdd4fd4d5641da0115728a1d842331ae19aeb74e2fc631b4a83b50cd4613a16f  docs/acceptance/attendance.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/attendance.md)
+690c020655f42b177db8b0f856d775a42307887d682c5c47ed9aae444ac98ee3  docs/acceptance/compat.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/compat.md)
+67b20fd8dc0ff3ee2353cb2ba11beaaa4476ee25161dd84ab797718c8be8d5d9  docs/acceptance/crowd.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/crowd.md)
+98065e682b1448ac3142e12afb5cf7ce33a990ab67c6384b85ab03bff4e25459  docs/acceptance/exam-hall.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/exam-hall.md)
+74aaaca1c447f56d930ea877a16106f33045144f1e8ebc24abadd603319bd366  docs/acceptance/exam-lab.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/exam-lab.md)
+21d2c956fa36119c5b28fd45ca7f6cecfc1f8bcef6a3258acf1158a6914554c5  docs/acceptance/faceread.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/faceread.md)
+692f8d3d4de2f2a45ef227afa1baa1f2bbccde807cecd771eba039fb1686b2a5  docs/acceptance/fortune-pages.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/fortune-pages.md)
+c86fe570520dcaa03b0545966e87a648b69edea241e19930d64fff33a88e2206  docs/acceptance/gate.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/gate.md)
+446d368c191f81aa9b2f06119e0e3eefc88f40457f9604a082ca54be37a482d0  docs/acceptance/look-salon.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/look-salon.md)
+d98a18d14d3e9fc61de5a79d9d28e0f139e4c2f97a4bf6df86943ab81cc7ffcf  docs/acceptance/nutrition.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/nutrition.md)
+b899001c9e8c742168d2a51d8bc59a9779968709b05ad5d11132ce68b7ee7be0  docs/acceptance/omr.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/omr.md)
+864135dbf8509c4d2a6504554e6bbcd0200067d07d739f142171fe94ae130ed1  docs/acceptance/personal-colour.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/personal-colour.md)
+aafc3deb0f3305cd80a6f967fa5602a8d1467e6fad4904947279d3e82080eb70  docs/acceptance/petread.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/petread.md)
+f349c167e45d4bc2bb1c4e89314a200d7c20f967a12fbe3c12ffe27d3ebf62b4  docs/acceptance/planner.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/planner.md)
+625e4ea3bf5c8051b5b323a37aedbf0ddedb8ffd23fcd97336d23692d2067d4c  docs/acceptance/product-check.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/product-check.md)
+e8f33d244cd513655c2027f46c7cbd1730de8d0113cf852862dc81b66306d521  docs/acceptance/studio-photobooth.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/studio-photobooth.md)
+153655ff264125c0b4716a01553f85f7c384f7a8db2fd7124378992f1ba0bce5  docs/acceptance/tryon.md  # repo file (same commit as lock 2026-11-18T16:16:40Z; field: ~/LENSIQ-field/evals/acceptance/tryon.md)
+# locked 2026-11-19T02:35:57Z (tools/eval-guard.mjs lock, 8 files)
+55500c871320fffc79fefcaee766dadfd8ce123ee72376db6a54cf3ca5460467  relock-1/README.md
+45fb69306d61d67497b0cb015e5c1669535160421e67b20fd61ea54c674ba08b  relock-1/attendance.md
+a5f62589b96aab4ae1c18c04e86d41c0c5082163ae121a57167def93adcbbeab  relock-1/crowd.md
+af956acf1907afb5dd0a5e90835826cc3792ef2a952fd0b55354af2aed9f341d  relock-1/exam-hall.md
+1783ea743bcbd925e88b127ba9d0ddfb6677ae63467d642f17c9f810d708b8a9  relock-1/exam-lab.md
+1d1700f6ae434f0c2a5d64c5b16de6344f7ab313f7cc021664c914cde741e9b2  relock-1/gate.md
+d56c8e1ef69d43854f69b1817094bda42606c3fcc1620b30c6bd55c06c30b2ef  relock-1/look-salon.md
+39b896edb01dcaf6457b9e686afa1b77475d256dfc033b2d1a3e9252bf426c25  relock-1/personal-colour.md
+55500c871320fffc79fefcaee766dadfd8ce123ee72376db6a54cf3ca5460467  docs/acceptance/README.md  # repo file (same commit as lock 2026-11-19T02:35:57Z; field: ~/LENSIQ-field/evals/acceptance/relock-1/README.md)
+45fb69306d61d67497b0cb015e5c1669535160421e67b20fd61ea54c674ba08b  docs/acceptance/attendance.md  # repo file (same commit as lock 2026-11-19T02:35:57Z; field: ~/LENSIQ-field/evals/acceptance/relock-1/attendance.md)
+a5f62589b96aab4ae1c18c04e86d41c0c5082163ae121a57167def93adcbbeab  docs/acceptance/crowd.md  # repo file (same commit as lock 2026-11-19T02:35:57Z; field: ~/LENSIQ-field/evals/acceptance/relock-1/crowd.md)
+af956acf1907afb5dd0a5e90835826cc3792ef2a952fd0b55354af2aed9f341d  docs/acceptance/exam-hall.md  # repo file (same commit as lock 2026-11-19T02:35:57Z; field: ~/LENSIQ-field/evals/acceptance/relock-1/exam-hall.md)
+1783ea743bcbd925e88b127ba9d0ddfb6677ae63467d642f17c9f810d708b8a9  docs/acceptance/exam-lab.md  # repo file (same commit as lock 2026-11-19T02:35:57Z; field: ~/LENSIQ-field/evals/acceptance/relock-1/exam-lab.md)
+1d1700f6ae434f0c2a5d64c5b16de6344f7ab313f7cc021664c914cde741e9b2  docs/acceptance/gate.md  # repo file (same commit as lock 2026-11-19T02:35:57Z; field: ~/LENSIQ-field/evals/acceptance/relock-1/gate.md)
+d56c8e1ef69d43854f69b1817094bda42606c3fcc1620b30c6bd55c06c30b2ef  docs/acceptance/look-salon.md  # repo file (same commit as lock 2026-11-19T02:35:57Z; field: ~/LENSIQ-field/evals/acceptance/relock-1/look-salon.md)
+39b896edb01dcaf6457b9e686afa1b77475d256dfc033b2d1a3e9252bf426c25  docs/acceptance/personal-colour.md  # repo file (same commit as lock 2026-11-19T02:35:57Z; field: ~/LENSIQ-field/evals/acceptance/relock-1/personal-colour.md)
+# RE-LOCK 1 (2026-11-19, before any measurement): equal or stricter; restores numbers dropped from sources, per reviewer TARGETS-CONFIRMATION-TH.md (owner decision 128). Copies in relock-1/. No target lowered, no new stricter target. Changed: README (P5 real-phone times), attendance (A3 face pilot), crowd (A5 uptime), exam-hall (A3, A4), exam-lab (A5), gate (A2), look-salon (A1), personal-colour (A1 L* SD, S result time).
+# locked 2026-11-19T02:39:03Z (tools/eval-guard.mjs lock, 11 files)
+bfa9ae95c5137f43ff5a328b3869e3ba0d8ae2ec74c8e027f73bd3f6a2e26036  relock-2/compat.md
+fbf2925bb9ffec1341d8099f7791a397d92bf576c49c25bbfd369b894a97c45a  relock-2/crowd.md
+2af156041bc3912700d165b549c3162e567da7f1e53fa2d8fb37ace9e7cb5ca6  relock-2/exam-hall.md
+a86adb5e3f01e999696776ff72b6691d9dbcb85428c59a7ec4292b7cfd0a5a18  relock-2/faceread.md
+d72960159127b1ecfc0df176fa5f07c8645d377a9a368f6d7ab1474286f54323  relock-2/fortune-pages.md
+b42d349330a62f4858045acd85f506a3eb0ae4bf5f4b8ffadd97e6b4d7739e51  relock-2/look-salon.md
+89b3236991e191078998fb39fece61f7606377c8601315885b29c7d81b45617c  relock-2/nutrition.md
+4addd8d98958a74cf83fa0bdbf704bf11655de75ee656891cad1c8d56b07b6c7  relock-2/personal-colour.md
+5acbc0c739826c51296a01de8b0dc2465c9f8a011ed4fe17c7fa75be97ee884f  relock-2/product-check.md
+5c882fa0c485bc0cbe6f61707eb0a9e6fe66ce6d96225405dea3c7155f1990c7  relock-2/studio-photobooth.md
+e202c247e6dacf4c50c21a6970a6f82e28827dda2ce9b4ec2815c23bbcab4bc1  relock-2/tryon.md
+bfa9ae95c5137f43ff5a328b3869e3ba0d8ae2ec74c8e027f73bd3f6a2e26036  docs/acceptance/compat.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/compat.md)
+fbf2925bb9ffec1341d8099f7791a397d92bf576c49c25bbfd369b894a97c45a  docs/acceptance/crowd.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/crowd.md)
+2af156041bc3912700d165b549c3162e567da7f1e53fa2d8fb37ace9e7cb5ca6  docs/acceptance/exam-hall.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/exam-hall.md)
+a86adb5e3f01e999696776ff72b6691d9dbcb85428c59a7ec4292b7cfd0a5a18  docs/acceptance/faceread.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/faceread.md)
+d72960159127b1ecfc0df176fa5f07c8645d377a9a368f6d7ab1474286f54323  docs/acceptance/fortune-pages.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/fortune-pages.md)
+b42d349330a62f4858045acd85f506a3eb0ae4bf5f4b8ffadd97e6b4d7739e51  docs/acceptance/look-salon.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/look-salon.md)
+89b3236991e191078998fb39fece61f7606377c8601315885b29c7d81b45617c  docs/acceptance/nutrition.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/nutrition.md)
+4addd8d98958a74cf83fa0bdbf704bf11655de75ee656891cad1c8d56b07b6c7  docs/acceptance/personal-colour.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/personal-colour.md)
+5acbc0c739826c51296a01de8b0dc2465c9f8a011ed4fe17c7fa75be97ee884f  docs/acceptance/product-check.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/product-check.md)
+5c882fa0c485bc0cbe6f61707eb0a9e6fe66ce6d96225405dea3c7155f1990c7  docs/acceptance/studio-photobooth.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/studio-photobooth.md)
+e202c247e6dacf4c50c21a6970a6f82e28827dda2ce9b4ec2815c23bbcab4bc1  docs/acceptance/tryon.md  # repo file (same commit as lock 2026-11-19T02:39:03Z; field: ~/LENSIQ-field/evals/acceptance/relock-2/tryon.md)
+# RE-LOCK 2 (2026-11-19, before any measurement): equal or stricter; restores numbers dropped from cited sources (second scan), per reviewer TARGETS-CONFIRMATION-TH.md and coordinator order. Copies in relock-2/. No target lowered, no new stricter target, OMR untouched. Changed: personal-colour (CIEDE2000), compat, crowd, exam-hall, faceread, fortune-pages, look-salon, nutrition, product-check, studio-photobooth, tryon.
+# locked 2026-11-19T04:10:31Z (tools/eval-guard.mjs lock, 1 file)
+9294c0046b3bb2065572275939b8903d26fe212e8ca697da3573512713f6fa9b  relock-3/personal-colour.md
+9294c0046b3bb2065572275939b8903d26fe212e8ca697da3573512713f6fa9b  docs/acceptance/personal-colour.md  # repo file (same commit as lock 2026-11-19T04:10:31Z; field: ~/LENSIQ-field/evals/acceptance/relock-3/personal-colour.md)
+# RE-LOCK 3 (2026-11-19, before any measurement, owner decision 140 ก): equal or stricter: restores a dropped §4.2 target (personal-colour A5: app–analyst agreement within 10 points of analyst–analyst, set B, ≥ 40 people). Copy in relock-3/. No weight changed.
+# locked 2026-11-19T04:29:21Z (tools/eval-guard.mjs lock, 1 file)
+8d8ab1694cd2e19c6705f35e548f2a8324f0fb3d67bcb3437114b9ce2024c57f  relock-4/personal-colour.md
+8d8ab1694cd2e19c6705f35e548f2a8324f0fb3d67bcb3437114b9ce2024c57f  docs/acceptance/personal-colour.md  # repo file (same commit as lock 2026-11-19T04:29:21Z; field: ~/LENSIQ-field/evals/acceptance/relock-4/personal-colour.md)
+# RE-LOCK 4 (2026-11-19, owner decision 148 ก, last round): equal: wording aligned to source §4.2:284; no number, weight or target changed (personal-colour A5). Copy in relock-4/.
