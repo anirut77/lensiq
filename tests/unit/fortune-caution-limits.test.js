@@ -1,4 +1,7 @@
 "use strict";
+// RELOCK 4 2026-11-20 (before measuring relock 3 on the fixed product): SCAN3.person matched "ชื่อ" inside "ความเชื่อ" (belief; the owner's own
+// faith-inclusive wording), now (?<!เ)ชื่อ — a named person ("ที่ชื่อสมชาย", "ชื่อวิชัย") is still caught; count floors follow the rules relock 3
+// removed (rule texts >= 170, luck lines >= 24). No scan, probe or assertion is otherwise changed.
 // tests/unit/fortune-caution-limits.test.js — FIXED TEST SET fortune-caution (owner item 177, 2026-11-20). Locked BEFORE any
 // product code (evals-locks/fortune-caution.sha256, ~/LENSIQ-field/evals/fortune-caution/). Design ~/Desktop/LENSIQ-review/
 // fortune-cautions/DESIGN-TH.md 4(d)-(f), 5.1: T6 hard-limit scan of every text the section can show, T7 forbidden probes
@@ -72,7 +75,7 @@ const SCAN3 = {
   accType: /มอเตอร์ไซค์|รถล้ม|จมน้ำ|ไฟไหม้|เพลิงไหม้|เลือดตกยางออก|ถูกแทง|\b(?:drown\w*|bloodshed|blood|fire|motorbike|motorcycle|stabb\w*)\b|溺水|火灾|血光|淹|摔车/i,
   disease: /โรค|หัวใจวาย|เบาหวาน|ความดันสูง|อัมพาต|\b(?:heart (?:disease|attack)|diabetes|stroke|hypertension|asthma|cancer|covid)\b|心脏病|糖尿病|高血压|中风|哮喘|心梗/i,
   remedy: /เพื่อรักษา|รักษาอาการ|รักษาโรค|แก้โรค|(?:ดื่ม|กิน|ทาน)\S{0,16}ทุกวัน\S{0,6}(?:รักษา|หาย)|\b(?:to (?:treat|cure|heal)|remedy for|treatment for)\b|治疗|治病|疗法|偏方/i,
-  person: /ชื่อ\s?[ก-ฮ]|ที่ชื่อ|คนที่(?:ขับ|ใส่|สวม|มีรถ)|(?:รถ|เสื้อ|ผม)สี[ก-๙]|\b(?:with the \w+ (?:car|shirt|hair)|named|called [A-Z])\b|姓\S{1,2}的|叫\S{1,3}的人|开\S{0,3}车的|穿\S{0,4}的人/,
+  person: /(?<!เ)ชื่อ\s?[ก-ฮ]|ที่ชื่อ|คนที่(?:ขับ|ใส่|สวม|มีรถ)|(?:รถ|เสื้อ|ผม)สี[ก-๙]|\b(?:with the \w+ (?:car|shirt|hair)|named|called [A-Z])\b|姓\S{1,2}的|叫\S{1,3}的人|开\S{0,3}车的|穿\S{0,4}的人/,
   group: rx("", /คน(?:อีสาน|เหนือ|ใต้|ภาค|กรุง|ญี่ปุ่น|อินเดีย|เกาหลี|เวียดนาม|ญวน|มอญ)|คนเกิดวัน/,
     /ชาว(?:อีสาน|เขา|ญี่ปุ่น|อินเดีย|จีน)/,
     /\b(?:Indians?|Japanese|Koreans?|Vietnamese|Africans?|Europeans?|Americans?|Westerners?|Asians?|northerners|southerners|people born on)\b/,
@@ -126,7 +129,7 @@ for (const r of FIX.readings) for (const lang of LANGS) {
 }
 
 test("T6 hard limits: no text the section can show touches death, terminal illness, medication, assets, ending a relationship, fear-selling, heavy merit", () => {
-  assert.ok(RULE_TEXTS.length >= 240, "rule texts scanned: " + RULE_TEXTS.length);
+  assert.ok(RULE_TEXTS.length >= 170, "rule texts scanned: " + RULE_TEXTS.length);
   const hits = [];
   for (const x of ALL) {
     if (FS.hardLimit(x.text)) hits.push(x.where + " " + x.lang + " hardLimit " + FS.hardLimit(x.text));
@@ -172,7 +175,7 @@ test("T13 no price, sales or shop words and no link anywhere in the section", ()
 
 test("T19 luck lines always say 'may' and never promise; encouragement never promises", () => {
   const luck = RULE_TEXTS.filter(x => x.kind === "luck");
-  assert.ok(luck.length >= 30, "luck lines: " + luck.length);
+  assert.ok(luck.length >= 24, "luck lines: " + luck.length);
   for (const x of luck) { assert.match(x.text, MAY, x.where + " " + x.lang + ": may"); assert.doesNotMatch(x.text, PROMISE, x.where + " " + x.lang + ": promise"); }
   for (const x of RULE_TEXTS.filter(t => t.kind === "cheer")) assert.doesNotMatch(x.text, PROMISE, x.where + " " + x.lang + ": promise");
   for (const x of RENDERED) for (const p of x.m.parts) for (const c of p.cheer) if (c.luck) assert.match(c.text, MAY, x.r.name + " " + x.lang);

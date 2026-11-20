@@ -72,3 +72,9 @@ d1a0f282e5b381cacacd4b6e5ca09a606e9696999800dd1d71d31d9908590adf  tests/unit/fix
 55ea14322e943a524bf115906b96d316e6fc856d719e9b00fc6b11fc9092f32e  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution.e2e.mjs)
 d98442907069e5918b3b8301592af9bed7bf54f99ca242b9ba37fba847646f9e  tests/e2e/fortune-caution-wrap.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-wrap.e2e.mjs)
 3735ff1f967324bcff03f084c91c51667b70c8d50ac12be164962147c737d252  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-horoscope.e2e.mjs)
+# RELOCK 4 2026-11-20, before relock 3 is measured on the fixed product: tests/unit/fortune-caution-limits.test.js only. SCAN3.person (added in relock 3) matched
+# "ชื่อ" inside "ความเชื่อ" (belief, the owner's faith-inclusive wording "ตามความเชื่อหรือศาสนาของท่าน"); now (?<!เ)ชื่อ, named people still caught. Count floors
+# follow the rules relock 3 removed (rule texts 240 -> 170, luck lines 30 -> 24; now 183 and 24). Nothing else changed.
+# locked 2026-11-20T07:06:31Z (tools/eval-guard.mjs lock, 1 file)
+34167270edc8e8263a9579ed6465e1cf20a401c428225eabbac19dcf63f058cc  relock4/fortune-caution-limits.test.js
+34167270edc8e8263a9579ed6465e1cf20a401c428225eabbac19dcf63f058cc  tests/unit/fortune-caution-limits.test.js  # repo file (same commit as lock 2026-11-20T07:06:31Z; field: ~/LENSIQ-field/evals/fortune-caution/relock4/fortune-caution-limits.test.js)
