@@ -60,7 +60,8 @@ yet: the Exam lab team measures after merge. **Measured 2026-11-20, see Result b
 ## Result (first measurement, 2026-11-20, branch examlab-s2 on main 299370b8)
 
 Run: `node tools/examlab-phone-eval.mjs --run` (eval-guard OK, phase examlab-phone, lock commit 6583d967), headless Chrome,
-TF.js wasm backend, Apple M1. Result file (image ids and scores only, no images):
+TF.js wasm backend, Apple M1 (re-run on the branch after the S2 change, TF.js loaded on demand: identical, 24 / 81;
+`results/examlab-phone-2026-11-20-after-s2.json`). Result file (image ids and scores only, no images):
 `~/LENSIQ-field/evals/examlab-phone/results/examlab-phone-2026-11-20.json`. Source: **public dataset**; public stills, not
 lab webcam; the field pilot confirms.
 
