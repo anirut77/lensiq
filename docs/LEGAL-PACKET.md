@@ -910,9 +910,7 @@ be used in a commercial product sold in Thailand, and does it matter whether the
   - การทดสอบที่ใช้ตัวสร้างยังรันต่อไประหว่างรอคำตอบของทนาย (คำตัดสินเจ้าของ 175 ก)
   - **ไม่สร้างโมเดลที่ฝึกด้วยข้อมูลสังเคราะห์** จนกว่าเรื่องนี้จะชัดเจน
 - **ตำแหน่งไฟล์ (หมายเหตุสถานะ branch, ตรวจ 2026-11-20 ด้วย `git ls-files | grep synth-hand` และ `git ls-tree` บน origin/main):** บน `main` ปัจจุบันยัง **ไม่มี**
-  ไฟล์ตัวสร้างทั้งสอง ไฟล์ `tests/fixtures/palm-v2/synth-hand.js` อยู่บน branch `palm-v2` (และ `palm-owner-trial`, `palm-lines-v3`) ซึ่งยังไม่รวมเข้า main และ
-  `tests/fixtures/palm-v3/synth-real.js` อยู่บน branch `palm-lines-v3` ที่ยังไม่รวมเข้า main เช่นกัน คำตัดสินเจ้าของ 175 ก ระบุว่า synth-hand.js อยู่บน main
-  ซึ่งไม่ตรงกับที่ตรวจพบ รอเจ้าของยืนยัน ถ้ารวม branch เหล่านี้เข้า main ภายหลัง คำถามนี้ใช้กับไฟล์ที่รวมเข้าไปทันที
+  ไฟล์ตัวสร้างทั้งสอง ไฟล์ `tests/fixtures/palm-v2/synth-hand.js` อยู่บน branch `palm-v2` ซึ่งรวมเข้า branch รวมงาน `batch-2` แล้ว และจะเข้า main เมื่อ `batch-2` รวมเข้า main ส่วน `tests/fixtures/palm-v3/synth-real.js` อยู่บน branch `palm-lines-v3` (ในเครื่อง) ที่ยังไม่รวม ถ้ารวม branch เหล่านี้เข้า main ภายหลัง คำถามนี้ใช้กับไฟล์ที่รวมเข้าไปทันที
 - **เทคนิคอื่นที่ตรวจแล้ว (เว็บ, Google Patents, โดยทีมของเรา ไม่ใช่คำแนะนำทางกฎหมาย):**
 
 | เทคนิค / สิทธิบัตร | สิ่งที่พบ | วิธีได้ข้อมูล | ความเสี่ยงตามที่เราประเมิน |
