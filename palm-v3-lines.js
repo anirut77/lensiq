@@ -29,7 +29,8 @@
 (function (root) {
   "use strict";
   var CFG = { sMaj: 224, sMin: 512, u0: -0.3, u1: 1.25, v0: -0.08, v1: 1.15, normSigma: 0.06, claheTiles: 8, claheClip: 2.5,
-    method: "mfrat", norm: (typeof process !== "undefined" && process.env && process.env.LQ_V3_NORM) || "hybrid", bilRange: 0.18, hybLo: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_HLO) || 0.02), hybHi: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_HHI) || 0.05), cap: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_CAP) || 1e9),
+    method: "mfrat", norm: "hybrid", bilRange: 0.18, hybLo: 0.02, hybHi: 0.05,
+    cap: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_CAP) || 1e9),
         erode: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_ERODE) || 0), nRandom: 500, nSearch: 1200, PROVISIONAL: true };
   /* PROVISIONAL z limit, set 2026-11-20 on DEV synthetic seeds only (never on the locked test seeds, never on a photo), for the
      MFRAT map with the two-flank valley check: 153 crease-free dev textures (seeds 201-213: textures.js, tex2.js crease-free
