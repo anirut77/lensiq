@@ -215,8 +215,9 @@ location.search + location.hash)`, and `404.html` as the fallback for any path w
 own path.
 
 **Card address switch:** `LENSIQ_CARD_SHOW_ADDRESS` in `lensiq-config.js` (default `false`; tests locked 2026-11-20 in
-`evals-locks/pet-card-address.sha256`, product change waits for the owner because older locked pet tests assert the address) keeps the site address and
+`evals-locks/pet-card-address.sha256`, older pet tests re-locked under owner decision 184 ก) keeps the site address and
 the QR code (which encodes the address) off the pet share card, which prints only "จาก LENSIQ / From LENSIQ / 来自 LENSIQ".
+The brand on the card is the single setting `LENSIQ_CARD_BRAND` (same file, default `"LENSIQ"`).
 A shared card cannot be corrected later, so the switch is turned on **only after the new domain is live** (cut-over
 step 2 confirmed), in one commit that also changes the single address setting `LQPet.LINK` (`lensiq-pet.js`) to
 `https://www.<domain>/petread.html`. Cards shared before 2026-11-20 that print the old address still work through the
@@ -351,6 +352,8 @@ After:
 - [ ] Day +7: remove the old LINE Login callback; decide whether `lensiq-api-test` stays as the test environment
       (recommended: yes, it keeps serving testers).
 - [ ] No quotation goes out with the `github.io` address after T.
+- [ ] `backend/src/mail.js:36` accepts `SITE_URL` only without a path, so receipt, refund and renewal e-mails currently go
+      out with no link; fix when the site moves to its own domain (owner decision 183 ข, 2026-11-20).
 
 ---
 
