@@ -26,3 +26,10 @@
 fa21b0b9f86743c342d16ddbe4244084aa7af79d1a05afd0e0458172002d629e  relock-2/pet-card-hint.e2e.mjs
 7fc50cc09163cd28002fe2808b42773276f987a5ae36167049d64b9cfa5690aa  tests/unit/pet-card-hint.test.js  # repo file (same commit as lock 2026-11-20T13:31:24Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-2/pet-card-hint.test.js)
 fa21b0b9f86743c342d16ddbe4244084aa7af79d1a05afd0e0458172002d629e  tests/e2e/pet-card-hint.e2e.mjs  # repo file (same commit as lock 2026-11-20T13:31:24Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-2/pet-card-hint.e2e.mjs)
+# LOCK 4 2026-11-20 relock-3 (owner decision 198, test fix, equal scope): tests/e2e/pet-card-hint.e2e.mjs re-locked. The card section
+# (options + hint) is hidden until a reading is made, so each page now runs one reading and checks the hint and the QR option as
+# VISIBLE (the relock-2 version of H1-H3 looked at a hidden section; H2 failed at baseline for that reason, not the hint). The unit
+# file is unchanged. Disclosure: the relock-2 e2e was run once (0/3, no product code changed) before this fix.
+# locked 2026-11-20T13:41:18Z (tools/eval-guard.mjs lock, 1 file)
+e294f928c1365daf4b0a39d2b420ac62a61e885fe11ca882c6d4e21e45ec6902  relock-3/pet-card-hint.e2e.mjs
+e294f928c1365daf4b0a39d2b420ac62a61e885fe11ca882c6d4e21e45ec6902  tests/e2e/pet-card-hint.e2e.mjs  # repo file (same commit as lock 2026-11-20T13:41:18Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-3/pet-card-hint.e2e.mjs)
