@@ -101,7 +101,21 @@
     };
   }
 
+  /* item 177: the closed "สิ่งที่ควรระวัง" section on astro.html — only the Saturn return for now (within 1.2 years of a return, the
+     same window as lifecal-kb.js; LifeCal.SATURN_RETURNS); transits, retrogrades and hard aspects need planet positions (not built) */
+  var SATURN_RETURNS = [29.5, 58.9, 88.4];
+  var ageOn = function (inp, now) { return (Date.UTC(now.y, now.m - 1, now.d) - Date.UTC(inp.y, inp.m - 1, inp.d)) / 864e5 / 365.2425; };
+  var saturnNear = function (inp, now) { var a = ageOn(inp, now); return SATURN_RETURNS.filter(function (x) { return Math.abs(a - x) <= 1.2; })[0]; };
+  function cautionItems(inp, now) { return saturnNear(inp, now) === undefined ? [] : [{ id: "saturn.return", tone: "caution", strength: 0.8 }]; }
+  function cautionPeriod(inp, now) {
+    var x = saturnNear(inp, now);
+    if (x === undefined) return null;
+    var r = Math.floor(x - 1.2) + "–" + Math.ceil(x + 1.2);
+    return { span: "years", th: "ช่วงอายุราว " + r + " ปี", en: "About age " + r, zh: "约 " + r + " 岁" };
+  }
+
   var AS = { moonLongitude: moonLongitude, sunAt: sunAt, moonAt: moonAt, chart: chart, sunSignOf: sunSignOf, daily: daily, signOf: signOf, signName: signName, buildFacts: buildFacts, dailyFacts: dailyFacts, ttFromUT: ttFromUT, MOON_TERMS: MOON_TERMS };
+  AS.SATURN_RETURNS = SATURN_RETURNS; AS.cautionItems = cautionItems; AS.cautionPeriod = cautionPeriod;
   if (typeof module !== "undefined" && module.exports) module.exports = AS;
   root.Astro = AS;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -210,6 +224,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
   var topicOf = function (id) { return (FK.readings[id] || {}).topic || "overall"; };
   /** quiet = วาดใหม่ตอนเปลี่ยนภาษา (ไม่นับสถิติ ไม่ย้ายโฟกัส ไม่รีเซ็ตเวลาบูธ) */
+  /* item 177: the closed "สิ่งที่ควรระวัง" section after the natal reading, only inside the Saturn-return window (nothing unless
+     LENSIQ_FORTUNE_CAUTIONS and LENSIQ_FORTUNE_CAUTIONS_CN_WEST are on) */
+  function mountCaution(C) {
+    var LQC = window.LQFortuneCaution, wrap = $("#asReadWrap");
+    if (!LQC || !wrap) return;
+    var t = new Date(), now = { y: t.getFullYear(), m: t.getMonth() + 1, d: t.getDate() }, items = AS.cautionItems(C.input, now);
+    if (!items.length) return;
+    var host = document.createElement("div");
+    host.id = "asCaution";
+    wrap.appendChild(host);
+    if (!LQC.mount(host, { domain: "astro", facts: { items: items }, period: AS.cautionPeriod(C.input, now) })) wrap.removeChild(host);
+  }
   function showChart(C, quiet) {
     st.chart = C;
     var alt = function (a) { return a ? T("astro.moonAlt", "วันนั้นดวงจันทร์ย้ายจากราศี{a}ไปราศี{b} ระบุเวลาเกิดเพื่อความแม่นยำ", { a: sn(a[0]), b: sn(a[1]) }) : ""; };
@@ -224,6 +250,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var tp = quiet ? topicOf("asRd") : "overall";
     $("#asReadWrap").innerHTML = FK.readingBlock("asRd", T("astro.rdTitle", "คำทำนายตามแผนภูมิเกิด"), true, tp);
     FK.bindReading("asRd", "astro", function (topic) { return AS.buildFacts(C, topic); }, { withTopics: true, topic: tp });
+    mountCaution(C);
     renderDaily(C.sun.sign, "#asDaily", "asDayRd", quiet);
     if (quiet) return;
     stats.add({ sun: C.sun.sign, moon: C.moon.sign, asc: C.asc ? C.asc.sign : null });

@@ -3,7 +3,8 @@
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
   "fortune.disc.line": "基于命理学原则，属个人信仰，请自行判断。",
   "pet.qrOn": "加上链接回本页的二维码",
-  "pet.photoOnHint": "两项默认关闭。照片和二维码都在本设备生成，不会被发送。",
+  "pet.photoOnHint": "此项默认关闭。照片在本设备生成，不会被发送。",
+  "pet.photoOnHintQr": "两项默认关闭。照片和二维码都在本设备生成，不会被发送。",
   "pet.sizeAria": "卡片尺寸",
   "pet.size.post": "帖子 4:5",
   "pet.size.story": "快拍 9:16",

@@ -162,6 +162,57 @@ A page may appear in two categories. Pages not listed under a category are platf
      see Remedies, merit and paid fortune content).
   Also: no lottery numbers; no medical advice and no cosmetic or medical procedure advice (reversible styling
   suggestions below are allowed); no emotion or deception inference.
+- Fortune cautions and guidance (owner decisions 177 and 178, 2026-11-20): every fortune reading page may show a
+  "สิ่งที่ควรระวัง / Things to be mindful of / 需要留意的事项" section with two parts, overall and this period. It is closed
+  by default and opens only after a button press and an accepted disclaimer ("this is this system's prediction according
+  to belief; it does not decide what is right or wrong, true or untrue; please use your own judgement"). It is labelled
+  "according to belief, please use your own judgement", plus "modern practice" where a rule is not traditional.
+  Each period reads in three parts, all from that discipline's own rules and never invented:
+  - be mindful of (ระวัง);
+  - encouragement (กำลังใจ), from the favourable side of the same reading;
+  - guidance (แนวทาง).
+  Every sentence shown comes from the locked phrase register that the owner has approved entry by entry; rules
+  reference phrase ids and cannot carry free text. The word filter is a second line of defence, not the control.
+  The language is warm, plain and respectful. It builds awareness, not fear, and never leads anyone toward harm.
+  Allowed, worded only as "be careful" (ระวัง / 留意), never as "must not" (ห้าม), never stated as certain, never
+  tied to a single day or date; broad month ranges are fine ("ช่วงเดือน มี.ค.–เม.ย. ควรระวังมากขึ้น"):
+  - accidents and travel ("ระวังหากต้องเดินทางในช่วง…"); no specific accident type such as a car crash;
+  - falling ill, a fever, or broad body areas (arms, legs, stomach) as "ระวังสุขภาพ"; may say "see a doctor if
+    unwell", never a diagnosis or a treatment;
+  - spending, investments (no named asset), and being tricked into paying;
+  - bad things in general, and people in general (no named or described person, no group).
+  Not allowed:
+  - predicting death or a life-threatening illness;
+  - telling the user to stop medication or treatment;
+  - recommending a specific investment;
+  - telling the user to end a relationship;
+  - fear-selling: a bad result unless the user pays or does something;
+  - recommending heavy or excessive merit-making: large donations, giving to a named person or organisation,
+    amounts of money, or elaborate or costly rituals.
+  Guidance stays modest: be mindful (มีสติ), keep the precepts (มีศีล), ordinary merit and donations to temples, charities
+  or care homes, helping society and people in need, respect for parents, or practice according to the user's own
+  religion. It is written so that it works for any faith, and it names no recipient, amount or link.
+  Where the discipline's rules produce it, a reading may say the user may have good luck from something ("ช่วงนี้อาจมี
+  โชคจากผู้ใหญ่"). Such lines always say "may" (อาจ / 可能) and never promise a result. They carry no lottery numbers or
+  gambling prompts, name no investment, are never tied to paying, buying or heavy merit-making, and each traces to a
+  source rule.
+  The crisis net, no medical advice, no lottery numbers and complete TH/EN/ZH still apply. The whole section, luck lines
+  included, is hidden while the crisis or calm flag is set, and it never links to paid content, prices or sellers. The
+  section is always free, including its guidance.
+  Rules from the Chinese and Western schools stay switched off until an expert in that school has reviewed them;
+  Thai-school rules may go live first.
+  The auspicious-date planner and the pet reading do not carry this section.
+  Every allowed and forbidden item has locked tests in TH/EN/ZH.
+  Scope details (owner decision 196, 2026-11-20):
+  - Guidance in this section carries no lucky colours; practical steps (planning, checking papers, rest) sit under
+    "be mindful (มีสติ)" (decision 181).
+  - Health wording is relaxed for this section only; the main reading's filter is unchanged (decision 177-2).
+  - Every caution has its own paired guidance line.
+  - The section always uses measured wording; it does not follow the "read it straight / ดูตรง ๆ" switch.
+  - The accepted disclaimer is remembered for the browser tab only, and the section closes again on every new reading.
+  - At most two luck lines per part.
+  - Accident, illness and travel cautions may appear under "this period" when that period is a broad month range,
+    never under a single day or date (decision 177-1, as replaced by the owner's month-range rule).
 - Look suggestions (owner request and wording 2026-11-13): the tool suggests reversible styling with a fortune reading
   and previews it: brows (shape, thickness, arch), hairstyle, hair colour, facial hair, make-up (lip colour, eye
   make-up, eyeliner, emphasis or softening with make-up) and accessories (earrings, glasses, necklaces). Each names the

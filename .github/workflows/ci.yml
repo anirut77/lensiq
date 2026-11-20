@@ -66,9 +66,10 @@ jobs:
       #             to the measured total at the start of round 13). 136 of the 624 are vendor/mediapipe/vision_bundle.mjs,
       #             pulled in by signage.js's literal import() (photobooth.js imports it through a variable path).
       #   round 17: 627 (measured 627; lensiq-pc.js / -run.js / -ui.js now gated in tsconfig.typecheck.json)
+      #   batch-5: 607 (measured 607; Window types for the item-177 caution packs and the horoscope / astro / lifecal globals)
       - name: typecheck ratchet — total errors in the full report must not rise
         env:
-          TYPECHECK_MAX: "627"
+          TYPECHECK_MAX: "607"
         run: |
           npm run --silent typecheck:report | tee typecheck-report.txt
           total=$(sed -nE 's/^([0-9]+) error\(s\) in .*/\1/p' typecheck-report.txt | tail -1)

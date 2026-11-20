@@ -9,6 +9,8 @@ Branches move: refresh section 3 before acting (section 5, step 2). "unique" = c
 
 Disk guard (owner order 2026-11-15, branch `disk-guard`): heavy local jobs (`tests/e2e/run.mjs`, every browser harness under `tools/`, `npm run audit:*`) exit with code 75 when free space under `$HOME` is under 5 GB; run.mjs also re-checks before every test file and stops cleanly. Skipped on CI (`CI=true`) and with `LQ_DISK_GUARD=off`; see `tests/README.md` "Disk guard". If a job exits 75, free disk space first (old worktrees, Chrome profiles, eval output).
 
+Load guard (owner decision 205, 2026-11-20, branch `load-guard`): `tools/load-guard.mjs` queues every heavy local suite (`tests/e2e/run.mjs`, every browser launch through `tests/e2e/cdp.mjs`, `npm run test:unit`, `test:integration`, `test:py`, `csp:check`) while the 1-minute load is over 10 or 2 heavy jobs already run; limits in `tools/load-guard.config.json`; exit 75 after the maximum wait; no-op on CI. Override `LQ_LOAD_GUARD=owner-override:<reason>` is owner only and logged to `~/LENSIQ-field/load-guard.log`; a team using it is an incident. Details: `tests/README.md`.
+
 ## 1. Main
 
 - `origin/main` = `de59b10` (Merge beauty-look) after `9bbc147` (Merge org-p1). The earlier head `4413bc3` had CI and the Pages deploy green; check the runs

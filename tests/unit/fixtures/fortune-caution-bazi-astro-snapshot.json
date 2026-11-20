@@ -1,0 +1,1484 @@
+{
+ "about": "FIXED TEST SET fortune-caution wave 1b (bazi + astro), T15: baziFacts (lifecal-kb.js) and buildFacts (astro.js) output BEFORE the section was wired (852bc307), SYNTHETIC births; Math.random pinned to lcg(seed) during each call; sha256 of JSON.stringify(facts).",
+ "births": [
+  [
+   1960,
+   1,
+   9,
+   6,
+   30
+  ],
+  [
+   1971,
+   8,
+   3,
+   22,
+   15
+  ],
+  [
+   1983,
+   6,
+   30,
+   17,
+   20
+  ],
+  [
+   1990,
+   3,
+   7,
+   20,
+   40
+  ],
+  [
+   1996,
+   10,
+   2,
+   4,
+   10
+  ],
+  [
+   1997,
+   5,
+   12,
+   9,
+   30
+  ],
+  [
+   2004,
+   9,
+   16,
+   19,
+   35
+  ]
+ ],
+ "cases": [
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "overall",
+   "age": 20,
+   "sha256": "84427c3bb26323288a563718ebfb00ff48b0534ef21907176dba6c58127f99f6"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "overall",
+   "age": 36,
+   "sha256": "d6d37588be242477c2e37bafe4af3d1a1e0b4a925acc98a78f6f0c057959b34b"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "overall",
+   "age": 52,
+   "sha256": "784f49717287ba4935d74de6c3534d6d7eba5b4dda061e10b5926c79771b6814"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "work",
+   "age": 20,
+   "sha256": "c413be3072b0783a9b195905f71371220eed7cd4c66fee3c24eaa6fce2cb1b74"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "work",
+   "age": 36,
+   "sha256": "9f42075fd20ff45d3b913a0e52c96f1ea6d06b89e628685108d0ad8a3fd720ea"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "work",
+   "age": 52,
+   "sha256": "cbf0d46ac2bb9475940330205512e3e5150f741fa71043346e701399e65accf6"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "money",
+   "age": 20,
+   "sha256": "717cac1717d5f7f267de2d4a7ba12bb7fff9dac6bed8327ee914a805745792c5"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "money",
+   "age": 36,
+   "sha256": "3c0ef39d4ac73fb55d1ef8ee0b3c3c84a4f220c54ff1256ec5e20e9d364823e6"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "money",
+   "age": 52,
+   "sha256": "b7f4aed78ad433c5600aa66d3043ddab0f09bb11a0d5f07d8fbb79ae1966f0b3"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "love",
+   "age": 20,
+   "sha256": "3536a62f27daa6d766bb4ccbd49f4633db06b3af9284181b5c8fd7129c787d8e"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "love",
+   "age": 36,
+   "sha256": "a5871125a5979bba95c256ba9d767154b823a11d08cb2b2f46593c42aea7d476"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "love",
+   "age": 52,
+   "sha256": "a5fc93d1e6a206b51c972c072122cd0ae6620f1c34f17934c1ebdeecea167371"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "overall",
+   "sha256": "7a495b47474086ab4cf6c183772acb6b7a903ce51c402619abf87173c0a8999a"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "work",
+   "sha256": "bb363a231ec4c3b8bd872b410383f2ba960854911f30821c545763bc44485bb3"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "money",
+   "sha256": "6e35d72ca1f7a2fe11b92986fb14dc1e04a470135ab62aed1f5326a10faf9592"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1960,
+    1,
+    9,
+    6,
+    30
+   ],
+   "topic": "love",
+   "sha256": "45545baae160800998239c1991afdd644d70cac5c6fe0119bc65cd99fbc250c6"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "overall",
+   "age": 20,
+   "sha256": "83e88134801aed04d59034f2636e4b4d856f6301e065d852d27065e930b59d3b"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "overall",
+   "age": 36,
+   "sha256": "95a90908c20c41fcb448789e8cd470895d6e5ab229c9cca70e1275bf8e181dbf"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "overall",
+   "age": 52,
+   "sha256": "2d43be3be8bb1c0f0095232712f9e514a9e17beb03862b82dfb94dafec9a071e"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "work",
+   "age": 20,
+   "sha256": "525ba2747370d380879874eeed7fd7532524ddb2348a349e58644cbca1a260a4"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "work",
+   "age": 36,
+   "sha256": "a2098bcf64cf94b8b3b02354b6050a3e18e1547e41ae8c626e6d4c7c812a0957"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "work",
+   "age": 52,
+   "sha256": "6ff492d1c6a00c452ba8286debb55129f2942ea4f72b0f7265548be0b343b3fe"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "money",
+   "age": 20,
+   "sha256": "70c6ba01013f53f98dd81cf06e004a20a1eca2408fc5191987407e77e7239f0b"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "money",
+   "age": 36,
+   "sha256": "12f464ab60120605d54d7611347babab2e94430c64e292107f4b62577409f641"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "money",
+   "age": 52,
+   "sha256": "4d59660baec1d5f2720efd2104e27a0369f9052cf0dc75f116bcbaf10bf1a729"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "love",
+   "age": 20,
+   "sha256": "01f0679628f7e88dbeb7522cdac14a8255c24e5a7f46ad0376d192e9362e6195"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "love",
+   "age": 36,
+   "sha256": "452f2511014ff019b76007c0a249b8e91edfb6769b187b0682ede9f99d694442"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "love",
+   "age": 52,
+   "sha256": "09c601b4c0f4c14078e13cd21a73785c729147c9382a1bee88afd4d16ed724c2"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "overall",
+   "sha256": "4900789bb7b86a187f4a8ff3e92e116f412b0e10f4efcd799bff47763673b055"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "work",
+   "sha256": "0655db45a4578402648424cc5c240d5e6436260454c0d58f4487b22d5d824304"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "money",
+   "sha256": "29f1347e584c85cc5ff16a5efa80316e2b83c649c8bb529aa203785270577717"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1971,
+    8,
+    3,
+    22,
+    15
+   ],
+   "topic": "love",
+   "sha256": "35dd0ebc5b6b366cf6cb55bad72c7bbde6929a5aa6a7cd596bc0de73159cb342"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "overall",
+   "age": 20,
+   "sha256": "905fe74fb0c98f197f0e467e114050989e46511ebe96b497143d7def7787910c"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "overall",
+   "age": 36,
+   "sha256": "626e9f6681de19d3f1ad1f41d91d2cca4f53f3b956954c03d84e25e29c150d8c"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "overall",
+   "age": 52,
+   "sha256": "f5a137c82ff04cb88bd72528d2f1445d5e5e2524369b3ad4079a2264b937f073"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "work",
+   "age": 20,
+   "sha256": "b0a59357bf58dc04b1db2731f6750114a9b713c3d09165a066633651b720187e"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "work",
+   "age": 36,
+   "sha256": "322bb25c35d377f8da510aad7cfe239bf1e27fcea4691b6a8dcfdb9de05eeee8"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "work",
+   "age": 52,
+   "sha256": "0853ac31b27a4aad90d74f630f4b489094cf669fb50e7661aabbe141f967380e"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "money",
+   "age": 20,
+   "sha256": "fe1e17b4a3cb72d6663b885ce9ff19bc5c6408adab063a7ae9a690566b947476"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "money",
+   "age": 36,
+   "sha256": "3bcaa0120e985e963119fcf33ba53f92fbfbc1f8091b9bf6248f8de769931af8"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "money",
+   "age": 52,
+   "sha256": "6e4dd5d0ad47599df19a807c0bd13e7d34edafc7f4b003327c49429844042d74"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "love",
+   "age": 20,
+   "sha256": "08a64e30c7800c1eab745587cc97db05a9821766c45e4bb18669617fd89ec8f0"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "love",
+   "age": 36,
+   "sha256": "aac2d47470b553d59eafe6e62135e7ace81e1fc7e31ae0aa3a4014322fea4f62"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "love",
+   "age": 52,
+   "sha256": "7ab8eb3ef3990599c4c9bbb5349a3cd8c917b9821e723e469ace7f8f733f0745"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "overall",
+   "sha256": "36f2f400f267ba71a9f37204c66cc640c4d2f445e3aa3fd2ef3948ba99c51884"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "work",
+   "sha256": "091149d0a70efbb8081de8572c6fb4d4963a22aca40b12908464e92fb1826729"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "money",
+   "sha256": "90c5e0c3a8b7fee021aa29defc53fcbee7c06b5d090c7e62712722ebd416d3e1"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1983,
+    6,
+    30,
+    17,
+    20
+   ],
+   "topic": "love",
+   "sha256": "4ee3cc6062dc556fecd99ae9ce392af3c8c45756940d7f1bc6285ac82d6c30cb"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "overall",
+   "age": 20,
+   "sha256": "dac7d221642d37d491109c48b07d96950756ea28563ead34506a77f43b213730"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "overall",
+   "age": 36,
+   "sha256": "9f41fe7323633f3b98d83b7d3f8076de6dabd5c9c476c96a68a55b3160ec5c52"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "overall",
+   "age": 52,
+   "sha256": "48d5fbd2961ac737d8f2dd54c1c7d5aaf8e44eafda1cf3885ee690d652a6aa90"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "work",
+   "age": 20,
+   "sha256": "d4f0525d95b225adba4b10886a5a3a87b4592fecfb1aaf2fb7f1bf7e15e73d15"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "work",
+   "age": 36,
+   "sha256": "960651457c3a2de4ac9134c1879edd28fc4a83d55cd14646800722f198c89e3e"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "work",
+   "age": 52,
+   "sha256": "d330ddaf67c02b837f2ce2d2e99b4db513baf892b05627e5ecbdff2bc2b70b25"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "money",
+   "age": 20,
+   "sha256": "1c48b9b8a7548a105e39db53a402e290fbe87fa6d8a529d3adc30e4f51e27918"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "money",
+   "age": 36,
+   "sha256": "299d8a95be4d55b384a38f8f21a33bb9b80442bde6e8e0a5930f9fe5863a8644"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "money",
+   "age": 52,
+   "sha256": "8a9c2f7c2df611bbdada2123039dbd5a7c75abfd59427862212001d5131cc43f"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "love",
+   "age": 20,
+   "sha256": "7f4fac1ae82c4cdd9a279985228110b88b04264d0d0a29358fb62f022681d7c0"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "love",
+   "age": 36,
+   "sha256": "27239882e410d95e04554d8ddf22dcc24b3f3373dc958a401b929cbea5fa2afb"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "love",
+   "age": 52,
+   "sha256": "e6d8192486339deb17614a946ed1f861bae450ecd705896978c83993c01eff52"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "overall",
+   "sha256": "c9369405c7646ad4f0197710770d43f43592fd4496ffd6d0befa946a4c2668d7"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "work",
+   "sha256": "628df819432201829eb7aa1f6fcd87749c09254d93a1d776b5110ba3a37502a3"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "money",
+   "sha256": "8f678fcd65ce39d2fd0de6c19a1d92d29d47fa00bc866e10c9218a99a0e57b88"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1990,
+    3,
+    7,
+    20,
+    40
+   ],
+   "topic": "love",
+   "sha256": "6cfdb7ce1c0beb267fc12f8e9f382c034c13f32c3ab9c1c75b261d21ee197df0"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "overall",
+   "age": 20,
+   "sha256": "6ede9663501504eec8916a089d8794c9b141d8e8b4066180303f28eea269ce9b"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "overall",
+   "age": 36,
+   "sha256": "be13ebdf3439b6bab151c7541beb50cf4d758c4670b328c328e954159f71ece7"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "overall",
+   "age": 52,
+   "sha256": "95cdc407baa3a6aedeb4fa2e806788ac85c9dd662c66b82c5d757af53190491c"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "work",
+   "age": 20,
+   "sha256": "bb5d071f80d4ce747361da70529a93f19054d2680cbf073e6026e0a406ff2847"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "work",
+   "age": 36,
+   "sha256": "c5f2694603384169e4275a2b910b4204f0e8a3bd0388c39583fbdaad684294e3"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "work",
+   "age": 52,
+   "sha256": "4076f2b2ef697459c039f5109732a8b72b4aa9f54697876e24499a217f23971e"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "money",
+   "age": 20,
+   "sha256": "bd7a2d734d026185cb6b196cf8f27b0b4add0e1e5144abb9ffd7e43cd7d12655"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "money",
+   "age": 36,
+   "sha256": "491f417e0853d20337693cb9efc56f615836c8f46635ddb181101b5a0406c4ab"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "money",
+   "age": 52,
+   "sha256": "a315003a3a46f3f60d51c2ffb3f15823b7bd1bafe7b5712240fe6913e8b24f0a"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "love",
+   "age": 20,
+   "sha256": "767da86e8d395eb6f3caa23e2f5b663ed109db6571be0cd344d806475f1b99f9"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "love",
+   "age": 36,
+   "sha256": "533fb17d73f96d32348b77d96e2ec4b69e7f44f7d44b5b7b1d6cecafdd344f2b"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "love",
+   "age": 52,
+   "sha256": "f9816ac9636a159ddda3fd48fd0f22eb837f2a9e2135cec16dae8fd2fe172e88"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "overall",
+   "sha256": "554ceeda834804dc0f0f82e189dcf0040b97044a32362d500164aab84973817a"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "work",
+   "sha256": "fe4f18e5107d46922e86768623761efd9aa21e043040133298a6746a05ddf78c"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "money",
+   "sha256": "fd1f90d05bcf8734ca2e5a54675b809e7e29ec5fc1d8c8ee430a5bbe48b163ee"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1996,
+    10,
+    2,
+    4,
+    10
+   ],
+   "topic": "love",
+   "sha256": "316aff03100b84f4adaa66db9efdba4b28e90e72ee9386329662fb6a657f8888"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "overall",
+   "age": 20,
+   "sha256": "c8a4556d599c3b05406c9fca879333955985889ca92196b551af988d1437c136"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "overall",
+   "age": 36,
+   "sha256": "7cb4c07ff9565f04e01d422dcced4abda9b020fe34407009d8379a8179fce0bf"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "overall",
+   "age": 52,
+   "sha256": "eeedcbdfb0d0953c128894c2a29ef77c503e4fed8eb8c1ac68e7a74076ac5089"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "work",
+   "age": 20,
+   "sha256": "b1148dadb54a717bb03e9e2340a66627f7b3875c3b43fa8f583455b52c3c26d1"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "work",
+   "age": 36,
+   "sha256": "3eff61979459481538cf7e1f235ac0b281bc0dee010e8de28d95346ab162c1b2"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "work",
+   "age": 52,
+   "sha256": "a9eff19c9ce73b908cbee214b7bfe5f3a6068bf889b4057f30648e829b5e8b73"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "money",
+   "age": 20,
+   "sha256": "c8047a640b00d0c2de9a312eeacbbc9a9621489c4d94b18457639dd158ee2ae0"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "money",
+   "age": 36,
+   "sha256": "01a84f6e2ddddd37ee10c4955ec4fad70d7ba8b93e01bbea3f765e466439de46"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "money",
+   "age": 52,
+   "sha256": "010630f639338caedff8a344d4718daefae198dff394251a9b79d8bb4a3931da"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "love",
+   "age": 20,
+   "sha256": "8e0c2bac2a1556e4acbfaeb0e129e000ea9beba3dc85e8bb027d11dfb4b274b6"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "love",
+   "age": 36,
+   "sha256": "313a0373d12608be4a17bf75f437ef03fa7200f62bc160922f386c515ca4f30c"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "love",
+   "age": 52,
+   "sha256": "dbf92c1c07acb82462484f82a3fe8c4c522278d2d07d10f11b5df2c26a7f8094"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "overall",
+   "sha256": "0e0db18066816ccf86a310dd1db83c21a29c46a280cbeec00273af1ddc34d4f6"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "work",
+   "sha256": "f5bc4211182ac53b708228709b991709c4994d33c66a0025ebce65076ea53459"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "money",
+   "sha256": "93264073ae634de5da95480b8bb7bbb471a15a68966d31d428d7ea785f3c45f9"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    1997,
+    5,
+    12,
+    9,
+    30
+   ],
+   "topic": "love",
+   "sha256": "73fc8d6458c91df49fa95bd9291a2e7c194dbf8b47564b7321c9100d16d6b2bf"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "overall",
+   "age": 20,
+   "sha256": "452626e2f24ed2e23c219d04118dd4743f502f2ac49032c5747dfdd9a9befd38"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "overall",
+   "age": 36,
+   "sha256": "5d9484897920bcf624b4655dd2583002f2c1336e7265ba80e359c13ec3d98b35"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "overall",
+   "age": 52,
+   "sha256": "87f09088f0486d9864b0833f96770be8e9c0be3e430c592456716aa5998bd2c2"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "work",
+   "age": 20,
+   "sha256": "a2783fb7c8795d5b07784a6e7656876e6e863c838e6df0008ce1ae9ecdfcd732"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "work",
+   "age": 36,
+   "sha256": "7ef68839899a48d2f83309edbd509634226abd449e4c42170f6f0c05d6c70c91"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "work",
+   "age": 52,
+   "sha256": "0c4887de474b23f8a008b944c07252417ead1b76f5ec6612f71a25e5b325dbaf"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "money",
+   "age": 20,
+   "sha256": "1e5798c854505461f599bfa2dcb6a5b23476741b66c05ecdb3c191d524b45c9c"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "money",
+   "age": 36,
+   "sha256": "93942e322969e295a140558ce2238b55f9a1a1804efbc71db5c72ec5db90c8f4"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "money",
+   "age": 52,
+   "sha256": "1c8d3c355519f8196c680157e6fcafeafe8f42e47f97af4f2ab07635eeab7592"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "love",
+   "age": 20,
+   "sha256": "7e94fdd80b2b1cb9f7fc867b87e83f77c42039eb6e12d341db21287beedcc4a1"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "love",
+   "age": 36,
+   "sha256": "24850520ba7d1e946ac4d5a3c1eb533465cb8ab1ec52d5e3db97081a3e6bf9db"
+  },
+  {
+   "kind": "bazi",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "love",
+   "age": 52,
+   "sha256": "989e8aa3f9087880c65468137e535c69cce91a07915da1e9edd31281c9faaeef"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "overall",
+   "sha256": "a99e6e10f283c5e1b86a260f0b3190894c812b6466bf778cb51c62049b7fd4ab"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "work",
+   "sha256": "b7cc16723c3c835deb32f389c1663d7986faa388890b71de1f980d5c2ec1650c"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "money",
+   "sha256": "2f66456f0655eccb0aa2dd618c55dde45aef09137d27dd71d9e38e3cd77faddd"
+  },
+  {
+   "kind": "astro",
+   "b": [
+    2004,
+    9,
+    16,
+    19,
+    35
+   ],
+   "topic": "love",
+   "sha256": "77ec04711e91c6dea4ceda9e39c7c72f3ce50627d23c47fb7ee4885ba33089db"
+  }
+ ]
+}

@@ -320,3 +320,28 @@ late entry 2026-11-19 (owner): during re-lock (13) of tests/e2e/fortune-paid-sou
 ### Incident 2026-11-19: pii-guard field copy overwritten in place (recorded by the owner, decision 176 ก)
 
 late entry 2026-11-20 (owner): pii-guard re-lock A1 (2026-11-19T02:40:01Z) overwrote the field copy locked 2026-11-19T02:36:05Z (667606de4b747a42f2c51c8e82a2a3f8ca4abc792106b5753563329cc0ece984) in place, before the relockN/ rule; original bytes restored from git ca74f60b; field: ~/LENSIQ-field/evals/pii-guard/restored-ca74f60b/pii-guard.test.js
+
+### lowered floor, owner decision 188
+
+Phase `fortune-caution` (item 177), approved by number by the owner on 2026-11-20 (decision 188 ก). Four count floors were lowered:
+
+| Floor | Test file | Before | After | Relock that made the change |
+|---|---|---|---|---|
+| registry rules | `tests/unit/fortune-caution-rules.test.js` | 30 | 20 | relock3 |
+| caution items checked (T3) | `tests/unit/fortune-caution-rules.test.js` | 150 | 120 | relock3 |
+| rule texts scanned (T6) | `tests/unit/fortune-caution-limits.test.js` | 240 | 170 | relock4 |
+| luck lines (T19) | `tests/unit/fortune-caution-limits.test.js` | 30 | 24 | relock4 |
+
+Reviewer's written reason, word for word: "this is honest. These floors only guard against scanning nothing, and the drops follow
+removals the owner's rules required. It is not a content loosening. It is still a lowered assertion."
+
+Pending (owner decision 189 ข): relock3 limited the e2e console-error checks of the fortune-caution e2e files to script exceptions
+and errors naming a fortune-caution file, because fortune-ai.js calls /api/fortune/status (404 on the local test server). Once branch
+`api-status-guard` (decision 190: the call only when LENSIQ_API_BASE is set) is on main, main is merged into `fortune-cautions` and
+the console checks go back to the whole page in a new relockN/ folder, noted "stricter: restores whole-page console errors (owner 189 ข)".
+
+Relock 9 (2026-11-20, independent review at 51ffb7ac), stricter: narrows relock 6. relock 6 had changed the "never a single day" check in
+`tests/unit/fortune-caution-rules.test.js` from `m && …` to `!m || …`, which accepted "no section" on every page and was covered by no owner
+decision. Relock 9 accepts "no section" only on a page with no overall rule (astro) and requires the section, without a period part,
+everywhere else. The same relock makes the live-pack draft check use synthetic register copies (never vacuous) and adds: a rule with no text
+never ranks as live. Relock 10 locks the register with the reviewer's 11 wording fixes (REGISTER-REVIEW-1.md); every entry stays draft.
