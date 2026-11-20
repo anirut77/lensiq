@@ -539,7 +539,7 @@ async function adminRoute(request, env, url, deps) {
       const o = await auth.getOwner(env.DB);
       if (!o || !o.totp_enabled) throw new HttpError(403, "turn on 2-step verification before changing business details (owner_totp_required)", { code: "owner_totp_required" });
       const { password: _p, totp: _t, ...fields } = b;
-      const u = seller.cleanUpdate(fields); // refusals that need no secret first, so a 6-digit code is not used up on them
+      const u = seller.cleanUpdate(fields, { docLangs: seller.docLangOn(env) }); // refusals that need no secret first, so a 6-digit code is not used up on them
       await stepUp(b);
       const r = await seller.applyUpdate(env, u);
       await act("seller.profile.updated", { fields: u.fields });

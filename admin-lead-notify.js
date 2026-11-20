@@ -1,7 +1,8 @@
 /* admin-lead-notify.js — LINE notification wording for the quote-request inbox (owner order 2026-11-15, "LINE lead
  * notification is never silent"; review round 1). Loaded right BEFORE admin.js, which uses window.LQLeadNotify for the
  * status line under the inbox, the row badges and the detail field. Only secret NAMES and reason codes ever reach the page
- * (GET /admin/api/leads/notify), never a value. TH default; EN / ZH in i18n/en-admin.js, i18n/zh-admin.js (adl.nf.*). */
+ * (GET /admin/api/leads/notify), never a value. TH default; EN / ZH in i18n/en-admin.js, i18n/zh-admin.js (adl.nf.*, and
+ * adl.nh.* for the health box shown while the Worker var LEAD_NOTIFY_HEALTH is "on"). */
 (function () {
   "use strict";
   /** Inbox rows that get a badge: the owner was not (or maybe not) told on LINE. */
@@ -68,5 +69,60 @@
       : l.notify === "capped" ? G("adl.nf.capped", "หยุดชั่วคราว ครบจำนวนต่อวันแล้ว (คำขอยังเข้ากล่องนี้ตามปกติ)")
       : l.notify === "skipped" ? G("adl.nf.badge", "ยังไม่ได้แจ้งทาง LINE") + sep + skipText(G, l.notify_detail) : null;
   }
-  /** @type {any} */ (window).LQLeadNotify = { MISS: MISS, line: line, badge: badge, field: field };
+  /** Reason of a bad LEAD_NOTIFY_LINE_DAY value. @param {Function} G @param {string} code */
+  function dayReason(G, code) {
+    return code === "not_integer" ? G("adl.nh.r.not_integer", "ไม่ใช่ตัวเลขจำนวนเต็ม")
+      : code === "out_of_range" ? G("adl.nh.r.out_of_range", "ต้องอยู่ระหว่าง 1 ถึง 1000") : code;
+  }
+  /** Plain reason of a recorded failure. @param {Function} G @param {any} f {state, detail, at} */
+  function failureText(G, f) {
+    return f.state === "skipped" ? skipText(G, f.detail) : f.state === "capped" ? G("adl.nf.capped", "หยุดชั่วคราว ครบจำนวนต่อวันแล้ว (คำขอยังเข้ากล่องนี้ตามปกติ)")
+      : f.state === "unknown" ? failText(G, "unrecorded") : failText(G, f.detail);
+  }
+  /** Health box under the status line (Worker var LEAD_NOTIFY_HEALTH = "on", A3 2026-11-20): one line per notify setting
+   *  (configured, format OK or the plain reason), the last success, the last failure, failures in 7 days, and a flag while
+   *  requests were not notified since the last success or a LINE secret is missing / malformed. Hidden when the Worker
+   *  sends no health (switch off). Secret NAMES and reason codes only, never a value.
+   *  @param {HTMLElement|null} el @param {Function} G @param {Function} dt @param {any} r answer of /leads/notify */
+  function health(el, G, dt, r) {
+    if (!el) return;
+    var h = r && r.health;
+    el.textContent = "";
+    if (!h) { el.hidden = true; el.removeAttribute("data-flagged"); return; }
+    el.hidden = false;
+    el.setAttribute("data-flagged", h.flagged ? "1" : "0");
+    el.className = "adl-health" + (h.flagged ? " adl-nf-bad" : "");
+    /** @param {string} key @param {string} text */
+    var add = function (key, text) {
+      var p = document.createElement("p");
+      p.setAttribute("data-health-row", key);
+      p.textContent = text;
+      el.appendChild(p);
+    };
+    var head = document.createElement("h4");
+    head.textContent = G("adl.nh.title", "สถานะการแจ้งเตือนทาง LINE");
+    el.appendChild(head);
+    var sep = G("adl.nf.sep", ": ");
+    (h.settings || []).forEach(function (/** @type {any} */ s) {
+      var t = s.kind === "var"
+        ? (!s.configured ? G("adl.nh.dayDefault", "ไม่ได้ตั้ง ใช้ค่าเริ่มต้น {n} ครั้งต่อวัน", { n: s.effective })
+          : s.format_ok ? G("adl.nh.day", "{n} ครั้งต่อวัน", { n: s.effective })
+          : G("adl.nh.dayBad", "ตั้งค่าแล้ว แต่รูปแบบไม่ถูกต้อง ({r}) ใช้ {n} ครั้งต่อวันแทน", { r: dayReason(G, s.reason), n: s.effective }))
+        : (!s.configured ? G("adl.nh.unset", "ยังไม่ได้ตั้งค่า")
+          : s.format_ok ? G("adl.nh.ok", "ตั้งค่าแล้ว รูปแบบถูกต้อง")
+          : G("adl.nh.bad", "ตั้งค่าแล้ว แต่รูปแบบไม่ถูกต้อง ({r})", { r: reason(G, s.reason) }));
+      add(String(s.name), s.name + sep + t);
+    });
+    add("last_success", h.last_success_at ? G("adl.nf.last", "ส่งสำเร็จล่าสุด: {t}", { t: dt(h.last_success_at) }) : G("adl.nf.never", "ยังไม่เคยส่งสำเร็จ"));
+    var f = h.last_failure;
+    add("last_failure", f ? G("adl.nh.lastFail", "ไม่สำเร็จล่าสุด: {t} · {r}", { t: f.at ? dt(f.at) : "—", r: failureText(G, f) })
+      : G("adl.nh.noFail", "ยังไม่มีครั้งที่ไม่สำเร็จ"));
+    add("week", G("adl.nh.week", "ไม่สำเร็จใน 7 วันที่ผ่านมา: {n} รายการ", { n: Number(h.failures_7d) || 0 }));
+    if (Number(h.failures_since_success) > 0) {
+      add("flag", G("adl.nh.flag", "คำขอ {n} รายการยังไม่ได้แจ้งทาง LINE ตั้งแต่ส่งสำเร็จครั้งล่าสุด ตรวจคำขอที่มีป้ายในรายการด้านบน", { n: Number(h.failures_since_success) }));
+    } else if (!h.configured) {
+      add("flag", G("adl.nh.flagConfig", "การตั้งค่า LINE ยังไม่ครบหรือรูปแบบไม่ถูกต้อง คำขอใหม่จะไม่มีข้อความ LINE"));
+    }
+  }
+  /** @type {any} */ (window).LQLeadNotify = { MISS: MISS, line: line, badge: badge, field: field, health: health };
 })();

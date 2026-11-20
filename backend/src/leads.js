@@ -10,6 +10,8 @@
 //   GET  /admin/api/leads?status=new|contacted|closed|all   inbox (newest first): summary fields only + counts + unread
 //   GET  /admin/api/leads/unread                   {unread}: new requests the owner has not opened yet (tab badge)
 //   GET  /admin/api/leads/notify                   LINE notification status: {state, problems [{secret, reason}], last, last_sent_at}
+//                                                  + health {settings, configured, last_success_at, last_failure,
+//                                                  failures_since_success, failures_7d, flagged} while LEAD_NOTIFY_HEALTH = "on"
 //   GET  /admin/api/leads/:id                      one request with contact details + its automatic deletion date
 //                                                  (opening it marks it read: viewed_at, migration 0014)
 //   POST /admin/api/leads/:id/status {status}      new | contacted | closed (owner decision 2026-11-12)
@@ -35,7 +37,7 @@
 // in PUBLIC_ROUTES.
 import { pushAlert } from "./alerts.js";
 import { randomId } from "./crypto.js";
-import { LINE_TO_RE, lineConfigProblems, trimSecret } from "./line-config.js";
+import { LINE_SECRETS, LINE_TO_RE, lineConfigProblems, lineSecretProblem, trimSecret } from "./line-config.js";
 import { callerHash, hit } from "./store.js";
 import { verifyTurnstile } from "./turnstile.js";
 import { BKK_OFFSET, HttpError, intVar, log, now } from "./util.js";
@@ -181,7 +183,51 @@ export async function lineNotifyStatus(env) {
   const lastSent = s && s.t != null ? Number(s.t) : null;
   const state = problems.length ? "off" : !last ? "unconfirmed" : last.state === "sent" ? "ok" : last.state === "failed" || last.state === "unknown" ? "failing"
     : last.state === "capped" ? "capped" : "unconfirmed";
-  return { state, problems, last, last_sent_at: lastSent };
+  if (!notifyHealthOn(env)) return { state, problems, last, last_sent_at: lastSent };
+  return { state, problems, last, last_sent_at: lastSent, health: await notifyHealth(env, lastSent) };
+}
+
+/** LEAD_NOTIFY_HEALTH = "on" (trimmed, any case): the admin inbox gets the health box (A3 2026-11-20). @param {any} env */
+export const notifyHealthOn = env => String((env && env.LEAD_NOTIFY_HEALTH) || "").trim().toLowerCase() === "on";
+const DAY_CAP = { def: 50, min: 1, max: 1000 };
+
+/** Format check of every notify setting: the two LINE secrets (line-config.js) and the LEAD_NOTIFY_LINE_DAY var. Names,
+ *  booleans and reason codes only; the day cap (not a secret) also its effective value. Never a secret value.
+ *  @param {any} env */
+export function notifySettings(env) {
+  /** @type {{name: string, kind: string, configured: boolean, format_ok: boolean, reason: string|null, effective?: number}[]} */
+  const rows = LINE_SECRETS.map(name => {
+    const reason = lineSecretProblem(name, env && env[name]);
+    return { name, kind: "secret", configured: trimSecret(env && env[name]) !== "", format_ok: !reason, reason: reason || null };
+  });
+  const raw = trimSecret(env && env.LEAD_NOTIFY_LINE_DAY);
+  const reason = !raw ? null : !/^\d+$/.test(raw) ? "not_integer" : Number(raw) < DAY_CAP.min || Number(raw) > DAY_CAP.max ? "out_of_range" : null;
+  rows.push({ name: "LEAD_NOTIFY_LINE_DAY", kind: "var", configured: raw !== "", format_ok: !reason, reason,
+    effective: intVar(env && env.LEAD_NOTIFY_LINE_DAY, DAY_CAP.def, DAY_CAP.min, DAY_CAP.max) });
+  return rows;
+}
+
+/** The failure part of the health answer: the newest failure (failed | skipped | capped | never recorded), failures
+ *  since the last success and in the last 7 days, and the flag. Three D1 queries (two without a success yet). @param {any} env @param {number|null} lastSent */
+async function notifyHealth(env, lastSent) {
+  const settings = notifySettings(env);
+  const configured = settings.filter(x => x.kind === "secret").every(x => x.format_ok);
+  const t = now(), stuck = t - NOTIFY_STUCK_S, FAIL = "(notify_state IN ('failed', 'skipped', 'capped') OR (notify_state = 'pending' AND created_at < ?1))";
+  const f = await env.DB.prepare(`SELECT notify_state, notify_detail, notify_at, created_at FROM leads WHERE ${FAIL} ` +
+    "ORDER BY COALESCE(notify_at, created_at) DESC, created_at DESC, rowid DESC LIMIT 1").bind(stuck).first();
+  const lastFailure = !f ? null : f.notify_state === "pending" ? { state: "unknown", detail: "unrecorded", at: Number(f.created_at) || null }
+    : { state: String(f.notify_state), detail: String(f.notify_detail || ""), at: Number(f.notify_at) || null };
+  // "since the last success" = after the newest 'sent' row in (time, insertion order): a failure recorded in the same second
+  // as the success but after it still counts
+  const ok = lastSent == null ? null : await env.DB.prepare("SELECT rowid AS r FROM leads WHERE notify_state = 'sent' AND notify_at = ?1 ORDER BY rowid DESC LIMIT 1")
+    .bind(lastSent).first();
+  const okT = lastSent == null ? -1 : lastSent, okR = ok ? Number(ok.r) : -1;
+  const c = await env.DB.prepare("SELECT SUM(CASE WHEN COALESCE(notify_at, created_at) > ?2 OR (COALESCE(notify_at, created_at) = ?2 AND rowid > ?3) " +
+    `THEN 1 ELSE 0 END) AS since, SUM(CASE WHEN COALESCE(notify_at, created_at) >= ?4 THEN 1 ELSE 0 END) AS week FROM leads WHERE ${FAIL}`)
+    .bind(stuck, okT, okR, t - 7 * 86400).first();
+  const since = Number(c && c.since) || 0, week = Number(c && c.week) || 0;
+  return { settings, configured, last_success_at: lastSent, last_failure: lastFailure, failures_since_success: since, failures_7d: week,
+    flagged: !configured || since > 0 };
 }
 
 /** POST /health/notify-test: one test push to the owner, LINE_TEST_PER_HOUR per hour. Never returns the token or the
