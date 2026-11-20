@@ -332,7 +332,7 @@
       var xs = corners.map(function (p) { return p[0]; }), ys = corners.map(function (p) { return p[1]; });
       var rx = Math.max(0, Math.floor(Math.min.apply(null, xs))), ry = Math.max(0, Math.floor(Math.min.apply(null, ys)));
       var rw = Math.min(S.W, Math.ceil(Math.max.apply(null, xs))) - rx, rh = Math.min(S.H, Math.ceil(Math.max.apply(null, ys))) - ry;
-      var f = Math.min(1, 360 / Math.max(1, F0.pw)), cw = Math.max(1, Math.round(rw * f)), ch = Math.max(1, Math.round(rh * f));
+      var f = Math.min(1, (USE_V3 ? 640 : 360) / Math.max(1, F0.pw)), cw = Math.max(1, Math.round(rw * f)), ch = Math.max(1, Math.round(rh * f));
       var c = document.createElement("canvas"); c.width = cw; c.height = ch;
       var g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(S.photo, rx, ry, rw, rh, 0, 0, cw, ch);
       var px = g.getImageData(0, 0, cw, ch).data;
@@ -354,11 +354,18 @@
   }
   /* the line finder runs in a Web Worker so the phone never freezes (review round 1, d); main-thread fallback */
   var worker = null, workerBroken = false, jobN = 0;
+  /* v3 spike finder (palm-v3-lines.js): only when window.LENSIQ_PALM_V3_LINES === true (default off) */
+  var USE_V3 = window.LENSIQ_PALM_V3_LINES === true && !!window.PalmV3Lines;
+  function detectHere(px, w, h, hand, school) {
+    if (!USE_V3) return PV.detect(px, w, h, hand, { school: school });
+    var V3 = window.PalmV3Lines, d = V3.detect(px, w, h, hand, { minors: true }), v2 = V3.toV2(d);
+    return { lines: v2.lines, asp: v2.asp, ms: d.ms, s: d.s, v3: { zLimit: d.zLimit, method: d.method }, lowRes: false };
+  }
   function findLines(px, w, h, hand, school) {
     if (!workerBroken && typeof Worker === "function") {
       try { if (!worker) worker = new Worker("palm-v2-worker.js?v=1"); } catch (e) { workerBroken = true; }
     }
-    if (!worker || workerBroken) return new Promise(function (res) { setTimeout(function () { res(PV.detect(px, w, h, hand, { school: school })); }, 0); });
+    if (!worker || workerBroken) return new Promise(function (res) { setTimeout(function () { res(detectHere(px, w, h, hand, school)); }, 0); });
     var id = ++jobN;
     return new Promise(function (res, rej) {
       var done = function (ev) {
@@ -369,11 +376,11 @@
       };
       var fail = function () {
         worker.removeEventListener("message", done); worker.removeEventListener("error", fail);
-        workerBroken = true; res(PV.detect(px, w, h, hand, { school: school }));
+        workerBroken = true; res(detectHere(px, w, h, hand, school));
       };
       worker.addEventListener("message", done); worker.addEventListener("error", fail);
       var copy = new Uint8ClampedArray(px); // the photo crop goes to the worker on this device only, and is not kept
-      worker.postMessage({ id: id, rgba: copy, w: w, h: h, hand: hand, school: school }, [copy.buffer]);
+      worker.postMessage({ id: id, rgba: copy, w: w, h: h, hand: hand, school: school, v3: USE_V3 }, [copy.buffer]);
     });
   }
   function setSchool(school) {
@@ -382,7 +389,7 @@
     var old = S.st, st = PV.newState({ side: S.side, school: school, asp: old.asp });
     PV.LINES.forEach(function (id) { var L0 = old.lines[id];
       if (L0.status === "added" || L0.status === "absentConfirmed" || (L0.status === "found" && L0.edited)) st.lines[id] = JSON.parse(JSON.stringify(L0)); });
-    if (S.det) PV.applyDetection(st, { lines: PV.classify(S.det._D, school), asp: S.det.asp });
+    if (S.det) PV.applyDetection(st, S.det.v3 ? S.det : { lines: PV.classify(S.det._D, school), asp: S.det.asp }); // v3 geometry does not depend on the school
     S.st = st;
     if (S.F) changed(); else save();
   }

@@ -54,6 +54,9 @@ window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
 /* palm v2 (2026-11-19, docs/acceptance/palm.md): off unless exactly true · LANDMARKS = MediaPipe hands (tier 2-U), demo profile only */
 window.LENSIQ_PALM_V2 = window.LENSIQ_PALM_V2 === true;
 window.LENSIQ_PALM_LANDMARKS = window.LENSIQ_PALM_LANDMARKS !== false;
+/* palm v3 line finder (SPIKE 2026-11-20, palm-v3-lines.js): only inside palm v2 and only when exactly true; does not replace
+ * palm-v2-detect.js until the reviewer and the owner agree */
+window.LENSIQ_PALM_V3_LINES = window.LENSIQ_PALM_V3_LINES === true;
 
 /* LENSIQ_PROFILE: "commercial" (default, customer mode: research models off) | "demo"; result in window.LENSIQ_RESEARCH */
 (function () {

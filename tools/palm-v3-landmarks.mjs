@@ -8,7 +8,7 @@
 import { spawn } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertLocked, phaseDir } from "./eval-guard.mjs";
 import { assertFreeSpace } from "./disk-guard.mjs";
@@ -46,7 +46,7 @@ try {
       const hand = PC.handFromLandmarks(h.pts);
       return { W, H, pts: h.pts, hand };
     }, url);
-    result.photos[name] = r;
+    result.photos[basename(name)] = r;
     console.log(name, r.error || `${r.W}x${r.H} ok`);
   }
 } finally { await browser.close(); server.kill(); }
