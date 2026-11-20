@@ -8,7 +8,7 @@
 //   N5 switch false: after scrolling 1600 px the 1323 control has scrolled away and nothing pinned follows the reader;
 //   N6 switch true: after scrolling 1600 px the 1323 control is still in view, held by the sticky top bar, and it is the only
 //      pinned help element (one line in lensiq-config.js chooses between N5 and N6).
-import { FORTUNE, LANGS, STICKY, WIDTHS, IN_CONTENT, PINNED, S, VIS, assert, load, noOtherNumbers, phone, taps1323 } from "./crisis-rules-kit.mjs";
+import { FORTUNE, LANGS, STICKY, WIDTHS, IN_CONTENT, PINNED, S, VIS, assert, load, noOtherNumbers, phone, taps1323, loadFailText } from "./crisis-rules-kit.mjs";
 
 export default async function ({ base, launch, check }) {
   const browser = await launch();
@@ -24,7 +24,7 @@ export default async function ({ base, launch, check }) {
             for (const p of FORTUNE) {
               const where = `${p} ${lang} ${w}px`;
               cases++;
-              try { await load(page, base, p, lang); } catch (e) { bad.push(`${where}: did not load (${e.message.slice(0, 80)})`); continue; }
+              try { await load(page, base, p, lang); } catch (e) { bad.push(`${where}: ${loadFailText(e)}`); continue; }
               bad.push(...await noOtherNumbers(page, where));
               const t = await taps1323(page);
               if (t > 2) bad.push(`${where}: 1323 not reachable in 2 taps`);

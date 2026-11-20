@@ -12,6 +12,10 @@
 //       pixels in the card's picture frame exceeds the same template's no-person baseline by less than 1 point (or the photo
 //       is refused with a note)
 //   X4  detector unavailable, per template: the photo is refused on every template (data-photo="0") with a plain note
+// RE-LOCK 4 (2026-11-20, owner decision 184 ก; ledger evals-locks/pet-zodiac.sha256 "relock-4"): X1 only. The footer carries the
+// site address only when window.LENSIQ_CARD_SHOW_ADDRESS is true. X1 now runs its full loop (13 templates x post / story x
+// TH / EN, every check unchanged) twice: switch off (default; footer = brand line, last footer box >= 200 px) and switch on
+// (footer = brand + address, last footer box >= 400 px as before). Equal or stricter; nothing else changed.
 import { assert } from "./cdp.mjs";
 import { sleep } from "./zones-lib.mjs";
 
@@ -33,8 +37,8 @@ const SHARP = `(() => { const cv = document.getElementById("petCard"); const f =
   for (let y = 0; y < H - 1; y++) for (let x = 0; x < W - 1; x++) { const i = (y * W + x) * 4; n++; if (Math.abs(L(i) - L(i + 4)) > 60 || Math.abs(L(i) - L(i + W * 4)) > 60) s++; }
   return { frame: true, share: s / n }; })()`;
 
-async function open(browser, base, { lang = "th", dets = [PET], query = "?fakedet&nosw" } = {}) {
-  const page = await browser.newPage(null, { isolated: true, initScripts: [LANG(lang), detInit(dets), ZON] });
+async function open(browser, base, { lang = "th", dets = [PET], query = "?fakedet&nosw", init = [] } = {}) {
+  const page = await browser.newPage(null, { isolated: true, initScripts: [LANG(lang), detInit(dets), ZON, ...init] });
   await page.goto(`${base}/petread.html${query}${lang !== "th" ? "&lang=" + lang : ""}`);
   await page.waitFor("window.__LQPET && window.__LQPET.ready", 15000);
   if (lang !== "th") await page.waitFor(`window.LQI18N && LQI18N.lang === "${lang}"`, 8000);
@@ -62,8 +66,8 @@ export default async function ({ base, launch, check }) {
   try {
     await check("X1 exclusion zones: no decoration under any text box, 13 templates x post / story x TH / EN, long name", async () => {
       const NAME = { th: "ส้มจี๊ดจอมซนแห่งบ้านริมคลองใหญ่", en: "Sir Fluffington the Third of Maple Lane" };
-      for (const lang of ["th", "en"]) {
-        const page = await open(browser, base, { lang });
+      for (const show of [false, true]) for (const lang of ["th", "en"]) {
+        const page = await open(browser, base, { lang, init: show ? ["window.LENSIQ_CARD_SHOW_ADDRESS = true;"] : [] });
         await readWith(page, [], NAME[lang]);
         const r = await page.evaluate(ids => {
           const out = [];
@@ -92,9 +96,9 @@ export default async function ({ base, launch, check }) {
           return out;
         }, ALL);
         for (const x of r) {
-          const tag = `${lang} ${x.id} ${x.size}`;
+          const tag = `${lang} ${x.id} ${x.size} address=${show ? "on" : "off"}`;
           assert(x.head >= 3 && x.foot >= 3 && x.headAbove && x.footBelow, `${tag}: text boxes reported ${JSON.stringify(x)}`);
-          assert(x.brandW >= 200 && x.linkW >= 400, `${tag}: box sizes ${JSON.stringify(x)}`);
+          assert(x.brandW >= 200 && x.linkW >= (show ? 400 : 200), `${tag}: box sizes ${JSON.stringify(x)}`);
           assert(x.bad === 0, `${tag}: decoration under text (${x.bad} px, first ${x.badBox})`);
           assert(x.decorShare >= 0.01, `${tag}: decoration not drawn (${x.decorShare})`);
         }

@@ -1,0 +1,5 @@
+# locked 2026-11-20T09:25:35Z (tools/eval-guard.mjs lock, 2 files)
+03918651fb2ef0c03fc8163cee444fc73cc741577b5a4fe596a1e8429d8b6adf  api-status-guard.test.js
+960be994f887e5c483ab9de3558854afb8287cac9d5d7909d0db5f5c221dcb5f  api-status-guard.e2e.mjs
+03918651fb2ef0c03fc8163cee444fc73cc741577b5a4fe596a1e8429d8b6adf  tests/unit/api-status-guard.test.js  # repo file (same commit as lock 2026-11-20T09:25:35Z; field: ~/LENSIQ-field/evals/api-status-guard/api-status-guard.test.js)
+960be994f887e5c483ab9de3558854afb8287cac9d5d7909d0db5f5c221dcb5f  tests/e2e/api-status-guard.e2e.mjs  # repo file (same commit as lock 2026-11-20T09:25:35Z; field: ~/LENSIQ-field/evals/api-status-guard/api-status-guard.e2e.mjs)

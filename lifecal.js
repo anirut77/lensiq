@@ -324,6 +324,24 @@
   }
   // รอบดาวเสาร์ (คาบดาราคติ 29.457 ปี) — ช่วงเวลาที่ตำราตะวันตกถือเป็นจุดเปลี่ยนวัย
   var SATURN_RETURNS = [29.5, 58.9, 88.4];
+  /* 流年 relation of the birth-year branch a to a year's branch b (item 177 caution section; same tables and order as zodiac.js
+     relation(), checked for all 144 pairs by tests/unit/fortune-caution-pages-b.test.js): clash > same > harmony > trine > harm > punish > break */
+  var YR_PAIRS = function (list) { var s = {}; list.forEach(function (p) { s[p[0] + "-" + p[1]] = s[p[1] + "-" + p[0]] = 1; }); return s; };
+  var YR = { harmony: YR_PAIRS([[0, 1], [2, 11], [3, 10], [4, 9], [5, 8], [6, 7]]), harm: YR_PAIRS([[0, 7], [1, 6], [2, 5], [3, 4], [8, 11], [9, 10]]),
+    punish: YR_PAIRS([[2, 5], [5, 8], [2, 8], [1, 10], [10, 7], [1, 7], [0, 3]]), break: YR_PAIRS([[0, 9], [6, 3], [4, 1], [10, 7], [2, 11], [5, 8]]) };
+  var YR_TRINES = [[8, 0, 4], [2, 6, 10], [5, 9, 1], [11, 3, 7]];
+  function yearRelation(a, b) {
+    a = mod(a, 12); b = mod(b, 12);
+    var k = a + "-" + b;
+    if (mod(a - b, 12) === 6) return "clash";
+    if (a === b) return "same";
+    if (YR.harmony[k]) return "harmony";
+    if (YR_TRINES.some(function (t) { return t.indexOf(a) >= 0 && t.indexOf(b) >= 0; })) return "trine";
+    if (YR.harm[k]) return "harm";
+    if (YR.punish[k]) return "punish";
+    if (YR.break[k]) return "break";
+    return "neutral";
+  }
 
   var api = {
     jdn: jdn, jd: jd, fromJD: fromJD, sunLongitude: sunLongitude, sunAt: sunAt, solarTermJD: solarTermJD, jieAround: jieAround, newMoonJD: newMoonJD, newMoonBefore: newMoonBefore,
@@ -332,6 +350,7 @@
     ZONES: ZONES, zoneOffset: zoneOffset, equationOfTime: equationOfTime, trueSolar: trueSolar, fmtOffset: fmtOffset,
     thaiLunarMonth: thaiLunarMonth, zodiacYearThai: zodiacYearThai, zodiacYearSongkran: zodiacYearSongkran, lek7: lek7, progressedSunChanges: progressedSunChanges, SATURN_RETURNS: SATURN_RETURNS,
   };
+  api.yearRelation = yearRelation;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.LifeCal = api;
 })(typeof window !== "undefined" ? window : globalThis);

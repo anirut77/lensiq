@@ -1,0 +1,4 @@
+# locked 2026-11-20T13:33:57Z (tools/eval-guard.mjs lock, 1 file)
+51f493f1e85b5dacbb76bf63bf28cb3c9cca2d0eca1ac3970722d552834581c0  crisis-load-diag.test.js
+51f493f1e85b5dacbb76bf63bf28cb3c9cca2d0eca1ac3970722d552834581c0  tests/unit/crisis-load-diag.test.js  # repo file (same commit as lock 2026-11-20T13:33:57Z; field: ~/LENSIQ-field/evals/crisis-load-diag/crisis-load-diag.test.js)
+# LOCK 2026-11-20 (owner decision 203 ค), BEFORE the helper tests/e2e/load-diag.mjs exists: classify crisis-rules-1323 page-load failures as "slow machine" (load average above 10 or page loaded late) vs "page did not load" (navigation / HTTP error, or no ready page while the load was normal); both still fail; no timeout, page list or assertion loosened.

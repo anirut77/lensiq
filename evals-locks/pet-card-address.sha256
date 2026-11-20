@@ -1,0 +1,41 @@
+# evals-locks/pet-card-address.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/pet-card-address/ (owner rule 2026-11-13). Append-only.
+# pet-card-address (owner change 2026-11-20 with go-live decision 152): until the site is live on its own domain the pet share card
+# prints the brand only ("จาก LENSIQ" / "From LENSIQ" / "来自 LENSIQ"), no URL anywhere on the card (13 zodiac templates, 4 classic
+# themes, save-image / share / text fallback); window.LENSIQ_CARD_SHOW_ADDRESS (lensiq-config.js, default false) brings the address
+# (still the single setting LQPet.LINK) back; coordinator decision: the QR follows the same switch. Locked BEFORE any product code on
+# branch pet-zodiac-live (base origin/main 2a61736c). Synthetic inputs only. Disclosure: the unit file was run once while it was
+# written (to check the recording canvas mock draws all 13 templates); no product code was changed.
+# locked 2026-11-20T06:46:56Z (tools/eval-guard.mjs lock, 2 files)
+51dba5b1768f93f005cfa8718f812d5820f4ec368c90b278090f666bba580cb6  pet-card-address.test.js
+13276192d963c00d610426f235246ad2d4ab92cfc13cb0a83d97b0e0d0ad219a  pet-card-address.e2e.mjs
+51dba5b1768f93f005cfa8718f812d5820f4ec368c90b278090f666bba580cb6  tests/unit/pet-card-address.test.js  # repo file (same commit as lock 2026-11-20T06:46:56Z; field: ~/LENSIQ-field/evals/pet-card-address/pet-card-address.test.js)
+13276192d963c00d610426f235246ad2d4ab92cfc13cb0a83d97b0e0d0ad219a  tests/e2e/pet-card-address.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:46:56Z; field: ~/LENSIQ-field/evals/pet-card-address/pet-card-address.e2e.mjs)
+# LOCK 2 2026-11-20 relock-1 (owner decision 184 ก + coordinator order: the card brand comes from one setting
+# window.LENSIQ_CARD_BRAND, default "LENSIQ"): new file tests/unit/pet-card-brand.test.js (N1-N4), same commit as the re-locks
+# relock-pet-3 (fortune-pet) and relock-4 (pet-zodiac), BEFORE the product change. Earlier files unchanged. Disclosure: the
+# file was run once while written (0/4, no product code changed).
+# locked 2026-11-20T08:49:58Z (tools/eval-guard.mjs lock, 1 file)
+6ce9856dca1d8cc0ddd1cef41aaa1446271096cc7df218be03053cc9404451d8  relock-1/pet-card-brand.test.js
+6ce9856dca1d8cc0ddd1cef41aaa1446271096cc7df218be03053cc9404451d8  tests/unit/pet-card-brand.test.js  # repo file (same commit as lock 2026-11-20T08:49:58Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-1/pet-card-brand.test.js)
+# LOCK 3 2026-11-20 relock-2 (owner decision 198): the hint under the pet card options (pet.photoOnHint) must not mention a QR code
+# while the QR option is hidden (LENSIQ_CARD_SHOW_ADDRESS false); with the switch on the old two-option text returns (new key
+# pet.photoOnHintQr). New files tests/unit/pet-card-hint.test.js (K1-K5) and tests/e2e/pet-card-hint.e2e.mjs (H1-H3), BEFORE the
+# product change. Disclosure: the unit file was run once while written (0/5, no product code changed).
+# locked 2026-11-20T13:31:24Z (tools/eval-guard.mjs lock, 2 files)
+7fc50cc09163cd28002fe2808b42773276f987a5ae36167049d64b9cfa5690aa  relock-2/pet-card-hint.test.js
+fa21b0b9f86743c342d16ddbe4244084aa7af79d1a05afd0e0458172002d629e  relock-2/pet-card-hint.e2e.mjs
+7fc50cc09163cd28002fe2808b42773276f987a5ae36167049d64b9cfa5690aa  tests/unit/pet-card-hint.test.js  # repo file (same commit as lock 2026-11-20T13:31:24Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-2/pet-card-hint.test.js)
+fa21b0b9f86743c342d16ddbe4244084aa7af79d1a05afd0e0458172002d629e  tests/e2e/pet-card-hint.e2e.mjs  # repo file (same commit as lock 2026-11-20T13:31:24Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-2/pet-card-hint.e2e.mjs)
+# LOCK 4 2026-11-20 relock-3 (owner decision 198, test fix, equal scope): tests/e2e/pet-card-hint.e2e.mjs re-locked. The card section
+# (options + hint) is hidden until a reading is made, so each page now runs one reading and checks the hint and the QR option as
+# VISIBLE (the relock-2 version of H1-H3 looked at a hidden section; H2 failed at baseline for that reason, not the hint). The unit
+# file is unchanged. Disclosure: the relock-2 e2e was run once (0/3, no product code changed) before this fix.
+# locked 2026-11-20T13:41:18Z (tools/eval-guard.mjs lock, 1 file)
+e294f928c1365daf4b0a39d2b420ac62a61e885fe11ca882c6d4e21e45ec6902  relock-3/pet-card-hint.e2e.mjs
+e294f928c1365daf4b0a39d2b420ac62a61e885fe11ca882c6d4e21e45ec6902  tests/e2e/pet-card-hint.e2e.mjs  # repo file (same commit as lock 2026-11-20T13:41:18Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-3/pet-card-hint.e2e.mjs)
+# LOCK 5 2026-11-20 relock-4 (owner decision 198, test fix, equal scope): tests/unit/pet-card-hint.test.js K5 re-locked. Its ?v= regex
+# for petread.js also matched the zh-petread.js tag first (reading 2, not the petread.js version); it now anchors on the full
+# src="..." attribute. K1-K4 unchanged. Found when the product change (not yet committed) was run against the locked file: 4/5.
+# locked 2026-11-20T13:41:54Z (tools/eval-guard.mjs lock, 1 file)
+74a6752f80444651680162990881fbc0cfc3a465a3cde4ccd30225b81fd827c2  relock-4/pet-card-hint.test.js
+74a6752f80444651680162990881fbc0cfc3a465a3cde4ccd30225b81fd827c2  tests/unit/pet-card-hint.test.js  # repo file (same commit as lock 2026-11-20T13:41:54Z; field: ~/LENSIQ-field/evals/pet-card-address/relock-4/pet-card-hint.test.js)

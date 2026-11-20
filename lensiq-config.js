@@ -30,6 +30,11 @@ window.LENSIQ_FORTUNE_STRAIGHT = false;
 window.LENSIQ_FORTUNE_PAID = window.LENSIQ_FORTUNE_PAID === true;
 window.LENSIQ_FORTUNE_PLAN = window.LENSIQ_FORTUNE_PLAN === true;
 window.LENSIQ_FORTUNE_SOURCES = window.LENSIQ_FORTUNE_SOURCES === true;
+/* LENSIQ_FORTUNE_CAUTIONS (item 177): the closed "สิ่งที่ควรระวัง" section (fortune-caution.js); off until the owner says "177 ขึ้นเว็บ".
+ * _CN_WEST (D-6): Chinese and Western rules, off until expert review; _DRAFTS: rules not yet expert-reviewed (preview only) */
+window.LENSIQ_FORTUNE_CAUTIONS = window.LENSIQ_FORTUNE_CAUTIONS === true;
+window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST = window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST === true;
+window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS = window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS === true;
 /* LENSIQ_PET_ZODIAC (owner spec 2026-11-19): the petread share card becomes a card the system draws (12 zodiac animals + a
  * secret card, independent of the reading, free) with a collection kept on this device. Off on the live site until the owner
  * approves the samples. LENSIQ_PET_CARD_CLASSIC (spec name PET_CARD_CLASSIC, decision 138 ข): true = the 4 classic colour
@@ -38,6 +43,13 @@ window.LENSIQ_FORTUNE_SOURCES = window.LENSIQ_FORTUNE_SOURCES === true;
 window.LENSIQ_PET_ZODIAC = window.LENSIQ_PET_ZODIAC === true;
 window.LENSIQ_PET_CARD_CLASSIC = window.LENSIQ_PET_CARD_CLASSIC === true;
 window.LENSIQ_PET_ZODIAC_ODDS = window.LENSIQ_PET_ZODIAC_ODDS || "b";
+/* LENSIQ_CARD_BRAND (owner decision 184 ก, 2026-11-20): the brand printed on the pet share card ("จาก <brand>" / "From <brand>" /
+ * "来自 <brand>" and the card header), one setting for every card template and the save-image / text fallback; a shared card
+ * cannot be corrected later. LENSIQ_CARD_SHOW_ADDRESS (owner change 2026-11-20): false = the card prints the brand only, with no
+ * site address and no QR code (the QR encodes the address), until the site is live on its own domain; then set true in the same
+ * commit that points LQPet.LINK (lensiq-pet.js, the one address setting) at the new domain (docs/PRODUCTION-MOVE-PLAN.md 2.6). */
+window.LENSIQ_CARD_BRAND = typeof window.LENSIQ_CARD_BRAND === "string" && window.LENSIQ_CARD_BRAND.trim() ? window.LENSIQ_CARD_BRAND : "LENSIQ";
+window.LENSIQ_CARD_SHOW_ADDRESS = window.LENSIQ_CARD_SHOW_ADDRESS === true;
 
 /* LENSIQ_LOOK_SALON (decision 2026-11-14 ก): shop-catalogue mode of the look suggestions; off until a human approval step exists */
 window.LENSIQ_LOOK_SALON = false;

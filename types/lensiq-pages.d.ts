@@ -38,4 +38,17 @@ interface Window {
   FORTUNE_ZH?: any;
   /** palm.js test hook */
   __palm?: any;
+  /** fortune engines and knowledge bases of horoscope / astro / lifecal pages */
+  FortuneKit?: any;
+  HSCore?: any;
+  HSKB?: any;
+  HSKB_ZH?: any;
+  Astro?: any;
+  ASTRO_KB?: any;
+  LifeCal?: any;
+  LIFECAL_KB?: any;
+  /** horoscope.js / astro.js / lifecal-ui.js test hooks */
+  __hs?: any;
+  __as?: any;
+  __lc?: any;
 }

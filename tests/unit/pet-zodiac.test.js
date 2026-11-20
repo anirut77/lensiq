@@ -2,6 +2,9 @@
 // tests/unit/pet-zodiac.test.js — FIXED TEST SET for the Pet zodiac share cards (owner spec 2026-11-19, branch pet-zodiac-cards).
 // Locked (evals-locks/pet-zodiac.sha256, ~/LENSIQ-field/evals/pet-zodiac/) BEFORE any product code. Browser half:
 // tests/e2e/pet-zodiac.e2e.mjs. Inputs are synthetic (no photos).
+// RE-LOCK 4 (2026-11-20, owner decision 184 ก; ledger evals-locks/pet-zodiac.sha256 "relock-4"): Z9 only. The footer carries
+// the site address only when window.LENSIQ_CARD_SHOW_ADDRESS is true; by default it is exactly the brand line (FROM) with no
+// address. The old check (FROM + address) is kept for the switch-on case: equal or stricter. Nothing else changed.
 // RE-LOCK 1 (2026-11-19, owner decisions 137 ข and 138 ข, before any product commit): option b (the day's zodiac animal x2,
 // secret 1 in 50, 1 in 10 on full-moon days) is the DEFAULT; the birthday rule (old option c) is removed entirely (a typed
 // birthday can be set to today); one short odds line generated from the active config; the classic themes stay behind
@@ -309,7 +312,12 @@ test("Z9 TH / EN / ZH keys complete: every data-i18n key on petread.html and eve
   assert.doesNotMatch(M.FROM.en + M.FROM.zh, THAI);
   for (const l of LANGS) {
     const m = P.cardModel(P.compose(pet("orange"), { lang: l }), { template: "rat" });
-    assert.ok(m.from && m.from.includes(M.FROM[l]) && m.from.includes(P.LINK.replace(/^https:\/\//, "")), l + " footer: " + m.from);
+    assert.equal(m.from, M.FROM[l], l + " footer, switch off (default): the brand line only: " + m.from);
+    globalThis.LENSIQ_CARD_SHOW_ADDRESS = true;
+    try {
+      const mOn = P.cardModel(P.compose(pet("orange"), { lang: l }), { template: "rat" });
+      assert.ok(mOn.from && mOn.from.includes(M.FROM[l]) && mOn.from.includes(P.LINK.replace(/^https:\/\//, "")), l + " footer, switch on: " + mOn.from);
+    } finally { delete globalThis.LENSIQ_CARD_SHOW_ADDRESS; }
   }
 });
 

@@ -3,7 +3,8 @@
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
   "fortune.disc.line": "Based on astrological principles, which are a matter of personal belief. Please use your own judgement.",
   "pet.qrOn": "Add a QR code that links back to this page",
-  "pet.photoOnHint": "Both are off by default. The photo and the QR code are made on this device and never sent.",
+  "pet.photoOnHint": "This is off by default. The photo is made on this device and never sent.",
+  "pet.photoOnHintQr": "Both are off by default. The photo and the QR code are made on this device and never sent.",
   "pet.sizeAria": "Card size",
   "pet.size.post": "Post 4:5",
   "pet.size.story": "Story 9:16",
