@@ -29,6 +29,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { readTesterPolicy, testerVerdict, workerTesterProblems } from "./lib/tester-policy.mjs";
 import {
   BACKEND, D1_PLACEHOLDER, ENV, GuardError, WRANGLER_TOML, accountEnvRefusal, assertSafeEnv, assertTarget, assertWranglerBundle, fillDatabaseId, parseDatabaseId, readTargets,
   verifyD1, workerDeployed, wrangler
@@ -60,7 +61,7 @@ export function commands(t, o = {}) {
   };
 }
 
-/** @param {string[]} argv @param {{print?: (s: string) => void, env?: any, toml?: string, tomlPath?: string}} [io] @returns {number} exit code */
+/** @param {string[]} argv @param {{print?: (s: string) => void, env?: any, toml?: string, tomlPath?: string, policy?: {enforce: boolean}}} [io] @returns {number} exit code */
 export function main(argv, io = {}) {
   const print = io.print || (s => console.log(s));
   const env = io.env || process.env;
@@ -83,6 +84,13 @@ export function main(argv, io = {}) {
       if (why) { print(why); return 3; }
     }
     // credentials from the shell reach wrangler only for read-only actions or after --account-confirmed
+    // owner decision D-3: the tester gate policy (deploy/tester-gate.json; tools/lib/tester-policy.mjs)
+    const tv = testerVerdict(io.policy || readTesterPolicy(), workerTesterProblems(t.vars));
+    if (action === "plan" || action === "deploy") {
+      print(`Tester gate (D-3) policy: enforce ${tv.enforce ? "on" : "off"} · ${tv.problems.length ? tv.problems.length + " problem(s)" : "ok"} (deploy/tester-gate.json)`);
+      if (action === "deploy" && tv.refuse) { for (const p of tv.problems) print("REFUSED: " + p + ". Nothing was changed."); return 3; }
+      for (const p of tv.problems) print("WARNING: " + p);
+    }
     return act(action, { argv, words, print, env, printOnly, t, tomlPath, creds: !MUTATING.has(action) || argv.includes("--account-confirmed") });
   } catch (e) { if (e instanceof GuardError) { print(e.message); return 3; } throw e; }
 }

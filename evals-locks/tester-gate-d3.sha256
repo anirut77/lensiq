@@ -1,0 +1,4 @@
+# locked 2026-11-20T18:04:15Z (tools/eval-guard.mjs lock, 1 file)
+bc742bb79005ae617f31bb480001819597f750ee383d253eb758d6a7b1df4b03  tester-gate-d3.test.js
+bc742bb79005ae617f31bb480001819597f750ee383d253eb758d6a7b1df4b03  tests/unit/tester-gate-d3.test.js  # repo file (same commit as lock 2026-11-20T18:04:15Z; field: ~/LENSIQ-field/evals/tester-gate-d3/tester-gate-d3.test.js)
+# tester-gate-d3 (owner decision D-3 2026-11-19 'enforce the tester code on the live site', night order A3): NEW tests/unit/tester-gate-d3.test.js committed BEFORE the product change (tools/lib/tester-policy.mjs, deploy/tester-gate.json, backend-deploy/build-site checks). Branch d3-d4, base 0b51b0fb. Baseline on 0b51b0fb: 0/8 pass (~/LENSIQ-field/evals/tester-gate-d3/baseline-unit.log).
