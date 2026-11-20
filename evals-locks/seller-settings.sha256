@@ -50,3 +50,6 @@ f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7  tests/unit/bac
 # RENAME 2026-11-18 (coordinator order, owner runs the lines): tests/unit/unit-index.test.js allows no round-named unit files, so commit 35975659 renamed the two files with git mv, bytes identical; the lock block above records the new paths, the two lines below retire the old ones.
 # retired tests/unit/backend-seller-r1.test.js reason: renamed, bytes identical (now tests/unit/backend-seller-frozen-docs.test.js, sha256 f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7, commit 35975659)
 # retired tests/unit/backend-seller-r2.test.js reason: renamed, bytes identical (now tests/unit/backend-seller-health.test.js, sha256 5f43b817bc286ff09160c8086155ff918419b4655873ff8df0597cd41b320dff, commit 35975659)
+# locked 2026-11-20T01:02:04Z (tools/eval-guard.mjs lock, 1 file)
+87b444f47bd8c656a782d5c241aeec0f163e4b7628055ee1e0ec7228420639c1  relock1/backend-seller.test.js
+87b444f47bd8c656a782d5c241aeec0f163e4b7628055ee1e0ec7228420639c1  tests/unit/backend-seller.test.js  # repo file (same commit as lock 2026-11-20T01:02:04Z; field: ~/LENSIQ-field/evals/seller-settings/relock1/backend-seller.test.js)

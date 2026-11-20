@@ -366,10 +366,13 @@ test("S7: numbering: prefix + type code + DB sequence; concurrent issues unique 
   const iv = await s.newDoc("invoice"), rc = await s.newDoc("receipt");
   assert.equal((await s.issue(iv.id)).j.doc.number, "TS-IV-000001");
   assert.equal((await s.issue(rc.id)).j.doc.number, "TS-RC-000001");
-  // void keeps its number; the next quotation continues, never reusing it
+  // void keeps its number; the next quotation continues, never reusing it. Re-lock (owner decision 162, 2026-11-19): the
+  // eight issues run at once, so which number docs[7] gets is not fixed; read it before the void instead of assuming 8
+  const before = await s.env.DB.prepare("SELECT number FROM seller_docs WHERE id = ?1").bind(docs[7].id).first();
+  assert.ok(nums.includes(before.number), "docs[7] holds one of the eight issued numbers: " + before.number);
   assert.equal((await s.O(`/seller/docs/${docs[7].id}/void`, { method: "POST", body: await s.step() })).status, 200);
   const v = await s.env.DB.prepare("SELECT status, number FROM seller_docs WHERE id = ?1").bind(docs[7].id).first();
-  assert.equal(v.status, "void"); assert.equal(v.number, "TS-QT-000008");
+  assert.equal(v.status, "void"); assert.equal(v.number, before.number);
   const n9 = await s.newDoc("quotation");
   assert.equal((await s.issue(n9.id)).j.doc.number, "TS-QT-000009");
   // a changed prefix continues the sequence (no restart, no reuse)
