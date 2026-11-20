@@ -1,5 +1,7 @@
 // tests/e2e/palm-v2-capture.e2e.mjs — FIXED TEST SET "palm-layers" relock4 (palm v2 capture, owner orders 2026-11-20), changed and
 // re-locked as relock5 (owner decisions 171 ก and 172, 2026-11-20) in evals-locks/palm-layers.sha256 BEFORE the product change.
+// Changed again and re-locked as relock7 (owner decisions 170 ก and 179 ก, 2026-11-20) BEFORE the product change, each change equal or
+// stricter: U checks the new exact 179 text and that no part of the old text is on the page; new check M (170 ก).
 // 171 ก (owner-approved loosening): sharpness no longer blocks a photo; the minimum is palm width >= 360 px and blown-out <= 2 %;
 // sharpness is measured for review only and never shown. 172: the pre-capture guidance is EXACTLY the approved text. palm.html with window.LENSIQ_PALM_V2 = true (set before load).
 // DRAWN SYNTHETIC images only (tests/fixtures/palm-v2/synth-capture.js), never a photo of a person; numbers are SYNTHETIC.
@@ -9,6 +11,9 @@
 //     photo; a good photo and a blurred photo (S x 10^4 < 1.0, still measured) show no such message, the finder runs, and no
 //     sharpness value appears anywhere on the page.
 //  F  camera still with a flash blow-out (> 2 %) is rejected with the same message; a good still is not.
+//  M  (170 ก) the manual capture button pressed BEFORE the outline turned green: the full-resolution still must pass the full photo
+//     minimum: a 300 px palm and a 3 % blown-out palm are rejected with the exact 179 message (TH / EN / ZH), the finder does not run;
+//     a good still and a blurred still (blur alone never rejects) pass; pw is measured on the still's own pixels.
 //  H  handedness: the user chose the right hand and the photo is a left hand: a confirmation question (TH / EN / ZH) appears,
 //     the reading button waits, the side stays "right" until the user answers; answering "left" sets left. A matching photo
 //     asks nothing.
@@ -25,11 +30,14 @@ const S = JSON.stringify;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const LANGS = ["th", "en", "zh"];
 const TAP_ORDER = ["wrist", "indexBase", "pinkyBase", "indexTip", "middleTip", "ringTip", "pinkyTip"];
+/* owner decision 179 ก (2026-11-20): byte for byte */
 const RETAKE = {
-  th: "ภาพนี้เล็กหรือไม่คมพอสำหรับหาเส้นลายมือ ถ่ายใหม่ให้ฝ่ามือเต็มกรอบ ในที่สว่างทั่วถึง ไม่ใช้แฟลช และถือให้นิ่ง หรือจะวาดเส้นเองบนภาพนี้ก็ได้",
-  en: "This photo is too small or not sharp enough to find palm lines. Retake it with your palm filling the frame, in bright even light, without flash, holding still, or draw the lines yourself on this photo.",
-  zh: "这张照片太小或不够清晰，无法找到掌纹。请让手掌占满画面，在明亮均匀的光线下、不开闪光灯、保持稳定后重拍，也可以直接在这张照片上自己画线。"
+  th: "ภาพเล็กเกินไปหรือสว่างจ้าจากแฟลช ลองถ่ายใหม่ให้ฝ่ามือเต็มกรอบและปิดแฟลช",
+  en: "The photo is too small or washed out by the flash. Please retake it with your palm filling the frame and the flash off.",
+  zh: "照片太小或被闪光灯照得过亮。请让手掌占满画面并关闭闪光灯后重新拍摄。"
 };
+/* the earlier retake message that 179 ก replaces: no part may remain on the page */
+const OLD_RETAKE = ["ภาพนี้เล็กหรือไม่คมพอสำหรับหาเส้นลายมือ ถ่ายใหม่ให้ฝ่ามือเต็มกรอบ ในที่สว่างทั่วถึง ไม่ใช้แฟลช และถือให้นิ่ง หรือจะวาดเส้นเองบนภาพนี้ก็ได้", "This photo is too small or not sharp enough to find palm lines. Retake it with your palm filling the frame, in bright even light, without flash, holding still, or draw the lines yourself on this photo.", "这张照片太小或不够清晰，无法找到掌纹。请让手掌占满画面，在明亮均匀的光线下、不开闪光灯、保持稳定后重拍，也可以直接在这张照片上自己画线。", "ไม่คมพอ", "not sharp enough", "不够清晰"];
 /* owner decision 172 (2026-11-20): byte for byte */
 const GUIDE = {
   th: "ถ่ายข้างหน้าต่างให้แสงส่องฝ่ามือจากด้านข้าง ไม่ใช่จากด้านหน้า ปิดแฟลช (ตั้งเป็น 'ปิด' ไม่ใช่ 'อัตโนมัติ') ปล่อยมือสบาย ๆ งุ้มเล็กน้อย ไม่ต้องเหยียดตึง และให้เห็นทั้งฝ่ามือและนิ้วอยู่ในกรอบ",
@@ -120,6 +128,9 @@ export default async function ({ base, launch, check, fakeCams }) {
             await tapAll(page, await upload(page, o));
             const f = await facts(page);
             assert(f.msg === RETAKE[lang], `${lang} ${name}: message ${S(f.msg)}`);
+            const page_t = await page.evaluate(() => document.body.innerText + "\n" + document.documentElement.outerHTML);
+            const oldLeft = OLD_RETAKE.filter(o => page_t.includes(o));
+            assert(oldLeft.length === 0, `${lang} ${name}: the old retake text is still on the page ${S(oldLeft)}`);
             assert(f.q && f.q.ok === false && f.q.fails.includes(fail) && !f.q.fails.includes("sharp"), `${lang} ${name}: verdict ${S(f.q)}`);
             assert(f.ms == null, `${lang} ${name}: the finder ran (${f.ms} ms)`);
             assert(f.rows.length === 10 && f.rows.every(s => s === "notFound"), `${lang} ${name}: rows ${S(f.rows)}`);
@@ -178,6 +189,39 @@ export default async function ({ base, launch, check, fakeCams }) {
         }
       } finally { await page.close(); }
     });
+
+    for (const lang of LANGS) {
+      await check(`M ${lang}: 170 ก manual capture before green: a 300 px palm and 3 % blow-out are rejected with the exact 179 message; good and blurred stills pass`, async () => {
+        const page = await open(browser, base, { lang, fakeCams, extra: [FAKE_IC] });
+        try {
+          for (const [name, o, fail] of [["palm 300 px", { pw: 300 }, "pw"], ["blown-out 3 %", { pw: 480, clip: 0.03 }, "clip"], ["good", { pw: 480 }, null],
+            ["blurred only", { pw: 480, blur: 0.008 }, null]]) {
+            await page.evaluate(o => { window.__stillOpts = o; window.__stillTaps = null; }, o);
+            await click(page, "#pv2Start");
+            await page.waitFor(`!document.getElementById("pv2Snap").hidden`, 8000);
+            const before = await page.evaluate(() => window.__tp);
+            await click(page, "#pv2Snap");
+            await page.waitFor(`window.__tp > ${before} && !!window.__stillTaps && !!window.__palmV2.lastStill`, 10000);
+            const still = await page.evaluate(() => window.__palmV2.lastStill);
+            assert(still.auto === false, `${lang} ${name}: not the manual button ${S(still)}`);
+            await tapAll(page, await page.evaluate(() => window.__stillTaps));
+            const f = await facts(page);
+            assert(f.q && f.q.beforeGreen === true && f.q.source === "camera", `${lang} ${name}: not recorded as a camera still before green ${S(f.q)}`);
+            assert(Math.abs(f.q.pw - o.pw) <= 2, `${lang} ${name}: pw not measured on the full-resolution still ${S(f.q)} want ${o.pw}`);
+            if (fail) {
+              assert(f.msg === RETAKE[lang], `${lang} ${name}: message ${S(f.msg)}`);
+              assert(f.q.ok === false && S(f.q.fails) === S([fail]), `${lang} ${name}: verdict ${S(f.q)}`);
+              assert(f.ms == null, `${lang} ${name}: the finder ran (${f.ms} ms)`);
+              assert(f.rows.length === 10 && f.rows.every(s => s === "notFound") && f.trace, `${lang} ${name}: rows ${S(f)}`);
+            } else {
+              assert(f.q.ok === true && f.q.fails.length === 0, `${lang} ${name}: verdict ${S(f.q)}`);
+              assert(!f.msg.includes(RETAKE[lang]), `${lang} ${name}: retake message shown ${S(f.msg)}`);
+              assert(typeof f.ms === "number", `${lang} ${name}: the finder did not run ${S(f)}`);
+            }
+          }
+        } finally { await page.close(); }
+      });
+    }
 
     for (const lang of LANGS) {
       await check(`H ${lang}: handedness: a left-hand photo while "right" is chosen asks first and never overrides; a matching photo asks nothing`, async () => {

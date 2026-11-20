@@ -1,6 +1,10 @@
 "use strict";
 // tests/unit/palm-v2-capture2.test.js — FIXED TEST SET "palm-layers" relock4 (palm v2 capture, owner orders 2026-11-20), changed and
 // re-locked as relock5 (owner decisions 171 ก and 172, 2026-11-20) in evals-locks/palm-layers.sha256 BEFORE the product change.
+// Changed again and re-locked as relock7 (owner decisions 170 ก and 179 ก, 2026-11-20) BEFORE the product change, every change equal
+// or stricter: 170 ก a manual camera capture taken BEFORE the outline turned green must pass the full photo minimum (palm width >= 360 px
+// AND blown-out <= 2 %, measured on the full-resolution still; sharpness never blocks); 179 ก the retake message is the new exact text
+// and the earlier text is gone.
 //   171 ก: the sharpness gate (S x 10^4 >= 1.0) is removed from the photo pass / fail minimum (owner-approved loosening: the best
 //          real photo pair scored 0.42-0.99); the minimum keeps palm width >= 360 px and blown-out <= 2 %. Sharpness is still measured
 //          (a value to look at only) and never blocks a photo or appears as a score to the user.
@@ -11,7 +15,8 @@
 //   photoQuality(rgba, w, h, hand) -> { pw, sharp, clip, mean }: the B2.3 measure. Palm ROI u 0..1, v 0.05..0.95 of the palm frame,
 //     resampled to 256 px wide; Y = BT.601; S = variance of the 4-neighbour Laplacian of the Gaussian (sigma 1) smoothed Y / mean(Y)^2;
 //     blown-out = any channel >= 250; pw = index-to-little-finger knuckle distance in image px.
-//   qualityVerdict(q, { source }) -> { ok, fails[] }: source "upload" checks pw and clip; "camera" checks clip (no flash); sharp never.
+//   qualityVerdict(q, { source, beforeGreen }) -> { ok, fails[] }: source "upload" checks pw and clip; "camera" checks clip (no flash);
+//     "camera" with beforeGreen true (manual shutter before green, 170 ก) checks pw and clip; sharp never.
 //   T("quality.retake", lang) = the owner-approved retake message, EXACTLY (TH / EN / ZH).
 //   handSide({ hand, facing, mirrored, handedness }) -> { side: "left" | "right" | null, ... }: from the thumb position relative to
 //     the palm (landmark geometry); facing "user" = a mirrored image unless `mirrored` says otherwise; the model's handedness label
@@ -31,11 +36,19 @@ const PV = require(path.join(ROOT, "palm-v2.js"));
 const SY = require(path.join(ROOT, "tests", "fixtures", "palm-v2", "synth-capture.js"));
 
 const LANGS = ["th", "en", "zh"];
+/* owner decision 179 ก (2026-11-20): the retake message, byte for byte */
 const RETAKE = {
-  th: "ภาพนี้เล็กหรือไม่คมพอสำหรับหาเส้นลายมือ ถ่ายใหม่ให้ฝ่ามือเต็มกรอบ ในที่สว่างทั่วถึง ไม่ใช้แฟลช และถือให้นิ่ง หรือจะวาดเส้นเองบนภาพนี้ก็ได้",
-  en: "This photo is too small or not sharp enough to find palm lines. Retake it with your palm filling the frame, in bright even light, without flash, holding still, or draw the lines yourself on this photo.",
-  zh: "这张照片太小或不够清晰，无法找到掌纹。请让手掌占满画面，在明亮均匀的光线下、不开闪光灯、保持稳定后重拍，也可以直接在这张照片上自己画线。"
+  th: "ภาพเล็กเกินไปหรือสว่างจ้าจากแฟลช ลองถ่ายใหม่ให้ฝ่ามือเต็มกรอบและปิดแฟลช",
+  en: "The photo is too small or washed out by the flash. Please retake it with your palm filling the frame and the flash off.",
+  zh: "照片太小或被闪光灯照得过亮。请让手掌占满画面并关闭闪光灯后重新拍摄。"
 };
+/* the earlier retake message (relock4..6) that 179 ก replaces: no part may remain in any text */
+const OLD_RETAKE = [
+  "ภาพนี้เล็กหรือไม่คมพอสำหรับหาเส้นลายมือ ถ่ายใหม่ให้ฝ่ามือเต็มกรอบ ในที่สว่างทั่วถึง ไม่ใช้แฟลช และถือให้นิ่ง หรือจะวาดเส้นเองบนภาพนี้ก็ได้",
+  "This photo is too small or not sharp enough to find palm lines. Retake it with your palm filling the frame, in bright even light, without flash, holding still, or draw the lines yourself on this photo.",
+  "这张照片太小或不够清晰，无法找到掌纹。请让手掌占满画面，在明亮均匀的光线下、不开闪光灯、保持稳定后重拍，也可以直接在这张照片上自己画线。",
+  "ไม่คมพอ", "not sharp enough", "不够清晰"
+];
 /* owner decision 172 (2026-11-20): byte for byte */
 const GUIDE = {
   th: "ถ่ายข้างหน้าต่างให้แสงส่องฝ่ามือจากด้านข้าง ไม่ใช่จากด้านหน้า ปิดแฟลช (ตั้งเป็น 'ปิด' ไม่ใช่ 'อัตโนมัติ') ปล่อยมือสบาย ๆ งุ้มเล็กน้อย ไม่ต้องเหยียดตึง และให้เห็นทั้งฝ่ามือและนิ้วอยู่ในกรอบ",
@@ -155,6 +168,56 @@ test("the rejection message is EXACTLY the approved text in TH / EN / ZH, and th
   const st = PV.newState({ side: "right" });
   const r = PV.setLine(st, "life", { status: "added", cp: [[-0.06, 0.33], [0.13, 0.47], [0.24, 0.63], [0.28, 0.8]] });
   assert.equal(r.ok, true);
+});
+
+test("170 ก: a manual camera capture before green must pass the full photo minimum (pw >= 360, blown-out <= 2 %); sharpness never blocks", () => {
+  const good = { pw: 500, sharp: 1.8, clip: 0 };
+  const v = o => PV.qualityVerdict(Object.assign({}, good, o), { source: "camera", beforeGreen: true });
+  assert.deepEqual(v({}), { ok: true, fails: [] });
+  assert.deepEqual(v({ pw: 300 }), { ok: false, fails: ["pw"] });
+  assert.deepEqual(v({ pw: 359.9 }), { ok: false, fails: ["pw"] });
+  assert.deepEqual(v({ pw: 360 }), { ok: true, fails: [] });
+  assert.deepEqual(v({ clip: 0.03 }), { ok: false, fails: ["clip"] });
+  assert.deepEqual(v({ clip: 0.0201 }), { ok: false, fails: ["clip"] });
+  assert.deepEqual(v({ clip: 0.02 }), { ok: true, fails: [] });
+  assert.deepEqual(v({ pw: 300, clip: 0.03 }).fails.sort(), ["clip", "pw"]);
+  // fails closed on a missing or broken measure
+  for (const bad of [NaN, undefined, null]) { assert.ok(v({ pw: bad }).fails.includes("pw"), "pw " + bad); assert.ok(v({ clip: bad }).fails.includes("clip"), "clip " + bad); }
+  // blur alone never rejects, at any sharpness value
+  for (const sharp of [0, 0.01, 0.42, 0.99, 1.0, 5, -1, NaN, undefined, null, Infinity]) {
+    assert.deepEqual(v({ sharp }), { ok: true, fails: [] }, "sharp " + sharp);
+    assert.deepEqual(v({ pw: 300, sharp }).fails, ["pw"], "pw 300 sharp " + sharp);
+  }
+  // synthetic stills, measured at full resolution (the still's own pixels)
+  const small = imgQ({ pw: 300 });
+  assert.ok(Math.abs(small.q.pw - 300) < 1, "pw " + small.q.pw);
+  assert.deepEqual(PV.qualityVerdict(small.q, { source: "camera", beforeGreen: true }).fails, ["pw"], "300 px " + JSON.stringify(small.q));
+  const blown = imgQ({ pw: 480, clip: 0.03 });
+  assert.ok(blown.q.clip > 0.02, "clip " + blown.q.clip);
+  assert.deepEqual(PV.qualityVerdict(blown.q, { source: "camera", beforeGreen: true }).fails, ["clip"], "3 % " + JSON.stringify(blown.q));
+  const ok = imgQ({ pw: 480 });
+  assert.deepEqual(PV.qualityVerdict(ok.q, { source: "camera", beforeGreen: true }), { ok: true, fails: [] }, "good " + JSON.stringify(ok.q));
+  const soft = imgQ({ pw: 480, blur: 0.008 });
+  assert.ok(soft.q.sharp < 1.0, "blurred S " + soft.q.sharp);
+  assert.deepEqual(PV.qualityVerdict(soft.q, { source: "camera", beforeGreen: true }), { ok: true, fails: [] }, "blur alone " + JSON.stringify(soft.q));
+  // a still taken on green keeps the camera rule (blow-out; the live hints gated size before the shutter)
+  assert.deepEqual(PV.qualityVerdict(blown.q, { source: "camera", beforeGreen: false }).fails, ["clip"]);
+  // the manual shutter reports before / after green
+  const sh = PV.createAutoShutter({});
+  assert.equal(sh.manual({ ok: false }).beforeGreen, true); assert.equal(sh.manual({ ok: true }).beforeGreen, false);
+});
+
+test("179 ก: the earlier retake message is gone from every text and from palm-v2.js", () => {
+  const all = PV.allTexts().map(t => String(t.text == null ? "" : t.text)).join("\n");
+  const src = require("node:fs").readFileSync(path.join(ROOT, "palm-v2.js"), "utf8");
+  const ui = require("node:fs").readFileSync(path.join(ROOT, "palm-v2-ui.js"), "utf8");
+  for (const o of OLD_RETAKE) {
+    assert.ok(!all.includes(o), "in allTexts: " + o);
+    assert.ok(!src.includes(o), "in palm-v2.js: " + o);
+    assert.ok(!ui.includes(o), "in palm-v2-ui.js: " + o);
+    for (const l of LANGS) assert.ok(!PV.T("quality.retake", l).includes(o), l + ": " + o);
+  }
+  for (const l of LANGS) assert.ok(all.includes(RETAKE[l]), "179 text listed for the hard-limit scan: " + l);
 });
 
 test("handedness from landmark geometry: left / right, rear and front cameras, rotated hands", () => {
