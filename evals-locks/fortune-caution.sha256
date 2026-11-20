@@ -124,3 +124,14 @@ b6360c253b7e8d818e593b11513ff0132d7e757805f6ec03b5efa5d838651c1f  tests/e2e/fort
 # locked 2026-11-20T08:39:05Z (tools/eval-guard.mjs lock, 1 file)
 98a5e0da39cbaa7d5ba90a8299414b65af69140986951496e7cf8573052d8e15  relock8/fortune-caution-wording.test.js
 98a5e0da39cbaa7d5ba90a8299414b65af69140986951496e7cf8573052d8e15  tests/unit/fortune-caution-wording.test.js  # repo file (same commit as lock 2026-11-20T08:39:05Z; field: ~/LENSIQ-field/evals/fortune-caution/relock8/fortune-caution-wording.test.js)
+# RELOCK 9 2026-11-20 (independent review at 51ffb7ac FAILED), STRICTER, locked BEFORE the fixes: (1) narrows relock 6: under a one-day span "no section"
+# is accepted only on a page with no overall rule; (2) the live-pack draft check uses synthetic register copies (never vacuous) and tool.rankOf: a rule
+# with no text never ranks as live; (3) new e2e fortune-caution-gaps.e2e.mjs: calm tab fetches nothing; crisis words in every text field (name fields
+# included) on horoscope, bazi and astro; switch + Chinese / Western on, drafts off: no section, nothing fetched.
+# locked 2026-11-20T09:45:16Z (tools/eval-guard.mjs lock, 3 files)
+c80bafbc796a2fc787dd7ab006690d94f82b40464c61bf0e98b5850acfb9780d  relock9/fortune-caution-rules.test.js
+bd669581a848a435383bc2b924bda93e285aaa2eef0c48e77024bff18d693b92  relock9/fortune-caution-wording.test.js
+452920d46a7218335d90ed0f0791256877b4b4f9d4145fb504046f6b09035637  relock9/fortune-caution-gaps.e2e.mjs
+c80bafbc796a2fc787dd7ab006690d94f82b40464c61bf0e98b5850acfb9780d  tests/unit/fortune-caution-rules.test.js  # repo file (same commit as lock 2026-11-20T09:45:16Z; field: ~/LENSIQ-field/evals/fortune-caution/relock9/fortune-caution-rules.test.js)
+bd669581a848a435383bc2b924bda93e285aaa2eef0c48e77024bff18d693b92  tests/unit/fortune-caution-wording.test.js  # repo file (same commit as lock 2026-11-20T09:45:16Z; field: ~/LENSIQ-field/evals/fortune-caution/relock9/fortune-caution-wording.test.js)
+452920d46a7218335d90ed0f0791256877b4b4f9d4145fb504046f6b09035637  tests/e2e/fortune-caution-gaps.e2e.mjs  # repo file (same commit as lock 2026-11-20T09:45:16Z; field: ~/LENSIQ-field/evals/fortune-caution/relock9/fortune-caution-gaps.e2e.mjs)

@@ -1,4 +1,5 @@
 "use strict";
+// RELOCK 9 2026-11-20 (independent review at 51ffb7ac), STRICTER: narrows relock 6 (one-day span: no section only where the page has no overall rule).
 // RELOCK 5 2026-11-20 (wave 1b): T23 "overall first" applies when the page has an overall rule (astro has none yet: period part only).
 // tests/unit/fortune-caution-rules.test.js — FIXED TEST SET fortune-caution (owner item 177, 2026-11-20: the closed
 // "สิ่งที่ควรระวัง / Things to be mindful of / 需要留意的事项" section of the fortune readings). Locked BEFORE any product code
@@ -215,7 +216,11 @@ test("owner rule 2026-11-20: never a single day: a one-day period gets no 'this 
   for (const r of FIX.readings.filter(x => x.period)) for (const lang of LANGS) {
     const per = Object.assign({}, FIX.periods[r.period], { span: "day" });
     const m = core.build({ domain: r.domain, facts: { items: r.items }, period: per, lang }, ON);
-    // RELOCK 6: a page with no overall rule (astro) then has nothing to show at all (no section), which also has no period part
+    // RELOCK 9 (stricter, narrows relock 6): "no section" is accepted only on a page with no overall rule (astro); every other page keeps its
+    // section, without a period part
+    const hasOverall = RULES.some(x => x.kind === "overall" && x.domains.includes(r.domain));
+    if (hasOverall) assert.ok(m && m.parts.length >= 1, r.name + " " + lang + ": the section stays (overall part)");
+    else assert.equal(m, null, r.name + " " + lang + ": no overall rule and no period part -> no section");
     assert.ok(!m || !m.parts.some(p => p.part === "period"), r.name + " " + lang + ": period part under a one-day span");
   }
 });

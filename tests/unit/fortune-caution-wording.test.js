@@ -1,4 +1,6 @@
 "use strict";
+// RELOCK 9 2026-11-20 (independent review at 51ffb7ac), STRICTER: the live-pack draft check uses synthetic register copies (never vacuous);
+// tool.rankOf(rule, wording): a rule with no text field never ranks as live.
 // RELOCK 8 2026-11-20 (before measuring relock 7 on the code): "ได้ใจคน" (win people over) added to the Thai fixed phrases; its English
 // counterpart "people over" was already listed. Nothing else changed.
 // tests/unit/fortune-caution-wording.test.js — FIXED TEST SET fortune-caution, APPROVED-WORDING GATE (coordinator order 2026-11-20 after the
@@ -113,8 +115,16 @@ test("the pack tool refuses any text outside the register and any draft entry in
   assert.ok(tool.checkRules(bad1, W, { live: false }).length > 0, "an unknown id is refused");
   const bad2 = [Object.assign({}, raw[0], { mind: { th: "ระวังทุกอย่าง", en: "Be careful.", zh: "小心。" } })];
   assert.ok(tool.checkRules(bad2, W, { live: false }).length > 0, "free text is refused");
-  const draftOnly = raw.filter(r => FIELDS.some(k => r[k] && BY.get(r[k]).status === "draft"));
-  if (draftOnly.length) assert.ok(tool.checkRules(draftOnly, W, { live: true }).length > 0, "a draft entry is refused for a live pack");
+  // RELOCK 9 (stricter): synthetic register copies, so the check never becomes vacuous once real entries are reviewed
+  const ids = new Set(FIELDS.map(k => raw[0][k]).filter(Boolean));
+  const asStatus = st => ({ STATUS: W.STATUS, ENTRIES: W.ENTRIES.map(e => (ids.has(e.id) ? Object.assign({}, e, { status: st }) : e)) });
+  assert.ok(tool.checkRules([raw[0]], asStatus("draft"), { live: true }).length > 0, "a draft entry is refused for a live pack");
+  assert.deepEqual(tool.checkRules([raw[0]], asStatus("reviewed"), { live: true }), [], "a reviewed entry is accepted for a live pack");
+  assert.deepEqual(tool.checkRules([raw[0]], asStatus("expert-ok"), { live: true }), [], "an expert-ok entry is accepted for a live pack");
+  // RELOCK 9 (stricter): a rule with no text field never ranks as live
+  assert.equal(typeof tool.rankOf, "function", "tool.rankOf(rule, wording)");
+  assert.ok(tool.rankOf({ id: "x.none", school: "th" }, asStatus("expert-ok")) < 1, "a rule without text is not live");
+  assert.ok(tool.rankOf(raw[0], asStatus("reviewed")) >= 1 && tool.rankOf(raw[0], asStatus("draft")) < 1, "rank follows its entries");
   assert.ok(good.length === 3);
 });
 
