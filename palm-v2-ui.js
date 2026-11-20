@@ -527,6 +527,7 @@
     get busy() { return S.busy; },
     get lastStill() { return S.lastStill; },
     get lastDetectMs() { return S.lastDetectMs; },
+    get finder() { return S.det ? (S.det.v3 ? "v3" : "v2") : null; }, // which line finder produced the last result (v3 spike sub-switch)
     state: function () { return JSON.parse(PV.serialize(S.st)) && { side: S.st.side, school: S.st.school, lines: JSON.parse(JSON.stringify(S.st.lines)) }; },
     useImage: useImageUrl,
     imgToClient: imgToClient,

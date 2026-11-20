@@ -143,7 +143,7 @@
   var NDIR = 12;
   /** MFRAT: p x p window, 12 directions, line width L px; energy = window mean - darkest line mean; direction = argmin */
   function mfrat(N, mask, w, h, p, L) {
-    var r = (p - 1) >> 1, E = new Float32Array(w * h), D = new Float32Array(w * h), offs = [], sides = [], d, t, l;
+    var r = (p - 1) >> 1, E = new Float32Array(w * h), D = new Float32Array(w * h), A = new Float32Array(w * h), offs = [], sides = [], d, t, l;
     for (d = 0; d < NDIR; d++) {
       var th = d * Math.PI / NDIR, c = Math.cos(th), s = Math.sin(th), set = {}, list = [];
       var tStep = p > 21 ? 1 : 0.5, lStep = L > 3 ? (L - 1) / 2 : 1; // large windows (minor scale): sparser samples, same geometry
@@ -166,13 +166,18 @@
       var x0 = x - r, y0 = y - r, x1 = x + r + 1, y1 = y + r + 1, mean = (I[y1 * (w + 1) + x1] - I[y0 * (w + 1) + x1] - I[y1 * (w + 1) + x0] + I[y0 * (w + 1) + x0]) / (p * p);
       var best = 1e9, bd = 0;
       for (d = 0; d < NDIR; d++) { var o = offs[d], sum = 0; for (var k = 0; k < o.length; k += 2) sum += N[i + o[k + 1] * w + o[k]]; sum /= o.length / 2; if (sum < best) { best = sum; bd = d; } }
-      var flank = -1e9;
+      var fl = [], fa = [], fb = [];
       for (var pp = 0; pp < 2; pp++) { var sd2 = sides[bd][pp], ma = 0, mb = 0;
         for (var q = 0; q < sd2[0].length; q += 2) { ma += N[clamp(i + sd2[0][q + 1] * w + sd2[0][q], 0, w * h - 1)]; mb += N[clamp(i + sd2[1][q + 1] * w + sd2[1][q], 0, w * h - 1)]; }
-        flank = Math.max(flank, Math.min(ma, mb) / (sd2[0].length / 2)); }
-      E[i] = Math.max(0, Math.min(mean - best, flank - best)); D[i] = bd * Math.PI / NDIR;
+        ma /= sd2[0].length / 2; mb /= sd2[1].length / 2; fa.push(ma); fb.push(mb); fl.push(Math.min(ma, mb)); }
+      var flank = Math.max(fl[0], fl[1]), depth = Math.max(0, Math.min(mean - best, flank - best));
+      // wall asymmetry |left wall - right wall| / depth: a crease rises on both walls (dev photos under side light: median 0.20-0.27,
+      // 90th percentile 0.38-0.52); the dark halo that a shadow STEP leaves after normalisation has one wall far higher than the
+      // other (asymmetry > 1). Energy fades from asymmetry 0.7 and is gone at 1.1
+      var hiA = Math.max(fa[0], fa[1]), hiB = Math.max(fb[0], fb[1]), asym = depth > 0 ? Math.abs(hiA - hiB) / (Math.max(hiA, hiB) - best + 1e-6) : 0;
+      E[i] = depth * clamp((1.1 - asym) / 0.4, 0, 1); D[i] = bd * Math.PI / NDIR; A[i] = asym;
     }
-    return { E: E, D: D };
+    return { E: E, D: D, A: A };
   }
   /** structure-tensor line direction (along the line) of a grey image */
   function tensorDir(N, w, h, sigma) {
@@ -304,14 +309,16 @@
     return best;
   }
   /** geometry refit (drawing only; the z score uses the mean-energy fit): starting from the fit, maximise the INTEGRATED energy
-      above the background level, sum (e - tau) x length, with the end boxes widened by 0.1 PW, so the drawn curve follows the
+      above 0.6 x the fit's own median energy, sum (e - level) x length, with the end boxes widened by 0.1 PW, so the drawn curve follows the
       whole crease instead of its strongest stretch */
   function refit(M, id, q0, tau) {
     var B = priorBox(id, M.asp), W = 0.1, band = PRIOR[id].band;
     var BB = { ax: [B.ax[0] - W, B.ax[1] + W], ay: [B.ay[0] - W, B.ay[1] + W], bx: [B.bx[0] - W, B.bx[1] + W], by: [B.by[0] - W, B.by[1] + W], bend: B.bend * 1.5 };
+    var e0 = Array.from(samples(M, ctrl(q0), 80, band)).sort(function (x, y) { return x - y; }), medFit = Math.max(tau, e0[e0.length >> 1]);
+    var lvl = Math.max(tau, 0.6 * medFit), cap = 2 * medFit; // extending only pays where the crease is at least 0.6 x as strong as itself
     var G = function (q) { var P = ctrl(q), e = samples(M, P, 80, band), L = 0, a = bez(P, 0), sum = 0;
       for (var k = 1; k <= 8; k++) { var b = bez(P, k / 8); L += Math.hypot(b[0] - a[0], b[1] - a[1]); a = b; }
-      for (var j = 0; j < e.length; j++) sum += Math.min(e[j], 3 * tau + 3) - tau;
+      for (var j = 0; j < e.length; j++) sum += Math.min(e[j], cap) - lvl;
       return sum / e.length * L; };
     var q = q0.slice(), g0 = G(q), step = 0.04;
     for (var it = 0; it < 40 && step > 0.004; it++) {
@@ -420,46 +427,101 @@
     var sm = smoothPath(path, 2), e = 0; sm.forEach(function (p) { e += M.E[Math.round(p[1]) * w + Math.round(p[0])] || 0; });
     return { path: sm, meanEnergy: round(e / sm.length, 3), cp: resample(sm, 12).map(function (p) { return [round(CFG.u0 + p[0] / s, 4), round(CFG.v0 + p[1] / (s * M.asp), 4)]; }) };
   }
-  /** line tracking past the ends of the refined path (classical crease following): steps of 0.025 PW within +-30 degrees of
-      the current direction, kept while the mean directional energy of the step stays above 0.65 x the path's own median energy (and 2 x tau) and the direction stays in the
-      line's band; one gap of at most 0.05 PW is crossed only when the crease continues beyond it at 0.9 x that median. ROI px in and out. */
-  function track(M, path, band, tau, maxPW) {
-    var s = M.s, step = Math.max(3, 0.025 * s), out = path.slice(), ev = [];
-    for (var q = 0; q < path.length; q++) { var pi = Math.round(path[q][1]) * M.w + Math.round(path[q][0]); ev.push(M.E[pi] || 0); }
-    ev.sort(function (a, b) { return a - b; });
-    var med = ev[ev.length >> 1] || 0, keep = Math.max(2 * tau, 0.65 * med), jump = Math.max(3 * tau, 0.9 * med); // the crease must stay as strong as itself
-    var segE = function (p, d) { var n = Math.max(2, Math.round(step)), th = Math.atan2(d[1], d[0]), sum = 0, nx = -d[1], ny = d[0];
+  /** line tracking past the ends of the refined path (classical crease following). The crease is followed in steps of 0.025 PW
+      along a PREDICTED direction: the path's own end direction turned by its own end curvature (at most 3.4 degrees a step), with
+      candidates within +-20 degrees and at most 25 degrees in total away from the prediction. A step's energy counts only pixels
+      whose direction is within 15 degrees of the step. All levels come from THIS palm's null of one step (the best of the same 9
+      candidate directions at 240 random points): a step needs the null's 80th percentile; the extension is kept only up to where
+      its running sum of (energy - the null's 95th percentile) peaks, and tracking stops once that sum falls 3 levels below its
+      peak; one gap of up to 0.075 PW is crossed only when two steps beyond it both pass the 95th percentile (the skipped steps
+      count as a loss). The line never leaves its zone (the hull of its start / end boxes + 0.04 PW; the heart line is not
+      extended under the index finger, u < 0) and never runs along a line already drawn. ROI px in and out. */
+  function track(M, path, id, tau, maxPW) {
+    var s = M.s, step = Math.max(3, 0.025 * s), out = path.slice(), band = PRIOR[id].band, Z = PRIOR[id], mg = 0.04;
+    // the heart line is not extended under the index finger (u < 0: it would run on into the head / life start); conservative:
+    // a real heart line that does reach there is drawn a little short, never long
+    var uLo = id === "heart" ? 0 : Math.min(Z.a[0][0], Z.b[0][0]) - mg, uHi = Math.max(Z.a[0][1], Z.b[0][1]) + mg, vLo = Math.min(Z.a[1][0], Z.b[1][0]) - mg, vHi = Math.max(Z.a[1][1],
+        Z.b[1][1]) + mg;
+    var inZone = function (p) { var u = CFG.u0 + p[0] / s, v = CFG.v0 + p[1] / (s * M.asp), x = Math.round(p[0]), y = Math.round(p[1]);
+      if (M.taken && x >= 0 && y >= 0 && x < M.w && y < M.h && M.taken[y * M.w + x]) return false; // never run along a line already drawn
+      return u >= uLo && u <= uHi && v >= vLo && v <= vHi; };
+    // the null of ONE tracking step on this palm: the best of the same 9 candidate directions at random inner points
+    var bgv = [], rr = rng(4242), tries = 0;
+    while (bgv.length < 240 && tries < 4000) { tries++; var bx = rr() * M.w, by = rr() * M.h; if (!M.inner[Math.floor(by) * M.w + Math.floor(bx)]) continue;
+      var th0 = rr() * Math.PI, bb = 0; for (var aa = -20; aa <= 20; aa += 5) { var t2 = th0 + aa * Math.PI / 180, ee = segE0([bx, by], [Math.cos(t2), Math.sin(t2)]); if (ee > bb) bb = ee;
+          } bgv.push(bb); }
+    bgv.sort(function (x, y) { return x - y; });
+    var qbg = function (f) { return bgv.length ? bgv[Math.min(bgv.length - 1, Math.floor(f * bgv.length))] : 0; };
+    var keep = Math.max(2 * tau, qbg(0.8)), level = Math.max(2 * tau, qbg(0.95)), jump = Math.max(2 * tau, qbg(0.95));
+    var segE = segE0;
+    function segE0(p, d) { var n = Math.max(2, Math.round(step)), th = Math.atan2(d[1], d[0]), sum = 0, nx = -d[1], ny = d[0];
       for (var k = 1; k <= n; k++) { var best = 0; for (var o = -1; o <= 1; o++) { var x = Math.round(p[0] + d[0] * step * k / n + nx * o), y = Math.round(p[1] + d[1] * step * k / n + ny * o);
-        if (x < 0 || y < 0 || x >= M.w || y >= M.h || !M.inner[y * M.w + x]) return -1; var i = y * M.w + x, c = Math.cos(M.D[i] - th), e = M.E[i] * c * c; if (e > best) best = e; } sum += best; }
-      return sum / n; };
+        if (x < 0 || y < 0 || x >= M.w || y >= M.h || !M.inner[y * M.w + x]) return -1; var i = y * M.w + x, c = Math.cos(M.D[i] - th), e = c * c >= 0.933 ? M.E[i] : 0; if (e > best) best = e;
+            } sum += best; } // hard direction gate: within 15 degrees
+      return sum / n; }
+    var ang = function (d) { return Math.atan2(d[1], d[0]); }, rot = function (d, r) { return [d[0] * Math.cos(r) - d[1] * Math.sin(r), d[0] * Math.sin(r) + d[1] * Math.cos(r)]; };
+    var wrap = function (x) { while (x > Math.PI) x -= 2 * Math.PI; while (x < -Math.PI) x += 2 * Math.PI; return x; };
     var grow = function (P) { // extends P at its END
-      var len = 0, gaps = 0, k = Math.min(6, P.length - 1);
-      var d = [P[P.length - 1][0] - P[P.length - 1 - k][0], P[P.length - 1][1] - P[P.length - 1 - k][1]], dl = Math.hypot(d[0], d[1]) || 1; d = [d[0] / dl, d[1] / dl];
+      var N = P.length, k = Math.min(Math.round(0.08 * s), N - 1), k2 = Math.min(2 * k, N - 1);
+      if (k < 2) return P;
+      var d1 = [P[N - 1][0] - P[N - 1 - k][0], P[N - 1][1] - P[N - 1 - k][1]], d0 = [P[N - 1 - k][0] - P[N - 1 - k2][0], P[N - 1 - k][1] - P[N - 1 - k2][1]];
+      var turnPerStep = k2 > k ? clamp(wrap(ang(d1) - ang(d0)) * step / Math.max(1, Math.hypot(d1[0], d1[1])), -0.06, 0.06) : 0; // end curvature, <= 3.4 deg / step
+      var dl = Math.hypot(d1[0], d1[1]) || 1, pred = [d1[0] / dl, d1[1] / dl], len = 0, gaps = 0, dev = 0, N0 = P.length, gain = 0, bestGain = 0, bestLen = N0;
       while (len < maxPW * s) {
-        var p = P[P.length - 1], best = null;
-        for (var a = -30; a <= 30; a += 7.5) { var r = a * Math.PI / 180, dd = [d[0] * Math.cos(r) - d[1] * Math.sin(r), d[0] * Math.sin(r) + d[1] * Math.cos(r)];
-          if (band && !inBand(((Math.atan2(dd[1], dd[0]) % Math.PI) + Math.PI) % Math.PI, band)) continue;
-          var e = segE(p, dd); if (e > keep && (!best || e > best.e)) best = { e: e, d: dd, q: [p[0] + dd[0] * step, p[1] + dd[1] * step] }; }
-        if (!best && gaps < 1) { // one short gap: the crease must continue beyond it, strongly, in the same direction
-          var p2 = [p[0] + d[0] * step, p[1] + d[1] * step], e2 = segE(p2, d);
-          if (e2 > jump) { best = { e: e2, d: d, q: [p2[0] + d[0] * step, p2[1] + d[1] * step] }; gaps++; }
+        var p = P[P.length - 1], best = null; pred = rot(pred, turnPerStep);
+        for (var a = -20; a <= 20; a += 5) { var r = a * Math.PI / 180, dd = rot(pred, r);
+          if (Math.abs(dev + r) > 25 * Math.PI / 180) continue;
+          if (band && !inBand(((ang(dd) % Math.PI) + Math.PI) % Math.PI, band)) continue;
+          var qq = [p[0] + dd[0] * step, p[1] + dd[1] * step]; if (!inZone(qq)) continue;
+          var e = segE(p, dd); if (e > keep && (!best || e > best.e)) best = { e: e, d: dd, r: r, q: qq }; }
+        var skipped = 0;
+        if ((!best || best.e < level) && gaps < 1) { // a weak step: one gap of up to 3 steps (0.075 PW) is crossed when the crease
+          for (var g = 1; g <= 3; g++) {                   // continues beyond it, strongly, along the prediction
+            var p2 = [p[0] + pred[0] * step * g, p[1] + pred[1] * step * g], q2 = [p2[0] + pred[0] * step, p2[1] + pred[1] * step];
+            if (!inZone(p2) || !inZone(q2)) break;
+            var e2 = segE(p2, pred), q3 = [q2[0] + pred[0] * step, q2[1] + pred[1] * step], e3 = inZone(q3) ? segE(q2, pred) : -1;
+            if (e2 > jump && e3 > level) { best = { e: e2, d: pred, r: 0, q: q2 }; gaps++; skipped = g; break; } // two steps beyond confirm it
+          }
         }
         if (!best) break;
-        // the step is drawn as a straight run of points
         var n = Math.max(2, Math.round(Math.hypot(best.q[0] - p[0], best.q[1] - p[1])));
         for (var j = 1; j <= n; j++) P.push([p[0] + (best.q[0] - p[0]) * j / n, p[1] + (best.q[1] - p[1]) * j / n]);
         len += Math.hypot(best.q[0] - p[0], best.q[1] - p[1]);
-        d = [0.6 * d[0] + 0.4 * best.d[0], 0.6 * d[1] + 0.4 * best.d[1]]; dl = Math.hypot(d[0], d[1]) || 1; d = [d[0] / dl, d[1] / dl];
+        gain += best.e - level - 0.3 * level * skipped; if (gain > bestGain) { bestGain = gain; bestLen = P.length; } // keep only the extension that pays for itself
+        if (gain < bestGain - 3 * level) break; // a long weak run that never pays back: the crease has ended
+        dev += best.r * 0.5; pred = rot(pred, best.r * 0.5); // follow half of the chosen deviation
       }
+      P.length = bestLen; // the extension is cut where its running sum of (energy - level) peaks: a weak tail is dropped
       return P;
     };
-    // trim: never end on points that are weaker than the crease itself (a step can overshoot the real end)
+    // trim: never end on points weaker than the crease itself (a step can overshoot the real end)
     var trim = function (P) { while (P.length > 8) { var t = P[P.length - 1], m = 0;
       for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) { var x = Math.round(t[0]) + ox, y = Math.round(t[1]) + oy; if (x >= 0 && y >= 0 && x < M.w && y < M.h) m = Math.max(m,
           M.E[y * M.w + x]); }
       if (m >= keep) break; P.pop(); } return P; };
     out = trim(grow(out)); out = trim(grow(out.reverse())).reverse();
     return out;
+  }
+  /** end trim on the PHOTO itself, not on the windowed energy: MFRAT's p x p window makes the energy run on past a crease end
+      by about half the window, so each end is cut back while the local valley contrast (the grey at the point vs both flanks at
+      1.5 x the crease width, best of +-1 px across) averaged over 5 points stays below half of the line's own median contrast */
+  function trimLocal(M, P) {
+    if (!M.N || P.length < 12) return P;
+    var s = M.s, o = Math.max(2, Math.round(1.5 * 0.013 * s)), lc = [];
+    for (var k = 0; k < P.length; k++) {
+      var a = P[Math.max(0, k - 3)], b = P[Math.min(P.length - 1, k + 3)], tx = b[0] - a[0], ty = b[1] - a[1], tl = Math.hypot(tx, ty) || 1, nx = -ty / tl, ny = tx / tl, best = -1e9;
+      for (var c = -1; c <= 1; c++) {
+        var g = function (off) { var x = Math.round(P[k][0] + nx * (c + off)), y = Math.round(P[k][1] + ny * (c + off)); return x >= 0 && y >= 0 && x < M.w && y < M.h ? M.N[y * M.w + x] : 128; };
+        var v = Math.min(g(o), g(-o)) - g(0); if (v > best) best = v;
+      }
+      lc.push(best);
+    }
+    var srt = lc.slice().sort(function (x, y) { return x - y; }), med = srt[srt.length >> 1], lim = 0.5 * med;
+    var avg = function (k) { var sum = 0, n = 0; for (var j = Math.max(0, k - 2); j <= Math.min(lc.length - 1, k + 2); j++) { sum += lc[j]; n++; } return sum / n; };
+    var i0 = 0, i1 = P.length - 1;
+    while (i0 < i1 - 10 && avg(i0) < lim) i0++;
+    while (i1 > i0 + 10 && avg(i1) < lim) i1--;
+    return P.slice(i0, i1 + 1);
   }
   function smoothPath(P, r) { return P.map(function (_, i) { var sx = 0, sy = 0, c = 0; for (var k = -r; k <= r; k++) { var q = P[clamp(i + k, 0, P.length - 1)]; sx += q[0]; sy += q[1]; c++;
       } return [sx / c, sy / c]; }); }
@@ -494,9 +556,10 @@
       var z = (best.s - nul.mu) / nul.sd, L = { id: id, score: round(best.s, 4), z: round(z, 2), nullMu: round(nul.mu, 4), nullSd: round(nul.sd, 4), nullP99: round(nul.p99, 4), nullN: nul.n };
       L.solid = z >= zLimit;
       L.status = L.solid ? "found" : "unclear";
-      // drawn extent: the fitted curve is extended past both ends (t -0.08 .. 1.08, straight along the end tangents) after a geometry refit and the line runs as far as the crease does
+      // drawn extent: the fitted curve is extended past both ends (t -0.08 .. 1.08, straight along the end tangents) and the line runs as far as the crease does
       // (the mean-energy fit itself prefers the strongest stretch; the z score above uses the fit only)
-      var tau = nul.mu + 1.0 * nul.sd, TA = -0.08, TB = 1.08, NS = 140, P = ctrl(refit(M, id, best.q, tau)), e = samples(M, P, NS, PRIOR[id].band, TA, TB), ex = extent(e, tau);
+      var tau = nul.mu + 1.0 * nul.sd, TA = -0.08, TB = 1.08, NS = 140, P = ctrl(opts._noRefit ? best.q : refit(M, id, best.q, tau)), e = samples(M, P, NS, PRIOR[id].band, TA, TB),
+        eMid = Array.from(samples(M, P, 60, PRIOR[id].band)).sort(function (x, y) { return x - y; }), ex = extent(e, Math.max(tau, 0.6 * eMid[30]));
       L.fit = P.map(function (q) { return [round(q[0], 4), round(q[1] / M.asp, 4)]; });
       if (opts.transformNull) {
         L.rotNull = ["rot180", "flipV", "flipH", "rot90"].map(function (kind) { var T = transformMap(M, kind), b = search(T, id, rng(seed + 7), Math.round((opts.nSearch || CFG.nSearch) / 2));
@@ -505,13 +568,20 @@
       if (ex && (ex[1] - ex[0]) >= 8) {
         var t0 = TA + (TB - TA) * ex[0] / (NS - 1), t1 = TA + (TB - TA) * ex[1] / (NS - 1), path = minimalPath(M, P, t0, t1, Math.max(3, 0.025 * M.s));
         if (path && path.length > 4) {
-          var sm = smoothPath(track(M, smoothPath(path, 2), PRIOR[id].band, tau, 0.5), 2), cp = resample(sm, 9).map(function (p) { return [round(CFG.u0 + p[0] / M.s, 4),
+          var sm = trimLocal(M, smoothPath(opts._noTrack ? smoothPath(path, 2) : track(M, smoothPath(path, 2), id, tau, 0.45), 2)), cp = resample(sm,
+              9).map(function (p) { return [round(CFG.u0 + p[0] / M.s, 4),
               round(CFG.v0 + p[1] / (M.s * M.asp), 4)]; });
           L.path = sm; L.extent = [round(t0, 3), round(t1, 3)];
           if (L.solid) { L.cp = cp; L.features = features(M, sm, tau); } else L.candidate = cp; // below the limit: never drawn as detected
         }
       }
       if (L.solid && !L.cp) { L.solid = false; L.status = "unclear"; }
+      if (L.solid && L.path) { // pixels of a drawn line: a later line's tracking stops there (life / head join, heart / head)
+        if (!M.taken) M.taken = new Uint8Array(M.w * M.h);
+        var tr = Math.max(2, Math.round(0.015 * M.s));
+        L.path.forEach(function (p) { for (var dy = -tr; dy <= tr; dy++) for (var dx = -tr; dx <= tr; dx++) { var x = Math.round(p[0]) + dx, y = Math.round(p[1]) + dy;
+          if (x >= 0 && y >= 0 && x < M.w && y < M.h) M.taken[y * M.w + x] = 1; } });
+      }
       out[id] = L;
     });
     return out;
@@ -519,7 +589,7 @@
   function round(x, d) { var k = Math.pow(10, d); return Math.round(x * k) / k; }
   function prepare(rgba, W, H, hand, s, method) {
     var F = frameFromHand(hand), R = roi(rgba, W, H, F, s), N = normalise(R), En = energy(N, R, method);
-    return { F: F, R: R, N: N, M: { E: En.E, D: En.D, inner: R.inner, w: R.w, h: R.h, s: R.s, asp: R.asp, method: En.method } };
+    return { F: F, R: R, N: N, M: { E: En.E, D: En.D, A: En.A, N: N, inner: R.inner, w: R.w, h: R.h, s: R.s, asp: R.asp, method: En.method } };
   }
   /** find lines. opts: {method: "mfrat"|"wld"|"comp", minors: bool, zLimit (dev only), seed, transformNull: bool, keepMaps: bool} */
   function detect(rgba, W, H, hand, opts) {
