@@ -8,7 +8,7 @@
 (function (root) {
   "use strict";
   var NODE = typeof module !== "undefined" && module.exports && typeof require === "function";
-  /** @param {string} flags @param {...RegExp} parts */
+  /** @type {(flags: string, ...parts: RegExp[]) => RegExp} */
   var rx = function (flags) { return new RegExp([].slice.call(arguments, 1).map(function (r) { return r.source; }).join("|"), flags); };
   var MONTHS_TH = "ม\\.ค|ก\\.พ|มี\\.ค|เม\\.ย|พ\\.ค|มิ\\.ย|ก\\.ค|ส\\.ค|ก\\.ย|ต\\.ค|พ\\.ย|ธ\\.ค|มกรา|กุมภา|มีนา|เมษา|พฤษภา|มิถุนา|กรกฎา|สิงหา|กันยา|ตุลา|พฤศจิกา|ธันวา";
   var NUMW_TH = "หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า|สิบ|ยี่สิบ|ร้อย|พัน|หมื่น|แสน|ล้าน";

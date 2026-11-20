@@ -228,6 +228,7 @@
      every baziFacts item + this year's 流年 relation; period = the current 大运 and this year (or this year before the first luck period) */
   var YEAR_CHONG = ["clash", "same", "harm", "punish", "break"];
   function baziCautions(B, age, now) {
+    /** @type {any[]} */
     var items = baziFacts(B, "overall", { age: age }).items.slice();
     var yb = LC.bazi({ y: now.y, m: now.m, d: now.d, h: 12, mi: 0, tz: 7, noTime: false }).pillars.year.branch, rel = LC.yearRelation(B.pillars.year.branch, yb);
     if (rel !== "neutral") items.push(YEAR_CHONG.indexOf(rel) >= 0 ? { id: "year." + rel, polarity: "challenge", strength: 0.9 } : { id: "year." + rel, strength: 0.9 });

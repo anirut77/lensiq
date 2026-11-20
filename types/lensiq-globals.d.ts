@@ -108,6 +108,10 @@ interface Window {
   LENSIQ_FORTUNE_CAUTIONS_DRAFTS?: boolean;
   /** recommended-source entries (admin-managed later; none ship) */
   LQ_FORTUNE_SELLER_LINKS?: any[];
+  /** item 177: caution rules registered by the generated packs fortune-caution-pack-*.js (read by fortune-caution-core.js) */
+  LQCautionRules?: any[];
+  /** item 177: fortune-caution.js mount API, used by horoscope.js, astro.js and lifecal-ui.js */
+  LQFortuneCaution?: any;
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
   LENSIQ_TURNSTILE_SITEKEY?: string;
   /** lensiq-config.js: public OAuth Client ID for "Sign in with Google" ("" = no member sign-in) */

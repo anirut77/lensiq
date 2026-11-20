@@ -650,6 +650,7 @@
      month ranges, never a single day, so the period is the month and nothing comes from the day */
   var CAUTION_PERIOD = { span: "month", th: "เดือนนี้", en: "This month", zh: "本月" };
   function cautionItems(P, mo) {
+    /** @type {Array<{ id: string, tone?: string, polarity?: string, strength: number }>} */
     var it = [{ id: "thai.kalakini." + P.taksa.kalakini, tone: "caution", strength: 0.7 }];
     if (mo.branchRel === "clash") it.push({ id: "month.clash", polarity: "challenge", strength: 0.55 });
     var g = tenGod(P.bazi.day.stem, mo.pillar.stem);
