@@ -43,6 +43,10 @@ window.LENSIQ_LOOK_SALON = false;
 /* LENSIQ_PC_THAI_EQUIV (round 17 P9): Thai same-ingredient list on the travel card; off until the owner decides (L13) */
 window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
 
+/* palm v2 (2026-11-19, docs/acceptance/palm.md): off unless exactly true · LANDMARKS = MediaPipe hands (tier 2-U), demo profile only */
+window.LENSIQ_PALM_V2 = window.LENSIQ_PALM_V2 === true;
+window.LENSIQ_PALM_LANDMARKS = window.LENSIQ_PALM_LANDMARKS !== false;
+
 /* LENSIQ_PROFILE: "commercial" (default, customer mode: research models off) | "demo"; result in window.LENSIQ_RESEARCH */
 (function () {
   "use strict";
@@ -53,7 +57,7 @@ window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
   var on = locked ? false : stored === "on" ? true : stored === "off" || legacy === "commercial" ? false : pre === "demo";
   W.LENSIQ_PROFILE = on ? "demo" : "commercial";
   W.LENSIQ_RESEARCH = { on: on, locked: locked, key: KEY, operatorDemo: pre === "demo" && !locked };
-  if (!on) { W.LENSIQ_AGE_GENDER = false; W.LENSIQ_EXPRESSION = false; W.LENSIQ_FACEPARSE = false; }
+  if (!on) { W.LENSIQ_AGE_GENDER = false; W.LENSIQ_EXPRESSION = false; W.LENSIQ_FACEPARSE = false; W.LENSIQ_PALM_LANDMARKS = false; }
 })();
 
 /* LENSIQ_SELLER: seller details read by help, terms, privacy, the contact form and pricing; empty = neutral text.

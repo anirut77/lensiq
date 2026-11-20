@@ -1,0 +1,39 @@
+# locked 2026-11-19T16:29:27Z (tools/eval-guard.mjs lock, 8 files)
+36a0fb28592dec06a7e05dc2b9077e96a381e0161569fb26b9add6af1f1185a1  set/tests/unit/palm-v2-kit.js
+ed0e58d7dc2dfc3eea42b6eea70909840557164c7c1a9a2ada70bab4afdd92df  set/tests/unit/palm-v2-layers.test.js
+ee6b04943cbad2e832ce4f05d1e31f60ad8ba57a9843a902272e3549325657f2  set/tests/unit/palm-v2-reading.test.js
+c824a04fb7e958bc1b05ecf520f0b082c6cb2324bc9f15ed6f480e1a3da61385  set/tests/unit/palm-v2-capture.test.js
+a318af98ca0ed3c14df6cb24650e97064eb8a26ba31bc349ae3d8341eeac36c1  set/tests/unit/palm-v2-detect.test.js
+9e9c8589109fef838c212362383b3bf24cc86599f749f1fb5b120c592df56cb9  set/tests/e2e/palm-v2.e2e.mjs
+5a46bee147d903cabdd753bde4f914609faa793ef2afb73a903b99eaa89380c2  set/tests/fixtures/palm-v2/synth-hand.js
+0935e7016da62a5bda037d55cd6f4f43dd092168cf4c6ce216fef87e7e561757  set/docs/acceptance/palm.md
+36a0fb28592dec06a7e05dc2b9077e96a381e0161569fb26b9add6af1f1185a1  tests/unit/palm-v2-kit.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/unit/palm-v2-kit.js)
+ed0e58d7dc2dfc3eea42b6eea70909840557164c7c1a9a2ada70bab4afdd92df  tests/unit/palm-v2-layers.test.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/unit/palm-v2-layers.test.js)
+ee6b04943cbad2e832ce4f05d1e31f60ad8ba57a9843a902272e3549325657f2  tests/unit/palm-v2-reading.test.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/unit/palm-v2-reading.test.js)
+c824a04fb7e958bc1b05ecf520f0b082c6cb2324bc9f15ed6f480e1a3da61385  tests/unit/palm-v2-capture.test.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/unit/palm-v2-capture.test.js)
+a318af98ca0ed3c14df6cb24650e97064eb8a26ba31bc349ae3d8341eeac36c1  tests/unit/palm-v2-detect.test.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/unit/palm-v2-detect.test.js)
+9e9c8589109fef838c212362383b3bf24cc86599f749f1fb5b120c592df56cb9  tests/e2e/palm-v2.e2e.mjs  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/e2e/palm-v2.e2e.mjs)
+5a46bee147d903cabdd753bde4f914609faa793ef2afb73a903b99eaa89380c2  tests/fixtures/palm-v2/synth-hand.js  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/tests/fixtures/palm-v2/synth-hand.js)
+0935e7016da62a5bda037d55cd6f4f43dd092168cf4c6ce216fef87e7e561757  docs/acceptance/palm.md  # repo file (same commit as lock 2026-11-19T16:29:27Z; field: ~/LENSIQ-field/evals/palm-layers/set/docs/acceptance/palm.md)
+# palm reading upgrade v1 (owner order 2026-11-19, switch LENSIQ_PALM_V2 = false): tests + acceptance sheet locked BEFORE any product code, base origin/main d158e363.
+# field copies live under ~/LENSIQ-field/evals/palm-layers/set/ (an empty folder tests/unit/palm-v2-kit.js was made there by a shell mistake before the lock; left in place, no file in it).
+# locked 2026-11-19T16:51:56Z (tools/eval-guard.mjs lock, 2 files)
+3cff183817f2cefc3aae6ddf93aac61be5e7aa84e6fdd83ad2535f1c69ad040c  relock1/tests/e2e/palm-v2.e2e.mjs
+da33a11fb1b74f44f40354cb0e6cb742d6e049cb1f05782699f27967ba323115  relock1/docs/acceptance/palm.md
+3cff183817f2cefc3aae6ddf93aac61be5e7aa84e6fdd83ad2535f1c69ad040c  tests/e2e/palm-v2.e2e.mjs  # repo file (same commit as lock 2026-11-19T16:51:56Z; field: ~/LENSIQ-field/evals/palm-layers/relock1/tests/e2e/palm-v2.e2e.mjs)
+da33a11fb1b74f44f40354cb0e6cb742d6e049cb1f05782699f27967ba323115  docs/acceptance/palm.md  # repo file (same commit as lock 2026-11-19T16:51:56Z; field: ~/LENSIQ-field/evals/palm-layers/relock1/docs/acceptance/palm.md)
+# re-lock 1 (2026-11-19, before any measurement): the CR check and acceptance row V expected a support card in place of the reading (crisis v2); crisis v3 (owner decision 2026-11-17, kept unchanged by the palm spec item 6) keeps the reading, shows no card, no share / print / paid, one end line with 1323. Found on the first e2e run of the build; no other assertion changed.
+# locked 2026-11-19T16:58:01Z (tools/eval-guard.mjs lock, 1 file)
+81d4ba670b52e2f5b1f1c43bce1afbeafa6c4220dbc9366a692e69e52a07317e  relock2/tests/e2e/palm-v2.e2e.mjs
+81d4ba670b52e2f5b1f1c43bce1afbeafa6c4220dbc9366a692e69e52a07317e  tests/e2e/palm-v2.e2e.mjs  # repo file (same commit as lock 2026-11-19T16:58:01Z; field: ~/LENSIQ-field/evals/palm-layers/relock2/tests/e2e/palm-v2.e2e.mjs)
+# re-lock 2 (2026-11-19, before any measurement): the CR check types into the page's existing nickname field #plNick (moved into the v2 panel) instead of a new #pv2Nick; a new free-text field would need a row and a flow in the locked crisis inventory (crisis-net-hotfix). No assertion changed.
+# locked 2026-11-19T20:21:40Z (tools/eval-guard.mjs lock, 4 files)
+e17b2a1ad94dd25d594024c6af8416f9bd770642bb19cd20065e219af42da5cb  relock3/tests/fixtures/palm-v2/textures.js
+fa0488f5135eb9c3c5bb4b1a5c84d9c995062af0561f26f913658079795d1ee1  relock3/tests/unit/palm-v2-textures.test.js
+92369cdab6240d3b2ca9b002dc0428df9a1d0699d3f9eeaf5e4b69fcb238c6af  relock3/tests/e2e/palm-v2-r2.e2e.mjs
+ac883bae37bc44799b354df4f4b6009c809577aeb8064350050bde82e3ca655b  relock3/docs/acceptance/palm.md
+e17b2a1ad94dd25d594024c6af8416f9bd770642bb19cd20065e219af42da5cb  tests/fixtures/palm-v2/textures.js  # repo file (same commit as lock 2026-11-19T20:21:40Z; field: ~/LENSIQ-field/evals/palm-layers/relock3/tests/fixtures/palm-v2/textures.js)
+fa0488f5135eb9c3c5bb4b1a5c84d9c995062af0561f26f913658079795d1ee1  tests/unit/palm-v2-textures.test.js  # repo file (same commit as lock 2026-11-19T20:21:40Z; field: ~/LENSIQ-field/evals/palm-layers/relock3/tests/unit/palm-v2-textures.test.js)
+92369cdab6240d3b2ca9b002dc0428df9a1d0699d3f9eeaf5e4b69fcb238c6af  tests/e2e/palm-v2-r2.e2e.mjs  # repo file (same commit as lock 2026-11-19T20:21:40Z; field: ~/LENSIQ-field/evals/palm-layers/relock3/tests/e2e/palm-v2-r2.e2e.mjs)
+ac883bae37bc44799b354df4f4b6009c809577aeb8064350050bde82e3ca655b  docs/acceptance/palm.md  # repo file (same commit as lock 2026-11-19T20:21:40Z; field: ~/LENSIQ-field/evals/palm-layers/relock3/docs/acceptance/palm.md)
+# relock3 (2026-11-20): independent review round 1 FAILED at e1aa8bfb (M1 lines found on crease-free texture, M2 bridging to distractors, a-e minor). New tests locked BEFORE the round-2 product change: textures.js (reviewer texlib, same output), palm-v2-textures.test.js, palm-v2-r2.e2e.mjs; acceptance rows R2-*. Base for the round-2 run: 4cd2fa85 (merge of origin/main b2c87448).

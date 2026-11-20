@@ -449,8 +449,11 @@
     }
     return { first: first, last: last, coverage: cnt / n, span: (last - first + 1) / n, breaks: gaps, mean: sum / (last - first + 1) };
   }
-  /** ตรวจเส้นหลักทั้งสี่ → จุดควบคุม 5 จุดต่อเส้น (u, v) + ความมั่นใจ */
-  function detectLines(R, F) {
+  /** ตรวจเส้นหลักทั้งสี่ → จุดควบคุม 5 จุดต่อเส้น (u, v) + ความมั่นใจ
+      opt.honest (palm v2, owner order 2026-11-19; ใช้เมื่อ LENSIQ_PALM_V2 เปิด): ไม่บังคับ present และไม่ยึดจุดเริ่ม/ความยาวขั้นต่ำ
+      ทุกเส้นใช้เกณฑ์เดียวกับเส้นวาสนา เส้นที่ไม่ผ่านได้ notFound = true (ไม่พบในภาพ ≠ มือไม่มีเส้น) · ค่าเริ่มต้นทำงานเหมือนเดิม */
+  function detectLines(R, F, opt) {
+    var honest = !!(opt && opt.honest);
     var out = {};
     LINE_IDS.forEach(function (id) {
       var T = TEMPLATES[id], tplPx = T.pts.map(F.uvToPx);
@@ -458,7 +461,10 @@
       var tr = traceAlong(R, tplPx, bandPx, { n: 40 });
       var st = analyzeStrength(tr.strength);
       var N = tr.path.length, a, b, present = true;
-      if (id === "fate") {
+      if (honest) {
+        present = st.first >= 0 && st.coverage >= 0.3 && st.span >= 0.35;
+        a = st.first < 0 ? 0 : st.first; b = st.last < 0 ? N - 1 : st.last;
+      } else if (id === "fate") {
         present = st.coverage >= 0.3 && st.span >= 0.35;
         a = st.first < 0 ? 0 : st.first; b = st.last < 0 ? N - 1 : st.last;
         if (!present) { a = 0; b = N - 1; }
@@ -471,7 +477,8 @@
       var seg = tr.path.slice(a, b + 1);
       if (seg.length < 2) seg = tr.path;
       var cp = resample(seg, 5).map(function (p) { var q = F.pxToUV(p); return [round(q[0], 4), round(q[1], 4)]; });
-      out[id] = { cp: cp, present: present, auto: { coverage: round(st.coverage, 3), breaks: st.breaks, mean: round(st.mean, 3), conf: round(clamp(st.coverage * 1.3, 0, 1), 2) } };
+      out[id] = { cp: cp, present: present, notFound: honest ? !present : undefined,
+        auto: { coverage: round(st.coverage, 3), breaks: st.breaks, mean: round(st.mean, 3), conf: round(clamp(st.coverage * 1.3, 0, 1), 2) } };
     });
     return out;
   }
@@ -500,7 +507,8 @@
   /** จัดหมวดเส้นทั้งหมด: lines = {id: {cp, present}} */
   function classifyLines(lines, asp, R, F) {
     var M = {}, C = {};
-    LINE_IDS.forEach(function (id) { if (lines[id]) M[id] = measureLine(id, lines[id].cp, asp, R, F); });
+    // a line "not found in the photo" (honest mode) is neither measured nor read; it is not "absent" either
+    LINE_IDS.forEach(function (id) { if (lines[id] && !lines[id].notFound) M[id] = measureLine(id, lines[id].cp, asp, R, F); });
     var L = M.life, H = M.head, Ht = M.heart, Ft = M.fate;
     if (L) {
       var lcats = [L.maxU >= LT.lifeWide ? "wide" : "close", L.end[1] >= LT.lifeLong ? "long" : "short"];
@@ -525,7 +533,7 @@
       if (Ht.breaks > 0) tc.push("breaks");
       C.heart = tc;
     }
-    if (lines.fate) {
+    if (lines.fate && !lines.fate.notFound) {
       if (!lines.fate.present || !Ft) C.fate = ["absent"];
       else {
         var bot = Ft.start[1] >= Ft.end[1] ? Ft.start : Ft.end, top = bot === Ft.start ? Ft.end : Ft.start;
@@ -2031,3 +2039,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
   window.__palm = { get S() { return S; }, get guide() { return S.guide; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, detectHands: detectHands, loadModels: loadModels }; // ใช้ทดสอบ
 })();
+
+/* palm reading upgrade v1 (switch window.LENSIQ_PALM_V2, lensiq-config.js ships false): its code and style are downloaded ONLY when
+   the switch is on (independent review round 1, c); dynamic scripts with async = false run in order */
+if (typeof window !== "undefined" && typeof document !== "undefined" && window.LENSIQ_PALM_V2 === true && document.getElementById("plV2")) {
+  var pv2css = document.createElement("link"); pv2css.rel = "stylesheet"; pv2css.href = "palm-v2.css?v=2"; document.head.appendChild(pv2css);
+  var pv2js = ["palm-v2-kb.js?v=1", "palm-v2-detect.js?v=2", "palm-v2.js?v=2", "palm-v2-ui.js?v=2"];
+  pv2js.forEach(function (src) { var el = document.createElement("script"); el.src = src; el.async = false; document.body.appendChild(el); });
+}
