@@ -21,3 +21,19 @@ field-data/
 
 # Wrangler / Miniflare local state: holds the request location of the machine; never commit (owner decision 111)
 .wrangler/
+
+# palm pilot (2026-11-21): participants' palm photos and labels stay in ~/LENSIQ-field/palm-pilot/, never in git.
+# `git add -f` bypasses these lines; tools/pii-scan.mjs forbidden-path rules are the control (tests/unit/pii-palm-labels.test.js)
+# character classes keep the lines case-insensitive where core.ignoreCase is false (Linux CI)
+[Pp][Aa][Ll][Mm]-[Pp][Ii][Ll][Oo][Tt]/
+*.[Pp][Aa][Ll][Mm]-[Tt][Rr][Aa][Cc][Ee].[Jj][Ss][Oo][Nn]
+[Pp][0-9][0-9]-[LlRr].[jJ][pP][gG]
+[Pp][0-9][0-9]-[LlRr].[jJ][pP][eE][gG]
+[Pp][0-9][0-9]-[LlRr].[pP][nN][gG]
+[Pp][0-9][0-9]-[LlRr].[hH][eE][iI][cC]
+[Pp][0-9][0-9]-[LlRr].[wW][eE][bB][pP]
+[Pp][0-9][0-9]-[LlRr]-*.[jJ][pP][gG]
+[Pp][0-9][0-9]-[LlRr]-*.[jJ][pP][eE][gG]
+[Pp][0-9][0-9]-[LlRr]-*.[pP][nN][gG]
+[Pp][0-9][0-9]-[LlRr]-*.[hH][eE][iI][cC]
+[Pp][0-9][0-9]-[LlRr]-*.[wW][eE][bB][pP]
