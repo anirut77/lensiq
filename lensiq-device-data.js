@@ -10,9 +10,10 @@
  * Only the allow-list ITEMS is read or written (localStorage only; never IndexedDB, never sessionStorage):
  *   settings: language, catalogue filter, nutrition display, Merit tradition
  *   age:      the 18+ "read it straight" confirmation and choice (written on load only after the person ticks 18+ again)
- *   records:  medicine look-up history (text only), the pet card collection — only when the person ticks this group
+ *   records:  the pet card collection — only when the person ticks this group
+ *   (the medicine look-up history lq-med-history is left out until counsel answers: owner item 215, 2026-11-21)
  * Never: sign-in tokens, the tester code, consents, owner / admin keys, quote requests, business stores (Attendance, Exam,
- * Gate, Crowd …), images, face data — see EXCLUDED. Every value is checked; images (data: / blob: URLs) and over-long
+ * Gate, Crowd …), images, face data, the medicine look-up history — see EXCLUDED. Every value is checked; images (data: / blob: URLs) and over-long
  * values are left out. Tests: tests/unit/device-data-d4.test.js, tests/e2e/device-data-d4.e2e.mjs (locked).
  *
  *   LQDeviceData.enabled(win) · collect(storage, groups) · build(storage, groups, now) · serialize(obj) · fileName(now)
@@ -20,7 +21,7 @@
  */
 (function (root) {
   "use strict";
-  var FORMAT = "lensiq-device-data", VERSION = 1, MAX_FILE = 262144, MAX_VALUE = 65536, MAX_TEXT = 500;
+  var FORMAT = "lensiq-device-data", VERSION = 1, MAX_FILE = 262144, MAX_VALUE = 65536;
   var GROUPS = ["settings", "age", "records"], DEFAULT_GROUPS = ["settings", "age"];
   var STRAIGHT = "lq-fortune-straight";
   var IMAGE_RE = /\bdata:[^,\s]{0,100},|\bblob:/i;
@@ -46,18 +47,6 @@
         var k = Object.keys(j.v).sort();
         return k.length === 2 && k[0] === "adult" && k[1] === "straight" && typeof j.v.adult === "boolean" && typeof j.v.straight === "boolean";
       } },
-    { key: "lq-med-history", group: "records", label: { th: "ประวัติการค้นข้อมูลยาและฉลาก (ข้อความเท่านั้น)", en: "Medicine and label look-up history (text only)", zh: "药品与标签查询记录（仅文字）" },
-      check: function (s) {
-        var j = json(s);
-        if (!j.ok || !Array.isArray(j.v) || j.v.length > 200) return false;
-        return j.v.every(function (/** @type {any} */ e) {
-          if (!plain(e)) return false;
-          return Object.keys(e).every(function (k) {
-            if (k === "at") return typeof e.at === "number" && isFinite(e.at);
-            return (k === "kind" || k === "q" || k === "r") && typeof e[k] === "string" && e[k].length <= MAX_TEXT;
-          });
-        });
-      } },
     { key: "lq-pet-zodiac-v1", group: "records", label: { th: "การ์ดสัตว์เลี้ยงที่สะสมไว้", en: "Pet card collection", zh: "收集的宠物卡片" },
       check: function (s) {
         var j = json(s);
@@ -66,17 +55,17 @@
         return Object.keys(f).length <= 50 && Object.keys(f).every(function (k) { return /^[a-z_]{1,20}$/.test(k) && typeof f[k] === "string" && /^\d{4}-\d\d-\d\d$/.test(f[k]); });
       } }
   ];
-  /** keys that are never read into a file or written from one (documentation for counsel and tests; the allow-list rules) */
+  /** keys that are never read into a file or written from one (documentation for counsel and tests; the allow-list rules).
+   *  lq-med-history (medicine look-up history, can reveal health information): excluded until counsel answers (owner item
+   *  215, 2026-11-21; docs/PDPA-NOTES-FOR-COUNSEL.md D-4 question b) */
   var EXCLUDED = ["lq-member-session", "lq-tester", "lq-owner", "lq-admin-dev", "lq-ai-consent", "lq-leads", "lq-pending-claims",
-    "lq-research-demo", "lq-profile", "lq-report-log", "lq-guest-reads", "lq-camcap", "lq-i18n-debug", "lensiq-*", "att-*", "lqcr-*", "lqx-*"];
+    "lq-research-demo", "lq-profile", "lq-report-log", "lq-guest-reads", "lq-camcap", "lq-i18n-debug", "lq-med-history", "lensiq-*", "att-*", "lqcr-*", "lqx-*"];
 
   /** @type {Record<string, Record<string, string>>} */
   var GROUP_LABEL = {
     settings: { th: "การตั้งค่า (ภาษา ตัวกรอง การแสดงผล)", en: "Settings (language, filters, display)", zh: "设置（语言、筛选、显示）" },
     age: { th: "การยืนยันอายุ 18 ปีขึ้นไป", en: "18+ confirmation", zh: "18 岁以上确认" },
-    records: { th: "บันทึกของฉันในเครื่องนี้ (ประวัติค้นยา การ์ดสัตว์เลี้ยง) ประวัติค้นยาอาจบอกข้อมูลสุขภาพได้ เลือกเฉพาะเมื่อต้องการ",
-      en: "My records on this device (medicine look-ups, pet cards). Medicine look-ups can reveal health information; tick only if you want them",
-      zh: "我在本设备上的记录（药品查询、宠物卡片）。药品查询可能透露健康信息，仅在需要时勾选" }
+    records: { th: "บันทึกของฉันในเครื่องนี้ (การ์ดสัตว์เลี้ยงที่สะสมไว้)", en: "My records on this device (pet card collection)", zh: "我在本设备上的记录（收集的宠物卡片）" }
   };
 
   /** @type {Record<string, Record<string, string>>} */
