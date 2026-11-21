@@ -1,0 +1,10 @@
+# locked 2026-11-21T02:21:59Z (tools/eval-guard.mjs lock, 2 files)
+056d901c63127911427c3a41545e4026c99b9bcbc656e99582086757753686a0  exam-phone-claims-213.test.js
+65483e8359583cc45a8f71f11b8ccd10241c78f3fc8ff9da754c3cd706665b1c  baseline-unit.log
+056d901c63127911427c3a41545e4026c99b9bcbc656e99582086757753686a0  tests/unit/exam-phone-claims-213.test.js  # repo file (same commit as lock 2026-11-21T02:21:59Z; field: ~/LENSIQ-field/evals/exam-phone-claims-213/exam-phone-claims-213.test.js)
+# field only baseline-unit.log (lock 2026-11-21T02:21:59Z: no repo file uses it)
+# exam-phone-claims-213 (owner item 213, 2026-11-21 09:10: Exam page and sales documents state the measured phone figures
+# in TH / EN / ZH, near the camera 90.8 %, desk level 29.6 %, public still-image set; a phone lying on the desk is usually
+# missed). NEW tests/unit/exam-phone-claims-213.test.js committed BEFORE the wording change. Branch owner-0910, base
+# 653029d3. Numbers from the A2 locked set (evals-locks/examlab-phone.sha256; docs/exam/EXAMLAB-PHONE-SET.md "Result"),
+# public dataset (Open Images V7 stills). Baseline on 653029d3: unit 1 / 6 pass (P6 evidence only), baseline-unit.log.
