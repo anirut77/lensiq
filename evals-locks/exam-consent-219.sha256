@@ -1,0 +1,6 @@
+# locked 2026-11-21T17:55:13Z (tools/eval-guard.mjs lock, 1 file)
+2720a0d0921d88359263ab5795cee5e83f8cd8b4c26580304929f2932a84c8c7  tests/e2e/exam-consent-reread.e2e.mjs
+# why (owner decision 219 ก, 2026-11-21 23:39, OWNER-INBOX-2026-11-21 Entry 9): NEW test, locked BEFORE the product change. exam-lab: clear the consent tick and show
+#   exam.lab.reread when clipNotice() changes the notice wording; hide both notice variants until the script has run (no-JS: neutral line, notice form not shown);
+#   exam-hall: same static-lead pattern. On ecb783b6 (unfixed): R1, R2 th/en/zh, R3, R4 th/en/zh, R6 FAIL (static first paint shows the clip-OFF variant); R5 ok.
+#   exam-clip-notice / exam-clip are not changed.
