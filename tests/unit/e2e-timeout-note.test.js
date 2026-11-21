@@ -7,6 +7,7 @@
 //   N3 a missing run folder counts 0; an unreadable folder or a failing load reading gives "unknown", never an exception
 //   N4 run.mjs: same timer (FILE_TIMEOUT, default 900000 ms), same rejection, the note is appended to the message
 // This file is locked: evals-locks/e2e-timeout-note.sha256 (written BEFORE busyNote existed in tools/load-guard.mjs).
+// Re-lock 1 (EQUAL, lint only): N4 writes the two spaces before FAIL as ` {2}` (eslint no-regex-spaces); same match.
 const { test, before } = require("node:test");
 const assert = require("node:assert/strict");
 const { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } = require("node:fs");
@@ -65,5 +66,5 @@ test("N4 run.mjs: the per-file timer and its rejection are unchanged; only the n
   assert.equal(race.length, 1, "one per-file timer: same limit, same rejection, the note computed when the timer fires");
   assert.ok(!/timed out after \$\{FILE_TIMEOUT\} ms`/.test(src), "the bare message is gone");
   // the failure is still counted the same way: the crash line and ff++ in the catch
-  assert.match(src, /\} catch \(e\) \{ ff\+\+; console\.log\(`  FAIL \$\{f\} crashed: \$\{e && e\.stack \|\| e\}`\); \}/);
+  assert.match(src, /\} catch \(e\) \{ ff\+\+; console\.log\(` {2}FAIL \$\{f\} crashed: \$\{e && e\.stack \|\| e\}`\); \}/);
 });
