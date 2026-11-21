@@ -19,6 +19,15 @@
 //   R5 a language switch does not change what the notice says: a tick given after load survives LQI18N.setLang.
 //   R6 exam-hall.html (same pattern, no consent box there): static first paint shows neither lead variant; with ?clip=1 and
 //      IndexedDB held the clip-ON lead and the clip warning are shown as soon as exam-hall.js has run.
+// RELOCK 1 (2026-11-22, STRICTER, owner decision 225 ก follow-up): the consent tick box (#consent) itself stays hidden until
+// exam-lab.js has run, so it cannot be ticked before the notice text exists. Added, nothing removed or loosened:
+//   R1 also: with JavaScript off #consent sits inside a static [hidden] control (hidden by the HTML itself, not only by the
+//      noscript style).
+//   R2 also: when the page script has finished the box is rendered (and the early tick is cleared, as before).
+//   R7 [th/en/zh] exam-lab.js blocked (Network.setBlockedURLs): #consent is not rendered, sits inside a static [hidden]
+//      control and cannot take focus, so a person cannot tick it; the pre-script snapshot of a normal load agrees. With the
+//      script: when it finishes the box is rendered and unticked, a real mouse click (Input.dispatchMouseEvent) ticks it, and
+//      the consent sentence next to it is in the page language (no Thai in en / zh).
 // No camera beyond the fake one; no photo of a person; nothing is sent.
 import { assert } from "./cdp.mjs";
 import { exceptions, sleep } from "./exam-kit.mjs";
@@ -32,7 +41,8 @@ const VARIANTS = ["#lead", "#leadC", "#n2", "#n2c", "#n5c", "#consentTxt", "#con
 const HELP = `window.__shown = q => { const e = document.querySelector(q); return !!e && !e.hidden && e.getClientRects().length > 0; };
 window.__state = () => { const $ = q => document.querySelector(q), v = {};
   for (const q of ${JSON.stringify(VARIANTS)}) v[q.slice(1)] = !!$(q) && !$(q).hidden;
-  return Object.assign(v, { consent: !!$("#consent") && $("#consent").checked, msg: $("#noticeMsg") ? $("#noticeMsg").textContent : null }); };`;
+  return Object.assign(v, { consent: !!$("#consent") && $("#consent").checked, consentShown: window.__shown("#consent"),
+    consentStatic: !!$("#consent") && !!$("#consent").closest("[hidden]"), msg: $("#noticeMsg") ? $("#noticeMsg").textContent : null }); };`;
 
 // trap: the moment before the page script (window.LQExamClipUI is assigned by exam-clip-ui.js); optionally ticks consent
 const PRE = tick => `(() => {
@@ -113,11 +123,13 @@ export default async function ({ base, launch, check, fakeCams }) {
           const shown = q => { const e = document.querySelector(q); return !!e && !e.hidden && e.getClientRects().length > 0; };
           const v = {}; for (const q of ${JSON.stringify(VARIANTS)}) v[q] = shown(q);
           return { ran: window.__LQ_EXAM_LAB !== undefined || window.LQExamClipUI !== undefined, v, consent: shown("#consent"),
-            submit: shown("#toCam"), text: document.body.innerText };
+            submit: shown("#toCam"), text: document.body.innerText,
+            hid: !!document.querySelector("#consent") && !!document.querySelector("#consent").closest("[hidden]") };
         })()`);
         assert(r && !r.ran, `R1: page scripts ran although JavaScript is off: ${JSON.stringify(r && r.ran)}`);
         for (const q of VARIANTS) assert(r.v[q] === false, `R1: ${q} is rendered with JavaScript off: ${JSON.stringify(r.v)}`);
         assert(!r.consent && !r.submit, `R1: the consent box / next button can be used with JavaScript off: ${JSON.stringify({ c: r.consent, s: r.submit })}`);
+        assert(r.hid === true, `R1 (relock1): with JavaScript off #consent is not inside a static [hidden] control (only the noscript style hides it)`);
         assert(!/บันทึก|record|录/i.test(r.text), `R1: the rendered text names a recording state: ${r.text.slice(0, 600)}`);
         assert(/JavaScript/.test(r.text) && THAI.test(r.text) && /需要/.test(r.text) && /needs JavaScript/i.test(r.text),
           `R1: no neutral no-JavaScript line in Thai, English and Chinese: ${r.text.slice(0, 600)}`);
@@ -138,6 +150,7 @@ export default async function ({ base, launch, check, fakeCams }) {
           assert(end && !end.error && end.cfgOn === true, `R2 [${l}]: no end-of-script snapshot: ${JSON.stringify(end)}`);
           assertClipOn(end, `R2 [${l}] end of page script`);
           assert(end.consent === false, `R2 [${l}]: the tick given before the notice switched survived: ${JSON.stringify(end)}`);
+          assert(end.consentShown === true && end.consentStatic === false, `R2 [${l}] (relock1): the consent box is not shown when the page script finished: ${JSON.stringify(end)}`);
           assert(REREAD.th.test(end.msg) || REREAD[l].test(end.msg), `R2 [${l}]: reread message not shown when the script finished: ${JSON.stringify(end.msg)}`);
           if (l !== "th") await page.waitFor(`${REREAD[l]}.test(document.querySelector("#noticeMsg").textContent)`, 8000).catch(() => {});
           const s = await page.evaluate(() => window.__state());
@@ -253,5 +266,58 @@ export default async function ({ base, launch, check, fakeCams }) {
         assert(!ex.length, `R6: page exceptions: ${JSON.stringify(ex).slice(0, 400)}`);
       } finally { await page.close(); }
     });
+
+    for (const l of ["th", "en", "zh"]) {
+      await check(`exam-consent-reread R7 [${l}]: the consent box is hidden until exam-lab.js has run, then shown unticked and tickable`, async () => {
+        const blocked = await browser.newPage(null, { isolated: true, initScripts: [fakeCams, lang(l), HELP] });
+        try {
+          await blocked.send("Network.setBlockedURLs", { urls: ["*exam-lab.js*"] });
+          await blocked.goto(LAB);
+          await blocked.waitFor(`document.readyState === "complete" && !!window.LQI18N`, 10000);
+          await sleep(600);
+          const b = await blocked.evaluate(() => {
+            const c = document.querySelector("#consent"), st = document.querySelector("#stepNotice");
+            if (c) c.focus();
+            return { ran: window.__LQ_EXAM_LAB !== undefined, exists: !!c, shown: window.__shown("#consent"),
+              hid: !!c && !!c.closest("[hidden]"), focused: !!c && document.activeElement === c,
+              rects: c ? c.getClientRects().length : -1, notice: !!st && !st.hidden };
+          });
+          assert(b.exists && !b.ran, `R7 [${l}] blocked: exam-lab.js ran or #consent is missing: ${JSON.stringify(b)}`);
+          assert(b.notice, `R7 [${l}] blocked: the notice step itself is not in the static page: ${JSON.stringify(b)}`);
+          assert(!b.shown && b.rects === 0, `R7 [${l}] blocked: the consent box is visible before exam-lab.js has run: ${JSON.stringify(b)}`);
+          assert(b.hid, `R7 [${l}] blocked: #consent is not inside a static [hidden] control: ${JSON.stringify(b)}`);
+          assert(!b.focused, `R7 [${l}] blocked: the consent box can take focus (and so be ticked from the keyboard): ${JSON.stringify(b)}`);
+        } finally { await blocked.close(); }
+
+        const page = await browser.newPage(null, { isolated: true, initScripts: [fakeCams, lang(l), PRE(false)] });
+        try {
+          await page.goto(LAB);
+          await page.waitFor("window.__LQ_EXAM_LAB && window.LQI18N", 8000);
+          const pre = await page.evaluate(() => window.__pre);
+          assert(pre && pre.parsed && !pre.lab, `R7 [${l}]: no pre-script snapshot: ${JSON.stringify(pre)}`);
+          assert(pre.consentShown === false && pre.consentStatic === true, `R7 [${l}]: the consent box is visible in the static first paint: ${JSON.stringify(pre)}`);
+          const end = await page.evaluate(() => window.__end);
+          assert(end && !end.error, `R7 [${l}]: no end-of-script snapshot: ${JSON.stringify(end)}`);
+          assert(end.consentShown === true && end.consentStatic === false && end.consent === false,
+            `R7 [${l}]: the consent box is not shown, or not unticked, when the page script finished: ${JSON.stringify(end)}`);
+          await sleep(500);
+          const box = await page.evaluate(() => {
+            const c = document.querySelector("#consent"); c.scrollIntoView({ block: "center" });
+            const r = c.getBoundingClientRect();
+            const txt = [...c.closest("label").querySelectorAll("span")].filter(e => !e.hidden).map(e => e.textContent).join(" ").trim();
+            return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height, checked: c.checked, txt };
+          });
+          assert(box.w > 0 && box.h > 0 && box.checked === false, `R7 [${l}]: the consent box is not rendered unticked after load: ${JSON.stringify(box)}`);
+          assert(box.txt.length > 10, `R7 [${l}]: no consent sentence next to the box: ${JSON.stringify(box)}`);
+          if (l !== "th") assert(!THAI.test(box.txt), `R7 [${l}]: the consent sentence is not in the page language: ${box.txt}`);
+          for (const type of ["mousePressed", "mouseReleased"]) await page.send("Input.dispatchMouseEvent", { type, x: box.x, y: box.y, button: "left", clickCount: 1 });
+          await sleep(200);
+          const ticked = await page.evaluate(() => document.querySelector("#consent").checked);
+          assert(ticked === true, `R7 [${l}]: a real click on the shown consent box did not tick it`);
+          const ex = exceptions(page);
+          assert(!ex.length, `R7 [${l}]: page exceptions: ${JSON.stringify(ex).slice(0, 400)}`);
+        } finally { await page.close(); }
+      });
+    }
   } finally { await browser.close(); }
 }
