@@ -1,0 +1,10 @@
+# locked 2026-11-21T02:26:26Z (tools/eval-guard.mjs lock, 2 files)
+54cd5aa16fed1c1c487bf233ffc53d4733750b204b01a6753317fe559daad2c7  pet-kb-lint-209.test.js
+ca0ae6de0f84d78ac184bf15a5d5f782a419e7b768cc95e4daaf8d31e1b7e091  baseline-unit.log
+54cd5aa16fed1c1c487bf233ffc53d4733750b204b01a6753317fe559daad2c7  tests/unit/pet-kb-lint-209.test.js  # repo file (same commit as lock 2026-11-21T02:26:26Z; field: ~/LENSIQ-field/evals/pet-kb-lint-209/pet-kb-lint-209.test.js)
+# field only baseline-unit.log (lock 2026-11-21T02:26:26Z: no repo file uses it)
+# pet-kb-lint-209 (owner item 209, 2026-11-21 09:10: the black-cat "โกญจา" line said "ควรรักษาไว้"; "รักษา" is in the
+# health filter of lensiq-pet.js, so the line was dropped in Thai and the overview section vanished; owner wording
+# "ควรเลี้ยงดูไว้ให้ดี"). NEW tests/unit/pet-kb-lint-209.test.js committed BEFORE the fix: every KB line in TH / EN / ZH
+# through LQPet.lint, 0 dropped. Branch owner-0910, base 653029d3. Baseline: unit 0 / 3 pass (baseline-unit.log); the
+# only dropped line at baseline is KB.folk[2].th ("รักษา"), no other line in any language.
