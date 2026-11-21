@@ -30,3 +30,18 @@ e657f4911a6f784260d1c6126f7ae9bf4195f21fcf08b41b3301baa3a9841a22  tests/unit/dev
 # why} objects) with plain key strings and could never pass. D3 now asserts the count 6, the exact 6 keys and why =
 # "invalid" (stricter than the original count-only check). Nothing else changed; e2e stays at relock1. Disclosure: the
 # amended file was run once on the built branch before this lock (12 / 12). ~/LENSIQ-field/evals/device-data-d4/relock2/NOTE.txt
+# locked 2026-11-21T03:40:52Z (tools/eval-guard.mjs lock, 4 files)
+559be34c0c20c06560513a9e413cc6dfd84eea28a26e44ea47184c0629162b37  relock3/device-data-d4.test.js
+cdeae82bceb64214725a2d1a333207bef36efd55fd749cfda3253c88cb4ab95d  relock3/NOTE.txt
+1d241be69a2bdf98e13e9abb2439209df3511d707de664a0f7e4ef2d843a2d09  relock3/mutation-unit.log
+88a757926fdab49e1a489f50d172d5b8a76fb7dcf8055e45c5afd52865d62236  relock3/built-unit.log
+559be34c0c20c06560513a9e413cc6dfd84eea28a26e44ea47184c0629162b37  tests/unit/device-data-d4.test.js  # repo file (same commit as lock 2026-11-21T03:40:52Z; field: ~/LENSIQ-field/evals/device-data-d4/relock3/device-data-d4.test.js)
+# field only relock3/NOTE.txt (lock 2026-11-21T03:40:52Z: no repo file uses it)
+# field only relock3/mutation-unit.log (lock 2026-11-21T03:40:52Z: no repo file uses it)
+# field only relock3/built-unit.log (lock 2026-11-21T03:40:52Z: no repo file uses it)
+# re-lock relock3 2026-11-21 (review F1, STRICTER, unit file only): D3's image / blob / nested refusals targeted
+# lq-med-history, which is no longer listed, so they held whatever the product did. Every relock2 assertion is kept;
+# added for listed keys: data: / blob: hidden in a duplicate JSON key is refused (valueOk, collect, parse, apply), data: /
+# blob: as the whole value is refused for every listed key, nested objects refused for pet / 18+ / language. Mutation
+# (IMAGE_RE removed from valueOk): relock3 11 / 12 (D3 fails), relock2 12 / 12. Product unchanged. e2e stays at relock1.
+# ~/LENSIQ-field/evals/device-data-d4/relock3/NOTE.txt

@@ -98,6 +98,34 @@ test("D3 values are checked: wrong shapes, images and over-long values are left 
   assert.equal(M.valueOk("lq-pet-zodiac-v1", JSON.stringify({ v: 1, found: { rat: "20-11-2026" } })), false, "date shape");
   assert.equal(M.valueOk("lq-lang", "th"), true);
   assert.equal(M.valueOk("not-listed", "th"), false);
+  // relock3 (review F1): the image / nested refusals above target lq-med-history, which is no longer listed, so they hold
+  // whatever the product does. Retargeted to keys still on the list. No listed key takes free text, so an image can only
+  // ride in a raw value whose parsed shape is valid: a duplicate JSON key that JSON.parse overwrites. The image guard
+  // (data: / blob: anywhere in the raw value) is what refuses it; the shape check alone would accept it.
+  const IMG = "data:image/png;base64,iVBORw0KGgo=", BLOB = "blob:https://a/b";
+  const petOk = '{"v":1,"found":{"rat":"2026-11-20"}}', adultOk = '{"adult":true,"straight":false}';
+  assert.equal(M.valueOk("lq-pet-zodiac-v1", petOk), true, "control: the pet value without the hidden part is accepted");
+  assert.equal(M.valueOk("lq-fortune-straight", adultOk), true, "control: the 18+ value without the hidden part is accepted");
+  for (const [k, v] of [
+    ["lq-pet-zodiac-v1", `{"v":1,"found":"${IMG}","found":{"rat":"2026-11-20"}}`],
+    ["lq-pet-zodiac-v1", `{"v":1,"found":"${BLOB}","found":{"rat":"2026-11-20"}}`],
+    ["lq-fortune-straight", `{"adult":"${IMG}","adult":true,"straight":false}`],
+    ["lq-fortune-straight", `{"adult":"${BLOB}","adult":true,"straight":false}`]
+  ]) {
+    assert.equal(M.valueOk(k, v), false, `${k}: image / blob hidden in a raw value is refused`);
+    const c = M.collect(store({ [k]: v }), ["settings", "age", "records"]);
+    assert.ok(!(k in c.items) && c.skipped.some(s => s.key === k), `${k}: not exported`);
+    const p = M.parse(JSON.stringify({ format: "lensiq-device-data", version: 1, exportedAt: "2026-11-21T00:00:00.000Z", groups: ["age", "records"], items: { [k]: v } }));
+    assert.equal(p.ok, false, `${k}: a file carrying it is refused`); assert.ok(p.invalid.includes(k));
+    const st = store(); M.apply(st, p, { adultConfirmed: true });
+    assert.equal(st.getItem(k), null, `${k}: never written`);
+  }
+  // data: / blob: as the whole value, for every listed key
+  for (const it of M.ITEMS) for (const v of [IMG, BLOB, JSON.stringify(IMG)]) assert.equal(M.valueOk(it.key, v), false, `${it.key}: ${v.slice(0, 12)}`);
+  // nested objects where a listed key expects a plain value
+  assert.equal(M.valueOk("lq-pet-zodiac-v1", JSON.stringify({ v: 1, found: { rat: { nested: 1 } } })), false, "pet: nested object");
+  assert.equal(M.valueOk("lq-fortune-straight", JSON.stringify({ adult: { nested: 1 }, straight: true })), false, "18+: nested object");
+  assert.equal(M.valueOk("lq-lang", JSON.stringify({ nested: 1 })), false, "language: nested object");
 });
 
 test("D4 groups: settings and the 18+ choice by default; records only when ticked", () => {
