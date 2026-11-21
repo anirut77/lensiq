@@ -12,6 +12,9 @@
 //   V6 no tracked file matches; --staged (pre-commit) refuses the new names after `git add -f`; output never holds file content
 // Every file here is synthetic (generated names, placeholder bytes). No real photo is used, read or viewed.
 // This file is locked: evals-locks/pii-palm-variants.sha256 (written BEFORE the new rules existed in tools/pii-scan.mjs).
+// Re-lock 1 (stricter, owner decision 224 ก, 2026-11-21, with the pii-palm-labels re-lock 2): "P01-L.jpg.bak" moved from
+// ALLOWED_LOCKED (the mirror of the locked test's allowed names) to V2, because a renamed backup of a pilot photo is now
+// refused. Every other name and assertion is unchanged.
 const { test, before } = require("node:test");
 const assert = require("node:assert/strict");
 const { spawnSync } = require("node:child_process");
@@ -36,7 +39,9 @@ const forbidden = p => S.scanPath(p).some(h => h.type === "forbidden-path");
 const V1 = ["P01-L.heif", "P01-R.HEIF", "P02-L.dng", "p02-r.DNG", "P03-R-2.avif", "P04-L.tif", "P05-R.TIFF", "P06-L.mov", "img/P07-R-3.MOV",
   "a b/P08-L.Tif"];
 const V2 = ["P01-L (1).jpg", "P01-L(1).jpg", "P01-L copy.jpg", "P01-L copy 2.jpg", "P01-L - Copy.jpg", "P01-L - Copy (2).png", "P01-L_1.jpg",
-  "P01-L_12.webp", "P01-L-2 (3).heic", "docs/P01-R copy.jpeg", "x/P11-R_2.HEIF", "P09-L (2).mov", "p03-l copy.DNG"];
+  "P01-L_12.webp", "P01-L-2 (3).heic", "docs/P01-R copy.jpeg", "x/P11-R_2.HEIF", "P09-L (2).mov", "p03-l copy.DNG",
+  // re-lock 1 (owner decision 224 ก): moved here from ALLOWED_LOCKED
+  "P01-L.jpg.bak"];
 const V3 = ["palm-pilot.zip", "palm-pilot-photos.tar.gz", "backup/palm-pilot_2026-11-21.tgz", "Palm-Pilot.7z", "palm-pilot.tar", "palm_pilot.zip",
   "PalmPilot-labels.tar.bz2", "export palm-pilot.rar", "P01-L.zip", "P01-photos.tar.gz", "photos-P12.7z", "p03-r.tgz", "P01.zip", "x/P07 labels.tar.xz",
   "P02-L-3.zip"];
@@ -48,7 +53,7 @@ const ALLOWED_LOCKED = [
   "palm.html", "js/palm.js", "docs/PALM-PILOT.md", "docs/palm-pilot.md", "tools/palm-trace.mjs", "tests/unit/palm-trace-tool.test.js",
   "palm-trace.md", "palm-pilot-guide.txt", "assets/palm-pilot.png", "x.palm-trace.json.md", "x.palm-trace.jsonl",
   "P1-L.jpg", "P001-L.jpg", "P01-X.jpg", "P01-LR.jpg", "P01_L.jpg", "P01-L.gif", "P01-L.svg", "P01-L-.jpg", "P01-L-a.jpg",
-  "AP01-L.jpg", "imgP01-L.png", "P01-L.jpg.txt", "P01-L.jpg.bak", "img/hero.jpg", "vendor/icons/icon-192.png", "README.md"
+  "AP01-L.jpg", "imgP01-L.png", "P01-L.jpg.txt", "img/hero.jpg", "vendor/icons/icon-192.png", "README.md"
 ];
 const ALLOWED_NEW = ["clip.mov", "scan.tiff", "photo.heif", "P1-L (1).jpg", "P001-L copy.jpg", "AP01-L_1.jpg", "P01-L_a.jpg", "P01-L copy.gif",
   "P01-X (1).jpg", "P01-L copyright.jpg", "vendor/archive.zip", "docs/pilot.zip", "exam-pilot.zip", "plan.tar.gz", "map-p012.zip", "help01.zip",

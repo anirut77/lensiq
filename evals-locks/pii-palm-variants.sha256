@@ -2,3 +2,9 @@
 5ccabb7ad5c15520e841b5be51e0dcf636220cb2e1730fe8f73e7eba28609c98  pii-palm-variants.test.js
 5ccabb7ad5c15520e841b5be51e0dcf636220cb2e1730fe8f73e7eba28609c98  tests/unit/pii-palm-variants.test.js  # repo file (same commit as lock 2026-11-21T12:01:01Z; field: ~/LENSIQ-field/evals/pii-palm-variants/pii-palm-variants.test.js)
 # LOCK 2026-11-21 (coordinator decision, recorded in the board; branch followups-1121), BEFORE the new rules exist in tools/pii-scan.mjs: STRICTER ADDITION to pii-palm-labels (that locked test is unchanged): more photo / video types for pilot-code names (heif, dng, avif, tif, tiff, mov), copy names, archives named with palm-pilot or a pilot code, renamed / packed trace labels. V1-V4 and V6 fail on main, V5 passes.
+# locked 2026-11-21T15:50:39Z (tools/eval-guard.mjs lock, 2 files)
+0f9aadf31c1d477c614b760153d30d5f13c1143b1425db6d7156e2e14204ad77  relock1/pii-palm-variants.test.js
+d9b5a5bb9a51391171acd456d5be32ccf4f857e71a0bffcceb4a2be45b366158  relock1/NOTE.txt
+0f9aadf31c1d477c614b760153d30d5f13c1143b1425db6d7156e2e14204ad77  tests/unit/pii-palm-variants.test.js  # repo file (same commit as lock 2026-11-21T15:50:39Z; field: ~/LENSIQ-field/evals/pii-palm-variants/relock1/pii-palm-variants.test.js)
+# field only relock1/NOTE.txt (lock 2026-11-21T15:50:39Z: no repo file uses it)
+# RE-LOCK 1 2026-11-21 (branch pii-224, STRICTER, owner decision 224 ก with pii-palm-labels relock2, append-only; field: relock1/ with NOTE.txt): "P01-L.jpg.bak" moved from ALLOWED_LOCKED (mirror of the locked allowed names) to V2. Nothing else changed. Before the scanner change (base 9d68ece8): 5 pass, 1 fail (V2).

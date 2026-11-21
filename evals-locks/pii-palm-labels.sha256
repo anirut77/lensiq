@@ -7,3 +7,9 @@
 930e4154650732ead812eed868273a16ddfd010db7f877359ecdf8335d06c017  relock1/NOTE.txt
 49924105b450cf34d189933adaf84c79a5d8029c51870365167f62bab19f370c  tests/unit/pii-palm-labels.test.js  # repo file (same commit as lock 2026-11-21T00:17:03Z; field: ~/LENSIQ-field/evals/pii-palm-labels/relock1/pii-palm-labels.test.js)
 # field only relock1/NOTE.txt (lock 2026-11-21T00:17:03Z: no repo file uses it)
+# locked 2026-11-21T15:50:39Z (tools/eval-guard.mjs lock, 2 files)
+c611cb268921e7a2c00bd4a13f97e523f4994d5b1c320838676cfdd14f735093  relock2/pii-palm-labels.test.js
+a3bd31f4b48643d39ff96cc278039384d9cbcb50e87b264839580c1b200c082d  relock2/NOTE.txt
+c611cb268921e7a2c00bd4a13f97e523f4994d5b1c320838676cfdd14f735093  tests/unit/pii-palm-labels.test.js  # repo file (same commit as lock 2026-11-21T15:50:39Z; field: ~/LENSIQ-field/evals/pii-palm-labels/relock2/pii-palm-labels.test.js)
+# field only relock2/NOTE.txt (lock 2026-11-21T15:50:39Z: no repo file uses it)
+# RE-LOCK 2 2026-11-21 (branch pii-224, STRICTER, owner decision 224 ก, append-only; field: relock2/ with NOTE.txt): "P01-L.jpg.bak" moved from ALLOWED to BLOCKED, BLOCKED gains F4 (renamed backups of a pilot photo: .bak .backup .old .orig .tmp .temp .copy .save .swp .1 .gz .bz2 .xz .zst .zip .7z .tar .tgz, trailing ~, chained); ALLOWED gains 10 near-miss look-alikes only. No name removed, every other assertion unchanged, no rule relaxed. Before the scanner change (base 9d68ece8): 7 pass, 1 fail.

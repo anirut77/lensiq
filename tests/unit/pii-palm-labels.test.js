@@ -12,6 +12,11 @@
 // This file is locked: evals-locks/pii-palm-labels.sha256 (written BEFORE the rule existed in tools/pii-scan.mjs).
 // Re-lock 1 (stricter, test fault): the content probe in the last test used the word "synthetic", which the scanner's
 // fixed help footer also prints; it now probes content-only markers and adds an image sample. No rule was relaxed.
+// Re-lock 2 (stricter, owner decision 224 ก, 2026-11-21): a renamed backup of a pilot photo is refused too.
+//   F4 a pilot photo name (F3, or the copy names / types of tests/unit/pii-palm-variants.test.js) followed by one or more
+//      backup / temp / packing suffixes: .bak .backup .old .orig .tmp .temp .copy .save .swp .1 .gz .bz2 .xz .zst .zip .7z
+//      .tar .tgz, or a trailing ~, also chained (P01-L.jpg.bak.gz, P01-L.jpg.bak~). "P01-L.jpg.bak" moved from ALLOWED to
+//      BLOCKED; every other name and assertion is unchanged.
 const { test, before } = require("node:test");
 const assert = require("node:assert/strict");
 const { spawnSync } = require("node:child_process");
@@ -45,14 +50,23 @@ const BLOCKED = [
   // F2 *.palm-trace.json
   "x.palm-trace.json", "labels/B/P12-R-3.png.palm-trace.json", "deep/dir/Q.Palm-Trace.Json", ".palm-trace.json",
   // F3 pilot-code image names
-  "P01-L.jpg", "P01-R.jpeg", "p02-l.png", "P99-R-12.webp", "img/P10-L-1.HEIC", "docs/p07-r.Jpg", "a b/P05-L.heic"
+  "P01-L.jpg", "P01-R.jpeg", "p02-l.png", "P99-R-12.webp", "img/P10-L-1.HEIC", "docs/p07-r.Jpg", "a b/P05-L.heic",
+  // F4 (re-lock 2, owner decision 224 ก) renamed backups of a pilot photo, single and chained, any case
+  "P01-L.jpg.bak", "P01-L.jpg.old", "P01-L.jpg.orig", "P01-L.jpg~", "P01-L.jpg.tmp", "P01-L.jpg.copy", "P01-L.jpg.bak.gz",
+  "P01-L.jpg.backup", "P01-L.jpg.temp", "P01-L.jpg.save", "P01-L.jpg.swp", "P01-L.jpg.1", "P01-L.jpg.gz", "P01-L.jpg.zip",
+  "P01-L.jpg.bak~", "P01-L.jpg.old.zip", "P01-L.jpg.orig.tmp.bak", "P01-L.jpg.copy.7z", "img/p07-r.PNG.BAK", "P99-R-12.webp.Old",
+  "P02-R-3.heic.orig", "a b/P05-L.jpeg.tmp", "palm/P03-L.JPG.COPY", "P01-L (1).jpg.bak", "P01-L copy.jpg.old", "P01-L_1.jpg.bak",
+  "P02-R.heif.bak", "P04-L.dng.orig", "P06-L.mov.tmp", "P05-R.tiff.bak.xz"
 ];
 // near misses that must pass (normal repo files and names that only look similar)
 const ALLOWED = [
   "palm.html", "js/palm.js", "docs/PALM-PILOT.md", "docs/palm-pilot.md", "tools/palm-trace.mjs", "tests/unit/palm-trace-tool.test.js",
   "palm-trace.md", "palm-pilot-guide.txt", "assets/palm-pilot.png", "x.palm-trace.json.md", "x.palm-trace.jsonl",
   "P1-L.jpg", "P001-L.jpg", "P01-X.jpg", "P01-LR.jpg", "P01_L.jpg", "P01-L.gif", "P01-L.svg", "P01-L-.jpg", "P01-L-a.jpg",
-  "AP01-L.jpg", "imgP01-L.png", "P01-L.jpg.txt", "P01-L.jpg.bak", "img/hero.jpg", "vendor/icons/icon-192.png", "README.md"
+  "AP01-L.jpg", "imgP01-L.png", "P01-L.jpg.txt", "img/hero.jpg", "vendor/icons/icon-192.png", "README.md",
+  // re-lock 2: look-alikes of F4 that must still pass ("P01-L.jpg.bak" moved to BLOCKED)
+  "P01-L.jpg.bakery", "P01-L.jpg.bak.md", "P01-L.jpg.old.txt", "P01-L.gif.bak", "P1-L.jpg.bak", "AP01-L.jpg.old", "P01-X.jpg.orig",
+  "hero.jpg.bak", "P01-L.jpg.copyright", "P01-L.jpg.tmpl"
 ];
 
 test("F1-F3 scanPath refuses each pilot photo / label path (the four named in the order and variants)", () => {
