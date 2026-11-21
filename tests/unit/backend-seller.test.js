@@ -269,7 +269,34 @@ test("S4: every change is audit-logged as who / when / which fields, never a val
 });
 
 /* ---------------- S5 ---------------- */
+// re-lock relock5 2026-11-21 (EQUAL test-bug re-lock, branch followups-1121): S5 failed now and then with "a piece of a seller value
+// leaked (000…)" although no seller value had leaked. Cause: the digit-only markers (tax IDs, bank number, phone) are checked as 6-digit
+// pieces against the whole D1 dump, and the dump holds values that change every run: random hex ids and hashes (crypto.getRandomValues;
+// about 1 700 hex positions, so roughly 1 run in 700 contains one of the 14 digit pieces by chance) and clock-derived numbers (the
+// rate-limit window_start is the start of the hour: in an hour such as 1764000000 every run held "000000", a piece of 0000000731905).
+// Fix: S5 runs at one fixed instant (S5_AT, 10 s into a 30 s TOTP step) with a seeded random source, so its dump is the same bytes every
+// run; both are restored afterwards, so other tests are unchanged. Same routes, same markers, same noMarker() rule, same sinks.
+const { mock } = require("node:test");
+const S5_AT = 1795305610000; // 2026-11-22T00:00:10Z: 10 s into a 30 s step (the clock rule of tests/unit/totp-clock.js)
+/** deterministic stand-in for crypto.getRandomValues (xorshift32, fixed seed): the same bytes every run */
+function seededRandomValues(seed) {
+  let x = seed >>> 0;
+  return arr => {
+    const b = new Uint8Array(arr.buffer, arr.byteOffset, arr.byteLength);
+    for (let i = 0; i < b.length; i++) { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; b[i] = x & 0xff; }
+    return arr;
+  };
+}
 test("S5: seller values never reach logs, audit, other tables, the audit API, analytics or any outbound call", async () => {
+  const t0 = Date.now();
+  mock.timers.setTime(S5_AT);
+  Object.defineProperty(globalThis.crypto, "getRandomValues", { configurable: true, writable: true, value: seededRandomValues(0x5e11e5) });
+  try { await s5(); } finally {
+    delete globalThis.crypto.getRandomValues;
+    mock.timers.setTime(t0);
+  }
+});
+async function s5() {
   const s = await setup();
   const l0 = logs.length;
   assert.equal((await s.putSeller(MARK)).status, 200);
@@ -308,7 +335,7 @@ test("S5: seller values never reach logs, audit, other tables, the audit API, an
   assert.ok(!/lensiq-analytics|lensiq-track|lensiq-ai|sendBeacon/.test(shell));
   const ui = readFileSync(join(ROOT, "admin-seller.js"), "utf8");
   assert.ok(!/sendBeacon|LQAnalytics|lensiq-analytics|console\.|\/v1\/events|\/api\/ai|fetch\(/.test(ui), "admin-seller.js uses the admin call() helper only");
-});
+}
 
 /* ---------------- S6 ---------------- */
 test("S6: missing seller data: TH/EN/ZH block on all three documents, no blank seller lines, issuing refused, no number used", async () => {

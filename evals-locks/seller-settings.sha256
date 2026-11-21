@@ -89,3 +89,9 @@ feb4044646ccb52c9844f94c0bd6b63141cc1f2639d692a4a805813ff32631f4  relock4/NOTE.t
 19309b788ff6e9758a4f00b7dcad70405d130ba8b7bf130d4c66d9699d0ad307  tests/integration/backend-seller-workerd.test.mjs  # repo file (same commit as lock 2026-11-20T21:31:23Z; field: ~/LENSIQ-field/evals/seller-settings/relock4/backend-seller-workerd.test.mjs)
 # field only relock4/NOTE.txt (lock 2026-11-20T21:31:23Z: no repo file uses it)
 # re-lock 2026-11-21 (A5 review, branch a5-defects; field: relock dir with NOTE.txt): EQUAL test-bug re-lock: frozen TOTP clock (tests/unit/totp-clock.js) in the unit files, previous-step code kept 3 s away from a step boundary in the workerd file; a totp(secret, -1) code failed when a 30 s boundary fell between generating and verifying. No assertion changed.
+# RE-LOCK relock5 2026-11-21 (branch followups-1121): EQUAL test-bug re-lock of tests/unit/backend-seller.test.js S5 only: the flake "a piece of a seller value leaked (000…)" came from run-to-run values in the D1 dump (hour-start rate_limits.window_start such as 1764000000 holds "000000", a piece of the tax-ID marker; and random hex ids, ~0.14 % of runs). S5 now runs at one fixed instant with a seeded random source (both restored afterwards), so its dump is identical every run. Same routes, markers, noMarker() rule and sinks. Field copy and NOTE.txt: ~/LENSIQ-field/evals/seller-settings/relock5/.
+# locked 2026-11-21T12:05:37Z (tools/eval-guard.mjs lock, 2 files)
+4d2025ac726b1f61fe856db642f7ddcf306d359034152c78a52f002a7be5f823  relock5/backend-seller.test.js
+03eb6df2cc3d0cdad6920f53d66cbdf14ea303b3431294745f0168cd5c739c09  relock5/NOTE.txt
+4d2025ac726b1f61fe856db642f7ddcf306d359034152c78a52f002a7be5f823  tests/unit/backend-seller.test.js  # repo file (same commit as lock 2026-11-21T12:05:37Z; field: ~/LENSIQ-field/evals/seller-settings/relock5/backend-seller.test.js)
+# field only relock5/NOTE.txt (lock 2026-11-21T12:05:37Z: no repo file uses it)
