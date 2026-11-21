@@ -297,3 +297,25 @@ ledger line `d56f5a47…  tests/e2e/fortune-new.e2e.mjs  # repo file (relock-pet
 `evals-locks/crisis-rules-1323.sha256`. Old bytes are in git at ca6c9ef8.
 
 Open: the independent reviewer confirms in writing that the new test is equal to or stricter than the old one.
+
+## RE-LOCK 11: crisis-rules-1323 a, c, e split by language (owner decision 203 ข, 2026-11-21, branch `split-203b`)
+
+Equal relock: no assertion, timeout, threshold, page, language or width changed; `tests/e2e/crisis-rules-kit.mjs` is unchanged.
+Reason: these files open all 19 fortune pages in TH / EN / ZH (a: 171 page loads, e: 171 x 6 scroll positions, c: 57 + 9) and
+failed on the owner's Mac under load with page-load timeouts or over the 900000 ms file limit (board item 203). b and f stay as they are.
+
+| Original (relock10, retired) | Split files | Check IDs | Cells (check x page x language x width) |
+|---|---|---|---|
+| tests/e2e/crisis-rules-1323-a.e2e.mjs 72f66ed2 | -a-th, -a-en, -a-zh | N1-N4, N5, N6 (N5 / N6 TH only, in -a-th) | 171 + 4 + 4 = 179 |
+| tests/e2e/crisis-rules-1323-c.e2e.mjs a7d1720c | -c-th, -c-en, -c-zh | P1, K1, K2 | 9 + 57 + 3 = 69 |
+| tests/e2e/crisis-rules-1323-e.e2e.mjs f12f9f26 | -e-th, -e-en, -e-zh | E1-E4, E5 | 171 + 6 = 177 |
+
+Each split file is a comment-only header plus the original bytes with four edits (`tools/crisis-split-203b.mjs`): the SLICE / PART
+line, `LANGS` -> `SLICE` in the language loops, the slice tag on each check name, and (file a) the TH-only N5 / N6 loop. Proof:
+`tests/unit/crisis-split-203b.test.js` (S2: undoing the edits gives the original sha256; S3: the union of the cells equals the
+baseline manifest `tests/unit/crisis-split-203b-manifest.json`, written from the code before the split, 425 cells, disjoint).
+Lock: `evals-locks/crisis-rules-1323.sha256` RE-LOCK 11 (field `~/LENSIQ-field/evals/crisis-rules-1323/relock11/`, NOTE.txt); the
+originals are retired after their last hash line there and in `evals-locks/crisis-v3.sha256` (a, e). CI shard weights: each split
+file gets a third of its original's seconds until the next refresh from CI logs; the shard check still requires every file once.
+
+Open: the independent reviewer re-counts the cells and confirms in writing that the split is equal.

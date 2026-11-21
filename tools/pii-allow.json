@@ -249,7 +249,23 @@
    "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
   },
   {
-   "path": "tests/e2e/crisis-rules-1323-c.e2e.mjs",
+   "path": "tests/e2e/crisis-rules-1323-c-th.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/e2e/crisis-rules-1323-c-en.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/e2e/crisis-rules-1323-c-zh.e2e.mjs",
    "types": {
     "phone": 2
    },
