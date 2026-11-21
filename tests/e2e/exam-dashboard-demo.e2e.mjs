@@ -49,6 +49,9 @@ async function open(page, url) {
 }
 const table = page => page.evaluate(() => {
   const pr = __LQ_EXAM_DB.board.precision();
+  // decision 223-4: the tally table sits in the closed "ตัวเลขละเอียดสำหรับผู้ดูแล" fold; open it as the administrator does
+  const fold = document.querySelector("#precBody").closest("details");
+  if (fold) fold.open = true;
   return { bySig: Object.fromEntries(Object.entries(pr.bySig).sort((a, b) => a[0].localeCompare(b[0])).map(([k, b]) => [k, [b.right, b.wrong]])), all: [pr.all.x, pr.all.n], text: document.querySelector("#precBody").innerText };
 });
 

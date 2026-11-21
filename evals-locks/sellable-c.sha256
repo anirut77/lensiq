@@ -16,3 +16,8 @@ cdcc159e34d9e16c94c970dae606afb6054fffb38d167818228cd9e696790526  tests/e2e/exam
 fc9ceae9a1a8e98d8ca30ab2d3dc7d8ed14257c80d0277e1a0a0c2b25181ae41  relock-223b/NOTE.txt
 2e2029863a21c42eec38633c11f60cf2195fef14842f13d00be2872e6aac7c87  tests/e2e/exam-dashboard-demo.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/sellable-c/relock-223b/exam-dashboard-demo.e2e.mjs)
 # field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:15Z: no repo file uses it)
+# locked 2026-11-21T19:36:05Z (tools/eval-guard.mjs lock, 2 files)
+2ae4a86edcd822b338de350fff7f53dd00a1ec8b85a5ca32a020044d268a1d1b  relock-223c/exam-dashboard-demo.e2e.mjs
+689c8c02bbb6c6aa8dae0dba189b4c432a5d8ed6fad25cb8b893856e31b4402f  relock-223c/NOTE.txt
+2ae4a86edcd822b338de350fff7f53dd00a1ec8b85a5ca32a020044d268a1d1b  tests/e2e/exam-dashboard-demo.e2e.mjs  # repo file (same commit as lock 2026-11-21T19:36:05Z; field: ~/LENSIQ-field/evals/sellable-c/relock-223c/exam-dashboard-demo.e2e.mjs)
+# field only relock-223c/NOTE.txt (lock 2026-11-21T19:36:05Z: no repo file uses it)
