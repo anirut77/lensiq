@@ -34,3 +34,9 @@ d70bee89419f351b47779ddb6fa032db201526ca306e797cab6bee70f57d87c0  relock2/NOTE.t
 # field only relock2/NOTE.txt (lock 2026-11-20T21:31:42Z: no repo file uses it)
 # field only relock2/before-palm-fix.log (lock 2026-11-20T21:31:42Z: no repo file uses it)
 # re-lock 2 2026-11-21 (field: relock2/ with NOTE.txt): coordinator review finding 3: Thai line-card heading keeps its kanji subtitle (design since 3808a3cb); EN / ZH one name only, checked by running palm.js's heading code per language. Locked before the palm fix.
+# locked 2026-11-21T07:52:04Z (tools/eval-guard.mjs lock, 2 files)
+4387d1b247cebc5ec7304c37fd330d25c3e4a4c9a4e3da2432d5d7de21405e00  relock3/exam-face.test.js
+63526accf6f94302e1a519268ad819527711b2cbcc392f8aa4ac6f10197ec2aa  relock3/NOTE.txt
+4387d1b247cebc5ec7304c37fd330d25c3e4a4c9a4e3da2432d5d7de21405e00  tests/unit/exam-face.test.js  # repo file (same commit as lock 2026-11-21T07:52:04Z; field: ~/LENSIQ-field/evals/a5-defects/relock3/exam-face.test.js)
+# field only relock3/NOTE.txt (lock 2026-11-21T07:52:04Z: no repo file uses it)
+# re-lock 3 2026-11-21 (field: relock3/ with NOTE.txt): merge re-lock of tests/unit/exam-face.test.js after merging origin/main 502ec313: main's examlab-s2 relock1 version + this branch's camera-version line; no other change.

@@ -6,3 +6,4 @@
 # unless ..."), so "exam-lab.js never names face-api.js" refused a correct product. Now it reads code only, with the same
 # comment-stripping as the lensiq-exam-face.js check in the same test. No other assertion changed. Run on the unchanged product
 # (299370b8 + lock b3142691): 25 pass, 4 fail (the same 4 new / changed guards), as expected.
+4387d1b247cebc5ec7304c37fd330d25c3e4a4c9a4e3da2432d5d7de21405e00  tests/unit/exam-face.test.js  # repo file (re-locked in evals-locks/a5-defects.sha256 at 2026-11-21T07:52:04Z, replaces 5f2d3b27ff9cc7ca75c3fa71efdecddd41a1c0256bb302ec171819b7d4542f38 of line 3; field: ~/LENSIQ-field/evals/a5-defects/relock3/exam-face.test.js)
