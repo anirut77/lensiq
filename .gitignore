@@ -37,3 +37,5 @@ field-data/
 [Pp][0-9][0-9]-[LlRr]-*.[pP][nN][gG]
 [Pp][0-9][0-9]-[LlRr]-*.[hH][eE][iI][cC]
 [Pp][0-9][0-9]-[LlRr]-*.[wW][eE][bB][pP]
+# palm tap-to-trace labels (tools/palm-trace/, owner decision 174 ก): owner ground truth, kept next to the photo or in ~/LENSIQ-field/, never committed
+*.palm-trace.json

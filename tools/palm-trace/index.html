@@ -1,0 +1,61 @@
+<!doctype html>
+<!-- tools/palm-trace/index.html — LOCAL OWNER TOOL (owner decision 174 ก): palm line tap-to-trace labelling. Never published
+     (tools/ is outside tools/build-site.mjs ALLOW and in its FORBIDDEN list) and never linked from the site. Start it with
+     `node tools/palm-trace/serve.mjs` (127.0.0.1 only). The photo is read from a file input inside this page; nothing is sent. -->
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'none'; form-action 'none';
+  base-uri 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; font-src 'none'; manifest-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="palm-trace.css">
+<title>LENSIQ palm trace (local)</title>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <div class="langs" role="group" aria-label="Language / ภาษา / 语言">
+    <button type="button" data-lang="th" lang="th">ไทย</button>
+    <button type="button" data-lang="en" lang="en">EN</button>
+    <button type="button" data-lang="zh" lang="zh">中文</button>
+  </div>
+</header>
+<p id="local" class="note"></p>
+<section class="bar">
+  <label class="file"><span data-t="open_photo"></span><input id="photo" type="file" accept="image/*"></label>
+  <span id="photoname" class="note"></span>
+</section>
+<section class="bar meta">
+  <label class="field"><span data-t="labeller"></span><input id="labeller" type="text" maxlength="64" autocomplete="off" spellcheck="false"></label>
+  <label class="field"><span data-t="hand"></span>
+    <select id="hand"><option value="unknown" data-t="hand_unknown"></option><option value="left" data-t="hand_left"></option><option value="right" data-t="hand_right"></option></select>
+  </label>
+</section>
+<p class="note" data-t="choose_line"></p>
+<section class="bar lines" role="group" aria-label="lines">
+  <button type="button" data-line="life"><span class="sw sw-life"></span><span class="nm"></span> <small class="ct"></small></button>
+  <button type="button" data-line="head"><span class="sw sw-head"></span><span class="nm"></span> <small class="ct"></small></button>
+  <button type="button" data-line="heart"><span class="sw sw-heart"></span><span class="nm"></span> <small class="ct"></small></button>
+  <button type="button" data-line="fate"><span class="sw sw-fate"></span><span class="nm"></span> <small class="ct"></small></button>
+</section>
+<section class="bar tools">
+  <button type="button" id="undo"></button>
+  <button type="button" id="clear"></button>
+  <button type="button" id="notvis"></button>
+  <span class="zoom" role="group"><span data-t="zoom"></span>
+    <button type="button" data-zoom="1">1×</button><button type="button" data-zoom="2">2×</button><button type="button" data-zoom="3">3×</button>
+  </span>
+</section>
+<div id="wrap"><canvas id="cv" width="400" height="300"></canvas></div>
+<section class="bar">
+  <button type="button" id="export" class="primary"></button>
+  <span class="note" data-t="save_hint"></span>
+</section>
+<p id="msg" class="note" role="status" aria-live="polite"></p>
+<script src="palm-trace-core.js"></script>
+<script src="palm-trace.js"></script>
+</body>
+</html>

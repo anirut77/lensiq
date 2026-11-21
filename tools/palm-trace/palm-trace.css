@@ -1,0 +1,30 @@
+/* tools/palm-trace/palm-trace.css — local owner tool (owner decision 174 ก). Phone width first: no horizontal page scroll,
+   every control at least 44 px tall. */
+* { box-sizing: border-box; }
+body { margin: 0; padding: 0 12px 24px; font: 15px/1.45 system-ui, -apple-system, "Noto Sans Thai", "Noto Sans SC", sans-serif; background: #10142a; color: #eef0fa; overflow-x: hidden; }
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 0 4px; }
+h1 { font-size: 18px; margin: 0; flex: 1 1 200px; }
+.note { color: #b7bedc; font-size: 13px; margin: 6px 0; overflow-wrap: anywhere; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+button, select, input[type=text], label.file {
+  min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1px solid #3d4680; background: #1e2550; color: inherit; font: inherit; font-size: 14px;
+  touch-action: manipulation; -webkit-user-select: none; user-select: none; max-width: 100%;
+}
+button { cursor: pointer; }
+button[aria-pressed=true] { background: #5b48e6; border-color: #8b7cff; }
+button.primary { background: #1f7a4d; border-color: #39b27a; font-weight: 600; }
+label.file { position: relative; display: inline-flex; align-items: center; cursor: pointer; background: #2b3470; overflow: hidden; }
+/* the real file input covers its label border box (same size, invisible): one 44 px target for mouse, touch and keyboard */
+#photo { position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px); opacity: 0; cursor: pointer; font-size: 0; }
+label.file:focus-within { outline: 2px solid #8b7cff; outline-offset: 2px; }
+.field { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: #b7bedc; flex: 1 1 140px; min-width: 0; }
+.field input, .field select { width: 100%; user-select: text; -webkit-user-select: text; }
+.lines button { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 140px; justify-content: flex-start; }
+.sw { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex: none; }
+.sw-life { background: #ff5e5e; } .sw-head { background: #3fc1ff; } .sw-heart { background: #ffd23f; } .sw-fate { background: #6dff8f; }
+.ct { color: #c8cdee; }
+.zoom { display: inline-flex; align-items: center; gap: 4px; }
+#wrap { width: 100%; max-height: 70vh; overflow: auto; background: #000; border-radius: 8px; -webkit-overflow-scrolling: touch; }
+#cv { display: block; width: 100%; height: auto; cursor: crosshair; touch-action: pan-x pan-y pinch-zoom; }
+#msg.ok { color: #6dff8f; } #msg.err { color: #ff8a80; }
+:focus-visible { outline: 2px solid #8b7cff; outline-offset: 2px; }
