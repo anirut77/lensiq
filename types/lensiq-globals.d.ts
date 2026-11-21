@@ -106,6 +106,8 @@ interface Window {
   LENSIQ_FORTUNE_CAUTIONS_CN_WEST?: boolean;
   /** item 177: show caution rules not yet expert-reviewed (preview only) */
   LENSIQ_FORTUNE_CAUTIONS_DRAFTS?: boolean;
+  /** compat.html v2 view (compat-v2.js, on demand); off unless exactly true (night order A6, 2026-11-20) */
+  LENSIQ_COMPAT_V2?: boolean;
   /** recommended-source entries (admin-managed later; none ship) */
   LQ_FORTUNE_SELLER_LINKS?: any[];
   /** item 177: caution rules registered by the generated packs fortune-caution-pack-*.js (read by fortune-caution-core.js) */
