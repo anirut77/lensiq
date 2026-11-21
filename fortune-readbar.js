@@ -4,7 +4,8 @@
  * shows a copy of it (same label, page language, 44 px+); a tap clicks the real button, so validation, the crisis net and the
  * reading flow are the page's own. Hidden when the real button or a reading is on screen, when the page is in the crisis state
  * (html[data-lq-crisis]) or a help card is shown, and in print. Bottom of the screen only: it never covers the top bar's help
- * control. Single source; tools/fortune-read-embed.mjs copies it into fortune-read.js (reading pages) and planner.js. */
+ * control. Solid white (owner report 2026-11-18: page text showed through the .96 white). Single source;
+ * tools/fortune-read-embed.mjs copies it into fortune-read.js (reading pages) and planner.js. */
 (function (root) {
   "use strict";
   var doc = root.document;
@@ -32,7 +33,7 @@
   function build() {
     var st = doc.createElement("style");
     st.textContent = ".lq-readbar{position:fixed;left:0;right:0;bottom:0;z-index:55;padding:8px 16px calc(8px + env(safe-area-inset-bottom));" +
-      "background:rgba(255,255,255,.96);border-top:1px solid #e3e7f0;box-shadow:0 -6px 18px rgba(14,20,48,.08)}" +
+      "background:#fff;border-top:1px solid #e3e7f0;box-shadow:0 -6px 18px rgba(14,20,48,.08)}" +
       ".lq-readbar .btn{display:flex;width:100%;max-width:520px;min-height:48px;margin:0 auto}.lq-readbar[hidden]{display:none}" +
       "@media print{.lq-readbar{display:none!important}}";
     doc.head.appendChild(st);

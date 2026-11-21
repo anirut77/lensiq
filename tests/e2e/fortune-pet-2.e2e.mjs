@@ -11,6 +11,8 @@
 //       title, then the disclaimer, a description of at most 2 lines, and the photo + camera buttons fully on screen; once a
 //       photo is set, a Read button is on screen and gives the reading
 //   S5  D3 camera denied: the first step is the page title (TH / EN / ZH), before the Settings fallback
+// RE-LOCK 2026-11-20 (owner decision 184 ก; ledger evals-locks/fortune-pet.sha256 "relock-pet-3"): S6 only; it turns
+// window.LENSIQ_CARD_SHOW_ADDRESS on first (the QR encodes the address and follows that switch). Equal; nothing else changed.
 //   S6  card: the typed Thai name is kept on the English card; story size 1080 x 1920; QR off by default, on = drawn on the
 //       device with zero network requests
 import { assert } from "./cdp.mjs";
@@ -143,7 +145,9 @@ export default async function ({ base, launch, check }) {
     });
 
     await check("S6 card: Thai name kept on the English card, story size, QR off by default and drawn on the device", async () => {
-      const page = await open(browser, base, { lang: "en" });
+      // RE-LOCK 2026-11-20 (owner decision 184 ก): the QR encodes the site address, so it exists only with LENSIQ_CARD_SHOW_ADDRESS
+      // on; S6 turns the switch on first, every check below is unchanged (QR-off-while-switch-off: pet-card-address.e2e.mjs B3)
+      const page = await open(browser, base, { lang: "en", init: ["window.LENSIQ_CARD_SHOW_ADDRESS = true;"] });
       await readWith(page, [], "ส้มจี๊ด");
       const m = await page.evaluate(() => window.__LQPET.model());
       assert(m && m.petName === "ส้มจี๊ด", "typed Thai name kept on the English card " + JSON.stringify(m && m.petName));

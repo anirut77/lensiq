@@ -104,12 +104,12 @@ export default async function ({ base, launch, check, fakeCams }) {
       await page.close();
     });
 
-    await check("palm: 2 hands -> 'ใช้มือเดียวในกรอบ' warning; torch control shown when the track reports torch", async () => {
+    await check("palm: 2 hands -> 'ใช้มือเดียวในกรอบ' warning; torch control shown when the track reports torch; torch stays off at start (decision 186 ก)", async () => {
       const page = await open(browser, `${base}/palm.html?cpu&fakedet`, fakeCams, "window.__LQ_TORCH = true;");
       await page.evaluate(() => document.getElementById("plStartCam").click());
       await page.waitFor(`document.querySelector("#plCam.live") && !document.getElementById("plSnap").hidden`, 8000);
       const torch = await page.waitFor(`(() => { const t = document.querySelector("#plCam .cam-torch"); return t && !t.hidden && !t.closest(".cam-ctl").hidden && t.offsetWidth > 0 && { calls: window.__torchCalls || [] }; })()`, 5000);
-      assert(torch.calls.some(c => c.includes('"torch":true')), "torch switched on at start: " + JSON.stringify(torch.calls));
+      assert(!torch.calls.some(c => c.includes('"torch":true')), "torch switched on at start (decision 186 ก: off by default): " + JSON.stringify(torch.calls));
       await setDets(page, [HAND, HAND2]);
       await page.waitFor(`(() => { const m = document.getElementById("plMulti"); const li = [...document.querySelectorAll("#plQc li")].find(l => l.textContent.includes("ใช้มือเดียวในกรอบ")); return !m.hidden && m.offsetWidth > 0 && li && li.classList.contains("no"); })()`, 5000);
       await setDets(page, [HAND]);

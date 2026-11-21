@@ -667,6 +667,8 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 | `CSP_REPORT_DAYS`, `CSP_REPORT_GLOBAL_DAY` | var | 90, 5000 | CSP report counter retention / daily cap |
 | `RECONCILE_BATCH` | var | 25 | payments repaired / re-checked per 15-min cron run (1–500) |
 | `LEADS_DAYS`, `LEADS_GLOBAL_DAY` | var | 180, 200 | B2B demo-request retention / daily cap |
+| `LEAD_NOTIFY_HEALTH` | var | `off` | `on`: `GET /admin/api/leads/notify` adds `health` (per-setting configured / format check of the two LINE secrets and `LEAD_NOTIFY_LINE_DAY`, last success, last failure, failures since the last success and in 7 days, `flagged`); names and reason codes only, never a value. Off = the answer is unchanged |
+| `SELLER_DOC_LANG` | var | `off` | `on`: the seller's default document language (owner decision 199 ข): Thai + English unless the owner picks Thai only or Thai + English + Chinese in the seller tab (settings key `seller_doc_langs`, no migration); issued documents keep their language. Off = Thai + English + Chinese as before |
 | `ALERT_WEBHOOK_URL` | secret | — | optional https incoming webhook for owner alerts (no PII sent) |
 | `HEALTH_TOKEN` | secret | — | optional bearer for `GET /health/deep` |
 | `ADMIN_BOOTSTRAP_TOKEN` | secret | — | one-time owner bootstrap (delete afterwards) |

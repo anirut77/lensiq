@@ -88,6 +88,7 @@ import * as members from "./members.js";
 import * as identities from "./identities.js";
 import * as orgs from "./orgs.js";
 import * as settings from "./settings.js";
+import * as seller from "./seller.js";
 import { audit, callerHash, hit } from "./store.js";
 import {
   HttpError, adminOrigins, corsHeaders, flag, intVar, json, log, originAllowed, publicOrigins, readJson, readText, withHeaders
@@ -401,6 +402,12 @@ async function adminRoute(request, env, url, deps) {
     return reply(r);
   }
 
+  // seller details (owner order 2026-11-18): owner only, READ included. A request with no credential at all is refused
+  // 403 owner_only before any session or database lookup (an expired / unknown session still answers 401 below, so the page
+  // can send the owner back to sign-in); restricted accounts get 403 forbidden_role from the default-deny role check.
+  if (seller.isSellerRoute(route) && !request.headers.get("Authorization") && !/(?:^|;\s*)__Host-lq_admin=/.test(request.headers.get("Cookie") || "")) {
+    return json({ error: "owner only (owner_only)", code: "owner_only" }, 403, cors);
+  }
   const sess = await auth.requireAdmin(env, request);
   const ipHash = await callerHash(env, request, "admin");
   const isReviewer = sess.role === "reviewer";
@@ -510,6 +517,89 @@ async function adminRoute(request, env, url, deps) {
     if (sub === "licences" && !lid && m === "POST") return reply(await orgs.adminAddLicence(env, oid, await reauthed()), 201);
     if (sub === "licences" && lid && m === "PUT") return reply(await orgs.adminSetLicence(env, oid, lid, await reauthed()));
     if (sub === "audit" && !lid && m === "GET") return reply(await orgs.adminOrgAudit(env, oid));
+    return reply({ error: "not found" }, 404);
+  }
+
+  // "ข้อมูลกิจการ" seller details + quotation / invoice / receipt (seller.js). The owner only reaches this point (restricted
+  // accounts were refused above). Audit: who / when / which fields, document ids, types and sequence numbers; never a value.
+  if (seller.isSellerRoute(route)) {
+    if (isReviewer) throw new HttpError(403, "not allowed for a reviewer account (forbidden_role)", { code: "forbidden_role" });
+    /** step-up for changes: owner 2-step verification on + password and a fresh code in this very request (no sudo window) */
+    const stepUp = async b => {
+      const o = await auth.getOwner(env.DB);
+      if (!o || !o.totp_enabled) throw new HttpError(403, "turn on 2-step verification before changing business details (owner_totp_required)", { code: "owner_totp_required" });
+      try { return await auth.requireInlineReauth(env, sess, b); } catch (e) {
+        if (e && e.extra && e.extra.code === "reauth_inline_required") await act("reauth.failed", { route, missing: true, inline: true });
+        throw e;
+      }
+    };
+    if (route === "/seller" && m === "GET") return reply(await seller.getSeller(env));
+    if (route === "/seller" && m === "PUT") {
+      const b = await body();
+      const o = await auth.getOwner(env.DB);
+      if (!o || !o.totp_enabled) throw new HttpError(403, "turn on 2-step verification before changing business details (owner_totp_required)", { code: "owner_totp_required" });
+      const { password: _p, totp: _t, ...fields } = b;
+      const u = seller.cleanUpdate(fields, { docLangs: seller.docLangOn(env) }); // refusals that need no secret first, so a 6-digit code is not used up on them
+      await stepUp(b);
+      const r = await seller.applyUpdate(env, u);
+      await act("seller.profile.updated", { fields: u.fields });
+      return reply(r);
+    }
+    if (route === "/seller/logo" && m === "GET") return withHeaders(await seller.logoResponse(env), cors);
+    if (route === "/seller/logo" && m === "PUT") {
+      const raw = await readJson(request, seller.LOGO_BODY_MAX);
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new HttpError(400, "invalid request body", { code: "bad_body" });
+      const o = await auth.getOwner(env.DB);
+      if (!o || !o.totp_enabled) throw new HttpError(403, "turn on 2-step verification before changing business details (owner_totp_required)", { code: "owner_totp_required" });
+      const { password: _p, totp: _t, ...img } = raw;
+      const l = seller.checkLogo(img);
+      await stepUp(raw);
+      const r = await seller.setLogo(env, l);
+      await act("seller.logo.set", { fields: ["logo"], mime: l.mime, bytes: l.bytes.length });
+      return reply(r);
+    }
+    if (route === "/seller/logo" && m === "DELETE") {
+      await stepUp(request.headers.get("Content-Type") ? await body() : {});
+      const r = await seller.removeLogo(env);
+      await act("seller.logo.removed", { fields: ["logo"] });
+      return reply(r);
+    }
+    if (route === "/seller/prices" && m === "GET") return reply(seller.priceList());
+    if (route === "/seller/docs" && m === "GET") return reply(await seller.listDocs(env));
+    if (route === "/seller/docs" && m === "POST") {
+      const r = await seller.createDoc(env, await body());
+      await act("seller.doc.created", { doc: r.doc.id, type: r.doc.doc_type });
+      return reply(r, 201);
+    }
+    const sd = /^\/seller\/docs\/([a-f0-9]{32})(?:\/(issue|void))?$/.exec(route);
+    if (sd && !sd[2] && m === "GET") {
+      const d = await seller.docData(env, sd[1]);
+      if (url.searchParams.get("format") === "json") return reply({ data: d });
+      return new Response(seller.renderDoc(d), { headers: { ...seller.DOC_HEADERS, ...cors } });
+    }
+    if (sd && sd[2] === "issue" && m === "POST") {
+      const b = request.headers.get("Content-Type") ? await body() : {};
+      const pre = await seller.issueCheck(env, sd[1]); // no secret needed to know the details are incomplete
+      if (pre.missing.length) return reply({ error: "fill in the business details first (seller_incomplete)", code: "seller_incomplete", missing: pre.missing }, 409);
+      try { await auth.requireReauth(env, sess, b); } catch (e) {
+        if (e && e.extra && e.extra.code === "reauth_required") await act("reauth.failed", { route, missing: true });
+        throw e;
+      }
+      const r = await seller.issueDoc(env, sd[1]);
+      if (r.missing) return reply({ error: "fill in the business details first (seller_incomplete)", code: "seller_incomplete", missing: r.missing }, 409);
+      await act("seller.doc.issued", { doc: sd[1], type: r.doc.doc_type, seq: r.seq });
+      return reply({ doc: r.doc });
+    }
+    if (sd && sd[2] === "void" && m === "POST") {
+      const b = request.headers.get("Content-Type") ? await body() : {};
+      try { await auth.requireReauth(env, sess, b); } catch (e) {
+        if (e && e.extra && e.extra.code === "reauth_required") await act("reauth.failed", { route, missing: true });
+        throw e;
+      }
+      const r = await seller.voidDoc(env, sd[1]);
+      await act("seller.doc.voided", { doc: sd[1], type: r.doc.doc_type });
+      return reply(r);
+    }
     return reply({ error: "not found" }, 404);
   }
 
@@ -833,7 +923,8 @@ async function adminRoute(request, env, url, deps) {
 
 /** Static admin shell served from the Worker's own origin (Workers Static Assets binding ASSETS, built by
  *  backend/scripts/build-admin.mjs). HTTP headers a <meta> cannot carry: frame-ancestors 'none' + X-Frame-Options. */
-export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin-lead-notify.js", "/admin-orgs.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js",
+export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin-lead-notify.js", "/admin-orgs.js", "/admin-seller.js", "/admin.css", "/lensiq-api.js",
+  "/lensiq-config.js",
   // round 17 P5: AI Gateway section text in English / Chinese (Thai stays the default)
   "/lensiq-i18n.js", "/i18n/zh-admin.js", "/i18n/en-admin.js",
   // first-run setup: QR code of the 2-step verification secret, drawn in the browser (no request carries the secret)
@@ -848,9 +939,11 @@ export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin
   "/vendor/mediapipe/wasm/vision_wasm_internal.js", "/vendor/mediapipe/wasm/vision_wasm_internal.wasm",
   "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.js", "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
   "/vendor/models/face-gate/blaze_face_short_range.tflite"]);
+// font-src data: (decision 161, 2026-11-19): the seller document preview (srcdoc iframe, inherits this policy) carries
+// its Thai font inline so the printed PDF never falls back to a machine font; same as admin.html's own <meta> CSP.
 export const ADMIN_PAGE_HEADERS = {
   "Content-Security-Policy": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
-    "font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; report-uri /v1/csp-report; report-to csp",
+    "font-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; report-uri /v1/csp-report; report-to csp",
   "Reporting-Endpoints": 'csp="/v1/csp-report"',
   "X-Frame-Options": "DENY",
   "X-Content-Type-Options": "nosniff",

@@ -1,0 +1,10 @@
+# locked 2026-11-20T13:33:57Z (tools/eval-guard.mjs lock, 1 file)
+51f493f1e85b5dacbb76bf63bf28cb3c9cca2d0eca1ac3970722d552834581c0  crisis-load-diag.test.js
+51f493f1e85b5dacbb76bf63bf28cb3c9cca2d0eca1ac3970722d552834581c0  tests/unit/crisis-load-diag.test.js  # repo file (same commit as lock 2026-11-20T13:33:57Z; field: ~/LENSIQ-field/evals/crisis-load-diag/crisis-load-diag.test.js)
+# LOCK 2026-11-20 (owner decision 203 ค), BEFORE the helper tests/e2e/load-diag.mjs exists: classify crisis-rules-1323 page-load failures as "slow machine" (load average above 10 or page loaded late) vs "page did not load" (navigation / HTTP error, or no ready page while the load was normal); both still fail; no timeout, page list or assertion loosened.
+# RE-LOCK 1 2026-11-21 (owner decision 203 ข, branch split-203b): L7 reads crisis-rules-1323-{a,c,e}-{th,en,zh}.e2e.mjs (the split of relock 11 in evals-locks/crisis-rules-1323.sha256) instead of the retired originals; same catch rule and per-file counts a 1, c 2, e 1; new: originals must be gone, 9 files counted. Equal or stricter; L1-L6 unchanged. Field copy and NOTE.txt: ~/LENSIQ-field/evals/crisis-load-diag/relock1/.
+# locked 2026-11-21T00:45:11Z (tools/eval-guard.mjs lock, 2 files)
+9709391b4ce1804396d6ff1dfee3a6e3a92a1a29abe788cb6deb782b9504450a  relock1/crisis-load-diag.test.js
+d2fb250184f4dcecfb979bfbc0bd5963ff779a5f63b5bd04c46b45dc2230a6d8  relock1/NOTE.txt
+9709391b4ce1804396d6ff1dfee3a6e3a92a1a29abe788cb6deb782b9504450a  tests/unit/crisis-load-diag.test.js  # repo file (same commit as lock 2026-11-21T00:45:11Z; field: ~/LENSIQ-field/evals/crisis-load-diag/relock1/crisis-load-diag.test.js)
+# field only relock1/NOTE.txt (lock 2026-11-21T00:45:11Z: no repo file uses it)

@@ -1169,6 +1169,39 @@ Questions: (a) is the person-box step (detection without identification, never s
 PDPA s. 6, and does the on-screen notice suffice? (b) the card includes the pet photo only when the user ticks it (off by
 default); is a reminder not to share photos showing other people enough?
 
+## Seller details page ("ข้อมูลกิจการ") and quotation / invoice / receipt documents (2026-11-18, branch `seller-settings`)
+
+Owner order 2026-11-18 ("needed for selling"). Migration `0021_seller.sql`, `backend/src/seller.js`, `admin-seller.js`.
+
+(a) **What is stored.** One row `seller_profile`: the seller's business or legal name, tax ID, branch, address, VAT status
+and rate, bank name / account name / account number for transfers, contact phone, e-mail and LINE, the document number
+prefix and an optional logo (PNG / JPEG / WebP, at most 200 kB, base64 in D1: this Cloudflare account has no R2 binding).
+If the seller is a sole trader, name, tax ID (= national ID number for an individual), address, phone and bank account
+are personal data of the owner. Documents (`seller_docs`) also store the **buyer's** name, address, tax ID and branch as
+typed by the owner, a frozen copy of the seller details and of the lines at the time each document is issued, and the
+logo printed on it (stored once per distinct image in `seller_logos`, referenced by its hash; review round 1).
+
+(b) **Where it is kept and who sees it.** In the Worker's D1 database only. Never in the repository (public), never in a
+log line, an audit row, analytics or an outbound request, never sent to AI (tested with marker values in every sink:
+`tests/unit/backend-seller.test.js` S5, `tests/integration/backend-seller-workerd.test.mjs`). Only the owner account can
+read or change it (merit reviewer and try-on accounts get 403; no credential = 403). Tax ID, bank account number and phone
+are shown masked (last 4 digits) in the settings view; the full values appear only in the documents themselves, which must
+carry them. Every change needs the owner's password + a 6-digit code in that request; the audit log records who, when and
+which fields, never a value.
+
+(c) **Questions for counsel.**
+1. Buyer data in `seller_docs`: business contact data of a customer organisation (and of individuals when the buyer is a
+   person). Lawful basis = contract / legal obligation (Revenue Code record keeping)? Retention: the Revenue Code asks for
+   5 years for tax documents (`docs/LEGAL-REVIEW-PACK.md` §3.5 R5); no automatic deletion is built. Confirm the period
+   and whether the privacy notice must mention it.
+2. Issued documents keep a frozen copy of the seller details (needed so an old document is not silently changed). Is that
+   acceptable for a sole trader's own data, and for how long?
+3. Is the document number series (prefix + type + 6 digits, per type, never reset or reused; void keeps the number)
+   acceptable to the accountant for quotations, invoices and receipts? Tax invoices are NOT produced (R1–R2, OP-02/03 open):
+   the documents never say "ใบกำกับภาษี".
+4. Backups / exports of D1 contain these values in plain text (Cloudflare encrypts D1 at rest). Should the bank account
+   number be encrypted with the existing key-encryption key as well?
+
 ## Owner location in a public commit (decision 111, 2026-11-19)
 
 What happened: on 2026-11-18 a commit pushed to the public repository (`8e44c420`, branch `seller-settings`) included
@@ -1182,3 +1215,47 @@ Prevention: `tools/pii-scan.mjs` blocks in CI (tracked files and the added lines
 ignored, and an optional pre-commit hook is available (`git config core.hooksPath tools/git-hooks`).
 Question: (a) when the only data exposed is the owner's own (the owner is the controller), is any notification under PDPA s. 37(4)
 needed, or is an internal record enough?
+
+## Incident 174: images derived from the owner's own palm photos opened in an agent session (2026-11-20)
+
+Draft for legal review, not legal advice. Legal packet item L75 (`docs/LEGAL-PACKET.md` section 17.1).
+
+What happened: during palm line-finder development, an agent session opened about 26 images derived from the owner's own
+palm photos (downscaled thumbnails, contrast-enhanced crops, overlays). Opening an image in a session sends it to the AI
+model provider. That breached the owner's rule that nothing leaves the machine.
+Scope: no original photo was copied, uploaded, committed or modified. No other person's photo was involved. The derived
+images are kept on disk by owner decision; the path list is held outside the repo, in the owner's review folder.
+New standing rule (owner decision 174 ก): no photo of a pilot participant, and nothing derived from one, is ever opened
+in a session or sent to any model or service. Numbers only. This applies to the owner's photos too.
+Prevention going forward: reference-line labelling will use a local tap-to-trace tool, operated by two labellers who cannot
+see each other's work.
+Questions: (a) given that the photos were the owner's own, does this need any record or notice under PDPA, or is an
+internal record enough? (b) does the pilot consent form need a clause stating this rule?
+
+## D-4: "my data on this device" save / load (owner decision D-4, 2026-11-19; branch `d3-d4`, not switched on)
+
+Draft for legal review, not legal advice.
+
+Why: what LENSIQ keeps in a browser belongs to the web address (`docs/PRODUCTION-MOVE-PLAN.md` §2.7). When the site moves
+to its own domain, a person's settings would be lost. `lensiq-device-data.js` adds a section to `privacy.html` that saves
+those settings to a file on the person's own device and loads such a file on the new address.
+
+- **Switch:** `window.LENSIQ_DEVICE_EXPORT`, off unless exactly `true`; always off in a customer bundle (operator lock).
+  While off, nothing is shown. The owner switches it on separately (one line in `lensiq-config.js`).
+- **No processing by us:** the file is made and read in the browser. Nothing is sent to LENSIQ or anyone else; there is
+  no server route for it. LENSIQ does not receive, see or keep the file.
+- **What is in the file:** only an allow-list of the person's own data on that device: language, catalogue filter,
+  nutrition display, Merit tradition choice, the 18+ "read it straight" confirmation, and, only if the person ticks the
+  "records" box, the medicine look-up history (text the person typed or scanned) and the pet card collection. Never:
+  images, face data, sign-in tokens, the tester code, consents, owner/admin keys, quote requests, or business data about
+  other people (Attendance, Exam, Gate, Crowd and similar stores).
+- **Sensitive data:** the medicine look-up history can reveal health information (PDPA s.26). It is off by default and
+  the box says so. The file sits wherever the person saves it; the section tells them to keep it safe.
+- **Age:** a file that carries an 18+ confirmation does not set it on the new address by itself. The person has to tick
+  "I am 18 or older" again on that device.
+- **Loading:** strict. Unknown keys are ignored and never written. One invalid value means the whole file is refused.
+  Nothing changes until the person presses "Use this data".
+
+Questions: (a) is a self-service export to the person's own device, with no transfer to us, enough for the data
+portability right (s.31) for on-device data, or does the privacy notice need a sentence on it before it is switched on?
+(b) should the medicine look-up history be left out of the file entirely rather than offered behind a box?

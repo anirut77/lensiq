@@ -5,7 +5,7 @@ flag is an observation ("a phone may be in view"), never a verdict ("cheating de
 
 | Page | Role |
 |---|---|
-| `exam.html` (+ `exam-landing.js`) | Product landing: mode chooser, honest positioning, the "never" list, what a web page cannot see, signal table, fairness, PDPA / EU AI Act notes, draft pricing, printable notice + consent template (`#notice`) |
+| `exam.html` (print button in `lensiq-exam-clip.js`) | Product landing: mode chooser, honest positioning, the "never" list, what a web page cannot see, signal table, fairness, PDPA / EU AI Act notes, draft pricing, printable notice + consent template (`#notice`) |
 | `exam-lab.html` (+ `exam-lab.js`) | **Mode B** candidate page (computer lab / webcam): notice + consent → camera & light check → calibration → fullscreen exam; own event log |
 | `exam-hall.html` (+ `exam-hall.js`) | **Mode A** camera node (laptop / phone, 2–5 fps): seat polygon editor per camera view, grid generator, walk mode, room mute |
 | `exam-dashboard.html` (+ `exam-dashboard.js`) | Room dashboard for both modes: seat map, alert queue, actions, accommodations, summary, on-site tally, CSV, printable report |

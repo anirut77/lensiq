@@ -248,7 +248,7 @@ test("board: flag row knows its clip status; 'keep clip' needs a name, is not a 
 
 /* ---------- objective events only; no emotion / expression / age-gender API anywhere in LENSIQ Exam ---------- */
 const EXAM_CODE = ["lensiq-exam.js", "lensiq-exam-clip.js", "lensiq-exam-face.js", "exam-lab.js", "exam-hall.js", "exam-dashboard.js", "exam-ui.js", "exam-link.js",
-  "exam-clip-ui.js", "exam-landing.js"];
+  "exam-clip-ui.js"]; // exam-landing.js (print button only) was merged into lensiq-exam-clip.js, scanned above
 const EXAM_PAGES = ["exam.html", "exam-lab.html", "exam-hall.html", "exam-dashboard.html"];
 const stripComments = s => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
 

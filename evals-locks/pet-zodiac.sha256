@@ -1,0 +1,70 @@
+# evals-locks/pet-zodiac.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/pet-zodiac/ (owner rule 2026-11-13). Append-only.
+# pet-zodiac (owner spec 2026-11-19: 13 share-card templates for petread, 12 Chinese zodiac animals + a secret card, drawn by the
+# system independently of the reading; odds config a/b/c; on-device collection) — locked BEFORE any product code on branch
+# pet-zodiac-cards (base origin/main 943ef3d1). Synthetic inputs only. Before the build: unit 0/14, Chrome e2e 1/8 (P4 crisis
+# already holds: the card section is hidden in a crisis session). Logs: ~/LENSIQ-field/evals/pet-zodiac/run-0-before-build-*.log
+# locked 2026-11-19T02:01:35Z (tools/eval-guard.mjs lock, 2 files)
+ca99367160080d31bcc0f784763b722a2560febaad7802bb0bedf2cf7c5a4096  tests/unit/pet-zodiac.test.js
+5f647263cc918da9b4997f2601d9f0494429a05a34e689e439466065dd0645eb  tests/e2e/pet-zodiac.e2e.mjs
+# RE-LOCK 1 2026-11-19 (branch pet-zodiac-cards), owner decisions 137 ข and 138 ข relayed by the coordinator mid-build: option b
+# (day's zodiac animal x2; secret 1 in 50, 1 in 10 on full-moon days) is the DEFAULT; the birthday rule (option c) is removed
+# entirely (abusable: a typed birthday can be set to today); one short odds line generated from the active config; classic
+# themes stay behind PET_CARD_CLASSIC (default false). Locked BEFORE any product commit. Disclosure: an uncommitted draft of
+# lensiq-pet-draw.js had been run once against the first lock (unit 7/14) before the decision arrived; no product code is
+# committed under the first lock. Changed tests: unit Z2 Z3 Z5 Z6 Z8 Z11, e2e P2 P7 (see each file's header).
+# locked 2026-11-19T02:10:13Z (tools/eval-guard.mjs lock, 2 files)
+8411d4ea2b377f8609070b1f85943bcdb3b60e77d1a03dcac7b598e892356312  relock-1/pet-zodiac.test.js
+17a4ccb8fd400126b1498d2fbe18712f2f39640e88f0980ef2c1c4ffb49ad976  relock-1/pet-zodiac.e2e.mjs
+8411d4ea2b377f8609070b1f85943bcdb3b60e77d1a03dcac7b598e892356312  tests/unit/pet-zodiac.test.js  # repo file (same commit as lock 2026-11-19T02:10:13Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-1/pet-zodiac.test.js)
+17a4ccb8fd400126b1498d2fbe18712f2f39640e88f0980ef2c1c4ffb49ad976  tests/e2e/pet-zodiac.e2e.mjs  # repo file (same commit as lock 2026-11-19T02:10:13Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-1/pet-zodiac.e2e.mjs)
+# LOCK 3 2026-11-19 (branch pet-zodiac-cards): owner's full pet-reading scope relayed by the coordinator, items 1 (capture guide
+# frame like faceread, camera only on tap and released on close) and 2 (required / optional markers matching what the code
+# needs), both behind LENSIQ_PET_ZODIAC. New files, locked BEFORE their product code; earlier files unchanged. Before the build:
+# unit 1/4, Chrome e2e 1/5 (G4 flag off already holds). Logs: ~/LENSIQ-field/evals/pet-zodiac/run-2-capture-before-build-*.log
+# locked 2026-11-19T02:25:10Z (tools/eval-guard.mjs lock, 2 files)
+425a2febe2d2353a9807117d767890efe02e1160f94439e758bfc8ca24fb95a8  capture/pet-capture.test.js
+27b04776b3ac4dadc7eecb52d4436a7c7299e1d6e396d546641b92e4128e4c5a  capture/pet-capture.e2e.mjs
+425a2febe2d2353a9807117d767890efe02e1160f94439e758bfc8ca24fb95a8  tests/unit/pet-capture.test.js  # repo file (same commit as lock 2026-11-19T02:25:10Z; field: ~/LENSIQ-field/evals/pet-zodiac/capture/pet-capture.test.js)
+27b04776b3ac4dadc7eecb52d4436a7c7299e1d6e396d546641b92e4128e4c5a  tests/e2e/pet-capture.e2e.mjs  # repo file (same commit as lock 2026-11-19T02:25:10Z; field: ~/LENSIQ-field/evals/pet-zodiac/capture/pet-capture.e2e.mjs)
+# RE-LOCK 2 / LOCK 4 2026-11-19 (branch pet-zodiac-cards): independent review round 1 FAILED on bdeeed49. Locked BEFORE the fixes.
+# Re-lock 2 of tests/unit/pet-zodiac.test.js: Z6 only, stricter (full-moon rule with the approximation word on every day; every
+# percentage is the day's odds or the full-moon rate; same length limits). New: tests/unit/pet-zodiac-r2.test.js (W1 one Bangkok
+# date basis, W2 full-moon 100k distribution, W3 approximation wording, W4 text boxes + decor switch) and
+# tests/e2e/pet-zodiac-r2.e2e.mjs (X1 exclusion zones under all text boxes for 13 templates x post / story x TH / EN, X2 secret
+# ribbon off the top of the picture, X3 person blur per template vs a no-person baseline at scores 0.9 / 0.2, X4 detector
+# unavailable refuses the photo per template). Before the fix: unit 15/18 (W1 passes on this Mac because its clock is set to
+# Bangkok; it fails on a UTC runner), e2e 2/4 (X3 X4 already hold). Logs: run-3-review1-before-fix-*.log
+# locked 2026-11-19T02:46:20Z (tools/eval-guard.mjs lock, 3 files)
+90d8c66bfd7ed5f8f7157698fa74e3b43ecb4709301abee4f6e8e8d225ae4b52  relock-2/pet-zodiac.test.js
+5a36820d0e1b32f448e1b78911b19324b926ba362ca12137e3cafcf877e6cf5a  relock-2/pet-zodiac-r2.test.js
+3b83048b75beb33efe634f47c8917dd7d1ef9a8937073b85340e6a2258a7d40a  relock-2/pet-zodiac-r2.e2e.mjs
+90d8c66bfd7ed5f8f7157698fa74e3b43ecb4709301abee4f6e8e8d225ae4b52  tests/unit/pet-zodiac.test.js  # repo file (same commit as lock 2026-11-19T02:46:20Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-2/pet-zodiac.test.js)
+5a36820d0e1b32f448e1b78911b19324b926ba362ca12137e3cafcf877e6cf5a  tests/unit/pet-zodiac-r2.test.js  # repo file (same commit as lock 2026-11-19T02:46:20Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-2/pet-zodiac-r2.test.js)
+3b83048b75beb33efe634f47c8917dd7d1ef9a8937073b85340e6a2258a7d40a  tests/e2e/pet-zodiac-r2.e2e.mjs  # repo file (same commit as lock 2026-11-19T02:46:20Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-2/pet-zodiac-r2.e2e.mjs)
+# RE-LOCK 3 2026-11-19 (branch pet-zodiac-cards), NAME ONLY: tests/unit/unit-index.test.js requires feature-named test files (no
+# *-rN). pet-zodiac-r2.{test.js,e2e.mjs} are renamed to pet-zodiac-layout.{test.js,e2e.mjs}; the only change is the file name in
+# their header comments; every assertion is byte-identical (equal strictness). Found by the full unit run of the round-2 fixes
+# (2609/2610, the one failure being this naming rule), before any fix was committed.
+# retired tests/unit/pet-zodiac-r2.test.js reason: renamed to tests/unit/pet-zodiac-layout.test.js (feature-named file rule, unit-index.test.js); assertions unchanged
+# retired tests/e2e/pet-zodiac-r2.e2e.mjs reason: renamed to tests/e2e/pet-zodiac-layout.e2e.mjs (feature-named, same rule); assertions unchanged
+# locked 2026-11-19T03:08:11Z (tools/eval-guard.mjs lock, 2 files)
+a9bd34500c7920f68e2fbfd27f87f53e8b1554d2209ee41ab9e05974dc666a3d  relock-3/pet-zodiac-layout.test.js
+e469cac9d63fd8400995a2d75f7dcdd15d09751746e6b2a6a507f4e74f1bedcd  relock-3/pet-zodiac-layout.e2e.mjs
+a9bd34500c7920f68e2fbfd27f87f53e8b1554d2209ee41ab9e05974dc666a3d  tests/unit/pet-zodiac-layout.test.js  # repo file (same commit as lock 2026-11-19T03:08:11Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-3/pet-zodiac-layout.test.js)
+e469cac9d63fd8400995a2d75f7dcdd15d09751746e6b2a6a507f4e74f1bedcd  tests/e2e/pet-zodiac-layout.e2e.mjs  # repo file (same commit as lock 2026-11-19T03:08:11Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-3/pet-zodiac-layout.e2e.mjs)
+# LOCK 5 2026-11-19 (branch pet-zodiac-cards), review round 2 / owner decision 145 ก (round 3 = last round, headline cut only):
+# tests/e2e/pet-card-headline.e2e.mjs, locked BEFORE the fix. Before the fix: 0/1 (info.headline not reported; the headline was
+# wrapped with the pet-name font, so a medium headline was cut early). Log: run-4-headline-before-fix-e2e.log
+# locked 2026-11-19T06:02:32Z (tools/eval-guard.mjs lock, 1 file)
+e5d6b2ee1a6c34621e972189c15822bd27fd1610e0c6b2d3b18bb994643db6b9  headline/pet-card-headline.e2e.mjs
+e5d6b2ee1a6c34621e972189c15822bd27fd1610e0c6b2d3b18bb994643db6b9  tests/e2e/pet-card-headline.e2e.mjs  # repo file (same commit as lock 2026-11-19T06:02:32Z; field: ~/LENSIQ-field/evals/pet-zodiac/headline/pet-card-headline.e2e.mjs)
+# RE-LOCK 4 2026-11-20 relock-4 (branch pet-zodiac-live, owner decision 184 ก): tests/unit/pet-zodiac.test.js Z9: footer = exactly
+# the brand line by default; the old "brand + address" check kept with LENSIQ_CARD_SHOW_ADDRESS on (STRICTER).
+# tests/e2e/pet-zodiac-layout.e2e.mjs X1: the full loop runs twice, switch off (last footer box >= 200 px) and switch on (>= 400 px,
+# as before); every other check unchanged in both (EQUAL for the address case, new coverage for the default). Locked BEFORE the
+# product change.
+# locked 2026-11-20T08:49:58Z (tools/eval-guard.mjs lock, 2 files)
+71480012a977eefdbd11bbae745343b944ff487da9c4be25a136b0c9c996ed59  relock-4/pet-zodiac.test.js
+b0c5b0425946bfa77c0915500718ed1f9faeffc85a4429d3a85a5a5f287e37f2  relock-4/pet-zodiac-layout.e2e.mjs
+71480012a977eefdbd11bbae745343b944ff487da9c4be25a136b0c9c996ed59  tests/unit/pet-zodiac.test.js  # repo file (same commit as lock 2026-11-20T08:49:58Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-4/pet-zodiac.test.js)
+b0c5b0425946bfa77c0915500718ed1f9faeffc85a4429d3a85a5a5f287e37f2  tests/e2e/pet-zodiac-layout.e2e.mjs  # repo file (same commit as lock 2026-11-20T08:49:58Z; field: ~/LENSIQ-field/evals/pet-zodiac/relock-4/pet-zodiac-layout.e2e.mjs)

@@ -86,7 +86,7 @@ test("detector output: confidence per line in [0, 1], control points in the palm
   for (const id of ["marriage", "girdle"]) assert.notEqual(st.lines[id].status, "found", id + " is guide-only in v1");
   assert.ok(typeof det.ms === "number");
 });
-test("palm.js honest mode: an empty ridge map draws no line; fate 'not found' is not 'absent'", () => {
+test("palm.js honest mode: an empty ridge map draws no line; fate 'not found' is not 'absent'; default mode shows 'not clear', no template line", () => {
   global.PALM_KB = require(path.join(ROOT, "palm-kb.js"));
   const PC = require(path.join(ROOT, "palm.js"));
   const h = SYN.synthHand({ lines: [] }).hand;
@@ -100,7 +100,7 @@ test("palm.js honest mode: an empty ridge map draws no line; fate 'not found' is
   const lc = PC.classifyLines(honest, F.asp, R, F);
   assert.ok(!(lc.cats.fate || []).includes("absent"), "fate not found was read as absent");
   for (const id of ["life", "head", "heart"]) assert.equal(lc.cats[id], undefined, id + " read although not found");
-  // the default (switch off) keeps today's behaviour
+  // the default (switch off) follows owner decision 163 ก: no crease -> no template line, the line is in the "not clear" state
   const legacy = PC.detectLines(R, F);
-  assert.equal(legacy.life.present, true);
+  assert.ok(legacy.life.present === false && legacy.life.unclear === true, "default mode drew a template line without a crease");
 });

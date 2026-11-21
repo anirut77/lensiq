@@ -313,6 +313,35 @@ within seconds; testers' pages forget it on their next request). Revoke with no 
 `npm run backend:tester:revoke` (the code becomes a random value nobody knows; the gate stays "required", so everyone
 is refused until a new code is set).
 
+### Tester gate policy (D-3, owner decision 2026-11-19: "enforce the tester code on the live site")
+
+What already enforces the code on the live test site (since deploy B3): the Worker (`[env.test.vars] TESTER_GATE =
+"required"` + secret `TESTER_ACCESS_CODE`; `/v1/ai/*`, `/api/fortune*` and the testing-only lookup sources refuse a request
+without a valid `X-Tester-Code`) and the pages (`deploy/public-site.json` `"testerGate": true`, `lensiq-tester.js`: no AI step
+without an accepted code). D-3 does not change that.
+
+D-3 adds a policy so that no later deploy or build (for example the production environment in
+`docs/PRODUCTION-MOVE-PLAN.md`) can drop the gate while `LEGAL_TERMS_READY` / `LEGAL_PRIVACY_READY` are not both `"true"`:
+`tools/lib/tester-policy.mjs`, checked by `npm run backend:deploy:test` (and printed by `npm run backend:plan`) and by
+`tools/build-site.mjs` (the public build; customer bundles are never checked, their gate is always off).
+
+- **Switch:** `deploy/tester-gate.json`, key `enforce`. Shipped `false`: a missing gate prints `WARNING: …`, nothing is
+  refused. With `true`, the deploy is `REFUSED` (exit 3, before any wrangler command) and the site build fails (exit 1,
+  before `_site/` is touched).
+- **Turn it on (one line):** in `deploy/tester-gate.json` change `"enforce": false` to `"enforce": true`, on a branch, CI
+  green, merge. Nothing changes for users: the live test deployment already meets the rule (test T5 in
+  `tests/unit/tester-gate-d3.test.js`).
+- **The code itself is a secret the owner enters.** No script generates, prints or stores it. Steps (owner, own
+  terminal, after `wrangler login`):
+  1. `npm run secrets:setup -- --only TESTER_ACCESS_CODE`, then type the code (16 characters or more, not easy to guess;
+     a weak code is refused with the reason, without showing it). The Worker uses the new code within seconds.
+  2. `npm run backend:list` shows the NAME `TESTER_ACCESS_CODE` among the secrets (never the value).
+  3. On a phone: `https://anirut77.github.io/lensiq/medicine.html?tester=1`, enter the code; "Tester access is on"
+     appears. Without `?tester=1` an ordinary visitor sees no AI step.
+  4. Give the code to testers privately (not in a group chat, not in a URL).
+- **Production later:** the same rule applies to `[env.production]`. Repeat step 1 with `--env production` once step A2
+  of `docs/PRODUCTION-MOVE-PLAN.md` adds that flag.
+
 ## 5. Turn everything off, and rollback
 
 | Want | Command | Effect | Takes effect |
@@ -455,3 +484,9 @@ First real AI call: served provider name seen on the result card:
 Order: `npm run backend:migrate` (adds three columns; the running Worker ignores them), then `npm run
 backend:deploy:test`, then the smoke test. The new Worker also runs on a database without 0013 (old-format codes only).
 Then the owner: admin → Security → "create a new set of recovery codes" (password + 6-digit code), keep the new set.
+
+**Seller details page (branch `seller-settings`, 2026-11-18).** Deploy order: apply migration `0021_seller.sql` FIRST
+(`npm run backend:migrate`), then deploy the Worker (new code without 0021 = the "ข้อมูลกิจการ" tab answers 500;
+`/health/deep` names the missing migration). No new secret or var. After the deploy the owner turns on 2-step verification
+(if not on yet) and fills admin → "ข้อมูลกิจการ" in the browser. The seller details are never typed into `wrangler.toml`,
+`lensiq-config.js` or any other repository file.

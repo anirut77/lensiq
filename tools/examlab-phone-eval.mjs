@@ -122,6 +122,8 @@ export function savedRunProblems(out, manifestText) {
 /* ---------- in-page part (exam-lab.html?cpu in headless Chrome) ---------- */
 async function PAGE_LIB(/** @type {number} */ FW, /** @type {number} */ FH) {
   const W = /** @type {any} */ (window), D = W.LQDetect;
+  // exam-lab.html loads TF.js only when the camera starts (S2, 2026-11-20): load it the way the page does (same files, same order)
+  if (!W.tf && W.__LQ_EXAM_LAB && W.__LQ_EXAM_LAB.loadTf) await W.__LQ_EXAM_LAB.loadTf();
   const bk = await D.tfBackend();
   const coco = await D.loadCoco("vendor/models/cocossd/model.json");
   W.__ph = {

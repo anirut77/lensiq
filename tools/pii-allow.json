@@ -224,6 +224,15 @@
    "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
   },
   {
+   "path": "tests/e2e/admin-seller.e2e.mjs",
+   "types": {
+    "street-address": 3,
+    "postcode-city": 1
+   },
+   "kind": "synthetic",
+   "reason": "invented seller / buyer fixture addresses named Test / Buyer road (TH: ถนนทดสอบ, แขวงทดสอบ, เขตทดสอบ = \"test road / test district\") with the generic postcode 10000 or 10100; no real person or premises"
+  },
+  {
    "path": "tests/e2e/crisis-escape-guard-kit.mjs",
    "types": {
     "phone": 1
@@ -240,7 +249,23 @@
    "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
   },
   {
-   "path": "tests/e2e/crisis-rules-1323-c.e2e.mjs",
+   "path": "tests/e2e/crisis-rules-1323-c-th.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/e2e/crisis-rules-1323-c-en.e2e.mjs",
+   "types": {
+    "phone": 2
+   },
+   "kind": "public",
+   "reason": "the public crisis help-line number (Samaritans of Thailand) listed in docs/CRISIS-RESOURCES.md"
+  },
+  {
+   "path": "tests/e2e/crisis-rules-1323-c-zh.e2e.mjs",
    "types": {
     "phone": 2
    },
@@ -474,6 +499,24 @@
    "reason": "Product Check privacy-guard test data: made-up names (สมมติ / ทดสอบ / สาธิต / Example), parcels, phones and IDs written to test redaction"
   },
   {
+   "path": "tests/e2e/seller-doc-layout.e2e.mjs",
+   "types": {
+    "street-address": 1,
+    "postcode-city": 2
+   },
+   "kind": "synthetic",
+   "reason": "invented seller / buyer fixture addresses named Test / Buyer road (TH: ถนนทดสอบ, แขวงทดสอบ, เขตทดสอบ = \"test road / test district\") with the generic postcode 10000 or 10100; no real person or premises"
+  },
+  {
+   "path": "tests/e2e/seller-doc-onepage.e2e.mjs",
+   "types": {
+    "street-address": 2,
+    "postcode-city": 2
+   },
+   "kind": "synthetic",
+   "reason": "invented seller / buyer fixture addresses (TH: อาคารทดสอบสังเคราะห์, ถนนทดสอบ, ซอยลูกค้าทดสอบ = \"synthetic test building / test road / test customer lane\"; ZH: 合成测试 = \"synthetic test\") with the generic postcode 10000 or 10100, repeated to the product 300-character limit; no real person or premises"
+  },
+  {
    "path": "tests/integration/backend-workerd.test.mjs",
    "types": {
     "postcode-city": 1
@@ -587,6 +630,23 @@
    },
    "kind": "synthetic",
    "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
+   "path": "tests/unit/backend-seller-frozen-docs.test.js",
+   "types": {
+    "postcode-city": 1
+   },
+   "kind": "synthetic",
+   "reason": "invented seller / buyer fixture addresses named Test / Buyer road (TH: ถนนทดสอบ, แขวงทดสอบ, เขตทดสอบ = \"test road / test district\") with the generic postcode 10000 or 10100; no real person or premises"
+  },
+  {
+   "path": "tests/unit/backend-seller.test.js",
+   "types": {
+    "street-address": 1,
+    "postcode-city": 1
+   },
+   "kind": "synthetic",
+   "reason": "invented seller / buyer fixture addresses named Test / Buyer road (TH: ถนนทดสอบ, แขวงทดสอบ, เขตทดสอบ = \"test road / test district\") with the generic postcode 10000 or 10100; no real person or premises"
   },
   {
    "path": "tests/unit/backend-site.test.js",

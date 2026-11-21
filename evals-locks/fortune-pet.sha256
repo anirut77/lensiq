@@ -36,3 +36,25 @@ d993b6b206aa086729dee958304cf165d3ea9dcd1a7ca2412ffda6fd8a993b04  relock-pet-2/p
 7a2626cb7fe075b317483b0d1be004dad75ca1b930ddf3269fad59109a564c12  tests/e2e/fortune-pet.e2e.mjs  # repo file (relock-pet-2)
 # RE-LOCK 2026-11-17 (branch fortune-pet): relock-pet-2 (title wrap only), see docs/CRISIS-V3-RELOCKS.md.
 d993b6b206aa086729dee958304cf165d3ea9dcd1a7ca2412ffda6fd8a993b04  tests/e2e/petread-webkit.e2e.mjs  # repo file (relock-pet-2)
+# RE-LOCK 2026-11-20 relock-pet-3 (branch pet-zodiac-live, owner decision 184 ก): the site address may be on the pet share card
+# only while window.LENSIQ_CARD_SHOW_ADDRESS is true (default false until the site is live on its own domain); the QR encodes the
+# address and follows the switch. tests/unit/fortune-pet.test.js L1 + the card-model test: the old address assertions are kept
+# for the switch-on case; new for the default: brand line present, no address in the card model or text (STRICTER).
+# tests/e2e/fortune-pet.e2e.mjs P3: default card text has the brand line and no address; a page per language with the switch on
+# still has the address (STRICTER). tests/e2e/fortune-pet-2.e2e.mjs S6: the switch is turned on first, every check unchanged
+# (EQUAL; QR-off-while-switch-off is covered by tests/e2e/pet-card-address.e2e.mjs B3). Nothing else changed. Locked BEFORE
+# the product change.
+# locked 2026-11-20T08:49:57Z (tools/eval-guard.mjs lock, 3 files)
+a7848405b5f9f91a381ae28fe633c88775b8126b8bf22d1ce20ff16f0eb09c2f  relock-pet-3/fortune-pet.test.js
+b2de9fc740a00ebb7af55f534170da50408880bf5231a4158d547d8d126c461e  relock-pet-3/fortune-pet.e2e.mjs
+aee93e92b47ff9464f99455823b3950cf24ab4c831a08290374ec3401645810e  relock-pet-3/fortune-pet-2.e2e.mjs
+a7848405b5f9f91a381ae28fe633c88775b8126b8bf22d1ce20ff16f0eb09c2f  tests/unit/fortune-pet.test.js  # repo file (same commit as lock 2026-11-20T08:49:57Z; field: ~/LENSIQ-field/evals/fortune-pet/relock-pet-3/fortune-pet.test.js)
+b2de9fc740a00ebb7af55f534170da50408880bf5231a4158d547d8d126c461e  tests/e2e/fortune-pet.e2e.mjs  # repo file (same commit as lock 2026-11-20T08:49:57Z; field: ~/LENSIQ-field/evals/fortune-pet/relock-pet-3/fortune-pet.e2e.mjs)
+aee93e92b47ff9464f99455823b3950cf24ab4c831a08290374ec3401645810e  tests/e2e/fortune-pet-2.e2e.mjs  # repo file (same commit as lock 2026-11-20T08:49:57Z; field: ~/LENSIQ-field/evals/fortune-pet/relock-pet-3/fortune-pet-2.e2e.mjs)
+# RE-LOCK 2026-11-20 relock-pet-4 (branch pet-zodiac-live): TEST FIX of relock-pet-3 found by its first run (product uncommitted):
+# P3's new switch-on page called fillAndRead without the photo, so no species was set and no reading started (timeout before any
+# assertion). It now calls usePhoto first, exactly like the first page. Same assertions (EQUAL). Log:
+# ~/LENSIQ-field/evals/pet-card-address/run-3-product-pet-e2e.log. Locked BEFORE the product commit.
+# locked 2026-11-20T09:16:47Z (tools/eval-guard.mjs lock, 1 file)
+3067a280e213c30e3a2774264f47780526788dcf332d5151c4f9c87bfdee1e26  relock-pet-4/fortune-pet.e2e.mjs
+3067a280e213c30e3a2774264f47780526788dcf332d5151c4f9c87bfdee1e26  tests/e2e/fortune-pet.e2e.mjs  # repo file (same commit as lock 2026-11-20T09:16:47Z; field: ~/LENSIQ-field/evals/fortune-pet/relock-pet-4/fortune-pet.e2e.mjs)

@@ -387,33 +387,46 @@
   function csvCell(v) { let s = v == null ? "" : String(v); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; }
   const hours = m => (Math.round(m / 60 * 100) / 100).toFixed(2);
   function toCsv(rows) { return "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n"); }
-  /** payroll CSV, one row per employee (bilingual headers so a Thai or English payroll template can map them) */
-  function payrollCsv(sum) {
+  // CSV headers in the page language (acceptance L3): th = Thai label + English key (unchanged default), en = the English key,
+  // zh = Chinese label + the English key. The English key (last word) is the same in every language, so a payroll template maps it.
+  const ZH = { month: "月份", code: "工号", name: "姓名", department: "部门", shift: "班次", scheduled_days: "排班天数", days_worked: "出勤天数", late_count: "迟到(次)",
+    late_minutes: "迟到(分钟)", early_count: "早退(次)", early_leave_minutes: "早退(分钟)", ot_hours: "加班(小时)", ot_pending_hours: "待批加班(小时)", holiday_work_days: "节假日上班(天)",
+    holiday_work_hours: "节假日上班(小时)", holiday_ot_hours: "节假日加班(小时)", sick_leave: "病假(天)", personal_leave: "事假(天)", annual_leave: "年假(天)", maternity_leave: "产假(天)",
+    other_leave: "其他假(天)", leave_days: "请假合计(天)", absent_days: "缺勤(天)", incomplete_days: "打卡不全(天)", manager_corrections: "经理更正(次)", max_week_ot_hours: "每周最高加班(小时)",
+    week_ot_over_36h: "每周加班超过36小时", max_week_normal_hours: "每周最高正常工时(小时)", week_normal_over_48h: "每周正常工时超过48小时", date: "日期", day_type: "日期类型", status: "状态",
+    in: "上班", out: "下班", worked_minutes: "工作(分钟)", break_minutes: "休息(分钟)", early_minutes: "早退(分钟)", ot_minutes: "加班(分钟)", holiday_minutes: "节假日上班(分钟)",
+    holiday_ot_minutes: "节假日加班(分钟)", leave: "请假", methods: "打卡方式", corrections: "更正", flags: "备注", at: "时间", device: "设备", seq: "序号", by: "更正人",
+    action: "操作", employee: "员工", target: "记录", before: "更正前", after: "更正后", reason: "原因", hash: "哈希" };
+  const head = (H, lang) => lang === "en" ? H.map(h => h.split(" ").pop()) : lang === "zh" ? H.map(h => { const k = h.split(" ").pop(); return (ZH[k] || k) + " " + k; }) : H;
+  /** payroll CSV, one row per employee (headers: Thai / English / Chinese label + the English key, so any payroll template can map them) */
+  function payrollCsv(sum, lang) {
     const H = ["เดือน month", "รหัส code", "ชื่อ name", "แผนก department", "กะ shift", "วันทำงานตามตาราง scheduled_days", "วันมาทำงาน days_worked",
       "มาสาย(ครั้ง) late_count", "มาสาย(นาที) late_minutes", "ออกก่อน(ครั้ง) early_count", "ออกก่อน(นาที) early_leave_minutes", "OT(ชม.) ot_hours", "OT รออนุมัติ(ชม.) ot_pending_hours",
       "ทำงานวันหยุด(วัน) holiday_work_days", "ทำงานวันหยุด(ชม.) holiday_work_hours", "OT วันหยุด(ชม.) holiday_ot_hours",
       "ลาป่วย(วัน) sick_leave", "ลากิจ(วัน) personal_leave", "ลาพักร้อน(วัน) annual_leave", "ลาคลอด(วัน) maternity_leave", "ลาอื่น(วัน) other_leave", "ลารวม(วัน) leave_days",
       "ขาดงาน(วัน) absent_days", "ลงเวลาไม่ครบ(วัน) incomplete_days", "แก้ไขโดยผู้จัดการ(ครั้ง) manager_corrections", "OT สูงสุดต่อสัปดาห์(ชม.) max_week_ot_hours", "OT เกิน 36 ชม./สัปดาห์ week_ot_over_36h",
       "ชั่วโมงปกติสูงสุดต่อสัปดาห์(ชม.) max_week_normal_hours", "ชั่วโมงปกติเกิน 48 ชม./สัปดาห์ week_normal_over_48h"];
-    return toCsv([H, ...sum.rows.map(r => [sum.month, r.code, r.name, r.dept, r.shift, r.scheduled, r.daysWorked, r.lateCount, r.lateMin, r.earlyCount, r.earlyMin, hours(r.otMin), hours(r.otPendingMin),
+    return toCsv([head(H, lang), ...sum.rows.map(r => [
+      sum.month, r.code, r.name, r.dept, r.shift, r.scheduled, r.daysWorked, r.lateCount, r.lateMin, r.earlyCount, r.earlyMin, hours(r.otMin), hours(r.otPendingMin),
       r.holidayDays, hours(r.holidayMin), hours(r.holidayOtMin), r.leave.sick, r.leave.personal, r.leave.annual, r.leave.maternity, r.leave.other, r.leaveDays,
       r.absentDays, r.incompleteDays, r.corrections, hours(r.maxWeekOtMin), r.weekOtOver.join(" "), hours(r.maxWeekNormalMin), r.weekNormalOver.join(" ")])]);
   }
   /** daily detail CSV (one row per employee per day) — the time record kept for s.114 */
-  function detailCsv(sum, tz = TZ) {
+  function detailCsv(sum, tz = TZ, lang) {
     const H = ["วันที่ date", "รหัส code", "ชื่อ name", "แผนก department", "ประเภทวัน day_type", "สถานะ status", "เข้า in", "ออก out", "ทำงาน(นาที) worked_minutes",
       "พัก(นาที) break_minutes", "สาย(นาที) late_minutes", "ออกก่อน(นาที) early_minutes", "OT(นาที) ot_minutes", "ทำงานวันหยุด(นาที) holiday_minutes", "OT วันหยุด(นาที) holiday_ot_minutes",
       "ลา leave", "วิธีลงเวลา methods", "แก้ไข corrections", "หมายเหตุ flags"];
-    const out = [H];
+    const out = [head(H, lang)];
     for (const r of sum.rows) for (const d of sum.days.get(r.emp) || []) out.push([d.date, r.code, r.name, r.dept, d.kind, d.status, d.in == null ? "" : clock(d.in, tz), d.out == null ? "" : clock(d.out, tz) + (d.out != null && dateKey(d.out, tz) !== d.date ? " (+1)" : ""),
       d.workedMin, d.breakMin, d.lateMin, d.earlyMin, d.otMin, d.holidayMin, d.holidayOtMin, d.leave ? d.leave.type + (d.leave.part < 1 ? " 0.5" : "") : "", d.methods.join(" "), d.corrected, d.flags.join(" ")]);
     return toCsv(out);
   }
   /** audit CSV (who / when / before / after / reason / hash) */
-  function auditCsv(log, emps, tz = TZ) {
+  function auditCsv(log, emps, tz = TZ, lang) {
     const name = new Map((emps || []).map(e => [e.id, e.code + " " + e.name]));
     const f = v => v == null ? "" : typeof v !== "object" ? String(v) : canon(v.ts != null ? Object.assign({}, v, { ts: dateKey(v.ts, tz) + " " + clock(v.ts, tz) }) : v);
-    return toCsv([["เวลา at", "เครื่อง device", "ลำดับ seq", "ผู้แก้ไข by", "การกระทำ action", "พนักงาน employee", "รายการ target", "ก่อน before", "หลัง after", "เหตุผล reason", "hash"],
+    const H = ["เวลา at", "เครื่อง device", "ลำดับ seq", "ผู้แก้ไข by", "การกระทำ action", "พนักงาน employee", "รายการ target", "ก่อน before", "หลัง after", "เหตุผล reason", "แฮช hash"];
+    return toCsv([head(H, lang),
       ...(log || []).slice().sort((a, b) => a.at - b.at).map(e => [dateKey(e.at, tz) + " " + clock(e.at, tz), e.dev, e.seq, e.by, e.action, name.get(e.emp) || e.emp || "", e.target || "", f(e.before), f(e.after), e.reason, e.hash.slice(0, 16)])]);
   }
 

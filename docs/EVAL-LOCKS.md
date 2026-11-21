@@ -262,6 +262,10 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   its `locked.sha256` as is (`tools/eval-locks-import.mjs` stopped on an unrelated missing file in `pc-f/review`). Re-measure
   only; never tuned against. The builder's 0 / 0 on `fortune-paid-fresh-2026-11-16b` came after tuning on that set and is not
   an independent number. `fortune-paid` re-lock (10): review D1–D3 and the switch-off identity test, before the fix.
+- `planner-occasions` (2026-11-18): locked before the occasions build on planner.html (unit O1–O6, e2e G1–G5, regression
+  snapshot of move / shop / work from origin/main b2a6e76). Re-lock (1), before any measurement of the build: the ไหว้ครู
+  sources say Thursday only, so for an owner whose kalakini day is Thursday the planner lists no day; O6 asserts exactly that
+  for a one-weekday rule on the owner's kalakini day and "some days" everywhere else. Nothing else changed.
 - `fortune-cards` (2026-11-18, branch `fortune-cards-clean`, base b2a6e76): owner order 2026-11-18 (fortune cards clean, disclaimer
   once). New `tests/unit/fortune-cards.test.js` and `tests/e2e/fortune-cards.e2e.mjs` locked before the change (unit 2/8, e2e 2/5 before).
   Re-lock (relock-1) of `cat-pages.test.js`, `categories.e2e.mjs` and `fortune-live.test.js`, reason "owner decision 2026-11-18: fortune
@@ -273,3 +277,73 @@ Locked files are not edited. Known problems are recorded here and fixed in the n
   `cat-fortune.html` must not have it.
   Re-lock 3 (test-setup only, after the first e2e run on the build): `fortune-cards.e2e.mjs` scrolls cards into view with
   behavior "instant" (the site's smooth scrolling made the test read a card's position mid-scroll). No assertion changed.
+- `planner-occasions-labels` (2026-11-19, branch `planner-occasions`): owner decisions 114–117. Locked before the build: unit C1–C5
+  (`tests/unit/planner-occasions-labels.test.js`: every occasion and rule has a source class text / modern in the code and in
+  `docs/planner-occasion-sources.json`; the classification; the label in TH / EN / ZH; no tradition wording on modern items, with the
+  Thai `evenMonth` reason of move declared as frozen by the locked planner-occasions O5 snapshot until the move / shop / work work; source
+  notes stay internal) and e2e V1–V4 (`tests/e2e/planner-occasions-labels.e2e.mjs`: label visible and whole at 360 px, TH / EN / ZH).
+  Re-lock 2 (2026-11-19, stricter, independent review round 1 of f31a9d24): C4 has no evenMonth exception, also checks every
+  `pl.b.*` basis string in TH / EN / ZH and the label after the even-month sentence, and forbids the teachers'-day framing on modern
+  items; the e2e runs on a fixed clock (2026-11-19) with start month 2027-5 required. Same review: `planner-occasions` re-lock 2 changes
+  only `TH.evenMonth` in `planner-regression-3.json` (all 114 day snapshots byte-identical, equal strictness) and puts G4 of
+  `planner-occasions.e2e.mjs` on the same fixed clock and month (stricter).
+
+- `seller-settings` (2026-11-18): owner order "needed for selling" (seller details page + quotation / invoice / receipt).
+  Three files locked before `backend/src/seller.js`, `backend/src/price-list.js`, migration `0021_seller.sql` and
+  `admin-seller.js` existed: `tests/unit/backend-seller.test.js` (S1–S11), `tests/integration/backend-seller-workerd.test.mjs`
+  (workerd + real D1) and `tests/e2e/admin-seller.e2e.mjs` (real browser, Chrome print-to-PDF read back with pdf.js).
+  Before the build: unit 0 pass / 11 fail, integration 0 / 1. Synthetic values only.
+- `seller-settings` re-lock A1 (2026-11-18): `tests/integration/backend-seller-workerd.test.mjs`, test setup only: the
+  installed Miniflare 5.x rejects `handleRuntimeStdio`; workerd's console is captured through `handleStructuredLogs`
+  (a canary `console.log` was confirmed captured). No assertion changed; reason in `evals-locks/seller-settings.sha256`.
+- `seller-settings` re-lock A2 (2026-11-18): `tests/e2e/admin-seller.e2e.mjs`, test setup only: pdf.js returns Thai
+  above / below marks from Chrome's PDF as U+0000, so the Thai phrase is compared without those marks on both sides. The
+  other failure of that run (320 px overflow) was fixed in the product. Reason in `evals-locks/seller-settings.sha256`.
+- `seller-settings` re-lock (3) (2026-11-18): independent review of 13cf281 NOT OK (issued documents not fully frozen; list
+  query count over the Free-plan limit; logo copied per document; minor items). New files `tests/unit/backend-seller-r1.test.js`
+  (R1–R8) and `tests/integration/backend-seller-workerd-r1.test.mjs` (log-sink canary) locked before the fixes: unit 0 / 8.
+- `seller-settings` re-lock (4) (2026-11-18): round-2 review OK on 69d36fe with low items; `tests/unit/backend-seller-r2.test.js`
+  (H1 health probe, U2 unavailable-line note, V3 VAT fixed at 7 %) locked before the fixes. Earlier files unchanged.
+- `seller-settings` rename (2026-11-18, file names only, bytes identical): `tests/unit/backend-seller-r1.test.js` is now
+  `tests/unit/backend-seller-frozen-docs.test.js` and `tests/unit/backend-seller-r2.test.js` is now
+  `tests/unit/backend-seller-health.test.js` (`tests/unit/unit-index.test.js`: no round-named unit files). The header line
+  inside each file still names the old file (content unchanged). Lock lines for the new paths: owner, OWNER-LINES-MORNING.md.
+
+### Incident 2026-11-18: seller-settings field copies overwritten in place (recorded 2026-11-19, owner decision 131 ก)
+
+On 2026-11-18 the seller team overwrote two field copies in ~/LENSIQ-field/evals/seller-settings/ in place (rule: never modify existing field files): admin-seller.e2e.mjs (locked 56641e63248214c9e9da98127e56f30d9f59d1e92200f27d19eb08e3905ed859, now d925c82e3d65c07096d572dc768df6e7f9cf1591588b12ed72488ae18aa64182) and backend-seller-workerd.test.mjs (locked 19ba8bf4082ccdb088123a85c29bc6a4dae38aa8c447c942a79e25765b5d2775, now 2e462d60ee01710e3268d3e2a9df600922ada6ffb99913cec1c00f2c17f4e1a7). The original bytes were restored from git 88f09055 into the new folder ~/LENSIQ-field/evals/seller-settings/restored-88f09055/ by the owner on 2026-11-19; the overwritten files were left as they are. Lock lines are unchanged.
+
+### Incident 2026-11-19: fortune-paid field copy overwritten in place (recorded by the owner, decision 153 ก)
+
+late entry 2026-11-19 (owner): during re-lock (13) of tests/e2e/fortune-paid-sources.e2e.mjs the team overwrote the existing field copy (locked 4ef87073b12e2918a66490e097ebaa92055eda49885cf367ff4231c7112d2eaa, now 45ce35812bebe486ee1cd5a76bcfc00821e5ee788a0616ce9f3a596ef23455e4) and hand-appended a reason line to the field locked.sha256, and ran tests with LQ_DISK_GUARD=off below 5 GB; original bytes restored from git 3781bb58; field: ~/LENSIQ-field/evals/fortune-paid/restored-3781bb58/fortune-paid-sources.e2e.mjs. Rule since: re-locks use a new relockN/ subfolder; the disk guard is never switched off.
+
+### Incident 2026-11-19: pii-guard field copy overwritten in place (recorded by the owner, decision 176 ก)
+
+late entry 2026-11-20 (owner): pii-guard re-lock A1 (2026-11-19T02:40:01Z) overwrote the field copy locked 2026-11-19T02:36:05Z (667606de4b747a42f2c51c8e82a2a3f8ca4abc792106b5753563329cc0ece984) in place, before the relockN/ rule; original bytes restored from git ca74f60b; field: ~/LENSIQ-field/evals/pii-guard/restored-ca74f60b/pii-guard.test.js
+
+### lowered floor, owner decision 188
+
+Phase `fortune-caution` (item 177), approved by number by the owner on 2026-11-20 (decision 188 ก). Four count floors were lowered:
+
+| Floor | Test file | Before | After | Relock that made the change |
+|---|---|---|---|---|
+| registry rules | `tests/unit/fortune-caution-rules.test.js` | 30 | 20 | relock3 |
+| caution items checked (T3) | `tests/unit/fortune-caution-rules.test.js` | 150 | 120 | relock3 |
+| rule texts scanned (T6) | `tests/unit/fortune-caution-limits.test.js` | 240 | 170 | relock4 |
+| luck lines (T19) | `tests/unit/fortune-caution-limits.test.js` | 30 | 24 | relock4 |
+
+Reviewer's written reason, word for word: "this is honest. These floors only guard against scanning nothing, and the drops follow
+removals the owner's rules required. It is not a content loosening. It is still a lowered assertion."
+
+Pending (owner decision 189 ข): relock3 limited the e2e console-error checks of the fortune-caution e2e files to script exceptions
+and errors naming a fortune-caution file, because fortune-ai.js calls /api/fortune/status (404 on the local test server). Once branch
+`api-status-guard` (decision 190: the call only when LENSIQ_API_BASE is set) is on main, main is merged into `fortune-cautions` and
+the console checks go back to the whole page in a new relockN/ folder, noted "stricter: restores whole-page console errors (owner 189 ข)".
+Done 2026-11-21 (branch `console-189b`, base main c346449f): relock11/ restores the unfiltered `pg.consoleErrors` check in
+`fortune-caution.e2e.mjs`, `fortune-caution-horoscope.e2e.mjs` and `fortune-caution-bazi-astro.e2e.mjs` (NOTE.txt in the field folder).
+
+Relock 9 (2026-11-20, independent review at 51ffb7ac), stricter: narrows relock 6. relock 6 had changed the "never a single day" check in
+`tests/unit/fortune-caution-rules.test.js` from `m && …` to `!m || …`, which accepted "no section" on every page and was covered by no owner
+decision. Relock 9 accepts "no section" only on a page with no overall rule (astro) and requires the section, without a period part,
+everywhere else. The same relock makes the live-pack draft check use synthetic register copies (never vacuous) and adds: a rule with no text
+never ranks as live. Relock 10 locks the register with the reviewer's 11 wording fixes (REGISTER-REVIEW-1.md); every entry stays draft.

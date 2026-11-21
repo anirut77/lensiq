@@ -84,7 +84,7 @@ function layout(c = camera) {
 const camera = LQCam.create(video, {
   facing: "user", persistKey: "att-cam",
   onChange: (c, ev) => { if (ev.type === "started" || ev.type === "resumed") layout(c); camPowerSync(); },
-  onError: (c, e) => { if (e && e.name === "AbortError") return; ready = false; showCamError(camErrorText(e)); }
+  onError: (c, e) => { if (e && e.name === "AbortError") return; ready = false; camOn = false; showCamError(camErrorText(e)); }
 });
 video.addEventListener("resize", () => { if (camera.active) layout(); });
 camera.attach($("#camSwitch"));
@@ -97,7 +97,7 @@ function showCamError(text) {
   p.textContent = text;
   const b = document.createElement("button");
   b.className = "btn primary"; b.textContent = "ลองใหม่"; b.style.marginTop = "14px";
-  b.onclick = init;
+  b.onclick = () => init(!faceWanted); // retry what was asked: the QR-only camera stays without face models
   p.append(document.createElement("br"), b);
   if (!window.isSecureContext) { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "btn ghost cam-link"; a.textContent = "ดูวิธีในหน้า ระบบทั้งหมด"; p.append(" ", a); }
   camMsg.append(p);
@@ -126,8 +126,26 @@ function camErrorText(e) {
 // walk-through 2026-11-16 D-01: the PIN / QR time clock (employee mode) opens with the camera OFF; the camera and the face
 // models start only when someone chooses face (a face tab, the QR camera scan, kiosk) or presses "เปิดกล้อง".
 // D2-007: a visible "ปิดกล้อง" control stops every track at any time (the training page still opens the camera on load).
-let camWanted = false;
-function startCamera() { if (camWanted && (ready || camera.active)) return Promise.resolve(); camWanted = true; camPowerSync(); return init(); }
+// Attendance S2 (2026-11-18): the camera QR badge scan opens the camera with {qr: true}: no face library, no face model.
+// camOn = the camera is open (QR or face); ready = also the face models are loaded (face check-in / registration).
+let camWanted = false, camOn = false, faceWanted = false, initP = null;
+function startCamera(o) {
+  const qr = !!(o && o.qr);
+  if (camWanted && (qr ? camOn : ready)) return Promise.resolve();
+  if (camWanted && initP && (qr || faceWanted)) return initP;
+  camWanted = true; camPowerSync(); return init(qr);
+}
+// face-api.js (1.3 MB) is fetched only when face is chosen, never for PIN / QR
+let faceLibP = null;
+function faceLib() {
+  if (window.faceapi) return Promise.resolve();
+  if (!faceLibP) faceLibP = new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = "vendor/face-api.js";
+    s.onload = () => res(); s.onerror = () => { faceLibP = null; s.remove(); rej(new Error("face-api.js")); };
+    document.head.append(s);
+  });
+  return faceLibP;
+}
 function camIdle(text) {
   camMsg.classList.remove("hide"); camMsg.innerHTML = "";
   const p = document.createElement("div"); p.textContent = text;
@@ -136,7 +154,7 @@ function camIdle(text) {
   p.append(document.createElement("br"), b); camMsg.append(p);
 }
 function stopCamera() {
-  camWanted = false; ready = false;
+  camWanted = false; ready = false; camOn = false; faceWanted = false;
   if (scanning) $("#startScan").click();
   camera.stop();
   overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height);
@@ -150,30 +168,41 @@ function camPowerSync() {
   b.classList.toggle("primary", !on); b.classList.toggle("ghost", on);
 }
 
-async function init() {
+function init(qr) {
+  qr = qr === true; // a click handler passes an Event: that is the face camera
+  if (!qr) faceWanted = true;
+  const p = initRun(qr);
+  initP = p; p.then(() => { if (initP === p) initP = null; });
+  return p;
+}
+async function initRun(qr) {
   camWanted = true;
-  ready = false;
-  camMsg.classList.remove("hide");
-  camMsg.textContent = "กำลังเปิดกล้องและโหลดโมเดลตรวจจับใบหน้า...";
-  say("กำลังเตรียมระบบ...");
+  if (!qr) {
+    ready = false;
+    camMsg.classList.remove("hide");
+    camMsg.textContent = "กำลังเปิดกล้องและโหลดโมเดลตรวจจับใบหน้า...";
+    say("กำลังเตรียมระบบ...");
+  }
 
-  // เปิดกล้องและโหลดโมเดลพร้อมกัน เพื่อให้รู้สาเหตุที่แท้จริงของแต่ละส่วน
+  // เปิดกล้องและโหลดโมเดลพร้อมกัน เพื่อให้รู้สาเหตุที่แท้จริงของแต่ละส่วน (กล้องที่เปิดอยู่แล้วสำหรับสแกน QR ใช้ต่อได้เลย)
   const cam = (async () => {
-    await camera.start();
+    if (!(camOn && camera.active)) await camera.start();
   })();
   // เลือกตัวประมวลผล: WebGL -> WASM -> CPU (?cpu ข้าม WebGL) · โหมดทดสอบ (?fakedet) ไม่โหลดโมเดล
   // speed pass 2026-11-14: the face models are fetched only once the camera is open (nothing if it is refused)
-  const models = TEST ? Promise.resolve() : cam.then(() => LQDetect.tfBackend()).then(() => Promise.all([
+  // S2 2026-11-18: face-api.js itself too (not a page script any more); the QR-only camera loads neither
+  const models = qr ? Promise.resolve() : cam.then(faceLib).then(() => TEST ? undefined : LQDetect.tfBackend().then(() => Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
     faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
     faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-  ]));
+  ])));
 
   const [c, m] = await Promise.allSettled([cam, models, storageReady]);
-  if (c.status === "rejected") return showCamError(camErrorText(c.reason));
-  if (m.status === "rejected") return showCamError("โหลดโมเดลตรวจจับใบหน้าไม่สำเร็จ ไม่พบไฟล์โมเดลใน vendor/models (ตรวจว่ารันเว็บจากโฟลเดอร์โปรเจกต์ ไม่ได้เปิดไฟล์ตรง ๆ)");
-
+  if (c.status === "rejected") { camOn = false; return showCamError(camErrorText(c.reason)); }
   if (!camWanted) { camera.stop(); return; } // turned off while it was starting
+  camOn = true;
+  if (m.status === "rejected") return showCamError("โหลดโมเดลตรวจจับใบหน้าไม่สำเร็จ ไม่พบไฟล์โมเดลใน vendor/models (ตรวจว่ารันเว็บจากโฟลเดอร์โปรเจกต์ ไม่ได้เปิดไฟล์ตรง ๆ)");
+  if (qr) { if (!ready) camMsg.classList.add("hide"); camPowerSync(); return; }
   ready = true; camMsg.classList.add("hide");
   rebuildMatcher(); say(""); camPowerSync(); // owner rule 2026-11-15: no idle "ready" status (loading / failure / what happened only)
 }
@@ -635,7 +664,7 @@ if (scaPanel) {
   scaHist.render(scaPanel.hist); renderField();
 }
 // bridge for attendance-hr.js (employee time attendance): read-only view of this page's state + the status line
-window.__ATT_CORE = { get people() { return people; }, get ready() { return ready; }, get scanning() { return scanning; }, say, video, isTest: TEST, startCamera };
+window.__ATT_CORE = { get people() { return people; }, get ready() { return ready; }, get camReady() { return camOn; }, get scanning() { return scanning; }, say, video, isTest: TEST, startCamera };
 window.__ATT_SC = { get active() { return SCA; }, get last() { return SCA_LAST; }, get field() { return { ...fieldStats }; } };
 
 // sales demo mode (?demo=1, lensiq-demo.js): no camera and no face models — the demo is PIN / QR on sample employees

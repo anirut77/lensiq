@@ -1,3 +1,10 @@
+// tests/e2e/crisis-rules-1323-e-th.e2e.mjs — owner decision 203 ข (2026-11-21): the TH slice of crisis-rules-1323-e.e2e.mjs, split by language with an EQUAL
+// relock (same checks, pages, widths, assertions, timeouts and thresholds; the shared kit is unchanged). The three language files
+// together cover exactly the cells of the original (check x page x language x width): tests/unit/crisis-split-203b.test.js proves it
+// against the baseline manifest tests/unit/crisis-split-203b-manifest.json, and that undoing the edits gives the original bytes.
+// Edits (tools/crisis-split-203b.mjs): 1 the SLICE / PART line after the import; 2 `for (const lang of LANGS)` -> `for (const lang of SLICE)`;
+// 3 every check name + PART; 4 (file a) the N5 / N6 loop runs only in the TH file, as the original runs them in TH only.
+// ---- 203 ข: the original file follows; only the four edits listed above are applied ----
 // tests/e2e/crisis-rules-1323-e.e2e.mjs — FIXED TEST SET "crisis-rules-1323" part E (independent review 2026-11-17, defect 3):
 // the SHIPPED rule-6 switch (no override; lensiq-config.js says LENSIQ_HELP_TOP_STICKY = true, decisions 69 ค + 75 ก: a small 1323
 // icon INSIDE the sticky top bar #siteNav, with the confirmation dialog, never overlapping content). Locked BEFORE the fix.
@@ -10,7 +17,8 @@
 //      element inside <main>, and no pinned help element except the icon in the bar.
 //   E5 the icon opens the confirmation dialog: a tel:1323 call button (>= 44 px) and the "ช่องทางให้คำปรึกษา" link to
 //      counselling.html (TH / EN / ZH, 393 px, tarot and fortune).
-import { FORTUNE, LANGS, WIDTHS, COUNSEL, IN_CONTENT, PINNED, S, VIS, assert, load, noOtherNumbers, phone, sleep, taps1323 } from "./crisis-rules-kit.mjs";
+import { FORTUNE, LANGS, WIDTHS, COUNSEL, IN_CONTENT, PINNED, S, VIS, assert, load, noOtherNumbers, phone, sleep, taps1323, loadFailText } from "./crisis-rules-kit.mjs";
+const SLICE = LANGS.filter(l => l === "th"); const PART = " [203 ข: th]";
 
 const ICON = `(() => { ${VIS}
   const nav = document.getElementById("siteNav");
@@ -38,10 +46,10 @@ const ICON = `(() => { ${VIS}
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
-    await check("E1-E4: shipped switch, 19 fortune pages x TH / EN / ZH x 360 / 393 / 430 x 6 scroll positions: the 1323 icon sits inside the bar, covers nothing", async () => {
+    await check("E1-E4: shipped switch, 19 fortune pages x TH / EN / ZH x 360 / 393 / 430 x 6 scroll positions: the 1323 icon sits inside the bar, covers nothing" + PART, async () => {
       const bad = [];
       let cases = 0;
-      for (const lang of LANGS) {
+      for (const lang of SLICE) {
         const page = await browser.newPage(null, { isolated: true });
         try {
           for (const w of WIDTHS) {
@@ -49,7 +57,7 @@ export default async function ({ base, launch, check }) {
             for (const p of FORTUNE) {
               const where = `${p} ${lang} ${w}px`;
               cases++;
-              try { await load(page, base, p, lang); } catch (e) { bad.push(`${where}: did not load`); continue; }
+              try { await load(page, base, p, lang); } catch (e) { bad.push(`${where}: ${loadFailText(e)}`); continue; }
               bad.push(...await noOtherNumbers(page, where));
               if (await taps1323(page) > 2) bad.push(`${where}: 1323 not reachable in 2 taps`);
               const inContent = await page.evaluate(IN_CONTENT);
@@ -74,9 +82,9 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n      " + bad.slice(0, 80).join("\n      "));
     });
 
-    await check("E5: the icon opens the confirmation dialog with tel:1323 (>= 44 px) and the counselling link (TH / EN / ZH, 393 px)", async () => {
+    await check("E5: the icon opens the confirmation dialog with tel:1323 (>= 44 px) and the counselling link (TH / EN / ZH, 393 px)" + PART, async () => {
       const bad = [];
-      for (const lang of LANGS) {
+      for (const lang of SLICE) {
         const page = await browser.newPage(null, { isolated: true });
         try {
           await phone(page, 393);

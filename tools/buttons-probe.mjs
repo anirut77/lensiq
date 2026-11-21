@@ -23,6 +23,7 @@
 // Library: import { PAGES, probePage, openEngine } from "./buttons-probe.mjs" (tests/e2e/buttons-kit.mjs).
 // Locked before any product fix: evals-locks/buttons.sha256.
 import { assertFreeSpace } from "./disk-guard.mjs";
+import { holdSlot } from "./load-guard.mjs";
 import { readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -188,6 +189,7 @@ export async function openEngine(engine, o = {}) {
   }
   const { webkit, devices } = await import("playwright");
   assertFreeSpace({ label: "tools/buttons-probe.mjs" }); // stops with exit 75 when free disk space is under 5 GB
+  await holdSlot({ label: "tools/buttons-probe.mjs" }); // load guard (WebKit does not go through cdp.mjs launch())
   const browser = await webkit.launch();
   const open = async url => {
     const ctx = await browser.newContext({ ...devices["iPhone 13"], viewport: VIEWPORT, serviceWorkers: "block" });

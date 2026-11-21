@@ -159,4 +159,31 @@
     aw.appendChild(al);
     box.appendChild(aw);
   }
+
+  // "ข้อมูลกิจการ" tab: admin-seller.js is fetched only when the tab is first opened (speed budget of admin.html,
+  // tests/e2e/speed-budget.e2e.mjs). The script replaces loaders.seller with its own loader; it then runs once here.
+  // Until it has replaced the stub, the seller forms never submit natively (a native GET would put the tax ID and the
+  // bank account number in the page URL).
+  var sellerJs = /** @type {HTMLScriptElement|null} */ (null), sellerStub = function () {
+    if (sellerJs) return;
+    var sc = sellerJs = document.createElement("script");
+    sc.src = "admin-seller.js?v=5";
+    sc.onload = function () {
+      if (loaders.seller === sellerStub) { sellerFail(); return; }
+      var open = !$("adApp").hidden && !/** @type {HTMLElement} */ (document.querySelector('[data-panel="seller"]')).hidden;
+      if (open) loaders.seller();
+    };
+    sc.onerror = sellerFail;
+    document.body.appendChild(sc);
+  };
+  function sellerFail() {
+    if (sellerJs) sellerJs.remove();
+    sellerJs = null;
+    msg(G("adm.e.net", "เชื่อมต่อระบบไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง"), true);
+  }
+  ["adsForm", "adsDocForm"].forEach(function (id) {
+    var f = $(id);
+    if (f) f.addEventListener("submit", function (/** @type {Event} */ e) { if (loaders.seller === sellerStub) e.preventDefault(); }, true);
+  });
+  loaders.seller = sellerStub;
 })();

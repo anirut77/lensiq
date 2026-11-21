@@ -47,6 +47,13 @@ interface Window {
   LENSIQ_LEADS_FORM?: boolean;
   /** photobooth try-on server status is asked only when true (mirrors the backend TRYON switch; off as shipped) */
   LENSIQ_TRYON?: boolean;
+  /** petread zodiac share cards (owner spec 2026-11-19): mode switch, classic-theme switch (PET_CARD_CLASSIC), odds preset a / b */
+  LENSIQ_PET_ZODIAC?: boolean;
+  LENSIQ_PET_CARD_CLASSIC?: boolean;
+  LENSIQ_PET_ZODIAC_ODDS?: string;
+  /** pet card footer (decision 184 ก): brand text from one setting; address line off as shipped */
+  LENSIQ_CARD_BRAND?: string;
+  LENSIQ_CARD_SHOW_ADDRESS?: boolean;
   /** converter uses the local python server.py PDF engine only when true (off as shipped) */
   LENSIQ_CONVERT_SERVER?: boolean;
   /** rule-6 switch (owner decision 2026-11-16): the top 1323 control in the sticky top bar (true) or scrolling away (false) */
@@ -93,8 +100,18 @@ interface Window {
   LENSIQ_FORTUNE_PLAN?: boolean;
   /** "recommended sources" (outside seller links) under the paid switch (decision 46, design only): off unless exactly true */
   LENSIQ_FORTUNE_SOURCES?: boolean;
+  /** item 177: the closed "สิ่งที่ควรระวัง" section (fortune-caution.js); off until the owner says "177 ขึ้นเว็บ" */
+  LENSIQ_FORTUNE_CAUTIONS?: boolean;
+  /** item 177 D-6: Chinese and Western caution rules (off until expert review) */
+  LENSIQ_FORTUNE_CAUTIONS_CN_WEST?: boolean;
+  /** item 177: show caution rules not yet expert-reviewed (preview only) */
+  LENSIQ_FORTUNE_CAUTIONS_DRAFTS?: boolean;
   /** recommended-source entries (admin-managed later; none ship) */
   LQ_FORTUNE_SELLER_LINKS?: any[];
+  /** item 177: caution rules registered by the generated packs fortune-caution-pack-*.js (read by fortune-caution-core.js) */
+  LQCautionRules?: any[];
+  /** item 177: fortune-caution.js mount API, used by horoscope.js, astro.js and lifecal-ui.js */
+  LQFortuneCaution?: any;
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
   LENSIQ_TURNSTILE_SITEKEY?: string;
   /** lensiq-config.js: public OAuth Client ID for "Sign in with Google" ("" = no member sign-in) */

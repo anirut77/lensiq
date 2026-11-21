@@ -233,3 +233,64 @@ More styles.css comments moved word for word on 2026-11-17 (fourth batch):
 /* owner order 2026-11-15 item 1: no idle technical status. A status line (role=status) with nothing to say is empty and takes
    no space; it stays in the page so loading and error messages still reach screen readers. */
 ```
+
+## Cut `<select>` text (`selFull`, owner report 2026-11-18)
+
+A closed `<select>` shows one line and cannot wrap. `selFull()` measures the chosen option's text with a canvas in the
+select's own font; when text + padding + border + 24 px (the native arrow and its inner space; 0 with `appearance: none`)
+is wider than the select, the full text is shown on a small line right under it (`span.lq-sel-full`, `aria-hidden`, the
+select itself already gives screen readers the full text). The line takes the full width (`width:100%`, `order:9`) and the select's parent gets `.lq-sel-wrap` while the line is shown
+(`flex-wrap:wrap`; no `:has`, so older iOS / Samsung browsers behave the same), so the select keeps its width in a row with a button (checkout
+`#manualSel`, CI 2026-11-18); the line-wrap pass skips it. It re-checks on load, resize, `change`, a click anywhere (a tab
+that shows a form) and a language switch. No wording changes. styles.css gives every select a 4 px right padding (the
+arrow keeps its own space). Locked test: `tests/e2e/select-fit-*.e2e.mjs` (`evals-locks/planner-defects.sha256`).
+Bytes: the two Thai JSDoc lines in the model loader were shortened to English so nav.js stays inside the page budgets.
+
+## styles.css notes (moved from the stylesheet 2026-11-18 to keep pages inside their byte budgets)
+
+Each comment below stood in `styles.css`; the stylesheet keeps its first words and a pointer here.
+
+```text
+/* the HTML hidden attribute always wins over component display rules (.btn{display:inline-flex} etc.) */
+/* ---------- Self-hosted web font (no request to Google: PDPA / privacy) ----------
+   Prompt (Cadson Demak, SIL OFL 1.1 — vendor/fonts/prompt/OFL.txt), woff2 subsets thai / latin-ext / latin, 300–700.
+   unicode-range means a page only downloads the subsets it renders (~7–11 KB each).
+   Chinese is NOT vendored (a CJK font is 5–20 MB): zh text falls through to the OS CJK font in the stacks below.
+   Regenerate with: node tools/self-host-fonts.mjs --fetch (needs network once). */
+/* Inter (The Inter Project Authors, SIL OFL 1.1 — vendor/fonts/inter/OFL.txt): Latin companion for the header and
+   for English pages; variable weight 100–900, latin subset only (Thai keeps Prompt, Chinese the OS CJK font). */
+/* ---------- Section header: breadcrumb under the bar (nav.js .lq-crumbs) ---------- */
+/* Tap feedback, busy state and double-tap safety for every button (ow (docs/NAV.md) */
+/* English mode on fortune pages: "readings are in Thai / Chinese" note (i18n/en-fortune.js) */
+/* Thai script is never letter-spaced or upper-cased (tracking breaks the stacked vowel / tone marks apart) */
+/* no text-wrap:balance/pretty: with many inline .lq-w boxes Chrome's balancing can stall layout (seen on signage.html) */
+/* ---------- Touch targets (WCAG 2.5.5 / Apple HIG: 44×44 CSS px) on touch screens ---------- */
+/* inline text links inside paragraphs keep their size; links that act as controls get a 44px row */
+/* ---------- Minimum readable text: 12px floor for the small text classes ---------- */
+/* ---------- Legal footer (nav.js legalFoot: pages without their own <footer>) ---------- */
+/* owner order 2026-11-15 item 3: the help line is in ONE place per fo (docs/NAV.md) */
+/* the printed report keeps the full help line; on screen the top button is the one place (owner order 2026-11-15 item 3) */
+/* ---------- tap-to-call help-line component (lensiq-helpline.js; own (docs/NAV.md) */
+/* crisis card layout (fortune-ai.js draws the card; its border and colours are injected with the card) */
+/* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
+   and share cards stay hidden on that page */
+```
+
+## Inline comments moved from nav.js (2026-11-20, branch planner-defects)
+
+Moved here word for word so help.html stays inside its 400 KB page-weight budget after selFull() (the select full-text
+line) was added; the JS tokens are unchanged. The line number is where the comment stood in nav.js before the move.
+
+```text
+125: // ---------- crisis-v3-protect (rule b: no prices, purchase buttons, plans or seller links while the crisis flag is set): menu
+126: // entries marked data-lq-crisis-sales (site menu pricing / payment, account-menu pricing) are hidden while html[data-lq-crisis]
+127: // or html[data-lq-calm] is set, and come back when the flag clears (pure CSS: no listener to miss) ----------
+188: // owner order 2026-11-18: the fortune panel's link names no status or accuracy (fortune cards carry neither)
+194: // crisisSales (crisis-v3-protect, rule b): a price / payment entry is hidden while the crisis or calm state is set
+739: // not the hub (fortune.html): it shows no reading to report (speed budget, 2026-11-17)
+761: // the full-text line keeps a number with its unit / era (NBSP) so the line never ends on a lone "CE", "min", "%" ... (all pages, all languages)
+```
+
+Note (not a moved comment): the currency units (THB, baht, บาท, 元, 泰铢) were removed from glue() in 310b6fc0 for
+the crisis price scan (tests/unit/crisis-price-scan.test.js). Money appears in select options only as ฿+number with no
+space (customers.js, checkout.js), which glue() never joined, so removing the currency units changes nothing.

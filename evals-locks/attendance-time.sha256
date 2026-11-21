@@ -1,0 +1,15 @@
+# locked 2026-11-18T16:43:46Z (tools/eval-guard.mjs lock, 11 files)
+45348bd7523d3bb27c94dd4acb47debb5eb993b5e912acf6a320f1e70a36bec0  set.json
+22ea09892fa35299773228b848d34d3746ec1008aa7c767a371917f9dbe494ee  expected.json
+a64034388d42badbad52e60df12f0ff022bc338b99ce7d003c8f7211b5a9a742  hand.json
+4cc13192f185071fed5aaf5d3ecde64637f122a7935b460011e327ebdef69033  tools/attendance-time-set.mjs
+02626ff9182b13909a18d544707c31ab901a85a51cc66d2798b9cc2273662400  tools/attendance-time-hand.mjs
+f09da37b766451f7fc21d9183026aa1bffe3620ed80182e6aba3042127ec7505  tools/attendance-time-eval.mjs
+1fdb10dea3526997a892303263ce765364c4077852258250114ec812afac925d  tools/attendance-speed.mjs
+a1c56b34bab9b13f2aaa71f5c0d82e13c46b089faf09bac06100d59ead85c7b7  tests/e2e/attendance-pinqr.e2e.mjs
+8b0465f990a962de5d2592c41f26789e999f6d7ff7983b0a675969e1f5623987  tests/e2e/attendance-qr-webkit.e2e.mjs
+e056ee860229ff49f34f34ec9452e25e9595e55f318b853f356eb944cfa6e4ca  tests/e2e/qr-cam.js
+56acd91945b937c92eafbf39ca3cf251a192cf1e66f46f1a8d5fbacc26eee12a  tests/unit/attendance-csv-lang.test.js
+# field only set.json (lock 2026-11-18T16:43:46Z: no repo file uses it)
+# field only expected.json (lock 2026-11-18T16:43:46Z: no repo file uses it)
+# field only hand.json (lock 2026-11-18T16:43:46Z: no repo file uses it)

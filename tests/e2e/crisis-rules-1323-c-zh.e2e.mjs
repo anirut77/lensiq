@@ -1,3 +1,10 @@
+// tests/e2e/crisis-rules-1323-c-zh.e2e.mjs — owner decision 203 ข (2026-11-21): the ZH slice of crisis-rules-1323-c.e2e.mjs, split by language with an EQUAL
+// relock (same checks, pages, widths, assertions, timeouts and thresholds; the shared kit is unchanged). The three language files
+// together cover exactly the cells of the original (check x page x language x width): tests/unit/crisis-split-203b.test.js proves it
+// against the baseline manifest tests/unit/crisis-split-203b-manifest.json, and that undoing the edits gives the original bytes.
+// Edits (tools/crisis-split-203b.mjs): 1 the SLICE / PART line after the import; 2 `for (const lang of LANGS)` -> `for (const lang of SLICE)`;
+// 3 every check name + PART; 4 (file a) the N5 / N6 loop runs only in the TH file, as the original runs them in TH only.
+// ---- 203 ข: the original file follows; only the four edits listed above are applied ----
 // tests/e2e/crisis-rules-1323-c.e2e.mjs — FIXED TEST SET "crisis-rules-1323" part C (owner decision 2026-11-16 crisis one-number
 // rules; see crisis-rules-kit.mjs).
 //   P1 counselling.html ("ช่องทางให้คำปรึกษา"), TH / EN / ZH x 360 / 393 / 430: each service (1323, 1669, 191, 1300, Samaritans
@@ -8,7 +15,8 @@
 //      Samaritans 0 times, 1323 in <= 2 taps, no pinned help element.
 //   K2 calm reading (dream, TH / EN / ZH, 393 px): the help line comes AFTER the reading (below the last section), holds only
 //      tel:1323 and the counselling link, and is not sticky or fixed.
-import { FORTUNE, LANGS, PINNED, S, STICKY, VIS, WIDTHS, COUNSEL, assert, load, noOtherNumbers, phone, sleep, taps1323 } from "./crisis-rules-kit.mjs";
+import { FORTUNE, LANGS, PINNED, S, STICKY, VIS, WIDTHS, COUNSEL, assert, load, noOtherNumbers, phone, sleep, taps1323, loadFailText } from "./crisis-rules-kit.mjs";
+const SLICE = LANGS.filter(l => l === "zh"); const PART = " [203 ข: zh]";
 
 const CALM = `try { sessionStorage.setItem("lq-fortune-calm", "1"); } catch (e) {}`;
 const TITLE = { th: /ช่องทางให้คำปรึกษา/, en: /counsel/i, zh: /咨询/ };
@@ -16,15 +24,15 @@ const TITLE = { th: /ช่องทางให้คำปรึกษา/, en
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
-    await check("P1: counselling.html, TH / EN / ZH x 360 / 393 / 430: five services, one row each with a tel: button >= 44 px; crisis net loaded; no reading, no ads", async () => {
+    await check("P1: counselling.html, TH / EN / ZH x 360 / 393 / 430: five services, one row each with a tel: button >= 44 px; crisis net loaded; no reading, no ads" + PART, async () => {
       const bad = [];
-      for (const lang of LANGS) {
+      for (const lang of SLICE) {
         const page = await browser.newPage(null, { isolated: true, initScripts: [STICKY(false)] });
         try {
           for (const w of WIDTHS) {
             await phone(page, w);
             const where = `counselling ${lang} ${w}px`;
-            try { await load(page, base, "counselling", lang); } catch (e) { bad.push(`${where}: did not load`); continue; }
+            try { await load(page, base, "counselling", lang); } catch (e) { bad.push(`${where}: ${loadFailText(e)}`); continue; }
             const r = await page.evaluate(`(() => { ${VIS}
               const rows = [...document.querySelectorAll("main [data-lq-call]")].filter(vis).map(c => {
                 const a = c.querySelector('a[href^="tel:"]'), l = c.querySelector(".lq-call-t");
@@ -63,15 +71,15 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n      " + bad.join("\n      "));
     });
 
-    await check("K1: calm state (tab flag), 19 fortune pages x TH / EN / ZH, 393 px: only 1323, in <= 2 taps, nothing pinned", async () => {
+    await check("K1: calm state (tab flag), 19 fortune pages x TH / EN / ZH, 393 px: only 1323, in <= 2 taps, nothing pinned" + PART, async () => {
       const bad = [];
-      for (const lang of LANGS) {
+      for (const lang of SLICE) {
         const page = await browser.newPage(null, { isolated: true, initScripts: [STICKY(false), CALM] });
         try {
           await phone(page, 393);
           for (const p of FORTUNE) {
             const where = `${p} ${lang} calm`;
-            try { await load(page, base, p, lang); } catch (e) { bad.push(`${where}: did not load`); continue; }
+            try { await load(page, base, p, lang); } catch (e) { bad.push(`${where}: ${loadFailText(e)}`); continue; }
             bad.push(...await noOtherNumbers(page, where));
             if (await taps1323(page) > 2) bad.push(`${where}: 1323 not reachable in 2 taps`);
             const pins = await page.evaluate(PINNED(false));
@@ -82,9 +90,9 @@ export default async function ({ base, launch, check }) {
       assert(!bad.length, bad.length + " problem(s):\n      " + bad.slice(0, 60).join("\n      "));
     });
 
-    await check("K2: calm reading (dream, TH / EN / ZH, 393 px): the help line comes after the reading, only 1323 + the counselling link, not pinned", async () => {
+    await check("K2: calm reading (dream, TH / EN / ZH, 393 px): the help line comes after the reading, only 1323 + the counselling link, not pinned" + PART, async () => {
       const bad = [];
-      for (const lang of LANGS) {
+      for (const lang of SLICE) {
         const page = await browser.newPage(null, { isolated: true, initScripts: [STICKY(false), CALM] });
         try {
           await phone(page, 393);

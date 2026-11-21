@@ -15,6 +15,7 @@
 // The card contract the tests read: .fa-support > h3 (title), .fa-support-warm (warm lines), details.fa-support-more (summary
 // "อ่านเพิ่มเติม" / "Read more" / "阅读更多"), .fa-support-guide (comforting guidance), a[href="tel:1323"], a[href$="counselling.html"].
 import { assert } from "./cdp.mjs";
+import { diagnoseLoadFailure, loadFailText } from "./load-diag.mjs";
 
 export const S = JSON.stringify;
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -38,10 +39,22 @@ export async function phone(page, w) {
   await page.send("Emulation.setDeviceMetricsOverride", { width: w, height: w <= 360 ? 740 : 852, deviceScaleFactor: 2, mobile: true });
   await page.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
 }
-/** load a page in a language and wait until the language is applied and the 1323 control exists */
+/** page load event timeout: the cdp.mjs newPage default (no crisis-rules-1323 file passes its own); language wait: unchanged 10 s */
+export const PAGE_LOAD_MS = 20000;
+export const LANG_WAIT_MS = 10000;
+/** load a page in a language and wait until the language is applied and the 1323 control exists.
+ *  On failure (decision 203 ค) it still throws; the error says "slow machine" or "page did not load" and carries os.loadavg(), the
+ *  page load ms and the timeout (tests/e2e/load-diag.mjs). Same steps, same timeouts. */
 export async function load(page, base, p, lang) {
-  await page.goto(`${base}/${p}.html?nosw&lang=${lang}`);
-  await page.waitFor(`document.documentElement.lang === ${S(HTML_LANG[lang])}`, 10000);
+  const url = `${base}/${p}.html?nosw&lang=${lang}`, ready = `document.documentElement.lang === ${S(HTML_LANG[lang])}`;
+  let phase = "load event", t1 = Date.now();
+  try {
+    await page.goto(`${base}/${p}.html?nosw&lang=${lang}`);
+    phase = "language applied"; t1 = Date.now();
+    await page.waitFor(`document.documentElement.lang === ${S(HTML_LANG[lang])}`, LANG_WAIT_MS);
+  } catch (e) {
+    throw await diagnoseLoadFailure(page, e, { url, ready, phase, ms: Date.now() - t1, timeoutMs: phase === "load event" ? PAGE_LOAD_MS : LANG_WAIT_MS });
+  }
   await sleep(450);
 }
 
@@ -162,4 +175,4 @@ export const LEAKS = `(() => { ${VIS}
   }
   return [...new Set(out)].slice(0, 12); })()`;
 
-export { assert };
+export { assert, loadFailText };

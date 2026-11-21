@@ -1,0 +1,156 @@
+# evals-locks/fortune-caution.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-caution/ (owner rule 2026-11-13, locked sets persist). Append-only.
+# fortune-caution (owner item 177, 2026-11-20: closed "สิ่งที่ควรระวัง" section of the fortune readings), wave 0 — locked BEFORE any product code on
+# branch fortune-cautions (base origin/main 2a61736c). Design ~/Desktop/LENSIQ-review/fortune-cautions/DESIGN-TH.md T1-T23; coordinator defaults (a)-(f),
+# D-2..D-6; owner refinement 2026-11-20 about 10:25 (time: month ranges ok, never a single day, replaces D-1; no prohibition wording; people only in broad
+# terms; broad body areas; travel; guidance whitelist mindful / precepts / merit / parents / religion) folded in before this first lock. SYNTHETIC set.
+# locked 2026-11-20T03:38:44Z (tools/eval-guard.mjs lock, 5 files)
+903cec11e0a8e8565164d5c63a36170123cea2c3b1bcc7969f24c9248584d5bb  tests/unit/fortune-caution-rules.test.js
+25aee7da18bc6fb6f768e2cec72cd54a0ac8ce34adb2ef4b6d2d230f9a3325b6  tests/unit/fortune-caution-limits.test.js
+a70dbc31256245903d29babfabba62c5f8e798ab20055453b286aa20343e109f  tests/unit/fixtures/fortune-caution-profiles.json
+ddc4503ba7d65f1fbbdfeb347ee748849c3fe39584573f76e1fc0de7a97d1983  tests/e2e/fortune-caution.e2e.mjs
+aab6446694ec17d66b7a1db7530de106ec53a634183a5601300e5f5ea32e2951  tests/e2e/fortune-caution-wrap.e2e.mjs
+# RELOCK 1 2026-11-20 (branch fortune-cautions), before any product change made for it: tests/e2e/fortune-caution.e2e.mjs, check "T9 crisis words in any
+# text field" only. Crisis words in horoscope.html #hsYear start the existing crisis takeover, which keeps the tab calm (crisis v3, by design), so the first
+# lock's "clear the fields and mount again" step could never pass and every later field check in that tab was vacuous. Now each field x language and each
+# "typed after mounting" case runs in a fresh tab, plus a "no rule data fetched" assert per case (stricter). No other check changed. Run before relock:
+# 13/14 (~/LENSIQ-field/evals/fortune-caution/run-1-after-build-e2e.log).
+# locked 2026-11-20T05:43:45Z (tools/eval-guard.mjs lock, 1 file)
+4d4548ea050cb95ac60b82f8e1ab9f9f409d3766d498a0df6bc0b41b4fc491de  relock1/fortune-caution.e2e.mjs
+4d4548ea050cb95ac60b82f8e1ab9f9f409d3766d498a0df6bc0b41b4fc491de  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T05:43:45Z; field: ~/LENSIQ-field/evals/fortune-caution/relock1/fortune-caution.e2e.mjs)
+# WAVE 1 2026-11-20 (owner approved waves 0 and 1, switch off; coordinator order: horoscope pilot first, bazi and astro behind _CN_WEST), locked BEFORE any
+# page is wired, at 7c3d9fd1. Page list horoscope / bazi / astro (planner, petread, hub never); horoscope adapter HS.cautionItems + HS.CAUTION_PERIOD (span
+# day); T15 snapshot of the horoscope reading facts taken from the unwired horoscope.js (sha256 per case, 42 cases, SYNTHETIC births); pilot e2e on the real
+# page (Thai rules only with _CN_WEST off). Bazi / astro page tests are locked in a later block before those pages are wired.
+# locked 2026-11-20T05:58:13Z (tools/eval-guard.mjs lock, 3 files)
+6acaf1b84b47591fbef680e64ff22c283353d4733fe1660f7f2b5032ba75cbbd  wave1/fortune-caution-pages.test.js
+d70787afacad6f5af7a8bdef8a9cfb4157de310579bc838d6576602f26726720  wave1/fortune-caution-horoscope-snapshot.json
+192ab976855e439684c4fc9793e681762e2d7cae2a2806e35f7ea80fb367800f  wave1/fortune-caution-horoscope.e2e.mjs
+6acaf1b84b47591fbef680e64ff22c283353d4733fe1660f7f2b5032ba75cbbd  tests/unit/fortune-caution-pages.test.js  # repo file (same commit as lock 2026-11-20T05:58:13Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1/fortune-caution-pages.test.js)
+d70787afacad6f5af7a8bdef8a9cfb4157de310579bc838d6576602f26726720  tests/unit/fixtures/fortune-caution-horoscope-snapshot.json  # repo file (same commit as lock 2026-11-20T05:58:13Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1/fortune-caution-horoscope-snapshot.json)
+192ab976855e439684c4fc9793e681762e2d7cae2a2806e35f7ea80fb367800f  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T05:58:13Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1/fortune-caution-horoscope.e2e.mjs)
+# RELOCK wave1-relock1 2026-11-20, still BEFORE any page is wired (7c3d9fd1 product): T15 snapshot only. horoscope.js buildDailyFacts draws the today.bhumi
+# meaning from Math.random (horoscope.js:637 calls meaningsRandom without the rng), so the 18 daily cases were random per call and failed even on the
+# unwired code (baseline log wave1/run-0-before-wiring-unit.log). Daily cases now pin Math.random to lcg(seed + 1) during the call, in the snapshot and in
+# the test; natal cases unchanged. No other test changed.
+# locked 2026-11-20T05:59:01Z (tools/eval-guard.mjs lock, 2 files)
+a4c5967664c3ff05f9abe5721d0ef0bd9c8bd998fa9dfe886e3d92edadb48c56  wave1-relock1/fortune-caution-pages.test.js
+b821f3983ad8a7225809afb932e06c60f1f08b793ad6481d114edab39cf50e00  wave1-relock1/fortune-caution-horoscope-snapshot.json
+a4c5967664c3ff05f9abe5721d0ef0bd9c8bd998fa9dfe886e3d92edadb48c56  tests/unit/fortune-caution-pages.test.js  # repo file (same commit as lock 2026-11-20T05:59:01Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1-relock1/fortune-caution-pages.test.js)
+b821f3983ad8a7225809afb932e06c60f1f08b793ad6481d114edab39cf50e00  tests/unit/fixtures/fortune-caution-horoscope-snapshot.json  # repo file (same commit as lock 2026-11-20T05:59:01Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1-relock1/fortune-caution-horoscope-snapshot.json)
+# RELOCK relock2 + wave1-relock2 2026-11-20, BEFORE the product fix: the section's root class becomes .lq-caution-sec. The locked contract named the root
+# .lq-caution, which the reading already uses for its own caution paragraphs (fortune-read.js:400, compat-ui.js); on the wired horoscope page the tests' selector
+# matched the reading (run log wave1/run-2-after-wiring-e2e.log: 17/22) and the shell's CSS, including the calm rule, would have hit the reading's caution
+# paragraphs (a product bug). Only the root selector changed in fortune-caution.e2e.mjs, fortune-caution-wrap.e2e.mjs and fortune-caution-horoscope.e2e.mjs.
+# locked 2026-11-20T06:24:39Z (tools/eval-guard.mjs lock, 3 files)
+bc4a285395b393a1f5c2e9ec90010c61872ac782201a5af8a03d0915d31e1f85  relock2/fortune-caution.e2e.mjs
+a53b49ac267da4fbd8cd9c3ec159b6720890e6bf2e6be11d1df7a7df4eb845bd  relock2/fortune-caution-wrap.e2e.mjs
+de461b99c69b86f5eabd52d10ba35255a0f1011893083d5d87bcfcd648402782  wave1-relock2/fortune-caution-horoscope.e2e.mjs
+bc4a285395b393a1f5c2e9ec90010c61872ac782201a5af8a03d0915d31e1f85  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:24:39Z; field: ~/LENSIQ-field/evals/fortune-caution/relock2/fortune-caution.e2e.mjs)
+a53b49ac267da4fbd8cd9c3ec159b6720890e6bf2e6be11d1df7a7df4eb845bd  tests/e2e/fortune-caution-wrap.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:24:39Z; field: ~/LENSIQ-field/evals/fortune-caution/relock2/fortune-caution-wrap.e2e.mjs)
+de461b99c69b86f5eabd52d10ba35255a0f1011893083d5d87bcfcd648402782  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T06:24:39Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1-relock2/fortune-caution-horoscope.e2e.mjs)
+# RELOCK 3 2026-11-20 (branch fortune-cautions), BEFORE the product fixes; the change is STRICTER. Independent review of wave 0 at 7c3d9fd1 failed: the
+# filter let 42 of the reviewer's 60 new forbidden probes through (18/60 refused, 16/16 allowed at 132a4a20). Added: the reviewer's 60 + 16 probes verbatim
+# and our generalisations (49 forbidden, 9 allowed); dates refused on every topic; anything under a one-day period refused; new test scans (certainty with loss
+# verbs, ไม่ควร / at all costs, accident types beyond cars, named diseases and remedies, named / described / regional / ethnic / birth-day people, digital
+# assets, 断了, skipped-offering conditionals, named monks, large amounts, Chinese numerals, plates, 大奖). Owner rule 2026-11-20: month ranges, never a
+# single day: no rule may have span "day", the fixture's horoscope period is the month, day-level readings removed. Sources: lifegraph (team weights) and
+# lek7 (one real source, fails T5, T5 unchanged) are excluded page domains; their readings removed. E2E: readings F23/F26 -> F15/F22, horoscope month part
+# (CN-on preview), console-error checks limited to exceptions and fortune-caution files (the page's own /api/fortune/status 404 was counted:
+# wave1/run-3-after-relock2-e2e.log 18/22, every section assert passed).
+# locked 2026-11-20T07:04:14Z (tools/eval-guard.mjs lock, 7 files)
+425f1df7313089cc02cddd9fe005d10eeb96b6447ff44eacd0da5c301d031070  relock3/fortune-caution-rules.test.js
+01acb5b73a94e86083ebd181a40d4808de8ed7304d204439abedc6064c9e55ad  relock3/fortune-caution-limits.test.js
+d1a0f282e5b381cacacd4b6e5ca09a606e9696999800dd1d71d31d9908590adf  relock3/fortune-caution-profiles.json
+22d6909911002bee716bf79ca1c2a2f2d34508abcdf62d0fa56b98f287d162be  relock3/fortune-caution-pages.test.js
+55ea14322e943a524bf115906b96d316e6fc856d719e9b00fc6b11fc9092f32e  relock3/fortune-caution.e2e.mjs
+d98442907069e5918b3b8301592af9bed7bf54f99ca242b9ba37fba847646f9e  relock3/fortune-caution-wrap.e2e.mjs
+3735ff1f967324bcff03f084c91c51667b70c8d50ac12be164962147c737d252  relock3/fortune-caution-horoscope.e2e.mjs
+425f1df7313089cc02cddd9fe005d10eeb96b6447ff44eacd0da5c301d031070  tests/unit/fortune-caution-rules.test.js  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-rules.test.js)
+01acb5b73a94e86083ebd181a40d4808de8ed7304d204439abedc6064c9e55ad  tests/unit/fortune-caution-limits.test.js  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-limits.test.js)
+d1a0f282e5b381cacacd4b6e5ca09a606e9696999800dd1d71d31d9908590adf  tests/unit/fixtures/fortune-caution-profiles.json  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-profiles.json)
+22d6909911002bee716bf79ca1c2a2f2d34508abcdf62d0fa56b98f287d162be  tests/unit/fortune-caution-pages.test.js  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-pages.test.js)
+55ea14322e943a524bf115906b96d316e6fc856d719e9b00fc6b11fc9092f32e  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution.e2e.mjs)
+d98442907069e5918b3b8301592af9bed7bf54f99ca242b9ba37fba847646f9e  tests/e2e/fortune-caution-wrap.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-wrap.e2e.mjs)
+3735ff1f967324bcff03f084c91c51667b70c8d50ac12be164962147c737d252  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:04:14Z; field: ~/LENSIQ-field/evals/fortune-caution/relock3/fortune-caution-horoscope.e2e.mjs)
+# RELOCK 4 2026-11-20, before relock 3 is measured on the fixed product: tests/unit/fortune-caution-limits.test.js only. SCAN3.person (added in relock 3) matched
+# "ชื่อ" inside "ความเชื่อ" (belief, the owner's faith-inclusive wording "ตามความเชื่อหรือศาสนาของท่าน"); now (?<!เ)ชื่อ, named people still caught. Count floors
+# follow the rules relock 3 removed (rule texts 240 -> 170, luck lines 30 -> 24; now 183 and 24). Nothing else changed.
+# locked 2026-11-20T07:06:31Z (tools/eval-guard.mjs lock, 1 file)
+34167270edc8e8263a9579ed6465e1cf20a401c428225eabbac19dcf63f058cc  relock4/fortune-caution-limits.test.js
+34167270edc8e8263a9579ed6465e1cf20a401c428225eabbac19dcf63f058cc  tests/unit/fortune-caution-limits.test.js  # repo file (same commit as lock 2026-11-20T07:06:31Z; field: ~/LENSIQ-field/evals/fortune-caution/relock4/fortune-caution-limits.test.js)
+# WAVE 1b 2026-11-20 (coordinator: go for bazi and astro, both behind _CN_WEST off, D-6; month or longer periods only), locked BEFORE either page is wired, at
+# 852bc307: bazi adapter LIFECAL_KB.baziCautions (engine items + 流年 relation via LifeCal.yearRelation == Zodiac.relation, 大运 period), astro adapter
+# AS.cautionItems / AS.cautionPeriod (Saturn return only, years period, rule w.saturn.return modern), T15 snapshot of baziFacts / astro buildFacts from the
+# unwired code (112 cases, SYNTHETIC), pilot e2e on both pages. Astro's transits, retrogrades and hard aspects need planet positions: not in this wave.
+# locked 2026-11-20T07:54:35Z (tools/eval-guard.mjs lock, 3 files)
+076616e1b9fed9a7bb6cabd8ddf470b9016c1359d12e7720f25f9013a357203e  wave1b/fortune-caution-pages-b.test.js
+e0dfa894a51a75d7d6844ba59c0cc86a4f734565660b60a38b274dafd607c0df  wave1b/fortune-caution-bazi-astro-snapshot.json
+09312350c706070e638d4b7e61380f3b9f335cb4a2a6088b81a4802875328ace  wave1b/fortune-caution-bazi-astro.e2e.mjs
+076616e1b9fed9a7bb6cabd8ddf470b9016c1359d12e7720f25f9013a357203e  tests/unit/fortune-caution-pages-b.test.js  # repo file (same commit as lock 2026-11-20T07:54:35Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1b/fortune-caution-pages-b.test.js)
+e0dfa894a51a75d7d6844ba59c0cc86a4f734565660b60a38b274dafd607c0df  tests/unit/fixtures/fortune-caution-bazi-astro-snapshot.json  # repo file (same commit as lock 2026-11-20T07:54:35Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1b/fortune-caution-bazi-astro-snapshot.json)
+09312350c706070e638d4b7e61380f3b9f335cb4a2a6088b81a4802875328ace  tests/e2e/fortune-caution-bazi-astro.e2e.mjs  # repo file (same commit as lock 2026-11-20T07:54:35Z; field: ~/LENSIQ-field/evals/fortune-caution/wave1b/fortune-caution-bazi-astro.e2e.mjs)
+# RELOCK 5 2026-11-20 (wave 1b, before measuring the wired bazi/astro product): the locked rule "every registry rule fires in at least two locked readings"
+# needs readings for the new Western rule w.saturn.return: astro readings F41 / F42 and the astro period (span years) added to the fixture. T23 "overall
+# first" now applies when the page has an overall rule (astro has no Western natal rule yet, so its section has the period part only). Nothing removed.
+# locked 2026-11-20T07:56:49Z (tools/eval-guard.mjs lock, 2 files)
+635551341359ee4a61ffb4cee7c8a04db43fee6f71ba1102a844c8c125f27a40  relock5/fortune-caution-profiles.json
+23cb0cacb738503d5fc9bc7e37a8bf0d2d080848c7e522c9f6e2d12e0d78a596  relock5/fortune-caution-rules.test.js
+635551341359ee4a61ffb4cee7c8a04db43fee6f71ba1102a844c8c125f27a40  tests/unit/fixtures/fortune-caution-profiles.json  # repo file (same commit as lock 2026-11-20T07:56:49Z; field: ~/LENSIQ-field/evals/fortune-caution/relock5/fortune-caution-profiles.json)
+23cb0cacb738503d5fc9bc7e37a8bf0d2d080848c7e522c9f6e2d12e0d78a596  tests/unit/fortune-caution-rules.test.js  # repo file (same commit as lock 2026-11-20T07:56:49Z; field: ~/LENSIQ-field/evals/fortune-caution/relock5/fortune-caution-rules.test.js)
+# RELOCK 6 2026-11-20 (wave 1b): tests/unit/fortune-caution-rules.test.js "never a single day" check: an astro reading under a one-day span gives no section at
+# all (null: no overall rule, and no period part under a day), which the check required to be a model; now "no section, or a section without a period part".
+# Measured before this relock on relock 5: 40/41 (relock5/run-1-after-wiring-unit.log). Nothing else changed.
+# locked 2026-11-20T07:57:04Z (tools/eval-guard.mjs lock, 1 file)
+21fcf50492518d0dbb1efda24958ad0d8713db26134dfc0bded42b79320705aa  relock6/fortune-caution-rules.test.js
+21fcf50492518d0dbb1efda24958ad0d8713db26134dfc0bded42b79320705aa  tests/unit/fortune-caution-rules.test.js  # repo file (same commit as lock 2026-11-20T07:57:04Z; field: ~/LENSIQ-field/evals/fortune-caution/relock6/fortune-caution-rules.test.js)
+# RELOCK 7 2026-11-20 (coordinator order after the independent review round 2: FAIL, the filter was word lists fitted to probes, 11/36 on new probes;
+# 2-round cap, change the control), locked BEFORE the code: the APPROVED-WORDING REGISTER fortune-caution-wording.js itself (64 entries: 16 caution, 24
+# guidance, 16 encouragement, 8 luck; all draft; any change is a relock an independent reviewer reads line by line) and its gate tests: rules hold register
+# ids only; every shipped text is a register entry; live packs only reviewed / expert-ok entries, draft entries only in draft packs (LENSIQ_FORTUNE_CAUTIONS_DRAFTS);
+# the pack tool refuses text outside the register; every entry passes the filter; people only in fixed broad phrases, health only broad body areas, never
+# organs. Probe round 2 (36 forbidden, 12 allowed) locked: allowed and the probes of the three new general checks are gates, the rest measured. E2E: the
+# reading's own .lq-caution paragraphs stay visible with the section mounted (the reviewer's gap).
+# locked 2026-11-20T08:31:06Z (tools/eval-guard.mjs lock, 4 files)
+56206803d78f218e73859dd974cf66e0de0c94a7e9811fc223a95143a7fd47e9  relock7/fortune-caution-wording.js
+b4f54aa515d8b43ea9b73cfcb64bd737d03837a6ac842aa3a590f51a386e469f  relock7/fortune-caution-wording.test.js
+07d9cdf968d80fc931c04c437060da385823fb556ffcaeba43bde6381656a383  relock7/fortune-caution-probes2.test.js
+b6360c253b7e8d818e593b11513ff0132d7e757805f6ec03b5efa5d838651c1f  relock7/fortune-caution-reading-visible.e2e.mjs
+56206803d78f218e73859dd974cf66e0de0c94a7e9811fc223a95143a7fd47e9  fortune-caution-wording.js  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-wording.js)
+b4f54aa515d8b43ea9b73cfcb64bd737d03837a6ac842aa3a590f51a386e469f  tests/unit/fortune-caution-wording.test.js  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-wording.test.js)
+07d9cdf968d80fc931c04c437060da385823fb556ffcaeba43bde6381656a383  tests/unit/fortune-caution-probes2.test.js  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-probes2.test.js)
+b6360c253b7e8d818e593b11513ff0132d7e757805f6ec03b5efa5d838651c1f  tests/e2e/fortune-caution-reading-visible.e2e.mjs  # repo file (same commit as lock 2026-11-20T08:31:06Z; field: ~/LENSIQ-field/evals/fortune-caution/relock7/fortune-caution-reading-visible.e2e.mjs)
+# RELOCK 8 2026-11-20, before relock 7 is measured on the code: tests/unit/fortune-caution-wording.test.js only: the Thai fixed broad phrases gain "ได้ใจคน"
+# (win people over; the English counterpart "people over" was already in the list), which register entry bz.year.harm.cheer uses. Nothing else changed.
+# locked 2026-11-20T08:39:05Z (tools/eval-guard.mjs lock, 1 file)
+98a5e0da39cbaa7d5ba90a8299414b65af69140986951496e7cf8573052d8e15  relock8/fortune-caution-wording.test.js
+98a5e0da39cbaa7d5ba90a8299414b65af69140986951496e7cf8573052d8e15  tests/unit/fortune-caution-wording.test.js  # repo file (same commit as lock 2026-11-20T08:39:05Z; field: ~/LENSIQ-field/evals/fortune-caution/relock8/fortune-caution-wording.test.js)
+# RELOCK 9 2026-11-20 (independent review at 51ffb7ac FAILED), STRICTER, locked BEFORE the fixes: (1) narrows relock 6: under a one-day span "no section"
+# is accepted only on a page with no overall rule; (2) the live-pack draft check uses synthetic register copies (never vacuous) and tool.rankOf: a rule
+# with no text never ranks as live; (3) new e2e fortune-caution-gaps.e2e.mjs: calm tab fetches nothing; crisis words in every text field (name fields
+# included) on horoscope, bazi and astro; switch + Chinese / Western on, drafts off: no section, nothing fetched.
+# locked 2026-11-20T09:45:16Z (tools/eval-guard.mjs lock, 3 files)
+c80bafbc796a2fc787dd7ab006690d94f82b40464c61bf0e98b5850acfb9780d  relock9/fortune-caution-rules.test.js
+bd669581a848a435383bc2b924bda93e285aaa2eef0c48e77024bff18d693b92  relock9/fortune-caution-wording.test.js
+452920d46a7218335d90ed0f0791256877b4b4f9d4145fb504046f6b09035637  relock9/fortune-caution-gaps.e2e.mjs
+c80bafbc796a2fc787dd7ab006690d94f82b40464c61bf0e98b5850acfb9780d  tests/unit/fortune-caution-rules.test.js  # repo file (same commit as lock 2026-11-20T09:45:16Z; field: ~/LENSIQ-field/evals/fortune-caution/relock9/fortune-caution-rules.test.js)
+bd669581a848a435383bc2b924bda93e285aaa2eef0c48e77024bff18d693b92  tests/unit/fortune-caution-wording.test.js  # repo file (same commit as lock 2026-11-20T09:45:16Z; field: ~/LENSIQ-field/evals/fortune-caution/relock9/fortune-caution-wording.test.js)
+452920d46a7218335d90ed0f0791256877b4b4f9d4145fb504046f6b09035637  tests/e2e/fortune-caution-gaps.e2e.mjs  # repo file (same commit as lock 2026-11-20T09:45:16Z; field: ~/LENSIQ-field/evals/fortune-caution/relock9/fortune-caution-gaps.e2e.mjs)
+# RELOCK 10 2026-11-20: the approved-wording register fortune-caution-wording.js, the 11 fixes of the independent reviewer's REGISTER-REVIEW-1.md applied
+# verbatim (th.kalakini.mind zh, th.kalakini.do th, bz.luck.bijie.cheer, bz.luck.officer.care.cheer, bz.year.punish.mind, bz.year.punish.cheer,
+# cn.month.officer.cheer th+en, cn.pair.care.mind th, cn.pair.care.cheer, bz.luck.wealth.do, bz.year.trine.luck; 26 texts). Every entry stays "draft"
+# (owner 193 ก: none becomes "reviewed" until the owner approves it by number). The register's gates were run before this lock: filter in every place,
+# people / organ lists, "may" on luck lines. For the reviewer's line-by-line read.
+# locked 2026-11-20T09:47:01Z (tools/eval-guard.mjs lock, 1 file)
+f627ed7b2a957a4a83f853b189d35a132ce7965f45e2e4cc743162fcfd147890  relock10/fortune-caution-wording.js
+f627ed7b2a957a4a83f853b189d35a132ce7965f45e2e4cc743162fcfd147890  fortune-caution-wording.js  # repo file (same commit as lock 2026-11-20T09:47:01Z; field: ~/LENSIQ-field/evals/fortune-caution/relock10/fortune-caution-wording.js)
+# RELOCK 11 2026-11-21 (owner 189 ข), STRICTER: restores whole-page console errors. relock 3 / wave 1b counted only script exceptions and errors
+# naming a fortune-caution file (the page requested /api/fortune/status, 404 locally). api-status-guard (decision 190 / 192) is on main c346449f, so
+# the ownErrors filter is removed from fortune-caution.e2e.mjs, fortune-caution-horoscope.e2e.mjs and fortune-caution-bazi-astro.e2e.mjs: every
+# console error on the page fails. Nothing else changed. Field note: relock11/NOTE.txt.
+# locked 2026-11-20T18:06:34Z (tools/eval-guard.mjs lock, 3 files)
+d5b9b4bbf9f80a2532ec015bfdfd45878505763d34e59daf21b3031c8f7de748  relock11/fortune-caution.e2e.mjs
+b321e664913f4979ec72a35eb7c896e3857089a67ecbdcdd75b4969bbaeb1ad0  relock11/fortune-caution-horoscope.e2e.mjs
+3dc23aac68f232de94ddc474794d9c1c2ffcd928ae980ceb5ee2f2ef766a3971  relock11/fortune-caution-bazi-astro.e2e.mjs
+d5b9b4bbf9f80a2532ec015bfdfd45878505763d34e59daf21b3031c8f7de748  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:06:34Z; field: ~/LENSIQ-field/evals/fortune-caution/relock11/fortune-caution.e2e.mjs)
+b321e664913f4979ec72a35eb7c896e3857089a67ecbdcdd75b4969bbaeb1ad0  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:06:34Z; field: ~/LENSIQ-field/evals/fortune-caution/relock11/fortune-caution-horoscope.e2e.mjs)
+3dc23aac68f232de94ddc474794d9c1c2ffcd928ae980ceb5ee2f2ef766a3971  tests/e2e/fortune-caution-bazi-astro.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:06:34Z; field: ~/LENSIQ-field/evals/fortune-caution/relock11/fortune-caution-bazi-astro.e2e.mjs)

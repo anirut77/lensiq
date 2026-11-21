@@ -208,6 +208,53 @@ in parallel: consistency-pass, beauty-look, org-p1, stale-docs, pc-jk; a few KB 
 
 
 
+## Exam lab S2 (acceptance sheet, 2026-11-19, branch examlab-90)
+
+Harness `tools/exam-s2.mjs` (locked in `evals-locks/examlab-90.sha256` before measuring; profile above; 3 cold runs per
+page, median; a run with a 1-minute load average >= 20 does not count). Source: synthetic, emulated mid-range phone.
+Run at ccebfdb9 (lock e9bbac78), result `~/LENSIQ-field/evals/examlab-90/results/s2-2026-11-18T16-55-41-146Z.json`.
+
+| Page | FCP ms (target <= 3000) | First usable control ms (<= 8000) | Camera ready ms (<= 15000) | Counted runs | Result |
+|---|---|---|---|---|---|
+| exam | 2652–2688 | 5308–5420 | – | 0 of 3 (load 20.3–21.9) | not counted (busy machine) |
+| exam-lab | 4560 | 23435 | 140 (fake camera; on-device models not ready within 90 s) | 2 of 3 | FAIL |
+| exam-dashboard | 4544 | 11490 | – | 3 of 3 | FAIL |
+
+Causes seen in the page source (not yet measured one by one): exam-lab and the dashboard load `lensiq-demo.js`,
+`lensiq-demo-data.js` and `i18n/zh-demo.js` in `<head>` (pages with them have FCP about 4 s, pages without about 2 s in
+the table above); exam-lab loads TF.js (`vendor/tfjs/*`, about 1.5 MB) synchronously before `exam-lab.js`, so the
+consent button is wired only after TF.js arrives. Next step (needs its own measured round): load the demo data and its
+dictionary after `<main>`, and TF.js only after consent.
+
+## Exam lab S2 fix (2026-11-20, branch examlab-s2)
+
+Cause, from the page source and the measured times: the CSP `<meta>` turns off Chrome's preload scanner, so each page script
+was fetched only when the parser reached it, one 562 ms round trip after another (exam-lab had 22 scripts, the dashboard 15;
+the same cause attendance.html fixed on 2026-11-18), and exam-lab also fetched TF.js (1.25 MB uncompressed, used only after
+the camera starts) before `exam-lab.js` could wire the consent button.
+
+Fix (pure performance, same visible output): `<link rel="preload" as="script">` for every page script and the two files
+nav.js adds, in `<head>`, same URLs as the script tags; exam-lab.html no longer has TF.js script tags: `exam-lab.js`
+(`loadTf()`, `?v=11`) loads `vendor/tfjs/tf.es2017.min.js` then `tf-backend-wasm.es2017.min.js` when the camera starts.
+Guards locked before the change: `tests/unit/exam-s2-load.test.js`, `tests/unit/exam-face.test.js`
+(`evals-locks/examlab-s2.sha256`, `examlab-s2__relock1.sha256`).
+
+Harness `tools/exam-s2.mjs` unchanged (lock `evals-locks/examlab-90.sha256`), 3 cold runs per page, median, all runs
+counted. Source: **synthetic**, emulated mid-range phone (headless Chrome, CPU 4x, Fast 3G, 390 x 844), never a real phone.
+
+| Page | Before FCP / control ms (main 299370b8) | After FCP / control ms (examlab-s2) | Target | Result |
+|---|---|---|---|---|
+| exam | 2652 / 5292 | 2592 / 5239 | 3000 / 8000 | pass (unchanged page) |
+| exam-lab | 4624 / 23555, camera 165 | 2396 / 5820, camera 141 | 3000 / 8000, camera 15000 | FAIL -> pass |
+| exam-dashboard | 4648 / 11507 | 2376 / 4745 | 3000 / 8000 | FAIL -> pass |
+
+Results: before `~/LENSIQ-field/evals/examlab-90/results/s2-2026-11-20T15-46-56-893Z.json` (1-minute load 6.4 to 12.2,
+another job started; under the 20 cut), after `s2-2026-11-20T15-37-10-095Z.json` (load 2.0 to 5.6). Camera ready is
+measured with the fake camera; "checks ready" (models loaded) stays null within 90 s on this profile before and after
+(headless Chrome has no WebGL, so the face engine reports itself off on both). Unthrottled check: TF.js is not
+requested before the form is sent; after it, TF.js, its wasm backend and COCO-SSD load and the backend is wasm, the same
+end state as main. A2 harness re-run on the branch (TF.js now loaded through `loadTf`): identical result, 24 / 81.
+
 ### Comment moved out of lensiq-luckycolor.js (2026-11-18, branch fortune-pet, page weight)
 
 luckycolor.html measured 551 KB against its 550 KB budget in CI run 44245545701 (the fortune-pet menu entry, the line-wrap fix and
@@ -249,3 +296,11 @@ lensiq-luckycolor.js moved here word for word (3,273 B -> one pointer line). No 
  *     1 = supports another area today (bhumi named) · 0 = a good neutral base, add an accent (no negative wording)
  */
 ```
+
+### Comments moved out of lensiq-config.js (2026-11-19, branch help-budget, page weight)
+
+help.html measured 400 KB (409,768 B) against its 400 KB budget on main 3781bb58, so any growth in a shared file failed
+the speed budget (planner-defects ac25bfe4 and pet-zodiac-cards 101acb60: 401 KB; seller-settings 5173311b: admin.html
+707 KB > 700 KB). The budgets were not raised: the long comments of lensiq-config.js (26,457 B -> 12,410 B) moved word
+for word to docs/CONFIG-NOTES.md, one summary line kept per setting. No code changed (identical JavaScript tokens,
+checked with acorn). lensiq-config.js?v=24 on every page. Source: synthetic, headless Chrome, local, no throttling.

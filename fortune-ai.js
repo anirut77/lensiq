@@ -50,7 +50,7 @@
 (function (root) {
   "use strict";
 
-  const apiBase = () => String(root.LENSIQ_API_BASE || "").replace(/\/+$/, "");
+  const apiBase = () => String(root.LENSIQ_API_BASE || "").trim().replace(/\/+$/, "");
   const SECTION_TITLES = {
     overview: "ภาพรวม", personality: "บุคลิกและตัวตน", work: "การงานและการเรียน",
     money: "การเงินและโชคลาภ", love: "ความรักและความสัมพันธ์", social: "มิตรภาพและผู้คนรอบตัว",
@@ -4119,9 +4119,9 @@
     const base = apiBase();
     if (!statusP || statusBase !== base) {
       statusBase = base;
-      // โฮสต์แบบเว็บนิ่ง (GitHub Pages) ไม่มี backend — ไม่ต้องถาม เว้นแต่ตั้ง LENSIQ_API_BASE ไว้
-      const staticHost = !base && typeof location !== "undefined" && /\.github\.io$/i.test(location.hostname);
-      statusP = (typeof fetch !== "function" || staticHost) ? Promise.resolve({ enabled: false })
+      // decision 190 (2026-11-20): ask the backend ONLY when LENSIQ_API_BASE is set; never guess from the host name
+      // (localhost test servers and the future own domain have no same-origin backend). No base = AI writer off, no request.
+      statusP = (typeof fetch !== "function" || !base) ? Promise.resolve({ enabled: false })
         : fetch(base + "/api/fortune/status").then(r => (r.ok ? r.json() : { enabled: false })).then(j => Object.assign({ enabled: false }, j)).catch(() => ({ enabled: false }));
     }
     return statusP;

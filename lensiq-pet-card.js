@@ -11,6 +11,9 @@
  *     overlaps the pet box (a face inside or next to the pet cannot be told apart from the pet); every other person box is
  *     pixelated in WHOLE (coarse mosaic, no hole). info = {photo, blur, refused: "" | "nodet" | "person", theme, size, qr,
  *     frame: [x, y, w, h] of the picture area in canvas pixels}
+ *   opts.skin: a zodiac template from lensiq-pet-zodiac-art.js (LQPetZodiacArt.skin(id, label)): its colours, background, border,
+ *     art over the picture frame; info.template = its id. Without it: the 4 themes. Footer of every card: model.from ("จาก <brand>",
+ *     plus " · <address>" only with LENSIQ_CARD_SHOW_ADDRESS); the QR (it encodes the address) is drawn only with that switch on.
  *   wrap(ctx, text, maxWidth, lang) -> lines (Thai / Chinese without spaces: by word segments when the browser has them)
  * Browser: window.LQPetCard · Node: module.exports (no canvas work at load). */
 (function (root) {
@@ -151,30 +154,50 @@
   }
 
   function draw(canvas, model, opts) {
-    const o = opts || {}, th = THEMES[o.theme || model.theme] || THEMES.sunny, lang = model.lang || "th";
+    // o.skin (zodiac card mode, lensiq-pet-zodiac-art.js): {id, theme, base(c, W, H), decor(c, W, H), overFrame(c, fx, fy, fw, fh,
+    // env) -> {ribbon, medallion}, after(c, W, H, env)} replaces the colour theme and adds the template art. Review round 1: the
+    // decoration (stickers, sprinkles, border, corner art) is drawn on its own layers AFTER the text is laid out, with every text
+    // box (info.textBoxes, padded) erased from those layers, so no art ever sits under text; o.decor === false leaves it out
+    // (the exclusion-zone test compares the two).
+    const o = opts || {}, sk = o.skin || null, th = sk ? sk.theme : (THEMES[o.theme || model.theme] || THEMES.sunny), lang = model.lang || "th";
     const sizeKey = SIZES[o.size || model.size] ? (o.size || model.size) : "post", S = SIZES[sizeKey], W = S.w, H = S.h, story = sizeKey === "story";
     canvas.width = W; canvas.height = H;
     const c = canvas.getContext("2d"), font = FONT();
-    const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, th.bg[0]); g.addColorStop(1, th.bg[1]);
-    c.fillStyle = g; c.fillRect(0, 0, W, H);
-    c.globalAlpha = 0.09;
-    for (const [x, y, s] of [[110, 120, 60], [960, 230, 46], [80, H - 340, 52], [990, H - 370, 64], [540, H - 60, 40]]) paw(c, x, y, s, th.ink);
-    c.globalAlpha = 1;
-    c.strokeStyle = th.accent; c.lineWidth = 6; roundRect(c, 24, 24, W - 48, H - 48, 48); c.stroke();
+    const qr = o.qr && o.qr.n && root.LENSIQ_CARD_SHOW_ADDRESS === true ? o.qr : null; // owner change 2026-11-20
+    /** text boxes: kind "header" | "body" | "footer", in canvas pixels, around the drawn text */
+    const info0 = { headline: "" }; // the headline as drawn (reported as info.headline)
+    const boxes = [], tb = (kind, x, y, w, fsz) => boxes.push({ kind, x: x - 6, y: y - fsz * 0.3, w: w + 12, h: fsz * 1.6 });
+    if (!sk) {
+      const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, th.bg[0]); g.addColorStop(1, th.bg[1]);
+      c.fillStyle = g; c.fillRect(0, 0, W, H);
+      c.globalAlpha = 0.09;
+      for (const [x, y, s] of [[110, 120, 60], [960, 230, 46], [80, H - 340, 52], [990, H - 370, 64], [540, H - 60, 40]]) paw(c, x, y, s, th.ink);
+      c.globalAlpha = 1;
+      c.strokeStyle = th.accent; c.lineWidth = 6; roundRect(c, 24, 24, W - 48, H - 48, 48); c.stroke();
+    }
     const PAD = 76, TW = W - PAD * 2;
     c.textBaseline = "top"; c.textAlign = "left";
     // header: brand line, the typed pet name (big), the headline type
-    c.fillStyle = th.accent; c.font = `700 30px ${font}`; paw(c, PAD + 18, 86, 26, th.accent); c.fillText(model.title || "LENSIQ", PAD + 56, 70);
+    const HW = sk ? TW - 140 : TW; // zodiac mode: the header text stays clear of the corner sticker
+    c.fillStyle = th.accent; c.font = `700 30px ${font}`; paw(c, PAD + 18, 86, 26, th.accent); c.fillText(model.title || "", PAD + 56, 70);
+    boxes.push({ kind: "header", x: PAD - 14, y: 52, w: 56 + c.measureText(model.title || "").width + 26, h: 64 });
     let y = story ? 150 : 128;
-    c.fillStyle = th.ink; c.font = `800 ${story ? 96 : 80}px ${font}`;
-    for (const l of wrap(c, model.petName || "", TW, lang).slice(0, 1)) { c.fillText(l, PAD, y); y += story ? 112 : 92; }
+    const nfs = story ? 96 : 80; c.fillStyle = th.ink; c.font = `800 ${nfs}px ${font}`;
+    for (const l of wrap(c, model.petName || "", HW, lang).slice(0, 1)) { c.fillText(l, PAD, y); tb("header", PAD, y, c.measureText(l).width, nfs); y += story ? 112 : 92; }
     if (model.headline) {
-      c.fillStyle = th.accent; c.font = `700 ${story ? 52 : 44}px ${font}`;
-      c.fillText(wrap(c, model.headline, TW, lang)[0] || "", PAD, y); y += story ? 74 : 62;
+      // review round 2: measure with the HEADLINE font (it was wrapped with the pet-name font and cut early); one line, and an
+      // ellipsis when it really overflows, as the reading lines do
+      const hfs = story ? 52 : 44;
+      c.fillStyle = th.accent; c.font = `700 ${hfs}px ${font}`;
+      const hls = wrap(c, model.headline, HW, lang);
+      let hl = hls[0] || "";
+      if (hls.length > 1) { hl = hl.trimEnd(); while (hl.length > 1 && c.measureText(hl + "…").width > HW) hl = hl.slice(0, -1).trimEnd(); hl += "…"; }
+      c.fillText(hl, PAD, y); tb("header", PAD, y, c.measureText(hl).width, hfs); info0.headline = hl; y += story ? 74 : 62;
     }
     // picture frame
     const fy = y + 10, fh = story ? 760 : 430, fx = PAD, fw = TW;
-    const info = { photo: false, blur: 0, refused: "", theme: o.theme || model.theme || "sunny", size: sizeKey, qr: false, frame: [fx, fy, fw, fh] };
+    const info = { photo: false, blur: 0, refused: "", theme: sk ? "" : (o.theme || model.theme || "sunny"), template: sk ? sk.id : "", size: sizeKey, qr: false,
+      frame: [fx, fy, fw, fh], headline: info0.headline };
     if (model.photo && o.photo) {
       if (o.detOk === false) info.refused = "nodet";
       else { const r = drawPhoto(c, o.photo, o.pet, o.persons, fx, fy, fw, fh); info.blur = r.blur; info.refused = r.refused; info.photo = !r.refused; }
@@ -185,6 +208,8 @@
       c.fillStyle = model.hex || th.accent; c.globalAlpha = 0.3; c.beginPath(); c.arc(W / 2, fy + fh / 2, fh * 0.36, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
       drawPet(c, W / 2, fy + fh / 2 + fh * 0.07, fh * 0.29, model);
     }
+    const env = { story, font, lang, roundRect };
+    if (sk && sk.overFrame) { const r = sk.overFrame(c, fx, fy, fw, fh, env) || {}; info.ribbon = r.ribbon || null; info.medallion = r.medallion || null; }
     y = fy + fh + 30;
     // lucky chip
     if (model.lucky) {
@@ -192,28 +217,54 @@
       c.fillStyle = th.chip; roundRect(c, PAD, y, lw, 68, 34); c.fill();
       c.fillStyle = model.hex || th.accent; c.beginPath(); c.arc(PAD + 38, y + 34, 20, 0, Math.PI * 2); c.fill();
       c.fillStyle = th.ink; c.fillText(wrap(c, model.lucky, lw - 84, lang)[0] || "", PAD + 72, y + 15);
+      boxes.push({ kind: "body", x: PAD - 6, y: y - 6, w: lw + 12, h: 80 });
       y += 96;
     }
     // reading lines: the space down to the footer is shared out
-    const footTop = H - (o.qr ? 250 : 230), fs = story ? 40 : 35, LH = Math.round(fs * 1.38);
+    const footTop = H - (qr ? 250 : 230), fs = story ? 40 : 35, LH = Math.round(fs * 1.38);
     c.font = `500 ${fs}px ${font}`; c.fillStyle = th.ink;
     const paras = (model.lines || []).map(p => wrap(c, p, TW, lang));
     let budget = Math.floor((footTop - 20 - y) / LH) - (paras.length - 1) * 0.4;
     for (const ls of paras) {
       if (budget < 1) break;
       const take = Math.min(ls.length, Math.floor(budget));
-      for (let i = 0; i < take; i++) { const cut = i === take - 1 && take < ls.length; c.fillText(cut ? ls[i].replace(/.$/u, "…") : ls[i], PAD, y); y += LH; }
+      for (let i = 0; i < take; i++) { const cut = i === take - 1 && take < ls.length, t = cut ? ls[i].replace(/.$/u, "…") : ls[i];
+        c.fillText(t, PAD, y); tb("body", PAD, y, c.measureText(t).width, fs); y += LH; }
       budget -= take + 0.4; y += Math.round(LH * 0.4);
     }
-    // footer: honest line, disclaimer, link back (and the optional QR code to the same link)
-    const qs = 170, tw2 = o.qr ? TW - qs - 24 : TW;
+    // footer: honest line, disclaimer, "จาก <brand>" (+ the address and the optional QR code only with the address switch on)
+    const qs = 170, tw2 = qr ? TW - qs - 24 : TW;
     let fy2 = footTop; c.fillStyle = th.soft; c.font = `500 25px ${font}`;
-    for (const t of [model.honest, model.disclaimer]) for (const l of wrap(c, t, tw2, lang).slice(0, 2)) { c.fillText(l, PAD, fy2); fy2 += 34; }
-    c.fillStyle = th.accent; c.font = `700 28px ${font}`; c.fillText(String(model.link || "").replace(/^https:\/\//, ""), PAD, Math.max(fy2 + 8, H - 92));
-    if (o.qr && o.qr.n) { drawQR(c, o.qr, W - PAD - qs, H - 64 - qs, qs); info.qr = true; }
+    for (const t of [model.honest, model.disclaimer]) for (const l of wrap(c, t, tw2, lang).slice(0, 2)) { c.fillText(l, PAD, fy2); tb("footer", PAD, fy2, c.measureText(l).width, 25); fy2 += 34; }
+    // the brand-only footer (no address) is drawn larger (40 px) so it reads as the card's signature; with the address 28 px
+    const foot = String(model.from || ""), f0 = model.link ? 28 : 40;
+    c.fillStyle = th.accent; c.font = `700 ${f0}px ${font}`;
+    for (let f = f0; f > 18 && c.measureText(foot).width > tw2; f--) c.font = `700 ${f - 1}px ${font}`; // one line, never cut
+    const ly = Math.max(fy2 + 8, H - 92), lfs = parseInt(/(\d+)px/.exec(c.font)[1], 10);
+    c.fillText(foot, PAD, ly); tb("footer", PAD, ly, c.measureText(foot).width, lfs);
+    if (qr) { drawQR(c, qr, W - PAD - qs, H - 64 - qs, qs); info.qr = true; boxes.push({ kind: "footer", x: W - PAD - qs - 6, y: H - 64 - qs - 6, w: qs + 12, h: qs + 12 }); }
+    info.textBoxes = boxes;
+    if (sk) skinLayers(c, sk, W, H, env, boxes, o.decor !== false);
     return info;
   }
 
-  const api = { THEMES, SIZES, draw, wrap, W: SIZES.post.w, H: SIZES.post.h };
+  /** zodiac layers around the finished foreground: corner art on top, then decoration and the base BEHIND it
+   *  (destination-over); every text box (padded 6 px) is erased from the art layers first */
+  function skinLayers(c, sk, W, H, env, boxes, decor) {
+    const layer = draw => { const t = root.document.createElement("canvas"); t.width = W; t.height = H; const x = t.getContext("2d"); draw(x); return t; };
+    const erase = t => { const x = t.getContext("2d"); x.save(); x.globalCompositeOperation = "destination-out"; x.fillStyle = "#000";
+      for (const b of boxes) x.fillRect(b.x - 6, b.y - 6, b.w + 12, b.h + 12); x.restore(); return t; };
+    c.save();
+    if (decor) {
+      if (sk.after) c.drawImage(erase(layer(x => sk.after(x, W, H, env))), 0, 0);
+      c.globalCompositeOperation = "destination-over";
+      c.drawImage(erase(layer(x => sk.decor(x, W, H))), 0, 0);
+    }
+    c.globalCompositeOperation = "destination-over";
+    c.drawImage(layer(x => sk.base(x, W, H)), 0, 0);
+    c.restore();
+  }
+
+  const api = { THEMES, SIZES, draw, wrap, paw, roundRect, W: SIZES.post.w, H: SIZES.post.h };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQPetCard = api;
 })(typeof window !== "undefined" ? window : globalThis);

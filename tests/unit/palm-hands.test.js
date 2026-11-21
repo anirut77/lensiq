@@ -240,7 +240,7 @@ test("buildFacts: new items wired into the facts contract; composer uses them; c
     assert.ok(!/[()]/.test(it.label) && !/[{}()]/.test(it.evidence), it.id);
     assert.ok(it.strength >= 0 && it.strength <= 1);
   }
-  const jm = f.items.find(i => i.id === "mount.jupiter"); assert.match(jm.evidence, /ประเมินจากภาพ/);
+  const jm = f.items.find(i => i.id === "mount.jupiter"); assert.match(jm.evidence, /ประเมินจากสัดส่วนนิ้วและฝ่ามือ มุมนิ้วโป้ง รูปเส้นหลักที่ใช้อ่าน และความเรียบของผิวในภาพ/); // re-lock (palm-honesty relock2): owner decision 167 wording
   const vm = f.items.find(i => i.id === "mount.venus"); assert.match(vm.label, /อิ่มเด่น/);
   const fa = PC.buildFacts(A, { side: "left", isDominant: false });
   assert.ok(fa.items.some(i => i.id === "thumbangle.wide"));

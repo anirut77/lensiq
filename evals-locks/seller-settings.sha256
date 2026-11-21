@@ -1,0 +1,81 @@
+# locked 2026-11-18T03:20:06Z (tools/eval-guard.mjs lock, 3 files)
+eb8c35e33dfc5ef7b3435d4c23d103d6145e5a781053ebf302db7838a7eb8947  backend-seller.test.js
+56641e63248214c9e9da98127e56f30d9f59d1e92200f27d19eb08e3905ed859  admin-seller.e2e.mjs
+19ba8bf4082ccdb088123a85c29bc6a4dae38aa8c447c942a79e25765b5d2775  backend-seller-workerd.test.mjs
+# Owner order 2026-11-18 "needed for selling": the "ข้อมูลกิจการ" (seller details) admin page, owner only, step-up to change,
+# and quotation / invoice / receipt documents generated from it. Coordinator 2026-11-18: READ is owner-only too (anonymous,
+# admin and staff get 403 on read), and the three documents are complete in TH / EN / ZH. Locked BEFORE any product code
+# (base b2a6e76). The three files are byte-identical copies of the repo files below. Before the build: unit 0 pass / 11 fail,
+# workerd integration 0 pass / 1 fail (no seller routes); e2e not run before the build (no tab exists).
+# Logs: ~/LENSIQ-field/evals/seller-settings/{unit,integration}-before-build.log
+eb8c35e33dfc5ef7b3435d4c23d103d6145e5a781053ebf302db7838a7eb8947  tests/unit/backend-seller.test.js  # repo file
+56641e63248214c9e9da98127e56f30d9f59d1e92200f27d19eb08e3905ed859  tests/e2e/admin-seller.e2e.mjs  # repo file
+19ba8bf4082ccdb088123a85c29bc6a4dae38aa8c447c942a79e25765b5d2775  tests/integration/backend-seller-workerd.test.mjs  # repo file
+# locked 2026-11-18T03:27:59Z (tools/eval-guard.mjs lock, 1 file)
+2e462d60ee01710e3268d3e2a9df600922ada6ffb99913cec1c00f2c17f4e1a7  backend-seller-workerd.test.mjs
+# re-lock A1 2026-11-18 (test setup only, no assertion changed): the installed Miniflare 5.x refuses the handleRuntimeStdio
+# option (constructor validation error, the test never reached the Worker). workerd's console output is captured with
+# handleStructuredLogs instead (checked separately: a worker console.log of a canary is captured). Unit and e2e files unchanged.
+2e462d60ee01710e3268d3e2a9df600922ada6ffb99913cec1c00f2c17f4e1a7  tests/integration/backend-seller-workerd.test.mjs (after amendment A1)  # repo file
+# locked 2026-11-18T03:30:23Z (tools/eval-guard.mjs lock, 1 file)
+d925c82e3d65c07096d572dc768df6e7f9cf1591588b12ed72488ae18aa64182  admin-seller.e2e.mjs
+# re-lock A2 2026-11-18 (test setup only): pdf.js reads Chrome's print-to-PDF without the Thai above / below marks (they come
+# back as U+0000), so the TH missing-data phrase never matched although it is printed. The comparison now drops those marks,
+# U+0000 and spaces on BOTH sides (EN / ZH phrases and the Latin seller values are compared exactly as before). First e2e run
+# on the product: 4 pass / 2 fail (this one + a real 320 px overflow in the tab, fixed in the product CSS, not in the test).
+d925c82e3d65c07096d572dc768df6e7f9cf1591588b12ed72488ae18aa64182  tests/e2e/admin-seller.e2e.mjs (after amendment A2)  # repo file
+# locked 2026-11-18T04:00:42Z (tools/eval-guard.mjs lock, 2 files)
+f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7  backend-seller-r1.test.js
+4e08cee273cc05309b15b6b66424aa5712483aafeabe77b46823610f9ae7e9ae  backend-seller-workerd-r1.test.mjs
+# Review round 1 (independent reviewer NOT OK on 13cf281, 2026-11-18): new files locked BEFORE the fixes; earlier files unchanged.
+#  R1 issued documents fully frozen (price change / removed line); R2 list = fixed statement count (Workers Free 50 queries);
+#  R3 one stored copy per logo; R4 missing profile row recreated; R5 VAT 7 % only; R6 branch + regular price TH/EN/ZH;
+#  R7 clear control for masked fields; R8 real calendar date; workerd-r1 = log-sink canary (finding 9).
+# On 13cf281: unit 0 pass / 8 fail; workerd-r1 1 pass / 0 fail (the sink works; this test makes that proven from now on).
+# Logs: r1-unit-before-fix.log, r1-integration-before-fix.log
+f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7  tests/unit/backend-seller-r1.test.js  # repo file
+4e08cee273cc05309b15b6b66424aa5712483aafeabe77b46823610f9ae7e9ae  tests/integration/backend-seller-workerd-r1.test.mjs  # repo file
+# locked 2026-11-18T04:07:37Z (tools/eval-guard.mjs lock, 1 file)
+5f43b817bc286ff09160c8086155ff918419b4655873ff8df0597cd41b320dff  backend-seller-r2.test.js
+# Review round 2 (independent reviewer OK on 69d36fe with 4 low items; coordinator 2026-11-18 ordered items 1-3 fixed): new file
+# locked BEFORE the fixes; every earlier file unchanged. H1 health probe for the round-1 columns; U2 TH/EN/ZH note on a draft
+# line that left the price list + unavailable_lines in the list; V3 VAT rate fixed at 7 % on the admin page.
+# On 69d36fe: see r2-unit-before-fix.log
+5f43b817bc286ff09160c8086155ff918419b4655873ff8df0597cd41b320dff  tests/unit/backend-seller-r2.test.js  # repo file
+# locked 2026-11-19T03:12:20Z (tools/eval-guard.mjs lock, 2 files)
+f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7  backend-seller-r1.test.js
+5f43b817bc286ff09160c8086155ff918419b4655873ff8df0597cd41b320dff  backend-seller-r2.test.js
+f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7  tests/unit/backend-seller-frozen-docs.test.js  # repo file (same commit as lock 2026-11-19T03:12:20Z; field: ~/LENSIQ-field/evals/seller-settings/backend-seller-r1.test.js)
+5f43b817bc286ff09160c8086155ff918419b4655873ff8df0597cd41b320dff  tests/unit/backend-seller-health.test.js  # repo file (same commit as lock 2026-11-19T03:12:20Z; field: ~/LENSIQ-field/evals/seller-settings/backend-seller-r2.test.js)
+# RENAME 2026-11-18 (coordinator order, owner runs the lines): tests/unit/unit-index.test.js allows no round-named unit files, so commit 35975659 renamed the two files with git mv, bytes identical; the lock block above records the new paths, the two lines below retire the old ones.
+# retired tests/unit/backend-seller-r1.test.js reason: renamed, bytes identical (now tests/unit/backend-seller-frozen-docs.test.js, sha256 f6771a9f3fbd58846ef131eeee58d90fcfdb7f4d657858b640badf6574ddddf7, commit 35975659)
+# retired tests/unit/backend-seller-r2.test.js reason: renamed, bytes identical (now tests/unit/backend-seller-health.test.js, sha256 5f43b817bc286ff09160c8086155ff918419b4655873ff8df0597cd41b320dff, commit 35975659)
+# locked 2026-11-20T01:02:04Z (tools/eval-guard.mjs lock, 1 file)
+87b444f47bd8c656a782d5c241aeec0f163e4b7628055ee1e0ec7228420639c1  relock1/backend-seller.test.js
+87b444f47bd8c656a782d5c241aeec0f163e4b7628055ee1e0ec7228420639c1  tests/unit/backend-seller.test.js  # repo file (same commit as lock 2026-11-20T01:02:04Z; field: ~/LENSIQ-field/evals/seller-settings/relock1/backend-seller.test.js)
+# locked 2026-11-20T01:14:21Z (tools/eval-guard.mjs lock, 1 file)
+c3830fe3ace7c979d41fbc5f985d6aa802854db24b3024879bec61cd8400017e  seller-doc-layout.e2e.mjs
+c3830fe3ace7c979d41fbc5f985d6aa802854db24b3024879bec61cd8400017e  tests/e2e/seller-doc-layout.e2e.mjs  # repo file (same commit as lock 2026-11-20T01:14:21Z; field: ~/LENSIQ-field/evals/seller-settings/seller-doc-layout.e2e.mjs)
+# Layout (independent review at f06271c6, 2026-11-20): NEW file locked BEFORE the fix; earlier files unchanged. The printed
+# quotation / invoice / receipt (real renderDoc, synthetic data, long TH/EN/ZH description) carry every quantity, unit
+# price, amount, subtotal, VAT and total in the A4 PDF text, and no th / td ends past the A4 printable width.
+# Log before the fix: ~/LENSIQ-field/evals/seller-settings/layout-before-fix.log
+# locked 2026-11-20T02:09:07Z (tools/eval-guard.mjs lock, 3 files)
+a2726b8b9e01bb7b772217f75e3a5251fee57fefe2fd56e5c85774092fe02c7e  relock2/backend-seller.test.js
+4e0312e3503ec52b7b940b49f1ae5992a02249ed4f30c98489edba570100fb58  relock2/backend-seller-workerd.test.mjs
+1a56a739a743b0fac360a2d96362e39304950c3f7ef6d03427371f7a56df786d  relock2/backend-seller-workerd-r1.test.mjs
+a2726b8b9e01bb7b772217f75e3a5251fee57fefe2fd56e5c85774092fe02c7e  tests/unit/backend-seller.test.js  # repo file (same commit as lock 2026-11-20T02:09:07Z; field: ~/LENSIQ-field/evals/seller-settings/relock2/backend-seller.test.js)
+4e0312e3503ec52b7b940b49f1ae5992a02249ed4f30c98489edba570100fb58  tests/integration/backend-seller-workerd.test.mjs  # repo file (same commit as lock 2026-11-20T02:09:07Z; field: ~/LENSIQ-field/evals/seller-settings/relock2/backend-seller-workerd.test.mjs)
+1a56a739a743b0fac360a2d96362e39304950c3f7ef6d03427371f7a56df786d  tests/integration/backend-seller-workerd-r1.test.mjs  # repo file (same commit as lock 2026-11-20T02:09:07Z; field: ~/LENSIQ-field/evals/seller-settings/relock2/backend-seller-workerd-r1.test.mjs)
+# re-lock relock2 2026-11-20 (fixture values only, no assertion changed): main's PII scanner (tools/pii-scan.mjs, decision 111)
+# flagged the invented marker phone numbers (Thai mobile shape 08#########). The leading 08 / 089 became 00 / 000 in the
+# unit file (2 values) and both workerd files (1 value): still 10 digits (product rule ^\+?\d{9,15}$), same last 4 digits for
+# the masking checks, still unique canaries, no longer a dialable Thai number. Synthetic addresses stay and are allow-listed.
+# locked 2026-11-20T09:26:25Z (tools/eval-guard.mjs lock, 1 file)
+cb989c28ddc62947945055576a85cfe85f08d512cdb129fc475715280fd622c4  relock3/seller-doc-onepage.e2e.mjs
+cb989c28ddc62947945055576a85cfe85f08d512cdb129fc475715280fd622c4  tests/e2e/seller-doc-onepage.e2e.mjs  # repo file (same commit as lock 2026-11-20T09:26:25Z; field: ~/LENSIQ-field/evals/seller-settings/relock3/seller-doc-onepage.e2e.mjs)
+# One page (owner decision 192 ก, 2026-11-20): NEW file locked BEFORE the fix (base 299370b8); earlier files unchanged. A
+# quotation / invoice / receipt with 1 to 5 lines (real renderDoc, synthetic data, seller and buyer names / addresses at the
+# 160 / 300-character limits in TH and ZH, logo, 300-character note) prints on exactly 1 A4 page; every quantity, unit
+# price, amount, subtotal, VAT, total (and regular price on the quotation) is in the PDF; no cell past the printable width;
+# 20 lines still paginate. Log before the fix: ~/LENSIQ-field/evals/seller-settings/relock3/onepage-before-fix.log
