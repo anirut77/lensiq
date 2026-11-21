@@ -162,13 +162,18 @@
   function drawGuide(ok) {
     var r = ov.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
     ov.width = Math.max(1, Math.round(r.width * dpr)); ov.height = Math.max(1, Math.round(r.height * dpr));
-    var w = ov.width, h = ov.height, pose = guidePose(), P = guideContour(w, h, pose);
-    S.guide = { angle: Math.round(pose.angle * 10) / 10, side: pose.side, by: pose.by, flip: S.flip };
+    // the hand-shaped outline only while it follows a detected hand; otherwise the simple palm frame with a finger-direction mark
+    // (owner review 2026-11-21: a finger-accurate outline that does not match the hand looks broken)
+    var w = ov.width, h = ov.height, pose = guidePose(), hand = pose.by === "landmarks";
+    var paths = hand ? [guideContour(w, h, pose)] : PV.guideFrame(w, h, pose).paths;
+    S.guide = { angle: Math.round(pose.angle * 10) / 10, side: pose.side, by: pose.by, flip: S.flip, shape: hand ? "hand" : "frame" };
     var rb = $("#pv2Rotate"); if (rb) rb.hidden = pose.by === "landmarks";
     octx.clearRect(0, 0, w, h);
     octx.lineWidth = Math.max(3, w / 160); octx.setLineDash(ok ? [] : [w / 50, w / 80]);
     octx.strokeStyle = ok ? "#22c55e" : "rgba(255,255,255,0.9)";
-    octx.beginPath(); P.forEach(function (q, i) { if (i) octx.lineTo(q[0], q[1]); else octx.moveTo(q[0], q[1]); }); octx.closePath(); octx.stroke();
+    octx.lineJoin = "round"; octx.lineCap = "round";
+    paths.forEach(function (P, k) { octx.beginPath(); P.forEach(function (q, i) { if (i) octx.lineTo(q[0], q[1]); else octx.moveTo(q[0], q[1]); });
+      if (hand || k === 0) octx.closePath(); octx.stroke(); });
     octx.setLineDash([]);
   }
   $("#pv2Rotate").addEventListener("click", function () { S.flip = !S.flip; drawGuide(lastHint === "ok" && !!loop); });
@@ -279,7 +284,7 @@
     markOutside();
     var toPx = screenToPx();
     S.layouts.screen = { toPx: toPx, pw: S.F.pw * VIEW.k };
-    PV.drawLineLayer(cx, S.st, "screen", { toPx: toPx, lang: lang(), scale: VIEW.dpr, focus: S.adjusting });
+    S.layouts.screen.labels = PV.drawLineLayer(cx, S.st, "screen", { toPx: toPx, lang: lang(), scale: VIEW.dpr, focus: S.adjusting }).labels;
     if (S.trace && S.trace.length > 1) {
       cx.save(); cx.setLineDash([]); cx.lineWidth = 3 * VIEW.dpr; cx.strokeStyle = PV.COLORS[S.tracing] || "#fff"; cx.globalAlpha = 1;
       cx.beginPath(); S.trace.forEach(function (p, i) { var c = imgToCanvas(p); if (i) cx.lineTo(c[0], c[1]); else cx.moveTo(c[0], c[1]); }); cx.stroke(); cx.restore();
@@ -577,16 +582,19 @@
   /* ---------- print and share card: the same layer function ---------- */
   $("#pv2Print").addEventListener("click", function () {
     if (!S.F || crisisNow()) return;
-    var pc = $("#pv2PrintCanvas"), Wp = Math.min(1400, S.W), p = Wp / S.W, Hp = Math.round(S.H * p), extra = 70;
-    pc.width = Wp; pc.height = Hp + extra;
+    var pc = $("#pv2PrintCanvas"), Wp = Math.min(1400, S.W), p = Wp / S.W, Hp = Math.round(S.H * p), sc0 = Math.max(1, Wp / 600);
+    // the legend under the printed image: wrapped into lines that fit the image width (owner review 2026-11-21)
     var g = pc.getContext("2d");
+    g.font = Math.round(14 * sc0) + "px system-ui, sans-serif";
+    var legend = PV.wrapText(g, T("legend"), Wp - 24 * sc0), lh = Math.round(20 * sc0), extra = Math.max(70, legend.length * lh + 30 * sc0);
+    pc.width = Wp; pc.height = Hp + extra;
     g.fillStyle = "#ffffff"; g.fillRect(0, 0, pc.width, pc.height);
     g.drawImage(S.photo, 0, 0, Wp, Hp);
     var F = S.F, toPx = function (q) { var a = F.toImg(q); return [a[0] * p, a[1] * p]; }, sc = Math.max(1, Wp / 600);
     S.layouts.print = { toPx: toPx, pw: F.pw * p };
     PV.drawLineLayer(g, S.st, "print", { toPx: toPx, lang: lang(), scale: sc });
     g.setLineDash([]); g.globalAlpha = 1; g.fillStyle = "#111111"; g.font = Math.round(14 * sc) + "px system-ui, sans-serif"; g.textBaseline = "middle";
-    g.fillText(T("legend"), 12 * sc, Hp + extra / 2);
+    legend.forEach(function (ln, i) { g.fillText(ln, 12 * sc, Hp + extra / 2 + (i - (legend.length - 1) / 2) * lh); });
     var img = $("#pv2PrintImg"); img.src = pc.toDataURL("image/png"); img.hidden = false;
     setTimeout(function () { window.print(); }, 60);
   });
@@ -628,7 +636,7 @@
   function layout(target) {
     var Lo = S.layouts[target]; if (!Lo || !S.F) return null;
     var G = PV.guides(S.school), simian = ["found", "added"].indexOf(S.st.lines.simian.status) >= 0;
-    return { pw: Lo.pw, lines: PV.LINES.map(function (id) {
+    return { pw: Lo.pw, labels: Lo.labels || null, lines: PV.LINES.map(function (id) {
       var Ln = S.st.lines[id], cp = Ln.status === "notFound" ? G[id].cp : Ln.cp;
       return { id: id, status: Ln.status, hidden: !!Ln.outside || (simian && (id === "heart" || id === "head")), px: cp ? PV.catmull(cp, 40).map(Lo.toPx) : null };
     }) };

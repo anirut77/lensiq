@@ -64,7 +64,7 @@
     "trace.tooShort": ["เส้นสั้นเกินไป ลากให้ยาวตามเส้นในมือ", "Too short: trace along the line on your hand", "太短了：请沿着手上的掌纹描画"],
     "adjust.help": ["ลากจุดกลมเพื่อปรับเส้น", "Drag the round handles to adjust the line", "拖动圆点调整掌纹"],
     "legend": ["เส้นทึบ = พบในภาพ · เส้นประ = ไม่พบในภาพ (ไม่ได้นำมาอ่าน) · ✋ = เพิ่มเอง", "Solid = found in the photo · Dashed = not found in this photo (not read) · ✋ = added by you",
-      "实线 = 照片中找到 · 虚线 = 照片中未找到（不参与解读）· ✋ = 自行添加"],
+      "实线 = 照片中找到 · 虚线 = 照片中未找到（不参与解读） · ✋ = 自行添加"],
     "guide.note": ["เส้นประคือตำแหน่งที่ตำรามักพบเส้นนั้น ไม่ใช่เส้นที่พบในภาพ", "A dashed line shows where the line usually lies; it was not found in this photo", "虚线表示该掌纹通常的位置，并非照片中找到的掌纹"],
     /* capture orientation (owner request 2026-11-20): TH / EN / ZH approved by the owner, decision 191 (2026-11-20), EXACT (byte for byte; do not edit) */
     "mode.self": ["ถ่ายมือตัวเอง", "Photo of my hand", "拍自己的手"],
@@ -378,21 +378,10 @@
     var path = function (P) { ctx.beginPath(); ctx.moveTo(P[0][0], P[0][1]); for (var i = 1; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]); };
     var small = Math.round(10 * sc) + "px system-ui, sans-serif";
     var font = Math.round(12 * sc) + "px system-ui, -apple-system, 'Noto Sans Thai', 'Noto Sans SC', sans-serif";
-    var label = function (text, at, color, faint) {
-      ctx.save();
-      ctx.setLineDash([]);
-      ctx.font = faint ? small : font; ctx.textBaseline = "middle";
-      var w = ctx.measureText(text).width, h = 16 * sc, x = clamp(at[0] + 6 * sc, 2, Math.max(2, (ctx.canvas && ctx.canvas.width || 9999) - w - 10 * sc)), y = at[1];
-      ctx.globalAlpha = faint ? 0.72 : 0.9;
-      ctx.fillStyle = faint ? "rgba(30,30,30,0.75)" : "rgba(255,255,255,0.92)";
-      ctx.fillRect(x - 3 * sc, y - h / 2, w + 6 * sc, h);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = faint ? "#f2f2f2" : (color === "#F0E442" || color === "#999999" ? "#222222" : color);
-      ctx.fillText(text, x, y);
-      ctx.restore();
-    };
+    var items = [], drawn = [], guidesPx = [];
     var order = LINES.slice();
-    // guides first (under), then the drawn lines on top
+    // guides first (under), then the drawn lines on top; the labels last, placed so that they never overlap each other or cover a
+    // drawn line (owner review 2026-11-21: "? 5 / 6 / 7 / 8" stacked on top of each other and "? 10" covered the head line)
     if (target !== "share") order.forEach(function (id) {
       var L = st.lines[id];
       if (!L || L.status !== STATUS.NOT_FOUND || L.outside) return;
@@ -406,7 +395,8 @@
       ctx.setLineDash([2 * sc, 2 * sc]);
       ctx.beginPath(); ctx.arc(end[0], end[1], 4.5 * sc, 0, Math.PI * 2); ctx.stroke();
       ctx.restore();
-      label("? " + (LINES.indexOf(id) + 1) + " " + T("status.notFound", lang), end, null, true);
+      guidesPx.push(P);
+      items.push({ id: id, kind: STATUS.NOT_FOUND, text: "? " + (LINES.indexOf(id) + 1) + " " + T("status.notFound", lang), at: end, color: null, faint: true });
     });
     order.forEach(function (id) {
       var L = st.lines[id];
@@ -423,9 +413,115 @@
           ctx.strokeStyle = col; ctx.stroke(); });
       }
       ctx.restore();
+      drawn.push(P);
       var txt = (LINES.indexOf(id) + 1) + " " + lineName(id, school, lang) + (L.status === STATUS.ADDED ? " · ✋ " + T("status.added", lang) : "");
-      label(txt, end, col, false);
+      items.unshift({ id: id, kind: L.status, text: txt, at: end, color: col, faint: false });
     });
+    // found / added labels first (they are placed nearest their line end), then the guides' labels
+    items.sort(function (a, b) { return (a.faint ? 1 : 0) - (b.faint ? 1 : 0) || LINES.indexOf(a.id) - LINES.indexOf(b.id); });
+    var cw = (ctx.canvas && ctx.canvas.width) || 9999, ch = (ctx.canvas && ctx.canvas.height) || 9999;
+    var boxes = placeLabels(items.map(function (it) {
+      ctx.save(); ctx.font = it.faint ? small : font; var w = ctx.measureText(it.text).width; ctx.restore();
+      return { w: w + 6 * sc, h: 16 * sc, at: it.at };
+    }), drawn, guidesPx, cw, ch, sc);
+    var labels = [];
+    items.forEach(function (it, k) {
+      var b = boxes[k], dx = Math.max(b.x - it.at[0], 0, it.at[0] - (b.x + b.w)), dy = Math.max(b.y - it.at[1], 0, it.at[1] - (b.y + b.h)), lead = Math.hypot(dx, dy) > 10 * sc;
+      ctx.save();
+      if (lead) { // a leader line from the line end to the nearest point of the moved label
+        var q = [clamp(it.at[0], b.x, b.x + b.w), clamp(it.at[1], b.y, b.y + b.h)];
+        ctx.globalAlpha = it.faint ? 0.45 : 0.85; ctx.lineWidth = 1.2 * sc; ctx.strokeStyle = it.faint ? (target === "print" ? "#6b6b6b" : "#f4f4f4") : it.color;
+        ctx.setLineDash(it.faint ? [2 * sc, 2 * sc] : []);
+        ctx.beginPath(); ctx.moveTo(it.at[0], it.at[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.font = it.faint ? small : font; ctx.textBaseline = "middle";
+      ctx.globalAlpha = it.faint ? 0.72 : 0.9;
+      ctx.fillStyle = it.faint ? "rgba(30,30,30,0.75)" : "rgba(255,255,255,0.92)";
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = it.faint ? "#f2f2f2" : (it.color === "#F0E442" || it.color === "#999999" ? "#222222" : it.color);
+      ctx.fillText(it.text, b.x + 3 * sc, b.y + b.h / 2);
+      ctx.restore();
+      labels.push({ id: it.id, kind: it.kind, text: it.text, x: b.x, y: b.y, w: b.w, h: b.h, ax: it.at[0], ay: it.at[1], leader: lead });
+    });
+    return { labels: labels };
+  }
+  /** label boxes for anchors: nearest free spot (no overlap with another label, no drawn line under it, inside the canvas), trying
+      beside / above / below the line end, then stacked rows, then the whole canvas; guides under a label only cost a little */
+  function placeLabels(req, drawn, guidesPx, cw, ch, sc) {
+    var cell = Math.max(1, 2 * sc), GW = Math.ceil(cw / cell) + 1, GH = Math.ceil(ch / cell) + 1;
+    var sat = function (polys, rad) { // summed-area table of cells within rad of the polylines
+      var m = new Uint8Array(GW * GH), r = Math.ceil(rad / cell);
+      polys.forEach(function (P) { for (var i = 0; i < P.length; i++) {
+        var a = P[Math.max(0, i - 1)], z = P[i], n = Math.max(1, Math.ceil(Math.hypot(z[0] - a[0], z[1] - a[1]) / (cell / 2)));
+        for (var t = 0; t <= n; t++) { var x = Math.floor((a[0] + (z[0] - a[0]) * t / n) / cell), y = Math.floor((a[1] + (z[1] - a[1]) * t / n) / cell);
+          for (var yy = y - r; yy <= y + r; yy++) for (var xx = x - r; xx <= x + r; xx++) if (xx >= 0 && yy >= 0 && xx < GW && yy < GH) m[yy * GW + xx] = 1; }
+      } });
+      var S = new Int32Array((GW + 1) * (GH + 1));
+      for (var y = 0; y < GH; y++) for (var x = 0, row = 0; x < GW; x++) { row += m[y * GW + x]; S[(y + 1) * (GW + 1) + x + 1] = S[y * (GW + 1) + x + 1] + row; }
+      return function (b) { var x0 = clamp(Math.floor(b.x / cell), 0, GW), y0 = clamp(Math.floor(b.y / cell), 0, GH), x1 = clamp(Math.ceil((b.x + b.w) / cell), 0, GW),
+        y1 = clamp(Math.ceil((b.y + b.h) / cell), 0, GH);
+        return S[y1 * (GW + 1) + x1] - S[y0 * (GW + 1) + x1] - S[y1 * (GW + 1) + x0] + S[y0 * (GW + 1) + x0]; };
+    };
+    var hard = sat(drawn, 3 * sc), soft = sat(guidesPx, 1.5 * sc), placed = [], gap = 1 * sc;
+    var fits = function (b) {
+      for (var i = 0; i < placed.length; i++) { var o = placed[i]; if (b.x < o.x + o.w + gap && o.x < b.x + b.w + gap && b.y < o.y + o.h + gap && o.y < b.y + b.h + gap) return false; }
+      return hard(b) === 0;
+    };
+    var box = function (x, y, w, h) { return { x: clamp(x, 0, Math.max(0, cw - w)), y: clamp(y, 0, Math.max(0, ch - h)), w: Math.min(w, cw), h: Math.min(h, ch) }; };
+    var dist = function (b, a) { return Math.hypot(Math.max(b.x - a[0], 0, a[0] - (b.x + b.w)), Math.max(b.y - a[1], 0, a[1] - (b.y + b.h))); };
+    return req.map(function (q) {
+      var a = q.at, w = q.w, h = q.h, d = 3 * sc, cands = [], k, best = null, bestCost = Infinity;
+      cands.push(box(a[0] + d, a[1] - h / 2, w, h), box(a[0] - d - w, a[1] - h / 2, w, h), box(a[0] - w / 2, a[1] - h - d, w, h), box(a[0] - w / 2, a[1] + d, w, h),
+        box(a[0] + d, a[1] - h - d, w, h), box(a[0] + d, a[1] + d, w, h), box(a[0] - d - w, a[1] - h - d, w, h), box(a[0] - d - w, a[1] + d, w, h));
+      for (k = 1; k <= 12; k++) [-1, 1].forEach(function (sg) { var y = a[1] - h / 2 + sg * k * (h + 2 * gap);
+        cands.push(box(a[0] + d, y, w, h), box(a[0] - d - w, y, w, h), box(a[0] - w / 2, y, w, h)); });
+      var pick = function (list) { list.forEach(function (b) { if (!fits(b)) return; var c = dist(b, a) + 4 * sc * soft(b); if (c < bestCost) { bestCost = c; best = b; } }); };
+      pick(cands);
+      if (!best) { // the whole canvas, nearest first
+        var step = Math.max(4, 6 * sc), all = [];
+        for (var y = 0; y <= ch - h; y += step) for (var x = 0; x <= cw - w; x += step) all.push(box(x, y, w, h));
+        pick(all);
+      }
+      if (!best) best = cands[0]; // nowhere free (a canvas far too small): beside the line end as before
+      placed.push(best);
+      return best;
+    });
+  }
+  /** the fallback guide (no hand points): a simple palm frame, a rounded rectangle about the frame centre, and a chevron on the
+      finger side, turned by pose.angle (owner review 2026-11-21: a finger-accurate outline that does not follow the hand looks broken) */
+  function guideFrame(w, h, pose) {
+    // straight edges on whole pixels, mirror-exact about the centre, so the outline is drawn crisp and the same on both sides
+    var m = Math.min(w, h), rr = 0.14 * m, cx = w / 2, cy = h / 2, x0 = Math.round(cx - 0.29 * m), y0 = Math.round(cy - 0.31 * m), x1 = w - x0, y1 = h - y0;
+    var rect = [], arc = function (ox, oy, a0) { for (var i = 0; i <= 6; i++) { var t = (a0 + i * 15) * Math.PI / 180; rect.push([ox + rr * Math.cos(t), oy + rr * Math.sin(t)]); } };
+    arc(x1 - rr, y0 + rr, 270); arc(x1 - rr, y1 - rr, 0); arc(x0 + rr, y1 - rr, 90); arc(x0 + rr, y0 + rr, 180);
+    rect.push(rect[0].slice());
+    // the finger-direction mark: a double chevron beyond the finger edge
+    var k = 0.08 * m, ty = y0 - 0.05 * m, mark = [[cx - k, ty], [cx, ty - 0.7 * k], [cx + k, ty]], mark2 = [[cx - k, ty - 0.55 * k], [cx, ty - 1.25 * k], [cx + k, ty - 0.55 * k]];
+    var a = ((pose && pose.angle) || 0) * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a);
+    var turn = function (P) { return P.map(function (q) { var x = q[0] - cx, y = q[1] - cy; return [x * c - y * sn, x * sn + y * c]; }); };
+    var paths = [turn(rect), turn(mark), turn(mark2)], f = 1;
+    paths.forEach(function (P) { P.forEach(function (q) { if (Math.abs(q[0]) > cx) f = Math.min(f, cx * 0.98 / Math.abs(q[0])); if (Math.abs(q[1]) > cy) f = Math.min(f, cy * 0.98 / Math.abs(q[1])); }); });
+    return { kind: "frame", paths: paths.map(function (P) { return P.map(function (q) { return [cx + q[0] * f, cy + q[1] * f]; }); }) };
+  }
+  /** a text broken into lines that each measure <= maxW on ctx (with its current font): at the " · " separators first (the "·" starts
+      the next line), then at spaces; "=" stays with its words; a single word wider than maxW is a line of its own */
+  function wrapText(ctx, text, maxW) {
+    var W = function (t) { return ctx.measureText(t).width; }, lines = [], segs = String(text).split(" · ");
+    var words = function (t) { var raw = t.split(/\s+/).filter(Boolean), out = [];
+      raw.forEach(function (x) { if ((x === "=" || (out.length && out[out.length - 1].slice(-1) === "=")) && out.length) out[out.length - 1] += " " + x; else out.push(x); });
+      return out; };
+    var cur = "";
+    segs.forEach(function (sg, i) {
+      var piece = i ? "· " + sg : sg, tryLine = cur ? cur + " " + piece : piece;
+      if (W(tryLine) <= maxW) { cur = tryLine; return; }
+      if (cur) lines.push(cur);
+      cur = "";
+      words(piece).forEach(function (wd) { var t2 = cur ? cur + " " + wd : wd; if (W(t2) <= maxW || !cur) cur = t2; else { lines.push(cur); cur = wd; } });
+    });
+    if (cur) lines.push(cur);
+    return lines;
   }
 
   /* ================= capture: metrics, hints, shutter, still, consent ================= */
@@ -877,7 +973,7 @@
     handFromTaps: handFromTaps, frameFromHand: frameFromHand, palmRoi: palmRoi, catmull: catmull,
     newState: newState, setLine: setLine, threshold: threshold, applyDetection: applyDetection,
     readingFor: readingFor, aiFacts: aiFacts, listRows: listRows, allTexts: allTexts, serialize: serialize, deserialize: deserialize,
-    drawLineLayer: drawLineLayer,
+    drawLineLayer: drawLineLayer, guideFrame: guideFrame, wrapText: wrapText,
     CAPTURE_T: CAPTURE_T, captureMetrics: captureMetrics, previewSize: previewSize, captureHint: captureHint, handFromSkin: handFromSkin, createAutoShutter: createAutoShutter,
     stillPlan: stillPlan, grabStill: grabStill, cameraGate: cameraGate, consentAfterCapture: consentAfterCapture,
     CAM_OPTS: CAM_OPTS, photoSettings: photoSettings, UPLOAD_MIN: UPLOAD_MIN, photoQuality: photoQuality, qualityVerdict: qualityVerdict,
