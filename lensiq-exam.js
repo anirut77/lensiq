@@ -9,6 +9,10 @@
  * API
  *   SIGNALS {id: {src:"lab"|"hall"|"browser"|"room", lvl, w, alone?, th}}   th = Thai label (key exam.sig.<id>)
  *   LEVELS ["ok","info","watch","check"] · LEVEL_TH {lvl: Thai} (key exam.lvl.<lvl>) · POINTS {info, watch, check}
+ *   LAB_PHONE_ZOOM {on, cols, rows, overlap, y0, y1, minScore} · phoneZoomRects(z) -> [{x,y,w,h}]   Exam lab phone zoom pass
+ *     (decision 217): crops run when the full frame has no phone at phoneConf; tuned on the tuning set only
+ *   phoneZoomFor(win, zoom?) -> zoom | null   decision 221 ข: null unless win.LENSIQ_EXAM_PHONE_ZOOM === true (or a harness setting)
+ *   createZoomGuard({maxMs=300, backoffMs=5000}) -> {allow(now), record(at, ms)}   live time guard of the zoom pass
  *   createGate({k=1, n=1, stages=[{ms, lvl}], cooldownMs}) -> {push(t, on) -> {active, dur, fire:[{lvl, stage}], ended, held}, reset()}
  *     debounce (k of the last n samples), persistence (stage.ms of continuous activity) and a cooldown per stage
  *     (a stage that fired less than cooldownMs ago is "held": counted, not emitted). One gate per seat + signal.
@@ -171,6 +175,41 @@
     leanFrac: 0.25, leanMs: 4000, hallPhoneConf: 0.5, breaks: false,
     room: { windowMs: 3000, frac: 0.4, min: 3, holdMs: 20000 }
   });
+  /* Exam lab phone zoom pass (owner decision 217 ก, 2026-11-21): when the full-frame COCO-SSD pass finds no phone at
+   * phoneConf, the frame is also run as overlapping crops (each crop is scaled up to the model's 300 x 300 input, so a phone
+   * held low at the desk is larger to the model); a crop detection counts only at score >= minScore. Settings chosen on the
+   * TUNING set ~/LENSIQ-field/evals/examlab-phone-tune/ only (docs/exam/EXAMLAB-PHONE-SET.md, "Tuning"); never on the
+   * locked A2 set. grid {cols, rows, overlap} -> tileRects, optionally limited to the band y0..y1 of the frame. */
+  const LAB_PHONE_ZOOM = Object.freeze({ on: true, cols: 3, rows: 3, overlap: 0.25, y0: 0, y1: 1, minScore: 0.6 }); // g3x3 @ 0.6, chosen by the fixed rule (tuning sweep 2026-11-21)
+  /** normalised crop rects of a zoom config (pure; same maths as LQDetect.tileRects) @param {{cols: number, rows: number, overlap?: number, y0?: number, y1?: number}} z */
+  function phoneZoomRects(z) {
+    const cols = Math.max(1, z.cols | 0), rows = Math.max(1, z.rows | 0), ov = z.overlap != null ? z.overlap : 0.2;
+    const y0 = z.y0 != null ? z.y0 : 0, y1 = z.y1 != null ? z.y1 : 1, bh = y1 - y0;
+    const tw = 1 / (cols - (cols - 1) * ov), th = 1 / (rows - (rows - 1) * ov), out = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const x = cols > 1 ? c * (1 - tw) / (cols - 1) : 0, y = rows > 1 ? r * (1 - th) / (rows - 1) : 0;
+      out.push({ x, y: y0 + y * bh, w: Math.min(tw, 1 - x), h: Math.min(th, 1 - y) * bh });
+    }
+    return out;
+  }
+  /** decision 221 default ข: the zoom settings to use, or null (= full frame only, exactly as before 217). An explicit
+   * setting (a measuring harness) is used as given; otherwise the page switch LENSIQ_EXAM_PHONE_ZOOM must be exactly true.
+   * @param {any} win @param {any} [zoom] */
+  function phoneZoomFor(win, zoom) {
+    if (zoom) return zoom;
+    return win && win.LENSIQ_EXAM_PHONE_ZOOM === true ? LAB_PHONE_ZOOM : null;
+  }
+  /** time guard for the live zoom pass (reviewer suggestion; added after the A2 measurement, which ran every crop pass):
+   * a crop pass slower than maxMs pauses the crops for backoffMs, then they are tried again.
+   * @param {{maxMs?: number, backoffMs?: number}} [o] */
+  function createZoomGuard({ maxMs = 300, backoffMs = 5000 } = {}) {
+    let until = -Infinity;
+    return {
+      maxMs, backoffMs,
+      allow: (/** @type {number} */ now) => now >= until,
+      record(/** @type {number} */ at, /** @type {number} */ ms) { until = ms > maxMs ? at + backoffMs : -Infinity; }
+    };
+  }
   const PROFILE_KEYS = ["gazeOff", "noFaceX", "readAloud", "breaks", "ticX"];
   /** institution-set accommodations (no diagnosis is stored or shown): gazeOff, noFaceX 1–3, readAloud, breaks, ticX 1–2 */
   function cleanProfile(p) {
@@ -800,7 +839,7 @@
   }
 
   return {
-    SIGNALS, LEVELS, LEVEL_TH, POINTS, DEFAULTS, PROFILE_KEYS, ACTIONS, SEAT_RE, ROOM_RE, CLIP_ST,
+    SIGNALS, LEVELS, LEVEL_TH, POINTS, DEFAULTS, LAB_PHONE_ZOOM, phoneZoomRects, phoneZoomFor, createZoomGuard, PROFILE_KEYS, ACTIONS, SEAT_RE, ROOM_RE, CLIP_ST,
     levelOf, createGate, createRisk, createRoomMonitor, cleanProfile, isPlainProfile, applyAccommodation,
     poseFrom68, pitchDeg, synth68, calibrate, lightingVerdict, createFrozen, isVirtualCamLabel, createLabMonitor,
     pointInPoly, polyArea, polyCentroid, boxFracInPoly, seatOf, gridSeats, cleanSeats, createHallMonitor, HALL_DET, HALL_PLACE, hallPlacement,

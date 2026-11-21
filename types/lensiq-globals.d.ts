@@ -43,6 +43,8 @@ interface Window {
   LENSIQ_FACEPARSE?: boolean;
   /** lensiq-config.js: false = hide the signage age/gender option and never load ageGenderNet (research-licence model) */
   LENSIQ_AGE_GENDER?: boolean;
+  /** lensiq-config.js (decision 221 default ข): Exam lab phone zoom pass; off unless exactly true (customer builds: off) */
+  LENSIQ_EXAM_PHONE_ZOOM?: boolean;
   /** lensiq-config.js: quote-request form sends to the server (POST /v1/leads) only when true; ON by default since the owner decision 2026-11-12 */
   LENSIQ_LEADS_FORM?: boolean;
   /** photobooth try-on server status is asked only when true (mirrors the backend TRYON switch; off as shipped) */
@@ -106,6 +108,8 @@ interface Window {
   LENSIQ_FORTUNE_CAUTIONS_CN_WEST?: boolean;
   /** item 177: show caution rules not yet expert-reviewed (preview only) */
   LENSIQ_FORTUNE_CAUTIONS_DRAFTS?: boolean;
+  /** compat.html v2 view (compat-v2.js, on demand); off unless exactly true (night order A6, 2026-11-20) */
+  LENSIQ_COMPAT_V2?: boolean;
   /** recommended-source entries (admin-managed later; none ship) */
   LQ_FORTUNE_SELLER_LINKS?: any[];
   /** item 177: caution rules registered by the generated packs fortune-caution-pack-*.js (read by fortune-caution-core.js) */

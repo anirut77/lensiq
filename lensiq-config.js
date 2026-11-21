@@ -25,6 +25,8 @@ window.LENSIQ_FORTUNE_CAUTIONS = window.LENSIQ_FORTUNE_CAUTIONS === true;
 window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST = window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST === true;
 window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS = window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS === true;
 
+window.LENSIQ_COMPAT_V2 = window.LENSIQ_COMPAT_V2 === true;
+
 window.LENSIQ_PET_ZODIAC = window.LENSIQ_PET_ZODIAC === true;
 window.LENSIQ_PET_CARD_CLASSIC = window.LENSIQ_PET_CARD_CLASSIC === true;
 window.LENSIQ_PET_ZODIAC_ODDS = window.LENSIQ_PET_ZODIAC_ODDS || "b";
@@ -37,6 +39,8 @@ window.LENSIQ_LOOK_SALON = false;
 /** @type {any} */ (window).LENSIQ_EXPRESSION = /** @type {any} */ (window).LENSIQ_EXPRESSION !== false;
 
 /** @type {any} */ (window).LENSIQ_RESEARCH_DEMO = /** @type {any} */ (window).LENSIQ_RESEARCH_DEMO !== false;
+
+window.LENSIQ_EXAM_PHONE_ZOOM = window.LENSIQ_EXAM_PHONE_ZOOM === true;
 
 window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
 

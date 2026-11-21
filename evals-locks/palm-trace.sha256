@@ -1,0 +1,8 @@
+# locked 2026-11-20T21:54:56Z (tools/eval-guard.mjs lock, 3 files)
+fbcf8cdabf374a769bdea3cf279f9fda6cb81a6222d69100195529983bbfb1c9  palm-trace.test.js
+954b18425d1eb25cdd767a01343ac0ba1e6bc5640c594612955f340b1ea10b24  palm-trace-build.test.js
+aacba5321b4f36aeb65aed83e2123fc4a8b662d366ebe73aec670268c4cc8fe3  palm-trace.e2e.mjs
+fbcf8cdabf374a769bdea3cf279f9fda6cb81a6222d69100195529983bbfb1c9  tests/unit/palm-trace.test.js  # repo file (same commit as lock 2026-11-20T21:54:56Z; field: ~/LENSIQ-field/evals/palm-trace/palm-trace.test.js)
+954b18425d1eb25cdd767a01343ac0ba1e6bc5640c594612955f340b1ea10b24  tests/unit/palm-trace-build.test.js  # repo file (same commit as lock 2026-11-20T21:54:56Z; field: ~/LENSIQ-field/evals/palm-trace/palm-trace-build.test.js)
+aacba5321b4f36aeb65aed83e2123fc4a8b662d366ebe73aec670268c4cc8fe3  tests/e2e/palm-trace.e2e.mjs  # repo file (same commit as lock 2026-11-20T21:54:56Z; field: ~/LENSIQ-field/evals/palm-trace/palm-trace.e2e.mjs)
+# palm-trace (owner decision 174 ก, night order A4 2026-11-21): local tap-to-trace labelling tool for the owner's own palm photos (tools/palm-trace/). NEW tests committed BEFORE the product code: schema + normaliser + line state + TH/EN/ZH + loopback server (unit), absent from public and customer builds (unit), synthetic drawn PNG export + no network (e2e). Branch palm-trace-tool, base 653029d3. Baseline on 653029d3: unit 4/16 pass (absence checks only; ~/LENSIQ-field/evals/palm-trace/baseline-unit.log).

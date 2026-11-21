@@ -6,7 +6,8 @@
  * Privacy: tax ID, bank account number and phone come back masked (last 4) and are never put back into the form; the
  * owner's entries are kept in memory only (no browser storage) and sent only to the admin API. TH default; EN / ZH in
  * i18n/en-admin.js, i18n/zh-admin.js (ads.*). Documents: print-ready A4 HTML from the Worker, shown in a sandboxed frame
- * with no script; "Print / Save as PDF" uses the browser's own print dialog. */
+ * with no script; "Print / Save as PDF" uses the browser's own print dialog. The default document language (owner decision
+ * 199 ข) shows only while the Worker reports doc_langs (Worker var SELLER_DOC_LANG on). */
 (function () {
   "use strict";
   var K = /** @type {any} */ (window).LQAdminKit;
@@ -53,6 +54,10 @@
     });
     f.vat_registered.value = p.vat_registered === true ? "yes" : p.vat_registered === false ? "no" : "";
     f.vat_rate.value = "7"; // fixed: approved prices are excl. 7 % VAT (the Worker accepts only 700)
+    // seller default document language (owner decision 199 ข): only while the Worker reports doc_langs (SELLER_DOC_LANG on)
+    var dl = v.doc_langs;
+    /** @type {HTMLElement} */ ($("adsLangRow")).hidden = !dl;
+    if (dl) f.doc_langs.value = dl.effective;
     $("adsLogoState").textContent = v.logo.set ? G("ads.logoSet", "มีโลโก้แล้ว ({kb} KB)", { kb: Math.ceil(v.logo.bytes / 1024) }) : G("ads.logoNone", "ยังไม่มีโลโก้");
   }
   function renderPrices() {
@@ -109,6 +114,8 @@
         if (p.vat_rate_bp !== 700) out.vat_rate_bp = 700;
       }
     }
+    var dlv = ads.view && ads.view.doc_langs;
+    if (dlv && f.doc_langs.value && f.doc_langs.value !== dlv.effective) out.doc_langs = f.doc_langs.value;
     if (!Object.keys(out).length) { msg(G("ads.nothing", "ไม่มีอะไรเปลี่ยน")); return; }
     call("/seller", { method: "PUT", body: out }).then(function (/** @type {any} */ r) {
       ads.view = r; renderState(); msg(G("ads.saved", "บันทึกข้อมูลกิจการแล้ว"));

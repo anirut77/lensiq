@@ -153,9 +153,27 @@
     if (!faceOff) { faceOff = true; lastFaces = []; engine(faceOffText, "warn"); renderChecks(); }
     if (phase === "exam" && !faceOffSent) { faceOffSent = true; handle([{ sig: "setup", lvl: "setup", t: Date.now(), code: "faceoff" }]); }
   }
+  /** TF.js (COCO-SSD runtime, 1.25 MB) is loaded only when the camera starts, never with the page (S2, 2026-11-20: as a page
+   * script it held the first usable control back by seconds on a slow phone). Same files and order as the former script tags:
+   * the runtime, then its wasm backend; never face-api.js. Resolves when window.tf is ready to use; a failed load rejects
+   * (loadModels() then falls back exactly as before when LQDetect.tfBackend() finds no TF.js). */
+  let tfP = null;
+  function loadTf() {
+    if (W.tf && W.tf.loadGraphModel) return Promise.resolve();
+    if (tfP) return tfP;
+    tfP = ["vendor/tfjs/tf.es2017.min.js", "vendor/tfjs/tf-backend-wasm.es2017.min.js"].reduce((p, src) => p.then(() => new Promise((res, rej) => {
+      const sc = document.createElement("script");
+      sc.src = src; sc.async = false;
+      sc.onload = () => res(undefined); sc.onerror = () => rej(new Error("could not load " + src));
+      document.head.appendChild(sc);
+    })), Promise.resolve());
+    tfP.catch(() => { tfP = null; });
+    return tfP;
+  }
   async function loadModels() {
     if (modelsReady) return TEST ? "test" : "ok";
     if (TEST) { modelsReady = true; return "test"; }
+    try { await loadTf(); } catch (e) { console.warn("TF.js", e); }
     const b = await LQDetect.tfBackend();
     faceEng = F.create(F.pickEngine(window));
     try { await faceEng.init(); } catch (e) { console.warn("face engine", e); faceOff = true; }
@@ -222,6 +240,26 @@
     lm.className = "status " + (lastQ.ok ? "ok" : "warn");
     return lastQ;
   }
+  /** one COCO-SSD inference, two decodes (phones / books / laptops / screens, and person boxes), then, only when
+   * LENSIQ_EXAM_PHONE_ZOOM === true (decision 221 ข; off = exactly the full-frame call as before), the phone zoom pass
+   * (LQExam.LAB_PHONE_ZOOM, decision 217) when the full frame has no phone at phoneConf and the time guard allows it: the crops are searched for phones
+   * only, a crop phone counts at score >= zoom.minScore. Also the measuring harnesses' entry point (window.__LQ_EXAM_LAB.objectPass),
+   * so they measure exactly this path (`video` is the live video, or a harness's canvas frame; parameter names kept so the
+   * locked source checks of tests/unit/exam-face.test.js read the same call). @param {any} coco @param {any} video @param {any} [zoom] */
+  const zoomGuard = E.createZoomGuard();
+  async function objectPass(coco, video, zoom) {
+    const z = E.phoneZoomFor(W, zoom);
+    const [d, pers] = await LQDetect.detectCocoMulti(coco, video, [{ classes: [76, 83, 72, 71], minScore: 0.4, max: 10 },
+      { classes: [0], minScore: F.LAB_PEOPLE.minScore, iou: F.LAB_PEOPLE.iou, max: F.LAB_PEOPLE.max }]);
+    const objects = /** @type {Array<{cls: string, score: number, zoom?: boolean}>} */ (d.map(o => ({ cls: COCO_NAME[o.cls], score: o.score })));
+    const t0 = performance.now();
+    if (z && z.on && !d.some(o => o.cls === 76 && o.score >= E.DEFAULTS.phoneConf) && (zoom || zoomGuard.allow(t0))) {
+      const zp = await LQDetect.detectCocoRects(coco, video, E.phoneZoomRects(z), { classes: [76], minScore: z.minScore, max: 5 });
+      for (const o of zp) objects.push({ cls: "phone", score: o.score, zoom: true });
+      if (!zoom) zoomGuard.record(t0, performance.now() - t0);
+    }
+    return { objects, pers };
+  }
   async function observe() {
     const W = video.videoWidth, H = video.videoHeight;
     if (!W || !H) return null;
@@ -246,10 +284,9 @@
       if (coco && cocoN++ % 3 === 0) {
         // one inference, two decodes: phones / books exactly as before, and person boxes for the second-person cue
         // (LQExamFace.LAB_PEOPLE = option N4@0.5 of docs/exam/FACE-ENGINE-RESULTS.md §7.2). Boxes are counted, never kept.
-        const [d, pers] = await LQDetect.detectCocoMulti(coco, video, [{ classes: [76, 83, 72, 71], minScore: 0.4, max: 10 },
-          { classes: [0], minScore: F.LAB_PEOPLE.minScore, iou: F.LAB_PEOPLE.iou, max: F.LAB_PEOPLE.max }]);
-        objects = d.map(o => ({ cls: COCO_NAME[o.cls], score: o.score }));
-        peopleN = F.peopleBoxes(pers).length; peopleAt = performance.now();
+        const r = await objectPass(coco, video);
+        objects = r.objects;
+        peopleN = F.peopleBoxes(r.pers).length; peopleAt = performance.now();
       }
     }
     // the person count is read on every 3rd frame; it is used until the next read, never when older than 2 s
@@ -369,7 +406,8 @@
   }
   for (const id of ["#clipOn", "#clipAuto", "#clipDays"]) $(id).addEventListener("change", readClipCfg);
   clips.setCfg(clipCfg);
-  clips.refresh().then(clipNotice);
+  clipNotice(); // at once: the notice and consent text follow the clip setting before IndexedDB answers (?clip=1 race, 2026-11-21)
+  clips.refresh().then(clipNotice); // again once the kept-clip list is read: the clip box shows when clips are stored on this device
 
   /* ---------- flow ---------- */
   const saved = U.store.get(K.lab, null);
@@ -452,7 +490,9 @@
   /** @type {any} */ (window).__LQ_EXAM_LAB = {
     get phase() { return phase; }, get mon() { return mon; }, get baseline() { return mon && mon.baseline; },
     own, sent, get link() { return link; }, get quality() { return lastQ; }, get faces() { return lastFaces; }, nodeId, clips, get clipCfg() { return clipCfg; },
-    get faceEngine() { return faceEng ? faceEng.name : TEST ? "test" : null; }, get faceOff() { return faceOff; }, get faceRuns() { return faceRuns; }
+    get faceEngine() { return faceEng ? faceEng.name : TEST ? "test" : null; }, get faceOff() { return faceOff; }, get faceRuns() { return faceRuns; },
+    loadTf, // measuring harnesses (tools/examlab-phone-eval.mjs) load TF.js the way the page does
+    objectPass // measuring harnesses (tools/examlab-phone-eval2.mjs, tools/examlab-phone-tune-eval.mjs) run the page's own object pass
   };
   // demo mode only: a simulated event goes through the same path as a real one (own log, gentle prompt, room link)
   if (DEMO) /** @type {any} */ (window).__LQ_EXAM_LAB.demoEvent = (/** @type {string} */ sig) => {

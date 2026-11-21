@@ -17,6 +17,9 @@
  *       scaled to <= detW wide) and merges with the full-frame pass (mergeTiles). COCO-SSD resizes every input to its fixed
  *       300×300 tensor, so a larger detW does NOT help small/far people — tiling does (tests/bench, ACCURACY.md). Cost:
  *       1 + cols×rows model runs per frame.
+ *   detectCocoRects(model, src, rects[{x,y,w,h} normalised], {detW=416, classes=[76], minScore=0.4, iou=0.5, max=10}) -> Promise<dets>
+ *     one model run per crop (scaled to <= detW wide), boxes mapped back to the source and merged (mergeTiles); boxes touching
+ *     an inner crop edge dropped. No full-frame pass (the caller already has one). Exam lab phone zoom pass (decision 217).
  *   tileRects(cols, rows, overlap) -> [{x,y,w,h}] normalised crops covering the frame
  *     Tile boxes touching an inner tile edge are dropped (people cut in half by a tile; large people come from the full frame).
  *   mergeTiles(dets, {iou=0.5, ios=0.7, max}) -> dets   score-sorted greedy merge: a box is dropped when it overlaps a kept
@@ -185,6 +188,16 @@
     const opts = list.map(o => ({ classes: o.classes || [0], minScore: o.minScore != null ? o.minScore : 0.4, iou: o.iou != null ? o.iou : 0.5, max: o.max != null ? o.max : 20 }));
     const out = /** @type {any} */ (await runCoco(model, src, { x: 0, y: 0, w: 1, h: 1 }, W, H, detW, c, opts));
     return out.map((/** @type {any[]} */ d, /** @type {number} */ i) => d.slice(0, opts[i].max));
+  }
+  /** crops only (no full-frame pass): one run per normalised rect, merged @param {any} model @param {any} src
+   * @param {Array<{x: number, y: number, w: number, h: number}>} rects @param {{detW?: number, classes?: number[], minScore?: number, iou?: number, max?: number}} [o] */
+  async function detectCocoRects(model, src, rects, { detW = 416, classes = [76], minScore = 0.4, iou: iouThr = 0.5, max = 10 } = {}) {
+    const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
+    if (!W || !H || !rects || !rects.length) return [];
+    const tc = tileCanvas || (tileCanvas = document.createElement("canvas"));
+    const opts = { classes, minScore, iou: iouThr, max }, all = [];
+    for (const r of rects) all.push(...await runCoco(model, src, r, W, H, detW, tc, opts));
+    return mergeTiles(all, { iou: iouThr, max });
   }
   /** @param {any} model @param {any} src @param {LQDetectOpts} [o] */
   async function detectCoco(model, src, { detW = 416, classes = [0], minScore = 0.4, iou: iouThr = 0.5, max = 20, canvas, tiles = null } = {}) {
@@ -434,7 +447,7 @@
     other: "การตรวจจับใบหน้าหยุดทำงานบนเครื่องนี้ — หยุดสแกนแล้ว ปิดแท็บอื่นหรือโหลดหน้าใหม่ แล้วกดเริ่มสแกนอีกครั้ง"
   };
   const scanFailText = kind => (kind === "oom" ? SCAN_FAIL.oom : SCAN_FAIL.other);
-  const api = { detectFacesCascade, FACE_SIZES, tfBackend, hasWebGL, loadCoco, decodeCoco, nms, detectCoco, detectCocoMulti, decodeYolox, loadYolox, detectYolox, detectPeople, YOLOX_DEFAULT,
+  const api = { detectFacesCascade, FACE_SIZES, tfBackend, hasWebGL, loadCoco, decodeCoco, nms, detectCoco, detectCocoMulti, detectCocoRects, decodeYolox, loadYolox, detectYolox, detectPeople, YOLOX_DEFAULT,
     tileRects, mergeTiles, loadEmbedder, embedBox, EMB_NODE, faceSharpness, isTest, fake, withTimeout, failKind, nextBackend, switchBackend, watchContextLost, scanGuard, scanFailText };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQDetect = api;

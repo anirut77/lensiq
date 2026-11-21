@@ -105,13 +105,18 @@ note here, not in the config file. See docs/SPEED.md "Comments moved out of lens
  *   ว่าโมเดลใบอนุญาตวิจัยเปิดอยู่ พร้อมลิงก์ไปปิด (?profilebanner=1 บังคับแสดงเพื่อทดสอบ) ; สวิตช์อยู่ใน lensiq-research.js */
 
 /* ตัวโหลด: เฉพาะเมื่อมี LENSIQ_API_BASE — ไฟล์มาจากต้นทางเดียวกับหน้าเว็บ (CSP script-src 'self') */
+
+/* LENSIQ_DEVICE_EXPORT (D-4, 19 พ.ย. 2569): ส่วน "ข้อมูลของฉันในเครื่องนี้: บันทึกเป็นไฟล์ / โหลดจากไฟล์" ท้าย privacy.html
+ *   (lensiq-device-data.js) ปิดเว้นแต่ตั้งเป็น true พอดี และปิดเสมอในชุดติดตั้งของลูกค้า (LENSIQ_RESEARCH_DEMO = false)
+ *   เปิด: เพิ่มบรรทัด window.LENSIQ_DEVICE_EXPORT = true; ใน lensiq-config.js (และเพิ่ม ?v= ของ lensiq-config.js ทุกหน้า)
+ *   ไม่มีการส่งข้อมูลออกจากเครื่อง ดู docs/PDPA-NOTES-FOR-COUNSEL.md หัวข้อ D-4 */
 ```
 
 ## Comments moved from lensiq-config.js (2026-11-21, A5)
 
 Moved here word for word so the gate pages stay inside their page-weight budgets (tests/e2e/speed-budget.e2e.mjs) after
 they started loading lensiq-config.js (A5 item 4). The code and the JSDoc type comments are unchanged; "line" is where the
-comment stood in lensiq-config.js before the move.
+comment stood in lensiq-config.js (v29, origin/main 502ec313) before the move.
 
 ```text
 [line 1] /* lensiq-config.js — LENSIQ site settings (change here, not in page code). Full notes per setting: docs/CONFIG-NOTES.md.
@@ -127,53 +132,57 @@ comment stood in lensiq-config.js before the move.
 [line 29] /* fortune-paid switches: off */
 [line 33] /* LENSIQ_FORTUNE_CAUTIONS (item 177): the closed "สิ่งที่ควรระวัง" section (fortune-caution.js); off until the owner says "177 ขึ้นเว็บ".
  * _CN_WEST (D-6): Chinese and Western rules, off until expert review; _DRAFTS: rules not yet expert-reviewed (preview only) */
-[line 38] /* LENSIQ_PET_ZODIAC (owner spec 2026-11-19): the petread share card becomes a card the system draws (12 zodiac animals + a
+[line 38] /* LENSIQ_COMPAT_V2 (owner night order A6, 2026-11-20): compat.html v2 view (compat-v2.js, loaded on demand by compat-ui.js);
+ * off on the live site and in customer builds until the owner approves the go-live */
+[line 41] /* LENSIQ_PET_ZODIAC (owner spec 2026-11-19): the petread share card becomes a card the system draws (12 zodiac animals + a
  * secret card, independent of the reading, free) with a collection kept on this device. Off on the live site until the owner
  * approves the samples. LENSIQ_PET_CARD_CLASSIC (spec name PET_CARD_CLASSIC, decision 138 ข): true = the 4 classic colour
  * themes even with zodiac on; default false. LENSIQ_PET_ZODIAC_ODDS: odds preset of lensiq-pet-draw.js, "b" (decision 137 ข:
  * day's animal x2, secret 1 in 50, 1 in 10 on full-moon days) or "a" (all equal, 1 in 50). */
-[line 46] /* LENSIQ_CARD_BRAND (owner decision 184 ก, 2026-11-20): the brand printed on the pet share card ("จาก <brand>" / "From <brand>" /
+[line 49] /* LENSIQ_CARD_BRAND (owner decision 184 ก, 2026-11-20): the brand printed on the pet share card ("จาก <brand>" / "From <brand>" /
  * "来自 <brand>" and the card header), one setting for every card template and the save-image / text fallback; a shared card
  * cannot be corrected later. LENSIQ_CARD_SHOW_ADDRESS (owner change 2026-11-20): false = the card prints the brand only, with no
  * site address and no QR code (the QR encodes the address), until the site is live on its own domain; then set true in the same
  * commit that points LQPet.LINK (lensiq-pet.js, the one address setting) at the new domain (docs/PRODUCTION-MOVE-PLAN.md 2.6). */
-[line 54] /* LENSIQ_LOOK_SALON (decision 2026-11-14 ก): shop-catalogue mode of the look suggestions; off until a human approval step exists */
-[line 57] /* LENSIQ_EXPRESSION (round 16): faceExpressionNet (F5) on neuro, signage, booth, photobooth; research demo only */
-[line 60] /* LENSIQ_RESEARCH_DEMO (round 16): per-device research demo switch; false = customer installation, locked off */
-[line 61] // customer installation: = false
-[line 63] /* LENSIQ_PC_THAI_EQUIV (round 17 P9): Thai same-ingredient list on the travel card; off until the owner decides (L13) */
-[line 66] /* palm v2 (2026-11-19, docs/acceptance/palm.md): off unless exactly true · LANDMARKS = MediaPipe hands (tier 2-U), demo profile only */
-[line 70] /* LENSIQ_PROFILE: "commercial" (default, customer mode: research models off) | "demo"; result in window.LENSIQ_RESEARCH */
-[line 75] /* storage blocked: customer mode */
-[line 83] /* LENSIQ_SELLER: seller details read by help, terms, privacy, the contact form and pricing; empty = neutral text.
+[line 57] /* LENSIQ_LOOK_SALON (decision 2026-11-14 ก): shop-catalogue mode of the look suggestions; off until a human approval step exists */
+[line 60] /* LENSIQ_EXPRESSION (round 16): faceExpressionNet (F5) on neuro, signage, booth, photobooth; research demo only */
+[line 63] /* LENSIQ_RESEARCH_DEMO (round 16): per-device research demo switch; false = customer installation, locked off */
+[line 64] // customer installation: = false
+[line 66] /* LENSIQ_EXAM_PHONE_ZOOM (decision 221 default ข): Exam lab phone zoom pass (decision 217, 9 crops when the full frame shows no
+ * phone; docs/exam/EXAMLAB-PHONE-SET.md); off unless exactly true, customer builds ship it off; off = full-frame check as before */
+[line 70] /* LENSIQ_PC_THAI_EQUIV (round 17 P9): Thai same-ingredient list on the travel card; off until the owner decides (L13) */
+[line 73] /* palm v2 (2026-11-19, docs/acceptance/palm.md): off unless exactly true · LANDMARKS = MediaPipe hands (tier 2-U), demo profile only */
+[line 77] /* LENSIQ_PROFILE: "commercial" (default, customer mode: research models off) | "demo"; result in window.LENSIQ_RESEARCH */
+[line 82] /* storage blocked: customer mode */
+[line 90] /* LENSIQ_SELLER: seller details read by help, terms, privacy, the contact form and pricing; empty = neutral text.
  *   sales_open: true only when selling; tools/check-legal.mjs checks the required fields */
-[line 86] // เปิดขายบริการแบบชำระเงินแล้วหรือยัง
-[line 87] // ชื่อนิติบุคคล/บุคคลผู้ให้บริการ (= SELLER_NAME)
-[line 88] // เลขประจำตัวผู้เสียภาษี 13 หลัก (= SELLER_TAX_ID)
-[line 89] // ที่อยู่ (= SELLER_ADDRESS)
-[line 90] // อีเมลฝ่ายช่วยเหลือ
-[line 91] // LINE Official Account เช่น "@lensiq" (ช่องทางสำรองของแบบฟอร์มทั่วไป: กรอกแล้วแสดงบนหน้าเว็บทันที)
-[line 92] // LINE Official Account "LENSIQ" ของแบรนด์ สำหรับขอใบเสนอราคา (12 พ.ย. 2569) แสดงเฉพาะเมื่อ LENSIQ_LEADS_FORM เปิด
-[line 93] // ชื่อ / ตำแหน่ง DPO หรือผู้ติดต่อด้านข้อมูลส่วนบุคคล
-[line 94] // อีเมล DPO
-[line 95] // หน้าสถานะระบบ (https://…)
-[line 96] // วันที่มีผลของข้อกำหนด/นโยบาย เช่น "1 ธันวาคม 2569"
-[line 97] // ผู้ให้บริการอีเมลฝ่ายช่วยเหลือ (นโยบายความเป็นส่วนตัว ข้อผู้รับข้อมูล)
-[line 99] // คุกกี้เซสชันสมาชิก (ปัจจุบันไม่มี: ใช้ Bearer token ใน sessionStorage)
-[line 102] // ทนายความยืนยันเกณฑ์อายุ ฐานการส่งข้อมูลต่างประเทศ และระยะเวลาเก็บแล้ว
-[line 105] /* LENSIQ_LEADS_FORM: quote requests to POST /v1/leads (on by owner order 2026-11-12); false = kept in the browser only */
-[line 107] /* LENSIQ_LEADS_NOTICE: "if sending fails, use LINE" note; off since 2026-11-16 (owner order); true turns it back on */
-[line 110] /* round 12: warning bar on camera pages when the research demo is on outside the demo site (?profilebanner=1 forces it) */
-[line 140] /* loader: only with LENSIQ_API_BASE; same-origin files (CSP script-src 'self') */
-[line 150] // v6: fortune-pet merge (analytics page list)
-[line 151] // keep order: api before analytics
-[line 155] // not on admin, pricing or counselling (77 ก)
-[line 157] // member sign-in (account chip in the header, light reading for guests) — inert unless the Worker reports
-[line 158] // membership and LENSIQ_GOOGLE_CLIENT_ID is set; never on the back office
-[line 159] // LENSIQ_MEMBER = false (set by a deploy config for a page that needs the API but no sign-in) skips it
-[line 161] // fortune pages: analytics hook (no-op without consent) + Turnstile token for the AI writing assistant (when configured)
-[line 165] /* LENSIQ_TRYON: AI try-on (photobooth.js), matches backend TRYON; off = no /api/tryon/status call */
-[line 167] /* LENSIQ_CONVERT_SERVER: PDF -> DOCX via server.py only; off = convert in the browser */
-[line 169] /* LENSIQ_HELP_TOP_STICKY (75 ก): 1323 icon in the sticky bar; false = in the page */
-[line 172] /* LENSIQ_FORTUNE_THEME (decision 92): "a" = fortune theme; "classic" = previous look (docs/FORTUNE-THEME.md "Switch back") */
+[line 93] // เปิดขายบริการแบบชำระเงินแล้วหรือยัง
+[line 94] // ชื่อนิติบุคคล/บุคคลผู้ให้บริการ (= SELLER_NAME)
+[line 95] // เลขประจำตัวผู้เสียภาษี 13 หลัก (= SELLER_TAX_ID)
+[line 96] // ที่อยู่ (= SELLER_ADDRESS)
+[line 97] // อีเมลฝ่ายช่วยเหลือ
+[line 98] // LINE Official Account เช่น "@lensiq" (ช่องทางสำรองของแบบฟอร์มทั่วไป: กรอกแล้วแสดงบนหน้าเว็บทันที)
+[line 99] // LINE Official Account "LENSIQ" ของแบรนด์ สำหรับขอใบเสนอราคา (12 พ.ย. 2569) แสดงเฉพาะเมื่อ LENSIQ_LEADS_FORM เปิด
+[line 100] // ชื่อ / ตำแหน่ง DPO หรือผู้ติดต่อด้านข้อมูลส่วนบุคคล
+[line 101] // อีเมล DPO
+[line 102] // หน้าสถานะระบบ (https://…)
+[line 103] // วันที่มีผลของข้อกำหนด/นโยบาย เช่น "1 ธันวาคม 2569"
+[line 104] // ผู้ให้บริการอีเมลฝ่ายช่วยเหลือ (นโยบายความเป็นส่วนตัว ข้อผู้รับข้อมูล)
+[line 106] // คุกกี้เซสชันสมาชิก (ปัจจุบันไม่มี: ใช้ Bearer token ใน sessionStorage)
+[line 109] // ทนายความยืนยันเกณฑ์อายุ ฐานการส่งข้อมูลต่างประเทศ และระยะเวลาเก็บแล้ว
+[line 112] /* LENSIQ_LEADS_FORM: quote requests to POST /v1/leads (on by owner order 2026-11-12); false = kept in the browser only */
+[line 114] /* LENSIQ_LEADS_NOTICE: "if sending fails, use LINE" note; off since 2026-11-16 (owner order); true turns it back on */
+[line 117] /* round 12: warning bar on camera pages when the research demo is on outside the demo site (?profilebanner=1 forces it) */
+[line 147] /* loader: only with LENSIQ_API_BASE; same-origin files (CSP script-src 'self') */
+[line 157] // v6: fortune-pet merge (analytics page list)
+[line 158] // keep order: api before analytics
+[line 162] // not on admin, pricing or counselling (77 ก)
+[line 164] // member sign-in (account chip in the header, light reading for guests) — inert unless the Worker reports
+[line 165] // membership and LENSIQ_GOOGLE_CLIENT_ID is set; never on the back office
+[line 166] // LENSIQ_MEMBER = false (set by a deploy config for a page that needs the API but no sign-in) skips it
+[line 168] // fortune pages: analytics hook (no-op without consent) + Turnstile token for the AI writing assistant (when configured)
+[line 172] /* LENSIQ_TRYON: AI try-on (photobooth.js), matches backend TRYON; off = no /api/tryon/status call */
+[line 174] /* LENSIQ_CONVERT_SERVER: PDF -> DOCX via server.py only; off = convert in the browser */
+[line 176] /* LENSIQ_HELP_TOP_STICKY (75 ก): 1323 icon in the sticky bar; false = in the page */
+[line 179] /* LENSIQ_FORTUNE_THEME (decision 92): "a" = fortune theme; "classic" = previous look (docs/FORTUNE-THEME.md "Switch back") */
 ```

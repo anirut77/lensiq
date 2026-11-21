@@ -1,4 +1,7 @@
 // tests/e2e/fortune-caution.e2e.mjs — FIXED TEST SET fortune-caution (owner item 177, 2026-11-20). Locked BEFORE any product
+// RELOCK 11 2026-11-21 (owner 189 ข), STRICTER: restores whole-page console errors. Every console error on the page fails
+// (pg.consoleErrors, unfiltered); the relock-3 subset (script exceptions and errors naming a fortune-caution file) is gone.
+// api-status-guard (decision 190 / 192) keeps the page from requesting /api/fortune/status without an API base.
 // RELOCK 3 2026-11-20 (independent review of wave 0 + owner rule "month ranges, never a single day"): readings F23 / F26 (lek7, lifegraph;
 // both page domains now excluded) replaced by F15 / F22; console-error checks count script exceptions and errors naming a
 // fortune-caution file (the page's own 404 of /api/fortune/status on the local test server is not the section's).
@@ -81,7 +84,6 @@ async function toBody(pg) {
   await pg.waitFor("!!document.querySelector('.lq-caution-body') || !!document.querySelector('.lq-caution-fail')", 8000);
 }
 
-const ownErrors = pg => pg.consoleErrors.filter(e => e.kind === "exception" || /fortune-caution/.test(String(e.url || "") + " " + String(e.text || "")));
 
 export default async function ({ base, launch, check }) {
   const browser = await launch();
@@ -141,7 +143,7 @@ export default async function ({ base, launch, check }) {
           await mount(pg, reading("F1"), lang);
           const s = await pg.evaluate(STATE);
           assert(s.n === 1 && s.openBtn && !s.body, "new reading: closed again");
-          assert(!ownErrors(pg).length, "console errors: " + S(ownErrors(pg)).slice(0, 400));
+          assert(!pg.consoleErrors.length, "console errors: " + S(pg.consoleErrors).slice(0, 400));
         } finally { await pg.close(); }
       });
     }

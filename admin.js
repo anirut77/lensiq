@@ -1049,6 +1049,7 @@
     el.className = "adl-notify" + (st === "ok" ? " adl-nf-ok" : st === "unconfirmed" ? "" : " adl-nf-bad");
     el.hidden = false;
     el.textContent = NF.line(G, dt, r);
+    if (NF.health) NF.health($("adlNotifyHealth"), G, dt, r); // LEAD_NOTIFY_HEALTH on: health box, else hidden
   }
   /** Unread badge on the tab: new requests not opened yet (count only, from the Worker). @param {any} n */
   function setBadge(n) {

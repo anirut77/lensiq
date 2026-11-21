@@ -190,7 +190,7 @@
     if (modelP) return modelP;
     modelP = (async () => {
       if (!root.ort) await loadScript("vendor/ort/ort.wasm.min.js");
-      if (!root.LQDetect) await loadScript("lensiq-detect.js?v=6");
+      if (!root.LQDetect) await loadScript("lensiq-detect.js?v=7");
       return root.LQDetect.loadYolox();
     })();
     modelP.catch(() => { modelP = null; });
