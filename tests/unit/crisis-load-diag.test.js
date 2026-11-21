@@ -150,7 +150,11 @@ test("L6 crisis-rules-kit load() still FAILS (rejects) in both cases, with the c
   await load(ok, "http://127.0.0.1:8123", "tarot", "th");
 });
 
-test("L7 nothing loosened: same timeouts in load() and cdp.mjs; every load catch in crisis-rules-1323-{a,c,e} still records a problem and skips", async () => {
+// RE-LOCK 1 2026-11-21 (owner decision 203 ข, branch split-203b): crisis-rules-1323-{a,c,e} were split by language into
+// crisis-rules-1323-{a,c,e}-{th,en,zh}.e2e.mjs (equal relock 11 in evals-locks/crisis-rules-1323.sha256). L7 now reads all 9 split
+// files with the same per-file load-catch counts (a 1, c 2, e 1) and the same catch rule, and also requires the 3 originals to be gone,
+// so no unsplit copy can escape the check. Equal or stricter; nothing else in this file changed.
+test("L7 nothing loosened: same timeouts in load() and cdp.mjs; every load catch in crisis-rules-1323-{a,c,e}-{th,en,zh} still records a problem and skips", async () => {
   const k = read("tests/e2e/crisis-rules-kit.mjs");
   const body = k.slice(k.indexOf("export async function load("), k.indexOf("\n}\n", k.indexOf("export async function load(")));
   assert.match(body, /page\.goto\(`\$\{base\}\/\$\{p\}\.html\?nosw&lang=\$\{lang\}`\)/);
@@ -159,7 +163,9 @@ test("L7 nothing loosened: same timeouts in load() and cdp.mjs; every load catch
   assert.match(k, /PAGE_LOAD_MS = 20000\b/);
   assert.match(body, /await sleep\(450\)/);
   assert.match(read("tests/e2e/cdp.mjs"), /timeout = 20000, isolated = false/);
-  for (const f of ["a", "c", "e"]) {
+  const SPLIT = ["a", "c", "e"].flatMap(x => ["th", "en", "zh"].map(l => `${x}-${l}`));
+  for (const x of ["a", "c", "e"]) assert.ok(!fs.existsSync(path.join(ROOT, `tests/e2e/crisis-rules-1323-${x}.e2e.mjs`)), `${x}: the unsplit file is gone (203 ข)`);
+  for (const f of SPLIT) {
     const src = read(`tests/e2e/crisis-rules-1323-${f}.e2e.mjs`);
     const tries = src.match(/try \{ await load\(/g) || [];
     const fails = src.match(/try \{ await load\([^)]*\); \} catch \(e\) \{ bad\.push\(`\$\{where\}: \$\{loadFailText\(e\)\}`\); continue; \}/g) || [];
@@ -168,6 +174,7 @@ test("L7 nothing loosened: same timeouts in load() and cdp.mjs; every load catch
     assert.ok(!/: did not load/.test(src), `${f}: the old unclassified "did not load" message is gone`);
     assert.match(src, /assert\(!bad\.length/, f);
   }
-  const counts = { a: 1, c: 2, e: 1 };
+  const counts = Object.fromEntries(SPLIT.map(f => [f, { a: 1, c: 2, e: 1 }[f[0]]]));
+  assert.equal(Object.keys(counts).length, 9);
   for (const [f, n] of Object.entries(counts)) assert.equal((read(`tests/e2e/crisis-rules-1323-${f}.e2e.mjs`).match(/try \{ await load\(/g) || []).length, n, f);
 });
