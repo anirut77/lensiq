@@ -4,6 +4,10 @@
 // palm.html with window.LENSIQ_PALM_V2 = true (set before load; the shipped switch stays off). 360 px wide, one browser.
 // DRAWN SYNTHETIC hands only (tests/fixtures/palm-v2/synth-capture.js + synth-orient.js), never a photo of a person; every
 // number is SYNTHETIC. The test camera streams a canvas with the drawn hand (plus sensor grain) at the scripted turn.
+// relock2 (2026-11-21, owner decision 206 ก): sensor grain +-10 -> +-16 in the test camera ONLY. The product's live sharpness was
+// made orientation-free first (palm-sharp-orient: the same pixels read the same at 0 / 90 / 180 / 270); the remaining 90-degree
+// gap is in this drawing: its skin texture is finer than the 160 px preview, so it aliases differently by direction (same
+// pixels turned 6.68 at all four; this camera's frames 6.68 / 5.33 / 6.20 / 6.35). No assertion and no product threshold changed.
 //  D  default own hand (TH / EN / ZH): "ถ่ายมือตัวเอง" is selected at load, each mode button has an icon and the exact label
 //     (TH / EN / ZH exact, owner decision 191), the consent line is hidden, the "rotate frame" button has its exact label, the
 //     guide points up (angle 0, from the mode).
@@ -76,7 +80,7 @@ const CAM = `(() => {
     cx.fillStyle = "rgb(60,80,110)"; cx.fillRect(0, 0, W, H);
     if (sc.hand) cx.drawImage(img(sc), 0, (H - W) / 2, W, W);
     const d = cx.getImageData(0, 0, W, H), p = d.data;
-    for (let i = 0; i < p.length; i += 4) { seed ^= seed << 13; seed >>>= 0; seed ^= seed >>> 17; seed ^= seed << 5; seed >>>= 0; const g = (seed / 4294967296 * 2 - 1) * 10;
+    for (let i = 0; i < p.length; i += 4) { seed ^= seed << 13; seed >>>= 0; seed ^= seed >>> 17; seed ^= seed << 5; seed >>>= 0; const g = (seed / 4294967296 * 2 - 1) * 16;
       p[i] += g; p[i + 1] += g; p[i + 2] += g; }
     cx.putImageData(d, 0, 0);
   }
