@@ -178,7 +178,7 @@
    * held low at the desk is larger to the model); a crop detection counts only at score >= minScore. Settings chosen on the
    * TUNING set ~/LENSIQ-field/evals/examlab-phone-tune/ only (docs/exam/EXAMLAB-PHONE-SET.md, "Tuning"); never on the
    * locked A2 set. grid {cols, rows, overlap} -> tileRects, optionally limited to the band y0..y1 of the frame. */
-  const LAB_PHONE_ZOOM = Object.freeze({ on: false, cols: 2, rows: 2, overlap: 0.2, y0: 0, y1: 1, minScore: 0.6 });
+  const LAB_PHONE_ZOOM = Object.freeze({ on: true, cols: 3, rows: 3, overlap: 0.25, y0: 0, y1: 1, minScore: 0.6 }); // g3x3 @ 0.6, chosen by the fixed rule (tuning sweep 2026-11-21)
   /** normalised crop rects of a zoom config (pure; same maths as LQDetect.tileRects) @param {{cols: number, rows: number, overlap?: number, y0?: number, y1?: number}} z */
   function phoneZoomRects(z) {
     const cols = Math.max(1, z.cols | 0), rows = Math.max(1, z.rows | 0), ov = z.overlap != null ? z.overlap : 0.2;
