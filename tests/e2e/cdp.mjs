@@ -176,10 +176,17 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
     listeners.add(onEvent);
     await Promise.all([s("Runtime.enable"), s("Page.enable"), s("Network.enable"), s("Log.enable")]);
     for (const src of initScripts) await s("Page.addScriptToEvaluateOnNewDocument", { source: src });
-    const waitLoad = () => new Promise((res, rej) => {
-      const t = setTimeout(() => rej(new Error("page load timeout")), timeout);
-      loadWaiters.push(() => { clearTimeout(t); res(); });
-    });
+    /** the next load event; .cancel() drops the waiter and its timer (used when the navigation already failed) */
+    const waitLoad = () => {
+      let cancel = () => {};
+      const w = new Promise((res, rej) => {
+        const t = setTimeout(() => rej(new Error("page load timeout")), timeout);
+        const done = () => { clearTimeout(t); res(); };
+        loadWaiters.push(done);
+        cancel = () => { clearTimeout(t); loadWaiters = loadWaiters.filter(f => f !== done); };
+      });
+      return Object.assign(w, { cancel });
+    };
 
     async function evaluate(fnOrExpr, ...args) {
       const expression = typeof fnOrExpr === "function"
@@ -203,7 +210,16 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
       }
       throw new Error(`waitFor timed out after ${ms} ms: ${String(fnString).slice(0, 160)} (last: ${JSON.stringify(last)})`);
     }
-    async function goto(u) { const w = waitLoad(); await s("Page.navigate", { url: u }); await w; }
+    // G2 (follow-up of decision 203 ค): Chrome's own error page also fires a load event (and carries the browser language), so goto()
+    // rejects when the navigation failed or the error page is shown; a normal page resolves as before (tests/unit/cdp-goto-errpage.test.js)
+    async function goto(u) {
+      const w = waitLoad();
+      const nav = await s("Page.navigate", { url: u });
+      if (nav && nav.errorText) { w.cancel(); throw new Error(await navigationProblem(s, evaluate, u, nav)); }
+      await w;
+      const bad = await navigationProblem(s, evaluate, u, nav);
+      if (bad) throw new Error(bad);
+    }
     async function reload() { const w = waitLoad(); await s("Page.reload", { ignoreCache: true }); await w; }
     async function close() {
       listeners.delete(onEvent); pages.delete(page);
@@ -229,6 +245,30 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
   // on(fn): raw CDP events ({method, params, sessionId}) — e.g. Debugger.paused when diagnosing a hung page
   const on = fn => { listeners.add(fn); return () => listeners.delete(fn); };
   return { newPage, close, send, proc, on, dir };
+}
+
+// ---------- navigation check (G2, follow-up of decision 203 ค) ----------
+/** document probe: Chrome's neterror page (chrome-error:// location, #main-frame-error, body.neterror) */
+export const NETERROR_PROBE = `({ href: String(location.href), neterror: !!document.getElementById("main-frame-error")
+  || !!(document.body && document.body.classList.contains("neterror")) })`;
+/**
+ * Why a finished navigation must not count as loaded, or null. nav = the Page.navigate result. Only Chrome's error page is refused: a
+ * probe that fails (the CDP call or the evaluate throws) is not a failure, so this never fails a page the old goto() accepted.
+ * Messages start with "Page.navigate:" or "chrome-error:", which tests/e2e/load-diag.mjs classifies as a navigation error.
+ * @param {(m: string, p?: object) => Promise<any>} send @param {(e: string) => Promise<any>} evaluate @param {string} url @param {any} nav
+ * @returns {Promise<string|null>}
+ */
+export async function navigationProblem(send, evaluate, url, nav) {
+  if (nav && nav.errorText) return `Page.navigate: ${nav.errorText} (${url})`;
+  let frame = null;
+  try { const t = await send("Page.getFrameTree"); frame = (t && t.frameTree && t.frameTree.frame) || null; } catch { /* probe failed: not a failure */ }
+  if (frame && (frame.unreachableUrl || /^chrome-error:/i.test(String(frame.url || "")))) {
+    return `chrome-error: Chrome's error page is shown instead of ${frame.unreachableUrl || url}`;
+  }
+  let doc = null;
+  try { doc = await evaluate(NETERROR_PROBE); } catch { /* probe failed: not a failure */ }
+  if (doc && (/^chrome-error:/i.test(String(doc.href || "")) || doc.neterror)) return `chrome-error: Chrome's error page (neterror document) is shown instead of ${url}`;
+  return null;
 }
 
 // ---------- shared assertions ----------
