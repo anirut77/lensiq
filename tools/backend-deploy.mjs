@@ -61,7 +61,7 @@ export function commands(t, o = {}) {
   };
 }
 
-/** @param {string[]} argv @param {{print?: (s: string) => void, env?: any, toml?: string, tomlPath?: string, policy?: {enforce: boolean}}} [io] @returns {number} exit code */
+/** @param {string[]} argv @param {{print?: (s: string) => void, env?: any, toml?: string, tomlPath?: string, policy?: {enforce: boolean}, policyFile?: string}} [io] @returns {number} exit code */
 export function main(argv, io = {}) {
   const print = io.print || (s => console.log(s));
   const env = io.env || process.env;
@@ -84,9 +84,16 @@ export function main(argv, io = {}) {
       if (why) { print(why); return 3; }
     }
     // credentials from the shell reach wrangler only for read-only actions or after --account-confirmed
-    // owner decision D-3: the tester gate policy (deploy/tester-gate.json; tools/lib/tester-policy.mjs)
-    const tv = testerVerdict(io.policy || readTesterPolicy(), workerTesterProblems(t.vars));
+    // owner decision D-3: the tester gate policy (deploy/tester-gate.json; tools/lib/tester-policy.mjs). Read ONLY for plan and deploy
+    // (review finding F4): a malformed policy file must never block the kill switch (off / on), a rollback or a read-only action.
+    // A policy that cannot be read refuses plan and deploy (fail closed). rollback is not policy-checked (docs/DEPLOY.md §5).
     if (action === "plan" || action === "deploy") {
+      let policy;
+      try { policy = io.policy || readTesterPolicy(io.policyFile); } catch (e) {
+        print(`REFUSED: the tester gate policy deploy/tester-gate.json cannot be read (${String(/** @type {Error} */ (e).message || e).slice(0, 160)}). Fix the file (docs/DEPLOY.md "Tester gate policy (D-3)"). Nothing was changed.`);
+        return 3;
+      }
+      const tv = testerVerdict(policy, workerTesterProblems(t.vars));
       print(`Tester gate (D-3) policy: enforce ${tv.enforce ? "on" : "off"} · ${tv.problems.length ? tv.problems.length + " problem(s)" : "ok"} (deploy/tester-gate.json)`);
       if (action === "deploy" && tv.refuse) { for (const p of tv.problems) print("REFUSED: " + p + ". Nothing was changed."); return 3; }
       for (const p of tv.problems) print("WARNING: " + p);
