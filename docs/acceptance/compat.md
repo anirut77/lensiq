@@ -9,7 +9,8 @@ Ashtakoota, BaZi, Thai and Western systems.
 **Must-do functions.** Each one is an F item.
 1. Two-person mode, and group mode up to 8 people (the add button is disabled at 8).
 2. A consent tick before entering another person's data.
-3. A 7-category wheel and the group map.
+3. A 7-category wheel and the group map. For v1 the 7-category wheel is required. For v2 only (`compat-v2`), "7 level bars plus
+   one overall harmony view" is an equal alternative to the wheel (owner decision CV2-3 ก, 2026-11-21); the group map is still required.
 4. A per-system breakdown.
 5. Free tier only. Paid content is off.
 
