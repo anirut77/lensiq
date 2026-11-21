@@ -8,6 +8,7 @@
 //   P3 with a valid policy file, `deploy` and `plan` still print the policy line (nothing else changed)
 // A FAKE wrangler stands in for the real one (LQ_WRANGLER_BIN, honoured only with NODE_ENV=test): nothing here reaches a Cloudflare
 // account. This file is locked: evals-locks/backend-deploy-policy-read.sha256 (written BEFORE the change in tools/backend-deploy.mjs).
+// Re-lock 1 (EQUAL, lint only): an unused constant removed (eslint no-unused-vars); no check changed.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { mkdtempSync, readFileSync, rmSync, writeFileSync } = require("node:fs");
@@ -16,7 +17,6 @@ const { join } = require("node:path");
 const { pathToFileURL } = require("node:url");
 
 const ROOT = join(__dirname, "..", "..");
-const PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
 const MY_D1 = "11111111-2222-4333-8444-555555555555";
 const TOML = readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8")
   .replace(/(\[\[env\.test\.d1_databases\]\][\s\S]*?database_id = ")[0-9a-f-]{36}"/, `$1${MY_D1}"`);
