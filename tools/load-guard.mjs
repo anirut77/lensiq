@@ -92,6 +92,36 @@ function scan({ dir, fsx, isAlive }) {
   return live;
 }
 
+/**
+ * READ-ONLY count of the live heavy jobs of OTHER processes in the run folder (follow-up G1 of decision 203 ค: the e2e timeout message
+ * names it). Unlike scan() it never removes a stale file; a dead pid, this process's own pid and unknown names are not counted.
+ * @param {{dir?: string, fs?: typeof fs, isAlive?: (pid: number) => boolean, pid?: number}} [o] @returns {number}
+ */
+export function otherHeavyJobs(o = {}) {
+  const dir = o.dir || runDir(), fsx = o.fs || fs, isAlive = o.isAlive || pidAlive, pid = o.pid || process.pid;
+  let names = [];
+  try { names = fsx.readdirSync(dir); } catch (e) { if (/** @type {NodeJS.ErrnoException} */ (e).code === "ENOENT") return 0; throw e; }
+  let n = 0;
+  for (const name of names) {
+    if (!JOB_RE.test(name)) continue;
+    const job = readJob(fsx, join(dir, name));
+    if (job && Number(job.pid) !== pid && isAlive(Number(job.pid))) n++;
+  }
+  return n;
+}
+
+/**
+ * "1-minute load average X.XX, N other heavy job(s) running": appended to the e2e per-file timeout message (tests/e2e/run.mjs).
+ * Never throws: a reading that fails shows "unknown". Test: tests/unit/e2e-timeout-note.test.js.
+ * @param {{dir?: string, fs?: typeof fs, isAlive?: (pid: number) => boolean, pid?: number, loadavg?: () => number[]}} [o] @returns {string}
+ */
+export function busyNote(o = {}) {
+  let load = "unknown", jobs = "unknown";
+  try { const l = Number((o.loadavg || os.loadavg)()[0]); if (Number.isFinite(l)) load = l.toFixed(2); } catch { /* unknown */ }
+  try { jobs = String(otherHeavyJobs(o)); } catch { /* unknown */ }
+  return `1-minute load average ${load}, ${jobs} other heavy job(s) running`;
+}
+
 /** move the stale file aside atomically, then delete it; if a live job took that name meanwhile, put it back */
 function removeStale(/** @type {typeof fs} */ fsx, /** @type {string} */ dir, /** @type {string} */ name, /** @type {(pid: number) => boolean} */ isAlive) {
   const file = join(dir, name), aside = join(dir, `.stale-${process.pid}-${randomHex(4)}`);

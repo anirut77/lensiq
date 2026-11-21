@@ -3,7 +3,8 @@
 // tests/e2e/*.e2e.mjs against headless Chrome (no WebGL). Exits non-zero on any failure.
 //   node tests/e2e/run.mjs [filter ...]  files whose name contains any filter word; LQ_BASE=http://127.0.0.1:8000 reuses a server
 //   --retry=N / LQ_RETRY=N   re-run a failing file up to N times (CI uses 1); only the last attempt counts
-//   LQ_FILE_TIMEOUT=ms       per-file time limit (default 900000 = 15 min) — a hung file fails instead of blocking the run
+//   LQ_FILE_TIMEOUT=ms       per-file time limit (default 900000 = 15 min) — a hung file fails instead of blocking the run;
+//                            the message also names the 1-minute load average and the other heavy jobs (tools/load-guard.mjs busyNote)
 //   --shard=i/n              run only shard i of n (tools/e2e-shards.mjs assign(); CI runs n jobs); no filter words with it
 //   --mac-last               with --shard: the WebKit files (*webkit*) form the last shard only (CI runs it on macOS)
 //   --manifest=path          write {shard, total, assigned, ran, passed, failed} as JSON at the end; CI's shard check job
@@ -24,7 +25,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { closeAll, launch, leftoverProfiles, openBrowsers, sweepStale } from "./cdp.mjs";
 import { allFiles, assign, baseFor, parseShard, weights } from "../../tools/e2e-shards.mjs";
 import { EXIT_LOW_DISK, assertFreeSpace, checkFreeSpace } from "../../tools/disk-guard.mjs";
-import { holdSlot } from "../../tools/load-guard.mjs";
+import { busyNote, holdSlot } from "../../tools/load-guard.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, "..", "..");
@@ -118,7 +119,7 @@ for (const f of files) {
     let timer;
     try {
       const mod = await import(pathToFileURL(join(here, f)).href);
-      await Promise.race([mod.default(ctx), new Promise((_, rej) => { timer = setTimeout(() => rej(new Error(`timed out after ${FILE_TIMEOUT} ms`)), FILE_TIMEOUT); })]);
+      await Promise.race([mod.default(ctx), new Promise((_, rej) => { timer = setTimeout(() => rej(new Error(`timed out after ${FILE_TIMEOUT} ms; ${busyNote()}`)), FILE_TIMEOUT); })]);
     } catch (e) { ff++; console.log(`  FAIL ${f} crashed: ${e && e.stack || e}`); }
     finally { clearTimeout(timer); }
     const open = openBrowsers();
