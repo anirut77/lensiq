@@ -68,6 +68,7 @@ function imageSize(b) {
 
 /* ---------- --select ---------- */
 async function select() {
+  assertFreeSpace({ label: "tools/exam-hall-detector-eval.mjs --select" }); // before any folder or download: exit 75 when free disk space is under 5 GB (2026-11-21)
   mkdirSync(IMG, { recursive: true });
   const cls = new Map();
   for (const [id, name] of readFileSync(join(META, "oidv7-class-descriptions-boxable.csv"), "utf8").trim().split(/\r?\n/).map(parseCsvLine)) cls.set(name, id);

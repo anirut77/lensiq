@@ -387,7 +387,8 @@
   }
   for (const id of ["#clipOn", "#clipAuto", "#clipDays"]) $(id).addEventListener("change", readClipCfg);
   clips.setCfg(clipCfg);
-  clips.refresh().then(clipNotice);
+  clipNotice(); // at once: the notice and consent text follow the clip setting before IndexedDB answers (?clip=1 race, 2026-11-21)
+  clips.refresh().then(clipNotice); // again once the kept-clip list is read: the clip box shows when clips are stored on this device
 
   /* ---------- flow ---------- */
   const saved = U.store.get(K.lab, null);

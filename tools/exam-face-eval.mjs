@@ -71,6 +71,7 @@ function imageSize(b) {
 
 /* ---------- --select ---------- */
 async function select() {
+  assertFreeSpace({ label: "tools/exam-face-eval.mjs --select" }); // before any folder or download: exit 75 when free disk space is under 5 GB (2026-11-21)
   mkdirSync(IMG, { recursive: true });
   const cls = new Map(); // the class file has no header row
   const raw = readFileSync(join(META, "oidv7-class-descriptions-boxable.csv"), "utf8").trim().split(/\r?\n/).map(parseCsvLine);
