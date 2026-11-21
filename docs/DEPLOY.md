@@ -331,7 +331,9 @@ D-3 adds a policy so that no later deploy or build (for example the production e
 - **Turn it on (one line):** in `deploy/tester-gate.json` change `"enforce": false` to `"enforce": true`, on a branch, CI
   green, merge. Nothing changes for users: the live test deployment already meets the rule (test T5 in
   `tests/unit/tester-gate-d3.test.js`).
-- **The code itself is a secret the owner enters.** No script generates, prints or stores it. Steps (owner, own
+- **The code itself is a secret the owner enters.** No script creates a code a tester can use, and no script prints or
+  stores one. The only script that writes this secret without the owner typing it is `npm run backend:tester:revoke`: it
+  replaces the code with a random value that is never shown or kept, so it locks every tester out. Steps (owner, own
   terminal, after `wrangler login`):
   1. `npm run secrets:setup -- --only TESTER_ACCESS_CODE`, then type the code (16 characters or more, not easy to guess;
      a weak code is refused with the reason, without showing it). The Worker uses the new code within seconds.
@@ -356,6 +358,12 @@ D-3 adds a policy so that no later deploy or build (for example the production e
 
 Not to be used: `wrangler delete` (it also deletes the secrets; the key that decrypts the admin TOTP secret would be
 lost).
+
+The tester gate policy (`deploy/tester-gate.json`, D-3 in §4) is read only by `plan` and `deploy`. **A rollback is not
+policy-checked**: `npm run backend:rollback` serves the chosen version as it was deployed, whatever `enforce` says
+today. Before a rollback, make sure the chosen version was deployed with the tester gate (`TESTER_GATE = "required"`); if
+in doubt, fix forward with `npm run backend:deploy:test`, which is policy-checked. The kill switch (`backend:off` / `on`) and the read-only actions
+never read the policy, so a damaged policy file cannot block them; `plan` and `deploy` refuse (exit 3) until it is fixed.
 
 ## 6. What exists after the deploy, and how to list it
 
