@@ -197,7 +197,9 @@ Switch (owner decision 221, default ข, 2026-11-21): the zoom pass runs only wh
 29.6 % figure above. On = the measured g3x3 path, plus a live time guard added after this measurement (a crop pass slower
 than 300 ms pauses the crops for 5 s, then they are tried again; harness calls with an explicit setting bypass it). The
 65.4 % was measured with every crop pass running; on a device where the guard pauses the crops, fewer frames get the zoom
-pass and the k-of-n phone gate (3 of 5) fires less often, so the live recall there can be lower. Locked test:
+pass and the k-of-n phone gate (3 of 5) fires less often, so the live recall there can be lower. Coordinator decision
+(2026-11-21): in customer builds the switch stays at its default (off) and is NOT forced off by the commercial profile, the
+same as the other product switches; an operator may set it true. Locked test:
 `tests/unit/exam-phone-zoom-switch.test.js` (`evals-locks/exam-a2-switch.sha256`). Re-running harness 2 or the tuning
 `--product` mode now needs the switch on in the page; with it off they measure the full-frame path.
 
