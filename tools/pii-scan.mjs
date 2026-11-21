@@ -8,7 +8,7 @@
 //   options: --repo DIR (default: the git top level of the current folder), --allow FILE (default: <repo>/tools/pii-allow.json),
 //            --json (machine output). Exit 0 = clean, 1 = findings, 2 = usage or allow-list error.
 // Detectors: coordinates, postcode-city, phone, thai-id, ipv4, ipv6, street-address, email, secret, forbidden-path
-// (.wrangler/, .dev.vars, .env, .har, and the palm pilot: palm-pilot/, *.palm-trace.json, P##-L|R[-#].jpg|png|heic|webp).
+// (.wrangler/, .dev.vars, .env, .har, and the palm pilot: palm-pilot/, *.palm-trace.json, P##-L|R[-#].jpg|png|heic|webp, and their copies / backups).
 // The scanner NEVER prints a matched value: output is type, path:line, commit and a masked shape (digits -> #, letters -> x).
 // Allow-list (tools/pii-allow.json): { entries: [{ path, types: { <type>: <max count> }, kind: synthetic|public|false-positive,
 // reason }] }. In --tracked mode a file may hold at most <max> hits of a type; one more and every hit of that type is reported.
@@ -244,7 +244,11 @@ const FORBIDDEN = [
   [/(^|\/)([^/]*[^/a-z0-9])?P\d{2}(-[LR](-\d+)?)?(?![a-z0-9])[^/]*\.(zip|tar|tar\.gz|tgz|7z|tar\.bz2|tbz2?|tar\.xz|txz|rar)$/i,
     "archive named with a palm pilot participant code"],
   [/\.palm-trace( ?\(\d+\)| copy( \d+)?|_\d+)?\.json((\.(bak|backup|old|orig|tmp|temp|swp|save|gz|bz2|xz|zst|zip|7z|tar|tgz|\d+))+~?|~)?$/i,
-    "palm trace label file, renamed or packed (palm pilot)"]
+    "palm trace label file, renamed or packed (palm pilot)"],
+  // owner decision 224 ก (2026-11-21): a renamed backup of a pilot photo (P01-L.jpg.bak, .old, .orig, .tmp, .copy, ~, chained such
+  // as .jpg.bak.gz). Locked test: tests/unit/pii-palm-labels.test.js re-lock 2 (F4)
+  [/(^|\/)P\d{2}-[LR](-\d+)?( ?\(\d+\)| copy( \d+)?| - copy( \(\d+\))?|_\d+)?\.(jpe?g|png|heic|heif|webp|dng|avif|tiff?|mov)((\.(bak|backup|old|orig|tmp|temp|copy|save|swp|gz|bz2|xz|zst|zip|7z|tar|tgz|\d+))+~?|~)$/i,
+    "photo named like a palm pilot participant code, renamed as a backup or packed"]
 ];
 /** @param {string} p @returns {Array<{type: string, line: number, masked: string}>} */
 export function scanPath(p) {
