@@ -93,6 +93,54 @@ A2 (recall >= 80.0 % on >= 50 phone-in-hand frames with phoneLong < 0.4): **fail
 
 Machine: {"tf":"wasm","cpu":"Apple M1","cores":8,"ramGB":8,"os":"darwin 25.5.0"}
 
+## Tuning set and phone zoom pass (owner decision 217 ก, 2026-11-21; written before any tuning measurement)
+
+The owner's words: "Build the tuning set from Open Images (CC BY 2.0, attribution as in decision 134), disjoint from the
+locked set, boxes from the dataset only, nobody opens images. Lock the tuning/test separation before measuring. Report the
+result honestly even if it stays under 80%."
+
+### The tuning set (`~/LENSIQ-field/evals/examlab-phone-tune/`, built by `tools/examlab-phone-tune-build.py`)
+
+- Source and licence as above: Open Images V7, only images whose own `License` field is CC BY 2.0, Rotation 0. Credits per
+  image in `ATTRIBUTION.csv` (field copy with titles; repo copy `docs/exam/examlab-phone-tune/ATTRIBUTION.csv`, titles
+  withheld), the decision-134 format. 359 / 359 images CC BY 2.0, 0 refused after selection.
+- Disjoint from the locked set: every Open Images id and Flickr photo already used in `examlab-phone` (all 510 candidates,
+  including the ones dropped at hand-check), `exam-faces`, `exam-faces-hall`, `hall-detector` and any other field-eval
+  manifest is excluded (1335 ids, 1332 Flickr photos). Checked after download by id, image sha256, file name and Flickr
+  photo id: **0 / 0 / 0 / 0 shared** (`tools/examlab-phone-separation.mjs`, run by
+  `tests/unit/examlab-phone-tune-separation.test.js` on the repo copies in CI and by the tuning harness before every run).
+- Labels from the dataset's own boxes only. **Nobody opened or viewed any image** (no hand-check, no contact sheet), so the
+  labels carry the dataset's noise (the locked set's hand-check kept 80 of 90 test-split candidates of the same rule):
+  - positives (train split): the locked set's rule, a `Mobile phone` box (not group, not depiction) overlapping a `Person` /
+    `Man` / `Woman` / `Boy` / `Girl` / `Human hand` box (not depiction); images with a `Tablet computer`, `Telephone` or
+    `Corded phone` box left out; desk-size only, `phoneLong` < 0.4 (the size band A2 is decided on). The train phone + hand
+    pairs are exhausted by the locked set (161 images, 150 used), so the person-box rows of the 4312 train phone images were
+    read from the public `train-annotations-bbox.csv` (streamed, only matching rows kept);
+  - negatives (test split): the locked set's negative rule (no phone / telephone / tablet box or positive label; 1 – 4
+    person boxes, one >= 5 % of the image; a desk / table box; no depicted humans).
+  - Order: sha256 of `"lensiq-examlab-phone-tune:" + id`; unavailable Flickr photos skipped (68) and 4 non-JPEG replies.
+- Size: Flickr size "b" (longest side <= 1024 px; the frame is 640 x 480, so nothing is lost): **359 images, 49.1 MB**
+  (180 positives: 24 below 0.15, 156 between 0.15 and 0.4; 179 negatives).
+- Locks (committed before any measurement): `evals-locks/examlab-phone-tune.sha256` (manifest, labels, credits),
+  `evals-locks/examlab-phone-tune__harness1.sha256` (tuning harness, separation module and test, builder, repo credits),
+  `evals-locks/examlab-phone__harness2.sha256` (locked-set harness through the page's object pass).
+
+### The product change and how it is chosen
+
+- `exam-lab.js` `objectPass()`: the same full-frame COCO-SSD call as before; when it finds no phone at `phoneConf` (0.6),
+  the frame is also run as overlapping crops (`LQExam.LAB_PHONE_ZOOM`, `LQExam.phoneZoomRects`, `LQDetect.detectCocoRects`);
+  each crop is scaled up to the model's 300 x 300 input, so a phone low at the desk is larger to the model. A crop phone
+  counts only at `minScore` (never below `phoneConf`). The live loop and both harnesses call this one function.
+- Candidates (fixed in `tools/examlab-phone-tune-eval.mjs` before measuring): grids 2x2, 3x2, 3x3, 4x3 over the frame;
+  bands of 2 or 3 crops over y 0.35 – 1 and 3x2 over y 0.25 – 1; zoom cuts 0.6, 0.7, 0.8, 0.9.
+- Selection rule (fixed before measuring): at most 9 crops; false flags on the 179 tuning negatives <= 1; then the
+  highest recall on the 180 tuning positives; ties: fewer crops, then the higher cut. If no candidate passes, the zoom pass
+  stays off.
+- Then ONE run on the locked A2 set with `tools/examlab-phone-eval2.mjs` (refuses a second run). The locked harness
+  `tools/examlab-phone-eval.mjs` reproduces only the full-frame call, so it cannot see a zoom pass; harness 2 is the same
+  protocol, statistics and tables (imported from harness 1) through the page's own `objectPass`. No setting is changed after
+  the locked result is seen.
+
 ## Licence and credits
 
 Eval-only, not shipped, nothing trained on it. Row in `LICENSES/THIRD_PARTY.md` (Test-only fixtures). Each image is

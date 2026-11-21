@@ -1,0 +1,7 @@
+# locked 2026-11-21T04:11:11Z (tools/eval-guard.mjs lock, 3 files)
+b0c1c7555124c3a5d69666ac44a46b7a5f82e96eea100c2092d06953a51dc492  manifest.jsonl
+e4c69a056a511e529d32577901c572ad75fa2edd2634e6faea2aa510711ea5b2  labels.csv
+0c1e21a4b7991f5ebec539258ee53d77f0f551a9c17ea9082c311365a9d9c9bd  ATTRIBUTION.csv
+b0c1c7555124c3a5d69666ac44a46b7a5f82e96eea100c2092d06953a51dc492  docs/exam/examlab-phone-tune/manifest.jsonl  # repo file (same commit as lock 2026-11-21T04:11:11Z; field: ~/LENSIQ-field/evals/examlab-phone-tune/manifest.jsonl)
+# field only labels.csv (lock 2026-11-21T04:11:11Z: no repo file uses it)
+# field only ATTRIBUTION.csv (lock 2026-11-21T04:11:11Z: no repo file uses it)

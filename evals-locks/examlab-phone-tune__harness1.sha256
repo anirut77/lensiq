@@ -1,0 +1,11 @@
+# locked 2026-11-21T04:11:33Z (tools/eval-guard.mjs lock, 5 files)
+cbb7abde54b73bd5ef3609882210ed31d6a7ae5bd76700cdfa34b2f7e288984e  tools/examlab-phone-tune-eval.mjs
+0b914b02063cdf81a1f1b915f3f992a7940693f97d159df6c15f295d996e4db8  tools/examlab-phone-separation.mjs
+ae52aef5959a67120f5b4e33fd422708c12d7a273c7e41bfebaff8f50a712144  tests/unit/examlab-phone-tune-separation.test.js
+ca1f9388b56a9cda6ace958c134c8969a6b0ffec7cf2ebef5f1b72e2b7df2e13  tools/examlab-phone-tune-build.py
+2988a4f9250bf1251eee63046c0d3b5728791114c4fd0b061546005c245f2d28  docs/exam/examlab-phone-tune/ATTRIBUTION.csv
+cbb7abde54b73bd5ef3609882210ed31d6a7ae5bd76700cdfa34b2f7e288984e  tools/examlab-phone-tune-eval.mjs  # repo file (same commit as lock 2026-11-21T04:11:33Z; field: ~/LENSIQ-field/evals/examlab-phone-tune/harness1/tools/examlab-phone-tune-eval.mjs)
+0b914b02063cdf81a1f1b915f3f992a7940693f97d159df6c15f295d996e4db8  tools/examlab-phone-separation.mjs  # repo file (same commit as lock 2026-11-21T04:11:33Z; field: ~/LENSIQ-field/evals/examlab-phone-tune/harness1/tools/examlab-phone-separation.mjs)
+ae52aef5959a67120f5b4e33fd422708c12d7a273c7e41bfebaff8f50a712144  tests/unit/examlab-phone-tune-separation.test.js  # repo file (same commit as lock 2026-11-21T04:11:33Z; field: ~/LENSIQ-field/evals/examlab-phone-tune/harness1/tests/unit/examlab-phone-tune-separation.test.js)
+ca1f9388b56a9cda6ace958c134c8969a6b0ffec7cf2ebef5f1b72e2b7df2e13  tools/examlab-phone-tune-build.py  # repo file (same commit as lock 2026-11-21T04:11:33Z; field: ~/LENSIQ-field/evals/examlab-phone-tune/harness1/tools/examlab-phone-tune-build.py)
+2988a4f9250bf1251eee63046c0d3b5728791114c4fd0b061546005c245f2d28  docs/exam/examlab-phone-tune/ATTRIBUTION.csv  # repo file (same commit as lock 2026-11-21T04:11:33Z; field: ~/LENSIQ-field/evals/examlab-phone-tune/harness1/docs/exam/examlab-phone-tune/ATTRIBUTION.csv)

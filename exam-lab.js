@@ -240,6 +240,22 @@
     lm.className = "status " + (lastQ.ok ? "ok" : "warn");
     return lastQ;
   }
+  /** one COCO-SSD inference, two decodes (phones / books / laptops / screens, and person boxes), then the phone zoom pass
+   * (LQExam.LAB_PHONE_ZOOM, decision 217) when the full frame has no phone at phoneConf: the crops are searched for phones
+   * only, a crop phone counts at score >= zoom.minScore. Also the measuring harnesses' entry point (window.__LQ_EXAM_LAB.objectPass),
+   * so they measure exactly this path (`video` is the live video, or a harness's canvas frame; parameter names kept so the
+   * locked source checks of tests/unit/exam-face.test.js read the same call). @param {any} coco @param {any} video @param {any} [zoom] */
+  async function objectPass(coco, video, zoom) {
+    const z = zoom || E.LAB_PHONE_ZOOM;
+    const [d, pers] = await LQDetect.detectCocoMulti(coco, video, [{ classes: [76, 83, 72, 71], minScore: 0.4, max: 10 },
+      { classes: [0], minScore: F.LAB_PEOPLE.minScore, iou: F.LAB_PEOPLE.iou, max: F.LAB_PEOPLE.max }]);
+    const objects = /** @type {Array<{cls: string, score: number, zoom?: boolean}>} */ (d.map(o => ({ cls: COCO_NAME[o.cls], score: o.score })));
+    if (z && z.on && !d.some(o => o.cls === 76 && o.score >= E.DEFAULTS.phoneConf)) {
+      const zp = await LQDetect.detectCocoRects(coco, video, E.phoneZoomRects(z), { classes: [76], minScore: z.minScore, max: 5 });
+      for (const o of zp) objects.push({ cls: "phone", score: o.score, zoom: true });
+    }
+    return { objects, pers };
+  }
   async function observe() {
     const W = video.videoWidth, H = video.videoHeight;
     if (!W || !H) return null;
@@ -264,10 +280,9 @@
       if (coco && cocoN++ % 3 === 0) {
         // one inference, two decodes: phones / books exactly as before, and person boxes for the second-person cue
         // (LQExamFace.LAB_PEOPLE = option N4@0.5 of docs/exam/FACE-ENGINE-RESULTS.md §7.2). Boxes are counted, never kept.
-        const [d, pers] = await LQDetect.detectCocoMulti(coco, video, [{ classes: [76, 83, 72, 71], minScore: 0.4, max: 10 },
-          { classes: [0], minScore: F.LAB_PEOPLE.minScore, iou: F.LAB_PEOPLE.iou, max: F.LAB_PEOPLE.max }]);
-        objects = d.map(o => ({ cls: COCO_NAME[o.cls], score: o.score }));
-        peopleN = F.peopleBoxes(pers).length; peopleAt = performance.now();
+        const r = await objectPass(coco, video);
+        objects = r.objects;
+        peopleN = F.peopleBoxes(r.pers).length; peopleAt = performance.now();
       }
     }
     // the person count is read on every 3rd frame; it is used until the next read, never when older than 2 s
@@ -471,7 +486,8 @@
     get phase() { return phase; }, get mon() { return mon; }, get baseline() { return mon && mon.baseline; },
     own, sent, get link() { return link; }, get quality() { return lastQ; }, get faces() { return lastFaces; }, nodeId, clips, get clipCfg() { return clipCfg; },
     get faceEngine() { return faceEng ? faceEng.name : TEST ? "test" : null; }, get faceOff() { return faceOff; }, get faceRuns() { return faceRuns; },
-    loadTf // measuring harnesses (tools/examlab-phone-eval.mjs) load TF.js the way the page does
+    loadTf, // measuring harnesses (tools/examlab-phone-eval.mjs) load TF.js the way the page does
+    objectPass // measuring harnesses (tools/examlab-phone-eval2.mjs, tools/examlab-phone-tune-eval.mjs) run the page's own object pass
   };
   // demo mode only: a simulated event goes through the same path as a real one (own log, gentle prompt, room link)
   if (DEMO) /** @type {any} */ (window).__LQ_EXAM_LAB.demoEvent = (/** @type {string} */ sig) => {

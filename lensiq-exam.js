@@ -9,6 +9,8 @@
  * API
  *   SIGNALS {id: {src:"lab"|"hall"|"browser"|"room", lvl, w, alone?, th}}   th = Thai label (key exam.sig.<id>)
  *   LEVELS ["ok","info","watch","check"] · LEVEL_TH {lvl: Thai} (key exam.lvl.<lvl>) · POINTS {info, watch, check}
+ *   LAB_PHONE_ZOOM {on, cols, rows, overlap, y0, y1, minScore} · phoneZoomRects(z) -> [{x,y,w,h}]   Exam lab phone zoom pass
+ *     (decision 217): crops run when the full frame has no phone at phoneConf; tuned on the tuning set only
  *   createGate({k=1, n=1, stages=[{ms, lvl}], cooldownMs}) -> {push(t, on) -> {active, dur, fire:[{lvl, stage}], ended, held}, reset()}
  *     debounce (k of the last n samples), persistence (stage.ms of continuous activity) and a cooldown per stage
  *     (a stage that fired less than cooldownMs ago is "held": counted, not emitted). One gate per seat + signal.
@@ -171,6 +173,23 @@
     leanFrac: 0.25, leanMs: 4000, hallPhoneConf: 0.5, breaks: false,
     room: { windowMs: 3000, frac: 0.4, min: 3, holdMs: 20000 }
   });
+  /* Exam lab phone zoom pass (owner decision 217 ก, 2026-11-21): when the full-frame COCO-SSD pass finds no phone at
+   * phoneConf, the frame is also run as overlapping crops (each crop is scaled up to the model's 300 x 300 input, so a phone
+   * held low at the desk is larger to the model); a crop detection counts only at score >= minScore. Settings chosen on the
+   * TUNING set ~/LENSIQ-field/evals/examlab-phone-tune/ only (docs/exam/EXAMLAB-PHONE-SET.md, "Tuning"); never on the
+   * locked A2 set. grid {cols, rows, overlap} -> tileRects, optionally limited to the band y0..y1 of the frame. */
+  const LAB_PHONE_ZOOM = Object.freeze({ on: false, cols: 2, rows: 2, overlap: 0.2, y0: 0, y1: 1, minScore: 0.6 });
+  /** normalised crop rects of a zoom config (pure; same maths as LQDetect.tileRects) @param {{cols: number, rows: number, overlap?: number, y0?: number, y1?: number}} z */
+  function phoneZoomRects(z) {
+    const cols = Math.max(1, z.cols | 0), rows = Math.max(1, z.rows | 0), ov = z.overlap != null ? z.overlap : 0.2;
+    const y0 = z.y0 != null ? z.y0 : 0, y1 = z.y1 != null ? z.y1 : 1, bh = y1 - y0;
+    const tw = 1 / (cols - (cols - 1) * ov), th = 1 / (rows - (rows - 1) * ov), out = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const x = cols > 1 ? c * (1 - tw) / (cols - 1) : 0, y = rows > 1 ? r * (1 - th) / (rows - 1) : 0;
+      out.push({ x, y: y0 + y * bh, w: Math.min(tw, 1 - x), h: Math.min(th, 1 - y) * bh });
+    }
+    return out;
+  }
   const PROFILE_KEYS = ["gazeOff", "noFaceX", "readAloud", "breaks", "ticX"];
   /** institution-set accommodations (no diagnosis is stored or shown): gazeOff, noFaceX 1–3, readAloud, breaks, ticX 1–2 */
   function cleanProfile(p) {
@@ -800,7 +819,7 @@
   }
 
   return {
-    SIGNALS, LEVELS, LEVEL_TH, POINTS, DEFAULTS, PROFILE_KEYS, ACTIONS, SEAT_RE, ROOM_RE, CLIP_ST,
+    SIGNALS, LEVELS, LEVEL_TH, POINTS, DEFAULTS, LAB_PHONE_ZOOM, phoneZoomRects, PROFILE_KEYS, ACTIONS, SEAT_RE, ROOM_RE, CLIP_ST,
     levelOf, createGate, createRisk, createRoomMonitor, cleanProfile, isPlainProfile, applyAccommodation,
     poseFrom68, pitchDeg, synth68, calibrate, lightingVerdict, createFrozen, isVirtualCamLabel, createLabMonitor,
     pointInPoly, polyArea, polyCentroid, boxFracInPoly, seatOf, gridSeats, cleanSeats, createHallMonitor, HALL_DET, HALL_PLACE, hallPlacement,
