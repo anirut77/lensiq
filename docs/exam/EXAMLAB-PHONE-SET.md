@@ -188,6 +188,19 @@ Source: **public dataset**; public stills, not lab webcam; the field pilot confi
 | false flags, negatives, score cut 0.4 | secondary | 0.4 | 0.0 % (0 / 135) | 0.0 % – 2.8 % |
 | false flags, negatives, score cut 0.5 | secondary | 0.5 | 0.0 % (0 / 135) | 0.0 % – 2.8 % |
 
+Footnote to the secondary rows "score cut 0.4" and "score cut 0.5": with the zoom pass they mean **full-frame phone >= cut
+OR crop phone >= 0.6** (the crop cut is fixed at 0.6 in the shipped setting; the harness reports the best phone score of the
+page's object pass, and crops never report below 0.6).
+
+Switch (owner decision 221, default ข, 2026-11-21): the zoom pass runs only when `LENSIQ_EXAM_PHONE_ZOOM === true`
+(`lensiq-config.js`; off by default and in customer builds). Off = the full-frame call only, exactly as before 217, i.e. the
+29.6 % figure above. On = the measured g3x3 path, plus a live time guard added after this measurement (a crop pass slower
+than 300 ms pauses the crops for 5 s, then they are tried again; harness calls with an explicit setting bypass it). The
+65.4 % was measured with every crop pass running; on a device where the guard pauses the crops, fewer frames get the zoom
+pass and the k-of-n phone gate (3 of 5) fires less often, so the live recall there can be lower. Locked test:
+`tests/unit/exam-phone-zoom-switch.test.js` (`evals-locks/exam-a2-switch.sha256`). Re-running harness 2 or the tuning
+`--product` mode now needs the switch on in the page; with it off they measure the full-frame path.
+
 Nothing is re-tuned after this result. Page wording does not change here (claims change only through the separate 213
 work). The tuning set is noisier than the locked set (no hand-check), and its recall (70.6 %) and the locked recall
 (65.4 %) agree within their intervals.
