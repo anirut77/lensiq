@@ -88,7 +88,10 @@ test("D3 values are checked: wrong shapes, images and over-long values are left 
   const r = M.collect(store(bad), ["settings", "age", "records"]);
   assert.deepEqual(r.items, {});
   // every listed key with a bad value is skipped (6 listed keys); lq-med-history is not listed, so it is neither read nor skipped
-  assert.deepEqual(r.skipped.slice().sort(), ["lq-fortune-straight", "lq-lang", "lq-merit-tradition", "lq-nut-hide-kcal", "lq-pet-zodiac-v1", "lq-sol-filter"]);
+  // relock2: skipped entries are {key, why} objects (relock1 compared them with plain strings, which no product can meet)
+  assert.equal(r.skipped.length, 6);
+  assert.deepEqual(r.skipped.map(s => s.key).sort(), ["lq-fortune-straight", "lq-lang", "lq-merit-tradition", "lq-nut-hide-kcal", "lq-pet-zodiac-v1", "lq-sol-filter"]);
+  assert.ok(r.skipped.every(s => s.why === "invalid"), "every skip is for an invalid value");
   assert.equal(M.valueOk("lq-med-history", JSON.stringify([{ at: 1, kind: "x", q: "blob:https://a/b", r: "" }])), false, "blob: URL");
   assert.equal(M.valueOk("lq-med-history", JSON.stringify([{ at: 1, kind: "x", q: { nested: 1 }, r: "" }])), false, "nested object");
   assert.equal(M.valueOk("lq-fortune-straight", JSON.stringify({ adult: true, straight: true, extra: 1 })), false, "extra field");

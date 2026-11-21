@@ -19,3 +19,14 @@ e35aae4e30e4051312031a936b660892066e5692e823b45d3f13217b5d8c45c4  relock1/baseli
 # file, never written from a loaded or hostile file); D3's count 7 becomes the exact list of the 6 listed keys skipped;
 # D11 asserts the PDPA note says "excluded until counsel answers". The first lock's field copies are unchanged. Details:
 # ~/LENSIQ-field/evals/device-data-d4/relock1/NOTE.txt. Baseline before the product change: unit 6 / 12 pass.
+# locked 2026-11-21T02:28:08Z (tools/eval-guard.mjs lock, 3 files)
+e657f4911a6f784260d1c6126f7ae9bf4195f21fcf08b41b3301baa3a9841a22  relock2/device-data-d4.test.js
+a9964d50b993ed91bbe8c577ed3cfdd1660f5d1e06fc416fb02a7d0d68006da2  relock2/NOTE.txt
+cf65bde2fd4d55eb4769bce4e6927ec9b0f5445f1c91966194b15a74dda26ae7  relock2/baseline-unit.log
+e657f4911a6f784260d1c6126f7ae9bf4195f21fcf08b41b3301baa3a9841a22  tests/unit/device-data-d4.test.js  # repo file (same commit as lock 2026-11-21T02:28:08Z; field: ~/LENSIQ-field/evals/device-data-d4/relock2/device-data-d4.test.js)
+# field only relock2/NOTE.txt (lock 2026-11-21T02:28:08Z: no repo file uses it)
+# field only relock2/baseline-unit.log (lock 2026-11-21T02:28:08Z: no repo file uses it)
+# re-lock relock2 2026-11-21 (owner item 215, test setup only, unit file): relock1 D3 compared collect().skipped ({key,
+# why} objects) with plain key strings and could never pass. D3 now asserts the count 6, the exact 6 keys and why =
+# "invalid" (stricter than the original count-only check). Nothing else changed; e2e stays at relock1. Disclosure: the
+# amended file was run once on the built branch before this lock (12 / 12). ~/LENSIQ-field/evals/device-data-d4/relock2/NOTE.txt
