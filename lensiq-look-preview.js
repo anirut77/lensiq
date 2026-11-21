@@ -178,16 +178,16 @@
   var TXT = {
     th: { title: "ลองดูผ่านกล้อง", note: "ไม่เก็บภาพ ภาพไม่ออกจากเครื่อง ปิดหน้าต่างนี้แล้วกล้องหยุดทันที ภาพตัวอย่างเป็นการวาดทับโดยประมาณ สีบนจอเพี้ยนตามแสงและกล้อง",
       close: "ปิด", tryBtn: "ลองดูผ่านกล้อง", unavailable: "อุปกรณ์นี้แสดงภาพตัวอย่างสดไม่ได้ (ต้องใช้กล้องและการประมวลผลกราฟิกของเบราว์เซอร์) ดูภาพวาดประกอบแทนได้",
-      measured: "ความแม่นยำวัดจากใบหน้าสังเคราะห์ (วาดขึ้น) ยังไม่ได้วัดกับคนจริง", styles: "แบบ", loading: "กำลังเปิดกล้อง…" },
+      measured: "เป็นภาพจำลอง ผลอาจคลาดเคลื่อนได้", styles: "แบบ", loading: "กำลังเปิดกล้อง…" },
     en: { title: "Try with camera",
       note: "No photos are stored; images never leave your device, and the camera stops when you close this window. " +
         "The preview is an approximate overlay; screen colours vary with light and camera.",
       close: "Close", tryBtn: "Try with camera",
       unavailable: "Live preview is not available on this device (it needs a camera and the browser's graphics processing). The illustration shows the idea instead.",
-      measured: "Accuracy measured on synthetic (drawn) faces only, not yet on real people", styles: "Style", loading: "Starting the camera…" },
+      measured: "This is a preview; the result may not be accurate.", styles: "Style", loading: "Starting the camera…" },
     zh: { title: "用相机试试", note: "不保存照片，图像不会离开你的设备，关闭此窗口后相机立即停止。预览为近似叠加效果，屏幕颜色会随光线和相机而不同。",
       close: "关闭", tryBtn: "用相机试试", unavailable: "此设备无法显示实时预览（需要相机和浏览器的图形处理功能），可以参考示意图。",
-      measured: "准确度仅在合成（绘制）人脸上测量，尚未在真人上测量", styles: "样式", loading: "正在打开相机…" }
+      measured: "仅为模拟预览，结果可能有误。", styles: "样式", loading: "正在打开相机…" }
   };
   var STYLES = /** @type {Record<string, string[]>} */ ({ brow: ["fill", "define", "extend", "lift"], liner: ["thin", "tight", "wing-short", "wing-long"] });
   var STYLE_NAME = /** @type {Record<string, Record<string, string>>} */ ({

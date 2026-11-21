@@ -20,23 +20,29 @@
 <title data-i18n="driver.s1">เฝ้าระวังความง่วงคนขับ | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=24">
 <link rel="stylesheet" href="driver.css?v=5">
-<link rel="stylesheet" href="lensiq-sitecheck.css?v=3">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=4">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-driver.js?v=3"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-driver.js?v=4"></script>
 <script src="lensiq-i18n-rt.js?v=2"></script>
 <script src="i18n/zh-rt-common.js?v=7"></script>
 <script src="i18n/zh-rt-driver.js?v=5"></script>
-<script src="i18n/zh-rt-sitecheck.js?v=3"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=4"></script>
 
 <main class="dr">
   <h1 data-i18n="driver.s2">เครื่องช่วยเตือนการหลับตา (ไม่ใช่อุปกรณ์ความปลอดภัย)</h1>
   <p class="lead" data-i18n="driver.s3">เครื่องช่วยเตือนเสริมสำหรับพนักงานขับรถในฟลีตขนส่งและรถส่งสินค้า ดูสัญญาณง่วงและการละสายตาจากการหลับตา (EAR)
-    การหาว (MAR) PERCLOS และท่าทางศีรษะ จับการหลับตาได้เพียงบางส่วน (ดูผลวัดด้านล่าง) ประมวลผลในเครื่อง ไม่บันทึกภาพ</p>
-  <p class="acc-note" role="note"><b class="beta">Beta</b> <span data-i18n="driver.s4">เครื่องช่วยเตือนการหลับตา ไม่ใช่อุปกรณ์ความปลอดภัย · วัดบนภาพถ่ายจริงที่ไม่ได้ใช้ฝึก (CEW/LFW ไม่ใช่วิดีโอคนขับที่ง่วงจริง): จับตาปิดได้ราว 84% ต่อเฟรม แต่ในการขับจำลองเตือนการหลับตา 2 วินาทีได้เพียงราว 25% และเตือนผิดราว 1.4 ครั้งต่อชั่วโมง (ขับจำลอง 10 นาที 1 ใน 6 ครั้งมีเตือนผิด) แว่นกันแดด แสงย้อน และกล้องที่ไม่ใช่อินฟราเรดตอนกลางคืนทำให้แม่นยำน้อยลง</span> <a href="cameras.html#accuracy" data-i18n="driver.s5">วิธีวัดและข้อจำกัด</a><br><b class="beta lic-b" data-i18n="driver.licb">โมเดลใบอนุญาตวิจัย</b> <span data-i18n="driver.lic">ใบหน้าวิเคราะห์ด้วยโมเดล face-api.js (โค้ด MIT) ที่ฝึกจากชุดข้อมูลซึ่งอนุญาตเฉพาะงานวิจัย สิทธิ์ใช้เชิงพาณิชย์ยังไม่ได้รับการยืนยันจากนักกฎหมาย — ตรวจสิทธิ์ก่อนใช้งานเชิงพาณิชย์</span></p>
+    การหาว (MAR) PERCLOS และท่าทางศีรษะ จับการหลับตาได้เพียงบางส่วน ประมวลผลในเครื่อง ไม่บันทึกภาพ</p>
+  <p class="acc-note" role="note"><b class="beta" data-i18n="driver.trial">รุ่นทดลอง</b>
+    <span class="lq-lines">
+      <span data-i18n="ln.driver.1">เตือนเมื่อคนขับหลับตานานหรือหันออกจากถนน</span><br>
+      <span data-i18n="ln.driver.2">เตือนได้เพียงบางส่วน ไม่ใช่อุปกรณ์ความปลอดภัย ห้ามใช้แทนการพักผ่อน</span></span>
+    <br><b class="beta lic-b" data-i18n="driver.licb">โมเดลใบอนุญาตวิจัย</b>
+    <span data-i18n="driver.lic">ใบหน้าวิเคราะห์ด้วยโมเดล face-api.js (โค้ด MIT) ที่ฝึกจากชุดข้อมูลซึ่งอนุญาตเฉพาะงานวิจัย
+      สิทธิ์ใช้เชิงพาณิชย์ยังไม่ได้รับการยืนยันจากนักกฎหมาย — ตรวจสิทธิ์ก่อนใช้งานเชิงพาณิชย์</span></p>
 
   <div class="engine" id="engine" role="status">กำลังโหลดโมเดลวิเคราะห์ใบหน้า...</div>
   <div id="uaBox"></div>
@@ -53,7 +59,8 @@
           <button class="btn ghost" id="flipCam" type="button" data-i18n="driver.s14">สลับกล้องหน้า/หลัง</button>
           <button class="btn ghost" id="camPower" type="button" hidden>ปิดกล้อง</button>
         </div>
-        <p class="acc-start" id="accStart" role="note"><span data-i18n="driver.accstart">ก่อนเริ่ม: ผลวัดล่าสุด (การขับจำลอง ไม่ใช่คนขับที่ง่วงจริง) ระบบเตือนการหลับตา 2 วินาทีได้ราว 25% และเตือนผิดราว 1.4 ครั้งต่อชั่วโมง จึงพลาดการหลับตาได้มาก ห้ามใช้แทนการพักผ่อน และห้ามมองจอขณะขับ</span> <b data-i18n="driver.accstart2">หมายความว่ามีเพียงราว 25% ของการหลับตา 2 วินาทีที่มีเสียงเตือน ที่เหลือไม่มีเสียงเตือนเลย — เป็นเพียงเครื่องช่วยเตือนเสริม ไม่ใช่ตัวกันหลับ หากรู้สึกง่วงให้จอดพักทันที อย่ารอเสียงเตือน</b></p>
+        <p class="acc-start" id="accStart" role="note"><span data-i18n="driver.accstart">ระบบพลาดการหลับตาได้บ่อย ห้ามใช้แทนการพักผ่อน และห้ามมองจอขณะขับ</span>
+          <b data-i18n="driver.accstart2">การหลับตาส่วนใหญ่จะไม่มีเสียงเตือนเลย — เป็นเพียงเครื่องช่วยเตือนเสริม ไม่ใช่ตัวกันหลับ หากรู้สึกง่วงให้จอดพักทันที อย่ารอเสียงเตือน</b></p>
         <p class="lq-ready" id="drReady" role="status" hidden></p>
         <button class="btn primary" type="submit" data-i18n="driver.s15">เริ่มเที่ยว + ปรับเทียบ 5 วินาที</button>
         <p class="form-msg" id="tripMsg" role="status"></p>
@@ -86,11 +93,10 @@
     </div>
 
     <div class="cal-warn" id="calWarn" role="alert" hidden><b data-i18n="driver.calwarn.t">ระบบไม่ได้เฝ้าระวังเต็มที่</b>
-      <span id="calWarnFail" data-i18n="driver.calwarn.fail" hidden>ปรับเทียบไม่สำเร็จ — ระบบใช้เกณฑ์ค่าเริ่มต้น ซึ่งบนภาพจริงจากชุดข้อมูลสาธารณะ
-      (CEW) จับตาปิดได้เพียงราว 18% ต่อเฟรม และปิดการตรวจศีรษะตก ให้ถือว่าระบบไม่ได้เฝ้าระวังคุณ: จอดรถในที่ปลอดภัย ปรับมุมกล้องและแสงให้เห็นใบหน้าชัด
-      แล้วกด “ปรับเทียบใหม่”</span><span id="calWarnEar" data-i18n="driver.calwarn.ear" hidden>ใช้ภาพดวงตาไม่ได้ (เช่น แว่นดำ แสงย้อน
-      หรือตาดูเหมือนปิดตอนปรับเทียบ) — ระบบใช้ EAR อย่างเดียว ซึ่งบนภาพจริงจากชุดข้อมูลสาธารณะ (CEW) จับตาปิดได้เพียงราว 18–26% ต่อเฟรม
-      และจะพลาดการหลับตาส่วนใหญ่: ถอดแว่นดำ ลดแสงย้อน แล้วกด “ปรับเทียบใหม่”</span></div>
+      <span id="calWarnFail" data-i18n="driver.calwarn.fail" hidden>ปรับเทียบไม่สำเร็จ ระบบแทบจับตาปิดไม่ได้ และปิดการตรวจศีรษะตก
+      ให้ถือว่าระบบไม่ได้เฝ้าระวังคุณ: จอดรถในที่ปลอดภัย ปรับมุมกล้องและแสงให้เห็นใบหน้าชัด แล้วกด “ปรับเทียบใหม่”</span><span id="calWarnEar"
+      data-i18n="driver.calwarn.ear" hidden>ใช้ภาพดวงตาไม่ได้ (เช่น แว่นดำ แสงย้อน หรือตาดูเหมือนปิดตอนปรับเทียบ) ระบบแทบจับตาปิดไม่ได้และจะพลาดการหลับตาส่วนใหญ่
+      ให้ถือว่าระบบไม่ได้เฝ้าระวังคุณ: จอดรถในที่ปลอดภัย ถอดแว่นดำ ลดแสงย้อน แล้วกด “ปรับเทียบใหม่”</span></div>
 
     <div class="live-grid">
       <div class="cam-col">
@@ -191,8 +197,8 @@
 <script src="lensiq-crashguard.js?v=1"></script>
 <script src="lensiq-camera.js?v=8"></script>
 <script src="lensiq-detect.js?v=7"></script>
-<script src="lensiq-sitecheck.js?v=4"></script>
-<script src="driver.js?v=14"></script>
+<script src="lensiq-sitecheck.js?v=5"></script>
+<script src="driver.js?v=15"></script>
 <script src="lensiq-config.js?v=30"></script>
 </body>
 </html>

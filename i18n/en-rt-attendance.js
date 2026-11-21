@@ -64,5 +64,11 @@
   "ไม่แน่ใจ — กรุณากดยืนยันตัวตน": "Not sure — please confirm identity",
   "ยืนยัน ใช่": "Confirm, yes",
   "ไม่ใช่": "No",
-  "ไม่บันทึก": "Don't record"
+  "ไม่บันทึก": "Don't record",
+  // 223-4 on-site test (renamed; detailed figures folded)
+  "ทดสอบหน้างาน": "On-site test",
+  "ตัวเลขละเอียดสำหรับผู้ดูแล": "Detailed figures for the administrator",
+  "ระหว่างใช้งานจริง ระบบเสนอชื่อให้ยืนยัน {a} ครั้ง: ถูกคน {b} · ไม่ใช่ {c}": "In real use the system offered a name to confirm {a} times: right person {b} · not them {c}",
+  "เสนอชื่อถูก {a}% (ช่วงความเชื่อมั่น {b}–{c}%)": "{a}% of offered names were right (confidence interval {b}–{c}%)",
+  "ระหว่างใช้งานจริง: ยังไม่มีการกดยืนยันหรือปฏิเสธชื่อที่ระบบเสนอ": "In real use: no offered names have been confirmed or rejected yet"
 });

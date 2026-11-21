@@ -4,7 +4,7 @@
 
 > **ราคาที่อนุมัติแล้ว (ยังไม่เปิดขาย)** ราคาในเอกสารนี้มาจากรายการราคาที่เจ้าของอนุมัติ 2026-11-09 (`docs/PRICING-RESEARCH.md` §3.3) ยังไม่มีการเก็บเงิน
 >
-> **สถานะ: รุ่นทดลอง สำหรับอีเวนต์ ยังไม่เหมาะกับฝูงชนหนาแน่น** ตัวเลขทุกตัวเป็นผลเบื้องต้น (ค่าอ้างอิงนับโดย AI รอคนนับ) ฝูงชนราว 300 คนถูกนับได้ราว 1 คนต่อภาพ ห้ามใช้ตัดสินความปลอดภัยของฝูงชน
+> **สถานะ: รุ่นทดลอง สำหรับอีเวนต์ ยังไม่เหมาะกับฝูงชนหนาแน่น** ห้ามใช้ตัดสินความปลอดภัยของฝูงชน
 
 ## ปัญหา
 - ผู้จัดงานและเจ้าของพื้นที่อยากรู้ว่าช่วงไหนคนเยอะ โซนไหนคนแน่น มีคนเข้าออกกี่คน แต่เครื่องนับที่ประตูราคา 7,900–19,900 บาทต่อจุด (ซื้อขาด) และติดตั้งถาวร
@@ -20,22 +20,12 @@
 
 ไม่ทำ: ไม่จดจำใบหน้า ไม่ประมาณอายุ/เพศ/สีหน้า (ปิดในโหมดลูกค้า) ไม่บันทึกวิดีโอ
 
-## ความแม่นยำและที่มา
+## ใช้ทำอะไร และข้อจำกัดสำคัญ
 
-รูปแบบ: ตัวเลข · ขนาดชุดทดสอบ (n) · ที่มา (ข้อมูลจำลอง / ชุดข้อมูลสาธารณะ / หน้างานจริง) — ไม่มีผลวัดเขียนว่า “ยังไม่ได้วัด” (`docs/ACCURACY-CLAIMS.md`)
-ตัวเลขทั้งหมดเป็น **ผลเบื้องต้น**: ค่าจริงนับโดย AI ดูภาพนิ่ง ไม่ใช่คน 2 คน (ผลสุดท้ายรอการนับโดยคน)
+นับคนและดูความหนาแน่นในโซนที่คุณวาด สำหรับอีเวนต์และพื้นที่จัดงาน ประมวลผลบนเครื่อง ไม่ระบุตัวตน
+เหมาะกับงานที่มีคนน้อยถึงปานกลาง ยังไม่เหมาะกับฝูงชนหนาแน่น
 
-| ข้อกล่าวอ้าง | ค่า | n | ที่มา | เอกสาร |
-|---|---|---|---|---|
-| ฝูงชนหนาแน่น (ราว 300 คน) | ยังไม่เหมาะกับฝูงชนหนาแน่น: นับได้ราว 1 คนต่อภาพ (0–2 คนในคลิปไทม์แลปส์ที่มีคนมากกว่า 100 คน) | n = 2 + 7 ภาพ (2 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
-| คน 15–22 คนเต็มภาพ | นับต่ำกว่าจริง 26% | n = 12 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
-| คน 30–50 คน หลายคนอยู่ไกล | นับต่ำกว่าจริง 58% (ค่าจริงเองเป็นค่าประมาณ ±20%) | n = 20 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
-| คนตัวเล็ก / อยู่ไกล | นับต่ำกว่าจริง 37–59% | n = 29 ภาพ (2 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
-| โซนใกล้กล้อง 0–13 คน | คลาด 1.2 คนต่อภาพ (31%) bias −0.2 | n = 20 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
-| เส้นนับเข้า/ออก | 1 / 1 ครั้ง ไม่มีการนับเกิน | n = 1 ครั้งที่ข้ามเส้น (2 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
-| เวลาต่อภาพบนมือถือระดับกลาง | 355 ms (≈ 2.8 ครั้งต่อวินาที) จำลองด้วยการลดความเร็ว CPU ×4 ไม่ใช่มือถือจริง | n = 27 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ (เครื่องจำลอง) | `docs/CROWD-ACCURACY.md` |
-| ความแม่นยำสุดท้าย (คนนับ) | ยังไม่ได้วัด | — | หน้างานจริง: ยังไม่ได้วัด (รอการนับโดยคน) | `docs/CROWD-ACCURACY.md` |
-| ที่ไซต์ลูกค้าจริง | ยังไม่ได้วัด | — | หน้างานจริง: ยังไม่ได้วัด (ยังไม่มีโครงการนำร่อง) | `docs/pilot/PILOT-CROWD.md` |
+เอกสารเทคนิคขอได้จากฝ่ายขาย
 
 ## โครงการนำร่อง
 ขั้น 0: คน 2 คนนับคลิปทดสอบเดิม (ผลสุดท้าย) + วัดเวลาบนมือถือระดับกลางจริง → ขั้น 1: ไซต์ 1–2 แห่ง (5–40 คนในภาพช่วงพีค) 2–3 วัน
@@ -55,7 +45,7 @@
 ระดับฟรีเกิน 2 ชั่วโมงต่อเครื่องต่อวันต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มใช้ตั้งแต่วันที่จะประกาศล่วงหน้าอย่างน้อย 30 วัน เจ้าของบังคับใช้ผ่านสัญญา ข้อจำกัดบนเครื่องผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน ลูกค้าส่งออกข้อมูลของตนได้เสมอ ชำระโดยโอนผ่านธนาคารเท่านั้น (เจ้าของตัดสินใจ 2026-11-13)
 
 เทียบตลาด: เครื่องนับคนที่ประตู 7,900–19,900 บาท (ซื้อขาด) บริการรายเดือนต่างประเทศราว 290–315 บาทต่ออุปกรณ์ต่อเดือน
-(`docs/PRICING-RESEARCH.md` §1D) ราคานำร่องอยู่ล่างสุดของช่วง เพราะระบบนับต่ำกว่าจริง 26–59% (n = 12–20 ภาพต่อคลิป 4 คลิป) และยังไม่มีผลหน้างานจริง
+(`docs/PRICING-RESEARCH.md` §1D) ราคานำร่องอยู่ล่างสุดของช่วง เพราะระบบยังไม่เหมาะกับฝูงชนหนาแน่นและควรทดสอบหน้างานก่อน
 ราคาตลาดเป็นราคาตามที่แหล่งที่มาแสดง ร้านในไทยมักรวม VAT แล้ว จึงเทียบกับราคา LENSIQ (ไม่รวม VAT) ได้โดยประมาณ ต่างกันราว 7%
 
 ## PDPA
@@ -71,10 +61,8 @@
 
 ## LENSIQ Crowd — people in a zone and entry / exit counts for booths, lobbies and event entrances
 
-It runs on a phone or laptop camera and processes on the device. It does no face recognition and keeps no images. **Status: experimental, for events, not yet suitable for dense crowds**; every figure is preliminary (AI
-reference, human count pending). It is for **sparse to medium crowds**. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09
-(`docs/PRICING-RESEARCH.md` §3.3); nothing is charged yet. **Not yet suitable for dense crowds:** about 300 people were counted as about 1 per frame. Never use it for
-crowd-safety decisions.
+It runs on a phone or laptop camera and processes on the device. It does no face recognition and keeps no images. **Status: trial version, for events, not yet suitable for dense crowds.** It is for **sparse to medium crowds**. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09
+(`docs/PRICING-RESEARCH.md` §3.3); nothing is charged yet. Never use it for crowd-safety decisions.
 
 **What you get:**
 - **People in view and in a zone:** a 5-frame median, shown as "≈ estimate" when 15 or more people are in view or a zone
@@ -86,22 +74,12 @@ crowd-safety decisions.
 
 **Never:** face recognition; age, gender or expression estimation (off in customer mode); video recording.
 
-## Accuracy and source
+## What it is for and its main limits
 
-All figures are **preliminary**: the reference was an AI reviewer looking at still frames, not two human counters (the
-final figure is pending a human count).
+Counts people and shows crowding in the zones you draw, for events and venues. Runs on the device and identifies no one.
+Suited to light to moderate crowds; not yet suitable for dense crowds.
 
-| Claim | Value | n | Source | Document |
-|---|---|---|---|---|
-| Dense crowd (about 300 people) | not yet suitable for dense crowds: about 1 counted per frame (0–2 on the 100+ person time-lapse) | n = 2 + 7 frames (2 clips) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
-| 15–22 people, whole view | undercount 26% | n = 12 frames (1 clip) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
-| 30–50 people, many far | undercount 58% (reference itself an estimate ±20%) | n = 20 frames (1 clip) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
-| Small / far people | undercount 37–59% | n = 29 frames (2 clips) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
-| Near zone, 0–13 people | 1.2 people per frame (31%), bias −0.2 | n = 20 frames (1 clip) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
-| Entry / exit line | 1 / 1 crossings, 0 false | n = 1 crossing (2 clips) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
-| Time per frame, mid-range phone | 355 ms (≈ 2.8 calls/s), emulated CPU ×4, not a real phone | n = 27 frames (1 clip) | public dataset (emulated device) | `docs/CROWD-ACCURACY.md` |
-| Final accuracy (human count) | not measured | — | field: not measured (human count pending) | `docs/CROWD-ACCURACY.md` |
-| A real customer site | not measured | — | field: not measured (no pilot yet) | `docs/pilot/PILOT-CROWD.md` |
+The technical sheet is available from sales on request.
 
 **Pilot:** two phases (`docs/pilot/PILOT-CROWD.md`).
 - Phase 0: a two-person human count of the existing clips (the final figure), plus timing on a real mid-range phone.

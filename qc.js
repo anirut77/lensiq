@@ -1576,7 +1576,7 @@ if (typeof document !== "undefined") (() => {
   let SCQ = null, SCQ_LAST = null;
   const scqHist = SITE ? SITE.history("qc-sitecheck") : null;
   const scqPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
-    title: "ตรวจความแม่นยำหน้างาน",
+    title: "ทดสอบหน้างาน",
     intro: "ทดสอบกับขวดจริงบนสายการผลิตของคุณ: เตรียมขวดดีและขวดเสียที่รู้ข้อบกพร่อง ปล่อยผ่านกล้องตามปกติ แล้วติดป้ายว่าแต่ละขวดดีหรือเสีย ระบบคำนวณอัตราคัดทิ้งผิดและหลุดผ่านที่หน้างานนี้ และเสนอเกณฑ์ที่ควรปรับ",
     steps: [
       "สอบเทียบสูตรและบันทึกพื้นหลังว่างตามปกติก่อน",
@@ -1606,7 +1606,7 @@ if (typeof document !== "undefined") (() => {
   }
   function scqStart() {
     if (!SITE || SCQ) return;
-    if (!rec.golden) return engine("ยังไม่มีขวดตัวอย่าง: สอบเทียบก่อนเริ่มตรวจความแม่นยำ", "warn");
+    if (!rec.golden) return engine("ยังไม่มีขวดตัวอย่าง: สอบเทียบก่อนเริ่มทดสอบหน้างาน", "warn");
     SCQ = { rows: [], startedAt: Date.now(), health: new Set(), source };
     scqPanel.q(".sc-q").hidden = false; scqPanel.start.disabled = true; scqPanel.stop.disabled = false; scqPanel.exp.hidden = true; scqPanel.q(".sc-apply").hidden = true;
     scqPanel.state.textContent = "กำลังตรวจ"; scqPanel.state.dataset.s = "live"; SITE.renderReport(scqPanel.report, null);

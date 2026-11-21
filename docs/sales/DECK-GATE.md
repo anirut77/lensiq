@@ -1,7 +1,6 @@
-# สไลด์ขาย: LENSIQ Gate (10 สไลด์) / Sales deck: LENSIQ Gate
+# สไลด์ขาย: LENSIQ Gate (11 สไลด์) / Sales deck: LENSIQ Gate
 
-> **ร่าง (DRAFT) 2026-11-11** สร้างจาก `docs/ONE-PAGER-GATE.md` ใช้เฉพาะตัวเลขที่วัดแล้ว แต่ละตัวมีที่มา (ข้อมูลจำลอง / ชุดข้อมูลสาธารณะ / หน้างานจริง) และไฟล์อ้างอิง
-> จาก `docs/ACCURACY-CLAIMS.md` §5 และ `docs/GATE.md` §3b–3c ถ้าไม่ได้วัด เขียนว่า "ยังไม่ได้วัด"
+> **ร่าง (DRAFT) 2026-11-11** สร้างจาก `docs/ONE-PAGER-GATE.md` สไลด์ลูกค้าไม่มีตัวเลขความแม่นยำ มีเพียงข้อจำกัดในภาษาง่าย ๆ ตัวเลขละเอียดอยู่ใน `docs/tech-sheets/gate-TH.md` (มอบให้เมื่อถูกถาม)
 > บรรทัด "ไฟล์:" เป็นข้อมูลภายใน เจ้าของตัดออกก่อนส่งนอกองค์กรได้ [ต้องยืนยัน / to confirm] ช่อง [วงเล็บ] เจ้าของกรอก จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
 > **ขายเป็นผู้ช่วย รปภ. ที่ รปภ. แตะยืนยันทุกคัน ไม่ใช่ไม้กั้นอัตโนมัติ**
 
@@ -13,7 +12,7 @@
 - ผู้ช่วย รปภ. อ่านป้ายทะเบียนไทย สำหรับหมู่บ้าน คอนโด และลานจอดรถ
 - ระบบเสนอเลขป้าย **รปภ. ยืนยันทุกคัน** ใช้มือถือ โน้ตบุ๊ก หรือกล้องที่มีอยู่
 - ประมวลผลบนเครื่อง ไม่จดจำใบหน้า ไม่ขายกล้อง ไม้กั้น หรือรีเลย์
-- สถานะ: พร้อมนำร่อง · การหาป้ายในภาพจริงยังอ่อน
+- สถานะ: ผู้ช่วย รปภ. ภาพจากกล้องจริงส่วนใหญ่ยังต้องให้ รปภ. แตะเลือกป้ายหรือแก้เลข
 - ผู้นำเสนอ: [ชื่อ ตำแหน่ง] · [ชื่อผู้ขาย] (OP-01) · วันที่ [วันที่]
 
 ---
@@ -49,29 +48,19 @@
 |---|---|
 | หมู่บ้าน / คอนโด (`village.html`) | รถลูกบ้านตามบ้านเลขที่ รายการห้ามเข้า (ต้องมีเหตุผล) บัตรผ่านผู้มาเยือนจำกัดเวลา (รหัส/QR/LINE) แจ้งเตือนรถไม่รู้จัก ผู้มาเยือนอยู่เกินเวลา ปุ่มเปิดของ รปภ. |
 | ลานจอดรถ (`parking.html`) | จับคู่ขาเข้า-ออก ค่าจอด ตราประทับร้านค้า QR พร้อมเพย์ ใบเสร็จ ปิดกะ — รวมทั้งหมดในราคา ไม่มีค่าเสริม |
-| ตรวจความแม่นยำหน้างาน | รปภ. กด ✓ ✗ ทุกการอ่าน แยกกลางวัน/กลางคืน พร้อมช่วงความเชื่อมั่น 95% |
+| ทดสอบหน้างาน | รปภ. กด ✓ ✗ ทุกการอ่าน แยกกลางวัน/กลางคืน |
 
 - เปิดไม้กั้นอัตโนมัติ **ปิดเป็นค่าเริ่มต้น** ปุ่มเปิดเป็นของ รปภ. และบันทึกทุกครั้ง
 - ไฟล์: `docs/ONE-PAGER-GATE.md`, `docs/GATE.md` §2–3
 
 ---
 
-# 5. ความแม่นยำที่วัดแล้ว
-*Measured accuracy*
+# 5. ข้อจำกัดที่ควรรู้
+*Limits worth knowing*
 
-| ข้อกล่าวอ้าง / claim | ค่า / value | n | ที่มา / source | ไฟล์ |
-|---|---|---|---|---|
-| หาป้ายเจอ (กรอบแรก) · plate found (top box) | 97.1% (136 / 140) | n = 140 ฉาก | **ข้อมูลจำลอง** (ชุดเดโม seed 7) / synthetic | `docs/GATE.md` §3b |
-| อ่านถูกทั้งป้ายจากภาพเดียว · whole plate right from one frame | 58% (81 / 140) | n = 140 ฉาก | ข้อมูลจำลอง / synthetic | `docs/GATE.md` §3b |
-| ฉากที่ไม่มีป้ายถูกอ่านอัตโนมัติ · plate-less scene read automatically | 0 / 20 | n = 20 ฉาก | ข้อมูลจำลอง / synthetic | `docs/GATE.md` §3c |
-| ภาพถ่ายจริง กรอบแรกอยู่บนป้าย · real photos, top box on the plate | 44% (14 / 32) | n = 32 ภาพที่มีป้าย | **ชุดข้อมูลสาธารณะ** (Wikimedia Commons, ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12) / public dataset, labels v3 confirmed by the owner 2026-11-12 | `docs/GATE.md` §3c |
-| ภาพถ่ายจริง อ่านอัตโนมัติถูกทั้งป้าย · real photos, whole plate read right automatically | 32% (7 / 22) | n = 22 ภาพ (12 ภาพใช้ปรับการตรวจว่าเป็นป้าย จึงมองในแง่ดี / 12 tuning photos, optimistic) | ชุดข้อมูลสาธารณะ / public dataset | `docs/GATE.md` §3c |
-| ภาพถ่ายจริง ต้องแตะกรอบเอง · real photos, guard had to tap the box | 78% (25 / 32) | n = 32 ภาพที่มีป้าย | ชุดข้อมูลสาธารณะ / public dataset | `docs/GATE.md` §3c |
-| ภาพจริงที่ไม่มีป้ายแต่ถูกอ่านอัตโนมัติ · real photos without a plate read automatically | 0 / 19 (ช่วง 95%: 0–17%) | n = 19 ภาพ | ชุดข้อมูลสาธารณะ / public dataset | `docs/GATE.md` §3c |
-| ลานจอดหรือหมู่บ้านจริง · a real car park or village | **ยังไม่ได้วัด / not measured** | — | หน้างานจริง: ยังไม่มีโครงการนำร่อง / field | `docs/pilot/PILOT-GATE.md` |
-| ภาพมือถือของเจ้าของ (~100 ภาพ) · owner phone photos | **ยังไม่ได้วัด / not measured** | — | หน้างานจริง (ภาพของเจ้าของ) / field | `docs/field-pilot/plates-photo-labels.md` |
-
-- อ่านตรง ๆ: บนภาพจริงวันนี้ รปภ. ยังต้องแตะกรอบป้ายเองเกือบ 4 ใน 5 คัน จึงขายเป็น "ผู้ช่วย รปภ." ไม่ใช่ไม้กั้นอัตโนมัติ
+- อ่านป้ายทะเบียนรถไทยบนเครื่องสำหรับลานจอดและหมู่บ้าน เจ้าหน้าที่ยืนยันทุกคันก่อนเปิดไม้กั้นหรือคิดเงิน
+- ภาพจากกล้องจริงส่วนใหญ่ยังต้องให้เจ้าหน้าที่แตะเลือกป้ายหรือแก้เลข ป้ายเอียง มืด สกปรก หรือป้ายมอเตอร์ไซค์อาจอ่านผิด
+- ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค (`docs/tech-sheets/gate-TH.md`) ขายเป็น "ผู้ช่วย รปภ." ไม่ใช่ไม้กั้นอัตโนมัติ
 
 ---
 
@@ -104,7 +93,7 @@
 
 - **ทดลองใช้ฟรี 30 วัน:** 1 ช่องทาง · 100 ป้ายต่อวัน · เก็บบันทึก 7 วัน (นับวันด้วยมือ ยังไม่มีตัวจับเวลาในระบบ OP-20 เกินนี้ต้องมีใบอนุญาต)
 - **นำร่อง:** ขั้น 0 ภาพมือถือของเจ้าของ ~100 ภาพ → ขั้น 1 ลานจอด 1 + หมู่บ้าน 1 อย่างน้อย 5 วัน ≥ 200 การอ่านจริง (กลางคืน ≥ 40)
-- เกณฑ์ที่เสนอ: อ่านถูกทั้งป้าย ≥ 95% กลางวัน ≥ 85% กลางคืน ไม่มีค่าผิดที่บันทึกโดยไม่มีใครเห็น ตัดสินด้วยขอบล่าง Wilson 95% และรายงานค่าเฉลี่ยธรรมดาคู่กัน
+- เกณฑ์ที่เสนอ: อ่านถูกทั้งป้าย ≥ 95% กลางวัน ≥ 85% กลางคืน ไม่มีค่าผิดที่บันทึกโดยไม่มีใครเห็น วิธีตัดสินและการรายงานค่าเฉลี่ยคู่กันอยู่ใน `docs/pilot/PILOT-GATE.md` §5
 - ผลเป็นตัวเลข "หน้างานจริง" ของไซต์คุณเอง
 - ไฟล์: `docs/pilot/PILOT-GATE.md` §2, §5
 
@@ -118,7 +107,7 @@
 | ทดลองใช้ | ฟรี 30 วัน (1 ช่องทาง 100 ป้ายต่อวัน เก็บบันทึก 7 วัน) | เหมือนกัน |
 | หมู่บ้าน / คอนโด | 490 บาท/เดือน/ช่องทาง | 990 บาท/เดือน/ช่องทาง · 1,990 บาท/เดือน (3 ช่องทาง) |
 | ลานจอดรถ (รวมพร้อมเพย์ ใบเสร็จ ปิดกะ) | 790 บาท/เดือน/ช่องทาง | 1,490 บาท/เดือน/ช่องทาง |
-| ติดตั้งหน้างาน (มุมกล้อง แสง ตรวจความแม่นยำร่วมกัน) | 2,500 บาท/ครั้ง | 3,000–5,000 บาท/ครั้ง |
+| ติดตั้งหน้างาน (มุมกล้อง แสง ทดสอบหน้างานร่วมกัน) | 2,500 บาท/ครั้ง | 3,000–5,000 บาท/ครั้ง |
 
 - ตัวอย่าง: หมู่บ้าน 2 ช่องทาง × 490 = 980 บาท/เดือน + ติดตั้ง 2,500 = 3,480 บาท ก่อน VAT (VAT 243.60 รวม 3,723.60)
 - ลูกค้าชำระราคา + VAT 7% ผ่านใบเสนอราคาและโอนธนาคารเท่านั้น (OP-02) · ราคาปกติหลังผ่านเกณฑ์นำร่อง ใช้เมื่อผ่านเกณฑ์เท่านั้น (OP-10)
@@ -134,15 +123,22 @@
 1. ระบุแบบ (หมู่บ้าน/ลานจอด) จำนวนช่องทาง ตำแหน่งป้อม และแสงกลางคืน (ส่งรูปที่ไม่มีคน)
 2. ใบเสนอราคาและแบบฟอร์มสั่งซื้อ · นิติบุคคล/เจ้าของลานจอดอนุญาต · ติดป้าย PDPA
 3. ติดตั้ง อบรม รปภ. 30 นาที · ทดลองฟรี 30 วัน
-4. ตรวจความแม่นยำด้วยเมนูในหน้า · ตัดสินใจนำร่อง/ใช้งานต่อ
+4. ทดสอบหน้างานด้วยเมนูในหน้า · ตัดสินใจนำร่อง/ใช้งานต่อ
 - ติดต่อ: [อีเมล] · [LINE OA] · [โทรศัพท์] (OP-16) · แบบฟอร์ม `index.html?interest=security#contact`
+
+---
+
+# 11. เอกสารเทคนิค
+*Technical sheet*
+
+- ตัวเลขการทดสอบและวิธีทดสอบอยู่ในเอกสารเทคนิคของ Gate ขอได้จากฝ่ายขาย (ภายใน: `docs/tech-sheets/gate-TH.md`)
+- มอบให้เมื่อผู้ซื้อหรือฝ่ายจัดซื้อขอดู
 
 ---
 
 # English summary
 
 LENSIQ Gate suggests a Thai plate and a guard confirms every vehicle; it is a guard's assistant, not an automatic barrier. It runs on a phone, laptop or camera you already have, on the device, with no face recognition,
-no emotion or lie detection, and no age / gender / expression models in customer builds. Measured: synthetic data (n = 140 scenes) plate found 97.1% and whole plate right from one frame 58% (`docs/GATE.md` §3b);
-public dataset, real photos from Wikimedia Commons (labels v3 confirmed by the owner 2026-11-12): whole plate read right automatically 32% (7 / 22, 12 of them tuning photos, optimistic), the guard had to tap the box in 78% (25 / 32), plate-less photos
-read automatically 0 / 19 (§3c). A real car park or village: not measured. Auto-open of a barrier is off by default. Approved prices excl. 7% VAT, pilot price: free 30-day trial (1 lane, 100 plates per day; beyond the free tier a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet); village 490 THB per lane per month;
+no emotion or lie detection, and no age / gender / expression models in customer builds. On real camera images most cars still need staff to tap the plate or correct the number; tilted, dark, dirty or motorcycle plates may be misread.
+The technical sheet is available from sales on request. Auto-open of a barrier is off by default. Approved prices excl. 7% VAT, pilot price: free 30-day trial (1 lane, 100 plates per day; beyond the free tier a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet); village 490 THB per lane per month;
 car park 790 THB per lane per month (PromptPay, receipts and shift close included); on-site set-up 2,500 THB per visit; hardware not sold. Sold by quotation and bank transfer.

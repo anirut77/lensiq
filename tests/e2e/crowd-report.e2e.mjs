@@ -2,7 +2,7 @@
 // label when many people are in view and the "people look small" hint; entry/exit per 15 minutes (in, out, net, still inside);
 // heatmap per hour (small multiples + slider); peak-hour report (busiest zone / 15 min, printable); marketing CSV (UTF-8 BOM,
 // labelled sections, numbers only); a seeded day in English and Chinese (no Thai left, English CSV headers) at 320/360/390 px;
-// the PRELIMINARY accuracy note with "pending human count". Privacy: only numbers are stored.
+// no accuracy panel (decision 223): plain limit + recheck line. Privacy: only numbers are stored.
 import { openSeeded, startFake, noErrors, mobileCheck, assert, privacyScan, sleep } from "./zones-lib.mjs";
 
 const ZONE = { id: "z1", name: "Stage", role: "area", cap: 0, area: 4, poly: [{ x: 0.0, y: 0.2 }, { x: 0.45, y: 0.2 }, { x: 0.45, y: 0.99 }, { x: 0.0, y: 0.99 }] };
@@ -59,10 +59,12 @@ export default async function ({ base, launch, check, fakeCams }) {
       });
       await page.evaluate(l => { localStorage.setItem("lqcr-line", JSON.stringify(l)); }, LINE);
       await page.reload();
-      // the accuracy note: preliminary, AI reference, final pending a human count
-      const acc = await page.evaluate(() => document.getElementById("crAcc").textContent);
-      // walk-through 2026-11-16 D-06: "preliminary" in the page language (ผลเบื้องต้น), no English "(PRELIMINARY)" inside Thai
-      assert(/ผลเบื้องต้น/.test(acc) && /AI/.test(acc) && /รอผลการนับโดยคน/.test(acc), acc.slice(0, 200));
+      // decision 223: no accuracy panel; the plain dense-crowd limit, the setup tip and the recheck line are shown instead
+      const acc = await page.evaluate(() => ({ panel: !!document.getElementById("crAcc") || !!document.getElementById("crClaims"),
+        main: document.querySelector("main").textContent }));
+      assert(!acc.panel && !/ผลเบื้องต้น|รอผลการนับโดยคน/.test(acc.main), "accuracy panel or figures still shown");
+      assert(/ยังไม่เหมาะกับฝูงชนหนาแน่น/.test(acc.main) && /ตั้งกล้องสูงมองเฉียงลง/.test(acc.main) && /โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้/.test(acc.main),
+        "plain limit, setup tip and recheck line");
       await startFake(page, script);
       const est = await page.waitFor(`(() => { const q = document.getElementById("crQual");
         return !q.hidden && /ไม่ใช่ยอดนับที่แน่นอน/.test(q.textContent) && __LQZ.cr.qual.estimate && document.querySelector("#tiles .tile .v").textContent; })()`, 8000);
@@ -91,7 +93,11 @@ export default async function ({ base, launch, check, fakeCams }) {
       const csv = await csvBytes(page, "exportMkt");
       assert(csv && csv.bom.join() === "239,187,191", "UTF-8 BOM " + JSON.stringify(csv && csv.bom));
       for (const h of ["รายงานจำนวนคนสำหรับการตลาด", "ผู้เข้าชมรายชั่วโมง", "เข้า–ออกราย 15 นาที", "เวลาอยู่และความหนาแน่นรายโซน", "สรุปความหนาแน่นตามช่วงเวลา",
-        "ผู้เข้าชม (ประมาณ, คน)", "สุทธิ เข้า − ออก (คน)", "ความหนาแน่นสูงสุด (คน/ตร.ม.)", "รอการนับเทียบโดยคน"]) assert(csv.text.includes(h), "CSV has " + h);
+        "ผู้เข้าชม (ประมาณ, คน)", "สุทธิ เข้า − ออก (คน)", "ความหนาแน่นสูงสุด (คน/ตร.ม.)"]) assert(csv.text.includes(h), "CSV has " + h);
+      // re-lock 223 (was: the CSV note says "รอการนับเทียบโดยคน" after a preliminary figure): the plain camera-estimate note
+      // (cr.mk.acc) with the recheck request, and no "awaiting the human count" / "preliminary" wording
+      assert(csv.text.includes("หมายเหตุ: ตัวเลขเป็นค่าประมาณจากกล้อง อาจนับต่ำกว่าจริงเมื่อคนอยู่ไกลหรือแน่นมาก โปรดตรวจสอบอีกครั้ง"), "CSV has the plain estimate note");
+      assert(!/รอการนับเทียบโดยคน|ผลเบื้องต้น|เบื้องต้น|ความแม่นยำ/.test(csv.text), "CSV has no 'awaiting human count' / preliminary / accuracy wording");
       assert(/\nStage,/.test(csv.text) && /\n\d\d:\d\d,\d\d:\d\d,[01],[01],-?[01],[01]\n/.test(csv.text) && !/data:image|"box"/.test(csv.text), csv.text.slice(0, 600));
       const printed = await page.evaluate(() => {
         let during = null; window.print = () => { during = document.documentElement.classList.contains("cr-print-peak"); };
@@ -145,10 +151,9 @@ export default async function ({ base, launch, check, fakeCams }) {
         const csv = await csvBytes(page, "exportMkt");
         assert(csv.bom.join() === "239,187,191" && !/[ก-๛]/.test(csv.text), `${lang} CSV has no Thai: ` + csv.text.slice(0, 300));
         const want = lang === "en" ? ["Visitors per hour", "Visitors (approx., people)", "In/out per 15 minutes (counting line)", "Peak density (people/m²)",
-          "Final accuracy is pending"] : ["每小时访客", "每 15 分钟进出（计数线）"];
+          "Please check again. The result may not be accurate."] : ["每小时访客", "每 15 分钟进出（计数线）"];
         for (const h of want) assert(csv.text.includes(h), "CSV has " + h);
         assert(/\n11:00,55,9\.00,14,41,25,16\n/.test(csv.text), "hourly row 11:00 " + csv.text.slice(0, 900));
-        await page.evaluate(() => { document.getElementById("crAcc").open = true; });
         await mobileCheck(page);
         noErrors(page);
         await page.close();

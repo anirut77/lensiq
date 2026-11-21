@@ -509,10 +509,11 @@
     else if (!r) { state = "wait"; text = T("exam.hall.pcWait", "กำลังตรวจ..."); }
     else {
       state = r.state; kind = PC_KIND[r.state] || "warn"; // the panel's look follows the verdict (one table, not per branch)
-      const m = r.atMin, rate = () => (m && m.recall != null
-        ? T("exam.hall.pcRate", "ที่ขนาดนี้ ({range} px) ตัวตรวจหาคนเจอ {r}% (n = {n}, ชุดข้อมูลสาธารณะ ภาพนิ่ง ไม่ใช่ห้องสอบจริง)",
-          { range: m.hi == null ? m.lo + "+" : m.lo + "–" + m.hi, r: m.recall.toFixed(1), n: m.n })
-        : T("exam.hall.pcRateNone", "ขนาดนี้เล็กกว่าทุกขนาดที่เคยวัด จึงไม่รู้ว่าตัวตรวจหาเจอแค่ไหน"));
+      // decision 223: a plain verdict from the same fixed rule as HALL_PLACE.minPx (the detector found at least half of the
+      // people at this size); the measured recall per size band stays in the technical sheet
+      const m = r.atMin, rate = () => (m && m.recall != null && m.recall >= 50
+        ? T("exam.hall.pcRate", "ขนาดนี้ระบบมักเห็นคน")
+        : T("exam.hall.pcRateNone", "ขนาดนี้เล็กเกินไป ขยับกล้องให้ใกล้ขึ้น"));
       if (r.state === "noseats") { text = T("exam.hall.pcNoSeats", "วาดหรือสร้างที่นั่งก่อน แล้วจึงตรวจตำแหน่งกล้อง"); }
       else if (r.state === "nocount") { text = T("exam.hall.pcNoCount", "ยังนับคนในภาพไม่ได้ รอสักครู่ ถ้าข้อความนี้ไม่หายไป ให้กด “เปิดกล้อง” อีกครั้ง"); }
       else if (r.state === "fix") {

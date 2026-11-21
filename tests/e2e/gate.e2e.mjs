@@ -1,5 +1,6 @@
 // tests/e2e/gate.e2e.mjs — LENSIQ Gate landing (gate.html) and the PDPA signage kit (gate-notice.html): variant chooser
-// links, honest accuracy note, approved prices (not on sale, excl. VAT), poster + notice filled live from the form, TH / EN / 中文 (no Thai left in
+// links, plain two lines + technology/licence note (decision 223: no accuracy section), approved prices (not on sale, excl. VAT),
+// poster + notice filled live from the form, TH / EN / 中文 (no Thai left in
 // zh / en outside lang="th" content), phone layouts at 320 / 360 / 390 px (no overflow, 44 px targets, text >= 12 px),
 // and the REAL Thai OCR model (PP-OCRv5 Thai, ONNX Runtime Web WASM) reading the synthetic demo plate on parking.html.
 import { assert, assertNoWebGL, privacyScan } from "./cdp.mjs";
@@ -28,15 +29,24 @@ export async function phone(page, url, widths = [320, 360, 390]) {
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
-    await check("gate.html: variant chooser, honest accuracy note, PDPA kit link, approved prices (not on sale, excl. VAT), no errors, no storage", async () => {
+    await check("gate.html: variant chooser, two plain lines + licence note (no accuracy section), PDPA kit link, approved prices (not on sale, excl. VAT), no errors, no storage", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT] });
       await page.goto(`${base}/gate.html`);
       const r = await page.evaluate(() => ({
         links: [...document.querySelectorAll("main a.btn")].map(a => a.getAttribute("href")),
-        acc: document.querySelector("#accuracy").innerText, price: document.querySelector("#gPr").parentElement.innerText, h1: document.querySelector("h1").textContent
+        acc: !!document.querySelector("#accuracy"), claims: !!document.querySelector("#claims"),
+        lines: (document.querySelector(".lq-lines") || {}).innerText || "", tech: (document.querySelector('[data-i18n="gate.tech"]') || {}).innerText || "",
+        recheck: (document.querySelector('[data-i18n="common.recheck"]') || {}).innerText || "", main: document.querySelector("main").innerText,
+        price: document.querySelector("#gPr").parentElement.innerText, h1: document.querySelector("h1").textContent
       }));
       for (const h of ["parking.html", "village.html", "gate-notice.html", "camera-notice.html"]) assert(r.links.includes(h), "link " + h + " " + r.links);
-      assert(/ยังไม่มีผลวัดความแม่นยำ/.test(r.acc) && /Apache-2\.0/.test(r.acc) && /สิทธิ์ข้อมูลฝึก/.test(r.acc), "honest accuracy note");
+      // decision 223 (inverted from "the #accuracy section says ยังไม่มีผลวัดความแม่นยำ + Apache-2.0 + สิทธิ์ข้อมูลฝึก"):
+      // no accuracy / claims section and no figures on the page; the licence fact moves to the technology note; Gate line 2 is shown
+      assert(!r.acc && !r.claims, "no #accuracy / #claims section");
+      assert(!/ความแม่นยำ|\bn\s?=\s?\d|ชุดข้อมูลสาธารณะ|Wikimedia|ช่วงความเชื่อมั่น/.test(r.main), "no accuracy figures or source tags on the page");
+      assert(/Apache-2\.0/.test(r.tech) && /สิทธิ์ข้อมูลฝึก/.test(r.tech), "technology note keeps the licence fact " + r.tech.slice(0, 80));
+      assert(/เจ้าหน้าที่ยืนยันทุกคัน/.test(r.lines) && /ส่วนใหญ่ยังต้องให้เจ้าหน้าที่แตะเลือกป้ายหรือแก้เลข/.test(r.lines), "Gate two lines " + r.lines.slice(0, 80));
+      assert(r.recheck === "โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้", "result line");
       assert(/ยังไม่เปิดขาย/.test(r.price) && /ไม่รวม VAT 7%/.test(r.price) && /490/.test(r.price) && /990/.test(r.price) && /1,490/.test(r.price) && /3,000–5,000/.test(r.price), "approved price list, not on sale, excl. VAT " + r.price.slice(0, 120));
       const txt = await page.evaluate(() => document.querySelector("main").innerText);
       assert(!/ตรวจจับการโกง|จับผิด|ผู้กระทำผิด/.test(txt), "no accusatory wording");

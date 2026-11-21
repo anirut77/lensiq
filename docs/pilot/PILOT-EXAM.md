@@ -42,6 +42,7 @@
   แจ้งผิดเมื่อมีคนเดียว 0 / 17 · ที่มา: ชุดข้อมูลสาธารณะ (ภาพถ่ายสาธารณะจาก Open Images V7 ชุดทดสอบแยก ไม่ใช่ภาพห้องสอบจริง,
   `docs/exam/FACE-ENGINE-RESULTS.md` §7.2) คนที่สองส่วนใหญ่ในภาพทดสอบจึงไม่ถูกแจ้ง ผู้คุมสอบต้องเดินตรวจตามปกติ อบรมผู้คุมสอบด้วยตัวเลขนี้
   และระหว่างนำร่องให้นับด้วยว่าสัญญาณนี้ขึ้นเพราะผู้สอบโต๊ะข้างเคียงที่นั่งอยู่ตามปกติกี่ครั้ง (ยังไม่ได้วัดในห้องจริง)
+  (ตัวเลขชุดข้อมูลทั้งหมดอยู่ในเอกสารเทคนิค `docs/tech-sheets/exam-TH.md` หน้าลูกค้าไม่แสดงตัวเลขเหล่านี้)
 - **โหมด A ห้องสอบที่มีกล้อง** (`exam-hall.html` + `exam-dashboard.html`): **รุ่นทดลอง ทดลองควบคู่ได้เท่านั้น** เปิดกล้องและแดชบอร์ดในเบราว์เซอร์
   เดียวกัน (คนละแท็บ) บนเครื่องเดียว แต่ละเครื่องดูได้ 1 มุมกล้อง จำนวนกล้องขึ้นกับขนาดห้อง (ดูคู่มือวางกล้อง) แต่ละเครื่องมีแดชบอร์ดของตัวเอง
   ตัวเลือก “นับใบหน้า (ทดลอง)” ยังไม่พบใบหน้าเล็กหรือที่อยู่ไกล การวางกล้องให้ใบหน้ากว้าง ≥ 48 px ดู `docs/EXAM.md`
@@ -202,6 +203,7 @@ This pilot does none of the following:
   held-out; not exam-room footage; `docs/exam/FACE-ENGINE-RESULTS.md` §7.2). Most second people in the test photos
   were not flagged, so invigilators keep walking the room; train them with this number. During the pilot, also count
   how often the signal fires for a neighbour sitting normally at the next desk (not measured in a real room).
+  (All dataset figures are in the technical sheet `docs/tech-sheets/exam-EN.md`; customer pages do not show them.)
 - **Mode A** (camera exam hall: `exam-hall.html` + `exam-dashboard.html`) is **experimental, alongside only**. The
   camera and the dashboard run in two tabs of the same browser on one device. Each device covers one camera view, so the
   number of cameras depends on room size (see the guide), each with its own dashboard. Its "count faces (experimental)" option does not find small

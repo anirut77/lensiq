@@ -29,14 +29,16 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-nut.js?v=3"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-nut.js?v=4"></script>
 
 <main class="nut-page" id="main">
   <p class="eyebrow" data-i18n="nut.eyebrow">LENSIQ · อ่านฉลากโภชนาการ</p>
   <h1 data-i18n="nut.h1">อ่านฉลากโภชนาการบนเครื่องของคุณ</h1>
   <p class="lead" data-i18n="nut.lead">ถ่ายภาพหรือเลือกรูปกรอบข้อมูลโภชนาการ ฉลาก GDA หรือฉลากต่างประเทศ ระบบแสดงค่าตามที่พิมพ์บนฉลากพร้อมบรรทัดที่มา
     คำนวณตามปริมาณที่คุณกินจริงแยกไว้อีกช่อง และแสดงข้อความสำหรับผู้แพ้อาหารตามต้นฉบับ</p>
+  <p class="lq-lines"><span data-i18n="ln.nutrition.1">อ่านฉลากโภชนาการบนเครื่องนี้ แสดงค่าพร้อมบรรทัดที่อ่านมา และให้แก้ไขได้</span><br>
+    <span data-i18n="ln.nutrition.2">ตัวอักษรเล็ก ฉลากโค้ง หรือแสงสะท้อนอาจทำให้ค่าผิด เทียบกับฉลากจริงทุกครั้ง ไม่ใช่คำแนะนำทางการแพทย์</span></p>
 
   <section class="card nut-set" aria-labelledby="nutSetH">
     <h2 id="nutSetH" data-i18n="nut.set.h">ความเป็นส่วนตัวและการตั้งค่า</h2>
@@ -86,6 +88,7 @@
   </section>
 
   <div id="nutOut" aria-live="polite"></div>
+  <p class="lq-recheck" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
 
   <div class="nut-footer" id="nutFooter" role="note">
     <p data-i18n="nut.footer">ข้อมูลเพื่อประกอบการตัดสินใจ ไม่ใช่คำแนะนำทางการแพทย์ หากคุณดูแลภาวะสุขภาพ เช่น เบาหวาน โรคไต หรือแพ้อาหาร โปรดปรึกษาแพทย์หรือนักกำหนดอาหาร</p>
@@ -107,8 +110,8 @@
         <span class="lq-call-go" data-i18n="call.1323.go">โทร 1323</span></a><span class="lq-call-num">1323</span>
         <span class="lq-call-sub" data-i18n="call.1323.sub">พูดคุยได้ตลอด 24 ชั่วโมง กับผู้ที่พร้อมรับฟัง</span>
         <small class="lq-call-org" data-i18n="call.1323.org">บริการของกรมสุขภาพจิต</small></span></p>
-    <h3 data-i18n="nut.help.accH">ความแม่นยำ</h3>
-    <p class="hint" id="nutAcc" data-i18n="nut.help.acc">ยังไม่ได้วัดกับภาพฉลากจริง ตัวเลขทดสอบมีเฉพาะจากฉลากที่สร้างขึ้นเอง (ข้อมูลสังเคราะห์) ตรวจค่ากับฉลากจริงทุกครั้ง</p>
+    <h3 data-i18n="nut.help.knowH">ข้อควรรู้</h3>
+    <p class="hint" id="nutAcc" data-i18n="nut.help.acc">ตัวอักษรเล็ก ฉลากโค้ง หรือแสงสะท้อนอาจทำให้ค่าผิด เทียบกับฉลากจริงทุกครั้ง ไม่ใช่คำแนะนำทางการแพทย์</p>
     <h3 data-i18n="nut.help.srcH">แหล่งที่มาและสัญญาอนุญาต</h3>
     <ul class="nut-list">
       <li data-i18n="nut.help.ocr">อ่านตัวอักษรด้วย PP-OCRv5 (Apache-2.0, PaddlePaddle) บนเครื่องนี้ ผ่าน ONNX Runtime Web (MIT)</li>

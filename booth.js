@@ -713,7 +713,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   let SCB = null, SCB_LAST = null;
   const scbHist = SITE ? SITE.history("booth-sitecheck") : null;
   const scbPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
-    title: "ตรวจความแม่นยำหน้างาน",
+    title: "ทดสอบหน้างาน",
     intro: "ทดสอบการนับผู้เข้าชมที่บูธของคุณเอง: ระหว่างที่ระบบนับ ให้เจ้าหน้าที่หนึ่งคนดูหน้าบูธแล้วกดปุ่มทุกครั้งที่มีคนมาที่บูธจริง ระบบจะเทียบกับยอดที่นับได้ พร้อมช่วงความเชื่อมั่นและคำแนะนำ",
     steps: [
       "เปิดกล้องและกด \"เริ่มนับผู้เข้าชม\" ให้ระบบนับตามปกติ (ใช้โหมดการนับที่จะใช้จริง)",

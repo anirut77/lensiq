@@ -375,7 +375,7 @@
     kv(T("cr.rep.hot", "ความกระจุกตัว"), rp.hot == null ? "—" : T("cr.rep.hotV", "{p} ของเวลาที่มีคนอยู่ รวมอยู่ใน 10% ของพื้นที่ภาพที่คนเยอะสุด", { p: pct(rp.hot) }));
     kv(T("cr.sum.visitors", "ผู้เข้าชมรวม (ประมาณ)"), String(rp.visitors));
     box.appendChild(dl);
-    box.appendChild(el("p", "hint", T("cr.rep.note", "ตัวเลขเป็นค่าประมาณจากกล้อง (ดูหมายเหตุความแม่นยำด้านบน) ไม่มีภาพหรือข้อมูลระบุตัวบุคคล")));
+    box.appendChild(el("p", "hint", T("cr.rep.note", "ตัวเลขเป็นค่าประมาณจากกล้อง โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้ ไม่มีภาพหรือข้อมูลระบุตัวบุคคล")));
   }
   const convLabel = P => P.settings.convKind === "signup" ? T("cr.conv.signupN", "ยอดลงทะเบียน") : P.settings.convKind === "other" ? T("cr.conv.otherN", "ผลลัพธ์") : T("cr.conv.buyN", "ยอดซื้อ");
   function convRows(P) {
@@ -490,7 +490,7 @@
     rows.push([T("cr.mk.title", "รายงานจำนวนคนสำหรับการตลาด — LENSIQ นับคนและความหนาแน่น")]);
     if (day.demo) rows.push([T("cr.csv.demo", "ข้อมูลจำลอง (โหมดตัวอย่าง) — ไม่ใช่ตัวเลขจริง")]);
     rows.push([T("cr.csv.site", "จุด/อีเวนต์"), String(P.settings.siteName || ""), T("cr.csv.date", "วันที่"), day.date]);
-    rows.push([T("cr.mk.acc", "หมายเหตุ: ตัวเลขทั้งหมดเป็นค่าประมาณจากกล้อง ความแม่นยำสุดท้ายรอการนับเทียบโดยคน (ผลเบื้องต้น: นับต่ำกว่าจริงเมื่อคนตัวเล็ก/ไกล หรือแน่นมาก)")]);
+    rows.push([T("cr.mk.acc", "หมายเหตุ: ตัวเลขเป็นค่าประมาณจากกล้อง อาจนับต่ำกว่าจริงเมื่อคนอยู่ไกลหรือแน่นมาก โปรดตรวจสอบอีกครั้ง")]);
     rows.push([]);
     rows.push([T("cr.mk.sumH", "สรุป")]);
     rows.push([T("cr.mk.k", "ตัวชี้วัด"), T("cr.mk.v", "ค่า")]);

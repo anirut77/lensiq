@@ -1,10 +1,7 @@
 /* solutions.css — solutions.html ("solutions by sector" catalogue). Builds on products.css (.pd-*) and styles.css tokens. */
-.sl-legend{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
-.sl-legend li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.9rem;color:var(--muted)}
 .sl-tag{display:inline-block;font-size:.78rem;font-weight:700;padding:2px 10px;border-radius:99px;white-space:nowrap}
-.sl-tag.now{background:#e6f6ee;color:#14653b}
-.sl-tag.pilot{background:#e7f0ff;color:#1d4ed8}
-.sl-tag.soon{background:#fff3d6;color:#6b4b00}
+.sl-tag.trial{background:#e7f0ff;color:#1d4ed8}
+.sl-tag.soon{background:#eef0f4;color:#3a4256}
 .sl-filter{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
 .sl-filter .seg{border:1px solid var(--line);background:var(--bg);color:var(--navy);border-radius:99px;padding:5px 16px;font-size:.88rem;min-height:44px}
 .sl-filter .seg[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
@@ -19,7 +16,6 @@
 .sl-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--alt);font-size:1.25rem;flex:none}
 .sl-meta{font-size:.84rem!important;color:var(--muted)}
 .sl-meta b{color:var(--navy);margin-right:4px}
-.sl-why{background:#fff8e6;border-radius:10px;padding:6px 10px}
 .sl-go{margin-top:auto;display:inline-flex;align-items:center;gap:4px;min-height:44px;color:#4b36d6;font-weight:600;font-size:.92rem;text-decoration:underline;text-underline-offset:2px}
 .sl-none{color:var(--muted);font-size:.9rem}
 .sl-no b{color:#a12b20}
@@ -32,7 +28,6 @@
 .sl-cats{margin:0 0 4px}
 
 /* walkthrough W-012: the badge colour follows the status it names (the group class only drives the filter) */
-.sl-tag[data-i18n="sl.st.pilot"]{background:#e6f6ee;color:#14653b}
-.sl-tag[data-i18n="sl.st.exp"]{background:#fff3d6;color:#6b4b00}
-.sl-tag[data-i18n="sl.st.demo"]{background:#eef0f4;color:#3a4256}
-.sl-tag[data-i18n="sl.st.soon"]{background:#e7f0ff;color:#1d4ed8}
+/* owner decision 223: two catalogue badges, รุ่นทดลอง / เร็ว ๆ นี้ */
+.sl-tag[data-i18n="sl.st.trial"]{background:#e7f0ff;color:#1d4ed8}
+.sl-tag[data-i18n="sl.st.soon"]{background:#eef0f4;color:#3a4256}

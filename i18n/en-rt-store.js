@@ -1,6 +1,7 @@
 /* i18n/en-rt-store.js — run-time English for text written by store.js (mirrors zh-rt-store.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
   "@lang": "en",
+  "ทดสอบหน้างาน": "On-site test",
   "พร้อม — กด \"เปิดกล้อง\" หรือ \"ใช้ไฟล์วิดีโอทดสอบ\" แล้ววาดเส้นนับและโซนบนภาพ (เพิ่มกล้องได้สูงสุด 4 ตัว)": "Ready — press \"Start camera\" or \"Use test video file\", then draw counting lines and zones on the image (up to 4 cameras)",
   "หยุดวิเคราะห์แล้ว ข้อมูลสรุปถูกบันทึกไว้": "Analysis stopped; summary data saved",
   "กราฟคนเข้าออกรายชั่วโมง: ยังไม่มีข้อมูล": "Hourly entries and exits chart: no data yet",

@@ -17,16 +17,16 @@
 <!-- S2 2026-11-18: a CSP <meta> turns off Chrome's preload scanner, so the page scripts were fetched one after another
      (one round trip each); these preloads fetch them in parallel. Same URLs as the script tags below (no extra request). -->
 <link rel="preload" as="script" href="lensiq-demo.js?v=1">
-<link rel="preload" as="script" href="lensiq-demo-data.js?v=3">
-<link rel="preload" as="script" href="i18n/zh-demo.js?v=3">
+<link rel="preload" as="script" href="lensiq-demo-data.js?v=4">
+<link rel="preload" as="script" href="i18n/zh-demo.js?v=4">
 <link rel="preload" as="script" href="lensiq-busy.js?v=3">
-<link rel="preload" as="script" href="nav.js?v=36">
-<link rel="preload" as="script" href="lensiq-i18n.js?v=36">
-<link rel="preload" as="script" href="i18n/zh-common.js?v=36">
-<link rel="preload" as="script" href="i18n/zh-attendance.js?v=5">
+<link rel="preload" as="script" href="nav.js?v=37">
+<link rel="preload" as="script" href="lensiq-i18n.js?v=37">
+<link rel="preload" as="script" href="i18n/zh-common.js?v=37">
+<link rel="preload" as="script" href="i18n/zh-attendance.js?v=6">
 <link rel="preload" as="script" href="lensiq-i18n-rt.js?v=2">
 <link rel="preload" as="script" href="i18n/zh-rt-common.js?v=7">
-<link rel="preload" as="script" href="i18n/zh-rt-attendance.js?v=3">
+<link rel="preload" as="script" href="i18n/zh-rt-attendance.js?v=4">
 <link rel="preload" as="script" href="i18n/zh-buy.js?v=1">
 <link rel="preload" as="script" href="lensiq-crashguard.js?v=1">
 <link rel="preload" as="script" href="lensiq-timeclock.js?v=2">
@@ -38,56 +38,38 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="attendance.s1">เช็คชื่ออบรมด้วยใบหน้า | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=24">
-<link rel="stylesheet" href="attendance.css?v=12">
-<link rel="stylesheet" href="lensiq-sitecheck.css?v=3">
+<link rel="stylesheet" href="attendance.css?v=13">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=4">
 <script src="lensiq-demo.js?v=1"></script>
-<script src="lensiq-demo-data.js?v=3"></script>
-<script src="i18n/zh-demo.js?v=3"></script>
+<script src="lensiq-demo-data.js?v=4"></script>
+<script src="i18n/zh-demo.js?v=4"></script>
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-attendance.js?v=5"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-attendance.js?v=6"></script>
 <script src="lensiq-i18n-rt.js?v=2"></script>
 <script src="i18n/zh-rt-common.js?v=7"></script>
-<script src="i18n/zh-rt-attendance.js?v=3"></script>
+<script src="i18n/zh-rt-attendance.js?v=4"></script>
 <script src="i18n/zh-buy.js?v=1"></script>
 
 <main class="att">
   <h1><span class="tr-only" data-i18n="attendance.s2">เช็คชื่อเข้าอบรมด้วยการสแกนใบหน้า</span><span class="emp-only" data-i18n="attendance.hr.h1">ลงเวลาทำงานด้วย PIN / QR
     (สแกนใบหน้าเป็นตัวเลือก)</span></h1>
   <p class="lead emp-only" data-i18n="attendance.hr.lead">พนักงานลงเวลาด้วยรหัสพนักงาน + PIN หรือบัตร QR ได้ทันที ไม่ต้องใช้กล้อง การสแกนใบหน้าเป็นตัวเลือกเสริม
-    ใช้เฉพาะพนักงานที่ยินยอม ตัวเลขความแม่นยำด้านล่างเป็นของการสแกนใบหน้าเท่านั้น</p>
+    ใช้เฉพาะพนักงานที่ยินยอม</p>
   <p class="lead tr-only" data-i18n="attendance.s3">ไม่ต้องเซ็นชื่อ ลงทะเบียนใบหน้าครั้งเดียว แล้วสแกนเพื่อบันทึกการเข้าเรียน</p>
   <div class="lq-buy" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
     <a class="btn primary" href="index.html?interest=attendance#contact" data-i18n="buy.quote">ขอใบเสนอราคา</a>
     <a class="btn ghost" href="attendance.html?mode=employee&amp;demo=1" data-i18n="buy.demo">ดูเดโม</a>
   </div>
-  <p class="acc-note" role="note"><b class="beta" data-i18n="attendance.s4">ความแม่นยำที่วัดได้</b>
-    <span data-i18n="attendance.s5">ทดสอบกับภาพใบหน้าสาธารณะ (ภาพข่าว LFW และใบหน้าเอเชีย CASIA-FaceV5 ไม่ใช่กล้องหน้างาน) ด้วยกฎปัจจุบัน ผู้ลงทะเบียน
-      100 คน: จำผู้ลงทะเบียนได้ราว 85% ต่อการสแกน แต่ใบหน้าเอเชียเพียงราว 66–76% · คนที่ไม่ได้ลงทะเบียนถูกเสนอชื่อราว 0.4% (ใบหน้าเอเชีย 0.2%
-      ขอบบนของช่วงความเชื่อมั่นถึง 1.15%) และถูกเช็คชื่ออัตโนมัติราว 0.05% (LFW) ระบบต้องเห็นตรงกัน 2 ครั้งก่อนบันทึก และราว 25–35%
-      ของคนที่จำได้จะถูกขอให้กดยืนยัน ลงทะเบียนอย่างน้อย 5 คนก่อนใช้เช็คชื่ออัตโนมัติ และควรให้เจ้าหน้าที่ตรวจรายชื่อ</span>
-    <a href="cameras.html#accuracy" data-i18n="attendance.s6">วิธีวัดและข้อจำกัด</a><br><b class="beta lic-b" data-i18n="attendance.licb">โมเดลใบอนุญาตวิจัย</b>
+  <p class="lq-lines"><span data-i18n="ln.attendance.1">ลงเวลาทำงานด้วย PIN หรือ QR บนเครื่องของร้าน ไม่ต้องใช้กล้อง สแกนใบหน้าเป็นทางเลือกเฉพาะพนักงานที่ยินยอม</span><br>
+    <span data-i18n="ln.attendance.2">แบบสแกนใบหน้าบางครั้งต้องสแกนซ้ำหรือให้หัวหน้ายืนยัน และกันภาพปลอมได้ไม่ครบ จึงควรมีคนดูแลจุดลงเวลา</span></p>
+  <!-- 223-5: the research-licence label stays wherever the face option is on -->
+  <p class="acc-note" role="note"><b class="beta lic-b" data-i18n="attendance.licb">โมเดลใบอนุญาตวิจัย</b>
     <span data-i18n="attendance.lic">ใบหน้าวิเคราะห์ด้วยโมเดล face-api.js (โค้ด MIT) ที่ฝึกจากชุดข้อมูลซึ่งอนุญาตเฉพาะงานวิจัย
       สิทธิ์ใช้เชิงพาณิชย์ยังไม่ได้รับการยืนยันจากนักกฎหมาย — ตรวจสิทธิ์ก่อนใช้งานเชิงพาณิชย์</span></p>
-  <div class="acc-note claims" role="note" id="attClaims"><b class="beta" data-i18n="attendance.cl.h">ตัวเลขและที่มา</b>
-    <ul>
-      <li data-i18n="attendance.cl2">ตัวเลขหลัก: ใบหน้าเอเชีย จำได้ต่อการสแกน (ลงทะเบียน 5 / 20 / 200 คน): 66–76% · n = 500 คน × 5 ภาพ (ชุดทดสอบแยก
-        ไม่ได้ใช้ตอนตั้งค่า) · ที่มา: ชุดข้อมูลสาธารณะ (CASIA-FaceV5)</li>
-      <li data-i18n="attendance.cl1">จำผู้ลงทะเบียนได้ต่อการสแกน (ลงทะเบียน 100 คน) วัดบนชุดที่ใช้ปรับค่า ตัวเลขจึงดีเกินจริง: 85% · n = 610
-        ภาพทดสอบของสมาชิก (คนละ 1 ภาพ สมาชิก 100 คนต่อกลุ่ม สุ่ม 200 กลุ่ม ทั้งชุดข้อมูลมี 13,233 ภาพ) · ที่มา: ชุดข้อมูลสาธารณะ (LFW ภาพข่าว
-        ชุดที่ใช้ปรับค่า)</li>
-      <li data-i18n="attendance.cl3">คนที่ไม่ได้ลงทะเบียนถูกเสนอชื่อ: ใบหน้าเอเชีย (ชุดทดสอบแยก ลงทะเบียน 100 คน) 0.2% ช่วงความเชื่อมั่น 95%
-        0.04–0.45% (ขอบบนสูงสุด 1.15% ที่ลงทะเบียน 5 หรือ 200 คน) · LFW (ชุดที่ใช้ปรับค่า) 0.4% · n = 12,000 (โดยประมาณ) ครั้งต่อแถว จากคนราว 1,800 / 500 คน
-        · ที่มา: ชุดข้อมูลสาธารณะ (LFW, CASIA-FaceV5)</li>
-      <li data-i18n="attendance.cl4">คนที่ไม่ได้ลงทะเบียนถูกเช็คชื่ออัตโนมัติโดยไม่มีคนยืนยัน: ใบหน้าเอเชีย (ชุดทดสอบแยก) ≤ 0.03% · LFW
-        (ชุดที่ใช้ปรับค่า) 0.01–0.07% · n = 12,000 (โดยประมาณ) ครั้งต่อแถว จากคนราว 1,800 / 500 คน · ที่มา: ชุดข้อมูลสาธารณะ (LFW, CASIA-FaceV5)</li>
-      <li data-i18n="attendance.cl5">ที่ทำงานจริงในไทย: ยังไม่ได้วัด · ที่มา: หน้างานจริง (ยังไม่มีโครงการนำร่อง) — ใช้แท็บ “ตรวจความแม่นยำ” วัดกับพนักงานของคุณเอง</li>
-      <li data-i18n="attendance.cl6">ตัวเลือกตรวจว่าเป็นคนจริง (หันหน้า): ยังไม่ได้วัด</li>
-    </ul>
-  </div>
   <p class="expiry-banner" id="expiryBanner" role="status" hidden></p>
 
   <!-- employee time attendance (attendance-hr.js + lensiq-timeclock.js) — added on top of the training check-in, nothing removed -->
@@ -150,7 +132,7 @@
         <button class="tab active" data-t="checkin" role="tab" data-i18n="attendance.s11">เช็คชื่อ</button>
         <button class="tab" data-t="register" role="tab" data-i18n="attendance.s12">ลงทะเบียนใบหน้า</button>
         <button class="tab" data-t="records" role="tab" data-i18n="attendance.s13">รายงาน</button>
-        <button class="tab" data-t="check" role="tab" data-i18n="attendance.sc1">ตรวจความแม่นยำ</button>
+        <button class="tab" data-t="check" role="tab" data-i18n="attendance.sc1">ทดสอบหน้างาน</button>
         <button class="tab emp-only" data-t="pin" role="tab" id="tabPin" data-i18n="attendance.hr.tabPin">PIN / QR</button>
       </div>
 
@@ -160,13 +142,14 @@
         <p class="form-msg scan-msg" id="scanMsg" role="status" aria-live="polite"></p>
         <ul class="face-results" id="faceResults" aria-live="polite" aria-label="ผลการสแกนแต่ละใบหน้า" data-i18n-attr="aria-label:attendance.s15"></ul>
         <p class="unknown-note" id="unknownNote" hidden></p>
+        <p class="lq-recheck" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
         <details class="tune">
           <summary data-i18n="attendance.s16">ความเข้มงวดในการจดจำ</summary>
           <label><span id="matchDistLbl" data-i18n="attendance.s17">ค่าความต่างสูงสุด</span> <output id="matchDistVal">0.50</output>
             <input id="matchDist" aria-labelledby="matchDistLbl" type="range" min="0.3" max="0.7" step="0.01" value="0.50"></label>
           <small data-i18n="attendance.s18">ค่าต่ำ = เข้มงวดขึ้น (จำผิดน้อยลง แต่อาจจำไม่ได้บ้าง) ค่าเริ่มต้น 0.50</small>
           <label class="check live-opt"><input type="checkbox" id="liveness"> <span data-i18n="attendance.live1">ตรวจว่าเป็นคนจริงก่อนเช็คชื่อ: ให้หันหน้าซ้าย–ขวาเล็กน้อย (ปิดไว้เป็นค่าเริ่มต้น)</span></label>
-          <small data-i18n="attendance.live2">กันการยกภาพถ่ายนิ่งมาสแกนได้ระดับหนึ่ง แต่ไม่กันวิดีโอ ภาพบนจอ หรือหน้ากาก และยังไม่ได้วัดความแม่นยำ ควรมีเจ้าหน้าที่ดูแลจุดเช็คชื่อเสมอ</small>
+          <small data-i18n="attendance.live2">กันการยกภาพถ่ายนิ่งมาสแกนได้ระดับหนึ่ง แต่ไม่กันวิดีโอ ภาพบนจอ หรือหน้ากาก ควรมีเจ้าหน้าที่ดูแลจุดเช็คชื่อเสมอ</small>
         </details>
         <h3><span data-i18n="attendance.s19">เช็คชื่อแล้ววันนี้ (</span><span id="todayCount">0</span>)</h3>
         <ul class="recent" id="recent"></ul>
@@ -395,7 +378,9 @@
       ไม่ต้องซื้ออุปกรณ์ ใบหน้าเป็นตัวเลือกเมื่อพนักงานยินยอม</p>
   </section>
 
-  <p class="note" data-i18n="attendance.s40">เว็บตัวอย่าง: ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ค่าลักษณะใบหน้าเข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้ มีตัวเลือกให้หันหน้าเพื่อตรวจว่าเป็นคนจริง (ปิดไว้เป็นค่าเริ่มต้น ยังไม่ได้วัดผล) แต่ยังไม่มีระบบกันภาพปลอมที่ผ่านการทดสอบ หากใช้งานจริงควรมีฐานข้อมูลฝั่งเซิร์ฟเวอร์ และนโยบายตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)</p>
+  <p class="note" data-i18n="attendance.s40">เว็บตัวอย่าง: ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ค่าลักษณะใบหน้าเข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้
+    มีตัวเลือกให้หันหน้าเพื่อตรวจว่าเป็นคนจริง (ปิดไว้เป็นค่าเริ่มต้น) แต่ยังไม่มีระบบกันภาพปลอมที่ผ่านการทดสอบ
+    หากใช้งานจริงควรมีฐานข้อมูลฝั่งเซิร์ฟเวอร์ และนโยบายตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)</p>
   <section class="lq-buy-end" aria-labelledby="buyH" style="margin:28px 0">
     <h2 id="buyH" data-i18n="buy.h">ขั้นตอนถัดไป</h2>
     <p data-i18n="buy.p">ขอใบเสนอราคาหรือนัดสาธิต ทีมงานจะติดต่อกลับ หน้าเดโมใช้ข้อมูลตัวอย่าง ไม่ใช่ข้อมูลจริง</p>
@@ -416,9 +401,9 @@
 <script src="lensiq-camera.js?v=8"></script>
 <script src="lensiq-detect.js?v=7"></script>
 <script src="lensiq-facevault.js?v=1"></script>
-<script src="i18n/zh-rt-sitecheck.js?v=3"></script>
-<script src="lensiq-sitecheck.js?v=4"></script>
-<script src="attendance.js?v=24"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=4"></script>
+<script src="lensiq-sitecheck.js?v=5"></script>
+<script src="attendance.js?v=25"></script>
 <script src="lensiq-config.js?v=30"></script>
 </body>
 </html>

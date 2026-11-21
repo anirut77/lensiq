@@ -266,7 +266,8 @@
     ["#vgResProv", "#vgDenyProv"].forEach(s => kit.provinceOptions($(s), C().common, $(s).value));
   }
   $("#vgAutoOn").addEventListener("change", () => {
-    if ($("#vgAutoOn").checked && !confirm(T("vg.q.auto", "เปิดไม้กั้นอัตโนมัติสำหรับรถลูกบ้านที่ทะเบียนตรงทุกตัว? ควรผ่านการตรวจความแม่นยำหน้างานก่อน และมีเจ้าหน้าที่ประจำป้อมเสมอ"))) $("#vgAutoOn").checked = false;
+    if ($("#vgAutoOn").checked && !confirm(T("vg.q.auto", "เปิดไม้กั้นอัตโนมัติสำหรับรถลูกบ้านที่ทะเบียนตรงทุกตัว?" +
+      " ควรทดสอบกับรถจริงที่ป้อมของคุณให้ผ่านก่อนเปิดใช้ และมีเจ้าหน้าที่ประจำป้อมเสมอ"))) $("#vgAutoOn").checked = false;
   });
   $("#vgSetSave").addEventListener("click", () => {
     const url = $("#vgRelayUrl").value.trim(), kind = $("#vgRelayKind").value;

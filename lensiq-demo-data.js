@@ -84,11 +84,14 @@
       return b.toJSON();
     });
     D.onReady(body => {
-      body.innerHTML = `<p data-i18n="demo.exdb.p">ห้องสอบสมมติ DEMO 12 ที่นั่ง มีการแจ้งตัวอย่าง 18 รายการ ผู้คุมสอบตัวอย่างตรวจไปแล้ว 15 รายการและกด "แจ้งถูก" หรือ "แจ้งผิด" ไว้ ตารางความแม่นยำต่อสัญญาณจึงมีตัวเลขแล้ว (รวม 8 ถูก จาก 15) ยังเหลือ 3 รายการในคิวให้ลองกดเอง ตัวเลขนี้เป็นข้อมูลจำลองเพื่อสาธิตวิธีนับ ไม่ใช่ความแม่นยำที่วัดได้ของ LENSIQ ในห้องสอบจริงยังไม่ได้วัด ผู้คุมสอบเป็นผู้ตัดสินเสมอ</p>
-<div class="lq-demo-btns">${btn("data-demo-tally", "demo.exdb.tally", "ไปที่ตารางความแม่นยำ")}</div>`;
+      body.innerHTML = `<p data-i18n="demo.exdb.p">ห้องสอบสมมติ DEMO 12 ที่นั่ง มีการแจ้งตัวอย่าง 18 รายการ ผู้คุมสอบตัวอย่างตรวจไปแล้ว 15 รายการและกด "แจ้งถูก" หรือ "แจ้งผิด" ไว้
+        ส่วนทดสอบหน้างานจึงมีผลแล้ว (รวม 8 ถูก จาก 15) ยังเหลือ 3 รายการในคิวให้ลองกดเอง ตัวเลขนี้เป็นข้อมูลจำลองเพื่อสาธิตวิธีนับเท่านั้น ผู้คุมสอบเป็นผู้ตัดสินเสมอ</p>
+<div class="lq-demo-btns">${btn("data-demo-tally", "demo.exdb.tally", "ไปที่ส่วนทดสอบหน้างาน")}</div>`;
       body.addEventListener("click", e => {
         if (!(/** @type {any} */ (e.target).closest("[data-demo-tally]"))) return;
-        const el = document.querySelector("#precBody"); if (el) el.scrollIntoView({ block: "center" });
+        const el = document.querySelector("#precBody"); if (!el) return;
+        const fold = el.closest("details"); if (fold) fold.open = true; // the table is folded for the administrator (decision 223-4)
+        el.scrollIntoView({ block: "center" });
       });
     });
   }

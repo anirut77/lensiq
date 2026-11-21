@@ -62,3 +62,7 @@
 .lq-ack .lq-ack-at{display:block;color:#52514e;font-size:.78rem;margin-top:4px}
 .lq-ready{display:inline-block;margin:4px 0;padding:4px 10px;border-radius:999px;font-size:.8rem;background:#fdeaea;color:#a12b20}
 .lq-ready[data-s="ok"]{background:#e6f6ee;color:#14653b}.lq-ready[hidden]{display:none}
+/* 223-4: plain verdict on top; the figures, intervals and bootstrap notes are folded for the administrator */
+.sc-detail{margin:8px 0;font-size:.86rem}
+.sc-detail>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--muted)}
+.sc-vdetail{font-size:.84rem;margin:4px 0;color:var(--muted)}

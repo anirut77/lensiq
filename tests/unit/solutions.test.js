@@ -1,8 +1,12 @@
 "use strict";
 // tests/unit/solutions.test.js — solutions.html ("solutions by sector" catalogue): 10 sectors, every card has a status,
-// a "for" line, a privacy note and either a link to a page or (coming soon) an honest "still needed" note; links point
-// at pages that exist or at the product pages being built in parallel (exam / gate / parking / village); the
-// "do not build" list stays; en/zh dictionaries cover every key without Thai.
+// a "for" line, a privacy note and either a link to a page or (coming soon) no link; links point at pages that exist or
+// at the product pages being built in parallel (exam / gate / parking / village); the "do not build" list stays; en/zh
+// dictionaries cover every key without Thai.
+// Inverted for owner decision 223 (audit 1.10, section 3; audit section 6 rule: invert, never loosen): badges are only
+// "รุ่นทดลอง" / "เร็ว ๆ นี้", no status legend, filters all / available to try now / coming soon; the "still needed" roadmap
+// notes left the customer page and are kept verbatim in docs/PAGE-STATUS.md (tools/cat-data.cjs SOON_ROADMAP); the
+// demo-only cards (signage, customers) carry data-demo-only.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -12,7 +16,8 @@ const vm = require("node:vm");
 const ROOT = path.join(__dirname, "..", "..");
 const read = f => fs.readFileSync(path.join(ROOT, f), "utf8");
 const html = read("solutions.html");
-const cards = [...html.matchAll(/<article class="sl-card" data-status="(\w+)" id="sol-([\w]+)">([\s\S]*?)<\/article>/g)].map(m => ({ status: m[1], id: m[2], body: m[3] }));
+const cards = [...html.matchAll(/<article class="sl-card" data-status="(\w+)" id="sol-([\w]+)"( data-demo-only)?>([\s\S]*?)<\/article>/g)]
+  .map(m => ({ status: m[1], id: m[2], demo: !!m[3], body: m[4] }));
 const PARALLEL = new Set(["exam.html", "gate.html", "parking.html", "village.html"]); // other product lines, built in parallel
 
 test("10 sectors in the agreed order, each with cards", () => {
@@ -22,16 +27,23 @@ test("10 sectors in the agreed order, each with cards", () => {
   assert.ok(cards.length >= 40, "cards " + cards.length);
 });
 
-test("every card: status, title, what, who, privacy; link or an honest 'still needed' note", () => {
+test("every card: status, title, what, who, privacy; a link (coming soon: none) and no internal 'still needed' note", () => {
   for (const c of cards) {
-    assert.ok(["now", "pilot", "soon"].includes(c.status), c.id);
+    assert.ok(["now", "soon"].includes(c.status), c.id);
+    // decision 223: badge "รุ่นทดลอง" on a card you can try now, "เร็ว ๆ นี้" on a coming-soon card; no badge only on the
+    // PIN / QR time clock (hr1, audit section 3) and the fortune cards (owner order 2026-11-17)
+    const tag = (c.body.match(/<span class="sl-tag (\w+)" data-i18n="(sl\.st\.\w+)">([^<]*)<\/span>/) || []).slice(1);
+    if (c.status === "soon") assert.deepEqual(tag, ["soon", "sl.st.soon", "เร็ว ๆ นี้"], c.id + " badge");
+    else if (tag.length) assert.deepEqual(tag, ["trial", "sl.st.trial", "รุ่นทดลอง"], c.id + " badge");
+    else assert.ok(c.id === "hr1" || /href="(fortune|planner|luckycolor)\.html"/.test(c.body), c.id + ": card without a badge");
+    assert.ok(!/sl-why|data-i18n="sl\.why"|data-i18n="sl\.c\.\w+\.y"/.test(c.body), c.id + ": no 'still needed' roadmap note on the page");
     assert.match(c.body, /<h3 data-i18n="sl\.c\.\w+\.h">/, c.id);
     assert.match(c.body, /data-i18n="sl\.c\.\w+\.w"/, c.id + " who");
     assert.match(c.body, /class="sl-meta sl-pv"><b data-i18n="sl\.priv">[^<]+<\/b> <span data-i18n="pv\.\w+">/, c.id + " privacy");
     const link = (c.body.match(/class="sl-go" href="([^"]+)"/) || [])[1];
-    if (c.status === "soon") {
+    // a demo-only card (data-demo-only, decision 223) is "coming soon" in demo mode and still opens its existing page
+    if (c.status === "soon" && !c.demo) {
       assert.ok(!link, c.id + ": coming soon has no page link");
-      assert.match(c.body, /sl-why/, c.id + ": coming soon says what is missing");
     } else {
       assert.ok(link, c.id + " links a page");
       // walk-through 2026-11-16 D-02: the employee time-clock card (hr1) opens attendance.html in PIN / QR mode; that exact
@@ -47,9 +59,20 @@ test("quick wins and parallel product pages are linked; the agreed 'coming soon'
     assert.ok(html.includes(`href="${p}"`), p);
   const soon = cards.filter(c => c.status === "soon").map(c => c.body).join("\n");
   for (const re of [/หมวกนิรภัย/, /ล้ม/, /กายภาพ/, /ประตูโรงเรียน/, /มวยไทย/]) assert.match(soon, re);
-  assert.match(soon, /YOLOX, Apache-2\.0/); assert.match(soon, /MediaPipe Pose, Apache-2\.0/);
-  // available-now cards only point at pages that already exist (no promise of an unbuilt page as "available")
-  for (const c of cards.filter(x => x.status === "now")) assert.ok(!PARALLEL.has((c.body.match(/href="([^"]+)"/) || [])[1]), c.id);
+  // decision 223: the still-needed notes (with their model licences) left the page and are kept verbatim in the back-office
+  // table docs/PAGE-STATUS.md, one row per coming-soon card
+  assert.doesNotMatch(soon, /YOLOX, Apache-2\.0|MediaPipe Pose, Apache-2\.0/);
+  const status = read("docs/PAGE-STATUS.md");
+  assert.match(status, /YOLOX, Apache-2\.0/); assert.match(status, /MediaPipe Pose, Apache-2\.0/);
+  for (const c of cards.filter(x => x.status === "soon" && !x.demo)) assert.ok(status.includes("| `sol-" + c.id + "` |"), c.id + ": roadmap row");
+  // available-now cards only point at pages that already exist (no promise of an unbuilt page as "available"); since
+  // decision 223 the former pilot cards (exam / gate / parking / village) are "available to try now", so their pages must exist
+  for (const c of cards.filter(x => x.status === "now")) {
+    const href = (c.body.match(/class="sl-go" href="([^"?]+)/) || [])[1];
+    assert.ok(href && fs.existsSync(path.join(ROOT, href)), c.id + ": " + href);
+  }
+  // demo-only pages: their catalogue cards carry data-demo-only (listed only when window.LENSIQ_PROFILE === "demo")
+  for (const c of cards.filter(x => /href="(signage|customers|neuro|teamface)\.html"/.test(x.body))) assert.ok(c.demo, c.id + ": data-demo-only");
 });
 
 test("'do not build' list: emotion/attention scoring, public biometric ID, drowning, forklift; no card offers them", () => {
@@ -80,5 +103,8 @@ test("solutions page: CSP meta, nav, no inline script, print + status filter wir
   assert.ok(!/<script>/.test(html));
   const js = read("solutions.js");
   assert.match(js, /lq-sol-filter/); assert.match(js, /try \{ localStorage/);
-  for (const f of ["all", "now", "pilot", "soon"]) assert.ok(html.includes(`data-f="${f}"`), f);
+  for (const f of ["all", "now", "soon"]) assert.ok(html.includes(`data-f="${f}"`), f);
+  // decision 223: no "open for a pilot" filter and no status legend
+  assert.ok(!html.includes('data-f="pilot"') && !/class="sl-legend/.test(html), "pilot filter and status legend are gone");
+  assert.match(js, /OK = \["all", "now", "soon"\]/);
 });

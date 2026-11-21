@@ -39,7 +39,7 @@
       briefH: "ข้อตกลงสำหรับผู้ทดสอบ",
       brief: "นี่คือการทดสอบแบบปิด ยังไม่ใช่ผลิตภัณฑ์ ผลที่ได้เป็นการประมาณ ไม่ใช่คำตัดสิน อย่าถ่ายใบสั่งยา ฉลากยาที่มีชื่อผู้ป่วย หรือเอกสารที่มีข้อมูลส่วนบุคคล ใช้ฉลากสินค้าเท่านั้น " +
         "การส่งให้ AI ต้องได้รับความยินยอมจากคุณทุกครั้ง หรือเลือกให้จำไว้ และถอนความยินยอมได้ทุกเมื่อ พบปัญหาแจ้งเจ้าของระบบ",
-      privH: "ความเป็นส่วนตัวของการทดสอบนี้ (ฉบับร่าง รอทนายตรวจ)",
+      privH: "ความเป็นส่วนตัวของการทดสอบนี้ (ฉบับร่าง)",
       priv: "การตรวจด้วย AI ของ Product Check (การทดสอบแบบปิด): เฉพาะเมื่อคุณยินยอม ข้อความบนฉลาก และภาพถ่ายสินค้าที่เบลอใบหน้าบนเครื่องของคุณแล้วถ้าคุณเลือกโหมดภาพ " +
         "จะถูกส่งผ่าน Cloudflare (ผู้ให้บริการเซิร์ฟเวอร์ API ของเรา) ไปยังผู้ประมวลผล AI ที่หน้าขอความยินยอมระบุชื่อไว้ก่อนส่งทุกครั้ง ซึ่งอยู่นอกประเทศไทย " +
         "ระบบบังคับใช้เส้นทางแบบไม่เก็บเนื้อหา LENSIQ ไม่เก็บข้อความหรือภาพบนฉลาก Cloudflare Turnstile ใช้ตรวจว่าไม่ใช่บอทก่อนส่ง " +
@@ -58,7 +58,7 @@
       briefH: "Notes for testers",
       brief: "This is a closed test, not a product. Results are estimates, not a verdict. Do not photograph prescriptions, dispensing labels with a patient's name or documents with personal " +
         "data; use product labels only. Sending to AI needs your consent each time, or choose to remember it, and you can withdraw at any time. Report problems to the owner.",
-      privH: "Privacy in this test (draft, pending legal review)",
+      privH: "Privacy in this test (draft)",
       priv: "Product Check AI (closed test): only after your consent, the label text, and the product photo with faces blurred on your device if you choose photo mode, " +
         "is sent through Cloudflare (our API host) to the AI processors named on the consent screen before anything is sent, outside Thailand. " +
         "Routes that keep no content are enforced. LENSIQ stores no label text or image. Cloudflare Turnstile checks that the sender is not a bot. " +
@@ -73,7 +73,7 @@
       refused: "服务器未接受此请求，因此无法核对代码（这不表示代码错误）。请稍后再试或告知所有者", network: "无法连接服务器，请重试", revoked: "此代码已失效，请向所有者索取新代码",
       briefH: "测试须知",
       brief: "这是封闭测试，不是正式产品。结果仅为估计，不是结论。请勿拍摄处方、带有患者姓名的配药标签或含个人数据的文件，只使用产品标签。每次发送给 AI 都需要您的同意，也可选择记住，并可随时撤回。发现问题请告知所有者。",
-      privH: "本次测试的隐私说明（草稿，待律师审阅）",
+      privH: "本次测试的隐私说明（草稿）",
       priv: "Product Check AI（封闭测试）：仅在您同意后，标签文字（如果您选择照片模式，还包括已在您的设备上模糊人脸的产品照片）" +
         "会经由 Cloudflare（我们的 API 托管方）发送至同意页面在每次发送前列明的 AI 处理方，处理地点在泰国境外。系统强制使用不保留内容的线路。" +
         "LENSIQ 不保存标签文字或图片。Cloudflare Turnstile 用于在发送前确认不是机器人。测试代码仅在本次会话期间保存在此浏览器中。",

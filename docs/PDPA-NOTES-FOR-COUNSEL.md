@@ -1264,3 +1264,17 @@ Questions: (a) is a self-service export to the person's own device, with no tran
 portability right (s.31) for on-device data, or does the privacy notice need a sentence on it before it is switched on?
 (b) should the medicine look-up history be left out of the file entirely rather than offered behind a box? Until
 counsel answers, it is left out (owner item 215); putting it back needs counsel's answer and an owner order.
+
+## Decision 223 (2026-11-22): accuracy figures leave the customer pages; terms clause 11 rewrite is a draft only
+
+The customer pages no longer publish accuracy figures, source tags or status legends; each tool states what it is for
+and its main limit in plain words, and every result shows "โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้". The figures are in
+the per-product technical sheets (docs/tech-sheets/), given to a buyer on request. terms.html clause 11 still says "เรา
+เปิดเผยผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด" and clause 2 still mentions the "Beta" label; they are NOT changed on the
+site until counsel has reviewed the draft in docs/legal/TERMS-CLAUSE-11-DRAFT-223.md (owner 223-6). The draft banner
+"ฉบับร่าง — รอทนายความตรวจทาน" stays on terms, privacy, help and camera-notice.
+
+Questions: (a) does removing published figures from the pages change any consumer-protection or advertising duty, and
+is "ผลการทดสอบมีให้ตามคำขอ" (test results on request) enough? (b) can the current clause 11 stay live, word for word, until
+the rewrite is approved, given the pages no longer show the figures it refers to? (c) research-licence labels stay
+wherever that option is on (223-5); is the label wording sufficient while the face-api.js licence question is open?

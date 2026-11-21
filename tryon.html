@@ -29,13 +29,16 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-tryon.js?v=3"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-tryon.js?v=4"></script>
 
 <main class="to-page" id="main">
   <p class="eyebrow" data-i18n="to.eyebrow">LENSIQ · ลองสินค้า (ทดลอง)</p>
   <h1 data-i18n="to.h1">ลองสินค้าบนตัวคุณด้วยกล้องหรือรูป</h1>
   <p class="lead" data-i18n="to.lead">ลองแว่น หมวก และเสื้อผ้าจากแคตตาล็อกร้านบนภาพกล้องหรือรูปของคุณ ประมวลผลบนเครื่องนี้</p>
+  <p class="lq-lines">
+    <span data-i18n="ln.tryon.1">ลองแว่น หมวก ต่างหู และเสื้อบนภาพกล้องสดบนเครื่องนี้</span><br>
+    <span data-i18n="ln.tryon.2">เป็นภาพจำลอง ขนาดและตำแหน่งอาจไม่ตรงกับของจริง</span></p>
 
   <section class="card to-consent" id="toConsentCard" aria-labelledby="toConsentH">
     <h2 id="toConsentH" data-i18n="to.consent.h">ก่อนเปิดกล้องหรือเลือกรูป</h2>
@@ -62,6 +65,7 @@
       <div class="to-mark" id="toMark" translate="no">ภาพจำลอง · Virtual try-on preview · 虚拟试穿预览</div>
     </div>
     <p class="to-note" id="toPoseNote" data-i18n="to.pose.note">ภาพตัวอย่างตำแหน่งและสี ไม่ใช่การลองสวมที่สมจริง ขนาด ทรง และการทิ้งตัวของผ้าอาจต่างจากของจริง</p>
+    <p class="lq-recheck" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
     <p class="to-status" id="toStatus" role="status" data-i18n="to.st.idle">ยังไม่ได้เปิดกล้องหรือเลือกรูป</p>
     <div class="to-actions">
       <button class="btn ghost sm" id="toSnap" type="button" disabled data-i18n="to.snap">บันทึกภาพลงเครื่อง</button>
@@ -84,7 +88,7 @@
         รองรับเฉพาะภาพหน้าตรงคนเดียว ตัวหาจุดโหลดเมื่อคุณเลือกเสื้อผ้าเท่านั้น</li>
       <li data-i18n="to.help.length">ความยาวที่เห็นเป็นระดับมาตรฐานของแต่ละประเภท (เสื้อถึงสะโพก เดรสและกระโปรงถึงเข่า กางเกงถึงข้อเท้า) ไม่ใช่ความยาวจริงของสินค้า และไม่ได้บอกไซซ์</li>
       <li data-i18n="to.help.top">ถ้าเครื่องเปิดตัวหาจุดบนร่างกายไม่ได้ เสื้อจะวางตามคอ ไหล่ และชายเสื้อที่วัดจากรูปทรงตัวคนในภาพแทน เป็นภาพ 2 มิติ ไม่แสดงการทิ้งตัวหรือขนาดที่พอดีจริง</li>
-      <li data-i18n="to.help.acc">ความแม่นยำบนภาพจริงยังไม่ได้วัด ตัวเลขที่มีอยู่มาจากชุดทดสอบสังเคราะห์เท่านั้น</li>
+      <li data-i18n="to.help.acc">เป็นภาพจำลอง ขนาดและตำแหน่งอาจไม่ตรงกับของจริง</li>
       <li data-i18n="to.help.misuse">ระบบพิสูจน์ไม่ได้ว่าคนหน้ากล้องหรือในรูปคือผู้ที่ยินยอม ใช้เฉพาะกับตัวคุณเองหรือผู้ที่ยินยอมแล้ว</li>
     </ul>
   </section>

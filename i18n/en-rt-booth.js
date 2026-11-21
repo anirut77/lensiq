@@ -1,5 +1,6 @@
 /* i18n/en-rt-booth.js — run-time English for text written by booth.js (mirrors zh-rt-booth.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
+  "ทดสอบหน้างาน": "On-site test",
   "@lang": "en",
   "ปิดโมเดลสีหน้าในโหมดลูกค้า — ไม่วัดสีหน้าหลักและ Valence": "Expression model off in customer mode — dominant expression and valence are not measured",
   "ปิดในโหมดลูกค้า": "Off in customer mode",

@@ -2,7 +2,7 @@
  * Receives JSON events from exam-lab / exam-hall pages (exam-link.js: BroadcastChannel, optional relay, or an imported
  * file) into LQExam.createBoard: decaying seat levels, alert queue (triage order: Check, then Watch, oldest first),
  * invigilator actions (Going / No issue / Note / Escalate, always with a name), accommodation profiles (sent to the nodes),
- * room mute, on-site precision tally, per-room summary, CSV (time order) and a printable committee report.
+ * room mute, on-site test tally (plain verdict, figures folded), per-room summary, CSV (time order) and a printable committee report.
  * No images, ever. Test hook: window.__LQ_EXAM_DB.
  * Evidence clip (opt-in on the camera device): a flag row shows its time + "clip on device" status; "Keep clip" (named,
  * like every action) sends a JSON keep message to that device. The video itself never comes to the dashboard.
@@ -158,6 +158,13 @@
     $("#precBody").innerHTML = rows.length ? rows.map(([k, b]) => `<tr><td>${U.esc(U.sig(k))}</td><td>${b.right}</td><td>${b.wrong}</td><td>${pct(b.p)} (${pct(b.lo)}–${pct(b.hi)})</td></tr>`).join("") +
       `<tr><td><b>${U.esc(T("exam.db.all", "รวม"))}</b></td><td>${pr.all.x}</td><td>${pr.all.n - pr.all.x}</td><td>${pct(pr.all.p)} (${pct(pr.all.lo)}–${pct(pr.all.hi)})</td></tr>`
       : `<tr><td colspan="4" class="empty">${U.esc(T("exam.db.precEmpty", "ยังไม่มีการนับ — กด แจ้งถูก / แจ้งผิด ในรายการ"))}</td></tr>`;
+    // decision 223-4: a plain verdict on top; the per-signal figures stay folded for the administrator
+    const pv = $("#precVerdict");
+    if (pv) {
+      const n = pr.all.n, x = pr.all.x;
+      pv.textContent = !n ? "" : T(x * 2 >= n ? "exam.db.precVok" : "exam.db.precVbad",
+        x * 2 >= n ? "ห้องนี้: แจ้งถูก {x} จาก {n} ครั้งที่นับ ส่วนใหญ่แจ้งถูก" : "ห้องนี้: แจ้งถูก {x} จาก {n} ครั้งที่นับ ส่วนใหญ่แจ้งผิด ควรปรับกล้อง แสง หรือเกณฑ์ก่อนใช้ต่อ", { x, n });
+    }
   }
   function renderAcc() {
     const ps = board.profiles, ids = Object.keys(ps).sort(seatSort);

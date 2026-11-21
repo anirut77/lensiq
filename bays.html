@@ -26,8 +26,8 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-zones.js?v=1"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-zones.js?v=2"></script>
 <script src="lensiq-i18n-rt.js?v=2"></script>
 <script src="i18n/zh-rt-common.js?v=7"></script>
 
@@ -35,9 +35,9 @@
   <p class="zc-crumb"><a href="solutions.html" data-i18n="zc.back">← โซลูชันตามอุตสาหกรรม</a></p>
   <h1 data-i18n="zb.h1">นับช่องจอดว่าง</h1>
   <p class="lead" data-i18n="zb.lead">วาดกรอบช่องจอดแต่ละช่องบนภาพกล้อง ระบบดูว่ามีรถยนต์หรือจักรยานยนต์อยู่ในช่องหรือไม่ แล้วนับช่องว่างแยกตามประเภท ไม่อ่านป้ายทะเบียนและไม่สนใจคน</p>
-  <p class="acc-note" role="note"><b class="beta" data-i18n="zc.beta">ค่าประมาณ (Beta)</b>
-    <span data-i18n="zb.acc">รถที่ถูกรถคันอื่นบังหรือกล้องมุมต่ำอาจทำให้ช่องถูกนับผิด ตั้งกล้องสูงมองลงให้เห็นทุกช่อง
-    และเทียบกับการนับด้วยตาสักครั้งก่อนใช้ตัวเลขบนป้าย</span> <a href="cameras.html#accuracy" data-i18n="zc.accLink">ความแม่นยำที่วัดได้</a></p>
+  <p class="acc-note lq-lines" role="note"><b class="beta" data-i18n="zc.beta">รุ่นทดลอง</b>
+    <span data-i18n="ln.zones.1">แจ้งคิว โต๊ะว่าง ช่องจอด หรือคนในพื้นที่หวงห้าม โดยไม่ระบุตัวตนและไม่บันทึกภาพ</span><br>
+    <span data-i18n="ln.zones.2">เงา แสงไฟ หรือคนยืนบังกันอาจทำให้แจ้งผิดหรือนับขาด ให้เจ้าหน้าที่ตรวจก่อนดำเนินการ</span></p>
 
   <section class="card zc-gate" id="gate" aria-labelledby="gateH" hidden>
     <h2 id="gateH" data-i18n="zc.gate.h">ก่อนเปิดกล้อง (PDPA)</h2>
@@ -81,6 +81,7 @@
     <section class="card" aria-labelledby="nowH">
       <h2 id="nowH" data-i18n="zb.nowH">ช่องจอดตอนนี้</h2>
       <div class="tiles" id="tiles"></div>
+      <p class="lq-recheck hint" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
       <div class="row-actions"><button class="btn ghost small" type="button" id="boardBtn" aria-pressed="false" data-i18n="zb.boardBtn">จอแสดงช่องว่าง (หน้าทางเข้า)</button></div>
       <div class="zb-board" id="board" hidden data-full="0" role="status">
         <span class="zb-num" id="boardNum">0</span><span class="zb-sub" id="boardSub"></span><span class="zb-tap" data-i18n="zb.boardTap">แตะเพื่อปิด</span>
@@ -99,7 +100,7 @@
 
   <section class="card" aria-labelledby="logH">
     <div class="report-head"><h2 id="logH" data-i18n="zc.logH">รายการแจ้งเตือน (ให้พนักงานตรวจ)</h2></div>
-    <p class="hint" id="logStats" role="status"></p>
+    <div class="hint" id="logStats" role="status"></div>
     <ul class="zc-log" id="log"></ul>
     <div class="row-actions">
       <button class="btn primary" id="exportCsv" type="button" data-i18n="zc.csv">ส่งออก CSV</button>
@@ -127,7 +128,7 @@
 <script src="vendor/ort/ort.wasm.min.js"></script>
 <script src="lensiq-detect.js?v=7"></script>
 <script src="lensiq-zones.js?v=1"></script>
-<script src="lensiq-zonecam.js?v=2"></script>
+<script src="lensiq-zonecam.js?v=3"></script>
 <script src="bays.js?v=1"></script>
 <script src="lensiq-config.js?v=30"></script>
 </body>

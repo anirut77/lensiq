@@ -4,7 +4,7 @@
   "vg.eyebrow": "LENSIQ Gate · Village / condo",
   "vg.h1": "Guard post: plates, resident vehicles and visitors",
   "vg.lead": "The system compares the plate with the resident vehicle list, the deny list and visitor passes, and shows the result for the guard to decide. The guard presses the button that opens the barrier.",
-  "vg.assist": "Assisted reading: the system suggests the plate and the guard taps to confirm every vehicle. It is not fully automatic until a plate finder trained on Thai plates exists. On 51 real photos (public dataset, Wikimedia Commons): exact read with no tap 32% (7 / 22 · n = 22 · some photos are in the tuning set, so this is optimistic); a tap to pick the plate was needed in 78% (25 / 32 · n = 32)",
+  "vg.assist": "Assisted reading: the system suggests the plate and the guard taps to confirm every vehicle.",
   "vg.safety": "The system does not open the barrier by itself, unless the site owner has switched on \"auto-open\", and then only for resident vehicles whose plate matches exactly with enough confidence. Guards can always open it themselves.",
   "vg.tab.gate": "Guard post",
   "vg.tab.res": "Resident vehicles",
@@ -63,7 +63,7 @@
   "vg.auto.on": "The site owner allows the barrier to open automatically, only for resident vehicles whose plate matches exactly, whose province does not conflict, and whose confidence reaches the threshold",
   "vg.auto.conf": "Minimum confidence (0.90–0.99)",
   "vg.auto.agree": "Minimum share of agreeing frames (0.6–1)",
-  "vg.auto.note": "Visitors, look-alike plates, unknown vehicles and denied vehicles always need the guard's decision. Pass the on-site accuracy check before switching this on.",
+  "vg.auto.note": "Visitors, look-alike plates, unknown vehicles and denied vehicles always need the guard's decision. Test with real cars at your own gate and pass that test before switching this on.",
   "vg.other.h": "Other",
   "vg.over.grace": "Alert when a visitor stays past the pass (minutes)",
   "vg.max": "Maximum vehicles per house",
@@ -126,7 +126,7 @@
   "vg.l.manual": "opened by hand",
   "vg.o.yes": "opened",
   "vg.o.no": "not opened",
-  "vg.q.auto": "Open the barrier automatically for resident vehicles whose plate matches exactly? Pass the on-site accuracy check first and always keep a guard at the post",
+  "vg.q.auto": "Open the barrier automatically for resident vehicles whose plate matches exactly? Test with real cars at your own gate and pass that test first, and always keep a guard at the post",
   "vg.relay.badUrl": "Invalid relay address (must start with http://, https:// or /)",
   "vg.set.saved": "Saved"
 } });

@@ -108,16 +108,22 @@ test("count quality: dense-crowd collapse needs the operator's expected crowd (m
   assert.match(read("docs/CROWD-ACCURACY.md"), /does NOT appear on its own for a very dense crowd/);
 });
 
-test("crowd.js / crowd.html: hour heatmaps, peak report, 15-min table, marketing CSV, quality label, accuracy note", () => {
+test("crowd.js / crowd.html: hour heatmaps, peak report, 15-min table, marketing CSV, quality label, plain limit (no accuracy panel)", () => {
   const js = read("crowd.js"), html = read("crowd.html");
-  for (const id of ["crAcc", "crQual", "heatHour", "heatHourLbl", "heatHours", "peakRep", "peakBody", "printPeak", "q15", "exportMkt"]) assert.ok(html.includes(`id="${id}"`), "#" + id);
+  // decision 223: the accuracy panel (#crAcc) and the figures block (#crClaims) are gone from the customer page
+  for (const id of ["crAcc", "crClaims"]) assert.ok(!html.includes(`id="${id}"`), "#" + id + " must be gone (decision 223)");
+  for (const id of ["crQual", "heatHour", "heatHourLbl", "heatHours", "peakRep", "peakBody", "printPeak", "q15", "exportMkt"]) assert.ok(html.includes(`id="${id}"`), "#" + id);
   assert.match(js, /C\.addCross\(day, h \* 60 \+ d\.getMinutes\(\), c\.dir\)/);
   assert.match(js, /C\.gridAdd\(hg, a, dt \/ 1000\)/);
   assert.match(js, /ZC\.downloadCsv\(`lensiq-crowd-marketing-/, "marketing CSV goes through the BOM writer");
   assert.match(js, /C\.countQuality\(/);
-  // walk-through 2026-11-16 D-06: "preliminary" is stated in the page language (no English "(PRELIMINARY)" inside Thai)
-  assert.match(html, /ผลเบื้องต้น/); assert.match(read("i18n/en-crowd.js"), /preliminary/i); assert.match(html, /รอผลการนับโดยคน/); assert.match(html, /AI/);
-  for (const f of ["crowd.js?v=2", "lensiq-crowd.js?v=2", "crowd.css?v=2", "i18n/zh-crowd.js?v=4"]) assert.ok(html.includes(f), "cache-busted " + f);
+  // decision 223 (replaces walk-through 2026-11-16 D-06): no "preliminary" / figures on the page; the plain dense-crowd limit
+  // and the setup tip are stated instead, and the report / marketing CSV notes carry the recheck sentence
+  assert.doesNotMatch(html, /ผลเบื้องต้น|รอผลการนับโดยคน|n = \d/); assert.doesNotMatch(read("i18n/en-crowd.js"), /preliminary/i);
+  assert.match(html, /ยังไม่เหมาะกับฝูงชนหนาแน่น/); assert.match(html, /ตั้งกล้องสูงมองเฉียงลง ตัวเลขเป็นค่าประมาณสำหรับวางแผน/);
+  assert.match(js, /"cr\.rep\.note", "ตัวเลขเป็นค่าประมาณจากกล้อง โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้ ไม่มีภาพหรือข้อมูลระบุตัวบุคคล"/);
+  assert.match(js, /"cr\.mk\.acc", "[^"]*โปรดตรวจสอบอีกครั้ง"/); assert.doesNotMatch(js, /ผลเบื้องต้น/);
+  for (const f of ["crowd.js?v=3", "lensiq-crowd.js?v=2", "crowd.css?v=3", "i18n/zh-crowd.js?v=5"]) assert.ok(html.includes(f), "cache-busted " + f);
   assert.match(read("crowd.css"), /html\.cr-print-peak/);
 });
 

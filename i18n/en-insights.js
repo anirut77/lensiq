@@ -4,7 +4,7 @@
   var en = {
     // ---- round 10: on-site accuracy status + flagged hours ----
     "ชั่วโมงที่ภาพมีปัญหา (ยอดอาจคลาดเคลื่อน)": "Hours with camera image problems (counts may be off)",
-    "iq.acc.title": "On-site accuracy status",
+    "iq.acc.title": "On-site test results",
     "iq.acc.sub": "Latest check of each camera (stored on this device, read-only)",
     "iq.flag.title": "Hours with camera image problems",
     "iq.flag.sub": "Camera shake, dark, backlight, slow processing or offline for ≥ 5 minutes in that hour",

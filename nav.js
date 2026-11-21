@@ -6,10 +6,11 @@
   var BRAND = { name: "LENS", accent: "IQ", full: "LENSIQ", tagline: "Computer Vision ประมวลผลบนเครื่อง เพื่อการตลาดและการวิเคราะห์" };
 
   var ENTRY = { "attendance.html": "attendance.html?mode=employee" };
+  var VIEWCAT = "ดูหน้าหมวดนี้"; // owner decision 223: the menu link to a category page, no "status and accuracy"
   var MENU = [
     { label: "ความปลอดภัยและการเข้าออก", short: "เข้าออก", id: "gate", cat: "security",
       intro: "อ่านป้ายทะเบียนรถไทยบนเครื่องสำหรับลานจอดและหมู่บ้าน ป้ายแจ้ง PDPA และแจ้งเตือนพื้นที่หวงห้าม เจ้าหน้าที่ยืนยันทุกครั้ง", items: [
-      { href: "cat-security.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
+      { href: "cat-security.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "gate.html", title: "LENSIQ Gate ภาพรวม", desc: "อ่านป้ายทะเบียนรถไทยบนเครื่อง (นำร่อง)" },
       { href: "parking.html", title: "ลานจอดรถ", desc: "จับคู่รถเข้า-ออก คิดค่าจอด QR พร้อมเพย์" },
       { href: "village.html", title: "ป้อมยามหมู่บ้าน/คอนโด", desc: "รถลูกบ้าน บัตรผ่านผู้มาเยือน เปิดไม้กั้นโดยเจ้าหน้าที่" },
@@ -19,16 +20,16 @@
     ] },
     { label: "การศึกษาและการสอบ", short: "การสอบ", id: "edu", cat: "education",
       intro: "ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน และตรวจกระดาษคำตอบด้วยมือถือ ระบบไม่ตัดสินการทุจริต คนตัดสินเสมอ ประมวลผลภาพในเครื่อง", items: [
-      { href: "cat-education.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
+      { href: "cat-education.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "exam.html", title: "LENSIQ Exam ภาพรวม", desc: "ช่วยผู้คุมสอบ ไม่ตัดสินการทุจริต (นำร่อง)" },
       { href: "exam-lab.html", title: "หน้าผู้เข้าสอบ", desc: "สอบออนไลน์: แจ้งสิทธิ์ ปรับเทียบ ป้ายกำลังติดตาม" },
-      { href: "exam-hall.html", title: "เครื่องกล้องในห้องสอบ", desc: "วาดที่นั่ง แจ้งที่นั่งว่างและคนเกิน (ทดลอง)" },
+      { href: "exam-hall.html", title: "เครื่องกล้องในห้องสอบ", desc: "วาดที่นั่ง แจ้งที่นั่งว่างและคนเกิน (รุ่นทดลอง)" },
       { href: "exam-dashboard.html", title: "แดชบอร์ดผู้คุมสอบ", desc: "แผนที่ที่นั่ง คิวให้ตรวจ รายงานตามเวลา" },
       { href: "omr.html", title: "ตรวจกระดาษคำตอบ", desc: "พิมพ์กระดาษคำตอบ ตรวจด้วยกล้องมือถือ วิเคราะห์ข้อสอบ" }
     ] },
     { label: "HR และที่ทำงาน", short: "HR", id: "work", cat: "hr",
       intro: "ลงเวลาด้วย PIN หรือ QR (ใบหน้าเป็นทางเลือก) สัมภาษณ์แบบมีโครงสร้าง ทบทวนเคส และกิจกรรมทีม คนตัดสินใจเรื่องคนเสมอ", items: [
-      { href: "cat-hr.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
+      { href: "cat-hr.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "attendance.html", title: "ลงเวลาทำงาน PIN / QR", desc: "ใบหน้าเป็นตัวเลือก · เช็คชื่ออบรม" },
       { href: "hr.html", title: "LENSIQ HR ภาพรวม", desc: "ชุดสัมภาษณ์ โหมดฝึกซ้อมผู้สมัคร และกิจกรรมทีม" },
       { href: "interview.html", title: "ชุดสัมภาษณ์แบบมีโครงสร้าง", desc: "คำถาม STAR + เกณฑ์ BARS ให้คะแนนอิสระ สรุปความสอดคล้อง โหมดฝึกซ้อม" },
@@ -37,8 +38,8 @@
     ] },
     { label: "การตลาด ค้าปลีก และอีเวนต์", short: "ค้าปลีก", id: "ana", cat: "marketing",
       intro: "นับคนและความหนาแน่น หน้าร้าน คิว โต๊ะ ช่องจอด ป้ายโฆษณา และบูธ แบบไม่ระบุตัวตน ประมวลผลบนเครื่อง", items: [
-      { href: "cat-marketing.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
-      { href: "crowd.html", title: "นับคนและความหนาแน่น", desc: "คนในโซน ช่วงพีค เส้นเข้า-ออก และเวลาอยู่ ในงานอีเวนต์ (ทดลอง ยังไม่เหมาะกับฝูงชนหนาแน่น)" },
+      { href: "cat-marketing.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
+      { href: "crowd.html", title: "นับคนและความหนาแน่น", desc: "คนในโซน ช่วงพีค เส้นเข้า-ออก และเวลาอยู่ ในงานอีเวนต์ (รุ่นทดลอง ยังไม่เหมาะกับฝูงชนหนาแน่น)" },
       { href: "store.html", title: "วิเคราะห์หน้าร้าน", desc: "นับคน แผนที่ความร้อน และคิว" },
       { href: "retail.html", title: "LENSIQ Retail ภาพรวม", desc: "กล้องหน้าร้านสำหรับ SME: นับคน อัตราการซื้อ หลายสาขา" },
       { href: "insights.html", title: "แดชบอร์ดรวม", desc: "สรุปผลจากทุกระบบในที่เดียว" },
@@ -55,7 +56,7 @@
     ] },
     { label: "สุขภาพ ความปลอดภัย และคุณภาพ", short: "สุขภาพ", id: "health", cat: "health",
       intro: "ตรวจข้อมูลยาให้เภสัชกรยืนยัน เตือนเมื่อคนขับหลับตานาน และตรวจคุณภาพสินค้าบนสายการผลิต", items: [
-      { href: "cat-health.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
+      { href: "cat-health.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "medicine.html", title: "ตรวจข้อมูลยา", desc: "เลขทะเบียน อย. บาร์โค้ด ชื่อยา และเม็ดยา ยืนยันกับเภสัชกรทุกครั้ง" },
       { href: "nutrition.html", title: "อ่านฉลากโภชนาการ", desc: "ค่าตามฉลาก ปริมาณที่กินจริง และข้อมูลผู้แพ้อาหาร อ่านบนเครื่องนี้" },
       { href: "driver.html", title: "เฝ้าระวังความง่วงคนขับ", desc: "แจ้งเตือนเมื่อหลับตานานหรือหาว" },
@@ -87,7 +88,7 @@
     ] },
     { label: "สตูดิโอและสื่อ", short: "สตูดิโอ", id: "photo", cat: "studio",
       intro: "สตูดิโอภาพโปรไฟล์และรูปติดบัตร ตู้ถ่ายรูปสำหรับอีเวนต์ วิเคราะห์บูธ และแปลงเอกสาร", items: [
-      { href: "cat-studio.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
+      { href: "cat-studio.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "studio.html", title: "สตูดิโอภาพโปรไฟล์และรูปติดบัตร", desc: "เปลี่ยนฉากหลัง รีทัช รูปโปรไฟล์ ตรวจขนาดรูปติดบัตร · ชุดตัวอย่าง (พรีวิว)" },
       { href: "photobooth.html", title: "ตู้ถ่ายรูป", desc: "ตู้สติ๊กเกอร์และรูปติดบัตร" },
       { href: "converter.html", title: "แปลง PDF เป็น Word", desc: "แปลงในเบราว์เซอร์ ไม่อัปโหลดไฟล์" },
@@ -96,7 +97,7 @@
     { label: "เกี่ยวกับ", short: "เกี่ยวกับ", id: "about",
       intro: "เกี่ยวกับ LENSIQ โซลูชันตามอุตสาหกรรม แพ็กเกจ ความช่วยเหลือ และเอกสารด้านกฎหมาย", items: [
       { href: "about.html", title: "เกี่ยวกับ", desc: "ทำงานบนเครื่อง ความเป็นส่วนตัว และสัญญาอนุญาต" },
-      { href: "solutions.html", title: "โซลูชันตามอุตสาหกรรม", desc: "เลือกตามธุรกิจ: พร้อมใช้ นำร่อง และเร็ว ๆ นี้" },
+      { href: "solutions.html", title: "โซลูชันตามอุตสาหกรรม", desc: "เลือกตามธุรกิจ: ทดลองใช้ได้ตอนนี้ และเร็ว ๆ นี้" },
       { href: "pricing.html", title: "แพ็กเกจและราคา", desc: "แพ็กเกจรายเดือนและค่าบริการ", crisisSales: "item" },
       { href: "help.html", title: "ช่วยเหลือ", desc: "คำถามที่พบบ่อยและการติดต่อ" },
       { href: "privacy.html", title: "ความเป็นส่วนตัว", desc: "ประกาศความเป็นส่วนตัว (PDPA)" },
@@ -127,6 +128,21 @@
     st.id = "lq-crisis-sales-style";
     st.textContent = ":is(html[data-lq-crisis],html[data-lq-calm]) [data-lq-crisis-sales]{display:none!important}";
     (document.head || document.documentElement).appendChild(st);
+  })();
+
+  // owner decision 223 (audit section 3): signage, neuro, teamface and customers are listed only in demo mode
+  // (window.LENSIQ_PROFILE === "demo", set by lensiq-config.js, which some pages load at the end of <body>, hence the second
+  // check on DOMContentLoaded). Everything marked data-demo-only (menu items, category cards, catalogue cards, footer links)
+  // is hidden otherwise; the pages themselves stay and open directly.
+  var DEMO_ONLY = /^(signage|neuro|teamface|customers)\.html$/;
+  (function () {
+    var st = document.createElement("style");
+    st.id = "lq-demo-only-style";
+    st.textContent = "html:not(.lq-demo) [data-demo-only]{display:none!important}";
+    (document.head || document.documentElement).appendChild(st);
+    var demo = function () { if (/** @type {any} */ (window).LENSIQ_PROFILE === "demo") document.documentElement.classList.add("lq-demo"); };
+    demo();
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", demo);
   })();
 
   var T = function (key, thai, vars) { return window.LQI18N ? window.LQI18N.tf(key, thai, vars) : thai; };
@@ -182,13 +198,13 @@
       html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span class="nav-lbl-s" data-i18n="nav.groups.' + g.id + '">' + esc(g.short || g.label) + '</span><span class="nav-lbl-f" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
         '<div class="nav-sub" id="navsub-' + g.id + '"><div class="mega">' +
           '<div class="mega-intro"><p class="mega-k" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</p><p class="mega-d" data-i18n="nav.groupd.' + g.id + '">' + esc(g.intro) + '</p>' +
-          (g.cat ? '<a class="mega-all" href="cat-' + g.cat + '.html">' + (g.cat === "fortune" ? '<span data-i18n="nav.viewcat.fortune">ดูหน้าหมวดนี้</span>'
-            : '<span data-i18n="nav.viewcat">ดูหน้าหมวดนี้: สถานะและความแม่นยำ</span>') + arrow + '</a></div>'
+          (g.cat ? '<a class="mega-all" href="cat-' + g.cat + '.html">' + (g.cat === "fortune" ? '<span data-i18n="nav.viewcat.fortune">' + esc(VIEWCAT) + '</span>'
+            : '<span data-i18n="nav.viewcat">' + esc(VIEWCAT) + '</span>') + arrow + '</a></div>'
             : '<a class="mega-all" href="cameras.html"><span data-i18n="nav.viewall">ดูระบบทั้งหมด</span>' + arrow + '</a></div>') +
           '<ul class="mega-links' + (g.items.length > 6 ? " cols-3" : g.items.length > 3 ? " cols-2" : "") + '">';
       g.items.forEach(function (i) {
         var cs = ' data-lq-crisis-sales=""';
-        html += '<li' + (i.crisisSales === "item" ? cs : "") + '><a href="' + (ENTRY[i.href] || i.href) + '"'
+        html += '<li' + (i.crisisSales === "item" ? cs : "") + (DEMO_ONLY.test(i.href) ? " data-demo-only" : "") + '><a href="' + (ENTRY[i.href] || i.href) + '"'
           + (isCur(i.href) ? ' aria-current="page"' : "") + '><b data-i18n="' + key(i.href) + '.title">' + esc(i.title) + '</b>'
           + '<small' + (i.crisisSales === "desc" ? cs : "") + ' data-i18n="' + key(i.href) + '.desc">' + esc(i.desc) + '</small></a></li>';
       });

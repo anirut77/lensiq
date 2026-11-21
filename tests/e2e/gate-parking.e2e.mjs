@@ -131,6 +131,11 @@ export default async function ({ base, launch, check }) {
       await page.waitFor(`document.querySelector("#gkPlate").value === "ขข 55"`, 8000);
       await page.evaluate(() => { document.querySelector('[data-tick="1"]').click(); document.querySelector('[data-act="in"]').click(); const a = document.querySelector("#gkAuto"); a.checked = false; a.dispatchEvent(new Event("change")); });
       await page.evaluate(() => { document.querySelector("#t-check").click(); document.querySelector("#gkChkStop").click(); });
+      // decision 223-4: verdict on top, the figures folded under "ตัวเลขละเอียดสำหรับผู้ดูแล"; read the closed state, then open the fold
+      const fold = await page.evaluate(() => { const r = document.querySelector("#gkChkRep"), d = r.querySelector("details.gk-fold");
+        const out = { verdictFirst: !!r.firstElementChild && r.firstElementChild.classList.contains("gk-verdict"), closed: !!d && !d.open,
+          summary: d ? d.querySelector("summary").textContent : "" }; if (d) d.open = true; return out; });
+      assert(fold.verdictFirst && fold.closed && fold.summary === "ตัวเลขละเอียดสำหรับผู้ดูแล", "plain verdict on top, figures folded " + JSON.stringify(fold).slice(0, 300));
       const rep = await page.evaluate(() => ({ r: window.__LQ_PK.kit.lastCheck, html: document.querySelector("#gkChkRep").innerText, hist: JSON.parse(localStorage.getItem("lq-gate-parking-sitecheck") || "[]") }));
       assert(rep.r.n === 2 && rep.r.plate.x === 1 && rep.r.plate.n === 2 && ["more", "ontrack", "fail"].includes(rep.r.verdict), "check report " + JSON.stringify(rep.r && { n: rep.r.n, p: rep.r.plate, v: rep.r.verdict }));
       assert(/ป้ายถูกทั้งป้าย/.test(rep.html) && /50\.0%/.test(rep.html) && rep.hist.length === 1, "report rendered + history " + rep.html.slice(0, 200));
@@ -170,6 +175,7 @@ export default async function ({ base, launch, check }) {
       const live = await page.evaluate(() => document.querySelector("#gkChkLive").textContent);
       assert(/แตะกรอบป้าย 2 คัน/.test(live) && /อ่านแล้ว 2 คัน/.test(live), "live tally shows taps incl. the typed plate " + live);
       await page.evaluate(() => document.querySelector("#gkChkStop").click());
+      await page.evaluate(() => { const d = document.querySelector("#gkChkRep details.gk-fold"); if (d) d.open = true; }); // figures are folded (decision 223-4)
       const rep = await page.evaluate(() => ({ r: window.__LQ_PK.kit.lastCheck, html: document.querySelector("#gkChkRep").innerText }));
       const t = rep.r.taps, tn = rep.r.tapsNight;
       assert(t.n + tn.n === 3 && t.x + tn.x === 2 && rep.r.n === 2 && rep.r.manual === 1, "taps over both reads + the typed plate " + JSON.stringify({ t, tn, n: rep.r.n, manual: rep.r.manual }));

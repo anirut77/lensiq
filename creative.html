@@ -24,13 +24,15 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-creative.js?v=1"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-creative.js?v=2"></script>
 
 <main class="cr" id="main">
   <h1 data-i18n="cr.s.h1">Creative Lab — ตรวจชิ้นงานโฆษณาก่อนใช้จริง</h1>
   <p class="lead" data-i18n="cr.s.lead">ดูว่าสายตาน่าจะไปที่ไหนก่อนบนโฆษณา บรรจุภัณฑ์ ชั้นวาง หรือโปสเตอร์ ตรวจความรก ความชัดของตัวอักษร สี และใบหน้า แล้วเทียบหลายแบบก่อนนำไปทดสอบจริง</p>
-  <p class="acc-note" role="note"><b class="beta">Beta</b> <span data-i18n="cr.s.acc">แผนที่ความสนใจเป็นค่าคาดการณ์จากแบบจำลองการมองเห็นแบบคลาสสิก ไม่ใช่การติดตามสายตาจริง วัดบน MIT1003 (703 ภาพที่ไม่ได้ใช้ปรับค่า): AUC-Judd 0.83, NSS 1.59, CC 0.47 — ดีกว่าการทายตรงกลางภาพ (NSS 1.25) แต่ต่ำกว่าแบบจำลองเชิงลึกรุ่นใหม่</span> <a href="#pane-about" class="tab-link" data-goto="about" data-i18n="cr.s.accl">วิธีวัดและข้อจำกัด</a></p>
+  <p class="acc-note lq-lines" role="note"><b class="beta" data-i18n="cr.s.betaB">รุ่นทดลอง</b>
+    <span data-i18n="ln.creative.1">คาดการณ์ว่าคนจะมองตรงไหนของชิ้นงานโฆษณา</span><br>
+    <span data-i18n="ln.creative.2">เป็นการคาดการณ์ ไม่ใช่การวัดสายตาคนจริง</span></p>
   <p class="cr-privacy" role="note"><b data-i18n="cr.s.priv1">ภาพไม่ออกจากเครื่องนี้:</b> <span data-i18n="cr.s.priv2">ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่อัปโหลด ไม่บันทึกภาพ ปิดหน้าแล้วภาพหายไป</span></p>
 
   <div class="tabs" role="tablist" aria-label="ส่วนของหน้า" data-i18n-attr="aria-label:cr.s.tabs">
@@ -141,7 +143,9 @@
       <h2 data-i18n="cr.s.m.h">วิธีคำนวณ</h2>
       <dl>
         <dt data-i18n="cr.s.m.sal">แผนที่ความสนใจที่คาดการณ์</dt>
-        <dd data-i18n="cr.s.m.sal.d">รวมสองแบบจำลองคลาสสิกที่ไม่ต้องใช้ข้อมูลฝึก: Spectral Residual (Hou &amp; Zhang 2007) และความต่างระหว่างจุดกลางกับรอบข้างของความสว่าง สี และทิศทางขอบ ตามแนวคิด Itti, Koch &amp; Niebur (1998) เพิ่มน้ำหนักให้ใบหน้าและข้อความที่ตรวจพบ (คนมักมองสองสิ่งนี้) และแนวโน้มที่คนมองกลางภาพ น้ำหนักปรับจาก 300 ภาพของ MIT1003 แล้ววัดผลบนอีก 703 ภาพ</dd>
+        <dd data-i18n="cr.s.m.sal.d">รวมสองแบบจำลองคลาสสิกที่ไม่ต้องใช้ข้อมูลฝึก: Spectral Residual (Hou &amp; Zhang 2007)
+          และความต่างระหว่างจุดกลางกับรอบข้างของความสว่าง สี และทิศทางขอบ ตามแนวคิด Itti, Koch &amp; Niebur (1998)
+          เพิ่มน้ำหนักให้ใบหน้าและข้อความที่ตรวจพบ (คนมักมองสองสิ่งนี้) และแนวโน้มที่คนมองกลางภาพ</dd>
         <dt data-i18n="cr.s.m.ord">ลำดับการมอง</dt>
         <dd data-i18n="cr.s.m.ord.d">เลือกจุดที่เด่นที่สุด แล้วกดจุดนั้นลงก่อนหาจุดถัดไป (winner-take-all + inhibition of return) เป็นลำดับที่คาดการณ์ ไม่ใช่ลำดับการมองที่วัดได้จริง</dd>
         <dt data-i18n="cr.s.m.share">ความสนใจต่อพื้นที่ (%)</dt>
@@ -161,21 +165,6 @@
       </dl>
     </div>
     <div class="card">
-      <h2 data-i18n="cr.s.acc.h">ผลวัดความแม่นยำ (MIT1003)</h2>
-      <p data-i18n="cr.s.acc.p">MIT1003 (Judd et al. 2009): 1,003 ภาพ ผู้ชม 15 คนต่อภาพ ดูภาพละ 3 วินาที ใช้เพื่อวัดผลเท่านั้น ไม่ได้รวมไว้ในระบบ ปรับน้ำหนักจาก 300 ภาพ วัดผลจากอีก 703 ภาพ ที่ความละเอียดแผนที่ด้านยาว 128 พิกเซล</p>
-      <div class="table-wrap"><table class="acc-table">
-        <thead><tr><th data-i18n="cr.s.acc.m">แบบจำลอง</th><th class="n">AUC-Judd</th><th class="n">AUC-Borji</th><th class="n">NSS</th><th class="n">CC</th></tr></thead>
-        <tbody>
-          <tr><td data-i18n="cr.s.acc.r1">หน้านี้ (รวมทุกส่วน)</td><td class="n">0.83</td><td class="n">0.81</td><td class="n">1.59</td><td class="n">0.47</td></tr>
-          <tr><td data-i18n="cr.s.acc.r2">ทายตรงกลางภาพอย่างเดียว</td><td class="n">0.82</td><td class="n">0.81</td><td class="n">1.25</td><td class="n">0.40</td></tr>
-          <tr><td data-i18n="cr.s.acc.r3">ไม่ใช้แนวโน้มมองกลางภาพ</td><td class="n">0.72</td><td class="n">0.71</td><td class="n">0.94</td><td class="n">0.26</td></tr>
-          <tr><td data-i18n="cr.s.acc.r4">เฉพาะภาพที่มีใบหน้า (74 ภาพ)</td><td class="n">0.88</td><td class="n">0.86</td><td class="n">2.25</td><td class="n">0.59</td></tr>
-          <tr><td data-i18n="cr.s.acc.r5">ภาพเดียวกัน ไม่เพิ่มน้ำหนักใบหน้า</td><td class="n">0.83</td><td class="n">0.82</td><td class="n">1.41</td><td class="n">0.39</td></tr>
-        </tbody>
-      </table></div>
-      <p class="hint" data-i18n="cr.s.acc.note">AUC 0.5 = สุ่ม 1.0 = สมบูรณ์ NSS 0 = สุ่ม รายละเอียดและผลแยกส่วนอยู่ใน ACCURACY.md §10 ภาพโฆษณาและบรรจุภัณฑ์ต่างจากภาพทั่วไปใน MIT1003 ผลจริงกับงานของคุณอาจต่างไป</p>
-    </div>
-    <div class="card">
       <h2 data-i18n="cr.s.lim.h">ข้อจำกัดที่ต้องรู้</h2>
       <ul>
         <li data-i18n="cr.s.lim.1">เป็นการคาดการณ์จากลักษณะของภาพ (สี ความต่าง ขอบ ใบหน้า ข้อความ) ไม่รู้ความหมาย ไม่รู้จักแบรนด์ และไม่รู้ว่าผู้ชมกำลังหาอะไร ความสนใจจริงขึ้นกับเป้าหมายของผู้ชมมาก</li>
@@ -188,7 +177,7 @@
       <ul class="refs">
         <li><a href="https://doi.org/10.1109/CVPR.2007.383267" target="_blank" rel="noopener">Hou &amp; Zhang (2007)</a> — Saliency Detection: A Spectral Residual Approach, CVPR</li>
         <li><a href="https://doi.org/10.1109/34.730558" target="_blank" rel="noopener">Itti, Koch &amp; Niebur (1998)</a> — A Model of Saliency-Based Visual Attention for Rapid Scene Analysis, IEEE PAMI 20(11)</li>
-        <li><a href="https://doi.org/10.1109/ICCV.2009.5459462" target="_blank" rel="noopener">Judd, Ehinger, Durand &amp; Torralba (2009)</a> — Learning to Predict Where Humans Look, ICCV (MIT1003)</li>
+        <li><a href="https://doi.org/10.1109/ICCV.2009.5459462" target="_blank" rel="noopener">Judd, Ehinger, Durand &amp; Torralba (2009)</a> — Learning to Predict Where Humans Look, ICCV</li>
         <li><a href="https://doi.org/10.1109/TPAMI.2018.2815601" target="_blank" rel="noopener">Bylinskii et al. (2019)</a> — What Do Different Evaluation Metrics Tell Us About Saliency Models? IEEE PAMI 41(3)</li>
         <li><a href="https://doi.org/10.1167/7.14.4" target="_blank" rel="noopener">Tatler (2007)</a> — The central fixation bias in scene viewing, J. Vision 7(14)</li>
         <li><a href="https://doi.org/10.1167/12.6.26" target="_blank" rel="noopener">Wang &amp; Pomplun (2012)</a> — The attraction of visual attention to texts in real-world scenes, J. Vision 12(6)</li>

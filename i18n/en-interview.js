@@ -67,7 +67,7 @@
   "iv.s.d.resNote": "Turn the screen to the candidate; the candidate opens it, then chooses to keep it (print/save as PDF) or discard it",
   "iv.s.d.discard": "Discard this feedback",
   "iv.s.why.h": "Scientific limits: why we show only observable behaviour, not emotion reading or deception detection",
-  "iv.s.why.1": "A meta-analysis of 206 studies found people detect lies with only about 54% accuracy, close to chance, and no facial or vocal cue reliably reveals lying (Bond and DePaulo, 2006)",
+  "iv.s.why.1": "No facial or vocal cue reliably reveals lying, so the system does not detect lies. Observations from the camera are only a starting point for follow-up questions.",
   "iv.s.why.2": "Facial expressions do not reliably reflect inner emotions and vary across people and cultures (Barrett et al., 2019)",
   "iv.s.why.3": "The EU Artificial Intelligence Act, Art. 5(1)(f), has banned emotion recognition systems in workplaces and education since 2 February 2025, and classifies recruitment systems as high risk",
   "iv.s.why.4": "Biometric data (such as face templates) and health or disability information are sensitive data under Section 26 of Thailand's PDPA, so this page neither creates nor stores face templates",

@@ -341,7 +341,7 @@ if (typeof document !== "undefined") (() => {
   $("#scanStatus").addEventListener("click", e => { const b = e.target.closest("button.chip[data-id]"); if (b) { clearChips(); selectCustomer(b.dataset.id, "สแกนใบหน้า"); } });
   function stopScan(clear = true) { scanning = false; $("#scanToggle").textContent = "เริ่มสแกนลูกค้า"; if (clear) overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); }
   $("#scanToggle").onclick = () => {
-    if (SC) return ($("#scanStatus").textContent = "กำลังตรวจความแม่นยำ — กด \"จบและคำนวณ\" ก่อนสแกนลูกค้า");
+    if (SC) return ($("#scanStatus").textContent = "กำลังทดสอบหน้างาน — กด \"จบและคำนวณ\" ก่อนสแกนลูกค้า");
     if (!ready || !camera.active) return ($("#scanStatus").textContent = "กล้องยังไม่พร้อม — ใช้ค้นหาด้วยชื่อแทนได้");
     if (scanning) return stopScan();
     if (!members.some(m => m.descriptor)) $("#scanStatus").textContent = "ยังไม่มีสมาชิกที่ลงทะเบียนใบหน้า";
@@ -687,7 +687,7 @@ if (typeof document !== "undefined") (() => {
   let SC = null, SC_LAST = null;
   const scHist = SITE ? SITE.history("cx-sitecheck") : null;
   const scPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
-    title: "ตรวจความแม่นยำหน้างาน",
+    title: "ทดสอบหน้างาน",
     intro: "ทดสอบการจำใบหน้าที่เคาน์เตอร์จริงของร้าน: ให้สมาชิกที่ลงทะเบียนแล้วและคนที่ไม่ใช่สมาชิกมายืนหน้ากล้องทีละคน ระบบใช้กฎเดียวกับการสแกนลูกค้า แต่ไม่เลือกลูกค้าและไม่บันทึกออเดอร์ระหว่างทดสอบ",
     steps: [
       "ลงทะเบียนสมาชิกทดสอบที่เคาน์เตอร์จริงก่อน (แนะนำอย่างน้อย 5 คน ระบบจึงปรับเกณฑ์ตามกลุ่มได้) และขอความยินยอมจากทุกคน รวมถึงคนที่มาช่วยทดสอบในฐานะคนที่ไม่ใช่สมาชิก",

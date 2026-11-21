@@ -1,5 +1,6 @@
 /* i18n/en-rt-customers.js — run-time English for text written by customers.js (mirrors zh-rt-customers.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
+  "ทดสอบหน้างาน": "On-site test",
   "@lang": "en",
   "ปิดกล้องแล้ว — ยังค้นหาสมาชิกด้วยชื่อได้": "Camera off — members can still be found by name",
   "ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้แล้ว": "All biometric data on this device has been deleted",
@@ -135,7 +136,7 @@
   "ไม่แน่ใจ อาจเป็นคุณ": "Not sure, this may be",
   "ถามชื่อลูกค้าก่อน แล้วแตะยืนยัน (หรือค้นหาด้วยชื่อ)": "Ask the customer's name first, then tap to confirm (or search by name)",
   // round 10: on-site accuracy check (customers.js)
-  "กำลังตรวจความแม่นยำ — กด \"จบและคำนวณ\" ก่อนสแกนลูกค้า": "Accuracy check in progress — press \"Finish and calculate\" before scanning customers",
+  "กำลังทดสอบหน้างาน — กด \"จบและคำนวณ\" ก่อนสแกนลูกค้า": "On-site test in progress — press \"Finish and calculate\" before scanning customers",
   "ทดสอบการจำใบหน้าที่เคาน์เตอร์จริงของร้าน: ให้สมาชิกที่ลงทะเบียนแล้วและคนที่ไม่ใช่สมาชิกมายืนหน้ากล้องทีละคน ระบบใช้กฎเดียวกับการสแกนลูกค้า แต่ไม่เลือกลูกค้าและไม่บันทึกออเดอร์ระหว่างทดสอบ": "Test face recognition at your shop's real counter: have enrolled members and non-members stand in front of the camera one at a time. The system uses the same rules as the customer scan, but during the test it never selects a customer and records no orders.",
   "ลงทะเบียนสมาชิกทดสอบที่เคาน์เตอร์จริงก่อน (แนะนำอย่างน้อย 5 คน ระบบจึงปรับเกณฑ์ตามกลุ่มได้) และขอความยินยอมจากทุกคน รวมถึงคนที่มาช่วยทดสอบในฐานะคนที่ไม่ใช่สมาชิก": "First enrol the test members at the real counter (at least 5 people recommended, so the system can calibrate its limits to the group), and get consent from everyone, including the people helping as non-members",
   "กด \"เริ่มตรวจ\" แล้วในแต่ละรอบ เลือกว่าใครยืนหน้ากล้อง (คนที่ไม่ใช่สมาชิก: ใส่หมายเลขประจำคน คนเดิมใช้เลขเดิม) กด \"เริ่มรอบนี้\" ให้คนนั้นเดินมาที่เคาน์เตอร์ตามปกติ ระบบสรุปผลเองภายใน 6 วินาที": "Press \"Start check\", then in each round choose who stands at the camera (non-members: enter a number per person, the same person keeps the same number), press \"Start this round\" and let that person walk up to the counter as usual; the system decides within 6 seconds",

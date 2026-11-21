@@ -40,7 +40,7 @@
 4. **ตรวจแสงและกล้อง** ถ้าคำตัดสินแสงเป็น "แย่" ให้ปรับแสงหรือมุมก่อน ระบบจะไม่ประเมินสัญญาณใบหน้าและส่ง "ปรับการติดตั้ง" ไม่ใช่การแจ้งเหตุ
 5. **ปรับเทียบท่านั่ง** (ประมาณ 2 นาที) ถ้าเฟรมที่มีใบหน้าเดียวต่ำกว่า 60% การปรับเทียบจะไม่ผ่านและปิดสัญญาณหันศีรษะ การสอบยังเริ่มได้
 6. **เริ่มสอบ** ผู้สอบเข้าโหมดเต็มจอ ผู้คุมสอบเดินตรวจตามปกติ ข้อจำกัดที่ต้องบอกผู้คุมสอบ: ในโหมดห้องคอมพิวเตอร์ยังไม่มีการส่งสดไปแดชบอร์ดข้ามเครื่อง (OP-25)
-   และสัญญาณ "มากกว่าหนึ่งคน" เป็นตัวช่วย ไม่ครบถ้วน (28.8% บนชุดข้อมูลสาธารณะ)
+   และสัญญาณ "มากกว่าหนึ่งคน" เป็นตัวช่วย ไม่ครบถ้วน
 7. **หลังสอบ** แต่ละเครื่องส่งออกไฟล์ JSON ผู้คุมสอบนำเข้าที่แดชบอร์ด (ส่วน "นำเข้าไฟล์เหตุการณ์") ตรวจข้อสังเกตทีละรายการ กด "ไปตรวจ / ไม่พบปัญหา / บันทึก / ส่งต่อ"
    และกด "แจ้งถูก" หรือ "แจ้งผิด" ทุกข้อสังเกตที่ไปดู
 8. **ส่งออก** CSV (เรียงตามเวลา) และรายงานพิมพ์ ("บันทึกเป็น PDF" จากเบราว์เซอร์) ข้อสังเกตไม่ใช่หลักฐานการทุจริต รายงานระบุข้อความนี้
@@ -55,7 +55,7 @@
 | เบราว์เซอร์ไม่ขออนุญาตกล้อง หรือกล้องไม่เปิด | เปิดผ่าน `http://` ที่ไม่ใช่ localhost หรืออนุญาตกล้องถูกปิดไว้ | ใช้ `https://` ที่ถูกต้อง เปิดสิทธิ์กล้องของเว็บนี้ในการตั้งค่าเบราว์เซอร์ แล้วโหลดหน้าใหม่ก่อนเริ่มสอบ |
 | หน้าแจ้งว่าตัวตรวจใบหน้าทำงานไม่ได้ ("ปรับการติดตั้ง") | โมเดลโหลดไม่ได้ (เครือข่าย) หรือเบราว์เซอร์ปิด WebAssembly | ตรวจเครือข่ายและอัปเดตเบราว์เซอร์ โหลดหน้าใหม่ก่อนสอบ ระบบจะปิดสัญญาณใบหน้าและแจ้งผู้สอบ ไม่แสดงเป็น "ไม่เห็นใบหน้า" การสอบดำเนินต่อได้ |
 | แสง "แย่" ซ้ำ | หน้าต่างอยู่หลังผู้สอบ ไฟน้อย | ปิดม่าน เปิดไฟหน้าห้อง หมุนจอ ไม่ตีความเป็นพฤติกรรมผู้สอบ |
-| แจ้ง "ไม่เห็นใบหน้า" บ่อยกับผู้สอบบางคน | ใบหน้าเล็กในภาพ มุมกล้อง ผิวคล้ำในแสงน้อย (ยังไม่ได้วัดตามสีผิว) | ปรับมุมและแสงก่อน ผู้คุมสอบไปดูก่อนตัดสิน ห้ามใช้สัญญาณนี้ตัดสินผู้สอบ บันทึกเป็น "แจ้งผิด" ถ้าไม่พบเหตุ |
+| แจ้ง "ไม่เห็นใบหน้า" บ่อยกับผู้สอบบางคน | ใบหน้าเล็กในภาพ มุมกล้อง ผิวคล้ำในแสงน้อย (ยังไม่มีข้อมูลแยกตามสีผิว) | ปรับมุมและแสงก่อน ผู้คุมสอบไปดูก่อนตัดสิน ห้ามใช้สัญญาณนี้ตัดสินผู้สอบ บันทึกเป็น "แจ้งผิด" ถ้าไม่พบเหตุ |
 | แจ้ง "จอที่สอง" "ออกจากเต็มจอ" | ผู้สอบต่อจอสอง หรือกดออกจากเต็มจอ | ปุ่ม "กลับเข้าเต็มจอ" แสดงให้ผู้สอบ ขึ้นอยู่กับกติกาสอบของสถาบัน |
 | แจ้ง "กล้องเสมือน" | ชื่ออุปกรณ์กล้องมีคำว่า virtual เช่น OBS | ตรวจให้ใช้กล้องจริง บางโปรแกรมใช้ชื่อกล้องจริง ระบบมองไม่เห็น |
 | ผู้สอบรีโหลดหน้า | เครือข่ายหลุดหรือเบราว์เซอร์ค้าง | ระบบบันทึกเป็นเครื่องหมายเซสชัน ผู้คุมสอบดูเหตุผล หากไม่มีเครือข่าย การโหลดใหม่อาจล้มเหลว (ดูหัวข้อ 1) |
@@ -125,7 +125,7 @@ The 10-second evidence clip is off by default; it stays off unless the instituti
 | No camera prompt, or the camera will not start | `http://` that is not localhost, or camera permission blocked | Use a valid `https://`; allow the camera for the site in browser settings; reload before the exam |
 | "Fix setup": the face detector cannot run | Model did not load (network) or WebAssembly is off | Check the network, update the browser, reload before the exam. Face signals switch off and candidates are told; this never reads as "no face"; the exam continues |
 | Light "poor" again and again | Window behind the candidate, dim room | Close curtains, switch on front lights, turn the screen. It is not read as candidate behaviour |
-| Frequent "no face" for some candidates | Small face in the frame, camera angle, dark skin in dim light (not yet measured by skin tone) | Fix angle and light first; the invigilator looks before judging; never judge a candidate on this signal; log as "wrong" if nothing was found |
+| Frequent "no face" for some candidates | Small face in the frame, camera angle, dark skin in dim light (no data by skin tone yet) | Fix angle and light first; the invigilator looks before judging; never judge a candidate on this signal; log as "wrong" if nothing was found |
 | "Second screen" or "left full-screen" | Candidate connected a second display or left full-screen | A "return to full-screen" button is shown; follow the institution's exam rules |
 | "Virtual camera" | The camera device name contains "virtual", for example OBS | Check that a real camera is used; some tools use a real camera's name and cannot be seen |
 | Candidate reloads the page | Network drop or browser freeze | Recorded as a session marker; the invigilator reads the reason; without a network a reload may fail (section 1) |

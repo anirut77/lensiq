@@ -25,14 +25,14 @@
   content="ตรวจข้อมูลยาให้เภสัชกรยืนยัน เตือนเมื่อคนขับหลับตานาน และตรวจคุณภาพสินค้าบนสายการผลิต">
 <link rel="stylesheet" href="styles.css?v=24">
 <link rel="stylesheet" href="products.css?v=3">
-<link rel="stylesheet" href="solutions.css?v=4">
-<link rel="stylesheet" href="cat.css?v=2">
+<link rel="stylesheet" href="solutions.css?v=5">
+<link rel="stylesheet" href="cat.css?v=3">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-cat.js?v=6"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-cat.js?v=7"></script>
 <main class="pd cat" id="main" data-cat="health">
   <section class="pd-hero" aria-labelledby="catH">
     <span class="eyebrow" data-i18n="cat.eyebrow">LENSIQ · หมวดงาน</span>
@@ -46,86 +46,41 @@
   <div class="pd-body">
     <section aria-labelledby="catToolsH">
       <h2 id="catToolsH" data-i18n="cat.tools.h">เครื่องมือในหมวดนี้</h2>
-      <p class="pd-sub" id="catCount" data-i18n="cat.health.count">4 เครื่องมือ · พร้อมนำร่อง 0 · ทดลอง 4 · สาธิต 0</p>
+      <p class="pd-sub" id="catCount" data-i18n="cat.health.count">4 เครื่องมือ</p>
       <div class="pd-grid cat-grid">
-      <article class="pd-card cat-tool" data-page="medicine" data-status="experimental">
-        <div class="cat-top"><h3 data-i18n="nav.medicine.title">ตรวจข้อมูลยา</h3><span class="cat-st experimental"
-          data-i18n="cat.st.experimental">ทดลอง</span></div>
+      <article class="pd-card cat-tool" data-page="medicine" data-status="trial">
+        <div class="cat-top"><h3 data-i18n="nav.medicine.title">ตรวจข้อมูลยา</h3>
+          <span class="cat-st trial" data-i18n="cat.b.trial">รุ่นทดลอง</span></div>
         <p data-i18n="nav.medicine.desc">เลขทะเบียน อย. บาร์โค้ด ชื่อยา และเม็ดยา ยืนยันกับเภสัชกรทุกครั้ง</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="none"><span class="cat-src none" data-i18n="cat.src.none">ยังไม่ได้วัด</span> <span data-i18n="cat.c.med">มีแผนนำร่องกับกล่องยาจริง 100
-            กล่อง เภสัชกรยืนยันทุกครั้ง</span></li>
-        </ul>
-        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.medicine">ยังไม่ได้วัด ข้อมูลยาไทยครอบคลุมน้อย และการค้น อย.
-          ต้องใช้ระบบหลังบ้านที่ยังไม่ได้เปิด</span></p>
+        <p class="cat-ln"><span data-i18n="ln.pc.1">อ่านฉลากยาและสินค้า บาร์โค้ด และตรวจถ้อยคำโฆษณาบนเครื่องนี้ ภาพไม่ถูกส่งออก</span><br><span
+          data-i18n="ln.pc.2">อาจอ่านชื่อยาหรือตัวเลขผิด และอาจพลาดคำโฆษณาที่เขียนต่างออกไป ไม่ใช่การยืนยันขั้นสุดท้าย ยืนยันกับเภสัชกรทุกครั้ง</span></p>
         <a class="sl-go" href="medicine.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>
-      <article class="pd-card cat-tool" data-page="nutrition" data-status="experimental">
-        <div class="cat-top"><h3 data-i18n="nav.nutrition.title">อ่านฉลากโภชนาการ</h3><span class="cat-st experimental"
-          data-i18n="cat.st.experimental">ทดลอง</span></div>
+      <article class="pd-card cat-tool" data-page="nutrition" data-status="trial">
+        <div class="cat-top"><h3 data-i18n="nav.nutrition.title">อ่านฉลากโภชนาการ</h3>
+          <span class="cat-st trial" data-i18n="cat.b.trial">รุ่นทดลอง</span></div>
         <p data-i18n="nav.nutrition.desc">ค่าตามฉลาก ปริมาณที่กินจริง และข้อมูลผู้แพ้อาหาร อ่านบนเครื่องนี้</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="none"><span class="cat-src none" data-i18n="cat.src.none">ยังไม่ได้วัด</span> <span data-i18n="cat.c.nut">ยังไม่ได้วัดกับภาพฉลากจริง
-            ผลทดสอบมีเฉพาะกับฉลากที่สร้างขึ้นเอง ค่าทุกค่าแสดงพร้อมบรรทัดที่มาให้ผู้ใช้ตรวจกับฉลาก</span></li>
-        </ul>
-        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.nutrition">อ่านฉลากบนเครื่องได้ครบขั้นตอน
-          แสดงค่าตามฉลากพร้อมบรรทัดที่มาและให้ผู้ใช้แก้ได้ ยังไม่ได้วัดกับภาพฉลากจริง ยังไม่มีโหมดประมาณจากภาพอาหาร</span></p>
+        <p class="cat-ln"><span data-i18n="ln.nutrition.1">อ่านฉลากโภชนาการบนเครื่องนี้ แสดงค่าพร้อมบรรทัดที่อ่านมา และให้แก้ไขได้</span><br><span
+          data-i18n="ln.nutrition.2">ตัวอักษรเล็ก ฉลากโค้ง หรือแสงสะท้อนอาจทำให้ค่าผิด เทียบกับฉลากจริงทุกครั้ง ไม่ใช่คำแนะนำทางการแพทย์</span></p>
         <a class="sl-go" href="nutrition.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>
-      <article class="pd-card cat-tool" data-page="driver" data-status="experimental">
-        <div class="cat-top"><h3 data-i18n="nav.driver.title">เฝ้าระวังความง่วงคนขับ</h3><span class="cat-st experimental"
-          data-i18n="cat.st.experimental">ทดลอง</span></div>
+      <article class="pd-card cat-tool" data-page="driver" data-status="trial">
+        <div class="cat-top"><h3 data-i18n="nav.driver.title">เฝ้าระวังความง่วงคนขับ</h3>
+          <span class="cat-st trial" data-i18n="cat.b.trial">รุ่นทดลอง</span></div>
         <p data-i18n="nav.driver.desc">แจ้งเตือนเมื่อหลับตานานหรือหาว</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="public"><span class="cat-src public" data-i18n="cat.src.public">ชุดข้อมูลสาธารณะ</span> <span data-i18n="cat.c.driverPub">ตาปิดถูกจับได้
-            84% ของเฟรม · n = 101 คน ภาพตาปิด 1,192 ภาพ (CEW ชุดทดสอบแยก) เป็นตัวช่วยเตือน ไม่ใช่อุปกรณ์ความปลอดภัย</span></li>
-          <li data-src="synthetic"><span class="cat-src synthetic" data-i18n="cat.src.synthetic">ข้อมูลสังเคราะห์</span> <span
-            data-i18n="cat.c.driverSyn">การขับจำลอง: เตือนผิด 1.4 ครั้งต่อชั่วโมงเมื่อสภาพต่างจากตอนปรับเทียบ · n = 643 การขับจำลอง ครั้งละ 10 นาที</span></li>
-        </ul>
-        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.driver">ตัวช่วยเตือนตาปิด ไม่ใช่อุปกรณ์ความปลอดภัย
-          ยังไม่ทดสอบกับคนขับที่ง่วงจริง</span></p>
+        <p class="cat-ln"><span data-i18n="ln.driver.1">เตือนเมื่อคนขับหลับตานานหรือหันออกจากถนน</span><br><span data-i18n="ln.driver.2">เตือนได้เพียงบางส่วน
+          ไม่ใช่อุปกรณ์ความปลอดภัย ห้ามใช้แทนการพักผ่อน</span></p>
         <a class="sl-go" href="driver.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>
-      <article class="pd-card cat-tool" data-page="qc" data-status="experimental">
-        <div class="cat-top"><h3 data-i18n="nav.qc.title">ตรวจคุณภาพสินค้า</h3><span class="cat-st experimental"
-          data-i18n="cat.st.experimental">ทดลอง</span></div>
+      <article class="pd-card cat-tool" data-page="qc" data-status="trial">
+        <div class="cat-top"><h3 data-i18n="nav.qc.title">ตรวจคุณภาพสินค้า</h3>
+          <span class="cat-st trial" data-i18n="cat.b.trial">รุ่นทดลอง</span></div>
         <p data-i18n="nav.qc.desc">ตรวจชิ้นงานบนสายการผลิต</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="synthetic"><span class="cat-src synthetic" data-i18n="cat.src.synthetic">ข้อมูลสังเคราะห์</span> <span
-            data-i18n="cat.c.qc">ขวดสังเคราะห์: ไม่ปัดตกขวดดีเมื่อแสงเปลี่ยน 20% หลังปรับเทียบ จับฝายก 6 px ได้ 80% · n = 30 ขวดดี + 10 ต่อชนิดตำหนิ ต่อสภาพ
-            ยังไม่ได้วัดกับขวดจริง</span></li>
-        </ul>
-        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.qc">วัดด้วยขวดสังเคราะห์เท่านั้น
-          ยังไม่ทดสอบกับสายการผลิตจริง</span></p>
+        <p class="cat-ln"><span data-i18n="ln.qc.1">ตรวจขวดและฝาบนสายการผลิตด้วยกล้องที่ตั้งคงที่</span><br><span
+          data-i18n="ln.qc.2">แสงหรือตำแหน่งกล้องที่เปลี่ยนอาจทำให้ปัดตกผิด สอบเทียบกับขวดตัวอย่างก่อนเริ่มงานทุกครั้ง</span></p>
         <a class="sl-go" href="qc.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>
       </div>
-    </section>
-    <section aria-labelledby="catLegendH">
-      <h2 id="catLegendH" data-i18n="cat.legend.h">สถานะหมายถึงอะไร</h2>
-      <ul class="sl-legend cat-legend">
-        <li><span class="cat-st pilot-ready" data-i18n="cat.st.pilot-ready">พร้อมนำร่อง</span> <span
-          data-i18n="cat.std.pilot-ready">พร้อมทดสอบนำร่องที่หน้างานหนึ่งแห่งภายใต้การดูแล: ขั้นตอนครบ คนตัดสินใจทุกครั้ง
-          มีป้ายแจ้งและค่าเริ่มต้นด้านความเป็นส่วนตัว และมีวิธีวัดความแม่นยำหน้างาน ยังไม่ผ่านการทดสอบภาคสนาม</span></li>
-        <li><span class="cat-st experimental" data-i18n="cat.st.experimental">ทดลอง</span> <span data-i18n="cat.std.experimental">ใช้งานได้ครบขั้นตอน
-          แต่ความแม่นยำยังไม่ได้วัด เป็นตัวเลขเบื้องต้น หรือมีข้อจำกัดที่รู้แล้ว หรือยังรอสิ่งที่ต้องมีก่อน (ระบบหลังบ้าน สัญญาอนุญาต ทนาย)</span></li>
-        <li><span class="cat-st demo" data-i18n="cat.st.demo">สาธิต</span> <span data-i18n="cat.std.demo">แสดงแนวคิดด้วยข้อมูลตัวอย่าง
-          โมเดลสัญญาอนุญาตเพื่อการวิจัย (ปิดในเวอร์ชันลูกค้า) หรือเพื่อความบันเทิง ไม่ใช้ตัดสินเรื่องคน เงิน หรือสิทธิ์เข้าออก</span></li>
-        <li><span class="cat-st support" data-i18n="cat.st.support">หน้าประกอบ</span> <span data-i18n="cat.std.support">ไม่ใช่ผลิตภัณฑ์ (สารบบ ป้ายแจ้ง ข้อมูล
-          กฎหมาย หรือบัญชี) จึงไม่ให้สถานะความพร้อม และไม่นับรวมกับผลิตภัณฑ์</span></li>
-      </ul>
-      <h2 class="cat-h2" data-i18n="cat.src.h">ที่มาของตัวเลข</h2>
-      <p class="pd-sub" data-i18n="cat.src.d">ทุกตัวเลขบอกที่มา: ข้อมูลสังเคราะห์ ชุดข้อมูลสาธารณะ หรือภาคสนาม ยังไม่มีระบบใดมีตัวเลขภาคสนาม
-        ก่อนใช้ตัวเลขจริงให้ทดลองหน้างานพร้อมนับเทียบ</p>
-      <p class="cat-srcs"><span class="cat-src synthetic" data-i18n="cat.src.synthetic">ข้อมูลสังเคราะห์</span> <span class="cat-src public"
-        data-i18n="cat.src.public">ชุดข้อมูลสาธารณะ</span> <span class="cat-src prelim" data-i18n="cat.src.prelim">ชุดข้อมูลสาธารณะ · เบื้องต้น</span> <span
-        class="cat-src field" data-i18n="cat.src.field">ภาคสนาม</span> <span class="cat-src none" data-i18n="cat.src.none">ยังไม่ได้วัด</span> <span
-        class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span></p>
-      <p class="pd-note"><a href="cameras.html#accuracy" data-i18n="cat.method">วิธีวัดและชุดข้อมูล</a></p>
     </section>
     <section aria-labelledby="catOthersH">
       <h2 id="catOthersH" data-i18n="cat.others.h">หมวดอื่น</h2>

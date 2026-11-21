@@ -168,7 +168,7 @@ body.att-emp .tr-only{display:none !important}
   .mode-btn{flex:1 1 140px}
 }
 /* kiosk: one screen for punching (camera + face check-in + PIN/QR); exit needs the manager PIN when one is set */
-body.att-kiosk #siteNav,body.att-kiosk .att > h1,body.att-kiosk .att > .lead,body.att-kiosk .acc-note,body.att-kiosk .expiry-banner,body.att-kiosk .att-mode,
+body.att-kiosk #siteNav,body.att-kiosk .att > h1,body.att-kiosk .att > .lead,body.att-kiosk .att > .lq-lines,body.att-kiosk .acc-note,body.att-kiosk .expiry-banner,body.att-kiosk .att-mode,
 body.att-kiosk .hr-notice,body.att-kiosk .hr-admin,body.att-kiosk .tabs,body.att-kiosk .att > .note,body.att-kiosk #pane-register,body.att-kiosk #pane-records,
 body.att-kiosk #pane-check,body.att-kiosk .tune,body.att-kiosk .hr-bar > label,body.att-kiosk footer{display:none !important}
 body.att-kiosk #pane-pin[hidden],body.att-kiosk #pane-checkin[hidden]{display:block}

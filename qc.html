@@ -20,22 +20,25 @@
 <title data-i18n="qc.s1">ตรวจคุณภาพสินค้าบนสายการผลิต | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=24">
 <link rel="stylesheet" href="qc.css?v=4">
-<link rel="stylesheet" href="lensiq-sitecheck.css?v=3">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=4">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-qc.js?v=2"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-qc.js?v=3"></script>
 <script src="lensiq-i18n-rt.js?v=2"></script>
 <script src="i18n/zh-rt-common.js?v=7"></script>
 <script src="i18n/zh-rt-qc.js?v=1"></script>
-<script src="i18n/zh-rt-sitecheck.js?v=3"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=4"></script>
 
 <main class="qcp">
   <h1><span data-i18n="qc.s2">ตรวจคุณภาพสินค้าบนสายการผลิต</span> <small class="h1-sub" data-i18n="qc.s3">ตัวอย่าง: ขวดเครื่องดื่ม</small></h1>
   <p class="lead" data-i18n="qc.s4">ตรวจชิ้นงานบนสายพานด้วยการประมวลผลภาพในเครื่อง เทียบกับชิ้นงานตัวอย่างที่ผ่าน นับยอดผ่าน/คัดทิ้ง และส่งออกรายงานประจำกะ — เดโมนี้ใช้ขวดเครื่องดื่มเป็นตัวอย่าง ตรวจระดับการบรรจุ ฝา และฉลาก</p>
-  <p class="acc-note" role="note"><b class="beta">Beta</b> <span data-i18n="qc.s5">วัดด้วยภาพขวดจำลองเท่านั้น ยังไม่ได้วัดกับไลน์ผลิตจริง: กล้องและไฟคงที่ตรวจข้อบกพร่องที่จำลองได้เกือบทั้งหมดและไม่ปัดตกขวดดี ความสว่างเปลี่ยนถึง ±20% หลังสอบเทียบไม่ทำให้ปัดตกขวดดี (ปรับแสงทุกเฟรม) และตรวจฉลากเอียงได้: เอียง 5° และ 10° ถูกปัดตก 2° ผ่าน · ขวดหยุดไม่ตรงที่ทำให้จับฝายกขึ้น 6 px ได้ราว 80% ไม่ตรวจรอยขีดข่วนหรือรอยบุบ ถ้าแสงเปลี่ยนรูปแบบ (เงาใหม่ แสงสะท้อน) ต้องสอบเทียบใหม่ ควรเทียบกับการตรวจด้วยคนก่อนให้คัดทิ้งอัตโนมัติ</span> <a href="cameras.html#accuracy" data-i18n="qc.s6">วิธีวัดและข้อจำกัด</a></p>
+  <p class="acc-note" role="note"><b class="beta" data-i18n="qc.s5">รุ่นทดลอง</b>
+    <span class="lq-lines">
+      <span data-i18n="ln.qc.1">ตรวจขวดและฝาบนสายการผลิตด้วยกล้องที่ตั้งคงที่</span><br>
+      <span data-i18n="ln.qc.2">แสงหรือตำแหน่งกล้องที่เปลี่ยนอาจทำให้ปัดตกผิด สอบเทียบกับขวดตัวอย่างก่อนเริ่มงานทุกครั้ง</span></span></p>
 
   <div class="engine" id="engine" role="status">กำลังเตรียมระบบ...</div>
   <div id="uaBox"></div>
@@ -204,8 +207,8 @@
 </main>
 
 <script src="lensiq-camera.js?v=8"></script>
-<script src="lensiq-sitecheck.js?v=4"></script>
-<script src="qc.js?v=11"></script>
+<script src="lensiq-sitecheck.js?v=5"></script>
+<script src="qc.js?v=12"></script>
 <script src="lensiq-config.js?v=30"></script>
 </body>
 </html>

@@ -25,13 +25,15 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-med.js?v=4"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-med.js?v=5"></script>
 
 <main class="md-page" id="main">
   <p class="eyebrow" data-i18n="md.eyebrow">LENSIQ · ตรวจข้อมูลยา</p>
   <h1 data-i18n="md.h1">ตรวจข้อมูลยา จากกล่อง ฉลาก หรือเม็ดยา</h1>
   <p class="lead" data-i18n="md.lead">พิมพ์หรือสแกนเลขทะเบียนยา บาร์โค้ด หรือชื่อยา แล้วดูข้อความฉลากตามต้นฉบับพร้อมแหล่งที่มา หรือใส่ลักษณะเม็ดยาเพื่อดูรายการยาที่ลักษณะตรงกัน ระบบนี้เป็นแหล่งอ้างอิงข้อมูล ไม่ใช่การวินิจฉัยหรือคำแนะนำการใช้ยา</p>
+  <p class="lq-lines"><span data-i18n="ln.pc.1">อ่านฉลากยาและสินค้า บาร์โค้ด และตรวจถ้อยคำโฆษณาบนเครื่องนี้ ภาพไม่ถูกส่งออก</span><br>
+    <span data-i18n="ln.pc.2">อาจอ่านชื่อยาหรือตัวเลขผิด และอาจพลาดคำโฆษณาที่เขียนต่างออกไป ไม่ใช่การยืนยันขั้นสุดท้าย ยืนยันกับเภสัชกรทุกครั้ง</span></p>
 
   <div class="md-safety" role="note" aria-labelledby="mdSafeH">
     <p class="md-safety-h" id="mdSafeH" data-i18n="md.safe.h">ยืนยันกับเภสัชกรทุกครั้งก่อนใช้ยา</p>
@@ -156,10 +158,9 @@
         <label class="md-check"><input type="radio" name="pcKind" value="ad"> <span data-i18n="md.pc.kind.ad">โฆษณา โพสต์ หรือใบปลิว (ตรวจถ้อยคำบนเครื่องนี้เท่านั้น)</span></label>
       </fieldset>
       <div class="pc-ad" id="pcAdPanel" hidden>
-        <p class="md-badges"><span class="md-badge" data-k="warn" data-exp data-i18n="md.pc.ad.exp">ทดลองใช้</span></p>
-        <p class="hint" data-i18n="md.pc.ad.acc">ผลทดสอบอิสระกับข้อความโฆษณาสาธารณะ (โฆษณาเกินจริง 545 ข้อความ ข้อความที่ไม่เกินจริง 382 ข้อความ ติดป้ายโดย AI รอผู้เชี่ยวชาญตรวจ):
-          เมื่อเลือกประเภทสินค้า พบคำโฆษณาเกินจริง 60% แจ้งเตือนผิด 2.1 ครั้งต่อข้อความที่ไม่เกินจริง 100 ข้อความ · n = 545 / 382 · ที่มา: ชุดข้อมูลสาธารณะ</p>
-        <p hidden data-i18n="md.pc.ad.none">ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต ในการทดสอบ ระบบพบคำโฆษณาเกินจริงได้ราว 3 ใน 5</p>
+        <p class="md-badges"><span class="md-badge" data-k="warn" data-exp data-i18n="md.pc.ad.exp">รุ่นทดลอง</span></p>
+        <p class="hint" data-i18n="md.pc.ad.acc">ตรวจพบถ้อยคำโฆษณาเกินจริงได้บางส่วน อาจพลาดคำที่เขียนต่างออกไป และบางครั้งเตือนข้อความที่ไม่ผิด</p>
+        <p hidden data-i18n="md.pc.ad.none">ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต</p>
         <ul class="md-list">
           <li data-i18n="md.pc.ad.p1">ตรวจถ้อยคำบนเครื่องนี้เท่านั้น ไม่ส่งข้อความหรือภาพออก ไม่ใช้ AI และไม่เก็บประวัติ</li>
           <li data-i18n="md.pc.ad.p2">ถ่ายหรือครอบเฉพาะตัวโฆษณา อย่าให้มีคอมเมนต์ แชต หรือชื่อคนอื่นในภาพ</li>
@@ -220,8 +221,7 @@
       <div id="pcAiAutoSlot"></div>
       <p class="md-status" id="pcStatus" aria-live="polite"></p>
       <ul class="md-list" id="pcHints" aria-live="polite"></ul>
-      <p class="hint" data-i18n="md.pc.models">อ่านตัวอักษรด้วย PP-OCRv5 (Apache-2.0) บนเครื่องนี้ บาร์โค้ดอ่านด้วยตัวอ่านที่มากับเบราว์เซอร์ถ้ามี ถ้าไม่มีใช้ zxing-cpp (Apache-2.0)
-        ยังไม่ได้วัดความแม่นยำกับภาพถ่ายสินค้าจริงในสนาม ตรวจและแก้ข้อความทุกครั้ง</p>
+      <p class="hint" data-i18n="md.pc.models">ตรวจและแก้ข้อความทุกครั้ง</p>
     </div>
     <div id="lqTesterSlot"></div>
     <div id="pcPrev" aria-live="polite" hidden></div>
@@ -229,9 +229,10 @@
     <div id="pcAdOut" aria-live="polite"></div>
     <div id="pcClaimsSlot"></div>
     <div id="pcTravelSlot" aria-live="polite"></div>
-    <!-- travel-card accuracy line: generated from docs/accuracy-figures.json by tools/accuracy-sync.mjs; lensiq-pc-travel.js copies it -->
-    <p hidden data-i18n="md.pc.tv.acc">ผลวัดชื่อสามัญทางยาสากล (INN): recall 0.811 (n = 173 ฉลากสังเคราะห์ วัดโดยผู้ตรวจอิสระ) precision 0.971 ·
-      รายการนี้อาจไม่ครบ (เช่น ยาสูตรผสม หรือตัวอักษรที่อ่านผิด) เทียบกับรายการส่วนประกอบบนกล่องเสมอ · ที่มา: ชุดสังเคราะห์</p>
+    <p class="lq-recheck" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
+    <!-- travel-card limit line (decision 223: plain words, no figures; the INN figures are in docs/tech-sheets/product-check-*.md);
+         lensiq-pc-travel.js copies it onto the travel card -->
+    <p hidden data-i18n="md.pc.tv.acc">รายการชื่อยานี้อาจไม่ครบ (เช่น ยาสูตรผสม หรือตัวอักษรที่อ่านผิด) เทียบกับส่วนประกอบบนกล่องเสมอ</p>
     <div class="md-safety pc-bottom" role="note">
       <p class="md-safety-h" data-i18n="md.pc.bottom">ไม่ใช่การยืนยันขั้นสุดท้าย ยืนยันกับเภสัชกร</p>
       <div class="md-tel">
@@ -264,6 +265,7 @@
       <li><span data-i18n="md.ab.fda">openFDA (สำนักงานอาหารและยาสหรัฐฯ):</span> <span lang="en" translate="no">"Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated."</span> <span data-i18n="md.ab.fda2">LENSIQ ไม่ได้รับการรับรองจาก FDA</span></li>
       <li data-i18n="md.ab.th">ทะเบียนยาไทย: บริการค้นข้อมูลของสำนักงานคณะกรรมการอาหารและยา (porta.fda.moph.go.th) ข้อมูลมีเฉพาะสถานะทะเบียน ประเภทยา ชื่อการค้า และผู้รับอนุญาต ไม่มีข้อบ่งใช้หรือวิธีใช้ ให้อ่านจากฉลากและเอกสารกำกับยาในกล่อง</li>
       <li data-i18n="md.ab.lang">ข้อความฉลากเป็นภาษาอังกฤษตามต้นฉบับของสหรัฐฯ ไม่ได้แปล และอาจต่างจากฉลากยาที่ขายในไทย ฉลากบนกล่องยาของคุณสำคัญกว่าเสมอ</li>
+      <li data-i18n="md.ab.tech">เทคโนโลยี: อ่านตัวอักษรด้วย PP-OCRv5 (Apache-2.0) บนเครื่องนี้ บาร์โค้ดอ่านด้วยตัวอ่านที่มากับเบราว์เซอร์ถ้ามี ถ้าไม่มีใช้ zxing-cpp (Apache-2.0)</li>
       <li data-i18n="md.ab.no">ระบบนี้ไม่คำนวณขนาดยา ไม่แนะนำว่าควรใช้ยาใด ไม่จัดอันดับยา ไม่ขายหรือโฆษณายา และไม่ระบุเม็ดยาจากภาพ</li>
     </ul>
     <p class="hint" data-i18n="md.ab.doc">รายละเอียดสำหรับผู้ดูแลระบบ: docs/MEDICINE.md</p>
@@ -284,11 +286,11 @@
 <script src="lensiq-pc-live-ui.js?v=2"></script>
 <script src="lensiq-claims-rules.js?v=1"></script>
 <script src="lensiq-claims.js?v=1"></script>
-<script src="lensiq-pc-advert.js?v=1"></script>
-<script src="lensiq-tester.js?v=2"></script>
+<script src="lensiq-pc-advert.js?v=2"></script>
+<script src="lensiq-tester.js?v=3"></script>
 <script src="lensiq-ai.js?v=5"></script>
 <script src="lensiq-pc-guard.js?v=4"></script>
-<script src="lensiq-pc-travel.js?v=2"></script>
+<script src="lensiq-pc-travel.js?v=3"></script>
 <script src="lensiq-pc-lookup.js?v=6"></script>
 <script src="lensiq-pc-ai.js?v=5"></script>
 </body>

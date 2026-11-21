@@ -1,7 +1,6 @@
-# สไลด์ขาย: LENSIQ Attendance (9 สไลด์) / Sales deck: LENSIQ Attendance
+# สไลด์ขาย: LENSIQ Attendance (10 สไลด์) / Sales deck: LENSIQ Attendance
 
-> **ร่าง (DRAFT) 2026-11-11** สร้างจาก `docs/ONE-PAGER-ATTENDANCE.md` ใช้เฉพาะตัวเลขที่วัดแล้ว แต่ละตัวมีที่มา (ข้อมูลจำลอง / ชุดข้อมูลสาธารณะ / หน้างานจริง) และไฟล์อ้างอิง
-> จาก `docs/ACCURACY-CLAIMS.md` (ทะเบียน A1–A6) และ `ACCURACY.md` §2 ถ้าไม่ได้วัด เขียนว่า "ยังไม่ได้วัด"
+> **ร่าง (DRAFT) 2026-11-11** สร้างจาก `docs/ONE-PAGER-ATTENDANCE.md` สไลด์ลูกค้าไม่มีตัวเลขความแม่นยำ มีเพียงข้อจำกัดในภาษาง่าย ๆ ตัวเลขละเอียดอยู่ใน `docs/tech-sheets/attendance-TH.md` (มอบให้เมื่อถูกถาม)
 > บรรทัด "ไฟล์:" เป็นข้อมูลภายใน เจ้าของตัดออกก่อนส่งนอกองค์กรได้ [ต้องยืนยัน / to confirm] ช่อง [วงเล็บ] เจ้าของกรอก จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
 > PIN/QR เป็นค่าเริ่มต้น ใบหน้าเป็นตัวเลือกและรอข้อสรุปใบอนุญาตโมเดล (OP-14) ไม่เสนอใบหน้าเป็นจุดขายหลัก
 
@@ -13,7 +12,7 @@
 - ลงเวลาพนักงานด้วย **PIN หรือบัตร QR** เป็นค่าเริ่มต้น ใบหน้าเป็นตัวเลือกเมื่อพนักงานยินยอม
 - ใช้มือถือหรือแท็บเล็ตที่มีอยู่ กะ OT วันหยุด และ CSV สำหรับเงินเดือน ข้อมูลอยู่บนเครื่องของคุณ
 - สำหรับร้านและบริษัท 5–20 คน
-- สถานะ: พร้อมนำร่อง (ใบหน้ารอข้อสรุปใบอนุญาตโมเดล)
+- ลงเวลาด้วย PIN หรือ QR ไม่มีป้ายสถานะ (ใบหน้ารอข้อสรุปใบอนุญาตโมเดล)
 - ผู้นำเสนอ: [ชื่อ ตำแหน่ง] · [ชื่อผู้ขาย] (OP-01) · วันที่ [วันที่]
 
 ---
@@ -50,25 +49,17 @@
 - PIN/QR เป็นทางเลือกเสมอ พนักงานที่ไม่ใช้ใบหน้าไม่มีผลเสีย และระบบปฏิเสธการลงทะเบียนใบหน้าของพนักงานที่เลือกไม่ใช้
 - ระยะเก็บบันทึกเวลาแยกจากระยะเก็บข้อมูลใบหน้า (ไม่ต่ำกว่า 2 ปี [ต้องยืนยัน / to confirm กับทนายแรงงาน]) ลบข้อมูลใบหน้าไม่ลบบันทึกเวลา
 - **ไม่วิเคราะห์อารมณ์ ไม่ให้คะแนนพนักงาน ไม่ตรวจจับการโกหก** ระบบแสดงรายการผิดปกติให้ผู้จัดการตรวจ ไม่ตัดสินให้ ไม่ใช้โมเดลอายุ/เพศ/สีหน้าในเวอร์ชันลูกค้า
-- ใบหน้าเป็นข้อมูลชีวภาพ (PDPA ม.26) ต้องมีความยินยอมโดยชัดแจ้ง ข้อความกฎหมายแรงงานและ PDPA รอทนายตรวจก่อนขาย (OP-24)
+- ใบหน้าเป็นข้อมูลชีวภาพ (PDPA ม.26) ต้องมีความยินยอมโดยชัดแจ้ง ข้อความกฎหมายแรงงานและ PDPA อยู่ระหว่างให้ทนายความตรวจก่อนขาย (OP-24)
 - ไฟล์: `docs/ATTENDANCE-READINESS.md` §4, §7
 
 ---
 
-# 5. ความแม่นยำที่วัดแล้ว (เฉพาะเมื่อเปิดตัวเลือกใบหน้า)
-*Measured accuracy (only if the face option is on)*
+# 5. ข้อจำกัดที่ควรรู้
+*Limits worth knowing*
 
-PIN / QR ไม่มีความคลาดเคลื่อนจากการจดจำ (no recognition error) · ตัวเลขด้านล่างใช้เมื่อเปิดใบหน้าเท่านั้น
-
-| ข้อกล่าวอ้าง / claim | ค่า / value | n | ที่มา / source | ไฟล์ |
-|---|---|---|---|---|
-| ตัวเลขหลัก: ใบหน้าเอเชีย จำได้ต่อการสแกน (ลงทะเบียน 5 / 20 / 200 คน) · Asian faces recognised per scan | **66–76%** | n = 500 คน × 5 ภาพ (ชุดทดสอบแยก แต่ไม่ปิดตาสมบูรณ์ / held out, not perfectly blind) | ชุดข้อมูลสาธารณะ (CASIA-FaceV5) / public dataset | `ACCURACY.md` §2 (A2) |
-| คนที่ไม่ได้ลงทะเบียนถูกเช็คชื่ออัตโนมัติโดยไม่มีคนยืนยัน · stranger checked in with no confirmation | ใบหน้าเอเชีย (ชุดทดสอบแยก) ≤ 0.03% | n ≈ 12,000 ครั้งต่อแถว (คนต่างกันราว 1,800 / 500 คน) | ชุดข้อมูลสาธารณะ / public dataset | `ACCURACY.md` §2 (A4) |
-| คนที่ไม่ได้ลงทะเบียนถูกเสนอชื่อ · stranger offered a name | 0.2% [0.04–0.45%] ขอบบน 95% สูงสุด 1.15% | n ≈ 12,000 ครั้ง | ชุดข้อมูลสาธารณะ / public dataset | `ACCURACY.md` §2 (A3) |
-| ที่ทำงานจริงในไทย · a real Thai workplace | **ยังไม่ได้วัด / not measured** | — | หน้างานจริง: ยังไม่มีโครงการนำร่อง / field | `ACCURACY.md` (A5) |
-| ตัวเลือกตรวจว่าเป็นคนจริง (หันหน้า) · liveness option | **ยังไม่ได้วัด / not measured** | — | ยังไม่ได้วัด | `ACCURACY.md` (A6) |
-
-- อย่าใช้ตัวเลข 85% (ลงทะเบียน 100 คน, LFW) เป็นตัวเลขหลัก: วัดบนชุดที่ใช้ปรับค่า (n = 610 ภาพทดสอบ) ดีเกินจริง (A1)
+- ลงเวลาทำงานด้วย PIN หรือ QR บนเครื่องของร้าน ไม่ต้องใช้กล้อง สแกนใบหน้าเป็นทางเลือกเฉพาะพนักงานที่ยินยอม
+- แบบสแกนใบหน้าบางครั้งต้องสแกนซ้ำหรือให้หัวหน้ายืนยัน และกันภาพปลอมได้ไม่ครบ จึงควรมีคนดูแลจุดลงเวลา
+- ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค (`docs/tech-sheets/attendance-TH.md`)
 - โมเดลใบหน้าฝึกจากชุดข้อมูลที่มีเงื่อนไขเพื่อการวิจัย — รอความเห็นทางกฎหมายก่อนขายเชิงพาณิชย์ (OP-14)
 
 ---
@@ -89,7 +80,7 @@ PIN / QR ไม่มีความคลาดเคลื่อนจาก�
 
 - 2 สัปดาห์ที่ร้านหรือบริษัท 5–20 คน ตาม `docs/PILOT-PLAN.md` §3.2
 - เทียบ CSV เงินเดือนกับบันทึกเดิมของร้านหนึ่งรอบเดือน (ชั่วโมงและ OT ตรงกัน)
-- ถ้าเปิดใบหน้า (เฉพาะอาสาสมัครที่ยินยอม): เกณฑ์รับคนผิด ≤ 1% ปฏิเสธคนถูก ≤ 10% วัดด้วยแท็บ "ตรวจความแม่นยำ" กับพนักงานของคุณเอง ผลเป็นตัวเลข "หน้างานจริง"
+- ถ้าเปิดใบหน้า (เฉพาะอาสาสมัครที่ยินยอม): เกณฑ์ผ่านอยู่ใน `docs/PILOT-PLAN.md` §3.2 ใช้แท็บ "ทดสอบหน้างาน" กับพนักงานของคุณเอง
 - ไฟล์: `docs/PILOT-PLAN.md` §3.2
 
 ---
@@ -123,11 +114,18 @@ PIN / QR ไม่มีความคลาดเคลื่อนจาก�
 
 ---
 
+# 10. เอกสารเทคนิค
+*Technical sheet*
+
+- ตัวเลขการทดสอบและวิธีทดสอบอยู่ในเอกสารเทคนิคของ Attendance ขอได้จากฝ่ายขาย (ภายใน: `docs/tech-sheets/attendance-TH.md`)
+- มอบให้เมื่อผู้ซื้อหรือฝ่ายจัดซื้อขอดู
+
+---
+
 # English summary
 
 LENSIQ Attendance records staff time with a PIN or QR badge by default; a face is optional and only with consent, pending the model-licence decision. It runs on a phone or tablet you already own,
 keeps data on the device and stores no image. It has no emotion analysis, no staff scoring and no lie detection, and age / gender / expression models are not in customer builds. Shifts, OT, holidays and a payroll CSV
-are included; no wage, tax or social-security calculation, no cloud sync, no rotating rosters. Measured (face option only; PIN / QR has no recognition error): Asian faces recognised per scan 66–76%
-(n = 500 people x 5 photos, public dataset CASIA-FaceV5, held out but not perfectly blind, `ACCURACY.md` §2); strangers checked in with no confirmation at most 0.03% (n about 12,000 visits per row, public dataset).
-Not measured: a real workplace, the liveness option. Approved prices excl. 7% VAT, pilot price: free up to 5 people (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet); 19 THB per active person per month (minimum 190 THB per month); set-up help 2,900 THB one-off.
+are included; no wage, tax or social-security calculation, no cloud sync, no rotating rosters. With face scan, staff sometimes need to scan again or have a supervisor confirm, and it does not stop every fake image, so someone should watch the clock-in point.
+The technical sheet is available from sales on request. Approved prices excl. 7% VAT, pilot price: free up to 5 people (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet); 19 THB per active person per month (minimum 190 THB per month); set-up help 2,900 THB one-off.
 Sold by quotation and bank transfer.

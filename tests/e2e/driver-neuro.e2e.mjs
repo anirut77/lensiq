@@ -1,5 +1,11 @@
 // tests/e2e/driver-neuro.e2e.mjs — WP5: driver locks onto one face among several; neuro tags samples with faces:n.
 // Uses ?fakedet (localhost-only scripted detections, no models) and fake cameras. No WebGL.
+// Re-lock 2026-11-21 (owner decision 223 / 223-1, redirect): the EAR-only warning and the before-the-trip note no longer show
+// the measured figures (18–26% per frame, 25% of 2 s closures, 1.4 false alerts per hour); they state the same limits in
+// plain words (the system barely catches closed eyes and misses most closures; most closures get no alert; never a
+// substitute for rest; never look at the screen while driving) and the figures are held verbatim in
+// docs/tech-sheets/driver-TH.md / driver-EN.md and admin-measurements.js.
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { assert, assertNoWebGL, privacyScan } from "./cdp.mjs";
@@ -55,7 +61,24 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       // round 11: no eye crops in ?fakedet -> EAR only -> the non-dismissable warning is shown (no close button)
       const w1 = await page.evaluate(() => { const b = document.querySelector("#calWarn"); return { hidden: b.hidden, kind: b.dataset.kind, btn: b.querySelectorAll("button").length, ear: !document.querySelector("#calWarnEar").hidden, fail: !document.querySelector("#calWarnFail").hidden, text: b.textContent, start: document.querySelector("#accStart").textContent }; });
       assert(!w1.hidden && w1.kind === "ear" && w1.ear && !w1.fail && w1.btn === 0, "EAR-only warning: " + JSON.stringify(w1));
-      assert(/18–26%/.test(w1.text) && /25%/.test(w1.start) && /1\.4/.test(w1.start), "measured figures in the warning and before the trip");
+      // re-lock 223 (was: "/18–26%/ in the warning, /25%/ and /1.4/ before the trip"): the same limits in plain words ...
+      assert(/ระบบแทบจับตาปิดไม่ได้และจะพลาดการหลับตาส่วนใหญ่/.test(w1.text) && /ให้ถือว่าระบบไม่ได้เฝ้าระวังคุณ/.test(w1.text), "EAR-only warning states the limit in plain words: " + w1.text);
+      assert(/ระบบพลาดการหลับตาได้บ่อย/.test(w1.start) && /ห้ามใช้แทนการพักผ่อน/.test(w1.start) && /ห้ามมองจอขณะขับ/.test(w1.start)
+        && /การหลับตาส่วนใหญ่จะไม่มีเสียงเตือนเลย/.test(w1.start) && /หากรู้สึกง่วงให้จอดพักทันที/.test(w1.start), "before-the-trip note states the limits in plain words: " + w1.start);
+      // ... with no figure on the page ...
+      assert(!/\d+(\.\d+)?\s?%|\b1\.4\b|ชุดข้อมูลสาธารณะ|\bCEW\b|\bLFW\b/.test(w1.text + " " + w1.start), "no measured figure or dataset in the warning / note: " + w1.text + " | " + w1.start);
+      // ... and the figures are held in the driver technical sheets and the admin data
+      {
+        const dTH = readFileSync(join(repo, "docs", "tech-sheets", "driver-TH.md"), "utf8"), dEN = readFileSync(join(repo, "docs", "tech-sheets", "driver-EN.md"), "utf8");
+        const adm = readFileSync(join(repo, "admin-measurements.js"), "utf8");
+        const rec = (txt, key) => txt.split("\n").filter(l => l.startsWith("[" + key + "] "));
+        assert(rec(dTH, "driver.calwarn.ear").some(l => /18–26%/.test(l))
+           && rec(dEN, "driver.calwarn.ear").filter(l => /18–26%/.test(l)).length >= 2, "18–26% warning in driver-TH.md / driver-EN.md (en + zh)");
+        assert(rec(dTH, "driver.accstart").some(l => /25%/.test(l) && /1\.4/.test(l))
+           && rec(dEN, "driver.accstart").filter(l => /25%/.test(l) && /1\.4/.test(l)).length >= 2
+          , "25% / 1.4 note in driver-TH.md / driver-EN.md (en + zh)");
+        assert(/"driver\.calwarn\.ear"[^\n]*18–26%/.test(adm) && /"driver\.accstart"[^\n]*25%[^\n]*1\.4/.test(adm), "figures in admin-measurements.js");
+      }
 
       // driver leaves the frame, passenger stays -> face_missing, never the passenger's EAR
       await page.evaluate(p => { window.__dets = [p]; }, PASSENGER);

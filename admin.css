@@ -232,3 +232,8 @@ button,[role=button],.btn,.chip,.tab,input[type=button],input[type=submit],input
 [data-panel="seller"] select { width: 100%; min-width: 0; max-width: 100%; }
 [data-panel="seller"] .ads-doc > span { min-width: 0; overflow-wrap: anywhere; }
 [data-panel="seller"] input[type=file], [data-panel="seller"] .ad-row label, .ads-preview { max-width: 100%; min-width: 0; }
+/* owner decision 223: "ผลการวัด / Measurements" tab (admin-measurements.js) */
+.ad-meas > summary { cursor: pointer; }
+.ad-meas-list { margin: 8px 0 0; padding-left: 18px; font-size: 13px; }
+.ad-meas-list li { margin: 0 0 6px; overflow-wrap: anywhere; }
+.ad-meas-list code { color: var(--ad-muted); font-size: 12px; }

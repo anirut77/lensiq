@@ -157,5 +157,11 @@ test("i18n: en and zh dictionaries have the same keys and cover the page", () =>
     [...js.matchAll(/T\("(lucky\.[\w.]+[^."])"/g)].map(m => m[1])));
   for (const k of ["fam", "bh", "mean", "goal", "day"]) assert.ok(Object.keys(en).some(x => x.startsWith("lucky." + k + ".")));
   for (const f of Object.keys(L.FAMILIES)) assert.ok(en["lucky.fam." + f] && zh["lucky.fam." + f], f);
-  for (const k of keys) assert.ok(k in en && k in zh, "missing " + k);
+  // decision 223: the shared result line (common.recheck) lives in i18n/{en,zh}-common.js, which nav.js loads on every page;
+  // every other key must still be in the page's own dictionaries
+  const cen = load("en-common.js").en, czh = load("zh-common.js").zh;
+  for (const k of keys) {
+    if (k === "common.recheck") assert.ok(cen[k] && czh[k], "missing " + k + " in the common dictionaries");
+    else assert.ok(k in en && k in zh, "missing " + k);
+  }
 });

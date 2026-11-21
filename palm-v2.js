@@ -85,7 +85,7 @@
     "privacy": ["ภาพอยู่ในเครื่องนี้เท่านั้น ไม่ถูกบันทึกและไม่ถูกส่งออก เส้นที่คุณวาดเก็บเฉพาะในแท็บนี้",
       "The photo stays on this device and is neither saved nor sent. Lines you draw are kept in this tab only.",
       "照片只留在本设备上，不保存也不发送。你描画的掌纹只保存在此标签页中。"],
-    "lm.label": ["จุดบนมืออัตโนมัติ (โมเดลทดลอง ใบอนุญาตรอทนายยืนยัน ปิดในเวอร์ชันลูกค้า)", "Automatic hand points (trial model; licence awaiting legal review; off in customer builds)",
+    "lm.label": ["จุดบนมืออัตโนมัติ (โมเดลทดลอง สัญญาอนุญาตอยู่ระหว่างให้ทนายความตรวจ ปิดในเวอร์ชันลูกค้า)", "Automatic hand points (trial model; licence awaiting legal review; off in customer builds)",
       "自动手部关键点（试用模型；许可待法律确认；客户版关闭）"],
     "draft.school": ["ร่างคำอ่าน รอผู้เชี่ยวชาญตรวจ", "Draft reading, awaiting the expert check", "解读草稿，待专家审核"],
     /* pre-capture guidance: owner-approved wording, decision 172 (2026-11-20), EXACT (byte for byte; do not edit) */

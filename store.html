@@ -20,31 +20,24 @@
 <title data-i18n="store.s1">วิเคราะห์หน้าร้าน | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=24">
 <link rel="stylesheet" href="store.css?v=6">
-<link rel="stylesheet" href="lensiq-sitecheck.css?v=3">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=4">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-store.js?v=1"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-store.js?v=2"></script>
 <script src="lensiq-i18n-rt.js?v=2"></script>
 <script src="i18n/zh-rt-common.js?v=7"></script>
-<script src="i18n/zh-rt-store.js?v=1"></script>
-<script src="i18n/zh-rt-sitecheck.js?v=3"></script>
+<script src="i18n/zh-rt-store.js?v=2"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=4"></script>
 
 <main class="st">
   <h1 data-i18n="store.s2">วิเคราะห์หน้าร้าน</h1>
   <p class="lead" data-i18n="store.s3">นับคนเข้า–ออก จำนวนคนในร้าน โซนยอดนิยม ความยาวคิว และฮีตแมปจุดที่ลูกค้ายืน ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ เก็บเฉพาะตัวเลขสรุป</p>
-  <p class="acc-note" role="note"><b class="beta" data-i18n="store.s4">ค่าประมาณ (Beta)</b> <span data-i18n="store.s5">วัดกับวิดีโอสาธารณะ 5 ชุด (ถนนและสถานี ไม่ใช่หน้าร้าน): ฉากแบบประตูยอดข้ามเส้นคลาดเคลื่อนราว +3% แต่ในฝูงชนคลาดเคลื่อน −28% ถึง +19% · ราว 1 ใน 5 ของครั้งที่นับเป็นการนับผิด (5 ภาพ/วินาที) คนที่ตัวเล็กในภาพ (อยู่ไกล) และที่คนแน่นจะแม่นยำน้อยลง ติดกล้องสูงเหนือประตูให้คนเดินตัดเส้น แล้วใช้ “ตรวจความแม่นยำหน้างาน” ด้านล่างเทียบกับการนับด้วยคนก่อนใช้ตัวเลข</span> <a href="cameras.html#accuracy" data-i18n="store.s6">วิธีวัดและข้อจำกัด</a></p>
-  <div class="acc-note claims" role="note" id="storeClaims"><b class="beta" data-i18n="store.cl.h">ตัวเลขและที่มา</b>
-    <ul>
-      <li data-i18n="store.cl1">ฉากคล้ายประตู: ยอดข้ามเส้นคลาดเคลื่อน +3.2% ครั้งที่นับถูกจริง 93% · n = 126 ครั้งที่ข้ามเส้น (PETS09-S2L1 ชุดที่ใช้ปรับค่า
-        ตัวเลขจึงดีเกินจริง) · ที่มา: ชุดข้อมูลสาธารณะ</li>
-      <li data-i18n="store.cl2">ถนนที่คนแน่น: คลาดเคลื่อนรายชุด −28% ถึง +19% · n = 139 ครั้งที่ข้ามเส้น (MOT17 3 ชุด) · ที่มา: ชุดข้อมูลสาธารณะ</li>
-      <li data-i18n="store.cl3">รวม 5 ชุดที่ 5 ภาพ/วินาที: ยอดรวม −0.4% ครั้งที่นับถูกจริง 79% (ราว 1 ใน 5 นับผิด) · n = 273 ครั้งที่ข้ามเส้น · ที่มา: ชุดข้อมูลสาธารณะ</li>
-      <li data-i18n="store.cl4">ประตูร้านจริง: ยังไม่ได้วัด · ที่มา: หน้างานจริง (ยังไม่มีโครงการนำร่อง) — ใช้ “ตรวจความแม่นยำหน้างาน” ด้านล่าง</li>
-    </ul>
-  </div>
+  <p class="acc-note lq-lines" role="note"><b class="beta" data-i18n="store.s4">รุ่นทดลอง</b>
+    <span data-i18n="ln.store.1">นับคนผ่านประตูร้าน คิว และอัตราการซื้อโดยประมาณ ไม่ระบุตัวตน</span><br>
+    <span data-i18n="ln.store.2">ประตูที่คนเดินเป็นกลุ่มหรือคนแน่นอาจนับคลาด ทดลองเทียบกับการนับของคุณก่อนใช้ตัดสินใจ</span></p>
 
   <div class="engine" id="engine" role="status">กำลังเตรียมระบบ...</div>
   <div id="uaBox"></div>
@@ -92,6 +85,7 @@
       </div>
       <div class="tiles" id="tiles"></div>
       <div class="bycam" id="byCam"></div>
+      <p class="lq-recheck hint" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
       <h3 data-i18n="store.s33">คนเข้า–ออกรายชั่วโมง</h3>
       <div class="legend"><span><i class="sw in"></i><span data-i18n="store.s34">เข้า</span></span><span><i class="sw out"></i><span data-i18n="store.s35">ออก</span></span></div>
       <canvas id="hourly" role="img" aria-label="กราฟคนเข้าออกรายชั่วโมง" data-i18n-attr="aria-label:store.s36"></canvas>
@@ -150,7 +144,7 @@
         <label><span data-i18n="store.s56">เป้ารอคิวไม่เกิน (วินาที, 0 = ไม่ใช้)</span><input name="queueSlaSec" type="number" min="0" inputmode="numeric"></label>
         <label><span data-i18n="store.s57">เป้าคนเข้าต่อชั่วโมง (คน, 0 = ไม่ใช้)</span><input name="hourlyTarget" type="number" min="0" inputmode="numeric"></label>
         <label><span data-i18n="store.s58">คนตัวเล็ก/อยู่ไกล (กล้องที่เลือก)</span><select name="tiles"><option value="" data-i18n="store.s59">ปกติ – ตรวจทั้งภาพ (เร็วที่สุด)</option><option value="2x1" data-i18n="store.s60">แบ่งภาพซ้าย–ขวา – เห็นคนไกลขึ้น ช้าลงราว 3 เท่า</option><option value="2x2" data-i18n="store.s61">แบ่งภาพ 4 ส่วน – เห็นคนไกลที่สุด ช้าลงราว 5 เท่า (เหมาะกับกล้องตัวเดียว)</option></select></label>
-        <p class="hint"><span data-i18n="store.s62">ตัวตรวจจับคน YOLOX-Nano (ค่าเริ่มต้น) ย่อภาพเหลือ 416×416 จุด คนที่สูงไม่ถึงราว 1 ใน 10 ของภาพจึงยังหลุดบ่อย การแบ่งภาพช่วยให้เห็นคนไกลขึ้นแต่ประมวลผลช้าลง (ใช้ ?coco เพื่อใช้ COCO-SSD ตัวเดิม) ดูผลวัดได้ที่</span> <a href="cameras.html#accuracy" data-i18n="store.s63">ความแม่นยำที่วัดได้</a></p>
+        <p class="hint" data-i18n="store.s62">คนที่อยู่ไกลกล้องอาจถูกนับขาด เปิด “แบ่งภาพ” เพื่อเห็นคนไกลขึ้น (ช้าลง)</p>
       </form>
       <p class="hint sc-docs"><span>เอกสารสำหรับติดตั้ง:</span> <a href="camera-notice.html">ป้ายแจ้งการใช้กล้องสำหรับพิมพ์</a> · <a href="camera-notice.html#sign-f">แบบฟอร์มขอความยินยอม (แม่แบบ)</a></p>
       <p class="form-msg" id="setMsg" role="status"></p>
@@ -224,8 +218,8 @@
 <script src="vendor/ort/ort.wasm.min.js"></script>
 <script src="lensiq-detect.js?v=7"></script>
 <script src="lensiq-agg.js?v=1"></script>
-<script src="lensiq-sitecheck.js?v=4"></script>
-<script src="store.js?v=14"></script>
+<script src="lensiq-sitecheck.js?v=5"></script>
+<script src="store.js?v=15"></script>
 <script src="lensiq-config.js?v=30"></script>
 </body>
 </html>

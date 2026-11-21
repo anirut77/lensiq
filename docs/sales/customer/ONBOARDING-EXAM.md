@@ -46,7 +46,7 @@
 4. **ตรวจแสงและกล้อง** ถ้าคำตัดสินแสงเป็น "แย่" ให้ปรับแสงหรือมุมก่อน ระบบจะไม่ประเมินสัญญาณใบหน้าและแสดง "ปรับการติดตั้ง" ซึ่งไม่ใช่การแจ้งเหตุ
 5. **ปรับเทียบท่านั่ง** (ประมาณ 2 นาที) ถ้าเฟรมที่มีใบหน้าเดียวต่ำกว่า 60% การปรับเทียบจะไม่ผ่านและระบบปิดสัญญาณหันศีรษะ แต่การสอบยังเริ่มได้
 6. **เริ่มสอบ** ผู้สอบเข้าโหมดเต็มจอ ผู้คุมสอบเดินตรวจตามปกติ ข้อจำกัดสองข้อที่ต้องบอกผู้คุมสอบ: ในโหมดห้องคอมพิวเตอร์ยังไม่มีการส่งข้อมูลสดไปแดชบอร์ดข้ามเครื่อง
-   และสัญญาณ "มากกว่าหนึ่งคน" เป็นตัวช่วยที่ไม่ครบถ้วน (28.8% บนชุดข้อมูลสาธารณะ)
+   และสัญญาณ "มากกว่าหนึ่งคน" เป็นตัวช่วยที่ไม่ครบถ้วน
 7. **หลังสอบ** แต่ละเครื่องส่งออกไฟล์ JSON ผู้คุมสอบนำเข้าที่แดชบอร์ด (ส่วน "นำเข้าไฟล์เหตุการณ์") ตรวจข้อสังเกตทีละรายการ แล้วเลือก "ไปตรวจ / ไม่พบปัญหา / บันทึก / ส่งต่อ"
    และกด "แจ้งถูก" หรือ "แจ้งผิด" ทุกข้อสังเกตที่ไปตรวจ
 8. **ส่งออก** ไฟล์ CSV (เรียงตามเวลา) และรายงานพิมพ์ ("บันทึกเป็น PDF" จากเบราว์เซอร์) ข้อสังเกตไม่ใช่หลักฐานการทุจริต และรายงานระบุข้อความนี้ไว้
@@ -61,7 +61,7 @@
 | เบราว์เซอร์ไม่ขออนุญาตกล้อง หรือกล้องไม่เปิด | เปิดผ่าน `http://` ที่ไม่ใช่ localhost หรือสิทธิ์กล้องถูกปิดไว้ | ใช้ `https://` ที่ถูกต้อง เปิดสิทธิ์กล้องของเว็บนี้ในการตั้งค่าเบราว์เซอร์ แล้วโหลดหน้าใหม่ก่อนเริ่มสอบ |
 | หน้าแจ้งว่าตัวตรวจใบหน้าทำงานไม่ได้ ("ปรับการติดตั้ง") | โมเดลโหลดไม่ได้ (เครือข่าย) หรือเบราว์เซอร์ปิด WebAssembly | ตรวจเครือข่ายและอัปเดตเบราว์เซอร์ โหลดหน้าใหม่ก่อนสอบ ระบบจะปิดสัญญาณใบหน้าและแจ้งผู้สอบ โดยไม่แสดงเป็น "ไม่เห็นใบหน้า" การสอบดำเนินต่อได้ |
 | แสง "แย่" ซ้ำ ๆ | หน้าต่างอยู่หลังผู้สอบ ไฟน้อย | ปิดม่าน เปิดไฟด้านหน้าห้อง หมุนจอ ระบบไม่ตีความเป็นพฤติกรรมของผู้สอบ |
-| แจ้ง "ไม่เห็นใบหน้า" บ่อยกับผู้สอบบางคน | ใบหน้าเล็กในภาพ มุมกล้อง ผิวคล้ำในแสงน้อย (ยังไม่ได้วัดตามสีผิว) | ปรับมุมและแสงก่อน ผู้คุมสอบไปดูก่อนตัดสิน ห้ามใช้สัญญาณนี้ตัดสินผู้สอบ ถ้าไม่พบเหตุให้บันทึกเป็น "แจ้งผิด" |
+| แจ้ง "ไม่เห็นใบหน้า" บ่อยกับผู้สอบบางคน | ใบหน้าเล็กในภาพ มุมกล้อง ผิวคล้ำในแสงน้อย (ยังไม่มีข้อมูลแยกตามสีผิว) | ปรับมุมและแสงก่อน ผู้คุมสอบไปดูก่อนตัดสิน ห้ามใช้สัญญาณนี้ตัดสินผู้สอบ ถ้าไม่พบเหตุให้บันทึกเป็น "แจ้งผิด" |
 | แจ้ง "จอที่สอง" หรือ "ออกจากเต็มจอ" | ผู้สอบต่อจอที่สอง หรือกดออกจากโหมดเต็มจอ | ระบบแสดงปุ่ม "กลับเข้าเต็มจอ" ให้ผู้สอบ การดำเนินการต่อเป็นไปตามกติกาสอบของสถาบัน |
 | แจ้ง "กล้องเสมือน" | ชื่ออุปกรณ์กล้องมีคำว่า virtual เช่น OBS | ตรวจให้ใช้กล้องจริง บางโปรแกรมใช้ชื่อเหมือนกล้องจริงซึ่งระบบมองไม่เห็น |
 | ผู้สอบรีโหลดหน้า | เครือข่ายหลุดหรือเบราว์เซอร์ค้าง | ระบบบันทึกเป็นเครื่องหมายเซสชัน ผู้คุมสอบดูเหตุผล หากไม่มีเครือข่ายการโหลดใหม่อาจล้มเหลว (ดูหัวข้อ 1) |
@@ -122,7 +122,7 @@ Customers can always export their own data.
 4. **Check light and camera.** If the light verdict is "poor", fix light or angle first. The page then does not evaluate face signals and shows "fix setup", which is not an alert.
 5. **Calibrate the sitting position** (about 2 minutes). If fewer than 60% of frames have a single face, calibration fails and head-turn is switched off; the exam can still start.
 6. **Start.** Candidates go full-screen; invigilators walk the room as usual. Tell invigilators the two limits: in computer-lab mode there is no live feed to the dashboard across devices,
-   and the "more than one person" signal is an aid and not complete (28.8% on a public dataset).
+   and the "more than one person" signal is an aid and not complete.
 7. **After the exam** each machine exports a JSON file. The invigilator imports them in the dashboard ("import events file"), reviews each observation (Go and check / No issue / Note / Escalate)
    and presses "flag was right" or "flag was wrong" for every observation checked.
 8. **Export** the CSV (in time order) and the printable report ("Save as PDF" from the browser). A flag is not evidence of misconduct, and the report says so.
@@ -137,7 +137,7 @@ The 10-second evidence clip is off by default. It stays off unless the instituti
 | No camera prompt, or the camera will not start | `http://` that is not localhost, or camera permission blocked | Use a valid `https://`; allow the camera for the site in browser settings; reload before the exam |
 | "Fix setup": the face detector cannot run | The model did not load (network) or WebAssembly is off | Check the network, update the browser, reload before the exam. Face signals switch off and candidates are told; this never reads as "no face"; the exam continues |
 | Light "poor" again and again | Window behind the candidate, dim room | Close curtains, switch on front lights, turn the screen. It is not read as candidate behaviour |
-| Frequent "no face" for some candidates | Small face in the frame, camera angle, dark skin in dim light (not yet measured by skin tone) | Fix angle and light first; the invigilator looks before judging; never judge a candidate on this signal; log it as "flag was wrong" if nothing was found |
+| Frequent "no face" for some candidates | Small face in the frame, camera angle, dark skin in dim light (no data by skin tone yet) | Fix angle and light first; the invigilator looks before judging; never judge a candidate on this signal; log it as "flag was wrong" if nothing was found |
 | "Second screen" or "left full-screen" | The candidate connected a second display or left full-screen | A "return to full-screen" button is shown to the candidate; follow the institution's exam rules |
 | "Virtual camera" | The camera device name contains "virtual", for example OBS | Check that a real camera is used; some tools use a real camera's name and cannot be seen |
 | Candidate reloads the page | Network drop or browser freeze | Recorded as a session marker; the invigilator reads the reason; without a network a reload may fail (see section 1) |
@@ -198,7 +198,7 @@ When reporting, give only: institution and room, page name, time, steps taken, b
 4. **检查光线和摄像头。** 如果光线判定为“差”，先调整光线或角度。此时页面不会评估人脸信号，而是显示“调整设置”，这不是警报。
 5. **校准坐姿**（约 2 分钟）。如果只有一张人脸的画面帧低于 60%，校准不通过，转头信号将被关闭；考试仍可开始。
 6. **开始考试。** 考生进入全屏模式，监考员照常巡视。请告知监考员两点限制：机房模式下尚不能把实时数据跨设备发送到仪表板；
-   “多于一人”信号只是辅助手段，并不完整（在公开数据集上为 28.8%）。
+   “多于一人”信号只是辅助手段，并不完整。
 7. **考试结束后，** 每台电脑导出一个 JSON 文件。监考员在仪表板中导入（“导入事件文件”），逐条查看观察提示，选择“去核查 / 无问题 / 记录 / 上报”，
    并对每条已核查的提示点击“提示正确”或“提示有误”。
 8. **导出** CSV（按时间排序）和可打印报告（用浏览器“另存为 PDF”）。观察提示不是作弊证据，报告中也注明了这一点。
@@ -213,7 +213,7 @@ When reporting, give only: institution and room, page name, time, steps taken, b
 | 浏览器不请求摄像头权限，或摄像头无法启动 | 通过非 localhost 的 `http://` 打开，或摄像头权限被禁止 | 使用有效的 `https://`；在浏览器设置中允许本网站使用摄像头；考试前重新加载页面 |
 | “调整设置”：人脸检测器无法运行 | 模型未能加载（网络问题）或 WebAssembly 被关闭 | 检查网络，更新浏览器，考试前重新加载。人脸信号会关闭并通知考生；这不会被显示为“看不到人脸”；考试继续进行 |
 | 光线反复显示“差” | 考生身后有窗户，房间太暗 | 拉上窗帘，打开前方灯光，转动屏幕。这不会被当作考生的行为 |
-| 部分考生频繁出现“看不到人脸” | 画面中人脸小、摄像头角度问题、弱光下肤色较深（尚未按肤色测量） | 先调整角度和光线；监考员先查看再判断；绝不能仅凭该信号判断考生；如果没有发现问题，请记为“提示有误” |
+| 部分考生频繁出现“看不到人脸” | 画面中人脸小、摄像头角度问题、弱光下肤色较深（尚无按肤色的数据） | 先调整角度和光线；监考员先查看再判断；绝不能仅凭该信号判断考生；如果没有发现问题，请记为“提示有误” |
 | “第二块屏幕”或“退出全屏” | 考生连接了第二块显示器或退出了全屏 | 页面会向考生显示“返回全屏”按钮；后续按机构的考试规则处理 |
 | “虚拟摄像头” | 摄像头设备名称含有 virtual，例如 OBS | 确认使用的是真实摄像头；有些工具使用真实摄像头的名称，系统无法发现 |
 | 考生重新加载页面 | 网络中断或浏览器卡死 | 系统记录为会话标记，由监考员查看原因；没有网络时重新加载可能失败（见第 1 节） |

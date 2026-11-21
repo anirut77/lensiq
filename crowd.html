@@ -22,60 +22,33 @@
 <link rel="stylesheet" href="styles.css?v=24">
 <link rel="stylesheet" href="store.css?v=6">
 <link rel="stylesheet" href="zones.css?v=1">
-<link rel="stylesheet" href="crowd.css?v=2">
+<link rel="stylesheet" href="crowd.css?v=3">
 <script src="lensiq-demo.js?v=1"></script>
-<script src="lensiq-demo-data.js?v=3"></script>
-<script src="i18n/zh-demo.js?v=3"></script>
+<script src="lensiq-demo-data.js?v=4"></script>
+<script src="i18n/zh-demo.js?v=4"></script>
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-zones.js?v=1"></script>
-<script src="i18n/zh-crowd.js?v=4"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-zones.js?v=2"></script>
+<script src="i18n/zh-crowd.js?v=5"></script>
 <script src="lensiq-i18n-rt.js?v=2"></script>
 <script src="i18n/zh-rt-common.js?v=7"></script>
 
 <main class="st zc cr" id="main">
   <p class="zc-crumb"><a href="solutions.html" data-i18n="zc.back">← โซลูชันตามอุตสาหกรรม</a></p>
   <h1 data-i18n="cr.h1">นับคนและความหนาแน่น</h1>
-  <p class="cr-status" id="crStatus" role="note"><b class="beta" data-i18n="cr.st.b">ทดลอง</b>
-    <span data-i18n="cr.st">สำหรับอีเวนต์ที่มีคนน้อยถึงปานกลาง · ยังไม่เหมาะกับฝูงชนหนาแน่น · ตัวเลขทุกตัวเป็นผลเบื้องต้น</span></p>
+  <p class="cr-status lq-lines" id="crStatus" role="note"><b class="beta" data-i18n="cr.st.b">รุ่นทดลอง</b>
+    <span data-i18n="ln.crowd.1">นับคนและดูความหนาแน่นในโซนที่คุณวาด สำหรับอีเวนต์และพื้นที่จัดงาน ประมวลผลบนเครื่อง ไม่ระบุตัวตน</span><br>
+    <span data-i18n="ln.crowd.2">เหมาะกับงานที่มีคนน้อยถึงปานกลาง ยังไม่เหมาะกับฝูงชนหนาแน่น</span></p>
   <p class="lead" data-i18n="cr.lead">นับจำนวนคนในภาพหรือในโซนที่วาด ดูความหนาแน่นเป็นฮีตแมปและกราฟตามเวลา หาช่วงเวลาคนเยอะ นับคนเข้า–ออกด้วยเส้นนับ
     วัดเวลาที่อยู่ในแต่ละโซน และเทียบกับยอดขาย/ยอดลงทะเบียนที่กรอกเอง เหมาะกับอีเวนต์ บูธ และหน้าร้าน ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ</p>
   <div class="lq-buy" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
     <a class="btn primary" href="index.html?interest=crowd#contact" data-i18n="cr.buy.quote">ขอใบเสนอราคา</a>
     <a class="btn ghost" href="crowd.html?demo=1" data-i18n="cr.buy.demo">ดูเดโม</a>
   </div>
-  <p class="acc-note" role="note"><b class="beta" data-i18n="cr.st.b">ทดลอง</b> <span data-i18n="cr.acc">ใช้ตัวตรวจจับคนตัวเดียวกับหน้าวิเคราะห์หน้าร้าน
-    ในที่คนแน่นมาก คนที่ยืนบังกันอาจถูกนับขาด และคนเดิมที่ออกจากภาพแล้วกลับมาจะถูกนับเป็นผู้เข้าชมใหม่ ตัวเลขจึงเป็นค่าประมาณสำหรับวางแผน
-    ไม่ใช่ยอดนับอย่างเป็นทางการ ตั้งกล้องสูงมองเฉียงลง แล้วเทียบกับการนับด้วยมือสักช่วงก่อนใช้จริง</span> <a href="cameras.html#accuracy" data-i18n="cr.accLink">ดูความแม่นยำที่วัดได้ →</a></p>
-  <div class="acc-note claims" role="note" id="crClaims">
-    <p><b class="cr-cl-h" data-i18n="cr.cl.h">ตัวเลขและที่มา (เบื้องต้น)</b> <strong data-i18n="cr.cl.dense">ยังไม่เหมาะกับฝูงชนหนาแน่น: ฝูงชนราว 300 คน
-      (Shibuya) หน้านี้นับได้เพียงราว 1 คนต่อภาพ และนับได้ 0–2 คนในคลิปไทม์แลปส์ที่มีคนมากกว่า 100 คน · n = 2 + 7 ภาพ (2 คลิป) · ที่มา: ชุดข้อมูลสาธารณะ
-      (วิดีโอ Wikimedia Commons) ผลเบื้องต้น เทียบกับการนับอ้างอิงโดย AI · ใช้กับคนน้อยถึงปานกลางที่ตัวใหญ่พอในภาพเท่านั้น</strong></p>
-    <p data-i18n="cr.cl.field">ความแม่นยำสุดท้าย: ยังไม่ได้วัด · ที่มา: หน้างานจริง (รอผลการนับโดยคน 2 คน และยังไม่มีโครงการนำร่อง) ตัวเลขทุกตัวในหัวข้อด้านล่างเป็นผลเบื้องต้น</p>
-  </div>
-  <details class="card cr-acc" id="crAcc">
-    <summary><span data-i18n="cr.acc2.h">ความแม่นยำของการนับคน (ผลเบื้องต้น)</span> <b class="beta" data-i18n="cr.acc2.pre">ทดลอง</b></summary>
-    <p data-i18n="cr.acc2.how">วัดกับวิดีโอสาธารณะ 5 คลิป (ทางม้าลายในเมือง คนน้อยถึงแน่นมาก) โดยรันตัวตรวจจับและตัวนับชุดเดียวกับหน้านี้ทีละเฟรม
-      แล้วเทียบกับจำนวนคนที่นับจากภาพนิ่งทุก 1–5 วินาที ผู้นับอ้างอิงรอบนี้เป็น AI ที่ดูภาพนิ่ง ไม่ใช่คนนับ 2 คน
-      ตัวเลขด้านล่างจึงเป็นผลเบื้องต้น: AI เทียบกับ AI และยังไม่ใช่ค่าความจริง</p>
-    <ul class="cr-acc-list">
-      <li data-i18n="cr.acc2.r2">คน 15–22 คนเต็มภาพ ขนาดปานกลาง: นับต่ำกว่าจริงเฉลี่ย 26% (ประมาณ 5 คน) · n = 12 ภาพ (1 คลิป) · ที่มา: ชุดข้อมูลสาธารณะ ผลเบื้องต้น</li>
-      <li data-i18n="cr.acc2.r6">คน 30–50 คนในภาพ หลายคนอยู่ไกล: นับต่ำกว่าจริงเฉลี่ย 58% (ค่าอ้างอิงเองก็เป็นค่าประมาณ ±20%) · n = 20 ภาพ (1 คลิป) · ที่มา: ชุดข้อมูลสาธารณะ ผลเบื้องต้น</li>
-      <li data-i18n="cr.acc2.r3">คนไกลหรือตัวเล็ก (สูงไม่ถึง 1 ใน 10 ของภาพ): นับต่ำกว่าจริง 37–59% · n = 29 ภาพ (2 คลิป) · ที่มา: ชุดข้อมูลสาธารณะ ผลเบื้องต้น</li>
-      <li data-i18n="cr.acc2.r1">คนที่ตัวใหญ่พอในโซนช่วงใกล้กล้อง (0–13 คนในโซน วัดจากคลิปเดียว): คลาดเฉลี่ย 1.2 คนต่อภาพ (ประมาณ 31%) แทบไม่เอียงไปทางขาดหรือเกิน · n =
-        20 ภาพ (1 คลิป) · ที่มา: ชุดข้อมูลสาธารณะ ผลเบื้องต้น</li>
-      <li data-i18n="cr.acc2.r4">ฝูงชนแน่นมาก (ประมาณ 300 คน): นับได้เพียงราว 1 คนต่อภาพ (และ 0–2 คนในคลิปไทม์แลปส์ที่มีคนมากกว่า 100 คน)
-        ใช้นับจำนวนไม่ได้ ตัวเลขลดลงจนเกือบเป็นศูนย์แทนที่จะสูงขึ้น หน้านี้จึงแยกไม่ออกจากภาพที่ไม่มีคนและจะไม่ขึ้นป้ายเตือนเอง เว้นแต่ตั้งค่า
-        "จำนวนคนที่คาดว่าจะมีช่วงพีค" ไว้ · n = 2 + 7 ภาพ (2 คลิป) · ที่มา: ชุดข้อมูลสาธารณะ ผลเบื้องต้น</li>
-      <li data-i18n="cr.acc2.r5">เส้นนับเข้า–ออก: นับถูก 1 / 1 ครั้งในคลิปคนน้อย และไม่นับเกินในคลิปที่ไม่มีคนข้ามเส้น ข้อมูลยังน้อยเกินกว่าจะสรุปเป็นเปอร์เซ็นต์ · n = 1
-        ครั้งที่ข้ามเส้น (2 คลิป) · ที่มา: ชุดข้อมูลสาธารณะ ผลเบื้องต้น</li>
-    </ul>
-    <p><b data-i18n="cr.acc2.final">ความแม่นยำสุดท้าย: รอผลการนับโดยคน</b> <span data-i18n="cr.acc2.kit">มีชุดนับให้คน 2 คนนับคลิปคนน้อยและคลิปคนปานกลางแยกกัน
-      แล้วคำนวณผลด้วยเครื่องมือเดียวกัน (docs/CROWD-ACCURACY.md)</span></p>
-  </details>
+  <p class="acc-note" role="note"><span data-i18n="cr.tip">ตั้งกล้องสูงมองเฉียงลง ตัวเลขเป็นค่าประมาณสำหรับวางแผน</span></p>
 
   <section class="card zc-gate" id="gate" aria-labelledby="gateH" hidden>
     <h2 id="gateH" data-i18n="zc.gate.h">ก่อนเปิดกล้อง (PDPA)</h2>
@@ -129,6 +102,7 @@
       <div class="tiles" id="tiles"></div>
       <p class="cr-qual" id="crQual" role="status" hidden></p>
       <ul class="zc-states" id="zoneState"></ul>
+      <p class="lq-recheck hint" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
       <h3 data-i18n="zc.setH">ตั้งค่า</h3>
       <form id="settingsForm" class="zc-form" novalidate>
         <label><span data-i18n="cr.s.site">ชื่อจุดหรืออีเวนต์ (ใช้ในรายงาน)</span><input name="siteName" type="text" maxlength="40" autocomplete="off"
@@ -214,7 +188,7 @@
 
   <section class="card" aria-labelledby="logH">
     <div class="report-head"><h2 id="logH" data-i18n="zc.logH">รายการแจ้งเตือน (ให้พนักงานตรวจ)</h2></div>
-    <p class="hint" id="logStats" role="status"></p>
+    <div class="hint" id="logStats" role="status"></div>
     <ul class="zc-log" id="log"></ul>
     <div class="row-actions">
       <button class="btn primary" id="exportCsv" type="button" data-i18n="zc.csv">ส่งออก CSV</button>
@@ -265,11 +239,11 @@
 <script src="vendor/ort/ort.wasm.min.js"></script>
 <script src="lensiq-detect.js?v=7"></script>
 <script src="lensiq-zones.js?v=1"></script>
-<script src="lensiq-zonecam.js?v=2"></script>
+<script src="lensiq-zonecam.js?v=3"></script>
 <script src="lensiq-agg.js?v=1"></script>
 <script src="lensiq-crowd.js?v=2"></script>
 <script src="lensiq-freetier.js?v=1"></script>
-<script src="crowd.js?v=2"></script>
+<script src="crowd.js?v=3"></script>
 <script src="lensiq-config.js?v=30"></script>
 </body>
 </html>

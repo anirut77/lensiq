@@ -1,18 +1,25 @@
 #!/usr/bin/env node
-// tools/accuracy-sync.mjs — render docs/accuracy-figures.json (the single source of truth for customer-facing accuracy
-// figures) into the camera pages: the Thai text of every `data-i18n="<key>"` element in <page>.html and the matching
-// entries of i18n/en-<page>.js and i18n/zh-<page>.js (the page is the key prefix: "driver.s4" -> driver.html).
+// tools/accuracy-sync.mjs — docs/accuracy-figures.json is the single source of truth for every measured accuracy figure.
+// Owner decision 223 (2026-11-21): customer pages and dictionaries no longer carry these figures. The `texts` of the JSON
+// are kept as records of what the pages used to say and are rendered (placeholders filled from `figures`) into the
+// technical sheets docs/tech-sheets/<product>-TH.md / -EN.md and the back-office data admin-measurements.js
+// (tools/tech-sheets.mjs; admin.html tab "ผลการวัด"). The page check is now the inverse: no customer page or dictionary
+// may carry a rendered figure text again.
 //
-//   node tools/accuracy-sync.mjs           rewrite the pages and dictionaries (idempotent)
-//   node tools/accuracy-sync.mjs --check   exit 1 and list every mismatch (CI: tests/unit/accuracy-figures.test.js)
+//   node tools/accuracy-sync.mjs           regenerate the technical sheets and admin-measurements.js (idempotent)
+//   node tools/accuracy-sync.mjs --check   exit 1 and list every problem (CI: tests/unit/accuracy-figures.test.js)
 //
-// Also checked: every {placeholder} names a figure, every figure's `md` evidence still occurs in ACCURACY.md (whitespace
-// collapsed), `value` equals `raw` rounded to the decimals of `value`, and no `banned` stale phrase is left in its files.
+// Checked: every {placeholder} names a figure, every figure's `md` evidence still occurs in ACCURACY.md (whitespace
+// collapsed), `value` equals `raw` rounded to the decimals of `value`, no `banned` phrase is in its files (entries with
+// "visible": true look at visible text only: no HTML comments, scripts or styles, no JS comments), no customer page or
+// dictionary carries a rendered figure text (texts marked "label": true are licence labels, not figures, decision 223-5),
+// and every rendered figure text is in its technical sheets and in admin-measurements.js, which are current.
 // --check also applies docs/claim-rules.json (checkClaims): classes of wording that claim more than was measured, and the
 // status words that every page, card and one-pager must use for hall mode and Crowd (Sellable pack, 2026-11-11).
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { stale as sheetsStale, write as sheetsWrite, model as sheetsModel, DIR as SHEETS, ADMIN_DATA } from "./tech-sheets.mjs";
 
 export const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const LANGS = ["th", "en", "zh"];
@@ -72,22 +79,49 @@ export function check(root = repo, doc = loadFigures(root)) {
   let rows;
   try { rows = expand(doc); } catch (e) { return errs.concat(String(e.message)); }
   const cache = new Map(), get = rel => { if (!cache.has(rel)) { try { cache.set(rel, read(root, rel)); } catch { cache.set(rel, null); } } return cache.get(rel); };
-  for (const r of rows) {
-    const html = get(`${r.page}.html`);
-    const got = html == null ? [] : htmlTexts(html, r.key);
-    if (!got.length) errs.push(`${r.page}.html: no element with data-i18n="${r.key}"`);
-    got.forEach(g => { if (squash(g) !== squash(r.th)) errs.push(`${r.page}.html [${r.key}] differs from docs/accuracy-figures.json`); });
-    for (const lang of ["en", "zh"]) {
-      const rel = `i18n/${lang}-${r.dict}.js`, js = get(rel), v = js == null ? undefined : dictValue(js, r.key);
-      if (v === undefined) errs.push(`${rel}: missing "${r.key}"`);
-      else if (squash(v) !== squash(r[lang])) errs.push(`${rel} [${r.key}] differs from docs/accuracy-figures.json`);
+  const labels = new Set(doc.texts.filter(t => t.label).flatMap(t => t.keys || [t.key]));
+  const figRows = rows.filter(r => !labels.has(r.key));
+  // inverse (decision 223): no customer page or dictionary carries a rendered figure text
+  const files = customerFiles(root);
+  for (const rel of files) {
+    const s = get(rel);
+    if (s == null) continue;
+    const hay = squash(rel.endsWith(".html") ? unesc(visible(s, rel).replace(/<[^>]+>/g, " ")) : visible(s, rel));
+    for (const r of figRows) for (const lang of LANGS) {
+      const t = squash(r[lang]), js = squash(JSON.stringify(r[lang]).slice(1, -1));
+      if (t && (hay.includes(t) || hay.includes(js))) errs.push(`${rel}: carries the figure text of ${r.key} (${lang}); the figures live in ${SHEETS}/ and the admin tab only (decision 223)`);
     }
   }
   for (const b of doc.banned || []) for (const rel of b.files) {
     const s = get(rel);
-    if (s != null && s.includes(b.text)) errs.push(`${rel}: stale text "${b.text}" (${b.why})`);
+    if (s != null && (b.visible ? visible(s, rel) : s).includes(b.text)) errs.push(`${rel}: stale text "${b.text}" (${b.why})`);
   }
-  return errs;
+  // the rendered texts are in the technical sheets (TH: th; EN: en + zh) and in the admin data
+  let m;
+  try { m = sheetsModel(root); } catch (e) { return errs.concat(`technical sheets: ${e.message}`); }
+  const admin = get(ADMIN_DATA);
+  for (const t of m.texts) {
+    if (labels.has(t.key)) continue;
+    const sheet = l => squash(get(`${SHEETS}/${t.product === "_platform" ? "README" : t.product + "-" + l}.md`) || "");
+    if (!sheet("TH").includes(squash(t.th))) errs.push(`${SHEETS}: the TH sheet of ${t.product} misses ${t.key}`);
+    for (const lang of ["en", "zh"]) if (!sheet("EN").includes(squash(t[lang]))) errs.push(`${SHEETS}: the EN sheet of ${t.product} misses ${t.key} (${lang})`);
+    for (const lang of LANGS) if (!admin || !admin.includes(JSON.stringify(t[lang]))) errs.push(`${ADMIN_DATA}: misses ${t.key} (${lang})`);
+  }
+  for (const k of Object.keys(doc.figures)) if (!m.products.some(p => p.figures.includes(k)) && !m.orphanFigures.includes(k)) errs.push(`figure ${k}: in no technical sheet`);
+  return errs.concat(sheetsStale(root).map(e => `${e} (run: node tools/accuracy-sync.mjs)`));
+}
+
+/** customer-facing files (as tests/unit/accuracy-removal-223.lib.js): root *.html / *.js except admin* and sw.js, and
+ *  every i18n dictionary except i18n/*-admin.js */
+export function customerFiles(root = repo) {
+  const top = readdirSync(root).filter(f => /\.(html|js)$/.test(f) && !/^admin/.test(f) && f !== "sw.js").sort();
+  const dict = readdirSync(join(root, "i18n")).filter(f => /\.js$/.test(f) && !/-admin\.js$/.test(f)).sort().map(f => "i18n/" + f);
+  return top.concat(dict);
+}
+/** what a visitor can read: HTML without comments, scripts and styles; JS without comments (strings kept) */
+export function visible(src, rel) {
+  if (rel.endsWith(".html")) return src.replace(/<!--[\s\S]*?-->/g, " ").replace(/<script\b[\s\S]*?<\/script>/gi, " ").replace(/<style\b[\s\S]*?<\/style>/gi, " ");
+  return src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
 }
 
 export const RULES = "docs/claim-rules.json";
@@ -137,27 +171,18 @@ export function checkClaims(root = repo, rules = existsSync(join(root, RULES)) ?
   return errs;
 }
 
-/** rewrite pages + dictionaries -> list of files changed */
-export function sync(root = repo, doc = loadFigures(root)) {
-  const files = new Map(), get = rel => { if (!files.has(rel)) files.set(rel, { orig: read(root, rel) }); const f = files.get(rel); return f.now ?? f.orig; };
-  const put = (rel, s) => { get(rel); files.get(rel).now = s; };
-  for (const r of expand(doc)) {
-    put(`${r.page}.html`, setHtml(get(`${r.page}.html`), r.key, r.th));
-    for (const lang of ["en", "zh"]) put(`i18n/${lang}-${r.dict}.js`, setDict(get(`i18n/${lang}-${r.dict}.js`), r.key, r[lang], lang));
-  }
-  const changed = [];
-  for (const [rel, f] of files) if (f.now != null && f.now !== f.orig) { writeFileSync(join(root, rel), f.now); changed.push(rel); }
-  return changed;
-}
+/** decision 223: render the figures into the technical sheets and admin-measurements.js -> list of files changed.
+ *  Pages and dictionaries are never written any more (their figure texts were removed). */
+export function sync(root = repo) { return sheetsWrite(root); }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (process.argv.includes("--check")) {
     const errs = check().concat(existsSync(join(repo, RULES)) ? checkClaims() : [`${RULES} is missing`]);
     if (errs.length) { console.error(errs.map(e => "  ✗ " + e).join("\n")); console.error(`${errs.length} accuracy-text problem(s) — run node tools/accuracy-sync.mjs`); process.exit(1); }
-    console.log("accuracy texts in sync with docs/accuracy-figures.json; claim rules (docs/claim-rules.json) pass");
+    console.log("figures: evidence and rounding OK, on no customer page, in the technical sheets and the admin data; claim rules (docs/claim-rules.json) pass");
   } else {
     const ch = sync();
-    console.log(ch.length ? "updated:\n  " + ch.join("\n  ") : "nothing to update");
+    console.log(ch.length ? "updated:\n  " + ch.join("\n  ") : "technical sheets and admin data already current");
     const errs = check();
     if (errs.length) { console.error(errs.map(e => "  ✗ " + e).join("\n")); process.exit(1); }
   }

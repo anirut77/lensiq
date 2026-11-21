@@ -1285,7 +1285,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   let SGC = null, SGC_LAST = null;
   const sgHist = SITE ? SITE.history("sg-sitecheck") : null;
   const sgPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
-    title: "ตรวจความแม่นยำอายุ/เพศหน้างาน",
+    title: "ทดสอบอายุ/เพศหน้างาน",
     intro: "ทดสอบการประมาณช่วงอายุและเพศที่จอของคุณเอง: ระหว่างที่ระบบวัดผู้ชม เจ้าหน้าที่ดูคนที่เดินผ่านจอ แล้วเลือกช่วงอายุและเพศจริงของแต่ละคนที่ระบบบันทึก ระบบคำนวณความถูกต้องพร้อมช่วงความเชื่อมั่นและตารางเทียบ",
     steps: [
       "เปิด \"ใช้อายุ/เพศ\" แล้วกด \"เริ่มตรวจ\" (ระบบจะเริ่มวัดผู้ชมให้ถ้ายังไม่ได้เริ่ม)",
@@ -1322,7 +1322,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   async function scStart() {
     if (!sgPanel || SGC) return;
     if (!AGE_OK()) { sgPanel.live.textContent = "การตรวจนี้ใช้ไม่ได้ในเครื่องนี้ — ปิดโมเดลอายุ/เพศไว้ในการตั้งค่าระบบ (LENSIQ_AGE_GENDER = false)"; return; }
-    if (!settings.useDemo) { sgPanel.live.textContent = "เปิด \"ใช้อายุ/เพศ\" ก่อน จึงจะตรวจความแม่นยำอายุ/เพศได้"; return; }
+    if (!settings.useDemo) { sgPanel.live.textContent = "เปิด \"ใช้อายุ/เพศ\" ก่อน จึงจะทดสอบอายุ/เพศหน้างานได้"; return; }
     SGC = { rows: [], startedAt: Date.now(), health: new Set(), ownFace: !faceRunning, cam: "" };
     sgPanel.start.disabled = true; sgPanel.stop.disabled = false; sgPanel.exp.hidden = true;
     sgPanel.state.textContent = "กำลังตรวจ"; sgPanel.state.dataset.s = "live"; SITE.renderReport(sgPanel.report, null);

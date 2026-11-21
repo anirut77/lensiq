@@ -4,7 +4,7 @@
 > ฐานข้อมูล: `docs/GATE.md` (§1–§5), `docs/pilot/PILOT-GATE.md`, `docs/DEPLOYMENT-CHECKLIST.md`, `docs/SUPPORT.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
 > ช่อง [วงเล็บ] เจ้าของกรอก ห้ามแต่งข้อมูลติดต่อ LENSIQ ไม่ขายกล้อง ไม้กั้น หรือรีเลย์ ระบบเสนอเลขป้าย รปภ. แตะยืนยันทุกคัน
 
-> ความแม่นยำหน้างานจริงยังไม่ได้วัด ตัวเลขในคู่มือนี้มาจากชุดข้อมูลสาธารณะหรือข้อมูลจำลอง (ที่มาใน `docs/ACCURACY-CLAIMS.md`)
+> คู่มือนี้ไม่มีตัวเลขความแม่นยำ ควรทดสอบหน้างานก่อนใช้ตัดสินใจ ตัวเลขละเอียดอยู่ในเอกสารเทคนิค `docs/tech-sheets/gate-TH.md`
 
 ## 1. ก่อนติดตั้ง: สิ่งที่ลูกค้าต้องมี
 
@@ -17,7 +17,7 @@
 | เครือข่าย | ต้องมีอินเทอร์เน็ตตอนเปิดหน้าครั้งแรกเพื่อโหลดโมเดล หลังนั้นใช้ออฟไลน์ได้ การโหลดหน้าใหม่โดยไม่มีเครือข่ายอาจล้มเหลว ไม่ต้องมีอินเทอร์เน็ตตลอด |
 | ตำแหน่งกล้อง | ป้ายกว้าง ≥ 120 px ในภาพ (มอเตอร์ไซค์ ≥ 160 px) มุมแนวนอน/แนวตั้ง ≤ 30° สูง 1–1.5 ม. ห่างก่อนไม้กั้น 3–6 ม. ชี้ไปที่จุดที่รถหยุด หลีกเลี่ยงแสงแดดหรือไฟหน้าตรงเข้ากล้อง |
 | ชัตเตอร์/แสง | ภาพเบลอจากการเคลื่อนไหวคือสาเหตุผิดพลาดหลัก ตั้งชัตเตอร์ ≤ 1/500 s (ถ้ารถไม่หยุด 1/1000 s) โฟกัสคงที่ที่เส้นหยุด เปิด WDR/BLC ถ้าย้อนแสง ทำให้รถหยุดหรือชะลอ (ไม้กั้น ลูกระนาด) |
-| กลางคืน | ป้ายไทยสะท้อนแสง ใช้ไฟ IR 850 nm ใกล้เลนส์ ลดกำลังไฟหรือชัตเตอร์ถ้าป้ายสว่างจ้า ตรวจผลกลางคืนแยกในเมนูตรวจความแม่นยำ |
+| กลางคืน | ป้ายไทยสะท้อนแสง ใช้ไฟ IR 850 nm ใกล้เลนส์ ลดกำลังไฟหรือชัตเตอร์ถ้าป้ายสว่างจ้า ดูผลกลางคืนแยกในเมนูทดสอบหน้างาน |
 | ไม้กั้น/รีเลย์ | ไม่ขายและไม่รวมในบริการ ถ้าลูกค้าหรือผู้ติดตั้งต่อรีเลย์เอง รปภ. ต้องกดเปิดหลังยืนยัน ห้ามต่อให้เปิดโดยไม่มีคนยืนยัน และห้ามต่อในวงจรมอเตอร์ (ดู `docs/GATE.md` §4) |
 | ป้ายแจ้ง PDPA | ติด `gate-notice.html` (ไทย/อังกฤษ) ก่อนถึงกล้อง เผยแพร่ประกาศความเป็นส่วนตัว (ฐานทางกฎหมายรอที่ปรึกษา) กำหนดระยะเก็บ ตั้งชื่อผู้ปฏิบัติงานที่ยอมรับประกาศก่อนเปิดกล้อง |
 | เอกสาร | หนังสืออนุญาตจากนิติบุคคลหมู่บ้าน/อาคารชุดหรือเจ้าของลานจอด DPIA (`docs/pdpa/DPIA-template.md`) |
@@ -33,9 +33,9 @@
 5. **อบรม รปภ. 30 นาที**: ยืนยันหรือแก้ทุกค่า แตะกรอบป้ายเมื่อระบบขึ้น "ไม่เหมือนป้ายทะเบียน" พิมพ์เลขเองได้เสมอ ปุ่ม "เปิด (รปภ. ไม่มีป้าย)" ใช้ได้และบันทึกทุกครั้ง
    พร้อมเพย์: ต้องเปิดแอปธนาคารตรวจเงินเข้าก่อนกด "รับเงินแล้ว" หน้าไม่ตรวจการชำระ
 6. **ทดลอง 1 ชั่วโมง** ผ่านรถจริงอย่างน้อย 10 คัน ตรวจว่ากรอบป้ายถูก ตัวอักษรเสี่ยงถูกขีดเส้นใต้ จังหวัดถูกเลือก
-7. **เปิดเมนู "ตรวจความแม่นยำ"** ตั้งแต่วันแรก: รปภ. กด ✓ หรือ ✗ ทุกการอ่าน (การแก้ค่านับเป็น ✗) ระบบแยกกลางวัน/กลางคืนและแสดงช่วงความเชื่อมั่น 95%
+7. **เปิดเมนู "ทดสอบหน้างาน"** ตั้งแต่วันแรก: รปภ. กด ✓ หรือ ✗ ทุกการอ่าน (การแก้ค่านับเป็น ✗) ระบบแยกกลางวัน/กลางคืน
 8. **สัปดาห์แรก**: ตรวจตัวเลขวันละครั้ง ถ้ากลางคืนต่ำ ปรับไฟ IR/ชัตเตอร์ก่อน ผู้ทดลองใช้ฟรี 30 วัน (1 ช่องทาง 100 ป้ายต่อวัน เก็บบันทึก 7 วัน) นับวันเอง ระบบยังไม่มีตัวจับเวลา (OP-20)
-9. **นำร่อง** (ถ้าสั่ง): อย่างน้อย 5 วันต่อไซต์ อย่างน้อย 200 การอ่านจริง กลางคืน ≥ 40 มอเตอร์ไซค์ ≥ 30 ตัดสินด้วยขอบล่าง Wilson 95% (เป้าตาม `docs/pilot/PILOT-GATE.md` §5)
+9. **นำร่อง** (ถ้าสั่ง): อย่างน้อย 5 วันต่อไซต์ อย่างน้อย 200 การอ่านจริง กลางคืน ≥ 40 มอเตอร์ไซค์ ≥ 30 วิธีตัดสินและเป้าตาม `docs/pilot/PILOT-GATE.md` §5
 
 ## 3. ปัญหาที่พบบ่อยและวิธีแก้
 
@@ -46,7 +46,7 @@
 | อ่านผิดตัวอักษรที่หน้าตาคล้ายกัน (ข/ช ด/ต บ/ป ผ/ฝ ภ/ถ ม/ฆ) | ตัวอ่านเป็นแบบทั่วไป ไม่ได้ฝึกกับป้ายไทย | ดูตัวอักษรที่ขีดเส้นใต้ รปภ. แก้ การจับคู่ขาเข้า-ขาออกยอมให้ตัวคล้ายกันต่างกันครึ่งค่า |
 | ขึ้น "ไม่เหมือนป้ายทะเบียน" กับป้ายจริง | ตัวตรวจว่าเป็นป้ายเข้มงวดเกินสำหรับป้ายบางแบบ | แตะกรอบป้ายเอง/พิมพ์เอง จดจำนวนครั้งในช่องหมายเหตุเพื่อทีมปรับ |
 | ป้ายมอเตอร์ไซค์ 3 บรรทัด ป้ายประมูล ป้ายสีพิเศษ อ่านยาก | ข้อจำกัดที่ทราบ | พิมพ์เอง |
-| กลางคืนอ่านไม่ได้ | แสงไม่พอ ป้ายสว่างจ้างจากไฟ IR | เพิ่ม/ลดไฟ IR ตั้งชัตเตอร์ ตรวจแยกกลางคืนในเมนูตรวจความแม่นยำ |
+| กลางคืนอ่านไม่ได้ | แสงไม่พอ ป้ายสว่างจ้างจากไฟ IR | เพิ่ม/ลดไฟ IR ตั้งชัตเตอร์ ดูแยกกลางคืนในเมนูทดสอบหน้างาน |
 | รีเลย์ไม่ทำงานจากหน้าเว็บ | หน้ามีนโยบายที่ห้ามเรียกอุปกรณ์ในเครือข่ายโดยตรง และเบราว์เซอร์อาจบล็อก (HTTPS เรียก HTTP ไม่ได้) | หน้าแจ้งผล รปภ. เปิดที่กล่องควบคุม เหตุการณ์ยังบันทึก ผู้ติดตั้งใช้ตัวกลางในเครื่องเดียวกัน (`docs/GATE.md` §4) |
 | QR พร้อมเพย์สแกนแล้วยอดไม่ตรง | หมายเลขพร้อมเพย์ตั้งค่าไม่ถูก | ตรวจหมายเลขในหน้าตั้งค่า ใช้หมายเลขของลูกค้าเอง ทดสอบด้วยยอดเล็กน้อย |
 | ข้อมูลหายหลังปิดเบราว์เซอร์ | ใช้หน้าต่างส่วนตัวหรือล้างข้อมูลเว็บ | ใช้โปรไฟล์เฉพาะ ส่งออก CSV สำรองสม่ำเสมอ (มีเลขทะเบียน เก็บแบบเข้ารหัส) |
@@ -71,7 +71,7 @@
 > `docs/pilot/PILOT-GATE.md`, `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`. Open points (OP-xx) are in `docs/sales/README.md`. Fields in [brackets] are for the owner.
 > LENSIQ sells no camera, barrier or relay. The system suggests a plate; the guard taps to confirm every vehicle.
 
-> Accuracy at a real site has not been measured. Figures in this guide come from public datasets or synthetic data (sources in `docs/ACCURACY-CLAIMS.md`).
+> This guide carries no accuracy figures; run an on-site test before relying on it. Detailed figures are in the technical sheet `docs/tech-sheets/gate-EN.md`.
 
 ## 1. Before installing
 
@@ -85,7 +85,7 @@
   sun or headlights.
 - **Shutter and light:** motion blur is the main error source. Shutter 1/500 s or faster (1/1000 s if vehicles do not stop), fixed focus on the stop line, WDR / BLC for backlight, make vehicles
   stop or slow (barrier, speed bump).
-- **Night:** Thai plates are retro-reflective; use an 850 nm IR light near the lens; lower the power or exposure if the plate saturates; check the night result separately in the accuracy check.
+- **Night:** Thai plates are retro-reflective; use an 850 nm IR light near the lens; lower the power or exposure if the plate saturates; check the night result separately in the on-site test.
 - **Barrier / relay:** not sold and not part of the service. If the customer or an installer wires a relay, the guard must press open after confirming; never wire it to open without a person, and never
   in the motor circuit (`docs/GATE.md` §4).
 - **PDPA sign:** post `gate-notice.html` (Thai / English) before the camera; publish the privacy notice (legal basis awaits counsel); set retention; the operator acknowledges the notice before the
@@ -104,9 +104,9 @@
 5. Guard training, 30 minutes: confirm or correct every value; tap the box when the page says "does not look like a plate"; typing is always possible; the "open (guard, no plate)" button is
    always available and always logged. PromptPay: open the bank app and check the money before pressing "money received"; the page does not verify payment.
 6. One-hour trial with at least 10 real vehicles: check the box is right, doubtful characters are underlined, the province is chosen.
-7. Use the "accuracy check" from day one: the guard presses tick or cross on every read (an edited read counts as a cross); the page splits day and night and shows a 95% interval.
+7. Use the "on-site test" from day one: the guard presses tick or cross on every read (an edited read counts as a cross); the page splits day and night.
 8. First week: review the numbers daily; if night is low, fix the IR light and shutter first. The free 30-day trial (1 lane, 100 plates a day, 7-day log) is counted by you; there is no timer in the system (OP-20).
-9. Pilot (if ordered): at least 5 days per site, at least 200 real reads, at least 40 at night, at least 30 motorcycles; judged on the lower bound of a 95% Wilson interval (targets in
+9. Pilot (if ordered): at least 5 days per site, at least 200 real reads, at least 40 at night, at least 30 motorcycles; judged by the method set out in the pilot plan (targets in
    `docs/pilot/PILOT-GATE.md` §5).
 
 ## 3. Common problems and fixes
@@ -118,7 +118,7 @@
 | Look-alike characters misread (ข/ช ด/ต บ/ป ผ/ฝ ภ/ถ ม/ฆ) | The reader is general Thai text, not trained on plates | Read the underlined characters; the guard corrects. Entry–exit matching treats look-alikes as half a difference |
 | "Does not look like a plate" on a real plate | The plate check is strict for some plate styles | Tap the box or type; note how often in the notes column so the team can tune |
 | Three-line motorcycle plates, auction plates, special colours misread | Known limits | Type it in |
-| Cannot read at night | Too little light, or the plate saturates under IR | Raise or lower the IR light, set the shutter; check night separately in the accuracy check |
+| Cannot read at night | Too little light, or the plate saturates under IR | Raise or lower the IR light, set the shutter; check night separately in the on-site test |
 | Relay does not respond from the web page | The page blocks direct calls to local devices, and the browser may block them (HTTPS cannot call HTTP) | The page says so and the guard opens at the control box; the event is still logged; the installer uses a same-origin bridge (`docs/GATE.md` §4) |
 | PromptPay QR amount does not match | PromptPay number set wrongly | Check the number in settings (use the customer's own); test with a small amount |
 | Data gone after closing the browser | Private window or site data cleared | Use a dedicated profile; export CSV backups regularly (they hold plates; store encrypted) |

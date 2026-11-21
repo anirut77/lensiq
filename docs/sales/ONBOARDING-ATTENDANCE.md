@@ -39,9 +39,8 @@
 
 ## 3. ถ้าจะเปิดใบหน้า (ทางเลือก ต้องผ่านเงื่อนไขก่อน)
 
-- เปิดเฉพาะเมื่อ (1) OP-14 ใบอนุญาตโมเดลได้ข้อสรุป (2) พนักงานแต่ละคนยินยอมเป็นลายลักษณ์อักษร (3) มี PIN/QR ให้เลือกเสมอ (4) ลูกค้าเข้าใจตัวเลข: ใบหน้าเอเชีย จำได้ต่อการสแกน 66–76%
-  (n = 500 คน × 5 ภาพ ชุดข้อมูลสาธารณะ) ที่ทำงานจริงยังไม่ได้วัด
-- ลงทะเบียนอย่างน้อย 5 คนก่อนพึ่งการเช็คอินอัตโนมัติ ใช้แท็บ "ตรวจความแม่นยำ" วัดกับพนักงานของลูกค้าเอง (เกณฑ์นำร่อง: รับคนผิด ≤ 1% ปฏิเสธคนถูก ≤ 10%)
+- เปิดเฉพาะเมื่อ (1) OP-14 ใบอนุญาตโมเดลได้ข้อสรุป (2) พนักงานแต่ละคนยินยอมเป็นลายลักษณ์อักษร (3) มี PIN/QR ให้เลือกเสมอ (4) ลูกค้าเข้าใจข้อจำกัด: แบบสแกนใบหน้าบางครั้งต้องสแกนซ้ำหรือให้หัวหน้ายืนยัน และกันภาพปลอมได้ไม่ครบ จึงควรมีคนดูแลจุดลงเวลา (ตัวเลขทดสอบอยู่ในเอกสารเทคนิค)
+- ลงทะเบียนอย่างน้อย 5 คนก่อนพึ่งการเช็คอินอัตโนมัติ ใช้แท็บ "ทดสอบหน้างาน" กับพนักงานของลูกค้าเอง (เกณฑ์นำร่อง: รับคนผิด ≤ 1% ปฏิเสธคนถูก ≤ 10%)
 - ลบข้อมูลใบหน้าเมื่อพนักงานออกหรือถอนความยินยอม (ลบข้อมูลใบหน้าไม่ลบบันทึกเวลา)
 
 ## 4. ปัญหาที่พบบ่อยและวิธีแก้
@@ -113,8 +112,7 @@ Several clock-in points: each device exports a JSON file (no images, face values
 
 ## 3. If faces are switched on (optional, with conditions)
 
-Only when (1) the model licence is settled (OP-14); (2) each employee consents in writing; (3) PIN / QR is always available; (4) the customer understands the figures: Asian faces recognised per scan
-66–76% (n = 500 people x 5 photos, public dataset), real workplace not measured. Enrol at least 5 people before relying on automatic check-in. Use the "accuracy check" tab on your own staff
+Only when (1) the model licence is settled (OP-14); (2) each employee consents in writing; (3) PIN / QR is always available; (4) the customer understands the limits: with face scan, staff sometimes need to scan again or have a supervisor confirm, and it does not stop every fake image, so someone should watch the clock-in point (figures are in the technical sheet). Enrol at least 5 people before relying on automatic check-in. Use the "on-site test" tab with your own staff
 (pilot criteria: false accept at most 1%, false reject at most 10%). Delete face data when someone leaves or withdraws consent (deleting face data never deletes time records).
 
 ## 4. Common problems and fixes

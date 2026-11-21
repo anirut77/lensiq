@@ -1,6 +1,6 @@
 # คู่มือเริ่มต้นใช้งาน: LENSIQ Crowd (ประมาณความหนาแน่นของคนในงาน รุ่นทดลอง ไม่เหมาะกับฝูงชนหนาแน่น)
 
-> **ร่าง (DRAFT) 2026-11-11** สำหรับลูกค้าหลังตกลงซื้อ ใช้กับ `crowd.html` ฐานข้อมูล: `docs/CROWD-ACCURACY.md`, `docs/pilot/PILOT-CROWD.md`,
+> **ร่าง (DRAFT) 2026-11-11** สำหรับลูกค้าหลังตกลงซื้อ ใช้กับ `crowd.html` ฐานข้อมูล: `docs/tech-sheets/crowd-TH.md`, `docs/pilot/PILOT-CROWD.md`,
 > `docs/DEPLOYMENT-CHECKLIST.md`, `docs/SUPPORT.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md` ช่อง [วงเล็บ] เจ้าของกรอก ห้ามแต่งข้อมูลติดต่อ
 >
 > **ขอบเขต:** ฝูงชนเบาบางถึงปานกลางเท่านั้น (ประมาณต่ำกว่า 50 คนในภาพเดียว) **ยังไม่เหมาะกับฝูงชนหนาแน่น** ห้ามใช้ตัดสินความปลอดภัยของฝูงชน
@@ -12,12 +12,12 @@
 
 | หัวข้อ | รายละเอียด |
 |---|---|
-| อุปกรณ์ | มือถือหรือโน้ตบุ๊กที่มีกล้อง 1 เครื่องต่อมุมกล้อง ลูกค้าจัดหาเอง ควรเป็นเครื่องระดับกลางขึ้นไป ยังไม่ได้วัดความเร็วบนมือถือจริง (ตัวเลขที่มีเป็นการจำลองบนคอมพิวเตอร์: 355 ms ต่อภาพ ราว 2.8 ครั้งต่อวินาที) |
+| อุปกรณ์ | มือถือหรือโน้ตบุ๊กที่มีกล้อง 1 เครื่องต่อมุมกล้อง ลูกค้าจัดหาเอง ควรเป็นเครื่องระดับกลางขึ้นไป ความเร็วบนมือถือจริงวัดในโครงการนำร่อง (ตัวเลขอยู่ในเอกสารเทคนิค) |
 | ขาตั้งและไฟ | ขาตั้งสูง ≥ 2.5–3 ม. มองลงประมาณ 30–45° กล้องอยู่นิ่ง ต่อไฟตลอดงาน ตั้งเครื่องไม่ให้หลับและจอเปิดตลอด ระวังเครื่องร้อนแล้วช้าลง |
 | เบราว์เซอร์ | Chrome/Edge รุ่นปัจจุบัน (110 ขึ้นไป) หรือ Safari 16.4 ขึ้นไป โปรไฟล์เฉพาะ ไม่ใช้หน้าต่างส่วนตัว |
 | ที่อยู่หน้าเว็บ | `https://` ที่ใบรับรองถูกต้อง หรือ `http://localhost` เท่านั้น ที่อยู่ที่ใช้จริง [ที่อยู่เว็บ — ต้องยืนยัน / to confirm] |
 | เครือข่าย | ต้องมีอินเทอร์เน็ตตอนเปิดหน้าครั้งแรกเพื่อโหลดโมเดล หลังนั้นไม่ต้องใช้อินเทอร์เน็ตระหว่างนับ โหลดหน้าใหม่ตอนเครือข่ายหลุดอาจล้มเหลว ให้เปิดหน้าและเริ่มนับก่อนเปิดงาน |
-| มุมกล้อง | คนในโซนสูงอย่างน้อย **10% ของความสูงภาพ** (ต่ำกว่านี้ระบบเตือน "คนดูเล็ก" และนับต่ำกว่าจริง 37–59%) ไม่ย้อนแสง ไม่มีของใหญ่บังตรงหน้ากล้อง (คนตัวใหญ่ใกล้กล้องบังคนอื่น) |
+| มุมกล้อง | คนในโซนสูงอย่างน้อย **10% ของความสูงภาพ** (ต่ำกว่านี้ระบบเตือน "คนดูเล็ก" และนับต่ำกว่าจริงมาก) ไม่ย้อนแสง ไม่มีของใหญ่บังตรงหน้ากล้อง (คนตัวใหญ่ใกล้กล้องบังคนอื่น) |
 | คนที่คาดว่าจะมี | ประเมินจำนวนคนสูงสุดต่อภาพช่วงพีค ถ้า **ประมาณ 50 คนขึ้นไป** ในภาพเดียว ยังขายและใช้ไม่ได้ บอกผู้ขายก่อนวันงาน |
 | ป้ายแจ้ง | ป้าย A (`camera-notice.html` ไทย/อังกฤษ/จีน) ที่ทางเข้าพื้นที่ พิมพ์และติดก่อนเริ่ม |
 | เอกสาร | หนังสืออนุญาตจากผู้จัดงาน/เจ้าของพื้นที่ (จุดกล้อง วัน เวลา ไม่บันทึกวิดีโอ) DPIA เพิ่มเติม (`docs/pdpa/DPIA-template.md`) |
@@ -40,9 +40,9 @@
 
 | อาการ | สาเหตุที่น่าจะเป็น | วิธีแก้ |
 |---|---|---|
-| ขึ้น "คนดูเล็ก" | คนสูงไม่ถึง 10% ของภาพ | ย้ายกล้องเข้าใกล้ หรือวาดโซนเฉพาะส่วนใกล้ ผลที่นับต่ำกว่าจริง 37–59% ในกรณีนี้ |
+| ขึ้น "คนดูเล็ก" | คนสูงไม่ถึง 10% ของภาพ | ย้ายกล้องเข้าใกล้ หรือวาดโซนเฉพาะส่วนใกล้ ในกรณีนี้ผลที่นับจะต่ำกว่าจริงมาก |
 | ตัวเลขน้อยมากทั้งที่มีคนเยอะ | ฝูงชนหนาแน่น ตัวตรวจจับล้ม (ที่ชิบูย่า ราว 300 คนถูกนับ 0–2) | หยุดใช้ค่านั้น ตั้ง "จำนวนคนที่คาดว่าจะมีช่วงพีค" ให้ระบบเตือน แบ่งมุมกล้องให้คนต่อภาพน้อยลง ถ้าเกินประมาณ 50 คนต่อภาพ นอกขอบเขตบริการ |
-| ตัวเลขต่ำกว่าที่นับด้วยตา 26–59% | ข้อจำกัดที่ทราบ: คน 15–22 คนเต็มภาพ นับต่ำ 26% (n = 12 ภาพ) คน 30–50 คน นับต่ำ 58% (n = 20 ภาพ) คนไกลหรือตัวเล็ก นับต่ำ 37–59% (n = 29 ภาพ) ผลเบื้องต้นเทียบ AI | ใช้เป็นค่าประมาณและแนวโน้ม ไม่ใช้เป็นจำนวนจริง บอกผู้จัดงานตั้งแต่ต้น |
+| ตัวเลขต่ำกว่าที่นับด้วยตา | ข้อจำกัดที่ทราบ: คนที่อยู่ไกลหรือตัวเล็กมักถูกนับต่ำกว่าจริง และยิ่งคนมากยิ่งนับต่ำ (ตัวเลขอยู่ในเอกสารเทคนิค) | ใช้เป็นค่าประมาณและแนวโน้ม ไม่ใช้เป็นจำนวนจริง บอกผู้จัดงานตั้งแต่ต้น |
 | ตัวนับข้ามเส้นไม่ตรง | กล้องขยับ เส้นพาดผ่านจุดที่คนยืนหยุด | ตรึงกล้อง ย้ายเส้นไปจุดที่คนเดินผ่านต่อเนื่อง ทดลองเดินนับก่อน |
 | ตัวเลขในโซนกระพริบที่ขอบ | คนยืนที่ขอบโซน | ขยับขอบโซนให้ไม่ตัดผ่านจุดที่คนยืน |
 | ภาพค้าง ช้า ตัวเลขกระตุก | เครื่องร้อนลดความเร็ว หรือรุ่นต่ำ ต่ำกว่า 2 ครั้งต่อวินาที | พักเครื่อง ระบายความร้อน ต่อไฟ ใช้เครื่องรุ่นสูงขึ้น (ขั้นต่ำที่เสนอในชุดนำร่อง: 2 ครั้งต่อวินาที) |
@@ -66,7 +66,7 @@
 
 # English
 
-> **DRAFT 2026-11-11.** For customers after purchase, for `crowd.html`. Based on `docs/CROWD-ACCURACY.md`, `docs/pilot/PILOT-CROWD.md`, `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`.
+> **DRAFT 2026-11-11.** For customers after purchase, for `crowd.html`. Based on `docs/tech-sheets/crowd-EN.md`, `docs/pilot/PILOT-CROWD.md`, `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`.
 > Open points (OP-xx) are in `docs/sales/README.md`. Fields in [brackets] are for the owner. **Scope:** sparse to medium crowds only (roughly under 50 people in one view). **Not yet suitable for
 > dense crowds.** Never use it for crowd-safety decisions. It gives a density estimate, not an exact count.
 
@@ -74,13 +74,12 @@
 
 ## 1. Before installing
 
-- **Device:** a phone or laptop with a camera, one per camera view, supplied by the customer; mid-range or better. Speed on a real phone has not been measured (the only figure is emulated on a computer:
-  355 ms per frame, about 2.8 per second).
+- **Device:** a phone or laptop with a camera, one per camera view, supplied by the customer; mid-range or better. Speed on a real phone is measured during the pilot (figures are in the technical sheet).
 - **Stand and power:** a stand at least 2.5–3 m high looking down about 30–45 degrees; a fixed camera; mains power all event; set the device never to sleep with the screen on; watch for heat slowing the device.
 - **Browser:** current Chrome or Edge (110+) or Safari 16.4+, a dedicated profile, no private window.
 - **Page address:** a valid `https://` or `http://localhost` only. The real address: [to confirm].
 - **Network:** internet is needed when the page is first opened, to load the models; none is needed while counting. Reloading when the network is down may fail, so open the page and start counting before the event opens.
-- **Camera view:** people in the zone at least **10% of the frame height** (below that the page warns "people look small" and undercounts by 37–59%); no backlight; no large object in front of the lens.
+- **Camera view:** people in the zone at least **10% of the frame height** (below that the page warns "people look small" and counts far too low); no backlight; no large object in front of the lens.
 - **Expected crowd:** estimate the peak number of people in one view. If **about 50 or more** in one view, it cannot be sold or used yet; tell the seller before the day.
 - **Sign:** sign A (`camera-notice.html`, Thai / English / Chinese) at the entrance to the area, printed and posted before start.
 - **Documents:** permission from the organiser or site owner (camera spots, dates, times, no video recording); an extra DPIA (`docs/pdpa/DPIA-template.md`).
@@ -104,9 +103,9 @@
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| "People look small" | People under 10% of the frame height | Move the camera closer, or draw the zone on the near part only. The undercount in this case is 37–59% |
+| "People look small" | People under 10% of the frame height | Move the camera closer, or draw the zone on the near part only. In this case the count is far too low |
 | Very low count with many people | Dense crowd; the detector collapses (at Shibuya about 300 people counted as 0–2) | Stop using that number; set the expected crowd so the page warns; split camera views so fewer people are in each; above about 50 per view is outside the service |
-| Count lower than a count by eye by 26–59% | Known limit: 15–22 people filling the frame undercounted by 26% (n = 12 frames); 30–50 people undercounted by 58% (n = 20 frames); small / far people 37–59% (n = 29 frames); preliminary, against an AI reference | Use it as an estimate and a trend, not a true count; tell the organiser from the start |
+| Count lower than a count by eye | Known limit: far or small people are often undercounted, and the more people, the larger the undercount (figures are in the technical sheet) | Use it as an estimate and a trend, not a true count; tell the organiser from the start |
 | Line crossings look wrong | Camera moved, or the line is across where people stand | Fix the camera; move the line to where people walk through; test by walking across |
 | Zone count flickers at the edge | People standing on the edge | Move the edge so it does not cut through where people stand |
 | Frozen picture, slow, jerky numbers | Device hot and slowed, or a low-end model; below 2 calls a second | Rest and cool the device, use mains power, use a stronger device (the pilot kit proposes at least 2 a second) |

@@ -45,9 +45,8 @@
 
 ### 3. ถ้าจะเปิดใบหน้า (ทางเลือก ต้องผ่านเงื่อนไขก่อน)
 
-- เปิดเฉพาะเมื่อ (1) พนักงานแต่ละคนยินยอมเป็นลายลักษณ์อักษร (2) มี PIN / QR ให้เลือกเสมอ (3) ลูกค้าเข้าใจตัวเลข: ใบหน้าเอเชียจำได้ต่อการสแกน 66–76%
-  (n = 500 คน × 5 ภาพ ชุดข้อมูลสาธารณะ) ที่ทำงานจริงยังไม่ได้วัด (4) ทีมงานแจ้งสถานะใบอนุญาตของโมเดลใบหน้าแล้วว่าใช้ได้กับกรณีของท่าน
-- ลงทะเบียนอย่างน้อย 5 คนก่อนพึ่งการเช็คอินอัตโนมัติ ใช้แท็บ "ตรวจความแม่นยำ" วัดกับพนักงานของลูกค้าเอง (เกณฑ์ของชุดนำร่อง: รับคนผิดไม่เกิน 1% ปฏิเสธคนถูกไม่เกิน 10%)
+- เปิดเฉพาะเมื่อ (1) พนักงานแต่ละคนยินยอมเป็นลายลักษณ์อักษร (2) มี PIN / QR ให้เลือกเสมอ (3) ลูกค้าเข้าใจข้อจำกัด: แบบสแกนใบหน้าบางครั้งต้องสแกนซ้ำหรือให้หัวหน้ายืนยัน และกันภาพปลอมได้ไม่ครบ จึงควรมีคนดูแลจุดลงเวลา (ตัวเลขทดสอบอยู่ในเอกสารเทคนิค) (4) ทีมงานแจ้งสถานะใบอนุญาตของโมเดลใบหน้าแล้วว่าใช้ได้กับกรณีของท่าน
+- ลงทะเบียนอย่างน้อย 5 คนก่อนพึ่งการเช็คอินอัตโนมัติ ใช้แท็บ "ทดสอบหน้างาน" กับพนักงานของลูกค้าเอง (เกณฑ์ของชุดนำร่อง: รับคนผิดไม่เกิน 1% ปฏิเสธคนถูกไม่เกิน 10%)
 - ลบข้อมูลใบหน้าเมื่อพนักงานลาออกหรือถอนความยินยอม (การลบข้อมูลใบหน้าไม่ลบบันทึกเวลา)
 
 ### 4. ปัญหาที่พบบ่อยและวิธีแก้
@@ -117,9 +116,8 @@ Several clock-in points: each device exports a JSON file (no images, face values
 
 ### 3. If faces are switched on (optional, with conditions)
 
-- Only when (1) each employee consents in writing; (2) PIN / QR is always available; (3) the customer understands the figures: Asian faces recognised per scan
-  66–76% (n = 500 people x 5 photos, public dataset), real workplace not measured; (4) the team has confirmed that the licence status of the face model fits your use.
-- Enrol at least 5 people before relying on automatic check-in. Use the "accuracy check" tab on your own staff (pilot criteria: false accept at most 1%, false reject at most 10%).
+- Only when (1) each employee consents in writing; (2) PIN / QR is always available; (3) the customer understands the limits: with face scan, staff sometimes need to scan again or have a supervisor confirm, and it does not stop every fake image, so someone should watch the clock-in point (figures are in the technical sheet); (4) the team has confirmed that the licence status of the face model fits your use.
+- Enrol at least 5 people before relying on automatic check-in. Use the "on-site test" tab with your own staff (pilot criteria: false accept at most 1%, false reject at most 10%).
 - Delete face data when someone leaves or withdraws consent (deleting face data never deletes time records).
 
 ### 4. Common problems and fixes
@@ -189,9 +187,8 @@ When reporting, give the clock point, page name, time, steps taken and browser v
 
 ### 3. 如果要启用人脸（可选，需先满足条件）
 
-- 仅在以下条件下启用：(1) 每位员工书面同意；(2) 始终提供 PIN / QR 选项；(3) 客户了解相关数据：亚洲人脸每次扫描识别率 66–76%
-  （n = 500 人 × 5 张照片，公开数据集），真实工作场所尚未测量；(4) 团队已确认人脸模型的许可状态适用于您的使用情形。
-- 在依赖自动打卡之前，至少登记 5 人。使用“准确度检查”标签页，用您自己的员工进行测量（试点标准：误接受不超过 1%，误拒绝不超过 10%）。
+- 仅在以下条件下启用：(1) 每位员工书面同意；(2) 始终提供 PIN / QR 选项；(3) 客户了解相关限制：使用人脸扫描时，有时需要重扫或由主管确认，也不能拦住所有假图像，因此打卡点应有人照看（数据见技术资料）；(4) 团队已确认人脸模型的许可状态适用于您的使用情形。
+- 在依赖自动打卡之前，至少登记 5 人。使用“现场测试”标签页，用您自己的员工进行测试（试点标准：误接受不超过 1%，误拒绝不超过 10%）。
 - 员工离职或撤回同意时，删除其人脸数据（删除人脸数据不会删除考勤记录）。
 
 ### 4. 常见问题与解决办法

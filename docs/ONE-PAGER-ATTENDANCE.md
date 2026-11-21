@@ -20,24 +20,16 @@
 ข้อจำกัดวันนี้ (`docs/ATTENDANCE-READINESS.md`): พื้นที่ในเบราว์เซอร์ราว 20 คน × 2 ปี · ยังไม่มีกะหมุนเวียน / OT ก่อนเข้ากะ ·
 ยังไม่มีขออนุมัติลาออนไลน์ · ไม่คำนวณค่าจ้าง ภาษี ประกันสังคม (เป็นงานของระบบเงินเดือน) · เวลาอิงนาฬิกาเครื่อง (เตือนเมื่อถูกตั้งย้อน)
 
-## ความแม่นยำและที่มา
+## ใช้ทำอะไร และข้อจำกัดสำคัญ
 
-รูปแบบ: ตัวเลข · ขนาดชุดทดสอบ (n) · ที่มา (ข้อมูลจำลอง / ชุดข้อมูลสาธารณะ / หน้างานจริง) — ไม่มีผลวัดเขียนว่า “ยังไม่ได้วัด” (`docs/ACCURACY-CLAIMS.md`)
-ตัวเลขใบหน้าใช้เฉพาะเมื่อเปิดตัวเลือกใบหน้า PIN / QR ไม่มีความคลาดเคลื่อนจากการจดจำ
+ลงเวลาทำงานด้วย PIN หรือ QR บนเครื่องของร้าน ไม่ต้องใช้กล้อง สแกนใบหน้าเป็นทางเลือกเฉพาะพนักงานที่ยินยอม
+แบบสแกนใบหน้าบางครั้งต้องสแกนซ้ำหรือให้หัวหน้ายืนยัน และกันภาพปลอมได้ไม่ครบ จึงควรมีคนดูแลจุดลงเวลา
 
-| ข้อกล่าวอ้าง | ค่า | n | ที่มา | เอกสาร |
-|---|---|---|---|---|
-| ตัวเลขหลัก: ใบหน้าเอเชีย จำได้ต่อการสแกน (ลงทะเบียน 5 / 20 / 200 คน) | 66–76% | n = 500 คน × 5 ภาพ (ชุดทดสอบแยก แต่ไม่ได้ปิดตาสมบูรณ์ ตามที่ `ACCURACY.md` เปิดเผย) | ชุดข้อมูลสาธารณะ (CASIA-FaceV5) | `ACCURACY.md` ข้อ 2 |
-| จำผู้ลงทะเบียนได้ต่อการสแกน (ลงทะเบียน 100 คน) วัดบนชุดที่ใช้ปรับค่า ตัวเลขจึงดีเกินจริง | 85% (ชุดที่ใช้ปรับค่า ดีเกินจริง) | n = 610 ภาพทดสอบของสมาชิก (1 ภาพต่อคน; กลุ่มละ 100 คน สุ่ม 200 กลุ่ม) | ชุดข้อมูลสาธารณะ (LFW) | `ACCURACY.md` ข้อ 2 |
-| คนที่ไม่ได้ลงทะเบียนถูกเสนอชื่อ | ใบหน้าเอเชีย (ชุดทดสอบแยก ลงทะเบียน 100 คน) 0.2% [0.04–0.45%] ขอบบน 95% สูงสุด 1.15% ที่ลงทะเบียน 5 หรือ 200 คน · LFW (ชุดที่ใช้ปรับค่า) 0.4% | n = ประมาณ 12,000 ครั้งต่อแถว (คนต่างกันราว 1,800 / 500 คน) | ชุดข้อมูลสาธารณะ | `ACCURACY.md` ข้อ 2 |
-| คนที่ไม่ได้ลงทะเบียนถูกเช็คชื่ออัตโนมัติโดยไม่มีคนยืนยัน | ใบหน้าเอเชีย (ชุดทดสอบแยก) ≤ 0.03% · LFW (ชุดที่ใช้ปรับค่า) 0.01–0.07% | n = ประมาณ 12,000 ครั้งต่อแถว (คนต่างกันราว 1,800 / 500 คน) | ชุดข้อมูลสาธารณะ | `ACCURACY.md` ข้อ 2 |
-| ตัวเลือกตรวจว่าเป็นคนจริง (หันหน้า) | ยังไม่ได้วัด | — | ยังไม่ได้วัด | `ACCURACY.md` |
-| ลงเวลาด้วย PIN / QR | ไม่มีตัวเลขความแม่นยำ (ไม่มีการจดจำ) | — | ไม่เกี่ยวข้อง | `docs/ATTENDANCE-READINESS.md` |
-| ที่ทำงานจริงในไทย | ยังไม่ได้วัด | — | หน้างานจริง: ยังไม่ได้วัด (ยังไม่มีโครงการนำร่อง) | `ACCURACY.md` |
+เอกสารเทคนิคขอได้จากฝ่ายขาย
 
 ## โครงการนำร่อง
-2 สัปดาห์ที่ร้านหรือบริษัท 5–20 คน ตาม `docs/PILOT-PLAN.md` ข้อ 3.2 (ใบหน้าเฉพาะอาสาสมัครที่ยินยอม: รับคนผิด ≤ 1%, ปฏิเสธคนถูก ≤ 10%)
-และเทียบ CSV เงินเดือนกับบันทึกเดิมของร้าน 1 รอบเดือน (ชั่วโมงและ OT ตรงกัน) ใช้แท็บ "ตรวจความแม่นยำ" ในหน้าเพื่อวัดกับพนักงานของคุณเอง
+2 สัปดาห์ที่ร้านหรือบริษัท 5–20 คน ตาม `docs/PILOT-PLAN.md` ข้อ 3.2 (ใบหน้าเฉพาะอาสาสมัครที่ยินยอม เกณฑ์ผ่านอยู่ในแผนนำร่อง)
+และเทียบ CSV เงินเดือนกับบันทึกเดิมของร้าน 1 รอบเดือน (ชั่วโมงและ OT ตรงกัน) ใช้แท็บ "ทดสอบหน้างาน" ในหน้าเพื่อทดลองกับพนักงานของคุณเอง
 
 ## ราคา (ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย — ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7%)
 | แพ็กเกจ | ราคานำร่อง (ใช้ตอนนี้) | ราคาปกติหลังผ่านเกณฑ์นำร่อง |
@@ -50,7 +42,7 @@
 ระดับฟรี (ถึง 5 คน) เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มใช้ตั้งแต่วันที่จะประกาศล่วงหน้าอย่างน้อย 30 วัน เจ้าของบังคับใช้ผ่านสัญญา ข้อจำกัดบนเครื่องผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน ลูกค้าส่งออกข้อมูลของตนได้เสมอ ชำระโดยโอนผ่านธนาคารเท่านั้น (เจ้าของตัดสินใจ 2026-11-13)
 
 เทียบตลาด: แอปลงเวลาในไทย 25–60 บาทต่อคนต่อเดือน (TimeMint, แต้มต่อ) หรือเหมา 5,000 บาท/เดือนสำหรับ 1–50 คน (TikTrack) และเครื่องสแกน
-2,699–10,700 บาท (`docs/PRICING-RESEARCH.md` §1E–1F) ราคานำร่องต่ำกว่า เพราะยังไม่มีซิงก์คลาวด์และยังไม่มีผลวัดที่ทำงานจริง
+2,699–10,700 บาท (`docs/PRICING-RESEARCH.md` §1E–1F) ราคานำร่องต่ำกว่า เพราะยังไม่มีซิงก์คลาวด์และยังไม่มีผลทดสอบที่ที่ทำงานจริง
 ราคาตลาดเป็นราคาตามที่แหล่งที่มาแสดง ร้านในไทยมักรวม VAT แล้ว จึงเทียบกับราคา LENSIQ (ไม่รวม VAT) ได้โดยประมาณ ต่างกันราว 7%
 
 ## PDPA และกฎหมาย
@@ -88,23 +80,16 @@ device. **Approved price list (not on sale yet)**: prices approved by the owner 
 - No wage, tax or social-security calculation.
 - The time comes from the device clock (a clock set back is warned about).
 
-## Accuracy and source
+## What it is for and its main limits
 
-The face figures apply only when face check-in is switched on. PIN / QR involves no recognition error.
+Staff clock in with a PIN or QR code on the shop's device, no camera needed. Face scan is an option only for staff who consent.
+With face scan, staff sometimes need to scan again or have a supervisor confirm, and it does not stop every fake image, so someone should watch the clock-in point.
 
-| Claim | Value | n | Source | Document |
-|---|---|---|---|---|
-| Headline: Asian faces recognised per scan (5 / 20 / 200 enrolled) | 66–76% | n = 500 people × 5 photos (held out, not perfectly blind: `ACCURACY.md` disclosure) | public dataset (CASIA-FaceV5) | `ACCURACY.md` §2 |
-| Enrolled person recognised per scan, 100 enrolled, measured on the tuning set | 85% (tuning set, optimistic) | n = 610 member probe photos (one per member; 100 per group, 200 random groups) | public dataset (LFW) | `ACCURACY.md` §2 |
-| Stranger offered a name | Asian (held out, 100 enrolled) 0.2% [0.04–0.45%], upper 95% bound up to 1.15% at 5 or 200 enrolled; LFW (tuning set) 0.4% | n = about 12,000 stranger visits per row (about 1,800 / 500 different people) | public dataset | `ACCURACY.md` §2 |
-| Stranger checked in with no confirmation | Asian (held out) ≤ 0.03%; LFW (tuning set) 0.01–0.07% | n = about 12,000 per row | public dataset | `ACCURACY.md` §2 |
-| Liveness (head-turn) option | not measured | — | not measured | `ACCURACY.md` |
-| PIN / QR check-in | no accuracy figure (no recognition) | — | not applicable | `docs/ATTENDANCE-READINESS.md` |
-| A real Thai workplace | not measured | — | field: not measured (no pilot yet) | `ACCURACY.md` |
+The technical sheet is available from sales on request.
 
 **Pilot:**
 - 2 weeks at a shop or company with 5–20 staff (`docs/PILOT-PLAN.md` §3.2).
-- Face check-in only with consenting volunteers: false accept ≤ 1%, false reject ≤ 10%.
+- Face check-in only with consenting volunteers, against the pass thresholds in the pilot plan.
 - One month's payroll CSV is compared with the shop's own records (hours and OT must match).
 
 **Price (approved price list, not on sale yet; excl. 7% VAT, so the customer pays the price + 7%):**
