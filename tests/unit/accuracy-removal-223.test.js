@@ -17,6 +17,8 @@
 //       "ผลการวัด" tab data, verbatim; docs/accuracy-figures.json keeps every figure
 //   R7b (re-lock 2) docs/tech-sheets/SUPPLEMENT-223.json: every entry verbatim in the sheets and admin data; required items present;
 //       R1 docs also: no bare percentage in a one-pager (price / VAT / refund terms excepted)
+//   R9  (226, re-lock 3) one visibility list in nav.js = today's real state; off products are not listed anywhere; their direct
+//       URL shows only the approved sentence + a home link (browser: tests/e2e/visibility-223.e2e.mjs); R5: no status label or filter
 //   R8  rules: CLAUDE.md lines 34 / 60 / 251-252 / 255-256 and docs/acceptance/README.md rule 7 inverted as approved (223-1)
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -95,19 +97,19 @@ test("R3 two lines per product (223-7) on every product page, in TH / EN / ZH", 
   assert.deepEqual(bad, [], show(bad, 60));
 });
 
-test("R3 category cards show the approved lines; demo-only cards are not listed in the customer build", () => {
+test("R3 category cards show the approved lines; a product switched off is not on any category page (226)", () => {
   const bad = [];
-  const cards = allCards();
+  const cards = allCards(), off = new Set(S.visibility.off);
   for (const p of S.lines) for (const page of p.cards) {
     const mine = cards.filter(c => c.page === page);
+    if (off.has(page)) { if (mine.length) bad.push(`card ${page}: switched off, must not be listed (${mine.map(c => c.file).join(", ")})`); continue; }
     if (!mine.length) { bad.push(`card ${page}: not on any category page`); continue; }
     for (const c of mine) for (const n of ["1", "2"]) {
       if (p[n] && !L.elementTexts(c.html).some(e => e.key === `ln.${p.id}.${n}` && e.text === p[n].th)) bad.push(`${c.file} card ${page}: line ${n} missing`);
     }
   }
-  for (const page of S.badges.demoOnlyCards) for (const c of cards.filter(c => c.page === page)) {
-    if (!/data-demo-only/.test(c.html.slice(0, c.html.indexOf(">") + 1))) bad.push(`${c.file} card ${page}: needs data-demo-only (not listed in the customer build)`);
-  }
+  for (const c of cards) if (off.has(c.page)) bad.push(`${c.file}: card ${c.page} is switched off and must not be listed`);
+  for (const f of cats) if (/data-demo-only/.test(L.read(f))) bad.push(`${f}: data-demo-only (replaced by the visibility list, 226)`);
   assert.deepEqual(bad, [], show(bad, 60));
 });
 
@@ -124,27 +126,20 @@ test("R4 result line after every result (common.recheck) and in the Crowd report
   assert.deepEqual(bad, [], show(bad, 60));
 });
 
-test("R5 badges: none / รุ่นทดลอง / เร็ว ๆ นี้ on category cards, solutions and product pages; no readiness word", () => {
+test("R5 (226) no status label or status filter anywhere a customer looks; counts are tool counts only", () => {
   const B = S.badges, bad = [];
-  const okText = (l, t) => B.allowed[l].includes(t);
-  const badgeOf = html => { const m = html.match(/<span class="cat-st[^"]*" data-i18n="([^"]+)">([^<]*)<\/span>/); return m ? { key: m[1], th: m[2] } : null; };
-  for (const c of allCards()) {
-    const b = badgeOf(c.html);
-    if (B.noBadgeCards.includes(c.page)) { if (b) bad.push(`${c.file} card ${c.page}: must have no badge (has "${b.th}")`); continue; }
-    if (!b) { bad.push(`${c.file} card ${c.page}: no badge`); continue; }
-    const want = B.hallCards[c.page] || (B.demoOnlyCards.includes(c.page) ? B.soon.th : B.trial.th);
-    if (b.th !== want) bad.push(`${c.file} card ${c.page}: badge "${b.th}" ≠ "${want}"`);
-    for (const l of LANGS) if (!okText(l, L.dval(D, l, b.key))) bad.push(`${c.file} card ${c.page}: ${l} badge ${JSON.stringify(L.dval(D, l, b.key))}`);
+  for (const f of cats) {
+    const h = L.read(f);
+    if (/class="cat-st\b/.test(h)) bad.push(`${f}: status chip (.cat-st)`);
+    if (/data-i18n="cat\.(b|st)\./.test(h)) bad.push(`${f}: status key cat.b.* / cat.st.*`);
+    if (/<article[^>]*data-status=/.test(h)) bad.push(`${f}: data-status on a card`);
   }
   const sol = L.read("solutions.html");
-  for (const m of sol.matchAll(/<span class="sl-tag[^"]*"(?: data-i18n="([^"]+)")?>([^<]*)<\/span>/g)) {
-    if (!okText("th", m[2])) bad.push(`solutions.html badge "${m[2]}"`);
-    if (m[1]) for (const l of LANGS) if (!okText(l, L.dval(D, l, m[1]))) bad.push(`solutions.html ${m[1]} ${l}: ${JSON.stringify(L.dval(D, l, m[1]))}`);
-  }
+  if (/class="sl-tag\b/.test(sol)) bad.push("solutions.html: status tag (.sl-tag)");
+  if (/class="sl-filter\b|data-f="/.test(sol)) bad.push("solutions.html: status filter");
   for (const p of B.pageBadges) {
-    const el = L.elementTexts(L.read(p.page)).find(e => e.key === p.key);
-    if (!el || el.text !== B.trial.th) bad.push(`${p.page} ${p.key}: ${el ? JSON.stringify(el.text) : "missing"} ≠ ${B.trial.th}`);
-    for (const l of LANGS) if (L.dval(D, l, p.key) !== B.trial[l]) bad.push(`${p.page} ${p.key} ${l}: ${JSON.stringify(L.dval(D, l, p.key))}`);
+    if (L.keysOf(L.read(p.page)).includes(p.key)) bad.push(`${p.page}: status badge ${p.key}`);
+    for (const l of LANGS) if (L.dval(D, l, p.key) !== undefined) bad.push(`${l} dictionary: status badge ${p.key}`);
   }
   // the tool counts on the category pages and the home-page chooser: the number of tools only
   for (const f of cats.concat(["index.html"])) for (const e of L.elementTexts(L.read(f)).filter(e => /^cat\.[a-z]+\.count$/.test(e.key))) {
@@ -152,7 +147,13 @@ test("R5 badges: none / รุ่นทดลอง / เร็ว ๆ นี้
     if (!/^\d+ tools$/.test(L.dval(D, "en", e.key) || "")) bad.push(`${f} ${e.key} en: ${L.dval(D, "en", e.key)}`);
     if (!/^\d+ 个工具$/.test(L.dval(D, "zh", e.key) || "")) bad.push(`${f} ${e.key} zh: ${L.dval(D, "zh", e.key)}`);
   }
-  assert.deepEqual(bad, [], show(bad, 60));
+  // label words, in every customer text and buyer document
+  const pats = S.labelBanned.map(b => new RegExp(b.re, b.flags || ""));
+  for (const f of L.customerFiles().filter(f => f !== "terms.html")) for (const t of L.textsOf(f)) for (const re of pats) {
+    if (re.test(t) && !S.labelAllow.some(a => a.file === f && t.includes(a.contains))) bad.push(`${f}: label "${t.match(re)[0]}" in ${L.squash(t).slice(0, 100)}`);
+  }
+  for (const f of L.salesDocs()) L.read(f).split("\n").forEach((line, i) => { for (const re of pats) if (re.test(line)) bad.push(`${f}:${i + 1} label "${line.match(re)[0]}"`); });
+  assert.deepEqual(bad, [], `${bad.length} status labels:\n` + show(bad, 60));
 });
 
 test("R5 menu and chooser text: no 'status and measured accuracy' (nav.js, index, solutions)", () => {
@@ -287,4 +288,40 @@ test("R7 re-lock 2: every supplement original (texts the snapshot missed) is ver
     for (const l of ["th", "en", "zh", "text"]) if (e[l] && !admin.has(L.squash(e[l]))) bad.push(`admin data (${l}): ${id}`);
   }
   assert.deepEqual(bad, [], `${bad.length} problems:\n` + show(bad, 40));
+});
+
+/** the visibility list in nav.js: { page: true | false } */
+function visibility() {
+  const src = L.read("nav.js"), m = src.match(/var VISIBILITY = (\{[\s\S]*?\});/);
+  assert.ok(m, "nav.js: var VISIBILITY = { … };");
+  return { list: JSON.parse(m[1].replace(/([{,]\s*)([a-z][\w-]*)\s*:/g, '$1"$2":').replace(/,\s*\}/, "}")), src };
+}
+
+test("R9 (226) one visibility list (page -> on / off) = today's real state; nothing links to an off product; it switches on no option", () => {
+  const V = S.visibility, { list, src } = visibility(), bad = [];
+  const DD = require(join(L.ROOT, "tools", "cat-data.cjs"));
+  const catPages = [...new Set(DD.CATEGORIES.flatMap(c => c.pages))].sort();
+  assert.deepEqual(Object.keys(list).sort(), catPages, "the list names every category page, nothing else");
+  for (const [k, v] of Object.entries(list)) if (typeof v !== "boolean") bad.push(`${k}: ${JSON.stringify(v)} is not true / false`);
+  assert.deepEqual(Object.keys(list).filter(k => list[k] === false).sort(), [...V.off].sort(), "off = exactly today's not-offered products");
+  // the list only decides listing and the off-page notice: the block that reads it touches no LENSIQ_* option, storage or URL
+  assert.ok(src.includes("// visibility:end"), "nav.js marks the end of the visibility block");
+  const fn = src.slice(src.indexOf("var VISIBILITY ="), src.indexOf("// visibility:end"));
+  if (/LENSIQ_|localStorage|sessionStorage|location\.(search|hash)/.test(fn)) bad.push("the visibility block reads a LENSIQ_* option, storage or the URL query");
+  // the off-page notice: the exact approved sentence and a link to the home page
+  if (!fn.includes(V.sentence)) bad.push("nav.js visibility block: the exact off-page sentence");
+  if (!fn.includes(V.home)) bad.push("nav.js visibility block: the off-page link to " + V.home);
+  // nothing a customer sees links to an off page, except inside an element hidden by the list (data-lq-off)
+  for (const f of L.customerFiles().filter(f => f.endsWith(".html") && list[f.replace(/\.html$/, "")] !== false)) {
+    const h = L.read(f).replace(/<!--[\s\S]*?-->/g, "");
+    for (const off of V.off) for (const m of h.matchAll(new RegExp(`href="${off}\\.html[^"]*"`, "g"))) {
+      const before = h.slice(0, m.index);
+      const opens = [...before.matchAll(/<(\w+)\b[^>]*\bdata-lq-off\b[^>]*>/g)];
+      const inside = opens.some(o => { const tag = o[1], seg = h.slice(o.index, m.index);
+        return (seg.match(new RegExp(`<${tag}\\b`, "g")) || []).length > (seg.match(new RegExp(`</${tag}>`, "g")) || []).length; });
+      if (!inside) bad.push(`${f}: link to switched-off ${off}.html outside a data-lq-off element`);
+    }
+  }
+  if (!/\[data-lq-off\][^{]*\{[^}]*display:\s*none/.test(src)) bad.push("nav.js: [data-lq-off] must be hidden");
+  assert.deepEqual(bad, [], show(bad, 60));
 });

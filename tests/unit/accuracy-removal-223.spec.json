@@ -1050,7 +1050,6 @@
     {
       "page": "exam-hall.html",
       "th": [
-        "รุ่นทดลอง ยังไม่เปิดขาย",
         "ใบหน้าที่อยู่ไกลกล้องยังหาไม่เจอ"
       ]
     },
@@ -1090,12 +1089,6 @@
       "page": "palm.html",
       "th": [
         "เส้นที่แสดงเป็นการประมาณจากภาพ ผลอาจคลาดเคลื่อนได้ โปรดเทียบกับมือของคุณ"
-      ]
-    },
-    {
-      "page": "solutions.html",
-      "th": [
-        "รุ่นทดลอง ยังไม่เปิดขาย"
       ]
     }
   ],
@@ -1362,5 +1355,30 @@
     "re": "\\d\\s?%",
     "except": "VAT|ภาษีมูลค่าเพิ่ม|คืนเงิน|refund|退款|增值税",
     "why": "re-lock 2 (reviewer finding 6): one-pagers carry no bare percentage except price / VAT / refund terms"
-  }
+  },
+  "visibility": {
+    "$comment": "re-lock 3 (owner decision 226, entries 13-15): starting values = today's real state; sentence approved (entry 15)",
+    "off": [
+      "exam-hall",
+      "medicine",
+      "signage",
+      "neuro",
+      "teamface",
+      "customers"
+    ],
+    "sentence": "ระบบนี้ยังไม่เปิดให้บริการ · This service is not available yet. · 此服务尚未开放。",
+    "home": "index.html"
+  },
+  "labelBanned": [
+    {
+      "re": "รุ่นทดลอง|เร็ว ๆ นี้|ทดลองใช้ได้ตอนนี้|\\(ทดลอง\\)|\\(นำร่อง\\)"
+    },
+    {
+      "re": "[Tt]rial version|Coming soon|Available to try now|\\((experimental|pilot)\\)|\\bExperimental\\b"
+    },
+    {
+      "re": "试用版|即将推出|实验性|（试验）|（试点）|现在可试用"
+    }
+  ],
+  "labelAllow": []
 }
