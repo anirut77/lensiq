@@ -1,0 +1,11 @@
+# locked 2026-11-21T04:06:18Z (tools/eval-guard.mjs lock, 3 files)
+6ec5e90ce8f841af799cf39707fbefee75bd236a72869ca97ab1ff667cabccd8  tests/e2e/exam-clip-notice.e2e.mjs
+39aa8283b8748d1091e660c110241204e2d6671813b913c225853dbaabe39de0  tests/unit/exam-select-disk-guard.test.js
+c85dafe26fe165874dd01f8ac256deed3a413bd2661ac0ca9d91430138941ae6  tests/unit/fixtures/no-network.cjs
+# why (2026-11-21, investigation ~/Desktop/LENSIQ-review/investigations/EXAMFACES-CLIP-2026-11-21-TH.md): NEW tests, locked BEFORE either product change.
+# Fix A (privacy): exam-lab.html?clip=1 showed the clip-OFF notice + consent text until clips.refresh() (IndexedDB) resolved. exam-clip-notice.e2e.mjs holds
+#   indexedDB.open("lq-exam-clips") and snapshots the page when exam-lab.js finishes; on 651d0588 (unfixed): N1 th/en/zh FAIL, N2 FAIL, N3 ok (regression guard:
+#   kept [] at start, clip box shown once a stored clip is read). tests/e2e/exam-clip.e2e.mjs is not locked and is unchanged.
+# Fix B (disk): --select of exam-face-eval / exam-hall-face-eval / exam-hall-detector-eval created images/ and downloaded before the disk guard.
+#   exam-select-disk-guard.test.js (fake 1 GiB disk, temp HOME/--dir/--meta, no-network preload): on 651d0588 the 3 low-disk cases + the source-order case FAIL,
+#   the 3 control cases pass. No consent-reset behaviour is tested or added (owner decision pending).
