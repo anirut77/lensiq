@@ -141,6 +141,57 @@ result honestly even if it stays under 80%."
   protocol, statistics and tables (imported from harness 1) through the page's own `objectPass`. No setting is changed after
   the locked result is seen.
 
+### Tuning result (tuning set only; public dataset; tuning set, public stills, not lab webcam)
+
+Sweep `tools/examlab-phone-tune-eval.mjs --sweep`, 2026-11-21, on commit `cdbabc5e` (locks committed), headless Chrome,
+TF.js wasm, Apple M1. Result file (ids and scores only): `~/LENSIQ-field/evals/examlab-phone-tune/results/tune-sweep-2026-11-21T04-26-35.json`.
+Positives n = 180 (all phoneLong < 0.4), negatives n = 179.
+
+| Config | Crops | Zoom cut | Desk-size recall | 95 % CI | False flags | 95 % CI |
+|---|---|---|---|---|---|---|
+| off (full frame only, as shipped before) | 0 | – | 31.7 % (57 / 180) | 25.3 % – 38.8 % | 0 / 179 | 0.0 % – 2.1 % |
+| g2x2 | 4 | 0.6 | 56.1 % (101 / 180) | 48.8 % – 63.2 % | 2 / 179 | 0.3 % – 4.0 % |
+| g3x2 | 6 | 0.6 | 61.1 % (110 / 180) | 53.8 % – 67.9 % | 2 / 179 | 0.3 % – 4.0 % |
+| g3x2 | 6 | 0.7 | 56.1 % (101 / 180) | 48.8 % – 63.2 % | 1 / 179 | 0.1 % – 3.1 % |
+| **g3x3 (chosen)** | 9 | 0.6 | **70.6 % (127 / 180)** | 63.5 % – 76.7 % | **0 / 179** | 0.0 % – 2.1 % |
+| g3x3 | 9 | 0.7 | 66.1 % (119 / 180) | 58.9 % – 72.6 % | 0 / 179 | 0.0 % – 2.1 % |
+| g4x3 (over the 9-crop cap) | 12 | 0.6 | 65.0 % (117 / 180) | 57.8 % – 71.6 % | 0 / 179 | 0.0 % – 2.1 % |
+| band2 (y 0.35 – 1) | 2 | 0.6 | 55.6 % (100 / 180) | 48.3 % – 62.6 % | 0 / 179 | 0.0 % – 2.1 % |
+| band3 (y 0.35 – 1) | 3 | 0.6 | 57.2 % (103 / 180) | 49.9 % – 64.2 % | 0 / 179 | 0.0 % – 2.1 % |
+| band3x2 (y 0.25 – 1) | 6 | 0.6 | 68.9 % (124 / 180) | 61.8 % – 75.2 % | 0 / 179 | 0.0 % – 2.1 % |
+
+(All 29 rows, cuts 0.6 – 0.9, are in the result file; every higher cut lowers recall.) By the fixed rule: **g3x3, overlap
+0.25, zoom cut 0.6**, shipped as `LQExam.LAB_PHONE_ZOOM` (commit `d986f36e`). The page's own path, re-measured on the
+tuning set (`--product`, `tune-product-2026-11-21T04-39-43.json`): identical, 127 / 180 and 0 / 179. Cost: about 9 extra
+model runs (median 551 ms per analysed frame against 53 ms for the full frame alone, M1, wasm, on a busy machine) on frames
+where the full frame shows no phone; the lab analyses objects on every third frame.
+
+### Locked A2 result with the zoom pass (single run, 2026-11-21, settings frozen at `d986f36e`)
+
+Run: `node tools/examlab-phone-eval2.mjs --run` (eval-guard OK, phase examlab-phone, lock commit 6583d967), once; the harness
+refuses a second run. Result file: `~/LENSIQ-field/evals/examlab-phone/results/examlab-phone-zoom-2026-11-21.json`.
+Source: **public dataset**; public stills, not lab webcam; the field pilot confirms.
+
+**A2: still fail. Recall at desk-like sizes (phoneLong < 0.4) = 65.4 % (53 / 81), Wilson 95 % 54.6 % – 74.9 %, target
+>= 80 %** (before: 29.6 %, 24 / 81). False flags 0 / 135 (0.0 % – 2.8 %), unchanged.
+
+| Row | Use | Score cut | Rate | 95 % CI |
+|---|---|---|---|---|
+| recall, positives with phoneLong < 0.4 (A2 decision) | **primary** | 0.6 | 65.4 % (53 / 81) | 54.6 % – 74.9 % |
+| recall, all positives | secondary | 0.6 | 82.1 % (183 / 223) | 76.5 % – 86.5 % |
+| recall, close-up band phoneLong >= 0.4 | secondary | 0.6 | 91.5 % (130 / 142) | 85.8 % – 95.1 % |
+| recall, band phoneLong < 0.15 | secondary | 0.6 | 27.3 % (3 / 11) | 9.7 % – 56.6 % |
+| recall, band 0.15 <= phoneLong < 0.4 | secondary | 0.6 | 71.4 % (50 / 70) | 59.9 % – 80.7 % |
+| recall, positives with phoneLong < 0.4, score cut 0.4 | secondary | 0.4 | 71.6 % (58 / 81) | 61.0 % – 80.3 % |
+| recall, positives with phoneLong < 0.4, score cut 0.5 | secondary | 0.5 | 66.7 % (54 / 81) | 55.9 % – 76.0 % |
+| false flags, negatives | secondary | 0.6 | 0.0 % (0 / 135) | 0.0 % – 2.8 % |
+| false flags, negatives, score cut 0.4 | secondary | 0.4 | 0.0 % (0 / 135) | 0.0 % – 2.8 % |
+| false flags, negatives, score cut 0.5 | secondary | 0.5 | 0.0 % (0 / 135) | 0.0 % – 2.8 % |
+
+Nothing is re-tuned after this result. Page wording does not change here (claims change only through the separate 213
+work). The tuning set is noisier than the locked set (no hand-check), and its recall (70.6 %) and the locked recall
+(65.4 %) agree within their intervals.
+
 ## Licence and credits
 
 Eval-only, not shipped, nothing trained on it. Row in `LICENSES/THIRD_PARTY.md` (Test-only fixtures). Each image is
