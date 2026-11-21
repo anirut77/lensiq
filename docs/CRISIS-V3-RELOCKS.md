@@ -319,3 +319,10 @@ originals are retired after their last hash line there and in `evals-locks/crisi
 file gets a third of its original's seconds until the next refresh from CI logs; the shard check still requires every file once.
 
 Open: the independent reviewer re-counts the cells and confirms in writing that the split is equal.
+
+### Follow-up: crisis-load-diag RE-LOCK 1 (same branch, 2026-11-21)
+
+`tests/unit/crisis-load-diag.test.js` L7 read the three retired files (ENOENT, CI run 44844467587). It now reads the 9 split files
+with the same catch rule and per-file load-catch counts (a 1, c 2, e 1), and also requires the originals to be gone and exactly 9
+files counted (stricter). Lock: `evals-locks/crisis-load-diag.sha256` RE-LOCK 1 (51f493f1 -> 9709391b), field
+`~/LENSIQ-field/evals/crisis-load-diag/relock1/` with NOTE.txt.
