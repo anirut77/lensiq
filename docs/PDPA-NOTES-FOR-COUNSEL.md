@@ -1264,3 +1264,13 @@ Questions: (a) is a self-service export to the person's own device, with no tran
 portability right (s.31) for on-device data, or does the privacy notice need a sentence on it before it is switched on?
 (b) should the medicine look-up history be left out of the file entirely rather than offered behind a box? Until
 counsel answers, it is left out (owner item 215); putting it back needs counsel's answer and an owner order.
+
+## Exam consent notice: re-read prompt and script-not-run state (owner decisions 219 ก and 225 ก, 2026-11-22)
+
+- **Decision 219 ก:** on the exam lab and exam hall pages, when the exam consent script has not run (the page script
+  did not load or has not started), the consent tick is cleared, the text "โปรดอ่านอีกครั้ง" ("please read again") is
+  shown, and both notice variants are hidden until the script has run. A consent tick given while the notice was not
+  yet in its final wording therefore never counts; the person has to read the notice and tick again.
+- **Decision 225 ก:** the noscript wording on those pages was approved by the owner on the same date.
+- Both approved by the owner on 2026-11-22. Tests: `tests/e2e/exam-consent-reread.e2e.mjs`; lock
+  `evals-locks/exam-consent-219.sha256`.
