@@ -7,7 +7,8 @@
 //   node tools/pii-scan.mjs --staged             added lines of the staged change (tools/git-hooks/pre-commit)
 //   options: --repo DIR (default: the git top level of the current folder), --allow FILE (default: <repo>/tools/pii-allow.json),
 //            --json (machine output). Exit 0 = clean, 1 = findings, 2 = usage or allow-list error.
-// Detectors: coordinates, postcode-city, phone, thai-id, ipv4, ipv6, street-address, email, secret, forbidden-path.
+// Detectors: coordinates, postcode-city, phone, thai-id, ipv4, ipv6, street-address, email, secret, forbidden-path
+// (.wrangler/, .dev.vars, .env, .har, and the palm pilot: palm-pilot/, *.palm-trace.json, P##-L|R[-#].jpg|png|heic|webp).
 // The scanner NEVER prints a matched value: output is type, path:line, commit and a masked shape (digits -> #, letters -> x).
 // Allow-list (tools/pii-allow.json): { entries: [{ path, types: { <type>: <max count> }, kind: synthetic|public|false-positive,
 // reason }] }. In --tracked mode a file may hold at most <max> hits of a type; one more and every hit of that type is reported.
@@ -229,7 +230,12 @@ const FORBIDDEN = [
   [/(^|\/)\.wrangler\//, "Wrangler / Miniflare local state (holds the request location of the machine)"],
   [/(^|\/)\.dev\.vars$/, "Worker secrets file"],
   [/(^|\/)\.env(\.[\w-]+)?$/, "environment / secrets file"],
-  [/\.har$/i, "browser network capture (headers, cookies, IPs)"]
+  [/\.har$/i, "browser network capture (headers, cookies, IPs)"],
+  // palm pilot (2026-11-21): participants' palm photos and their labels live in ~/LENSIQ-field/palm-pilot/ (photos/,
+  // labels/A|B/), never in git. Locked test: tests/unit/pii-palm-labels.test.js (evals-locks/pii-palm-labels.sha256)
+  [/(^|\/)palm-pilot\//i, "palm pilot folder (participants' palm photos and labels)"],
+  [/\.palm-trace\.json$/i, "palm trace label file (palm pilot)"],
+  [/(^|\/)P\d{2}-[LR](-\d+)?\.(jpe?g|png|heic|webp)$/i, "image named like a palm pilot participant code"]
 ];
 /** @param {string} p @returns {Array<{type: string, line: number, masked: string}>} */
 export function scanPath(p) {
