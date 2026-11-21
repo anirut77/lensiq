@@ -264,7 +264,7 @@
         en:
           "In the Thai cat treatise, a black cat with four white paws resembles \"Jatubot\", an auspicious kind said to bring good things to its keeper.",
         zh: "按泰国猫经的说法，黑身四白爪像吉祥猫\"扎图博\"（Jatubot），据说对主人有益。" },
-      { sp: "cat", coat: "black", th: "ตามความเชื่อในตำราแมวไทย ลักษณะดำปลอดคล้าย \"โกญจา\" ถือเป็นแมวมงคลที่ควรรักษาไว้ ว่ากันว่าเสริมเกียรติและโชคลาภ",
+      { sp: "cat", coat: "black", th: "ตามความเชื่อในตำราแมวไทย ลักษณะดำปลอดคล้าย \"โกญจา\" ถือเป็นแมวมงคลที่ควรเลี้ยงดูไว้ให้ดี ว่ากันว่าเสริมเกียรติและโชคลาภ",
         en:
           "In the Thai cat treatise, an all-black coat resembles \"Konja\", an auspicious kind worth cherishing, said to bring honour and good fortune.",
         zh: "按泰国猫经的说法，全身乌黑像吉祥猫\"贡嘉\"（Konja），值得珍惜，据说能带来荣誉与好运。" },
