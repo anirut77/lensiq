@@ -10,6 +10,8 @@
 // tools/git-hooks/pre-commit, --range on the pushed commits) is the control. Every file here is synthetic: generated
 // names and a few placeholder bytes. No real photo is used, read or viewed.
 // This file is locked: evals-locks/pii-palm-labels.sha256 (written BEFORE the rule existed in tools/pii-scan.mjs).
+// Re-lock 1 (stricter, test fault): the content probe in the last test used the word "synthetic", which the scanner's
+// fixed help footer also prints; it now probes content-only markers and adds an image sample. No rule was relaxed.
 const { test, before } = require("node:test");
 const assert = require("node:assert/strict");
 const { spawnSync } = require("node:child_process");
@@ -167,6 +169,16 @@ test("the scanner output names the rule but never prints file contents", () => {
     const out = r.stdout + r.stderr;
     assert.match(out, /forbidden-path\s+labels\/A\/P01-L\.jpg\.palm-trace\.json/);
     assert.match(out, /palm/i, "the reason names the palm pilot");
-    assert.ok(!out.includes("heart") && !out.includes("synthetic"), "no file content in the output");
+    // re-lock 1: probe with content-only markers ("synthetic" is also in the scanner's fixed help footer), and check an
+    // image sample too
+    for (const marker of ["heart", "0.1, 0.2", "0.3", '"lines"', "SYNTHETIC-NOT-A-PHOTO"]) assert.ok(!out.includes(marker), `file content in the output: ${marker}`);
+    const img = "x/palm-pilot/photos/P01-L.jpg";
+    writeSample(dir, img);
+    git(dir, "add", "-f", img);
+    const r2 = scan(dir, "--staged");
+    assert.equal(r2.status, 1);
+    const out2 = r2.stdout + r2.stderr;
+    assert.match(out2, /forbidden-path\s+x\/palm-pilot\/photos\/P01-L\.jpg/);
+    assert.ok(!out2.includes("SYNTHETIC-NOT-A-PHOTO") && !out2.includes("heart"), "no file content in the output");
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });

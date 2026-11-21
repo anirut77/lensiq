@@ -1,3 +1,9 @@
 # locked 2026-11-21T00:15:39Z (tools/eval-guard.mjs lock, 1 file)
 17a35cbd44e337c282cae818fc77ddbeccc468f22ddc0dcdb84e69b54c0c051d  pii-palm-labels.test.js
 17a35cbd44e337c282cae818fc77ddbeccc468f22ddc0dcdb84e69b54c0c051d  tests/unit/pii-palm-labels.test.js  # repo file (same commit as lock 2026-11-21T00:15:39Z; field: ~/LENSIQ-field/evals/pii-palm-labels/pii-palm-labels.test.js)
+# RE-LOCK 1 2026-11-21 (branch pii-palm-labels, STRICTER, test fault, append-only; field: relock1/ with NOTE.txt): the last test asserted the scanner output never holds the word "synthetic", which the fixed help footer always prints; it now probes content-only markers ("heart", "0.1, 0.2", "0.3", "\"lines\"", "SYNTHETIC-NOT-A-PHOTO") and adds an image sample. Every other assertion unchanged; no rule relaxed. On origin/main (653029d3): 3 pass, 5 fail.
+# locked 2026-11-21T00:17:03Z (tools/eval-guard.mjs lock, 2 files)
+49924105b450cf34d189933adaf84c79a5d8029c51870365167f62bab19f370c  relock1/pii-palm-labels.test.js
+930e4154650732ead812eed868273a16ddfd010db7f877359ecdf8335d06c017  relock1/NOTE.txt
+49924105b450cf34d189933adaf84c79a5d8029c51870365167f62bab19f370c  tests/unit/pii-palm-labels.test.js  # repo file (same commit as lock 2026-11-21T00:17:03Z; field: ~/LENSIQ-field/evals/pii-palm-labels/relock1/pii-palm-labels.test.js)
+# field only relock1/NOTE.txt (lock 2026-11-21T00:17:03Z: no repo file uses it)
