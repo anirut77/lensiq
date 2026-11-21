@@ -46,12 +46,19 @@ export const LANG_WAIT_MS = 10000;
  *  On failure (decision 203 ค) it still throws; the error says "slow machine" or "page did not load" and carries os.loadavg(), the
  *  page load ms and the timeout (tests/e2e/load-diag.mjs). Same steps, same timeouts. */
 export async function load(page, base, p, lang) {
-  const url = `${base}/${p}.html?nosw&lang=${lang}`, ready = `document.documentElement.lang === ${S(HTML_LANG[lang])}`;
+  // G2 (follow-up of decision 203 ค, relock13, stricter): Chrome's own network-error page carries the browser language (lang="th" in a
+  // TH run), so the language alone is not proof. Ready = not a chrome-error:// address, not Chrome's neterror document (body.neterror or
+  // #main-frame-error), the address without its #fragment is exactly the requested URL, AND the language is applied. The same
+  // expression goes to the failure probe, so an error page is never reported as "loaded late". Test: tests/unit/crisis-load-errpage.test.js.
+  const url = `${base}/${p}.html?nosw&lang=${lang}`;
+  const ready = `(!/^chrome-error:/i.test(location.href) && !document.getElementById("main-frame-error")
+    && !(document.body && document.body.classList.contains("neterror")) && location.href.split("#")[0] === ${S(url)}
+    && document.documentElement.lang === ${S(HTML_LANG[lang])})`;
   let phase = "load event", t1 = Date.now();
   try {
     await page.goto(`${base}/${p}.html?nosw&lang=${lang}`);
     phase = "language applied"; t1 = Date.now();
-    await page.waitFor(`document.documentElement.lang === ${S(HTML_LANG[lang])}`, LANG_WAIT_MS);
+    await page.waitFor(ready, LANG_WAIT_MS);
   } catch (e) {
     throw await diagnoseLoadFailure(page, e, { url, ready, phase, ms: Date.now() - t1, timeoutMs: phase === "load event" ? PAGE_LOAD_MS : LANG_WAIT_MS });
   }

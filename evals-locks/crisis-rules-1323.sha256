@@ -184,3 +184,9 @@ aeff3671732b11c3a84ec09caa7ee35a3f00eca0046697770d0094bd5c12b149  relock12/crisi
 a1b466de1d50b1e6998524f5bcb2c97015f3e550c61946809e96ccc1581a951c  relock12/NOTE.txt
 aeff3671732b11c3a84ec09caa7ee35a3f00eca0046697770d0094bd5c12b149  tests/unit/crisis-split-203b.test.js  # repo file (same commit as lock 2026-11-21T11:56:44Z; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock12/crisis-split-203b.test.js)
 # field only relock12/NOTE.txt (lock 2026-11-21T11:56:44Z: no repo file uses it)
+# RE-LOCK 13 2026-11-21 (follow-up G2 of owner decision 203 ค, branch followups-1121): STRICTER: load() in tests/e2e/crisis-rules-kit.mjs (was 1b4ca326) resolves only when the address is not chrome-error://, the document is not Chrome's neterror document (body.neterror / #main-frame-error), the address without #fragment is the requested URL, and <html lang> is the run's language (unchanged); the same expression is the failure probe's "ready". Same goto URL, 10000 ms language wait, 20000 ms page-load default, sleep(450); the kit outside load() is byte-identical (crisis-split-203b S1, relock12). Tests locked first: crisis-load-errpage R1-R4. Field copies and NOTE.txt: ~/LENSIQ-field/evals/crisis-rules-1323/relock13/.
+# locked 2026-11-21T11:57:17Z (tools/eval-guard.mjs lock, 2 files)
+3f806a525bc33d666a68adec2e8a32ea1a31e580c6e3cde1b7adb91b8c564e30  relock13/crisis-rules-kit.mjs
+6848355e6ec04be0ee65c2eaa90fcc16b8f3e556f1a1d10cecfcccf17a7e4b0c  relock13/NOTE.txt
+3f806a525bc33d666a68adec2e8a32ea1a31e580c6e3cde1b7adb91b8c564e30  tests/e2e/crisis-rules-kit.mjs  # repo file (same commit as lock 2026-11-21T11:57:17Z; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock13/crisis-rules-kit.mjs)
+# field only relock13/NOTE.txt (lock 2026-11-21T11:57:17Z: no repo file uses it)
