@@ -35,6 +35,9 @@ window.LENSIQ_FORTUNE_SOURCES = window.LENSIQ_FORTUNE_SOURCES === true;
 window.LENSIQ_FORTUNE_CAUTIONS = window.LENSIQ_FORTUNE_CAUTIONS === true;
 window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST = window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST === true;
 window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS = window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS === true;
+/* LENSIQ_COMPAT_V2 (owner night order A6, 2026-11-20): compat.html v2 view (compat-v2.js, loaded on demand by compat-ui.js);
+ * off on the live site and in customer builds until the owner approves the go-live */
+window.LENSIQ_COMPAT_V2 = window.LENSIQ_COMPAT_V2 === true;
 /* LENSIQ_PET_ZODIAC (owner spec 2026-11-19): the petread share card becomes a card the system draws (12 zodiac animals + a
  * secret card, independent of the reading, free) with a collection kept on this device. Off on the live site until the owner
  * approves the samples. LENSIQ_PET_CARD_CLASSIC (spec name PET_CARD_CLASSIC, decision 138 ข): true = the 4 classic colour

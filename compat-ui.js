@@ -23,6 +23,19 @@
   const ENGINE = "vendor/astronomy-engine/astronomy.browser.min.js";
   const MONTHS = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
   const st = { mode: "pair", n: 2, busy: false };
+  /* v2 view (LQCompatV2): only when LENSIQ_COMPAT_V2 is exactly true; loaded on demand, pair mode only. Switch off = v1 unchanged. */
+  const V2 = () => W.LENSIQ_COMPAT_V2 === true;
+  let v2P = null;
+  function loadV2() {
+    if (W.LQCompatV2) return Promise.resolve(W.LQCompatV2);
+    if (v2P) return v2P;
+    v2P = new Promise(res => {
+      const s = D.createElement("script"); s.src = "compat-v2.js?v=1"; s.async = true;
+      s.onload = () => res(W.LQCompatV2 || null); s.onerror = () => { v2P = null; res(null); };
+      D.head.appendChild(s);
+    });
+    return v2P;
+  }
 
   /* ---------- planet calculator: loaded once, on demand ---------- */
   let engineP = null;
@@ -148,6 +161,7 @@
     st.busy = true; msg(T("compat.working", "กำลังคำนวณในเครื่อง…"));
     try {
       const A = await engine();
+      if (V2() && st.mode === "pair") await loadV2();
       const L = C(), opts = { astronomy: A };
       const people = ppl.map(p => L.person({ y: p.y, m: p.m, d: p.d, time: p.time, tz: 7 }, opts));
       const rel = /** @type {any} */ ($("cpRel")).value, names = ppl.map(p => (p.nick && plain(p.nick)) || "");
@@ -266,6 +280,13 @@
     const L = C(), r = $("cpResult"), { res, names, tier } = st.last;
     const rep = L.report(res, { lang: lang(), tier: L.tierFor(W, CR(), D) === "full" && tier === "full" ? "full" : "free", names, rel: res.rel });
     r.innerHTML = ""; r.hidden = false;
+    if (V2() && rep.mode === "pair" && W.LQCompatV2) {
+      // review F6: a v2 failure falls back to the v1 reading below (which keeps the closing 1323 line); the error goes to the console only
+      let ok = false;
+      try { ok = !!W.LQCompatV2.render(r, { res, rep, names, lang: lang(), tier: rep.tier, doc: D }); } catch (e) { try { console.error("compat v2 view failed; showing v1", e); } catch (x) { /* no console */ } }
+      if (ok) { drawEnd(r); return; }
+      r.innerHTML = "";
+    }
     const ov = D.createElement("div");
     ov.className = "cp-ov fk-block"; ov.setAttribute("data-compat-overview", ""); ov.setAttribute("data-lq-shareable", "compat-overview"); ov.setAttribute("data-lq-printable", "");
     ov.innerHTML = '<h2 tabindex="-1" id="cpResTitle">' + esc(rep.overview.title) + '</h2><div class="cp-wheelbox">' + wheelSVG(rep) + legendHTML(rep) + "</div>" +
@@ -286,6 +307,9 @@
     rep.sections.forEach(s => cats.appendChild(sectionEl(s, rep)));
     r.appendChild(cats);
     fitMap();
+    drawEnd(r);
+  }
+  function drawEnd(r) {
     // crisis v3 rule d: on a crisis / calm page the one closing line ends the reading
     const c = CR();
     try { if (c && c.helpLine && c.calmOn && (c.calmOn(D) || (c.distress && c.distress(D)))) r.appendChild(c.helpLine(D, lang(), "lq-helpline-result")); } catch (e) { /* no line */ }
