@@ -19,6 +19,8 @@
 //   C6 admin back-office section: admin.html has the try-on tab; admin-tryon.js runs the Product Check face blur
 //      (LQPCRun.faceRuns + LQPC.faceBlurPlan + LQPCRun.faceBlur) before upload, needs the "no visible face remains" tick,
 //      refuses when the detector cannot run, and its strings exist in TH / EN / ZH
+// Re-lock 2026-11-22 (owner decision 223, approved 223-1): assertions that required a figure, source or old status word on a
+// customer page are inverted (the page must not show it) and redirected (docs/tech-sheets/* must hold it verbatim).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -114,9 +116,12 @@ test("C5: tryon.html: consent first (camera and photo), no POST / storage; i18n 
   assert.match(js, /\/v1\/tryon\/catalog/);
   const keys = [...html.matchAll(/data-i18n="([^"]+)"/g)].map(m => m[1]).concat([...js.matchAll(/T\("([a-z][\w.]+)"/g)].map(m => m[1]));
   assert.ok(keys.length >= 15, "page text is translatable: " + keys.length);
-  for (const f of ["i18n/en-tryon.js", "i18n/zh-tryon.js"]) {
-    const src = read(f);
-    for (const k of new Set(keys)) assert.ok(src.includes(`"${k}":`), `${f} misses ${k}`);
+  // Decision 223: ln.tryon.* (the two plain lines) and common.recheck live in the shared dictionaries i18n/en-common.js /
+  // zh-common.js (loaded by nav.js on every page); only those keys may be found there, every key must still be found.
+  const sharedKey = k => /^(ln\.tryon\.|common\.recheck$)/.test(k);
+  for (const [f, fc] of [["i18n/en-tryon.js", "i18n/en-common.js"], ["i18n/zh-tryon.js", "i18n/zh-common.js"]]) {
+    const src = read(f), common = read(fc);
+    for (const k of new Set(keys)) assert.ok(src.includes(`"${k}":`) || (sharedKey(k) && common.includes(`"${k}":`)), `${f} misses ${k}`);
   }
   assert.match(html, /ภาพจำลอง/); assert.match(html, /ไม่ส่ง|ไม่เก็บ/);
 });

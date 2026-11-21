@@ -21,6 +21,8 @@
 //      result card; the model file is never named by tryon.html (lazy: tryon.js loads it when a pose item is picked);
 //      skirts and trousers are drawable; demo items for every pose category; no POST, no drop / paste, no stored frames
 //   Q8 size: the model file is at most 6,000,000 bytes (speed budget: it is fetched only after the visitor picks a pose item)
+// Re-lock 2026-11-22 (owner decision 223, approved 223-1): assertions that required a figure, source or old status word on a
+// customer page are inverted (the page must not show it) and redirected (docs/tech-sheets/* must hold it verbatim).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -198,7 +200,13 @@ test("Q7: page: disclaimer in TH / EN / ZH inside the result card; lazy model; p
   assert.ok(!/(localStorage|sessionStorage|indexedDB)\.[a-zA-Z]+\([^)]*(toDataURL|frame|snapshot|image|photo)/i.test(js), "no frames stored");
   assert.ok(!/toDataURL[\s\S]{0,80}(fetch|setItem)/.test(js), "no frame sent or stored");
   const keys = [...html.matchAll(/data-i18n="([^"]+)"/g)].map(x => x[1]).concat([...js.matchAll(/T\("([a-z][\w.]+)"/g)].map(x => x[1]));
-  for (const k of new Set(keys)) { assert.ok(en.includes(`"${k}":`), "en misses " + k); assert.ok(zh.includes(`"${k}":`), "zh misses " + k); }
+  // Decision 223: ln.tryon.* and common.recheck live in the shared dictionaries i18n/en-common.js / zh-common.js (nav.js
+  // loads them on every page); only those keys may be found there, every key must still be found.
+  const enC = read("i18n/en-common.js"), zhC = read("i18n/zh-common.js"), sharedKey = k => /^(ln\.tryon\.|common\.recheck$)/.test(k);
+  for (const k of new Set(keys)) {
+    assert.ok(en.includes(`"${k}":`) || (sharedKey(k) && enC.includes(`"${k}":`)), "en misses " + k);
+    assert.ok(zh.includes(`"${k}":`) || (sharedKey(k) && zhC.includes(`"${k}":`)), "zh misses " + k);
+  }
 });
 
 test("Q8: model size within the budget (fetched only after a pose item is picked)", () => {

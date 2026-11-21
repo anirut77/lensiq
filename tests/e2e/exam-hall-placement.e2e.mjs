@@ -4,6 +4,13 @@
 // dataset), and tells the invigilator whether the placement is good, in Thai / English / Chinese. States: idle, nocam,
 // noseats, nocount, partial, fix (small / hidden / edge), good, mon. Nothing stored, nothing sent; off during monitoring.
 // Locked before the product code (hashes in ~/LENSIQ-field/evals/gate-hall-h/locked.sha256).
+// Re-lock 2026-11-21 (owner decision 223 / 223-1, redirect): the panel no longer shows the measured recall with n and source;
+// it shows the plain verdict of the same fixed rule as HALL_PLACE.minPx ("ขนาดนี้เล็กเกินไป ขยับกล้องให้ใกล้ขึ้น" below 50 %,
+// "ขนาดนี้ระบบมักเห็นคน" at 50 % or more) and no figure, n or source; the old wording (template with {r}% / n / source) is
+// held in docs/tech-sheets/exam-TH.md / exam-EN.md and the figures (46.2 % and 56.3 % at 144-288 px, n = 247, public
+// dataset) in docs/exam/HALL-DETECTOR-RESULTS.md.
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { assert, privacyScan } from "./cdp.mjs";
 import { assertCleanMessages, exceptions, phoneAudit, sleep } from "./exam-kit.mjs";
 
@@ -51,7 +58,12 @@ async function inLangs(page, label, want) {
   await sleep(300);
 }
 
-export default async function ({ base, launch, check, fakeCams }) {
+export default async function ({ base, launch, check, fakeCams, repo }) {
+  // re-lock 223: what moved off the panel, and where it is held now
+  const NO_FIG = /\d+(\.\d+)?\s?%|\bn\s?=\s?\d|ชุดข้อมูลสาธารณะ|public dataset|公开数据集/i;
+  const sheetTH = readFileSync(join(repo, "docs", "tech-sheets", "exam-TH.md"), "utf8");
+  const sheetEN = readFileSync(join(repo, "docs", "tech-sheets", "exam-EN.md"), "utf8");
+  const results = readFileSync(join(repo, "docs", "exam", "HALL-DETECTOR-RESULTS.md"), "utf8");
   const browser = await launch();
   try {
     await check("exam-hall placement check: seats seen, person size vs the detector's measured minimum, verdict in TH / EN / ZH, nothing stored or sent", async () => {
@@ -84,7 +96,14 @@ export default async function ({ base, launch, check, fakeCams }) {
       // back row 0.3 x 720 = 216 px: under COCO-SSD's measured minimum (288 px) -> fix, with the measured recall and the tiles hint
       p = await show(page, back(0.3).concat(front(0.5)), "fix");
       assert(/ err/.test(p.cls) && /ที่นั่ง 1, 2, 3: คนในภาพสูง 216 px ต่ำกว่าขั้นต่ำ 288 px/.test(p.text), "small: " + p.text);
-      assert(/46\.2%/.test(p.text) && /n = 247/.test(p.text) && /ชุดข้อมูลสาธารณะ/.test(p.text), "measured recall with n and source: " + p.text);
+      // re-lock 223 (was: "46.2%, n = 247 and ชุดข้อมูลสาธารณะ in the panel"): the plain verdict, no figure, n or source ...
+      assert(/ขนาดนี้เล็กเกินไป ขยับกล้องให้ใกล้ขึ้น/.test(p.text) && !/ขนาดนี้ระบบมักเห็นคน/.test(p.text), "plain verdict below 50 %: " + p.text);
+      assert(!/46\.2/.test(p.text) && !/247/.test(p.text) && !NO_FIG.test(p.text), "no recall, n or source in the panel: " + p.text);
+      // ... and the old wording and the figures are held in the technical sheets and the results document
+      assert(sheetTH.includes("ที่ขนาดนี้ ({range} px) ตัวตรวจหาคนเจอ {r}% (n = {n}, ชุดข้อมูลสาธารณะ ภาพนิ่ง ไม่ใช่ห้องสอบจริง)")
+        && sheetEN.includes("at this size ({range} px) the person detector found {r}% (n = {n}, public dataset, still images, not a real exam room)")
+        && sheetEN.includes("在这个尺寸（{range} px）人员检测器找到了 {r}%（n = {n}，公开数据集静态图片，不是真实考场）"), "old recall wording in docs/tech-sheets/exam-*.md");
+      assert(/\| Person recall, 144 – 288 px[^\n]*\| 247 \| 46\.2 %[^\n]*public dataset \|/.test(results), "46.2 % (n = 247, public dataset) in HALL-DETECTOR-RESULTS.md");
       assert(/แบ่งภาพ 2×2/.test(p.text), "tiles hint (lower measured minimum): " + p.text);
       assert(p.kv.some(t => t === "คนเล็กสุด 216 px (ที่นั่ง 1)") && p.kv.some(t => t === "ขั้นต่ำของตัวตรวจ 288 px"), "small readout: " + p.kv);
       assert(/1: 216 px ⚠/.test(p.list) && /4: 360 px/.test(p.list), "per-seat list: " + p.list);
@@ -93,7 +112,10 @@ export default async function ({ base, launch, check, fakeCams }) {
       // the same people with 2 x 2 tiles on: the measured minimum is 144 px -> good, and it still says it is not a guarantee
       await page.evaluate(() => { const t = document.querySelector("#tiles"); t.checked = true; t.dispatchEvent(new Event("change", { bubbles: true })); });
       p = await show(page, back(0.3).concat(front(0.5)), "good");
-      assert(/ ok/.test(p.cls) && /ตำแหน่งกล้องผ่าน: เห็นคนครบ 6 ที่นั่ง/.test(p.text) && /56\.3%/.test(p.text) && /ไม่ได้รับประกัน/.test(p.text), "good: " + p.text);
+      assert(/ ok/.test(p.cls) && /ตำแหน่งกล้องผ่าน: เห็นคนครบ 6 ที่นั่ง/.test(p.text) && /ขนาดนี้ระบบมักเห็นคน/.test(p.text) && /ไม่ได้รับประกัน/.test(p.text), "good: " + p.text);
+      // re-lock 223 (was: "56.3% in the good verdict"): the plain verdict at 50 % or more, no figure; 56.3 % (139 / 247) is in the results document
+      assert(!/56\.3/.test(p.text) && !NO_FIG.test(p.text) && !/ขนาดนี้เล็กเกินไป/.test(p.text), "good: no recall figure: " + p.text);
+      assert(/\| Person recall, 144 – 288 px \| 56\.3 % \[50\.0 – 62\.3\] \(139 \/ 247\)/.test(results), "56.3 % (139 / 247) in HALL-DETECTOR-RESULTS.md");
       await inLangs(page, "good", { en: /^Camera placement passes: a person is seen at all 6 seats.*not a guarantee/, zh: /^摄像头位置合格：6 个座位都看到了人.*并不保证/ });
 
       // front-row people covering most of the back-row seats: hidden -> fix (raise the camera)

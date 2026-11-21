@@ -33,10 +33,12 @@ const MEST = {
   zh: "（根据照片中手指和手掌的比例、拇指角度、用于解读的主线形状以及皮肤平滑度估算）"
 };
 const NOTE = {
-  th: "เส้นที่แสดงเป็นการประมาณจากภาพโดยอัตโนมัติ และยังไม่ได้วัดความแม่นยำกับมือจริง โปรดเทียบกับมือของคุณ และลากจุดกลมเพื่อปรับเส้นให้ตรงกับรอยจริงได้",
-  en: "The lines shown are estimated automatically from the photo, and their accuracy has not been measured on real hands. Please compare them with your own hand; you can drag the round dots to move a line onto the real crease.",
-  zh: "图中显示的掌纹是根据照片自动估算的，尚未在真实手掌上测量准确度。请与自己的手对照，可以拖动圆点把线移到真实的纹路上。"
+  th: "เส้นที่แสดงเป็นการประมาณจากภาพ ผลอาจคลาดเคลื่อนได้ โปรดเทียบกับมือของคุณ และลากจุดกลมเพื่อปรับเส้นให้ตรงกับรอยจริงได้",
+  en: "The lines shown are an estimate from the photo, and the result may not be accurate. Please compare them with your own hand; you can drag the round dots to move a line onto the real crease.",
+  zh: "图中显示的掌纹是根据照片估算的，结果可能有误。请与自己的手对照，可以拖动圆点把线移到真实的纹路上。"
 };
+// re-lock 3 (owner decision 223, 2026-11-21): E5 asserts the new approved note and that it carries no "not measured" wording
+const NOT_MEASURED = /ยังไม่ได้วัด|not (yet )?(been )?measured|has not been measured|尚未测量|未测量|尚未实测|尚未在真实手掌上测量/i;
 /** a confidence badge: clear / faint / unclear in brackets (any language), a digit or a percent sign */
 const BADGE = /[(（]\s*(ชัด|พอเห็น|ไม่ชัด|clear|faint|unclear|清楚|清晰|隐约可见|不清楚)\s*[)）]|\d|%/i;
 const OLD_MEST = { th: "(ประเมินจากภาพ)", en: "(estimated from the photo)", zh: "（根据照片估算）" };
@@ -167,6 +169,7 @@ export default async function ({ base, launch, check }) {
           await read(page);
           const n2 = await page.evaluate(() => [...document.querySelectorAll('#plResult [data-i18n="palm.linesNote"]')].filter(e => e.offsetWidth > 0).map(e => e.textContent));
           assert(n2.length === 1 && n2[0] === NOTE[lang], `${lang}: result-area note ` + JSON.stringify(n2));
+          for (const t of n1.concat(n2)) assert(!NOT_MEASURED.test(t), `${lang}: line note still says 'not measured': ` + t);
           const cards = await page.evaluate(() => [...document.querySelectorAll("#plLines .line-card")].map(e => ({ id: e.dataset.line, t: e.textContent, small: e.querySelectorAll("small, .badge, .conf").length })));
           assert(cards.length === 4, `${lang} cards ` + cards.length);
           for (const c of cards) assert(!BADGE.test(c.t) && !c.small, `${lang} result card ${c.id} carries a badge or number: ${c.t.slice(0, 160)}`);

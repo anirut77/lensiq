@@ -104,15 +104,34 @@ test("back office and docs still list every source: generated files are current;
   for (const k of ["adf.tab", "adf.h", "adf.p", "adf.none"]) { assert.ok(dict("en")[k], "en " + k); assert.ok(dict("zh")[k], "zh " + k); }
 });
 
-test("non-fortune pages keep their sources: medicine, product check, category accuracy sources", () => {
+test("non-fortune pages keep their sources: medicine, product check; category accuracy sources only in the technical sheets (223)", () => {
   const med = read("medicine.html");
   assert.match(med, /data-i18n="md\.ab\.h">แหล่งข้อมูลและข้อจำกัด</);
   assert.match(med, /National Librar/);
   assert.match(read("lensiq-pc-ui.js"), /แหล่งข้อมูลทางการ/);
   // re-lock 2026-11-18 (owner decision 2026-11-18: fortune cards carry no accuracy field; business products unchanged):
   // cat-fortune.html has no numbers, so no "where the numbers come from" section; every non-fortune category page keeps it
+  // re-lock 2026-11-22 (owner decision 223, 223-1 inversion): no category page shows the "where the numbers come from" section
+  // any more; its heading, explanation and every source label (TH / EN / ZH, as at base in the locked snapshot
+  // docs/tech-sheets/ORIGINAL-FIGURES-223.json) are held verbatim by docs/tech-sheets/ and admin-measurements.js
   for (const c of ["cat-health.html", "cat-security.html", "cat-education.html", "cat-hr.html", "cat-marketing.html", "cat-studio.html"]) {
-    assert.match(read(c), /data-i18n="cat\.src\.h">ที่มาของตัวเลข</, c);
+    const h = read(c);
+    assert.doesNotMatch(h, /data-i18n="cat\.src\.[a-z-]+"|ที่มาของตัวเลข|id="catSrcH"|class="cat-srcs\b/, c + ": sources-of-numbers section");
   }
   assert.doesNotMatch(read("cat-fortune.html"), /data-i18n="cat\.src\.h"/, "cat-fortune.html: no sources-of-numbers section");
+  const sq = x => String(x).replace(/\s+/g, " ").trim();
+  const SNAP = JSON.parse(read("docs/tech-sheets/ORIGINAL-FIGURES-223.json"));
+  const sheets = re => fs.readdirSync(path.join(ROOT, "docs", "tech-sheets")).filter(f => re.test(f) || f === "README.md").map(f => sq(read("docs/tech-sheets/" + f))).join("\n");
+  const TH = sheets(/-TH\.md$/), EN = sheets(/-EN\.md$/);
+  const L223 = require("./accuracy-removal-223.lib.js");
+  const adm = new Set(L223.jsStrings(read("admin-measurements.js")).map(sq));
+  const KEYS = ["cat.src.h", "cat.src.d", "cat.src.synthetic", "cat.src.public", "cat.src.prelim", "cat.src.field", "cat.src.none", "cat.src.na"];
+  for (const k of KEYS) {
+    const e = SNAP.entries.concat(SNAP.catData).find(x => x.key === k && x.th);
+    assert.ok(e && e.en && e.zh, "base snapshot: " + k);
+    assert.ok(TH.includes(sq(e.th)), "docs/tech-sheets TH: " + k);
+    assert.ok(EN.includes(sq(e.en)) && EN.includes(sq(e.zh)), "docs/tech-sheets EN: " + k);
+    for (const l of ["th", "en", "zh"]) assert.ok(adm.has(sq(e[l])), `admin-measurements.js: ${k}.${l}`);
+  }
+  assert.equal(SNAP.entries.concat(SNAP.catData).find(x => x.key === "cat.src.h" && x.th).th, "ที่มาของตัวเลข", "base heading");
 });

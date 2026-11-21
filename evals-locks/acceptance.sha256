@@ -85,3 +85,8 @@ e202c247e6dacf4c50c21a6970a6f82e28827dda2ce9b4ec2815c23bbcab4bc1  docs/acceptanc
 8d8ab1694cd2e19c6705f35e548f2a8324f0fb3d67bcb3437114b9ce2024c57f  relock-4/personal-colour.md
 8d8ab1694cd2e19c6705f35e548f2a8324f0fb3d67bcb3437114b9ce2024c57f  docs/acceptance/personal-colour.md  # repo file (same commit as lock 2026-11-19T04:29:21Z; field: ~/LENSIQ-field/evals/acceptance/relock-4/personal-colour.md)
 # RE-LOCK 4 (2026-11-19, owner decision 148 ก, last round): equal: wording aligned to source §4.2:284; no number, weight or target changed (personal-colour A5). Copy in relock-4/.
+# locked 2026-11-21T18:57:33Z (tools/eval-guard.mjs lock, 2 files)
+1892cd77d0d27d38d189490df705c759beb74c07d142a209e8dbc834ac7a9e9e  relock-223/README.md
+ea5ba7bbf15ab4285c875dbfc9cc441bb3fb01832e2a6c17ab191ed5f3a1b08f  relock-223/NOTE.txt
+1892cd77d0d27d38d189490df705c759beb74c07d142a209e8dbc834ac7a9e9e  docs/acceptance/README.md  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/acceptance/relock-223/README.md)
+# field only relock-223/NOTE.txt (lock 2026-11-21T18:57:33Z: no repo file uses it)

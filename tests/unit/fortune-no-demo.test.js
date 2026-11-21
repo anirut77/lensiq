@@ -10,6 +10,11 @@
 //   5. other categories unchanged: every non-fortune page keeps its status, the six other counts are byte-identical in
 //      TH / EN / ZH, and the non-fortune demo badges (teamface, signage, neuro on their category pages; solutions sol-r5)
 //      still show.
+//   RE-LOCK 2026-11-22 (owner decision 223, audit section 3, badges approved as drafted): the counts are the number of tools
+//   only, over the tools listed in the customer build ("<n> เครื่องมือ" / "<n> tools" / "<n> 个工具", n = the base total minus
+//   the demo-only pages of D.DEMO_ONLY), with no status words; the non-fortune demo badges became "เร็ว ๆ นี้" (Coming soon /
+//   即将推出) on cards marked data-demo-only, and the old "สาธิต" badge, its key and the demo legend line are gone. The fortune
+//   checks (1-4) are unchanged.
 // Static, synthetic; no network. Browser check (rendered TH / EN / ZH): tests/e2e/fortune-no-demo.e2e.mjs.
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -85,11 +90,26 @@ test("2. index.html category chooser: the fortune count names no demo; the six o
   const html = read("index.html");
   const th = thVal(html, "cat.fortune.count");
   assert.ok(th && !DEMO_RE.th.test(th), "index TH fortune count " + th);
+  // re-lock 2026-11-22 (decision 223): was "byte-identical to BASE_COUNT"; now exactly the tool count, derived from the base
+  // total (first number of BASE_COUNT, all three languages agree) minus the demo-only pages, and no status word at all
+  const OLD_WORDS = { th: /พร้อมนำร่อง|ทดลอง|สาธิต|หน้าประกอบ|·/, en: /pilot-ready|experimental|demo|support pages|·/i, zh: /可试点|实验性|演示|辅助页面|·/ };
+  const WANT = { th: n => `${n} เครื่องมือ`, en: n => `${n} tools`, zh: n => `${n} 个工具` };
   for (const [slug, v] of Object.entries(BASE_COUNT)) {
-    assert.equal(thVal(html, `cat.${slug}.count`), v.th, "index " + slug);
-    assert.equal(thVal(read(`cat-${slug}.html`), `cat.${slug}.count`), v.th, `cat-${slug}.html count`);
-    for (const l of ["en", "zh"]) assert.equal(dictVal(`i18n/${l}-cat.js`, `cat.${slug}.count`), v[l], `${l} ${slug} count`);
+    const total = +v.th.match(/^\d+/)[0];
+    assert.ok(+v.en.match(/^\d+/)[0] === total && +v.zh.match(/^\d+/)[0] === total, slug + " base totals agree");
+    const cat = D.CATEGORIES.find(c => c.slug === slug);
+    assert.equal(cat.pages.length, total, slug + ": the category still lists every base tool");
+    const n = total - cat.pages.filter(p => D.DEMO_ONLY.includes(p)).length;
+    assert.equal(thVal(html, `cat.${slug}.count`), WANT.th(n), "index " + slug);
+    assert.equal(thVal(read(`cat-${slug}.html`), `cat.${slug}.count`), WANT.th(n), `cat-${slug}.html count`);
+    assert.doesNotMatch(thVal(html, `cat.${slug}.count`), OLD_WORDS.th, "index " + slug + " status words");
+    for (const l of ["en", "zh"]) {
+      assert.equal(dictVal(`i18n/${l}-cat.js`, `cat.${slug}.count`), WANT[l](n), `${l} ${slug} count`);
+      assert.doesNotMatch(dictVal(`i18n/${l}-cat.js`, `cat.${slug}.count`), OLD_WORDS[l], `${l} ${slug} count status words`);
+    }
   }
+  // the demo-only pages (not counted) are exactly the four approved in decision 223 (audit section 3)
+  assert.deepEqual([...D.DEMO_ONLY].sort(), ["customers", "neuro", "signage", "teamface"]);
 });
 
 test("3. solutions.html: no card linking to a fortune page carries a demo badge; sol-r5 (signage) keeps its demo badge", () => {
@@ -103,9 +123,20 @@ test("3. solutions.html: no card linking to a fortune page carries a demo badge;
     assert.ok(!/data-i18n="sl\.st\.demo"/.test(body) && !DEMO_RE.th.test(body.replace(/<p[\s\S]*$/, "")), `sol-${id} (${href}) demo badge`);
   }
   assert.ok(n >= 3, "fortune cards found: " + n);
-  const r5 = cards.find(c => c[1] === "r5");
-  assert.ok(r5 && /<span class="sl-tag now"\s+data-i18n="sl\.st\.demo">สาธิต<\/span>/.test(r5[2]), "sol-r5 demo badge kept");
-  for (const l of ["en", "zh"]) assert.equal(dictVal(`i18n/${l}-solutions.js`, "sl.st.demo"), DEMO[l], `${l} sl.st.demo kept for other categories`);
+  // re-lock 2026-11-22 (decision 223): sol-r5 (signage) keeps a badge, now the approved "เร็ว ๆ นี้" (Coming soon / 即将推出),
+  // and the card is demo-only; the old "สาธิต" badge and the sl.st.demo key are gone
+  const r5 = html.match(/<article class="sl-card"([^>]*)id="sol-r5"([^>]*)>([\s\S]*?)<\/article>/);
+  assert.ok(r5, "sol-r5 card");
+  assert.match(r5[1] + r5[2], /data-status="soon"/, "sol-r5 data-status");
+  assert.match(r5[1] + r5[2], /\bdata-demo-only\b/, "sol-r5 is demo-only");
+  assert.ok(/<span class="sl-tag soon"\s+data-i18n="sl\.st\.soon">เร็ว ๆ นี้<\/span>/.test(r5[3]), "sol-r5 coming-soon badge");
+  assert.ok(!/data-i18n="sl\.st\.demo"/.test(r5[3]) && !DEMO_RE.th.test(r5[3].replace(/<p[\s\S]*$/, "")), "sol-r5 old demo badge");
+  assert.ok(!/data-i18n="sl\.st\.demo"/.test(html), "solutions.html still uses sl.st.demo");
+  const SOON = { en: "Coming soon", zh: "即将推出" };
+  for (const l of ["en", "zh"]) {
+    assert.equal(dictVal(`i18n/${l}-solutions.js`, "sl.st.soon"), SOON[l], `${l} sl.st.soon`);
+    assert.equal(dictVal(`i18n/${l}-solutions.js`, "sl.st.demo"), null, `${l} sl.st.demo is gone`);
+  }
 });
 
 test("4. every fortune page and its own dictionaries: no status chip and no demo status key", () => {
@@ -126,11 +157,20 @@ test("5. other categories unchanged: statuses, demo chips of teamface / signage 
   const now = {};
   for (const [p, v] of Object.entries(D.PAGES)) if (!fort.has(p)) now[p] = v.st;
   assert.deepEqual(now, BASE_ST);
+  // re-lock 2026-11-22 (decision 223): the three former demo chips are now the approved "เร็ว ๆ นี้" badge on demo-only cards;
+  // no "สาธิต" chip, no cat.st.demo key and no demo legend line (status legends are gone from every category page)
   for (const [slug, page] of [["hr", "teamface"], ["marketing", "signage"], ["marketing", "neuro"]]) {
     const html = read(`cat-${slug}.html`);
-    const card = html.match(new RegExp(`<article class="pd-card cat-tool" data-page="${page}"[\\s\\S]*?</article>`));
-    assert.ok(card && /<span class="cat-st demo"\s+data-i18n="cat\.st\.demo">สาธิต<\/span>/.test(card[0]), `${page} demo chip on cat-${slug}.html`);
-    assert.ok(/data-i18n="cat\.std\.demo"/.test(html), `cat-${slug}.html demo legend line`);
+    const card = html.match(new RegExp(`<article class="pd-card cat-tool" data-page="${page}"([^>]*)>[\\s\\S]*?</article>`));
+    assert.ok(card, `${page} card on cat-${slug}.html`);
+    assert.equal(card[1], ' data-status="soon" data-demo-only', `${page} card attributes`);
+    assert.ok(/<span class="cat-st soon"\s+data-i18n="cat\.b\.soon">เร็ว ๆ นี้<\/span>/.test(card[0]), `${page} coming-soon badge on cat-${slug}.html`);
+    assert.ok(!/data-i18n="cat\.st\.demo"|class="cat-st demo"|สาธิต/.test(card[0]), `${page} old demo chip on cat-${slug}.html`);
+    assert.ok(!/data-i18n="cat\.std\./.test(html), `cat-${slug}.html status legend line`);
   }
-  for (const l of ["en", "zh"]) assert.equal(dictVal(`i18n/${l}-cat.js`, "cat.st.demo"), DEMO[l], `${l} cat.st.demo`);
+  const SOON = { en: "Coming soon", zh: "即将推出" };
+  for (const l of ["en", "zh"]) {
+    assert.equal(dictVal(`i18n/${l}-cat.js`, "cat.b.soon"), SOON[l], `${l} cat.b.soon`);
+    assert.equal(dictVal(`i18n/${l}-cat.js`, "cat.st.demo"), null, `${l} cat.st.demo is gone`);
+  }
 });

@@ -12,3 +12,13 @@ e759009d7087bf7b8e3b50b8dca52ebba10ad9fccd2ceb20e66509aa67e95404  tests/e2e/walk
 # re-lock 2 2026-11-16T02:44:33Z (webkit-flake-fix, independent review NOT OK on 4f75826: re-lock 1 returned after 500 ms of stillness, ~0.5-0.7 s after load, earlier than the old 2.5 s check, so a page that lands and drifts later passed): D-04 now waits until at least 2500 ms after load AND the heading's top unchanged for 500 ms, 8 s at most; assertion unchanged. Added a permanent negative check 'D-04 control': a page that drifts to the top 1.2 s after load must FAIL the D-04 rule. Locked BEFORE measuring. Append-only.
 033e5de15367ccd0ffb638faac7e90a846f724e8da50958df8c85163ab3512ff  walkfix2-webkit.e2e.mjs
 033e5de15367ccd0ffb638faac7e90a846f724e8da50958df8c85163ab3512ff  tests/e2e/walkfix2-webkit.e2e.mjs  # repo file
+# locked 2026-11-21T18:57:34Z (tools/eval-guard.mjs lock, 2 files)
+93cb76d218d98f91a97adc79a9aac9a859f041f4c18326297d6609fe5e87b0cb  relock-223/walkfix2.test.js
+ff1652be77008be5a4ecaf31d6689094c5205cd50e15538c770aa18e26ffbfc2  relock-223/NOTE.txt
+93cb76d218d98f91a97adc79a9aac9a859f041f4c18326297d6609fe5e87b0cb  tests/unit/walkfix2.test.js  # repo file (same commit as lock 2026-11-21T18:57:34Z; field: ~/LENSIQ-field/evals/walk-fix-2/relock-223/walkfix2.test.js)
+# field only relock-223/NOTE.txt (lock 2026-11-21T18:57:34Z: no repo file uses it)
+# locked 2026-11-21T18:59:16Z (tools/eval-guard.mjs lock, 2 files)
+3400de6be693b74e6eaacf9f6b61a7938ca5b5e3f16e1ae0d198417ce810bea4  relock-223b/walkfix2.test.js
+d51e131c38f603841dfd08dd6dc93604a11f91c000b8b48daffab6282b506432  relock-223b/NOTE.txt
+3400de6be693b74e6eaacf9f6b61a7938ca5b5e3f16e1ae0d198417ce810bea4  tests/unit/walkfix2.test.js  # repo file (same commit as lock 2026-11-21T18:59:16Z; field: ~/LENSIQ-field/evals/walk-fix-2/relock-223b/walkfix2.test.js)
+# field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:16Z: no repo file uses it)

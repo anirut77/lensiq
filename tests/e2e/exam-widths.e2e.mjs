@@ -102,6 +102,9 @@ export default async function ({ base, launch, check, fakeCams }) {
           });
           await page.waitFor("__LQ_EXAM_DB.board.alerts.some(a => a.sig === 'phone' && a.status === 'going')", 3000);
           await page.evaluate(() => { const c = [...document.querySelectorAll("#queue .alert")].find(x => /โทรศัพท์/.test(x.textContent)); c.querySelector("[data-v='1']").click(); });
+          // decision 223-4: the right / wrong tally table sits in the closed "detailed figures for the administrator" fold; open
+          // it (as the administrator would) so its text is rendered and the width check below still covers the table
+          await page.evaluate(() => { document.querySelector("#precBody").closest("details").open = true; });
           await page.waitFor("/100%/.test(document.querySelector('#precBody').innerText)", 3000);
           await at(page, w, "dashboard populated");
           await page.evaluate(CAPTURE);

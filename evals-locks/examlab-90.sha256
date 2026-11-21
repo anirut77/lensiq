@@ -22,3 +22,8 @@ bf3637ba21cfe6afa39fff452e2a0e5baeb53b5812562b6365d354b1881f1c4b  tests/e2e/exam
 # reviewer round 1 of delta 39ac5013 -> 1fa699eb: new test exam-lab-restart (R1 stale calibrate tap after camera off + consent again; R2 silent camera after restart: calibrate never sticks in "cal"), locked BEFORE the product fix. Run on 1fa699eb (unfixed): R1 3/3 pass (this path already clears the waiting tap on 1fa699eb; kept as a regression guard for the reviewer show()/startCamera() resets), R2 3/3 FAIL (phase "cal", videoWidth 0) as expected. exam-states, exam-widths, exam-pages-webkit unchanged.
 # locked 2026-11-19T06:14:33Z (tools/eval-guard.mjs lock, 1 file)
 8802364598b51f95b453f633aeed700f88db9ace223688466298f02d3ce58b6a  tests/e2e/exam-lab-restart.e2e.mjs
+# locked 2026-11-21T18:57:33Z (tools/eval-guard.mjs lock, 2 files)
+0418d0acd3dc968c94a2a6e8b89b1bab3cc756a8770f0f3606c5d19d11ade796  relock-223/exam-widths.e2e.mjs
+02e6db077b9f9624ba318579dd20b74451e1767ba9fb4b765aa2b7bccce016e5  relock-223/NOTE.txt
+0418d0acd3dc968c94a2a6e8b89b1bab3cc756a8770f0f3606c5d19d11ade796  tests/e2e/exam-widths.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/examlab-90/relock-223/exam-widths.e2e.mjs)
+# field only relock-223/NOTE.txt (lock 2026-11-21T18:57:33Z: no repo file uses it)

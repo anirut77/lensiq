@@ -154,10 +154,13 @@ const MEST = {
   zh: "（根据照片中手指和手掌的比例、拇指角度、用于解读的主线形状以及皮肤平滑度估算）"
 };
 const NOTE = {
-  th: "เส้นที่แสดงเป็นการประมาณจากภาพโดยอัตโนมัติ และยังไม่ได้วัดความแม่นยำกับมือจริง โปรดเทียบกับมือของคุณ และลากจุดกลมเพื่อปรับเส้นให้ตรงกับรอยจริงได้",
-  en: "The lines shown are estimated automatically from the photo, and their accuracy has not been measured on real hands. Please compare them with your own hand; you can drag the round dots to move a line onto the real crease.",
-  zh: "图中显示的掌纹是根据照片自动估算的，尚未在真实手掌上测量准确度。请与自己的手对照，可以拖动圆点把线移到真实的纹路上。"
+  th: "เส้นที่แสดงเป็นการประมาณจากภาพ ผลอาจคลาดเคลื่อนได้ โปรดเทียบกับมือของคุณ และลากจุดกลมเพื่อปรับเส้นให้ตรงกับรอยจริงได้",
+  en: "The lines shown are an estimate from the photo, and the result may not be accurate. Please compare them with your own hand; you can drag the round dots to move a line onto the real crease.",
+  zh: "图中显示的掌纹是根据照片估算的，结果可能有误。请与自己的手对照，可以拖动圆点把线移到真实的纹路上。"
 };
+// re-lock 3 (owner decision 223, 2026-11-21): H6 asserts the new approved note (no "not measured" claim on the page;
+// EN / ZH from the palm dictionaries) and that no "not measured" wording is left in it in TH / EN / ZH
+const NOT_MEASURED = /ยังไม่ได้วัด|not (yet )?(been )?measured|has not been measured|尚未测量|未测量|尚未实测|尚未在真实手掌上测量/i;
 const MOUNT_EV = "ประเมินจากสัดส่วนนิ้วและฝ่ามือ มุมนิ้วโป้ง รูปเส้นหลักที่ใช้อ่าน และความเรียบของผิวในภาพ";
 
 test("H5 (owner decision 164): the mounts label is exactly the approved text in TH / EN / ZH", () => {
@@ -176,6 +179,8 @@ test("H6 (owner decision 165 ก): the line note is exactly the approved text in
   for (const t of th) assert.equal(t, NOTE.th);
   assert.equal(EN["palm.linesNote"], NOTE.en);
   assert.equal(ZH["palm.linesNote"], NOTE.zh);
+  // re-lock 3 (owner decision 223): the note no longer says the accuracy is "not measured", in any language
+  for (const t of th.concat(EN["palm.linesNote"], ZH["palm.linesNote"])) assert.ok(!NOT_MEASURED.test(t), "note still says 'not measured': " + t);
 });
 
 test("H7 (owner decision 165 ก condition): palm.js renders no clear / faint / unclear confidence badge for a line", () => {

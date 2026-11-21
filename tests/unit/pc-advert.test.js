@@ -24,6 +24,13 @@
 //      67.3 %, 2.5 stay in the docs as history), and "about N in M" stays within 5 points of the chosen-type recall;
 //  10. a flagged line shows the text found, the rule id and "verify with the official source"; no verdict words;
 //  11. Chinese adverts are marked "limited support" in TH / EN / ZH; Thai and English adverts are not.
+// RE-LOCK 2026-11-21 (owner decision 223 / 223-1: customer pages no longer show accuracy figures):
+//   8. EXACT_NONE is the new approved sentence without "in testing ... about 3 in 5" (audit 2026-11-21 §2, medicine.html
+//      md.pc.ad.none; EN / ZH from i18n/en-med.js / zh-med.js); the verdict-word check excludes exactly that sentence;
+//   9. redirected: the page's accuracy line (md.pc.ad.acc) is the plain approved sentence ACC_PLAIN and carries no figure;
+//      the old generated texts (60% / 2.1 / n = 545 / 382, "about 3 in 5") stay records in docs/accuracy-figures.json,
+//      are held verbatim in docs/tech-sheets/product-check-TH.md / -EN.md and admin-measurements.js, and are absent from
+//      the page, the dictionaries and the module; the figures still equal the fresh-set run (unchanged checks).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -48,11 +55,20 @@ const THAI = /[ก-๙]/;
 /** Text outside translate="no" elements (quotes of the advert keep their language). */
 const outsideNoTranslate = html => html.replace(/<(\w+)[^>]*translate="no"[^>]*>[\s\S]*?<\/\1>/g, " ").replace(/<[^>]+>/g, " ");
 // Amendment 2026-11-11 (owner decision "release as experimental"): exact no-signal wording, TH / EN / ZH.
+// Re-lock 2026-11-21 (owner decision 223): the figure clause "in testing ... about 3 in 5" is cut from the page sentence.
 const EXACT_NONE = {
-  en: "No listed wording found. This does not mean the advert is accurate or approved. The check finds about 3 in 5 over-claims in testing.",
-  th: "ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต ในการทดสอบ ระบบพบคำโฆษณาเกินจริงได้ราว 3 ใน 5",
-  zh: "未发现列出的用语。这并不代表该广告准确或已获批准。在测试中，本检查约能发现每 5 条夸大宣传中的 3 条。"
+  en: "No listed wording found. This does not mean the advert is accurate or approved.",
+  th: "ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต",
+  zh: "未发现列出的用语。这并不代表该广告准确或已获批准。"
 };
+// Re-lock 2026-11-21 (owner decision 223): the plain accuracy line that replaces the figures on medicine.html
+const ACC_PLAIN = {
+  th: "ตรวจพบถ้อยคำโฆษณาเกินจริงได้บางส่วน อาจพลาดคำที่เขียนต่างออกไป และบางครั้งเตือนข้อความที่ไม่ผิด",
+  en: "Finds some over-claiming advert wording. It may miss wording phrased differently and sometimes flags text that is fine.",
+  zh: "能检出部分夸大的广告用语，可能漏掉措辞不同的用语，有时也会提示并无问题的文字。"
+};
+/** a measured figure or its source tag on a customer surface (decision 223) */
+const FIGURE = /\d+(\.\d+)?\s?%|\bn\s?=\s?\d|545|382|\b2\.1\b|3 ใน 5|3 in 5|5 条夸大宣传中的 3|ชุดข้อมูลสาธารณะ|public dataset|公开数据集/i;
 const BAN = /illegal|unlawful|fake|counterfeit|scam|fraud|ผิดกฎหมาย|ปลอม|หลอกลวง|ฉ้อโกง|โกง|มิจฉาชีพ|违法|违反|假冒|假货|诈骗|欺诈|骗子/i;
 
 // Synthetic adverts with seller identifiers in the usual places; `seller` lists every token that must never reach the card.
@@ -169,7 +185,7 @@ test("no verdict words in any language; 'about the wording, not a legal finding,
       assert.match(h, /data-note="wording"/, "wording-only note present");
     }
   }
-  // owner decision 2026-11-11: the exact no-signal sentence (generated from docs/accuracy-figures.json, key md.pc.ad.none)
+  // owner decision 2026-11-11 (re-lock 223: the sentence is now the page text of key md.pc.ad.none, EXACT_NONE)
   // is the ONLY place where "approved" / "ถูกต้อง" / "批准" may appear on a no-signal card; everything else stays banned
   const strip = (h, s) => h.split(s).join(" ");
   const en = strip(card(none, "en"), EXACT_NONE.en), zh = strip(card(none, "zh"), EXACT_NONE.zh), th = strip(card(none, "th"), EXACT_NONE.th);
@@ -245,18 +261,48 @@ test("AMENDMENT: no-signal card = the exact owner sentence in TH / EN / ZH; neve
   }
 });
 
-test("AMENDMENT: the no-signal sentence and the accuracy line are generated from docs/accuracy-figures.json; figures = fresh-set run", async () => {
+test("AMENDMENT (re-lock 223): the page shows the plain no-signal sentence and accuracy line with no " +
+  "figure; the figures (= fresh-set run) are in the technical sheets and admin-measurements.js", async () => {
   const { loadFigures, expand } = await import(path.join(ROOT, "tools", "accuracy-sync.mjs"));
   const doc = loadFigures(ROOT);
   const rows = Object.fromEntries(expand(doc).map(r => [r.key, r]));
   const none = rows["md.pc.ad.none"], acc = rows["md.pc.ad.acc"];
-  assert.ok(none && acc, "md.pc.ad.none and md.pc.ad.acc are generated texts");
+  assert.ok(none && acc, "md.pc.ad.none and md.pc.ad.acc are kept as records in docs/accuracy-figures.json");
   assert.equal(none.page, "medicine");
   assert.equal(acc.page, "medicine");
-  for (const lang of ["th", "en", "zh"]) assert.equal(none[lang], EXACT_NONE[lang], "generated no-signal text " + lang);
-  assert.equal(A.KEYS.find(([k]) => k === "md.pc.ad.none")[1], none.th, "module Thai default = generated Thai");
-  assert.equal(EN["md.pc.ad.none"], none.en);
-  assert.equal(ZH["md.pc.ad.none"], none.zh);
+  // the record of the old no-signal sentence = the owner's sentence + the figure clause (nothing else changed)
+  for (const lang of ["th", "en", "zh"]) assert.ok(none[lang].startsWith(EXACT_NONE[lang]) && none[lang].length > EXACT_NONE[lang].length, "record no-signal text " + lang);
+  // page: module Thai default, medicine.html and the EN / ZH dictionaries carry exactly the new sentences
+  assert.equal(A.KEYS.find(([k]) => k === "md.pc.ad.none")[1], EXACT_NONE.th, "module Thai default = the approved sentence");
+  assert.equal(EN["md.pc.ad.none"], EXACT_NONE.en);
+  assert.equal(ZH["md.pc.ad.none"], EXACT_NONE.zh);
+  const med = fs.readFileSync(path.join(ROOT, "medicine.html"), "utf8");
+  const medTexts = k => [...med.matchAll(new RegExp('data-i18n="' + k.replace(/\./g, "\\.") + '"[^>]*>([^<]*)<', "g"))].map(x => x[1].replace(/\s+/g, " ").trim());
+  assert.deepEqual(medTexts("md.pc.ad.none"), [EXACT_NONE.th], "medicine.html no-signal sentence");
+  assert.deepEqual(medTexts("md.pc.ad.acc"), [ACC_PLAIN.th], "medicine.html accuracy line = the plain sentence");
+  assert.equal(EN["md.pc.ad.acc"], ACC_PLAIN.en);
+  assert.equal(ZH["md.pc.ad.acc"], ACC_PLAIN.zh);
+  for (const lang of ["th", "en", "zh"]) {
+    assert.doesNotMatch(ACC_PLAIN[lang], FIGURE, lang + " plain accuracy line carries a figure");
+    assert.doesNotMatch(EXACT_NONE[lang], FIGURE, lang + " no-signal sentence carries a figure");
+  }
+  // inverse: no customer surface of the advert check carries the old generated texts
+  const sq = x => String(x).replace(/\s+/g, " ");
+  const surfaces = { "medicine.html": med, "lensiq-pc-advert.js": fs.readFileSync(path.join(ROOT, "lensiq-pc-advert.js"), "utf8"),
+    "i18n/en-med.js": fs.readFileSync(path.join(ROOT, "i18n", "en-med.js"), "utf8"), "i18n/zh-med.js": fs.readFileSync(path.join(ROOT, "i18n", "zh-med.js"), "utf8") };
+  for (const [rel, src] of Object.entries(surfaces)) for (const r of [acc, none]) for (const lang of ["th", "en", "zh"]) {
+    assert.ok(!sq(src).includes(sq(r[lang])) && !src.includes(JSON.stringify(r[lang]).slice(1, -1)), `${rel} still carries the figure text of ${r.key} (${lang})`);
+  }
+  // redirect: the technical sheets (TH: th; EN: en + zh) and the admin data hold both records verbatim
+  const sheetTH = sq(fs.readFileSync(path.join(ROOT, "docs", "tech-sheets", "product-check-TH.md"), "utf8"));
+  const sheetEN = sq(fs.readFileSync(path.join(ROOT, "docs", "tech-sheets", "product-check-EN.md"), "utf8"));
+  const adminM = fs.readFileSync(path.join(ROOT, "admin-measurements.js"), "utf8");
+  for (const r of [acc, none]) {
+    assert.ok(sheetTH.includes(sq(r.th)), "product-check-TH.md holds " + r.key);
+    assert.ok(sheetEN.includes(sq(r.en)) && sheetEN.includes(sq(r.zh)), "product-check-EN.md holds " + r.key + " (en, zh)");
+    for (const lang of ["th", "en", "zh"]) assert.ok(adminM.includes(JSON.stringify(r[lang])), "admin-measurements.js holds " + r.key + " " + lang);
+  }
+  for (const w of ["60%", "2.1", "n = 545 / 382"]) assert.ok(sheetTH.includes(w) && sheetEN.includes(w) && adminM.includes(w), "figure " + w + " in sheets and admin data");
   const f = doc.figures;
   assert.equal(f.adOver.value, "545");
   assert.equal(f.adComp.value, "382");
@@ -284,7 +330,7 @@ test("AMENDMENT: the no-signal sentence and the accuracy line are generated from
   assert.match(results, /pc_claims[^\n]*stays off|stays off[^\n]*pc_claims/);
   const claims = fs.readFileSync(path.join(ROOT, "docs", "ACCURACY-CLAIMS.md"), "utf8");
   assert.ok(claims.includes(acc.en), "docs/ACCURACY-CLAIMS.md carries the same accuracy line");
-  // the accuracy line names the test, its size, its labels and its source in every language
+  // the accuracy record (technical sheet / admin) names the test, its size, its labels and its source in every language
   const words = {
     en: ["Independent test", "545", "382", "labelled by AI", "pending expert review", "60%", "2.1", "public dataset"],
     th: ["545", "382", "AI", "60%", "2.1", "ชุดข้อมูลสาธารณะ"], zh: ["545", "382", "AI", "60%", "2.1", "公开数据集"]

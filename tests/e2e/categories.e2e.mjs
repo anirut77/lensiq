@@ -2,11 +2,17 @@
 //   1. reachability: the links in the shared header (every menu panel, also closed ones), index.html and the 7 category
 //      landing pages cover EVERY *.html page of the repo except the deliberate exceptions in tools/cat-data.cjs UNLINKED
 //      (admin.html), and every linked page answers 200;
-//   2. each cat-*.html lists exactly its tools with a status tag and source-labelled accuracy lines (Crowd: dense limit);
+//   2. each cat-*.html lists exactly its tools (Crowd: dense limit); [before 223: with a status tag and source-labelled
+//      accuracy lines]
+//      re-lock 2026-11-21 (owner decision 223 / 223-1, inversion): each card shows its customer badge (none / รุ่นทดลอง /
+//      รุ่นทดลอง ยังไม่เปิดขาย / เร็ว ๆ นี้, D.badgeOf) and its two approved lines (D.LINES), and NO accuracy list, source
+//      label, "why this status" or legend, and none of the banned wording of tests/unit/accuracy-removal-223.spec.json;
+//      every accuracy line and status reason the card used to show is held verbatim in docs/tech-sheets/*.md; the count
+//      is exactly "<n> เครื่องมือ" over the tools that are not demo-only; demo-only cards are hidden outside demo mode;
 //   3. desktop 1024 px: bar (no drawer), panel intro link and the breadcrumb open the category page;
 //   4. phones 320 / 360 / 390 px: no horizontal overflow, 44 px targets, the drawer lists the 8 groups with their landing page;
 //   5. English and Chinese: no Thai left on the 7 landing pages.
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { noErrors, mobileCheck, langCheck, assert, sleep } from "./zones-lib.mjs";
@@ -45,7 +51,14 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       console.log(`       ${all.length} pages, ${nLinked} linked, deliberately unlinked: ${Object.keys(D.UNLINKED).join(", ")}` + (unlinked.length ? " (now linked: " + unlinked + ")" : ""));
     });
 
-    await check("landing pages: each tool with status tag + accuracy lines with a source label; counts; Crowd dense limit", async () => {
+    await check("landing pages (re-lock 223): each tool with its badge + two plain lines, no accuracy / source / why / legend (held in the technical sheets); counts; Crowd dense limit", async () => {
+      // decision 223: the technical sheets that hold every original accuracy line and status reason (TH: th; EN: en + zh)
+      const S223 = require(join(repo, "tests", "unit", "accuracy-removal-223.spec.json"));
+      const BANNED = S223.banned.map(b => ({ id: b.id, re: new RegExp(b.re, b.flags || "") }));
+      const sq = x => String(x).replace(/\s+/g, " ");
+      const sheetDir = join(repo, "docs", "tech-sheets");
+      const sheets = re => readdirSync(sheetDir).filter(f => re.test(f)).map(f => sq(readFileSync(join(sheetDir, f), "utf8"))).join("\n");
+      const SHEET = { th: sheets(/-TH\.md$|^README\.md$/), en: sheets(/-EN\.md$|^README\.md$/) };
       // the favicon data URI is split over lines in the generated pages: the browser must decode the same SVG as on
       // solutions.html (whitespace aside) and the icon must render
       const svgOf = () => {
@@ -64,12 +77,20 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
           crumbs: [...document.querySelectorAll(".lq-crumbs li")].map(li => li.textContent.trim()),
           tools: [...document.querySelectorAll(".cat-tool")].map(a => ({
             page: a.dataset.page, st: a.dataset.status, tag: (a.querySelector(".cat-st") || {}).className || "",
-            src: [...a.querySelectorAll(".cat-acc li")].map(li => li.dataset.src + ":" + (li.querySelector(".cat-src") || {}).textContent),
+            badge: ((a.querySelector(".cat-st") || {}).textContent || "").trim(), demoOnly: a.hasAttribute("data-demo-only"),
+            shown: a.getClientRects().length > 0,
+            lines: [...a.querySelectorAll(".cat-ln [data-i18n]")].map(e => e.dataset.i18n + "=" + e.textContent.replace(/\s+/g, " ").trim()),
+            // decision 223 (inverted from "the accuracy lines with their source chip"): count what is left of them
+            src: [...a.querySelectorAll(".cat-acc li, .cat-src, .cat-why, .cat-srcs, .cat-legend, .sl-legend, .claims")].map(e => e.className || e.tagName),
             // re-lock 2026-11-18 (owner decision 2026-11-18: fortune cards carry no accuracy field; business products unchanged):
             // a fortune card is one link, so its page link is that link; every other card keeps its .sl-go page link
-            go: (a.querySelector(".sl-go") || a.querySelector("a[href]") || { getAttribute: () => "" }).getAttribute("href"), text: a.textContent
+            go: (a.querySelector(".sl-go") || a.querySelector("a[href]") || { getAttribute: () => "" }).getAttribute("href"), text: a.textContent,
+            html: a.outerHTML
           })),
-          count: document.getElementById("catCount").textContent
+          count: document.getElementById("catCount").textContent,
+          // decision 223: no accuracy list, source label, "why this status" or legend anywhere on the page
+          removed: [...document.querySelectorAll(".cat-acc, .cat-why, .cat-srcs, .cat-legend, .sl-legend, .claims")].length,
+          main: (document.querySelector("main") || document.body).innerText
         }));
         const fav = await page.evaluate(`(${svgOf})()`);
         const iconW = await page.evaluate(() => new Promise(res => {
@@ -81,16 +102,50 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
         assert(JSON.stringify(r.tools.map(t => t.page)) === JSON.stringify(c.pages), c.slug + " tools " + r.tools.map(t => t.page));
         for (const t of r.tools) {
           const want = D.PAGES[t.page];
-          // re-lock 2026-11-18: only category 6 (noAccuracy) may show no accuracy line; every other card needs at least one
-          assert(c.noAccuracy ? (c.n === 6 && want.claims.length === 0) : want.claims.length >= 1, `${t.page} accuracy lines expected: ${want.claims.length}`);
+          // re-lock 2026-11-22 (owner decision 223, inversion of the 2026-11-18 "every other card needs at least one accuracy
+          // line"): NO card shows an accuracy line or a source chip; the internal data still hold at least one accuracy line per
+          // business page (only category 6 has none), and those lines are checked against the technical sheets below
+          assert(c.noAccuracy ? (c.n === 6 && want.claims.length === 0) : want.claims.length >= 1, `${t.page} internal accuracy lines (tools/cat-data.cjs): ${want.claims.length}`);
+          assert(t.src.length === 0 && !/data-src=|class="cat-src\b/.test(t.html), `${t.page} shows an accuracy line or source chip: ${t.src}`);
+          // each card listed in the locked spec (lines[].cards) shows its two approved lines, exactly the spec's Thai text
+          const specLn = S223.lines.find(x => (x.cards || []).includes(t.page));
+          if (specLn) for (const n of ["1", "2"]) if (specLn[n]) {
+            const got = t.lines.find(l => l.startsWith(`ln.${specLn.id}.${n}=`));
+            assert(got === `ln.${specLn.id}.${n}=` + sq(specLn[n].th).trim(), `${t.page}: line ${n} of ${specLn.id} (spec): ${got}`);
+          }
           // owner order 2026-11-17 (remove สาธิต tag from fortune): noStatusTag categories show no status tag and no data-status
           if (c.noStatusTag) assert(t.st === undefined && t.tag === "", `${t.page} must show no status tag: ${t.st}/${t.tag}`);
-          else assert(t.st === want.st && t.tag.includes(want.st), `${t.page} status ${t.st}/${t.tag}`);
-          assert(t.src.length === want.claims.length && t.src.every((s, i) => s === D.CLAIMS[want.claims[i]].src + ":" + D.SOURCE[D.CLAIMS[want.claims[i]].src].th), `${t.page} sources ${t.src}`);
+          else {
+            // decision 223 (was: data-status === PAGES[page].st and the status class): the customer badge, exactly
+            const b = D.badgeOf(t.page);
+            if (b === "") assert(t.st === undefined && t.tag === "" && t.badge === "", `${t.page} must show no badge: ${t.st}/${t.tag}/${t.badge}`);
+            else assert(t.st === b && t.tag.split(/\s+/).includes(b) && t.badge === D.BADGE[b].th, `${t.page} badge ${t.st}/${t.tag}/${t.badge} (want ${b})`);
+            assert(t.st !== want.st || want.st === b, `${t.page}: old status ${want.st} still shown`);
+          }
+          // decision 223 (inverted from "one accuracy line per claim with its source label"): none on the card ...
+          assert(t.src.length === 0, `${t.page} still shows accuracy / source / why / legend parts: ${t.src}`);
+          for (const B of BANNED) { const m = t.text.match(B.re); assert(!m, `${t.page} card shows banned wording ${B.id}: "${m && m[0]}"`); }
+          // ... and each line and the status reason it used to show is in the technical sheets verbatim
+          for (const k of want.claims) {
+            const cl = D.CLAIMS[k];
+            assert(SHEET.th.includes(sq(cl.th)) && SHEET.en.includes(sq(cl.en)) && SHEET.en.includes(sq(cl.zh)), `${t.page}: accuracy line ${k} missing from docs/tech-sheets`);
+          }
+          if (want.why && D.REASONS[want.why]) assert(SHEET.th.includes(sq(D.REASONS[want.why].th))
+             && SHEET.en.includes(sq(D.REASONS[want.why].en)), `${t.page}: status reason ${want.why} missing from docs/tech-sheets`);
+          // decision 223: the two approved lines of the product, exactly (cards without an entry in D.LINES show none)
+          const ln = Object.entries(D.LINES).find(([, v]) => v.cards.includes(t.page));
+          const wantLines = ln ? ["1", "2"].filter(n => ln[1][n]).map(n => `ln.${ln[0]}.${n}=` + sq(ln[1][n]).trim()) : [];
+          assert(JSON.stringify(t.lines) === JSON.stringify(wantLines), `${t.page} lines ${JSON.stringify(t.lines)} (want ${JSON.stringify(wantLines)})`);
+          // decision 223: demo-only cards are marked and hidden outside demo mode
+          assert(t.demoOnly === D.DEMO_ONLY.includes(t.page), `${t.page} data-demo-only ${t.demoOnly}`);
+          if (t.demoOnly) assert(!t.shown, `${t.page}: demo-only card shown outside demo mode`);
           // walk-through 2026-11-16 D-02: the attendance card's page link opens the PIN / QR time clock (exact href)
           assert(t.go === (t.page === "attendance" ? "attendance.html?mode=employee" : t.page + ".html"), t.page + " link " + t.go);
         }
-        assert(new RegExp("^" + c.pages.length + " เครื่องมือ").test(r.count), c.slug + " count " + r.count);
+        // decision 223 (was: "^<all pages> เครื่องมือ" followed by the status breakdown): exactly the tools shown outside demo mode
+        assert(r.count.trim() === c.pages.filter(p => !D.DEMO_ONLY.includes(p)).length + " เครื่องมือ", c.slug + " count " + r.count);
+        assert(r.removed === 0, c.slug + ": accuracy / why / legend elements on the page: " + r.removed);
+        for (const B of BANNED) { const m = r.main.match(B.re); assert(!m, `${c.slug} page shows banned wording ${B.id}: "${m && m[0]}"`); }
         if (c.slug === "marketing") assert(/ยังไม่เหมาะกับฝูงชนหนาแน่น/.test(r.tools.find(t => t.page === "crowd").text), "crowd dense-crowd limit");
         noErrors(page);
         await page.close();

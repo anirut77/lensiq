@@ -4,6 +4,8 @@
 // (docs/exam/HALL-DETECTOR-RESULTS.md, public dataset), whether a seat is hidden behind the row in front (camera too low)
 // or cut by the frame edge, and a verdict: noseats / nocount / fix / partial / good. Locked before the product code
 // (stream H, 2026-11-13; hashes in ~/LENSIQ-field/evals/gate-hall-h/locked.sha256).
+// Re-lock 2026-11-22 (owner decision 223, approved 223-1): assertions that required a figure, source or old status word on a
+// customer page are inverted (the page must not show it) and redirected (docs/tech-sheets/* must hold it verbatim).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const E = require("../../lensiq-exam.js");
@@ -27,7 +29,16 @@ test("HALL_PLACE: frozen, measured bands and per-detector recall with n, source 
   assert.deepEqual(HP.recall["coco-t2"], [8.4, 38.5, 56.3, 70.2]);
   assert.deepEqual(HP.recall.yolox, [25.2, 48.7, 65.2, 66.9]);
   assert.deepEqual(HP.recall["yolox-t2"], [21.7, 43.1, 66.4, 76.0]);
-  assert.match(HP.source, /public dataset/i);
+  // Decision 223 (redirect, approved 223-1): the source is no longer a displayable string on HALL_PLACE; it must be stated
+  // as a code comment inside the HALL_PLACE block and in the results document the figures come from.
+  assert.equal(HP.source, undefined, "HALL_PLACE carries no displayable source string");
+  const fs = require("node:fs"), path = require("node:path"), root = path.join(__dirname, "..", "..");
+  const src = fs.readFileSync(path.join(root, "lensiq-exam.js"), "utf8");
+  const block = src.slice(src.indexOf("const HALL_PLACE = Object.freeze({"), src.indexOf("});", src.indexOf("const HALL_PLACE = Object.freeze({")));
+  assert.match(block, /\/\/[^\n]*source of the figures above: public dataset \(Open Images V7/i, "source stated as a comment in HALL_PLACE");
+  assert.match(block, /HALL-DETECTOR-RESULTS\.md/);
+  const doc = fs.readFileSync(path.join(root, "docs/exam/HALL-DETECTOR-RESULTS.md"), "utf8");
+  assert.match(doc, /public dataset\*\* \(Open Images V7/i, "results document states the source");
 });
 
 test("HALL_PLACE.minPx follows the fixed rule: lower edge of the smallest band where the detector found >= 50 %", () => {

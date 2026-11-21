@@ -46,3 +46,21 @@ d970d7c66d444647c02fa056bb188fe1929a52b9b79e957f3b6e414d23f82146  merge-pet-a1/f
 # RE-LOCK 2026-11-18 (branch fortune-pet, merge of origin/main; owner decision 110 condition 4), tag merge-pet-a1, ledger docs/CRISIS-V3-RELOCKS.md: merge union of locked parents; no assertion changed. Parents: main 047f5a00 (promo-basics RE-LOCK 1: "404": "support" row in test 5's BASE_ST) + fortune-pet 340830f3 (relock-pet-golive, owner decision 100: no "petread": "demo" row, petread in category 6). Merged = main's file plus the two relock-pet-golive comment lines; BASE_ST has counselling + 404, no petread.
 d970d7c66d444647c02fa056bb188fe1929a52b9b79e957f3b6e414d23f82146  tests/unit/fortune-no-demo.test.js  # repo file (merge-pet-a1)
 dcb60eface0b2e5e0e1840d1fd8a5a6a71d9b15b3ebf0d08615405a03196464c  tests/unit/cat-pages.test.js  # repo file (re-locked in evals-locks/fortune-cards.sha256 at 2026-11-18T16:15:08Z, replaces fc67978eb16bd42ea70ce2cb8b844ca3592d6919753ae539bf859299c526fd05 of line 42; field: ~/LENSIQ-field/evals/fortune-cards/merge-theme/cat-pages.test.js)
+400b082f1cb9c4db55eada0f6367af76dc195b02c646bde6517e6983305f6d19  tests/e2e/categories.e2e.mjs  # repo file (re-locked in evals-locks/fortune-cards.sha256 at 2026-11-21T18:57:33Z, replaces 0290a823d9fddc2c97c8c7e15170fcab1ef2eefbb515e6e3640795d8af0a87db of line 26; field: ~/LENSIQ-field/evals/fortune-cards/relock-223/categories.e2e.mjs)
+f6fde25249eea53b6dc39200a16cbac7598a301ff35ee9f66b3ef66eb8a7d273  tests/unit/cat-pages.test.js  # repo file (re-locked in evals-locks/crisis-rules-1323.sha256 at 2026-11-21T18:57:33Z, replaces dcb60eface0b2e5e0e1840d1fd8a5a6a71d9b15b3ebf0d08615405a03196464c of line 48; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock-223/cat-pages.test.js)
+# locked 2026-11-21T18:57:33Z (tools/eval-guard.mjs lock, 4 files)
+553afbfe2378c0d9b1d5d573e8da9b721b302b4c9567bef9660b1337ef91a23f  relock-223/fortune-no-demo.e2e.mjs
+64b8cc54433ad50309a87b842dd363fb332da55787b66d9a7fb2f65798ad0486  relock-223/fortune-no-demo.test.js
+060030267c39a3f01fb94de27d0b69fc832e69f85c3ade464cf3a54c8df5e39b  relock-223/walkfix.test.js
+f1fb57f7d24c158d0159036c6887fa684b315fa7fa73c071cf32524511a81127  relock-223/NOTE.txt
+553afbfe2378c0d9b1d5d573e8da9b721b302b4c9567bef9660b1337ef91a23f  tests/e2e/fortune-no-demo.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/fortune-no-demo/relock-223/fortune-no-demo.e2e.mjs)
+64b8cc54433ad50309a87b842dd363fb332da55787b66d9a7fb2f65798ad0486  tests/unit/fortune-no-demo.test.js  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/fortune-no-demo/relock-223/fortune-no-demo.test.js)
+060030267c39a3f01fb94de27d0b69fc832e69f85c3ade464cf3a54c8df5e39b  tests/unit/walkfix.test.js  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/fortune-no-demo/relock-223/walkfix.test.js)
+# field only relock-223/NOTE.txt (lock 2026-11-21T18:57:33Z: no repo file uses it)
+e09e763d6d46e86474303718cb7820d943261d5c11c3eb29623b08475a7ea9c5  tests/e2e/categories.e2e.mjs  # repo file (re-locked in evals-locks/fortune-cards.sha256 at 2026-11-21T18:59:15Z, replaces 400b082f1cb9c4db55eada0f6367af76dc195b02c646bde6517e6983305f6d19 of line 49; field: ~/LENSIQ-field/evals/fortune-cards/relock-223b/categories.e2e.mjs)
+# locked 2026-11-21T18:59:15Z (tools/eval-guard.mjs lock, 2 files)
+8332a7048999911cde236b82ccedc65cf388d4e6440fa4027d9a61c3c367c047  relock-223b/fortune-no-demo.e2e.mjs
+e769b3e27f06de6afa8a1737260640012ed079a3b287c8227031f911de14e553  relock-223b/NOTE.txt
+8332a7048999911cde236b82ccedc65cf388d4e6440fa4027d9a61c3c367c047  tests/e2e/fortune-no-demo.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/fortune-no-demo/relock-223b/fortune-no-demo.e2e.mjs)
+# field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:15Z: no repo file uses it)
+6ec6519b989003eb1e021ba704442d93ea227423f0389ff92a03b3523a1dc9c7  tests/unit/cat-pages.test.js  # repo file (re-locked in evals-locks/crisis-rules-1323.sha256 at 2026-11-21T18:59:15Z, replaces f6fde25249eea53b6dc39200a16cbac7598a301ff35ee9f66b3ef66eb8a7d273 of line 50; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock-223b/cat-pages.test.js)

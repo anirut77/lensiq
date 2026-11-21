@@ -17,6 +17,11 @@
 //      are on the advert panel in TH / EN / ZH;
 //   8. no signal: exactly the owner's sentence, no tick; a Chinese advert shows "limited support"; the photo path also
 //      waits for the type.
+// RE-LOCK 2026-11-21 (owner decision 223 / 223-1: customer pages no longer show accuracy figures):
+//   7. the badge is exactly รุ่นทดลอง / Trial version / 试用版; the accuracy line is exactly the plain approved sentence and
+//      carries no figure (the 60% / 2.1 / n = 545 / 382 texts are records held in docs/tech-sheets/product-check-*.md and
+//      admin-measurements.js, checked in tests/unit/pc-advert.test.js); the panel shows none of the old generated texts;
+//   8. the no-signal sentence is exactly the owner's sentence without "in testing ... about 3 in 5".
 // Synthetic advert text only (invented shop, handle and phone); the picture is generated noise.
 import { assert } from "./cdp.mjs";
 import { coverage, phone } from "./gate.e2e.mjs";
@@ -184,10 +189,24 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
-    await check("pc-advert AMENDMENT: experimental badge + generated accuracy line on the panel; exact no-signal sentence; Chinese 'limited support' (TH / EN / ZH)", async () => {
+    await check("pc-advert AMENDMENT (re-lock 223): trial-version badge + plain accuracy line (no figure) " +
+      "on the panel; exact no-signal sentence; Chinese 'limited support' (TH / EN / ZH)", async () => {
       const { loadFigures, expand } = await import("../../tools/accuracy-sync.mjs");
       const rows = Object.fromEntries(expand(loadFigures()).map(r => [r.key, r]));
-      const EXP = { th: "ทดลอง", en: "Experimental", zh: "实验" };
+      const EXP = { th: "รุ่นทดลอง", en: "Trial version", zh: "试用版" };
+      const OLD_EXP = /Experimental|实验|ทดลองใช้|Beta/;
+      const ACC_PLAIN = {
+        th: "ตรวจพบถ้อยคำโฆษณาเกินจริงได้บางส่วน อาจพลาดคำที่เขียนต่างออกไป และบางครั้งเตือนข้อความที่ไม่ผิด",
+        en: "Finds some over-claiming advert wording. It may miss wording phrased differently and sometimes flags text that is fine.",
+        zh: "能检出部分夸大的广告用语，可能漏掉措辞不同的用语，有时也会提示并无问题的文字。"
+      };
+      const EXACT_NONE = {
+        th: "ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต",
+        en: "No listed wording found. This does not mean the advert is accurate or approved.",
+        zh: "未发现列出的用语。这并不代表该广告准确或已获批准。"
+      };
+      const FIGURE = /\d+(\.\d+)?\s?%|\bn\s?=\s?\d|545|382|\b2\.1\b|3 ใน 5|3 in 5|5 条夸大宣传中的 3|ชุดข้อมูลสาธารณะ|public dataset|公开数据集/i;
+      const sq = x => String(x).replace(/\s+/g, " ").trim();
       const LIMITED = { th: "รองรับแบบจำกัด", en: "Limited support", zh: "支持有限" };
       const page = await browser.newPage(null, { initScripts: [INIT], isolated: true });
       for (const lang of ["th", "en", "zh"]) {
@@ -197,11 +216,15 @@ export default async function ({ base, launch, check }) {
         await pick(page, "ad");
         const panel = await page.evaluate(() => ({ badge: (document.querySelector("#pcAdPanel .md-badge[data-exp]") || {}).innerText || "",
           acc: (document.querySelector('#pcAdPanel [data-i18n="md.pc.ad.acc"]') || {}).innerText || "" }));
-        assert(panel.badge.includes(EXP[lang]), `${lang} experimental badge: ${panel.badge}`);
-        assert(panel.acc.replace(/\s+/g, " ").trim() === rows["md.pc.ad.acc"][lang].replace(/\s+/g, " ").trim(), `${lang} accuracy line = generated: ${panel.acc}`);
+        assert(sq(panel.badge) === EXP[lang] && !OLD_EXP.test(panel.badge), `${lang} trial-version badge: ${panel.badge}`);
+        assert(sq(panel.acc) === ACC_PLAIN[lang], `${lang} accuracy line = the plain approved sentence: ${panel.acc}`);
+        assert(!FIGURE.test(panel.acc), `${lang} accuracy line carries a figure: ${panel.acc}`);
+        const panelText = await page.evaluate(() => (document.querySelector("#pcAdPanel") || {}).innerText || "");
+        for (const k of ["md.pc.ad.acc", "md.pc.ad.none"]) assert(!sq(panelText).includes(sq(rows[k][lang])), `${lang} panel still shows the figure text of ${k}`);
         await paste(page, "สินค้าดีมาก ส่งไว", "food");
         const none = await page.evaluate(() => { const p = document.querySelector("#pcAdCard [data-none]"); return { t: p ? p.innerText : "", html: document.querySelector("#pcAdCard").innerHTML }; });
-        assert(none.t.trim() === rows["md.pc.ad.none"][lang], `${lang} exact no-signal sentence: ${none.t}`);
+        assert(none.t.trim() === EXACT_NONE[lang], `${lang} exact no-signal sentence: ${none.t}`);
+        assert(!FIGURE.test(none.t), `${lang} no-signal sentence carries a figure: ${none.t}`);
         assert(!/✓|✔|✅|☑|data-kind="ok"|no problem|ไม่มีปัญหา|没有问题/i.test(none.html), lang + " no tick / no 'no problem'");
         await paste(page, "本品三天根治糖尿病，无副作用 美白", "supplement");
         await page.waitFor(`document.querySelector("#pcAdCard [data-limited]")`, 8000);

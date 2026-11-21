@@ -24,3 +24,17 @@ c9d488fef0c809231b548875e504ec70addf8b50e6154a3faf6f22c789362ae1  tests/e2e/prod
 # (fresh-2 figures, 089d132c…) was never recorded and is superseded. Commit b8021a0 on branch advert-rules.
 bdc23c0a89f727e687510606a26595c3de752b039034147f0e051ba49343f855  tests/unit/pc-advert.test.js  # repo file
 c9d488fef0c809231b548875e504ec70addf8b50e6154a3faf6f22c789362ae1  tests/e2e/product-check-advert.e2e.mjs  # repo file
+# locked 2026-11-21T18:57:33Z (tools/eval-guard.mjs lock, 3 files)
+7f955f070829e60f2445b5de2627c4bd3a5ccb351059590ca2d37ea8c4a3739c  relock-223/product-check-advert.e2e.mjs
+8de9bd044ea150f359029f52a93e9bbf0c9151c505e6a28dbc4e43f58289b3fb  relock-223/pc-advert.test.js
+cea270ab44a30fc10b3789f8d3e4cd4d84d0841dcfbe79283f4625fd1d59bdb8  relock-223/NOTE.txt
+7f955f070829e60f2445b5de2627c4bd3a5ccb351059590ca2d37ea8c4a3739c  tests/e2e/product-check-advert.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/adverts/relock-223/product-check-advert.e2e.mjs)
+8de9bd044ea150f359029f52a93e9bbf0c9151c505e6a28dbc4e43f58289b3fb  tests/unit/pc-advert.test.js  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/adverts/relock-223/pc-advert.test.js)
+# field only relock-223/NOTE.txt (lock 2026-11-21T18:57:33Z: no repo file uses it)
+# locked 2026-11-21T18:59:15Z (tools/eval-guard.mjs lock, 3 files)
+a242cca202001dc6c337dea0c956472550deb922393e40e1aadbf6476e945439  relock-223b/product-check-advert.e2e.mjs
+4e14b326e8f4a760c509bc1bce848f85e514fd083ec653a689f9afeb1ebfc5bc  relock-223b/pc-advert.test.js
+86ef9cef5eae5c615c29633ec70eea5acccb77e2defcdc4e81b7da6dfe2640c7  relock-223b/NOTE.txt
+a242cca202001dc6c337dea0c956472550deb922393e40e1aadbf6476e945439  tests/e2e/product-check-advert.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/adverts/relock-223b/product-check-advert.e2e.mjs)
+4e14b326e8f4a760c509bc1bce848f85e514fd083ec653a689f9afeb1ebfc5bc  tests/unit/pc-advert.test.js  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/adverts/relock-223b/pc-advert.test.js)
+# field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:15Z: no repo file uses it)

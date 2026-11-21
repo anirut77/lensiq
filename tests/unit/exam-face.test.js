@@ -3,6 +3,8 @@
 // 2026-11-10): mesh -> 68-point mapping, pose from mesh / matrix, the ?fakedet seam, engine choice (face-api.js only in
 // the research demo + ?faceengine=faceapi), the lab monitor with no face engine, the vendored model files (no
 // facial-movement score model in the .task, sha256 as in the READMEs) and the Exam pages' scripts (no face-api.js).
+// Re-lock 2026-11-22 (owner decision 223, approved 223-1): assertions that required a figure, source or old status word on a
+// customer page are inverted (the page must not show it) and redirected (docs/tech-sheets/* must hold it verbatim).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -289,7 +291,9 @@ test("every page offering the hall page carries the experimental label in Thai, 
     try { return dictOf("i18n/" + x); } catch { return {}; }
   }));
   const en = all("en"), zh = all("zh");
-  const TH = /ทดลอง/, EN = /experimental/i, ZH = /实验性/;
+  // Decision 223-2: the approved label is now "รุ่นทดลอง" / "trial version" / "试用版" (was "ทดลอง" / "experimental" / "实验性");
+  // the old English / Chinese word must no longer be on the hall link or card.
+  const TH = /ทดลอง/, EN = /trial version/i, ZH = /试用版/, OLD_EN = /experimental/i, OLD_ZH = /实验性/;
   const pages = fs.readdirSync(ROOT).filter(x => x.endsWith(".html") && x !== "exam-hall.html" && /href="exam-hall\.html"/.test(read(x)));
   for (const must of ["cameras.html", "cat-education.html", "exam.html"]) assert.ok(pages.includes(must), must + " offers the hall page");
   let links = 0;
@@ -308,8 +312,9 @@ test("every page offering the hall page carries the experimental label in Thai, 
       const keys = [...scope.matchAll(/data-i18n="([^"]+)"/g)].map(k => k[1]);
       assert.ok(keys.length, p + ": hall link text is translatable");
       for (const k of keys) { assert.ok(en[k] != null, `${p}: en ${k}`); assert.ok(zh[k] != null, `${p}: zh ${k}`); }
-      assert.ok(keys.some(k => EN.test(en[k])), `${p}: English text of the hall link / card says experimental (${keys.join(", ")})`);
-      assert.ok(keys.some(k => ZH.test(zh[k])), `${p}: Chinese text of the hall link / card says 实验性 (${keys.join(", ")})`);
+      assert.ok(keys.some(k => EN.test(en[k])), `${p}: English text of the hall link / card says trial version (${keys.join(", ")})`);
+      assert.ok(keys.some(k => ZH.test(zh[k])), `${p}: Chinese text of the hall link / card says 试用版 (${keys.join(", ")})`);
+      for (const k of keys) { assert.doesNotMatch(en[k], OLD_EN, `${p}: en ${k} still says experimental`); assert.doesNotMatch(zh[k], OLD_ZH, `${p}: zh ${k} still says 实验性`); }
     }
   }
   assert.ok(links >= 4, "hall links checked: " + links);
@@ -317,7 +322,7 @@ test("every page offering the hall page carries the experimental label in Thai, 
   for (const p of fs.readdirSync(ROOT).filter(x => x.endsWith(".html"))) {
     for (const m of read(p).matchAll(/data-i18n="nav\.exam-hall\.desc">([^<]*)</g)) assert.match(m[1], TH, p + ": inline Thai nav.exam-hall.desc");
   }
-  assert.match(read("nav.js"), /href: "exam-hall\.html"[^}]*desc: "[^"]*\(ทดลอง\)"/);
+  assert.match(read("nav.js"), /href: "exam-hall\.html"[^}]*desc: "[^"]*\(รุ่นทดลอง\)"/); // decision 223-2: approved badge word
 });
 
 /* ---------- follow-ups 2026-11-10: hall "experimental", the hall pick, the lab second-person cue (§7) ---------- */
@@ -332,49 +337,85 @@ test("hall mode is labelled experimental in Thai, English and Chinese wherever i
   const en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
   const enC = dictOf("i18n/en-common.js"), zhC = dictOf("i18n/zh-common.js"), enS = dictOf("i18n/en-solutions.js"), zhS = dictOf("i18n/zh-solutions.js");
   const enCat = dictOf("i18n/en-cat.js"), zhCat = dictOf("i18n/zh-cat.js");
-  const TH = /ทดลอง/, EN = /experimental/i, ZH = /实验性/;
-  // the hall page itself: a banner above the setup form, with the measured number, its n and its source
+  // Decision 223-2 (approved 223-1): the label is now "รุ่นทดลอง" / "Trial version" / "试用版"; the measured figures, n and
+  // source left the customer page and are held verbatim by the technical sheet (docs/tech-sheets/exam-TH.md / -EN.md).
+  const TH = /ทดลอง/, EN = /trial version/i, ZH = /试用版/, OLD_EN = /experimental/i, OLD_ZH = /实验性/;
+  const sheetTH = read("docs/tech-sheets/exam-TH.md"), sheetEN = read("docs/tech-sheets/exam-EN.md");
+  const sheet = (src, key) => src.split("\n").filter(l => l.startsWith("[" + key + "] ")).map(l => l.slice(key.length + 3));
+  // the hall page itself: a banner above the setup form, label + plain limit; figures, n and source in the tech sheet
   const hall = read("exam-hall.html");
   assert.ok(hall.indexOf('id="hallExp"') > 0 && hall.indexOf('id="hallExp"') < hall.indexOf('id="setupForm"'), "banner above the setup form");
   const banner = /id="hallExp"[^>]*>([\s\S]*?)<\/p>/.exec(hall)[1];
   assert.match(banner, /data-i18n="exam\.hall\.expB">รุ่นทดลอง ยังไม่เปิดขาย</);
-  for (const t of [banner, en["exam.hall.exp"], zh["exam.hall.exp"]]) for (const tok of ["0%", "n = 195", "63%", "24–48 px", "0.40"]) assert.ok(t.includes(tok),
-    `hall banner: "${tok}" in ${t.slice(0, 40)}`);
-  assert.match(banner, /ชุดข้อมูลสาธารณะ/); assert.match(en["exam.hall.exp"], /public dataset/); assert.match(zh["exam.hall.exp"], /公开数据集/);
-  assert.match(en["exam.hall.expB"], /Experimental, not on sale yet/); assert.match(zh["exam.hall.expB"], /实验性，暂不销售/);
+  assert.match(banner, /ใบหน้าที่อยู่ไกลกล้องยังหาไม่เจอ/);
+  const [shTh] = sheet(sheetTH, "exam.hall.exp"), [shEn, shZh] = sheet(sheetEN, "exam.hall.exp");
+  assert.ok(shTh && shEn && shZh, "tech sheet holds exam.hall.exp in TH / EN / ZH");
+  for (const tok of ["0%", "n = 195", "63%", "24–48 px", "0.40"]) {
+    for (const t of [banner, en["exam.hall.exp"], zh["exam.hall.exp"]]) assert.ok(!t.includes(tok), `hall banner no longer shows "${tok}": ${t.slice(0, 40)}`);
+    for (const t of [shTh, shEn, shZh]) assert.ok(t.includes(tok), `tech sheet exam.hall.exp holds "${tok}": ${t.slice(0, 40)}`);
+  }
+  assert.doesNotMatch(banner, /ชุดข้อมูลสาธารณะ/); assert.doesNotMatch(en["exam.hall.exp"], /public dataset/); assert.doesNotMatch(zh["exam.hall.exp"], /公开数据集/);
+  assert.match(shTh, /ชุดข้อมูลสาธารณะ/); assert.match(shEn, /public dataset/); assert.match(shZh, /公开数据集/);
+  assert.match(en["exam.hall.expB"], /^Trial version, not on sale yet$/); assert.match(zh["exam.hall.expB"], /^试用版，尚未开售$/);
+  assert.doesNotMatch(en["exam.hall.expB"], OLD_EN); assert.doesNotMatch(zh["exam.hall.expB"], OLD_ZH);
   // Exam landing page: the button, the mode card and the price card
   const landing = read("exam.html");
   assert.match(landing, /data-i18n="exam\.l\.ctaHall">[^<]*ทดลอง/);
   assert.match(landing, /id="hallExp"><b data-i18n="exam\.l\.mAxB">รุ่นทดลอง ยังไม่เปิดขาย</);
   assert.match(landing, /data-i18n="exam\.l\.p3x">รุ่นทดลอง[^<]*ยังไม่เปิดขาย/);
-  for (const k of ["exam.l.ctaHall", "exam.l.mAxB", "exam.l.p3x"]) { assert.match(en[k], EN, "en " + k); assert.match(zh[k], ZH, "zh " + k); }
+  for (const k of ["exam.l.ctaHall", "exam.l.mAxB", "exam.l.p3x"]) {
+    assert.match(en[k], EN, "en " + k); assert.match(zh[k], ZH, "zh " + k);
+    assert.doesNotMatch(en[k], OLD_EN, "en " + k); assert.doesNotMatch(zh[k], OLD_ZH, "zh " + k);
+  }
   assert.match(en["exam.l.p3x"], /not on sale/); assert.match(zh["exam.l.p3x"], /不销售/);
   // navigation, solutions catalogue
   assert.match(read("nav.js"), /href: "exam-hall\.html"[^}]*ทดลอง/);
   assert.match(enC["nav.exam-hall.desc"], EN); assert.match(zhC["nav.exam-hall.desc"], ZH);
+  assert.doesNotMatch(enC["nav.exam-hall.desc"], OLD_EN); assert.doesNotMatch(zhC["nav.exam-hall.desc"], OLD_ZH);
   assert.match(read("solutions.html"), /ห้องสอบที่มีกล้องรอบห้อง \(รุ่นทดลอง ยังไม่เปิดขาย\)/);
-  assert.match(enS["sl.c.edu1.p"], /cameras around the room \(experimental, not on sale yet\)/); assert.match(zhS["sl.c.edu1.p"], /实验性，暂不销售/);
-  // category page + status table: generated from tools/cat-data.cjs
+  assert.match(enS["sl.c.edu1.p"], /cameras around the room \(trial version, not on sale yet\)/); assert.match(zhS["sl.c.edu1.p"], /试用版，尚未开售/);
+  assert.doesNotMatch(enS["sl.c.edu1.p"], OLD_EN); assert.doesNotMatch(zhS["sl.c.edu1.p"], OLD_ZH);
+  // category page: generated from tools/cat-data.cjs; the internal status table (PAGES / REASONS) is unchanged, the card
+  // shows only the customer badge (badgeOf: hall for exam-hall, trial for the lab); the reason text is in the tech sheet
   const D = require("../../tools/cat-data.cjs");
   assert.equal(D.PAGES["exam-hall"].st, "experimental");
   for (const p of ["exam", "exam-lab", "exam-dashboard"]) assert.equal(D.PAGES[p].st, "pilot-ready", p + " unchanged");
-  assert.match(read("cat-education.html"), /data-page="exam-hall" data-status="experimental"/);
-  assert.match(read("cat-education.html"), /data-page="exam-lab" data-status="pilot-ready"/);
-  assert.match(D.REASONS.examHall.th, TH); assert.match(D.REASONS.examHall.en, EN); assert.match(D.REASONS.examHall.zh, ZH);
-  assert.match(enCat["cat.r.examHall"], /not for sale yet/); assert.match(zhCat["cat.r.examHall"], /暂不销售/);
+  assert.equal(D.badgeOf("exam-hall"), "hall"); assert.equal(D.badgeOf("exam-lab"), "trial");
+  const catEdu = read("cat-education.html");
+  assert.match(catEdu, /data-page="exam-hall" data-status="hall">[\s\S]{0,200}?<span class="cat-st hall" data-i18n="cat\.b\.hall">รุ่นทดลอง ยังไม่เปิดขาย<\/span>/);
+  assert.match(catEdu, /data-page="exam-lab" data-status="trial"/);
+  assert.doesNotMatch(catEdu, /data-page="exam-hall" data-status="experimental"|data-page="exam-lab" data-status="pilot-ready"/);
+  assert.equal(enCat["cat.b.hall"], "Trial version, not on sale yet"); assert.equal(zhCat["cat.b.hall"], "试用版，尚未开售");
+  assert.match(D.REASONS.examHall.th, TH); assert.match(D.REASONS.examHall.en, OLD_EN); assert.match(D.REASONS.examHall.zh, OLD_ZH);
+  assert.equal(enCat["cat.r.examHall"], undefined, "reason no longer on the customer card"); assert.equal(zhCat["cat.r.examHall"], undefined);
+  const [rEn, rZh] = sheet(sheetEN, "cat.r.examHall");
+  assert.match(rEn, /not for sale yet/); assert.match(rZh, /暂不销售/); assert.match(sheet(sheetTH, "cat.r.examHall")[0], /ยังไม่เปิดขาย/);
   assert.match(read("docs/PAGE-STATUS.md"), /\| `exam-hall\.html` \| 2 Education & Exams \| \*\*experimental\*\* \|/);
   // sales documents
   const one = read("docs/ONE-PAGER-EXAM.md");
-  assert.ok((one.match(/รุ่นทดลอง ยังไม่เปิดขาย/g) || []).length >= 2 && (one.match(/experimental, not on sale yet/g) || []).length >= 2, "one-pager: what you get + price row, TH and EN");
+  assert.ok((one.match(/รุ่นทดลอง ยังไม่เปิดขาย/g) || []).length >= 2 && (one.match(/trial version, not on sale yet/g) || []).length >= 2, "one-pager: what you get + price row, TH and EN");
+  assert.doesNotMatch(one, /experimental, not on sale yet/);
   assert.match(read("docs/SALES-PACKAGES.md"), /camera-hall mode \(`exam-hall\.html`, \*\*experimental, not sold until the small-face issue is fixed\*\*/);
-  assert.match(read("docs/ONE-PAGER-ZH.md"), /考场摄像头[^|\n]*实验性/);
-  assert.match(read("docs/ONE-PAGER-TH.md"), /เครื่องกล้องในห้องสอบ[^|\n]*รุ่นทดลอง/);
-  // lab mode keeps its wording: no "experimental" on the lab button or nav entry
-  for (const d of [en, zh]) assert.doesNotMatch(d["exam.l.ctaLab"], /experimental|实验性/);
-  assert.doesNotMatch(enC["nav.exam-lab.desc"], EN);
-  // no Thai in the new en / zh strings
-  for (const d of [en, zh]) for (const k of ["exam.hall.exp", "exam.hall.expB", "exam.hall.faceOn", "exam.hall.faceErr", "exam.hall.kvFaces", "exam.hall.kvFaceOff", "exam.l.cl4", "exam.l.cl5"]) {
+  // ONE-PAGER-TH / -ZH: the accuracy table (which carried the hall label) is gone; the rows are held verbatim by the tech-sheet
+  // README, and any remaining mention of the hall device still carries the label
+  const techReadme = read("docs/tech-sheets/README.md");
+  assert.match(techReadme, /考场摄像头[^|\n]*实验性/); assert.match(techReadme, /เครื่องกล้องในห้องสอบ[^|\n]*รุ่นทดลอง/);
+  for (const line of read("docs/ONE-PAGER-ZH.md").split("\n")) if (/考场摄像头设备/.test(line)) assert.match(line, /试用版/, "ONE-PAGER-ZH: " + line.slice(0, 60));
+  for (const line of read("docs/ONE-PAGER-TH.md").split("\n")) if (/เครื่องกล้องในห้องสอบ/.test(line)) assert.match(line, /รุ่นทดลอง/, "ONE-PAGER-TH: " + line.slice(0, 60));
+  assert.doesNotMatch(read("docs/ONE-PAGER-ZH.md"), /实验性，暂不销售/);
+  // lab mode keeps its wording: no "experimental" and no "not on sale" on the lab button or nav entry
+  for (const d of [en, zh]) assert.doesNotMatch(d["exam.l.ctaLab"], /experimental|实验性|not on sale|尚未开售|不销售/);
+  assert.doesNotMatch(landing, /data-i18n="exam\.l\.ctaLab">[^<]*ยังไม่เปิดขาย/);
+  assert.doesNotMatch(enC["nav.exam-lab.desc"], OLD_EN); assert.doesNotMatch(enC["nav.exam-lab.desc"], /not on sale/);
+  // no Thai in the en / zh strings; exam.l.cl4 / cl5 (figures) left the page and the dictionaries and are in the tech sheet
+  for (const d of [en, zh]) for (const k of ["exam.hall.exp", "exam.hall.expB", "exam.hall.faceOn", "exam.hall.faceErr", "exam.hall.kvFaces", "exam.hall.kvFaceOff"]) {
     assert.ok(d[k] && !THAI_RE.test(d[k]), k);
+  }
+  for (const k of ["exam.l.cl4", "exam.l.cl5"]) {
+    assert.equal(en[k], undefined, "en " + k + " removed"); assert.equal(zh[k], undefined, "zh " + k + " removed");
+    assert.doesNotMatch(landing, new RegExp('data-i18n="' + k.replace(/\./g, "\\.") + '"'), k + " not on exam.html");
+    const [e, z] = sheet(sheetEN, k);
+    assert.ok(e && z && !THAI_RE.test(e) && !THAI_RE.test(z) && sheet(sheetTH, k)[0], k + " in the tech sheet TH / EN / ZH");
   }
 });
 
@@ -397,11 +438,21 @@ test("owner decisions 2026-11-10 (follow-up): no rate in the candidate notice, >
   const tpl = /<div class="notice-print">([\s\S]*?)<\/div>/.exec(read("exam.html"))[1];
   assert.doesNotMatch(tpl.replace(/90 วัน/g, ""), RATE);
   for (const d of [en, zh]) for (const k of ["exam.l.n1", "exam.l.n3", "exam.l.n4"]) assert.doesNotMatch(d[k], RATE, k);
-  // invigilator-facing pages keep it: the dashboard note and the landing claim list
+  // invigilator-facing: decision 223 (approved 223-1) moved the rate off every customer page; the dashboard note keeps the
+  // approved plain sentence (the signal is only an aid, often misses a second person, keep walking the room) and the
+  // technical sheet holds the rate, its n and its source verbatim (exam.db.nMulti and exam.l.cl5)
   const dash = read("exam-dashboard.html");
-  assert.match(dash.replace(/\s+/g, " "), /class="note" id="nMulti" data-i18n="exam\.db\.nMulti">[^<]*28\.8% \(15 \/ 52\) · n = 52 ภาพ · ที่มา: ชุดข้อมูลสาธารณะ/);
-  assert.match(en["exam.db.nMulti"], /28\.8% \(15 \/ 52\) · n = 52 frames · source: public dataset/); assert.match(zh["exam.db.nMulti"], /28\.8%（15 \/ 52）· n = 52 帧 · 来源：公开数据集/);
-  assert.match(read("exam.html"), /data-i18n="exam\.l\.cl5">[^<]*28\.8% \(15 \/ 52\)/);
+  assert.match(dash.replace(/\s+/g, " "),
+    /class="note" id="nMulti" data-i18n="exam\.db\.nMulti">สัญญาณ “มากกว่าหนึ่งคน” เป็นตัวช่วยเท่านั้น มักไม่แจ้งเมื่อมีคนที่สองในภาพ ผู้คุมสอบต้องเดินตรวจตามปกติ</);
+  assert.equal(en["exam.db.nMulti"], "The “more than one person” signal is only an aid and often does not fire when a second person is in view. Invigilators must still walk the room.");
+  assert.equal(zh["exam.db.nMulti"], "“多于一人”信号只是辅助，画面中出现第二个人时常常不会提示。监考员仍须照常巡视。");
+  for (const t of [/id="nMulti"[^>]*>([^<]*)</.exec(dash)[1], en["exam.db.nMulti"], zh["exam.db.nMulti"]]) assert.doesNotMatch(t, RATE, "no rate in the dashboard note");
+  assert.doesNotMatch(read("exam.html"), /data-i18n="exam\.l\.cl5"|28\.8%/, "exam.html: the claim list is gone");
+  const shTH = read("docs/tech-sheets/exam-TH.md"), shEN = read("docs/tech-sheets/exam-EN.md");
+  assert.match(shTH, /^\[exam\.db\.nMulti\] [^\n]*28\.8% \(15 \/ 52\) · n = 52 ภาพ · ที่มา: ชุดข้อมูลสาธารณะ/m);
+  assert.match(shEN, /^\[exam\.db\.nMulti\] [^\n]*28\.8% \(15 \/ 52\) · n = 52 frames · source: public dataset/m);
+  assert.match(shEN, /^\[exam\.db\.nMulti\] [^\n]*28\.8%（15 \/ 52）· n = 52 帧 · 来源：公开数据集/m);
+  assert.match(shTH, /^\[exam\.l\.cl5\] [^\n]*28\.8% \(15 \/ 52\)/m); assert.match(shEN, /^\[exam\.l\.cl5\] [^\n]*28\.8% \(15 \/ 52\)/m);
   // 1. the >= 90 % target stays, as the bar for the claim; the pilot reports the measured rate; "aid" until met
   const kit = read("docs/pilot/PILOT-EXAM.md");
   assert.match(kit, /ใบหน้าที่สอง: รายงานค่าที่วัดได้ \(เกณฑ์ ≥ 90% ก่อนอ้างว่า “ตรวจจับคนที่สอง”/);
@@ -438,7 +489,8 @@ test("owner decisions 2026-11-10 (follow-up): no rate in the candidate notice, >
   assert.match(en["exam.l.p3n"], /^or ฿990 per month per room /); assert.match(zh["exam.l.p3n"], /^或每考场每月 ฿990/);
   const one = read("docs/ONE-PAGER-EXAM.md");
   assert.match(one, /ห้องสอบที่มีกล้อง \(ต่อห้อง จำนวนกล้องขึ้นกับขนาดห้อง ดูคู่มือวางกล้อง\) \*\*— รุ่นทดลอง ยังไม่เปิดขาย\*\* \| 290 บาท ต่อห้องต่อวันสอบ/);
-  assert.match(one, /Camera hall \(per room; number of cameras depends on room size, see the guide\), \*\*experimental, not on sale yet\*\* \| 290 THB per room per exam day/);
+  // decision 223-2: the approved badge wording "trial version" replaces "experimental" (price unchanged)
+  assert.match(one, /Camera hall \(per room; number of cameras depends on room size, see the guide\), \*\*trial version, not on sale yet\*\* \| 290 THB per room per exam day/);
   const GUIDE = '`docs\\/EXAM\\.md` "Hall camera placement guide"\\)';
   assert.match(read("docs/BILLING-PLAN.md"), new RegExp("`exam_hall` \\|[^\\n]*\\*\\*Experimental, not on sale\\*\\*[^\\n]*the number of cameras depends on room size " +
     "\\(see the guide: " + GUIDE + " \\| 290 THB per room per exam day, or 990 THB \\/ month per room \\|"));
@@ -451,32 +503,51 @@ test("owner decisions 2026-11-10 (follow-up): no rate in the candidate notice, >
 
 test("owner decisions 2026-11-10: lab-led pilot with the accepted limit, the 28.8 % rate stated as an aid (TH / EN / ZH), the count-faces label, the placement guide is a calculation", () => {
   const en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
-  // "more than one person": the measured rate, its n, its source and "an aid, not complete detection" on both pages
+  // "more than one person": decision 223 (approved 223-1) took the rate, its n and its source off the customer pages. The
+  // dashboard note keeps the approved plain sentence ("only an aid", often misses a second person); exam.html's claim list
+  // (exam.l.cl5) is gone; the technical sheet holds both original texts verbatim (rate, n, source, "an aid, not complete
+  // detection", held-out, not exam-room footage, real exam rooms not measured) in TH / EN / ZH.
   const thOf = (file, key) => new RegExp('data-i18n="' + key.replace(/\./g, "\\.") + '">([^<]*)<').exec(read(file))[1].replace(/\s+/g, " ");
-  // (owner decision 2 of the follow-up: the rate is on the invigilator-facing pages only: the landing claim list and the dashboard)
-  for (const [file, key] of [["exam.html", "exam.l.cl5"], ["exam-dashboard.html", "exam.db.nMulti"]]) {
-    const th = thOf(file, key);
-    for (const t of [th, en[key], zh[key]]) {
+  const shTH = read("docs/tech-sheets/exam-TH.md"), shEN = read("docs/tech-sheets/exam-EN.md");
+  const sheet = (src, key) => src.split("\n").filter(l => l.startsWith("[" + key + "] ")).map(l => l.slice(key.length + 3));
+  const dashTh = thOf("exam-dashboard.html", "exam.db.nMulti");
+  assert.match(dashTh, /มากกว่าหนึ่งคน/); assert.match(dashTh, /เป็นตัวช่วยเท่านั้น/); assert.match(dashTh, /มักไม่แจ้งเมื่อมีคนที่สองในภาพ/); assert.match(dashTh, /ผู้คุมสอบต้องเดินตรวจตามปกติ/);
+  assert.match(en["exam.db.nMulti"], /more than one person/); assert.match(en["exam.db.nMulti"], /only an aid/); assert.match(en["exam.db.nMulti"], /must still walk the room/);
+  assert.match(zh["exam.db.nMulti"], /多于一人/); assert.match(zh["exam.db.nMulti"], /只是辅助/); assert.match(zh["exam.db.nMulti"], /照常巡视/);
+  for (const t of [dashTh, en["exam.db.nMulti"], zh["exam.db.nMulti"]]) {
+    for (const tok of ["28.8%", "n = 52", "15 / 52", "ชุดข้อมูลสาธารณะ", "public dataset", "公开数据集", "ยังไม่ได้วัด", "not measured", "尚未测量"])
+       assert.ok(!t.includes(tok), "dashboard note no longer shows " + tok);
+  }
+  assert.ok(!THAI_RE.test(en["exam.db.nMulti"]) && !THAI_RE.test(zh["exam.db.nMulti"]), "exam.db.nMulti: no Thai in en / zh");
+  assert.equal(en["exam.l.cl5"], undefined); assert.equal(zh["exam.l.cl5"], undefined); assert.doesNotMatch(read("exam.html"), /exam\.l\.cl5/);
+  for (const key of ["exam.l.cl5", "exam.db.nMulti"]) {
+    const [th] = sheet(shTH, key), [e, z] = sheet(shEN, key);
+    assert.ok(th && e && z, key + ": tech sheet TH / EN / ZH");
+    for (const t of [th, e, z]) {
       assert.ok(t.includes("28.8%") && t.includes("n = 52"), key + ": 28.8% and n = 52 in " + t.slice(0, 50)); assert.match(t, /15 \/ 52/, key);
     }
     assert.match(th, /มากกว่าหนึ่งคน/); assert.match(th, /เป็นตัวช่วยผู้คุมสอบ ไม่ใช่การตรวจจับที่ครบถ้วน/); assert.match(th, /ชุดข้อมูลสาธารณะ/); assert.match(th, /ไม่ใช่ภาพห้องสอบจริง/);
-    assert.match(en[key], /more than one person/); assert.match(en[key], /an aid for the invigilator, not complete detection/);
-    assert.match(en[key], /public dataset/); assert.match(en[key], /held-out/);
-    assert.match(zh[key], /不止一个人/); assert.match(zh[key], /辅助，并非完整检测/); assert.match(zh[key], /公开数据集/);
-    assert.ok(!THAI_RE.test(en[key]) && !THAI_RE.test(zh[key]), key + ": no Thai in en / zh");
+    assert.match(e, /more than one person/); assert.match(e, /an aid for the invigilator, not complete detection/);
+    assert.match(e, /public dataset/); assert.match(e, /held-out/);
+    assert.match(z, /不止一个人/); assert.match(z, /辅助，并非完整检测/); assert.match(z, /公开数据集/);
+    assert.ok(!THAI_RE.test(e) && !THAI_RE.test(z), key + ": no Thai in en / zh");
   }
-  for (const k of ["exam.db.nMulti"]) { assert.match(thOf("exam-dashboard.html", k), /ในห้องสอบจริง: ยังไม่ได้วัด/);
-  assert.match(en[k], /real exam rooms: not measured/);
-  assert.match(zh[k], /尚未测量/); }
+  for (const k of ["exam.db.nMulti"]) { assert.match(sheet(shTH, k)[0], /ในห้องสอบจริง: ยังไม่ได้วัด/);
+  assert.match(sheet(shEN, k)[0], /real exam rooms: not measured/);
+  assert.match(sheet(shEN, k)[1], /尚未测量/); }
   // solutions catalogue: the same wording as the product ("more than one person"), not "several faces"
   assert.match(read("solutions.html"), /data-i18n="sl\.c\.edu1\.p">[^<]*มากกว่าหนึ่งคน/); assert.doesNotMatch(read("solutions.html"), /sl\.c\.edu1\.p">[^<]*หลายใบหน้า/);
   assert.match(dictOf("i18n/en-solutions.js")["sl.c.edu1.p"], /more than one person/); assert.doesNotMatch(dictOf("i18n/en-solutions.js")["sl.c.edu1.p"], /several faces/);
   assert.match(dictOf("i18n/zh-solutions.js")["sl.c.edu1.p"], /不止一个人/);
   // one-pagers and the pilot kit
-  const one = read("docs/ONE-PAGER-EXAM.md");
-  assert.match(one, /เป็นตัวช่วย ไม่ใช่การตรวจจับที่ครบถ้วน\*\* \| 28\.8% \(15 \/ 52\)/); assert.match(one, /An aid, not complete detection\*\* \| 28\.8% \(15 \/ 52\)/);
-  assert.match(read("docs/ONE-PAGER-TH.md"), /มากกว่าหนึ่งคน[^|\n]*ไม่ใช่การตรวจจับที่ครบถ้วน\) \| 28\.8% \(15 \/ 52\)/);
-  assert.match(read("docs/ONE-PAGER-ZH.md"), /不止一个人[^|\n]*并非完整检测） \| 28\.8%（15 \/ 52）/);
+  // decision 223: the one-pagers' accuracy tables left the customer documents; the rows are held verbatim by the tech sheet
+  // (ONE-PAGER-EXAM rows: docs/tech-sheets/exam-*.md; ONE-PAGER-TH / -ZH rows: docs/tech-sheets/README.md)
+  const one = read("docs/ONE-PAGER-EXAM.md"), techReadme = read("docs/tech-sheets/README.md");
+  for (const d of [one, read("docs/ONE-PAGER-TH.md"), read("docs/ONE-PAGER-ZH.md")]) assert.doesNotMatch(d, /28\.8\s?%|15 \/ 52/, "no rate in a one-pager");
+  for (const sh of [shTH, shEN]) { assert.match(sh, /เป็นตัวช่วย ไม่ใช่การตรวจจับที่ครบถ้วน\*\* \| 28\.8% \(15 \/ 52\)/);
+     assert.match(sh, /An aid, not complete detection\*\* \| 28\.8% \(15 \/ 52\)/); }
+  assert.match(techReadme, /มากกว่าหนึ่งคน[^|\n]*ไม่ใช่การตรวจจับที่ครบถ้วน\) \| 28\.8% \(15 \/ 52\)/);
+  assert.match(techReadme, /不止一个人[^|\n]*并非完整检测） \| 28\.8%（15 \/ 52）/);
   const kit = read("docs/pilot/PILOT-EXAM.md");
   assert.match(kit, /นำด้วยโหมด B \(ห้องคอมพิวเตอร์\)/); assert.match(kit, /leads with Mode B \(computer room\)/);
   assert.match(kit, /ยังไม่มีการส่งสด \(ทั้งเหตุการณ์และภาพวิดีโอ\) ไปยังแดชบอร์ดบนเครื่องอื่น/); assert.match(kit, /เจ้าของยอมรับข้อนี้สำหรับการนำร่อง/);

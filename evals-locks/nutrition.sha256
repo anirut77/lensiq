@@ -154,3 +154,8 @@ bbc85fbcd9919a7deae5199535054ce23e1aedf86c67941b790e43cd49f30a20  set.json
 dd1d8f43fd08835686ad32aaf3854c94c667fb0bd1e008747e4cdfceabb6d186  tests/unit/nut.test.js  # repo file
 cf7b149bf96c366d8387c3d8e54a2a3e6d2cf82d580f75f20d409aead71396bb  tests/unit/nut-wording.test.js  # repo file
 36d973382e79960cd9e9bd20c75243159e60f528a452f3b0c17dbacad462b5b9  tests/e2e/nutrition.e2e.mjs  # repo file
+# locked 2026-11-21T18:57:34Z (tools/eval-guard.mjs lock, 2 files)
+4cb1887cc9febe826a54c015c3bc192fdf858236cdd5ccce570bef1e3113d6ef  relock-223/nut-wording.test.js
+316ee5211197c6958ef13112292f9ecf6f975e0b28cf1d1243dffcd6cdcda596  relock-223/NOTE.txt
+4cb1887cc9febe826a54c015c3bc192fdf858236cdd5ccce570bef1e3113d6ef  tests/unit/nut-wording.test.js  # repo file (same commit as lock 2026-11-21T18:57:34Z; field: ~/LENSIQ-field/evals/nutrition/relock-223/nut-wording.test.js)
+# field only relock-223/NOTE.txt (lock 2026-11-21T18:57:34Z: no repo file uses it)

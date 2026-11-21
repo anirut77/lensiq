@@ -40,3 +40,13 @@ d70bee89419f351b47779ddb6fa032db201526ca306e797cab6bee70f57d87c0  relock2/NOTE.t
 4387d1b247cebc5ec7304c37fd330d25c3e4a4c9a4e3da2432d5d7de21405e00  tests/unit/exam-face.test.js  # repo file (same commit as lock 2026-11-21T07:52:04Z; field: ~/LENSIQ-field/evals/a5-defects/relock3/exam-face.test.js)
 # field only relock3/NOTE.txt (lock 2026-11-21T07:52:04Z: no repo file uses it)
 # re-lock 3 2026-11-21 (field: relock3/ with NOTE.txt): merge re-lock of tests/unit/exam-face.test.js after merging origin/main 502ec313: main's examlab-s2 relock1 version + this branch's camera-version line; no other change.
+# locked 2026-11-21T18:57:34Z (tools/eval-guard.mjs lock, 2 files)
+baaa0e9db51aec63d55a86a971841bcaf0dc27da55df2d77915150572baac105  relock-223/exam-face.test.js
+1272f470417b122f991d786ee0b402b3aa519e019f80c321b9f8757d0f938525  relock-223/NOTE.txt
+baaa0e9db51aec63d55a86a971841bcaf0dc27da55df2d77915150572baac105  tests/unit/exam-face.test.js  # repo file (same commit as lock 2026-11-21T18:57:34Z; field: ~/LENSIQ-field/evals/a5-defects/relock-223/exam-face.test.js)
+# field only relock-223/NOTE.txt (lock 2026-11-21T18:57:34Z: no repo file uses it)
+# locked 2026-11-21T18:59:15Z (tools/eval-guard.mjs lock, 2 files)
+f3b239401646d85ffa19ba0ecce98ecc6a0624ac063335442ffbd68688a38c56  relock-223b/exam-face.test.js
+bb395b73a9c2363ebb809cc853ce0caf81554096934302e59cbb2b4fc80abd52  relock-223b/NOTE.txt
+f3b239401646d85ffa19ba0ecce98ecc6a0624ac063335442ffbd68688a38c56  tests/unit/exam-face.test.js  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/a5-defects/relock-223b/exam-face.test.js)
+# field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:15Z: no repo file uses it)

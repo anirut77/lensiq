@@ -13,6 +13,10 @@
 //   3. no emotion / lie / deception / cheating wording; the tally shows sample numbers and never the words "accuracy of LENSIQ";
 //   4. TH / EN / ZH: opened in each language, 0 Thai letters in EN and ZH (names included); phone 320 / 360 / 390 px;
 //   5. without ?demo=1 the page is as before: no banner, no panel, empty tally, the room is not joined.
+// re-lock 2026-11-21 (owner decision 223, inversion of item 1's panel wording): the panel no longer says "not a measured
+// accuracy of LENSIQ; not measured in a real exam room" (customer pages carry no accuracy / "not measured" wording); it says
+// exactly that the numbers are made-up data to demonstrate the counting only, and it never claims an accuracy or uses the
+// words "ความแม่นยำ" / "ยังไม่ได้วัด".
 import { assert } from "./cdp.mjs";
 import { noThai, phoneAudit, sleep } from "./exam-kit.mjs";
 
@@ -79,7 +83,11 @@ export default async function ({ base, launch, check }) {
         }));
         assert(r0.bar.includes(BAR.th), "banner: " + r0.bar);
         assert(/เฉพาะหน้านี้/.test(r0.panel), "the demo panel says it covers this page only: " + r0.panel.slice(0, 160));
-        assert(/จำลอง|สมมติ|ตัวอย่าง/.test(r0.panel) && /ไม่ใช่ความแม่นยำ/.test(r0.panel), "the panel says the tally is made-up and not a measured accuracy: " + r0.panel.slice(0, 400));
+        // re-lock 223 (was: /ไม่ใช่ความแม่นยำ/ in the panel): the exact made-up-data sentence, and no accuracy / "not measured" wording
+        assert(/จำลอง|สมมติ|ตัวอย่าง/.test(r0.panel)
+           && /ตัวเลขนี้เป็นข้อมูลจำลองเพื่อสาธิตวิธีนับเท่านั้น/.test(r0.panel.replace(/\s+/g, " "))
+          , "the panel says the numbers are made-up data to demonstrate the counting only: " + r0.panel.slice(0, 400));
+        assert(!/ความแม่นยำ|ยังไม่ได้วัด/.test(r0.panel), "the panel claims no accuracy and has no 'not measured' wording: " + r0.panel.slice(0, 400));
         assert(r0.room === "DEMO" && r0.roomInput === "DEMO", "joined to DEMO without a click: " + r0.room);
         assert(r0.seats === "1-12" && r0.seatCount === 12, "12 seats on the map: " + r0.seatCount);
         assert(!/REALROOM|REALNAME/.test(r0.body + r0.who + r0.roomInput), "real room / name must not be shown");

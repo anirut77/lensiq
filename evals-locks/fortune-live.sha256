@@ -28,3 +28,4 @@ bad29867d49c082b6bb0f7fb26ee0a75b2a8bfe0905ae413f85c8d1d7bc84750  tests/unit/for
 f8522c1414e76f8fcb46ba9966d8c2ace48e1125f9e4bf96d72d32f4fcd2c64e  tests/e2e/fortune-live.e2e.mjs  # repo file
 # RE-LOCK 2026-11-18 (branch fortune-cards-clean), owner decision 2026-11-18: fortune cards carry no accuracy field; business products unchanged. See evals-locks/fortune-cards.sha256 (relock-1) and docs/EVAL-LOCKS.md.
 ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e  tests/unit/fortune-live.test.js  # repo file (fortune-cards relock-1)
+f1778d97671d53def92cf094bbba7171e7bd5c94517f40ac02568909956f76f9  tests/unit/fortune-live.test.js  # repo file (re-locked in evals-locks/fortune-cards.sha256 at 2026-11-21T18:57:33Z, replaces ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e of line 30; field: ~/LENSIQ-field/evals/fortune-cards/relock-223/fortune-live.test.js)
