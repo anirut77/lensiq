@@ -4,3 +4,18 @@
 364a398de1966d78f86659d302020a7f308cc3d779cfa6f6e4ad091f212c3eb0  tests/unit/device-data-d4.test.js  # repo file (same commit as lock 2026-11-20T18:04:15Z; field: ~/LENSIQ-field/evals/device-data-d4/device-data-d4.test.js)
 4f14c80f9b59ee6bc0739f36e46122ef04e58f630a5268c2ea619daf6abe3789  tests/e2e/device-data-d4.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:04:15Z; field: ~/LENSIQ-field/evals/device-data-d4/device-data-d4.e2e.mjs)
 # device-data-d4 (owner decision D-4 2026-11-19 'data export page', night order A3): NEW tests/unit/device-data-d4.test.js + tests/e2e/device-data-d4.e2e.mjs committed BEFORE the product change (lensiq-device-data.js, privacy.html slot, switch LENSIQ_DEVICE_EXPORT off). Branch d3-d4, base 0b51b0fb. Baseline on 0b51b0fb: unit 0/11 pass (~/LENSIQ-field/evals/device-data-d4/baseline-unit.log); e2e not run at baseline (module absent: every check fails by construction).
+# locked 2026-11-21T02:26:44Z (tools/eval-guard.mjs lock, 4 files)
+387152c7a7b3093b32c17fc1bc61895085bc505e0ef7d9f51d81e1da1fade3a0  relock1/device-data-d4.test.js
+976c93c9e42b12a3d1cb0a2f581d9e8ad2d86a535fee273070b510d764f8acd9  relock1/device-data-d4.e2e.mjs
+f57f69fa04385cd7c2287ff6e9a013ae81cdda7cc7ac25e450edf27e31388d17  relock1/NOTE.txt
+e35aae4e30e4051312031a936b660892066e5692e823b45d3f13217b5d8c45c4  relock1/baseline-unit.log
+387152c7a7b3093b32c17fc1bc61895085bc505e0ef7d9f51d81e1da1fade3a0  tests/unit/device-data-d4.test.js  # repo file (same commit as lock 2026-11-21T02:26:44Z; field: ~/LENSIQ-field/evals/device-data-d4/relock1/device-data-d4.test.js)
+976c93c9e42b12a3d1cb0a2f581d9e8ad2d86a535fee273070b510d764f8acd9  tests/e2e/device-data-d4.e2e.mjs  # repo file (same commit as lock 2026-11-21T02:26:44Z; field: ~/LENSIQ-field/evals/device-data-d4/relock1/device-data-d4.e2e.mjs)
+# field only relock1/NOTE.txt (lock 2026-11-21T02:26:44Z: no repo file uses it)
+# field only relock1/baseline-unit.log (lock 2026-11-21T02:26:44Z: no repo file uses it)
+# re-lock relock1 2026-11-21 (owner item 215: the medicine look-up history lq-med-history leaves the D-4 export / import
+# allow-list until counsel answers; LENSIQ_DEVICE_EXPORT stays off). STRICTER, nothing loosened: the allow-list loses
+# lq-med-history and the tests now assert it is NOT exportable and NOT importable (new unit D12; e2e: never in the saved
+# file, never written from a loaded or hostile file); D3's count 7 becomes the exact list of the 6 listed keys skipped;
+# D11 asserts the PDPA note says "excluded until counsel answers". The first lock's field copies are unchanged. Details:
+# ~/LENSIQ-field/evals/device-data-d4/relock1/NOTE.txt. Baseline before the product change: unit 6 / 12 pass.

@@ -1,6 +1,7 @@
 // tests/e2e/device-data-d4.e2e.mjs — owner decision D-4 (2026-11-19): save the data this browser keeps for LENSIQ to a file
 // and load it on another address (docs/PRODUCTION-MOVE-PLAN.md §2.7). privacy.html + lensiq-device-data.js.
-// Locked BEFORE the product code (evals-locks/device-data-d4.sha256).
+// Locked BEFORE the product code (evals-locks/device-data-d4.sha256). Re-lock relock1 (owner item 215, 2026-11-21 09:10,
+// STRICTER): the medicine look-up history (lq-med-history) is never in a saved file and never written from a loaded file.
 //   1. switch off (the shipped default) and customer lock: the slot stays hidden and empty, nothing is drawn;
 //   2. switch on: the file holds the settings and the 18+ choice by default, records only when ticked, never the sign-in
 //      token, the tester code, consents, owner keys or business stores; saving makes NO network request;
@@ -58,7 +59,8 @@ export default async function ({ base, launch, check }) {
       await page.waitFor(`window.__blobs.length === 2`, 4000);
       saved = await page.evaluate(() => window.__blobs[1].text());
       j = JSON.parse(saved);
-      assert("lq-med-history" in j.items && "lq-pet-zodiac-v1" in j.items, "records when ticked");
+      assert(!("lq-med-history" in j.items) && "lq-pet-zodiac-v1" in j.items, "records when ticked: pet cards, never the medicine history");
+      assert(!saved.includes("lq-med-history") && !saved.includes("1A 844/39"), "medicine look-up history never in the file");
       for (const c of ["tok-canary", "owner-canary", "pc_fields", "canary-employee", "tester-canary", "lq-research-demo"]) assert(!saved.includes(c), "not in the file: " + c);
       const after = await page.evaluate(() => performance.getEntriesByType("resource").filter(e => !/^blob:/.test(e.name)).length);
       assert(after === before, `no network request while saving (${before} -> ${after})`);
@@ -76,9 +78,11 @@ export default async function ({ base, launch, check }) {
       assert(pre.lang === null, "nothing written before apply");
       await page.evaluate(() => document.querySelector("#lqDdApply").click());
       await page.waitFor(`localStorage.getItem("lq-lang") === "th"`, 4000);
-      let st = await page.evaluate(() => ({ s: localStorage.getItem("lq-fortune-straight"), m: localStorage.getItem("lq-med-history"), msg: document.querySelector("#lqDdImpMsg").textContent }));
+      let st = await page.evaluate(() => ({ s: localStorage.getItem("lq-fortune-straight"), m: localStorage.getItem("lq-med-history"),
+        p: localStorage.getItem("lq-pet-zodiac-v1"), msg: document.querySelector("#lqDdImpMsg").textContent }));
       assert(st.s === null, "18+ choice not written without the box");
-      assert(st.m && st.msg.trim(), "records written; a message says what happened");
+      assert(st.p && st.msg.trim(), "records written; a message says what happened");
+      assert(st.m === null, "medicine look-up history never written");
       await page.evaluate(fileOf(saved));
       await page.waitFor(`document.querySelector("#lqDdAdult")`, 4000);
       await page.evaluate(() => { document.querySelector("#lqDdAdult").checked = true; document.querySelector("#lqDdApply").click(); });
@@ -93,12 +97,14 @@ export default async function ({ base, launch, check }) {
       await page.goto(`${base}/privacy.html`);
       await page.waitFor(`document.querySelector("#lqDdFile")`, 8000);
       const hostile = JSON.stringify({ format: "lensiq-device-data", version: 1, exportedAt: "2026-11-21T00:00:00.000Z", groups: ["settings"],
-        items: { "lq-lang": "en", "lq-member-session": "stolen", "lq-research-demo": "on" } });
+        items: { "lq-lang": "en", "lq-member-session": "stolen", "lq-research-demo": "on",
+          "lq-med-history": JSON.stringify([{ at: 1763600000000, kind: "reg", q: "1A 844/39", r: "TH" }]) } });
       await page.evaluate(fileOf(hostile));
       await page.waitFor(`document.querySelector("#lqDdApply") && !document.querySelector("#lqDdApply").disabled`, 4000);
       await page.evaluate(() => document.querySelector("#lqDdApply").click());
       await page.waitFor(`localStorage.getItem("lq-lang") === "en"`, 4000);
       assert(await page.evaluate(() => localStorage.getItem("lq-member-session") === null && localStorage.getItem("lq-research-demo") === null), "unknown keys never written");
+      assert(await page.evaluate(() => localStorage.getItem("lq-med-history") === null), "medicine look-up history never written from a file");
       await page.evaluate(() => localStorage.clear());
       const bad = JSON.stringify({ format: "lensiq-device-data", version: 1, exportedAt: "2026-11-21T00:00:00.000Z", groups: ["settings"], items: { "lq-lang": "en", "lq-sol-filter": "<script>" } });
       await page.evaluate(fileOf(bad));

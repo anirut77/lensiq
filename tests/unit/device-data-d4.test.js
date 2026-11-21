@@ -1,6 +1,7 @@
 "use strict";
 // tests/unit/device-data-d4.test.js — owner decision D-4 (2026-11-19, BOARD-0800-2026-11-19 line ~103): "data export page".
-// Locked BEFORE the product code (evals-locks/device-data-d4.sha256). docs/PRODUCTION-MOVE-PLAN.md §2.7: what LENSIQ keeps
+// Locked BEFORE the product code (evals-locks/device-data-d4.sha256). Re-lock relock1 (owner item 215, 2026-11-21 09:10,
+// STRICTER): the medicine look-up history (lq-med-history) is never exportable and never importable until counsel answers. docs/PRODUCTION-MOVE-PLAN.md §2.7: what LENSIQ keeps
 // in a browser belongs to that web address; when the site moves, the user saves it to a file on the old address and loads
 // it on the new one. No server is involved.
 //
@@ -10,7 +11,9 @@
 //   D2 only an allow-list of the user's OWN settings and records; business stores, sign-in tokens, the tester code,
 //      consents, owner / admin keys and anything that is not on the list are never read into a file
 //   D3 values are checked: wrong shapes, images (data: / blob: URLs) and over-long values are left out
-//   D4 groups: settings + 18+ choice by default; records (medicine look-ups, pet cards) only when ticked
+//   D4 groups: settings + 18+ choice by default; records (pet cards) only when ticked
+//   D12 (owner item 215) the medicine look-up history is excluded: not on the allow-list, not in any file, not loaded from
+//      any file, no UI string names it
 //   D5 the file: format, version, time, groups, items; nothing else (no origin path, no user agent, no device id)
 //   D6 import: strict; unknown keys are never written; a bad file writes nothing; size limit
 //   D7 import of the 18+ choice needs the person to confirm 18+ again on this device
@@ -62,13 +65,14 @@ test("D1 switch: off by default, on only with exactly true, customer lock wins; 
 test("D2 only the allow-list is read: own settings and records; everything else stays out", () => {
   const M = D();
   const keys = M.ITEMS.map(i => i.key).sort();
-  assert.deepEqual(keys, ["lq-fortune-straight", "lq-lang", "lq-med-history", "lq-merit-tradition", "lq-nut-hide-kcal", "lq-pet-zodiac-v1", "lq-sol-filter"]);
+  assert.deepEqual(keys, ["lq-fortune-straight", "lq-lang", "lq-merit-tradition", "lq-nut-hide-kcal", "lq-pet-zodiac-v1", "lq-sol-filter"]);
   for (const k of ["lq-member-session", "lq-tester", "lq-owner", "lq-admin-dev", "lq-ai-consent", "lq-leads", "lq-pending-claims",
-    "lq-research-demo", "lq-profile", "lq-report-log", "lq-guest-reads", "lq-camcap"]) assert.ok(M.EXCLUDED.includes(k), "documented exclusion: " + k);
+    "lq-research-demo", "lq-profile", "lq-report-log", "lq-guest-reads", "lq-camcap", "lq-med-history"]) assert.ok(M.EXCLUDED.includes(k), "documented exclusion: " + k);
   const r = M.collect(store(ALL), ["settings", "age", "records"]);
   assert.deepEqual(Object.keys(r.items).sort(), keys);
   const text = M.serialize(M.build(store(ALL), ["settings", "age", "records"], 1763700000000));
-  for (const canary of ["tok-canary-abc", "tester-canary", "owner-canary", "emp", "pc_fields", "random-other", "lensiq-timeclock", "lq-member-session"]) {
+  for (const canary of ["tok-canary-abc", "tester-canary", "owner-canary", "emp", "pc_fields", "random-other", "lensiq-timeclock", "lq-member-session",
+    "lq-med-history", "1A 844/39"]) {
     assert.ok(!text.includes(canary), "never in the file: " + canary);
   }
 });
@@ -83,7 +87,8 @@ test("D3 values are checked: wrong shapes, images and over-long values are left 
   };
   const r = M.collect(store(bad), ["settings", "age", "records"]);
   assert.deepEqual(r.items, {});
-  assert.equal(r.skipped.length, 7);
+  // every listed key with a bad value is skipped (6 listed keys); lq-med-history is not listed, so it is neither read nor skipped
+  assert.deepEqual(r.skipped.slice().sort(), ["lq-fortune-straight", "lq-lang", "lq-merit-tradition", "lq-nut-hide-kcal", "lq-pet-zodiac-v1", "lq-sol-filter"]);
   assert.equal(M.valueOk("lq-med-history", JSON.stringify([{ at: 1, kind: "x", q: "blob:https://a/b", r: "" }])), false, "blob: URL");
   assert.equal(M.valueOk("lq-med-history", JSON.stringify([{ at: 1, kind: "x", q: { nested: 1 }, r: "" }])), false, "nested object");
   assert.equal(M.valueOk("lq-fortune-straight", JSON.stringify({ adult: true, straight: true, extra: 1 })), false, "extra field");
@@ -97,7 +102,7 @@ test("D4 groups: settings and the 18+ choice by default; records only when ticke
   assert.deepEqual(M.DEFAULT_GROUPS.slice().sort(), ["age", "settings"]);
   const g = Object.fromEntries(M.ITEMS.map(i => [i.key, i.group]));
   assert.deepEqual(g, { "lq-lang": "settings", "lq-sol-filter": "settings", "lq-nut-hide-kcal": "settings", "lq-merit-tradition": "settings",
-    "lq-fortune-straight": "age", "lq-med-history": "records", "lq-pet-zodiac-v1": "records" });
+    "lq-fortune-straight": "age", "lq-pet-zodiac-v1": "records" });
   const def = M.collect(store(ALL), M.DEFAULT_GROUPS);
   assert.ok(!("lq-med-history" in def.items) && !("lq-pet-zodiac-v1" in def.items), "records not by default");
   assert.ok("lq-lang" in def.items && "lq-fortune-straight" in def.items);
@@ -120,7 +125,7 @@ test("D6 import: strict; unknown keys never written; a bad file writes nothing; 
   const good = M.serialize(M.build(store(ALL), ["settings", "records"], 1763700000000));
   const p = M.parse(good);
   assert.equal(p.ok, true);
-  assert.deepEqual(Object.keys(p.items).sort(), ["lq-lang", "lq-med-history", "lq-merit-tradition", "lq-nut-hide-kcal", "lq-pet-zodiac-v1", "lq-sol-filter"]);
+  assert.deepEqual(Object.keys(p.items).sort(), ["lq-lang", "lq-merit-tradition", "lq-nut-hide-kcal", "lq-pet-zodiac-v1", "lq-sol-filter"]);
   const st = store({ "lq-lang": "th" });
   const w = M.apply(st, p, { adultConfirmed: false });
   assert.deepEqual(w.written.sort(), Object.keys(p.items).sort());
@@ -200,4 +205,45 @@ test("D10 privacy.html: one hidden slot, the module loaded after lensiq-config.j
 test("D11 PDPA note for counsel", () => {
   const n = readFileSync(join(ROOT, "docs", "PDPA-NOTES-FOR-COUNSEL.md"), "utf8");
   assert.match(n, /D-4/); assert.match(n, /lensiq-device-data\.js/); assert.match(n, /LENSIQ_DEVICE_EXPORT/);
+  // owner item 215: the D-4 section says the medicine look-up history is excluded until counsel answers
+  const d4 = n.slice(n.indexOf("lensiq-device-data.js") - 2000, n.indexOf("lensiq-device-data.js") + 4000);
+  assert.match(d4, /lq-med-history/); assert.match(d4, /excluded until counsel answers/i);
+});
+
+test("D12 (owner item 215) the medicine look-up history is never exportable and never importable", () => {
+  const M = D();
+  const MED = "lq-med-history";
+  const good = JSON.stringify([{ at: 1763600000000, kind: "reg", q: "1A 844/39", r: "TH" }]);
+  assert.equal(M.ITEMS.some(i => i.key === MED), false, "not on the allow-list");
+  assert.ok(M.EXCLUDED.includes(MED), "documented exclusion");
+  assert.equal(M.valueOk(MED, good), false, "a well-formed value is still refused");
+  // export: every group, ticked or not, never carries it
+  for (const groups of [M.DEFAULT_GROUPS, ["records"], ["settings", "age", "records"]]) {
+    const c = M.collect(store(ALL), groups);
+    assert.ok(!(MED in c.items), "collect " + groups.join("+"));
+    const text = M.serialize(M.build(store(ALL), groups, 1763700000000));
+    assert.ok(!text.includes(MED) && !text.includes("1A 844/39"), "file " + groups.join("+"));
+  }
+  // import: a hand-made file carrying it (alone or with valid items) never writes it, and the other valid items still load
+  const file = items => JSON.stringify({ format: "lensiq-device-data", version: 1, exportedAt: "2026-11-21T00:00:00.000Z", groups: ["settings", "records"], items });
+  const p = M.parse(file({ "lq-lang": "zh", [MED]: good }));
+  assert.equal(p.ok, true);
+  assert.ok(!(MED in p.items) && p.unknown.includes(MED), "listed as not accepted");
+  const st = store();
+  const w = M.apply(st, p, { adultConfirmed: true });
+  assert.equal(st.getItem(MED), null, "never written");
+  assert.ok(!w.written.includes(MED));
+  assert.equal(st.getItem("lq-lang"), "zh");
+  const only = M.parse(file({ [MED]: good }));
+  const st2 = store();
+  M.apply(st2, only, { adultConfirmed: true });
+  assert.equal(st2.getItem(MED), null, "never written (file with nothing else)");
+  // an existing value on the device is left alone by a load (the module never touches the key)
+  const st3 = store({ [MED]: "keep" });
+  M.apply(st3, M.parse(file({ "lq-lang": "en", [MED]: good })), { adultConfirmed: true });
+  assert.equal(st3.getItem(MED), "keep");
+  // no dangling UI: no item label, group label or UI string names medicine look-ups, in TH / EN / ZH
+  const ui = JSON.stringify([M.ITEMS.map(i => i.label), M.GROUP_LABEL, M.STR]);
+  assert.doesNotMatch(ui, /ยา|ฉลาก|medicine|label look-up|药|标签查询/i);
+  assert.doesNotMatch(ui, /health|สุขภาพ|健康/i, "no health wording left from the medicine group");
 });
