@@ -454,7 +454,8 @@ export function model(root = ROOT) {
   // page texts with numbers the base snapshot missed (no %, n = or source tag), recorded from the base commit by
   // tools/accuracy-supplement-223.mjs; they join the snapshot entries so the sheets and the admin data hold them too
   if (existsSync(join(root, SUPPLEMENT))) for (const e of JSON.parse(read(root, SUPPLEMENT)).entries) {
-    snap.entries.push({ ...e, product: productOf(e.file, e.key, e.th + " " + e.en), supplement: true });
+    const page = String(e.file).replace(/\.js$/, "").replace(/^docs\/(sales\/(customer\/)?)?/, "");
+    snap.entries.push({ ...e, product: productOf(page, e.key, [e.th, e.en, e.text].filter(Boolean).join(" ")), supplement: true });
   }
   const spec = JSON.parse(read(root, SPEC));
   const fig = loadFigures(root);

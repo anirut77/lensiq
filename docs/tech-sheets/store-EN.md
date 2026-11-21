@@ -108,6 +108,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [cameras.s187] YOLOX-Nano + round-5 tracker: at 5 fps the total is off by −0.4% and 79% of counts are real crossings · 10 fps −13% / 90% · PETS-style door scene +3% / 93%, but MOT17 crowds still range from −28% to +19% (the ±10% and ≥ 85% targets are not met in crowds)
 [cameras.s215] lowers totals by 5–15% and helps when people linger at the door, but misses more people in crowds, so it is off by default
 [cameras.s178] The test images are street, station and news footage, not your store. Lighting, camera angle and crowd density differ, so real-world results are usually worse than these. Compare against a manual count for about 30 minutes before making decisions on the data. All figures come from a single measurement on a single device
+[cameras.s184] Entry/exit counting (store)
 ~~~~
 
 #### cat-marketing.html
@@ -203,6 +204,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [cameras.s187] YOLOX-Nano + 第 5 轮跟踪器：5 帧/秒总数误差 −0.4%，计数中 79% 为真实越线 · 10 帧/秒 −13% / 90% · PETS 类门口场景 +3% / 93%，但 MOT17 人群仍有 −28% 至 +19% 误差（人群中未达到 ±10% 和 ≥ 85% 的目标）
 [cameras.s215] 可将总数降低 5–15%，在有人于门口徘徊时有帮助，但在人多拥挤时会增加漏计，因此默认关闭
 [cameras.s178] 测试集中的图像为街道、车站和新闻图片，并非您的门店。光线、摄像头角度和人群密度都不同，实际现场效果通常会比这更差。在依据数据做决策前，建议先人工计数约 30 分钟进行对照。所有数字均来自在单台设备上的单次测量
+[cameras.s184] 进出人数统计（门店）
 ~~~~
 
 #### cat-marketing.html

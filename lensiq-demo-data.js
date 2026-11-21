@@ -250,7 +250,7 @@
     D.onReady(body => {
       const SC = [["far", "demo.cr.far", "ฝูงชนไกลกล้อง (คนดูเล็ก + 15 คนขึ้นไป)"], ["small", "demo.cr.small", "คนดูเล็ก (ไกลกล้อง)"], ["crowd", "demo.cr.crowd", "คน 15 คนขึ้นไป"],
         ["shop", "demo.cr.shop", "หน้าร้าน (คนเดินผ่าน)"]];
-      body.innerHTML = `<p data-i18n="demo.cr.p">ระบบนี้อยู่ในขั้นทดลอง ยังไม่เหมาะกับฝูงชนหนาแน่น ตัวเลขเป็นค่าประมาณ ฉากด้านล่างเป็นภาพจำลอง (กล่องสีเทา ไม่มีภาพคน)
+      body.innerHTML = `<p data-i18n="demo.cr.p">ระบบนี้เป็นรุ่นทดลอง ยังไม่เหมาะกับฝูงชนหนาแน่น ตัวเลขเป็นค่าประมาณ ฉากด้านล่างเป็นภาพจำลอง (กล่องสีเทา ไม่มีภาพคน)
 เลือกฉากเพื่อดูคำเตือน "คนดูเล็ก" และป้าย ≈ "ค่าประมาณ"</p>
 <div class="lq-demo-btns" role="group">${SC.map(([id, k, th]) => btn(`data-demo-scene="${id}" aria-pressed="${id === "far"}"`, k, th)).join("")}</div>`;
       body.addEventListener("click", e => {

@@ -121,6 +121,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [gk.acc.b] Accuracy not yet measured on site
 [gk.acc.t] The Thai text reader (PP-OCRv5 Thai, Apache-2.0) was trained on general text, not on licence plates, and there is no plate-detection model with a clear licence yet, so a classical plate finder or a tap by staff is used. The province is chosen from a list. Staff confirm every result. Run the on-site accuracy check before real use.
 [gk.tab.check] Accuracy check
+[gk.acc.more] Read more
 ~~~~
 
 #### village.html
@@ -131,6 +132,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [gk.acc.t] The Thai text reader (PP-OCRv5 Thai, Apache-2.0) was trained on general text, not on licence plates, and there is no plate-detection model with a clear licence yet, so a classical plate finder or a tap by staff is used. The province is chosen from a list. Staff confirm every result. Run the on-site accuracy check before real use.
 [gk.tab.check] Accuracy check
 [vg.auto.note] Visitors, look-alike plates, unknown vehicles and denied vehicles always need the guard's decision. Pass the on-site accuracy check before switching this on.
+[gk.acc.more] Read more
 ~~~~
 
 #### i18n/en-gate-village.js
@@ -202,6 +204,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [gk.acc.b] 尚未在现场测量准确率
 [gk.acc.t] 泰文文字识别模型（PP-OCRv5 泰文，Apache-2.0）用一般文本训练，并非用车牌训练；目前也没有授权明确的车牌检测模型，因此使用传统车牌查找或由工作人员点按车牌。府名从列表中选择。每个结果都需工作人员确认。实际使用前请先运行现场准确率检查。
 [gk.tab.check] 准确率检查
+[gk.acc.more] 了解更多
 ~~~~
 
 #### village.html
@@ -212,6 +215,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [gk.acc.t] 泰文文字识别模型（PP-OCRv5 泰文，Apache-2.0）用一般文本训练，并非用车牌训练；目前也没有授权明确的车牌检测模型，因此使用传统车牌查找或由工作人员点按车牌。府名从列表中选择。每个结果都需工作人员确认。实际使用前请先运行现场准确率检查。
 [gk.tab.check] 准确率检查
 [vg.auto.note] 访客、相似车牌、陌生车辆和禁止进入的车辆始终需要门卫决定。开启前请先通过现场准确率检查。
+[gk.acc.more] 了解更多
 ~~~~
 
 #### i18n/en-gate-village.js
@@ -243,6 +247,13 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 ~~~~
 
 ### Script and document strings (language as written)
+
+#### help.html
+
+~~~~text
+[#h-start-gate] LENSIQ Gate อ่านป้ายทะเบียนแบบช่วย รปภ. เตรียม: อุปกรณ์ที่มีกล้องต่อ 1 ช่องทาง ขาตั้งมั่นคง ไฟเลี้ยง และป้ายแจ้งกล้อง (พิมพ์จากหน้าชุดป้ายแจ้ง) ติดป้ายแจ้งก่อนถึงจุดกล้อง ติดตั้งอุปกรณ์ให้ป้ายทะเบียนกว้างอย่างน้อย 120 พิกเซลในภาพ เปิดหน้าหมู่บ้านหรือที่จอดรถ ผู้ใช้งานอ่านและยอมรับประกาศก่อนเปิดกล้อง ตั้งชื่อผู้ใช้งาน จังหวัดที่พบบ่อย และระยะเวลาเก็บบันทึก ฝึก รปภ. ยืนยันหรือแก้ทุกป้าย แล้วใช้ "ตรวจความแม่นยำ" ตั้งแต่วันแรก ปัญหาที่พบบ่อย: ภาพเบลอเมื่อรถเคลื่อน ให้ใช้ชัตเตอร์เร็วขึ้นและให้รถหยุดที่เส้น · กลางคืนอ่านไม่ได้ ให้แก้ไฟอินฟราเรดก่อน หน้า Gate · ชุดป้ายแจ้ง · ดูเดโม
+[#zh-h-start-gate] LENSIQ Gate 保安辅助车牌识别 准备： 每条车道一台带摄像头的设备、稳固的支架、电源，以及摄像头告示（在告示套件页面打印）。 在摄像头之前张贴告示。安装设备，使车牌在画面中至少 120 像素宽。 打开小区或停车场页面；操作员在开启摄像头前阅读并接受告知。 设置操作员姓名、常见府名和记录保存期限。 培训保安确认或更正每个车牌，并从第一天起使用"准确率检查"。 常见问题： 车辆移动时车牌模糊：使用更快的快门并让车辆在线前停下 · 夜间识别差：先调整红外灯。 Gate 页面 · 告示套件 · 查看演示
+~~~~
 
 #### gate-kit.js
 
@@ -287,6 +298,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 | Real car park or village | not measured | — | field: not measured (no pilot yet) | `docs/pilot/PILOT-GATE.md` |
 - Proposed targets: ≥ 95% exact reads by day and ≥ 85% at night, and 0 silent wrong saves. Judged on the Wilson 95%
 planned sample sizes this needs about 98.8% observed by day and 97.5% at night (`docs/pilot/PILOT-GATE.md` §5).
+Read plainly: on real photos today the guard still taps almost 4 in 5 plates, so Gate is sold as a guard's assistant,
 ~~~~
 
 #### docs/sales/DECK-GATE.md

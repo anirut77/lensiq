@@ -53,6 +53,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 [nut.help.acc] Not yet measured on photos of real labels. The only test figures come from labels we generated ourselves (synthetic data). Always compare with the actual label.
+[nut.help.accH] Accuracy
 ~~~~
 
 ### 中文原文
@@ -68,4 +69,5 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 [nut.help.acc] 尚未用真实标签的照片测量。目前的测试数据只来自我们自己生成的标签（合成数据）。请务必与实际标签核对。
+[nut.help.accH] 准确率
 ~~~~

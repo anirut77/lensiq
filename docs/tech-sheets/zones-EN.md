@@ -52,6 +52,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 [zc.accLink] Measured accuracy
+[zb.acc] Cars hidden behind other cars, or a low camera angle, can make a bay count wrong. Mount the camera high so it sees every bay, and compare with a manual count once before using the numbers on a sign.
 ~~~~
 
 #### cat-marketing.html
@@ -72,12 +73,14 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 [zc.accLink] Measured accuracy
+[zq.acc] Uses the same person detector as the store analytics page. People hidden behind each other in a dense queue can be missed. Mount the camera high, looking down along the queue, then use "Checked: real / False alarm" in the alert list to measure on-site accuracy before relying on it.
 ~~~~
 
 #### tables.html
 
 ~~~~text
 [zc.accLink] Measured accuracy
+[zt.acc] People hidden by the table or by others can drop out for a moment, so the page waits for a table to stay empty before changing its state. The "dining table" detector only helps you draw zones. Check the states against the floor before using the numbers.
 ~~~~
 
 #### i18n/en-zones.js
@@ -104,6 +107,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 [zc.accLink] 实测准确度
+[zb.acc] 被其他车辆遮挡的车辆或较低的拍摄角度可能导致车位计数错误。请将摄像头装高以看到所有车位，并在将数字用于指示牌前与人工计数核对一次。
 ~~~~
 
 #### cat-marketing.html
@@ -124,12 +128,14 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 [zc.accLink] 实测准确度
+[zq.acc] 使用与门店分析页面相同的人体检测器。排队密集、互相遮挡的人可能被漏计。请将摄像头装高、沿队伍方向向下拍摄，并在提醒列表中使用“已核实：属实 / 误报”测量现场准确度，再正式使用。
 ~~~~
 
 #### tables.html
 
 ~~~~text
 [zc.accLink] 实测准确度
+[zt.acc] 被餐桌或他人遮挡的人可能短暂检测不到，因此页面会等餐桌持续空置后才改变状态。“餐桌”检测仅用于辅助绘制区域。使用数据前请与现场核对状态。
 ~~~~
 
 #### i18n/en-zones.js

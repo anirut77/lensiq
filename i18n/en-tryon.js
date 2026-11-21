@@ -1,7 +1,7 @@
 /* i18n/en-tryon.js — English for tryon.html / tryon.js (to.*). Mirrors i18n/zh-tryon.js. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
   "to.title": "Try items on with your camera or a photo (preview) | LENSIQ",
-  "to.eyebrow": "LENSIQ · Try-on (experimental)",
+  "to.eyebrow": "LENSIQ · Try-on (trial version)",
   "to.h1": "Try items on with your camera or a photo",
   "to.lead": "Try glasses, hats and clothes from the shop's catalogue on your camera picture or photo, on this device.",
   "to.consent.h": "Before the camera or a photo",

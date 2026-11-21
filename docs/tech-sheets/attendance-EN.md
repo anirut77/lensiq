@@ -128,6 +128,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [cameras.s198] Same rules as check-in: LFW with 100 people 85% recognised, outsiders offered a name 0.4% (selected automatically about 0.05%) · Asian faces 66–76% recognised
 [cameras.s217] Round-5 rules: limits scaled to how close the enrolled faces are to each other (Asian faces automatically get stricter limits), image quality checks, 2-frame confirmation, 3-pose enrolment, and a confirmation prompt when unsure. Outsiders are offered a name about 1% of the time or less at every group size from 5 to 200, but Asian faces are recognised only 66–76% of the time · The earlier advice about a maximum number of enrollees is withdrawn, because small groups were the riskier case: register at least 5 people before relying on automatic check-in, keep the confirmation step, and re-enrol existing people with 3 poses
 [cameras.s219] Methodology, full tables and dataset licenses are in the project's ACCURACY.md file (measurements are repeatable in tests/bench). Datasets are used for evaluation only and are not included in the software: MOTChallenge (CC BY-NC-SA 3.0), LFW and CASIA-FaceV5 (research only), UTKFace (non-commercial research), HaGRID (CC BY-SA 4.0), Open/Closed Eyes (ODC-BY), CEW and FER-2013 (research only) — bottles and barcodes are self-generated simulated images
+[cameras.s192] Face Check-in
 ~~~~
 
 #### cat-hr.html
@@ -183,6 +184,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [cameras.s198] 与签到规则相同：LFW 100 人识别 85%，外部人员被提示姓名 0.4%（自动选中约 0.05%）· 亚洲人脸识别 66–76%
 [cameras.s217] 第 5 轮规则：按已注册人脸之间的距离调整阈值（亚洲人脸会自动采用更严格的阈值）、图像质量检查、2 帧确认、3 个角度注册，不确定时请求确认。在 5–200 人的各种群体规模下，外部人员被提示姓名约 1% 或更低，但亚洲人脸识别率只有 66–76% · 之前关于注册人数上限的建议已撤回，因为小群体才是风险更高的情况：启用自动签到前请至少注册 5 人，保留确认步骤，并让老用户用 3 个角度重新注册
 [cameras.s219] 测量方法、完整表格和数据集许可证见项目中的 ACCURACY.md 文件（可在 tests/bench 中重复测量）。数据集仅用于评估，未包含在程序中：MOTChallenge（CC BY-NC-SA 3.0）、LFW 和 CASIA-FaceV5（仅限研究）、UTKFace（非商业研究）、HaGRID（CC BY-SA 4.0）、Open/Closed Eyes（ODC-BY）、CEW 和 FER-2013（仅限研究）— 瓶子和条码为自行生成的模拟图像
+[cameras.s192] 人脸签到
 ~~~~
 
 #### cat-hr.html
@@ -238,6 +240,8 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 | Liveness (head-turn) option | not measured | — | not measured | `ACCURACY.md` |
 | A real Thai workplace | not measured | — | field: not measured (no pilot yet) | `ACCURACY.md` |
 - Face check-in only with consenting volunteers: false accept ≤ 1%, false reject ≤ 10%.
+| ลงเวลาด้วย PIN / QR | ไม่มีตัวเลขความแม่นยำ (ไม่มีการจดจำ) | — | ไม่เกี่ยวข้อง | `docs/ATTENDANCE-READINESS.md` |
+| PIN / QR check-in | no accuracy figure (no recognition) | — | not applicable | `docs/ATTENDANCE-READINESS.md` |
 ~~~~
 
 #### docs/sales/DECK-ATTENDANCE.md
@@ -258,6 +262,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 are included; no wage, tax or social-security calculation, no cloud sync, no rotating rosters. Measured (face option only; PIN / QR has no recognition error): Asian faces recognised per scan 66–76%
 (n = 500 people x 5 photos, public dataset CASIA-FaceV5, held out but not perfectly blind, `ACCURACY.md` §2); strangers checked in with no confirmation at most 0.03% (n about 12,000 visits per row, public dataset).
 Not measured: a real workplace, the liveness option. Approved prices excl. 7% VAT, pilot price: free up to 5 people (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet); 19 THB per active person per month (minimum 190 THB per month); set-up help 2,900 THB one-off.
+# สไลด์ขาย: LENSIQ Attendance (9 สไลด์) / Sales deck: LENSIQ Attendance
 ~~~~
 
 #### docs/sales/DEMO-SCRIPT-ATTENDANCE.md
@@ -271,6 +276,8 @@ Not measured: a real workplace, the liveness option. Approved prices excl. 7% VA
 > Status (`docs/PAGE-STATUS.md`): `attendance.html` = pilot-ready (PIN / QR default; the face option waits for the model-licence decision, OP-14).
 | 9:00–9:45 | `attendance.html`, "Figures and sources" | Only if asked about faces: the face is optional and used only with consent. Asian faces recognised per scan 66–76% (n = 500 people x 5 photos, public dataset CASIA; held-out but not perfectly blind). Strangers auto-checked-in with no confirmation: at most 0.03%. A real Thai workplace: not measured. The head-turn liveness option: not measured. PIN / QR has no recognition error. | Rows A2, A4, A5, A6; the "research-licence model" label (waiting for legal opinion before commercial sale, OP-14) | Would your staff consent to a face, or is PIN / QR enough? |
 **Do NOT claim:** workplace face accuracy (not measured); 85% as the headline (it is a tuning-set figure, optimistic; the headline is 66–76% on Asian faces); that it stops buddy punching (a PIN or badge can be shared; no
+> ตัวเลขทุกตัวมีที่มาใน `docs/ACCURACY-CLAIMS.md` (ทะเบียน A1–A6) และ `docs/ONE-PAGER-ATTENDANCE.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
+> Every number is sourced in `docs/ACCURACY-CLAIMS.md` (register A1–A6) and `docs/ONE-PAGER-ATTENDANCE.md`. Open points (OP-xx) are in `docs/sales/README.md`.
 ~~~~
 
 #### docs/sales/ONBOARDING-ATTENDANCE.md

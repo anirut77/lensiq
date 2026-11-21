@@ -138,7 +138,13 @@
 [cameras.prof.p1] ทุกเว็บ รวมเว็บสาธิตบน GitHub Pages เปิดในโหมดลูกค้าเป็นค่าเริ่มต้น (LENSIQ_PROFILE = "commercial") ซึ่งไม่โหลดและไม่แสดงโมเดลอายุ/เพศ (UTKFace) และโมเดลสีหน้า ส่วนโมเดลแยกส่วนใบหน้า BiSeNet ปิดอยู่ (LENSIQ_FACEPARSE = false และไม่มีไฟล์โมเดลในชุดไฟล์ของเว็บ) สวิตช์ "เดโมงานวิจัย" ด้านล่างเปิดโมเดลอายุ/เพศและสีหน้ากลับมาเฉพาะในเครื่องนี้เพื่อสาธิตหรือวิจัย (ปิดไว้เป็นค่าเริ่มต้น ปิดกลับได้ตลอด) ถ้าเปิดไว้บนเว็บที่ไม่ใช่เว็บสาธิต หน้ากล้องจะมีแถบเตือนสีแดง
 [cameras.ip.n2] LENSIQ ไม่ได้รวมหรือติดตั้งโปรแกรมเหล่านี้ให้ และยังไม่ได้ทดสอบกล้อง IP ทุกยี่ห้อ ให้ทดลองกับกล้องของคุณ แล้วใช้ “ตรวจความแม่นยำหน้างาน” ในหน้าระบบก่อนใช้ตัวเลขจริง
 Synthetic · Open/Closed Eyes · CEW · FER-2013
+[cameras.s199] อายุ/เพศ (ป้ายโฆษณา)
+[cameras.s201] อายุคลาดเคลื่อน · ช่วงอายุ · เพศ
+[cameras.s203] ตรวจจับมือ (คีออสก์)
+[cameras.s205] พบมือที่ยก / ถูกต้อง
+[cameras.s207] สแกนบาร์โค้ด · ตรวจคุณภาพ · ความง่วง · สีหน้า
 [cameras.s211] เปลี่ยนตัวตรวจจับหลักเป็น YOLOX-Nano (สัญญาอนุญาต Apache-2.0 ทำงานบน WASM ไม่ต้องใช้ WebGL) เร็วเท่าเดิมแต่เห็นคนตัวเล็กมากขึ้นชัดเจน COCO-SSD ยังเป็นตัวสำรอง คนที่สูงไม่ถึง 1/10 ของภาพยังหลุด ตัวเลือก “คนตัวเล็ก/อยู่ไกล” แบ่งภาพตรวจได้ แต่ช้าลง
+[cameras.s218] อายุ/เพศ/อารมณ์เป็นการคาดคะเน ใช้ดูภาพรวมกลุ่มผู้ชม ไม่ใช้ตัดสินเรื่องของคนใดคนหนึ่ง
 ~~~~
 
 #### cat-education.html
@@ -236,14 +242,31 @@ It depends on camera angle, height and lighting. We publish public-dataset resul
 [sl.cats.sub] เจ็ดหมวดงาน ทุกหน้ายังอยู่ครบ แต่ละหมวดบอกสถานะและความแม่นยำที่วัดได้พร้อมที่มา
 [sl.pr.4] เผยแพร่ผลวัดและข้อจำกัด และมีเครื่องมือวัดความแม่นยำหน้างานก่อนใช้ตัวเลขจริง
 [sl.next.p] ลองหน้าที่ใช้ได้แล้วในโหมดตัวอย่าง → ทดลองหน้างาน 2 สัปดาห์พร้อมตรวจความแม่นยำ → สรุปผลร่วมกัน
+[sl.c.edu3.y] ขั้นตอนขอความยินยอมจากผู้ปกครอง ทางเลือก QR สำหรับเด็กที่ไม่ใช้ใบหน้า และช่องทางส่งข้อความถึงผู้ปกครอง
+[sl.c.edu9.y] ขั้นตอนหาขอบกระดาษและสร้าง PDF ในเบราว์เซอร์ ยังไม่ได้สร้าง
 [sl.c.edu10.y] ตัวอ่านบาร์โค้ดสำรองสำหรับ iPhone (zxing-js, Apache-2.0) และหน้าบันทึกการยืม-คืน
 [sl.c.edu11.y] ตัวตรวจจับเฉพาะ (YOLOX, Apache-2.0) ที่ฝึกด้วยภาพที่ใช้เชิงพาณิชย์ได้ และความยินยอมของผู้ปกครอง
+[sl.c.r11.y] หน้าเทียบผลที่ใช้ตัวเลขรายวันจากหน้านับคน (lensiq-stats) ยังไม่ได้สร้าง
 [sl.c.r12.y] ตัวอ่านบาร์โค้ดสำรองสำหรับ iPhone (zxing-js, Apache-2.0) และหน้านับสต็อก
 [sl.c.m3.y] โมเดลตรวจจับเฉพาะ (YOLOX, Apache-2.0) ที่ฝึกจากภาพที่มีสิทธิ์ใช้เชิงพาณิชย์ ตอนนี้ยังไม่มีโมเดลสำเร็จรูปที่ใบอนุญาตชัดเจน
 [sl.c.h8.y] โมเดลตรวจจับมือ (MediaPipe, Apache-2.0) ในหน้าใหม่ และภาพขั้นตอนที่มีสิทธิ์ใช้
+[sl.c.e10.y] ตัวตรวจจับวัตถุในหน้าฮวงจุ้ย (COCO-SSD)
+[sl.c.e11.y] หน้ารวมที่ดึงข้อมูลจากหน้าวางแผนฤกษ์และหน้าฮวงจุ้ย ยังไม่ได้สร้าง
+[sl.c.e12.y] เชื่อมตัวอ่านป้ายทะเบียน (lensiq-plate.js) เข้ากับหน้าเลขมงคล
+[sl.c.e13.y] ตัวจำแนกไพ่ที่ต้องฝึกเอง หรือการเทียบกับภาพไพ่ที่มีสิทธิ์ใช้
 ~~~~
 
 ### ข้อความในสคริปต์และเอกสาร (ภาษาตามต้นฉบับ)
+
+#### help.html
+
+~~~~text
+[#h-accuracy] ตัวเลขจากกล้องแม่นแค่ไหน ขึ้นกับมุมกล้อง ความสูง และแสง เราเผยแพร่ผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด และฟีเจอร์ที่ยังไม่ได้วัดบนข้อมูลจริงจะมีป้าย Beta ก่อนใช้ตัวเลขตัดสินใจทางธุรกิจ แนะนำให้ทดลองหน้างาน 2 สัปดาห์ เทียบกับการนับด้วยคน ค่าประมาณอายุ เพศ และสีหน้าเป็นค่าโดยประมาณสำหรับภาพรวมเท่านั้น
+[#en-h-accuracy] How accurate are the camera numbers? It depends on camera angle, height and lighting. We publish public-dataset results with their limitations, and features not yet measured on real data carry a Beta label. Before relying on the numbers for business decisions, run a 2-week on-site pilot against a human count. Age, gender and expression estimates are approximate and only meant for overall trends.
+[#en-h-start-gate] LENSIQ Gate guard-assisted plate reading Prepare: one device with a camera per lane, a firm stand, power, and the camera sign (printed from the sign kit page). Post the sign before the camera. Mount the device so the plate is at least 120 px wide in the picture. Open the village or car-park page; the operator reads and accepts the notice before the camera starts. Set the operator name, the most common provinces and the log retention. Train guards to confirm or correct every plate, and use the "accuracy check" from day one. Common problems: blurred plates on moving cars: use a faster shutter and have cars stop at the line · poor reads at night: fix the infrared light first. Gate page · Sign kit · See the demo
+[#en-h-start-crowd] LENSIQ Crowd people counting and density (experimental) Prepare: a phone or laptop with a camera, a stand 2.5–3 m high looking down, mains power for the whole event and a camera sign at the entrance. For sparse to medium crowds; not yet suitable for dense crowds. Try the set-up at the real place before the event: people in the zone at least 10% of the frame height. Open the Crowd page, start the camera, then draw the zone and the in / out line. Set the expected crowd at peak so the page warns when the count is unusually low. After the event, export the CSV and stop the camera. No video is recorded. Common problems: "people look small": move the camera closer or draw the zone on the near part only · a dense crowd counted as very few: stop using that number and split the camera views. Crowd page · See the demo
+[#zh-h-accuracy] 摄像头的数字有多准确？ 这取决于摄像头角度、高度和光线。我们公开在公共数据集上的测量结果及其局限，尚未在真实数据上测量的功能标有 Beta。在依据这些数字做商业决策前，建议进行 2 周现场试点，与人工计数对比。年龄、性别和表情估计仅为近似值，只用于观察整体趋势。
+~~~~
 
 #### customers.js
 
@@ -361,4 +384,36 @@ Test in/out counting at your own shop door: while the system counts, one person 
 ~~~~text
 เครื่องนี้เปิด "เดโมงานวิจัย" อยู่: โมเดลอายุ/เพศ (UTKFace) และสีหน้าที่ใช้ข้อมูลใบอนุญาตวิจัยยังทำงานได้ ห้ามใช้เชิงพาณิชย์ — ปิดได้ที่
 本设备已开启“研究演示”：基于研究许可数据的年龄/性别（UTKFace）与表情模型仍可运行，不得用于商业用途 — 可在此关闭：
+~~~~
+
+#### docs/ONE-PAGER-GATE.md
+
+~~~~text
+lower bound (owner decision, 2026-11-09), with the plain average (exact reads, k / n) always shown next to it. At the
+~~~~
+
+#### docs/ONE-PAGER-ZH.md
+
+~~~~text
+| 营销 | 智能广告屏、展位分析、表情测试广告（仅限同意的测试参与者；欧盟《人工智能法》第 5(1)(f) 条禁止在工作场所和教育机构使用情绪识别，第 50(3) 条要求告知被分析者；模型训练数据授权待核实，见 `LICENSES/THIRD_PARTY.md` F5）、会员识别（自愿加入） | 广告观看时长、独立访客数、关注度 |
+~~~~
+
+#### docs/sales/DEMO-SCRIPT-CROWD.md
+
+~~~~text
+- ห้ามบอกความเร็วบนมือถือจริง ตัวเลข 355 ms ต่อภาพ (ราว 2.8 ครั้งต่อวินาที) มาจากการจำลองด้วยการลดความเร็ว CPU ×4 บนคอมพิวเตอร์ ไม่ใช่มือถือจริง
+~~~~
+
+#### docs/sales/DEMO-SCRIPT-EXAM.md
+
+~~~~text
+> ตัวเลขทุกตัวมีที่มาใน `docs/ACCURACY-CLAIMS.md` (ทะเบียน E1–E5) และ `docs/ONE-PAGER-EXAM.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
+> Every number is sourced in `docs/ACCURACY-CLAIMS.md` (register E1–E5) and `docs/ONE-PAGER-EXAM.md`. Open points (OP-xx) are in `docs/sales/README.md`.
+~~~~
+
+#### docs/sales/DEMO-SCRIPT-GATE.md
+
+~~~~text
+> ตัวเลขทุกตัวมีที่มาใน `docs/ACCURACY-CLAIMS.md` §5 และ `docs/GATE.md` §3b–3c และ `docs/ONE-PAGER-GATE.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
+> Every number is sourced in `docs/ACCURACY-CLAIMS.md` §5, `docs/GATE.md` §3b–3c and `docs/ONE-PAGER-GATE.md`. Open points (OP-xx) are in `docs/sales/README.md`.
 ~~~~

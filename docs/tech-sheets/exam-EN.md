@@ -130,8 +130,12 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 [sl.c.edu1.p] Tells invigilators which seat to go and look at (no face, more than one person, a phone, leaving the exam screen), in computer labs (pilot-ready) and in halls with cameras around the room (experimental, not on sale yet). It never decides misconduct; invigilators check and record the outcome.
+[sl.st.pilot.d] Ready for one supervised field pilot: the workflow is complete and a person makes every decision; not proven in the field yet
+[sl.st.soon.d] Not available yet; what is still missing (a model, testing or a consent flow) is stated plainly
+[sl.c.edu8.y] A marker reader for the cards (js-aruco, MIT) and testing in real classrooms
 [sl.c.h1.y] A pose model (MediaPipe Pose, Apache-2.0), a silhouette view for privacy and testing with real carers; it is not a medical device
 [sl.c.h10.y] A text-detection model (PP-OCR det, Apache-2.0) and testing with real Thai labels
+[sl.c.f1.y] A pose model and testing on real moves from several camera angles
 ~~~~
 
 #### i18n/en-demo.js
@@ -156,6 +160,27 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 [exam.hall.pcRate] at this size ({range} px) the person detector found {r}% (n = {n}, public dataset, still images, not a real exam room)
+~~~~
+
+#### exam-hall.js
+
+~~~~text
+[exam.hall.pcRate[coco][24–72]] at this size (24–72 px) the person detector found 3.5% (n = 143, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[coco][72–144]] at this size (72–144 px) the person detector found 19.5% (n = 195, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[coco][144–288]] at this size (144–288 px) the person detector found 46.2% (n = 247, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[coco][288+]] at this size (288+ px) the person detector found 75.3% (n = 275, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[coco-t2][24–72]] at this size (24–72 px) the person detector found 8.4% (n = 143, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[coco-t2][72–144]] at this size (72–144 px) the person detector found 38.5% (n = 195, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[coco-t2][144–288]] at this size (144–288 px) the person detector found 56.3% (n = 247, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[coco-t2][288+]] at this size (288+ px) the person detector found 70.2% (n = 275, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[yolox][24–72]] at this size (24–72 px) the person detector found 25.2% (n = 143, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[yolox][72–144]] at this size (72–144 px) the person detector found 48.7% (n = 195, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[yolox][144–288]] at this size (144–288 px) the person detector found 65.2% (n = 247, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[yolox][288+]] at this size (288+ px) the person detector found 66.9% (n = 275, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[yolox-t2][24–72]] at this size (24–72 px) the person detector found 21.7% (n = 143, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[yolox-t2][72–144]] at this size (72–144 px) the person detector found 43.1% (n = 195, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[yolox-t2][144–288]] at this size (144–288 px) the person detector found 66.4% (n = 247, public dataset, still images, not a real exam room)
+[exam.hall.pcRate[yolox-t2][288+]] at this size (288+ px) the person detector found 76.0% (n = 275, public dataset, still images, not a real exam room)
 ~~~~
 
 ### 中文原文
@@ -217,8 +242,12 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 [sl.c.edu1.p] 提示监考员应去查看哪个座位（无人脸、不止一个人、手机、离开考试页面），适用于机房考试（可试点）和四周装有摄像头的考场（实验性，暂不销售）。从不判定作弊，由监考员核查并记录结果。
+[sl.st.pilot.d] 可在一个现场进行有人监督的试点：流程完整，每个决定都由人作出；尚未经过实地验证
+[sl.st.soon.d] 尚未开放；直接说明仍欠缺的部分（模型、测试或同意流程）
+[sl.c.edu8.y] 卡片标记识别器（js-aruco，MIT）以及在真实课堂中的测试
 [sl.c.h1.y] 姿态模型（MediaPipe Pose，Apache-2.0）、保护隐私的剪影视图，以及与真实护理人员的测试；它不是医疗器械
 [sl.c.h10.y] 文字检测模型（PP-OCR det，Apache-2.0）以及用真实泰国药品标签测试
+[sl.c.f1.y] 姿态模型，以及在多个机位下对真实动作的测试
 ~~~~
 
 #### i18n/en-demo.js
@@ -243,6 +272,27 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 [exam.hall.pcRate] 在这个尺寸（{range} px）人员检测器找到了 {r}%（n = {n}，公开数据集静态图片，不是真实考场）
+~~~~
+
+#### exam-hall.js
+
+~~~~text
+[exam.hall.pcRate[coco][24–72]] 在这个尺寸（24–72 px）人员检测器找到了 3.5%（n = 143，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[coco][72–144]] 在这个尺寸（72–144 px）人员检测器找到了 19.5%（n = 195，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[coco][144–288]] 在这个尺寸（144–288 px）人员检测器找到了 46.2%（n = 247，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[coco][288+]] 在这个尺寸（288+ px）人员检测器找到了 75.3%（n = 275，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[coco-t2][24–72]] 在这个尺寸（24–72 px）人员检测器找到了 8.4%（n = 143，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[coco-t2][72–144]] 在这个尺寸（72–144 px）人员检测器找到了 38.5%（n = 195，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[coco-t2][144–288]] 在这个尺寸（144–288 px）人员检测器找到了 56.3%（n = 247，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[coco-t2][288+]] 在这个尺寸（288+ px）人员检测器找到了 70.2%（n = 275，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[yolox][24–72]] 在这个尺寸（24–72 px）人员检测器找到了 25.2%（n = 143，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[yolox][72–144]] 在这个尺寸（72–144 px）人员检测器找到了 48.7%（n = 195，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[yolox][144–288]] 在这个尺寸（144–288 px）人员检测器找到了 65.2%（n = 247，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[yolox][288+]] 在这个尺寸（288+ px）人员检测器找到了 66.9%（n = 275，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[yolox-t2][24–72]] 在这个尺寸（24–72 px）人员检测器找到了 21.7%（n = 143，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[yolox-t2][72–144]] 在这个尺寸（72–144 px）人员检测器找到了 43.1%（n = 195，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[yolox-t2][144–288]] 在这个尺寸（144–288 px）人员检测器找到了 66.4%（n = 247，公开数据集静态图片，不是真实考场）
+[exam.hall.pcRate[yolox-t2][288+]] 在这个尺寸（288+ px）人员检测器找到了 76.0%（n = 275，公开数据集静态图片，不是真实考场）
 ~~~~
 
 ### Script and document strings (language as written)
@@ -270,6 +320,7 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 
 ~~~~text
 public dataset (Open Images V7 validation still images, CC BY 2.0; not exam-room footage) — docs/exam/HALL-DETECTOR-RESULTS.md
+[HALL_PLACE] HALL_PLACE (base ecb783b6): size bands 24 / 72 / 144 / 288 px; n per band 143 / 195 / 247 / 275 people; coco recall 3.5% / 19.5% / 46.2% / 75.3%; coco-t2 recall 8.4% / 38.5% / 56.3% / 70.2%; yolox recall 25.2% / 48.7% / 65.2% / 66.9%; yolox-t2 recall 21.7% / 43.1% / 66.4% / 76.0%; source: public dataset (Open Images V7 validation still images, CC BY 2.0; not exam-room footage) — docs/exam/HALL-DETECTOR-RESULTS.md
 ~~~~
 
 #### lensiq-sitecheck.js
@@ -314,6 +365,10 @@ public dataset (Open Images V7 validation still images, CC BY 2.0; not exam-room
 | Face not found (one person at desk distance, MediaPipe engine) | 15% (faces 24–48 px wide: none found) | n = 26 frames (n = 12) | public dataset (Open Images V7, held-out half) · by skin tone: not measured · real exam rooms: not measured (pilot phase 0) | `docs/exam/FACE-ENGINE-RESULTS.md`, `docs/pilot/PILOT-EXAM.md` |
 | "More than one person" signal (computer room): a second person in view is flagged. **An aid, not complete detection** | 28.8% (15 / 52) · false alarms with one person 0 / 17 | n = 52 frames (n = 17) | public dataset (public photos from Open Images V7, held-out half; not exam-room footage) · real exam rooms: not measured | `docs/exam/FACE-ENGINE-RESULTS.md` §7.2 |
 | Phone / book detection on exam footage | not measured | — | not measured (planned in the staged exam, phase 1) | `docs/EXAM.md` |
+| ระบบคุมสอบด้วย AI อย่างเดียวจับผู้ที่ถูกสั่งให้โกงได้ (การทดลองของ University of Twente กับ Proctorio) | 0 จาก 6 คน | — | งานวิจัยที่ตีพิมพ์ (ไม่ใช่ผลวัดของ LENSIQ) | `docs/EXAM.md` "Why it does not decide" |
+**ห้องสอบที่มีกล้องเป็นรุ่นทดลอง (เจ้าของตัดสินใจ 2026-11-10):** ยังไม่เปิดขายจนกว่าจะแก้ปัญหาใบหน้าเล็กในภาพมุมกว้างของห้องสอบ (`docs/exam/FACE-ENGINE-RESULTS.md` §7) ราคาในแถวนั้นใช้เมื่อเปิดขายแล้วเท่านั้น ห้องคอมพิวเตอร์ (`exam-lab.html`) พร้อมโครงการนำร่อง
+| AI-only proctoring caught instructed cheaters (University of Twente trial with Proctorio) | 0 of 6 | — | published research (not a LENSIQ measurement) | `docs/EXAM.md` |
+| Camera hall (per room; number of cameras depends on room size, see the guide), **experimental, not on sale yet** | 290 THB per room per exam day excl. 7% VAT, or 990 THB / month per room excl. 7% VAT | 300–600 THB per room per exam day excl. 7% VAT, or 1,990 THB / month per room excl. 7% VAT |
 ~~~~
 
 #### docs/sales/DECK-EXAM.md
@@ -336,6 +391,8 @@ public dataset (Open Images V7 validation still images, CC BY 2.0; not exam-room
 Computer-room mode is pilot-ready; the camera hall is experimental and not for sale. It has no emotion, expression, lie or deception scoring, no suspicion score and no face recognition,
 and age / gender / expression models are not part of customer builds. Measured so far (all public dataset, none from real exam rooms): face not found 15% (n = 26 frames, `docs/exam/FACE-ENGINE-RESULTS.md`);
 the "more than one person" signal fires on 28.8% (15 / 52) of frames with a second person with 0 / 17 false alarms, an aid and not complete detection (§7.2). Not measured: accuracy in real exam rooms,
+# สไลด์ขาย: LENSIQ Exam (10 สไลด์) / Sales deck: LENSIQ Exam
+- การทดลองแบบสุ่มของ University of Twente กับ Proctorio พบว่าระบบคุมสอบด้วย AI อย่างเดียวจับผู้ที่ถูกสั่งให้โกงได้ **0 จาก 6 คน**
 ~~~~
 
 #### docs/sales/DEMO-SCRIPT-EXAM.md

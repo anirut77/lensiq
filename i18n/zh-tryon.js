@@ -1,7 +1,7 @@
 /* i18n/zh-tryon.js — 简体中文 for tryon.html / tryon.js (to.*). Mirrors i18n/en-tryon.js. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
   "to.title": "用摄像头或照片试戴商品（模拟预览）| LENSIQ",
-  "to.eyebrow": "LENSIQ · 虚拟试穿（试验）",
+  "to.eyebrow": "LENSIQ · 虚拟试穿（试用版）",
   "to.h1": "用摄像头或照片在自己身上试穿商品",
   "to.lead": "在本设备上，用摄像头画面或照片试戴店铺目录中的眼镜、帽子和服装。",
   "to.consent.h": "打开摄像头或选择照片之前",

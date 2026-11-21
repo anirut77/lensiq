@@ -55,8 +55,16 @@ test("the JSON still records every former banner and cameras.html#accuracy cell;
     const html = read(p + ".html"), note = html.match(/<p class="acc-note"[^>]*>([\s\S]*?)<\/p>/);
     if (note) assert.ok(!FIG.test(squash(note[1].replace(/<[^>]+>/g, " "))), p + ".html: the acc-note shows a figure again");
   }
-  // 223-5: the research-licence badge stays where that option is on
+  // 223-5: the research-licence labels stay where that option is on — the full base guard: all 10 label keys on their page
+  // with the recorded Thai, and the recorded EN / ZH dictionary values (reviewer finding 1, 2026-11-22)
   for (const p of ["attendance", "customers"]) assert.deepEqual(htmlTexts(read(p + ".html"), p + ".licb").map(squash), ["โมเดลใบอนุญาตวิจัย"], p + ".licb");
+  const labelRows = expand(doc).filter(r => /\.(lic|licb)$/.test(r.key));
+  assert.equal(labelRows.length, 10, "10 licence label records (5 pages x .lic / .licb)");
+  for (const r of labelRows) {
+    const got = htmlTexts(read(r.page + ".html"), r.key).map(squash);
+    assert.ok(got.length >= 1 && got.every(g => g === squash(r.th)), `${r.page}.html [${r.key}] licence label Thai exact`);
+    for (const lang of ["en", "zh"]) assert.equal(squash(dictValue(read(`i18n/${lang}-${r.dict}.js`), r.key) || ""), squash(r[lang]), `i18n/${lang}-${r.dict}.js [${r.key}] licence label exact`);
+  }
   // every figure (key + what) is in a technical sheet or the README, and in admin-measurements.js
   const sheets = fs.readdirSync(path.join(root, "docs", "tech-sheets")).filter(f => /-EN\.md$|^README\.md$/.test(f))
     .map(f => squash(read("docs/tech-sheets/" + f))).join("\n");
@@ -80,10 +88,25 @@ test("the check really fails when a figure comes back, a sheet drifts or ACCURAC
     for (const f of fs.readdirSync(path.join(root, "docs", "tech-sheets")).filter(f => f.endsWith(".md"))) copy("docs/tech-sheets/" + f);
     // a synthetic customer page + dictionaries that show the plain line only
     const put = (rel, s) => { fs.mkdirSync(path.dirname(path.join(tmp, rel)), { recursive: true }); fs.writeFileSync(path.join(tmp, rel), s); };
-    put("driver.html", '<!doctype html><p data-i18n="driver.s4">เตือนได้เพียงบางส่วน ไม่ใช่อุปกรณ์ความปลอดภัย</p>\n<!-- LFW n = 1 -->\n');
-    put("i18n/en-driver.js", '(window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {\n  "driver.s4": "It catches only some cases"\n} });\n');
-    put("i18n/zh-driver.js", '(window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {\n  "driver.s4": "只能发现部分情况"\n} });\n');
+    // the licence-label pages (223-5) are copied as they are; the synthetic driver page carries its two labels as recorded
+    for (const p of ["attendance", "customers", "booth", "signage"]) ["%s.html", "i18n/en-%s.js", "i18n/zh-%s.js"].forEach(t => copy(t.replace("%s", p)));
+    const lab = expand(loadFigures(tmp)).filter(r => r.page === "driver" && /\.(lic|licb)$/.test(r.key));
+    const labHtml = lab.map(r => `<span data-i18n="${r.key}">${r.th}</span>`).join("\n");
+    const labJs = lang => lab.map(r => `,\n  ${JSON.stringify(r.key)}: ${JSON.stringify(r[lang])}`).join("");
+    put("driver.html", '<!doctype html><p data-i18n="driver.s4">เตือนได้เพียงบางส่วน ไม่ใช่อุปกรณ์ความปลอดภัย</p>\n<!-- LFW n = 1 -->\n' + labHtml + "\n");
+    put("i18n/en-driver.js", '(window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {\n  "driver.s4": "It catches only some cases"' + labJs("en") + '\n} });\n');
+    put("i18n/zh-driver.js", '(window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {\n  "driver.s4": "只能发现部分情况"' + labJs("zh") + '\n} });\n');
     assert.deepEqual(check(tmp), [], "fixture starts clean (a dataset name inside an HTML comment is not visible text)");
+    // 0. a licence label removed from its page, or its English changed, fails (223-5)
+    const dh = path.join(tmp, "driver.html"), dh0 = fs.readFileSync(dh, "utf8");
+    fs.writeFileSync(dh, dh0.replace(/<span data-i18n="driver\.licb">[^<]*<\/span>/, ""));
+    assert.ok(check(tmp).some(e => /driver\.html: no element with data-i18n="driver\.licb"/.test(e)), "a removed licence label fails");
+    fs.writeFileSync(dh, dh0);
+    const de = path.join(tmp, "i18n", "en-driver.js"), de0 = fs.readFileSync(de, "utf8");
+    fs.writeFileSync(de, de0.replace(/("driver\.lic": ")/, "$1x"));
+    assert.ok(check(tmp).some(e => /en-driver\.js \[driver\.lic\] licence label differs/.test(e)), "a changed licence label fails");
+    fs.writeFileSync(de, de0);
+    assert.deepEqual(check(tmp), [], "fixture clean again");
     const s4 = expand(loadFigures(tmp)).find(r => r.key === "driver.s4");
     // 1. the Thai figure text is put back on the page
     const h = path.join(tmp, "driver.html"), h0 = fs.readFileSync(h, "utf8");

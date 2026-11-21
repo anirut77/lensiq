@@ -29,7 +29,7 @@
 
 ## โครงการนำร่อง
 ขั้น 0: ภาพมือถือของเจ้าของ ~100 ภาพ (`tools/plate-field-eval.mjs`) → ขั้น 1: ลานจอด 1 + หมู่บ้าน 1 อย่างน้อย 5 วัน ≥ 200 การอ่านจริง
-เกณฑ์ที่เสนอ: อ่านถูก ≥ 95% กลางวัน ≥ 85% กลางคืน ไม่มีค่าผิดที่บันทึกโดยไม่มีใครเห็น วิธีตัดสินและการรายงานค่าเฉลี่ยคู่กันอยู่ใน `docs/pilot/PILOT-GATE.md` §5 (เจ้าของตัดสินใจแล้ว 2026-11-09) แผนและเช็กลิสต์: `docs/pilot/PILOT-GATE.md` §5
+เกณฑ์ผ่านของโครงการนำร่อง (อ่านถูกกลางวันและกลางคืน ไม่มีค่าผิดที่บันทึกโดยไม่มีใครเห็น) วิธีตัดสิน และการรายงานค่าเฉลี่ยคู่กัน อยู่ใน `docs/pilot/PILOT-GATE.md` §5 (เจ้าของตัดสินใจแล้ว 2026-11-09) แผนและเช็กลิสต์: `docs/pilot/PILOT-GATE.md` §5
 
 ## ราคา (ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย — ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7% ไม่รวมอุปกรณ์)
 | แพ็กเกจ | ราคานำร่อง (ใช้ตอนนี้) | ราคาปกติหลังผ่านเกณฑ์นำร่อง |
@@ -85,7 +85,7 @@ The technical sheet is available from sales on request.
 **Pilot:** two phases (`docs/pilot/PILOT-GATE.md`).
 - Phase 0: about 100 of the owner's phone photos.
 - Phase 1: 1 car park and 1 village for at least 5 days and at least 200 reads.
-- Proposed targets: ≥ 95% exact reads by day and ≥ 85% at night, and 0 silent wrong saves. How they are judged, with the plain average always shown next to it, is in `docs/pilot/PILOT-GATE.md` §5 (owner decision, 2026-11-09).
+- Pilot pass targets (exact reads by day and at night, no silent wrong saves) and how they are judged, with the plain average always shown next to it, is in `docs/pilot/PILOT-GATE.md` §5 (owner decision, 2026-11-09).
 
 **Price (approved price list, not on sale yet; excl. 7% VAT, so the customer pays the price + 7%; hardware not included):**
 

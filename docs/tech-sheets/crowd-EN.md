@@ -99,6 +99,8 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [cr.acc2.r4] Very dense crowds (about 300 people): only about 1 person per frame was counted (and 0–2 on a time-lapse with more than 100 people), so the number cannot be used. The count drops towards zero instead of rising, so the page cannot tell it from an empty scene and shows no warning by itself, unless "Expected crowd at peak" is set in the settings · n = 2 + 7 frames (2 clips) · source: public dataset, preliminary
 [cr.acc2.r5] Entry/exit line: 1 / 1 crossings counted correctly in the sparse clip, and no false counts in a clip where nobody crossed the line. Too little data to give a percentage yet · n = 1 crossing (2 clips) · source: public dataset, preliminary
 [cr.acc2.kit] A counting kit lets two people count the sparse clip and the medium clip separately; the same tool then computes the result (docs/CROWD-ACCURACY.md).
+[cr.acc] Uses the same person detector as the store analytics page. In very dense crowds people hidden behind others can be missed, and a person who leaves the view and comes back is counted as a new visitor, so the numbers are estimates for planning, not an official headcount. Mount the camera high, looking down at an angle, and compare with a manual count for a while before relying on it.
+[cr.acc2.final] Final accuracy: pending a human count.
 ~~~~
 
 #### solutions.html
@@ -154,6 +156,8 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [cr.acc2.r4] 非常拥挤的人群（约 300 人）：每帧只数到约 1 人（在超过 100 人的延时视频中为 0–2 人），数字无法使用。人数会降到接近零而不是升高，因此本页无法将其与空场景区分，也不会自动显示提醒，除非在设置中填写"高峰时预计人数" · n = 2 + 7 帧（2 段视频） · 来源：公开数据集，初步结果
 [cr.acc2.r5] 进出计数线：人少的片段中 1 / 1 次穿越数对；无人穿越的片段中没有误计。数据太少，暂不给出百分比 · n = 1 次穿越（2 段视频） · 来源：公开数据集，初步结果
 [cr.acc2.kit] 提供计数工具包，由两人分别数人少片段和中等人数片段，再用同一工具计算结果（docs/CROWD-ACCURACY.md）。
+[cr.acc] 使用与门店分析页面相同的人体检测器。在非常拥挤的地方，被他人遮挡的人可能被漏计；离开画面后又返回的人会被计为新访客，因此数字是用于规划的估算值，并非正式人数统计。请将摄像头装高、斜向下拍摄，并先与人工计数对比一段时间再正式使用。
+[cr.acc2.final] 最终准确度：等待人工计数。
 ~~~~
 
 #### solutions.html
@@ -222,6 +226,8 @@ All figures are **preliminary**: the reference was an AI reviewer looking at sti
 | Time per frame, mid-range phone | 355 ms (≈ 2.8 calls/s), emulated CPU ×4, not a real phone | n = 27 frames (1 clip) | public dataset (emulated device) | `docs/CROWD-ACCURACY.md` |
 | Final accuracy (human count) | not measured | — | field: not measured (human count pending) | `docs/CROWD-ACCURACY.md` |
 | A real customer site | not measured | — | field: not measured (no pilot yet) | `docs/pilot/PILOT-CROWD.md` |
+reference, human count pending). It is for **sparse to medium crowds**. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09
+(`docs/PRICING-RESEARCH.md` §3.3); nothing is charged yet. **Not yet suitable for dense crowds:** about 300 people were counted as about 1 per frame. Never use it for
 ~~~~
 
 #### docs/sales/DECK-CROWD.md
@@ -254,6 +260,7 @@ All figures are **preliminary**: the reference was an AI reviewer looking at sti
 15–22 people filling the view undercount 26% (n = 12 frames); 30–50 people, many far, undercount 58% (n = 20 frames); small or far people 37–59% (n = 29 frames); near zone of 0–13 people off by 1.2 people per frame, 31%
 (n = 20 frames); entry / exit line 1 / 1 (n = 1); about 300 people counted as about 1 per frame (n = 2 + 7 frames). All from public datasets (`docs/CROWD-ACCURACY.md`). At a real customer site: not measured. Speed on a
 real phone: not measured (the 355 ms figure is emulated). No age, gender or expression estimate in customer builds. Free 2 hours per device per day (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot price: 590 THB per device per day, 2,490 THB per device per
+# สไลด์ขาย: LENSIQ Crowd (9 สไลด์) / Sales deck: LENSIQ Crowd
 ~~~~
 
 #### docs/sales/DEMO-SCRIPT-CROWD.md
@@ -274,6 +281,8 @@ real phone: not measured (the 355 ms figure is emulated). No age, gender or expr
 | 7:00–8:00 | `crowd.html` limits | Dense crowds are not suitable: at Shibuya about 300 people were counted as about 1 per frame (0–2 on the time-lapse; n = 2 + 7 frames). The count collapses, it does not rise, so there is not always an automatic warning; the operator sets the expected peak. Never use it for crowd-safety decisions such as limiting entry. If you expect about 50 or more people in one view, we cannot sell it yet. | Row C1; the "where it breaks" list in `docs/CROWD-ACCURACY.md` (use it to talk) | What peak do you expect? |
 **Do NOT claim:** an exact count (say "density estimate"); accuracy at the customer's site (not measured) or a final figure (pending a human count; today's are preliminary against an AI reference);
 emulated by slowing a computer's CPU by four, not a real phone); that the entry / exit line is accurate (only 1 crossing in the test set, n = 1); face recognition, age / gender / expression estimates, emotion
+**Prepare:** open https://anirut77.github.io/lensiq/crowd.html in current Chrome or Edge (demo mode, simulated, no camera) and `camera-notice.html` (sign A). Keep a screenshot of the "figures and sources"
+use in dense crowds, concerts, crossings or about 50+ people in one view (not suitable, not sold); use for crowd-safety decisions; speed on a real phone (355 ms per frame, about 2.8 per second, is
 ~~~~
 
 #### docs/sales/ONBOARDING-CROWD.md
@@ -313,4 +322,11 @@ The figures in this guide are preliminary results against a reference counted by
 1. **活动前至少 1 天，** 在真实场地试装：检查区域内人物高度是否至少占画面高度的 10%；调整位置；张贴告示 A。
 | 提示“人物看起来很小” | 人物高度不足画面高度的 10% | 把摄像头移近，或只在靠近的部分绘制区域。这种情况下计数偏低 37–59%（小或远的人物，n = 29 帧，初步结果，对照 AI 参考值） |
 | 计数比肉眼计数低 26–59% | 已知限制：15–22 人充满画面时少计 26%（n = 12 帧）；30–50 人时少计 58%（n = 20 帧）；小或远的人物少计 37–59%（n = 29 帧）；初步结果，对照 AI 参考值 | 仅作为估计值和趋势，不作为真实人数；从一开始就告知主办方。尚不适用于密集人群 |
+~~~~
+
+#### help.html
+
+~~~~text
+[#h-start-crowd] LENSIQ Crowd นับคนและความหนาแน่น (ทดลอง) เตรียม: โทรศัพท์หรือโน้ตบุ๊กที่มีกล้อง ขาตั้งสูง 2.5–3 เมตรมองเฉียงลง ไฟเลี้ยงตลอดงาน และป้ายแจ้งกล้องที่ทางเข้า ใช้กับคนน้อยถึงปานกลาง ยังไม่เหมาะกับฝูงชนหนาแน่น ลองตั้งกล้องที่สถานที่จริงก่อนวันงาน ให้คนในโซนสูงอย่างน้อย 10% ของความสูงภาพ เปิดหน้า Crowd กดเปิดกล้อง แล้ววาดโซนและเส้นนับเข้า–ออก ตั้งจำนวนคนที่คาดไว้ช่วงพีค เพื่อให้หน้าเตือนเมื่อนับได้น้อยผิดปกติ หลังงาน ส่งออกไฟล์ CSV แล้วปิดกล้อง ระบบไม่บันทึกวิดีโอ ปัญหาที่พบบ่อย: ขึ้นว่า "คนในภาพดูเล็ก" ให้ย้ายกล้องเข้าใกล้หรือวาดโซนเฉพาะส่วนใกล้ · คนแน่นมากแต่นับได้น้อย ให้หยุดใช้ตัวเลขนั้นและแบ่งมุมกล้อง หน้า Crowd · ดูเดโม
+[#zh-h-start-crowd] LENSIQ Crowd 人数与密度统计（实验性） 准备： 一台带摄像头的手机或笔记本电脑、高 2.5–3 米向下斜拍的支架、全程电源，以及入口处的摄像头告示。适用于少量到中等人群，尚不适合密集人群。 活动前在实际场地试装：区域内的人至少占画面高度的 10%。 打开 Crowd 页面，开启摄像头，然后绘制区域和进出计数线。 设置高峰时的预计人数，以便计数异常偏低时页面发出提醒。 活动结束后导出 CSV 并关闭摄像头。系统不录制视频。 常见问题： 提示"画面中的人看起来很小"：把摄像头移近或只在近处绘制区域 · 人很多却计数很少：停止使用该数字并拆分摄像头视角。 Crowd 页面 · 查看演示
 ~~~~

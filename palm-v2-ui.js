@@ -414,7 +414,7 @@
   var worker = null, workerBroken = false, jobN = 0;
   function findLines(px, w, h, hand, school) {
     if (!workerBroken && typeof Worker === "function") {
-      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=3"); } catch (e) { workerBroken = true; }
+      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=4"); } catch (e) { workerBroken = true; }
     }
     if (!worker || workerBroken) return new Promise(function (res) { setTimeout(function () { res(PV.detect(px, w, h, hand, { school: school })); }, 0); });
     var id = ++jobN;

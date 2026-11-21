@@ -144,7 +144,13 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [cameras.s213] causing line-crossing overcounts. The new tracker uses two-stage matching (confident boxes first, then low-score boxes), a debounce band around the line, and requires 2 frames on the new side before counting. Correct counts rose from 72% to 81–91%, but more people are missed in crowds
 [cameras.prof.p1] Every site, including the GitHub Pages demo, runs in customer mode by default (LENSIQ_PROFILE = "commercial"): the age/gender (UTKFace) and expression models are never loaded or shown, and BiSeNet face parsing is switched off (LENSIQ_FACEPARSE = false, and its model file is not shipped with the site). The "Research demo" switch below brings the age/gender and expression models back on this device only, for demonstrations or research (off by default, can always be switched off). If it is left on at a site that is not the demo site, camera pages show a red warning bar
 [cameras.ip.n2] LENSIQ does not bundle or install these programs and has not been tested with every IP camera brand. Try it with your own camera, then run the page's on-site accuracy check before relying on the numbers
+[cameras.s199] Age/gender (Digital Signage)
+[cameras.s201] Age error · age band · gender
+[cameras.s203] Hand detection (kiosk)
+[cameras.s205] Raised-hand recall / precision
+[cameras.s207] Barcode scanning · QC · drowsiness · expressions
 [cameras.s211] The main detector is now YOLOX-Nano (Apache-2.0 license, runs on WASM without WebGL), as fast as before but clearly better at small people; COCO-SSD remains the fallback. People under 1/10 of frame height are still missed; the "Small/distant people" option tiles the image to find them, at lower speed
+[cameras.s218] Age, gender and emotion are estimates, used only to understand the audience as a whole, never to make decisions about any individual
 ~~~~
 
 #### cat-education.html
@@ -235,11 +241,18 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [sl.cats.sub] Seven work categories. Every page is still here; each category shows status and measured accuracy with its source.
 [sl.pr.4] Measured results and limits are published, with an on-site accuracy check before you rely on the numbers
 [sl.next.p] Try an available page in demo mode → a 2-week on-site trial with an accuracy check → review the results together
+[sl.c.edu3.y] A parental-consent flow, a QR alternative for children who do not use their face, and a channel for messages to parents
+[sl.c.edu9.y] Page-edge detection and in-browser PDF creation; not built yet
 [sl.c.edu10.y] A backup barcode reader for iPhone (zxing-js, Apache-2.0) and a loans page
 [sl.c.edu11.y] A custom detector (YOLOX, Apache-2.0) trained on images cleared for commercial use, and parental consent
+[sl.c.r11.y] A comparison page using the daily numbers from the counting pages (lensiq-stats); not built yet
 [sl.c.r12.y] A backup barcode reader for iPhone (zxing-js, Apache-2.0) and a stocktake page
 [sl.c.m3.y] A custom detector (YOLOX, Apache-2.0) trained on images cleared for commercial use; no ready-made model with a clear licence exists yet
 [sl.c.h8.y] A hand-detection model (MediaPipe, Apache-2.0) in a new page, and step pictures we may use
+[sl.c.e10.y] Object detection on the feng-shui page (COCO-SSD)
+[sl.c.e11.y] A combined page that pulls from the date planner and the feng-shui page; not built yet
+[sl.c.e12.y] Connecting the plate reader (lensiq-plate.js) to the lucky-numbers page
+[sl.c.e13.y] A card classifier we would train ourselves, or matching against card images we have the rights to use
 ~~~~
 
 ### 中文原文
@@ -262,7 +275,13 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [cameras.s213] 会导致越线计数偏多。新跟踪器采用两阶段匹配（先高置信框，再低分框），在线两侧设防抖带，且须在新一侧停留 2 帧才计数。正确计数比例从 72% 提高到 81–91%，但在人群中漏计增多
 [cameras.prof.p1] 所有网站（包括 GitHub Pages 演示站）默认以客户模式运行（LENSIQ_PROFILE = "commercial"）：不加载、不显示年龄/性别（UTKFace）和表情模型；BiSeNet 人脸解析模型处于关闭状态（LENSIQ_FACEPARSE = false，且网站文件中不包含该模型文件）。下方的“研究演示”开关仅在本设备上恢复年龄/性别和表情模型，用于演示或研究（默认关闭，可随时关闭）。如果在非演示站点上保持开启，摄像头页面会显示红色警告条
 [cameras.ip.n2] LENSIQ 不附带也不安装这些软件，且尚未测试所有品牌的 IP 摄像头。请先用您自己的摄像头试用，并在使用数字前运行页面中的“现场准确度检查”
+[cameras.s199] 年龄/性别（广告屏）
+[cameras.s201] 年龄误差 · 年龄段 · 性别
+[cameras.s203] 手部检测（自助终端）
+[cameras.s205] 举手检出率 / 准确率
+[cameras.s207] 条码扫描 · 质量检测 · 疲劳检测 · 表情
 [cameras.s211] 主检测器改为 YOLOX-Nano（Apache-2.0 许可，在 WASM 上运行，无需 WebGL），速度与原来相同，但明显能检出更多小目标；COCO-SSD 仍作为备用。身高不足画面 1/10 的人仍会漏检；“小目标/远距离”选项可分块检测，但速度变慢
+[cameras.s218] 年龄/性别/情绪均为推测，仅用于了解观众群体整体情况，不用于对任何个人做出判断
 ~~~~
 
 #### cat-education.html
@@ -353,14 +372,31 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [sl.cats.sub] 七个业务类别。所有页面都保留；每个类别都标明状态以及已测准确率和来源。
 [sl.pr.4] 公开实测结果和局限，并在依赖数据前提供现场准确度检查
 [sl.next.p] 在示例模式下试用已上线页面 → 两周现场试用并检查准确度 → 共同评估结果
+[sl.c.edu3.y] 家长同意流程、为不使用人脸的孩子提供的二维码替代方式，以及给家长发消息的渠道
+[sl.c.edu9.y] 纸张边缘检测和浏览器内生成 PDF，尚未开发
 [sl.c.edu10.y] 适用于 iPhone 的备用条码识别（zxing-js，Apache-2.0）和借还记录页面
 [sl.c.edu11.y] 使用可商用图像训练的专用检测器（YOLOX，Apache-2.0），以及家长同意
+[sl.c.r11.y] 使用计数页面每日数据（lensiq-stats）的对比页面，尚未开发
 [sl.c.r12.y] 适用于 iPhone 的备用条码识别（zxing-js，Apache-2.0）和盘点页面
 [sl.c.m3.y] 需要用可商用图像训练的专用检测器（YOLOX，Apache-2.0）；目前尚无许可明确的现成模型
 [sl.c.h8.y] 新页面中的手部检测模型（MediaPipe，Apache-2.0）以及可使用的步骤图
+[sl.c.e10.y] 风水页面中的物体检测（COCO-SSD）
+[sl.c.e11.y] 汇总吉日规划与风水页面数据的页面，尚未开发
+[sl.c.e12.y] 把车牌识别（lensiq-plate.js）连接到吉祥数字页面
+[sl.c.e13.y] 需要自行训练的卡牌分类器，或与有使用权的牌面图像比对
 ~~~~
 
 ### Script and document strings (language as written)
+
+#### help.html
+
+~~~~text
+[#h-accuracy] ตัวเลขจากกล้องแม่นแค่ไหน ขึ้นกับมุมกล้อง ความสูง และแสง เราเผยแพร่ผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด และฟีเจอร์ที่ยังไม่ได้วัดบนข้อมูลจริงจะมีป้าย Beta ก่อนใช้ตัวเลขตัดสินใจทางธุรกิจ แนะนำให้ทดลองหน้างาน 2 สัปดาห์ เทียบกับการนับด้วยคน ค่าประมาณอายุ เพศ และสีหน้าเป็นค่าโดยประมาณสำหรับภาพรวมเท่านั้น
+[#en-h-accuracy] How accurate are the camera numbers? It depends on camera angle, height and lighting. We publish public-dataset results with their limitations, and features not yet measured on real data carry a Beta label. Before relying on the numbers for business decisions, run a 2-week on-site pilot against a human count. Age, gender and expression estimates are approximate and only meant for overall trends.
+[#en-h-start-gate] LENSIQ Gate guard-assisted plate reading Prepare: one device with a camera per lane, a firm stand, power, and the camera sign (printed from the sign kit page). Post the sign before the camera. Mount the device so the plate is at least 120 px wide in the picture. Open the village or car-park page; the operator reads and accepts the notice before the camera starts. Set the operator name, the most common provinces and the log retention. Train guards to confirm or correct every plate, and use the "accuracy check" from day one. Common problems: blurred plates on moving cars: use a faster shutter and have cars stop at the line · poor reads at night: fix the infrared light first. Gate page · Sign kit · See the demo
+[#en-h-start-crowd] LENSIQ Crowd people counting and density (experimental) Prepare: a phone or laptop with a camera, a stand 2.5–3 m high looking down, mains power for the whole event and a camera sign at the entrance. For sparse to medium crowds; not yet suitable for dense crowds. Try the set-up at the real place before the event: people in the zone at least 10% of the frame height. Open the Crowd page, start the camera, then draw the zone and the in / out line. Set the expected crowd at peak so the page warns when the count is unusually low. After the event, export the CSV and stop the camera. No video is recorded. Common problems: "people look small": move the camera closer or draw the zone on the near part only · a dense crowd counted as very few: stop using that number and split the camera views. Crowd page · See the demo
+[#zh-h-accuracy] 摄像头的数字有多准确？ 这取决于摄像头角度、高度和光线。我们公开在公共数据集上的测量结果及其局限，尚未在真实数据上测量的功能标有 Beta。在依据这些数字做商业决策前，建议进行 2 周现场试点，与人工计数对比。年龄、性别和表情估计仅为近似值，只用于观察整体趋势。
+~~~~
 
 #### customers.js
 
@@ -478,4 +514,36 @@ Test in/out counting at your own shop door: while the system counts, one person 
 ~~~~text
 เครื่องนี้เปิด "เดโมงานวิจัย" อยู่: โมเดลอายุ/เพศ (UTKFace) และสีหน้าที่ใช้ข้อมูลใบอนุญาตวิจัยยังทำงานได้ ห้ามใช้เชิงพาณิชย์ — ปิดได้ที่
 本设备已开启“研究演示”：基于研究许可数据的年龄/性别（UTKFace）与表情模型仍可运行，不得用于商业用途 — 可在此关闭：
+~~~~
+
+#### docs/ONE-PAGER-GATE.md
+
+~~~~text
+lower bound (owner decision, 2026-11-09), with the plain average (exact reads, k / n) always shown next to it. At the
+~~~~
+
+#### docs/ONE-PAGER-ZH.md
+
+~~~~text
+| 营销 | 智能广告屏、展位分析、表情测试广告（仅限同意的测试参与者；欧盟《人工智能法》第 5(1)(f) 条禁止在工作场所和教育机构使用情绪识别，第 50(3) 条要求告知被分析者；模型训练数据授权待核实，见 `LICENSES/THIRD_PARTY.md` F5）、会员识别（自愿加入） | 广告观看时长、独立访客数、关注度 |
+~~~~
+
+#### docs/sales/DEMO-SCRIPT-CROWD.md
+
+~~~~text
+- ห้ามบอกความเร็วบนมือถือจริง ตัวเลข 355 ms ต่อภาพ (ราว 2.8 ครั้งต่อวินาที) มาจากการจำลองด้วยการลดความเร็ว CPU ×4 บนคอมพิวเตอร์ ไม่ใช่มือถือจริง
+~~~~
+
+#### docs/sales/DEMO-SCRIPT-EXAM.md
+
+~~~~text
+> ตัวเลขทุกตัวมีที่มาใน `docs/ACCURACY-CLAIMS.md` (ทะเบียน E1–E5) และ `docs/ONE-PAGER-EXAM.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
+> Every number is sourced in `docs/ACCURACY-CLAIMS.md` (register E1–E5) and `docs/ONE-PAGER-EXAM.md`. Open points (OP-xx) are in `docs/sales/README.md`.
+~~~~
+
+#### docs/sales/DEMO-SCRIPT-GATE.md
+
+~~~~text
+> ตัวเลขทุกตัวมีที่มาใน `docs/ACCURACY-CLAIMS.md` §5 และ `docs/GATE.md` §3b–3c และ `docs/ONE-PAGER-GATE.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
+> Every number is sourced in `docs/ACCURACY-CLAIMS.md` §5, `docs/GATE.md` §3b–3c and `docs/ONE-PAGER-GATE.md`. Open points (OP-xx) are in `docs/sales/README.md`.
 ~~~~

@@ -304,7 +304,8 @@ export default async function ({ base, launch, check }) {
         cs: document.querySelector("#ivSumConsist").innerText, probe: document.querySelector('#ivSumConsist [data-cs="probe"]')?.textContent || "" }));
       assert(s.early, "all submitted -> early flag gone");
       assert(s.spread.some(x => /^lenient:A/.test(x)), "rater spread flags A: " + JSON.stringify(s.spread));
-      assert(/ความสอดคล้องของคำตอบ \(ข้อสังเกต ไม่ใช่การตัดสิน\)/.test(s.cs) && /ควรถามเพิ่ม 2/.test(s.probe) && /Bond & DePaulo, 2006/.test(s.cs) && /54%/.test(s.cs), "consistency summary: " + s.cs);
+      assert(/ความสอดคล้องของคำตอบ \(ข้อสังเกต ไม่ใช่การตัดสิน\)/.test(s.cs) && /ควรถามเพิ่ม 2/.test(s.probe)
+        && /ระบบไม่ตัดสินว่าใครพูดจริงหรือไม่ และไม่มีใครแยกคำพูดจริงกับไม่จริงจากท่าทางหรือสีหน้าได้อย่างน่าเชื่อถือ/.test(s.cs) && !/54%|Bond/.test(s.cs), "consistency summary: " + s.cs);
       for (const wd of ["โกหก", "จริง/เท็จ:", "คะแนนความจริง"]) assert(!s.cs.includes(wd), "verdict word " + wd);
       // the consistency choice travels with the exported sheet
       const ex = await page.evaluate(() => { document.querySelector("#tab-score").click(); document.querySelector('#ivWhoSeg button[data-i="0"]').click(); document.querySelector("#ivExport").click(); return JSON.parse(document.querySelector("#ivExportOut").value); });
@@ -323,7 +324,8 @@ export default async function ({ base, launch, check }) {
       await page.evaluate(() => document.querySelector("#ivDCandBtn").click());
       await sleep(1200);
       const th = await page.evaluate(() => ({ sig: document.querySelectorAll("#ivDCandView .sig li[data-sig]").length, h: document.querySelector("#ivDCandView .sig h4")?.textContent || "", sci: document.querySelector("#ivDCandView .sig .sci")?.textContent || "", tiles: document.querySelectorAll("#ivDCandView .tile").length }));
-      assert(th.sig >= 2 && /สัญญาณความตื่นเต้นที่สังเกตได้/.test(th.h) && /Barrett/.test(th.sci) && /Bond & DePaulo/.test(th.sci) && th.tiles === 7, "signals in general mode: " + JSON.stringify(th));
+      assert(th.sig >= 2 && /สัญญาณความตื่นเต้นที่สังเกตได้/.test(th.h) && /Barrett/.test(th.sci)
+        && /ระบบไม่ตัดสินว่าใครพูดจริงหรือไม่/.test(th.sci) && !/54%|Bond/.test(th.sci) && th.tiles === 7, "signals in general mode: " + JSON.stringify(th));
       // switch to EU/EEA or regulated use -> hidden in the employer interview, the basic tiles remain
       await page.evaluate(() => { const r = document.querySelector("#ivRegion"); r.value = "eu"; r.dispatchEvent(new Event("change")); });
       await sleep(1200);

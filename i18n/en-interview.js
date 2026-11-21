@@ -299,7 +299,7 @@
   "iv.js.csCount": "clearly seen {y} · ask more {a}",
   "iv.js.csFollow": "Topics to follow up or verify (e.g. with a reference): {t}",
   "iv.js.csEmpty": "No interviewer has recorded this observation yet",
-  "iv.js.sci": "Scientific limits: gestures and facial movements do not reliably reveal inner emotions and differ between people and cultures (Barrett et al., 2019); people tell true from untrue statements correctly only about 54% of the time, close to chance (Bond & DePaulo, 2006)",
+  "iv.js.sci": "Scientific limits: gestures and facial movements do not reliably reveal inner emotions and differ between people and cultures (Barrett et al., 2019). The tool does not judge whether anyone is telling the truth, and nobody can reliably tell true from untrue statements by behaviour or facial expression.",
   "iv.js.sigOff": "EU/EEA mode: observable signs of excitement are not shown in employer flows (EU AI Act Art. 5(1)(f)) — candidates can see them in their own practice mode",
   "iv.js.sigH": "Observable signs of excitement (an observation, not emotion reading)",
   "iv.js.sigSeen": "observed",

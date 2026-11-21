@@ -291,7 +291,7 @@
   "exam.l.mA3": "A “walk mode” button while invigilators walk the room, so people in the aisle are not flagged",
   "exam.l.mAp": "Use laptops or phones as camera devices. The number of cameras depends on room size (ask us for the camera placement guide). Invigilators draw the seat areas on each view. Frames are processed at 2–5 per second and only events go to the dashboard",
   "exam.l.mAxB": "Trial version, not on sale yet",
-  "exam.l.mAx": "Faces far from the camera are not found yet, so use it for trials or demos only until that is fixed. The candidate page (computer lab) can already be used in a pilot",
+  "exam.l.mAx": "Faces far from the camera are not found yet, so use it for trials or demos only until that is fixed.",
   "exam.l.mB": "Computer lab / webcam exam",
   "exam.l.mB1": "Notes: face not visible, several faces or another person in view, head turned away for long, a phone near the camera (a phone lying on the desk is usually missed), a book in view",
   "exam.l.mB2": "Browser signals: switching windows, leaving fullscreen, pasting long text, a second screen, a virtual camera",

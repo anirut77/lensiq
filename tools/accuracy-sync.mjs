@@ -81,6 +81,19 @@ export function check(root = repo, doc = loadFigures(root)) {
   const cache = new Map(), get = rel => { if (!cache.has(rel)) { try { cache.set(rel, read(root, rel)); } catch { cache.set(rel, null); } } return cache.get(rel); };
   const labels = new Set(doc.texts.filter(t => t.label).flatMap(t => t.keys || [t.key]));
   const figRows = rows.filter(r => !labels.has(r.key));
+  // 223-5: the research-licence labels STAY on their pages, exactly as recorded (the full base guard, kept): every label
+  // key is on its page with the recorded Thai, and the EN / ZH dictionaries carry the recorded values
+  for (const r of rows.filter(r => labels.has(r.key))) {
+    const html = get(`${r.page}.html`);
+    const got = html == null ? [] : htmlTexts(html, r.key);
+    if (!got.length) errs.push(`${r.page}.html: no element with data-i18n="${r.key}" (licence label, decision 223-5)`);
+    got.forEach(g => { if (squash(g) !== squash(r.th)) errs.push(`${r.page}.html [${r.key}] licence label differs from docs/accuracy-figures.json`); });
+    for (const lang of ["en", "zh"]) {
+      const rel = `i18n/${lang}-${r.dict}.js`, js = get(rel), v = js == null ? undefined : dictValue(js, r.key);
+      if (v === undefined) errs.push(`${rel}: missing "${r.key}" (licence label)`);
+      else if (squash(v) !== squash(r[lang])) errs.push(`${rel} [${r.key}] licence label differs from docs/accuracy-figures.json`);
+    }
+  }
   // inverse (decision 223): no customer page or dictionary carries a rendered figure text
   const files = customerFiles(root);
   for (const rel of files) {

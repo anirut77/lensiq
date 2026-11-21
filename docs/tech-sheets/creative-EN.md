@@ -78,7 +78,12 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [cr.s.acc.h] Accuracy measurement (MIT1003)
 [cr.s.acc.p] MIT1003 (Judd et al., 2009): 1,003 images, 15 viewers each, 3 seconds per image. Used only for measurement and not included in the system. Weights tuned on 300 images and measured on a separate 703, with the heatmap at 128 px on the long side
 [cr.s.acc.note] AUC 0.5 = random, 1.0 = perfect; NSS 0 = random. Full and per-component results in ACCURACY.md §10. Ad and pack images differ from the everyday photos in MIT1003, so results on your creatives may vary
+[cr.s.acc.m] Model
+[cr.s.acc.r1] This page (all components)
+[cr.s.acc.r2] Center guess only
+[cr.s.acc.r3] Without center bias
 [cr.s.acc.r4] Images with faces only (74)
+[cr.s.acc.r5] Same images, no face weighting
 ~~~~
 
 ### 中文原文
@@ -112,5 +117,10 @@ What customers saw before the change, copied verbatim from the snapshot (whitesp
 [cr.s.acc.h] 准确度测量（MIT1003）
 [cr.s.acc.p] MIT1003（Judd 等，2009）：1,003 张图片，每张 15 名观看者，每张观看 3 秒。仅用于测量，未包含在系统中。用 300 张调整权重，在另外 703 张上测量，热图长边分辨率 128 像素
 [cr.s.acc.note] AUC 0.5 = 随机，1.0 = 完美；NSS 0 = 随机。详细结果及各组件结果见 ACCURACY.md §10。广告和包装图片与 MIT1003 中的普通照片不同，用于您的素材时结果可能有差异
+[cr.s.acc.m] 模型
+[cr.s.acc.r1] 本页（全部组件）
+[cr.s.acc.r2] 只猜画面中心
+[cr.s.acc.r3] 不使用中心倾向
 [cr.s.acc.r4] 仅含人脸的图片（74 张）
+[cr.s.acc.r5] 同一批图片，不加人脸权重
 ~~~~
