@@ -1,0 +1,5 @@
+# evals-locks/compat-v2.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/compat-v2/ (owner rule 2026-11-13). Append-only.
+# compat-v2 slice 1 (owner night order A6 2026-11-20; spec: the owner's 8 points of 2026-11-17, ~/Desktop/LENSIQ-review/compat-v2/PLAN-TH.md §1) — locked BEFORE compat-v2.js exists, branch compat-v2 (base 653029d3 = origin/main). Field paths equal the repo paths. Baseline before code: unit 0/11, e2e O1 + O4 pass (switch-off page byte-identical to main; group stays v1), O2 O3 O5 fail (~/LENSIQ-field/evals/compat-v2/run-0*.log).
+# locked 2026-11-21T02:07:07Z (tools/eval-guard.mjs lock, 2 files)
+c34b1a4da3a1a12cc04be74337de9620477975236ded8fb556863977e8826d5f  tests/unit/compat-v2.test.js
+64b13f98c40a2cbe4f704c83d2eb00eef433688c36bb71f10d1ce6d60500c819  tests/e2e/compat-v2.e2e.mjs
