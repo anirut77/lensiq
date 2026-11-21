@@ -1,0 +1,4 @@
+# locked 2026-11-21T13:13:03Z (tools/eval-guard.mjs lock, 1 file)
+0b2598998b1d05770196022da0eb8e124e01e8500d9f55c0fb9f62e9363d53e3  cdp-goto-errpage.test.js
+0b2598998b1d05770196022da0eb8e124e01e8500d9f55c0fb9f62e9363d53e3  tests/unit/cdp-goto-errpage.test.js  # repo file (same commit as lock 2026-11-21T13:13:03Z; field: ~/LENSIQ-field/evals/cdp-goto-errpage/cdp-goto-errpage.test.js)
+# LOCK 2026-11-21 (G2 redone as the independent reviewer asked, follow-up of owner decision 203 ค, branch g2-cdp-errpage, base main 3a1ed2b9), BEFORE navigationProblem exists in tests/e2e/cdp.mjs: page.goto() must reject on Page.navigate errorText, an unreachable / chrome-error:// main frame or the neterror document; strictly stricter for every e2e file; crisis kit and crisis-split-203b S1 untouched. On main E1-E7 fail (navigationProblem missing).
