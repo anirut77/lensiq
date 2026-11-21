@@ -240,19 +240,23 @@
     lm.className = "status " + (lastQ.ok ? "ok" : "warn");
     return lastQ;
   }
-  /** one COCO-SSD inference, two decodes (phones / books / laptops / screens, and person boxes), then the phone zoom pass
-   * (LQExam.LAB_PHONE_ZOOM, decision 217) when the full frame has no phone at phoneConf: the crops are searched for phones
+  /** one COCO-SSD inference, two decodes (phones / books / laptops / screens, and person boxes), then, only when
+   * LENSIQ_EXAM_PHONE_ZOOM === true (decision 221 ข; off = exactly the full-frame call as before), the phone zoom pass
+   * (LQExam.LAB_PHONE_ZOOM, decision 217) when the full frame has no phone at phoneConf and the time guard allows it: the crops are searched for phones
    * only, a crop phone counts at score >= zoom.minScore. Also the measuring harnesses' entry point (window.__LQ_EXAM_LAB.objectPass),
    * so they measure exactly this path (`video` is the live video, or a harness's canvas frame; parameter names kept so the
    * locked source checks of tests/unit/exam-face.test.js read the same call). @param {any} coco @param {any} video @param {any} [zoom] */
+  const zoomGuard = E.createZoomGuard();
   async function objectPass(coco, video, zoom) {
-    const z = zoom || E.LAB_PHONE_ZOOM;
+    const z = E.phoneZoomFor(W, zoom);
     const [d, pers] = await LQDetect.detectCocoMulti(coco, video, [{ classes: [76, 83, 72, 71], minScore: 0.4, max: 10 },
       { classes: [0], minScore: F.LAB_PEOPLE.minScore, iou: F.LAB_PEOPLE.iou, max: F.LAB_PEOPLE.max }]);
     const objects = /** @type {Array<{cls: string, score: number, zoom?: boolean}>} */ (d.map(o => ({ cls: COCO_NAME[o.cls], score: o.score })));
-    if (z && z.on && !d.some(o => o.cls === 76 && o.score >= E.DEFAULTS.phoneConf)) {
+    const t0 = performance.now();
+    if (z && z.on && !d.some(o => o.cls === 76 && o.score >= E.DEFAULTS.phoneConf) && (zoom || zoomGuard.allow(t0))) {
       const zp = await LQDetect.detectCocoRects(coco, video, E.phoneZoomRects(z), { classes: [76], minScore: z.minScore, max: 5 });
       for (const o of zp) objects.push({ cls: "phone", score: o.score, zoom: true });
+      if (!zoom) zoomGuard.record(t0, performance.now() - t0);
     }
     return { objects, pers };
   }

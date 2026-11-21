@@ -60,6 +60,10 @@ window.LENSIQ_LOOK_SALON = false;
 /* LENSIQ_RESEARCH_DEMO (round 16): per-device research demo switch; false = customer installation, locked off */
 /** @type {any} */ (window).LENSIQ_RESEARCH_DEMO = /** @type {any} */ (window).LENSIQ_RESEARCH_DEMO !== false; // customer installation: = false
 
+/* LENSIQ_EXAM_PHONE_ZOOM (decision 221 default ข): Exam lab phone zoom pass (decision 217, 9 crops when the full frame shows no
+ * phone; docs/exam/EXAMLAB-PHONE-SET.md); off unless exactly true, customer builds ship it off; off = full-frame check as before */
+window.LENSIQ_EXAM_PHONE_ZOOM = window.LENSIQ_EXAM_PHONE_ZOOM === true;
+
 /* LENSIQ_PC_THAI_EQUIV (round 17 P9): Thai same-ingredient list on the travel card; off until the owner decides (L13) */
 window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
 

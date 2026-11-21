@@ -43,6 +43,8 @@ interface Window {
   LENSIQ_FACEPARSE?: boolean;
   /** lensiq-config.js: false = hide the signage age/gender option and never load ageGenderNet (research-licence model) */
   LENSIQ_AGE_GENDER?: boolean;
+  /** lensiq-config.js (decision 221 default ข): Exam lab phone zoom pass; off unless exactly true (customer builds: off) */
+  LENSIQ_EXAM_PHONE_ZOOM?: boolean;
   /** lensiq-config.js: quote-request form sends to the server (POST /v1/leads) only when true; ON by default since the owner decision 2026-11-12 */
   LENSIQ_LEADS_FORM?: boolean;
   /** photobooth try-on server status is asked only when true (mirrors the backend TRYON switch; off as shipped) */
