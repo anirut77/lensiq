@@ -3,7 +3,8 @@
 // e2e files a, c and e into one file per language (EQUAL relock, relock11 in evals-locks/crisis-rules-1323.sha256).
 // Baseline: tests/unit/crisis-split-203b-manifest.json (field copy ~/LENSIQ-field/evals/crisis-rules-1323/relock11/), computed from
 // the code of the originals at origin/main 653029d3 without running anything (tools/crisis-split-203b.mjs --baseline).
-//   S1 the manifest describes the locked originals: each original sha256 is a lock line for its tests/e2e path, the kit is unchanged;
+//   S1 the manifest describes the locked originals: each original sha256 is a lock line for its tests/e2e path, the kit is unchanged
+//      (relock12: or changed only inside load(), as the latest locked kit);
 //   S2 every split file is the original plus a comment-only header and the four documented edits: undoing them gives the original
 //      bytes (sha256 equal to the manifest);
 //   S3 the union of check ID x page x language x width over the three files of each original equals the manifest exactly: same check
@@ -32,7 +33,20 @@ test("S1: the manifest describes the locked originals and the unchanged kit", ()
     assert.match(h, /^[0-9a-f]{64}$/);
     assert.ok(LOCK.split("\n").some(l => l.startsWith(h + "  tests/e2e/" + f)), `${f}: ${h} is a lock line in crisis-rules-1323.sha256`);
   }
-  assert.equal(MANIFEST.kit.sha256, sha(read("tests/e2e/crisis-rules-kit.mjs")), "the shared kit is unchanged");
+  // RE-LOCK 12 2026-11-21 (G2, follow-up of decision 203 ค, STRICTER; relock12 in evals-locks/crisis-rules-1323.sha256): the split-time
+  // kit must itself be a locked kit (new), and the kit may differ from it ONLY inside load() (stricter readiness: no Chrome error page,
+  // the requested address) and only as the LATEST locked kit; outside load() it is byte-identical to the split-time kit (sha256 of the
+  // kit with the load() body cut out, pinned below from the 1b4ca326 kit). S3 still rebuilds every cell from the current kit.
+  const KIT = "tests/e2e/crisis-rules-kit.mjs", kitNow = read(KIT);
+  const kitLines = LOCK.split("\n").filter(l => /^[0-9a-f]{64}\s/.test(l) && l.split(/\s+/)[1] === KIT).map(l => l.slice(0, 64));
+  assert.ok(kitLines.includes(MANIFEST.kit.sha256), "the split-time kit is a locked kit");
+  if (sha(kitNow) !== MANIFEST.kit.sha256) {
+    const a = kitNow.indexOf("export async function load("), b = a < 0 ? -1 : kitNow.indexOf("\n}\n", a);
+    assert.ok(a >= 0 && b > a, "the kit still has load()");
+    assert.equal(sha(kitNow.slice(0, a) + kitNow.slice(b)), "241ac62575407757b7be3c61f576707f864f43f412aaf3a69f9a6fa8ebd3a2a7",
+      "outside load() the kit is byte-identical to the split-time kit");
+    assert.equal(kitLines[kitLines.length - 1], sha(kitNow), "a changed kit is the latest locked kit");
+  }
   const total = ORIGINALS.reduce((n, f) => n + MANIFEST.originals[f].cellCount, 0);
   assert.equal(MANIFEST.totalCells, total);
   assert.equal(total, 425, "a 179 + c 69 + e 177 cells (check x page x language x width)");

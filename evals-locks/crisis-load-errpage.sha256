@@ -1,0 +1,4 @@
+# locked 2026-11-21T11:56:44Z (tools/eval-guard.mjs lock, 1 file)
+a8c5a01a64298dd5c8834d2e8320f9b8f3dfcd5b9562ea4c88dd961deed7ba50  crisis-load-errpage.test.js
+a8c5a01a64298dd5c8834d2e8320f9b8f3dfcd5b9562ea4c88dd961deed7ba50  tests/unit/crisis-load-errpage.test.js  # repo file (same commit as lock 2026-11-21T11:56:44Z; field: ~/LENSIQ-field/evals/crisis-load-errpage/crisis-load-errpage.test.js)
+# LOCK 2026-11-21 (follow-up G2 of owner decision 203 ค, branch followups-1121), BEFORE load() in tests/e2e/crisis-rules-kit.mjs is changed: load() must refuse Chrome's error page (chrome-error:// or the neterror document, which carries lang="th" in a TH run) and any address other than the requested one; the requested page still loads. R1-R3 fail on kit 1b4ca326, R4 passes.
