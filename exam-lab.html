@@ -36,7 +36,7 @@
 <link rel="preload" as="script" href="lensiq-facevault.js?v=1">
 <link rel="preload" as="script" href="lensiq-exam-clip.js?v=3">
 <link rel="preload" as="script" href="exam-clip-ui.js?v=2">
-<link rel="preload" as="script" href="exam-lab.js?v=14">
+<link rel="preload" as="script" href="exam-lab.js?v=15">
 <link rel="preload" as="script" href="lensiq-config.js?v=30">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
@@ -87,7 +87,8 @@
     <form id="noticeForm" class="form" novalidate>
       <label><span data-i18n="exam.lab.room">รหัสห้องสอบ</span><input id="room" name="room" maxlength="24" autocomplete="off" inputmode="latin" placeholder="เช่น LAB1" data-i18n-attr="placeholder:exam.lab.roomPh" required></label>
       <label><span data-i18n="exam.lab.seat">เลขที่นั่ง / เลขประจำตัวสอบ</span><input id="seat" name="seat" maxlength="16" autocomplete="off" placeholder="เช่น 12" data-i18n-attr="placeholder:exam.lab.seatPh" required></label>
-      <label class="check" style="grid-column:1/-1"><input type="checkbox" id="consent" name="consent" autocomplete="off" required>
+      <!-- 225 ก follow-up (2026-11-22): the tick box stays hidden until exam-lab.js has set the notice text, so it cannot be ticked before the notice exists. -->
+      <label class="check" id="consentRow" hidden style="grid-column:1/-1"><input type="checkbox" id="consent" name="consent" autocomplete="off" required>
         <span id="consentTxt" hidden data-i18n="exam.lab.consent">ข้าพเจ้าได้อ่านประกาศแล้ว และยินยอมให้ใช้กล้องของเครื่องนี้ช่วยผู้คุมสอบตามที่ระบุ</span>
         <span id="consentClip" hidden data-i18n="exam.lab.consentClip">ข้าพเจ้าได้อ่านประกาศแล้ว
           และยินยอมให้ใช้กล้องของเครื่องนี้ช่วยผู้คุมสอบตามที่ระบุ รวมถึงการเก็บคลิปวิดีโอสั้น (ไม่มีเสียง) ในเครื่องนี้เมื่อมีการแจ้ง ตามระยะเวลาที่ระบุ</span></label>
@@ -185,7 +186,7 @@
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-exam-clip.js?v=3"></script>
 <script src="exam-clip-ui.js?v=2"></script>
-<script src="exam-lab.js?v=14"></script>
+<script src="exam-lab.js?v=15"></script>
 <script src="lensiq-config.js?v=30"></script>
 </body>
 </html>

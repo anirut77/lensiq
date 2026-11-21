@@ -415,6 +415,7 @@
   for (const id of ["#clipOn", "#clipAuto", "#clipDays"]) $(id).addEventListener("change", readClipCfg);
   clips.setCfg(clipCfg);
   clipNotice(); // at once: the notice and consent text follow the clip setting before IndexedDB answers (?clip=1 race, 2026-11-21)
+  $("#consentRow").hidden = false; // the tick box is shown only now that the notice text is set (static hidden, 225 ก follow-up 2026-11-22)
   clips.refresh().then(clipNotice); // again once the kept-clip list is read: the clip box shows when clips are stored on this device
 
   /* ---------- flow ---------- */
