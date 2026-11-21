@@ -1,0 +1,4 @@
+# locked 2026-11-21T11:58:46Z (tools/eval-guard.mjs lock, 1 file)
+da8740e7e913ad2cafe6e4ad9fb04174d2461016e44b783247656dd0efe57af1  backend-deploy-policy-read.test.js
+da8740e7e913ad2cafe6e4ad9fb04174d2461016e44b783247656dd0efe57af1  tests/unit/backend-deploy-policy-read.test.js  # repo file (same commit as lock 2026-11-21T11:58:46Z; field: ~/LENSIQ-field/evals/backend-deploy-policy-read/backend-deploy-policy-read.test.js)
+# LOCK 2026-11-21 (D-3 review finding F4, branch followups-1121), BEFORE tools/backend-deploy.mjs changes: the tester-gate policy is read only for plan and deploy; a malformed deploy/tester-gate.json never blocks off / on (kill switch), rollback, versions, list, whoami; deploy and plan refuse (exit 3) naming the file. On the old code P2 and P4 fail, P1 and P3 pass.
