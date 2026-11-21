@@ -5,8 +5,19 @@ Owner decision 223-1 (confirmed 2026-11-21 23:39): change the locked tests "from
 INVERSION (the page must NOT show X, and docs/tech-sheets/ + admin-measurements.js must hold X verbatim), a REDIRECT
 (old approved wording → new approved wording, same exactness), or EQUAL/STRICTER (dictionary coverage also reads
 i18n/{en,zh}-common.js, where the shared `ln.*` lines and `common.recheck` live; every key must still be found). No
-threshold, count, crisis, privacy or safety assertion was relaxed. Field copies: `~/LENSIQ-field/evals/<phase>/relock-223/`
-with NOTE.txt pointing here; earlier field copies untouched. The contract: tests/unit/accuracy-removal-223.test.js (locked
+threshold, crisis, privacy or safety assertion was relaxed. Two COUNT assertions changed BY DESIGN of decision 223 (not
+loosenings, but stated here so the reviewer can confirm them):
+- walkfix2 D-06: Crowd badges "at least 2" → "exactly 1" (the second badge sat on the accuracy panel that 223 removed;
+  the remaining badge must read exactly "รุ่นทดลอง" / Trial version / 试用版);
+- category tool counts (fortune-no-demo, categories.e2e, cat-pages): HR 5 → 4 and Marketing 14 → 11 tools in the customer
+  build, because signage, neuro, teamface and customers are demo-only (audit §3, 223-2); the base totals are still checked.
+
+Field copies (earlier copies are never modified):
+- `~/LENSIQ-field/evals/<phase>/relock-223/`: the inversions (commit e10d6469);
+- `relock-223b/`: EQUAL, long lines split only (same commit);
+- `sellable-c/relock-223c/`: EQUAL, exam-dashboard-demo.e2e opens the administrator fold before reading the tally (79553b8e);
+- `relock-223d/` (review round 2, below): STRICTER only.
+Each folder has a NOTE.txt pointing here. The contract: tests/unit/accuracy-removal-223.test.js (locked
 before any product change, commit 306c4d72). "Sheets" = docs/tech-sheets/*-TH.md (Thai) and *-EN.md (EN + ZH); the base
 originals = docs/tech-sheets/ORIGINAL-FIGURES-223.json (+ SUPPLEMENT-223.json for 19 number lines without %, n = or a tag).
 
@@ -51,3 +62,27 @@ originals = docs/tech-sheets/ORIGINAL-FIGURES-223.json (+ SUPPLEMENT-223.json fo
 | exam-dashboard-demo.e2e (sellable-c, walk-fix) | panel matches /ไม่ใช่ความแม่นยำ/ | exact "ตัวเลขนี้เป็นข้อมูลจำลองเพื่อสาธิตวิธีนับเท่านั้น", no "ความแม่นยำ"/"ยังไม่ได้วัด" | redirect |
 | exam-widths.e2e (examlab-90) | waits for /100%/ in #precBody | opens the fold first (as the administrator does), same wait | equal |
 | nut-wording (nutrition), tryon-core (tryon-mvp), tryon-pose (tryon-pose) | keys only in the page dictionaries | `ln.<page>.*` / `common.recheck` may be found in en/zh-common.js, every key still required; nut-wording also scans those shared lines for banned wording | equal / stricter |
+
+## Review round 2 (independent reviewer FAIL at 79553b8e, 2026-11-22): fixes, all STRICTER (`relock-223d/`)
+
+| Finding | Before (79553b8e) | After | Kind |
+|---|---|---|---|
+| 1 licence labels (unlocked: tools/accuracy-sync.mjs, accuracy-figures.test.js) | only attendance / customers `.licb` text checked; `.lic` / other pages only "recorded" | full base guard restored: all 10 keys (attendance, customers, booth, driver, signage × .lic / .licb) on their page with the exact Thai, and the exact EN / ZH values; a fixture proves a removed or changed label fails | restored base strength |
+| 2 walkfix W-005 gate.acc.l7 (lock fortune-no-demo + walk-fix) | only registry entries 19 / 11 / 8 in the sheets | also the base TH / EN / ZH sentence in the gate sheets with the base number rule (19, 11, 8; never 10, 9) | restored base strength |
+| 2 + 5 contract (lock accuracy-removal-223, relock2) | SUPPLEMENT-223.json outside the contract | new R7 test: every supplement entry verbatim in the sheets (TH / EN+ZH) and in admin-measurements.js; required items listed in the spec (gate.acc.l7, cr.acc2.final, #h-accuracy en / zh, ZH sl.st.pilot.d, cameras table headers, ≥ 15 ZH "still needed" notes, ≥ 4 "no accuracy figure" rows, the Twente "0 of 6" rows, the 16 hall-placement lines, HALL_PLACE with 143 / 195 / 247 / 275 + source); a removed sheet line fails (bite-checked) | stricter |
+| 4 exam-hall placement (lock gate-hall-h) | figures checked only in docs/exam/HALL-DETECTOR-RESULTS.md | unit: all 16 recall values with their n and source, in the base panel wording, in exam-TH.md (TH) and exam-EN.md (EN + ZH) and in admin-measurements.js; band counts + source in both sheets. e2e: 46.2 % and 56.3 % (n = 247) lines in the sheets, in addition to the results doc | stricter |
+| 6 one-pagers (contract relock2) | banned list only | also no bare percentage in any one-pager except price / VAT / refund terms; the 54 % lie-research figure, Bond & DePaulo and the reference counts left interview.js, its EN / ZH dictionaries, interview.html and the one-pagers (kept in the HR sheet); the pilot targets moved off the one-pagers into the pilot plan wording | stricter |
+
+### Crowd catalogue rule: `crowd-not-available-now` → `crowd-not-soon` (WAITING FOR THE OWNER'S WORD; kept as built)
+
+- Base rule: the solutions cards that open crowd.html (sol-edu7, sol-r9, sol-e6) must NOT be `data-status="now"`; at base
+  they sat in the "เปิดรับโครงการนำร่อง" (pilot) filter group, and "now" meant "ทดลอง / สาธิต".
+- As built (223, audit §3 / 1.10 "ตัวกรองเหลือ ทั้งหมด / ทดลองใช้ได้ตอนนี้ / เร็ว ๆ นี้"): there is no pilot group; "now" means
+  "ทดลองใช้ได้ตอนนี้" (a trial version you can use now), so the three Crowd cards are `now` and the rule became
+  `crowd-not-soon` (they must NOT be "coming soon"). walkfix W-012 checks the same grouping.
+- To switch back (option ข): in solutions.html give sol-edu7 / sol-r9 / sol-e6 `data-status="pilot"` and add a third filter
+  button `data-f="pilot"` "เปิดรับโครงการนำร่อง" (EN "Open for a pilot", ZH "可申请试点" is a banned readiness word, so use
+  "开放试点申请") in solutions.html, solutions.js and the en / zh solutions dictionaries; in docs/claim-rules.json restore
+  `crowd-not-available-now` (re "data-status=\"now\" id=\"sol-(edu7|r9|e6)\"", not: true) next to `crowd-not-soon`;
+  in walkfix W-012 allow the group set {now, soon, pilot}. Effort: S. Nothing else depends on it.
+| 8 help.html Crowd labels (lock fortune-credits v2/v3/v4, `fortune-credits/v3/relock-223d/`) | D5 pinned help.html with 6 listed 223 replacements | 9 listed replacements (+ the three Crowd summaries "(รุ่นทดลอง)" / "(trial version)" / "（试用版）"), new sha pinned; terms.html still byte-identical; no fortune / crisis text touched | equal strength, re-pin |

@@ -1258,5 +1258,109 @@
       "re": "^sl\\.c\\.[a-z0-9]+\\.y$",
       "why": "audit 1.10: the 25 'ยังขาด…' roadmap lines move to the back office"
     }
-  ]
+  ],
+  "supplement": {
+    "$comment": "re-lock 2 (2026-11-22, reviewer findings 2, 4, 5): docs/tech-sheets/SUPPLEMENT-223.json (tools/accuracy-supplement-223.mjs, read from base ecb783b6) holds the original texts the snapshot missed; every entry must be in the sheets and the admin data verbatim, and these items must be in it",
+    "file": "docs/tech-sheets/SUPPLEMENT-223.json",
+    "must": [
+      {
+        "key": "gate.acc.l7",
+        "langs": [
+          "th",
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "key": "cr.acc2.final",
+        "langs": [
+          "th",
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "key": "#zh-h-accuracy",
+        "text": true
+      },
+      {
+        "key": "#h-accuracy",
+        "text": true
+      },
+      {
+        "key": "#en-h-accuracy",
+        "text": true
+      },
+      {
+        "key": "sl.st.pilot.d",
+        "langs": [
+          "zh"
+        ]
+      },
+      {
+        "key": "cameras.s180",
+        "langs": [
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "key": "cameras.s181",
+        "langs": [
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "key": "cameras.s182",
+        "langs": [
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "key": "cameras.s183",
+        "langs": [
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "keyRe": "^sl\\.c\\.[a-z0-9]+\\.y$",
+        "langs": [
+          "zh"
+        ],
+        "min": 15
+      },
+      {
+        "textRe": "ไม่มีตัวเลข|no accuracy figure",
+        "min": 4
+      },
+      {
+        "textRe": "0 จาก 6|0 of 6",
+        "min": 2
+      },
+      {
+        "keyRe": "^exam\\.hall\\.pcRate\\[",
+        "langs": [
+          "th",
+          "en",
+          "zh"
+        ],
+        "min": 16
+      },
+      {
+        "key": "HALL_PLACE",
+        "textHas": [
+          "143 / 195 / 247 / 275",
+          "public dataset"
+        ]
+      }
+    ]
+  },
+  "onePagerBarePct": {
+    "re": "\\d\\s?%",
+    "except": "VAT|ภาษีมูลค่าเพิ่ม|คืนเงิน|refund|退款|增值税",
+    "why": "re-lock 2 (reviewer finding 6): one-pagers carry no bare percentage except price / VAT / refund terms"
+  }
 }

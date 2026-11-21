@@ -22,3 +22,8 @@ ff26734a4dfa64aa3abfeecdd76084abe7b0d3c2a8f29cb2ce00d90ef3d4837b  relock-223b/fo
 fefe9131848086b9520308e7821618a56efb16e4245ee507466500cd35bb5ce2  relock-223b/NOTE.txt
 ff26734a4dfa64aa3abfeecdd76084abe7b0d3c2a8f29cb2ce00d90ef3d4837b  tests/unit/fortune-credits-v2.test.js  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/fortune-credits/v3/relock-223b/fortune-credits-v2.test.js)
 # field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:15Z: no repo file uses it)
+# locked 2026-11-21T20:21:53Z (tools/eval-guard.mjs lock, 2 files)
+f0dd6b619060fe3ca1ab67cbc2554a64e92fa250f65990d5c9d9ee7424f0caca  relock-223d/fortune-credits-v2.test.js
+b5f709939fa4a3cf63daecec7f31980c2d83b8beecb25190055a9e173326ec75  relock-223d/NOTE.txt
+f0dd6b619060fe3ca1ab67cbc2554a64e92fa250f65990d5c9d9ee7424f0caca  tests/unit/fortune-credits-v2.test.js  # repo file (same commit as lock 2026-11-21T20:21:53Z; field: ~/LENSIQ-field/evals/fortune-credits/v3/relock-223d/fortune-credits-v2.test.js)
+# field only relock-223d/NOTE.txt (lock 2026-11-21T20:21:53Z: no repo file uses it)

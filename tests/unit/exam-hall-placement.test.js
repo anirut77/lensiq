@@ -39,6 +39,30 @@ test("HALL_PLACE: frozen, measured bands and per-detector recall with n, source 
   assert.match(block, /HALL-DETECTOR-RESULTS\.md/);
   const doc = fs.readFileSync(path.join(root, "docs/exam/HALL-DETECTOR-RESULTS.md"), "utf8");
   assert.match(doc, /public dataset\*\* \(Open Images V7/i, "results document states the source");
+  // re-lock 223d (reviewer finding 4, stricter): the panel's figures that left the page are held in the exam technical sheets
+  // and the admin data, NOT only in the results document: all 16 recall values (4 detectors x 4 bands) with their band's n and
+  // the source, in the base panel wording (TH in exam-TH.md; EN + ZH in exam-EN.md), and the band counts 143 / 195 / 247 / 275
+  const TPL = {
+    th: "ที่ขนาดนี้ ({range} px) ตัวตรวจหาคนเจอ {r}% (n = {n}, ชุดข้อมูลสาธารณะ ภาพนิ่ง ไม่ใช่ห้องสอบจริง)",
+    en: "at this size ({range} px) the person detector found {r}% (n = {n}, public dataset, still images, not a real exam room)",
+    zh: "在这个尺寸（{range} px）人员检测器找到了 {r}%（n = {n}，公开数据集静态图片，不是真实考场）"
+  };
+  const sq = t => t.replace(/\s+/g, " ");
+  const sheet = { th: sq(fs.readFileSync(path.join(root, "docs/tech-sheets/exam-TH.md"), "utf8")), en: sq(fs.readFileSync(path.join(root, "docs/tech-sheets/exam-EN.md"), "utf8")) };
+  sheet.zh = sheet.en;
+  const admin = fs.readFileSync(path.join(root, "admin-measurements.js"), "utf8");
+  let count = 0;
+  for (const [det, rec] of Object.entries(HP.recall)) rec.forEach((r, i) => {
+    const range = i === HP.bands.length - 1 ? HP.bands[i] + "+" : HP.bands[i] + "–" + HP.bands[i + 1];
+    for (const l of ["th", "en", "zh"]) {
+      const want = TPL[l].replace("{range}", range).replace("{r}", r.toFixed(1)).replace("{n}", String(HP.n[i]));
+      assert.ok(sheet[l].includes(want), `${det} ${range} (${l}) in the exam sheet: ${want}`);
+      assert.ok(admin.includes(JSON.stringify(want)), `${det} ${range} (${l}) in admin-measurements.js`);
+    }
+    count++;
+  });
+  assert.equal(count, 16, "16 recall values");
+  for (const s of [sheet.th, sheet.en]) assert.ok(s.includes("n per band 143 / 195 / 247 / 275") && s.includes("public dataset"), "band counts + source in the sheet");
 });
 
 test("HALL_PLACE.minPx follows the fixed rule: lower edge of the smallest band where the detector found >= 50 %", () => {

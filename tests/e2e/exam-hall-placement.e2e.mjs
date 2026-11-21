@@ -104,6 +104,9 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
         && sheetEN.includes("at this size ({range} px) the person detector found {r}% (n = {n}, public dataset, still images, not a real exam room)")
         && sheetEN.includes("在这个尺寸（{range} px）人员检测器找到了 {r}%（n = {n}，公开数据集静态图片，不是真实考场）"), "old recall wording in docs/tech-sheets/exam-*.md");
       assert(/\| Person recall, 144 – 288 px[^\n]*\| 247 \| 46\.2 %[^\n]*public dataset \|/.test(results), "46.2 % (n = 247, public dataset) in HALL-DETECTOR-RESULTS.md");
+      assert(sheetTH.includes("ที่ขนาดนี้ (144–288 px) ตัวตรวจหาคนเจอ 46.2% (n = 247, ชุดข้อมูลสาธารณะ ภาพนิ่ง ไม่ใช่ห้องสอบจริง)")
+        && sheetEN.includes("at this size (144–288 px) the person detector found 46.2% (n = 247, public dataset, still images, not a real exam room)"),
+      "46.2 % (n = 247, public dataset) in docs/tech-sheets/exam-*.md (re-lock 223d)");
       assert(/แบ่งภาพ 2×2/.test(p.text), "tiles hint (lower measured minimum): " + p.text);
       assert(p.kv.some(t => t === "คนเล็กสุด 216 px (ที่นั่ง 1)") && p.kv.some(t => t === "ขั้นต่ำของตัวตรวจ 288 px"), "small readout: " + p.kv);
       assert(/1: 216 px ⚠/.test(p.list) && /4: 360 px/.test(p.list), "per-seat list: " + p.list);
@@ -116,6 +119,8 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       // re-lock 223 (was: "56.3% in the good verdict"): the plain verdict at 50 % or more, no figure; 56.3 % (139 / 247) is in the results document
       assert(!/56\.3/.test(p.text) && !NO_FIG.test(p.text) && !/ขนาดนี้เล็กเกินไป/.test(p.text), "good: no recall figure: " + p.text);
       assert(/\| Person recall, 144 – 288 px \| 56\.3 % \[50\.0 – 62\.3\] \(139 \/ 247\)/.test(results), "56.3 % (139 / 247) in HALL-DETECTOR-RESULTS.md");
+      assert(sheetTH.includes("ที่ขนาดนี้ (144–288 px) ตัวตรวจหาคนเจอ 56.3% (n = 247, ชุดข้อมูลสาธารณะ ภาพนิ่ง ไม่ใช่ห้องสอบจริง)"),
+        "56.3 % (n = 247) in docs/tech-sheets/exam-TH.md (re-lock 223d)");
       await inLangs(page, "good", { en: /^Camera placement passes: a person is seen at all 6 seats.*not a guarantee/, zh: /^摄像头位置合格：6 个座位都看到了人.*并不保证/ });
 
       // front-row people covering most of the back-row seats: hidden -> fix (raise the camera)

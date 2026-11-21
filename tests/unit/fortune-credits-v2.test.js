@@ -167,7 +167,7 @@ const d5Base = f => {
 // with EXACTLY these replacements applied (so every other byte, all the fortune parts D5 protected included, is unchanged),
 // and its sha256 is pinned. No replaced part touches fortune, crisis or help-number text.
 const D5_223 = {
-  "help.html": { sha: "6883a408b1005caa51ecd7a377a57cc8ecb33344d27430f59493c18e8aad8029", pairs: [
+  "help.html": { sha: "61fe96c74e68548339571cf359415dcfbcd5dff08fd43c7dc0489c74f5efa503", pairs: [
     ["      <p>ขึ้นกับมุมกล้อง ความสูง และแสง เราเผยแพร่ผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด และฟีเจอร์ที่ยังไม่ได้วัดบนข้อมูลจริงจะมีป้าย Beta ก่อนใช้ตัวเลขตัดสินใจทางธุรกิจ " +
       "แนะนำให้ทดลองหน้างาน 2 สัปดาห์ เทียบกับการนับด้วยคน ค่าประมาณอายุ เพศ และสีหน้าเป็นค่าโดยประมาณสำหรับภาพรวมเท่านั้น</p></div></details>",
      "      <p>ตัวเลขจากกล้องเป็นค่าประมาณ ขึ้นกับมุมกล้อง ความสูง และแสง ทุกหน้าบอกข้อจำกัดสำคัญไว้ แนะนำให้ทดลองหน้างานเทียบกับการนับของคุณก่อนใช้ตัดสินใจทางธุรกิจ\n " +
@@ -184,7 +184,11 @@ const D5_223 = {
     ["      <p>这取决于摄像头角度、高度和光线。我们公开在公共数据集上的测量结果及其局限，尚未在真实数据上测量的功能标有 Beta。在依据这些数字做商业决策前，建议进行 2 周现场试点，与人工计数对比。年龄、性别和表情估计仅为近似值，只用于观察整体趋势。</p></div></details>",
      "      <p>摄像头给出的数字是估计值，取决于摄像头角度、高度和光线。每个页面都说明了主要局限。用于商业决策前，建议先在现场试用并与您自己的计数对比。技术资料可向销售索取。</p></div></details>"],
     ["        <li>培训保安确认或更正每个车牌，并从第一天起使用\"准确率检查\"。</li>",
-     "        <li>培训保安确认或更正每个车牌，并从第一天起使用\"现场测试\"。</li>"]
+     "        <li>培训保安确认或更正每个车牌，并从第一天起使用\"现场测试\"。</li>"],
+    // re-lock 223d (reviewer finding 8): the Crowd help entries say the approved badge word, not the old "experimental"
+    ["<summary>LENSIQ Crowd นับคนและความหนาแน่น (ทดลอง)</summary>", "<summary>LENSIQ Crowd นับคนและความหนาแน่น (รุ่นทดลอง)</summary>"],
+    ["<summary>LENSIQ Crowd people counting and density (experimental)</summary>", "<summary>LENSIQ Crowd people counting and density (trial version)</summary>"],
+    ["<summary>LENSIQ Crowd 人数与密度统计（实验性）</summary>", "<summary>LENSIQ Crowd 人数与密度统计（试用版）</summary>"]
   ] },
   "legal.js": { sha: "ec715ec3135403b89271e24d6dda0d12b94d701d608a7c06d88b7ff6cf787f7c", pairs: [
     ["      if (k === \"draft\") { el.title = (prefix() === \"zh-\" ? \"草案数值，待律师确认\" : prefix() === \"en-\" ? \"draft value, to be confirmed by counsel\" : \"ค่าร่าง รอทนายความยืนยัน\"); return; }",
@@ -211,7 +215,7 @@ test("D5 terms.html byte-identical to main 5695734 apart from ?v=; help.html and
   assert.equal(D5_223["legal.js"].pairs.length, 1);
   const [o, n] = D5_223["legal.js"].pairs[0];
   assert.equal(o.replace("ค่าร่าง รอทนายความยืนยัน", "ค่าร่าง อยู่ระหว่างให้ทนายความตรวจ"), n, "legal.js: only the Thai draft tooltip changed");
-  assert.equal(D5_223["help.html"].pairs.length, 6);
+  assert.equal(D5_223["help.html"].pairs.length, 9);
   // the fortune / crisis text of help.html is byte-identical to the base (every line that names fortune or a help number)
   const lines = f => stripV(f).split("\n").filter(l => FORTUNE_OR_CRISIS.test(l));
   const bl = lines(d5Base("help.html"));

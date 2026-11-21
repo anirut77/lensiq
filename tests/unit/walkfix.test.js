@@ -125,7 +125,12 @@ test("W-005: gate.html plate-finder and plate-check lines use the registry numbe
   const l3 = [...sheetLines("docs/tech-sheets/gate-TH.md", "gate.acc.l3"), ...sheetLines("docs/tech-sheets/gate-EN.md", "gate.acc.l3")];
   assert.equal(l3.length, 3, "tech sheet gate.acc.l3 in TH / EN / ZH");
   for (const s of l3) { const n = nums(s); assert.ok(n.includes(14) && n.includes(32) && !n.includes(13), "l3: " + s); }
-  // gate.acc.l7 (plate check before an automatic read): its figures 19 / 11 / 8 are held in both sheets as registry entries
+  // gate.acc.l7 (plate check before an automatic read): the base TH / EN / ZH sentence is held verbatim in the sheets
+  // (docs/tech-sheets/SUPPLEMENT-223.json) and keeps the base number rule: 19 / 11 / 8, never 10 / 9 (reviewer finding 2)
+  const l7 = [...sheetLines("docs/tech-sheets/gate-TH.md", "gate.acc.l7"), ...sheetLines("docs/tech-sheets/gate-EN.md", "gate.acc.l7")];
+  assert.equal(l7.length, 3, "tech sheet gate.acc.l7 in TH / EN / ZH");
+  for (const s of l7) { const n = nums(s); assert.ok(n.includes(19) && n.includes(11) && n.includes(8) && !n.includes(10) && !n.includes(9), "l7: " + s); }
+  // and its figures are also held in both sheets as registry entries
   for (const f of ["docs/tech-sheets/gate-TH.md", "docs/tech-sheets/gate-EN.md"]) {
     const sh = read(f);
     for (const [k, v] of [["gateNoneN", 19], ["gateNoneDev", 11], ["gateNoneHoN", 8]]) assert.match(sh, new RegExp("`" + k + "`: [^\\n]*\\*\\*" + v + "\\*\\*"), f + " " + k);

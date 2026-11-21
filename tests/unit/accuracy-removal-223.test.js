@@ -15,6 +15,8 @@
 //       research-licence labels stay (223-5); the legal draft banner stays and terms clause 11 is unchanged on the site (223-6)
 //   R7  every original figure, legend and reason is in docs/tech-sheets/ (18 product sheets, TH + EN) and in the admin
 //       "ผลการวัด" tab data, verbatim; docs/accuracy-figures.json keeps every figure
+//   R7b (re-lock 2) docs/tech-sheets/SUPPLEMENT-223.json: every entry verbatim in the sheets and admin data; required items present;
+//       R1 docs also: no bare percentage in a one-pager (price / VAT / refund terms excepted)
 //   R8  rules: CLAUDE.md lines 34 / 60 / 251-252 / 255-256 and docs/acceptance/README.md rule 7 inverted as approved (223-1)
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -55,6 +57,11 @@ test("R1 buyer documents (one-pagers, decks, demo scripts, onboarding) carry no 
     if (!/-ZH\.md$/.test(f)) assert.ok(s.includes(S.onePager.heading), `${f}: needs the section "${S.onePager.heading}"`);
   }
   for (const f of L.salesDocs().filter(f => /DEMO-SCRIPT-/.test(f))) assert.ok(L.read(f).includes(S.demoScript), `${f}: needs "${S.demoScript}"`);
+  // re-lock 2 (reviewer finding 6): no bare percentage in a one-pager, except price / VAT / refund terms
+  const P = S.onePagerBarePct, pct = new RegExp(P.re), ex = new RegExp(P.except, "i"), bare = [];
+  for (const f of L.salesDocs().filter(f => /ONE-PAGER-/.test(f))) L.read(f).split("\n").forEach((line, i) => {
+    if (pct.test(line) && !ex.test(line)) bare.push(`${f}:${i + 1} ${line.trim().slice(0, 120)}`); });
+  assert.deepEqual(bare, [], "bare percentages in one-pagers:\n" + show(bare));
 });
 
 test("R2 removed blocks: keys, section ids, classes and links to the accuracy sections are gone", () => {
@@ -257,4 +264,27 @@ test("R8 rules inverted as approved (223-1): CLAUDE.md and docs/acceptance/READM
   for (const s of S.rules.claudeMdGone) if (c.includes(s)) bad.push(`CLAUDE.md still says "${s}"`);
   if (!L.squash(L.read("docs/acceptance/README.md")).includes(S.rules.readme7)) bad.push(`docs/acceptance/README.md rule 7: "${S.rules.readme7}"`);
   assert.deepEqual(bad, [], show(bad));
+});
+
+test("R7 re-lock 2: every supplement original (texts the snapshot missed) is verbatim in the sheets and the admin data", () => {
+  const SU = S.supplement, sup = JSON.parse(L.read(SU.file)), E = sup.entries, bad = [];
+  assert.equal(sup.base, "ecb783b6", "supplement read from the base commit");
+  for (const m of SU.must) {
+    const hit = E.filter(e => (m.key ? e.key === m.key : m.keyRe ? new RegExp(m.keyRe).test(e.key || "") : true) &&
+      (!m.textRe || new RegExp(m.textRe, "i").test(e.text || "")) && (!m.text || e.text) &&
+      (m.langs || []).every(l => e[l]) && (m.textHas || []).every(t => (e.text || "").includes(t)));
+    if (hit.length < (m.min || 1)) bad.push(`supplement must hold ${JSON.stringify(m)} (found ${hit.length})`);
+  }
+  const T = S.techSheets, md = readdirSync(join(L.ROOT, T.dir)).filter(f => f.endsWith(".md"));
+  const TH = md.filter(f => /-TH\.md$|^README\.md$/.test(f)).map(f => L.squash(L.read(join(T.dir, f)))).join("\n");
+  const EN = md.filter(f => /-EN\.md$|^README\.md$/.test(f)).map(f => L.squash(L.read(join(T.dir, f)))).join("\n");
+  const admin = new Set(L.jsStrings(L.read(T.admin.data)).map(L.squash));
+  for (const e of E) {
+    const id = `${e.file} ${e.key || ""}`;
+    if (e.th && !TH.includes(L.squash(e.th))) bad.push(`TH sheets: ${id}`);
+    for (const l of ["en", "zh"]) if (e[l] && !EN.includes(L.squash(e[l]))) bad.push(`EN sheets (${l}): ${id}`);
+    if (e.text && !(TH + EN).includes(L.squash(e.text))) bad.push(`sheets: ${id} ${L.squash(e.text).slice(0, 80)}`);
+    for (const l of ["th", "en", "zh", "text"]) if (e[l] && !admin.has(L.squash(e[l]))) bad.push(`admin data (${l}): ${id}`);
+  }
+  assert.deepEqual(bad, [], `${bad.length} problems:\n` + show(bad, 40));
 });
