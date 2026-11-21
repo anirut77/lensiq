@@ -137,7 +137,8 @@
     }).catch(function () { S.lmHand = null; }).then(function () { lmBusy = false; });
   }
   function liveCheck(t) {
-    var vw = video.videoWidth, vh = video.videoHeight, sw = 160, sh = Math.round(sw * vh / vw);
+    // short side 160 however the phone is held (owner decision 206): a sideways preview is 213 x 160, not 160 x 120
+    var vw = video.videoWidth, vh = video.videoHeight, ps = PV.previewSize(vw, vh), sw = ps.w, sh = ps.h;
     small.width = sw; small.height = sh;
     var sx = small.getContext("2d", { willReadFrequently: true });
     sx.drawImage(video, 0, 0, sw, sh);
@@ -471,7 +472,7 @@
   var worker = null, workerBroken = false, jobN = 0;
   function findLines(px, w, h, hand, school) {
     if (!workerBroken && typeof Worker === "function") {
-      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=4"); } catch (e) { workerBroken = true; }
+      try { if (!worker) worker = new Worker("palm-v2-worker.js?v=5"); } catch (e) { workerBroken = true; }
     }
     if (!worker || workerBroken) return new Promise(function (res) { setTimeout(function () { res(PV.detect(px, w, h, hand, { school: school })); }, 0); });
     var id = ++jobN;

@@ -2044,6 +2044,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
    the switch is on (independent review round 1, c); dynamic scripts with async = false run in order */
 if (typeof window !== "undefined" && typeof document !== "undefined" && window.LENSIQ_PALM_V2 === true && document.getElementById("plV2")) {
   var pv2css = document.createElement("link"); pv2css.rel = "stylesheet"; pv2css.href = "palm-v2.css?v=4"; document.head.appendChild(pv2css);
-  var pv2js = ["palm-v2-kb.js?v=1", "palm-v2-detect.js?v=2", "palm-v2.js?v=5", "palm-v2-ui.js?v=5"];
+  var pv2js = ["palm-v2-kb.js?v=1", "palm-v2-detect.js?v=2", "palm-v2.js?v=6", "palm-v2-ui.js?v=6"];
   pv2js.forEach(function (src) { var el = document.createElement("script"); el.src = src; el.async = false; document.body.appendChild(el); });
 }

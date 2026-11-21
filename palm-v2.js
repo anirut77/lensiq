@@ -432,21 +432,12 @@
   /* PROVISIONAL: set on the synthetic hand (tests/fixtures/palm-v2/synth-hand.js); to calibrate on consented real photos
      (design B2.5: bad photos accepted <= 5 %, good rejected <= 10 %, per phone) */
   var CAPTURE_T = { PROVISIONAL: true, medLo: 90, medHi: 215, p5Lo: 30, clip: 0.02, blob: 0.005, uneven: 1.8, sharp: 6, fillLo: 0.15, fillHi: 0.85, offset: 0.25, tilt: 20 };
-  /** metrics of the inner palm (roi {x,y,w,h}, image px), resampled to 160 px wide */
+  /** metrics of the inner palm (roi {x,y,w,h}, image px), resampled to 160 px wide. Sharpness is the mean over the ROI's own turns
+      and mirrors (8 for a square ROI, 4 otherwise) so the same pixels read the same whichever way the frame or the hand points
+      (owner decision 206, 2026-11-21: the top-left anchored resampling made the same frame turned 90 degrees read up to 59 % apart) */
   function captureMetrics(rgba, w, h, roi) {
     roi = roi || { x: 0, y: 0, w: w, h: h };
-    var W = 160, H = Math.max(8, Math.round(W * roi.h / roi.w)), n = W * H, Y = new Float32Array(n), clip = new Uint8Array(n), i, x, y;
-    var fx = roi.w / W, fy = roi.h / H;
-    for (y = 0; y < H; y++) for (x = 0; x < W; x++) { // box average of the source block (no aliasing of the fine lines)
-      var sx0 = Math.floor(roi.x + x * fx), sy0 = Math.floor(roi.y + y * fy), sx1 = Math.max(sx0 + 1, Math.floor(roi.x + (x + 1) * fx)), sy1 = Math.max(sy0 + 1, Math.floor(roi.y + (y + 1) * fy));
-      var acc = 0, cnt = 0, cl = 0, stp = Math.max(1, Math.floor((sx1 - sx0) / 4));
-      for (var yy = sy0; yy < sy1 && yy < h; yy += stp) for (var xx = sx0; xx < sx1 && xx < w; xx += stp) {
-        var j = (yy * w + xx) * 4, r = rgba[j], g = rgba[j + 1], b = rgba[j + 2];
-        acc += 0.299 * r + 0.587 * g + 0.114 * b; cnt++;
-        if (r >= 250 || g >= 250 || b >= 250) cl++;
-      }
-      i = y * W + x; Y[i] = cnt ? acc / cnt : 0; clip[i] = cl * 2 > cnt ? 1 : 0;
-    }
+    var R = roiLuma(rgba, w, h, roi), W = R.W, H = R.H, n = W * H, Y = R.Y, clip = R.clip, i, x, y;
     var srt = Array.prototype.slice.call(Y).sort(function (a, b) { return a - b; });
     var q = function (p) { return srt[Math.min(n - 1, Math.floor(n * p))]; };
     var med = q(0.5), p5 = q(0.05), p95 = q(0.95);
@@ -460,11 +451,55 @@
       vs.sort(function (a, b) { return a - b; }); cells.push(vs[Math.floor(vs.length / 2)] || 0);
     }
     var uneven = Math.max.apply(null, cells) / Math.max(1, Math.min.apply(null, cells));
-    // sharpness: variance of the Laplacian (after a light blur) over the squared mean
-    var B = blur3(Y, W, H), lap = 0, lap2 = 0, m = 0;
-    for (y = 1; y < H - 1; y++) for (x = 1; x < W - 1; x++) { i = y * W + x; var L = B[i - 1] + B[i + 1] + B[i - W] + B[i + W] - 4 * B[i]; lap += L; lap2 += L * L; m++; }
-    var lm = lap / m, sharp = (lap2 / m - lm * lm) / Math.max(1, (med * med) / 1e4);
+    // sharpness: variance of the Laplacian (after a light blur) over the squared mean, averaged over the ROI's turns / mirrors
+    var bw = Math.max(1, Math.min(roi.w, w - roi.x)), bh = Math.max(1, Math.min(roi.h, h - roi.y)), blk = new Uint8ClampedArray(bw * bh * 4);
+    for (y = 0; y < bh; y++) for (x = 0; x < bw; x++) { var s0 = ((y + roi.y) * w + x + roi.x) * 4, d0 = (y * bw + x) * 4; blk[d0] = rgba[s0]; blk[d0 + 1] = rgba[s0 + 1]; blk[d0 + 2] = rgba[s0 + 2]; blk[d0 + 3] = 255; }
+    var ks = bw === bh ? [0, 1, 2, 3, 4, 5, 6, 7] : [0, 2, 4, 6], sharp = 0;
+    for (var t = 0; t < ks.length; t++) {
+      var D = dihedral(blk, bw, bh, ks[t]), Rk = ks[t] === 0 && bw === roi.w && bh === roi.h ? R : roiLuma(D.rgba, D.w, D.h, { x: 0, y: 0, w: D.w, h: D.h });
+      sharp += lapVar(Rk.Y, Rk.W, Rk.H) / Math.max(1, (med * med) / 1e4);
+    }
+    sharp /= ks.length;
     return { med: med, p5: p5, p95: p95, clip: nClip / n, blob: blob / n, uneven: uneven, sharp: sharp, w: W, h: H };
+  }
+  /** the ROI's luminance (BT.601) and blow-out mask, box-averaged to 160 px wide (no aliasing of the fine lines) */
+  function roiLuma(rgba, w, h, roi) {
+    var W = 160, H = Math.max(8, Math.round(W * roi.h / roi.w)), n = W * H, Y = new Float32Array(n), clip = new Uint8Array(n), i, x, y;
+    var fx = roi.w / W, fy = roi.h / H;
+    for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+      var sx0 = Math.floor(roi.x + x * fx), sy0 = Math.floor(roi.y + y * fy), sx1 = Math.max(sx0 + 1, Math.floor(roi.x + (x + 1) * fx)), sy1 = Math.max(sy0 + 1, Math.floor(roi.y + (y + 1) * fy));
+      var acc = 0, cnt = 0, cl = 0, stp = Math.max(1, Math.floor((sx1 - sx0) / 4));
+      for (var yy = sy0; yy < sy1 && yy < h; yy += stp) for (var xx = sx0; xx < sx1 && xx < w; xx += stp) {
+        var j = (yy * w + xx) * 4, r = rgba[j], g = rgba[j + 1], b = rgba[j + 2];
+        acc += 0.299 * r + 0.587 * g + 0.114 * b; cnt++;
+        if (r >= 250 || g >= 250 || b >= 250) cl++;
+      }
+      i = y * W + x; Y[i] = cnt ? acc / cnt : 0; clip[i] = cl * 2 > cnt ? 1 : 0;
+    }
+    return { Y: Y, clip: clip, W: W, H: H };
+  }
+  /** variance of the 4-neighbour Laplacian of the light blur (blur3) */
+  function lapVar(Y, W, H) {
+    var B = blur3(Y, W, H), lap = 0, lap2 = 0, m = 0, i;
+    for (var y = 1; y < H - 1; y++) for (var x = 1; x < W - 1; x++) { i = y * W + x; var L = B[i - 1] + B[i + 1] + B[i - W] + B[i + W] - 4 * B[i]; lap += L; lap2 += L * L; m++; }
+    var lm = lap / Math.max(1, m);
+    return lap2 / Math.max(1, m) - lm * lm;
+  }
+  /** one of the 8 turns / mirrors of an RGBA block: k 0-3 = k quarter turns clockwise, 4-7 = mirrored left-right first */
+  function dihedral(src, w, h, k) {
+    if (k === 0) return { rgba: src, w: w, h: h };
+    var q = k % 4, mir = k >= 4, W2 = q % 2 ? h : w, H2 = q % 2 ? w : h, o = new Uint8ClampedArray(src.length);
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+      var xs = mir ? w - 1 - x : x, X, Y2;
+      if (q === 0) { X = xs; Y2 = y; } else if (q === 1) { X = h - 1 - y; Y2 = xs; } else if (q === 2) { X = w - 1 - xs; Y2 = h - 1 - y; } else { X = y; Y2 = w - 1 - xs; }
+      var s0 = (y * w + x) * 4, d0 = (Y2 * W2 + X) * 4; o[d0] = src[s0]; o[d0 + 1] = src[s0 + 1]; o[d0 + 2] = src[s0 + 2]; o[d0 + 3] = src[s0 + 3];
+    }
+    return { rgba: o, w: W2, h: H2 };
+  }
+  /** the live preview size: SHORT side 160, so a hand has the same pixels however the phone is held (owner decision 206) */
+  function previewSize(vw, vh) {
+    vw = Math.max(1, vw || 1); vh = Math.max(1, vh || 1);
+    return vw <= vh ? { w: 160, h: Math.max(8, Math.round(160 * vh / vw)) } : { w: Math.max(8, Math.round(160 * vw / vh)), h: 160 };
   }
   function blur3(src, w, h) {
     var out = new Float32Array(w * h);
@@ -513,12 +548,18 @@
     return "ok";
   }
   /** a hand from the skin colour alone (no landmark model): found, count, fill, offset, open, tilt; image downscaled to 160 px */
+  /** the skin colour test of one pixel (YCbCr box) */
+  function isSkin(r, g, b) {
+    var cb = 128 - 0.1687 * r - 0.3313 * g + 0.5 * b, cr = 128 + 0.5 * r - 0.4187 * g - 0.0813 * b, yy = 0.299 * r + 0.587 * g + 0.114 * b;
+    return yy > 40 && cr > 133 && cr < 180 && cb > 77 && cb < 130 && r > b;
+  }
   function handFromSkin(rgba, w, h) {
-    var W = 160, H = Math.max(8, Math.round(W * h / w)), n = W * H, m = new Uint8Array(n), x, y, i;
+    // mask at the frame's own pixels up to a SHORT side of 320 (owner decision 206: always 160 WIDE gave a landscape
+    // frame a coarser mask than the same frame upright, and a mask coarser than the frame moved the palm centre with the direction)
+    var sh0 = Math.max(1, Math.min(w, h)), sm = Math.min(320, sh0), W = Math.max(8, Math.round(w * sm / sh0)), H = Math.max(8, Math.round(h * sm / sh0)), n = W * H, m = new Uint8Array(n), x, y, i;
     for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
       var j = (Math.min(h - 1, Math.floor((y + 0.5) * h / H)) * w + Math.min(w - 1, Math.floor((x + 0.5) * w / W))) * 4, r = rgba[j], g = rgba[j + 1], b = rgba[j + 2];
-      var cb = 128 - 0.1687 * r - 0.3313 * g + 0.5 * b, cr = 128 + 0.5 * r - 0.4187 * g - 0.0813 * b, yy = 0.299 * r + 0.587 * g + 0.114 * b;
-      m[y * W + x] = yy > 40 && cr > 133 && cr < 180 && cb > 77 && cb < 130 && r > b ? 1 : 0;
+      m[y * W + x] = isSkin(r, g, b) ? 1 : 0;
     }
     // components
     var lab = new Int32Array(n), comps = [], stack = [];
@@ -792,7 +833,11 @@
       roi = { x: clamp(Math.round(hand.palm[0] * w - sd / 2), 0, w - sd), y: clamp(Math.round(hand.palm[1] * h - sd / 2), 0, h - sd), w: sd, h: sd };
       // light, evenness and sharpness of the HAND only: background inside the ROI (between the fingers, beside a small hand) is
       // painted with the hand's mean colour there, so it never reads as shadow or as a dark corner
-      var M = hand._mask, mw = hand._w, mh = hand._h, inHand = function (x, y) { return M[Math.min(mh - 1, Math.floor(y * mh / h)) * mw + Math.min(mw - 1, Math.floor(x * mw / w))]; };
+      var M = hand._mask, mw = hand._w, mh = hand._h, inHand = function (x, y) {
+        // the hand's mask cell (pixel centres, not top-left anchored) AND the pixel's own skin test: a coarse mask cell at the hand's edge
+        // must not let background pixels through, which made the same hand read up to 26 % apart by direction (owner decision 206)
+        var k = (y * w + x) * 4;
+        return M[Math.min(mh - 1, Math.floor((y + 0.5) * mh / h)) * mw + Math.min(mw - 1, Math.floor((x + 0.5) * mw / w))] && isSkin(rgba[k], rgba[k + 1], rgba[k + 2]); };
       var sr = 0, sg = 0, sb = 0, sn = 0, x, y, j;
       for (y = roi.y; y < roi.y + roi.h; y++) for (x = roi.x; x < roi.x + roi.w; x++) if (inHand(x, y)) { j = (y * w + x) * 4; sr += rgba[j]; sg += rgba[j + 1]; sb += rgba[j + 2]; sn++; }
       if (sn && sn < roi.w * roi.h) {
@@ -833,7 +878,7 @@
     newState: newState, setLine: setLine, threshold: threshold, applyDetection: applyDetection,
     readingFor: readingFor, aiFacts: aiFacts, listRows: listRows, allTexts: allTexts, serialize: serialize, deserialize: deserialize,
     drawLineLayer: drawLineLayer,
-    CAPTURE_T: CAPTURE_T, captureMetrics: captureMetrics, captureHint: captureHint, handFromSkin: handFromSkin, createAutoShutter: createAutoShutter,
+    CAPTURE_T: CAPTURE_T, captureMetrics: captureMetrics, previewSize: previewSize, captureHint: captureHint, handFromSkin: handFromSkin, createAutoShutter: createAutoShutter,
     stillPlan: stillPlan, grabStill: grabStill, cameraGate: cameraGate, consentAfterCapture: consentAfterCapture,
     CAM_OPTS: CAM_OPTS, photoSettings: photoSettings, UPLOAD_MIN: UPLOAD_MIN, photoQuality: photoQuality, qualityVerdict: qualityVerdict,
     handSide: handSide, sideCheck: sideCheck, sideAskText: sideAskText,
