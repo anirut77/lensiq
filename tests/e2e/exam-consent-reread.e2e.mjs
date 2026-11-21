@@ -28,6 +28,8 @@
 //      control and cannot take focus, so a person cannot tick it; the pre-script snapshot of a normal load agrees. With the
 //      script: when it finishes the box is rendered and unticked, a real mouse click (Input.dispatchMouseEvent) ticks it, and
 //      the consent sentence next to it is in the page language (no Thai in en / zh).
+// RELOCK 2 (2026-11-22, EQUAL, test fault): R7 measured the box while the page's smooth scroll was still moving, so the real click
+//   landed beside it. It now scrolls with behavior "instant" and measures in a later call. No condition changed.
 // No camera beyond the fake one; no photo of a person; nothing is sent.
 import { assert } from "./cdp.mjs";
 import { exceptions, sleep } from "./exam-kit.mjs";
@@ -301,8 +303,11 @@ export default async function ({ base, launch, check, fakeCams }) {
           assert(end.consentShown === true && end.consentStatic === false && end.consent === false,
             `R7 [${l}]: the consent box is not shown, or not unticked, when the page script finished: ${JSON.stringify(end)}`);
           await sleep(500);
+          // the page has scroll-behavior: smooth: scroll instantly, then measure in a later call (relock2, test fault fix)
+          await page.evaluate(() => document.querySelector("#consent").scrollIntoView({ block: "center", behavior: "instant" }));
+          await sleep(300);
           const box = await page.evaluate(() => {
-            const c = document.querySelector("#consent"); c.scrollIntoView({ block: "center" });
+            const c = document.querySelector("#consent");
             const r = c.getBoundingClientRect();
             const txt = [...c.closest("label").querySelectorAll("span")].filter(e => !e.hidden).map(e => e.textContent).join(" ").trim();
             return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height, checked: c.checked, txt };
