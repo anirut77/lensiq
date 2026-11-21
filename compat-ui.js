@@ -280,7 +280,13 @@
     const L = C(), r = $("cpResult"), { res, names, tier } = st.last;
     const rep = L.report(res, { lang: lang(), tier: L.tierFor(W, CR(), D) === "full" && tier === "full" ? "full" : "free", names, rel: res.rel });
     r.innerHTML = ""; r.hidden = false;
-    if (V2() && rep.mode === "pair" && W.LQCompatV2 && W.LQCompatV2.render(r, { res, rep, names, lang: lang(), tier: rep.tier, doc: D })) { drawEnd(r); return; }
+    if (V2() && rep.mode === "pair" && W.LQCompatV2) {
+      // review F6: a v2 failure falls back to the v1 reading below (which keeps the closing 1323 line); the error goes to the console only
+      let ok = false;
+      try { ok = !!W.LQCompatV2.render(r, { res, rep, names, lang: lang(), tier: rep.tier, doc: D }); } catch (e) { try { console.error("compat v2 view failed; showing v1", e); } catch (x) { /* no console */ } }
+      if (ok) { drawEnd(r); return; }
+      r.innerHTML = "";
+    }
     const ov = D.createElement("div");
     ov.className = "cp-ov fk-block"; ov.setAttribute("data-compat-overview", ""); ov.setAttribute("data-lq-shareable", "compat-overview"); ov.setAttribute("data-lq-printable", "");
     ov.innerHTML = '<h2 tabindex="-1" id="cpResTitle">' + esc(rep.overview.title) + '</h2><div class="cp-wheelbox">' + wheelSVG(rep) + legendHTML(rep) + "</div>" +

@@ -47,7 +47,7 @@
       todo: "ทำด้วยกัน", step: "วิธีรับมือ: {s}", methodsH: "แต่ละศาสตร์ว่าอย่างไร", list: ", ",
       fitList: "เรื่องที่เสริมกัน: {list}", careList: "เรื่องที่ต้องใส่ใจ: {list}", allMixed: "ทุกเรื่องอยู่ในระดับไปด้วยกันได้ มีทั้งจุดที่ตรงกันและจุดที่ต้องคุยกัน",
       none: "ไม่มีเรื่องที่ต้องใส่ใจเป็นพิเศษ ดูวิธีดูแลกันต่อได้ในแต่ละเรื่องด้านล่าง", minor: "บางเรื่องมีจุดเล็ก ๆ ที่ควรใส่ใจ ดูวิธีรับมือได้ในแต่ละเรื่องด้านล่าง",
-      srcAgree: "ที่มา: ระดับนี้มาจากผลของ{list}", srcSplit: "ที่มา: {list} ให้ผลต่างกัน เมื่อรวมกันจึงอยู่ระดับนี้", srcNone: "ที่มา: ไม่มีศาสตร์ใดชี้เรื่องนี้เป็นพิเศษ จึงอยู่ระดับกลาง",
+      srcAgree: "ที่มา: ระดับนี้มาจากผลของ{list}", srcBoth: "ที่มา: ระดับนี้มาจากผลของ{list} ส่วน{diff}", srcSplit: "ที่มา: {diff} เมื่อรวมผลทุกศาสตร์จึงอยู่ระดับนี้", srcSplitQuiet: "ที่มา: {diff} ส่วนศาสตร์อื่นไม่ได้ชี้เรื่องนี้ เมื่อรวมกันจึงอยู่ระดับนี้", diffOne: "{m}ว่า \"{label}\"", srcNone: "ที่มา: ไม่มีศาสตร์ใดชี้เรื่องนี้เป็นพิเศษ จึงอยู่ระดับกลาง",
       vFit: "{k} อยู่ในเกณฑ์ดี", vCare: "{k} อยู่ในจุดที่ตำราให้ใส่ใจ",
       gloss: { varna: "วรรณะ (มาตรฐานชีวิต)", vashya: "วัศยะ (การยอมฟังกัน)", tara: "ดารา (จังหวะดาวประจำวันเกิด)", yoni: "โยนี (นิสัยพื้นฐาน)",
         maitri: "เคราะห์ไมตรี (ดาวเจ้าเรือนจันทร์)", bhakoot: "ภกูฏ (ตำแหน่งราศีจันทร์ของสองคน)", nadi: "นาฑี (จังหวะพลังกาย)" },
@@ -57,7 +57,7 @@
       todo: "Together", step: "What to do: {s}", methodsH: "What each method says", list: ", ",
       fitList: "Areas that support each other: {list}", careList: "Areas that need some care: {list}", allMixed: "Every area goes along well enough: some things match and some need talking through.",
       none: "Nothing needs special care. Each area below shows how to keep things going well.", minor: "A few areas have small points worth some care; each area below shows what to do.",
-      srcAgree: "Source: this level comes from {list}.", srcSplit: "Source: {list} differ; taken together they give this level.", srcNone: "Source: no method points to anything special here, so it sits in the middle.",
+      srcAgree: "Source: this level comes from {list}.", srcBoth: "Source: this level comes from {list}; {diff}.", srcSplit: "Source: {diff}; taken together, the methods come to this level.", srcSplitQuiet: "Source: {diff}; no other method gives a sign here, so taken together this is the level.", diffOne: "{m} says \"{label}\"", srcNone: "Source: no method points to anything special here, so it sits in the middle.",
       vFit: "{k} is in a good range", vCare: "{k} is a point the tradition asks you to watch",
       gloss: { varna: "Varna (life standards)", vashya: "Vashya (mutual pull)", tara: "Tara (birth-star rhythm)", yoni: "Yoni (basic nature)",
         maitri: "Graha Maitri (Moon-sign rulers)", bhakoot: "Bhakoot (Moon-sign positions)", nadi: "Nadi (energy rhythm)" },
@@ -67,7 +67,7 @@
       todo: "一起做", step: "应对方法：{s}", methodsH: "各派怎么看", list: "、",
       fitList: "相互助力的方面：{list}", careList: "需要留心的方面：{list}", allMixed: "每个方面都可以同行，有相合之处，也有需要沟通的地方。",
       none: "没有特别需要留心的方面，下面每一项都说明了如何继续相处得好。", minor: "有几个方面有些小地方值得留心，下面每一项都写了应对方法。",
-      srcAgree: "依据：这个等级来自{list}的结果。", srcSplit: "依据：{list}的结果不同，合起来是这个等级。", srcNone: "依据：各派在这方面都没有特别的指向，所以居中。",
+      srcAgree: "依据：这个等级来自{list}的结果。", srcBoth: "依据：这个等级来自{list}的结果；{diff}。", srcSplit: "依据：{diff}，合起来是这个等级。", srcSplitQuiet: "依据：{diff}，其余各派在这方面没有特别指向，合起来是这个等级。", diffOne: "{m}认为“{label}”", srcNone: "依据：各派在这方面都没有特别的指向，所以居中。",
       vFit: "{k}情况良好", vCare: "{k}是传统上提醒留心的一项",
       gloss: { varna: "Varna（品格）", vashya: "Vashya（相互吸引）", tara: "Tara（星运）", yoni: "Yoni（本性）",
         maitri: "Graha Maitri（心性）", bhakoot: "Bhakoot（家运）", nadi: "Nadi（节律）" },
@@ -189,7 +189,12 @@
       // a method counts for the source line only when it gives a sign in this area (a silent method only weighs as "mixed")
       const spoke = L.METHODS.filter(m => c.byMethod[m] != null && c.signals.some(g => g.m === m)), agree = spoke.filter(m => c.byMethod[m] === lean);
       const short = ms => ms.map(m => K.METHOD[m].short[lang]).join(t.list);
-      const source = !spoke.length ? t.srcNone : agree.length ? fill(t.srcAgree, { list: short(agree) }) : fill(t.srcSplit, { list: short(spoke) });
+      // each method that differs is named with its own level; a method with no sign here is never named (review F3)
+      const differ = spoke.filter(m => c.byMethod[m] !== lean);
+      const diff = differ.map(m => fill(t.diffOne, { m: K.METHOD[m].short[lang], label: LABEL[lang][c.byMethod[m]] })).join(lang === "en" ? "; " : t.list);
+      const quiet = computed => computed.some(m => !spoke.includes(m));
+      const source = !spoke.length ? t.srcNone : !differ.length ? fill(t.srcAgree, { list: short(agree) }) : agree.length ? fill(t.srcBoth, { list: short(agree), diff })
+        : fill(quiet(L.METHODS.filter(m => c.byMethod[m] != null)) ? t.srcSplitQuiet : t.srcSplit, { diff });
       const detail = tier === "full" || FREE.includes(cat);
       // the reason: the strongest signs touching this area (its own cautions are listed below it, with their steps)
       const because = [], seen = new Set();
