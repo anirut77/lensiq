@@ -1,0 +1,10 @@
+# locked 2026-11-21T11:54:35Z (tools/eval-guard.mjs lock, 1 file)
+0724fa13e0c1efe5e9ccceb6464fded6979b8999b0733ee1bf48a247734d78ee  e2e-timeout-note.test.js
+0724fa13e0c1efe5e9ccceb6464fded6979b8999b0733ee1bf48a247734d78ee  tests/unit/e2e-timeout-note.test.js  # repo file (same commit as lock 2026-11-21T11:54:35Z; field: ~/LENSIQ-field/evals/e2e-timeout-note/e2e-timeout-note.test.js)
+# LOCK 2026-11-21 (G1, follow-up of owner decision 203 ค, branch followups-1121), BEFORE busyNote / otherHeavyJobs exist in tools/load-guard.mjs: the e2e per-file timeout message names the 1-minute load average and the count of other heavy jobs; message only, same timer and failure rule.
+# RE-LOCK 1 2026-11-21 (branch followups-1121): EQUAL, lint only (N4 regex spaces as \` {2}\`); no check changed. Field copy and NOTE.txt: ~/LENSIQ-field/evals/e2e-timeout-note/relock1/.
+# locked 2026-11-21T11:59:46Z (tools/eval-guard.mjs lock, 2 files)
+ad98fa646099a9de0634d4714ebb46458e80be2afdac94fe429bc1bf4b2a784c  relock1/e2e-timeout-note.test.js
+c8559535f7d179ff6d0c53341e4ff137f54beeb917956c6b105e26be43718acb  relock1/NOTE.txt
+ad98fa646099a9de0634d4714ebb46458e80be2afdac94fe429bc1bf4b2a784c  tests/unit/e2e-timeout-note.test.js  # repo file (same commit as lock 2026-11-21T11:59:46Z; field: ~/LENSIQ-field/evals/e2e-timeout-note/relock1/e2e-timeout-note.test.js)
+# field only relock1/NOTE.txt (lock 2026-11-21T11:59:46Z: no repo file uses it)

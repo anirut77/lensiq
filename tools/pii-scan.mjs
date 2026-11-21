@@ -235,7 +235,16 @@ const FORBIDDEN = [
   // labels/A|B/), never in git. Locked test: tests/unit/pii-palm-labels.test.js (evals-locks/pii-palm-labels.sha256)
   [/(^|\/)palm-pilot\//i, "palm pilot folder (participants' palm photos and labels)"],
   [/\.palm-trace\.json$/i, "palm trace label file (palm pilot)"],
-  [/(^|\/)P\d{2}-[LR](-\d+)?\.(jpe?g|png|heic|webp)$/i, "image named like a palm pilot participant code"]
+  [/(^|\/)P\d{2}-[LR](-\d+)?\.(jpe?g|png|heic|webp)$/i, "image named like a palm pilot participant code"],
+  // stricter addition (coordinator decision 2026-11-21, recorded in the board): the usual hand copies and renames of the same files.
+  // Locked test: tests/unit/pii-palm-variants.test.js (evals-locks/pii-palm-variants.sha256)
+  [/(^|\/)P\d{2}-[LR](-\d+)?( ?\(\d+\)| copy( \d+)?| - copy( \(\d+\))?|_\d+)?\.(jpe?g|png|heic|heif|webp|dng|avif|tiff?|mov)$/i,
+    "photo or video named like a palm pilot participant code (incl. copy names)"],
+  [/(^|\/)[^/]*palm[-_ ]?pilot[^/]*\.(zip|tar|gz|tgz|7z|bz2|tbz2?|xz|txz|zst|rar)$/i, "archive named with palm-pilot (palm pilot)"],
+  [/(^|\/)([^/]*[^/a-z0-9])?P\d{2}(-[LR](-\d+)?)?(?![a-z0-9])[^/]*\.(zip|tar|tar\.gz|tgz|7z|tar\.bz2|tbz2?|tar\.xz|txz|rar)$/i,
+    "archive named with a palm pilot participant code"],
+  [/\.palm-trace( ?\(\d+\)| copy( \d+)?|_\d+)?\.json((\.(bak|backup|old|orig|tmp|temp|swp|save|gz|bz2|xz|zst|zip|7z|tar|tgz|\d+))+~?|~)?$/i,
+    "palm trace label file, renamed or packed (palm pilot)"]
 ];
 /** @param {string} p @returns {Array<{type: string, line: number, masked: string}>} */
 export function scanPath(p) {

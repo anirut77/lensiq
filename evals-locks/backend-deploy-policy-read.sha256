@@ -1,0 +1,10 @@
+# locked 2026-11-21T11:58:46Z (tools/eval-guard.mjs lock, 1 file)
+da8740e7e913ad2cafe6e4ad9fb04174d2461016e44b783247656dd0efe57af1  backend-deploy-policy-read.test.js
+da8740e7e913ad2cafe6e4ad9fb04174d2461016e44b783247656dd0efe57af1  tests/unit/backend-deploy-policy-read.test.js  # repo file (same commit as lock 2026-11-21T11:58:46Z; field: ~/LENSIQ-field/evals/backend-deploy-policy-read/backend-deploy-policy-read.test.js)
+# LOCK 2026-11-21 (D-3 review finding F4, branch followups-1121), BEFORE tools/backend-deploy.mjs changes: the tester-gate policy is read only for plan and deploy; a malformed deploy/tester-gate.json never blocks off / on (kill switch), rollback, versions, list, whoami; deploy and plan refuse (exit 3) naming the file. On the old code P2 and P4 fail, P1 and P3 pass.
+# RE-LOCK 1 2026-11-21 (branch followups-1121): EQUAL, lint only (unused constant removed); no check changed. Field copy and NOTE.txt: ~/LENSIQ-field/evals/backend-deploy-policy-read/relock1/.
+# locked 2026-11-21T11:59:46Z (tools/eval-guard.mjs lock, 2 files)
+29b0ec003b3e922aacdf58d88d763775afc2ec0e54dde347fdea8d6c9209bb34  relock1/backend-deploy-policy-read.test.js
+3cee79dfcfda7c7df7cb484c1558dc8f1020c5f1fefcf07954cb592af9bf3053  relock1/NOTE.txt
+29b0ec003b3e922aacdf58d88d763775afc2ec0e54dde347fdea8d6c9209bb34  tests/unit/backend-deploy-policy-read.test.js  # repo file (same commit as lock 2026-11-21T11:59:46Z; field: ~/LENSIQ-field/evals/backend-deploy-policy-read/relock1/backend-deploy-policy-read.test.js)
+# field only relock1/NOTE.txt (lock 2026-11-21T11:59:46Z: no repo file uses it)
