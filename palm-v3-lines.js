@@ -23,15 +23,19 @@
    6 confidence without a big dataset: per palm, a null distribution from many random curves of the same family (z = (S - mu) / sd)
      plus the same search on rotated / mirrored energy maps (reported); a line is drawn solid only when z >= Z_LIMIT; otherwise the
      page shows "not clear in this photo". Z_LIMIT is set on DEV synthetic seeds only (never on the locked test seeds or any photo).
-   7 minors (second pass, s = 640): fate, sun, mercury (near-vertical), bracelet (across the wrist), girdle (above the heart line).
-     Marriage lines sit on the edge of the hand and are usually not visible in a frontal photo: never searched, said plainly.
+   7 minors (second pass, s = 640): fate, sun, mercury (near-vertical), bracelet (across the wrist), girdle (above the heart line),
+     searched with every solid principal crease removed from the map (short crossings bridged), so a minor cannot ride the life
+     line; simian (one crease in place of heart and head) only when the head line, and the heart line or no separate heart line,
+     lie on one crease across the palm. Marriage lines sit on the edge of the hand and are usually not visible in a frontal photo:
+     never searched, said plainly. Sun, Mercury, bracelet, girdle and simian stay guides on the page (PalmV2.AUTO false) until the
+     D-P8 field measurement (false-line <= 5 %, simian <= 1 %); synthetic results never turn them on.
    Every constant is PROVISIONAL (synthetic dev seeds). Browser: window.PalmV3Lines · Node: module.exports. */
 (function (root) {
   "use strict";
   var CFG = { sMaj: 224, sMin: 512, u0: -0.3, u1: 1.25, v0: -0.08, v1: 1.15, normSigma: 0.06, claheTiles: 8, claheClip: 2.5,
     method: "mfrat", norm: "hybrid", bilRange: 0.18, hybLo: 0.02, hybHi: 0.05,
     cap: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_CAP) || 1e9),
-        erode: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_ERODE) || 0), nRandom: 500, nSearch: 1200, PROVISIONAL: true };
+        erode: +((typeof process !== "undefined" && process.env && process.env.LQ_V3_ERODE) || 0), nRandom: 500, nSearch: 1200, minorMask: 0.03, bridge: 0.08, PROVISIONAL: true };
   /* PROVISIONAL z limit, set 2026-11-20 on DEV synthetic seeds only (never on the locked test seeds, never on a photo), for the
      MFRAT map with the two-flank valley check: 153 crease-free dev textures (seeds 201-213: textures.js, tex2.js crease-free
      effects, synth-real texture) gave max z 7.68 (darkSkin), p95 6.21; realistic dev creases (synth-real seeds 101-112, full depth)
@@ -49,7 +53,8 @@
     sun: { a: [[0.55, 0.8], [0.3, 0.6]], b: [[0.55, 0.8], [0.02, 0.25]], bend: 0.04, band: [-115, -65] },
     mercury: { a: [[0.75, 1.05], [0.35, 0.75]], b: [[0.8, 1.08], [0.05, 0.3]], bend: 0.05, band: [-120, -60] },
     bracelet: { a: [[0.0, 0.25], [0.98, 1.14]], b: [[0.7, 1.05], [0.98, 1.14]], bend: 0.04, band: [-20, 20] },
-    girdle: { a: [[0.15, 0.4], [-0.04, 0.12]], b: [[0.6, 0.9], [-0.04, 0.12]], bend: 0.06, band: [-30, 30] }
+    girdle: { a: [[0.15, 0.4], [-0.04, 0.12]], b: [[0.6, 0.9], [-0.04, 0.12]], bend: 0.06, band: [-30, 30] },
+    simian: { a: [[0.9, 1.2], [0.1, 0.42]], b: [[-0.18, 0.12], [0.1, 0.45]], bend: 0.05, band: [-25, 25] }
   };
   function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
   function rng(seed) { var s = (seed >>> 0) || 1; return function () { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
@@ -299,7 +304,23 @@
       }
       out[k] = best;
     }
+    if (M.skip) bridge(M, pts, out);
     return out;
+  }
+  /** a minor line may CROSS a removed principal crease (maskLines): a short run of samples inside the removed band (<= CFG.bridge PW
+      along the curve, with valid samples on both sides) takes the lower of its two neighbours' energies; a longer run (a curve that
+      runs along the removed crease) stays at zero. Applied to every curve on that map alike, the null curves included. */
+  function bridge(M, pts, out) {
+    var n = pts.length, s = M.s, inS = new Uint8Array(n), L = 0;
+    for (var k = 0; k < n; k++) { var x = Math.round((pts[k][0] - CFG.u0) * s), y = Math.round((pts[k][1] - CFG.v0 * M.asp) * s);
+      inS[k] = x >= 0 && y >= 0 && x < M.w && y < M.h && M.skip[y * M.w + x] ? 1 : 0; if (k) L += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); }
+    var maxRun = Math.max(1, Math.floor(CFG.bridge / ((L || 1e-9) / Math.max(1, n - 1))));
+    for (k = 0; k < n; k++) {
+      if (!inS[k]) continue;
+      var j = k; while (j < n && inS[j]) j++;
+      if (k > 0 && j < n && j - k <= maxRun) { var v = Math.min(out[k - 1], out[j]); for (var m = k; m < j; m++) out[m] = v; }
+      k = j;
+    }
   }
   function inBand(d, band) { // d in [0, pi): line direction; band [lo, hi] degrees (any sign); lines are undirected
     var deg = d * 180 / Math.PI;
@@ -578,6 +599,55 @@
     }
     return f;
   }
+  /** copy of map M with the energy zeroed within rPW palm widths of each polyline (control points in the hand frame); "taken" is reset */
+  function maskLines(M, cps, rPW) {
+    var M2 = Object.assign({}, M, { E: new Float32Array(M.E), taken: null, skip: M.skip ? new Uint8Array(M.skip) : new Uint8Array(M.w * M.h) }), hs = M.s, rr = rPW * hs;
+    if (!cps.length) return M2;
+    var segs = [];
+    cps.forEach(function (cp) { var P = resample(cp.map(function (q) { return [(q[0] - CFG.u0) * hs, (q[1] - CFG.v0) * hs * M.asp]; }), 24);
+      for (var k = 0; k < P.length - 1; k++) segs.push([P[k], P[k + 1]]); });
+    segs.forEach(function (sg) {
+      var a = sg[0], b = sg[1], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1;
+      var x0 = Math.max(0, Math.floor(Math.min(a[0], b[0]) - rr)), x1 = Math.min(M.w - 1, Math.ceil(Math.max(a[0], b[0]) + rr));
+      var y0 = Math.max(0, Math.floor(Math.min(a[1], b[1]) - rr)), y1 = Math.min(M.h - 1, Math.ceil(Math.max(a[1], b[1]) + rr));
+      for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) {
+        var t = clamp(((x - a[0]) * dx + (y - a[1]) * dy) / l2, 0, 1);
+        if (Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy) < rr) { M2.E[y * M.w + x] = 0; M2.skip[y * M.w + x] = 1; }
+      }
+    });
+    return M2;
+  }
+  /** simian line (one crease across the palm in place of heart and head; design B4.1, M8 false-line <= 1 %). It is claimed only when
+      ALL hold: (1) its own across-the-palm fit is solid (z >= the same limit) and, together with the heart / head segments on it,
+      spans u <= SIM.uLo .. u >= SIM.uHi; (2) the head
+      line is solid and lies on that crease (>= SIM.share of its points within SIM.near PW); (3) the heart line lies on it too, or,
+      with that crease removed from the map, no separate heart line reaches the z limit. On a hand with a separate heart and head
+      line (2) or (3) fails, so a fit that rides the heart line alone never becomes a simian line. When claimed,
+      heart and head are no longer solid (status "simian"): the drawing shows the one crease once. */
+  var SIM = { uLo: 0.25, uHi: 0.9, near: 0.025, share: 0.7, PROVISIONAL: true };
+  function nearShare(cpA, cpB, asp, tol) {
+    var A = resample(cpA.map(function (q) { return [q[0], q[1] * asp]; }), 40), B = resample(cpB.map(function (q) { return [q[0], q[1] * asp]; }), 80), n = 0;
+    A.forEach(function (p) { var best = Infinity; for (var k = 0; k < B.length - 1; k++) { var a = B[k], b = B[k + 1], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1e-12,
+        t = clamp(((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2, 0, 1); best = Math.min(best, Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy)); } if (best <= tol) n++; });
+    return n / A.length;
+  }
+  function simianCheck(M, lines, seed, opts) {
+    var S = fitLines(Object.assign({}, M, { taken: null }), ["simian"], seed, opts).simian, he = lines.heart, hd = lines.head, why = "";
+    var heOn = !!(S.cp && he && he.solid && he.cp && nearShare(he.cp, S.cp, M.asp, SIM.near) >= SIM.share);
+    // span of the one crease: the simian segment plus the heart / head segments that lie on it (the drawn segment alone can stop short)
+    var us = S.cp ? S.cp.concat(hd && hd.cp ? hd.cp : [], heOn ? he.cp : []).map(function (q) { return q[0]; }) : [];
+    if (!S.solid || !S.cp) why = "no solid crease across the palm";
+    else if (!(hd && hd.solid && hd.cp) || nearShare(hd.cp, S.cp, M.asp, SIM.near) < SIM.share) why = "the head line is not on this crease";
+    else if (Math.min.apply(null, us) > SIM.uLo || Math.max.apply(null, us) < SIM.uHi) why = "the crease does not cross the palm";
+    else if (!heOn) {
+      // heart not on the crease: simian only when there is no separate heart line once this crease is removed from the map
+      var H2 = fitLines(maskLines(M, [S.cp], CFG.minorMask), ["heart"], seed + 1, opts).heart;
+      if (H2.z >= Z_LIMIT) why = "separate heart line (z " + H2.z + ")";
+    }
+    if (why) { lines.simian = { id: "simian", solid: false, status: "unclear", z: S.z, note: why }; return; }
+    lines.simian = S;
+    [he, hd].forEach(function (L) { L.solid = false; L.status = "simian"; L.candidate = L.cp; delete L.cp; delete L.features; L.note = "one crease: shown as the simian line"; });
+  }
   /* ---------------- detect ---------------- */
   function fitLines(M, ids, seed, opts) {
     var r = rng(seed), out = {}, zLimit = opts.zLimit == null ? Z_LIMIT : opts.zLimit;
@@ -630,15 +700,17 @@
       marriage: "not searched: marriage lines sit on the edge of the hand and are usually not visible in a frontal photo" };
     if (opts.minors) {
       var B = prepare(rgba, W, H, hand, Math.min(CFG.sMin, Math.max(CFG.sMaj, Math.round(A.F.pw))), method);
-      // girdle of Venus: searched only ABOVE a solid heart line, with the heart line's own crease removed from the map
+      if (opts.simian !== false) simianCheck(A.M, lines, (opts.seed || 1) + 303, opts);
+      // minors are searched on the minor-scale map with every solid principal crease (heart, head, life, or the simian line) removed,
+      // so a near-vertical minor cannot ride the lower life line or a long stretch of another drawn line (dev seeds: fate drawn along
+      // the life line on hands with no fate line); short crossings stay possible
+      var drawn = Object.keys(lines).filter(function (id) { return lines[id] && lines[id].solid && lines[id].cp; }).map(function (id) { return lines[id].cp; });
+      var M1 = maskLines(B.M, drawn, CFG.minorMask);
+      // girdle of Venus: searched only ABOVE a solid heart line (not on a simian hand), with the heart line's crease removed from the map
       var ids = MINORS.filter(function (id) { return id !== "girdle"; }), H0 = lines.heart;
-      var mn = fitLines(B.M, ids, (opts.seed || 1) + 101, opts);
+      var mn = fitLines(M1, ids, (opts.seed || 1) + 101, opts);
       if (H0 && H0.solid && H0.cp) {
-        var top = Math.min.apply(null, H0.cp.map(function (q) { return q[1]; })), M2 = Object.assign({}, B.M, { E: new Float32Array(B.M.E) }), hs = B.M.s;
-        var hp = H0.cp.map(function (q) { return [(q[0] - CFG.u0) * hs, (q[1] - CFG.v0) * hs * B.M.asp]; }), rr = 0.035 * hs;
-        for (var yy = 0; yy < M2.h; yy++) for (var xx = 0; xx < M2.w; xx++) { for (var k = 0; k < hp.length - 1; k++) { var a = hp[k], b = hp[k + 1], dx = b[0] - a[0], dy = b[1] - a[1],
-            l2 = dx * dx + dy * dy || 1,
-          t = clamp(((xx - a[0]) * dx + (yy - a[1]) * dy) / l2, 0, 1); if (Math.hypot(xx - a[0] - t * dx, yy - a[1] - t * dy) < rr) { M2.E[yy * M2.w + xx] = 0; break; } } }
+        var top = Math.min.apply(null, H0.cp.map(function (q) { return q[1]; })), M2 = maskLines(M1, [H0.cp], 0.035);
         var saved = PRIOR.girdle; PRIOR.girdle = { a: [saved.a[0], [-0.04, Math.max(-0.03, top - 0.03)]], b: [saved.b[0], [-0.04, Math.max(-0.03, top - 0.03)]], bend: saved.bend,
             band: saved.band };
         try { mn.girdle = fitLines(M2, ["girdle"], (opts.seed || 1) + 202, opts).girdle; } finally { PRIOR.girdle = saved; }
