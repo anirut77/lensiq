@@ -98,7 +98,8 @@ Searched: every `*.html` data-i18n text with a percentage or "x / y" and an accu
 |---|---|---|---|---|---|
 | Exam | flags right / wrong in a real exam room | not measured | — | field (no pilot yet) | EXAM.md "Accuracy — not measured yet" |
 | Exam | face-detection misses by lighting and skin tone | not measured | — | — | EXAM.md |
-| Exam | phone / book detection on exam footage | not measured | — | — | EXAM.md |
+| Exam | phone in view, computer room: held near the camera / at desk level (a phone in the hand that looks small in the frame); a phone lying on the desk is usually missed | 90.8% (129 / 142) / 29.6% (24 / 81); false flags 0 / 135 | n = 142 / n = 81 / n = 135 photos | public dataset (public still photos from Open Images V7; not webcam or exam-room footage) | docs/exam/EXAMLAB-PHONE-SET.md |
+| Exam | book detection on exam footage | not measured | — | — | EXAM.md |
 | Exam hall (experimental) | faces 24–48 px wide found in a wide room view, current engine | 0% (0 / 195) | n = 195 faces in 47 frames (held out) | public dataset (Open Images V7 group photos; not exam-room footage) | docs/exam/FACE-ENGINE-RESULTS.md §7.1 |
 | Exam hall (experimental) | the same, best option measured (full-range detector, 3 × 3 tiles); not switched on: 0.40 false boxes per frame, about 2 fps on an emulated mid-range laptop | 63% (122 / 195) | n = 195 faces (held out) | public dataset | docs/exam/FACE-ENGINE-RESULTS.md §7.1 |
 | Exam lab | a second person in view read as "more than one person" (was 10%, 5 / 52). Stated as **an aid, not complete detection** on the invigilator-facing pages `exam.html` (`exam.l.cl5`) and `exam-dashboard.html` (`exam.db.nMulti`), in the one-pagers and in the pilot kit; the candidate notice on `exam-lab.html` says what is checked and carries no rate (owner decisions 2026-11-10, checked by `tests/unit/exam-face.test.js`). **≥ 90% is the bar for ever claiming "detects a second person" as a feature**; the pilot reports the measured rate, and until the bar is met the signal is described as an aid | 28.8% (15 / 52) | n = 52 frames (held out); false alarms 0 / 17 one-person frames | public dataset (Open Images V7; not exam-room footage) | docs/exam/FACE-ENGINE-RESULTS.md §7.2 |
@@ -147,7 +148,7 @@ collapsed).
 | E2 | exam | exam | exam.l.cl2 | 15%; 24–48 px | n = 26; n = 12 | public; notmeasured | docs/exam/FACE-ENGINE-RESULTS.md | **4 / 26 = 15.4 %**; **0 / 12 found**; by skin tone: not measured |
 | E4 | exam | exam | exam.l.cl4 | 0%; 63%; 24–48 px | n = 195 | public | docs/exam/FACE-ENGINE-RESULTS.md | **0 / 195 = 0.0 % [0.0 % – 1.9 %]**; **122 / 195 = 62.6 % [55.6 % – 69.1 %]** |
 | E5 | exam | exam | exam.l.cl5 | 28.8%; 15 / 52 | n = 52; n = 17 | public | docs/exam/FACE-ENGINE-RESULTS.md | **15 / 52 = 28.8 % [18.3 % – 42.3 %]**; 0 / 17 = 0.0 % [0.0 % – 18.4 %] |
-| E3 | exam | exam | exam.l.cl3 | — | — | notmeasured | docs/EXAM.md | pilot rooms with invigilator tallies per signal |
+| E3 | exam | exam | exam.l.cl3 | 90.8%; 29.6%; 129 / 142; 24 / 81; 0 / 135 | n = 142; n = 81; n = 135 | public; notmeasured | docs/exam/EXAMLAB-PHONE-SET.md | Recall at desk-like sizes (phoneLong < 0.4) = 29.6 % (24 / 81); The model finds close-up phones (90.8 %, 129 / 142); No false flags on the 135 negatives at any cut |
 | A1 | attendance | attendance | attendance.cl1 | 85%; 13,233 | n = 610 | public; tuning; optimistic | ACCURACY.md | \| 100 \| 84.9% → 85.0% \|; **Tuning set: full LFW**, 13,233 images; The 610 people with ≥ 4 photos are members; photo 4 is the probe; Each row averages 200 random galleries |
 | A2 | attendance | attendance | attendance.cl2 | 66–76% | n = 500 | public | ACCURACY.md | **76 / 74 / 66%**; **Held-out per-group check: CASIA-FaceV5**, 500 Asian (Chinese) people × 5 photos |
 | A3 | attendance | attendance | attendance.cl3 | 0.4%; 0.2%; 0.04–0.45%; 1.15% | n = 12,000 | public; tuning | ACCURACY.md | 0.89% → **0.42%**; 3.13% → **0.18%** [0.04–0.45%]; (1.15% for both); about 12,000 stranger visits per row |
@@ -255,6 +256,11 @@ figure is unchanged; the held-out plate-less half is now 0 / 8 (was 0 / 9). Evid
     estimate, not inner feelings)"; "see results in real time" became "while the camera runs".
 16. Sellable pack: hall mode's phone signal now says "front rows near the camera only; not measured"
     (`docs/exam/HALL-NO-FACE-ASSESSMENT.md`: no phone claim at exam-room distance).
+16a. Owner item 213 (2026-11-21): the computer-room phone signal now states the A2 figures in TH / EN / ZH on exam.html
+    (exam.l.cl3) and in the sales documents: near the camera 90.8 % (129 / 142), desk level 29.6 % (24 / 81), 0 / 135
+    false flags, public dataset (Open Images V7 still photos), and "a phone lying on the desk is usually missed"; book
+    detection stays not measured. The hall-mode phone line (item 16) is unchanged: A2 measured lab-like stills, not hall
+    distance. Test: `tests/unit/exam-phone-claims-213.test.js` (locked).
 17. Sellable pack: Crowd is "experimental, for events, not yet suitable for dense crowds" on every page, card, category
     page and one-pager (it was pilot-ready on the category page and "available now" in the solutions catalogue).
 18. New machine check: `docs/claim-rules.json`, applied by `npm run accuracy:check` and `tests/unit/claim-rules.test.js`.

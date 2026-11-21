@@ -45,7 +45,7 @@
 
 1. ผู้สอบอ่านประกาศและยินยอม (ไม่ยินยอม = สอบโดยไม่เปิดกล้อง ไม่เสียสิทธิ์)
 2. ตรวจแสงและกล้อง · ปรับเทียบท่านั่ง ประมาณ 2 นาที · แสงไม่ดี = "ปรับการติดตั้ง" ไม่ใช่การแจ้งเหตุ
-3. ระหว่างสอบ ระบบบันทึก "ข้อสังเกต" เช่น ไม่เห็นใบหน้า มีคนที่สอง โทรศัพท์ในภาพ ออกจากเต็มจอ
+3. ระหว่างสอบ ระบบบันทึก "ข้อสังเกต" เช่น ไม่เห็นใบหน้า มีคนที่สอง โทรศัพท์ที่อยู่ใกล้กล้อง (โทรศัพท์ที่วางอยู่บนโต๊ะมักตรวจไม่พบ) ออกจากเต็มจอ
 4. ผู้สอบเห็นคำเตือนแบบเบาก่อน · ผู้คุมสอบไปดูด้วยตา แล้วเลือก ไปตรวจ / ไม่พบปัญหา / บันทึก / ส่งต่อ
 5. หลังสอบ ส่งออกไฟล์จากแต่ละเครื่องมาเปิดในแดชบอร์ด (ยังไม่มีการดูสดข้ามเครื่องในโหมดห้องคอมพิวเตอร์)
 - ไฟล์: `docs/EXAM.md` (Mode B), `docs/pilot/PILOT-EXAM.md` §2
@@ -72,7 +72,8 @@
 | ข้อสังเกตถูก/ผิดในห้องสอบจริง · right/wrong in real exam rooms | **ยังไม่ได้วัด / not measured** | — | หน้างานจริง: ยังไม่มีโครงการนำร่อง / field: no pilot yet | `docs/EXAM.md` (E1) |
 | หาใบหน้าไม่เจอ (คนเดียว ระยะนั่งหน้าโต๊ะ) · face not found, one person at desk distance | 15% (ใบหน้ากว้าง 24–48 px: ไม่พบเลย / faces 24–48 px: none found) | n = 26 ภาพ (n = 12) | ชุดข้อมูลสาธารณะ (Open Images V7 ครึ่งที่ไม่ได้ใช้เลือกค่า) ไม่ใช่ห้องสอบจริง / public dataset | `docs/exam/FACE-ENGINE-RESULTS.md` (E2) |
 | สัญญาณ "มากกว่าหนึ่งคน" · "more than one person" signal | แจ้งได้ 28.8% (15 / 52) · แจ้งผิดเมื่อมีคนเดียว 0 / 17 **เป็นตัวช่วย ไม่ใช่การตรวจจับที่ครบถ้วน / an aid, not complete detection** | n = 52 ภาพ (n = 17) | ชุดข้อมูลสาธารณะ / public dataset | `docs/exam/FACE-ENGINE-RESULTS.md` §7.2 (E5) |
-| ตรวจพบโทรศัพท์/หนังสือในภาพห้องสอบ · phone / book detection | **ยังไม่ได้วัด / not measured** | — | ยังไม่ได้วัด | `docs/EXAM.md` (E3) |
+| โทรศัพท์ในภาพ · phone in view (ห้องคอมพิวเตอร์ / computer room) | ใกล้กล้อง / near the camera 90.8% (129 / 142) · ที่ระดับโต๊ะ / desk level 29.6% (24 / 81) · แจ้งผิดเมื่อไม่มีโทรศัพท์ / false flags 0 / 135. **โทรศัพท์ที่วางอยู่บนโต๊ะมักตรวจไม่พบ / a phone lying on the desk is usually missed** | n = 142 ภาพ (n = 81; n = 135) | ชุดข้อมูลสาธารณะ ภาพนิ่งจาก Open Images V7 ไม่ใช่ห้องสอบจริง / public dataset, still photos from Open Images V7, not exam footage | `docs/exam/EXAMLAB-PHONE-SET.md` (E3) |
+| หนังสือในภาพ · book in view | **ยังไม่ได้วัด / not measured** | — | ยังไม่ได้วัด | `docs/EXAM.md` |
 | แยกตามสีผิว / แสงน้อยในห้องจริง · by skin tone, low light in real rooms | **ยังไม่ได้วัด / not measured** | — | ยังไม่ได้วัด | `docs/exam/FACE-ENGINE-RESULTS.md` |
 
 - ตัวเลขทั้งหมดไม่ใช่ผลในห้องสอบจริง ผลหน้างานจริงมาจากโครงการนำร่อง
@@ -138,6 +139,6 @@
 LENSIQ Exam is an invigilator's assistant that points to a seat and never decides misconduct. It runs on the institution's own computers and webcams, on the device, with no cloud upload.
 Computer-room mode is pilot-ready; the camera hall is experimental and not for sale. It has no emotion, expression, lie or deception scoring, no suspicion score and no face recognition,
 and age / gender / expression models are not part of customer builds. Measured so far (all public dataset, none from real exam rooms): face not found 15% (n = 26 frames, `docs/exam/FACE-ENGINE-RESULTS.md`);
-the "more than one person" signal fires on 28.8% (15 / 52) of frames with a second person with 0 / 17 false alarms, an aid and not complete detection (§7.2). Not measured: accuracy in real exam rooms,
-phone and book detection, skin tone, low light. The published Twente trial (AI-only proctoring caught 0 of 6 instructed cheaters) is research, not a LENSIQ measurement. Free pilot: 1 institution, up to 4 weeks, up to 3 rooms.
+the "more than one person" signal fires on 28.8% (15 / 52) of frames with a second person with 0 / 17 false alarms, an aid and not complete detection (§7.2). Phone in view (public dataset, still photos from Open Images V7, not exam footage): near the camera 90.8% (129 / 142), at desk level 29.6% (24 / 81), 0 / 135 false flags; a phone lying on the desk is usually missed (`docs/exam/EXAMLAB-PHONE-SET.md`). Not measured: accuracy in real exam rooms,
+book detection, skin tone, low light. The published Twente trial (AI-only proctoring caught 0 of 6 instructed cheaters) is research, not a LENSIQ measurement. Free pilot: 1 institution, up to 4 weeks, up to 3 rooms.
 Free up to 5 candidates per session (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot price: 10 THB per candidate per exam (minimum 300 THB per session), 990 THB per lab per month, institution licence from 19,900 THB per year. Sold by quotation and bank transfer.

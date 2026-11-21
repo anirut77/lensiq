@@ -73,6 +73,9 @@ The model finds close-up phones (90.8 %, 129 / 142) but misses most phones that 
 What this means for the product: the "phone in view" signal is an aid that catches a phone held close to the webcam; it
 should not be described as catching a phone held low at the desk. No page states a phone rate today
 (`docs/ACCURACY-CLAIMS.md`, "phone / book detection on exam footage: not measured"), so no wording changes here.
+**Update 2026-11-21 (owner item 213):** exam.html (`exam.l.cl3`, TH / EN / ZH), the one-pager, the deck, the demo script
+and `docs/LAUNCH-READINESS.md` now state these figures with this source, and say plainly that a phone lying on the desk
+is usually missed (`tests/unit/exam-phone-claims-213.test.js`, locked).
 
 ### Table (public dataset: Open Images V7, CC BY 2.0 images; public stills, not lab webcam; field pilot confirms)
 

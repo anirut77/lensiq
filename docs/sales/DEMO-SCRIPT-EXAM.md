@@ -37,7 +37,7 @@
 ## ห้ามพูด / ห้ามกล่าวอ้าง (NOT to claim)
 
 - ห้ามบอกว่าระบบ "จับโกง" "ตรวจจับการทุจริต" หรือ "ตัดสิน" ระบบแจ้งข้อสังเกตให้ผู้คุมสอบไปดู ผู้คุมสอบตัดสินเสมอ
-- ห้ามบอกว่าตรวจโทรศัพท์หรือหนังสือได้แม่น (ยังไม่ได้วัดบนภาพห้องสอบ) ห้ามบอกว่าตรวจคนที่สองได้ครบ (28.8% บนชุดข้อมูลสาธารณะ)
+- ห้ามบอกว่าตรวจโทรศัพท์ได้แม่น: ใกล้กล้องพบ 90.8% (129 / 142) แต่ที่ระดับโต๊ะพบเพียง 29.6% (24 / 81) และโทรศัพท์ที่วางอยู่บนโต๊ะมักตรวจไม่พบ (ชุดข้อมูลสาธารณะ ภาพนิ่งจาก Open Images V7 ไม่ใช่ภาพห้องสอบ) ห้ามบอกว่าตรวจหนังสือได้ (ยังไม่ได้วัด) ห้ามบอกว่าตรวจคนที่สองได้ครบ (28.8% บนชุดข้อมูลสาธารณะ)
 - ห้ามบอกความแม่นยำตามสีผิวหรือแสงน้อย (ยังไม่ได้วัด) ห้ามบอกตัวเลขหน้างานจริง (ยังไม่มี)
 - ห้ามพูดถึงอารมณ์ สีหน้า คะแนนความน่าสงสัย หรือการตรวจจับการโกหก ระบบไม่มี
 - ห้ามเสนอขายห้องสอบที่มีกล้อง (`exam-hall.html`) เป็นผลิตภัณฑ์ เป็นรุ่นทดลอง ใช้ควบคู่ในการนำร่องเท่านั้น
@@ -76,7 +76,7 @@ Never show real candidate lists or import a real .json file.
 **Demo mode (`?demo=1`):** available on `exam-lab.html?demo=1` (camera-free sample session, four simulated events in the candidate's own log). The dashboard
 has its own demo button, and `exam-dashboard.html?demo=1` opens a pre-filled sample board (room DEMO, 12 seats, 18 flags, tally 8 right out of 15, two sample accommodations; exports named SAMPLE; real data untouched). Test: `tests/e2e/exam-dashboard-demo.e2e.mjs` (OP-15 closed).
 
-**Do NOT claim:** that it catches cheating or decides; that phone or book detection is accurate (not measured on exam footage); that it finds every second person (28.8% on public
+**Do NOT claim:** that it catches cheating or decides; that phone detection is accurate (near the camera 90.8%, 129 / 142, but at desk level only 29.6%, 24 / 81, and a phone lying on the desk is usually missed; public dataset, still photos from Open Images V7, not exam footage) or that book detection works (not measured); that it finds every second person (28.8% on public
 photos); accuracy by skin tone or in low light (not measured); any field figure (none exists); anything about emotion, expression, suspicion score or lie detection (none exists);
 that the demo tally is LENSIQ's accuracy (it is simulated); that the camera exam hall is a product (experimental, pilot companion only); a live cross-device dashboard in computer-room mode (not built); full PDPA compliance or lawyer approval (pending);
 that it replaces invigilators or Safe Exam Browser; the regular price after the pilot thresholds are met as the current price (it may be shown beside the pilot price when labelled); or "on sale now" before the owner confirms (OP-09).
