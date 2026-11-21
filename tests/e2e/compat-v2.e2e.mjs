@@ -14,6 +14,10 @@
 //      tests/unit/fortune-crisis-net-3.test.js (read at run time) plus อยากตายจริงๆ, I want to die tonight, 我不想活了.
 //   O4 switch ON, group of 3: the v1 group page (map, roles) as before; no v2 view.
 //   O5 switch ON, language switch after a reading redraws the v2 view in the new language.
+// RE-LOCK 1 (2026-11-21, independent review of a73a8136, finding F6; ~/LENSIQ-field/evals/compat-v2/relock1/): O6 added, nothing
+//   else changed. O6 switch ON with a v2 renderer that throws (window.LQCompatV2 replaced before the page loads): the page falls
+//   back to the v1 reading (wheel), the result box is not empty, and with a crisis phrase typed into the nickname exactly one
+//   closing line with tel:1323 only ends the result (TH / EN / ZH); the error goes to the console only (no message on the page).
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
@@ -185,6 +189,33 @@ export default async function ({ base, launch, check }) {
           return ((document.querySelector("#cpResult [data-cv2-notverdict]") || {}).textContent || "").trim(); })()`);
         assert(nv === NOT_VERDICT.en, "redrawn in English: " + S(nv));
       } finally { await page.close(); }
+    });
+    await check("O6 switch on, v2 renderer throws: v1 reading shown, closing 1323 line at the end, nothing on the page about the error", async () => {
+      const bad = [];
+      for (const [i, lang] of LANGS.entries()) {
+        const phrase = ["อยากตายจริงๆ", "I want to die tonight", "我不想活了"][i];
+        const init = [`try { localStorage.setItem("lq-lang", ${S(lang)}); } catch (e) {}`, "window.LENSIQ_COMPAT_V2 = true;",
+          "window.LQCompatV2 = { render() { throw new Error('forced v2 failure (test O6)'); } };"];
+        const page = await browser.newPage(null, { isolated: true, initScripts: init });
+        try {
+          await page.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+          await page.goto(`${base}/compat.html?nosw`);
+          await page.waitFor(`document.documentElement.lang === ${S(HTML_LANG[lang])} && !!window.LQCompat && !!document.getElementById("cpGo")`, 15000);
+          await sleep(300);
+          await page.evaluate(fillPair("couple", [14, 2, 1990], [3, 8, 1992], [null, "Ben"]));
+          await page.evaluate(`(() => { const e = document.getElementById("cpNick0"); e.focus(); e.value = ""; return true; })()`);
+          await page.send("Input.insertText", { text: phrase });
+          await sleep(150);
+          await page.evaluate(go("#cpResult [data-compat-wheel]"));
+          await sleep(500);
+          const st = await page.evaluate(V2STATE);
+          const msg = await page.evaluate(`(document.getElementById("cpMsg") || {}).textContent || ""`);
+          const ok = st.v1 && !st.harmony && st.text.trim().length > 200 && st.close.length === 1 && S(st.close[0].tels) === S(["tel:1323"]) && st.close[0].atEnd &&
+            !/forced v2 failure/.test(st.text + msg);
+          if (!ok) bad.push(`[${lang}] ${S({ v1: st.v1, harmony: st.harmony, len: st.text.length, close: st.close, msg })}`);
+        } finally { await page.close(); }
+      }
+      assert(bad.length === 0, bad.join("\n"));
     });
   } finally { await browser.close(); }
 }

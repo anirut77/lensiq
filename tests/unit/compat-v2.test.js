@@ -45,6 +45,10 @@
 // W9 privacy and crisis (static): compat-v2.js makes no network call and uses no storage; it draws no remedy, plan, price or
 //    phone link (the closing 1323 line stays compat-ui.js's job, crisis v3).
 // W10 texts complete: every v2 text table has TH / EN / ZH, EN without Thai, ZH with Chinese.
+// RE-LOCK 1 (2026-11-21, independent review of a73a8136, finding F3; ~/LENSIQ-field/evals/compat-v2/relock1/): W11 added, nothing
+//    else changed (equal or stricter). The source line must be accurate: every method that gives a sign in an area and agrees
+//    with its level is named; every method whose own lean differs is named together with its own level label; no clause says
+//    a single method "differ" or names a method as agreeing when it does not (EN "Source: Western differ; ..." was wrong).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -302,4 +306,31 @@ test("W10 v2 texts complete in TH / EN / ZH", () => {
     assert.ok(s.includes("{a}") && s.includes("{b}"), `OPEN ${lang} ${cat} ${lean} names both`);
     if (lang === "zh") assert.ok(CJK.test(s));
   }
+});
+
+test("W11 source line names agreeing methods and each differing method with its own level (review F3)", () => {
+  const W = V(), { pairs } = syn();
+  const M = ["thai", "bazi", "vedic", "western"];
+  let differ = 0;
+  for (const p of pairs) for (const lang of LANGS) {
+    const v = W.view(p.res, { lang, tier: "free", names: ["Ann", "Ben"], rel: p.rel });
+    for (const c of v.cats) {
+      const cat = p.res.categories[c.id], spoke = M.filter((m, i) => cat.byMethod[m] != null && cat.signals.some(g => g.m === m));
+      if (!spoke.length) continue;
+      for (const m of spoke) {
+        const name = SHORT[lang][M.indexOf(m)];
+        assert.ok(c.source.includes(name), `[${lang}] ${c.id}: source names ${name}: ${c.source}`);
+        if (cat.byMethod[m] !== c.lean) {
+          differ++;
+          assert.ok(c.source.includes(APPROVED[lang][cat.byMethod[m]]), `[${lang}] ${c.id}: ${name} differs, its own level is named: ${c.source}`);
+        }
+      }
+      if (lang === "en") assert.ok(!/\b(?:Thai|BaZi|Vedic|Western) (?:differ|point|give)\b/.test(c.source), "EN grammar: " + c.source);
+      if (spoke.every(m => cat.byMethod[m] !== c.lean)) {
+        // nobody agrees: the line must not present any method as the source of this level
+        assert.ok(!c.source.includes(W.T[lang].srcAgree.split("{list}")[0]), `[${lang}] ${c.id}: no "comes from" clause: ${c.source}`);
+      }
+    }
+  }
+  assert.ok(differ > 100, "differing methods occur in the set: " + differ);
 });

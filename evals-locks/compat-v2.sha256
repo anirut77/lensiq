@@ -3,3 +3,9 @@
 # locked 2026-11-21T02:07:07Z (tools/eval-guard.mjs lock, 2 files)
 c34b1a4da3a1a12cc04be74337de9620477975236ded8fb556863977e8826d5f  tests/unit/compat-v2.test.js
 64b13f98c40a2cbe4f704c83d2eb00eef433688c36bb71f10d1ce6d60500c819  tests/e2e/compat-v2.e2e.mjs
+# RE-LOCK 1 2026-11-21 (independent review of a73a8136: F3 misleading source line, F6 no fallback when the v2 renderer throws), locked BEFORE the fixes. Unit: W11 added (accurate source line: agreeing methods named, each differing method named with its own level label, EN grammar), nothing else changed. E2E: O6 added (forced v2 failure -> v1 reading + one closing tel:1323 line at the end, TH/EN/ZH), nothing else changed. Equal or stricter: only additions.
+# locked 2026-11-21T03:23:29Z (tools/eval-guard.mjs lock, 2 files)
+b8c2915fe7855e7a2e59efcdcd1943c06e2c65087c1eaf8bb6576dc6504ab9c5  relock1/tests/unit/compat-v2.test.js
+0c31a33e4a26ad5c1434c42b4f4560984150c03600effff8873ffbf741414c31  relock1/tests/e2e/compat-v2.e2e.mjs
+b8c2915fe7855e7a2e59efcdcd1943c06e2c65087c1eaf8bb6576dc6504ab9c5  tests/unit/compat-v2.test.js  # repo file (same commit as lock 2026-11-21T03:23:29Z; field: ~/LENSIQ-field/evals/compat-v2/relock1/tests/unit/compat-v2.test.js)
+0c31a33e4a26ad5c1434c42b4f4560984150c03600effff8873ffbf741414c31  tests/e2e/compat-v2.e2e.mjs  # repo file (same commit as lock 2026-11-21T03:23:29Z; field: ~/LENSIQ-field/evals/compat-v2/relock1/tests/e2e/compat-v2.e2e.mjs)
