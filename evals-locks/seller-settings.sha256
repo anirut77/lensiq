@@ -95,3 +95,8 @@ feb4044646ccb52c9844f94c0bd6b63141cc1f2639d692a4a805813ff32631f4  relock4/NOTE.t
 03eb6df2cc3d0cdad6920f53d66cbdf14ea303b3431294745f0168cd5c739c09  relock5/NOTE.txt
 4d2025ac726b1f61fe856db642f7ddcf306d359034152c78a52f002a7be5f823  tests/unit/backend-seller.test.js  # repo file (same commit as lock 2026-11-21T12:05:37Z; field: ~/LENSIQ-field/evals/seller-settings/relock5/backend-seller.test.js)
 # field only relock5/NOTE.txt (lock 2026-11-21T12:05:37Z: no repo file uses it)
+# late entry 2026-11-21 (owner, item 208 follow-up): the re-locks of 2026-11-18T03:27:59Z and 03:30:23Z overwrote the field copies of lines 3 and 4 in place. The original bytes, restored from git 88f09055, are recorded below as field lines; no repo file uses them. Lines 3 and 4 keep naming the overwritten path, so eval-guard repo --field keeps listing them.
+56641e63248214c9e9da98127e56f30d9f59d1e92200f27d19eb08e3905ed859  restored-88f09055/admin-seller.e2e.mjs
+19ba8bf4082ccdb088123a85c29bc6a4dae38aa8c447c942a79e25765b5d2775  restored-88f09055/backend-seller-workerd.test.mjs
+# field only restored-88f09055/admin-seller.e2e.mjs (late entry 2026-11-21: bytes of line 3; no repo file uses them)
+# field only restored-88f09055/backend-seller-workerd.test.mjs (late entry 2026-11-21: bytes of line 4; no repo file uses them)

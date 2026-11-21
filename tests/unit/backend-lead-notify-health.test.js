@@ -17,7 +17,9 @@
 //       only through the stub
 //   N6  owner only (existing admin access): no session 401; a restricted (reviewer / try-on) account 403 or 404; no
 //       secret value nor a 12-character piece of one in any answer, D1 row or log line
-//   N7  backend/wrangler.toml: LEAD_NOTIFY_HEALTH = "off" in [vars] and [env.test.vars]
+//   N7  backend/wrangler.toml: LEAD_NOTIFY_HEALTH = "off" in [vars] (the template / customer build; relock2: [env.test.vars]
+//       may be "off" or "on", owner decision Q1/214 ก 2026-11-21), and the built customer bundle (build-site --customer)
+//       holds no backend config and no LEAD_NOTIFY_HEALTH config line, so the test deployment's value cannot reach a customer
 //   N8  admin page wording: every adl.nh.* key used by admin-lead-notify.js is in i18n/en-admin.js and i18n/zh-admin.js
 //       (no Thai left) and admin.html has the hidden #adlNotifyHealth box in the inbox card
 const test = require("node:test");
@@ -240,16 +242,47 @@ test("N6: owner only; no secret value in any answer, row or log line", async () 
   noValue(logs.slice(l0).join("\n"), [TOKEN, TO], "log");
 });
 
-test("N7: backend/wrangler.toml keeps LEAD_NOTIFY_HEALTH off for the template (customer) build and the test deployment", () => {
+test("N7: backend/wrangler.toml keeps LEAD_NOTIFY_HEALTH off in [vars] (customer); [env.test.vars] may be off or on (relock2)", () => {
   const w = readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8");
   // section headers at the start of a line (relock1: the file's header comment also names "[env.test]")
   const top = w.slice(w.indexOf("\n[vars]"), w.indexOf("\n[env.test]"));
   const tst = w.slice(w.indexOf("\n[env.test.vars]"));
   assert.ok(top.length > 100 && tst.length > 100, "both sections found");
-  for (const [name, sec] of [["[vars]", top], ["[env.test.vars]", tst]]) {
-    assert.match(sec, /^LEAD_NOTIFY_HEALTH = "off"$/m, name);
-    assert.doesNotMatch(sec, /^LEAD_NOTIFY_HEALTH = "on"/im, name);
-  }
+  assert.match(top, /^LEAD_NOTIFY_HEALTH = "off"$/m, "[vars]");
+  assert.doesNotMatch(top, /^LEAD_NOTIFY_HEALTH = "on"/im, "[vars]");
+  assert.match(tst, /^LEAD_NOTIFY_HEALTH = "(off|on)"$/m, "[env.test.vars]");
+});
+
+test("N7b: the built customer bundle holds no backend config and no LEAD_NOTIFY_HEALTH config line (relock2)", () => {
+  const { spawnSync } = require("node:child_process");
+  const { mkdtempSync, rmSync, existsSync, readdirSync } = require("node:fs");
+  const { tmpdir } = require("node:os");
+  const tmp = mkdtempSync(join(tmpdir(), "lq-n7b-"));
+  try {
+    const out = join(tmp, "a");
+    const r = spawnSync(process.execPath, [join(ROOT, "tools", "build-site.mjs"), "--customer", "--out", out], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(r.status, 0, r.stderr);
+    const files = [];
+    const walk = (d, rel) => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = join(d, e.name), q = rel ? rel + "/" + e.name : e.name;
+        if (e.isDirectory()) walk(p, q); else files.push([p, q]);
+      }
+    };
+    walk(out, "");
+    assert.ok(files.length > 50, "bundle was built");
+    assert.ok(!existsSync(join(out, "backend")), "no backend/ folder in the bundle");
+    assert.deepEqual(files.filter(([, q]) => /wrangler[^/]*\.(toml|json|jsonc)$/.test(q)).map(f => f[1]), [], "no Worker config in the bundle");
+    const text = files.filter(([, q]) => /\.(html|js|mjs|css|json|toml|txt|md)$/.test(q)).map(([p, q]) => [q, readFileSync(p, "utf8")]);
+    // the admin page scripts only name the switch in comments; no config line (toml form) and no other file names it
+    const hits = text.filter(([, t]) => /LEAD_NOTIFY_HEALTH/.test(t)).map(f => f[0]).filter(q => !["admin.html", "admin.js", "admin-lead-notify.js"].includes(q));
+    assert.deepEqual(hits, [], "LEAD_NOTIFY_HEALTH named only by the admin page files");
+    assert.deepEqual(text.filter(([, t]) => /^\s*LEAD_NOTIFY_HEALTH\s*=/m.test(t)).map(f => f[0]), [], "no LEAD_NOTIFY_HEALTH config line in the bundle");
+  } finally { rmSync(tmp, { recursive: true, force: true }); }
+  // the value a customer deployment would use: [vars] in the repo config, still "off"
+  const w = readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8");
+  const top = w.slice(w.indexOf("\n[vars]"), w.indexOf("\n[env.test]"));
+  assert.match(top, /^LEAD_NOTIFY_HEALTH = "off"$/m, "[vars] is off");
 });
 
 test("N8: every adl.nh.* label is in English and Chinese; admin.html has the hidden health box in the inbox card", () => {

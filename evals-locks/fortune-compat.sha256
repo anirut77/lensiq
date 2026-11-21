@@ -22,3 +22,6 @@ ffd61fea273a2010df83d863522b7b01e4b0ffffe392e893c46cc57616d77266  tests/e2e/fort
 # RE-LOCK 2026-11-17 (branch crisis-v3-2): crisis v3 re-lock of X1 / X2 and N / Y; see evals-locks/crisis-v3.sha256 (relock-compat) and docs/CRISIS-V3-RELOCKS.md.
 31bd8b5ab44e7d99e0b00b35cf4026481d26b2b37184242a9b48cfee86d104da  tests/e2e/fortune-compat.e2e.mjs  # repo file (relock-compat)
 4dda3f0c4a95f453d54b1fb5e2d7abf44e674d0bc6dc7d96a510955d92e39486  tests/e2e/fortune-compat-crisis.e2e.mjs  # repo file (relock-compat)
+# late entry 2026-11-21 (owner, item 208 follow-up): the crisis-v3 re-lock of 2026-11-17 (lines 23 and 24) keeps its field copies in ~/LENSIQ-field/evals/crisis-v3/relock-compat/, not in this phase folder; the two lines below name them.
+31bd8b5ab44e7d99e0b00b35cf4026481d26b2b37184242a9b48cfee86d104da  tests/e2e/fortune-compat.e2e.mjs  # repo file (late entry 2026-11-21, owner, item 208 follow-up; same bytes as line 23; field: ~/LENSIQ-field/evals/crisis-v3/relock-compat/fortune-compat.e2e.mjs)
+4dda3f0c4a95f453d54b1fb5e2d7abf44e674d0bc6dc7d96a510955d92e39486  tests/e2e/fortune-compat-crisis.e2e.mjs  # repo file (late entry 2026-11-21, owner, item 208 follow-up; same bytes as line 24; field: ~/LENSIQ-field/evals/crisis-v3/relock-compat/fortune-compat-crisis.e2e.mjs)
