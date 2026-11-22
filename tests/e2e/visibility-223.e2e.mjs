@@ -21,6 +21,14 @@
 //   fold opened: insights (its sample data incl. the signage, emotion-test and customer data, every range preset, every card),
 //   the exam dashboard (?demo=1 sample data; the intro names no hall camera) and help.html (the interview-kit FAQ is shown,
 //   its guidance lines kept, the team-face line not shown).
+// RE-LOCK 7 (independent review of 9ebb0818: the exam dashboard demo button added the hall camera device and hall events,
+//   and V6 never pressed it): V6 also presses EVERY demo or sample button of every page that has one (spec.followup223b
+//   .demoSweep: the exam dashboard #demoBtn plain and with ?demo=1, insights, nutrition, the zone-camera demos, every button of
+//   the ?demo=1 demo panel), then runs the same rendered-text check (offNames, now with the old names of the switched-off
+//   products and a negation-robust emotion pattern) and the visible-link check in TH / EN / ZH; on the exam dashboard the
+//   board holds no hall device and no hall event while exam-hall is switched off, and with the harness preview (exam-hall
+//   shown as on) the hall device is there, so the visibility list decides. The insights card-id check also covers ab-neuro
+//   and cohort (spec.followup223b.insightsOffCard).
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -34,6 +42,8 @@ const LABELS = SPEC.labelBanned.map(b => new RegExp(b.re, b.flags || ""));
 // re-lock 6: names of the switched-off products in rendered visible text
 const NAMES = Object.entries(SPEC.offNames.names).flatMap(([p, l]) => l.map(x => ({ p, re: new RegExp(x.re, x.flags || "") })));
 const TEXT_EXCLUDE = SPEC.offNames.textExcludePages;
+// re-lock 7: every demo / sample button pressed (spec.followup223b)
+const FB = SPEC.followup223b, OFF_CARD = new RegExp(FB.insightsOffCard);
 const namesIn = t => NAMES.filter(n => n.re.test(t)).map(n => `${n.p} «${(t.match(n.re) || [""])[0]}» …${t.slice(Math.max(0, t.search(n.re) - 40), t.search(n.re) + 40).replace(/\s+/g, " ")}…`);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const LANGS = ["th", "en", "zh"];
@@ -190,6 +200,8 @@ export default async function ({ base, launch, check }) {
           assert(!r.ab, `insights ${lang} ${pr}: the A/B card (signage / emotion tests only) is shown`);
           assert(!r.links.length, `insights ${lang} ${pr}: link to a switched-off product: ${r.links.join(", ")}`);
           assert(!r.cards.some(id => /^ab-sg|^abn|^sg|^cx|^neuro/.test(id)), `insights ${lang} ${pr}: card of a switched-off page: ${r.cards.join(", ")}`);
+          // re-lock 7: also ab-neuro and cohort (the emotion-test A/B card and the customer cohort card)
+          assert(!r.cards.some(id => OFF_CARD.test(id)), `insights ${lang} ${pr}: card of a switched-off page (re-lock 7): ${r.cards.join(", ")}`);
         }
         await page.evaluate(() => { for (const k of Object.keys(localStorage)) if (k !== "lq-lang") localStorage.removeItem(k); });
         // exam dashboard: the demo sample data (?demo=1) and the intro
@@ -216,6 +228,67 @@ export default async function ({ base, launch, check }) {
         assert(!hh.length, `help ${lang} (every fold open): visible text names a switched-off product: ${hh.join(" | ")}`);
       }
       await page.close();
+    });
+
+    await check("V6 (re-lock 7): every demo or sample button pressed; no switched-off product named or linked, no hall device or event on the exam dashboard (360 px, TH / EN / ZH)", async () => {
+      const openAll = () => { document.querySelectorAll("details").forEach(d => { d.open = true; }); };
+      const ready = lang => `document.readyState === "complete" && window.LQI18N && LQI18N.lang === "${lang}"`;
+      const hallOf = () => { const b = window.__LQ_EXAM_DB && __LQ_EXAM_DB.board; if (!b) return null;
+        return { nodes: Object.values(b.nodes).filter(n => n.src === "hall").length, log: b.log.filter(e => e.src === "hall").length,
+          alerts: b.alerts.filter(a => a.src === "hall").length, all: Object.keys(b.nodes).length + b.log.length }; };
+      for (const lang of LANGS) for (const S of FB.demoSweep) {
+        const page = await browser.newPage(null, { offNotice: true });
+        await page.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 800, deviceScaleFactor: 1, mobile: true });
+        const url = `${base}/${S.page}.html?${S.query ? S.query + "&" : ""}lang=${lang}`, where = `${S.page}.html?${S.query} ${lang}`;
+        // a fresh device (only the language kept), so each demo starts from nothing
+        await page.goto(`${base}/${S.page}.html?lang=${lang}`);
+        await page.waitFor(ready(lang), 10000);
+        await page.evaluate(() => { for (const k of Object.keys(localStorage)) if (k !== "lq-lang") localStorage.removeItem(k); });
+        await page.goto(url);
+        await page.waitFor(ready(lang), 10000);
+        await sleep(500);
+        if (S.ack) await page.evaluate(sel => { const g = document.querySelector(sel); if (!g || g.hidden) return;
+          const c = g.querySelector("input[type=checkbox]"); if (c) { c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true })); }
+          const b = g.querySelector("button[data-ack]"); if (b) b.click(); }, S.ack);
+        let pressed = 0;
+        for (const sel of S.press) {
+          const n = await page.evaluate(s => document.querySelectorAll(s).length, sel);
+          for (let i = 0; i < n; i++) {
+            const ok = await page.evaluate(([s, k]) => { const b = document.querySelectorAll(s)[k];
+              if (!b || b.disabled || !b.getClientRects().length) return false; b.click(); return true; }, [sel, i]);
+            if (ok) pressed++;
+            await sleep(700);
+            await page.waitFor(ready(lang), 10000); // a reset button reloads the page
+          }
+        }
+        assert(pressed >= 1, `${where}: no demo / sample button could be pressed (${S.press.join(", ")})`);
+        await sleep(1500);
+        await page.evaluate(openAll);
+        const r = await page.evaluate(off => ({ text: document.body.innerText,
+          links: [...document.querySelectorAll("a[href]")].filter(a => a.getClientRects().length)
+            .map(a => (a.getAttribute("href") || "").split(/[?#]/)[0].replace(/^.*\//, "")).filter(h => off.some(o => h === o + ".html")) }), OFF);
+        const hit = namesIn(r.text);
+        assert(!hit.length, `${where} (${pressed} demo buttons pressed): visible text names a switched-off product: ${hit.join(" | ")}`);
+        assert(!r.links.length, `${where}: visible link to a switched-off product: ${r.links.join(", ")}`);
+        if (S.page === "exam-dashboard") {
+          const h = await page.evaluate(hallOf);
+          assert(h && h.all > 0, `${where}: the demo added no sample data: ${JSON.stringify(h)}`);
+          assert(!h.nodes && !h.log && !h.alerts, `${where}: hall device / events while exam-hall is switched off: ${JSON.stringify(h)}`);
+        }
+        await page.close();
+      }
+      // the visibility list decides: with the harness preview (exam-hall shown as on) the same button adds the hall device
+      const pv = await browser.newPage(null, { initScripts: ["try { localStorage.setItem('lq-lang', 'th'); } catch (e) {}"] });
+      await pv.goto(`${base}/exam-dashboard.html?lang=th`);
+      await pv.waitFor(ready("th"), 10000);
+      await pv.evaluate(() => { for (const k of Object.keys(localStorage)) if (k !== "lq-lang") localStorage.removeItem(k); });
+      await pv.goto(`${base}/exam-dashboard.html?lang=th`);
+      await pv.waitFor(ready("th") + " && window.__LQ_EXAM_DB", 10000);
+      await pv.evaluate(() => document.getElementById("demoBtn").click());
+      await sleep(400);
+      const hp = await pv.evaluate(hallOf);
+      assert(hp && hp.nodes === 1 && hp.log > 0, `exam-dashboard preview (exam-hall shown as on): the demo adds the hall device and events: ${JSON.stringify(hp)}`);
+      await pv.close();
     });
   } finally { await browser.close(); }
 }

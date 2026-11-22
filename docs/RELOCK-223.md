@@ -199,3 +199,17 @@ name switched-off products in their legal text; the exam dashboard's "ลอง�
 | demo/relock-226 | demo-mode.e2e (crowd) | panel has ทดลอง and ฝูงชนหนาแน่น | panel has ฝูงชนหนาแน่น and no ทดลอง (decision 223) | stricter |
 
 The WebKit files cannot run on the owner's Mac (no Playwright); the macOS WebKit CI shard is the measurement.
+
+## Independent review of 9ebb0818: the exam dashboard demo button (2026-11-22): re-locks, STRICTER (`relock7`, `relock-226d`)
+
+Defect: the exam dashboard button "สาธิต: จำลองเหตุการณ์" added a sample hall device ("เครื่องกล้องในห้องสอบ", named "กล้องหน้าห้อง
+(สาธิต)") and hall events while exam-hall is switched off; V6 (relock 6) loaded `?demo=1` but never pressed it.
+
+| Lock | File | Old | New | Kind |
+|---|---|---|---|---|
+| accuracy-removal-223/relock7 | visibility-223.e2e | V6: insights seeded, exam dashboard `?demo=1` loaded (no press), help folds | + new check "V6 (re-lock 7)": every demo / sample button of `spec.followup223b.demoSweep` pressed (exam dashboard plain + `?demo=1`, insights, nutrition, the 5 zone-camera demos, every `?demo=1` panel button), TH / EN / ZH, real visibility: no off name, no visible off link, >= 1 press; exam dashboard: no hall node / event / alert; harness preview (hall shown on): the hall device is there (the list decides); insights card ids also ab-neuro / cohort | stricter (+ inversion "hall events only when exam-hall is on") |
+| accuracy-removal-223/relock7 | spec + contract test | offNames as relock 6; TH `(?<!ไม่\|การ)วิเคราะห์อารมณ์`, ZH `(?<!不做)情绪分析` | + old names (ทดสอบอารมณ์, emotion analysis / test, 情绪测试, Member recognition, 会员识别, จดจำสมาชิก, 数字标牌, ห้องสอบที่มีกล้อง, กล้องหน้าห้อง, Exam hall with cameras, Front camera (demo), 装有摄像头的考场, 大型考场, 前方摄像头（演示）, 产品核对 …); emotion patterns exempt only a preceding negation (positive "การวิเคราะห์อารมณ์" now caught; negated "不进行情绪分析" etc. pass); new R12: bites both ways, sweep completeness (every demo / sample / seed button and every lensiq-demo.js page), exam-dashboard.js consults LQ_VISIBILITY, `?demo=1` exam sample lab-only | stricter |
+| fortune-credits/v3/relock-226d | fortune-credits-v2.test.js D5 | help.html pin 07ddf7afeb33… (15 replacements) | fcbdb41e3ce8… (18): the shop-camera consent tip gives "check-in" only as its example, no member recognition (TH / EN / ZH); the consent rule unchanged | equal (exact pin) |
+
+exam-dashboard.e2e (not locked) runs with the harness preview, which shows exam-hall as on, so its 5-alert demo is unchanged;
+exam-dashboard-demo.e2e (locked, sellable-c) presses no demo button and its sample data was already lab-only (amendment 2).
