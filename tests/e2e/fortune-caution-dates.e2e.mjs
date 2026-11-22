@@ -11,6 +11,8 @@
 // Non-vacuous: on horoscope at least 4 dates of the span have cautions in a tab that is not selected, 2026-11-22 among them.
 // Pages: horoscope.html (switch + drafts on) on every date of 2026-11-15 .. 2026-12-20 (36 days: three day-branch cycles, five weeks),
 // bazi.html (+ the Chinese switch) on every third date. Clock 03:00 UTC (the same calendar date in UTC and in Bangkok). SYNTHETIC births.
+// RE-LOCK 1 2026-11-22 (datefix-1122 relock1, STRICTER, independent review): a closed tab is opened only when a visitor can see and use
+// its tab button (shown, not [hidden], not display:none, enabled); a caution in a tab a visitor cannot open fails.
 import { assert } from "./cdp.mjs";
 
 const S = JSON.stringify;
@@ -51,7 +53,12 @@ const CAUTIONS = `(() => {
   return out;
 })()`;
 const SELECTED = `(() => { const t = [...document.querySelectorAll('[role="tab"][aria-controls]')].find(x => x.getAttribute("aria-selected") === "true"); return t ? t.getAttribute("aria-controls") : null; })()`;
-const openTab = id => `(() => { const t = document.querySelector('[role="tab"][aria-controls=${S(id)}]'); if (!t) return false; t.click(); return true; })()`;
+/** click the tab of panel id only when a visitor can use it: "ok", or why not (no tab, not shown, disabled) */
+const openTab = id => `(() => { const t = document.querySelector('[role="tab"][aria-controls=${S(id)}]'); if (!t) return "no tab";
+  const r = t.getBoundingClientRect(); let shown = r.width > 0 && r.height > 0 && !t.closest("[hidden]");
+  for (let x = t; shown && x && x.nodeType === 1; x = x.parentElement) { const cs = getComputedStyle(x); if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") shown = false; }
+  if (!shown) return "tab not visible to a visitor"; if (t.disabled || t.getAttribute("aria-disabled") === "true") return "tab disabled";
+  t.click(); return "ok"; })()`;
 const click = (pg, sel) => pg.evaluate(`(() => { const e = document.querySelector(${S(sel)}); if (!e) return false; e.click(); return true; })()`);
 
 /** every caution of the page checked while it can be seen (closed tabs opened in turn); returns { n, inClosedTabs } */
@@ -61,13 +68,14 @@ async function checkState(pg, label) {
   if (c.panels.length) {
     const back = await pg.evaluate(SELECTED);
     for (const id of c.panels) {
-      assert(await pg.evaluate(openTab(id)), `${label}: cautions in the closed panel #${id} and no tab opens it`);
+      const why = await pg.evaluate(openTab(id));
+      assert(why === "ok", `${label}: cautions in the closed panel #${id} that a visitor cannot open (${why})`);
       await sleep(250);
       const t = await pg.evaluate(CAUTIONS);
       assert(!t.panels.includes(id), `${label}: panel #${id} still closed after its tab was opened`);
       assert(!t.bad.length, `${label}, tab #${id} open: caution paragraph(s) not visible: ${t.bad.join(" | ")}`);
     }
-    assert(back && await pg.evaluate(openTab(back)), `${label}: the visitor's tab #${back} could not be selected again`);
+    assert(back && await pg.evaluate(openTab(back)) === "ok", `${label}: the visitor's tab #${back} could not be selected again`);
     await sleep(250);
     const again = await pg.evaluate(CAUTIONS);
     assert(again.sec === c.sec && again.body === c.body, `${label}: the caution section changed state while the tabs were switched`);

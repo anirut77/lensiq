@@ -154,3 +154,12 @@ b321e664913f4979ec72a35eb7c896e3857089a67ecbdcdd75b4969bbaeb1ad0  relock11/fortu
 d5b9b4bbf9f80a2532ec015bfdfd45878505763d34e59daf21b3031c8f7de748  tests/e2e/fortune-caution.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:06:34Z; field: ~/LENSIQ-field/evals/fortune-caution/relock11/fortune-caution.e2e.mjs)
 b321e664913f4979ec72a35eb7c896e3857089a67ecbdcdd75b4969bbaeb1ad0  tests/e2e/fortune-caution-horoscope.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:06:34Z; field: ~/LENSIQ-field/evals/fortune-caution/relock11/fortune-caution-horoscope.e2e.mjs)
 3dc23aac68f232de94ddc474794d9c1c2ffcd928ae980ceb5ee2f2ef766a3971  tests/e2e/fortune-caution-bazi-astro.e2e.mjs  # repo file (same commit as lock 2026-11-20T18:06:34Z; field: ~/LENSIQ-field/evals/fortune-caution/relock11/fortune-caution-bazi-astro.e2e.mjs)
+# RELOCK 12 2026-11-22 (branch datefix-1122, test fault; CI 44967695261, main red on Sunday 2026-11-22), approved by the coordinator after an
+# independent review, locked BEFORE measuring: fortune-caution-reading-visible.e2e.mjs checks the cautions of the open tab in every state and opens
+# every closed tab that holds cautions (only when a visitor can see and use its tab); STRICTER (closed-tab cautions now checked, read-more /
+# closed <details> fail, >= 1 caution in the open tab). Field note: relock12/NOTE.txt.
+# locked 2026-11-22T02:23:00Z (tools/eval-guard.mjs lock, 2 files)
+a81f2217541d344edaa828afdfcb9c95ec56af007d9c2daf9756df8517b6b131  relock12/fortune-caution-reading-visible.e2e.mjs
+3a2bfed347530af2cb119e68e99e44aa32ee83452321ca4a38d91a0ef14da19c  relock12/NOTE.txt
+a81f2217541d344edaa828afdfcb9c95ec56af007d9c2daf9756df8517b6b131  tests/e2e/fortune-caution-reading-visible.e2e.mjs  # repo file (same commit as lock 2026-11-22T02:23:00Z; field: ~/LENSIQ-field/evals/fortune-caution/relock12/fortune-caution-reading-visible.e2e.mjs)
+# field only relock12/NOTE.txt (lock 2026-11-22T02:23:00Z: no repo file uses it)

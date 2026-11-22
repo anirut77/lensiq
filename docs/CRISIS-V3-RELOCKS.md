@@ -326,3 +326,14 @@ Open: the independent reviewer re-counts the cells and confirms in writing that 
 with the same catch rule and per-file load-catch counts (a 1, c 2, e 1), and also requires the originals to be gone and exactly 9
 files counted (stricter). Lock: `evals-locks/crisis-load-diag.sha256` RE-LOCK 1 (51f493f1 -> 9709391b), field
 `~/LENSIQ-field/evals/crisis-load-diag/relock1/` with NOTE.txt.
+
+## Date / wrap test faults, main red 2026-11-22 (branch datefix-1122)
+
+Main f24d5b1f went red on Sunday 2026-11-22 (CI 44967695261, 44967706758). Both failures were test faults; no product change.
+New fixed set `datefix-1122` (horoscope / bazi cautions over 36 dates; crisis price scan vs nav.js wrap pieces), locked before measuring.
+
+| Re-lock | File | Change | Equal / stricter |
+|---|---|---|---|
+| crisis-v3-protect RE-LOCK 1 (field `relock1/`) | tests/e2e/crisis-price-scan-kit.mjs (VISIBLE) | nav.js `glue()` (2026-11-19) moves a paragraph's last words into `<lq-t>`, so allow-listed sentences (15 of 44 browser texts) were flagged by their tail. Allowed text now matched against the hit's block (wrap pieces skipped) and only when the hit lies inside it; each block's shown text is also scanned whole, so a price split across nodes is flagged | stricter (an allowed sentence no longer excuses a price beside it; split prices now caught) |
+| fortune-caution RELOCK 12 (field `relock12/`) | tests/e2e/fortune-caution-reading-visible.e2e.mjs | the horoscope "today" tab holds cautions only on some dates (for the test birth: Sundays and Rat days); they were counted as hidden. Now every state checks the open tab and opens each closed tab with cautions, only if a visitor can see and use the tab | stricter (closed-tab cautions now checked; read-more / closed details fail; tab must be usable) |
+| datefix-1122 RELOCK 1 (field `relock1/`) | tests/e2e/crisis-price-scan-wrap.e2e.mjs, tests/e2e/fortune-caution-dates.e2e.mjs | + W5 split-price cases (TH / EN / ZH); tab must be visible and enabled before it is opened | stricter |
