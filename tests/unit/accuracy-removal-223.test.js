@@ -37,6 +37,9 @@
 //       Re-lock 9 (sell-readiness assessment, owner entry 16: freeze, "off = not shown"): omr and tryon are switched off
 //       (spec.visibility.off, spec.offNames); R9 is STRICTER: the nav.js list names every root *.html page of the repo (true or
 //       false) and the platform pages of spec.visibility.platformOn (crisis page, home, legal, help, back office) stay true
+//       Re-lock 10 (relock9 follow-up): R10 names a switched-off page without a menu entry (tryon.html) by its spec.offNames:
+//       the customer-handed documents may not match one of its patterns (was: "no menu title" = fail; a page with neither a
+//       menu title nor offNames still fails)
 //   R8  rules: CLAUDE.md lines 34 / 60 / 251-252 / 255-256 and docs/acceptance/README.md rule 7 inverted as approved (223-1)
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -203,12 +206,17 @@ function globDocs(globs) {
 
 test("R10 (226, re-lock 5) customer-handed documents list no switched-off product; the kept safety sentences stay", () => {
   const B5 = S.buyerDocs, bad = [], { list, src } = visibility(), off = Object.keys(list).filter(k => list[k] === false && existsSync(join(L.ROOT, k + ".html")));
-  const names = [];
+  const names = [], noMenu = [];
   for (const p of off) {
     const m = src.match(new RegExp(`href: "${p}\\.html", title: "([^"]+)"`));
-    if (!m) { bad.push(`nav.js: no menu title for ${p}`); continue; }
+    // re-lock 10: a switched-off page with no menu entry (tryon.html: not in any menu) is named by its spec.offNames patterns;
+    // a page with neither fails
+    if (!m) { if (!(S.offNames.names[p] || []).length) bad.push(`nav.js: no menu title and no spec.offNames for ${p}`); else noMenu.push(p); continue; }
     names.push({ p, t: m[1] }, { p, t: L.dval(D, "en", `nav.${p}.title`) }, { p, t: L.dval(D, "zh", `nav.${p}.title`) });
   }
+  // re-lock 10: for such a page the documents may not match any of its spec.offNames patterns (the menu-titled pages keep
+  // their exact title check; their generic offNames words such as ป้ายโฆษณา are not product names in a problem statement)
+  const offRe = Object.entries(S.offNames.names).filter(([p]) => noMenu.includes(p)).flatMap(([p, l]) => l.map(x => ({ p, re: new RegExp(x.re, x.flags || "") })));
   const docs = globDocs(B5.customerHanded);
   assert.ok(docs.length >= 25, "customer-handed documents: " + docs.length);
   for (const f of docs) L.read(f).split("\n").forEach((line, i) => {
@@ -216,6 +224,7 @@ test("R10 (226, re-lock 5) customer-handed documents list no switched-off produc
     for (const k of B5.safetyKept) if (k.file === f) rest = rest.split(k.contains).join(" ");
     for (const p of off) if (rest.includes(p + ".html")) bad.push(`${f}:${i + 1} links ${p}.html`);
     for (const n of names) if (n.t && rest.includes(n.t)) bad.push(`${f}:${i + 1} names the switched-off ${n.p} ("${n.t}")`);
+    for (const n of offRe) if (n.re.test(rest)) bad.push(`${f}:${i + 1} names the switched-off ${n.p} («${rest.match(n.re)[0]}», spec.offNames)`);
     if (/ระบบนี้ยังไม่เปิดให้บริการ|This service is not available yet|此服务尚未开放/.test(rest)) bad.push(`${f}:${i + 1} lists a product as not available (remove the row)`);
   });
   for (const k of B5.safetyKept) if (!L.read(k.file).includes(k.contains)) bad.push(`${k.file}: safety sentence "${k.contains}" removed`);

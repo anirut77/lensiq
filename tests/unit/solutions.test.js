@@ -22,7 +22,7 @@ const read = f => fs.readFileSync(path.join(ROOT, f), "utf8");
 const html = read("solutions.html");
 const cards = [...html.matchAll(/<article class="sl-card"( data-lq-off)? data-status="(\w+)" id="sol-([\w]+)">([\s\S]*?)<\/article>/g)]
   .map(m => ({ off: !!m[1], status: m[2], id: m[3], body: m[4] }));
-const OFF = ["exam-hall", "signage", "neuro", "teamface", "customers"]; // nav.js VISIBILITY pages switched off (decision 226; Product Check is a tab of medicine.html, the page is on)
+const OFF = ["exam-hall", "signage", "neuro", "teamface", "customers", "omr", "tryon"]; // nav.js VISIBILITY pages switched off (decision 226; Product Check is a tab of medicine.html, the page is on; re-lock 9, owner entry 16: omr and tryon off)
 const PARALLEL = new Set(["exam.html", "gate.html", "parking.html", "village.html"]); // other product lines, built in parallel
 
 test("10 sectors in the agreed order, each with cards", () => {

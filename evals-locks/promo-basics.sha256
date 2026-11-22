@@ -32,3 +32,4 @@ d9803f27271f3255feb055728ec6e60872ed0a726da5c87606a323c72de5a274  tests/unit/cat
 d7cdacf9467d1e9306248f397befcfdbf60310f9f4fd8e517ac734c78d3d6bf9  relock-226b/NOTE.txt
 660281e669f52f4b2476ad5475cb1dc9df909e3b2d61ec73bdb095c2da5cba52  tests/unit/promo-basics.test.js  # repo file (same commit as lock 2026-11-22T04:35:13Z; field: ~/LENSIQ-field/evals/promo-basics/relock-226b/promo-basics.test.js)
 # field only relock-226b/NOTE.txt (lock 2026-11-22T04:35:13Z: no repo file uses it)
+58963cddb85c03943f372c4844bb9e6d0b0d4eeaa4873778d502886acd940f71  tests/unit/fortune-no-demo.test.js  # repo file (re-locked in evals-locks/fortune-no-demo.sha256 at 2026-11-22T16:14:15Z, replaces 4309d11c18a232802e4978ed7e907b03347429fb0d64524c6e9d23dd04c9ba01 of line 29; field: ~/LENSIQ-field/evals/fortune-no-demo/relock-vis9/fortune-no-demo.test.js)

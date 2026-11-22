@@ -78,3 +78,8 @@ c4a2d98be9dadd804a42c87c74bb73d4806e45b33bde5cc8e59a2f5e0ed6f220  relock-226b/fo
 788b1814fbac095fc9869955abf0f7b16e110dd6fc5110323293e13cb46daedd  relock-226b/NOTE.txt
 c4a2d98be9dadd804a42c87c74bb73d4806e45b33bde5cc8e59a2f5e0ed6f220  tests/unit/fortune-cards.test.js  # repo file (same commit as lock 2026-11-22T04:35:13Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-226b/fortune-cards.test.js)
 # field only relock-226b/NOTE.txt (lock 2026-11-22T04:35:13Z: no repo file uses it)
+# locked 2026-11-22T16:14:15Z (tools/eval-guard.mjs lock, 2 files)
+ff7cf1a8f8f0a4fc739ee7157ae3047f94252e49a4544bba21470e0021ceea67  relock-vis9/fortune-cards.test.js
+2632fa81780e1395abecd647a8bd9fb56463a2e1192dc1d08f0171a1dd27039a  relock-vis9/NOTE.txt
+ff7cf1a8f8f0a4fc739ee7157ae3047f94252e49a4544bba21470e0021ceea67  tests/unit/fortune-cards.test.js  # repo file (same commit as lock 2026-11-22T16:14:15Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-vis9/fortune-cards.test.js)
+# field only relock-vis9/NOTE.txt (lock 2026-11-22T16:14:15Z: no repo file uses it)

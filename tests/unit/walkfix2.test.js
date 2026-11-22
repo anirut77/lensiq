@@ -20,6 +20,8 @@
 // Re-lock 2026-11-22 (owner decision 226: no status label where a customer looks): D-06 / D-08 / D-10 required the badge
 // รุ่นทดลอง / Trial version / 试用版 (cr.st.b, exam.l.betaB, om.st.b); they now require that no badge is on the page and no
 // badge key in the dictionaries, and that the back office (admin-measurements.js visibility records) holds the label.
+// Re-lock 9 (owner entry 16, sell-readiness, 2026-11-22): D-10 inverted from "omr shown" to "omr switched off" (nav.js omr: false,
+// back-office record "off"); every other D-10 assertion unchanged.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
@@ -188,7 +190,12 @@ test("D-10: omr.html states no status label (decision 226), its two lines, accur
   assert.equal(st, null, "status label on omr.html");
   assert.ok(!/om\.st\.b\b/.test(html) && !/รุ่นทดลอง/.test(main), "om.st.b / รุ่นทดลอง on omr.html");
   assert.equal(dict("i18n/en-omr.js", "om.st.b"), null); assert.equal(dict("i18n/zh-omr.js", "om.st.b"), null);
-  assert.ok(ADM.includes(TRIAL_REC("omr")), "back office: omr label รุ่นทดลอง / Trial version / 试用版, shown");
+  // re-lock 9 (owner entry 16, sell-readiness, "off = not shown"; inversion of "shown"): omr is switched off in the nav.js list;
+  // the back office keeps its label รุ่นทดลอง / Trial version / 试用版 with "off"; the page itself stays (its direct URL shows the
+  // off sentence, the e2e preview tests the product as before)
+  assert.ok(ADM.includes(TRIAL_REC("omr").replace(/"on",$/, '"off",')), "back office: omr label รุ่นทดลอง / Trial version / 试用版, switched off");
+  assert.ok(!ADM.includes(TRIAL_REC("omr")), "back office: omr is not shown");
+  assert.match(read("nav.js"), /var VISIBILITY = \{[\s\S]*?\bomr: false,[\s\S]*?\};/, "nav.js: omr switched off");
   const LN = {
     "ln.omr.1": ["ตรวจกระดาษคำตอบด้วยกล้องมือถือ แสดงคะแนนและสถิติรายข้อ", "Grades answer sheets with a phone camera and shows scores and item statistics.", "用手机摄像头批改答题卡，显示分数和逐题统计。"],
     "ln.omr.2": ["แผ่นที่ระบายจาง ระบายเกินวง หรือถ่ายเอียงอาจอ่านผิด ระบบทำเครื่องหมายแผ่นที่ไม่แน่ใจไว้ให้ครูตรวจ",

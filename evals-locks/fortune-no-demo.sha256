@@ -80,3 +80,8 @@ fd85c9e6a2115096523a978be647486301ec24e82edd0f7dd76f371649597f43  relock-226/NOT
 82b86bf442bf9b4b2c0bf4583a724e453316778b4a46bfde8706440f11a474fe  tests/e2e/fortune-no-demo.e2e.mjs  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/fortune-no-demo/relock-226/fortune-no-demo.e2e.mjs)
 1cb1e3e4d63a3fe5059c43f54abc44fcc97d83bb6f66d72f79194a8d1db1a0de  tests/unit/walkfix.test.js  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/fortune-no-demo/relock-226/walkfix.test.js)
 # field only relock-226/NOTE.txt (lock 2026-11-22T00:32:49Z: no repo file uses it)
+# locked 2026-11-22T16:14:15Z (tools/eval-guard.mjs lock, 2 files)
+58963cddb85c03943f372c4844bb9e6d0b0d4eeaa4873778d502886acd940f71  relock-vis9/fortune-no-demo.test.js
+a21da14fd6b63670860ca91ca46b0d25ee007e23df6297531aff6c6e9c38f6e6  relock-vis9/NOTE.txt
+58963cddb85c03943f372c4844bb9e6d0b0d4eeaa4873778d502886acd940f71  tests/unit/fortune-no-demo.test.js  # repo file (same commit as lock 2026-11-22T16:14:15Z; field: ~/LENSIQ-field/evals/fortune-no-demo/relock-vis9/fortune-no-demo.test.js)
+# field only relock-vis9/NOTE.txt (lock 2026-11-22T16:14:15Z: no repo file uses it)

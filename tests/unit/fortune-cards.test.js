@@ -274,9 +274,11 @@ function businessFingerprint() {
 // 6 categories, 38 non-fortune products, 33 cards shown; the 5 switched-off pages (nav.js VISIBILITY) have no card.
 // Re-lock 4 of 226 (coordinator decision 2026-11-22 on entry 13): medicine.html (drug checker) is on and has its card again;
 // Product Check is the switched-off part "product-check" of that page (no card of its own)
-const BUSINESS_SHA = "4cc6b933c62425e8dd50d3d34451327f3124d26cf7ea3f1d6a434bba12d1d3f5"; // re-lock 226b: the hr card line drops "and team activities" (was 1425001917f1…; before that e2a09f1f…)
-const BUSINESS_PRODUCTS = 38, BUSINESS_CARDS = 33;
-const OFF_226 = ["customers", "exam-hall", "neuro", "product-check", "signage", "teamface"];
+const BUSINESS_SHA = "987ffcfcc06e0a6833ac9f51f4e26d0c4dbdb9537475379879d589a76960f3aa"; // re-lock 9 (entry 16): cat-education without the omr card, intro without answer-sheet grading, count 3 (was 4cc6b933c624…); re-lock 226b: the hr card line drops "and team activities" (was 1425001917f1…; before that e2a09f1f…)
+// re-lock 9 (owner entry 16, sell-readiness, "off = not shown"): omr switched off (its card leaves cat-education, 33 -> 32 cards;
+// the education intro no longer names answer-sheet grading, TH / EN / ZH) and tryon (no card; it was missing from the list)
+const BUSINESS_PRODUCTS = 38, BUSINESS_CARDS = 32;
+const OFF_226 = ["customers", "exam-hall", "neuro", "omr", "product-check", "signage", "teamface", "tryon"];
 const sheetText = re => require("node:fs").readdirSync(join(ROOT, "docs", "tech-sheets")).filter(f => re.test(f) || f === "README.md")
   .map(f => squash(read("docs/tech-sheets/" + f))).join("\n");
 

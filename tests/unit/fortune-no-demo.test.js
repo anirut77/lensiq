@@ -119,7 +119,8 @@ test("2. index.html category chooser: the fortune count names no demo; the six o
   }
   // the demo-only pages of decision 223 (internal data, unchanged) and the switched-off pages of decision 226 (not counted)
   assert.deepEqual([...D.DEMO_ONLY].sort(), ["customers", "neuro", "signage", "teamface"]);
-  assert.deepEqual([...OFF].sort(), ["customers", "exam-hall", "neuro", "product-check", "signage", "teamface"]); // re-lock 4 of 226: Product Check = the tab of medicine.html, the page itself on
+  // re-lock 9 (owner entry 16, sell-readiness, "off = not shown"): omr and tryon switched off too (counts follow: education 4 -> 3)
+  assert.deepEqual([...OFF].sort(), ["customers", "exam-hall", "neuro", "omr", "product-check", "signage", "teamface", "tryon"]); // re-lock 4 of 226: Product Check = the tab of medicine.html, the page itself on
 });
 
 test("3. solutions.html: no card linking to a fortune page carries a demo badge; sol-r5 (signage) is hidden and carries no badge (decision 226)", () => {
