@@ -13,6 +13,8 @@
 //      data-demo-only); a product switched off in nav.js (var VISIBILITY) has no card and is not counted ("<n> เครื่องมือ"
 //      over the products switched on); reachability: an off product must NOT be linked (its page still answers 200 directly);
 //      the desktop check uses exam-lab.html (exam-hall.html is off and shows only the off notice);
+//      re-lock 9 (owner entry 16, 2026-11-22): the switched-off list is exactly customers, exam-hall, neuro, omr, product-check,
+//      signage, teamface, tryon (omr and tryon added; counts 7 pages + 1 part); every other check unchanged;
 //   3. desktop 1024 px: bar (no drawer), panel intro link and the breadcrumb open the category page;
 //   4. phones 320 / 360 / 390 px: no horizontal overflow, 44 px targets, the drawer lists the 8 groups with their landing page;
 //   5. English and Chinese: no Thai left on the 7 landing pages.
@@ -54,7 +56,9 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       const missing = all.filter(f => !found.has(f) && !D.UNLINKED[f.replace(/\.html$/, "")] && isOn(f.replace(/\.html$/, "")));
       assert(!missing.length, "not linked from header / home / category pages: " + missing.join(", "));
       // decision 226 (inversion): a switched-off product is linked from nothing a customer can reach, yet its page still exists
-      assert(OFF.length === 5 && OFF_ALL.length === 6, "switched-off products: " + OFF_ALL.join(", "));
+      // re-lock 9 (owner entry 16, sell-readiness, "off = not shown"): omr and tryon switched off too (5 / 6 -> 7 / 8), exact list
+      assert(OFF.length === 7 && OFF_ALL.length === 8, "switched-off products: " + OFF_ALL.join(", "));
+      assert(JSON.stringify([...OFF_ALL].sort()) === JSON.stringify(["customers", "exam-hall", "neuro", "omr", "product-check", "signage", "teamface", "tryon"]), "switched-off products (exact): " + OFF_ALL.join(", "));
       for (const [part, pg] of Object.entries(PARTS)) assert(OFF_ALL.includes(part) && isOn(pg) && found.has(pg + ".html"), `part ${part}: off, its page ${pg}.html on and linked`);
       const offLinked = OFF.map(p => p + ".html").filter(f => found.has(f));
       assert(!offLinked.length, "switched-off product linked: " + offLinked.map(f => `${f} (from ${found.get(f)})`).join(", "));
