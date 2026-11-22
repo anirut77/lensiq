@@ -187,10 +187,10 @@ export async function openEngine(engine, o = {}) {
     await blank.close();
     return { engine, open, close: () => browser.close(), defaults };
   }
-  const { webkit, devices } = await import("playwright");
+  const { devices } = await import("playwright");
   assertFreeSpace({ label: "tools/buttons-probe.mjs" }); // stops with exit 75 when free disk space is under 5 GB
   await holdSlot({ label: "tools/buttons-probe.mjs" }); // load guard (WebKit does not go through cdp.mjs launch())
-  const browser = await webkit.launch();
+  const browser = await (await import("../tests/e2e/phone-kit.mjs")).launchWebKit(); // relock-226: off-page preview in every context
   const open = async url => {
     const ctx = await browser.newContext({ ...devices["iPhone 13"], viewport: VIEWPORT, serviceWorkers: "block" });
     const page = await ctx.newPage();

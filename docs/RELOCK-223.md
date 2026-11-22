@@ -171,3 +171,15 @@ longer says the site shows "รุ่นทดลอง" (draft for legal review
 
 Also changed for "off = not shown" (unlocked or generated): exam.html and en / zh-exam `exam.l.priceStages` no longer say
 the camera hall is priced per room.
+
+## Round 4 (CI 44996629140 red, 75 failures; coordinator approval 2026-11-22)
+
+| Lock | File | Old | New | Kind |
+|---|---|---|---|---|
+| cdp-goto-errpage/relock-226b | tests/e2e/cdp.mjs | OFF_PREVIEW added to the page-world init scripts: Chrome also injects it into admin.html's sandboxed `#adsPreview` frame (no allow-scripts) and logs "Blocked script execution" (every admin-* file, seller-doc-narrow) | same OFF_PREVIEW in the isolated world "lqOffPreview" (shared DOM), exported for WebKit; no console message filtered | equal |
+| phone-quality/relock-226 | tests/e2e/phone-kit.mjs | launchWebKit() = webkit.launch(): WebKit files tested the off notice of switched-off pages | every context gets OFF_PREVIEW (as Chrome since relock-226) | equal |
+| buttons/relock-226 | tests/e2e/buttons-kit.mjs, tools/buttons-probe.mjs | own webkit.launch() | launchWebKit() of phone-kit (preview in every context) | equal |
+| examlab-90/relock-226 | exam-pages-webkit.e2e | exam.html must show a visible link to exam-hall.html | while VISIBILITY "exam-hall" is false no visible link to it in `<main>`; when true the visible >= 44 px link as before | stricter |
+| demo/relock-226 | demo-mode.e2e (crowd) | panel has ทดลอง and ฝูงชนหนาแน่น | panel has ฝูงชนหนาแน่น and no ทดลอง (decision 223) | stricter |
+
+The WebKit files cannot run on the owner's Mac (no Playwright); the macOS WebKit CI shard is the measurement.

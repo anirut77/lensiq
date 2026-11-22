@@ -7,7 +7,7 @@
 // any per-flow hooks. PASS RULE per flow: the page loads, the main action works, no page error, no crash event and no
 // reload (exactly one document load per goto and the in-page marker set after load is still there at the end).
 import { webkit, devices } from "playwright";
-import { assert } from "./cdp.mjs";
+import { assert, OFF_PREVIEW } from "./cdp.mjs";
 
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
 export const IPHONE = { ...devices["iPhone 13"], serviceWorkers: "block" };
@@ -18,8 +18,18 @@ export const MD_SHIM = `(() => { try { const md = navigator.mediaDevices || new 
   Object.defineProperty(navigator, "mediaDevices", { get: () => md, configurable: true }); } catch (e) {} })();`;
 const NO_DIALOGS = "window.confirm = () => true; window.print = () => {}; window.prompt = () => 'test'; window.alert = () => {};";
 
-/** @returns {Promise<import("playwright").Browser>} */
-export const launchWebKit = () => webkit.launch();
+/**
+ * decision 226 (relock-226): every context of this browser gets the same e2e off-page preview as cdp.mjs newPage() (OFF_PREVIEW:
+ * removes the off notice and the part-off class so a switched-off product page or part is tested as if the owner had switched it
+ * on; the product code and markup are unchanged). The off state customers get is proven in Chrome by visibility-223.e2e.mjs.
+ * @returns {Promise<import("playwright").Browser>}
+ */
+export const launchWebKit = async () => {
+  const browser = await webkit.launch();
+  const newContext = browser.newContext.bind(browser);
+  browser.newContext = /** @type {any} */ (async (/** @type {any} */ o) => { const c = await newContext(o); await c.addInitScript(OFF_PREVIEW); return c; });
+  return browser;
+};
 
 /**
  * Opens one flow in a fresh iPhone context.

@@ -92,7 +92,7 @@ export function sweepStale(root = tmpdir()) {
 
 /** decision 226: e2e preview of a switched-off product page or part (see newPage); never shipped to customers */
 // (as soon as nav.js sets them, before the page's own scripts run, and again at DOMContentLoaded)
-const OFF_PREVIEW = "(function(){var un=function(){var h=document.documentElement;if(!h)return;" +
+export const OFF_PREVIEW = "(function(){var un=function(){var h=document.documentElement;if(!h)return;" +
   "['lq-off-page','lq-part-off'].forEach(function(c){if(h.classList.contains(c))h.classList.remove(c);});" +
   "var o=document.getElementById('lqOff');if(o)o.remove();};" +
   "new MutationObserver(un).observe(document,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});" +
@@ -155,8 +155,9 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
   // page (data-lq-part, e.g. the Product Check tab of medicine.html) is not shown. Every e2e file tests the product itself,
   // so by default the harness previews an off page or part as if the owner had switched it on (removes the notice and the
   // part-off class after load; the product code and markup are unchanged). A test of the off state passes { offNotice: true }.
+  // relock-226b: the preview runs in its own isolated world ("lqOffPreview", shared DOM): an init script in the page world is
+  // also injected into a sandboxed frame without allow-scripts (admin.html #adsPreview) and Chrome logs "Blocked script execution".
   async function newPage(url, { initScripts = [], timeout = 20000, isolated = false, offNotice = false } = {}) {
-    if (!offNotice) initScripts = [OFF_PREVIEW].concat(initScripts);
     const ctxId = isolated ? (await send("Target.createBrowserContext", { disposeOnDetach: true })).browserContextId : undefined;
     const { targetId } = await send("Target.createTarget", ctxId ? { url: "about:blank", browserContextId: ctxId } : { url: "about:blank" });
     const { sessionId } = await send("Target.attachToTarget", { targetId, flatten: true });
@@ -187,6 +188,7 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
     };
     listeners.add(onEvent);
     await Promise.all([s("Runtime.enable"), s("Page.enable"), s("Network.enable"), s("Log.enable")]);
+    if (!offNotice) await s("Page.addScriptToEvaluateOnNewDocument", { source: OFF_PREVIEW, worldName: "lqOffPreview" });
     for (const src of initScripts) await s("Page.addScriptToEvaluateOnNewDocument", { source: src });
     /** the next load event; .cancel() drops the waiter and its timer (used when the navigation already failed) */
     const waitLoad = () => {
