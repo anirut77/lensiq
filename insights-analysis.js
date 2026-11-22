@@ -256,7 +256,7 @@ function iqAnalyze(D, r, opt = {}) {
     const steps = [{ key: "pass", label: "คนผ่านหน้าร้าน", value: null, note: "ยังไม่มีกล้องนับคนเดินผ่านด้านนอก" }, { key: "in", label: "เข้าร้าน", value: sumIf(H.storeIn), note: "นับจากเส้นประตู" }];
     if (anyIf(H.zone)) steps.push({ key: "zone", label: "แวะโซนสินค้า", value: sumIf(H.zone), note: "ครั้งที่แวะโซน (คนเดียวแวะได้หลายโซน)" });
     if (anyIf(H.cashier)) steps.push({ key: "cash", label: "ไปแคชเชียร์", value: sumIf(H.cashier), note: "ครั้งที่เข้าโซนแคชเชียร์" });
-    if (D.co || D.cx) steps.push({ key: "buy", label: "ซื้อ (บิล)", value: sumIf(H.bills), note: "บิลจากสแกนสินค้า/จดจำลูกค้า" });
+    if (D.co || D.cx) steps.push({ key: "buy", label: "ซื้อ (บิล)", value: sumIf(H.bills), note: D.co && D.cx ? "บิลจากสแกนสินค้า/จดจำลูกค้า" : D.co ? "บิลจากสแกนสินค้า" : "บิลจากจดจำลูกค้า" }); // decision 226: names only the systems whose data is shown
     const f = S.funnel(steps.slice(1));
     A.storeFunnel = { steps: [steps[0], ...f.steps], overall: f.overall };
   }

@@ -22,8 +22,9 @@
 
 1. ข้อความปัจจุบันในข้อ 11 ว่า "เราเปิดเผยผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด" จะไม่เป็นจริงอีกต่อไป เพราะหน้าเว็บไม่เปิดเผยผลวัดแล้ว
 2. ข้อความปัจจุบันในข้อ 2 ว่า "ฟีเจอร์ที่ยังไม่ได้วัดผลบนข้อมูลจริงแสดงป้าย “Beta”" ไม่ตรงกับเว็บไซต์อีกต่อไป ตามตัดสินใจ 226 หน้าเว็บไม่แสดงป้ายสถานะใดเลย
-   (ไม่มีทั้ง “Beta” และ “รุ่นทดลอง”) ผู้ดูแลเปิดหรือปิดแต่ละระบบจากหลังบ้าน ระบบที่ปิดไม่แสดงให้ลูกค้าเห็น และหน้าตรงของระบบนั้นแสดงเพียง
-   “ระบบนี้ยังไม่เปิดให้บริการ”
+   (ไม่มีทั้ง “Beta” และ “รุ่นทดลอง”) ระบบที่ปิดไม่แสดงให้ลูกค้าเห็น และหน้าตรงของระบบนั้นแสดงเพียง “ระบบนี้ยังไม่เปิดให้บริการ”
+   วันนี้การเปิดหรือปิดแต่ละระบบเป็นรายการใน `nav.js` ที่เปลี่ยนได้ด้วยการออกรุ่นใหม่ของเว็บไซต์
+   หน้าจอหลังบ้านสำหรับให้ผู้ดูแลเปิดปิดเองเป็นขั้นที่ 2 ที่วางแผนไว้และยังไม่ได้สร้าง
 3. ต้องไม่ให้ข้อกำหนดสัญญาเกินกว่าที่หน้าเว็บบอก และต้องไม่ตัดความรับผิดชอบของผู้ใช้ในการทดสอบหน้างานก่อนใช้ตัดสินใจ
 
 ## ข้อความปัจจุบัน (ตรงตาม `terms.html` วันที่ร่าง)
@@ -76,7 +77,7 @@ Owner decision 223 (2026-11-21): customer pages no longer publish accuracy figur
 what it is for and its main limit. The detailed figures moved to the technical sheet, available from sales, and to the administrator back office. Consequences for the terms:
 
 1. The current clause 11 sentence "We publish public-dataset results with their limitations" would no longer be true, because the pages no longer publish results.
-2. The current clause 2 sentence about a “Beta” label no longer matches the site. Under decision 226 the pages show no status label at all (neither “Beta” nor “Trial version”); the administrator switches each product on or off in the back office, a product switched off is not shown, and its direct address shows only “This service is not available yet.”
+2. The current clause 2 sentence about a “Beta” label no longer matches the site. Under decision 226 the pages show no status label at all (neither “Beta” nor “Trial version”); a product switched off is not shown, and its direct address shows only “This service is not available yet.” Today the on/off switch is a list in `nav.js`, changed by a release of the site; a back-office screen for the administrator to switch products is a planned step 2 and is not built.
 3. The terms must not promise more than the pages say, and must not remove the user's responsibility to test on site before relying on a result.
 
 ## Current text (verbatim from `terms.html` on the draft date)
@@ -126,7 +127,7 @@ what it is for and its main limit. The detailed figures moved to the technical s
 所有者决定 223（2026-11-21）：面向客户的页面不再公布准确率数字、表格、数据集名称和状态标签。工具页面只用通俗的两句话说明用途和主要限制。详细数据转入技术资料（可向销售索取）和管理员后台。对条款的影响：
 
 1. 现行第 11 条中“我们公开在公共数据集上的测量结果及其局限”将不再属实，因为页面不再公布测量结果。
-2. 现行第 2 条关于“Beta”标签的表述已与网站不符。按决定 226，页面不显示任何状态标签（既没有“Beta”也没有“试用版”）；管理员在后台开启或关闭每个产品，关闭的产品不向客户显示，其直接网址只显示“此服务尚未开放。”
+2. 现行第 2 条关于“Beta”标签的表述已与网站不符。按决定 226，页面不显示任何状态标签（既没有“Beta”也没有“试用版”）；关闭的产品不向客户显示，其直接网址只显示“此服务尚未开放。”目前开关是 `nav.js` 中的一个列表，通过发布新版本网站来更改；供管理员在后台开关产品的界面是计划中的第 2 步，尚未建成。
 3. 条款不得承诺超过页面所说的内容，也不得免除用户在依赖结果前进行现场测试的责任。
 
 ## 现行文本（与 `terms.html` 在起草日完全一致）

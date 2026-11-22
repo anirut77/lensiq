@@ -5,7 +5,7 @@
   else root.LQInsightsDemo = factory(root.LQInsightsData);
 })(typeof self !== "undefined" ? self : this, function (M_data) {
 "use strict";
-  const { IQ_DAY, IQ_DEMO_KEY, IQ_EMO, IQ_VA, iqPad, iqDay, iqDayStart, iqAddDays, iqSum, iqParse } = M_data;
+  const { IQ_DAY, IQ_DEMO_KEY, IQ_EMO, IQ_VA, iqPad, iqDay, iqDayStart, iqAddDays, iqSum, iqParse, iqOn } = M_data;
 
 /* ---------- ข้อมูลตัวอย่าง ---------- */
 function iqRng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -167,7 +167,7 @@ function iqBuildDemo(snap, now = Date.now(), seed = 20261105) {
 
   // --- ป้ายโฆษณา: สถิติสะสม 14 วัน (ข้ามถ้ามีสถิติจริงแล้ว) ; แต่ละโฆษณามีอัตรามองต่างกันจริงเพื่อให้เทียบ A/B ได้
   const sg = get("sg-stats", null);
-  if (sg && sg.v === 1 && sg.totals && sg.totals.ots > 0 && !sg.iqDemo) skipped.push("ป้ายโฆษณา (มีสถิติจริงอยู่)");
+  if (sg && sg.v === 1 && sg.totals && sg.totals.ots > 0 && !sg.iqDemo) { if (iqOn("signage")) skipped.push("ป้ายโฆษณา (มีสถิติจริงอยู่)"); } // decision 226: a switched-off system is not named
   else if (!(sg && sg.iqDemo)) {
     const bands = ["u18", "18_34", "35_54", "55p"], demo = {}, hourly = {}, ads = {};
     bands.forEach(b => { demo[b] = { male: 0, female: 0, unk: 0 }; });

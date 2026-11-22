@@ -33,9 +33,12 @@ if (typeof document !== "undefined") (() => {
     { id: "fs", name: "ฮวงจุ้ย", href: "fengshui.html", what: "นับจำนวนครั้งที่ดูทิศมงคลและเลขกัว" },
     { id: "photo", name: "ตู้ถ่ายรูป", href: "photobooth.html", what: "ตู้สติ๊กเกอร์และรูปติดบัตร" }
   ];
-  // decision 226: a module whose page is switched off in the nav.js visibility list is not shown (no card, link or KPI)
+  // decision 226: a module whose page is switched off in the nav.js visibility list is not shown (no card, link, KPI or
+  // figure; same rule as iqOn in insights-data.js, which also drops its data in iqCollect): switched off in
+  // window.LQ_VISIBILITY while nav.js hides switched-off parts (html.lq-part-off)
   const VIS = /** @type {any} */ (window).LQ_VISIBILITY || {};
-  const offIds = new Set(MODULES.filter(m => VIS[m.href.replace(/\.html$/, "")] === false).map(m => m.id));
+  const pageOn = (/** @type {string} */ href) => !(VIS[String(href || "").replace(/[?#].*$/, "").replace(/\.html$/, "")] === false && document.documentElement.classList.contains("lq-part-off"));
+  const offIds = new Set(MODULES.filter(m => !pageOn(m.href)).map(m => m.id));
   const SHOWN = MODULES.filter(m => !offIds.has(m.id));
   const dayLabel = key => new Date(iqDayStart(key)).toLocaleDateString(iqLoc(), { day: "numeric", month: "short" });
   const bucketLabel = (b, r) => r.mode === "hour" ? iqPad(b) + ":00" : dayLabel(b);
@@ -164,7 +167,7 @@ if (typeof document !== "undefined") (() => {
     const t = el("table", { class: "cams acc" }, el("div", { class: "tw" }, box)), hr = el("tr", {}, el("thead", {}, t));
     [T("iq.acc.h.cam", "ระบบ · กล้อง"), T("iq.acc.h.when", "ตรวจล่าสุด"), T("iq.acc.h.v", "ผล"), T("iq.acc.h.need", "ต้องเก็บเพิ่ม")].forEach(h => el("th", { scope: "col" }, hr, h));
     const tb = el("tbody", {}, t);
-    L.filter(x => VIS[x.page] !== false).forEach(x => { // decision 226: no row for a switched-off page
+    L.filter(x => pageOn(x.page)).forEach(x => { // decision 226: no row for a switched-off page
       const [pn, href] = ACC_PAGE[x.page] || [x.page, "#"];
       const tr = el("tr", { "data-v": x.verdict }, tb), th = el("th", { scope: "row" }, tr);
       el("a", { href: href + "#scPanel" }, th, TN(pn));
@@ -279,15 +282,15 @@ if (typeof document !== "undefined") (() => {
     }
     $("#funnelNote").textContent = "";
     if (!F.count) return;
-    if (SF) el("h3", { class: "sub-h" }, box, TN("เส้นทางลูกค้า (บูธ / ป้าย / การขาย)"));
+    if (SF) el("h3", { class: "sub-h" }, box, TN(pageOn("signage.html") ? "เส้นทางลูกค้า (บูธ / ป้าย / การขาย)" : "เส้นทางลูกค้า (บูธ / การขาย)"));
     const max = Math.max(...F.steps.map(s => s.value || 0), 1);
     F.steps.forEach((s, i) => {
       const row = el("div", { class: "fn-row" + (s.src ? "" : " none") }, box);
       const head = el("div", { class: "fn-h" }, row);
       el("span", { class: "fn-n" }, head, String(i + 1));
       el("b", {}, head, TN(s.label));
-      if (s.src && VIS[String(s.src.href || "").replace(/\.html.*$/, "")] !== false) { const a = el("a", { class: "src", href: s.src.href }, head, T("iq.fn.from", "จาก {s}", { s: TN(s.src.source) })); a.title = TN(s.src.note); }
-      if (!s.src) { el("div", { class: "fn-miss" }, row, i === 1 || i === 0 ? TN("ยังไม่มีข้อมูล — ใช้ระบบวิเคราะห์บูธหรือหน้าร้าน") + (r.preset !== "all" ? T("iq.fn.sgall", " (ป้ายโฆษณานับเฉพาะช่วง “ทั้งหมด”)") : "") : i === 2 ? TN("ยังไม่มีข้อมูล — ใช้ระบบวิเคราะห์บูธ") : TN("ยังไม่มีข้อมูล — ใช้ระบบสแกนสินค้าหรือจดจำลูกค้า")); return; }
+      if (s.src && pageOn(s.src.href)) { const a = el("a", { class: "src", href: s.src.href }, head, T("iq.fn.from", "จาก {s}", { s: TN(s.src.source) })); a.title = TN(s.src.note); }
+      if (!s.src) { el("div", { class: "fn-miss" }, row, i === 1 || i === 0 ? TN("ยังไม่มีข้อมูล — ใช้ระบบวิเคราะห์บูธหรือหน้าร้าน") + (r.preset !== "all" && pageOn("signage.html") ? T("iq.fn.sgall", " (ป้ายโฆษณานับเฉพาะช่วง “ทั้งหมด”)") : "") : i === 2 ? TN("ยังไม่มีข้อมูล — ใช้ระบบวิเคราะห์บูธ") : TN(pageOn("customers.html") ? "ยังไม่มีข้อมูล — ใช้ระบบสแกนสินค้าหรือจดจำลูกค้า" : "ยังไม่มีข้อมูล — ใช้ระบบสแกนสินค้า")); return; }
       const line = el("div", { class: "fn-line" }, row);
       const tr = el("div", { class: "fn-t" }, line), bar = el("div", { class: "fn-b s1" }, tr);
       bar.style.width = Math.max(1, s.value / max * 100) + "%";

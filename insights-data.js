@@ -43,6 +43,18 @@ const IQ_FORTUNE_KEYS = ["fr-stats", "palm-stats", "fs-stats", "ic-stats", "zd-s
 function iqIsModuleKey(k) {
   return k === "booth-state" || k === "nm-sessions" || IQ_FORTUNE_KEYS.includes(k) || /^(cx|st|sg|co|att|qc|dr|iq)-/.test(k);
 }
+/* decision 226 (owner, 2026-11-22): the figures of a page switched off in the nav.js visibility list (window.LQ_VISIBILITY)
+   are a part of this page and are not shown. iqCollect drops that page's data, so no card, KPI, chart, funnel step, A/B
+   block, note, report or CSV row names it (the stored data and the backup are unchanged). nav.js marks <html> with
+   "lq-part-off" when switched-off parts are hidden; the e2e preview of a switched-off product (tests/e2e/cdp.mjs) removes
+   that class, as for every other part. Node (no window) = every page on. */
+const IQ_PAGE_OF = { booth: "booth", store: "store", sg: "signage", co: "checkout", cx: "customers", neuro: "neuro", att: "attendance", qc: "qc", dr: "driver", fr: "faceread", palm: "palm", fs: "fengshui" };
+/** @param {string} page page name without .html @returns {boolean} false = switched off for this visitor */
+function iqOn(page) {
+  if (typeof window === "undefined" || typeof document === "undefined") return true;
+  const V = /** @type {any} */ (window).LQ_VISIBILITY;
+  return !(V && V[page] === false && document.documentElement.classList.contains("lq-part-off"));
+}
 const IQ_EL = { wood: "ไม้", fire: "ไฟ", earth: "ดิน", metal: "ทอง", water: "น้ำ" };
 const IQ_PALM = { earth: "มือธาตุดิน", air: "มือธาตุลม", fire: "มือธาตุไฟ", water: "มือธาตุน้ำ" };
 
@@ -170,6 +182,7 @@ function iqCollect(snap) {
   // ค่าตั้งหน้าร้าน (st-settings) — ใช้คำนวณเวลารอคิวและระบุโซนแคชเชียร์
   const sts = get("st-settings", null);
   if (sts && typeof sts === "object") D.stCfg = { serviceSec: +sts.serviceSec > 0 ? +sts.serviceSec : 60, maxOcc: +sts.maxOcc > 0 ? +sts.maxOcc : null, cashierZone: String(sts.cashierZone || ""), queueZone: String(sts.queueZone || "") };
+  for (const id of Object.keys(IQ_PAGE_OF)) if (!iqOn(IQ_PAGE_OF[id])) delete D[id]; // decision 226
   return D;
 }
 
@@ -519,5 +532,5 @@ function iqValidateBackup(obj) {
   return { ok: true, keys, idbStores: idb ? Object.keys(idb).filter(s => s === "products" || s === "samples") : [] };
 }
 
-return { iqT, TN, IQ_DAY, IQ_DEMO_KEY, IQ_EMO, IQ_VA, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqDay, iqDayStart, iqAddDays, iqMean, iqSum, iqParse, IQ_AGG, IQ_FORTUNE_KEYS, iqIsModuleKey, IQ_EL, IQ_PALM, iqCollect, iqEarliest, IQ_SPANS, IQ_DATE_RE, iqRange, iqIn, iqInT, iqMetrics, iqKpis, iqBuckets, iqBucketOf, iqSeries, iqTrimHours, iqFunnel, iqTopBars, iqModuleBars, iqCsvCell, iqCsv, iqHasDemo, IQ_HEAT_RE, iqRemoveDemo, iqBackup, iqValidateBackup, iqFlagged, iqExcludeFlagged, iqAccuracy, iqSgStrata, iqSgBumpDay };
+return { iqT, TN, iqOn, IQ_PAGE_OF, IQ_DAY, IQ_DEMO_KEY, IQ_EMO, IQ_VA, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqDay, iqDayStart, iqAddDays, iqMean, iqSum, iqParse, IQ_AGG, IQ_FORTUNE_KEYS, iqIsModuleKey, IQ_EL, IQ_PALM, iqCollect, iqEarliest, IQ_SPANS, IQ_DATE_RE, iqRange, iqIn, iqInT, iqMetrics, iqKpis, iqBuckets, iqBucketOf, iqSeries, iqTrimHours, iqFunnel, iqTopBars, iqModuleBars, iqCsvCell, iqCsv, iqHasDemo, IQ_HEAT_RE, iqRemoveDemo, iqBackup, iqValidateBackup, iqFlagged, iqExcludeFlagged, iqAccuracy, iqSgStrata, iqSgBumpDay };
 });
