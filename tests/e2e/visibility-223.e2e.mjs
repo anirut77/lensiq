@@ -29,6 +29,8 @@
 //   board holds no hall device and no hall event while exam-hall is switched off, and with the harness preview (exam-hall
 //   shown as on) the hall device is there, so the visibility list decides. The insights card-id check also covers ab-neuro
 //   and cohort (spec.followup223b.insightsOffCard).
+// RE-LOCK 8 (independent review of 223b): the sweep also opens omr.html?demo=1 and tryon.html?demo=1 (query-driven demo modes
+//   without lensiq-demo.js); an entry with waitFor waits until the self-running demo has rendered that selector, then presses.
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -250,6 +252,9 @@ export default async function ({ base, launch, check }) {
         if (S.ack) await page.evaluate(sel => { const g = document.querySelector(sel); if (!g || g.hidden) return;
           const c = g.querySelector("input[type=checkbox]"); if (c) { c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true })); }
           const b = g.querySelector("button[data-ack]"); if (b) b.click(); }, S.ack);
+        // re-lock 8: a demo that runs by itself (omr: the sample sheets are read first) is waited for; it must appear
+        if (S.waitFor) await page.waitFor(`document.querySelectorAll(${JSON.stringify(S.waitFor)}).length > 0`, 20000)
+          .catch(e => { throw new Error(`${where}: the demo never rendered ${S.waitFor}: ${e.message}`); });
         let pressed = 0;
         for (const sel of S.press) {
           const n = await page.evaluate(s => document.querySelectorAll(s).length, sel);
