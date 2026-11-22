@@ -213,3 +213,16 @@ Defect: the exam dashboard button "สาธิต: จำลองเหตุ�
 
 exam-dashboard.e2e (not locked) runs with the harness preview, which shows exam-hall as on, so its 5-alert demo is unchanged;
 exam-dashboard-demo.e2e (locked, sellable-c) presses no demo button and its sample data was already lab-only (amendment 2).
+
+## Independent review of 223b: query-driven demo modes (2026-11-22): re-lock, STRICTER (`relock8`)
+
+Finding: `omr.html?demo=1` has its own demo mode (omr.js reads `?demo=1`: a sample exam and 3 synthetic sheets read by the real
+reader, memory only), without lensiq-demo.js and without a demo / sample / seed button id, so R12 missed it and V6 never opened it.
+A repo search for scripts that read a `demo` URL parameter found omr.js and tryon.js (`?demo=1`: the built-in drawn sample items
+instead of the shop catalogue) besides lensiq-demo.js (its pages were already in the sweep).
+
+| Lock | File | Old | New | Kind |
+|---|---|---|---|---|
+| accuracy-removal-223/relock8 | spec | demoSweep: 14 entries | + omr `?demo=1` (wait for `.om-edit`, press every "check / edit" button of the sample sheets), + tryon `?demo=1` (wait for `.to-item`, press every sample item) | stricter |
+| accuracy-removal-223/relock8 | contract test R12 | sweep covers demo / sample / seed button ids and lensiq-demo.js pages | + every switched-on page whose own scripts (inline or local `<script src>`) read a `demo` URL parameter has a `?demo=1` entry pressing >= 1 button | stricter |
+| accuracy-removal-223/relock8 | visibility-223.e2e V6 (re-lock 7 check) | presses after a fixed 500 ms | + `waitFor`: waits up to 20 s for a self-running demo to render the selector, fails when it never appears; then the same checks | stricter |

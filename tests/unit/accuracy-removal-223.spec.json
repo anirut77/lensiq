@@ -1730,7 +1730,7 @@
     }
   },
   "followup223b": {
-    "$comment": "re-lock 7 (independent review of 9ebb0818: the exam dashboard demo button added a hall camera device 'เครื่องกล้องในห้องสอบ' / 'กล้องหน้าห้อง (สาธิต)' and hall events while exam-hall is switched off; V6 loaded ?demo=1 but never pressed it). Every demo or sample button of every page that has one is pressed (visibility-223 V6), then the rendered text is checked against offNames in TH / EN / ZH. demoSweep must list every switched-on page with a <button> whose id names demo / sample / seed and every page loading lensiq-demo.js (?demo=1, every button of the demo panel). Buttons that only REMOVE sample data are not pressed (they add nothing). The exam dashboard demo adds no hall device and no hall event while VISIBILITY exam-hall is false; with the harness preview (exam-hall shown as on) the hall device is present, so the switch decides, not a deletion.",
+    "$comment": "re-lock 7 (independent review of 9ebb0818: the exam dashboard demo button added a hall camera device 'เครื่องกล้องในห้องสอบ' / 'กล้องหน้าห้อง (สาธิต)' and hall events while exam-hall is switched off; V6 loaded ?demo=1 but never pressed it). Every demo or sample button of every page that has one is pressed (visibility-223 V6), then the rendered text is checked against offNames in TH / EN / ZH. demoSweep must list every switched-on page with a <button> whose id names demo / sample / seed and every page loading lensiq-demo.js (?demo=1, every button of the demo panel). Buttons that only REMOVE sample data are not pressed (they add nothing). The exam dashboard demo adds no hall device and no hall event while VISIBILITY exam-hall is false; with the harness preview (exam-hall shown as on) the hall device is present, so the switch decides, not a deletion. Re-lock 8 (independent review of 223b: omr.html?demo=1 runs its own demo without lensiq-demo.js, so R12 missed it): every switched-on page whose own scripts read a \"demo\" URL parameter (omr: a sample exam with 3 synthetic sheets read by the real reader; tryon: the built-in drawn sample items instead of the shop catalogue) has a ?demo=1 entry; waitFor = V6 waits until that selector is rendered (the demo runs by itself) before pressing, and fails when it never appears.",
     "demoSweep": [
       {
         "page": "exam-dashboard",
@@ -1835,6 +1835,22 @@
         "query": "demo=1",
         "press": [
           "[data-lq-demo] button"
+        ]
+      },
+      {
+        "page": "omr",
+        "query": "demo=1",
+        "waitFor": ".om-edit",
+        "press": [
+          ".om-edit"
+        ]
+      },
+      {
+        "page": "tryon",
+        "query": "demo=1",
+        "waitFor": ".to-item",
+        "press": [
+          ".to-item"
         ]
       }
     ],

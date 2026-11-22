@@ -34,6 +34,9 @@
 //       ways: the positive product name fails, any negated generic "no emotion analysis" line passes); spec.followup223b
 //       .demoSweep lists every demo / sample button of every switched-on page (browser half: visibility-223 V6 presses them
 //       all); the exam dashboard demo consults window.LQ_VISIBILITY for exam-hall and its ?demo=1 sample data is lab-side only
+//       Re-lock 8 (independent review of 223b: omr.html?demo=1 has its own query-driven demo mode without lensiq-demo.js, so
+//       R12 missed it and V6 never opened it): R12 also requires a ?demo=1 sweep entry (at least one button pressed) for every
+//       switched-on page whose own scripts read a "demo" URL parameter; V6 waits for a demo that runs by itself (waitFor)
 //   R8  rules: CLAUDE.md lines 34 / 60 / 251-252 / 255-256 and docs/acceptance/README.md rule 7 inverted as approved (223-1)
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -473,6 +476,14 @@ test("R9 (226) one visibility list (page -> on / off) = today's real state; noth
   assert.deepEqual(bad, [], show(bad, 60));
 });
 
+/** re-lock 8: true when this script source reads a "demo" URL parameter (?demo=1, URLSearchParams get / has "demo", a flag("demo")
+ *  helper next to location.search); comments are ignored */
+function readsDemoParam(js) {
+  const c = js.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:\\"'])\/\/[^\n]*/g, "$1");
+  if (/\[\?&\]demo\b|["'`][?&]demo=|\b(?:get|has)\(\s*["']demo["']\s*\)/.test(c)) return true;
+  return /location\.search|URLSearchParams/.test(c) && /\b\w+\(\s*["']demo["']\s*\)/.test(c.replace(/\b(?:T|tf|t|classList\.\w+|getElementById|querySelector(?:All)?|dataset|getItem|setItem|removeItem|matches|closest)\(\s*["']demo["']\s*\)/g, ""));
+}
+
 test("R12 (re-lock 7) every demo / sample button is in the V6 sweep; offNames bites both ways; the exam dashboard demo follows the visibility list", () => {
   const FB = S.followup223b, N = S.offNames, { list } = visibility(), bad = [];
   // offNames: every pattern compiles; the old names and the negation-robust emotion patterns bite both ways
@@ -495,6 +506,12 @@ test("R12 (re-lock 7) every demo / sample button is in the V6 sweep; offNames bi
       if (!has(page, "", "#" + m[1])) bad.push(`${f}: demo / sample button #${m[1]} is not pressed by visibility-223 V6 (spec.followup223b.demoSweep)`);
     }
     if (/<script src="lensiq-demo\.js/.test(h) && !has(page, "demo=1", "[data-lq-demo] button")) bad.push(`${f}: the ?demo=1 demo panel buttons are not pressed by V6`);
+    // re-lock 8 (review of 223b: omr.html?demo=1 has its own demo mode, without lensiq-demo.js): any page whose own scripts
+    // (inline or a local <script src>) read a "demo" URL parameter has a ?demo=1 sweep entry that presses at least one button
+    const srcs = [h.replace(/<script\b[^>]*\bsrc=[^>]*>/gi, "")].concat([...h.matchAll(/<script\b[^>]*\bsrc="([^"?#:]+\.js)/gi)]
+      .map(m => m[1]).filter(s => existsSync(join(L.ROOT, s))).map(s => L.read(s)));
+    if (srcs.some(readsDemoParam) && !sw.some(x => x.page === page && /(^|&)demo=1(&|$)/.test(x.query) && x.press.length))
+      bad.push(`${f}: a script reads the "demo" URL parameter (query-driven demo mode) but V6 never opens ${page}.html?demo=1 (spec.followup223b.demoSweep)`);
   }
   // the exam dashboard demo button consults the visibility list (hall device and events only while exam-hall is on)
   const js = L.read("exam-dashboard.js");
