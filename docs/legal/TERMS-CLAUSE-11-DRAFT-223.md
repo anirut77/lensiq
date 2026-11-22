@@ -6,6 +6,10 @@
 
 ภาษา: ไทย (ต้นฉบับ) แล้ว English แล้ว 中文 · Language order: Thai (original), English, Chinese
 
+> **ปรับ 2026-11-22 ตามตัดสินใจ 226 ของเจ้าของ / Updated 2026-11-22 for owner decision 226 / 2026-11-22 按所有者决定 226 更新:**
+> เว็บไซต์ไม่แสดงป้ายสถานะใดเลย (ไม่มี “รุ่นทดลอง”) ระบบที่ยังไม่เปิดไม่แสดงให้ลูกค้าเห็น · The site shows no status label at all (no “Trial version”); a
+> product that is not open is not shown · 网站不显示任何状态标签（没有“试用版”）；未开放的产品不向客户显示。
+
 ---
 
 # ภาษาไทย
@@ -17,8 +21,9 @@
 ผลที่ตามมากับข้อกำหนด:
 
 1. ข้อความปัจจุบันในข้อ 11 ว่า "เราเปิดเผยผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด" จะไม่เป็นจริงอีกต่อไป เพราะหน้าเว็บไม่เปิดเผยผลวัดแล้ว
-2. ข้อความปัจจุบันในข้อ 2 ว่า "ฟีเจอร์ที่ยังไม่ได้วัดผลบนข้อมูลจริงแสดงป้าย “Beta”" ใช้ถ้อยคำที่เจ้าของยกเลิกแล้ว ป้ายบนหน้าเว็บเปลี่ยนเป็น “รุ่นทดลอง”
-   (EN “Trial version”, ZH “试用版”) และคำว่า “Beta” ไม่ปรากฏบนหน้าเว็บอีก
+2. ข้อความปัจจุบันในข้อ 2 ว่า "ฟีเจอร์ที่ยังไม่ได้วัดผลบนข้อมูลจริงแสดงป้าย “Beta”" ไม่ตรงกับเว็บไซต์อีกต่อไป ตามตัดสินใจ 226 หน้าเว็บไม่แสดงป้ายสถานะใดเลย
+   (ไม่มีทั้ง “Beta” และ “รุ่นทดลอง”) ผู้ดูแลเปิดหรือปิดแต่ละระบบจากหลังบ้าน ระบบที่ปิดไม่แสดงให้ลูกค้าเห็น และหน้าตรงของระบบนั้นแสดงเพียง
+   “ระบบนี้ยังไม่เปิดให้บริการ”
 3. ต้องไม่ให้ข้อกำหนดสัญญาเกินกว่าที่หน้าเว็บบอก และต้องไม่ตัดความรับผิดชอบของผู้ใช้ในการทดสอบหน้างานก่อนใช้ตัดสินใจ
 
 ## ข้อความปัจจุบัน (ตรงตาม `terms.html` วันที่ร่าง)
@@ -41,7 +46,7 @@
 
 **ข้อ 2 รายการสุดท้าย:**
 
-> ฟีเจอร์รุ่นทดลองแสดงป้าย “รุ่นทดลอง” และอาจเปลี่ยนแปลงหรือยกเลิกได้
+> ระบบที่ยังไม่เปิดให้บริการจะไม่แสดงบนเว็บไซต์ ระบบที่เปิดให้บริการอาจเปลี่ยนแปลงหรือยกเลิกได้
 
 **ข้อ 11 รายการที่สอง (รายการอื่นของข้อ 11 ไม่เปลี่ยน):**
 
@@ -54,7 +59,7 @@
 2. ประโยค “ผลการทดสอบมีให้ตามคำขอ” เพียงพอหรือไม่ ควรระบุช่องทางขอ ระยะเวลาตอบ หรือให้เอกสารเทคนิคแนบใบเสนอราคาทุกครั้งหรือไม่
 3. “ไม่รับประกันความถูกต้อง” ใช้กับลูกค้าธุรกิจและผู้ใช้ทั่วไปได้เท่าใด ขัดกับกฎหมายคุ้มครองผู้บริโภค ข้อสัญญาที่ไม่เป็นธรรม หรือการโฆษณาเกินจริงหรือไม่
    และเมื่อสัญญาแยกกับลูกค้าธุรกิจระบุเกณฑ์หน้างาน ข้อใดมีผลก่อน
-4. ถ้อยคำ “รุ่นทดลอง” แทน “Beta” ทำให้ความคาดหวังของผู้ใช้เปลี่ยนหรือไม่ และควรให้ป้ายนี้มีคำอธิบายสั้น ๆ ในหน้าเดียวกันหรือไม่
+4. เมื่อหน้าเว็บไม่แสดงป้ายสถานะแล้ว ข้อ 2 ยังต้องพูดถึงระดับความพร้อมของระบบหรือไม่ หรือเพียงพอที่จะบอกว่าระบบที่ยังไม่เปิดจะไม่แสดง และระบบที่เปิดอาจเปลี่ยนหรือยกเลิกได้
 5. บรรทัดอื่นที่เกี่ยวข้องในเอกสารของเรา ซึ่งต้องปรับพร้อมกัน ถ้าร่างนี้ผ่าน:
    - `help.html` หัวข้อ "ตัวเลขจากกล้องแม่นแค่ไหน" (และ EN/ZH ในหน้าเดียวกัน) ที่ตอนนี้ถูกปรับตามตัดสินใจ 223 แล้ว ต้องให้สอดคล้องกับประโยค "ไม่รับประกัน"
    - `privacy.html` และ `camera-notice.html` ป้ายสำหรับช่วงทดสอบหน้างาน (คำว่า "เพื่อทดสอบความแม่นยำ" ที่เป็นข้อความตามกฎหมาย ไม่เปลี่ยนในรอบนี้)
@@ -71,7 +76,7 @@ Owner decision 223 (2026-11-21): customer pages no longer publish accuracy figur
 what it is for and its main limit. The detailed figures moved to the technical sheet, available from sales, and to the administrator back office. Consequences for the terms:
 
 1. The current clause 11 sentence "We publish public-dataset results with their limitations" would no longer be true, because the pages no longer publish results.
-2. The current clause 2 sentence about a “Beta” label uses wording the owner withdrew. The on-page badge becomes “Trial version” (TH “รุ่นทดลอง”, ZH “试用版”) and “Beta” no longer appears on the site.
+2. The current clause 2 sentence about a “Beta” label no longer matches the site. Under decision 226 the pages show no status label at all (neither “Beta” nor “Trial version”); the administrator switches each product on or off in the back office, a product switched off is not shown, and its direct address shows only “This service is not available yet.”
 3. The terms must not promise more than the pages say, and must not remove the user's responsibility to test on site before relying on a result.
 
 ## Current text (verbatim from `terms.html` on the draft date)
@@ -94,7 +99,7 @@ what it is for and its main limit. The detailed figures moved to the technical s
 
 **Clause 2, last item:**
 
-> Trial-version features carry a “Trial version” label and may be changed or withdrawn.
+> Products that are not yet available are not shown on the site. Products that are available may be changed or withdrawn.
 
 **Clause 11, second item (the other items of clause 11 stay):**
 
@@ -105,7 +110,7 @@ what it is for and its main limit. The detailed figures moved to the technical s
 1. Does removing published figures change any consumer-protection, advertising or disclosure duty (for example, must business and consumer buyers receive enough information before buying, and is providing it on request enough)?
 2. Is "test results are available on request" enough? Should the terms name the channel and a reply time, or should the technical sheet be attached to every quotation?
 3. How far can "accuracy is not guaranteed" be relied on against business customers and ordinary users? Does it conflict with consumer-protection law, unfair contract terms or misleading-advertising rules? When a separate contract with a business customer sets on-site criteria, which prevails?
-4. Does "Trial version" instead of "Beta" change what users may expect, and should the badge carry a short explanation on the same page?
+4. Now that the pages show no status label, does clause 2 still need to describe how ready a product is, or is it enough to say that products not yet available are not shown and that available products may change or be withdrawn?
 5. Related lines in our other documents that must change together if this draft passes:
    - `help.html`, "How accurate are the camera numbers?" (and the TH/ZH versions on the same page), already adjusted for decision 223, to match the "not guaranteed" sentence.
    - `privacy.html` and `camera-notice.html`: the sign for an on-site test period (the legal wording "to test accuracy" is unchanged in this round).
@@ -121,7 +126,7 @@ what it is for and its main limit. The detailed figures moved to the technical s
 所有者决定 223（2026-11-21）：面向客户的页面不再公布准确率数字、表格、数据集名称和状态标签。工具页面只用通俗的两句话说明用途和主要限制。详细数据转入技术资料（可向销售索取）和管理员后台。对条款的影响：
 
 1. 现行第 11 条中“我们公开在公共数据集上的测量结果及其局限”将不再属实，因为页面不再公布测量结果。
-2. 现行第 2 条关于“Beta”标签的表述使用了所有者已撤回的措辞。页面标签改为“试用版”（泰语“รุ่นทดลอง”，英语 “Trial version”），网站上不再出现“Beta”。
+2. 现行第 2 条关于“Beta”标签的表述已与网站不符。按决定 226，页面不显示任何状态标签（既没有“Beta”也没有“试用版”）；管理员在后台开启或关闭每个产品，关闭的产品不向客户显示，其直接网址只显示“此服务尚未开放。”
 3. 条款不得承诺超过页面所说的内容，也不得免除用户在依赖结果前进行现场测试的责任。
 
 ## 现行文本（与 `terms.html` 在起草日完全一致）
@@ -144,7 +149,7 @@ what it is for and its main limit. The detailed figures moved to the technical s
 
 **第 2 条最后一项：**
 
-> 试用版功能带有“试用版”标签，可能变更或下线。
+> 尚未开放的产品不在网站上显示。已开放的产品可能变更或下线。
 
 **第 11 条第二项（第 11 条其他项不变）：**
 
@@ -155,7 +160,7 @@ what it is for and its main limit. The detailed figures moved to the technical s
 1. 页面不再公布准确率数字，是否改变消费者保护、广告或信息披露方面的义务（例如企业买家和消费者在购买前是否必须获得足够的信息，按要求提供是否足够）？
 2. “测试结果可按要求提供”是否足够？是否应写明申请渠道和答复时限，或在每份报价单中附上技术资料？
 3. “不保证准确”对企业客户和普通用户能起多大作用？是否与消费者保护法、不公平合同条款或虚假广告规定冲突？当与企业客户另行签署的合同规定了现场标准时，以哪个为准？
-4. 用“试用版”取代“Beta”是否改变用户的预期？该标签是否应在同一页面附一句简短说明？
+4. 页面已不显示状态标签，第 2 条是否仍需说明产品的成熟程度，还是只需说明未开放的产品不会显示、已开放的产品可能变更或下线即可？
 5. 若本草案通过，其他文件中必须同时调整的相关内容：
    - `help.html` 中“摄像头的数字有多准确？”（及同页泰语/英语版本），已按决定 223 调整，需与“不保证准确”一句保持一致。
    - `privacy.html` 和 `camera-notice.html`：现场测试期间的告示（法律文字“为测试准确性”本轮不变）。

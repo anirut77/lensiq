@@ -5,7 +5,7 @@
 ## ภาษาไทย
 
 คู่มือนี้ใช้กับหน้า `exam-lab.html` (หน้าผู้สอบ) และ `exam-dashboard.html` (แดชบอร์ดผู้คุมสอบ) ซึ่งเป็นรุ่นที่จำหน่าย ได้แก่การสอบในห้องคอมพิวเตอร์หรือการสอบออนไลน์
-ห้องสอบที่ติดกล้องในห้องโถง (`exam-hall.html`) ยังไม่เปิดให้บริการ ไม่จำหน่าย และไม่อยู่ในคู่มือนี้ เว็บไซต์: https://anirut77.github.io/lensiq/
+เว็บไซต์: https://anirut77.github.io/lensiq/
 
 หลักการที่ต้องแจ้งผู้คุมสอบทุกคน: ระบบไม่ตัดสินว่าใครทุจริต ผู้คุมสอบเป็นผู้ตัดสินเสมอ ข้อสังเกตที่ระบบแสดงไม่ใช่หลักฐานการทุจริต ระบบไม่วิเคราะห์อารมณ์ และไม่ทำการจดจำใบหน้าเพื่อระบุตัวบุคคล
 ภาพทั้งหมดประมวลผลบนเครื่องของผู้สอบ ไม่ส่งภาพออกจากเครื่อง
@@ -83,7 +83,7 @@
 ## English
 
 This guide covers `exam-lab.html` (the candidate page) and `exam-dashboard.html` (the invigilator dashboard). These are the product on sale: the computer-lab or online exam mode.
-The camera-in-hall mode (`exam-hall.html`) is not available yet, not sold and not covered here. Website: https://anirut77.github.io/lensiq/
+Website: https://anirut77.github.io/lensiq/
 
 Principles to tell every invigilator: the system never decides that anyone cheated; the invigilator always decides. An observation shown by the system is not evidence of misconduct. There is no emotion analysis and no face recognition to identify people.
 All image processing happens on the candidate's own machine; no image leaves the device.
@@ -159,7 +159,7 @@ When reporting, give only: institution and room, page name, time, steps taken, b
 ## 中文
 
 本指南适用于 `exam-lab.html`（考生页面）和 `exam-dashboard.html`（监考员仪表板），即正式销售的版本：机房考试或在线考试模式。
-大型考场摄像头模式（`exam-hall.html`）尚未开放，不销售，也不在本指南范围内。网站：https://anirut77.github.io/lensiq/
+网站：https://anirut77.github.io/lensiq/
 
 请告知每位监考员以下原则：系统从不判定任何人作弊，最终由监考员判断。系统显示的观察提示不是作弊证据。系统不做情绪分析，也不做用于识别身份的人脸识别。
 所有图像都在考生自己的设备上处理，图像不会离开设备。

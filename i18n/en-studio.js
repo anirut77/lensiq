@@ -256,7 +256,7 @@
     "studio.cf.no": "Cancel",
     // round 11
     "studio.lead1": "Change the background, correct the light, retouch skin and make ID photos with a requirements check, all on this device.",
-    "studio.disc1": "Sample outfits are experimental simulations, not photos of you wearing them.",
+    "studio.disc1": "Sample outfits are draft simulations, not photos of you wearing them.",
     "studio.more": "Read more",
     "studio.techLine": "Technical details",
     "studio.a.qaDraft": "Switch how the outfit is shown",

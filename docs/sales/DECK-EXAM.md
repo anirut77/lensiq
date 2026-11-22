@@ -2,7 +2,7 @@
 
 > **ร่าง (DRAFT) 2026-11-11** สร้างจาก `docs/ONE-PAGER-EXAM.md` สไลด์ลูกค้าไม่มีตัวเลขความแม่นยำ มีเพียงข้อจำกัดในภาษาง่าย ๆ ตัวเลขละเอียดอยู่ใน `docs/tech-sheets/exam-TH.md` (มอบให้เมื่อถูกถาม)
 > บรรทัด "ไฟล์:" เป็นข้อมูลภายใน เจ้าของตัดออกก่อนส่งนอกองค์กรได้ [ต้องยืนยัน / to confirm] ช่อง [วงเล็บ] เจ้าของกรอก จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
-> ใช้ห้องคอมพิวเตอร์ (lab mode) เป็นตัวนำ ห้องสอบที่มีกล้องยังไม่เปิดให้บริการ ไม่ขาย
+> ใช้ห้องคอมพิวเตอร์ (lab mode) เป็นตัวนำ
 
 ---
 
@@ -11,7 +11,7 @@
 
 - ผู้ช่วยผู้คุมสอบ บอกว่าควรไปดูที่นั่งไหน **ไม่ตัดสินแทนคน**
 - ใช้คอมพิวเตอร์และเว็บแคมที่สถาบันมีอยู่ ประมวลผลบนเครื่อง ไม่ส่งภาพขึ้นคลาวด์
-- ห้องคอมพิวเตอร์ (`exam-lab.html`) เริ่มโครงการนำร่องได้ · ห้องสอบที่มีกล้อง (`exam-hall.html`) **ยังไม่เปิดให้บริการ**
+- ห้องคอมพิวเตอร์ (`exam-lab.html`) เริ่มโครงการนำร่องได้
 - ผู้นำเสนอ: [ชื่อ ตำแหน่ง] · [ชื่อผู้ขาย] (OP-01) · วันที่ [วันที่]
 
 ---
@@ -107,7 +107,6 @@
 - ลูกค้าชำระราคา + VAT 7% ผ่านใบเสนอราคาและโอนธนาคารเท่านั้น (OP-02: ถ้าผู้ขายไม่จดทะเบียน VAT ไม่มีบรรทัด VAT)
 - ระดับฟรี: ถึง 5 ผู้สอบต่อรอบสอบ เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มตามวันที่จะประกาศ โดยประกาศล่วงหน้าอย่างน้อย 30 วันและเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับผ่านสัญญา (OP-26)
 - ราคาปกติหลังผ่านเกณฑ์นำร่อง ใช้เมื่อไซต์ผ่านเกณฑ์ใน `docs/pilot/PILOT-EXAM.md` แล้วเท่านั้น (OP-10)
-- ห้องสอบที่มีกล้อง: **ยังไม่เปิดให้บริการ ไม่ขาย**
 - ตัวอย่าง: 40 ผู้สอบ × 10 = 400 บาท ก่อน VAT (VAT 28.00 รวม 428.00)
 - ไฟล์: `docs/PRICING-RESEARCH.md` §3.1 · สถานะการเสนอขาย: เจ้าของยืนยัน (OP-09)
 
@@ -136,7 +135,7 @@
 # English summary
 
 LENSIQ Exam is an invigilator's assistant that points to a seat and never decides misconduct. It runs on the institution's own computers and webcams, on the device, with no cloud upload.
-Computer-room mode can start a field pilot; the camera hall is not available yet and not for sale. It has no emotion, expression, lie or deception scoring, no suspicion score and no face recognition,
+Computer-room mode can start a field pilot. It has no emotion, expression, lie or deception scoring, no suspicion score and no face recognition,
 and age / gender / expression models are not part of customer builds. Phones close to the camera are detected well; a phone lying on the desk is usually missed, so invigilators should still walk the room.
 Free pilot: 1 institution, up to 4 weeks, up to 3 rooms. The technical sheet is available from sales on request.
 Free up to 5 candidates per session (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot price: 10 THB per candidate per exam (minimum 300 THB per session), 990 THB per lab per month, institution licence from 19,900 THB per year. Sold by quotation and bank transfer.

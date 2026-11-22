@@ -848,7 +848,7 @@ function syncOutfitNote() {
   const st = idState.shownOutfit, show = st === "preview" || st === "draft" || st === "safe" || st === "ai" || st === "off";
   el.hidden = !show; btn.hidden = !(st === "safe" || st === "draft"); if (!show) return;
   el.dataset.shown = st;
-  if (st === "off") { $("#pbOutfitMsg").textContent = tr("photobooth.js.of.off", "รูปติดบัตรนี้ใช้เสื้อของคุณเอง (ไม่ใส่ชุดจำลอง): ชุดจำลองปิดไว้เป็นค่าเริ่มต้น เพราะในชุดวัดผลของเรามีรอยให้เห็นทุกภาพ เปิด \"ชุดจำลองแบบทดลอง\" ในตัวเลือกรูปติดบัตรถ้าต้องการดูตัวอย่าง"); return; }
+  if (st === "off") { $("#pbOutfitMsg").textContent = tr("photobooth.js.of.off", "รูปติดบัตรนี้ใช้เสื้อของคุณเอง (ไม่ใส่ชุดจำลอง): ชุดจำลองปิดไว้เป็นค่าเริ่มต้น เพราะในชุดวัดผลของเรามีรอยให้เห็นทุกภาพ เปิด \"ชุดจำลองแบบร่าง\" ในตัวเลือกรูปติดบัตรถ้าต้องการดูตัวอย่าง"); return; }
   // "ai" = ภาพจากบริการสร้างภาพภายนอก (runAI): ยังเป็นภาพสังเคราะห์ มีป้ายมุมภาพ และหลายหน่วยงานไม่รับ
   $("#pbOutfitMsg").textContent = st === "ai" ? tr("photobooth.js.of.ai", "ชุดในรูปนี้สร้างโดยบริการสร้างภาพภายนอก (Replicate) เป็นภาพสังเคราะห์ ไม่ใช่ภาพถ่ายขณะสวมจริง รูปมีป้าย \"ภาพจำลองชุด\" ที่มุม หลายหน่วยงานไม่รับรูปที่แต่งชุดหรือสร้างด้วยดิจิทัล ตรวจคอ ปกเสื้อ และใบหน้าก่อนใช้")
     : st === "preview" ? tr("photobooth.js.of.preview", "ชุดเป็นชุดตัวอย่าง (พรีวิว) ที่โปรแกรมวาดขึ้น ไม่ใช่ภาพสวมจริง รูปมีป้าย \"ภาพจำลองชุด\" ที่มุม หลายหน่วยงานไม่รับรูปที่แต่งชุดด้วยดิจิทัล ใช้แบบไม่ใส่ชุดหรือถ่ายด้วยชุดจริงสำหรับการสมัครจริง")
@@ -966,7 +966,7 @@ function showIdResult(keep) { // keep = วาดใหม่ตอนเปล�
   const qc = idState.cap.qc;
   $("#resultSide").innerHTML = `
     <div class="note pb-outfit-note" id="pbOutfitNote" role="status" aria-live="polite" hidden><span id="pbOutfitMsg"></span> <button type="button" class="btn ghost sm" id="pbOutfitDraft"></button></div>
-    <div id="outfitGalleryWrap" ${idState.expOutfit ? "" : "hidden"}><h3>${tr("photobooth.js.res.gallery", "เลือกชุดจากรูปของคุณ")}</h3><p class="hint">${tr("photobooth.js.res.galleryNoteExp", "ชุดจำลองแบบทดลอง: ทุกชุดเป็นภาพที่โปรแกรมวาด ไม่ใช่ภาพสวมจริง ในชุดวัดผลของเรามีรอยให้เห็นทุกภาพ")}</p><div class="choices gallery" id="outfitGallery"></div></div>
+    <div id="outfitGalleryWrap" ${idState.expOutfit ? "" : "hidden"}><h3>${tr("photobooth.js.res.gallery", "เลือกชุดจากรูปของคุณ")}</h3><p class="hint">${tr("photobooth.js.res.galleryNoteExp", "ชุดจำลองแบบร่าง: ทุกชุดเป็นภาพที่โปรแกรมวาด ไม่ใช่ภาพสวมจริง ในชุดวัดผลของเรามีรอยให้เห็นทุกภาพ")}</p><div class="choices gallery" id="outfitGallery"></div></div>
     ${aiPanelHTML()}
     <h3>${tr("photobooth.js.qc.h", "ตรวจคุณภาพรูป")} ${qc ? tr("photobooth.js.qc.pass", "(ผ่าน {pass}/{total})", { pass: qc.pass, total: qc.total }) : ""}</h3>
     ${qc ? `<ul class="qc">${qc.items.map(([ok, good, bad]) => `<li class="${ok ? "ok" : "warn"}">${(ok ? good : bad)()}</li>`).join("")}</ul>${qc.pass < qc.total ? `<p class="note">${tr("photobooth.js.qc.retake", "แนะนำให้ถ่ายใหม่ตามข้อที่มีเครื่องหมาย !")}</p>` : ""}` : `<p class="note">${tr("photobooth.js.qc.none", "ตรวจคุณภาพไม่ได้ เพราะไม่พบใบหน้า")}</p>`}

@@ -12,7 +12,6 @@
 | ระบบ | ผลลัพธ์ |
 |---|---|
 | ห้องคอมพิวเตอร์ / สอบออนไลน์ (`exam-lab.html`) | ผู้สอบรับทราบประกาศและยินยอมก่อน ตรวจแสงและกล้อง เตือนเบา ๆ ก่อน (ไม่เห็นใบหน้า ออกจากเต็มจอ) และเห็นบันทึกของตัวเองเหมือนที่ผู้คุมสอบเห็น |
-| ห้องสอบที่มีกล้อง (`exam-hall.html`) | มือถือ/โน้ตบุ๊กเป็นเครื่องกล้อง จำนวนกล้องขึ้นกับขนาดห้อง (ดูคู่มือวางกล้อง: `docs/EXAM.md` "Hall camera placement guide") กำหนดที่นั่งบนภาพ แจ้ง "ข้อสังเกต" เช่น ที่นั่งว่าง เอนไปที่นั่งข้าง ๆ มีโทรศัพท์ในภาพ (เฉพาะแถวหน้าใกล้กล้อง: ในระยะห้องสอบโทรศัพท์มักเล็กเกินกว่าจะเห็น) |
 | แดชบอร์ดผู้คุมสอบ (`exam-dashboard.html`) | แผนผังที่นั่ง คิวข้อสังเกตตามลำดับ ทุกการกระทำต้องใส่ชื่อผู้คุมสอบ ทดสอบหน้างาน ("แจ้งถูก/แจ้งผิด") CSV เรียงตามเวลา รายงานพิมพ์ |
 | การปรับการสอบ | สถาบันกำหนดต่อที่นั่ง (พักบ่อย อ่านออกเสียง ฯลฯ) โดยไม่บันทึกการวินิจฉัย |
 
@@ -33,14 +32,11 @@
 "แจ้งถูก/แจ้งผิด" แผนและเช็กลิสต์: `docs/pilot/PILOT-EXAM.md` ผลเป็นตัวเลขของสถาบันเอง
 
 ## ราคา (ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย — ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7%)
-ห้องคอมพิวเตอร์ / สอบออนไลน์คิดต่อผู้สอบ ห้องสอบที่มีกล้องคิดต่อห้อง
-
-**ห้องสอบที่มีกล้อง:** ระบบนี้ยังไม่เปิดให้บริการ ราคาในแถวนั้นใช้เมื่อเปิดให้บริการแล้วเท่านั้น ห้องคอมพิวเตอร์ (`exam-lab.html`) เริ่มโครงการนำร่องได้
+ห้องคอมพิวเตอร์ / สอบออนไลน์คิดต่อผู้สอบ
 
 | แพ็กเกจ | ราคานำร่อง (ใช้ตอนนี้) | ราคาปกติหลังผ่านเกณฑ์นำร่อง |
 |---|---|---|
 | ห้องคอมพิวเตอร์ / ออนไลน์ (ต่อผู้สอบ) | 10 บาท ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7% (ขั้นต่ำ 300 บาทต่อรอบ ไม่รวม VAT 7%) หรือ 990 บาท/เดือน/ห้องแล็บคอมพิวเตอร์ ไม่รวม VAT 7% | 15–30 บาท ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7% หรือ 990–1,490 บาท/เดือน ไม่รวม VAT 7% |
-| ห้องสอบที่มีกล้อง (ต่อห้อง จำนวนกล้องขึ้นกับขนาดห้อง ดูคู่มือวางกล้อง) | 290 บาท ต่อห้องต่อวันสอบ ไม่รวม VAT 7% หรือ 990 บาท/เดือน/ห้อง ไม่รวม VAT 7% | 300–600 บาท ต่อห้องต่อวันสอบ ไม่รวม VAT 7% หรือ 1,990 บาท/เดือน/ห้อง ไม่รวม VAT 7% |
 | ใบอนุญาตทั้งสถาบัน | เริ่ม 19,900 บาท/ปี ไม่รวม VAT 7% (≤ 1,000 ผู้สอบ) | 30,000–120,000 บาท/ปี ไม่รวม VAT 7% |
 
 ราคาปกติหลังผ่านเกณฑ์นำร่องใช้เมื่อสถานที่ผ่านเกณฑ์ใน `docs/pilot/PILOT-EXAM.md` แล้วเท่านั้น โครงการนำร่องภาคสนาม (1 สถาบัน ≤ 4 สัปดาห์ ≤ 3 ห้อง) ฟรี
@@ -70,7 +66,6 @@ analysis and no face recognition. **Approved price list (not on sale yet)**: pri
 (`docs/PRICING-RESEARCH.md` §3.1); nothing is charged yet.
 
 **What you get:**
-- **Camera exam hall** (`exam-hall.html`): seat polygons and objective observations (empty seat, leaning, phone in view: front rows near the camera only, as at exam-room distance a phone is usually too small to see). The number of cameras depends on room size (see the guide: `docs/EXAM.md` "Hall camera placement guide").
 - **Computer room / online** (`exam-lab.html`): notice and consent, a light check, gentle prompts first, and the
   candidate sees their own log.
 - **Dashboard:** a seat map, a queue, a named action for every response, the on-site tally (right / wrong), a CSV in
@@ -97,14 +92,11 @@ The technical sheet is available from sales on request.
 exam, then a real exam with invigilator tallies (`docs/pilot/PILOT-EXAM.md`).
 
 **Price (approved price list, not on sale yet; excl. 7% VAT, so the customer pays the price + 7%). Computer rooms and
-online exams are priced per candidate, camera halls per room:**
-
-**Camera hall:** this service is not available yet; its row applies only once the service opens. The computer-room mode (`exam-lab.html`) can start a field pilot.
+online exams are priced per candidate:**
 
 | Package | Pilot price (now) | Regular price after the pilot thresholds are met |
 |---|---|---|
 | Computer room / online (per candidate) | 10 THB per candidate per exam excl. 7% VAT (minimum 300 THB per session excl. 7% VAT), or 990 THB / month per computer lab excl. 7% VAT | 15–30 THB per candidate per exam excl. 7% VAT, or 990–1,490 THB / month excl. 7% VAT |
-| Camera hall (per room; number of cameras depends on room size, see the guide) | 290 THB per room per exam day excl. 7% VAT, or 990 THB / month per room excl. 7% VAT | 300–600 THB per room per exam day excl. 7% VAT, or 1,990 THB / month per room excl. 7% VAT |
 | Institution licence | from 19,900 THB / year excl. 7% VAT | 30,000–120,000 THB / year excl. 7% VAT |
 
 The regular price after the pilot thresholds are met applies only once the site has passed `docs/pilot/PILOT-EXAM.md`. The field pilot (1

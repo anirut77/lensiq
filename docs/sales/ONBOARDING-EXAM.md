@@ -1,7 +1,7 @@
 # คู่มือเริ่มต้นใช้งาน: LENSIQ Exam (ห้องคอมพิวเตอร์ / lab mode)
 
 > **ร่าง (DRAFT) 2026-11-11** สำหรับลูกค้าหลังตกลงซื้อหรือเริ่มโครงการนำร่อง ใช้ได้กับ `exam-lab.html` และ `exam-dashboard.html`
-> ห้องสอบที่มีกล้อง (`exam-hall.html`) ยังไม่เปิดให้บริการ ไม่ขาย ไม่อยู่ในคู่มือนี้ ฐานข้อมูล: `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md`,
+> ฐานข้อมูล: `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md`,
 > `docs/DEPLOYMENT-CHECKLIST.md`, `docs/SUPPORT.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
 > ตัวอย่างข้อความติดต่ออยู่ท้ายเอกสาร ช่อง [วงเล็บ] เจ้าของกรอก ห้ามแต่งข้อมูลติดต่อ
 
@@ -78,8 +78,7 @@
 
 # English
 
-> **DRAFT 2026-11-11.** For customers after purchase or at the start of a pilot. Covers `exam-lab.html` and `exam-dashboard.html`. The camera exam hall (`exam-hall.html`) is not available yet,
-> not sold and not covered. Based on `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md`, `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`. Open points (OP-xx) are in `docs/sales/README.md`.
+> **DRAFT 2026-11-11.** For customers after purchase or at the start of a pilot. Covers `exam-lab.html` and `exam-dashboard.html`. Based on `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md`, `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`. Open points (OP-xx) are in `docs/sales/README.md`.
 > Contact fields in [brackets] are for the owner. Never invent contact details.
 
 > Free tier: Exam up to 5 candidates per session; beyond it a licence is needed. Not enforced in the product yet (no counter or timer in the code). The limits start on a date to be announced at least 30 days ahead and begin 30 days after the announcement; the owner enforces them by contract. Customers can always export their own data (OP-20, OP-26).

@@ -262,7 +262,7 @@
     "studio.techLine": "技术细节",
     "studio.a.qaDraft": "切换服装显示方式",
     "studio.exp.title": "示例服装（草稿）",
-    "studio.exp.note": "实验功能：服装由软件绘制在您的照片上，颈部或下颌处常可见接缝。仅用于预览效果，不适用于正式照片。",
+    "studio.exp.note": "草稿：服装由软件绘制在您的照片上，颈部或下颌处常可见接缝。仅用于预览效果，不适用于正式照片。",
     "studio.sec.outfitPick": "选择服装",
     "studio.js.ready.done": "完成（{s} 秒）",
     "studio.js.ready.doneWarn": "完成（{s} 秒）· 未找到面部特征点，可手动调整颈部和肩部点",

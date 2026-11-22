@@ -104,7 +104,6 @@
 | Exam | ห้องคอมพิวเตอร์/ออนไลน์ ต่อผู้สอบ (`exam_lab`) | ผู้สอบต่อการสอบ | 10 (ขั้นต่ำ 300 ต่อรอบ) | 15–30 |
 | Exam | ห้องคอมพิวเตอร์/ออนไลน์ รายเดือน (`exam_lab`) | ห้องปฏิบัติการต่อเดือน | 990 | 990–1,490 |
 | Exam | ใบอนุญาตทั้งสถาบัน (`exam_institution`) | ปี (≤ 1,000 ผู้สอบ) | เริ่ม 19,900 | 30,000–120,000 ตามขนาด |
-| Exam | ห้องสอบที่มีกล้อง (`exam_hall`) | — | **รุ่นทดลอง ไม่ขาย ห้ามใส่ในใบเสนอราคา** | — |
 | Attendance | ฟรี (`attendance_free`) ไม่เกิน 5 คน PIN/QR 1 เครื่อง (เกินนั้นต้องมีใบอนุญาต; ข้อจำกัดเริ่มตามวันที่จะประกาศ) | — | ฟรี | ฟรี |
 | Attendance | มาตรฐาน (`attendance_employee`) | คนที่ใช้งานต่อเดือน | 19 (ขั้นต่ำ 190 ต่อเดือน) | 29 (ขั้นต่ำ 290 ต่อเดือน) |
 | Attendance | ช่วยตั้งค่า (`attendance_setup`) ไม่บังคับ | ครั้งเดียว | 2,900 | 4,900 |
@@ -249,7 +248,6 @@ Source: `docs/PRICING-RESEARCH.md` §3.1–3.4 and `BILLING-PLAN.md` §4.1. Use 
 | Exam | Computer room / online, per candidate (`exam_lab`) | candidate per exam | 10 (minimum 300 per session) | 15–30 |
 | Exam | Computer room / online, monthly (`exam_lab`) | lab per month | 990 | 990–1,490 |
 | Exam | Institution licence (`exam_institution`) | year (up to 1,000 candidates) | from 19,900 | 30,000–120,000 by size |
-| Exam | Camera exam hall (`exam_hall`) | — | **experimental, not sold, do not quote** | — |
 | Attendance | Free (`attendance_free`), up to 5 people, PIN/QR, 1 device (beyond it a licence is needed; limits apply from a date to be announced) | — | free | free |
 | Attendance | Standard (`attendance_employee`) | active person per month | 19 (minimum 190 per month) | 29 (minimum 290 per month) |
 | Attendance | Set-up help (`attendance_setup`), optional | one-off | 2,900 | 4,900 |

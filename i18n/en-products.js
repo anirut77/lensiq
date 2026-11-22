@@ -20,7 +20,7 @@
   // ---------- index.html chooser ----------
   "pd.i.kicker": "Products",
   "pd.i.h": "Choose a LENSIQ product",
-  "pd.i.sub": "Four products on one engine, one account and one back office — every tool is still listed below",
+  "pd.i.sub": "Four products on one engine, one account and one back office — the other tools on offer are listed below",
   "pd.i.fortune": "Face reading, palm reading, tarot, birth-date horoscopes and 10+ more traditions, with readings in Thai, English and Chinese.",
   "pd.i.retail": "Door counts, estimated conversion, queues and multi-branch totals for shops and SMEs",
   "pd.i.hr": "Structured interviews, independent scoring before discussion, a check for questions to avoid, and a candidate practice mode",
