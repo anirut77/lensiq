@@ -101,7 +101,7 @@ export async function runBusy(ctx, engine) {
     checkExceptions();
   });
   let browser = null, cdp = null, MD_SHIM = "";
-  if (engine === "webkit") { browser = await (await import("playwright")).webkit.launch(); MD_SHIM = (await import("./phone-kit.mjs")).MD_SHIM; }
+  if (engine === "webkit") { const pk = await import("./phone-kit.mjs"); browser = await pk.launchWebKit(); MD_SHIM = pk.MD_SHIM; } // relock-226: off-page preview
   else cdp = await launch();
   try {
     for (const b of LIST) {

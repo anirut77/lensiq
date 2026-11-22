@@ -15,3 +15,8 @@ a1902775574449b47b8ce4a62c7c26754ad608d4e32f4caeb975b4b91b64eb1b  tests/e2e/cdp.
 d4819001db731c9e8e9d74ee09aee8069f7dc38d39de9f78a860982c07a78fd6  relock-226/NOTE.txt
 0ea7edb548f89f1843a3c03897f928b15d3435260310c4a25e15ba700e1cdef4  tests/e2e/cdp.mjs  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/cdp-goto-errpage/relock-226/cdp.mjs)
 # field only relock-226/NOTE.txt (lock 2026-11-22T00:32:49Z: no repo file uses it)
+# locked 2026-11-22T08:23:19Z (tools/eval-guard.mjs lock, 2 files)
+858a50dc984b72efcd50407993a947e5a564b834bfed352b4e459c10876f9218  relock-226b/cdp.mjs
+5d3f628ac51243fbef342792821758fb8ef45d097b9b3bc7e3797141bddfa135  relock-226b/NOTE.txt
+858a50dc984b72efcd50407993a947e5a564b834bfed352b4e459c10876f9218  tests/e2e/cdp.mjs  # repo file (same commit as lock 2026-11-22T08:23:19Z; field: ~/LENSIQ-field/evals/cdp-goto-errpage/relock-226b/cdp.mjs)
+# field only relock-226b/NOTE.txt (lock 2026-11-22T08:23:19Z: no repo file uses it)

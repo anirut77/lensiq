@@ -38,3 +38,8 @@ d533420cd8342326439dee3aa87f9cba6683d18ba4cc492fb9d2044978b9730b  restored-c23b5
 02e6db077b9f9624ba318579dd20b74451e1767ba9fb4b765aa2b7bccce016e5  relock-223/NOTE.txt
 0418d0acd3dc968c94a2a6e8b89b1bab3cc756a8770f0f3606c5d19d11ade796  tests/e2e/exam-widths.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/examlab-90/relock-223/exam-widths.e2e.mjs)
 # field only relock-223/NOTE.txt (lock 2026-11-21T18:57:33Z: no repo file uses it)
+# locked 2026-11-22T08:23:20Z (tools/eval-guard.mjs lock, 2 files)
+c7cd2491d42a58b5b5fad012e0026d38417a12414614c078d1007c56d70717d8  relock-226/exam-pages-webkit.e2e.mjs
+5d346d174a554248c7d0a16a16673f380bf923e71eed715ef36a5784c3215c2e  relock-226/NOTE.txt
+c7cd2491d42a58b5b5fad012e0026d38417a12414614c078d1007c56d70717d8  tests/e2e/exam-pages-webkit.e2e.mjs  # repo file (same commit as lock 2026-11-22T08:23:20Z; field: ~/LENSIQ-field/evals/examlab-90/relock-226/exam-pages-webkit.e2e.mjs)
+# field only relock-226/NOTE.txt (lock 2026-11-22T08:23:20Z: no repo file uses it)

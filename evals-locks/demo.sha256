@@ -4,3 +4,8 @@ fe30614723f686c04baedf9e31077a18780cf2e119e64141496d94c3aa520590  tests/e2e/demo
 # Wed Nov 11 20:35:10 +07 2026
 2984553ec5486948913168aaa6c36d8b96c927a42c9fd078a81463f7affd4b56  tests/e2e/demo-mode.e2e.mjs (after amendment 1)  # repo file
 be8476ac8a79a3c58759a75a2a6ef993caf5c716325bb54aaff1da49ffee8162  tests/e2e/demo-mode.e2e.mjs (after amendment 2)  # repo file
+# locked 2026-11-22T08:23:20Z (tools/eval-guard.mjs lock, 2 files)
+8b7da16da88df410d294afd4056ffe6ad7f9d509a0d5964033fc94250bd8081f  relock-226/demo-mode.e2e.mjs
+1b36ff56f26adebb5b9145315d445acf865710debf3cff655edaf7d7187a84bc  relock-226/NOTE.txt
+8b7da16da88df410d294afd4056ffe6ad7f9d509a0d5964033fc94250bd8081f  tests/e2e/demo-mode.e2e.mjs  # repo file (same commit as lock 2026-11-22T08:23:20Z; field: ~/LENSIQ-field/evals/demo/relock-226/demo-mode.e2e.mjs)
+# field only relock-226/NOTE.txt (lock 2026-11-22T08:23:20Z: no repo file uses it)
