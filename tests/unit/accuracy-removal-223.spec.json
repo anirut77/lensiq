@@ -1178,10 +1178,24 @@
       "ระบบที่ยังไม่เปิดให้บริการจะไม่แสดงบนเว็บไซต์ ระบบที่เปิดให้บริการอาจเปลี่ยนแปลงหรือยกเลิกได้",
       "Products that are not yet available are not shown on the site.",
       "尚未开放的产品不在网站上显示。",
-      "ไม่รับประกันความถูกต้อง"
+      "ไม่รับประกันความถูกต้อง",
+      "วันนี้การเปิดหรือปิดแต่ละระบบเป็นรายการใน `nav.js` ที่เปลี่ยนได้ด้วยการออกรุ่นใหม่ของเว็บไซต์",
+      "หน้าจอหลังบ้านสำหรับให้ผู้ดูแลเปิดปิดเองเป็นขั้นที่ 2 ที่วางแผนไว้และยังไม่ได้สร้าง",
+      "Today the on/off switch is a list in `nav.js`, changed by a release of the site",
+      "a back-office screen for the administrator to switch products is a planned step 2 and is not built",
+      "目前开关是 `nav.js` 中的一个列表，通过发布新版本网站来更改",
+      "供管理员在后台开关产品的界面是计划中的第 2 步，尚未建成"
     ],
     "$commentDraft": "re-lock 5 (review round 3, decision 226): the proposed clause 2 no longer says the site shows a 'รุ่นทดลอง' label (the site shows none); the draft must also not say so",
-    "draftMustNot": ["ฟีเจอร์รุ่นทดลองแสดงป้าย", "carry a “Trial version” label", "带有“试用版”标签"]
+    "draftMustNot": [
+      "ฟีเจอร์รุ่นทดลองแสดงป้าย",
+      "carry a “Trial version” label",
+      "带有“试用版”标签",
+      "ผู้ดูแลเปิดหรือปิดแต่ละระบบจากหลังบ้าน",
+      "the administrator switches each product on or off in the back office",
+      "管理员在后台开启或关闭每个产品"
+    ],
+    "$commentDraft6": "re-lock 6 (independent review follow-up, decision 226): point 2 of the draft states the switch as it is today (a list in nav.js changed by a release) and the back-office screen as the planned step 2, not built; the old sentence that the administrator switches products in the back office is banned (draft for legal review)"
   },
   "rules": {
     "claudeMd": [
@@ -1502,5 +1516,158 @@
         "why": "back office data, not a customer page"
       }
     ]
+  },
+  "offNames": {
+    "$comment": "re-lock 6: display names of the switched-off products (nav.js TH title, EN / ZH nav titles, plus the short names the pages used); rendered visible text naming one fails (visibility-223 V1 / V6, contract R11). Generic negations ('ไม่วิเคราะห์อารมณ์', '不做情绪分析': no emotion inference) are not the product name and are excluded by the regex. Pages excluded from the site-wide text check, with reason: terms.html (byte-identical lock fortune-credits D5; changes only after the lawyer), privacy.html and camera-notice.html (legal notices of what each system processes; changing what users see about privacy needs the owner and the lawyer)",
+    "names": {
+      "signage": [
+        {
+          "re": "ป้ายโฆษณาดิจิทัล"
+        },
+        {
+          "re": "ป้ายโฆษณา"
+        },
+        {
+          "re": "Digital Signage",
+          "flags": "i"
+        },
+        {
+          "re": "数字广告屏"
+        },
+        {
+          "re": "广告屏"
+        }
+      ],
+      "customers": [
+        {
+          "re": "จดจำลูกค้า"
+        },
+        {
+          "re": "Customer Recognition",
+          "flags": "i"
+        },
+        {
+          "re": "顾客识别"
+        }
+      ],
+      "neuro": [
+        {
+          "re": "(?<!ไม่|การ)วิเคราะห์อารมณ์"
+        },
+        {
+          "re": "Emotion Response",
+          "flags": "i"
+        },
+        {
+          "re": "Neuromarketing",
+          "flags": "i"
+        },
+        {
+          "re": "(?<!不做)情绪分析"
+        },
+        {
+          "re": "神经营销"
+        }
+      ],
+      "teamface": [
+        {
+          "re": "โหงวเฮ้งทีม"
+        },
+        {
+          "re": "Team Face Reading",
+          "flags": "i"
+        },
+        {
+          "re": "团队面相"
+        }
+      ],
+      "exam-hall": [
+        {
+          "re": "เครื่องกล้องในห้องสอบ"
+        },
+        {
+          "re": "เครื่องกล้องในห้อง"
+        },
+        {
+          "re": "Exam hall camera",
+          "flags": "i"
+        },
+        {
+          "re": "room cameras?",
+          "flags": "i"
+        },
+        {
+          "re": "考场摄像头"
+        }
+      ],
+      "product-check": [
+        {
+          "re": "ตรวจสินค้า \\(ทุกประเทศ\\)"
+        },
+        {
+          "re": "Product Check",
+          "flags": "i"
+        }
+      ]
+    },
+    "textExcludePages": [
+      "terms.html",
+      "privacy.html",
+      "camera-notice.html"
+    ]
+  },
+  "followup223": {
+    "$comment": "re-lock 6 (four leftovers of the independent review): help FAQ h-hr shown again without the team-face line; exam-dashboard intro without the hall; insights drops the data of switched-off pages (iqCollect); PDPA note on the split camera-notice sentence",
+    "help": [
+      {
+        "id": "h-hr",
+        "summary": "ใช้ชุดสัมภาษณ์อย่างไรให้ถูกต้อง",
+        "keep": [
+          "<b>ระบบไม่ตัดสินใจจ้างงาน</b>",
+          "ข้อสังเกตจากกล้องปิดเป็นค่าเริ่มต้น เป็นข้อมูลป้อนกลับให้ผู้สมัครเอง ห้ามใช้ให้คะแนน",
+          "อย่าถามเรื่องศาสนา สุขภาพ การตั้งครรภ์ สถานภาพสมรส"
+        ],
+        "hide": "โหงวเฮ้งทีม"
+      },
+      {
+        "id": "en-h-hr",
+        "summary": "How should the interview kit be used?",
+        "keep": [
+          "<b>It never makes the hiring decision</b>",
+          "Camera observations are off by default, are feedback for the candidate only and must not be used for scoring.",
+          "Do not ask about religion, health, pregnancy, marital status"
+        ],
+        "hide": "Team face reading"
+      },
+      {
+        "id": "zh-h-hr",
+        "summary": "应如何正确使用面试工具包？",
+        "keep": [
+          "<b>它绝不做录用决定</b>",
+          "摄像头观察默认关闭，仅作为给候选人本人的反馈，不得用于评分。",
+          "不要询问与工作无关的宗教、健康、怀孕、婚姻状况"
+        ],
+        "hide": "团队面相"
+      }
+    ],
+    "examDbLead": {
+      "th": "รวมเหตุการณ์จากหน้าผู้เข้าสอบ เป็นผังที่นั่งและรายการที่ควรไปดู ระบบแจ้งให้คนไปตรวจเท่านั้น ผู้คุมสอบเป็นผู้ตัดสินทุกกรณี ไม่มีภาพจากกล้องในหน้านี้",
+      "en": "Brings together events from the candidate pages as a seat map and a list of places to check. The system only asks a person to go and look; the invigilator decides every case. No camera images appear on this page",
+      "zh": "汇总考生页面的事件，显示为座位图和待查看列表。系统只提醒有人去看，每个情况都由监考老师判断。本页面不显示任何摄像头画面"
+    },
+    "insightsDrop": {
+      "sg": "signage",
+      "cx": "customers",
+      "neuro": "neuro"
+    },
+    "pdpa": {
+      "file": "docs/PDPA-NOTES-FOR-COUNSEL.md",
+      "section": "## Decision 226 (2026-11-22)",
+      "must": [
+        "split in two, one per tool, with the same meaning",
+        "ตรวจกระดาษคำตอบ ถ่ายกระดาษ ไม่ต้องใช้ป้าย",
+        "答题卡批改拍摄的是纸张，无需告示"
+      ]
+    }
   }
 }

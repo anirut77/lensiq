@@ -171,3 +171,19 @@ longer says the site shows "รุ่นทดลอง" (draft for legal review
 
 Also changed for "off = not shown" (unlocked or generated): exam.html and en / zh-exam `exam.l.priceStages` no longer say
 the camera hall is priced per room.
+
+### Independent review follow-up (four leftovers, 2026-11-22): re-locks, all STRICTER (`relock6`, `relock-226c`)
+
+| Lock | File | Old | New | Kind |
+|---|---|---|---|---|
+| accuracy-removal-223/relock6 | contract spec + test | R6: draft clause 2 = the 226 sentence; no check of how the switch works | R6 also: the draft says the switch today is a list in nav.js changed by a release and the back-office screen is a planned step 2, not built (TH / EN / ZH); the old "the administrator switches each product in the back office" sentences banned. New R11: help FAQ h-hr / en-h-hr / zh-h-hr shown, exact new summaries, the three interview-kit guidance lines present and not hidden, only the team-face line hidden; exam.db.lead exact (no hall camera) TH / EN / ZH; insights `iqCollect` drops signage / customers / emotion-test data under the customer visibility (Node and the e2e preview keep all); the PDPA note records the split camera-notice sentence; new `offNames` patterns bite (fixtures) | stricter |
+| accuracy-removal-223/relock6 | visibility-223.e2e | V1 (relock 5): rendered links only | V1 also fails on rendered visible text naming a switched-off product (spec.offNames; terms.html, privacy.html, camera-notice.html excluded with reasons in the spec); new V6: insights with its sample data (all presets, every card, every fold), exam dashboard `?demo=1`, help with every fold open: no name, no A/B card, no link; help FAQ shown with its guidance lines, without the team-face line | stricter |
+| fortune-credits/v3/relock-226c | fortune-credits-v2.test.js D5 | help.html pin 6f0be4842e1c… (h-hr entries hidden whole) | 07ddf7afeb33… : the 3 whole-entry hides replaced by 6 listed replacements (summaries without team face, only the team-face line hidden), 15 replacements; new checks: each entry shown, exactly 1 hidden and 3 shown lines | equal (exact pin) + new checks |
+
+Product (after the locks): insights-data.js `iqOn` / `IQ_PAGE_OF`: the data of a page switched off in `window.LQ_VISIBILITY`
+is dropped in `iqCollect` while nav.js hides switched-off parts (`html.lq-part-off`; the e2e preview removes the class, as
+for every part), so no chart note, A/B block, funnel source, card, KPI, report or CSV row can name it; insights-ui.js funnel
+heading and "no data" hints name only switched-on systems (new TH / EN / ZH strings); exam-dashboard intro without the hall
+camera (TH / EN / ZH); help.html FAQ h-hr shown again, team-face line hidden; legal draft point 2 (draft for legal review);
+PDPA note on the split camera-notice sentence. Not changed (reported): terms.html, privacy.html and camera-notice.html still
+name switched-off products in their legal text; the exam dashboard's "ลองสาธิต" button still adds a hall camera device.
