@@ -28,7 +28,7 @@ test("the claim rules really fail on each class of overclaim and on a status tha
   const rules = JSON.parse(fs.readFileSync(path.join(root, RULES), "utf8"));
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "lq-claims-"));
   try {
-    const files = new Set([RULES, "nav.js", "exam-dashboard.js"]);
+    const files = new Set([RULES, "nav.js", "exam-dashboard.js", "i18n/en-home.js", "i18n/zh-home.js"]); // *-home.js: home.* moved out of *-common.js
     for (const r of rules.mustSay) { r.html.forEach(f => files.add(f)); files.add(`i18n/en-${r.dict}.js`); files.add(`i18n/zh-${r.dict}.js`); }
     for (const f of rules.files) files.add(f.file);
     for (const rel of files) { const dst = path.join(tmp, rel); fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.copyFileSync(path.join(root, rel), dst); }
@@ -46,8 +46,8 @@ test("the claim rules really fail on each class of overclaim and on a status tha
     expectErr(edit("i18n/en-solutions.js", "Tells invigilators", "Detects cheating and tells invigilators"), /overclaim \[cheating-en\]/);
     expectErr(edit("solutions.html", "บอกกรรมการว่า", "ตรวจจับการทุจริต บอกกรรมการว่า"), /overclaim \[cheating-th\]/);
     expectErr(edit("i18n/zh-solutions.js", "提示监考员", "检测作弊，提示监考员"), /overclaim \[cheating-zh\]/);
-    expectErr(edit("i18n/en-common.js", "See results while the camera runs", "Highly accurate results while the camera runs"), /overclaim \[superlative-en\]/);
-    expectErr(edit("i18n/en-common.js", "See what customers look at", "Learn how customers feel, what they look at"), /overclaim \[feelings-en\]/);
+    expectErr(edit("i18n/en-home.js", "See results while the camera runs", "Highly accurate results while the camera runs"), /overclaim \[superlative-en\]/);
+    expectErr(edit("i18n/en-home.js", "See what customers look at", "Learn how customers feel, what they look at"), /overclaim \[feelings-en\]/);
     // status drift: hall name, Crowd limit on a card, the category listing and the nav entry. Owner decision 226 (was 223: the
     // badge words "รุ่นทดลอง" / "Trial version" / "试用版" were required): the label must NOT come back anywhere these rules look
     expectErr(edit("i18n/en-exam.js", "\"exam.hall.h1\": \"Exam hall camera\"", "\"exam.hall.h1\": \"Exam-room camera\""), /exam\.hall\.h1.*Exam hall camera/);

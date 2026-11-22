@@ -72,6 +72,6 @@ test("copy guard: no studio / photo-booth text says the outfit change looks real
 test("the studio is named Portrait & ID Photo Studio wherever it is linked (no 'Outfit Studio' / 'สตูดิโอแต่งชุด' label)", () => {
   const html = ["index.html", "cameras.html", "creative-suite.html"].map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join("\n");
   for (const m of html.matchAll(/href="studio\.html"[^>]*>([\s\S]{0,200}?)<\/a>/g)) assert.ok(!/สตูดิโอแต่งชุด/.test(m[1].replace(/<[^>]+>/g, "")), m[1].slice(0, 80));
-  const flat = { ...dict("en-common.js"), ...dict("en-cameras.js"), ...dict("en-products.js") };
+  const flat = { ...dict("en-common.js"), ...dict("en-home.js"), ...dict("en-cameras.js"), ...dict("en-products.js") }; // en-home.js: home.* (index.html only)
   for (const k of ["home.link.studio", "cameras.s142", "pd.c.c2.h", "nav.studio.title"]) { assert.ok(flat[k], k); assert.ok(!/outfit studio/i.test(flat[k]), `${k}: ${flat[k]}`); }
 });
