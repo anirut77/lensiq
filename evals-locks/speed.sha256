@@ -13,3 +13,6 @@ eeab36fdfd2cc1d00b920fb0b0f5dc99aa71e75f40582036c41dda125ff1baa9  tests/e2e/spee
 fb5b985051c1a02071803c1d97b7d4c226633d418f82f38e30ef994d21670f5d  tools/perf-measure.mjs
 # re-lock 2026-11-15T13:52:09Z (coordinator): disk-guard commit 480ea46 added an import of tools/disk-guard.mjs and one assertFreeSpace() call before the first browser launch; no assertion, threshold, input or measurement logic changed. Append-only.
 9966c505eaed875a271335ba570fd8ae2ffd711624b58e532e55cdf1c9a012dc  tools/perf-measure.mjs
+# late entry 2026-11-21 (owner, item 208 follow-up): the disk-guard re-lock of 2026-11-15T13:52:09Z (line 15) recorded tools/perf-measure.mjs with no field copy. The same bytes, written from git 480ea468, now sit in ~/LENSIQ-field/evals/speed/relock-diskguard-480ea468/.
+9966c505eaed875a271335ba570fd8ae2ffd711624b58e532e55cdf1c9a012dc  relock-diskguard-480ea468/perf-measure.mjs
+9966c505eaed875a271335ba570fd8ae2ffd711624b58e532e55cdf1c9a012dc  tools/perf-measure.mjs  # repo file (late entry 2026-11-21, owner, item 208 follow-up; same bytes as line 15; field: ~/LENSIQ-field/evals/speed/relock-diskguard-480ea468/perf-measure.mjs)

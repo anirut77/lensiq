@@ -21,3 +21,12 @@ aa0fc5e4a7885a2ed5cc9d479195b953e955800697a7269489d8142b10c39af4  crisis-escape-
 84d69a06ad6d90dbccb61ce77e9bfbef3e0797710dcd3481d930652b1fdcf26d  crisis-price-scan-menu.r3.e2e.mjs
 # RE-LOCK 2026-11-18 (branch fortune-credits, owner decision 110 ก conditions 3 + 4): tests/unit/crisis-escape-guard-allow.json = crisis-escape-guard-allow.protect.r2.json (3a88c00f) minus "palm plEthics", "tarot trCredit", "fengshui fsSourcesNote" (deleted elements). Lock and field copy in evals-locks/crisis-escape-guard.sha256 (crisis-escape-guard-allow.v4-combined.json); ledger docs/CRISIS-V3-RELOCKS.md "Combined re-lock A1".
 cfab9eeff3e15114435067eb16889c632778afae60eef6cb2e80e5e5fc6a8d7c  tests/unit/crisis-escape-guard-allow.json  # repo file (combined A1)
+# RELOCK 1 2026-11-22 (branch datefix-1122, test fault; CI 44967706758 palm [th]), approved by the coordinator after an independent review, locked
+# BEFORE measuring: crisis-price-scan-kit.mjs VISIBLE (r2 0ae24852 -> this): allowed texts matched against the hit's block (nav.js wrap pieces
+# skipped) and only when the hit lies inside them; every block's shown text also scanned as a whole (a price split across nodes is flagged).
+# STRICTER. Field note: relock1/NOTE.txt.
+# locked 2026-11-22T02:23:00Z (tools/eval-guard.mjs lock, 2 files)
+2963a64f214b5e3a21ad1ba98594c23a80d4acdd95af588af72f21b99b2957e5  relock1/crisis-price-scan-kit.mjs
+b7318f20df24f1926de8140804018449ffaf5f9d560fd4e860362adc9b05b8ae  relock1/NOTE.txt
+2963a64f214b5e3a21ad1ba98594c23a80d4acdd95af588af72f21b99b2957e5  tests/e2e/crisis-price-scan-kit.mjs  # repo file (same commit as lock 2026-11-22T02:23:00Z; field: ~/LENSIQ-field/evals/crisis-v3-protect/relock1/crisis-price-scan-kit.mjs)
+# field only relock1/NOTE.txt (lock 2026-11-22T02:23:00Z: no repo file uses it)

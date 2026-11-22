@@ -644,7 +644,8 @@
   }
   for (const id of ["#clipOn", "#clipAuto", "#clipDays"]) $(id).addEventListener("change", readClipCfg);
   clips.setCfg(clipCfg);
-  clips.refresh().then(clipUI);
+  clipUI(); // at once (decision 219 ก, 2026-11-21): the static HTML shows neither lead; the clip setting picks one before IndexedDB answers
+  clips.refresh().then(clipUI); // again once the kept-clip list is read: the clip box shows when clips are stored on this device
   $("#recent").addEventListener("click", e => {
     const b = /** @type {HTMLElement} */ (e.target).closest("[data-keep]"); if (!b) return;
     clips.keep(b.getAttribute("data-keep"), "kept");

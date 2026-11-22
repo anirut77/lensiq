@@ -1,0 +1,19 @@
+# evals-locks/datefix-1122.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/datefix-1122/ (owner rule 2026-11-13, locked sets persist). Append-only.
+# datefix-1122 (main red 2026-11-22, CI 44967695261 / 44967706758): date span for the horoscope / bazi caution visibility, and the crisis price scan
+# vs nav.js wrap pieces on palm. Locked BEFORE any measurement on branch datefix-1122 (base origin/main f24d5b1f). SYNTHETIC. Field note: NOTE.txt.
+# locked 2026-11-22T01:58:53Z (tools/eval-guard.mjs lock, 3 files)
+c405ce34cf9e05a5fd036cf7d28569e790b6c2b95b2e453a7ea42fd1c487af10  fortune-caution-dates.e2e.mjs
+76e5b95f37eb4085701400028cf95275784b0676e2aea408a0fa41061ea474fb  crisis-price-scan-wrap.e2e.mjs
+e83f11d4ec22917267c3653ef1aa58065a2b32992f0c3b1ee94fdde9621329f6  NOTE.txt
+c405ce34cf9e05a5fd036cf7d28569e790b6c2b95b2e453a7ea42fd1c487af10  tests/e2e/fortune-caution-dates.e2e.mjs  # repo file (same commit as lock 2026-11-22T01:58:53Z; field: ~/LENSIQ-field/evals/datefix-1122/fortune-caution-dates.e2e.mjs)
+76e5b95f37eb4085701400028cf95275784b0676e2aea408a0fa41061ea474fb  tests/e2e/crisis-price-scan-wrap.e2e.mjs  # repo file (same commit as lock 2026-11-22T01:58:53Z; field: ~/LENSIQ-field/evals/datefix-1122/crisis-price-scan-wrap.e2e.mjs)
+# field only NOTE.txt (lock 2026-11-22T01:58:53Z: no repo file uses it)
+# RELOCK 1 2026-11-22, STRICTER (independent review), locked BEFORE measuring: crisis-price-scan-wrap.e2e.mjs + W5 (price split across a wrap
+# piece, TH / EN / ZH); fortune-caution-dates.e2e.mjs opens a closed tab only when a visitor can see and use it. Field note: relock1/NOTE.txt.
+# locked 2026-11-22T02:23:00Z (tools/eval-guard.mjs lock, 3 files)
+ca6600cd144ccf411fc25f07f234f8f9bffc24e5c99d95ebdafcbc57a7ece2ca  relock1/crisis-price-scan-wrap.e2e.mjs
+4d48e63c3fbb8a63ff1702081e1b64fd00e2ece837862403d48cdf606166273d  relock1/fortune-caution-dates.e2e.mjs
+8ef1e05d45f23270639871f0cb741496bfcc1e71113c35cda56deba6c6082a4f  relock1/NOTE.txt
+ca6600cd144ccf411fc25f07f234f8f9bffc24e5c99d95ebdafcbc57a7ece2ca  tests/e2e/crisis-price-scan-wrap.e2e.mjs  # repo file (same commit as lock 2026-11-22T02:23:00Z; field: ~/LENSIQ-field/evals/datefix-1122/relock1/crisis-price-scan-wrap.e2e.mjs)
+4d48e63c3fbb8a63ff1702081e1b64fd00e2ece837862403d48cdf606166273d  tests/e2e/fortune-caution-dates.e2e.mjs  # repo file (same commit as lock 2026-11-22T02:23:00Z; field: ~/LENSIQ-field/evals/datefix-1122/relock1/fortune-caution-dates.e2e.mjs)
+# field only relock1/NOTE.txt (lock 2026-11-22T02:23:00Z: no repo file uses it)

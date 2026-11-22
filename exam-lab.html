@@ -36,7 +36,7 @@
 <link rel="preload" as="script" href="lensiq-facevault.js?v=1">
 <link rel="preload" as="script" href="lensiq-exam-clip.js?v=3">
 <link rel="preload" as="script" href="exam-clip-ui.js?v=2">
-<link rel="preload" as="script" href="exam-lab.js?v=13">
+<link rel="preload" as="script" href="exam-lab.js?v=15">
 <link rel="preload" as="script" href="lensiq-config.js?v=31">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
@@ -56,7 +56,8 @@
 
 <main class="ex" id="main">
   <h1 data-i18n="exam.lab.h1">หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์ / เว็บแคม)</h1>
-  <p class="lead" id="lead" data-i18n="exam.lab.lead">กล้องของเครื่องนี้ช่วยผู้คุมสอบสังเกตสิ่งที่เห็นได้ ภาพประมวลผลในเครื่องนี้เท่านั้น ส่งไปที่ผู้คุมสอบเฉพาะเหตุการณ์ (เวลาและประเภท) ไม่มีภาพ ไม่มีเสียง ระบบไม่ตัดสินว่ามีการทุจริต</p>
+  <p class="lead" id="lead" hidden data-i18n="exam.lab.lead">
+    กล้องของเครื่องนี้ช่วยผู้คุมสอบสังเกตสิ่งที่เห็นได้ ภาพประมวลผลในเครื่องนี้เท่านั้น ส่งไปที่ผู้คุมสอบเฉพาะเหตุการณ์ (เวลาและประเภท) ไม่มีภาพ ไม่มีเสียง ระบบไม่ตัดสินว่ามีการทุจริต</p>
   <p class="lead" id="leadC" hidden data-i18n="exam.lab.leadC">กล้องของเครื่องนี้ช่วยผู้คุมสอบสังเกตสิ่งที่เห็นได้ ภาพประมวลผลในเครื่องนี้เท่านั้น ส่งไปที่ผู้คุมสอบเฉพาะเหตุการณ์ (เวลาและประเภท) ไม่ส่งภาพ ไม่มีเสียง ไม่บันทึกวิดีโอต่อเนื่อง (คลิปหลักฐานสั้นเก็บในเครื่องนี้เฉพาะเมื่อมีการแจ้ง) ระบบไม่ตัดสินว่ามีการทุจริต</p>
   <p class="lq-lines" data-i18n="ln.examlab.2">ระบบช่วยผู้คุมสอบเท่านั้น ไม่ตัดสินว่ามีการทุจริต</p>
   <ol class="steps" id="steps" aria-label="ขั้นตอน" data-i18n-attr="aria-label:exam.lab.stepsL">
@@ -67,12 +68,18 @@
   </ol>
   <p class="status" id="engine" role="status" aria-live="polite"></p>
 
+  <!-- decision 219 ก (2026-11-21): both notice variants (clip OFF / clip ON) stay hidden until exam-lab.js has set the right one.
+       Without JavaScript the page cannot run the exam: the notice and own-log cards are not shown and this neutral line names no recording state. -->
+  <noscript><style>#stepNotice,#ownCard{display:none}</style>
+    <p class="warn" role="note" id="noJs">หน้านี้ต้องเปิด JavaScript จึงจะแสดงประกาศและใช้งานได้ โปรดแจ้งผู้คุมสอบ ·
+      <span lang="en">This page needs JavaScript to show the notice and work. Please tell the invigilator.</span> ·
+      <span lang="zh">本页面需要启用 JavaScript 才能显示告知并使用。请告知监考人员。</span></p></noscript>
   <section class="card" id="stepNotice" aria-labelledby="noticeH">
     <h2 id="noticeH" data-i18n="exam.lab.nH">ประกาศก่อนเริ่มสอบ</h2>
     <ul class="ticks">
       <li data-i18n="exam.lab.n1">สิ่งที่สังเกต: ไม่เห็นใบหน้า หลายใบหน้าหรือมีคนอื่นในภาพ หันศีรษะออกจากจอนาน โทรศัพท์ที่อยู่ใกล้กล้องหรือหนังสือในภาพ
         การสลับหน้าต่าง การออกจากเต็มจอ การวางข้อความยาว จอที่สอง และกล้องเสมือน</li>
-      <li id="n2" data-i18n="exam.lab.n2">สิ่งที่ไม่ทำ: ไม่บันทึกภาพหรือเสียง ไม่ฟังคำพูด ไม่สแกนห้อง ไม่วิเคราะห์อารมณ์ ไม่จดจำว่าคุณเป็นใคร และไม่ให้ตกอัตโนมัติ</li>
+      <li id="n2" hidden data-i18n="exam.lab.n2">สิ่งที่ไม่ทำ: ไม่บันทึกภาพหรือเสียง ไม่ฟังคำพูด ไม่สแกนห้อง ไม่วิเคราะห์อารมณ์ ไม่จดจำว่าคุณเป็นใคร และไม่ให้ตกอัตโนมัติ</li>
       <li data-i18n="exam.lab.n3">ทุกการแจ้งเป็นเพียง “ให้ผู้คุมสอบไปดู” ผู้คุมสอบเป็นผู้ตัดสินเสมอ คุณจะเห็นข้อความเตือนก่อน และเห็นบันทึกเหตุการณ์ของตัวเองได้ตลอด</li>
       <li id="n2c" hidden data-i18n="exam.lab.n2c">สิ่งที่ไม่ทำ: ไม่บันทึกเสียง ไม่บันทึกวิดีโอต่อเนื่อง ไม่ฟังคำพูด ไม่สแกนห้อง ไม่วิเคราะห์อารมณ์ ไม่จดจำว่าคุณเป็นใคร และไม่ให้ตกอัตโนมัติ</li>
       <li id="n5c" class="clip-notice" hidden></li>
@@ -81,8 +88,9 @@
     <form id="noticeForm" class="form" novalidate>
       <label><span data-i18n="exam.lab.room">รหัสห้องสอบ</span><input id="room" name="room" maxlength="24" autocomplete="off" inputmode="latin" placeholder="เช่น LAB1" data-i18n-attr="placeholder:exam.lab.roomPh" required></label>
       <label><span data-i18n="exam.lab.seat">เลขที่นั่ง / เลขประจำตัวสอบ</span><input id="seat" name="seat" maxlength="16" autocomplete="off" placeholder="เช่น 12" data-i18n-attr="placeholder:exam.lab.seatPh" required></label>
-      <label class="check" style="grid-column:1/-1"><input type="checkbox" id="consent" name="consent" required>
-        <span id="consentTxt" data-i18n="exam.lab.consent">ข้าพเจ้าได้อ่านประกาศแล้ว และยินยอมให้ใช้กล้องของเครื่องนี้ช่วยผู้คุมสอบตามที่ระบุ</span>
+      <!-- 225 ก follow-up (2026-11-22): the tick box stays hidden until exam-lab.js has set the notice text, so it cannot be ticked before the notice exists. -->
+      <label class="check" id="consentRow" hidden style="grid-column:1/-1"><input type="checkbox" id="consent" name="consent" autocomplete="off" required>
+        <span id="consentTxt" hidden data-i18n="exam.lab.consent">ข้าพเจ้าได้อ่านประกาศแล้ว และยินยอมให้ใช้กล้องของเครื่องนี้ช่วยผู้คุมสอบตามที่ระบุ</span>
         <span id="consentClip" hidden data-i18n="exam.lab.consentClip">ข้าพเจ้าได้อ่านประกาศแล้ว
           และยินยอมให้ใช้กล้องของเครื่องนี้ช่วยผู้คุมสอบตามที่ระบุ รวมถึงการเก็บคลิปวิดีโอสั้น (ไม่มีเสียง) ในเครื่องนี้เมื่อมีการแจ้ง ตามระยะเวลาที่ระบุ</span></label>
       <div class="row-actions" style="grid-column:1/-1">
@@ -152,7 +160,7 @@
     <div class="row-actions"><button class="btn ghost danger" type="button" id="endExam" data-i18n="exam.lab.end">ส่งข้อสอบและปิดกล้อง</button></div>
   </section>
 
-  <section class="card" aria-labelledby="ownH">
+  <section class="card" id="ownCard" aria-labelledby="ownH">
     <h2 id="ownH" data-i18n="exam.lab.ownH">บันทึกเหตุการณ์ของฉัน</h2>
     <p class="note" data-i18n="exam.lab.ownP">ทุกเหตุการณ์ที่ระบบบันทึกจากเครื่องนี้ แสดงที่นี่เหมือนที่ผู้คุมสอบเห็น ไม่มีคะแนน มีแต่เวลาและสิ่งที่สังเกตได้</p>
     <ul class="own-log" id="ownLog"><li class="empty" data-i18n="exam.lab.ownEmpty">ยังไม่มีเหตุการณ์</li></ul>
@@ -179,7 +187,7 @@
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-exam-clip.js?v=3"></script>
 <script src="exam-clip-ui.js?v=2"></script>
-<script src="exam-lab.js?v=13"></script>
+<script src="exam-lab.js?v=15"></script>
 <script src="lensiq-config.js?v=31"></script>
 </body>
 </html>

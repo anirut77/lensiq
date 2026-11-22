@@ -85,6 +85,12 @@ e202c247e6dacf4c50c21a6970a6f82e28827dda2ce9b4ec2815c23bbcab4bc1  docs/acceptanc
 8d8ab1694cd2e19c6705f35e548f2a8324f0fb3d67bcb3437114b9ce2024c57f  relock-4/personal-colour.md
 8d8ab1694cd2e19c6705f35e548f2a8324f0fb3d67bcb3437114b9ce2024c57f  docs/acceptance/personal-colour.md  # repo file (same commit as lock 2026-11-19T04:29:21Z; field: ~/LENSIQ-field/evals/acceptance/relock-4/personal-colour.md)
 # RE-LOCK 4 (2026-11-19, owner decision 148 ก, last round): equal: wording aligned to source §4.2:284; no number, weight or target changed (personal-colour A5). Copy in relock-4/.
+# locked 2026-11-21T17:52:54Z (tools/eval-guard.mjs lock, 2 files)
+cb2ba9fe5ada980bb738ea35978cb8b7c990fde65204a07e58ce6ae584d30149  relock-5/compat.md
+00fc8b1a3a5d67dd6d7af5c1e055ae22fbeb79b5e8baa672ebe2952e1f8fc934  relock-5/NOTE.txt
+# field only relock-5/NOTE.txt (lock above: no repo file uses it)
+# RE-LOCK 5 (2026-11-21, before any measurement, owner decision CV2-3 ก, owner 2026-11-21 23:39; the owner explicitly approved this as a change of the acceptance text): compat must-do 3 allows, for v2 only, "7 level bars plus one overall harmony view" as an equal alternative to the 7-category wheel; the v1 wheel requirement is unchanged; the group map is still required. No target or weight changed. Copy and NOTE.txt in relock-5/.
+cb2ba9fe5ada980bb738ea35978cb8b7c990fde65204a07e58ce6ae584d30149  docs/acceptance/compat.md  # repo file (same commit as lock 2026-11-21T17:52:54Z; field: ~/LENSIQ-field/evals/acceptance/relock-5/compat.md)
 # locked 2026-11-21T18:57:33Z (tools/eval-guard.mjs lock, 2 files)
 1892cd77d0d27d38d189490df705c759beb74c07d142a209e8dbc834ac7a9e9e  relock-223/README.md
 ea5ba7bbf15ab4285c875dbfc9cc441bb3fb01832e2a6c17ab191ed5f3a1b08f  relock-223/NOTE.txt

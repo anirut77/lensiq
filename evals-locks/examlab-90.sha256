@@ -22,6 +22,17 @@ bf3637ba21cfe6afa39fff452e2a0e5baeb53b5812562b6365d354b1881f1c4b  tests/e2e/exam
 # reviewer round 1 of delta 39ac5013 -> 1fa699eb: new test exam-lab-restart (R1 stale calibrate tap after camera off + consent again; R2 silent camera after restart: calibrate never sticks in "cal"), locked BEFORE the product fix. Run on 1fa699eb (unfixed): R1 3/3 pass (this path already clears the waiting tap on 1fa699eb; kept as a regression guard for the reviewer show()/startCamera() resets), R2 3/3 FAIL (phase "cal", videoWidth 0) as expected. exam-states, exam-widths, exam-pages-webkit unchanged.
 # locked 2026-11-19T06:14:33Z (tools/eval-guard.mjs lock, 1 file)
 8802364598b51f95b453f633aeed700f88db9ace223688466298f02d3ce58b6a  tests/e2e/exam-lab-restart.e2e.mjs
+# late entry 2026-11-21 (owner, item 208 follow-up): the re-locks of 2026-11-18T16:31:28Z-16:33:41Z overwrote 5 field copies in place (lines 6, 7, 8, 12 = 15, 16). The original bytes, restored from git 4aac0db4, 117af2ac and c23b5c29, are recorded below as field lines; no repo file uses them. Lines 6, 7, 8, 12 and 16 keep naming the overwritten path, so eval-guard repo --field keeps listing them (an appended line cannot change an earlier one).
+7cb2630b8f8d2e63e956173c59ce4a4aabb9defb7343836cce2e7bf49e8b80d2  restored-4aac0db4/exam-states.e2e.mjs
+2e5dcbf7781915df3760960803f70d333878adf124d3a2a07e2d7ca3e69a9eab  restored-4aac0db4/exam-pages-webkit.e2e.mjs
+b7de7edd805d32107cdefd6043ba51a2331741bc1e4acaba4464f50aa13de379  restored-4aac0db4/exam-widths.e2e.mjs
+e6c08d8b70afab30837e266acdc2eb3c72aaa4440efcb603adbbfde2deed27da  restored-117af2ac/exam-states.e2e.mjs
+d533420cd8342326439dee3aa87f9cba6683d18ba4cc492fb9d2044978b9730b  restored-c23b5c29/exam-pages-webkit.e2e.mjs
+# field only restored-4aac0db4/exam-states.e2e.mjs (late entry 2026-11-21: bytes of line 6; no repo file uses them)
+# field only restored-4aac0db4/exam-pages-webkit.e2e.mjs (late entry 2026-11-21: bytes of line 7; no repo file uses them)
+# field only restored-4aac0db4/exam-widths.e2e.mjs (late entry 2026-11-21: bytes of line 8; no repo file uses them)
+# field only restored-117af2ac/exam-states.e2e.mjs (late entry 2026-11-21: bytes of lines 12 and 15; no repo file uses them)
+# field only restored-c23b5c29/exam-pages-webkit.e2e.mjs (late entry 2026-11-21: bytes of line 16; no repo file uses them)
 # locked 2026-11-21T18:57:33Z (tools/eval-guard.mjs lock, 2 files)
 0418d0acd3dc968c94a2a6e8b89b1bab3cc756a8770f0f3606c5d19d11ade796  relock-223/exam-widths.e2e.mjs
 02e6db077b9f9624ba318579dd20b74451e1767ba9fb4b765aa2b7bccce016e5  relock-223/NOTE.txt

@@ -21,3 +21,9 @@ dc852047b8249eaa607722747f1ba9ae851b04c623cef0e7ddb7295122bd524d  tests/unit/sel
 # "[env.test]", which is in the file's header comment, so the [vars] section came out empty and the check could never pass.
 # The cut now uses the section headers at the start of a line, and a guard asserts that both sections were found. The
 # e2e files are unchanged. Disclosure: the amended files were run once on the built branch before this lock (16 / 16 pass).
+# locked 2026-11-21T17:52:10Z (tools/eval-guard.mjs lock, 2 files)
+94bf89aa0a29b607d16cc34a4c369ed331d8976936e7ff83658909d3fd691c7a  relock2/backend-lead-notify-health.test.js
+8d0e7c21e44e8b214088f01b13ba3379bc999a568ff59d422c5a3fc50f91c62d  relock2/NOTE.txt
+94bf89aa0a29b607d16cc34a4c369ed331d8976936e7ff83658909d3fd691c7a  tests/unit/backend-lead-notify-health.test.js  # repo file (same commit as lock 2026-11-21T17:52:10Z; field: ~/LENSIQ-field/evals/seller-docs/relock2/backend-lead-notify-health.test.js)
+# field only relock2/NOTE.txt (lock 2026-11-21T17:52:10Z: no repo file uses it)
+# re-lock relock2 2026-11-21 (field: relock2/ with NOTE.txt; owner decision Q1/214 ก, 2026-11-21 23:39): N7 of tests/unit/backend-lead-notify-health.test.js loosened in one part by the owner's explicit approval: [env.test.vars] may be "off" or "on" (it was "off" only); [vars] (customer build) must stay "off". Added N7b: the built customer bundle holds no backend config and no LEAD_NOTIFY_HEALTH config line. Locked BEFORE the wrangler.toml change that sets [env.test.vars] to "on". Before the change: 8 / 8 pass.

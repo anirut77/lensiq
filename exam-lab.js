@@ -378,8 +378,19 @@
   } catch (e) { reloadPending = false; }
 
   /* ---------- evidence clip: notice + consent text follow the setting until consent is given ---------- */
+  // decision 219 ก (2026-11-21): the static HTML shows neither notice variant; whenever the wording shown here changes (first render
+  // after the page script loads, or a new clip setting) a consent tick given before it is cleared and "please read again" is shown.
+  // A language switch is not a change of wording (same notice, other language).
+  let noticeSig = null, rereadMsg = "";
+  function rereadText() { rereadMsg = T("exam.lab.reread", "ประกาศเปลี่ยนแล้ว โปรดอ่านอีกครั้งแล้วติ๊กยินยอมใหม่"); $("#noticeMsg").textContent = rereadMsg; }
+  function showReread() {
+    $("#consent").checked = false; // the candidate must tick the wording they actually read
+    rereadText();
+  }
   function clipNotice() {
     const on = clipCfg.on;
+    const sig = on ? `on|${clipCfg.auto ? 1 : 0}|${clipCfg.days}` : "off";
+    if (sig !== noticeSig) { if (phase === "notice" && $("#consent").checked) showReread(); noticeSig = sig; }
     $("#n2").hidden = on; $("#n2c").hidden = !on; $("#n5c").hidden = !on;
     $("#lead").hidden = on; $("#leadC").hidden = !on;
     $("#consentTxt").hidden = on; $("#consentClip").hidden = !on;
@@ -399,14 +410,12 @@
     const before = JSON.stringify(clipCfg);
     clipCfg = Clip.cleanCfg({ on: $("#clipOn").checked, auto: $("#clipAuto").checked, days: +$("#clipDays").value });
     clips.setCfg(clipCfg); clipNotice();
-    if (JSON.stringify(clipCfg) !== before && $("#consent").checked) {
-      $("#consent").checked = false; // the candidate must tick the wording they actually read
-      $("#noticeMsg").textContent = T("exam.lab.reread", "ประกาศเปลี่ยนแล้ว โปรดอ่านอีกครั้งแล้วติ๊กยินยอมใหม่");
-    }
+    if (JSON.stringify(clipCfg) !== before && $("#consent").checked) showReread();
   }
   for (const id of ["#clipOn", "#clipAuto", "#clipDays"]) $(id).addEventListener("change", readClipCfg);
   clips.setCfg(clipCfg);
   clipNotice(); // at once: the notice and consent text follow the clip setting before IndexedDB answers (?clip=1 race, 2026-11-21)
+  $("#consentRow").hidden = false; // the tick box is shown only now that the notice text is set (static hidden, 225 ก follow-up 2026-11-22)
   clips.refresh().then(clipNotice); // again once the kept-clip list is read: the clip box shows when clips are stored on this device
 
   /* ---------- flow ---------- */
@@ -482,6 +491,7 @@
   engine(() => T("exam.lab.engine0", "ยังไม่ได้เปิดกล้อง"));
   window.addEventListener("lq-lang", () => {
     renderOwn(); if (phase === "cam") renderChecks(); clipNotice();
+    if (rereadMsg && $("#noticeMsg").textContent === rereadMsg) rereadText(); // the reread message follows the language
     if (lastEngine) engine(lastEngine[0], lastEngine[1]);
     const pe = $("#prompt"); if (!pe.hidden && promptSig && PROMPTS[promptSig]) pe.textContent = T(PROMPTS[promptSig][0], PROMPTS[promptSig][1]);
     qAt = 0; // re-render the light message in the new language on the next frame
