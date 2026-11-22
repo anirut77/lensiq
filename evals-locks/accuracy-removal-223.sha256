@@ -60,3 +60,12 @@ bae9a5f73d49417009f64db30bf1bad856b6df39b68e111d599369f89d811887  relock6/accura
 bae9a5f73d49417009f64db30bf1bad856b6df39b68e111d599369f89d811887  tests/unit/accuracy-removal-223.test.js  # repo file (same commit as lock 2026-11-22T08:02:23Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock6/accuracy-removal-223.test.js)
 701263e66734a0846ed178525535fecb1327c1cf1f43d7168cbe5b57aa99586f  tests/unit/accuracy-removal-223.spec.json  # repo file (same commit as lock 2026-11-22T08:02:23Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock6/accuracy-removal-223.spec.json)
 90cc921730a91af9c4e52d784bc6d1a77ddb1fedc28efced3a9b3633d01d2575  tests/e2e/visibility-223.e2e.mjs  # repo file (same commit as lock 2026-11-22T08:02:23Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock6/visibility-223.e2e.mjs)
+# locked 2026-11-22T10:44:55Z (tools/eval-guard.mjs lock, 4 files)
+965f600f2b1d07bc1b368e7977344fd0664d6f3c9f42b4cf884b10b2263ab19b  relock7/accuracy-removal-223.spec.json
+21b660c038c86ce09fa14354b8b5a8ac7aacad408f7adf21df8af31e752067be  relock7/accuracy-removal-223.test.js
+0736543a7113632412311c1cfc91c5bfb483e923e39a0344c961af0696742935  relock7/visibility-223.e2e.mjs
+7ed390439b2e0c444663b9c90dfac8fa8052e28d9197572d706c0a411f4d08b7  relock7/NOTE.txt
+965f600f2b1d07bc1b368e7977344fd0664d6f3c9f42b4cf884b10b2263ab19b  tests/unit/accuracy-removal-223.spec.json  # repo file (same commit as lock 2026-11-22T10:44:55Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock7/accuracy-removal-223.spec.json)
+21b660c038c86ce09fa14354b8b5a8ac7aacad408f7adf21df8af31e752067be  tests/unit/accuracy-removal-223.test.js  # repo file (same commit as lock 2026-11-22T10:44:55Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock7/accuracy-removal-223.test.js)
+0736543a7113632412311c1cfc91c5bfb483e923e39a0344c961af0696742935  tests/e2e/visibility-223.e2e.mjs  # repo file (same commit as lock 2026-11-22T10:44:55Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock7/visibility-223.e2e.mjs)
+# field only relock7/NOTE.txt (lock 2026-11-22T10:44:55Z: no repo file uses it)

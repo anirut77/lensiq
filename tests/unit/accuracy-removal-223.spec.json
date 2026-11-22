@@ -1536,6 +1536,9 @@
         },
         {
           "re": "广告屏"
+        },
+        {
+          "re": "数字标牌"
         }
       ],
       "customers": [
@@ -1548,11 +1551,21 @@
         },
         {
           "re": "顾客识别"
+        },
+        {
+          "re": "Member recognition",
+          "flags": "i"
+        },
+        {
+          "re": "会员识别"
+        },
+        {
+          "re": "จดจำสมาชิก"
         }
       ],
       "neuro": [
         {
-          "re": "(?<!ไม่|การ)วิเคราะห์อารมณ์"
+          "re": "(?<!(?:ไม่มีระบบ|ไม่ได้ใช้|ไม่ได้ทำ|ห้ามใช้|ไม่มี|ไม่ใช้|ไม่ได้|ไม่ทำ|ไม่รวม|ไม่ใช่|ห้าม|ไม่)\\s?(?:การ)?)วิเคราะห์อารมณ์"
         },
         {
           "re": "Emotion Response",
@@ -1563,10 +1576,27 @@
           "flags": "i"
         },
         {
-          "re": "(?<!不做)情绪分析"
+          "re": "(?<!(?:不做|不进行|不作|不含|不包括|不提供|不使用|不涉及|不会做|不会进行|不会|没有|并无|无|不)(?:任何)?)情绪分析"
         },
         {
           "re": "神经营销"
+        },
+        {
+          "re": "(?<!(?:ไม่มีระบบ|ไม่ได้ใช้|ไม่ได้ทำ|ห้ามใช้|ไม่มี|ไม่ใช้|ไม่ได้|ไม่ทำ|ไม่รวม|ไม่ใช่|ห้าม|ไม่)\\s?(?:การ)?)ทดสอบอารมณ์"
+        },
+        {
+          "re": "ทดสอบสื่อกับผู้ร่วมทดสอบ"
+        },
+        {
+          "re": "(?<!\\b(?:no|not|without|never|nor|any|non)[\\s-](?:[a-z-]+\\s){0,3})emotion analysis",
+          "flags": "i"
+        },
+        {
+          "re": "(?<!\\b(?:no|not|without|never|nor|any|non)[\\s-](?:[a-z-]+\\s){0,3})emotion tests?",
+          "flags": "i"
+        },
+        {
+          "re": "(?<!(?:不做|不进行|不作|不含|不包括|不提供|不使用|不涉及|不会做|不会进行|不会|没有|并无|无|不)(?:任何)?)情绪测试"
         }
       ],
       "teamface": [
@@ -1598,6 +1628,32 @@
         },
         {
           "re": "考场摄像头"
+        },
+        {
+          "re": "ห้องสอบที่มีกล้อง"
+        },
+        {
+          "re": "ห้องสอบที่ติดกล้อง"
+        },
+        {
+          "re": "กล้องหน้าห้อง"
+        },
+        {
+          "re": "Exam hall with cameras",
+          "flags": "i"
+        },
+        {
+          "re": "Front camera \\(demo\\)",
+          "flags": "i"
+        },
+        {
+          "re": "装有摄像头的考场"
+        },
+        {
+          "re": "大型考场"
+        },
+        {
+          "re": "前方摄像头（演示）"
         }
       ],
       "product-check": [
@@ -1607,6 +1663,9 @@
         {
           "re": "Product Check",
           "flags": "i"
+        },
+        {
+          "re": "产品核对"
         }
       ]
     },
@@ -1667,6 +1726,239 @@
         "split in two, one per tool, with the same meaning",
         "ตรวจกระดาษคำตอบ ถ่ายกระดาษ ไม่ต้องใช้ป้าย",
         "答题卡批改拍摄的是纸张，无需告示"
+      ]
+    }
+  },
+  "followup223b": {
+    "$comment": "re-lock 7 (independent review of 9ebb0818: the exam dashboard demo button added a hall camera device 'เครื่องกล้องในห้องสอบ' / 'กล้องหน้าห้อง (สาธิต)' and hall events while exam-hall is switched off; V6 loaded ?demo=1 but never pressed it). Every demo or sample button of every page that has one is pressed (visibility-223 V6), then the rendered text is checked against offNames in TH / EN / ZH. demoSweep must list every switched-on page with a <button> whose id names demo / sample / seed and every page loading lensiq-demo.js (?demo=1, every button of the demo panel). Buttons that only REMOVE sample data are not pressed (they add nothing). The exam dashboard demo adds no hall device and no hall event while VISIBILITY exam-hall is false; with the harness preview (exam-hall shown as on) the hall device is present, so the switch decides, not a deletion.",
+    "demoSweep": [
+      {
+        "page": "exam-dashboard",
+        "query": "",
+        "press": [
+          "#demoBtn"
+        ]
+      },
+      {
+        "page": "exam-dashboard",
+        "query": "demo=1",
+        "press": [
+          "[data-lq-demo] button",
+          "#demoBtn"
+        ]
+      },
+      {
+        "page": "insights",
+        "query": "",
+        "press": [
+          "#seedDemoEmpty",
+          "#seedDemo"
+        ]
+      },
+      {
+        "page": "nutrition",
+        "query": "",
+        "press": [
+          "#nutSample"
+        ]
+      },
+      {
+        "page": "crowd",
+        "query": "",
+        "ack": "#gate",
+        "press": [
+          "#demoCam"
+        ]
+      },
+      {
+        "page": "queue",
+        "query": "",
+        "ack": "#gate",
+        "press": [
+          "#demoCam"
+        ]
+      },
+      {
+        "page": "tables",
+        "query": "",
+        "ack": "#gate",
+        "press": [
+          "#demoCam"
+        ]
+      },
+      {
+        "page": "bays",
+        "query": "",
+        "ack": "#gate",
+        "press": [
+          "#demoCam"
+        ]
+      },
+      {
+        "page": "afterhours",
+        "query": "",
+        "ack": "#gate",
+        "press": [
+          "#demoCam"
+        ]
+      },
+      {
+        "page": "exam-lab",
+        "query": "demo=1",
+        "press": [
+          "[data-lq-demo] button"
+        ]
+      },
+      {
+        "page": "attendance",
+        "query": "demo=1",
+        "press": [
+          "[data-lq-demo] button"
+        ]
+      },
+      {
+        "page": "village",
+        "query": "demo=1",
+        "press": [
+          "[data-lq-demo] button"
+        ]
+      },
+      {
+        "page": "parking",
+        "query": "demo=1",
+        "press": [
+          "[data-lq-demo] button"
+        ]
+      },
+      {
+        "page": "crowd",
+        "query": "demo=1",
+        "press": [
+          "[data-lq-demo] button"
+        ]
+      }
+    ],
+    "removeOnly": [
+      "removeDemo",
+      "removeDemoBanner"
+    ],
+    "hallSignals": [
+      "empty",
+      "back",
+      "early",
+      "extra",
+      "aisle",
+      "lean",
+      "neighbour"
+    ],
+    "insightsOffCard": "^ab-sg|^ab-neuro|^abn|^sg|^cx|^neuro|^cohort",
+    "bites": {
+      "named": [
+        [
+          "การวิเคราะห์อารมณ์ (Neuromarketing)",
+          [
+            "neuro"
+          ]
+        ],
+        [
+          "ระบบการวิเคราะห์อารมณ์สำหรับสื่อ",
+          [
+            "neuro"
+          ]
+        ],
+        [
+          "เทียบสื่อทดสอบอารมณ์: ข้อมูลยังน้อย",
+          [
+            "neuro"
+          ]
+        ],
+        [
+          "การทดสอบอารมณ์",
+          [
+            "neuro"
+          ]
+        ],
+        [
+          "Emotion analysis (Neuromarketing)",
+          [
+            "neuro"
+          ]
+        ],
+        [
+          "Compare emotion test media: not enough data",
+          [
+            "neuro"
+          ]
+        ],
+        [
+          "情绪分析（神经营销）",
+          [
+            "neuro"
+          ]
+        ],
+        [
+          "情绪测试素材比较：数据不足",
+          [
+            "neuro"
+          ]
+        ],
+        [
+          "เครื่องกล้องในห้องสอบ กล้องหน้าห้อง (สาธิต)",
+          [
+            "exam-hall"
+          ]
+        ],
+        [
+          "Exam hall camera Front camera (demo)",
+          [
+            "exam-hall"
+          ]
+        ],
+        [
+          "考场摄像头设备 前方摄像头（演示）",
+          [
+            "exam-hall"
+          ]
+        ],
+        [
+          "Member recognition (opt-in only)",
+          [
+            "customers"
+          ]
+        ],
+        [
+          "会员识别（仅限同意者）",
+          [
+            "customers"
+          ]
+        ],
+        [
+          "ถ้าใช้ข้อมูลใบหน้า (จดจำสมาชิก เช็คชื่อ)",
+          [
+            "customers"
+          ]
+        ],
+        [
+          "数字标牌",
+          [
+            "signage"
+          ]
+        ],
+        [
+          "产品核对（任何国家）",
+          [
+            "product-check"
+          ]
+        ]
+      ],
+      "clean": [
+        "ระบบนี้จึงไม่มีการวิเคราะห์อารมณ์",
+        "ไม่วิเคราะห์อารมณ์ ไม่มีการวิเคราะห์อารมณ์ ไม่ใช้การวิเคราะห์อารมณ์ ห้ามใช้การวิเคราะห์อารมณ์ ไม่ทดสอบอารมณ์",
+        "No emotion analysis. The system does not use emotion analysis and runs without any emotion analysis.",
+        "不做情绪分析 · 不进行情绪分析 · 没有情绪分析 · 不使用任何情绪分析 · 无情绪分析",
+        "每个考场一台监考老师用电脑",
+        "ห้องสอบสมมติ DEMO 12 ที่นั่ง",
+        "ถ้าใช้ข้อมูลใบหน้า (เช่น เช็คชื่อ) ต้องขอความยินยอมโดยชัดแจ้งก่อน"
       ]
     }
   }

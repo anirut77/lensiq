@@ -29,6 +29,11 @@
 //       camera; insights drops the data of a switched-off page in iqCollect (no text of it can be generated); the PDPA note
 //       records the split camera-notice sentence; spec.offNames compiles and bites; R6 draft states the nav.js list today
 //       and the back-office screen as a planned step 2 (browser half: visibility-223 V1 text check + V6)
+//       Re-lock 7 (independent review of 9ebb0818: the exam dashboard demo button added a hall camera device): new R12:
+//       spec.offNames carries the old names of the switched-off products and a negation-robust emotion pattern (bites both
+//       ways: the positive product name fails, any negated generic "no emotion analysis" line passes); spec.followup223b
+//       .demoSweep lists every demo / sample button of every switched-on page (browser half: visibility-223 V6 presses them
+//       all); the exam dashboard demo consults window.LQ_VISIBILITY for exam-hall and its ?demo=1 sample data is lab-side only
 //   R8  rules: CLAUDE.md lines 34 / 60 / 251-252 / 255-256 and docs/acceptance/README.md rule 7 inverted as approved (223-1)
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -465,5 +470,38 @@ test("R9 (226) one visibility list (page -> on / off) = today's real state; noth
     const hits = pages.filter(p => p !== own && new RegExp(`href:\\s*"${p}\\.html|href="${p}\\.html|"${p}\\.html"\\]`).test(js));
     if (hits.length && !/LQ_VISIBILITY/.test(js)) bad.push(`${f}: writes links to ${hits.slice(0, 4).join(", ")} without window.LQ_VISIBILITY`);
   }
+  assert.deepEqual(bad, [], show(bad, 60));
+});
+
+test("R12 (re-lock 7) every demo / sample button is in the V6 sweep; offNames bites both ways; the exam dashboard demo follows the visibility list", () => {
+  const FB = S.followup223b, N = S.offNames, { list } = visibility(), bad = [];
+  // offNames: every pattern compiles; the old names and the negation-robust emotion patterns bite both ways
+  const re = {};
+  for (const [p, l] of Object.entries(N.names)) re[p] = l.map(x => new RegExp(x.re, x.flags || ""));
+  const named = s => Object.entries(re).filter(([, rs]) => rs.some(r => r.test(s))).map(([p]) => p);
+  for (const [s, want] of FB.bites.named) if (JSON.stringify(named(s)) !== JSON.stringify(want)) bad.push(`bite: "${s}" -> ${named(s).join(", ") || "nothing"} (want ${want.join(", ")})`);
+  for (const s of FB.bites.clean) if (named(s).length) bad.push(`clean: "${s}" is read as the name of ${named(s).join(", ")}`);
+  for (const [p, l] of Object.entries({ neuro: ["ทดสอบอารมณ์", "情绪测试", "emotion analysis", "emotion tests?"], customers: ["Member recognition", "会员识别", "จดจำสมาชิก"],
+    signage: ["数字标牌"], "exam-hall": ["ห้องสอบที่มีกล้อง", "กล้องหน้าห้อง", "Exam hall with cameras", "装有摄像头的考场", "前方摄像头（演示）"], "product-check": ["产品核对"] }))
+    for (const w of l) if (!N.names[p].some(x => x.re.includes(w))) bad.push(`offNames.${p}: old name "${w}" missing`);
+  // the sweep covers every demo / sample button of a switched-on page and every page with the ?demo=1 demo panel
+  const offPage = f => list[f.replace(/\.html$/, "")] === false;
+  const sw = FB.demoSweep, has = (page, q, sel) => sw.some(x => x.page === page && x.query === q && x.press.includes(sel));
+  for (const x of sw) if (list[x.page] === false || !existsSync(join(L.ROOT, x.page + ".html"))) bad.push(`demoSweep: ${x.page} is switched off or missing`);
+  for (const f of readdirSync(L.ROOT).filter(f => /^[^/]+\.html$/.test(f) && !offPage(f))) {
+    const h = L.read(f).replace(/<!--[\s\S]*?-->/g, ""), page = f.replace(/\.html$/, "");
+    for (const m of h.matchAll(/<button\b[^>]*\bid="([^"]*(?:demo|sample|seed)[^"]*)"/gi)) {
+      if (FB.removeOnly.includes(m[1])) continue;
+      if (!has(page, "", "#" + m[1])) bad.push(`${f}: demo / sample button #${m[1]} is not pressed by visibility-223 V6 (spec.followup223b.demoSweep)`);
+    }
+    if (/<script src="lensiq-demo\.js/.test(h) && !has(page, "demo=1", "[data-lq-demo] button")) bad.push(`${f}: the ?demo=1 demo panel buttons are not pressed by V6`);
+  }
+  // the exam dashboard demo button consults the visibility list (hall device and events only while exam-hall is on)
+  const js = L.read("exam-dashboard.js");
+  if (!/LQ_VISIBILITY/.test(js) || !/["']exam-hall["']/.test(js)) bad.push("exam-dashboard.js: the demo does not consult window.LQ_VISIBILITY for exam-hall");
+  // the ?demo=1 sample data of the exam dashboard is lab-side only
+  const dd = L.read("lensiq-demo-data.js"), a = dd.indexOf('page === "exam-dashboard"'), b = dd.indexOf("if (page ===", a + 10), blk = dd.slice(a, b);
+  if (/\[\s*\d+,\s*"[^"]*",\s*"\w+",\s*"\w+",\s*"hall"/.test(blk)) bad.push("lensiq-demo-data.js: exam-dashboard sample data has a hall row");
+  for (const sig of FB.hallSignals) if (new RegExp(`"${sig}",\\s*"\\w+",\\s*"lab"`).test(blk)) bad.push(`lensiq-demo-data.js: hall signal ${sig} dressed as a lab row`);
   assert.deepEqual(bad, [], show(bad, 60));
 });

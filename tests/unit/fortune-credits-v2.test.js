@@ -169,7 +169,7 @@ const d5Base = f => {
 // with EXACTLY these replacements applied (so every other byte, all the fortune parts D5 protected included, is unchanged),
 // and its sha256 is pinned. No replaced part touches fortune, crisis or help-number text.
 const D5_223 = {
-  "help.html": { sha: "07ddf7afeb33d511df7996fae464eecd6f98598e15ec943c29082f515d630cb3", pairs: [
+  "help.html": { sha: "fcbdb41e3ce80cafd4ce4b9627946bc4522b97a112a14a3639b8d47b2a70d5ec", pairs: [
     ["      <p>ขึ้นกับมุมกล้อง ความสูง และแสง เราเผยแพร่ผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด และฟีเจอร์ที่ยังไม่ได้วัดบนข้อมูลจริงจะมีป้าย Beta ก่อนใช้ตัวเลขตัดสินใจทางธุรกิจ " +
       "แนะนำให้ทดลองหน้างาน 2 สัปดาห์ เทียบกับการนับด้วยคน ค่าประมาณอายุ เพศ และสีหน้าเป็นค่าโดยประมาณสำหรับภาพรวมเท่านั้น</p></div></details>",
      "      <p>ตัวเลขจากกล้องเป็นค่าประมาณ ขึ้นกับมุมกล้อง ความสูง และแสง ทุกหน้าบอกข้อจำกัดสำคัญไว้ แนะนำให้ทดลองหน้างานเทียบกับการนับของคุณก่อนใช้ตัดสินใจทางธุรกิจ\n " +
@@ -201,7 +201,13 @@ const D5_223 = {
     ["<details id=\"en-h-hr\"><summary>How should the interview kit and team face reading be used?</summary>", "<details id=\"en-h-hr\"><summary>How should the interview kit be used?</summary>"],
     ["        <li>Team face reading is an icebreaker only.", "        <li data-lq-off>Team face reading is an icebreaker only."],
     ["<details id=\"zh-h-hr\"><summary>应如何正确使用面试工具包和团队面相？</summary>", "<details id=\"zh-h-hr\"><summary>应如何正确使用面试工具包？</summary>"],
-    ["        <li>团队面相仅为破冰活动", "        <li data-lq-off>团队面相仅为破冰活动"]
+    ["        <li>团队面相仅为破冰活动", "        <li data-lq-off>团队面相仅为破冰活动"],
+    // re-lock 226d (independent review of 9ebb0818, owner decision 226 "off = not shown"): the shop-camera consent tip no
+    // longer gives the switched-off member / customer recognition as its example; the consent rule itself (explicit consent
+    // first, a non-face alternative) is unchanged in TH / EN / ZH
+    ["ถ้าใช้ข้อมูลใบหน้า (จดจำสมาชิก เช็คชื่อ)", "ถ้าใช้ข้อมูลใบหน้า (เช่น เช็คชื่อ)"],
+    ["If you use face data (member recognition, check-in),", "If you use face data (for example check-in),"],
+    ["如使用人脸数据（会员识别、签到），", "如使用人脸数据（例如签到），"]
   ] },
   "legal.js": { sha: "ec715ec3135403b89271e24d6dda0d12b94d701d608a7c06d88b7ff6cf787f7c", pairs: [
     ["      if (k === \"draft\") { el.title = (prefix() === \"zh-\" ? \"草案数值，待律师确认\" : prefix() === \"en-\" ? \"draft value, to be confirmed by counsel\" : \"ค่าร่าง รอทนายความยืนยัน\"); return; }",
@@ -228,7 +234,7 @@ test("D5 terms.html byte-identical to main 5695734 apart from ?v=; help.html and
   assert.equal(D5_223["legal.js"].pairs.length, 1);
   const [o, n] = D5_223["legal.js"].pairs[0];
   assert.equal(o.replace("ค่าร่าง รอทนายความยืนยัน", "ค่าร่าง อยู่ระหว่างให้ทนายความตรวจ"), n, "legal.js: only the Thai draft tooltip changed");
-  assert.equal(D5_223["help.html"].pairs.length, 15);
+  assert.equal(D5_223["help.html"].pairs.length, 18);
   // re-lock 226c: the three interview-kit FAQ entries are shown (no data-lq-off on the entry), the team-face line alone is hidden
   const hc = stripV(read("help.html"));
   for (const id of ["h-hr", "en-h-hr", "zh-h-hr"]) {
