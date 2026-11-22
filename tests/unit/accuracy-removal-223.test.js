@@ -24,6 +24,11 @@
 //       Re-lock 5 (review round 3): R9 also requires every customer script that writes product links to consult
 //       window.LQ_VISIBILITY; R5 covers every buyer-facing document folder (docs/sales/**, buyer pilot documents) and the 5
 //       outfit-simulation keys (แบบร่าง / Draft / 草稿); new R10: customer-handed documents name and link no switched-off product
+//       Re-lock 6 (independent review follow-up): new R11: the help FAQ h-hr (TH / EN / ZH) is shown again with only the
+//       team-face line hidden and a summary that names no switched-off product; the exam dashboard intro names no hall
+//       camera; insights drops the data of a switched-off page in iqCollect (no text of it can be generated); the PDPA note
+//       records the split camera-notice sentence; spec.offNames compiles and bites; R6 draft states the nav.js list today
+//       and the back-office screen as a planned step 2 (browser half: visibility-223 V1 text check + V6)
 //   R8  rules: CLAUDE.md lines 34 / 60 / 251-252 / 255-256 and docs/acceptance/README.md rule 7 inverted as approved (223-1)
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -206,6 +211,67 @@ test("R10 (226, re-lock 5) customer-handed documents list no switched-off produc
     if (/ระบบนี้ยังไม่เปิดให้บริการ|This service is not available yet|此服务尚未开放/.test(rest)) bad.push(`${f}:${i + 1} lists a product as not available (remove the row)`);
   });
   for (const k of B5.safetyKept) if (!L.read(k.file).includes(k.contains)) bad.push(`${k.file}: safety sentence "${k.contains}" removed`);
+  assert.deepEqual(bad, [], show(bad, 60));
+});
+
+test("R11 (re-lock 6) leftovers of the independent review: help FAQ h-hr, exam dashboard intro, insights data of off pages, PDPA note", () => {
+  const F = S.followup223, N = S.offNames, bad = [];
+  // spec.offNames: every pattern compiles, names its product, and bites (the plain name fails; the generic negation passes)
+  const off = S.visibility.off, re = {};
+  assert.deepEqual(Object.keys(N.names).sort(), [...off].sort(), "offNames covers exactly the switched-off products");
+  for (const [p, list] of Object.entries(N.names)) re[p] = list.map(x => new RegExp(x.re, x.flags || ""));
+  const named = t => Object.entries(re).filter(([, rs]) => rs.some(r => r.test(t))).map(([p]) => p);
+  assert.deepEqual(named("ผลจากป้ายโฆษณาดิจิทัลและจดจำลูกค้า"), ["signage", "customers"], "bite: Thai names");
+  assert.deepEqual(named("วิเคราะห์อารมณ์: สัดส่วนอารมณ์บวกต่อสื่อ"), ["neuro"], "bite: neuro heading");
+  assert.deepEqual(named("ระบบไม่วิเคราะห์อารมณ์ และไม่มีการวิเคราะห์อารมณ์ · 不做情绪分析"), [], "generic negations are not the product name");
+  assert.deepEqual(named("Digital Signage: look rate per ad"), ["signage"], "bite: English");
+  for (const p of N.textExcludePages) assert.ok(existsSync(join(L.ROOT, p)), "excluded page exists: " + p);
+  // help.html: the interview-kit FAQ is shown in TH / EN / ZH, only the team-face line is hidden
+  const help = L.read("help.html");
+  for (const h of F.help) {
+    const i = help.indexOf(`<details id="${h.id}"`), j = help.indexOf("</details>", i);
+    if (i < 0 || j < 0) { bad.push(`help.html: #${h.id} missing`); continue; }
+    const block = help.slice(i, j), open = block.slice(0, block.indexOf(">") + 1);
+    if (/data-lq-off|hidden/.test(open)) bad.push(`help.html #${h.id}: the entry is hidden (${open})`);
+    const sum = (block.match(/<summary>([\s\S]*?)<\/summary>/) || [])[1];
+    if (sum !== h.summary) bad.push(`help.html #${h.id}: summary "${sum}" (want "${h.summary}")`);
+    const lis = [...block.matchAll(/<li([^>]*)>([\s\S]*?)<\/li>/g)].map(m => ({ attr: m[1], t: m[2] }));
+    for (const k of h.keep) { const li = lis.find(x => x.t.includes(k)); if (!li) bad.push(`help.html #${h.id}: kept line "${k}" missing`); else if (/data-lq-off|hidden/.test(li.attr)) bad.push(`help.html #${h.id}: kept line "${k}" hidden`); }
+    const tf = lis.filter(x => x.t.includes(h.hide));
+    if (tf.length !== 1 || !/\bdata-lq-off\b/.test(tf[0].attr)) bad.push(`help.html #${h.id}: the team-face line must be exactly one <li data-lq-off> (${tf.length})`);
+    const shown = block.replace(/<li[^>]*data-lq-off[^>]*>[\s\S]*?<\/li>/g, " ");
+    for (const p of named(L.htmlFlat(shown))) bad.push(`help.html #${h.id}: shown text names the switched-off ${p}`);
+  }
+  // exam dashboard intro: no hall camera in TH / EN / ZH
+  const db = L.read("exam-dashboard.html"), lead = (db.match(/data-i18n="exam\.db\.lead">([^<]*)</) || [])[1];
+  if (lead !== F.examDbLead.th) bad.push(`exam-dashboard.html lead: "${lead}"`);
+  for (const l of LANGS) if (L.dval(D, l, "exam.db.lead") !== F.examDbLead[l]) bad.push(`${l} exam.db.lead: "${L.dval(D, l, "exam.db.lead")}"`);
+  for (const t of [lead, L.dval(D, "en", "exam.db.lead"), L.dval(D, "zh", "exam.db.lead")]) for (const p of named(String(t))) bad.push(`exam.db.lead names the switched-off ${p}: ${t}`);
+  // insights: iqCollect drops the data of a switched-off page when nav.js hides switched-off parts; all kept in Node / preview
+  const IQ = require(join(L.ROOT, "insights-data.js")), now = Date.now(), iso = new Date(now).toISOString();
+  const snap = {
+    "booth-state": JSON.stringify({ visitors: [{ first: now, dwell: 6, frames: 10, att: 6 }] }),
+    "nm-sessions": JSON.stringify([{ date: iso, test: "A", samples: [{ face: true, v: 0.5, att: true }] }]),
+    "cx-members": JSON.stringify([{ id: "m1", created: now }]), "cx-orders": JSON.stringify([{ time: now, mid: "m1", qty: 1, price: 50 }]),
+    "sg-stats": JSON.stringify({ v: 1, since: now, totals: { ots: 10, viewers: 2 }, ads: { a: { title: "A", viewers: 2, ots: 10, plays: 1 } } }),
+    "co-sales": JSON.stringify([{ t: now, total: 100, qty: 1 }])
+  };
+  const ids = ["booth", "co", ...Object.keys(F.insightsDrop)];
+  const keys = D0 => ids.filter(k => D0[k] != null).sort();
+  assert.deepEqual(keys(IQ.iqCollect(snap)), [...ids].sort(), "Node (no window): every module kept");
+  const g = /** @type {any} */ (globalThis), vis = JSON.parse(JSON.stringify(visibility().list));
+  const cls = new Set(["lq-part-off"]);
+  g.window = { LQ_VISIBILITY: vis }; g.document = { documentElement: { classList: { contains: c => cls.has(c) } } };
+  try {
+    for (const [id, page] of Object.entries(F.insightsDrop)) if (vis[page] !== false) bad.push(`insightsDrop: ${page} is not switched off in nav.js`);
+    const got = keys(IQ.iqCollect(snap));
+    if (JSON.stringify(got) !== JSON.stringify(["booth", "co"])) bad.push(`insights iqCollect with the customer visibility keeps ${got.join(", ")} (want booth, co)`);
+    cls.clear(); // e2e preview (cdp.mjs removes lq-part-off): the product as if switched on
+    if (keys(IQ.iqCollect(snap)).length !== ids.length) bad.push("insights iqCollect in the preview drops a module");
+  } finally { delete g.window; delete g.document; }
+  // PDPA note: the split camera-notice sentence is recorded in the decision 226 section
+  const pd = L.read(F.pdpa.file), at = pd.indexOf(F.pdpa.section), sec = at < 0 ? "" : pd.slice(at, pd.indexOf("\n## ", at + 5));
+  for (const m of F.pdpa.must) if (!L.squash(sec).includes(L.squash(m))) bad.push(`${F.pdpa.file} (${F.pdpa.section}): "${m}"`);
   assert.deepEqual(bad, [], show(bad, 60));
 });
 

@@ -43,7 +43,7 @@
   "exam.db.joined": "Dashboard for room {r} is open — waiting for events from devices in the room",
   "exam.db.keep": "Data stays in this browser only (no images). Export it for the committee, then clear it under your institution’s rules",
   "exam.db.nMulti": "The “more than one person” signal is only an aid and often does not fire when a second person is in view. Invigilators must still walk the room.",
-  "exam.db.lead": "Brings together events from the candidate pages and the room cameras as a seat map and a list of places to check. The system only asks a person to go and look; the invigilator decides every case. No camera images appear on this page",
+  "exam.db.lead": "Brings together events from the candidate pages as a seat map and a list of places to check. The system only asks a person to go and look; the invigilator decides every case. No camera images appear on this page",
   "exam.db.linkNote": "Windows in the same browser connect by themselves. For several devices in a room, use the import above or a LAN relay (the team sets it up at installation). Only JSON events are sent",
   "exam.db.logEmpty": "No events yet",
   "exam.db.logH": "Incident log (in time order)",

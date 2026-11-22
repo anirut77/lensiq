@@ -1290,7 +1290,16 @@ privacy.html and camera-notice.html lost only the word "(นำร่อง)" / 
 "new systems" lead-ins and storage-table label ("ระบบใหม่ (นำร่อง)" -> "ระบบใหม่", "New pilot systems" -> "New systems",
 "新的试点系统" -> "新系统"). The meaning of every notice is unchanged: the same systems, the same data, the same signs,
 retention and rights. No sentence about what is collected, why or for how long changed. The "ฉบับร่าง — รอทนายความตรวจทาน"
-banner stays. Question: (a) does dropping "pilot" from the heading of a notice change how a data subject should read it
+banner stays.
+
+One more camera-notice.html edit of this round, in the "รอบ 14" / "Round 14" / "第 14 轮" list item: the sentence that said the
+answer-sheet grader (omr.html) and the medicine checker (medicine.html) photograph paper or medicine boxes and need no sign was
+split in two, one per tool, with the same meaning (both still need no sign; nothing added or removed). Thai: "ตรวจกระดาษคำตอบ
+และ ตรวจข้อมูลยา ถ่ายกระดาษหรือกล่องยา ไม่ต้องใช้ป้าย" -> "ตรวจกระดาษคำตอบ ถ่ายกระดาษ ไม่ต้องใช้ป้าย · ตรวจข้อมูลยา ถ่ายกล่องยา
+ไม่ต้องใช้ป้าย"; English: "... and the medicine checker photograph paper or boxes and need no sign" -> "... photographs paper
+and needs no sign · the medicine checker photographs boxes and needs no sign"; Chinese: "答题卡批改和药品信息核对拍摄的是纸张或药盒，
+无需告示" -> "答题卡批改拍摄的是纸张，无需告示 · 药品信息核对拍摄的是药盒，无需告示". Made in the decision 226 step 1 commit 2bc46c8f.
+Question: (b) is the split wording an equally clear notice, or should the two tools stay in one sentence? Question: (a) does dropping "pilot" from the heading of a notice change how a data subject should read it
 (e.g. expectations about a trial period), or is the notice still accurate as written?
 
 ## Exam consent notice: re-read prompt and hidden-until-script state (owner decisions 219 ก, 2026-11-21, and 225 ก, 2026-11-22)

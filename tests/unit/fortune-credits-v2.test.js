@@ -19,6 +19,8 @@
 //               a ?v= bump alone passes; one changed word of the terms text fails.
 //               RE-LOCK 2026-11-22 (owner decision 223): terms.html as above; help.html and legal.js = base + the exact
 //               decision-223 replacements (listed in D5_223, none touching fortune / crisis text), new sha256 pinned.
+//               RE-LOCK 226c (2026-11-22, independent review follow-up): help.html FAQ h-hr shown again, only the team-face
+//               line hidden, summary without team face (TH / EN / ZH); 15 listed replacements, new pin (equal strength).
 // Fortune pages = category 6 of tools/cat-data.cjs (+ compat). Run: node --test tests/unit/fortune-credits-v2.test.js
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -167,7 +169,7 @@ const d5Base = f => {
 // with EXACTLY these replacements applied (so every other byte, all the fortune parts D5 protected included, is unchanged),
 // and its sha256 is pinned. No replaced part touches fortune, crisis or help-number text.
 const D5_223 = {
-  "help.html": { sha: "6f0be4842e1c7b87c594f63ed86bef1d3a989b9bf2b8755c1cf6bd38efc105fa", pairs: [
+  "help.html": { sha: "07ddf7afeb33d511df7996fae464eecd6f98598e15ec943c29082f515d630cb3", pairs: [
     ["      <p>ขึ้นกับมุมกล้อง ความสูง และแสง เราเผยแพร่ผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด และฟีเจอร์ที่ยังไม่ได้วัดบนข้อมูลจริงจะมีป้าย Beta ก่อนใช้ตัวเลขตัดสินใจทางธุรกิจ " +
       "แนะนำให้ทดลองหน้างาน 2 สัปดาห์ เทียบกับการนับด้วยคน ค่าประมาณอายุ เพศ และสีหน้าเป็นค่าโดยประมาณสำหรับภาพรวมเท่านั้น</p></div></details>",
      "      <p>ตัวเลขจากกล้องเป็นค่าประมาณ ขึ้นกับมุมกล้อง ความสูง และแสง ทุกหน้าบอกข้อจำกัดสำคัญไว้ แนะนำให้ทดลองหน้างานเทียบกับการนับของคุณก่อนใช้ตัดสินใจทางธุรกิจ\n " +
@@ -190,11 +192,16 @@ const D5_223 = {
     ["<summary>LENSIQ Crowd นับคนและความหนาแน่น (ทดลอง)</summary>", "<summary>LENSIQ Crowd นับคนและความหนาแน่น</summary>"],
     ["<summary>LENSIQ Crowd people counting and density (experimental)</summary>", "<summary>LENSIQ Crowd people counting and density</summary>"],
     ["<summary>LENSIQ Crowd 人数与密度统计（实验性）</summary>", "<summary>LENSIQ Crowd 人数与密度统计</summary>"],
-    // re-lock 226b (review round 3, owner decision 226 "off = not shown"): the FAQ entry that names the switched-off team face
-    // reading is hidden with data-lq-off in TH / EN / ZH; not one word of its text changed
-    ["<details id=\"h-hr\"><summary>", "<details id=\"h-hr\" data-lq-off><summary>"],
-    ["<details id=\"en-h-hr\"><summary>", "<details id=\"en-h-hr\" data-lq-off><summary>"],
-    ["<details id=\"zh-h-hr\"><summary>", "<details id=\"zh-h-hr\" data-lq-off><summary>"]
+    // re-lock 226c (independent review follow-up, owner decision 226 "off = not shown"; replaces 226b, which hid the whole
+    // entry): the interview-kit FAQ h-hr / en-h-hr / zh-h-hr is shown again; its summary no longer names the switched-off team
+    // face reading, and only the team-face line is hidden with data-lq-off (its words unchanged); the interview-kit guidance
+    // lines (no hiring decision, camera observations off by default and never scored, sensitive questions) are unchanged
+    ["<details id=\"h-hr\"><summary>ใช้ชุดสัมภาษณ์และโหงวเฮ้งทีมอย่างไรให้ถูกต้อง</summary>", "<details id=\"h-hr\"><summary>ใช้ชุดสัมภาษณ์อย่างไรให้ถูกต้อง</summary>"],
+    ["        <li>โหงวเฮ้งทีมเป็นกิจกรรมละลายพฤติกรรมเท่านั้น", "        <li data-lq-off>โหงวเฮ้งทีมเป็นกิจกรรมละลายพฤติกรรมเท่านั้น"],
+    ["<details id=\"en-h-hr\"><summary>How should the interview kit and team face reading be used?</summary>", "<details id=\"en-h-hr\"><summary>How should the interview kit be used?</summary>"],
+    ["        <li>Team face reading is an icebreaker only.", "        <li data-lq-off>Team face reading is an icebreaker only."],
+    ["<details id=\"zh-h-hr\"><summary>应如何正确使用面试工具包和团队面相？</summary>", "<details id=\"zh-h-hr\"><summary>应如何正确使用面试工具包？</summary>"],
+    ["        <li>团队面相仅为破冰活动", "        <li data-lq-off>团队面相仅为破冰活动"]
   ] },
   "legal.js": { sha: "ec715ec3135403b89271e24d6dda0d12b94d701d608a7c06d88b7ff6cf787f7c", pairs: [
     ["      if (k === \"draft\") { el.title = (prefix() === \"zh-\" ? \"草案数值，待律师确认\" : prefix() === \"en-\" ? \"draft value, to be confirmed by counsel\" : \"ค่าร่าง รอทนายความยืนยัน\"); return; }",
@@ -221,7 +228,15 @@ test("D5 terms.html byte-identical to main 5695734 apart from ?v=; help.html and
   assert.equal(D5_223["legal.js"].pairs.length, 1);
   const [o, n] = D5_223["legal.js"].pairs[0];
   assert.equal(o.replace("ค่าร่าง รอทนายความยืนยัน", "ค่าร่าง อยู่ระหว่างให้ทนายความตรวจ"), n, "legal.js: only the Thai draft tooltip changed");
-  assert.equal(D5_223["help.html"].pairs.length, 12);
+  assert.equal(D5_223["help.html"].pairs.length, 15);
+  // re-lock 226c: the three interview-kit FAQ entries are shown (no data-lq-off on the entry), the team-face line alone is hidden
+  const hc = stripV(read("help.html"));
+  for (const id of ["h-hr", "en-h-hr", "zh-h-hr"]) {
+    const i = hc.indexOf(`<details id="${id}"`), e = hc.slice(i, hc.indexOf("</details>", i));
+    assert.ok(i > 0 && e.startsWith(`<details id="${id}"><summary>`), `help.html #${id}: the entry is shown`);
+    assert.equal((e.match(/<li data-lq-off>/g) || []).length, 1, `help.html #${id}: exactly one hidden line`);
+    assert.equal((e.match(/<li>/g) || []).length, 3, `help.html #${id}: three interview-kit lines shown`);
+  }
   // the fortune / crisis text of help.html is byte-identical to the base (every line that names fortune or a help number)
   const lines = f => stripV(f).split("\n").filter(l => FORTUNE_OR_CRISIS.test(l));
   const bl = lines(d5Base("help.html"));
