@@ -38,3 +38,8 @@ a242cca202001dc6c337dea0c956472550deb922393e40e1aadbf6476e945439  relock-223b/pr
 a242cca202001dc6c337dea0c956472550deb922393e40e1aadbf6476e945439  tests/e2e/product-check-advert.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/adverts/relock-223b/product-check-advert.e2e.mjs)
 4e14b326e8f4a760c509bc1bce848f85e514fd083ec653a689f9afeb1ebfc5bc  tests/unit/pc-advert.test.js  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/adverts/relock-223b/pc-advert.test.js)
 # field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:15Z: no repo file uses it)
+# locked 2026-11-22T00:32:49Z (tools/eval-guard.mjs lock, 2 files)
+26a3d4b13b52bd104c90bd9186282aa47f3eab60a550edab8e86e7c0f3d1d57b  relock-226/product-check-advert.e2e.mjs
+089f064b0abd5c6cc047f26f6f2e3fc0724dbe8a1137b0f605edd30c36c9784c  relock-226/NOTE.txt
+26a3d4b13b52bd104c90bd9186282aa47f3eab60a550edab8e86e7c0f3d1d57b  tests/e2e/product-check-advert.e2e.mjs  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/adverts/relock-226/product-check-advert.e2e.mjs)
+# field only relock-226/NOTE.txt (lock 2026-11-22T00:32:49Z: no repo file uses it)

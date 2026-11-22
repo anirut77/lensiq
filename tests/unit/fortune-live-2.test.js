@@ -41,8 +41,12 @@ test("B1: the team face-reading menu entry has no 'for entertainment' (nav.js, i
     const v = JSON.parse(m[1]);
     assert.doesNotMatch(v, BAN, l + ": " + v); assert.match(v, want[l], l + ": " + v);
   }
-  // the generated landing page carries the same text
-  assert.doesNotMatch(read("cat-hr.html").match(/data-i18n="nav\.teamface\.desc">([^<]*)</)[1], BAN);
+  // re-lock 226 (owner decision 226): teamface is switched off (nav.js VISIBILITY), so the generated landing page no longer
+  // lists it (it used to carry the same text); the page as a whole carries no "for entertainment"
+  assert.match(read("nav.js"), /var VISIBILITY = \{[\s\S]*?teamface: false[\s\S]*?\};/);
+  const hr = read("cat-hr.html");
+  assert.doesNotMatch(hr, /data-page="teamface"|href="teamface\.html"|data-i18n="nav\.teamface\./, "cat-hr.html lists the switched-off teamface");
+  assert.doesNotMatch(hr.replace(/<[^>]+>/g, " "), BAN, "cat-hr.html: no 'for entertainment'");
 });
 
 test("B2: help.html fortune answer uses the final disclaimer in TH / EN / ZH and has no 'for entertainment'", () => {

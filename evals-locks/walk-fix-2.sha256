@@ -22,3 +22,8 @@ ff1652be77008be5a4ecaf31d6689094c5205cd50e15538c770aa18e26ffbfc2  relock-223/NOT
 d51e131c38f603841dfd08dd6dc93604a11f91c000b8b48daffab6282b506432  relock-223b/NOTE.txt
 3400de6be693b74e6eaacf9f6b61a7938ca5b5e3f16e1ae0d198417ce810bea4  tests/unit/walkfix2.test.js  # repo file (same commit as lock 2026-11-21T18:59:16Z; field: ~/LENSIQ-field/evals/walk-fix-2/relock-223b/walkfix2.test.js)
 # field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:16Z: no repo file uses it)
+# locked 2026-11-22T00:32:49Z (tools/eval-guard.mjs lock, 2 files)
+0eb4537873b10984601780f3fcb0602508560a8cc11f42b28997733cfcbe9b34  relock-226/walkfix2.test.js
+bb3683c56cd1b6ca06115160693ecd851b5e844d8e6145a220c78c74e343eebb  relock-226/NOTE.txt
+0eb4537873b10984601780f3fcb0602508560a8cc11f42b28997733cfcbe9b34  tests/unit/walkfix2.test.js  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/walk-fix-2/relock-226/walkfix2.test.js)
+# field only relock-226/NOTE.txt (lock 2026-11-22T00:32:49Z: no repo file uses it)

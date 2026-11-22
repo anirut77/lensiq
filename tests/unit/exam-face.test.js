@@ -286,43 +286,60 @@ test("measurement-only files (Tasks Vision 1.2.2 + BlazeFace full-range) are NOT
 });
 
 /* every root page that links to the hall page labels that link "experimental" in Thai, English and Chinese */
-test("every page offering the hall page carries the experimental label in Thai, English and Chinese", () => {
+test("every page offering the hall page hides the link with data-lq-off and shows no status label in Thai, English and Chinese (decision 226)", () => {
   const all = lang => Object.assign({}, ...fs.readdirSync(path.join(ROOT, "i18n")).filter(x => x.startsWith(lang + "-") && x.endsWith(".js")).map(x => {
     try { return dictOf("i18n/" + x); } catch { return {}; }
   }));
   const en = all("en"), zh = all("zh");
-  // Decision 223-2: the approved label is now "รุ่นทดลอง" / "trial version" / "试用版" (was "ทดลอง" / "experimental" / "实验性");
-  // the old English / Chinese word must no longer be on the hall link or card.
-  const TH = /ทดลอง/, EN = /trial version/i, ZH = /试用版/, OLD_EN = /experimental/i, OLD_ZH = /实验性/;
+  // Decision 226 (inverts the 223-2 label check): no status label of any kind where a customer looks, and the hall product is
+  // switched off: every link to it on a static page sits inside an element carrying data-lq-off (nav.js hides it), the
+  // generated category page does not list it, and the label "รุ่นทดลอง ยังไม่เปิดขาย" lives only in the back office.
+  const LABEL_TH = /ทดลอง|ยังไม่เปิดขาย/, LABEL_EN = /trial version|experimental|not on sale/i, LABEL_ZH = /试用版|实验性|尚未开售|不销售/;
   const pages = fs.readdirSync(ROOT).filter(x => x.endsWith(".html") && x !== "exam-hall.html" && /href="exam-hall\.html"/.test(read(x)));
-  for (const must of ["cameras.html", "cat-education.html", "exam.html"]) assert.ok(pages.includes(must), must + " offers the hall page");
-  let links = 0;
+  for (const must of ["cameras.html", "exam.html"]) assert.ok(pages.includes(must), must + " still holds the (hidden) hall link: markup is never deleted");
+  assert.ok(!pages.includes("cat-education.html") && !/data-page="exam-hall"/.test(read("cat-education.html")), "cat-education.html does not list the switched-off hall page");
+  /** true when index idx of html lies inside an element whose opening tag carries data-lq-off */
+  const insideOff = (html, idx) => {
+    for (const o of html.slice(0, idx).matchAll(/<([a-z][a-z0-9]*)\b[^>]*\bdata-lq-off\b[^>]*>/g)) {
+      const tag = o[1], re = new RegExp(`<${tag}\\b[^>]*>|</${tag}>`, "g");
+      re.lastIndex = o.index + o[0].length;
+      let depth = 1, mm;
+      while (depth && (mm = re.exec(html))) depth += mm[0][1] === "/" ? -1 : 1;
+      if (!mm || mm.index > idx) return true;
+    }
+    return false;
+  };
+  const perPage = {};
   for (const p of pages) {
     const html = read(p);
     for (const m of html.matchAll(/<a\b[^>]*href="exam-hall\.html"[^>]*>[\s\S]*?<\/a>/g)) {
-      links++;
-      // the label is on the link itself, or (a bare "open" button) on the card that holds it
+      perPage[p] = (perPage[p] || 0) + 1;
+      assert.ok(insideOff(html, m.index), `${p}: hall link not inside a data-lq-off element: ${m[0].slice(0, 90)}`);
+      // the link and (a bare "open" button) the card that holds it carry no status label
       let scope = m[0];
-      if (!TH.test(scope.replace(/<[^>]+>/g, ""))) {
-        const start = html.lastIndexOf("<article", m.index), end = html.indexOf("</article>", m.index);
-        assert.ok(start >= 0 && end > m.index && html.lastIndexOf("</article>", m.index) < start, `${p}: hall link without the label and outside a card: ${m[0].slice(0, 90)}`);
-        scope = html.slice(start, end);
-      }
-      assert.match(scope.replace(/<[^>]+>/g, " "), TH, `${p}: Thai text of the hall link / card says ทดลอง`);
+      const start = html.lastIndexOf("<article", m.index), end = html.indexOf("</article>", m.index);
+      if (start >= 0 && end > m.index && html.lastIndexOf("</article>", m.index) < start) scope = html.slice(start, end);
+      assert.doesNotMatch(scope.replace(/<[^>]+>/g, " "), /\(?รุ่นทดลอง\)?|\(ทดลอง\)/, `${p}: Thai status label on the hall link / card`);
       const keys = [...scope.matchAll(/data-i18n="([^"]+)"/g)].map(k => k[1]);
       assert.ok(keys.length, p + ": hall link text is translatable");
       for (const k of keys) { assert.ok(en[k] != null, `${p}: en ${k}`); assert.ok(zh[k] != null, `${p}: zh ${k}`); }
-      assert.ok(keys.some(k => EN.test(en[k])), `${p}: English text of the hall link / card says trial version (${keys.join(", ")})`);
-      assert.ok(keys.some(k => ZH.test(zh[k])), `${p}: Chinese text of the hall link / card says 试用版 (${keys.join(", ")})`);
-      for (const k of keys) { assert.doesNotMatch(en[k], OLD_EN, `${p}: en ${k} still says experimental`); assert.doesNotMatch(zh[k], OLD_ZH, `${p}: zh ${k} still says 实验性`); }
+      for (const k of keys) {
+        assert.doesNotMatch(en[k], /trial version|experimental/i, `${p}: en ${k} carries a status label`);
+        assert.doesNotMatch(zh[k], /试用版|实验性/, `${p}: zh ${k} carries a status label`);
+      }
     }
   }
-  assert.ok(links >= 4, "hall links checked: " + links);
-  // every inline Thai copy of the navigation description (the default text under data-i18n) carries the label too
+  assert.deepEqual(perPage, { "cameras.html": 1, "exam.html": 2 }, "hall links checked (all hidden)");
+  // every inline Thai copy of the navigation description (the default text under data-i18n) carries no label
   for (const p of fs.readdirSync(ROOT).filter(x => x.endsWith(".html"))) {
-    for (const m of read(p).matchAll(/data-i18n="nav\.exam-hall\.desc">([^<]*)</g)) assert.match(m[1], TH, p + ": inline Thai nav.exam-hall.desc");
+    for (const m of read(p).matchAll(/data-i18n="nav\.exam-hall\.desc">([^<]*)</g)) assert.doesNotMatch(m[1], LABEL_TH, p + ": inline Thai nav.exam-hall.desc");
   }
-  assert.match(read("nav.js"), /href: "exam-hall\.html"[^}]*desc: "[^"]*\(รุ่นทดลอง\)"/); // decision 223-2: approved badge word
+  assert.match(read("nav.js"), /href: "exam-hall\.html", title: "เครื่องกล้องในห้องสอบ", desc: "วาดที่นั่ง แจ้งที่นั่งว่างและคนเกิน" \}/);
+  assert.doesNotMatch(read("nav.js"), /href: "exam-hall\.html"[^}]*\(รุ่นทดลอง\)/);
+  for (const d of [en, zh]) assert.doesNotMatch(d["nav.exam-hall.desc"], d === en ? LABEL_EN : LABEL_ZH);
+  // the switch and the label in the back office
+  assert.match(read("nav.js"), /var VISIBILITY = \{[\s\S]*?"exam-hall": false,[\s\S]*?\};/);
+  assert.match(read("admin-measurements.js"), /"exam-hall", "รุ่นทดลอง ยังไม่เปิดขาย", "Trial version, not on sale yet", "试用版，尚未开售", "off",/);
 });
 
 /* ---------- follow-ups 2026-11-10: hall "experimental", the hall pick, the lab second-person cue (§7) ---------- */
@@ -333,7 +350,7 @@ function dictOf(file) {
 }
 const THAI_RE = /[฀-๿]/;
 
-test("hall mode is labelled experimental in Thai, English and Chinese wherever it is offered or sold; lab mode is not", () => {
+test("hall mode carries no status label where it is offered or sold (decision 226), its limit stays; the label lives in the back office; lab mode unchanged", () => {
   const en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
   const enC = dictOf("i18n/en-common.js"), zhC = dictOf("i18n/zh-common.js"), enS = dictOf("i18n/en-solutions.js"), zhS = dictOf("i18n/zh-solutions.js");
   const enCat = dictOf("i18n/en-cat.js"), zhCat = dictOf("i18n/zh-cat.js");
@@ -346,8 +363,9 @@ test("hall mode is labelled experimental in Thai, English and Chinese wherever i
   const hall = read("exam-hall.html");
   assert.ok(hall.indexOf('id="hallExp"') > 0 && hall.indexOf('id="hallExp"') < hall.indexOf('id="setupForm"'), "banner above the setup form");
   const banner = /id="hallExp"[^>]*>([\s\S]*?)<\/p>/.exec(hall)[1];
-  assert.match(banner, /data-i18n="exam\.hall\.expB">รุ่นทดลอง ยังไม่เปิดขาย</);
-  assert.match(banner, /ใบหน้าที่อยู่ไกลกล้องยังหาไม่เจอ/);
+  // decision 226: the badge "รุ่นทดลอง ยังไม่เปิดขาย" (exam.hall.expB) left the banner; the plain limit stays
+  assert.doesNotMatch(banner, /exam\.hall\.expB|รุ่นทดลอง|ยังไม่เปิดขาย/);
+  assert.match(banner, /^<span data-i18n="exam\.hall\.exp">ใบหน้าที่อยู่ไกลกล้องยังหาไม่เจอ/);
   const [shTh] = sheet(sheetTH, "exam.hall.exp"), [shEn, shZh] = sheet(sheetEN, "exam.hall.exp");
   assert.ok(shTh && shEn && shZh, "tech sheet holds exam.hall.exp in TH / EN / ZH");
   for (const tok of ["0%", "n = 195", "63%", "24–48 px", "0.40"]) {
@@ -356,36 +374,47 @@ test("hall mode is labelled experimental in Thai, English and Chinese wherever i
   }
   assert.doesNotMatch(banner, /ชุดข้อมูลสาธารณะ/); assert.doesNotMatch(en["exam.hall.exp"], /public dataset/); assert.doesNotMatch(zh["exam.hall.exp"], /公开数据集/);
   assert.match(shTh, /ชุดข้อมูลสาธารณะ/); assert.match(shEn, /public dataset/); assert.match(shZh, /公开数据集/);
-  assert.match(en["exam.hall.expB"], /^Trial version, not on sale yet$/); assert.match(zh["exam.hall.expB"], /^试用版，尚未开售$/);
-  assert.doesNotMatch(en["exam.hall.expB"], OLD_EN); assert.doesNotMatch(zh["exam.hall.expB"], OLD_ZH);
+  assert.equal(en["exam.hall.expB"], undefined, "en exam.hall.expB removed"); assert.equal(zh["exam.hall.expB"], undefined, "zh exam.hall.expB removed");
+  for (const t of [en["exam.hall.exp"], zh["exam.hall.exp"]]) assert.doesNotMatch(t, /trial version|experimental|试用版|实验性|not on sale|尚未开售/i);
   // Exam landing page: the button, the mode card and the price card
   const landing = read("exam.html");
-  assert.match(landing, /data-i18n="exam\.l\.ctaHall">[^<]*ทดลอง/);
-  assert.match(landing, /id="hallExp"><b data-i18n="exam\.l\.mAxB">รุ่นทดลอง ยังไม่เปิดขาย</);
-  assert.match(landing, /data-i18n="exam\.l\.p3x">รุ่นทดลอง[^<]*ยังไม่เปิดขาย/);
-  for (const k of ["exam.l.ctaHall", "exam.l.mAxB", "exam.l.p3x"]) {
-    assert.match(en[k], EN, "en " + k); assert.match(zh[k], ZH, "zh " + k);
+  // decision 226: the button, the mode card and the price card carry no status label (they are hidden with data-lq-off,
+  // checked above); the price card keeps its "not on sale until fixed" sentence, the mode card its plain limit
+  assert.match(landing, /data-i18n="exam\.l\.ctaHall">เครื่องกล้องในห้องสอบ</);
+  assert.match(landing, /id="hallExp"><span data-i18n="exam\.l\.mAx">ใบหน้าที่อยู่ไกลกล้องยังหาไม่เจอ/);
+  assert.doesNotMatch(landing, /exam\.l\.mAxB/);
+  assert.match(landing, /data-i18n="exam\.l\.p3x">ยังไม่เปิดขายจนกว่าจะแก้ปัญหาใบหน้าเล็ก/);
+  assert.doesNotMatch(landing, /data-i18n="exam\.l\.(ctaHall|p3x)">[^<]*รุ่นทดลอง/);
+  for (const k of ["exam.l.ctaHall", "exam.l.p3x"]) {
+    assert.doesNotMatch(en[k], EN, "en " + k); assert.doesNotMatch(zh[k], ZH, "zh " + k);
     assert.doesNotMatch(en[k], OLD_EN, "en " + k); assert.doesNotMatch(zh[k], OLD_ZH, "zh " + k);
   }
-  assert.match(en["exam.l.p3x"], /not on sale/); assert.match(zh["exam.l.p3x"], /不销售/);
+  assert.equal(en["exam.l.mAxB"], undefined, "en exam.l.mAxB removed"); assert.equal(zh["exam.l.mAxB"], undefined, "zh exam.l.mAxB removed");
+  assert.match(en["exam.l.p3x"], /^Not on sale until the small-face issue is fixed; this price applies once it is on sale$/); assert.match(zh["exam.l.p3x"], /^在小脸问题解决前不销售/);
   // navigation, solutions catalogue
-  assert.match(read("nav.js"), /href: "exam-hall\.html"[^}]*ทดลอง/);
-  assert.match(enC["nav.exam-hall.desc"], EN); assert.match(zhC["nav.exam-hall.desc"], ZH);
+  assert.doesNotMatch(read("nav.js"), /href: "exam-hall\.html"[^}]*ทดลอง/);
+  assert.doesNotMatch(enC["nav.exam-hall.desc"], EN); assert.doesNotMatch(zhC["nav.exam-hall.desc"], ZH);
   assert.doesNotMatch(enC["nav.exam-hall.desc"], OLD_EN); assert.doesNotMatch(zhC["nav.exam-hall.desc"], OLD_ZH);
-  assert.match(read("solutions.html"), /ห้องสอบที่มีกล้องรอบห้อง \(รุ่นทดลอง ยังไม่เปิดขาย\)/);
-  assert.match(enS["sl.c.edu1.p"], /cameras around the room \(trial version, not on sale yet\)/); assert.match(zhS["sl.c.edu1.p"], /试用版，尚未开售/);
+  // decision 226: the switched-off hall is not mentioned in the catalogue card any more, and the card carries no label
+  const edu1 = /data-i18n="sl\.c\.edu1\.p">([^<]*)</.exec(read("solutions.html"))[1].replace(/\s+/g, " ");
+  assert.equal(edu1, "บอกกรรมการว่าควรไปดูที่นั่งไหน (ไม่มีใบหน้า มากกว่าหนึ่งคน โทรศัพท์ ออกจากหน้าจอ) ในห้องสอบคอมพิวเตอร์ ไม่ตัดสินว่าทุจริต กรรมการเป็นผู้ตรวจและบันทึกผล");
+  assert.doesNotMatch(read("solutions.html"), /ห้องสอบที่มีกล้องรอบห้อง \(รุ่นทดลอง|\(รุ่นทดลอง ยังไม่เปิดขาย\)/);
+  assert.doesNotMatch(enS["sl.c.edu1.p"], /cameras around the room|trial version/); assert.doesNotMatch(zhS["sl.c.edu1.p"], /试用版|尚未开售/);
+  assert.match(enS["sl.c.edu1.p"], /in computer labs\. It never decides misconduct; invigilators check and record the outcome\.$/);
   assert.doesNotMatch(enS["sl.c.edu1.p"], OLD_EN); assert.doesNotMatch(zhS["sl.c.edu1.p"], OLD_ZH);
-  // category page: generated from tools/cat-data.cjs; the internal status table (PAGES / REASONS) is unchanged, the card
-  // shows only the customer badge (badgeOf: hall for exam-hall, trial for the lab); the reason text is in the tech sheet
+  // category page: generated from tools/cat-data.cjs; the internal status table (PAGES / REASONS) is unchanged; decision 226:
+  // no card shows a badge, the switched-off hall has no card, its label (badgeOf: hall) is held by the back office
   const D = require("../../tools/cat-data.cjs");
   assert.equal(D.PAGES["exam-hall"].st, "experimental");
   for (const p of ["exam", "exam-lab", "exam-dashboard"]) assert.equal(D.PAGES[p].st, "pilot-ready", p + " unchanged");
   assert.equal(D.badgeOf("exam-hall"), "hall"); assert.equal(D.badgeOf("exam-lab"), "trial");
   const catEdu = read("cat-education.html");
-  assert.match(catEdu, /data-page="exam-hall" data-status="hall">[\s\S]{0,200}?<span class="cat-st hall" data-i18n="cat\.b\.hall">รุ่นทดลอง ยังไม่เปิดขาย<\/span>/);
-  assert.match(catEdu, /data-page="exam-lab" data-status="trial"/);
-  assert.doesNotMatch(catEdu, /data-page="exam-hall" data-status="experimental"|data-page="exam-lab" data-status="pilot-ready"/);
-  assert.equal(enCat["cat.b.hall"], "Trial version, not on sale yet"); assert.equal(zhCat["cat.b.hall"], "试用版，尚未开售");
+  assert.doesNotMatch(catEdu, /data-page="exam-hall"|href="exam-hall\.html"|cat\.b\.hall|รุ่นทดลอง/);
+  assert.match(catEdu, /<article class="pd-card cat-tool" data-page="exam-lab">/);
+  assert.doesNotMatch(catEdu, /data-status=|class="cat-st\b/);
+  assert.equal(enCat["cat.b.hall"], undefined); assert.equal(zhCat["cat.b.hall"], undefined);
+  assert.match(read("admin-measurements.js"), /"exam-hall", "รุ่นทดลอง ยังไม่เปิดขาย", "Trial version, not on sale yet", "试用版，尚未开售", "off",/);
+  assert.match(read("admin-measurements.js"), /"exam-lab", "รุ่นทดลอง", "Trial version", "试用版", "on",/);
   assert.match(D.REASONS.examHall.th, TH); assert.match(D.REASONS.examHall.en, OLD_EN); assert.match(D.REASONS.examHall.zh, OLD_ZH);
   assert.equal(enCat["cat.r.examHall"], undefined, "reason no longer on the customer card"); assert.equal(zhCat["cat.r.examHall"], undefined);
   const [rEn, rZh] = sheet(sheetEN, "cat.r.examHall");
@@ -393,22 +422,25 @@ test("hall mode is labelled experimental in Thai, English and Chinese wherever i
   assert.match(read("docs/PAGE-STATUS.md"), /\| `exam-hall\.html` \| 2 Education & Exams \| \*\*experimental\*\* \|/);
   // sales documents
   const one = read("docs/ONE-PAGER-EXAM.md");
-  assert.ok((one.match(/รุ่นทดลอง ยังไม่เปิดขาย/g) || []).length >= 2 && (one.match(/trial version, not on sale yet/g) || []).length >= 2, "one-pager: what you get + price row, TH and EN");
-  assert.doesNotMatch(one, /experimental, not on sale yet/);
+  // decision 226: the one-pager carries no status label; the hall is stated plainly as a service that is not open yet
+  assert.equal((one.match(/รุ่นทดลอง/g) || []).length, 0, "one-pager: no Thai status label");
+  assert.equal((one.match(/trial version|experimental/gi) || []).length, 0, "one-pager: no English status label");
+  assert.match(one, /^\*\*ห้องสอบที่มีกล้อง:\*\* ระบบนี้ยังไม่เปิดให้บริการ ราคาในแถวนั้นใช้เมื่อเปิดให้บริการแล้วเท่านั้น/m);
+  assert.match(one, /^\*\*Camera hall:\*\* this service is not available yet; its row applies only once the service opens\./m);
   assert.match(read("docs/SALES-PACKAGES.md"), /camera-hall mode \(`exam-hall\.html`, \*\*experimental, not sold until the small-face issue is fixed\*\*/);
   // ONE-PAGER-TH / -ZH: the accuracy table (which carried the hall label) is gone; the rows are held verbatim by the tech-sheet
-  // README, and any remaining mention of the hall device still carries the label
+  // README (back office, keeps its labels); decision 226: any remaining mention of the hall device carries no label
   const techReadme = read("docs/tech-sheets/README.md");
   assert.match(techReadme, /考场摄像头[^|\n]*实验性/); assert.match(techReadme, /เครื่องกล้องในห้องสอบ[^|\n]*รุ่นทดลอง/);
-  for (const line of read("docs/ONE-PAGER-ZH.md").split("\n")) if (/考场摄像头设备/.test(line)) assert.match(line, /试用版/, "ONE-PAGER-ZH: " + line.slice(0, 60));
-  for (const line of read("docs/ONE-PAGER-TH.md").split("\n")) if (/เครื่องกล้องในห้องสอบ/.test(line)) assert.match(line, /รุ่นทดลอง/, "ONE-PAGER-TH: " + line.slice(0, 60));
+  for (const line of read("docs/ONE-PAGER-ZH.md").split("\n")) if (/考场摄像头设备/.test(line)) assert.doesNotMatch(line, /试用版|实验性/, "ONE-PAGER-ZH: " + line.slice(0, 60));
+  for (const line of read("docs/ONE-PAGER-TH.md").split("\n")) if (/เครื่องกล้องในห้องสอบ/.test(line)) assert.doesNotMatch(line, /รุ่นทดลอง/, "ONE-PAGER-TH: " + line.slice(0, 60));
   assert.doesNotMatch(read("docs/ONE-PAGER-ZH.md"), /实验性，暂不销售/);
   // lab mode keeps its wording: no "experimental" and no "not on sale" on the lab button or nav entry
   for (const d of [en, zh]) assert.doesNotMatch(d["exam.l.ctaLab"], /experimental|实验性|not on sale|尚未开售|不销售/);
   assert.doesNotMatch(landing, /data-i18n="exam\.l\.ctaLab">[^<]*ยังไม่เปิดขาย/);
   assert.doesNotMatch(enC["nav.exam-lab.desc"], OLD_EN); assert.doesNotMatch(enC["nav.exam-lab.desc"], /not on sale/);
   // no Thai in the en / zh strings; exam.l.cl4 / cl5 (figures) left the page and the dictionaries and are in the tech sheet
-  for (const d of [en, zh]) for (const k of ["exam.hall.exp", "exam.hall.expB", "exam.hall.faceOn", "exam.hall.faceErr", "exam.hall.kvFaces", "exam.hall.kvFaceOff"]) {
+  for (const d of [en, zh]) for (const k of ["exam.hall.exp", "exam.hall.faceOn", "exam.hall.faceErr", "exam.hall.kvFaces", "exam.hall.kvFaceOff"]) {
     assert.ok(d[k] && !THAI_RE.test(d[k]), k);
   }
   for (const k of ["exam.l.cl4", "exam.l.cl5"]) {
@@ -482,15 +514,18 @@ test("owner decisions 2026-11-10 (follow-up): no rate in the candidate notice, >
     assert.doesNotMatch(en[k], /see the camera placement guide/i, k); assert.doesNotMatch(zh[k], /[，（]见摄像头摆放指南/, k);
     assert.ok(!THAI_RE.test(en[k].replace(/฿/g, "")) && !THAI_RE.test(zh[k].replace(/฿/g, "")), k + ": no Thai in en / zh");
   }
-  // prices unchanged, hall still "experimental, not on sale"
+  // prices unchanged; hall still "not on sale" (sentence), decision 226: without the status label
   assert.match(land, /data-i18n="exam\.l\.p3b">฿290 ต่อห้องต่อวันสอบ/);
   assert.match(land, /data-i18n="exam\.l\.p3n">หรือ ฿990 ต่อเดือนต่อห้อง/);
-  assert.match(land, /data-i18n="exam\.l\.p3x">รุ่นทดลอง: ยังไม่เปิดขาย/);
+  assert.match(land, /data-i18n="exam\.l\.p3x">ยังไม่เปิดขายจนกว่าจะแก้ปัญหาใบหน้าเล็ก ราคานี้ใช้เมื่อเปิดขายแล้ว</);
+  assert.doesNotMatch(land, /data-i18n="exam\.l\.p3x">รุ่นทดลอง/);
   assert.match(en["exam.l.p3n"], /^or ฿990 per month per room /); assert.match(zh["exam.l.p3n"], /^或每考场每月 ฿990/);
   const one = read("docs/ONE-PAGER-EXAM.md");
-  assert.match(one, /ห้องสอบที่มีกล้อง \(ต่อห้อง จำนวนกล้องขึ้นกับขนาดห้อง ดูคู่มือวางกล้อง\) \*\*— รุ่นทดลอง ยังไม่เปิดขาย\*\* \| 290 บาท ต่อห้องต่อวันสอบ/);
-  // decision 223-2: the approved badge wording "trial version" replaces "experimental" (price unchanged)
-  assert.match(one, /Camera hall \(per room; number of cameras depends on room size, see the guide\), \*\*trial version, not on sale yet\*\* \| 290 THB per room per exam day/);
+  // decision 226: the price rows lose the status label (price unchanged)
+  assert.match(one, /ห้องสอบที่มีกล้อง \(ต่อห้อง จำนวนกล้องขึ้นกับขนาดห้อง ดูคู่มือวางกล้อง\) \| 290 บาท ต่อห้องต่อวันสอบ/);
+  assert.doesNotMatch(one, /— รุ่นทดลอง ยังไม่เปิดขาย/);
+  assert.match(one, /Camera hall \(per room; number of cameras depends on room size, see the guide\) \| 290 THB per room per exam day/);
+  assert.doesNotMatch(one, /\*\*trial version, not on sale yet\*\*/);
   const GUIDE = '`docs\\/EXAM\\.md` "Hall camera placement guide"\\)';
   assert.match(read("docs/BILLING-PLAN.md"), new RegExp("`exam_hall` \\|[^\\n]*\\*\\*Experimental, not on sale\\*\\*[^\\n]*the number of cameras depends on room size " +
     "\\(see the guide: " + GUIDE + " \\| 290 THB per room per exam day, or 990 THB \\/ month per room \\|"));
@@ -556,10 +591,13 @@ test("owner decisions 2026-11-10: lab-led pilot with the accepted limit, the 28.
   assert.ok(kit.indexOf("- **Mode B, the lead mode**") < kit.indexOf("- **Mode A** (camera exam hall"), "English: lab mode listed first");
   assert.match(kit, /28\.8 % \(15 \/ 52 ภาพที่มีคนที่สอง\)/); assert.match(kit, /28\.8 % \(15 \/ 52 frames with a\s+second person\)/);
   assert.match(kit, /เป็นตัวช่วย ไม่ใช่การตรวจจับที่ครบถ้วน/); assert.match(kit, /is an aid, not complete detection/);
-  // hall "count faces (experimental)": stays, off by default, and its label says small or distant faces are not found
+  // hall "count faces": stays, off by default, and its label says small or distant faces are not found; decision 226: the
+  // status word "(ทดลอง: / experimental: / 实验性：)" left the label
   const hall = read("exam-hall.html");
-  assert.match(hall.replace(/\s+/g, " "), /id="faceOn"> <span data-i18n="exam\.hall\.faceOn">นับใบหน้าในภาพ \(ทดลอง: ยังไม่พบใบหน้าเล็กหรือที่อยู่ไกล/);
-  assert.match(en["exam.hall.faceOn"], /experimental: small or distant faces are not found yet/); assert.match(zh["exam.hall.faceOn"], /实验性：目前找不到小脸或远处的脸/);
+  assert.match(hall.replace(/\s+/g, " "), /id="faceOn"> <span data-i18n="exam\.hall\.faceOn">นับใบหน้าในภาพ \(ยังไม่พบใบหน้าเล็กหรือที่อยู่ไกล/);
+  assert.match(en["exam.hall.faceOn"], /^Count faces in the view \(small or distant faces are not found yet/); assert.match(zh["exam.hall.faceOn"], /^统计画面中的人脸（目前找不到小脸或远处的脸/);
+  assert.doesNotMatch(hall.replace(/\s+/g, " "), /data-i18n="exam\.hall\.faceOn">[^<]*ทดลอง/);
+  assert.doesNotMatch(en["exam.hall.faceOn"], /experimental/i); assert.doesNotMatch(zh["exam.hall.faceOn"], /实验性/);
   // placement guide: document only, every number a calculation; the 48 px rule and its tables are there; no setup check built
   const guide = /### Hall camera placement guide[\s\S]*?(?=\nv2: pose landmarker)/.exec(read("docs/EXAM.md"))[0];
   assert.match(guide, /Every number in this section is a calculation, not a measurement/); assert.match(guide, /ทุกตัวเลขเป็นการคำนวณ ยังไม่ได้วัด/);

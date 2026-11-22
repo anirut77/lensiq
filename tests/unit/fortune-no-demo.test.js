@@ -15,6 +15,11 @@
 //   the demo-only pages of D.DEMO_ONLY), with no status words; the non-fortune demo badges became "เร็ว ๆ นี้" (Coming soon /
 //   即将推出) on cards marked data-demo-only, and the old "สาธิต" badge, its key and the demo legend line are gone. The fortune
 //   checks (1-4) are unchanged.
+//   RE-LOCK 2026-11-22 (owner decision 226: no status label where a customer looks; one visibility list `var VISIBILITY` in
+//   nav.js): the counts are over the tools a customer can see (the base total minus the switched-off pages); the former
+//   "เร็ว ๆ นี้" badges of teamface / signage / neuro (sol-r5) are gone with their keys: those products are switched off, have
+//   no card on their category page, sol-r5 is hidden with data-lq-off, and their label lives only in the back office
+//   (admin-measurements.js). The fortune checks (1-4) are unchanged.
 // Static, synthetic; no network. Browser check (rendered TH / EN / ZH): tests/e2e/fortune-no-demo.e2e.mjs.
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -28,6 +33,9 @@ const FORT = D.CATEGORIES.find(c => c.slug === "fortune");
 const FORTUNE_PAGES = FORT.pages.concat(["compat", "petread"].filter(p => existsSync(join(ROOT, p + ".html"))));
 const DEMO = { th: "สาธิต", en: "Demo", zh: "演示" };
 const DEMO_RE = { th: /สาธิต/, en: /\bdemo\b/i, zh: /演示/ };
+/** decision 226: the pages nav.js switches off (var VISIBILITY = { …: false }) */
+const OFF = [...read("nav.js").match(/var VISIBILITY = \{([\s\S]*?)\};/)[1].matchAll(/"?([a-z][\w-]*)"?: false/g)].map(m => m[1]);
+const SOON_LABEL = { th: "เร็ว ๆ นี้", en: "Coming soon", zh: "即将推出" };
 
 function dictVal(file, key) {
   const src = read(file);
@@ -91,7 +99,8 @@ test("2. index.html category chooser: the fortune count names no demo; the six o
   const th = thVal(html, "cat.fortune.count");
   assert.ok(th && !DEMO_RE.th.test(th), "index TH fortune count " + th);
   // re-lock 2026-11-22 (decision 223): was "byte-identical to BASE_COUNT"; now exactly the tool count, derived from the base
-  // total (first number of BASE_COUNT, all three languages agree) minus the demo-only pages, and no status word at all
+  // total (first number of BASE_COUNT, all three languages agree) minus the demo-only pages, and no status word at all;
+  // re-lock 226: minus the pages switched off in nav.js (decision 226: an off product is not listed or counted)
   const OLD_WORDS = { th: /พร้อมนำร่อง|ทดลอง|สาธิต|หน้าประกอบ|·/, en: /pilot-ready|experimental|demo|support pages|·/i, zh: /可试点|实验性|演示|辅助页面|·/ };
   const WANT = { th: n => `${n} เครื่องมือ`, en: n => `${n} tools`, zh: n => `${n} 个工具` };
   for (const [slug, v] of Object.entries(BASE_COUNT)) {
@@ -99,7 +108,7 @@ test("2. index.html category chooser: the fortune count names no demo; the six o
     assert.ok(+v.en.match(/^\d+/)[0] === total && +v.zh.match(/^\d+/)[0] === total, slug + " base totals agree");
     const cat = D.CATEGORIES.find(c => c.slug === slug);
     assert.equal(cat.pages.length, total, slug + ": the category still lists every base tool");
-    const n = total - cat.pages.filter(p => D.DEMO_ONLY.includes(p)).length;
+    const n = total - cat.pages.filter(p => OFF.includes(p)).length;
     assert.equal(thVal(html, `cat.${slug}.count`), WANT.th(n), "index " + slug);
     assert.equal(thVal(read(`cat-${slug}.html`), `cat.${slug}.count`), WANT.th(n), `cat-${slug}.html count`);
     assert.doesNotMatch(thVal(html, `cat.${slug}.count`), OLD_WORDS.th, "index " + slug + " status words");
@@ -108,11 +117,12 @@ test("2. index.html category chooser: the fortune count names no demo; the six o
       assert.doesNotMatch(dictVal(`i18n/${l}-cat.js`, `cat.${slug}.count`), OLD_WORDS[l], `${l} ${slug} count status words`);
     }
   }
-  // the demo-only pages (not counted) are exactly the four approved in decision 223 (audit section 3)
+  // the demo-only pages of decision 223 (internal data, unchanged) and the switched-off pages of decision 226 (not counted)
   assert.deepEqual([...D.DEMO_ONLY].sort(), ["customers", "neuro", "signage", "teamface"]);
+  assert.deepEqual([...OFF].sort(), ["customers", "exam-hall", "neuro", "product-check", "signage", "teamface"]); // re-lock 4 of 226: Product Check = the tab of medicine.html, the page itself on
 });
 
-test("3. solutions.html: no card linking to a fortune page carries a demo badge; sol-r5 (signage) keeps its demo badge", () => {
+test("3. solutions.html: no card linking to a fortune page carries a demo badge; sol-r5 (signage) is hidden and carries no badge (decision 226)", () => {
   const html = read("solutions.html");
   const cards = [...html.matchAll(/<article class="sl-card"[^>]*id="sol-([\w]+)">([\s\S]*?)<\/article>/g)];
   let n = 0;
@@ -123,18 +133,20 @@ test("3. solutions.html: no card linking to a fortune page carries a demo badge;
     assert.ok(!/data-i18n="sl\.st\.demo"/.test(body) && !DEMO_RE.th.test(body.replace(/<p[\s\S]*$/, "")), `sol-${id} (${href}) demo badge`);
   }
   assert.ok(n >= 3, "fortune cards found: " + n);
-  // re-lock 2026-11-22 (decision 223): sol-r5 (signage) keeps a badge, now the approved "เร็ว ๆ นี้" (Coming soon / 即将推出),
-  // and the card is demo-only; the old "สาธิต" badge and the sl.st.demo key are gone
+  // re-lock 2026-11-22 (decision 223): sol-r5 (signage) had the approved "เร็ว ๆ นี้" badge on a demo-only card; re-lock 226:
+  // signage is switched off, so the card (markup kept) is hidden with data-lq-off and carries no badge at all; the old
+  // "สาธิต" badge and the sl.st.demo key stay gone
+  assert.ok(OFF.includes("signage"), "signage switched off in nav.js");
   const r5 = html.match(/<article class="sl-card"([^>]*)id="sol-r5"([^>]*)>([\s\S]*?)<\/article>/);
-  assert.ok(r5, "sol-r5 card");
-  assert.match(r5[1] + r5[2], /data-status="soon"/, "sol-r5 data-status");
-  assert.match(r5[1] + r5[2], /\bdata-demo-only\b/, "sol-r5 is demo-only");
-  assert.ok(/<span class="sl-tag soon"\s+data-i18n="sl\.st\.soon">เร็ว ๆ นี้<\/span>/.test(r5[3]), "sol-r5 coming-soon badge");
+  assert.ok(r5, "sol-r5 card (markup kept)");
+  assert.match(r5[1] + r5[2], /\bdata-lq-off\b/, "sol-r5 is hidden (data-lq-off)");
+  assert.doesNotMatch(r5[1] + r5[2], /\bdata-demo-only\b/, "sol-r5 demo-only marker");
+  assert.ok(!/class="sl-tag\b|data-i18n="sl\.st\./.test(r5[3]) && !r5[3].includes(SOON_LABEL.th), "sol-r5 still carries a badge");
+  assert.ok(!/class="sl-tag\b|data-i18n="sl\.st\./.test(html), "solutions.html still carries a status tag");
   assert.ok(!/data-i18n="sl\.st\.demo"/.test(r5[3]) && !DEMO_RE.th.test(r5[3].replace(/<p[\s\S]*$/, "")), "sol-r5 old demo badge");
   assert.ok(!/data-i18n="sl\.st\.demo"/.test(html), "solutions.html still uses sl.st.demo");
-  const SOON = { en: "Coming soon", zh: "即将推出" };
   for (const l of ["en", "zh"]) {
-    assert.equal(dictVal(`i18n/${l}-solutions.js`, "sl.st.soon"), SOON[l], `${l} sl.st.soon`);
+    assert.equal(dictVal(`i18n/${l}-solutions.js`, "sl.st.soon"), null, `${l} sl.st.soon is gone (decision 226)`);
     assert.equal(dictVal(`i18n/${l}-solutions.js`, "sl.st.demo"), null, `${l} sl.st.demo is gone`);
   }
 });
@@ -152,25 +164,27 @@ test("4. every fortune page and its own dictionaries: no status chip and no demo
   }
 });
 
-test("5. other categories unchanged: statuses, demo chips of teamface / signage / neuro (TH / EN / ZH keys)", () => {
+test("5. other categories unchanged: statuses; teamface / signage / neuro switched off, no card, label in the back office only (TH / EN / ZH keys)", () => {
   const fort = new Set(FORT.pages);
   const now = {};
   for (const [p, v] of Object.entries(D.PAGES)) if (!fort.has(p)) now[p] = v.st;
   assert.deepEqual(now, BASE_ST);
-  // re-lock 2026-11-22 (decision 223): the three former demo chips are now the approved "เร็ว ๆ นี้" badge on demo-only cards;
-  // no "สาธิต" chip, no cat.st.demo key and no demo legend line (status legends are gone from every category page)
+  // re-lock 2026-11-22 (decision 223): the three former demo chips became the "เร็ว ๆ นี้" badge on demo-only cards; re-lock
+  // 226: the three products are switched off, so their category page has no card for them (and no badge, no "สาธิต" chip, no
+  // cat.st.demo key, no legend line); the label "เร็ว ๆ นี้" / "Coming soon" / "即将推出" is held by the back office only
+  const adm = read("admin-measurements.js");
   for (const [slug, page] of [["hr", "teamface"], ["marketing", "signage"], ["marketing", "neuro"]]) {
     const html = read(`cat-${slug}.html`);
-    const card = html.match(new RegExp(`<article class="pd-card cat-tool" data-page="${page}"([^>]*)>[\\s\\S]*?</article>`));
-    assert.ok(card, `${page} card on cat-${slug}.html`);
-    assert.equal(card[1], ' data-status="soon" data-demo-only', `${page} card attributes`);
-    assert.ok(/<span class="cat-st soon"\s+data-i18n="cat\.b\.soon">เร็ว ๆ นี้<\/span>/.test(card[0]), `${page} coming-soon badge on cat-${slug}.html`);
-    assert.ok(!/data-i18n="cat\.st\.demo"|class="cat-st demo"|สาธิต/.test(card[0]), `${page} old demo chip on cat-${slug}.html`);
+    assert.ok(OFF.includes(page), `${page} switched off in nav.js`);
+    assert.ok(D.CATEGORIES.find(c => c.slug === slug).pages.includes(page), `${page} still in category ${slug} (internal data)`);
+    assert.ok(!html.includes(`data-page="${page}"`) && !html.includes(`href="${page}.html`), `${page} card on cat-${slug}.html`);
+    assert.ok(!/class="cat-st\b|data-i18n="cat\.b\.|data-status=|data-demo-only/.test(html) && !html.includes(SOON_LABEL.th), `cat-${slug}.html status badge`);
+    assert.ok(!/data-i18n="cat\.st\.demo"|class="cat-st demo"|สาธิต/.test(html), `old demo chip on cat-${slug}.html`);
     assert.ok(!/data-i18n="cat\.std\./.test(html), `cat-${slug}.html status legend line`);
+    assert.ok(adm.includes(`"${page}", "${SOON_LABEL.th}", "${SOON_LABEL.en}", "${SOON_LABEL.zh}", "off",`), `${page}: back-office label and visibility`);
   }
-  const SOON = { en: "Coming soon", zh: "即将推出" };
   for (const l of ["en", "zh"]) {
-    assert.equal(dictVal(`i18n/${l}-cat.js`, "cat.b.soon"), SOON[l], `${l} cat.b.soon`);
+    assert.equal(dictVal(`i18n/${l}-cat.js`, "cat.b.soon"), null, `${l} cat.b.soon is gone (decision 226)`);
     assert.equal(dictVal(`i18n/${l}-cat.js`, "cat.st.demo"), null, `${l} cat.st.demo is gone`);
   }
 });

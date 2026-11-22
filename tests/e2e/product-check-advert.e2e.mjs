@@ -22,6 +22,13 @@
 //      carries no figure (the 60% / 2.1 / n = 545 / 382 texts are records held in docs/tech-sheets/product-check-*.md and
 //      admin-measurements.js, checked in tests/unit/pc-advert.test.js); the panel shows none of the old generated texts;
 //   8. the no-signal sentence is exactly the owner's sentence without "in testing ... about 3 in 5".
+// RE-LOCK 2026-11-22 (owner decision 226: no status label where a customer looks; Product Check, the "ตรวจสินค้า" tab of
+// medicine.html, is switched off in the nav.js visibility list as the part "product-check" (coordinator decision on entry 13:
+// the drug checker on the same page stays on); the harness previews an off part as switched on unless offNotice: true):
+//   7. inverted: (a) with offNotice: true, medicine.html is NOT the off notice, the drug checker is shown and the Product
+//      Check tab (#t-pc) and panel (#tab-pc, #pcAdPanel) are not rendered; (b) in the preview the panel carries NO status badge (no [data-exp], no
+//      md.pc.ad.exp key, no labelBanned word, no Beta); the plain accuracy line, the exact no-signal sentence and
+//      "limited support" are checked exactly as before.
 // Synthetic advert text only (invented shop, handle and phone); the picture is generated noise.
 import { assert } from "./cdp.mjs";
 import { coverage, phone } from "./gate.e2e.mjs";
@@ -189,12 +196,13 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
-    await check("pc-advert AMENDMENT (re-lock 223): trial-version badge + plain accuracy line (no figure) " +
+    await check("pc-advert AMENDMENT (re-lock 223 / 226): off notice when switched off; no status badge + plain accuracy line (no figure) " +
       "on the panel; exact no-signal sentence; Chinese 'limited support' (TH / EN / ZH)", async () => {
       const { loadFigures, expand } = await import("../../tools/accuracy-sync.mjs");
       const rows = Object.fromEntries(expand(loadFigures()).map(r => [r.key, r]));
-      const EXP = { th: "รุ่นทดลอง", en: "Trial version", zh: "试用版" };
-      const OLD_EXP = /Experimental|实验|ทดลองใช้|Beta/;
+      // re-lock 226: these labels must be absent from the panel (was: the badge must read exactly รุ่นทดลอง / Trial version / 试用版)
+      const LABEL_226 = /รุ่นทดลอง|เร็ว ๆ นี้|ทดลองใช้|\(ทดลอง\)|\(นำร่อง\)|[Tt]rial version|Coming soon|\((experimental|pilot)\)|\bExperimental\b|\bBeta\b|试用版|即将推出|实验性|（试验）|（试点）/;
+      const OFF_SENTENCE = "ระบบนี้ยังไม่เปิดให้บริการ · This service is not available yet. · 此服务尚未开放。";
       const ACC_PLAIN = {
         th: "ตรวจพบถ้อยคำโฆษณาเกินจริงได้บางส่วน อาจพลาดคำที่เขียนต่างออกไป และบางครั้งเตือนข้อความที่ไม่ผิด",
         en: "Finds some over-claiming advert wording. It may miss wording phrased differently and sometimes flags text that is fine.",
@@ -208,15 +216,33 @@ export default async function ({ base, launch, check }) {
       const FIGURE = /\d+(\.\d+)?\s?%|\bn\s?=\s?\d|545|382|\b2\.1\b|3 ใน 5|3 in 5|5 条夸大宣传中的 3|ชุดข้อมูลสาธารณะ|public dataset|公开数据集/i;
       const sq = x => String(x).replace(/\s+/g, " ").trim();
       const LIMITED = { th: "รองรับแบบจำกัด", en: "Limited support", zh: "支持有限" };
+      // (a) switched off (the part "product-check"): the tab and its panel are not rendered; the drug checker is, and the
+      // page is not the off notice (medicine.html itself is on)
+      const offPage = await browser.newPage(null, { initScripts: [INIT], isolated: true, offNotice: true });
+      for (const lang of ["th", "en", "zh"]) {
+        await offPage.goto(`${base}/medicine.html?lang=${lang}`);
+        await offPage.waitFor(`window.LQI18N && LQI18N.lang === "${lang}" && document.readyState === "complete"`, 8000);
+        const off = await offPage.evaluate(sentence => {
+          const shown = sel => { const e = document.querySelector(sel); return !!e && e.getClientRects().length > 0; };
+          return { page: document.documentElement.classList.contains("lq-off-page") || !!document.getElementById("lqOff"),
+            sentence: document.body.innerText.includes(sentence),
+            tab: shown("#t-pc"), panel: shown("#tab-pc") || shown("#pcAdPanel"), pack: shown("#t-pack") && shown("#tab-pack") && shown("#mdQ") };
+        }, OFF_SENTENCE);
+        assert(!off.page && !off.sentence && !off.tab && !off.panel && off.pack, `${lang} medicine.html: Product Check tab absent, drug checker shown: ${JSON.stringify(off)}`);
+      }
+      await offPage.close();
+      // (b) preview (as if switched on): the product panel
       const page = await browser.newPage(null, { initScripts: [INIT], isolated: true });
       for (const lang of ["th", "en", "zh"]) {
         await page.goto(`${base}/medicine.html?lang=${lang}`);
         await page.waitFor(`window.LQI18N && LQI18N.lang === "${lang}"`, 8000);
         await openTab(page);
         await pick(page, "ad");
-        const panel = await page.evaluate(() => ({ badge: (document.querySelector("#pcAdPanel .md-badge[data-exp]") || {}).innerText || "",
+        const panel = await page.evaluate(() => ({ badges: document.querySelectorAll('#pcAdPanel [data-exp], #pcAdPanel [data-i18n="md.pc.ad.exp"]').length,
+          text: (document.querySelector("#pcAdPanel") || {}).innerText || "",
           acc: (document.querySelector('#pcAdPanel [data-i18n="md.pc.ad.acc"]') || {}).innerText || "" }));
-        assert(sq(panel.badge) === EXP[lang] && !OLD_EXP.test(panel.badge), `${lang} trial-version badge: ${panel.badge}`);
+        assert(panel.badges === 0, `${lang} status badge element on the panel: ${panel.badges}`);
+        assert(!LABEL_226.test(panel.text), `${lang} status label in the panel: ${(panel.text.match(LABEL_226) || [])[0]}`);
         assert(sq(panel.acc) === ACC_PLAIN[lang], `${lang} accuracy line = the plain approved sentence: ${panel.acc}`);
         assert(!FIGURE.test(panel.acc), `${lang} accuracy line carries a figure: ${panel.acc}`);
         const panelText = await page.evaluate(() => (document.querySelector("#pcAdPanel") || {}).innerText || "");

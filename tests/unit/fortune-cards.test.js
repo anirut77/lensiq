@@ -270,9 +270,13 @@ function businessFingerprint() {
   }
   return { parts, sha: createHash("sha256").update(JSON.stringify(parts)).digest("hex") };
 }
-// pinned on the decision-223 tree (branch accuracy-removal-223, 2026-11-22); 6 categories, 38 non-fortune cards (unchanged count)
-const BUSINESS_SHA = "e179a266ae2098b3604e0ca4792286e83cf8be29792c5085d28908d7432a0c60";
-const BUSINESS_CARDS = 38;
+// re-pinned on the decision-226 tree (branch accuracy-removal-223, 2026-11-22; was e179a266… with 38 cards on the 223 tree):
+// 6 categories, 38 non-fortune products, 33 cards shown; the 5 switched-off pages (nav.js VISIBILITY) have no card.
+// Re-lock 4 of 226 (coordinator decision 2026-11-22 on entry 13): medicine.html (drug checker) is on and has its card again;
+// Product Check is the switched-off part "product-check" of that page (no card of its own)
+const BUSINESS_SHA = "1425001917f13981b1e3a1a7b8716a74c80dce975b0a5a95a468b5a3e3be6c2d"; // re-lock 4 of 226: + the medicine card (was e2a09f1f…)
+const BUSINESS_PRODUCTS = 38, BUSINESS_CARDS = 33;
+const OFF_226 = ["customers", "exam-hall", "neuro", "product-check", "signage", "teamface"];
 const sheetText = re => require("node:fs").readdirSync(join(ROOT, "docs", "tech-sheets")).filter(f => re.test(f) || f === "README.md")
   .map(f => squash(read("docs/tech-sheets/" + f))).join("\n");
 
@@ -282,7 +286,18 @@ test("C4 business products: no card shows its accuracy lines or sources any more
   assert.equal(createHash("sha256").update(JSON.stringify(base)).digest("hex"), BASE_TEXTS_SHA, "base texts of the business accuracy blocks");
   const { parts, sha } = businessFingerprint();
   const cardParts = parts.filter(p => p.length === 4 && !["en", "zh", "row"].includes(p[0]));
-  assert.equal(cardParts.length, BUSINESS_CARDS, "non-fortune cards");
+  assert.equal(BUSINESS().reduce((n, c) => n + c.pages.length, 0), BUSINESS_PRODUCTS, "non-fortune products in the categories");
+  assert.equal(cardParts.length, BUSINESS_CARDS, "non-fortune cards shown");
+  // decision 226 (inversion of "every product has a card with its badge"): exactly the switched-off products have no card,
+  // and no card carries a status label, data-status or data-demo-only
+  const vis = read("nav.js").match(/var VISIBILITY = \{([\s\S]*?)\};/)[1];
+  assert.deepEqual([...vis.matchAll(/"?([a-z][\w-]*)"?: false/g)].map(m => m[1]).sort(), OFF_226, "switched-off products (nav.js)");
+  const shown = new Set(cardParts.map(p => p[1]));
+  for (const c of BUSINESS()) for (const p of c.pages) assert.equal(shown.has(p), !OFF_226.includes(p), `${p}: card shown on cat-${c.slug}`);
+  for (const [slug, page, attrs, body] of cardParts) {
+    assert.equal(attrs, "", `${slug} ${page}: card attributes (data-status / data-demo-only)`);
+    assert.doesNotMatch(body, /class="cat-st\b|data-i18n="cat\.b\.|รุ่นทดลอง|เร็ว ๆ นี้/, `${slug} ${page}: status label on the card`);
+  }
   assert.ok(!parts.some(p => p.includes("NO ROW")), "a business page lost its PAGE-STATUS row");
   const bad = [];
   // gone: no accuracy block, source chip, reason or legend on any business card or page; no base key in the cards or in

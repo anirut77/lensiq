@@ -34,3 +34,12 @@ d1469ff65edf58ab4ba73109eeca911ff8fa94d03694360550101d751448ebbc  tests/unit/acc
 aa94ffab05e223c6d6bd083d888417cb4167ba9634676ff2bca979ecb3fbd941  tests/unit/accuracy-removal-223.spec.json  # repo file (same commit as lock 2026-11-21T23:27:17Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock3/accuracy-removal-223.spec.json)
 337d5365ff8080d2b668cae6f5dffd1065849c6b1b67bbf592e258217539550b  tests/e2e/visibility-223.e2e.mjs  # repo file (same commit as lock 2026-11-21T23:27:17Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock3/visibility-223.e2e.mjs)
 # field only relock3/NOTE.txt (lock 2026-11-21T23:27:17Z: no repo file uses it)
+# locked 2026-11-22T00:32:49Z (tools/eval-guard.mjs lock, 4 files)
+1dd5841fb01db0147b6d2af78a96759014e5110db58613bbccfce578c9cfba77  relock4/accuracy-removal-223.test.js
+3a57d15ff708ad172a237a246a77f85cb66f766db8fafb81eaabe2770c1961ae  relock4/accuracy-removal-223.spec.json
+5a12774ab8d46af1ecc753077ca23c0b1ae4ee5fdbab73354145a886cfdaeef5  relock4/visibility-223.e2e.mjs
+02ae3d46e139ac773be78f2545ffa62b589ae9e2279c0cc280c04a98e50ad7bf  relock4/NOTE.txt
+1dd5841fb01db0147b6d2af78a96759014e5110db58613bbccfce578c9cfba77  tests/unit/accuracy-removal-223.test.js  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock4/accuracy-removal-223.test.js)
+3a57d15ff708ad172a237a246a77f85cb66f766db8fafb81eaabe2770c1961ae  tests/unit/accuracy-removal-223.spec.json  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock4/accuracy-removal-223.spec.json)
+5a12774ab8d46af1ecc753077ca23c0b1ae4ee5fdbab73354145a886cfdaeef5  tests/e2e/visibility-223.e2e.mjs  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock4/visibility-223.e2e.mjs)
+# field only relock4/NOTE.txt (lock 2026-11-22T00:32:49Z: no repo file uses it)

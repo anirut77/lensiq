@@ -189,3 +189,8 @@ f6fde25249eea53b6dc39200a16cbac7598a301ff35ee9f66b3ef66eb8a7d273  tests/unit/cat
 3a286e22d1a1c00a3998b5906f7cc0335efaf1276aacc1a2af5f4250c09a632c  relock-223b/NOTE.txt
 6ec6519b989003eb1e021ba704442d93ea227423f0389ff92a03b3523a1dc9c7  tests/unit/cat-pages.test.js  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock-223b/cat-pages.test.js)
 # field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:15Z: no repo file uses it)
+# locked 2026-11-22T00:32:49Z (tools/eval-guard.mjs lock, 2 files)
+d9803f27271f3255feb055728ec6e60872ed0a726da5c87606a323c72de5a274  relock-226/cat-pages.test.js
+f401858898a8f37ffcf9a3f034542022c28273b4f320365aaacbc2dfe9359201  relock-226/NOTE.txt
+d9803f27271f3255feb055728ec6e60872ed0a726da5c87606a323c72de5a274  tests/unit/cat-pages.test.js  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock-226/cat-pages.test.js)
+# field only relock-226/NOTE.txt (lock 2026-11-22T00:32:49Z: no repo file uses it)

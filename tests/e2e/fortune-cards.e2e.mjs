@@ -10,8 +10,9 @@
 //   E3  the other listings (index.html fortune cards, solutions.html fortune cards, the fortune menu panel) show none of the
 //       removed items and no per-card disclaimer;
 //   E4  business categories (re-lock 2026-11-22, owner decision 223, inversion): on the six other category pages no card
-//       shows a measured-accuracy heading, accuracy line or source label; each shows its badge, its two approved lines and
-//       its page link; demo-only cards are hidden in the customer build (TH / EN / ZH, 360 and 430 px);
+//       shows a measured-accuracy heading, accuracy line or source label; decision 226: no card shows a status label, the
+//       switched-off products (nav.js VISIBILITY) have no card; each shows its two approved lines and its page link
+//       (TH / EN / ZH, 360 and 430 px);
 //   E5  crisis v3 unaffected on cat-fortune.html: the one "อยากมีคนรับฟัง 1323" control (tel:1323, >= 44 px) is on the first
 //       screen, it is the only help number in the normal state, and no crisis-only number shows.
 import { createRequire } from "node:module";
@@ -183,8 +184,14 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
     // accuracy line, source label or claim text (TH / EN / ZH, 360 and 430 px); each card shows its short badge and its two
     // approved lines (tests/unit/accuracy-removal-223.spec.json) and keeps its page link; demo-only cards are not shown in the
     // customer build. The tech-sheet side (every original figure held verbatim) is checked in tests/unit/fortune-cards.test.js C4.
-    await check("E4 business categories (TH / EN / ZH, 360 and 430 px): no card shows accuracy or sources; badge, two lines and page link", async () => {
+    // Re-lock 2026-11-22, owner decision 226 (inversion): the card used to show its badge (D.badgeOf) and demo-only cards were
+    // present but hidden; now no card shows any status label (no .cat-st, none of the D.BADGE words) and a switched-off
+    // product has no card at all (the list of shown cards = the category's pages that nav.js VISIBILITY switches on).
+    await check("E4 business categories (TH / EN / ZH, 360 and 430 px): no card shows accuracy, sources or a status label; off products absent; two lines and page link", async () => {
       const bad = [];
+      const { readFileSync } = require("node:fs");
+      const visSrc = readFileSync(join(repo, "nav.js"), "utf8").match(/var VISIBILITY = \{([\s\S]*?)\};/)[1];
+      const OFF = [...visSrc.matchAll(/"?([a-z][\w-]*)"?: false/g)].map(m => m[1]);
       const S = require(join(repo, "tests", "unit", "accuracy-removal-223.spec.json"));
       const sq = s => String(s).replace(/\s+/g, " ").trim();
       for (const c of D.CATEGORIES.filter(c => c.slug !== "fortune")) for (const lang of LANGS) for (const size of [[360, 640], [430, 750]]) {
@@ -193,14 +200,14 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
           page: card.dataset.page,
           shown: card.getClientRects().length > 0,
           acc: card.querySelectorAll(".cat-h, .cat-acc, .cat-acc li, .cat-src, .cat-why, [data-src]").length,
-          badge: ((card.querySelector(".cat-st") || {}).innerText || "").trim(),
+          badge: card.querySelectorAll(".cat-st, [data-status], [data-demo-only]").length + (card.hasAttribute("data-status") || card.hasAttribute("data-demo-only") ? 1 : 0),
           text: card.innerText,
           go: !!card.querySelector(".sl-go")
         })));
-        if (r.map(t => t.page).join() !== c.pages.join()) bad.push(`${c.slug} ${lang}: cards ${r.map(t => t.page)}`);
+        const want = c.pages.filter(p => !OFF.includes(p));
+        if (r.map(t => t.page).join() !== want.join()) bad.push(`${c.slug} ${lang}: cards ${r.map(t => t.page)} (want ${want})`);
         for (const t of r) {
           const where = `${c.slug} ${lang} ${size[0]}: ${t.page}`, txt = sq(t.text);
-          if (D.DEMO_ONLY.includes(t.page)) { if (t.shown) bad.push(`${where}: demo-only card shown in the customer build`); continue; }
           if (!t.shown) bad.push(`${where}: card not shown`);
           if (t.acc) bad.push(`${where}: ${t.acc} accuracy / source elements`);
           if (txt.includes(ACC_H[lang])) bad.push(`${where}: heading "${ACC_H[lang]}"`);
@@ -209,8 +216,8 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
             if (txt.includes(sq(cl[lang]))) bad.push(`${where}: accuracy line ${id}`);
             if (txt.includes(D.SOURCE[cl.src][lang])) bad.push(`${where}: source label "${D.SOURCE[cl.src][lang]}"`);
           }
-          const b = D.badgeOf(t.page);
-          if (t.badge !== (b ? D.BADGE[b][lang] : "")) bad.push(`${where}: badge "${t.badge}" != "${b ? D.BADGE[b][lang] : ""}"`);
+          if (t.badge) bad.push(`${where}: ${t.badge} status tag / data-status / data-demo-only elements`);
+          for (const b of Object.values(D.BADGE)) if (txt.includes(b[lang])) bad.push(`${where}: status label "${b[lang]}"`);
           const ln = S.lines.find(x => x.cards.includes(t.page));
           if (ln) for (const n of ["1", "2"]) if (ln[n] && !txt.includes(sq(ln[n][lang]))) bad.push(`${where}: line ${n} missing`);
           if (!t.go) bad.push(`${where} lost its page link`);

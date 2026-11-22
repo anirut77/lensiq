@@ -125,40 +125,60 @@ test("nav.js menu: one group per category with exactly its pages + landing page;
 const L223 = require("./accuracy-removal-223.lib.js");
 const sheetText = re => readdirSync(join(ROOT, "docs", "tech-sheets")).filter(f => re.test(f) || f === "README.md")
   .map(f => squash(readFileSync(join(ROOT, "docs", "tech-sheets", f), "utf8"))).join("\n");
-test("landing pages: static markup lists each tool with its customer badge and two lines, no accuracy or source chip, no inline script", () => {
+test("landing pages: static markup lists each visible tool with no status label and two lines, no accuracy or source chip, no inline script", () => {
   const TH = sheetText(/-TH\.md$/), EN = sheetText(/-EN\.md$/);
-  const adminStr = new Set(L223.jsStrings(readFileSync(join(ROOT, "admin-measurements.js"), "utf8")).map(squash));
+  const adminSrc = readFileSync(join(ROOT, "admin-measurements.js"), "utf8");
+  const adminStr = new Set(L223.jsStrings(adminSrc).map(squash));
+  // decision 226: the status label of every product lives only in the back office (admin-measurements.js `V`, 5 per record:
+  // page, th, en, zh, on|off) and the visibility list of nav.js (`var VISIBILITY`) says which products customers see
+  const vm = nav.match(/var VISIBILITY = (\{[\s\S]*?\});/);
+  assert.ok(vm, "nav.js: var VISIBILITY");
+  const VIS = JSON.parse(vm[1].replace(/([{,]\s*)([a-z][\w-]*)\s*:/g, '$1"$2":').replace(/,\s*\}/, "}"));
+  const am = adminSrc.match(/var V = \[([\s\S]*?)\];/);
+  assert.ok(am, "admin-measurements.js: var V = [ … ]");
+  const V = JSON.parse("[" + am[1].replace(/,\s*$/, "") + "]");
+  assert.equal(V.length % 5, 0, "admin visibility records of 5");
+  const adminVis = {};
+  for (let i = 0; i < V.length; i += 5) adminVis[V[i]] = { th: V[i + 1], en: V[i + 2], zh: V[i + 3], shown: V[i + 4] };
   let held = 0;
   for (const c of D.CATEGORIES) {
     const html = readFileSync(join(ROOT, `cat-${c.slug}.html`), "utf8");
-    // owner order 2026-11-17 (remove สาธิต tag from fortune): a category with noStatusTag (fortune) shows NO status tag and no
-    // data-status on any card; every other category: data-status = the customer badge (absent when the badge is none)
-    const cards = [...html.matchAll(c.noStatusTag ? /<article class="pd-card cat-tool" data-page="([a-z0-9-]+)"()()>([\s\S]*?)<\/article>/g
-      : /<article class="pd-card cat-tool" data-page="([a-z0-9-]+)"(?: data-status="([a-z-]+)")?( data-demo-only)?>([\s\S]*?)<\/article>/g)];
-    assert.deepEqual(cards.map(m => m[1]), c.pages, c.slug + " cards");
-    for (const m of cards) {
-      const body = m[4];
-      if (c.noStatusTag) assert.ok(!/class="cat-st\b/.test(body), m[1] + " has no status tag");
-      else {
-        const b = D.badgeOf(m[1]);
-        assert.equal(m[2] || "", b, m[1] + " badge (data-status)");
-        if (b) assert.match(body, new RegExp(`<span class="cat-st ${b}" data-i18n="cat\\.b\\.${b}">${D.BADGE[b].th}</span>`), m[1] + " badge tag");
-        else assert.ok(!/class="cat-st\b/.test(body), m[1] + " has no badge");
-        // the old readiness tag (D.STATUS) is gone from the card
-        assert.ok(!/data-i18n="cat\.st\./.test(body) && !new RegExp(`class="cat-st ${D.PAGES[m[1]].st}"`).test(body), m[1] + ": old status tag still shown");
+    const visible = c.pages.filter(p => { assert.equal(typeof VIS[p], "boolean", p + " in the nav.js visibility list"); return VIS[p]; });
+    // owner orders 2026-11-17 / decision 226: no card shows a status tag, a data-status or a data-demo-only attribute; a
+    // switched-off product has no card at all (inversion of "the card carries badge D.badgeOf(p)")
+    const cards = [...html.matchAll(/<article class="pd-card cat-tool" data-page="([a-z0-9-]+)">([\s\S]*?)<\/article>/g)];
+    assert.deepEqual(cards.map(m => m[1]), visible, c.slug + " cards");
+    assert.equal((html.match(/<article class="pd-card cat-tool"/g) || []).length, visible.length, c.slug + ": every card parsed");
+    assert.ok(!/class="cat-st\b|data-status=|data-demo-only|data-i18n="cat\.b\./.test(html), c.slug + ": status tag / data-status / demo-only on the page");
+    for (const b of Object.keys(D.BADGE)) for (const l of ["th", "en", "zh"]) assert.ok(!html.includes(D.BADGE[b][l]), `${c.slug}: badge text ${b}.${l}`);
+    for (const p of c.pages) {
+      // the back office holds every product's label (the former customer badge, verbatim) and its visibility
+      const b = D.badgeOf(p), want = b ? D.BADGE[b] : { th: "", en: "", zh: "" };
+      assert.ok(adminVis[p], p + ": no visibility record in admin-measurements.js");
+      for (const l of ["th", "en", "zh"]) assert.equal(adminVis[p][l], want[l], `${p}: back-office label ${l}`);
+      assert.equal(adminVis[p].shown, VIS[p] ? "on" : "off", p + ": back-office visibility = nav.js");
+      if (!VIS[p]) {
+        assert.ok(!html.includes(`data-page="${p}"`) && !new RegExp(`href="${p}\\.html`).test(html), `${c.slug}: off product ${p} listed or linked`);
       }
-      assert.equal(!!m[3], D.DEMO_ONLY.includes(m[1]), m[1] + " data-demo-only");
+      // inversion (223): every accuracy line is held verbatim by the technical sheets and the back office (off products too)
+      for (const id of D.PAGES[p].claims) {
+        const cl = D.CLAIMS[id];
+        assert.ok(TH.includes(squash(cl.th)), `${p}: ${id}.th not in docs/tech-sheets/*-TH.md`);
+        assert.ok(EN.includes(squash(cl.en)) && EN.includes(squash(cl.zh)), `${p}: ${id}.en/zh not in docs/tech-sheets/*-EN.md`);
+        for (const l of ["th", "en", "zh"]) assert.ok(adminStr.has(squash(cl[l])), `${p}: ${id}.${l} not in admin-measurements.js`);
+        held++;
+      }
+    }
+    for (const m of cards) {
+      const body = m[2];
+      // the old readiness tag (D.STATUS) is gone from the card
+      assert.ok(!/data-i18n="cat\.st\./.test(body) && !new RegExp(`class="cat-st ${D.PAGES[m[1]].st}"`).test(body), m[1] + ": old status tag still shown");
       // inversion: no accuracy line, source chip, accuracy heading or "why this status" on the card ...
       assert.equal((body.match(/<li data-src=/g) || []).length, 0, m[1] + " accuracy lines on the card");
       assert.ok(!/class="cat-(acc|src|why|srcs)\b|data-i18n="cat\.(c|src|r|acc|why|method)\b/.test(body), m[1] + " accuracy / source / reason block on the card");
       for (const id of D.PAGES[m[1]].claims) {
         const cl = D.CLAIMS[id];
         for (const l of ["th", "en", "zh"]) assert.ok(!squash(body).includes(squash(cl[l])), `${m[1]}: accuracy line ${id}.${l} still on the card`);
-        // ... and the technical sheet and the back office hold every one of them verbatim (measured and "not measured" lines alike)
-        assert.ok(TH.includes(squash(cl.th)), `${m[1]}: ${id}.th not in docs/tech-sheets/*-TH.md`);
-        assert.ok(EN.includes(squash(cl.en)) && EN.includes(squash(cl.zh)), `${m[1]}: ${id}.en/zh not in docs/tech-sheets/*-EN.md`);
-        for (const l of ["th", "en", "zh"]) assert.ok(adminStr.has(squash(cl[l])), `${m[1]}: ${id}.${l} not in admin-measurements.js`);
-        held++;
       }
       // the two approved lines of the card's product (D.LINES; texts fixed in tests/unit/accuracy-removal-223.spec.json)
       const ln = Object.entries(D.LINES).find(([, v]) => v.cards.includes(m[1]));

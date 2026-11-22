@@ -19,6 +19,8 @@
 //       R1 docs also: no bare percentage in a one-pager (price / VAT / refund terms excepted)
 //   R9  (226, re-lock 3) one visibility list in nav.js = today's real state; off products are not listed anywhere; their direct
 //       URL shows only the approved sentence + a home link (browser: tests/e2e/visibility-223.e2e.mjs); R5: no status label or filter
+//       Re-lock 4 (coordinator decision 2026-11-22 on entry 13, reversible by the owner): Product Check is the part
+//       "product-check" (tab #t-pc / panel #tab-pc of medicine.html, data-lq-part); medicine.html itself (drug checker) stays on
 //   R8  rules: CLAUDE.md lines 34 / 60 / 251-252 / 255-256 and docs/acceptance/README.md rule 7 inverted as approved (223-1)
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -301,7 +303,18 @@ test("R9 (226) one visibility list (page -> on / off) = today's real state; noth
   const V = S.visibility, { list, src } = visibility(), bad = [];
   const DD = require(join(L.ROOT, "tools", "cat-data.cjs"));
   const catPages = [...new Set(DD.CATEGORIES.flatMap(c => c.pages))].sort();
-  assert.deepEqual(Object.keys(list).sort(), catPages, "the list names every category page, nothing else");
+  // re-lock 4: plus the parts of a page (Product Check = the tab of medicine.html), each named in the spec with its page
+  const parts = V.parts || {};
+  assert.deepEqual(Object.keys(list).sort(), [...catPages, ...Object.keys(parts)].sort(), "the list names every category page and every listed part, nothing else");
+  for (const [part, P] of Object.entries(parts)) {
+    if (!catPages.includes(P.page)) bad.push(`part ${part}: its page ${P.page} is not a category page`);
+    if (list[P.page] !== true) bad.push(`part ${part}: its page ${P.page} must stay on (only the part is switched off)`);
+    const h = L.read(P.page + ".html");
+    for (const id of P.ids) if (!new RegExp(`<[a-z]+\\b(?=[^>]*\\bid="${id}")(?=[^>]*\\bdata-lq-part="${part}")[^>]*>`).test(h)) bad.push(`${P.page}.html #${id}: data-lq-part="${part}" missing`);
+    for (const id of P.keep) if (!h.includes(`id="${id}"`) || new RegExp(`<[a-z]+\\b(?=[^>]*\\bid="${id}")(?=[^>]*\\bdata-lq-(part|off)\\b)[^>]*>`).test(h)) bad.push(`${P.page}.html #${id}: must stay shown`);
+    if (!(src.includes("PARTS") && src.includes('data-lq-part="') && src.includes(`"${part}": "${P.page}"`))) bad.push(`nav.js: part ${part} -> ${P.page} hidden by data-lq-part`);
+  }
+  const offPages = V.off.filter(o => !parts[o]);
   for (const [k, v] of Object.entries(list)) if (typeof v !== "boolean") bad.push(`${k}: ${JSON.stringify(v)} is not true / false`);
   assert.deepEqual(Object.keys(list).filter(k => list[k] === false).sort(), [...V.off].sort(), "off = exactly today's not-offered products");
   // the list only decides listing and the off-page notice: the block that reads it touches no LENSIQ_* option, storage or URL
@@ -314,7 +327,7 @@ test("R9 (226) one visibility list (page -> on / off) = today's real state; noth
   // nothing a customer sees links to an off page, except inside an element hidden by the list (data-lq-off)
   for (const f of L.customerFiles().filter(f => f.endsWith(".html") && list[f.replace(/\.html$/, "")] !== false)) {
     const h = L.read(f).replace(/<!--[\s\S]*?-->/g, "");
-    for (const off of V.off) for (const m of h.matchAll(new RegExp(`href="${off}\\.html[^"]*"`, "g"))) {
+    for (const off of offPages) for (const m of h.matchAll(new RegExp(`href="${off}\\.html[^"]*"`, "g"))) {
       const before = h.slice(0, m.index);
       const opens = [...before.matchAll(/<(\w+)\b[^>]*\bdata-lq-off\b[^>]*>/g)];
       const inside = opens.some(o => { const tag = o[1], seg = h.slice(o.index, m.index);

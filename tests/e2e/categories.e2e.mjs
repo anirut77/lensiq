@@ -9,6 +9,10 @@
 //      label, "why this status" or legend, and none of the banned wording of tests/unit/accuracy-removal-223.spec.json;
 //      every accuracy line and status reason the card used to show is held verbatim in docs/tech-sheets/*.md; the count
 //      is exactly "<n> เครื่องมือ" over the tools that are not demo-only; demo-only cards are hidden outside demo mode;
+//      re-lock 2026-11-22 (owner decision 226, inversion): no card shows any status badge (no .cat-st, no data-status, no
+//      data-demo-only); a product switched off in nav.js (var VISIBILITY) has no card and is not counted ("<n> เครื่องมือ"
+//      over the products switched on); reachability: an off product must NOT be linked (its page still answers 200 directly);
+//      the desktop check uses exam-lab.html (exam-hall.html is off and shows only the off notice);
 //   3. desktop 1024 px: bar (no drawer), panel intro link and the breadcrumb open the category page;
 //   4. phones 320 / 360 / 390 px: no horizontal overflow, 44 px targets, the drawer lists the 8 groups with their landing page;
 //   5. English and Chinese: no Thai left on the 7 landing pages.
@@ -26,19 +30,40 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
   const browser = await launch();
   const links = page => page.evaluate(() => [...document.querySelectorAll("a[href]")].map(a => a.getAttribute("href")));
   const file = h => (h.split("#")[0].split("?")[0].split("/").pop() || "").toLowerCase();
+  // decision 226: the switched-off products of the nav.js visibility list
+  const NAV = readFileSync(join(repo, "nav.js"), "utf8");
+  const OFF_ALL = [...NAV.match(/var VISIBILITY = \{([\s\S]*?)\};/)[1].matchAll(/"?([a-z][\w-]*)"?: false/g)].map(m => m[1]);
+  // re-lock 4 of 226 (coordinator decision 2026-11-22 on entry 13): a switched-off PART of a page (var PARTS: part -> page,
+  // Product Check = the tab of medicine.html) is not a page; the page itself stays on
+  const PARTS = JSON.parse(NAV.match(/var PARTS = (\{[^}]*\});/)[1]);
+  const OFF = OFF_ALL.filter(p => !PARTS[p]);
+  const isOn = p => !OFF.includes(p);
+  // links a customer can reach: every rendered link (menu panels, also closed ones) except those inside a data-lq-off element
+  const reach = page => page.evaluate(() => [...document.querySelectorAll("a[href]")].filter(a => !a.closest("[data-lq-off]")).map(a => a.getAttribute("href")));
   try {
     await check("reachability: header + index + 7 category pages link every page (except the listed exceptions)", async () => {
       const found = new Map(); // page -> first page that links it
       const crawl = async start => {
         const page = await browser.newPage(`${base}/${start}?nosw`);
         await page.waitFor(() => document.querySelectorAll("#siteNav .nav-sub a").length > 40, 8000);
-        for (const h of await links(page)) { const f = file(h); if (f.endsWith(".html") && !found.has(f)) found.set(f, start); }
+        for (const h of await reach(page)) { const f = file(h); if (f.endsWith(".html") && !found.has(f)) found.set(f, start); }
         noErrors(page);
         await page.close();
       };
       for (const p of ["index.html", ...cats]) await crawl(p);
-      const missing = all.filter(f => !found.has(f) && !D.UNLINKED[f.replace(/\.html$/, "")]);
+      const missing = all.filter(f => !found.has(f) && !D.UNLINKED[f.replace(/\.html$/, "")] && isOn(f.replace(/\.html$/, "")));
       assert(!missing.length, "not linked from header / home / category pages: " + missing.join(", "));
+      // decision 226 (inversion): a switched-off product is linked from nothing a customer can reach, yet its page still exists
+      assert(OFF.length === 5 && OFF_ALL.length === 6, "switched-off products: " + OFF_ALL.join(", "));
+      for (const [part, pg] of Object.entries(PARTS)) assert(OFF_ALL.includes(part) && isOn(pg) && found.has(pg + ".html"), `part ${part}: off, its page ${pg}.html on and linked`);
+      const offLinked = OFF.map(p => p + ".html").filter(f => found.has(f));
+      assert(!offLinked.length, "switched-off product linked: " + offLinked.map(f => `${f} (from ${found.get(f)})`).join(", "));
+      for (const p of OFF) {
+        assert(all.includes(p + ".html"), p + ".html deleted (switched off, never deleted)");
+        const r = await fetch(`${base}/${p}.html`);
+        await r.arrayBuffer().catch(() => null);
+        assert(r.status === 200, `${p}.html direct URL ${r.status}`);
+      }
       const broken = [];
       for (const f of found.keys()) {
         const r = await fetch(`${base}/${f}`);
@@ -51,7 +76,7 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       console.log(`       ${all.length} pages, ${nLinked} linked, deliberately unlinked: ${Object.keys(D.UNLINKED).join(", ")}` + (unlinked.length ? " (now linked: " + unlinked + ")" : ""));
     });
 
-    await check("landing pages (re-lock 223): each tool with its badge + two plain lines, no accuracy / source / why / legend (held in the technical sheets); counts; Crowd dense limit", async () => {
+    await check("landing pages (re-lock 223 / 226): each switched-on tool with no badge + two plain lines, no accuracy / source / why / legend (held in the technical sheets); off products absent; counts; Crowd dense limit", async () => {
       // decision 223: the technical sheets that hold every original accuracy line and status reason (TH: th; EN: en + zh)
       const S223 = require(join(repo, "tests", "unit", "accuracy-removal-223.spec.json"));
       const BANNED = S223.banned.map(b => ({ id: b.id, re: new RegExp(b.re, b.flags || "") }));
@@ -99,7 +124,14 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
         assert(fav === favicon && /^<svg /.test(favicon) && iconW > 0, `${c.slug} favicon (rendered width ${iconW}): ${fav.slice(0, 80)}`);
         assert(r.h1.includes(c.name.th), c.slug + " h1 " + r.h1);
         assert(r.crumbs.length === 3 && r.crumbs[1] === c.name.th, c.slug + " crumbs " + r.crumbs.join(" / "));
-        assert(JSON.stringify(r.tools.map(t => t.page)) === JSON.stringify(c.pages), c.slug + " tools " + r.tools.map(t => t.page));
+        assert(JSON.stringify(r.tools.map(t => t.page)) === JSON.stringify(c.pages.filter(isOn)), c.slug + " tools " + r.tools.map(t => t.page));
+        // decision 226: an off product has no card; its accuracy lines and reason are still held by the technical sheets
+        for (const p of c.pages.filter(p => !isOn(p))) {
+          for (const k of D.PAGES[p].claims) { const cl = D.CLAIMS[k];
+            assert(SHEET.th.includes(sq(cl.th)) && SHEET.en.includes(sq(cl.en)) && SHEET.en.includes(sq(cl.zh)), `${p} (off): accuracy line ${k} missing from docs/tech-sheets`); }
+          const w = D.PAGES[p].why;
+          if (w && D.REASONS[w]) assert(SHEET.th.includes(sq(D.REASONS[w].th)) && SHEET.en.includes(sq(D.REASONS[w].en)), `${p} (off): status reason ${w} missing from docs/tech-sheets`);
+        }
         for (const t of r.tools) {
           const want = D.PAGES[t.page];
           // re-lock 2026-11-22 (owner decision 223, inversion of the 2026-11-18 "every other card needs at least one accuracy
@@ -113,15 +145,10 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
             const got = t.lines.find(l => l.startsWith(`ln.${specLn.id}.${n}=`));
             assert(got === `ln.${specLn.id}.${n}=` + sq(specLn[n].th).trim(), `${t.page}: line ${n} of ${specLn.id} (spec): ${got}`);
           }
-          // owner order 2026-11-17 (remove สาธิต tag from fortune): noStatusTag categories show no status tag and no data-status
-          if (c.noStatusTag) assert(t.st === undefined && t.tag === "", `${t.page} must show no status tag: ${t.st}/${t.tag}`);
-          else {
-            // decision 223 (was: data-status === PAGES[page].st and the status class): the customer badge, exactly
-            const b = D.badgeOf(t.page);
-            if (b === "") assert(t.st === undefined && t.tag === "" && t.badge === "", `${t.page} must show no badge: ${t.st}/${t.tag}/${t.badge}`);
-            else assert(t.st === b && t.tag.split(/\s+/).includes(b) && t.badge === D.BADGE[b].th, `${t.page} badge ${t.st}/${t.tag}/${t.badge} (want ${b})`);
-            assert(t.st !== want.st || want.st === b, `${t.page}: old status ${want.st} still shown`);
-          }
+          // owner order 2026-11-17 (remove สาธิต tag from fortune): noStatusTag categories show no status tag and no data-status;
+          // decision 226 (inversion of the 223 "customer badge, exactly"): no category shows a badge, data-status or badge text
+          assert(t.st === undefined && t.tag === "" && t.badge === "", `${t.page} must show no status tag: ${t.st}/${t.tag}/${t.badge}`);
+          for (const b of Object.values(D.BADGE)) assert(!t.text.includes(b.th), `${t.page}: status label "${b.th}" on the card`);
           // decision 223 (inverted from "one accuracy line per claim with its source label"): none on the card ...
           assert(t.src.length === 0, `${t.page} still shows accuracy / source / why / legend parts: ${t.src}`);
           for (const B of BANNED) { const m = t.text.match(B.re); assert(!m, `${t.page} card shows banned wording ${B.id}: "${m && m[0]}"`); }
@@ -136,14 +163,15 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
           const ln = Object.entries(D.LINES).find(([, v]) => v.cards.includes(t.page));
           const wantLines = ln ? ["1", "2"].filter(n => ln[1][n]).map(n => `ln.${ln[0]}.${n}=` + sq(ln[1][n]).trim()) : [];
           assert(JSON.stringify(t.lines) === JSON.stringify(wantLines), `${t.page} lines ${JSON.stringify(t.lines)} (want ${JSON.stringify(wantLines)})`);
-          // decision 223: demo-only cards are marked and hidden outside demo mode
-          assert(t.demoOnly === D.DEMO_ONLY.includes(t.page), `${t.page} data-demo-only ${t.demoOnly}`);
-          if (t.demoOnly) assert(!t.shown, `${t.page}: demo-only card shown outside demo mode`);
+          // decision 223 marked demo-only cards; decision 226: no card is marked, every listed card is shown
+          assert(!t.demoOnly, `${t.page} data-demo-only`);
+          assert(t.shown, `${t.page}: card not shown`);
           // walk-through 2026-11-16 D-02: the attendance card's page link opens the PIN / QR time clock (exact href)
           assert(t.go === (t.page === "attendance" ? "attendance.html?mode=employee" : t.page + ".html"), t.page + " link " + t.go);
         }
         // decision 223 (was: "^<all pages> เครื่องมือ" followed by the status breakdown): exactly the tools shown outside demo mode
-        assert(r.count.trim() === c.pages.filter(p => !D.DEMO_ONLY.includes(p)).length + " เครื่องมือ", c.slug + " count " + r.count);
+        // decision 226: over the products switched on in nav.js
+        assert(r.count.trim() === c.pages.filter(isOn).length + " เครื่องมือ", c.slug + " count " + r.count);
         assert(r.removed === 0, c.slug + ": accuracy / why / legend elements on the page: " + r.removed);
         for (const B of BANNED) { const m = r.main.match(B.re); assert(!m, `${c.slug} page shows banned wording ${B.id}: "${m && m[0]}"`); }
         if (c.slug === "marketing") assert(/ยังไม่เหมาะกับฝูงชนหนาแน่น/.test(r.tools.find(t => t.page === "crowd").text), "crowd dense-crowd limit");
@@ -155,7 +183,7 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
     await check("desktop 1024 px: bar (no drawer), panel link + breadcrumb open the category page", async () => {
       const page = await browser.newPage(null);
       await page.send("Emulation.setDeviceMetricsOverride", { width: 1024, height: 768, deviceScaleFactor: 1, mobile: false });
-      await page.goto(`${base}/exam-hall.html?cpu&nosw`);
+      await page.goto(`${base}/exam-lab.html?cpu&nosw`); // decision 226: exam-hall.html is switched off (off notice only)
       await page.waitFor(() => !!document.querySelector(".lq-crumbs a[href='cat-education.html']"), 8000);
       const r = await page.evaluate(() => {
         const t = document.querySelector(".nav-toggle");
@@ -167,7 +195,7 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       });
       assert(r.toggle === "none" && r.open && r.current, JSON.stringify(r));
       assert(r.intro === "cat-education.html" && r.first === "cat-education.html", JSON.stringify(r));
-      assert(r.crumbs === "หน้าแรก / การศึกษาและการสอบ / เครื่องกล้องในห้องสอบ", r.crumbs);
+      assert(r.crumbs === "หน้าแรก / การศึกษาและการสอบ / หน้าผู้เข้าสอบ", r.crumbs);
       noErrors(page);
       await page.close();
     });

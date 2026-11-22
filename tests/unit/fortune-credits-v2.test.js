@@ -167,7 +167,7 @@ const d5Base = f => {
 // with EXACTLY these replacements applied (so every other byte, all the fortune parts D5 protected included, is unchanged),
 // and its sha256 is pinned. No replaced part touches fortune, crisis or help-number text.
 const D5_223 = {
-  "help.html": { sha: "61fe96c74e68548339571cf359415dcfbcd5dff08fd43c7dc0489c74f5efa503", pairs: [
+  "help.html": { sha: "c2c5f372125fb9695dc182e27826976e9baa25271df82dc7010158f43ba2fcf3", pairs: [
     ["      <p>ขึ้นกับมุมกล้อง ความสูง และแสง เราเผยแพร่ผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด และฟีเจอร์ที่ยังไม่ได้วัดบนข้อมูลจริงจะมีป้าย Beta ก่อนใช้ตัวเลขตัดสินใจทางธุรกิจ " +
       "แนะนำให้ทดลองหน้างาน 2 สัปดาห์ เทียบกับการนับด้วยคน ค่าประมาณอายุ เพศ และสีหน้าเป็นค่าโดยประมาณสำหรับภาพรวมเท่านั้น</p></div></details>",
      "      <p>ตัวเลขจากกล้องเป็นค่าประมาณ ขึ้นกับมุมกล้อง ความสูง และแสง ทุกหน้าบอกข้อจำกัดสำคัญไว้ แนะนำให้ทดลองหน้างานเทียบกับการนับของคุณก่อนใช้ตัดสินใจทางธุรกิจ\n " +
@@ -185,10 +185,11 @@ const D5_223 = {
      "      <p>摄像头给出的数字是估计值，取决于摄像头角度、高度和光线。每个页面都说明了主要局限。用于商业决策前，建议先在现场试用并与您自己的计数对比。技术资料可向销售索取。</p></div></details>"],
     ["        <li>培训保安确认或更正每个车牌，并从第一天起使用\"准确率检查\"。</li>",
      "        <li>培训保安确认或更正每个车牌，并从第一天起使用\"现场测试\"。</li>"],
-    // re-lock 223d (reviewer finding 8): the Crowd help entries say the approved badge word, not the old "experimental"
-    ["<summary>LENSIQ Crowd นับคนและความหนาแน่น (ทดลอง)</summary>", "<summary>LENSIQ Crowd นับคนและความหนาแน่น (รุ่นทดลอง)</summary>"],
-    ["<summary>LENSIQ Crowd people counting and density (experimental)</summary>", "<summary>LENSIQ Crowd people counting and density (trial version)</summary>"],
-    ["<summary>LENSIQ Crowd 人数与密度统计（实验性）</summary>", "<summary>LENSIQ Crowd 人数与密度统计（试用版）</summary>"]
+    // re-lock 223d (reviewer finding 8) then re-lock 226 (owner decision 226: no status label where a customer looks): the
+    // Crowd help summaries carry no status label at all (223d had "(รุ่นทดลอง)" / "(trial version)" / "（试用版）")
+    ["<summary>LENSIQ Crowd นับคนและความหนาแน่น (ทดลอง)</summary>", "<summary>LENSIQ Crowd นับคนและความหนาแน่น</summary>"],
+    ["<summary>LENSIQ Crowd people counting and density (experimental)</summary>", "<summary>LENSIQ Crowd people counting and density</summary>"],
+    ["<summary>LENSIQ Crowd 人数与密度统计（实验性）</summary>", "<summary>LENSIQ Crowd 人数与密度统计</summary>"]
   ] },
   "legal.js": { sha: "ec715ec3135403b89271e24d6dda0d12b94d701d608a7c06d88b7ff6cf787f7c", pairs: [
     ["      if (k === \"draft\") { el.title = (prefix() === \"zh-\" ? \"草案数值，待律师确认\" : prefix() === \"en-\" ? \"draft value, to be confirmed by counsel\" : \"ค่าร่าง รอทนายความยืนยัน\"); return; }",

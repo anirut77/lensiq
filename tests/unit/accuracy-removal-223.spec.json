@@ -1357,15 +1357,30 @@
     "why": "re-lock 2 (reviewer finding 6): one-pagers carry no bare percentage except price / VAT / refund terms"
   },
   "visibility": {
-    "$comment": "re-lock 3 (owner decision 226, entries 13-15): starting values = today's real state; sentence approved (entry 15)",
+    "$comment": "re-lock 3 (owner decision 226, entries 13-15): starting values = today's real state; sentence approved (entry 15). Re-lock 4 (coordinator decision 2026-11-22 on entry 13, reversible by the owner): Product Check is the part 'product-check' (the tab of medicine.html), not the whole page; medicine.html (the drug checker) is on",
     "off": [
       "exam-hall",
-      "medicine",
+      "product-check",
       "signage",
       "neuro",
       "teamface",
       "customers"
     ],
+    "parts": {
+      "product-check": {
+        "page": "medicine",
+        "ids": [
+          "t-pc",
+          "tab-pc"
+        ],
+        "keep": [
+          "t-pack",
+          "tab-pack",
+          "mdQ",
+          "mdCheck"
+        ]
+      }
+    },
     "sentence": "ระบบนี้ยังไม่เปิดให้บริการ · This service is not available yet. · 此服务尚未开放。",
     "home": "index.html"
   },

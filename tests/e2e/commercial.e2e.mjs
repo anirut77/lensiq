@@ -158,11 +158,16 @@ export default async function ({ base, launch, check }) {
     await page.close();
 
     page = await browser.newPage(null, { isolated: true });
-    await check("pricing not open: free today, coming soon, notify-me (honest without API), 4 product links; contact form not sent", async () => {
+    // re-lock 226 (owner decision 226: no status label where a customer looks): the three "เร็ว ๆ นี้" (.pr-soon) labels are gone
+    // and the "not on sale yet" list (markup kept, 3 items) is hidden with data-lq-off (was: 3 .pr-soon labels shown)
+    await check("pricing not open: free today, no coming-soon label (list hidden), notify-me (honest without API), 4 product links; contact form not sent", async () => {
       await page.goto(`${base}/pricing.html`);
       await page.waitFor(() => !document.getElementById("prOff").hidden, 8000);
-      const r = await page.evaluate(() => ({ prods: document.querySelectorAll(".pr-products a").length, soon: document.querySelectorAll("#prOff .pr-soon").length, report: !!document.querySelector('#prOff a[href="report.html"]'), h: document.documentElement.scrollHeight }));
-      assert(r.prods === 4 && r.soon === 3 && r.report && r.h > 1100, JSON.stringify(r));
+      const r = await page.evaluate(() => { const sec = document.querySelector('#prOff section[aria-labelledby="prSoonH"]');
+        return { prods: document.querySelectorAll(".pr-products a").length, soon: document.querySelectorAll(".pr-soon, [data-i18n='pr.soon']").length,
+          kept: sec ? sec.querySelectorAll("li.soon").length : 0, hidden: !!sec && sec.hasAttribute("data-lq-off") && sec.getClientRects().length === 0,
+          label: /เร็ว ๆ นี้/.test(document.body.innerText), report: !!document.querySelector('#prOff a[href="report.html"]'), h: document.documentElement.scrollHeight }; });
+      assert(r.prods === 4 && r.soon === 0 && r.kept === 3 && r.hidden && !r.label && r.report && r.h > 1100, JSON.stringify(r));
       await page.evaluate(() => { const f = document.getElementById("prNotify"); f.email.value = "a@example.test"; f.consent.checked = true; f.requestSubmit(); });
       await page.waitFor(() => document.getElementById("prNotifyMsg").textContent.length > 10 && !/…/.test(document.getElementById("prNotifyMsg").textContent), 5000);
       await page.goto(`${base}/index.html#contact`);

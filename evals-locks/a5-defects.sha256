@@ -50,3 +50,8 @@ f3b239401646d85ffa19ba0ecce98ecc6a0624ac063335442ffbd68688a38c56  relock-223b/ex
 bb395b73a9c2363ebb809cc853ce0caf81554096934302e59cbb2b4fc80abd52  relock-223b/NOTE.txt
 f3b239401646d85ffa19ba0ecce98ecc6a0624ac063335442ffbd68688a38c56  tests/unit/exam-face.test.js  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/a5-defects/relock-223b/exam-face.test.js)
 # field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:15Z: no repo file uses it)
+# locked 2026-11-22T00:32:49Z (tools/eval-guard.mjs lock, 2 files)
+3d8d5b83d97bdcaa7d19fda8cbf09cbf40d5c1feb0e19a409c6d751c0e6ea5ee  relock-226/exam-face.test.js
+3749f03da1152a530e0becd46402321da4d4bdee859420ae1a33fd30c33f10fe  relock-226/NOTE.txt
+3d8d5b83d97bdcaa7d19fda8cbf09cbf40d5c1feb0e19a409c6d751c0e6ea5ee  tests/unit/exam-face.test.js  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/a5-defects/relock-226/exam-face.test.js)
+# field only relock-226/NOTE.txt (lock 2026-11-22T00:32:49Z: no repo file uses it)

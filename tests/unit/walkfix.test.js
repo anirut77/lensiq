@@ -229,57 +229,52 @@ test("W-011: Crowd zone roles and the conversion default use event wording (entr
 });
 
 // ---------------------------------------------------------------- W-012: one status vocabulary, matching each page's status
-test("W-012: solutions.html badges match each linked page's status (cat-data); Crowd is experimental; tag class = data-status", () => {
-  // Decision 223-2 (approved 223-1): one customer badge vocabulary, tools/cat-data.cjs BADGE / badgeOf: none (Attendance PIN/QR
-  // and support pages) / รุ่นทดลอง (trial) / รุ่นทดลอง ยังไม่เปิดขาย (hall) / เร็ว ๆ นี้ (soon). The old status words (พร้อมนำร่อง /
-  // ทดลอง / สาธิต) and the "pilot" filter group are gone; the filter groups are "now" (every badge except soon) and "soon".
+test("W-012: solutions.html shows no status badge or filter (decision 226); off products hidden; Crowd shown; labels in the back office", () => {
+  // Decision 223-2 (approved 223-1) had one customer badge vocabulary (tools/cat-data.cjs BADGE / badgeOf) on the cards and a
+  // now / soon filter. Re-lock 226 (owner decision 226, inversion): no badge (.sl-tag), no badge key and no filter on the page;
+  // a card linking to a product switched off in nav.js (var VISIBILITY), and every roadmap card without a page (the former
+  // "coming soon"), is hidden with data-lq-off (markup kept); the badge each card used to carry is the back-office label of
+  // its page (admin-measurements.js, verbatim D.BADGE); the internal data-status group still follows that label.
   const D = require(join(ROOT, "tools", "cat-data.cjs"));
   const html = read("solutions.html");
-  const cards = [...html.matchAll(/<article class="sl-card" data-status="(\w+)" id="sol-([\w]+)"( data-demo-only)?>([\s\S]*?)<\/article>/g)];
+  const OFF = [...read("nav.js").match(/var VISIBILITY = \{([\s\S]*?)\};/)[1].matchAll(/"?([a-z][\w-]*)"?: false/g)].map(m => m[1]);
+  const adm = read("admin-measurements.js");
+  const cards = [...html.matchAll(/<article class="sl-card"( data-lq-off)? data-status="(\w+)" id="sol-([\w]+)">([\s\S]*?)<\/article>/g)];
   assert.ok(cards.length > 50);
   assert.equal(cards.length, (html.match(/<article class="sl-card"/g) || []).length, "every card parsed");
-  const label = { trial: D.BADGE.trial.th, hall: D.BADGE.hall.th, soon: D.BADGE.soon.th };
-  // a card may show a weaker badge than its page (e.g. face check-in on the attendance page), never a stronger one
-  const rank = { soon: 0, hall: 1, trial: 2, "": 3 };
   const bad = [], groups = new Set();
-  for (const [, code, id, demoOnly, body] of cards) {
+  let shownCards = 0;
+  for (const [, off, code, id, body] of cards) {
     groups.add(code);
-    const tag = body.match(/<span class="sl-tag (\w+)" data-i18n="([\w.]+)">([^<]+)<\/span>/);
-    // amendment 6 (owner order 2026-11-17: remove สาธิต tag from fortune): a card that links to a fortune page (category 6)
-    // carries NO status badge at all; every other card keeps every check below
+    if (/class="sl-tag\b|data-i18n="sl\.st\./.test(body)) bad.push(id + ": status badge on the card");
+    for (const b of Object.values(D.BADGE)) if (body.replace(/<[^>]+>/g, " ").includes(b.th)) bad.push(`${id}: label «${b.th}» on the card`);
     const href = (body.match(/class="sl-go" href="([a-z0-9-]+)\.html/) || [])[1];
-    if (href && D.CATEGORIES.find(c => c.slug === "fortune").pages.includes(href)) { if (/class="sl-tag\b/.test(body)) bad.push(id + ": fortune card with a status badge"); continue; }
+    // hidden exactly when the card has no page (roadmap) or its page is switched off
+    const mustHide = !href || OFF.includes(href);
+    if (!!off !== mustHide) bad.push(`${id}: ${off ? "hidden" : "shown"} but ${href ? href + (OFF.includes(href) ? " is off" : " is on") : "no page link"}`);
+    if (!off) shownCards++;
+    if (href && D.CATEGORIES.find(c => c.slug === "fortune").pages.includes(href)) continue; // amendment 6: fortune cards
     const want = href ? D.badgeOf(href) : "soon";
-    const shown = tag ? tag[1] : "";
-    if (tag && !(shown in label)) { bad.push(`${id}: badge class ${shown} is not a customer badge`); continue; }
-    if (tag && tag[3].trim() !== label[shown]) bad.push(`${id}: tag text «${tag[3]}» is not the ${shown} badge «${label[shown]}»`);
-    if (tag && tag[2] !== "sl.st." + shown) bad.push(`${id}: tag key ${tag[2]}`);
-    // the filter group follows the badge: soon -> "soon", every other badge -> "now"
-    if (code !== (shown === "soon" ? "soon" : "now")) bad.push(`${id}: data-status ${code} with badge ${shown || "none"}`);
-    if (shown === "soon") {
-      // coming soon has no page link, except the demo-only pages (shown in demo mode only)
-      if (href && !(demoOnly && D.DEMO_ONLY.includes(href))) bad.push(id + ": coming soon with a page link");
-      continue;
-    }
-    if (!href) { bad.push(id + ": no page link"); continue; }
+    // the internal group follows the back-office label: soon -> "soon", every other label -> "now"
+    if (code !== (want === "soon" ? "soon" : "now")) bad.push(`${id}: data-status ${code} with label ${want || "none"}`);
+    if (!href) continue;
     if (!(D.PAGES[href] && D.PAGES[href].st)) { bad.push(`${id}: linked page ${href} has no product status`); continue; }
-    if (!tag && want !== "") bad.push(`${id}: no tag but ${href} has the ${want} badge`);
-    if (rank[shown] > rank[want]) bad.push(`${id}: shows ${shown || "none"} but ${href} is ${want || "none"}`);
+    const lab = want ? D.BADGE[want] : { th: "", en: "", zh: "" };
+    if (!adm.includes(`"${href}", "${lab.th}", "${lab.en}", "${lab.zh}", "${OFF.includes(href) ? "off" : "on"}",`)) bad.push(`${id}: back-office label of ${href}`);
     const CROWD_CARDS = ["edu7", "r9", "e6"];
-    if (CROWD_CARDS.includes(id) && code !== "now") bad.push(id + ": Crowd card group");
-    if (href === "crowd" && shown !== "trial") bad.push(id + ": Crowd must show the trial badge");
+    if (CROWD_CARDS.includes(id) && (code !== "now" || off)) bad.push(id + ": Crowd card group / hidden");
+    if (href === "crowd" && want !== "trial") bad.push(id + ": Crowd's back-office label must be the trial label");
   }
   assert.deepEqual(bad, []);
-  assert.deepEqual([...groups].sort(), ["now", "soon"], "filter groups");
-  const fbtn = c => (html.match(new RegExp(`data-f="${c}"[^>]*>([^<]+)<`)) || [])[1] || "";
-  assert.equal(fbtn("now"), "ทดลองใช้ได้ตอนนี้", "filter button of the now group");
-  assert.equal(fbtn("soon"), label.soon, "filter button of the soon group");
+  assert.ok(shownCards >= 40, "cards shown to customers: " + shownCards);
+  assert.deepEqual([...groups].sort(), ["now", "soon"], "internal groups");
+  assert.ok(!/data-f="|class="[^"]*\bsl-filter\b|data-i18n="sl\.f\./.test(html), "status filter on the page");
+  assert.ok(!/ทดลองใช้ได้ตอนนี้|เร็ว ๆ นี้|รุ่นทดลอง/.test(html), "status label text on the page");
   assert.ok(!/data-f="pilot"|sl\.f\.pilotNote|พร้อมนำร่อง|<span class="sl-tag (pilot|demo|experimental)\b/.test(html), "old status vocabulary gone");
   assert.ok(!/ใช้ได้แล้ว<\/span>/.test(html), "no 'available now' badge");
   for (const f of ["i18n/en-solutions.js", "i18n/zh-solutions.js"]) {
-    const l = f.includes("/en-") ? "en" : "zh";
-    assert.equal(dictVal(f, "sl.st.trial"), D.BADGE.trial[l], f + " sl.st.trial");
-    assert.equal(dictVal(f, "sl.st.soon"), D.BADGE.soon[l], f + " sl.st.soon");
+    assert.equal(dictVal(f, "sl.st.trial"), null, f + " sl.st.trial gone (decision 226)");
+    assert.equal(dictVal(f, "sl.st.soon"), null, f + " sl.st.soon gone (decision 226)");
     assert.equal(dictVal(f, "sl.st.pilot"), null, f + " sl.st.pilot gone");
   }
 });

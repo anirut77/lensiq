@@ -72,17 +72,74 @@ originals = docs/tech-sheets/ORIGINAL-FIGURES-223.json (+ SUPPLEMENT-223.json fo
 | 2 + 5 contract (lock accuracy-removal-223, relock2) | SUPPLEMENT-223.json outside the contract | new R7 test: every supplement entry verbatim in the sheets (TH / EN+ZH) and in admin-measurements.js; required items listed in the spec (gate.acc.l7, cr.acc2.final, #h-accuracy en / zh, ZH sl.st.pilot.d, cameras table headers, ≥ 15 ZH "still needed" notes, ≥ 4 "no accuracy figure" rows, the Twente "0 of 6" rows, the 16 hall-placement lines, HALL_PLACE with 143 / 195 / 247 / 275 + source); a removed sheet line fails (bite-checked) | stricter |
 | 4 exam-hall placement (lock gate-hall-h) | figures checked only in docs/exam/HALL-DETECTOR-RESULTS.md | unit: all 16 recall values with their n and source, in the base panel wording, in exam-TH.md (TH) and exam-EN.md (EN + ZH) and in admin-measurements.js; band counts + source in both sheets. e2e: 46.2 % and 56.3 % (n = 247) lines in the sheets, in addition to the results doc | stricter |
 | 6 one-pagers (contract relock2) | banned list only | also no bare percentage in any one-pager except price / VAT / refund terms; the 54 % lie-research figure, Bond & DePaulo and the reference counts left interview.js, its EN / ZH dictionaries, interview.html and the one-pagers (kept in the HR sheet); the pilot targets moved off the one-pagers into the pilot plan wording | stricter |
-
-### Crowd catalogue rule: `crowd-not-available-now` → `crowd-not-soon` (WAITING FOR THE OWNER'S WORD; kept as built)
-
-- Base rule: the solutions cards that open crowd.html (sol-edu7, sol-r9, sol-e6) must NOT be `data-status="now"`; at base
-  they sat in the "เปิดรับโครงการนำร่อง" (pilot) filter group, and "now" meant "ทดลอง / สาธิต".
-- As built (223, audit §3 / 1.10 "ตัวกรองเหลือ ทั้งหมด / ทดลองใช้ได้ตอนนี้ / เร็ว ๆ นี้"): there is no pilot group; "now" means
-  "ทดลองใช้ได้ตอนนี้" (a trial version you can use now), so the three Crowd cards are `now` and the rule became
-  `crowd-not-soon` (they must NOT be "coming soon"). walkfix W-012 checks the same grouping.
-- To switch back (option ข): in solutions.html give sol-edu7 / sol-r9 / sol-e6 `data-status="pilot"` and add a third filter
-  button `data-f="pilot"` "เปิดรับโครงการนำร่อง" (EN "Open for a pilot", ZH "可申请试点" is a banned readiness word, so use
-  "开放试点申请") in solutions.html, solutions.js and the en / zh solutions dictionaries; in docs/claim-rules.json restore
-  `crowd-not-available-now` (re "data-status=\"now\" id=\"sol-(edu7|r9|e6)\"", not: true) next to `crowd-not-soon`;
-  in walkfix W-012 allow the group set {now, soon, pilot}. Effort: S. Nothing else depends on it.
 | 8 help.html Crowd labels (lock fortune-credits v2/v3/v4, `fortune-credits/v3/relock-223d/`) | D5 pinned help.html with 6 listed 223 replacements | 9 listed replacements (+ the three Crowd summaries "(รุ่นทดลอง)" / "(trial version)" / "（试用版）"), new sha pinned; terms.html still byte-identical; no fortune / crisis text touched | equal strength, re-pin |
+
+### Crowd catalogue rule and status labels: replaced by owner decision 226 (2026-11-22)
+
+227 ก is withdrawn and the `crowd-not-soon` / switch-back note is void: decision 226 removes every customer-visible status
+label and the status filter, and one visibility list in nav.js decides what is listed (see "Owner decision 226" below).
+
+## Owner decision 226 (OWNER-INBOX-2026-11-21 entries 13-15): re-locks, all INVERSIONS, written / locked as listed
+
+- Contract first: `accuracy-removal-223/relock3` (commit 07a309ef, before the product change): R3 off cards absent, R5 no status
+  label / chip / tag / filter / badge key anywhere (TH / EN / ZH, pages, dictionaries, scripts, buyer documents), R9 one
+  visibility list in nav.js = today's real state, nothing links to an off product, the list reads no LENSIQ_* option; locked
+  e2e `visibility-223` (menus, listings, off URL = approved sentence + home link only, no camera). `relock4`: the e2e opts out
+  of the harness preview with `{ offNotice: true }` (equal).
+- `tests/e2e/cdp.mjs` (lock cdp-goto-errpage, `relock-226/`): newPage previews a switched-off page as if switched on (removes
+  the off notice after load) unless `{ offNotice: true }`; every product e2e keeps testing the real product, the off state is
+  tested by visibility-223 and product-check-advert E7. No assertion changed (equal).
+- The other locked tests (`relock-226/` in each phase; full old -> new list in the field NOTE.txt): cat-pages, fortune-cards
+  C4 (re-pin) / E4, categories.e2e, fortune-live-2, fortune-no-demo (+e2e), walkfix W-012, walkfix2 D-06 / D-08 / D-10,
+  exam-face 14-17, fortune-credits-v2 D5 (help.html re-pin: the Crowd summaries lose the label), product-check-advert.e2e E7,
+  commercial.e2e (lock leads). Every "badge = X" became "no badge anywhere, label held in the back office"
+  (admin-measurements.js visibility records, checked against tools/cat-data.cjs); every "card listed" for an off product
+  became "card absent / link hidden with data-lq-off"; limits, crisis, safety, licence and price assertions unchanged.
+- By design (stated for the reviewer): category counts are now the products switched on (HR 4, marketing 11, education 4,
+  health 3); crowd badge count 1 -> 0; exam hall links: cameras 1, exam 2 (all hidden), cat-education 0.
+
+### Round 3 settlement before the locks (2026-11-22, coordinator questions a-e)
+
+**(a) The off list: coordinator decision, reversible by the owner.** The owner's entry 13 names the off items: "Exam hall,
+Product Check, the 4 hidden demo pages". Evidence from main 807471e8 (`git show 807471e8:<file>`):
+- exam-hall: listed on main (nav.js edu menu "… (ทดลอง)", cat-education 1 link, exam.html 2, cameras.html 1); the page
+  itself said "รุ่นทดลอง ยังไม่เปิดขาย" (#hallExp), i.e. not on sale. OFF (named by the owner).
+- Product Check is not a page: it is the tab "ตรวจสินค้า (ทุกประเทศ)" (#t-pc / #tab-pc) of medicine.html, visible on main
+  with a "ทดลองใช้" badge and linked from nowhere else. medicine.html itself is the drug checker ("ตรวจข้อมูลยา"), openly
+  offered on main (nav health menu, cat-health, solutions sol-h5 "now", index footer, cameras). The first build switched
+  off the whole page; the owner never named the drug checker, so medicine.html is ON again (sol-h5, the index footer link,
+  the cameras card and the camera-notice sentences shown again) and only the part `product-check` is OFF: nav.js
+  `VISIBILITY["product-check"] = false` + `PARTS = { "product-check": "medicine" }`; the tab button and panel carry
+  `data-lq-part="product-check"` and are not rendered; a link or hash to #t-pc / #tab-pc shows the drug checker with no
+  error; the arrow keys skip the hidden tab (medicine.js v6).
+- the 4 hidden demo pages = signage, neuro, teamface, customers: listed on main (nav, cat-marketing / cat-hr, index,
+  solutions sol-r5 / sol-r6 "now", cameras); on main only the research models were off in customer mode (neuro would not
+  open its camera). They were hidden only on this branch (`DEMO_ONLY` in tools/cat-data.cjs at b458118b, 223-2 as
+  recommended). OFF (named by the owner).
+Reason: the owner's own naming in entry 13 wins over the coordinator's paraphrase of the rule ("what a customer could
+open on main stays on"); the only page the owner did not name (the drug checker) stays on. Reversible by the owner:
+one value per product in nav.js VISIBILITY.
+Also found and fixed: an off page whose script opens the camera on load (customers.html) still requested the camera behind
+the off notice; nav.js now refuses getUserMedia while the page shows the off notice (visibility-223 V2 "no camera request").
+
+**(b) solutions.html: 27 cards hidden with data-lq-off** (28 before sol-h5 was shown again): 25 were "soon" on main too
+(roadmap products with no page: sol-edu3/4/8/9/10/11, sol-r11..r15, sol-m3, sol-h1/h2/h7/h8/h9/h10, sol-f1, sol-a4,
+sol-e10..e14; 227 ก withdrawn, no coming-soon section); 2 link products on the off list (sol-r5 signage, sol-r6 customers).
+
+**(c) commercial.e2e `h > 1100`** (lock leads) is kept unchanged and passes (9/9); the 226 edit is an inversion and stricter
+(`soon === 3` -> `soon === 0`, plus: the 3 `li.soon` kept in the markup, the section hidden with data-lq-off and not
+rendered, no visible "เร็ว ๆ นี้").
+
+**(d) cdp.mjs preview** (lock cdp-goto-errpage): no assertion changed; product e2e files test the product as if switched on
+(the notice and the part-off class are removed as soon as nav.js sets them). The off state is proven by visibility-223
+(V1 / V2 / V5, `{ offNotice: true }`) and product-check-advert E7 (a).
+
+**(e) Buyer documents:** rows of off products kept, description replaced by the approved off sentence ("ระบบนี้ยังไม่เปิดให้บริการ"
+/ "此服务尚未开放"), as for the hall paragraph: ONE-PAGER-RETAIL (signage, member recognition), ONE-PAGER-EVENTS (expression
+analysis; note ¹ kept), ONE-PAGER-HR (teamface; "for entertainment only, not an assessment" kept), ONE-PAGER-TH / -ZH
+(marketing and HR cells); the teamface safety sentences (TH line 66, ZH line 62) kept. pricing.html `pr.off.f1` no longer lists
+digital signage (TH / EN / ZH). No buyer document or pricing text has a Product Check row.
+
+**Re-lock folders of round 3:** `accuracy-removal-223/relock4` (contract spec + test R9 parts + visibility-223 V2 pages only,
+new V5, V4 Thai explicit); `relock-226/` in cdp-goto-errpage, fortune-cards, crisis-rules-1323, a5-defects,
+fortune-credits/v3, fortune-live, fortune-no-demo, walk-fix-2, adverts, leads (each with NOTE.txt).

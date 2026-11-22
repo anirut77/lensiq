@@ -17,6 +17,9 @@
 //   W-031 the Gate sign (gate-notice.html poster) also exists in Chinese, and the Gate pages say TH / EN / ZH
 // Re-lock 2026-11-22 (owner decision 223, approved 223-1): assertions that required a figure, source or old status word on a
 // customer page are inverted (the page must not show it) and redirected (docs/tech-sheets/* must hold it verbatim).
+// Re-lock 2026-11-22 (owner decision 226: no status label where a customer looks): D-06 / D-08 / D-10 required the badge
+// รุ่นทดลอง / Trial version / 试用版 (cr.st.b, exam.l.betaB, om.st.b); they now require that no badge is on the page and no
+// badge key in the dictionaries, and that the back office (admin-measurements.js visibility records) holds the label.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
@@ -26,6 +29,8 @@ const ROOT = join(__dirname, "..", "..");
 const read = f => readFileSync(join(ROOT, f), "utf8");
 const EMP = "attendance.html?mode=employee";
 const THAI = /[฀-๿]/;
+const ADM = read("admin-measurements.js");
+const TRIAL_REC = page => `"${page}", "รุ่นทดลอง", "Trial version", "试用版", "on",`;
 /** value of a key in an i18n/*.js dictionary file */
 function dict(file, key) {
   const src = read(file), k = JSON.stringify(key).slice(1, -1).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -95,20 +100,19 @@ test("D-05: no sentence glued together by a Thai line break", () => {
   assert.match(thText("omr.html", "om.lead"), /ทันที\s+ครู/);
 });
 
-test("D-06: crowd.html — one status word, no English inside Thai, no dangling link text", () => {
+test("D-06: crowd.html — no status word (decision 226), no English inside Thai, no dangling link text", () => {
   const html = read("crowd.html");
   const main = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
-  // decision 223-2 (approved 223-1): the accuracy panel (with its cr.acc2.pre badge) left the page; exactly one status badge
-  // remains (cr.st.b) and it uses the approved word รุ่นทดลอง / Trial version / 试用版 (was ทดลอง / Experimental / 实验性)
+  // decision 223-2 (approved 223-1): the accuracy panel (with its cr.acc2.pre badge) left the page; the one remaining badge
+  // (cr.st.b, รุ่นทดลอง / Trial version / 试用版) is gone too since decision 226: no status badge in main, no cr.st.b key in the
+  // crowd / zones dictionaries; the label is held by the back office; the plain limit line (dense crowds) stays on the page
   const badges = [...main.matchAll(/<b class="beta" data-i18n="([\w.]+)">([^<]*)<\/b>/g)];
-  assert.equal(badges.length, 1, "crowd status badges: " + badges.map(b => b[1]));
-  assert.equal((main.match(/class="beta"/g) || []).length, 1, "one beta element in main");
-  assert.equal(badges[0][1], "cr.st.b");
-  for (const [, key, th] of badges) {
-    assert.equal(th.trim(), "รุ่นทดลอง", `badge ${key}: «${th}»`);
-    assert.equal(dict("i18n/en-crowd.js", key) || dict("i18n/en-zones.js", key), "Trial version", "EN " + key);
-    assert.equal(dict("i18n/zh-crowd.js", key) || dict("i18n/zh-zones.js", key), "试用版", "ZH " + key);
-  }
+  assert.equal(badges.length, 0, "crowd status badges: " + badges.map(b => b[1]));
+  assert.equal((main.match(/class="beta"/g) || []).length, 0, "no beta element in main");
+  assert.ok(!/cr\.st\.b\b/.test(html) && !/รุ่นทดลอง|\(ทดลอง\)/.test(main), "crowd status label on the page");
+  for (const f of ["i18n/en-crowd.js", "i18n/en-zones.js", "i18n/zh-crowd.js", "i18n/zh-zones.js"]) assert.equal(dict(f, "cr.st.b"), null, f + " cr.st.b");
+  assert.ok(ADM.includes(TRIAL_REC("crowd")), "back office: crowd label รุ่นทดลอง / Trial version / 试用版, shown");
+  assert.match(main, /data-i18n="ln\.crowd\.2">เหมาะกับงานที่มีคนน้อยถึงปานกลาง ยังไม่เหมาะกับฝูงชนหนาแน่น</, "the dense-crowd limit stays");
   assert.ok(!/cr\.acc2\.pre/.test(html), "old accuracy-panel badge gone");
   for (const f of ["i18n/en-crowd.js", "i18n/zh-crowd.js"]) assert.equal(dict(f, "cr.acc2.pre"), null, f + " cr.acc2.pre");
   assert.ok(!/PRELIMINARY/.test(main), "English (PRELIMINARY) inside the Thai text");
@@ -141,15 +145,21 @@ test("D-07: the solutions face check-in card claims liveness only as off by defa
   }
 });
 
-test("D-08: exam.html first note uses the category status (pilot-ready), not 'demo'", () => {
+test("D-08: exam.html first note carries no status label (decision 226) and never 'demo'; the label is in the back office", () => {
   const th = thText("exam.html", "exam.l.betaB"), en = dict("i18n/en-exam.js", "exam.l.betaB"), zh = dict("i18n/zh-exam.js", "exam.l.betaB");
-  // decision 223-2 (approved 223-1): the category status words became the customer badge; exam's badge is badgeOf("exam") =
-  // trial (รุ่นทดลอง / Trial version / 试用版), still never "demo"; the old note (pilot-ready + not measured) is in the tech sheet
+  // decision 223-2 (approved 223-1): the category status words became the customer badge (badgeOf("exam") = trial); decision
+  // 226: the badge left the note (exam.l.betaB gone from the page and the dictionaries, cat.b.trial gone) and lives in
+  // the back office; the note keeps its plain sentence (exam.l.beta), never "demo"; the old note is in the tech sheet
   const D = require(join(ROOT, "tools", "cat-data.cjs"));
   assert.equal(D.badgeOf("exam"), "trial");
-  assert.ok(th === D.BADGE.trial.th && !/เดโม|พร้อมนำร่อง/.test(th), "TH: " + th);
-  assert.ok(en === D.BADGE.trial.en && en === dict("i18n/en-cat.js", "cat.b.trial") && !/demo|pilot/i.test(en), "EN: " + en);
-  assert.ok(zh === D.BADGE.trial.zh && zh === dict("i18n/zh-cat.js", "cat.b.trial") && !/演示|试点/.test(zh), "ZH: " + zh);
+  assert.equal(th, null, "TH exam.l.betaB still on exam.html"); assert.equal(en, null, "EN exam.l.betaB"); assert.equal(zh, null, "ZH exam.l.betaB");
+  assert.equal(dict("i18n/en-cat.js", "cat.b.trial"), null); assert.equal(dict("i18n/zh-cat.js", "cat.b.trial"), null);
+  assert.ok(ADM.includes(TRIAL_REC("exam")), "back office: exam label รุ่นทดลอง / Trial version / 试用版, shown");
+  const note = [thText("exam.html", "exam.l.beta"), dict("i18n/en-exam.js", "exam.l.beta"), dict("i18n/zh-exam.js", "exam.l.beta")];
+  assert.equal(note[0], "ทดลองในห้องจริงก่อนใช้ แดชบอร์ดมีปุ่มนับว่าแจ้งถูกหรือผิด", "TH note: " + note[0]);
+  assert.ok(note[1] && !/demo|pilot|trial version/i.test(note[1]), "EN note: " + note[1]);
+  assert.ok(note[2] && !/演示|试点|试用版/.test(note[2]), "ZH note: " + note[2]);
+  assert.match(read("exam.html"), /<p class="warn" role="note"><span\s+data-i18n="exam\.l\.beta">/, "the note has no badge element");
   const shTh = read("docs/tech-sheets/exam-TH.md").split("\n").filter(l => l.startsWith("[exam.l.betaB] "));
   const shEn = read("docs/tech-sheets/exam-EN.md").split("\n").filter(l => l.startsWith("[exam.l.betaB] "));
   assert.ok(shTh.length === 1 && shTh[0].includes("พร้อมนำร่อง") && !/เดโม/.test(shTh[0]), "tech sheet TH: " + shTh);
@@ -166,16 +176,19 @@ test("D-09: exam.html reasons 2 and 3 each name a source with a year (TH / EN / 
   }
 });
 
-test("D-10: omr.html states status, accuracy with its source, and offers a demo (TH / EN / ZH)", () => {
+test("D-10: omr.html states no status label (decision 226), its two lines, accuracy with its source in the tech sheet, and offers a demo (TH / EN / ZH)", () => {
   // decision 223 (approved 223-1, 223-2, 223-7): the status label is the approved badge รุ่นทดลอง / Trial version / 试用版; the
   // page states the two approved lines (ln.omr.1 / ln.omr.2) instead of the accuracy line; the accuracy line ("not measured",
   // source synthetic) is held verbatim by the technical sheet; the demo is still offered
   const html = read("omr.html");
   const main = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
+  // re-lock 226: the status label (om.st.b รุ่นทดลอง / Trial version / 试用版) left the page and the dictionaries; the back
+  // office holds it
   const st = main.match(/<b class="[^"]*\bbeta\b[^"]*" data-i18n="([\w.]+)">([^<]*)<\/b>/);
-  assert.ok(st && st[2].trim() === "รุ่นทดลอง", "status label รุ่นทดลอง");
-  assert.equal(dict("i18n/en-omr.js", st[1]), "Trial version");
-  assert.equal(dict("i18n/zh-omr.js", st[1]), "试用版");
+  assert.equal(st, null, "status label on omr.html");
+  assert.ok(!/om\.st\.b\b/.test(html) && !/รุ่นทดลอง/.test(main), "om.st.b / รุ่นทดลอง on omr.html");
+  assert.equal(dict("i18n/en-omr.js", "om.st.b"), null); assert.equal(dict("i18n/zh-omr.js", "om.st.b"), null);
+  assert.ok(ADM.includes(TRIAL_REC("omr")), "back office: omr label รุ่นทดลอง / Trial version / 试用版, shown");
   const LN = {
     "ln.omr.1": ["ตรวจกระดาษคำตอบด้วยกล้องมือถือ แสดงคะแนนและสถิติรายข้อ", "Grades answer sheets with a phone camera and shows scores and item statistics.", "用手机摄像头批改答题卡，显示分数和逐题统计。"],
     "ln.omr.2": ["แผ่นที่ระบายจาง ระบายเกินวง หรือถ่ายเอียงอาจอ่านผิด ระบบทำเครื่องหมายแผ่นที่ไม่แน่ใจไว้ให้ครูตรวจ",
@@ -185,7 +198,7 @@ test("D-10: omr.html states status, accuracy with its source, and offers a demo 
   for (const [k, [th, en, zh]] of Object.entries(LN)) {
     assert.equal(thText("omr.html", k), th, k); assert.equal(dict("i18n/en-common.js", k), en, "EN " + k); assert.equal(dict("i18n/zh-common.js", k), zh, "ZH " + k);
   }
-  assert.ok(main.indexOf('data-i18n="ln.omr.1"') < main.indexOf('data-i18n="om.st.b"'), "the two lines come before the status");
+  assert.ok(main.indexOf('data-i18n="ln.omr.1"') >= 0 && main.indexOf('data-i18n="ln.omr.1"') < main.indexOf('data-i18n="om.st.acc"'), "the two lines come before the status note");
   // the old accuracy line left the page and its dictionaries' value; the technical sheet holds it (not measured, synthetic)
   assert.doesNotMatch(main, /ยังไม่ได้วัด|สังเคราะห์[^<]*ความแม่นยำ|ความแม่นยำ:/);
   assert.doesNotMatch(dict("i18n/en-omr.js", "om.st.acc") || "", /not (yet )?measured|synthetic/i);
