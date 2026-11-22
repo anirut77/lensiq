@@ -33,6 +33,10 @@ if (typeof document !== "undefined") (() => {
     { id: "fs", name: "ฮวงจุ้ย", href: "fengshui.html", what: "นับจำนวนครั้งที่ดูทิศมงคลและเลขกัว" },
     { id: "photo", name: "ตู้ถ่ายรูป", href: "photobooth.html", what: "ตู้สติ๊กเกอร์และรูปติดบัตร" }
   ];
+  // decision 226: a module whose page is switched off in the nav.js visibility list is not shown (no card, link or KPI)
+  const VIS = /** @type {any} */ (window).LQ_VISIBILITY || {};
+  const offIds = new Set(MODULES.filter(m => VIS[m.href.replace(/\.html$/, "")] === false).map(m => m.id));
+  const SHOWN = MODULES.filter(m => !offIds.has(m.id));
   const dayLabel = key => new Date(iqDayStart(key)).toLocaleDateString(iqLoc(), { day: "numeric", month: "short" });
   const bucketLabel = (b, r) => r.mode === "hour" ? iqPad(b) + ":00" : dayLabel(b);
   const fmtDate = t => new Date(t).toLocaleDateString(iqLoc(), { day: "numeric", month: "short", year: "numeric" });
@@ -63,7 +67,7 @@ if (typeof document !== "undefined") (() => {
     last = { D, r, A, cards, flags, excluded };
     window.__IQ = { last, render, report: buildReport, analyze };
     const has = id => !!D[id];
-    const any = MODULES.some(m => has(m.id));
+    const any = SHOWN.some(m => has(m.id));
     document.querySelectorAll(".range button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.p === preset)));
     $("#customRange").hidden = preset !== "custom";
     if (preset === "custom") { $("#cFrom").value = r.from; $("#cTo").value = r.to; $("#cFrom").max = $("#cTo").max = iqDay(); }
@@ -160,7 +164,7 @@ if (typeof document !== "undefined") (() => {
     const t = el("table", { class: "cams acc" }, el("div", { class: "tw" }, box)), hr = el("tr", {}, el("thead", {}, t));
     [T("iq.acc.h.cam", "ระบบ · กล้อง"), T("iq.acc.h.when", "ตรวจล่าสุด"), T("iq.acc.h.v", "ผล"), T("iq.acc.h.need", "ต้องเก็บเพิ่ม")].forEach(h => el("th", { scope: "col" }, hr, h));
     const tb = el("tbody", {}, t);
-    L.forEach(x => {
+    L.filter(x => VIS[x.page] !== false).forEach(x => { // decision 226: no row for a switched-off page
       const [pn, href] = ACC_PAGE[x.page] || [x.page, "#"];
       const tr = el("tr", { "data-v": x.verdict }, tb), th = el("th", { scope: "row" }, tr);
       el("a", { href: href + "#scPanel" }, th, TN(pn));
@@ -230,8 +234,8 @@ if (typeof document !== "undefined") (() => {
   function renderKpis(A, r) {
     const kp = $("#kpis"); kp.replaceChildren();
     const vs = r.compare === "week" ? T("iq.kpi.vsw", "สัปดาห์ก่อน") : r.days === 1 ? T("iq.vs.yday", "เมื่อวาน") : T("iq.vs.prev", "{n} วันก่อนหน้า", { n: r.days });
-    A.kpis.forEach(k => {
-      const mod = MODULES.find(m => m.id === k.id);
+    A.kpis.filter(k => !offIds.has(k.id)).forEach(k => {
+      const mod = SHOWN.find(m => m.id === k.id);
       const card = el("div", { class: "kpi" }, kp);
       const a = el("a", { class: "kpi-main", href: mod ? mod.href : "#funnel" }, card);
       el("div", { class: "k" }, a, TN(k.label));
@@ -282,7 +286,7 @@ if (typeof document !== "undefined") (() => {
       const head = el("div", { class: "fn-h" }, row);
       el("span", { class: "fn-n" }, head, String(i + 1));
       el("b", {}, head, TN(s.label));
-      if (s.src) { const a = el("a", { class: "src", href: s.src.href }, head, T("iq.fn.from", "จาก {s}", { s: TN(s.src.source) })); a.title = TN(s.src.note); }
+      if (s.src && VIS[String(s.src.href || "").replace(/\.html.*$/, "")] !== false) { const a = el("a", { class: "src", href: s.src.href }, head, T("iq.fn.from", "จาก {s}", { s: TN(s.src.source) })); a.title = TN(s.src.note); }
       if (!s.src) { el("div", { class: "fn-miss" }, row, i === 1 || i === 0 ? TN("ยังไม่มีข้อมูล — ใช้ระบบวิเคราะห์บูธหรือหน้าร้าน") + (r.preset !== "all" ? T("iq.fn.sgall", " (ป้ายโฆษณานับเฉพาะช่วง “ทั้งหมด”)") : "") : i === 2 ? TN("ยังไม่มีข้อมูล — ใช้ระบบวิเคราะห์บูธ") : TN("ยังไม่มีข้อมูล — ใช้ระบบสแกนสินค้าหรือจดจำลูกค้า")); return; }
       const line = el("div", { class: "fn-line" }, row);
       const tr = el("div", { class: "fn-t" }, line), bar = el("div", { class: "fn-b s1" }, tr);
@@ -563,7 +567,7 @@ if (typeof document !== "undefined") (() => {
       if (!rows.length) { el("p", { class: "nodata" }, box, TN("ไม่มีข้อมูลในช่วงนี้")); return; }
       hbars(el("div", { class: "mini" }, box), rows.map(q => ({ ...q, label: nameT(q.label) })), fmt, TN(name));
     };
-    const order = MODULES.slice().sort((a, b) => (has(b) - has(a)));
+    const order = SHOWN.slice().sort((a, b) => (has(b) - has(a)));
     function has(m) { return m.id === "photo" ? 0 : D[m.id] ? 1 : 0; }
     order.forEach(m => {
       const card = el("section", { class: "mod" + (has(m) ? "" : " off"), id: "mod-" + m.id, "aria-labelledby": "m-" + m.id }, grid);
@@ -645,7 +649,7 @@ if (typeof document !== "undefined") (() => {
 
   function renderEmptyList() {
     const ul = $("#emptyList"); ul.replaceChildren();
-    MODULES.filter(m => m.id !== "photo").forEach(m => { const li = el("li", {}, ul); el("a", { href: m.href }, li, TN(m.name)); li.append(" — " + TN(m.what)); });
+    SHOWN.filter(m => m.id !== "photo").forEach(m => { const li = el("li", {}, ul); el("a", { href: m.href }, li, TN(m.name)); li.append(" — " + TN(m.what)); });
   }
 
   function renderData(snap) {

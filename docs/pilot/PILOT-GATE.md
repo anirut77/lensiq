@@ -27,6 +27,8 @@
 | อ่านถูกจากภาพเดียว | 58% (81 / 140) | n = 140 ฉาก | ข้อมูลจำลอง (seed 7) |
 | ลานจอด / หมู่บ้านจริง | ยังไม่ได้วัด | — | หน้างานจริง |
 
+(ตัวเลขชุดข้อมูลทั้งหมดอยู่ในเอกสารเทคนิค `docs/tech-sheets/gate-TH.md` หน้าลูกค้าไม่แสดงตัวเลขเหล่านี้ เกณฑ์นำร่องยังคงเดิม)
+
 ## 2. สองขั้นตอน
 
 | ขั้น | ที่ไหน | ใครทำ | ใช้เวลา | ผลที่ได้ |
@@ -182,6 +184,8 @@ Today's numbers (not field yet):
 | Photos without a plate read automatically | 0 / 19 (95% interval 0–17%; held-out half 0 / 8: 0–32%) | n = 19 photos | public dataset |
 | Exact read from one frame | 58% (81 / 140) | n = 140 scenes | synthetic (seed 7) |
 | Real car park / village | not measured | — | field |
+
+(All dataset figures are in the technical sheet `docs/tech-sheets/gate-EN.md`; customer pages do not show them. The pilot targets are unchanged.)
 
 ## 2. Two phases
 

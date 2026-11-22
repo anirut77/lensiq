@@ -17,6 +17,8 @@
 //               with every "?v=…" query stripped, are byte-identical to the same stripped form of their base bytes
 //               (tests/unit/fixtures/d5-base/*.txt = origin/main 5695734; terms copy has the old TERMS_SHA256_MAIN). Controls:
 //               a ?v= bump alone passes; one changed word of the terms text fails.
+//               RE-LOCK 2026-11-22 (owner decision 223): terms.html as above; help.html and legal.js = base + the exact
+//               decision-223 replacements (listed in D5_223, none touching fortune / crisis text), new sha256 pinned.
 // Fortune pages = category 6 of tools/cat-data.cjs (+ compat). Run: node --test tests/unit/fortune-credits-v2.test.js
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -158,8 +160,73 @@ const d5Base = f => {
   return b.toString("utf8");
 };
 
-test("D5 terms.html, help.html, legal.js: text byte-identical to main 5695734 apart from ?v= (owner decision 109)", () => {
-  for (const f of Object.keys(D5_BASE)) assert.ok(stripV(read(f)) === stripV(d5Base(f)), f + ": text changed (only ?v= bumps are allowed)");
+// RE-LOCK 2026-11-22 (owner decision 223, 223-1 / 223-6): terms.html stays byte-identical to the base (apart from ?v=), exactly
+// as before. help.html and legal.js had to change for decision 223 (help: the accuracy FAQ answer in TH / EN / ZH and the
+// renamed "ทดสอบหน้างาน" / "On-site test" / "现场测试" in the guard tip; legal.js: only the Thai draft tooltip
+// "ค่าร่าง รอทนายความยืนยัน" -> "ค่าร่าง อยู่ระหว่างให้ทนายความตรวจ"). Their new pin: the stripped text must equal the base text
+// with EXACTLY these replacements applied (so every other byte, all the fortune parts D5 protected included, is unchanged),
+// and its sha256 is pinned. No replaced part touches fortune, crisis or help-number text.
+const D5_223 = {
+  "help.html": { sha: "6f0be4842e1c7b87c594f63ed86bef1d3a989b9bf2b8755c1cf6bd38efc105fa", pairs: [
+    ["      <p>ขึ้นกับมุมกล้อง ความสูง และแสง เราเผยแพร่ผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด และฟีเจอร์ที่ยังไม่ได้วัดบนข้อมูลจริงจะมีป้าย Beta ก่อนใช้ตัวเลขตัดสินใจทางธุรกิจ " +
+      "แนะนำให้ทดลองหน้างาน 2 สัปดาห์ เทียบกับการนับด้วยคน ค่าประมาณอายุ เพศ และสีหน้าเป็นค่าโดยประมาณสำหรับภาพรวมเท่านั้น</p></div></details>",
+     "      <p>ตัวเลขจากกล้องเป็นค่าประมาณ ขึ้นกับมุมกล้อง ความสูง และแสง ทุกหน้าบอกข้อจำกัดสำคัญไว้ แนะนำให้ทดลองหน้างานเทียบกับการนับของคุณก่อนใช้ตัดสินใจทางธุรกิจ\n " +
+       "       ขอเอกสารเทคนิคได้จากฝ่ายขาย</p></div></details>"],
+    ["        <li>ฝึก รปภ. ยืนยันหรือแก้ทุกป้าย แล้วใช้ \"ตรวจความแม่นยำ\" ตั้งแต่วันแรก</li>",
+     "        <li>ฝึก รปภ. ยืนยันหรือแก้ทุกป้าย แล้วใช้ \"ทดสอบหน้างาน\" ตั้งแต่วันแรก</li>"],
+    ["      <p>It depends on camera angle, height and lighting. We publish public-dataset results with their " +
+    "limitations, and features not yet measured on real data carry a Beta label. Before relying on " +
+      "the numbers for business decisions, run a 2-week on-site pilot against a human count. Age, gender and expression estimates are approximate and only meant for overall trends.</p></div></details>",
+     "      <p>Camera numbers are estimates that depend on camera angle, height and lighting. Every page states its main limits. Before using them for " +
+       "business\n        decisions, run an on-site trial against your own count. The technical sheet is available from sales.</p></div></details>"],
+    ["        <li>Train guards to confirm or correct every plate, and use the \"accuracy check\" from day one.</li>",
+     "        <li>Train guards to confirm or correct every plate, and use the \"On-site test\" from day one.</li>"],
+    ["      <p>这取决于摄像头角度、高度和光线。我们公开在公共数据集上的测量结果及其局限，尚未在真实数据上测量的功能标有 Beta。在依据这些数字做商业决策前，建议进行 2 周现场试点，与人工计数对比。年龄、性别和表情估计仅为近似值，只用于观察整体趋势。</p></div></details>",
+     "      <p>摄像头给出的数字是估计值，取决于摄像头角度、高度和光线。每个页面都说明了主要局限。用于商业决策前，建议先在现场试用并与您自己的计数对比。技术资料可向销售索取。</p></div></details>"],
+    ["        <li>培训保安确认或更正每个车牌，并从第一天起使用\"准确率检查\"。</li>",
+     "        <li>培训保安确认或更正每个车牌，并从第一天起使用\"现场测试\"。</li>"],
+    // re-lock 223d (reviewer finding 8) then re-lock 226 (owner decision 226: no status label where a customer looks): the
+    // Crowd help summaries carry no status label at all (223d had "(รุ่นทดลอง)" / "(trial version)" / "（试用版）")
+    ["<summary>LENSIQ Crowd นับคนและความหนาแน่น (ทดลอง)</summary>", "<summary>LENSIQ Crowd นับคนและความหนาแน่น</summary>"],
+    ["<summary>LENSIQ Crowd people counting and density (experimental)</summary>", "<summary>LENSIQ Crowd people counting and density</summary>"],
+    ["<summary>LENSIQ Crowd 人数与密度统计（实验性）</summary>", "<summary>LENSIQ Crowd 人数与密度统计</summary>"],
+    // re-lock 226b (review round 3, owner decision 226 "off = not shown"): the FAQ entry that names the switched-off team face
+    // reading is hidden with data-lq-off in TH / EN / ZH; not one word of its text changed
+    ["<details id=\"h-hr\"><summary>", "<details id=\"h-hr\" data-lq-off><summary>"],
+    ["<details id=\"en-h-hr\"><summary>", "<details id=\"en-h-hr\" data-lq-off><summary>"],
+    ["<details id=\"zh-h-hr\"><summary>", "<details id=\"zh-h-hr\" data-lq-off><summary>"]
+  ] },
+  "legal.js": { sha: "ec715ec3135403b89271e24d6dda0d12b94d701d608a7c06d88b7ff6cf787f7c", pairs: [
+    ["      if (k === \"draft\") { el.title = (prefix() === \"zh-\" ? \"草案数值，待律师确认\" : prefix() === \"en-\" ? \"draft value, to be confirmed by counsel\" : \"ค่าร่าง รอทนายความยืนยัน\"); return; }",
+     "      if (k === \"draft\") { el.title = (prefix() === \"zh-\" ? \"草案数值，待律师确认\" : prefix() === \"en-\" " +
+       "? \"draft value, to be confirmed by counsel\" : \"ค่าร่าง อยู่ระหว่างให้ทนายความตรวจ\"); return; }"]
+  ] }
+};
+const FORTUNE_OR_CRISIS = /ดวง|โหรา|ฤกษ์|สายมู|fortune|horoscope|astrolog|tarot|ไพ่|命理|占|运势|1323|1669|crisis|วิกฤต|危机|สายด่วน|hotline|counselling/i;
+
+test("D5 terms.html byte-identical to main 5695734 apart from ?v=; help.html and legal.js changed only by decision 223 (owner decisions 109, 223)", () => {
+  assert.ok(stripV(read("terms.html")) === stripV(d5Base("terms.html")), "terms.html: text changed (only ?v= bumps are allowed)");
+  for (const [f, { sha, pairs }] of Object.entries(D5_223)) {
+    const base = stripV(d5Base(f)), cur = stripV(read(f));
+    let want = base;
+    for (const [o, n] of pairs) {
+      assert.equal(base.split(o).length, 2, `${f}: a replaced base part is not unique: ${o.slice(0, 60)}`);
+      assert.doesNotMatch(o + "\n" + n, FORTUNE_OR_CRISIS, `${f}: a decision-223 change touches fortune / crisis text`);
+      want = want.replace(o, () => n);
+    }
+    assert.ok(cur === want, f + ": text differs from the base + the decision-223 changes (only ?v= bumps are allowed)");
+    assert.equal(createHash("sha256").update(cur).digest("hex"), sha, f + ": pinned decision-223 text");
+  }
+  // legal.js: the one change is the Thai draft tooltip; EN / ZH tooltips unchanged
+  assert.equal(D5_223["legal.js"].pairs.length, 1);
+  const [o, n] = D5_223["legal.js"].pairs[0];
+  assert.equal(o.replace("ค่าร่าง รอทนายความยืนยัน", "ค่าร่าง อยู่ระหว่างให้ทนายความตรวจ"), n, "legal.js: only the Thai draft tooltip changed");
+  assert.equal(D5_223["help.html"].pairs.length, 12);
+  // the fortune / crisis text of help.html is byte-identical to the base (every line that names fortune or a help number)
+  const lines = f => stripV(f).split("\n").filter(l => FORTUNE_OR_CRISIS.test(l));
+  const bl = lines(d5Base("help.html"));
+  assert.ok(bl.length >= 5, "help.html fortune / crisis lines at base: " + bl.length);
+  assert.deepEqual(lines(read("help.html")), bl, "help.html fortune / crisis lines changed");
 });
 
 test("D5 controls: a ?v= bump alone passes; one changed word of the terms text fails", () => {

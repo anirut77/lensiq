@@ -121,12 +121,28 @@ test("item 2: the fortune category text (cat-data, i18n/{en,zh}-cat.js, index.ht
   for (const l of ["en", "zh"]) {
     // re-lock 2026-11-18 (owner order 2026-11-18): cat.c.fortune, the fortune card's accuracy line, is removed with the card's
     // accuracy field; the remaining fortune category keys are checked exactly as before
-    for (const k of ["cat.fortune.intro", "cat.r.fortune"]) {
+    for (const k of ["cat.fortune.intro"]) {
       const v = entry("i18n/" + l + "-cat.js", k);
       assert.ok(v, l + "-cat.js " + k);
       assert.doesNotMatch(v, OLD[l], l + "-cat.js " + k + ": " + v);
     }
+    // re-lock 2026-11-22 (owner decision 223: status reasons are no longer written to the customer dictionaries): cat.r.fortune
+    // must be GONE from i18n/{en,zh}-cat.js; its text lives on in tools/cat-data.cjs REASONS.fortune (checked below, all three
+    // languages, with the same no-'for entertainment' rule) and in the back office (admin-measurements.js)
+    assert.equal(entry("i18n/" + l + "-cat.js", "cat.r.fortune"), null, l + "-cat.js still carries cat.r.fortune");
   }
+  const L223 = require("./accuracy-removal-223.lib.js");
+  const adm = new Set(L223.jsStrings(read("admin-measurements.js")).map(L223.squash));
+  for (const l of LANGS) {
+    const v = D.REASONS.fortune[l];
+    assert.ok(v && v.length > 5, "REASONS.fortune." + l);
+    assert.doesNotMatch(v, OLD[l], "REASONS.fortune." + l + ": " + v);
+    assert.ok(adm.has(L223.squash(v)), "admin-measurements.js holds REASONS.fortune." + l);
+  }
+  assert.doesNotMatch(stripComments(read("cat-fortune.html")), /data-i18n="cat\.r\.fortune"/, "cat-fortune.html uses cat.r.fortune");
+  const fRows = read("docs/PAGE-STATUS.md").split("\n").filter(r => /6 Fortune/.test(r));
+  assert.ok(fRows.length >= 18, "PAGE-STATUS.md fortune rows: " + fRows.length);
+  for (const row of fRows) for (const l of LANGS) assert.doesNotMatch(row, OLD[l], "PAGE-STATUS.md: " + row.slice(0, 60));
   const idx = read("index.html");
   // re-lock 2026-11-18 (owner order 2026-11-18: no per-card disclaimer where fortune is listed): the chooser card shows the
   // fortune lead (cat.fortune.lead, the intro without the disclaimer line); the no-old-wording check is unchanged

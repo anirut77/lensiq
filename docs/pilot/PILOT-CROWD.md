@@ -22,6 +22,7 @@
 ตัวเลขที่มีวันนี้ (ที่มา: ชุดข้อมูลสาธารณะ ผลเบื้องต้น AI นับเทียบ, `docs/CROWD-ACCURACY.md`): คน 15–22 คน นับต่ำกว่าจริง 26%
 (n = 12 ภาพ) · คน 30–50 คน นับต่ำกว่าจริง 58% (n = 20 ภาพ) · คนตัวเล็ก/ไกล นับต่ำกว่าจริง 37–59% (n = 29 ภาพ) · โซนใกล้ 0–13 คน
 คลาด 1.2 คนต่อภาพ (31%, n = 20 ภาพ) · หน้างานจริง: ยังไม่ได้วัด
+(ตัวเลขชุดข้อมูลและวิธีวัดทั้งหมดอยู่ในเอกสารเทคนิค `docs/tech-sheets/crowd-TH.md` หน้าลูกค้าไม่แสดงตัวเลขเหล่านี้ เกณฑ์นำร่องด้านล่างยังคงเดิม)
 
 ## 2. สามขั้นตอน
 
@@ -138,6 +139,8 @@ Today's figures (source: public dataset, preliminary AI reference, `docs/CROWD-A
 | small / far people | undercount 37–59% | 29 frames |
 | near zone, 0–13 people | 1.2 people per frame (31%) | 20 frames |
 | real site | not measured | — |
+
+(All dataset figures and how they were measured are in the technical sheet `docs/tech-sheets/crowd-EN.md`; customer pages do not show them. The pilot targets below are unchanged.)
 
 ## 2. Three phases
 

@@ -121,7 +121,7 @@ window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE === true;
   var load = function (file, global) {
     if (/** @type {any} */ (window)[global] || document.querySelector('script[src*="' + file + '"]')) return;
     var s = document.createElement("script");
-    s.src = dir + file + "?v=6";
+    s.src = dir + file + "?v=7";
     s.async = false;
     (document.head || document.documentElement).appendChild(s);
   };

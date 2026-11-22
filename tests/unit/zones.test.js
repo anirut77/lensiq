@@ -278,7 +278,9 @@ test("zone pages: every data-i18n key and every T() key has English and Chinese,
     for (const m of h.matchAll(/data-i18n-attr="([^"]+)"/g)) for (const pr of m[1].split(";")) keys.add(pr.split(":")[1]);
   }
   for (const f of [...PAGES.map(p => p + ".js"), "lensiq-zonecam.js"]) for (const m of read(f).matchAll(/T\("([\w.]+)"/g)) keys.add(m[1]);
-  const missing = [...keys].filter(k => !(k in en) || !(k in zh));
+  // shared keys (decision 223 lines ln.*, result line common.recheck) live in the common dictionaries loaded on every page
+  const enAll = { ...loadDict("en-common.js", "en"), ...en }, zhAll = { ...loadDict("zh-common.js", "zh"), ...zh };
+  const missing = [...keys].filter(k => !(k in enAll) || !(k in zhAll));
   assert.deepEqual(missing, []);
   for (const [k, v] of [...Object.entries(en), ...Object.entries(zh)]) assert.ok(!/[ก-๛]/.test(v), "Thai in " + k);
   for (const k of Object.keys(en)) for (const ph of (en[k].match(/\{\w+\}/g) || [])) assert.ok(zh[k].includes(ph), `${k} zh lacks ${ph}`);

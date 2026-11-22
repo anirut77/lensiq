@@ -311,7 +311,7 @@ async function loop() {
     scanGuard.ok();
     const now = performance.now();
     healthStep(faces);
-    if (SCA) { attCheckStep(faces, now, ctx); setTimeout(loop, 300); return; } // ตรวจความแม่นยำ: ไม่บันทึกการเข้าเรียน
+    if (SCA) { attCheckStep(faces, now, ctx); setTimeout(loop, 300); return; } // ทดสอบหน้างาน: ไม่บันทึกการเข้าเรียน
     // จับคู่แบบไม่ซ้ำ: แต่ละคนถูกใช้ได้ครั้งเดียวต่อเฟรม ใบหน้าที่ใกล้ที่สุดได้ไป ที่เหลือถือว่าไม่รู้จัก
     const cands = [];
     const conf = new Map();
@@ -553,7 +553,7 @@ document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
   }
 }
 
-// ---------- สุขภาพภาพ + ตรวจความแม่นยำหน้างาน (lensiq-sitecheck.js) ----------
+// ---------- สุขภาพภาพ + ทดสอบหน้างาน (lensiq-sitecheck.js) ----------
 // สุขภาพภาพ: ความสว่าง ย้อนแสง ความคม และขนาดใบหน้า ทุก ~1 วินาทีระหว่างสแกน (ตัวเลขเท่านั้น)
 const SITE = /** @type {any} */ (window).LQSite || null;
 const HL = SITE ? { mon: SITE.createHealth({ kind: "attendance" }), at: 0, fw: [], cv: document.createElement("canvas"), state: null } : null;
@@ -576,14 +576,22 @@ function noteField(ok) { fieldStats[ok ? "yes" : "no"]++; store("att-fieldcheck"
 function renderField() {
   const el = $("#scField"); if (!el) return;
   const n = fieldStats.yes + fieldStats.no;
-  el.textContent = n ? SITE.fmt("ระหว่างใช้งานจริง ระบบเสนอชื่อให้ยืนยัน {a} ครั้ง: ถูกคน {b} · ไม่ใช่ {c}{d}", { a: n, b: fieldStats.yes, c: fieldStats.no, d: SITE ? SITE.fmt(" (เสนอชื่อถูก {a}%, ช่วงความเชื่อมั่น {b}–{c}%)", { a: (SITE.wilson(fieldStats.yes, n).p * 100).toFixed(0), b: (SITE.wilson(fieldStats.yes, n).lo * 100).toFixed(0), c: (SITE.wilson(fieldStats.yes, n).hi * 100).toFixed(0) }) : "" }) : "ระหว่างใช้งานจริง: ยังไม่มีการกดยืนยันหรือปฏิเสธชื่อที่ระบบเสนอ";
+  // 223-4: plain counts on top; the percentage and its interval only inside "ตัวเลขละเอียดสำหรับผู้ดูแล"
+  el.textContent = n ? SITE.fmt("ระหว่างใช้งานจริง ระบบเสนอชื่อให้ยืนยัน {a} ครั้ง: ถูกคน {b} · ไม่ใช่ {c}", { a: n, b: fieldStats.yes, c: fieldStats.no })
+    : "ระหว่างใช้งานจริง: ยังไม่มีการกดยืนยันหรือปฏิเสธชื่อที่ระบบเสนอ";
+  const more = $("#scFieldMore"), num = $("#scFieldNum");
+  if (!more || !num) return;
+  more.hidden = !n;
+  if (!n) return;
+  const w = SITE.wilson(fieldStats.yes, n), pc = (/** @type {number} */ x) => (x * 100).toFixed(0);
+  num.textContent = SITE.fmt("เสนอชื่อถูก {a}% (ช่วงความเชื่อมั่น {b}–{c}%)", { a: pc(w.p), b: pc(w.lo), c: pc(w.hi) });
 }
-// ตรวจความแม่นยำ: ทีละรอบ — ผู้ทดสอบเลือกว่าใครยืนหน้ากล้อง (ผู้ลงทะเบียน หรือ คนนอก) แล้วกดเริ่มรอบ ระบบดูใบหน้าไม่เกิน 6 วินาที
+// ทดสอบหน้างาน (223-4, เดิม "ตรวจความแม่นยำ"): ทีละรอบ — ผู้ทดสอบเลือกว่าใครยืนหน้ากล้อง (ผู้ลงทะเบียน หรือ คนนอก) แล้วกดเริ่มรอบ ระบบดูใบหน้าไม่เกิน 6 วินาที
 // ด้วยกฎเดียวกับการเช็คชื่อจริง แต่ไม่บันทึกการเข้าเรียน · ผลที่ส่งออกใช้รหัสแทนชื่อ (m1, m2, ...) ไม่มีชื่อ ภาพ หรือค่าใบหน้า
 let SCA = null, SCA_LAST = null;
 const scaHist = SITE ? SITE.history("att-sitecheck") : null;
 const scaPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
-  title: "ตรวจความแม่นยำหน้างาน",
+  title: "ทดสอบหน้างาน",
   intro: "ทดสอบการจำใบหน้าที่จุดเช็คชื่อจริงของคุณ: ให้ผู้ลงทะเบียนและคนที่ไม่ได้ลงทะเบียนมายืนหน้ากล้องทีละคน ระบบใช้กฎเดียวกับการเช็คชื่อ แต่ไม่บันทึกการเข้าเรียนระหว่างทดสอบ",
   steps: [
     "ลงทะเบียนผู้ทดสอบที่จุดใช้งานจริงก่อน (แนะนำอย่างน้อย 5 คน ระบบจึงปรับเกณฑ์ตามกลุ่มได้) และขอความยินยอมจากทุกคน รวมถึงคนนอกที่มาช่วยทดสอบ",
@@ -592,6 +600,7 @@ const scaPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
     "กด \"จบและคำนวณ\" แล้วเก็บไฟล์ผลตรวจไว้ ทำซ้ำเมื่อย้ายกล้อง เปลี่ยนแสง หรือมีผู้ลงทะเบียนเพิ่มมาก"
   ],
   body: `<div class="sc-trial" hidden><div class="sc-row"><label><span>ใครยืนหน้ากล้องรอบนี้</span><select class="sc-who" data-i18n-skip></select></label><label class="sc-sidl" hidden><span>คนนอกคนที่ (คนเดิม = เลขเดิม)</span><input class="sc-sid" type="number" min="1" max="999" value="1" inputmode="numeric"></label><button class="btn primary sc-go" type="button">เริ่มรอบนี้</button><button class="btn ghost small sc-undo" type="button">ลบรอบล่าสุด</button></div><p class="sc-now" role="status"></p><ul class="sc-list"></ul></div><p class="hint" id="scField"></p>`
+    + `<details class="sc-fold" id="scFieldMore" hidden><summary>ตัวเลขละเอียดสำหรับผู้ดูแล</summary><p class="hint" id="scFieldNum"></p></details>`
 }) : null;
 const OUT_TH = { auto: "จำได้เอง", ask: "เสนอชื่อให้กดยืนยัน", none: "ไม่รู้จัก", noface: "ไม่พบใบหน้า" };
 function scaWho() {

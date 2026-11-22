@@ -5,8 +5,6 @@
   "booth.s1": "Booth Analytics | LENSIQ",
   "booth.s2": "Booth visitor analytics",
   "booth.s3": "Count booth visitors at events and trade shows, anonymously recognize returning visitors, and measure dwell time, expressions and activity participation. Processed on-device; no images are stored.",
-  "booth.s4": "Only faces turned toward the camera are counted; people not facing it are not · The optional returning-visitor mode (off by default) uses a 0.50 threshold, which on LFW recognises the same person in about 73% of image pairs, so some visitors may be counted twice. Not yet measured on real booth video; use it for trends rather than exact per-person totals, and run the on-site accuracy check below at your own booth",
-  "booth.s5": "Method and limitations",
   "booth.s6": "Camera is off. Click \"Start camera\"",
   "booth.s7": "Start camera",
   "booth.s8": "+ Add secondary camera",
@@ -40,6 +38,6 @@
   "booth.s37": "Count only — no face data (recommended without consent)",
   "booth.s38": "Recognize returning visitors — uses face feature values (notice and consent required)",
   "booth.s39": "Count only: tracks face positions in the frame to count people and booth dwell time; no face feature values are created and no one is identified — people who leave and come back, or who are seen by two cameras, are counted as new visitors (totals may run high)",
-  "booth.s40": "On-site accuracy check",
+  "booth.s40": "On-site test",
   "booth.s35": "Print sign"
 } });

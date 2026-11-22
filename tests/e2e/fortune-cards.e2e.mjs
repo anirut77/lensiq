@@ -9,8 +9,10 @@
 //       card's corner opens the tool;
 //   E3  the other listings (index.html fortune cards, solutions.html fortune cards, the fortune menu panel) show none of the
 //       removed items and no per-card disclaimer;
-//   E4  business categories unchanged: on the six other category pages every card still shows the measured-accuracy heading
-//       and one accuracy line per claim with its source label (TH / EN / ZH, 360 and 430 px);
+//   E4  business categories (re-lock 2026-11-22, owner decision 223, inversion): on the six other category pages no card
+//       shows a measured-accuracy heading, accuracy line or source label; decision 226: no card shows a status label, the
+//       switched-off products (nav.js VISIBILITY) have no card; each shows its two approved lines and its page link
+//       (TH / EN / ZH, 360 and 430 px);
 //   E5  crisis v3 unaffected on cat-fortune.html: the one "อยากมีคนรับฟัง 1323" control (tel:1323, >= 44 px) is on the first
 //       screen, it is the only help number in the normal state, and no crisis-only number shows.
 import { createRequire } from "node:module";
@@ -177,24 +179,48 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       assert(!bad.length, bad.join("\n"));
     });
 
-    await check("E4 business categories unchanged (TH / EN / ZH, 360 and 430 px): every card shows measured accuracy with its source", async () => {
+    // re-lock 2026-11-22, owner decision 223 (223-1 inversion): E4 used to require the measured-accuracy heading and one accuracy
+    // line per claim with its source label on every business card. It now requires that NO business card renders a heading,
+    // accuracy line, source label or claim text (TH / EN / ZH, 360 and 430 px); each card shows its short badge and its two
+    // approved lines (tests/unit/accuracy-removal-223.spec.json) and keeps its page link; demo-only cards are not shown in the
+    // customer build. The tech-sheet side (every original figure held verbatim) is checked in tests/unit/fortune-cards.test.js C4.
+    // Re-lock 2026-11-22, owner decision 226 (inversion): the card used to show its badge (D.badgeOf) and demo-only cards were
+    // present but hidden; now no card shows any status label (no .cat-st, none of the D.BADGE words) and a switched-off
+    // product has no card at all (the list of shown cards = the category's pages that nav.js VISIBILITY switches on).
+    await check("E4 business categories (TH / EN / ZH, 360 and 430 px): no card shows accuracy, sources or a status label; off products absent; two lines and page link", async () => {
       const bad = [];
+      const { readFileSync } = require("node:fs");
+      const visSrc = readFileSync(join(repo, "nav.js"), "utf8").match(/var VISIBILITY = \{([\s\S]*?)\};/)[1];
+      const OFF = [...visSrc.matchAll(/"?([a-z][\w-]*)"?: false/g)].map(m => m[1]);
+      const S = require(join(repo, "tests", "unit", "accuracy-removal-223.spec.json"));
+      const sq = s => String(s).replace(/\s+/g, " ").trim();
       for (const c of D.CATEGORIES.filter(c => c.slug !== "fortune")) for (const lang of LANGS) for (const size of [[360, 640], [430, 750]]) {
         const page = await open(`cat-${c.slug}.html`, lang, size);
         const r = await page.evaluate(() => [...document.querySelectorAll(".cat-tool")].map(card => ({
           page: card.dataset.page,
-          h: (card.querySelector(".cat-h") || {}).innerText || "",
-          src: [...card.querySelectorAll(".cat-acc li")].filter(li => li.getClientRects().length).map(li => li.dataset.src + ":" + ((li.querySelector(".cat-src") || {}).innerText || "").trim()),
-          lines: [...card.querySelectorAll(".cat-acc li")].map(li => li.innerText.trim().length),
+          shown: card.getClientRects().length > 0,
+          acc: card.querySelectorAll(".cat-h, .cat-acc, .cat-acc li, .cat-src, .cat-why, [data-src]").length,
+          badge: card.querySelectorAll(".cat-st, [data-status], [data-demo-only]").length + (card.hasAttribute("data-status") || card.hasAttribute("data-demo-only") ? 1 : 0),
+          text: card.innerText,
           go: !!card.querySelector(".sl-go")
         })));
-        if (r.map(t => t.page).join() !== c.pages.join()) bad.push(`${c.slug} ${lang}: cards ${r.map(t => t.page)}`);
+        const want = c.pages.filter(p => !OFF.includes(p));
+        if (r.map(t => t.page).join() !== want.join()) bad.push(`${c.slug} ${lang}: cards ${r.map(t => t.page)} (want ${want})`);
         for (const t of r) {
-          const want = D.PAGES[t.page].claims.map(id => D.CLAIMS[id].src + ":" + D.SOURCE[D.CLAIMS[id].src][lang]);
-          if (t.h.trim() !== ACC_H[lang]) bad.push(`${c.slug} ${lang} ${size[0]}: ${t.page} heading "${t.h}"`);
-          if (JSON.stringify(t.src) !== JSON.stringify(want)) bad.push(`${c.slug} ${lang} ${size[0]}: ${t.page} sources ${t.src} != ${want}`);
-          if (!want.length || t.lines.some(n => n < 12)) bad.push(`${c.slug} ${lang} ${size[0]}: ${t.page} accuracy lines ${t.lines}`);
-          if (!t.go) bad.push(`${c.slug} ${lang} ${size[0]}: ${t.page} lost its page link`);
+          const where = `${c.slug} ${lang} ${size[0]}: ${t.page}`, txt = sq(t.text);
+          if (!t.shown) bad.push(`${where}: card not shown`);
+          if (t.acc) bad.push(`${where}: ${t.acc} accuracy / source elements`);
+          if (txt.includes(ACC_H[lang])) bad.push(`${where}: heading "${ACC_H[lang]}"`);
+          for (const id of D.PAGES[t.page].claims) {
+            const cl = D.CLAIMS[id];
+            if (txt.includes(sq(cl[lang]))) bad.push(`${where}: accuracy line ${id}`);
+            if (txt.includes(D.SOURCE[cl.src][lang])) bad.push(`${where}: source label "${D.SOURCE[cl.src][lang]}"`);
+          }
+          if (t.badge) bad.push(`${where}: ${t.badge} status tag / data-status / data-demo-only elements`);
+          for (const b of Object.values(D.BADGE)) if (txt.includes(b[lang])) bad.push(`${where}: status label "${b[lang]}"`);
+          const ln = S.lines.find(x => x.cards.includes(t.page));
+          if (ln) for (const n of ["1", "2"]) if (ln[n] && !txt.includes(sq(ln[n][lang]))) bad.push(`${where}: line ${n} missing`);
+          if (!t.go) bad.push(`${where} lost its page link`);
         }
         noErrors(page);
         await page.close();

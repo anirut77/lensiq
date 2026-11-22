@@ -3,6 +3,8 @@
 // static checks for the product / accuracy fixes. FIXED TEST: written and locked (~/LENSIQ-field/evals/walk-fix/, sha256 in
 // evals-locks/walk-fix.sha256) BEFORE the fixes on branch walk-fix. Browser checks: tests/e2e/walkfix.e2e.mjs and
 // tests/e2e/walkfix-webkit.e2e.mjs. Synthetic data only; no network.
+// Re-lock 2026-11-22 (owner decision 223, approved 223-1): assertions that required a figure, source or old status word on a
+// customer page are inverted (the page must not show it) and redirected (docs/tech-sheets/* must hold it verbatim).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync, existsSync } = require("node:fs");
@@ -109,34 +111,69 @@ test("W-025: menu / category card title for attendance is the PIN/QR time clock 
 });
 
 // ---------------------------------------------------------------- W-005 / W-006 / W-032: numbers follow the registry
+/** decision 223: lines "[key] text" of a generated technical sheet (docs/tech-sheets/<product>-TH.md holds TH, -EN.md EN then ZH) */
+const sheetLines = (file, key) => read(file).split("\n").filter(l => l.startsWith("[" + key + "] ")).map(l => l.slice(key.length + 3));
+const GATE_KEYS_GONE = k => !read("gate.html").includes('data-i18n="' + k + '"') && ["i18n/en-gate.js", "i18n/zh-gate.js"].every(f => dictVal(f, k) == null);
+
 test("W-005: gate.html plate-finder and plate-check lines use the registry numbers (labels v3) in TH/EN/ZH", () => {
   const F = JSON.parse(read("docs/accuracy-figures.json"));
   const fig = k => Number((F.figures || F)[k] ? ((F.figures || F)[k].value) : NaN);
   const top = [fig("gateTopX"), fig("gateTopN")], none = [fig("gateNoneN"), fig("gateNoneDev"), fig("gateNoneHoN")];
   assert.deepEqual(top, [14, 32]); assert.deepEqual(none, [19, 11, 8]);
-  const l3 = [thVal("gate.html", "gate.acc.l3"), dictVal("i18n/en-gate.js", "gate.acc.l3"), dictVal("i18n/zh-gate.js", "gate.acc.l3")];
-  const l7 = [thVal("gate.html", "gate.acc.l7"), dictVal("i18n/en-gate.js", "gate.acc.l7"), dictVal("i18n/zh-gate.js", "gate.acc.l7")];
+  // decision 223 (approved 223-1): the accuracy lines left gate.html and its dictionaries; the technical sheet holds them
+  for (const k of ["gate.acc.l3", "gate.acc.l7"]) assert.ok(GATE_KEYS_GONE(k), k + " no longer on gate.html / en / zh");
+  const l3 = [...sheetLines("docs/tech-sheets/gate-TH.md", "gate.acc.l3"), ...sheetLines("docs/tech-sheets/gate-EN.md", "gate.acc.l3")];
+  assert.equal(l3.length, 3, "tech sheet gate.acc.l3 in TH / EN / ZH");
   for (const s of l3) { const n = nums(s); assert.ok(n.includes(14) && n.includes(32) && !n.includes(13), "l3: " + s); }
+  // gate.acc.l7 (plate check before an automatic read): the base TH / EN / ZH sentence is held verbatim in the sheets
+  // (docs/tech-sheets/SUPPLEMENT-223.json) and keeps the base number rule: 19 / 11 / 8, never 10 / 9 (reviewer finding 2)
+  const l7 = [...sheetLines("docs/tech-sheets/gate-TH.md", "gate.acc.l7"), ...sheetLines("docs/tech-sheets/gate-EN.md", "gate.acc.l7")];
+  assert.equal(l7.length, 3, "tech sheet gate.acc.l7 in TH / EN / ZH");
   for (const s of l7) { const n = nums(s); assert.ok(n.includes(19) && n.includes(11) && n.includes(8) && !n.includes(10) && !n.includes(9), "l7: " + s); }
+  // and its figures are also held in both sheets as registry entries
+  for (const f of ["docs/tech-sheets/gate-TH.md", "docs/tech-sheets/gate-EN.md"]) {
+    const sh = read(f);
+    for (const [k, v] of [["gateNoneN", 19], ["gateNoneDev", 11], ["gateNoneHoN", 8]]) assert.match(sh, new RegExp("`" + k + "`: [^\\n]*\\*\\*" + v + "\\*\\*"), f + " " + k);
+    assert.match(sh, /0 \/ 19 \(3 \/ 19\)/, f + ": 0 of 19"); assert.match(sh, /0 \/ 8 \(1 \/ 8\)/, f + ": 0 of 8 held-out");
+  }
   assert.ok(!/13 จาก 32|0 จาก 9\b/.test(read("gate.html")));
+  for (const f of ["docs/tech-sheets/gate-TH.md", "docs/tech-sheets/gate-EN.md"]) assert.ok(!/13 จาก 32|0 จาก 9\b|13 of the 32|0 of 9\b/.test(read(f)), f);
 });
 
 test("W-006: gate.html pilot target = PILOT-GATE §5 (≥ 200 reads, night ≥ 40, motorcycles ≥ 30; day ≥ 95%, night ≥ 85%) in TH/EN/ZH", () => {
   const pg = read("docs/pilot/PILOT-GATE.md");
   assert.match(pg, /≥ 200 \(กลางคืน ≥ 40, มอเตอร์ไซค์ ≥ 30\)/);
-  const l6 = [thVal("gate.html", "gate.acc.l6"), dictVal("i18n/en-gate.js", "gate.acc.l6"), dictVal("i18n/zh-gate.js", "gate.acc.l6")];
-  for (const s of l6) {
+  // decision 223: the targets are stated in PILOT-GATE §5 (TH and EN) and the old page line is held by the technical sheet
+  const s5th = pg.slice(pg.indexOf("## 5. ตัวชี้วัดและเป้า"), pg.indexOf("## 6. แบบฟอร์ม"));
+  const s5en = pg.slice(pg.indexOf("## 5. Metrics and targets"), pg.indexOf("## 6. Sheets"));
+  assert.match(s5th, /\| อ่านถูกทั้งป้าย กลางวันแสงดี \| ≥ 95% \|/); assert.match(s5th, /\| อ่านถูกทั้งป้าย กลางคืน \| ≥ 85% \|/);
+  assert.match(s5en, /\| Reads \| ≥ 200 \(night ≥ 40, motorcycle ≥ 30\) \|/);
+  assert.match(s5en, /\| Exact read, good light \| ≥ 95% \|/); assert.match(s5en, /\| Exact read, night \| ≥ 85% \|/);
+  assert.ok(GATE_KEYS_GONE("gate.acc.l6"), "gate.acc.l6 no longer on gate.html / en / zh");
+  const l6 = [...sheetLines("docs/tech-sheets/gate-TH.md", "gate.acc.l6"), ...sheetLines("docs/tech-sheets/gate-EN.md", "gate.acc.l6")];
+  assert.equal(l6.length, 3, "tech sheet gate.acc.l6 in TH / EN / ZH");
+  for (const s of [...l6, s5th, s5en]) {
     const n = nums(s);
-    for (const want of [200, 40, 30, 95, 85]) assert.ok(n.includes(want), `l6 has ${want}: ${s}`);
-    assert.ok(!n.includes(100), "no old 100-car bar: " + s);
+    for (const want of [200, 40, 30, 95, 85]) assert.ok(n.includes(want), `l6 has ${want}: ${s.slice(0, 80)}`);
   }
+  for (const s of l6) assert.ok(!nums(s).includes(100), "no old 100-car bar: " + s);
 });
 
 test("W-032: the Crowd onboarding guide gives the same undercount range as LAUNCH-READINESS (26–59%)", () => {
   assert.match(read("docs/LAUNCH-READINESS.md"), /26–59%/);
   const g = read("docs/sales/ONBOARDING-CROWD.md");
   assert.ok(!/26–58/.test(g), "old 26–58 range");
-  assert.match(g, /26–59%/);
+  // decision 223 (approved 223-1): the range left the onboarding guide; the guide keeps the limit in plain words and the
+  // Crowd technical sheet holds the original row (with 26–59%) verbatim
+  assert.doesNotMatch(g, /26–59%/);
+  assert.match(g, /\| ตัวเลขต่ำกว่าที่นับด้วยตา \| ข้อจำกัดที่ทราบ: [^|]*ยิ่งคนมากยิ่งนับต่ำ/);
+  assert.match(g, /\| Count lower than a count by eye \| Known limit: [^|]*the more people, the larger the undercount/);
+  for (const f of ["docs/tech-sheets/crowd-TH.md", "docs/tech-sheets/crowd-EN.md"]) {
+    const sh = read(f);
+    assert.ok(!/26–58/.test(sh), f + ": old 26–58 range");
+    assert.match(sh, /\| ตัวเลขต่ำกว่าที่นับด้วยตา 26–59% \| ข้อจำกัดที่ทราบ: คน 15–22 คนเต็มภาพ นับต่ำ 26% \(n = 12 ภาพ\)/, f);
+    assert.match(sh, /\| Count lower than a count by eye by 26–59% \| Known limit: 15–22 people filling the frame undercounted by 26% \(n = 12 frames\)/, f);
+  }
 });
 
 // ---------------------------------------------------------------- W-009 / W-024: no repository paths or internal codes on customer pages
@@ -157,12 +194,20 @@ test("W-024: category cards for Attendance / HR / customers and the Exam dashboa
 
 // ---------------------------------------------------------------- W-010 / W-011: Crowd heading and event presets
 test("W-010: the Crowd accuracy panel heading says 'preliminary' once, with no English inside the Thai heading", () => {
-  const sum = read("crowd.html").match(/<summary>([\s\S]*?)<\/summary>/g).find(s => /cr\.acc2\.h/.test(s));
-  const txt = sum.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
-  assert.equal((txt.match(/เบื้องต้น/g) || []).length, 1, txt);
-  assert.ok(!/[A-Z]{3,}/.test(txt), txt);
-  const en = dictVal("i18n/en-crowd.js", "cr.acc2.h") + " " + dictVal("i18n/en-crowd.js", "cr.acc2.pre");
-  const zh = dictVal("i18n/zh-crowd.js", "cr.acc2.h") + " " + dictVal("i18n/zh-crowd.js", "cr.acc2.pre");
+  // decision 223 (approved 223-1): the accuracy panel left crowd.html: no cr.acc2.h summary, no "เบื้องต้น" / "preliminary" /
+  // "初步" anywhere on the page or in its dictionaries. The technical sheet holds the original heading verbatim, and that
+  // heading still meets the old rule (preliminary once, no English inside the Thai heading).
+  const html = read("crowd.html");
+  assert.ok(!/cr\.acc2\.h|cr\.acc2\.pre/.test(html), "accuracy panel heading removed from crowd.html");
+  assert.equal((html.match(/เบื้องต้น/g) || []).length, 0, "crowd.html says เบื้องต้น");
+  for (const [f, re] of [["i18n/en-crowd.js", /preliminary/i], ["i18n/zh-crowd.js", /初步/]]) {
+    assert.equal(dictVal(f, "cr.acc2.h"), null, f + " cr.acc2.h"); assert.equal(dictVal(f, "cr.acc2.pre"), null, f + " cr.acc2.pre");
+    assert.doesNotMatch(read(f), re, f);
+  }
+  const [th] = sheetLines("docs/tech-sheets/crowd-TH.md", "cr.acc2.h"), [en, zh] = sheetLines("docs/tech-sheets/crowd-EN.md", "cr.acc2.h");
+  assert.ok(th && en && zh, "tech sheet holds cr.acc2.h in TH / EN / ZH");
+  assert.equal((th.match(/เบื้องต้น/g) || []).length, 1, th);
+  assert.ok(!/[A-Z]{3,}/.test(th), th);
   assert.equal((en.match(/preliminary/gi) || []).length, 1, en);
   assert.equal((zh.match(/初步/g) || []).length, 1, zh);
 });
@@ -184,49 +229,53 @@ test("W-011: Crowd zone roles and the conversion default use event wording (entr
 });
 
 // ---------------------------------------------------------------- W-012: one status vocabulary, matching each page's status
-test("W-012: solutions.html badges match each linked page's status (cat-data); Crowd is experimental; tag class = data-status", () => {
+test("W-012: solutions.html shows no status badge or filter (decision 226); off products hidden; Crowd shown; labels in the back office", () => {
+  // Decision 223-2 (approved 223-1) had one customer badge vocabulary (tools/cat-data.cjs BADGE / badgeOf) on the cards and a
+  // now / soon filter. Re-lock 226 (owner decision 226, inversion): no badge (.sl-tag), no badge key and no filter on the page;
+  // a card linking to a product switched off in nav.js (var VISIBILITY), and every roadmap card without a page (the former
+  // "coming soon"), is hidden with data-lq-off (markup kept); the badge each card used to carry is the back-office label of
+  // its page (admin-measurements.js, verbatim D.BADGE); the internal data-status group still follows that label.
   const D = require(join(ROOT, "tools", "cat-data.cjs"));
   const html = read("solutions.html");
-  const cards = [...html.matchAll(/<article class="sl-card" data-status="(\w+)" id="sol-([\w]+)">([\s\S]*?)<\/article>/g)];
+  const OFF = [...read("nav.js").match(/var VISIBILITY = \{([\s\S]*?)\};/)[1].matchAll(/"?([a-z][\w-]*)"?: false/g)].map(m => m[1]);
+  const adm = read("admin-measurements.js");
+  const cards = [...html.matchAll(/<article class="sl-card"( data-lq-off)? data-status="(\w+)" id="sol-([\w]+)">([\s\S]*?)<\/article>/g)];
   assert.ok(cards.length > 50);
-  const label = { "pilot-ready": D.STATUS["pilot-ready"].th, experimental: D.STATUS.experimental.th, demo: D.STATUS.demo.th };
-  const rank = { demo: 0, experimental: 1, "pilot-ready": 2 };
-  const bad = [], prCodes = new Set(), otherCodes = new Set();
-  for (const [, code, id, body] of cards) {
-    const tag = body.match(/<span class="sl-tag (\w+)" data-i18n="([\w.]+)">([^<]+)<\/span>/);
-    // amendment 6 (owner order 2026-11-17: remove สาธิต tag from fortune): a card that links to a fortune page (category 6)
-    // carries NO status badge at all; every other card keeps every check below unchanged
-    const fHref = (body.match(/class="sl-go" href="([a-z0-9-]+)\.html/) || [])[1];
-    if (fHref && D.CATEGORIES.find(c => c.slug === "fortune").pages.includes(fHref)) { if (/class="sl-tag\b/.test(body)) bad.push(id + ": fortune card with a status badge"); continue; }
-    if (!tag) { bad.push(id + ": no tag"); continue; }
-    // amendment 4: tests/e2e/solutions.e2e.mjs filters on data-status, so the badge class (= filter group) equals data-status again
-    const grp = tag[1];
-    if (grp !== code) bad.push(`${id}: badge class ${grp} != data-status ${code}`);
+  assert.equal(cards.length, (html.match(/<article class="sl-card"/g) || []).length, "every card parsed");
+  const bad = [], groups = new Set();
+  let shownCards = 0;
+  for (const [, off, code, id, body] of cards) {
+    groups.add(code);
+    if (/class="sl-tag\b|data-i18n="sl\.st\./.test(body)) bad.push(id + ": status badge on the card");
+    for (const b of Object.values(D.BADGE)) if (body.replace(/<[^>]+>/g, " ").includes(b.th)) bad.push(`${id}: label «${b.th}» on the card`);
     const href = (body.match(/class="sl-go" href="([a-z0-9-]+)\.html/) || [])[1];
-    if (grp === "soon") { if (href) bad.push(id + ": coming soon with a page link"); continue; }
-    const st = href && D.PAGES[href] && D.PAGES[href].st;
-    if (!st || !(st in rank)) { bad.push(`${id}: linked page ${href} has no product status`); continue; }
-    // the card names the status it shows; it may be weaker than the page (e.g. face check-in), never stronger
-    const shown = Object.keys(label).find(k => label[k] === tag[3].trim());
-    if (!shown) bad.push(`${id}: tag text «${tag[3]}» is not a category status`);
-    else if (rank[shown] > rank[st]) bad.push(`${id}: shows ${shown} but ${href} is ${st}`);
-    // amendment 4: pilot-ready cards form the "pilot" group, experimental / demo cards the "now" group, EXCEPT the three Crowd
-    // cards, which older locked checks (claim rule crowd-not-available-now + its fixture in claim-rules.test.js) keep in "pilot";
-    // their badge still says experimental and the page explains the group (sl.f.pilotNote)
+    // hidden exactly when the card has no page (roadmap) or its page is switched off
+    const mustHide = !href || OFF.includes(href);
+    if (!!off !== mustHide) bad.push(`${id}: ${off ? "hidden" : "shown"} but ${href ? href + (OFF.includes(href) ? " is off" : " is on") : "no page link"}`);
+    if (!off) shownCards++;
+    if (href && D.CATEGORIES.find(c => c.slug === "fortune").pages.includes(href)) continue; // amendment 6: fortune cards
+    const want = href ? D.badgeOf(href) : "soon";
+    // the internal group follows the back-office label: soon -> "soon", every other label -> "now"
+    if (code !== (want === "soon" ? "soon" : "now")) bad.push(`${id}: data-status ${code} with label ${want || "none"}`);
+    if (!href) continue;
+    if (!(D.PAGES[href] && D.PAGES[href].st)) { bad.push(`${id}: linked page ${href} has no product status`); continue; }
+    const lab = want ? D.BADGE[want] : { th: "", en: "", zh: "" };
+    if (!adm.includes(`"${href}", "${lab.th}", "${lab.en}", "${lab.zh}", "${OFF.includes(href) ? "off" : "on"}",`)) bad.push(`${id}: back-office label of ${href}`);
     const CROWD_CARDS = ["edu7", "r9", "e6"];
-    if (shown) (shown === "pilot-ready" ? prCodes : CROWD_CARDS.includes(id) ? new Set() : otherCodes).add(grp);
-    if (CROWD_CARDS.includes(id) && grp !== "pilot") bad.push(id + ": Crowd card group");
-    if (href === "crowd" && shown !== "experimental") bad.push(id + ": Crowd must show experimental");
+    if (CROWD_CARDS.includes(id) && (code !== "now" || off)) bad.push(id + ": Crowd card group / hidden");
+    if (href === "crowd" && want !== "trial") bad.push(id + ": Crowd's back-office label must be the trial label");
   }
   assert.deepEqual(bad, []);
-  assert.ok(prCodes.size === 1 && otherCodes.size === 1 && ![...prCodes].some(c => otherCodes.has(c)), `one code per group: ${[...prCodes]} / ${[...otherCodes]}`);
-  const fbtn = c => (html.match(new RegExp(`data-f="${c}"[^>]*>([^<]+)<`)) || [])[1] || "";
-  assert.match(fbtn([...prCodes][0]), /นำร่อง/, "filter button of the pilot group");
-  assert.match(html, /data-i18n="sl\.f\.pilotNote">[^<]*Crowd[^<]*ทดลอง/, "the page says Crowd is in the pilot filter but experimental");
-  assert.match(fbtn([...otherCodes][0]), new RegExp(label.experimental), "filter button of the experimental / demo group");
+  assert.ok(shownCards >= 40, "cards shown to customers: " + shownCards);
+  assert.deepEqual([...groups].sort(), ["now", "soon"], "internal groups");
+  assert.ok(!/data-f="|class="[^"]*\bsl-filter\b|data-i18n="sl\.f\./.test(html), "status filter on the page");
+  assert.ok(!/ทดลองใช้ได้ตอนนี้|เร็ว ๆ นี้|รุ่นทดลอง/.test(html), "status label text on the page");
+  assert.ok(!/data-f="pilot"|sl\.f\.pilotNote|พร้อมนำร่อง|<span class="sl-tag (pilot|demo|experimental)\b/.test(html), "old status vocabulary gone");
   assert.ok(!/ใช้ได้แล้ว<\/span>/.test(html), "no 'available now' badge");
   for (const f of ["i18n/en-solutions.js", "i18n/zh-solutions.js"]) {
-    assert.equal(dictVal(f, "sl.st.pilot"), D.STATUS["pilot-ready"][f.includes("/en-") ? "en" : "zh"], f + " sl.st.pilot");
+    assert.equal(dictVal(f, "sl.st.trial"), null, f + " sl.st.trial gone (decision 226)");
+    assert.equal(dictVal(f, "sl.st.soon"), null, f + " sl.st.soon gone (decision 226)");
+    assert.equal(dictVal(f, "sl.st.pilot"), null, f + " sl.st.pilot gone");
   }
 });
 
@@ -316,7 +365,17 @@ test("W-027 / W-028 / W-029: customer onboarding guides in TH / EN / ZH, LINE su
     for (const re of BAD) assert.ok(!re.test(s), `${f}: internal text ${re}`);
   }
   const crowd = read(GUIDES[3]);
-  assert.match(crowd, /26–59%/); assert.match(crowd, /ยังไม่เหมาะกับฝูงชนหนาแน่น/); assert.match(crowd, /not yet suitable for dense crowds/); assert.match(crowd, /尚不适用于密集人群/);
+  // decision 223 (approved 223-1): the 26–59% range left the customer guide (the limit stays in plain words in TH / EN / ZH);
+  // the Crowd technical sheet holds the guide's original rows verbatim in TH / EN / ZH
+  assert.doesNotMatch(crowd, /26–59%/);
+  assert.match(crowd, /\| ตัวเลขต่ำกว่าที่นับด้วยตา \| ข้อจำกัดที่ทราบ: /); assert.match(crowd, /\| Count lower than a count by eye \| Known limit: /); assert.match(crowd, /\| 计数比肉眼计数低 \| 已知限制：/);
+  for (const f of ["docs/tech-sheets/crowd-TH.md", "docs/tech-sheets/crowd-EN.md"]) {
+    const sh = read(f);
+    assert.match(sh, /\| ตัวเลขต่ำกว่าที่นับด้วยตา 26–59% \| ข้อจำกัดที่ทราบ: คน 15–22 คนเต็มภาพ นับต่ำกว่าจริง 26% \(n = 12 ภาพ\)/, f);
+    assert.match(sh, /\| Count lower than a count by eye by 26–59% \| Known limit: 15–22 people filling the frame were undercounted by 26% \(n = 12 frames\)/, f);
+    assert.match(sh, /\| 计数比肉眼计数低 26–59% \| 已知限制：15–22 人充满画面时少计 26%（n = 12 帧）/, f);
+  }
+  assert.match(crowd, /ยังไม่เหมาะกับฝูงชนหนาแน่น/); assert.match(crowd, /not yet suitable for dense crowds/); assert.match(crowd, /尚不适用于密集人群/);
   const gate = read(GUIDES[2]);
   for (const n of ["200", "40", "30"]) assert.ok(gate.includes(n), "gate pilot bar " + n);
   const att = read(GUIDES[1]);

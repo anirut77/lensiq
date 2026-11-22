@@ -42,6 +42,11 @@ export default async function ({ base, launch, check }) {
       // tally: right on the phone (queue), wrong on the lean (log table)
       await page.evaluate(card("/โทรศัพท์/", "[data-v='1']"));
       await page.evaluate(() => { const id = __LQ_EXAM_DB.board.alerts.find(a => a.sig === "lean").id; document.querySelector(`#logBody [data-lid='${id}'][data-v='0']`).click(); });
+      // decision 223-4: plain verdict on top, the per-signal figures folded under "ตัวเลขละเอียดสำหรับผู้ดูแล"
+      const fold = await page.evaluate(() => { const d = document.querySelector("#precBody").closest("details");
+        const out = { closed: !!d && !d.open, summary: d ? d.querySelector("summary").textContent : "", verdict: document.querySelector("#precVerdict").textContent };
+        if (d) d.open = true; return out; });
+      assert(fold.closed && fold.summary === "ตัวเลขละเอียดสำหรับผู้ดูแล" && /แจ้งถูก \d+ จาก \d+ ครั้งที่นับ/.test(fold.verdict), "verdict on top, figures folded " + JSON.stringify(fold));
       const prec = await page.evaluate(() => document.querySelector("#precBody").innerText);
       assert(/100%/.test(prec) && /0%/.test(prec) && /50%/.test(prec), "precision table: " + prec);
 

@@ -24,11 +24,14 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
+<script src="nav.js?v=37"></script>
 
 <main class="pb">
   <h1 data-i18n="pb.h1">ตู้ถ่ายรูป</h1>
   <p class="lead" data-i18n="pb.lead">ตู้ถ่ายรูปสติ๊กเกอร์สำหรับงานอีเวนต์และบูธการตลาด เปลี่ยนฉากหลังอัตโนมัติ แชร์ภาพเข้ามือถือได้ทันที หรือทำรูปติดบัตร 1 นิ้ว / 2 นิ้ว พร้อมชุดจำลอง</p>
+  <p class="lq-lines">
+    <span data-i18n="ln.photobooth.1">ตู้ถ่ายรูปสำหรับอีเวนต์ ใส่กรอบและสติ๊กเกอร์ พิมพ์หรือรับไฟล์ได้ทันที</span><br>
+    <span data-i18n="ln.photobooth.2">รูปติดบัตรแบบใส่ชุดจำลองยังเป็นแบบร่าง ปิดไว้เป็นค่าเริ่มต้น ดูรูปก่อนพิมพ์ทุกครั้ง</span></p>
 
   <div class="tabs" role="tablist">
     <button class="tab active" data-t="booth" role="tab" aria-selected="true" data-i18n="pb.tab.booth">ตู้สติ๊กเกอร์</button>
@@ -122,7 +125,7 @@
       <h3 data-i18n="pb.id.outfit">ชุดจำลอง</h3>
       <!-- round 12: ชุดจำลองบนรูปติดบัตรมีรอยทุกภาพในชุดวัดผล (124/124) จึงปิดไว้เป็นค่าเริ่มต้น เปิดเองได้เป็น "ตัวอย่างทดลอง" -->
       <div class="pb-exp">
-        <label class="check"><input type="checkbox" id="pbExpOutfit"><span data-i18n="pb.id.expOutfit">เปิดดูชุดจำลองแบบทดลอง (ตัวอย่างเท่านั้น ไม่ใช่ภาพสวมจริง)</span></label>
+        <label class="check"><input type="checkbox" id="pbExpOutfit"><span data-i18n="pb.id.expOutfit">เปิดดูชุดจำลองแบบร่าง (ตัวอย่างเท่านั้น ไม่ใช่ภาพสวมจริง)</span></label>
         <p class="hint" id="pbExpNote" data-i18n="pb.id.expNote">ปิดไว้เป็นค่าเริ่มต้น: ในชุดวัดผลของเรา ชุดภาพวาดบนรูปติดบัตรมีรอยให้เห็นทุกภาพ (124 จาก 124 ภาพ ให้คะแนนโดย AI) รูปติดบัตรจึงใช้เสื้อของคุณเอง สำหรับการสมัครจริงให้ถ่ายด้วยชุดจริง</p>
       </div>
       <div id="pbOutfitBox" hidden>
@@ -151,6 +154,7 @@
       <div class="result-canvas"><canvas id="out"></canvas></div>
       <div class="result-side" id="resultSide"></div>
     </div>
+    <p class="lq-recheck" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
   </section>
 </main>
 
@@ -198,9 +202,9 @@
 <script src="photobooth-outfits.js?v=3"></script>
 <script src="studio-core.js?v=7"></script>
 <script src="studio-qa.js?v=4"></script>
-<script src="i18n/zh-photobooth.js?v=5"></script>
-<script src="lensiq-config.js?v=30"></script>
+<script src="i18n/zh-photobooth.js?v=6"></script>
+<script src="lensiq-config.js?v=31"></script>
 <script src="lensiq-research.js?v=1"></script>
-<script src="photobooth.js?v=23"></script>
+<script src="photobooth.js?v=24"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 /* i18n/zh-tryon.js — 简体中文 for tryon.html / tryon.js (to.*). Mirrors i18n/en-tryon.js. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
   "to.title": "用摄像头或照片试戴商品（模拟预览）| LENSIQ",
-  "to.eyebrow": "LENSIQ · 虚拟试穿（试验）",
+  "to.eyebrow": "LENSIQ · 虚拟试穿",
   "to.h1": "用摄像头或照片在自己身上试穿商品",
   "to.lead": "在本设备上，用摄像头画面或照片试戴店铺目录中的眼镜、帽子和服装。",
   "to.consent.h": "打开摄像头或选择照片之前",
@@ -31,7 +31,7 @@
   "to.help.h": "需要了解的限制",
   "to.help.face": "眼镜、帽子和耳环根据面部 478 个点（MediaPipe Face Landmarker）放置。只使用位置：不识别身份，不读取情绪。",
   "to.help.top": "如果本设备无法运行人体定位，上衣会改为按画面中人体轮廓测得的领口、肩部和下摆放置。这是平面 2D 图像，不显示面料垂感，也不代表尺码合身。",
-  "to.help.acc": "在真实图像上的准确度尚未测量。目前仅有的数字来自合成测试集。",
+  "to.help.acc": "仅为模拟预览，尺寸和位置可能与实物不同。",
   "to.help.misuse": "本页面无法证明摄像头前或照片中的人就是同意的人。请仅用于您本人或已同意的人。",
   "to.photo": "从本设备选择照片",
   "to.photo.hint": "请使用单人正面照片，头部可见；试长裤时需拍到脚踝。",

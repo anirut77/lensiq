@@ -7,6 +7,8 @@
 //   3. en-nut.js and zh-nut.js have the same keys as each other and as every key the page and its script use;
 //   4. no value is judged by colour: the page's CSS has no red / green / amber status palette for values;
 //   5. on-device: the page script never calls fetch / XMLHttpRequest / sendBeacon / WebSocket and loads no AI client.
+// Re-lock 2026-11-22 (owner decision 223, approved 223-1): assertions that required a figure, source or old status word on a
+// customer page are inverted (the page must not show it) and redirected (docs/tech-sheets/* must hold it verbatim).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -18,9 +20,15 @@ const read = f => fs.readFileSync(path.join(ROOT, f), "utf8");
 const dict = (file, lang) => { const w = {}; w.window = w; vm.runInNewContext(read(file), w); return Object.assign({}, ...w.LQI18N_Q.map(q => q[lang] || {})); };
 const html = read("nutrition.html"), ui = read("lensiq-nut-ui.js"), css = read("nutrition.css");
 const en = dict("i18n/en-nut.js", "en"), zh = dict("i18n/zh-nut.js", "zh");
+// Decision 223: the page's two plain lines (ln.nutrition.*) and the result line (common.recheck) live in the shared
+// dictionaries i18n/en-common.js / zh-common.js, which nav.js loads on every page. Only those keys may come from there.
+const enC = dict("i18n/en-common.js", "en"), zhC = dict("i18n/zh-common.js", "zh");
+const shared = k => /^(ln\.nutrition\.|common\.recheck$)/.test(k);
+const sharedEn = Object.fromEntries(Object.entries(enC).filter(([k]) => shared(k)));
+const sharedZh = Object.fromEntries(Object.entries(zhC).filter(([k]) => shared(k)));
 const text = s => s.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ");
 const thaiStrings = [text(html), ...[...ui.matchAll(/"([^"]*[฀-๿][^"]*)"/g)].map(m => m[1])].join("\n");
-const enAll = Object.values(en).join("\n"), zhAll = Object.values(zh).join("\n");
+const enAll = Object.values({ ...en, ...sharedEn }).join("\n"), zhAll = Object.values({ ...zh, ...sharedZh }).join("\n");
 
 const BANNED = {
   th: [/ดีต่อสุขภาพ/, /ไม่ดีต่อสุขภาพ/, /อาหารขยะ/, /ลดน้ำหนัก/, /เผาผลาญ/, /รู้สึกผิด/, /เป้าหมาย/, /แคลอรีคงเหลือ/, /เหลืออีก/, /คะแนน/, /เกรด/, /ดัชนีมวลกาย/,
@@ -54,8 +62,12 @@ test("en-nut.js and zh-nut.js: same keys, every key used by the page and its scr
   for (const m of html.matchAll(/data-i18n-attr="([^"]+)"/g)) for (const part of m[1].split(";")) used.add(part.split(":")[1]);
   for (const m of ui.matchAll(/\bT\("([a-z0-9._-]+)"/g)) used.add(m[1]);
   assert.ok(used.size >= 40, "keys used: " + used.size);
-  for (const k of used) { assert.ok(en[k], "en missing " + k); assert.ok(zh[k], "zh missing " + k); }
-  for (const [k, v] of Object.entries({ ...en, ...zh })) assert.ok(!/[ก-๙]/.test(v), "Thai in a translation: " + k);
+  for (const k of used) {
+    assert.ok(en[k] || (shared(k) && sharedEn[k]), "en missing " + k);
+    assert.ok(zh[k] || (shared(k) && sharedZh[k]), "zh missing " + k);
+  }
+  assert.deepEqual(Object.keys(sharedEn).sort(), Object.keys(sharedZh).sort(), "shared en / zh key sets");
+  for (const [k, v] of Object.entries({ ...en, ...zh, ...sharedEn, ...sharedZh })) assert.ok(!/[ก-๙]/.test(v), "Thai in a translation: " + k);
 });
 
 test("values are not judged by colour (no red / amber / green value palette) and the page never uploads", () => {

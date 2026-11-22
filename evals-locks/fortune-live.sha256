@@ -31,3 +31,9 @@ ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e  tests/unit/for
 # late entry 2026-11-21 (owner, item 208 follow-up): the crisis-v3 re-lock of 2026-11-17 (line 28) and the fortune-cards re-lock of 2026-11-18 (line 30) keep their field copies in ~/LENSIQ-field/evals/crisis-v3/relock-e2e/ and ~/LENSIQ-field/evals/fortune-cards/relock-1/, not in this phase folder; the two lines below name them.
 f8522c1414e76f8fcb46ba9966d8c2ace48e1125f9e4bf96d72d32f4fcd2c64e  tests/e2e/fortune-live.e2e.mjs  # repo file (late entry 2026-11-21, owner, item 208 follow-up; same bytes as line 28; field: ~/LENSIQ-field/evals/crisis-v3/relock-e2e/fortune-live.e2e.mjs)
 ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e  tests/unit/fortune-live.test.js  # repo file (late entry 2026-11-21, owner, item 208 follow-up; same bytes as line 30; field: ~/LENSIQ-field/evals/fortune-cards/relock-1/fortune-live.test.js)
+f1778d97671d53def92cf094bbba7171e7bd5c94517f40ac02568909956f76f9  tests/unit/fortune-live.test.js  # repo file (re-locked in evals-locks/fortune-cards.sha256 at 2026-11-21T18:57:33Z, replaces ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e of line 30; field: ~/LENSIQ-field/evals/fortune-cards/relock-223/fortune-live.test.js)
+# locked 2026-11-22T00:32:49Z (tools/eval-guard.mjs lock, 2 files)
+73921b2a3c4cb7c649b57928d17a3e4bd3046925e4de7c3dbb87cc6a9af9773b  relock-226/fortune-live-2.test.js
+c309c7afe761122707ee7ae504df390f153c2c9b20acccb64d3d7dc05acbfc19  relock-226/NOTE.txt
+73921b2a3c4cb7c649b57928d17a3e4bd3046925e4de7c3dbb87cc6a9af9773b  tests/unit/fortune-live-2.test.js  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/fortune-live/relock-226/fortune-live-2.test.js)
+# field only relock-226/NOTE.txt (lock 2026-11-22T00:32:49Z: no repo file uses it)

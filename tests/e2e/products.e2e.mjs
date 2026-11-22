@@ -3,6 +3,12 @@
 // Checks: every page loads in TH / EN / 中文 without uncaught errors and with no Thai left in EN/中文 mode for the new
 // pd.* text, every same-origin link on the landing pages resolves (no 404), index keeps all previous tool links, the
 // fortune hub keeps every reading under "all readings", and team face reading is labelled "for fun, not assessment".
+// re-lock 2026-11-21 (owner decision 223 / 223-1, redirect): hr.html no longer shows the 54% / n = 206 caveat with its
+// citations; it shows exactly the plain sentence (pd.h.sci) that the system does not detect lies, with no figure, and the
+// original caveat (54%, n = 206, Bond, Barrett) is held verbatim in docs/tech-sheets/hr-TH.md / hr-EN.md and
+// admin-measurements.js.
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { assert } from "./cdp.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -11,7 +17,7 @@ const LANDING = ["retail.html", "hr.html", "creative-suite.html"];
 const INDEX_LINKS = ["neuro.html", "creative.html", "signage.html", "customers.html", "booth.html", "fortune.html", "store.html", "insights.html",
   "checkout.html", "photobooth.html", "studio.html", "attendance.html", "qc.html", "driver.html", "converter.html", "cameras.html", "about.html"];
 
-export default async function ({ base, launch, check }) {
+export default async function ({ base, launch, check, repo }) {
   const browser = await launch();
   try {
     for (const lang of ["th", "en", "zh"]) {
@@ -70,7 +76,16 @@ export default async function ({ base, launch, check }) {
       }));
       assert(h.practice, "hr.html links the candidate practice mode");
       assert(/เพื่อความบันเทิง/.test(h.team) && /ไม่ใช่การประเมิน/.test(h.team), "team face reading labelled for fun: " + h.team);
-      assert(/54%/.test(h.sci) && /Bond/.test(h.sci) && /Barrett/.test(h.sci), "scientific caveat with citations");
+      // re-lock 223 (was: "/54%/, /Bond/ and /Barrett/ in the caveat on the page"): the plain sentence, no figure, no citation ...
+      assert(h.sci.trim() === "ไม่มีสัญญาณบนใบหน้าหรือน้ำเสียงที่บอกการโกหกได้อย่างน่าเชื่อถือ ระบบจึงไม่จับโกหก", "plain no-lie-detection sentence: " + h.sci);
+      assert(!/\d|%|\bn\s?=|Bond|Barrett|DePaulo|ที่มา/.test(h.sci), "no figure or citation on the page: " + h.sci);
+      // ... and the original caveat with its figures and citations is in the HR technical sheets and the admin data
+      const sheetTH = readFileSync(join(repo, "docs", "tech-sheets", "hr-TH.md"), "utf8"), sheetEN = readFileSync(join(repo, "docs", "tech-sheets", "hr-EN.md"), "utf8");
+      const adminM = readFileSync(join(repo, "admin-measurements.js"), "utf8");
+      const rec = (txt, re) => (txt.split("\n").find(l => l.startsWith("[pd.h.sci] ") && re.test(l)) || "");
+      for (const l of [rec(sheetTH, /[ก-๙]/), rec(sheetEN, /^\[pd\.h\.sci\] [A-Z]/), rec(sheetEN, /[一-龥]/)])
+        assert(/54%/.test(l) && /n = 206/.test(l) && /Bond/.test(l) && /Barrett/.test(l), "tech sheet keeps the caveat with citations: " + l.slice(0, 200));
+      assert(/"pd\.h\.sci"[^\n]*54%[^\n]*n = 206[^\n]*Bond/.test(adminM), "admin-measurements.js keeps the caveat");
       await hr.close();
       const ft = await browser.newPage(`${base}/fortune.html?cpu&lang=th`);
       const f = await ft.evaluate(() => ({

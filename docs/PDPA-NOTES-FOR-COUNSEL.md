@@ -1265,6 +1265,34 @@ portability right (s.31) for on-device data, or does the privacy notice need a s
 (b) should the medicine look-up history be left out of the file entirely rather than offered behind a box? Until
 counsel answers, it is left out (owner item 215); putting it back needs counsel's answer and an owner order.
 
+## Decision 223 (2026-11-22): accuracy figures leave the customer pages; terms clause 11 rewrite is a draft only
+
+The customer pages no longer publish accuracy figures, source tags or status legends; each tool states what it is for
+and its main limit in plain words, and every result shows "โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้". The figures are in
+the per-product technical sheets (docs/tech-sheets/), given to a buyer on request. terms.html clause 11 still says "เรา
+เปิดเผยผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด" and clause 2 still mentions the "Beta" label; they are NOT changed on the
+site until counsel has reviewed the draft in docs/legal/TERMS-CLAUSE-11-DRAFT-223.md (owner 223-6). The draft banner
+"ฉบับร่าง — รอทนายความตรวจทาน" stays on terms, privacy, help and camera-notice.
+
+Questions: (a) does removing published figures from the pages change any consumer-protection or advertising duty, and
+is "ผลการทดสอบมีให้ตามคำขอ" (test results on request) enough? (b) can the current clause 11 stay live, word for word, until
+the rewrite is approved, given the pages no longer show the figures it refers to? (c) research-licence labels stay
+wherever that option is on (223-5); is the label wording sufficient while the face-api.js licence question is open?
+
+## Decision 226 (2026-11-22): no status label for customers; products switched off are not shown
+
+Owner decision 226: customer pages show no status label of any kind ("รุ่นทดลอง", "เร็ว ๆ นี้", "(นำร่อง)" and their EN / ZH
+forms); readiness labels live in the back office, and the administrator switches each product on or off. A product switched
+off is not listed, and its direct address shows only "ระบบนี้ยังไม่เปิดให้บริการ · This service is not available yet. ·
+此服务尚未开放。" with a link to the home page.
+
+privacy.html and camera-notice.html lost only the word "(นำร่อง)" / "(pilot)" / "（试点）" in their headings and in the
+"new systems" lead-ins and storage-table label ("ระบบใหม่ (นำร่อง)" -> "ระบบใหม่", "New pilot systems" -> "New systems",
+"新的试点系统" -> "新系统"). The meaning of every notice is unchanged: the same systems, the same data, the same signs,
+retention and rights. No sentence about what is collected, why or for how long changed. The "ฉบับร่าง — รอทนายความตรวจทาน"
+banner stays. Question: (a) does dropping "pilot" from the heading of a notice change how a data subject should read it
+(e.g. expectations about a trial period), or is the notice still accurate as written?
+
 ## Exam consent notice: re-read prompt and hidden-until-script state (owner decisions 219 ก, 2026-11-21, and 225 ก, 2026-11-22)
 
 - **Decision 219 ก (2026-11-21 23:39):** "Clear the consent tick and show "โปรดอ่านอีกครั้ง" when the notice changes; also

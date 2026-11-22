@@ -235,7 +235,10 @@ test("中文 dictionary covers every key used by creative.html, creative.js and 
   for (const v of ["AAA", "AA", "AA-large", "fail"]) need.add("cr.js.lv." + v);
   for (const v of ["good", "tip", "info"]) need.add("cr.js.st." + v);
   for (const t of ["brand", "product", "cta", "price", "message"]) need.add("cr.s.type." + t);
-  const missing = [...need].filter(k => !(k in zh));
+  // shared keys (decision 223 lines ln.*) live in the common dictionary loaded on every page
+  const cw = { LQI18N_Q: [] }; vm.runInNewContext(fs.readFileSync(path.join(root, "i18n/zh-common.js"), "utf8"), { window: cw });
+  const zhAll = Object.assign({}, ...cw.LQI18N_Q.map(e => e.zh || {}), zh);
+  const missing = [...need].filter(k => !(k in zhAll));
   assert.deepEqual(missing, [], "keys without 中文");
   const thaiInZh = Object.entries(zh).filter(([, v]) => /[฀-๿]/.test(v)).map(([k]) => k);
   assert.deepEqual(thaiInZh, [], "Thai text left in the 中文 dictionary");

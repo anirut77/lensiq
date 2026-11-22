@@ -54,3 +54,8 @@ df383279ed9b2011a11cf2594a04f437c793169c6776e60a6ab1295f03b3a678  tests/unit/dep
 f88eab4fb9bc20c57730d9e98b27ad727dc4236dfa91fa0197fae6ebd94656b7  tests/unit/backend-fulfilment-refunds.test.js  # repo file
 # 2026-11-13T20:50:00Z merge of origin/main (3ba4b8a) into accounts-g: these files now carry BOTH main's TOTP-clock re-lock (one require line) and stream G's A-G5 re-auth-nonce fixture; no assertion changed by the merge. Combined hashes:
 aa124f53be41e62426c4dfdf04473d8b6f8cd6125d7830ca7dca0c092c77e28a  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+# locked 2026-11-22T00:32:50Z (tools/eval-guard.mjs lock, 2 files)
+52f383983fa96f5e1822d8045d9b1fe799c063503934520c5c89a7ef8c222785  relock-226/commercial.e2e.mjs
+e179d7386ac5bfbff4d73a81313ea2bef02cc6a71b53dd925862a65ab5429757  relock-226/NOTE.txt
+52f383983fa96f5e1822d8045d9b1fe799c063503934520c5c89a7ef8c222785  tests/e2e/commercial.e2e.mjs  # repo file (same commit as lock 2026-11-22T00:32:50Z; field: ~/LENSIQ-field/evals/leads/relock-226/commercial.e2e.mjs)
+# field only relock-226/NOTE.txt (lock 2026-11-22T00:32:50Z: no repo file uses it)

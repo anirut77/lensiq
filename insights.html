@@ -23,11 +23,13 @@
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
-<header class="nav" id="siteNav"></header><script src="nav.js?v=36"></script>
+<header class="nav" id="siteNav"></header><script src="nav.js?v=37"></script>
 
 <main class="iq">
   <h1 data-i18n="iq.s.1">แดชบอร์ดรวม</h1>
   <p class="lead" data-i18n="iq.s.2">สรุปและแปลผลข้อมูลจากทุกระบบกล้องที่บันทึกไว้ในเบราว์เซอร์นี้ พร้อมความมั่นใจทางสถิติ คาดการณ์ และสิ่งที่ควรทำ ข้อมูลไม่ถูกส่งออกนอกเครื่อง</p>
+  <p class="lq-lines"><span data-i18n="ln.insights.1">รวมยอดจากระบบนับคนต่าง ๆ ในที่เดียว</span><br>
+    <span data-i18n="ln.insights.2">ตัวเลขถูกต้องได้เท่ากับระบบต้นทางเท่านั้น</span></p>
 
   <div class="toolbar" role="region" aria-label="ตัวกรองช่วงเวลา" data-i18n-attr="aria-label:iq.s.73">
     <div class="range" role="group" aria-label="ช่วงเวลา" data-i18n-attr="aria-label:iq.s.74">
@@ -101,7 +103,8 @@
     </section>
 
     <section class="card" id="accCard" aria-labelledby="accTitle" hidden>
-      <div class="card-h"><h2 id="accTitle" data-i18n="iq.acc.title">สถานะความแม่นยำหน้างาน</h2><span class="muted" data-i18n="iq.acc.sub">ผลตรวจล่าสุดของแต่ละกล้อง (เก็บในเครื่องนี้ อ่านอย่างเดียว)</span></div>
+      <div class="card-h"><h2 id="accTitle" data-i18n="iq.acc.title">ผลทดสอบหน้างาน</h2>
+        <span class="muted" data-i18n="iq.acc.sub">ผลตรวจล่าสุดของแต่ละกล้อง (เก็บในเครื่องนี้ อ่านอย่างเดียว)</span></div>
       <div id="accBody"></div>
     </section>
 
@@ -232,16 +235,16 @@
 <div class="report" id="report" aria-hidden="true"></div>
 
 <div class="iq-tip" id="iqTip" role="tooltip" hidden></div>
-<script src="i18n/zh-insights.js?v=2"></script>
+<script src="i18n/zh-insights.js?v=3"></script>
 <script src="lensiq-agg.js?v=1"></script>
 <script src="lensiq-stats.js?v=5"></script>
-<script src="lensiq-sitecheck.js?v=4"></script>
+<script src="lensiq-sitecheck.js?v=5"></script>
 <script src="insights-data.js?v=10"></script>
 <script src="insights-demo.js?v=9"></script>
 <script src="insights-analysis.js?v=10"></script>
 <script src="insights-cards.js?v=10"></script>
 <script src="insights-charts.js?v=10"></script>
-<script src="insights-ui.js?v=10"></script>
-<script src="lensiq-config.js?v=30"></script>
+<script src="insights-ui.js?v=11"></script>
+<script src="lensiq-config.js?v=31"></script>
 </body>
 </html>

@@ -10,7 +10,8 @@
 // twitter:card. og:title / og:description are copied from the page's own <title> and meta description (Thai, the page
 // default; LINE and Facebook do not run the page's JavaScript, so the preview is Thai). One share image per category:
 // share/og-home.png (home page), share/og-fortune.png (category 6). Sources and render steps: tools/share-src/README.txt.
-// sitemap.xml: every root *.html except 404.html and pages marked <meta name="robots" content="noindex…">.
+// sitemap.xml: every root *.html except 404.html, pages marked <meta name="robots" content="noindex…"> and pages switched
+// off in the nav.js visibility list (decision 226).
 // robots.txt only takes effect at the root of a host (a custom domain); on a project sub-path the sitemap is submitted in
 // the search consoles instead (docs/PROMO.md).
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -18,6 +19,7 @@ import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { apply as applyCsp, configuredPolicy } from "./csp-meta.mjs";
+import { visibility } from "./cat-pages.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const SITE_URL_FILE = "deploy/site-url.json";
@@ -106,7 +108,7 @@ ${icon}
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
+<script src="nav.js?v=37"></script>
 <script src="i18n/zh-notfound.js?v=1"></script>
 <main id="main" class="nf">
   <p class="nf-code">404</p>
@@ -118,7 +120,7 @@ ${icon}
     <a class="btn ghost" href="${base}help.html" data-i18n="nf.help">ช่วยเหลือ</a>
   </div>
 </main>
-<script src="lensiq-config.js?v=30"></script>
+<script src="lensiq-config.js?v=31"></script>
 </body>
 </html>
 `;
@@ -132,7 +134,9 @@ export function build({ base = readBase() } = {}) {
   const out = {};
   for (const [page, cat] of Object.entries(promoPages())) out[page + ".html"] = withShareBlock(read(page + ".html"), page, cat, base);
   const html = readdirSync(repo).filter(f => /^[^/]+\.html$/.test(f) && f !== "404.html").sort();
-  const pub = html.filter(f => !isNoindex(out[f] || read(f))).map(f => f.replace(/\.html$/, ""));
+  // decision 226: a page switched off in the nav.js visibility list is not listed in the sitemap either
+  const VIS = visibility(read("nav.js"));
+  const pub = html.filter(f => !isNoindex(out[f] || read(f))).map(f => f.replace(/\.html$/, "")).filter(p => VIS[p] !== false);
   pub.sort((a, b) => (a === "index" ? -1 : b === "index" ? 1 : a.localeCompare(b)));
   out["sitemap.xml"] = sitemap(base, pub);
   out["robots.txt"] = robots(base);

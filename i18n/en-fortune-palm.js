@@ -144,7 +144,7 @@
     "palm.conf.lo": "Unclear",
     "palm.edit.cap": "Adjusting: {line} — {where} · drag the dots onto the real line",
     "palm.line.unclear": "Not clear in this photo",
-    "palm.linesNote": "The lines shown are estimated automatically from the photo, and their accuracy has not been measured on real hands. Please compare them with your own hand; you can drag the round dots to move a line onto the real crease.",
+    "palm.linesNote": "The lines shown are an estimate from the photo, and the result may not be accurate. Please compare them with your own hand; you can drag the round dots to move a line onto the real crease.",
     "palm.edit.capUnclear": "{line}: not clear in this photo, so it is not read · if you can see this line on your hand, drag the dots onto it",
     "palm.toast.reset": "Restored the automatically detected lines",
     "palm.minor.yes": "Visible",

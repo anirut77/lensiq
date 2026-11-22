@@ -22,24 +22,25 @@
 <link rel="stylesheet" href="styles.css?v=24">
 <link rel="stylesheet" href="gate.css?v=4">
 <script src="lensiq-demo.js?v=1"></script>
-<script src="lensiq-demo-data.js?v=3"></script>
-<script src="i18n/zh-demo.js?v=3"></script>
+<script src="lensiq-demo-data.js?v=4"></script>
+<script src="i18n/zh-demo.js?v=4"></script>
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-gate.js?v=6"></script>
-<script src="i18n/zh-gate-parking.js?v=2"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-gate.js?v=7"></script>
+<script src="i18n/zh-gate-parking.js?v=3"></script>
 
 <main class="gk-page" id="main">
   <p class="eyebrow" data-i18n="pk.eyebrow">LENSIQ Gate · ลานจอดรถ</p>
   <h1 data-i18n="pk.h1">ลานจอดรถ: อ่านทะเบียนและคิดค่าจอด</h1>
   <p class="lead" data-i18n="pk.lead">ระบบเสนอเลขทะเบียนจากกล้อง เจ้าหน้าที่ยืนยัน แล้วระบบจับคู่เวลาเข้า-ออก คิดค่าจอดตามกฎของลาน และสร้าง QR พร้อมเพย์ยอดตรงในเครื่องนี้</p>
-  <p class="hint" data-i18n="pk.assist">อ่านป้ายแบบช่วย รปภ.: ระบบเสนอเลขป้าย และ รปภ. แตะยืนยันทุกคัน ยังไม่ใช่การอ่านอัตโนมัติเต็มรูปแบบจนกว่าจะมีตัวหาป้ายที่ฝึกด้วยภาพป้ายไทย ผลกับภาพถ่ายจริง
-    51 ภาพ (ชุดข้อมูลสาธารณะ Wikimedia Commons): อ่านถูกทั้งป้ายโดยไม่ต้องแตะ 32% (7 / 22 · n = 22 · บางภาพอยู่ในชุดที่ใช้ปรับค่า
-    จึงดีเกินจริง) และต้องแตะเลือกกรอบป้าย 78% (25 / 32 · n = 32)</p>
-  <p class="gk-note" role="note"><b data-i18n="gk.acc.b">ความแม่นยำยังไม่ได้วัดที่หน้างาน</b> <span data-i18n="gk.acc.t">โมเดลอ่านอักษรไทย (PP-OCRv5 ภาษาไทย, Apache-2.0) ฝึกกับข้อความทั่วไป ไม่ได้ฝึกกับป้ายทะเบียน และยังไม่มีโมเดลตรวจหาป้ายที่สิทธิ์การใช้ชัดเจน จึงใช้วิธีหาป้ายแบบคลาสสิกหรือให้เจ้าหน้าที่แตะที่ป้าย จังหวัดเลือกจากรายการ ทุกผลต้องให้เจ้าหน้าที่ยืนยัน รันการตรวจความแม่นยำหน้างานก่อนใช้จริง</span> <a href="gate.html#accuracy" data-i18n="gk.acc.more">อ่านเพิ่ม</a></p>
+  <p class="lq-lines"><span data-i18n="ln.gate.1">อ่านป้ายทะเบียนรถไทยบนเครื่องสำหรับลานจอดและหมู่บ้าน เจ้าหน้าที่ยืนยันทุกคันก่อนเปิดไม้กั้นหรือคิดเงิน</span><br>
+    <span data-i18n="ln.gate.2">ภาพจากกล้องจริงส่วนใหญ่ยังต้องให้เจ้าหน้าที่แตะเลือกป้ายหรือแก้เลข ป้ายเอียง มืด สกปรก หรือป้ายมอเตอร์ไซค์อาจอ่านผิด</span></p>
+  <p class="hint" data-i18n="pk.assist">อ่านป้ายแบบช่วย รปภ.: ระบบเสนอเลขป้าย และ รปภ. แตะยืนยันทุกคัน</p>
+  <p class="gk-note" role="note" data-i18n="gk.lic.t">ตัวอ่านอักษร PP-OCRv5 ภาษาไทย (Apache-2.0) ฝึกกับข้อความทั่วไป ไม่ได้ฝึกกับป้ายทะเบียน และยังไม่มีโมเดลหาป้ายที่ฝึกกับป้ายไทย
+    จึงใช้วิธีหาป้ายแบบคลาสสิกหรือให้เจ้าหน้าที่แตะที่ป้าย จังหวัดเลือกจากรายการ ทุกผลต้องให้เจ้าหน้าที่ยืนยัน ทดสอบหน้างานก่อนใช้จริง</p>
 
   <div id="pkSetup"></div>
 
@@ -49,11 +50,12 @@
     <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="tab-log" id="t-log" data-tab="log" data-i18n="pk.tab.log">บันทึก</button>
     <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="tab-shift" id="t-shift" data-tab="shift" data-i18n="pk.tab.shift">ปิดกะ</button>
     <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="tab-set" id="t-set" data-tab="set" data-i18n="pk.tab.set">ตั้งค่า</button>
-    <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="tab-check" id="t-check" data-tab="check" data-i18n="gk.tab.check">ตรวจความแม่นยำ</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="tab-check" id="t-check" data-tab="check" data-i18n="gk.tab.check">ทดสอบหน้างาน</button>
   </div>
 
   <section id="tab-lane" role="tabpanel" aria-labelledby="t-lane">
     <div id="pkLane"></div>
+    <p class="lq-recheck" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
     <section class="card" id="pkPay" hidden aria-labelledby="pkPayH">
       <h2 id="pkPayH" data-i18n="pk.pay.h">ชำระค่าจอด</h2>
       <div id="pkPayInfo"></div>
@@ -193,17 +195,17 @@
     “อุปกรณ์และการติดตั้ง” ในหน้า LENSIQ Gate ทีมงานส่งคู่มือฉบับเต็มให้ผู้ติดตั้ง</p>
 </main>
 
-<script src="lensiq-config.js?v=30"></script>
+<script src="lensiq-config.js?v=31"></script>
 <script src="vendor/ort/ort.wasm.min.js"></script>
 <script src="vendor/qrcode-generator/qrcode.js"></script>
 <script src="lensiq-crashguard.js?v=1"></script>
 <script src="lensiq-camera.js?v=8"></script>
 <script src="lensiq-detect.js?v=7"></script>
-<script src="lensiq-sitecheck.js?v=4"></script>
+<script src="lensiq-sitecheck.js?v=5"></script>
 <script src="lensiq-plate.js?v=4"></script>
 <script src="lensiq-promptpay.js?v=1"></script>
 <script src="gate-rules.js?v=1"></script>
-<script src="gate-kit.js?v=4"></script>
+<script src="gate-kit.js?v=5"></script>
 <script src="lensiq-freetier.js?v=1"></script>
 <script src="parking.js?v=1"></script>
 </body>

@@ -9,7 +9,7 @@
  * FREE_MODE=false). When member sign-in is set up (lensiq-member.js present and possible), signing in is required
  * before the checkout form; otherwise (legacy guest checkout) the one-time customer_id + order_token are kept locally
  * ("lq-pending-claims") so the purchase can be linked to an account after sign-in (POST /v1/billing/claim).
- * Perks carry a status from the Worker's perk registry: 'coming_soon' perks are labelled "coming soon".
+ * Perks carry a status from the Worker's perk registry: 'coming_soon' perks are hidden (data-lq-off; decision 226: no status labels for customers).
  * Prices are VAT-inclusive totals (Thai B2C); with VAT registration the 7 % share is shown under the price.
  * Pure helpers are unit-tested in Node (tests/unit/pricing.test.js). */
 (function (root) {
@@ -212,15 +212,14 @@
     }
     var ul = h("ul", { class: "pr-perks" });
     quotaLines(p.entitlements, info.perks).forEach(function (q) {
-      var li = h("li", { class: q.status === "coming_soon" ? "soon" : q.included ? "incl" : null, text: quotaText(q) });
-      if (q.status === "coming_soon") li.appendChild(h("span", { class: "pr-soon", text: T("pr.soon", "เร็ว ๆ นี้") }));
+      // decision 226: no status label for customers; a not-yet-sold perk is hidden (data-lq-off), not labelled
+      var li = h("li", { class: q.status === "coming_soon" ? "soon" : q.included ? "incl" : null, "data-lq-off": q.status === "coming_soon" ? true : null, text: quotaText(q) });
       ul.appendChild(li);
     });
     perksOf(p, info.perks).forEach(function (k) {
       var def = k.id ? PERKS[k.id] : null;
       var label = (lang() === "en" && k.en) || (lang() === "zh" && k.zh) || (def ? T(def[0], k.th || def[1]) : k.th || k.en || k.id);
-      var li = h("li", { class: k.status === "coming_soon" ? "soon" : null, text: label });
-      if (k.status === "coming_soon") li.appendChild(h("span", { class: "pr-soon", text: T("pr.soon", "เร็ว ๆ นี้") }));
+      var li = h("li", { class: k.status === "coming_soon" ? "soon" : null, "data-lq-off": k.status === "coming_soon" ? true : null, text: label });
       ul.appendChild(li);
     });
     if (ul.childNodes.length) c.appendChild(ul);

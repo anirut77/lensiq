@@ -1,14 +1,13 @@
-# สไลด์ขาย: LENSIQ Crowd (9 สไลด์) / Sales deck: LENSIQ Crowd
+# สไลด์ขาย: LENSIQ Crowd (10 สไลด์) / Sales deck: LENSIQ Crowd
 
-> **ร่าง (DRAFT) 2026-11-11** สร้างจาก `docs/ONE-PAGER-CROWD.md` ใช้เฉพาะตัวเลขที่วัดแล้ว แต่ละตัวมีที่มา (ข้อมูลจำลอง / ชุดข้อมูลสาธารณะ / หน้างานจริง) และไฟล์อ้างอิง
-> จาก `docs/ACCURACY-CLAIMS.md` (ทะเบียน C1–C8) และ `docs/CROWD-ACCURACY.md` ถ้าไม่ได้วัด เขียนว่า "ยังไม่ได้วัด"
+> **ร่าง (DRAFT) 2026-11-11** สร้างจาก `docs/ONE-PAGER-CROWD.md` สไลด์ลูกค้าไม่มีตัวเลขความแม่นยำ มีเพียงข้อจำกัดในภาษาง่าย ๆ ตัวเลขละเอียดอยู่ใน `docs/tech-sheets/crowd-TH.md` (มอบให้เมื่อถูกถาม)
 > บรรทัด "ไฟล์:" เป็นข้อมูลภายใน เจ้าของตัดออกก่อนส่งนอกองค์กรได้ [ต้องยืนยัน / to confirm] ช่อง [วงเล็บ] เจ้าของกรอก จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
-> **Crowd เป็นรุ่นทดลอง (OP-21) ตัวเลขเป็นผลเบื้องต้น (ค่าอ้างอิงนับโดย AI) ยังไม่เหมาะกับฝูงชนหนาแน่น ห้ามใช้ตัดสินความปลอดภัยของฝูงชน**
+> **Crowd ยังไม่เหมาะกับฝูงชนหนาแน่น ห้ามใช้ตัดสินความปลอดภัยของฝูงชน**
 
 ---
 
 # 1. LENSIQ Crowd
-*Density estimate for events: experimental, not for dense crowds*
+*Density estimate for events, not for dense crowds*
 
 - ประมาณจำนวนคนในโซนและนับคนเข้าออก สำหรับบูธ ล็อบบี้ ทางเข้างาน
 - ใช้มือถือหรือโน้ตบุ๊กที่มีกล้อง ประมวลผลบนเครื่อง ไม่จดจำใบหน้า ไม่เก็บภาพ
@@ -39,40 +38,27 @@
 | คำเตือน | "คนดูเล็ก" เมื่อคนสูงไม่ถึง 10% ของภาพ พร้อมวิธีแก้ · ตั้ง "จำนวนคนที่คาดว่าจะมีช่วงพีค" เพื่อให้เตือนเมื่อตัวตรวจจับล้า |
 | รายงาน | CSV รายงานการตลาด (หัวไฟล์ระบุว่าเป็นค่าประมาณ) สรุปรวมยอด JSON ตัวเลขอย่างเดียว ไม่มีภาพ |
 
-- ไฟล์: `docs/ONE-PAGER-CROWD.md`, `docs/CROWD-ACCURACY.md` "What the page does with this"
+- ไฟล์: `docs/ONE-PAGER-CROWD.md`, `docs/tech-sheets/crowd-TH.md`
 
 ---
 
-# 4. ความแม่นยำที่วัดแล้ว (ผลเบื้องต้น)
-*Measured accuracy (preliminary)*
+# 4. ข้อจำกัดที่ควรรู้
+*Limits worth knowing*
 
-**ค่าอ้างอิงนับโดย AI ดูภาพนิ่ง ไม่ใช่คนนับ 2 คน — ผลสุดท้ายรอการนับโดยคน (the reference is an AI count; the final figure awaits a human count)**
-
-| ข้อกล่าวอ้าง / claim | ค่า / value | n | ที่มา / source | ไฟล์ |
-|---|---|---|---|---|
-| คน 15–22 คนเต็มภาพ · 15–22 people filling the view | นับต่ำกว่าจริง 26% / undercount | n = 12 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น / public dataset, preliminary | `docs/CROWD-ACCURACY.md` (C2) |
-| คน 30–50 คน หลายคนอยู่ไกล · 30–50 people, many far | นับต่ำกว่าจริง 58% (ค่าจริงเองเป็นค่าประมาณ ±20%) | n = 20 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` (C3) |
-| คนตัวเล็ก / อยู่ไกล · small or far people | นับต่ำกว่าจริง 37–59% | n = 29 ภาพ (2 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` (C4) |
-| โซนใกล้กล้อง 0–13 คน · near zone, 0–13 people | คลาด 1.2 คนต่อภาพ (31%) bias −0.2 | n = 20 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` (C5) |
-| เส้นนับเข้า/ออก · entry / exit line | 1 / 1 ครั้ง ไม่มีการนับเกิน (ตัวอย่างน้อยมาก / very small sample) | n = 1 ครั้งที่ข้ามเส้น (2 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` (C7) |
-| ความแม่นยำสุดท้าย (คนนับ) · final accuracy | **ยังไม่ได้วัด / not measured** | — | หน้างานจริง: รอการนับโดยคน / field: human count pending | `docs/CROWD-ACCURACY.md` (C8) |
-| ที่ไซต์ลูกค้าจริง · at a real customer site | **ยังไม่ได้วัด / not measured** | — | หน้างานจริง: ยังไม่มีโครงการนำร่อง / field | `docs/pilot/PILOT-CROWD.md` |
-
-- ตัวเลขทุกแถวเป็น "ผลเบื้องต้น" เทียบ AI ไม่ใช่ความแม่นยำที่รับรอง
+- นับคนและดูความหนาแน่นในโซนที่คุณวาด สำหรับอีเวนต์และพื้นที่จัดงาน ประมวลผลบนเครื่อง ไม่ระบุตัวตน
+- เหมาะกับงานที่มีคนน้อยถึงปานกลาง ยังไม่เหมาะกับฝูงชนหนาแน่น
+- ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค (`docs/tech-sheets/crowd-TH.md`)
 
 ---
 
 # 5. ยังไม่เหมาะกับฝูงชนหนาแน่น
 *Not yet suitable for dense crowds*
 
-| ข้อกล่าวอ้าง / claim | ค่า / value | n | ที่มา / source | ไฟล์ |
-|---|---|---|---|---|
-| ฝูงชนหนาแน่น (ราว 300 คน) · a dense crowd (about 300 people) | นับได้ราว 1 คนต่อภาพ (0–2 คนในคลิปไทม์แลปส์ที่มีคนมากกว่า 100 คน) | n = 2 + 7 ภาพ (2 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` (C1) |
 
 - ตัวนับ **ล้มลง ไม่ใช่สูงขึ้น** ในฝูงชนหนาแน่น จึงดูเหมือนฉากเงียบ ไม่มีสัญญาณเตือนเองเสมอไป ต้องตั้ง "จำนวนคนที่คาดว่าจะมีช่วงพีค"
 - **ไม่ขาย** ฝูงชนประมาณ 50 คนขึ้นไปในภาพเดียว คอนเสิร์ต ทางข้าม จนกว่าจะมีโมเดลความหนาแน่นที่ใบอนุญาตใช้เชิงพาณิชย์ได้และเจ้าของอนุมัติ
 - **ห้ามใช้ตัดสินความปลอดภัยของฝูงชน** เช่น จำกัดคนเข้า
-- ไฟล์: `docs/CROWD-ACCURACY.md` "Where it breaks", `docs/CROWD-DENSITY-MODELS.md`
+- ไฟล์: `docs/tech-sheets/crowd-TH.md`, `docs/CROWD-DENSITY-MODELS.md`
 
 ---
 
@@ -81,8 +67,7 @@
 
 - **เหมาะ:** บูธ ล็อบบี้ ทางเข้างาน โซนคิว ที่มีคนในภาพ 5–40 คนช่วงพีค กล้องนิ่ง ติดสูง ≥ 2.5–3 ม. มองลง 30–45° คนในโซนสูงอย่างน้อย 10% ของภาพ
 - **ไม่เหมาะ:** คอนเสิร์ต ฝูงชนหนาแน่น ทางข้าม ราว 50 คนขึ้นไปต่อภาพ · กล้องที่เคลื่อนที่ (เส้นนับและเวลาอยู่ในโซนต้องกล้องนิ่ง) · งานที่ต้องการจำนวนที่แน่นอนหรือเพื่อความปลอดภัย
-- ความเร็ว: 355 ms ต่อภาพ (ราว 2.8 ครั้งต่อวินาที) เป็นการจำลองด้วยการลดความเร็ว CPU ×4 บนคอมพิวเตอร์ **ไม่ใช่มือถือจริง** (ที่มา: ชุดข้อมูลสาธารณะ เครื่องจำลอง n = 27 ภาพ)
-  ไฟล์: `docs/CROWD-ACCURACY.md`; วัดบนมือถือจริงอยู่ในชุดนำร่องขั้น 0b
+- ความเร็วบนมือถือจริงวัดในชุดนำร่องขั้น 0b ไฟล์: `docs/pilot/PILOT-CROWD.md`
 - ไม่ประมาณอายุ เพศ หรือสีหน้า (ปิดในเวอร์ชันลูกค้า) · ไม่วิเคราะห์อารมณ์ · ไม่ตรวจจับการโกหก
 
 ---
@@ -93,7 +78,7 @@
 - ติดป้าย A (`camera-notice.html` ไทย/อังกฤษ/จีน) ที่ทางเข้าพื้นที่
 - ไม่จดจำใบหน้า ไม่เก็บภาพ ตัวติดตามไม่ระบุตัวตน รายงานมีเฉพาะตัวเลข
 - ไม่บันทึกวิดีโอเป็นค่าเริ่มต้น ผู้ขายไม่ได้รับข้อมูล (ข้อมูลอยู่บนเครื่องของลูกค้า)
-- ผู้จัดงาน/เจ้าของพื้นที่เป็นผู้ควบคุมข้อมูล · ข้อความกฎหมายรอทนายตรวจก่อนขาย (OP-24)
+- ผู้จัดงาน/เจ้าของพื้นที่เป็นผู้ควบคุมข้อมูล · ข้อความกฎหมายอยู่ระหว่างให้ทนายความตรวจก่อนขาย (OP-24)
 - ไฟล์: `docs/ONE-PAGER-CROWD.md` PDPA, `docs/pilot/PILOT-CROWD.md` §8
 
 ---
@@ -111,7 +96,7 @@
 - ตัวอย่าง: 2 เครื่อง × 2 วัน × 590 = 2,360 บาท ก่อน VAT (VAT 165.20 รวม 2,525.20)
 - ระดับฟรี: 2 ชั่วโมงต่อเครื่องต่อวัน เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มตามวันที่จะประกาศ โดยประกาศล่วงหน้าอย่างน้อย 30 วันและเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับผ่านสัญญา (OP-26)
 - ลูกค้าชำระราคา + VAT 7% ผ่านใบเสนอราคาและโอนธนาคารเท่านั้น (OP-02) · นิยาม "วัน" รอเจ้าของยืนยัน (OP-18) · ราคาปกติหลังผ่านเกณฑ์นำร่อง ใช้เมื่อผ่านเกณฑ์เท่านั้น (OP-10)
-- ราคานำร่องอยู่ล่างสุดของช่วงตลาด เพราะระบบนับต่ำกว่าจริง 26–59% และยังไม่มีผลหน้างานจริง
+- ราคานำร่องอยู่ล่างสุดของช่วงตลาด เพราะระบบยังไม่เหมาะกับฝูงชนหนาแน่นและควรทดสอบหน้างานก่อน
 - ไฟล์: `docs/PRICING-RESEARCH.md` §3.3 · การเสนอขายต้องเจ้าของยืนยัน (OP-09)
 
 ---
@@ -128,11 +113,17 @@
 
 ---
 
+# 10. เอกสารเทคนิค
+*Technical sheet*
+
+- ตัวเลขการทดสอบและวิธีทดสอบอยู่ในเอกสารเทคนิคของ Crowd ขอได้จากฝ่ายขาย (ภายใน: `docs/tech-sheets/crowd-TH.md`)
+- มอบให้เมื่อผู้ซื้อหรือฝ่ายจัดซื้อขอดู
+
+---
+
 # English summary
 
-LENSIQ Crowd estimates the density of people in a zone and counts entries and exits from a phone or laptop camera, on the device, with no face recognition and no stored image. It is experimental and
-**not yet suitable for dense crowds**; it gives an estimate, not an exact count, and must never be used for crowd-safety decisions. All figures are preliminary against an AI reference counter (final human count pending):
-15–22 people filling the view undercount 26% (n = 12 frames); 30–50 people, many far, undercount 58% (n = 20 frames); small or far people 37–59% (n = 29 frames); near zone of 0–13 people off by 1.2 people per frame, 31%
-(n = 20 frames); entry / exit line 1 / 1 (n = 1); about 300 people counted as about 1 per frame (n = 2 + 7 frames). All from public datasets (`docs/CROWD-ACCURACY.md`). At a real customer site: not measured. Speed on a
-real phone: not measured (the 355 ms figure is emulated). No age, gender or expression estimate in customer builds. Free 2 hours per device per day (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot price: 590 THB per device per day, 2,490 THB per device per
+LENSIQ Crowd estimates the density of people in a zone and counts entries and exits from a phone or laptop camera, on the device, with no face recognition and no stored image. It is
+**not yet suitable for dense crowds**; it gives an estimate, not an exact count, and must never be used for crowd-safety decisions. It is suited to light to moderate crowds. The technical sheet is available from sales on request.
+No age, gender or expression estimate in customer builds. Free 2 hours per device per day (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot price: 590 THB per device per day, 2,490 THB per device per
 week; monthly at a fixed site and dense crowds are not sold. Sold by quotation and bank transfer.

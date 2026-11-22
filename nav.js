@@ -6,11 +6,12 @@
   var BRAND = { name: "LENS", accent: "IQ", full: "LENSIQ", tagline: "Computer Vision ประมวลผลบนเครื่อง เพื่อการตลาดและการวิเคราะห์" };
 
   var ENTRY = { "attendance.html": "attendance.html?mode=employee" };
+  var VIEWCAT = "ดูหน้าหมวดนี้"; // owner decision 223: the menu link to a category page, no "status and accuracy"
   var MENU = [
     { label: "ความปลอดภัยและการเข้าออก", short: "เข้าออก", id: "gate", cat: "security",
       intro: "อ่านป้ายทะเบียนรถไทยบนเครื่องสำหรับลานจอดและหมู่บ้าน ป้ายแจ้ง PDPA และแจ้งเตือนพื้นที่หวงห้าม เจ้าหน้าที่ยืนยันทุกครั้ง", items: [
-      { href: "cat-security.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
-      { href: "gate.html", title: "LENSIQ Gate ภาพรวม", desc: "อ่านป้ายทะเบียนรถไทยบนเครื่อง (นำร่อง)" },
+      { href: "cat-security.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
+      { href: "gate.html", title: "LENSIQ Gate ภาพรวม", desc: "อ่านป้ายทะเบียนรถไทยบนเครื่อง" },
       { href: "parking.html", title: "ลานจอดรถ", desc: "จับคู่รถเข้า-ออก คิดค่าจอด QR พร้อมเพย์" },
       { href: "village.html", title: "ป้อมยามหมู่บ้าน/คอนโด", desc: "รถลูกบ้าน บัตรผ่านผู้มาเยือน เปิดไม้กั้นโดยเจ้าหน้าที่" },
       { href: "gate-notice.html", title: "ป้ายแจ้งกล้องอ่านทะเบียน", desc: "ป้าย PDPA และประกาศความเป็นส่วนตัว พิมพ์ได้" },
@@ -19,26 +20,26 @@
     ] },
     { label: "การศึกษาและการสอบ", short: "การสอบ", id: "edu", cat: "education",
       intro: "ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน และตรวจกระดาษคำตอบด้วยมือถือ ระบบไม่ตัดสินการทุจริต คนตัดสินเสมอ ประมวลผลภาพในเครื่อง", items: [
-      { href: "cat-education.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
-      { href: "exam.html", title: "LENSIQ Exam ภาพรวม", desc: "ช่วยผู้คุมสอบ ไม่ตัดสินการทุจริต (นำร่อง)" },
+      { href: "cat-education.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
+      { href: "exam.html", title: "LENSIQ Exam ภาพรวม", desc: "ช่วยผู้คุมสอบ ไม่ตัดสินการทุจริต" },
       { href: "exam-lab.html", title: "หน้าผู้เข้าสอบ", desc: "สอบออนไลน์: แจ้งสิทธิ์ ปรับเทียบ ป้ายกำลังติดตาม" },
-      { href: "exam-hall.html", title: "เครื่องกล้องในห้องสอบ", desc: "วาดที่นั่ง แจ้งที่นั่งว่างและคนเกิน (ทดลอง)" },
+      { href: "exam-hall.html", title: "เครื่องกล้องในห้องสอบ", desc: "วาดที่นั่ง แจ้งที่นั่งว่างและคนเกิน" },
       { href: "exam-dashboard.html", title: "แดชบอร์ดผู้คุมสอบ", desc: "แผนที่ที่นั่ง คิวให้ตรวจ รายงานตามเวลา" },
       { href: "omr.html", title: "ตรวจกระดาษคำตอบ", desc: "พิมพ์กระดาษคำตอบ ตรวจด้วยกล้องมือถือ วิเคราะห์ข้อสอบ" }
     ] },
     { label: "HR และที่ทำงาน", short: "HR", id: "work", cat: "hr",
-      intro: "ลงเวลาด้วย PIN หรือ QR (ใบหน้าเป็นทางเลือก) สัมภาษณ์แบบมีโครงสร้าง ทบทวนเคส และกิจกรรมทีม คนตัดสินใจเรื่องคนเสมอ", items: [
-      { href: "cat-hr.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
+      intro: "ลงเวลาด้วย PIN หรือ QR (ใบหน้าเป็นทางเลือก) สัมภาษณ์แบบมีโครงสร้าง และทบทวนเคส คนตัดสินใจเรื่องคนเสมอ", items: [
+      { href: "cat-hr.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "attendance.html", title: "ลงเวลาทำงาน PIN / QR", desc: "ใบหน้าเป็นตัวเลือก · เช็คชื่ออบรม" },
-      { href: "hr.html", title: "LENSIQ HR ภาพรวม", desc: "ชุดสัมภาษณ์ โหมดฝึกซ้อมผู้สมัคร และกิจกรรมทีม" },
+      { href: "hr.html", title: "LENSIQ HR ภาพรวม", desc: "ชุดสัมภาษณ์ และโหมดฝึกซ้อมผู้สมัคร" },
       { href: "interview.html", title: "ชุดสัมภาษณ์แบบมีโครงสร้าง", desc: "คำถาม STAR + เกณฑ์ BARS ให้คะแนนอิสระ สรุปความสอดคล้อง โหมดฝึกซ้อม" },
       { href: "case-review.html", title: "ทบทวนเคสจากคลิปวิดีโอ", desc: "แท็กเวลา บันทึก ล็อกตรวจสอบย้อนหลัง ไม่ตัดสินความจริง" },
       { href: "teamface.html", title: "โหงวเฮ้งทีม", desc: "กิจกรรมละลายพฤติกรรม การ์ดบทบาทในทีม ไม่ใช่การประเมิน" }
     ] },
     { label: "การตลาด ค้าปลีก และอีเวนต์", short: "ค้าปลีก", id: "ana", cat: "marketing",
-      intro: "นับคนและความหนาแน่น หน้าร้าน คิว โต๊ะ ช่องจอด ป้ายโฆษณา และบูธ แบบไม่ระบุตัวตน ประมวลผลบนเครื่อง", items: [
-      { href: "cat-marketing.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
-      { href: "crowd.html", title: "นับคนและความหนาแน่น", desc: "คนในโซน ช่วงพีค เส้นเข้า-ออก และเวลาอยู่ ในงานอีเวนต์ (ทดลอง ยังไม่เหมาะกับฝูงชนหนาแน่น)" },
+      intro: "นับคนและความหนาแน่น หน้าร้าน คิว โต๊ะ ช่องจอด และบูธ แบบไม่ระบุตัวตน ประมวลผลบนเครื่อง", items: [
+      { href: "cat-marketing.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
+      { href: "crowd.html", title: "นับคนและความหนาแน่น", desc: "คนในโซน ช่วงพีค เส้นเข้า-ออก และเวลาอยู่ ในงานอีเวนต์ (ยังไม่เหมาะกับฝูงชนหนาแน่น)" },
       { href: "store.html", title: "วิเคราะห์หน้าร้าน", desc: "นับคน แผนที่ความร้อน และคิว" },
       { href: "retail.html", title: "LENSIQ Retail ภาพรวม", desc: "กล้องหน้าร้านสำหรับ SME: นับคน อัตราการซื้อ หลายสาขา" },
       { href: "insights.html", title: "แดชบอร์ดรวม", desc: "สรุปผลจากทุกระบบในที่เดียว" },
@@ -55,7 +56,7 @@
     ] },
     { label: "สุขภาพ ความปลอดภัย และคุณภาพ", short: "สุขภาพ", id: "health", cat: "health",
       intro: "ตรวจข้อมูลยาให้เภสัชกรยืนยัน เตือนเมื่อคนขับหลับตานาน และตรวจคุณภาพสินค้าบนสายการผลิต", items: [
-      { href: "cat-health.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
+      { href: "cat-health.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "medicine.html", title: "ตรวจข้อมูลยา", desc: "เลขทะเบียน อย. บาร์โค้ด ชื่อยา และเม็ดยา ยืนยันกับเภสัชกรทุกครั้ง" },
       { href: "nutrition.html", title: "อ่านฉลากโภชนาการ", desc: "ค่าตามฉลาก ปริมาณที่กินจริง และข้อมูลผู้แพ้อาหาร อ่านบนเครื่องนี้" },
       { href: "driver.html", title: "เฝ้าระวังความง่วงคนขับ", desc: "แจ้งเตือนเมื่อหลับตานานหรือหาว" },
@@ -87,7 +88,7 @@
     ] },
     { label: "สตูดิโอและสื่อ", short: "สตูดิโอ", id: "photo", cat: "studio",
       intro: "สตูดิโอภาพโปรไฟล์และรูปติดบัตร ตู้ถ่ายรูปสำหรับอีเวนต์ วิเคราะห์บูธ และแปลงเอกสาร", items: [
-      { href: "cat-studio.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
+      { href: "cat-studio.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "studio.html", title: "สตูดิโอภาพโปรไฟล์และรูปติดบัตร", desc: "เปลี่ยนฉากหลัง รีทัช รูปโปรไฟล์ ตรวจขนาดรูปติดบัตร · ชุดตัวอย่าง (พรีวิว)" },
       { href: "photobooth.html", title: "ตู้ถ่ายรูป", desc: "ตู้สติ๊กเกอร์และรูปติดบัตร" },
       { href: "converter.html", title: "แปลง PDF เป็น Word", desc: "แปลงในเบราว์เซอร์ ไม่อัปโหลดไฟล์" },
@@ -96,7 +97,7 @@
     { label: "เกี่ยวกับ", short: "เกี่ยวกับ", id: "about",
       intro: "เกี่ยวกับ LENSIQ โซลูชันตามอุตสาหกรรม แพ็กเกจ ความช่วยเหลือ และเอกสารด้านกฎหมาย", items: [
       { href: "about.html", title: "เกี่ยวกับ", desc: "ทำงานบนเครื่อง ความเป็นส่วนตัว และสัญญาอนุญาต" },
-      { href: "solutions.html", title: "โซลูชันตามอุตสาหกรรม", desc: "เลือกตามธุรกิจ: พร้อมใช้ นำร่อง และเร็ว ๆ นี้" },
+      { href: "solutions.html", title: "โซลูชันตามอุตสาหกรรม", desc: "เลือกระบบตามธุรกิจของคุณ" },
       { href: "pricing.html", title: "แพ็กเกจและราคา", desc: "แพ็กเกจรายเดือนและค่าบริการ", crisisSales: "item" },
       { href: "help.html", title: "ช่วยเหลือ", desc: "คำถามที่พบบ่อยและการติดต่อ" },
       { href: "privacy.html", title: "ความเป็นส่วนตัว", desc: "ประกาศความเป็นส่วนตัว (PDPA)" },
@@ -128,6 +129,65 @@
     st.textContent = ":is(html[data-lq-crisis],html[data-lq-calm]) [data-lq-crisis-sales]{display:none!important}";
     (document.head || document.documentElement).appendChild(st);
   })();
+
+  // owner decision 226 (2026-11-22, inside 223): ONE visibility list, product page -> on / off. On = listed for customers
+  // with no status label; off = not listed in the menu, category pages, home page, solutions or cameras directory, and its
+  // direct URL shows only the approved sentence with a link to the home page. Starting values = what a customer could open
+  // on 2026-11-22. This list decides listing only: it never switches on a code-level option (LENSIQ_* switches, research
+  // models, palm v2/v3, pet zodiac, cautions, compat v2, zoom, D-4 stay where lensiq-config.js and the pages keep them).
+  // Static pages carry data-lq-off on what links to an off product (hidden below); tools/cat-pages.mjs reads this list.
+  // Status labels and the measurements live in the back office only (the "ผลการวัด" tab).
+  var VISIBILITY = {
+    afterhours: true, astro: true, attendance: true, bays: true, bazi: true, booth: true, cameras: true,
+    "case-review": true, checkout: true, compat: true, converter: true, creative: true, "creative-suite": true,
+    crowd: true, customers: false, dream: true, driver: true, exam: true, "exam-dashboard": true, "exam-hall": false,
+    "exam-lab": true, faceread: true, fengshui: true, fortune: true, gate: true, "gate-notice": true,
+    horoscope: true, hr: true, iching: true, insights: true, interview: true, lek7: true, lifegraph: true,
+    luckycolor: true, medicine: true, neuro: false, numbers: true, nutrition: true, omr: true, palm: true,
+    parking: true, petread: true, photobooth: true, planner: true, qc: true, queue: true, report: true, retail: true,
+    signage: false, store: true, studio: true, tables: true, taksa: true, tarot: true, teamface: false,
+    village: true, zodiac: true, "product-check": false
+  };
+  // PARTS: a product that is part of another page, not a page of its own (part -> its page). Its elements carry
+  // data-lq-part="<id>"; when the list switches it off they are not shown (medicine.html: the Product Check tab #t-pc /
+  // #tab-pc; the drug checker on the same page stays on). Coordinator decision 2026-11-22 (entry 13), reversible by the owner.
+  var PARTS = { "product-check": "medicine" };
+  var OFF_SENTENCE = "ระบบนี้ยังไม่เปิดให้บริการ · This service is not available yet. · 此服务尚未开放。";
+  var pageOf = function (href) { return String(href || "").split(/[?#]/)[0].replace(/^.*\//, "").replace(/\.html$/, ""); };
+  var isOff = function (href) { return VISIBILITY[pageOf(href)] === false; };
+  /** @type {any} */ (window).LQ_VISIBILITY = Object.freeze(Object.assign({}, VISIBILITY));
+  (function () {
+    var st = document.createElement("style");
+    st.id = "lq-visibility-style";
+    st.textContent = "[data-lq-off]{display:none!important}" +
+      "html.lq-off-page body>:not(#lqOff){display:none!important}" +
+      "#lqOff{max-width:640px;margin:20vh auto 0;padding:24px 16px;text-align:center;font-size:1.05rem;line-height:1.7}" +
+      "#lqOff a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:16px;padding:0 18px}" +
+      Object.keys(PARTS).filter(function (k) { return VISIBILITY[k] === false; })
+        .map(function (k) { return 'html.lq-part-off [data-lq-part="' + k + '"]{display:none!important}'; }).join("");
+    (document.head || document.documentElement).appendChild(st);
+    document.documentElement.classList.add("lq-part-off");
+    if (!isOff(location.pathname)) return;
+    document.documentElement.classList.add("lq-off-page");
+    // the page's own script still loads: it may not open the camera while the page is switched off (no camera request)
+    var md = navigator.mediaDevices;
+    if (md && typeof md.getUserMedia === "function") {
+      var gum0 = md.getUserMedia;
+      md.getUserMedia = function (c) {
+        if (document.documentElement.classList.contains("lq-off-page")) return Promise.reject(new DOMException("This service is not available yet.", "NotAllowedError"));
+        return gum0.call(md, c);
+      };
+    }
+    var box = document.createElement("div");
+    box.id = "lqOff"; box.setAttribute("role", "main"); box.setAttribute("translate", "no");
+    var p = document.createElement("p"); p.textContent = OFF_SENTENCE;
+    var a = document.createElement("a"); a.href = "index.html"; a.className = "btn ghost"; a.textContent = "หน้าแรก · Home · 首页";
+    box.appendChild(p); box.appendChild(a);
+    var put = function () { if (document.body && !document.getElementById("lqOff")) document.body.insertBefore(box, document.body.firstChild); };
+    put();
+    if (!document.getElementById("lqOff")) document.addEventListener("DOMContentLoaded", put);
+  })();
+  // visibility:end
 
   var T = function (key, thai, vars) { return window.LQI18N ? window.LQI18N.tf(key, thai, vars) : thai; };
   (function loadI18n() {
@@ -177,16 +237,17 @@
   var curItem = null;
   MENU.forEach(function (g) {
     if (g.items) {
-      var cur = g.items.filter(function (i) { return isCur(i.href); })[0];
+      var shownItems = g.items.filter(function (i) { return !isOff(i.href); }); // decision 226: an off product is not listed
+      var cur = shownItems.filter(function (i) { return isCur(i.href); })[0];
       if (cur && !curGroup) { curGroup = g; curItem = cur; }
       html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span class="nav-lbl-s" data-i18n="nav.groups.' + g.id + '">' + esc(g.short || g.label) + '</span><span class="nav-lbl-f" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
         '<div class="nav-sub" id="navsub-' + g.id + '"><div class="mega">' +
           '<div class="mega-intro"><p class="mega-k" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</p><p class="mega-d" data-i18n="nav.groupd.' + g.id + '">' + esc(g.intro) + '</p>' +
-          (g.cat ? '<a class="mega-all" href="cat-' + g.cat + '.html">' + (g.cat === "fortune" ? '<span data-i18n="nav.viewcat.fortune">ดูหน้าหมวดนี้</span>'
-            : '<span data-i18n="nav.viewcat">ดูหน้าหมวดนี้: สถานะและความแม่นยำ</span>') + arrow + '</a></div>'
+          (g.cat ? '<a class="mega-all" href="cat-' + g.cat + '.html">' + (g.cat === "fortune" ? '<span data-i18n="nav.viewcat.fortune">' + esc(VIEWCAT) + '</span>'
+            : '<span data-i18n="nav.viewcat">' + esc(VIEWCAT) + '</span>') + arrow + '</a></div>'
             : '<a class="mega-all" href="cameras.html"><span data-i18n="nav.viewall">ดูระบบทั้งหมด</span>' + arrow + '</a></div>') +
-          '<ul class="mega-links' + (g.items.length > 6 ? " cols-3" : g.items.length > 3 ? " cols-2" : "") + '">';
-      g.items.forEach(function (i) {
+          '<ul class="mega-links' + (shownItems.length > 6 ? " cols-3" : shownItems.length > 3 ? " cols-2" : "") + '">';
+      shownItems.forEach(function (i) {
         var cs = ' data-lq-crisis-sales=""';
         html += '<li' + (i.crisisSales === "item" ? cs : "") + '><a href="' + (ENTRY[i.href] || i.href) + '"'
           + (isCur(i.href) ? ' aria-current="page"' : "") + '><b data-i18n="' + key(i.href) + '.title">' + esc(i.title) + '</b>'

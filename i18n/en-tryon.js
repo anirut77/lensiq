@@ -1,7 +1,7 @@
 /* i18n/en-tryon.js — English for tryon.html / tryon.js (to.*). Mirrors i18n/zh-tryon.js. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
   "to.title": "Try items on with your camera or a photo (preview) | LENSIQ",
-  "to.eyebrow": "LENSIQ · Try-on (experimental)",
+  "to.eyebrow": "LENSIQ · Try-on",
   "to.h1": "Try items on with your camera or a photo",
   "to.lead": "Try glasses, hats and clothes from the shop's catalogue on your camera picture or photo, on this device.",
   "to.consent.h": "Before the camera or a photo",
@@ -31,7 +31,7 @@
   "to.help.h": "Limits you should know",
   "to.help.face": "Glasses, hats and earrings follow 478 points on the face (MediaPipe Face Landmarker). Only positions are used: no identification, no emotion reading.",
   "to.help.top": "If this device cannot run the body point finder, tops follow the neck, shoulders and hem measured from the body outline in the picture instead. It is a flat 2D picture: it does not show how the fabric falls or whether the size fits.",
-  "to.help.acc": "Accuracy on real pictures has not been measured yet. The only numbers so far come from a synthetic test set.",
+  "to.help.acc": "It is a preview; size and position may differ from the real item.",
   "to.help.misuse": "The page cannot prove that the person in front of the camera or in the photo is the one who agreed. Use it only on yourself or on someone who agreed.",
   "to.photo": "Pick a photo on this device",
   "to.photo.hint": "A front-facing photo of one person, head visible; for trousers, down to the ankles.",

@@ -1,5 +1,5 @@
-// tests/e2e/product-check-travel-release.e2e.mjs — P9 release (owner decisions 2026-11-12): the travel card shows the measured
-// INN numbers and "may be incomplete" in TH / EN / ZH (text generated from docs/accuracy-figures.json); a DPD result on the
+// tests/e2e/product-check-travel-release.e2e.mjs — P9 release (owner decisions 2026-11-12): the travel card says "may be
+// incomplete" in TH / EN / ZH, in plain words with no figure (decision 223); a DPD result on the
 // risk-signal card carries the Open Government Licence – Canada attribution in the page language; Thai equivalents off.
 // Fake Worker only; synthetic text.
 import { assert } from "./cdp.mjs";
@@ -15,16 +15,18 @@ const NET = `window.LENSIQ_API_BASE="https://api.example.test";window.__pcCalls=
     :{status:200,source:x.source,ok:true,found:0,total:0,items:[],fetched:"2026-11-12T03:00:00Z"});
   return new Response(JSON.stringify({ok:true,results}),{status:200,headers:{"Content-Type":"application/json"}});};`;
 const openTab = page => page.evaluate(() => { document.querySelector("#t-pc").click(); return true; });
-const WANT = { th: /recall 0\.811 \(n = 173 ฉลากสังเคราะห์ วัดโดยผู้ตรวจอิสระ\) precision 0\.971.*อาจไม่ครบ/,
-  en: /INN recall 0\.811 \(n = 173, synthetic, independent\), precision 0\.971.*may be incomplete/,
-  zh: /INN 召回率 0\.811（n = 173，合成数据，独立测试），精确率 0\.971.*可能不完整/ };
+// decision 223: the card states the limit in plain words; no figure (was: "recall 0.811 (n = 173 …) precision 0.971 … อาจไม่ครบ")
+const WANT = { th: /^รายการชื่อยานี้อาจไม่ครบ \(เช่น ยาสูตรผสม หรือตัวอักษรที่อ่านผิด\) เทียบกับส่วนประกอบบนกล่องเสมอ$/,
+  en: /^This list of medicine names may be incomplete .*always compare it with the ingredients on the box\.$/,
+  zh: /^此药名列表可能不完整.*请始终与包装上的成分核对。$/ };
+const NO_FIG = /0\.811|0\.971|\b173\b|recall|precision|召回率|精确率|n\s?=/i;
 const ATTR = { th: /มีข้อมูลภายใต้สัญญาอนุญาต Open Government Licence – Canada/, en: /^Contains information licensed under the Open Government Licence – Canada/,
   zh: /Open Government Licence – Canada/ };
 
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
-    await check("pc-travel release: measured INN numbers + 'may be incomplete' on the card; DPD attribution in TH / EN / ZH; equivalents off", async () => {
+    await check("pc-travel release: plain 'may be incomplete' line (no figure) on the card; DPD attribution in TH / EN / ZH; equivalents off", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT, NET], isolated: true });
       for (const lang of ["th", "en", "zh"]) {
         await page.goto(`${base}/medicine.html${lang === "th" ? "" : "?lang=" + lang}`);
@@ -33,7 +35,8 @@ export default async function ({ base, launch, check }) {
         await page.evaluate(t => window.__LQ_PCL.run(t, []), CA);
         await page.waitFor(`document.querySelector("#pcTravel #pcTravelAcc")`, 15000);
         const acc = await page.evaluate(() => document.querySelector("#pcTravelAcc").innerText);
-        assert(WANT[lang].test(acc), `${lang} accuracy line: ${acc}`);
+        assert(WANT[lang].test(acc.trim()), `${lang} limit line: ${acc}`);
+        assert(!NO_FIG.test(acc), `${lang} limit line shows no figure: ${acc}`);
         assert(await page.evaluate(() => document.querySelector("#pcTravelEq").dataset.state === "off"), lang + " equivalents off");
         await page.evaluate(() => document.querySelector("#pcLookupGo").click());
         await page.waitFor(`document.querySelector("#pcLookupRows [data-attr=dpd]")`, 8000);

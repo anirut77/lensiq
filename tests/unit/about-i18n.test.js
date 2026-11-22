@@ -14,6 +14,8 @@ function zh() {
   const ctx = vm.createContext(win);
   vm.runInContext(readFileSync(join(ROOT, "lensiq-i18n.js"), "utf8"), ctx);
   vm.runInContext(readFileSync(join(ROOT, "i18n", "zh-common.js"), "utf8"), ctx);
+  // page dictionaries about.html loads itself (i18n/zh-home.js: the about.* keys, moved out of zh-common.js, decision 226 speed fix)
+  for (const m of readFileSync(join(ROOT, "about.html"), "utf8").matchAll(/<script src="(i18n\/zh-[\w-]+\.js)/g)) vm.runInContext(readFileSync(join(ROOT, m[1]), "utf8"), ctx);
   return win.LQI18N;
 }
 const keysOf = html => {

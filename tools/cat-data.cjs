@@ -10,7 +10,12 @@
  * label — synthetic, public dataset, field — or says "not measured" / "no accuracy claim". No field figure exists for
  * any page yet (2026-11-08). Directory, notice, information, legal and account pages get "support" (not a product, not
  * counted with the products; reviewer round 2026-11-09). The statuses are a PROPOSAL: the owner approves
- * docs/PAGE-STATUS.md before the pages are published. */
+ * docs/PAGE-STATUS.md before the pages are published.
+ *
+ * Owner decision 223 (2026-11-21): customer pages show no accuracy lines, status legend, source chips or reasons. The
+ * cards now carry only BADGE (none / รุ่นทดลอง / รุ่นทดลอง ยังไม่เปิดขาย / เร็ว ๆ นี้, badgeOf) and the two approved LINES;
+ * STATUS, STATUS_DEF, SOURCE, CLAIMS and REASONS stay as internal data for docs/PAGE-STATUS.md and the tests that read
+ * them. DEMO_ONLY pages are listed in demo mode only and not counted. */
 "use strict";
 
 /** Status labels. Order = strongest first. */
@@ -350,6 +355,201 @@ const REASONS = {
     zh: "会员与支付框架默认关闭；后端从未部署，Opn KYC 仍在等待" }
 };
 
+/** Owner decision 223 (2026-11-21, 223-2): the short customer badge of each card. None for Attendance PIN/QR (passed its
+ *  acceptance sheet) and the support pages; "รุ่นทดลอง ยังไม่เปิดขาย" for Exam hall; "เร็ว ๆ นี้" for the demo-only pages (shown
+ *  in demo mode only); "รุ่นทดลอง" for every other tool. The old STATUS / STATUS_DEF / SOURCE / CLAIMS / REASONS above are
+ *  kept for docs/PAGE-STATUS.md (internal) and the tests that read them; they are never written to a customer page or to
+ *  i18n/*-cat.js (the original wording is in docs/tech-sheets/ORIGINAL-FIGURES-223.json). */
+const BADGE = {
+  trial: { th: "รุ่นทดลอง", en: "Trial version", zh: "试用版" },
+  hall: { th: "รุ่นทดลอง ยังไม่เปิดขาย", en: "Trial version, not on sale yet", zh: "试用版，尚未开售" },
+  soon: { th: "เร็ว ๆ นี้", en: "Coming soon", zh: "即将推出" }
+};
+/** pages listed only in demo mode (window.LENSIQ_PROFILE === "demo"; nav.js hides [data-demo-only] otherwise). The pages
+ *  stay and open directly; they are not counted in the category tool counts. */
+const DEMO_ONLY = ["signage", "neuro", "teamface", "customers"];
+const NO_BADGE = ["attendance", "gate-notice", "cameras"];
+/** customer badge key of a page: "" (none) / trial / hall / soon */
+function badgeOf(page) {
+  if (NO_BADGE.includes(page)) return "";
+  if (page === "exam-hall") return "hall";
+  if (DEMO_ONLY.includes(page)) return "soon";
+  return "trial";
+}
+/** The two approved lines per product (223-7, audit section 2): line 1 what it is for, line 2 its main limit in everyday
+ *  words. Thai here; English and Chinese of the keys ln.<id>.1 / ln.<id>.2 live in i18n/{en,zh}-common.js. `cards` = the
+ *  category cards that show them. */
+const LINES = {
+  crowd: { cards: ["crowd"],
+    1: "นับคนและดูความหนาแน่นในโซนที่คุณวาด สำหรับอีเวนต์และพื้นที่จัดงาน ประมวลผลบนเครื่อง ไม่ระบุตัวตน",
+    2: "เหมาะกับงานที่มีคนน้อยถึงปานกลาง ยังไม่เหมาะกับฝูงชนหนาแน่น" },
+  gate: { cards: ["gate", "parking", "village"],
+    1: "อ่านป้ายทะเบียนรถไทยบนเครื่องสำหรับลานจอดและหมู่บ้าน เจ้าหน้าที่ยืนยันทุกคันก่อนเปิดไม้กั้นหรือคิดเงิน",
+    2: "ภาพจากกล้องจริงส่วนใหญ่ยังต้องให้เจ้าหน้าที่แตะเลือกป้ายหรือแก้เลข ป้ายเอียง มืด สกปรก หรือป้ายมอเตอร์ไซค์อาจอ่านผิด" },
+  exam: { cards: ["exam", "exam-dashboard"],
+    1: "บอกผู้คุมสอบว่าควรไปดูที่นั่งไหน ระบบแจ้งเท่านั้น คนตัดสินทุกกรณี ไม่อ่านอารมณ์ และไม่จดจำว่าใครเป็นใคร",
+    2: "ตรวจพบโทรศัพท์ที่อยู่ใกล้กล้องได้ดี โทรศัพท์ที่วางบนโต๊ะมักตรวจไม่พบ ผู้คุมสอบควรเดินตรวจร่วมด้วย" },
+  examlab: { cards: ["exam-lab"],
+    2: "ระบบช่วยผู้คุมสอบเท่านั้น ไม่ตัดสินว่ามีการทุจริต" },
+  examhall: { cards: ["exam-hall"],
+    1: "กล้องหนึ่งตัวดูหลายที่นั่งในห้องสอบ แจ้งที่นั่งว่าง คนเพิ่ม และคนเอนตัว ให้ผู้คุมสอบไปดู",
+    2: "ใบหน้าที่อยู่ไกลกล้องยังหาไม่เจอ และเห็นโทรศัพท์ได้เฉพาะแถวหน้าใกล้กล้อง ผู้คุมสอบควรเดินตรวจร่วมด้วย" },
+  attendance: { cards: ["attendance"],
+    1: "ลงเวลาทำงานด้วย PIN หรือ QR บนเครื่องของร้าน ไม่ต้องใช้กล้อง สแกนใบหน้าเป็นทางเลือกเฉพาะพนักงานที่ยินยอม",
+    2: "แบบสแกนใบหน้าบางครั้งต้องสแกนซ้ำหรือให้หัวหน้ายืนยัน และกันภาพปลอมได้ไม่ครบ จึงควรมีคนดูแลจุดลงเวลา" },
+  pc: { cards: ["medicine"],
+    1: "อ่านฉลากยาและสินค้า บาร์โค้ด และตรวจถ้อยคำโฆษณาบนเครื่องนี้ ภาพไม่ถูกส่งออก",
+    2: "อาจอ่านชื่อยาหรือตัวเลขผิด และอาจพลาดคำโฆษณาที่เขียนต่างออกไป ไม่ใช่การยืนยันขั้นสุดท้าย ยืนยันกับเภสัชกรทุกครั้ง" },
+  nutrition: { cards: ["nutrition"],
+    1: "อ่านฉลากโภชนาการบนเครื่องนี้ แสดงค่าพร้อมบรรทัดที่อ่านมา และให้แก้ไขได้",
+    2: "ตัวอักษรเล็ก ฉลากโค้ง หรือแสงสะท้อนอาจทำให้ค่าผิด เทียบกับฉลากจริงทุกครั้ง ไม่ใช่คำแนะนำทางการแพทย์" },
+  studio: { cards: ["studio"],
+    1: "ทำภาพโปรไฟล์และรูปติดบัตรจากรูปของคุณ เปลี่ยนฉากและรีทัชบนเครื่องนี้",
+    2: "บางภาพอาจมีขอบหรือรอยต่อผิดปกติ ดูภาพทุกครั้งก่อนใช้ ชุดจำลองยังเป็นแบบร่างและปิดไว้เป็นค่าเริ่มต้น" },
+  photobooth: { cards: ["photobooth"],
+    1: "ตู้ถ่ายรูปสำหรับอีเวนต์ ใส่กรอบและสติ๊กเกอร์ พิมพ์หรือรับไฟล์ได้ทันที",
+    2: "รูปติดบัตรแบบใส่ชุดจำลองยังเป็นแบบร่าง ปิดไว้เป็นค่าเริ่มต้น ดูรูปก่อนพิมพ์ทุกครั้ง" },
+  omr: { cards: ["omr"],
+    1: "ตรวจกระดาษคำตอบด้วยกล้องมือถือ แสดงคะแนนและสถิติรายข้อ",
+    2: "แผ่นที่ระบายจาง ระบายเกินวง หรือถ่ายเอียงอาจอ่านผิด ระบบทำเครื่องหมายแผ่นที่ไม่แน่ใจไว้ให้ครูตรวจ" },
+  store: { cards: ["store", "retail"],
+    1: "นับคนผ่านประตูร้าน คิว และอัตราการซื้อโดยประมาณ ไม่ระบุตัวตน",
+    2: "ประตูที่คนเดินเป็นกลุ่มหรือคนแน่นอาจนับคลาด ทดลองเทียบกับการนับของคุณก่อนใช้ตัดสินใจ" },
+  booth: { cards: ["booth"],
+    1: "นับผู้เข้าชมบูธ ไม่เก็บข้อมูลใบหน้าเป็นค่าเริ่มต้น",
+    2: "นับเฉพาะคนที่หันหน้ามาทางกล้อง ใช้ดูแนวโน้มมากกว่ายอดจริง" },
+  zones: { cards: ["queue", "tables", "bays", "afterhours"],
+    1: "แจ้งคิว โต๊ะว่าง ช่องจอด หรือคนในพื้นที่หวงห้าม โดยไม่ระบุตัวตนและไม่บันทึกภาพ",
+    2: "เงา แสงไฟ หรือคนยืนบังกันอาจทำให้แจ้งผิดหรือนับขาด ให้เจ้าหน้าที่ตรวจก่อนดำเนินการ" },
+  checkout: { cards: ["checkout"],
+    1: "สแกนบาร์โค้ดสินค้าด้วยกล้อง",
+    2: "ภาพสั่น เบลอ หรือเอียงมากอ่านไม่ได้ ตรวจรายการในตะกร้าก่อนรับเงิน" },
+  creative: { cards: ["creative", "creative-suite"],
+    1: "คาดการณ์ว่าคนจะมองตรงไหนของชิ้นงานโฆษณา",
+    2: "เป็นการคาดการณ์ ไม่ใช่การวัดสายตาคนจริง" },
+  insights: { cards: ["insights"],
+    1: "รวมยอดจากระบบนับคนต่าง ๆ ในที่เดียว",
+    2: "ตัวเลขถูกต้องได้เท่ากับระบบต้นทางเท่านั้น" },
+  driver: { cards: ["driver"],
+    1: "เตือนเมื่อคนขับหลับตานานหรือหันออกจากถนน",
+    2: "เตือนได้เพียงบางส่วน ไม่ใช่อุปกรณ์ความปลอดภัย ห้ามใช้แทนการพักผ่อน" },
+  qc: { cards: ["qc"],
+    1: "ตรวจขวดและฝาบนสายการผลิตด้วยกล้องที่ตั้งคงที่",
+    2: "แสงหรือตำแหน่งกล้องที่เปลี่ยนอาจทำให้ปัดตกผิด สอบเทียบกับขวดตัวอย่างก่อนเริ่มงานทุกครั้ง" },
+  converter: { cards: ["converter"],
+    1: "แปลงไฟล์ PDF เป็น Word บนเครื่องนี้ ไม่อัปโหลด",
+    2: "เอกสารที่มีตารางหรือรูปซับซ้อนอาจจัดหน้าไม่ตรงต้นฉบับ" },
+  hr: { cards: ["hr", "interview", "case-review"],
+    1: "ชุดสัมภาษณ์แบบมีโครงสร้าง ผู้สัมภาษณ์ให้คะแนนเอง",
+    2: "ระบบไม่ตัดสินการจ้างงาน ไม่อ่านอารมณ์ และไม่จับโกหก" }
+};
+
+/** Owner decision 223 (audit 1.10): the "ยังขาด… / Still needed" notes of the 25 coming-soon cards on solutions.html are
+ *  internal roadmap language, so they left the customer page. They are kept here verbatim (TH / EN / ZH, as at base ecb783b6)
+ *  and listed in docs/PAGE-STATUS.md (back-office document). */
+const SOON_ROADMAP = [
+  { card: "sol-edu3", title: "School-gate check-in with parent notice",
+    th: "ขั้นตอนขอความยินยอมจากผู้ปกครอง ทางเลือก QR สำหรับเด็กที่ไม่ใช้ใบหน้า และช่องทางส่งข้อความถึงผู้ปกครอง",
+    en: "A parental-consent flow, a QR alternative for children who do not use their face, and a channel for messages to parents",
+    zh: "家长同意流程、为不使用人脸的孩子提供的二维码替代方式，以及给家长发消息的渠道" },
+  { card: "sol-edu4", title: "PE fitness test (pose rep counter)",
+    th: "โมเดลท่าทาง (MediaPipe Pose, Apache-2.0) และการวัดความแม่นยำกับนักเรียนจริงพร้อมความยินยอมของผู้ปกครอง",
+    en: "A pose model (MediaPipe Pose, Apache-2.0) and accuracy testing with real pupils, with parental consent",
+    zh: "姿态模型（MediaPipe Pose，Apache-2.0）以及在家长同意下与真实学生进行的准确度测试" },
+  { card: "sol-edu8", title: "Paper-card class poll",
+    th: "ตัวอ่านมาร์กเกอร์บนการ์ด (js-aruco, MIT) และการทดสอบในห้องเรียนจริง",
+    en: "A marker reader for the cards (js-aruco, MIT) and testing in real classrooms",
+    zh: "卡片标记识别器（js-aruco，MIT）以及在真实课堂中的测试" },
+  { card: "sol-edu9", title: "Homework and document scan to PDF",
+    th: "ขั้นตอนหาขอบกระดาษและสร้าง PDF ในเบราว์เซอร์ ยังไม่ได้สร้าง",
+    en: "Page-edge detection and in-browser PDF creation; not built yet",
+    zh: "纸张边缘检测和浏览器内生成 PDF，尚未开发" },
+  { card: "sol-edu10", title: "Library loans by barcode",
+    th: "ตัวอ่านบาร์โค้ดสำรองสำหรับ iPhone (zxing-js, Apache-2.0) และหน้าบันทึกการยืม-คืน",
+    en: "A backup barcode reader for iPhone (zxing-js, Apache-2.0) and a loans page",
+    zh: "适用于 iPhone 的备用条码识别（zxing-js，Apache-2.0）和借还记录页面" },
+  { card: "sol-edu11", title: "Safety-goggle check in school labs",
+    th: "ตัวตรวจจับเฉพาะ (YOLOX, Apache-2.0) ที่ฝึกด้วยภาพที่ใช้เชิงพาณิชย์ได้ และความยินยอมของผู้ปกครอง",
+    en: "A custom detector (YOLOX, Apache-2.0) trained on images cleared for commercial use, and parental consent",
+    zh: "使用可商用图像训练的专用检测器（YOLOX，Apache-2.0），以及家长同意" },
+  { card: "sol-r11", title: "Before/after campaign test",
+    th: "หน้าเทียบผลที่ใช้ตัวเลขรายวันจากหน้านับคน (lensiq-stats) ยังไม่ได้สร้าง",
+    en: "A comparison page using the daily numbers from the counting pages (lensiq-stats); not built yet",
+    zh: "使用计数页面每日数据（lensiq-stats）的对比页面，尚未开发" },
+  { card: "sol-r12", title: "Phone stocktake by barcode",
+    th: "ตัวอ่านบาร์โค้ดสำรองสำหรับ iPhone (zxing-js, Apache-2.0) และหน้านับสต็อก",
+    en: "A backup barcode reader for iPhone (zxing-js, Apache-2.0) and a stocktake page",
+    zh: "适用于 iPhone 的备用条码识别（zxing-js，Apache-2.0）和盘点页面" },
+  { card: "sol-r13", title: "Empty-shelf check from photos",
+    th: "การเทียบภาพกับต้นแบบแบบนำร่อง และต่อไปตัวตรวจจับช่องว่างที่ฝึกด้วยข้อมูลที่ใช้เชิงพาณิชย์ได้",
+    en: "Reference-photo comparison as a pilot, then an empty-slot detector trained on data cleared for commercial use",
+    zh: "先以参考照片对比做试点，之后使用可商用数据训练的空位检测器" },
+  { card: "sol-r14", title: "Staff rota vs footfall",
+    th: "ส่วนเสริมในแดชบอร์ดรวมที่อ่านตารางกะ ยังไม่ได้สร้าง",
+    en: "An add-on to the combined dashboard that reads the rota; not built yet",
+    zh: "综合看板中读取排班表的附加功能，尚未开发" },
+  { card: "sol-r15", title: "Price and expiry label reading",
+    th: "โมเดลหาตำแหน่งข้อความ (PP-OCR det, Apache-2.0) เพิ่มจากตัวอ่านข้อความที่มีอยู่",
+    en: "A text-detection model (PP-OCR det, Apache-2.0) on top of the existing text reader",
+    zh: "在现有文字识别之上增加文字检测模型（PP-OCR det，Apache-2.0）" },
+  { card: "sol-m3", title: "Helmet and vest check at the gate",
+    th: "โมเดลตรวจจับเฉพาะ (YOLOX, Apache-2.0) ที่ฝึกจากภาพที่มีสิทธิ์ใช้เชิงพาณิชย์ ตอนนี้ยังไม่มีโมเดลสำเร็จรูปที่ใบอนุญาตชัดเจน",
+    en: "A custom detector (YOLOX, Apache-2.0) trained on images cleared for commercial use; no ready-made model with a clear licence exists yet",
+    zh: "需要用可商用图像训练的专用检测器（YOLOX，Apache-2.0）；目前尚无许可明确的现成模型" },
+  { card: "sol-h1", title: "Fall or no-movement alert",
+    th: "โมเดลท่าทาง (MediaPipe Pose, Apache-2.0) ภาพแบบเงาเพื่อความเป็นส่วนตัว และการทดสอบกับผู้ดูแลจริง ไม่ใช่อุปกรณ์การแพทย์",
+    en: "A pose model (MediaPipe Pose, Apache-2.0), a silhouette view for privacy and testing with real carers; it is not a medical device",
+    zh: "姿态模型（MediaPipe Pose，Apache-2.0）、保护隐私的剪影视图，以及与真实护理人员的测试；它不是医疗器械" },
+  { card: "sol-h2", title: "Physiotherapy rep and range coach",
+    th: "โมเดลท่าทางและการวัดความแม่นยำเทียบกับการวัดของนักกายภาพ",
+    en: "A pose model and accuracy measured against physiotherapist measurements",
+    zh: "姿态模型，以及与康复师测量结果对比的准确度验证" },
+  { card: "sol-h7", title: "Pill tray counter",
+    th: "วิธีแยกเม็ดยาที่ติดกัน และการวัดความแม่นยำกับถาดจริงก่อนใช้งาน",
+    en: "A way to separate touching pills, and accuracy measured on real trays before use",
+    zh: "分开相互接触药片的方法，以及在真实托盘上测得的准确率" },
+  { card: "sol-h8", title: "Hand-wash timer",
+    th: "โมเดลตรวจจับมือ (MediaPipe, Apache-2.0) ในหน้าใหม่ และภาพขั้นตอนที่มีสิทธิ์ใช้",
+    en: "A hand-detection model (MediaPipe, Apache-2.0) in a new page, and step pictures we may use",
+    zh: "新页面中的手部检测模型（MediaPipe，Apache-2.0）以及可使用的步骤图" },
+  { card: "sol-h9", title: "Thai ID-card reading for registration",
+    th: "โมเดลหาตำแหน่งข้อความและการตัดกรอบบัตร พร้อมการประเมินผลกระทบด้านข้อมูลส่วนบุคคล",
+    en: "A text-detection model and card cropping, plus a data-protection impact assessment",
+    zh: "文字检测模型和证件裁剪，以及个人数据影响评估" },
+  { card: "sol-h10", title: "Medicine label read aloud",
+    th: "โมเดลหาตำแหน่งข้อความ (PP-OCR det, Apache-2.0) และการทดสอบกับฉลากยาไทยจริง",
+    en: "A text-detection model (PP-OCR det, Apache-2.0) and testing with real Thai labels",
+    zh: "文字检测模型（PP-OCR det，Apache-2.0）以及用真实泰国药品标签测试" },
+  { card: "sol-f1", title: "Gym and Muay Thai rep counter",
+    th: "โมเดลท่าทางและการทดสอบกับท่าจริงหลายมุมกล้อง",
+    en: "A pose model and testing on real moves from several camera angles",
+    zh: "姿态模型，以及在多个机位下对真实动作的测试" },
+  { card: "sol-a4", title: "Livestock counting",
+    th: "ตัวตรวจจับรู้จักวัวและแกะจากชุดข้อมูลทั่วไป แต่ยังไม่ได้วัดความแม่นยำกับสัตว์และคอกในไทย",
+    en: "The detector knows cows and sheep from a general dataset, but accuracy has not been measured on Thai animals and pens",
+    zh: "检测器能从通用数据集中识别牛和羊，但尚未在泰国的牲畜和圈舍上测量准确度" },
+  { card: "sol-e10", title: "Feng-shui furniture check from a room photo",
+    th: "ตัวตรวจจับวัตถุในหน้าฮวงจุ้ย (COCO-SSD)",
+    en: "Object detection on the feng-shui page (COCO-SSD)",
+    zh: "风水页面中的物体检测（COCO-SSD）" },
+  { card: "sol-e11", title: "Printable move-in plan",
+    th: "หน้ารวมที่ดึงข้อมูลจากหน้าวางแผนฤกษ์และหน้าฮวงจุ้ย ยังไม่ได้สร้าง",
+    en: "A combined page that pulls from the date planner and the feng-shui page; not built yet",
+    zh: "汇总吉日规划与风水页面数据的页面，尚未开发" },
+  { card: "sol-e12", title: "Lucky numbers from the camera",
+    th: "เชื่อมตัวอ่านป้ายทะเบียน (lensiq-plate.js) เข้ากับหน้าเลขมงคล",
+    en: "Connecting the plate reader (lensiq-plate.js) to the lucky-numbers page",
+    zh: "把车牌识别（lensiq-plate.js）连接到吉祥数字页面" },
+  { card: "sol-e13", title: "Real Tarot card recognition",
+    th: "ตัวจำแนกไพ่ที่ต้องฝึกเอง หรือการเทียบกับภาพไพ่ที่มีสิทธิ์ใช้",
+    en: "A card classifier we would train ourselves, or matching against card images we have the rights to use",
+    zh: "需要自行训练的卡牌分类器，或与有使用权的牌面图像比对" },
+  { card: "sol-e14", title: "Dense-crowd estimate",
+    th: "โมเดลประมาณความหนาแน่นที่น้ำหนักโมเดลใช้เชิงพาณิชย์ได้ (โมเดลที่พบส่วนใหญ่ฝึกด้วยชุดข้อมูลเพื่อการวิจัยเท่านั้น)",
+    en: "A density model whose weights are cleared for commercial use (most available ones are trained on research-only datasets)",
+    zh: "权重可商用的密度模型（现有模型大多用仅限研究的数据集训练）" }
+];
+
 /** Every page in the repo root: status, reason, accuracy lines. `cat` pages are filled from CATEGORIES below. */
 const PAGES = {
   // 1 Security & Access
@@ -456,16 +656,16 @@ const CATEGORIES = [
   { n: 3, slug: "hr", id: "work", icon: "🧑‍💼",
     name: { th: "HR และที่ทำงาน", en: "HR & Workplace", zh: "人力资源与职场" },
     short: { th: "HR", en: "HR", zh: "人力" },
-    intro: { th: "ลงเวลาด้วย PIN หรือ QR (ใบหน้าเป็นทางเลือก) สัมภาษณ์แบบมีโครงสร้าง ทบทวนเคส และกิจกรรมทีม คนตัดสินใจเรื่องคนเสมอ",
-      en: "Time clock by PIN or QR (face optional), structured interviews, case review and team activities. People always make the decisions about people.",
-      zh: "PIN 或二维码考勤（人脸可选）、结构化面试、案例复盘与团队活动。涉及人员的决定始终由人作出。" },
+    intro: { th: "ลงเวลาด้วย PIN หรือ QR (ใบหน้าเป็นทางเลือก) สัมภาษณ์แบบมีโครงสร้าง และทบทวนเคส คนตัดสินใจเรื่องคนเสมอ",
+      en: "Time clock by PIN or QR (face optional), structured interviews and case review. People always make the decisions about people.",
+      zh: "PIN 或二维码考勤（人脸可选）、结构化面试与案例复盘。涉及人员的决定始终由人作出。" },
     pages: ["attendance", "hr", "interview", "case-review", "teamface"] },
   { n: 4, slug: "marketing", id: "ana", icon: "🛍️",
     name: { th: "การตลาด ค้าปลีก และอีเวนต์", en: "Marketing, Retail & Events", zh: "营销、零售与活动" },
     short: { th: "ค้าปลีก", en: "Retail", zh: "零售" },
-    intro: { th: "นับคนและความหนาแน่น หน้าร้าน คิว โต๊ะ ช่องจอด ป้ายโฆษณา และบูธ แบบไม่ระบุตัวตน ประมวลผลบนเครื่อง",
-      en: "People counts and density, store, queues, tables, bays, signage and booths, anonymous and processed on the device.",
-      zh: "人数与密度、门店、排队、餐桌、车位、广告屏与展位，匿名且在本机处理。" },
+    intro: { th: "นับคนและความหนาแน่น หน้าร้าน คิว โต๊ะ ช่องจอด และบูธ แบบไม่ระบุตัวตน ประมวลผลบนเครื่อง",
+      en: "People counts and density, store, queues, tables, bays and booths, anonymous and processed on the device.",
+      zh: "人数与密度、门店、排队、餐桌、车位与展位，匿名且在本机处理。" },
     pages: ["crowd", "store", "retail", "insights", "customers", "signage", "neuro", "queue", "tables", "bays", "checkout", "creative",
       "creative-suite", "booth"] },
   { n: 5, slug: "health", id: "health", icon: "🩺",
@@ -518,4 +718,4 @@ const UNLINKED = { admin: "Owner back office (noindex), deliberately not linked 
   "404": "Not-found page (owner order 2026-11-18 C, promotion basics): GitHub Pages shows it for any missing address; noindex, not in the menus or the sitemap",
   counselling: "Counselling services (owner decision 2026-11-16, crisis one-number rules): linked only from the fortune crisis card and help line, help and privacy; not in the menus" };
 
-module.exports = { STATUS, STATUS_DEF, STATUS_DEF_CAT, SOURCE, CLAIMS, REASONS, PAGES, CATEGORIES, PLATFORM, UNLINKED };
+module.exports = { STATUS, STATUS_DEF, STATUS_DEF_CAT, SOURCE, CLAIMS, REASONS, BADGE, DEMO_ONLY, NO_BADGE, badgeOf, LINES, SOON_ROADMAP, PAGES, CATEGORIES, PLATFORM, UNLINKED };

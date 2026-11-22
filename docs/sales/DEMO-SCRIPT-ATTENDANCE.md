@@ -1,8 +1,8 @@
 # สคริปต์เดโม 10 นาที: LENSIQ Attendance (ลงเวลาพนักงาน PIN / QR เป็นค่าเริ่มต้น ใบหน้าเป็นตัวเลือก)
 
 > **ร่าง (DRAFT) 2026-11-11** ใช้พนักงานสมมติเท่านั้น ห้ามกรอกชื่อ PIN หรือบัตรของพนักงานจริงของลูกค้า
-> ตัวเลขทุกตัวมีที่มาใน `docs/ACCURACY-CLAIMS.md` (ทะเบียน A1–A6) และ `docs/ONE-PAGER-ATTENDANCE.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
-> สถานะ (`docs/PAGE-STATUS.md`): `attendance.html` = พร้อมนำร่อง (PIN/QR เป็นค่าเริ่มต้น ใบหน้ารอสรุปใบอนุญาตโมเดล OP-14)
+> ตัวเลขการทดสอบอยู่ในเอกสารเทคนิค `docs/tech-sheets/attendance-TH.md` (ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค) และ `docs/ONE-PAGER-ATTENDANCE.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
+> สถานะ (`docs/PAGE-STATUS.md`): `attendance.html` = ใช้นำเดโมได้ ไม่มีป้ายสถานะ (PIN/QR เป็นค่าเริ่มต้น ใบหน้ารอสรุปใบอนุญาตโมเดล OP-14)
 
 ## เตรียมก่อนเดโม
 
@@ -23,7 +23,7 @@
 | 5:30–7:00 | แท็บ "สรุปเดือนและเงินเดือน" | "สรุปรายเดือนต่อคน มาสายกี่นาที ออกก่อน OT วันหยุดนักขัตฤกษ์ วันลา เตือนสัปดาห์เกิน 48 ชั่วโมง ส่งออก CSV สำหรับเงินเดือน หัวคอลัมน์สองภาษา" | ตารางเดือนและปุ่มส่งออก CSV **มีแล้ว** (`attendance.html?mode=employee&demo=1`) `attendance.html?mode=employee&demo=1` เติมพนักงานสมมติ 8 คนและบันทึกเวลาตั้งแต่ต้นเดือนก่อนถึงเมื่อวานไว้แล้ว ตารางเดือนมีตัวเลขครบ (มาสาย ออกก่อน OT ขาด ลงเวลาไม่ครบ) ใช้หน้าจริงได้เลย | "ระบบเงินเดือนที่ใช้คืออะไร ขอไฟล์ตัวอย่างที่ไม่มีข้อมูลบุคคลได้ไหม" |
 | 7:00–8:00 | แท็บ "แก้ไขเวลาและประวัติ" | "ผู้จัดการแก้ได้แต่ไม่แก้ข้อมูลดิบ ทุกการแก้เป็นรายการตรวจสอบย้อนหลัง ต้องใส่ชื่อผู้แก้และเหตุผล ลบหรือสลับลำดับแล้วระบบเตือน" | เพิ่มการลงเวลาที่ลืม แล้วดูรายการประวัติ ลิงก์ส่งออก "ข้อมูลของพนักงานคนนี้" (สิทธิเข้าถึง PDPA) | "ใครอนุมัติการแก้เวลา" |
 | 8:00–9:00 | แท็บ "ตั้งค่าและข้อมูล" | พูดข้อจำกัดตรง ๆ: "พื้นที่ในเบราว์เซอร์ราว 20 คน × 2 ปีต่อเครื่อง ยังไม่มีซิงก์คลาวด์ หลายเครื่องรวมกันด้วยไฟล์ส่งออก/นำเข้า ยังไม่มีกะหมุนเวียน ไม่มีขออนุมัติลาออนไลน์ ไม่คำนวณค่าจ้าง ภาษี ประกันสังคม และเวลาอิงนาฬิกาเครื่อง" | ส่วน "รวมข้อมูลจากหลายจุดลงเวลา" มิเตอร์พื้นที่ | "มีกี่สาขา กี่คน ต้องการซิงก์ทันทีหรือไม่" |
-| 9:00–9:45 | `attendance.html` ส่วน "ตัวเลขและที่มา" | ถ้าลูกค้าถามใบหน้า: "ใบหน้าเป็นตัวเลือก ใช้เมื่อพนักงานยินยอม ใบหน้าเอเชีย จำได้ต่อการสแกน 66–76% (n = 500 คน × 5 ภาพ ชุดข้อมูลสาธารณะ CASIA ชุดทดสอบแยกแต่ไม่ปิดตาสมบูรณ์) คนที่ไม่ได้ลงทะเบียนถูกเช็คชื่ออัตโนมัติโดยไม่มีคนยืนยัน ≤ 0.03% ที่ทำงานจริงในไทย ยังไม่ได้วัด การหันหน้ายืนยันคนจริง ยังไม่ได้วัด PIN/QR ไม่มีความคลาดเคลื่อนจากการจดจำ" | แถว A2 A4 A5 A6 ป้าย "โมเดลใบอนุญาตวิจัย" (รอความเห็นทางกฎหมายก่อนขายเชิงพาณิชย์ OP-14) | "พนักงานจะยินยอมใช้ใบหน้าหรือไม่ หรือ PIN/QR เพียงพอ" |
+| 9:00–9:45 | `attendance.html` ส่วน "ใช้ทำอะไร และข้อจำกัดสำคัญ" | ถ้าลูกค้าถามใบหน้า อ่านสองบรรทัดตามจริง: "ลงเวลาทำงานด้วย PIN หรือ QR บนเครื่องของร้าน ไม่ต้องใช้กล้อง สแกนใบหน้าเป็นทางเลือกเฉพาะพนักงานที่ยินยอม แบบสแกนใบหน้าบางครั้งต้องสแกนซ้ำหรือให้หัวหน้ายืนยัน และกันภาพปลอมได้ไม่ครบ จึงควรมีคนดูแลจุดลงเวลา" ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค | ป้าย "โมเดลใบอนุญาตวิจัย" (รอความเห็นทางกฎหมายก่อนขายเชิงพาณิชย์ OP-14) | "พนักงานจะยินยอมใช้ใบหน้าหรือไม่ หรือ PIN/QR เพียงพอ" |
 | 9:45–10:00 | `attendance.html` ส่วนราคา | "ฟรีไม่เกิน 5 คน PIN/QR 1 เครื่อง (เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ เริ่มตามวันที่จะประกาศ ล่วงหน้า 30 วันขึ้นไป และเริ่มใช้หลังประกาศ 30 วัน) มาตรฐานราคานำร่อง 19 บาทต่อคนที่ใช้งานต่อเดือน ขั้นต่ำ 190 บาทต่อเดือน ไม่รวม VAT 7% ช่วยตั้งค่า 2,900 บาทครั้งเดียว ไม่บังคับ นำร่อง 2 สัปดาห์ เทียบ CSV เงินเดือนกับของเดิมหนึ่งรอบเดือน" | ตารางราคา (ราคาที่อนุมัติ) | "เริ่มนำร่องได้เมื่อไร" |
 
 ## จุดที่ต้องมีโหมดเดโม (`?demo=1`)
@@ -36,11 +36,11 @@
 
 ## ห้ามพูด / ห้ามกล่าวอ้าง (NOT to claim)
 
-- ห้ามบอกความแม่นยำของใบหน้า "ที่ทำงานจริง" (ยังไม่ได้วัด) ห้ามบอก 85% (เป็นตัวเลขชุดที่ใช้ปรับค่า ดีเกินจริง) เป็นตัวเลขหลัก ตัวเลขหลักคือ 66–76% ใบหน้าเอเชีย
-- ห้ามบอกว่ากัน "ลงเวลาแทนกัน" ได้ (PIN และบัตรแชร์ได้ ไม่มีภาพตอนลงเวลาโดยตั้งใจ ตัวเลือกหันหน้ายังไม่ได้วัด)
+- ห้ามบอกผลของใบหน้า "ที่ทำงานจริง" (ยังไม่มี) ห้ามอ่านตัวเลขทดสอบเอง ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค
+- ห้ามบอกว่ากัน "ลงเวลาแทนกัน" ได้ (PIN และบัตรแชร์ได้ ไม่มีภาพตอนลงเวลาโดยตั้งใจ แบบสแกนใบหน้ากันภาพปลอมได้ไม่ครบ จึงควรมีคนดูแลจุดลงเวลา)
 - ห้ามบอกว่าคำนวณเงินเดือน ภาษี หรือประกันสังคม (เป็นงานของระบบเงินเดือน) ห้ามบอกว่ามีจับคู่โดยตรงกับโปรแกรมเงินเดือนยี่ห้อใด (ยังไม่มี ต้องใช้ไฟล์ตัวอย่างจากลูกค้า)
 - ห้ามบอกว่ามีซิงก์หลายสาขา สำรองบนคลาวด์ ขออนุมัติลาออนไลน์ กะหมุนเวียน หรือแอปสำหรับพนักงาน (ยังไม่มี)
-- ห้ามบอกว่าถูกต้องตามกฎหมายแรงงานหรือ PDPA ครบ (รอทนายแรงงานและทนายข้อมูลส่วนบุคคล) ห้ามบอกว่าใช้ใบหน้าเชิงพาณิชย์ได้แล้ว (รอข้อสรุปใบอนุญาตโมเดล)
+- ห้ามบอกว่าถูกต้องตามกฎหมายแรงงานหรือ PDPA ครบ (อยู่ระหว่างให้ทนายแรงงานและทนายข้อมูลส่วนบุคคลตรวจ) ห้ามบอกว่าใช้ใบหน้าเชิงพาณิชย์ได้แล้ว (รอข้อสรุปใบอนุญาตโมเดล)
 - ห้ามพูดถึงการวิเคราะห์อารมณ์ การให้คะแนนพนักงาน หรือการตรวจจับการโกหก ระบบไม่มี ระบบแสดงรายการผิดปกติให้ผู้จัดการตรวจ ไม่ตัดสินให้
 - ห้ามบอกว่า "29 บาท" เป็นราคาที่ใช้ตอนนี้ เป็นราคาปกติหลังผ่านเกณฑ์นำร่อง แสดงข้างราคานำร่อง 19 ได้เมื่อติดป้ายครบ (ตัดสิน 2026-11-13)
 
@@ -53,8 +53,8 @@
 # English
 
 > **DRAFT 2026-11-11.** Use fictitious employees only. Never enter a real customer employee's name, PIN or badge.
-> Every number is sourced in `docs/ACCURACY-CLAIMS.md` (register A1–A6) and `docs/ONE-PAGER-ATTENDANCE.md`. Open points (OP-xx) are in `docs/sales/README.md`.
-> Status (`docs/PAGE-STATUS.md`): `attendance.html` = pilot-ready (PIN / QR default; the face option waits for the model-licence decision, OP-14).
+> Numbers are in the technical sheet `docs/tech-sheets/attendance-EN.md` (if asked for numbers, hand over the technical sheet) and `docs/ONE-PAGER-ATTENDANCE.md`. Open points (OP-xx) are in `docs/sales/README.md`.
+> Status (`docs/PAGE-STATUS.md`): `attendance.html` = fine to demo, no status badge (PIN / QR default; the face option waits for the model-licence decision, OP-14).
 
 **Prepare:** open https://anirut77.github.io/lensiq/attendance.html?mode=employee in a fresh Chrome/Edge window (empty profile). Optional phone or tablet as the "clock". Fictitious
 employees "Sample employee 1" (E01, PIN 1234) and "Sample employee 2" (E02, PIN 5678) and a fictitious manager PIN. Backup screenshots of the month tab and a sample CSV.
@@ -69,15 +69,15 @@ Do not switch on the face option during a customer demo; use minute 9 only if as
 | 5:30–7:00 | Tab "Month and payroll" | Monthly summary per person: late minutes, early leave, OT, public-holiday work, leave, a warning over 48 hours a week; payroll CSV with bilingual headers. | Month table and CSV export. Demo mode: `attendance.html?mode=employee&demo=1` preloads 8 sample employees and a month of punches. | Which payroll system do you use? Can you share a sample file with no personal data? |
 | 7:00–8:00 | Tab "Corrections and history" | A manager can correct, but raw punches are never edited. Each correction is an audit entry with the manager's name and a reason; a deleted or reordered entry is flagged. | Add a missed punch and read the history; the per-employee export (PDPA access right) | Who approves time corrections? |
 | 8:00–9:00 | Tab "Settings and data" | State the limits plainly: browser storage holds about 20 people x 2 years per device; no cloud sync; several devices merge by file export / import; no rotating rosters; no online leave approval; no wage, tax or social-security calculation; time follows the device clock. | "Merge data from several clock-in points"; the storage meter | How many branches and people? Do you need instant sync? |
-| 9:00–9:45 | `attendance.html`, "Figures and sources" | Only if asked about faces: the face is optional and used only with consent. Asian faces recognised per scan 66–76% (n = 500 people x 5 photos, public dataset CASIA; held-out but not perfectly blind). Strangers auto-checked-in with no confirmation: at most 0.03%. A real Thai workplace: not measured. The head-turn liveness option: not measured. PIN / QR has no recognition error. | Rows A2, A4, A5, A6; the "research-licence model" label (waiting for legal opinion before commercial sale, OP-14) | Would your staff consent to a face, or is PIN / QR enough? |
+| 9:00–9:45 | `attendance.html`, "What it is for and its main limits" | Only if asked about faces, read the two lines as they are: "Staff clock in with a PIN or QR code on the shop's device, no camera needed. Face scan is an option only for staff who consent. With face scan, staff sometimes need to scan again or have a supervisor confirm, and it does not stop every fake image, so someone should watch the clock-in point." If asked for numbers, hand over the technical sheet. | The "research-licence model" label (waiting for legal opinion before commercial sale, OP-14) | Would your staff consent to a face, or is PIN / QR enough? |
 | 9:45–10:00 | `attendance.html`, price | Free up to 5 people (PIN / QR, 1 device; beyond that a licence is needed, not enforced in the product yet, starting on a date announced at least 30 days ahead and 30 days after the announcement (enforced by contract, OP-26)). Standard at the pilot price 19 THB per active person per month, minimum 190 THB per month, excl. 7% VAT. Optional set-up help 2,900 THB one-off. A 2-week pilot compares the payroll CSV with your existing record for one month. | Price table (approved list) | When can we start a pilot? |
 
 **Demo mode (`?demo=1`):** available on `attendance.html?mode=employee&demo=1`: eight sample employees with a month of punches, a month summary and a CSV
 labelled SAMPLE; "reset sample data" reloads the page. Real records on the device are never read or changed in demo mode.
 
-**Do NOT claim:** workplace face accuracy (not measured); 85% as the headline (it is a tuning-set figure, optimistic; the headline is 66–76% on Asian faces); that it stops buddy punching (a PIN or badge can be shared; no
-photo on punch by design; liveness unmeasured); wage, tax or social-security calculation; a direct export for any named payroll product (none yet; a sample file is needed); multi-branch sync,
-cloud backup, online leave approval, rotating rosters or an employee app (none exist); labour-law or PDPA compliance (labour lawyer and counsel pending); commercial use of the face option (model licence pending);
+**Do NOT claim:** workplace face results (none yet; read no test figures aloud, and if asked for numbers hand over the technical sheet); that it stops buddy punching (a PIN or badge can be shared; no
+photo on punch by design; face scan does not stop every fake image); wage, tax or social-security calculation; a direct export for any named payroll product (none yet; a sample file is needed); multi-branch sync,
+cloud backup, online leave approval, rotating rosters or an employee app (none exist); labour-law or PDPA compliance (labour lawyer and counsel are reviewing); commercial use of the face option (model licence pending);
 anything about emotion, scoring staff or lie detection; "29 THB" as today's price (it is the regular price after the pilot thresholds are met; show it only beside the pilot price of 19 THB, clearly labelled).
 
 **After the demo:** clear the demo data from the browser; note staff count, clock points, payroll system and views on faces; send the quotation.

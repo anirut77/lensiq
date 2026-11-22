@@ -38,7 +38,6 @@
 | ระดับการสอบ | [ย่อย/กลางภาค/ปลายภาค/อื่น ๆ] (ชุดนำร่องใช้เฉพาะรอบที่ไม่ชี้ขาดสูง) |
 | มีผู้สอบที่ยังไม่บรรลุนิติภาวะหรือไม่ | [ใช่/ไม่] (ถ้าใช่ ต้องมีขั้นตอนความยินยอมของผู้ปกครอง ให้ทนายยืนยัน OP-22) |
 | ทางเลือกสำหรับผู้ไม่ยินยอมเปิดกล้อง | [อธิบายวิธีสอบโดยไม่เปิดกล้อง] (จำเป็น) |
-| ห้องสอบที่มีกล้อง (`exam-hall.html`) | **รุ่นทดลอง ไม่ขาย ไม่อยู่ในใบสั่งซื้อนี้** |
 
 ### ☐ Attendance (ลงเวลาพนักงาน `attendance.html?mode=employee`)
 
@@ -143,7 +142,7 @@ Prices: as in the quoted quotation, excluding 7% VAT. Price stage: [pilot price 
 
 - **Exam (computer room / online, `exam-lab.html`):** order type (per candidate, monthly per lab, institution licence, free pilot); candidates per exam and
   number of labs; exam level (the pilot kit is for low-stakes exams only); any minors among candidates (if yes, a parental-consent step and counsel's
-  confirmation, OP-22); the way to sit the exam without the camera (required). The camera exam hall (`exam-hall.html`) is **experimental and not part of this order**.
+  confirmation, OP-22); the way to sit the exam without the camera (required).
 - **Attendance (`attendance.html?mode=employee`):** active employees and number of clock-in devices (data stays in each device's browser, about 20 people x 2 years per
   device); PIN / QR is the default; optional face check-in only with individual consent and a PIN / QR alternative, pending the model-licence decision (OP-14);
   optional set-up help; payroll system name and a sample file with no personal data.

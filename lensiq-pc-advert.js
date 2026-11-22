@@ -22,9 +22,9 @@
  *       endorsement, explain:{th,en,zh}, url}]}   category: the user's choice, else the guess, else null (every family)
  *   cardHtml(result, {lang, t}) -> HTML of the card (#pcAdCard); t(key, thaiDefault, vars) translates (LQI18N.tf)
  *   KEYS -> [[key, thaiDefault]] every card string (EN / ZH in i18n/en-med.js, i18n/zh-med.js, md.pc.ad.*)
- * RELEASED AS EXPERIMENTAL (owner decision 2026-11-11): the panel carries an "experimental" badge and the measured accuracy
- * line generated from docs/accuracy-figures.json; nothing is checked until the user chooses the product type (a guessed
- * type is only a suggestion button); "no signal" shows exactly the generated md.pc.ad.none sentence; mostly-Chinese text
+ * RELEASED AS EXPERIMENTAL (owner decision 2026-11-11; wording decision 223): the panel carries a "trial version" badge and a
+ * plain limit line (no figures; they are in docs/tech-sheets/product-check-*.md); nothing is checked until the user chooses
+ * the product type (a guessed type is only a suggestion button); "no signal" shows the md.pc.ad.none sentence; mostly-Chinese text
  * gets "limited support" (result.limited = "zh"); each flagged line shows the text found, "may fall under rule X" and
  * "verify with the official source".
  * Test hook (browser): window.__LQ_PCA = {st, run(text, category)}.
@@ -236,9 +236,9 @@
     "md.pc.ad.inName": "ถ้อยคำนี้อยู่ในชื่อ จึงซ่อนไว้",
     "md.pc.ad.rule": "อาจเข้าข่ายกฎ {id}",
     "md.pc.ad.basis": "ตรวจสอบกับแหล่งข้อมูลทางการ ({id})",
-    // generated text (docs/accuracy-figures.json, key md.pc.ad.none; tests/unit/pc-advert.test.js checks they are equal)
-    "md.pc.ad.none": "ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต ในการทดสอบ ระบบพบคำโฆษณาเกินจริงได้ราว 3 ใน 5",
-    "md.pc.ad.source": "ทดลองใช้: ตัวเลขความแม่นยำที่วัดได้อยู่ในแผงด้านบน อาจพลาดถ้อยคำที่เขียนต่างออกไป",
+    // decision 223: plain wording, no test figure (the figures are in the product-check technical sheet)
+    "md.pc.ad.none": "ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต",
+    "md.pc.ad.source": "อาจพลาดถ้อยคำที่เขียนต่างออกไป",
     "md.pc.ad.limited": "รองรับแบบจำกัด: โฆษณาภาษาจีนยังวัดผลได้น้อยข้อความ ระบบอาจพลาดคำโฆษณาเกินจริงมากกว่านี้",
     "md.pc.ad.needType": "เลือกประเภทสินค้าในโฆษณาก่อน แล้วกดตรวจอีกครั้ง ระบบยังไม่ได้ตรวจข้อความนี้",
     "md.pc.ad.useGuess": "ใช้ประเภทที่ระบบแนะนำ: {cat}",

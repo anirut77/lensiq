@@ -7,7 +7,14 @@
 //   3. index.html: the fortune category card names no demo; solutions.html: no fortune card shows a demo badge;
 //   4. other categories unchanged: teamface (cat-hr), signage and neuro (cat-marketing) and solutions sol-r5 still show the
 //      demo label in each language.
-import { existsSync } from "node:fs";
+//      re-lock 2026-11-21 (owner decision 223-2, inversion): the demo label is gone from every customer card; teamface
+//      (cat-hr), signage and neuro (cat-marketing) and solutions sol-r5 now carry exactly the "Coming soon" badge
+//      (D.BADGE.soon: เร็ว ๆ นี้ / Coming soon / 即将推出), are marked data-demo-only and are hidden outside demo mode; the
+//      index HR count is exactly "<n> tools" over the HR tools shown outside demo mode and names no status (no demo label).
+//      re-lock 2026-11-22 (owner decision 226, inversion): no status label anywhere a customer looks; teamface, signage and
+//      neuro are switched off in nav.js (var VISIBILITY): no card on cat-hr / cat-marketing, sol-r5 hidden (data-lq-off) and
+//      without any badge; the index HR count is over the HR tools switched on.
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { noErrors, assert } from "./zones-lib.mjs";
@@ -16,9 +23,12 @@ const require = createRequire(import.meta.url);
 const LANGS = ["th", "en", "zh"];
 const DEMO = { th: "สาธิต", en: "Demo", zh: "演示" };
 const DEMO_SRC = { th: "สาธิต", en: "\\bdemo\\b", zh: "演示" };
+// re-lock 2026-11-21 (owner decision 223): the index category count is "<n> tools" only, no status breakdown
+const COUNT = { th: n => n + " เครื่องมือ", en: n => n + " tools", zh: n => n + " 个工具" };
 
 export default async function ({ base, launch, check, fakeCams, repo }) {
   const D = require(join(repo, "tools", "cat-data.cjs"));
+  const OFF = [...readFileSync(join(repo, "nav.js"), "utf8").match(/var VISIBILITY = \{([\s\S]*?)\};/)[1].matchAll(/"?([a-z][\w-]*)"?: false/g)].map(m => m[1]);
   const FORT = D.CATEGORIES.find(c => c.slug === "fortune");
   const PAGES = FORT.pages.concat(["compat", "petread"].filter(p => existsSync(join(repo, p + ".html"))));
   const browser = await launch();
@@ -71,7 +81,10 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
         const fc = await idx.evaluate(() => (document.querySelector("[data-i18n='cat.fortune.count']") || {}).textContent || "");
         const hc = await idx.evaluate(() => (document.querySelector("[data-i18n='cat.hr.count']") || {}).textContent || "");
         assert(fc && !new RegExp(re, "i").test(fc), `${lang} index fortune count: ${fc}`);
-        assert(new RegExp(re, "i").test(hc), `${lang} index hr count keeps demo: ${hc}`);
+        // re-lock 223 (was: "the HR count keeps the demo label"): no demo label, exactly the HR tools shown outside demo mode;
+        // re-lock 226: over the HR tools switched on in nav.js
+        const HR = D.CATEGORIES.find(c => c.slug === "hr");
+        assert(!new RegExp(re, "i").test(hc) && hc.trim() === COUNT[lang](HR.pages.filter(p => !OFF.includes(p)).length), `${lang} index hr count: ${hc}`);
         await idx.close();
         const sol = await open("solutions.html", lang);
         const r = await sol.evaluate((pages, label) => {
@@ -81,19 +94,27 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
             const page = href.replace(/\.html.*$/, "");
             const tag = card.querySelector(".sl-tag");
             if (pages.includes(page)) out.fortune.push(page + ":" + (tag ? tag.textContent.trim() : ""));
-            if (card.id === "sol-r5") out.r5 = tag ? tag.textContent.trim() : "";
+            if (card.id === "sol-r5") { out.r5 = tag ? tag.textContent.trim() : ""; out.r5off = card.hasAttribute("data-lq-off"); out.r5demoOnly = card.hasAttribute("data-demo-only"); out.r5shown = card.getClientRects().length > 0; }
           }
           out.label = label;
           return out;
         }, PAGES, DEMO[lang]);
         assert(r.fortune.length >= 3, `${lang} fortune cards ${JSON.stringify(r)}`);
         assert(r.fortune.every(s => !new RegExp(re, "i").test(s)), `${lang} fortune card badge: ${r.fortune}`);
-        assert(r.r5 === DEMO[lang], `${lang} sol-r5 keeps its demo badge: ${r.r5}`);
+        // re-lock 223 (was: "sol-r5 keeps its demo badge"): the Coming-soon badge, demo-only, hidden in the customer build;
+        // re-lock 226: no badge at all, hidden with data-lq-off (signage is switched off), markup kept
+        assert(r.r5 === "" && r.r5off && !r.r5demoOnly && !r.r5shown, `${lang} sol-r5 no badge, data-lq-off, hidden: ${JSON.stringify([r.r5, r.r5off, r.r5demoOnly, r.r5shown])}`);
         await sol.close();
         for (const [slug, pages] of [["hr", ["teamface"]], ["marketing", ["signage", "neuro"]]]) {
           const cp = await open(`cat-${slug}.html`, lang);
-          const tags = await cp.evaluate(ps => ps.map(p => (document.querySelector(`.cat-tool[data-page='${p}'] .cat-st`) || {}).textContent || ""), pages);
-          assert(tags.every(t => t.trim() === DEMO[lang]), `${lang} cat-${slug} demo chips: ${tags}`);
+          // re-lock 223 (was: "each still shows the demo label"): the Coming-soon badge on a demo-only card; re-lock 226: the
+          // products are switched off, so there is no card at all and no badge or demo label anywhere on the page
+          assert(pages.every(p => OFF.includes(p)), `${pages} switched off in nav.js`);
+          const r2 = await cp.evaluate((ps, soon) => ({ cards: ps.filter(p => document.querySelector(`.cat-tool[data-page='${p}'], a[href^='${p}.html']`)),
+            chips: document.querySelectorAll(".cat-st, [data-status], [data-demo-only]").length, soon: document.body.innerText.includes(soon) }), pages, D.BADGE.soon[lang]);
+          assert(!r2.cards.length && !r2.chips && !r2.soon, `${lang} cat-${slug}: off cards / badges: ${JSON.stringify(r2)}`);
+          const sc = await cp.evaluate(scan(DEMO[lang], DEMO_SRC[lang]));
+          assert(!sc.chips.length && !sc.demoChips.length, `${lang} cat-${slug} demo chips: ${JSON.stringify(sc)}`);
           await cp.close();
         }
       }

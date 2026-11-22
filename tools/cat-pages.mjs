@@ -7,7 +7,8 @@
 //
 // Thai is the default text in the markup; English and Chinese go to the dictionaries (keys cat.*). Tool names and
 // one-line descriptions are the nav.js menu entries (keys nav.<page>.title|desc, translated in i18n/{en,zh}-common.js),
-// parsed from nav.js so the menu and the landing pages cannot disagree. The CSP <meta> is copied from index.html
+// parsed from nav.js so the menu and the landing pages cannot disagree. Owner decision 223: each card shows the name, a
+// short badge, the menu line and the two approved lines (no accuracy, legend, sources or reasons); counts are tools only. The CSP <meta> is copied from index.html
 // (npm run csp:meta keeps that one current). Pure static pages: they read without JavaScript.
 import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -30,16 +31,26 @@ export function navEntries(navSrc = readFileSync(join(repo, "nav.js"), "utf8")) 
   return out;
 }
 
+/** decision 226: the visibility list (page -> on / off) of nav.js, the single source of what customers see */
+export function visibility(navSrc = readFileSync(join(repo, "nav.js"), "utf8")) {
+  const m = navSrc.match(/var VISIBILITY = (\{[\s\S]*?\});/);
+  if (!m) throw new Error("nav.js: var VISIBILITY = { … } missing");
+  return JSON.parse(m[1].replace(/([{,]\s*)([a-z][\w-]*)\s*:/g, '$1"$2":').replace(/,\s*\}/, "}"));
+}
+const VIS = visibility();
+const isOn = p => VIS[p] !== false;
 function counts(cat) {
-  const n = { all: cat.pages.length, noTag: !!cat.noStatusTag };
-  for (const st of Object.keys(D.STATUS)) n[st] = cat.pages.filter(p => D.PAGES[p].st === st).length;
+  // decision 226: the number of tools a customer can see (switched-off products are not listed or counted)
+  const listed = cat.pages.filter(isOn);
+  const n = { all: listed.length, noTag: !!cat.noStatusTag };
+  for (const st of Object.keys(D.STATUS)) n[st] = cat.pages.filter(p => D.PAGES[p].st === st).length; // internal (PAGE-STATUS.md)
   return n;
 }
+/** owner decision 223 (audit 1.0): every category shows the number of tools only, as the fortune category already did */
 const COUNT_TPL = {
-  // a category without status tags (fortune, owner order 2026-11-17) shows the number of tools only
-  th: (n) => n.noTag ? `${n.all} เครื่องมือ` : `${n.all} เครื่องมือ · พร้อมนำร่อง ${n["pilot-ready"]} · ทดลอง ${n.experimental} · สาธิต ${n.demo}` + (n.support ? ` · หน้าประกอบ ${n.support}` : ""),
-  en: (n) => n.noTag ? `${n.all} tools` : `${n.all} tools · pilot-ready ${n["pilot-ready"]} · experimental ${n.experimental} · demo ${n.demo}` + (n.support ? ` · support pages ${n.support}` : ""),
-  zh: (n) => n.noTag ? `${n.all} 个工具` : `${n.all} 个工具 · 可试点 ${n["pilot-ready"]} · 实验性 ${n.experimental} · 演示 ${n.demo}` + (n.support ? ` · 辅助页面 ${n.support}` : "")
+  th: (n) => `${n.all} เครื่องมือ`,
+  en: (n) => `${n.all} tools`,
+  zh: (n) => `${n.all} 个工具`
 };
 
 /** Fixed UI strings of the landing pages (and the index.html category chooser). */
@@ -48,22 +59,13 @@ const UI = {
   "cat.cta.pilot": { th: "ขอโครงการนำร่อง", en: "Request a pilot", zh: "申请试点" },
   "cat.cta.all": { th: "ระบบทั้งหมด", en: "All solutions", zh: "全部系统" },
   "cat.more": { th: "อ่านเพิ่มเติม", en: "Read more", zh: "阅读更多" },
-  "cat.legend.h": { th: "สถานะหมายถึงอะไร", en: "What the status means", zh: "状态说明" },
-  "cat.src.h": { th: "ที่มาของตัวเลข", en: "Where the numbers come from", zh: "数据来源" },
-  "cat.src.d": { th: "ทุกตัวเลขบอกที่มา: ข้อมูลสังเคราะห์ ชุดข้อมูลสาธารณะ หรือภาคสนาม ยังไม่มีระบบใดมีตัวเลขภาคสนาม ก่อนใช้ตัวเลขจริงให้ทดลองหน้างานพร้อมนับเทียบ",
-    en: "Every number names its source: synthetic, public dataset or field. No tool has a field figure yet. Before relying on a number, run an on-site trial with a manual count.",
-    zh: "每个数字都注明来源：合成数据、公开数据集或实地。目前没有任何工具有实地数据。依赖数字前，请先在现场试用并人工比对计数。" },
   "cat.tools.h": { th: "เครื่องมือในหมวดนี้", en: "Tools in this category", zh: "本类别的工具" },
-  "cat.acc.h": { th: "ความแม่นยำที่วัดได้", en: "Measured accuracy", zh: "已测准确率" },
-  "cat.why": { th: "ทำไมสถานะนี้", en: "Why this status", zh: "为何是此状态" },
   "cat.open": { th: "เปิดหน้า", en: "Open page", zh: "打开页面" },
   "cat.openTimeclock": { th: "เปิดลงเวลาทำงาน PIN / QR", en: "Open the PIN / QR time clock", zh: "打开 PIN / QR 考勤打卡" },
-  "cat.method": { th: "วิธีวัดและชุดข้อมูล", en: "How it was measured", zh: "测量方法与数据集" },
   "cat.others.h": { th: "หมวดอื่น", en: "Other categories", zh: "其他类别" },
   "cat.all.h": { th: "เลือกตามหมวดงาน", en: "Browse by work category", zh: "按业务类别浏览" },
-  "cat.all.sub": { th: "เจ็ดหมวดงาน ทุกหน้ายังอยู่ครบ แต่ละหมวดบอกสถานะและความแม่นยำที่วัดได้พร้อมที่มา",
-    en: "Seven work categories. Every page is still here; each category shows status and measured accuracy with its source.",
-    zh: "七个业务类别。所有页面都保留；每个类别都标明状态以及已测准确率和来源。" },
+  "cat.all.sub": { th: "เจ็ดหมวดงาน เลือกหมวดเพื่อดูเครื่องมือทั้งหมด", en: "Seven work categories. Pick one to see all its tools.",
+    zh: "七个业务类别，选择类别查看全部工具。" },
   "cat.all.kicker": { th: "หมวดงาน", en: "Categories", zh: "类别" },
   "cat.go": { th: "ดูหมวดนี้ →", en: "View category →", zh: "查看类别 →" },
   "cat.foot.h": { th: "หมวดงาน", en: "Work categories", zh: "业务类别" },
@@ -73,11 +75,8 @@ const UI = {
 /** Every dictionary entry: key -> {th, en, zh}. */
 export function entries() {
   const e = { ...UI };
-  for (const [st, v] of Object.entries(D.STATUS)) { e["cat.st." + st] = v; e["cat.std." + st] = D.STATUS_DEF[st]; }
-  for (const [slug, defs] of Object.entries(D.STATUS_DEF_CAT || {})) for (const [st, v] of Object.entries(defs)) e[`cat.std.${st}.${slug}`] = v;
-  for (const [k, v] of Object.entries(D.SOURCE)) e["cat.src." + k] = v;
-  for (const [k, v] of Object.entries(D.CLAIMS)) e["cat.c." + k] = { th: v.th, en: v.en, zh: v.zh };
-  for (const [k, v] of Object.entries(D.REASONS)) e["cat.r." + k] = v;
+  // owner decision 223: only the short customer badges; the old status, source, accuracy and reason texts stay in
+  // tools/cat-data.cjs for docs/PAGE-STATUS.md and are not written to the dictionaries
   for (const c of D.CATEGORIES) {
     e[`cat.${c.slug}.name`] = c.name;
     e[`cat.${c.slug}.intro`] = c.intro;
@@ -175,28 +174,21 @@ function oneLinkCard(page, t, ill) {
       </article>`;
 }
 
+const openLink = page => `        <a class="sl-go" href="${SL_GO[page] || page + ".html"}"><span data-i18n="cat.open">เปิดหน้า</span> ` +
+  `<span class="cat-arrow" aria-hidden="true">→</span></a>`;
+const ENTRY_BTN = `        <a class="btn primary cat-entry" href="attendance.html?mode=employee" data-i18n="cat.openTimeclock">เปิดลงเวลาทำงาน PIN / QR</a>\n`;
 function card(page, nav, noTag = false, cat = null) {
-  const p = D.PAGES[page], t = nav[page];
+  const t = nav[page];
   if (!t) throw new Error(`${page}.html is in a category but not in the nav.js menu`);
   if (cat && cat.noAccuracy) return oneLinkCard(page, t, (cat.ill || {})[page] || cat.icon);
-  const acc = p.claims.map(id => {
-    const c = D.CLAIMS[id];
-    return `          <li data-src="${c.src}"><span class="cat-src ${c.src}" data-i18n="cat.src.${c.src}">${esc(D.SOURCE[c.src].th)}</span> <span data-i18n="cat.c.${id}">${esc(c.th)}</span></li>`;
-  }).join("\n");
-  // noTag (fortune, owner order 2026-11-17): no status chip, no data-status and no "why this status" line; the fortune theme
-  // (owner approval 2026-11-17) adds the card's gold line illustration slot, filled by fortune-entry.js when in view
-  const chip = noTag ? "" : `<span class="cat-st ${p.st}" data-i18n="cat.st.${p.st}">${esc(D.STATUS[p.st].th)}</span>`;
-  const ill = noTag ? `<svg class="ft-ill" data-ic="${page}" aria-hidden="true" focusable="false"></svg>` : "";
-  return `      <article class="pd-card cat-tool" data-page="${page}"${noTag ? "" : ` data-status="${p.st}"`}>
-        <div class="cat-top">${ill}<h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3>${chip}</div>
+  // owner decisions 223 + 226: name, the menu line and the two approved lines (what it is for, its main limit); no status
+  // label (labels live in the back office), no accuracy list, no "why this status"
+  const ln = Object.entries(D.LINES).find(([, v]) => v.cards.includes(page));
+  const lines = ln ? `        <p class="cat-ln">` + ["1", "2"].filter(n => ln[1][n]).map(n => `<span data-i18n="ln.${ln[0]}.${n}">${esc(ln[1][n])}</span>`).join("<br>") + "</p>\n" : "";
+  return `      <article class="pd-card cat-tool" data-page="${page}">
+        <div class="cat-top"><h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3></div>
         <p data-i18n="nav.${page}.desc">${esc(t.desc)}</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-${acc}
-        </ul>
-${noTag ? "" : `        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.${p.why}">${esc(D.REASONS[p.why].th)}</span></p>
-`}${page === "attendance" ? `        <a class="btn primary cat-entry" href="attendance.html?mode=employee" data-i18n="cat.openTimeclock">เปิดลงเวลาทำงาน PIN / QR</a>
-` : ""}        <a class="sl-go" href="${SL_GO[page] || page + ".html"}"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
+${lines}${page === "attendance" ? ENTRY_BTN : ""}${openLink(page)}
       </article>`;
 }
 
@@ -206,13 +198,6 @@ const SL_GO = /** @type {Record<string, string>} */ ({ attendance: "attendance.h
 
 export function pageHtml(cat, nav = navEntries()) {
   const n = counts(cat);
-  const own = (D.STATUS_DEF_CAT || {})[cat.slug] || {}; // a category's own wording (fortune: no "for entertainment")
-  const legend = Object.keys(D.STATUS).map(st => {
-    const key = own[st] ? `cat.std.${st}.${cat.slug}` : `cat.std.${st}`, def = own[st] || D.STATUS_DEF[st];
-    return `        <li><span class="cat-st ${st}" data-i18n="cat.st.${st}">${esc(D.STATUS[st].th)}</span> <span data-i18n="${key}">${esc(def.th)}</span></li>`;
-  }).join("\n");
-  const srcs = ["synthetic", "public", "prelim", "field", "none", "na"].map(k =>
-    `<span class="cat-src ${k}" data-i18n="cat.src.${k}">${esc(D.SOURCE[k].th)}</span>`).join(" ");
   const others = D.CATEGORIES.filter(c => c !== cat).map(c =>
     `        <a href="cat-${c.slug}.html"><span aria-hidden="true">${c.icon}</span><span data-i18n="cat.${c.slug}.name">${esc(c.name.th)}</span></a>`).join("\n");
   return head([
@@ -230,16 +215,16 @@ export function pageHtml(cat, nav = navEntries()) {
     `<meta name="description" data-i18n-attr="content:cat.${cat.slug}.intro" content="${esc(cat.intro.th)}">`,
     '<link rel="stylesheet" href="styles.css?v=24">',
     '<link rel="stylesheet" href="products.css?v=3">',
-    '<link rel="stylesheet" href="solutions.css?v=4">',
-    '<link rel="stylesheet" href="cat.css?v=2">',
+    '<link rel="stylesheet" href="solutions.css?v=5">',
+    '<link rel="stylesheet" href="cat.css?v=3">',
     cat.slug === "fortune" ? '<link rel="stylesheet" href="fortune-theme.css?v=3">' : "",
     '<script src="lensiq-busy.js?v=3"></script>',
     cat.slug === "fortune" ? '<script src="fortune-entry.js?v=5"></script>' : "",
     "</head>",
     "<body>",
     '<header class="nav" id="siteNav"></header>',
-    '<script src="nav.js?v=36"></script>',
-    '<script src="i18n/zh-cat.js?v=6"></script>',
+    '<script src="nav.js?v=37"></script>',
+    '<script src="i18n/zh-cat.js?v=7"></script>',
     // the fortune category carries the always-visible help button, in one place (owner orders 2026-11-12, 2026-11-15; tools/helpline.mjs)
     ...(cat.slug === "fortune" ? [topStyle(), helpLine("lqHelpTop")] : []),
     `<main class="pd cat${cat.discMore ? " lq-ftop" : ""}" id="main" data-cat="${cat.slug}">`,
@@ -263,27 +248,10 @@ export function pageHtml(cat, nav = navEntries()) {
     `      <h2 id="catToolsH" data-i18n="cat.tools.h">เครื่องมือในหมวดนี้</h2>`,
     `      <p class="pd-sub" id="catCount" data-i18n="cat.${cat.slug}.count">${esc(COUNT_TPL.th(n))}</p>`,
     `      <div class="pd-grid cat-grid">`,
-    cat.pages.map(p => card(p, nav, !!cat.noStatusTag, cat)).join("\n"),
+    cat.pages.filter(isOn).map(p => card(p, nav, !!cat.noStatusTag, cat)).join("\n"),
     `      </div>`,
     `    </section>`,
-    // a category without an accuracy field (fortune, owner decision 2026-11-18) has no "where the numbers come from" section
-    ...(cat.noAccuracy ? [] : cat.noStatusTag ? [
-      // no status tags in this category (owner order 2026-11-17), so no status legend; the sources part stays
-      `    <section aria-labelledby="catSrcH">`,
-      `      <h2 id="catSrcH" data-i18n="cat.src.h">ที่มาของตัวเลข</h2>`,
-    ] : [
-      `    <section aria-labelledby="catLegendH">`,
-      `      <h2 id="catLegendH" data-i18n="cat.legend.h">สถานะหมายถึงอะไร</h2>`,
-      `      <ul class="sl-legend cat-legend">`,
-      legend,
-      `      </ul>`,
-      `      <h2 class="cat-h2" data-i18n="cat.src.h">ที่มาของตัวเลข</h2>`,
-    ]),
-    ...(cat.noAccuracy ? [] : [
-      `      <p class="pd-sub" data-i18n="cat.src.d">${esc(UI["cat.src.d"].th)}</p>`,
-      `      <p class="cat-srcs">${srcs}</p>`,
-      `      <p class="pd-note"><a href="cameras.html#accuracy" data-i18n="cat.method">วิธีวัดและชุดข้อมูล</a></p>`,
-      `    </section>`]),
+    // owner decision 223: no status legend, no "where the numbers come from" section and no method link on any category page
     `    <section aria-labelledby="catOthersH">`,
     `      <h2 id="catOthersH" data-i18n="cat.others.h">หมวดอื่น</h2>`,
     `      <nav class="pd-others" aria-labelledby="catOthersH">`,
@@ -292,7 +260,7 @@ export function pageHtml(cat, nav = navEntries()) {
     `    </section>`,
     `  </div>`,
     `</main>`,
-    '<script src="lensiq-config.js?v=30"></script>',
+    '<script src="lensiq-config.js?v=31"></script>',
     "</body>",
     "</html>",
     ""
@@ -353,7 +321,10 @@ export function statusTable() {
   const catOf = {};
   for (const c of D.CATEGORIES) for (const p of c.pages) (catOf[p] = catOf[p] || []).push(`${c.n} ${c.name.en}`);
   for (const p of D.PLATFORM.concat(["index"], Object.keys(D.UNLINKED))) catOf[p] = catOf[p] || ["Platform"];
-  const rows = ["| Page | Category | Proposed status | Why (EN) | เหตุผล (TH) | Accuracy shown, with source | Evidence |", "|---|---|---|---|---|---|---|"];
+  // owner decision 223: the internal status, reason and accuracy columns stay here (back-office document); the badge column is
+  // back office only since decision 226 (no label on any customer page); visibility = the nav.js list
+  const rows = ["| Page | Category | Proposed status | Status label (back office only, 226) · visibility | Why (EN) | เหตุผล (TH) | Accuracy (internal), with source | Evidence |",
+    "|---|---|---|---|---|---|---|---|"];
   const order = D.CATEGORIES.flatMap(c => c.pages).concat(D.PLATFORM, ["index"], Object.keys(D.UNLINKED));
   const seen = new Set();
   for (const p of order) {
@@ -365,12 +336,14 @@ export function statusTable() {
       : v.claims.map(id => `**${D.SOURCE[D.CLAIMS[id].src].en}:** ${D.CLAIMS[id].en}`).join("<br>");
     const ev = noAcc ? "—" : [...new Set(v.claims.map(id => D.CLAIMS[id].ref))].join("; ");
     const noTag = D.CATEGORIES.some(c => c.noStatusTag && c.pages.includes(p)) ? " (no tag shown on the site, owner order 2026-11-17)" : "";
-    rows.push(`| \`${p}.html\` | ${catOf[p].join(" + ")} | **${v.st}**${noTag} | ${D.REASONS[v.why].en} | ${D.REASONS[v.why].th} | ${acc} | ${ev} |`);
+    const bd = (noTag ? "—" : (D.badgeOf(p) || "none")) + (isOn(p) ? " · shown" : " · OFF (not listed, decision 226)");
+    rows.push(`| \`${p}.html\` | ${catOf[p].join(" + ")} | **${v.st}**${noTag} | ${bd} | ${D.REASONS[v.why].en} | ${D.REASONS[v.why].th} | ${acc} | ${ev} |`);
   }
   for (const c of D.CATEGORIES) {
     const n = counts(c);
-    rows.push(`| \`cat-${c.slug}.html\` (new) | ${c.n} ${c.name.en} | landing page | Lists the category's ${n.all} tools with status and accuracy | ` +
-      "หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |");
+    rows.push(`| \`cat-${c.slug}.html\` (new) | ${c.n} ${c.name.en} | landing page | — | ` +
+      `Lists the category's ${n.all} tools (customer build) with two plain lines and no status label (decisions 223, 226) | ` +
+      "หน้ารวมหมวด แสดงเครื่องมือ ป้ายสั้น และสองบรรทัด (ข้อ 223) | — | tools/cat-data.cjs |");
   }
   const tally = {};
   for (const p of Object.keys(D.PAGES)) tally[D.PAGES[p].st] = (tally[D.PAGES[p].st] || 0) + 1;
@@ -379,12 +352,16 @@ export function statusTable() {
   rows.push("", `Totals over the ${Object.keys(D.PAGES).length} existing pages: **${products} product pages** — ` +
     ready.map(st => `${st} ${tally[st] || 0}`).join(" · ") + ` — and **${tally.support || 0} support pages** (directory, notices, information, ` +
     "legal, account; no readiness status, not counted with the products).");
-  rows.push("", "Per category (tools; booth counts in 4 and 7):", "", "| # | Category | Tools | pilot-ready | experimental | demo | support pages |",
+  rows.push("", "Per category (tools; booth counts in 4 and 7):", "", "| # | Category | Tools (customer build) | pilot-ready | experimental | demo | support pages |",
     "|---|---|---|---|---|---|---|");
   for (const c of D.CATEGORIES) {
     const n = counts(c);
     rows.push(`| ${c.n} | ${c.name.en} · ${c.name.th} | ${n.all} | ${n["pilot-ready"]} | ${n.experimental} | ${n.demo} | ${n.support} |`);
   }
+  // owner decision 223 (audit 1.10): the "still needed" notes of the coming-soon catalogue cards, moved off solutions.html
+  rows.push("", "Coming-soon cards on solutions.html: what is still needed (internal roadmap; moved off the customer page by owner " +
+    "decision 223, verbatim):", "", "| Card | Title | ยังขาด (TH) | Still needed (EN) |", "|---|---|---|---|");
+  for (const r of D.SOON_ROADMAP) rows.push(`| \`${r.card}\` | ${r.title} | ${r.th} | ${r.en} |`);
   return rows.join("\n");
 }
 

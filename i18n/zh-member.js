@@ -60,7 +60,7 @@
   "mem.up.quotaLead": "这次解读改为在设备上生成（同一典籍的含义），次数明天恢复；也可以看看 Plus 会员和长篇报告",
   "mem.up.quotaSoon": "这次解读改为在设备上生成（同一典籍的含义），次数明天恢复。更多套餐尚未开售",
   "mem.up.plans": "查看套餐和报告",
-  "mem.up.whatsFree": "查看免费功能和即将推出的内容",
+  "mem.up.whatsFree": "查看免费功能和尚未开放的内容",
   "mem.up.redeem": "我的报告",
   "mem.menu.reports": "我的占卜报告",
   "mem.menu.pricing": "套餐与价格",

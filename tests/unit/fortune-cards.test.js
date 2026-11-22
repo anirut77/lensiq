@@ -8,9 +8,10 @@
 //   C2  every fortune card on cat-fortune.html is ONE link (the whole card) holding the name, one short line and a small
 //       illustration, and nothing else: no status chip, no accuracy list, no separate "open page" link;
 //   C3  the disclaimer is on cat-fortune.html exactly ONCE, small (the .lq-top notice line), in the hero above the cards;
-//   C4  business products unchanged: every non-fortune category card keeps its measured-accuracy heading and its accuracy
-//       lines with their source labels, exactly as at base b2a6e76 (fingerprint pinned below, TH markup + EN / ZH values +
-//       tools/cat-data.cjs claims + the docs/PAGE-STATUS.md rows of non-fortune pages);
+//   C4  business products (re-lock 2026-11-22, owner decision 223, inversion 223-1): no non-fortune category card shows a
+//       measured-accuracy heading, accuracy line or source label any more; every text those blocks showed at base is held
+//       verbatim by docs/tech-sheets/ and admin-measurements.js; the internal accuracy data (tools/cat-data.cjs) are unchanged
+//       and the new cards (badge + two approved lines), their EN / ZH values and PAGE-STATUS rows are pinned (fingerprints below);
 //   C5  the cat-pages accuracy rule still holds for every non-fortune page (at least one accuracy line, each with a source);
 //       only category 6 may have none.
 // Static, synthetic; no network. Browser check (rendered, 360-430 px, TH / EN / ZH): tests/e2e/fortune-cards.e2e.mjs.
@@ -207,56 +208,153 @@ test("C3 the disclaimer is on cat-fortune.html exactly once, small, in the hero 
 });
 
 // ---------------------------------------------------------------------------------------------------------- C4 / C5
-/** canonical text of everything that shows business accuracy: card accuracy blocks and the sources section on the six
- *  non-fortune category pages, the EN / ZH values of their keys, their claims in tools/cat-data.cjs, their PAGE-STATUS rows */
+// re-lock 2026-11-22, owner decision 223 (223-1: "from 'the page must show the figure' to 'the page must not show it, and the
+// technical sheet must hold every original figure'"). C4 used to pin the accuracy blocks and the sources section of the 38
+// business cards exactly as at base b2a6e76. It now pins, exactly: (a) the 50 texts those blocks showed at base (keys below,
+// TH / EN / ZH, sha computed from the base markup and dictionaries = the locked base snapshot
+// docs/tech-sheets/ORIGINAL-FIGURES-223.json), each of which must be GONE from the business cards and dictionaries and HELD
+// verbatim by docs/tech-sheets/ and admin-measurements.js; (b) the internal accuracy data (tools/cat-data.cjs claims, status,
+// reason) of the business pages, unchanged from base; (c) the new business cards (badge + two lines), PAGE-STATUS rows and
+// their EN / ZH values, pinned as built by decision 223. The fortune rules C1-C3 are untouched.
+const L223 = require("./accuracy-removal-223.lib.js");
+const SNAP223 = JSON.parse(read("docs/tech-sheets/ORIGINAL-FIGURES-223.json"));
+const BASE_KEYS = ["cat.acc.h", "cat.c.ageGender", "cat.c.attPin", "cat.c.boothFace", "cat.c.boothNone", "cat.c.checkout", "cat.c.converter",
+  "cat.c.creative", "cat.c.crowd", "cat.c.crowdDense", "cat.c.driverPub", "cat.c.driverSyn", "cat.c.examHall", "cat.c.examNone", "cat.c.face",
+  "cat.c.gatePub", "cat.c.gateSyn", "cat.c.hand", "cat.c.hrPilot", "cat.c.info", "cat.c.insights", "cat.c.med", "cat.c.neuro", "cat.c.nut",
+  "cat.c.omrNone", "cat.c.people", "cat.c.photobooth", "cat.c.qc", "cat.c.store", "cat.c.studio", "cat.c.teamface", "cat.c.zone",
+  "cat.legend.h", "cat.method", "cat.src.d", "cat.src.field", "cat.src.h", "cat.src.na", "cat.src.none", "cat.src.prelim", "cat.src.public",
+  "cat.src.synthetic", "cat.st.demo", "cat.st.experimental", "cat.st.pilot-ready", "cat.st.support", "cat.std.demo", "cat.std.experimental",
+  "cat.std.pilot-ready", "cat.std.support"];
+// sha256 of JSON [[key, th, en, zh] …] over BASE_KEYS: computed from cat-{6 business}.html + i18n/{en,zh}-cat.js at base
+// 306c4d72 (pre-223; the C4 base fingerprint 23a66e68… still held there) and equal to the same texts in the locked snapshot
+const BASE_TEXTS_SHA = "6b8ef116d0a17f20feb6e7c432a75977add4ec7efe1ce9c1e9e784c513179f10";
+/** the base texts of the business accuracy blocks and sources sections, from the locked snapshot */
+function baseTexts() {
+  const all = SNAP223.entries.concat(SNAP223.catData);
+  return BASE_KEYS.map(k => {
+    const es = all.filter(e => e.key === k && e.th);
+    assert.ok(es.length >= 1, "snapshot: " + k);
+    assert.equal(new Set(es.map(e => JSON.stringify([squash(e.th), squash(e.en), squash(e.zh)]))).size, 1, "snapshot variants of " + k);
+    return [k, squash(es[0].th), squash(es[0].en), squash(es[0].zh)];
+  });
+}
+const BUSINESS = () => D.CATEGORIES.filter(c => c.slug !== "fortune");
+/** internal accuracy data of the business pages (unchanged by 223): per page status, reason, claims; per claim the full record */
+function internalFingerprint() {
+  const parts = [], claimIds = new Set();
+  for (const c of BUSINESS()) for (const p of c.pages) {
+    const v = D.PAGES[p];
+    parts.push(["page", c.slug, p, v.st, v.why, v.claims]);
+    for (const id of v.claims) claimIds.add(id);
+  }
+  for (const id of [...claimIds].sort()) { const c = D.CLAIMS[id] || {}; parts.push(["claim", id, c.src, c.ref, c.th, c.en, c.zh, !!c.optimistic]); }
+  for (const g of ["STATUS", "STATUS_DEF", "SOURCE"]) parts.push([g, D[g]]);
+  return { parts, sha: createHash("sha256").update(JSON.stringify(parts)).digest("hex") };
+}
+// computed at base 306c4d72 (pre-223) and unchanged on the 223 tree
+const INTERNAL_SHA = "adb04dd36bb0bf4d7237b5973b79508f47f7a70e13fc005f87883a8c3792cccf";
+/** the business cards as decision 223 builds them: card markup, the EN / ZH values of their keys, their PAGE-STATUS rows */
 function businessFingerprint() {
-  const parts = [];
-  const keys = new Set();
-  const claimIds = new Set();
-  for (const c of D.CATEGORIES.filter(c => c.slug !== "fortune")) {
+  const parts = [], keys = new Set();
+  for (const c of BUSINESS()) {
     const html = stripComments(read(`cat-${c.slug}.html`));
     for (const [, page, attrs, body] of cards(html)) {
-      const acc = body.match(/<p class="cat-h"[\s\S]*?<\/ul>/);
-      parts.push([c.slug, page, squash(attrs), acc ? squash(acc[0]) : "NO ACCURACY BLOCK"]);
-      if (acc) for (const m of acc[0].matchAll(/data-i18n="([^"]+)"/g)) keys.add(m[1]);
-      for (const id of D.PAGES[page].claims) claimIds.add(id);
+      parts.push([c.slug, page, squash(attrs), squash(body)]);
+      for (const m of body.matchAll(/data-i18n="([^"]+)"/g)) keys.add(m[1]);
     }
-    const src = html.match(/<section aria-labelledby="catLegendH">[\s\S]*?<\/section>/);
-    parts.push([c.slug, "sources", src ? squash(src[0]) : "NO SOURCES SECTION"]);
-    if (src) for (const m of src[0].matchAll(/data-i18n="([^"]+)"/g)) keys.add(m[1]);
   }
-  for (const k of [...keys].sort()) for (const l of ["en", "zh"]) parts.push([l, k, (DICT[l][k] || []).filter(v => v.file === `${l}-cat.js`).map(v => v.value)]);
-  for (const id of [...claimIds].sort()) { const c = D.CLAIMS[id] || {}; parts.push(["claim", id, c.src, c.ref, c.th, c.en, c.zh, !!c.optimistic]); }
+  for (const k of [...keys].sort()) for (const l of ["en", "zh"]) parts.push([l, k, (DICT[l][k] || []).map(v => [v.file, v.value])]);
   const md = read("docs/PAGE-STATUS.md");
-  for (const c of D.CATEGORIES.filter(c => c.slug !== "fortune")) for (const p of c.pages) {
+  for (const c of BUSINESS()) for (const p of c.pages) {
     parts.push(["row", p, (md.match(new RegExp("^\\| `" + p.replace(/-/g, "\\-") + "\\.html` \\|.*$", "m")) || ["NO ROW"])[0]]);
   }
   return { parts, sha: createHash("sha256").update(JSON.stringify(parts)).digest("hex") };
 }
-// pinned at base b2a6e76 (origin/main, 2026-11-18) before the change; 6 categories, 38 non-fortune cards
-const BUSINESS_SHA = "23a66e68c0325337cdc8c66c44b9a02b3401e01cc9e3169f221855a245dbf5e3";
-const BUSINESS_CARDS = 38;
+// re-pinned on the decision-226 tree (branch accuracy-removal-223, 2026-11-22; was e179a266… with 38 cards on the 223 tree):
+// 6 categories, 38 non-fortune products, 33 cards shown; the 5 switched-off pages (nav.js VISIBILITY) have no card.
+// Re-lock 4 of 226 (coordinator decision 2026-11-22 on entry 13): medicine.html (drug checker) is on and has its card again;
+// Product Check is the switched-off part "product-check" of that page (no card of its own)
+const BUSINESS_SHA = "4cc6b933c62425e8dd50d3d34451327f3124d26cf7ea3f1d6a434bba12d1d3f5"; // re-lock 226b: the hr card line drops "and team activities" (was 1425001917f1…; before that e2a09f1f…)
+const BUSINESS_PRODUCTS = 38, BUSINESS_CARDS = 33;
+const OFF_226 = ["customers", "exam-hall", "neuro", "product-check", "signage", "teamface"];
+const sheetText = re => require("node:fs").readdirSync(join(ROOT, "docs", "tech-sheets")).filter(f => re.test(f) || f === "README.md")
+  .map(f => squash(read("docs/tech-sheets/" + f))).join("\n");
 
-test("C4 business products unchanged: every non-fortune card's accuracy lines and sources are exactly as at base b2a6e76", () => {
+test("C4 business products: no card shows its accuracy lines or sources any more; every base text is held by the technical sheets (decision 223)", () => {
+  const base = baseTexts();
+  assert.equal(base.length, 50, "base texts");
+  assert.equal(createHash("sha256").update(JSON.stringify(base)).digest("hex"), BASE_TEXTS_SHA, "base texts of the business accuracy blocks");
   const { parts, sha } = businessFingerprint();
-  const cardsN = parts.filter(p => p.length === 4 && p[0] !== "claim").length;
-  assert.equal(cardsN, BUSINESS_CARDS, "non-fortune cards");
-  assert.ok(!parts.some(p => p.includes("NO ACCURACY BLOCK") || p.includes("NO SOURCES SECTION") || p.includes("NO ROW")), "a non-fortune card lost its accuracy");
-  assert.equal(sha, BUSINESS_SHA, "business accuracy fingerprint changed");
+  const cardParts = parts.filter(p => p.length === 4 && !["en", "zh", "row"].includes(p[0]));
+  assert.equal(BUSINESS().reduce((n, c) => n + c.pages.length, 0), BUSINESS_PRODUCTS, "non-fortune products in the categories");
+  assert.equal(cardParts.length, BUSINESS_CARDS, "non-fortune cards shown");
+  // decision 226 (inversion of "every product has a card with its badge"): exactly the switched-off products have no card,
+  // and no card carries a status label, data-status or data-demo-only
+  const vis = read("nav.js").match(/var VISIBILITY = \{([\s\S]*?)\};/)[1];
+  assert.deepEqual([...vis.matchAll(/"?([a-z][\w-]*)"?: false/g)].map(m => m[1]).sort(), OFF_226, "switched-off products (nav.js)");
+  const shown = new Set(cardParts.map(p => p[1]));
+  for (const c of BUSINESS()) for (const p of c.pages) assert.equal(shown.has(p), !OFF_226.includes(p), `${p}: card shown on cat-${c.slug}`);
+  for (const [slug, page, attrs, body] of cardParts) {
+    assert.equal(attrs, "", `${slug} ${page}: card attributes (data-status / data-demo-only)`);
+    assert.doesNotMatch(body, /class="cat-st\b|data-i18n="cat\.b\.|รุ่นทดลอง|เร็ว ๆ นี้/, `${slug} ${page}: status label on the card`);
+  }
+  assert.ok(!parts.some(p => p.includes("NO ROW")), "a business page lost its PAGE-STATUS row");
+  const bad = [];
+  // gone: no accuracy block, source chip, reason or legend on any business card or page; no base key in the cards or in
+  // i18n/{en,zh}-cat.js; no base accuracy line text on a card (TH markup, EN / ZH values)
+  for (const c of BUSINESS()) {
+    const html = stripComments(read(`cat-${c.slug}.html`));
+    if (/<section aria-labelledby="catLegendH">|id="catSrcH"|class="[^"]*\b(cat-legend|sl-legend|cat-srcs)\b/.test(html)) bad.push(`cat-${c.slug}: sources / legend section`);
+    for (const k of BASE_KEYS) if (html.includes(`data-i18n="${k}"`)) bad.push(`cat-${c.slug}: key ${k}`);
+  }
+  for (const [slug, page, , body] of cardParts) {
+    if (/<p class="cat-h"|class="cat-(acc|src|why)\b|<li data-src=/.test(body)) bad.push(`${slug} ${page}: accuracy block`);
+    const v = valuesOf(body);
+    for (const [k, th, en, zh] of base) if (/^cat\.c\./.test(k) && (v.th.includes(th) || v.en.includes(en) || v.zh.includes(zh))) bad.push(`${page}: ${k} shown`);
+  }
+  for (const l of ["en", "zh"]) { const f = read(`i18n/${l}-cat.js`); for (const k of BASE_KEYS) if (f.includes(`"${k}"`)) bad.push(`${l}-cat.js: ${k}`); }
+  // held: every base text verbatim in docs/tech-sheets (TH in *-TH.md, EN and ZH in *-EN.md) and in admin-measurements.js
+  const TH = sheetText(/-TH\.md$/), EN = sheetText(/-EN\.md$/);
+  const adm = new Set(L223.jsStrings(read("admin-measurements.js")).map(squash));
+  for (const [k, th, en, zh] of base) {
+    if (!TH.includes(th)) bad.push(`TH sheets: ${k}`);
+    if (!EN.includes(en) || !EN.includes(zh)) bad.push(`EN sheets: ${k}`);
+    for (const t of [th, en, zh]) if (!adm.has(t)) bad.push(`admin-measurements.js: ${k} "${t.slice(0, 40)}"`);
+  }
+  assert.deepEqual(bad, []);
+  // the internal accuracy data are exactly as at base; the new cards are exactly as built by decision 223
+  assert.equal(internalFingerprint().sha, INTERNAL_SHA, "internal accuracy data (tools/cat-data.cjs) changed");
+  assert.equal(sha, BUSINESS_SHA, "business card fingerprint changed");
 });
 
-test("C4 named business products: Exam, Attendance, Gate and Crowd still show their measured figures with a source label", () => {
-  const want = { exam: "education", attendance: "hr", gate: "security", crowd: "marketing" };
-  for (const [page, slug] of Object.entries(want)) {
+test("C4 named business products: Exam, Attendance, Gate and Crowd show no figure; their own technical sheet holds each one", () => {
+  const want = { exam: ["education", "exam"], attendance: ["hr", "attendance"], gate: ["security", "gate"], crowd: ["marketing", "crowd"] };
+  const S = JSON.parse(read("tests/unit/accuracy-removal-223.spec.json"));
+  for (const [page, [slug, sheet]] of Object.entries(want)) {
     const html = stripComments(read(`cat-${slug}.html`));
     const m = cards(html).find(x => x[1] === page);
     assert.ok(m, page + " card on cat-" + slug);
-    assert.match(m[3], /data-i18n="cat\.acc\.h">ความแม่นยำที่วัดได้</, page + ": measured-accuracy heading");
-    const lis = [...m[3].matchAll(/<li data-src="(synthetic|public|prelim|field|none|na)"><span class="cat-src \1" data-i18n="cat\.src\.\1">/g)];
-    assert.equal(lis.length, D.PAGES[page].claims.length, page + ": accuracy lines with a source label");
+    assert.doesNotMatch(m[3], /data-i18n="cat\.acc\.h"|ความแม่นยำที่วัดได้/, page + ": measured-accuracy heading");
+    assert.equal((m[3].match(/<li data-src=/g) || []).length, 0, page + ": accuracy lines on the card");
+    assert.doesNotMatch(m[3], /class="cat-src\b|data-i18n="cat\.src\./, page + ": source label on the card");
     assert.ok(D.PAGES[page].claims.length >= 1, page + ": claims");
+    const th = squash(read(`docs/tech-sheets/${sheet}-TH.md`)), en = squash(read(`docs/tech-sheets/${sheet}-EN.md`));
+    for (const id of D.PAGES[page].claims) {
+      const c = D.CLAIMS[id];
+      assert.ok(!text(m[3]).includes(squash(c.th)), `${page}: ${id} still on the card`);
+      assert.ok(th.includes(squash(c.th)), `${sheet}-TH.md: ${id}`);
+      assert.ok(en.includes(squash(c.en)) && en.includes(squash(c.zh)), `${sheet}-EN.md: ${id}`);
+    }
+    // the card states what the tool is for and its main limit (the approved two lines, spec of decision 223)
+    const ln = S.lines.find(x => x.cards.includes(page));
+    assert.ok(ln, page + ": approved lines");
+    for (const n of ["1", "2"]) {
+      assert.ok(text(m[3]).includes(squash(ln[n].th)), `${page}: line ${n} (TH)`);
+      for (const l of ["en", "zh"]) assert.ok((DICT[l][`ln.${ln.id}.${n}`] || []).some(v => squash(v.value) === squash(ln[n][l])), `${page}: ln.${ln.id}.${n} (${l})`);
+    }
   }
-  assert.ok(D.PAGES.crowd.claims.includes("crowdDense"), "Crowd keeps the dense-crowd limit");
+  assert.ok(D.PAGES.crowd.claims.includes("crowdDense"), "Crowd keeps the dense-crowd limit (internal)");
+  assert.match(text(cards(stripComments(read("cat-marketing.html"))).find(x => x[1] === "crowd")[3]), /ยังไม่เหมาะกับฝูงชนหนาแน่น/, "Crowd card states the dense-crowd limit");
 });
 
 test("C5 accuracy rule: every non-fortune page has accuracy lines with a source; only category 6 may have none", () => {

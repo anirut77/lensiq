@@ -82,12 +82,14 @@
     if (id !== "pack") stopCam();
     if (id === "hist") renderHist();
   }
-  tabs.forEach((b, i) => {
+  tabs.forEach(b => {
     b.addEventListener("click", () => showTab(b.dataset.tab));
     b.addEventListener("keydown", e => { // WAI-ARIA tabs: arrows / Home / End move and activate
-      const n = tabs.length, j = e.key === "ArrowRight" ? (i + 1) % n : e.key === "ArrowLeft" ? (i - 1 + n) % n : e.key === "Home" ? 0 : e.key === "End" ? n - 1 : -1;
-      if (j < 0) return;
-      e.preventDefault(); showTab(tabs[j].dataset.tab); tabs[j].focus();
+      // decision 226: a tab switched off in the nav.js visibility list (data-lq-part, not rendered) is skipped
+      const vis = tabs.filter(t => t.getClientRects().length > 0), n = vis.length, i = vis.indexOf(b);
+      const j = e.key === "ArrowRight" ? (i + 1) % n : e.key === "ArrowLeft" ? (i - 1 + n) % n : e.key === "Home" ? 0 : e.key === "End" ? n - 1 : -1;
+      if (j < 0 || i < 0) return;
+      e.preventDefault(); showTab(vis[j].dataset.tab); vis[j].focus();
     });
   });
 

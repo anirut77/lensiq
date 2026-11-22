@@ -2,7 +2,7 @@
 
 **ใช้มือถือ โน้ตบุ๊ก หรือกล้องที่มีอยู่ ไม่ต้องซื้อกล้อง LPR ราคาหลายหมื่น ระบบเสนอเลขป้าย รปภ. ยืนยันทุกคัน**
 
-> **อ่านป้ายแบบช่วย รปภ.**: ระบบเสนอเลขป้าย และ รปภ. แตะยืนยันทุกคัน ยังไม่ใช่การอ่านอัตโนมัติเต็มรูปแบบจนกว่าจะมีตัวหาป้ายที่ฝึกด้วยภาพป้ายไทย ผลกับภาพถ่ายจริง 51 ภาพ (ชุดข้อมูลสาธารณะ Wikimedia Commons ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12): อ่านถูกทั้งป้ายโดยไม่ต้องแตะ 32% (7 / 22 · n = 22 · บางภาพอยู่ในชุดที่ใช้ปรับค่า จึงดีเกินจริง) และต้องแตะเลือกกรอบป้าย 78% (25 / 32 · n = 32) (`docs/GATE.md` §3c)
+> **อ่านป้ายแบบช่วย รปภ.**: ระบบเสนอเลขป้าย และ รปภ. แตะยืนยันทุกคัน ยังไม่ใช่การอ่านอัตโนมัติเต็มรูปแบบจนกว่าจะมีตัวหาป้ายที่ฝึกด้วยภาพป้ายไทย ตัวเลขละเอียดอยู่ในเอกสารเทคนิค (`docs/tech-sheets/gate-TH.md`)
 
 > **ราคาที่อนุมัติแล้ว (ยังไม่เปิดขาย)** ราคาในเอกสารนี้มาจากรายการราคาที่เจ้าของอนุมัติ 2026-11-09 (`docs/PRICING-RESEARCH.md` §3.2) ยังไม่มีการเก็บเงิน
 
@@ -16,31 +16,20 @@
 | หมู่บ้าน / คอนโด (`village.html`) | รถลูกบ้าน บัตรผ่านผู้มาติดต่อ รายการเฝ้าระวัง (ต้องบันทึกเหตุผล) แจ้งเตือน บันทึกเข้าออก |
 | ลานจอดรถ (`parking.html`) | คิดค่าจอด ตราประทับร้านค้า QR พร้อมเพย์ ใบเสร็จ ปิดกะ |
 | ตรวจว่าเป็นป้ายก่อนอ่านอัตโนมัติ | อ่านอัตโนมัติเฉพาะกรอบที่ดูเหมือนป้ายทะเบียนไทย (สัดส่วน จำนวนบรรทัด รูปแบบอักษรไทยกับตัวเลข) ป้ายร้าน ป้ายบ้านเลขที่ ไม่ถูกอ่านอัตโนมัติ รปภ. แตะกรอบป้ายหรือพิมพ์เองได้เสมอ |
-| ตรวจความแม่นยำหน้างาน | เมนูในหน้า Gate นับอ่านถูก/ผิด/ต้องแตะ แยกกลางวันกลางคืน พร้อมช่วงความเชื่อมั่น 95% |
+| ทดสอบหน้างาน | เมนูในหน้า Gate นับอ่านถูก/ผิด/ต้องแตะ แยกกลางวันกลางคืน |
 
 ไม่ทำ: ไม่จดจำใบหน้า ไม่ถ่ายผู้ขับขี่โดยเจตนา ไม่เปิดไม้กั้นเองโดยไม่มีคนยืนยัน (รีเลย์เป็นตัวเลือกที่ต้องติดตั้งแยก)
 
-## ความแม่นยำและที่มา
+## ใช้ทำอะไร และข้อจำกัดสำคัญ
 
-รูปแบบ: ตัวเลข · ขนาดชุดทดสอบ (n) · ที่มา (ข้อมูลจำลอง / ชุดข้อมูลสาธารณะ / หน้างานจริง) — ไม่มีผลวัดเขียนว่า “ยังไม่ได้วัด” (`docs/ACCURACY-CLAIMS.md`)
+อ่านป้ายทะเบียนรถไทยบนเครื่องสำหรับลานจอดและหมู่บ้าน เจ้าหน้าที่ยืนยันทุกคันก่อนเปิดไม้กั้นหรือคิดเงิน
+ภาพจากกล้องจริงส่วนใหญ่ยังต้องให้เจ้าหน้าที่แตะเลือกป้ายหรือแก้เลข ป้ายเอียง มืด สกปรก หรือป้ายมอเตอร์ไซค์อาจอ่านผิด
 
-| ข้อกล่าวอ้าง | ค่า | n | ที่มา | เอกสาร |
-|---|---|---|---|---|
-| หาป้ายเจอ (กรอบแรก) ชุดเดโมที่ไม่ได้ใช้ปรับแต่ง | 97.1% (136 / 140) | n = 140 ฉาก (20 ต่อประเภท) | ข้อมูลจำลอง (ชุดเดโม seed 7) | `docs/GATE.md` §3b |
-| อ่านถูกทั้งป้ายจากภาพเดียว | 58% (81 / 140) | n = 140 ฉาก | ข้อมูลจำลอง (ชุดเดโม seed 7) | `docs/GATE.md` §3b |
-| ฉากที่ไม่มีป้ายถูกอ่านอัตโนมัติ | 0 / 20 | n = 20 ฉาก | ข้อมูลจำลอง (ชุดเดโม seed 7) | `docs/GATE.md` §3c |
-| ภาพถ่ายจริง กรอบแรกอยู่บนป้าย | 44% (14 / 32) | n = 32 ภาพที่มีป้าย | ชุดข้อมูลสาธารณะ (Wikimedia Commons, ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12) | `docs/GATE.md` §3c |
-| ภาพถ่ายจริง อ่านอัตโนมัติถูกทั้งป้าย | 32% (7 / 22); นับภาพที่ไม่แน่ใจตัวอักษร 4 ภาพเป็นอ่านไม่ถูก: 27% (7 / 26) | n = 22 ภาพที่อ่านป้ายได้แน่นอน (12 ภาพใช้ปรับการตรวจว่าเป็นป้าย จึงมองในแง่ดี) | ชุดข้อมูลสาธารณะ (Wikimedia Commons) | `docs/GATE.md` §3c |
-| ภาพถ่ายจริง ต้องแตะกรอบเอง | 78% (25 / 32) | n = 32 ภาพที่มีป้าย | ชุดข้อมูลสาธารณะ (Wikimedia Commons, ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12) | `docs/GATE.md` §3c |
-| ภาพถ่ายจริงที่ไม่มีป้ายแต่ถูกอ่านอัตโนมัติ | 0 / 19 (ก่อนมีการตรวจว่าเป็นป้าย 3 / 19; ช่วง 95%: 0–17%; ภาพที่ไม่ได้ใช้ปรับ 0 / 8: 0–32%) | n = 19 ภาพ | ชุดข้อมูลสาธารณะ (Wikimedia Commons, ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12) | `docs/GATE.md` §3c |
-| ภาพมือถือของเจ้าของ (~100 ภาพ) | ยังไม่ได้วัด | — | หน้างานจริง (ภาพของเจ้าของ): ยังไม่ได้วัด | `docs/field-pilot/plates-photo-labels.md` |
-| ลานจอดหรือหมู่บ้านจริง | ยังไม่ได้วัด | — | หน้างานจริง: ยังไม่ได้วัด (ยังไม่มีโครงการนำร่อง) | `docs/pilot/PILOT-GATE.md` |
-
-อ่านอย่างตรงไปตรงมา: บนภาพจริงวันนี้ รปภ. ยังต้องแตะกรอบป้ายเองเกือบ 4 ใน 5 คัน ระบบจึงขายเป็น "ผู้ช่วย รปภ." ไม่ใช่ไม้กั้นอัตโนมัติ
+เอกสารเทคนิคขอได้จากฝ่ายขาย
 
 ## โครงการนำร่อง
 ขั้น 0: ภาพมือถือของเจ้าของ ~100 ภาพ (`tools/plate-field-eval.mjs`) → ขั้น 1: ลานจอด 1 + หมู่บ้าน 1 อย่างน้อย 5 วัน ≥ 200 การอ่านจริง
-เกณฑ์ที่เสนอ: อ่านถูก ≥ 95% กลางวัน ≥ 85% กลางคืน ไม่มีค่าผิดที่บันทึกโดยไม่มีใครเห็น ตัดสินด้วยขอบล่าง Wilson 95% (เจ้าของตัดสินใจแล้ว 2026-11-09) และรายงานค่าเฉลี่ยธรรมดา (อ่านถูก k / n) คู่กันเสมอ — ที่จำนวนตัวอย่างตามแผน ต้องอ่านถูกจริงราว 98.8% กลางวัน และ 97.5% กลางคืน แผนและเช็กลิสต์: `docs/pilot/PILOT-GATE.md` §5
+เกณฑ์ผ่านของโครงการนำร่อง (อ่านถูกกลางวันและกลางคืน ไม่มีค่าผิดที่บันทึกโดยไม่มีใครเห็น) วิธีตัดสิน และการรายงานค่าเฉลี่ยคู่กัน อยู่ใน `docs/pilot/PILOT-GATE.md` §5 (เจ้าของตัดสินใจแล้ว 2026-11-09) แผนและเช็กลิสต์: `docs/pilot/PILOT-GATE.md` §5
 
 ## ราคา (ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย — ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7% ไม่รวมอุปกรณ์)
 | แพ็กเกจ | ราคานำร่อง (ใช้ตอนนี้) | ราคาปกติหลังผ่านเกณฑ์นำร่อง |
@@ -48,12 +37,12 @@
 | ทดลองใช้ | ทดลองใช้ฟรี 30 วัน: 1 ช่องทาง อ่านได้ 100 ครั้ง/วัน เก็บบันทึก 7 วัน (เกินนี้ต้องมีใบอนุญาต) | ทดลองใช้ฟรี 30 วัน: 1 ช่องทาง อ่านได้ 100 ครั้ง/วัน เก็บบันทึก 7 วัน (เกินนี้ต้องมีใบอนุญาต) |
 | หมู่บ้าน / คอนโด | 490 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% | 990 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% · 1,990 บาท/เดือน (3 ช่องทาง) ไม่รวม VAT 7% |
 | ลานจอดรถ (รวมพร้อมเพย์ ใบเสร็จ ปิดกะ ไม่มีค่าเสริม) | 790 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% | 1,490 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% |
-| ติดตั้งหน้างาน (มุมกล้อง แสง ตรวจความแม่นยำร่วมกัน) | 2,500 บาท/ครั้ง ไม่รวม VAT 7% | 3,000–5,000 บาท/ครั้ง ไม่รวม VAT 7% |
+| ติดตั้งหน้างาน (มุมกล้อง แสง ทดสอบหน้างานร่วมกัน) | 2,500 บาท/ครั้ง ไม่รวม VAT 7% | 3,000–5,000 บาท/ครั้ง ไม่รวม VAT 7% |
 
 ระดับทดลองยังไม่บังคับในระบบ ข้อจำกัดเริ่มใช้ตั้งแต่วันที่จะประกาศล่วงหน้าอย่างน้อย 30 วัน เจ้าของบังคับใช้ผ่านสัญญา ข้อจำกัดบนเครื่องผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน ลูกค้าส่งออกข้อมูลของตนได้เสมอ ชำระโดยโอนผ่านธนาคารเท่านั้น (เจ้าของตัดสินใจ 2026-11-13)
 
 เทียบตลาด (ซื้อขาด): กล้อง LPR อย่างเดียว 29,900 บาทขึ้นไป กล้องติดกับไม้กั้นที่มีอยู่ 55,000 บาท ชุดไม้กั้นพร้อมกล้อง 85,000 บาท (ราคาปกติ 115,000) ระบบแลกบัตรผู้มาติดต่อเริ่ม
-300 บาท/เดือน (แหล่งที่มาและวันที่ใน `docs/PRICING-RESEARCH.md` §1A–1B) ราคานำร่องต่ำกว่า เพราะยังไม่มีผลวัดหน้างานจริง
+300 บาท/เดือน (แหล่งที่มาและวันที่ใน `docs/PRICING-RESEARCH.md` §1A–1B) ราคานำร่องต่ำกว่า เพราะยังไม่มีผลทดสอบหน้างานจริง
 ราคาตลาดเป็นราคาตามที่แหล่งที่มาแสดง ร้านในไทยมักรวม VAT แล้ว จึงเทียบกับราคา LENSIQ (ไม่รวม VAT) ได้โดยประมาณ ต่างกันราว 7%
 
 ## PDPA
@@ -74,7 +63,7 @@ It uses a phone, a laptop or an existing camera, with no LPR camera to buy. The 
 guard confirms every vehicle. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09
 (`docs/PRICING-RESEARCH.md` §3.2); nothing is charged yet.
 
-> **Assisted reading**: the system suggests the plate and the guard taps to confirm every vehicle. It is not fully automatic until a plate finder trained on Thai plates exists. On 51 real photos (public dataset, Wikimedia Commons, labels v3 confirmed by the owner 2026-11-12): exact read with no tap 32% (7 / 22 · n = 22 · some photos are in the tuning set, so this is optimistic); a tap to pick the plate was needed in 78% (25 / 32 · n = 32) (`docs/GATE.md` §3c)
+> **Assisted reading**: the system suggests the plate and the guard taps to confirm every vehicle. It is not fully automatic until a plate finder trained on Thai plates exists. The detailed figures are in the technical sheet (`docs/tech-sheets/gate-EN.md`).
 
 **What you get:**
 - **Village / condo** (`village.html`): resident cars, visitor passes, a watch list (each entry needs a reason),
@@ -82,33 +71,21 @@ guard confirms every vehicle. **Approved price list (not on sale yet)**: prices 
 - **Car park** (`parking.html`): fees, shop stamps, PromptPay QR, receipts and shift close.
 - **Plate-likeness check before any auto-read:** shop signs and house numbers are not read automatically, and the guard
   can always tap or type.
-- **On-site accuracy check:** right / wrong / tap counts, day and night, with 95% intervals.
+- **On-site test:** right / wrong / tap counts, day and night.
 
 **Never:** face recognition, or opening the barrier without a person confirming.
 
-## Accuracy and source
+## What it is for and its main limits
 
-| Claim | Value | n | Source | Document |
-|---|---|---|---|---|
-| Plate found (top box), demo set not used for tuning | 97.1% (136 / 140) | n = 140 scenes | synthetic (demo set, seed 7) | `docs/GATE.md` §3b |
-| Exact read from one frame | 58% (81 / 140) | n = 140 scenes | synthetic | `docs/GATE.md` §3b |
-| Plate-less scenes auto-read | 0 / 20 | n = 20 scenes | synthetic | `docs/GATE.md` §3c |
-| Real photos, top box on the plate | 44% (14 / 32) | n = 32 photos with a plate | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 | `docs/GATE.md` §3c |
-| Real photos, exact automatic read | 32% (7 / 22); 27% (7 / 26) counting the 4 "unsure letters" photos as misses | n = 22 (12 of them used for tuning, so optimistic) | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 | `docs/GATE.md` §3c |
-| Real photos, taps needed | 78% (25 / 32) | n = 32 | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 | `docs/GATE.md` §3c |
-| Real photos without a plate read automatically | 0 / 19 (3 / 19 before the check; 95% interval 0–17%; held-out half 0 / 8, 0–32%) | n = 19 | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 | `docs/GATE.md` §3c |
-| Owner's ~100 phone photos | not measured | — | field (owner photos): not measured | `docs/field-pilot/plates-photo-labels.md` |
-| Real car park or village | not measured | — | field: not measured (no pilot yet) | `docs/pilot/PILOT-GATE.md` |
+Reads Thai licence plates on the device for car parks and villages. Staff confirm every car before the barrier opens or a fee is charged.
+On real camera images most cars still need staff to tap the plate or correct the number; tilted, dark, dirty or motorcycle plates may be misread.
 
-Read plainly: on real photos today the guard still taps almost 4 in 5 plates, so Gate is sold as a guard's assistant,
-not as an automatic barrier.
+The technical sheet is available from sales on request.
 
 **Pilot:** two phases (`docs/pilot/PILOT-GATE.md`).
 - Phase 0: about 100 of the owner's phone photos.
 - Phase 1: 1 car park and 1 village for at least 5 days and at least 200 reads.
-- Proposed targets: ≥ 95% exact reads by day and ≥ 85% at night, and 0 silent wrong saves. Judged on the Wilson 95%
-  lower bound (owner decision, 2026-11-09), with the plain average (exact reads, k / n) always shown next to it. At the
-  planned sample sizes this needs about 98.8% observed by day and 97.5% at night (`docs/pilot/PILOT-GATE.md` §5).
+- Pilot pass targets (exact reads by day and at night, no silent wrong saves) and how they are judged, with the plain average always shown next to it, is in `docs/pilot/PILOT-GATE.md` §5 (owner decision, 2026-11-09).
 
 **Price (approved price list, not on sale yet; excl. 7% VAT, so the customer pays the price + 7%; hardware not included):**
 

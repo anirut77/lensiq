@@ -25,13 +25,16 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
+<script src="nav.js?v=37"></script>
 
 <main class="st">
   <h1 data-i18n="studio.h1">สตูดิโอภาพโปรไฟล์และรูปติดบัตร</h1>
   <p class="lead" data-i18n="studio.lead1">เปลี่ยนฉากหลัง ปรับแสง รีทัชผิว และทำรูปติดบัตรพร้อมตรวจข้อกำหนด ประมวลผลบนเครื่องนี้ทั้งหมด</p>
+  <p class="lq-lines">
+    <span data-i18n="ln.studio.1">ทำภาพโปรไฟล์และรูปติดบัตรจากรูปของคุณ เปลี่ยนฉากและรีทัชบนเครื่องนี้</span><br>
+    <span data-i18n="ln.studio.2">บางภาพอาจมีขอบหรือรอยต่อผิดปกติ ดูภาพทุกครั้งก่อนใช้ ชุดจำลองยังเป็นแบบร่างและปิดไว้เป็นค่าเริ่มต้น</span></p>
   <div class="st-disc">
-    <p class="hint"><span data-i18n="studio.disc1">ชุดตัวอย่างเป็นภาพจำลองแบบทดลอง ไม่ใช่ภาพสวมจริง</span></p>
+    <p class="hint"><span data-i18n="studio.disc1">ชุดตัวอย่างเป็นภาพจำลองแบบร่าง ไม่ใช่ภาพสวมจริง</span></p>
     <details class="st-more">
       <summary data-i18n="studio.more">อ่านเพิ่มเติม</summary>
       <p class="hint" data-i18n="studio.lead">อัปโหลดรูปหรือถ่ายจากกล้อง ระบบตัดพื้นหลังและเกลาขอบผม เปลี่ยนฉากหลัง ปรับแสง และรีทัชผิวแบบเป็นธรรมชาติ สำหรับรูปโปรไฟล์งานและรูปติดบัตร พร้อมตรวจขนาดรูป สัดส่วนศีรษะ ฉากหลังเรียบ และความสว่าง ส่วนชุดสำเร็จรูปเป็นชุดตัวอย่าง (พรีวิว) ไว้ดูแนวทางเท่านั้น ไม่ใช่ภาพสวมชุดจริง</p>
@@ -76,6 +79,7 @@
           <div class="st-split-line" id="stSplitLine" aria-hidden="true"></div>
           <div class="st-busy" id="stBusy" hidden data-i18n="studio.busy">กำลังประมวลผล...</div>
         </div>
+        <p class="lq-recheck" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
         <div class="st-qa" id="stQa" role="status" aria-live="polite" hidden><span id="stQaMsg"></span> <button type="button" class="btn ghost sm" id="stQaDraft" aria-label="สลับการแสดงชุด" data-i18n-attr="aria-label:studio.a.qaDraft"></button></div>
         <label class="slider st-split" data-i18n="studio.split">ก่อน | หลัง<input type="range" id="stSplit" min="0" max="100" value="0" aria-label="เลื่อนเทียบภาพก่อนและหลัง" data-i18n-attr="aria-label:studio.a.split"></label>
         <div class="seg" id="stMode" role="group" aria-label="เครื่องมือ" data-i18n-attr="aria-label:studio.a.tools">
@@ -130,8 +134,8 @@
         <p class="note" data-i18n="studio.idNote">ชุดเป็นภาพจำลอง ไม่มีตราหรือเครื่องหมายยศ บางหน่วยงานไม่รับรูปที่ผ่านการตกแต่ง กรุณาตรวจข้อกำหนดก่อนใช้งานจริง</p>
       </details>
       <section class="st-exp" aria-labelledby="stExpTitle">
-        <h2 class="st-exp-h" id="stExpTitle" data-i18n="studio.exp.title">ชุดตัวอย่าง (ทดลอง)</h2>
-        <p class="hint st-exp-note" data-i18n="studio.exp.note">ส่วนทดลอง: ชุดเป็นภาพที่โปรแกรมวาดบนรูปของคุณ มักเห็นรอยที่คอหรือกราม ใช้ดูแนวทางเท่านั้น ไม่เหมาะกับรูปทางการ</p>
+        <h2 class="st-exp-h" id="stExpTitle" data-i18n="studio.exp.title">ชุดตัวอย่าง (แบบร่าง)</h2>
+        <p class="hint st-exp-note" data-i18n="studio.exp.note">แบบร่าง: ชุดเป็นภาพที่โปรแกรมวาดบนรูปของคุณ มักเห็นรอยที่คอหรือกราม ใช้ดูแนวทางเท่านั้น ไม่เหมาะกับรูปทางการ</p>
         <details open>
           <summary data-i18n="studio.sec.outfitPick">เลือกชุด</summary>
           <div class="st-pre" id="stPre" role="status" aria-live="polite" hidden></div>
@@ -221,13 +225,13 @@
 <script src="lensiq-detect.js?v=7"></script>
 <script src="photobooth-layout.js?v=2"></script>
 <script src="vendor/ort/ort.wasm.min.js"></script>
-<script src="lensiq-config.js?v=30"></script>
+<script src="lensiq-config.js?v=31"></script>
 <script src="photobooth-hq.js?v=8"></script>
 <script src="photobooth-templates.js?v=1"></script>
 <script src="photobooth-outfits.js?v=3"></script>
 <script src="lensiq-i18n-rt.js?v=2"></script>
 <script src="i18n/zh-rt-common.js?v=7"></script>
-<script src="i18n/zh-studio.js?v=7"></script>
+<script src="i18n/zh-studio.js?v=8"></script>
 <script src="studio-core.js?v=7"></script>
 <script src="studio-qa.js?v=4"></script>
 <script src="studio.js?v=15"></script>

@@ -178,3 +178,19 @@ e6abac4c387a118ca339d3234e3c9e1bf7ba707f5669624c8cd706592e6beeb1  tools/crisis-s
 # retired tests/e2e/crisis-rules-1323-a.e2e.mjs reason: split in branch split-203b (owner decision 203 ข, RE-LOCK 11 above) into tests/e2e/crisis-rules-1323-a-{th,en,zh}.e2e.mjs, EQUAL: same cells (tests/unit/crisis-split-203b.test.js S2 / S3, manifest tests/unit/crisis-split-203b-manifest.json); bytes at 653029d3 = relock10 hash above; field copy ~/LENSIQ-field/evals/crisis-rules-1323/relock10/crisis-rules-1323-a.e2e.mjs
 # retired tests/e2e/crisis-rules-1323-c.e2e.mjs reason: split in branch split-203b (owner decision 203 ข, RE-LOCK 11 above) into tests/e2e/crisis-rules-1323-c-{th,en,zh}.e2e.mjs, EQUAL: same cells (tests/unit/crisis-split-203b.test.js S2 / S3, manifest tests/unit/crisis-split-203b-manifest.json); bytes at 653029d3 = relock10 hash above; field copy ~/LENSIQ-field/evals/crisis-rules-1323/relock10/crisis-rules-1323-c.e2e.mjs
 # retired tests/e2e/crisis-rules-1323-e.e2e.mjs reason: split in branch split-203b (owner decision 203 ข, RE-LOCK 11 above) into tests/e2e/crisis-rules-1323-e-{th,en,zh}.e2e.mjs, EQUAL: same cells (tests/unit/crisis-split-203b.test.js S2 / S3, manifest tests/unit/crisis-split-203b-manifest.json); bytes at 653029d3 = relock10 hash above; field copy ~/LENSIQ-field/evals/crisis-rules-1323/relock10/crisis-rules-1323-e.e2e.mjs
+f1778d97671d53def92cf094bbba7171e7bd5c94517f40ac02568909956f76f9  tests/unit/fortune-live.test.js  # repo file (re-locked in evals-locks/fortune-cards.sha256 at 2026-11-21T18:57:33Z, replaces bad29867d49c082b6bb0f7fb26ee0a75b2a8bfe0905ae413f85c8d1d7bc84750 of line 96; field: ~/LENSIQ-field/evals/fortune-cards/relock-223/fortune-live.test.js)
+# locked 2026-11-21T18:57:33Z (tools/eval-guard.mjs lock, 2 files)
+f6fde25249eea53b6dc39200a16cbac7598a301ff35ee9f66b3ef66eb8a7d273  relock-223/cat-pages.test.js
+8b68073871c0079c8fceef8d03b3cb079fa44afeabab4de4866f728175179585  relock-223/NOTE.txt
+f6fde25249eea53b6dc39200a16cbac7598a301ff35ee9f66b3ef66eb8a7d273  tests/unit/cat-pages.test.js  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock-223/cat-pages.test.js)
+# field only relock-223/NOTE.txt (lock 2026-11-21T18:57:33Z: no repo file uses it)
+# locked 2026-11-21T18:59:15Z (tools/eval-guard.mjs lock, 2 files)
+6ec6519b989003eb1e021ba704442d93ea227423f0389ff92a03b3523a1dc9c7  relock-223b/cat-pages.test.js
+3a286e22d1a1c00a3998b5906f7cc0335efaf1276aacc1a2af5f4250c09a632c  relock-223b/NOTE.txt
+6ec6519b989003eb1e021ba704442d93ea227423f0389ff92a03b3523a1dc9c7  tests/unit/cat-pages.test.js  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock-223b/cat-pages.test.js)
+# field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:15Z: no repo file uses it)
+# locked 2026-11-22T00:32:49Z (tools/eval-guard.mjs lock, 2 files)
+d9803f27271f3255feb055728ec6e60872ed0a726da5c87606a323c72de5a274  relock-226/cat-pages.test.js
+f401858898a8f37ffcf9a3f034542022c28273b4f320365aaacbc2dfe9359201  relock-226/NOTE.txt
+d9803f27271f3255feb055728ec6e60872ed0a726da5c87606a323c72de5a274  tests/unit/cat-pages.test.js  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock-226/cat-pages.test.js)
+# field only relock-226/NOTE.txt (lock 2026-11-22T00:32:49Z: no repo file uses it)

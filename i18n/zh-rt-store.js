@@ -1,6 +1,7 @@
 /* i18n/zh-rt-store.js — run-time Chinese for text written by store.js (status, tables, toasts, multi-device hub,
  * privacy notice). Used by lensiq-i18n-rt.js while 中文 is active; see i18n/zh-rt-common.js. */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
+  "ทดสอบหน้างาน": "现场测试",
   "พร้อม — กด \"เปิดกล้อง\" หรือ \"ใช้ไฟล์วิดีโอทดสอบ\" แล้ววาดเส้นนับและโซนบนภาพ (เพิ่มกล้องได้สูงสุด 4 ตัว)": "就绪 — 点击“开启摄像头”或“使用测试视频文件”，然后在画面上绘制计数线和区域（最多可添加 4 个摄像头）",
   "หยุดวิเคราะห์แล้ว ข้อมูลสรุปถูกบันทึกไว้": "已停止分析，汇总数据已保存",
   "กราฟคนเข้าออกรายชั่วโมง: ยังไม่มีข้อมูล": "每小时进出人数图表：暂无数据",

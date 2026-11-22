@@ -1,4 +1,4 @@
-/* lensiq-sitecheck.js — on-site accuracy check ("ตรวจความแม่นยำหน้างาน") and camera health for the camera pages.
+/* lensiq-sitecheck.js — on-site test ("ทดสอบหน้างาน", owner decision 223-4) and camera health for the camera pages.
  *
  * Why: public benchmarks (ACCURACY.md) are not the customer's door, staff, cab or bottles. This module lets a shop run
  * a short, reproducible acceptance test on its own premises on day 1: the page runs as usual, a person labels what really
@@ -293,7 +293,8 @@
     { const pg = { ...PILOT.store, ...(opts.pilot || {}) };
       pilotJudge(rep, nT >= pg.minTruth, [netCheck(net, ci90(netCI), nT, pg.netErr, "crossings"), pilotProp(prec, pg.precision, ">=", "crossings", prec.deff), pilotProp(dir, pg.dirAcc, ">=", "crossings", dir.deff)],
         [{ group: "crossings", have: nT, min: pg.minTruth }]); }
-    if (nT < tg.minTruth) R.push(fmt("ต้องมีคนผ่านอย่างน้อย {a} ครั้ง (ตอนนี้ {b}) ช่วงความเชื่อมั่นจึงจะแคบพอ (ที่ {d} ครั้ง กว้างราว ±{c}%)", { a: tg.minTruth, b: nT, c: (Z * Math.sqrt(0.85 * 0.15 / Math.max(1, nT)) * 100).toFixed(0), d: nT }));
+    if (nT < tg.minTruth) R.push(fmt("ต้องมีคนผ่านอย่างน้อย {a} ครั้ง (ตอนนี้ {b}) ผลจึงจะเชื่อถือได้",
+      { a: tg.minTruth, b: nT, c: (Z * Math.sqrt(0.85 * 0.15 / Math.max(1, nT)) * 100).toFixed(0), d: nT }));
     sessionNotes(rep, sys, truth, opts);
     return rep;
   }
@@ -405,8 +406,9 @@
         rep.short = { spanMin: +s.spanMin.toFixed(1), moreMin: Math.ceil(s.more) };
         const addNeed = j => { if (j && j.verdict !== "fail" && j.verdict !== "pass" && !j.need.some(x => x.group === "minutes")) j.need.push({ group: "minutes", more: Math.ceil(s.more) }); };
         addNeed(rep); addNeed(rep.pilot);
-        rep.recs.push(fmt(rep.netCI ? "การตรวจสั้นเกินไป ({a} นาที) ช่วงความเชื่อมั่นของยอดนับจึงยังยืนยันผลไม่ได้ — ตรวจต่ออีกอย่างน้อย {b} นาที (ต้องครอบคลุมหลายช่วงเวลา ไม่ใช่แค่จำนวนครั้ง)"
-          : "การตรวจสั้นเกินไป ({a} นาที) จึงยังคำนวณช่วงความเชื่อมั่นของยอดนับไม่ได้ — ตรวจต่ออีกอย่างน้อย {b} นาที (ต้องครอบคลุมหลายช่วงเวลา ไม่ใช่แค่จำนวนครั้ง)", { a: s.spanMin.toFixed(1), b: Math.ceil(s.more) }));
+        rep.recs.push(fmt(
+          "การตรวจสั้นเกินไป ({a} นาที) จึงยังยืนยันยอดนับไม่ได้ — ตรวจต่ออีกอย่างน้อย {b} นาที (ต้องครอบคลุมหลายช่วงเวลา ไม่ใช่แค่จำนวนครั้ง)",
+          { a: s.spanMin.toFixed(1), b: Math.ceil(s.more) }));
       }
     }
     if (fin(st.hiddenMs) && st.hiddenMs >= 1000) {
@@ -660,7 +662,7 @@
     { const pg = { ...PILOT.booth, ...(opts.pilot || {}) };
       pilotJudge(rep, nT >= pg.minTruth, [netCheck(net, ci90(netCI), nT, pg.netErr, "visitors"), pilotProp(prec, pg.precision, ">=", "visitors"), pilotProp(rec, pg.recall, ">=", "visitors")],
         [{ group: "visitors", have: nT, min: pg.minTruth }]); }
-    if (nT < tg.minTruth) R.push(fmt("ต้องมีผู้มาบูธอย่างน้อย {a} คน (ตอนนี้ {b}) ช่วงความเชื่อมั่นจึงจะแคบพอ", { a: tg.minTruth, b: nT }));
+    if (nT < tg.minTruth) R.push(fmt("ต้องมีผู้มาบูธอย่างน้อย {a} คน (ตอนนี้ {b}) ผลจึงจะเชื่อถือได้", { a: tg.minTruth, b: nT }));
     sessionNotes(rep, S, T, opts);
     return rep;
   }
@@ -779,7 +781,7 @@
     window: 8
   });
   const HEALTH_TH = {
-    dark: "ภาพมืด — ภาพจริงในที่มืดมักเบลอและมีสัญญาณรบกวน ตรวจความแม่นยำหน้างานในแสงนี้ก่อนเชื่อตัวเลข หรือเพิ่มแสง",
+    dark: "ภาพมืด — ภาพจริงในที่มืดมักเบลอและมีสัญญาณรบกวน ทดสอบหน้างานในแสงนี้ก่อนเชื่อตัวเลข หรือเพิ่มแสง",
     darkBad: "ภาพมืดมาก — ไม่ควรใช้ตัวเลขช่วงนี้ เพิ่มแสงหรือใช้กล้องอินฟราเรด",
     backlight: "ย้อนแสง — คนเป็นเงามืด อย่าหันกล้องเข้าหาประตูกระจก/หน้าต่าง หรือเพิ่มไฟด้านใน",
     bright: "ภาพสว่างจ้าเกินไป — ลดแสงที่ส่องเข้ากล้องหรือย้ายมุมกล้อง",
@@ -954,7 +956,16 @@
 
   /* ---------- UI helpers ---------- */
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const VERDICT_TH = { pass: "ผ่าน (ยืนยันแล้ว) — ทั้งช่วงความเชื่อมั่นผ่านเกณฑ์ที่หน้างานนี้", ontrack: "ตามเป้าจนถึงตอนนี้ — ยังยืนยันไม่ได้ เก็บข้อมูลเพิ่ม", fail: "ไม่ผ่านเกณฑ์ — แก้ตามคำแนะนำแล้วตรวจใหม่", more: "ยังสรุปไม่ได้ — เก็บข้อมูลเพิ่ม" };
+  /** 223-4: the plain verdict shown on top (panel pill, history); the detailed interval-aware wording sits in the fold */
+  const VERDICT_TH = { pass: "ผ่าน", ontrack: "ยังไม่พอ เก็บข้อมูลเพิ่ม", fail: "ไม่ผ่าน แก้ตามนี้", more: "ยังไม่พอ เก็บข้อมูลเพิ่ม" };
+  const VERDICT_DETAIL_TH = {
+    pass: "ผ่าน (ยืนยันแล้ว) — ทั้งช่วงความเชื่อมั่นผ่านเกณฑ์ที่หน้างานนี้",
+    ontrack: "ตามเป้าจนถึงตอนนี้ — ยังยืนยันไม่ได้ เก็บข้อมูลเพิ่ม",
+    fail: "ไม่ผ่านเกณฑ์ — แก้ตามคำแนะนำแล้วตรวจใหม่",
+    more: "ยังสรุปไม่ได้ — เก็บข้อมูลเพิ่ม"
+  };
+  /** the fold summary: the table, the interval and bootstrap wording are for the administrator */
+  const FOLD_TH = "ตัวเลขละเอียดสำหรับผู้ดูแล";
   /** the round-9 point verdict, shown under the CI-aware one as "provisional" */
   /** round 11: the pilot-grade line (relaxed targets, 90% interval) shown under the strict verdict */
   const PILOT_TH = { pass: "ผ่านระดับนำร่อง — ทดลองใช้ต่อได้ (ยังไม่ใช่การยืนยันความแม่นยำ)", ontrack: "ตามเป้านำร่องจนถึงตอนนี้ — เก็บข้อมูลเพิ่ม", more: "ยังไม่ถึงเป้านำร่อง — เก็บข้อมูลเพิ่ม", fail: "ไม่ผ่านระดับนำร่อง — แก้ตามคำแนะนำแล้วตรวจใหม่" };
@@ -979,7 +990,12 @@
     const provH = rep.provisional ? `<p class="sc-prov" data-v="${esc(rep.provisional)}"><span>ผลชั่วคราว (เทียบค่าที่วัดได้กับเป้า ไม่นับช่วงความเชื่อมั่น):</span> <b>${esc(PROV_TH[rep.provisional] || rep.provisional)}</b></p>` : "";
     const rowCls = m => m.ok === false ? "bad" : m.ok ? (m.sure === false ? "prov" : "ok") : "";
     const tables = (rep.tables || []).map(t => `<h4>${esc(t.title)}</h4><div class="table-wrap"><table class="sc-table sc-conf"><thead><tr><th></th>${t.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${t.rows.map(r => `<tr><th>${esc(r[0])}</th>${r.slice(1).map(v => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`).join("");
-    el.innerHTML = fmt("<p class=\"sc-verdict\" data-v=\"{a}\"><b>{b}</b></p>{n}{q}{p}\n      <div class=\"table-wrap\"><table class=\"sc-table\"><thead><tr><th>ตัวชี้วัด</th><th>ผลที่หน้างาน</th><th>ช่วงความเชื่อมั่น 95%</th><th>เป้า</th></tr></thead><tbody>{c}</tbody></table></div>{t}\n      {d}", { a: rep.verdict, b: esc(VERDICT_TH[rep.verdict]), n: needH, q: pilotH, p: provH, t: tables, c:
+    const detH = VERDICT_DETAIL_TH[rep.verdict] ? `<p class="sc-vdetail" data-v="${esc(rep.verdict)}">${esc(VERDICT_DETAIL_TH[rep.verdict])}</p>` : "";
+    // 223-4: plain verdict, what to collect and what to fix on top; every figure, interval and bootstrap note folded below
+    const TABLE_HEAD = "<tr><th>ตัวชี้วัด</th><th>ผลที่หน้างาน</th><th>ช่วงความเชื่อมั่น 95%</th><th>เป้า</th></tr>";
+    el.innerHTML = fmt("<p class=\"sc-verdict\" data-v=\"{a}\"><b>{b}</b></p>{n}{d}\n      <details class=\"sc-detail\"><summary>{s}</summary>{v}{q}{p}\n      " +
+      "<div class=\"table-wrap\"><table class=\"sc-table\"><thead>{h}</thead><tbody>{c}</tbody></table></div>{t}</details>", {
+      h: TABLE_HEAD, a: rep.verdict, b: esc(VERDICT_TH[rep.verdict]), s: esc(FOLD_TH), v: detH, n: needH, q: pilotH, p: provH, t: tables, c:
       rep.metrics.map(m => `<tr class="${rowCls(m)}"><th>${esc(m.k)}${m.note ? `<small class="sc-note">${esc(m.note)}</small>` : ""}</th><td>${esc(m.v)}</td><td>${esc(m.ci)}</td><td>${esc(m.target)}</td></tr>`).join(""), d: rep.recs.length ? fmt("<h4>คำแนะนำ</h4><ul class=\"sc-recs\">{a}</ul>", { a: rep.recs.map(r => `<li>${esc(r)}</li>`).join("") }) : "" });
   }
   /** short status text for the panel pill / history: the CI-aware verdict (+ "collect N more" when on target so far) */
@@ -1057,5 +1073,7 @@
 
   return { TARGETS, HEALTH, HEALTH_TH, QC_METRICS, wilson, poissonCI, needN, needMoreProp, needMoreRate, clusterCI, blockPropCI, median, matchCrossings, netErrorCI, netErrorBoot, NET, t975, netMoreMin, crossingClusters, clusterWiden, countReport, createFaceTrial, attendanceReport,
     closureSchedule, driverReport, qcValues, qcReport, visitorReport, demoReport, judge, frameStats, thumbShift, createHealth, createStall, videoClock, stallStep, sampleElement,
-    noteQuality, noteGap, shortSessionMin, flaggedHours, qualityText, QUALITY_KEYS, QUALITY_TH, renderReport, renderHealth, renderHealthLine, mountPanel, history, HISTORY_KEYS, latestByCamera, needList, verdictText, exportDoc, PILOT, PILOT_TH, pilotProp, pilotRate, download, rng, fmt, VERDICT_TH, PROV_TH, NEED_TH, BANDS, BAND_LBL, GENDER_LBL };
+    noteQuality, noteGap, shortSessionMin, flaggedHours, qualityText, QUALITY_KEYS, QUALITY_TH, renderReport, renderHealth, renderHealthLine, mountPanel,
+    history, HISTORY_KEYS, latestByCamera, needList, verdictText, exportDoc, PILOT, PILOT_TH, pilotProp, pilotRate, download, rng, fmt,
+    VERDICT_TH, VERDICT_DETAIL_TH, FOLD_TH, PROV_TH, NEED_TH, BANDS, BAND_LBL, GENDER_LBL };
 });

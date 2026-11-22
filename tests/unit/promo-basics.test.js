@@ -148,7 +148,12 @@ test("404.html: a normal site page (shared header), noindex, CSP meta, TH / EN /
 
 test("sitemap.xml lists every public page exactly once (no noindex pages, no 404), robots.txt points at it", () => {
   const html = readdirSync(ROOT).filter(f => /^[^/]+\.html$/.test(f) && f !== "404.html").sort();
-  const pub = html.filter(f => !/<meta\b[^>]*name="robots"[^>]*content="[^"]*noindex/i.test(read(f))).map(f => f.replace(/\.html$/, ""));
+  // re-lock 226b (owner decision 226, "off = not shown"): a page switched off in the nav.js visibility list is not public
+  const vis = read("nav.js").match(/var VISIBILITY = \{([\s\S]*?)\};/);
+  assert.ok(vis, "nav.js: var VISIBILITY");
+  const OFF = [...vis[1].matchAll(/"?([a-z][\w-]*)"?: false/g)].map(m => m[1]).filter(p => existsSync(join(ROOT, p + ".html")));
+  assert.ok(OFF.length >= 5, "switched-off pages: " + OFF.join(", "));
+  const pub = html.filter(f => !/<meta\b[^>]*name="robots"[^>]*content="[^"]*noindex/i.test(read(f))).map(f => f.replace(/\.html$/, "")).filter(p => !OFF.includes(p));
   assert.ok(pub.length >= 60, "public pages: " + pub.length);
   const xml = read("sitemap.xml");
   assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>\s*<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
@@ -156,6 +161,7 @@ test("sitemap.xml lists every public page exactly once (no noindex pages, no 404
   assert.equal(new Set(locs).size, locs.length, "duplicate <loc>");
   assert.deepEqual([...locs].sort(), pub.map(pageUrl).sort());
   for (const p of ["account", "admin", "pricing"]) if (existsSync(join(ROOT, p + ".html"))) assert.ok(!locs.includes(pageUrl(p)), p + " is noindex");
+  for (const p of OFF) assert.ok(!locs.includes(pageUrl(p)), p + " is switched off and not in the sitemap");
   const robots = read("robots.txt");
   assert.match(robots, /^User-agent: \*$/m);
   assert.ok(robots.split(/\r?\n/).includes("Sitemap: " + BASE + "sitemap.xml"), "Sitemap line");

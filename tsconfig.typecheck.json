@@ -62,6 +62,7 @@
     "nav.js",
     "home.js",
     "i18n/zh-common.js",
+    "i18n/zh-home.js",
     "lensiq-stats.js",
     "lensiq-track.js",
     "lensiq-detect.js",

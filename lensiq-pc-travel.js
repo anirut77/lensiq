@@ -698,8 +698,8 @@
       }
       h += `<p class="hint">${esc(T("md.pc.tv.innNote",
         "ชื่อสามัญหาจากตารางชื่อยาของ LENSIQ และรายชื่อตัวยาใน TMT (CC BY) บนเครื่องนี้ ยืนยันชื่อกับ RxNorm ได้เมื่อกด \"ตรวจกับแหล่งข้อมูลทางการ\" ในการ์ดด้านบน"))}</p>`;
-      // measured numbers + "may be incomplete" (owner decision 2026-11-12): the page's own element, generated from
-      // docs/accuracy-figures.json by tools/accuracy-sync.mjs and translated by LQI18N; no number is typed here
+      // "may be incomplete" (owner decision 2026-11-12; decision 223: plain words, no figures): the page's own element
+      // md.pc.tv.acc, translated by LQI18N; no number is typed here
       const acc = document.querySelector('[data-i18n="md.pc.tv.acc"]');
       const accT = acc ? String(acc.textContent || "").replace(/\s+/g, " ").trim() : "";
       if (accT.length > 1) h += `<p class="hint" id="pcTravelAcc">${esc(accT)}</p>`;

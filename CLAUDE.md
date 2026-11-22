@@ -31,7 +31,11 @@ https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
 - On-device processing by default. A human confirms any decision affecting money, access or a person. No emotion or
   deception scoring.
 - Check the licence of every model, dataset and media file for commercial use. Record credits.
-- Every accuracy claim states its source: synthetic, public dataset or field.
+- Every accuracy figure states its source (synthetic, public dataset or field) wherever it appears: technical sheets,
+  back office, internal docs. Customer-facing pages and print/share outputs show no accuracy figures, source tags or
+  status legends; they show what the tool is for and its main limit in plain words (owner decision 223, 2026-11-21).
+- Customer-facing pages and print/share outputs show no status labels or status filters either (no "รุ่นทดลอง",
+  "เร็ว ๆ นี้" or similar); product status labels live in the back office only (owner decision 226, 2026-11-22).
 - All user-facing text complete in Thai, English and Chinese.
 - Decision requests (owner rule 2026-11-12): every message that asks the owner for a decision is self-contained: the
   question, the options, the numbers behind them, the recommendation and what happens if the owner does not answer.
@@ -53,11 +57,12 @@ experimental). Goal: the owner can sell by quotation and bank transfer, without 
 1. `docs/LAUNCH-READINESS.md`: one table per product (what works, measured numbers with source, known limits, every
    must-fix-before-launch item with status, what blocks selling: code / owner / legal).
 2. Fix the must-fix code items: recovery codes with a slow salted hash; retention cron confirmed on; hall mode and
-   Crowd labels consistent everywhere; no page claims more than was measured.
+   Crowd wording consistent everywhere (no status labels on customer pages, owner decision 226); no page claims more
+   than was measured.
 3. Sales kit in Thai (English second): quotation, invoice and receipt templates (excl. 7 % VAT, approved prices),
    order form, a 10-minute demo script per product, a demo mode with sample data (no customer data), an onboarding
    guide per product (install, first day, common problems).
-4. A short sales deck per product from the one-pagers, measured claims only.
+4. A short sales deck per product from the one-pagers, plain-word limits only; figures in the technical sheet.
 5. Customer documents for lawyer review, each marked "draft for legal review": terms of service, privacy notice, DPA
    template, pilot agreement, consent forms.
 6. `docs/LEGAL-PACKET.md` in Thai: every open legal item (L1 onward) by topic, with the question, current approach
@@ -247,12 +252,17 @@ A page may appear in two categories. Pages not listed under a category are platf
 
 ## Round 16 "Sellable core" (plan only: prepare after round 15, with effort S/M/L, owner dependencies and risks per item; build only after approval)
 
-1. Packaging: reorganise the home page, navigation and solutions catalogue by the 7 categories. Every page stays
-   reachable. Each category gets a landing page listing its tools, status (demo / experimental / pilot-ready) and
-   measured accuracy with its source.
+1. Packaging: reorganise the home page, navigation and solutions catalogue by the 7 categories. Every page stays in
+   the code. One visibility list (product id -> on / off; admin switch, owner decision 226) decides what customers see:
+   a product switched off is not listed in menus, category pages, the home page or the solutions catalogue, and its
+   direct URL shows only "ระบบนี้ยังไม่เปิดให้บริการ · This service is not available yet. · 此服务尚未开放。" with a link
+   to the home page. The list cannot switch on anything a code-level switch keeps off. Each category gets a landing
+   page listing its switched-on tools with one plain line per tool and no status label. Status labels, the on / off
+   switch and the Measurements tab (accuracy with its source; docs/tech-sheets/) live in the back office only.
 2. Customer-build switch: one config turns off the age/gender and expression models in customer builds, with a
    licence label. Demo mode keeps them on. Today `window.LENSIQ_AGE_GENDER` in `lensiq-config.js` defaults to `true`.
-3. Honest claims: every one-pager and product page states measured accuracy and its source. Crowd states it is not
+3. Honest claims: every product page and one-pager states the main limit in plain words and never claims more than
+   was measured; the measured figures and their sources are in the product's technical sheet. Crowd states it is not
    yet suitable for dense crowds.
 4. Organisation accounts on the Cloudflare backend (staging): org, admin and staff roles, multi-device sync and
    export/backup for Exam, Gate and Attendance. Show the data model and PDPA impact before building.

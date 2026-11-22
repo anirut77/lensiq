@@ -76,7 +76,9 @@ test("N6: customer guides — Chinese wording fixed, S1 explained in every langu
     assert.ok(!/与商店原有记录/.test(parts.zh), f + ": 与商店原有记录");
     for (const m of parts.zh.matchAll(/第\s?114\s?条/g)) assert.match(parts.zh.slice(Math.max(0, m.index - 20), m.index), /《[^》]+》/, f + ": law name before 第114条");
   }
-  assert.match(read(GUIDES[0]), /大型考场/);
+  // re-lock 226b (coordinator decision round 3, owner decision 226 "off = not shown"): the switched-off camera hall is not in
+  // the Exam guide at all (was: its Chinese sentence had to say 大型考场); the 设在大厅内 wording stays banned above
+  assert.doesNotMatch(read(GUIDES[0]), /大型考场|考场摄像头|exam-hall\.html|ห้องสอบที่ติดกล้อง|camera-in-hall/);
 });
 
 test("N7: gate-notice.html loads the same i18n/zh-gate.js version as the other Gate pages", () => {

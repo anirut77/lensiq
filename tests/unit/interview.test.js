@@ -148,8 +148,9 @@ test("practiceTips: descriptive coaching only, keyed for translation", () => {
 
 test("中文: every key used by interview.html / interview.js / content has a Chinese entry; no emotion/deception labels; no 'AI' in labels", () => {
   const ctx = { window: {} }; vm.createContext(ctx);
-  vm.runInContext(fs.readFileSync(path.join(ROOT, "i18n/zh-interview.js"), "utf8"), ctx);
-  const zh = Object.assign({}, ...ctx.window.LQI18N_Q.map(e => e.zh));
+  // i18n/zh-common.js is loaded on every page by nav.js; it holds the shared decision-223 lines (ln.hr.1 / ln.hr.2)
+  for (const f of ["i18n/zh-common.js", "i18n/zh-interview.js"]) vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), ctx);
+  const zh = Object.assign({}, ...ctx.window.LQI18N_Q.map(e => e.zh || {}));
   const html = fs.readFileSync(path.join(ROOT, "interview.html"), "utf8"), js = fs.readFileSync(path.join(ROOT, "interview.js"), "utf8");
   const keys = new Set([...html.matchAll(/data-i18n="([^"]+)"/g)].map(m => m[1]));
   for (const m of html.matchAll(/data-i18n-attr="([^"]+)"/g)) for (const p of m[1].split(";")) keys.add(p.split(":")[1]);
@@ -283,8 +284,9 @@ test("practiceSummary: pace, pauses, talk time and eye-contact share across answ
 
 test("Round 10 keys: every new interview key has English and Chinese; placeholders match; no Thai left", () => {
   const load = f => { const ctx = { window: {} }; vm.createContext(ctx); vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), ctx); return ctx.window.LQI18N_Q; };
-  const zh = Object.assign({}, ...load("i18n/zh-interview.js").map(e => e.zh || {}));
-  const en = Object.assign({}, ...load("i18n/en-interview.js").map(e => e.en || {}));
+  // + the common dictionaries nav.js loads on every page (shared decision-223 lines ln.hr.1 / ln.hr.2)
+  const zh = Object.assign({}, ...load("i18n/zh-common.js").concat(load("i18n/zh-interview.js")).map(e => e.zh || {}));
+  const en = Object.assign({}, ...load("i18n/en-common.js").concat(load("i18n/en-interview.js")).map(e => e.en || {}));
   const keys = [];
   for (const id of Object.keys(IV.SIGNALS)) keys.push("iv.sig." + id, "iv.sig." + id + ".short");
   for (const id of IV.CONSIST_IDS) keys.push("iv.cs." + id);

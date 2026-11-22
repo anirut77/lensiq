@@ -184,7 +184,9 @@ function loadDict(file, lang) {
   return Object.assign({}, ...w.LQI18N_Q.map(d => d[lang] || {}));
 }
 test("crowd: every data-i18n key and every T() key has English and Chinese, values without Thai, same placeholders", () => {
-  const en = { ...loadDict("en-zones.js", "en"), ...loadDict("en-crowd.js", "en") }, zh = { ...loadDict("zh-zones.js", "zh"), ...loadDict("zh-crowd.js", "zh") };
+  // shared keys (decision 223 lines ln.*, result line common.recheck) live in the common dictionaries loaded on every page
+  const en = { ...loadDict("en-common.js", "en"), ...loadDict("en-zones.js", "en"), ...loadDict("en-crowd.js", "en") };
+  const zh = { ...loadDict("zh-common.js", "zh"), ...loadDict("zh-zones.js", "zh"), ...loadDict("zh-crowd.js", "zh") };
   const enC = loadDict("en-crowd.js", "en"), zhC = loadDict("zh-crowd.js", "zh");
   assert.deepEqual(Object.keys(enC).sort(), Object.keys(zhC).sort());
   const keys = new Set(), h = read("crowd.html"), js = read("crowd.js");

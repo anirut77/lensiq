@@ -687,14 +687,15 @@
       window.addEventListener("lq-lang", render);
     };
 
-    /* ---------------- on-site accuracy check ---------------- */
+    /* ---------------- on-site test (decision 223-4: plain verdict on top, figures folded) ---------------- */
     const CHK_KEY = ns + "-sitecheck";
     let checking = false;
     kit.checking = () => checking;
     kit.addCheck = row => { store.put({ id: uid("chk-"), kind: "chk", at: Date.now(), ...row }); if (kit.renderCheck) kit.renderCheck(); };
     kit.mountCheck = (el) => {
-      el.innerHTML = `<h2 data-i18n="gk.chk.h">ตรวจความแม่นยำหน้างาน</h2>
-        <p class="hint" data-i18n="gk.chk.intro">ระหว่างตรวจ ทุกครั้งที่ระบบเสนอเลขทะเบียน เจ้าหน้าที่กด ✓ อ่านถูก หรือ ✗ อ่านผิด (หรือแก้เลขแล้วยืนยัน ซึ่งนับเป็น ✗) ระบบคำนวณความแม่นยำทั้งป้าย รายตัวอักษร และแยกกลางวัน/กลางคืน พร้อมช่วงความเชื่อมั่น 95%</p>
+      el.innerHTML = `<h2 data-i18n="gk.chk.h">ทดสอบหน้างาน</h2>
+        <p class="hint" data-i18n="gk.chk.intro">ระหว่างทดสอบ ทุกครั้งที่ระบบเสนอเลขทะเบียน เจ้าหน้าที่กด ✓ อ่านถูก หรือ ✗ อ่านผิด
+          (หรือแก้เลขแล้วยืนยัน ซึ่งนับเป็น ✗) เมื่อจบ ระบบแสดงคำตัดสินแบบเข้าใจง่ายไว้ด้านบน ส่วนตัวเลขละเอียดแยกกลางวัน/กลางคืนพับไว้ด้านล่างสำหรับผู้ดูแล</p>
         <ol class="gk-list"><li data-i18n="gk.chk.s1">เปิด "อ่านอัตโนมัติ" แล้วกด "เริ่มตรวจ"</li><li data-i18n="gk.chk.s2">เก็บอย่างน้อย 100 คัน และกลางคืนอย่างน้อย 30 คัน</li><li data-i18n="gk.chk.s3">กด "จบและคำนวณ" แล้วส่งออกผลเก็บไว้</li></ol>
         <div class="gk-row"><button class="btn primary" type="button" id="gkChkStart" data-i18n="gk.chk.start">เริ่มตรวจ</button><button class="btn ghost" type="button" id="gkChkStop" disabled data-i18n="gk.chk.stop">จบและคำนวณ</button>
         <button class="btn ghost" type="button" id="gkChkExp" hidden data-i18n="gk.chk.exp">ส่งออกผลตรวจ (.json)</button></div>
@@ -716,8 +717,12 @@
         const need = (rep.need || []).filter(x => x.more > 0 && NEED[x.group]).map(x => T(NEED[x.group][0], NEED[x.group][1], { n: Math.ceil(x.more) }));
         $("#gkChkRep").innerHTML = `<p class="gk-verdict" data-v="${esc(rep.verdict)}"><b>${esc(T(VERD[rep.verdict][0], VERD[rep.verdict][1]))}</b></p>` +
           (need.length && rep.verdict !== "pass" ? `<p class="hint">${esc(T("gk.chk.need", "ต้องเก็บเพิ่ม:"))} ${need.map(esc).join(" · ")}</p>` : "") +
-          `<div class="table-wrap"><table class="gk-table"><thead><tr><th data-i18n="gk.col.metric">ตัวชี้วัด</th><th data-i18n="gk.col.value">ผล</th><th data-i18n="gk.col.ci">ช่วงความเชื่อมั่น 95%</th><th data-i18n="gk.col.target">เป้า</th><th>n</th></tr></thead><tbody>` +
-          rep.metrics.map(m => `<tr class="${m.ok === false ? "bad" : m.ok ? "ok" : ""}"><th>${esc(T(MET[m.k][0], MET[m.k][1]))}</th><td>${esc(m.v)}</td><td>${esc(m.ci)}</td><td>${esc(m.target)}</td><td>${m.n}</td></tr>`).join("") + `</tbody></table></div>`;
+          `<details class="gk-fold"><summary data-i18n="gk.chk.fold">ตัวเลขละเอียดสำหรับผู้ดูแล</summary>` +
+          `<div class="table-wrap"><table class="gk-table"><thead><tr><th data-i18n="gk.col.metric">ตัวชี้วัด</th><th data-i18n="gk.col.value">ผล</th>` +
+          `<th data-i18n="gk.col.ci">ช่วงที่น่าจะเป็น 95%</th><th data-i18n="gk.col.target">เป้า</th><th>n</th></tr></thead><tbody>` +
+          rep.metrics.map(m => `<tr class="${m.ok === false ? "bad" : m.ok ? "ok" : ""}"><th>${esc(T(MET[m.k][0], MET[m.k][1]))}</th>` +
+            `<td>${esc(m.v)}</td><td>${esc(m.ci)}</td><td>${esc(m.target)}</td><td>${m.n}</td></tr>`).join("") +
+          `</tbody></table></div></details>`;
       };
       const renderHist = () => { $("#gkChkHist").innerHTML = hist().map(h => `<li>${esc(fmtTime(h.at))} — <b>${esc(T(VERD[h.verdict] ? VERD[h.verdict][0] : "gk.v.more", VERD[h.verdict] ? VERD[h.verdict][1] : h.verdict))}</b> <small>${esc(h.summary)}</small></li>`).join("") || `<li data-i18n="gk.chk.none">ยังไม่มีผลตรวจ</li>`; };
       kit.renderCheck = () => {

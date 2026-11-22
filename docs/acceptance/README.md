@@ -31,7 +31,8 @@ Owner standing order 2026-11-18 ("Define 90 first"). One sheet per product in th
 6. **Targets.** "existing" = copied from the cited file and lock; "proposed" = new, based on industry or reasonable
    practice, waiting for the owner. A target is never lowered to raise a score. A change needs an owner decision and a
    new lock line (the old sheet stays in the ledger).
-7. **Accuracy claims** state their source class: synthetic, public dataset or field (CLAUDE.md).
+7. **Accuracy claims.** Accuracy figures state their source class in the technical sheet; customer pages carry none (decision 223).
+   Source classes: synthetic, public dataset or field (CLAUDE.md). Changed 2026-11-21 by owner decision 223-1; no target changed.
 8. **Outside inputs.** Each sheet names what engineering cannot supply. `SCORES.md` gives the highest score reachable
    without those inputs.
 

@@ -81,7 +81,8 @@ export default async function ({ base, launch, check, fakeCams }) {
       }));
       assert(/รูปติดบัตร/.test(r11.h1) && /รูปติดบัตร/.test(r11.title) && /รูปติดบัตร/.test(r11.nav), "renamed " + JSON.stringify(r11));
       assert(r11.first[0] === "ฉากหลัง" && r11.first.includes("รีทัช") && r11.first.includes("บันทึกภาพ"), "background/retouch/ID first " + r11.first);
-      assert(/ทดลอง/.test(r11.exp), "outfits under the experimental section " + r11.exp);
+      // decision 223 / 226: the outfit section is named with the approved word "แบบร่าง" (was: a trial-version word "ทดลอง")
+      assert(/แบบร่าง/.test(r11.exp) && !/ทดลอง/.test(r11.exp), "outfits under the draft section " + r11.exp);
       assert(!/MODNet|MediaPipe/.test(r11.ready) && r11.techClosed && r11.engineInTech && r11.more, "plain status line, model names in technical details " + JSON.stringify(r11));
       assert(r11.aria && r11.aria.length > 2, "#stQaDraft has an accessible name at load");
       assert(/ผมบัง/.test(r11.cover) && !/ไม่ผ่าน/.test(r11.cover), "cover 'auto' text matches the code (jaw strip open, regardless of the plain result): " + r11.cover);

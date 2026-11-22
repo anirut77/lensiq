@@ -1,0 +1,1506 @@
+{
+  "$comment": "Owner decision 223 (2026-11-21, confirmed 23:39): fixed expectations for tests/unit/accuracy-removal-223.test.js. Wording of lines, badges and the result line is copied from ~/Desktop/LENSIQ-review/accuracy-removal/AUDIT-2026-11-21-TH.md sections 2-3 (223-7 approved as drafted) and the owner's own words (Entry 6). Locked in ~/LENSIQ-field/evals/accuracy-removal-223/ before any product change.",
+  "banned": [
+    {
+      "id": "acc-heading",
+      "re": "ความแม่นยำที่วัดได้|Measured accuracy|已测准确率|实测准确|ความแม่นยำ: บอกตามจริง|Accuracy: the honest picture|Accuracy, stated honestly|准确率：如实说明|准确度：如实说明|ความแม่นยำที่เผยแพร่|Published accuracy|公开的准确度|ผลวัดความแม่นยำ|Accuracy measurement|准确度测量|ตัวเลขที่วัดได้และที่มา|Measured figures and their source|实测数字及来源|ตัวเลขและที่มา|Figures and sources|数字与来源|ความแม่นยำของการนับคน|Counting accuracy|人数统计准确度|ดูความแม่นยำ|See measured accuracy|วิธีวัดและชุดข้อมูล|How it was measured|测量方法与数据集|วิธีวัดและข้อจำกัด|How it was measured and its limits|ตารางผลวัด|Results table and limitations|测量结果表"
+    },
+    {
+      "id": "why-status",
+      "re": "ทำไมสถานะนี้|Why this status|为何是此状态"
+    },
+    {
+      "id": "status-legend",
+      "re": "สถานะหมายถึงอะไร|What the status means|状态说明"
+    },
+    {
+      "id": "source-legend",
+      "re": "ที่มาของตัวเลข|Where the numbers come from|ยังไม่มีระบบใดมีตัวเลขภาคสนาม|No tool has a field figure|目前没有任何工具有实地数据"
+    },
+    {
+      "id": "n-equals",
+      "re": "\\bn\\s?=\\s?\\d"
+    },
+    {
+      "id": "prelim",
+      "re": "เบื้องต้น|preliminary|初步",
+      "flags": "i"
+    },
+    {
+      "id": "not-measured",
+      "re": "ยังไม่ได้วัด|not (yet )?(been )?measured|尚未测量|未测量|尚未实测",
+      "flags": "i"
+    },
+    {
+      "id": "pilot-ready",
+      "re": "พร้อมนำร่อง|pilot-ready|可试点",
+      "flags": "i"
+    },
+    {
+      "id": "dataset",
+      "re": "\\bLFW\\b|CASIA|Open Images|MOT17|PETS ?0?9|\\bPETS\\b|UTKFace|HaGRID|\\bCEW\\b|FER-2013|MIT1003|Wikimedia"
+    },
+    {
+      "id": "source-tag",
+      "re": "ชุดข้อมูลสาธารณะ|public dataset|公开数据集|ข้อมูลสังเคราะห์|synthetic data|合成数据|ชุดทดสอบสังเคราะห์|synthetic test|合成测试|ที่มา: (ชุดข้อมูล|ข้อมูลสังเคราะห์|หน้างาน|งานวิจัย|ภาคสนาม)|source: (public|synthetic|field|published)|来源：(公开|合成|现场|实地|已发表)",
+      "flags": "i"
+    },
+    {
+      "id": "ci",
+      "re": "ช่วงความเชื่อมั่น|confidence interval|置信区间|95 ?% interval|\\bWilson\\b",
+      "flags": "i"
+    },
+    {
+      "id": "accuracy-file",
+      "re": "ACCURACY\\.md|CROWD-ACCURACY"
+    },
+    {
+      "id": "internal",
+      "re": "รอความเห็นทนาย|ทนายต้องตรวจก่อนขาย|F5/F6|ยังรอสรุป|รอทนาย"
+    },
+    {
+      "id": "beta",
+      "re": "\\bBeta\\b"
+    },
+    {
+      "id": "site-acc-check",
+      "re": "ตรวจความแม่นยำ|ทดสอบความแม่นยำ|accuracy check|Test accuracy|准确率检查|准确度检查|准确度状态|测试准确率",
+      "flags": "i"
+    }
+  ],
+  "excludeFiles": [
+    {
+      "file": "terms.html",
+      "why": "223-6: terms clause 11 is rewritten as a draft in docs/legal/ for the lawyer and does NOT change on the site yet; the draft banner stays"
+    }
+  ],
+  "excludeIds": [
+    {
+      "id": "ci",
+      "files": [
+        "insights.html",
+        "insights-ui.js",
+        "insights-cards.js",
+        "insights-analysis.js",
+        "insights-charts.js",
+        "insights-data.js",
+        "insights-demo.js",
+        "insights.js",
+        "i18n/en-insights.js",
+        "i18n/zh-insights.js"
+      ],
+      "why": "audit 1.9: statistics of the customer's own data, outside 223 (separate work item)"
+    },
+    {
+      "id": "ci",
+      "files": [
+        "lensiq-sitecheck.js",
+        "lensiq-stats.js",
+        "lensiq-zonecam.js",
+        "gate-kit.js",
+        "exam-dashboard.js",
+        "attendance.js",
+        "booth.js",
+        "signage.js",
+        "store.js",
+        "i18n/en-rt-sitecheck.js",
+        "i18n/zh-rt-sitecheck.js",
+        "i18n/en-rt-booth.js",
+        "i18n/zh-rt-booth.js",
+        "i18n/en-rt-signage.js",
+        "i18n/zh-rt-signage.js",
+        "i18n/en-rt-store.js",
+        "i18n/zh-rt-store.js",
+        "i18n/en-rt-attendance.js",
+        "i18n/zh-rt-attendance.js",
+        "i18n/en-rt-common.js",
+        "i18n/zh-rt-common.js"
+      ],
+      "why": "223-4: the customer's own on-site test keeps its detailed figures, folded under the 'detailed figures for the administrator' summary (checked by fold below)"
+    },
+    {
+      "id": "dataset",
+      "files": [
+        "lensiq-research.js",
+        "lensiq-golive.js",
+        "lensiq-config.js"
+      ],
+      "why": "223-5: research-licence label text, shown only where the research option is on (off in the customer build)"
+    },
+    {
+      "id": "internal",
+      "files": [
+        "lensiq-research.js",
+        "lensiq-golive.js",
+        "lensiq-config.js"
+      ],
+      "why": "223-5: research-licence label text, shown only where the research option is on (off in the customer build)"
+    }
+  ],
+  "allow": [
+    {
+      "file": "fortune-sources.js",
+      "id": "dataset",
+      "contains": "Wikimedia Commons",
+      "why": "fortune image credit (public-domain source), not a dataset claim"
+    },
+    {
+      "file": "palm-kb.js",
+      "id": "dataset",
+      "contains": "Wikimedia Commons",
+      "why": "fortune image credit"
+    },
+    {
+      "file": "tarot-kb.js",
+      "id": "dataset",
+      "contains": "Wikimedia Commons",
+      "why": "tarot card image credit"
+    },
+    {
+      "file": "faceread.js",
+      "id": "dataset",
+      "contains": "Wikimedia",
+      "why": "fortune image credit"
+    },
+    {
+      "file": "i18n/en-fortune-palm.js",
+      "id": "dataset",
+      "contains": "Wikimedia Commons",
+      "why": "fortune image credit"
+    },
+    {
+      "file": "i18n/zh-fortune-palm.js",
+      "id": "dataset",
+      "contains": "Wikimedia Commons",
+      "why": "fortune image credit"
+    },
+    {
+      "file": "i18n/en-fortune-tarot.js",
+      "id": "dataset",
+      "contains": "Wikimedia Commons",
+      "why": "tarot card image credit"
+    },
+    {
+      "file": "i18n/zh-fortune-tarot.js",
+      "id": "dataset",
+      "contains": "Wikimedia Commons",
+      "why": "tarot card image credit"
+    },
+    {
+      "file": "i18n/zh-fortune-tarot.js",
+      "id": "prelim",
+      "contains": "初步成功",
+      "why": "tarot keyword 'first success', not a status word"
+    },
+    {
+      "file": "i18n/en-fortune-faceread.js",
+      "id": "not-measured",
+      "contains": "bridge height needs a profile view",
+      "why": "a face feature the reading cannot see, not an accuracy claim"
+    },
+    {
+      "file": "i18n/zh-fortune-faceread.js",
+      "id": "not-measured",
+      "contains": "鼻梁高度需从侧面看",
+      "why": "same, Chinese"
+    },
+    {
+      "file": "i18n/en-rt-fortune.js",
+      "id": "not-measured",
+      "contains": "bridge height needs a profile view",
+      "why": "same, run-time copy"
+    },
+    {
+      "file": "i18n/zh-rt-fortune.js",
+      "id": "not-measured",
+      "contains": "鼻梁高度需从侧面看",
+      "why": "same, run-time copy"
+    },
+    {
+      "file": "i18n/en-fortune-palm.js",
+      "id": "not-measured",
+      "contains": "Not measured",
+      "why": "palm reading: a hand feature (thumb) not measured in this photo, not an accuracy claim"
+    },
+    {
+      "file": "i18n/en-fortune-palm.js",
+      "id": "not-measured",
+      "contains": "thumb was not measured",
+      "why": "palm reading: thumb not measured in this photo"
+    },
+    {
+      "file": "i18n/zh-fortune-palm.js",
+      "id": "not-measured",
+      "contains": "未测量",
+      "why": "palm reading: thumb not measured in this photo"
+    },
+    {
+      "file": "i18n/en-interview.js",
+      "id": "not-measured",
+      "contains": "it is not measured by camera or voice",
+      "why": "plain limit: consistency is the interviewer's note, never a camera measure"
+    },
+    {
+      "file": "i18n/en-creative.js",
+      "id": "not-measured",
+      "contains": "not measured eye tracking",
+      "why": "plain limit: a prediction, not real eye tracking (2.12 line 2)"
+    },
+    {
+      "file": "i18n/en-creative.js",
+      "id": "not-measured",
+      "contains": "sales or clicks are not measured",
+      "why": "plain limit: the tool does not see sales or clicks"
+    },
+    {
+      "file": "i18n/zh-creative.js",
+      "id": "not-measured",
+      "contains": "并未测量销量或点击",
+      "why": "same, Chinese"
+    },
+    {
+      "file": "i18n/en-rt-booth.js",
+      "id": "not-measured",
+      "contains": "valence are not measured",
+      "why": "state of the switched-off expression model, not an accuracy claim"
+    },
+    {
+      "file": "i18n/zh-rt-signage.js",
+      "id": "not-measured",
+      "contains": "尚未测量，广告按顺序轮播",
+      "why": "live state: no audience measured yet, ads rotate in order"
+    },
+    {
+      "file": "i18n/zh-rt-sitecheck.js",
+      "id": "not-measured",
+      "contains": "期间未测量观众",
+      "why": "live state: the tab was hidden, no audience measured meanwhile"
+    },
+    {
+      "file": "terms.html",
+      "id": "beta",
+      "contains": "Beta",
+      "why": "223-6 (file excluded; listed for the reviewer)"
+    },
+    {
+      "file": "privacy.html",
+      "id": "internal",
+      "contains": "รอทนายความยืนยัน",
+      "why": "223-6: legal-page draft note stays until the lawyer has reviewed"
+    },
+    {
+      "file": "privacy.html",
+      "id": "internal",
+      "contains": "ฉบับร่าง — รอทนายความตรวจทาน",
+      "why": "223-6: draft banner stays"
+    },
+    {
+      "file": "help.html",
+      "id": "internal",
+      "contains": "ฉบับร่าง — รอทนายความตรวจทาน",
+      "why": "223-6: draft banner stays"
+    },
+    {
+      "file": "camera-notice.html",
+      "id": "internal",
+      "contains": "ฉบับร่าง — รอทนายความตรวจทาน",
+      "why": "223-6: draft banner stays"
+    },
+    {
+      "file": "camera-notice.html",
+      "id": "site-acc-check",
+      "contains": "เพื่อทดสอบความแม่นยำ",
+      "why": "audit 1.10: PDPA recording sign during an on-site test, a legal notice, not a claim"
+    },
+    {
+      "file": "i18n/en-legal.js",
+      "id": "site-acc-check",
+      "contains": "accuracy test",
+      "why": "same sign, English"
+    }
+  ],
+  "removedKeys": [
+    "cat.acc.h",
+    "cat.why",
+    "cat.legend.h",
+    "cat.src.h",
+    "cat.src.d",
+    "cat.method",
+    "cr.acc",
+    "cr.accLink",
+    "cr.cl.h",
+    "cr.cl.dense",
+    "cr.cl.field",
+    "cr.acc2.h",
+    "cr.acc2.pre",
+    "cr.acc2.how",
+    "cr.acc2.r1",
+    "cr.acc2.r2",
+    "cr.acc2.r3",
+    "cr.acc2.r4",
+    "cr.acc2.r5",
+    "cr.acc2.r6",
+    "cr.acc2.final",
+    "cr.acc2.kit",
+    "gate.acc.h",
+    "gate.acc.l1",
+    "gate.acc.l2",
+    "gate.acc.l3",
+    "gate.acc.l4",
+    "gate.acc.l5",
+    "gate.acc.l6",
+    "gate.acc.l7",
+    "gate.cl.h",
+    "gate.cl.l1",
+    "gate.cl.l2",
+    "gate.cl.l3",
+    "gate.cl.l4",
+    "gate.cl.l5",
+    "gate.cl.l6",
+    "gate.cl.l7",
+    "gk.acc.b",
+    "gk.acc.more",
+    "exam.l.cl.h",
+    "exam.l.cl1",
+    "exam.l.cl2",
+    "exam.l.cl3",
+    "exam.l.cl4",
+    "exam.l.cl5",
+    "attendance.s4",
+    "attendance.s5",
+    "attendance.s6",
+    "attendance.cl1",
+    "attendance.cl2",
+    "attendance.cl3",
+    "attendance.cl4",
+    "attendance.cl5",
+    "attendance.cl6",
+    "customers.s4",
+    "customers.s5",
+    "customers.s6",
+    "pd.h.cl1",
+    "pd.h.cl2",
+    "pd.h.cl3",
+    "store.s6",
+    "store.s63",
+    "store.cl1",
+    "store.cl2",
+    "store.cl3",
+    "store.cl4",
+    "pd.r.aH",
+    "pd.r.aP",
+    "pd.r.aLink",
+    "pd.r.cl1",
+    "pd.r.cl2",
+    "pd.r.cl3",
+    "zc.accLink",
+    "booth.s5",
+    "checkout.s5",
+    "driver.s5",
+    "neuro.s5",
+    "qc.s6",
+    "signage.s6",
+    "cr.s.acc.h",
+    "cr.s.acc.p",
+    "cr.s.acc.note",
+    "cameras.s10",
+    "cameras.s175",
+    "cameras.s176",
+    "cameras.s219",
+    "cameras.s244",
+    "cameras.accpilot",
+    "sl.statusH",
+    "sl.st.pilot.d",
+    "sl.st.now.d",
+    "sl.st.soon.d",
+    "sl.f.pilotNote",
+    "sl.pr.acc",
+    "nut.help.accH",
+    "sl.why"
+  ],
+  "removedIds": [
+    {
+      "file": "cameras.html",
+      "id": "accuracy"
+    },
+    {
+      "file": "gate.html",
+      "id": "accuracy"
+    },
+    {
+      "file": "gate.html",
+      "id": "claims"
+    },
+    {
+      "file": "crowd.html",
+      "id": "crAcc"
+    },
+    {
+      "file": "crowd.html",
+      "id": "crClaims"
+    }
+  ],
+  "removedClasses": [
+    "cat-acc",
+    "cat-why",
+    "cat-srcs",
+    "cat-legend",
+    "sl-legend",
+    "claims"
+  ],
+  "recheck": {
+    "key": "common.recheck",
+    "th": "โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้",
+    "en": "Please check again. The result may not be accurate.",
+    "zh": "请再次核对，结果可能有误。",
+    "pages": [
+      "gate.html",
+      "parking.html",
+      "village.html",
+      "crowd.html",
+      "store.html",
+      "booth.html",
+      "exam-dashboard.html",
+      "exam-hall.html",
+      "attendance.html",
+      "medicine.html",
+      "nutrition.html",
+      "omr.html",
+      "studio.html",
+      "photobooth.html",
+      "tryon.html",
+      "queue.html",
+      "tables.html",
+      "bays.html",
+      "afterhours.html",
+      "faceread.html",
+      "palm.html",
+      "petread.html",
+      "luckycolor.html"
+    ],
+    "crowdReport": {
+      "key": "cr.rep.note",
+      "th": "ตัวเลขเป็นค่าประมาณจากกล้อง โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้ ไม่มีภาพหรือข้อมูลระบุตัวบุคคล"
+    }
+  },
+  "lines": [
+    {
+      "id": "crowd",
+      "pages": [
+        "crowd.html"
+      ],
+      "cards": [
+        "crowd"
+      ],
+      "1": {
+        "th": "นับคนและดูความหนาแน่นในโซนที่คุณวาด สำหรับอีเวนต์และพื้นที่จัดงาน ประมวลผลบนเครื่อง ไม่ระบุตัวตน",
+        "en": "Counts people and shows crowding in the zones you draw, for events and venues. Runs on the device and identifies no one.",
+        "zh": "在您划定的区域内统计人数并显示拥挤程度，适用于活动和场馆。在设备上处理，不识别身份。"
+      },
+      "2": {
+        "th": "เหมาะกับงานที่มีคนน้อยถึงปานกลาง ยังไม่เหมาะกับฝูงชนหนาแน่น",
+        "en": "Suited to light to moderate crowds; not yet suitable for dense crowds.",
+        "zh": "适用于人少到中等的场合，尚不适用于密集人群。"
+      }
+    },
+    {
+      "id": "gate",
+      "pages": [
+        "gate.html",
+        "parking.html",
+        "village.html"
+      ],
+      "cards": [
+        "gate",
+        "parking",
+        "village"
+      ],
+      "1": {
+        "th": "อ่านป้ายทะเบียนรถไทยบนเครื่องสำหรับลานจอดและหมู่บ้าน เจ้าหน้าที่ยืนยันทุกคันก่อนเปิดไม้กั้นหรือคิดเงิน",
+        "en": "Reads Thai licence plates on the device for car parks and villages. Staff confirm every car before the barrier opens or a fee is charged.",
+        "zh": "在设备上识别泰国车牌，用于停车场和小区。每辆车在抬杆或收费前都由工作人员确认。"
+      },
+      "2": {
+        "th": "ภาพจากกล้องจริงส่วนใหญ่ยังต้องให้เจ้าหน้าที่แตะเลือกป้ายหรือแก้เลข ป้ายเอียง มืด สกปรก หรือป้ายมอเตอร์ไซค์อาจอ่านผิด",
+        "en": "On real camera images most cars still need staff to tap the plate or correct the number; tilted, dark, dirty or motorcycle plates may be misread.",
+        "zh": "在真实摄像头画面中，多数车辆仍需工作人员点选车牌或更正号码；倾斜、昏暗、脏污的车牌或摩托车牌可能读错。"
+      }
+    },
+    {
+      "id": "exam",
+      "pages": [
+        "exam.html",
+        "exam-dashboard.html"
+      ],
+      "cards": [
+        "exam",
+        "exam-dashboard"
+      ],
+      "docs": [
+        "docs/ONE-PAGER-EXAM.md"
+      ],
+      "1": {
+        "th": "บอกผู้คุมสอบว่าควรไปดูที่นั่งไหน ระบบแจ้งเท่านั้น คนตัดสินทุกกรณี ไม่อ่านอารมณ์ และไม่จดจำว่าใครเป็นใคร",
+        "en": "Tells invigilators which seat to check. The system only flags; a person decides every case. It reads no emotion and recognises no one.",
+        "zh": "提示监考员该去查看哪个座位。系统只做提示，每件事都由人决定；不读取情绪，也不识别身份。"
+      },
+      "2": {
+        "th": "ตรวจพบโทรศัพท์ที่อยู่ใกล้กล้องได้ดี โทรศัพท์ที่วางบนโต๊ะมักตรวจไม่พบ ผู้คุมสอบควรเดินตรวจร่วมด้วย",
+        "en": "Phones close to the camera are detected well. A phone lying on the desk is usually missed, so invigilators should still walk the room.",
+        "zh": "靠近摄像头的手机能较好地检出，放在桌上的手机通常检测不到，监考员仍应巡视考场。"
+      }
+    },
+    {
+      "id": "examlab",
+      "pages": [
+        "exam-lab.html"
+      ],
+      "cards": [
+        "exam-lab"
+      ],
+      "2": {
+        "th": "ระบบช่วยผู้คุมสอบเท่านั้น ไม่ตัดสินว่ามีการทุจริต",
+        "en": "The system only assists the invigilator; it does not decide misconduct.",
+        "zh": "系统只协助监考员，不判定作弊。"
+      }
+    },
+    {
+      "id": "examhall",
+      "pages": [
+        "exam-hall.html"
+      ],
+      "cards": [
+        "exam-hall"
+      ],
+      "1": {
+        "th": "กล้องหนึ่งตัวดูหลายที่นั่งในห้องสอบ แจ้งที่นั่งว่าง คนเพิ่ม และคนเอนตัว ให้ผู้คุมสอบไปดู",
+        "en": "One camera watches several seats and flags empty seats, extra people and leaning so the invigilator can check.",
+        "zh": "一台摄像头看多个座位，提示空座、多出的人和倾身，供监考员查看。"
+      },
+      "2": {
+        "th": "ใบหน้าที่อยู่ไกลกล้องยังหาไม่เจอ และเห็นโทรศัพท์ได้เฉพาะแถวหน้าใกล้กล้อง ผู้คุมสอบควรเดินตรวจร่วมด้วย",
+        "en": "Faces far from the camera are not found yet, and phones are seen only in the front rows near the camera. Invigilators should still walk the room.",
+        "zh": "远离摄像头的人脸目前还检测不到，手机只能在靠近摄像头的前排看到。监考员仍应巡视考场。"
+      }
+    },
+    {
+      "id": "attendance",
+      "pages": [
+        "attendance.html"
+      ],
+      "cards": [
+        "attendance"
+      ],
+      "1": {
+        "th": "ลงเวลาทำงานด้วย PIN หรือ QR บนเครื่องของร้าน ไม่ต้องใช้กล้อง สแกนใบหน้าเป็นทางเลือกเฉพาะพนักงานที่ยินยอม",
+        "en": "Staff clock in with a PIN or QR code on the shop's device, no camera needed. Face scan is an option only for staff who consent.",
+        "zh": "员工在店内设备上用 PIN 或二维码打卡，无需摄像头。人脸扫描仅为自愿员工的可选项。"
+      },
+      "2": {
+        "th": "แบบสแกนใบหน้าบางครั้งต้องสแกนซ้ำหรือให้หัวหน้ายืนยัน และกันภาพปลอมได้ไม่ครบ จึงควรมีคนดูแลจุดลงเวลา",
+        "en": "With face scan, staff sometimes need to scan again or have a supervisor confirm, and it does not stop every fake image, so someone should watch the clock-in point.",
+        "zh": "使用人脸扫描时，有时需要重扫或由主管确认，也不能拦住所有假图像，因此打卡点应有人照看。"
+      }
+    },
+    {
+      "id": "pc",
+      "pages": [
+        "medicine.html"
+      ],
+      "cards": [
+        "medicine"
+      ],
+      "1": {
+        "th": "อ่านฉลากยาและสินค้า บาร์โค้ด และตรวจถ้อยคำโฆษณาบนเครื่องนี้ ภาพไม่ถูกส่งออก",
+        "en": "Reads medicine and product labels and barcodes and checks advert wording on this device. Photos never leave it.",
+        "zh": "在本设备上读取药品和商品标签、条码，并检查广告用语。照片不会被发送出去。"
+      },
+      "2": {
+        "th": "อาจอ่านชื่อยาหรือตัวเลขผิด และอาจพลาดคำโฆษณาที่เขียนต่างออกไป ไม่ใช่การยืนยันขั้นสุดท้าย ยืนยันกับเภสัชกรทุกครั้ง",
+        "en": "It may misread a medicine name or a number and may miss advert wording phrased differently. It is not a final check; always confirm with a pharmacist.",
+        "zh": "可能读错药名或数字，也可能漏掉措辞不同的广告用语。这不是最终确认，请务必向药剂师确认。"
+      }
+    },
+    {
+      "id": "nutrition",
+      "pages": [
+        "nutrition.html"
+      ],
+      "cards": [
+        "nutrition"
+      ],
+      "1": {
+        "th": "อ่านฉลากโภชนาการบนเครื่องนี้ แสดงค่าพร้อมบรรทัดที่อ่านมา และให้แก้ไขได้",
+        "en": "Reads nutrition labels on this device, shows each value with the line it came from, and lets you correct it.",
+        "zh": "在本设备上读取营养标签，显示每个数值及其来源行，并可修改。"
+      },
+      "2": {
+        "th": "ตัวอักษรเล็ก ฉลากโค้ง หรือแสงสะท้อนอาจทำให้ค่าผิด เทียบกับฉลากจริงทุกครั้ง ไม่ใช่คำแนะนำทางการแพทย์",
+        "en": "Small print, curved labels or glare can give wrong values; always compare with the real label. Not medical advice.",
+        "zh": "小字、弯曲的标签或反光可能导致数值错误，请始终与实际标签核对。并非医疗建议。"
+      }
+    },
+    {
+      "id": "studio",
+      "pages": [
+        "studio.html"
+      ],
+      "cards": [
+        "studio"
+      ],
+      "1": {
+        "th": "ทำภาพโปรไฟล์และรูปติดบัตรจากรูปของคุณ เปลี่ยนฉากและรีทัชบนเครื่องนี้",
+        "en": "Makes profile and ID photos from your picture, changing the background and retouching on this device.",
+        "zh": "用您的照片制作头像和证件照，在本设备上换背景和修图。"
+      },
+      "2": {
+        "th": "บางภาพอาจมีขอบหรือรอยต่อผิดปกติ ดูภาพทุกครั้งก่อนใช้ ชุดจำลองยังเป็นแบบร่างและปิดไว้เป็นค่าเริ่มต้น",
+        "en": "Some images may show odd edges or seams; look at every image before use. Drawn outfits are still a draft and are off by default.",
+        "zh": "部分图像可能出现异常边缘或接缝，使用前请逐张查看。模拟服装仍是草稿，默认关闭。"
+      }
+    },
+    {
+      "id": "photobooth",
+      "pages": [
+        "photobooth.html"
+      ],
+      "cards": [
+        "photobooth"
+      ],
+      "1": {
+        "th": "ตู้ถ่ายรูปสำหรับอีเวนต์ ใส่กรอบและสติ๊กเกอร์ พิมพ์หรือรับไฟล์ได้ทันที",
+        "en": "An event photo booth with frames and stickers; print or take the file straight away.",
+        "zh": "活动拍照亭，可加相框和贴纸，立即打印或获取文件。"
+      },
+      "2": {
+        "th": "รูปติดบัตรแบบใส่ชุดจำลองยังเป็นแบบร่าง ปิดไว้เป็นค่าเริ่มต้น ดูรูปก่อนพิมพ์ทุกครั้ง",
+        "en": "ID photos with a drawn outfit are still a draft and off by default; check each photo before printing.",
+        "zh": "带模拟服装的证件照仍是草稿，默认关闭；打印前请逐张查看。"
+      }
+    },
+    {
+      "id": "omr",
+      "pages": [
+        "omr.html"
+      ],
+      "cards": [
+        "omr"
+      ],
+      "1": {
+        "th": "ตรวจกระดาษคำตอบด้วยกล้องมือถือ แสดงคะแนนและสถิติรายข้อ",
+        "en": "Grades answer sheets with a phone camera and shows scores and item statistics.",
+        "zh": "用手机摄像头批改答题卡，显示分数和逐题统计。"
+      },
+      "2": {
+        "th": "แผ่นที่ระบายจาง ระบายเกินวง หรือถ่ายเอียงอาจอ่านผิด ระบบทำเครื่องหมายแผ่นที่ไม่แน่ใจไว้ให้ครูตรวจ",
+        "en": "Faint or overflowing marks or a tilted photo may be misread; unsure sheets are flagged for the teacher.",
+        "zh": "涂得浅、涂出圈或拍斜可能读错；不确定的答题卡会标记给老师复核。"
+      }
+    },
+    {
+      "id": "tryon",
+      "pages": [
+        "tryon.html"
+      ],
+      "cards": [],
+      "1": {
+        "th": "ลองแว่น หมวก ต่างหู และเสื้อบนภาพกล้องสดบนเครื่องนี้",
+        "en": "Try glasses, hats, earrings and tops on the live camera image on this device.",
+        "zh": "在本设备的实时画面上试戴眼镜、帽子、耳环和上衣。"
+      },
+      "2": {
+        "th": "เป็นภาพจำลอง ขนาดและตำแหน่งอาจไม่ตรงกับของจริง",
+        "en": "It is a preview; size and position may differ from the real item.",
+        "zh": "仅为模拟预览，尺寸和位置可能与实物不同。"
+      }
+    },
+    {
+      "id": "store",
+      "pages": [
+        "store.html",
+        "retail.html"
+      ],
+      "cards": [
+        "store",
+        "retail"
+      ],
+      "1": {
+        "th": "นับคนผ่านประตูร้าน คิว และอัตราการซื้อโดยประมาณ ไม่ระบุตัวตน",
+        "en": "Counts people through the shop door, queues and an estimated conversion rate, identifying no one.",
+        "zh": "统计进店人数、排队和估算成交率，不识别身份。"
+      },
+      "2": {
+        "th": "ประตูที่คนเดินเป็นกลุ่มหรือคนแน่นอาจนับคลาด ทดลองเทียบกับการนับของคุณก่อนใช้ตัดสินใจ",
+        "en": "Groups or crowds at the door can be miscounted; compare with your own count before relying on it.",
+        "zh": "门口成群或拥挤时可能计错；依赖前请与人工计数对比。"
+      }
+    },
+    {
+      "id": "booth",
+      "pages": [
+        "booth.html"
+      ],
+      "cards": [
+        "booth"
+      ],
+      "1": {
+        "th": "นับผู้เข้าชมบูธ ไม่เก็บข้อมูลใบหน้าเป็นค่าเริ่มต้น",
+        "en": "Counts booth visitors without keeping face data by default.",
+        "zh": "统计展位访客，默认不保存人脸数据。"
+      },
+      "2": {
+        "th": "นับเฉพาะคนที่หันหน้ามาทางกล้อง ใช้ดูแนวโน้มมากกว่ายอดจริง",
+        "en": "Only people facing the camera are counted; use it for trends, not exact totals.",
+        "zh": "只统计面向摄像头的人，适合看趋势而非精确总数。"
+      }
+    },
+    {
+      "id": "zones",
+      "pages": [
+        "queue.html",
+        "tables.html",
+        "bays.html",
+        "afterhours.html"
+      ],
+      "cards": [
+        "queue",
+        "tables",
+        "bays",
+        "afterhours"
+      ],
+      "1": {
+        "th": "แจ้งคิว โต๊ะว่าง ช่องจอด หรือคนในพื้นที่หวงห้าม โดยไม่ระบุตัวตนและไม่บันทึกภาพ",
+        "en": "Flags queues, free tables, parking bays or people in restricted areas without identifying anyone or saving images.",
+        "zh": "提示排队、空桌、车位或禁区内有人，不识别身份、不保存图像。"
+      },
+      "2": {
+        "th": "เงา แสงไฟ หรือคนยืนบังกันอาจทำให้แจ้งผิดหรือนับขาด ให้เจ้าหน้าที่ตรวจก่อนดำเนินการ",
+        "en": "Shadows, lights or people blocking each other can cause false alerts or missed counts; staff check before acting.",
+        "zh": "阴影、灯光或互相遮挡可能导致误报或漏计，处理前请工作人员核实。"
+      }
+    },
+    {
+      "id": "checkout",
+      "pages": [
+        "checkout.html"
+      ],
+      "cards": [
+        "checkout"
+      ],
+      "1": {
+        "th": "สแกนบาร์โค้ดสินค้าด้วยกล้อง",
+        "en": "Scans product barcodes with the camera.",
+        "zh": "用摄像头扫描商品条码。"
+      },
+      "2": {
+        "th": "ภาพสั่น เบลอ หรือเอียงมากอ่านไม่ได้ ตรวจรายการในตะกร้าก่อนรับเงิน",
+        "en": "Shaky, blurred or steeply tilted images cannot be read; check the basket before taking payment.",
+        "zh": "画面抖动、模糊或严重倾斜时无法读取；收款前请核对购物篮。"
+      }
+    },
+    {
+      "id": "creative",
+      "pages": [
+        "creative.html"
+      ],
+      "cards": [
+        "creative",
+        "creative-suite"
+      ],
+      "1": {
+        "th": "คาดการณ์ว่าคนจะมองตรงไหนของชิ้นงานโฆษณา",
+        "en": "Predicts where people will look on an ad.",
+        "zh": "预测人们会看广告的哪个位置。"
+      },
+      "2": {
+        "th": "เป็นการคาดการณ์ ไม่ใช่การวัดสายตาคนจริง",
+        "en": "It is a prediction, not real eye tracking.",
+        "zh": "这是预测，不是真实的眼动测量。"
+      }
+    },
+    {
+      "id": "insights",
+      "pages": [
+        "insights.html"
+      ],
+      "cards": [
+        "insights"
+      ],
+      "1": {
+        "th": "รวมยอดจากระบบนับคนต่าง ๆ ในที่เดียว",
+        "en": "Brings the counts from the other tools into one place.",
+        "zh": "把各计数系统的数据汇总在一处。"
+      },
+      "2": {
+        "th": "ตัวเลขถูกต้องได้เท่ากับระบบต้นทางเท่านั้น",
+        "en": "Its numbers are only as good as the source tools.",
+        "zh": "数字的准确度取决于来源系统。"
+      }
+    },
+    {
+      "id": "driver",
+      "pages": [
+        "driver.html"
+      ],
+      "cards": [
+        "driver"
+      ],
+      "1": {
+        "th": "เตือนเมื่อคนขับหลับตานานหรือหันออกจากถนน",
+        "en": "Warns when the driver's eyes stay closed or they look away from the road.",
+        "zh": "驾驶员长时间闭眼或视线离开道路时发出提醒。"
+      },
+      "2": {
+        "th": "เตือนได้เพียงบางส่วน ไม่ใช่อุปกรณ์ความปลอดภัย ห้ามใช้แทนการพักผ่อน",
+        "en": "It catches only some cases; it is not a safety device and never replaces rest.",
+        "zh": "只能提醒部分情况，不是安全设备，不能代替休息。"
+      }
+    },
+    {
+      "id": "qc",
+      "pages": [
+        "qc.html"
+      ],
+      "cards": [
+        "qc"
+      ],
+      "1": {
+        "th": "ตรวจขวดและฝาบนสายการผลิตด้วยกล้องที่ตั้งคงที่",
+        "en": "Checks bottles and caps on the line with a fixed camera.",
+        "zh": "用固定摄像头检查生产线上的瓶子和瓶盖。"
+      },
+      "2": {
+        "th": "แสงหรือตำแหน่งกล้องที่เปลี่ยนอาจทำให้ปัดตกผิด สอบเทียบกับขวดตัวอย่างก่อนเริ่มงานทุกครั้ง",
+        "en": "Changes in light or camera position can cause wrong rejects; calibrate with a sample bottle before each run.",
+        "zh": "光线或摄像头位置变化可能导致误判，每次开工前请用样品瓶校准。"
+      }
+    },
+    {
+      "id": "converter",
+      "pages": [
+        "converter.html"
+      ],
+      "cards": [
+        "converter"
+      ],
+      "1": {
+        "th": "แปลงไฟล์ PDF เป็น Word บนเครื่องนี้ ไม่อัปโหลด",
+        "en": "Converts PDF to Word on this device, with no upload.",
+        "zh": "在本设备上把 PDF 转为 Word，不上传。"
+      },
+      "2": {
+        "th": "เอกสารที่มีตารางหรือรูปซับซ้อนอาจจัดหน้าไม่ตรงต้นฉบับ",
+        "en": "Documents with complex tables or images may not keep their layout.",
+        "zh": "含复杂表格或图片的文档版式可能与原文不同。"
+      }
+    },
+    {
+      "id": "hr",
+      "pages": [
+        "hr.html",
+        "interview.html",
+        "case-review.html"
+      ],
+      "cards": [
+        "hr",
+        "interview",
+        "case-review"
+      ],
+      "1": {
+        "th": "ชุดสัมภาษณ์แบบมีโครงสร้าง ผู้สัมภาษณ์ให้คะแนนเอง",
+        "en": "A structured interview kit; interviewers give the scores.",
+        "zh": "结构化面试工具，由面试官自己评分。"
+      },
+      "2": {
+        "th": "ระบบไม่ตัดสินการจ้างงาน ไม่อ่านอารมณ์ และไม่จับโกหก",
+        "en": "The system makes no hiring decision, reads no emotion and detects no lies.",
+        "zh": "系统不做录用决定，不读取情绪，也不测谎。"
+      }
+    }
+  ],
+  "badges": {
+    "allowed": {
+      "th": [
+        "รุ่นทดลอง",
+        "รุ่นทดลอง ยังไม่เปิดขาย",
+        "เร็ว ๆ นี้"
+      ],
+      "en": [
+        "Trial version",
+        "Trial version, not on sale yet",
+        "Coming soon"
+      ],
+      "zh": [
+        "试用版",
+        "试用版，尚未开售",
+        "即将推出"
+      ]
+    },
+    "trial": {
+      "th": "รุ่นทดลอง",
+      "en": "Trial version",
+      "zh": "试用版"
+    },
+    "soon": {
+      "th": "เร็ว ๆ นี้",
+      "en": "Coming soon",
+      "zh": "即将推出"
+    },
+    "noBadgeCards": [
+      "attendance",
+      "gate-notice",
+      "cameras"
+    ],
+    "hallCards": {
+      "exam-hall": "รุ่นทดลอง ยังไม่เปิดขาย"
+    },
+    "demoOnlyCards": [
+      "signage",
+      "neuro",
+      "teamface",
+      "customers"
+    ],
+    "pageBadges": [
+      {
+        "page": "crowd.html",
+        "key": "cr.st.b"
+      },
+      {
+        "page": "exam.html",
+        "key": "exam.l.betaB"
+      },
+      {
+        "page": "medicine.html",
+        "key": "md.pc.ad.exp"
+      }
+    ],
+    "oldWords": {
+      "th": [
+        "พร้อมนำร่อง",
+        "สาธิต",
+        "กำลังพัฒนา",
+        "ทดลอง",
+        "หน้าประกอบ",
+        "Beta"
+      ],
+      "en": [
+        "Pilot-ready",
+        "Experimental",
+        "Demo",
+        "Support page",
+        "Beta",
+        "In development"
+      ],
+      "zh": [
+        "可试点",
+        "实验性",
+        "演示",
+        "辅助页面",
+        "开发中"
+      ]
+    }
+  },
+  "mustSay": [
+    {
+      "page": "crowd.html",
+      "th": [
+        "ยังไม่เหมาะกับฝูงชนหนาแน่น"
+      ]
+    },
+    {
+      "page": "driver.html",
+      "th": [
+        "ไม่ใช่อุปกรณ์ความปลอดภัย",
+        "ห้ามใช้แทนการพักผ่อน",
+        "ระบบพลาดการหลับตาได้บ่อย",
+        "ให้ถือว่าระบบไม่ได้เฝ้าระวังคุณ"
+      ]
+    },
+    {
+      "page": "attendance.html",
+      "th": [
+        "กันภาพปลอมได้ไม่ครบ",
+        "แต่ไม่กันวิดีโอ ภาพบนจอ หรือหน้ากาก",
+        "ควรมีเจ้าหน้าที่ดูแลจุดเช็คชื่อเสมอ"
+      ]
+    },
+    {
+      "page": "medicine.html",
+      "th": [
+        "ยืนยันกับเภสัชกรทุกครั้ง",
+        "ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต",
+        "เทียบกับส่วนประกอบบนกล่องเสมอ"
+      ]
+    },
+    {
+      "page": "exam.html",
+      "th": [
+        "ตรวจพบโทรศัพท์ที่อยู่ใกล้กล้องได้ดี โทรศัพท์ที่วางบนโต๊ะมักตรวจไม่พบ ผู้คุมสอบควรเดินตรวจร่วมด้วย",
+        "การทดสอบแยกตามสีผิวจะทำก่อนเปิดขาย",
+        "ที่นั่งไกลกล้องมักตรวจไม่พบ"
+      ]
+    },
+    {
+      "page": "exam-dashboard.html",
+      "th": [
+        "ตรวจพบโทรศัพท์ที่อยู่ใกล้กล้องได้ดี โทรศัพท์ที่วางบนโต๊ะมักตรวจไม่พบ ผู้คุมสอบควรเดินตรวจร่วมด้วย",
+        "สัญญาณ “มากกว่าหนึ่งคน” เป็นตัวช่วยเท่านั้น มักไม่แจ้งเมื่อมีคนที่สองในภาพ ผู้คุมสอบต้องเดินตรวจตามปกติ"
+      ]
+    },
+    {
+      "page": "exam-hall.html",
+      "th": [
+        "ใบหน้าที่อยู่ไกลกล้องยังหาไม่เจอ"
+      ]
+    },
+    {
+      "page": "exam-lab.html",
+      "th": [
+        "โทรศัพท์ที่อยู่ใกล้กล้อง"
+      ]
+    },
+    {
+      "page": "gate.html",
+      "th": [
+        "เจ้าหน้าที่ยืนยันทุกคัน",
+        "Apache-2.0",
+        "สิทธิ์ข้อมูลฝึก"
+      ]
+    },
+    {
+      "page": "village.html",
+      "th": [
+        "ทดสอบกับรถจริงที่ป้อมของคุณให้ผ่านก่อนเปิดใช้"
+      ]
+    },
+    {
+      "page": "neuro.html",
+      "th": [
+        "ไม่ใช้ตัดสินบุคคล"
+      ]
+    },
+    {
+      "page": "hr.html",
+      "th": [
+        "ระบบจึงไม่จับโกหก"
+      ]
+    },
+    {
+      "page": "palm.html",
+      "th": [
+        "เส้นที่แสดงเป็นการประมาณจากภาพ ผลอาจคลาดเคลื่อนได้ โปรดเทียบกับมือของคุณ"
+      ]
+    }
+  ],
+  "mustSayKeys": [
+    {
+      "key": "exam.db.nMulti",
+      "en": "The “more than one person” signal is only an aid and often does not fire when a second person is in view. Invigilators must still walk the room.",
+      "zh": "“多于一人”信号只是辅助，画面中出现第二个人时常常不会提示。监考员仍须照常巡视。"
+    },
+    {
+      "key": "exam.lab.n1",
+      "en": "near the camera",
+      "zh": "靠近摄像头"
+    }
+  ],
+  "examineeMustNot": {
+    "page": "exam-lab.html",
+    "th": [
+      "บนโต๊ะ"
+    ],
+    "en": [
+      "desk"
+    ],
+    "zh": [
+      "桌上"
+    ]
+  },
+  "licenceKeys": [
+    {
+      "page": "attendance.html",
+      "key": "attendance.licb"
+    },
+    {
+      "page": "customers.html",
+      "key": "customers.licb"
+    },
+    {
+      "page": "signage.html",
+      "key": "signage.s83"
+    },
+    {
+      "page": "signage.html",
+      "key": "signage.s85"
+    },
+    {
+      "page": "signage.html",
+      "key": "signage.s86"
+    },
+    {
+      "page": "signage.html",
+      "key": "signage.s87"
+    }
+  ],
+  "fold": {
+    "th": "ตัวเลขละเอียดสำหรับผู้ดูแล",
+    "en": "Detailed figures for the administrator",
+    "zh": "管理员详细数据",
+    "files": [
+      "lensiq-sitecheck.js",
+      "gate-kit.js",
+      "exam-dashboard.html",
+      "lensiq-zonecam.js",
+      "attendance.js"
+    ],
+    "rename": {
+      "th": "ทดสอบหน้างาน",
+      "en": "On-site test",
+      "zh": "现场测试"
+    }
+  },
+  "legal": {
+    "banner": "ฉบับร่าง — รอทนายความตรวจทาน",
+    "bannerPages": [
+      "terms.html",
+      "privacy.html",
+      "help.html",
+      "camera-notice.html"
+    ],
+    "termsKeeps": [
+      "เราเปิดเผยผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด",
+      "ฟีเจอร์ที่ยังไม่ได้วัดผลบนข้อมูลจริงแสดงป้าย “Beta”"
+    ],
+    "draftDoc": "docs/legal/TERMS-CLAUSE-11-DRAFT-223.md",
+    "draftMust": [
+      "ร่างเพื่อให้ทนายตรวจ",
+      "draft for legal review",
+      "ระบบที่ยังไม่เปิดให้บริการจะไม่แสดงบนเว็บไซต์ ระบบที่เปิดให้บริการอาจเปลี่ยนแปลงหรือยกเลิกได้",
+      "Products that are not yet available are not shown on the site.",
+      "尚未开放的产品不在网站上显示。",
+      "ไม่รับประกันความถูกต้อง"
+    ],
+    "$commentDraft": "re-lock 5 (review round 3, decision 226): the proposed clause 2 no longer says the site shows a 'รุ่นทดลอง' label (the site shows none); the draft must also not say so",
+    "draftMustNot": ["ฟีเจอร์รุ่นทดลองแสดงป้าย", "carry a “Trial version” label", "带有“试用版”标签"]
+  },
+  "rules": {
+    "claudeMd": [
+      "Every accuracy figure states its source (synthetic, public dataset or field) wherever it appears: technical sheets, back office, internal docs. Customer-facing pages and print/share outputs show no accuracy figures, source tags or status legends; they show what the tool is for and its main limit in plain words (owner decision 223, 2026-11-21).",
+      "Honest claims: every product page and one-pager states the main limit in plain words and never claims more than was measured; the measured figures and their sources are in the product's technical sheet. Crowd states it is not yet suitable for dense crowds.",
+      "plain-word limits only; figures in the technical sheet."
+    ],
+    "claudeMdGone": [
+      "Every accuracy claim states its source: synthetic, public dataset or field.",
+      "every one-pager and product page states measured accuracy and its source",
+      "measured claims only"
+    ],
+    "readme7": "Accuracy figures state their source class in the technical sheet; customer pages carry none (decision 223)."
+  },
+  "techSheets": {
+    "dir": "docs/tech-sheets",
+    "products": [
+      "crowd",
+      "gate",
+      "exam",
+      "attendance",
+      "product-check",
+      "nutrition",
+      "studio",
+      "omr",
+      "tryon",
+      "store",
+      "booth",
+      "zones",
+      "checkout",
+      "creative",
+      "driver",
+      "qc",
+      "hr",
+      "research-models"
+    ],
+    "linesOf": {
+      "crowd": "crowd",
+      "gate": "gate",
+      "exam": "exam",
+      "attendance": "attendance",
+      "product-check": "pc",
+      "nutrition": "nutrition",
+      "studio": "studio",
+      "omr": "omr",
+      "tryon": "tryon",
+      "store": "store",
+      "booth": "booth",
+      "zones": "zones",
+      "checkout": "checkout",
+      "creative": "creative",
+      "driver": "driver",
+      "qc": "qc",
+      "hr": "hr"
+    },
+    "admin": {
+      "page": "admin.html",
+      "tab": "measure",
+      "data": "admin-measurements.js",
+      "tabText": "ผลการวัด"
+    }
+  },
+  "onePager": {
+    "heading": "ใช้ทำอะไร และข้อจำกัดสำคัญ",
+    "gone": "## ความแม่นยำและที่มา",
+    "sheet": "เอกสารเทคนิคขอได้จากฝ่ายขาย"
+  },
+  "demoScript": "ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค",
+  "removedKeyPatterns": [
+    {
+      "re": "^sl\\.c\\.[a-z0-9]+\\.y$",
+      "why": "audit 1.10: the 25 'ยังขาด…' roadmap lines move to the back office"
+    }
+  ],
+  "supplement": {
+    "$comment": "re-lock 2 (2026-11-22, reviewer findings 2, 4, 5): docs/tech-sheets/SUPPLEMENT-223.json (tools/accuracy-supplement-223.mjs, read from base ecb783b6) holds the original texts the snapshot missed; every entry must be in the sheets and the admin data verbatim, and these items must be in it",
+    "file": "docs/tech-sheets/SUPPLEMENT-223.json",
+    "must": [
+      {
+        "key": "gate.acc.l7",
+        "langs": [
+          "th",
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "key": "cr.acc2.final",
+        "langs": [
+          "th",
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "key": "#zh-h-accuracy",
+        "text": true
+      },
+      {
+        "key": "#h-accuracy",
+        "text": true
+      },
+      {
+        "key": "#en-h-accuracy",
+        "text": true
+      },
+      {
+        "key": "sl.st.pilot.d",
+        "langs": [
+          "zh"
+        ]
+      },
+      {
+        "key": "cameras.s180",
+        "langs": [
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "key": "cameras.s181",
+        "langs": [
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "key": "cameras.s182",
+        "langs": [
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "key": "cameras.s183",
+        "langs": [
+          "en",
+          "zh"
+        ]
+      },
+      {
+        "keyRe": "^sl\\.c\\.[a-z0-9]+\\.y$",
+        "langs": [
+          "zh"
+        ],
+        "min": 15
+      },
+      {
+        "textRe": "ไม่มีตัวเลข|no accuracy figure",
+        "min": 4
+      },
+      {
+        "textRe": "0 จาก 6|0 of 6",
+        "min": 2
+      },
+      {
+        "keyRe": "^exam\\.hall\\.pcRate\\[",
+        "langs": [
+          "th",
+          "en",
+          "zh"
+        ],
+        "min": 16
+      },
+      {
+        "key": "HALL_PLACE",
+        "textHas": [
+          "143 / 195 / 247 / 275",
+          "public dataset"
+        ]
+      }
+    ]
+  },
+  "onePagerBarePct": {
+    "re": "\\d\\s?%",
+    "except": "VAT|ภาษีมูลค่าเพิ่ม|คืนเงิน|refund|退款|增值税",
+    "why": "re-lock 2 (reviewer finding 6): one-pagers carry no bare percentage except price / VAT / refund terms"
+  },
+  "visibility": {
+    "$comment": "re-lock 3 (owner decision 226, entries 13-15): starting values = today's real state; sentence approved (entry 15). Re-lock 4 (coordinator decision 2026-11-22 on entry 13, reversible by the owner): Product Check is the part 'product-check' (the tab of medicine.html), not the whole page; medicine.html (the drug checker) is on",
+    "off": [
+      "exam-hall",
+      "product-check",
+      "signage",
+      "neuro",
+      "teamface",
+      "customers"
+    ],
+    "parts": {
+      "product-check": {
+        "page": "medicine",
+        "ids": [
+          "t-pc",
+          "tab-pc"
+        ],
+        "keep": [
+          "t-pack",
+          "tab-pack",
+          "mdQ",
+          "mdCheck"
+        ]
+      }
+    },
+    "sentence": "ระบบนี้ยังไม่เปิดให้บริการ · This service is not available yet. · 此服务尚未开放。",
+    "home": "index.html"
+  },
+  "labelBanned": [
+    {
+      "re": "รุ่นทดลอง|เร็ว ๆ นี้|ทดลองใช้ได้ตอนนี้|\\(ทดลอง\\)|\\(นำร่อง\\)"
+    },
+    {
+      "re": "[Tt]rial version|Coming soon|Available to try now|\\((experimental|pilot)\\)|\\bExperimental\\b"
+    },
+    {
+      "re": "试用版|即将推出|实验性|（试验）|（试点）|现在可试用"
+    }
+  ],
+  "labelAllow": [],
+  "buyerDocs": {
+    "$comment": "re-lock 5 (review round 3): R5 label words in every buyer-facing document folder, not only one-pagers / decks / demo scripts / onboarding. The listed exclusions are owner-only or locked elsewhere; each needs the owner before it changes",
+    "include": [
+      "docs/ONE-PAGER-*.md",
+      "docs/sales/**/*.md",
+      "docs/pilot/PILOT-CROWD.md",
+      "docs/pilot/PILOT-GATE.md",
+      "docs/pilot/AGREEMENT-TH.md",
+      "docs/pilot/RESULTS-FORM.md"
+    ],
+    "exclude": [
+      {
+        "path": "docs/legal/customer/",
+        "why": "coordinator round 3: do not change (owner or stop condition; legal drafts for counsel)"
+      },
+      {
+        "path": "docs/pilot/PILOT-EXAM.md",
+        "why": "the exam pilot kit keeps its mode A (hall) wording, locked by tests/unit/exam-face.test.js; hall is switched off and the kit goes to the owner"
+      },
+      {
+        "path": "docs/pilot/*-HALL-SEATWATCH*.md",
+        "why": "measurement kit of the switched-off hall mode, run by the owner, not handed to a buyer"
+      }
+    ],
+    "extraBanned": [
+      {
+        "re": "\\bexperimental\\b|\\btrial version\\b",
+        "flags": "i"
+      }
+    ],
+    "customerHanded": [
+      "docs/ONE-PAGER-*.md",
+      "docs/sales/DECK-*.md",
+      "docs/sales/ONBOARDING-*.md",
+      "docs/sales/customer/*.md",
+      "docs/sales/ORDER-FORM.md",
+      "docs/sales/QUOTATION-TEMPLATE.md",
+      "docs/sales/INVOICE-TEMPLATE.md",
+      "docs/sales/RECEIPT-TEMPLATE.md"
+    ],
+    "safetyKept": [
+      {
+        "file": "docs/ONE-PAGER-TH.md",
+        "contains": "โหงวเฮ้งทีมห้ามใช้ประเมินคน"
+      },
+      {
+        "file": "docs/ONE-PAGER-ZH.md",
+        "contains": "团队面相不得用于评估员工"
+      }
+    ],
+    "$commentOff": "re-lock 5 (coordinator decision round 3, 'off = not shown'): the customer-handed documents name no switched-off product (nav.js titles TH, nav.<page>.title EN / ZH) and link none; only the listed safety sentences remain, and they must remain"
+  },
+  "draftKeys": {
+    "$comment": "re-lock 5: the outfit simulation is named with the approved word only (แบบร่าง / Draft / 草稿), never a status word",
+    "th": "แบบร่าง",
+    "en": "[Dd]raft",
+    "zh": "草稿",
+    "keys": [
+      {
+        "key": "studio.exp.note",
+        "page": "studio.html",
+        "dict": "studio"
+      },
+      {
+        "key": "studio.disc1",
+        "page": "studio.html",
+        "dict": "studio"
+      },
+      {
+        "key": "pb.id.expOutfit",
+        "page": "photobooth.html",
+        "dict": "photobooth"
+      },
+      {
+        "key": "photobooth.js.of.off",
+        "page": "photobooth.js",
+        "dict": "photobooth"
+      },
+      {
+        "key": "photobooth.js.res.galleryNoteExp",
+        "page": "photobooth.js",
+        "dict": "photobooth"
+      }
+    ],
+    "banned": "ทดลอง|[Ee]xperimental|实验|试用"
+  },
+  "renderedLinks": {
+    "$comment": "re-lock 5: a script that writes a link to a product page must consult window.LQ_VISIBILITY (nav.js), so a switched-off product is never linked from rendered content",
+    "allowData": [
+      {
+        "file": "insights-data.js",
+        "why": "funnel data only; insights-ui.js renders the link and drops switched-off pages (LQ_VISIBILITY)"
+      },
+      {
+        "file": "nav.js",
+        "why": "the menu data; nav.js filters with isOff()"
+      },
+      {
+        "file": "admin-measurements.js",
+        "why": "back office data, not a customer page"
+      }
+    ]
+  }
+}

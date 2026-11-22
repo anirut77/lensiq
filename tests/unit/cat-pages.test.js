@@ -1,7 +1,9 @@
 // tests/unit/cat-pages.test.js — round 16 item 1 (S1): the 7 work categories (tools/cat-data.cjs) against CLAUDE.md, the
 // nav.js menu and the repo's pages; the generated landing pages, dictionaries, index/solutions regions and the table in
 // docs/PAGE-STATUS.md are up to date (same check as `node tools/cat-pages.mjs --check`); every page has a status, a reason
-// and accuracy lines with a source label; numbers agree across TH / EN / 中文 and en/zh values carry no Thai.
+// and accuracy lines with a source label (internal data, docs/PAGE-STATUS.md); numbers agree across TH / EN / 中文 and en/zh
+// values carry no Thai. Owner decision 223: the landing cards show a short badge and two plain lines, no accuracy line; the
+// accuracy lines are held verbatim by docs/tech-sheets/ and admin-measurements.js.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync, readdirSync, existsSync } = require("node:fs");
@@ -115,28 +117,86 @@ test("nav.js menu: one group per category with exactly its pages + landing page;
   assert.ok(!/max-width:1099\.98px/.test(css) && /max-width:1023\.98px/.test(css), "styles.css drawer breakpoint");
 });
 
-test("landing pages: static markup lists each tool with a status tag and source-labelled accuracy, no inline script", () => {
+// re-lock 2026-11-22, owner decision 223 (223-1, inversion approved): the landing cards no longer show the status tag of
+// D.STATUS, the accuracy list (<li data-src>), source chips or "why this status"; each card shows the short customer badge
+// (none / รุ่นทดลอง / รุ่นทดลอง ยังไม่เปิดขาย / เร็ว ๆ นี้, D.badgeOf) and its two approved lines (D.LINES), demo-only cards carry
+// data-demo-only. Every accuracy line the card used to show must still be held verbatim by the technical sheets
+// (docs/tech-sheets/*-TH.md for Thai, *-EN.md for English and Chinese) and by admin-measurements.js (back office).
+const L223 = require("./accuracy-removal-223.lib.js");
+const sheetText = re => readdirSync(join(ROOT, "docs", "tech-sheets")).filter(f => re.test(f) || f === "README.md")
+  .map(f => squash(readFileSync(join(ROOT, "docs", "tech-sheets", f), "utf8"))).join("\n");
+test("landing pages: static markup lists each visible tool with no status label and two lines, no accuracy or source chip, no inline script", () => {
+  const TH = sheetText(/-TH\.md$/), EN = sheetText(/-EN\.md$/);
+  const adminSrc = readFileSync(join(ROOT, "admin-measurements.js"), "utf8");
+  const adminStr = new Set(L223.jsStrings(adminSrc).map(squash));
+  // decision 226: the status label of every product lives only in the back office (admin-measurements.js `V`, 5 per record:
+  // page, th, en, zh, on|off) and the visibility list of nav.js (`var VISIBILITY`) says which products customers see
+  const vm = nav.match(/var VISIBILITY = (\{[\s\S]*?\});/);
+  assert.ok(vm, "nav.js: var VISIBILITY");
+  const VIS = JSON.parse(vm[1].replace(/([{,]\s*)([a-z][\w-]*)\s*:/g, '$1"$2":').replace(/,\s*\}/, "}"));
+  const am = adminSrc.match(/var V = \[([\s\S]*?)\];/);
+  assert.ok(am, "admin-measurements.js: var V = [ … ]");
+  const V = JSON.parse("[" + am[1].replace(/,\s*$/, "") + "]");
+  assert.equal(V.length % 5, 0, "admin visibility records of 5");
+  const adminVis = {};
+  for (let i = 0; i < V.length; i += 5) adminVis[V[i]] = { th: V[i + 1], en: V[i + 2], zh: V[i + 3], shown: V[i + 4] };
+  let held = 0;
   for (const c of D.CATEGORIES) {
     const html = readFileSync(join(ROOT, `cat-${c.slug}.html`), "utf8");
-    // owner order 2026-11-17 (remove สาธิต tag from fortune): a category with noStatusTag (fortune) shows NO status tag and no
-    // data-status on any card; every other category keeps the status tag check unchanged
-    const cards = [...html.matchAll(c.noStatusTag ? /<article class="pd-card cat-tool" data-page="([a-z0-9-]+)"()>([\s\S]*?)<\/article>/g
-      : /<article class="pd-card cat-tool" data-page="([a-z0-9-]+)" data-status="([a-z-]+)">([\s\S]*?)<\/article>/g)];
-    assert.deepEqual(cards.map(m => m[1]), c.pages, c.slug + " cards");
-    for (const m of cards) {
-      if (c.noStatusTag) assert.ok(!/class="cat-st\b/.test(m[3]), m[1] + " has no status tag");
-      else {
-        assert.equal(m[2], D.PAGES[m[1]].st, m[1] + " status");
-        assert.match(m[3], new RegExp(`class="cat-st ${m[2]}"`), m[1] + " status tag");
+    const visible = c.pages.filter(p => { assert.equal(typeof VIS[p], "boolean", p + " in the nav.js visibility list"); return VIS[p]; });
+    // owner orders 2026-11-17 / decision 226: no card shows a status tag, a data-status or a data-demo-only attribute; a
+    // switched-off product has no card at all (inversion of "the card carries badge D.badgeOf(p)")
+    const cards = [...html.matchAll(/<article class="pd-card cat-tool" data-page="([a-z0-9-]+)">([\s\S]*?)<\/article>/g)];
+    assert.deepEqual(cards.map(m => m[1]), visible, c.slug + " cards");
+    assert.equal((html.match(/<article class="pd-card cat-tool"/g) || []).length, visible.length, c.slug + ": every card parsed");
+    assert.ok(!/class="cat-st\b|data-status=|data-demo-only|data-i18n="cat\.b\./.test(html), c.slug + ": status tag / data-status / demo-only on the page");
+    for (const b of Object.keys(D.BADGE)) for (const l of ["th", "en", "zh"]) assert.ok(!html.includes(D.BADGE[b][l]), `${c.slug}: badge text ${b}.${l}`);
+    for (const p of c.pages) {
+      // the back office holds every product's label (the former customer badge, verbatim) and its visibility
+      const b = D.badgeOf(p), want = b ? D.BADGE[b] : { th: "", en: "", zh: "" };
+      assert.ok(adminVis[p], p + ": no visibility record in admin-measurements.js");
+      for (const l of ["th", "en", "zh"]) assert.equal(adminVis[p][l], want[l], `${p}: back-office label ${l}`);
+      assert.equal(adminVis[p].shown, VIS[p] ? "on" : "off", p + ": back-office visibility = nav.js");
+      if (!VIS[p]) {
+        assert.ok(!html.includes(`data-page="${p}"`) && !new RegExp(`href="${p}\\.html`).test(html), `${c.slug}: off product ${p} listed or linked`);
       }
-      assert.ok((m[3].match(/<li data-src="(synthetic|public|prelim|field|none|na)">/g) || []).length === D.PAGES[m[1]].claims.length, m[1] + " accuracy lines");
-      // walk-through 2026-11-16 D-02: the attendance card links the PIN / QR time clock (exact href), every other card its page
-      assert.match(m[3], m[1] === "attendance" ? /href="attendance\.html\?mode=employee"/ : new RegExp(`href="${m[1]}\\.html"`), m[1] + " link");
+      // inversion (223): every accuracy line is held verbatim by the technical sheets and the back office (off products too)
+      for (const id of D.PAGES[p].claims) {
+        const cl = D.CLAIMS[id];
+        assert.ok(TH.includes(squash(cl.th)), `${p}: ${id}.th not in docs/tech-sheets/*-TH.md`);
+        assert.ok(EN.includes(squash(cl.en)) && EN.includes(squash(cl.zh)), `${p}: ${id}.en/zh not in docs/tech-sheets/*-EN.md`);
+        for (const l of ["th", "en", "zh"]) assert.ok(adminStr.has(squash(cl[l])), `${p}: ${id}.${l} not in admin-measurements.js`);
+        held++;
+      }
     }
+    for (const m of cards) {
+      const body = m[2];
+      // the old readiness tag (D.STATUS) is gone from the card
+      assert.ok(!/data-i18n="cat\.st\./.test(body) && !new RegExp(`class="cat-st ${D.PAGES[m[1]].st}"`).test(body), m[1] + ": old status tag still shown");
+      // inversion: no accuracy line, source chip, accuracy heading or "why this status" on the card ...
+      assert.equal((body.match(/<li data-src=/g) || []).length, 0, m[1] + " accuracy lines on the card");
+      assert.ok(!/class="cat-(acc|src|why|srcs)\b|data-i18n="cat\.(c|src|r|acc|why|method)\b/.test(body), m[1] + " accuracy / source / reason block on the card");
+      for (const id of D.PAGES[m[1]].claims) {
+        const cl = D.CLAIMS[id];
+        for (const l of ["th", "en", "zh"]) assert.ok(!squash(body).includes(squash(cl[l])), `${m[1]}: accuracy line ${id}.${l} still on the card`);
+      }
+      // the two approved lines of the card's product (D.LINES; texts fixed in tests/unit/accuracy-removal-223.spec.json)
+      const ln = Object.entries(D.LINES).find(([, v]) => v.cards.includes(m[1]));
+      if (ln) for (const n of ["1", "2"]) if (ln[1][n]) assert.ok(squash(body).includes(`<span data-i18n="ln.${ln[0]}.${n}">`)
+         && squash(body).includes(squash(ln[1][n])), `${m[1]}: line ln.${ln[0]}.${n}`);
+      // walk-through 2026-11-16 D-02: the attendance card links the PIN / QR time clock (exact href), every other card its page
+      assert.match(body, m[1] === "attendance" ? /href="attendance\.html\?mode=employee"/ : new RegExp(`href="${m[1]}\\.html"`), m[1] + " link");
+    }
+    // no status legend, source legend or method link on the page
+    assert.ok(!/class="[^"]*\b(cat-legend|sl-legend|cat-srcs)\b|data-i18n="cat\.(legend\.h|src\.h|src\.d|method)"/.test(html), c.slug + ": legend / sources section");
     assert.ok(!/<script>(?!<\/script>)|<script(?![^>]*src=)/.test(html), c.slug + ": inline script");
     assert.match(html, /http-equiv="Content-Security-Policy"/);
     assert.match(html, /<script src="i18n\/zh-cat\.js/);
   }
+  // every accuracy line of a business card was checked against the sheets (none skipped; fortune cards have none)
+  const expected = D.CATEGORIES.filter(c => !c.noAccuracy).flatMap(c => c.pages).reduce((n, p) => n + D.PAGES[p].claims.length, 0);
+  assert.equal(held, expected, "accuracy lines held by the technical sheets");
+  assert.ok(held >= 50, "accuracy lines checked: " + held);
 });
 
 // Reviewer round (2026-11-09): every accuracy line is tied to the register of docs/ACCURACY-CLAIMS.md (`acr`) or to

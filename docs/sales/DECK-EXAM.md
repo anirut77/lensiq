@@ -1,9 +1,8 @@
-# สไลด์ขาย: LENSIQ Exam (10 สไลด์) / Sales deck: LENSIQ Exam
+# สไลด์ขาย: LENSIQ Exam (11 สไลด์) / Sales deck: LENSIQ Exam
 
-> **ร่าง (DRAFT) 2026-11-11** สร้างจาก `docs/ONE-PAGER-EXAM.md` ใช้เฉพาะตัวเลขที่วัดแล้ว แต่ละตัวมีที่มา (ข้อมูลจำลอง / ชุดข้อมูลสาธารณะ / หน้างานจริง) และไฟล์อ้างอิง
-> จาก `docs/ACCURACY-CLAIMS.md` (ทะเบียน E1–E5) และ `docs/accuracy-figures.json` ถ้าไม่ได้วัด เขียนว่า "ยังไม่ได้วัด"
+> **ร่าง (DRAFT) 2026-11-11** สร้างจาก `docs/ONE-PAGER-EXAM.md` สไลด์ลูกค้าไม่มีตัวเลขความแม่นยำ มีเพียงข้อจำกัดในภาษาง่าย ๆ ตัวเลขละเอียดอยู่ใน `docs/tech-sheets/exam-TH.md` (มอบให้เมื่อถูกถาม)
 > บรรทัด "ไฟล์:" เป็นข้อมูลภายใน เจ้าของตัดออกก่อนส่งนอกองค์กรได้ [ต้องยืนยัน / to confirm] ช่อง [วงเล็บ] เจ้าของกรอก จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
-> ใช้ห้องคอมพิวเตอร์ (lab mode) เป็นตัวนำ ห้องสอบที่มีกล้องเป็นรุ่นทดลอง ไม่ขาย
+> ใช้ห้องคอมพิวเตอร์ (lab mode) เป็นตัวนำ
 
 ---
 
@@ -12,7 +11,7 @@
 
 - ผู้ช่วยผู้คุมสอบ บอกว่าควรไปดูที่นั่งไหน **ไม่ตัดสินแทนคน**
 - ใช้คอมพิวเตอร์และเว็บแคมที่สถาบันมีอยู่ ประมวลผลบนเครื่อง ไม่ส่งภาพขึ้นคลาวด์
-- สถานะ: ห้องคอมพิวเตอร์ (`exam-lab.html`) พร้อมนำร่อง · ห้องสอบที่มีกล้อง (`exam-hall.html`) **รุ่นทดลอง ไม่ขาย**
+- ห้องคอมพิวเตอร์ (`exam-lab.html`) เริ่มโครงการนำร่องได้
 - ผู้นำเสนอ: [ชื่อ ตำแหน่ง] · [ชื่อผู้ขาย] (OP-01) · วันที่ [วันที่]
 
 ---
@@ -21,9 +20,8 @@
 ## ปัญหา (The problem)
 
 - ห้องคอมพิวเตอร์หรือการสอบออนไลน์ ผู้คุมสอบ 1–2 คนมองจอและผู้สอบหลายสิบคนไม่ทั่ว เห็นเหตุเมื่อสายไปแล้ว
-- การทดลองแบบสุ่มของ University of Twente กับ Proctorio พบว่าระบบคุมสอบด้วย AI อย่างเดียวจับผู้ที่ถูกสั่งให้โกงได้ **0 จาก 6 คน**
-  (AI-only proctoring caught 0 of 6 instructed cheaters)
-- ที่มา: **งานวิจัยที่ตีพิมพ์ (published research) ไม่ใช่ผลวัดของ LENSIQ** · ไฟล์: `docs/EXAM.md` "Why it does not decide"
+- ระบบคุมสอบด้วย AI อย่างเดียวจับผู้ที่ถูกสั่งให้โกงได้ไม่ครบ (การทดลองของ University of Twente กับ Proctorio) จึงให้คนเป็นผู้ตัดสินเสมอ
+- เป็นงานวิจัยที่ตีพิมพ์ ไม่ใช่ผลของ LENSIQ · ไฟล์: `docs/EXAM.md` "Why it does not decide"
 - ราคาเทียบตลาด: ใบอนุญาตคุมสอบผ่านเว็บแคมต่างประเทศราว 196 บาทต่อผู้สอบต่อวิชา (Respondus Monitor ราคาอเมริกาเหนือ อาจไม่เปิดขายในไทย ต้องซื้อ LockDown Browser เพิ่ม)
   ที่มา: หน้าราคาของผู้ขาย อ่านเมื่อ 2026-11-09 · ไฟล์: `docs/PRICING-RESEARCH.md` §1C
 
@@ -34,7 +32,7 @@
 
 - **ห้องคอมพิวเตอร์ / ออนไลน์** (`exam-lab.html`): ผู้สอบรับทราบประกาศและยินยอมก่อน ตรวจแสงและกล้อง เตือนเบา ๆ ก่อน และเห็นบันทึกของตัวเองเหมือนผู้คุมสอบ
 - **แดชบอร์ดผู้คุมสอบ** (`exam-dashboard.html`): ผังที่นั่ง คิวข้อสังเกต ทุกการกระทำต้องใส่ชื่อผู้คุมสอบ CSV เรียงตามเวลา รายงานพิมพ์
-- **ตรวจความแม่นยำหน้างาน:** ผู้คุมสอบกด "แจ้งถูก" / "แจ้งผิด" ระบบสรุปความแม่นยำต่อสัญญาณพร้อมช่วงความเชื่อมั่น 95%
+- **ทดสอบหน้างาน:** ผู้คุมสอบกด "แจ้งถูก" / "แจ้งผิด" ระบบสรุปผลให้สถาบันดูเอง
 - **การปรับการสอบ:** กำหนดต่อที่นั่ง (พักบ่อย อ่านออกเสียง) ไม่บันทึกการวินิจฉัย
 - ใบอนุญาตทั้งสถาบันได้ (ไม่จำกัดห้อง พร้อมอบรมผู้คุมสอบ)
 
@@ -64,29 +62,23 @@
 
 ---
 
-# 6. ความแม่นยำที่วัดแล้ว (และที่ยังไม่ได้วัด)
-*Measured accuracy, and what is not measured*
+# 6. ข้อจำกัดที่ควรรู้
+*Limits worth knowing*
 
-| ข้อกล่าวอ้าง / claim | ค่า / value | n | ที่มา / source | ไฟล์ |
-|---|---|---|---|---|
-| ข้อสังเกตถูก/ผิดในห้องสอบจริง · right/wrong in real exam rooms | **ยังไม่ได้วัด / not measured** | — | หน้างานจริง: ยังไม่มีโครงการนำร่อง / field: no pilot yet | `docs/EXAM.md` (E1) |
-| หาใบหน้าไม่เจอ (คนเดียว ระยะนั่งหน้าโต๊ะ) · face not found, one person at desk distance | 15% (ใบหน้ากว้าง 24–48 px: ไม่พบเลย / faces 24–48 px: none found) | n = 26 ภาพ (n = 12) | ชุดข้อมูลสาธารณะ (Open Images V7 ครึ่งที่ไม่ได้ใช้เลือกค่า) ไม่ใช่ห้องสอบจริง / public dataset | `docs/exam/FACE-ENGINE-RESULTS.md` (E2) |
-| สัญญาณ "มากกว่าหนึ่งคน" · "more than one person" signal | แจ้งได้ 28.8% (15 / 52) · แจ้งผิดเมื่อมีคนเดียว 0 / 17 **เป็นตัวช่วย ไม่ใช่การตรวจจับที่ครบถ้วน / an aid, not complete detection** | n = 52 ภาพ (n = 17) | ชุดข้อมูลสาธารณะ / public dataset | `docs/exam/FACE-ENGINE-RESULTS.md` §7.2 (E5) |
-| ตรวจพบโทรศัพท์/หนังสือในภาพห้องสอบ · phone / book detection | **ยังไม่ได้วัด / not measured** | — | ยังไม่ได้วัด | `docs/EXAM.md` (E3) |
-| แยกตามสีผิว / แสงน้อยในห้องจริง · by skin tone, low light in real rooms | **ยังไม่ได้วัด / not measured** | — | ยังไม่ได้วัด | `docs/exam/FACE-ENGINE-RESULTS.md` |
-
-- ตัวเลขทั้งหมดไม่ใช่ผลในห้องสอบจริง ผลหน้างานจริงมาจากโครงการนำร่อง
+- บอกผู้คุมสอบว่าควรไปดูที่นั่งไหน ระบบแจ้งเท่านั้น คนตัดสินทุกกรณี ไม่อ่านอารมณ์ และไม่จดจำว่าใครเป็นใคร
+- ตรวจพบโทรศัพท์ที่อยู่ใกล้กล้องได้ดี โทรศัพท์ที่วางบนโต๊ะมักตรวจไม่พบ ผู้คุมสอบควรเดินตรวจร่วมด้วย
+- ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค (`docs/tech-sheets/exam-TH.md`)
 
 ---
 
 # 7. ทำไมคนต้องตัดสินเสมอ
 *Why a person always decides*
 
-- ระบบอัตโนมัติพลาดได้: ในห้องสอบจริง ยังไม่ได้วัด (ดูสไลด์ 6) และการวัดตามสีผิวหรือแสงน้อยยังไม่ได้ทำ จึงไม่ให้ระบบตัดสิน
+- ระบบอัตโนมัติพลาดได้ จึงไม่ให้ระบบตัดสิน ผู้คุมสอบเดินตรวจร่วมด้วยเสมอ
 - ทุกการกระทำในแดชบอร์ดต้องใส่ชื่อผู้คุมสอบ บันทึกและส่งต่อต้องมีหมายเหตุ
 - รายงานระบุว่า "ข้อสังเกตไม่ใช่หลักฐานการทุจริต"
 - คำเตือนไปที่ผู้สอบก่อน ผู้สอบเห็นบันทึกของตัวเองเหมือนที่ผู้คุมสอบเห็น
-- เหตุผลการออกแบบอ้างงานวิจัยที่ตีพิมพ์ (Twente, สไลด์ 2) ไม่ใช่ผลวัดของ LENSIQ
+- เหตุผลการออกแบบอ้างงานวิจัยที่ตีพิมพ์ (Twente, สไลด์ 2) ไม่ใช่ผลของ LENSIQ
 - ไฟล์: `docs/EXAM.md`
 
 ---
@@ -96,7 +88,7 @@
 
 - 1 สถาบัน · ไม่เกิน 4 สัปดาห์ · ไม่เกิน 3 ห้อง · ในรอบสอบที่ไม่ชี้ขาดสูง (สอบย่อย กลางภาค)
 - ขั้น 0 ตรวจกล้องและแสงกับอาสาสมัครผู้ใหญ่ ≥ 10 คน → ขั้น 1 การสอบจำลองตามบท → ขั้น 2 การสอบจริง ผู้คุมสอบกด "แจ้งถูก/แจ้งผิด"
-- ผล: ตัวเลขของสถาบันเองพร้อมช่วงความเชื่อมั่น 95% ที่มา "หน้างานจริง" · ฟรี แลกกับการจดผลของผู้คุมสอบ
+- ผล: ตัวเลขของสถาบันเอง ฟรี แลกกับการจดผลของผู้คุมสอบ
 - สถาบันเตรียม: ห้อง ≥ 3 ห้อง (หรือ 1 ห้องคอมพิวเตอร์) ผู้คุมสอบที่อบรม 1 ชั่วโมง ประกาศผู้สอบ ≥ 7 วันก่อนสอบ ทางเลือกสำหรับผู้ไม่ยินยอม
 - ไฟล์: `docs/pilot/PILOT-EXAM.md`
 
@@ -115,7 +107,6 @@
 - ลูกค้าชำระราคา + VAT 7% ผ่านใบเสนอราคาและโอนธนาคารเท่านั้น (OP-02: ถ้าผู้ขายไม่จดทะเบียน VAT ไม่มีบรรทัด VAT)
 - ระดับฟรี: ถึง 5 ผู้สอบต่อรอบสอบ เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มตามวันที่จะประกาศ โดยประกาศล่วงหน้าอย่างน้อย 30 วันและเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับผ่านสัญญา (OP-26)
 - ราคาปกติหลังผ่านเกณฑ์นำร่อง ใช้เมื่อไซต์ผ่านเกณฑ์ใน `docs/pilot/PILOT-EXAM.md` แล้วเท่านั้น (OP-10)
-- ห้องสอบที่มีกล้อง: **รุ่นทดลอง ไม่ขาย**
 - ตัวอย่าง: 40 ผู้สอบ × 10 = 400 บาท ก่อน VAT (VAT 28.00 รวม 428.00)
 - ไฟล์: `docs/PRICING-RESEARCH.md` §3.1 · สถานะการเสนอขาย: เจ้าของยืนยัน (OP-09)
 
@@ -128,16 +119,23 @@
 2. ลงนามเอกสาร · ประกาศผู้สอบ ≥ 7 วันก่อนสอบ · ตั้งทางเลือกสำหรับผู้ไม่ยินยอม
 3. วันตรวจกล้องและแสง · อบรมผู้คุมสอบ 1 ชั่วโมง
 4. สอบจริง · รวมผล · ประชุมสรุป
-- PDPA: ประกาศผู้สอบพิมพ์ได้ 3 ภาษา (`exam.html#notice`) · ข้อความกฎหมายรอทนายตรวจก่อนขาย (OP-24)
+- PDPA: ประกาศผู้สอบพิมพ์ได้ 3 ภาษา (`exam.html#notice`) · ข้อความกฎหมายอยู่ระหว่างให้ทนายความตรวจก่อนขาย (OP-24)
 - ติดต่อ: [อีเมล] · [LINE OA] · [โทรศัพท์] (OP-16) · แบบฟอร์ม `index.html?interest=education#contact`
+
+---
+
+# 11. เอกสารเทคนิค
+*Technical sheet*
+
+- ตัวเลขการทดสอบและวิธีทดสอบอยู่ในเอกสารเทคนิคของ Exam ขอได้จากฝ่ายขาย (ภายใน: `docs/tech-sheets/exam-TH.md`)
+- มอบให้เมื่อผู้ซื้อ ผู้ตรวจสอบ หรือฝ่ายจัดซื้อขอดู
 
 ---
 
 # English summary
 
 LENSIQ Exam is an invigilator's assistant that points to a seat and never decides misconduct. It runs on the institution's own computers and webcams, on the device, with no cloud upload.
-Computer-room mode is pilot-ready; the camera hall is experimental and not for sale. It has no emotion, expression, lie or deception scoring, no suspicion score and no face recognition,
-and age / gender / expression models are not part of customer builds. Measured so far (all public dataset, none from real exam rooms): face not found 15% (n = 26 frames, `docs/exam/FACE-ENGINE-RESULTS.md`);
-the "more than one person" signal fires on 28.8% (15 / 52) of frames with a second person with 0 / 17 false alarms, an aid and not complete detection (§7.2). Not measured: accuracy in real exam rooms,
-phone and book detection, skin tone, low light. The published Twente trial (AI-only proctoring caught 0 of 6 instructed cheaters) is research, not a LENSIQ measurement. Free pilot: 1 institution, up to 4 weeks, up to 3 rooms.
+Computer-room mode can start a field pilot. It has no emotion, expression, lie or deception scoring, no suspicion score and no face recognition,
+and age / gender / expression models are not part of customer builds. Phones close to the camera are detected well; a phone lying on the desk is usually missed, so invigilators should still walk the room.
+Free pilot: 1 institution, up to 4 weeks, up to 3 rooms. The technical sheet is available from sales on request.
 Free up to 5 candidates per session (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot price: 10 THB per candidate per exam (minimum 300 THB per session), 990 THB per lab per month, institution licence from 19,900 THB per year. Sold by quotation and bank transfer.

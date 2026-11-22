@@ -43,3 +43,38 @@ ac9d6cb092d80a243623fe91f74921b40461582829c0622ea9ba8445402aee7e  tests/unit/for
 # locked 2026-11-18T16:15:08Z (tools/eval-guard.mjs lock, 1 file)
 dcb60eface0b2e5e0e1840d1fd8a5a6a71d9b15b3ebf0d08615405a03196464c  merge-theme/cat-pages.test.js
 dcb60eface0b2e5e0e1840d1fd8a5a6a71d9b15b3ebf0d08615405a03196464c  tests/unit/cat-pages.test.js  # repo file (same commit as lock 2026-11-18T16:15:08Z; field: ~/LENSIQ-field/evals/fortune-cards/merge-theme/cat-pages.test.js)
+# locked 2026-11-21T18:57:33Z (tools/eval-guard.mjs lock, 6 files)
+3b8e3dbdc6d4dbfbe41b3a261dc38e09fba8446c51858b766be63305b11e248c  relock-223/fortune-cards.test.js
+6bf2c19919607f322db5c7dbfcf25ae7be4de3a627082d02a3d6c726168eef81  relock-223/fortune-cards.e2e.mjs
+400b082f1cb9c4db55eada0f6367af76dc195b02c646bde6517e6983305f6d19  relock-223/categories.e2e.mjs
+f1778d97671d53def92cf094bbba7171e7bd5c94517f40ac02568909956f76f9  relock-223/fortune-live.test.js
+a8b154273d75722afd2343d9ceed9abd12478abf9cc958edaa664f89df484342  relock-223/fortune-sources.test.js
+bfeed45a5da2b1e56b009136dda1c75a41ca5da87c56e01e073ae4942b681cad  relock-223/NOTE.txt
+3b8e3dbdc6d4dbfbe41b3a261dc38e09fba8446c51858b766be63305b11e248c  tests/unit/fortune-cards.test.js  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-223/fortune-cards.test.js)
+6bf2c19919607f322db5c7dbfcf25ae7be4de3a627082d02a3d6c726168eef81  tests/e2e/fortune-cards.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-223/fortune-cards.e2e.mjs)
+400b082f1cb9c4db55eada0f6367af76dc195b02c646bde6517e6983305f6d19  tests/e2e/categories.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-223/categories.e2e.mjs)
+f1778d97671d53def92cf094bbba7171e7bd5c94517f40ac02568909956f76f9  tests/unit/fortune-live.test.js  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-223/fortune-live.test.js)
+a8b154273d75722afd2343d9ceed9abd12478abf9cc958edaa664f89df484342  tests/unit/fortune-sources.test.js  # repo file (same commit as lock 2026-11-21T18:57:33Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-223/fortune-sources.test.js)
+# field only relock-223/NOTE.txt (lock 2026-11-21T18:57:33Z: no repo file uses it)
+f6fde25249eea53b6dc39200a16cbac7598a301ff35ee9f66b3ef66eb8a7d273  tests/unit/cat-pages.test.js  # repo file (re-locked in evals-locks/crisis-rules-1323.sha256 at 2026-11-21T18:57:33Z, replaces dcb60eface0b2e5e0e1840d1fd8a5a6a71d9b15b3ebf0d08615405a03196464c of line 45; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock-223/cat-pages.test.js)
+# locked 2026-11-21T18:59:15Z (tools/eval-guard.mjs lock, 2 files)
+e09e763d6d46e86474303718cb7820d943261d5c11c3eb29623b08475a7ea9c5  relock-223b/categories.e2e.mjs
+6d917c9f49020d06500566f5ec52f19134ff8861ea4afdcbaafaeace50c0a27d  relock-223b/NOTE.txt
+e09e763d6d46e86474303718cb7820d943261d5c11c3eb29623b08475a7ea9c5  tests/e2e/categories.e2e.mjs  # repo file (same commit as lock 2026-11-21T18:59:15Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-223b/categories.e2e.mjs)
+# field only relock-223b/NOTE.txt (lock 2026-11-21T18:59:15Z: no repo file uses it)
+6ec6519b989003eb1e021ba704442d93ea227423f0389ff92a03b3523a1dc9c7  tests/unit/cat-pages.test.js  # repo file (re-locked in evals-locks/crisis-rules-1323.sha256 at 2026-11-21T18:59:15Z, replaces f6fde25249eea53b6dc39200a16cbac7598a301ff35ee9f66b3ef66eb8a7d273 of line 59; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock-223b/cat-pages.test.js)
+# locked 2026-11-22T00:32:49Z (tools/eval-guard.mjs lock, 4 files)
+2fb4fc8e20ba3ae55f40ec97fe62ddb148610476745169695864212301ded506  relock-226/fortune-cards.test.js
+f017e6da0c1ca73212489494b6c21d68d812423683a170b94e3ad671a2fbe4c3  relock-226/fortune-cards.e2e.mjs
+79911b0ccfdd2c8eb1537abf2057c42dd96e4e6fc8af9c3d4d45e0990acfcf6f  relock-226/categories.e2e.mjs
+9375fd2d55546bc66731d524d1df63c919b0f596ab9763d51873b1b3478f04e6  relock-226/NOTE.txt
+2fb4fc8e20ba3ae55f40ec97fe62ddb148610476745169695864212301ded506  tests/unit/fortune-cards.test.js  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-226/fortune-cards.test.js)
+f017e6da0c1ca73212489494b6c21d68d812423683a170b94e3ad671a2fbe4c3  tests/e2e/fortune-cards.e2e.mjs  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-226/fortune-cards.e2e.mjs)
+79911b0ccfdd2c8eb1537abf2057c42dd96e4e6fc8af9c3d4d45e0990acfcf6f  tests/e2e/categories.e2e.mjs  # repo file (same commit as lock 2026-11-22T00:32:49Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-226/categories.e2e.mjs)
+# field only relock-226/NOTE.txt (lock 2026-11-22T00:32:49Z: no repo file uses it)
+d9803f27271f3255feb055728ec6e60872ed0a726da5c87606a323c72de5a274  tests/unit/cat-pages.test.js  # repo file (re-locked in evals-locks/crisis-rules-1323.sha256 at 2026-11-22T00:32:49Z, replaces 6ec6519b989003eb1e021ba704442d93ea227423f0389ff92a03b3523a1dc9c7 of line 65; field: ~/LENSIQ-field/evals/crisis-rules-1323/relock-226/cat-pages.test.js)
+# locked 2026-11-22T04:35:13Z (tools/eval-guard.mjs lock, 2 files)
+c4a2d98be9dadd804a42c87c74bb73d4806e45b33bde5cc8e59a2f5e0ed6f220  relock-226b/fortune-cards.test.js
+788b1814fbac095fc9869955abf0f7b16e110dd6fc5110323293e13cb46daedd  relock-226b/NOTE.txt
+c4a2d98be9dadd804a42c87c74bb73d4806e45b33bde5cc8e59a2f5e0ed6f220  tests/unit/fortune-cards.test.js  # repo file (same commit as lock 2026-11-22T04:35:13Z; field: ~/LENSIQ-field/evals/fortune-cards/relock-226b/fortune-cards.test.js)
+# field only relock-226b/NOTE.txt (lock 2026-11-22T04:35:13Z: no repo file uses it)

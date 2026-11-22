@@ -537,8 +537,9 @@
     procW: 1280, procH: 720, bands: Object.freeze(PLACE_BANDS.slice()), n: Object.freeze([143, 195, 247, 275]),
     recall: Object.freeze(Object.fromEntries(Object.entries(PLACE_RECALL).map(([k, v]) => [k, Object.freeze(v.slice())]))),
     minPx: Object.freeze(Object.fromEntries(Object.entries(PLACE_RECALL).map(([k, v]) => [k, PLACE_BANDS[v.findIndex(p => p >= 50)]]))),
-    hiddenFrac: 0.5, edgeMargin: 0.02,
-    source: "public dataset (Open Images V7 validation still images, CC BY 2.0; not exam-room footage) — docs/exam/HALL-DETECTOR-RESULTS.md"
+    hiddenFrac: 0.5, edgeMargin: 0.02
+    // source of the figures above: public dataset (Open Images V7 validation still images, CC BY 2.0; not exam-room
+    // footage), docs/exam/HALL-DETECTOR-RESULTS.md. Kept as a comment, not a string (decision 223: never displayed).
   });
   /** share of a polygon's area inside a box (grid samples inside the polygon's bounding box) */
   function polyFracInBoxes(poly, boxes, g = 12) {

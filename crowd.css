@@ -41,10 +41,7 @@
   html.cr-print-sum #summary .hint{display:block!important}
   html.cr-print-sum .cr-tw{overflow:visible}
 }
-/* round 15: accuracy note, quality label, hour heatmaps, peak report, 15-min table */
-.cr-acc summary{cursor:pointer;min-height:44px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-weight:600;color:var(--navy)}
-.cr-acc-list{margin:8px 0;padding-left:20px;display:grid;gap:4px;font-size:.92rem}
-.cr-acc p{overflow-wrap:anywhere}
+/* round 15: quality label, hour heatmaps, peak report, 15-min table (decision 223: accuracy panel removed) */
 .cr-qual{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:#fff7e6;border:1px solid #f5c26b;color:#7a4a00;font-size:.9rem;overflow-wrap:anywhere}
 .cr-hsel{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:6px}
 .cr-hsel label{font-size:.88rem;color:var(--muted)}

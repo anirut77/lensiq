@@ -25,14 +25,14 @@
   content="ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน และตรวจกระดาษคำตอบด้วยมือถือ ระบบไม่ตัดสินการทุจริต คนตัดสินเสมอ ไม่อ่านอารมณ์">
 <link rel="stylesheet" href="styles.css?v=24">
 <link rel="stylesheet" href="products.css?v=3">
-<link rel="stylesheet" href="solutions.css?v=4">
-<link rel="stylesheet" href="cat.css?v=2">
+<link rel="stylesheet" href="solutions.css?v=5">
+<link rel="stylesheet" href="cat.css?v=3">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-cat.js?v=6"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-cat.js?v=7"></script>
 <main class="pd cat" id="main" data-cat="education">
   <section class="pd-hero" aria-labelledby="catH">
     <span class="eyebrow" data-i18n="cat.eyebrow">LENSIQ · หมวดงาน</span>
@@ -46,110 +46,38 @@
   <div class="pd-body">
     <section aria-labelledby="catToolsH">
       <h2 id="catToolsH" data-i18n="cat.tools.h">เครื่องมือในหมวดนี้</h2>
-      <p class="pd-sub" id="catCount" data-i18n="cat.education.count">5 เครื่องมือ · พร้อมนำร่อง 3 · ทดลอง 2 · สาธิต 0</p>
+      <p class="pd-sub" id="catCount" data-i18n="cat.education.count">4 เครื่องมือ</p>
       <div class="pd-grid cat-grid">
-      <article class="pd-card cat-tool" data-page="exam" data-status="pilot-ready">
-        <div class="cat-top"><h3 data-i18n="nav.exam.title">LENSIQ Exam ภาพรวม</h3><span class="cat-st pilot-ready"
-          data-i18n="cat.st.pilot-ready">พร้อมนำร่อง</span></div>
-        <p data-i18n="nav.exam.desc">ช่วยผู้คุมสอบ ไม่ตัดสินการทุจริต (นำร่อง)</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="none"><span class="cat-src none" data-i18n="cat.src.none">ยังไม่ได้วัด</span> <span
-            data-i18n="cat.c.examNone">สัญญาณถูกหรือผิดในห้องสอบจริง: ยังไม่ได้วัด การนำร่องจะเทียบแต่ละสัญญาณกับบันทึกของผู้คุมสอบ
-            ระบบไม่ตัดสินการทุจริต</span></li>
-        </ul>
-        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.exam">หน้าผู้เข้าสอบ เครื่องในห้อง และแดชบอร์ดครบ คนตัดสินทุกสัญญาณ
-          ความแม่นยำยังไม่ได้วัดและการนำร่องคือการวัด หน้าผู้เข้าสอบและเครื่องในห้องใช้ MediaPipe Face Landmarker และ COCO-SSD (ทั้งคู่ Apache-2.0) ส่วน
-          YOLOX-Nano (Apache-2.0) ในเครื่องห้องสอบเป็นตัวเลือกที่ปิดไว้เป็นค่าเริ่มต้น โหลด face-api.js เฉพาะเมื่อเปิดเดโมงานวิจัย หน้าแนะนำ Exam
-          และแดชบอร์ดไม่โหลดโมเดลใด ๆ</span></p>
+      <article class="pd-card cat-tool" data-page="exam">
+        <div class="cat-top"><h3 data-i18n="nav.exam.title">LENSIQ Exam ภาพรวม</h3></div>
+        <p data-i18n="nav.exam.desc">ช่วยผู้คุมสอบ ไม่ตัดสินการทุจริต</p>
+        <p class="cat-ln"><span data-i18n="ln.exam.1">บอกผู้คุมสอบว่าควรไปดูที่นั่งไหน ระบบแจ้งเท่านั้น คนตัดสินทุกกรณี ไม่อ่านอารมณ์
+          และไม่จดจำว่าใครเป็นใคร</span><br><span data-i18n="ln.exam.2">ตรวจพบโทรศัพท์ที่อยู่ใกล้กล้องได้ดี โทรศัพท์ที่วางบนโต๊ะมักตรวจไม่พบ
+          ผู้คุมสอบควรเดินตรวจร่วมด้วย</span></p>
         <a class="sl-go" href="exam.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>
-      <article class="pd-card cat-tool" data-page="exam-lab" data-status="pilot-ready">
-        <div class="cat-top"><h3 data-i18n="nav.exam-lab.title">หน้าผู้เข้าสอบ</h3><span class="cat-st pilot-ready"
-          data-i18n="cat.st.pilot-ready">พร้อมนำร่อง</span></div>
+      <article class="pd-card cat-tool" data-page="exam-lab">
+        <div class="cat-top"><h3 data-i18n="nav.exam-lab.title">หน้าผู้เข้าสอบ</h3></div>
         <p data-i18n="nav.exam-lab.desc">สอบออนไลน์: แจ้งสิทธิ์ ปรับเทียบ ป้ายกำลังติดตาม</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="none"><span class="cat-src none" data-i18n="cat.src.none">ยังไม่ได้วัด</span> <span
-            data-i18n="cat.c.examNone">สัญญาณถูกหรือผิดในห้องสอบจริง: ยังไม่ได้วัด การนำร่องจะเทียบแต่ละสัญญาณกับบันทึกของผู้คุมสอบ
-            ระบบไม่ตัดสินการทุจริต</span></li>
-        </ul>
-        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.exam">หน้าผู้เข้าสอบ เครื่องในห้อง และแดชบอร์ดครบ คนตัดสินทุกสัญญาณ
-          ความแม่นยำยังไม่ได้วัดและการนำร่องคือการวัด หน้าผู้เข้าสอบและเครื่องในห้องใช้ MediaPipe Face Landmarker และ COCO-SSD (ทั้งคู่ Apache-2.0) ส่วน
-          YOLOX-Nano (Apache-2.0) ในเครื่องห้องสอบเป็นตัวเลือกที่ปิดไว้เป็นค่าเริ่มต้น โหลด face-api.js เฉพาะเมื่อเปิดเดโมงานวิจัย หน้าแนะนำ Exam
-          และแดชบอร์ดไม่โหลดโมเดลใด ๆ</span></p>
+        <p class="cat-ln"><span data-i18n="ln.examlab.2">ระบบช่วยผู้คุมสอบเท่านั้น ไม่ตัดสินว่ามีการทุจริต</span></p>
         <a class="sl-go" href="exam-lab.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>
-      <article class="pd-card cat-tool" data-page="exam-hall" data-status="experimental">
-        <div class="cat-top"><h3 data-i18n="nav.exam-hall.title">เครื่องกล้องในห้องสอบ</h3><span class="cat-st experimental"
-          data-i18n="cat.st.experimental">ทดลอง</span></div>
-        <p data-i18n="nav.exam-hall.desc">วาดที่นั่ง แจ้งที่นั่งว่างและคนเกิน (ทดลอง)</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="none"><span class="cat-src none" data-i18n="cat.src.none">ยังไม่ได้วัด</span> <span
-            data-i18n="cat.c.examNone">สัญญาณถูกหรือผิดในห้องสอบจริง: ยังไม่ได้วัด การนำร่องจะเทียบแต่ละสัญญาณกับบันทึกของผู้คุมสอบ
-            ระบบไม่ตัดสินการทุจริต</span></li>
-          <li data-src="public"><span class="cat-src public" data-i18n="cat.src.public">ชุดข้อมูลสาธารณะ</span> <span
-            data-i18n="cat.c.examHall">ใบหน้าเล็กในภาพมุมกว้างของห้องสอบ (กว้าง 24–48 px): พบ 0% (0/195) · n = 195 ใบหน้า ภาพหมู่จาก Open Images V7
-            ครึ่งที่ไม่ได้ใช้เลือกค่า ไม่ใช่ภาพห้องสอบจริง ตัวเลือกที่ดีที่สุดที่วัดได้พบ 62.6% (122/195) แต่มีกรอบผิดมากและช้าเกินไปบนแล็ปท็อประดับกลางจำลอง
-            จึงยังไม่เปิดใช้</span></li>
-        </ul>
-        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.examHall">เครื่องกล้องในห้องสอบใช้งานได้ครบ
-          แต่ใบหน้าเล็กในภาพมุมกว้างของห้องสอบยังตรวจได้ไม่ดี จึงเป็นรุ่นทดลองจนกว่าจะแก้ ยังไม่เปิดขาย หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์) พร้อมนำร่อง</span></p>
-        <a class="sl-go" href="exam-hall.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
-      </article>
-      <article class="pd-card cat-tool" data-page="exam-dashboard" data-status="pilot-ready">
-        <div class="cat-top"><h3 data-i18n="nav.exam-dashboard.title">แดชบอร์ดผู้คุมสอบ</h3><span class="cat-st pilot-ready"
-          data-i18n="cat.st.pilot-ready">พร้อมนำร่อง</span></div>
+      <article class="pd-card cat-tool" data-page="exam-dashboard">
+        <div class="cat-top"><h3 data-i18n="nav.exam-dashboard.title">แดชบอร์ดผู้คุมสอบ</h3></div>
         <p data-i18n="nav.exam-dashboard.desc">แผนที่ที่นั่ง คิวให้ตรวจ รายงานตามเวลา</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="none"><span class="cat-src none" data-i18n="cat.src.none">ยังไม่ได้วัด</span> <span
-            data-i18n="cat.c.examNone">สัญญาณถูกหรือผิดในห้องสอบจริง: ยังไม่ได้วัด การนำร่องจะเทียบแต่ละสัญญาณกับบันทึกของผู้คุมสอบ
-            ระบบไม่ตัดสินการทุจริต</span></li>
-        </ul>
-        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.exam">หน้าผู้เข้าสอบ เครื่องในห้อง และแดชบอร์ดครบ คนตัดสินทุกสัญญาณ
-          ความแม่นยำยังไม่ได้วัดและการนำร่องคือการวัด หน้าผู้เข้าสอบและเครื่องในห้องใช้ MediaPipe Face Landmarker และ COCO-SSD (ทั้งคู่ Apache-2.0) ส่วน
-          YOLOX-Nano (Apache-2.0) ในเครื่องห้องสอบเป็นตัวเลือกที่ปิดไว้เป็นค่าเริ่มต้น โหลด face-api.js เฉพาะเมื่อเปิดเดโมงานวิจัย หน้าแนะนำ Exam
-          และแดชบอร์ดไม่โหลดโมเดลใด ๆ</span></p>
+        <p class="cat-ln"><span data-i18n="ln.exam.1">บอกผู้คุมสอบว่าควรไปดูที่นั่งไหน ระบบแจ้งเท่านั้น คนตัดสินทุกกรณี ไม่อ่านอารมณ์
+          และไม่จดจำว่าใครเป็นใคร</span><br><span data-i18n="ln.exam.2">ตรวจพบโทรศัพท์ที่อยู่ใกล้กล้องได้ดี โทรศัพท์ที่วางบนโต๊ะมักตรวจไม่พบ
+          ผู้คุมสอบควรเดินตรวจร่วมด้วย</span></p>
         <a class="sl-go" href="exam-dashboard.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>
-      <article class="pd-card cat-tool" data-page="omr" data-status="experimental">
-        <div class="cat-top"><h3 data-i18n="nav.omr.title">ตรวจกระดาษคำตอบ</h3><span class="cat-st experimental"
-          data-i18n="cat.st.experimental">ทดลอง</span></div>
+      <article class="pd-card cat-tool" data-page="omr">
+        <div class="cat-top"><h3 data-i18n="nav.omr.title">ตรวจกระดาษคำตอบ</h3></div>
         <p data-i18n="nav.omr.desc">พิมพ์กระดาษคำตอบ ตรวจด้วยกล้องมือถือ วิเคราะห์ข้อสอบ</p>
-        <p class="cat-h" data-i18n="cat.acc.h">ความแม่นยำที่วัดได้</p>
-        <ul class="cat-acc">
-          <li data-src="none"><span class="cat-src none" data-i18n="cat.src.none">ยังไม่ได้วัด</span> <span
-            data-i18n="cat.c.omrNone">ยังไม่ได้วัดกับกระดาษคำตอบที่สแกนจริง มีเพียงชุดทดสอบอัตโนมัติด้วยภาพสังเคราะห์
-            ครูตรวจแผ่นที่ระบบทำเครื่องหมายไว้</span></li>
-        </ul>
-        <p class="cat-why"><b data-i18n="cat.why">ทำไมสถานะนี้</b> <span data-i18n="cat.r.omr">ใช้งานได้ครบ แต่ยังไม่ได้วัดกับกระดาษคำตอบที่สแกนจริง</span></p>
+        <p class="cat-ln"><span data-i18n="ln.omr.1">ตรวจกระดาษคำตอบด้วยกล้องมือถือ แสดงคะแนนและสถิติรายข้อ</span><br><span data-i18n="ln.omr.2">แผ่นที่ระบายจาง
+          ระบายเกินวง หรือถ่ายเอียงอาจอ่านผิด ระบบทำเครื่องหมายแผ่นที่ไม่แน่ใจไว้ให้ครูตรวจ</span></p>
         <a class="sl-go" href="omr.html"><span data-i18n="cat.open">เปิดหน้า</span> <span class="cat-arrow" aria-hidden="true">→</span></a>
       </article>
       </div>
-    </section>
-    <section aria-labelledby="catLegendH">
-      <h2 id="catLegendH" data-i18n="cat.legend.h">สถานะหมายถึงอะไร</h2>
-      <ul class="sl-legend cat-legend">
-        <li><span class="cat-st pilot-ready" data-i18n="cat.st.pilot-ready">พร้อมนำร่อง</span> <span
-          data-i18n="cat.std.pilot-ready">พร้อมทดสอบนำร่องที่หน้างานหนึ่งแห่งภายใต้การดูแล: ขั้นตอนครบ คนตัดสินใจทุกครั้ง
-          มีป้ายแจ้งและค่าเริ่มต้นด้านความเป็นส่วนตัว และมีวิธีวัดความแม่นยำหน้างาน ยังไม่ผ่านการทดสอบภาคสนาม</span></li>
-        <li><span class="cat-st experimental" data-i18n="cat.st.experimental">ทดลอง</span> <span data-i18n="cat.std.experimental">ใช้งานได้ครบขั้นตอน
-          แต่ความแม่นยำยังไม่ได้วัด เป็นตัวเลขเบื้องต้น หรือมีข้อจำกัดที่รู้แล้ว หรือยังรอสิ่งที่ต้องมีก่อน (ระบบหลังบ้าน สัญญาอนุญาต ทนาย)</span></li>
-        <li><span class="cat-st demo" data-i18n="cat.st.demo">สาธิต</span> <span data-i18n="cat.std.demo">แสดงแนวคิดด้วยข้อมูลตัวอย่าง
-          โมเดลสัญญาอนุญาตเพื่อการวิจัย (ปิดในเวอร์ชันลูกค้า) หรือเพื่อความบันเทิง ไม่ใช้ตัดสินเรื่องคน เงิน หรือสิทธิ์เข้าออก</span></li>
-        <li><span class="cat-st support" data-i18n="cat.st.support">หน้าประกอบ</span> <span data-i18n="cat.std.support">ไม่ใช่ผลิตภัณฑ์ (สารบบ ป้ายแจ้ง ข้อมูล
-          กฎหมาย หรือบัญชี) จึงไม่ให้สถานะความพร้อม และไม่นับรวมกับผลิตภัณฑ์</span></li>
-      </ul>
-      <h2 class="cat-h2" data-i18n="cat.src.h">ที่มาของตัวเลข</h2>
-      <p class="pd-sub" data-i18n="cat.src.d">ทุกตัวเลขบอกที่มา: ข้อมูลสังเคราะห์ ชุดข้อมูลสาธารณะ หรือภาคสนาม ยังไม่มีระบบใดมีตัวเลขภาคสนาม
-        ก่อนใช้ตัวเลขจริงให้ทดลองหน้างานพร้อมนับเทียบ</p>
-      <p class="cat-srcs"><span class="cat-src synthetic" data-i18n="cat.src.synthetic">ข้อมูลสังเคราะห์</span> <span class="cat-src public"
-        data-i18n="cat.src.public">ชุดข้อมูลสาธารณะ</span> <span class="cat-src prelim" data-i18n="cat.src.prelim">ชุดข้อมูลสาธารณะ · เบื้องต้น</span> <span
-        class="cat-src field" data-i18n="cat.src.field">ภาคสนาม</span> <span class="cat-src none" data-i18n="cat.src.none">ยังไม่ได้วัด</span> <span
-        class="cat-src na" data-i18n="cat.src.na">ไม่มีตัวเลขความแม่นยำ</span></p>
-      <p class="pd-note"><a href="cameras.html#accuracy" data-i18n="cat.method">วิธีวัดและชุดข้อมูล</a></p>
     </section>
     <section aria-labelledby="catOthersH">
       <h2 id="catOthersH" data-i18n="cat.others.h">หมวดอื่น</h2>
@@ -164,6 +92,6 @@
     </section>
   </div>
 </main>
-<script src="lensiq-config.js?v=30"></script>
+<script src="lensiq-config.js?v=31"></script>
 </body>
 </html>

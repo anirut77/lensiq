@@ -125,10 +125,21 @@
       }
       if (statsEl) {
         const t = tally();
-        statsEl.textContent = t.n
-          ? T("zc.log.prec", "ความแม่นยำของการแจ้งเตือนที่ตรวจแล้ว {p}% ({tp}/{n}) · ช่วงความเชื่อมั่น 95% {lo}–{hi}% · รอตรวจ {open}",
-            { p: Math.round(t.p * 100), tp: t.tp, n: t.n, lo: Math.round(t.lo * 100), hi: Math.round(t.hi * 100), open: t.open })
-          : T("zc.log.precNone", "ยังไม่มีการแจ้งเตือนที่ตรวจแล้ว — กด \"ตรวจแล้ว: จริง\" หรือ \"แจ้งผิด\" ที่แต่ละรายการ เพื่อวัดความแม่นยำหน้างาน");
+        statsEl.textContent = "";
+        if (!t.n) statsEl.textContent = T("zc.log.precNone", "ยังไม่มีการแจ้งเตือนที่ตรวจแล้ว — กด \"ตรวจแล้ว: จริง\" หรือ \"แจ้งผิด\" ที่แต่ละรายการ เพื่อวัดความแม่นยำหน้างาน");
+        else {
+          // decision 223-4: a plain verdict on top; the precision and its interval are folded for the administrator
+          const v = document.createElement("span");
+          v.textContent = T("zc.log.verdict", "ตรวจแล้ว {n} ครั้ง: จริง {tp} ครั้ง แจ้งผิด {fp} ครั้ง · รอตรวจ {open}", { n: t.n, tp: t.tp, fp: t.fp, open: t.open });
+          const d = document.createElement("details"), sm = document.createElement("summary"), dp = document.createElement("span");
+          d.className = "zc-fold";
+          sm.textContent = T("zc.log.fold", "ตัวเลขละเอียดสำหรับผู้ดูแล");
+          sm.style.cursor = "pointer"; sm.style.minHeight = "44px"; sm.style.paddingTop = "10px";
+          dp.textContent = T("zc.log.prec", "ความแม่นยำของการแจ้งเตือนที่ตรวจแล้ว {p}% ({tp}/{n}) · ช่วงความเชื่อมั่น 95% {lo}–{hi}% · รอตรวจ {open}",
+            { p: Math.round(t.p * 100), tp: t.tp, n: t.n, lo: Math.round(t.lo * 100), hi: Math.round(t.hi * 100), open: t.open });
+          d.append(sm, dp);
+          statsEl.append(v, d);
+        }
       }
     }
     function add({ kind, zone = "", text, alert = false }) {

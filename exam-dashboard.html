@@ -18,22 +18,22 @@
      fetched one after another (one round trip each); these preloads fetch them in parallel. Same URLs as the script tags
      below (no extra request), plus the two files nav.js adds. -->
 <link rel="preload" as="script" href="lensiq-demo.js?v=1">
-<link rel="preload" as="script" href="lensiq-demo-data.js?v=3">
-<link rel="preload" as="script" href="i18n/zh-demo.js?v=3">
+<link rel="preload" as="script" href="lensiq-demo-data.js?v=4">
+<link rel="preload" as="script" href="i18n/zh-demo.js?v=4">
 <link rel="preload" as="script" href="lensiq-busy.js?v=3">
-<link rel="preload" as="script" href="nav.js?v=36">
-<link rel="preload" as="script" href="lensiq-i18n.js?v=36">
-<link rel="preload" as="script" href="i18n/zh-common.js?v=36">
-<link rel="preload" as="script" href="i18n/zh-exam.js?v=6">
+<link rel="preload" as="script" href="nav.js?v=37">
+<link rel="preload" as="script" href="lensiq-i18n.js?v=37">
+<link rel="preload" as="script" href="i18n/zh-common.js?v=37">
+<link rel="preload" as="script" href="i18n/zh-exam.js?v=7">
 <link rel="preload" as="script" href="lensiq-crashguard.js?v=1">
-<link rel="preload" as="script" href="lensiq-exam.js?v=5">
+<link rel="preload" as="script" href="lensiq-exam.js?v=6">
 <link rel="preload" as="script" href="exam-ui.js?v=2">
 <link rel="preload" as="script" href="exam-link.js?v=1">
 <link rel="preload" as="script" href="lensiq-facevault.js?v=1">
 <link rel="preload" as="script" href="lensiq-exam-clip.js?v=3">
 <link rel="preload" as="script" href="lensiq-freetier.js?v=1">
-<link rel="preload" as="script" href="exam-dashboard.js?v=4">
-<link rel="preload" as="script" href="lensiq-config.js?v=30">
+<link rel="preload" as="script" href="exam-dashboard.js?v=5">
+<link rel="preload" as="script" href="lensiq-config.js?v=31">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
@@ -41,22 +41,22 @@
 <link rel="stylesheet" href="styles.css?v=24">
 <link rel="stylesheet" href="exam.css?v=4">
 <script src="lensiq-demo.js?v=1"></script>
-<script src="lensiq-demo-data.js?v=3"></script>
-<script src="i18n/zh-demo.js?v=3"></script>
+<script src="lensiq-demo-data.js?v=4"></script>
+<script src="i18n/zh-demo.js?v=4"></script>
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=36"></script>
-<script src="i18n/zh-exam.js?v=6"></script>
+<script src="nav.js?v=37"></script>
+<script src="i18n/zh-exam.js?v=7"></script>
 
 <main class="ex" id="main">
   <div class="no-print">
   <h1 data-i18n="exam.db.h1">แดชบอร์ดผู้คุมสอบ</h1>
   <p class="lead" data-i18n="exam.db.lead">รวมเหตุการณ์จากหน้าผู้เข้าสอบและเครื่องกล้องในห้อง เป็นผังที่นั่งและรายการที่ควรไปดู ระบบแจ้งให้คนไปตรวจเท่านั้น ผู้คุมสอบเป็นผู้ตัดสินทุกกรณี ไม่มีภาพจากกล้องในหน้านี้</p>
-  <p class="note" id="nMulti" data-i18n="exam.db.nMulti">สัญญาณ “มากกว่าหนึ่งคน” เป็นตัวช่วยผู้คุมสอบ ไม่ใช่การตรวจจับที่ครบถ้วน: เมื่อมีคนที่สองในภาพ
-    ระบบแจ้งได้ 28.8% (15 / 52) · n = 52 ภาพ · ที่มา: ชุดข้อมูลสาธารณะ (ภาพถ่ายสาธารณะจาก Open Images V7 ครึ่งที่ไม่ได้ใช้เลือกค่า
-    ไม่ใช่ภาพห้องสอบจริง) · ในห้องสอบจริง: ยังไม่ได้วัด · ผู้คุมสอบต้องเดินตรวจตามปกติ</p>
+  <p class="lq-lines"><span data-i18n="ln.exam.1">บอกผู้คุมสอบว่าควรไปดูที่นั่งไหน ระบบแจ้งเท่านั้น คนตัดสินทุกกรณี ไม่อ่านอารมณ์ และไม่จดจำว่าใครเป็นใคร</span><br>
+    <span data-i18n="ln.exam.2">ตรวจพบโทรศัพท์ที่อยู่ใกล้กล้องได้ดี โทรศัพท์ที่วางบนโต๊ะมักตรวจไม่พบ ผู้คุมสอบควรเดินตรวจร่วมด้วย</span></p>
+  <p class="note" id="nMulti" data-i18n="exam.db.nMulti">สัญญาณ “มากกว่าหนึ่งคน” เป็นตัวช่วยเท่านั้น มักไม่แจ้งเมื่อมีคนที่สองในภาพ ผู้คุมสอบต้องเดินตรวจตามปกติ</p>
   <p class="status" id="engine" role="status" aria-live="polite"></p>
 
   <section class="card" aria-labelledby="joinH">
@@ -94,6 +94,7 @@
     <section class="card" aria-labelledby="qH">
       <h2 id="qH"><span data-i18n="exam.db.qH">ที่ควรไปดู</span> (<span id="qCount">0</span>)</h2>
       <div class="alerts" id="queue" aria-live="polite"></div>
+      <p class="lq-recheck" data-i18n="common.recheck">โปรดตรวจสอบอีกครั้ง ผลอาจคลาดเคลื่อนได้</p>
     </section>
   </div>
 
@@ -115,9 +116,15 @@
   <section class="card" aria-labelledby="sumH">
     <h2 id="sumH" data-i18n="exam.db.sumH">สรุปห้องสอบ</h2>
     <div class="kv" id="summary"></div>
-    <h3 data-i18n="exam.db.precH">ตรวจความแม่นยำหน้างาน (ผู้คุมสอบนับว่าแจ้งถูกหรือผิด)</h3>
-    <p class="note" data-i18n="exam.db.precP">กด “แจ้งถูก” เมื่อไปดูแล้วเห็นตามที่ระบบบอก (เช่น มีโทรศัพท์จริง) ไม่ได้แปลว่ามีการทุจริต กด “แจ้งผิด” เมื่อไม่เป็นอย่างที่บอก ช่วงความเชื่อมั่น 95% แบบ Wilson</p>
-    <div class="table-wrap"><table><thead><tr><th data-i18n="exam.db.tSig">ข้อสังเกต</th><th data-i18n="exam.db.tRight">แจ้งถูก</th><th data-i18n="exam.db.tWrong">แจ้งผิด</th><th data-i18n="exam.db.tPrec">ความแม่นยำ (95%)</th></tr></thead><tbody id="precBody"><tr><td colspan="4" class="empty" data-i18n="exam.db.precEmpty">ยังไม่มีการนับ — กด แจ้งถูก / แจ้งผิด ในรายการ</td></tr></tbody></table></div>
+    <h3 data-i18n="exam.db.precH">ทดสอบหน้างาน: นับว่าแจ้งถูกหรือผิด</h3>
+    <p class="note" data-i18n="exam.db.precP">กด “แจ้งถูก” เมื่อไปดูแล้วเห็นตามที่ระบบบอก (เช่น มีโทรศัพท์จริง) ไม่ได้แปลว่ามีการทุจริต กด “แจ้งผิด” เมื่อไม่เป็นอย่างที่บอก</p>
+    <p class="status" id="precVerdict" role="status"></p>
+    <details class="ex-fold"><summary data-i18n="exam.db.precFold">ตัวเลขละเอียดสำหรับผู้ดูแล</summary>
+    <p class="note" data-i18n="exam.db.precCi">ตัวเลขในวงเล็บคือช่วงที่น่าจะเป็นของห้องนี้ (95%)</p>
+    <div class="table-wrap"><table><thead><tr><th data-i18n="exam.db.tSig">ข้อสังเกต</th><th data-i18n="exam.db.tRight">แจ้งถูก</th><th data-i18n="exam.db.tWrong">แจ้งผิด</th>
+      <th data-i18n="exam.db.tPrec">สัดส่วนที่แจ้งถูก (95%)</th></tr></thead>
+      <tbody id="precBody"><tr><td colspan="4" class="empty" data-i18n="exam.db.precEmpty">ยังไม่มีการนับ — กด แจ้งถูก / แจ้งผิด ในรายการ</td></tr></tbody></table></div>
+    </details>
   </section>
 
   <section class="card" aria-labelledby="logH">
@@ -136,13 +143,13 @@
 </main>
 
 <script src="lensiq-crashguard.js?v=1"></script>
-<script src="lensiq-exam.js?v=5"></script>
+<script src="lensiq-exam.js?v=6"></script>
 <script src="exam-ui.js?v=2"></script>
 <script src="exam-link.js?v=1"></script>
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-exam-clip.js?v=3"></script>
 <script src="lensiq-freetier.js?v=1"></script>
-<script src="exam-dashboard.js?v=4"></script>
-<script src="lensiq-config.js?v=30"></script>
+<script src="exam-dashboard.js?v=5"></script>
+<script src="lensiq-config.js?v=31"></script>
 </body>
 </html>

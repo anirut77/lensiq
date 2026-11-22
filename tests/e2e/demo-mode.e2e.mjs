@@ -13,7 +13,7 @@
 //   6. no camera is opened (getUserMedia is never called) and no <img>/<video> appears in the demo UI;
 //   7. Gate: auto-open stays off and every plate read waits for the guard's button (nothing is logged by itself);
 //      Parking: no PromptPay ID in the demo (no real money destination);
-//   8. Crowd: says experimental / not for dense crowds; scenes with small (far) people and with 15+ people show the
+//   8. Crowd: says not for dense crowds and carries no "ทดลอง" status label (relock-226, decisions 223 / 226); scenes with small (far) people and with 15+ people show the
 //      "people look small" hint and the "≈ estimate" label;
 //   9. no emotion, lie, deception or cheating output in the demo UI or the sample views;
 //  10. TH / EN / ZH: banner and demo panels fully translated (0 Thai letters outside lang="th"/translate="no" sample data);
@@ -461,12 +461,15 @@ export default async function ({ base, launch, check, fakeCams }) {
     });
 
     /* ------------------------------------------------------------ Crowd (events) */
-    await session("crowd ?demo=1: starts without a camera, experimental / not for dense crowds, small-people and 15+ scenes show both warnings, SAMPLE CSV", async page => {
+    await session("crowd ?demo=1: starts without a camera, no status label / not for dense crowds, small-people and 15+ scenes show both warnings, SAMPLE CSV", async page => {
       await openDemo(page, `${base}/crowd.html?demo=1`);
       await barCheck(page);
       await page.waitFor(`window.__LQZ && window.__LQZ.zc.running && window.__LQZ.zc.demo`, 10000);
       const panel = await page.evaluate(() => [...document.querySelectorAll("[data-lq-demo]")].map(e => e.innerText).join(" "));
-      assert(/ทดลอง/.test(panel) && /ฝูงชนหนาแน่น/.test(panel), "demo panel says experimental, not for dense crowds: " + panel.slice(0, 200));
+      // RE-LOCK relock-226 (owner decisions 223 / 226, STRICTER; was: /ทดลอง/ and /ฝูงชนหนาแน่น/ both required): the panel still
+      // says it is not yet suitable for dense crowds, and carries no status label ("ทดลอง" / experimental) where a customer looks
+      assert(/ฝูงชนหนาแน่น/.test(panel), "demo panel says not for dense crowds: " + panel.slice(0, 200));
+      assert(!/ทดลอง/.test(panel), "demo panel carries no status label (ทดลอง): " + panel.slice(0, 200));
       await noRealData(page, ["REALZONE"]);
       const scenes = await page.evaluate(() => [...document.querySelectorAll("[data-lq-demo] [data-demo-scene]")].map(b => b.dataset.demoScene));
       assert(scenes.includes("small") && scenes.includes("crowd"), "scenes offered: " + scenes);

@@ -25,7 +25,16 @@ export default async function ({ base, check }) {
       const links = await page.evaluate(() => [...document.querySelectorAll("main a.btn")].filter(a => {
         const r = a.getBoundingClientRect(); return r.width >= 44 && r.height >= 44 && getComputedStyle(a).visibility !== "hidden";
       }).map(a => a.getAttribute("href")));
-      for (const h of ["exam-lab.html", "exam-hall.html", "exam-dashboard.html", "index.html?interest=exam#contact"]) assert(links.includes(h), "visible link to " + h + ": " + links.join(","));
+      // RE-LOCK relock-226 (owner decision 226, STRICTER): the exam-hall link follows the nav.js visibility list. While
+      // VISIBILITY["exam-hall"] is false no visible link of any size in <main> leads to exam-hall.html; when it is true the
+      // link is required as before (visible, at least 44 x 44 px). The other three links are required as before.
+      const hallOn = await page.evaluate(() => { const v = /** @type {any} */ (window).LQ_VISIBILITY; return !!v && v["exam-hall"] !== false; });
+      const hallSeen = await page.evaluate(() => [...document.querySelectorAll("main a[href]")].filter(a => {
+        const r = a.getBoundingClientRect(), s = getComputedStyle(a);
+        return /^exam-hall\.html([?#]|$)/.test(a.getAttribute("href") || "") && r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none";
+      }).map(a => a.getAttribute("href")));
+      for (const h of ["exam-lab.html", ...(hallOn ? ["exam-hall.html"] : []), "exam-dashboard.html", "index.html?interest=exam#contact"]) assert(links.includes(h), "visible link to " + h + ": " + links.join(","));
+      if (!hallOn) assert(hallSeen.length === 0, "exam-hall is switched off (nav.js VISIBILITY) but exam.html shows a link to it: " + hallSeen.join(","));
       for (const h of ["exam-lab.html", "exam-hall.html", "exam-dashboard.html"]) {
         const s = await page.evaluate(async u => (await fetch(u, { cache: "no-store" })).status, h);
         assert(s === 200, h + " answers " + s);

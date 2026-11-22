@@ -151,7 +151,7 @@ Deciders: owner (O), accountant (A), lawyer (L), product team (P). The table abo
 - **OP-18 (O)** Definition of units: "exam session" and "lab" (Exam), "day" (Crowd), "lane" (Gate).
 - **OP-19 (O)** Travel and out-of-area installation are not in the approved prices; no line was added.
 - **OP-20 (P)** The free tiers (Gate 30-day trial, 1 lane, 100 plates per day; Attendance up to 5 people; Exam up to 5 candidates per session; Crowd 2 hours per device per day) are text only; there is no timer or counter in the code. They are enforced by contract from a date to be announced, at least 30 days ahead.
-- **OP-21 (O)** Crowd status: the task calls it experimental while `PAGE-STATUS.md` rates it pilot-ready for sparse-to-medium crowds; the kit uses both words. Figures are preliminary against an AI reference.
+- **OP-21 (O)** Crowd status: the readiness rating lives in the back office and `PAGE-STATUS.md` only (owner decision 226: no status label in the kit); the kit states the plain limit "not yet suitable for dense crowds". The figures (against an AI reference) are in the technical sheet.
 - **OP-22 (L)** Exam with minors: parental-consent step.
 - **OP-23 (L)** Data deletion at the end of a contract and breach notice times (bracketed [30 days], [24 h]).
 - **OP-24 (L, A)** The whole kit needs a lawyer and an accountant before sale.
