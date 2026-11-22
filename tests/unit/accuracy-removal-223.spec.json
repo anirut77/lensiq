@@ -1375,14 +1375,16 @@
     "why": "re-lock 2 (reviewer finding 6): one-pagers carry no bare percentage except price / VAT / refund terms"
   },
   "visibility": {
-    "$comment": "re-lock 3 (owner decision 226, entries 13-15): starting values = today's real state; sentence approved (entry 15). Re-lock 4 (coordinator decision 2026-11-22 on entry 13, reversible by the owner): Product Check is the part 'product-check' (the tab of medicine.html), not the whole page; medicine.html (the drug checker) is on",
+    "$comment": "re-lock 3 (owner decision 226, entries 13-15): starting values = today's real state; sentence approved (entry 15). Re-lock 4 (coordinator decision 2026-11-22 on entry 13, reversible by the owner): Product Check is the part 'product-check' (the tab of medicine.html), not the whole page; medicine.html (the drug checker) is on. Re-lock 9 (sell-readiness assessment, OWNER-INBOX-2026-11-21 entry 16, 2026-11-22: freeze, 'off = not shown'): omr (reads answer sheets wrongly without a flag on the 66-item synthetic set) and tryon (score 48, backend not deployed, parked by the owner) are switched off; STRICTER: every root *.html page of the repo is named in the nav.js list (true or false), so no page can be missing again (tryon.html was missing and its direct URL opened); the platform pages in platformOn must stay true (the crisis page counselling, the home page, legal notices, help, the back office)",
     "off": [
       "exam-hall",
       "product-check",
       "signage",
       "neuro",
       "teamface",
-      "customers"
+      "customers",
+      "omr",
+      "tryon"
     ],
     "parts": {
       "product-check": {
@@ -1400,7 +1402,28 @@
       }
     },
     "sentence": "ระบบนี้ยังไม่เปิดให้บริการ · This service is not available yet. · 此服务尚未开放。",
-    "home": "index.html"
+    "home": "index.html",
+    "platformOn": [
+      "404",
+      "about",
+      "account",
+      "admin",
+      "camera-notice",
+      "cat-education",
+      "cat-fortune",
+      "cat-health",
+      "cat-hr",
+      "cat-marketing",
+      "cat-security",
+      "cat-studio",
+      "counselling",
+      "help",
+      "index",
+      "pricing",
+      "privacy",
+      "solutions",
+      "terms"
+    ]
   },
   "labelBanned": [
     {
@@ -1518,7 +1541,7 @@
     ]
   },
   "offNames": {
-    "$comment": "re-lock 6: display names of the switched-off products (nav.js TH title, EN / ZH nav titles, plus the short names the pages used); rendered visible text naming one fails (visibility-223 V1 / V6, contract R11). Generic negations ('ไม่วิเคราะห์อารมณ์', '不做情绪分析': no emotion inference) are not the product name and are excluded by the regex. Pages excluded from the site-wide text check, with reason: terms.html (byte-identical lock fortune-credits D5; changes only after the lawyer), privacy.html and camera-notice.html (legal notices of what each system processes; changing what users see about privacy needs the owner and the lawyer)",
+    "$comment": "re-lock 6: display names of the switched-off products (nav.js TH title, EN / ZH nav titles, plus the short names the pages used); rendered visible text naming one fails (visibility-223 V1 / V6, contract R11). Generic negations ('ไม่วิเคราะห์อารมณ์', '不做情绪分析': no emotion inference) are not the product name and are excluded by the regex. Pages excluded from the site-wide text check, with reason: terms.html (byte-identical lock fortune-credits D5; changes only after the lawyer), privacy.html and camera-notice.html (legal notices of what each system processes; changing what users see about privacy needs the owner and the lawyer). Re-lock 9: omr (nav title 'ตรวจกระดาษคำตอบ' / 'Answer-sheet grader' / '答题卡批改', and the plain words answer sheet / OMR) and tryon (page title 'ลองสินค้าบนตัวคุณ…' / 'Try items on…' / '试戴', the line 'ลองแว่น หมวก…', the word try-on) added",
     "names": {
       "signage": [
         {
@@ -1666,6 +1689,40 @@
         },
         {
           "re": "产品核对"
+        }
+      ],
+      "omr": [
+        {
+          "re": "กระดาษคำตอบ"
+        },
+        {
+          "re": "answer[- ]sheets?",
+          "flags": "i"
+        },
+        {
+          "re": "\\bOMR\\b"
+        },
+        {
+          "re": "答题卡"
+        }
+      ],
+      "tryon": [
+        {
+          "re": "ลองสินค้าบนตัว"
+        },
+        {
+          "re": "ลองแว่น หมวก"
+        },
+        {
+          "re": "\\btry[- ]on\\b",
+          "flags": "i"
+        },
+        {
+          "re": "try items on",
+          "flags": "i"
+        },
+        {
+          "re": "试戴"
         }
       ]
     },

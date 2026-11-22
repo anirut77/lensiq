@@ -34,6 +34,9 @@
 //       ways: the positive product name fails, any negated generic "no emotion analysis" line passes); spec.followup223b
 //       .demoSweep lists every demo / sample button of every switched-on page (browser half: visibility-223 V6 presses them
 //       all); the exam dashboard demo consults window.LQ_VISIBILITY for exam-hall and its ?demo=1 sample data is lab-side only
+//       Re-lock 9 (sell-readiness assessment, owner entry 16: freeze, "off = not shown"): omr and tryon are switched off
+//       (spec.visibility.off, spec.offNames); R9 is STRICTER: the nav.js list names every root *.html page of the repo (true or
+//       false) and the platform pages of spec.visibility.platformOn (crisis page, home, legal, help, back office) stay true
 //   R8  rules: CLAUDE.md lines 34 / 60 / 251-252 / 255-256 and docs/acceptance/README.md rule 7 inverted as approved (223-1)
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -428,7 +431,14 @@ test("R9 (226) one visibility list (page -> on / off) = today's real state; noth
   const catPages = [...new Set(DD.CATEGORIES.flatMap(c => c.pages))].sort();
   // re-lock 4: plus the parts of a page (Product Check = the tab of medicine.html), each named in the spec with its page
   const parts = V.parts || {};
-  assert.deepEqual(Object.keys(list).sort(), [...catPages, ...Object.keys(parts)].sort(), "the list names every category page and every listed part, nothing else");
+  // re-lock 9 (entry 16, STRICTER): the list names EVERY root *.html page of the repo (true or false) and every listed part,
+  // nothing else, so no page can be missing again (tryon.html was missing and its direct URL opened); the category pages are
+  // a subset; the platform pages of spec.visibility.platformOn stay true (crisis page, home, legal notices, help, back office)
+  const rootPages = readdirSync(L.ROOT).filter(f => /^[^/]+\.html$/.test(f)).map(f => f.replace(/\.html$/, ""));
+  assert.deepEqual(Object.keys(list).sort(), [...new Set([...rootPages, ...Object.keys(parts)])].sort(), "the list names every page of the repo and every listed part, nothing else");
+  for (const p of catPages) if (!(p in list)) bad.push(`category page ${p} is not in the list`);
+  for (const p of V.platformOn || []) { if (!rootPages.includes(p)) bad.push(`platformOn ${p}.html missing`); if (list[p] !== true) bad.push(`platform page ${p} must be on (true)`); }
+  if (!(V.platformOn || []).includes("counselling")) bad.push("spec.visibility.platformOn must keep the crisis page counselling on");
   for (const [part, P] of Object.entries(parts)) {
     if (!catPages.includes(P.page)) bad.push(`part ${part}: its page ${P.page} is not a category page`);
     if (list[P.page] !== true) bad.push(`part ${part}: its page ${P.page} must stay on (only the part is switched off)`);
