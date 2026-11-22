@@ -425,8 +425,9 @@ test("hall mode carries no status label where it is offered or sold (decision 22
   // decision 226: the one-pager carries no status label; the hall is stated plainly as a service that is not open yet
   assert.equal((one.match(/รุ่นทดลอง/g) || []).length, 0, "one-pager: no Thai status label");
   assert.equal((one.match(/trial version|experimental/gi) || []).length, 0, "one-pager: no English status label");
-  assert.match(one, /^\*\*ห้องสอบที่มีกล้อง:\*\* ระบบนี้ยังไม่เปิดให้บริการ ราคาในแถวนั้นใช้เมื่อเปิดให้บริการแล้วเท่านั้น/m);
-  assert.match(one, /^\*\*Camera hall:\*\* this service is not available yet; its row applies only once the service opens\./m);
+  // re-lock 226b (coordinator decision round 3, "off = not shown"): the switched-off hall is not in the one-pager at all (no row,
+  // no paragraph, no price; was: the paragraph "ระบบนี้ยังไม่เปิดให้บริการ …" / "this service is not available yet")
+  assert.doesNotMatch(one, /ห้องสอบที่มีกล้อง|exam-hall\.html|[Cc]amera (exam )?hall|ระบบนี้ยังไม่เปิดให้บริการ|not available yet/);
   assert.match(read("docs/SALES-PACKAGES.md"), /camera-hall mode \(`exam-hall\.html`, \*\*experimental, not sold until the small-face issue is fixed\*\*/);
   // ONE-PAGER-TH / -ZH: the accuracy table (which carried the hall label) is gone; the rows are held verbatim by the tech-sheet
   // README (back office, keeps its labels); decision 226: any remaining mention of the hall device carries no label
@@ -521,11 +522,9 @@ test("owner decisions 2026-11-10 (follow-up): no rate in the candidate notice, >
   assert.doesNotMatch(land, /data-i18n="exam\.l\.p3x">รุ่นทดลอง/);
   assert.match(en["exam.l.p3n"], /^or ฿990 per month per room /); assert.match(zh["exam.l.p3n"], /^或每考场每月 ฿990/);
   const one = read("docs/ONE-PAGER-EXAM.md");
-  // decision 226: the price rows lose the status label (price unchanged)
-  assert.match(one, /ห้องสอบที่มีกล้อง \(ต่อห้อง จำนวนกล้องขึ้นกับขนาดห้อง ดูคู่มือวางกล้อง\) \| 290 บาท ต่อห้องต่อวันสอบ/);
-  assert.doesNotMatch(one, /— รุ่นทดลอง ยังไม่เปิดขาย/);
-  assert.match(one, /Camera hall \(per room; number of cameras depends on room size, see the guide\) \| 290 THB per room per exam day/);
-  assert.doesNotMatch(one, /\*\*trial version, not on sale yet\*\*/);
+  // decision 226 then re-lock 226b (coordinator decision round 3): no hall price row in the one-pager (the approved hall price
+  // stays in docs/PRICING-RESEARCH.md / BILLING-PLAN.md, checked below, and on exam.html behind data-lq-off)
+  assert.doesNotMatch(one, /290 บาท ต่อห้องต่อวันสอบ|290 THB per room per exam day|— รุ่นทดลอง ยังไม่เปิดขาย|\*\*trial version, not on sale yet\*\*/);
   const GUIDE = '`docs\\/EXAM\\.md` "Hall camera placement guide"\\)';
   assert.match(read("docs/BILLING-PLAN.md"), new RegExp("`exam_hall` \\|[^\\n]*\\*\\*Experimental, not on sale\\*\\*[^\\n]*the number of cameras depends on room size " +
     "\\(see the guide: " + GUIDE + " \\| 290 THB per room per exam day, or 990 THB \\/ month per room \\|"));

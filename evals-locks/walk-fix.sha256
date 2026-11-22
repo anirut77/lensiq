@@ -60,3 +60,8 @@ e4e978b291c34aa437429a27ffbce0c73205ba4132585e762b7a1489cf8e993c  tests/unit/wal
 2ae4a86edcd822b338de350fff7f53dd00a1ec8b85a5ca32a020044d268a1d1b  tests/e2e/exam-dashboard-demo.e2e.mjs  # repo file (re-locked in evals-locks/sellable-c.sha256 at 2026-11-21T19:36:05Z, replaces 2e2029863a21c42eec38633c11f60cf2195fef14842f13d00be2872e6aac7c87 of line 59; field: ~/LENSIQ-field/evals/sellable-c/relock-223c/exam-dashboard-demo.e2e.mjs)
 b0bbaffe01e753144bdf3e16891b77387bf60c7f726b7d178c85b288d609b307  tests/unit/walkfix.test.js  # repo file (re-locked in evals-locks/fortune-no-demo.sha256 at 2026-11-21T20:17:42Z, replaces 060030267c39a3f01fb94de27d0b69fc832e69f85c3ade464cf3a54c8df5e39b of line 58; field: ~/LENSIQ-field/evals/fortune-no-demo/relock-223d/walkfix.test.js)
 1cb1e3e4d63a3fe5059c43f54abc44fcc97d83bb6f66d72f79194a8d1db1a0de  tests/unit/walkfix.test.js  # repo file (re-locked in evals-locks/fortune-no-demo.sha256 at 2026-11-22T00:32:49Z, replaces b0bbaffe01e753144bdf3e16891b77387bf60c7f726b7d178c85b288d609b307 of line 61; field: ~/LENSIQ-field/evals/fortune-no-demo/relock-226/walkfix.test.js)
+# locked 2026-11-22T04:35:13Z (tools/eval-guard.mjs lock, 2 files)
+52439c12028c74f6a29bcd7507c022572a4442d2f9fe0b0a8f21dbd266ec8e89  relock-226b/walkfix-n.test.js
+f85c67b8a3225c0aea0888a83e72a8080ea330ec8239cb205102c351c99acef2  relock-226b/NOTE.txt
+52439c12028c74f6a29bcd7507c022572a4442d2f9fe0b0a8f21dbd266ec8e89  tests/unit/walkfix-n.test.js  # repo file (same commit as lock 2026-11-22T04:35:13Z; field: ~/LENSIQ-field/evals/walk-fix/relock-226b/walkfix-n.test.js)
+# field only relock-226b/NOTE.txt (lock 2026-11-22T04:35:13Z: no repo file uses it)

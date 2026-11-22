@@ -21,6 +21,9 @@
 //       URL shows only the approved sentence + a home link (browser: tests/e2e/visibility-223.e2e.mjs); R5: no status label or filter
 //       Re-lock 4 (coordinator decision 2026-11-22 on entry 13, reversible by the owner): Product Check is the part
 //       "product-check" (tab #t-pc / panel #tab-pc of medicine.html, data-lq-part); medicine.html itself (drug checker) stays on
+//       Re-lock 5 (review round 3): R9 also requires every customer script that writes product links to consult
+//       window.LQ_VISIBILITY; R5 covers every buyer-facing document folder (docs/sales/**, buyer pilot documents) and the 5
+//       outfit-simulation keys (แบบร่าง / Draft / 草稿); new R10: customer-handed documents name and link no switched-off product
 //   R8  rules: CLAUDE.md lines 34 / 60 / 251-252 / 255-256 and docs/acceptance/README.md rule 7 inverted as approved (223-1)
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -155,7 +158,55 @@ test("R5 (226) no status label or status filter anywhere a customer looks; count
     if (re.test(t) && !S.labelAllow.some(a => a.file === f && t.includes(a.contains))) bad.push(`${f}: label "${t.match(re)[0]}" in ${L.squash(t).slice(0, 100)}`);
   }
   for (const f of L.salesDocs()) L.read(f).split("\n").forEach((line, i) => { for (const re of pats) if (re.test(line)) bad.push(`${f}:${i + 1} label "${line.match(re)[0]}"`); });
+  // re-lock 5: every buyer-facing document folder (docs/sales/** and the pilot documents handed to a buyer), with the label
+  // words plus "experimental" / "trial version" in any case; exclusions only as listed in the spec, each with its reason
+  const B5 = S.buyerDocs, docPats = pats.concat(B5.extraBanned.map(b => new RegExp(b.re, b.flags || "")));
+  const docs = globDocs(B5.include).filter(f => !B5.exclude.some(x => globRe(x.path.endsWith("/") ? x.path + "**" : x.path).test(f)));
+  if (docs.length < 30) bad.push("buyer documents found: " + docs.length);
+  for (const f of docs) L.read(f).split("\n").forEach((line, i) => { for (const re of docPats) if (re.test(line)) bad.push(`${f}:${i + 1} label "${line.match(re)[0]}"`); });
+  // re-lock 5: the outfit simulation is named with the approved word only (แบบร่าง / Draft / 草稿) in TH / EN / ZH
+  const DK = S.draftKeys, ban = new RegExp(DK.banned);
+  for (const k of DK.keys) {
+    const src = L.read(k.page), th = k.page.endsWith(".html")
+      ? (L.elementTexts(src).find(e => e.key === k.key) || {}).text
+      : (new RegExp(`tr\\("${k.key.replace(/\./g, "\\.")}", "((?:[^"\\\\]|\\\\.)*)"`).exec(src) || [])[1];
+    const vals = { th, en: L.dval(D, "en", k.key), zh: L.dval(D, "zh", k.key) };
+    for (const [l, v] of Object.entries(vals)) {
+      if (!v) { bad.push(`${k.key} ${l}: missing`); continue; }
+      if (!new RegExp(DK[l]).test(v)) bad.push(`${k.key} ${l}: does not say "${DK[l]}": ${v.slice(0, 80)}`);
+      if (ban.test(v)) bad.push(`${k.key} ${l}: status word "${v.match(ban)[0]}"`);
+    }
+  }
   assert.deepEqual(bad, [], `${bad.length} status labels:\n` + show(bad, 60));
+});
+
+/** minimal glob: ** = any path, * = any name part */
+function globRe(g) { return new RegExp("^" + g.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*\*\//g, "(?:.*/)?").replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*") + "$"); }
+function globDocs(globs) {
+  const all = [], walk = d => { for (const e of readdirSync(join(L.ROOT, d), { withFileTypes: true })) { const r = d + "/" + e.name; if (e.isDirectory()) walk(r); else all.push(r); } };
+  walk("docs");
+  return all.filter(f => globs.some(g => globRe(g).test(f))).sort();
+}
+
+test("R10 (226, re-lock 5) customer-handed documents list no switched-off product; the kept safety sentences stay", () => {
+  const B5 = S.buyerDocs, bad = [], { list, src } = visibility(), off = Object.keys(list).filter(k => list[k] === false && existsSync(join(L.ROOT, k + ".html")));
+  const names = [];
+  for (const p of off) {
+    const m = src.match(new RegExp(`href: "${p}\\.html", title: "([^"]+)"`));
+    if (!m) { bad.push(`nav.js: no menu title for ${p}`); continue; }
+    names.push({ p, t: m[1] }, { p, t: L.dval(D, "en", `nav.${p}.title`) }, { p, t: L.dval(D, "zh", `nav.${p}.title`) });
+  }
+  const docs = globDocs(B5.customerHanded);
+  assert.ok(docs.length >= 25, "customer-handed documents: " + docs.length);
+  for (const f of docs) L.read(f).split("\n").forEach((line, i) => {
+    let rest = line;
+    for (const k of B5.safetyKept) if (k.file === f) rest = rest.split(k.contains).join(" ");
+    for (const p of off) if (rest.includes(p + ".html")) bad.push(`${f}:${i + 1} links ${p}.html`);
+    for (const n of names) if (n.t && rest.includes(n.t)) bad.push(`${f}:${i + 1} names the switched-off ${n.p} ("${n.t}")`);
+    if (/ระบบนี้ยังไม่เปิดให้บริการ|This service is not available yet|此服务尚未开放/.test(rest)) bad.push(`${f}:${i + 1} lists a product as not available (remove the row)`);
+  });
+  for (const k of B5.safetyKept) if (!L.read(k.file).includes(k.contains)) bad.push(`${k.file}: safety sentence "${k.contains}" removed`);
+  assert.deepEqual(bad, [], show(bad, 60));
 });
 
 test("R5 menu and chooser text: no 'status and measured accuracy' (nav.js, index, solutions)", () => {
@@ -209,6 +260,7 @@ test("R6 223-6: the legal draft banner stays; terms clause 11 unchanged on the s
   for (const s of G.termsKeeps) if (!flat("terms.html").includes(s)) bad.push(`terms.html must still say "${s}" (changes only after the lawyer)`);
   if (!existsSync(join(L.ROOT, G.draftDoc))) bad.push(`${G.draftDoc} missing`);
   else for (const s of G.draftMust) if (!L.read(G.draftDoc).includes(s)) bad.push(`${G.draftDoc}: "${s}"`);
+  if (existsSync(join(L.ROOT, G.draftDoc))) for (const s of G.draftMustNot || []) if (L.read(G.draftDoc).includes(s)) bad.push(`${G.draftDoc}: still says "${s}"`);
   assert.deepEqual(bad, [], show(bad));
 });
 
@@ -336,5 +388,16 @@ test("R9 (226) one visibility list (page -> on / off) = today's real state; noth
     }
   }
   if (!/\[data-lq-off\][^{]*\{[^}]*display:\s*none/.test(src)) bad.push("nav.js: [data-lq-off] must be hidden");
+  // re-lock 5: a customer script that writes a link to a switched-off page consults window.LQ_VISIBILITY (rendered content);
+  // data-only files are listed in the spec with the reason; the browser half (every page, rendered links) is visibility-223 V1
+  if (!/LQ_VISIBILITY\s*=/.test(fn)) bad.push("nav.js: window.LQ_VISIBILITY is not exported");
+  // (the pages switched off today: a script that links one of them must filter through the list)
+  const pages = Object.keys(list).filter(k => list[k] === false && existsSync(join(L.ROOT, k + ".html")));
+  for (const f of L.customerFiles().filter(f => f.endsWith(".js") && !f.startsWith("i18n/"))) {
+    if (S.renderedLinks.allowData.some(a => a.file === f)) continue;
+    const js = L.read(f), own = f.replace(/\.js$/, "");
+    const hits = pages.filter(p => p !== own && new RegExp(`href:\\s*"${p}\\.html|href="${p}\\.html|"${p}\\.html"\\]`).test(js));
+    if (hits.length && !/LQ_VISIBILITY/.test(js)) bad.push(`${f}: writes links to ${hits.slice(0, 4).join(", ")} without window.LQ_VISIBILITY`);
+  }
   assert.deepEqual(bad, [], show(bad, 60));
 });

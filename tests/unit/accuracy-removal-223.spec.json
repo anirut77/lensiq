@@ -1175,9 +1175,13 @@
     "draftMust": [
       "ร่างเพื่อให้ทนายตรวจ",
       "draft for legal review",
-      "ฟีเจอร์รุ่นทดลองแสดงป้าย “รุ่นทดลอง” และอาจเปลี่ยนแปลงหรือยกเลิกได้",
+      "ระบบที่ยังไม่เปิดให้บริการจะไม่แสดงบนเว็บไซต์ ระบบที่เปิดให้บริการอาจเปลี่ยนแปลงหรือยกเลิกได้",
+      "Products that are not yet available are not shown on the site.",
+      "尚未开放的产品不在网站上显示。",
       "ไม่รับประกันความถูกต้อง"
-    ]
+    ],
+    "$commentDraft": "re-lock 5 (review round 3, decision 226): the proposed clause 2 no longer says the site shows a 'รุ่นทดลอง' label (the site shows none); the draft must also not say so",
+    "draftMustNot": ["ฟีเจอร์รุ่นทดลองแสดงป้าย", "carry a “Trial version” label", "带有“试用版”标签"]
   },
   "rules": {
     "claudeMd": [
@@ -1395,5 +1399,108 @@
       "re": "试用版|即将推出|实验性|（试验）|（试点）|现在可试用"
     }
   ],
-  "labelAllow": []
+  "labelAllow": [],
+  "buyerDocs": {
+    "$comment": "re-lock 5 (review round 3): R5 label words in every buyer-facing document folder, not only one-pagers / decks / demo scripts / onboarding. The listed exclusions are owner-only or locked elsewhere; each needs the owner before it changes",
+    "include": [
+      "docs/ONE-PAGER-*.md",
+      "docs/sales/**/*.md",
+      "docs/pilot/PILOT-CROWD.md",
+      "docs/pilot/PILOT-GATE.md",
+      "docs/pilot/AGREEMENT-TH.md",
+      "docs/pilot/RESULTS-FORM.md"
+    ],
+    "exclude": [
+      {
+        "path": "docs/legal/customer/",
+        "why": "coordinator round 3: do not change (owner or stop condition; legal drafts for counsel)"
+      },
+      {
+        "path": "docs/pilot/PILOT-EXAM.md",
+        "why": "the exam pilot kit keeps its mode A (hall) wording, locked by tests/unit/exam-face.test.js; hall is switched off and the kit goes to the owner"
+      },
+      {
+        "path": "docs/pilot/*-HALL-SEATWATCH*.md",
+        "why": "measurement kit of the switched-off hall mode, run by the owner, not handed to a buyer"
+      }
+    ],
+    "extraBanned": [
+      {
+        "re": "\\bexperimental\\b|\\btrial version\\b",
+        "flags": "i"
+      }
+    ],
+    "customerHanded": [
+      "docs/ONE-PAGER-*.md",
+      "docs/sales/DECK-*.md",
+      "docs/sales/ONBOARDING-*.md",
+      "docs/sales/customer/*.md",
+      "docs/sales/ORDER-FORM.md",
+      "docs/sales/QUOTATION-TEMPLATE.md",
+      "docs/sales/INVOICE-TEMPLATE.md",
+      "docs/sales/RECEIPT-TEMPLATE.md"
+    ],
+    "safetyKept": [
+      {
+        "file": "docs/ONE-PAGER-TH.md",
+        "contains": "โหงวเฮ้งทีมห้ามใช้ประเมินคน"
+      },
+      {
+        "file": "docs/ONE-PAGER-ZH.md",
+        "contains": "团队面相不得用于评估员工"
+      }
+    ],
+    "$commentOff": "re-lock 5 (coordinator decision round 3, 'off = not shown'): the customer-handed documents name no switched-off product (nav.js titles TH, nav.<page>.title EN / ZH) and link none; only the listed safety sentences remain, and they must remain"
+  },
+  "draftKeys": {
+    "$comment": "re-lock 5: the outfit simulation is named with the approved word only (แบบร่าง / Draft / 草稿), never a status word",
+    "th": "แบบร่าง",
+    "en": "[Dd]raft",
+    "zh": "草稿",
+    "keys": [
+      {
+        "key": "studio.exp.note",
+        "page": "studio.html",
+        "dict": "studio"
+      },
+      {
+        "key": "studio.disc1",
+        "page": "studio.html",
+        "dict": "studio"
+      },
+      {
+        "key": "pb.id.expOutfit",
+        "page": "photobooth.html",
+        "dict": "photobooth"
+      },
+      {
+        "key": "photobooth.js.of.off",
+        "page": "photobooth.js",
+        "dict": "photobooth"
+      },
+      {
+        "key": "photobooth.js.res.galleryNoteExp",
+        "page": "photobooth.js",
+        "dict": "photobooth"
+      }
+    ],
+    "banned": "ทดลอง|[Ee]xperimental|实验|试用"
+  },
+  "renderedLinks": {
+    "$comment": "re-lock 5: a script that writes a link to a product page must consult window.LQ_VISIBILITY (nav.js), so a switched-off product is never linked from rendered content",
+    "allowData": [
+      {
+        "file": "insights-data.js",
+        "why": "funnel data only; insights-ui.js renders the link and drops switched-off pages (LQ_VISIBILITY)"
+      },
+      {
+        "file": "nav.js",
+        "why": "the menu data; nav.js filters with isOff()"
+      },
+      {
+        "file": "admin-measurements.js",
+        "why": "back office data, not a customer page"
+      }
+    ]
+  }
 }

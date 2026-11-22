@@ -167,7 +167,7 @@ const d5Base = f => {
 // with EXACTLY these replacements applied (so every other byte, all the fortune parts D5 protected included, is unchanged),
 // and its sha256 is pinned. No replaced part touches fortune, crisis or help-number text.
 const D5_223 = {
-  "help.html": { sha: "c2c5f372125fb9695dc182e27826976e9baa25271df82dc7010158f43ba2fcf3", pairs: [
+  "help.html": { sha: "6f0be4842e1c7b87c594f63ed86bef1d3a989b9bf2b8755c1cf6bd38efc105fa", pairs: [
     ["      <p>ขึ้นกับมุมกล้อง ความสูง และแสง เราเผยแพร่ผลวัดบนชุดข้อมูลสาธารณะพร้อมข้อจำกัด และฟีเจอร์ที่ยังไม่ได้วัดบนข้อมูลจริงจะมีป้าย Beta ก่อนใช้ตัวเลขตัดสินใจทางธุรกิจ " +
       "แนะนำให้ทดลองหน้างาน 2 สัปดาห์ เทียบกับการนับด้วยคน ค่าประมาณอายุ เพศ และสีหน้าเป็นค่าโดยประมาณสำหรับภาพรวมเท่านั้น</p></div></details>",
      "      <p>ตัวเลขจากกล้องเป็นค่าประมาณ ขึ้นกับมุมกล้อง ความสูง และแสง ทุกหน้าบอกข้อจำกัดสำคัญไว้ แนะนำให้ทดลองหน้างานเทียบกับการนับของคุณก่อนใช้ตัดสินใจทางธุรกิจ\n " +
@@ -189,7 +189,12 @@ const D5_223 = {
     // Crowd help summaries carry no status label at all (223d had "(รุ่นทดลอง)" / "(trial version)" / "（试用版）")
     ["<summary>LENSIQ Crowd นับคนและความหนาแน่น (ทดลอง)</summary>", "<summary>LENSIQ Crowd นับคนและความหนาแน่น</summary>"],
     ["<summary>LENSIQ Crowd people counting and density (experimental)</summary>", "<summary>LENSIQ Crowd people counting and density</summary>"],
-    ["<summary>LENSIQ Crowd 人数与密度统计（实验性）</summary>", "<summary>LENSIQ Crowd 人数与密度统计</summary>"]
+    ["<summary>LENSIQ Crowd 人数与密度统计（实验性）</summary>", "<summary>LENSIQ Crowd 人数与密度统计</summary>"],
+    // re-lock 226b (review round 3, owner decision 226 "off = not shown"): the FAQ entry that names the switched-off team face
+    // reading is hidden with data-lq-off in TH / EN / ZH; not one word of its text changed
+    ["<details id=\"h-hr\"><summary>", "<details id=\"h-hr\" data-lq-off><summary>"],
+    ["<details id=\"en-h-hr\"><summary>", "<details id=\"en-h-hr\" data-lq-off><summary>"],
+    ["<details id=\"zh-h-hr\"><summary>", "<details id=\"zh-h-hr\" data-lq-off><summary>"]
   ] },
   "legal.js": { sha: "ec715ec3135403b89271e24d6dda0d12b94d701d608a7c06d88b7ff6cf787f7c", pairs: [
     ["      if (k === \"draft\") { el.title = (prefix() === \"zh-\" ? \"草案数值，待律师确认\" : prefix() === \"en-\" ? \"draft value, to be confirmed by counsel\" : \"ค่าร่าง รอทนายความยืนยัน\"); return; }",
@@ -216,7 +221,7 @@ test("D5 terms.html byte-identical to main 5695734 apart from ?v=; help.html and
   assert.equal(D5_223["legal.js"].pairs.length, 1);
   const [o, n] = D5_223["legal.js"].pairs[0];
   assert.equal(o.replace("ค่าร่าง รอทนายความยืนยัน", "ค่าร่าง อยู่ระหว่างให้ทนายความตรวจ"), n, "legal.js: only the Thai draft tooltip changed");
-  assert.equal(D5_223["help.html"].pairs.length, 9);
+  assert.equal(D5_223["help.html"].pairs.length, 12);
   // the fortune / crisis text of help.html is byte-identical to the base (every line that names fortune or a help number)
   const lines = f => stripV(f).split("\n").filter(l => FORTUNE_OR_CRISIS.test(l));
   const bl = lines(d5Base("help.html"));

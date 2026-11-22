@@ -143,3 +143,31 @@ digital signage (TH / EN / ZH). No buyer document or pricing text has a Product 
 **Re-lock folders of round 3:** `accuracy-removal-223/relock4` (contract spec + test R9 parts + visibility-223 V2 pages only,
 new V5, V4 Thai explicit); `relock-226/` in cdp-goto-errpage, fortune-cards, crisis-rules-1323, a5-defects,
 fortune-credits/v3, fortune-live, fortune-no-demo, walk-fix-2, adverts, leads (each with NOTE.txt).
+
+### Review round 3 (Fable FAIL on 2 points, 2026-11-22): fixes, all STRICTER (`relock5`, `relock-226b`)
+
+**Coordinator decision, reversible by the owner (owner rule "off = not shown"):** buyer documents no longer mark switched-off
+products with the off sentence; their rows and cells are REMOVED (ONE-PAGER-EVENTS: emotion analysis row and its note ¹;
+-EXAM: the camera hall row, the hall price paragraph and both hall price rows TH / EN, so no hall price remains; -HR: team
+face reading row; -RETAIL: digital signage and member recognition rows; -TH / -ZH: the marketing and HR cells; DECK-EXAM,
+ONBOARDING-EXAM, customer/ONBOARDING-EXAM, ORDER-FORM and QUOTATION-TEMPLATE: the hall lines and rows). Safety and limit
+sentences that are not a listing stay (ONE-PAGER-TH line "โหงวเฮ้งทีมห้ามใช้ประเมินคน", -ZH "团队面相不得用于评估员工"; the
+seller-only DEMO-SCRIPT-EXAM keeps "do not sell the hall"). Also: sitemap.xml lists no switched-off page
+(tools/promo-meta.mjs reads the visibility list); the HR and marketing category intros, nav.hr.desc, home.form.i1 and
+pd.i.sub no longer name off products (TH / EN / ZH); help.html hides the interview + team-face FAQ entry (h-hr, en-h-hr,
+zh-h-hr) with data-lq-off; insights.html shows no module, KPI, funnel link or accuracy row of a switched-off page;
+the five outfit-simulation keys say แบบร่าง / Draft / 草稿 in TH / EN / ZH; docs/legal/TERMS-CLAUSE-11-DRAFT-223.md no
+longer says the site shows "รุ่นทดลอง" (draft for legal review).
+
+| Lock | File | Old | New | Kind |
+|---|---|---|---|---|
+| accuracy-removal-223/relock5 | contract test + spec | R5 buyer docs = one-pagers, decks, demo scripts, onboarding | + every `docs/sales/**/*.md` and the buyer pilot documents (PILOT-CROWD, PILOT-GATE, AGREEMENT-TH, RESULTS-FORM), + "experimental" / "trial version" in any case; listed exclusions with reasons (docs/legal/customer/ do-not-change, PILOT-EXAM locked by exam-face, the hall seat-watch kit); + the 5 outfit keys must say แบบร่าง / Draft / 草稿 and no status word; R6 draft: the old proposed clause 2 sentence is redirected to the 226 sentence (TH / EN / ZH) and the old one is banned; R9: nav.js exports LQ_VISIBILITY and every customer script that writes a link to a switched-off page consults it; new R10: customer-handed documents name and link no switched-off product and say no "not available" row, the kept safety sentences must stay | stricter |
+| accuracy-removal-223/relock5 | visibility-223.e2e | V1 on 12 listing pages, visible links | new V1: every page of the site (all root *.html except the off pages, which are V2), every rendered link in the DOM after scripts, TH / EN / ZH; the listing-page check kept | stricter |
+| a5-defects/relock-226b | exam-face.test.js | ONE-PAGER-EXAM keeps the hall paragraph "ระบบนี้ยังไม่เปิดให้บริการ …" and the 290 THB hall price rows (TH / EN) | the one-pager carries no hall row, paragraph, price or `exam-hall.html` | inversion (off = not shown) |
+| promo-basics/relock-226b | promo-basics.test.js | sitemap = every non-noindex page | sitemap = every non-noindex page that is switched on; every switched-off page is absent | stricter |
+| fortune-credits/v3/relock-226b | fortune-credits-v2.test.js D5 | help.html pin c2c5f372… | + the three FAQ entries h-hr / en-h-hr / zh-h-hr carry data-lq-off (no text changed), new pin | equal, re-pin |
+| fortune-cards/relock-226b | fortune-cards.test.js C4 | fingerprint 1425001917f1… | 4cc6b933c624… (the HR overview card line "ชุดสัมภาษณ์ โหมดฝึกซ้อมผู้สมัคร และกิจกรรมทีม" -> "ชุดสัมภาษณ์ และโหมดฝึกซ้อมผู้สมัคร": the off team activity is not named) | equal, re-pin |
+| walk-fix/relock-226b | walkfix-n.test.js N6 | the Chinese Exam guide must say 大型考场 (hall sentence) | the Exam guide names no camera hall in any language (大型考场 / 考场摄像头 / exam-hall.html / ห้องสอบที่ติดกล้อง / camera-in-hall) | inversion (off = not shown) |
+
+Also changed for "off = not shown" (unlocked or generated): exam.html and en / zh-exam `exam.l.priceStages` no longer say
+the camera hall is priced per room.

@@ -7,12 +7,14 @@
 //      此服务尚未开放。" and a visible link to the home page, in TH / EN / ZH; no other visible text, no camera request
 //   V3 no status label or status filter is visible on the pages a customer lands on (TH / EN / ZH)
 //   V4 an on product (crowd.html) opens normally and keeps its two plain lines and the dense-crowd limit
+// RE-LOCK 5 (review round 3): new first check "V1 (re-lock 5)": every page of the site (all root *.html but the off
+//   pages), every rendered link (DOM after scripts), TH / EN / ZH; the listing-page V1 + V3 check below is kept as it was.
 // RE-LOCK 4 (coordinator decision 2026-11-22 on owner entry 13, reversible by the owner): Product Check is the part
 // "product-check" of medicine.html (the "ตรวจสินค้า" tab), not the whole page; medicine.html (the drug checker) is on.
 //   V2 runs on the switched-off PAGES (the off list minus its parts); new V5: on medicine.html (TH / EN / ZH, 360 px) the
 //      Product Check tab and panel are not rendered (also with #t-pc / #tab-pc in the URL), the drug checker is shown and
 //      works offline (registration number 1A 15/50 parsed), the arrow keys skip the hidden tab, no page error, no off notice
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assert } from "./cdp.mjs";
@@ -26,10 +28,34 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const LANGS = ["th", "en", "zh"];
 const PAGES = ["index.html", "solutions.html", "cameras.html", "cat-security.html", "cat-education.html", "cat-hr.html", "cat-marketing.html",
   "cat-health.html", "cat-studio.html", "crowd.html", "exam.html", "help.html"];
+// re-lock 5 (review round 3): V1 runs on EVERY page of the site (all root *.html except the switched-off pages, whose
+// direct URL is V2) and counts every RENDERED link (in the DOM after the page's scripts ran, open or closed, visible or
+// not), not only the static markup: a link to a switched-off product is allowed only inside an element nav.js hides
+// (data-lq-off / data-lq-part of an off part)
+const ALL = readdirSync(repo).filter(f => /^[^/]+\.html$/.test(f) && !OFF.includes(f.replace(/\.html$/, ""))).sort();
 
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
+    await check("V1 (re-lock 5): no rendered link to a switched-off product on any page of the site (360 px, TH / EN / ZH)", async () => {
+      assert(ALL.length >= 70, "pages: " + ALL.length);
+      const page = await browser.newPage(null, { offNotice: true });
+      await page.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 800, deviceScaleFactor: 1, mobile: true });
+      for (const lang of LANGS) for (const p of ALL) {
+        await page.goto(`${base}/${p}?lang=${lang}`);
+        await sleep(1200);
+        const r = await page.evaluate(off => {
+          const hit = a => { const h = (a.getAttribute("href") || "").split(/[?#]/)[0].replace(/^.*\//, ""); return off.some(o => h === o + ".html"); };
+          const links = [...document.querySelectorAll("a[href]")].filter(hit);
+          return { menu: links.filter(a => a.closest("#siteNav")).map(a => a.getAttribute("href")),
+            rendered: links.filter(a => !a.closest("[data-lq-off]")).map(a => a.getAttribute("href") + " «" + (a.textContent || "").trim().slice(0, 40) + "»") };
+        }, OFF);
+        assert(!r.menu.length, `${p} ${lang}: the menu links to a switched-off product: ${r.menu.join(", ")}`);
+        assert(!r.rendered.length, `${p} ${lang}: rendered link to a switched-off product: ${r.rendered.join(", ")}`);
+      }
+      await page.close();
+    });
+
     await check("V1 + V3: no visible link to a switched-off product and no visible status label on the listing pages (360 px, TH / EN / ZH)", async () => {
       const page = await browser.newPage(null, { offNotice: true });
       await page.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 800, deviceScaleFactor: 1, mobile: true });

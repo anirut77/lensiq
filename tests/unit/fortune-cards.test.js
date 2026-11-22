@@ -274,7 +274,7 @@ function businessFingerprint() {
 // 6 categories, 38 non-fortune products, 33 cards shown; the 5 switched-off pages (nav.js VISIBILITY) have no card.
 // Re-lock 4 of 226 (coordinator decision 2026-11-22 on entry 13): medicine.html (drug checker) is on and has its card again;
 // Product Check is the switched-off part "product-check" of that page (no card of its own)
-const BUSINESS_SHA = "1425001917f13981b1e3a1a7b8716a74c80dce975b0a5a95a468b5a3e3be6c2d"; // re-lock 4 of 226: + the medicine card (was e2a09f1f…)
+const BUSINESS_SHA = "4cc6b933c62425e8dd50d3d34451327f3124d26cf7ea3f1d6a434bba12d1d3f5"; // re-lock 226b: the hr card line drops "and team activities" (was 1425001917f1…; before that e2a09f1f…)
 const BUSINESS_PRODUCTS = 38, BUSINESS_CARDS = 33;
 const OFF_226 = ["customers", "exam-hall", "neuro", "product-check", "signage", "teamface"];
 const sheetText = re => require("node:fs").readdirSync(join(ROOT, "docs", "tech-sheets")).filter(f => re.test(f) || f === "README.md")
