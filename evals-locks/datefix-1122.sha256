@@ -17,3 +17,10 @@ ca6600cd144ccf411fc25f07f234f8f9bffc24e5c99d95ebdafcbc57a7ece2ca  relock1/crisis
 ca6600cd144ccf411fc25f07f234f8f9bffc24e5c99d95ebdafcbc57a7ece2ca  tests/e2e/crisis-price-scan-wrap.e2e.mjs  # repo file (same commit as lock 2026-11-22T02:23:00Z; field: ~/LENSIQ-field/evals/datefix-1122/relock1/crisis-price-scan-wrap.e2e.mjs)
 4d48e63c3fbb8a63ff1702081e1b64fd00e2ece837862403d48cdf606166273d  tests/e2e/fortune-caution-dates.e2e.mjs  # repo file (same commit as lock 2026-11-22T02:23:00Z; field: ~/LENSIQ-field/evals/datefix-1122/relock1/fortune-caution-dates.e2e.mjs)
 # field only relock1/NOTE.txt (lock 2026-11-22T02:23:00Z: no repo file uses it)
+# RELOCK 2 2026-11-22, STRICTER (independent review of crisis-v3-protect relock1), locked BEFORE measuring: crisis-price-scan-wrap.e2e.mjs
+# + W6 (hidden text never completes an allowed sentence: 6 splits x 4 ways of hiding per UI language, plus 6 shown controls). Field note: relock2/NOTE.txt.
+# locked 2026-11-22T09:51:20Z (tools/eval-guard.mjs lock, 2 files)
+5e1b4bbb38d6c873a0528d48d36e5dd211d3ab2ab38f4f256c65ab0a0e400418  relock2/crisis-price-scan-wrap.e2e.mjs
+2cd7f55ab84ccb1b69bc0dffcdf6bb0517d080f779360bda41f3733f8c001e64  relock2/NOTE.txt
+5e1b4bbb38d6c873a0528d48d36e5dd211d3ab2ab38f4f256c65ab0a0e400418  tests/e2e/crisis-price-scan-wrap.e2e.mjs  # repo file (same commit as lock 2026-11-22T09:51:20Z; field: ~/LENSIQ-field/evals/datefix-1122/relock2/crisis-price-scan-wrap.e2e.mjs)
+# field only relock2/NOTE.txt (lock 2026-11-22T09:51:20Z: no repo file uses it)
