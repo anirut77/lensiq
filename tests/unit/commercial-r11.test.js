@@ -262,6 +262,9 @@ test("checkout asks for the age of majority; pricing DRAFT uses the BILLING-PLAN
   assert.equal(P.DRAFT.find(p => p.id === "pro").name_en, "Creator");
   for (const f of ["docs/ONE-PAGER-RETAIL.md", "docs/ONE-PAGER-TH.md", "docs/ONE-PAGER-ZH.md"]) {
     const t = read(f);
-    assert.match(t, /เร็ว ๆ นี้|coming soon|即将推出/i, f);
+    // owner decision 226 (2026-11-22; inverted, was: must say เร็ว ๆ นี้ / coming soon / 即将推出): perks not built yet are still
+    // marked (⏳ with the plain words "not open yet"), never with the status label
+    assert.doesNotMatch(t, /เร็ว ๆ นี้|coming soon|即将推出/i, f);
+    assert.match(t, /⏳[^\n]*(ยังไม่เปิด|尚未开放)/, f);
   }
 });

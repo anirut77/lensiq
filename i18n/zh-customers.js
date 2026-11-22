@@ -8,7 +8,6 @@
   "customers.s1": "顾客识别 | LENSIQ",
   "customers.s2": "顾客识别与饮品记录",
   "customers.s3": "对同意刷脸的会员，系统会打招呼、展示常点菜单、最近订单并推荐饮品，实现基于顾客行为记忆的营销",
-  "customers.betaB": "试用版",
   "customers.limit": "并非每次都能认出会员，有时也可能提示错误的姓名。打开点单记录前请由店员确认姓名，并在下方于您自己的店内进行现场测试。",
   "customers.s7": "门店",
   "customers.s8": "会员注册",

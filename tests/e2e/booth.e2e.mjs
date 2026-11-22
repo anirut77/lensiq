@@ -157,7 +157,9 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(["ontrack", "more", "fail"].includes(last.rep.verdict) && last.rep.provisional, "30+ arrivals needed before a confirmed verdict: " + last.rep.verdict);
       const doc = JSON.stringify(last.doc);
       assert(last.doc.format === "lensiq-sitecheck" && last.doc.kind === "booth" && last.doc.truth.length === 5 && !/data:image|base64|blob:|desc/.test(doc), "export: labels + numbers only");
-      assert(/ช่วงความเชื่อมั่น/.test(await p.evaluate(() => document.querySelector("#scPanel .sc-report").innerText)), "report rendered");
+      // decision 223-4: the interval table sits in the closed "ตัวเลขละเอียดสำหรับผู้ดูแล" fold; open it as the administrator does
+      assert(/ช่วงความเชื่อมั่น/.test(await p.evaluate(() => {
+        const r = document.querySelector("#scPanel .sc-report"); r.querySelectorAll("details.sc-detail").forEach(d => { d.open = true; }); return r.innerText; })), "report rendered");
       const hist = await p.evaluate(() => JSON.parse(localStorage.getItem("booth-sitecheck") || "[]"));
       assert(hist.length === 1 && hist[0].cam === "หน้าบูธ" && hist[0].verdict === last.rep.verdict && !("truth" in hist[0]), "history summary " + JSON.stringify(hist[0]));
       await p.evaluate(() => __booth.persist());

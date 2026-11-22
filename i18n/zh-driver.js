@@ -2,7 +2,6 @@
  * data-i18n / data-i18n-attr values on driver.html. Text set at run time by driver.js stays Thai for now.
  * Queue pattern: works before or after lensiq-i18n.js (see i18n/zh-common.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
-  "driver.trial": "试用版",
   "driver.licb": "研究许可模型",
   "driver.lic": "人脸由 face-api.js 模型分析（代码为 MIT），其训练数据仅许可用于研究。商业使用尚未经律师确认——商业使用前请核实许可",
   "driver.calwarn.ear": "无法使用眼部图像（例如墨镜、逆光，或校准时眼睛看起来像闭着）。系统几乎无法检出闭眼，会漏掉大部分闭眼。请视为未被监测：在安全处停车，摘下墨镜、减少逆光，然后按“重新校准”",

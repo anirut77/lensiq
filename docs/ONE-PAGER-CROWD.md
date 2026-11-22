@@ -4,7 +4,7 @@
 
 > **ราคาที่อนุมัติแล้ว (ยังไม่เปิดขาย)** ราคาในเอกสารนี้มาจากรายการราคาที่เจ้าของอนุมัติ 2026-11-09 (`docs/PRICING-RESEARCH.md` §3.3) ยังไม่มีการเก็บเงิน
 >
-> **สถานะ: รุ่นทดลอง สำหรับอีเวนต์ ยังไม่เหมาะกับฝูงชนหนาแน่น** ห้ามใช้ตัดสินความปลอดภัยของฝูงชน
+> **สำหรับอีเวนต์ ยังไม่เหมาะกับฝูงชนหนาแน่น** ห้ามใช้ตัดสินความปลอดภัยของฝูงชน
 
 ## ปัญหา
 - ผู้จัดงานและเจ้าของพื้นที่อยากรู้ว่าช่วงไหนคนเยอะ โซนไหนคนแน่น มีคนเข้าออกกี่คน แต่เครื่องนับที่ประตูราคา 7,900–19,900 บาทต่อจุด (ซื้อขาด) และติดตั้งถาวร
@@ -61,7 +61,7 @@
 
 ## LENSIQ Crowd — people in a zone and entry / exit counts for booths, lobbies and event entrances
 
-It runs on a phone or laptop camera and processes on the device. It does no face recognition and keeps no images. **Status: trial version, for events, not yet suitable for dense crowds.** It is for **sparse to medium crowds**. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09
+It runs on a phone or laptop camera and processes on the device. It does no face recognition and keeps no images. **For events, not yet suitable for dense crowds.** It is for **sparse to medium crowds**. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09
 (`docs/PRICING-RESEARCH.md` §3.3); nothing is charged yet. Never use it for crowd-safety decisions.
 
 **What you get:**

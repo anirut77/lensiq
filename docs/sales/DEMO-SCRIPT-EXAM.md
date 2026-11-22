@@ -2,7 +2,7 @@
 
 > **ร่าง (DRAFT) 2026-11-11** ใช้ข้อมูลตัวอย่างเท่านั้น ห้ามเปิดข้อมูลลูกค้า ห้ามให้ผู้สอบจริงนั่งหน้ากล้องในการเดโม
 > ตัวเลขการทดสอบอยู่ในเอกสารเทคนิค `docs/tech-sheets/exam-TH.md` (ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค) และ `docs/ONE-PAGER-EXAM.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
-> สถานะหน้า (`docs/PAGE-STATUS.md`): `exam.html`, `exam-lab.html`, `exam-dashboard.html` ใช้นำเดโมได้ · `exam-hall.html` = **รุ่นทดลอง ยังไม่เปิดขาย**
+> สถานะหน้า (`docs/PAGE-STATUS.md`): `exam.html`, `exam-lab.html`, `exam-dashboard.html` ใช้นำเดโมได้ · `exam-hall.html` = **ยังไม่เปิดให้บริการ**
 
 ## เตรียมก่อนเดโม (10 นาทีก่อนเริ่ม)
 
@@ -17,7 +17,7 @@
 
 | นาที | เปิดหน้า | พูด | แสดง | ถามลูกค้า |
 |---|---|---|---|---|
-| 0:00–1:00 | `exam.html` (ส่วนบนสุด) | "LENSIQ Exam เป็นผู้ช่วยผู้คุมสอบ บอกว่าควรไปดูที่นั่งไหน ไม่ตัดสินแทนคน ใช้คอมพิวเตอร์และเว็บแคมที่สถาบันมีอยู่ ประมวลผลบนเครื่อง ไม่ส่งภาพขึ้นคลาวด์" | หัวเรื่อง ปุ่ม 3 ปุ่ม (หน้าผู้เข้าสอบ / เครื่องกล้อง (ทดลอง) / แดชบอร์ด) | "ตอนนี้ห้องสอบหนึ่งห้องมีผู้คุมสอบกี่คน และเกิดอะไรขึ้นเมื่อมีใครแจ้งผิด" |
+| 0:00–1:00 | `exam.html` (ส่วนบนสุด) | "LENSIQ Exam เป็นผู้ช่วยผู้คุมสอบ บอกว่าควรไปดูที่นั่งไหน ไม่ตัดสินแทนคน ใช้คอมพิวเตอร์และเว็บแคมที่สถาบันมีอยู่ ประมวลผลบนเครื่อง ไม่ส่งภาพขึ้นคลาวด์" | หัวเรื่อง ปุ่มหลัก (หน้าผู้เข้าสอบ / แดชบอร์ด) | "ตอนนี้ห้องสอบหนึ่งห้องมีผู้คุมสอบกี่คน และเกิดอะไรขึ้นเมื่อมีใครแจ้งผิด" |
 | 1:00–2:30 | `exam.html` เลื่อนไป "ไม่ทำเด็ดขาด" และ "สิ่งที่หน้าเว็บมองไม่เห็น" | "ระบบไม่ตัดสินทุจริต ไม่ให้ตกอัตโนมัติ ไม่มีคะแนนความน่าสงสัย ไม่วิเคราะห์อารมณ์ ไม่จดจำใบหน้า และมองไม่เห็นโปรแกรมอื่น โทรศัพท์นอกภาพ หรือหูฟัง การสอบเดิมพันสูงต้องใช้ร่วมกับผู้คุมสอบและ Safe Exam Browser" | รายการ never1–never4 และ cant1–cant3 | "การสอบของท่านชี้ขาดสูงหรือไม่ (ย่อย กลางภาค ปลายภาค)" |
 | 2:30–4:00 | `exam-lab.html` | "ผู้สอบต้องอ่านประกาศและติ๊กยินยอมก่อน ถ้าไม่ยินยอมก็สอบได้โดยไม่เปิดกล้อง ผู้สอบเห็นบันทึกของตัวเองเหมือนที่ผู้คุมสอบเห็น และได้รับคำเตือนแบบเบา ๆ ก่อน" | ประกาศ ช่องยินยอม ตรวจแสง/กล้อง การปรับเทียบ ตัวบอก "กำลังเฝ้าดู" ตลอดเวลา (ใช้ใบหน้าผู้นำเสนอ) ถ้าไม่มีกล้อง: `exam-lab.html?demo=1` เปิดเซสชันตัวอย่างโดยไม่ใช้กล้อง | "ท่านมีทางเลือกอะไรสำหรับผู้ที่ไม่ยินยอม" |
 | 4:00–6:30 | `exam-dashboard.html` | "นี่คือสิ่งที่ผู้คุมสอบเห็น ห้องสมมติ DEMO 12 ที่นั่ง มีการแจ้งตัวอย่าง 18 รายการ ข้อมูลเป็นของจำลองทั้งหมด" | `exam-dashboard.html?demo=1` เปิดมาพร้อมข้อมูลตัวอย่างแล้ว (ปุ่ม "สาธิต: จำลองเหตุการณ์" ยังเพิ่มเหตุการณ์ได้อีก) ผังที่นั่งสีพร้อมคำกำกับ คิวเรียงลำดับ ปุ่ม "กำลังไปตรวจ / ไม่พบปัญหา / บันทึก / ส่งต่อ" ทุกการกระทำต้องใส่ชื่อ บันทึกและส่งต่อต้องมีหมายเหตุ ส่งออก CSV เรียงตามเวลา (ไม่เรียงตามความน่าสงสัย) | "ใครในสถาบันจะเป็นผู้ดูแผงนี้" |
@@ -40,7 +40,7 @@
 - ห้ามบอกว่าตรวจโทรศัพท์หรือหนังสือได้แม่น โทรศัพท์ที่วางบนโต๊ะมักตรวจไม่พบ ห้ามบอกว่าตรวจคนที่สองได้ครบ
 - ห้ามบอกผลตามสีผิวหรือแสงน้อย ห้ามบอกตัวเลขหน้างานจริง (ยังไม่มี) ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค
 - ห้ามพูดถึงอารมณ์ สีหน้า คะแนนความน่าสงสัย หรือการตรวจจับการโกหก ระบบไม่มี
-- ห้ามเสนอขายห้องสอบที่มีกล้อง (`exam-hall.html`) เป็นผลิตภัณฑ์ เป็นรุ่นทดลอง ใช้ควบคู่ในการนำร่องเท่านั้น
+- ห้ามเสนอขายห้องสอบที่มีกล้อง (`exam-hall.html`) เป็นผลิตภัณฑ์ ระบบนี้ยังไม่เปิดให้บริการ
 - ห้ามบอกว่ามีแดชบอร์ดสดข้ามเครื่องในโหมดห้องคอมพิวเตอร์ (ยังไม่มี ต้องส่งออกไฟล์ JSON หลังสอบ)
 - ห้ามบอกว่าถูกกฎหมาย PDPA ครบ หรือผ่านทนายแล้ว (อยู่ระหว่างให้ทนายความตรวจ) ห้ามบอกว่าแทนผู้คุมสอบหรือ Safe Exam Browser ได้
 - ห้ามบอกว่าตัวเลขใน tally ของโหมดเดโมเป็นผลของระบบ (เป็นข้อมูลจำลอง)
@@ -56,7 +56,7 @@
 
 > **DRAFT 2026-11-11.** Use sample data only. Never open customer data. Never put a real candidate in front of the camera during a demo.
 > Numbers are in the technical sheet `docs/tech-sheets/exam-EN.md` (if asked for numbers, hand over the technical sheet) and `docs/ONE-PAGER-EXAM.md`. Open points (OP-xx) are in `docs/sales/README.md`.
-> Page status (`docs/PAGE-STATUS.md`): `exam.html`, `exam-lab.html`, `exam-dashboard.html` = fine to demo; `exam-hall.html` = **trial version, not on sale yet**.
+> Page status (`docs/PAGE-STATUS.md`): `exam.html`, `exam-lab.html`, `exam-dashboard.html` = fine to demo; `exam-hall.html` = **not available yet**.
 
 **Prepare:** current Chrome or Edge; three tabs from the public demo https://anirut77.github.io/lensiq/ (`exam.html`, `exam-lab.html?demo=1`, `exam-dashboard.html?demo=1`; demo mode keeps a "sample data" bar on screen, uses no camera and does not touch real data on the device);
 the presenter's own webcam and face only for the non-demo steps; in demo mode the room code, a sample invigilator name and seats 1-12 are already filled; a screenshot of the "What it is for and its main limits" section as backup.
@@ -78,7 +78,7 @@ has its own demo button, and `exam-dashboard.html?demo=1` opens a pre-filled sam
 
 **Do NOT claim:** that it catches cheating or decides; that phone or book detection is accurate (a phone lying on the desk is usually missed); that it finds every second person;
 accuracy by skin tone or in low light; any field figure (none exists); anything about emotion, expression, suspicion score or lie detection (none exists);
-that the demo tally is LENSIQ's accuracy (it is simulated); that the camera exam hall is a product (trial version, pilot companion only); a live cross-device dashboard in computer-room mode (not built); full PDPA compliance or lawyer approval (pending);
+that the demo tally is LENSIQ's accuracy (it is simulated); that the camera exam hall is a product (it is not available yet); a live cross-device dashboard in computer-room mode (not built); full PDPA compliance or lawyer approval (pending);
 that it replaces invigilators or Safe Exam Browser; the regular price after the pilot thresholds are met as the current price (it may be shown beside the pilot price when labelled); or "on sale now" before the owner confirms (OP-09).
 
 **After the demo:** note candidates, rooms, exam level, signatory and PDPA concerns. Do not keep screenshots with faces. Send the quotation (`QUOTATION-TEMPLATE.md`) at approved prices.

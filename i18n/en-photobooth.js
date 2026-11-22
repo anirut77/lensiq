@@ -279,7 +279,7 @@
     "photobooth.js.cf.id": "This ID photo contains a simulated outfit. Many agencies reject photos with digitally added outfits or replaced backgrounds. The photo always carries the \"outfit preview\" label in the corner. Continue?",
     "photobooth.js.res.galleryNote": "All outfits are software-drawn samples (previews); the photo without an outfit is shown first.",
     "photobooth.js.of.off": "This ID photo uses your own clothes (no outfit simulation): the outfit simulation is off by default because in our tests every image had a visible defect. Turn on \"experimental outfit simulation\" in the ID photo options if you want to see a sample.",
-    "photobooth.js.res.galleryNoteExp": "Experimental outfit simulation: every outfit is drawn by software, not a photo of you wearing it. In our tests every image had a visible defect.",
+    "photobooth.js.res.galleryNoteExp": "Draft outfit simulation: every outfit is drawn by software, not a photo of you wearing it. In our tests every image had a visible defect.",
     "pb.cf.ok": "Continue",
     "pb.cf.no": "Cancel",
     // round 11

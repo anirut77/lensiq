@@ -6,7 +6,6 @@
   "customers.s1": "Customer Recognition | LENSIQ",
   "customers.s2": "Customer recognition and drink history",
   "customers.s3": "For members who consent to face recognition, the system greets them, shows their usual order and recent orders, and recommends drinks — marketing based on remembered customer behavior",
-  "customers.betaB": "Trial version",
   "customers.limit": "It does not recognise every member and may sometimes suggest the wrong name. Staff confirm the name before opening the order history, and run the on-site test at your own shop below.",
   "customers.s7": "Store",
   "customers.s8": "Member sign-up",

@@ -2,12 +2,12 @@
 
 > **ร่าง (DRAFT) 2026-11-11** สร้างจาก `docs/ONE-PAGER-CROWD.md` สไลด์ลูกค้าไม่มีตัวเลขความแม่นยำ มีเพียงข้อจำกัดในภาษาง่าย ๆ ตัวเลขละเอียดอยู่ใน `docs/tech-sheets/crowd-TH.md` (มอบให้เมื่อถูกถาม)
 > บรรทัด "ไฟล์:" เป็นข้อมูลภายใน เจ้าของตัดออกก่อนส่งนอกองค์กรได้ [ต้องยืนยัน / to confirm] ช่อง [วงเล็บ] เจ้าของกรอก จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
-> **Crowd เป็นรุ่นทดลอง (OP-21) ยังไม่เหมาะกับฝูงชนหนาแน่น ห้ามใช้ตัดสินความปลอดภัยของฝูงชน**
+> **Crowd ยังไม่เหมาะกับฝูงชนหนาแน่น ห้ามใช้ตัดสินความปลอดภัยของฝูงชน**
 
 ---
 
 # 1. LENSIQ Crowd
-*Density estimate for events: experimental, not for dense crowds*
+*Density estimate for events, not for dense crowds*
 
 - ประมาณจำนวนคนในโซนและนับคนเข้าออก สำหรับบูธ ล็อบบี้ ทางเข้างาน
 - ใช้มือถือหรือโน้ตบุ๊กที่มีกล้อง ประมวลผลบนเครื่อง ไม่จดจำใบหน้า ไม่เก็บภาพ
@@ -123,7 +123,7 @@
 
 # English summary
 
-LENSIQ Crowd estimates the density of people in a zone and counts entries and exits from a phone or laptop camera, on the device, with no face recognition and no stored image. It is a trial version and
+LENSIQ Crowd estimates the density of people in a zone and counts entries and exits from a phone or laptop camera, on the device, with no face recognition and no stored image. It is
 **not yet suitable for dense crowds**; it gives an estimate, not an exact count, and must never be used for crowd-safety decisions. It is suited to light to moderate crowds. The technical sheet is available from sales on request.
 No age, gender or expression estimate in customer builds. Free 2 hours per device per day (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet). Approved prices excl. 7% VAT, pilot price: 590 THB per device per day, 2,490 THB per device per
 week; monthly at a fixed site and dense crowds are not sold. Sold by quotation and bank transfer.

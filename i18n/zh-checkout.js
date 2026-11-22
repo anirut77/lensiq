@@ -32,7 +32,6 @@
   "checkout.s30": "添加商品",
   "checkout.s31": "模型",
   "checkout.s32": "现场测试",
-  "checkout.beta": "试用版",
   "checkout.s33": "导出模型（JSON）",
   "checkout.s34": "导入模型",
   "checkout.s35": "训练数据保存在此浏览器（IndexedDB）中，可导出文件进行备份或用于其他收银机",

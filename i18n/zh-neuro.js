@@ -6,7 +6,6 @@
   "neuro.s2": "面部情绪分析（Neuromarketing）",
   "neuro.s3": "测量观众观看广告、视频或商品图片时的面部表情反应，并按时间汇总为 Valence、Arousal、Attention 和 Engagement 指标",
   "neuro.s4": "面部表情并不总能反映真实感受，悲伤、愤怒和恐惧的表情也常被读错。仅适用于在相同条件下按群体整体比较不同素材",
-  "neuro.betaB": "试用版",
   "neuro.s6": "注意：",
   "neuro.s7": "本页的 Valence（正/负）和 Arousal（唤醒度）是",
   "neuro.s8": "基于面部表情的估计值",

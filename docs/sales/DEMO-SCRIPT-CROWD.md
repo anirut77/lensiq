@@ -1,8 +1,8 @@
-# สคริปต์เดโม 10 นาที: LENSIQ Crowd (ประมาณความหนาแน่นของคนในงาน รุ่นทดลอง ไม่เหมาะกับฝูงชนหนาแน่น)
+# สคริปต์เดโม 10 นาที: LENSIQ Crowd (ประมาณความหนาแน่นของคนในงาน ไม่เหมาะกับฝูงชนหนาแน่น)
 
 > **ร่าง (DRAFT) 2026-11-11** ใช้ "ดูตัวอย่าง (ข้อมูลจำลอง)" ในหน้าเท่านั้น ไม่ใช้กล้อง ไม่มีภาพคน ห้ามชี้กล้องไปที่ผู้ชมเดโมแล้วบันทึก
 > ตัวเลขการทดสอบอยู่ในเอกสารเทคนิค `docs/tech-sheets/crowd-TH.md` (ถ้าถูกถามตัวเลข ให้มอบเอกสารเทคนิค) และ `docs/ONE-PAGER-CROWD.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
-> สถานะ (`docs/PAGE-STATUS.md`, OP-21): `crowd.html` = **รุ่นทดลอง** ใช้กับฝูงชนเบาบางถึงปานกลางในโซนที่วาด **ยังไม่เหมาะกับฝูงชนหนาแน่น**
+> ขอบเขต (`docs/PAGE-STATUS.md`, OP-21): `crowd.html` ใช้กับฝูงชนเบาบางถึงปานกลางในโซนที่วาด **ยังไม่เหมาะกับฝูงชนหนาแน่น**
 
 ## เตรียมก่อนเดโม
 
@@ -43,7 +43,7 @@
 
 ## หลังเดโม
 
-บันทึก: วันงาน จำนวนวัน พีคที่คาด มุมกล้อง ผู้ติดต่อ ส่งใบเสนอราคา ย้ำในอีเมลว่าเป็นรุ่นทดลอง ไม่เหมาะกับฝูงชนหนาแน่น
+บันทึก: วันงาน จำนวนวัน พีคที่คาด มุมกล้อง ผู้ติดต่อ ส่งใบเสนอราคา ย้ำในอีเมลว่ายังไม่เหมาะกับฝูงชนหนาแน่น
 
 ---
 
@@ -51,7 +51,7 @@
 
 > **DRAFT 2026-11-11.** Use only "Try the demo (simulated data)" in the page: it uses no camera and shows no people. Never point a camera at the demo audience and record.
 > Numbers are in the technical sheet `docs/tech-sheets/crowd-EN.md` (if asked for numbers, hand over the technical sheet) and `docs/ONE-PAGER-CROWD.md`. Open points (OP-xx) are in `docs/sales/README.md`.
-> Status (`docs/PAGE-STATUS.md`): `crowd.html` = **trial version**, for sparse-to-medium crowds in a drawn zone; **not yet suitable for dense crowds**.
+> Scope (`docs/PAGE-STATUS.md`): `crowd.html` is for sparse-to-medium crowds in a drawn zone; **not yet suitable for dense crowds**.
 
 **Prepare:** open https://anirut77.github.io/lensiq/crowd.html in current Chrome or Edge (demo mode, simulated, no camera) and `camera-notice.html` (sign A). Keep a screenshot of the "What it is for and its main limits" section
 table as a backup. Do not load a customer clip. Ask early how many people are in one camera view at the peak; if about 50 or more, say plainly that we cannot sell it yet (minute 7).
@@ -75,4 +75,4 @@ use in dense crowds, concerts, crossings or about 50+ people in one view (not su
 analysis or video recording (not done; off in customer builds); fixed-site monthly (not sold); the regular price after the pilot thresholds are met as the current price (it may be shown beside the pilot price when labelled); "on sale now" before the owner confirms (OP-09); that it beats a door counter
 (prices compare; ours still undercounts far and small people). If asked for numbers, hand over the technical sheet.
 
-**After the demo:** note event dates, days, expected peak, camera position and contact; send the quotation, and say in the e-mail that it is experimental and not for dense crowds.
+**After the demo:** note event dates, days, expected peak, camera position and contact; send the quotation, and say in the e-mail that it is not yet suitable for dense crowds.

@@ -4,7 +4,6 @@
   "qc.s2": "Production Line QC",
   "qc.s3": "Example: beverage bottles",
   "qc.s4": "Inspects items on the conveyor on-device with image processing, compares them with a good sample, counts pass/reject and exports a shift report — this demo uses beverage bottles, checking fill level, cap and label",
-  "qc.s5": "Trial version",
   "qc.s7": "Image source",
   "qc.s8": "Simulated line",
   "qc.s9": "Camera (phone / webcam / industrial USB camera)",

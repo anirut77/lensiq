@@ -1,10 +1,10 @@
-# LENSIQ Crowd: คู่มือเริ่มต้นใช้งานสำหรับลูกค้า (ประมาณความหนาแน่นของคนในงาน รุ่นทดลอง) / Customer onboarding guide (crowd density estimate, experimental) / 客户入门指南（人群密度估计，试验版）
+# LENSIQ Crowd: คู่มือเริ่มต้นใช้งานสำหรับลูกค้า (ประมาณความหนาแน่นของคนในงาน) / Customer onboarding guide (crowd density estimate) / 客户入门指南（人群密度估计）
 
 ฉบับ 2026-11-14 / Version 2026-11-14 / 版本 2026-11-14
 
 ## ภาษาไทย
 
-คู่มือนี้ใช้กับหน้า `crowd.html` บนเว็บไซต์ https://anirut77.github.io/lensiq/ Crowd เป็น **รุ่นทดลอง** ใช้ประมาณความหนาแน่นของคนในงานอีเวนต์
+คู่มือนี้ใช้กับหน้า `crowd.html` บนเว็บไซต์ https://anirut77.github.io/lensiq/ Crowd ใช้ประมาณความหนาแน่นของคนในงานอีเวนต์
 
 **ขอบเขต:** ใช้ได้กับฝูงชนเบาบางถึงปานกลางเท่านั้น (ประมาณต่ำกว่า 50 คนในภาพเดียว) **ยังไม่เหมาะกับฝูงชนหนาแน่น** ห้ามใช้ตัดสินความปลอดภัยของฝูงชนหรือจำกัดจำนวนคนเข้างาน
 ระบบให้ "ค่าประมาณความหนาแน่น" ไม่ใช่จำนวนที่แน่นอน ระบบนับแบบไม่ระบุตัวตน ไม่ระบุอายุ เพศ หรืออารมณ์ ภาพประมวลผลบนเครื่องของท่าน
@@ -69,7 +69,7 @@
 
 ## English
 
-This guide covers `crowd.html` on https://anirut77.github.io/lensiq/. Crowd is an **experimental** product for estimating crowd density at events.
+This guide covers `crowd.html` on https://anirut77.github.io/lensiq/. Crowd is a product for estimating crowd density at events.
 
 **Scope:** sparse to medium crowds only (roughly under 50 people in one view). It is **not yet suitable for dense crowds**. Never use it for crowd-safety decisions or to limit entry to an event.
 It gives a density estimate, not an exact count. It counts anonymously and does not identify age, gender or emotion. Images are processed on your own device.
@@ -134,7 +134,7 @@ When reporting, give the event or site, camera view, page name, time, steps take
 
 ## 中文
 
-本指南适用于 https://anirut77.github.io/lensiq/ 上的 `crowd.html`。Crowd 是**试验版**产品，用于估计活动现场的人群密度。
+本指南适用于 https://anirut77.github.io/lensiq/ 上的 `crowd.html`。Crowd 是用于估计活动现场人群密度的产品。
 
 **适用范围：** 仅适用于稀疏到中等密度的人群（单个画面中大约少于 50 人）。**尚不适用于密集人群**。切勿用它来做人群安全判断或限制入场人数。
 系统给出的是“密度估计值”，不是精确人数。系统以匿名方式计数，不识别年龄、性别或情绪。图像在您自己的设备上处理。

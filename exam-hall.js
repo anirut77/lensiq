@@ -294,7 +294,7 @@
     } catch (e) {
       console.warn("face pass", e);
       faceErr = true;
-      engine(() => T("exam.hall.faceErr", "ตัวนับใบหน้า (ทดลอง) ทำงานในเครื่องนี้ไม่ได้ จึงปิดไว้ การดูที่นั่งยังทำงานตามปกติ"), "warn");
+      engine(() => T("exam.hall.faceErr", "ตัวนับใบหน้าทำงานในเครื่องนี้ไม่ได้ จึงปิดไว้ การดูที่นั่งยังทำงานตามปกติ"), "warn");
       return [];
     }
   }
@@ -590,7 +590,7 @@
       T("exam.hall.kvFps", "{f} ภาพ/วินาที", { f: fpsEma.toFixed(1) }),
       T("exam.hall.kvPeople", "เห็นคน {n}", { n: lastDets.persons.length })
     ];
-    if (faceOn) parts.push(faceErr ? T("exam.hall.kvFaceOff", "ตัวนับใบหน้าปิดอยู่ (ทำงานในเครื่องนี้ไม่ได้)") : T("exam.hall.kvFaces", "ใบหน้า {n} (ทดลอง)", { n: (lastDets.faces || []).length }));
+    if (faceOn) parts.push(faceErr ? T("exam.hall.kvFaceOff", "ตัวนับใบหน้าปิดอยู่ (ทำงานในเครื่องนี้ไม่ได้)") : T("exam.hall.kvFaces", "ใบหน้า {n}", { n: (lastDets.faces || []).length }));
     if (walk) parts.push(T("exam.hall.kvWalk", "โหมดเดินตรวจเปิดอยู่"));
     if (mon && Date.now() < mon.suppressedUntil()) parts.push(T("exam.hall.kvMuted", "พักแจ้งเตือนรายที่นั่งอยู่"));
     if (!lastQ.ok) parts.push(T("exam.hall.kvSetup", "ปรับการติดตั้ง: {w}", { w: U.what(lastQ.code) || lastQ.code }));

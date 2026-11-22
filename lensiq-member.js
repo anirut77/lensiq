@@ -1004,7 +1004,7 @@
   // UI strings for 中文 / English (Thai is the default in this file); loaded here because this module itself is
   // injected late — the i18n core's English sibling loader only sees script tags present when the language is applied
   ["zh", "en"].forEach(function (l) {
-    var src = dir + "i18n/" + l + "-member.js?v=2";
+    var src = dir + "i18n/" + l + "-member.js?v=3";
     if (doc.querySelector('script[src*="i18n/' + l + '-member.js"]')) return;
     var sc = doc.createElement("script"); sc.src = src; sc.async = true;
     sc.onload = function () { if (W.LQI18N && W.LQI18N.lang === l) { renderChip(); rerender(); } };

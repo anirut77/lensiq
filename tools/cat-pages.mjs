@@ -31,9 +31,17 @@ export function navEntries(navSrc = readFileSync(join(repo, "nav.js"), "utf8")) 
   return out;
 }
 
+/** decision 226: the visibility list (page -> on / off) of nav.js, the single source of what customers see */
+export function visibility(navSrc = readFileSync(join(repo, "nav.js"), "utf8")) {
+  const m = navSrc.match(/var VISIBILITY = (\{[\s\S]*?\});/);
+  if (!m) throw new Error("nav.js: var VISIBILITY = { … } missing");
+  return JSON.parse(m[1].replace(/([{,]\s*)([a-z][\w-]*)\s*:/g, '$1"$2":').replace(/,\s*\}/, "}"));
+}
+const VIS = visibility();
+const isOn = p => VIS[p] !== false;
 function counts(cat) {
-  // owner decision 223: the number of tools listed in the customer build only (demo-only pages are not counted)
-  const listed = cat.pages.filter(p => !D.DEMO_ONLY.includes(p));
+  // decision 226: the number of tools a customer can see (switched-off products are not listed or counted)
+  const listed = cat.pages.filter(isOn);
   const n = { all: listed.length, noTag: !!cat.noStatusTag };
   for (const st of Object.keys(D.STATUS)) n[st] = cat.pages.filter(p => D.PAGES[p].st === st).length; // internal (PAGE-STATUS.md)
   return n;
@@ -69,7 +77,6 @@ export function entries() {
   const e = { ...UI };
   // owner decision 223: only the short customer badges; the old status, source, accuracy and reason texts stay in
   // tools/cat-data.cjs for docs/PAGE-STATUS.md and are not written to the dictionaries
-  for (const [k, v] of Object.entries(D.BADGE)) e["cat.b." + k] = v;
   for (const c of D.CATEGORIES) {
     e[`cat.${c.slug}.name`] = c.name;
     e[`cat.${c.slug}.intro`] = c.intro;
@@ -174,16 +181,12 @@ function card(page, nav, noTag = false, cat = null) {
   const t = nav[page];
   if (!t) throw new Error(`${page}.html is in a category but not in the nav.js menu`);
   if (cat && cat.noAccuracy) return oneLinkCard(page, t, (cat.ill || {})[page] || cat.icon);
-  // owner decision 223: name, a short badge (none / รุ่นทดลอง / รุ่นทดลอง ยังไม่เปิดขาย / เร็ว ๆ นี้), the menu line and the two
-  // approved lines (what it is for, its main limit); no accuracy list, no "why this status". Demo-only cards carry
-  // data-demo-only (nav.js shows them in demo mode only).
-  const b = noTag ? "" : D.badgeOf(page);
-  const chip = b ? `<span class="cat-st ${b}" data-i18n="cat.b.${b}">${esc(D.BADGE[b].th)}</span>` : "";
+  // owner decisions 223 + 226: name, the menu line and the two approved lines (what it is for, its main limit); no status
+  // label (labels live in the back office), no accuracy list, no "why this status"
   const ln = Object.entries(D.LINES).find(([, v]) => v.cards.includes(page));
   const lines = ln ? `        <p class="cat-ln">` + ["1", "2"].filter(n => ln[1][n]).map(n => `<span data-i18n="ln.${ln[0]}.${n}">${esc(ln[1][n])}</span>`).join("<br>") + "</p>\n" : "";
-  const demo = D.DEMO_ONLY.includes(page) ? " data-demo-only" : "";
-  return `      <article class="pd-card cat-tool" data-page="${page}"${b ? ` data-status="${b}"` : ""}${demo}>
-        <div class="cat-top"><h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3>${chip ? "\n          " + chip : ""}</div>
+  return `      <article class="pd-card cat-tool" data-page="${page}">
+        <div class="cat-top"><h3 data-i18n="nav.${page}.title">${esc(t.title)}</h3></div>
         <p data-i18n="nav.${page}.desc">${esc(t.desc)}</p>
 ${lines}${page === "attendance" ? ENTRY_BTN : ""}${openLink(page)}
       </article>`;
@@ -245,7 +248,7 @@ export function pageHtml(cat, nav = navEntries()) {
     `      <h2 id="catToolsH" data-i18n="cat.tools.h">เครื่องมือในหมวดนี้</h2>`,
     `      <p class="pd-sub" id="catCount" data-i18n="cat.${cat.slug}.count">${esc(COUNT_TPL.th(n))}</p>`,
     `      <div class="pd-grid cat-grid">`,
-    cat.pages.map(p => card(p, nav, !!cat.noStatusTag, cat)).join("\n"),
+    cat.pages.filter(isOn).map(p => card(p, nav, !!cat.noStatusTag, cat)).join("\n"),
     `      </div>`,
     `    </section>`,
     // owner decision 223: no status legend, no "where the numbers come from" section and no method link on any category page
@@ -257,7 +260,7 @@ export function pageHtml(cat, nav = navEntries()) {
     `    </section>`,
     `  </div>`,
     `</main>`,
-    '<script src="lensiq-config.js?v=30"></script>',
+    '<script src="lensiq-config.js?v=31"></script>',
     "</body>",
     "</html>",
     ""
@@ -319,8 +322,8 @@ export function statusTable() {
   for (const c of D.CATEGORIES) for (const p of c.pages) (catOf[p] = catOf[p] || []).push(`${c.n} ${c.name.en}`);
   for (const p of D.PLATFORM.concat(["index"], Object.keys(D.UNLINKED))) catOf[p] = catOf[p] || ["Platform"];
   // owner decision 223: the internal status, reason and accuracy columns stay here (back-office document); the badge column is
-  // what the customer sees on the category card (none / trial / hall / soon; demo-only = listed in demo mode only)
-  const rows = ["| Page | Category | Proposed status | Customer badge (223) | Why (EN) | เหตุผล (TH) | Accuracy (internal), with source | Evidence |",
+  // back office only since decision 226 (no label on any customer page); visibility = the nav.js list
+  const rows = ["| Page | Category | Proposed status | Status label (back office only, 226) · visibility | Why (EN) | เหตุผล (TH) | Accuracy (internal), with source | Evidence |",
     "|---|---|---|---|---|---|---|---|"];
   const order = D.CATEGORIES.flatMap(c => c.pages).concat(D.PLATFORM, ["index"], Object.keys(D.UNLINKED));
   const seen = new Set();
@@ -333,13 +336,13 @@ export function statusTable() {
       : v.claims.map(id => `**${D.SOURCE[D.CLAIMS[id].src].en}:** ${D.CLAIMS[id].en}`).join("<br>");
     const ev = noAcc ? "—" : [...new Set(v.claims.map(id => D.CLAIMS[id].ref))].join("; ");
     const noTag = D.CATEGORIES.some(c => c.noStatusTag && c.pages.includes(p)) ? " (no tag shown on the site, owner order 2026-11-17)" : "";
-    const bd = noTag ? "—" : (D.badgeOf(p) || "none") + (D.DEMO_ONLY.includes(p) ? " (demo-only)" : "");
+    const bd = (noTag ? "—" : (D.badgeOf(p) || "none")) + (isOn(p) ? " · shown" : " · OFF (not listed, decision 226)");
     rows.push(`| \`${p}.html\` | ${catOf[p].join(" + ")} | **${v.st}**${noTag} | ${bd} | ${D.REASONS[v.why].en} | ${D.REASONS[v.why].th} | ${acc} | ${ev} |`);
   }
   for (const c of D.CATEGORIES) {
     const n = counts(c);
     rows.push(`| \`cat-${c.slug}.html\` (new) | ${c.n} ${c.name.en} | landing page | — | ` +
-      `Lists the category's ${n.all} tools (customer build) with a short badge and two plain lines (decision 223) | ` +
+      `Lists the category's ${n.all} tools (customer build) with two plain lines and no status label (decisions 223, 226) | ` +
       "หน้ารวมหมวด แสดงเครื่องมือ ป้ายสั้น และสองบรรทัด (ข้อ 223) | — | tools/cat-data.cjs |");
   }
   const tally = {};

@@ -32,7 +32,7 @@
   "demo.vg.over": "Another sample pass (house 12/3) has expired while the car is still inside, so the overstaying-visitor alert shows.",
   "demo.pk.p": "Fee rules (15 minutes free, 20 baht an hour, at most 200 baht a day), 2 shops, 1 monthly pass and 4 cars in the lot are loaded. Confirm the notice below, press \"Use sample image\" to read a plate, then the guard presses \"Exit: calculate fee\". PromptPay is not set in demo mode so no real transfer can happen.",
   "demo.pk.codes": "Sample shop stamp codes (single use):",
-  "demo.cr.p": "This is a trial version and not yet suitable for dense crowds; the figures are estimates. The scenes below are simulated (grey blocks, no images of people). Pick a scene to see the \"people look small\" hint and the ≈ \"estimate\" label.",
+  "demo.cr.p": "This is not yet suitable for dense crowds; the figures are estimates. The scenes below are simulated (grey blocks, no images of people). Pick a scene to see the \"people look small\" hint and the ≈ \"estimate\" label.",
   "demo.cr.far": "Far crowd (small people + 15 or more)",
   "demo.cr.small": "People look small (far from the camera)",
   "demo.cr.crowd": "15 or more people",

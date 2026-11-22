@@ -4,7 +4,6 @@
   "neuro.s2": "Emotion Response Testing (Neuromarketing)",
   "neuro.s3": "Measure viewers' facial expression responses to ads, videos or product images, summarized over time as Valence, Arousal, Attention and Engagement",
   "neuro.s4": "Facial expressions do not always reflect true feelings, and sad, angry and fearful faces are often misread. Use it only for group-level comparison of materials under the same conditions",
-  "neuro.betaB": "Trial version",
   "neuro.s6": "Note:",
   "neuro.s7": "Valence (positive/negative) and Arousal on this page are",
   "neuro.s8": "estimates from facial expression",

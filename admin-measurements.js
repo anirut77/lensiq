@@ -1410,6 +1410,38 @@
     "account", "support", "scaffold", "info",
     "admin", "support", "scaffold", "info",
   ];
+  // decision 226: status label (back office only) and customer visibility: page, th, en, zh, on|off (5 per record)
+  var V = [
+    "afterhours", "รุ่นทดลอง", "Trial version", "试用版", "on", "astro", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "attendance", "", "", "", "on", "bays", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "bazi", "รุ่นทดลอง", "Trial version", "试用版", "on", "booth", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "cameras", "", "", "", "on", "case-review", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "checkout", "รุ่นทดลอง", "Trial version", "试用版", "on", "compat", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "converter", "รุ่นทดลอง", "Trial version", "试用版", "on", "creative", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "creative-suite", "รุ่นทดลอง", "Trial version", "试用版", "on", "crowd", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "customers", "เร็ว ๆ นี้", "Coming soon", "即将推出", "off", "dream", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "driver", "รุ่นทดลอง", "Trial version", "试用版", "on", "exam", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "exam-dashboard", "รุ่นทดลอง", "Trial version", "试用版", "on", "exam-hall", "รุ่นทดลอง ยังไม่เปิดขาย", "Trial version, not on sale yet", "试用版，尚未开售", "off",
+    "exam-lab", "รุ่นทดลอง", "Trial version", "试用版", "on", "faceread", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "fengshui", "รุ่นทดลอง", "Trial version", "试用版", "on", "fortune", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "gate", "รุ่นทดลอง", "Trial version", "试用版", "on", "gate-notice", "", "", "", "on",
+    "horoscope", "รุ่นทดลอง", "Trial version", "试用版", "on", "hr", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "iching", "รุ่นทดลอง", "Trial version", "试用版", "on", "insights", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "interview", "รุ่นทดลอง", "Trial version", "试用版", "on", "lek7", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "lifegraph", "รุ่นทดลอง", "Trial version", "试用版", "on", "luckycolor", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "medicine", "รุ่นทดลอง", "Trial version", "试用版", "on", "neuro", "เร็ว ๆ นี้", "Coming soon", "即将推出", "off",
+    "numbers", "รุ่นทดลอง", "Trial version", "试用版", "on", "nutrition", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "omr", "รุ่นทดลอง", "Trial version", "试用版", "on", "palm", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "parking", "รุ่นทดลอง", "Trial version", "试用版", "on", "petread", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "photobooth", "รุ่นทดลอง", "Trial version", "试用版", "on", "planner", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "product-check", "รุ่นทดลอง", "Trial version", "试用版", "off", "qc", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "queue", "รุ่นทดลอง", "Trial version", "试用版", "on", "report", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "retail", "รุ่นทดลอง", "Trial version", "试用版", "on", "signage", "เร็ว ๆ นี้", "Coming soon", "即将推出", "off",
+    "store", "รุ่นทดลอง", "Trial version", "试用版", "on", "studio", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "tables", "รุ่นทดลอง", "Trial version", "试用版", "on", "taksa", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "tarot", "รุ่นทดลอง", "Trial version", "试用版", "on", "teamface", "เร็ว ๆ นี้", "Coming soon", "即将推出", "off",
+    "village", "รุ่นทดลอง", "Trial version", "试用版", "on", "zodiac", "รุ่นทดลอง", "Trial version", "试用版", "on",
+  ];
   /** @param {any[]} a @param {string[]} names */
   function rows(a, names) {
     var out = [];
@@ -1425,6 +1457,7 @@
     products: rows(P, ["id", "th", "en", "zh", "sheetTH", "sheetEN", "figures"]).map(function (p) { p.figures = p.figures ? p.figures.split(";") : []; return p; }),
     texts: rows(T, ["key", "product", "th", "en", "zh"]),
     pageStatus: rows(S, ["page", "st", "why", "claims"]),
+    visibility: rows(V, ["page", "th", "en", "zh", "shown"]),
     render: render
   };
   /** admin.html tab "ผลการวัด": one collapsible card per product (figures table + every original text), language = x.lang
@@ -1436,6 +1469,11 @@
     var heads = [G("adm.meas.k", "ตัวเลข"), G("adm.meas.v", "ค่า"), G("adm.meas.w", "สิ่งที่วัด"), G("adm.meas.e", "หลักฐานใน ACCURACY.md")];
     var plat = { id: "_platform", th: G("adm.meas.plat", "ทั้งแพลตฟอร์ม: นิยามสถานะ คำอธิบายป้าย และหน้าแพลตฟอร์ม"), figures: [] };
     box.textContent = "";
+    // decision 226: every product's status label (back office only) and whether customers see it (nav.js visibility list)
+    var vis = h("details", { class: "ad-card ad-meas", open: "" }, h("summary", null, h("strong", { text: G("adm.vis.h", "สถานะระบบและการแสดงต่อลูกค้า") })));
+    vis.appendChild(x.table([G("adm.vis.page", "หน้า"), G("adm.vis.label", "ป้ายสถานะ (หลังบ้านเท่านั้น)"), G("adm.vis.shown", "แสดงต่อลูกค้า")],
+      M.visibility.map(function (/** @type {any} */ v) { return [v.page, v[L] || v.th || "—", v.shown === "on" ? G("adm.vis.on", "เปิด") : G("adm.vis.off", "ปิด")]; })));
+    box.appendChild(vis);
     M.products.concat([plat]).forEach(function (/** @type {any} */ p) {
       var sum = h("summary", null, h("strong", { text: p === plat ? p.th : pick(p) }), " · ");
       if (p === plat) sum.appendChild(link("docs/tech-sheets/README.md", "README"));

@@ -4,7 +4,6 @@
   "zc.back": "← Solutions by sector",
   "zq.h1": "Long-queue alert",
   "zq.lead": "Draw a queue zone on the camera view. The page counts people in the zone anonymously, estimates the wait and shows a banner so staff can consider opening another counter. Processed in the browser; no images are saved.",
-  "zc.beta": "Trial version",
   "zc.gate.h": "Before you turn the camera on (PDPA)",
   "zc.gate.1": "Post a camera notice where people see it before they enter the area (sign A on the print-a-sign page).",
   "zc.gate.2": "This page counts person boxes anonymously. It does not recognise faces and does not save images or video; it keeps only numbers and the alert list on this device.",

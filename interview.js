@@ -386,7 +386,7 @@
   var BAND = { low: ["iv.js.bLow", "น้อย"], mid: ["iv.js.bMid", "ปานกลาง"], high: ["iv.js.bHigh", "มาก"] };
   /* observable signs of excitement — descriptive behaviour with the scientific caveat; flow 'employer' | 'practice' */
   var SCI_TH = "ข้อจำกัดทางวิทยาศาสตร์: ท่าทางและสีหน้าไม่ได้บอกอารมณ์ภายในอย่างน่าเชื่อถือ และต่างกันตามบุคคลและวัฒนธรรม (Barrett และคณะ, 2019)" +
-    " ระบบไม่ตัดสินว่าใครพูดจริงหรือไม่ และไม่มีใครแยกคำพูดจริงกับไม่จริงจากท่าทางหรือสีหน้าได้อย่างน่าเชื่อถือ";
+    " ไม่มีสัญญาณบนใบหน้าหรือน้ำเสียงที่บอกการพูดไม่จริงได้อย่างน่าเชื่อถือ ระบบจึงไม่จับการพูดไม่จริง";
   function signalsHtml(d, g, flow) {
     if (!IV.signalsAllowed(S.region, flow)) return '<p class="hint sig-off">' + esc(T("iv.js.sigOff", "โหมด EU/EEA: ไม่แสดงสัญญาณความตื่นเต้นที่สังเกตได้ในขั้นตอนของนายจ้าง (EU AI Act มาตรา 5(1)(f)) — ผู้สมัครดูได้ในโหมดฝึกซ้อมของตัวเอง")) + "</p>";
     var x = IV.excitementSignals(d, g); if (!x.available) return "";

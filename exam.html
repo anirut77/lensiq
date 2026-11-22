@@ -40,12 +40,12 @@
   </div>
   <div class="row-actions">
     <a class="btn primary" href="exam-lab.html" data-i18n="exam.l.ctaLab">หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์)</a>
-    <a class="btn ghost" href="exam-hall.html" data-i18n="exam.l.ctaHall">เครื่องกล้องในห้องสอบ (รุ่นทดลอง)</a>
+    <span data-lq-off><a class="btn ghost" href="exam-hall.html" data-i18n="exam.l.ctaHall">เครื่องกล้องในห้องสอบ</a></span>
     <a class="btn ghost" href="exam-dashboard.html" data-i18n="exam.l.ctaDash">แดชบอร์ดผู้คุมสอบ</a>
   </div>
   <p class="lq-lines" id="examClaims"><span data-i18n="ln.exam.1">บอกผู้คุมสอบว่าควรไปดูที่นั่งไหน ระบบแจ้งเท่านั้น คนตัดสินทุกกรณี ไม่อ่านอารมณ์ และไม่จดจำว่าใครเป็นใคร</span><br>
     <span data-i18n="ln.exam.2">ตรวจพบโทรศัพท์ที่อยู่ใกล้กล้องได้ดี โทรศัพท์ที่วางบนโต๊ะมักตรวจไม่พบ ผู้คุมสอบควรเดินตรวจร่วมด้วย</span></p>
-  <p class="warn" role="note"><b data-i18n="exam.l.betaB">รุ่นทดลอง</b> <span
+  <p class="warn" role="note"><span
     data-i18n="exam.l.beta">ทดลองในห้องจริงก่อนใช้ แดชบอร์ดมีปุ่มนับว่าแจ้งถูกหรือผิด</span></p>
 
   <section class="modes" aria-labelledby="modesH">
@@ -60,9 +60,9 @@
       </ul>
       <a class="btn primary" href="exam-lab.html" data-i18n="exam.l.openLab">เปิดหน้าผู้เข้าสอบ</a>
     </article>
-    <article class="card mode">
+    <article class="card mode" data-lq-off>
       <h3 data-i18n="exam.l.mA">ห้องสอบที่มีกล้องรอบห้อง</h3>
-      <p class="warn" role="note" id="hallExp"><b data-i18n="exam.l.mAxB">รุ่นทดลอง ยังไม่เปิดขาย</b> <span data-i18n="exam.l.mAx">ใบหน้าที่อยู่ไกลกล้องยังหาไม่เจอ
+      <p class="warn" role="note" id="hallExp"><span data-i18n="exam.l.mAx">ใบหน้าที่อยู่ไกลกล้องยังหาไม่เจอ
         จึงใช้ทดลองหรือสาธิตเท่านั้นจนกว่าจะแก้</span></p>
       <p data-i18n="exam.l.mAp">ใช้แล็ปท็อปหรือมือถือเป็นเครื่องกล้อง จำนวนกล้องขึ้นกับขนาดห้อง (ขอคู่มือวางกล้องได้จากเรา)
         ผู้คุมสอบวาดขอบเขตที่นั่งบนภาพแต่ละมุม ระบบประมวลผล 2–5 ภาพต่อวินาที และส่งเฉพาะเหตุการณ์ไปที่แดชบอร์ด</p>
@@ -172,9 +172,9 @@
         <p class="note" data-i18n="exam.l.p2n">ขั้นต่ำ ฿300 ต่อรอบสอบ หรือแพ็กเกจ ฿990 / เดือน / ห้องแล็บคอมพิวเตอร์ ไม่รวม VAT 7%</p>
         <p class="note" data-i18n="exam.l.p2a">ราคาปกติหลังผ่านเกณฑ์นำร่อง: ฿15–30 ต่อผู้สอบ หรือ ฿990–1,490 / เดือน ไม่รวม VAT 7%</p>
       </div>
-      <div class="card">
+      <div class="card" data-lq-off>
         <h3 data-i18n="exam.l.p3">ห้องสอบที่มีกล้อง (ต่อห้อง)</h3>
-        <p class="tag-draft" data-i18n="exam.l.p3x">รุ่นทดลอง: ยังไม่เปิดขายจนกว่าจะแก้ปัญหาใบหน้าเล็ก ราคานี้ใช้เมื่อเปิดขายแล้ว</p>
+        <p class="tag-draft" data-i18n="exam.l.p3x">ยังไม่เปิดขายจนกว่าจะแก้ปัญหาใบหน้าเล็ก ราคานี้ใช้เมื่อเปิดขายแล้ว</p>
         <small class="tag" data-i18n="exam.l.lvlPilot">ราคานำร่อง</small>
         <b data-i18n="exam.l.p3b">฿290 ต่อห้องต่อวันสอบ ไม่รวม VAT 7%</b>
         <p class="note" data-i18n="exam.l.p3n">หรือ ฿990 ต่อเดือนต่อห้อง (จำนวนกล้องขึ้นกับขนาดห้อง ขอคู่มือวางกล้องได้จากเรา) ไม่รวม VAT 7%</p>
@@ -220,6 +220,6 @@
 
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-exam-clip.js?v=3"></script>
-<script src="lensiq-config.js?v=30"></script>
+<script src="lensiq-config.js?v=31"></script>
 </body>
 </html>

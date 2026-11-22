@@ -160,7 +160,7 @@
   "acct.off.soonH": "会员系统开放后（尚未开放）",
   "acct.off.s1": "使用 Google 免费登录，把占卜记录和报告保存在账户中",
   "acct.off.s2": "Plus 加强会员、一次性报告以及 Creator 创作者／Business 商业版套餐——尚未开售",
-  "acct.off.notify": "查看即将推出的内容 / 开放时通知我",
+  "acct.off.notify": "查看尚未开放的内容 / 开放时通知我",
   "acct.off.products": "LENSIQ 产品",
   "acct.off.p1": "LENSIQ 占卜",
   "acct.off.p2": "LENSIQ Retail",

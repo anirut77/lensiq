@@ -30,7 +30,6 @@
   "checkout.s30": "Add product",
   "checkout.s31": "Model",
   "checkout.s32": "On-site test",
-  "checkout.beta": "Trial version",
   "checkout.s33": "Export model (JSON)",
   "checkout.s34": "Import model",
   "checkout.s35": "Training data is stored in this browser (IndexedDB); export a file to back it up or use it on another till",

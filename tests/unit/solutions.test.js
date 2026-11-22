@@ -7,6 +7,10 @@
 // "รุ่นทดลอง" / "เร็ว ๆ นี้", no status legend, filters all / available to try now / coming soon; the "still needed" roadmap
 // notes left the customer page and are kept verbatim in docs/PAGE-STATUS.md (tools/cat-data.cjs SOON_ROADMAP); the
 // demo-only cards (signage, customers) carry data-demo-only.
+// Inverted again for owner decision 226 (2026-11-22; invert, never loosen): no status label and no status filter for customers.
+// No card carries a status tag (.sl-tag / sl.st.*); the filter (.sl-filter, data-f, sl.f.*, lq-sol-filter) and its count / empty
+// notes are gone; a card of a product that is not offered (no page yet = data-status "soon", or a page switched off in the nav.js
+// visibility list) carries data-lq-off (nav.js hides it) and is never deleted; data-demo-only is gone.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -16,8 +20,9 @@ const vm = require("node:vm");
 const ROOT = path.join(__dirname, "..", "..");
 const read = f => fs.readFileSync(path.join(ROOT, f), "utf8");
 const html = read("solutions.html");
-const cards = [...html.matchAll(/<article class="sl-card" data-status="(\w+)" id="sol-([\w]+)"( data-demo-only)?>([\s\S]*?)<\/article>/g)]
-  .map(m => ({ status: m[1], id: m[2], demo: !!m[3], body: m[4] }));
+const cards = [...html.matchAll(/<article class="sl-card"( data-lq-off)? data-status="(\w+)" id="sol-([\w]+)">([\s\S]*?)<\/article>/g)]
+  .map(m => ({ off: !!m[1], status: m[2], id: m[3], body: m[4] }));
+const OFF = ["exam-hall", "signage", "neuro", "teamface", "customers"]; // nav.js VISIBILITY pages switched off (decision 226; Product Check is a tab of medicine.html, the page is on)
 const PARALLEL = new Set(["exam.html", "gate.html", "parking.html", "village.html"]); // other product lines, built in parallel
 
 test("10 sectors in the agreed order, each with cards", () => {
@@ -25,25 +30,26 @@ test("10 sectors in the agreed order, each with cards", () => {
   assert.deepEqual(ids, ["edu", "hr", "retail", "mfg", "park", "health", "fit", "agri", "event", "gov"]);
   for (const id of ids) assert.ok(html.includes(`href="#sec-${id}"`), "sector nav " + id);
   assert.ok(cards.length >= 40, "cards " + cards.length);
+  assert.equal(cards.length, (html.match(/<article class="sl-card"/g) || []).length, "every card parsed");
 });
 
-test("every card: status, title, what, who, privacy; a link (coming soon: none) and no internal 'still needed' note", () => {
+test("every card: no status tag, title, what, who, privacy; a link (not offered yet: none, hidden) and no internal 'still needed' note", () => {
   for (const c of cards) {
     assert.ok(["now", "soon"].includes(c.status), c.id);
-    // decision 223: badge "รุ่นทดลอง" on a card you can try now, "เร็ว ๆ นี้" on a coming-soon card; no badge only on the
-    // PIN / QR time clock (hr1, audit section 3) and the fortune cards (owner order 2026-11-17)
-    const tag = (c.body.match(/<span class="sl-tag (\w+)" data-i18n="(sl\.st\.\w+)">([^<]*)<\/span>/) || []).slice(1);
-    if (c.status === "soon") assert.deepEqual(tag, ["soon", "sl.st.soon", "เร็ว ๆ นี้"], c.id + " badge");
-    else if (tag.length) assert.deepEqual(tag, ["trial", "sl.st.trial", "รุ่นทดลอง"], c.id + " badge");
-    else assert.ok(c.id === "hr1" || /href="(fortune|planner|luckycolor)\.html"/.test(c.body), c.id + ": card without a badge");
+    // decision 226 (was 223: badge "รุ่นทดลอง" / "เร็ว ๆ นี้" on every card but hr1 and the fortune cards): no card has a status tag
+    assert.ok(!/class="sl-tag\b|data-i18n="sl\.st\./.test(c.body), c.id + ": status tag");
+    assert.ok(!/รุ่นทดลอง|เร็ว ๆ นี้|ทดลองใช้ได้ตอนนี้/.test(c.body), c.id + ": status words");
     assert.ok(!/sl-why|data-i18n="sl\.why"|data-i18n="sl\.c\.\w+\.y"/.test(c.body), c.id + ": no 'still needed' roadmap note on the page");
     assert.match(c.body, /<h3 data-i18n="sl\.c\.\w+\.h">/, c.id);
     assert.match(c.body, /data-i18n="sl\.c\.\w+\.w"/, c.id + " who");
     assert.match(c.body, /class="sl-meta sl-pv"><b data-i18n="sl\.priv">[^<]+<\/b> <span data-i18n="pv\.\w+">/, c.id + " privacy");
     const link = (c.body.match(/class="sl-go" href="([^"]+)"/) || [])[1];
-    // a demo-only card (data-demo-only, decision 223) is "coming soon" in demo mode and still opens its existing page
-    if (c.status === "soon" && !c.demo) {
-      assert.ok(!link, c.id + ": coming soon has no page link");
+    // decision 226: a product with no page yet (data-status "soon") is hidden (data-lq-off) and has no page link; a card whose
+    // page is switched off (nav.js visibility list) is hidden and still opens its existing page (never deleted)
+    const offPage = !!link && OFF.includes(link.replace(/\.html.*$/, ""));
+    assert.equal(c.off, c.status === "soon" || offPage, c.id + ": data-lq-off exactly on cards of products not offered");
+    if (c.status === "soon" && !offPage) {
+      assert.ok(!link, c.id + ": a product with no page yet has no page link");
     } else {
       assert.ok(link, c.id + " links a page");
       // walk-through 2026-11-16 D-02: the employee time-clock card (hr1) opens attendance.html in PIN / QR mode; that exact
@@ -64,15 +70,21 @@ test("quick wins and parallel product pages are linked; the agreed 'coming soon'
   assert.doesNotMatch(soon, /YOLOX, Apache-2\.0|MediaPipe Pose, Apache-2\.0/);
   const status = read("docs/PAGE-STATUS.md");
   assert.match(status, /YOLOX, Apache-2\.0/); assert.match(status, /MediaPipe Pose, Apache-2\.0/);
-  for (const c of cards.filter(x => x.status === "soon" && !x.demo)) assert.ok(status.includes("| `sol-" + c.id + "` |"), c.id + ": roadmap row");
+  for (const c of cards.filter(x => x.status === "soon" && !/class="sl-go"/.test(x.body))) assert.ok(status.includes("| `sol-" + c.id + "` |"), c.id + ": roadmap row");
   // available-now cards only point at pages that already exist (no promise of an unbuilt page as "available"); since
   // decision 223 the former pilot cards (exam / gate / parking / village) are "available to try now", so their pages must exist
   for (const c of cards.filter(x => x.status === "now")) {
     const href = (c.body.match(/class="sl-go" href="([^"?]+)/) || [])[1];
     assert.ok(href && fs.existsSync(path.join(ROOT, href)), c.id + ": " + href);
   }
-  // demo-only pages: their catalogue cards carry data-demo-only (listed only when window.LENSIQ_PROFILE === "demo")
-  for (const c of cards.filter(x => /href="(signage|customers|neuro|teamface)\.html"/.test(x.body))) assert.ok(c.demo, c.id + ": data-demo-only");
+  // decision 226 (was 223: demo-only pages carry data-demo-only): every card that links a switched-off page carries data-lq-off,
+  // and data-demo-only is gone; the cards are kept (hidden), never deleted
+  for (const c of cards.filter(x => new RegExp(`href="(${OFF.join("|")})\\.html`).test(x.body))) assert.ok(c.off, c.id + ": data-lq-off");
+  assert.ok(cards.some(c => c.off && /href="signage\.html"/.test(c.body)) && cards.some(c => c.off && /href="customers\.html"/.test(c.body)),
+    "off cards kept in the markup");
+  // the drug checker (medicine.html) is on: its card is shown (Product Check, a tab of that page, is the switched-off part)
+  assert.ok(cards.some(c => !c.off && /href="medicine\.html"/.test(c.body)), "sol-h5 (medicine) shown");
+  assert.ok(!/data-demo-only/.test(html), "data-demo-only is gone (replaced by data-lq-off)");
 });
 
 test("'do not build' list: emotion/attention scoring, public biometric ID, drowning, forklift; no card offers them", () => {
@@ -93,18 +105,20 @@ test("solutions i18n: en/zh identical keys, every page key covered, no Thai, pla
   for (const m of read("solutions.js").matchAll(/T\("([\w.]+)"/g)) keys.push(m[1]);
   assert.deepEqual(keys.filter(k => !(k in en) || !(k in zh)), []);
   for (const v of [...Object.values(en), ...Object.values(zh)]) assert.ok(!/[ก-๛]/.test(v), v);
-  assert.ok(en["sl.count"].includes("{n}") && zh["sl.count"].includes("{total}"));
+  // decision 226 (was: sl.count keeps {n} / {total}): the status tag, filter, count and empty-note keys are gone in both dictionaries
+  for (const d of [en, zh]) assert.deepEqual(Object.keys(d).filter(k => /^sl\.(st|f)\.|^sl\.(filterAria|empty|count)$/.test(k)), []);
   assert.ok(!Object.values(en).some(v => /\bAI\b(?! Act)/.test(v)), "no 'AI' in labels (docs/I18N.md); the EU AI Act is a name");
 });
 
-test("solutions page: CSP meta, nav, no inline script, print + status filter wired", () => {
+test("solutions page: CSP meta, nav, no inline script, print wired; no status filter (decision 226)", () => {
   assert.match(html, /<meta http-equiv="Content-Security-Policy"/);
   assert.match(html, /<script src="nav\.js/);
   assert.ok(!/<script>/.test(html));
-  const js = read("solutions.js");
-  assert.match(js, /lq-sol-filter/); assert.match(js, /try \{ localStorage/);
-  for (const f of ["all", "now", "soon"]) assert.ok(html.includes(`data-f="${f}"`), f);
-  // decision 223: no "open for a pilot" filter and no status legend
-  assert.ok(!html.includes('data-f="pilot"') && !/class="sl-legend/.test(html), "pilot filter and status legend are gone");
-  assert.match(js, /OK = \["all", "now", "soon"\]/);
+  const js = read("solutions.js"), css = read("solutions.css");
+  assert.match(html, /id="slPrint"/); assert.match(js, /getElementById\("slPrint"\)/); assert.match(js, /window\.print\(\)/);
+  // decision 226 (was 223: filters all / now / soon, remembered in lq-sol-filter): no filter, no count line, no empty notes
+  assert.ok(!/data-f="|class="sl-filter\b|id="slCount"|class="sl-none\b|class="sl-legend/.test(html), "status filter, count and legend are gone");
+  assert.ok(!/lq-sol-filter|data-f|dataset\.status|sl-filter/.test(js), "solutions.js has no filter code");
+  assert.ok(!/\.sl-tag|\.sl-filter|\.sl-count|\.sl-none/.test(css), "solutions.css has no tag / filter styles");
+  assert.ok(!/class="sl-tag\b|data-i18n="sl\.st\./.test(html), "no status tag on the page");
 });

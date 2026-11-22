@@ -246,19 +246,21 @@ export default async function ({ base, launch, check }) {
     await page.close();
 
     page = await browser.newPage(null, { initScripts: [MOCK], isolated: true });
-    await check("pricing: plans from the Worker, buy only 'active', coming-soon perk, VAT shown, sign-in before checkout, EN", async () => {
+    await check("pricing: plans from the Worker, buy only 'active', coming-soon perk hidden with no status label (226), VAT shown, sign-in before checkout, EN", async () => {
       await page.goto(`${base}/pricing.html`);
       await page.waitFor(() => !document.getElementById("prPlans").hidden && document.querySelectorAll(".pr-card[data-plan]").length > 0 && window.LQMember && window.LQMember.ready(), 8000);
       const r = await page.evaluate(() => ({
         plans: [...document.querySelectorAll(".pr-card[data-plan]")].map(c => c.getAttribute("data-plan")),
         buy: [...document.querySelectorAll(".pr-card[data-plan] .pr-btn")].map(b => b.closest("[data-plan]").getAttribute("data-plan")),
         draft: !document.getElementById("prDraft").hidden || !!document.querySelector(".pr-tag"),
-        soon: !!document.querySelector('[data-plan="report_basic"] .pr-soon'), vat: document.querySelector('[data-plan="plus"] .pr-vat').textContent,
+        // decision 226: a coming-soon perk carries no "coming soon" label; it is hidden (data-lq-off) instead
+        soon: (() => { const li = document.querySelector('[data-plan="report_basic"] li.soon'); return !!li && li.hasAttribute("data-lq-off") && getComputedStyle(li).display === "none"; })(),
+        soonLabel: document.querySelectorAll(".pr-soon").length, vat: document.querySelector('[data-plan="plus"] .pr-vat').textContent,
         nav: !!document.querySelector("#siteNav .nav-toggle")
       }));
       assert(JSON.stringify(r.plans) === JSON.stringify(["free", "plus", "report_basic"]), "only active plans outside preview: " + r.plans);
       assert(JSON.stringify(r.buy) === JSON.stringify(["plus", "report_basic"]), "buy buttons: " + r.buy);
-      assert(!r.draft && r.soon && /VAT/.test(r.vat) && r.nav, JSON.stringify(r));
+      assert(!r.draft && r.soon && r.soonLabel === 0 && /VAT/.test(r.vat) && r.nav, JSON.stringify(r));
       await page.evaluate(() => document.querySelector('[data-plan="report_basic"] .pr-btn').click());
       const g = await page.evaluate(() => ({ gate: !document.getElementById("prSignIn").hidden, form: document.getElementById("prForm").hidden, sum: document.getElementById("prSum").textContent }));
       assert(g.gate && g.form && /49/.test(g.sum), "sign-in required before the checkout form: " + JSON.stringify(g));

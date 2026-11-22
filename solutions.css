@@ -1,11 +1,4 @@
 /* solutions.css — solutions.html ("solutions by sector" catalogue). Builds on products.css (.pd-*) and styles.css tokens. */
-.sl-tag{display:inline-block;font-size:.78rem;font-weight:700;padding:2px 10px;border-radius:99px;white-space:nowrap}
-.sl-tag.trial{background:#e7f0ff;color:#1d4ed8}
-.sl-tag.soon{background:#eef0f4;color:#3a4256}
-.sl-filter{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
-.sl-filter .seg{border:1px solid var(--line);background:var(--bg);color:var(--navy);border-radius:99px;padding:5px 16px;font-size:.88rem;min-height:44px}
-.sl-filter .seg[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
-.sl-count{margin:4px 0 10px}
 .sl-sectors{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:8px}
 .sl-sectors a{display:flex;align-items:center;gap:8px;min-height:48px;padding:8px 12px;background:#fff;
   border:1px solid var(--line);border-radius:12px;color:var(--navy);font-weight:600;font-size:.92rem;min-width:0}
@@ -17,17 +10,11 @@
 .sl-meta{font-size:.84rem!important;color:var(--muted)}
 .sl-meta b{color:var(--navy);margin-right:4px}
 .sl-go{margin-top:auto;display:inline-flex;align-items:center;gap:4px;min-height:44px;color:#4b36d6;font-weight:600;font-size:.92rem;text-decoration:underline;text-underline-offset:2px}
-.sl-none{color:var(--muted);font-size:.9rem}
 .sl-no b{color:#a12b20}
 @media print{
-  .sl-filter,.sl-sectors,.sl-count,.pd-links,.sl-go{display:none!important}
+  .sl-sectors,.pd-links,.sl-go{display:none!important}
   .sl-ic{display:none}
   .sl-sec{break-inside:auto}
 }
 /* round 16 (item 1): links to the 7 work-category pages above the sector catalogue */
 .sl-cats{margin:0 0 4px}
-
-/* walkthrough W-012: the badge colour follows the status it names (the group class only drives the filter) */
-/* owner decision 223: two catalogue badges, รุ่นทดลอง / เร็ว ๆ นี้ */
-.sl-tag[data-i18n="sl.st.trial"]{background:#e7f0ff;color:#1d4ed8}
-.sl-tag[data-i18n="sl.st.soon"]{background:#eef0f4;color:#3a4256}

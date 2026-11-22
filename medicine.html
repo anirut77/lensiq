@@ -82,7 +82,8 @@
   <div class="md-tabs" role="tablist" aria-label="โหมดการตรวจ" data-i18n-attr="aria-label:md.tabs">
     <button type="button" class="tab" role="tab" id="t-pack" aria-controls="tab-pack" aria-selected="true" data-tab="pack" data-i18n="md.tab.pack">กล่อง / ฉลาก / ชื่อยา</button>
     <button type="button" class="tab" role="tab" id="t-pill" aria-controls="tab-pill" aria-selected="false" tabindex="-1" data-tab="pill" data-i18n="md.tab.pill">เม็ดยาที่ไม่มีกล่อง</button>
-    <button type="button" class="tab" role="tab" id="t-pc" aria-controls="tab-pc" aria-selected="false" tabindex="-1" data-tab="pc" data-i18n="md.pc.tab">ตรวจสินค้า (ทุกประเทศ)</button>
+    <button type="button" class="tab" role="tab" data-lq-part="product-check" id="t-pc"
+      aria-controls="tab-pc" aria-selected="false" tabindex="-1" data-tab="pc" data-i18n="md.pc.tab">ตรวจสินค้า (ทุกประเทศ)</button>
     <button type="button" class="tab" role="tab" id="t-hist" aria-controls="tab-hist" aria-selected="false" tabindex="-1" data-tab="hist" data-i18n="md.tab.hist">ประวัติ</button>
   </div>
 
@@ -143,7 +144,7 @@
     <div id="mdPillOut" aria-live="polite"></div>
   </section>
 
-  <section id="tab-pc" role="tabpanel" aria-labelledby="t-pc" hidden>
+  <section id="tab-pc" data-lq-part="product-check" role="tabpanel" aria-labelledby="t-pc" hidden>
     <div class="card">
       <h2 data-i18n="md.pc.h">ตรวจสินค้า: อ่านฉลาก บาร์โค้ด และเลขทะเบียนบนเครื่องนี้</h2>
       <p class="hint" data-i18n="md.pc.lead">ใช้กับยา อาหารเสริม เครื่องสำอาง หรืออาหารจากประเทศใดก็ได้ ระบบอ่านตัวอักษรและบาร์โค้ด
@@ -158,7 +159,6 @@
         <label class="md-check"><input type="radio" name="pcKind" value="ad"> <span data-i18n="md.pc.kind.ad">โฆษณา โพสต์ หรือใบปลิว (ตรวจถ้อยคำบนเครื่องนี้เท่านั้น)</span></label>
       </fieldset>
       <div class="pc-ad" id="pcAdPanel" hidden>
-        <p class="md-badges"><span class="md-badge" data-k="warn" data-exp data-i18n="md.pc.ad.exp">รุ่นทดลอง</span></p>
         <p class="hint" data-i18n="md.pc.ad.acc">ตรวจพบถ้อยคำโฆษณาเกินจริงได้บางส่วน อาจพลาดคำที่เขียนต่างออกไป และบางครั้งเตือนข้อความที่ไม่ผิด</p>
         <p hidden data-i18n="md.pc.ad.none">ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต</p>
         <ul class="md-list">
@@ -272,13 +272,13 @@
   </section>
 </main>
 
-<script src="lensiq-config.js?v=30"></script>
+<script src="lensiq-config.js?v=31"></script>
 <script src="lensiq-api.js?v=3"></script>
 <script src="lensiq-crashguard.js?v=1"></script>
 <script src="lensiq-camera.js?v=8"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
 <script src="lensiq-med.js?v=2"></script>
-<script src="medicine.js?v=5"></script>
+<script src="medicine.js?v=6"></script>
 <script src="lensiq-pc.js?v=1"></script>
 <script src="lensiq-pc-live.js?v=5"></script>
 <script src="lensiq-pc-run.js?v=2"></script>

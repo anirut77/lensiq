@@ -56,7 +56,9 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(["more", "ontrack"].includes(last.rep.verdict) && last.rep.provisional === "more", "50+ crossings needed before a verdict: " + last.rep.verdict + " / " + last.rep.provisional);
       assert(last.rep.need.some(x => x.group === "crossings" && x.more >= 45), "collect N more: " + JSON.stringify(last.rep.need));
       assert(Math.abs(last.rep.lagMs) <= 1500, "tap lag estimated " + last.rep.lagMs);
-      const html = await page.evaluate(() => document.querySelector("#scPanel .sc-report").innerText);
+      // decision 223-4: the interval table sits in the closed "ตัวเลขละเอียดสำหรับผู้ดูแล" fold; open it as the administrator does
+      const html = await page.evaluate(() => { const r = document.querySelector("#scPanel .sc-report");
+        r.querySelectorAll("details.sc-detail").forEach(d => { d.open = true; }); return r.innerText; });
       assert(/ช่วงความเชื่อมั่น/.test(html) && /คำแนะนำ/.test(html), "report table + recommendations rendered");
       const doc = JSON.stringify(last.doc);
       assert(last.doc.format === "lensiq-sitecheck" && last.doc.truth.length === 5 && !/data:image|base64|blob:/.test(doc), "export: labels + numbers only");

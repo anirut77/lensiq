@@ -1,4 +1,4 @@
-# คู่มือเริ่มต้นใช้งาน: LENSIQ Crowd (ประมาณความหนาแน่นของคนในงาน รุ่นทดลอง ไม่เหมาะกับฝูงชนหนาแน่น)
+# คู่มือเริ่มต้นใช้งาน: LENSIQ Crowd (ประมาณความหนาแน่นของคนในงาน ไม่เหมาะกับฝูงชนหนาแน่น)
 
 > **ร่าง (DRAFT) 2026-11-11** สำหรับลูกค้าหลังตกลงซื้อ ใช้กับ `crowd.html` ฐานข้อมูล: `docs/tech-sheets/crowd-TH.md`, `docs/pilot/PILOT-CROWD.md`,
 > `docs/DEPLOYMENT-CHECKLIST.md`, `docs/SUPPORT.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md` ช่อง [วงเล็บ] เจ้าของกรอก ห้ามแต่งข้อมูลติดต่อ

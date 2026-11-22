@@ -1,6 +1,5 @@
 /* i18n/en-driver.js — English for driver.html (mirrors zh-driver.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
-  "driver.trial": "Trial version",
   "driver.licb": "Research-licence models",
   "driver.lic": "Faces are analysed with face-api.js models (MIT code) trained on datasets licensed for research only. Commercial use has not been cleared by a lawyer — check the licence before commercial use",
   "driver.calwarn.ear": "Eye images cannot be used (for example dark glasses, backlight, or eyes that looked closed during calibration). The system can barely detect closed eyes and will miss most closures. Treat yourself as unmonitored: park safely, remove dark glasses, reduce backlight, then press “Recalibrate”",

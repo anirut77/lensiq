@@ -4,7 +4,6 @@
   "cr.doc.title": "Crowd counting & density | LENSIQ",
   "cr.doc.desc": "Count people in view or in drawn zones anonymously: density heatmap, peak hours, entry/exit line, time in zone, visitors per hour and conversion. Processed on the device; no images are kept.",
   "cr.h1": "Crowd counting & density",
-  "cr.st.b": "Trial version",
   "cr.tip": "Mount the camera high, looking down at an angle. Figures are estimates for planning.",
   "cr.lead": "Count people in view or in zones you draw. See density as a heatmap and over time, find the peak hours, count people in and out with a line, measure time spent in each zone and compare it with the sales or sign-ups you type in. For events, booths and shopfronts. Processed in the browser; no images are saved.",
   "cr.gate.2": "This page counts person boxes anonymously. It does not recognise faces and does not save images or video; it keeps only summary numbers (counts, the heatmap as numbers, averages) on this device.",

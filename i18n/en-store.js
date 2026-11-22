@@ -3,7 +3,6 @@
   "store.s1": "Store Analytics | LENSIQ",
   "store.s2": "Store Analytics",
   "store.s3": "Counts entries and exits, current occupancy, popular zones, queue length and a heatmap of where customers stop. Processed in the browser; no images are stored, only aggregate figures",
-  "store.s4": "Trial version",
   "store.s7": "Press \"Start camera\" to begin · up to 4 cameras (each with its own counting lines and zones)",
   "store.s8": "Start camera",
   "store.s9": "+ Add camera",

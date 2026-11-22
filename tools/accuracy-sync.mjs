@@ -168,11 +168,13 @@ export function checkClaims(root = repo, rules = existsSync(join(root, RULES)) ?
       const html = get(page), got = html == null ? [] : htmlTexts(html, r.key);
       if (!got.length) { errs.push(`${page}: no element with data-i18n="${r.key}" (rule ${r.id})`); continue; }
       for (const t of got) for (const w of r.th || []) if (!squash(t).includes(w)) errs.push(`${page} [${r.key}]: must say "${w}" (rule ${r.id})`);
+      for (const t of got) for (const w of (r.not && r.not.th) || []) if (squash(t).includes(w)) errs.push(`${page} [${r.key}]: must not say "${w}" (rule ${r.id})`);
     }
     for (const lang of ["en", "zh"]) {
       const rel = `i18n/${lang}-${r.dict}.js`, js = get(rel), v = js == null ? undefined : dictValue(js, r.key);
       if (v === undefined) { errs.push(`${rel}: missing "${r.key}" (rule ${r.id})`); continue; }
       for (const w of r[lang] || []) if (!v.includes(w)) errs.push(`${rel} [${r.key}]: must say "${w}" (rule ${r.id})`);
+      for (const w of (r.not && r.not[lang]) || []) if (v.includes(w)) errs.push(`${rel} [${r.key}]: must not say "${w}" (rule ${r.id})`);
     }
   }
   for (const f of rules.files || []) {

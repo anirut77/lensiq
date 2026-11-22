@@ -118,7 +118,7 @@ ${icon}
     <a class="btn ghost" href="${base}help.html" data-i18n="nf.help">ช่วยเหลือ</a>
   </div>
 </main>
-<script src="lensiq-config.js?v=30"></script>
+<script src="lensiq-config.js?v=31"></script>
 </body>
 </html>
 `;

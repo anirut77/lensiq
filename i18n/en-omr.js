@@ -5,7 +5,6 @@
   "om.back": "← Solutions by sector",
   "om.h1": "Grade multiple-choice answer sheets with a phone camera",
   "om.lead": "Print an A4 answer sheet (20 / 40 / 60 / 100 questions, 4 or 5 choices), let students fill in the bubbles, then point a phone camera at it. The page finds the four corners, straightens the picture, reads the filled bubbles and scores against the key straight away. The teacher can correct any answer, see an item analysis and export CSV.",
-  "om.st.b": "Trial version",
   "om.st.acc": "The teacher always checks flagged sheets.",
   "om.demo.link": "See the demo with sample sheets",
   "om.demo.note": "Demo mode: the exam set and the 3 answer sheets below are synthetic sample images. The page reads them without opening the camera and stores nothing on this device.",
