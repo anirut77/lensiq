@@ -19,7 +19,7 @@
       { href: "afterhours.html", title: "แจ้งเตือนพื้นที่หวงห้ามและนอกเวลา", desc: "พบคนในโซนหวงห้ามหรือนอกเวลา ให้เจ้าหน้าที่ตรวจสอบ" }
     ] },
     { label: "การศึกษาและการสอบ", short: "การสอบ", id: "edu", cat: "education",
-      intro: "ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน และตรวจกระดาษคำตอบด้วยมือถือ ระบบไม่ตัดสินการทุจริต คนตัดสินเสมอ ประมวลผลภาพในเครื่อง", items: [
+      intro: "ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน ระบบไม่ตัดสินการทุจริต คนตัดสินเสมอ ประมวลผลภาพในเครื่อง", items: [
       { href: "cat-education.html", title: "ภาพรวมหมวด", desc: "เครื่องมือทั้งหมดในหมวดนี้" },
       { href: "exam.html", title: "LENSIQ Exam ภาพรวม", desc: "ช่วยผู้คุมสอบ ไม่ตัดสินการทุจริต" },
       { href: "exam-lab.html", title: "หน้าผู้เข้าสอบ", desc: "สอบออนไลน์: แจ้งสิทธิ์ ปรับเทียบ ป้ายกำลังติดตาม" },
@@ -137,16 +137,23 @@
   // models, palm v2/v3, pet zodiac, cautions, compat v2, zoom, D-4 stay where lensiq-config.js and the pages keep them).
   // Static pages carry data-lq-off on what links to an off product (hidden below); tools/cat-pages.mjs reads this list.
   // Status labels and the measurements live in the back office only (the "ผลการวัด" tab).
+  // Re-lock 9 (owner entry 16, sell-readiness, "off = not shown"): EVERY page of the repo is named here, so no page can be
+  // missing again (tryon.html was missing, so its direct URL opened). omr (misreads answer sheets without a flag on the
+  // synthetic set) and tryon (parked by the owner, backend not deployed) are off. The platform pages (last two lines:
+  // crisis page, home, legal notices, help, back office, category pages) always stay on.
   var VISIBILITY = {
     afterhours: true, astro: true, attendance: true, bays: true, bazi: true, booth: true, cameras: true,
     "case-review": true, checkout: true, compat: true, converter: true, creative: true, "creative-suite": true,
     crowd: true, customers: false, dream: true, driver: true, exam: true, "exam-dashboard": true, "exam-hall": false,
     "exam-lab": true, faceread: true, fengshui: true, fortune: true, gate: true, "gate-notice": true,
     horoscope: true, hr: true, iching: true, insights: true, interview: true, lek7: true, lifegraph: true,
-    luckycolor: true, medicine: true, neuro: false, numbers: true, nutrition: true, omr: true, palm: true,
+    luckycolor: true, medicine: true, neuro: false, numbers: true, nutrition: true, omr: false, palm: true,
     parking: true, petread: true, photobooth: true, planner: true, qc: true, queue: true, report: true, retail: true,
     signage: false, store: true, studio: true, tables: true, taksa: true, tarot: true, teamface: false,
-    village: true, zodiac: true, "product-check": false
+    village: true, zodiac: true, "product-check": false, tryon: false,
+    "404": true, about: true, account: true, admin: true, "camera-notice": true, "cat-education": true, "cat-fortune": true,
+    "cat-health": true, "cat-hr": true, "cat-marketing": true, "cat-security": true, "cat-studio": true, counselling: true,
+    help: true, index: true, pricing: true, privacy: true, solutions: true, terms: true
   };
   // PARTS: a product that is part of another page, not a page of its own (part -> its page). Its elements carry
   // data-lq-part="<id>"; when the list switches it off they are not shown (medicine.html: the Product Check tab #t-pc /

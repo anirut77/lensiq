@@ -99,7 +99,7 @@
   "nav.converter.title": "PDF to Word Converter",
   // round 13: new product lines (Exam, Gate) + sector catalogue and quick wins
   "nav.group.edu": "Education & Exams",
-  "nav.groupd.edu": "Helps invigilators know which seat to check, and grades answer sheets with a phone. The system never decides cheating; a person always does. Images are processed on the device.",
+  "nav.groupd.edu": "Helps invigilators know which seat to check. The system never decides cheating; a person always does. Images are processed on the device.",
   "nav.group.gate": "Security & Access",
   "nav.groupd.gate": "Thai licence plates read on the device for car parks and villages, PDPA signs and restricted-area alerts. Staff confirm every time.",
   "nav.exam.title": "LENSIQ Exam overview",

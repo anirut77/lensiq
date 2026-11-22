@@ -648,10 +648,10 @@ const CATEGORIES = [
   { n: 2, slug: "education", id: "edu", icon: "📝",
     name: { th: "การศึกษาและการสอบ", en: "Education & Exams", zh: "教育与考试" },
     short: { th: "การสอบ", en: "Exams", zh: "考试" },
-    intro: { th: "ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน และตรวจกระดาษคำตอบด้วยมือถือ ระบบไม่ตัดสินการทุจริต คนตัดสินเสมอ ไม่อ่านอารมณ์",
+    intro: { th: "ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน ระบบไม่ตัดสินการทุจริต คนตัดสินเสมอ ไม่อ่านอารมณ์",
       en:
-        "Helps invigilators know which seat to check, and grades answer sheets with a phone. The system never decides cheating; a person always does. No emotion is read.",
-      zh: "帮助监考员知道该查看哪个座位，并用手机批改答题卡。系统从不判定作弊，始终由人决定。不读取情绪。" },
+        "Helps invigilators know which seat to check. The system never decides cheating; a person always does. No emotion is read.",
+      zh: "帮助监考员知道该查看哪个座位。系统从不判定作弊，始终由人决定。不读取情绪。" },
     pages: ["exam", "exam-lab", "exam-hall", "exam-dashboard", "omr"] },
   { n: 3, slug: "hr", id: "work", icon: "🧑‍💼",
     name: { th: "HR และที่ทำงาน", en: "HR & Workplace", zh: "人力资源与职场" },

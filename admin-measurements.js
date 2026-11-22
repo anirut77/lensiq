@@ -1431,7 +1431,7 @@
     "lifegraph", "รุ่นทดลอง", "Trial version", "试用版", "on", "luckycolor", "รุ่นทดลอง", "Trial version", "试用版", "on",
     "medicine", "รุ่นทดลอง", "Trial version", "试用版", "on", "neuro", "เร็ว ๆ นี้", "Coming soon", "即将推出", "off",
     "numbers", "รุ่นทดลอง", "Trial version", "试用版", "on", "nutrition", "รุ่นทดลอง", "Trial version", "试用版", "on",
-    "omr", "รุ่นทดลอง", "Trial version", "试用版", "on", "palm", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "omr", "รุ่นทดลอง", "Trial version", "试用版", "off", "palm", "รุ่นทดลอง", "Trial version", "试用版", "on",
     "parking", "รุ่นทดลอง", "Trial version", "试用版", "on", "petread", "รุ่นทดลอง", "Trial version", "试用版", "on",
     "photobooth", "รุ่นทดลอง", "Trial version", "试用版", "on", "planner", "รุ่นทดลอง", "Trial version", "试用版", "on",
     "product-check", "รุ่นทดลอง", "Trial version", "试用版", "off", "qc", "รุ่นทดลอง", "Trial version", "试用版", "on",
@@ -1440,7 +1440,8 @@
     "store", "รุ่นทดลอง", "Trial version", "试用版", "on", "studio", "รุ่นทดลอง", "Trial version", "试用版", "on",
     "tables", "รุ่นทดลอง", "Trial version", "试用版", "on", "taksa", "รุ่นทดลอง", "Trial version", "试用版", "on",
     "tarot", "รุ่นทดลอง", "Trial version", "试用版", "on", "teamface", "เร็ว ๆ นี้", "Coming soon", "即将推出", "off",
-    "village", "รุ่นทดลอง", "Trial version", "试用版", "on", "zodiac", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "tryon", "รุ่นทดลอง", "Trial version", "试用版", "off", "village", "รุ่นทดลอง", "Trial version", "试用版", "on",
+    "zodiac", "รุ่นทดลอง", "Trial version", "试用版", "on",
   ];
   /** @param {any[]} a @param {string[]} names */
   function rows(a, names) {

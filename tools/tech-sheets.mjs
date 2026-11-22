@@ -654,7 +654,10 @@ export function adminData(m) {
   const S = Object.entries(m.snap.pageStatus).map(([pg, s]) => row([pg, s.st || "", s.why || "", (s.claims || []).join(";")]));
   // decision 226: the status label of every product and whether customers see it (the nav.js visibility list); back office only
   const VIS = visibility(readFileSync(join(ROOT, "nav.js"), "utf8"));
-  const Vrec = Object.keys(VIS).sort().map(pg => {
+  // re-lock 9: the nav.js list now names every page of the repo; the back office lists the products only (the category pages
+  // and every non-support page such as tryon), not the platform pages (home, legal, help, crisis page, landing pages)
+  const CATP = new Set(CD.CATEGORIES.flatMap(c => c.pages));
+  const Vrec = Object.keys(VIS).filter(pg => CATP.has(pg) || (CD.PAGES[pg] && CD.PAGES[pg].st !== "support") || !existsSync(join(ROOT, pg + ".html"))).sort().map(pg => {
     const b = CD.badgeOf(pg), lab = b && CD.BADGE[b] ? CD.BADGE[b] : { th: "", en: "", zh: "" };
     return [pg, lab.th, lab.en, lab.zh, VIS[pg] ? "on" : "off"];
   });

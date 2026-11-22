@@ -1326,3 +1326,13 @@ Question: (b) is the split wording an equally clear notice, or should the two to
 - **Decision 225 ก (2026-11-22 05:34):** the owner approved the noscript wording as written.
 - Tests: `tests/e2e/exam-consent-reread.e2e.mjs` (R1-R7, TH/EN/ZH), with `tests/e2e/exam-clip-notice.e2e.mjs`; lock
   `evals-locks/exam-consent-219.sha256` (first lock 2026-11-21, relock1 stricter and relock2 test fault on 2026-11-22).
+
+## Re-lock 9 (2026-11-22, owner entry 16 "ready to sell", decision 226 "off = not shown"): omr and tryon switched off
+
+- The answer-sheet grader (omr.html) and the try-on page (tryon.html) are switched off in the nav.js visibility list. Their
+  direct URLs show only "ระบบนี้ยังไม่เปิดให้บริการ · This service is not available yet. · 此服务尚未开放。" and no camera is
+  requested. Nothing is deleted; one value each switches them back on.
+- camera-notice.html: the clause "the answer-sheet grader photographs paper and needs no sign" (TH / EN / ZH) is hidden with
+  data-lq-off while omr is off, as for the clauses of other switched-off products (decision 226). No sign rule changed.
+- privacy.html still describes the grader's data (student names and scores stay on the teacher's device): kept unchanged,
+  because data already on a device is still covered and the privacy notice changes only with the owner and the lawyer.

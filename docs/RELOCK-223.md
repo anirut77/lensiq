@@ -213,3 +213,33 @@ Defect: the exam dashboard button "สาธิต: จำลองเหตุ�
 
 exam-dashboard.e2e (not locked) runs with the harness preview, which shows exam-hall as on, so its 5-alert demo is unchanged;
 exam-dashboard-demo.e2e (locked, sellable-c) presses no demo button and its sample data was already lab-only (amendment 2).
+
+## Re-lock 9 (sell-readiness assessment, OWNER-INBOX-2026-11-21 entry 16, 2026-11-22): omr and tryon switched off (`relock9`, `relock10`, `relock-vis9`)
+
+Why: the freeze assessment found two defects that would embarrass us in front of a customer: omr.html was ON but reads answer
+sheets wrongly without any flag on the synthetic set (66 items); tryon.html was missing from the nav.js VISIBILITY list, so its
+direct URL opened (acceptance score 48, backend not deployed, try-on parked by the owner). Switching both OFF is the reversible
+direction ("off = not shown"; one value each in nav.js).
+
+| Lock | File | Old | New | Kind |
+|---|---|---|---|---|
+| accuracy-removal-223/relock9 | contract spec + test (+ visibility-223.e2e unchanged copy) | spec.visibility.off = 6 items; R9: the list names exactly the category pages + parts | off + omr, tryon; offNames + omr / tryon names; R9: the list names EVERY root *.html page (true / false) + parts, nothing else; new spec.visibility.platformOn (19 platform pages, incl. the crisis page counselling) must be true. Bite on main 60ff12ec: R9 fails (tryon + 19 platform pages missing), R3 fails (omr card) | stricter |
+| accuracy-removal-223/relock10 | contract test R10 | an off page without a nav.js menu title fails ("no menu title") | such a page (tryon) is named by its spec.offNames patterns in the customer-handed documents; a page with neither still fails | equal / stricter |
+| walk-fix-2/relock-vis9 | walkfix2.test.js D-10 | back-office omr record "on" (shown) | record "off", not "on", and nav.js `omr: false`; every other D-10 check unchanged | inversion |
+| fortune-no-demo/relock-vis9 | fortune-no-demo.test.js test 2 | OFF list = 6 items | + omr, tryon (education count 4 -> 3 follows from the same derivation) | inversion (equal derivation) |
+| fortune-cards/relock-vis9 | fortune-cards.test.js C4 | 33 cards, OFF_226 6 items, fingerprint 4cc6b933c624… | 32 cards, OFF_226 + omr, tryon, fingerprint 987ffcfcc06e… (cat-education without the omr card, intro without answer-sheet grading TH / EN / ZH, count 3) | inversion + exact re-pin |
+| (unlocked) | solutions.test.js | OFF list 5 pages | + omr, tryon (sol-edu6 hidden with data-lq-off) | inversion |
+| fortune-cards/relock-vis9b (+ fortune-no-demo) | categories.e2e.mjs reachability | switched-off counts 5 pages + 1 part | 7 pages + 1 part and the exact list (customers, exam-hall, neuro, omr, product-check, signage, teamface, tryon); found by the local run before the product commit | inversion + exact list |
+
+Product: nav.js VISIBILITY names all 77 root pages (omr false, tryon false, platform pages true); cat-education.html, index.html
+chooser, i18n/{en,zh}-cat.js, docs/PAGE-STATUS.md regenerated (tools/cat-pages.mjs); sitemap.xml regenerated (tools/promo-meta.mjs,
+omr and tryon gone); admin-measurements.js regenerated (tools/accuracy-sync.mjs; back office lists products only, omr and tryon
+"off"); data-lq-off on the omr links of index.html (footer), cameras.html, solutions.html sol-edu6 and the three camera-notice.html
+clauses (PDPA note added); education intro (cat-data, nav.js group intro, en / zh-common nav.groupd.edu) without answer-sheet
+grading, TH / EN / ZH. No buyer document named omr or tryon (checked: docs/ONE-PAGER-*, docs/sales/**, docs/pilot/*). ?v= bumped
+site-wide, one version per file: nav.js 38, lensiq-i18n.js 38 (nav.js injects it with its own version), i18n/zh-common.js 38,
+i18n/zh-cat.js 8, admin-measurements.js 2.
+
+Interaction with branch accuracy-followup-223c (relock8, not in main at 60ff12ec): it adds demoSweep entries for omr?demo=1 and
+tryon?demo=1, and its R12 fails a sweep entry on a switched-off page. Whichever merges second must drop those two entries (and
+re-lock the spec in a new folder combining relock8 + relock9); not duplicated here.

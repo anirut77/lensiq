@@ -102,7 +102,7 @@
   "nav.converter.title": "PDF 转 Word",
   // round 13: new product lines (Exam, Gate) + sector catalogue and quick wins
   "nav.group.edu": "教育与考试",
-  "nav.groupd.edu": "帮助监考员知道该去查看哪个座位，并用手机批改答题卡。系统从不判定作弊，始终由人来决定。图像在本机处理。",
+  "nav.groupd.edu": "帮助监考员知道该去查看哪个座位。系统从不判定作弊，始终由人来决定。图像在本机处理。",
   "nav.group.gate": "安全与出入",
   "nav.groupd.gate": "在本机识别泰国车牌，用于停车场与小区；PDPA 告示与禁区提醒。每次均由工作人员确认。",
   "nav.exam.title": "LENSIQ Exam 概览",
