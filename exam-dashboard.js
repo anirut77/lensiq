@@ -285,8 +285,13 @@
   $("#demoBtn").addEventListener("click", () => {
     if (!board) { if (!$("#room").value) $("#room").value = "DEMO"; if (!$("#seatRange").value) $("#seatRange").value = "1-12"; join(U.cleanRoom($("#room").value) || "DEMO"); }
     const now = Date.now(), lab = "demolab0001", hall = "demohall0001";
-    const ev = (dt, src, node, seat, sig, lvl, x) => board.ingest(Object.assign({ v: 1, type: "ev", room, node, src, seat, sig, lvl, t: now - dt }, x || {}), now);
-    board.ingest({ v: 1, type: "hb", room, node: hall, src: "hall", name: T("exam.db.demoCam", "กล้องหน้าห้อง (สาธิต)"), seats: ["1", "2", "3", "4", "5", "6", "7", "8"], t: now, fps: 3, q: 80, pos: "front" }, now);
+    // decision 226 (owner, 2026-11-22): while the visibility list switches exam-hall off (nav.js window.LQ_VISIBILITY, parts
+    // hidden: html.lq-part-off), the demo adds no hall device and no hall event; it shows the lab-side sample only
+    const V = /** @type {any} */ (window).LQ_VISIBILITY;
+    const hallOn = !(V && V["exam-hall"] === false && document.documentElement.classList.contains("lq-part-off"));
+    const ev = (dt, src, node, seat, sig, lvl, x) => { if (src === "hall" && !hallOn) return;
+      board.ingest(Object.assign({ v: 1, type: "ev", room, node, src, seat, sig, lvl, t: now - dt }, x || {}), now); };
+    if (hallOn) board.ingest({ v: 1, type: "hb", room, node: hall, src: "hall", name: T("exam.db.demoCam", "กล้องหน้าห้อง (สาธิต)"), seats: ["1", "2", "3", "4", "5", "6", "7", "8"], t: now, fps: 3, q: 80, pos: "front" }, now);
     board.ingest({ v: 1, type: "hb", room, node: lab, src: "lab", name: "", seats: ["9"], t: now, fps: 4, q: 72 }, now);
     ev(540000, "hall", hall, "3", "empty", "info", { dur: 20000 });
     ev(420000, "hall", hall, "3", "back", "info", { dur: 140000 });
