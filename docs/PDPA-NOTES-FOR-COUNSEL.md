@@ -1264,3 +1264,28 @@ Questions: (a) is a self-service export to the person's own device, with no tran
 portability right (s.31) for on-device data, or does the privacy notice need a sentence on it before it is switched on?
 (b) should the medicine look-up history be left out of the file entirely rather than offered behind a box? Until
 counsel answers, it is left out (owner item 215); putting it back needs counsel's answer and an owner order.
+
+## Exam consent notice: re-read prompt and hidden-until-script state (owner decisions 219 ก, 2026-11-21, and 225 ก, 2026-11-22)
+
+- **Decision 219 ก (2026-11-21 23:39):** "Clear the consent tick and show "โปรดอ่านอีกครั้ง" when the notice changes; also
+  hide both notice variants until the script has run."
+- **Exam lab (`exam-lab.html`, `exam-lab.js`):** the notice has two variants, evidence clips off and evidence clips on
+  (lead text, notice items and the consent sentence). In the HTML both variants are hidden; the page script shows the one
+  that matches the clip setting. The script tracks the wording shown. While the candidate is still on the notice step, if
+  the wording changes and the consent box is ticked, the tick is cleared and the text "ประกาศเปลี่ยนแล้ว
+  โปรดอ่านอีกครั้งแล้วติ๊กยินยอมใหม่" (English and Chinese versions in the language files) is shown. This covers the first
+  render after the page script loads (a tick given before the notice wording was set) and a change of the clip setting.
+  A language switch alone is not a change of wording and keeps the tick. Once consent is given the clip setting is
+  locked. The consent box has `autocomplete="off"`, so the browser does not restore an earlier tick.
+- **Consent tick box hidden until the script has run (2026-11-22, follow-up promised with decision 225 ก):** the tick box
+  and its sentence are hidden in the HTML and shown by the page script only after it has set the notice wording, so the
+  box cannot be ticked before the notice text exists.
+- **JavaScript off (exam lab):** the notice step and the candidate's own-log card are not shown, and a neutral line
+  says the page needs JavaScript to show the notice and work, and asks the person to tell the invigilator (Thai, English,
+  Chinese). It names no recording state. The tick box is hidden by the HTML itself as well.
+- **Exam hall (`exam-hall.html`, `exam-hall.js`):** there is no consent tick on this page. Only the two lead variants
+  (clips off / clips on) are hidden in the HTML until the page script shows the matching one; with JavaScript off a
+  noscript line says the page needs JavaScript to work (Thai, English, Chinese).
+- **Decision 225 ก (2026-11-22 05:34):** the owner approved the noscript wording as written.
+- Tests: `tests/e2e/exam-consent-reread.e2e.mjs` (R1-R7, TH/EN/ZH), with `tests/e2e/exam-clip-notice.e2e.mjs`; lock
+  `evals-locks/exam-consent-219.sha256` (first lock 2026-11-21, relock1 stricter and relock2 test fault on 2026-11-22).
