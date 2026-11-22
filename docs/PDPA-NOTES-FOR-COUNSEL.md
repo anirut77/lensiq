@@ -1302,6 +1302,15 @@ and needs no sign · the medicine checker photographs boxes and needs no sign"; 
 Question: (b) is the split wording an equally clear notice, or should the two tools stay in one sentence? Question: (a) does dropping "pilot" from the heading of a notice change how a data subject should read it
 (e.g. expectations about a trial period), or is the notice still accurate as written?
 
+One help.html edit of this round (commit 2229f1ea), in the shop-camera tips: the consent tip changed its example only, because
+member recognition (customers) is switched off. The consent rule itself (explicit consent first, and a non-face alternative)
+is byte-unchanged in all three languages. Thai: "ถ้าใช้ข้อมูลใบหน้า (จดจำสมาชิก เช็คชื่อ) ต้องขอความยินยอมโดยชัดแจ้งก่อน
+และมีทางเลือกที่ไม่ใช้ใบหน้า" -> "ถ้าใช้ข้อมูลใบหน้า (เช่น เช็คชื่อ) ต้องขอความยินยอมโดยชัดแจ้งก่อน และมีทางเลือกที่ไม่ใช้ใบหน้า";
+English: "If you use face data (member recognition, check-in), get explicit consent first and offer a non-face alternative."
+-> "If you use face data (for example check-in), get explicit consent first and offer a non-face alternative."; Chinese:
+"如使用人脸数据（会员识别、签到），须先取得明示同意，并提供不使用人脸的替代方式。" -> "如使用人脸数据（例如签到），须先取得明示同意，
+并提供不使用人脸的替代方式。". The rule still applies to any face use; the example list is not a list of permitted uses.
+
 ## Exam consent notice: re-read prompt and hidden-until-script state (owner decisions 219 ก, 2026-11-21, and 225 ก, 2026-11-22)
 
 - **Decision 219 ก (2026-11-21 23:39):** "Clear the consent tick and show "โปรดอ่านอีกครั้ง" when the notice changes; also
