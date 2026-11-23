@@ -19,3 +19,7 @@ e4b800b7b766181827e8724f0deb621503ea608f06ffe221a8e79361af35f15f  tools/fortune-
 # locked 2026-11-23T02:39:50Z (tools/eval-guard.mjs lock, 1 file)
 559e82593bf36ae8c42016c0cbf59ea2b7d84e96b3c3f345d90099228eedf941  tools/fortune-s2.mjs
 559e82593bf36ae8c42016c0cbf59ea2b7d84e96b3c3f345d90099228eedf941  tools/fortune-s2.mjs  # repo file (same commit as lock 2026-11-23T02:39:50Z; field: ~/LENSIQ-field/evals/fortune-90/tools/fortune-s2.mjs)
+# RE-LOCK note 2026-11-23: rule A fixed test (dream-type line in the summary overview bullet), written after the independent review FAILED the fortune-90 branch (the 140-char whole-line cap dropped the จิตนิวรณ์ / ธาตุกำเริบ "not an omen" line), locked BEFORE the fix. Baseline at 56afb95a: TH 246 readings lose the line; EN/ZH never carry the type line in the overview (0 per type).
+# locked 2026-11-23T05:39:15Z (tools/eval-guard.mjs lock, 1 file)
+2ca1d648e64ac8ed0673b0dde451dd886831a0f254f20883dfa113df620fe1cb  rule-a/fortune-dream-type-summary.test.js
+2ca1d648e64ac8ed0673b0dde451dd886831a0f254f20883dfa113df620fe1cb  tests/unit/fortune-dream-type-summary.test.js  # repo file (same commit as lock 2026-11-23T05:39:15Z; field: ~/LENSIQ-field/evals/fortune-90/rule-a/fortune-dream-type-summary.test.js)
