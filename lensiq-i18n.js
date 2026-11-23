@@ -169,12 +169,15 @@
     var prev = cur;
     if (!(opts && opts.persist === false)) storeSet(l);
     if (l === prev && !(opts && opts.force)) return cur;
-    if (l === "en" && !(opts && opts.loaded)) {
+    if ((l === "en" || l === "zh" && lazyKb().length) && !(opts && opts.loaded)) {
       // load the English dictionaries first, then switch (page code re-renders on "lq-lang" with English available)
       // init = false: page code renders before the English dictionaries arrive, so it must re-render now even at start-up
       // (pages skip start-up events "when nothing changed from Thai")
       var o = {}; for (var k in opts || {}) o[k] = opts[k]; o.loaded = true; o.persist = false; o.prevLang = opts && opts.prevLang || prev; o.init = false;
-      loadSiblings("en").then(function () { if (want2 === l) setLang(l, o); });
+      // a page's Chinese reading data (i18n/zh-kb-*, <script type="text/lq-lazy">) loads on demand too, before the switch; a file
+      // that fails does not stop the switch (fortune-depth.js ready() then shows a plain error instead of the reading)
+      var kb = lazyKb().map(function (u) { return lazyScript(u).catch(function () { /* reported by ready() */ }); });
+      Promise.all(kb.concat(l === "en" ? [loadSiblings("en")] : [])).then(function () { if (want2 === l) setLang(l, o); });
       want2 = l;
       return cur;
     }
@@ -198,14 +201,27 @@
       // zh-kb-* is Chinese reading data: its English sibling (en-kb-*) is the English reading data, other languages skip it
       if (!m || (/^kb-/.test(m[2]) && l !== "en")) continue;
       var url = m[1] + l + "-" + m[2] + (m[3] || "");
-      if (!loading[url]) loading[url] = new Promise(function (res) {
-        var sc = doc.createElement("script"); sc.src = url; sc.async = false;
-        sc.onload = sc.onerror = function () { res(); };
-        (doc.head || doc.documentElement).appendChild(sc);
-      });
-      jobs.push(loading[url]);
+      jobs.push(lazyScript(url).catch(function () { /* a missing dictionary leaves the Thai text */ }));
     }
     return Promise.all(jobs).then(function () { /* done */ });
+  }
+  /** one script added once (same promise for every caller); rejects when it fails to load (and may be tried again)
+   *  @param {string} url @returns {Promise<void>} */
+  function lazyScript(url) {
+    if (!loading[url]) loading[url] = new Promise(function (res, rej) {
+      var sc = doc.createElement("script"); sc.src = url; sc.async = false;
+      sc.onload = function () { res(); };
+      sc.onerror = function () { delete loading[url]; var e = /** @type {any} */ (new Error("not loaded: " + url)); e.lqLoad = true; rej(e); };
+      (doc.head || doc.documentElement).appendChild(sc);
+    });
+    return loading[url];
+  }
+  /** the page's on-demand Chinese reading data (<script type="text/lq-lazy" src="i18n/zh-kb-…">) @returns {string[]} */
+  function lazyKb() {
+    if (!doc || !doc.querySelectorAll) return [];
+    var tags = doc.querySelectorAll('script[type="text/lq-lazy"][src*="i18n/zh-kb-"]'), out = [];
+    for (var i = 0; i < tags.length; i++) out.push(tags[i].getAttribute("src") || "");
+    return out.filter(Boolean);
   }
 
   // ---------- coverage measurement + dev overlay ----------
@@ -331,6 +347,7 @@
     coverage: coverage, debugOverlay: debugOverlay,
     _dicts: dicts,
     loadSiblings: loadSiblings,
+    lazyScript: lazyScript,
     _reset: function () { dicts.th = {}; dicts.en = {}; dicts.zh = {}; cur = "th"; want2 = null; if (observer) { observer.disconnect(); observer = null; } }
   };
   root.LQI18N = api;

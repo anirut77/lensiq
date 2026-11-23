@@ -4212,6 +4212,8 @@
       facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: undefined });
       opts = Object.assign({}, opts, { userText: "", useAI: false, straight: false });
     }
+    // on-demand depth / Chinese data (fortune-depth.js ready), only after the crisis check above; a failed load rejects (err.lqLoad)
+    if (root.LQFortuneDepth && root.LQFortuneDepth.ready) await root.LQFortuneDepth.ready(facts, langOf(opts));
     // Chinese and English are composed on the device only (the writing assistant and its grounding gate are Thai-only)
     // ส่วน C: โหมดตรงเรียบเรียงในเครื่องเท่านั้น (ผู้ช่วยเขียน AI ยังใช้ถ้อยคำนุ่มนวลจนกว่าเจ้าของอนุมัติ)
     const straight = opts.straight != null ? !!opts.straight : straightActive();

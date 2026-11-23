@@ -1121,7 +1121,42 @@
     }
     return out;
   }
-  const API = { apply, splitCaution, resolve, CAP, reg };
+  /* on-demand data (speed budget, coordinator 2026-11-23): a page lists its depth tables and its Chinese reading data as
+     <script type="text/lq-lazy" src="…"> (the browser neither fetches nor runs them); ready() loads them before a reading is
+     composed: every data-lq-depth tag, plus the i18n/zh-kb-* tags in a Chinese or English reading (their English siblings
+     come with the English dictionaries). Rejects with err.lqLoad = true when a file fails: the page then shows a plain error
+     instead of a reading without its data. The crisis check never waits for it (FortuneAI.interpret checks first). */
+  const lazyDone = /** @type {Record<string, Promise<void>>} */ ({});
+  function lazy(/** @type {string} */ url) {
+    if (G.LQI18N && G.LQI18N.lazyScript) return G.LQI18N.lazyScript(url); // one copy per page, shared with the language switch
+    if (!lazyDone[url]) lazyDone[url] = new Promise((res, rej) => {
+      const d = G.document, sc = d.createElement("script");
+      sc.src = url; sc.async = false;
+      sc.onload = () => res();
+      sc.onerror = () => { delete lazyDone[url]; const e = /** @type {any} */ (new Error("not loaded: " + url)); e.lqLoad = true; rej(e); };
+      (d.head || d.documentElement).appendChild(sc);
+    });
+    return lazyDone[url];
+  }
+  function ready(/** @type {any} */ facts, /** @type {string} */ lang) {
+    const d = G.document;
+    if (!d || !d.querySelectorAll || (typeof module !== "undefined" && module.exports)) return Promise.resolve();
+    const tags = Array.from(d.querySelectorAll('script[type="text/lq-lazy"]')).filter(t => t.hasAttribute("data-lq-depth")
+      || (lang === "zh" || lang === "en") && /(^|\/)i18n\/zh-kb-/.test(t.getAttribute("src") || ""));
+    const sib = lang === "en" && G.LQI18N && G.LQI18N.loadSiblings ? G.LQI18N.loadSiblings("en") : null;
+    return Promise.all(tags.map(t => lazy(String(t.getAttribute("src")))).concat(sib ? [sib] : [])).then(() => undefined);
+  }
+  const LOAD_ERR = { th: "โหลดข้อมูลคำอ่านไม่สำเร็จ กรุณาตรวจการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง", en: "The reading data did not load. Please check your internet connection and try again.",
+    zh: "解读资料未能加载。请检查网络连接后再试一次。" };
+  const loadError = (/** @type {string} */ lang) => LOAD_ERR[lang === "en" || lang === "zh" ? lang : "th"];
+  /** the plain load error in the page's language, in place of a reading @param {any} el */
+  function showLoadError(el) {
+    if (!el || !G.document) return;
+    const p = G.document.createElement("p");
+    p.className = "lq-load-err"; p.setAttribute("role", "alert"); p.textContent = loadError(G.LQI18N && G.LQI18N.lang);
+    el.replaceChildren(p);
+  }
+  const API = { apply, splitCaution, resolve, CAP, reg, ready, lazy, loadError, showLoadError };
   if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length) module.exports = API;
   root.LQFortuneDepth = API;
 })(typeof window !== "undefined" ? window : globalThis);
