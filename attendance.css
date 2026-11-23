@@ -121,8 +121,10 @@ body.att-emp .tr-only{display:none !important}
 .hr-who{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:14px}
 .hr-who input,.hr-grid input,.hr-grid select,.hr-filter select{width:100%;min-height:44px;min-width:0}
 .hr-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:thin}
-.hr-tab{background:none;border:0;padding:10px 14px;min-height:44px;white-space:nowrap;color:#4a5068;border-bottom:2px solid transparent;margin-bottom:-1px;font:inherit;cursor:pointer;flex:none}
-.hr-tab.active{color:var(--navy);border-color:var(--gold);font-weight:500}
+/* the admin tabs carry the shared .chip class (consistency rule) but keep their underline-tab look: .hr-tabs raises the specificity */
+.hr-tabs .hr-tab{background:none;border-radius:0;border:0;padding:10px 14px;
+  min-height:44px;white-space:nowrap;color:#4a5068;border-bottom:2px solid transparent;margin-bottom:-1px;font:inherit;cursor:pointer;flex:none}
+.hr-tabs .hr-tab.active{background:none;color:var(--navy);border-color:var(--gold);font-weight:500}
 .hr-pane[hidden]{display:none}
 .hr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;align-items:end;padding:0;border:0;box-shadow:none;margin-bottom:12px}
 .hr-grid > *{min-width:0}
