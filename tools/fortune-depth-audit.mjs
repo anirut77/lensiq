@@ -60,11 +60,11 @@ function load() {
 }
 
 /* ---------------- the profile set (gen only) ---------------- */
-export function makeProfiles() {
+export function makeProfiles(seedBase = 20261117) {
   const { TKB, PC, DKB } = load();
   const out = [];
   DOMAINS.forEach((d, di) => {
-    const r = lcg((20261117 ^ (di + 1) * 2654435761) >>> 0);
+    const r = lcg((seedBase ^ (di + 1) * 2654435761) >>> 0);
     const int = (a, b) => a + Math.floor(r() * (b - a + 1));
     const birth = () => ({ y: int(1950, 2007), m: int(1, 12), d: int(1, 28), h: int(0, 23), mi: int(0, 59) });
     for (let i = 0; i < N; i++) {
@@ -99,7 +99,7 @@ export function makeProfiles() {
 }
 
 /* ---------------- facts + reading for one profile ---------------- */
-function factsOf(p, now) {
+export function factsOf(p, now) {
   const { FR, PC, HS, TR, TKB, FS, NM, IC, ZD, AS, DR, LC, LK } = load();
   const x = p.input, topic = p.topic;
   switch (p.domain) {

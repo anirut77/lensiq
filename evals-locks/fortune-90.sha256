@@ -1,0 +1,8 @@
+# locked 2026-11-23T01:58:39Z (tools/eval-guard.mjs lock, 4 files)
+7ca06f16d4feca7619606e9021d28cf99677e93317c0e739f75b5614c50ca037  q2-profiles.json
+37d4da5552bdd8c1e6f1e740c9d749dc4dbbd08737db688aa1b6fbf04254c157  fortune-cut-check.mjs
+20312fdaac5eabd07024b97e87ad419a561e88da503138334890d193d4c5b471  fortune-cut-strict.test.js
+f1ea1f6cdaaf81d58b658eb7ee19fe4083e7a9cad81159ff208e6c4661d89fd8  fortune-depth-audit.mjs
+37d4da5552bdd8c1e6f1e740c9d749dc4dbbd08737db688aa1b6fbf04254c157  tools/fortune-cut-check.mjs  # repo file (same commit as lock 2026-11-23T01:58:39Z; field: ~/LENSIQ-field/evals/fortune-90/fortune-cut-check.mjs)
+20312fdaac5eabd07024b97e87ad419a561e88da503138334890d193d4c5b471  tests/unit/fortune-cut-strict.test.js  # repo file (same commit as lock 2026-11-23T01:58:39Z; field: ~/LENSIQ-field/evals/fortune-90/fortune-cut-strict.test.js)
+f1ea1f6cdaaf81d58b658eb7ee19fe4083e7a9cad81159ff208e6c4661d89fd8  tools/fortune-depth-audit.mjs  # repo file (same commit as lock 2026-11-23T01:58:39Z; field: ~/LENSIQ-field/evals/fortune-90/fortune-depth-audit.mjs)
