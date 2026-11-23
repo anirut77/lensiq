@@ -1,0 +1,3 @@
+# locked 2026-11-23T19:28:57Z (tools/eval-guard.mjs lock, 1 file)
+2c1d0df31c05cde3b6c1091950c9c931c47ba27fdf2642786d226af6e8617ef5  e2e-shard-budget.test.js
+2c1d0df31c05cde3b6c1091950c9c931c47ba27fdf2642786d226af6e8617ef5  tests/unit/e2e-shard-budget.test.js  # repo file (same commit as lock 2026-11-23T19:28:57Z; field: ~/LENSIQ-field/evals/ci-shard-budget/e2e-shard-budget.test.js)
