@@ -61,7 +61,7 @@
       "page: " + page,
       "ui_lang: " + (f.lang || (W.LQI18N ? W.LQI18N.lang : "th")),
       "reading_lang: " + (res && res.lang === "zh" ? "zh" : "th"),
-      "source: " + (res && res.source === "ai" ? "ai" : "local"),
+      "source: " + (res && res.source === "ai" ? "ai" : res && res.source === "unknown" ? "unknown" : "local"),
       "domain: " + (res && (res.domain || (res.facts && res.facts.domain)) || PAGE_DOMAIN[page] || "-"),
       "category: " + (f.cat || "other"),
       "date: " + now.toISOString().slice(0, 13) + ":00Z"
@@ -121,9 +121,24 @@
     var b = doc.createElement("button"); b.type = "button"; b.className = "lq-rp-btn";
     b.innerHTML = ICON + "<span></span>";
     /** @type {HTMLElement} */ (b.lastChild).textContent = T("rp.btn", "แจ้งปัญหาคำทำนายนี้");
-    b.addEventListener("click", function () { open(lastRes.get(container), b); });
+    b.addEventListener("click", function () { open(current(container), b); });
     wrap.appendChild(b);
     container.parentNode.insertBefore(wrap, container.nextSibling);
+  }
+
+  /** the reading to report: the one renderSections handed over, unless it was read back from the page or the page now shows
+   *  another reading (drawn while renderSections was not wrapped): then the reading on screen now (review 900ab7e4, must-fix 1)
+   *  @param {Element} container */
+  function current(container) {
+    var r = lastRes.get(container);
+    if (!r || r.__fromDom || !onScreen(container, r)) r = fromDom(container);
+    return r;
+  }
+  /** true when the stored reading's paragraphs are the ones on screen @param {Element} c @param {any} r */
+  function onScreen(c, r) {
+    var t = String(c.textContent || ""), ps = [];
+    (r.sections || []).forEach(function (/** @type {any} */ s) { (s.paragraphs || []).forEach(function (/** @type {string} */ x) { ps.push(String(x)); }); });
+    return ps.length > 0 && ps.every(function (x) { return t.indexOf(x) >= 0; });
   }
 
   /** @type {HTMLDialogElement|null} */
@@ -223,7 +238,12 @@
    *  @param {Element} c */
   function fromDom(c) {
     var txt = function (/** @type {Element|null} */ e) { return e ? String(e.textContent || "").trim() : ""; };
-    var lang = c.getAttribute("lang") || "", res = /** @type {any} */ ({ lang: /^zh/.test(lang) ? "zh" : lang === "en" ? "en" : "th", sections: [] });
+    var lang = c.getAttribute("lang") || "", res = /** @type {any} */ ({ lang: /^zh/.test(lang) ? "zh" : lang === "en" ? "en" : "th", sections: [], __fromDom: true });
+    // source (review finding 19): the stored reading's own source when it is the same reading; else an AI badge on the page = ai;
+    // no AI consent on this device = local (the AI writer cannot run without it); otherwise unknown, never a guess
+    var prev = lastRes.get(c), FA = W.FortuneAI;
+    res.source = prev && !prev.__fromDom && prev.source && onScreen(c, prev) ? prev.source
+      : c.querySelector(".fa-ai-badge") ? "ai" : FA && typeof FA.hasConsent === "function" && !FA.hasConsent() ? "local" : "unknown";
     var sm = c.querySelector(":scope > .fa-summary");
     if (sm) res.summary = { title: txt(sm.querySelector("h3")), lines: Array.prototype.map.call(sm.querySelectorAll("li"), function (/** @type {Element} */ li) {
       var b = li.querySelector("b"), k = txt(b); return { k: k, t: txt(li).slice(k.length).trim() }; }) };
@@ -243,9 +263,9 @@
       var c = sec.parentElement;
       if (!c || seen.indexOf(c) >= 0 || c.closest("dialog")) return;
       seen.push(c);
-      var nx = c.nextElementSibling;
-      if (nx && nx.classList && nx.classList.contains("lq-rp-wrap")) return;
-      try { attach(c, fromDom(c)); } catch (e) { /* never break a reading */ }
+      var nx = c.nextElementSibling, has = nx && nx.classList && nx.classList.contains("lq-rp-wrap"), st = lastRes.get(c);
+      if (has && st && !st.__fromDom && onScreen(c, st)) return; // the hooked reading is the one on screen
+      try { if (has) lastRes.set(c, fromDom(c)); else attach(c, fromDom(c)); } catch (e) { /* never break a reading */ }
     });
   }
   root.addEventListener("lq-lang", function () {
