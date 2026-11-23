@@ -72,7 +72,10 @@ test("entry 20: the re-word button stays on palm and face reading, label unchang
     assert.equal(m[1], "อ่านอีกสำนวน");
     // the actions row holds only the button now (no explanatory text next to it)
     const row = html.slice(html.indexOf('<div class="fa-actions">', html.indexOf(id) - 400), html.indexOf("</div>", html.indexOf(id)));
-    assert.doesNotMatch(row.replace(/<button[\s\S]*?<\/button>/, ""), /[฀-๿a-zA-Z一-鿿]{3}/, page + ": no text beside the button");
+    // relock1 (2026-11-23): the text check now reads the text between tags only (the first lock also matched the row's
+    // own markup, e.g. "div" / "class", so it could never pass); the assertion itself is unchanged and not relaxed
+    assert.ok(row.includes(m[0]), page + ": the button is inside the actions row");
+    assert.doesNotMatch(row.replace(m[0], "").replace(/<[^>]*>/g, " "), /[฀-๿a-zA-Z一-鿿]/, page + ": no text beside the button");
   }
   const labels = [];
   for (const [file, keys] of [["i18n/en-fortune.js", ["fortune.common.regen", "fk.again"]], ["i18n/zh-fortune.js", ["fortune.common.regen", "fk.again"]],
