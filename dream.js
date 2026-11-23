@@ -103,7 +103,11 @@
     // ภาพรวมอธิบายประเภทฝัน; หัวข้อจังหวะเวลาพูดเฉพาะช่วงเวลาที่ฝัน (ไม่ทวนคำอธิบายประเภทซ้ำ)
     var tm = { overview: ["ตามตำราไทย ฝันครั้งนี้เข้าลักษณะ" + ty.th + " " + (ty.d || "")], timing: TI ? [timeMeaning(ty, time)] : [] };
     if (!TI) delete tm.timing;
-    items.push({ id: "type", zk: ["type." + tyKey].concat(TI ? ["time." + time] : []), group: "ประเภทฝัน", label: "ฝันแบบ" + ty.th, short: "ฝันแบบ" + ty.th, strength: 0.95, tags: Object.keys(tm), meanings: tm, plain: true, omen: omen, timingFull: [ty.o].concat(TI ? [timeMeaning(ty, time)] : []) });
+    // gists: the same type line in summary length (the KB definition d with the type name, whole; longest first), so the
+    // summary's overview bullet keeps "not an omen" when the full overview line is over the summary's 140 characters
+    var gists = ty.d ? ["ฝันแบบ" + ty.th + " " + ty.d, ty.th + " " + ty.d] : [];
+    items.push({ id: "type", zk: ["type." + tyKey].concat(TI ? ["time." + time] : []), group: "ประเภทฝัน", label: "ฝันแบบ" + ty.th, short: "ฝันแบบ" + ty.th,
+      strength: 0.95, tags: Object.keys(tm), meanings: tm, plain: true, omen: omen, gists: gists, timingFull: [ty.o].concat(TI ? [timeMeaning(ty, time)] : []) });
     var names = valid.slice(0, 3).map(function (id) { return BY[id].th; });
     return { domain: "dream", topic: topic || "overall", subject: {}, headline: names.length ? "ฝันเห็น" + thaiList(names) : "", items: items,
       register: omen ? "omen" : "reflect" };

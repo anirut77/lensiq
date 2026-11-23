@@ -212,7 +212,39 @@
     });
     return res;
   }
-  const API = { TAGS, of, count, sources, fill, provenance };
+  /* whole summary lines (owner inbox entry 18 + review 2026-11-23, acceptance Q2 v3): a summary line is whole only when every copy
+     of its last words in the reading's sources ends a sentence there, so it is never a fragment of a longer sentence the reading
+     also shows. "." ends a sentence only before a space or the end and not after an abbreviation or a single letter (not "e.g",
+     "9 a", "3" of "3.5"); ";" only when nothing follows. pools = [the engine facts' strings, the composed text]; the first pool
+     that holds the last words decides (same definition as tools/fortune-cut-check.mjs). */
+  const ABBR = /(?:^|[^\p{L}\p{N}])(?:e\.g|i\.e|etc|a\.m|p\.m|no|vs|mr|mrs|dr|\p{L})$/iu;
+  function sentenceEnd(/** @type {string} */ before, /** @type {string} */ rest) {
+    if (!rest.trim() || /[。！？]$/u.test(before) || (/[!?]$/u.test(before) && /^\s/u.test(rest))) return true;
+    const m = /^\s*([.!?。！？;；])/u.exec(rest);
+    if (!m) return false;
+    const after = rest.slice(m[0].length);
+    if (!after.trim()) return true;
+    if (m[1] === ";" || m[1] === "；") return false;
+    return !(m[1] === "." && (!/^\s/u.test(after) || ABBR.test(before)));
+  }
+  /** every string (length >= 8) inside facts, as tools/fortune-cut-check.mjs reads them */
+  function strings(/** @type {any} */ x, /** @type {string[]} */ out = [], depth = 0) {
+    if (depth > 7 || x == null) return out;
+    if (typeof x === "string") { if (x.length >= 8) out.push(x); } else if (Array.isArray(x)) { for (const y of x) strings(y, out, depth + 1); }
+    else if (typeof x === "object") for (const k of Object.keys(x)) strings(x[k], out, depth + 1);
+    return out;
+  }
+  /** true when the reading continues the line t somewhere (t would be a cut fragment) */
+  function continued(/** @type {string} */ t, /** @type {string[][]} */ pools) {
+    const body = String(t || "").replace(/[.。\s]+$/u, "");
+    for (const pool of pools) for (let L = Math.min(body.length, 40); L >= 12; L--) {
+      const tail = body.slice(-L); let found = false;
+      for (const s of pool) for (let i = s.indexOf(tail); i >= 0; i = s.indexOf(tail, i + 1)) { found = true; if (!sentenceEnd(s.slice(0, i + L), s.slice(i + L))) return true; }
+      if (found) return false;
+    }
+    return false;
+  }
+  const API = { TAGS, of, count, sources, fill, provenance, strings, continued, sentenceEnd };
   // exports only from its own file: the copy inside fortune-read.js (tools/fortune-read-embed.mjs) leaves that module's exports alone
   if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length) module.exports = API;
   root.LQFortuneRestrain = API;
