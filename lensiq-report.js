@@ -14,6 +14,8 @@
  *
  * Owner hooks: window.LENSIQ_REPORT_EMAIL = "support@example.com" (in lensiq-config.js) ;
  *   LQReport.attach(container, result) for pages that render readings without FortuneAI.renderSections ;
+ *   a reading already drawn by FortuneAI.renderSections before this file loaded gets its button when the file loads (its text is
+ *   read back from the page: LQReport.fromDom), except in the crisis state ;
  *   LQReport.open(result) ; LQReport.list() / LQReport.clear() for the saved reports ; LQReport.format(result, fields). */
 (function (root) {
   "use strict";
@@ -214,9 +216,42 @@
     Object.keys(orig).forEach(function (k) { if (!(k in hooked)) /** @type {any} */ (hooked)[k] = /** @type {any} */ (orig)[k]; });
     FA.renderSections = hooked;
   }
+  /* ---------- readings already on screen when this file loads (nav.js loads it async: a reading made in the first moments
+     after opening the page had no button, faceread C1) ---------- */
+  /** the reading as the report needs it, read back from what FortuneAI.renderSections drew (summary, sections incl. "read more",
+   *  plan, reminder); used only for a reading drawn before this file loaded
+   *  @param {Element} c */
+  function fromDom(c) {
+    var txt = function (/** @type {Element|null} */ e) { return e ? String(e.textContent || "").trim() : ""; };
+    var lang = c.getAttribute("lang") || "", res = /** @type {any} */ ({ lang: /^zh/.test(lang) ? "zh" : lang === "en" ? "en" : "th", sections: [] });
+    var sm = c.querySelector(":scope > .fa-summary");
+    if (sm) res.summary = { title: txt(sm.querySelector("h3")), lines: Array.prototype.map.call(sm.querySelectorAll("li"), function (/** @type {Element} */ li) {
+      var b = li.querySelector("b"), k = txt(b); return { k: k, t: txt(li).slice(k.length).trim() }; }) };
+    c.querySelectorAll(":scope > .fa-section").forEach(function (sec) {
+      res.sections.push({ title: txt(sec.querySelector("h3")), paragraphs: Array.prototype.map.call(sec.querySelectorAll("p"), txt).filter(Boolean) });
+    });
+    var pl = c.querySelector(":scope > .fa-plan");
+    if (pl) res.plan = { title: txt(pl.querySelector("h3")), items: Array.prototype.map.call(pl.querySelectorAll("li"), function (/** @type {Element} */ li) {
+      var b = li.querySelector("b"), k = txt(b); return { for: k, t: txt(li).slice(k.length).trim() }; }) };
+    var rm = c.querySelector(":scope > .fa-reminder"); if (rm) res.reminder = txt(rm);
+    return res;
+  }
+  function attachExisting() {
+    if (doc.documentElement.hasAttribute("data-lq-crisis")) return; // crisis state: no report button
+    var seen = /** @type {Element[]} */ ([]);
+    doc.querySelectorAll(".fa-section").forEach(function (sec) {
+      var c = sec.parentElement;
+      if (!c || seen.indexOf(c) >= 0 || c.closest("dialog")) return;
+      seen.push(c);
+      var nx = c.nextElementSibling;
+      if (nx && nx.classList && nx.classList.contains("lq-rp-wrap")) return;
+      try { attach(c, fromDom(c)); } catch (e) { /* never break a reading */ }
+    });
+  }
   root.addEventListener("lq-lang", function () {
     doc.querySelectorAll(".lq-rp-btn span").forEach(function (s) { s.textContent = T("rp.btn", "แจ้งปัญหาคำทำนายนี้"); });
   });
-  W.LQReport = { attach: attach, open: open, format: format, readingText: readingText, list: list, clear: clear };
+  W.LQReport = { attach: attach, open: open, format: format, readingText: readingText, list: list, clear: clear, fromDom: fromDom };
   wrap();
+  if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", attachExisting); else attachExisting();
 })(typeof window !== "undefined" ? window : globalThis);
