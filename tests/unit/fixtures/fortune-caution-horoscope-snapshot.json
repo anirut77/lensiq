@@ -1,5 +1,5 @@
 {
- "about": "FIXED TEST SET fortune-caution wave 1 (horoscope pilot), T15: buildFacts / buildDailyFacts output of horoscope.js BEFORE the section was wired (origin fortune-cautions 7c3d9fd1), SYNTHETIC births, seeded rng (LCG); daily cases also pin Math.random to lcg(seed + 1) during the call (buildDailyFacts draws the today.bhumi meaning from Math.random). The wired page must produce the same facts (sha256 of JSON.stringify(facts)) character for character.",
+ "about": "FIXED TEST SET fortune-caution wave 1 (horoscope pilot), T15: buildFacts / buildDailyFacts output of horoscope.js BEFORE the section was wired (origin fortune-cautions 7c3d9fd1), SYNTHETIC births, seeded rng (LCG). RE-LOCK 13 (2026-11-23, equal, owner inbox 19): buildDailyFacts draws the today.bhumi meaning from the reading's rng (it used Math.random, which the old daily snapshots captured); the 18 daily hashes were regenerated with no Math.random pin, the 24 natal hashes are unchanged. The wired page must produce the same facts (sha256 of JSON.stringify(facts)) character for character.",
  "births": [
   [
    1960,
@@ -124,7 +124,7 @@
     11,
     20
    ],
-   "sha256": "a1a3923211f572de79d5f7ffa2ddb8eb4c6c70ae3179c8bd539587322c6cca12"
+   "sha256": "cd0fcfc3b4269688020fc51efd6fe40820e3e81ffc2d412cf0497e6009959ee2"
   },
   {
    "kind": "daily",
@@ -140,7 +140,7 @@
     2,
     3
    ],
-   "sha256": "06bc44d90396b65e407a8b033d8876da3e7b594e224727c5a24b430ea1364759"
+   "sha256": "14bd97c0c749c96ebdefdcfa5358e42e6be5926239642be0bcd9fe43778391b2"
   },
   {
    "kind": "daily",
@@ -156,7 +156,7 @@
     6,
     14
    ],
-   "sha256": "b4b7dd1db6fc2899cd2be939690f342a3d5bef74bc006f803bee5a408afdd925"
+   "sha256": "07146a8675e5f34c934e25dc3fedd0d9f220eb569f70b3ad346f4121040778f2"
   },
   {
    "kind": "natal",
@@ -220,7 +220,7 @@
     11,
     20
    ],
-   "sha256": "fed55040ee2cee019b2adcd92c738988e9e462e47e494f32c61b4a1dd0d81910"
+   "sha256": "f3d9d644c3f4e7f25c0e68782d954003ba6baadfed2c7dc34aea2f90b1be809c"
   },
   {
    "kind": "daily",
@@ -236,7 +236,7 @@
     2,
     3
    ],
-   "sha256": "864092a3c81b8135cc21e3f12f139b2210d6d23a42fcf7e587b963947102154e"
+   "sha256": "43930fe412bf4d593d009d712acc567a5fbd1fa8bece3ceedb305883c40409a5"
   },
   {
    "kind": "daily",
@@ -252,7 +252,7 @@
     6,
     14
    ],
-   "sha256": "4354814806850d81f743bba746963be20574124ea23eaeae05d46725fe604221"
+   "sha256": "a94d2abf0173c68b6a1bd0edfa186656ed2410ffc2fb941b21b672ec8cfbe379"
   },
   {
    "kind": "natal",
@@ -316,7 +316,7 @@
     11,
     20
    ],
-   "sha256": "0c911b9499b6cb15245890859e0733a5568d732b36092a67cb4eb497ddc551bb"
+   "sha256": "e7973f19815fb4c1468180451d0ef85d5e045c75a84a6ae755f2b501319531ff"
   },
   {
    "kind": "daily",
@@ -332,7 +332,7 @@
     2,
     3
    ],
-   "sha256": "b618f7f3a90f6ac3ad3c4355c22838a6d473ccc67a2a408342aa9c9d4d53e088"
+   "sha256": "6b71efd4c9780378798227cd940126205d9f5cee935ab65d8a41f2d8a45d6046"
   },
   {
    "kind": "daily",
@@ -348,7 +348,7 @@
     6,
     14
    ],
-   "sha256": "8af652f18adf46833f35eb3dedb4053422a3543e5d86b489c8e6ec894fcada04"
+   "sha256": "300f6e6058195aea31567709ce702346940147dca1303e2acad843d9fc5c396e"
   },
   {
    "kind": "natal",
@@ -412,7 +412,7 @@
     11,
     20
    ],
-   "sha256": "7bbdd63fb275688ed3e6c86f13753129dabe7a43086d36cfb402e461cdc63877"
+   "sha256": "73449d9d0227a3295e0bcbbbacdf2fc00331c6a1278e057722b7c1920eda2e2f"
   },
   {
    "kind": "daily",
@@ -428,7 +428,7 @@
     2,
     3
    ],
-   "sha256": "a2b5ee93e3238ac89d9d6e3df3a5ec171c2585c5b1d8fea1d675d24f2078aeac"
+   "sha256": "2acb798df09836ba28532cebc69662902abcf98a81b37e6e0c6419a77f483ae0"
   },
   {
    "kind": "daily",
@@ -444,7 +444,7 @@
     6,
     14
    ],
-   "sha256": "01ffee05b4b1f72dd00dc9c3553554250cc1302b29d8b144c0dcbacb1caee75c"
+   "sha256": "94c8616f5c537519549ce2cf13f6d0e4c0b3745cf1667873c2ea2d8bcf9bf1ce"
   },
   {
    "kind": "natal",
@@ -508,7 +508,7 @@
     11,
     20
    ],
-   "sha256": "52520684d400614515478ca43b2d4df8fe8e892a25ae2c7a4ff4b54a5b846ab1"
+   "sha256": "a90816ba4b522f7d70fb99b53f4ff799a6b75aeec8d0cfc252547b95ba303b71"
   },
   {
    "kind": "daily",
@@ -524,7 +524,7 @@
     2,
     3
    ],
-   "sha256": "30a4716ce04d6178484122dd7abf4f6da48ebbec74ca1e4995b746253545a07d"
+   "sha256": "03c5aff768e94ccd4b9bfa46a0f12e37be3f63b5ddeb21f4a472aa8704cd41db"
   },
   {
    "kind": "daily",
@@ -540,7 +540,7 @@
     6,
     14
    ],
-   "sha256": "6c97942d70136b012bc7f78b3f87b2d715a0ecfbe8f49336e72018583693aa7f"
+   "sha256": "b79c9029d370825c23b05cf080aa321a30067c36a29d285918ec49703edcf379"
   },
   {
    "kind": "natal",
@@ -604,7 +604,7 @@
     11,
     20
    ],
-   "sha256": "52b7acccf956620e86fdcf01b5f52695bc777a6f9b8f800bd1271d1b733cd5c2"
+   "sha256": "b5c3853dbeab518661b235c4bf32a082a9ae830d62cb97dfda2674333507a7e8"
   },
   {
    "kind": "daily",
@@ -620,7 +620,7 @@
     2,
     3
    ],
-   "sha256": "dbc8eb822d0c0165a5ef1b341445f2016cb25c5a3a8835be38186da057f4a761"
+   "sha256": "25c8f1370770d126c587e24580a00f2fc3ec163aec7b18bcbcc865df6f22e0a3"
   },
   {
    "kind": "daily",
@@ -636,7 +636,7 @@
     6,
     14
    ],
-   "sha256": "1ede998eab6d6b8e2470496d6367646e69f8b00c7249af96381e9df31fdb0ab3"
+   "sha256": "a90e7a7c597157bf756585d9f22ef31acb60f06c595ceccc3aeae28bd7028154"
   }
  ]
 }

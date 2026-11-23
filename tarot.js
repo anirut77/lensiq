@@ -127,9 +127,14 @@
   var TOPIC_FA = { general: "overall", love: "love", work: "work", money: "money" };
   var pickR = function (r, a) { return a[Math.floor(r() * a.length)]; };
   /** picks = [{id, rev}] ตามลำดับตำแหน่ง; คืน facts ตามสัญญาของ fortune-ai.js */
+  // owner inbox 19: a facts builder called without opts.rng gets a generator from its input + the Thai-date month, no random source
+  var detRng = function (key) {
+    var FA = root.FortuneAI || (typeof require === "function" ? require("./fortune-ai.js") : null);
+    return FA ? FA.rng(FA.seedFor(key, "m")) : function () { return 0; };
+  };
   function buildFacts(picks, topic, spreadKey, opts) {
     opts = opts || {};
-    var r = opts.rng || Math.random, S = KB.spreads[spreadKey], P = KB.patterns, items = [];
+    var r = opts.rng || detRng(["tarot", picks, topic, spreadKey]), S = KB.spreads[spreadKey], P = KB.patterns, items = [];
     var cards = picks.map(function (p) { return KB.byId[p.id]; }), Y = synthesize(picks, topic, spreadKey), n = picks.length;
     // 1) รูปแบบของทั้งชุด
     var pat = [pickR(r, P.overviewOpen[topic])];
@@ -192,7 +197,7 @@
   }
   /** ข้อความประจำการ์ดใบเดียวในตำแหน่ง (สุ่มสำนวนนำ + ความหมาย) */
   function positionText(card, rev, topic, pos, r) {
-    r = r || Math.random;
+    r = r || detRng(["tarot.pos", card.id, !!rev, topic, pos && pos.key]);
     var m = pickR(r, card.phr[rev ? "r" : "u"][topic || "general"]);
     return pos ? pickR(r, KB.posLeads(pos.key, card, rev)) + " " + m : m;
   }
@@ -541,11 +546,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function bindReading(id, factsFn) {
     var root = document.getElementById(id); if (!root) return;
-    var st2 = readings[id] = {};
+    var st2 = readings[id] = { press: 0 }; // owner entry 20: 0 on load, +1 per press of "again"
     var body = document.getElementById(id + "-body"), src = document.getElementById(id + "-src");
     function run() {
-      var seed = (Math.random() * 4294967296) >>> 0, r = FA && FA.rng ? FA.rng(seed) : Math.random;
-      var facts = factsFn(r);
+      // owner inbox 19: the draw is the user's; the wording for that draw comes from the drawn cards + the Thai-date month
+      var f0 = factsFn(FA && FA.rng ? FA.rng(0) : undefined), seed = FA && FA.seedFor ? FA.seedFor([id, f0], "m") : 0;
+      var facts = factsFn(FA && FA.rng ? FA.rng(seed) : undefined), press = st2.press;
+      if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], "m");
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true, userText: (document.getElementById("trQuestion") || {}).value || "" }) : Promise.resolve(localFallback(facts));
       root.setAttribute("aria-busy", "true");
@@ -558,7 +565,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         root.removeAttribute("aria-busy");
       });
     }
-    document.getElementById(id + "-again").addEventListener("click", function () { touch(); run(); });
+    document.getElementById(id + "-again").addEventListener("click", function () { touch(); st2.press++; run(); });
     if (FA && FA.consentControl) FA.consentControl(document.getElementById(id + "-consent"), { onChange: function () { run(); } }).catch(function () { /* ไม่มีเซิร์ฟเวอร์ AI */ });
     return run();
   }
@@ -589,12 +596,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }).join("");
     $("#trSynth").innerHTML = "<h3>" + esc(headlineOf(Y, current.picks)) + '</h3><div class="syn-grid"><div><div class="syn-bars" aria-label="' + esc(T("tarot.elAria", "จำนวนไพ่ตามธาตุ")) + '">' + bars + '</div><div class="syn-chips"><span>' + esc(T("tarot.chipMajor", "ชุดใหญ่ {a}/{n}", { a: Y.majors, n: Y.n })) + "</span><span>" + esc(T("tarot.chipRev", "กลับหัว {a}/{n}", { a: Y.reversed, n: Y.n })) + "</span>" +
       (Y.courts ? "<span>" + esc(T("tarot.chipCourt", "ราชสำนัก {a}", { a: Y.courts })) + "</span>" : "") + (Y.aces ? "<span>" + esc(T("tarot.chipAce", "เอซ {a}", { a: Y.aces })) + "</span>" : "") + '</div></div><div><p class="syn-advice"><b>' + esc(T("tarot.overallAdvice", "คำแนะนำโดยรวม")) + "</b><br>" + esc(adviceOf(Y)) + "</p></div></div>" + readingBlock("trRd", T("tarot.readingTitle", "คำทำนายโดยละเอียด"));
-    var pk = current.picks, tp = tk, sp = sk;
+    var pk = current.picks, tp = tk, sp = sk, posR = FA && FA.seedFor ? FA.rng(FA.seedFor(["tarot.pos", pk, tk, sk], "m")) : undefined;
     bindReading("trRd", function (r) { return TR.buildFacts(pk, tp, sp, { rng: r }); });
     $("#trReadings").innerHTML = pk.map(function (p, i) {
       var c = KB.byId[p.id], pos = S.positions[i], nm = cName(c), lead, text;
       if (zh) { lead = posLead(sk, i); text = cMean(c, p.rev)[tk] + (pos.advice ? " — " + cAdv(c) : ""); }
-      else { lead = TR.interpret(c, p.rev, tk, pos).lead; text = TR.positionText(c, p.rev, tk, pos) + (pos.advice ? " — " + c.advice : ""); }
+      else { lead = TR.interpret(c, p.rev, tk, pos).lead; text = TR.positionText(c, p.rev, tk, pos, posR) + (pos.advice ? " — " + c.advice : ""); }
       return '<article class="tr-read"><button type="button" class="tcard flip' + (p.rev ? " rev" : "") + '" data-i="' + i + '" aria-label="' + esc(T("tarot.viewFull", "ดูความหมายเต็มของ {c}", { c: nm })) + '">' + cardHTML(c, p.rev) + "</button><div>" +
         '<span class="pos">' + esc(posName(sk, i)) + "</span><h3>" + esc(nm) + (cSub(c) ? " <small>" + esc(cSub(c)) + "</small>" : "") + '<span class="orient' + (p.rev ? " r" : "") + '">' + esc(orientTxt(p.rev)) + "</span></h3>" +
         '<div class="kws">' + cKw(c).map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
