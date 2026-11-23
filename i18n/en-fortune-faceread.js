@@ -36,7 +36,6 @@
     "faceread.ovlGroup": "Choose a face overlay",
     "faceread.elK": "Face-shape element",
     "faceread.topicsAria": "Topics of interest",
-    "faceread.regenNote": "Each tap rephrases the text from the same set of measurements; the core meaning stays the same",
     "faceread.mtScoreL": "Five Mountains balance",
     "faceread.rvScoreL": "Four Rivers harmony",
     "faceread.recoTitle": "Element-matched picks",
