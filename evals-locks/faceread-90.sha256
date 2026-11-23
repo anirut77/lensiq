@@ -31,3 +31,6 @@ f84be47363fa31d447b6e691966a2f030a14f2f1644dc23ebe48fbfeaed716a6  tests/e2e/repo
 # locked 2026-11-23T18:50:19Z (tools/eval-guard.mjs lock, 1 file)
 f84be47363fa31d447b6e691966a2f030a14f2f1644dc23ebe48fbfeaed716a6  report-late.e2e.mjs
 f84be47363fa31d447b6e691966a2f030a14f2f1644dc23ebe48fbfeaed716a6  tests/e2e/report-late.e2e.mjs  # repo file (same commit as lock 2026-11-23T18:50:19Z; field: ~/LENSIQ-field/evals/faceread-90/report-late.e2e.mjs)
+# locked 2026-11-23T21:35:50Z (tools/eval-guard.mjs lock, 1 file)
+4269d9ca4679f7b5c3a5780a409b030f716d11d8a41ace4ca00fc09d1ac8ce2e  report-refresh.e2e.mjs
+4269d9ca4679f7b5c3a5780a409b030f716d11d8a41ace4ca00fc09d1ac8ce2e  tests/e2e/report-refresh.e2e.mjs  # repo file (same commit as lock 2026-11-23T21:35:50Z; field: ~/LENSIQ-field/evals/faceread-90/report-refresh.e2e.mjs)
