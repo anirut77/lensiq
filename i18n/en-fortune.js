@@ -254,7 +254,7 @@
     "palm.h32": "Four main lines",
     "palm.h33": "Fingers",
     "palm.h34": "Minor lines and mounts",
-    "palm.lead": "Photograph or upload your palm; the main lines appear on the photo and you can move them to match your hand before the reading.",
+    "palm.lead": "Photograph or upload your palm; the main lines appear on it and you can move them.",
     "palm.plBack": "Retake photo",
     "palm.plEditAgain": "Back to line editing",
     "palm.plEditTitle": "Check and adjust lines",
