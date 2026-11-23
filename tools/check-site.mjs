@@ -12,6 +12,8 @@
 //   node tools/check-site.mjs                 all three checks on _site/
 //   node tools/check-site.mjs --static        checks 1 + 2 only (no browser)
 //   node tools/check-site.mjs --dir out       other site directory
+//   node tools/check-site.mjs --root          crawl at the ROOT path "/" (the production site on its own host,
+//                                             tools/build-prod-site.mjs) instead of under /lensiq/
 //   node tools/check-site.mjs palm zh         crawl only pages whose name contains a word
 //   LQ_CHROME=/path/to/chrome                 other Chrome binary
 import { assertFreeSpace } from "./disk-guard.mjs";
@@ -80,12 +82,13 @@ if (siteCfg && di < 0) {
 } else if (!siteCfg && withApi.length) fail(`pages load ${SITE_CONFIG_JS} but ${SITE_CONFIG} is inactive: ${withApi}`);
 
 // 3. crawl
+const atRoot = args.includes("--root");
 if (!args.includes("--static")) {
   const { launch } = await import("../tests/e2e/cdp.mjs");
   const errors = [];
   let current = null;
   const srv = await serve(site, {
-    prefix: "/lensiq",
+    prefix: atRoot ? "" : "/lensiq",
     onResponse: (status, path) => { if (status >= 400 && !path.startsWith("/lensiq/api/") && !path.startsWith("/api/")) errors.push({ page: current, status, path }); }
   });
   assertFreeSpace({ label: "tools/check-site.mjs" }); // stops with exit 75 when free disk space is under 5 GB
@@ -130,7 +133,7 @@ if (!args.includes("--static")) {
     await browser.close();
     await srv.close();
   }
-  console.log(`check-site: crawled ${n} page load(s) (${crawl.length} page(s) x th, en, zh) under /lensiq/`);
+  console.log(`check-site: crawled ${n} page load(s) (${crawl.length} page(s) x th, en, zh) ${atRoot ? "at the root path /" : "under /lensiq/"}`);
 }
 
 console.log(failures ? `check-site: FAILED (${failures} problem(s))` : "check-site: OK");

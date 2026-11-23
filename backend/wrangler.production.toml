@@ -1,0 +1,117 @@
+# backend/wrangler.production.toml — LENSIQ API Worker, PRODUCTION environment only (SELL-READY 2026-11-23 decision 11 ก:
+# tooling prepared, NOTHING created). docs/PRODUCTION-MOVE-PLAN.md §2, sell-ready GO-LIVE-RUNBOOK appendix A.2.
+# A separate file so that backend/wrangler.toml (template + [env.test], the live test deployment) stays byte-identical:
+# no production setting can reach the test Worker, and no test setting the production one.
+# Used ONLY with `--config wrangler.production.toml --env production`, which tools/lib/cf-guard.mjs adds and requires for every
+# production command (a production command without it is refused: wrangler.toml has no [env.production]).
+# Secrets are NEVER written here: npm run secrets:setup -- --env production (the owner, own terminal).
+# Top level: the same code and compatibility settings as wrangler.toml; its name "lensiq-api" is refused by the guard, so
+# nothing is ever deployed from this file without --env production.
+name = "lensiq-api"
+main = "src/worker.js"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+
+# Admin back office served from the Worker's own origin (built by `npm run build:admin` into ./admin-dist), as in wrangler.toml.
+[assets]
+directory = "./admin-dist"
+binding = "ASSETS"
+run_worker_first = true
+
+# ======================================================================================================================
+# PRODUCTION environment. Deployed ONLY with
+#   npm run backend:deploy:prod -- --confirm-production   (tools/backend-deploy.mjs --env production: prints the targets, name guard
+#                                                          lensiq-prod-api / lensiq-prod only, refuses while the domain values below are empty)
+# New resources only: Worker "lensiq-prod-api", D1 "lensiq-prod". The test environment (wrangler.toml) is never touched by --env production.
+# No workers.dev hostname: the API is reached only on the owner-approved custom domain (api.<domain>, deploy/domains.json).
+# The four domain values (ALLOWED_ORIGINS, TURNSTILE_HOSTNAMES, SITE_URL, LINE_LOGIN_REDIRECT_URI) stay empty until the owner decides
+# the domain (SELL-READY items 8 / 9); a deploy is refused while any is empty. Every var of wrangler.toml [vars] is repeated (vars are
+# not inherited; unit test).
+# Secrets: npm run secrets:setup -- --env production (the owner, own terminal; never written here).
+[env.production]
+name = "lensiq-prod-api"
+workers_dev = false
+preview_urls = false
+
+# Workers Logs: shared ACCOUNT quota on the Free plan (200,000 events / day), as for the test environment
+[env.production.observability]
+enabled = true
+head_sampling_rate = 0.5
+
+# only the daily maintenance cron (billing is off; the Free plan allows 5 cron triggers per ACCOUNT)
+[env.production.triggers]
+crons = ["17 3 * * *"]
+
+[env.production.vars]
+# one origin: https://www.<domain> (the apex redirects to www; never pages.dev, never the old github.io origin)
+ALLOWED_ORIGINS = ""
+ADMIN_ORIGINS = ""
+# www.<domain> (the hostname of the Turnstile widget "lensiq-prod")
+TURNSTILE_HOSTNAMES = ""
+CHECKOUT_GLOBAL_HOUR = "30"
+ANALYTICS_FEATURES = ""
+GOOGLE_CLIENT_ID = ""
+# https://www.<domain>/account.html, or empty while LINE sign-in is not set up
+LINE_LOGIN_REDIRECT_URI = ""
+SIGNIN_GLOBAL_15MIN = "300"
+MEMBER_LEDGER_DAYS = "400"
+FREE_MODE = "true"
+BILLING_ENABLED = "false"
+ALLOW_GUEST_CHECKOUT = "false"
+OPN_ALLOW_LIVE = "false"
+VAT_REGISTERED = "false"
+# seller details live in D1 (admin tab "ข้อมูลกิจการ"); the repo is public: never personal data here
+SELLER_NAME = ""
+SELLER_TAX_ID = ""
+SELLER_ADDRESS = ""
+SELLER_BRANCH = "สำนักงานใหญ่"
+GO_LIVE_GATE = "enforce"
+LEGAL_TERMS_READY = "false"
+LEGAL_PRIVACY_READY = "false"
+REQUIRE_OWNER_TOTP = "true"
+MONEY_REAUTH = ""
+TEST_CHARGE_HOUR = "10"
+RECONCILE_BATCH = "25"
+LEADS_DAYS = "180"
+LEADS_GLOBAL_DAY = "50"
+LEAD_NOTIFY_LINE_DAY = "50"
+MERIT_INTEREST_FORM = "off"
+MERIT_INTEREST_DAYS = "90"
+MERIT_INTEREST_GLOBAL_DAY = "100"
+ORG_ACCOUNTS = "off"
+TRYON = "off"
+SELLER_DOC_LANG = "off"
+# owner decision Q1/214 ก: ON on the test deployment only; production keeps the customer default (SELL-READY item 13)
+LEAD_NOTIFY_HEALTH = "off"
+MAIL_PROVIDER = ""
+MAIL_FROM = ""
+# https://www.<domain> (no path, no trailing slash)
+SITE_URL = ""
+CSP_REPORT_DAYS = "90"
+CSP_REPORT_GLOBAL_DAY = "5000"
+PC_ENABLED = "true"
+# Thai FDA web service: no reuse licence (CTO-BRIEF L13): "link" only in production
+PC_THFDA_MODE = "link"
+PC_BUILD = "customer"
+PC_RATE_MIN = "30"
+RAW_EVENT_DAYS = "90"
+AUDIT_DAYS = "400"
+WEBHOOK_PAYLOAD_DAYS = "90"
+# owner decision D-3: enforced until counsel signs off; with the routes below no gated route is public (defence in depth)
+TESTER_GATE = "required"
+AI_ROUTE_PIN = "required"
+DAILY_REQUEST_CAP = "20000"
+# what selling by quotation needs: status, config, the quote form and the tester check. AI (/v1/ai/*), Product Check (/api/pc/*),
+# medicine (/api/med/*), analytics, billing, sign-in, fortune AI and CSP reports answer 404 route_off. /health/deep needs HEALTH_TOKEN.
+PUBLIC_ROUTES = "/health,/health/deep,/v1/config,/v1/leads,/v1/tester/check"
+D1_WRITE_BUDGET = "5000"
+ADMIN_UNAUTH_WRITES_HOUR = "120"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "lensiq-prod"
+# Written by `npm run backend:d1:create -- --env production --confirm-production` (owner item 231). Not a secret.
+# Do not edit by hand: a unit test accepts only the placeholder or the id recorded in deploy/created.prod.json.
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"

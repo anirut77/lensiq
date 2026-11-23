@@ -39,7 +39,6 @@
     "faceread.ovlGroup": "选择面部叠加图层",
     "faceread.elK": "脸型五行",
     "faceread.topicsAria": "感兴趣的主题",
-    "faceread.regenNote": "每次点击都会根据同一组测量结果重新组织文字，核心含义不变",
     "faceread.mtScoreL": "五岳均衡度",
     "faceread.rvScoreL": "四渎和谐度",
     "faceread.recoTitle": "五行推荐好物",

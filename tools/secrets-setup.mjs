@@ -29,6 +29,9 @@
 //   npm run secrets:setup -- --only TESTER_ACCESS_CODE     one secret (rotation: the old code stops working at once)
 //   npm run secrets:setup -- --list                 names, required / later, set or not (names only; needs a terminal too)
 //   npm run secrets:setup -- --dry-run              ask, check the shape, send nothing
+//   npm run secrets:setup -- --env production       the PRODUCTION Worker "lensiq-prod-api" ([env.production]; secret commands get
+//                                                   `--env production` only). OPENROUTER_API_KEY is "later" there: no AI key at
+//                                                   launch (owner item 233). New values only: never copy a test value.
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";
@@ -38,7 +41,8 @@ import { weakCode } from "../backend/src/tester.js";
 // the ONE format check of the two LINE notification secrets (the Worker uses the same one; owner order 2026-11-15)
 import { LINE_REASON_TEXT, LINE_SECRETS, LINE_TOKEN_ENTRY_TEXT, lineSecretProblem } from "../backend/src/line-config.js";
 import {
-  BACKEND, ENV, GuardError, accountEnvRefusal, assertEffective, assertOffline, assertSafeEnv, assertTarget, assertWranglerBundle, childEnv, deployedArgs, jsonArray, readTargets, wranglerBin
+  BACKEND, ENV, ENVS, GuardError, accountEnvRefusal, configArgs,
+  assertEffective, assertOffline, assertSafeEnv, assertTarget, assertWranglerBundle, childEnv, deployedArgs, jsonArray, readTargets, wranglerBin
 } from "./lib/cf-guard.mjs";
 
 /** when: "now" = needed for the tester deploy · "later" = optional. gen: generated here. min: shortest accepted value. */
@@ -58,12 +62,26 @@ export const SECRETS = Object.freeze([
     what: "optional: the owner's LINE user ID (U + 32 characters 0-9 a-f, LINE Developers console -> Basic settings -> Your user ID; not the @ account ID) that receives lead notifications" }
 ]);
 export const REQUIRED_NOW = SECRETS.filter(s => s.when === "now").map(s => s.name);
+/** Production differences (SELL-READY item 13 / runbook A.2): no AI key at launch, it is entered only with owner item 233. */
+const PROD_WHEN = Object.freeze({
+  OPENROUTER_API_KEY: { when: "later",
+    what: "optional: OpenRouter key, ONLY after the owner's item 233 (AI on in production); AI routes are off at launch" }
+});
+/** The secret list of an environment ("test" = SECRETS unchanged). @param {string} env */
+export function secretsFor(env = ENV) {
+  if (!Object.hasOwn(ENVS, env)) throw new GuardError(`unknown environment ${JSON.stringify(String(env)).slice(0, 40)}`);
+  if (env !== "production") return SECRETS;
+  return Object.freeze(SECRETS.map(s => (PROD_WHEN[s.name] ? Object.freeze({ ...s, ...PROD_WHEN[s.name] }) : s)));
+}
+/** @param {string} env */
+export const requiredNow = (env = ENV) => secretsFor(env).filter(s => s.when === "now").map(s => s.name);
 
-/** The wrangler argument lists of this tool: secret commands get `--env test` ONLY (cf-guard.mjs explains why). */
+/** The wrangler argument lists of this tool: secret commands get `--env <env>` ONLY (cf-guard.mjs explains why). */
 export const secretArgs = Object.freeze({
-  list: () => ["secret", "list", "--env", ENV, "--format", "json"],
-  /** @param {string} name */
-  put: name => ["secret", "put", name, "--env", ENV]
+  /** @param {string} [env] */
+  list: (env = ENV) => ["secret", "list", ...configArgs(env), "--env", env, "--format", "json"],
+  /** @param {string} name @param {string} [env] */
+  put: (name, env = ENV) => ["secret", "put", name, ...configArgs(env), "--env", env]
 });
 
 export { weakCode };
@@ -199,24 +217,38 @@ export async function main(argv, io = {}) {
     return 2;
   }
   if (env.CI || env.GITHUB_ACTIONS) { say("REFUSED: secrets:setup never runs in CI."); return 2; }
+  const envFlags = argv.filter(a => a === "--env" || a.startsWith("--env="));
+  if (envFlags.length > 1) { say("REFUSED: --env given more than once. Nothing was sent."); return 2; }
+  const ei = argv.findIndex(a => a === "--env" || a.startsWith("--env="));
+  const envName = ei < 0 ? ENV : argv[ei] === "--env" ? argv[ei + 1] : argv[ei].slice(6);
+  if (typeof envName !== "string" || !Object.hasOwn(ENVS, envName)) {
+    say(`unknown environment ${JSON.stringify(String(envName ?? "")).slice(0, 40)}: use --env test (default) or --env production`);
+    return 2;
+  }
+  // production: the owner's explicit go before anything reaches the account (also the read-only listing); a dry run sends nothing
+  if (envName === "production" && !argv.includes("--dry-run") && !argv.includes("--confirm-production")) {
+    say('REFUSED: secrets for the PRODUCTION Worker "lensiq-prod-api": repeat with --confirm-production once the owner has given the go (owner item 231). Nothing was sent.');
+    return 3;
+  }
   const only = argv.includes("--only") ? argv[argv.indexOf("--only") + 1] : null;
   if (only && !SECRETS.some(s => s.name === only)) { say(`unknown secret "${String(only).slice(0, 40)}". Names: ${SECRETS.map(s => s.name).join(", ")}`); return 2; }
   // raw mode (no echo) from here to the end of the session, whatever happens
   const term = openTerminal(stdin, io.proc || process, stdout);
-  try { return await session(argv, { ...io, stdin, stdout, env, say, term, only }); }
+  try { return await session(argv, { ...io, stdin, stdout, env, say, term, only, envName }); }
   catch (e) { if (e instanceof GuardError) { say(e.message); return 3; } throw e; }
   finally { term.close(); }
 }
 
-async function session(argv, { stdout, env, say, term, only, spawn: spawnImpl, random = randomBytes, toml }) {
+async function session(argv, { stdout, env, say, term, only, spawn: spawnImpl, random = randomBytes, toml, envName = ENV }) {
   const creds = argv.includes("--account-confirmed"); // shell credentials reach wrangler only after the owner confirmed the account
   const dry = argv.includes("--dry-run"), listOnly = argv.includes("--list"), replaceKek = argv.includes("--replace-kek");
-  const t = readTargets(toml);
+  const t = readTargets(toml, envName);
+  const SECRETS = secretsFor(t.env), REQUIRED_NOW = requiredNow(t.env);
   say(`LENSIQ secrets · environment "${t.env}"`);
   say(`TARGET   Worker "${t.worker}" (secrets are set on this Worker only)`);
-  assertTarget("worker", t.worker);
+  assertTarget("worker", t.worker, t.env);
   // secret commands: --env only. The effective name wrangler resolves is checked for every argument list we build.
-  const listArgs = secretArgs.list(), putArgs = secretArgs.put;
+  const listArgs = secretArgs.list(t.env), putArgs = (/** @type {string} */ name) => secretArgs.put(name, t.env);
   assertSafeEnv(env);
   for (const a of [listArgs, putArgs("X"), deployedArgs(t)]) assertEffective(a, t);
   if (!dry) {
@@ -232,7 +264,8 @@ async function session(argv, { stdout, env, say, term, only, spawn: spawnImpl, r
     const d = await runWrangler(env, deployedArgs(t), null, spawnImpl, creds);
     const deployments = d.status === 0 ? jsonArray(d.out) : null;
     if (!deployments || !deployments.length) {
-      say(`STOP: Worker "${t.worker}" is not deployed, or wrangler is not logged in. Deploy it first (npm run backend:deploy:test) and run "npx wrangler login". ` +
+      const deployCmd = `npm run backend:deploy:${t.env === "production" ? "prod" : "test"}`;
+      say(`STOP: Worker "${t.worker}" is not deployed, or wrangler is not logged in. Deploy it first (${deployCmd}) and run "npx wrangler login". ` +
         "A secret is never written to a Worker that does not exist. Nothing was set.");
       return 1;
     }

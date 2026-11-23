@@ -40,7 +40,6 @@
     "palm.figcap": "Orange = life line · Blue = head line · Pink = heart line · Purple = fate line",
     "palm.elK": "Hand element",
     "palm.topicsAria": "Topics of interest",
-    "palm.regenNote": "Each tap rewords the reading from the same measurements; the core meaning stays the same",
     "palm.mestH": "Mounts and Bagua areas ",
     "palm.mestSmall": "(estimated from finger and palm proportions, thumb angle, the shape of the main lines used in the reading and skin smoothness in the photo)",
     "palm.howP": "All distances are measured in palm widths (index-finger base to little-finger base), so they do not depend on photo size. Palm lines in the photo are first enhanced with local contrast and a multi-scale Hessian ridge filter, then traced along the paths described in palmistry books. Line depth is estimated from how dark the creases appear in the photo and is strongly affected by lighting.",

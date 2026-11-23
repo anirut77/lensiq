@@ -13,6 +13,8 @@ node_modules/
 
 # built GitHub Pages site (tools/build-site.mjs)
 _site/
+_site-prod/
+_site-redirect/
 
 # native-speaker review exports (tools/fortune-review-export.mjs)
 review-out/
