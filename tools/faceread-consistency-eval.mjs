@@ -18,6 +18,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertLocked, phaseDir } from "./eval-guard.mjs";
+import { assertFreeSpace } from "./disk-guard.mjs";
 import { serve } from "./static-server.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -111,6 +112,8 @@ async function session(browser, base, lang) {
 }
 const readOn = (page, b64, make) => page.evaluate(READ, b64, make);
 
+// RE-LOCK v4 (2026-11-23, before any further run): the disk guard before the browser (tests/unit/disk-guard.test.js); nothing else changed.
+assertFreeSpace({ label: "tools/faceread-consistency-eval.mjs" });
 const { base, close } = await serve(repo);
 const browser = await launch();
 const out = { at: new Date().toISOString(), head: "", protocol: "faceread-90 v1", engine: ENGINE, source: "public dataset (London Set, CC BY 4.0), headless Chrome without WebGL", c1: null, c2: null };
