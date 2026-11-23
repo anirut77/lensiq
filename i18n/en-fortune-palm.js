@@ -69,6 +69,7 @@
     "palm.eng.slow": " (this device may take a little longer)",
     "palm.eng.readyFake": "Ready (simulated detector for testing)",
     "palm.eng.readyShort": "Ready",
+    "palm.eng.loadErr": "The reading data did not load. Please check your internet connection and try again.",
     "palm.eng.modelFail": "The hand landmark model failed to load — you can still tap the hand points manually",
     "palm.eng.camLost": "Camera signal lost — please reopen the camera",
     "palm.eng.opening": "Opening the camera...",
