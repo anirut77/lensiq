@@ -101,3 +101,9 @@ ed61fa72c912af69b59ee9db7616c305f6efd8d79a51d0e1ddc473d9a3af11ce  tests/unit/acc
 a2adfb88c674295fb3b61a685aa501385a5038c8cf0e449ad6ee0e3511ea2ea8  tests/unit/accuracy-removal-223.test.js  # repo file (same commit as lock 2026-11-22T17:01:20Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock11/accuracy-removal-223.test.js)
 893541e6ac6f4da4fba5c714b4ebe070c277db3c6310b94e07110f98d2627e76  tests/e2e/visibility-223.e2e.mjs  # repo file (same commit as lock 2026-11-22T17:01:20Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock11/visibility-223.e2e.mjs)
 # field only relock11/NOTE.txt (lock 2026-11-22T17:01:20Z: no repo file uses it)
+# RE-LOCK 12 2026-11-23 (branch fortune-90b-depth, relock12): owner entry 22 item 3; tests/unit/accuracy-removal-223.spec.json labelAllow + 1 entry (tarot-depth.js, the full Siam Si wish.25 depth text); exact text only; nothing broader. NOTE: ~/LENSIQ-field/evals/accuracy-removal-223/relock12/NOTE.txt.
+# locked 2026-11-23T13:43:38Z (tools/eval-guard.mjs lock, 2 files)
+0882a3db94252c33a59426688b4838a4138804867f913ca85af7211380d0a534  relock12/accuracy-removal-223.spec.json
+0109e30431514a3c463a0407650eb17062a2ca96997dab65ae4518989ba04480  relock12/NOTE.txt
+0882a3db94252c33a59426688b4838a4138804867f913ca85af7211380d0a534  tests/unit/accuracy-removal-223.spec.json  # repo file (same commit as lock 2026-11-23T13:43:38Z; field: ~/LENSIQ-field/evals/accuracy-removal-223/relock12/accuracy-removal-223.spec.json)
+# field only relock12/NOTE.txt (lock 2026-11-23T13:43:38Z: no repo file uses it)

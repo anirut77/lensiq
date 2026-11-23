@@ -538,6 +538,18 @@
   $("rpForm").addEventListener("submit", function (/** @type {Event} */ e) {
     e.preventDefault();
     if (crisisStop()) return;
+    // the depth / Chinese reading data loads on demand (fortune-depth.js ready), after the crisis check; a report is never
+    // built without it: a failed load shows a plain error
+    var DP = W.LQFortuneDepth, go0 = $("rpGo"), bad = readBirth("rpA").err || (st.type === "report_compat" && readBirth("rpB").err);
+    // bad birth input is answered at once, before any wait (the input check needs no reading data)
+    if (bad) { $("rpMsg").textContent = T(bad, ERR[bad] || ERR["rp.err.date"]); return; }
+    if (!DP || !DP.ready) { submit(); return; }
+    go0.disabled = true; $("rpForm").setAttribute("aria-busy", "true");
+    DP.ready({ domain: "report" }, lang()).then(function () { go0.disabled = false; $("rpForm").removeAttribute("aria-busy"); submit(); }, function () {
+      go0.disabled = false; $("rpForm").removeAttribute("aria-busy"); $("rpMsg").textContent = DP.loadError(lang());
+    });
+  });
+  function submit() {
     var msg = $("rpMsg"); msg.textContent = "";
     var r;
     try { r = build(); } catch (err) { msg.textContent = T("rp.err.build", "สร้างรายงานไม่สำเร็จ กรุณาลองใหม่ (ไม่มีการใช้เครดิต)"); return; }
@@ -563,7 +575,7 @@
       if (typeof m.refresh === "function") m.refresh(); // the account chip / account page see the new balance (lq-member -> loadCredits)
       loadCredits();
     });
-  });
+  }
   doc.querySelectorAll("[data-rp-type]").forEach(function (b) { b.addEventListener("click", function () { setType(String(b.getAttribute("data-rp-type"))); }); });
   ["rpA", "rpB"].forEach(function (p) {
     var nt = $(p + "NoTime");

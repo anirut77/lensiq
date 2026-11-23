@@ -289,12 +289,15 @@
     // reading layout never folds them (fortune-restrain.js sources)
     const extras = { tips: want.slice(0, 3).concat(goalTips), restrainTips: wantT.slice(0, 3).filter(t => t && t.avoid && t.avoid.length).map(t => t.t) };
     if (r.weekday) extras.luckyColors = [r.weekday.color];
-    return {
+    const F = {
       domain: "numbers", topic: topic || "overall", subject: {},
       headline: ai ? KIND_TH[r.kind] + " คะแนนพลังรวม " + r.score + "/100" : KIND_TH[r.kind] + " คะแนน " + r.score + "/100 · ผลรวม " + s.sum,
       items: top,
       extras,
     };
+    // depth layer (fortune-depth.js): the phone's deeper layers (derived; the AI path's compactFacts never sends it)
+    if (!ai && r.kind === "phone" && typeof KB.depthOf === "function") F.depth = KB.depthOf(r);
+    return F;
   }
   /** คำพลังจากผล (ชื่อหมวดของคู่เด่น) — แทนการให้ "เลขนำโชค" */
   function strengthWords(r) {

@@ -170,13 +170,17 @@
       var r = FA && FA.rng ? FA.rng(seed) : mulberry32(seed);
       var facts = factsFn(st.topic, r), sent = factsDomain(domain, FA), press = st.press || 0; // owner entry 20: the n-th press = the n-th wording
       if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], opts.period || "m");
-      facts = Object.assign({}, facts, { domain: sent, topic: st.topic });
+      // a non-enumerable facts.depth (lifecal-kb.js: the reading's own facts stay unchanged) is carried over to the copy as is
+      var dp = facts && facts.depth; facts = Object.assign({}, facts, { domain: sent, topic: st.topic });
+      if (dp && !facts.depth) Object.defineProperty(facts, "depth", { value: dp, enumerable: false });
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       // รอบ 12: ข้อความที่ผู้ใช้พิมพ์เอง (คำถาม/ความฝัน) ส่งเป็น userText ให้ตัวตรวจวิกฤตใน FortuneAI.interpret อีกชั้น
       var userText = typeof opts.userText === "function" ? opts.userText() : opts.userText;
       var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, userText: userText || "" }) : Promise.resolve(localFallback(facts));
       box.setAttribute("aria-busy", "true");
-      return p.catch(function () { return localFallback(facts); }).then(function (res) {
+      return p.catch(function (e) { return e && e.lqLoad ? null : localFallback(facts); }).then(function (res) {
+        // the depth / language data did not load: a plain error, never a reading without its data (fortune-depth.js ready)
+        if (!res) { if (root.LQFortuneDepth) root.LQFortuneDepth.showLoadError(body); src.hidden = true; box.removeAttribute("aria-busy"); return; }
         res = relabel(res, domain, sent);
         st.result = res; st.facts = facts; st.lines = keyLines(res, facts, 3);
         // lensiq-member.js gates FA.renderSections itself (light reading for guests when the owner requires sign-in);

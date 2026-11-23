@@ -557,7 +557,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true, userText: (document.getElementById("trQuestion") || {}).value || "" }) : Promise.resolve(localFallback(facts));
       root.setAttribute("aria-busy", "true");
-      return p.catch(function () { return localFallback(facts); }).then(function (res) {
+      return p.catch(function (e) { return e && e.lqLoad ? null : localFallback(facts); }).then(function (res) {
+        // the depth / language data did not load: a plain error, never a reading without its data (fortune-depth.js ready)
+        var DP = /** @type {any} */ (window).LQFortuneDepth; if (!res) { if (DP) DP.showLoadError(body); src.hidden = true; root.removeAttribute("aria-busy"); return; }
         st2.result = res; st2.lines = keyLines(res, facts, 3);
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
         src.textContent = ""; // owner entry 23 (2026-11-23): no AI label on the result; the consent step names the writing assistant

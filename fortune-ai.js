@@ -2424,8 +2424,11 @@
       if (out && out.source !== "support") {
         const L = out.lang || langOf(opts), RS = rsOf(), tr = (/** @type {any} */ it) => (L === "en" ? (enLoad(), enItem(facts.domain, it)) : L === "zh" ? (zhLoad(), zhItem(facts.domain, it)) : it);
         // fortune-paid (2026-11-15): guidance marks by provenance, section.guidance (fortune-straight.js markGuidance; the layout ignores it)
-        const src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : []; if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, L === "en" ? REMEDY_EN : REMEDY);
-        out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
+        // depth layer (owner order 2026-11-17 item 3): fortune-depth.js adds the discipline's own material behind "อ่านเพิ่มเติม" within the
+        // composer's length cap, never in a calm / crisis reading, never a text that adds a lint / semantic finding; its restraining texts
+        // join the caution marks (never folded)
+        const DP = typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-depth.js") : root.LQFortuneDepth, dpc = DP ? DP.apply(out, facts, L, { calm, ok: isSafe, dup: S => nearDupPairs(S, L, out._dupNames || []).length + (L === "en" ? lintEn : L === "zh" ? lintZh : lint)(out).length + lintSemantic(facts, out).length + lintRepeats(out).length }) : [], src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : []; if (DP && DP.splitCaution) DP.splitCaution(out, facts, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text), dpc), { calm, sentences, lintP: p => (L === "en" ? lintEn : L === "zh" ? lintZh : lint)({ lang: L, source: "local", sections: [{ id: "x", paragraphs: [p] }] }).filter(x => x.rule !== "thin-section").length }); if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, L === "en" ? REMEDY_EN : REMEDY);
+        out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text), dpc)); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
       }
       // calm / crisis (hard limit 3): no plan, no remedy; the advice section stays (rule a) under a plain title without remedy wording
       if (calm && out) { delete out.plan; if (Array.isArray(out.sections)) out.sections = out.sections.map(x => x.id !== "advice" ? x : Object.assign({}, x, { title: CALM_T[out.lang] || CALM_T.th,
@@ -3423,7 +3426,7 @@
     if (result && result.lang === "en") {
       // English: numbers must come from the facts / phrase banks, reflective dreams carry no omen wording, sections fit the domain
       const out = [], F = normalizeFacts(facts), secs = result.sections || [];
-      const known = new Set(numsIn(JSON.stringify(facts)).concat(Array.from(bankNums()), numsIn(JSON.stringify(enLoad()[F.domain] || {}))));
+      const known = new Set(numsIn(JSON.stringify([facts, facts && facts.depth])).concat(Array.from(bankNums()), numsIn(JSON.stringify(enLoad()[F.domain] || {}))));
       const reflect = F.register === "reflect";
       for (const s of secs) for (const p of s.paragraphs || []) {
         for (const n of numsIn(p)) if (!known.has(n)) out.push({ rule: "number-evidence", section: s.id, excerpt: n + " in: " + p.slice(0, 60) });
@@ -3436,7 +3439,7 @@
     if (result && result.lang === "zh") {
       // 中文：数字须来自资料、梦（心绪之梦）不得有预言式说法、总结须安全
       const out = [], F = normalizeFacts(facts), secs = result.sections || [];
-      const known = new Set(numsIn(JSON.stringify(facts)).concat(Array.from(bankNums())));
+      const known = new Set(numsIn(JSON.stringify([facts, facts && facts.depth])).concat(Array.from(bankNums())));
       const reflect = F.register === "reflect";
       for (const s of secs) for (const p of s.paragraphs || []) {
         for (const n of numsIn(p)) if (!known.has(n)) out.push({ rule: "number-evidence", section: s.id, excerpt: n + " in: " + p.slice(0, 60) });
@@ -3475,7 +3478,7 @@
       if (c.kind === "item" && PAST_ITEM(its[0])) { const m = FUTURE.exec(c.text); if (m) push("tense-position", c.sec, c.text); }
     }
     // numbers
-    const known = new Set(numsIn(JSON.stringify(facts)).concat(Array.from(bankNums())));
+    const known = new Set(numsIn(JSON.stringify([facts, facts && facts.depth])).concat(Array.from(bankNums())));
     for (const s of secs) for (const p of s.paragraphs || []) for (const n of numsIn(p)) if (!known.has(n)) push("number-evidence", s.id, n + " in: " + p.slice(0, 80));
     // traits
     const tr = traitsOf(all);
@@ -4211,6 +4214,8 @@
       facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: undefined });
       opts = Object.assign({}, opts, { userText: "", useAI: false, straight: false });
     }
+    // on-demand depth / Chinese data (fortune-depth.js ready), only after the crisis check above; a failed load rejects (err.lqLoad)
+    if (root.LQFortuneDepth && root.LQFortuneDepth.ready) await root.LQFortuneDepth.ready(facts, langOf(opts));
     // Chinese and English are composed on the device only (the writing assistant and its grounding gate are Thai-only)
     // ส่วน C: โหมดตรงเรียบเรียงในเครื่องเท่านั้น (ผู้ช่วยเขียน AI ยังใช้ถ้อยคำนุ่มนวลจนกว่าเจ้าของอนุมัติ)
     const straight = opts.straight != null ? !!opts.straight : straightActive();
@@ -4251,9 +4256,7 @@
     if (note) out.note = note;
     return out;
   }
-  function regenerate(facts, opts = {}) {
-    return interpret(facts, Object.assign({}, opts, { seed: randomSeed() }));
-  }
+  const regenerate = (/** @type {any} */ facts, opts = {}) => interpret(facts, Object.assign({}, opts, { seed: randomSeed() }));
 
   /* ======================= ตัวช่วยแสดงผล ======================= */
   const escapeHtml = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
