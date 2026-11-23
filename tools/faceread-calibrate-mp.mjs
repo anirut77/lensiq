@@ -45,8 +45,8 @@ const ONE = async (b64) => {
   const sc = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight)), cv = document.createElement("canvas");
   cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
   const g = cv.getContext("2d", { willReadFrequently: true }); g.drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(u);
-  if (!window.__mp) window.__mp = await LQFaceMesh68.create();
-  const list = LQFaceMesh68.detect(window.__mp, cv), F = FRCore;
+  if (!window.__mp) window.__mp = await window.LQFaceMesh68.create();
+  const list = window.LQFaceMesh68.detect(window.__mp, cv), F = window.FRCore;
   const pk = F.pickFace(list, null, cv.width, cv.height), d = pk.index >= 0 ? list[pk.index] : null;
   if (!d) return { face: false };
   const data = g.getImageData(0, 0, cv.width, cv.height);
