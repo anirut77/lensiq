@@ -115,6 +115,7 @@
     "tarot.readingTitle": "Detailed reading",
     "tarot.metaTopic": "Topic",
     "tarot.metaQ": "Question: ",
+    "tarot.metaNoQ": "No question typed, so this is a general reading for the chosen topic.",
     "tarot.elAria": "Cards per element",
     "tarot.chipMajor": "Major Arcana {a}/{n}",
     "tarot.chipRev": "Reversed {a}/{n}",

@@ -118,6 +118,7 @@
     "tarot.readingTitle": "详细解读",
     "tarot.metaTopic": "主题",
     "tarot.metaQ": "问题：",
+    "tarot.metaNoQ": "未输入问题，因此按所选主题做整体解读。",
     "tarot.elAria": "各元素的牌数",
     "tarot.chipMajor": "大阿卡纳 {a}/{n}",
     "tarot.chipRev": "逆位 {a}/{n}",

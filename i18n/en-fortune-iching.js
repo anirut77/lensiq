@@ -39,6 +39,7 @@
   /* Results */
   "iching.resTopic": "Topic",
   "iching.resQ": "Question: ",
+  "iching.resNoQ": "No question typed, so this is a general reading for the chosen topic.",
   "iching.rolePrimary": "Primary hexagram (current situation)",
   "iching.roleRelating": "Relating hexagram (where things are heading)",
   "iching.roleDaily": "Hexagram of the day",

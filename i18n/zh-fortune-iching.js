@@ -40,6 +40,7 @@
   /* 结果 */
   "iching.resTopic": "主题",
   "iching.resQ": "问题：",
+  "iching.resNoQ": "未输入问题，因此按所选主题做整体解读。",
   "iching.rolePrimary": "本卦（目前的状况）",
   "iching.roleRelating": "之卦（发展趋势）",
   "iching.roleDaily": "今日之卦",
