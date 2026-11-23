@@ -20,6 +20,13 @@
 //   node tools/backend-deploy.mjs versions         versions of the Worker (ids for a rollback; read-only)
 //   node tools/backend-deploy.mjs rollback <id>    wrangler rollback <id> --env test (D1 data and secrets are not rolled back)
 // Flags: --print-only (print target + command, run nothing) · --account-confirmed (see cf-guard accountEnvRefusal).
+//        --env production   the PRODUCTION environment (backend/wrangler.production.toml [env.production]: Worker "lensiq-prod-api",
+//                           D1 "lensiq-prod"; every command gets --config wrangler.production.toml; SELL-READY decision 11 ก).
+//                           Default: test. Every action above works the same way with it, and additionally:
+//                           a mutating action needs --confirm-production (the owner's explicit go: owner item 231 for the
+//                           first creation, docs/PRODUCTION-MOVE-PLAN.md); an npm script named for the test environment
+//                           (backend:*:test) is refused; deploy is refused while productionProblems() lists anything (the
+//                           domain values are still empty, a test origin, AI / lookup routes public, PC_BUILD not customer …).
 // Nothing but plan / dry-run runs in CI.
 // Before a secret is written the Worker must already be deployed (a secret put on a missing Worker would create a draft
 // Worker); before migrate / deploy the database id in wrangler.toml must be the id of the database named "lensiq-test".
@@ -31,7 +38,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { readTesterPolicy, testerVerdict, workerTesterProblems } from "./lib/tester-policy.mjs";
 import {
-  BACKEND, D1_PLACEHOLDER, ENV, GuardError, WRANGLER_TOML, accountEnvRefusal, assertSafeEnv, assertTarget, assertWranglerBundle, fillDatabaseId, parseDatabaseId, readTargets,
+  BACKEND, CONFIG, D1_PLACEHOLDER, ENV, ENVS, GuardError, accountEnvRefusal, configArgs, tomlFor, assertSafeEnv, assertTarget, assertWranglerBundle, fillDatabaseId, parseDatabaseId, readTargets,
   verifyD1, workerDeployed, wrangler
 } from "./lib/cf-guard.mjs";
 
@@ -43,13 +50,14 @@ const CI_OK = new Set(["plan", "dry-run"]);
 /** The wrangler argument lists of each action. Worker commands that resolve `--name ?? env name` get both flags;
  *  SECRET commands get `--env test` only (with --name too, wrangler would target "<name>-test": cf-guard.mjs). */
 export function commands(t, o = {}) {
-  const W = ["--env", ENV, "--name", t.worker], S = ["--env", ENV];
+  const E = t.env || ENV;
+  const S = [...configArgs(E), "--env", E], W = [...S, "--name", t.worker];
   return {
     whoami: [["whoami"]],
     "dry-run": [["deploy", "--dry-run", ...W, "--outdir", o.outdir || "<temp dir>"]],
     "d1:create": [["d1", "create", t.d1]],
     "d1:bind": [["d1", "list", "--json"]],
-    migrate: [["d1", "migrations", "apply", t.d1, "--remote", "--env", ENV]],
+    migrate: [["d1", "migrations", "apply", t.d1, "--remote", ...S]],
     deploy: [["deploy", ...W]],
     off: [["secret", "put", "SERVICE_OFF", ...S]],
     on: [["secret", "put", "SERVICE_OFF", ...S]],
@@ -61,23 +69,87 @@ export function commands(t, o = {}) {
   };
 }
 
+const ORIGIN_RE = /^https:\/\/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/;
+/** Hosts that are never a production site or Turnstile hostname: the old site, Cloudflare's own preview / workers hosts,
+ *  local hosts and the owner's other projects. @param {string} host */
+const notProdHost = host => /(^|\.)github\.io$|(^|\.)pages\.dev$|(^|\.)workers\.dev$|^localhost$|^127\.|^\[|(^|\.)(faksak\.com|tripsdna\.com)$|dearday|aidanex|kaguwood/.test(host);
+/** Public routes that must stay off in production (licence / AI not cleared: SELL-READY item 13, runbook A.2). */
+export const PROD_ROUTES_OFF = Object.freeze(["/v1/ai/", "/api/pc/", "/api/med/", "/api/fortune", "/v1/events", "/v1/billing", "/api/auth", "/v1/csp-report", "/v1/tryon", "/v1/org"]);
+/** The production values that must hold before `deploy --env production` (docs/PRODUCTION-MOVE-PLAN.md §2.3, runbook A.2).
+ *  [] = ready. Names and reasons only; no value of a secret is ever involved (secrets are not in wrangler.toml).
+ *  @param {ReturnType<typeof readTargets>} t @returns {string[]} */
+export function productionProblems(t) {
+  const v = t.vars || {}, out = [];
+  if (t.workersDev) out.push("workers_dev must be false in [env.production] (the API is served only on the approved custom domain)");
+  if (t.previewUrls) out.push("preview_urls must be false in [env.production]");
+  const origins = String(v.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+  if (origins.length !== 1 || !ORIGIN_RE.test(origins[0]) || notProdHost(origins[0].slice(8))) {
+    out.push('ALLOWED_ORIGINS must be exactly one https origin of the production site, e.g. "https://www.<domain>" ' +
+      "(empty until the owner decides the domain; never github.io, pages.dev, workers.dev or localhost)");
+  }
+  const site = origins.length === 1 && ORIGIN_RE.test(origins[0]) ? origins[0] : null;
+  const hosts = String(v.TURNSTILE_HOSTNAMES || "").split(",").map(s => s.trim()).filter(Boolean);
+  if (!hosts.length || hosts.some(h => notProdHost(h) || !ORIGIN_RE.test("https://" + h)) || (site && !hosts.includes(site.slice(8)))) {
+    out.push("TURNSTILE_HOSTNAMES must list the production site's hostname (www.<domain>) and nothing of the test site");
+  }
+  if (!site || v.SITE_URL !== site) out.push("SITE_URL must equal the one ALLOWED_ORIGINS origin (https://www.<domain>, no path, no trailing slash)");
+  if (v.LINE_LOGIN_REDIRECT_URI && (!site || v.LINE_LOGIN_REDIRECT_URI !== site + "/account.html")) {
+    out.push("LINE_LOGIN_REDIRECT_URI must be empty or <SITE_URL>/account.html");
+  }
+  const routes = String(v.PUBLIC_ROUTES || "").split(",").map(s => s.trim()).filter(Boolean);
+  if (!routes.length) out.push("PUBLIC_ROUTES must be set in production (unset = every public route is open)");
+  const open = routes.filter(r => PROD_ROUTES_OFF.some(off => r.startsWith(off) || off.startsWith(r.replace(/\*$/, "")) && r.endsWith("*")));
+  if (open.length) out.push(`PUBLIC_ROUTES must not open ${open.join(", ")} in production (AI, lookups, medicine, analytics, billing, sign-in stay off)`);
+  const want = { PC_BUILD: "customer", PC_THFDA_MODE: "link", FREE_MODE: "true", BILLING_ENABLED: "false", ALLOW_GUEST_CHECKOUT: "false", OPN_ALLOW_LIVE: "false",
+    GO_LIVE_GATE: "enforce", TESTER_GATE: "required", AI_ROUTE_PIN: "required", REQUIRE_OWNER_TOTP: "true", ADMIN_ORIGINS: "" };
+  for (const [k, w] of Object.entries(want)) if (String(v[k] ?? "") !== w) out.push(`${k} must be ${JSON.stringify(w)} in production`);
+  return out;
+}
+
+/** The environment named by --env (default test) or an error text. @param {string[]} argv */
+export function envOf(argv) {
+  const i = argv.findIndex(a => a === "--env" || a.startsWith("--env="));
+  if (i < 0) return { env: ENV, skip: -1 };
+  const val = argv[i] === "--env" ? argv[i + 1] : argv[i].slice(6);
+  if (typeof val !== "string" || !Object.hasOwn(ENVS, val)) return { error: `unknown environment ${JSON.stringify(String(val ?? "")).slice(0, 40)}: use --env test (default) or --env production` };
+  return { env: val, skip: argv[i] === "--env" ? i + 1 : -1 };
+}
+
 /** @param {string[]} argv @param {{print?: (s: string) => void, env?: any, toml?: string, tomlPath?: string, policy?: {enforce: boolean}, policyFile?: string}} [io] @returns {number} exit code */
 export function main(argv, io = {}) {
   const print = io.print || (s => console.log(s));
   const env = io.env || process.env;
-  const words = argv.filter(a => !a.startsWith("--"));
+  const E = envOf(argv);
+  if (E.error) { print(E.error); return 2; }
+  const words = argv.filter((a, i) => !a.startsWith("--") && i !== E.skip);
   const action = words[0] || "plan";
   const printOnly = argv.includes("--print-only");
   if (!ACTIONS.includes(action)) { print(`unknown action "${action}". Actions: ${ACTIONS.join(", ")}`); return 2; }
-  const tomlPath = io.tomlPath || WRANGLER_TOML;
-  const t = readTargets(io.toml ?? readFileSync(tomlPath, "utf8"));
+  const tomlPath = io.tomlPath || tomlFor(E.env);
+  const t = readTargets(io.toml ?? readFileSync(tomlPath, "utf8"), E.env);
+  const prod = t.env === "production";
   // 1. print the targets, 2. guard — both before anything else
   print(`LENSIQ backend · action "${action}" · environment "${t.env}"`);
   print(`TARGETS  Worker "${t.worker}" · D1 database "${t.d1}" (id ${t.d1Id === D1_PLACEHOLDER ? "not created yet" : t.d1Id})`);
   try {
-    assertTarget("worker", t.worker); assertTarget("d1", t.d1);
+    assertTarget("worker", t.worker, t.env); assertTarget("d1", t.d1, t.env);
     if (action !== "plan") assertSafeEnv(env); // e.g. WRANGLER_CI_OVERRIDE_NAME would replace the Worker name of `deploy`
     if (!CI_OK.has(action) && !printOnly && (env.CI || env.GITHUB_ACTIONS)) { print("REFUSED: only plan and dry-run run in CI."); return 3; }
+    if (prod && /:test\b|test:/.test(String(env.npm_lifecycle_event || ""))) {
+      print(`REFUSED: --env production was given to the npm script "${String(env.npm_lifecycle_event).slice(0, 60)}", which is named for the test environment. ` +
+        "Use the production script (npm run backend:deploy:prod) or node tools/backend-deploy.mjs <action> --env production. Nothing was sent to Cloudflare.");
+      return 3;
+    }
+    if (prod && MUTATING.has(action) && !printOnly && !argv.includes("--confirm-production")) {
+      print(`REFUSED: "${action}" changes the PRODUCTION Worker "${t.worker}" / D1 "${t.d1}". Repeat with --confirm-production once the owner has given the go ` +
+        "(owner item 231 for the first creation; docs/PRODUCTION-MOVE-PLAN.md). Nothing was sent to Cloudflare.");
+      return 3;
+    }
+    if (prod && (action === "plan" || action === "deploy")) {
+      const probs = productionProblems(t);
+      for (const p of probs) print(`${action === "deploy" ? "REFUSED" : "NOT READY"}: ${p}`);
+      if (action === "deploy" && probs.length) { print("Nothing was sent to Cloudflare."); return 3; }
+    }
     if (MUTATING.has(action) && !printOnly) {
       assertWranglerBundle(env);
       const why = accountEnvRefusal(env, argv, print);
@@ -103,6 +175,7 @@ export function main(argv, io = {}) {
 }
 
 function act(action, { words, print, env, printOnly, t, tomlPath, creds }) {
+  const E = t.env || ENV, prodFlag = E === "production" ? " -- --env production --confirm-production" : "";
   const base = { print, printOnly, env, cfg: t, creds };
   const run = (args, extra = {}) => wrangler(args, { ...base, target: extra.target || `Worker "${t.worker}"`, ...extra });
   const C = commands(t, { version: words[1] });
@@ -124,11 +197,14 @@ function act(action, { words, print, env, printOnly, t, tomlPath, creds }) {
 
   if (action === "plan") {
     print("Order of the deploy (nothing is run by \"plan\"):");
-    for (const a of ["d1:create", "migrate",
-      "deploy"]) for (const args of C[a]) print(`  npm run backend:${a === "deploy" ? "deploy:test" : a}   ->  (cd backend && npx wrangler ${args.join(" ")})`);
-    print(`  npm run secrets:setup        ->  owner, own terminal: wrangler secret put <NAME> --env ${ENV} (value on stdin; resolves to Worker "${t.worker}")`);
-    print("  npm run ai:deploy-defaults   ->  wrangler d1 execute " + t.d1 + " --remote --env test (all-OFF AI settings)");
-    print(`  npm run backend:off | on     ->  kill switch: wrangler secret put SERVICE_OFF --env ${ENV}`);
+    for (const a of ["d1:create", "migrate", "deploy"]) {
+      const script = a === "deploy" ? (E === "production" ? "deploy:prod -- --confirm-production" : "deploy:test") : a + prodFlag;
+      for (const args of C[a]) print(`  npm run backend:${script}   ->  (cd backend && npx wrangler ${args.join(" ")})`);
+    }
+    const secretsCmd = `npm run secrets:setup${E === "production" ? " -- --env production" : ""}`;
+    print(`  ${secretsCmd}        ->  owner, own terminal: wrangler secret put <NAME> --env ${E} (value on stdin; resolves to Worker "${t.worker}")`);
+    if (E === "test") print("  npm run ai:deploy-defaults   ->  wrangler d1 execute " + t.d1 + " --remote --env test (all-OFF AI settings)");
+    print(`  npm run backend:off | on${prodFlag}     ->  kill switch: wrangler secret put SERVICE_OFF --env ${E}`);
     return 0;
   }
   if (action === "whoami") return run(C.whoami[0], { target: "none (read-only): the account wrangler is logged in to" }).status;
@@ -149,8 +225,8 @@ function act(action, { words, print, env, printOnly, t, tomlPath, creds }) {
       print(`FAILED (exit ${r.status}): no database id for "${t.d1}" in wrangler's answer.${action === "d1:create" ? ' If it already exists run "npm run backend:d1:bind".' : ""}`);
       return 1;
     }
-    writeFileSync(tomlPath, fillDatabaseId(readFileSync(tomlPath, "utf8"), id));
-    print(`D1 "${t.d1}" id ${id} written to backend/wrangler.toml [env.test] (not a secret).`);
+    writeFileSync(tomlPath, fillDatabaseId(readFileSync(tomlPath, "utf8"), id, E));
+    print(`D1 "${t.d1}" id ${id} written to backend/${CONFIG[E]} [env.${E}] (not a secret).`);
     return 0;
   }
   if (action === "migrate") return d1Ok() ? run(C.migrate[0], { target: `D1 database "${t.d1}" (apply migrations)` }).status : 3;

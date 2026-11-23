@@ -5,6 +5,22 @@ changed. No DNS record, Cloudflare resource, GitHub setting or secret was touche
 limit below was read from the official page on **2026-11-18**; the URL is next to each figure. Prices change: the
 figure shown at checkout on the day is the one that counts.
 
+**Update 2026-11-23 (SELL-READY decision 11 ก, branch `prod-tooling`): tooling A1-A5 is in the repo; still nothing created.**
+No `wrangler` command reached the account (only `deploy --dry-run`, which needs no login); no Cloudflare resource, DNS
+record, secret or GitHub setting exists or was changed. Tests: `tests/unit/prod-tooling.test.js` (T1-T10) and
+`tests/integration/prod-wrangler-config.test.mjs`, locked in `evals-locks/prod-tooling.sha256` before the code.
+Two changes against the plan below, forced by existing locked tests (they were not changed): production lives in its own
+file `backend/wrangler.production.toml` (so `backend/wrangler.toml` stays byte-identical), and the Pages upload runs from
+the owner's machine, not from GitHub Actions (no Cloudflare credential in any workflow).
+
+| Step | In the repo now | Still needs |
+|---|---|---|
+| A1 | `backend/wrangler.production.toml` `[env.production]`: Worker `lensiq-prod-api`, D1 `lensiq-prod` (placeholder id), `workers_dev = false`, one cron, every var (runbook A.2 values: `PC_BUILD customer`, `PC_THFDA_MODE link`, `TESTER_GATE required`, `LEAD_NOTIFY_HEALTH off`, `PUBLIC_ROUTES` = health, config, leads, tester check). The four domain values are empty. CI bundles it with `--dry-run` | the domain (items 8 / 9), written on a branch at runbook step 5 |
+| A2 | `tools/lib/cf-guard.mjs` per environment (`ENVS`, `CONFIG`, `isProdName`: only `lensiq-prod` / `lensiq-prod-*` without a test / staging / dev / preview part; test and production refuse each other's names and files). `backend-deploy.mjs --env production` (every change needs `--confirm-production`; a `*:test` npm script is refused; `deploy` refused while `productionProblems()` lists anything); `npm run backend:deploy:prod`. `secrets-setup --env production` (`OPENROUTER_API_KEY` = later, item 233). `backend-smoke --profile production` (approved host only; AI / Product Check / medicine / analytics / billing / sign-in must answer `route_off`). `deploy/public-site.prod.json` (inactive) | `deploy/created.prod.json` and the D1 id: written by `d1:create` at step A7 (item 231) |
+| A3 | `tools/build-prod-site.mjs` (customer bundle, old address → new base, canonical on every page, `_headers` with `frame-ancestors 'self'`, 25 MiB check, no absolute `/lensiq/` path); `check-site.mjs --root` crawls at `/`; CI builds the bundle with a placeholder domain. `deploy/site-url.prod.json` base empty = refuses | the domain |
+| A4 | `.github/workflows/deploy-prod.yml`: manual, build + verify + root crawl + artifact, no secret. Upload: `npm run site:deploy:prod -- --confirm lensiq-prod-site` on the owner's machine (`tools/pages-deploy-guard.mjs`: exact project `lensiq-prod-site`, clean origin/main, CI green, customer lock, never in CI) | empty Pages project (item 231); first upload only with item 232 |
+| A5 | `tools/build-redirect-site.mjs`: one stub per page (same path, query and `#hash` kept, hashed inline-script CSP), `404.html` fallback, self-unregistering `sw.js`. **Not** wired into `pages-lfs.yml` | cut-over step 1 (item 232). `export.html` (D-4) not built yet |
+
 ---
 
 ## สรุปภาษาไทย (อ่านส่วนนี้ก่อน)

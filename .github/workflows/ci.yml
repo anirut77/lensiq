@@ -86,6 +86,9 @@ jobs:
           node scripts/build-admin.mjs
           npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker-dist"
           test -s "$RUNNER_TEMP/worker-dist/worker.js"
+          # production environment (A1, prepared only): wrangler.production.toml [env.production]; no account, nothing deployed
+          npx wrangler deploy --dry-run --config wrangler.production.toml --env production --outdir "$RUNNER_TEMP/worker-dist-prod"
+          test -s "$RUNNER_TEMP/worker-dist-prod/worker.js"
       # Round 11: the Worker in the REAL runtime (workerd via Miniflare from backend/node_modules) with a real local D1,
       # the real migrations and a faked Opn / Google / Turnstile — checkout -> webhook -> receipt -> refund -> credit note.
       - name: API Worker integration (workerd + local D1)
@@ -96,6 +99,10 @@ jobs:
         run: node tools/self-host-fonts.mjs --check
       - name: published site contains no server code / tests / tools / docs / package.json / *.py (allowlist build)
         run: node tools/build-site.mjs && node tools/check-site.mjs --static
+      # Production bundle (A3, prepared only; never deployed from CI): customer lock, old address rewritten, canonical, _headers,
+      # 25 MiB per-file limit, no absolute /lensiq/ path. Built with a placeholder domain (.example is reserved) into its own folder.
+      - name: production site bundle builds and passes the static checks (placeholder domain)
+        run: node tools/build-prod-site.mjs --base https://www.lensiq.example/ --out _site-prod && node tools/check-site.mjs --static --dir _site-prod
       - name: legal pages have no raw [placeholders]; seller details complete whenever billing is on
         run: node tools/check-legal.mjs
 
