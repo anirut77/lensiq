@@ -1,0 +1,5 @@
+# locked 2026-11-23T05:55:42Z (tools/eval-guard.mjs lock, 2 files)
+005296bb3eccce422a418698a2c772eb204266fc8f7918988d9cb5b90ae2720d  fortune-reword-note.test.js
+3f51e836963887d15424e4af28986718646baf67822500b53ef205a70a534c7b  fortune-reword-note.e2e.mjs
+005296bb3eccce422a418698a2c772eb204266fc8f7918988d9cb5b90ae2720d  tests/unit/fortune-reword-note.test.js  # repo file (same commit as lock 2026-11-23T05:55:42Z; field: ~/LENSIQ-field/evals/reword-note/fortune-reword-note.test.js)
+3f51e836963887d15424e4af28986718646baf67822500b53ef205a70a534c7b  tests/e2e/fortune-reword-note.e2e.mjs  # repo file (same commit as lock 2026-11-23T05:55:42Z; field: ~/LENSIQ-field/evals/reword-note/fortune-reword-note.e2e.mjs)
