@@ -24,3 +24,6 @@ da6c60515540d3b8cd1b4fe45b4e0a668e8ccc8df96af3a3ef882277e80116d0  tools/faceread
 # locked 2026-11-23T17:00:36Z (tools/eval-guard.mjs lock, 1 file)
 0b09d666459562e288a4ba461ad0db5a2895e9e76ecb210c9b14444a14ac266b  faceread-calibrate-mp.mjs
 0b09d666459562e288a4ba461ad0db5a2895e9e76ecb210c9b14444a14ac266b  tools/faceread-calibrate-mp.mjs  # repo file (same commit as lock 2026-11-23T17:00:36Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-calibrate-mp.mjs)
+# locked 2026-11-23T18:49:33Z (tools/eval-guard.mjs lock, 1 file)
+f84be47363fa31d447b6e691966a2f030a14f2f1644dc23ebe48fbfeaed716a6  tests/report-late.e2e.mjs
+f84be47363fa31d447b6e691966a2f030a14f2f1644dc23ebe48fbfeaed716a6  tests/e2e/report-late.e2e.mjs  # repo file (same commit as lock 2026-11-23T18:49:33Z; field: ~/LENSIQ-field/evals/faceread-90/tests/report-late.e2e.mjs)
