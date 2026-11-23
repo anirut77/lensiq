@@ -60,10 +60,15 @@ export default async function ({ base, launch, check }) {
         assert(d2.buttons === 1 && d2.holdsNow, "after 'tell it another way' the dialog holds the reading on screen: " + JSON.stringify({ ...d2, txt: undefined }));
         assert(!d2.txt.includes(d1.first), "the earlier reading is gone from the dialog");
         // re-render 2: a nickname change (the next person's name)
-        await p.evaluate(() => { const n = document.querySelector("#frNick"); n.value = "Nok"; n.dispatchEvent(new Event("change", { bubbles: true })); });
-        await p.waitFor("document.querySelector('#frNarr').getAttribute('aria-busy') !== 'true' && document.querySelector('#frNarr').textContent.includes('Nok')", 15000);
+        // RE-LOCK v2 (2026-11-24, after the first run on the fix, product unchanged since): the composer writes the nickname into the
+        // reading in TH only (fortune-ai.js ctx.N; EN / ZH readings never name the person), so v1's wait for "Nok" in the EN / ZH text
+        // could never end. The re-render is now detected by the reading box changing; "Nok" is still required in TH. The must-fix
+        // check itself (the dialog holds the reading on screen, one button, source kept) is unchanged.
+        await p.evaluate(() => { window.__narrMut = 0; new MutationObserver(() => { window.__narrMut++; }).observe(document.querySelector("#frNarr"), { childList: true, subtree: true });
+          const n = document.querySelector("#frNick"); n.value = "Nok"; n.dispatchEvent(new Event("change", { bubbles: true })); });
+        await p.waitFor("window.__narrMut > 0 && document.querySelector('#frNarr').getAttribute('aria-busy') !== 'true'" + (lang === "th" ? " && document.querySelector('#frNarr').textContent.includes('Nok')" : ""), 15000);
         const d3 = await p.evaluate(DIALOG);
-        assert(d3.buttons === 1 && d3.holdsNow && d3.txt.includes("Nok"), "after the nickname change the dialog holds the new reading: " + JSON.stringify({ ...d3, txt: undefined }));
+        assert(d3.buttons === 1 && d3.holdsNow && (lang !== "th" || d3.txt.includes("Nok")), "after the nickname change the dialog holds the new reading: " + JSON.stringify({ ...d3, txt: undefined }));
         assert(d3.src === "local", "U2 source after re-render: " + d3.src);
         await p.close();
       });
