@@ -37,3 +37,9 @@ cfab9eeff3e15114435067eb16889c632778afae60eef6cb2e80e5e5fc6a8d7c  tests/unit/cri
 48bd6504c89359ed2fb6f2ef1ed9b727a9c62e7a5fcb25d6f2657f85bd599337  merge-pet-a1/crisis-escape-guard-allow.json
 # RE-LOCK 2026-11-18 (branch fortune-pet, merge of origin/main 0bd5b24b; owner decision 110 condition 4), tag merge-pet-a1, ledger docs/CRISIS-V3-RELOCKS.md: merge union of locked parents; no assertion changed. Parents: main cfab9eef (combined A1: crisis-v3-protect's list 3a88c00f with priceText / priceTextNote, minus the 3 dead entries palm plEthics, tarot trCredit, fengshui fsSourcesNote) + fortune-pet e994f310 (relock-pet: the 8 petread ids petTraits, petMsg, petEmpty, petVideo, petView, petCamMsg, petDetMsg, petHuman, each with its reason). Merged = cfab9eef plus those 8 ids, nothing else.
 48bd6504c89359ed2fb6f2ef1ed9b727a9c62e7a5fcb25d6f2657f85bd599337  tests/unit/crisis-escape-guard-allow.json  # repo file (merge-pet-a1)
+# RE-LOCK 2026-11-23 (branch fortune-90b-depth, relock-held26): owner entry 22 item 3; tests/unit/crisis-escape-guard-allow.json priceText + 25 exact texts of the reviewer-passed held depth texts (major.20 = exact prefix before {C}; sym.bathroom / major.20 reason "ชำระ = to cleanse, not payment"); exact texts only; nothing broader. NOTE: ~/LENSIQ-field/evals/crisis-escape-guard/relock-held26/NOTE.txt.
+# locked 2026-11-23T13:43:38Z (tools/eval-guard.mjs lock, 2 files)
+8d9c46a5783d5ac5afa4121225ca4bb80115ac102a8ab7f40d194f0a80c3ed99  relock-held26/crisis-escape-guard-allow.json
+6b114882c166b22e853601dce53f6db586099d832b6c14ad8488c70d7fabd50b  relock-held26/NOTE.txt
+8d9c46a5783d5ac5afa4121225ca4bb80115ac102a8ab7f40d194f0a80c3ed99  tests/unit/crisis-escape-guard-allow.json  # repo file (same commit as lock 2026-11-23T13:43:38Z; field: ~/LENSIQ-field/evals/crisis-escape-guard/relock-held26/crisis-escape-guard-allow.json)
+# field only relock-held26/NOTE.txt (lock 2026-11-23T13:43:38Z: no repo file uses it)

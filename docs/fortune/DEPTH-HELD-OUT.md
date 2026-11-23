@@ -1,4 +1,10 @@
-# Depth texts held out of the product (2026-11-23)
+# Depth texts held out of the product, now back (2026-11-23)
+
+**Status 2026-11-23: all 26 are back in the product, "live, awaiting expert" (expert pack).** The independent reviewer
+(Fable) passed each one against the hard limits, the 177 / 178 / 196 voice rules and the crisis rules; owner entry 22
+item 3 ("ไม่ต้องรอ ผู้ตรวจโอเคแล้วลุยเลย") put them back verbatim at the places below. Checks: the exact texts are allowed in
+tests/unit/crisis-escape-guard-allow.json (priceText, re-lock relock-held26) and accuracy-removal-223.spec.json
+(labelAllow, re-lock 12); nothing broader. The record below is kept for the expert pack.
 
 Removed from the depth port on branch fortune-90b-depth by coordinator decision (a), 2026-11-23, because each one contains
 a word that a locked check flags: crisis-price-scan (sales words: ซื้อ / ราคา / ชำระ / buy / price / 价格) or
@@ -20,6 +26,7 @@ How to read an entry:
 
 ## 1. dream.html · key `sym.bathroom` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `dream-depth.js:106` (after `sym.hotel`; held from `dream-kb.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -29,6 +36,7 @@ How to read an entry:
 
 ## 2. tarot.html (Siam Si) · key `home.10` (EN text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/en-kb-siamsee.js:146` (after `love.10`; held from `i18n/en-kb-siamsee.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -38,6 +46,7 @@ How to read an entry:
 
 ## 3. tarot.html (Siam Si) · key `home.3` (EN text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/en-kb-siamsee.js:73` (after `love.3`; held from `i18n/en-kb-siamsee.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -47,15 +56,18 @@ How to read an entry:
 
 ## 4. tarot.html (Siam Si) · key `money.1` (EN text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/en-kb-siamsee.js:53` (after `work.1`; held from `i18n/en-kb-siamsee.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
 - TH (**held**, entry 17): เรื่องเงินให้มองไปที่ยอดที่คนอื่นค้างคุณ และรายได้เสริมที่มาทางคนรู้จัก การทวงถามอย่างสุภาพมีโอกาสได้ผลดี งานเล็กหรือการขายของก็ได้ราคาที่พอใจ แบ่งส่วนหนึ่งเป็นเงินเก็บก่อนใช้ตามอารมณ์ดีใจ
 - EN (**held**): On money, look at what others still owe you and at side income that comes through people you know. A polite reminder is likely to land well, and small jobs or sales can fetch a fair price. Set aside a share as savings before spending on the glow of good news.
 - ZH (in the KB): 钱的方面可看别人欠你的款和熟人带来的副业。礼貌提醒容易有结果，小买卖或零工也能卖到合理价钱。先留一部分存起来，再花高兴时想花的钱。
+- Expert-pack note (Fable): the TH wording "ก็ได้ราคาที่พอใจ" is firmer than the EN version; the expert decides whether to soften it.
 
 ## 5. tarot.html (Siam Si) · key `money.10` (EN text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/en-kb-siamsee.js:145` (after `work.10`; held from `i18n/en-kb-siamsee.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -65,6 +77,7 @@ How to read an entry:
 
 ## 6. tarot.html (Siam Si) · key `money.12` (EN text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/en-kb-siamsee.js:168` (after `work.12`; held from `i18n/en-kb-siamsee.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -74,6 +87,7 @@ How to read an entry:
 
 ## 7. tarot.html (Siam Si) · key `money.14` (EN text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/en-kb-siamsee.js:185` (after `work.14`; held from `i18n/en-kb-siamsee.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -83,6 +97,7 @@ How to read an entry:
 
 ## 8. tarot.html (Siam Si) · key `money.15` (EN text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/en-kb-siamsee.js:195` (after `work.15`; held from `i18n/en-kb-siamsee.js`)
 - Caution: `c: true` (restraining; always shown)
 - Reason held: crisis-price-scan sales word
@@ -92,6 +107,7 @@ How to read an entry:
 
 ## 9. tarot.html (Siam Si) · key `money.27` (EN text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/en-kb-siamsee.js:326` (after `work.27`; held from `i18n/en-kb-siamsee.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -101,15 +117,18 @@ How to read an entry:
 
 ## 10. tarot.html (Siam Si) · key `money.3` (EN text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/en-kb-siamsee.js:72` (after `work.3`; held from `i18n/en-kb-siamsee.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
 - TH (**held**, entry 24): ช่วงลมดีเหมาะกับการเคลียร์เรื่องค้างคาทางการเงิน ทั้งยอดที่รอรับและยอดที่ต้องจ่าย การซื้อมาขายไปรอบสั้นหมุนได้คล่อง ลองจดรายรับรายจ่ายให้เห็นภาพชัด จะรู้ว่ากำลังไปทางไหน
 - EN (**held**): Good wind suits clearing financial loose ends, both what is due to you and what you must pay. Short-cycle buying and selling can turn over smoothly. Try writing down income and spending so you can see the picture and know where you are heading.
 - ZH (in the KB): 风顺时适合理清钱上的零碎事，包括别人欠你的和你该付的。短周期的买卖周转顺畅。试着记下收支，看清自己往哪里走。
+- Expert-pack note (Fable): EN "short-cycle buying and selling" could read "short-cycle trade in goods"; the expert decides.
 
 ## 11. tarot.html (Siam Si) · key `money.4` (EN text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/en-kb-siamsee.js:81` (after `work.4`; held from `i18n/en-kb-siamsee.js`)
 - Caution: `c: true` (restraining; always shown)
 - Reason held: crisis-price-scan sales word
@@ -119,6 +138,7 @@ How to read an entry:
 
 ## 12. tarot.html (Siam Si) · key `money.14` (ZH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/zh-kb-siamsee.js:188` (after `work.14`; held from `i18n/zh-kb-siamsee.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -128,6 +148,7 @@ How to read an entry:
 
 ## 13. tarot.html (Siam Si) · key `money.4` (ZH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `i18n/zh-kb-siamsee.js:81` (after `work.4`; held from `i18n/zh-kb-siamsee.js`)
 - Caution: `c: true` (restraining; always shown)
 - Reason held: crisis-price-scan sales word
@@ -137,6 +158,7 @@ How to read an entry:
 
 ## 14. tarot.html (Siam Si) · key `home.10` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:106` (after `love.10`; held from `tarot-kb.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -146,6 +168,7 @@ How to read an entry:
 
 ## 15. tarot.html (Siam Si) · key `home.3` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:33` (after `love.3`; held from `tarot-kb.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -155,6 +178,7 @@ How to read an entry:
 
 ## 16. tarot.html (tarot card) · key `major.20` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:377` (after `major.19`; held from `tarot-kb.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -164,15 +188,18 @@ How to read an entry:
 
 ## 17. tarot.html (Siam Si) · key `money.1` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:13` (after `work.1`; held from `tarot-kb.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
 - TH (**held**): เรื่องเงินให้มองไปที่ยอดที่คนอื่นค้างคุณ และรายได้เสริมที่มาทางคนรู้จัก การทวงถามอย่างสุภาพมีโอกาสได้ผลดี งานเล็กหรือการขายของก็ได้ราคาที่พอใจ แบ่งส่วนหนึ่งเป็นเงินเก็บก่อนใช้ตามอารมณ์ดีใจ
 - EN (**held**, entry 4): On money, look at what others still owe you and at side income that comes through people you know. A polite reminder is likely to land well, and small jobs or sales can fetch a fair price. Set aside a share as savings before spending on the glow of good news.
 - ZH (in the KB): 钱的方面可看别人欠你的款和熟人带来的副业。礼貌提醒容易有结果，小买卖或零工也能卖到合理价钱。先留一部分存起来，再花高兴时想花的钱。
+- Expert-pack note (Fable): the TH wording "ก็ได้ราคาที่พอใจ" is firmer than the EN version; the expert decides whether to soften it.
 
 ## 18. tarot.html (Siam Si) · key `money.10` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:105` (after `work.10`; held from `tarot-kb.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -182,6 +209,7 @@ How to read an entry:
 
 ## 19. tarot.html (Siam Si) · key `money.12` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:130` (after `work.12`; held from `tarot-kb.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -191,6 +219,7 @@ How to read an entry:
 
 ## 20. tarot.html (Siam Si) · key `money.14` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:147` (after `work.14`; held from `tarot-kb.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -200,6 +229,7 @@ How to read an entry:
 
 ## 21. tarot.html (Siam Si) · key `money.15` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:157` (after `work.15`; held from `tarot-kb.js`)
 - Caution: `c: true` (restraining; always shown)
 - Reason held: crisis-price-scan sales word
@@ -209,6 +239,7 @@ How to read an entry:
 
 ## 22. tarot.html (Siam Si) · key `money.19` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:204` (after `work.19`; held from `tarot-kb.js`)
 - Caution: `c: true` (restraining; always shown)
 - Reason held: crisis-price-scan sales word
@@ -218,6 +249,7 @@ How to read an entry:
 
 ## 23. tarot.html (Siam Si) · key `money.27` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:286` (after `work.27`; held from `tarot-kb.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
@@ -227,15 +259,18 @@ How to read an entry:
 
 ## 24. tarot.html (Siam Si) · key `money.3` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:32` (after `work.3`; held from `tarot-kb.js`)
 - Caution: no
 - Reason held: crisis-price-scan sales word
 - TH (**held**): ช่วงลมดีเหมาะกับการเคลียร์เรื่องค้างคาทางการเงิน ทั้งยอดที่รอรับและยอดที่ต้องจ่าย การซื้อมาขายไปรอบสั้นหมุนได้คล่อง ลองจดรายรับรายจ่ายให้เห็นภาพชัด จะรู้ว่ากำลังไปทางไหน
 - EN (**held**, entry 10): Good wind suits clearing financial loose ends, both what is due to you and what you must pay. Short-cycle buying and selling can turn over smoothly. Try writing down income and spending so you can see the picture and know where you are heading.
 - ZH (in the KB): 风顺时适合理清钱上的零碎事，包括别人欠你的和你该付的。短周期的买卖周转顺畅。试着记下收支，看清自己往哪里走。
+- Expert-pack note (Fable): EN "short-cycle buying and selling" could read "short-cycle trade in goods"; the expert decides.
 
 ## 25. tarot.html (Siam Si) · key `money.4` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:41` (after `work.4`; held from `tarot-kb.js`)
 - Caution: `c: true` (restraining; always shown)
 - Reason held: crisis-price-scan sales word
@@ -245,9 +280,12 @@ How to read an entry:
 
 ## 26. tarot.html (Siam Si) · key `wish.25` (TH text held)
 
+- Status: **live, awaiting expert** (back in the product 2026-11-23; expert pack)
 - Goes back at: `tarot-depth.js:260` (after `v.25`; held from `tarot-kb.js`)
 - Caution: `c: true` (restraining; always shown)
 - Reason held: R5 status label "เร็ว ๆ นี้" (accuracy-removal-223)
 - TH (**held**): เรื่องที่ขอจะไปถึงด้วยการเดินต่อเนื่องไม่หยุด แต่ไม่ใช่เร็ว ๆ นี้ ตั้งใจเดินวันละหน่อยและอย่าเปรียบเทียบกับคนที่ดูเหมือนไปไกลกว่า เส้นชัยของคุณจะมาถึงในแบบที่คุณเตรียมไว้
 - EN (in the KB): What you asked for will be reached by walking on without stopping, though not very soon. Walk a little each day and do not compare yourself with people who seem to be farther along. Your finish line will arrive in the way you have prepared for.
 - ZH (in the KB): 所求之事靠不停步地走而到达，但不会很快。每天走一点，不要和看似走得更远的人比。你的终点会以你所备的方式到来。
+- Expert-pack note (Fable): this is the firmest wording of the 26 ("แต่ไม่ใช่เร็ว ๆ นี้"); the expert decides whether it stays.
+
