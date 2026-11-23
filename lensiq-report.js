@@ -254,4 +254,15 @@
   W.LQReport = { attach: attach, open: open, format: format, readingText: readingText, list: list, clear: clear, fromDom: fromDom };
   wrap();
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", attachExisting); else attachExisting();
+  // a reading drawn while renderSections is not (or no longer) wrapped by this file still gets its button, right after it is drawn
+  if (typeof root.MutationObserver === "function") {
+    var queued = false;
+    new root.MutationObserver(function (list) {
+      if (queued) return;
+      for (var i = 0; i < list.length; i++) {
+        var t = /** @type {any} */ (list[i].target);
+        if (t && t.querySelector && t.querySelector(":scope > .fa-section")) { queued = true; root.queueMicrotask(function () { queued = false; attachExisting(); }); return; }
+      }
+    }).observe(doc.documentElement, { childList: true, subtree: true });
+  }
 })(typeof window !== "undefined" ? window : globalThis);
