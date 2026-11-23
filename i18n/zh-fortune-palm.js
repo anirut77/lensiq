@@ -71,6 +71,7 @@
     "palm.eng.slow": "（此设备可能稍慢一些）",
     "palm.eng.readyFake": "准备就绪（测试用模拟检测器）",
     "palm.eng.readyShort": "准备就绪",
+    "palm.line.added": "自行添加",
     "palm.plTraceLine": "沿这条线描",
     "palm.eng.loadErr": "解读资料未能加载。请检查网络连接后再试一次。",
     "palm.eng.modelFail": "手部关键点模型加载失败 — 仍可手动点选手上的关键点",

@@ -1369,6 +1369,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var TAP_LABELS = { wrist: "กึ่งกลางข้อมือ", indexBase: "โคนนิ้วชี้", pinkyBase: "โคนนิ้วก้อย", indexTip: "ปลายนิ้วชี้", middleTip: "ปลายนิ้วกลาง", ringTip: "ปลายนิ้วนาง", pinkyTip: "ปลายนิ้วก้อย" };
   var tapLabel = function (k) { return T("palm.tap." + k, TAP_LABELS[k]); };
   var unclearLabel = function () { return T("palm.line.unclear", "ไม่ชัดในภาพนี้"); };
+  var addedLabel = function () { return T("palm.line.added", "เพิ่มเอง"); }; // review r1 finding 4: a traced line is visibly user-added
   function showEditor() {
     editSec.hidden = false; setStep(2);
     $("#plTapBar").hidden = S.mode !== "tap";
@@ -1396,7 +1397,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderLineChips() {
     $("#plLineChips").innerHTML = PC.LINE_IDS.map(function (id) {
       // ไม่มีป้ายความมั่นใจ (ชัด / พอเห็น) ข้างเส้น — ความแม่นยำยังไม่ได้วัด (owner decision 165 ก); เหลือเฉพาะสถานะ "ไม่ชัดในภาพนี้" (163 ก)
-      var L = KB.lines[id], SL = S.lines && S.lines[id], conf = SL && SL.unclear ? unclearLabel() : "";
+      var L = KB.lines[id], SL = S.lines && S.lines[id], conf = SL && SL.unclear ? unclearLabel() : SL && SL.traced ? addedLabel() : "";
       return '<button type="button" role="radio" class="chip-btn" style="--c:' + L.color + '" data-line="' + id + '" aria-checked="' + (S.active === id) + '"><i></i>' + esc(KT("lines." + id + ".th", L.th)) + (conf ? " <small>(" + conf + ")</small>" : "") + "</button>";
     }).join("");
     $$("#plLineChips [data-line]").forEach(function (b) { b.addEventListener("click", function () { S.active = b.dataset.line; S.tracing = false; renderLineChips(); renderEditor(); }); });
@@ -1459,6 +1460,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var on = id === S.active;
       // เส้นที่ไม่ชัด / ผู้ใช้ติ๊กว่ามองไม่เห็น: ไม่วาดเป็นเส้นที่ตรวจพบ (ไม่ใช้สีของเส้น) — เส้นที่เลือกอยู่แสดงเป็นเส้นประสีกลางเพื่อให้ลากวางเองได้
       if (!L.present) { if (on && L.unclear) strokeLine(c, L.cp, "rgba(255,255,255,.55)", 2 * sc, true); return; }
+      if (L.traced) strokeLine(c, L.cp, "#ffffff", (on ? 8 : 6) * sc, false); // user-added: white halo under the line colour
       strokeLine(c, L.cp, KB.lines[id].color, (on ? 4 : 2.5) * sc, false);
     });
     var A = S.lines[S.active], ring = A && A.present ? KB.lines[S.active].color : "#94a3b8";
@@ -1517,12 +1519,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var endDrag = function () {
     if (drag && drag.trace && drag.trace.length >= 3) { // the stroke, snapped to the photo's crease evidence (radius 0.03 palm width), becomes the line
       var snap = PC.snapTrace(S.R, drag.trace.map(S.F.uvToPx), 0.03 * S.F.opt.s), TL = S.lines[S.active];
-      TL.cp = PC.resample(snap, 5).map(function (q) { var u = S.F.pxToUV(q); return [PC.round(u[0], 4), PC.round(u[1], 4)]; });
+      TL.cp = PC.resample(snap, 5).map(function (q) { var u = S.F.pxToUV(q); return [PC.round(Math.max(-0.42, Math.min(1.32, u[0])), 4), PC.round(Math.max(-0.4, Math.min(1.12, u[1])), 4)]; });
       TL.present = true; TL.unclear = false; TL.placed = true; TL.traced = true; S.tracing = false; renderLineChips();
     }
     if (drag) { drag = null; edCv.classList.remove("dragging"); renderEditor(); }
   };
-  edCv.addEventListener("pointerup", endDrag); edCv.addEventListener("pointercancel", endDrag);
+  edCv.addEventListener("pointerup", endDrag); edCv.addEventListener("pointercancel", function () { if (drag && drag.trace) drag.trace = []; endDrag(); }); // a cancelled stroke places nothing
 
   // เส้นรอง (ผู้ใช้ยืนยัน) และเนิน
   function renderMinor() {
@@ -1743,7 +1745,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plLines").innerHTML = rd.lines.map(function (l) {
       return '<div class="line-card" data-line="' + l.id + '" style="--c:' + l.color + '"><h4>' + esc(KT("lines." + l.id + ".th", l.th)) +
         // Thai keeps the kanji name as a subtitle (design since 3808a3cb); English / Chinese show the one name only (A5)
-        (trL() ? "" : "<span>" + esc(T("palm.lineEn." + l.id, l.cn)) + "</span>") + "</h4>" +
+        (trL() ? "" : "<span>" + esc(T("palm.lineEn." + l.id, l.cn)) + "</span>") + "</h4>" + (S.lines && S.lines[l.id] && S.lines[l.id].traced ? '<p class="added">' + esc(addedLabel()) + "</p>" : "") +
         '<p class="about">' + esc(KT("lines." + l.id + ".about", l.about)) + "</p><ul>" +
         l.items.map(function (it) { return "<li><b>" + esc(lineCatLabel(l.id, it.cat)) + "</b>" + esc(ZM(l.id + "." + it.cat, it.meaning, LINE_ORDER[l.id])) + "</li>"; }).join("") + "</ul></div>";
     }).join("") + (R.unclear || []).map(function (id) { // สถานะเท่านั้น ไม่มีคำอ่าน (owner decision 163 ก)
