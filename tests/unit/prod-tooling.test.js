@@ -597,9 +597,11 @@ test("T8 deploy-prod.yml: manual, build + verify only, no Cloudflare credential;
   writeFileSync(join(site, "lensiq-config.js"), CL + "window.X = 1;\n");
   const SHA = "0123456789abcdef0123456789abcdef01234567";
   const GIT = { head: SHA, main: SHA, clean: true };
+  // RE-LOCK 3 (review finding 3): the bundle carries its build stamp (commit + base) and the guard compares it with HEAD and the base
+  writeFileSync(join(site, "_lensiq-build.json"), JSON.stringify({ commit: SHA, base: SITE + "/" }));
   const sb = sandbox();
   try {
-    const base = { project: "lensiq-prod-site", confirm: "lensiq-prod-site", dir: site, git: GIT, ci: true, env: sb.env };
+    const base = { project: "lensiq-prod-site", confirm: "lensiq-prod-site", dir: site, git: GIT, ci: true, env: sb.env, base: SITE + "/" };
     assert.deepEqual(PG.deployProblems(base), []);
     const has = (o, re) => { const p = PG.deployProblems({ ...base, ...o }); assert.ok(p.some(x => re.test(x)), JSON.stringify(p)); assert.ok(!p.join(" ").includes(CANARY)); };
     has({ env: { ...sb.env, CI: "true" } }, /CI/);
@@ -629,7 +631,7 @@ test("T8 deploy-prod.yml: manual, build + verify only, no Cloudflare credential;
     const shas = [];
     const cli = (argv, env, extra = {}) => {
       const out = [];
-      const code = PG.main(argv, { print: s => out.push(s), env, git: GIT, ciGreen: sha => { shas.push(sha); return true; }, ...extra });
+      const code = PG.main(argv, { print: s => out.push(s), env, git: GIT, ciGreen: sha => { shas.push(sha); return true; }, base: SITE + "/", ...extra });
       return { code, out: out.join("\n") };
     };
     const A = ["--project", "lensiq-prod-site", "--confirm", "lensiq-prod-site", "--dir", site];

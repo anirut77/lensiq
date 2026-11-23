@@ -33,3 +33,14 @@ c469ee0951881e781c93d15ff3e1abe439043d710fd9bcea5ef1f1f13e6978a2  tests/integrat
 # production command carries --config wrangler.production.toml) and the Pages upload runs locally through tools/pages-deploy-guard.mjs; deploy-prod.yml
 # builds + verifies only. Those 3 tests are unchanged; no assertion here was weakened (new refusal cases added). NOTE.txt + relock2.diff in
 # ~/LENSIQ-field/evals/prod-tooling/relock2/.
+# locked 2026-11-23T03:50:36Z (tools/eval-guard.mjs lock, 4 files)
+f211d376a66d651aea247195a655c3fe2bace8bf187db69f120e4f8947f3d737  relock3/prod-tooling.test.js
+0c05adbfd7ccfcb3ca1974512dbc3ea936c45eb304a57847298baadae49ce235  relock3/prod-tooling-r3.test.js
+61b368ab882d2bdf25ebe2ed0c2d5d3b738d79f980fdf008c3f2ae0af9214eed  relock3/NOTE.txt
+078e3749e332a9466c6a679a05290136e502ed5c1b916ae47d8b8723a727a303  relock3/relock3.diff
+f211d376a66d651aea247195a655c3fe2bace8bf187db69f120e4f8947f3d737  tests/unit/prod-tooling.test.js  # repo file (same commit as lock 2026-11-23T03:50:36Z; field: ~/LENSIQ-field/evals/prod-tooling/relock3/prod-tooling.test.js)
+0c05adbfd7ccfcb3ca1974512dbc3ea936c45eb304a57847298baadae49ce235  tests/unit/prod-tooling-r3.test.js  # repo file (same commit as lock 2026-11-23T03:50:36Z; field: ~/LENSIQ-field/evals/prod-tooling/relock3/prod-tooling-r3.test.js)
+# field only relock3/NOTE.txt (lock 2026-11-23T03:50:36Z: no repo file uses it)
+# field only relock3/relock3.diff (lock 2026-11-23T03:50:36Z: no repo file uses it)
+# RE-LOCK 3 2026-11-23 (branch prod-tooling, BEFORE the code): review findings 2-7 + 1 on eb750e1c. New file prod-tooling-r3.test.js (R2-R7);
+# T8 fixture gains the build stamp (stricter). Other phases' locks untouched. NOTE.txt + relock3.diff in ~/LENSIQ-field/evals/prod-tooling/relock3/.
