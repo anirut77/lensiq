@@ -1291,6 +1291,8 @@
     REMEDY_VARIANTS[base].forEach(([th, zh, en], k) => { const key = base + ".v" + (k + 2); REMEDY[key] = RM(REMEDY[base].cat, th, zh); REMEDY_EN[key] = en; VARIANT_KEYS[base].push(key); });
   }
   const strHash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+  // owner inbox 19: wording seed = input data + Thai-date period (UTC+7; "m" = YYYY-MM, "d" = YYYY-MM-DD), on the device, never stored or sent
+  const periodKey = (p, now) => new Date(+(now ?? Date.now()) + 252e5).toISOString().slice(0, p === "d" ? 10 : 7), seedFor = (k, p, now) => strHash(JSON.stringify(k) + "|" + periodKey(p, now));
   // แบบของข้อแนะนำทั่วไปที่ใช้กับสิ่งที่พบนี้ (เลือกตามรหัสสิ่งที่พบ + ชุดข้อมูล → คำทำนายเดิมได้ข้อเดิม)
   const variantKey = (key, salt) => { const v = VARIANT_KEYS[key]; return v ? v[strHash(salt) % v.length] : key; };
   /* รอบ 12: สิ่งที่ทำได้ตาม "ลักษณะของสิ่งที่พบ" ในแต่ละศาสตร์ — ชุดไพ่ทาโรต์ (ตั้ง/กลับหัว), ตรีแกรมของอี้จิง, ภูมิทักษา,
@@ -4254,9 +4256,7 @@
     if (note) out.note = note;
     return out;
   }
-  function regenerate(facts, opts = {}) {
-    return interpret(facts, Object.assign({}, opts, { seed: randomSeed() }));
-  }
+  const regenerate = (/** @type {any} */ facts, opts = {}) => interpret(facts, Object.assign({}, opts, { seed: randomSeed() }));
 
   /* ======================= ตัวช่วยแสดงผล ======================= */
   const escapeHtml = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -4443,7 +4443,7 @@
   }
   try { const q = root.LQFortuneHooks; if (Array.isArray(q)) for (const h of q) registerHooks(h); } catch (e) { /* no queue */ }
 
-  const api = {
+  const api = { seedFor, periodKey,
     crisis: { check: crisisCheck, result: supportResult, render: renderSupport, api: () => CR,
       setActive: d => { if (CR && CR.setActive) CR.setActive(d); }, fields: doc => pageText(doc),
       active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => (CR && CR.allow ? CR.allow(kind, doc) : !(CR && CR.active && CR.active(doc))) },

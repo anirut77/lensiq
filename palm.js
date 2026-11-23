@@ -1614,7 +1614,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- คำทำนายโดยละเอียด (FortuneAI: เรียบเรียงในเครื่อง หรือ Claude AI เมื่อเซิร์ฟเวอร์เปิดและผู้ใช้ยินยอม) ---------- */
   var FA = window.FortuneAI || null;
   var TOPICS = [["overall", "ภาพรวม"], ["love", "ความรัก"], ["work", "การงาน"], ["money", "การเงิน"]];
-  var topic = "overall", narrToken = 0;
+  var topic = "overall", narrToken = 0, narrPress = 0;
   function renderTopics() {
     $$("[data-topics]").forEach(function (box) {
       box.innerHTML = TOPICS.map(function (t) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (t[0] === topic) + '">' + esc(T("palm.topic." + t[0], t[1])) + "</button>"; }).join("");
@@ -1641,14 +1641,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function narrate(again) {
     if (!S.result) return;
     var my = ++narrToken, box = $("#plNarr"), btn = $("#plRegen"), R = S.result;
-    var facts = PC.buildFacts(R, { topic: topic, nickname: $("#plNick").value, minor: S.minor, mounts: S.mounts, side: S.side, isDominant: S.side === S.dom, asp: S.F ? S.F.asp : null,
+    var facts = S.facts = PC.buildFacts(R, { topic: topic, nickname: $("#plNick").value, minor: S.minor, mounts: S.mounts, side: S.side, isDominant: S.side === S.dom, asp: S.F ? S.F.asp : null,
       compare: S.cmpFirst ? { first: S.cmpFirst.R, sideA: SIDE_TH[S.cmpFirst.side], sideB: SIDE_TH[S.side] } : null });
-    S.facts = facts;
     var useAI = !!(FA && FA.hasConsent && FA.hasConsent());
     box.setAttribute("aria-busy", "true"); btn.disabled = true;
     if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("palm.narr.loadingAI", "กำลังให้ผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) เรียบเรียง...") : T("palm.narr.loading", "กำลังเรียบเรียงคำทำนาย...")) + "</p>";
-    var p = !FA ? Promise.resolve(legacyResult(R)) : again && FA.regenerate ? FA.regenerate(facts, { useAI: useAI }) : FA.interpret(facts, { useAI: useAI });
-    p.catch(function (e) { console.error(e); return FA && FA.compose ? FA.compose(facts) : legacyResult(R); }).then(function (res) {
+    // owner inbox 19 / entry 20: wording seed = the facts + Thai-date month + press index (on the device; nothing stored or sent)
+    // press index: 0 on a new reading / topic / name, +1 per press of "again" (the n-th press = the n-th wording)
+    var press = again ? ++narrPress : (narrPress = 0), seed = FA && FA.seedFor ? FA.seedFor(["palm", topic, facts], "m") : 0, p;
+    if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], "m"); p = !FA ? Promise.resolve(legacyResult(R)) : FA.interpret(facts, { useAI: useAI, seed: seed });
+    p.catch(function (e) { console.error(e); return FA && FA.compose ? FA.compose(facts, { seed: seed }) : legacyResult(R); }).then(function (res) {
       if (my !== narrToken || !S.result) return;
       S.narr = res;
       var shown = res;

@@ -47,3 +47,9 @@ e4db9c77955a4a28b3c9fc13b1183561aa23626d635a62115140e0e1347c1dda  tests/e2e/fort
 # locked 2026-11-23T06:30:04Z (tools/eval-guard.mjs lock, 1 file)
 c6c63e84d91924ecc5d7c74250131a17aae7d3bc258a13f5606d532863c382da  relock-f90b-2/fortune-depth-audit.mjs
 c6c63e84d91924ecc5d7c74250131a17aae7d3bc258a13f5606d532863c382da  tools/fortune-depth-audit.mjs  # repo file (same commit as lock 2026-11-23T06:30:04Z; field: ~/LENSIQ-field/evals/fortune-90/relock-f90b-2/fortune-depth-audit.mjs)
+# locked 2026-11-23T06:39:00Z (tools/eval-guard.mjs lock, 1 file)
+ecb1b5dcac82cf73327f9c3d41403acc8ac335e3dad1a79dd899f6d58e9dc541  seed/fortune-seed-determinism.test.js
+ecb1b5dcac82cf73327f9c3d41403acc8ac335e3dad1a79dd899f6d58e9dc541  tests/unit/fortune-seed-determinism.test.js  # repo file (same commit as lock 2026-11-23T06:39:00Z; field: ~/LENSIQ-field/evals/fortune-90/seed/fortune-seed-determinism.test.js)
+# locked 2026-11-23T08:11:46Z (tools/eval-guard.mjs lock, 1 file)
+9abe0a7bf4cae5dff3e788dab929b30f943fb5ba87afa8c431a82dd9abfa8124  seed-press/fortune-seed-press.test.js
+9abe0a7bf4cae5dff3e788dab929b30f943fb5ba87afa8c431a82dd9abfa8124  tests/unit/fortune-seed-press.test.js  # repo file (same commit as lock 2026-11-23T08:11:46Z; field: ~/LENSIQ-field/evals/fortune-90/seed-press/fortune-seed-press.test.js)
