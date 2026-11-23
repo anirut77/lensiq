@@ -19,3 +19,17 @@
 # field only relock1/NOTE.txt (lock 2026-11-23T02:09:29Z: no repo file uses it)
 # RE-LOCK 1 2026-11-23 (branch prod-tooling): TEST BUG in T10 only (a bare "prod" alternative matched the existing products.js pages);
 # replaced by the exact production artefact names; no other assertion changed. Field copy and NOTE.txt: ~/LENSIQ-field/evals/prod-tooling/relock1/.
+# locked 2026-11-23T02:21:18Z (tools/eval-guard.mjs lock, 4 files)
+049628ecc8bfbfd71bba6e2e8b3823771648d59752ceaf75093e80cab119167d  relock2/prod-tooling.test.js
+c469ee0951881e781c93d15ff3e1abe439043d710fd9bcea5ef1f1f13e6978a2  relock2/prod-wrangler-config.test.mjs
+50e12729a6a28ac62ca0456de7c766df71b28f3ec768920b24bf9c3ee302ed81  relock2/NOTE.txt
+135eec04f04f73c7e9639cecbb1ef8c345247574592b556962e9b43fc8d6ab7a  relock2/relock2.diff
+049628ecc8bfbfd71bba6e2e8b3823771648d59752ceaf75093e80cab119167d  tests/unit/prod-tooling.test.js  # repo file (same commit as lock 2026-11-23T02:21:18Z; field: ~/LENSIQ-field/evals/prod-tooling/relock2/prod-tooling.test.js)
+c469ee0951881e781c93d15ff3e1abe439043d710fd9bcea5ef1f1f13e6978a2  tests/integration/prod-wrangler-config.test.mjs  # repo file (same commit as lock 2026-11-23T02:21:18Z; field: ~/LENSIQ-field/evals/prod-tooling/relock2/prod-wrangler-config.test.mjs)
+# field only relock2/NOTE.txt (lock 2026-11-23T02:21:18Z: no repo file uses it)
+# field only relock2/relock2.diff (lock 2026-11-23T02:21:18Z: no repo file uses it)
+# RE-LOCK 2 2026-11-23 (branch prod-tooling): DESIGN CHANGE forced by 3 existing locked tests (leads: one PUBLIC_ROUTES in wrangler.toml and no
+# Cloudflare credential in any workflow; tryon-off: [env.test] is the last table). Production moves to backend/wrangler.production.toml (every
+# production command carries --config wrangler.production.toml) and the Pages upload runs locally through tools/pages-deploy-guard.mjs; deploy-prod.yml
+# builds + verifies only. Those 3 tests are unchanged; no assertion here was weakened (new refusal cases added). NOTE.txt + relock2.diff in
+# ~/LENSIQ-field/evals/prod-tooling/relock2/.

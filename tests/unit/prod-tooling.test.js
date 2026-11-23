@@ -3,14 +3,20 @@
 // preparation only; docs/PRODUCTION-MOVE-PLAN.md §5). LOCKED before the code (evals-locks/prod-tooling.sha256).
 // Nothing here can reach Cloudflare: a FAKE wrangler stands in (LQ_WRANGLER_BIN, honoured only with NODE_ENV=test), the
 // smoke check runs against the Worker in-process, and no real secret exists in these tests (canary strings only).
-//   T1  backend/wrangler.toml [env.production]: names, every var, production values; [env.test] read exactly as before
+// RE-LOCK 2 (design change, see evals-locks/prod-tooling.sha256): production lives in its own file
+// backend/wrangler.production.toml (every production command carries --config wrangler.production.toml), and the Pages
+// upload runs from the owner's machine, because three existing locked tests forbid a second PUBLIC_ROUTES / TRYON in
+// wrangler.toml and any Cloudflare credential in a workflow.
+//   T1  backend/wrangler.production.toml [env.production]: names, every var, production values; backend/wrangler.toml
+//       (template + [env.test]) carries nothing of production and is read exactly as before
 //   T2  name guard: production accepts only its own lensiq-prod names; refuses test / staging / other projects' names
 //   T3  effective target of every production argument list (secret commands get --env production only)
 //   T4  tools/backend-deploy.mjs --env production: unknown env, owner confirmation, npm script name, CI, deploy readiness
 //   T5  tools/secrets-setup.mjs --env production: target, OPENROUTER_API_KEY "later" (owner item 233), argument lists
 //   T6  tools/backend-smoke.mjs --profile production: approved host only, every AI / lookup route off, CORS for the site
 //   T7  tools/build-prod-site.mjs: base check, address rewrite, canonical on every page, _headers, 25 MiB limit, root path
-//   T8  .github/workflows/deploy-prod.yml + tools/pages-deploy-guard.mjs: manual only, refuses without the secrets
+//   T8  .github/workflows/deploy-prod.yml: manual, build + verify only, no Cloudflare credential (locked rule of
+//       deploy-tools.test.js); tools/pages-deploy-guard.mjs: the local deploy, origin/main + CI green + exact project only
 //   T9  tools/build-redirect-site.mjs: one stub per page, same path, query and #hash kept, 404 fallback, sw unregisters
 //   T10 the GitHub Pages output of today's site is unchanged (pure copy + the test-site config; no production file)
 const test = require("node:test");
@@ -27,6 +33,7 @@ const { createEnv } = require("./backend-d1-shim.js");
 
 const ROOT = join(__dirname, "..", "..");
 const TOML_LIVE = readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8");
+const TOML_PROD = readFileSync(join(ROOT, "backend", "wrangler.production.toml"), "utf8");
 const PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
 const MY_D1 = "11111111-2222-4333-8444-555555555555";
 const OTHER_D1 = "99999999-0000-4000-8000-000000000001";
@@ -55,7 +62,7 @@ function setProdVar(toml, key, value) {
   throw new Error("no " + key + " in [env.production.vars]");
 }
 /** the committed file with the domain decided (example domain) and the production D1 created (fake id) */
-async function prodReady(toml = TOML_LIVE) {
+async function prodReady(toml = TOML_PROD) {
   const G = await guard();
   let t = G.fillDatabaseId(toml, MY_D1, "production");
   t = setProdVar(t, "ALLOWED_ORIGINS", SITE);
@@ -101,9 +108,23 @@ function sandbox(extra = {}) {
 
 // ---- T1: [env.production] in backend/wrangler.toml -------------------------------------------------------------------
 
-test("T1 wrangler.toml [env.production]: lensiq-prod names, every var, production values; [env.test] unchanged", async () => {
+test("T1 wrangler.production.toml [env.production]: lensiq-prod names, every var, production values; wrangler.toml has no production", async () => {
   const G = await guard();
-  const p = G.readTargets(TOML_LIVE, "production");
+  const p = G.readTargets(TOML_PROD, "production");
+  assert.deepEqual(G.readTargets(undefined, "production"), p, "the default production reading is wrangler.production.toml");
+  assert.deepEqual({ ...G.CONFIG }, { test: "wrangler.toml", production: "wrangler.production.toml" });
+  assert.deepEqual(G.configArgs("production"), ["--config", "wrangler.production.toml"]);
+  assert.deepEqual(G.configArgs("test"), []);
+  assert.equal(G.tomlFor("production"), join(ROOT, "backend", "wrangler.production.toml"));
+  assert.equal(G.tomlFor("test"), join(ROOT, "backend", "wrangler.toml"));
+  // wrangler.toml (the live test deployment) carries nothing of production
+  assert.doesNotMatch(TOML_LIVE, /\[env\.production|lensiq-prod/);
+  assert.equal(G.readTargets(TOML_LIVE, "production").worker, "", "no [env.production] in wrangler.toml");
+  // the production file runs the same code with the same compatibility settings, and its top-level name is refused
+  const top = (toml, k) => (new RegExp(`^${k} = (.*)$`, "m").exec(toml.split(/^\[/m)[0]) || [])[1];
+  for (const k of ["main", "compatibility_date", "compatibility_flags"]) assert.equal(top(TOML_PROD, k), top(TOML_LIVE, k), k);
+  assert.throws(() => G.assertTarget("worker", G.readTargets(TOML_PROD, "production").topName, "production"), G.GuardError);
+  assert.match(TOML_PROD, /^\[assets\]\ndirectory = "\.\/admin-dist"\nbinding = "ASSETS"\nrun_worker_first = true$/m, "the admin shell is served as on test");
   assert.deepEqual([p.env, p.worker, p.d1, p.d1Binding], ["production", "lensiq-prod-api", "lensiq-prod", "DB"]);
   assert.deepEqual({ ...G.ENVS.production }, { worker: "lensiq-prod-api", d1: "lensiq-prod" });
   assert.deepEqual({ ...G.ENVS.test }, { worker: "lensiq-api-test", d1: "lensiq-test" });
@@ -117,14 +138,14 @@ test("T1 wrangler.toml [env.production]: lensiq-prod names, every var, productio
   }
   assert.equal(p.workersDev, false, "no workers.dev hostname for production (only the approved custom domain)");
   assert.equal(p.previewUrls, false);
-  assert.match(tableBody(TOML_LIVE, "[env.production]"), /^workers_dev = false$/m);
-  assert.match(tableBody(TOML_LIVE, "[env.production]"), /^preview_urls = false$/m);
+  assert.match(tableBody(TOML_PROD, "[env.production]"), /^workers_dev = false$/m);
+  assert.match(tableBody(TOML_PROD, "[env.production]"), /^preview_urls = false$/m);
   assert.deepEqual(p.crons, ["17 3 * * *"], "one cron (the Free plan has 5 per account, shared)");
   assert.deepEqual([p.observability.enabled, p.observability.head_sampling_rate], ["true", "0.5"]);
   const t = G.readTargets(TOML_LIVE, "test");
   assert.deepEqual(G.readTargets(TOML_LIVE), t, "the default reading is still [env.test]");
   assert.deepEqual([t.env, t.worker, t.d1], ["test", "lensiq-api-test", "lensiq-test"]);
-  assert.deepEqual(Object.keys(p.topVars).filter(k => !(k in p.vars)), [], "vars are not inherited by an environment: none may be missing");
+  assert.deepEqual(Object.keys(t.topVars).filter(k => !(k in p.vars)), [], "vars are not inherited: every wrangler.toml [vars] key is in production");
   assert.deepEqual(Object.keys(t.vars).filter(k => !(k in p.vars)), [], "every [env.test.vars] key is repeated in production");
   assert.deepEqual(Object.keys(p.vars).filter(k => !(k in t.vars)), [], "no production-only var");
   const EXPECT = {
@@ -143,6 +164,8 @@ test("T1 wrangler.toml [env.production]: lensiq-prod names, every var, productio
   assert.ok(!p.vars.ALLOWED_ORIGINS.includes(","), "one origin only (the apex redirects to www)");
   assert.deepEqual(Object.keys(p.vars).filter(k => /SECRET|TOKEN|PASSWORD|_KEY$/.test(k)), [], "no secret is ever a var");
   assert.doesNotMatch(TOML_LIVE, /^\s*AI_EVAL_LOCAL\s*=/m);
+  assert.doesNotMatch(TOML_PROD, /^\s*AI_EVAL_LOCAL\s*=/m);
+  assert.doesNotMatch(TOML_PROD, /^\s*(TURNSTILE_DISABLED_FOR_LOCAL_DEV|SERVICE_OFF)\s*=/m);
   // [env.test] text is byte-identical to the template it had before production was added
   assert.equal(tableBody(TOML_LIVE, "[env.test.vars]").includes("PC_BUILD = \"demo\""), true);
 });
@@ -181,32 +204,42 @@ test("T2 name guard: production accepts only lensiq-prod-api / lensiq-prod; test
 
 test("T3 effective target: production argument lists resolve to lensiq-prod-api / lensiq-prod only", async () => {
   const G = await guard();
-  const p = G.readTargets(TOML_LIVE, "production"), t = G.readTargets(TOML_LIVE);
-  assert.equal(G.assertEffective(["deploy", "--env", "production", "--name", "lensiq-prod-api"], p).name, "lensiq-prod-api");
-  assert.equal(G.assertEffective(["secret", "put", "X", "--env", "production"], p).name, "lensiq-prod-api");
-  assert.equal(G.assertEffective(["secret", "list", "--env", "production", "--format", "json"], p).name, "lensiq-prod-api");
-  assert.equal(G.assertEffective(["d1", "migrations", "apply", "lensiq-prod", "--remote", "--env", "production"], p).name, "lensiq-prod");
+  const p = G.readTargets(TOML_PROD, "production"), t = G.readTargets(TOML_LIVE);
+  const PC = ["--config", "wrangler.production.toml"];
+  assert.equal(G.assertEffective(["deploy", ...PC, "--env", "production", "--name", "lensiq-prod-api"], p).name, "lensiq-prod-api");
+  assert.equal(G.assertEffective(["deploy", "-c", "wrangler.production.toml", "--env", "production", "--name", "lensiq-prod-api"], p).name, "lensiq-prod-api");
+  assert.equal(G.assertEffective(["secret", "put", "X", ...PC, "--env", "production"], p).name, "lensiq-prod-api");
+  assert.equal(G.assertEffective(["secret", "list", ...PC, "--env", "production", "--format", "json"], p).name, "lensiq-prod-api");
+  assert.equal(G.assertEffective(["d1", "migrations", "apply", "lensiq-prod", "--remote", ...PC, "--env", "production"], p).name, "lensiq-prod");
   assert.equal(G.assertEffective(["d1", "create", "lensiq-prod"], p).name, "lensiq-prod");
-  assert.equal(G.assertEffective(["rollback", MY_D1, "--env", "production", "--name", "lensiq-prod-api", "--message", "m"], p).name, "lensiq-prod-api");
-  assert.equal(G.effectiveTarget(["secret", "put", "X", "--env", "production", "--name", "lensiq-prod-api"], p).name, "lensiq-prod-api-production",
+  assert.equal(G.assertEffective(["rollback", MY_D1, ...PC, "--env", "production", "--name", "lensiq-prod-api", "--message", "m"], p).name, "lensiq-prod-api");
+  assert.equal(G.effectiveTarget(["secret", "put", "X", ...PC, "--env", "production", "--name", "lensiq-prod-api"], p).name, "lensiq-prod-api-production",
     "wrangler's legacy rule: --name with --env on a secret command names another Worker");
-  for (const args of [["secret", "put", "X", "--env", "production", "--name", "lensiq-prod-api"], ["secret", "put", "X"], ["secret", "put", "X", "--env", "test"],
-    ["deploy"], ["deploy", "--env", "test", "--name", "lensiq-api-test"], ["deploy", "--env", "production", "--name", "lensiq-api-test"],
-    ["deploy", "--env", "production", "--name", "dearday-staging"], ["d1", "migrations", "apply", "lensiq-test", "--remote", "--env", "production"],
-    ["d1", "migrations", "apply", "lensiq-prod", "--remote"], ["d1", "migrations", "apply", "lensiq-prod", "--remote", "--env", "test"],
-    ["d1", "execute", "lensiq-prod", "--remote", "--env", "test"], ["d1", "create", "lensiq-test"], ["d1", "delete", "lensiq-prod"], ["pages", "deploy", "_site"],
-    ["delete", "--env", "production"], ["kv", "namespace", "create", "x"]]) assert.throws(() => G.assertEffective(args, p), G.GuardError, "production cfg: " + args.join(" "));
-  for (const args of [["deploy", "--env", "production", "--name", "lensiq-prod-api"], ["secret", "put", "X", "--env", "production"], ["d1", "create", "lensiq-prod"],
-    ["d1", "migrations", "apply", "lensiq-prod", "--remote", "--env", "production"]]) assert.throws(() => G.assertEffective(args, t), G.GuardError, "test cfg: " + args.join(" "));
-  assert.deepEqual(G.deployedArgs(p), ["deployments", "list", "--env", "production", "--name", "lensiq-prod-api", "--json"]);
+  for (const args of [["secret", "put", "X", ...PC, "--env", "production", "--name", "lensiq-prod-api"], ["secret", "put", "X"], ["secret", "put", "X", ...PC, "--env", "test"],
+    ["deploy"], ["deploy", ...PC, "--env", "test", "--name", "lensiq-api-test"], ["deploy", ...PC, "--env", "production", "--name", "lensiq-api-test"],
+    ["deploy", ...PC, "--env", "production", "--name", "dearday-staging"], ["d1", "migrations", "apply", "lensiq-test", "--remote", ...PC, "--env", "production"],
+    ["d1", "migrations", "apply", "lensiq-prod", "--remote", ...PC], ["d1", "migrations", "apply", "lensiq-prod", "--remote", ...PC, "--env", "test"],
+    ["d1", "execute", "lensiq-prod", "--remote", ...PC, "--env", "test"], ["d1", "create", "lensiq-test"], ["d1", "delete", "lensiq-prod"], ["pages", "deploy", "_site"],
+    ["delete", ...PC, "--env", "production"], ["kv", "namespace", "create", "x"],
+    // without the production file wrangler would read wrangler.toml, which has no [env.production]
+    ["deploy", "--env", "production", "--name", "lensiq-prod-api"], ["secret", "put", "X", "--env", "production"], ["rollback", MY_D1, "--env", "production", "--name", "lensiq-prod-api"],
+    ["deploy", "--config", "wrangler.toml", "--env", "production", "--name", "lensiq-prod-api"], ["secret", "put", "X", "--config", "other.toml", "--env", "production"],
+    ["d1", "migrations", "apply", "lensiq-prod", "--remote", "--env", "production"], ["d1", "migrations", "apply", "lensiq-prod", "--remote", "--config", "wrangler.toml", "--env", "production"]
+  ]) assert.throws(() => G.assertEffective(args, p), G.GuardError, "production cfg: " + args.join(" "));
+  for (const args of [["deploy", ...PC, "--env", "production", "--name", "lensiq-prod-api"], ["secret", "put", "X", ...PC, "--env", "production"], ["d1", "create", "lensiq-prod"],
+    ["d1", "migrations", "apply", "lensiq-prod", "--remote", ...PC, "--env", "production"], ["deploy", ...PC, "--env", "test", "--name", "lensiq-api-test"],
+    ["secret", "put", "X", ...PC, "--env", "test"], ["d1", "migrations", "apply", "lensiq-test", "--remote", ...PC, "--env", "test"]
+  ]) assert.throws(() => G.assertEffective(args, t), G.GuardError, "test cfg: " + args.join(" "));
+  assert.equal(G.assertEffective(["deploy", "--config", "wrangler.toml", "--env", "test", "--name", "lensiq-api-test"], t).name, "lensiq-api-test", "test: its own file named");
+  assert.deepEqual(G.deployedArgs(p), ["deployments", "list", ...PC, "--env", "production", "--name", "lensiq-prod-api", "--json"]);
   assert.deepEqual(G.deployedArgs(t), ["deployments", "list", "--env", "test", "--name", "lensiq-api-test", "--json"], "test unchanged");
   // the D1 id is written into the production table only
-  const out = G.fillDatabaseId(TOML_LIVE, MY_D1, "production");
+  const out = G.fillDatabaseId(TOML_PROD, MY_D1, "production");
   assert.equal(G.readTargets(out, "production").d1Id, MY_D1);
-  assert.equal(G.readTargets(out, "test").d1Id, t.d1Id);
-  const diff = out.split("\n").filter((l, i) => l !== TOML_LIVE.split("\n")[i]);
+  const diff = out.split("\n").filter((l, i) => l !== TOML_PROD.split("\n")[i]);
   assert.deepEqual(diff, [`database_id = "${MY_D1}"`], "exactly one line changes");
-  assert.throws(() => G.fillDatabaseId(TOML_LIVE, MY_D1, "staging"));
+  assert.throws(() => G.fillDatabaseId(TOML_PROD, MY_D1, "staging"));
+  assert.throws(() => G.fillDatabaseId(TOML_LIVE, MY_D1, "production"), Error, "wrangler.toml has no production table");
   // API hosts: production has no workers.dev host; only an approved custom hostname
   assert.equal(G.isOwnApiHost("lensiq-prod-api.my-sub.workers.dev", [], "production"), false);
   assert.equal(G.isOwnApiHost("lensiq-api-test.my-sub.workers.dev", [], "production"), false);
@@ -227,14 +260,14 @@ test("T4 backend-deploy --env production: confirmation, script name, CI and read
   assert.deepEqual(tc.deploy[0], ["deploy", "--env", "test", "--name", "lensiq-api-test"]);
   assert.deepEqual(tc.off[0], ["secret", "put", "SERVICE_OFF", "--env", "test"]);
   const pc = D.commands(G.readTargets(READY, "production"));
-  assert.deepEqual(pc.deploy[0], ["deploy", "--env", "production", "--name", "lensiq-prod-api"]);
-  assert.deepEqual(pc.migrate[0], ["d1", "migrations", "apply", "lensiq-prod", "--remote", "--env", "production"]);
-  assert.deepEqual(pc.off[0], ["secret", "put", "SERVICE_OFF", "--env", "production"]);
-  assert.deepEqual(pc["bootstrap:close"][0], ["secret", "put", "ADMIN_BOOTSTRAP_TOKEN", "--env", "production"]);
+  assert.deepEqual(pc.deploy[0], ["deploy", "--config", "wrangler.production.toml", "--env", "production", "--name", "lensiq-prod-api"]);
+  assert.deepEqual(pc.migrate[0], ["d1", "migrations", "apply", "lensiq-prod", "--remote", "--config", "wrangler.production.toml", "--env", "production"]);
+  assert.deepEqual(pc.off[0], ["secret", "put", "SERVICE_OFF", "--config", "wrangler.production.toml", "--env", "production"]);
+  assert.deepEqual(pc["bootstrap:close"][0], ["secret", "put", "ADMIN_BOOTSTRAP_TOKEN", "--config", "wrangler.production.toml", "--env", "production"]);
   assert.deepEqual(pc["d1:create"][0], ["d1", "create", "lensiq-prod"]);
   // readiness of the production config for a deploy
   assert.deepEqual(D.productionProblems(G.readTargets(READY, "production")), []);
-  const committed = D.productionProblems(G.readTargets(TOML_LIVE, "production"));
+  const committed = D.productionProblems(G.readTargets(TOML_PROD, "production"));
   assert.ok(committed.some(p => /ALLOWED_ORIGINS/.test(p)) && committed.some(p => /TURNSTILE_HOSTNAMES/.test(p)) && committed.some(p => /SITE_URL/.test(p)), committed.join("\n"));
   const bad = async (k, v, re) => {
     const probs = D.productionProblems(G.readTargets(setProdVar(READY, k, v), "production"));
@@ -262,7 +295,7 @@ test("T4 backend-deploy --env production: confirmation, script name, CI and read
   const sb = sandbox();
   try {
     // plan: production targets printed, nothing started
-    let r = run(["plan", "--env", "production"], { env: sb.env, toml: TOML_LIVE });
+    let r = run(["plan", "--env", "production"], { env: sb.env, toml: TOML_PROD });
     assert.equal(r.code, 0, r.out);
     assert.match(r.out, /environment "production"/);
     assert.match(r.out, /Worker "lensiq-prod-api"/);
@@ -294,7 +327,7 @@ test("T4 backend-deploy --env production: confirmation, script name, CI and read
     assert.equal(r.code, 3);
     // the committed config (no domain, no D1 yet) refuses the deploy, also as print-only
     for (const extra of [[], ["--print-only"]]) {
-      r = run(["deploy", "--env", "production", "--confirm-production", ...extra], { env: sb.env, toml: TOML_LIVE });
+      r = run(["deploy", "--env", "production", "--confirm-production", ...extra], { env: sb.env, toml: TOML_PROD });
       assert.equal(r.code, 3, r.out);
       assert.match(r.out, /ALLOWED_ORIGINS/);
     }
@@ -302,12 +335,12 @@ test("T4 backend-deploy --env production: confirmation, script name, CI and read
     // print-only on a ready config: the exact command, nothing started
     r = run(["deploy", "--env", "production", "--confirm-production", "--print-only"], { env: sb.env, toml: READY });
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /npx wrangler deploy --env production --name lensiq-prod-api\)/);
+    assert.match(r.out, /npx wrangler deploy --config wrangler\.production\.toml --env production --name lensiq-prod-api\)/);
     assert.deepEqual(sb.calls(), []);
     // migrate (fake wrangler): read-only D1 check, then exactly the production migration
     r = run(["migrate", "--env", "production", "--confirm-production"], { env: sb.env, toml: READY });
     assert.equal(r.code, 0, r.out);
-    assert.deepEqual(sb.calls().map(c => c.argv), [["d1", "list", "--json"], ["d1", "migrations", "apply", "lensiq-prod", "--remote", "--env", "production"]]);
+    assert.deepEqual(sb.calls().map(c => c.argv), [["d1", "list", "--json"], ["d1", "migrations", "apply", "lensiq-prod", "--remote", "--config", "wrangler.production.toml", "--env", "production"]]);
     // a production id that belongs to another database is refused
     const WRONG = G.fillDatabaseId(READY.replace(MY_D1, PLACEHOLDER), OTHER_D1, "production");
     writeFileSync(sb.log, "");
@@ -319,18 +352,21 @@ test("T4 backend-deploy --env production: confirmation, script name, CI and read
     r = run(["off", "--env", "production", "--confirm-production"], { env: sb.env, toml: READY });
     assert.equal(r.code, 0, r.out);
     const calls = sb.calls();
-    assert.deepEqual(calls.map(c => c.argv), [["deployments", "list", "--env", "production", "--name", "lensiq-prod-api", "--json"], ["secret", "put", "SERVICE_OFF", "--env", "production"]]);
+    assert.deepEqual(calls.map(c => c.argv), [["deployments", "list", "--config", "wrangler.production.toml", "--env", "production", "--name", "lensiq-prod-api", "--json"],
+      ["secret", "put", "SERVICE_OFF", "--config", "wrangler.production.toml", "--env", "production"]]);
     assert.ok(calls.every(c => c.effective == null || c.effective === "lensiq-prod-api"), JSON.stringify(calls));
     // d1:create writes the id into the production table only
     const file = join(sb.dir, "wrangler.toml");
-    writeFileSync(file, TOML_LIVE);
+    writeFileSync(file, TOML_PROD);
     writeFileSync(sb.log, "");
     r = run(["d1:create", "--env", "production", "--confirm-production"], { env: sb.env, tomlPath: file });
     assert.equal(r.code, 0, r.out);
     assert.deepEqual(sb.calls().map(c => c.argv), [["d1", "create", "lensiq-prod"]]);
     const after = readFileSync(file, "utf8");
     assert.equal(G.readTargets(after, "production").d1Id, MY_D1);
-    assert.equal(G.readTargets(after, "test").d1Id, G.readTargets(TOML_LIVE, "test").d1Id);
+    assert.deepEqual(after.split("\n").filter((l, i) => l !== TOML_PROD.split("\n")[i]), [`database_id = "${MY_D1}"`]);
+    assert.equal(readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8"), TOML_LIVE, "the committed test configuration is never written");
+    assert.equal(readFileSync(join(ROOT, "backend", "wrangler.production.toml"), "utf8"), TOML_PROD, "the committed production configuration is never written by a test");
     // no call of the whole test ever named a test resource
     assert.ok(!readFileSync(sb.log, "utf8").includes("lensiq-api-test"));
   } finally { sb.done(); }
@@ -346,8 +382,8 @@ test("T5 secrets:setup --env production: target lensiq-prod-api, --env productio
   const S = await import(join(ROOT, "tools", "secrets-setup.mjs"));
   assert.deepEqual(S.secretArgs.put("X"), ["secret", "put", "X", "--env", "test"], "test unchanged");
   assert.deepEqual(S.secretArgs.list(), ["secret", "list", "--env", "test", "--format", "json"]);
-  assert.deepEqual(S.secretArgs.put("X", "production"), ["secret", "put", "X", "--env", "production"]);
-  assert.deepEqual(S.secretArgs.list("production"), ["secret", "list", "--env", "production", "--format", "json"]);
+  assert.deepEqual(S.secretArgs.put("X", "production"), ["secret", "put", "X", "--config", "wrangler.production.toml", "--env", "production"]);
+  assert.deepEqual(S.secretArgs.list("production"), ["secret", "list", "--config", "wrangler.production.toml", "--env", "production", "--format", "json"]);
   assert.deepEqual(S.REQUIRED_NOW, ["SECRETS_KEK", "ADMIN_BOOTSTRAP_TOKEN", "TURNSTILE_SECRET", "OPENROUTER_API_KEY", "TESTER_ACCESS_CODE"], "test list unchanged");
   assert.deepEqual(S.secretsFor("test"), S.SECRETS);
   const prod = S.secretsFor("production");
@@ -364,7 +400,7 @@ test("T5 secrets:setup --env production: target lensiq-prod-api, --env productio
   const sb = sandbox();
   try {
     let io = term();
-    let code = await S.main(["--env", "production", "--dry-run", "--list"], { ...io, env: sb.env, toml: TOML_LIVE });
+    let code = await S.main(["--env", "production", "--dry-run", "--list"], { ...io, env: sb.env, toml: TOML_PROD });
     assert.equal(code, 0, io.text());
     assert.match(io.text(), /environment "production"/);
     assert.match(io.text(), /TARGET\s+Worker "lensiq-prod-api"/);
@@ -534,7 +570,7 @@ test("T7 build-prod-site: base check, old address rewritten, canonical on every 
 
 // ---- T8: production deploy workflow + guard ---------------------------------------------------------------------------
 
-test("T8 deploy-prod.yml runs only by hand and refuses without the secrets; the guard allows only lensiq-prod-site from main", async () => {
+test("T8 deploy-prod.yml: manual, build + verify only, no Cloudflare credential; the local guard deploys only lensiq-prod-site from a green origin/main", async () => {
   const W = readFileSync(join(ROOT, ".github", "workflows", "deploy-prod.yml"), "utf8");
   const on = /^on:\n((?: {2}.*\n|\n)*)/m.exec(W);
   assert.ok(on, "an on: block");
@@ -543,19 +579,12 @@ test("T8 deploy-prod.yml runs only by hand and refuses without the secrets; the 
   assert.doesNotMatch(W, /^ {2}(push|workflow_run|schedule):/m);
   assert.match(W, /^permissions:\n {2}contents: read$/m);
   assert.doesNotMatch(W, /contents: write|pages: write|id-token: write/);
-  // secrets appear only as env mappings, never echoed or in a command line
-  const sl = W.split("\n").filter(l => /secrets\./.test(l));
-  assert.ok(sl.length >= 1);
-  for (const l of sl) assert.match(l, /^\s+[A-Z_]+: \$\{\{ secrets\.(CLOUDFLARE_PAGES_TOKEN|CLOUDFLARE_ACCOUNT_ID) \}\}$/, l);
-  assert.doesNotMatch(W, /echo[^\n]*\$\{\{ secrets/);
-  // the guard runs first, and the deploy itself is the guard's --run (no free-typed wrangler command)
-  const g = W.indexOf("node tools/pages-deploy-guard.mjs --check"), run = W.indexOf("node tools/pages-deploy-guard.mjs --run");
-  assert.ok(g > 0 && run > g, "check first, deploy last");
-  assert.doesNotMatch(W, /wrangler pages|npx wrangler/, "wrangler is started only by the guard");
-  assert.ok(W.indexOf("node tools/build-prod-site.mjs") > g && W.indexOf("node tools/build-prod-site.mjs") < run);
-  assert.ok(W.indexOf("node tools/check-site.mjs --dir _site-prod --root") > g, "root-path crawl before the deploy");
+  // the locked rule of deploy-tools.test.js: no Cloudflare credential and no deploy in any workflow
+  assert.doesNotMatch(W, /secrets\.|CLOUDFLARE_|CF_API|wrangler|pages-deploy-guard\.mjs --run|environment:/, "no credential, no wrangler, no deploy, no GitHub environment");
+  assert.ok(W.indexOf("node tools/build-prod-site.mjs") > 0, "builds the bundle");
+  assert.ok(W.indexOf("node tools/check-site.mjs --dir _site-prod --root") > W.indexOf("node tools/build-prod-site.mjs"), "root-path crawl of the bundle");
   assert.match(W, /--workflow CI --commit "\$GITHUB_SHA" --status success/, "only a commit CI passed");
-  for (const f of ["pages-lfs.yml", "ci.yml"]) assert.doesNotMatch(readFileSync(join(ROOT, ".github", "workflows", f), "utf8"), /deploy-prod|pages-deploy-guard|--run/, f);
+  for (const f of ["pages-lfs.yml", "ci.yml"]) assert.doesNotMatch(readFileSync(join(ROOT, ".github", "workflows", f), "utf8"), /deploy-prod|pages-deploy-guard/, f);
 
   const PG = await import(join(ROOT, "tools", "pages-deploy-guard.mjs"));
   assert.equal(PG.PROJECT, "lensiq-prod-site");
@@ -566,48 +595,79 @@ test("T8 deploy-prod.yml runs only by hand and refuses without the secrets; the 
   writeFileSync(join(site, "index.html"), "<!doctype html>");
   writeFileSync(join(site, "_headers"), "/*\n  X-Frame-Options: SAMEORIGIN\n");
   writeFileSync(join(site, "lensiq-config.js"), CL + "window.X = 1;\n");
+  const SHA = "0123456789abcdef0123456789abcdef01234567";
+  const GIT = { head: SHA, main: SHA, clean: true };
   const sb = sandbox();
   try {
-    const OK = { ...sb.env, CLOUDFLARE_API_TOKEN: CANARY, CLOUDFLARE_ACCOUNT_ID: "acc-canary-1", GITHUB_REF: "refs/heads/main" };
-    const base = { project: "lensiq-prod-site", confirm: "lensiq-prod-site", dir: site };
-    assert.deepEqual(PG.deployProblems({ ...base, env: OK }), []);
-    const has = (o, re) => { const p = PG.deployProblems(o); assert.ok(p.some(x => re.test(x)), JSON.stringify(p)); assert.ok(!p.join(" ").includes(CANARY)); };
-    has({ ...base, env: { ...OK, CLOUDFLARE_API_TOKEN: "" } }, /CLOUDFLARE_PAGES_TOKEN|CLOUDFLARE_API_TOKEN/);
-    has({ ...base, env: { ...OK, CLOUDFLARE_ACCOUNT_ID: "" } }, /CLOUDFLARE_ACCOUNT_ID/);
-    has({ ...base, env: { ...OK, GITHUB_REF: "refs/heads/prod-tooling" } }, /main/);
-    has({ ...base, env: { ...OK, WRANGLER_CI_OVERRIDE_NAME: "dearday-staging" } }, /WRANGLER_CI_OVERRIDE_NAME/);
-    has({ ...base, confirm: "yes", env: OK }, /confirm/);
+    const base = { project: "lensiq-prod-site", confirm: "lensiq-prod-site", dir: site, git: GIT, ci: true, env: sb.env };
+    assert.deepEqual(PG.deployProblems(base), []);
+    const has = (o, re) => { const p = PG.deployProblems({ ...base, ...o }); assert.ok(p.some(x => re.test(x)), JSON.stringify(p)); assert.ok(!p.join(" ").includes(CANARY)); };
+    has({ env: { ...sb.env, CI: "true" } }, /CI/);
+    has({ env: { ...sb.env, GITHUB_ACTIONS: "true" } }, /CI/);
+    has({ env: { ...sb.env, WRANGLER_CI_OVERRIDE_NAME: "dearday-staging" } }, /WRANGLER_CI_OVERRIDE_NAME/);
+    has({ env: { ...sb.env, CLOUDFLARE_API_TOKEN: CANARY } }, /CLOUDFLARE_API_TOKEN.*--account-confirmed/);
+    assert.deepEqual(PG.deployProblems({ ...base, env: { ...sb.env, CLOUDFLARE_API_TOKEN: CANARY }, accountConfirmed: true }), []);
+    has({ git: { ...GIT, head: "1".repeat(40) } }, /origin\/main/);
+    has({ git: { ...GIT, main: "" } }, /origin\/main/);
+    has({ git: { ...GIT, clean: false } }, /uncommitted/);
+    has({ ci: false }, /CI has not succeeded/);
+    has({ confirm: "yes" }, /confirm/);
     for (const p of ["lensiq-api-test", "lensiq-prod-site-test", "lensiq-site", "dearday-staging", "aidanex-staging", "lensiq-prod-api", "", "lensiq-prod-site "]) {
-      has({ ...base, project: p, confirm: p, env: OK }, /project/);
+      has({ project: p, confirm: p }, /project/);
     }
-    has({ ...base, dir: join(d, "missing"), env: OK }, /site folder|not found|missing/);
+    has({ dir: join(d, "missing") }, /site folder|not found|missing/);
     writeFileSync(join(site, "lensiq-config.js"), "window.LENSIQ_RESEARCH_DEMO = true;\n");
-    has({ ...base, env: OK }, /customer/);
+    has({}, /customer/);
     writeFileSync(join(site, "lensiq-config.js"), CL + "window.X = 1;\n");
+    rmSync(join(site, "_headers"));
+    has({}, /_headers/);
+    writeFileSync(join(site, "_headers"), "/*\n  X-Frame-Options: SAMEORIGIN\n");
+    assert.deepEqual(PG.deployProblems({ ...base, dir: "", skipDir: true }), [], "--check without a folder: inputs, checkout and environment only");
     assert.deepEqual(PG.pagesDeployArgs(site, "lensiq-prod-site"), ["pages", "deploy", site, "--project-name", "lensiq-prod-site", "--branch", "main"]);
     assert.throws(() => PG.pagesDeployArgs(site, "lensiq-api-test"));
     // CLI: refusals start nothing and never print a credential
-    const cli = (argv, env) => { const out = []; const code = PG.main(argv, { print: s => out.push(s), env }); return { code, out: out.join("\n") }; };
+    const shas = [];
+    const cli = (argv, env, extra = {}) => {
+      const out = [];
+      const code = PG.main(argv, { print: s => out.push(s), env, git: GIT, ciGreen: sha => { shas.push(sha); return true; }, ...extra });
+      return { code, out: out.join("\n") };
+    };
     const A = ["--project", "lensiq-prod-site", "--confirm", "lensiq-prod-site", "--dir", site];
-    let r = cli(["--check", ...A], { ...OK, CLOUDFLARE_API_TOKEN: "" });
+    let r = cli(["--run", ...A], { ...sb.env, CI: "true" });
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /REFUSED/);
-    r = cli(["--run", ...A], { ...OK, CLOUDFLARE_API_TOKEN: "" });
+    r = cli(["--run", ...A], sb.env, { ciGreen: () => false });
     assert.equal(r.code, 1);
-    assert.deepEqual(sb.calls(), [], "no secret = nothing started");
-    r = cli(["--check", ...A], OK);
+    r = cli(["--run", ...A], sb.env, { git: { ...GIT, clean: false } });
+    assert.equal(r.code, 1);
+    r = cli(["--run", ...A], { ...sb.env, CLOUDFLARE_API_TOKEN: CANARY });
+    assert.equal(r.code, 1);
+    assert.ok(!r.out.includes(CANARY), "a credential value is never printed");
+    assert.equal(cli(["--run", "--project", "lensiq-api-test", "--confirm", "lensiq-api-test", "--dir", site], sb.env).code, 1);
+    assert.equal(cli([], sb.env).code, 2);
+    r = cli(["--check", ...A], sb.env);
     assert.equal(r.code, 0, r.out);
-    assert.deepEqual(sb.calls(), [], "--check starts nothing");
-    r = cli(["--run", ...A], OK);
+    assert.deepEqual(sb.calls(), [], "refusals and --check start nothing");
+    // the deploy: exactly one wrangler call, with the wrangler login (no credential variable passed on)
+    r = cli(["--run", ...A], sb.env);
     assert.equal(r.code, 0, r.out);
-    assert.ok(!r.out.includes(CANARY) && !r.out.includes("acc-canary-1"), "values are never printed");
-    const c = sb.calls();
+    let c = sb.calls();
     assert.equal(c.length, 1);
     assert.deepEqual(c[0].argv, ["pages", "deploy", site, "--project-name", "lensiq-prod-site", "--branch", "main"]);
-    assert.equal(c[0].sawToken, true, "the token reaches wrangler only through its environment");
-    assert.equal(cli(["--run", "--project", "lensiq-api-test", "--confirm", "lensiq-api-test", "--dir", site], OK).code, 1);
-    assert.equal(sb.calls().length, 1, "a wrong project starts nothing");
+    assert.equal(c[0].sawToken, false);
+    assert.ok(shas.every(x => x === SHA), "CI is checked for the deployed commit");
+    // with a confirmed credential in the shell: passed to wrangler through its environment only, never printed
+    r = cli(["--run", ...A, "--account-confirmed"], { ...sb.env, CLOUDFLARE_API_TOKEN: CANARY, CLOUDFLARE_ACCOUNT_ID: "acc-canary-1" });
+    assert.equal(r.code, 0, r.out);
+    assert.ok(!r.out.includes(CANARY) && !r.out.includes("acc-canary-1"));
+    c = sb.calls();
+    assert.equal(c.length, 2);
+    assert.equal(c[1].sawToken, true);
+    assert.equal(c[1].sawAccount, true);
   } finally { sb.done(); rmSync(d, { recursive: true, force: true }); }
+  // npm script of the local deploy names the production project only
+  const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).scripts;
+  assert.equal(pkg["site:deploy:prod"], "node tools/pages-deploy-guard.mjs --run --project lensiq-prod-site --dir _site-prod");
 });
 
 // ---- T9: redirect site ------------------------------------------------------------------------------------------------
