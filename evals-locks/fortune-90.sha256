@@ -35,3 +35,7 @@ b7342e8180ab00690c239ce2abbc4bf6c092f5089d70d5840c68d8ad6dce718f  v3/NOTE.txt
 # locked 2026-11-23T06:06:15Z (tools/eval-guard.mjs lock, 1 file)
 e4db9c77955a4a28b3c9fc13b1183561aa23626d635a62115140e0e1347c1dda  e-states/fortune-states.e2e.mjs
 e4db9c77955a4a28b3c9fc13b1183561aa23626d635a62115140e0e1347c1dda  tests/e2e/fortune-states.e2e.mjs  # repo file (same commit as lock 2026-11-23T06:06:15Z; field: ~/LENSIQ-field/evals/fortune-90/e-states/fortune-states.e2e.mjs)
+# RE-LOCK 2026-11-23 (review item 4): tools/fortune-depth-audit.mjs factsOf() passes rng: lcg(p.seed) to the zodiac engine like every other seeded domain (zodiac.js:96 fell back to Math.random, so zodiac facts in the Q2 and depth runs were not reproducible). No profile, rule, ceiling or threshold changed; the first lock above stays. Q2 v3 re-measured after this lock.
+# locked 2026-11-23T06:10:51Z (tools/eval-guard.mjs lock, 1 file)
+30861f56080d297f6a43eeb34dd6e66cc00a0d070ccb3f4a7ec104fa13fe34ec  depth-v2/fortune-depth-audit.mjs
+30861f56080d297f6a43eeb34dd6e66cc00a0d070ccb3f4a7ec104fa13fe34ec  tools/fortune-depth-audit.mjs  # repo file (same commit as lock 2026-11-23T06:10:51Z; field: ~/LENSIQ-field/evals/fortune-90/depth-v2/fortune-depth-audit.mjs)
