@@ -1,0 +1,14 @@
+# locked 2026-11-23T02:01:56Z (tools/eval-guard.mjs lock, 3 files)
+66cdbd4fc00214e72863e087c005e07dc7981051e8cea81c990145d797cb41a8  prod-tooling.test.js
+07bd25b47a97da8669d1c82c0d00077b7aa281e512bb763a5ed658853c619fb7  prod-wrangler-config.test.mjs
+91d13d97674d3d78994dc2fdfabc484aa7b475112227dda4cfd0f30aae8be110  pages-manifest-origin-main-fdcb931e.txt
+66cdbd4fc00214e72863e087c005e07dc7981051e8cea81c990145d797cb41a8  tests/unit/prod-tooling.test.js  # repo file (same commit as lock 2026-11-23T02:01:56Z; field: ~/LENSIQ-field/evals/prod-tooling/prod-tooling.test.js)
+07bd25b47a97da8669d1c82c0d00077b7aa281e512bb763a5ed658853c619fb7  tests/integration/prod-wrangler-config.test.mjs  # repo file (same commit as lock 2026-11-23T02:01:56Z; field: ~/LENSIQ-field/evals/prod-tooling/prod-wrangler-config.test.mjs)
+# field only pages-manifest-origin-main-fdcb931e.txt (lock 2026-11-23T02:01:56Z: no repo file uses it)
+# LOCK 2026-11-23 (production tooling A1-A6, SELL-READY decision 11 ก / owner inbox entry 17: preparation only; branch prod-tooling), BEFORE any
+# code: T1 [env.production] in backend/wrangler.toml; T2 name guard (lensiq-prod-api / lensiq-prod only, test + other projects refused both ways);
+# T3 effective targets; T4 backend-deploy --env production (confirmation, npm script name, CI, readiness); T5 secrets:setup --env production;
+# T6 smoke --profile production; T7 build-prod-site (base, rewrite, canonical, _headers, 25 MiB, root path); T8 deploy-prod.yml manual-only +
+# pages-deploy-guard; T9 redirect site; T10 GitHub Pages output unchanged. Integration: wrangler's own reader on [env.production].
+# pages-manifest-origin-main-fdcb931e.txt = sha256 of every file of `node tools/build-site.mjs` at origin/main fdcb931e (1999 files), the
+# baseline for the one-off byte-identity measurement of the GitHub Pages output after the change. On the old code every T test fails.
