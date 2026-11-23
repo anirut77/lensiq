@@ -393,6 +393,14 @@
    "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
   },
   {
+   "path": "tests/e2e/fortune-flow-widths.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
+  },
+  {
    "path": "tests/e2e/fortune-zh.e2e.mjs",
    "types": {
     "phone": 1

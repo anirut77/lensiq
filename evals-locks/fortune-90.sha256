@@ -1,0 +1,41 @@
+# locked 2026-11-23T01:58:39Z (tools/eval-guard.mjs lock, 4 files)
+7ca06f16d4feca7619606e9021d28cf99677e93317c0e739f75b5614c50ca037  q2-profiles.json
+37d4da5552bdd8c1e6f1e740c9d749dc4dbbd08737db688aa1b6fbf04254c157  fortune-cut-check.mjs
+20312fdaac5eabd07024b97e87ad419a561e88da503138334890d193d4c5b471  fortune-cut-strict.test.js
+f1ea1f6cdaaf81d58b658eb7ee19fe4083e7a9cad81159ff208e6c4661d89fd8  fortune-depth-audit.mjs
+37d4da5552bdd8c1e6f1e740c9d749dc4dbbd08737db688aa1b6fbf04254c157  tools/fortune-cut-check.mjs  # repo file (same commit as lock 2026-11-23T01:58:39Z; field: ~/LENSIQ-field/evals/fortune-90/fortune-cut-check.mjs)
+20312fdaac5eabd07024b97e87ad419a561e88da503138334890d193d4c5b471  tests/unit/fortune-cut-strict.test.js  # repo file (same commit as lock 2026-11-23T01:58:39Z; field: ~/LENSIQ-field/evals/fortune-90/fortune-cut-strict.test.js)
+f1ea1f6cdaaf81d58b658eb7ee19fe4083e7a9cad81159ff208e6c4661d89fd8  tools/fortune-depth-audit.mjs  # repo file (same commit as lock 2026-11-23T01:58:39Z; field: ~/LENSIQ-field/evals/fortune-90/fortune-depth-audit.mjs)
+# RE-LOCK v2 2026-11-23, after the v1 baseline (q2 results/q2-baseline-a44fd23e.json, 496 cut / 8160) and before any product fix: S2 (ends on a connector) now applies only to bullets that do not end at their source sentence end; v1 flagged 54 whole-sentence bullets whose own last word is on the list (เต็มที่, ทุกที่, grow with, 最美的). No other rule, input or threshold changed; v1 stays above.
+# locked 2026-11-23T02:01:41Z (tools/eval-guard.mjs lock, 2 files)
+2cb6f1ae635eb446c1865beea0e56d2f45f1f09ff61bb227b134b83d02b56feb  v2/fortune-cut-check.mjs
+5b5bca11afd6c1c713b4b15f25a46c6b0335cc6711779791edcab0634ef41912  v2/fortune-cut-strict.test.js
+2cb6f1ae635eb446c1865beea0e56d2f45f1f09ff61bb227b134b83d02b56feb  tools/fortune-cut-check.mjs  # repo file (same commit as lock 2026-11-23T02:01:41Z; field: ~/LENSIQ-field/evals/fortune-90/v2/fortune-cut-check.mjs)
+5b5bca11afd6c1c713b4b15f25a46c6b0335cc6711779791edcab0634ef41912  tests/unit/fortune-cut-strict.test.js  # repo file (same commit as lock 2026-11-23T02:01:41Z; field: ~/LENSIQ-field/evals/fortune-90/v2/fortune-cut-strict.test.js)
+# v2 correction 2026-11-23 (same minute, before commit and before any v2 measurement): the harness now asserts its own v2 field copy (v2/fortune-cut-check.mjs) instead of the v1 copy; no rule changed.
+# locked 2026-11-23T02:01:52Z (tools/eval-guard.mjs lock, 1 file)
+e4b800b7b766181827e8724f0deb621503ea608f06ffe221a8e79361af35f15f  v2/fortune-cut-check.mjs
+e4b800b7b766181827e8724f0deb621503ea608f06ffe221a8e79361af35f15f  tools/fortune-cut-check.mjs  # repo file (same commit as lock 2026-11-23T02:01:52Z; field: ~/LENSIQ-field/evals/fortune-90/v2/fortune-cut-check.mjs)
+# locked 2026-11-23T02:39:50Z (tools/eval-guard.mjs lock, 1 file)
+559e82593bf36ae8c42016c0cbf59ea2b7d84e96b3c3f345d90099228eedf941  tools/fortune-s2.mjs
+559e82593bf36ae8c42016c0cbf59ea2b7d84e96b3c3f345d90099228eedf941  tools/fortune-s2.mjs  # repo file (same commit as lock 2026-11-23T02:39:50Z; field: ~/LENSIQ-field/evals/fortune-90/tools/fortune-s2.mjs)
+# RE-LOCK note 2026-11-23: rule A fixed test (dream-type line in the summary overview bullet), written after the independent review FAILED the fortune-90 branch (the 140-char whole-line cap dropped the จิตนิวรณ์ / ธาตุกำเริบ "not an omen" line), locked BEFORE the fix. Baseline at 56afb95a: TH 246 readings lose the line; EN/ZH never carry the type line in the overview (0 per type).
+# locked 2026-11-23T05:39:15Z (tools/eval-guard.mjs lock, 1 file)
+2ca1d648e64ac8ed0673b0dde451dd886831a0f254f20883dfa113df620fe1cb  rule-a/fortune-dream-type-summary.test.js
+2ca1d648e64ac8ed0673b0dde451dd886831a0f254f20883dfa113df620fe1cb  tests/unit/fortune-dream-type-summary.test.js  # repo file (same commit as lock 2026-11-23T05:39:15Z; field: ~/LENSIQ-field/evals/fortune-90/rule-a/fortune-dream-type-summary.test.js)
+# RE-LOCK v3 2026-11-23, after the independent review (v2 not equal-or-stricter: "e.g" / "9 a" / once-matching connector tails / ";" continuations passed) and BEFORE any v3 measurement: S1 needs EVERY occurrence of the tail to end a sentence; "." ends a sentence only before whitespace or the end and not after an abbreviation or a single letter (decimals cut); ";" only at the end. No input or threshold changed; v1 and v2 stay above. Note: ~/LENSIQ-field/evals/fortune-90/v3/NOTE.txt
+# locked 2026-11-23T05:43:31Z (tools/eval-guard.mjs lock, 3 files)
+4a64c10345239cbd06d1570189ed07f797a122ad575a3493e6f83e08fe7f8992  v3/fortune-cut-check.mjs
+9af87c34228ac03c1dea0c32ad176c77c925b4e04385ee55f6958d56dabe5ad0  v3/fortune-cut-strict.test.js
+b7342e8180ab00690c239ce2abbc4bf6c092f5089d70d5840c68d8ad6dce718f  v3/NOTE.txt
+4a64c10345239cbd06d1570189ed07f797a122ad575a3493e6f83e08fe7f8992  tools/fortune-cut-check.mjs  # repo file (same commit as lock 2026-11-23T05:43:31Z; field: ~/LENSIQ-field/evals/fortune-90/v3/fortune-cut-check.mjs)
+9af87c34228ac03c1dea0c32ad176c77c925b4e04385ee55f6958d56dabe5ad0  tests/unit/fortune-cut-strict.test.js  # repo file (same commit as lock 2026-11-23T05:43:31Z; field: ~/LENSIQ-field/evals/fortune-90/v3/fortune-cut-strict.test.js)
+# field only v3/NOTE.txt (lock 2026-11-23T05:43:31Z: no repo file uses it)
+# 2026-11-23 E row (tarot / iching question field): tests/e2e/fortune-states.e2e.mjs gains check 4 (blank, whitespace-only and 140-character question, 141 typed, TH/EN/ZH: reading proceeds with a plain line in the page language, nothing busy, no crisis state); locked BEFORE its first run and before any product fix. Earlier checks unchanged.
+# locked 2026-11-23T06:06:15Z (tools/eval-guard.mjs lock, 1 file)
+e4db9c77955a4a28b3c9fc13b1183561aa23626d635a62115140e0e1347c1dda  e-states/fortune-states.e2e.mjs
+e4db9c77955a4a28b3c9fc13b1183561aa23626d635a62115140e0e1347c1dda  tests/e2e/fortune-states.e2e.mjs  # repo file (same commit as lock 2026-11-23T06:06:15Z; field: ~/LENSIQ-field/evals/fortune-90/e-states/fortune-states.e2e.mjs)
+# RE-LOCK 2026-11-23 (review item 4): tools/fortune-depth-audit.mjs factsOf() passes rng: lcg(p.seed) to the zodiac engine like every other seeded domain (zodiac.js:96 fell back to Math.random, so zodiac facts in the Q2 and depth runs were not reproducible). No profile, rule, ceiling or threshold changed; the first lock above stays. Q2 v3 re-measured after this lock.
+# locked 2026-11-23T06:10:51Z (tools/eval-guard.mjs lock, 1 file)
+30861f56080d297f6a43eeb34dd6e66cc00a0d070ccb3f4a7ec104fa13fe34ec  depth-v2/fortune-depth-audit.mjs
+30861f56080d297f6a43eeb34dd6e66cc00a0d070ccb3f4a7ec104fa13fe34ec  tools/fortune-depth-audit.mjs  # repo file (same commit as lock 2026-11-23T06:10:51Z; field: ~/LENSIQ-field/evals/fortune-90/depth-v2/fortune-depth-audit.mjs)

@@ -265,8 +265,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /** วาดผล (ใช้ทั้งตอนได้ผลและตอนสลับภาษา) — ประกอบคำทำนายใหม่ด้วย facts ชุดเดิม */
   function renderResult(c) {
     var fo = IC.focus(c);
-    var q = echoQ($("#icQuestion").value.trim());
-    $("#icResMeta").innerHTML = esc(T("iching.resTopic", "หัวข้อ")) + " <b>" + esc(topicName(st.topic)) + "</b>" + (q ? "<br>" + esc(T("iching.resQ", "คำถาม:")) + " <q>" + esc(q) + "</q>" : "");
+    var q = echoQ($("#icQuestion").value.trim()), raw = $("#icQuestion").value.trim();
+    // E row (review 2026-11-23): a blank or spaces-only question says plainly that the reading is a general one for the topic
+    var noQ = raw ? "" : "<br>" + esc(T("iching.resNoQ", "ไม่ได้พิมพ์คำถาม จึงอ่านเป็นภาพรวมตามหัวข้อที่เลือก"));
+    $("#icResMeta").innerHTML = esc(T("iching.resTopic", "หัวข้อ")) + " <b>" + esc(topicName(st.topic)) + "</b>" + (q ? "<br>" + esc(T("iching.resQ", "คำถาม:")) + " <q>" + esc(q) + "</q>" : noQ);
     $("#icHexes").innerHTML = hexCard(c.primary, c.bits, c.changing, T("iching.rolePrimary", "กว้าหลัก (สถานการณ์ตอนนี้)")) +
       (c.relating ? '<span class="ic-arrow" aria-hidden="true">→</span>' + hexCard(c.relating, c.relBits, [], T("iching.roleRelating", "กว้าที่จะกลายเป็น (แนวโน้ม)")) : "");
     $("#icRule").innerHTML = "<b>" + esc(T("iching.howRead", "วิธีอ่าน:")) + "</b> " + esc(ruleText(c)) + (fo.lines.length ? esc(T("iching.keyLines", " · เส้นที่ให้น้ำหนัก: {l}", { l: fo.lines.join(", ") })) : "");

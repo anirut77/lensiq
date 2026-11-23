@@ -1,4 +1,5 @@
-// tests/e2e/fortune-zh.e2e.mjs — 中文 mode audit of all 11 fortune pages.
+// tests/e2e/fortune-zh.e2e.mjs — 中文 mode audit of the fortune pages (17 since 2026-11-23: + lucky colour, bazi, taksa, lek7,
+// lifegraph and report; report readings are .rp-sec blocks).
 // Each page is opened with lq-lang = zh, measured on load, then a reading is produced (forms filled, cards drawn,
 // fake camera + scripted detector for face/palm) and measured again. "Visible text" = text nodes that are rendered
 // (same rule as the evaluator's zh.mjs: not display:none / hidden / zero-size). Asserts per page:
@@ -18,7 +19,7 @@ const MEASURE = `(() => {
     const a = (t.match(/[\\u0E00-\\u0E7F]/g) || []).length, c = (t.match(/[\\u4e00-\\u9fff]/g) || []).length;
     th += a; zh += c; if (a > 2 && samples.length < 4) samples.push(t.slice(0, 50));
   }
-  const rd = [...document.querySelectorAll(".fa-section, .fs-sec")].map(s => s.textContent).join("");
+  const rd = [...document.querySelectorAll(".fa-section, .fs-sec, .rp-sec")].map(s => s.textContent).join("");
   return { th, zh, share: th / (th + zh || 1), samples, readingThai: (rd.match(/[\\u0E00-\\u0E7F]/g) || []).length, readingZh: (rd.match(/[\\u4e00-\\u9fff]/g) || []).length };
 })()`;
 const FACE = { x: 0.35, y: 0.2, w: 0.3, h: 0.45, score: 0.95 };
@@ -29,9 +30,26 @@ const ev = (page, fn, ...a) => page.evaluate(fn, ...a);
 const sections = n => `document.querySelectorAll(".fa-section, .fs-sec").length >= ${n} && ![...document.querySelectorAll(".fa-section, .fs-sec")].some(s => /กำลังเรียบเรียง/.test(s.textContent))`;
 const setSel = (id, v) => `(() => { const e = document.getElementById(${JSON.stringify(id)}); e.value = ${JSON.stringify(v)}; e.dispatchEvent(new Event("input", { bubbles: true })); e.dispatchEvent(new Event("change", { bubbles: true })); })()`;
 
-// page → { url, cam, read(page) } ; read() produces a reading (or null for the hub)
+const lcFill = async p => {
+  await p.evaluate(() => {
+    document.getElementById("lcDay").value = "12"; document.getElementById("lcMonth").value = "5"; document.getElementById("lcYear").value = "2533";
+    document.getElementById("lcTime").value = "08:00"; document.querySelector("#lcForm button[type=submit]").click();
+  });
+  await p.waitFor(sections(2), 15000);
+};
+// page → { url, cam, read(page) } ; read() produces a reading (or null for the hub and lucky colour, which have no reading)
 const PAGES = [
   { page: "fortune.html", read: null },
+  { page: "luckycolor.html", read: null },
+  { page: "bazi.html", read: lcFill },
+  { page: "taksa.html", read: lcFill },
+  { page: "lek7.html", read: lcFill },
+  { page: "lifegraph.html", read: lcFill },
+  { page: "report.html", read: async p => {
+    await p.waitFor(`!!window.__rp && document.getElementById("rpMode").textContent.length > 4`, 8000);
+    await ev(p, () => { document.querySelector('[data-rp-type="report_basic"]').click(); document.getElementById("rpAYear").value = "1990"; document.getElementById("rpGo").click(); });
+    await p.waitFor(`document.querySelectorAll("#rpOut .rp-sec").length >= 3`, 20000);
+  } },
   { page: "iching.html", read: async p => { await ev(p, () => { document.getElementById("icStart").click(); document.getElementById("icAuto").click(); }); await p.waitFor(sections(3), 20000); } },
   { page: "zodiac.html", read: async p => { await ev(p, () => { document.querySelector('input[name="zdAnimal"][value="6"]').click(); document.getElementById("zdForm").requestSubmit(); }); await p.waitFor(sections(3), 15000); } },
   { page: "astro.html", read: async p => { await ev(p, setSel("asDay", "15")); await ev(p, setSel("asMonth", "5")); await ev(p, setSel("asYear", "2533")); await ev(p, () => document.getElementById("asForm").requestSubmit()); await p.waitFor(sections(3), 15000); } },

@@ -60,11 +60,11 @@ function load() {
 }
 
 /* ---------------- the profile set (gen only) ---------------- */
-export function makeProfiles() {
+export function makeProfiles(seedBase = 20261117) {
   const { TKB, PC, DKB } = load();
   const out = [];
   DOMAINS.forEach((d, di) => {
-    const r = lcg((20261117 ^ (di + 1) * 2654435761) >>> 0);
+    const r = lcg((seedBase ^ (di + 1) * 2654435761) >>> 0);
     const int = (a, b) => a + Math.floor(r() * (b - a + 1));
     const birth = () => ({ y: int(1950, 2007), m: int(1, 12), d: int(1, 28), h: int(0, 23), mi: int(0, 59) });
     for (let i = 0; i < N; i++) {
@@ -99,7 +99,7 @@ export function makeProfiles() {
 }
 
 /* ---------------- facts + reading for one profile ---------------- */
-function factsOf(p, now) {
+export function factsOf(p, now) {
   const { FR, PC, HS, TR, TKB, FS, NM, IC, ZD, AS, DR, LC, LK } = load();
   const x = p.input, topic = p.topic;
   switch (p.domain) {
@@ -120,7 +120,7 @@ function factsOf(p, now) {
     case "fengshui": return FS.buildFacts({ kua: Object.assign({ solarYear: 2026 }, FS.kua(x.year, x.gender)), recorded: {}, rooms: [], photos: [], topic, now: new Date(2026, x.month, x.day) });
     case "numbers": return NM.buildFacts(NM.analyzePhone(x.phone), topic, {});
     case "iching": return IC.buildFacts(IC.cast(x.lines), topic, { rng: lcg(p.seed) });
-    case "zodiac": return ZD.buildFacts(ZD.annual(x.animal, x.year, x.born), topic, {});
+    case "zodiac": return ZD.buildFacts(ZD.annual(x.animal, x.year, x.born), topic, { rng: lcg(p.seed) }); // re-lock 2026-11-23: seeded like the others (zodiac.js falls back to Math.random)
     case "astro": return AS.buildFacts(AS.chart({ y: x.y, m: x.m, d: x.d, time: x.time, tz: 7, lat: 13.75, lon: 100.5 }), topic);
     case "dream": return DR.buildFacts(x.symbols, x.mood, x.time, topic, { rng: lcg(p.seed) });
     case "bazi": case "taksa": case "lek7": case "lifegraph": {

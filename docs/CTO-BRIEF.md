@@ -9,6 +9,18 @@ Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): eve
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
 
+## Fortune text pages to 90 (owner inbox entry 18, 2026-11-23, branch `fortune-90`, not merged)
+
+- Q2 cut summary text: locked set `~/LENSIQ-field/evals/fortune-90/q2-profiles.json` (480 synthetic profiles, 16 domains ×
+  TH/EN/ZH × gentle/straight = 2,790 readings), harness `tools/fortune-cut-check.mjs` (v2 lock), CI copy
+  `tests/unit/fortune-cut-strict.test.js`. Before 442 cut bullets of 8,160 (5.4 %; Thai: 226 of 930 readings, 24 %);
+  after 0 of 8,204. Source: synthetic. `gist()` no longer shortens a line; it uses the next whole candidate.
+- E: `lensiq-crashguard.js` is copied into `fortune-read.js` (no extra request) and loaded by `fortune.html`;
+  `tests/e2e/fortune-states.e2e.mjs` checks crash guard, bad input (TH/EN/ZH message, nothing busy) and fresh-load states.
+- L: `fortune-zh.e2e.mjs` now also covers luckycolor, bazi, taksa, lek7, lifegraph and report.
+- Not done here: depth (Q1, branch `fortune-depth`, 20 conflicts with main), print/share (X, branch `print-report`,
+  owner approves the sample PDFs), practitioner review (Q3), owner phone run (P5).
+
 ## Acceptance sheets "Define 90" (owner standing order 2026-11-18, branch `acceptance-sheets`)
 
 17 product sheets in `docs/acceptance/`, locked before scoring (`evals-locks/acceptance.sha256`, 2026-11-18T16:16:40Z,

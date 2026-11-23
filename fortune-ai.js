@@ -1516,10 +1516,11 @@
       short: it.short ? proseLabel(it.short) : "",
       evidence: it.evidence ? String(it.evidence) : "", strength: typeof it.strength === "number" && isFinite(it.strength) ? Math.max(0, Math.min(1, it.strength)) : 0.5,
       polarity: it.polarity === "challenge" || it.tone === "caution" ? "challenge" : "", tone: toneOf(it), tags: Array.isArray(it.tags) ? it.tags.map(String) : [],
-      meanings: it.meanings && typeof it.meanings === "object" ? it.meanings : {}, _i: i,
+      meanings: it.meanings && typeof it.meanings === "object" ? it.meanings : {}, _i: i, zk: it.zk != null ? [].concat(it.zk).map(String) : undefined,
       // plain: ความหมายเป็นประโยคสมบูรณ์ที่อ้างถึงสิ่งที่พบอยู่แล้ว ใช้ตามคลังโดยไม่ใส่กรอบ
       // focus: หัวข้อที่สิ่งที่พบนี้ "พูดถึงจริง" (ใช้ตัดสินประโยคผสาน "A กับ B หนุนเรื่องเดียวกัน") ไม่ระบุ = ใช้ tags
-      plain: !!it.plain, remedy: typeof it.remedy === "string" ? it.remedy : "", focus: Array.isArray(it.focus) ? it.focus.map(String) : null,
+      plain: !!it.plain, remedy: typeof it.remedy === "string" ? it.remedy : "", focus: Array.isArray(it.focus) ? it.focus.map(String) : null, gists: [].concat(it.gists || []).map(String),
+      // zk: EN / ZH data keys (zhKeys; without it the dream "type" was skipped in EN / ZH); gists: whole summary-length overview wordings
     }));
     items.sort((a, b) => (b.strength - a.strength) || (a._i - b._i));
     return {
@@ -1885,6 +1886,7 @@
 
   /* รอบ 12: ภาพรวมต้องมีจุดที่ควรระวังอย่างน้อยหนึ่งจุดเมื่อผลมีจุดนั้น (ผู้ประเมินพบคำทำนายที่ติดป้าย caution แต่ไม่พูดถึงจุดระวังเลย
      เพราะจุดระวังมีน้ำหนักต่ำจึงหลุดจากรายการแรก ๆ) → ถ้ารายการแรก k รายการไม่มีจุดระวัง เติมจุดระวังแรกต่อท้าย */
+  const topPlain = (xs, isPlain) => xs.filter(isPlain).sort((a, b) => b.it.strength - a.it.strength)[0]; // strongest plain item (summary overview bullet)
   const withCaution = (list, k, isCaution) => { const top = list.slice(0, k); if (top.some(isCaution)) return top; const c = list.find(isCaution); return c ? top.concat([c]) : top; };
   function buildOverview(ctx, plan) {
     const { F, r } = ctx;
@@ -2313,56 +2315,59 @@
   /* ---------- สรุปสั้น 3 บรรทัด ----------
      สังเคราะห์จากสิ่งที่พบที่เด่นที่สุด 2–3 อย่าง: (1) จุดเด่นที่สุด (2) คำตอบของเรื่องที่ถาม (3) สิ่งที่ลงมือได้ */
   const GIST_STRIP = /^(?:ตามตำรา(?:ไทย|ดั้งเดิม)?(?:แล้ว)?\s*|ตามความเชื่อ(?:แล้ว)?\s*|เชื่อกันว่า|ว่ากันว่า|ตำรา(?:โบราณ|ไทย)?(?:เชื่อว่า|มองว่า)|ในมุม[^\s]{0,20}\s)/;
-  function gist(m, max) {
-    max = max || 90;
-    let t = cleanMeaning(m);
-    for (let k = 0; k < 2; k++) t = t.replace(GIST_STRIP, "").trim();
-    const sp = splitLead(t); if (sp && sp.kind !== "wa") t = sp.rest; if (t.length <= max) return t; // fits: no cut (decision 90 ข)
-    const sp1 = [...t.matchAll(/\s/g)].map(x => x.index).filter(i => i > 0), sg = SEGW ? Array.from(SEGW.segment(t), g => g.index).filter(i => i > 0 && !/^(?:ที่|ๆ|ฯ)/.test(t.slice(i))) : [];
-    // cut at a space (else a Segmenter word edge), never before ๆ/ที่, inside brackets/quotes or label|number; clause edges first
-    const score = i => { const a = t.slice(0, i).trimEnd(), b = t.slice(i).trimStart(), ok = a.length <= max && a.length >= 20 && gistBal(a);
-      return !ok || /^[ๆฯ\d๐-๙]/.test(b) || /[\d๐-๙]$/.test(a) ? -1 : (a.length >= 44 ? 1e4 : 0) + (/[.!?;,:。]$/.test(a) ? 2e3 : GIST_CLAUSE.test(b) ? 1e3 : 0) + a.length; };
-    const top = cuts => cuts.reduce((m, i) => (score(i) > (m < 0 ? -1 : score(m)) ? i : m), -1), at = top(sp1) >= 0 ? top(sp1) : top(sg);
-    if (at < 0) return t; const best = t.slice(0, at).trimEnd(), tail = /(?:และ|ซึ่ง|ที่|เพราะ|แต่|หรือ|คือ|ว่า)$/.exec(best), c = tail ? best.slice(0, -tail[0].length) : "";
-    const own = c && (/\s$/.test(c) || (tail[0] !== "ที่" && SEGW && Array.from(SEGW.segment(best)).pop().segment === tail[0]));
-    return (own && c.trim().length >= 20 && !/[\d๐-๙]$/.test(c.trim()) ? c : best).replace(/[\s,;:]+$/, "").trim();
+  /* whole summary line (owner inbox entry 18, 2026-11-23: no bullet is cut mid-sentence): the meaning with its lead stripped,
+     never shortened; a line that does not fit GIST_CAP is not used, and the next candidate of the same slot is tried */
+  // contd: the reading continues line t elsewhere (a fragment; fortune-restrain.js continued(), pools = engine facts + composed text)
+  const GIST_CAP = 140, contd = (t, comp) => { const RS = rsOf(); return !!(RS && RS.continued && RS.continued(t, [RS.strings(FILLS && FILLS.F), comp])); };
+  function gist(m) {
+    let t = cleanMeaning(m); for (let k = 0; k < 2; k++) t = t.replace(GIST_STRIP, "").trim();
+    const sp = splitLead(t); if (sp && sp.kind !== "wa") t = sp.rest; return t.replace(/[\s,;:]+$/, "").trim();
   }
-  const GIST_CLAUSE = /^(?:แต่|และ|เพราะ|ซึ่ง|โดย|ส่วน|หรือ|จึง|ทำให้|เพื่อ|ถ้า|หาก|เมื่อ|แล้ว|จน|ขณะ)/, GIST_PAIRS = ["\"\"", "()", "[]", "（）", "「」", "“”"];
-  const gistBal = a => GIST_PAIRS.every(([o, c]) => { let d = 0; for (const x of a) if ((d += x === o ? (o === c && d ? -1 : 1) : x === c ? -1 : 0) < 0) return !1; return !d; });
-  function buildSummary(ctx, topicId) {
-    const F = ctx.F, lines = [];
+  const gistFit1 = t => !!t && t.length >= 8 && t.length <= GIST_CAP && isSafe(t);
+  function buildSummary(ctx, topicId, sections) {
+    const F = ctx.F, lines = [], comp = ctx.all.concat(sections.flatMap(s => s.paragraphs)), gistFits = t => gistFit1(t) && !contd(t, comp); // whole lines only
     const ov = ctx.secMeanings.overview || [];
     const nameOf = it => (it.short || it.label).replace(CJK_PAREN, "").trim();
     const withName = (it, g) => (g.indexOf(nameOf(it)) >= 0 || it.plain ? g : "จาก" + nameOf(it) + " " + g);
     const personal = x => /คุณ|ใจ/.test(x.m);
-    // บรรทัด 1: ภาพรวม (ประโยคหลักของศาสตร์ เช่น ประเภทฝัน) หรือสิ่งที่พบที่เด่นที่สุด
-    const first = ov[0] && ov[0].it.plain ? ov[0] : ov.find(x => !x.it.plain);
-    if (first) lines.push({ k: first.it.plain ? "ภาพรวม" : "เด่นที่สุด", c: first.it.plain ? "overview" : "top", t: withName(first.it, gist(first.m, 110)) });
+    // too long: a plain item's overview line falls back to its own whole summary wordings (it.gists), never to a shortened line
+    const fitOf = x => [withName(x.it, gist(x.m))].concat(x.it.plain && (x.it.meanings.overview || []).indexOf(x.m) >= 0 ? x.it.gists : []).find(gistFits) || null;
+    const firstFit = xs => { for (const x of xs) { const t = x && fitOf(x); if (t) return { x, t }; } return null; };
+    // บรรทัด 1: ภาพรวม (ประโยคหลักของศาสตร์ เช่น ประเภทฝัน) หรือสิ่งที่พบที่เด่นที่สุด (ถ้ายาวเกิน ใช้สิ่งที่พบถัดไป ไม่ตัดกลางประโยค)
+    const first0 = topPlain(ov, x => x.it.plain) || ov.find(x => !x.it.plain); // the dream type before the dream mood, wherever it stands
+    // last resort per slot: the items' other meanings (a one-card reading such as a Siam Si slip has one long overview)
+    const spare = keys => F.items.flatMap(it => keys.concat(Object.keys(it.meanings || {}).filter(k => keys.indexOf(k) < 0 && k !== "advice"))
+      .flatMap(k => ((it.meanings || {})[k] || []).map(m => ({ it, m, k }))));
+    const p1 = firstFit([first0].concat(ov.filter(x => x !== first0 && !x.it.plain))) || firstFit(spare(["overview", "personality"]));
+    const first = p1 ? p1.x : null; if (p1) lines.push({ k: first.it.plain ? "ภาพรวม" : "เด่นที่สุด", c: first.it.plain ? "overview" : "top", t: p1.t });
     // บรรทัด 2: คำตอบของเรื่องที่ถาม จากสิ่งที่พบอีกอย่าง (ไม่ซ้ำบรรทัดแรก)
     const tid = F.topic === "overall" ? null : F.topic;
     const tm0 = (tid && ctx.secMeanings[tid]) || [], tmo = tm0.filter(x => !first || x.it.id !== first.it.id);
     const tm = tmo.length ? tmo : tm0.filter(x => !first || x.m !== first.m);
-    const fromTopic = tm.find(personal) || tm[0];
-    const pickT = fromTopic || ov.find(x => x !== first && !x.it.plain && personal(x)) || ov.find(x => x !== first && !x.it.plain);
-    if (pickT) lines.push({ k: fromTopic ? "เรื่อง" + TAG_WORDS[tid] : "อีกจุดเด่น", c: fromTopic ? "topic." + tid : "other", t: withName(pickT.it, gist(pickT.m, 100)) });
-    // บรรทัด 3: สิ่งที่ลงมือได้ (ข้อแนะนำของเรื่องที่ถามก่อน)
+    const tmOrder = tm.filter(personal).concat(tm.filter(x => !personal(x)));
+    const ovOther = ov.filter(x => x !== first && !x.it.plain);
+    const p2 = firstFit(tmOrder) || firstFit(ovOther.filter(personal).concat(ovOther.filter(x => !personal(x)))) ||
+      firstFit(spare(tid ? [tid] : ["overview", "personality"]).filter(x => (!p1 || (x.m !== first.m && withName(x.it, gist(x.m)) !== p1.t))));
+    const fromTopic = !!(p2 && (tm.indexOf(p2.x) >= 0 || (tid && p2.x.k === tid)));
+    const pickT = p2 ? p2.x : null; if (p2) lines.push({ k: fromTopic ? "เรื่อง" + TAG_WORDS[tid] : "อีกจุดเด่น", c: fromTopic ? "topic." + tid : "other", t: p2.t });
+    // บรรทัด 3: สิ่งที่ลงมือได้ (ข้อแนะนำของเรื่องที่ถามก่อน) ตามลำดับเดิม ใช้ข้อแรกที่ใส่ได้ทั้งประโยค
     const act = ctx.actions.find(a => a.id === tid) || (tid ? null : ctx.actions[0]);
-    let doIt = act ? act.m : null;
     const lex = tid && TOPIC_LEX[tid], usedT = pickT ? pickT.m : "";
-    if (!doIt && lex) {
-      // คำแนะนำที่ตรงกับเรื่องที่ถาม จากหัวข้อนั้นหรือหัวข้อคำแนะนำ (ไม่ซ้ำบรรทัดที่ 2)
-      const pool = tm.map(x => x.m).concat((ctx.secMeanings.advice || []).map(x => x.m), (F.extras.tips || []).map(cleanMeaning)).filter(m => m && m !== usedT && lex.test(m));
-      const im = pool.map(m => (isImperative(m) || condAdvice(m) || /(?:^|\s)ลอง/.test(m) ? m : null)).find(Boolean);
-      if (im) doIt = im;
+    const doCands = act ? [act.m] : [];
+    // คำแนะนำที่ตรงกับเรื่องที่ถาม จากหัวข้อนั้นหรือหัวข้อคำแนะนำ (ไม่ซ้ำบรรทัดที่ 2)
+    if (lex) for (const m of tm.map(x => x.m).concat((ctx.secMeanings.advice || []).map(x => x.m), (F.extras.tips || []).map(cleanMeaning))) {
+      if (m && m !== usedT && lex.test(m) && (isImperative(m) || condAdvice(m) || /(?:^|\s)ลอง/.test(m))) doCands.push(m);
     }
-    if (!doIt && ctx.actions[0]) doIt = ctx.actions[0].m;
-    if (!doIt) { const adv = (ctx.secMeanings.advice || []).map(x => bareAdvice(x.m)).find(m => isImperative(m)); doIt = adv || null; }
-    if (!doIt) { const tips = (F.extras.tips || []).map(cleanMeaning).filter(m => isImperative(m)); doIt = tips[0] || null; }
-    if (doIt) lines.push({ k: "ลองทำ", c: "try", t: gist(bareAdvice(doIt).replace(/^ลอง\s*/, ""), 100) });
+    if (ctx.actions[0]) doCands.push(ctx.actions[0].m);
+    for (const m of (ctx.secMeanings.advice || []).map(x => bareAdvice(x.m))) if (isImperative(m)) doCands.push(m);
+    for (const m of (F.extras.tips || []).map(cleanMeaning)) if (isImperative(m)) doCands.push(m);
+    const doT = doCands.map(m => gist(bareAdvice(m).replace(/^ลอง\s*/, ""))).find(gistFits);
+    if (doT) lines.push({ k: "ลองทำ", c: "try", t: doT });
     else {
       // ไม่มีคำแนะนำแบบลงมือทำ → ใช้ข้อคิดจากหัวข้อคำแนะนำแทน
-      const tip = (ctx.secMeanings.advice || []).map(x => x.m).concat((F.extras.tips || []).map(cleanMeaning), F.items.flatMap(it => it.meanings.advice || []).map(cleanMeaning)).find(m => m && m.length >= 20 && isSafe(m));
-      if (tip) lines.push({ k: "ข้อคิด", c: "tip", t: gist(tip, 100) });
+      const tipT = (ctx.secMeanings.advice || []).map(x => x.m).concat((F.extras.tips || []).map(cleanMeaning),
+        F.items.flatMap(it => it.meanings.advice || []).map(cleanMeaning)).filter(m => m && m.length >= 20 && isSafe(m)).map(m => gist(m)).find(gistFits);
+      if (tipT) lines.push({ k: "ข้อคิด", c: "tip", t: tipT });
     }
     const out = lines.filter(l => l.t && l.t.length >= 8 && isSafe(l.t)).slice(0, 3);
     return out.length >= 2 ? { title: "สรุปสั้น", lines: out } : null;
@@ -2499,7 +2504,7 @@
     if (ctx.why && ctx.why.length) out.why = { title: "ที่มาของผล", lines: ctx.why.slice(0, 4) };
     const plan = buildPlan(F, "th", ctx.mentioned, null, { of: it => (it.meanings && it.meanings.advice) || [], used: ctx.used }); if (plan) out.plan = plan;
     if (opts.trace) out._rejected = ctx.rejected || 0;
-    const summary = buildSummary(ctx, topicId);
+    const summary = buildSummary(ctx, topicId, sections);
     if (summary) out.summary = summary;
     if (opts.trace) { out._sentences = ctx.all.slice(); out._claims = ctx.claims.slice(); }
     return out;
@@ -2613,7 +2618,7 @@
   const ZH_AFTER_HEAD2 = { a: ["先说前者，{M}", "前者显示，{M}"], b: ["至于后者，{M}", "后者则说明，{M}"] };
   const ZH_CHAL = ["需要多留意的是{N}：{M}", "{N}是这次要放慢一点的地方，{M}"];
   const ZH_REL = ["变卦是{N}，{M}", "事情接下来会走向{N}，{M}"];
-  const ZH_ADV = ["建议你{A}", "不妨{A}", "可以先{A}", "{A}，会对你有帮助", "这段时间试着{A}"];
+  const ZH_ADV = ["建议你{A}", "不妨{A}", "可以先{A}", "这样做会对你有帮助：{A}", "这段时间试着{A}"];
   const ZH_ADV_NEG = ["建议你{A}", "{A}"];
   /* 建议句式本身已带副词（"可以先{A}"），资料里的建议若以"也/还/又/都/先/再"开头会变成"可以先也…"、"可以先先…"
      → 套进句式前去掉开头的副词；"先/再"只在句式以"先"结尾时去掉（"不妨先把目标定清楚"本身没问题） */
@@ -2828,11 +2833,11 @@
     const zById = new Map(items.map(it => [it.id, it]));
     const zplan = buildPlan(F, "zh", new Set(items.filter(it => nameShown.has(it.id)).map(it => it.id)), it => zName.get(it.id) || "", { of: it => ((zById.get(it.id) || {}).meanings || {}).advice || [], used }); if (zplan) out.plan = zplan;
     // 简要总结：最突出 / 你问的主题 / 试试看
-    const lines = [], ov = secM.overview || [];
+    const ov0 = secM.overview || [], o1 = topPlain(ov0, x => x.it.kind === "plain"), ov = o1 ? [o1].concat(ov0.filter(x => x !== o1)) : ov0, lines = []; // main sentence first
     if (ov[0]) lines.push({ k: "最突出", c: "top", t: zhEcho(ov[0].it.short, ov[0].m) && digitsKept(ov[0].it.short, ov[0].m) ? ov[0].m : ov[0].it.short + "：" + ov[0].m });
     const tm = F.topic !== "overall" ? (secM[F.topic] || []).find(x => !ov[0] || x.m !== ov[0].m) : (ov[1] || null);
     if (tm) lines.push({ k: F.topic !== "overall" ? ZH_TAG[F.topic] : "另一亮点", c: F.topic !== "overall" ? "topic." + F.topic : "other", t: zhEcho(tm.it.short, tm.m) && digitsKept(tm.it.short, tm.m) ? tm.m : tm.it.short + "：" + tm.m });
-    if (actions[0]) lines.push({ k: "试试看", c: "try", t: actions[0] });
+    const a0 = actions.find(a => !contd(a, all)); if (a0) lines.push({ k: "试试看", c: "try", t: a0 }); // a whole line: not continued elsewhere
     const sl = lines.filter(l => l.t && isSafe(l.t)).slice(0, 3);
     if (sl.length >= 2) out.summary = { title: "简要总结", lines: sl };
     if (opts.trace) { out._sentences = all; out._claims = claims; }
@@ -3168,11 +3173,11 @@
     const eName = new Map(items.map(it => [it.id, cap(it.short || it.label)]));
     const eById = new Map(items.map(it => [it.id, it]));
     const eplan = buildPlan(F, "en", new Set(items.filter(it => nameShown.has(it.id)).map(it => it.id)), it => eName.get(it.id) || "", { of: it => ((eById.get(it.id) || {}).meanings || {}).advice || [], used }); if (eplan) out.plan = eplan;
-    const lines = [], ov = secM.overview || [];
+    const ov0 = secM.overview || [], o1 = topPlain(ov0, x => x.it.kind === "plain"), ov = o1 ? [o1].concat(ov0.filter(x => x !== o1)) : ov0, lines = []; // main sentence first
     if (ov[0]) lines.push({ k: "Standout", c: "top", t: enEcho(ov[0].it.short, ov[0].m) && digitsKept(ov[0].it.short, ov[0].m) ? cap(ov[0].m) : cap(ov[0].it.short) + ": " + ov[0].m });
     const tm = F.topic !== "overall" ? (secM[F.topic] || []).find(x => !ov[0] || x.m !== ov[0].m) : (ov[1] || null);
     if (tm) lines.push({ k: F.topic !== "overall" ? { love: "Love", work: "Career", money: "Money" }[F.topic] : "Another highlight", c: F.topic !== "overall" ? "topic." + F.topic : "other", t: enEcho(tm.it.short, tm.m) && digitsKept(tm.it.short, tm.m) ? cap(tm.m) : cap(tm.it.short) + ": " + tm.m });
-    if (actions[0]) lines.push({ k: "Try this", c: "try", t: cap(actions[0]) });
+    const a0 = actions.find(a => !contd(cap(a), all)); if (a0) lines.push({ k: "Try this", c: "try", t: cap(a0) }); // a whole line: not continued elsewhere
     const sl = lines.filter(l => l.t && isSafe(l.t)).slice(0, 3);
     if (sl.length >= 2) out.summary = { title: "Summary", lines: sl };
     if (opts.trace) { out._sentences = all; out._claims = claims; }
