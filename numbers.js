@@ -538,7 +538,7 @@
     const b = $("#nmSrc"); b.textContent = ai ? T("numbers.src.ai", "เรียบเรียงโดย Claude AI") : ""; b.className = "src-badge " + (ai ? "ai" : "local"); b.hidden = !ai;
     $("#nmNarrNote").textContent = res.note || "";
   }
-  async function narrate(again) {
+  async function narrate() {
     const box = $("#nmNarr");
     if (!current) return;
     const my = ++narrSeq, useAI = !!(aiEnabled && (F && typeof F.hasConsent === "function" ? F.hasConsent() : prefs.ai));
@@ -547,16 +547,17 @@
     if (!F) { box.innerHTML = '<p class="nm-small">' + esc(T("numbers.noComposer", "ไม่พบตัวเรียบเรียงคำอ่าน (fortune-ai.js)")) + '</p>'; return; }
     $("#nmAgain2").disabled = true; box.setAttribute("aria-busy", "true");
     if (useAI) box.innerHTML = '<p class="nm-small">' + esc(T("numbers.loading", "กำลังเรียบเรียงคำอ่าน...")) + '</p>';
+    // owner inbox 19: same number + same Thai-date month = same text (seed from the facts; nothing stored or sent)
+    const seed = typeof F.seedFor === "function" ? F.seedFor(["numbers", topic, currentFacts], "m") : 0;
     let res;
     try {
-      if (again && typeof F.regenerate === "function") res = await F.regenerate(currentFacts, { useAI });
-      if (!res || !Array.isArray(res.sections)) res = await F.interpret(currentFacts, { useAI });
-    } catch (e) { res = F.compose ? F.compose(currentFacts) : { source: "local", sections: [] }; }
+      res = await F.interpret(currentFacts, { useAI, seed: seed });
+    } catch (e) { res = F.compose ? F.compose(currentFacts, { seed: seed }) : { source: "local", sections: [] }; }
     if (my !== narrSeq) return;
     renderNarr(res);
     $("#nmAgain2").disabled = false; box.removeAttribute("aria-busy");
   }
-  $("#nmAgain2").addEventListener("click", () => { touch(); narrate(true); });
+  $("#nmAgain2").addEventListener("click", () => { touch(); narrate(); });
   $("#nmTopic").addEventListener("change", () => { if (current) narrate(); });
 
   function setupConsent() {
