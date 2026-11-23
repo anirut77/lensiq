@@ -19,7 +19,6 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertLocked, phaseDir } from "./eval-guard.mjs";
 import { serve } from "./static-server.mjs";
-import { launch } from "../tests/e2e/cdp.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PHASE = "faceread-90", DIR = phaseDir(PHASE), AF = phaseDir("attendance-face");
@@ -30,6 +29,20 @@ assertLocked(PHASE, ["protocol.json", "faceread-consistency-eval.mjs", "london-m
 const argv = process.argv.slice(2);
 const arg = (n, d) => { const a = argv.find(x => x.startsWith("--" + n + "=")); return a ? a.slice(n.length + 3) : d; };
 const ONLY = arg("only", ""), LIMIT = +arg("limit", 0) || 0;
+// RE-LOCK v3 (2026-11-23, after the v2 baseline on face-api, before any tier-1 measurement): --engine=faceapi|mp picks the page's
+// face model through faceread.html?frengine= (localhost only); default faceapi = the v2 run. mp (MediaPipe Face Landmarker) needs
+// WebGL, so Chrome then runs with SwiftShader (as tools/exam-face-eval.mjs). Same protocol, sets, definitions and targets.
+const ENGINE = arg("engine", "faceapi");
+if (!["faceapi", "mp"].includes(ENGINE)) { console.error("--engine must be faceapi or mp"); process.exit(2); }
+if (ENGINE === "mp") {
+  const { chmodSync, mkdtempSync } = await import("node:fs"), { tmpdir } = await import("node:os"), { existsSync } = await import("node:fs");
+  const real = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/usr/bin/google-chrome", "/usr/bin/chromium"].find(p => existsSync(p));
+  const w = join(mkdtempSync(join(tmpdir(), "lq-frc-")), "chrome-webgl.sh");
+  writeFileSync(w, ["#!/bin/bash", "args=()", `for a in "$@"; do case "$a" in --disable-webgl|--disable-3d-apis|--disable-gpu) ;; *) args+=("$a");; esac; done`,
+    `exec ${JSON.stringify(real)} --use-angle=swiftshader --enable-unsafe-swiftshader "\${args[@]}"`, ""].join("\n"));
+  chmodSync(w, 0o755); process.env.LQ_CHROME = w;
+}
+const { launch } = await import("../tests/e2e/cdp.mjs");
 const sha = b => createHash("sha256").update(b).digest("hex");
 
 const MAN = readFileSync(join(DIR, "london-manifest.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l));
@@ -92,7 +105,7 @@ const READ = async (b64, make) => {
 };
 
 async function session(browser, base, lang) {
-  const page = await browser.newPage(`${base}/faceread.html?lang=${lang}`, { isolated: true, timeout: 60000 });
+  const page = await browser.newPage(`${base}/faceread.html?lang=${lang}&frengine=${ENGINE}`, { isolated: true, timeout: 60000 });
   await page.waitFor("!!window.FRCore && !!document.querySelector('#frFile')", 30000);
   return page;
 }
@@ -100,7 +113,7 @@ const readOn = (page, b64, make) => page.evaluate(READ, b64, make);
 
 const { base, close } = await serve(repo);
 const browser = await launch();
-const out = { at: new Date().toISOString(), head: "", protocol: "faceread-90 v1", source: "public dataset (London Set, CC BY 4.0), headless Chrome without WebGL", c1: null, c2: null };
+const out = { at: new Date().toISOString(), head: "", protocol: "faceread-90 v1", engine: ENGINE, source: "public dataset (London Set, CC BY 4.0), headless Chrome without WebGL", c1: null, c2: null };
 let invalid = false;
 try {
   const { execFileSync } = await import("node:child_process");
@@ -164,7 +177,7 @@ try {
   console.error(e); invalid = true; out.error = String(e && e.message || e);
 } finally { await browser.close(); await close(); }
 mkdirSync(join(DIR, "results"), { recursive: true });
-const file = arg("json", join(DIR, "results", `consistency-${out.at.replace(/[:.]/g, "-")}${LIMIT ? "-limit" + LIMIT : ""}.json`));
+const file = arg("json", join(DIR, "results", `consistency-${ENGINE}-${out.at.replace(/[:.]/g, "-")}${LIMIT ? "-limit" + LIMIT : ""}.json`));
 writeFileSync(file, JSON.stringify(out, null, 1));
 console.log("written " + file);
 const pass = (!out.c1 || out.c1.pass) && (!out.c2 || out.c2.pass);

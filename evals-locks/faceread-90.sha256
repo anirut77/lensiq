@@ -11,3 +11,6 @@ d97a65c036253dc9de18ebba10206be39123a7dd5c2540e1fda1d50b8c2a0583  london-manifes
 da6c60515540d3b8cd1b4fe45b4e0a668e8ccc8df96af3a3ef882277e80116d0  tools/faceread-consistency-eval.mjs  # repo file (same commit as lock 2026-11-23T15:59:03Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-consistency-eval.mjs)
 # field only london-manifest.jsonl (lock 2026-11-23T15:59:03Z: no repo file uses it)
 # field only london-split-protocol.json (lock 2026-11-23T15:59:03Z: no repo file uses it)
+# locked 2026-11-23T16:07:30Z (tools/eval-guard.mjs lock, 1 file)
+0a38a627b1edf69d691a3ff658d340f60a9cb8c54ca3f557a6f12b44e499bcd8  faceread-consistency-eval.mjs
+0a38a627b1edf69d691a3ff658d340f60a9cb8c54ca3f557a6f12b44e499bcd8  tools/faceread-consistency-eval.mjs  # repo file (same commit as lock 2026-11-23T16:07:30Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-consistency-eval.mjs)
