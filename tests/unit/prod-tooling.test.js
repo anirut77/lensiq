@@ -675,7 +675,11 @@ test("T10 GitHub Pages output: a pure copy of the published files plus the test-
   assert.match(PL, /^\s+run: node tools\/build-site\.mjs$/m, "Pages builds with no flag");
   assert.doesNotMatch(PL, /build-prod-site|build-redirect-site|public-site\.prod|site-url\.prod|deploy-prod|--customer|_headers/);
   const files = B.publishedFiles(ROOT);
-  for (const f of files) assert.doesNotMatch(f, /^(_headers|_redirects)$|^deploy\/|prod/i, "a production file would be published: " + f);
+  // RE-LOCK 1: the first lock matched any "prod" substring, which also hits the existing pages products.js / i18n/en-products.js
+  for (const f of files) {
+    assert.doesNotMatch(f, /^(_headers|_redirects|_site-prod\/.*|_site-redirect\/.*)$|^deploy\/|(^|\/)(site-url|public-site)\.prod\.json$|build-(prod|redirect)-site|deploy-prod|pages-deploy-guard/,
+      "a production file would be published: " + f);
+  }
   const d = tmp("lq-pages-same-");
   try {
     const out = join(d, "_site");

@@ -12,3 +12,10 @@
 # pages-deploy-guard; T9 redirect site; T10 GitHub Pages output unchanged. Integration: wrangler's own reader on [env.production].
 # pages-manifest-origin-main-fdcb931e.txt = sha256 of every file of `node tools/build-site.mjs` at origin/main fdcb931e (1999 files), the
 # baseline for the one-off byte-identity measurement of the GitHub Pages output after the change. On the old code every T test fails.
+# locked 2026-11-23T02:09:29Z (tools/eval-guard.mjs lock, 2 files)
+5b32b1b514d381711e711b48a14b9fe85844d9fc464ede2b126e786d33629949  relock1/prod-tooling.test.js
+5832613562fd80f1575596ca015b35dbff5769e354664290db7c3896c566524f  relock1/NOTE.txt
+5b32b1b514d381711e711b48a14b9fe85844d9fc464ede2b126e786d33629949  tests/unit/prod-tooling.test.js  # repo file (same commit as lock 2026-11-23T02:09:29Z; field: ~/LENSIQ-field/evals/prod-tooling/relock1/prod-tooling.test.js)
+# field only relock1/NOTE.txt (lock 2026-11-23T02:09:29Z: no repo file uses it)
+# RE-LOCK 1 2026-11-23 (branch prod-tooling): TEST BUG in T10 only (a bare "prod" alternative matched the existing products.js pages);
+# replaced by the exact production artefact names; no other assertion changed. Field copy and NOTE.txt: ~/LENSIQ-field/evals/prod-tooling/relock1/.
