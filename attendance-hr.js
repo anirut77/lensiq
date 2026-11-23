@@ -197,7 +197,7 @@
     // un-hides the PIN pane, so the active tab and the other panes are set here (a plain "pane is shown" test is not enough)
     if (W.__ATT_CORE) return t.click();
     t.click();
-    $all(".tab").forEach(x => x.classList.toggle("active", x === t));
+    $all(".tab[data-t]").forEach(x => x.classList.toggle("active", x === t));
     ["checkin", "register", "records", "check", "pin"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== "pin"; });
   }
   function setMode(m, first) {
@@ -216,7 +216,7 @@
     const cr = document.querySelector('.lq-crumbs [aria-current="page"]');
     if (cr) {
       const emp = S.mode === "employee", k = emp ? "nav.attendance.title" : "attendance.hr.modeT";
-      cr.setAttribute("data-i18n", k); cr.setAttribute("href", emp ? "attendance.html?mode=employee" : "attendance.html");
+      cr.setAttribute("data-i18n", k); cr.setAttribute("href", emp ? "attendance.html?mode=employee" : "attendance.html?mode=training");
       cr.textContent = W.LQI18N && W.LQI18N.tf ? W.LQI18N.tf(k, emp ? "ลงเวลาทำงาน PIN / QR" : "เช็คชื่ออบรม/กิจกรรม (ใบหน้า)") : (emp ? "ลงเวลาทำงาน PIN / QR" : "เช็คชื่ออบรม/กิจกรรม (ใบหน้า)");
     }
     if (S.mode !== "employee") { if (S.kiosk) exitKiosk(); const t = $("#tabPin"); if (t && t.classList.contains("active")) $('.tab[data-t="checkin"]').click(); }
@@ -235,9 +235,15 @@
   function enterKiosk(gesture) {
     S.kiosk = true; saveSet(); document.body.classList.add("att-kiosk");
     $("#hrKiosk").firstElementChild.textContent = T("kexB", "ออกจากคิออสก์");
-    $('.tab[data-t="checkin"]').click(); $("#pane-pin").hidden = false;
+    // SELL-READY decision 3 ก (D1): the kiosk is PIN / QR (QR camera scan allowed) and loads no face library or model.
+    // Face check-in joins the kiosk only when face was already chosen on this page (the face models are loaded).
+    const c0 = CORE(), face = !!(c0 && c0.ready);
+    document.body.classList.toggle("att-kface", face);
+    if (face) { $('.tab[data-t="checkin"]').click(); $("#pane-pin").hidden = false; }
+    else { const t = $("#tabPin"); if (t) showPin(t); }
     if (gesture && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
-    // start the face scan as soon as the camera + models are ready (a kiosk restored after a reload starts by itself)
+    if (!face) return;
+    // face chosen: start the face scan as soon as the camera + models are ready
     let n = 0;
     const t = setInterval(() => {
       const c = CORE();
@@ -246,7 +252,7 @@
     }, 500);
   }
   function exitKiosk() {
-    S.kiosk = false; saveSet(); document.body.classList.remove("att-kiosk"); $("#hrKioskExit").hidden = true;
+    S.kiosk = false; saveSet(); document.body.classList.remove("att-kiosk", "att-kface"); $("#hrKioskExit").hidden = true;
     $("#pane-pin").hidden = !$("#tabPin").classList.contains("active");
     $("#hrKiosk").firstElementChild.textContent = T("kiosk", "โหมดคิออสก์");
     if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
@@ -265,7 +271,7 @@
   function tick() { const t = now(), d = C.dateKey(t); $("#hrClock").textContent = C.clock(t); $("#hrDate").textContent = d + " · " + WD()[C.weekday(d)]; }
   tick(); setInterval(tick, 1000);
   // PIN tab pane (attendance.js hides the other panes; this one is ours)
-  $all(".tab").forEach(t => t.addEventListener("click", () => { $("#pane-pin").hidden = t.dataset.t !== "pin"; }));
+  $all(".tab[data-t]").forEach(t => t.addEventListener("click", () => { $("#pane-pin").hidden = t.dataset.t !== "pin"; }));
 
   // ------------------------------------------------------------ admin tabs
   let hTab = "emp";

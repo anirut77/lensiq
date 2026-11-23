@@ -527,8 +527,9 @@ $("#clearLogs").onclick = () => {
 };
 
 // ---------- แท็บ ----------
-document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
-  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
+// face / PIN tabs only (data-t); the admin tabs (.hr-tab, data-h) also carry the shared .tab class and have their own handler
+document.querySelectorAll(".tab[data-t]").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab[data-t]").forEach(x => x.classList.toggle("active", x === t));
   ["checkin", "register", "records", "check", "pin"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== t.dataset.t; });
   mode = t.dataset.t;
   if (mode === "checkin" || mode === "register" || mode === "check") startCamera(); // choosing face opens the camera (D-01)
