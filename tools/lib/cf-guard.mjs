@@ -29,14 +29,45 @@ import { fileURLToPath } from "node:url";
 export const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const BACKEND = join(REPO, "backend");
 export const WRANGLER_TOML = join(BACKEND, "wrangler.toml");
+/** The wrangler configuration file of each environment (cwd backend/). Production has its own file, so backend/wrangler.toml
+ *  (template + [env.test]) stays byte-identical and no production setting can reach the test Worker. */
+export const CONFIG = Object.freeze({ test: "wrangler.toml", production: "wrangler.production.toml" });
+export const WRANGLER_PROD_TOML = join(BACKEND, CONFIG.production);
 export const ENV = "test";
 /** The owner's other resources in the same account: never a target. */
 export const PROTECTED = Object.freeze([
   "dearday-staging", "aidanex-staging", "aidanex-pet-clinic-pilot", "faksak.com", "tripsdna.com",
   "aidanex-sales-staging", "kaguwood-store", "aidanex-pet-clinic"
 ]);
-/** The only resources LENSIQ scripts may create or change. */
-export const ALLOWED = Object.freeze({ worker: "lensiq-api-test", d1: "lensiq-test" });
+/** The only resources LENSIQ scripts may create or change, per wrangler environment (production: SELL-READY decision 11 ก,
+ *  docs/PRODUCTION-MOVE-PLAN.md §2.2). Every function below takes the environment from its argument or from the target
+ *  object it is given (readTargets(toml, env).env) and defaults to "test", so the test tools behave exactly as before. */
+export const ENVS = Object.freeze({
+  test: Object.freeze({ worker: "lensiq-api-test", d1: "lensiq-test" }),
+  production: Object.freeze({ worker: "lensiq-prod-api", d1: "lensiq-prod" })
+});
+/** The test environment's resources (the name every test tool used before production existed). */
+export const ALLOWED = ENVS.test;
+/** Cloudflare Pages project of the production site (tools/pages-deploy-guard.mjs). */
+export const PROD_PAGES_PROJECT = "lensiq-prod-site";
+/** Name segments that mark a non-production resource: never accepted in production. */
+const NON_PROD = new Set(["test", "tests", "staging", "stage", "stg", "dev", "preview", "demo", "sandbox", "tmp"]);
+/** A production name: "lensiq-prod" or "lensiq-prod-<a>[-<b>…]" (lower case), with no test / staging / dev / preview segment.
+ *  @param {unknown} n */
+export function isProdName(n) {
+  if (typeof n !== "string" || !/^lensiq-prod(-[a-z0-9]+)*$/.test(n) || n.length > 58) return false;
+  return !n.split("-").slice(2).some(seg => NON_PROD.has(seg));
+}
+/** The resources of one environment; any other environment is refused. @param {unknown} env */
+export function allowedFor(env) {
+  if (typeof env === "string" && Object.hasOwn(ENVS, env)) return ENVS[/** @type {"test"|"production"} */ (env)];
+  throw new GuardError(`REFUSED: unknown environment ${JSON.stringify(String(env)).slice(0, 40)} (only "test" and "production"). Nothing was sent to Cloudflare.`);
+}
+/** Absolute path of an environment's wrangler configuration file. @param {string} env */
+export const tomlFor = env => { allowedFor(env); return join(BACKEND, CONFIG[/** @type {"test"|"production"} */ (env)]); };
+/** The --config flag every wrangler command of an environment carries ([] for test: wrangler.toml is wrangler's default).
+ *  @param {string} env @returns {string[]} */
+export const configArgs = env => { allowedFor(env); return env === ENV ? [] : ["--config", CONFIG[/** @type {"test"|"production"} */ (env)]]; };
 /** Owner-approved custom hostnames of the API Worker: deploy/domains.json "apiHosts" (docs/CUSTOM-DOMAIN.md). */
 export const DOMAINS_FILE = "deploy/domains.json";
 const HOST_RE = /^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/;
@@ -56,20 +87,27 @@ export function approvedApiHosts(file, read) {
   for (const h of hosts) if (!isLensiqHost(h)) throw new GuardError(`${DOMAINS_FILE}: "${h}" is not an accepted hostname (plain lower-case hostname with a label starting with "lensiq")`);
   return [...hosts];
 }
-/** True for LENSIQ's own workers.dev host or an approved custom host. @param {string} host @param {string[]} approved */
-export const isOwnApiHost = (host, approved = []) => new RegExp(`^${ALLOWED.worker}\\.[a-z0-9-]+\\.workers\\.dev$`).test(host) || approved.includes(host);
+/** True for LENSIQ's own workers.dev host (test only: production has workers_dev = false) or an approved custom host.
+ *  @param {string} host @param {string[]} approved @param {string} [env] */
+export const isOwnApiHost = (host, approved = [], env = ENV) =>
+  (env === ENV && new RegExp(`^${ALLOWED.worker}\\.[a-z0-9-]+\\.workers\\.dev$`).test(host)) || approved.includes(host);
 
 export const D1_PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
 const NAME_RE = /^lensiq-[a-z0-9][a-z0-9-]{0,50}$/;
 
 export class GuardError extends Error {}
 
-/** Throws GuardError unless `name` is a LENSIQ resource of that kind. @param {"worker"|"d1"} kind @param {unknown} name */
-export function assertTarget(kind, name) {
+/** Throws GuardError unless `name` is a LENSIQ resource of that kind in that environment (default "test"). In production the
+ *  name must also pass isProdName(): a test, staging or preview name is refused even if it were listed.
+ *  @param {"worker"|"d1"} kind @param {unknown} name @param {string} [env] */
+export function assertTarget(kind, name, env = ENV) {
+  const allowed = allowedFor(env);
   const n = typeof name === "string" ? name : "";
   const why = !n ? "no target name" : PROTECTED.includes(n.toLowerCase()) ? "it is one of the owner's other resources"
-    : !NAME_RE.test(n) ? 'the name does not start with "lensiq-"' : ALLOWED[kind] !== n ? `the only ${kind} this repo deploys is "${ALLOWED[kind]}"` : "";
-  if (why) throw new GuardError(`REFUSED: ${kind} target "${n}" — ${why}. Nothing was sent to Cloudflare.`);
+    : !NAME_RE.test(n) ? 'the name does not start with "lensiq-"'
+      : env === "production" && !isProdName(n) ? 'a production name starts with "lensiq-prod" and has no test / staging / dev / preview part'
+        : allowed[kind] !== n ? `the only ${kind} this repo deploys in "${env}" is "${allowed[kind]}"` : "";
+  if (why) throw new GuardError(`REFUSED: ${kind} target "${n}" (environment "${env}") — ${why}. Nothing was sent to Cloudflare.`);
   return n;
 }
 
@@ -88,28 +126,33 @@ export function pairs(body) {
   return Object.fromEntries([...String(body).matchAll(/^([A-Za-z0-9_]+)\s*=\s*(?:"([^"]*)"|(true|false|[\d.]+))\s*(?:#.*)?$/gm)].map(m => [m[1], m[2] ?? m[3]]));
 }
 
-/** Target names and settings of [env.test] in wrangler.toml text. */
-export function readTargets(toml = readFileSync(WRANGLER_TOML, "utf8")) {
-  const env = section(toml, `[env.${ENV}]`), d1 = section(toml, `[[env.${ENV}.d1_databases]]`);
+/** Target names and settings of [env.<env>] (default [env.test]) in wrangler.toml text. @param {string} [toml] @param {string} [envName] */
+export function readTargets(toml, envName = ENV) {
+  allowedFor(envName);
+  if (toml === undefined) toml = readFileSync(tomlFor(envName), "utf8");
+  const E = envName;
+  const env = section(toml, `[env.${E}]`), d1 = section(toml, `[[env.${E}.d1_databases]]`);
   return {
-    env: ENV, worker: str(env, "name"), workersDev: /^\s*workers_dev\s*=\s*true\s*$/m.test(env), previewUrls: /^\s*preview_urls\s*=\s*true\s*$/m.test(env),
+    env: E, worker: str(env, "name"), workersDev: /^\s*workers_dev\s*=\s*true\s*$/m.test(env), previewUrls: /^\s*preview_urls\s*=\s*true\s*$/m.test(env),
     d1: str(d1, "database_name"), d1Id: str(d1, "database_id"), d1Binding: str(d1, "binding"),
-    vars: pairs(section(toml, `[env.${ENV}.vars]`)), topVars: pairs(section(toml, "[vars]")), topName: str(toml.split(/^\[/m)[0], "name"),
-    observability: pairs(section(toml, `[env.${ENV}.observability]`)),
-    crons: (/crons\s*=\s*\[([^\]]*)\]/.exec(section(toml, `[env.${ENV}.triggers]`)) || ["", ""])[1].split(",").map(s => s.trim().replace(/^"|"$/g, "")).filter(Boolean)
+    vars: pairs(section(toml, `[env.${E}.vars]`)), topVars: pairs(section(toml, "[vars]")), topName: str(toml.split(/^\[/m)[0], "name"),
+    observability: pairs(section(toml, `[env.${E}.observability]`)),
+    crons: (/crons\s*=\s*\[([^\]]*)\]/.exec(section(toml, `[env.${E}.triggers]`)) || ["", ""])[1].split(",").map(s => s.trim().replace(/^"|"$/g, "")).filter(Boolean)
   };
 }
 
-/** wrangler.toml text with the [env.test] D1 id set. Only that one line changes. @param {string} toml @param {string} id */
-export function fillDatabaseId(toml, id) {
+/** wrangler.toml text with the [env.<env>] (default test) D1 id set. Only that one line changes.
+ *  @param {string} toml @param {string} id @param {string} [env] */
+export function fillDatabaseId(toml, id, env = ENV) {
+  allowedFor(env);
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(String(id)) || id === D1_PLACEHOLDER) throw new Error("not a D1 database id");
   const lines = String(toml).split(/\r?\n/);
-  const at = lines.findIndex(l => l.trim() === `[[env.${ENV}.d1_databases]]`);
-  if (at < 0) throw new Error("no [[env.test.d1_databases]] table in wrangler.toml");
+  const at = lines.findIndex(l => l.trim() === `[[env.${env}.d1_databases]]`);
+  if (at < 0) throw new Error(`no [[env.${env}.d1_databases]] table in wrangler.toml`);
   for (let i = at + 1; i < lines.length && !/^\s*\[/.test(lines[i]); i++) {
     if (/^\s*database_id\s*=/.test(lines[i])) { lines[i] = `database_id = "${id}"`; return lines.join("\n"); }
   }
-  throw new Error("no database_id line in [[env.test.d1_databases]]");
+  throw new Error(`no database_id line in [[env.${env}.d1_databases]]`);
 }
 
 /** JSON array in a wrangler answer (it may print a banner first), or null. */
@@ -146,16 +189,34 @@ const PLAIN = new Set(["deploy", "rollback", "versions", "deployments"]);
 
 /**
  * The resource a wrangler argument list acts on, resolved the way the installed wrangler does it.
- * @param {string[]} args @param {{worker: string, d1: string}} cfg names of [env.test] in wrangler.toml
+ * @param {string[]} args @param {{worker: string, d1: string, env?: string}} cfg names of [env.<cfg.env>] (default test) in wrangler.toml
  * @returns {{kind: "worker"|"d1"|"none", name: string}}  Throws GuardError for a command these tools do not use.
  */
+/** Flags whose value decides the target: each may appear at most once, in any form (--x v, --x=v, short alias). */
+const TARGET_FLAGS = Object.freeze([["--name"], ["--env", "-e"], ["--config", "-c"]]);
 export function effectiveTarget(args, cfg) {
+  for (const names of TARGET_FLAGS) {
+    const n = args.filter(a => names.some(f => a === f || a.startsWith(f + "="))).length;
+    if (n > 1) throw new GuardError(`REFUSED: ${names.join(" / ")} given ${n} times; wrangler would pick one of them. Nothing was sent to Cloudflare.`);
+  }
   const sub = args[0], name = flagOf(args, "--name"), env = flagOf(args, "--env", "-e");
+  const E = cfg.env || ENV;
+  if (E !== ENV && env == null && !(sub === "whoami" || (sub === "d1" && (args[1] === "create" || args[1] === "list")))) {
+    throw new GuardError(`REFUSED: a "${E}" command without --env ${E}. Nothing was sent to Cloudflare.`);
+  }
   if (sub === "whoami") return { kind: "none", name: "" };
-  // the configuration wrangler will read: [env.test] only when --env test is given; otherwise the template's top level
-  const cfgName = env === ENV ? cfg.worker : env == null ? "(top-level name: not a LENSIQ deploy target)" : `(unknown environment ${env})`;
-  if (LEGACY.has(sub) || (sub === "versions" && args[1] === "secret")) return { kind: "worker", name: name && env ? `${name}-${env}` : name ?? cfgName };
-  if (PLAIN.has(sub)) return { kind: "worker", name: name ?? cfgName };
+  // the configuration FILE wrangler will read: wrangler.toml (default) for test, wrangler.production.toml for production
+  const conf = flagOf(args, "--config", "-c");
+  const confOk = E === ENV ? conf == null || conf === CONFIG.test : conf === CONFIG[/** @type {"test"|"production"} */ (E)];
+  // the configuration wrangler will read: [env.<E>] only when --env <E> is given; otherwise the template's top level or
+  // ANOTHER environment, which is never this target
+  const cfgName = !confOk ? `(configuration file ${conf ?? CONFIG.test}: not the "${E}" file)`
+    : env === E ? cfg.worker : env == null ? "(top-level name: not a LENSIQ deploy target)" : `(environment ${env}: not the "${E}" target)`;
+  // another configuration file than the environment's own: whatever --name says, this is never the target (the file decides
+  // the vars, the D1 binding and the routes that would be deployed with that name)
+  const worker = (/** @type {string} */ nm) => ({ kind: /** @type {"worker"} */ ("worker"), name: confOk ? nm : cfgName });
+  if (LEGACY.has(sub) || (sub === "versions" && args[1] === "secret")) return worker(name && env ? `${name}-${env}` : name ?? cfgName);
+  if (PLAIN.has(sub)) return worker(name ?? cfgName);
   if (sub === "d1") {
     if (args[1] === "list") return { kind: "none", name: "" };
     if (args[1] === "create" || args[1] === "execute") return { kind: "d1", name: String(args[2] || "") };
@@ -165,10 +226,15 @@ export function effectiveTarget(args, cfg) {
 }
 /** Throws GuardError unless the EFFECTIVE target of `args` is LENSIQ's own resource. Returns the target. */
 export function assertEffective(args, cfg) {
+  const E = cfg.env || ENV;
   const t = effectiveTarget(args, cfg);
-  if (t.kind !== "none") assertTarget(t.kind, t.name);
-  if (t.kind === "d1" && args[1] !== "create" && flagOf(args, "--env", "-e") !== ENV && !args.includes("--local")) {
-    throw new GuardError("REFUSED: a D1 command without --env test would read the template's database entry. Nothing was sent to Cloudflare.");
+  if (t.kind !== "none") assertTarget(t.kind, t.name, E);
+  if (t.kind === "d1" && args[1] !== "create" && flagOf(args, "--env", "-e") !== E && !args.includes("--local")) {
+    throw new GuardError(`REFUSED: a D1 command without --env ${E} would read another database entry. Nothing was sent to Cloudflare.`);
+  }
+  const conf = flagOf(args, "--config", "-c");
+  if (t.kind === "d1" && args[1] !== "create" && !(E === ENV ? conf == null || conf === CONFIG.test : conf === CONFIG[/** @type {"test"|"production"} */ (E)])) {
+    throw new GuardError(`REFUSED: a D1 command of "${E}" must read ${E === ENV ? CONFIG.test : CONFIG[/** @type {"test"|"production"} */ (E)]}. Nothing was sent to Cloudflare.`);
   }
   return t;
 }
@@ -340,7 +406,7 @@ export function wrangler(args, opts) {
 }
 
 /** Read-only argument lists of the two existence checks. */
-export const deployedArgs = t => ["deployments", "list", "--env", ENV, "--name", t.worker, "--json"];
+export const deployedArgs = t => ["deployments", "list", ...configArgs(t.env || ENV), "--env", t.env || ENV, "--name", t.worker, "--json"];
 export const D1_LIST_ARGS = ["d1", "list", "--json"];
 
 /**
@@ -363,8 +429,9 @@ export function verifyD1(t, o) {
   const j = r.status === 0 ? jsonArray(r.stdout) : null;
   if (!j) return "the account's D1 databases could not be listed (not logged in?)";
   const byId = j.find(d => d && d.uuid === t.d1Id), byName = j.find(d => d && d.name === t.d1);
-  if (!byId) return `no database in this account has the id written in wrangler.toml [env.test]`;
-  if (byId.name !== t.d1) return `the id in wrangler.toml [env.test] belongs to the database "${String(byId.name).slice(0, 60)}", not "${t.d1}"`;
-  if (!byName || byName.uuid !== t.d1Id) return `the database "${t.d1}" has another id than wrangler.toml [env.test]`;
+  const E = t.env || ENV;
+  if (!byId) return `no database in this account has the id written in wrangler.toml [env.${E}]`;
+  if (byId.name !== t.d1) return `the id in wrangler.toml [env.${E}] belongs to the database "${String(byId.name).slice(0, 60)}", not "${t.d1}"`;
+  if (!byName || byName.uuid !== t.d1Id) return `the database "${t.d1}" has another id than wrangler.toml [env.${E}]`;
   return "";
 }

@@ -1,0 +1,63 @@
+# Production site: BUILD AND VERIFY ONLY (production move step A4, docs/PRODUCTION-MOVE-PLAN.md; SELL-READY 2026-11-23
+# decision 11 ก). It never deploys and holds no Cloudflare credential: the locked rule of tests/unit/deploy-tools.test.js
+# (evals-locks/leads.sha256) allows no Cloudflare credential in any workflow. The upload to the Pages project
+# lensiq-prod-site is done from the owner's machine with `npm run site:deploy:prod` (tools/pages-deploy-guard.mjs: exact
+# project name, origin/main only, CI green for the commit, customer-locked folder), and only with owner item 232.
+# Until the owner commits the domain in deploy/site-url.prod.json (items 8 / 9) the build step refuses (no-op).
+# Manual dispatch only: never on a push, a schedule or another workflow. GitHub Pages (pages-lfs.yml) is not touched.
+name: Production site bundle (manual, build + verify only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: prod-site-bundle
+  cancel-in-progress: true
+
+jobs:
+  bundle:
+    name: Build + verify the lensiq-prod-site bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: CI must have succeeded for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ok=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow CI --commit "$GITHUB_SHA" --status success --json databaseId --jq 'length')
+          if [ "${ok:-0}" -lt 1 ]; then echo "::error::CI has not succeeded for $GITHUB_SHA"; exit 1; fi
+      - name: LFS objects (if any)
+        run: |
+          (git lfs ls-files -l 2>/dev/null || true) | cut -d' ' -f1 | sort > .lfs-assets-id
+          if [ -s .lfs-assets-id ]; then git lfs pull; fi
+          node tools/check-lfs.mjs
+      - name: build the production bundle (customer lock; refuses while deploy/site-url.prod.json has no base)
+        run: node tools/build-prod-site.mjs --out _site-prod
+      - name: legal guard on the bundle
+        run: node tools/check-legal.mjs --dir _site-prod
+      - name: static checks of the bundle
+        run: node tools/check-site.mjs --static --dir _site-prod
+      - id: chrome
+        uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
+        with:
+          chrome-version: stable
+      - run: npm ci
+      - name: crawl at the ROOT path (every page in TH + EN + 中文, no 404)
+        run: node tools/check-site.mjs --dir _site-prod --root
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: keep the verified bundle (for comparison with the local build before the deploy)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lensiq-prod-site-${{ github.sha }}
+          path: _site-prod
+          include-hidden-files: true
+          retention-days: 7

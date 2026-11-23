@@ -1,0 +1,9 @@
+{
+  "note": "PRODUCTION site config, read only by tools/build-prod-site.mjs (node tools/build-site.mjs --customer --site-config deploy/public-site.prod.json). apiBase empty = inactive: the production bundle has no API until the Worker lensiq-prod-api runs on its approved custom domain (deploy/domains.json). Then set apiBase to https://api.<domain> (or https://lensiq-api.<domain>) and turnstileSiteKey to the SITE key of the widget lensiq-prod, on a branch with the full gate. Never the test Worker or the test site key (the customer build refuses both). Do not use npm run site:set-api for this file.",
+  "apiBase": "",
+  "turnstileSiteKey": "",
+  "pages": ["index.html"],
+  "analytics": false,
+  "member": false,
+  "testerGate": false
+}

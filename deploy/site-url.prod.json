@@ -1,0 +1,4 @@
+{
+  "_note": "The public base URL of the PRODUCTION site (https://www.<domain>/, ends with /), read by tools/build-prod-site.mjs and tools/build-redirect-site.mjs. Empty until the owner decides the domain (SELL-READY 2026-11-23 items 8 / 9): both tools then refuse and build nothing. The GitHub Pages site keeps using deploy/site-url.json.",
+  "base": ""
+}
