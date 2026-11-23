@@ -23,3 +23,11 @@ e4b800b7b766181827e8724f0deb621503ea608f06ffe221a8e79361af35f15f  tools/fortune-
 # locked 2026-11-23T05:39:15Z (tools/eval-guard.mjs lock, 1 file)
 2ca1d648e64ac8ed0673b0dde451dd886831a0f254f20883dfa113df620fe1cb  rule-a/fortune-dream-type-summary.test.js
 2ca1d648e64ac8ed0673b0dde451dd886831a0f254f20883dfa113df620fe1cb  tests/unit/fortune-dream-type-summary.test.js  # repo file (same commit as lock 2026-11-23T05:39:15Z; field: ~/LENSIQ-field/evals/fortune-90/rule-a/fortune-dream-type-summary.test.js)
+# RE-LOCK v3 2026-11-23, after the independent review (v2 not equal-or-stricter: "e.g" / "9 a" / once-matching connector tails / ";" continuations passed) and BEFORE any v3 measurement: S1 needs EVERY occurrence of the tail to end a sentence; "." ends a sentence only before whitespace or the end and not after an abbreviation or a single letter (decimals cut); ";" only at the end. No input or threshold changed; v1 and v2 stay above. Note: ~/LENSIQ-field/evals/fortune-90/v3/NOTE.txt
+# locked 2026-11-23T05:43:31Z (tools/eval-guard.mjs lock, 3 files)
+4a64c10345239cbd06d1570189ed07f797a122ad575a3493e6f83e08fe7f8992  v3/fortune-cut-check.mjs
+9af87c34228ac03c1dea0c32ad176c77c925b4e04385ee55f6958d56dabe5ad0  v3/fortune-cut-strict.test.js
+b7342e8180ab00690c239ce2abbc4bf6c092f5089d70d5840c68d8ad6dce718f  v3/NOTE.txt
+4a64c10345239cbd06d1570189ed07f797a122ad575a3493e6f83e08fe7f8992  tools/fortune-cut-check.mjs  # repo file (same commit as lock 2026-11-23T05:43:31Z; field: ~/LENSIQ-field/evals/fortune-90/v3/fortune-cut-check.mjs)
+9af87c34228ac03c1dea0c32ad176c77c925b4e04385ee55f6958d56dabe5ad0  tests/unit/fortune-cut-strict.test.js  # repo file (same commit as lock 2026-11-23T05:43:31Z; field: ~/LENSIQ-field/evals/fortune-90/v3/fortune-cut-strict.test.js)
+# field only v3/NOTE.txt (lock 2026-11-23T05:43:31Z: no repo file uses it)
