@@ -15,7 +15,7 @@ export default async function ({ base, launch, check, fakeCams }) {
         try {
           await page.goto(`${base}/index.html`);
           await page.evaluate(() => localStorage.clear());
-          await page.goto(`${base}/${pg}.html?cpu&fakedet`);
+          await page.goto(`${base}/${pg}.html?${pg === "attendance" ? "mode=training&" : ""}cpu&fakedet`);
           const r = await page.waitFor(`(() => { const m = document.querySelector(${JSON.stringify(msg)}); const why = LQVault.enrollBlockReason(); return why && m.textContent === why && { why, disabled: document.querySelector(${JSON.stringify(form)} + " button[type=submit]").disabled }; })()`, 8000);
           assert(r.disabled, "submit disabled " + JSON.stringify(r));
           // forced submit (button re-enabled by hand) is still refused with the same reason

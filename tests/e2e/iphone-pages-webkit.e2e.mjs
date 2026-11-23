@@ -227,7 +227,7 @@ const CAMERA = [
   zone("afterhours"), zone("bays"), zone("crowd"), zone("queue"), zone("tables"),
   { page: "luckycolor", start: "#startCam", stop: "#stopCam" },
   // attendance (face mode, the page default when no HR employee mode is set) opens the camera on load; #startScan only scans
-  { page: "attendance", start: null, stop: CAM_OFF, alsoPagehide: true },
+  { page: "attendance", q: "?mode=training&cpu&fakedet", start: null, stop: CAM_OFF, alsoPagehide: true },
   // booth / signage: the stop control ends counting and keeps the preview for the next round (kiosk design), so the camera is
   // released by pagehide (the user leaves Safari or the page). AMENDED 2026-11-16 (amendment 3, after walk-fix-2 merged): attendance,
   // customers, driver, faceread, palm, photobooth and teamface now have a visible "ปิดกล้อง" control, which must release every track

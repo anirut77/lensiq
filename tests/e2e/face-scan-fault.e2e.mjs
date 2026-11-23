@@ -37,7 +37,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     const attendance = async (lang, fault, ms, label) => check(`attendance (${lang}): detector ${label} -> scanning stops with a plain line within ${ms / 1000} s`, async () => {
       const page = await browser.newPage(null, { initScripts: [fakeCams, HOOKS] });
       try {
-        await page.goto(`${base}/attendance.html?cpu&fakedet`);
+        await page.goto(`${base}/attendance.html?mode=training&cpu&fakedet`);
         await page.evaluate(([p, l]) => { localStorage.clear(); localStorage.setItem("att-people", JSON.stringify(p)); localStorage.setItem("lq-lang", l); }, [PEOPLE, lang]);
         await page.reload();
         await page.waitFor("ready === true && people.length === 1 && !!window.faceapi", 20000);

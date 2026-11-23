@@ -28,7 +28,7 @@
   const msg = (sel, text, cls = "") => { const el = $(sel); if (el) { el.textContent = text; el.className = (el.classList.contains("scan-msg") ? "form-msg scan-msg " : "form-msg ") + cls; } };
 
   // ------------------------------------------------------------ state
-  const S = Object.assign({ mode: "training", dev: "", devName: "", retYears: 2, mgrSalt: "", mgrHash: "", noticeSeen: false, kiosk: false, devs: {} }, load(KEY.set, {}));
+  const S = Object.assign({ mode: "employee", dev: "", devName: "", retYears: 2, mgrSalt: "", mgrHash: "", noticeSeen: false, kiosk: false, devs: {} }, load(KEY.set, {}));
   if (!/^d[a-z0-9]{8,24}$/.test(S.dev)) S.dev = "d" + rand(12);
   S.retYears = C.retentionYears(S.retYears);
   let emps = load(KEY.emps, []), punches = load(KEY.punches, []), audit = load(KEY.audit, []), leave = load(KEY.leave, []);
@@ -197,7 +197,7 @@
     // un-hides the PIN pane, so the active tab and the other panes are set here (a plain "pane is shown" test is not enough)
     if (W.__ATT_CORE) return t.click();
     t.click();
-    $all(".tab").forEach(x => x.classList.toggle("active", x === t));
+    $all(".tab[data-t]").forEach(x => x.classList.toggle("active", x === t));
     ["checkin", "register", "records", "check", "pin"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== "pin"; });
   }
   function setMode(m, first) {
@@ -216,7 +216,7 @@
     const cr = document.querySelector('.lq-crumbs [aria-current="page"]');
     if (cr) {
       const emp = S.mode === "employee", k = emp ? "nav.attendance.title" : "attendance.hr.modeT";
-      cr.setAttribute("data-i18n", k); cr.setAttribute("href", emp ? "attendance.html?mode=employee" : "attendance.html");
+      cr.setAttribute("data-i18n", k); cr.setAttribute("href", emp ? "attendance.html?mode=employee" : "attendance.html?mode=training");
       cr.textContent = W.LQI18N && W.LQI18N.tf ? W.LQI18N.tf(k, emp ? "ลงเวลาทำงาน PIN / QR" : "เช็คชื่ออบรม/กิจกรรม (ใบหน้า)") : (emp ? "ลงเวลาทำงาน PIN / QR" : "เช็คชื่ออบรม/กิจกรรม (ใบหน้า)");
     }
     if (S.mode !== "employee") { if (S.kiosk) exitKiosk(); const t = $("#tabPin"); if (t && t.classList.contains("active")) $('.tab[data-t="checkin"]').click(); }
@@ -225,15 +225,25 @@
       // PIN / QR is the default way to clock in (face optional): the employee time clock opens on the PIN / QR tab
       const t = $("#tabPin"); if (t && !S.kiosk && !t.classList.contains("active")) showPin(t);
     }
-    if (!first) renderAll();
+    if (!first) {
+      // the URL keeps the chosen mode, so a reload stays in it (the bare URL is always PIN / QR)
+      try { const u = new URL(location.href); u.searchParams.set("mode", S.mode); history.replaceState(history.state, "", u.href); } catch { /* no history API */ }
+      renderAll();
+    }
   }
   $all(".mode-btn").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
   function enterKiosk(gesture) {
     S.kiosk = true; saveSet(); document.body.classList.add("att-kiosk");
     $("#hrKiosk").firstElementChild.textContent = T("kexB", "ออกจากคิออสก์");
-    $('.tab[data-t="checkin"]').click(); $("#pane-pin").hidden = false;
+    // SELL-READY decision 3 ก (D1): the kiosk is PIN / QR (QR camera scan allowed) and loads no face library or model.
+    // Face check-in joins the kiosk only when face was already chosen on this page (the face models are loaded).
+    const c0 = CORE(), face = !!(c0 && c0.ready);
+    document.body.classList.toggle("att-kface", face);
+    if (face) { $('.tab[data-t="checkin"]').click(); $("#pane-pin").hidden = false; }
+    else { const t = $("#tabPin"); if (t) showPin(t); }
     if (gesture && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
-    // start the face scan as soon as the camera + models are ready (a kiosk restored after a reload starts by itself)
+    if (!face) return;
+    // face chosen: start the face scan as soon as the camera + models are ready
     let n = 0;
     const t = setInterval(() => {
       const c = CORE();
@@ -242,7 +252,7 @@
     }, 500);
   }
   function exitKiosk() {
-    S.kiosk = false; saveSet(); document.body.classList.remove("att-kiosk"); $("#hrKioskExit").hidden = true;
+    S.kiosk = false; saveSet(); document.body.classList.remove("att-kiosk", "att-kface"); $("#hrKioskExit").hidden = true;
     $("#pane-pin").hidden = !$("#tabPin").classList.contains("active");
     $("#hrKiosk").firstElementChild.textContent = T("kiosk", "โหมดคิออสก์");
     if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
@@ -261,7 +271,7 @@
   function tick() { const t = now(), d = C.dateKey(t); $("#hrClock").textContent = C.clock(t); $("#hrDate").textContent = d + " · " + WD()[C.weekday(d)]; }
   tick(); setInterval(tick, 1000);
   // PIN tab pane (attendance.js hides the other panes; this one is ours)
-  $all(".tab").forEach(t => t.addEventListener("click", () => { $("#pane-pin").hidden = t.dataset.t !== "pin"; }));
+  $all(".tab[data-t]").forEach(t => t.addEventListener("click", () => { $("#pane-pin").hidden = t.dataset.t !== "pin"; }));
 
   // ------------------------------------------------------------ admin tabs
   let hTab = "emp";
@@ -632,7 +642,9 @@
 
   retention();
   const qp = new URLSearchParams(location.search);
-  if (qp.get("mode") === "employee") S.mode = "employee";
+  // SELL-READY 2026-11-23 decision 3 ก (D1): the bare URL (every site link) is the PIN / QR time clock, whatever this browser
+  // used last; face (training) mode, which loads the face library and models, opens only with ?mode=training or its button
+  S.mode = qp.get("mode") === "training" ? "training" : "employee";
   setMode(S.mode, true);
   const kioskStart = () => { if (S.mode === "employee" && (S.kiosk || qp.has("kiosk"))) enterKiosk(false); };
   if (W.__ATT_CORE) kioskStart();

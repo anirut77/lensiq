@@ -56,7 +56,7 @@ const pages = readdirSync(new URL("../../", import.meta.url)).filter(f => f.ends
 
 // the pages that fetched models at load in the baseline; act = how the user (or the page) opens the camera
 const WAS_EAGER = {
-  "attendance.html": null, "customers.html": null, "driver.html": null, "photobooth.html": null, "checkout.html": null, // the page opens the camera itself
+  "attendance.html?mode=training": null, "customers.html": null, "driver.html": null, "photobooth.html": null, "checkout.html": null, // the page opens the camera itself
   "booth.html": `document.querySelector("#camStart").click()`,
   "faceread.html": `document.querySelector("#frStartCam").click()`,
   "palm.html": `document.querySelector("#plStartCam").click()`,
