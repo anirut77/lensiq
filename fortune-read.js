@@ -938,8 +938,9 @@
    A text marked { c: true } (or an entry with caution: true) restrains or warns: compose() marks its paragraph caution, so the
    layout never folds it (owner rule). Entries are added only while the whole reading stays within its language's length
    cap (the composer's own cap, unchanged), never in a calm / crisis reading, and never twice.
-   facts.depth (when an engine computes its own layers) is enumerable on purpose: it holds derived keys and the computed
-   numbers the texts use, so the semantic lint finds every number's evidence; the AI path's compactFacts never sends it. {X} in a text is filled from
+   facts.depth (when an engine computes its own layers) holds derived keys and the computed numbers the texts use; the semantic
+   lint reads it for every number's evidence (lifecal-kb.js sets it non-enumerable, fortune-kit.js carries it to its copy); the
+   AI path's compactFacts never sends it. {X} in a text is filled from
    entry.vars; a var "@key" is that key's text, "#id" is the table's _name(id).
    Copied into fortune-read.js by tools/fortune-read-embed.mjs (no extra request on the reading pages). */
 (function (root) {

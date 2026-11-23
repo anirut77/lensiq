@@ -3420,7 +3420,7 @@
     if (result && result.lang === "en") {
       // English: numbers must come from the facts / phrase banks, reflective dreams carry no omen wording, sections fit the domain
       const out = [], F = normalizeFacts(facts), secs = result.sections || [];
-      const known = new Set(numsIn(JSON.stringify(facts)).concat(Array.from(bankNums()), numsIn(JSON.stringify(enLoad()[F.domain] || {}))));
+      const known = new Set(numsIn(JSON.stringify([facts, facts && facts.depth])).concat(Array.from(bankNums()), numsIn(JSON.stringify(enLoad()[F.domain] || {}))));
       const reflect = F.register === "reflect";
       for (const s of secs) for (const p of s.paragraphs || []) {
         for (const n of numsIn(p)) if (!known.has(n)) out.push({ rule: "number-evidence", section: s.id, excerpt: n + " in: " + p.slice(0, 60) });
@@ -3433,7 +3433,7 @@
     if (result && result.lang === "zh") {
       // 中文：数字须来自资料、梦（心绪之梦）不得有预言式说法、总结须安全
       const out = [], F = normalizeFacts(facts), secs = result.sections || [];
-      const known = new Set(numsIn(JSON.stringify(facts)).concat(Array.from(bankNums())));
+      const known = new Set(numsIn(JSON.stringify([facts, facts && facts.depth])).concat(Array.from(bankNums())));
       const reflect = F.register === "reflect";
       for (const s of secs) for (const p of s.paragraphs || []) {
         for (const n of numsIn(p)) if (!known.has(n)) out.push({ rule: "number-evidence", section: s.id, excerpt: n + " in: " + p.slice(0, 60) });
@@ -3472,7 +3472,7 @@
       if (c.kind === "item" && PAST_ITEM(its[0])) { const m = FUTURE.exec(c.text); if (m) push("tense-position", c.sec, c.text); }
     }
     // numbers
-    const known = new Set(numsIn(JSON.stringify(facts)).concat(Array.from(bankNums())));
+    const known = new Set(numsIn(JSON.stringify([facts, facts && facts.depth])).concat(Array.from(bankNums())));
     for (const s of secs) for (const p of s.paragraphs || []) for (const n of numsIn(p)) if (!known.has(n)) push("number-evidence", s.id, n + " in: " + p.slice(0, 80));
     // traits
     const tr = traitsOf(all);

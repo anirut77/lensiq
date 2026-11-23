@@ -161,7 +161,9 @@
     function run() {
       var seed = (Math.random() * 4294967296) >>> 0, r = FA && FA.rng ? FA.rng(seed) : Math.random;
       var facts = factsFn(st.topic, r), sent = factsDomain(domain, FA);
-      facts = Object.assign({}, facts, { domain: sent, topic: st.topic });
+      // a non-enumerable facts.depth (lifecal-kb.js: the reading's own facts stay unchanged) is carried over to the copy as is
+      var dp = facts && facts.depth; facts = Object.assign({}, facts, { domain: sent, topic: st.topic });
+      if (dp && !facts.depth) Object.defineProperty(facts, "depth", { value: dp, enumerable: false });
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       // รอบ 12: ข้อความที่ผู้ใช้พิมพ์เอง (คำถาม/ความฝัน) ส่งเป็น userText ให้ตัวตรวจวิกฤตใน FortuneAI.interpret อีกชั้น
       var userText = typeof opts.userText === "function" ? opts.userText() : opts.userText;

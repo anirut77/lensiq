@@ -249,7 +249,9 @@
   var PY_S = ["Jia", "Yi", "Bing", "Ding", "Wu", "Ji", "Geng", "Xin", "Ren", "Gui"], PY_B = ["Zi", "Chou", "Yin", "Mao", "Chen", "Si", "Wu", "Wei", "Shen", "You", "Xu", "Hai"];
   var pyOf = function (p) { return PY_S[p.stem] + "-" + PY_B[p.branch]; };
   var POWER = { 1: 6, 2: 15, 3: 8, 4: 17, 5: 19, 6: 21, 7: 10, 8: 12 };
-  function withDepth(F, list) { try { Object.defineProperty(F, "depth", { value: list.filter(Boolean), enumerable: true }); } catch (e) { /* frozen */ } return F; }
+  // not enumerable: the reading's own facts (and their JSON) stay as they were (fortune-caution T15); the semantic lint reads
+  // facts.depth explicitly for its number evidence (fortune-ai.js lintSemantic)
+  function withDepth(F, list) { try { Object.defineProperty(F, "depth", { value: list.filter(Boolean), enumerable: false }); } catch (e) { /* frozen */ } return F; }
   function baziDepth(B, opts) {
     var dm = B.dayMaster.el, P = B.pillars, god = function (e) { return LC.tenGod(dm, e); }, out = [];
     out.push({ sec: "love", key: "spouse." + god(LC.BRANCH_EL[P.day.branch]), vars: { P: P.day.zh, PE: pyOf(P.day) } });
