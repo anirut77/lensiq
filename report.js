@@ -540,7 +540,9 @@
     if (crisisStop()) return;
     // the depth / Chinese reading data loads on demand (fortune-depth.js ready), after the crisis check; a report is never
     // built without it: a failed load shows a plain error
-    var DP = W.LQFortuneDepth, go0 = $("rpGo");
+    var DP = W.LQFortuneDepth, go0 = $("rpGo"), bad = readBirth("rpA").err || (st.type === "report_compat" && readBirth("rpB").err);
+    // bad birth input is answered at once, before any wait (the input check needs no reading data)
+    if (bad) { $("rpMsg").textContent = T(bad, ERR[bad] || ERR["rp.err.date"]); return; }
     if (!DP || !DP.ready) { submit(); return; }
     go0.disabled = true; $("rpForm").setAttribute("aria-busy", "true");
     DP.ready({ domain: "report" }, lang()).then(function () { go0.disabled = false; $("rpForm").removeAttribute("aria-busy"); submit(); }, function () {
