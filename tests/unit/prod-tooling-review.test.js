@@ -1,5 +1,5 @@
 "use strict";
-// tests/unit/prod-tooling-r3.test.js — production tooling, independent-review findings 2-7 on eb750e1c (LOCKED before the code as
+// tests/unit/prod-tooling-review.test.js — production tooling, independent-review findings 2-7 on eb750e1c (LOCKED before the code as
 // RE-LOCK 3 of evals-locks/prod-tooling.sha256). Equal-or-stricter only: every check here ADDS a refusal.
 //   R2 secrets:setup --env production needs --confirm-production before anything is sent (dry run / list stay free)
 //   R3 the production bundle carries a build stamp (commit + base); the Pages guard refuses unless it equals HEAD and the base

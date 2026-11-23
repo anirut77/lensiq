@@ -44,3 +44,12 @@ f211d376a66d651aea247195a655c3fe2bace8bf187db69f120e4f8947f3d737  tests/unit/pro
 # field only relock3/relock3.diff (lock 2026-11-23T03:50:36Z: no repo file uses it)
 # RE-LOCK 3 2026-11-23 (branch prod-tooling, BEFORE the code): review findings 2-7 + 1 on eb750e1c. New file prod-tooling-r3.test.js (R2-R7);
 # T8 fixture gains the build stamp (stricter). Other phases' locks untouched. NOTE.txt + relock3.diff in ~/LENSIQ-field/evals/prod-tooling/relock3/.
+# locked 2026-11-23T03:56:16Z (tools/eval-guard.mjs lock, 3 files)
+01a319210c96d53fc0b73fcca233b825b75603a957e999ed72a4a3b3a720606e  relock4/prod-tooling-review.test.js
+b2ed6f6199f1debaeb364b0f97911639fdde943920e53564bb0a89fbb8280d6b  relock4/NOTE.txt
+315667ac235c95584e6906b4ffa62b7f07afe7d36b98ea796e1de63e874df3e8  relock4/relock4.diff
+01a319210c96d53fc0b73fcca233b825b75603a957e999ed72a4a3b3a720606e  tests/unit/prod-tooling-review.test.js  # repo file (same commit as lock 2026-11-23T03:56:16Z; field: ~/LENSIQ-field/evals/prod-tooling/relock4/prod-tooling-review.test.js)
+# field only relock4/NOTE.txt (lock 2026-11-23T03:56:16Z: no repo file uses it)
+# field only relock4/relock4.diff (lock 2026-11-23T03:56:16Z: no repo file uses it)
+# retired tests/unit/prod-tooling-r3.test.js reason: RE-LOCK 4 2026-11-23, renamed to tests/unit/prod-tooling-review.test.js (unit-index.test.js forbids *-rN names); EQUAL, header comment only; field copy ~/LENSIQ-field/evals/prod-tooling/relock3/prod-tooling-r3.test.js
+# RE-LOCK 4 2026-11-23: rename only (see the retired line). NOTE.txt + relock4.diff in ~/LENSIQ-field/evals/prod-tooling/relock4/.
