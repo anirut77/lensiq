@@ -1129,7 +1129,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         engine(function () { return T("palm.eng.ready", "พร้อมใช้งาน{slow}", { b: b.toUpperCase(), slow: b === "webgl" ? "" : T("palm.eng.slow", " (เครื่องนี้อาจอ่านผลช้ากว่าปกติเล็กน้อย)") }); }, "ok");
         return models;
       });
-    }).catch(function (e) { console.error(e); engine(function () { return T("palm.eng.modelFail", "โหลดโมเดลจุดบนมือไม่สำเร็จ — ยังใช้งานได้โดยแตะจุดบนมือเอง"); }, "err"); modelsP = null; throw e; });
+    }).catch(function (e) {
+      console.error(e); engine(function () { return T("palm.eng.modelFail", "ตอนนี้หาตำแหน่งมือให้เองไม่ได้ — แตะจุดบนมือเองเพื่ออ่านต่อได้"); }, "err"); modelsP = null; throw e;
+    });
     return modelsP;
   }
   var c192 = document.createElement("canvas"), c224 = document.createElement("canvas");
@@ -1309,7 +1311,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var camOk = function () { engine(function () { return T("palm.eng.camReady", "กล้องพร้อม — วางฝ่ามือให้อยู่ในกรอบ แล้วกด ถ่ายภาพฝ่ามือ"); }, "ok"); };
       // speed pass 2026-11-14: the hand model is fetched now that the camera is open; a loading line until it is ready
       if (ready) camOk();
-      else { engine(function () { return T("palm.eng.loading", "กำลังโหลดโมเดลจุดบนมือ..."); }); loadModels().then(camOk, function () {}); }
+      else { engine(function () { return T("palm.eng.loading", "กำลังเตรียมการหามือ รอสักครู่..."); }); loadModels().then(camOk, function () {}); }
       btnCam.hidden = true; btnSnap.hidden = false; if (btnStop) btnStop.hidden = false;
       drawGuide(null, false);
     } catch (e) { camErr(e); btnCam.disabled = false; }
@@ -1358,7 +1360,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     S.src = cv; S.result = null;
     resultSec.hidden = true;
     // speed pass L3: the hand model (4.4 MB) loads on the first photo; say so while it downloads
-    if (!ready) engine(function () { return T("palm.eng.loading", "กำลังโหลดโมเดลจุดบนมือ..."); });
+    if (!ready) engine(function () { return T("palm.eng.loading", "กำลังเตรียมการหามือ รอสักครู่..."); });
     else engine(function () { return T("palm.eng.finding", "กำลังหาจุดบนมือ..."); });
     await frame2();
     var det = null, nh = 0;
@@ -1645,7 +1647,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       compare: S.cmpFirst ? { first: S.cmpFirst.R, sideA: SIDE_TH[S.cmpFirst.side], sideB: SIDE_TH[S.side] } : null });
     var useAI = !!(FA && FA.hasConsent && FA.hasConsent());
     box.setAttribute("aria-busy", "true"); btn.disabled = true;
-    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("palm.narr.loadingAI", "กำลังให้ผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) เรียบเรียง...") : T("palm.narr.loading", "กำลังเรียบเรียงคำทำนาย...")) + "</p>";
+    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("palm.narr.loadingAI", "กำลังให้ผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) เรียบเรียง...") : T("palm.narr.loading", "รอสักครู่ คำทำนายกำลังจะขึ้น...")) + "</p>";
     // owner inbox 19 / entry 20: wording seed = the facts + Thai-date month + press index (on the device; nothing stored or sent)
     // press index: 0 on a new reading / topic / name, +1 per press of "again" (the n-th press = the n-th wording)
     var press = again ? ++narrPress : (narrPress = 0), seed = FA && FA.seedFor ? FA.seedFor(["palm", topic, facts], "m") : 0, p;
@@ -1661,10 +1663,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         shown = Object.assign({}, res, { sections: secs });
       }
       if (FA && FA.renderSections) FA.renderSections(box, shown, { aiBadge: false }); else renderPlain(box, shown);
-      var src = $("#plSrc"), ai = res.source === "ai";
-      src.textContent = ai ? T("palm.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : ""; // owner 2026-11-17: no on-device label
-      src.hidden = !ai;
-      src.classList.toggle("ai", ai);
+      // owner entry 23 (2026-11-23): no AI label on the result; the consent step names the writing assistant
+      var src = $("#plSrc"); src.textContent = ""; src.hidden = true; src.classList.toggle("ai", res.source === "ai");
       box.removeAttribute("aria-busy"); btn.disabled = false;
     });
   }

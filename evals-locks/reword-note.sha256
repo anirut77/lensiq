@@ -8,3 +8,8 @@ f4dca981dc3c8c1a0f7e044033626ff04f66b20964f49ef3dcd1926308aa4a37  relock1/fortun
 e79f18bba9c89d9f4460929c3a73df69f1bd3e4af6544f12543d4982cac9f964  relock1/NOTE.txt
 f4dca981dc3c8c1a0f7e044033626ff04f66b20964f49ef3dcd1926308aa4a37  tests/unit/fortune-reword-note.test.js  # repo file (same commit as lock 2026-11-23T05:56:31Z; field: ~/LENSIQ-field/evals/reword-note/relock1/fortune-reword-note.test.js)
 # field only relock1/NOTE.txt (lock 2026-11-23T05:56:31Z: no repo file uses it)
+# locked 2026-11-23T12:03:08Z (tools/eval-guard.mjs lock, 2 files)
+13fd3762d0be39319e72198ff7305038b04dac03c442711bea584bfc6feb0260  relock2/fortune-reword-note.test.js
+b095c5f07709303808480569ad66f8c41b9f78b37729fcb3d8ae481c9cb08038  relock2/NOTE.txt
+13fd3762d0be39319e72198ff7305038b04dac03c442711bea584bfc6feb0260  tests/unit/fortune-reword-note.test.js  # repo file (same commit as lock 2026-11-23T12:03:08Z; field: ~/LENSIQ-field/evals/reword-note/relock2/fortune-reword-note.test.js)
+# field only relock2/NOTE.txt (lock 2026-11-23T12:03:08Z: no repo file uses it)

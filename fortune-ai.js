@@ -36,9 +36,9 @@
  *   FortuneAI.interpret(facts, { useAI?, seed?, tone?, timeoutMs? })  -> Promise<result>
  *        useAI ไม่ระบุ = ใช้ AI เมื่อผู้ใช้เคยติ๊กยินยอม (localStorage "fa-consent")
  *   FortuneAI.compose(facts, { seed? })        -> result (ซิงก์ ในเครื่องล้วน)
- *   FortuneAI.regenerate(facts, opts)          -> Promise<result> (สำนวนใหม่ = seed ใหม่) ใช้กับปุ่ม "อ่านอีกสำนวน"
+ *   FortuneAI.regenerate(facts, opts)          -> Promise<result> (สำนวนใหม่ = seed ใหม่) ใช้กับปุ่ม "เล่าอีกแบบ"
  *   FortuneAI.status()                         -> Promise<{enabled, model?}>
- *   FortuneAI.renderSections(el, result, { aiBadge?: boolean|string, showNote?: boolean })
+ *   FortuneAI.renderSections(el, result, { showNote?: boolean })  (no AI label on the result: owner entry 23; aiBadge is ignored)
  *   FortuneAI.registerHooks({ gate?, decorate?, onAIResponse? }) -> unregister()  (extension points, see below)
  *   FortuneAI.toHTML(result, opts)             -> string (escape แล้ว)
  *   FortuneAI.consentControl(el, { onChange }) -> Promise<HTMLElement|null> แสดงเฉพาะเมื่อ AI เปิดใช้งาน
@@ -152,7 +152,7 @@
     face: [
       "ตำราโหงวเฮ้งอ่านนิสัยจากสัดส่วนของใบหน้า และใบหน้าของ{N}มีจุดเด่นให้ดูหลายตำแหน่ง",
       "อ่านตามตำราโหงวเฮ้ง โดยเริ่มจากส่วนที่เด่นที่สุดบนใบหน้าของ{N}",
-      "จากสัดส่วนที่วัดได้บนใบหน้า ตำราโหงวเฮ้งอ่าน{N}ไว้ดังนี้",
+      "ดูจากโครงหน้าของ{N} ตำราโหงวเฮ้งว่าไว้ดังนี้",
       "โหงวเฮ้งดูทั้งรูปหน้า คิ้ว ตา จมูก และปาก ขอไล่ดูทีละส่วนของ{N}",
       "ใบหน้าของ{N}มีทั้งส่วนที่บอกความมุ่งมั่นและส่วนที่บอกความอ่อนโยน",
       "ตำราโหงวเฮ้งอ่านใบหน้าจากบนลงล่าง ขอเริ่มจากจุดที่เด่นที่สุดก่อน",
@@ -4238,12 +4238,12 @@
               const alt = compose(facts, Object.assign({}, opts, { seed: ((loc.seed || 0) + 7919) >>> 0 }));
               const g = groundAI(sections, facts, loc, [alt]);
               if (g.sections) return { source: "ai", sections: g.sections, model: j.model, summary: loc.summary, reminder: loc.reminder, plan: loc.plan, grounding: { kept: g.log.kept, dropped: g.log.dropped, replaced: g.log.replaced, toppedUp: g.log.toppedUp } };
-              note = "คำเรียบเรียงจาก AI ไม่ผ่านการตรวจความถูกต้อง จึงใช้ตัวเรียบเรียงในเครื่องแทน";
+              note = "คำจากผู้ช่วยเขียนไม่ผ่านการตรวจ คำทำนายด้านล่างจึงเป็นฉบับปกติที่ทำในเครื่องของคุณ";
             }
           }
-          if (!note) note = "ผู้ช่วยเขียนไม่พร้อมใช้งานชั่วคราว จึงใช้ตัวเรียบเรียงในเครื่องแทน";
+          if (!note) note = "ตอนนี้ผู้ช่วยเขียนใช้ไม่ได้ คำทำนายด้านล่างจึงเป็นฉบับปกติที่ทำในเครื่องของคุณ";
         } catch (e) {
-          note = "เชื่อมต่อ AI ไม่สำเร็จ จึงใช้ตัวเรียบเรียงในเครื่องแทน";
+          note = "ต่อผู้ช่วยเขียนไม่ได้ คำทำนายด้านล่างจึงเป็นฉบับปกติที่ทำในเครื่องของคุณ";
         } finally { if (timer) clearTimeout(timer); }
       }
     }
@@ -4258,7 +4258,6 @@
   /* ======================= ตัวช่วยแสดงผล ======================= */
   const escapeHtml = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   let uid = 0;
-  const badgeText = o => (typeof o.aiBadge === "string" ? o.aiBadge : "เรียบเรียงโดยผู้ช่วยเขียน (Claude ของ Anthropic)");
   /* ส่วน "อ่านเพิ่มเติม": ย่อหน้าหลัง section.main พับไว้ใน <details> ของหัวข้อนั้น
      หัวข้อที่ collapsed ทั้งหัวข้อ รวมไว้ใน <details> เดียวท้ายคำทำนาย (ยังเป็น .fa-section[data-section] เหมือนเดิม) */
   const MORE_LABEL = "อ่านเพิ่มเติม";
@@ -4287,7 +4286,6 @@
         '<p class="fa-support-link"><a class="lq-counsel-link" href="counselling.html">' + escapeHtml((sp.counsel && sp.counsel.text) || counselText(res.lang)) + "</a></p></section>";
     }
     let h = "";
-    if (res.source === "ai" && opts.aiBadge !== false) h += '<p class="fa-ai-badge">' + escapeHtml(badgeText(opts)) + "</p>";
     if (res.note && opts.showNote !== false) h += '<p class="fa-note" role="status">' + escapeHtml(res.note) + "</p>";
     const sm = res.summary;
     if (sm && Array.isArray(sm.lines) && sm.lines.length && opts.summary !== false) {
@@ -4329,7 +4327,6 @@
     try { if (res.lang === "zh") container.setAttribute("lang", "zh-Hans"); else if (res.lang === "en") container.setAttribute("lang", "en"); else container.removeAttribute("lang"); } catch (e) { /* ไม่มี DOM */ }
     const el = (tag, cls, text) => { const e = doc.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
     const details = (label, cls) => { const d = el("details", "fa-more" + (cls ? " " + cls : "")); d.appendChild(el("summary", null, label)); return d; };
-    if (res.source === "ai" && opts.aiBadge !== false) frag.appendChild(el("p", "fa-ai-badge", badgeText(opts)));
     if (res.note && opts.showNote !== false) { const n = el("p", "fa-note", res.note); n.setAttribute("role", "status"); frag.appendChild(n); }
     // การ์ด "สรุปสั้น" 2–3 บรรทัดบนสุด — อ่านจบในไม่กี่วินาที แล้วค่อยอ่านรายละเอียดด้านล่าง
     const sm = res.summary;
