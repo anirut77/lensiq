@@ -45,7 +45,7 @@ const PAGES = {
       await p.evaluate(() => document.querySelector("#toExam").click());
       await p.waitFor("__LQ_EXAM_LAB.phase === 'exam'", 8000);
     } },
-  attendance: { url: "attendance.html?cpu&fakedet",
+  attendance: { url: "attendance.html?mode=training&cpu&fakedet",
     init: `try { localStorage.setItem("att-people", ${JSON.stringify(JSON.stringify([{ id: "pA", name: "ทดสอบ หนึ่ง", code: "A01", descriptor: D(1) }]))}); } catch (e) {}
       window.__LQ_FAKE_DET = () => [{ x: 0.35, y: 0.3, w: 0.2, h: 0.3, score: 0.95, who: "pA" }];
       window.__LQ_FAKE_MATCH = d => d && d.who ? { label: d.who, distance: 0.3 } : { label: "unknown", distance: 0.9 };`,

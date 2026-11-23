@@ -16,3 +16,9 @@ fb5b985051c1a02071803c1d97b7d4c226633d418f82f38e30ef994d21670f5d  tools/perf-mea
 # late entry 2026-11-21 (owner, item 208 follow-up): the disk-guard re-lock of 2026-11-15T13:52:09Z (line 15) recorded tools/perf-measure.mjs with no field copy. The same bytes, written from git 480ea468, now sit in ~/LENSIQ-field/evals/speed/relock-diskguard-480ea468/.
 9966c505eaed875a271335ba570fd8ae2ffd711624b58e532e55cdf1c9a012dc  relock-diskguard-480ea468/perf-measure.mjs
 9966c505eaed875a271335ba570fd8ae2ffd711624b58e532e55cdf1c9a012dc  tools/perf-measure.mjs  # repo file (late entry 2026-11-21, owner, item 208 follow-up; same bytes as line 15; field: ~/LENSIQ-field/evals/speed/relock-diskguard-480ea468/perf-measure.mjs)
+# locked 2026-11-23T01:54:21Z (tools/eval-guard.mjs lock, 2 files)
+acc340a88a32b63f1000ea3f86071cc64397137d2a4656329089a340473ca378  relock1/speed-models.e2e.mjs
+1759787a3f3d1a11149e8edcf154e5c59c38bc334c24fffe1371802ea54dce4b  relock1/NOTE.txt
+acc340a88a32b63f1000ea3f86071cc64397137d2a4656329089a340473ca378  tests/e2e/speed-models.e2e.mjs  # repo file (same commit as lock 2026-11-23T01:54:21Z; field: ~/LENSIQ-field/evals/speed/relock1/speed-models.e2e.mjs)
+# field only relock1/NOTE.txt (lock 2026-11-23T01:54:21Z: no repo file uses it)
+# re-lock relock1 2026-11-23 (SELL-READY decision 3 ก, D1; coordinator decision ก1, branch attendance-pin-default, not merged until the owner answers): URL-ONLY: attendance is opened with ?mode=training (face mode) because the bare attendance.html becomes the PIN / QR time clock; every assertion, threshold, timing and other page unchanged. Field: relock1/ with NOTE.txt. Append-only.

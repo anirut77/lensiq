@@ -31,3 +31,11 @@ e51f5ffac84b73074179fa1a543985bb5a35d0af1020108eb91f7f8e1ebf677d  tests/e2e/phon
 8f1f8443e2a429624a79352e02d2d5821d7d34f4d3f92240b1b8dc9a637ea92c  relock-226/NOTE.txt
 8c8bac4cbd29615387a111872848476637232ba061d2fc48e1af12fd2a92cc32  tests/e2e/phone-kit.mjs  # repo file (same commit as lock 2026-11-22T08:23:20Z; field: ~/LENSIQ-field/evals/phone-quality/relock-226/phone-kit.mjs)
 # field only relock-226/NOTE.txt (lock 2026-11-22T08:23:20Z: no repo file uses it)
+# locked 2026-11-23T01:54:21Z (tools/eval-guard.mjs lock, 3 files)
+80fec57dcd8a72f4ac12b44354614e4ebf952b39cd70cedaf0e5fc94152a770f  relock1/camera-noframes.e2e.mjs
+707f767b9d137f5541dc06b3da599801d811360ed278d4e49805c529e37695a0  relock1/phone-memory.e2e.mjs
+a07bc6e2526de141ed9e95ceca839966f7abee9fc6c3272adc1b90cbb923abbd  relock1/NOTE.txt
+80fec57dcd8a72f4ac12b44354614e4ebf952b39cd70cedaf0e5fc94152a770f  tests/e2e/camera-noframes.e2e.mjs  # repo file (same commit as lock 2026-11-23T01:54:21Z; field: ~/LENSIQ-field/evals/phone-quality/relock1/camera-noframes.e2e.mjs)
+707f767b9d137f5541dc06b3da599801d811360ed278d4e49805c529e37695a0  tests/e2e/phone-memory.e2e.mjs  # repo file (same commit as lock 2026-11-23T01:54:21Z; field: ~/LENSIQ-field/evals/phone-quality/relock1/phone-memory.e2e.mjs)
+# field only relock1/NOTE.txt (lock 2026-11-23T01:54:21Z: no repo file uses it)
+# re-lock relock1 2026-11-23 (SELL-READY decision 3 ก, D1; coordinator decision ก1, branch attendance-pin-default, not merged until the owner answers): URL-ONLY: attendance is opened with ?mode=training (face mode) because the bare attendance.html becomes the PIN / QR time clock; every assertion, threshold, timing and other page unchanged. Field: relock1/ with NOTE.txt. Append-only.

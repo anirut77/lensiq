@@ -32,3 +32,9 @@ bb3683c56cd1b6ca06115160693ecd851b5e844d8e6145a220c78c74e343eebb  relock-226/NOT
 3dbec1d12ba24b23059d356805e943ce867a41b712748e2c7f56ae83b3b58aa2  relock-vis9/NOTE.txt
 447bdc036c13000ba81b33ce6bcb6106a4e78668e4aaec7893f446fbdceba8a8  tests/unit/walkfix2.test.js  # repo file (same commit as lock 2026-11-22T16:14:15Z; field: ~/LENSIQ-field/evals/walk-fix-2/relock-vis9/walkfix2.test.js)
 # field only relock-vis9/NOTE.txt (lock 2026-11-22T16:14:15Z: no repo file uses it)
+# locked 2026-11-23T01:54:21Z (tools/eval-guard.mjs lock, 2 files)
+84fed166dac9dad7ffd02ae861dc29f5e89336a4acc833b4c3d02f21fe7cdf08  relock1/walkfix2.e2e.mjs
+2db51d265b5518181eeea5e03608c803e76c9a41da38b58707775053bb85bacc  relock1/NOTE.txt
+84fed166dac9dad7ffd02ae861dc29f5e89336a4acc833b4c3d02f21fe7cdf08  tests/e2e/walkfix2.e2e.mjs  # repo file (same commit as lock 2026-11-23T01:54:21Z; field: ~/LENSIQ-field/evals/walk-fix-2/relock1/walkfix2.e2e.mjs)
+# field only relock1/NOTE.txt (lock 2026-11-23T01:54:21Z: no repo file uses it)
+# re-lock relock1 2026-11-23 (SELL-READY decision 3 ก, D1; coordinator decision ก1, branch attendance-pin-default, not merged until the owner answers): URL-ONLY: attendance is opened with ?mode=training (face mode) because the bare attendance.html becomes the PIN / QR time clock; every assertion, threshold, timing and other page unchanged. Field: relock1/ with NOTE.txt. Append-only.
