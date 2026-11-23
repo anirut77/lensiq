@@ -11,3 +11,9 @@
 # l-pages 2026-11-24: fortune-zh.e2e.mjs and fortune-en.test.js gain the petread page (acceptance petread.md L, via fortune-pages.md L: "the page is in fortune-zh.e2e.mjs and fortune-en.test.js"); no other page or assertion changed. Locked before running them.
 # locked 2026-11-23T19:01:33Z (tools/eval-guard.mjs lock, 1 file)
 13af44920a05008e29fbb4ce4ae01a1a43c1c94343e4b599fa4f4bfd49545cf8  tools/petread-s2.mjs
+# locked 2026-11-23T19:10:39Z (tools/eval-guard.mjs lock, 2 files)
+189ce4ebcad36c481f9f543703f7b7c28e8f48ce5fe72e3f0ab2d013f0598269  relock-1/petread-90.e2e.mjs
+8cd4a7c1276b21f8874531866b10f482f933f392d22c8131a5c4e2b8248733aa  relock-1/NOTE.txt
+189ce4ebcad36c481f9f543703f7b7c28e8f48ce5fe72e3f0ab2d013f0598269  tests/e2e/petread-90.e2e.mjs  # repo file (same commit as lock 2026-11-23T19:10:39Z; field: ~/LENSIQ-field/evals/petread-90/relock-1/petread-90.e2e.mjs)
+# field only relock-1/NOTE.txt (lock 2026-11-23T19:10:39Z: no repo file uses it)
+# re-lock relock-1 2026-11-24: petread-90.e2e.mjs X2 textVisible test fix only (Thai <lq-t> spans split text nodes); same sentences and rule. Field: relock-1/ with NOTE.txt. Append-only.

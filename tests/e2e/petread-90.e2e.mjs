@@ -50,9 +50,12 @@ async function fillAndRead(page, { name = "Mochi", birth = "2021-03-14", owner =
 const readingText = page => page.evaluate(() => [...document.querySelectorAll("#petReading .fa-section")].map(s => s.textContent).join("\n"));
 const visJs = sel => `(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return false; const b = e.getBoundingClientRect();
   const cs = getComputedStyle(e); return !e.closest("[hidden]") && b.width > 0 && b.height > 0 && cs.visibility !== "hidden" && cs.display !== "none"; })()`;
-const textVisible = (page, s) => page.evaluate(t => { const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  for (let n = w.nextNode(); n; n = w.nextNode()) { if (!n.textContent.includes(t)) continue; const e = n.parentElement, b = e.getBoundingClientRect();
-    if (b.width > 0 && b.height > 0 && getComputedStyle(e).visibility !== "hidden" && !e.closest("[hidden]")) return true; } return false; }, s);
+// RE-LOCK relock-1 2026-11-24 (test fix only, before any product change for X2): the Thai line-wrap layer splits a phrase into
+// <lq-t> no-break spans, so one sentence spans several text nodes; the check now finds the smallest element whose rendered text
+// (innerText, white space folded) holds the whole sentence and asks that element to be visible. Same sentences, same rule.
+const textVisible = (page, s) => page.evaluate(t => { const fold = x => String(x || "").replace(/\s+/g, " ").trim(), want = fold(t);
+  const hits = [...document.body.querySelectorAll("*")].filter(e => fold(e.innerText).includes(want) && ![...e.children].some(c => fold(c.innerText).includes(want)));
+  return hits.some(e => { const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(e).visibility !== "hidden" && !e.closest("[hidden]"); }); }, s);
 
 export default async function ({ base, launch, check }) {
   const browser = await launch();
