@@ -261,7 +261,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $(sel).innerHTML = '<div class="fk-block"><h3>' + esc(T("astro.dailyH", "ดวงวันนี้ของชาว{sign}", { sign: sName(sign) })) + "</h3><p>" +
       esc(T("astro.dailyMoon1", "ดวงจันทร์วันนี้อยู่ราศี")) + "<b>" + esc(sn(D.moon.sign)) + "</b> " + g(D.moon.sign) + " " + esc(T("astro.dailyMoon2", "— ผ่าน")) + "<b>" + esc(zk(hk, "n", H.th)) + "</b>" + esc(T("astro.dailyMoon3", " นับจากราศีของคุณ")) + "</p><p>" + esc(zk(hk, "o", H.o)) +
       '</p><p class="fk-small">' + esc(T("astro.dailyNote", "ดวงจันทร์ย้ายราศีทุก 2–3 วัน คำทำนายรายวันจึงเปลี่ยนตาม")) + "</p></div>" + FK.readingBlock(rid, T("astro.dailyRdTitle", "คำทำนายวันนี้"), true, tp);
-    FK.bindReading(rid, "astro", function (topic) { return AS.dailyFacts(sign, D, topic); }, { withTopics: true, topic: tp });
+    FK.bindReading(rid, "astro", function (topic) { return AS.dailyFacts(sign, D, topic); }, { withTopics: true, topic: tp, period: "d" });
   }
   function reset() { $("#asResult").hidden = true; $("#asCardImg").hidden = true; $("#asForm").reset(); $("#asTime").disabled = false; $("#asLatLon").hidden = true; st.chart = null; }
   $("#asAgain").addEventListener("click", function () { reset(); $("#asForm").scrollIntoView({ block: "start" }); });

@@ -579,11 +579,17 @@
   }
   var tagsOf = function (m) { return Object.keys(m); };
   function mergeM(a, b) { var o = {}; [a, b].forEach(function (m) { Object.keys(m || {}).forEach(function (k) { o[k] = (o[k] || []).concat(m[k]); }); }); return o; }
+  // owner inbox 19: a facts builder called without opts.rng gets a generator from its input + the Thai-date month, no random source
+  var detRng = function (key) {
+    var FA = root.FortuneAI || (typeof require === "function" ? require("./fortune-ai.js") : null);
+    return FA ? FA.rng(FA.seedFor(key, "m")) : function () { return 0; };
+  };
   /** P = ผล analyze(); opts: {topic: "overall"|"love"|"work"|"money", nickname} */
   function buildFacts(P, opts) {
     opts = opts || {};
     // short = ชื่อย่อที่ตัวเรียบเรียงใช้หลังเอ่ยชื่อเต็มครั้งแรก; evidence = ภาษาคนอ่าน (ตัวเลขเทคนิคอยู่ในตาราง)
-    var K = KB, R = K.R, items = [], rnd = opts.rng || Math.random, usedF = {}, M = function (e, fo) { return K.meaningsRandom(e, fo, rnd, usedF); }, bz = P.bazi,
+    var rnd = opts.rng || detRng(["horoscope", P, opts.topic, opts.nickname]);
+    var K = KB, R = K.R, items = [], usedF = {}, M = function (e, fo) { return K.meaningsRandom(e, fo, rnd, usedF); }, bz = P.bazi,
       push = function (it, short) { if (short) it.short = short; if (Object.keys(it.meanings).length) items.push(it); };
     var part = function (deg) { return deg < 10 ? "ช่วงต้นราศี" : deg < 20 ? "ช่วงกลางราศี" : "ช่วงปลายราศี"; };
     var pl = P.thaiDay.planet, d = K.days[pl], dayName = pl === 7 ? "พุธกลางคืน" : K.weekdayNames[pl];
@@ -633,8 +639,10 @@
   /** ข้อเท็จจริงดวงวันนี้ (D = daily(), mo = monthly()) */
   function buildDailyFacts(P, D, mo, opts) {
     opts = opts || {};
-    var K = KB, R = K.R, items = [], rnd = opts.rng || Math.random, usedF = {}, dayO = { w: "dw", m: "dm", l: "dl", a: "da" }, monO = { w: "mw", m: "mw", l: "mw", a: "mw" };
-    items.push(item("today.bhumi." + D.bhumi, "ทักษาจร", "วัน" + K.bhumi[D.bhumi].th + "ของคุณ", "ดาว" + PLANET_TH[D.weekday] + "วันนี้ตกภูมิ" + K.bhumi[D.bhumi].th + "ในทักษาวันเกิด", D.bhumi === "kalakini" ? 0.8 : 0.9, null, K.meaningsRandom(R.bhumi[D.bhumi], dayO), D.bhumi === "kalakini" ? "challenge" : ""));
+    var K = KB, R = K.R, items = [], rnd = opts.rng || detRng(["horoscope.day", P, D, mo, opts.topic]), usedF = {};
+    var dayO = { w: "dw", m: "dm", l: "dl", a: "da" }, monO = { w: "mw", m: "mw", l: "mw", a: "mw" };
+    items.push(item("today.bhumi." + D.bhumi, "ทักษาจร", "วัน" + K.bhumi[D.bhumi].th + "ของคุณ", "ดาว" + PLANET_TH[D.weekday] + "วันนี้ตกภูมิ" + K.bhumi[D.bhumi].th + "ในทักษาวันเกิด",
+      D.bhumi === "kalakini" ? 0.8 : 0.9, null, K.meaningsRandom(R.bhumi[D.bhumi], dayO, rnd), D.bhumi === "kalakini" ? "challenge" : ""));
     items.push(item("today.rel." + D.rel, "ปาจื้อวันนี้", "เสาวัน " + D.pillar.gz + " (" + K.relations[D.rel].th.split(" (")[0] + ")", "ธาตุวันนี้" + EL_TH[D.todayEl] + " เทียบธาตุประจำตัว", 0.7, null, K.meaningsRandom(R.rel[D.rel], dayO, rnd, usedF)));
     if (D.clash) items.push(item("today.clash", "ปาจื้อวันนี้", "กิ่งวันชงปีเกิด", "ตามความเชื่อ", 0.5, null, { timing: K.phr({ t: R.branch.clash }, "t"), advice: ["ใจเย็นและเผื่อเวลาให้ทุกเรื่อง แล้ววันนี้จะผ่านไปอย่างราบรื่น"] }, "challenge"));
     var mm = K.meaningsRandom(R.rel[mo.rel], monO, rnd, usedF); mm.timing = (mm.work || []).slice(0, 3);
@@ -944,13 +952,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     });
     return out;
   }
-  function bindReading(id, factsFn, withTopics) {
+  function bindReading(id, factsFn, withTopics, per) {
     var root = document.getElementById(id); if (!root) return;
     var st = readings[id] = readings[id] || { topic: "overall" };
     var body = document.getElementById(id + "-body"), src = document.getElementById(id + "-src");
     function run() {
-      var seed = (Math.random() * 4294967296) >>> 0, r = FA && FA.rng ? FA.rng(seed) : Math.random;
-      var facts = factsFn(st.topic, r);
+      // owner inbox 19: same input + same period = same text; the seed comes from the input facts + the Thai-date period ("m" | "d")
+      var f0 = factsFn(st.topic, FA && FA.rng ? FA.rng(0) : undefined), seed = FA && FA.seedFor ? FA.seedFor([id, st.topic, f0], per || "m") : 0;
+      var facts = factsFn(st.topic, FA && FA.rng ? FA.rng(seed) : undefined);
       st.facts = facts;
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true }) : Promise.resolve(localFallback(facts));
@@ -1133,7 +1142,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       (mo.branchRel === "clash" ? '<p class="note">' + esc(T("horoscope.x.clashMonth", "เดือนนี้ชงกับปีนักษัตรของคุณ (ตามความเชื่อ) ใช้ความรอบคอบ วางแผนล่วงหน้า แล้วทุกอย่างจะลงตัว")) + "</p>" : mo.branchRel === "harmony" || mo.branchRel === "trine" ? '<p class="note good">' + esc(T("horoscope.x.goodMonth", "เดือนนี้กิ่งเดือนประสานกับปีนักษัตรของคุณ — ช่วงดีสำหรับเริ่มต้นสิ่งใหม่และสร้างความร่วมมือ")) + "</p>" : "") + "</section>";
     html += readingBlock("hsTdRd", T("horoscope.x.todayDetail", "ดวงวันนี้โดยละเอียด"), false);
     $("#pn-td").innerHTML = html;
-    bindReading("hsTdRd", function (topic, rng) { return HS.buildDailyFacts(P, D, mo, { topic: topic, rng: rng }); }, false);
+    bindReading("hsTdRd", function (topic, rng) { return HS.buildDailyFacts(P, D, mo, { topic: topic, rng: rng }); }, false, "d");
   }
 
   /* ---------- ดวงคู่ ---------- */

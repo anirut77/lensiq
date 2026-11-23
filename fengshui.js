@@ -766,7 +766,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     out.setAttribute("aria-busy", "true");
     var consent = $("#fsConsent").checked, res;
     try {
-      if (AI && typeof AI.interpret === "function") res = await AI.interpret(facts, { useAI: consent, seed: again ? undefined : undefined });
+      if (AI && typeof AI.interpret === "function") {
+        // owner inbox 19: same home + same Thai-date month = same text (seed from the facts; nothing stored or sent)
+        var seed = typeof AI.seedFor === "function" ? AI.seedFor(["fengshui", facts], "m") : undefined;
+        res = await AI.interpret(facts, { useAI: consent, seed: seed });
+      }
       else res = { source: "local", sections: [{ id: "overview", title: T("fengshui.overview", "ภาพรวม"), paragraphs: facts.items.map(function (it) { var m = it.meanings, k0 = Object.keys(m)[0]; return m[k0][0]; }) }] };
     } catch (e) { console.error(e); res = { source: "local", sections: [], note: T("fengshui.readFail", "เรียบเรียงไม่สำเร็จ") }; }
     renderReading(res, facts);
