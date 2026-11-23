@@ -65,7 +65,7 @@
   // inside fortune-read.js (copied at its end) the layout's exports stay; alone, this file exports its own API
   if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length) module.exports = api;
   if (!root || typeof root.document === "undefined") return;
-  if (root.LQCrashGuard) return; // loaded twice (a page tag + the copy inside fortune-read.js): the first copy owns the marker
+  if (/** @type {any} */ (root).LQCrashGuard) return; // loaded twice (a page tag + the copy inside fortune-read.js): the first copy owns the marker
 
   let storage = null;
   try { storage = root.sessionStorage; } catch { storage = null; }
@@ -104,7 +104,7 @@
     if (root.document.readyState === "loading") root.document.addEventListener("DOMContentLoaded", showNote, { once: true });
     else showNote();
   }
-  root.LQCrashGuard = Object.assign({}, api, {
+  /** @type {any} */ (root).LQCrashGuard = Object.assign({}, api, {
     get recovered() { return g.recovered; },
     get lite() { return g.lite; },
     begin: g.begin, end: g.end, showNote
