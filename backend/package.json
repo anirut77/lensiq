@@ -16,9 +16,9 @@
     "test": "cd .. && node --test tests/unit/backend-*.test.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.6.0"
+    "@anthropic-ai/sdk": "^1.11.0"
   },
   "devDependencies": {
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.165.0"
   }
 }
