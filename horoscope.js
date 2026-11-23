@@ -955,11 +955,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function bindReading(id, factsFn, withTopics, per) {
     var root = document.getElementById(id); if (!root) return;
     var st = readings[id] = readings[id] || { topic: "overall" };
+    st.press = 0; // owner entry 20: 0 on load, +1 per press of "again"
     var body = document.getElementById(id + "-body"), src = document.getElementById(id + "-src");
     function run() {
       // owner inbox 19: same input + same period = same text; the seed comes from the input facts + the Thai-date period ("m" | "d")
       var f0 = factsFn(st.topic, FA && FA.rng ? FA.rng(0) : undefined), seed = FA && FA.seedFor ? FA.seedFor([id, st.topic, f0], per || "m") : 0;
-      var facts = factsFn(st.topic, FA && FA.rng ? FA.rng(seed) : undefined);
+      var facts = factsFn(st.topic, FA && FA.rng ? FA.rng(seed) : undefined), press = st.press;
+      if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], per || "m");
       st.facts = facts;
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true }) : Promise.resolve(localFallback(facts));
@@ -975,11 +977,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       });
     }
     st.run = run;
-    document.getElementById(id + "-again").addEventListener("click", function () { touch(); run(); });
+    document.getElementById(id + "-again").addEventListener("click", function () { touch(); st.press++; run(); });
     if (withTopics) root.querySelectorAll(".rd-topics button").forEach(function (b) {
       b.setAttribute("aria-checked", String(b.dataset.topic === st.topic));
       b.addEventListener("click", function () {
-        st.topic = b.dataset.topic; touch();
+        st.topic = b.dataset.topic; st.press = 0; touch();
         root.querySelectorAll(".rd-topics button").forEach(function (x) { x.setAttribute("aria-checked", String(x === b)); });
         run();
       });

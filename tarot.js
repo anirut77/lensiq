@@ -546,12 +546,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function bindReading(id, factsFn) {
     var root = document.getElementById(id); if (!root) return;
-    var st2 = readings[id] = {};
+    var st2 = readings[id] = { press: 0 }; // owner entry 20: 0 on load, +1 per press of "again"
     var body = document.getElementById(id + "-body"), src = document.getElementById(id + "-src");
     function run() {
       // owner inbox 19: the draw is the user's; the wording for that draw comes from the drawn cards + the Thai-date month
       var f0 = factsFn(FA && FA.rng ? FA.rng(0) : undefined), seed = FA && FA.seedFor ? FA.seedFor([id, f0], "m") : 0;
-      var facts = factsFn(FA && FA.rng ? FA.rng(seed) : undefined);
+      var facts = factsFn(FA && FA.rng ? FA.rng(seed) : undefined), press = st2.press;
+      if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], "m");
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true, userText: (document.getElementById("trQuestion") || {}).value || "" }) : Promise.resolve(localFallback(facts));
       root.setAttribute("aria-busy", "true");
@@ -564,7 +565,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         root.removeAttribute("aria-busy");
       });
     }
-    document.getElementById(id + "-again").addEventListener("click", function () { touch(); run(); });
+    document.getElementById(id + "-again").addEventListener("click", function () { touch(); st2.press++; run(); });
     if (FA && FA.consentControl) FA.consentControl(document.getElementById(id + "-consent"), { onChange: function () { run(); } }).catch(function () { /* ไม่มีเซิร์ฟเวอร์ AI */ });
     return run();
   }
