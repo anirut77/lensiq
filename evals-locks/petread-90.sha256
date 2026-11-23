@@ -1,0 +1,5 @@
+# locked 2026-11-23T18:54:06Z (tools/eval-guard.mjs lock, 2 files)
+2a0e579c993506128071dcb24c7622aec79fad43348865005daba56bbde24ea6  petread-90.test.js
+8b10af14b561407425299cf3367c5715db863fcec7353cc1c4b8f393faa345d6  petread-90.e2e.mjs
+2a0e579c993506128071dcb24c7622aec79fad43348865005daba56bbde24ea6  tests/unit/petread-90.test.js  # repo file (same commit as lock 2026-11-23T18:54:06Z; field: ~/LENSIQ-field/evals/petread-90/petread-90.test.js)
+8b10af14b561407425299cf3367c5715db863fcec7353cc1c4b8f393faa345d6  tests/e2e/petread-90.e2e.mjs  # repo file (same commit as lock 2026-11-23T18:54:06Z; field: ~/LENSIQ-field/evals/petread-90/petread-90.e2e.mjs)
