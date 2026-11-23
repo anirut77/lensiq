@@ -39,3 +39,9 @@ a07bc6e2526de141ed9e95ceca839966f7abee9fc6c3272adc1b90cbb923abbd  relock1/NOTE.t
 707f767b9d137f5541dc06b3da599801d811360ed278d4e49805c529e37695a0  tests/e2e/phone-memory.e2e.mjs  # repo file (same commit as lock 2026-11-23T01:54:21Z; field: ~/LENSIQ-field/evals/phone-quality/relock1/phone-memory.e2e.mjs)
 # field only relock1/NOTE.txt (lock 2026-11-23T01:54:21Z: no repo file uses it)
 # re-lock relock1 2026-11-23 (SELL-READY decision 3 ก, D1; coordinator decision ก1, branch attendance-pin-default, not merged until the owner answers): URL-ONLY: attendance is opened with ?mode=training (face mode) because the bare attendance.html becomes the PIN / QR time clock; every assertion, threshold, timing and other page unchanged. Field: relock1/ with NOTE.txt. Append-only.
+# locked 2026-11-23T03:38:59Z (tools/eval-guard.mjs lock, 2 files)
+e6d57aa6fd59bc817c12a134096ec0bd68a079e8bf352afe6e374556862c654f  relock2/phone-webkit-b.e2e.mjs
+1690185e59497e4c042af7c8b0863873ab034e120dfdd9f07d0a3341701b94da  relock2/NOTE.txt
+e6d57aa6fd59bc817c12a134096ec0bd68a079e8bf352afe6e374556862c654f  tests/e2e/phone-webkit-b.e2e.mjs  # repo file (same commit as lock 2026-11-23T03:38:59Z; field: ~/LENSIQ-field/evals/phone-quality/relock2/phone-webkit-b.e2e.mjs)
+# field only relock2/NOTE.txt (lock 2026-11-23T03:38:59Z: no repo file uses it)
+# re-lock relock2 2026-11-23 (SELL-READY decision 3 ก, D1; coordinator decision ก1, branch attendance-pin-default, found by CI run 45099821762): URL-ONLY: tests/e2e/phone-webkit-b.e2e.mjs opens attendance with ?mode=training (face mode, the old default) before its PIN / QR flow; nothing else changed. Field: relock2/ with NOTE.txt. Append-only.

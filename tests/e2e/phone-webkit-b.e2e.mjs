@@ -56,7 +56,7 @@ export default async function ({ base, check, fakeCams }) {
         await waitFor(page, () => window.__LQ_EXAM_LAB.phase === "exam" && !document.querySelector("#monitor").hidden, null, 8000);
       });
 
-    await flow(check, browser, "attendance (PIN/QR): add employee, punch by PIN and by QR badge", `${base}/attendance.html?cpu&fakedet`,
+    await flow(check, browser, "attendance (PIN/QR): add employee, punch by PIN and by QR badge", `${base}/attendance.html?mode=training&cpu&fakedet`,
       { cams: fakeCams, init: [ONE_CAM], expectCam: false }, async ({ page }) => {
         await waitFor(page, () => typeof ready !== "undefined" && ready === true && !!window.LQHR, null, 20000); // eslint-disable-line no-undef
         await page.locator('.mode-btn[data-mode="employee"]').tap();
