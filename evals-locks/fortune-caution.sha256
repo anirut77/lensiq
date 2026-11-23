@@ -163,3 +163,14 @@ a81f2217541d344edaa828afdfcb9c95ec56af007d9c2daf9756df8517b6b131  relock12/fortu
 3a2bfed347530af2cb119e68e99e44aa32ee83452321ca4a38d91a0ef14da19c  relock12/NOTE.txt
 a81f2217541d344edaa828afdfcb9c95ec56af007d9c2daf9756df8517b6b131  tests/e2e/fortune-caution-reading-visible.e2e.mjs  # repo file (same commit as lock 2026-11-22T02:23:00Z; field: ~/LENSIQ-field/evals/fortune-caution/relock12/fortune-caution-reading-visible.e2e.mjs)
 # field only relock12/NOTE.txt (lock 2026-11-22T02:23:00Z: no repo file uses it)
+# RE-LOCK 13 2026-11-23 (branch fortune-90b, owner inbox 19, approved by the coordinator), EQUAL: T15 of fortune-caution-pages.test.js. The old
+# daily snapshots captured Math.random output (buildDailyFacts drew the today.bhumi meaning from Math.random; wave1-relock1 pinned it). The
+# product now uses the reading's rng, so the 18 daily hashes are regenerated and the inert Math.random pin is removed; the check stays exact,
+# character for character; the 24 natal hashes are unchanged. Field note: relock13/NOTE.txt.
+# locked 2026-11-23T08:10:03Z (tools/eval-guard.mjs lock, 3 files)
+a3db73fce090573f9204768a86366386a62feee666bdc7087bd148c7611e2335  relock13/fortune-caution-pages.test.js
+57df251327425f4a8d0f5cba88920096380a318ea8e3e3b6adcaee149a8896f2  relock13/fortune-caution-horoscope-snapshot.json
+4eac0e45d21f244d5ca6b54da621dfbf2502a99164bd6e0dc52970e547e3344e  relock13/NOTE.txt
+a3db73fce090573f9204768a86366386a62feee666bdc7087bd148c7611e2335  tests/unit/fortune-caution-pages.test.js  # repo file (same commit as lock 2026-11-23T08:10:03Z; field: ~/LENSIQ-field/evals/fortune-caution/relock13/fortune-caution-pages.test.js)
+57df251327425f4a8d0f5cba88920096380a318ea8e3e3b6adcaee149a8896f2  tests/unit/fixtures/fortune-caution-horoscope-snapshot.json  # repo file (same commit as lock 2026-11-23T08:10:03Z; field: ~/LENSIQ-field/evals/fortune-caution/relock13/fortune-caution-horoscope-snapshot.json)
+# field only relock13/NOTE.txt (lock 2026-11-23T08:10:03Z: no repo file uses it)
