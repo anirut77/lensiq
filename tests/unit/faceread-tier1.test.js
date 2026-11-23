@@ -1,0 +1,74 @@
+"use strict";
+// tests/unit/faceread-tier1.test.js — face reading on the tier-1 face model (lensiq-face-mesh68.js, MediaPipe Face Landmarker,
+// LICENSES/TIERS.md M2), behind window.LENSIQ_FACEREAD_TIER1 (off). Checks the 478 -> 68 point pick, the detection shape faceread.js
+// expects, the separate calibration (FRCore.setEngine) and that the default engine and its numbers are untouched.
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const M = require("../../lensiq-face-mesh68.js");
+const FR = require("../../faceread.js");
+const root = path.join(__dirname, "..", "..");
+
+test("MAP68 picks 68 distinct Face Mesh points, all inside the 478-point mesh", () => {
+  assert.equal(M.MAP68.length, 68);
+  assert.equal(new Set(M.MAP68).size, 68);
+  for (const k of M.MAP68) assert.ok(Number.isInteger(k) && k >= 0 && k < 478, "bad index " + k);
+});
+
+test("toDets: normalised landmarks -> pixel box + 68 points in the iBUG order faceread.js uses", () => {
+  const L = Array.from({ length: 478 }, (_, i) => ({ x: 0.3 + (i % 20) * 0.02, y: 0.2 + Math.floor(i / 20) * 0.025, z: 0 }));
+  const d = M.toDets({ faceLandmarks: [L] }, 1000, 800);
+  assert.equal(d.length, 1);
+  assert.equal(d[0].pts.length, 68);
+  assert.deepEqual(d[0].pts[8], [L[152].x * 1000, L[152].y * 800]); // chin
+  const b = d[0].box;
+  assert.ok(Math.abs(b.x - 300) < 1e-9 && Math.abs(b.width - 0.38 * 1000) < 1e-6, JSON.stringify(b));
+  assert.deepEqual(M.toDets({ faceLandmarks: [] }, 10, 10), []);
+  assert.deepEqual(M.toDets(null, 10, 10), []);
+});
+
+test("the left/right picks mirror: subject's right side (iBUG 0-8, 17-21, 36-41) is on the image left of a frontal mesh", () => {
+  // Face Mesh canonical pairs (right, left) for the points used here
+  const pairs = [[0, 16], [17, 26], [36, 45], [39, 42], [31, 35], [48, 54]];
+  const right = [127, 70, 33, 133, 75, 61], left = [356, 300, 263, 362, 305, 291];
+  pairs.forEach(([r, l], i) => { assert.equal(M.MAP68[r], right[i]); assert.equal(M.MAP68[l], left[i]); });
+});
+
+test("apply() swaps FRCore to the tier-1 calibration in place and back; the face-api numbers are unchanged", () => {
+  const before = JSON.stringify([FR.NORMS, FR.THRESH, FR.HAIR.fallbackRatio]);
+  assert.equal(FR.engine, "faceapi");
+  assert.equal(M.apply(FR, true), "mp");
+  assert.equal(FR.engine, "mp");
+  assert.deepEqual(FR.NORMS, M.CAL.NORMS);
+  assert.equal(Object.keys(M.CAL.NORMS).sort().join(), Object.keys(JSON.parse(before)[0]).sort().join(), "same keys as the face-api calibration");
+  for (const [k, [med, sd]] of Object.entries(FR.NORMS)) assert.ok(isFinite(med) && sd > 0, k);
+  for (const k of ["zoneDom", "typeZ", "tiltZ", "palaceZ"]) assert.equal(FR.THRESH[k], JSON.parse(before)[1][k], "z-based threshold unchanged: " + k);
+  assert.equal(FR.HAIR.fallbackRatio, M.CAL.fallbackRatio);
+  assert.equal(FR.zOf("eyeGap", M.CAL.NORMS.eyeGap[0]), 0, "FRCore's own z uses the swapped values");
+  assert.equal(M.apply(FR, false), "faceapi");
+  assert.equal(JSON.stringify([FR.NORMS, FR.THRESH, FR.HAIR.fallbackRatio]), before);
+  assert.equal(FR.NORMS.eyeGap[0], 1.612);
+});
+
+test("same 68 points -> identical analysis on each engine (determinism holds after switching back and forth)", () => {
+  const pts = FR.synthFace({ x: 100, y: 120, width: 300, height: 340 });
+  const run = () => { const R = FR.analyze(pts, null, 30); return JSON.stringify([R.cls, R.el.ranked]); };
+  const a = run(); M.apply(FR, true); const m1 = run(); M.apply(FR, false); const b = run(); M.apply(FR, true); const m2 = run(); M.apply(FR, false);
+  assert.equal(a, b); assert.equal(m1, m2);
+});
+
+test("switch: off in lensiq-config.js (?frengine= only on localhost); the page loads the tier-1 module only when it is on", () => {
+  const cfg = fs.readFileSync(path.join(root, "lensiq-config.js"), "utf8");
+  assert.match(cfg, /typeof location !== "undefined" && \/\^\(localhost\|127\\\.0\\\.0\\\.1\)\$\/\.test\(location\.hostname\) && \/\[\?&\]frengine=\(mp\|faceapi\)\\b\/\.test\(location\.search\)/);
+  assert.match(cfg, /: window\.LENSIQ_FACEREAD_TIER1 === true;/);
+  const js = fs.readFileSync(path.join(root, "faceread.js"), "utf8");
+  assert.match(js, /MP = window\.LENSIQ_FACEREAD_TIER1 === true/);
+  assert.doesNotMatch(fs.readFileSync(path.join(root, "faceread.html"), "utf8"), /lensiq-face-mesh68/);
+});
+
+test("the vendored model file is the tier-1 one with no facial-movement (blendshape) member", () => {
+  const buf = fs.readFileSync(path.join(root, M.MODEL));
+  assert.equal(require("node:crypto").createHash("sha256").update(buf).digest("hex"), "56224ce15fcbff363ed5ce9a9a17761b9b9fd8f3a03bbe0bf94ea900e1f2cd57");
+  assert.ok(!buf.includes(Buffer.from("face_blendshapes")), "blendshape model must not be in the file");
+});

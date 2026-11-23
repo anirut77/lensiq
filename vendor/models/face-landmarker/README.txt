@@ -1,4 +1,8 @@
 Face Landmarker for LENSIQ Exam (lensiq-exam-face.js, exam-lab.html): face presence, face count and head pose only.
+Also used (2026-11-23, recorded here) by the faceread look preview (lensiq-look-preview.js) and, behind window.LENSIQ_FACEREAD_TIER1
+(off), by the belief-based face reading (lensiq-face-mesh68.js: face proportions for an entertainment reading, the card's
+"AR entertainment" use). The Exam sentence below stays true for Exam; on every page the model never identifies or matches a
+person, never scores expression (that model is not in this file) and gives no beauty score; no frame leaves the device.
 vendor/models/face-landmarker/
 
 It is never used to identify, match, describe or score a person, and never for expression: the facial-movement score
