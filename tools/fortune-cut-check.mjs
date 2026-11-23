@@ -15,6 +15,14 @@
 // v1 applied S2 to every bullet, so a bullet that IS its whole source sentence was "cut" when that sentence's own last word is
 // on the list (TH "เต็มที่" / "ทุกที่" end in ที่, "การให้", "ทำตาม"; EN "grow with"; ZH "最美的"): 54 of 496 baseline hits, none a
 // real cut (each true cut among them is also an S1 hit). No other rule, input or threshold changed.
+// RE-LOCK v3 (2026-11-23, after the independent review found v2 not equal-or-stricter; locked before re-measuring; v1 and v2 stay
+// in the ledger): (1) S1 exempts a bullet only when EVERY occurrence of its matched tail in that pool ends a sentence (v2: at
+// least one), so a connector-ending cut whose tail also ends another complete sentence once is no longer exempt; (2) "." ends a
+// sentence only when followed by whitespace or the end AND not right after a known abbreviation (e.g. i.e. etc. a.m. p.m. No.
+// vs. Mr. Mrs. Dr.) or a single letter, so "Try something calm, e.g" (from "e.g. a walk") and "…for 9 a" (from "9 a.m.") and
+// "rose to 3" (from "3.5") are cut, while a mark that closes the source string always ends it ("…at 9 a.m." at the very end);
+// (3) ";" / "；" ends a sentence only when nothing follows it, so a bullet that stops before
+// a ";" continuation is cut. No other rule, input or threshold changed. Where the text below says "a sentence end", read v3.
 // Definition of a CUT bullet (fixed before any measurement; stricter than tests/unit/fortune-gist.test.js, which only forbids a
 // cut inside a word):
 //   S1 source end   the bullet's tail (its last 12..40 characters, trailing . 。 and spaces removed) is looked up in the
@@ -49,6 +57,20 @@ const LANGS = ["th", "en", "zh"], MODES = ["gentle", "straight"];
 const NOW = new Date("2026-11-23T12:00:00+07:00");
 
 export const TERM = /^[\s]*[.!?。！？;；]/u;
+// v3: abbreviations (and a single letter) before "." do not end a sentence
+export const ABBR = /(?:^|[^\p{L}\p{N}])(?:e\.g|i\.e|etc|a\.m|p\.m|no|vs|mr|mrs|dr|\p{L})$/iu;
+/** v3: does the source sentence end right after `before`, with `rest` following? */
+export function sentenceEnd(before, rest) {
+  if (!rest.trim()) return true;
+  if (/[。！？]$/u.test(before) || (/[!?]$/u.test(before) && /^\s/u.test(rest))) return true; // the bullet's own last mark closed the sentence
+  const m = /^\s*([.!?。！？;；])/u.exec(rest);
+  if (!m) return false;
+  const ch = m[1], after = rest.slice(m[0].length);
+  if (!after.trim()) return true; // the mark closes the source string: nothing follows
+  if (ch === ";" || ch === "；") return false;
+  if (ch === "." && ((after && !/^\s/u.test(after)) || ABBR.test(before))) return false;
+  return true;
+}
 export const DANGLE = {
   th: /(?:และ|หรือ|แต่|ซึ่ง|ที่|เพราะ|คือ|ว่า|เช่น|โดย|จึง|ให้|ของ|กับ|ใน|ตาม|จาก|เพื่อ|ถ้า|หาก)$/u,
   en: /(?:\b(?:and|or|but|with|of|to|the|a|an|such as|e\.g|like|for)|,|:)$/iu,
@@ -75,15 +97,15 @@ export function classify(t, lang, pools) {
   if (!balanced(body)) rules.push("S3");
   let matched = false, sourceEnd = false;
   for (const pool of pools) {
-    let found = false, ends = false;
+    let found = false, ends = true; // v3: every occurrence must end a sentence
     for (let L = Math.min(body.length, 40); L >= 12 && !found; L--) {
       const tail = body.slice(-L);
       for (const s of pool) for (let i = s.indexOf(tail); i >= 0; i = s.indexOf(tail, i + 1)) {
         found = true;
-        const rest = s.slice(i + L);
-        if (!rest.trim() || TERM.test(rest)) ends = true;
+        if (!sentenceEnd(s.slice(0, i + L), s.slice(i + L))) ends = false;
       }
     }
+    if (!found) ends = false;
     if (found) { matched = true; sourceEnd = ends; if (!ends) rules.push("S1"); break; }
   }
   // v2: a bullet that ends exactly where its source sentence ends has lost nothing, so its last word is the source's own
@@ -146,7 +168,7 @@ function main() {
     console.log("wrote " + out + " (" + s.profiles.length + " profiles)");
     return;
   }
-  assertLocked(PHASE, [SET, "v2/fortune-cut-check.mjs"]);
+  assertLocked(PHASE, [SET, "v3/fortune-cut-check.mjs"]);
   const set = JSON.parse(readFileSync(join(dir, SET), "utf8"));
   const R = measure(set);
   const ji = argv.indexOf("--json"), si = argv.indexOf("--show");

@@ -578,8 +578,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /** วาดผลการเปิดไพ่จาก current (เรียกซ้ำเมื่อเปลี่ยนภาษา → เรียบเรียงคำทำนายใหม่ในภาษานั้น) */
   function renderResult() {
     var S = KB.spreads[current.spread], Y = current.synth, sk = current.spread, tk = current.topic, zh = trL();
-    var q = echoQ($("#trQuestion").value.trim());
-    $("#trResMeta").innerHTML = esc(T("tarot.metaTopic", "หัวข้อ")) + " <b>" + esc(topicName(tk)) + "</b> · " + esc(spreadName(sk)) + " (" + esc(spreadSub(sk)) + ")" + (q ? "<br>" + esc(T("tarot.metaQ", "คำถาม: ")) + "<q>" + esc(q) + "</q>" : "");
+    var q = echoQ($("#trQuestion").value.trim()), raw = $("#trQuestion").value.trim();
+    // E row (review 2026-11-23): a blank or spaces-only question says plainly that the reading is a general one for the topic
+    var noQ = raw ? "" : "<br>" + esc(T("tarot.metaNoQ", "ไม่ได้พิมพ์คำถาม จึงอ่านเป็นภาพรวมตามหัวข้อที่เลือก"));
+    $("#trResMeta").innerHTML = esc(T("tarot.metaTopic", "หัวข้อ")) + " <b>" + esc(topicName(tk)) + "</b> · " + esc(spreadName(sk)) + " (" + esc(spreadSub(sk)) + ")" +
+      (q ? "<br>" + esc(T("tarot.metaQ", "คำถาม: ")) + "<q>" + esc(q) + "</q>" : noQ);
     var bars = Object.keys(KB.elements).map(function (k) {
       var e = KB.elements[k], v = Y.elements[k];
       return '<div class="elbar"><span>' + e.icon + " " + esc(elName(k)) + '</span><i style="--w:' + Math.round(v / Y.n * 100) + "%;--c:" + e.color + '"></i><b>' + v + "</b></div>";

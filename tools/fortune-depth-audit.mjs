@@ -121,7 +121,7 @@ export function factsOf(p, now) {
     case "fengshui": return FS.buildFacts({ kua: Object.assign({ solarYear: 2026 }, FS.kua(x.year, x.gender)), recorded: {}, rooms: [], photos: [], topic, now: new Date(2026, x.month, x.day) });
     case "numbers": return NM.buildFacts(NM.analyzePhone(x.phone), topic, {});
     case "iching": return IC.buildFacts(IC.cast(x.lines), topic, { rng: lcg(p.seed) });
-    case "zodiac": return ZD.buildFacts(ZD.annual(x.animal, x.year, x.born), topic, {});
+    case "zodiac": return ZD.buildFacts(ZD.annual(x.animal, x.year, x.born), topic, { rng: lcg(p.seed) }); // re-lock 2026-11-23: seeded like the others (zodiac.js falls back to Math.random)
     case "astro": return AS.buildFacts(AS.chart({ y: x.y, m: x.m, d: x.d, time: x.time, tz: 7, lat: 13.75, lon: 100.5 }), topic);
     case "dream": return DR.buildFacts(x.symbols, x.mood, x.time, topic, { rng: lcg(p.seed) });
     case "bazi": case "taksa": case "lek7": case "lifegraph": {
