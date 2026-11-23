@@ -870,7 +870,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (!tag) return Promise.reject(new Error("load"));
     var src = String(tag.getAttribute("src"));
     if (!lazyP[src]) lazyP[src] = new Promise(function (res, rej) {
-      var sc = document.createElement("script"); sc.src = src; sc.async = false;
+      var sc = document.createElement("script"); sc.src = src; sc.async = true; // not ordered: never queued behind Merit (review r1)
       var fail = function () { delete lazyP[src]; sc.remove(); rej(new Error("load")); };
       sc.onload = function () { if (ok()) res(); else fail(); };
       sc.onerror = fail;

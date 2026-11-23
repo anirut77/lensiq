@@ -11,6 +11,9 @@ a7f7175377407124cc407b78a12bdb79974601d872020fd454ea93b4712fd82e  relock1/palm-s
 a7f7175377407124cc407b78a12bdb79974601d872020fd454ea93b4712fd82e  tests/e2e/palm-s2-lazy.e2e.mjs  # repo file (same commit as lock 2026-11-23T12:07:34Z; field: ~/LENSIQ-field/evals/palm-90/relock1/palm-s2-lazy.e2e.mjs)
 # retired tests/palm-s2-load.test.js reason: not a repo path; line 3 names the FIELD copy (~/LENSIQ-field/evals/palm-90/tests/palm-s2-load.test.js), whose repo copy is tests/unit/palm-s2-load.test.js (same hash, ledger line below it); nothing was removed
 # retired tests/palm-s2-lazy.e2e.mjs reason: not a repo path; line 4 names the FIELD copy (~/LENSIQ-field/evals/palm-90/tests/palm-s2-lazy.e2e.mjs), whose repo copy is tests/e2e/palm-s2-lazy.e2e.mjs (ledger lines; current hash under relock1); nothing was removed
+# locked 2026-11-23T17:21:48Z (tools/eval-guard.mjs lock, 1 file)
+a899bb1fcc9289365d298c4d6a292513d53d47b1104d49b6cb2a895c313aa7b7  r1/palm-s2-merit.e2e.mjs
+a899bb1fcc9289365d298c4d6a292513d53d47b1104d49b6cb2a895c313aa7b7  tests/e2e/palm-s2-merit.e2e.mjs  # repo file (same commit as lock 2026-11-23T17:21:48Z; field: ~/LENSIQ-field/evals/palm-90/r1/palm-s2-merit.e2e.mjs)
 # locked 2026-11-23T13:56:46Z (tools/eval-guard.mjs lock, 2 files)
 0115a9b04226126fba6d897cd6316088b3c655617a6fbdc02b61b1af949f4f47  c/palm-trace-snap.test.js
 f1375926279e0bfd8e868a6e3745ef8c8b5e58b2d0eec63e5dc06809e5322243  c/palm-trace-c.e2e.mjs
