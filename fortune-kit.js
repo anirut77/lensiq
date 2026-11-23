@@ -161,13 +161,14 @@
   K.bindReading = function (id, domain, factsFn, opts) {
     opts = opts || {};
     var box = document.getElementById(id); if (!box) return Promise.resolve();
-    var FA = root.FortuneAI || null, st = K.readings[id] = { topic: opts.topic || "overall" };
+    var FA = root.FortuneAI || null, st = K.readings[id] = { topic: opts.topic || "overall", press: 0 };
     var body = document.getElementById(id + "-body"), src = document.getElementById(id + "-src");
     function run() {
       // owner inbox 19: same input + same period = same text; the seed comes from the input facts + the Thai-date period (opts.period "m" | "d")
       var f0 = factsFn(st.topic, FA && FA.rng ? FA.rng(0) : mulberry32(0)), seed = FA && FA.seedFor ? FA.seedFor([domain, st.topic, f0], opts.period || "m") : 0;
       var r = FA && FA.rng ? FA.rng(seed) : mulberry32(seed);
-      var facts = factsFn(st.topic, r), sent = factsDomain(domain, FA);
+      var facts = factsFn(st.topic, r), sent = factsDomain(domain, FA), press = st.press || 0; // owner entry 20: the n-th press = the n-th wording
+      if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], opts.period || "m");
       facts = Object.assign({}, facts, { domain: sent, topic: st.topic });
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       // รอบ 12: ข้อความที่ผู้ใช้พิมพ์เอง (คำถาม/ความฝัน) ส่งเป็น userText ให้ตัวตรวจวิกฤตใน FortuneAI.interpret อีกชั้น
@@ -188,10 +189,10 @@
         if (opts.onDone) opts.onDone(st);
       });
     }
-    document.getElementById(id + "-again").addEventListener("click", function () { run(); });
+    document.getElementById(id + "-again").addEventListener("click", function () { st.press++; run(); });
     if (opts.withTopics) box.querySelectorAll(".rd-topics button").forEach(function (b) {
       b.addEventListener("click", function () {
-        st.topic = b.dataset.topic;
+        st.topic = b.dataset.topic; st.press = 0;
         box.querySelectorAll(".rd-topics button").forEach(function (x) { x.setAttribute("aria-checked", String(x === b)); });
         if (opts.onTopic) opts.onTopic(st.topic);
         run();

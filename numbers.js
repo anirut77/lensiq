@@ -328,7 +328,7 @@
   const STATS_KEY = "nm-stats", PREF_KEY = "nm-prefs", IDLE_MS = 60000;
   const prefs = Object.assign({ stats: true, ai: false }, lsGet(PREF_KEY, {}));
   const F = root.FortuneAI || null;
-  let mode = "phone", current = null, currentFacts = null, aiEnabled = false, narrSeq = 0;
+  let mode = "phone", current = null, currentFacts = null, aiEnabled = false, narrSeq = 0, narrPress = 0;
 
   /* ---------- i18n (ไทยเป็นค่าเริ่มต้น จีนมาจาก i18n/zh-fortune-numbers.js และ i18n/zh-kb-numbers.js) ---------- */
   const T = (k, th, v) => root.LQI18N ? root.LQI18N.tf(k, th, v) : String(th).replace(/\{(\w+)\}/g, (m, x) => v && v[x] != null ? v[x] : m);
@@ -538,7 +538,8 @@
     const b = $("#nmSrc"); b.textContent = ai ? T("numbers.src.ai", "เรียบเรียงโดย Claude AI") : ""; b.className = "src-badge " + (ai ? "ai" : "local"); b.hidden = !ai;
     $("#nmNarrNote").textContent = res.note || "";
   }
-  async function narrate() {
+  async function narrate(again) {
+    if (again) narrPress += 1; else narrPress = 0; // owner entry 20: 0 on load / new input / topic, +1 per press of "again"
     const box = $("#nmNarr");
     if (!current) return;
     const my = ++narrSeq, useAI = !!(aiEnabled && (F && typeof F.hasConsent === "function" ? F.hasConsent() : prefs.ai));
@@ -548,7 +549,9 @@
     $("#nmAgain2").disabled = true; box.setAttribute("aria-busy", "true");
     if (useAI) box.innerHTML = '<p class="nm-small">' + esc(T("numbers.loading", "กำลังเรียบเรียงคำอ่าน...")) + '</p>';
     // owner inbox 19: same number + same Thai-date month = same text (seed from the facts; nothing stored or sent)
-    const seed = typeof F.seedFor === "function" ? F.seedFor(["numbers", topic, currentFacts], "m") : 0;
+    let seed = typeof F.seedFor === "function" ? F.seedFor(["numbers", topic, currentFacts], "m") : 0;
+    const press = narrPress;
+    if (press && typeof F.seedFor === "function") seed = F.seedFor([seed, press], "m");
     let res;
     try {
       res = await F.interpret(currentFacts, { useAI, seed: seed });
@@ -557,7 +560,7 @@
     renderNarr(res);
     $("#nmAgain2").disabled = false; box.removeAttribute("aria-busy");
   }
-  $("#nmAgain2").addEventListener("click", () => { touch(); narrate(); });
+  $("#nmAgain2").addEventListener("click", () => { touch(); narrate(true); });
   $("#nmTopic").addEventListener("change", () => { if (current) narrate(); });
 
   function setupConsent() {
