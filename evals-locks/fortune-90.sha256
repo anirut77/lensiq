@@ -31,3 +31,7 @@ b7342e8180ab00690c239ce2abbc4bf6c092f5089d70d5840c68d8ad6dce718f  v3/NOTE.txt
 4a64c10345239cbd06d1570189ed07f797a122ad575a3493e6f83e08fe7f8992  tools/fortune-cut-check.mjs  # repo file (same commit as lock 2026-11-23T05:43:31Z; field: ~/LENSIQ-field/evals/fortune-90/v3/fortune-cut-check.mjs)
 9af87c34228ac03c1dea0c32ad176c77c925b4e04385ee55f6958d56dabe5ad0  tests/unit/fortune-cut-strict.test.js  # repo file (same commit as lock 2026-11-23T05:43:31Z; field: ~/LENSIQ-field/evals/fortune-90/v3/fortune-cut-strict.test.js)
 # field only v3/NOTE.txt (lock 2026-11-23T05:43:31Z: no repo file uses it)
+# 2026-11-23 E row (tarot / iching question field): tests/e2e/fortune-states.e2e.mjs gains check 4 (blank, whitespace-only and 140-character question, 141 typed, TH/EN/ZH: reading proceeds with a plain line in the page language, nothing busy, no crisis state); locked BEFORE its first run and before any product fix. Earlier checks unchanged.
+# locked 2026-11-23T06:06:15Z (tools/eval-guard.mjs lock, 1 file)
+e4db9c77955a4a28b3c9fc13b1183561aa23626d635a62115140e0e1347c1dda  e-states/fortune-states.e2e.mjs
+e4db9c77955a4a28b3c9fc13b1183561aa23626d635a62115140e0e1347c1dda  tests/e2e/fortune-states.e2e.mjs  # repo file (same commit as lock 2026-11-23T06:06:15Z; field: ~/LENSIQ-field/evals/fortune-90/e-states/fortune-states.e2e.mjs)
