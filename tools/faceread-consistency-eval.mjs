@@ -23,15 +23,17 @@ import { launch } from "../tests/e2e/cdp.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PHASE = "faceread-90", DIR = phaseDir(PHASE), AF = phaseDir("attendance-face");
-assertLocked(PHASE, ["protocol.json", "faceread-consistency-eval.mjs"]);
-assertLocked("attendance-face", ["manifest.jsonl", "protocol.json"]);
+// RE-LOCK v2 (2026-11-23, before any measurement: v1 refused to run because evals-locks/attendance-face.sha256 is not on main):
+// byte-identical copies of the attendance-face manifest and split (same sha256 as that phase's field lock, d97a65c0… / 0ca1c41b…)
+// are locked in THIS phase as london-manifest.jsonl and london-split-protocol.json. Nothing else changed.
+assertLocked(PHASE, ["protocol.json", "faceread-consistency-eval.mjs", "london-manifest.jsonl", "london-split-protocol.json"]);
 const argv = process.argv.slice(2);
 const arg = (n, d) => { const a = argv.find(x => x.startsWith("--" + n + "=")); return a ? a.slice(n.length + 3) : d; };
 const ONLY = arg("only", ""), LIMIT = +arg("limit", 0) || 0;
 const sha = b => createHash("sha256").update(b).digest("hex");
 
-const MAN = readFileSync(join(AF, "manifest.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l));
-let TEST = JSON.parse(readFileSync(join(AF, "protocol.json"), "utf8")).split.test;
+const MAN = readFileSync(join(DIR, "london-manifest.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l));
+let TEST = JSON.parse(readFileSync(join(DIR, "london-split-protocol.json"), "utf8")).split.test;
 if (LIMIT) TEST = TEST.slice(0, LIMIT);
 const imageOf = (id, view) => {
   const m = MAN.find(r => r.id === id && r.view === view);

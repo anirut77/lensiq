@@ -4,3 +4,10 @@ ee1d86421d3e26d23d9408106f0a89a68b68c3415c1a1f57ee6572f6f3c28979  faceread-consi
 da36bd7e91e078e36fd4299bfa8754e0de1914a113d10218caa31a8d7a218475  protocol.json
 ee1d86421d3e26d23d9408106f0a89a68b68c3415c1a1f57ee6572f6f3c28979  tools/faceread-consistency-eval.mjs  # repo file (same commit as lock 2026-11-23T15:58:39Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-consistency-eval.mjs)
 # field only protocol.json (lock 2026-11-23T15:58:39Z: no repo file uses it)
+# locked 2026-11-23T15:59:03Z (tools/eval-guard.mjs lock, 3 files)
+da6c60515540d3b8cd1b4fe45b4e0a668e8ccc8df96af3a3ef882277e80116d0  faceread-consistency-eval.mjs
+d97a65c036253dc9de18ebba10206be39123a7dd5c2540e1fda1d50b8c2a0583  london-manifest.jsonl
+0ca1c41be71217785c024bbaac48863115780e1d39c075f3c7d5d1eec197d9ad  london-split-protocol.json
+da6c60515540d3b8cd1b4fe45b4e0a668e8ccc8df96af3a3ef882277e80116d0  tools/faceread-consistency-eval.mjs  # repo file (same commit as lock 2026-11-23T15:59:03Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-consistency-eval.mjs)
+# field only london-manifest.jsonl (lock 2026-11-23T15:59:03Z: no repo file uses it)
+# field only london-split-protocol.json (lock 2026-11-23T15:59:03Z: no repo file uses it)
