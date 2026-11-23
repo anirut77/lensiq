@@ -60,3 +60,10 @@ body.pet-bar-on main.pet{padding-bottom:110px}
   font-size:.86rem;line-height:1.35;text-align:center;pointer-events:none}
 .pet-req,.pet-opt{font-weight:500;font-size:.85em;margin-left:.35em}
 .pet-req{color:#b42318}.pet-opt{color:var(--muted)}
+/* print (acceptance X): the reading with the honest line and the belief disclaimer; no photo controls, form or share card */
+.pet-print-row{display:flex;justify-content:flex-end;margin-top:8px}
+@media print{
+  .pet-photo>:not(.pet-honest),.pet-readbar,#petCardSec,.pet-print-row,.lq-recheck{display:none!important}
+  .pet-photo{box-shadow:none;border:0;padding:0;margin:0}
+  .pet-result,.pet-result .fk-block{box-shadow:none;break-inside:auto}
+}
