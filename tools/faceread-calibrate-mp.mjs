@@ -19,8 +19,13 @@ import { assertFreeSpace } from "./disk-guard.mjs";
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PHASE = "faceread-90", DIR = phaseDir(PHASE), AF = phaseDir("attendance-face");
 assertLocked(PHASE, ["london-manifest.jsonl", "london-split-protocol.json"]);
-const OUT = join(DIR, "calibration-mp.json");
-if (existsSync(OUT)) { console.error("calibration-mp.json exists; refusing to overwrite"); process.exit(2); }
+// RE-LOCK (2026-11-24, review of 900ab7e4): create() now returns { lm, faces(input) }, so the photo pass calls faces() — the same
+// call the page makes (v1 called detect() on the raw model, which the refactor had broken). --check NAME recomputes and compares with
+// the locked NAME (exit 0 = identical numbers); --out NAME writes a new calibration (refuses to overwrite). Default NAME: v1's file.
+const argv = process.argv.slice(2), opt = (/** @type {string} */ n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : null; };
+const CHECK = opt("--check"), OUT = join(DIR, CHECK || opt("--out") || "calibration-mp.json");
+if (!CHECK && existsSync(OUT)) { console.error(OUT + " exists; refusing to overwrite"); process.exit(2); }
+if (CHECK) assertLocked(PHASE, [CHECK]);
 const sha = b => createHash("sha256").update(b).digest("hex");
 const MAN = readFileSync(join(DIR, "london-manifest.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l));
 const DEV = JSON.parse(readFileSync(join(DIR, "london-split-protocol.json"), "utf8")).split.dev;
@@ -46,7 +51,7 @@ const ONE = async (b64) => {
   cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
   const g = cv.getContext("2d", { willReadFrequently: true }); g.drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(u);
   if (!window.__mp) window.__mp = await window.LQFaceMesh68.create();
-  const list = window.LQFaceMesh68.detect(window.__mp, cv), F = window.FRCore;
+  const list = window.__mp.faces(cv), F = window.FRCore;
   const pk = F.pickFace(list, null, cv.width, cv.height), d = pk.index >= 0 ? list[pk.index] : null;
   if (!d) return { face: false };
   const data = g.getImageData(0, 0, cv.width, cv.height);
@@ -94,6 +99,11 @@ const THRESH = {
 const out = { at: new Date().toISOString(), tool: "tools/faceread-calibrate-mp.mjs", source: "public dataset: London Set dev split (34 neutral fronts), CC BY 4.0",
   photos: rows.length, faceFound: rows.filter(r => r.face).length, passedQuality: used.length, hairlineFound: withHair.length,
   NORMS, THRESH, fallbackRatio: NORMS.foreheadH[0] };
+if (CHECK) {
+  const was = JSON.parse(readFileSync(OUT, "utf8")), same = JSON.stringify([was.NORMS, was.THRESH, was.fallbackRatio, was.passedQuality, was.hairlineFound]) === JSON.stringify([out.NORMS, out.THRESH, out.fallbackRatio, out.passedQuality, out.hairlineFound]);
+  console.log(same ? "check: identical to " + CHECK : "check: DIFFERS from " + CHECK);
+  process.exit(same ? 0 : 1);
+}
 writeFileSync(OUT, JSON.stringify(out, null, 1));
 console.log(`photos ${out.photos}, face ${out.faceFound}, quality pass ${out.passedQuality}, hairline ${out.hairlineFound}`);
 console.log(JSON.stringify({ NORMS, THRESH, fallbackRatio: out.fallbackRatio }));
