@@ -372,6 +372,12 @@
       opt.honest (palm v2, owner order 2026-11-19; ใช้เมื่อ LENSIQ_PALM_V2 เปิด): ไม่บังคับ present และไม่ยึดจุดเริ่ม/ความยาวขั้นต่ำ
       ทุกเส้นใช้เกณฑ์เดียวกับเส้นวาสนา เส้นที่ไม่ผ่านได้ notFound = true (ไม่พบในภาพ ≠ มือไม่มีเส้น) · ค่าเริ่มต้น = สถานะ "ไม่ชัด" ข้างบน */
   var LINE_MIN_CONF = 0.3;
+  var TRACE_LOW = 0.5; // owner inbox 24 C: below this auto confidence a main line offers "trace this line" — PROVISIONAL (no field data)
+  /** a finger stroke (canonical px) snapped to crease evidence within radiusPx; where the photo shows no crease the stroke stays */
+  function snapTrace(R, pathPx, radiusPx) {
+    var tr = traceAlong(R, pathPx, radiusPx, { n: 24 }), base = resample(spline(pathPx, 80), 24);
+    return tr.path.map(function (q, i) { return tr.strength[i] >= TRACE.thr ? q : base[i]; });
+  }
   function detectLines(R, F, opt) {
     var honest = !!(opt && opt.honest);
     var out = {};
@@ -837,7 +843,7 @@
     GUIDE_HAND: GUIDE_HAND, guideTemplate: guideTemplate, handContour: handContour, fitScore: fitScore,
     MOUNT_IDS: MOUNT_IDS, estimateMounts: estimateMounts, compareHands: compareHands, buildComparison: buildComparison,
     palmFrame: palmFrame, grayFrom: grayFrom, gaussBlur: gaussBlur, localContrast: localContrast, ridgeFilter: ridgeFilter, skinMask: skinMask, sample: sample,
-    spline: spline, resample: resample, traceAlong: traceAlong, analyzeStrength: analyzeStrength, detectLines: detectLines, LINE_MIN_CONF: LINE_MIN_CONF, lineRead: lineRead, fateUserNone: fateUserNone,
+    spline: spline, resample: resample, traceAlong: traceAlong, analyzeStrength: analyzeStrength, detectLines: detectLines, LINE_MIN_CONF: LINE_MIN_CONF, lineRead: lineRead, fateUserNone: fateUserNone, TRACE_LOW: TRACE_LOW, snapTrace: snapTrace,
     measureLine: measureLine, classifyLines: classifyLines, buildReading: buildReading, analyze: analyze, addStat: addStat,
     /** palm.html loads palm-kb.js after the page is usable (S2, palm-90): the page hands the tables over once they ran */
     setKB: function (k) { KB = k || KB; }
@@ -1393,8 +1399,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var L = KB.lines[id], SL = S.lines && S.lines[id], conf = SL && SL.unclear ? unclearLabel() : "";
       return '<button type="button" role="radio" class="chip-btn" style="--c:' + L.color + '" data-line="' + id + '" aria-checked="' + (S.active === id) + '"><i></i>' + esc(KT("lines." + id + ".th", L.th)) + (conf ? " <small>(" + conf + ")</small>" : "") + "</button>";
     }).join("");
-    $$("#plLineChips [data-line]").forEach(function (b) { b.addEventListener("click", function () { S.active = b.dataset.line; renderLineChips(); renderEditor(); }); });
+    $$("#plLineChips [data-line]").forEach(function (b) { b.addEventListener("click", function () { S.active = b.dataset.line; S.tracing = false; renderLineChips(); renderEditor(); }); });
+    var A = S.auto && S.auto[S.active], tb = $("#plTraceLine"); // owner inbox 24 C: main lines found with low confidence only
+    tb.hidden = !(S.mode === "edit" && ["life", "head", "heart"].indexOf(S.active) >= 0 && A && (A.unclear || A.auto.conf < PC.TRACE_LOW));
+    tb.setAttribute("aria-pressed", S.tracing && !tb.hidden ? "true" : "false");
   }
+  $("#plTraceLine").addEventListener("click", function () { S.tracing = !S.tracing; renderLineChips(); });
   // ติ๊ก = ผู้ใช้ยืนยันเองว่ามองไม่เห็นเส้นวาสนา; เลิกติ๊ก = กลับไปสถานะเดิม (ตรวจพบ / ผู้ใช้วางเอง / ไม่ชัดในภาพนี้)
   $("#plFateNone").addEventListener("change", /** @this {HTMLInputElement} */ function () {
     var L = S.lines && S.lines.fate; if (!L) return;
@@ -1479,6 +1489,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return;
     }
     if (!S.lines) return;
+    if (S.tracing) { e.preventDefault(); drag = { trace: [S.F.pxToUV([dispX(p[0]), p[1]])] }; try { edCv.setPointerCapture(e.pointerId); } catch (err) { /* ไม่มี pointer จริง */ } return; }
     /** @type {any} */
     var best = null, bd = 30 * cssScale();
     var order = [S.active].concat(PC.LINE_IDS.filter(function (id) { return id !== S.active; }));
@@ -1496,13 +1507,21 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
   edCv.addEventListener("pointermove", function (e) {
     if (!drag) return;
+    if (drag.trace) { drag.trace.push(dispToUv(evtPt(e))); var tc = edCv.getContext("2d"); renderEditor(); strokeLine(tc, drag.trace, "#22d3ee", 3 * cssScale(), true); return; }
     var q = dispToUv(evtPt(e)), DL = S.lines[drag.id];
     DL.cp[drag.i] = [PC.round(Math.max(-0.42, Math.min(1.32, q[0])), 4), PC.round(Math.max(-0.4, Math.min(1.12, q[1])), 4)];
     // ผู้ใช้วางเส้นเอง: เส้นนี้นำไปอ่านได้ (เป็นข้อมูลที่ผู้ใช้ยืนยัน ไม่ใช่เส้นแทนจากแม่แบบ)
     DL.placed = true; if (DL.unclear) { DL.unclear = false; DL.present = true; renderLineChips(); }
     renderEditor();
   });
-  var endDrag = function () { if (drag) { drag = null; edCv.classList.remove("dragging"); renderEditor(); } };
+  var endDrag = function () {
+    if (drag && drag.trace && drag.trace.length >= 3) { // the stroke, snapped to the photo's crease evidence (radius 0.03 palm width), becomes the line
+      var snap = PC.snapTrace(S.R, drag.trace.map(S.F.uvToPx), 0.03 * S.F.opt.s), TL = S.lines[S.active];
+      TL.cp = PC.resample(snap, 5).map(function (q) { var u = S.F.pxToUV(q); return [PC.round(u[0], 4), PC.round(u[1], 4)]; });
+      TL.present = true; TL.unclear = false; TL.placed = true; TL.traced = true; S.tracing = false; renderLineChips();
+    }
+    if (drag) { drag = null; edCv.classList.remove("dragging"); renderEditor(); }
+  };
   edCv.addEventListener("pointerup", endDrag); edCv.addEventListener("pointercancel", endDrag);
 
   // เส้นรอง (ผู้ใช้ยืนยัน) และเนิน
