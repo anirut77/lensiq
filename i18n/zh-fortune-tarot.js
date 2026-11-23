@@ -2,9 +2,9 @@
    泰文默认值保留在 tarot.html / tarot.js；本文件只放中文。tarot.kw.<id> = 牌的关键词（| 分隔），tarot.ss.verse.N = 签诗两句（| 分隔）。 */
 (function (root) {
   "use strict";
-  // th: Thai label override for a string whose Thai default lives in page JS owned by the fortune team
-  // (no bare "AI" wording; the optional writing assistant is named with its provider for PDPA transparency)
-  var dict = { th: { "tarot.srcAI": "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)" }, zh: {
+  // th: no Thai override any more (owner entry 23, 2026-11-23: the "written by the writing assistant" label on the result
+  // is gone; the consent step names the writing assistant and its provider)
+  var dict = { th: {}, zh: {
     "tarot.metaDesc": "完整 78 张 Rider–Waite–Smith 塔罗牌、每日一牌与 28 支求签。在浏览器中运行，不保存你的问题",
     "tarot.disc2": " 请勿用于健康、财务、法律或重要感情方面的决定。",
     "tarot.tabsAria": "选择模式",
@@ -112,9 +112,8 @@
     "tarot.faceDown": "背面朝上",
     "tarot.yourCards": "你的牌 · {s}（{sub}）",
     "tarot.tapFull": "点按牌面查看完整牌义",
-    "tarot.composing": "正在整理解读…",
-    "tarot.regen": "换一种说法",
-    "tarot.srcAI": "由写作助手（Anthropic 的 Claude）整理",
+    "tarot.composing": "请稍候，解读马上出来…",
+    "tarot.regen": "换个方式说说",
     "tarot.readingTitle": "详细解读",
     "tarot.metaTopic": "主题",
     "tarot.metaQ": "问题：",

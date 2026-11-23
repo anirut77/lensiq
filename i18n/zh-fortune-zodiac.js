@@ -14,7 +14,7 @@
   "zodiac.eraCE": "公历",
   "zodiac.boundaryLabel": "生肖年的分界",
   "zodiac.yearLabel": "想看的年份",
-  "zodiac.birthHint": "如果填写了生日，系统会以生日为准，而不是上面选的生肖",
+  "zodiac.birthHint": "如果填写了生日，就以生日为准，而不是上面选的生肖",
   "zodiac.cardImgAlt": "可分享的十二生肖运势卡片",
   "zodiac.chongYearLabel": "年份",
   "zodiac.statsOn": "在本机统计次数和生肖（不保存生日）",

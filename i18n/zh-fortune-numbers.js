@@ -1,9 +1,9 @@
 /* i18n/zh-fortune-numbers.js — Simplified Chinese for numbers.html (Thai lives in the markup / numbers.js / numbers-kb.js).
    KB texts (grades, digits, weekdays, goals, tips, daily words, sources) are keyed by id or index. */
 (function (root) {
-  // th: Thai label override for a string whose Thai default lives in page JS owned by the fortune team
-  // (no bare "AI" wording; the optional writing assistant is named with its provider for PDPA transparency)
-  var dict = { th: { "numbers.src.ai": "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)" }, zh: {
+  // th: no Thai override any more (owner entry 23, 2026-11-23: the "written by the writing assistant" label on the result
+  // is gone; the consent step names the writing assistant and its provider)
+  var dict = { th: {}, zh: {
     "numbers.metaDesc": "按泰国数字命理的民间信仰分析手机号、车牌、门牌号、账号与姓名。在浏览器中计算，不保存数字",
     /* ---------- static markup ---------- */
     "numbers.disclaimer2": "不用于赌博或博取运气，也不应作为重要决定的依据。各流派的解释各不相同。",
@@ -109,14 +109,13 @@
     "numbers.daily.n1": "{c}是{wd}的代表色（泰国传统）",
     "numbers.daily.n2same": "今天正好是你的出生星期，所以{c}既是今日颜色，也是你的本命色",
     "numbers.daily.n2": "{c}是{wd}的代表色，可以当作提升自信的颜色",
-    "numbers.daily.n3": "方位和能量词依据日期和出生星期随机生成，每天都会更新",
+    "numbers.daily.n3": "方位和能量词由今天的日期和你出生的星期几得出：当天不变，每天更新",
     "numbers.daily.foot": "依据传统说法的小小鼓励，不作为重要决定的建议",
     "numbers.cmp.top": "最高分",
     "numbers.cmp.none": "无",
     "numbers.noReading": "暂无解读",
-    "numbers.noComposer": "未找到解读生成器（fortune-ai.js）",
-    "numbers.loading": "正在整理解读...",
-    "numbers.src.ai": "由写作助手（Anthropic 的 Claude）润色",
+    "numbers.noComposer": "暂时无法显示解读，请重新加载本页",
+    "numbers.loading": "请稍候，解读马上出来...",
     "numbers.card.brand": "LENSIQ · 吉祥数字",
     "numbers.card.score": "分数 / 100",
     "numbers.card.sum": "总和 {s} · {g}",

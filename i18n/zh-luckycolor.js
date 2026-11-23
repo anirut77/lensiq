@@ -48,7 +48,7 @@
   "lucky.eng.fake": "测试模式：模拟遮罩",
   "lucky.eng.guide": "框选模式：让上衣位于画面中间的虚线框内",
   "lucky.eng.loading": "正在加载衣服分割模型（首次可能需要一点时间）…",
-  "lucky.eng.multi": "就绪：由设备上的模型分离脸部以下的衣服",
+  "lucky.eng.multi": "就绪：在本机读取脸部以下衣服的颜色",
   "lucky.eng.person": "就绪：分离人像并去掉头部（备用模式）",
   "lucky.stopped": "摄像头已关闭。最近的结果仍显示；没有保留任何图像。",
   "lucky.noClothes": "还看不清衣服。请后退一点，让摄像头拍到从脸部到腰部，并在正面开灯。",

@@ -48,7 +48,7 @@
   "lucky.eng.fake": "Test mode: simulated mask",
   "lucky.eng.guide": "Frame mode: stand so your shirt is inside the dashed box in the middle",
   "lucky.eng.loading": "Loading the clothing separator (the first time may take a moment)…",
-  "lucky.eng.multi": "Ready: clothing below the face separated by an on-device model",
+  "lucky.eng.multi": "Ready: reads the colours of the clothes below the face, on this device",
   "lucky.eng.person": "Ready: person separated and the head removed (fallback mode)",
   "lucky.stopped": "Camera off. The last result stays on screen; no image was kept.",
   "lucky.noClothes": "The clothing is not clear enough yet. Step back so the camera sees you from face to waist, and turn on a light in front of you.",
