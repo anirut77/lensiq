@@ -294,7 +294,7 @@
   "home.err.interest": "请选择感兴趣的方向",
   "home.err.consent": "请确认同意与您联系",
   "home.err.fix": "请修改标出的 {n} 项信息",
-  "home.uc.att": "人脸签到",
+  "home.uc.att": "PIN / QR 码考勤 · 人脸可选",
   "home.retry": "再次发送",
   "home.ok.saved": "谢谢 {name}，已收到演示申请（演示模式：保存在本机浏览器中，未发送到任何地方）",
   "home.ok.unsaved": "尚未发送：在线申请系统尚未开放，且此浏览器不允许保存数据，因此申请没有保存在任何地方",

@@ -683,14 +683,10 @@ function demoNoCamera() {
   show(); window.addEventListener("lq-lang", show);
 }
 renderPeople(); renderLogs();
-// employee mode = ?mode=employee, or the mode this browser used last (attendance-hr.js reads the same setting)
+// SELL-READY 2026-11-23 decision 3 ก (D1): employee mode (PIN / QR, camera off, no face library or model) unless the URL asks
+// for face (training) mode with ?mode=training; attendance-hr.js reads the URL the same way
 const EMP_OPEN = (() => {
-  try {
-    const q = new URLSearchParams(location.search).get("mode");
-    if (q) return q === "employee";
-    const st = JSON.parse(localStorage.getItem("att-hr-settings") || "null");
-    return !!st && st.mode === "employee";
-  } catch { return false; }
+  try { return new URLSearchParams(location.search).get("mode") !== "training"; } catch { return true; }
 })();
 {
   const b = $("#camPower");

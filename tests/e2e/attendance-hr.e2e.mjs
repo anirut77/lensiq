@@ -25,7 +25,7 @@ export default async function ({ base, launch, check, fakeCams }) {
   const browser = await launch();
   try {
     const page = await browser.newPage(null, { initScripts: [fakeCams, HOOKS] });
-    const url = `${base}/attendance.html?cpu&fakedet`;
+    const url = `${base}/attendance.html?mode=training&cpu&fakedet`;
     await page.goto(url);
     await page.evaluate(p => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem("att-people", JSON.stringify(p)); }, PEOPLE);
     await page.reload();

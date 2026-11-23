@@ -117,7 +117,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       const HOOKS = `window.__faces = []; window.__LQ_FAKE_DET = () => window.__faces.map(f => Object.assign({ score: 0.95 }, f));
         window.__LQ_FAKE_MATCH = d => d && d.who ? { label: d.who, distance: 0.3, confident: d.unsure ? false : true } : { label: "unknown", distance: 0.9 };`;
       const page = await browser.newPage(null, { initScripts: [fakeCams, HOOKS] });
-      await page.goto(`${base}/attendance.html?cpu&fakedet&nosw`);
+      await page.goto(`${base}/attendance.html?mode=training&cpu&fakedet&nosw`);
       await page.evaluate(p => { localStorage.clear(); localStorage.setItem("att-people", JSON.stringify(p)); },
         [{ id: "pA", name: "สมชาย ทดสอบ", code: "A01", descriptor: D(1) }, { id: "pB", name: "สมหญิง ทดสอบ", code: "B02", descriptor: D(2) }]);
       await page.reload();
