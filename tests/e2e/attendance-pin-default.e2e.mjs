@@ -15,6 +15,9 @@
 //       TF.js or WebAssembly file fetched (checked for 8 s, past the kiosk's own start-up). P1 / P2 also use this wider
 //       list of face files now (stricter than the first lock); P3 also checks that the face-mode breadcrumb links to
 //       attendance.html?mode=training.
+//   relock2 (review N1 of 2bee44d3): K1-K4 also require the kiosk's face note (.hr-kiosk-note) to be hidden; new K5: face chosen
+//       first (?mode=training, face models loaded), then employee mode and the kiosk button: the face kiosk (att-kface) shows
+//       the face scan pane and the face note.
 // Synthetic data and Chrome's fake camera only; no person is photographed.
 import { assert } from "./cdp.mjs";
 
@@ -121,10 +124,13 @@ export default async function ({ base, launch, check }) {
       const r = await state(page);
       const k = await page.evaluate(() => {
         const e = document.getElementById("pane-pin");
-        return { on: document.body.classList.contains("att-kiosk"), pin: !!e && getComputedStyle(e).display !== "none" && e.getClientRects().length > 0 };
+        const n = document.querySelector(".hr-kiosk-note");
+        return { on: document.body.classList.contains("att-kiosk"), pin: !!e && getComputedStyle(e).display !== "none" && e.getClientRects().length > 0,
+          note: !!n && getComputedStyle(n).display !== "none" && n.getClientRects().length > 0 };
       });
       assert(k.on, `${label}: the kiosk did not open`);
       assert(k.pin, `${label}: the PIN / QR pane is not shown in the kiosk`);
+      assert(!k.note, `${label}: the PIN / QR kiosk shows the face note`);
       assert(r.bodyEmp && r.empPressed, `${label}: the kiosk is not in PIN / QR (employee) mode`);
       assert(r.gum === 0, `${label}: camera requested ${r.gum} time(s) by the kiosk`);
       assert(!r.face.length && !r.faceScript, `${label}: face library / model / wasm fetched by the kiosk: ${r.face.slice(0, 4).join(", ")}`);
@@ -148,6 +154,24 @@ export default async function ({ base, launch, check }) {
     await check("K4 [th] a stored kiosk + face mode without ?mode=training opens PIN / QR, no face files", async () => {
       const page = await open(`${base}/attendance.html`, "th", [STORED({ kiosk: true, mode: "training" })]);
       try { await ready(page, "th"); await kiosk(page, "stored kiosk + training"); } finally { await page.close(); }
+    });
+    await check("K5 [th] face chosen first (?mode=training, models loaded), then the kiosk: the face kiosk shows the scan pane and the face note", async () => {
+      const page = await open(`${base}/attendance.html?mode=training`, "th");
+      try {
+        await ready(page, "th");
+        await faceLoads(page, "face mode before the kiosk");
+        await page.waitFor("typeof ready !== 'undefined' && ready === true", 30000);
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.querySelector('.mode-btn[data-mode="employee"]')).click());
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.querySelector("#hrKiosk")).click());
+        await page.waitFor(`document.body.classList.contains("att-kiosk")`, 10000);
+        const k = await page.evaluate(() => {
+          const vis = e => !!e && getComputedStyle(e).display !== "none" && e.getClientRects().length > 0;
+          return { face: document.body.classList.contains("att-kface"), scan: vis(document.getElementById("pane-checkin")),
+            pin: vis(document.getElementById("pane-pin")), note: vis(document.querySelector(".hr-kiosk-note")) };
+        });
+        assert(k.face && k.scan && k.pin, "face kiosk layout: " + JSON.stringify(k));
+        assert(k.note, "the face kiosk does not show the face note: " + JSON.stringify(k));
+      } finally { await page.close(); }
     });
   } finally { await browser.close(); }
 }

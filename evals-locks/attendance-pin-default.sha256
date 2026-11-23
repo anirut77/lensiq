@@ -7,3 +7,9 @@ f76306a33a8c27a1ee8f6a49bc4b644407ec942b5ef21b5f5b3b9b3806d7b770  relock1/NOTE.t
 a3f9b9f44ce6bd5e31a532a0c74f956b9f99b06f13974fa2cf41e461f69a1cbb  tests/e2e/attendance-pin-default.e2e.mjs  # repo file (same commit as lock 2026-11-23T05:28:58Z; field: ~/LENSIQ-field/evals/attendance-pin-default/relock1/attendance-pin-default.e2e.mjs)
 # field only relock1/NOTE.txt (lock 2026-11-23T05:28:58Z: no repo file uses it)
 # re-lock relock1 2026-11-23 (independent review of c48c63d2 = FAIL: kiosk started face): EQUAL-OR-STRICTER: wider face-file list (TF.js, wasm), breadcrumb check in P3, new kiosk cases K1-K4; locked BEFORE the kiosk fix. Field: relock1/ with NOTE.txt. Append-only.
+# locked 2026-11-23T09:10:55Z (tools/eval-guard.mjs lock, 2 files)
+271f8bc912d1a2af259cbc5d1dc3d4ff3aa569bc0d7c9130b16bbe71d28b679e  relock2/attendance-pin-default.e2e.mjs
+35ae799695b7cffe1dc682e0aea95b2ee82b616cbd333109b77c3149c8128366  relock2/NOTE.txt
+271f8bc912d1a2af259cbc5d1dc3d4ff3aa569bc0d7c9130b16bbe71d28b679e  tests/e2e/attendance-pin-default.e2e.mjs  # repo file (same commit as lock 2026-11-23T09:10:55Z; field: ~/LENSIQ-field/evals/attendance-pin-default/relock2/attendance-pin-default.e2e.mjs)
+# field only relock2/NOTE.txt (lock 2026-11-23T09:10:55Z: no repo file uses it)
+# re-lock relock2 2026-11-23 (Fable re-review N1 of 2bee44d3): EQUAL-OR-STRICTER: K1-K4 require the face note hidden; new K5 (face kiosk shows the scan pane and the note); locked BEFORE the CSS fix. Field: relock2/ with NOTE.txt. Append-only.
