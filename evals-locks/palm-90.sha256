@@ -16,3 +16,7 @@ a7f7175377407124cc407b78a12bdb79974601d872020fd454ea93b4712fd82e  tests/e2e/palm
 f1375926279e0bfd8e868a6e3745ef8c8b5e58b2d0eec63e5dc06809e5322243  c/palm-trace-c.e2e.mjs
 0115a9b04226126fba6d897cd6316088b3c655617a6fbdc02b61b1af949f4f47  tests/unit/palm-trace-snap.test.js  # repo file (same commit as lock 2026-11-23T13:56:46Z; field: ~/LENSIQ-field/evals/palm-90/c/palm-trace-snap.test.js)
 f1375926279e0bfd8e868a6e3745ef8c8b5e58b2d0eec63e5dc06809e5322243  tests/e2e/palm-trace-c.e2e.mjs  # repo file (same commit as lock 2026-11-23T13:56:46Z; field: ~/LENSIQ-field/evals/palm-90/c/palm-trace-c.e2e.mjs)
+# RE-LOCK c2 2026-11-23 (tests/e2e/palm-trace-c.e2e.mjs, stricter): the canvas is scrolled into view instantly and every stroke point must hit the editor canvas; the first version's stroke landed beside the canvas during the page's smooth scroll, so C3 tested nothing. Nothing else changed; the first lock stays.
+# locked 2026-11-23T13:58:50Z (tools/eval-guard.mjs lock, 1 file)
+b8bf8553140eb94ca5c9202c9f92c670d8dd379d80ec5d3ce32f3ff216c89038  c2/palm-trace-c.e2e.mjs
+b8bf8553140eb94ca5c9202c9f92c670d8dd379d80ec5d3ce32f3ff216c89038  tests/e2e/palm-trace-c.e2e.mjs  # repo file (same commit as lock 2026-11-23T13:58:50Z; field: ~/LENSIQ-field/evals/palm-90/c2/palm-trace-c.e2e.mjs)

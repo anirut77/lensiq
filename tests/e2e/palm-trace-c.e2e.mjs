@@ -10,7 +10,10 @@
 //   C3  TH: a stroke while the button is NOT pressed does not trace (the old point-drag behaviour stays: S.lines.<id>.traced
 //       stays unset)
 //   C4  TH: after tracing, "read" gives a reading (>= 3 sections) and the traced line is read (PalmCore.lineRead); no request
-//       while editing or reading (the stroke never leaves the device)
+//       that carries data (no POST, no body) while editing or reading (the stroke never leaves the device)
+//   RE-LOCK c2 (2026-11-23, after the first run, before any product commit; the first lock stays in the ledger): the page
+//   scrolls smoothly, so the stroke landed beside the canvas and C3 passed without testing anything. Now the canvas is
+//   scrolled into view instantly and every stroke point must hit the canvas. Stricter; nothing else changed.
 import { assert } from "./cdp.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -44,12 +47,15 @@ const state = page => page.evaluate(() => {
 /** client points along a line's guide (template points of PalmCore.TEMPLATES, through the editor canvas) */
 const guideClient = (page, id) => page.evaluate(i => {
   const S = window.__palm.S, cv = document.getElementById("plEditCanvas"), r = cv.getBoundingClientRect(), F = S.F;
-  cv.scrollIntoView({ block: "center" });
+  cv.scrollIntoView({ block: "center", behavior: "instant" }); // relock c2: the page scrolls smoothly; an instant scroll keeps the rect true
   const r2 = cv.getBoundingClientRect();
   return window.PalmCore.TEMPLATES[i].pts.map(q => { const p = F.uvToPx(q), x = F.mirrored ? F.w - p[0] : p[0];
     return [r2.left + x * r2.width / cv.width, r2.top + p[1] * r2.height / cv.height]; }).filter(() => r);
 }, id);
 async function strokeAlong(page, pts) {
+  // relock c2: every point must be on the editor canvas (a stroke beside it would test nothing)
+  const onCanvas = await page.evaluate(ps => ps.every(p => { const e = document.elementFromPoint(p[0], p[1]); return !!e && e.id === "plEditCanvas"; }), pts);
+  assert(onCanvas, "stroke points are not on the editor canvas: " + JSON.stringify(pts));
   const send = (type, p) => page.send("Input.dispatchMouseEvent", { type, x: p[0], y: p[1], button: "left", buttons: type === "mouseReleased" ? 0 : 1, clickCount: 1, pointerType: "mouse" });
   await send("mousePressed", pts[0]);
   for (let i = 1; i < pts.length; i++) for (let k = 1; k <= 6; k++) {
