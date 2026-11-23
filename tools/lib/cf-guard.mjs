@@ -192,9 +192,18 @@ const PLAIN = new Set(["deploy", "rollback", "versions", "deployments"]);
  * @param {string[]} args @param {{worker: string, d1: string, env?: string}} cfg names of [env.<cfg.env>] (default test) in wrangler.toml
  * @returns {{kind: "worker"|"d1"|"none", name: string}}  Throws GuardError for a command these tools do not use.
  */
+/** Flags whose value decides the target: each may appear at most once, in any form (--x v, --x=v, short alias). */
+const TARGET_FLAGS = Object.freeze([["--name"], ["--env", "-e"], ["--config", "-c"]]);
 export function effectiveTarget(args, cfg) {
+  for (const names of TARGET_FLAGS) {
+    const n = args.filter(a => names.some(f => a === f || a.startsWith(f + "="))).length;
+    if (n > 1) throw new GuardError(`REFUSED: ${names.join(" / ")} given ${n} times; wrangler would pick one of them. Nothing was sent to Cloudflare.`);
+  }
   const sub = args[0], name = flagOf(args, "--name"), env = flagOf(args, "--env", "-e");
   const E = cfg.env || ENV;
+  if (E !== ENV && env == null && !(sub === "whoami" || (sub === "d1" && (args[1] === "create" || args[1] === "list")))) {
+    throw new GuardError(`REFUSED: a "${E}" command without --env ${E}. Nothing was sent to Cloudflare.`);
+  }
   if (sub === "whoami") return { kind: "none", name: "" };
   // the configuration FILE wrangler will read: wrangler.toml (default) for test, wrangler.production.toml for production
   const conf = flagOf(args, "--config", "-c");

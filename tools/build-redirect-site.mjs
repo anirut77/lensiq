@@ -15,10 +15,10 @@
 // scripts and no data are published. Keep it for at least 12 months (printed QR codes).
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve, sep } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { publishedFiles } from "./build-site.mjs";
-import { PROD_SITE_URL, checkProdBase, readOldBase } from "./build-prod-site.mjs";
+import { PROD_SITE_URL, checkOutDir, checkProdBase, readOldBase } from "./build-prod-site.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -97,8 +97,7 @@ self.addEventListener("activate", event => {
  */
 export function buildRedirectSite(o) {
   const target = checkTarget(o.target);
-  const out = resolve(o.out);
-  if (out === repo || repo.startsWith(out + sep) || out === resolve(repo, "_site")) throw new Error("refusing to write into " + out);
+  const out = checkOutDir(o.out);
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
   let stubs = 0;

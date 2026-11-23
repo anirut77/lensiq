@@ -13,7 +13,9 @@
 //   - the checkout is exactly origin/main with a clean tree, and CI succeeded for that commit (`gh run list`);
 //   - a Cloudflare credential variable in the shell is used only after --account-confirmed (cf-guard accountEnvSet);
 //   - the site folder exists, has index.html and _headers, its lensiq-config.js carries the customer lock
-//     (tools/build-site.mjs CUSTOMER_LOCK) and no file is over 25 MiB.
+//     (tools/build-site.mjs CUSTOMER_LOCK) and no file is over 25 MiB;
+//   - the folder's build stamp (_lensiq-build.json, written by tools/build-prod-site.mjs) names exactly HEAD and the configured
+//     production base (deploy/site-url.prod.json), so an old or foreign bundle is never uploaded.
 //
 //   node tools/pages-deploy-guard.mjs --check --project lensiq-prod-site --confirm lensiq-prod-site [--dir _site-prod]
 //   node tools/pages-deploy-guard.mjs --run   --project lensiq-prod-site --confirm lensiq-prod-site --dir _site-prod
@@ -27,9 +29,11 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BACKEND, GuardError, PROD_PAGES_PROJECT, REPO, accountEnvSet, assertOffline, assertSafeEnv, childEnv, isProdName, wranglerBin } from "./lib/cf-guard.mjs";
 import { CUSTOMER_LOCK } from "./build-site.mjs";
-import { oversized } from "./build-prod-site.mjs";
+import { oversized, readBuildStamp, readProdBase } from "./build-prod-site.mjs";
 
 export const PROJECT = PROD_PAGES_PROJECT;
+/** The configured production base, "" when not set or invalid (then the deploy is refused). */
+const safeBase = () => { try { return readProdBase(); } catch { return ""; } };
 
 /** The exact wrangler argument list. Throws for any other project. @param {string} dir @param {string} project */
 export function pagesDeployArgs(dir, project) {
@@ -55,7 +59,7 @@ export function ciGreen(sha) {
 /**
  * Everything that stops a deploy ([] = go). Names and reasons only, never a value.
  * @param {{env: any, project: string, confirm: string, dir: string, skipDir?: boolean, accountConfirmed?: boolean,
- *   git: {head: string, main: string, clean: boolean}, ci: boolean}} o @returns {string[]}
+ *   git: {head: string, main: string, clean: boolean}, ci: boolean, base?: string}} o @returns {string[]}
  */
 export function deployProblems(o) {
   const env = o.env || {}, out = [];
@@ -71,6 +75,7 @@ export function deployProblems(o) {
   if (!g.head || !g.main || g.head !== g.main) out.push("only the commit at origin/main is deployed (git fetch, then check out origin/main)");
   if (!g.clean) out.push("the checkout has uncommitted changes: deploy only a clean origin/main");
   if (!o.ci) out.push(`CI has not succeeded for ${String(g.head || "this commit").slice(0, 12)} (gh run list --workflow CI)`);
+  if (!o.base) out.push("no production base is configured (deploy/site-url.prod.json \"base\" is empty): nothing to deploy yet");
   if (o.skipDir) return out;
   const dir = String(o.dir || "");
   if (!dir || !existsSync(dir) || !statSync(dir).isDirectory()) out.push(`site folder ${dir || "(none)"} not found (build it with node tools/build-prod-site.mjs)`);
@@ -79,11 +84,18 @@ export function deployProblems(o) {
     const cfg = join(dir, "lensiq-config.js");
     if (existsSync(cfg) && !readFileSync(cfg, "utf8").startsWith(CUSTOMER_LOCK)) out.push("site folder: lensiq-config.js has no customer lock (build it with node tools/build-prod-site.mjs)");
     for (const b of oversized(dir)) out.push(`site folder: ${b.file} is over 25 MiB`);
+    const st = readBuildStamp(dir);
+    if (!st) out.push("site folder: no valid build stamp _lensiq-build.json (build it with node tools/build-prod-site.mjs)");
+    else {
+      if (st.commit !== g.head) out.push(`site folder: build stamp says it was built from ${st.commit.slice(0, 12)}, not from HEAD ${String(g.head).slice(0, 12)}: rebuild it`);
+      if (st.base !== o.base) out.push(`site folder: build stamp base ${st.base.slice(0, 80)} is not the configured production base`);
+    }
   }
   return out;
 }
 
-/** @param {string[]} argv @param {{print?: (s: string) => void, env?: any, git?: {head: string, main: string, clean: boolean}, ciGreen?: (sha: string) => boolean}} [io]
+/** @param {string[]} argv @param {{print?: (s: string) => void, env?: any, git?: {head: string, main: string, clean: boolean}, ciGreen?: (sha: string) => boolean,
+ *  base?: string}} [io]
  *  @returns {number} */
 export function main(argv, io = {}) {
   const print = io.print || (s => console.log(s));
@@ -93,7 +105,7 @@ export function main(argv, io = {}) {
   if (!mode) { print("usage: node tools/pages-deploy-guard.mjs --check|--run --project lensiq-prod-site --confirm lensiq-prod-site --dir _site-prod [--account-confirmed]"); return 2; }
   const git = io.git || gitState();
   const o = { env, project: arg("--project"), confirm: arg("--confirm"), dir: arg("--dir") ? resolve(arg("--dir")) : "", skipDir: mode === "check" && !argv.includes("--dir"),
-    accountConfirmed: argv.includes("--account-confirmed"), git, ci: (io.ciGreen || ciGreen)(git.head) };
+    accountConfirmed: argv.includes("--account-confirmed"), git, ci: (io.ciGreen || ciGreen)(git.head), base: io.base ?? safeBase() };
   print(`LENSIQ production site · ${mode} · TARGET Cloudflare Pages project "${o.project}" (branch main) · folder ${o.dir || "(none)"} · commit ${String(git.head).slice(0, 12) || "?"}`);
   const probs = deployProblems(o);
   if (probs.length) { for (const p of probs) print("REFUSED: " + p); print("Nothing was sent to Cloudflare."); return 1; }

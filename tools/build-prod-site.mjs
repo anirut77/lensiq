@@ -17,9 +17,9 @@
 //   4. checks (exit 1): a file over 25 MiB (Cloudflare Pages limit per file), an absolute /lensiq/ path (the site is served at
 //      the ROOT of the new host), or a script that still names the old address and is not in OLD_BASE_ALLOWED.
 // Root-path crawl of the result: node tools/check-site.mjs --dir _site-prod --root (deploy-prod.yml runs it before a deploy).
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { listTree } from "./build-site.mjs";
 
@@ -29,6 +29,30 @@ export const PROD_SITE_URL = "deploy/site-url.prod.json";
 export const SITE_URL_FILE = "deploy/site-url.json";
 /** Cloudflare Pages: 25 MiB per file (https://developers.cloudflare.com/pages/platform/limits/, read 2026-11-18). */
 export const MAX_FILE_BYTES = 25 * 1024 * 1024;
+/** Build stamp of a production bundle: {commit, base}. tools/pages-deploy-guard.mjs deploys a bundle only when it equals HEAD and
+ *  the configured base (review finding 3). Public information only (the repo is public). */
+export const BUILD_STAMP = "_lensiq-build.json";
+/** {commit, base} of a bundle, or null when missing / malformed. @param {string} dir */
+export function readBuildStamp(dir) {
+  try {
+    const j = JSON.parse(readFileSync(join(dir, BUILD_STAMP), "utf8"));
+    return j && typeof j.commit === "string" && typeof j.base === "string" ? { commit: j.commit, base: j.base } : null;
+  } catch { return null; }
+}
+/**
+ * The output folder of a builder (review finding 7): a folder that does not exist yet (not inside the repo unless named _site-*),
+ * or an existing folder named _site-<name> directly inside the repo. Everything else throws before anything is written.
+ * @param {string} out @returns {string} the resolved path
+ */
+export function checkOutDir(out) {
+  const o = resolve(String(out || ""));
+  const inRepoSite = dirname(o) === repo && /^_site-[a-z0-9][a-z0-9-]*$/.test(basename(o));
+  if (inRepoSite) return o;
+  if (o === repo || o.startsWith(repo + sep)) throw new Error(`--out ${o}: inside the repo only a folder named _site-<name> directly at the top (for example _site-prod)`);
+  if (existsSync(o)) throw new Error(`--out ${o} already exists: give a new folder (an existing one is never emptied)`);
+  if (!existsSync(dirname(o))) throw new Error(`--out ${o}: the parent folder does not exist`);
+  return o;
+}
 /** Scripts that may still name the old address, with the reason. Everything else is rewritten or fails the build. */
 export const OLD_BASE_ALLOWED = Object.freeze([
   "lensiq-pet.js",        // LQPet.LINK: changed on cut-over day together with LENSIQ_CARD_SHOW_ADDRESS (plan §2.6, step 7); off until then
@@ -101,10 +125,11 @@ export function oversized(dir, limit = MAX_FILE_BYTES) {
 
 /**
  * Turns an assembled site folder into the production site (in place). Returns what changed.
- * @param {string} dir @param {{base: string, oldBase?: string}} o
+ * @param {string} dir @param {{base: string, oldBase?: string, commit?: string}} o  commit: stamp the bundle (BUILD_STAMP)
  */
 export function postProcess(dir, o) {
   const base = checkProdBase(o.base), oldBase = o.oldBase ?? readOldBase();
+  if (o.commit != null && !/^[0-9a-f]{40}$/.test(String(o.commit))) throw new Error("commit must be a full 40-character git sha");
   if (!/^https:\/\/[^/]+\/.*\/$|^https:\/\/[^/]+\/$/.test(oldBase)) throw new Error("old base must be an https URL ending in /");
   const rewritten = [], canonical = [];
   for (const f of listTree(dir)) {
@@ -121,6 +146,7 @@ export function postProcess(dir, o) {
     if (text !== before) writeFileSync(file, text);
   }
   writeFileSync(join(dir, "_headers"), headersText());
+  if (o.commit != null) writeFileSync(join(dir, BUILD_STAMP), JSON.stringify({ commit: o.commit, base }) + "\n");
   return { base, oldBase, rewritten, canonical, left: oldBaseLeft(dir, oldBase) };
 }
 
@@ -135,12 +161,15 @@ if (isMain) {
     base = given != null ? checkProdBase(given) : readProdBase();
   } catch (e) { fail(/** @type {Error} */ (e).message); }
   if (!base) fail(`no production address yet: ${PROD_SITE_URL} "base" is empty (the owner decides the domain, SELL-READY items 8 / 9). Nothing was built.`);
-  const out = resolve(repo, arg("--out") || "_site-prod");
-  if (out === repo || repo.startsWith(out + sep) || out === resolve(repo, "_site")) fail("refusing to build into " + out);
+  let out = "";
+  try { out = checkOutDir(resolve(repo, arg("--out") || "_site-prod")); } catch (e) { fail(/** @type {Error} */ (e).message); }
+  let commit = "";
+  try { commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim(); } catch { /* below */ }
+  if (!/^[0-9a-f]{40}$/.test(commit)) fail("no git commit to stamp the bundle with (build from a git checkout)");
   if (!existsSync(join(repo, PROD_SITE_CONFIG))) fail(PROD_SITE_CONFIG + " not found");
   const r = spawnSync(process.execPath, [join(repo, "tools", "build-site.mjs"), "--customer", "--site-config", PROD_SITE_CONFIG, "--out", out], { cwd: repo, stdio: "inherit" });
   if (r.status !== 0) fail("tools/build-site.mjs --customer exited " + r.status);
-  const rep = postProcess(out, { base });
+  const rep = postProcess(out, { base, commit });
   console.log(`build-prod-site: base ${rep.base} · old address rewritten in ${rep.rewritten.length} file(s) · canonical added to ${rep.canonical.length} page(s) · _headers written`);
   const big = oversized(out), roots = rootPathProblems(out), left = rep.left.filter(f => !OLD_BASE_ALLOWED.includes(f));
   for (const b of big) console.error(`  over 25 MiB: ${b.file} (${b.size} bytes)`);

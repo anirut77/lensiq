@@ -37,6 +37,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { readTesterPolicy, testerVerdict, workerTesterProblems } from "./lib/tester-policy.mjs";
+import { readProdBase } from "./build-prod-site.mjs";
 import {
   BACKEND, CONFIG, D1_PLACEHOLDER, ENV, ENVS, GuardError, accountEnvRefusal, configArgs, tomlFor, assertSafeEnv, assertTarget, assertWranglerBundle, fillDatabaseId, parseDatabaseId, readTargets,
   verifyD1, workerDeployed, wrangler
@@ -69,45 +70,50 @@ export function commands(t, o = {}) {
   };
 }
 
+/** The public routes of production, exactly (runbook A.2): status, config, the quote form and the tester check. */
+export const PROD_PUBLIC_ROUTES = Object.freeze(["/health", "/health/deep", "/v1/config", "/v1/leads", "/v1/tester/check"]);
+/** An IP literal (v4 in any notation wrangler / browsers accept, v6 in brackets): never a production origin. @param {string} host */
+const isIpHost = host => /^\[/.test(host) || /^[0-9.]+$/.test(host) || /^0x[0-9a-f]+$/i.test(host) || /^(\d+\.){0,3}0x/i.test(host);
 const ORIGIN_RE = /^https:\/\/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/;
 /** Hosts that are never a production site or Turnstile hostname: the old site, Cloudflare's own preview / workers hosts,
  *  local hosts and the owner's other projects. @param {string} host */
 const notProdHost = host => /(^|\.)github\.io$|(^|\.)pages\.dev$|(^|\.)workers\.dev$|^localhost$|^127\.|^\[|(^|\.)(faksak\.com|tripsdna\.com)$|dearday|aidanex|kaguwood/.test(host);
-/** Public routes that must stay off in production (licence / AI not cleared: SELL-READY item 13, runbook A.2). */
-export const PROD_ROUTES_OFF = Object.freeze(["/v1/ai/", "/api/pc/", "/api/med/", "/api/fortune", "/v1/events", "/v1/billing", "/api/auth", "/v1/csp-report", "/v1/tryon", "/v1/org"]);
 /** The production values that must hold before `deploy --env production` (docs/PRODUCTION-MOVE-PLAN.md §2.3, runbook A.2).
  *  [] = ready. Names and reasons only; no value of a secret is ever involved (secrets are not in wrangler.toml).
  *  @param {ReturnType<typeof readTargets>} t @returns {string[]} */
-export function productionProblems(t) {
+export function productionProblems(t, o = {}) {
   const v = t.vars || {}, out = [];
   if (t.workersDev) out.push("workers_dev must be false in [env.production] (the API is served only on the approved custom domain)");
   if (t.previewUrls) out.push("preview_urls must be false in [env.production]");
   const origins = String(v.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
-  if (origins.length !== 1 || !ORIGIN_RE.test(origins[0]) || notProdHost(origins[0].slice(8))) {
+  if (origins.length !== 1 || !ORIGIN_RE.test(origins[0]) || notProdHost(origins[0].slice(8)) || isIpHost(origins[0].slice(8))) {
     out.push('ALLOWED_ORIGINS must be exactly one https origin of the production site, e.g. "https://www.<domain>" ' +
       "(empty until the owner decides the domain; never github.io, pages.dev, workers.dev or localhost)");
   }
-  const site = origins.length === 1 && ORIGIN_RE.test(origins[0]) ? origins[0] : null;
+  const site = origins.length === 1 && ORIGIN_RE.test(origins[0]) && !isIpHost(origins[0].slice(8)) ? origins[0] : null;
   const hosts = String(v.TURNSTILE_HOSTNAMES || "").split(",").map(s => s.trim()).filter(Boolean);
-  if (!hosts.length || hosts.some(h => notProdHost(h) || !ORIGIN_RE.test("https://" + h)) || (site && !hosts.includes(site.slice(8)))) {
-    out.push("TURNSTILE_HOSTNAMES must list the production site's hostname (www.<domain>) and nothing of the test site");
+  if (!site || hosts.length !== 1 || hosts[0] !== site.slice(8)) {
+    out.push("TURNSTILE_HOSTNAMES must be exactly the production site's hostname (www.<domain>), nothing else");
   }
   if (!site || v.SITE_URL !== site) out.push("SITE_URL must equal the one ALLOWED_ORIGINS origin (https://www.<domain>, no path, no trailing slash)");
+  if (o.base && (!site || o.base !== site + "/")) out.push(`SITE_URL / ALLOWED_ORIGINS must be the configured production base of deploy/site-url.prod.json (${String(o.base).slice(0, 80)})`);
   if (v.LINE_LOGIN_REDIRECT_URI && (!site || v.LINE_LOGIN_REDIRECT_URI !== site + "/account.html")) {
     out.push("LINE_LOGIN_REDIRECT_URI must be empty or <SITE_URL>/account.html");
   }
   const routes = String(v.PUBLIC_ROUTES || "").split(",").map(s => s.trim()).filter(Boolean);
-  if (!routes.length) out.push("PUBLIC_ROUTES must be set in production (unset = every public route is open)");
-  const open = routes.filter(r => PROD_ROUTES_OFF.some(off => r.startsWith(off) || off.startsWith(r.replace(/\*$/, "")) && r.endsWith("*")));
-  if (open.length) out.push(`PUBLIC_ROUTES must not open ${open.join(", ")} in production (AI, lookups, medicine, analytics, billing, sign-in stay off)`);
-  const want = { PC_BUILD: "customer", PC_THFDA_MODE: "link", FREE_MODE: "true", BILLING_ENABLED: "false", ALLOW_GUEST_CHECKOUT: "false", OPN_ALLOW_LIVE: "false",
+  const want = new Set(PROD_PUBLIC_ROUTES);
+  if (routes.length !== want.size || new Set(routes).size !== routes.length || routes.some(r => !want.has(r))) {
+    out.push(`PUBLIC_ROUTES must be exactly ${PROD_PUBLIC_ROUTES.join(",")} in production (AI, lookups, medicine, analytics, billing, sign-in stay off)`);
+  }
+  const fixed = { PC_BUILD: "customer", PC_THFDA_MODE: "link", FREE_MODE: "true", BILLING_ENABLED: "false", ALLOW_GUEST_CHECKOUT: "false", OPN_ALLOW_LIVE: "false",
     GO_LIVE_GATE: "enforce", TESTER_GATE: "required", AI_ROUTE_PIN: "required", REQUIRE_OWNER_TOTP: "true", ADMIN_ORIGINS: "" };
-  for (const [k, w] of Object.entries(want)) if (String(v[k] ?? "") !== w) out.push(`${k} must be ${JSON.stringify(w)} in production`);
+  for (const [k, w] of Object.entries(fixed)) if (String(v[k] ?? "") !== w) out.push(`${k} must be ${JSON.stringify(w)} in production`);
   return out;
 }
 
 /** The environment named by --env (default test) or an error text. @param {string[]} argv */
 export function envOf(argv) {
+  if (argv.filter(a => a === "--env" || a.startsWith("--env=")).length > 1) return { error: "--env given more than once" };
   const i = argv.findIndex(a => a === "--env" || a.startsWith("--env="));
   if (i < 0) return { env: ENV, skip: -1 };
   const val = argv[i] === "--env" ? argv[i + 1] : argv[i].slice(6);
@@ -146,7 +152,7 @@ export function main(argv, io = {}) {
       return 3;
     }
     if (prod && (action === "plan" || action === "deploy")) {
-      const probs = productionProblems(t);
+      const probs = productionProblems(t, { base: io.base ?? readProdBase() });
       for (const p of probs) print(`${action === "deploy" ? "REFUSED" : "NOT READY"}: ${p}`);
       if (action === "deploy" && probs.length) { print("Nothing was sent to Cloudflare."); return 3; }
     }

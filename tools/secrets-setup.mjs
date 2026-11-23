@@ -217,11 +217,18 @@ export async function main(argv, io = {}) {
     return 2;
   }
   if (env.CI || env.GITHUB_ACTIONS) { say("REFUSED: secrets:setup never runs in CI."); return 2; }
+  const envFlags = argv.filter(a => a === "--env" || a.startsWith("--env="));
+  if (envFlags.length > 1) { say("REFUSED: --env given more than once. Nothing was sent."); return 2; }
   const ei = argv.findIndex(a => a === "--env" || a.startsWith("--env="));
   const envName = ei < 0 ? ENV : argv[ei] === "--env" ? argv[ei + 1] : argv[ei].slice(6);
   if (typeof envName !== "string" || !Object.hasOwn(ENVS, envName)) {
     say(`unknown environment ${JSON.stringify(String(envName ?? "")).slice(0, 40)}: use --env test (default) or --env production`);
     return 2;
+  }
+  // production: the owner's explicit go before anything reaches the account (also the read-only listing); a dry run sends nothing
+  if (envName === "production" && !argv.includes("--dry-run") && !argv.includes("--confirm-production")) {
+    say('REFUSED: secrets for the PRODUCTION Worker "lensiq-prod-api": repeat with --confirm-production once the owner has given the go (owner item 231). Nothing was sent.');
+    return 3;
   }
   const only = argv.includes("--only") ? argv[argv.indexOf("--only") + 1] : null;
   if (only && !SECRETS.some(s => s.name === only)) { say(`unknown secret "${String(only).slice(0, 40)}". Names: ${SECRETS.map(s => s.name).join(", ")}`); return 2; }

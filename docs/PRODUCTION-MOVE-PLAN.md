@@ -10,8 +10,8 @@ No `wrangler` command reached the account (only `deploy --dry-run`, which needs 
 record, secret or GitHub setting exists or was changed. Tests: `tests/unit/prod-tooling.test.js` (T1-T10) and
 `tests/integration/prod-wrangler-config.test.mjs`, locked in `evals-locks/prod-tooling.sha256` before the code.
 Two changes against the plan below, forced by existing locked tests (they were not changed): production lives in its own
-file `backend/wrangler.production.toml` (so `backend/wrangler.toml` stays byte-identical), and the Pages upload runs from
-the owner's machine, not from GitHub Actions (no Cloudflare credential in any workflow).
+file `backend/wrangler.production.toml` (so `backend/wrangler.toml` stays byte-identical), and the
+Pages upload runs from the owner's machine, not from GitHub Actions (no Cloudflare credential in any workflow).
 
 | Step | In the repo now | Still needs |
 |---|---|---|
@@ -142,7 +142,7 @@ expects it and its limits are documented above; switching later is a deploy-tool
 | API hostname | `api.<domain>` | Worker Custom Domain (Cloudflare creates the record and certificate) |
 | Admin | `https://api.<domain>/admin` | same-origin as today; option later `admin.<domain>` |
 | Zone | `<domain>` | new zone holding only LENSIQ records |
-| GitHub secret | `CLOUDFLARE_PAGES_TOKEN` (name only) | Cloudflare API token scoped to *Account → Cloudflare Pages → Edit* on this account only; the owner creates it and enters it in GitHub. Plus `CLOUDFLARE_ACCOUNT_ID` (not secret) |
+| GitHub secret | ~~`CLOUDFLARE_PAGES_TOKEN`~~ **superseded 2026-11-23: no Pages token in GitHub; the upload runs from the owner's machine (`npm run site:deploy:prod`, `wrangler login`)** | Cloudflare API token scoped to *Account → Cloudflare Pages → Edit* on this account only; the owner creates it and enters it in GitHub. Plus `CLOUDFLARE_ACCOUNT_ID` (not secret) |
 
 `tools/backend-deploy.mjs` today accepts only `--env test`. Step A2 adds `--env production` with the same guard
 (prints target, refuses any name not starting `lensiq-prod-` for that env, never `--name` with secret commands).
@@ -296,7 +296,7 @@ Both are owner decisions (money).
    CI deploys), add custom domains `www.<domain>` and `<domain>`.
 4. Cloudflare dashboard: Turnstile widget `lensiq-prod` (Managed) with both hostnames; send the agent the site key.
 5. Cloudflare dashboard: API token (Pages Edit, this account only) → enter it in GitHub as secret
-   `CLOUDFLARE_PAGES_TOKEN` (the agent does not change repo settings and never sees the value).
+   `CLOUDFLARE_PAGES_TOKEN` (the agent does not change repo settings and never sees the value). **(Superseded 2026-11-23: no Pages token, no GitHub secret; the upload runs locally with `npm run site:deploy:prod` after `npx wrangler login`.)**
 6. Own terminal: `npm run secrets:setup -- --env production` (section 2.4).
 7. Cloudflare dashboard: Worker `lensiq-prod-api` → Custom domain `api.<domain>`.
 8. LINE Developers console: callback URL; optionally a production channel access token.
@@ -332,7 +332,7 @@ Times are working time, not waiting time.
 | A1 | A | Branch `prod-env`: `[env.production]` in `wrangler.toml` (all vars, `lensiq-prod-api`, D1 placeholder), unit test that every var exists and names start `lensiq-prod-` | 2 h |
 | A2 | A | `tools/backend-deploy.mjs` and `secrets-setup` accept `--env production` with the name guard; `deploy/created.prod.json`; `deploy/public-site.prod.json`; tests | 3 h |
 | A3 | A | Build: root-path build of `_site/` (today CI checks every page under `/lensiq/`; add the same crawl at `/`), file-size check < 25 MiB, `_headers` (same CSP as today's meta tags, plus `frame-ancestors` as header), canonical tags | 3 h |
-| A4 | A | Workflow `deploy-prod.yml`: after CI green on main, `wrangler pages deploy _site --project-name lensiq-prod-site --branch main` with the token secret; refuses any project name not `lensiq-prod-*`. Off until the secret exists | 2 h |
+| A4 | A | **Superseded 2026-11-23** (see the update at the top: build + verify workflow, local upload). Was: workflow `deploy-prod.yml`: after CI green on main, `wrangler pages deploy _site --project-name lensiq-prod-site --branch main` with the token secret; refuses any project name not `lensiq-prod-*`. Off until the secret exists | 2 h |
 | A5 | A | `tools/build-redirect-site.mjs` + self-unregistering `sw.js` + optional `export.html` (D-4) + tests; **not** wired into `pages-lfs.yml` yet | 3 h |
 | A6 | A | Full gate on the branch in GitHub Actions; independent reviewer (CLAUDE.md); merge by coordinator | CI time |
 | O2 | O | Steps 2–5 of §3.1 (zone, Pages project + domains, Turnstile, API token into GitHub) | 45 min |
