@@ -218,8 +218,9 @@ export default async function ({ base, launch, check, fakeCams }) {
       await click("#hrKiosk");
       const k = await page.evaluate(() => ({ kiosk: document.body.classList.contains("att-kiosk"), nav: getComputedStyle(document.querySelector("#siteNav")).display, admin: getComputedStyle(document.querySelector("#hrAdmin")).display,
         pin: getComputedStyle(document.querySelector("#pane-pin")).display, scan: getComputedStyle(document.querySelector("#pane-checkin")).display, face: ready }));
-      // SELL-READY decision 3 ก (D1): the kiosk is PIN / QR; the face scan pane joins it only when face was already chosen (models loaded)
-      assert(k.kiosk && k.nav === "none" && k.admin === "none" && k.pin !== "none" && (k.scan !== "none") === k.face, "kiosk layout: " + JSON.stringify(k));
+      // SELL-READY decision 3 ก (D1): the reloads above reopen the page in employee mode (?mode=employee), so face was never chosen
+      // there and the kiosk is PIN / QR only: no face scan pane (the face kiosk is pinned by attendance-pin-default.e2e.mjs K5)
+      assert(k.kiosk && k.nav === "none" && k.admin === "none" && k.pin !== "none" && !k.face && k.scan === "none", "kiosk layout: " + JSON.stringify(k));
       await click("#hrKiosk");
       await fill("#hrKioskPin", "0000"); await page.evaluate(() => document.querySelector("#hrKioskExit").requestSubmit());
       assert(await page.evaluate(() => document.body.classList.contains("att-kiosk")), "wrong PIN keeps kiosk");

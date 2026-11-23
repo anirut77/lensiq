@@ -175,7 +175,7 @@ body.att-kiosk .hr-notice,body.att-kiosk .hr-admin,body.att-kiosk .tabs,body.att
 body.att-kiosk #pane-check,body.att-kiosk .tune,body.att-kiosk .hr-bar > label,body.att-kiosk footer{display:none !important}
 body.att-kiosk #pane-pin[hidden],body.att-kiosk.att-kface #pane-checkin[hidden]{display:block}
 body.att-kiosk #pane-pin{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
-body.att-kiosk .hr-kiosk-note{display:block}
+body.att-kiosk.att-kface .hr-kiosk-note{display:block} /* the face note only when the kiosk uses face (D1) */
 body.att-kiosk .hr-clock span{font-size:clamp(2.4rem,7vw,4rem)}
 body.att-kiosk .att{padding-top:16px}
 /* badge printing: only the badge */
