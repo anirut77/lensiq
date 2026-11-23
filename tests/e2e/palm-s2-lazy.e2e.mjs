@@ -16,6 +16,11 @@
 //       plain load message of the page language (#plEngine, class "err": TH "โหลดข้อมูลคำอ่านไม่สำเร็จ…", EN "The reading data
 //       did not load…", ZH "解读资料未能加载…"), with no file name, no reading, nothing aria-busy 3 s later, and the shutter
 //       button enabled again.
+//       RE-LOCK 1 (2026-11-23, before any counted run of this file; the first lock stays in the ledger): fortune-ai.js now fails
+//       on EVERY request for the whole page life (retries included), and the checks wait until the photo has been handled
+//       (shutter enabled, S.busy false) — the first version failed only the requests paused so far and stopped at the first
+//       error class it saw, which could be an earlier message, and then left a retry paused forever. Stricter: a page that
+//       retries must still end in the load message; nothing else changed.
 //   E4  TH, real hand model (no ?fakedet): on a cold load with no action, no face-api.js and no model file is requested
 //       (2 s after the load event); choosing a drawn photo then requests face-api.js exactly once and ends, within 90 s, in
 //       the line editor or the tap-the-points bar (a drawing may hold no hand), never in the load message; no uncaught exception.
@@ -50,11 +55,19 @@ const lang = (t, l) => {
 };
 
 /** open palm.html without waiting for the load event; the two reading files are paused until release() / fail() */
-async function open(browser, base, l, { fakedet = true, hold = true, fakeCams } = {}) {
+async function open(browser, base, l, { fakedet = true, hold = true, fakeCams, alwaysFail = null } = {}) {
   const page = await browser.newPage(null, { initScripts: [langInit(l), DCL, ...(fakedet ? [fakeCams, detScript] : [])] });
   const held = [];
   page.off = browser.on(m => {
     if (m.sessionId !== page.sessionId || m.method !== "Fetch.requestPaused") return;
+    // relock1: alwaysFail = a file that never loads in this page (every request for it, retries included, fails at once;
+    // every other paused request goes on at once)
+    if (alwaysFail) {
+      const id = m.params.requestId;
+      if (alwaysFail.test(m.params.request.url)) page.send("Fetch.failRequest", { requestId: id, errorReason: "Failed" }).catch(() => {});
+      else page.send("Fetch.continueRequest", { requestId: id }).catch(() => {});
+      return;
+    }
     held.push(m.params.requestId);
   });
   page.held = held;
@@ -142,26 +155,18 @@ export default async function ({ base, launch, check, fakeCams }) {
 
     for (const l of LANGS) {
       await check(`palm S2 E3 (${l}): fortune-ai.js fails to load: a plain message in the page language, no reading, nothing busy`, async () => {
-        const page = await open(browser, base, l, { fakeCams });
+        const page = await open(browser, base, l, { fakeCams, alwaysFail: /fortune-ai\.js/ });
         try {
           await page.waitFor(CONTROL, 30000);
           await page.waitFor(`document.documentElement.lang === ${JSON.stringify(HTML_LANG[l])}`, 8000);
-          await page.settle(/fortune-ai\.js/);
           await page.evaluate(() => document.getElementById("plStartCam").click());
           await page.waitFor(`!!document.querySelector("#plCam.live") && !document.getElementById("plSnap").hidden`, 10000);
           await page.evaluate(d => { window.__dets = d; }, [HAND]);
           await sleep(800);
-          await page.settle(/fortune-ai\.js/);
           await page.evaluate(() => document.getElementById("plSnap").click());
-          // a retry asks for fortune-ai.js again: every new request for it fails too, until the message shows (30 s)
-          const end = Date.now() + 30000;
-          for (;;) {
-            await page.settle(/fortune-ai\.js/);
-            const shown = await page.evaluate(`document.getElementById("plEngine").classList.contains("err") && document.getElementById("plEngine").textContent.trim().length > 0`);
-            if (shown) break;
-            assert(Date.now() < end, `${l}: no error message within 30 s`);
-            await sleep(300);
-          }
+          // relock1: the photo has been handled (shutter enabled again, nothing busy in the page state), whatever came before
+          await sleep(300);
+          await page.waitFor(`!window.__palm.S.busy && !document.getElementById("plSnap").disabled && document.getElementById("plEngine").classList.contains("err")`, 30000);
           await sleep(3000);
           const f = await page.evaluate(() => ({ msg: document.getElementById("plEngine").textContent.trim(), result: !document.getElementById("plResult").hidden,
             secs: document.querySelectorAll("#plNarr .fa-section").length, busy: [...document.querySelectorAll('[aria-busy="true"]')].map(e => e.id || e.className),

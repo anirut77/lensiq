@@ -5,3 +5,7 @@ dd3d3e33acc53fa32de4d50c1d14b5e0bab20f2268f1d26b62071dfb4a8ecbed  tests/palm-s2-
 dd3d3e33acc53fa32de4d50c1d14b5e0bab20f2268f1d26b62071dfb4a8ecbed  tests/unit/palm-s2-load.test.js  # repo file (same commit as lock 2026-11-23T12:02:20Z; field: ~/LENSIQ-field/evals/palm-90/tests/palm-s2-load.test.js)
 8ba0ba11ff05a797ee0a5aa3e200a6012a8ee6bd843919f7e8150135806cb2f9  tests/e2e/palm-s2-lazy.e2e.mjs  # repo file (same commit as lock 2026-11-23T12:02:20Z; field: ~/LENSIQ-field/evals/palm-90/tests/palm-s2-lazy.e2e.mjs)
 # field only PLAN.txt (lock 2026-11-23T12:02:20Z: no repo file uses it)
+# RE-LOCK 1 2026-11-23 (tests/e2e/palm-s2-lazy.e2e.mjs E3, stricter, before any counted run): fortune-ai.js fails on every request for the whole page life (retries included) and the checks wait until the photo has been handled; the first version stopped at the first error class it saw and left a retry paused. Nothing else changed; the first lock stays.
+# locked 2026-11-23T12:07:34Z (tools/eval-guard.mjs lock, 1 file)
+a7f7175377407124cc407b78a12bdb79974601d872020fd454ea93b4712fd82e  relock1/palm-s2-lazy.e2e.mjs
+a7f7175377407124cc407b78a12bdb79974601d872020fd454ea93b4712fd82e  tests/e2e/palm-s2-lazy.e2e.mjs  # repo file (same commit as lock 2026-11-23T12:07:34Z; field: ~/LENSIQ-field/evals/palm-90/relock1/palm-s2-lazy.e2e.mjs)
