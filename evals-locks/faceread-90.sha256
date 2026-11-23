@@ -40,3 +40,6 @@ f84be47363fa31d447b6e691966a2f030a14f2f1644dc23ebe48fbfeaed716a6  tests/e2e/repo
 # locked 2026-11-23T21:38:40Z (tools/eval-guard.mjs lock, 1 file)
 ea1268b5cd805db94a4bd806b16d5e88ff6bc45b93722c823f7e35a4f0f2d679  faceread-calibrate-mp.mjs
 ea1268b5cd805db94a4bd806b16d5e88ff6bc45b93722c823f7e35a4f0f2d679  tools/faceread-calibrate-mp.mjs  # repo file (same commit as lock 2026-11-23T21:38:40Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-calibrate-mp.mjs)
+# locked 2026-11-23T21:40:49Z (tools/eval-guard.mjs lock, 1 file)
+f9fa08dbe2439b59dbfd43db6bfac96e23d804e1a576c94773db915219e78c9c  calibration-mp-v2.json
+# field only calibration-mp-v2.json (lock 2026-11-23T21:40:49Z: no repo file uses it)
