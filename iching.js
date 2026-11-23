@@ -69,7 +69,7 @@
   var fillK = function (t, v) { return t.replace(/\{(\w+)\}/g, function (_, k) { return v[k] != null ? v[k] : ""; }); };
   function buildFacts(c, topic, opts) {
     opts = opts || {};
-    var r = opts.rng || Math.random, pk = FK.pickR, P = KB.HEX[c.primary], F = KB.FRAMES, fo = focus(c), items = [];
+    var r = opts.rng || FK.rngFor(["iching", c, topic]), pk = FK.pickR, P = KB.HEX[c.primary], F = KB.FRAMES, fo = focus(c), items = [];
     var kw = function (h) { return pk(r, h.kw); };
     var hexM = function (h) {
       return {
@@ -328,7 +328,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#icDaily").innerHTML = '<p class="fk-small">' + esc(date) + "</p>" + hexCard(P, c.bits, c.changing, T("iching.roleDaily", "กว้าประจำวันนี้")) +
       '<p class="ic-gist">' + esc(hx(P, "gist")) + '</p><p class="fk-small">' + esc(T("iching.dailyNote", KB.DAILY_NOTE)) + "</p>" + FK.readingBlock("icDayRd", T("iching.dayRdTitle", "คำทำนายประจำวัน"), true) +
       '<div class="fk-res-actions"><button class="btn primary big" id="icDayShare" type="button">' + esc(T("iching.dayShare", "แชร์การ์ดประจำวัน")) + '</button></div><img class="fk-cardimg" id="icDayImg" alt="' + esc(T("iching.dayImgAlt", "การ์ดกว้าประจำวันสำหรับแชร์")) + '" hidden>';
-    FK.bindReading("icDayRd", "iching", function (topic, r) { return IC.buildFacts(c, topic, { rng: r }); }, { withTopics: true });
+    FK.bindReading("icDayRd", "iching", function (topic, r) { return IC.buildFacts(c, topic, { rng: r }); }, { withTopics: true, period: "d" });
     $("#icDayShare").addEventListener("click", function () { FK.share(this, card(c, (FK.readings.icDayRd || {}).lines, T("iching.dayKind", "กว้าประจำวัน")), "lensiq-iching-daily.jpg", $("#icDayImg"), T("iching.dayShareTitle", "กว้าประจำวัน — LENSIQ")); });
   }
 

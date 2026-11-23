@@ -61,7 +61,7 @@
   function themeLine(T, t) { return "ภาพฝันในธีม" + T.th + " มักอ่านว่า" + String(t).replace(/^ตามความเชื่อ\s*/, ""); }
   function buildFacts(ids, mood, time, topic, opts) {
     opts = opts || {};
-    var r = opts.rng || Math.random, pk = FK.pickR, items = [], M = KB.MOODS[mood], boost = M ? M.w : 0;
+    var r = opts.rng || FK.rngFor(["dream", ids, mood, time, topic]), pk = FK.pickR, items = [], M = KB.MOODS[mood], boost = M ? M.w : 0;
     var valid = ids.filter(function (id) { return BY[id]; }).slice(0, 8);
     var tyKey = dreamType(valid, mood, time), ty = KB.TYPES[tyKey], TI = KB.TIMES[time], omen = ty.omen !== false;
     var clean = function (arr) { return arr.filter(function (t) { return t && (omen || !OMEN_WORDS.test(t)); }); };

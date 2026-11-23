@@ -766,7 +766,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     out.setAttribute("aria-busy", "true");
     var consent = $("#fsConsent").checked, res;
     try {
-      if (AI && typeof AI.interpret === "function") res = await AI.interpret(facts, { useAI: consent, seed: again ? undefined : undefined });
+      if (AI && typeof AI.interpret === "function") {
+        // owner inbox 19: same home + same Thai-date month = same text (seed from the facts; nothing stored or sent)
+        var seed = typeof AI.seedFor === "function" ? AI.seedFor(["fengshui", facts], "m") : undefined, press = state.press || 0;
+        if (press && seed != null) seed = AI.seedFor([seed, press], "m"); // owner entry 20: the n-th press = the n-th wording
+        res = await AI.interpret(facts, { useAI: consent, seed: seed });
+      }
       else res = { source: "local", sections: [{ id: "overview", title: T("fengshui.overview", "ภาพรวม"), paragraphs: facts.items.map(function (it) { var m = it.meanings, k0 = Object.keys(m)[0]; return m[k0][0]; }) }] };
     } catch (e) { console.error(e); res = { source: "local", sections: [], note: T("fengshui.readFail", "เรียบเรียงไม่สำเร็จ") }; }
     renderReading(res, facts);
@@ -808,8 +813,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     out.tips = out.tips.concat(KB.tips.general.slice(0, 2).map(function (t, i) { return T("fengshui.tips.general." + i, t); }));
     return out;
   }
-  $("#fsReadBtn").addEventListener("click", function () { readFortune(false); });
-  $("#fsAgain").addEventListener("click", function () { readFortune(true); });
+  $("#fsReadBtn").addEventListener("click", function () { state.press = 0; readFortune(false); });
+  $("#fsAgain").addEventListener("click", function () { state.press = state.press || 0; state.press += 1; readFortune(true); });
   (function aiStatus() {
     var lab = $("#fsConsentWrap");
     if (!AI || typeof AI.status !== "function") { lab.hidden = true; return; }

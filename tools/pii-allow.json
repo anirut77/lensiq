@@ -729,6 +729,14 @@
    "reason": "test fixture: made-up placeholder values (sequential or repeated digits, Test / Placeholder / ทดสอบ addresses) and / or the public help line"
   },
   {
+   "path": "tests/unit/fortune-seed-determinism.test.js",
+   "types": {
+    "phone": 2
+   },
+   "kind": "synthetic",
+   "reason": "two made-up Thai mobile-shaped numbers (numbers page input) for the locked same-input-same-text seed test; no real number"
+  },
+  {
    "path": "tests/unit/fortune-en.test.js",
    "types": {
     "phone": 1

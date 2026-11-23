@@ -27,6 +27,11 @@
   function hashStr(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   var pickR = function (r, a) { return a[Math.floor(r() * a.length)]; };
+  /** facts builders called without opts.rng: a generator from the input + the Thai-date month (owner inbox 19), no random source */
+  function rngFor(key) {
+    var FA = root.FortuneAI || (typeof require === "function" ? require("./fortune-ai.js") : null);
+    return FA ? FA.rng(FA.seedFor(key, "m")) : mulberry32(hashStr(JSON.stringify(key)));
+  }
 
   /* ---------- สถิติ (ไม่ระบุตัวตน) ----------
      รูปแบบเดียวกับ tarot-stats / hs-stats: { v:1, total, days:{YYYY-MM-DD:n}, <มิติ>:{ค่า:n} }
@@ -107,7 +112,7 @@
   }
 
   var K = {
-    cryptoU32: cryptoU32, randInt: randInt, dayKey: dayKey, hashStr: hashStr, mulberry32: mulberry32, pickR: pickR, pad2: pad2,
+    cryptoU32: cryptoU32, randInt: randInt, dayKey: dayKey, hashStr: hashStr, mulberry32: mulberry32, pickR: pickR, rngFor: rngFor, pad2: pad2,
     addStat: addStat, topOf: topOf, factsDomain: factsDomain, relabel: relabel, keyLines: keyLines, DOMAINS: DOMAINS, BASE_NAMES: BASE_NAMES
   };
   if (typeof module !== "undefined" && module.exports) module.exports = K;
@@ -156,11 +161,14 @@
   K.bindReading = function (id, domain, factsFn, opts) {
     opts = opts || {};
     var box = document.getElementById(id); if (!box) return Promise.resolve();
-    var FA = root.FortuneAI || null, st = K.readings[id] = { topic: opts.topic || "overall" };
+    var FA = root.FortuneAI || null, st = K.readings[id] = { topic: opts.topic || "overall", press: 0 };
     var body = document.getElementById(id + "-body"), src = document.getElementById(id + "-src");
     function run() {
-      var seed = (Math.random() * 4294967296) >>> 0, r = FA && FA.rng ? FA.rng(seed) : Math.random;
-      var facts = factsFn(st.topic, r), sent = factsDomain(domain, FA);
+      // owner inbox 19: same input + same period = same text; the seed comes from the input facts + the Thai-date period (opts.period "m" | "d")
+      var f0 = factsFn(st.topic, FA && FA.rng ? FA.rng(0) : mulberry32(0)), seed = FA && FA.seedFor ? FA.seedFor([domain, st.topic, f0], opts.period || "m") : 0;
+      var r = FA && FA.rng ? FA.rng(seed) : mulberry32(seed);
+      var facts = factsFn(st.topic, r), sent = factsDomain(domain, FA), press = st.press || 0; // owner entry 20: the n-th press = the n-th wording
+      if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], opts.period || "m");
       facts = Object.assign({}, facts, { domain: sent, topic: st.topic });
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       // รอบ 12: ข้อความที่ผู้ใช้พิมพ์เอง (คำถาม/ความฝัน) ส่งเป็น userText ให้ตัวตรวจวิกฤตใน FortuneAI.interpret อีกชั้น
@@ -181,10 +189,10 @@
         if (opts.onDone) opts.onDone(st);
       });
     }
-    document.getElementById(id + "-again").addEventListener("click", function () { run(); });
+    document.getElementById(id + "-again").addEventListener("click", function () { st.press++; run(); });
     if (opts.withTopics) box.querySelectorAll(".rd-topics button").forEach(function (b) {
       b.addEventListener("click", function () {
-        st.topic = b.dataset.topic;
+        st.topic = b.dataset.topic; st.press = 0;
         box.querySelectorAll(".rd-topics button").forEach(function (x) { x.setAttribute("aria-checked", String(x === b)); });
         if (opts.onTopic) opts.onTopic(st.topic);
         run();
