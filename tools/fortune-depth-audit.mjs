@@ -28,6 +28,7 @@
 //   node tools/fortune-depth-audit.mjs gen           write profiles.json (refuses to overwrite)
 //   node tools/fortune-depth-audit.mjs [--json out]  measure (refuses unless the set AND ceilings-v1.json are locked and committed),
 //                                                    then print pass / fail per ceiling C1-C7
+//   ... --depth [--strict]                          also the C5–C7 per-page table (exit 1 on a C5–C7 miss with --strict)
 import { createRequire } from "node:module";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -135,17 +136,18 @@ export function factsOf(p, now) {
   }
   throw new Error("unknown domain " + p.domain);
 }
-/** { summary[], plan[], sections:[{id, paragraphs, caution}], facts } in Thai, as the page composes it offline */
-export function readingOf(p, now) {
+/** { summary[], plan[], sections:[{id, paragraphs, caution}], facts } as the page composes it offline (Thai by default; the
+ *  measures above use Thai only, lang is for tests/unit/fortune-depth-warnings.test.js) */
+export function readingOf(p, now, lang = "th") {
   const { FA, RP } = load();
   if (p.domain === "report") {
-    const rep = RP.buildBasic(p.input, { lang: "th", now });
+    const rep = RP.buildBasic(p.input, { lang, now });
     const sections = rep.parts.flatMap(x => x.sections || []);
     const facts = { domain: "bazi", items: [] }; // the report page has no belief panel (nav.js meritHook page list)
     return { summary: rep.summary, plan: rep.plan, sections, facts, plan30: rep.plan30 };
   }
   const facts = factsOf(p, now);
-  const res = FA.compose(facts, { seed: p.seed, lang: "th" });
+  const res = FA.compose(facts, { seed: p.seed, lang });
   return { summary: res.summary, plan: res.plan, sections: res.sections || [], facts };
 }
 
@@ -287,6 +289,26 @@ function verdictTable(v) {
   L.push("", "Summary: " + Object.keys(by).sort().map(k => `${k} ${by[k].fail ? "FAIL" : "pass"} (${by[k].pass} pass / ${by[k].fail} fail)`).join("; "));
   return L.join("\n");
 }
+/* ---------------- C5–C7 depth ceilings (ceilings-v1.json, locked) — pass / fail per page ----------------
+   C5 expanded / visible words: median >= median_min and every reading has >= per_reading_min_words_behind_read_more words
+   behind "อ่านเพิ่มเติม"; C6 distinct points: median >= median_min, min >= per_reading_min; C7 new% behind read more:
+   median >= median_min, min >= per_reading_min. Kept apart from the C1–C4 checks (another stream owns those). */
+export function depthChecks(res, ceil) {
+  const c5 = ceil.C5_expanded_over_visible_words, c6 = ceil.C6_distinct_points, c7 = ceil.C7_new_substance_behind_read_more;
+  return res.rows.map(r => {
+    const C5 = r.ratio.median >= c5.median_min && r.expWords.min >= c5.per_reading_min_words_behind_read_more;
+    const C6 = r.points.median >= c6.median_min && r.points.min >= c6.per_reading_min;
+    const C7 = r.newPct.median != null && r.newPct.median >= c7.median_min && r.newPct.min >= c7.per_reading_min;
+    return { page: r.page, C5, C6, C7, pass: C5 && C6 && C7,
+      values: { C5: `${r.ratio.median} / ${r.expWords.min} words`, C6: `${r.points.median} / ${r.points.min}`, C7: `${r.newPct.median} / ${r.newPct.min}` } };
+  });
+}
+export function depthTable(checks) {
+  const ok = b => (b ? "pass" : "FAIL");
+  return ["| page | C5 exp/vis median / min words | C6 points median / min | C7 new% median / min |", "|---|---|---|---|"]
+    .concat(checks.map(c => `| ${c.page} | ${ok(c.C5)} ${c.values.C5} | ${ok(c.C6)} ${c.values.C6} | ${ok(c.C7)} ${c.values.C7} |`))
+    .concat(["", `C5–C7: ${checks.filter(c => c.pass).length} / ${checks.length} pages pass`]).join("\n");
+}
 
 const cmd = process.argv[2];
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -305,5 +327,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (j > 0 && process.argv[j + 1]) writeFileSync(process.argv[j + 1], JSON.stringify(res, null, 1));
     console.log(table(res));
     console.log(verdictTable(res.verdict));
+    if (process.argv.includes("--depth")) { // C5–C7 per page against the same locked ceilings (exit 1 on a miss with --strict)
+      const checks = depthChecks(res, ceil);
+      console.log("\n" + depthTable(checks));
+      if (process.argv.includes("--strict") && checks.some(c => !c.pass)) process.exitCode = 1;
+    }
   }
 }

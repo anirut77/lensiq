@@ -531,3 +531,43 @@
   root.FORTUNE_EN = root.FORTUNE_EN || {}; root.FORTUNE_EN[D.domain] = D;
   if (typeof module !== "undefined" && module.exports) module.exports = D;
 })(typeof window !== "undefined" ? window : globalThis);
+/* BEGIN depth en.iching (fortune-depth.js: material behind "อ่านเพิ่มเติม"; {t, c: true} = restraining, always shown) */
+(/** @param {any} G */ function (G) {
+  "use strict";
+  var R = G.LQ_DEPTH = G.LQ_DEPTH || { build: {}, text: { th: {}, en: {}, zh: {} } };
+  var T = {"_title":"The hexagram in more depth",
+    "fam.qian":"In the Shuo Gua, Heaven is the father of the family, pictured as a tireless horse, tied to late autumn and the north-west in the Later-Heaven arrangement. It adds the themes of leadership and giving direction.",
+    "fam.kun":"In the Shuo Gua, Earth is the mother, pictured as an ox patiently pulling its yoke, tied to late summer and the south-west in the Later-Heaven arrangement. It adds the themes of nurturing and carrying others along.",
+    "fam.zhen":"In the Shuo Gua, Thunder is the eldest son, pictured as a dragon rising from below, tied to spring and the east in the Later-Heaven arrangement. It adds the themes of fresh starts and the push to get moving.",
+    "fam.kan":"In the Shuo Gua, Water is the middle son, pictured as a pig resting in a deep place, tied to winter and the north in the Later-Heaven arrangement. It adds depth, quiet and a careful way through hard matters.",
+    "fam.gen":"In the Shuo Gua, Mountain is the youngest son, pictured as a dog guarding the gate, tied to late winter and the north-east in the Later-Heaven arrangement. It adds the themes of stopping, watching and taking a stand.",
+    "fam.xun":"In the Shuo Gua, Wind is the eldest daughter, pictured as a rooster waking early, tied to late spring and the south-east in the Later-Heaven arrangement. It adds gentle penetration and influence that builds little by little.",
+    "fam.li":"In the Shuo Gua, Fire is the middle daughter, pictured as a bright-feathered pheasant, tied to summer and the south, the direction a ruler faces in the Later-Heaven arrangement. It adds clarity, attachment and seeing clearly.",
+    "fam.dui":"In the Shuo Gua, Lake is the youngest daughter, pictured as a cheerful sheep, tied to autumn and the west in the Later-Heaven arrangement. It adds gladness, open conversation and the pleasure of sharing.",
+    "rel.same":"{L} and {U} share one element, so inner and outer support each other through the same nature. The tradition reads your intention and your situation as moving together, and a few differing views would round the picture out.",
+    "rel.lowerFeeds":"{L} produces {U} in the cycle of the elements, meaning what lies within nourishes what appears outside. The tradition reads your effort finding its way into results others can see, though it draws on your own strength.",
+    "rel.upperFeeds":"{U} produces {L} in the cycle of the elements, meaning outer circumstances are feeding what lives in your heart. The tradition reads support arriving from people and timing around you, worth accepting and repaying as you can.",
+    "rel.lowerRules":{"t":"{L} controls {U} in the cycle of the elements, meaning inner force presses on the outer situation. The tradition reads progress as possible but costly, with some risk of pushing out of step, so ease off and listen to the surroundings.",
+    "c":true},
+    "rel.upperRules":{"t":"{U} controls {L} in the cycle of the elements, meaning outer circumstances press on what lives in your heart. The tradition reads your own strength as limited for now, so pick your contests with care and bend rather than push the old way.",
+    "c":true},
+    "tname.qian":"the Heaven trigram",
+    "tname.kun":"the Earth trigram",
+    "tname.zhen":"the Thunder trigram",
+    "tname.kan":"the Water trigram",
+    "tname.gen":"the Mountain trigram",
+    "tname.xun":"the Wind trigram",
+    "tname.li":"the Fire trigram",
+    "tname.dui":"the Lake trigram",
+    "line.1":"The first line is the beginning and the foundation. The tradition reads the matter as still forming, with no need to show your hand yet, so gather strength and see the direction clearly before you step forward.",
+    "line.2":"The second line is the centre of the inner trigram. The tradition likens it to an official in the right post, using full ability in their own field and relying on someone senior to lend support.",
+    "line.3":"The third line is the threshold between the lower and upper trigrams. The tradition sees a place where you must choose to cross over or turn back, which is why calm and a look at every side serve you well.",
+    "line.4":"The fourth line is the minister standing close to the ruler. The tradition reads a post of connecting people, with nearness to authority, where tact in carrying opinions upward matters as much as the opinions themselves.",
+    "line.5":"The fifth line is the centre of the outer trigram, the seat of the ruler. The tradition treats it as the most powerful place in the figure, the role of a decider who uses influence in step with the times.",
+    "line.6":"The sixth line lies at the end, beyond the matter itself. The tradition reads a view looking back and a step outside, a time when things have reached their peak, so knowing when enough is enough prepares you for a new round.",
+    "change.none":"With no changing lines, the tradition reads the hexagram's judgement in full, as a fairly steady picture of the present situation, and there is no second hexagram to compare it with.",
+    "change.many":"With four or five changing lines, the tradition gives more weight to the relating hexagram, because the situation is moving mainly in that direction, while the first hexagram becomes the background of where you came from.",
+    "change.all":"When all six lines change, the tradition turns to the special texts of Qian or Kun if it is one of those two, and otherwise leans on the judgement of the relating hexagram, as a full reversal of the picture."};
+  R.text.en.iching = T;
+})(typeof globalThis !== "undefined" ? globalThis : this);
+/* END depth en.iching */
