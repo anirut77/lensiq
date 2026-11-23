@@ -62,8 +62,10 @@
   }
 
   const api = { KEY, create, liteIdeal, text };
-  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  // inside fortune-read.js (copied at its end) the layout's exports stay; alone, this file exports its own API
+  if (typeof module !== "undefined" && module.exports && !Object.keys(module.exports).length) module.exports = api;
   if (!root || typeof root.document === "undefined") return;
+  if (root.LQCrashGuard) return; // loaded twice (a page tag + the copy inside fortune-read.js): the first copy owns the marker
 
   let storage = null;
   try { storage = root.sessionStorage; } catch { storage = null; }
