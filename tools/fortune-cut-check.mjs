@@ -11,6 +11,10 @@
 // (report: LQReport.buildBasic in TH / EN / ZH, gentle only: the report page has no straight mode). The bullets are the "สรุปสั้น / Summary / 简要总结" lines as the pages render them
 // (fortune-read.js and report.js print l.t as is; no CSS clamps it).
 //
+// RE-LOCK v2 (2026-11-23, after the baseline, before any product fix; v1 stays in the ledger and its numbers are reported too):
+// v1 applied S2 to every bullet, so a bullet that IS its whole source sentence was "cut" when that sentence's own last word is
+// on the list (TH "เต็มที่" / "ทุกที่" end in ที่, "การให้", "ทำตาม"; EN "grow with"; ZH "最美的"): 54 of 496 baseline hits, none a
+// real cut (each true cut among them is also an S1 hit). No other rule, input or threshold changed.
 // Definition of a CUT bullet (fixed before any measurement; stricter than tests/unit/fortune-gist.test.js, which only forbids a
 // cut inside a word):
 //   S1 source end   the bullet's tail (its last 12..40 characters, trailing . 。 and spaces removed) is looked up in the
@@ -18,7 +22,8 @@
 //                   (sections, composer sentences). In the first pool where it is found, the bullet is NOT cut when at least
 //                   one occurrence is followed by nothing, or by a sentence end (. ! ? 。 ！ ？ ; ；) — i.e. the bullet ends where
 //                   its source sentence ends. Otherwise (every occurrence continues the same sentence) it is CUT.
-//   S2 dangling     the bullet ends on a connector that needs more words after it (TH และ หรือ แต่ ซึ่ง ที่ เพราะ คือ ว่า เช่น
+//   S2 dangling     (v2: only when S1 did not find that the bullet ends at its source's sentence end) the bullet ends on a
+//                   connector that needs more words after it (TH และ หรือ แต่ ซึ่ง ที่ เพราะ คือ ว่า เช่น
 //                   โดย จึง ให้ ของ กับ ใน ตาม จาก เพื่อ ถ้า หาก; EN and or but with of to the a an such as e.g. like for;
 //                   ZH 和 或 但 的 比如 例如 以及 并且 而 、 ， ：) — CUT.
 //   S3 marks        the bullet ends on "…" / "..." or has an unclosed bracket or quote — CUT.
@@ -68,8 +73,7 @@ export function classify(t, lang, pools) {
   const body = String(t || "").replace(/[.。\s]+$/u, "");
   if (/(?:…|\.\.\.)$/u.test(String(t || "").trim())) rules.push("S3");
   if (!balanced(body)) rules.push("S3");
-  if (DANGLE[lang].test(body)) rules.push("S2");
-  let matched = false;
+  let matched = false, sourceEnd = false;
   for (const pool of pools) {
     let found = false, ends = false;
     for (let L = Math.min(body.length, 40); L >= 12 && !found; L--) {
@@ -80,8 +84,11 @@ export function classify(t, lang, pools) {
         if (!rest.trim() || TERM.test(rest)) ends = true;
       }
     }
-    if (found) { matched = true; if (!ends) rules.push("S1"); break; }
+    if (found) { matched = true; sourceEnd = ends; if (!ends) rules.push("S1"); break; }
   }
+  // v2: a bullet that ends exactly where its source sentence ends has lost nothing, so its last word is the source's own
+  // ("พักผ่อนเต็มที่", "a partner you can grow with", "最美的"); S2 judges only the other bullets
+  if (!sourceEnd && DANGLE[lang].test(body)) rules.push("S2");
   return { cut: rules.length > 0, rules: Array.from(new Set(rules)), matched };
 }
 
@@ -139,7 +146,7 @@ function main() {
     console.log("wrote " + out + " (" + s.profiles.length + " profiles)");
     return;
   }
-  assertLocked(PHASE, [SET, "fortune-cut-check.mjs"]);
+  assertLocked(PHASE, [SET, "v2/fortune-cut-check.mjs"]);
   const set = JSON.parse(readFileSync(join(dir, SET), "utf8"));
   const R = measure(set);
   const ji = argv.indexOf("--json"), si = argv.indexOf("--show");
