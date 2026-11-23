@@ -11,6 +11,15 @@
 //       stays unset)
 //   C4  TH: after tracing, "read" gives a reading (>= 3 sections) and the traced line is read (PalmCore.lineRead); no request
 //       that carries data (no POST, no body) while editing or reading (the stroke never leaves the device)
+//   RE-LOCK c3 (2026-11-24, independent review of palm-24c, findings 4 and 5; locked before the fix; c1 / c2 stay in the ledger),
+//   all stricter:
+//   C2  now in TH / EN / ZH, and a traced line is VISIBLY user-added: its chip carries the mark ADDED (TH "เพิ่มเอง" / EN
+//       "Added by you" / ZH "自行添加"), the editor draws it in its own style (a solid white #ffffff halo stroke under the line
+//       colour; no such stroke before tracing), and its result card (#plLines [data-line]) carries the same mark; every traced
+//       control point stays inside the editor frame like a dragged one (u in [-0.42, 1.32], v in [-0.4, 1.12])
+//   C4  also fails on any request whose URL has a query string other than a bare static version (?v=<digits>), so no user
+//       data can leave in a GET either
+//   C5  TH: a stroke ended by pointercancel (not pointerup) places nothing: the line stays as it was and is not traced
 //   RE-LOCK c2 (2026-11-23, after the first run, before any product commit; the first lock stays in the ledger): the page
 //   scrolls smoothly, so the stroke landed beside the canvas and C3 passed without testing anything. Now the canvas is
 //   scrolled into view instantly and every stroke point must hit the canvas. Stricter; nothing else changed.
@@ -19,12 +28,17 @@ import { assert } from "./cdp.mjs";
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const HTML_LANG = { th: "th", en: "en", zh: "zh-Hans" };
 const LABEL = { th: "ลากตามเส้นนี้", en: "Trace this line", zh: "沿这条线描" };
+const ADDED = { th: "เพิ่มเอง", en: "Added by you", zh: "自行添加" };
+// relock c3: records the strokes drawn on the editor canvas (style, dash) to see the user-added style
+const STROKES = `(() => { const P = CanvasRenderingContext2D.prototype, st = P.stroke; window.__edStrokes = [];
+  P.stroke = function () { if (this.canvas && this.canvas.id === "plEditCanvas") window.__edStrokes.push({ s: String(this.strokeStyle), d: this.getLineDash().length }); return st.apply(this, arguments); }; })();`;
+const halo = page => page.evaluate(() => (window.__edStrokes || []).filter(x => /^#ffffff$/i.test(x.s) && !x.d).length);
 const MAIN = ["life", "head", "heart"];
 const HAND = { x: 0.35, y: 0.18, w: 0.3, h: 0.6, score: 0.95, side: "right" };
 const detScript = `(() => { window.__LQ_FAKE_CAMS = { n: 1, mode: "ok" }; window.__dets = []; window.__LQ_FAKE_DET = () => window.__dets.map(d => Object.assign({}, d)); })();`;
 
 async function toEditor(browser, base, fakeCams, l) {
-  const page = await browser.newPage(null, { initScripts: [`try { localStorage.setItem("lq-lang", ${JSON.stringify(l)}); } catch (e) {}`, fakeCams, detScript] });
+  const page = await browser.newPage(null, { initScripts: [`try { localStorage.setItem("lq-lang", ${JSON.stringify(l)}); } catch (e) {}`, fakeCams, detScript, STROKES] });
   await page.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await page.goto(`${base}/palm.html?cpu&fakedet`);
   await page.waitFor(`document.documentElement.lang === ${JSON.stringify(HTML_LANG[l])}`, 8000);
@@ -84,12 +98,14 @@ export default async function ({ base, launch, check, fakeCams }) {
       });
     }
 
-    await check("palm 24-C2/C4 (th): one stroke places the low-confidence line, it is read, nothing is sent", async () => {
-      const page = await toEditor(browser, base, fakeCams, "th");
+    for (const l of ["th", "en", "zh"]) await check(`palm 24-C2/C4 (${l}): one stroke places the low-confidence line, visibly user-added, read, nothing sent`, async () => {
+      const page = await toEditor(browser, base, fakeCams, l);
       try {
         const s0 = await state(page), id = lowLine(s0);
         assert(id, "no low-confidence main line in the synthetic photo (the check needs one): " + JSON.stringify(s0.auto));
-        await chip(page, id);
+        await page.evaluate(() => { window.__edStrokes = []; });
+        await chip(page, id); // draws the editor once with the line as found
+        const halo0 = await halo(page);
         await page.evaluate(() => document.getElementById("plTraceLine").click());
         assert((await state(page)).pressed === "true", "button not pressed");
         const reqs0 = page.requests.length;
@@ -99,12 +115,18 @@ export default async function ({ base, launch, check, fakeCams }) {
         assert(s1.pressed === "false", "button still pressed after the stroke");
         const chipText = await page.evaluate(i => document.querySelector(`#plLineChips [data-line="${i}"]`).textContent, id);
         assert(!/ไม่ชัดในภาพนี้/.test(chipText), "chip still says not clear: " + chipText);
+        assert(chipText.includes(ADDED[l]), `${l}: chip has no user-added mark "${ADDED[l]}": ${chipText}`);
+        assert(halo0 === 0 && (await halo(page)) > 0, `${l}: the traced line is not drawn in the user-added style (halo before ${halo0})`);
+        assert(L.cp.every(q => q[0] >= -0.42 && q[0] <= 1.32 && q[1] >= -0.4 && q[1] <= 1.12), `${id}: traced point outside the frame ${JSON.stringify(L.cp)}`);
         for (const o of ["life", "head", "heart", "fate"].filter(x => x !== id)) assert(JSON.stringify(s1.lines[o]) === JSON.stringify(s0.lines[o]), `${o} changed`);
         await page.evaluate(() => document.getElementById("plRead").click());
         await page.waitFor(`!document.getElementById("plResult").hidden && document.querySelectorAll("#plNarr .fa-section").length >= 3`, 20000);
         const read = await page.evaluate(i => window.PalmCore.lineRead(window.__palm.S.lines[i]), id);
         assert(read, "the traced line is not read");
-        const sent = page.requests.slice(reqs0).filter(r => !/^data:|^blob:/.test(r.url) && (r.method !== "GET" || r.postData));
+        const card = await page.evaluate(i => { const c = document.querySelector(`#plLines [data-line="${i}"]`); return c ? c.textContent : ""; }, id);
+        assert(card.includes(ADDED[l]), `${l}: result card of ${id} has no user-added mark: ${card.slice(0, 160)}`);
+        const qs = u => { try { const s = new URL(u).search; return s && !/^\?v=\d+$/.test(s); } catch (e) { return false; } };
+        const sent = page.requests.slice(reqs0).filter(r => !/^data:|^blob:/.test(r.url) && (r.method !== "GET" || r.postData || qs(r.url)));
         assert(!sent.length, "requests sent while tracing / reading: " + sent.map(r => r.method + " " + r.url).join(", "));
       } finally { await page.close(); }
     });
@@ -118,6 +140,24 @@ export default async function ({ base, launch, check, fakeCams }) {
         await strokeAlong(page, await guideClient(page, id));
         const L = (await state(page)).lines[id];
         assert(L.traced === undefined, `${id} traced without the button: ${JSON.stringify(L)}`);
+      } finally { await page.close(); }
+    });
+
+    await check("palm 24-C5 (th): a stroke ended by pointercancel places nothing", async () => {
+      const page = await toEditor(browser, base, fakeCams, "th");
+      try {
+        const s0 = await state(page), id = lowLine(s0);
+        assert(id, "no low-confidence main line");
+        await chip(page, id);
+        await page.evaluate(() => document.getElementById("plTraceLine").click());
+        const pts = await guideClient(page, id);
+        await page.evaluate(ps => {
+          const cv = document.getElementById("plEditCanvas"), ev = (t, p) => cv.dispatchEvent(new PointerEvent(t, { bubbles: true, cancelable: true, pointerId: 7, isPrimary: true, clientX: p[0], clientY: p[1], button: 0, buttons: t === "pointercancel" ? 0 : 1 }));
+          ev("pointerdown", ps[0]); for (const p of ps.slice(1)) ev("pointermove", p); ev("pointercancel", ps[ps.length - 1]);
+        }, pts);
+        await sleep(300);
+        const L = (await state(page)).lines[id];
+        assert(L.traced === undefined && JSON.stringify(L.cp) === JSON.stringify(s0.lines[id].cp) && L.unclear === s0.lines[id].unclear, `${id} changed by a cancelled stroke: ${JSON.stringify(L)}`);
       } finally { await page.close(); }
     });
   } finally { await browser.close(); }

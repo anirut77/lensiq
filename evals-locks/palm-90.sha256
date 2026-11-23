@@ -20,3 +20,7 @@ f1375926279e0bfd8e868a6e3745ef8c8b5e58b2d0eec63e5dc06809e5322243  tests/e2e/palm
 # locked 2026-11-23T13:58:50Z (tools/eval-guard.mjs lock, 1 file)
 b8bf8553140eb94ca5c9202c9f92c670d8dd379d80ec5d3ce32f3ff216c89038  c2/palm-trace-c.e2e.mjs
 b8bf8553140eb94ca5c9202c9f92c670d8dd379d80ec5d3ce32f3ff216c89038  tests/e2e/palm-trace-c.e2e.mjs  # repo file (same commit as lock 2026-11-23T13:58:50Z; field: ~/LENSIQ-field/evals/palm-90/c2/palm-trace-c.e2e.mjs)
+# RE-LOCK c3 2026-11-24 (tests/e2e/palm-trace-c.e2e.mjs, independent review findings 4 and 5, stricter): C2 in TH/EN/ZH requires a visible user-added mark on the chip and the result card, a distinct editor stroke style and clamped points; C4 also fails on a GET with a query string other than ?v=<digits>; new C5: pointercancel places nothing. c1 / c2 stay.
+# locked 2026-11-23T17:24:07Z (tools/eval-guard.mjs lock, 1 file)
+e235d455104317424f2d65d2f1397cc590b0fc5a45724c51e354b33d8500709f  c3/palm-trace-c.e2e.mjs
+e235d455104317424f2d65d2f1397cc590b0fc5a45724c51e354b33d8500709f  tests/e2e/palm-trace-c.e2e.mjs  # repo file (same commit as lock 2026-11-23T17:24:07Z; field: ~/LENSIQ-field/evals/palm-90/c3/palm-trace-c.e2e.mjs)
