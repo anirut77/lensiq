@@ -9,6 +9,12 @@
 //   P3  face mode stays reachable: pressing the face (training) mode button opens the camera and fetches face-api.js and
 //       the face models, and a reload keeps face mode (the URL then carries ?mode=training) (TH / EN / ZH)
 //   P4  attendance.html?mode=training opens face mode directly: camera requested, face models fetched
+//   K1-K4 (relock1, after the independent review of c48c63d2) the kiosk stays PIN / QR: a kiosk stored by this browser
+//       ({kiosk:true}), ?kiosk, the kiosk button on the bare URL, and a stored {kiosk:true, mode:"training"} without
+//       ?mode=training all open the kiosk with the PIN / QR pane shown, no camera request and no face library, face model,
+//       TF.js or WebAssembly file fetched (checked for 8 s, past the kiosk's own start-up). P1 / P2 also use this wider
+//       list of face files now (stricter than the first lock); P3 also checks that the face-mode breadcrumb links to
+//       attendance.html?mode=training.
 // Synthetic data and Chrome's fake camera only; no person is photographed.
 import { assert } from "./cdp.mjs";
 
@@ -20,9 +26,11 @@ const inLang = (l, t) => (l === "th" ? THAI.test(t) : !THAI.test(t) && (l === "e
 const LANG = l => `try { localStorage.setItem("lq-lang", ${JSON.stringify(l)}); } catch (e) {} window.confirm = () => true; window.alert = () => {};`;
 const TRAINING_STORED = `try { if (!sessionStorage.getItem("apd-seeded")) { sessionStorage.setItem("apd-seeded", "1");
   localStorage.setItem("att-hr-settings", JSON.stringify({ mode: "training" })); } } catch (e) {}`;
+const STORED = v => `try { if (!sessionStorage.getItem("apd-seeded")) { sessionStorage.setItem("apd-seeded", "1");
+  localStorage.setItem("att-hr-settings", ${JSON.stringify(JSON.stringify(v))}); } } catch (e) {}`;
 const GUM = `(() => { window.__gum = 0; const md = navigator.mediaDevices; if (!md || !md.getUserMedia) return;
   const real = md.getUserMedia.bind(md); md.getUserMedia = c => { window.__gum++; return real(c); }; })();`;
-const FACE_RE = /vendor\/face-api\.js|vendor\/models\//;
+const FACE_RE = /vendor\/(face-api\.js|models\/|tfjs\/|tfjs-backend-wasm[^/]*\.wasm)|\.wasm(\?|$)/;
 const ready = async (page, l) => {
   const L = JSON.stringify(l);
   await page.waitFor(`(window.LQI18N || ${L} === "th") && document.documentElement.lang.slice(0, 2) === ${L} && !!window.LQHR`, 15000);
@@ -42,7 +50,8 @@ const state = page => page.evaluate(re => {
     bodyEmp: document.body.classList.contains("att-emp"),
     pinActive: !!document.getElementById("tabPin") && document.getElementById("tabPin").classList.contains("active"),
     pinShown: vis(document.getElementById("pane-pin")),
-    h1, title: document.title, search: location.search
+    h1, title: document.title, search: location.search,
+    crumb: (c => (c ? c.getAttribute("href") || "" : ""))(document.querySelector('.lq-crumbs [aria-current="page"]'))
   };
 }, FACE_RE.source);
 
@@ -94,6 +103,7 @@ export default async function ({ base, launch, check }) {
           await page.evaluate(() => /** @type {HTMLElement} */ (document.querySelector('.mode-btn[data-mode="training"]')).click());
           const r = await faceLoads(page, "after the face button");
           assert(/[?&]mode=training\b/.test(r.search), "the URL does not keep face mode: " + r.search);
+          assert(!r.crumb || /[?&]mode=training\b/.test(r.crumb), "face-mode breadcrumb link does not open face mode: " + r.crumb);
           assert(inLang(l, r.title) && !/PIN/.test(r.title), `face mode tab title in ${l}: "${r.title}"`);
           await page.reload();
           await ready(page, l);
@@ -104,6 +114,40 @@ export default async function ({ base, launch, check }) {
     await check("P4 [th] attendance.html?mode=training opens face mode directly", async () => {
       const page = await open(`${base}/attendance.html?mode=training`, "th");
       try { await ready(page, "th"); await faceLoads(page, "?mode=training"); } finally { await page.close(); }
+    });
+    const kiosk = async (page, label) => {
+      await page.waitFor(`document.body.classList.contains("att-kiosk")`, 10000).catch(() => {});
+      await sleep(8000);
+      const r = await state(page);
+      const k = await page.evaluate(() => {
+        const e = document.getElementById("pane-pin");
+        return { on: document.body.classList.contains("att-kiosk"), pin: !!e && getComputedStyle(e).display !== "none" && e.getClientRects().length > 0 };
+      });
+      assert(k.on, `${label}: the kiosk did not open`);
+      assert(k.pin, `${label}: the PIN / QR pane is not shown in the kiosk`);
+      assert(r.bodyEmp && r.empPressed, `${label}: the kiosk is not in PIN / QR (employee) mode`);
+      assert(r.gum === 0, `${label}: camera requested ${r.gum} time(s) by the kiosk`);
+      assert(!r.face.length && !r.faceScript, `${label}: face library / model / wasm fetched by the kiosk: ${r.face.slice(0, 4).join(", ")}`);
+    };
+    await check("K1 [th] a kiosk stored by this browser opens PIN / QR, no face files", async () => {
+      const page = await open(`${base}/attendance.html`, "th", [STORED({ kiosk: true })]);
+      try { await ready(page, "th"); await kiosk(page, "stored kiosk"); } finally { await page.close(); }
+    });
+    await check("K2 [th] attendance.html?kiosk opens the PIN / QR kiosk, no face files", async () => {
+      const page = await open(`${base}/attendance.html?kiosk`, "th");
+      try { await ready(page, "th"); await kiosk(page, "?kiosk"); } finally { await page.close(); }
+    });
+    await check("K3 [th] the kiosk button on the bare URL opens the PIN / QR kiosk, no face files", async () => {
+      const page = await open(`${base}/attendance.html`, "th");
+      try {
+        await pinDefault(page, "th", "before the kiosk button");
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.querySelector("#hrKiosk")).click());
+        await kiosk(page, "kiosk button");
+      } finally { await page.close(); }
+    });
+    await check("K4 [th] a stored kiosk + face mode without ?mode=training opens PIN / QR, no face files", async () => {
+      const page = await open(`${base}/attendance.html`, "th", [STORED({ kiosk: true, mode: "training" })]);
+      try { await ready(page, "th"); await kiosk(page, "stored kiosk + training"); } finally { await page.close(); }
     });
   } finally { await browser.close(); }
 }
