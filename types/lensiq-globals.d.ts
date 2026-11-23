@@ -96,6 +96,7 @@ interface Window {
   LENSIQ_FORTUNE_PAID?: boolean;
   /** palm reading upgrade v1 (owner order 2026-11-19): off unless exactly true */
   LENSIQ_PALM_V2?: boolean;
+  LENSIQ_FACEREAD_TIER1?: boolean;
   /** palm v2 automatic hand points (MediaPipe hands, tier 2-U): research-demo profile only */
   LENSIQ_PALM_LANDMARKS?: boolean;
   /** goal-based plan under the paid switch (owner order 2026-11-15 (2), design only): off unless exactly true */
