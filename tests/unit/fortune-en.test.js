@@ -150,3 +150,31 @@ test("rendering: English result sets lang=en and English 'Read more'", () => {
   assert.match(h, /Your three-step plan/);
   assert.match(h, /Kalama|judgement/);
 });
+
+// 2026-11-24 (acceptance docs/acceptance/petread.md L: the page is in fortune-en): the pet reading (lensiq-pet.js, its own composer
+// and lensiq-pet-kb.js) in English: every section, note, reminder and card line over a trait grid is English-only, keeps the hard
+// bans above, carries the honest line, the belief disclaimer and the reminder; Thai and Chinese output is unchanged by the call.
+test("petread: English pet readings and card text are English-only, keep the bans, carry the honest line, disclaimer and reminder", () => {
+  const P = require("../../lensiq-pet.js"), T = P.TRAITS;
+  let n = 0;
+  for (const species of T.species) for (const coat of T.coat) for (const eyes of T.eyes) for (const energy of T.energy) {
+    const inp = { species, name: "Mochi", traits: { coat, marks: n % 3 ? ["whitepaws"] : ["spots"], eyes, ears: T.ears[n % T.ears.length], face: T.face[n % T.face.length],
+      size: T.size[n % T.size.length], energy }, birth: n % 2 ? "2021-03-14" : null, owner: n % 4 ? { birth: "1990-07-02" } : null, humanSeen: n % 5 === 0 };
+    const r = P.compose(inp, { lang: "en" });
+    assert.ok(r.sections.length >= 4, "sections");
+    const all = r.sections.flatMap(s => [s.title].concat(s.paragraphs)).concat(Object.values(r.notes || {}), [r.reminder, r.honest, r.disclaimer], P.cardText(P.cardModel(r, {})));
+    for (const t of all) {
+      assert.doesNotMatch(String(t), FOREIGN, "foreign script: " + t);
+      assert.doesNotMatch(String(t), BANS, "ban: " + t);
+    }
+    assert.equal(r.honest, "Adapted from face-reading tradition, not a classical text.");
+    assert.match(r.disclaimer, /personal belief.*own judgement/);
+    assert.ok(r.reminder && r.reminder.length > 20, "reminder");
+    const th = P.compose(inp, { lang: "th" }), zh = P.compose(inp, { lang: "zh" });
+    assert.deepEqual(P.compose(inp, { lang: "th" }), th); assert.deepEqual(P.compose(inp, { lang: "zh" }), zh);
+    assert.match(th.sections.map(s => s.paragraphs.join("")).join(""), /[฀-๿]/);
+    n++;
+  }
+  assert.ok(n >= 400, "only " + n + " pets");
+});
+

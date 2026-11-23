@@ -22,3 +22,11 @@ acc340a88a32b63f1000ea3f86071cc64397137d2a4656329089a340473ca378  relock1/speed-
 acc340a88a32b63f1000ea3f86071cc64397137d2a4656329089a340473ca378  tests/e2e/speed-models.e2e.mjs  # repo file (same commit as lock 2026-11-23T01:54:21Z; field: ~/LENSIQ-field/evals/speed/relock1/speed-models.e2e.mjs)
 # field only relock1/NOTE.txt (lock 2026-11-23T01:54:21Z: no repo file uses it)
 # re-lock relock1 2026-11-23 (SELL-READY decision 3 ก, D1; coordinator decision ก1, branch attendance-pin-default, not merged until the owner answers): URL-ONLY: attendance is opened with ?mode=training (face mode) because the bare attendance.html becomes the PIN / QR time clock; every assertion, threshold, timing and other page unchanged. Field: relock1/ with NOTE.txt. Append-only.
+# locked 2026-11-23T19:09:24Z (tools/eval-guard.mjs lock, 3 files)
+58b5e2af5d94bfa8946e9e13d9cc190930bc54af50685e34e5ee0378adcbdfa0  relock-pet90/speed-budget.e2e.mjs
+531b4a251a0b021f109e668329d75f1b9029bb6d317866ef9a2816be7ebc4e40  relock-pet90/bytes-petread.json
+ffe516760d99c93e9acb1de224db47a0670e8b08971655631ba439430812d9e4  relock-pet90/NOTE.txt
+58b5e2af5d94bfa8946e9e13d9cc190930bc54af50685e34e5ee0378adcbdfa0  tests/e2e/speed-budget.e2e.mjs  # repo file (same commit as lock 2026-11-23T19:09:24Z; field: ~/LENSIQ-field/evals/speed/relock-pet90/speed-budget.e2e.mjs)
+# field only relock-pet90/bytes-petread.json (lock 2026-11-23T19:09:24Z: no repo file uses it)
+# field only relock-pet90/NOTE.txt (lock 2026-11-23T19:09:24Z: no repo file uses it)
+# re-lock relock-pet90 2026-11-24 (branch petread-90, acceptance petread.md S1): ADDS petread.html { kb: 1250, req: 31 } from its measured weight x 1.10 by the locked rule; nothing else changed. Field: relock-pet90/ with NOTE.txt and bytes-petread.json. Append-only.

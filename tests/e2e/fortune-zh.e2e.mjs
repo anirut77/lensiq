@@ -1,5 +1,5 @@
 // tests/e2e/fortune-zh.e2e.mjs — 中文 mode audit of the fortune pages (17 since 2026-11-23: + lucky colour, bazi, taksa, lek7,
-// lifegraph and report; report readings are .rp-sec blocks).
+// lifegraph and report; report readings are .rp-sec blocks; 18 since 2026-11-24: + petread).
 // Each page is opened with lq-lang = zh, measured on load, then a reading is produced (forms filled, cards drawn,
 // fake camera + scripted detector for face/palm) and measured again. "Visible text" = text nodes that are rendered
 // (same rule as the evaluator's zh.mjs: not display:none / hidden / zero-size). Asserts per page:
@@ -76,6 +76,20 @@ const PAGES = [
     await p.waitFor(`!document.getElementById("plEdit").hidden && !!window.__palm.S.lines && !window.__palm.S.busy`, 20000);
     await ev(p, () => document.getElementById("plRead").click());
     await p.waitFor(`!document.getElementById("plResult").hidden && document.querySelectorAll("#plNarr .fa-section").length >= 3`, 20000);
+  } },
+  // 2026-11-24 (acceptance docs/acceptance/petread.md L: the page is in fortune-zh): the pet reading, a synthetic picture (a drawn
+  // shape, no animal or person) + one scripted cat detection, no name typed
+  { page: "petread.html", q: "?fakedet", cam: true, read: async p => {
+    await p.waitFor("window.__LQPET && window.__LQPET.ready", 15000);
+    await ev(p, () => {
+      window.__dets = [{ cls: 15, score: 0.91, x: 0.2, y: 0.15, w: 0.5, h: 0.7 }];
+      const c = document.createElement("canvas"); c.width = 640; c.height = 480; const x = c.getContext("2d");
+      x.fillStyle = "#5b8bd6"; x.fillRect(0, 0, 640, 480); x.fillStyle = "#e08a2e"; x.beginPath(); x.ellipse(300, 280, 150, 120, 0, 0, 7); x.fill();
+      window.__LQPET.useImage(c.toDataURL("image/png"));
+    });
+    await p.waitFor("window.__LQPET.st.detected === true", 15000);
+    await ev(p, () => document.getElementById("petRead").click());
+    await p.waitFor(sections(3), 15000);
   } },
 ];
 

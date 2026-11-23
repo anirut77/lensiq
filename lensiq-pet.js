@@ -19,7 +19,8 @@
  *   pickDetections(dets) -> {pet, species, persons}   YOLOX classes person 0 / cat 15 / dog 16
  *   loadDetector() -> Promise<model> (browser: loads vendor/ort + lensiq-detect.js + YOLOX-Nano on first call only)
  *   detect(model, img) -> Promise<pickDetections()> · coatGuess(src, box) -> coat key | null (a hint the owner confirms)
- *   lint(text, lang) -> [hits]   the module's own copy of the hard limits; compose() drops any line that hits (fail-safe)
+ *   lint(text, lang) -> [hits]   the module's own copy of the hard limits; compose() drops any line that hits (fail-safe), and
+ *     any line the shared fortune safety check (FortuneAI.safety.isSafe, the locked 60-probe hard limits) refuses
  *   taksaSri(planet) -> planet of the Sri house (Taksa wheel, same rule as lensiq-luckycolor.js taksa().sri)
  */
 (function (root) {
@@ -91,6 +92,18 @@
     }
     return "";
   }
+  // the shared fortune safety check (fortune-ai.js: FortuneAI.safety.isSafe, the same check the locked 60 hard-limit probes run
+  // on); every pet line must pass it as well as this module's own lint. Looked up at call time; when the page has not loaded it,
+  // the module's own lint still applies.
+  let faNode;
+  const sharedSafe = () => {
+    let FA = root.FortuneAI;
+    if (!FA && typeof require === "function" && typeof module !== "undefined" && module.exports) {
+      if (faNode === undefined) { try { faNode = require("./fortune-ai.js"); } catch (e) { faNode = null; } }
+      FA = faNode;
+    }
+    return FA && FA.safety && typeof FA.safety.isSafe === "function" ? FA.safety.isSafe : null;
+  };
   const compatApi = () => root.LQCompat || ((typeof require === "function" && typeof module !== "undefined" && module.exports) ? require("./lensiq-compat-stub.js") : null);
 
   function compose(input, opts) {
@@ -105,7 +118,8 @@
     const C = KB.coat[t.coat], T = KB.titles[lang];
     const sections = [];
     const add = (id, paragraphs) => {
-      const ps = paragraphs.map(F).filter(p => p && !lint(p, lang).length);
+      const safe = sharedSafe();
+      const ps = paragraphs.map(F).filter(p => p && !lint(p, lang).length && (!safe || safe(p)));
       if (ps.length) sections.push({ id, title: T[id], paragraphs: ps });
     };
     const folk = folkLine(x, lang);
