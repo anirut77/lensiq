@@ -28,11 +28,18 @@ test("toDets: normalised landmarks -> pixel box + 68 points in the iBUG order fa
   assert.deepEqual(M.toDets(null, 10, 10), []);
 });
 
-test("the left/right picks mirror: subject's right side (iBUG 0-8, 17-21, 36-41) is on the image left of a frontal mesh", () => {
-  // Face Mesh canonical pairs (right, left) for the points used here
-  const pairs = [[0, 16], [17, 26], [36, 45], [39, 42], [31, 35], [48, 54]];
-  const right = [127, 70, 33, 133, 75, 61], left = [356, 300, 263, 362, 305, 291];
-  pairs.forEach(([r, l], i) => { assert.equal(M.MAP68[r], right[i]); assert.equal(M.MAP68[l], left[i]); });
+test("every left/right pick is the Face Mesh mirror of its iBUG partner (all 68 points; jaw 9 = 379, mirror of 150)", () => {
+  // Face Mesh mirror pairs (canonical topology; jaw, brows, eyes, nose and outer lip also checked on 5 London dev photos and
+  // their horizontal flips, 2026-11-24, numbers only)
+  const MIR = { 127: 356, 234: 454, 93: 323, 132: 361, 58: 288, 172: 397, 136: 365, 150: 379, 152: 152, 70: 300, 63: 293, 105: 334, 66: 296, 107: 336,
+    168: 168, 197: 197, 5: 5, 4: 4, 75: 305, 97: 326, 2: 2, 33: 263, 160: 387, 158: 385, 133: 362, 153: 380, 144: 373,
+    61: 291, 39: 269, 37: 267, 0: 0, 405: 181, 314: 84, 17: 17, 78: 308, 82: 312, 13: 13, 317: 87, 14: 14 };
+  for (const [a, b] of Object.entries(MIR)) MIR[b] = +a;
+  // iBUG-68 mirror (same table as faceread.js FLIP68)
+  const FLIP68 = [16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 27, 28, 29, 30, 35, 34, 33, 32, 31,
+    45, 44, 43, 42, 47, 46, 39, 38, 37, 36, 41, 40, 54, 53, 52, 51, 50, 49, 48, 59, 58, 57, 56, 55, 64, 63, 62, 61, 60, 67, 66, 65];
+  M.MAP68.forEach((k, i) => assert.equal(MIR[k], M.MAP68[FLIP68[i]], `iBUG ${i} (mesh ${k}) <-> iBUG ${FLIP68[i]} (mesh ${M.MAP68[FLIP68[i]]})`));
+  assert.equal(M.MAP68[9], 379);
 });
 
 test("apply() swaps FRCore to the tier-1 calibration in place and back; the face-api numbers are unchanged", () => {

@@ -35,8 +35,9 @@ Licence: Apache License 2.0 — the model card says "LICENSED UNDER Apache Licen
   https://storage.googleapis.com/mediapipe-assets/Model%20Card%20MediaPipe%20Face%20Mesh%20V2.pdf
   The detector inside is BlazeFace short range, "MediaPipe BlazeFace Model Card (Short Range)" (2021-06-09), Apache-2.0.
   Copyright Google LLC / The MediaPipe Authors. LICENSE here is the Apache-2.0 text.
-  Training data (per the card): images captured by Google with smartphone cameras in real-world conditions through an AR
-  application; evaluated across 17 geographic subregions, perceived gender and Fitzpatrick skin tone.
+  Training data (per the Face Mesh V2 card): images from smartphone cameras in real-world conditions via an AR application;
+  evaluated across 17 geographic subregions, perceived gender and Fitzpatrick skin tone. The card does not use the word
+  "consented"; the BlazeFace (short range) card describes consented images from a mobile AR application.
 
 Model-card scope: intended use "AR entertainment"; out of scope: "human life-critical decisions"; "Predicted face
 landmarks do not provide facial recognition or identification and do not store any unique face representation."

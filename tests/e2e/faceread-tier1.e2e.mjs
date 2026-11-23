@@ -51,7 +51,7 @@ export default async function ({ base, launch, check }) {
       assert(!urls.some(u => FACEAPI_W.test(u)), label + ": face-api.js weights requested: " + urls.filter(u => FACEAPI_W.test(u)).join(", "));
       const ran = /ไม่พบใบหน้า/.test(st.text);
       console.log(`    ${label} on this Chrome: ${ran ? "detector ran (no face found)" : "detector could not run here, failure said: " + st.text}`);
-      if (!ran) assert(st.text.trim().length > 10 && !/Cannot|undefined|TypeError|Error|\.js|\.task|activeTexture/.test(st.text), label + ": a plain failure line, no raw error text or file name: " + JSON.stringify(st));
+      if (!ran) assert(st.text.trim().length > 10 && !/Cannot|undefined|TypeError|Error|\.js|\.task|activeTexture|อินเทอร์เน็ต|internet|connection|网络/i.test(st.text), label + ": a plain failure line, no raw error text or file name: " + JSON.stringify(st));
       assert(!/WASM|WEBGL|WEBGPU|backend|ตัวประมวลผล/i.test(st.text), label + ": no backend name on screen: " + st.text);
     };
     await check("faceread tier-1 T2: ?frengine=mp on localhost -> tier-1 engine; the upload ends in a plain line, never busy", async () => {

@@ -935,7 +935,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var loadNets = function () { return Promise.all(nets().map(function (n) { return n.loadFromUri("vendor/models/"); })); };
   var TRY = " — ปิดแท็บอื่นแล้วกด เปิดกล้อง อีกครั้ง หรือใช้ปุ่ม อัปโหลดรูป แทน", NET = " — ตรวจอินเทอร์เน็ตแล้วกด เปิดกล้อง อีกครั้ง หรือใช้ปุ่ม อัปโหลดรูป แทน";
   var FAIL = { oom: "หน่วยความจำของเครื่องไม่พอสำหรับวิเคราะห์ใบหน้าสด" + TRY, detStop: "การวิเคราะห์ใบหน้าสดหยุดทำงานบนเครื่องนี้" + TRY,
-    modelSlow: "โหลดโมเดลวิเคราะห์ใบหน้านานเกินไป" + NET, modelFail2: "โหลดโมเดลวิเคราะห์ใบหน้าไม่สำเร็จ" + NET,
+    modelSlow: "โหลดโมเดลวิเคราะห์ใบหน้านานเกินไป" + NET, modelFail2: "โหลดโมเดลวิเคราะห์ใบหน้าไม่สำเร็จ" + NET, noGl: "เครื่องนี้เปิดตัวอ่านใบหน้าไม่ได้ ลองเปิดหน้านี้ด้วย Safari หรือ Chrome รุ่นล่าสุด",
     readFail2: "อ่านไม่สำเร็จ (วิเคราะห์หยุดหรือช้าเกินไป) — กด อ่านโหงวเฮ้ง อีกครั้ง หรือใช้ อัปโหลดรูป" }, failLine = function (id) { engineT("faceread.eng." + id, FAIL[id], null, "err"); };
   /** a lost WebGL context (iOS drops it under memory pressure) is handled by the live loop */
   function watchGl() { glLost = false; if (backendNow === "webgl") LQDetect.watchContextLost(function () { console.warn("faceread: WebGL context lost"); glLost = true; }); }
@@ -948,7 +948,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }).catch(function (e) { console.error(e); modelsP = null; var x = /** @type {any} */ (e instanceof Error ? e : new Error(String(e))); x.lqModel = true; throw x; });
     return modelsP;
   }
-  var modelMsg = function (e) { failLine({ oom: "oom", timeout: "modelSlow" }[failKind(e)] || "modelFail2"); };
+  var modelMsg = function (e) { failLine(e && e.lqNoGl ? "noGl" : { oom: "oom", timeout: "modelSlow" }[failKind(e)] || "modelFail2"); }; // noGl: tier-1 model cannot run here
   /** no stale "face OK" / enabled Read button while the detector is not running */
   function invalidate() { lastQ = null; btnRead.disabled = true; octx.clearRect(0, 0, ov.width, ov.height); renderQc([{ id: "face", ok: false, label: "พบใบหน้า", tip: "ให้อยู่ในกรอบวงรี" }]); }
   /** stops the camera and the loop; the Start button comes back (the photo upload stays) */
