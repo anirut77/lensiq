@@ -41,7 +41,7 @@ const CAM_PAGES = [
   { page: "palm.html", start: "#plStartCam" },
   { page: "faceread.html", start: "#frStartCam" },
   { page: "teamface.html", start: "#tfCamBtn" },
-  { page: "attendance.html", start: null },
+  { page: "attendance.html?mode=training", start: null },
   { page: "customers.html", start: null },
   { page: "driver.html", start: null },
   { page: "photobooth.html", start: null },
@@ -146,7 +146,7 @@ export default async function ({ base, launch, check }) {
     for (const cp of CAM_PAGES) {
       for (const l of LANGS) {
         await check(`camera off [${l}] ${cp.page}: a visible control stops every track`, async () => {
-          const page = await open(`${base}/${cp.page}?cpu&fakedet&nosw`, l);
+          const page = await open(`${base}/${cp.page}${cp.page.includes("?") ? "&" : "?"}cpu&fakedet&nosw`, l);
           try {
             await ready(page, l);
             if (cp.start === "exam") {

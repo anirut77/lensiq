@@ -17,7 +17,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       try {
         // navigate without waiting for the load event: with a frameless autoplay video Chrome may hold "load" back
         const t0 = Date.now();
-        await page.send("Page.navigate", { url: `${base}/attendance.html?cpu&fakedet` });
+        await page.send("Page.navigate", { url: `${base}/attendance.html?mode=training&cpu&fakedet` });
         await page.waitFor("typeof ready !== 'undefined' && ready === true && !!window.LQHR", 12000);
         assert(Date.now() - t0 <= 13000, "ready in time: " + (Date.now() - t0) + " ms");
         assert(await page.evaluate(() => document.querySelector("video").videoWidth === 0), "the camera really delivered no frame");

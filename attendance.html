@@ -32,20 +32,20 @@
 <link rel="preload" as="script" href="lensiq-timeclock.js?v=2">
 <link rel="preload" as="script" href="attendance-qr.js?v=1">
 <link rel="preload" as="script" href="lensiq-freetier.js?v=1">
-<link rel="preload" as="script" href="attendance-hr.js?v=6">
+<link rel="preload" as="script" href="attendance-hr.js?v=8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title data-i18n="attendance.s1">เช็คชื่ออบรมด้วยใบหน้า | LENSIQ</title>
+<title data-i18n="attendance.hr.title" data-lq-train="attendance.s1">ลงเวลาทำงาน PIN / QR | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=24">
-<link rel="stylesheet" href="attendance.css?v=13">
+<link rel="stylesheet" href="attendance.css?v=16">
 <link rel="stylesheet" href="lensiq-sitecheck.css?v=4">
 <script src="lensiq-demo.js?v=1"></script>
 <script src="lensiq-demo-data.js?v=4"></script>
 <script src="i18n/zh-demo.js?v=4"></script>
 <script src="lensiq-busy.js?v=3"></script>
 </head>
-<body>
+<body class="att-emp">
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=38"></script>
 <script src="i18n/zh-attendance.js?v=6"></script>
@@ -74,8 +74,8 @@
 
   <!-- employee time attendance (attendance-hr.js + lensiq-timeclock.js) — added on top of the training check-in, nothing removed -->
   <div class="att-mode" role="group" aria-label="โหมดการใช้งาน" data-i18n-attr="aria-label:attendance.hr.modeL">
-    <button type="button" class="mode-btn" data-mode="employee" aria-pressed="false"><span data-i18n="attendance.hr.modeE">ลงเวลาทำงาน (PIN / QR)</span></button>
-    <button type="button" class="mode-btn" data-mode="training" aria-pressed="true"><span data-i18n="attendance.hr.modeT">เช็คชื่ออบรม/กิจกรรม (ใบหน้า)</span></button>
+    <button type="button" class="mode-btn" data-mode="employee" aria-pressed="true"><span data-i18n="attendance.hr.modeE">ลงเวลาทำงาน (PIN / QR)</span></button>
+    <button type="button" class="mode-btn" data-mode="training" aria-pressed="false"><span data-i18n="attendance.hr.modeT">เช็คชื่ออบรม/กิจกรรม (ใบหน้า)</span></button>
   </div>
   <details class="hr-notice emp-only" id="hrNotice">
     <summary data-i18n="attendance.hr.nT">ข้อมูลส่วนบุคคลในการลงเวลาทำงาน (PDPA) — อ่านก่อนใช้</summary>
@@ -220,12 +220,12 @@
       <label><span data-i18n="attendance.hr.mgrPinL">PIN ผู้จัดการ (ถ้าตั้งไว้)</span><input id="hrMgrPinIn" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>
     </div>
     <div class="hr-tabs" role="tablist" aria-label="จัดการเวลาทำงาน" data-i18n-attr="aria-label:attendance.hr.adminH">
-      <button type="button" class="hr-tab active" role="tab" aria-selected="true" data-h="emp" data-i18n="attendance.hr.tEmp">พนักงาน</button>
-      <button type="button" class="hr-tab" role="tab" aria-selected="false" data-h="shift" data-i18n="attendance.hr.tShift">กะการทำงาน</button>
-      <button type="button" class="hr-tab" role="tab" aria-selected="false" data-h="cal" data-i18n="attendance.hr.tCal">วันหยุดและการลา</button>
-      <button type="button" class="hr-tab" role="tab" aria-selected="false" data-h="month" data-i18n="attendance.hr.tMonth">สรุปเดือนและเงินเดือน</button>
-      <button type="button" class="hr-tab" role="tab" aria-selected="false" data-h="audit" data-i18n="attendance.hr.tAudit">แก้ไขเวลาและประวัติ</button>
-      <button type="button" class="hr-tab" role="tab" aria-selected="false" data-h="data" data-i18n="attendance.hr.tData">ตั้งค่าและข้อมูล</button>
+      <button type="button" class="hr-tab tab active" role="tab" aria-selected="true" data-h="emp" data-i18n="attendance.hr.tEmp">พนักงาน</button>
+      <button type="button" class="hr-tab tab" role="tab" aria-selected="false" data-h="shift" data-i18n="attendance.hr.tShift">กะการทำงาน</button>
+      <button type="button" class="hr-tab tab" role="tab" aria-selected="false" data-h="cal" data-i18n="attendance.hr.tCal">วันหยุดและการลา</button>
+      <button type="button" class="hr-tab tab" role="tab" aria-selected="false" data-h="month" data-i18n="attendance.hr.tMonth">สรุปเดือนและเงินเดือน</button>
+      <button type="button" class="hr-tab tab" role="tab" aria-selected="false" data-h="audit" data-i18n="attendance.hr.tAudit">แก้ไขเวลาและประวัติ</button>
+      <button type="button" class="hr-tab tab" role="tab" aria-selected="false" data-h="data" data-i18n="attendance.hr.tData">ตั้งค่าและข้อมูล</button>
     </div>
 
     <div class="hr-pane" role="tabpanel" id="hr-emp">
@@ -396,14 +396,14 @@
 <script src="lensiq-timeclock.js?v=2"></script>
 <script src="attendance-qr.js?v=1"></script>
 <script src="lensiq-freetier.js?v=1"></script>
-<script src="attendance-hr.js?v=6"></script>
+<script src="attendance-hr.js?v=8"></script>
 <script src="lensiq-track.js?v=3"></script>
 <script src="lensiq-camera.js?v=8"></script>
 <script src="lensiq-detect.js?v=7"></script>
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="i18n/zh-rt-sitecheck.js?v=4"></script>
 <script src="lensiq-sitecheck.js?v=5"></script>
-<script src="attendance.js?v=25"></script>
+<script src="attendance.js?v=27"></script>
 <script src="lensiq-config.js?v=31"></script>
 </body>
 </html>

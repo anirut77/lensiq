@@ -12,3 +12,9 @@
 b678a60cefe1a2bc69ad13e96cc36e0394bf2266e6fcdab1afef87d2739be763  tests/e2e/faceread-webkit-retry.e2e.mjs
 baeaaef8960098b0261e1b13c087f48853c339842c561d0344b26c684588e272  tests/e2e/face-scan-fault.e2e.mjs
 45597ff1b2aee09a90021eaa49fb89e60f1298624159a37ec5f30880dfdcc680  tests/unit/detect-cascade-fault.test.js
+# locked 2026-11-23T01:54:21Z (tools/eval-guard.mjs lock, 2 files)
+6010308899ec325a501a8d3259e45e914122afaf6289591f6f73beb3eeb31d04  relock1/face-scan-fault.e2e.mjs
+37b52302109d28aac572ab8ca1ddcbfa13cefea63c110d7a0e2cdd892f0c0142  relock1/NOTE.txt
+6010308899ec325a501a8d3259e45e914122afaf6289591f6f73beb3eeb31d04  tests/e2e/face-scan-fault.e2e.mjs  # repo file (same commit as lock 2026-11-23T01:54:21Z; field: ~/LENSIQ-field/evals/faceread-ios/relock1/face-scan-fault.e2e.mjs)
+# field only relock1/NOTE.txt (lock 2026-11-23T01:54:21Z: no repo file uses it)
+# re-lock relock1 2026-11-23 (SELL-READY decision 3 ก, D1; coordinator decision ก1, branch attendance-pin-default, not merged until the owner answers): URL-ONLY: attendance is opened with ?mode=training (face mode) because the bare attendance.html becomes the PIN / QR time clock; every assertion, threshold, timing and other page unchanged. Field: relock1/ with NOTE.txt. Append-only.
