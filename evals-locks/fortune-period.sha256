@@ -8,3 +8,6 @@ aa8a71d1351bf69e26bddab818df0b6ab700246e5b617592d0422a6c6bae78da  tests/e2e/fort
 b770e0f6b64d6f0f03e3a4e517b92bae6c6b5661c4a4d6a60c793bdc88817435  p2/fortune-period-2.e2e.mjs
 0e6c14ec6c16a4928315b359b500b2e9ded23e846f426f4317c59c05d8ce8f8d  tests/unit/fortune-period-2.test.js  # repo file (same commit as lock 2026-11-24T03:34:09Z; field: ~/LENSIQ-field/evals/fortune-period/p2/fortune-period-2.test.js)
 b770e0f6b64d6f0f03e3a4e517b92bae6c6b5661c4a4d6a60c793bdc88817435  tests/e2e/fortune-period-2.e2e.mjs  # repo file (same commit as lock 2026-11-24T03:34:09Z; field: ~/LENSIQ-field/evals/fortune-period/p2/fortune-period-2.e2e.mjs)
+# locked 2026-11-24T07:15:17Z (tools/eval-guard.mjs lock, 1 file)
+5e7d43bd82c83215077d8d4359ddb9755a376133340c674b023706d584e9898c  p3/fortune-period-3.test.js
+5e7d43bd82c83215077d8d4359ddb9755a376133340c674b023706d584e9898c  tests/unit/fortune-period-3.test.js  # repo file (same commit as lock 2026-11-24T07:15:17Z; field: ~/LENSIQ-field/evals/fortune-period/p3/fortune-period-3.test.js)
