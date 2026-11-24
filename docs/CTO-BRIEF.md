@@ -808,3 +808,8 @@ listings, insights modules, the sitemap and the buyer documents (rows removed); 
 the on / off state are in the back office (admin status / visibility table). Step 2 (an owner-only back-office switch with
 a change log) is a separate proposal (accuracy-removal/STEP2-ADMIN-SWITCH-PLAN-TH.md). Speed: the home / about
 dictionaries moved to i18n/{zh,en}-home.js so nav.js growth stays within the locked page budgets. Locks: docs/RELOCK-223.md.
+
+## Fortune print / share up to main (owner inbox 2026-11-21 entry 26 item 1, branch `fortune-print`, not merged)
+
+print-report (share card, A4 / A5 / 80 mm paper report) merged onto merge-fortune-90b; photo on paper OFF by default; samples
+(Thai, A4 + 80 mm, horoscope / palm / face, synthetic) in `~/Desktop/LENSIQ-review/fortune/print-samples/` for the owner's look.

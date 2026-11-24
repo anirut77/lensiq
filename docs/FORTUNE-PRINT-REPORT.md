@@ -123,3 +123,11 @@ Test: `tests/e2e/fortune-print-photo.e2e.mjs` (old locked bytes sha256 `07689f4d
 - Page numbers need CSS margin boxes (Chrome / Edge 131+). Safari / iPhone print has no page numbers.
 - The browser decides the paper; "auto" follows the print dialog. A kiosk must set its printer to 80 mm roll.
 - Charts drawn on a canvas are printed as pictures (no text inside them for search).
+
+## 2026-11-24: brought up to main (branch `fortune-print`, base `merge-fortune-90b`), photo OFF by default
+
+- print-report merged onto the current base (conflicts were cache-bust numbers, the iching day tab and one palm line).
+- "ใส่รูปถ่ายในรายงาน / Include my photo in the report / 在报告中放入我的照片" now starts unticked (acceptance sheet
+  `docs/acceptance/faceread.md` row X "photo off by default"); unticked = the marks on a neutral outline. Locked first:
+  phase `fortune-print` (`tests/unit/fortune-print-defaults.test.js` D1-D5; `fortune-print-photo.e2e.mjs` P4 re-lock, stricter).
+- Samples for the owner: `~/Desktop/LENSIQ-review/fortune/print-samples/` (`node tools/print-samples.mjs <dir> --fortune`).

@@ -121,6 +121,7 @@ ol.lqp-cols>li::before{content:counter(lqp) "."}
 .lqp--r80 .lqp-fig img{max-width:100%;max-height:50mm}
 .lqp--r80 .lqp-adv{font-size:7.5pt}
 .lqp--r80 .lqp-sw{white-space:normal}
+.lqp--r80 .lq-w,.lqp--r80 .lq-t,.lqp--r80 .lq-t.lq-w *{white-space:normal!important} /* the site's no-orphan word glue (nav.js) may not push a line past the 74 mm roll */
 .lqp--r80 .lqp-foot{font-size:7pt}
 
 /* site styles must not reach the paper: headings start at the left edge; belief note under a list item */
