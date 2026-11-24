@@ -1,0 +1,5 @@
+# locked 2026-11-24T00:06:05Z (tools/eval-guard.mjs lock, 2 files)
+1ff7301ff16daaf5cbf5ef8a43799bd610db462ffa667ff51b1beb737c7ff44d  fortune-period.test.js
+aa8a71d1351bf69e26bddab818df0b6ab700246e5b617592d0422a6c6bae78da  fortune-period.e2e.mjs
+1ff7301ff16daaf5cbf5ef8a43799bd610db462ffa667ff51b1beb737c7ff44d  tests/unit/fortune-period.test.js  # repo file (same commit as lock 2026-11-24T00:06:05Z; field: ~/LENSIQ-field/evals/fortune-period/fortune-period.test.js)
+aa8a71d1351bf69e26bddab818df0b6ab700246e5b617592d0422a6c6bae78da  tests/e2e/fortune-period.e2e.mjs  # repo file (same commit as lock 2026-11-24T00:06:05Z; field: ~/LENSIQ-field/evals/fortune-period/fortune-period.e2e.mjs)
