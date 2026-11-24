@@ -4,7 +4,9 @@
 // the page's own print button and saves what Chrome prints (Page.printToPDF = Playwright page.pdf()). The person's name and
 // birth data are left out (the "include" switch stays off, the default). No image of a person is used: the face page reads a
 // synthetic camera (tests/e2e/fake-cams.js) and the camera photo is never printed.
-//   node tools/print-samples.mjs [outDir] [--colour | --photo]   default ~/Desktop/LENSIQ-review/print; --colour: the two *-colour.pdf samples
+//   node tools/print-samples.mjs [outDir] [--colour | --photo | --fortune]   default ~/Desktop/LENSIQ-review/print; --colour: the two *-colour.pdf samples
+//   --fortune (owner inbox 2026-11-21 entry 26): A4 and 80 mm, Thai, horoscope (text page), palm and face reading, every switch at
+//   its default (photo OFF, name / birth data OFF): what a person gets when they press print without changing anything
 import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
@@ -17,7 +19,7 @@ import { assertFreeSpace } from "./disk-guard.mjs";
 assertFreeSpace({ label: "tools/print-samples.mjs" }); // stops with exit 75 when free disk space is under 5 GB, before the server or Chrome
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const ARGS = process.argv.slice(2), COLOUR = ARGS.includes("--colour"), PHOTO = ARGS.includes("--photo");
+const ARGS = process.argv.slice(2), COLOUR = ARGS.includes("--colour"), PHOTO = ARGS.includes("--photo"), FORTUNE = ARGS.includes("--fortune");
 const OUT = ARGS.find(a => !a.startsWith("--")) || join(homedir(), "Desktop", "LENSIQ-review", "print");
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const S = JSON.stringify;
@@ -61,7 +63,9 @@ const PAPER = { A4: { paperWidth: 8.27, paperHeight: 11.69 }, A5: { paperWidth: 
 // --photo (owner order 2026-11-17): the annotated photo, synthetic camera only (no image of a person): photo on / off, and 80 mm
 const PHOTO_JOBS = [["faceread", "A4", "6-faceread-A4-TH-photo-on.pdf", true], ["faceread", "A4", "7-faceread-A4-TH-photo-off.pdf", false],
   ["palm", "A4", "8-palm-A4-TH-photo-on.pdf", true], ["palm", "A4", "9-palm-A4-TH-photo-off.pdf", false], ["faceread", "80mm", "10-faceread-80mm-receipt-TH.pdf", true]];
-const JOBS = PHOTO ? PHOTO_JOBS : COLOUR ? [["horoscope", "A4", "1-horoscope-A4-TH-colour.pdf"], ["tarot", "A4", "2-tarot-A4-TH-colour.pdf"]] : [
+const FORTUNE_JOBS = [["horoscope", "A4", "1-horoscope-A4-TH.pdf"], ["horoscope", "80mm", "2-horoscope-80mm-TH.pdf"],
+  ["palm", "A4", "3-palm-A4-TH.pdf"], ["palm", "80mm", "4-palm-80mm-TH.pdf"], ["faceread", "A4", "5-faceread-A4-TH.pdf"], ["faceread", "80mm", "6-faceread-80mm-TH.pdf"]];
+const JOBS = FORTUNE ? FORTUNE_JOBS : PHOTO ? PHOTO_JOBS : COLOUR ? [["horoscope", "A4", "1-horoscope-A4-TH-colour.pdf"], ["tarot", "A4", "2-tarot-A4-TH-colour.pdf"]] : [
   ["horoscope", "A4", "1-horoscope-A4-TH.pdf"], ["tarot", "A4", "2-tarot-A4-TH.pdf"], ["faceread", "A4", "3-faceread-A4-TH.pdf"],
   ["horoscope", "A5", "4-horoscope-A5-TH.pdf"], ["tarot", "80mm", "5-tarot-80mm-receipt-TH.pdf"],
 ];
@@ -86,7 +90,7 @@ try {
       await page.waitFor(`!!window.LQShare && [...document.querySelectorAll('[data-lq-sp="print"]')].some(b => b.offsetParent)`, 5000);
       await page.evaluate(() => window.LQShare.printReady());
       if (photoOn != null) await page.evaluate(on => { const c = document.querySelector("[data-lq-sp-photo] input"); if (c && c.checked !== on) c.click(); }, photoOn);
-      if (size === "80mm") await page.evaluate(on => window.LQPrint.print({ size: "80mm", photo: on }), photoOn !== false);
+      if (size === "80mm") await page.evaluate(on => window.LQPrint.print(on == null ? { size: "80mm" } : { size: "80mm", photo: on }), photoOn == null ? null : photoOn);
       else await page.evaluate(() => [...document.querySelectorAll('[data-lq-sp="print"]')].find(b => b.offsetParent).click());
       await page.waitFor(`!!document.querySelector("#lqPrint.lqp")`, 5000);
       await page.send("Emulation.setEmulatedMedia", { media: "print" });
