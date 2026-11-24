@@ -1013,8 +1013,56 @@
     return out;
   }
   KB.readName = readName; KB.readEn = readEn; KB.posLeads = posLeads; KB.pairKey = pairKey; KB.pairNotes = pairNotes; KB.allPairKeys = allPairKeys; KB.numberNotes = numberNotes; KB.siamseePhr = siamseePhr;
+  /** @type {any} */ (typeof globalThis !== "undefined" ? globalThis : root).LQ_TAROT_KB = KB; // the depth layer reads card elements / numbers (block at the end)
   KB.sources.push({ label: "Biddy Tarot — ความหมายไพ่และการอ่านคู่ไพ่", url: "https://www.biddytarot.com/tarot-card-meanings/" }, { label: "Labyrinthos — เลขศาสตร์ของไพ่ทาโรต์และธาตุ", url: "https://labyrinthos.co/blogs/learn-tarot-with-labyrinthos-academy" });
 
   if (typeof module !== "undefined" && module.exports) module.exports = KB;
   else root.TAROT_KB = KB;
 })(typeof window !== "undefined" ? window : this);
+/* BEGIN depth build (fortune-depth.js: which material each reading gets, in reading order) */
+(/** @param {any} G */ function (G) {
+  "use strict";
+  var R = G.LQ_DEPTH = G.LQ_DEPTH || { build: {}, text: { th: {}, en: {}, zh: {} } };
+  /* Siam Si: the verse explained, then the asked area first, then the slip's answer per area of life */
+  var SS_SEC = { v: "overview", wish: "overview", work: "work", money: "money", love: "love", home: "depth", people: "depth", travel: "timing", lost: "depth" };
+  var SS_FIRST = { love: "love", work: "work", money: "money" };
+  /* Tarot: the quintessence of the spread, the elemental dignities of neighbouring cards, then each card in its position
+     with its layer in the tradition (major: Fool's journey step + Golden Dawn correspondence; minor: number + suit; court: rank + suit) */
+  var SPREAD_OF = { today: "one", situation: "threeAdvice", obstacle: "threeAdvice", heart: "celtic", cross: "celtic", you: "love5", bond: "love5" };
+  var FRIEND = { "air+fire": 1, "earth+water": 1 }, OPPOSE = { "fire+water": 1, "air+earth": 1 };
+  R.build.tarot = function (facts) {
+    var KB = G.LQ_TAROT_KB; if (!KB) return [];
+    var cards = (facts.items || []).map(function (x) {
+      var m = /^card\.([a-z]+)\.([a-z]+\d\d)(\.r)?$/.exec(x.id); return m && KB.byId[m[2]] ? { pos: m[1], c: KB.byId[m[2]] } : null;
+    }).filter(Boolean);
+    if (!cards.length) return [];
+    var sp = "three"; cards.forEach(function (x) { if (SPREAD_OF[x.pos]) sp = SPREAD_OF[x.pos]; });
+    var out = [], n = cards.length;
+    if (n >= 3) {
+      var sum = 0; cards.forEach(function (x) { if (x.c.arcana === "major" || x.c.n <= 10) sum += x.c.n; });
+      while (sum > 21) sum = String(sum).split("").reduce(function (a, d) { return a + +d; }, 0);
+      out.push({ sec: "overview", key: "quint." + sum });
+      for (var i = 0; i + 1 < n && i < 3; i++) {
+        var a = cards[i].c, b = cards[i + 1].c, k = [a.element, b.element].sort().join("+");
+        out.push({ sec: "overview", key: a.element === b.element ? "dign.same" : FRIEND[k] ? "dign.friend" : OPPOSE[k] ? "dign.oppose" : "dign.neutral",
+          vars: { A: "#" + a.id, B: "#" + b.id, k: i } });
+      }
+    }
+    cards.forEach(function (x) {
+      var c = x.c, C = "#" + c.id;
+      out.push({ sec: "overview", key: "pos." + sp + "." + x.pos, vars: { C: C } });
+      if (c.arcana === "major") out.push({ sec: "overview", key: "major." + c.n, vars: { C: C } });
+      else { out.push({ sec: "overview", key: (c.n <= 10 ? "num." : "rank.") + c.n, vars: { C: C } }); out.push({ sec: "overview", key: "suit." + c.suit }); }
+    });
+    return out;
+  };
+  R.build.siamsee = function (facts) {
+    var it = (facts.items || []).filter(function (x) { return /^siamsee\.\d+$/.test(x.id); })[0];
+    if (!it) return [];
+    var n = it.id.split(".")[1], first = SS_FIRST[facts.topic], order = ["v"].concat(first ? [first] : [], ["wish", "work", "money", "love", "home", "people", "travel", "lost"]);
+    return order.filter(function (k, i) { return order.indexOf(k) === i; }).map(function (k) { return { sec: SS_SEC[k], key: k + "." + n }; });
+  };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+/* END depth build */
+// Node (tools, tests): the Thai depth tables load with this file; a page loads them on demand (fortune-depth.js ready)
+if (typeof module !== "undefined" && module.exports && typeof require === "function") require("./tarot-depth.js");

@@ -179,7 +179,7 @@
     return { weekday: wd, today, color: today.color, birthColor: wd.color, direction, word,
       notes: ["สี" + today.color + "เป็นสีประจำ" + today.th + "ตามธรรมเนียมไทย",
         same ? "วันนี้ตรงกับวันเกิดของคุณ สี" + wd.color + "จึงเป็นทั้งสีวันนี้และสีประจำตัว" : "สี" + wd.color + "เป็นสีประจำ" + wd.th + " ใช้เป็นสีเสริมความมั่นใจได้",
-        "ทิศและคำพลังสุ่มจากวันที่และวันเกิด เปลี่ยนใหม่ทุกวัน"] };
+        "ทิศและคำพลังมาจากวันที่วันนี้กับวันในสัปดาห์ที่คุณเกิด ทั้งวันได้ผลเดิม และเปลี่ยนเมื่อขึ้นวันใหม่"] };
   }
 
   /* ---------- ปิดบังตัวเลขบนการ์ดแชร์ ---------- */
@@ -289,12 +289,15 @@
     // reading layout never folds them (fortune-restrain.js sources)
     const extras = { tips: want.slice(0, 3).concat(goalTips), restrainTips: wantT.slice(0, 3).filter(t => t && t.avoid && t.avoid.length).map(t => t.t) };
     if (r.weekday) extras.luckyColors = [r.weekday.color];
-    return {
+    const F = {
       domain: "numbers", topic: topic || "overall", subject: {},
       headline: ai ? KIND_TH[r.kind] + " คะแนนพลังรวม " + r.score + "/100" : KIND_TH[r.kind] + " คะแนน " + r.score + "/100 · ผลรวม " + s.sum,
       items: top,
       extras,
     };
+    // depth layer (fortune-depth.js): the phone's deeper layers (derived; the AI path's compactFacts never sends it)
+    if (!ai && r.kind === "phone" && typeof KB.depthOf === "function") F.depth = KB.depthOf(r);
+    return F;
   }
   /** คำพลังจากผล (ชื่อหมวดของคู่เด่น) — แทนการให้ "เลขนำโชค" */
   function strengthWords(r) {
@@ -328,7 +331,7 @@
   const STATS_KEY = "nm-stats", PREF_KEY = "nm-prefs", IDLE_MS = 60000;
   const prefs = Object.assign({ stats: true, ai: false }, lsGet(PREF_KEY, {}));
   const F = root.FortuneAI || null;
-  let mode = "phone", current = null, currentFacts = null, aiEnabled = false, narrSeq = 0;
+  let mode = "phone", current = null, currentFacts = null, aiEnabled = false, narrSeq = 0, narrPress = 0;
 
   /* ---------- i18n (ไทยเป็นค่าเริ่มต้น จีนมาจาก i18n/zh-fortune-numbers.js และ i18n/zh-kb-numbers.js) ---------- */
   const T = (k, th, v) => root.LQI18N ? root.LQI18N.tf(k, th, v) : String(th).replace(/\{(\w+)\}/g, (m, x) => v && v[x] != null ? v[x] : m);
@@ -534,24 +537,28 @@
     }
     if (!done) fallbackRender(res, box);
     const ai = res.source === "ai";
-    // owner 2026-11-17: no on-device label
-    const b = $("#nmSrc"); b.textContent = ai ? T("numbers.src.ai", "เรียบเรียงโดย Claude AI") : ""; b.className = "src-badge " + (ai ? "ai" : "local"); b.hidden = !ai;
+    // owner entry 23 (2026-11-23): no AI label on the result; the consent step names the writing assistant
+    const b = $("#nmSrc"); b.textContent = ""; b.className = "src-badge " + (ai ? "ai" : "local"); b.hidden = true;
     $("#nmNarrNote").textContent = res.note || "";
   }
   async function narrate(again) {
+    if (again) narrPress += 1; else narrPress = 0; // owner entry 20: 0 on load / new input / topic, +1 per press of "again"
     const box = $("#nmNarr");
     if (!current) return;
     const my = ++narrSeq, useAI = !!(aiEnabled && (F && typeof F.hasConsent === "function" ? F.hasConsent() : prefs.ai));
     const topic = $("#nmTopic").value;
     currentFacts = buildFacts(current, topic, { forAI: useAI });
-    if (!F) { box.innerHTML = '<p class="nm-small">' + esc(T("numbers.noComposer", "ไม่พบตัวเรียบเรียงคำอ่าน (fortune-ai.js)")) + '</p>'; return; }
+    if (!F) { box.innerHTML = '<p class="nm-small">' + esc(T("numbers.noComposer", "ตอนนี้ยังแสดงคำอ่านไม่ได้ ลองโหลดหน้านี้ใหม่")) + '</p>'; return; }
     $("#nmAgain2").disabled = true; box.setAttribute("aria-busy", "true");
-    if (useAI) box.innerHTML = '<p class="nm-small">' + esc(T("numbers.loading", "กำลังเรียบเรียงคำอ่าน...")) + '</p>';
+    if (useAI) box.innerHTML = '<p class="nm-small">' + esc(T("numbers.loading", "รอสักครู่ คำอ่านกำลังจะขึ้น...")) + '</p>';
+    // owner inbox 19: same number + same Thai-date month = same text (seed from the facts; nothing stored or sent)
+    let seed = typeof F.seedFor === "function" ? F.seedFor(["numbers", topic, currentFacts], "m") : 0;
+    const press = narrPress;
+    if (press && typeof F.seedFor === "function") seed = F.seedFor([seed, press], "m");
     let res;
     try {
-      if (again && typeof F.regenerate === "function") res = await F.regenerate(currentFacts, { useAI });
-      if (!res || !Array.isArray(res.sections)) res = await F.interpret(currentFacts, { useAI });
-    } catch (e) { res = F.compose ? F.compose(currentFacts) : { source: "local", sections: [] }; }
+      res = await F.interpret(currentFacts, { useAI, seed: seed });
+    } catch (e) { res = F.compose ? F.compose(currentFacts, { seed: seed }) : { source: "local", sections: [] }; }
     if (my !== narrSeq) return;
     renderNarr(res);
     $("#nmAgain2").disabled = false; box.removeAttribute("aria-busy");

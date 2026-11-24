@@ -579,11 +579,17 @@
   }
   var tagsOf = function (m) { return Object.keys(m); };
   function mergeM(a, b) { var o = {}; [a, b].forEach(function (m) { Object.keys(m || {}).forEach(function (k) { o[k] = (o[k] || []).concat(m[k]); }); }); return o; }
+  // owner inbox 19: a facts builder called without opts.rng gets a generator from its input + the Thai-date month, no random source
+  var detRng = function (key) {
+    var FA = root.FortuneAI || (typeof require === "function" ? require("./fortune-ai.js") : null);
+    return FA ? FA.rng(FA.seedFor(key, "m")) : function () { return 0; };
+  };
   /** P = ผล analyze(); opts: {topic: "overall"|"love"|"work"|"money", nickname} */
   function buildFacts(P, opts) {
     opts = opts || {};
     // short = ชื่อย่อที่ตัวเรียบเรียงใช้หลังเอ่ยชื่อเต็มครั้งแรก; evidence = ภาษาคนอ่าน (ตัวเลขเทคนิคอยู่ในตาราง)
-    var K = KB, R = K.R, items = [], rnd = opts.rng || Math.random, usedF = {}, M = function (e, fo) { return K.meaningsRandom(e, fo, rnd, usedF); }, bz = P.bazi,
+    var rnd = opts.rng || detRng(["horoscope", P, opts.topic, opts.nickname]);
+    var K = KB, R = K.R, items = [], usedF = {}, M = function (e, fo) { return K.meaningsRandom(e, fo, rnd, usedF); }, bz = P.bazi,
       push = function (it, short) { if (short) it.short = short; if (Object.keys(it.meanings).length) items.push(it); };
     var part = function (deg) { return deg < 10 ? "ช่วงต้นราศี" : deg < 20 ? "ช่วงกลางราศี" : "ช่วงปลายราศี"; };
     var pl = P.thaiDay.planet, d = K.days[pl], dayName = pl === 7 ? "พุธกลางคืน" : K.weekdayNames[pl];
@@ -633,8 +639,10 @@
   /** ข้อเท็จจริงดวงวันนี้ (D = daily(), mo = monthly()) */
   function buildDailyFacts(P, D, mo, opts) {
     opts = opts || {};
-    var K = KB, R = K.R, items = [], rnd = opts.rng || Math.random, usedF = {}, dayO = { w: "dw", m: "dm", l: "dl", a: "da" }, monO = { w: "mw", m: "mw", l: "mw", a: "mw" };
-    items.push(item("today.bhumi." + D.bhumi, "ทักษาจร", "วัน" + K.bhumi[D.bhumi].th + "ของคุณ", "ดาว" + PLANET_TH[D.weekday] + "วันนี้ตกภูมิ" + K.bhumi[D.bhumi].th + "ในทักษาวันเกิด", D.bhumi === "kalakini" ? 0.8 : 0.9, null, K.meaningsRandom(R.bhumi[D.bhumi], dayO), D.bhumi === "kalakini" ? "challenge" : ""));
+    var K = KB, R = K.R, items = [], rnd = opts.rng || detRng(["horoscope.day", P, D, mo, opts.topic]), usedF = {};
+    var dayO = { w: "dw", m: "dm", l: "dl", a: "da" }, monO = { w: "mw", m: "mw", l: "mw", a: "mw" };
+    items.push(item("today.bhumi." + D.bhumi, "ทักษาจร", "วัน" + K.bhumi[D.bhumi].th + "ของคุณ", "ดาว" + PLANET_TH[D.weekday] + "วันนี้ตกภูมิ" + K.bhumi[D.bhumi].th + "ในทักษาวันเกิด",
+      D.bhumi === "kalakini" ? 0.8 : 0.9, null, K.meaningsRandom(R.bhumi[D.bhumi], dayO, rnd), D.bhumi === "kalakini" ? "challenge" : ""));
     items.push(item("today.rel." + D.rel, "ปาจื้อวันนี้", "เสาวัน " + D.pillar.gz + " (" + K.relations[D.rel].th.split(" (")[0] + ")", "ธาตุวันนี้" + EL_TH[D.todayEl] + " เทียบธาตุประจำตัว", 0.7, null, K.meaningsRandom(R.rel[D.rel], dayO, rnd, usedF)));
     if (D.clash) items.push(item("today.clash", "ปาจื้อวันนี้", "กิ่งวันชงปีเกิด", "ตามความเชื่อ", 0.5, null, { timing: K.phr({ t: R.branch.clash }, "t"), advice: ["ใจเย็นและเผื่อเวลาให้ทุกเรื่อง แล้ววันนี้จะผ่านไปอย่างราบรื่น"] }, "challenge"));
     var mm = K.meaningsRandom(R.rel[mo.rel], monO, rnd, usedF); mm.timing = (mm.work || []).slice(0, 3);
@@ -914,8 +922,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function readingBlock(id, title, withTopics) {
     return '<section class="hs-block hs-reading" id="' + id + '" aria-labelledby="' + id + '-h"><div class="rd-head"><h3 id="' + id + '-h">' + esc(title) + '</h3><span class="rd-src" id="' + id + '-src"></span></div>' +
       (withTopics ? '<div class="rd-topics" role="radiogroup" aria-label="' + esc(T("horoscope.x.topicAria", "หัวข้อที่สนใจ")) + '">' + TOPIC_BTNS.map(function (t, i) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (i ? "false" : "true") + '">' + esc(T("horoscope.x.topic." + t[0], t[1])) + "</button>"; }).join("") + "</div>" : "") +
-      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">' + esc(T("horoscope.x.composing", "กำลังเรียบเรียงคำทำนาย…")) + "</p></div>" +
-      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">' + esc(T("horoscope.x.again", "อ่านอีกสำนวน")) + "</button></div></section>";
+      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">' +
+      esc(T("horoscope.x.composing", "รอสักครู่ คำทำนายกำลังจะขึ้น…")) + "</p></div>" +
+      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">' + esc(T("horoscope.x.again", "เล่าอีกแบบ")) + "</button></div></section>";
   }
   function plainRender(el, res) {
     el.innerHTML = (res.sections || []).map(function (s) { return '<section class="fa-section"><h3>' + esc(s.title || "") + "</h3>" + (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</section>"; }).join("");
@@ -944,13 +953,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     });
     return out;
   }
-  function bindReading(id, factsFn, withTopics) {
+  function bindReading(id, factsFn, withTopics, per) {
     var root = document.getElementById(id); if (!root) return;
     var st = readings[id] = readings[id] || { topic: "overall" };
+    st.press = 0; // owner entry 20: 0 on load, +1 per press of "again"
     var body = document.getElementById(id + "-body"), src = document.getElementById(id + "-src");
     function run() {
-      var seed = (Math.random() * 4294967296) >>> 0, r = FA && FA.rng ? FA.rng(seed) : Math.random;
-      var facts = factsFn(st.topic, r);
+      // owner inbox 19: same input + same period = same text; the seed comes from the input facts + the Thai-date period ("m" | "d")
+      var f0 = factsFn(st.topic, FA && FA.rng ? FA.rng(0) : undefined), seed = FA && FA.seedFor ? FA.seedFor([id, st.topic, f0], per || "m") : 0;
+      var facts = factsFn(st.topic, FA && FA.rng ? FA.rng(seed) : undefined), press = st.press;
+      if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], per || "m");
       st.facts = facts;
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true }) : Promise.resolve(localFallback(facts));
@@ -959,18 +971,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         if (!body.isConnected) return; // แท็บถูกสร้างใหม่ (เช่นสลับภาษา) ระหว่างรอ
         st.result = res; st.lines = isZh() ? [] : res && res.lang === "en" && FA && FA.en ? FA.en.keyLines(res, 3) : keyLines(res, facts, 3);
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
-        src.textContent = res.source === "ai" ? T("horoscope.x.srcAI", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : ""; // owner 2026-11-17: no on-device label
-        src.hidden = res.source !== "ai";
+        src.textContent = ""; // owner entry 23 (2026-11-23): no AI label on the result; the consent step names the writing assistant
+        src.hidden = true;
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         root.removeAttribute("aria-busy");
       });
     }
     st.run = run;
-    document.getElementById(id + "-again").addEventListener("click", function () { touch(); run(); });
+    document.getElementById(id + "-again").addEventListener("click", function () { touch(); st.press++; run(); });
     if (withTopics) root.querySelectorAll(".rd-topics button").forEach(function (b) {
       b.setAttribute("aria-checked", String(b.dataset.topic === st.topic));
       b.addEventListener("click", function () {
-        st.topic = b.dataset.topic; touch();
+        st.topic = b.dataset.topic; st.press = 0; touch();
         root.querySelectorAll(".rd-topics button").forEach(function (x) { x.setAttribute("aria-checked", String(x === b)); });
         run();
       });
@@ -1133,7 +1145,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       (mo.branchRel === "clash" ? '<p class="note">' + esc(T("horoscope.x.clashMonth", "เดือนนี้ชงกับปีนักษัตรของคุณ (ตามความเชื่อ) ใช้ความรอบคอบ วางแผนล่วงหน้า แล้วทุกอย่างจะลงตัว")) + "</p>" : mo.branchRel === "harmony" || mo.branchRel === "trine" ? '<p class="note good">' + esc(T("horoscope.x.goodMonth", "เดือนนี้กิ่งเดือนประสานกับปีนักษัตรของคุณ — ช่วงดีสำหรับเริ่มต้นสิ่งใหม่และสร้างความร่วมมือ")) + "</p>" : "") + "</section>";
     html += readingBlock("hsTdRd", T("horoscope.x.todayDetail", "ดวงวันนี้โดยละเอียด"), false);
     $("#pn-td").innerHTML = html;
-    bindReading("hsTdRd", function (topic, rng) { return HS.buildDailyFacts(P, D, mo, { topic: topic, rng: rng }); }, false);
+    bindReading("hsTdRd", function (topic, rng) { return HS.buildDailyFacts(P, D, mo, { topic: topic, rng: rng }); }, false, "d");
   }
 
   /* ---------- ดวงคู่ ---------- */

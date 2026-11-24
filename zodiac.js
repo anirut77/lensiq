@@ -93,7 +93,7 @@
   /* ---------- facts ---------- */
   function buildFacts(R, topic, opts) {
     opts = opts || {};
-    var r = opts.rng || Math.random, A = KB.ANIMALS[R.animal], Y = KB.ANIMALS[R.yearAnimal], REL = KB.REL[R.rel], ER = KB.ELREL[R.elRel], items = [];
+    var r = opts.rng || FK.rngFor(["zodiac", R, topic]), A = KB.ANIMALS[R.animal], Y = KB.ANIMALS[R.yearAnimal], REL = KB.REL[R.rel], ER = KB.ELREL[R.elRel], items = [];
     items.push({ id: "animal." + R.animal, group: "ปีเกิด", label: "ปี" + A.th + " (" + anFlat(A) + ")", short: "ชาวปี" + A.th, evidence: "นักษัตร" + A.an + " " + A.zh + " ธาตุ" + KB.ELEMENTS[R.birthElement].th,
       strength: 0.84, tags: ["personality", "work", "money", "love", "social", "advice"], meanings: { personality: A.p.slice(), work: A.w.slice(), money: A.m.slice(), love: A.l.slice(), social: A.s.slice(), advice: [A.a] } });
     var rm = { overview: REL.o.slice(), work: REL.w.slice(), money: REL.m.slice(), love: REL.l.slice(), advice: REL.a.slice(), timing: REL.t.slice() };

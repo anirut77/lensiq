@@ -271,3 +271,22 @@
   if (typeof module !== "undefined" && module.exports) module.exports = KB;
   root.DREAM_KB = KB;
 })(typeof window !== "undefined" ? window : globalThis);
+/* BEGIN depth build (fortune-depth.js, owner order 2026-11-17 item 3: each symbol read in more depth by the Thai and Chinese
+   dream books, when in the night it was dreamt, and how the waking mood colours it) */
+(/** @param {any} G */ function (G) {
+  "use strict";
+  var R = G.LQ_DEPTH = G.LQ_DEPTH || { build: {}, text: { th: {}, en: {}, zh: {} } };
+  R.build.dream = function (facts) {
+    var out = [];
+    (facts.items || []).forEach(function (x) {
+      if (/^sym\./.test(x.id)) out.push({ sec: "overview", key: x.id });
+      else if (/^mood\./.test(x.id)) out.push({ sec: "advice", key: x.id });
+      else if (x.id === "type") (x.zk || []).forEach(function (z) { if (/^time\./.test(z)) out.push({ sec: "timing", key: z }); });
+    });
+    var m = out.filter(function (e) { return !/^sym\./.test(e.key); });
+    return out.filter(function (e) { return /^sym\./.test(e.key); }).concat(m);
+  };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+/* END depth build */
+// Node (tools, tests): the Thai depth tables load with this file; a page loads them on demand (fortune-depth.js ready)
+if (typeof module !== "undefined" && module.exports && typeof require === "function") require("./dream-depth.js");

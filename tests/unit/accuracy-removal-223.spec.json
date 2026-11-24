@@ -1436,7 +1436,13 @@
       "re": "试用版|即将推出|实验性|（试验）|（试点）|现在可试用"
     }
   ],
-  "labelAllow": [],
+  "labelAllow": [
+    {
+      "file": "tarot-depth.js",
+      "contains": "เรื่องที่ขอจะไปถึงด้วยการเดินต่อเนื่องไม่หยุด แต่ไม่ใช่เร็ว ๆ นี้ ตั้งใจเดินวันละหน่อยและอย่าเปรียบเทียบกับคนที่ดูเหมือนไปไกลกว่า เส้นชัยของคุณจะมาถึงในแบบที่คุณเตรียมไว้",
+      "reason": "Siam Si wish 25 depth reading: 'the wish arrives, but not soon' (แต่ไม่ใช่เร็ว ๆ นี้) is advice about timing, not a product status label. NOTE: owner entry 22 item 3 (2026-11-23): held depth text put back after the independent review (Fable) passed it; exact text only, nothing broader"
+    }
+  ],
   "buyerDocs": {
     "$comment": "re-lock 5 (review round 3): R5 label words in every buyer-facing document folder, not only one-pagers / decks / demo scripts / onboarding. The listed exclusions are owner-only or locked elsewhere; each needs the owner before it changes",
     "include": [

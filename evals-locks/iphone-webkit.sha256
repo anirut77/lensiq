@@ -31,3 +31,15 @@ e645ba15eeaa6d5dd4613ac451e7a8e579efaca91e4996505a40e8d32b05269a  tests/e2e/ipho
 # amendment 8 (2026-11-16, independent review of 6dfaff4 NOT OK; STRICTER; locked BEFORE the fixes): (A) every page and the lensiq-camera.js loader name ONE lensiq-camhelp.js version (exam-hall.html had ?v=1, the rest ?v=2); (B) driver, TH / EN / ZH: camera off -> on (the on request takes 4 s), then 'start trip' at once: the message must say the camera is starting (not 'the camera is off'), the camera button must not offer 'start camera' again while it starts, and once the camera is live the trip starts (by itself or on the next tap). The test waits 2 s between off and on, like a person (lensiq-busy drops a second tap on the same button within 1.5 s). On the product before the fix: (A) fails, (B) fails in TH (button 'เปิดกล้อง', message 'กล้องปิดอยู่').
 # locked 2026-11-16T08:16:42Z (tools/eval-guard.mjs lock, 1 file)
 471dc69563f2bf086fb7fe7bfdc8fe727564e7d8c192c9180e1e1540d1012ee7  tests/e2e/iphone-pages-webkit.e2e.mjs
+# locked 2026-11-23T01:54:21Z (tools/eval-guard.mjs lock, 2 files)
+fa91b9d6d15e0ec7987620b8122b48f629b2cbc659e521d3d6f8ce05c86047b6  relock1/iphone-pages-webkit.e2e.mjs
+89a568767753d593afb738caea3326797a362a57f4214dbbafc6c58f015a0c4a  relock1/NOTE.txt
+fa91b9d6d15e0ec7987620b8122b48f629b2cbc659e521d3d6f8ce05c86047b6  tests/e2e/iphone-pages-webkit.e2e.mjs  # repo file (same commit as lock 2026-11-23T01:54:21Z; field: ~/LENSIQ-field/evals/iphone-webkit/relock1/iphone-pages-webkit.e2e.mjs)
+# field only relock1/NOTE.txt (lock 2026-11-23T01:54:21Z: no repo file uses it)
+# re-lock relock1 2026-11-23 (SELL-READY decision 3 ก, D1; coordinator decision ก1, branch attendance-pin-default, not merged until the owner answers): URL-ONLY: attendance is opened with ?mode=training (face mode) because the bare attendance.html becomes the PIN / QR time clock; every assertion, threshold, timing and other page unchanged. Field: relock1/ with NOTE.txt. Append-only.
+# locked 2026-11-23T19:00:19Z (tools/eval-guard.mjs lock, 2 files)
+e9e4eadeb0e8da709d428c494942b640472ea3c1126a34316fa8e73dafa17605  relock-pet90/iphone-pages-webkit.e2e.mjs
+c608f75373ee81d879fac05f35698073663c89faadb296a98341ba038a073bb5  relock-pet90/NOTE.txt
+e9e4eadeb0e8da709d428c494942b640472ea3c1126a34316fa8e73dafa17605  tests/e2e/iphone-pages-webkit.e2e.mjs  # repo file (same commit as lock 2026-11-23T19:00:19Z; field: ~/LENSIQ-field/evals/iphone-webkit/relock-pet90/iphone-pages-webkit.e2e.mjs)
+# field only relock-pet90/NOTE.txt (lock 2026-11-23T19:00:19Z: no repo file uses it)
+# re-lock relock-pet90 2026-11-24 (branch petread-90, acceptance petread.md P "petread is in iphone-pages-webkit"): ADDS petread to FORTUNE and CAMERA; every other page, assertion, threshold and timing unchanged (equal or stricter). Field: relock-pet90/ with NOTE.txt. Append-only.

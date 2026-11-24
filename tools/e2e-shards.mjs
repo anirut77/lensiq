@@ -12,6 +12,8 @@
 //                                             coordinator decision 2026-11-14, option 1). Every file still runs exactly once.
 //   node tools/e2e-shards.mjs --list i/n [--mac-last]   the files of shard i (for a quick look)
 //   node tools/e2e-shards.mjs --plan n [--mac-last]     every shard's expected seconds (tests + its fixed CI steps)
+//   node tools/e2e-shards.mjs --budget n [--mac-last] [--max-min=M]   exit 1 with plain messages when a Linux e2e file has no
+//                                             measured weight or a Linux shard is planned over M min (default 65); see budgetProblems
 //   node tools/e2e-shards.mjs --weights-from <log> …    reads `gh run view <id> --job <id> --log` output of the e2e shard
 //                                             jobs and prints a new shard-weights.json (seconds per file from the CI log
 //                                             timestamps; the longest value wins when a file appears in several logs; files
@@ -84,6 +86,29 @@ export function load(split, sec, base = []) {
   const known = Object.values(sec).filter(v => typeof v === "number" && v > 0).sort((a, b) => a - b);
   const med = known.length ? known[Math.floor(known.length / 2)] : 1;
   return split.map((s, i) => s.reduce((t, f) => t + (typeof sec[f] === "number" && sec[f] > 0 ? sec[f] : med), base[i] || 0));
+}
+
+/** Plain problems that make the CI split untrustworthy (2026-11-23: shard 1/4 ran into the 75-min job limit while every
+ * test passed, because 87 files had no measured weight): (a) Linux e2e files with no measured weight (> 0 s) in
+ * shard-weights.json; (b) Linux shards planned (base + files) over maxSec. WebKit files (macOS shard with macLast) are
+ * neither weighted for balance nor held to the Linux limit. Empty array = OK.
+ * @param {string[]} files @param {Record<string, number>} sec @param {number} n
+ * @param {{macLast?: boolean, base?: number[], maxSec: number}} o @returns {string[]} */
+export function budgetProblems(files, sec, n, o) {
+  const out = [];
+  const linux = [...new Set(files)].filter(f => !(o.macLast && isMacFile(f)));
+  const miss = linux.filter(f => !(typeof sec[f] === "number" && sec[f] > 0)).sort();
+  if (miss.length)
+    out.push(`e2e shard budget: ${miss.length} Linux e2e file(s) have no measured weight in tests/e2e/shard-weights.json, so the split cannot be trusted: ${miss.join(", ")}. Refresh it from the CI logs of the Chrome shard jobs: node tools/e2e-shards.mjs --weights-from <job logs> > tests/e2e/shard-weights.json`);
+  const base = o.base && o.base.length ? o.base : undefined;
+  const split = assign(files, sec, n, { macLast: o.macLast, base });
+  const lin = o.macLast ? n - 1 : n;
+  const t = load(split.slice(0, lin), sec, base || []);
+  t.forEach((s, i) => {
+    if (s > o.maxSec)
+      out.push(`e2e shard budget: shard ${i + 1}/${n} is planned at ${Math.round(s / 60)} min (${Math.round(s)} s incl. its fixed CI steps), over the ${+(o.maxSec / 60).toFixed(2)} min limit. A Linux shard this long risks being cancelled at the 75-min job limit.`);
+  });
+  return out;
 }
 
 /** seconds per e2e file from GitHub Actions job logs (each line "<job>\t<step>\t<ISO time> <text>"): a file runs from its
@@ -170,6 +195,14 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     split.forEach((s, i) => console.log(`shard ${i + 1}/${n}: ${s.length} file(s), ~${Math.round(t[i] / 60)} min (${t[i]} s, base ${b[i] || 0} s)`));
     const miss = allFiles().filter(f => !(w[f] > 0));
     if (miss.length) console.log(`no weight yet (median used): ${miss.join(", ")}`);
+  } else if (a[0] === "--budget" && /^\d+$/.test(a[1] || "")) {
+    const n = +a[1], ml = a.includes("--mac-last");
+    const mm = a.find(x => x.startsWith("--max-min="));
+    const maxMin = mm ? Number(mm.slice(10)) : 65;
+    if (!(maxMin > 0)) { console.error("--max-min must be a positive number of minutes"); process.exit(2); }
+    const errs = budgetProblems(allFiles(), weights(), n, { macLast: ml, base: baseFor(n, ml), maxSec: maxMin * 60 });
+    if (errs.length) { for (const e of errs) console.log(`::error::${e}`); console.log(`e2e shard budget: FAILED (${errs.length} problem(s))`); process.exit(1); }
+    console.log(`e2e shard budget: OK — every Linux e2e file has a measured weight; every Linux shard is planned within ${maxMin} min`);
   } else if (a[0] === "--weights-from" && a.length > 1) {
     const path = join(E2E, "shard-weights.json");
     let j = {};
@@ -187,6 +220,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const n = list[0].total, ran = list.reduce((s, m) => s + m.ran.length, 0);
     console.log(`e2e shards: OK — ${n} shard(s), ${ran} file(s), each of the ${allFiles().length} test files ran exactly once`);
   } else {
-    console.error("usage: e2e-shards.mjs --list i/n [--mac-last] | --plan n [--mac-last] | --weights-from <log>… | --check <dir>"); process.exit(2);
+    console.error("usage: e2e-shards.mjs --list i/n [--mac-last] | --plan n [--mac-last] | --budget n [--mac-last] [--max-min=65] | --weights-from <log>… | --check <dir>"); process.exit(2);
   }
 }

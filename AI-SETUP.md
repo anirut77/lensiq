@@ -125,8 +125,8 @@ Claude Opus 5.5: ขาเข้า **$4 / 1 ล้านโทเคน**, ข�
 ```js
 FortuneAI.consentControl(document.getElementById("aiConsent"), { onChange: on => {/* อ่านใหม่ถ้าต้องการ */} });
 const result = await FortuneAI.interpret(facts, { useAI: FortuneAI.hasConsent() });   // ไม่ใส่ useAI = ใช้ค่ายินยอมที่จำไว้
-FortuneAI.renderSections(document.getElementById("reading"), result, { aiBadge: true });
-// ปุ่ม "อ่านอีกสำนวน"
+FortuneAI.renderSections(document.getElementById("reading"), result); // ไม่มีป้าย AI บนผล (ข้อ 23 ของเจ้าของ 2026-11-23) การเปิดเผยอยู่ที่ขั้นยินยอม
+// ปุ่ม "เล่าอีกแบบ"
 const again = await FortuneAI.regenerate(facts);
 ```
 

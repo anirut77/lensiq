@@ -527,8 +527,9 @@ $("#clearLogs").onclick = () => {
 };
 
 // ---------- แท็บ ----------
-document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
-  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
+// face / PIN tabs only (data-t); the admin tabs (.hr-tab, data-h) also carry the shared .tab class and have their own handler
+document.querySelectorAll(".tab[data-t]").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab[data-t]").forEach(x => x.classList.toggle("active", x === t));
   ["checkin", "register", "records", "check", "pin"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== t.dataset.t; });
   mode = t.dataset.t;
   if (mode === "checkin" || mode === "register" || mode === "check") startCamera(); // choosing face opens the camera (D-01)
@@ -683,14 +684,10 @@ function demoNoCamera() {
   show(); window.addEventListener("lq-lang", show);
 }
 renderPeople(); renderLogs();
-// employee mode = ?mode=employee, or the mode this browser used last (attendance-hr.js reads the same setting)
+// SELL-READY 2026-11-23 decision 3 ก (D1): employee mode (PIN / QR, camera off, no face library or model) unless the URL asks
+// for face (training) mode with ?mode=training; attendance-hr.js reads the URL the same way
 const EMP_OPEN = (() => {
-  try {
-    const q = new URLSearchParams(location.search).get("mode");
-    if (q) return q === "employee";
-    const st = JSON.parse(localStorage.getItem("att-hr-settings") || "null");
-    return !!st && st.mode === "employee";
-  } catch { return false; }
+  try { return new URLSearchParams(location.search).get("mode") !== "training"; } catch { return true; }
 })();
 {
   const b = $("#camPower");

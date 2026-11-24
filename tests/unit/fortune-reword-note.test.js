@@ -63,13 +63,15 @@ test("entry 20: the regenNote keys are no longer shown (no data-i18n use, no dic
   assert.deepEqual(hits, []);
 });
 
-test("entry 20: the re-word button stays on palm and face reading, label unchanged in TH/EN/ZH, no 'new fortune' wording", () => {
+// relock2 (2026-11-23, owner inbox entry 22 item 2, option ก): the button is renamed everywhere to "เล่าอีกแบบ" ·
+// "Tell it another way" · "换个方式说说"; only the expected label strings below changed (inversion), nothing else
+test("entry 20: the re-word button stays on palm and face reading, label renamed (entry 22) in TH/EN/ZH, no 'new fortune' wording", () => {
   for (const [page, id] of [["palm.html", "plRegen"], ["faceread.html", "frRegen"]]) {
     const html = fs.readFileSync(path.join(ROOT, page), "utf8");
     const m = html.match(new RegExp('<button[^>]*id="' + id + '"[^>]*>([^<]*)</button>'));
     assert.ok(m, page + ": #" + id + " still present");
     assert.match(m[0], /data-i18n="fortune\.common\.regen"/);
-    assert.equal(m[1], "อ่านอีกสำนวน");
+    assert.equal(m[1], "เล่าอีกแบบ");
     // the actions row holds only the button now (no explanatory text next to it)
     const row = html.slice(html.indexOf('<div class="fa-actions">', html.indexOf(id) - 400), html.indexOf("</div>", html.indexOf(id)));
     // relock1 (2026-11-23): the text check now reads the text between tags only (the first lock also matched the row's
@@ -84,8 +86,8 @@ test("entry 20: the re-word button stays on palm and face reading, label unchang
     const s = fs.readFileSync(path.join(ROOT, file), "utf8");
     for (const k of keys) { const m = s.match(new RegExp('"' + k.replace(/\./g, "\\.") + '":\\s*"([^"]+)"')); assert.ok(m, file + " " + k); labels.push(m[1]); }
   }
-  assert.deepEqual(labels, ["Rephrase", "Rephrase", "换一种说法", "换一种说法", "Rephrase", "换一种说法", "Reword it", "换一种说法"]);
-  for (const l of labels.concat("อ่านอีกสำนวน")) for (const re of NEW_FORTUNE) assert.doesNotMatch(l, re);
+  assert.deepEqual(labels, ["Tell it another way", "Tell it another way", "换个方式说说", "换个方式说说", "Tell it another way", "换个方式说说", "Tell it another way", "换个方式说说"]);
+  for (const l of labels.concat("เล่าอีกแบบ")) for (const re of NEW_FORTUNE) assert.doesNotMatch(l, re);
 });
 
 /* ---------- behaviour: a new press re-words the same result ---------- */

@@ -121,8 +121,10 @@ body.att-emp .tr-only{display:none !important}
 .hr-who{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:14px}
 .hr-who input,.hr-grid input,.hr-grid select,.hr-filter select{width:100%;min-height:44px;min-width:0}
 .hr-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:thin}
-.hr-tab{background:none;border:0;padding:10px 14px;min-height:44px;white-space:nowrap;color:#4a5068;border-bottom:2px solid transparent;margin-bottom:-1px;font:inherit;cursor:pointer;flex:none}
-.hr-tab.active{color:var(--navy);border-color:var(--gold);font-weight:500}
+/* the admin tabs carry the shared .tab class; .hr-tabs keeps their own look over .tab (hover, phone flex) */
+.hr-tabs .hr-tab{background:none;border:0;padding:10px 14px;min-height:44px;
+  white-space:nowrap;color:#4a5068;border-bottom:2px solid transparent;margin-bottom:-1px;font:inherit;cursor:pointer;flex:none}
+.hr-tabs .hr-tab.active{color:var(--navy);border-color:var(--gold);font-weight:500}
 .hr-pane[hidden]{display:none}
 .hr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;align-items:end;padding:0;border:0;box-shadow:none;margin-bottom:12px}
 .hr-grid > *{min-width:0}
@@ -171,9 +173,9 @@ body.att-emp .tr-only{display:none !important}
 body.att-kiosk #siteNav,body.att-kiosk .att > h1,body.att-kiosk .att > .lead,body.att-kiosk .att > .lq-lines,body.att-kiosk .acc-note,body.att-kiosk .expiry-banner,body.att-kiosk .att-mode,
 body.att-kiosk .hr-notice,body.att-kiosk .hr-admin,body.att-kiosk .tabs,body.att-kiosk .att > .note,body.att-kiosk #pane-register,body.att-kiosk #pane-records,
 body.att-kiosk #pane-check,body.att-kiosk .tune,body.att-kiosk .hr-bar > label,body.att-kiosk footer{display:none !important}
-body.att-kiosk #pane-pin[hidden],body.att-kiosk #pane-checkin[hidden]{display:block}
+body.att-kiosk #pane-pin[hidden],body.att-kiosk.att-kface #pane-checkin[hidden]{display:block}
 body.att-kiosk #pane-pin{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
-body.att-kiosk .hr-kiosk-note{display:block}
+body.att-kiosk.att-kface .hr-kiosk-note{display:block} /* the face note only when the kiosk uses face (D1) */
 body.att-kiosk .hr-clock span{font-size:clamp(2.4rem,7vw,4rem)}
 body.att-kiosk .att{padding-top:16px}
 /* badge printing: only the badge */

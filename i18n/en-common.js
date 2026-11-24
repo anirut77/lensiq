@@ -291,7 +291,7 @@
   "home.err.interest": "Please select an area of interest",
   "home.err.consent": "Please confirm that we may contact you",
   "home.err.fix": "Please correct the {n} highlighted fields",
-  "home.uc.att": "Face check-in",
+  "home.uc.att": "PIN / QR time clock · face optional",
   "home.retry": "Send again",
   "home.ok.saved": "Thank you, {name}. Your demo request has been received (demo mode: saved in this browser, not sent anywhere)",
   "home.ok.unsaved": "Not sent yet: online requests are not open yet and this browser does not allow storage, so the request has not been kept anywhere",

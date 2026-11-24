@@ -26,7 +26,7 @@
   "sl.pg.exam": "Exam invigilation assistant",
   "sl.pg.timeclock": "Open the PIN / QR time clock",
   "sl.pg.timeclockPage": "PIN / QR time clock",
-  "sl.pg.attendance": "Face check-in",
+  "sl.pg.attendance": "PIN / QR time clock · face optional",
   "sl.pg.queue": "Long-queue alert",
   "sl.pg.tables": "Table occupancy",
   "sl.pg.afterhours": "Restricted area & after hours",

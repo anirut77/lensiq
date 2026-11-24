@@ -19,6 +19,10 @@ e4b800b7b766181827e8724f0deb621503ea608f06ffe221a8e79361af35f15f  tools/fortune-
 # locked 2026-11-23T02:39:50Z (tools/eval-guard.mjs lock, 1 file)
 559e82593bf36ae8c42016c0cbf59ea2b7d84e96b3c3f345d90099228eedf941  tools/fortune-s2.mjs
 559e82593bf36ae8c42016c0cbf59ea2b7d84e96b3c3f345d90099228eedf941  tools/fortune-s2.mjs  # repo file (same commit as lock 2026-11-23T02:39:50Z; field: ~/LENSIQ-field/evals/fortune-90/tools/fortune-s2.mjs)
+# RE-LOCK 2026-11-23 (branch fortune-90b-depth, merge of origin/fortune-depth dfd7f9d2 into fortune-90 56afb95a): tools/fortune-depth-audit.mjs = union of the two locked parents: fortune-90 f1ea1f6c (makeProfiles(seedBase), export factsOf, panelModel with facts + page, C1-C7 verdict table) + fortune-depth__warnings 3e550e38 (readingOf optional lang, default th; depthChecks / depthTable behind --depth [--strict]). Measures, inputs, ceilings and thresholds unchanged, nothing loosened: on the same merged product code the fortune-90 parent and the merged tool give identical rows / verdicts for 15 of 16 pages; zodiac differs between any two runs of either tool (zodiac.buildFacts uses Math.random when no rng is passed; pre-existing). Field copy: ~/LENSIQ-field/evals/fortune-90/relock-f90b/fortune-depth-audit.mjs.
+# locked 2026-11-23T04:56:47Z (tools/eval-guard.mjs lock, 1 file)
+dd773e5adb159303cc2c3faacf55a9d1219a7a1aa88b48327456cd34b27cf6aa  relock-f90b/fortune-depth-audit.mjs
+dd773e5adb159303cc2c3faacf55a9d1219a7a1aa88b48327456cd34b27cf6aa  tools/fortune-depth-audit.mjs  # repo file (same commit as lock 2026-11-23T04:56:47Z; field: ~/LENSIQ-field/evals/fortune-90/relock-f90b/fortune-depth-audit.mjs)
 # RE-LOCK note 2026-11-23: rule A fixed test (dream-type line in the summary overview bullet), written after the independent review FAILED the fortune-90 branch (the 140-char whole-line cap dropped the จิตนิวรณ์ / ธาตุกำเริบ "not an omen" line), locked BEFORE the fix. Baseline at 56afb95a: TH 246 readings lose the line; EN/ZH never carry the type line in the overview (0 per type).
 # locked 2026-11-23T05:39:15Z (tools/eval-guard.mjs lock, 1 file)
 2ca1d648e64ac8ed0673b0dde451dd886831a0f254f20883dfa113df620fe1cb  rule-a/fortune-dream-type-summary.test.js
@@ -39,3 +43,13 @@ e4db9c77955a4a28b3c9fc13b1183561aa23626d635a62115140e0e1347c1dda  tests/e2e/fort
 # locked 2026-11-23T06:10:51Z (tools/eval-guard.mjs lock, 1 file)
 30861f56080d297f6a43eeb34dd6e66cc00a0d070ccb3f4a7ec104fa13fe34ec  depth-v2/fortune-depth-audit.mjs
 30861f56080d297f6a43eeb34dd6e66cc00a0d070ccb3f4a7ec104fa13fe34ec  tools/fortune-depth-audit.mjs  # repo file (same commit as lock 2026-11-23T06:10:51Z; field: ~/LENSIQ-field/evals/fortune-90/depth-v2/fortune-depth-audit.mjs)
+# RE-LOCK 2026-11-23 (branch fortune-90b-depth, merge of fortune-90 2317f1e0): tools/fortune-depth-audit.mjs = union of its two latest re-locks: depth-v2 30861f56 (zodiac facts seeded with rng: lcg(p.seed)) + relock-f90b dd773e5a (merge of origin/fortune-depth: readingOf lang, depthChecks / depthTable behind --depth [--strict]). The diff from each parent is exactly the other parent's change (checked line by line); measures, inputs, ceilings and thresholds unchanged, nothing loosened. Field copy: ~/LENSIQ-field/evals/fortune-90/relock-f90b-2/fortune-depth-audit.mjs.
+# locked 2026-11-23T06:30:04Z (tools/eval-guard.mjs lock, 1 file)
+c6c63e84d91924ecc5d7c74250131a17aae7d3bc258a13f5606d532863c382da  relock-f90b-2/fortune-depth-audit.mjs
+c6c63e84d91924ecc5d7c74250131a17aae7d3bc258a13f5606d532863c382da  tools/fortune-depth-audit.mjs  # repo file (same commit as lock 2026-11-23T06:30:04Z; field: ~/LENSIQ-field/evals/fortune-90/relock-f90b-2/fortune-depth-audit.mjs)
+# locked 2026-11-23T06:39:00Z (tools/eval-guard.mjs lock, 1 file)
+ecb1b5dcac82cf73327f9c3d41403acc8ac335e3dad1a79dd899f6d58e9dc541  seed/fortune-seed-determinism.test.js
+ecb1b5dcac82cf73327f9c3d41403acc8ac335e3dad1a79dd899f6d58e9dc541  tests/unit/fortune-seed-determinism.test.js  # repo file (same commit as lock 2026-11-23T06:39:00Z; field: ~/LENSIQ-field/evals/fortune-90/seed/fortune-seed-determinism.test.js)
+# locked 2026-11-23T08:11:46Z (tools/eval-guard.mjs lock, 1 file)
+9abe0a7bf4cae5dff3e788dab929b30f943fb5ba87afa8c431a82dd9abfa8124  seed-press/fortune-seed-press.test.js
+9abe0a7bf4cae5dff3e788dab929b30f943fb5ba87afa8c431a82dd9abfa8124  tests/unit/fortune-seed-press.test.js  # repo file (same commit as lock 2026-11-23T08:11:46Z; field: ~/LENSIQ-field/evals/fortune-90/seed-press/fortune-seed-press.test.js)

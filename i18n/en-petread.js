@@ -42,6 +42,7 @@
   "pet.photoOn": "Put my pet's photo on the card",
   "pet.cardAria": "Share card of your pet's reading",
   "pet.save": "Save card image",
+  "pet.print": "Print the reading",
   "pet.share": "Share card",
   "pet.cardPriv": "The card is made on this device. Save it as an image file or pass it on through your phone's own share menu. Nothing is uploaded.",
   "pet.novet": "This reading is not pet-care advice and cannot replace a vet. For anything about caring for your pet, please ask a vet.",

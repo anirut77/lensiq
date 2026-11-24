@@ -25,7 +25,7 @@ export default async function ({ base, launch, check, fakeCams }) {
   const browser = await launch();
   try {
     const page = await browser.newPage(null, { initScripts: [fakeCams, HOOKS] });
-    const url = `${base}/attendance.html?cpu&fakedet`;
+    const url = `${base}/attendance.html?mode=training&cpu&fakedet`;
     await page.goto(url);
     await page.evaluate(p => { localStorage.clear(); localStorage.setItem("att-people", JSON.stringify(p)); }, PEOPLE);
     await page.reload();
@@ -189,7 +189,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     await check("attendance.html?cpu (real models, WASM): no console errors, no horizontal overflow at 390px", async () => {
       const p = await browser.newPage(null, { initScripts: [fakeCams] });
       await p.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
-      await p.goto(`${base}/attendance.html?cpu`);
+      await p.goto(`${base}/attendance.html?mode=training&cpu`);
       await p.waitFor("ready === true || !document.querySelector('#camMsg').classList.contains('hide') && /ไม่|ลองใหม่/.test(document.querySelector('#camMsg').textContent) && 'err'", 30000);
       const ok = await p.evaluate(() => ready);
       assert(ok, "page ready with real models: " + await p.evaluate(() => document.querySelector("#camMsg").textContent));

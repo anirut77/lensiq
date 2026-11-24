@@ -25,7 +25,7 @@ export default async function ({ base, launch, check, fakeCams }) {
   const browser = await launch();
   try {
     const page = await browser.newPage(null, { initScripts: [fakeCams, HOOKS] });
-    const url = `${base}/attendance.html?cpu&fakedet`;
+    const url = `${base}/attendance.html?mode=training&cpu&fakedet`;
     await page.goto(url);
     await page.evaluate(p => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem("att-people", JSON.stringify(p)); }, PEOPLE);
     await page.reload();
@@ -42,12 +42,12 @@ export default async function ({ base, launch, check, fakeCams }) {
 
     await check("training mode is the default and unchanged; employee mode adds the HR UI without removing anything", async () => {
       const r = await page.evaluate(() => ({ body: document.body.className, session: getComputedStyle(document.querySelector(".session")).display, admin: getComputedStyle(document.querySelector("#hrAdmin")).display,
-        tabs: [...document.querySelectorAll(".tab")].filter(t => getComputedStyle(t).display !== "none").map(t => t.dataset.t) }));
+        tabs: [...document.querySelectorAll(".tab[data-t]")].filter(t => getComputedStyle(t).display !== "none").map(t => t.dataset.t) }));
       assert(!/att-emp/.test(r.body) && r.session !== "none" && r.admin === "none", "training default: " + JSON.stringify(r));
       assert(r.tabs.join() === "checkin,register,records,check", "original tabs only: " + r.tabs);
       await click('.mode-btn[data-mode="employee"]');
       const e = await page.evaluate(() => ({ session: getComputedStyle(document.querySelector(".session")).display, admin: getComputedStyle(document.querySelector("#hrAdmin")).display, notice: document.querySelector("#hrNotice").open,
-        tabs: [...document.querySelectorAll(".tab")].filter(t => getComputedStyle(t).display !== "none").map(t => t.dataset.t), set: JSON.parse(localStorage.getItem("att-hr-settings")) }));
+        tabs: [...document.querySelectorAll(".tab[data-t]")].filter(t => getComputedStyle(t).display !== "none").map(t => t.dataset.t), set: JSON.parse(localStorage.getItem("att-hr-settings")) }));
       assert(e.session === "none" && e.admin !== "none" && e.notice, "employee UI + PDPA notice opened: " + JSON.stringify(e));
       assert(e.tabs.join() === "checkin,register,records,check,pin", "PIN/QR tab added: " + e.tabs);
       assert(e.set.mode === "employee" && e.set.retYears === 2 && /^d[a-z0-9]{8,}$/.test(e.set.dev), "settings: " + JSON.stringify(e.set));
@@ -217,8 +217,10 @@ export default async function ({ base, launch, check, fakeCams }) {
       await fill("#hrMgrPinNew", "9999"); await click("#hrDataSave");
       await click("#hrKiosk");
       const k = await page.evaluate(() => ({ kiosk: document.body.classList.contains("att-kiosk"), nav: getComputedStyle(document.querySelector("#siteNav")).display, admin: getComputedStyle(document.querySelector("#hrAdmin")).display,
-        pin: getComputedStyle(document.querySelector("#pane-pin")).display, scan: getComputedStyle(document.querySelector("#pane-checkin")).display }));
-      assert(k.kiosk && k.nav === "none" && k.admin === "none" && k.pin !== "none" && k.scan !== "none", "kiosk layout: " + JSON.stringify(k));
+        pin: getComputedStyle(document.querySelector("#pane-pin")).display, scan: getComputedStyle(document.querySelector("#pane-checkin")).display, face: ready }));
+      // SELL-READY decision 3 ก (D1): the reloads above reopen the page in employee mode (?mode=employee), so face was never chosen
+      // there and the kiosk is PIN / QR only: no face scan pane (the face kiosk is pinned by attendance-pin-default.e2e.mjs K5)
+      assert(k.kiosk && k.nav === "none" && k.admin === "none" && k.pin !== "none" && !k.face && k.scan === "none", "kiosk layout: " + JSON.stringify(k));
       await click("#hrKiosk");
       await fill("#hrKioskPin", "0000"); await page.evaluate(() => document.querySelector("#hrKioskExit").requestSubmit());
       assert(await page.evaluate(() => document.body.classList.contains("att-kiosk")), "wrong PIN keeps kiosk");
@@ -229,6 +231,8 @@ export default async function ({ base, launch, check, fakeCams }) {
 
     await check("back to training mode: the original face check-in still writes training logs", async () => {
       await click('.mode-btn[data-mode="training"]');
+      // the PIN / QR kiosk opened no face camera (SELL-READY decision 3 ก): choosing face mode starts it; wait until it is ready
+      await page.waitFor("ready === true", 15000);
       await page.evaluate(() => { const el = document.querySelector("#session"); el.value = "รอบ HR"; el.dispatchEvent(new Event("input")); window.__faces = []; });
       await click("#startScan"); await sleep(1900); // empty frames: the 2-frame confirmation forgets earlier faces
       await page.evaluate(f => { window.__faces = f; }, [FACE(0.3, "pA")]);

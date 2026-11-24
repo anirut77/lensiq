@@ -26,7 +26,7 @@
   "sl.pg.exam": "监考助手",
   "sl.pg.timeclock": "打开 PIN / QR 考勤打卡",
   "sl.pg.timeclockPage": "PIN / QR 考勤打卡",
-  "sl.pg.attendance": "人脸签到",
+  "sl.pg.attendance": "PIN / QR 码考勤 · 人脸可选",
   "sl.pg.queue": "排队过长提醒",
   "sl.pg.tables": "餐桌占用",
   "sl.pg.afterhours": "限制区域与非营业时间",
