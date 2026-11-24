@@ -801,10 +801,17 @@
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
     if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
-    var sc = document.createElement("script");
-    sc.src = "lensiq-report.js?v=4"; sc.async = true;
-    (document.head || document.documentElement).appendChild(sc);
+    afterParse(function () {
+      if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
+      var sc = document.createElement("script");
+      sc.src = "lensiq-report.js?v=4"; sc.async = true;
+      (document.head || document.documentElement).appendChild(sc);
+    });
   }
+  /* the report button and the Merit panel only act after a reading: their files are fetched once the page's own scripts have
+     run (DOMContentLoaded), so on a slow phone they do not share the network with the scripts the first control needs
+     (acceptance S2, branch palm-90). The window load event still waits for them. */
+  function afterParse(fn) { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn, { once: true }); else fn(); }
   function meritHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
     if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(p)) return;
@@ -812,11 +819,13 @@
     if (W.LENSIQ_FORTUNE_PAID === true && !W.LQPaid) {
       ["fortune-negstate.js?v=1", "fortune-paid.js?v=1"].forEach(function (f) { var ps = document.createElement("script"); ps.src = f; ps.async = false; d.appendChild(ps); });
     }
-    if (W.LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
-    ["lensiq-merit-core.js?v=4", "lensiq-merit-lint.js?v=2", "lensiq-merit.js?v=4"].forEach(function (src) {
-      var sc = document.createElement("script");
-      sc.src = src; sc.async = false;
-      (document.head || document.documentElement).appendChild(sc);
+    afterParse(function () {
+      if (W.LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
+      ["lensiq-merit-core.js?v=4", "lensiq-merit-lint.js?v=2", "lensiq-merit.js?v=4"].forEach(function (src) {
+        var sc = document.createElement("script");
+        sc.src = src; sc.async = false;
+        (document.head || document.documentElement).appendChild(sc);
+      });
     });
   }
   function selFull() {

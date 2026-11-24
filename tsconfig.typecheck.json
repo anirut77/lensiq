@@ -86,6 +86,7 @@
     "products.js",
     "studio-qa.js",
     "palm.js",
+    "palm-handmodel.js",
     "insights-analysis.js",
     "insights-data.js",
     "insights-cards.js",

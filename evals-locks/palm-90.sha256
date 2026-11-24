@@ -1,0 +1,29 @@
+# locked 2026-11-23T12:02:20Z (tools/eval-guard.mjs lock, 3 files)
+ee36a51bc6969a135cda7f50339c377743d9bf12049ef84b400dfea8bdabe0da  PLAN.txt
+dd3d3e33acc53fa32de4d50c1d14b5e0bab20f2268f1d26b62071dfb4a8ecbed  tests/palm-s2-load.test.js
+8ba0ba11ff05a797ee0a5aa3e200a6012a8ee6bd843919f7e8150135806cb2f9  tests/palm-s2-lazy.e2e.mjs
+dd3d3e33acc53fa32de4d50c1d14b5e0bab20f2268f1d26b62071dfb4a8ecbed  tests/unit/palm-s2-load.test.js  # repo file (same commit as lock 2026-11-23T12:02:20Z; field: ~/LENSIQ-field/evals/palm-90/tests/palm-s2-load.test.js)
+8ba0ba11ff05a797ee0a5aa3e200a6012a8ee6bd843919f7e8150135806cb2f9  tests/e2e/palm-s2-lazy.e2e.mjs  # repo file (same commit as lock 2026-11-23T12:02:20Z; field: ~/LENSIQ-field/evals/palm-90/tests/palm-s2-lazy.e2e.mjs)
+# field only PLAN.txt (lock 2026-11-23T12:02:20Z: no repo file uses it)
+# RE-LOCK 1 2026-11-23 (tests/e2e/palm-s2-lazy.e2e.mjs E3, stricter, before any counted run): fortune-ai.js fails on every request for the whole page life (retries included) and the checks wait until the photo has been handled; the first version stopped at the first error class it saw and left a retry paused. Nothing else changed; the first lock stays.
+# locked 2026-11-23T12:07:34Z (tools/eval-guard.mjs lock, 1 file)
+a7f7175377407124cc407b78a12bdb79974601d872020fd454ea93b4712fd82e  relock1/palm-s2-lazy.e2e.mjs
+a7f7175377407124cc407b78a12bdb79974601d872020fd454ea93b4712fd82e  tests/e2e/palm-s2-lazy.e2e.mjs  # repo file (same commit as lock 2026-11-23T12:07:34Z; field: ~/LENSIQ-field/evals/palm-90/relock1/palm-s2-lazy.e2e.mjs)
+# retired tests/palm-s2-load.test.js reason: not a repo path; line 3 names the FIELD copy (~/LENSIQ-field/evals/palm-90/tests/palm-s2-load.test.js), whose repo copy is tests/unit/palm-s2-load.test.js (same hash, ledger line below it); nothing was removed
+# retired tests/palm-s2-lazy.e2e.mjs reason: not a repo path; line 4 names the FIELD copy (~/LENSIQ-field/evals/palm-90/tests/palm-s2-lazy.e2e.mjs), whose repo copy is tests/e2e/palm-s2-lazy.e2e.mjs (ledger lines; current hash under relock1); nothing was removed
+# locked 2026-11-23T17:21:48Z (tools/eval-guard.mjs lock, 1 file)
+a899bb1fcc9289365d298c4d6a292513d53d47b1104d49b6cb2a895c313aa7b7  r1/palm-s2-merit.e2e.mjs
+a899bb1fcc9289365d298c4d6a292513d53d47b1104d49b6cb2a895c313aa7b7  tests/e2e/palm-s2-merit.e2e.mjs  # repo file (same commit as lock 2026-11-23T17:21:48Z; field: ~/LENSIQ-field/evals/palm-90/r1/palm-s2-merit.e2e.mjs)
+# locked 2026-11-23T13:56:46Z (tools/eval-guard.mjs lock, 2 files)
+0115a9b04226126fba6d897cd6316088b3c655617a6fbdc02b61b1af949f4f47  c/palm-trace-snap.test.js
+f1375926279e0bfd8e868a6e3745ef8c8b5e58b2d0eec63e5dc06809e5322243  c/palm-trace-c.e2e.mjs
+0115a9b04226126fba6d897cd6316088b3c655617a6fbdc02b61b1af949f4f47  tests/unit/palm-trace-snap.test.js  # repo file (same commit as lock 2026-11-23T13:56:46Z; field: ~/LENSIQ-field/evals/palm-90/c/palm-trace-snap.test.js)
+f1375926279e0bfd8e868a6e3745ef8c8b5e58b2d0eec63e5dc06809e5322243  tests/e2e/palm-trace-c.e2e.mjs  # repo file (same commit as lock 2026-11-23T13:56:46Z; field: ~/LENSIQ-field/evals/palm-90/c/palm-trace-c.e2e.mjs)
+# RE-LOCK c2 2026-11-23 (tests/e2e/palm-trace-c.e2e.mjs, stricter): the canvas is scrolled into view instantly and every stroke point must hit the editor canvas; the first version's stroke landed beside the canvas during the page's smooth scroll, so C3 tested nothing. Nothing else changed; the first lock stays.
+# locked 2026-11-23T13:58:50Z (tools/eval-guard.mjs lock, 1 file)
+b8bf8553140eb94ca5c9202c9f92c670d8dd379d80ec5d3ce32f3ff216c89038  c2/palm-trace-c.e2e.mjs
+b8bf8553140eb94ca5c9202c9f92c670d8dd379d80ec5d3ce32f3ff216c89038  tests/e2e/palm-trace-c.e2e.mjs  # repo file (same commit as lock 2026-11-23T13:58:50Z; field: ~/LENSIQ-field/evals/palm-90/c2/palm-trace-c.e2e.mjs)
+# RE-LOCK c3 2026-11-24 (tests/e2e/palm-trace-c.e2e.mjs, independent review findings 4 and 5, stricter): C2 in TH/EN/ZH requires a visible user-added mark on the chip and the result card, a distinct editor stroke style and clamped points; C4 also fails on a GET with a query string other than ?v=<digits>; new C5: pointercancel places nothing. c1 / c2 stay.
+# locked 2026-11-23T17:24:07Z (tools/eval-guard.mjs lock, 1 file)
+e235d455104317424f2d65d2f1397cc590b0fc5a45724c51e354b33d8500709f  c3/palm-trace-c.e2e.mjs
+e235d455104317424f2d65d2f1397cc590b0fc5a45724c51e354b33d8500709f  tests/e2e/palm-trace-c.e2e.mjs  # repo file (same commit as lock 2026-11-23T17:24:07Z; field: ~/LENSIQ-field/evals/palm-90/c3/palm-trace-c.e2e.mjs)

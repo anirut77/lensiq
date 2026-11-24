@@ -20,97 +20,12 @@
   var lerp = function (a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; };
   var clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
   var round = function (v, d) { var k = Math.pow(10, d == null ? 2 : d); return Math.round(v * k) / k; };
-  var normRad = function (a) { return a - 2 * Math.PI * Math.floor((a + Math.PI) / (2 * Math.PI)); };
   var sigmoid = function (x) { return 1 / (1 + Math.exp(-x)); };
 
-  /* ================= โมเดลตรวจฝ่ามือ (palm detector 192×192, 2016 anchors) ================= */
-  var DET = { size: 192, strides: [8, 16, 16, 16], numBoxes: 2016, stride: 19, minScore: 0.5, iou: 0.3 };
-  var LM = { size: 224 };
-  /** anchors แบบ SSD (fixedAnchorSize → w = h = 1): คืน Float32Array [xc, yc, ...] */
-  function ssdAnchors() {
-    var out = [], layer = 0, st = DET.strides;
-    while (layer < st.length) {
-      var last = layer, n = 0;
-      while (last < st.length && st[last] === st[layer]) { n += 2; last++; } // aspect 1 + interpolated → 2 anchors ต่อชั้น
-      var fm = Math.ceil(DET.size / st[layer]);
-      for (var y = 0; y < fm; y++) for (var x = 0; x < fm; x++) for (var k = 0; k < n; k++) out.push((x + 0.5) / fm, (y + 0.5) / fm);
-      layer = last;
-    }
-    return new Float32Array(out);
-  }
-  /** raw: Float32Array 2016×19 = [logit, xc, yc, w, h, kx0, ky0 … kx6, ky6] (พิกเซลใน 192) → detections (พิกัด 0–1 ของภาพ letterbox) */
-  function decodePalms(raw, anchors, minScore) {
-    var S = DET.size, res = [];
-    minScore = minScore == null ? DET.minScore : minScore;
-    for (var i = 0; i < DET.numBoxes; i++) {
-      var o = i * DET.stride, sc = sigmoid(clamp(raw[o], -100, 100));
-      if (sc < minScore) continue;
-      var ax = anchors[2 * i], ay = anchors[2 * i + 1];
-      var xc = raw[o + 1] / S + ax, yc = raw[o + 2] / S + ay, w = raw[o + 3] / S, h = raw[o + 4] / S;
-      if (w <= 0 || h <= 0) continue;
-      var kps = [];
-      for (var k = 0; k < 7; k++) kps.push([raw[o + 5 + 2 * k] / S + ax, raw[o + 6 + 2 * k] / S + ay]);
-      res.push({ score: sc, x: xc - w / 2, y: yc - h / 2, w: w, h: h, kps: kps });
-    }
-    return res;
-  }
-  function iou(a, b) {
-    var x0 = Math.max(a.x, b.x), y0 = Math.max(a.y, b.y), x1 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.min(a.y + a.h, b.y + b.h);
-    var inter = Math.max(0, x1 - x0) * Math.max(0, y1 - y0);
-    return inter / (a.w * a.h + b.w * b.h - inter || 1);
-  }
-  function nms(dets, thr, max) {
-    var s = dets.slice().sort(function (a, b) { return b.score - a.score; }), keep = [];
-    s.forEach(function (d) { if (keep.length < (max || 2) && keep.every(function (k) { return iou(k, d) <= (thr == null ? DET.iou : thr); })) keep.push(d); });
-    return keep;
-  }
-  /** ขนาด/ขอบดำเมื่อย่อภาพ W×H ลงใน size×size แบบคงสัดส่วน */
-  function letterbox(W, H, size) {
-    var s = Math.min(size / W, size / H), dw = W * s, dh = H * s;
-    return { scale: s, dx: (size - dw) / 2, dy: (size - dh) / 2, dw: dw, dh: dh, pad: { left: (size - dw) / 2 / size, top: (size - dh) / 2 / size, right: (size - dw) / 2 / size, bottom: (size - dh) / 2 / size } };
-  }
-  function unletterbox(d, pad) {
-    var sx = 1 - pad.left - pad.right, sy = 1 - pad.top - pad.bottom;
-    var f = function (p) { return [(p[0] - pad.left) / sx, (p[1] - pad.top) / sy]; };
-    return { score: d.score, x: (d.x - pad.left) / sx, y: (d.y - pad.top) / sy, w: d.w / sx, h: d.h / sy, kps: d.kps.map(f) };
-  }
-  /** detection (0–1 ของภาพจริง) → กรอบหมุนสำหรับโมเดลจุด (พิกเซล): หมุนให้ ข้อมือ→โคนนิ้วกลาง ชี้ขึ้น, ขยาย 2.6×, เลื่อนขึ้นครึ่งกรอบ */
-  function palmRoi(d, W, H) {
-    var k0 = [d.kps[0][0] * W, d.kps[0][1] * H], k2 = [d.kps[2][0] * W, d.kps[2][1] * H];
-    var rot = normRad(Math.PI / 2 - Math.atan2(-(k2[1] - k0[1]), k2[0] - k0[0]));
-    var w = d.w * W, h = d.h * H, cx = (d.x + d.w / 2) * W, cy = (d.y + d.h / 2) * H, shiftY = -0.5;
-    cx += -h * shiftY * Math.sin(rot); cy += h * shiftY * Math.cos(rot);
-    return { cx: cx, cy: cy, size: Math.max(w, h) * 2.6, rot: rot };
-  }
-  /** จุด 21 จุดเดิม → กรอบสำหรับรอบที่สอง (คล้าย handLandmarksToRect: หมุนตาม ข้อมือ→เฉลี่ยโคนนิ้วชี้/นาง/กลาง) */
-  function landmarksRoi(pts) {
-    var p0 = pts[0], mid = [(pts[5][0] + pts[13][0]) / 2 * 0.5 + pts[9][0] * 0.5, (pts[5][1] + pts[13][1]) / 2 * 0.5 + pts[9][1] * 0.5];
-    var rot = normRad(Math.PI / 2 - Math.atan2(-(mid[1] - p0[1]), mid[0] - p0[0]));
-    var idx = [0, 1, 2, 3, 5, 6, 9, 10, 13, 14, 17, 18], c = Math.cos(-rot), s = Math.sin(-rot);
-    var xs = [], ys = [];
-    idx.forEach(function (i) { var p = pts[i]; xs.push(p[0] * c - p[1] * s); ys.push(p[0] * s + p[1] * c); });
-    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
-    var rc = [(x0 + x1) / 2, (y0 + y1) / 2], w = x1 - x0, h = y1 - y0;
-    var cx = rc[0] * Math.cos(rot) - rc[1] * Math.sin(rot), cy = rc[0] * Math.sin(rot) + rc[1] * Math.cos(rot);
-    var shiftY = -0.1;
-    cx += -h * shiftY * Math.sin(rot); cy += h * shiftY * Math.cos(rot);
-    return { cx: cx, cy: cy, size: Math.max(w, h) * 2.0, rot: rot };
-  }
-  /** ทรานส์ฟอร์มของ canvas สำหรับครอปกรอบหมุน roi ลงภาพ out×out: ctx.setTransform(...m) แล้ว drawImage(src, 0, 0) */
-  function roiCropMatrix(roi, out) {
-    var k = out / roi.size, c = Math.cos(-roi.rot), s = Math.sin(-roi.rot);
-    // p' = k·R(−rot)(p − c) + out/2
-    return [k * c, k * s, -k * s, k * c, out / 2 - k * (c * roi.cx - s * roi.cy), out / 2 - k * (s * roi.cx + c * roi.cy)];
-  }
-  /** ผลโมเดลจุด (63 ค่า พิกเซลใน 224) → พิกัดภาพจริง */
-  function projectLandmarks(raw, roi) {
-    var pts = [], c = Math.cos(roi.rot), s = Math.sin(roi.rot);
-    for (var i = 0; i < 21; i++) {
-      var x = raw[3 * i] / LM.size - 0.5, y = raw[3 * i + 1] / LM.size - 0.5;
-      pts.push([(c * x - s * y) * roi.size + roi.cx, (s * x + c * y) * roi.size + roi.cy]);
-    }
-    return pts;
-  }
+  /* hand-model decoding (palm detector 192x192, 21-point landmarks): moved unchanged to palm-handmodel.js (size cap, palm-90) */
+  var HM = root.PalmHandModel || (typeof require === "function" ? require("./palm-handmodel.js") : null);
+  var DET = HM.DET, LM = HM.LM, ssdAnchors = HM.ssdAnchors, decodePalms = HM.decodePalms, iou = HM.iou, nms = HM.nms, letterbox = HM.letterbox,
+    unletterbox = HM.unletterbox, palmRoi = HM.palmRoi, landmarksRoi = HM.landmarksRoi, roiCropMatrix = HM.roiCropMatrix, projectLandmarks = HM.projectLandmarks;
 
   /* ================= เรขาคณิตของมือ ================= */
   /** จาก 21 จุดของโมเดล */
@@ -457,6 +372,12 @@
       opt.honest (palm v2, owner order 2026-11-19; ใช้เมื่อ LENSIQ_PALM_V2 เปิด): ไม่บังคับ present และไม่ยึดจุดเริ่ม/ความยาวขั้นต่ำ
       ทุกเส้นใช้เกณฑ์เดียวกับเส้นวาสนา เส้นที่ไม่ผ่านได้ notFound = true (ไม่พบในภาพ ≠ มือไม่มีเส้น) · ค่าเริ่มต้น = สถานะ "ไม่ชัด" ข้างบน */
   var LINE_MIN_CONF = 0.3;
+  var TRACE_LOW = 0.5; // owner inbox 24 C: below this auto confidence a main line offers "trace this line" — PROVISIONAL (no field data)
+  /** a finger stroke (canonical px) snapped to crease evidence within radiusPx; where the photo shows no crease the stroke stays */
+  function snapTrace(R, pathPx, radiusPx) {
+    var tr = traceAlong(R, pathPx, radiusPx, { n: 24 }), base = resample(spline(pathPx, 80), 24);
+    return tr.path.map(function (q, i) { return tr.strength[i] >= TRACE.thr ? q : base[i]; });
+  }
   function detectLines(R, F, opt) {
     var honest = !!(opt && opt.honest);
     var out = {};
@@ -922,8 +843,10 @@
     GUIDE_HAND: GUIDE_HAND, guideTemplate: guideTemplate, handContour: handContour, fitScore: fitScore,
     MOUNT_IDS: MOUNT_IDS, estimateMounts: estimateMounts, compareHands: compareHands, buildComparison: buildComparison,
     palmFrame: palmFrame, grayFrom: grayFrom, gaussBlur: gaussBlur, localContrast: localContrast, ridgeFilter: ridgeFilter, skinMask: skinMask, sample: sample,
-    spline: spline, resample: resample, traceAlong: traceAlong, analyzeStrength: analyzeStrength, detectLines: detectLines, LINE_MIN_CONF: LINE_MIN_CONF, lineRead: lineRead, fateUserNone: fateUserNone,
-    measureLine: measureLine, classifyLines: classifyLines, buildReading: buildReading, analyze: analyze, addStat: addStat
+    spline: spline, resample: resample, traceAlong: traceAlong, analyzeStrength: analyzeStrength, detectLines: detectLines, LINE_MIN_CONF: LINE_MIN_CONF, lineRead: lineRead, fateUserNone: fateUserNone, TRACE_LOW: TRACE_LOW, snapTrace: snapTrace,
+    measureLine: measureLine, classifyLines: classifyLines, buildReading: buildReading, analyze: analyze, addStat: addStat,
+    /** palm.html loads palm-kb.js after the page is usable (S2, palm-90): the page hands the tables over once they ran */
+    setKB: function (k) { KB = k || KB; }
   };
   if (typeof module !== "undefined" && module.exports) module.exports = PalmCore;
   root.PalmCore = PalmCore;
@@ -934,7 +857,36 @@
 /* ===================================================================================== */
 if (typeof window !== "undefined" && typeof document !== "undefined" && document.getElementById("plApp")) (function () {
   "use strict";
-  var PC = window.PalmCore, KB = window.PALM_KB;
+  var PC = window.PalmCore, KB = window.PALM_KB || null;
+  /* S2 (docs/acceptance/fortune-pages.md row S, palm-90): palm-kb.js (reading tables), fortune-ai.js (composer) and
+     vendor/face-api.js (hand-model runtime) are <script type="text/lq-lazy"> tags in palm.html, so the camera button works
+     before they arrive. deps() loads the first two right after DOMContentLoaded (and again on the next action after a
+     failure); loadModels() loads face-api.js on the first camera start or photo. The crisis net (fortune-crisis.js) is still
+     parser-run before this file; nothing here changes what a reading says. */
+  var lazyP = {};
+  function lazyLoad(re, ok) {
+    if (ok()) return Promise.resolve();
+    var tag = Array.prototype.slice.call(document.querySelectorAll('script[type="text/lq-lazy"]')).filter(function (t) { return re.test(t.getAttribute("src") || ""); })[0];
+    if (!tag) return Promise.reject(new Error("load"));
+    var src = String(tag.getAttribute("src"));
+    if (!lazyP[src]) lazyP[src] = new Promise(function (res, rej) {
+      var sc = document.createElement("script"); sc.src = src; sc.async = true; // not ordered: never queued behind Merit (review r1)
+      var fail = function () { delete lazyP[src]; sc.remove(); rej(new Error("load")); };
+      sc.onload = function () { if (ok()) res(); else fail(); };
+      sc.onerror = fail;
+      document.body.appendChild(sc);
+    });
+    return lazyP[src];
+  }
+  var depsP = null, domReady = new Promise(function (r) { if (document.readyState !== "loading") r(); else document.addEventListener("DOMContentLoaded", function () { r(); }, { once: true }); });
+  function deps() { // the lazy tags come after this file in palm.html: wait until the parser has reached them
+    if (!depsP) depsP = domReady.then(function () { return Promise.all([
+      lazyLoad(/(^|\/)palm-kb\.js(\?|$)/, function () { return !!window.PALM_KB; }),
+      lazyLoad(/(^|\/)fortune-ai\.js(\?|$)/, function () { return !!window.FortuneAI; })
+    ]); }).then(function () { onDeps(); }, function (e) { depsP = null; throw e; });
+    return depsP;
+  }
+  function loadErr() { engine(function () { return T("palm.eng.loadErr", "โหลดข้อมูลคำอ่านไม่สำเร็จ กรุณาตรวจการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง"); }, "err"); }
   var $ = function (s) { return document.querySelector(s); };
   var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
@@ -1029,7 +981,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
   $$("[data-dom]").forEach(function (b) { b.addEventListener("click", function () { if (S.dom === b.dataset.dom) return; S.dom = b.dataset.dom; prefs.dom = S.dom; lsSet(PREF_KEY, prefs); if (S.pairStep === 0) resetPair(); renderSide(); if (S.hand) renderReadSide(); }); });
   function renderTradition() { $("#plTradition").innerHTML = KB.hands.tradition.map(function (t, i) { return "<li><b>" + esc(KT("hands.tradition." + i + ".k", t.k)) + ":</b> " + esc(KT("hands.tradition." + i + ".t", t.t)) + "</li>"; }).join(""); }
-  renderTradition();
+  if (KB) renderTradition();
   /** ข้างที่ตรวจได้จากภาพ → ข้างที่จะอ่าน (ข้างที่เลือกไว้มาก่อน; อัตโนมัติใช้ผลตรวจ) */
   function applyDetectedSide(rs) {
     S.sideDet = rs;
@@ -1060,7 +1012,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (rs.side === S.liveCand) S.liveCount++; else { S.liveCand = rs.side; S.liveCount = 1; }
     if (S.liveCount >= 2 && S.liveSide !== rs.side) { S.liveSide = rs.side; renderSide(); }
   }
-  renderSide();
+  if (KB) renderSide();
 
   /* ---------- กล้อง (LQCam.create: กล้องหลัง 1920×1080 + ปุ่มไฟฉาย ปิดไว้ตอนเริ่ม; สำรองข้อจำกัดทีละขั้นโดยไม่ทิ้งความละเอียดที่ขอ) ---------- */
   /** ปุ่มไฟฉาย (เมื่อกล้องรองรับ) + สลับกล้อง + ตัวเลือกกล้อง (เมื่อมี ≥ 2 ตัว) วางทับมุมขวาบนของกรอบกล้อง */
@@ -1120,8 +1072,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var FAKE = !!(window.LQDetect && LQDetect.isTest()); // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
   var modelsP = null;
   function loadModels() {
-    if (FAKE) { ready = true; models = models || { fake: true }; engine(function () { return T("palm.eng.readyFake", "พร้อมใช้งาน (ตัวตรวจจับจำลองสำหรับทดสอบ)"); }, "ok"); return Promise.resolve(models); }
-    if (!modelsP) modelsP = LQDetect.tfBackend().then(function (b) {
+    if (FAKE) return deps().then(function () { ready = true; models = models || { fake: true }; engine(function () { return T("palm.eng.readyFake", "พร้อมใช้งาน (ตัวตรวจจับจำลองสำหรับทดสอบ)"); }, "ok"); return models; }, function (e) { loadErr(); throw e; });
+    if (!modelsP) modelsP = lazyLoad(/(^|\/)vendor\/face-api\.js(\?|$)/, function () { return !!(window.faceapi && window.faceapi.tf); }).then(function () { return LQDetect.tfBackend(); }).then(function (b) {
       var tf = faceapi.tf;
       return Promise.all([tf.loadGraphModel(MODEL_DIR + "detector/model.json"), tf.loadGraphModel(MODEL_DIR + "landmark/model.json")]).then(function (m) {
         models = { tf: tf, det: m[0], lm: m[1], anchors: PC.ssdAnchors(), backend: b };
@@ -1357,6 +1309,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   /* ---------- ประมวลผลภาพ: จุดบนมือ → กรอบฝ่ามือ → ภาพมาตรฐาน → ตัวกรองเส้น → เส้นอัตโนมัติ ---------- */
   async function processImage(cv) {
+    if (!KB || !FA) {
+      engine(function () { return T("palm.eng.loading", "กำลังเตรียมการหามือ รอสักครู่..."); });
+      try { await deps(); } catch (e) { loadErr(); return; }
+    }
     S.src = cv; S.result = null;
     resultSec.hidden = true;
     // speed pass L3: the hand model (4.4 MB) loads on the first photo; say so while it downloads
@@ -1415,6 +1371,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var TAP_LABELS = { wrist: "กึ่งกลางข้อมือ", indexBase: "โคนนิ้วชี้", pinkyBase: "โคนนิ้วก้อย", indexTip: "ปลายนิ้วชี้", middleTip: "ปลายนิ้วกลาง", ringTip: "ปลายนิ้วนาง", pinkyTip: "ปลายนิ้วก้อย" };
   var tapLabel = function (k) { return T("palm.tap." + k, TAP_LABELS[k]); };
   var unclearLabel = function () { return T("palm.line.unclear", "ไม่ชัดในภาพนี้"); };
+  var addedLabel = function () { return T("palm.line.added", "เพิ่มเอง"); }; // review r1 finding 4: a traced line is visibly user-added
   function showEditor() {
     editSec.hidden = false; setStep(2);
     $("#plTapBar").hidden = S.mode !== "tap";
@@ -1442,11 +1399,15 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderLineChips() {
     $("#plLineChips").innerHTML = PC.LINE_IDS.map(function (id) {
       // ไม่มีป้ายความมั่นใจ (ชัด / พอเห็น) ข้างเส้น — ความแม่นยำยังไม่ได้วัด (owner decision 165 ก); เหลือเฉพาะสถานะ "ไม่ชัดในภาพนี้" (163 ก)
-      var L = KB.lines[id], SL = S.lines && S.lines[id], conf = SL && SL.unclear ? unclearLabel() : "";
+      var L = KB.lines[id], SL = S.lines && S.lines[id], conf = SL && SL.unclear ? unclearLabel() : SL && SL.traced ? addedLabel() : "";
       return '<button type="button" role="radio" class="chip-btn" style="--c:' + L.color + '" data-line="' + id + '" aria-checked="' + (S.active === id) + '"><i></i>' + esc(KT("lines." + id + ".th", L.th)) + (conf ? " <small>(" + conf + ")</small>" : "") + "</button>";
     }).join("");
-    $$("#plLineChips [data-line]").forEach(function (b) { b.addEventListener("click", function () { S.active = b.dataset.line; renderLineChips(); renderEditor(); }); });
+    $$("#plLineChips [data-line]").forEach(function (b) { b.addEventListener("click", function () { S.active = b.dataset.line; S.tracing = false; renderLineChips(); renderEditor(); }); });
+    var A = S.auto && S.auto[S.active], tb = $("#plTraceLine"); // owner inbox 24 C: main lines found with low confidence only
+    tb.hidden = !(S.mode === "edit" && ["life", "head", "heart"].indexOf(S.active) >= 0 && A && (A.unclear || A.auto.conf < PC.TRACE_LOW));
+    tb.setAttribute("aria-pressed", S.tracing && !tb.hidden ? "true" : "false");
   }
+  $("#plTraceLine").addEventListener("click", function () { S.tracing = !S.tracing; renderLineChips(); });
   // ติ๊ก = ผู้ใช้ยืนยันเองว่ามองไม่เห็นเส้นวาสนา; เลิกติ๊ก = กลับไปสถานะเดิม (ตรวจพบ / ผู้ใช้วางเอง / ไม่ชัดในภาพนี้)
   $("#plFateNone").addEventListener("change", /** @this {HTMLInputElement} */ function () {
     var L = S.lines && S.lines.fate; if (!L) return;
@@ -1501,6 +1462,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var on = id === S.active;
       // เส้นที่ไม่ชัด / ผู้ใช้ติ๊กว่ามองไม่เห็น: ไม่วาดเป็นเส้นที่ตรวจพบ (ไม่ใช้สีของเส้น) — เส้นที่เลือกอยู่แสดงเป็นเส้นประสีกลางเพื่อให้ลากวางเองได้
       if (!L.present) { if (on && L.unclear) strokeLine(c, L.cp, "rgba(255,255,255,.55)", 2 * sc, true); return; }
+      if (L.traced) strokeLine(c, L.cp, "#ffffff", (on ? 8 : 6) * sc, false); // user-added: white halo under the line colour
       strokeLine(c, L.cp, KB.lines[id].color, (on ? 4 : 2.5) * sc, false);
     });
     var A = S.lines[S.active], ring = A && A.present ? KB.lines[S.active].color : "#94a3b8";
@@ -1531,6 +1493,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return;
     }
     if (!S.lines) return;
+    if (S.tracing) { e.preventDefault(); drag = { trace: [S.F.pxToUV([dispX(p[0]), p[1]])] }; try { edCv.setPointerCapture(e.pointerId); } catch (err) { /* ไม่มี pointer จริง */ } return; }
     /** @type {any} */
     var best = null, bd = 30 * cssScale();
     var order = [S.active].concat(PC.LINE_IDS.filter(function (id) { return id !== S.active; }));
@@ -1548,14 +1511,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
   edCv.addEventListener("pointermove", function (e) {
     if (!drag) return;
+    if (drag.trace) { drag.trace.push(dispToUv(evtPt(e))); var tc = edCv.getContext("2d"); renderEditor(); strokeLine(tc, drag.trace, "#22d3ee", 3 * cssScale(), true); return; }
     var q = dispToUv(evtPt(e)), DL = S.lines[drag.id];
     DL.cp[drag.i] = [PC.round(Math.max(-0.42, Math.min(1.32, q[0])), 4), PC.round(Math.max(-0.4, Math.min(1.12, q[1])), 4)];
     // ผู้ใช้วางเส้นเอง: เส้นนี้นำไปอ่านได้ (เป็นข้อมูลที่ผู้ใช้ยืนยัน ไม่ใช่เส้นแทนจากแม่แบบ)
     DL.placed = true; if (DL.unclear) { DL.unclear = false; DL.present = true; renderLineChips(); }
     renderEditor();
   });
-  var endDrag = function () { if (drag) { drag = null; edCv.classList.remove("dragging"); renderEditor(); } };
-  edCv.addEventListener("pointerup", endDrag); edCv.addEventListener("pointercancel", endDrag);
+  var endDrag = function () {
+    if (drag && drag.trace && drag.trace.length >= 3) { // the stroke, snapped to the photo's crease evidence (radius 0.03 palm width), becomes the line
+      var snap = PC.snapTrace(S.R, drag.trace.map(S.F.uvToPx), 0.03 * S.F.opt.s), TL = S.lines[S.active];
+      TL.cp = PC.resample(snap, 5).map(function (q) { var u = S.F.pxToUV(q); return [PC.round(Math.max(-0.42, Math.min(1.32, u[0])), 4), PC.round(Math.max(-0.4, Math.min(1.12, u[1])), 4)]; });
+      TL.present = true; TL.unclear = false; TL.placed = true; TL.traced = true; S.tracing = false; renderLineChips();
+    }
+    if (drag) { drag = null; edCv.classList.remove("dragging"); renderEditor(); }
+  };
+  edCv.addEventListener("pointerup", endDrag); edCv.addEventListener("pointercancel", function () { if (drag && drag.trace) drag.trace = []; endDrag(); }); // a cancelled stroke places nothing
 
   // เส้นรอง (ผู้ใช้ยืนยัน) และเนิน
   function renderMinor() {
@@ -1578,9 +1549,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       b.addEventListener("click", function () { var k = b.dataset.mount, i = S.mounts.indexOf(k); if (i >= 0) S.mounts.splice(i, 1); else S.mounts.push(k); renderMounts(); });
     });
   }
-  renderMinor(); renderMounts();
+  if (KB) { renderMinor(); renderMounts(); }
   function renderMountNote() { $("#plMountNote").textContent = KT("mountsNote", KB.mountsNote); }
-  renderMountNote();
+  if (KB) renderMountNote();
   // ถ่ายใหม่: ล้างเฉพาะมือปัจจุบัน (โหมดทั้งสองมือยังเก็บผลมือที่ 1 ไว้)
   $("#plBack").addEventListener("click", function () {
     clearReading(); renderSide(); renderPair(); setStep(1); touch();
@@ -1590,6 +1561,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   /* ---------- ขั้นที่ 3: อ่านลายมือ ---------- */
   $("#plRead").addEventListener("click", function () {
+    if (!S.hand || !S.lines) return;
+    if (!KB || !FA) { deps().then(readNow, loadErr); return; }
+    readNow();
+  });
+  function readNow() {
     if (!S.hand || !S.lines) return;
     touch();
     var lines = {};
@@ -1611,10 +1587,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plCardImg").hidden = true;
     resultSec.scrollIntoView({ behavior: smooth(), block: "start" });
     $("#plResTitle").focus({ preventScroll: true });
-  });
+  }
 
   /* ---------- คำทำนายโดยละเอียด (FortuneAI: เรียบเรียงในเครื่อง หรือ Claude AI เมื่อเซิร์ฟเวอร์เปิดและผู้ใช้ยินยอม) ---------- */
-  var FA = window.FortuneAI || null;
+  var FA = window.FortuneAI || null; // set again by onDeps() when fortune-ai.js arrives after the page is usable
   var TOPICS = [["overall", "ภาพรวม"], ["love", "ความรัก"], ["work", "การงาน"], ["money", "การเงิน"]];
   var topic = "overall", narrToken = 0, narrPress = 0;
   function renderTopics() {
@@ -1670,7 +1646,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   $("#plRegen").addEventListener("click", function () { touch(); narrate(true); });
   $("#plNick").addEventListener("change", function () { if (S.result) narrate(false); });
-  if (FA && FA.consentControl) FA.consentControl($("#plConsent"), { onChange: function () { if (S.result) narrate(false); } }).catch(function () { /* ไม่มีเซิร์ฟเวอร์ AI */ });
+  var consentOn = false;
+  function mountConsent() {
+    if (consentOn || !FA || !FA.consentControl) return;
+    consentOn = true;
+    FA.consentControl($("#plConsent"), { onChange: function () { if (S.result) narrate(false); } }).catch(function () { /* ไม่มีเซิร์ฟเวอร์ AI */ });
+  }
+  mountConsent();
 
   /** ดึง 2–3 ประโยคสั้น (≤ max ตัวอักษร) จากคำทำนายที่เรียบเรียงแล้ว สำหรับการ์ดแชร์
       หาสำนวนจาก KB ที่ปรากฏจริงในภาพรวม/หัวข้อแรก ๆ ตามลำดับที่อ่าน แล้วตัดที่ช่องว่างระหว่างวลีให้สั้นลง */
@@ -1765,7 +1747,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plLines").innerHTML = rd.lines.map(function (l) {
       return '<div class="line-card" data-line="' + l.id + '" style="--c:' + l.color + '"><h4>' + esc(KT("lines." + l.id + ".th", l.th)) +
         // Thai keeps the kanji name as a subtitle (design since 3808a3cb); English / Chinese show the one name only (A5)
-        (trL() ? "" : "<span>" + esc(T("palm.lineEn." + l.id, l.cn)) + "</span>") + "</h4>" +
+        (trL() ? "" : "<span>" + esc(T("palm.lineEn." + l.id, l.cn)) + "</span>") + "</h4>" + (S.lines && S.lines[l.id] && S.lines[l.id].traced ? '<p class="added">' + esc(addedLabel()) + "</p>" : "") +
         '<p class="about">' + esc(KT("lines." + l.id + ".about", l.about)) + "</p><ul>" +
         l.items.map(function (it) { return "<li><b>" + esc(lineCatLabel(l.id, it.cat)) + "</b>" + esc(ZM(l.id + "." + it.cat, it.meaning, LINE_ORDER[l.id])) + "</li>"; }).join("") + "</ul></div>";
     }).join("") + (R.unclear || []).map(function (id) { // สถานะเท่านั้น ไม่มีคำอ่าน (owner decision 163 ก)
@@ -2006,7 +1988,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#plStatsOn").checked = !!prefs.stats;
   $("#plStatsOn").addEventListener("change", /** @this {HTMLInputElement} */ function () { prefs.stats = this.checked; lsSet(PREF_KEY, prefs); });
   $("#plStatsClear").addEventListener("click", function () { if (confirm(T("palm.stats.confirm", "ล้างสถิติการอ่านในเครื่องนี้?"))) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
-  renderStats();
+  if (KB) renderStats();
 
   /* ---------- โหมดบูธ: เต็มจอ ปุ่มใหญ่ กลับหน้าเริ่มอัตโนมัติเมื่อไม่มีการใช้งาน 60 วินาที ---------- */
   var idleT = null, idleTick = null, wasFs = false;
@@ -2043,12 +2025,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   if (!window.isSecureContext) showHttpsNote($("#plEngine"));
   // speed pass 2026-11-14: no model download at page load; the hand model loads when the camera opens or a photo is chosen
   // (test mode ?fakedet loads no model at all, so it is ready at once)
+  function onDeps() {
+    var first = !KB;
+    KB = window.PALM_KB; PC.setKB(KB); FA = window.FortuneAI;
+    mountConsent();
+    if (first) { renderTradition(); renderSide(); renderMinor(); renderMounts(); renderMountNote(); renderStats(); renderPair(); }
+  }
+  deps().catch(function () { /* shown on the next action */ }); // starts at DOMContentLoaded
   if (FAKE) loadModels().catch(function () {});
   else engine("", "ok"); // owner order 2026-11-15 item 1: no idle technical status; the status line speaks only while loading or on a failure
   renderPair();
 
   /* ---------- สลับภาษา (TH | 中文): วาดข้อความที่สร้างจาก JS ใหม่ และเรียบเรียงคำทำนายใหม่จากผลวัดชุดเดิม ---------- */
   window.addEventListener("lq-lang", function () {
+    if (!KB) { renderTopics(); if (lastEngine && typeof lastEngine[0] === "function") engine(lastEngine[0], lastEngine[1]); return; }
     renderSide(); renderTradition(); renderTopics(); renderMinor(); renderMounts(); renderMountNote(); renderStats();
     if (lastQcItems) renderQc(lastQcItems);
     if (lastEngine && typeof lastEngine[0] === "function") engine(lastEngine[0], lastEngine[1]);
@@ -2057,6 +2047,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     renderPair();
     if (S.result) { renderResult(S.result); $("#plCardImg").hidden = true; narrate(false); }
   });
-  window.__palm = { get S() { return S; }, get guide() { return S.guide; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, detectHands: detectHands, loadModels: loadModels }; // ใช้ทดสอบ
+  window.__palm = { get S() { return S; }, get guide() { return S.guide; }, deps: deps, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, detectHands: detectHands, loadModels: loadModels }; // ใช้ทดสอบ
 })();
 

@@ -9,6 +9,30 @@ Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): eve
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
 
+## Palm to 90 (owner inbox entry 18, 2026-11-23, branch `palm-90`, not merged)
+
+- Palm is scored on `docs/acceptance/fortune-pages.md` (row palm), not on line-finding accuracy, so the 30-person pilot photos
+  add no points there. Code alone reaches about 87 (S2); the rest needs the practitioner review (Q3 5), the owner's phone run
+  (P5 2) and the owner's approval of the print / share samples (X 6, built on branches `print-report` / `fortune-share-print`).
+- S2 (first usable control <= 8 s on the docs/SPEED.md profile): the CSP <meta> turns off Chrome's preload scanner, so palm's
+  scripts came one by one, and the parser also waited for face-api.js (1.3 MB), fortune-ai.js (0.58 MB) and palm-kb.js
+  (0.39 MB). Now every parser-run body script is preloaded before `<main>`, and the three big files are
+  `<script type="text/lq-lazy">` tags that palm.js loads itself (reading files right after DOMContentLoaded, face-api.js on the
+  first camera start or photo). Crisis scripts keep their order and stay parser-run. Locked set `evals-locks/palm-90.sha256`
+  (plan + `tests/unit/palm-s2-load.test.js` + `tests/e2e/palm-s2-lazy.e2e.mjs`, relock1 stricter). Source: synthetic.
+- Known limit: Merit and the "report this reading" button wrap FortuneAI by polling for 15 s; on a link slower than about
+  60 KB/s fortune-ai.js may arrive later and those two extras would not attach on palm (the reading itself is unaffected).
+
+## Palm: trace a low-confidence line (owner inbox entry 24 item C, branch `palm-24c` on top of `palm-90`, not merged)
+
+- Line editor on the live palm page: when the chosen main line (life / head / heart) was found "not clear" or with confidence
+  below `PalmCore.TRACE_LOW` = 0.5 (PROVISIONAL, no field data), a button "ลากตามเส้นนี้" / "Trace this line" / "沿这条线描"
+  (EN / ZH drafts for the owner) lets the user draw that one line with a finger; `PalmCore.snapTrace` moves the stroke onto
+  crease evidence within 0.03 palm width (the existing `traceAlong`) and keeps it as drawn where the photo shows none. The
+  stroke stays on the device. Synthetic numbers: a stroke 2-8 px beside a drawn crease ends 0.00-0.16 px from it; no crease =
+  unchanged. Locked: `tests/unit/palm-trace-snap.test.js`, `tests/e2e/palm-trace-c.e2e.mjs` (relock c2 stricter).
+- Items A (own U-Net), B (burst capture) and D (minor lines) are not built: A and D need traced pilot hands; see the outbox.
+
 ## Fortune text pages to 90 (owner inbox entry 18, 2026-11-23, branch `fortune-90`, not merged)
 
 - Q2 cut summary text: locked set `~/LENSIQ-field/evals/fortune-90/q2-profiles.json` (480 synthetic profiles, 16 domains ×

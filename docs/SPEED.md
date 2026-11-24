@@ -304,3 +304,18 @@ the speed budget (planner-defects ac25bfe4 and pet-zodiac-cards 101acb60: 401 KB
 707 KB > 700 KB). The budgets were not raised: the long comments of lensiq-config.js (26,457 B -> 12,410 B) moved word
 for word to docs/CONFIG-NOTES.md, one summary line kept per setting. No code changed (identical JavaScript tokens,
 checked with acorn). lensiq-config.js?v=24 on every page. Source: synthetic, headless Chrome, local, no throttling.
+
+## Palm S2 (branch palm-90, 2026-11-23; acceptance fortune-pages row S)
+
+Harness `tools/fortune-s2.mjs` (unchanged, locked in `fortune-90`), `--pages=palm`, docs/SPEED.md profile, source: synthetic.
+
+| State | FCP (ms) | First usable control (ms) | Camera ready (ms) | Load avg | Result file (`~/LENSIQ-field/evals/fortune-90/results/`) |
+|---|---|---|---|---|---|
+| main 5dcda908 | 2740 | 30837 | 126 | 1.2-1.9 | s2-2026-11-23T12-02-31-635Z.json |
+| preloads + 3 lazy files | 2728 | 8204 (5 runs) | 127 | 2.8-3.9 | s2-2026-11-23T12-56-17-540Z.json |
+| + Merit / report fetched after DOMContentLoaded (nav.js) | 2740 | 7766 | 123 | 2.5-2.8 | s2-2026-11-23T13-01-20-257Z.json |
+
+Cause: the CSP `<meta>` turns off Chrome's preload scanner, so scripts were fetched one by one, and the parser waited for
+face-api.js (1.3 MB), fortune-ai.js (0.58 MB) and palm-kb.js (0.39 MB). Margin to 8 s is small (about 0.2 s): measured at a
+load average above about 8 the control time goes over 8 s. The page is bandwidth-bound on Fast 3G (about 0.85 MB before
+the first control works: page scripts, the Chinese dictionaries and the crisis scripts, which stay parser-run).

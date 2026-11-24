@@ -35,15 +35,34 @@
 <meta name="twitter:card" content="summary_large_image">
 <!--/promo-->
 <link rel="stylesheet" href="styles.css?v=24">
-<link rel="stylesheet" href="palm.css?v=8">
+<link rel="stylesheet" href="palm.css?v=9">
 <link rel="stylesheet" href="lensiq-capture-hint.css?v=1">
 <link rel="stylesheet" href="fortune-theme.css?v=3">
 <script src="lensiq-busy.js?v=3"></script>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=40"></script>
+<script src="nav.js?v=41"></script>
 
+<link rel="preload" as="script" href="lensiq-i18n.js?v=41">
+<link rel="preload" as="script" href="i18n/zh-common.js?v=41">
+<link rel="preload" as="script" href="i18n/zh-fortune.js?v=14">
+<link rel="preload" as="script" href="i18n/zh-fortune-palm.js?v=18">
+<link rel="preload" as="script" href="i18n/zh-kb-palm.js?v=1">
+<link rel="preload" as="script" href="lensiq-config.js?v=31">
+<link rel="preload" as="script" href="lensiq-track.js?v=3">
+<link rel="preload" as="script" href="lensiq-crashguard.js?v=3">
+<link rel="preload" as="script" href="lensiq-camera.js?v=8">
+<link rel="preload" as="script" href="lensiq-detect.js?v=7">
+<link rel="preload" as="script" href="fortune-straight.js?v=6">
+<link rel="preload" as="script" href="lensiq-thai-canon.js?v=3">
+<link rel="preload" as="script" href="fortune-read.js?v=29">
+<link rel="preload" as="script" href="lensiq-helpline.js?v=2">
+<link rel="preload" as="script" href="fortune-crisis.js?v=22">
+<link rel="preload" as="script" href="lensiq-capture-hint.js?v=1">
+<link rel="preload" as="script" href="palm-handmodel.js?v=1">
+<link rel="preload" as="script" href="palm.js?v=33">
+<link rel="preload" as="script" href="palm-switch-loader.js?v=3">
 <style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
 .lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
 .lq-helpnav a.lq-call-btn[href]:hover{background:#0b5d8f14;color:#094d77}.lq-helpnav .lq-call-mini-t{display:none}
@@ -184,6 +203,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
           <div class="pl-chips" id="plLineChips" role="radiogroup" aria-label="เส้นที่จะปรับ" data-i18n-attr="aria-label:palm.chipsAria"></div>
           <label class="pl-check" data-i18n="palm.fateNone"><input type="checkbox" id="plFateNone"> มองไม่เห็นเส้นวาสนา (ตำราถือว่าปกติ)</label>
           <div class="pl-row">
+            <button data-i18n="palm.plTraceLine" class="btn ghost" id="plTraceLine" type="button" aria-pressed="false" hidden>ลากตามเส้นนี้</button>
             <button data-i18n="palm.plResetLines" class="btn ghost" id="plResetLines" type="button">คืนค่าอัตโนมัติ</button>
             <button data-i18n="palm.plTapMode" class="btn ghost" id="plTapMode" type="button">ปักจุดมือเอง</button>
           </div>
@@ -383,9 +403,8 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <button data-i18n="fortune.common.kioskExit" class="btn primary pl-kiosk-exit" id="plKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 <div class="toast" id="plToast" role="status"></div>
 
-<script src="vendor/face-api.js"></script>
 <script src="i18n/zh-fortune.js?v=14"></script>
-<script src="i18n/zh-fortune-palm.js?v=14"></script>
+<script src="i18n/zh-fortune-palm.js?v=18"></script>
 <script src="i18n/zh-kb-palm.js?v=1"></script>
 <script src="lensiq-config.js?v=31"></script>
 <script src="lensiq-track.js?v=3"></script>
@@ -397,10 +416,12 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="fortune-read.js?v=29"></script>
 <script src="lensiq-helpline.js?v=2"></script>
 <script src="fortune-crisis.js?v=22"></script>
-<script src="fortune-ai.js?v=45"></script>
-<script src="palm-kb.js?v=12"></script>
 <script src="lensiq-capture-hint.js?v=1"></script>
-<script src="palm.js?v=27"></script>
+<script src="palm-handmodel.js?v=1"></script>
+<script src="palm.js?v=33"></script>
 <script src="palm-switch-loader.js?v=3"></script>
+<script type="text/lq-lazy" src="palm-kb.js?v=12"></script>
+<script type="text/lq-lazy" src="fortune-ai.js?v=45"></script>
+<script type="text/lq-lazy" src="vendor/face-api.js"></script>
 </body>
 </html>
