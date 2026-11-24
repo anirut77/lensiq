@@ -631,29 +631,10 @@
     return cv;
   }
   let cardUrl = null;
-  $("#nmShare").addEventListener("click", async function () {
-    if (!current) return; touch();
-    const b = this; b.disabled = true;
-    try {
-      const cv = await makeCard();
-      const blob = await new Promise(res => cv.toBlob(res, "image/png"));
-      if (cardUrl) URL.revokeObjectURL(cardUrl);
-      cardUrl = URL.createObjectURL(blob);
-      const im = $("#nmCardImg"); im.src = cardUrl; im.hidden = false;
-      const file = new File([blob], "lensiq-เลขมงคล.png", { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: T("numbers.share.title", "เลขมงคล — LENSIQ"), text: T("numbers.share.text", "{k} คะแนน {s}/100 · {d}", { k: kindName(current.kind), s: current.score, d: T("numbers.disclaimerShort", KB.disclaimerShort) }) }); return; }
-        catch (e) { if (e.name === "AbortError") return; }
-      }
-      const a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-numbers.png"; document.body.append(a); a.click(); a.remove();
-      toast(T("numbers.toast.saved", "บันทึกการ์ดแล้ว (ตัวเลขถูกปิดบังบางส่วน)"));
-    } catch (e) { console.error(e); toast(T("numbers.toast.fail", "สร้างการ์ดไม่สำเร็จ")); }
-    finally { b.disabled = false; }
-  });
-  $("#nmPrint").addEventListener("click", () => { touch(); window.print(); });
+  // share / print buttons: the shared share and print of fortune-share.js (owner order 2026-11-16: overview card, no photo or birth
+  // data by default, nothing uploaded; print view with every group open). makeCard above stays for the page's own tests.
   $("#nmAgain").addEventListener("click", reset);
 
-  function toast(msg) { const t = $("#nmToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("show"), 2200); }
   function reset() {
     hideResults();
     if (cardUrl) { URL.revokeObjectURL(cardUrl); cardUrl = null; }

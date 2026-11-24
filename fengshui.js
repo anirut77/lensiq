@@ -880,23 +880,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return cv;
   }
   var cardUrl = null;
-  $("#fsShare").addEventListener("click", async function () {
-    touch(); var b = this; b.disabled = true;
-    try {
-      var cv = await makeCard(), blob = await new Promise(function (r) { cv.toBlob(r, "image/png"); });
-      if (cardUrl) URL.revokeObjectURL(cardUrl);
-      cardUrl = URL.createObjectURL(blob);
-      var im = $("#fsCardImg"); im.src = cardUrl; im.hidden = false;
-      var file = new File([blob], "lensiq-fengshui.png", { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: T("fengshui.share.title", "ฮวงจุ้ย — LENSIQ"), text: T("fengshui.disclaimerShort", KB.disclaimerShort) }); return; }
-        catch (e) { if (e.name === "AbortError") return; }
-      }
-      var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-fengshui.png"; document.body.append(a); a.click(); a.remove();
-      toast(T("fengshui.toast.saved", "บันทึกการ์ดแล้ว"));
-    } catch (e) { console.error(e); toast(T("fengshui.toast.fail", "สร้างการ์ดไม่สำเร็จ")); }
-    finally { b.disabled = false; }
-  });
+  // share / print buttons: the shared share and print of fortune-share.js (owner order 2026-11-16: overview card, no photo or birth
+  // data by default, nothing uploaded; print view with every group open). makeCard above stays for the page's own tests.
 
   /* ---------- สถิติ ---------- */
   function renderStats() {

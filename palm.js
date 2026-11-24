@@ -1464,10 +1464,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.save(); if (F.mirrored) { c.translate(F.w, 0); c.scale(-1, 1); } c.drawImage(S.canon, 0, 0); c.restore();
     if (dim) { c.fillStyle = "rgba(14,20,48," + dim + ")"; c.fillRect(0, 0, F.w, F.h); }
   }
-  function strokeLine(c, cp, color, width, dashed) {
+  function strokeLine(c, cp, color, width, dashed, dash) {
     var sp = PC.spline(cp.map(uvToDisp), 60);
     c.save(); c.lineCap = "round"; c.lineJoin = "round";
-    c.strokeStyle = "rgba(14,20,48,.55)"; c.lineWidth = width + 3; if (dashed) c.setLineDash([10, 8]);
+    c.strokeStyle = "rgba(14,20,48,.55)"; c.lineWidth = width + 3; if (dash) c.setLineDash(dash); else if (dashed) c.setLineDash([10, 8]);
     c.beginPath(); sp.forEach(function (p, i) { if (i) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); }); c.stroke();
     c.strokeStyle = color; c.lineWidth = width; c.stroke(); c.restore();
   }
@@ -1713,15 +1713,26 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return out;
   }
 
-  function drawResultImage(R) {
-    var F = S.F, c = resCanvas.getContext("2d");
-    resCanvas.width = F.w; resCanvas.height = F.h;
-    drawCanon(c, 0.22);
+  /* opts (print, owner order 2026-11-17): canvas, width px (re-drawn from the traced lines, not an enlarged screen copy), photo: false =
+     neutral palm outline, print: true = each line its own dash pattern and boxed labels (black and white). No opts = the screen. */
+  var PNEUTRAL = "#f3f3f6", PDASH = { life: [], head: [16, 9], heart: [2, 7], fate: [24, 8, 4, 8] },
+    PINK = { life: "#c2410c", head: "#0e7490", heart: "#be185d", fate: "#6d28d9" };
+  function drawResultImage(R, opts) {
+    opts = opts || {};
+    var F = S.F, cv = opts.canvas || resCanvas, k = opts.width ? opts.width / F.w : 1, photoOn = opts.photo !== false, prn = !!opts.print;
+    cv.width = Math.round(F.w * k); cv.height = Math.round(F.h * k);
+    var c = cv.getContext("2d"); c.setTransform(k, 0, 0, k, 0, 0);
+    if (photoOn) drawCanon(c, 0.22);
+    else { // neutral palm outline from the palm frame, no photo
+      c.fillStyle = PNEUTRAL; c.fillRect(0, 0, F.w, F.h);
+      c.beginPath(); [[0.02, 0], [0.98, 0], [1.02, 0.6], [0.86, 1], [0.14, 1], [-0.02, 0.6]].forEach(function (q, j) { var d = uvToDisp(q); c[j ? "lineTo" : "moveTo"](d[0], d[1]); });
+      c.closePath(); c.strokeStyle = "#6b7280"; c.lineWidth = 3 * F.w / 420; c.stroke();
+    }
     var sc = F.w / 420;
     PC.LINE_IDS.forEach(function (id) {
       var L = S.lines[id];
       if (!L || L.present === false) return; // ไม่ชัดในภาพนี้ / ผู้ใช้ยืนยันว่ามองไม่เห็น: ไม่วาด
-      strokeLine(c, L.cp, KB.lines[id].color, 4 * sc, false);
+      strokeLine(c, L.cp, prn && !photoOn ? PINK[id] : KB.lines[id].color, 4 * sc * (prn ? 1.2 : 1), false, prn ? PDASH[id].map(function (d) { return d * sc; }) : null);
     });
     // เนิน (วาดทับเส้น พร้อมพื้นหลังป้าย)
     var fs = Math.round(12 * sc);
@@ -1729,14 +1740,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     Object.keys(KB.mounts).forEach(function (k) {
       // เนินที่ผู้ใช้เลือก หรือที่ประเมินจากภาพว่าเด่น = สีทอง
       var p = uvToDisp(KB.mounts[k].pos), on = S.mounts.indexOf(k) >= 0 || !!(R.mounts && R.mounts.top.indexOf(k) >= 0), t = KT("mounts." + k + ".short", KB.mounts[k].th.replace("เนิน", ""));
-      c.beginPath(); c.arc(p[0], p[1], (on ? 6 : 3.5) * sc, 0, Math.PI * 2); c.fillStyle = on ? "#fcd34d" : "rgba(255,255,255,.75)"; c.fill();
+      c.beginPath(); c.arc(p[0], p[1], (on ? 6 : 3.5) * sc, 0, Math.PI * 2); c.fillStyle = on ? "#fcd34d" : prn && !photoOn ? "#6b7280" : "rgba(255,255,255,.75)"; c.fill();
       var tw = c.measureText(t).width + fs * 0.9, th = fs * 1.5, ty = p[1] + 14 * sc;
-      c.fillStyle = on ? "rgba(252,211,77,.95)" : "rgba(14,20,48,.62)";
+      c.fillStyle = prn ? "#ffffff" : on ? "rgba(252,211,77,.95)" : "rgba(14,20,48,.62)";
       c.beginPath(); if (c.roundRect) c.roundRect(p[0] - tw / 2, ty - th / 2, tw, th, th / 2); else c.rect(p[0] - tw / 2, ty - th / 2, tw, th); c.fill();
-      c.fillStyle = on ? "#0e1430" : "#fff"; c.fillText(t, p[0], ty + 1);
+      if (prn) { c.strokeStyle = "#0e1430"; c.lineWidth = (on ? 2.4 : 1) * sc; c.stroke(); } // B/W: prominent = thick box
+      c.fillStyle = prn || on ? "#0e1430" : "#fff"; c.fillText(t, p[0], ty + 1);
     });
     c.textAlign = "left";
   }
+  // print figure (fortune-print.js LQPrint.figure): the result picture re-drawn for paper from the traced lines, on this device only
+  (window.LQPrintFig = window.LQPrintFig || {})["#plResult"] = function (o) {
+    return S.F && S.result && window.LQPrint ? window.LQPrint.figure(o, { page: "palm", mode: "default", neutral: PNEUTRAL, alt: resCanvas.getAttribute("aria-label"),
+      draw: function (cv, op) { drawResultImage(S.result, { canvas: cv, width: op.width, photo: op.photo, print: op.print }); },
+      head: ["plElName", "plElPct", "plElShape"], cap: "#plResult figure.pl-photo figcaption" }) : null; };
   var fmt = function (v, d) { return typeof v === "number" ? v.toFixed(d) : "—"; };
   /** ชื่อธาตุสั้น (ดิน / 土) และชื่อมือตามธาตุ (มือธาตุดิน / 土型手) */
   var elTh = function (id) { return KT("elements." + id + ".th", KB.elements[id].th); };
@@ -1949,26 +1966,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.restore();
   }
   var cardUrl = null;
-  $("#plShare").addEventListener("click", async function () {
-    if (!S.result) return; touch();
-    var b = this; b.disabled = true;
-    try {
-      var cv = await makeCard();
-      var blob = await new Promise(function (r) { cv.toBlob(r, "image/png"); });
-      if (cardUrl) URL.revokeObjectURL(cardUrl);
-      cardUrl = URL.createObjectURL(blob);
-      var im = $("#plCardImg"); im.src = cardUrl; im.hidden = false;
-      var file = new File([blob], "lensiq-ดูลายมือ.png", { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: T("palm.share.title", "ดูลายมือ — LENSIQ"), text: elHand(S.result.el.top.id) + " " + KT("disclaimerShort", KB.disclaimerShort) }); return; }
-        catch (e) { if (e.name === "AbortError") return; }
-      }
-      var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-palm.png"; document.body.append(a); a.click(); a.remove();
-      toast(T("palm.toast.saved", "บันทึกการ์ดแล้ว"));
-    } catch (e) { console.error(e); toast(T("palm.toast.cardFail", "สร้างการ์ดไม่สำเร็จ")); }
-    finally { b.disabled = false; }
+  // #plShare / #plPrint: the shared share and print of fortune-share.js (owner order 2026-11-16). "Include my photo" is in the share
+  // dialog, off each time it opens; without the photo the card shows the line drawing of the confirmed palm lines (no photograph).
+  // makeCard above stays for the page's own tests.
+  if (window.LQShareArt) window.LQShareArt("#plResult", function (c, x, y, w, h) {
+    if (!S.result || !S.lines) return;
+    var col = S.result.reading.element.color, r = h / 2 - 12, cx = x + w / 2, cy = y + h / 2;
+    c.beginPath(); c.arc(cx, cy, r + 10, 0, Math.PI * 2); c.fillStyle = col; c.fill();
+    c.save(); c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.clip(); c.fillStyle = "#0e1430"; c.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+    drawPalmGlyph(c, cx, cy, r, S.lines, S.F ? S.F.asp : 1.6);
+    c.restore();
   });
-  $("#plPrint").addEventListener("click", function () { touch(); window.print(); });
   $("#plAgain").addEventListener("click", function () { reset(); });
 
   /** ล้างผลของมือปัจจุบัน (คงโหมดและผลมือที่ 1 ไว้) */

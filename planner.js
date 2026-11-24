@@ -222,8 +222,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
   $$(".pl-seg").forEach(function (b) { b.addEventListener("click", function () { st.sort = b.getAttribute("data-sort"); renderResult(); }); });
   $("#plAgain").addEventListener("click", function () { $("#plResult").hidden = true; $("#plForm").scrollIntoView({ block: "start" }); });
-  $("#plPrint").addEventListener("click", function () { window.print(); });
-
+  // #plPrint: the shared print of fortune-share.js (owner order 2026-11-16), which also adds the share button next to it
   function icsText() {
     var days = pickedDays().map(function (x) {
       var basis = x.reasons.map(reasonText).concat([T("pl.dayColour", "สีประจำวัน: {c}", { c: colourName(x.colour.day) }), lunarText(x.lunar) + " " + T("pl.ics.approx", "(โดยประมาณ)")]);

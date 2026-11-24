@@ -1044,6 +1044,38 @@
    },
    "kind": "false-positive",
    "reason": "false positive: a product lot number in a public Thai FDA alert"
+  },
+  {
+   "path": "tests/e2e/fortune-print-report-kit.mjs",
+   "types": {
+    "phone": 4
+   },
+   "kind": "synthetic",
+   "reason": "synthetic sequential test number typed into the numbers page (numerology input) to prove print / share leave typed text out; not a real number"
+  },
+  {
+   "path": "tests/e2e/fortune-share-print-kit.mjs",
+   "types": {
+    "phone": 4
+   },
+   "kind": "synthetic",
+   "reason": "synthetic sequential test number typed into the numbers page (numerology input) to prove print / share leave typed text out; not a real number"
+  },
+  {
+   "path": "tests/e2e/fortune-share-print-webkit.e2e.mjs",
+   "types": {
+    "phone": 1
+   },
+   "kind": "synthetic",
+   "reason": "synthetic sequential test number typed into the numbers page (numerology input) to prove print / share leave typed text out; not a real number"
+  },
+  {
+   "path": "tests/unit/fortune-share-print.test.js",
+   "types": {
+    "phone": 4
+   },
+   "kind": "synthetic",
+   "reason": "synthetic sequential test number typed into the numbers page (numerology input) to prove print / share leave typed text out; not a real number"
   }
  ]
 }

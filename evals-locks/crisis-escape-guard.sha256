@@ -43,3 +43,8 @@ cfab9eeff3e15114435067eb16889c632778afae60eef6cb2e80e5e5fc6a8d7c  tests/unit/cri
 6b114882c166b22e853601dce53f6db586099d832b6c14ad8488c70d7fabd50b  relock-held26/NOTE.txt
 8d9c46a5783d5ac5afa4121225ca4bb80115ac102a8ab7f40d194f0a80c3ed99  tests/unit/crisis-escape-guard-allow.json  # repo file (same commit as lock 2026-11-23T13:43:38Z; field: ~/LENSIQ-field/evals/crisis-escape-guard/relock-held26/crisis-escape-guard-allow.json)
 # field only relock-held26/NOTE.txt (lock 2026-11-23T13:43:38Z: no repo file uses it)
+# locked 2026-11-24T00:09:26Z (tools/eval-guard.mjs lock, 2 files)
+1494f07e1f1b93220617290f00536eca737d582d1dc172fc587835f465e4c909  relock-print/crisis-escape-guard-allow.json
+8692d52ce21df4b782847a6bdc2d2b4b2769e0403705de56f571e7ee678dd2d6  relock-print/NOTE.txt
+1494f07e1f1b93220617290f00536eca737d582d1dc172fc587835f465e4c909  tests/unit/crisis-escape-guard-allow.json  # repo file (same commit as lock 2026-11-24T00:09:26Z; field: ~/LENSIQ-field/evals/crisis-escape-guard/relock-print/crisis-escape-guard-allow.json)
+# field only relock-print/NOTE.txt (lock 2026-11-24T00:09:26Z: no repo file uses it)

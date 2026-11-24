@@ -493,7 +493,9 @@
     if (line && !calm) out.appendChild(line);
     var act = h("div", { class: "rp-actions no-print" });
     var pr = h("button", { type: "button", class: "btn primary", id: "rpPrint", text: T("rp.print", "พิมพ์ / บันทึกเป็น PDF") });
-    pr.addEventListener("click", function () { root.print(); });
+    // the shared print of fortune-share.js (owner order 2026-11-16): print view + the browser's print dialog; it adds a share button here
+    pr.setAttribute("data-lq-sp", "print");
+    pr.addEventListener("click", function () { if (!W.LQShare) root.print(); }); // the module is fetched once the report shows
     act.appendChild(pr);
     if (st.saveable) {
       var sv = h("button", { type: "button", class: "btn ghost", id: "rpSave", hidden: true, text: T("rp.saveRetry", "ลองบันทึกอีกครั้ง") });

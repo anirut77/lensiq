@@ -667,7 +667,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       '<div class="kws">' + cKw(daily).map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
       "<p>" + esc(u.general) + "</p><dl><dt>♥ " + esc(topicName("love")) + "</dt><dd>" + esc(u.love) + "</dd><dt>◆ " + esc(topicName("work")) + "</dt><dd>" + esc(u.work) + "</dd><dt>● " + esc(topicName("money")) + "</dt><dd>" + esc(u.money) + "</dd></dl>" +
       '<p class="syn-advice"><b>' + esc(T("tarot.dailyAdvice", "คำแนะนำวันนี้")) + "</b><br>" + esc(cAdv(daily)) + '</p><div class="tr-res-actions" style="margin-top:12px"><button class="btn primary big" id="trDailyShare" type="button">' + esc(T("tarot.dailyShare", "แชร์ไพ่ประจำวัน")) + '</button></div><img class="tr-cardimg" id="trDailyCardImg" alt="' + esc(T("tarot.dailyImgAlt", "การ์ดไพ่ประจำวันสำหรับแชร์")) + '" hidden>';
-    $("#trDailyShare").addEventListener("click", function () { share(this, { kind: "daily" }, $("#trDailyCardImg")); });
     if (keep) { $("#trDailyCardImg").src = keep; $("#trDailyCardImg").hidden = false; }
   }
   $("#trDailyImg").src = daily.img;
@@ -718,7 +717,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   $("#ssDraw").addEventListener("click", drawSiamsee);
   $("#ssAgain").addEventListener("click", function () { $("#ssResult").hidden = true; $("#ssFall").hidden = true; $("#ssCup").scrollIntoView({ block: "center" }); drawSiamsee(); });
-  $("#ssShare").addEventListener("click", function () { share(this, { kind: "siamsee" }, $("#ssCardImg")); });
 
   /* ---------- เขย่ามือถือ (DeviceMotion) ---------- */
   var motionOn = false, lastShake = 0, prevA = null;
@@ -854,28 +852,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     wrapTh(c, T("tarot.discShort", KB.disclaimerShort) + (opt.kind === "siamsee" ? T("tarot.card.footSs", " · กลอนแต่งขึ้นใหม่") : T("tarot.card.footTarot", " · ภาพไพ่ RWS 1909 สาธารณสมบัติ")), W - 160).forEach(function (l, k) { c.fillText(l, W / 2, 1290 + k * 30); });
     return cv;
   }
-  var cardUrls = {};
-  async function share(btn, opt, imgEl) {
-    touch(); btn.disabled = true;
-    try {
-      var cv = await makeCard(opt);
-      var blob = await new Promise(function (r) { cv.toBlob(r, "image/jpeg", 0.92); });
-      if (cardUrls[opt.kind]) URL.revokeObjectURL(cardUrls[opt.kind]);
-      var url = cardUrls[opt.kind] = URL.createObjectURL(blob);
-      imgEl.src = url; imgEl.hidden = false;
-      var name = "lensiq-" + (opt.kind === "siamsee" ? "siamsee" : opt.kind === "daily" ? "daily-tarot" : "tarot") + ".jpg";
-      var file = new File([blob], name, { type: "image/jpeg" });
-      btn.disabled = false; // อย่าล็อกปุ่มค้างระหว่างแผ่นแชร์ของระบบเปิดอยู่
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: T("tarot.shareTitle", "ไพ่ทาโรต์ & เซียมซี — LENSIQ"), text: T("tarot.discShort", KB.disclaimerShort) }); return; }
-        catch (e) { if (e.name === "AbortError") return; }
-      }
-      var a = document.createElement("a"); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
-      toast(T("tarot.toast.saved", "บันทึกการ์ดแล้ว"));
-    } catch (e) { console.error(e); toast(T("tarot.toast.fail", "สร้างการ์ดไม่สำเร็จ")); }
-    finally { btn.disabled = false; }
-  }
-  $("#trShare").addEventListener("click", function () { if (current) share(this, { kind: "tarot" }, $("#trCardImg")); });
+  // #trShare / #ssShare / #trDailyShare: the shared share and print of fortune-share.js (owner order 2026-11-16)
 
   function toast(msg) { var t = $("#trToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 2200); }
 

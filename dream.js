@@ -279,17 +279,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#drText").value = ""; $("#drForm").reset(); $("#drResult").hidden = true; $("#drCardImg").hidden = true; renderList();
   }
   $("#drAgain").addEventListener("click", function () { reset(); $("#drForm").scrollIntoView({ block: "start" }); });
-  $("#drPrint").addEventListener("click", function () { window.print(); });
-  $("#drShare").addEventListener("click", function () {
-    var R = st.res; if (!R) return;
-    var syms = R.ids.map(function (id) { return DR.BY[id]; }), lines = (FK.readings.drRd || {}).lines || [];
-    var s0 = syms[0];
-    FK.share(this, {
-      kind: T("dream.cardKind", "ทำนายฝัน"), glow: "rgba(139,120,255,.45)", artH: 340,
-      title: T("dream.cardH", "ฝันเห็น{n}", { n: syms.slice(0, 3).map(function (s) { return symName(s.id); }).join(" · ") }), sub: T("dream.typeLbl", "ประเภทฝัน: {t}", { t: typeName(DR.dreamType(R.ids, R.mood, R.time)) }),
-      msgs: (lines.length >= 2 ? lines.slice(0, 2) : [zk("sym." + s0.id, "o", s0.o)]).concat([zk("theme." + s0.theme, "a", KB.THEMES[s0.theme].a[0])]).slice(0, 3),
-      foot: T("dream.cardFoot", KB.disclaimerShort + " · ไม่มีเลขนำโชค"),
-      art: function (c, x, y, w, h) {
+  // #drShare / #drPrint: the shared share and print of fortune-share.js (owner order 2026-11-16); the dream symbols are the card's art
+  if (window.LQShareArt) window.LQShareArt("#drResult", function (c, x, y, w, h) {
+        var R = st.res; if (!R) return;
+        var syms = R.ids.map(function (id) { return DR.BY[id]; });
         c.textAlign = "center"; c.textBaseline = "middle";
         c.beginPath(); c.arc(x + w / 2, y + h / 2, h / 2 - 6, 0, Math.PI * 2); c.fillStyle = "rgba(255,255,255,.07)"; c.fill();
         // พระจันทร์เสี้ยวและเมฆ วาดเอง
@@ -298,8 +291,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         var em = syms.slice(0, 3).map(function (s) { return s.ic; }), n = em.length;
         c.font = (n > 1 ? 120 : 190) + "px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
         em.forEach(function (e, i) { c.fillText(e, x + w / 2 + (i - (n - 1) / 2) * 170, y + h / 2 + 10); });
-      }
-    }, "lensiq-dream.jpg", $("#drCardImg"), T("dream.shareTitle", "ทำนายฝัน — LENSIQ"));
   });
 
   var kiosk = FK.kiosk({ toggle: "drKiosk", exit: "drKioskExit", idle: "drIdle", busy: function () { return !$("#drResult").hidden || !!$("#drText").value || selected().length > 0; }, reset: reset });

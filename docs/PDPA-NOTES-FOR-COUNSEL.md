@@ -1131,6 +1131,21 @@ shows the salon's own catalogue names labelled as the salon's text; may a salon 
 
 (d) **Volunteer set** for field numbers: `docs/LOOK-VOLUNTEER-PROTOCOL.md` (Thai consent form, draft for legal review).
 
+## L2. Fortune share and print (owner order 2026-11-16; branch `fortune-share-print`, `docs/FORTUNE-SHARE-PRINT.md`)
+
+(a) **User-initiated, nothing uploaded.** The result card is drawn in the browser and only leaves the device when the user
+taps the phone's share sheet, LINE, Facebook or save. LENSIQ receives nothing. LINE gets the card text and page link (no
+image); Facebook gets the page link only. Question: is LENSIQ a controller or processor for what the user chooses to post
+(we think neither, as no data reaches us); should the terms say the user is responsible for what they share?
+
+(b) **Defaults off.** The person's photo (face / palm pages) and birth date, age and name are off each time the dialog opens;
+typed text (question, dream, phone, account) is never on the card. Is an explicit tap on "include my photo" enough consent
+for a face photo the user posts themselves (s.26 biometric question as in K1)?
+
+(d) **Paper report (branch `print-report`, `docs/FORTUNE-PRINT-REPORT.md`).** The printed report leaves out names, birth data and anything typed unless the person ticks "include my name and what I entered" next to the print button (off on every page load and after each print). Share card (owner decision 76): the palm line drawing and the sign / animal art made from birth data are off by default with their own switch. Question: is the same opt-in enough when the paid PDF report (later) prints the name the person entered for that report?
+
+(c) **Print / PDF** stays on the device (browser print dialog). The camera photo is not printed. Nothing to add for counsel
+unless a kiosk prints for walk-in customers at an event (then the operator holds the paper: retention note in the pilot kit?).
 ## Crisis help is never counted (owner decision 77 ก, 2026-11-16)
 
 No record of who opens crisis help. The opt-in usage analytics (`lensiq-analytics.js`) never counts the counselling page

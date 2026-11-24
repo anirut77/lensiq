@@ -338,3 +338,31 @@ New fixed set `datefix-1122` (horoscope / bazi cautions over 36 dates; crisis pr
 | fortune-caution RELOCK 12 (field `relock12/`) | tests/e2e/fortune-caution-reading-visible.e2e.mjs | the horoscope "today" tab holds cautions only on some dates (for the test birth: Sundays and Rat days); they were counted as hidden. Now every state checks the open tab and opens each closed tab with cautions, only if a visitor can see and use the tab | stricter (closed-tab cautions now checked; read-more / closed details fail; tab must be usable) |
 | datefix-1122 RELOCK 1 (field `relock1/`) | tests/e2e/crisis-price-scan-wrap.e2e.mjs, tests/e2e/fortune-caution-dates.e2e.mjs | + W5 split-price cases (TH / EN / ZH); tab must be visible and enabled before it is opened | stricter |
 | datefix-1122 RELOCK 2 (field `relock2/`, branch `crisis-w6`; ca6600cd -> 5e1b4bbb) | tests/e2e/crisis-price-scan-wrap.e2e.mjs | + W6: hidden text never completes an allowed sentence. On palm in the crisis state, UI TH / EN / ZH: 6 allow-listed browser texts (TH palm sentence, EN "there is no need to buy anything new", ZH "...也不需要购买任何物品。"), each split into a visible part holding the hit and a hidden part (after or before it) x 4 ways of hiding (display:none, hidden attribute, visibility:hidden, opacity:0) = 24 cases per language: the visible hit is flagged; W6n checks the split; W6c control: the same paragraph fully shown is not flagged (6 per language). Pins the kit's "block text from SHOWN nodes only" rule (independent review of crisis-v3-protect relock1): a scratch kit mutant that includes hidden text in the block text passed W1-W5 and escapes all 72 W6 cases (file 0/3); the real kit passes 3/3 | stricter (W1-W5 unchanged; kit unchanged) |
+## Merge of main 56957344 into print-report, tag `relock-allow-v3` (coordinator decision, option ก, 2026-11-18; reversible)
+
+| File | Test | Old | New | Why | Protection kept by |
+|---|---|---|---|---|---|
+| tests/unit/crisis-escape-guard-allow.json (v2 sha256 `4e1132d0…` kept in `~/LENSIQ-field/evals/crisis-escape-guard/crisis-escape-guard-allow.v2.json`; new `crisis-escape-guard-allow.v3.json` sha256 `7583d36c…`) | crisis-escape-guard.test.js 3 (every element a reading page writes into is in a takeover root or allow-listed; stale entries must be removed) | 4 entries: `faceread frToast`, `horoscope hsToast`, `horoscope hsNoTime`, `numbers nmToast` | removed; nothing added or changed | entries' targets removed by share/print consolidation into fortune-share.js (the per-page toast / card code is gone on print-report; `hsNoTime` only matched through the old toast function's variable); stricter | the guard test itself (unchanged): any new write target outside a takeover root fails unless a new entry is locked |
+
+Also in this merge (product, not a re-lock): `LQShare.allowed()` (fortune-share.js) no longer allows share / print when
+fortune-crisis.js failed to load; it uses the v3 stand-in (`FortuneAI.crisis.api()`) and, with no crisis module at all,
+refuses in the crisis / calm state.
+
+## print-report after the merge of main 56957344, tag `relock-share-print-v3` (coordinator decision ก, 2026-11-18; reversible)
+
+| File | Test | Old assertion | New assertion | v3 rule | Protection kept by |
+|---|---|---|---|---|---|
+| tests/e2e/fortune-share-print-kit.mjs (old bytes sha256 `7f8b2ad1…` kept as `~/LENSIQ-field/evals/fortune-share-print/fortune-share-print-kit.mjs`; new `fortune-share-print-kit.v2.mjs`) | real path [th / en / zh]: crisis words in the tarot question | waits for the support card (`.fa-support`); then no share / print button; `LQShare.share()` and `print()` refuse | waits for `data-lq-crisis="1"`; the reading is drawn (auto pick + reveal, >= 3 sections); exactly one closing line `.lq-helpline-result` with a warm line and a visible `tel:1323` >= 44 px, after the last section, nothing shown after it in its area, no support card; then the same no-button and refuse assertions, now with a whole reading on screen | a, d (card removed by crisis v3, owner decision 84 ก) | the same check; STRICTER-OR-EQUAL |
+
+Product fix in the same round (not a re-lock): in the crisis / calm state fortune-share.js creates no share or print control
+and removes its own (an empty result area, the iching Daily tab, held the hidden bar's text: crisis-net-hotfix-e E3 failed in
+CI 44138592932).
+
+## Merge of print-report into fortune-print (base merge-fortune-90b), tag `relock-print` (2026-11-24)
+
+| File | Test | Old | New | Why | Protection kept by |
+|---|---|---|---|---|---|
+| tests/unit/crisis-escape-guard-allow.json | crisis-escape-guard 3 (stale entries) | relock-held26 `8d9c46a5…` | the same list minus exactly 4 `targets` entries: `faceread frToast`, `horoscope hsToast`, `horoscope hsNoTime`, `numbers nmToast`; nothing added or changed | their targets went with the share / print consolidation into `fortune-share.js` (print-report's own v3 re-lock removed the same 4); test 3 fails on stale entries | the escape guard itself; an allow-list only exempts, so removing entries is stricter |
+
+Field copy `~/LENSIQ-field/evals/crisis-escape-guard/relock-print/` (with NOTE.txt). The print-report `relock-allow-v3` section above
+belongs to that branch's older chain and is superseded by this one. Open: the independent reviewer confirms it is stricter.
