@@ -5,3 +5,10 @@ fed718d6f8c22265f29f683bcfaabff545b50917891704dd6e63d4b9cb176314  fortune-print-
 ce284ecf099d917ccd070dc81ada89255295a40a8438e5266a0eb6999d76eca4  tests/unit/fortune-print-defaults.test.js  # repo file (same commit as lock 2026-11-24T00:05:22Z; field: ~/LENSIQ-field/evals/fortune-print/fortune-print-defaults.test.js)
 fed718d6f8c22265f29f683bcfaabff545b50917891704dd6e63d4b9cb176314  tests/e2e/fortune-print-photo.e2e.mjs  # repo file (same commit as lock 2026-11-24T00:05:22Z; field: ~/LENSIQ-field/evals/fortune-print/fortune-print-photo.e2e.v3.mjs)
 # field only NOTE.txt (lock 2026-11-24T00:05:22Z: no repo file uses it)
+# locked 2026-11-24T00:29:34Z (tools/eval-guard.mjs lock, 3 files)
+16192dc25fb6a6bbc554094ca37dd44b90058dcaa0441ca0e3108766655cd559  relock1-fortune-print-report-kit.mjs
+73dfc2b96257f87c989f4d3a1ca0b50b8df324535ffed8ee43d957a7a55ee35c  relock1-fortune-print-colour.e2e.mjs
+ea8ddf65c7cbe35a8b72551d18f630ba9fbf71c4b963c65f94d57af748df74b6  relock1-NOTE.txt
+16192dc25fb6a6bbc554094ca37dd44b90058dcaa0441ca0e3108766655cd559  tests/e2e/fortune-print-report-kit.mjs  # repo file (same commit as lock 2026-11-24T00:29:34Z; field: ~/LENSIQ-field/evals/fortune-print/relock1-fortune-print-report-kit.mjs)
+73dfc2b96257f87c989f4d3a1ca0b50b8df324535ffed8ee43d957a7a55ee35c  tests/e2e/fortune-print-colour.e2e.mjs  # repo file (same commit as lock 2026-11-24T00:29:34Z; field: ~/LENSIQ-field/evals/fortune-print/relock1-fortune-print-colour.e2e.mjs)
+# field only relock1-NOTE.txt (lock 2026-11-24T00:29:34Z: no repo file uses it)

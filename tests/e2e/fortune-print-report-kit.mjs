@@ -230,9 +230,13 @@ export async function run({ base, launch, check, fakeCams }, lang) {
               if (pageText.some(t => re.test(t))) bad.push("control / menu / help text on paper: " + s);
             }
             // R4: the last body line of each page is not (the end of) a heading
+            // RE-LOCK 2026-11-24 (phase fortune-print relock1, stricter): BEFORE, every line holding "<digits>/<digits>" was
+            // left out as the page-number line, so body lines such as the numbers page's "24/42、36/63" pairs were skipped and
+            // a heading above them looked like the page's last line (numbers ZH A4, false fail). NOW only the page-number line
+            // itself ("หน้า X / Y", "Page X / Y", "第 X / Y 页", folded) is left out; every other line is checked.
             const chrome = fold(["LENSIQ", words.title, words.date, LINE[lang]].join("")), fh = paperDom.heads.map(fold).filter(Boolean);
             pages.forEach((x, i) => {
-              const body = x.lines.filter(l => { const f = fold(l.text); return f && !chrome.includes(f) && !/^(?:LENSIQ|.*\d+\/\d+.*)$/.test(f) && !f.includes(fold(LINE[lang]).slice(0, 12)) && !/lensiq|anirut77/i.test(f); });
+              const body = x.lines.filter(l => { const f = fold(l.text); return f && !chrome.includes(f) && !/^(?:LENSIQ|.*(?:หนา|page|第)\d+\/\d+页?)$/i.test(f) && !f.includes(fold(LINE[lang]).slice(0, 12)) && !/lensiq|anirut77/i.test(f); });
               const last = body.length ? fold(body[body.length - 1].text) : "";
               // RE-LOCK 2026-11-17 (coordinator decision 4): the last line IS a heading line (the heading, or the final segment of a
               // wrapped heading); a body line that merely ends with a heading's words (faceread ZH "…有助财运" / heading 财运, an <ol>

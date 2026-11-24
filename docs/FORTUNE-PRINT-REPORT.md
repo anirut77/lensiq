@@ -131,3 +131,6 @@ Test: `tests/e2e/fortune-print-photo.e2e.mjs` (old locked bytes sha256 `07689f4d
   `docs/acceptance/faceread.md` row X "photo off by default"); unticked = the marks on a neutral outline. Locked first:
   phase `fortune-print` (`tests/unit/fortune-print-defaults.test.js` D1-D5; `fortune-print-photo.e2e.mjs` P4 re-lock, stricter).
 - Samples for the owner: `~/Desktop/LENSIQ-review/fortune/print-samples/` (`node tools/print-samples.mjs <dir> --fortune`).
+- Re-lock `fortune-print` relock1 (test faults after the merge, locked before the re-run; reviewer to confirm): R4 page-number
+  filter only drops the page-number line (stricter; numbers ZH pairs like "24/42" were skipped); colour test tarot seed 12 -> 7
+  (equal; the new wording gives no advice icon on seed 12). Notes: `~/LENSIQ-field/evals/fortune-print/relock1-NOTE.txt`.

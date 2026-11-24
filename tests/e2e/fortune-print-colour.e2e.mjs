@@ -23,7 +23,10 @@ const SEEDED = seed => `(() => { let a = ${seed} >>> 0; const next = () => { a =
   t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   Math.random = next;
   crypto.getRandomValues = arr => { for (let i = 0; i < arr.length; i++) arr[i] = Math.floor(next() * 4294967296) % (2 ** (8 * (arr.BYTES_PER_ELEMENT || 1))); return arr; }; })();`;
-const TAROT_SEED = 12;
+// RE-LOCK 2026-11-24 (phase fortune-print relock1, equal): the base's fortune voice / depth / determinism work changed the
+// tarot wording, so seed 12 now gives no advice icon (measured: seeds 1-15, only seed 7 gives one) and K2 failed on content, not
+// on the report. Same rule as decision 88 A: only the fixed input moves (seed 12 -> 7); every K2 assertion stays unconditional.
+const TAROT_SEED = 7;
 const PAGES = {
   horoscope: async p => {
     await p.evaluate(setSel("hsDay", "15")); await p.evaluate(setSel("hsMonth", "8")); await p.evaluate(setSel("hsYear", "1990"));
