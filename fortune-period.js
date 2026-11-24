@@ -40,7 +40,28 @@
     for (var k = 0; k < 3 && termMs(c) > t; k++) c--;
     for (k = 0; k < 3 && termMs(c + 1) <= t; k++) c++;
     var s = termMs(c), e = termMs(c + 1);
-    return { kind: "solar-month", id: "sm-" + ictDate(s).iso, c: c, startMs: s, endMs: e, anchorMs: Math.round((s + e) / 2), termLon: norm(15 + 30 * c) };
+    var lon = norm(15 + 30 * c);
+    return { kind: "solar-month", id: "sm-" + ictDate(s).iso, c: c, startMs: s, endMs: e, anchorMs: Math.round((s + e) / 2), termLon: lon,
+      branch: (2 + Math.round(norm(lon - 315) / 30)) % 12 }; // 立春 (315) opens the 寅 month (branch 2)
+  }
+  /** instant the apparent Sun reaches unwrapped tropical longitude 30 c (sign boundaries; guess depends on c only) */
+  function signMs(c) {
+    var lon = 30 * c, t = J2000MS + (lon - 280.46646 + 1.9) / MEAN * DAY;
+    for (var i = 0; i < 12; i++) { var d = angDiff(norm(lon), sunLon(t)); t += d / MEAN * DAY; if (Math.abs(d) < 1e-9) break; }
+    return Math.round(t / 60000) * 60000;
+  }
+  /** the Sun's tropical sign period (Western astrology: 30 degrees from 0 Aries) that holds ms; sign 0 = Aries */
+  function signPeriod(ms) {
+    var t = +ms, c = Math.floor(((t - J2000MS) / DAY * MEAN + 280.46646) / 30);
+    for (var k = 0; k < 3 && signMs(c) > t; k++) c--;
+    for (k = 0; k < 3 && signMs(c + 1) <= t; k++) c++;
+    var s = signMs(c), e = signMs(c + 1);
+    return { kind: "sun-sign", id: "ss-" + ictDate(s).iso, c: c, sign: ((c % 12) + 12) % 12, startMs: s, endMs: e, anchorMs: Math.round((s + e) / 2) };
+  }
+  /** the Thai calendar day (UTC+7) that holds ms */
+  function dayPeriod(ms) {
+    var d = ictDate(+ms), s = Date.UTC(d.y, d.m - 1, d.d) - ICT;
+    return { kind: "day", id: "d-" + d.iso, startMs: s, endMs: s + DAY, anchorMs: s + DAY / 2, weekday: new Date(s + ICT).getUTCDay() };
   }
   function ictDate(ms) { var d = new Date(ms + ICT); return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate(), iso: d.toISOString().slice(0, 10) }; }
 
@@ -63,10 +84,36 @@
       en: "Worked out from the annual flying star (the year begins at Li Chun) and this period's monthly flying star, set against the rooms on your floor plan.",
       zh: "依据年飞星（以立春为岁首）和本时段的月飞星，对照你户型图中的房间推算。" },
     factMonthPillar: { status: "draft", th: "เสาเดือนของช่วงนี้: {gz} (ธาตุ{el})", en: "This period's month pillar: {gz} ({el})", zh: "本时段月柱：{gz}（{el}）" },
+    noMethodDraw: { status: "draft", th: "ศาสตร์นี้เป็นการเสี่ยงทาย ผลสุ่มใหม่ทุกครั้งที่ทำ จึงไม่มีชั้นดวงช่วงนี้แยก",
+      en: "This school works by drawing: each draw is new, so there is no separate reading for the period.", zh: "这门学问靠抽取，每次结果都是新的，所以没有单独的近期解读。" },
+    constantNoBase: { status: "draft", th: "หน้านี้ไม่ใช้ข้อมูลเกิด จึงไม่มีพื้นดวง คำแนะนำนี้เปลี่ยนตามวัน",
+      en: "This page does not use birth data, so there is no base reading; this advice changes with the day.", zh: "本页不使用出生资料，所以没有基本解读；这里的建议随日期变化。" },
+    methodZodiac: { status: "draft", th: "คำนวณจากกิ่งของเดือนสุริยคติจีน (流月) ของช่วงนี้เทียบปีนักษัตรของคุณ",
+      en: "Worked out from the branch of this Chinese solar month (liu yue) against your animal sign.", zh: "依据本时段节气月的月支（流月）对照你的生肖推算。" },
+    methodAstro: { status: "draft", th: "คำนวณจากราศีที่ดวงอาทิตย์จรอยู่ในช่วงนี้ นับเป็นเรือนจากราศีอาทิตย์กำเนิดของคุณ (ยังไม่รวมดาวเคราะห์อื่น)",
+      en: "Worked out from the sign the Sun is passing through in this period, counted as a house from your birth Sun sign (other planets not included yet).",
+      zh: "依据本时段太阳所在的星座，从你的出生太阳星座起算宫位（暂不含其他行星）。" },
+    methodLucky: { status: "draft", th: "สีของวันคำนวณจากดาวประจำวันนี้ตามทักษา (ทักษาจร)", en: "The day's colours come from today's ruling planet in the Thai taksa order.",
+      zh: "当天的颜色依据泰式塔克萨（Taksa）当日星曜推算。" },
+    factMonthBranch: { status: "draft", th: "กิ่งเดือนของช่วงนี้: {br} · เทียบปีนักษัตรของคุณ: {rel}", en: "This period's month branch: {br} · against your animal sign: {rel}",
+      zh: "本时段月支：{br} · 对照你的生肖：{rel}" },
+    factSunSign: { status: "draft", th: "ดวงอาทิตย์จรอยู่ราศี{sign} · เรือนที่ {house} นับจากราศีอาทิตย์ของคุณ", en: "The Sun is in {sign} this period · house {house} from your Sun sign",
+      zh: "本时段太阳在{sign} · 从你的太阳星座起算第{house}宫" },
     factStars: { status: "draft", th: "ดาวประจำปี {y} · ดาวประจำเดือน {m}", en: "Year star {y} · month star {m}", zh: "年飞星{y} · 月飞星{m}" },
   };
   var EL = { wood: { th: "ไม้", en: "wood", zh: "木" }, fire: { th: "ไฟ", en: "fire", zh: "火" }, earth: { th: "ดิน", en: "earth", zh: "土" },
     metal: { th: "ทอง", en: "metal", zh: "金" }, water: { th: "น้ำ", en: "water", zh: "水" } };
+  var BR = { th: ["ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง", "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน"],
+    en: ["Rat", "Ox", "Tiger", "Rabbit", "Dragon", "Snake", "Horse", "Goat", "Monkey", "Rooster", "Dog", "Pig"],
+    zh: ["子（鼠）", "丑（牛）", "寅（虎）", "卯（兔）", "辰（龙）", "巳（蛇）", "午（马）", "未（羊）", "申（猴）", "酉（鸡）", "戌（狗）", "亥（猪）"] };
+  var SIGN = { th: ["เมษ", "พฤษภ", "เมถุน", "กรกฎ", "สิงห์", "กันย์", "ตุลย์", "พิจิก", "ธนู", "มังกร", "กุมภ์", "มีน"],
+    en: ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"],
+    zh: ["白羊座", "金牛座", "双子座", "巨蟹座", "狮子座", "处女座", "天秤座", "天蝎座", "射手座", "摩羯座", "水瓶座", "双鱼座"] };
+  var REL = { clash: { th: "ชง", en: "clash", zh: "相冲" }, harmony: { th: "ประสาน (หกประสาน)", en: "six-harmony", zh: "六合" }, trine: { th: "สามประสาน", en: "trine", zh: "三合" },
+    same: { th: "นักษัตรเดียวกัน", en: "same sign", zh: "同属相" }, harm: { th: "ทำร้าย (害)", en: "harm", zh: "相害" }, punish: { th: "ลงโทษ (刑)", en: "punishment", zh: "相刑" },
+    "break": { th: "แตก (破)", en: "break", zh: "相破" }, neutral: { th: "ปกติ", en: "neutral", zh: "平" } };
+  var DAY_N = { th: ["วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"],
+    en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], zh: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"] };
   var TH_MON = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
   var EN_MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var langOf = function (l) { if (l === "en" || l === "zh" || l === "th") return l;
@@ -78,13 +125,17 @@
   var elName = function (el, lang) { return (EL[el] || {})[langOf(lang)] || el; };
   function range(p, lang) {
     var a = ictDate(p.startMs), b = ictDate(p.endMs), L = langOf(lang), same = a.y === b.y;
+    if (p.kind === "day") {
+      var wd = DAY_N[L][p.weekday];
+      return L === "en" ? wd + " " + a.d + " " + EN_MON[a.m - 1] + " " + a.y : L === "zh" ? a.y + "年" + a.m + "月" + a.d + "日 " + wd : wd + " " + a.d + " " + TH_MON[a.m - 1] + " " + (a.y + 543);
+    }
     if (L === "en") return a.d + " " + EN_MON[a.m - 1] + (same ? "" : " " + a.y) + " – " + b.d + " " + EN_MON[b.m - 1] + " " + b.y;
     if (L === "zh") return a.y + "年" + a.m + "月" + a.d + "日 – " + (same ? "" : b.y + "年") + b.m + "月" + b.d + "日";
     return a.d + " " + TH_MON[a.m - 1] + (same ? "" : " " + (a.y + 543)) + " – " + b.d + " " + TH_MON[b.m - 1] + " " + (b.y + 543);
   }
   /** "ช่วงนี้: 7 พ.ย. – 7 ธ.ค. 2569" */
   function label(p, lang) { return phrase("label", lang, { range: range(p, lang) }); }
-  function noMethod(lang) { return phrase("noMethod", lang); }
+  function noMethod(lang, kind) { return phrase(kind === "draw" ? "noMethodDraw" : "noMethod", lang); }
 
   /* ---------- seeds: the base seed has no clock; the period seed = chart facts + the period id ---------- */
   var BASE_EPOCH = Date.UTC(2000, 0, 15, 5);
@@ -92,12 +143,19 @@
   function periodSeed(FA, key, p) { return FA.seedFor([key, p.id], "m", BASE_EPOCH); }
 
   /* ---------- the period voice: borrowed day phrases become the period; every sentence filtered again ---------- */
-  function localize(t, lang) {
+  function localize(t, lang, yearWords, sunForMoon) {
     var s = String(t || ""), L = langOf(lang);
+    // facts.periodSunForMoon: the house lines borrowed from the daily Moon reading (astro) are read for the transiting Sun
+    if (sunForMoon) s = L === "en" ? s.replace(/\bthe Moon\b/g, "the Sun").replace(/\bThe Moon\b/g, "The Sun") : L === "zh" ? s.replace(/月亮/g, "太阳") : s.replace(/ดวงจันทร์/g, "ดวงอาทิตย์");
+    // facts.periodYearWords: phrases written for a year (zodiac 太岁 lines) read for the period
+    if (yearWords) s = L === "en" ? s.replace(/\bthis year's\b/g, "this period's").replace(/\bThis year's\b/g, "This period's")
+      .replace(/\bthis year\b/g, "this period").replace(/\bThis year\b/g, "This period")
+      : L === "zh" ? s.replace(/今年/g, "这段时间").replace(/本年/g, "这段时间") : s.replace(/ปีนี้/g, "ช่วงเวลานี้");
     if (L === "en") return s.replace(/\btoday's\b/g, "this period's").replace(/\bToday's\b/g, "This period's").replace(/\btoday\b/g, "this period").replace(/\bToday\b/g, "This period")
       .replace(/\btonight\b/gi, "in the evenings").replace(/\btomorrow\b/gi, "in the days ahead");
-    if (L === "zh") return s.replace(/今天|今日|当天/g, "本月").replace(/明天|明日/g, "接下来几天");
-    return s.replace(/วันนี้/g, "ช่วงนี้").replace(/พรุ่งนี้/g, "วันข้างหน้า").replace(/เมื่อวาน/g, "ที่ผ่านมา");
+    if (L === "zh") return s.replace(/今天|今日|当天/g, "这段时间").replace(/明天|明日/g, "接下来几天");
+    // "บทบาท" holds the letters of "บาท" (baht): read as "หน้าที่" so no price word can be mistaken in the block
+    return s.replace(/บทบาท/g, "หน้าที่").replace(/วันนี้/g, "ช่วงเวลานี้").replace(/พรุ่งนี้/g, "วันข้างหน้า").replace(/เมื่อวาน/g, "ที่ผ่านมา");
   }
   /** drop every sentence outside the hard limits or the safety lexicon (gentle and straight checks both) */
   function clean(FA, text) {
@@ -110,27 +168,35 @@
     return out && ok(out) ? out : "";
   }
 
+  var S0 = function (FA, t) { return FA.safety.sentences(String(t || "")); };
   /** compose the period reading on the device. factsFn(rng) gives the period facts; opts: { lang, topic, domain, press } */
   function read(FA, factsFn, p, opts) {
     opts = opts || {};
     var lang = langOf(opts.lang), topic = opts.topic || "overall", dom = opts.domain || "fortune";
     var f0 = factsFn(FA.rng(0)), seed = periodSeed(FA, [dom, "period", topic, f0], p);
     if (opts.press) seed = FA.seedFor([seed, opts.press], "m", BASE_EPOCH);
-    var facts = Object.assign({}, factsFn(FA.rng(seed)), { topic: topic });
+    var facts = Object.assign({}, factsFn(FA.rng(seed)), { topic: topic }), yw = !!facts.periodYearWords, sm = !!facts.periodSunForMoon;
     return Promise.resolve(FA.interpret(facts, { useAI: false, seed: seed, lang: lang, straight: false })).then(function (res) {
       res = res || {};
       var secs = (res.sections || []).map(function (s) {
-        var paras = (s.paragraphs || []).map(function (x) { return clean(FA, localize(x, lang)); }).filter(function (x) { return x && x.length > 1; });
-        return Object.assign({}, s, { title: clean(FA, localize(s.title, lang)) || s.title, paragraphs: paras });
+        var paras = (s.paragraphs || []).map(function (x) { return clean(FA, localize(x, lang, yw, sm)); }).filter(function (x) { return x && x.length > 1; });
+        return Object.assign({}, s, { title: clean(FA, localize(s.title, lang, yw, sm)) || s.title, paragraphs: paras });
       }).filter(function (s) { return s.paragraphs.length; });
+      // coordinator note 3: in EN / ZH the composer opens with the base reading's chart introduction ("Your birth date sets out a
+      // chart…", "从出生日期排出的命盘来看…"); the period block starts with its own facts, so that first sentence is left out
+      if ((lang === "en" || lang === "zh") && secs.length && secs[0].paragraphs.length) {
+        var first = S0(FA, secs[0].paragraphs[0]);
+        if (first.length > 1) secs[0] = Object.assign({}, secs[0], { paragraphs: [first.slice(1).join(lang === "zh" ? "" : " ")].concat(secs[0].paragraphs.slice(1)) });
+      }
       // the computed facts of the period, stated first (facts.periodLead: [{ key: PHRASES key, vars }]; vars.el = an element)
       var lead = (facts.periodLead || []).map(function (x) {
-        var v = Object.assign({}, x.vars); if (v.el) v.el = elName(v.el, lang);
+        var v = Object.assign({}, x.vars), L2 = langOf(lang); if (v.el) v.el = elName(v.el, lang);
+        if (v.br != null) v.br = BR[L2][v.br]; if (v.sign != null) v.sign = SIGN[L2][v.sign]; if (v.rel) v.rel = (REL[v.rel] || REL.neutral)[L2];
         return clean(FA, phrase(x.key, lang, v));
       }).filter(Boolean);
       if (lead.length) secs.unshift({ id: "period", title: "", paragraphs: lead });
-      return Object.assign({}, res, { sections: secs, plan: null, reminder: res.reminder ? clean(FA, localize(res.reminder, lang)) : res.reminder,
-        summary: res.summary ? JSON.parse(localize(JSON.stringify(res.summary), lang)) : res.summary, period: p.id, seed: seed });
+      return Object.assign({}, res, { sections: secs, plan: null, reminder: res.reminder ? clean(FA, localize(res.reminder, lang, yw, sm)) : res.reminder,
+        summary: res.summary ? JSON.parse(localize(JSON.stringify(res.summary), lang, yw, sm)) : res.summary, period: p.id, seed: seed });
     });
   }
 
@@ -142,10 +208,10 @@
     return '<section class="lq-period" id="' + id + '" data-lq-period aria-labelledby="' + id + '-h">' +
       '<h3 id="' + id + '-h"><span class="lq-period-pill">' + esc(phrase("heading", L)) + "</span></h3>" +
       '<p class="lq-period-label">' + esc(label(opts.period, L)) + "</p>" +
-      '<p class="lq-period-constant">' + esc(phrase("constant", L)) + "</p>" +
+      '<p class="lq-period-constant">' + esc(phrase(opts.constant || "constant", L)) + "</p>" +
       ((opts.facts || []).length ? '<ul class="lq-period-facts">' + opts.facts.map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") + "</ul>" : "") +
       (!opts.calm && (opts.advice || []).length ? '<ul class="lq-period-advice" data-lq-remedy>' + opts.advice.map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") + "</ul>" : "") +
-      '<div class="lq-period-body" id="' + id + '-body" aria-live="polite"></div>' +
+      (opts.noBody ? "" : '<div class="lq-period-body" id="' + id + '-body" aria-live="polite"></div>') +
       '<p class="lq-period-method">' + esc((opts.method ? phrase(opts.method, L) + " " : "") + phrase("solarMonth", L) + " · " + phrase("belief", L)) + "</p></section>";
   }
   var CSS = ".lq-period{margin:18px 0 8px;padding:14px 14px 10px;border:1px solid #c9c2f5;border-left:5px solid #674ff2;border-radius:12px;background:#f7f5ff}" +
@@ -178,7 +244,25 @@
     }).catch(function () { plain(body, { sections: [] }); return null; });
   }
 
-  var api = { enabled: enabled, sunLon: sunLon, termMs: termMs, solarMonth: solarMonth, ictDate: ictDate, PHRASES: PHRASES, phrase: phrase, elName: elName,
+  /* pages whose school has no period method carry <p data-lq-period-none="" | "draw" hidden>: filled and shown when the switch is on */
+  function noMethodLines(doc) {
+    try {
+      if (!doc || !doc.querySelectorAll || !enabled()) return;
+      Array.prototype.forEach.call(doc.querySelectorAll("[data-lq-period-none]"), function (e) {
+        e.textContent = noMethod(langOf(), e.getAttribute("data-lq-period-none")); e.hidden = false;
+      });
+    } catch (e) { /* no DOM */ }
+  }
+  try {
+    var d0 = root.document;
+    if (d0 && d0.addEventListener) {
+      if (d0.readyState === "loading") d0.addEventListener("DOMContentLoaded", function () { noMethodLines(d0); }); else noMethodLines(d0);
+      if (root.addEventListener) root.addEventListener("lq-lang", function () { noMethodLines(d0); });
+    }
+  } catch (e) { /* no DOM */ }
+
+  var api = { enabled: enabled, sunLon: sunLon, termMs: termMs, solarMonth: solarMonth, signPeriod: signPeriod, dayPeriod: dayPeriod, noMethodLines: noMethodLines,
+    ictDate: ictDate, PHRASES: PHRASES, phrase: phrase, elName: elName,
     label: label, range: range, noMethod: noMethod, BASE_EPOCH: BASE_EPOCH, baseSeed: baseSeed, periodSeed: periodSeed, localize: localize, clean: clean,
     read: read, html: html, mount: mount, style: style };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LQPeriod = api;

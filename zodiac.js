@@ -127,9 +127,24 @@
     };
   }
 
+  /* period layer (owner inbox 2026-11-21 entries 19/26; fortune-period.js): 流月, the branch of the Chinese solar month of the
+     period (LQPeriod.solarMonth(ms).branch) against the birth animal, read with the reviewed relation lines (KB.REL; their year
+     wording is read as the period: facts.periodYearWords). Month range only, nothing tied to a day. */
+  function periodFacts(animal, period, opts) {
+    opts = opts || {};
+    var rel = relation(animal, period.branch), REL = KB.REL[rel], M = KB.ANIMALS[period.branch];
+    var rm = { overview: REL.o.slice(), work: REL.w.slice(), money: REL.m.slice(), love: REL.l.slice(), advice: REL.a.slice(), timing: REL.t.slice() };
+    var it = { id: "rel." + rel, group: "ดวงช่วงนี้", label: "เดือน" + M.th + "กับปีนักษัตรของคุณ", short: "ช่วงนี้", evidence: "กิ่งเดือนสุริยคติจีน", strength: 0.9,
+      tags: Object.keys(rm), meanings: rm };
+    if (REL.tone === "care") it.polarity = "challenge";
+    return { domain: "zodiac", topic: opts.topic || "overall", subject: {}, headline: "", items: [it], extras: {}, periodYearWords: true,
+      periodLead: [{ key: "factMonthBranch", vars: { br: period.branch, rel: rel } }] };
+  }
+
   var ZD = {
     relation: relation, isChong: isChong, animalOfYear: animalOfYear, stemOfYear: stemOfYear, elementOfYear: elementOfYear, zodiacYearOf: zodiacYearOf, currentYear: currentYear,
-    elRel: elRel, bridge: bridge, luckyElements: luckyElements, annual: annual, chongTable: chongTable, compat: compat, yearName: yearName, anFlat: anFlat, buildFacts: buildFacts, compatFacts: compatFacts, ORDER: ORDER
+    elRel: elRel, bridge: bridge, luckyElements: luckyElements, annual: annual, chongTable: chongTable, compat: compat, yearName: yearName, anFlat: anFlat,
+      buildFacts: buildFacts, compatFacts: compatFacts, periodFacts: periodFacts, ORDER: ORDER
   };
   if (typeof module !== "undefined" && module.exports) module.exports = ZD;
   root.Zodiac = ZD;
@@ -235,6 +250,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function scoreBars(sc) {
     return [["overall", "ภาพรวม"], ["work", "การงาน"], ["money", "การเงิน"], ["love", "ความรัก"]].map(function (x) { return '<div class="elbar"><span>' + esc(T("zodiac.topic." + x[0], x[1])) + '</span><i style="--w:' + sc[x[0]] + '%;--c:#674ff2"></i><b>' + sc[x[0]] + "</b></div>"; }).join("");
   }
+  /* period layer "ดวงช่วงนี้" (fortune-period.js; only when LQPeriod.enabled(), window.LENSIQ_FORTUNE_PERIOD): 流月 of the solar month of
+     today against the birth animal, in its own block after the yearly reading */
+  function mountPeriod(R) {
+    var LP = window.LQPeriod, wrap = $("#zdReadWrap");
+    if (!LP || !LP.enabled() || !wrap) return;
+    var host = document.createElement("div"), lang = isZh() ? "zh" : window.LQI18N && String(window.LQI18N.lang) === "en" ? "en" : "th", period = LP.solarMonth(Date.now());
+    host.id = "zdPeriodHost"; wrap.appendChild(host);
+    LP.mount(host, { id: "zdPeriod", period: period, lang: lang, FA: window.FortuneAI, domain: "zodiac", topic: "overall", method: "methodZodiac",
+      factsFn: function (rng) { return ZD.periodFacts(R.animal, period, { topic: "overall", rng: rng }); } });
+  }
   /** วาดผลรายปี (ใช้ทั้งตอนได้ผลและตอนสลับภาษา) */
   function renderYear() {
     var R = st.res, A = KB.ANIMALS[R.animal], REL = KB.REL[R.rel], dt = function (k, th) { return "<dt>" + esc(T("zodiac.dt." + k, th)) + "</dt>"; };
@@ -248,7 +273,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       '<h3 class="zd-h">' + esc(T("zodiac.powerH", "พลังปี (ตามความเชื่อ)")) + "</h3>" + scoreBars(R.scores) +
       '<p class="zd-traits">' + traits(R.animal).map(function (t) { return '<span class="fk-chip">' + esc(t) + "</span>"; }).join(" ") + "</p>";
     $("#zdReadWrap").innerHTML = FK.readingBlock("zdRd", T("zodiac.rdTitle", "คำทำนายดวงรายปี"), true);
-    FK.bindReading("zdRd", "zodiac", function (topic, r) { return ZD.buildFacts(R, topic, { rng: r }); }, { withTopics: true });
+    FK.bindReading("zdRd", "zodiac", function (topic, r) { return ZD.buildFacts(R, topic, { rng: r }); }, { withTopics: true, period: "base" });
+    mountPeriod(R);
   }
   function showYear() {
     var R = st.res = ZD.annual(st.animal, st.year, st.birthYear);

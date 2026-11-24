@@ -166,10 +166,13 @@
     var body = document.getElementById(id + "-body"), src = document.getElementById(id + "-src");
     function run() {
       // owner inbox 19: same input + same period = same text; the seed comes from the input facts + the Thai-date period (opts.period "m" | "d")
-      var f0 = factsFn(st.topic, FA && FA.rng ? FA.rng(0) : mulberry32(0)), seed = FA && FA.seedFor ? FA.seedFor([domain, st.topic, f0], opts.period || "m") : 0;
+      // opts.period "base" (period layer on, fortune-period.js): the base reading's seed has no clock, so it never changes with the date
+      var LPb = opts.period === "base" && root.LQPeriod && root.LQPeriod.enabled() ? root.LQPeriod : null, per = opts.period === "base" ? "m" : opts.period || "m",
+        pNow = LPb ? LPb.BASE_EPOCH : undefined;
+      var f0 = factsFn(st.topic, FA && FA.rng ? FA.rng(0) : mulberry32(0)), seed = FA && FA.seedFor ? FA.seedFor([domain, st.topic, f0], per, pNow) : 0;
       var r = FA && FA.rng ? FA.rng(seed) : mulberry32(seed);
       var facts = factsFn(st.topic, r), sent = factsDomain(domain, FA), press = st.press || 0; // owner entry 20: the n-th press = the n-th wording
-      if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], opts.period || "m");
+      if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], per, pNow);
       // a non-enumerable facts.depth (lifecal-kb.js: the reading's own facts stay unchanged) is carried over to the copy as is
       var dp = facts && facts.depth; facts = Object.assign({}, facts, { domain: sent, topic: st.topic });
       if (dp && !facts.depth) Object.defineProperty(facts, "depth", { value: dp, enumerable: false });

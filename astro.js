@@ -114,7 +114,22 @@
     return { span: "years", th: "ช่วงอายุราว " + r + " ปี", en: "About age " + r, zh: "约 " + r + " 岁" };
   }
 
-  var AS = { moonLongitude: moonLongitude, sunAt: sunAt, moonAt: moonAt, chart: chart, sunSignOf: sunSignOf, daily: daily, signOf: signOf, signName: signName, buildFacts: buildFacts, dailyFacts: dailyFacts, ttFromUT: ttFromUT, MOON_TERMS: MOON_TERMS };
+  /* period layer (owner inbox 2026-11-21 entries 19/26; fortune-period.js): the Sun's tropical sign of the period
+     (LQPeriod.signPeriod(ms).sign) as a solar house counted from the natal Sun sign, read with the reviewed house lines
+     (KB.HOUSES; the day wording is read as the period by the frame). Existing code only: no other planet (decision 236). */
+  function periodFacts(sunSign, period, opts) {
+    opts = opts || {};
+    var h = mod(period.sign - sunSign, 12), H = KB.HOUSES[h];
+    return { domain: "astro", topic: opts.topic || "overall", subject: {}, headline: "", extras: {},
+      items: [
+        { id: "day.house." + h, group: "ดวงช่วงนี้", label: "ดวงอาทิตย์ผ่าน" + H.th + " ของชาว" + signName(sunSign), short: "ช่วงนี้", strength: 0.95, tags: ["overview", "advice"],
+          meanings: { overview: [H.o], advice: [H.a] } }
+      ],
+      periodSunForMoon: true, periodLead: [{ key: "factSunSign", vars: { sign: period.sign, house: h + 1 } }] };
+  }
+
+  var AS = { moonLongitude: moonLongitude, sunAt: sunAt, moonAt: moonAt, chart: chart, sunSignOf: sunSignOf, daily: daily, signOf: signOf, signName: signName,
+    buildFacts: buildFacts, dailyFacts: dailyFacts, periodFacts: periodFacts, ttFromUT: ttFromUT, MOON_TERMS: MOON_TERMS };
   AS.SATURN_RETURNS = SATURN_RETURNS; AS.cautionItems = cautionItems; AS.cautionPeriod = cautionPeriod;
   if (typeof module !== "undefined" && module.exports) module.exports = AS;
   root.Astro = AS;
@@ -249,12 +264,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       '<p class="fk-small">' + esc(T("astro.domLabel", "ธาตุเด่น:")) + " <b>" + esc(elName(C.dominant)) + "</b> · " + esc(modeName(C.dominantMode)) + " " + esc(T("astro.weights", "(น้ำหนัก อาทิตย์ 3 · จันทร์ 2 · ลัคนา 2)")) + "</p>";
     var tp = quiet ? topicOf("asRd") : "overall";
     $("#asReadWrap").innerHTML = FK.readingBlock("asRd", T("astro.rdTitle", "คำทำนายตามแผนภูมิเกิด"), true, tp);
-    FK.bindReading("asRd", "astro", function (topic) { return AS.buildFacts(C, topic); }, { withTopics: true, topic: tp });
+    FK.bindReading("asRd", "astro", function (topic) { return AS.buildFacts(C, topic); }, { withTopics: true, topic: tp, period: "base" });
+    mountPeriod(C);
     mountCaution(C);
     renderDaily(C.sun.sign, "#asDaily", "asDayRd", quiet);
     if (quiet) return;
     stats.add({ sun: C.sun.sign, moon: C.moon.sign, asc: C.asc ? C.asc.sign : null });
     $("#asResTitle").focus(); kiosk.touch();
+  }
+  /* period layer "ดวงช่วงนี้" (fortune-period.js; only when LQPeriod.enabled()): the Sun's sign of this period as a house from the natal Sun */
+  function mountPeriod(C) {
+    var LP = window.LQPeriod, wrap = $("#asReadWrap");
+    if (!LP || !LP.enabled() || !wrap) return;
+    var host = document.createElement("div"), L0 = window.LQI18N && String(window.LQI18N.lang), lang = L0 === "zh" || L0 === "en" ? L0 : "th", period = LP.signPeriod(Date.now());
+    host.id = "asPeriodHost"; wrap.appendChild(host);
+    LP.mount(host, { id: "asPeriod", period: period, lang: lang, FA: window.FortuneAI, domain: "astro", topic: "overall", method: "methodAstro",
+      factsFn: function (rng) { return AS.periodFacts(C.sun.sign, period, { topic: "overall", rng: rng }); } });
   }
   function renderDaily(sign, sel, rid, quiet) {
     var D = AS.daily(sign), H = KB.HOUSES[D.house], hk = "house." + D.house, tp = quiet ? topicOf(rid) : "overall";

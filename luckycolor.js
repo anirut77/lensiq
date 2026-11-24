@@ -60,6 +60,21 @@
     }
     for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".lc-goal"))) b.setAttribute("aria-pressed", String(b.dataset.goal === st.goal));
     $("#daySel").value = st.day;
+    renderPeriod();
+  }
+  /* period layer "ดวงช่วงนี้" (fortune-period.js; only when LQPeriod.enabled(), window.LENSIQ_FORTUNE_PERIOD): this page has no base
+     reading (no birth data); the block states the Thai date and today's colours for the chosen goal (advice only, hidden when calm) */
+  function renderPeriod() {
+    const LP = window.LQPeriod, box = $("#recBox");
+    if (!LP || !LP.enabled() || !box) return;
+    let host = $("#lcPeriodHost");
+    if (!host) { host = el("div"); host.id = "lcPeriodHost"; box.insertAdjacentElement("beforebegin", host); }
+    const p = LP.dayPeriod(Date.now()), d = L.dayPlanet(new Date()), r = L.recommend(d, st.goal), lang = String(window.LQI18N && LQI18N.lang);
+    LP.style(document);
+    const calm = !!(window.LQFortuneCrisis && (window.LQFortuneCrisis.calmOn(document) || window.LQFortuneCrisis.active(document)));
+    host.innerHTML = LP.html({ id: "lcPeriod", period: p, lang: lang === "en" || lang === "zh" ? lang : "th", calm, noBody: true, constant: "constantNoBase", method: "methodLucky",
+      facts: [T("lucky.recH", "สีเสริม{goal}ของ{day}", { goal: goalN(st.goal), day: dayN(d) })],
+      advice: [famList(r.primary.families) + " · " + T("lucky.recMain", "สีหลัก"), famList(r.secondary.families) + " · " + T("lucky.recSecond", "สีเสริม")] });
   }
 
   function renderWeek() {
