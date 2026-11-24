@@ -42,7 +42,7 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=39"></script>
+<script src="nav.js?v=40"></script>
 
 <style id="lqFtopCss">.lq-helpnav{grid-area:help;display:flex;justify-self:end;width:auto;margin:0;padding:0;border:0;background:none}
 .lq-helpnav a.lq-call-btn[href]{gap:4px;padding:0 6px;border-radius:8px;background:none;color:#0b5d8f;font-size:.88rem}
@@ -78,7 +78,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
   <div class="pl-head">
     <span class="eyebrow" data-i18n="palm.eyebrow">Palm reading · ดูลายมือ</span>
     <h1 data-i18n="palm.h1">ดูลายมือ</h1>
-    <p data-i18n="palm.lead" class="lead">ถ่ายหรืออัปโหลดรูปฝ่ามือ ระบบหาเส้นหลักให้ ปรับเส้นเองได้ แล้วรับคำอ่านพร้อมเคล็ดเสริมดวง</p>
+    <p data-i18n="palm.lead" class="lead">ถ่ายหรืออัปโหลดรูปฝ่ามือ เส้นหลักขึ้นบนรูปให้เอง ขยับเส้นได้ แล้วรับคำอ่านและเคล็ดเสริมดวง</p>
   </div>
 
   <p class="pl-disclaimer lq-notice lq-top" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
@@ -87,7 +87,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
     <span class="lq-notice-more">
       <span data-i18n="palm.disclaimerRest">ไม่ควรใช้ตัดสินใจเรื่องการจ้างงาน การเงิน ความสัมพันธ์ หรือประเมินบุคคล และเส้นชีวิตไม่ได้บอกว่าชีวิตจะยืนยาวแค่ไหน</span></span></span></p>
 
-  <div class="pl-engine" id="plEngine" role="status">กำลังเตรียมระบบ...</div>
+  <div class="pl-engine" id="plEngine" role="status">รอสักครู่...</div>
 
   <ol class="pl-steps" aria-label="ขั้นตอน" data-i18n-attr="aria-label:palm.steps">
     <li class="on" data-step="1"><b>1</b><span data-i18n="palm.step1">ถ่ายรูปฝ่ามือ</span></li>
@@ -166,7 +166,8 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
   <section class="pl-edit" id="plEdit" hidden data-lq-result aria-labelledby="plEditTitle">
     <h2 data-i18n="palm.plEditTitle" id="plEditTitle" tabindex="-1">ตรวจและปรับเส้นบนฝ่ามือ</h2>
     <div class="pl-readside" id="plReadSide" aria-live="polite" hidden><span id="plReadSideText"></span><button class="btn ghost" id="plSideSwap" type="button" aria-label="สลับข้างมือที่อ่าน" data-i18n-attr="aria-label:palm.rs.swapAria"></button></div>
-    <p class="pl-honest" id="plHonest"><span data-i18n="palm.honest1">ระบบไล่เส้นให้อัตโนมัติ แต่ลายมือในภาพถ่ายมักไม่ชัด</span> <b data-i18n="palm.honest2">ปรับเส้นให้ตรงกับมือจริงเพื่อผลที่แม่นขึ้น</b> <span data-i18n="palm.honest3">— ลากจุดกลมบนเส้นที่เลือก</span></p>
+    <p class="pl-honest" id="plHonest"><span data-i18n="palm.honest1">เส้นบนรูปวาดให้อัตโนมัติ แต่ลายมือในภาพถ่ายมักไม่ชัด</span>
+      <b data-i18n="palm.honest2">ปรับเส้นให้ตรงกับมือจริงเพื่อผลที่แม่นขึ้น</b> <span data-i18n="palm.honest3">— ลากจุดกลมบนเส้นที่เลือก</span></p>
     <p class="pl-small" id="plLinesNoteEdit" data-i18n="palm.linesNote">เส้นที่แสดงเป็นการประมาณจากภาพ ผลอาจคลาดเคลื่อนได้ โปรดเทียบกับมือของคุณ และลากจุดกลมเพื่อปรับเส้นให้ตรงกับรอยจริงได้</p>
     <div class="pl-edit-grid">
       <div class="pl-editor">
@@ -240,7 +241,7 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
       <div class="fa-consent-wrap" id="plConsent"></div>
       <div class="fa-body" id="plNarr" aria-live="polite"></div>
       <div class="fa-actions">
-        <button data-i18n="fortune.common.regen" class="btn ghost" id="plRegen" type="button">อ่านอีกสำนวน</button>
+        <button data-i18n="fortune.common.regen" class="btn ghost" id="plRegen" type="button">เล่าอีกแบบ</button>
       </div>
     </section>
 
@@ -393,10 +394,10 @@ background:none;color:#4b36c9;font:inherit;text-decoration:underline}:is(.ft-her
 <script src="lensiq-detect.js?v=7"></script>
 <script src="fortune-straight.js?v=6"></script>
 <script src="lensiq-thai-canon.js?v=3"></script>
-<script src="fortune-read.js?v=27"></script>
+<script src="fortune-read.js?v=29"></script>
 <script src="lensiq-helpline.js?v=2"></script>
 <script src="fortune-crisis.js?v=22"></script>
-<script src="fortune-ai.js?v=43"></script>
+<script src="fortune-ai.js?v=45"></script>
 <script src="palm-kb.js?v=12"></script>
 <script src="lensiq-capture-hint.js?v=1"></script>
 <script src="palm.js?v=27"></script>

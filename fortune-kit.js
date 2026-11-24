@@ -145,8 +145,9 @@
     topic = topic || "overall";
     return '<section class="fk-reading" id="' + id + '" aria-labelledby="' + id + '-h"><div class="rd-head"><h3 id="' + id + '-h">' + esc(title) + '</h3><span class="rd-src" id="' + id + '-src"></span></div>' +
       (withTopics ? '<div class="rd-topics" role="radiogroup" aria-label="' + esc(T("fk.topics", "หัวข้อที่สนใจ")) + '">' + TOPICS.map(function (t) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (t[0] === topic) + '">' + esc(T("fk.topic." + t[0], t[1])) + "</button>"; }).join("") + "</div>" : "") +
-      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">' + esc(T("fk.loading", "กำลังเรียบเรียงคำทำนาย…")) + '</p></div>' +
-      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">' + esc(T("fk.again", "อ่านอีกสำนวน")) + '</button></div></section>';
+      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">' +
+      esc(T("fk.loading", "รอสักครู่ คำทำนายกำลังจะขึ้น…")) + '</p></div>' +
+      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">' + esc(T("fk.again", "เล่าอีกแบบ")) + '</button></div></section>';
   };
   function plainRender(el, res) {
     el.innerHTML = (res.sections || []).map(function (s) { return '<section class="fa-section"><h3>' + esc(s.title || "") + "</h3>" + (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</section>"; }).join("");
@@ -169,21 +170,25 @@
       var r = FA && FA.rng ? FA.rng(seed) : mulberry32(seed);
       var facts = factsFn(st.topic, r), sent = factsDomain(domain, FA), press = st.press || 0; // owner entry 20: the n-th press = the n-th wording
       if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], opts.period || "m");
-      facts = Object.assign({}, facts, { domain: sent, topic: st.topic });
+      // a non-enumerable facts.depth (lifecal-kb.js: the reading's own facts stay unchanged) is carried over to the copy as is
+      var dp = facts && facts.depth; facts = Object.assign({}, facts, { domain: sent, topic: st.topic });
+      if (dp && !facts.depth) Object.defineProperty(facts, "depth", { value: dp, enumerable: false });
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       // รอบ 12: ข้อความที่ผู้ใช้พิมพ์เอง (คำถาม/ความฝัน) ส่งเป็น userText ให้ตัวตรวจวิกฤตใน FortuneAI.interpret อีกชั้น
       var userText = typeof opts.userText === "function" ? opts.userText() : opts.userText;
       var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, userText: userText || "" }) : Promise.resolve(localFallback(facts));
       box.setAttribute("aria-busy", "true");
-      return p.catch(function () { return localFallback(facts); }).then(function (res) {
+      return p.catch(function (e) { return e && e.lqLoad ? null : localFallback(facts); }).then(function (res) {
+        // the depth / language data did not load: a plain error, never a reading without its data (fortune-depth.js ready)
+        if (!res) { if (root.LQFortuneDepth) root.LQFortuneDepth.showLoadError(body); src.hidden = true; box.removeAttribute("aria-busy"); return; }
         res = relabel(res, domain, sent);
         st.result = res; st.facts = facts; st.lines = keyLines(res, facts, 3);
         // lensiq-member.js gates FA.renderSections itself (light reading for guests when the owner requires sign-in);
         // the plain fallback asks it for the same light result
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false });
         else plainRender(body, root.LQMember && root.LQMember.gate ? root.LQMember.gate(res) : res);
-        src.textContent = res.source === "ai" ? T("fk.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : ""; // owner 2026-11-17: no label for the on-device composer
-        src.hidden = res.source !== "ai";
+        src.textContent = ""; // owner entry 23 (2026-11-23): no AI label on the result; the consent step names the writing assistant
+        src.hidden = true;
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         box.removeAttribute("aria-busy");
         if (opts.onDone) opts.onDone(st);

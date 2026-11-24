@@ -13,7 +13,7 @@
   "zodiac.eraCE": "CE",
   "zodiac.boundaryLabel": "Zodiac year starts at",
   "zodiac.yearLabel": "Year to view",
-  "zodiac.birthHint": "If you enter a birth date, the system uses it instead of the animal selected above",
+  "zodiac.birthHint": "If you enter a birth date, it is used instead of the animal selected above",
   "zodiac.cardImgAlt": "Shareable Chinese zodiac card",
   "zodiac.chongYearLabel": "Year",
   "zodiac.statsOn": "Count sessions and zodiac animals on this device (birth dates are not saved)",

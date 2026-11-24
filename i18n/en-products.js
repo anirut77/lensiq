@@ -140,7 +140,7 @@
   "pd.f.face.h": "Face reading",
   "pd.f.face.p": "Reads your face with the camera; no images kept",
   "pd.f.palm.h": "Palm reading",
-  "pd.f.palm.p": "Photograph your palm and the main lines are found for you",
+  "pd.f.palm.p": "Photograph your palm and the main lines appear on the photo",
   "pd.f.tarot.h": "Tarot & fortune sticks",
   "pd.f.tarot.p": "Pick your own cards or shake your phone for a fortune stick",
   "pd.f.horo.h": "Birth-date horoscope",

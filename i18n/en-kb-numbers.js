@@ -130,3 +130,33 @@
   root.FORTUNE_EN = root.FORTUNE_EN || {}; root.FORTUNE_EN[D.domain] = D;
   if (typeof module !== "undefined" && module.exports) module.exports = D;
 })(typeof window !== "undefined" ? window : globalThis);
+/* BEGIN depth en.numbers (fortune-depth.js: material behind "อ่านเพิ่มเติม"; {t, c: true} = restraining, always shown) */
+(/** @param {any} G */ function (G) {
+  "use strict";
+  var R = G.LQ_DEPTH = G.LQ_DEPTH || { build: {}, text: { th: {}, en: {}, zh: {} } };
+  var T = {"_title":"The number in more depth",
+    "dom.0":"The digit 0 appears {N} times, so the number is full of open space and feels light. Thai readers take that as a taste for independent thinking, a habit of pausing before deciding, and an easy welcome for new things.",
+    "dom.1":"The digit 1 appears {N} times, which lets the Sun lead this number. The tradition links it with confidence, self-reliance and being remembered at work, and suggests leaving room to hear other people's views.",
+    "dom.2":"The digit 2 appears {N} times, and the Moon governs the number. Gentleness and fine feeling become its main colour, suiting work that looks after people, service roles and friendships built to last.",
+    "dom.3":"With the digit 3 showing up {N} times, Mars energy makes the number quick and ready to act. Readers connect it with competitive or physically busy work, and pair it with short pauses to catch your breath.",
+    "dom.4":"The digit 4 returns {N} times, so Mercury steers the number toward speaking, writing, bargaining and quick wits. It suits work that links many parties and a person who picks up new subjects fast.",
+    "dom.5":"The digit 5 sits in this number {N} times, and Jupiter brings the picture of a teacher, a kind elder and learning. The tradition says such numbers favour having advisers, further study and a trusted name.",
+    "dom.6":"The digit 6 repeats {N} times, so Venus paints the number with beauty, art, relationships and taste. Readers describe an owner who likes a warm atmosphere and puts real value on being comfortable.",
+    "dom.7":"The digit 7 appears {N} times, and Saturn contributes responsibility, discipline and work built up bit by bit. The tradition says this number rewards patience and long plans more than it rewards speed.",
+    "dom.8":"The digit 8 occurs {N} times, and Rahu gives the number turning points, high ambition and money that moves in quick swings. Readers suggest a clear financial plan and regular rest for a clear head.",
+    "dom.9":"The digit 9 turns up {N} times, so Ketu leads with intuition, letting go and an interest in the inner life. Readers picture an owner who looks deeper than most and prefers meaning to surface things.",
+    "root.1":"The digits add down to 1, which belongs to the Sun. The tradition calls it the number of beginners and leaders, so the overall tone of this phone number leans towards confidence, independence and standing on your own feet.",
+    "root.2":"The digits add down to 2, the Moon's number. The tradition links it with harmony and refinement, so the overall tone leans towards charm, friendliness and an ability to work well alongside other people.",
+    "root.3":"The digits add down to 3, which belongs to Mars. The tradition calls it the number of drive and courage, so the overall tone carries strong energy to act, a taste for challenge and quick progress on stalled matters.",
+    "root.4":"The digits add down to 4, the number of Mercury. The tradition points to communication and nimbleness, so the overall tone suits contact work, sales and anyone who keeps adapting to fresh subjects.",
+    "root.5":"The digits add down to 5, which belongs to Jupiter. The tradition calls it the number of wisdom and senior backing, so the overall tone leans towards trust, learning and friends who point out the way.",
+    "root.6":"The digits add down to 6, Venus's number. The tradition links it with beauty, love and a sense of taste, so the overall tone is warm and friendly and fits work about keeping people pleased and comfortable.",
+    "root.7":"The digits add down to 7, which belongs to Saturn. The tradition calls it the number of discipline and stability built slowly, so the overall tone suits patient people who work in systems and lay long-term foundations.",
+    "root.8":"The digits add down to 8, the number of Rahu. The tradition points to ambition and change that arrives quickly, so the overall tone is colourful, invites big thinking and does best when guided by discipline.",
+    "root.9":"The digits add down to 9, which belongs to Ketu. The tradition calls it the number of closing a cycle and opening a new view, so the overall tone leans towards intuition, compassion and seeing the wider picture.",
+    "last4":"The tradition gives the last four digits, {P}, the most weight, because they are what people remember, say aloud and dial last. A reader looks at each position's planet first, then at how neighbouring pairs strengthen or soften one another.",
+    "zero":{"t":"When a number holds zeros, the tradition says a zero has no power of its own but can amplify or blank its neighbours. Beside a strong digit it adds weight, while several together may thin the meaning out, so read it alongside the digits around it.",
+    "c":true}};
+  R.text.en.numbers = T;
+})(typeof globalThis !== "undefined" ? globalThis : this);
+/* END depth en.numbers */

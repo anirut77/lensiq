@@ -935,7 +935,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var loadNets = function () { return Promise.all(nets().map(function (n) { return n.loadFromUri("vendor/models/"); })); };
   var TRY = " — ปิดแท็บอื่นแล้วกด เปิดกล้อง อีกครั้ง หรือใช้ปุ่ม อัปโหลดรูป แทน", NET = " — ตรวจอินเทอร์เน็ตแล้วกด เปิดกล้อง อีกครั้ง หรือใช้ปุ่ม อัปโหลดรูป แทน";
   var FAIL = { oom: "หน่วยความจำของเครื่องไม่พอสำหรับวิเคราะห์ใบหน้าสด" + TRY, detStop: "การวิเคราะห์ใบหน้าสดหยุดทำงานบนเครื่องนี้" + TRY,
-    modelSlow: "โหลดโมเดลวิเคราะห์ใบหน้านานเกินไป" + NET, modelFail2: "โหลดโมเดลวิเคราะห์ใบหน้าไม่สำเร็จ" + NET, noGl: "เครื่องนี้เปิดตัวอ่านใบหน้าไม่ได้ ลองเปิดหน้านี้ด้วย Safari หรือ Chrome รุ่นล่าสุด",
+    modelSlow: "เตรียมการอ่านใบหน้านานเกินไป" + NET, modelFail2: "เตรียมการอ่านใบหน้าไม่สำเร็จ" + NET, noGl: "เครื่องนี้เปิดตัวอ่านใบหน้าไม่ได้ ลองเปิดหน้านี้ด้วย Safari หรือ Chrome รุ่นล่าสุด",
     readFail2: "อ่านไม่สำเร็จ (วิเคราะห์หยุดหรือช้าเกินไป) — กด อ่านโหงวเฮ้ง อีกครั้ง หรือใช้ อัปโหลดรูป" }, failLine = function (id) { engineT("faceread.eng." + id, FAIL[id], null, "err"); };
   /** a lost WebGL context (iOS drops it under memory pressure) is handled by the live loop */
   function watchGl() { glLost = false; if (backendNow === "webgl") LQDetect.watchContextLost(function () { console.warn("faceread: WebGL context lost"); glLost = true; }); }
@@ -960,7 +960,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     ready = false; detGen++; invalidate(); var kind = failKind(e), next = switched || MP ? null : LQDetect.nextBackend(backendNow);
     console.warn("faceread: live detector failed (" + kind + ")" + (next ? ", switching to " + next : ""), e);
     if (!next) return liveDead(kind);
-    switched = true; engineT("faceread.eng.switching", "กำลังสลับไปใช้ตัวประมวลผลสำรอง...");
+    switched = true; engineT("faceread.eng.switching", "กำลังเปลี่ยนไปใช้วิธีที่ช้ากว่าแต่ใช้ได้กับเครื่องนี้ รอสักครู่...");
     try {
       await withTimeout(LQDetect.switchBackend(next, { dispose: nets(), reload: loadNets }), MODEL_MS, "ModelTimeout");
       backendNow = next; watchGl(); ready = true; if (camera.active) engineT("faceread.eng.switched", "กล้องพร้อม (เครื่องนี้อาจอ่านช้ากว่าปกติ) — จัดใบหน้าในวงรี แล้วกด อ่านโหงวเฮ้ง", null, "ok");
@@ -1070,17 +1070,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   btnCam.addEventListener("click", async function () {
     if (mode === "other" && !consentOk.checked) return setMode(mode); else btnCam.disabled = true;
-    engineT("faceread.eng.opening", "กำลังเปิดกล้องและโหลดโมเดล...");
+    engineT("faceread.eng.opening", "กำลังเปิดกล้อง รอสักครู่...");
     try {
       // speed pass 2026-11-14: models (and the face guide script) are fetched only once the camera is open
       // LQCam's public start(id) takes no facing; flip() opens the other side (start("", {face}) inside) when the facing differs
       var want = mode === "other" ? "environment" : "user"; await (camera.facing === want ? camera.start() : camera.flip());
       // closed again at once = a back camera without the consent tick
-      if (!camera.active) return; engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
+      if (!camera.active) return; engineT("faceread.eng.loading", "กำลังเตรียมการอ่านใบหน้า รอสักครู่...");
       // never a live camera without a detector; a retry after liveDead() re-arms the detector (the models are still loaded)
       try { await Promise.all([loadModels(), loadFaceCap()]); } catch (e) { stopLive(); modelMsg(e); return; } ready = true; switched = false; $("#frCamHint").hidden = true;
-      if (mode === "other") engineT("faceread.eng.camReadyRear", "กล้องหลังพร้อม — เล็งให้ใบหน้าของเขาอยู่ในวงรี เมื่อวงรีเป็นสีเขียว ระบบจะนับ 3-2-1 แล้วถ่ายเอง", null, "ok");
-      else engineT("faceread.eng.camReadyAuto", "กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี เมื่อวงรีเป็นสีเขียว ระบบจะนับ 3-2-1 แล้วถ่ายเอง หรือกด อ่านโหงวเฮ้ง", null, "ok");
+      if (mode === "other") engineT("faceread.eng.camReadyRear", "กล้องหลังพร้อม — เล็งให้ใบหน้าของเขาอยู่ในวงรี พอวงรีเป็นสีเขียว จะนับ 3-2-1 แล้วถ่ายให้เอง", null, "ok");
+      else engineT("faceread.eng.camReadyAuto", "กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี พอวงรีเป็นสีเขียว จะนับ 3-2-1 แล้วถ่ายให้เอง หรือกด อ่านโหงวเฮ้ง", null, "ok");
       btnCam.hidden = true; btnRead.hidden = false; } catch (e) { camErr(e); btnCam.disabled = false; setMode(mode); }
   }); // D-13: the camera-off control (#frStopCam) shows while the start button is hidden (faceread.css)
   $("#frStopCam").addEventListener("click", function () { if (busy) return; stopLive(); hideHint(); octx.clearRect(0, 0, ov.width, ov.height); setMode(mode);
@@ -1117,7 +1117,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var f = fileIn.files && fileIn.files[0]; fileIn.value = "";
     if (!f) return;
     touch();
-    engineT("faceread.eng.uploading", "กำลังโหลดโมเดลและอ่านรูป...");
+    engineT("faceread.eng.uploading", "กำลังอ่านรูป รอสักครู่...");
     try {
       await loadModels();
       var url = URL.createObjectURL(f), img = new Image();
@@ -1196,7 +1196,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var facts = current.facts = FR.buildFacts(R, { topic: topic, nickname: $("#frNick").value, age: current.age });
     var useAI = !!(FA && FA.hasConsent && FA.hasConsent());
     box.setAttribute("aria-busy", "true"); btn.disabled = true;
-    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("faceread.narr.ai", "กำลังให้ผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) เรียบเรียง...") : T("faceread.narr.local", "กำลังเรียบเรียงคำทำนาย...")) + "</p>";
+    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("faceread.narr.ai", "กำลังให้ผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) เรียบเรียง...") : T("faceread.narr.local", "รอสักครู่ คำทำนายกำลังจะขึ้น...")) + "</p>";
     // owner inbox 19 / entry 20: wording seed = the facts + Thai-date month + press index (on the device; nothing stored or sent)
     // press index: 0 on a new reading / topic / name, +1 per press of "again" (the n-th press = the n-th wording)
     var press = again ? ++narrPress : (narrPress = 0), seed = FA && FA.seedFor ? FA.seedFor(["faceread", topic, facts], "m") : 0, p;
@@ -1205,10 +1205,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       if (my !== narrToken || !current) return;
       current.narr = res;
       if (FA && FA.renderSections) FA.renderSections(box, res, { aiBadge: false }); else renderPlain(box, res);
-      var src = $("#frSrc"), ai = res.source === "ai";
-      src.textContent = ai ? T("faceread.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : ""; // owner 2026-11-17: no on-device label
-      src.hidden = !ai;
-      src.classList.toggle("ai", ai);
+      // owner entry 23 (2026-11-23): no AI label on the result; the consent step names the writing assistant
+      var src = $("#frSrc"); src.textContent = ""; src.hidden = true; src.classList.toggle("ai", res.source === "ai");
       box.removeAttribute("aria-busy"); btn.disabled = false;
     });
   }

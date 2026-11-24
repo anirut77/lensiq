@@ -240,9 +240,64 @@
     return { items: items, period: period };
   }
 
+  /* ---------- depth layer (fortune-depth.js, owner order 2026-11-17 item 3): which deeper material of each tradition a reading
+     gets, in reading order. Kept as facts.depth (derived facts: keys and the computed numbers the texts use, so every number in the reading has its
+     evidence; the AI path's compactFacts never sends it); the texts are
+     the depth tables (TH at the end of this file, EN / ZH in i18n/*-kb-lifecal.js). ---------- */
+  var EKEY = ["wood", "fire", "earth", "metal", "water"];
+  // English text names a pillar in pinyin (no Chinese script in English readings); กำลังดาว = the planet's major-period years
+  var PY_S = ["Jia", "Yi", "Bing", "Ding", "Wu", "Ji", "Geng", "Xin", "Ren", "Gui"], PY_B = ["Zi", "Chou", "Yin", "Mao", "Chen", "Si", "Wu", "Wei", "Shen", "You", "Xu", "Hai"];
+  var pyOf = function (p) { return PY_S[p.stem] + "-" + PY_B[p.branch]; };
+  var POWER = { 1: 6, 2: 15, 3: 8, 4: 17, 5: 19, 6: 21, 7: 10, 8: 12 };
+  // not enumerable: the reading's own facts (and their JSON) stay as they were (fortune-caution T15); the semantic lint reads
+  // facts.depth explicitly for its number evidence (fortune-ai.js lintSemantic)
+  function withDepth(F, list) { try { Object.defineProperty(F, "depth", { value: list.filter(Boolean), enumerable: false }); } catch (e) { /* frozen */ } return F; }
+  function baziDepth(B, opts) {
+    var dm = B.dayMaster.el, P = B.pillars, god = function (e) { return LC.tenGod(dm, e); }, out = [];
+    out.push({ sec: "love", key: "spouse." + god(LC.BRANCH_EL[P.day.branch]), vars: { P: P.day.zh, PE: pyOf(P.day) } });
+    out.push({ sec: "work", key: "pg.month." + god(LC.STEM_EL[P.month.stem]), vars: { P: P.month.zh, PE: pyOf(P.month) } });
+    out.push({ sec: "social", key: "pg.year." + god(LC.STEM_EL[P.year.stem]), vars: { P: P.year.zh, PE: pyOf(P.year) } });
+    if (P.hour) out.push({ sec: "timing", key: "pg.hour." + god(LC.STEM_EL[P.hour.stem]), vars: { P: P.hour.zh, PE: pyOf(P.hour) } });
+    B.elementShare.forEach(function (v, e) { if (v < 8) out.push({ sec: "personality", key: "none." + EKEY[e] }); });
+    var age = opts && opts.age != null ? opts.age : new Date().getFullYear() - B.input.y;
+    var nx = (B.luck.pillars || []).filter(function (l) { return l.from > age; })[0];
+    if (nx) out.push({ sec: "timing", key: "next." + nx.stemGod, vars: { A: Math.round(nx.from), P: nx.pillar.zh, PE: pyOf(nx.pillar), T: 10 } });
+    return out;
+  }
+  function taksaDepth(T, opts) {
+    var age = opts && opts.age != null ? opts.age : new Date().getFullYear() - (T.y || new Date().getFullYear());
+    var nx = (T.maha || []).filter(function (m) { return m.from > Math.max(0, age); })[0];
+    return [{ sec: "personality", key: "day." + T.birth.planet, vars: { K: POWER[T.birth.planet] } },
+      nx && { sec: "timing", key: "maha.next." + nx.planet, vars: { A: nx.from, K: POWER[nx.planet] } }];
+  }
+  function lek7Depth(L7) {
+    var s = L7.sum, hi = s.indexOf(Math.max.apply(null, s)), lo = s.indexOf(Math.min.apply(null, s)), out = [];
+    [0, hi, lo, 6].filter(function (i, k, a) { return a.indexOf(i) === k; }).forEach(function (i) {
+      var tag = HOUSE[i].tag;
+      out.push({ sec: tag, key: "house." + i, vars: { N: s[i] } });
+      out.push({ sec: tag, key: "planet." + L7.rows[0][i], vars: { H: "@hname." + i } });
+    });
+    return out;
+  }
+  function lifeDepth(C, nowAge) {
+    var out = [];
+    C.turns.filter(function (t) { return t.age > nowAge; }).slice(0, 3).forEach(function (t) {
+      var k = t.sys === "taksa" ? "turn.taksa." + t.planet : t.sys === "bazi" ? "turn.bazi." + t.god : t.key === "saturn" ? "turn.saturn" : "turn.prog." + t.sign;
+      out.push({ sec: "timing", key: k, vars: t.sys === "bazi" ? { A: Math.round(t.age), T: 10 } : { A: Math.round(t.age) } });
+    });
+    (C.peaks || []).forEach(function (p) { if (p.peak > nowAge) out.push({ sec: p.dom === "care" ? "advice" : p.dom, key: "peak." + p.dom, vars: { A: Math.round(p.peak) } }); });
+    return out;
+  }
+  var baziFactsD = function (B, topic, opts) { return withDepth(baziFacts(B, topic, opts), baziDepth(B, opts)); };
+  var taksaFactsD = function (T, topic, opts) { return withDepth(taksaFacts(T, topic, opts), taksaDepth(T, opts)); };
+  var lek7FactsD = function (L7, topic) { return withDepth(lek7Facts(L7, topic), lek7Depth(L7)); };
+  var lifeFactsD = function (B, T, W, C, nowAge, topic) { return withDepth(lifeFacts(B, T, W, C, nowAge, topic), lifeDepth(C, nowAge)); };
   var KB = { EL: EL, STEM: STEM, STRENGTH: STRENGTH, GOD: GOD, PLANET: PLANET, BHUMI_TH: BHUMI_TH, HOUSE: HOUSE, DOMS: DOMS, DOM_TH: DOM_TH, DOM_LINE: DOM_LINE, DOM_ACT: DOM_ACT, TURN_LINE: TURN_LINE,
-    PLANET_W: PLANET_W, BHUMI_W: BHUMI_W, GOD_W: GOD_W, baziFacts: baziFacts, taksaFacts: taksaFacts, lek7Facts: lek7Facts, lifeCurves: lifeCurves, lifeFacts: lifeFacts, bandSummary: bandSummary, BANDS: BANDS, TONE_OF: TONE_OF };
+    PLANET_W: PLANET_W, BHUMI_W: BHUMI_W, GOD_W: GOD_W, baziFacts: baziFactsD, taksaFacts: taksaFactsD, lek7Facts: lek7FactsD, lifeCurves: lifeCurves, lifeFacts: lifeFactsD,
+    bandSummary: bandSummary, BANDS: BANDS, TONE_OF: TONE_OF };
   KB.baziCautions = baziCautions;
   if (typeof module !== "undefined" && module.exports) module.exports = KB;
   root.LIFECAL_KB = KB;
 })(typeof window !== "undefined" ? window : globalThis);
+// Node (tools, tests): the Thai depth tables load with this file; a page loads them on demand (fortune-depth.js ready)
+if (typeof module !== "undefined" && module.exports && typeof require === "function") require("./lifecal-depth.js");

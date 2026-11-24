@@ -773,7 +773,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         res = await AI.interpret(facts, { useAI: consent, seed: seed });
       }
       else res = { source: "local", sections: [{ id: "overview", title: T("fengshui.overview", "ภาพรวม"), paragraphs: facts.items.map(function (it) { var m = it.meanings, k0 = Object.keys(m)[0]; return m[k0][0]; }) }] };
-    } catch (e) { console.error(e); res = { source: "local", sections: [], note: T("fengshui.readFail", "เรียบเรียงไม่สำเร็จ") }; }
+    } catch (e) { console.error(e); res = { source: "local", sections: [], note: T("fengshui.readFail", "แสดงคำทำนายไม่สำเร็จ ลองกด อ่านคำทำนายฮวงจุ้ย อีกครั้ง") }; }
     renderReading(res, facts);
     btn.disabled = false; $("#fsAgain").disabled = false; $("#fsAgain").hidden = false;
     out.removeAttribute("aria-busy");
@@ -785,9 +785,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     AI = AI || window.FortuneAI;
     $("#fsReading").hidden = false;
     var badge = $("#fsSource");
-    badge.textContent = res.source === "ai" ? T("fengshui.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) จากผลคำนวณเท่านั้น") : ""; // owner 2026-11-17: no on-device label
+    badge.textContent = ""; // owner entry 23 (2026-11-23): no AI label on the result; the consent step names the writing assistant
     badge.className = "fs-badge " + (res.source === "ai" ? "ai" : "local");
-    badge.hidden = res.source !== "ai";
+    badge.hidden = true;
     if (AI && typeof AI.renderSections === "function") {
       try { host.innerHTML = ""; var r = AI.renderSections(host, res, { domain: "fengshui" }); if (typeof r === "string") host.innerHTML = r; else if (r && r.nodeType && r !== host) host.append(r); /* renderSections fills host itself and returns it */ used = host.childNodes.length > 0; } catch (e) { used = false; }
     }

@@ -179,7 +179,7 @@
     return { weekday: wd, today, color: today.color, birthColor: wd.color, direction, word,
       notes: ["สี" + today.color + "เป็นสีประจำ" + today.th + "ตามธรรมเนียมไทย",
         same ? "วันนี้ตรงกับวันเกิดของคุณ สี" + wd.color + "จึงเป็นทั้งสีวันนี้และสีประจำตัว" : "สี" + wd.color + "เป็นสีประจำ" + wd.th + " ใช้เป็นสีเสริมความมั่นใจได้",
-        "ทิศและคำพลังสุ่มจากวันที่และวันเกิด เปลี่ยนใหม่ทุกวัน"] };
+        "ทิศและคำพลังมาจากวันที่วันนี้กับวันในสัปดาห์ที่คุณเกิด ทั้งวันได้ผลเดิม และเปลี่ยนเมื่อขึ้นวันใหม่"] };
   }
 
   /* ---------- ปิดบังตัวเลขบนการ์ดแชร์ ---------- */
@@ -289,12 +289,15 @@
     // reading layout never folds them (fortune-restrain.js sources)
     const extras = { tips: want.slice(0, 3).concat(goalTips), restrainTips: wantT.slice(0, 3).filter(t => t && t.avoid && t.avoid.length).map(t => t.t) };
     if (r.weekday) extras.luckyColors = [r.weekday.color];
-    return {
+    const F = {
       domain: "numbers", topic: topic || "overall", subject: {},
       headline: ai ? KIND_TH[r.kind] + " คะแนนพลังรวม " + r.score + "/100" : KIND_TH[r.kind] + " คะแนน " + r.score + "/100 · ผลรวม " + s.sum,
       items: top,
       extras,
     };
+    // depth layer (fortune-depth.js): the phone's deeper layers (derived; the AI path's compactFacts never sends it)
+    if (!ai && r.kind === "phone" && typeof KB.depthOf === "function") F.depth = KB.depthOf(r);
+    return F;
   }
   /** คำพลังจากผล (ชื่อหมวดของคู่เด่น) — แทนการให้ "เลขนำโชค" */
   function strengthWords(r) {
@@ -534,8 +537,8 @@
     }
     if (!done) fallbackRender(res, box);
     const ai = res.source === "ai";
-    // owner 2026-11-17: no on-device label
-    const b = $("#nmSrc"); b.textContent = ai ? T("numbers.src.ai", "เรียบเรียงโดย Claude AI") : ""; b.className = "src-badge " + (ai ? "ai" : "local"); b.hidden = !ai;
+    // owner entry 23 (2026-11-23): no AI label on the result; the consent step names the writing assistant
+    const b = $("#nmSrc"); b.textContent = ""; b.className = "src-badge " + (ai ? "ai" : "local"); b.hidden = true;
     $("#nmNarrNote").textContent = res.note || "";
   }
   async function narrate(again) {
@@ -545,9 +548,9 @@
     const my = ++narrSeq, useAI = !!(aiEnabled && (F && typeof F.hasConsent === "function" ? F.hasConsent() : prefs.ai));
     const topic = $("#nmTopic").value;
     currentFacts = buildFacts(current, topic, { forAI: useAI });
-    if (!F) { box.innerHTML = '<p class="nm-small">' + esc(T("numbers.noComposer", "ไม่พบตัวเรียบเรียงคำอ่าน (fortune-ai.js)")) + '</p>'; return; }
+    if (!F) { box.innerHTML = '<p class="nm-small">' + esc(T("numbers.noComposer", "ตอนนี้ยังแสดงคำอ่านไม่ได้ ลองโหลดหน้านี้ใหม่")) + '</p>'; return; }
     $("#nmAgain2").disabled = true; box.setAttribute("aria-busy", "true");
-    if (useAI) box.innerHTML = '<p class="nm-small">' + esc(T("numbers.loading", "กำลังเรียบเรียงคำอ่าน...")) + '</p>';
+    if (useAI) box.innerHTML = '<p class="nm-small">' + esc(T("numbers.loading", "รอสักครู่ คำอ่านกำลังจะขึ้น...")) + '</p>';
     // owner inbox 19: same number + same Thai-date month = same text (seed from the facts; nothing stored or sent)
     let seed = typeof F.seedFor === "function" ? F.seedFor(["numbers", topic, currentFacts], "m") : 0;
     const press = narrPress;

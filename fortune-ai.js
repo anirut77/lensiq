@@ -36,9 +36,9 @@
  *   FortuneAI.interpret(facts, { useAI?, seed?, tone?, timeoutMs? })  -> Promise<result>
  *        useAI ไม่ระบุ = ใช้ AI เมื่อผู้ใช้เคยติ๊กยินยอม (localStorage "fa-consent")
  *   FortuneAI.compose(facts, { seed? })        -> result (ซิงก์ ในเครื่องล้วน)
- *   FortuneAI.regenerate(facts, opts)          -> Promise<result> (สำนวนใหม่ = seed ใหม่) ใช้กับปุ่ม "อ่านอีกสำนวน"
+ *   FortuneAI.regenerate(facts, opts)          -> Promise<result> (สำนวนใหม่ = seed ใหม่) ใช้กับปุ่ม "เล่าอีกแบบ"
  *   FortuneAI.status()                         -> Promise<{enabled, model?}>
- *   FortuneAI.renderSections(el, result, { aiBadge?: boolean|string, showNote?: boolean })
+ *   FortuneAI.renderSections(el, result, { showNote?: boolean })  (no AI label on the result: owner entry 23; aiBadge is ignored)
  *   FortuneAI.registerHooks({ gate?, decorate?, onAIResponse? }) -> unregister()  (extension points, see below)
  *   FortuneAI.toHTML(result, opts)             -> string (escape แล้ว)
  *   FortuneAI.consentControl(el, { onChange }) -> Promise<HTMLElement|null> แสดงเฉพาะเมื่อ AI เปิดใช้งาน
@@ -152,7 +152,7 @@
     face: [
       "ตำราโหงวเฮ้งอ่านนิสัยจากสัดส่วนของใบหน้า และใบหน้าของ{N}มีจุดเด่นให้ดูหลายตำแหน่ง",
       "อ่านตามตำราโหงวเฮ้ง โดยเริ่มจากส่วนที่เด่นที่สุดบนใบหน้าของ{N}",
-      "จากสัดส่วนที่วัดได้บนใบหน้า ตำราโหงวเฮ้งอ่าน{N}ไว้ดังนี้",
+      "ดูจากโครงหน้าของ{N} ตำราโหงวเฮ้งว่าไว้ดังนี้",
       "โหงวเฮ้งดูทั้งรูปหน้า คิ้ว ตา จมูก และปาก ขอไล่ดูทีละส่วนของ{N}",
       "ใบหน้าของ{N}มีทั้งส่วนที่บอกความมุ่งมั่นและส่วนที่บอกความอ่อนโยน",
       "ตำราโหงวเฮ้งอ่านใบหน้าจากบนลงล่าง ขอเริ่มจากจุดที่เด่นที่สุดก่อน",
@@ -2424,8 +2424,11 @@
       if (out && out.source !== "support") {
         const L = out.lang || langOf(opts), RS = rsOf(), tr = (/** @type {any} */ it) => (L === "en" ? (enLoad(), enItem(facts.domain, it)) : L === "zh" ? (zhLoad(), zhItem(facts.domain, it)) : it);
         // fortune-paid (2026-11-15): guidance marks by provenance, section.guidance (fortune-straight.js markGuidance; the layout ignores it)
-        const src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : []; if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, L === "en" ? REMEDY_EN : REMEDY);
-        out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text))); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
+        // depth layer (owner order 2026-11-17 item 3): fortune-depth.js adds the discipline's own material behind "อ่านเพิ่มเติม" within the
+        // composer's length cap, never in a calm / crisis reading, never a text that adds a lint / semantic finding; its restraining texts
+        // join the caution marks (never folded)
+        const DP = typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-depth.js") : root.LQFortuneDepth, dpc = DP ? DP.apply(out, facts, L, { calm, ok: isSafe, dup: S => nearDupPairs(S, L, out._dupNames || []).length + (L === "en" ? lintEn : L === "zh" ? lintZh : lint)(out).length + lintSemantic(facts, out).length + lintRepeats(out).length }) : [], src = RS ? RS.sources(facts, tr).concat(FILLS.rec) : []; if (DP && DP.splitCaution) DP.splitCaution(out, facts, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text), dpc), { calm, sentences, lintP: p => (L === "en" ? lintEn : L === "zh" ? lintZh : lint)({ lang: L, source: "local", sections: [{ id: "x", paragraphs: [p] }] }).filter(x => x.rule !== "thin-section").length }); if (FS.markGuidance) FS.markGuidance(out, facts, L, tr, L === "en" ? REMEDY_EN : REMEDY);
+        out.mode = straight ? "straight" : "gentle"; markCaution(out, L, CREC.concat(cautMeanings(facts, L), src.map(x => x.text), dpc)); PROV.set(out, RS ? RS.provenance(out, L, src) : []);
       }
       // calm / crisis (hard limit 3): no plan, no remedy; the advice section stays (rule a) under a plain title without remedy wording
       if (calm && out) { delete out.plan; if (Array.isArray(out.sections)) out.sections = out.sections.map(x => x.id !== "advice" ? x : Object.assign({}, x, { title: CALM_T[out.lang] || CALM_T.th,
@@ -3423,7 +3426,7 @@
     if (result && result.lang === "en") {
       // English: numbers must come from the facts / phrase banks, reflective dreams carry no omen wording, sections fit the domain
       const out = [], F = normalizeFacts(facts), secs = result.sections || [];
-      const known = new Set(numsIn(JSON.stringify(facts)).concat(Array.from(bankNums()), numsIn(JSON.stringify(enLoad()[F.domain] || {}))));
+      const known = new Set(numsIn(JSON.stringify([facts, facts && facts.depth])).concat(Array.from(bankNums()), numsIn(JSON.stringify(enLoad()[F.domain] || {}))));
       const reflect = F.register === "reflect";
       for (const s of secs) for (const p of s.paragraphs || []) {
         for (const n of numsIn(p)) if (!known.has(n)) out.push({ rule: "number-evidence", section: s.id, excerpt: n + " in: " + p.slice(0, 60) });
@@ -3436,7 +3439,7 @@
     if (result && result.lang === "zh") {
       // 中文：数字须来自资料、梦（心绪之梦）不得有预言式说法、总结须安全
       const out = [], F = normalizeFacts(facts), secs = result.sections || [];
-      const known = new Set(numsIn(JSON.stringify(facts)).concat(Array.from(bankNums())));
+      const known = new Set(numsIn(JSON.stringify([facts, facts && facts.depth])).concat(Array.from(bankNums())));
       const reflect = F.register === "reflect";
       for (const s of secs) for (const p of s.paragraphs || []) {
         for (const n of numsIn(p)) if (!known.has(n)) out.push({ rule: "number-evidence", section: s.id, excerpt: n + " in: " + p.slice(0, 60) });
@@ -3475,7 +3478,7 @@
       if (c.kind === "item" && PAST_ITEM(its[0])) { const m = FUTURE.exec(c.text); if (m) push("tense-position", c.sec, c.text); }
     }
     // numbers
-    const known = new Set(numsIn(JSON.stringify(facts)).concat(Array.from(bankNums())));
+    const known = new Set(numsIn(JSON.stringify([facts, facts && facts.depth])).concat(Array.from(bankNums())));
     for (const s of secs) for (const p of s.paragraphs || []) for (const n of numsIn(p)) if (!known.has(n)) push("number-evidence", s.id, n + " in: " + p.slice(0, 80));
     // traits
     const tr = traitsOf(all);
@@ -4211,6 +4214,8 @@
       facts = Object.assign({}, facts, { subject: Object.assign({}, facts && facts.subject, { nickname: "" }), question: undefined });
       opts = Object.assign({}, opts, { userText: "", useAI: false, straight: false });
     }
+    // on-demand depth / Chinese data (fortune-depth.js ready), only after the crisis check above; a failed load rejects (err.lqLoad)
+    if (root.LQFortuneDepth && root.LQFortuneDepth.ready) await root.LQFortuneDepth.ready(facts, langOf(opts));
     // Chinese and English are composed on the device only (the writing assistant and its grounding gate are Thai-only)
     // ส่วน C: โหมดตรงเรียบเรียงในเครื่องเท่านั้น (ผู้ช่วยเขียน AI ยังใช้ถ้อยคำนุ่มนวลจนกว่าเจ้าของอนุมัติ)
     const straight = opts.straight != null ? !!opts.straight : straightActive();
@@ -4238,12 +4243,12 @@
               const alt = compose(facts, Object.assign({}, opts, { seed: ((loc.seed || 0) + 7919) >>> 0 }));
               const g = groundAI(sections, facts, loc, [alt]);
               if (g.sections) return { source: "ai", sections: g.sections, model: j.model, summary: loc.summary, reminder: loc.reminder, plan: loc.plan, grounding: { kept: g.log.kept, dropped: g.log.dropped, replaced: g.log.replaced, toppedUp: g.log.toppedUp } };
-              note = "คำเรียบเรียงจาก AI ไม่ผ่านการตรวจความถูกต้อง จึงใช้ตัวเรียบเรียงในเครื่องแทน";
+              note = "คำจากผู้ช่วยเขียนไม่ผ่านการตรวจ คำทำนายด้านล่างจึงเป็นฉบับปกติที่ทำในเครื่องของคุณ";
             }
           }
-          if (!note) note = "ผู้ช่วยเขียนไม่พร้อมใช้งานชั่วคราว จึงใช้ตัวเรียบเรียงในเครื่องแทน";
+          if (!note) note = "ตอนนี้ผู้ช่วยเขียนใช้ไม่ได้ คำทำนายด้านล่างจึงเป็นฉบับปกติที่ทำในเครื่องของคุณ";
         } catch (e) {
-          note = "เชื่อมต่อ AI ไม่สำเร็จ จึงใช้ตัวเรียบเรียงในเครื่องแทน";
+          note = "ต่อผู้ช่วยเขียนไม่ได้ คำทำนายด้านล่างจึงเป็นฉบับปกติที่ทำในเครื่องของคุณ";
         } finally { if (timer) clearTimeout(timer); }
       }
     }
@@ -4251,14 +4256,11 @@
     if (note) out.note = note;
     return out;
   }
-  function regenerate(facts, opts = {}) {
-    return interpret(facts, Object.assign({}, opts, { seed: randomSeed() }));
-  }
+  const regenerate = (/** @type {any} */ facts, opts = {}) => interpret(facts, Object.assign({}, opts, { seed: randomSeed() }));
 
   /* ======================= ตัวช่วยแสดงผล ======================= */
   const escapeHtml = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   let uid = 0;
-  const badgeText = o => (typeof o.aiBadge === "string" ? o.aiBadge : "เรียบเรียงโดยผู้ช่วยเขียน (Claude ของ Anthropic)");
   /* ส่วน "อ่านเพิ่มเติม": ย่อหน้าหลัง section.main พับไว้ใน <details> ของหัวข้อนั้น
      หัวข้อที่ collapsed ทั้งหัวข้อ รวมไว้ใน <details> เดียวท้ายคำทำนาย (ยังเป็น .fa-section[data-section] เหมือนเดิม) */
   const MORE_LABEL = "อ่านเพิ่มเติม";
@@ -4287,7 +4289,6 @@
         '<p class="fa-support-link"><a class="lq-counsel-link" href="counselling.html">' + escapeHtml((sp.counsel && sp.counsel.text) || counselText(res.lang)) + "</a></p></section>";
     }
     let h = "";
-    if (res.source === "ai" && opts.aiBadge !== false) h += '<p class="fa-ai-badge">' + escapeHtml(badgeText(opts)) + "</p>";
     if (res.note && opts.showNote !== false) h += '<p class="fa-note" role="status">' + escapeHtml(res.note) + "</p>";
     const sm = res.summary;
     if (sm && Array.isArray(sm.lines) && sm.lines.length && opts.summary !== false) {
@@ -4329,7 +4330,6 @@
     try { if (res.lang === "zh") container.setAttribute("lang", "zh-Hans"); else if (res.lang === "en") container.setAttribute("lang", "en"); else container.removeAttribute("lang"); } catch (e) { /* ไม่มี DOM */ }
     const el = (tag, cls, text) => { const e = doc.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
     const details = (label, cls) => { const d = el("details", "fa-more" + (cls ? " " + cls : "")); d.appendChild(el("summary", null, label)); return d; };
-    if (res.source === "ai" && opts.aiBadge !== false) frag.appendChild(el("p", "fa-ai-badge", badgeText(opts)));
     if (res.note && opts.showNote !== false) { const n = el("p", "fa-note", res.note); n.setAttribute("role", "status"); frag.appendChild(n); }
     // การ์ด "สรุปสั้น" 2–3 บรรทัดบนสุด — อ่านจบในไม่กี่วินาที แล้วค่อยอ่านรายละเอียดด้านล่าง
     const sm = res.summary;

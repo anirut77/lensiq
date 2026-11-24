@@ -2,7 +2,7 @@
 (function (root) {
   "use strict";
   var dict = { en: {
-    "dream.metaDesc": "Describe your dream and we find its symbols: dream interpretation by Thai belief with over 100 symbols and 4 dream types. No lottery numbers; your text is not saved",
+    "dream.metaDesc": "Describe your dream and see what the things in it mean: dream interpretation by Thai belief with over 100 symbols and 4 dream types. No lottery numbers; your text is not saved",
     "dream.discNote": "This page gives no numbers and is not for gambling; dream text is processed on this device only and never saved",
     "dream.textLbl": "Describe your dream (optional · not saved or uploaded)",
     "dream.textPh": "e.g. I dreamed of a big snake in my house, then flew to the beach",
