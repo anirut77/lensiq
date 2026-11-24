@@ -127,6 +127,46 @@
     };
   }
 
+  /* period phrase table (DRAFT for the expert pack): the month branch against the birth animal, month range only; o = the period, a = to do */
+  var Z = function (th, en, zh) { return { status: "draft", th: { o: th[0], a: th[1] }, en: { o: en[0], a: en[1] }, zh: { o: zh[0], a: zh[1] } }; };
+  var PERIOD_KB = {
+      clash: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้ชงกับนักษัตรของคุณ แผนอาจต้องปรับบ่อยกว่าปกติ จึงควรระวังการตัดสินใจเรื่องใหญ่แบบเร่งรีบ",
+        "ค่อย ๆ ตัดสินใจ เผื่อเวลาเดินทางและเผื่องบไว้เล็กน้อย แล้วช่วงนี้จะผ่านไปได้ราบรื่นขึ้น"],
+        ["In folk belief this month's branch clashes with your animal sign, so plans may need adjusting more often than usual; be careful with big decisions made in a hurry.",
+          "Decide step by step and leave a little extra time and budget, and the month will run more smoothly."],
+        ["按民间说法，本月月支与你的生肖相冲，计划可能比平时更常需要调整，重大决定不宜仓促。", "一步一步做决定，时间和预算都留点余地，这个月会顺一些。"]),
+      harmony: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้ประสาน (หกประสาน) กับนักษัตรของคุณ ความร่วมมือและการตกลงกันมักลงตัวง่าย",
+        "ลองชวนคนที่ไว้ใจทำเรื่องที่ค้างไว้ให้เสร็จ หรือเริ่มคุยเรื่องที่ต้องตกลงกัน"],
+        ["This month's branch forms a six-harmony with your animal sign; tradition reads it as a time when teamwork and agreements come together easily.",
+          "Invite someone you trust to finish a pending task with you, or start the conversation that needs an agreement."],
+        ["本月月支与你的生肖六合，传统上认为这段时间合作和商量比较容易谈拢。", "可以约信任的人一起完成搁置的事，或者开始需要商量的话题。"]),
+      trine: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้อยู่ในกลุ่มสามประสานเดียวกับนักษัตรของคุณ มีแรงหนุนจากคนรอบตัว", "เหมาะกับการขอคำแนะนำ หรือขอแรงช่วยในเรื่องที่ตั้งใจไว้"],
+        ["This month's branch belongs to the same trine as your animal sign; tradition reads it as support from the people around you.",
+          "A fitting time to ask for advice, or for a hand with something you have set out to do."],
+        ["本月月支与你的生肖同属三合，传统上认为身边的人更容易给你支持。", "适合向人请教，或在想做的事上请人帮忙。"]),
+      same: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้ตรงกับนักษัตรของคุณ แรงของตัวเองเด่นชัด แต่ก็อาจยึดความคิดตัวเองมากไปได้ง่าย",
+        "ใช้ความมั่นใจทำเรื่องของตัวเองให้คืบหน้า และเปิดใจฟังความเห็นของคนอื่นด้วย"],
+        ["This month's branch is the same as your animal sign; tradition reads your own drive as strong, though it is also easy to hold on to your own view too firmly.",
+          "Use the confidence to move your own work forward, and keep an ear open to other views."],
+        ["本月月支与你的生肖相同，传统上认为自身劲头很足，但也容易过于坚持己见。", "趁着有信心推进自己的事，同时多听听别人的意见。"]),
+      harm: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้กับนักษัตรของคุณเป็นคู่害 ระวังความเข้าใจผิดเล็ก ๆ และคำพูดที่อาจถูกตีความผิด", "พูดให้ชัด ฟังให้จบ และยืนยันเรื่องสำคัญเป็นลายลักษณ์อักษร"],
+        ["In folk belief this month's branch and your animal sign form a harm pair, so watch for small misunderstandings and words taken the wrong way.",
+          "Say things clearly, listen to the end, and confirm important points in writing."],
+        ["按民间说法，本月月支与你的生肖相害，要留意小误会和容易被误解的话。", "把话说清楚，听完再回应，重要的事用书面确认。"]),
+      punish: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้กับนักษัตรของคุณเป็นคู่刑 ระวังเรื่องกฎระเบียบ เอกสาร และความเครียดที่สะสม", "ตรวจเอกสารและกำหนดส่งให้เรียบร้อย และพักให้พอระหว่างงาน"],
+        ["In folk belief this month's branch and your animal sign form a punishment pair, so take care with rules, paperwork and stress that builds up.",
+          "Check documents and deadlines, and take proper breaks between tasks."],
+        ["按民间说法，本月月支与你的生肖相刑，要留意规章、文件和累积的压力。", "把文件和期限核对清楚，工作之间也要好好休息。"]),
+      "break": Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้กับนักษัตรของคุณเป็นคู่破 แผนบางอย่างอาจต้องปรับใหม่ ระวังการใช้จ่ายที่ไม่ได้วางแผน", "เตรียมแผนสำรองไว้ และกันเงินส่วนหนึ่งไว้ก่อนใช้"],
+        ["In folk belief this month's branch and your animal sign form a break pair, so some plans may need reworking; be careful with unplanned spending.",
+          "Keep a back-up plan, and set some money aside before you spend."],
+        ["按民间说法，本月月支与你的生肖相破，有些计划可能要重新调整，注意计划外的花销。", "准备好备用方案，花钱前先存下一部分。"]),
+      neutral: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้ไม่ชงและไม่ประสานกับนักษัตรของคุณ ผลลัพธ์จึงขึ้นอยู่กับความตั้งใจของคุณเอง", "ตั้งเป้าเล็ก ๆ ของเดือนให้ชัด แล้วทำทีละขั้น"],
+        ["This month's branch neither clashes nor harmonizes with your animal sign; tradition leaves the outcome to your own effort.",
+          "Set one clear small goal for the month and work on it step by step."],
+        ["本月月支与你的生肖不冲也不合，传统上认为结果取决于你自己的努力。", "给这个月定一个清楚的小目标，一步一步完成。"]),
+  };
+
   /* period layer (owner inbox 2026-11-21 entries 19/26; fortune-period.js): 流月, the branch of the Chinese solar month of the
      period (LQPeriod.solarMonth(ms).branch) against the birth animal, read with the reviewed relation lines (KB.REL; their year
      wording is read as the period: facts.periodYearWords). Month range only, nothing tied to a day. */
@@ -137,14 +177,14 @@
     var it = { id: "rel." + rel, group: "ดวงช่วงนี้", label: "เดือน" + M.th + "กับปีนักษัตรของคุณ", short: "ช่วงนี้", evidence: "กิ่งเดือนสุริยคติจีน", strength: 0.9,
       tags: Object.keys(rm), meanings: rm };
     if (REL.tone === "care") it.polarity = "challenge";
-    return { domain: "zodiac", topic: opts.topic || "overall", subject: {}, headline: "", items: [it], extras: {}, periodKB: { table: "zodiac", key: rel },
+    return { domain: "zodiac", topic: opts.topic || "overall", subject: {}, headline: "", items: [it], extras: {}, periodKB: { table: "zodiac", key: rel, entry: PERIOD_KB[rel] },
       periodLead: [{ key: "factMonthBranch", vars: { br: period.branch, rel: rel } }] };
   }
 
   var ZD = {
     relation: relation, isChong: isChong, animalOfYear: animalOfYear, stemOfYear: stemOfYear, elementOfYear: elementOfYear, zodiacYearOf: zodiacYearOf, currentYear: currentYear,
     elRel: elRel, bridge: bridge, luckyElements: luckyElements, annual: annual, chongTable: chongTable, compat: compat, yearName: yearName, anFlat: anFlat,
-      buildFacts: buildFacts, compatFacts: compatFacts, periodFacts: periodFacts, ORDER: ORDER
+      buildFacts: buildFacts, compatFacts: compatFacts, periodFacts: periodFacts, PERIOD_KB: PERIOD_KB, ORDER: ORDER
   };
   if (typeof module !== "undefined" && module.exports) module.exports = ZD;
   root.Zodiac = ZD;

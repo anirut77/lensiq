@@ -114,6 +114,51 @@
     return { span: "years", th: "ช่วงอายุราว " + r + " ปี", en: "About age " + r, zh: "约 " + r + " 岁" };
   }
 
+  /* period phrase table (DRAFT for the expert pack): the transiting Sun as a solar house from the natal Sun sign; o = the period, a = to do */
+  var Z = function (th, en, zh) { return { status: "draft", th: { o: th[0], a: th[1] }, en: { o: en[0], a: en[1] }, zh: { o: zh[0], a: zh[1] } }; };
+  var PERIOD_KB = [
+      Z(["ดวงอาทิตย์จรผ่านเรือนแรกนับจากราศีของคุณ ตำราตะวันตกมองว่าเป็นช่วงที่ตัวคุณเองเป็นจุดสนใจ เหมาะกับการเริ่มต้นใหม่", "เลือกเรื่องหนึ่งที่อยากเริ่มแล้วลงมือในช่วงนี้"],
+        ["The Sun passes through the first house from your sign; Western tradition reads it as a time when you yourself are in focus, suited to fresh starts.",
+          "Pick one thing you want to begin and make a start this period."],
+        ["太阳行经你星座起算的第一宫，西方传统认为这段时间焦点在你自己身上，适合重新开始。", "挑一件想开始的事，在这段时间动手。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 2 ตำรามองว่าเรื่องเงิน รายรับ และสิ่งที่คุณให้คุณค่าเด่นขึ้น", "ทบทวนรายรับรายจ่ายและตั้งงบที่ทำได้จริง"],
+        ["The Sun passes through your second house; tradition puts money, income and what you value in the spotlight.", "Review what comes in and goes out, and set a budget you can keep."],
+        ["太阳行经你的第二宫，传统上认为金钱、收入和你重视的东西更受关注。", "看看收支情况，定一个做得到的预算。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 3 ตำรามองว่าการพูดคุย การเรียนรู้ และการเดินทางใกล้ ๆ เด่นขึ้น", "เขียนหรือคุยเรื่องที่ค้างในใจให้ชัด และเรียนสิ่งใหม่สักเรื่อง"],
+        ["The Sun passes through your third house; tradition highlights conversations, learning and short trips.", "Write or talk through what has been on your mind, and learn one new thing."],
+        ["太阳行经你的第三宫，传统上认为沟通、学习和短途出行更受关注。", "把心里的事写下来或说清楚，再学一样新东西。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 4 ตำรามองว่าบ้าน ครอบครัว และพื้นที่ส่วนตัวเด่นขึ้น", "จัดมุมบ้านให้สบายขึ้น และใช้เวลากับคนในบ้าน"],
+        ["The Sun passes through your fourth house; tradition highlights home, family and your private space.",
+          "Make a corner of your home more comfortable, and spend time with the people you live with."],
+        ["太阳行经你的第四宫，传统上认为家庭、家人和个人空间更受关注。", "把家里一个角落整理得舒服些，多陪陪家人。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 5 ตำรามองว่าความคิดสร้างสรรค์ ความสนุก และความรักเด่นขึ้น", "ให้เวลากับงานอดิเรกหรือคนที่คุณรัก"],
+        ["The Sun passes through your fifth house; tradition highlights creativity, enjoyment and romance.", "Give time to a hobby or to someone you love."],
+        ["太阳行经你的第五宫，传统上认为创意、乐趣和感情更受关注。", "给爱好或心爱的人留出时间。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 6 ตำรามองว่างานประจำ ระเบียบชีวิต และการดูแลตัวเองเด่นขึ้น", "จัดตารางงานให้เป็นระบบ และพักผ่อนให้พอ"],
+        ["The Sun passes through your sixth house; tradition highlights daily work, routines and looking after yourself.", "Put your task list in order, and get enough rest."],
+        ["太阳行经你的第六宫，传统上认为日常工作、作息和照顾自己更受关注。", "把工作安排得有条理，也要休息够。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 7 ตำรามองว่าคู่ครอง หุ้นส่วน และการตกลงร่วมกันเด่นขึ้น", "ฟังมุมมองของอีกฝ่ายก่อนสรุป และคุยเรื่องที่ต้องตกลงกันให้ชัด"],
+        ["The Sun passes through your seventh house; tradition highlights partners, partnerships and shared agreements.",
+          "Hear the other side before you conclude, and talk agreements through clearly."],
+        ["太阳行经你的第七宫，传统上认为伴侣、合作和共同约定更受关注。", "先听对方的看法再下结论，需要约定的事说清楚。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 8 ตำรามองว่าเรื่องการเงินร่วม ความไว้ใจ และการทบทวนอย่างลึกซึ้งเด่นขึ้น", "จัดการเรื่องเงินที่ใช้ร่วมกับคนอื่นให้โปร่งใส"],
+        ["The Sun passes through your eighth house; tradition highlights shared money, trust and taking a deeper look at things.", "Keep any money you share with others clear and open."],
+        ["太阳行经你的第八宫，传统上认为共同财务、信任和深入反思更受关注。", "和别人共用的钱，账目要清楚透明。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 9 ตำรามองว่าการเรียนรู้ การเดินทางไกล และมุมมองใหม่เด่นขึ้น", "อ่าน เรียน หรือวางแผนเดินทางที่อยากไปมานาน"],
+        ["The Sun passes through your ninth house; tradition highlights study, long journeys and new outlooks.", "Read, study, or plan the trip you have wanted to take for a long time."],
+        ["太阳行经你的第九宫，传统上认为学习、远行和新视野更受关注。", "读书、学习，或计划一直想去的旅行。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 10 ตำรามองว่าการงาน หน้าที่ต่อสังคม และชื่อเสียงเด่นขึ้น", "ทำงานสำคัญให้คนเห็นผล และคุยเรื่องเป้าหมายกับหัวหน้าหรือทีม"],
+        ["The Sun passes through your tenth house; tradition highlights career, your public role and reputation.", "Let your important work be seen, and talk about goals with your manager or team."],
+        ["太阳行经你的第十宫，传统上认为事业、社会角色和名声更受关注。", "把重要的工作做出成果，和上司或团队聊聊目标。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 11 ตำรามองว่าเพื่อน กลุ่ม และความหวังระยะยาวเด่นขึ้น", "ติดต่อเพื่อนหรือกลุ่มที่สนใจเรื่องเดียวกัน"],
+        ["The Sun passes through your eleventh house; tradition highlights friends, groups and long-term hopes.", "Reach out to friends or a group that shares your interests."],
+        ["太阳行经你的第十一宫，传统上认为朋友、团体和长远的心愿更受关注。", "联系朋友，或兴趣相同的团体。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 12 ตำรามองว่าเป็นช่วงพักและทบทวนอยู่เบื้องหลัง ก่อนเริ่มรอบใหม่", "เก็บงานที่ค้างให้เรียบร้อย และให้เวลาพักกับตัวเอง"],
+        ["The Sun passes through your twelfth house; tradition reads it as a quieter time for rest and reflection before a new round begins.",
+          "Tidy up unfinished work, and give yourself time to rest."],
+        ["太阳行经你的第十二宫，传统上认为这是新一轮开始前休息和反思的安静时段。", "把未完成的事收尾，给自己留出休息时间。"]),
+    ];
+
   /* period layer (owner inbox 2026-11-21 entries 19/26; fortune-period.js): the Sun's tropical sign of the period
      (LQPeriod.signPeriod(ms).sign) as a solar house counted from the natal Sun sign, read with the reviewed house lines
      (KB.HOUSES; the day wording is read as the period by the frame). Existing code only: no other planet (decision 236). */
@@ -125,11 +170,11 @@
         { id: "day.house." + h, group: "ดวงช่วงนี้", label: "ดวงอาทิตย์ผ่าน" + H.th + " ของชาว" + signName(sunSign), short: "ช่วงนี้", strength: 0.95, tags: ["overview", "advice"],
           meanings: { overview: [H.o], advice: [H.a] } }
       ],
-      periodKB: { table: "astro", key: h }, periodLead: [{ key: "factSunSign", vars: { sign: period.sign, house: h + 1 } }] };
+      periodKB: { table: "astro", key: h, entry: PERIOD_KB[h] }, periodLead: [{ key: "factSunSign", vars: { sign: period.sign, house: h + 1 } }] };
   }
 
   var AS = { moonLongitude: moonLongitude, sunAt: sunAt, moonAt: moonAt, chart: chart, sunSignOf: sunSignOf, daily: daily, signOf: signOf, signName: signName,
-    buildFacts: buildFacts, dailyFacts: dailyFacts, periodFacts: periodFacts, ttFromUT: ttFromUT, MOON_TERMS: MOON_TERMS };
+    buildFacts: buildFacts, dailyFacts: dailyFacts, periodFacts: periodFacts, PERIOD_KB: PERIOD_KB, ttFromUT: ttFromUT, MOON_TERMS: MOON_TERMS };
   AS.SATURN_RETURNS = SATURN_RETURNS; AS.cautionItems = cautionItems; AS.cautionPeriod = cautionPeriod;
   if (typeof module !== "undefined" && module.exports) module.exports = AS;
   root.Astro = AS;
