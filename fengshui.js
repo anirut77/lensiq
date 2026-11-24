@@ -323,6 +323,16 @@
       if (/^(?:dir|rec|room|photo|year|month)\./.test(it.id)) it.guide = true;
       else if (/^kua\./.test(it.id)) it.guideKeys = ["overview"];
     });
+    // period layer (owner inbox 2026-11-21 entries 19/26; fortune-period.js), only when st.layer is given: "base" = what does not
+    // change with the date (kua number, its directions, measured directions, room photos); "period" = the year and month flying
+    // stars and the floor-plan rooms read with this year's stars (st.now = a moment inside the period). No layer = as before.
+    var PERIOD_ID = /^(?:year|month|room)\./;
+    if (st.layer === "base") items = items.filter(function (it) { return !PERIOD_ID.test(it.id); });
+    if (st.layer === "period") {
+      return { domain: "fengshui", topic: st.topic || "overall", subject: {}, headline: "", extras: {},
+        items: items.filter(function (it) { return PERIOD_ID.test(it.id); }),
+        periodLead: [{ key: "factStars", vars: { y: yc, m: mi.center } }] };
+    }
     return {
       domain: "fengshui", topic: st.topic || "overall", subject: {},
       headline: K ? "เลขกัว " + K.kua + " · " + KB.groups[K.group].th : "ดาวประจำปี " + yc + " " + YS.th,
@@ -760,7 +770,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   async function readFortune(again) {
     touch();
     AI = AI || window.FortuneAI; // fortune-ai.js loads after this file: look it up when reading (plan + reminder + language)
-    var btn = $("#fsReadBtn"), out = $("#fsReading"), facts = FS.buildFacts(collect());
+    // period layer on (fortune-period.js, window.LENSIQ_FORTUNE_PERIOD): the reading above is the base layer (no year / month stars,
+    // a seed without the clock); the stars of this solar month go to the separate "ดวงช่วงนี้" block below it
+    var LP = window.LQPeriod && window.LQPeriod.enabled() ? window.LQPeriod : null;
+    var btn = $("#fsReadBtn"), out = $("#fsReading"), facts = FS.buildFacts(LP ? Object.assign(collect(), { layer: "base" }) : collect());
     state.lastFacts = facts;
     btn.disabled = true; $("#fsAgain").disabled = true;
     out.setAttribute("aria-busy", "true");
@@ -768,17 +781,27 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     try {
       if (AI && typeof AI.interpret === "function") {
         // owner inbox 19: same home + same Thai-date month = same text (seed from the facts; nothing stored or sent)
-        var seed = typeof AI.seedFor === "function" ? AI.seedFor(["fengshui", facts], "m") : undefined, press = state.press || 0;
-        if (press && seed != null) seed = AI.seedFor([seed, press], "m"); // owner entry 20: the n-th press = the n-th wording
+        var pNow = LP ? LP.BASE_EPOCH : undefined;
+        var seed = typeof AI.seedFor === "function" ? AI.seedFor(["fengshui", facts], "m", pNow) : undefined, press = state.press || 0;
+        if (press && seed != null) seed = AI.seedFor([seed, press], "m", pNow); // owner entry 20: the n-th press = the n-th wording
         res = await AI.interpret(facts, { useAI: consent, seed: seed });
       }
       else res = { source: "local", sections: [{ id: "overview", title: T("fengshui.overview", "ภาพรวม"), paragraphs: facts.items.map(function (it) { var m = it.meanings, k0 = Object.keys(m)[0]; return m[k0][0]; }) }] };
     } catch (e) { console.error(e); res = { source: "local", sections: [], note: T("fengshui.readFail", "แสดงคำทำนายไม่สำเร็จ ลองกด อ่านคำทำนายฮวงจุ้ย อีกครั้ง") }; }
     renderReading(res, facts);
+    if (LP) mountPeriod(LP);
     btn.disabled = false; $("#fsAgain").disabled = false; $("#fsAgain").hidden = false;
     out.removeAttribute("aria-busy");
     $("#fsShareRow").hidden = false;
     if (!again) $("#fsReadTitle").focus();
+  }
+  /* period layer "ดวงช่วงนี้": the year and month flying stars of the solar month that holds today, with the floor-plan rooms */
+  function mountPeriod(LP) {
+    var host = $("#fsPeriod"), lang = isZh() ? "zh" : isEn() ? "en" : "th";
+    if (!host) { host = document.createElement("div"); host.id = "fsPeriod"; $("#fsReading").insertAdjacentElement("afterend", host); }
+    var period = LP.solarMonth(Date.now()), base = collect();
+    LP.mount(host, { id: "fsPeriodBox", period: period, lang: lang, FA: AI, domain: "fengshui", topic: base.topic || "overall", method: "methodFengshui",
+      factsFn: function () { return FS.buildFacts(Object.assign({}, base, { now: new Date(period.anchorMs), layer: "period" })); } });
   }
   function renderReading(res, facts) {
     var host = $("#fsSections"), used = false;
@@ -935,7 +958,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
   function resetAll() {
     state.kuaSet = null; state.recorded = {}; state.recordedDeg = {}; state.facing = ""; state.cells = [[], [], [], [], [], [], [], [], []]; state.photos = []; state.counted = false;
-    $("#fsKuaForm").reset(); $("#fsKuaOut").hidden = true; $("#fsFacing").value = ""; $("#fsReading").hidden = true; $("#fsShareRow").hidden = true; $("#fsAgain").hidden = true;
+    $("#fsKuaForm").reset(); $("#fsKuaOut").hidden = true; $("#fsFacing").value = ""; $("#fsReading").hidden = true;
+    if ($("#fsPeriod")) $("#fsPeriod").hidden = true; $("#fsShareRow").hidden = true; $("#fsAgain").hidden = true;
     $("#fsCardImg").hidden = true; if (cardUrl) { URL.revokeObjectURL(cardUrl); cardUrl = null; }
     $("#fsPhotoOut").innerHTML = ""; state.lastThumb = null;
     refreshAll(); window.scrollTo({ top: 0 });

@@ -653,6 +653,25 @@
       extras: { luckyColors: [K.days[D.taksaToday.sri].color, K.days[D.taksaToday.dech].color], energyWords: ["ธาตุ" + K.elements[D.favEl].th], directions: [K.elements[D.favEl].dir.split(" /")[0]] } };
   }
 
+  /* period layer (owner inbox 2026-11-21 entries 19/26; fortune-period.js): the Chinese solar month (流月) of the period against
+     the chart: the month pillar's stem element against the day master, and the month branch against the birth-year animal.
+     period = LQPeriod.solarMonth(ms); computed at the period's middle, so every instant inside it gives the same facts. Month
+     range only: no day item, so nothing in the caution voice is ever tied to a single day. */
+  function periodFacts(P, period, opts) {
+    opts = opts || {};
+    var K = KB, R = K.R, rnd = opts.rng || detRng(["horoscope.period", P, period.id, opts.topic]);
+    var mo = monthly(P, period.anchorMs / 864e5 + 2440587.5);
+    var monO = { w: "mw", m: "mw", l: "mw", a: "mw" }, mm = K.meaningsRandom(R.rel[mo.rel], monO, rnd);
+    mm.timing = (mm.work || []).slice(0, 3);
+    if (mo.branchRel === "clash" || mo.branchRel === "harmony" || mo.branchRel === "trine") mm.timing = mm.timing.concat(K.phr({ t: R.branch[mo.branchRel] }, "t"));
+    var it = item("month.rel." + mo.rel, "ดวงช่วงนี้", "เดือน " + mo.pillar.gz, "เสาเดือนของช่วงนี้เทียบธาตุประจำตัว", 0.7, null,
+      { timing: mm.timing, advice: (mm.advice || []).slice(0, 2), work: (mm.work || []).slice(0, 2) },
+      mo.branchRel === "clash" ? "challenge" : "");
+    it.tags = tagsOf(it.meanings); if (!it.polarity) delete it.polarity;
+    return { domain: "horoscope", topic: opts.topic || "overall", subject: {}, headline: "", items: [it], extras: {},
+      periodLead: [{ key: "factMonthPillar", vars: { gz: mo.pillar.gz, el: STEM_EL[mo.pillar.stem] } }] };
+  }
+
   /* item 177: engine items of the closed "สิ่งที่ควรระวัง" section (fortune-caution.js), built BESIDE the reading (the reading's facts
      never change): the birth kalakini, a month clash, a duty month (七杀 / 正官), a weak chart, lacking elements. Owner rule 2026-11-20:
      month ranges, never a single day, so the period is the month and nothing comes from the day */
@@ -680,7 +699,7 @@
     STEMS: STEMS, BRANCHES: BRANCHES, STEM_EL: STEM_EL, BRANCH_EL: BRANCH_EL, HIDDEN: HIDDEN, ELEMENTS: ELEMENTS, GEN: GEN, CTRL: CTRL,
     TAKSA_ORDER: TAKSA_ORDER, BHUMI: BHUMI, PLANET_NUM: PLANET_NUM, TERM_NAMES: TERM_NAMES, pad2: pad2,
     tenGod: tenGod, tenGods: tenGods, GOD_KEYS: GOD_KEYS, GOD_ZH: GOD_ZH, GOD_TH: GOD_TH, buildFacts: buildFacts, buildDailyFacts: buildDailyFacts,
-    cautionItems: cautionItems, CAUTION_PERIOD: CAUTION_PERIOD
+    cautionItems: cautionItems, CAUTION_PERIOD: CAUTION_PERIOD, periodFacts: periodFacts
   };
   if (typeof module !== "undefined" && module.exports) module.exports = HS;
   root.HSCore = HS;
@@ -960,9 +979,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var body = document.getElementById(id + "-body"), src = document.getElementById(id + "-src");
     function run() {
       // owner inbox 19: same input + same period = same text; the seed comes from the input facts + the Thai-date period ("m" | "d")
-      var f0 = factsFn(st.topic, FA && FA.rng ? FA.rng(0) : undefined), seed = FA && FA.seedFor ? FA.seedFor([id, st.topic, f0], per || "m") : 0;
+      // period layer on (fortune-period.js): the base reading ("base") gets a seed without the clock, so it never changes with the date
+      var LP = per === "base" && window.LQPeriod && window.LQPeriod.enabled() ? window.LQPeriod : null, pNow = LP ? LP.BASE_EPOCH : undefined;
+      var f0 = factsFn(st.topic, FA && FA.rng ? FA.rng(0) : undefined), seed = FA && FA.seedFor ? FA.seedFor([id, st.topic, f0], per === "base" ? "m" : per || "m", pNow) : 0;
       var facts = factsFn(st.topic, FA && FA.rng ? FA.rng(seed) : undefined), press = st.press;
-      if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], per || "m");
+      if (press && FA && FA.seedFor) seed = FA.seedFor([seed, press], per === "base" ? "m" : per || "m", pNow);
       st.facts = facts;
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
       var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true }) : Promise.resolve(localFallback(facts));
@@ -1006,8 +1027,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       '<section class="hs-block" data-lq-remedy><h3>' + esc(T("horoscope.x.luckyColors", "สีมงคลประจำตัว (ตามทักษาวันเกิด)")) + '</h3><ul class="advice">' + colorAdvice(P.thaiDay.planet) + "</ul></section></div>";
     html += readingBlock("hsRd", T("fortune.common.readingDetail", "คำทำนายโดยละเอียด"), true);
     $("#pn-ov").innerHTML = html;
-    bindReading("hsRd", function (topic, rng) { return HS.buildFacts(P, { topic: topic, nickname: $("#hsName").value, rng: rng }); }, true);
+    bindReading("hsRd", function (topic, rng) { return HS.buildFacts(P, { topic: topic, nickname: $("#hsName").value, rng: rng }); }, true, "base");
+    mountPeriod(P);
     mountCaution(P);
+  }
+  /* period layer "ดวงช่วงนี้" (owner inbox 2026-11-21 entries 19/26): a separate block after the base reading, only when
+     LQPeriod.enabled() (window.LENSIQ_FORTUNE_PERIOD, off for customers); 流月 of the solar month that holds today */
+  function mountPeriod(P) {
+    var LP = window.LQPeriod, pn = $("#pn-ov");
+    if (!LP || !LP.enabled() || !pn) return;
+    var host = document.createElement("div"), lang = isZh() ? "zh" : window.LQI18N && LQI18N.lang === "en" ? "en" : "th";
+    host.id = "hsPeriodHost"; pn.appendChild(host);
+    var period = LP.solarMonth(Date.now());
+    LP.mount(host, { id: "hsPeriod", period: period, lang: lang, FA: FA, domain: "horoscope", topic: "overall", method: "methodHoroscope",
+      factsFn: function (rng) { return HS.periodFacts(P, period, { topic: "overall", rng: rng }); } });
   }
   /* item 177: the closed "สิ่งที่ควรระวัง" section after the detailed reading (nothing unless LENSIQ_FORTUNE_CAUTIONS is on) */
   function mountCaution(P) {

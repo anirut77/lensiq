@@ -25,6 +25,9 @@ window.LENSIQ_FORTUNE_CAUTIONS = window.LENSIQ_FORTUNE_CAUTIONS === true;
 window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST = window.LENSIQ_FORTUNE_CAUTIONS_CN_WEST === true;
 window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS = window.LENSIQ_FORTUNE_CAUTIONS_DRAFTS === true;
 
+// period layer "ดวงช่วงนี้" (owner inbox 2026-11-21 entries 19/21/26; fortune-period.js): OFF for customers until the owner turns it on
+window.LENSIQ_FORTUNE_PERIOD = window.LENSIQ_FORTUNE_PERIOD === true;
+
 window.LENSIQ_COMPAT_V2 = window.LENSIQ_COMPAT_V2 === true;
 
 window.LENSIQ_PET_ZODIAC = window.LENSIQ_PET_ZODIAC === true;
