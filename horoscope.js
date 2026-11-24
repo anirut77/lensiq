@@ -1036,7 +1036,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function mountPeriod(P) {
     var LP = window.LQPeriod, pn = $("#pn-ov");
     if (!LP || !LP.enabled() || !pn) return;
-    var host = document.createElement("div"), lang = isZh() ? "zh" : window.LQI18N && LQI18N.lang === "en" ? "en" : "th";
+    var host = document.createElement("div"), lang = isZh() ? "zh" : window.LQI18N && String(window.LQI18N.lang) === "en" ? "en" : "th";
     host.id = "hsPeriodHost"; pn.appendChild(host);
     var period = LP.solarMonth(Date.now());
     LP.mount(host, { id: "hsPeriod", period: period, lang: lang, FA: FA, domain: "horoscope", topic: "overall", method: "methodHoroscope",

@@ -95,6 +95,8 @@ interface Window {
   /** paid depth on the fortune pages (owner order 2026-11-15, design only): off unless exactly true */
   LENSIQ_FORTUNE_PAID?: boolean;
   LENSIQ_FORTUNE_PERIOD?: boolean;
+  /** fortune-period.js: the period layer frame */
+  LQPeriod?: any;
   /** palm reading upgrade v1 (owner order 2026-11-19): off unless exactly true */
   LENSIQ_PALM_V2?: boolean;
   /** palm v2 automatic hand points (MediaPipe hands, tier 2-U): research-demo profile only */
