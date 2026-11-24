@@ -327,7 +327,12 @@
     // change with the date (kua number, its directions, measured directions, room photos); "period" = the year and month flying
     // stars and the floor-plan rooms read with this year's stars (st.now = a moment inside the period). No layer = as before.
     var PERIOD_ID = /^(?:year|month|room)\./;
-    if (st.layer === "base") items = items.filter(function (it) { return !PERIOD_ID.test(it.id); });
+    if (st.layer === "base") {
+      items = items.filter(function (it) { return !PERIOD_ID.test(it.id); });
+      // no kua number: the headline must not be the date-dependent year star (Fable review 2026-11-24)
+      return { domain: "fengshui", topic: st.topic || "overall", subject: {}, headline: K ? "เลขกัว " + K.kua + " · " + KB.groups[K.group].th : "ฮวงจุ้ยในบ้านของคุณ",
+        items: items, extras: extras };
+    }
     if (st.layer === "period") {
       return { domain: "fengshui", topic: st.topic || "overall", subject: {}, headline: "", extras: {},
         items: items.filter(function (it) { return PERIOD_ID.test(it.id); }),

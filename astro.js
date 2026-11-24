@@ -125,7 +125,7 @@
         { id: "day.house." + h, group: "ดวงช่วงนี้", label: "ดวงอาทิตย์ผ่าน" + H.th + " ของชาว" + signName(sunSign), short: "ช่วงนี้", strength: 0.95, tags: ["overview", "advice"],
           meanings: { overview: [H.o], advice: [H.a] } }
       ],
-      periodSunForMoon: true, periodLead: [{ key: "factSunSign", vars: { sign: period.sign, house: h + 1 } }] };
+      periodKB: { table: "astro", key: h }, periodLead: [{ key: "factSunSign", vars: { sign: period.sign, house: h + 1 } }] };
   }
 
   var AS = { moonLongitude: moonLongitude, sunAt: sunAt, moonAt: moonAt, chart: chart, sunSignOf: sunSignOf, daily: daily, signOf: signOf, signName: signName,

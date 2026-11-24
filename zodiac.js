@@ -137,7 +137,7 @@
     var it = { id: "rel." + rel, group: "ดวงช่วงนี้", label: "เดือน" + M.th + "กับปีนักษัตรของคุณ", short: "ช่วงนี้", evidence: "กิ่งเดือนสุริยคติจีน", strength: 0.9,
       tags: Object.keys(rm), meanings: rm };
     if (REL.tone === "care") it.polarity = "challenge";
-    return { domain: "zodiac", topic: opts.topic || "overall", subject: {}, headline: "", items: [it], extras: {}, periodYearWords: true,
+    return { domain: "zodiac", topic: opts.topic || "overall", subject: {}, headline: "", items: [it], extras: {}, periodKB: { table: "zodiac", key: rel },
       periodLead: [{ key: "factMonthBranch", vars: { br: period.branch, rel: rel } }] };
   }
 

@@ -99,6 +99,11 @@
       zh: "本时段月支：{br} · 对照你的生肖：{rel}" },
     factSunSign: { status: "draft", th: "ดวงอาทิตย์จรอยู่ราศี{sign} · เรือนที่ {house} นับจากราศีอาทิตย์ของคุณ", en: "The Sun is in {sign} this period · house {house} from your Sun sign",
       zh: "本时段太阳在{sign} · 从你的太阳星座起算第{house}宫" },
+    secOverview: { status: "draft", th: "ภาพรวมช่วงนี้", en: "This period at a glance", zh: "本时段概况" },
+    closing: { status: "draft", th: "ทั้งหมดนี้เป็นแนวโน้มตามความเชื่อ ใช้เป็นข้อคิดประกอบ ส่วนสิ่งที่คุณเลือกทำเองสำคัญกว่าเสมอ",
+      en: "These are tendencies in traditional belief, offered as food for thought; what you choose to do matters more.",
+      zh: "这些只是传统说法里的倾向，可以作为参考；真正重要的，始终是你自己选择怎么做、怎么坚持。" },
+    secAdvice: { status: "draft", th: "สิ่งที่ทำได้", en: "What you can do", zh: "可以做的事" },
     factStars: { status: "draft", th: "ดาวประจำปี {y} · ดาวประจำเดือน {m}", en: "Year star {y} · month star {m}", zh: "年飞星{y} · 月飞星{m}" },
   };
   var EL = { wood: { th: "ไม้", en: "wood", zh: "木" }, fire: { th: "ไฟ", en: "fire", zh: "火" }, earth: { th: "ดิน", en: "earth", zh: "土" },
@@ -168,18 +173,148 @@
     return out && ok(out) ? out : "";
   }
 
+  /* ---------- period phrase tables (all DRAFT for the expert pack; docs/fortune/PERIOD-RULES-EXPERT.md) ----------
+     zodiac: the month branch against the birth animal (month range only); astro: the transiting Sun counted as a solar house from
+     the natal Sun sign. o = what the period is about (with any caution in the month range), a = something to do. */
+  var Z = function (th, en, zh) { return { status: "draft", th: { o: th[0], a: th[1] }, en: { o: en[0], a: en[1] }, zh: { o: zh[0], a: zh[1] } }; };
+  var PERIOD_KB = {
+    zodiac: {
+      clash: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้ชงกับนักษัตรของคุณ แผนอาจต้องปรับบ่อยกว่าปกติ จึงควรระวังการตัดสินใจเรื่องใหญ่แบบเร่งรีบ",
+        "ค่อย ๆ ตัดสินใจ เผื่อเวลาเดินทางและเผื่องบไว้เล็กน้อย แล้วช่วงนี้จะผ่านไปได้ราบรื่นขึ้น"],
+        ["In folk belief this month's branch clashes with your animal sign, so plans may need adjusting more often than usual; be careful with big decisions made in a hurry.",
+          "Decide step by step and leave a little extra time and budget, and the month will run more smoothly."],
+        ["按民间说法，本月月支与你的生肖相冲，计划可能比平时更常需要调整，重大决定不宜仓促。", "一步一步做决定，时间和预算都留点余地，这个月会顺一些。"]),
+      harmony: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้ประสาน (หกประสาน) กับนักษัตรของคุณ ความร่วมมือและการตกลงกันมักลงตัวง่าย",
+        "ลองชวนคนที่ไว้ใจทำเรื่องที่ค้างไว้ให้เสร็จ หรือเริ่มคุยเรื่องที่ต้องตกลงกัน"],
+        ["This month's branch forms a six-harmony with your animal sign; tradition reads it as a time when teamwork and agreements come together easily.",
+          "Invite someone you trust to finish a pending task with you, or start the conversation that needs an agreement."],
+        ["本月月支与你的生肖六合，传统上认为这段时间合作和商量比较容易谈拢。", "可以约信任的人一起完成搁置的事，或者开始需要商量的话题。"]),
+      trine: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้อยู่ในกลุ่มสามประสานเดียวกับนักษัตรของคุณ มีแรงหนุนจากคนรอบตัว", "เหมาะกับการขอคำแนะนำ หรือขอแรงช่วยในเรื่องที่ตั้งใจไว้"],
+        ["This month's branch belongs to the same trine as your animal sign; tradition reads it as support from the people around you.",
+          "A fitting time to ask for advice, or for a hand with something you have set out to do."],
+        ["本月月支与你的生肖同属三合，传统上认为身边的人更容易给你支持。", "适合向人请教，或在想做的事上请人帮忙。"]),
+      same: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้ตรงกับนักษัตรของคุณ แรงของตัวเองเด่นชัด แต่ก็อาจยึดความคิดตัวเองมากไปได้ง่าย",
+        "ใช้ความมั่นใจทำเรื่องของตัวเองให้คืบหน้า และเปิดใจฟังความเห็นของคนอื่นด้วย"],
+        ["This month's branch is the same as your animal sign; tradition reads your own drive as strong, though it is also easy to hold on to your own view too firmly.",
+          "Use the confidence to move your own work forward, and keep an ear open to other views."],
+        ["本月月支与你的生肖相同，传统上认为自身劲头很足，但也容易过于坚持己见。", "趁着有信心推进自己的事，同时多听听别人的意见。"]),
+      harm: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้กับนักษัตรของคุณเป็นคู่害 ระวังความเข้าใจผิดเล็ก ๆ และคำพูดที่อาจถูกตีความผิด", "พูดให้ชัด ฟังให้จบ และยืนยันเรื่องสำคัญเป็นลายลักษณ์อักษร"],
+        ["In folk belief this month's branch and your animal sign form a harm pair, so watch for small misunderstandings and words taken the wrong way.",
+          "Say things clearly, listen to the end, and confirm important points in writing."],
+        ["按民间说法，本月月支与你的生肖相害，要留意小误会和容易被误解的话。", "把话说清楚，听完再回应，重要的事用书面确认。"]),
+      punish: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้กับนักษัตรของคุณเป็นคู่刑 ระวังเรื่องกฎระเบียบ เอกสาร และความเครียดที่สะสม", "ตรวจเอกสารและกำหนดส่งให้เรียบร้อย และพักให้พอระหว่างงาน"],
+        ["In folk belief this month's branch and your animal sign form a punishment pair, so take care with rules, paperwork and stress that builds up.",
+          "Check documents and deadlines, and take proper breaks between tasks."],
+        ["按民间说法，本月月支与你的生肖相刑，要留意规章、文件和累积的压力。", "把文件和期限核对清楚，工作之间也要好好休息。"]),
+      "break": Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้กับนักษัตรของคุณเป็นคู่破 แผนบางอย่างอาจต้องปรับใหม่ ระวังการใช้จ่ายที่ไม่ได้วางแผน", "เตรียมแผนสำรองไว้ และกันเงินส่วนหนึ่งไว้ก่อนใช้"],
+        ["In folk belief this month's branch and your animal sign form a break pair, so some plans may need reworking; be careful with unplanned spending.",
+          "Keep a back-up plan, and set some money aside before you spend."],
+        ["按民间说法，本月月支与你的生肖相破，有些计划可能要重新调整，注意计划外的花销。", "准备好备用方案，花钱前先存下一部分。"]),
+      neutral: Z(["ตามความเชื่อ กิ่งเดือนของช่วงนี้ไม่ชงและไม่ประสานกับนักษัตรของคุณ ผลลัพธ์จึงขึ้นอยู่กับความตั้งใจของคุณเอง", "ตั้งเป้าเล็ก ๆ ของเดือนให้ชัด แล้วทำทีละขั้น"],
+        ["This month's branch neither clashes nor harmonizes with your animal sign; tradition leaves the outcome to your own effort.",
+          "Set one clear small goal for the month and work on it step by step."],
+        ["本月月支与你的生肖不冲也不合，传统上认为结果取决于你自己的努力。", "给这个月定一个清楚的小目标，一步一步完成。"]),
+    },
+    astro: [
+      Z(["ดวงอาทิตย์จรผ่านเรือนแรกนับจากราศีของคุณ ตำราตะวันตกมองว่าเป็นช่วงที่ตัวคุณเองเป็นจุดสนใจ เหมาะกับการเริ่มต้นใหม่", "เลือกเรื่องหนึ่งที่อยากเริ่มแล้วลงมือในช่วงนี้"],
+        ["The Sun passes through the first house from your sign; Western tradition reads it as a time when you yourself are in focus, suited to fresh starts.",
+          "Pick one thing you want to begin and make a start this period."],
+        ["太阳行经你星座起算的第一宫，西方传统认为这段时间焦点在你自己身上，适合重新开始。", "挑一件想开始的事，在这段时间动手。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 2 ตำรามองว่าเรื่องเงิน รายรับ และสิ่งที่คุณให้คุณค่าเด่นขึ้น", "ทบทวนรายรับรายจ่ายและตั้งงบที่ทำได้จริง"],
+        ["The Sun passes through your second house; tradition puts money, income and what you value in the spotlight.", "Review what comes in and goes out, and set a budget you can keep."],
+        ["太阳行经你的第二宫，传统上认为金钱、收入和你重视的东西更受关注。", "看看收支情况，定一个做得到的预算。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 3 ตำรามองว่าการพูดคุย การเรียนรู้ และการเดินทางใกล้ ๆ เด่นขึ้น", "เขียนหรือคุยเรื่องที่ค้างในใจให้ชัด และเรียนสิ่งใหม่สักเรื่อง"],
+        ["The Sun passes through your third house; tradition highlights conversations, learning and short trips.", "Write or talk through what has been on your mind, and learn one new thing."],
+        ["太阳行经你的第三宫，传统上认为沟通、学习和短途出行更受关注。", "把心里的事写下来或说清楚，再学一样新东西。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 4 ตำรามองว่าบ้าน ครอบครัว และพื้นที่ส่วนตัวเด่นขึ้น", "จัดมุมบ้านให้สบายขึ้น และใช้เวลากับคนในบ้าน"],
+        ["The Sun passes through your fourth house; tradition highlights home, family and your private space.",
+          "Make a corner of your home more comfortable, and spend time with the people you live with."],
+        ["太阳行经你的第四宫，传统上认为家庭、家人和个人空间更受关注。", "把家里一个角落整理得舒服些，多陪陪家人。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 5 ตำรามองว่าความคิดสร้างสรรค์ ความสนุก และความรักเด่นขึ้น", "ให้เวลากับงานอดิเรกหรือคนที่คุณรัก"],
+        ["The Sun passes through your fifth house; tradition highlights creativity, enjoyment and romance.", "Give time to a hobby or to someone you love."],
+        ["太阳行经你的第五宫，传统上认为创意、乐趣和感情更受关注。", "给爱好或心爱的人留出时间。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 6 ตำรามองว่างานประจำ ระเบียบชีวิต และการดูแลตัวเองเด่นขึ้น", "จัดตารางงานให้เป็นระบบ และพักผ่อนให้พอ"],
+        ["The Sun passes through your sixth house; tradition highlights daily work, routines and looking after yourself.", "Put your task list in order, and get enough rest."],
+        ["太阳行经你的第六宫，传统上认为日常工作、作息和照顾自己更受关注。", "把工作安排得有条理，也要休息够。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 7 ตำรามองว่าคู่ครอง หุ้นส่วน และการตกลงร่วมกันเด่นขึ้น", "ฟังมุมมองของอีกฝ่ายก่อนสรุป และคุยเรื่องที่ต้องตกลงกันให้ชัด"],
+        ["The Sun passes through your seventh house; tradition highlights partners, partnerships and shared agreements.",
+          "Hear the other side before you conclude, and talk agreements through clearly."],
+        ["太阳行经你的第七宫，传统上认为伴侣、合作和共同约定更受关注。", "先听对方的看法再下结论，需要约定的事说清楚。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 8 ตำรามองว่าเรื่องการเงินร่วม ความไว้ใจ และการทบทวนอย่างลึกซึ้งเด่นขึ้น", "จัดการเรื่องเงินที่ใช้ร่วมกับคนอื่นให้โปร่งใส"],
+        ["The Sun passes through your eighth house; tradition highlights shared money, trust and taking a deeper look at things.", "Keep any money you share with others clear and open."],
+        ["太阳行经你的第八宫，传统上认为共同财务、信任和深入反思更受关注。", "和别人共用的钱，账目要清楚透明。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 9 ตำรามองว่าการเรียนรู้ การเดินทางไกล และมุมมองใหม่เด่นขึ้น", "อ่าน เรียน หรือวางแผนเดินทางที่อยากไปมานาน"],
+        ["The Sun passes through your ninth house; tradition highlights study, long journeys and new outlooks.", "Read, study, or plan the trip you have wanted to take for a long time."],
+        ["太阳行经你的第九宫，传统上认为学习、远行和新视野更受关注。", "读书、学习，或计划一直想去的旅行。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 10 ตำรามองว่าการงาน หน้าที่ต่อสังคม และชื่อเสียงเด่นขึ้น", "ทำงานสำคัญให้คนเห็นผล และคุยเรื่องเป้าหมายกับหัวหน้าหรือทีม"],
+        ["The Sun passes through your tenth house; tradition highlights career, your public role and reputation.", "Let your important work be seen, and talk about goals with your manager or team."],
+        ["太阳行经你的第十宫，传统上认为事业、社会角色和名声更受关注。", "把重要的工作做出成果，和上司或团队聊聊目标。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 11 ตำรามองว่าเพื่อน กลุ่ม และความหวังระยะยาวเด่นขึ้น", "ติดต่อเพื่อนหรือกลุ่มที่สนใจเรื่องเดียวกัน"],
+        ["The Sun passes through your eleventh house; tradition highlights friends, groups and long-term hopes.", "Reach out to friends or a group that shares your interests."],
+        ["太阳行经你的第十一宫，传统上认为朋友、团体和长远的心愿更受关注。", "联系朋友，或兴趣相同的团体。"]),
+      Z(["ดวงอาทิตย์จรผ่านเรือนที่ 12 ตำรามองว่าเป็นช่วงพักและทบทวนอยู่เบื้องหลัง ก่อนเริ่มรอบใหม่", "เก็บงานที่ค้างให้เรียบร้อย และให้เวลาพักกับตัวเอง"],
+        ["The Sun passes through your twelfth house; tradition reads it as a quieter time for rest and reflection before a new round begins.",
+          "Tidy up unfinished work, and give yourself time to rest."],
+        ["太阳行经你的第十二宫，传统上认为这是新一轮开始前休息和反思的安静时段。", "把未完成的事收尾，给自己留出休息时间。"]),
+    ],
+  };
+
   var S0 = function (FA, t) { return FA.safety.sentences(String(t || "")); };
   /** compose the period reading on the device. factsFn(rng) gives the period facts; opts: { lang, topic, domain, press } */
+  /* period guards (Fable review 2026-11-24): a month / sign / day block holds no day wording, no quarter and (except feng shui,
+     whose annual flying star is the method) no year doctrine; such sentences are left out of the borrowed composer text */
+  var G_DAY = /วันนี้|พรุ่งนี้|เมื่อวาน|วันที่\s*\d|วันดี|วันที่ดี|เป็นวัน|\btoday\b|\btomorrow\b|\btonight\b|good day|a day (?:to|for)|今天|今日|明天|明日|当天|好日子|这一天/i;
+  var G_QUARTER = /ไตรมาส|\bquarter(?:ly|s)?\b|季度/i;
+  var G_YEAR = { th: /ปีปกติ|ทั้งปี|ตลอดปี|ปีนี้|กลางปี|ปีชง|ปีที่|ปีเป็น|ปีแห่ง/,
+    en: /\b(?:this|the|whole|ordinary|harm|clash|every|a|an|each|good|hard) year\b|\byear's\b|\byearly\b|\bannual\b|Tai Sui/i,
+    zh: /这一年|今年|全年|一年|本年|年中|年份|太岁|平常年|害年|冲年/ };
+  var reEsc = function (x) { return x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); };
+  /** the base reading's opener at the start of a Thai paragraph (fortune-ai.js OPENERS_BY_DOMAIN / OPENERS; {N} = the name) */
+  function stripThOpener(FA, dom, t) {
+    var B = FA._internal && FA._internal.banks; if (!B) return t;
+    var list = (B.OPENERS_BY_DOMAIN && B.OPENERS_BY_DOMAIN[dom] || []).concat(B.OPENERS || []);
+    for (var i = 0; i < list.length; i++) {
+      var re = new RegExp("^\\s*" + list[i].split(/\{[ND]\}/).map(reEsc).join(".{0,30}?") + "\\s*");
+      if (re.test(t)) return t.replace(re, "");
+    }
+    return t;
+  }
+  function guard(FA, t, lang, dom) {
+    var zh = lang === "zh", keep = S0(FA, t).filter(function (x) {
+      return !G_DAY.test(x) && !G_QUARTER.test(x) && (dom === "fengshui" || !G_YEAR[lang].test(x));
+    });
+    return keep.join(zh ? "" : " ").trim();
+  }
+  /** compose the period reading on the device. factsFn(rng) gives the period facts; opts: { lang, topic, domain, press }.
+   *  facts.periodKB = { table, key }: the block is written from the period phrase tables (PERIOD_KB) instead of the composer */
   function read(FA, factsFn, p, opts) {
     opts = opts || {};
     var lang = langOf(opts.lang), topic = opts.topic || "overall", dom = opts.domain || "fortune";
     var f0 = factsFn(FA.rng(0)), seed = periodSeed(FA, [dom, "period", topic, f0], p);
     if (opts.press) seed = FA.seedFor([seed, opts.press], "m", BASE_EPOCH);
     var facts = Object.assign({}, factsFn(FA.rng(seed)), { topic: topic }), yw = !!facts.periodYearWords, sm = !!facts.periodSunForMoon;
+    // the computed facts of the period, stated first (facts.periodLead: [{ key: PHRASES key, vars }]; vars.el = an element)
+    var lead = (facts.periodLead || []).map(function (x) {
+      var v = Object.assign({}, x.vars), L2 = langOf(lang); if (v.el) v.el = elName(v.el, lang);
+      if (v.br != null) v.br = BR[L2][v.br]; if (v.sign != null) v.sign = SIGN[L2][v.sign]; if (v.rel) v.rel = (REL[v.rel] || REL.neutral)[L2];
+      return clean(FA, phrase(x.key, lang, v));
+    }).filter(Boolean);
+    var K = facts.periodKB, E = K && PERIOD_KB[K.table] && PERIOD_KB[K.table][K.key];
+    if (E) {
+      var secs0 = [{ id: "overview", title: phrase("secOverview", lang), paragraphs: [clean(FA, E[lang].o)].filter(Boolean) },
+        { id: "advice", title: phrase("secAdvice", lang), paragraphs: [clean(FA, E[lang].a), clean(FA, phrase("closing",
+          lang))].filter(Boolean) }].filter(function (s) { return s.paragraphs.length; });
+      if (lead.length) secs0.unshift({ id: "period", title: "", paragraphs: lead });
+      return Promise.resolve({ source: "local", mode: "gentle", lang: lang, sections: secs0, plan: null, period: p.id, seed: seed });
+    }
     return Promise.resolve(FA.interpret(facts, { useAI: false, seed: seed, lang: lang, straight: false })).then(function (res) {
       res = res || {};
-      var secs = (res.sections || []).map(function (s) {
-        var paras = (s.paragraphs || []).map(function (x) { return clean(FA, localize(x, lang, yw, sm)); }).filter(function (x) { return x && x.length > 1; });
+      var secs = (res.sections || []).map(function (s, si) {
+        var paras = (s.paragraphs || []).map(function (x, pi) {
+          var t = localize(x, lang, yw, sm);
+          if (lang === "th" && si === 0 && pi === 0) t = stripThOpener(FA, dom, t);
+          return clean(FA, guard(FA, t, lang, dom));
+        }).filter(function (x) { return x && x.length > 1; });
         return Object.assign({}, s, { title: clean(FA, localize(s.title, lang, yw, sm)) || s.title, paragraphs: paras });
       }).filter(function (s) { return s.paragraphs.length; });
       // coordinator note 3: in EN / ZH the composer opens with the base reading's chart introduction ("Your birth date sets out a
@@ -188,15 +323,9 @@
         var first = S0(FA, secs[0].paragraphs[0]);
         if (first.length > 1) secs[0] = Object.assign({}, secs[0], { paragraphs: [first.slice(1).join(lang === "zh" ? "" : " ")].concat(secs[0].paragraphs.slice(1)) });
       }
-      // the computed facts of the period, stated first (facts.periodLead: [{ key: PHRASES key, vars }]; vars.el = an element)
-      var lead = (facts.periodLead || []).map(function (x) {
-        var v = Object.assign({}, x.vars), L2 = langOf(lang); if (v.el) v.el = elName(v.el, lang);
-        if (v.br != null) v.br = BR[L2][v.br]; if (v.sign != null) v.sign = SIGN[L2][v.sign]; if (v.rel) v.rel = (REL[v.rel] || REL.neutral)[L2];
-        return clean(FA, phrase(x.key, lang, v));
-      }).filter(Boolean);
       if (lead.length) secs.unshift({ id: "period", title: "", paragraphs: lead });
-      return Object.assign({}, res, { sections: secs, plan: null, reminder: res.reminder ? clean(FA, localize(res.reminder, lang, yw, sm)) : res.reminder,
-        summary: res.summary ? JSON.parse(localize(JSON.stringify(res.summary), lang, yw, sm)) : res.summary, period: p.id, seed: seed });
+      var rem = res.reminder ? clean(FA, guard(FA, localize(res.reminder, lang, yw, sm), lang, dom)) : res.reminder;
+      return Object.assign({}, res, { sections: secs, plan: null, reminder: rem, summary: null, period: p.id, seed: seed });
     });
   }
 
@@ -212,7 +341,8 @@
       ((opts.facts || []).length ? '<ul class="lq-period-facts">' + opts.facts.map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") + "</ul>" : "") +
       (!opts.calm && (opts.advice || []).length ? '<ul class="lq-period-advice" data-lq-remedy>' + opts.advice.map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") + "</ul>" : "") +
       (opts.noBody ? "" : '<div class="lq-period-body" id="' + id + '-body" aria-live="polite"></div>') +
-      '<p class="lq-period-method">' + esc((opts.method ? phrase(opts.method, L) + " " : "") + phrase("solarMonth", L) + " · " + phrase("belief", L)) + "</p></section>";
+      '<p class="lq-period-method">' + esc((opts.method ? phrase(opts.method, L) + " " : "") + (opts.period && opts.period.kind === "solar-month" ? phrase("solarMonth",
+        L) + " · " : "") + phrase("belief", L)) + "</p></section>";
   }
   var CSS = ".lq-period{margin:18px 0 8px;padding:14px 14px 10px;border:1px solid #c9c2f5;border-left:5px solid #674ff2;border-radius:12px;background:#f7f5ff}" +
     ".lq-period h3{margin:0 0 6px;font-size:1.05em}.lq-period-pill{display:inline-block;padding:2px 10px;border-radius:999px;background:#674ff2;color:#fff;font-size:.9em}" +
@@ -261,7 +391,11 @@
     }
   } catch (e) { /* no DOM */ }
 
-  var api = { enabled: enabled, sunLon: sunLon, termMs: termMs, solarMonth: solarMonth, signPeriod: signPeriod, dayPeriod: dayPeriod, noMethodLines: noMethodLines,
+  /** luckycolor: the Thai day (UTC+7), its weekday and the day's colours for a goal, all from the same day (L = LQLucky) */
+  function luckyParts(L, ms, goal) { var p = dayPeriod(ms); return { period: p, weekday: p.weekday, rec: L.recommend(p.weekday, goal) }; }
+
+  var api = { enabled: enabled, sunLon: sunLon, termMs: termMs, solarMonth: solarMonth, signPeriod: signPeriod, dayPeriod: dayPeriod, luckyParts: luckyParts, PERIOD_KB: PERIOD_KB,
+    noMethodLines: noMethodLines,
     ictDate: ictDate, PHRASES: PHRASES, phrase: phrase, elName: elName,
     label: label, range: range, noMethod: noMethod, BASE_EPOCH: BASE_EPOCH, baseSeed: baseSeed, periodSeed: periodSeed, localize: localize, clean: clean,
     read: read, html: html, mount: mount, style: style };

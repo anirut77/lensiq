@@ -69,7 +69,7 @@
     if (!LP || !LP.enabled() || !box) return;
     let host = $("#lcPeriodHost");
     if (!host) { host = el("div"); host.id = "lcPeriodHost"; box.insertAdjacentElement("beforebegin", host); }
-    const p = LP.dayPeriod(Date.now()), d = L.dayPlanet(new Date()), r = L.recommend(d, st.goal), lang = String(window.LQI18N && LQI18N.lang);
+    const x = LP.luckyParts(L, Date.now(), st.goal), p = x.period, d = x.weekday, r = x.rec, lang = String(window.LQI18N && LQI18N.lang);
     LP.style(document);
     const calm = !!(window.LQFortuneCrisis && (window.LQFortuneCrisis.calmOn(document) || window.LQFortuneCrisis.active(document)));
     host.innerHTML = LP.html({ id: "lcPeriod", period: p, lang: lang === "en" || lang === "zh" ? lang : "th", calm, noBody: true, constant: "constantNoBase", method: "methodLucky",
