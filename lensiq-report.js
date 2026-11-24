@@ -14,6 +14,8 @@
  *
  * Owner hooks: window.LENSIQ_REPORT_EMAIL = "support@example.com" (in lensiq-config.js) ;
  *   LQReport.attach(container, result) for pages that render readings without FortuneAI.renderSections ;
+ *   a reading already drawn by FortuneAI.renderSections before this file loaded gets its button when the file loads (its text is
+ *   read back from the page: LQReport.fromDom), except in the crisis state ;
  *   LQReport.open(result) ; LQReport.list() / LQReport.clear() for the saved reports ; LQReport.format(result, fields). */
 (function (root) {
   "use strict";
@@ -59,7 +61,7 @@
       "page: " + page,
       "ui_lang: " + (f.lang || (W.LQI18N ? W.LQI18N.lang : "th")),
       "reading_lang: " + (res && res.lang === "zh" ? "zh" : "th"),
-      "source: " + (res && res.source === "ai" ? "ai" : "local"),
+      "source: " + (res && res.source === "ai" ? "ai" : res && res.source === "unknown" ? "unknown" : "local"),
       "domain: " + (res && (res.domain || (res.facts && res.facts.domain)) || PAGE_DOMAIN[page] || "-"),
       "category: " + (f.cat || "other"),
       "date: " + now.toISOString().slice(0, 13) + ":00Z"
@@ -119,9 +121,24 @@
     var b = doc.createElement("button"); b.type = "button"; b.className = "lq-rp-btn";
     b.innerHTML = ICON + "<span></span>";
     /** @type {HTMLElement} */ (b.lastChild).textContent = T("rp.btn", "แจ้งปัญหาคำทำนายนี้");
-    b.addEventListener("click", function () { open(lastRes.get(container), b); });
+    b.addEventListener("click", function () { open(current(container), b); });
     wrap.appendChild(b);
     container.parentNode.insertBefore(wrap, container.nextSibling);
+  }
+
+  /** the reading to report: the one renderSections handed over, unless it was read back from the page or the page now shows
+   *  another reading (drawn while renderSections was not wrapped): then the reading on screen now (review 900ab7e4, must-fix 1)
+   *  @param {Element} container */
+  function current(container) {
+    var r = lastRes.get(container);
+    if (!r || r.__fromDom || !onScreen(container, r)) r = fromDom(container);
+    return r;
+  }
+  /** true when the stored reading's paragraphs are the ones on screen @param {Element} c @param {any} r */
+  function onScreen(c, r) {
+    var t = String(c.textContent || ""), ps = [];
+    (r.sections || []).forEach(function (/** @type {any} */ s) { (s.paragraphs || []).forEach(function (/** @type {string} */ x) { ps.push(String(x)); }); });
+    return ps.length > 0 && ps.every(function (x) { return t.indexOf(x) >= 0; });
   }
 
   /** @type {HTMLDialogElement|null} */
@@ -214,9 +231,58 @@
     Object.keys(orig).forEach(function (k) { if (!(k in hooked)) /** @type {any} */ (hooked)[k] = /** @type {any} */ (orig)[k]; });
     FA.renderSections = hooked;
   }
+  /* ---------- readings already on screen when this file loads (nav.js loads it async: a reading made in the first moments
+     after opening the page had no button, faceread C1) ---------- */
+  /** the reading as the report needs it, read back from what FortuneAI.renderSections drew (summary, sections incl. "read more",
+   *  plan, reminder); used only for a reading drawn before this file loaded
+   *  @param {Element} c */
+  function fromDom(c) {
+    var txt = function (/** @type {Element|null} */ e) { return e ? String(e.textContent || "").trim() : ""; };
+    var lang = c.getAttribute("lang") || "", res = /** @type {any} */ ({ lang: /^zh/.test(lang) ? "zh" : lang === "en" ? "en" : "th", sections: [], __fromDom: true });
+    // source (review finding 19): the stored reading's own source when it is the same reading; else an AI badge on the page = ai;
+    // no AI consent on this device = local (the AI writer cannot run without it); otherwise unknown, never a guess
+    var prev = lastRes.get(c), FA = W.FortuneAI;
+    res.source = prev && !prev.__fromDom && prev.source && onScreen(c, prev) ? prev.source
+      : c.querySelector(".fa-ai-badge") ? "ai" : FA && typeof FA.hasConsent === "function" && !FA.hasConsent() ? "local" : "unknown";
+    var sm = c.querySelector(":scope > .fa-summary");
+    if (sm) res.summary = { title: txt(sm.querySelector("h3")), lines: Array.prototype.map.call(sm.querySelectorAll("li"), function (/** @type {Element} */ li) {
+      var b = li.querySelector("b"), k = txt(b); return { k: k, t: txt(li).slice(k.length).trim() }; }) };
+    c.querySelectorAll(":scope > .fa-section").forEach(function (sec) {
+      res.sections.push({ title: txt(sec.querySelector("h3")), paragraphs: Array.prototype.map.call(sec.querySelectorAll("p"), txt).filter(Boolean) });
+    });
+    var pl = c.querySelector(":scope > .fa-plan");
+    if (pl) res.plan = { title: txt(pl.querySelector("h3")), items: Array.prototype.map.call(pl.querySelectorAll("li"), function (/** @type {Element} */ li) {
+      var b = li.querySelector("b"), k = txt(b); return { for: k, t: txt(li).slice(k.length).trim() }; }) };
+    var rm = c.querySelector(":scope > .fa-reminder"); if (rm) res.reminder = txt(rm);
+    return res;
+  }
+  function attachExisting() {
+    if (doc.documentElement.hasAttribute("data-lq-crisis")) return; // crisis state: no report button
+    var seen = /** @type {Element[]} */ ([]);
+    doc.querySelectorAll(".fa-section").forEach(function (sec) {
+      var c = sec.parentElement;
+      if (!c || seen.indexOf(c) >= 0 || c.closest("dialog")) return;
+      seen.push(c);
+      var nx = c.nextElementSibling, has = nx && nx.classList && nx.classList.contains("lq-rp-wrap"), st = lastRes.get(c);
+      if (has && st && !st.__fromDom && onScreen(c, st)) return; // the hooked reading is the one on screen
+      try { if (has) lastRes.set(c, fromDom(c)); else attach(c, fromDom(c)); } catch (e) { /* never break a reading */ }
+    });
+  }
   root.addEventListener("lq-lang", function () {
     doc.querySelectorAll(".lq-rp-btn span").forEach(function (s) { s.textContent = T("rp.btn", "แจ้งปัญหาคำทำนายนี้"); });
   });
-  W.LQReport = { attach: attach, open: open, format: format, readingText: readingText, list: list, clear: clear };
+  W.LQReport = { attach: attach, open: open, format: format, readingText: readingText, list: list, clear: clear, fromDom: fromDom };
   wrap();
+  if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", attachExisting); else attachExisting();
+  // a reading drawn while renderSections is not (or no longer) wrapped by this file still gets its button, right after it is drawn
+  if (typeof root.MutationObserver === "function") {
+    var queued = false;
+    new root.MutationObserver(function (list) {
+      if (queued) return;
+      for (var i = 0; i < list.length; i++) {
+        var t = /** @type {any} */ (list[i].target);
+        if (t && t.querySelector && t.querySelector(":scope > .fa-section")) { queued = true; root.queueMicrotask(function () { queued = false; attachExisting(); }); return; }
+      }
+    }).observe(doc.documentElement, { childList: true, subtree: true });
+  }
 })(typeof window !== "undefined" ? window : globalThis);

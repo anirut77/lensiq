@@ -62,6 +62,7 @@
     "faceread.eng.readySlow": "Ready (this device may take a little longer)",
     "faceread.eng.modelFail": "Could not get ready to read your face: {msg}",
     "faceread.eng.modelFail2": "Could not get ready to read your face — check the connection and tap \"Start camera\" again, or use \"Upload photo\" instead",
+    "faceread.eng.noGl": "This device cannot run the face reader. Try opening this page in the latest Safari or Chrome",
     "faceread.eng.modelSlow": "Getting ready to read your face is taking too long — check the connection and tap \"Start camera\" again, or use \"Upload photo\" instead",
     "faceread.eng.oom": "This device ran out of memory for live face analysis — close other tabs or apps and tap \"Start camera\" again, or use \"Upload photo\" instead",
     "faceread.eng.detStop": "Live face analysis stopped working on this device — close other tabs and tap \"Start camera\" again, or use \"Upload photo\" instead",

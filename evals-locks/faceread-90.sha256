@@ -1,0 +1,45 @@
+# locked 2026-11-23T15:58:39Z (tools/eval-guard.mjs lock, 3 files)
+da36bd7e91e078e36fd4299bfa8754e0de1914a113d10218caa31a8d7a218475  protocol.json
+ee1d86421d3e26d23d9408106f0a89a68b68c3415c1a1f57ee6572f6f3c28979  faceread-consistency-eval.mjs
+da36bd7e91e078e36fd4299bfa8754e0de1914a113d10218caa31a8d7a218475  protocol.json
+ee1d86421d3e26d23d9408106f0a89a68b68c3415c1a1f57ee6572f6f3c28979  tools/faceread-consistency-eval.mjs  # repo file (same commit as lock 2026-11-23T15:58:39Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-consistency-eval.mjs)
+# field only protocol.json (lock 2026-11-23T15:58:39Z: no repo file uses it)
+# locked 2026-11-23T15:59:03Z (tools/eval-guard.mjs lock, 3 files)
+da6c60515540d3b8cd1b4fe45b4e0a668e8ccc8df96af3a3ef882277e80116d0  faceread-consistency-eval.mjs
+d97a65c036253dc9de18ebba10206be39123a7dd5c2540e1fda1d50b8c2a0583  london-manifest.jsonl
+0ca1c41be71217785c024bbaac48863115780e1d39c075f3c7d5d1eec197d9ad  london-split-protocol.json
+da6c60515540d3b8cd1b4fe45b4e0a668e8ccc8df96af3a3ef882277e80116d0  tools/faceread-consistency-eval.mjs  # repo file (same commit as lock 2026-11-23T15:59:03Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-consistency-eval.mjs)
+# field only london-manifest.jsonl (lock 2026-11-23T15:59:03Z: no repo file uses it)
+# field only london-split-protocol.json (lock 2026-11-23T15:59:03Z: no repo file uses it)
+# locked 2026-11-23T16:07:30Z (tools/eval-guard.mjs lock, 1 file)
+0a38a627b1edf69d691a3ff658d340f60a9cb8c54ca3f557a6f12b44e499bcd8  faceread-consistency-eval.mjs
+0a38a627b1edf69d691a3ff658d340f60a9cb8c54ca3f557a6f12b44e499bcd8  tools/faceread-consistency-eval.mjs  # repo file (same commit as lock 2026-11-23T16:07:30Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-consistency-eval.mjs)
+# locked 2026-11-23T16:25:26Z (tools/eval-guard.mjs lock, 3 files)
+69791bd53496cec2f50b6101fe0b5f08d5b0a1e4ce183a22393a0d4ad4c020cd  faceread-consistency-eval.mjs
+63c32dea09d0e2fe1d27e17f9ff9f68b5cb5b92c81c5344ba9780b546a1f04e6  faceread-calibrate-mp.mjs
+75cf480f682dc7667229fec0d625ffb46276b7c7f639dcdd3687cdadec48c5e0  calibration-mp.json
+69791bd53496cec2f50b6101fe0b5f08d5b0a1e4ce183a22393a0d4ad4c020cd  tools/faceread-consistency-eval.mjs  # repo file (same commit as lock 2026-11-23T16:25:26Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-consistency-eval.mjs)
+63c32dea09d0e2fe1d27e17f9ff9f68b5cb5b92c81c5344ba9780b546a1f04e6  tools/faceread-calibrate-mp.mjs  # repo file (same commit as lock 2026-11-23T16:25:26Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-calibrate-mp.mjs)
+# field only calibration-mp.json (lock 2026-11-23T16:25:26Z: no repo file uses it)
+# locked 2026-11-23T17:00:36Z (tools/eval-guard.mjs lock, 1 file)
+0b09d666459562e288a4ba461ad0db5a2895e9e76ecb210c9b14444a14ac266b  faceread-calibrate-mp.mjs
+0b09d666459562e288a4ba461ad0db5a2895e9e76ecb210c9b14444a14ac266b  tools/faceread-calibrate-mp.mjs  # repo file (same commit as lock 2026-11-23T17:00:36Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-calibrate-mp.mjs)
+# locked 2026-11-23T18:49:33Z (tools/eval-guard.mjs lock, 1 file)
+f84be47363fa31d447b6e691966a2f030a14f2f1644dc23ebe48fbfeaed716a6  tests/report-late.e2e.mjs
+f84be47363fa31d447b6e691966a2f030a14f2f1644dc23ebe48fbfeaed716a6  tests/e2e/report-late.e2e.mjs  # repo file (same commit as lock 2026-11-23T18:49:33Z; field: ~/LENSIQ-field/evals/faceread-90/tests/report-late.e2e.mjs)
+# retired tests/report-late.e2e.mjs reason: the field copy was stored under a repo-looking path (tests/) by mistake; the same bytes (f84be473…) are re-locked below as report-late.e2e.mjs at the phase root, before any product change
+# locked 2026-11-23T18:50:19Z (tools/eval-guard.mjs lock, 1 file)
+f84be47363fa31d447b6e691966a2f030a14f2f1644dc23ebe48fbfeaed716a6  report-late.e2e.mjs
+f84be47363fa31d447b6e691966a2f030a14f2f1644dc23ebe48fbfeaed716a6  tests/e2e/report-late.e2e.mjs  # repo file (same commit as lock 2026-11-23T18:50:19Z; field: ~/LENSIQ-field/evals/faceread-90/report-late.e2e.mjs)
+# locked 2026-11-23T21:35:50Z (tools/eval-guard.mjs lock, 1 file)
+4269d9ca4679f7b5c3a5780a409b030f716d11d8a41ace4ca00fc09d1ac8ce2e  report-refresh.e2e.mjs
+4269d9ca4679f7b5c3a5780a409b030f716d11d8a41ace4ca00fc09d1ac8ce2e  tests/e2e/report-refresh.e2e.mjs  # repo file (same commit as lock 2026-11-23T21:35:50Z; field: ~/LENSIQ-field/evals/faceread-90/report-refresh.e2e.mjs)
+# locked 2026-11-23T21:37:23Z (tools/eval-guard.mjs lock, 1 file)
+3b27efd27b28a05fa6858cff3ed0726a3bad21ec8ff82b18f2df20bd146d5127  report-refresh.e2e.mjs
+3b27efd27b28a05fa6858cff3ed0726a3bad21ec8ff82b18f2df20bd146d5127  tests/e2e/report-refresh.e2e.mjs  # repo file (same commit as lock 2026-11-23T21:37:23Z; field: ~/LENSIQ-field/evals/faceread-90/report-refresh.e2e.mjs)
+# locked 2026-11-23T21:38:40Z (tools/eval-guard.mjs lock, 1 file)
+ea1268b5cd805db94a4bd806b16d5e88ff6bc45b93722c823f7e35a4f0f2d679  faceread-calibrate-mp.mjs
+ea1268b5cd805db94a4bd806b16d5e88ff6bc45b93722c823f7e35a4f0f2d679  tools/faceread-calibrate-mp.mjs  # repo file (same commit as lock 2026-11-23T21:38:40Z; field: ~/LENSIQ-field/evals/faceread-90/faceread-calibrate-mp.mjs)
+# locked 2026-11-23T21:40:49Z (tools/eval-guard.mjs lock, 1 file)
+f9fa08dbe2439b59dbfd43db6bfac96e23d804e1a576c94773db915219e78c9c  calibration-mp-v2.json
+# field only calibration-mp-v2.json (lock 2026-11-23T21:40:49Z: no repo file uses it)

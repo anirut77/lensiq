@@ -65,6 +65,7 @@
     "faceread.eng.readySlow": "已就绪（此设备可能稍慢一些）",
     "faceread.eng.modelFail": "无法准备读取面相：{msg}",
     "faceread.eng.modelFail2": "无法准备读取面相 — 请检查网络后再次点击“打开相机”，或改用“上传照片”",
+    "faceread.eng.noGl": "此设备无法运行面相读取功能，请用最新版 Safari 或 Chrome 打开此页面",
     "faceread.eng.modelSlow": "准备读取面相的时间过长 — 请检查网络后再次点击“打开相机”，或改用“上传照片”",
     "faceread.eng.oom": "设备内存不足，无法进行实时人脸分析 — 请关闭其他标签页或应用后再次点击“打开相机”，或改用“上传照片”",
     "faceread.eng.detStop": "实时人脸分析在此设备上已停止运行 — 请关闭其他标签页后再次点击“打开相机”，或改用“上传照片”",

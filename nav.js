@@ -804,7 +804,7 @@
     afterParse(function () {
       if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
       var sc = document.createElement("script");
-      sc.src = "lensiq-report.js?v=3"; sc.async = true;
+      sc.src = "lensiq-report.js?v=4"; sc.async = true;
       (document.head || document.documentElement).appendChild(sc);
     });
   }

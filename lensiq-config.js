@@ -46,6 +46,11 @@ window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
 
 window.LENSIQ_PALM_V2 = window.LENSIQ_PALM_V2 === true;
 window.LENSIQ_PALM_LANDMARKS = window.LENSIQ_PALM_LANDMARKS !== false;
+// Face reading on the tier-1 face model (MediaPipe Face Landmarker, LICENSES/TIERS.md M2) instead of face-api.js (M16/M17, tier 2,
+// legal item L23). Off: faceread.html keeps face-api.js until the owner decides (outbox 2026-11-23, item 18). lensiq-face-mesh68.js.
+// On localhost a test or a measurement may pick the engine with ?frengine=mp|faceapi (never on the live site).
+window.LENSIQ_FACEREAD_TIER1 = typeof location !== "undefined" && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]frengine=(mp|faceapi)\b/.test(location.search)
+  ? /[?&]frengine=mp\b/.test(location.search) : window.LENSIQ_FACEREAD_TIER1 === true;
 
 (function () {
   "use strict";
