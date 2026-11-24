@@ -229,6 +229,7 @@
     palaceZ: 0.45   // ค่า z แบ่งวังเป็น 3 ระดับ (≈ แบ่งสามส่วนเท่า ๆ กันถ้าการแจกแจงปกติ)
   };
 
+
   /* ชนิดอวัยวะจากรูปร่างที่วัดได้ (เป็นตัวแทนโดยประมาณ — ความหนาคิ้ว ชั้นตา แววตา สันจมูกด้านข้าง วัดจากจุด 68 จุดไม่ได้) */
   function browType(m) {
     var L = z(m, "browEye"), A = z(m, "browArch"), R = z(m, "browRise"), t = T.typeZ;
@@ -814,7 +815,7 @@
     averageLandmarks: averageLandmarks, estimateHairline: estimateHairline, measure: measure, classify: classify,
     elementScores: elementScores, buildReading: buildReading, ageArea: ageArea, quality: quality, lightStats: lightStats,
     pickFace: pickFace, createCapture: createCapture, synthFace: synthFace,
-    analyze: analyze, addStat: addStat, round: round, NORMS: NORMS, zOf: zOf,
+    analyze: analyze, addStat: addStat, round: round, NORMS: NORMS, zOf: zOf, engine: "faceapi",
     palaceScores: palaceScores, topPalaces: topPalaces, mountains: mountains, rivers: rivers, regions: regions, regionLight: regionLight, lightLabel: lightLabel, inPoly: inPoly,
     browType: browType, eyeType: eyeType, noseType: noseType, mouthType: mouthType, addLead: addLead, leadsToCsv: leadsToCsv, PALACES: PALACES, THRESH: T, HAIR: HAIR, QUALITY: Q, METRICS: METRICS, ELEMENTS: ELEMENTS
   };
@@ -827,7 +828,8 @@
 /* ===================================================================================== */
 if (typeof window !== "undefined" && typeof document !== "undefined" && document.getElementById("frApp")) (function () {
   "use strict";
-  var FR = window.FRCore, KB0 = window.FR_KB, KB = KB0;
+  // MP: the tier-1 face model (lensiq-face-mesh68.js) when window.LENSIQ_FACEREAD_TIER1 is on (lensiq-config.js; off), else face-api.js
+  var FR = window.FRCore, KB0 = window.FR_KB, KB = KB0, MP = window.LENSIQ_FACEREAD_TIER1 === true, meshLm = null;
   /* ---------- i18n: T() = ข้อความตามภาษา (ไทยเป็นค่าเริ่มต้น) / KB จีนจาก i18n/zh-fortune-faceread.js (FR_KB_ZH) ซ้อนบน KB ไทย ---------- */
   var T = function (k, th, v) { return window.LQI18N ? LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
   var isZh = function () { return !!(window.LQI18N && LQI18N.lang === "zh"); };
@@ -927,26 +929,26 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   // Limits: model download 30 s, one detection 8 s, 3 errors in a row. Locked test: tests/e2e/faceread-webkit.e2e.mjs.
   var FAKE = !!(window.LQDetect && LQDetect.isTest()); // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
   // iBUG 68: index of each point's mirror image (jaw, brows, nose, eyes, mouth) — used by the test seam above
-  var FLIP68 = [16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 27, 28, 29, 30, 35, 34, 33, 32, 31,
-    45, 44, 43, 42, 47, 46, 39, 38, 37, 36, 41, 40, 54, 53, 52, 51, 50, 49, 48, 59, 58, 57, 56, 55, 64, 63, 62, 61, 60, 67, 66, 65];
+  var FLIP68 = [16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 27, 28, 29, 30, 35, 34, 33, 32, 31, 45, 44, 43, 42, 47, 46, 39, 38, 37, 36, 41, 40, 54, 53, 52, 51, 50, 49, 48, 59, 58, 57, 56, 55, 64, 63, 62, 61, 60, 67, 66, 65];
   var MODEL_MS = 30000, DET_MS = 8000, ERR_MAX = 3, modelsP = null, backendNow = null, switched = false, detGen = 0, useCanvas = false, glLost = false;
   var withTimeout = LQDetect.withTimeout, failKind = LQDetect.failKind, nets = function () { return [faceapi.nets.tinyFaceDetector, faceapi.nets.faceLandmark68Net]; };
   var loadNets = function () { return Promise.all(nets().map(function (n) { return n.loadFromUri("vendor/models/"); })); };
   var TRY = " — ปิดแท็บอื่นแล้วกด เปิดกล้อง อีกครั้ง หรือใช้ปุ่ม อัปโหลดรูป แทน", NET = " — ตรวจอินเทอร์เน็ตแล้วกด เปิดกล้อง อีกครั้ง หรือใช้ปุ่ม อัปโหลดรูป แทน";
   var FAIL = { oom: "หน่วยความจำของเครื่องไม่พอสำหรับวิเคราะห์ใบหน้าสด" + TRY, detStop: "การวิเคราะห์ใบหน้าสดหยุดทำงานบนเครื่องนี้" + TRY,
-    modelSlow: "เตรียมการอ่านใบหน้านานเกินไป" + NET, modelFail2: "เตรียมการอ่านใบหน้าไม่สำเร็จ" + NET,
+    modelSlow: "เตรียมการอ่านใบหน้านานเกินไป" + NET, modelFail2: "เตรียมการอ่านใบหน้าไม่สำเร็จ" + NET, noGl: "เครื่องนี้เปิดตัวอ่านใบหน้าไม่ได้ ลองเปิดหน้านี้ด้วย Safari หรือ Chrome รุ่นล่าสุด",
     readFail2: "อ่านไม่สำเร็จ (วิเคราะห์หยุดหรือช้าเกินไป) — กด อ่านโหงวเฮ้ง อีกครั้ง หรือใช้ อัปโหลดรูป" }, failLine = function (id) { engineT("faceread.eng." + id, FAIL[id], null, "err"); };
   /** a lost WebGL context (iOS drops it under memory pressure) is handled by the live loop */
   function watchGl() { glLost = false; if (backendNow === "webgl") LQDetect.watchContextLost(function () { console.warn("faceread: WebGL context lost"); glLost = true; }); }
+  // tier 1 (MP): lensiq-face-mesh68.js + the vendored MediaPipe model; create(null, FR) also switches FR to that model's calibration
   function loadModels() {
     if (FAKE) { ready = true; engineT("faceread.eng.fake", "พร้อมใช้งาน (ตัวตรวจจับจำลองสำหรับทดสอบ)", null, "ok"); return Promise.resolve("fake"); }
-    if (!modelsP) modelsP = withTimeout(LQDetect.tfBackend().then(function (b) { return loadNets().then(function () { return b; }); }), MODEL_MS, "ModelTimeout").then(function (b) {
-      ready = true; backendNow = b; watchGl(); if (b === "webgl") engineT("faceread.eng.ready", "พร้อมใช้งาน", { b: b.toUpperCase() }, "ok");
+    if (!modelsP) modelsP = withTimeout(MP ? (window.LQFaceMesh68 ? Promise.resolve() : addScript("lensiq-face-mesh68.js?v=1")).then(function () { return window.LQFaceMesh68.create(null, FR); }).then(function (lm) { meshLm = lm; return "mp"; }) : LQDetect.tfBackend().then(function (b) { return loadNets().then(function () { return b; }); }), MODEL_MS, "ModelTimeout").then(function (b) {
+      ready = true; backendNow = b; watchGl(); if (b === "webgl" || MP) engineT("faceread.eng.ready", "พร้อมใช้งาน", { b: b.toUpperCase() }, "ok");
       else engineT("faceread.eng.readySlow", "พร้อมใช้งาน (เครื่องนี้อาจอ่านผลช้ากว่าปกติเล็กน้อย)", { b: b.toUpperCase() }, "ok"); return b;
     }).catch(function (e) { console.error(e); modelsP = null; var x = /** @type {any} */ (e instanceof Error ? e : new Error(String(e))); x.lqModel = true; throw x; });
     return modelsP;
   }
-  var modelMsg = function (e) { failLine({ oom: "oom", timeout: "modelSlow" }[failKind(e)] || "modelFail2"); };
+  var modelMsg = function (e) { failLine(e && e.lqNoGl ? "noGl" : { oom: "oom", timeout: "modelSlow" }[failKind(e)] || "modelFail2"); }; // noGl: tier-1 model cannot run here
   /** no stale "face OK" / enabled Read button while the detector is not running */
   function invalidate() { lastQ = null; btnRead.disabled = true; octx.clearRect(0, 0, ov.width, ov.height); renderQc([{ id: "face", ok: false, label: "พบใบหน้า", tip: "ให้อยู่ในกรอบวงรี" }]); }
   /** stops the camera and the loop; the Start button comes back (the photo upload stays) */
@@ -955,7 +957,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function liveDead(kind) { ready = false; stopLive(); failLine(kind === "oom" ? "oom" : "detStop"); }
   /** one switch to the backup backend (models reloaded on it), else liveDead */
   async function recover(e) {
-    ready = false; detGen++; invalidate(); var kind = failKind(e), next = switched ? null : LQDetect.nextBackend(backendNow);
+    ready = false; detGen++; invalidate(); var kind = failKind(e), next = switched || MP ? null : LQDetect.nextBackend(backendNow);
     console.warn("faceread: live detector failed (" + kind + ")" + (next ? ", switching to " + next : ""), e);
     if (!next) return liveDead(kind);
     switched = true; engineT("faceread.eng.switching", "กำลังเปลี่ยนไปใช้วิธีที่ช้ากว่าแต่ใช้ได้กับเครื่องนี้ รอสักครู่...");
@@ -978,6 +980,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         return { box: box, score: d.score, pts: pts };
       });
     }
+    if (MP) return meshLm.faces(input); // tier 1: box + 68 points in one pass; a failure there is said with the plain model line
     // .run(): face-api's task.then(ok) ignores the reject handler, so `await task` never settles when detection throws (iOS fault)
     var rs = await faceapi.detectAllFaces(input, new faceapi.TinyFaceDetectorOptions({ inputSize: size || 320, scoreThreshold: 0.45 })).withFaceLandmarks().run();
     return rs.map(function (r) {
@@ -1017,9 +1020,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
      whenever exactly one face is found. Rear camera = "photograph someone else": consent tick first, wording for the person
      holding the phone. Numbers only: no picture is stored or sent; no liveness, identity or emotion check. docs/FACE-CAPTURE.md */
   var fcapP = null, fc = null, mode = "self";
+  function addScript(src) { return new Promise(function (res, rej) { var s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
   function loadFaceCap() {
-    if (!fcapP) fcapP = new Promise(function (res, rej) { var s = document.createElement("script"); s.src = "lensiq-facecap.js?v=2"; s.onload = res;
-      s.onerror = function () { fcapP = null; rej(Object.assign(new Error("face guide script did not load"), { name: "NetworkError" })); }; document.head.appendChild(s); });
+    if (!fcapP) fcapP = addScript("lensiq-facecap.js?v=2").catch(function () { fcapP = null; throw Object.assign(new Error("face guide script did not load"), { name: "NetworkError" }); });
     return fcapP.then(function () { fc = fc || LQFaceCap.controller({ cam: cam, canvas: ov, count: countEl, button: btnRead, busy: function () { return busy; }, fire: capture }); fc.setMode(mode); });
   }
   function hideHint() { if (fc) fc.hide(); }

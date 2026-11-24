@@ -1,4 +1,8 @@
 Face Landmarker for LENSIQ Exam (lensiq-exam-face.js, exam-lab.html): face presence, face count and head pose only.
+Also used (2026-11-23, recorded here) by the faceread look preview (lensiq-look-preview.js) and, behind window.LENSIQ_FACEREAD_TIER1
+(off), by the belief-based face reading (lensiq-face-mesh68.js: face proportions for an entertainment reading, the card's
+"AR entertainment" use). The Exam sentence below stays true for Exam; on every page the model never identifies or matches a
+person, never scores expression (that model is not in this file) and gives no beauty score; no frame leaves the device.
 vendor/models/face-landmarker/
 
 It is never used to identify, match, describe or score a person, and never for expression: the facial-movement score
@@ -31,8 +35,9 @@ Licence: Apache License 2.0 — the model card says "LICENSED UNDER Apache Licen
   https://storage.googleapis.com/mediapipe-assets/Model%20Card%20MediaPipe%20Face%20Mesh%20V2.pdf
   The detector inside is BlazeFace short range, "MediaPipe BlazeFace Model Card (Short Range)" (2021-06-09), Apache-2.0.
   Copyright Google LLC / The MediaPipe Authors. LICENSE here is the Apache-2.0 text.
-  Training data (per the card): images captured by Google with smartphone cameras in real-world conditions through an AR
-  application; evaluated across 17 geographic subregions, perceived gender and Fitzpatrick skin tone.
+  Training data (per the Face Mesh V2 card): images from smartphone cameras in real-world conditions via an AR application;
+  evaluated across 17 geographic subregions, perceived gender and Fitzpatrick skin tone. The card does not use the word
+  "consented"; the BlazeFace (short range) card describes consented images from a mobile AR application.
 
 Model-card scope: intended use "AR entertainment"; out of scope: "human life-critical decisions"; "Predicted face
 landmarks do not provide facial recognition or identification and do not store any unique face representation."
