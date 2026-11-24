@@ -141,7 +141,7 @@
           en: ["{n}'s two-tone coat suggests two sides: calm and cheeky, each at the right moment.", "A two-colour coat suggests balance: knows when to play and when to rest."],
           zh: ["{n}双色分明，有两面性，该沉稳时沉稳，该调皮时调皮。", "双色的毛透出平衡感，知道什么时候玩，什么时候休息。"] },
         l: { th:
-          "ชอบกิจวัตรที่ชัดเจน เวลาเล่นที่แน่นอน และการได้นอนพักในที่ที่คุ้นเคย",
+          "ชอบกิจวัตรที่ชัดเจน เวลาเล่นที่สม่ำเสมอ และการได้นอนพักในที่ที่คุ้นเคย",
         en:
           "Likes a clear routine, a fixed play time and resting in familiar places.",
         zh: "喜欢规律的作息、固定的玩耍时间，以及在熟悉的地方休息。" },
@@ -305,8 +305,8 @@
         en: "In the Thai Phrommachat almanac, a dog of mixed white and red-brown is seen as a guardian of the home.", zh: "按泰国《梵天历书》的说法，白色夹红棕色的狗被视为守护家园的伙伴。" },
       { sp: "dog", coat: "tricolour", th: "ตามความเชื่อในตำราพรหมชาติ หมาขนขาวปนสีน้ำตาลแดง ถือเป็นผู้พิทักษ์ที่คอยดูแลบ้าน",
         en: "In the Thai Phrommachat almanac, a dog of mixed white and red-brown is seen as a guardian of the home.", zh: "按泰国《梵天历书》的说法，白色夹红棕色的狗被视为守护家园的伙伴。" },
-      { sp: "dog", th: "ตามความเชื่อจีน หมาเป็นสัญลักษณ์ของความซื่อสัตย์ และมีคำอวยพรว่า \"หมามา รวยมา\" (狗来富)",
-        en: "In Chinese belief the dog stands for loyalty, and a common blessing says \"when a dog arrives, prosperity follows\" (狗来富).", zh: "按中国民间说法，狗象征忠诚，俗话说\"狗来富\"。" },
+      { sp: "dog", th: "ตามความเชื่อจีน หมาเป็นสัญลักษณ์ของความซื่อสัตย์ และมีคำอวยพรว่า \"หมามา รวยมา\"",
+        en: "In Chinese belief the dog stands for loyalty, and a common blessing says \"when a dog arrives, prosperity follows\" (gou lai fu).", zh: "按中国民间说法，狗象征忠诚，俗话说\"狗来富\"。" },
       { sp: "cat", th: "ตามความเชื่อไทย แมวที่เข้ามาอยู่ในบ้านถือเป็นเพื่อนนำโชค ตำราแมวไทยยกย่องแมวหลายลักษณะว่าเป็นมงคล",
         en: "In Thai belief a cat who comes to live with you is a lucky companion; the Thai cat treatise praises many kinds of cats as auspicious.",
           zh: "按泰国的说法，来到家里的猫是带来好运的伙伴，泰国猫经把许多种猫都视为吉祥。" },

@@ -363,6 +363,7 @@
     $("#petCamOn").addEventListener("click", camOn);
     $("#petCamOff").addEventListener("click", () => camOff(false));
     $("#petSnap").addEventListener("click", snap);
+    $("#petPrint").addEventListener("click", () => { try { window.print(); } catch (e) { /* no print in this browser */ } });
     $("#petForm").addEventListener("submit", e => { e.preventDefault(); st.zNeed = true; read(false); });
     $("#petZRedraw").addEventListener("click", () => { st.zNeed = true; drawCard(); });
     $("#petPhotoOn").addEventListener("change", drawCard);

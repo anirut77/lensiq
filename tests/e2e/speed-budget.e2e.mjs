@@ -73,6 +73,10 @@ export const BUDGET = {
   "palm.html": { kb: 3390, req: 41 },
   "parking.html": { kb: 960, req: 36 },
   "photobooth.html": { kb: 43500, req: 43 },
+  // added 2026-11-24 (relock-pet90, acceptance petread.md S1 "a budget exists for the page"): the same rule from its measured weight
+  // (~/LENSIQ-field/evals/petread-90/results/bytes-petread.json: 3 cold unthrottled loads, 1134 KB / 28 requests each) x 1.10, KB up to
+  // the next 10, requests rounded up
+  "petread.html": { kb: 1250, req: 31 },
   "planner.html": { kb: 780, req: 28 },
   "pricing.html": { kb: 400, req: 21 },
   "privacy.html": { kb: 440, req: 19 },

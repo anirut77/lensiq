@@ -183,6 +183,20 @@ const FORTUNE = [
     await setVal(p, "#daySel", "4");
     await waitFor(p, () => (document.getElementById("recBox").textContent || "").trim().length > 20 && document.querySelectorAll("#week tbody tr").length === 7, null, 8000);
   } },
+  // AMENDED 2026-11-24 (relock-pet90, acceptance docs/acceptance/petread.md P: "petread is in iphone-pages-webkit"): the pet
+  // reading page. Synthetic picture (a drawn shape, no animal or person) + one scripted cat detection; the reading must show.
+  { page: "petread", q: "?fakedet", main: ["#petCamOn"], read: async p => {
+    await waitFor(p, () => !!(window.__LQPET && window.__LQPET.ready), null, 15000);
+    await p.evaluate(() => {
+      window.__LQ_FAKE_DET = k => (k === "pet" ? [{ cls: 15, score: 0.91, x: 0.2, y: 0.15, w: 0.5, h: 0.7 }] : []);
+      const c = document.createElement("canvas"); c.width = 640; c.height = 480; const x = c.getContext("2d");
+      x.fillStyle = "#5b8bd6"; x.fillRect(0, 0, 640, 480); x.fillStyle = "#e08a2e"; x.beginPath(); x.ellipse(300, 280, 150, 120, 0, 0, 7); x.fill();
+      window.__LQPET.useImage(c.toDataURL("image/png"));
+    });
+    await waitFor(p, () => window.__LQPET.st.detected === true, null, 15000);
+    await tap(p, "#petRead");
+    await waitFor(p, SECTIONS, 3, 15000);
+  } },
   { page: "report", main: ["#rpGo"], read: async (p, lang) => {
     await waitFor(p, () => !!window.__rp, null, 8000);
     await tap(p, '[data-rp-type="report_basic"]');
@@ -272,6 +286,8 @@ const CAMERA = [
     await waitFor(p, () => !document.getElementById("ws").hidden, null, 8000);
   }, start: "#camStart", stop: "#camStop" },
   { page: "palm", start: "#plStartCam", stop: CAM_OFF, alsoPagehide: true },
+  // AMENDED 2026-11-24 (relock-pet90): the pet reading page's own camera (start / stop buttons)
+  { page: "petread", q: "?fakedet", start: "#petCamOn", stop: "#petCamOff" },
   { page: "parking", pre: GATE_ACK, start: "#gkCamBtn", stop: "#gkCamBtn" },
   { page: "village", pre: GATE_ACK, start: "#gkCamBtn", stop: "#gkCamBtn" },
   { page: "photobooth", start: 'button[data-n="1"]', stop: CAM_OFF, alsoPagehide: true },
