@@ -548,9 +548,9 @@
     const src = (r.printRoot && doc.querySelector(r.printRoot)) || doc.querySelector(r.root);
     if (!src) return null;
     const include = o.include != null ? !!o.include : SP.includeChecked ? SP.includeChecked(r) : false;
-    // the annotated photo (face / palm reading): drawn by the page for paper; "include my photo" ON by default (OFF = outline)
+    // the annotated photo (face / palm reading): drawn by the page for paper; "include my photo" OFF by default (OFF = outline)
     const prov = root.LQPrintFig && root.LQPrintFig[r.root], size = o.size || "auto";
-    const photoOn = o.photo != null ? !!o.photo : SP.photoChecked ? SP.photoChecked(r) : true;
+    const photoOn = o.photo != null ? !!o.photo : SP.photoChecked ? SP.photoChecked(r) : false;
     const fig = typeof prov === "function" ? () => { try { return prov({ photo: photoOn, width: size === "80mm" ? 900 : 1800, size }); } catch (e) { return null; } } : null;
     const model = fromDom(src, { lang: SP.lang(), page: SP.page, photo: P.photo || "", include, personal: SP.personal ? SP.personal() : null, link: SP.link ? SP.link() : "", figure: fig });
     return mount(model, { size, paid: false });

@@ -311,21 +311,21 @@
       l.appendChild(c); l.appendChild(t); b.after(l);
     }
   }
-  /* "include my photo in the report" (face / palm reading, owner order 2026-11-17): ON by default; OFF = the annotated figure is
-     drawn on a neutral outline. The share card keeps its own rule (photo OFF by default). */
+  /* "include my photo in the report" (face / palm reading): OFF by default (acceptance sheet faceread X, 2026-11-24; was ON under
+     decision 82); OFF = the annotated figure is drawn on a neutral outline. The share card has the same rule. */
   function addPhotoOpt() {
     for (const b of doc.querySelectorAll('[data-lq-sp="print"]')) {
       const forSel = b.getAttribute("data-lq-sp-for") || "";
       if (doc.querySelector('[data-lq-sp-photo][data-lq-sp-for="' + forSel + '"]')) continue;
       const l = doc.createElement("label"); l.className = "lq-sp-opt"; l.setAttribute("data-lq-sp-photo", ""); l.setAttribute("data-lq-sp-for", forSel);
-      const c = doc.createElement("input"); c.type = "checkbox"; c.checked = true;
+      const c = doc.createElement("input"); c.type = "checkbox"; c.checked = false;
       const t = doc.createElement("span"); t.textContent = T("photoPrint");
       l.appendChild(c); l.appendChild(t); b.after(l);
     }
   }
   function photoChecked(r) {
     const l = r ? doc.querySelector('[data-lq-sp-photo][data-lq-sp-for="' + r.root + '"]') : null, c = l && l.querySelector("input");
-    return c ? !!c.checked : true;
+    return c ? !!c.checked : false;
   }
   const hasPersonal = () => { const x = personalOf(); return !!(x.birth || x.names.length || x.ages.length || x.typed.length); };
   function includeChecked(r) {
